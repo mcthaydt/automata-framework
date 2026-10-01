@@ -3802,8 +3802,7 @@ display/audio/input event handling, leaderboards, store.purchase/manage UI flows
 7. **`pauseBehavior`:** can it change at runtime (single-player menu vs online match)? Today it is declared only in `hello`.
 8. **`display.metrics.scale` (1 | 1.333):** what does it mean for the game's UI scale?
 9. **`saves.set.writeId`:** what format, and what uniqueness scope (per session, or across reloads)?
-10. **Spec churn:** `dlc` → `store` changed on 2026-10-01. Please confirm the catalog is final at F1.
-11. [anything else found while implementing]
+10. [anything else found while implementing]
 
 ## Verdict
 The stub is [usable] as the A2 Ruken-adapter target behind `Hosting`. Contract tests to carry into `automata-host`: allowlist, handshake, requests, saves, the Storage suite, and the catalog generator.
