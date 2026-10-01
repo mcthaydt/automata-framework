@@ -1,7 +1,7 @@
 # AutomataFramework: Overview & Decomposition (Master Spec)
 
 - **Date:** 2026-10-01
-- **Status:** Draft, awaiting user review
+- **Status:** Approved 2026-10-01
 - **Scope:** The whole framework at the architecture level. Each phase listed in §12 gets its own spec, then its own plan, then implementation.
 
 ---
@@ -80,6 +80,8 @@ Everything Ruken needs in `ruken.toml` is **generated** from this file and from 
 **Versioning** uses Changesets with strict semver. Breaking changes must include a codemod. While a game and the framework are being developed together, the game links the framework packages from the local workspace (or uses `examples/`).
 
 ## 4. Package map
+
+> **Naming:** `@automata/<name>` is shorthand in this document. The published packages are `@snekprty/automata-<name>` on GitHub Packages, from the repo `SNEKPRTY/automata-framework` (decided in the A0+A1 spec).
 
 | Package | Owns | Depends on |
 |---|---|---|
