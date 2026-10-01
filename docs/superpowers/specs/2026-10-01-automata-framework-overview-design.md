@@ -113,6 +113,7 @@ Games always opt in to `net` and `server` deliberately. A single-player bundle c
 | Presentation facts (one-off events) | **mitt** | screenShake, playSound, spawnParticles, toast | emitted from the snapshot/event diff; facts only, **never commands** |
 | Durable player data | **Save manager → Hosting storage** | save slots, settings | Save manager only |
 | Networked truth | **Colyseus server** | authoritative snapshots | server sim only |
+| Entitlements (owned items, subscriptions) | **Host (Ruken), via `Hosting`** | `items`, `subscriptions[].active` | host only; they enter the sim as timestamped commands, so replays reproduce. A grant-once ledger lives in Save. |
 | Server-owned durable data | **Postgres (Prisma/Neon)** | multiplayer accounts and world data | server only, networked games only |
 
 There is **no Redux store**. The automata-template's action/reducer discipline survives as **typed sim commands**, and its selectors survive as **mirror selectors**.
@@ -170,6 +171,7 @@ devices ─► Input manager ─► commands (per tick, ordered)
 | Localization | `en` is required. Languages are declared in the manifest. | content → manifest |
 | Analytics | Custom events must match `/^[a-z][a-z0-9_]{1,39}$/` and be declared in the manifest. | telemetry catalog → manifest |
 | Restart | The game can restart and return to the launcher without a page refresh. | runtime Scene |
+| Store | `store.purchase` (item or subscription SKU), `store.manage`, and `entitlements.changed`. Grant whenever `items` gains a SKU or a subscription becomes `active`, not only when a purchase resolves. The game draws its own pass track and rewards. | host (A2), store module (A9) |
 
 Inside Ruken, the host drawer owns Fullscreen, Exit, Language, and Accessibility entry points. The game's quick actions and Quit adapt to `Hosting` capabilities: Quit appears only under the Tauri adapter, and Fullscreen is delegated to `display.setFullscreen` when Ruken is the host.
 
@@ -228,13 +230,14 @@ Inside Ruken, the host drawer owns Fullscreen, Exit, Language, and Accessibility
 |---|---|---|
 | **A0 Spikes** (throwaway code) | ① Koota: deterministic iteration and snapshot/restore. ② Rapier deterministic 2D/3D under Ruken's CSP. ③ Three WebGPU→WebGL2 fallback, with a TSL post-process pass on both backends. ④ Pixi 8 on WebGPU and WebGL. ⑤ A Ruken SDK stub that conforms to P01. | A written verdict for each spike. Koota is confirmed, or we fall back to Miniplex. |
 | **A1 Foundation** | Monorepo (pnpm, turbo, TS, Biome, Vitest, Changesets), the boundary checker, `sim` (world, clock, RNG, commands, scheduler, resources, snapshot), `content` (TOML→Zod→JSON plus hash), and the sim and replay golden harnesses. | The same seed and inputs produce the same hash, verified in hosted CI. |
-| **A2 Skeleton** | The `runtime` app loop, Scene/Flow and Time managers, both render adapters, `host` (web and ruken adapters plus a mock Ruken host), `ui` screens splash → menu → blank gameplay → pause → end, plus credits and quick actions. `examples/blank-game` runs in both renderers. | It boots under the mock Ruken host and standalone. Nothing renders before ready. |
+| **A2 Skeleton** | The `runtime` app loop, Scene/Flow and Time managers, both render adapters, `host` (web and ruken adapters plus a mock Ruken host), `ui` screens splash → menu → blank gameplay → pause → end, plus credits and quick actions. Store plumbing in `Hosting`: entitlements, `store.purchase`, `store.manage`. `examples/blank-game` runs in both renderers. | It boots under the mock Ruken host and standalone. Nothing renders before ready. |
 | **A3 Ship pipeline** | Reusable workflows; OpenTofu for the GPU runner, Cloudflare dev/prod, and Neon; visual goldens and E2E; the Ruken zip, `ruken.toml`, and gate checks; a Tauri desktop build; a **minimal `create-game`**; a first prerelease of the packages. | `create-game x`, then push, puts x on the dev host and produces a Ruken zip, with no manual steps. |
 | **A4 Input + Display** | Input: keyboard and mouse, gamepad, touch, profiles, rebinding, cursor hiding, the touch overlay, gamepad focus navigation. Display: responsive layouts in the priority order above, safe area and `hostReserved`, UI scale, the stacking post-process (LCD, film grain, outline, dither, color grading), graphics settings, color-blind UI. | An E2E matrix of input devices × form factors passes. |
 | **A5 Save + Audio + Localization** | Save: 3 slots, autosave, versioning and migrations, string-encoded through Hosting. Audio buses, music, SFX, and audio settings. Paraglide in EN/ES/ZH/KO/PT/JA, plus a dyslexia font option. The full settings menu. | A save made on version N loads on version N+1 through its migration. Every UI string is localized. |
 | **A6 Debug + Telemetry** | imgui-js panels (state, ECS, perf HUD, toggles), with a registry so later systems can add overlays. The telemetry port, its three adapters, and consent. | Debug code is absent from release bundles. Events are validated against the catalog. |
 | **A7 Networking** (opt-in) | `net` and `server`: a Colyseus room running the sim, prediction and reconciliation, Prisma/Neon, and the Hetzner deploy. The example game in networked mode. | The two-client replay golden passes. Single-player bundles contain no netcode. |
 | **A8 CLI + 1.0** | The full `create`/`update`/`lock`/`deploy`/`validate`/`doctor`, the codemod infrastructure, docs, and the 1.0 release. | `update-game` migrates the example game from 0.x to 1.0. |
+| **A9 Store & Season Pass** | Items (DLC, extra content) and subscriptions (e.g. a battle pass), sold through Ruken's `store` capability: a grant-once ledger in Save; a TOML schema for SKUs, seasons, tiers, the XP curve, free/paid tracks and rewards; pass progression as sim state; pass-track and store UI with a `store.manage` entry; standalone/dev entitlement overrides. Challenges hook into C2 later. Rewards should be cosmetic unless server-validated (A7), because saves are client-side. | A replay with entitlement changes reproduces. A purchase that times out still grants when entitlements arrive later. A lapsed subscription locks the paid track without losing earned progress. |
 
 **Deferred beyond Part A:**
 - Tauri mobile, until there is a standalone app-store target. Ruken mobile is a PWA.
