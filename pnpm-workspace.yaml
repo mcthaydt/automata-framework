@@ -1,0 +1,6 @@
+packages:
+  - packages/*
+  - tooling/*
+  - examples/*
+onlyBuiltDependencies:
+  - lefthook

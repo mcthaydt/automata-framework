@@ -242,7 +242,7 @@ Read `docs/superpowers/specs/2026-10-01-automata-framework-overview-design.md` f
 - **Naming:** role suffixes (`*.component.ts`, `*.system.ts`, `*.command.ts`, `*.event.ts`, `*.resource.ts`, `*.plugin.ts`, `*.manager.ts`, `*.schema.ts`, `*.migration.ts`, `*.test.ts`). Folders group by feature.
 - **Determinism is cross-engine:** goldens must match bit-for-bit in Node, Chromium, WebKit and Firefox. Never accept a hash mismatch as "flaky".
 - Run `pnpm format` before committing. Use Conventional Commits.
-- Packages publish as `@snekprty/automata-<name>` (GitHub Packages, `SNEKPRTY/automata-framework`).
+- Packages publish as `@mcthaydt/automata-<name>` (GitHub Packages, `mcthaydt/automata-framework`).
 - Heavy GPU, visual and E2E suites run on the Linux GPU runner (from A3), not on the developer's Mac.
 ```
 
@@ -2429,7 +2429,7 @@ git commit -m "spike(s4): Pixi 8 WebGPU/WebGL dither parity (vertex-stage coords
   - **SDK:** `isAllowedHostOrigin(host, game)`, and `initRuken(opts, env): Promise<RukenStub>` with `hosted`, `ready`, `granted`, `player`, `entitlements`, `onEntitlements`, `lifecycle`, `saves { storage, status, on, onChanged, flush }` and `request`.
   - **Test hosts:** `createFakeFrame` and `createMockHost` (Node), and `domEnv()` (browser).
 
-  A2's `@snekprty/automata-host` Ruken adapter is built against these shapes until the real `@ruken/sdk` exists.
+  A2's `@mcthaydt/automata-host` Ruken adapter is built against these shapes until the real `@ruken/sdk` exists.
 
 - [ ] **Step 1: Write the protocol module (P01 §5–§7 as code and data)**
 

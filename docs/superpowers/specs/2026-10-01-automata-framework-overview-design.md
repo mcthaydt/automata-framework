@@ -81,7 +81,7 @@ Everything Ruken needs in `ruken.toml` is **generated** from this file and from 
 
 ## 4. Package map
 
-> **Naming:** `@automata/<name>` is shorthand in this document. The published packages are `@snekprty/automata-<name>` on GitHub Packages, from the repo `SNEKPRTY/automata-framework` (decided in the A0+A1 spec).
+> **Naming:** `@automata/<name>` is shorthand in this document. The published packages are `@mcthaydt/automata-<name>` on GitHub Packages, from the repo `mcthaydt/automata-framework` (decided in the A0+A1 spec).
 
 | Package | Owns | Depends on |
 |---|---|---|

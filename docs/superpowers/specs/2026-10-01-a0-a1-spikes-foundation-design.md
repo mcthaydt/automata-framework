@@ -1,7 +1,7 @@
 # A0 + A1: Spikes and Foundation
 
 - **Date:** 2026-10-01
-- **Status:** Draft, awaiting user review
+- **Status:** A0 complete 2026-10-01; A1 pending Plan 2
 - **Parent spec:** [`2026-10-01-automata-framework-overview-design.md`](./2026-10-01-automata-framework-overview-design.md), §12 Part A.
 
 This spec covers two phases:
@@ -16,7 +16,7 @@ Nothing in A0 or A1 renders, takes device input, or touches a host. Those start 
 
 | Topic | Decision |
 |---|---|
-| Repo and registry | The repo is `SNEKPRTY/automata-framework`. Packages publish privately to GitHub Packages as `@snekprty/automata-<name>`. Game repos authenticate in CI with a read token. |
+| Repo and registry | The repo is `mcthaydt/automata-framework`. Packages publish privately to GitHub Packages as `@mcthaydt/automata-<name>`. Game repos authenticate in CI with a read token. |
 | Naming | Files carry a **role suffix**: `*.component.ts`, `*.system.ts`, `*.command.ts`, `*.event.ts`, `*.resource.ts`, `*.plugin.ts`, `*.manager.ts`, `*.schema.ts`, `*.migration.ts`, `*.test.ts`. Folders group by **feature**, not by role. Utilities use plain names (`rng.ts`, `hash.ts`). A style test enforces this. |
 | Determinism | **Cross-engine**: results must be bit-exact across V8 (Node, Chrome), JavaScriptCore (Safari, iOS) and SpiderMonkey (Firefox). See §4.4. |
 | ECS | Koota, provided spike S1 passes; otherwise Miniplex behind the same facade (§4.1). |
@@ -51,9 +51,9 @@ Nothing in A0 or A1 renders, takes device input, or touches a host. Those start 
 ```
 automata-framework/
 ├─ packages/
-│  ├─ sim/            @snekprty/automata-sim
-│  ├─ content/        @snekprty/automata-content
-│  └─ testing/        @snekprty/automata-testing      (sim goldens + replay only in A1)
+│  ├─ sim/            @mcthaydt/automata-sim
+│  ├─ content/        @mcthaydt/automata-content
+│  └─ testing/        @mcthaydt/automata-testing      (sim goldens + replay only in A1)
 ├─ tooling/
 │  ├─ check-boundaries/   import and global ban checker for `sim`
 │  └─ check-style/        role-suffix and folder rules
@@ -104,7 +104,7 @@ Jobs: `install` → (`lint`, `typecheck`, `boundaries`, `style`, `unit`) in para
 
 Target: under 10 minutes. The GPU runner and visual goldens arrive in A3.
 
-## 4. `@snekprty/automata-sim`
+## 4. `@mcthaydt/automata-sim`
 
 ### 4.1 Public API
 
@@ -184,7 +184,7 @@ There are no arbitrary object or array fields. Collections either become resourc
 
 ### 4.5 Physics plugins
 
-- The plugins are `physics2d()` and `physics3d()`, from the subpath exports `@snekprty/automata-sim/physics-2d` and `/physics-3d`. Each lazy-loads its Rapier wasm, so `createSim` is async.
+- The plugins are `physics2d()` and `physics3d()`, from the subpath exports `@mcthaydt/automata-sim/physics-2d` and `/physics-3d`. Each lazy-loads its Rapier wasm, so `createSim` is async.
 - Components: `RigidBody` (kind, plus linear and angular damping), `Collider` (shape, size, sensor flag, collision groups), and `Transform2D` / `Transform3D` (render rows).
 - Systems:
   - `physics.syncIn` (prePhysics) applies ECS-side changes to Rapier.
@@ -223,7 +223,7 @@ Components are render-flagged by default. A component can opt out with `{ render
 
 In A1 the delta is only produced and tested. A2 consumes it.
 
-## 5. `@snekprty/automata-content`
+## 5. `@mcthaydt/automata-content`
 
 - **Schema registration:**
 
@@ -246,7 +246,7 @@ In A1 the delta is only produced and tested. A2 consumes it.
 - **Tuning.** Fields in `tuning.toml` may declare `{ value, min, max, step }`. The compiler checks that each value is in range and emits the metadata for A6's debug sliders.
 - **Generators.** `defineContentGenerator(name, (compiled) => files)` is only a hook in A1. The telemetry catalog, `ruken.toml`, and locale-key generators come in later phases.
 
-## 6. `@snekprty/automata-testing` (sim half)
+## 6. `@mcthaydt/automata-testing` (sim half)
 
 - **`simGolden({ name, plugins, content, seed, script, ticks, every })`**
   - Runs the sim, recording `{ tick, hash }` every `every` ticks.
@@ -305,3 +305,22 @@ A1 is done when all of the following hold:
 | Deterministic math is too slow for hot loops | S5 measures the cost. Hot paths can use lookup tables or polynomial approximations, which are still bit-exact. |
 | WebKit and Firefox in Vitest browser mode are flaky in CI | Pin the Playwright browser versions and retry the browser job once. Never accept a hash mismatch as flaky. |
 | The P01 spec changes before F1 | S6 is a stub and its contract tests are generated from P01. Gaps are reported to Ruken before 2026-10-16. |
+
+## 11. Spike outcomes (A0 closed)
+
+See `docs/spikes/README.md` and `docs/adr/0001-ecs-choice.md`. All six spikes passed: S6 is usable, and every determinism check is identical in Node, Chromium, WebKit and Firefox. These change the A1 design:
+
+- **§1 ECS:** Koota is confirmed (ADR 0001).
+- **§4.4 rule 1:** the facade iterates in **StableId order everywhere order matters**, through an incrementally maintained index. Native Koota order is deterministic across engines but does not survive a restore. Sorting per tick costs about 4×, so don't do it.
+- **§4.4 rule 3:** the `Math.*` allowlist is `sqrt, fround, round, floor, ceil, trunc, abs, min, max, sign, imul`; `round` and `imul` are additions. `automata-sim/math` is the S5 `dmath` module. The boundary checker strips comments before scanning.
+- **§3.3 / §4.4 rule 3 (final review):** `check-boundaries` must also ban the **`**` and `**=` operators** in `packages/sim/src`. They compute `Math.pow` and are engine-dependent. Biome's recommended `useExponentiationOperator` auto-fix rewrites `Math.pow(x, y)` into `x ** y` during `pnpm format`, which happened to the S5 negative control. So `biome.json` must disable `style/useExponentiationOperator` for `packages/sim/**`; otherwise a banned `Math.pow` is silently laundered into an operator a `Math.*`-only scan never sees. Sim code uses `dmath.pow` or explicit multiplication.
+- **§4.7 (final review):** Koota's `Changed` modifier does **not** fire for a default `updateEach`; S1 verified only Added and Removed. The facade's field setters write with `changeDetection: 'always'` or `entity.set`, and A1's render-delta golden asserts a non-empty `changed` list after a field write.
+- **§4.5:** use the Rapier `-deterministic-compat` 0.21 builds. Their `takeSnapshot()` bytes are canonical across engines and round-trip exactly, so they go into the snapshot's physics section and `sim.hash()` verbatim.
+- **§4.6:** the entity and relation sections use the S1 encoding:
+  - rows sorted by StableId;
+  - a presence-flag byte, then little-endian f32 / i32 fields;
+  - relations as sorted `(sid, data)` lists.
+  Restore spawns entities in StableId order first, then adds relations.
+- **§4.7:** the first `RenderDelta` after `restore()` is a **full resync**, because Koota's change tracking reports everything as added on that tick.
+- **§3.4 CI:** the Vitest browser projects must pre-declare their browser-side dependencies in `optimizeDeps.include`. Otherwise a cold cache reloads the test pages mid-run and collection fails.
+- **A2/A4 (from S3/S4):** one TSL post stack for Three. Pixi filters are GLSL + WGSL pairs that take pixel position from the vertex stage. WebGPU canvases capture black in headless Chromium on macOS, so verify the capture path on the A3 runner.

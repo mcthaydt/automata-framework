@@ -1,0 +1,8 @@
+pre-commit:
+  piped: true
+  commands:
+    1_biome:
+      glob: "*.{ts,js,json,jsonc}"
+      run: pnpm exec biome check --no-errors-on-unmatched {staged_files}
+    2_affected-unit-tests:
+      run: pnpm exec turbo run test:unit --filter="...[HEAD]"
