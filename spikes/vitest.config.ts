@@ -2,6 +2,16 @@ import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  // Pre-bundle every dependency the browser tests import. Otherwise Vite discovers them mid-run on a cold cache,
+  // re-optimizes, and reloads the test pages (fails collection in Chromium/WebKit).
+  optimizeDeps: {
+    include: [
+      'koota',
+      'miniplex',
+      '@dimforge/rapier2d-deterministic-compat',
+      '@dimforge/rapier3d-deterministic-compat',
+    ],
+  },
   test: {
     testTimeout: 120_000,
     silent: false, // spike tests print measurements with console.log; Vitest hides passing-test logs by default
