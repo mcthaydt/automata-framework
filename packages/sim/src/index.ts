@@ -1,0 +1,37 @@
+// @mcthaydt/automata-sim: the deterministic simulation core (A0+A1 spec §4). Deterministic math is the
+// separate `./math` export. Game code never imports Koota directly.
+
+export type { CommandRecord, EntityRef, SimContext, SpawnPart } from './define/context'
+export {
+  type CommandDef,
+  type ComponentDef,
+  defineCommand,
+  defineComponent,
+  defineEvent,
+  definePlugin,
+  defineResource,
+  defineSystem,
+  type EventDef,
+  PHASES,
+  type Phase,
+  type PluginDef,
+  type ResourceDef,
+  type SystemDef,
+} from './define/definitions'
+export type { FieldSchema, FieldType, FieldValue, FieldValues } from './define/fields'
+export { canonicalJson } from './hash/canonical'
+export { hex64, xxhash64 } from './hash/xxhash64'
+export type { Rng, RngState } from './rng/rng'
+export { sortedEntries, sortedKeys } from './util/sorted'
+export type { FieldRecord, RenderDelta, RenderRow } from './world/entity-store'
+export {
+  type Command,
+  createSim,
+  type RejectedCommand,
+  type RejectReason,
+  type Sim,
+  type SimEvent,
+  type SimOptions,
+  type StepResult,
+} from './world/sim'
+export { SNAPSHOT_VERSION, SnapshotFormatError, SnapshotMismatchError } from './world/snapshot'
