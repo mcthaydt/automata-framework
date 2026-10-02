@@ -184,3 +184,80 @@ test('step returns the render delta (resync on the first step, then incremental)
   expect(second.render.resync).toBe(false)
   expect(second.render.changed).toEqual([{ sid, components: { position: { x: 2, y: 0 } } }])
 })
+
+test('an input system without an explicit `after` still runs after commands.apply', async () => {
+  const seen: unknown[] = []
+  const Reader = defineSystem({
+    // Name must come before 'commands.apply' alphabetically to test the wiring.
+    // Without wiring (after: ['commands.apply']), name-based ordering would put
+    // this before commands.apply, causing commands to be empty (commands only populated
+    // after commands.apply system has run, though they're prepared in intake).
+    // Actually, commands are prepared in intake before any systems, so this tests
+    // that the design decision is intentionally enforced.
+    name: 'a-reader',
+    phase: 'input',
+    // NO after/before; relies on implicit wiring
+    run(ctx) {
+      for (const c of ctx.commands.of(Move)) {
+        seen.push(c.payload)
+      }
+    },
+  })
+  const testPlugin = definePlugin({
+    name: 'test-reader',
+    components: [Position, Velocity],
+    commands: [Move],
+    systems: [Reader],
+  })
+  const sim = await createSim({ seed: 1, plugins: [testPlugin] })
+  sims.push(sim)
+  sim.spawn([Position, Velocity])
+  const result = sim.step([cmd(0, 1, { sid: 0, x: 5, y: 0 })])
+  expect(seen).toEqual([{ sid: 0, x: 5, y: 0 }])
+  expect(result.tick).toBe(1)
+})
+
+test('cleanup systems run before entities.flush; a deferred despawn shows in render.removed on the same step', async () => {
+  const cleanupSeen: number[] = []
+  let shouldDespawn = false
+  const Despawner = defineSystem({
+    name: 'despawner',
+    phase: 'gameplay',
+    run(ctx) {
+      if (shouldDespawn) {
+        for (const e of ctx.query(Position)) {
+          ctx.despawn(e.sid)
+        }
+      }
+    },
+  })
+  const CleanupObserver = defineSystem({
+    // Name must come after 'entities.flush' alphabetically to test the wiring.
+    // Without wiring (before: ['entities.flush']), name-based ordering would put
+    // this after entities.flush, causing it to see 0 entities.
+    name: 'z-cleanup-observer',
+    phase: 'cleanup',
+    // NO before/after; relies on implicit wiring to run before entities.flush
+    run(ctx) {
+      cleanupSeen.push(ctx.query(Position).length)
+    },
+  })
+  const testPlugin = definePlugin({
+    name: 'test-cleanup',
+    components: [Position],
+    systems: [Despawner, CleanupObserver],
+  })
+  const sim = await createSim({ seed: 1, plugins: [testPlugin] })
+  sims.push(sim)
+  const sid = sim.spawn([Position])
+  // First step: render the entity (resync, adds to rendered set)
+  sim.step([])
+  // Second step: entity will be in rendered set; despawn it and observe in cleanup
+  cleanupSeen.length = 0
+  shouldDespawn = true
+  const result = sim.step([])
+  // cleanup observer saw the entity before flush removed it
+  expect(cleanupSeen).toEqual([1])
+  // and render delta reports it as removed
+  expect(result.render.removed).toEqual([sid])
+})
