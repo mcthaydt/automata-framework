@@ -243,6 +243,8 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     const seen = new Set<string>()
     for (const c of commands) {
       if (
+        typeof c !== 'object' ||
+        c === null ||
         !isU(c.tick, 4294967295) ||
         !isU(c.source, 255) ||
         !isU(c.seq, 4294967295) ||

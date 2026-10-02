@@ -98,6 +98,15 @@ test('commands are validated, sorted by (source, seq), and only those for the cu
   expect(r.rejected.map((x) => x.reason)).toEqual(['wrong-tick', 'invalid-payload', 'unknown-command'])
 })
 
+test('null and non-object entries in the command list are rejected as bad-header, not thrown', async () => {
+  const sim = await make()
+  const a = sim.spawn([Position, Velocity])
+  const r = sim.step([null as never, 5 as never, cmd(0, 1, { sid: a, x: 4, y: 0 })])
+  expect(r.rejected.map((x) => x.reason)).toEqual(['bad-header', 'bad-header'])
+  expect(sim.entity(a)?.get(Velocity).x).toBe(4)
+  expect(sim.resource(Score).value).toBe(1)
+})
+
 test('emit validates event payloads with the event schema', async () => {
   const Bad = defineSystem({
     name: 'bad-emit',
