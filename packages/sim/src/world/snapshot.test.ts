@@ -128,15 +128,12 @@ test('snapshot rejects a resource that does not round-trip through JSON, naming 
   expect(() => sim.snapshot()).toThrow(/resource "mapres"/)
 })
 
-test('snapshot writes the schema-checked resource value, so extra keys are not written', async () => {
+test('snapshot rejects a resource with keys outside its schema, naming it', async () => {
   const Plain = defineResource('plain', z.object({ n: z.number() }), () => ({ n: 1 }))
   const plugins = [definePlugin({ name: 'plain', resources: [Plain] })]
   const sim = await make({ plugins })
   ;(sim.resource(Plain) as Record<string, unknown>).extra = 'not in the schema'
-  const bytes = sim.snapshot()
-  const other = await make({ plugins })
-  other.restore(bytes)
-  expect(other.snapshot()).toEqual(bytes)
+  expect(() => sim.snapshot()).toThrow(/resource "plain"/)
 })
 
 describe('restore rejects structurally corrupt snapshots atomically', () => {

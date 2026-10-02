@@ -312,6 +312,9 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         const again = def.schema.safeParse(JSON.parse(json))
         if (!again.success || canonicalJson(again.data) !== json)
           throw new Error(`resource "${id}" does not round-trip through JSON`)
+        // Zod strips unknown keys, so the checked copy would hide state that restore cannot reproduce.
+        if (canonicalJson(resources.get(id)) !== json)
+          throw new Error(`resource "${id}" has values outside its schema`)
         return { id, json }
       })
       return encodeSnapshot(
