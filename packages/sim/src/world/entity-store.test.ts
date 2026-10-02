@@ -133,3 +133,33 @@ test('get() returns a frozen copy: mutating it throws instead of silently doing 
   }).toThrow(TypeError)
   expect(e.get(Position).x).toBe(0)
 })
+
+test('losing the last render component emits removed', () => {
+  const s = make()
+  const sid = s.spawn([Position, Velocity])
+  s.takeDelta(false)
+  const e = s.ref(sid) as NonNullable<ReturnType<EntityStore['ref']>>
+  e.remove(Position)
+  expect(s.takeDelta(false)).toEqual({ resync: false, added: [], changed: [], removed: [sid] })
+})
+
+test('gaining the first render component emits added', () => {
+  const s = make()
+  const sid = s.spawn([Velocity])
+  s.takeDelta(false)
+  const e = s.ref(sid) as NonNullable<ReturnType<EntityStore['ref']>>
+  e.add(Position, { x: 1 })
+  const d = s.takeDelta(false)
+  expect(d.added).toEqual([{ sid, components: { position: { x: 1, y: 0 } } }])
+  expect(d.changed).toEqual([])
+})
+
+test('remove-then-despawn in one tick emits removed', () => {
+  const s = make()
+  const sid = s.spawn([Position])
+  s.takeDelta(false)
+  const e = s.ref(sid) as NonNullable<ReturnType<EntityStore['ref']>>
+  e.remove(Position)
+  s.despawn(sid)
+  expect(s.takeDelta(false).removed).toEqual([sid])
+})

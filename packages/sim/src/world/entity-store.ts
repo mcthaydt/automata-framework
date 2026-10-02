@@ -33,9 +33,8 @@ export class EntityStore {
   private readonly registered: Map<string, ComponentDef>
   private readonly entities = new Map<number, Entity>()
   private readonly live: number[] = [] // ascending: StableIds are monotonic, so spawn appends
-  private readonly addedThisTick = new Set<number>()
-  private readonly changedThisTick = new Set<number>()
-  private readonly removedThisTick = new Set<number>()
+  private readonly dirty = new Set<number>() // entities changed since last delta
+  private readonly rendered = new Set<number>() // entities the renderer currently holds
   nextId = 1
 
   constructor(components: readonly ComponentDef[]) {
@@ -74,7 +73,7 @@ export class EntityStore {
   }
 
   private markChanged(sid: number, def: ComponentDef): void {
-    if (def.render && !this.addedThisTick.has(sid)) this.changedThisTick.add(sid)
+    if (def.render) this.dirty.add(sid)
   }
 
   private alive(sid: number): Entity {
@@ -99,19 +98,16 @@ export class EntityStore {
     }
     this.entities.set(sid, e)
     this.live.push(sid)
-    this.addedThisTick.add(sid)
+    this.dirty.add(sid)
     return sid
   }
 
   despawn(sid: number): void {
     const e = this.alive(sid)
-    const hadRender = this.renderComponents(e).length > 0
     e.destroy()
     this.entities.delete(sid)
     this.live.splice(this.live.indexOf(sid), 1)
-    this.changedThisTick.delete(sid)
-    if (this.addedThisTick.has(sid)) this.addedThisTick.delete(sid)
-    else if (hadRender) this.removedThisTick.add(sid)
+    this.dirty.add(sid)
   }
 
   liveSids(): readonly number[] {
@@ -195,18 +191,37 @@ export class EntityStore {
 
   /** Render changes since the last call, then clears the tracking (built-in `render.collect`). */
   takeDelta(resync: boolean): RenderDelta {
-    const delta: RenderDelta = resync
-      ? { resync: true, added: this.rows(this.live), changed: [], removed: [] }
-      : {
-          resync: false,
-          added: this.rows(this.addedThisTick),
-          changed: this.rows([...this.changedThisTick].filter((sid) => !this.addedThisTick.has(sid))),
-          removed: [...this.removedThisTick].sort((a, b) => a - b),
-        }
-    this.addedThisTick.clear()
-    this.changedThisTick.clear()
-    this.removedThisTick.clear()
-    return delta
+    if (resync) {
+      const liveRenderSids = this.live.filter((sid) => this.row(sid) !== null)
+      const added = this.rows(liveRenderSids)
+      this.rendered.clear()
+      for (const sid of liveRenderSids) this.rendered.add(sid)
+      this.dirty.clear()
+      return { resync: true, added, changed: [], removed: [] }
+    }
+
+    const added: RenderRow[] = []
+    const changed: RenderRow[] = []
+    const removed: number[] = []
+
+    for (const sid of [...this.dirty].sort((a, b) => a - b)) {
+      const wasRendered = this.rendered.has(sid)
+      const row = this.entities.has(sid) ? this.row(sid) : null
+
+      if (!wasRendered && row) {
+        added.push(row)
+        this.rendered.add(sid)
+      } else if (wasRendered && row) {
+        changed.push(row)
+      } else if (wasRendered && !row) {
+        removed.push(sid)
+        this.rendered.delete(sid)
+      }
+      // !wasRendered && !row → nothing
+    }
+
+    this.dirty.clear()
+    return { resync: false, added, changed, removed }
   }
 
   dispose(): void {
