@@ -35,6 +35,12 @@ jobs:
     name: parity (chromium, webkit, firefox)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Browsers and their OS deps come preinstalled and pinned; installing them per run blew the 10-minute budget.
+    # Keep the tag in step with the `playwright` devDependency.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      env:
+        HOME: /root # Firefox refuses to start when $HOME isn't owned by the current (root) user
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -43,5 +49,4 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @mcthaydt/automata-sim exec playwright install --with-deps chromium webkit firefox
       - run: pnpm --filter @mcthaydt/automata-sim exec vitest run --project browsers
