@@ -1,0 +1,27 @@
+{
+  "name": "@spikes/all",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@dimforge/rapier2d-deterministic-compat": "0.21.0",
+    "@dimforge/rapier3d-deterministic-compat": "0.21.0",
+    "@types/node": "^26.6.4",
+    "@types/pngjs": "^6.0.5",
+    "@types/three": "^0.186.0",
+    "@vitest/browser-playwright": "5.0.3",
+    "jsdom": "^30.1.1",
+    "koota": "0.6.6",
+    "miniplex": "2.0.0",
+    "pixelmatch": "7.2.0",
+    "pixi.js": "8.21.0",
+    "playwright": "1.63.0",
+    "pngjs": "7.0.0",
+    "three": "0.186.1",
+    "vite": "8.3.2",
+    "vitest": "5.0.3"
+  }
+}
