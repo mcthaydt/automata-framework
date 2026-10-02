@@ -1,7 +1,7 @@
 # A0 + A1: Spikes and Foundation
 
 - **Date:** 2026-10-01
-- **Status:** Draft, awaiting user review
+- **Status:** A0 complete 2026-10-01; A1 pending Plan 2
 - **Parent spec:** [`2026-10-01-automata-framework-overview-design.md`](./2026-10-01-automata-framework-overview-design.md), §12 Part A.
 
 This spec covers two phases:
@@ -305,3 +305,20 @@ A1 is done when all of the following hold:
 | Deterministic math is too slow for hot loops | S5 measures the cost. Hot paths can use lookup tables or polynomial approximations, which are still bit-exact. |
 | WebKit and Firefox in Vitest browser mode are flaky in CI | Pin the Playwright browser versions and retry the browser job once. Never accept a hash mismatch as flaky. |
 | The P01 spec changes before F1 | S6 is a stub and its contract tests are generated from P01. Gaps are reported to Ruken before 2026-10-16. |
+
+## 11. Spike outcomes (A0 closed)
+
+See `docs/spikes/README.md` and `docs/adr/0001-ecs-choice.md`. All six spikes passed: S6 is usable, and every determinism check is identical in Node, Chromium, WebKit and Firefox. These change the A1 design:
+
+- **§1 ECS:** Koota is confirmed (ADR 0001).
+- **§4.4 rule 1:** the facade iterates in **StableId order everywhere order matters**, through an incrementally maintained index. Native Koota order is deterministic across engines but does not survive a restore. Sorting per tick costs about 4×, so don't do it.
+- **§4.4 rule 3:** the `Math.*` allowlist is `sqrt, fround, round, floor, ceil, trunc, abs, min, max, sign, imul`; `round` and `imul` are additions. `automata-sim/math` is the S5 `dmath` module. The boundary checker strips comments before scanning.
+- **§4.5:** use the Rapier `-deterministic-compat` 0.21 builds. Their `takeSnapshot()` bytes are canonical across engines and round-trip exactly, so they go into the snapshot's physics section and `sim.hash()` verbatim.
+- **§4.6:** the entity and relation sections use the S1 encoding:
+  - rows sorted by StableId;
+  - a presence-flag byte, then little-endian f32 / i32 fields;
+  - relations as sorted `(sid, data)` lists.
+  Restore spawns entities in StableId order first, then adds relations.
+- **§4.7:** the first `RenderDelta` after `restore()` is a **full resync**, because Koota's change tracking reports everything as added on that tick.
+- **§3.4 CI:** the Vitest browser projects must pre-declare their browser-side dependencies in `optimizeDeps.include`. Otherwise a cold cache reloads the test pages mid-run and collection fails.
+- **A2/A4 (from S3/S4):** one TSL post stack for Three. Pixi filters are GLSL + WGSL pairs that take pixel position from the vertex stage. WebGPU canvases capture black in headless Chromium on macOS, so verify the capture path on the A3 runner.
