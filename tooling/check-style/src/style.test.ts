@@ -44,3 +44,34 @@ test('a role file may export several definitions of its own role and plain helpe
   const code = `${comp}export const Mana = defineComponent('mana', { mp: 'i32' })\nexport const MAX = 9\n`
   expect(checkFile('/p/src/stats.component.ts', code)).toEqual([])
 })
+
+test.each([
+  [
+    'movement.ts',
+    "import { defineSystem } from 'x'\nconst moveSystem = defineSystem({ name: 'move', phase: 'gameplay', run() {} })\nexport { moveSystem }\n",
+    'role-suffix',
+  ],
+  [
+    'movement.system.ts',
+    "import { defineSystem } from 'x'\nconst moveSystem = defineSystem({ name: 'move', phase: 'gameplay', run() {} })\nexport { moveSystem }\n",
+    undefined,
+  ],
+  [
+    'movement.system.ts',
+    "import { defineSystem } from 'x'\nconst moveSystem = defineSystem({ name: 'move', phase: 'gameplay', run() {} })\nexport default moveSystem\n",
+    undefined,
+  ],
+  [
+    'movement.ts',
+    "import { defineSystem } from 'x'\nexport const moveSystem = defineSystem({ name: 'move', phase: 'gameplay', run() {} }) as const\n",
+    'role-suffix',
+  ],
+  ['p.ts', 'export const x = toString({})\n', undefined],
+] as const)('%s - extra cases', (name, code, expectedRule) => {
+  const findings = checkFile(`/p/src/${name}`, code)
+  if (expectedRule) {
+    expect(findings.map((f) => f.rule)).toEqual([expectedRule])
+  } else {
+    expect(findings).toEqual([])
+  }
+})
