@@ -7,5 +7,5 @@ Read `docs/superpowers/specs/2026-10-01-automata-framework-overview-design.md` f
 - **Naming:** role suffixes (`*.component.ts`, `*.system.ts`, `*.command.ts`, `*.event.ts`, `*.resource.ts`, `*.plugin.ts`, `*.manager.ts`, `*.schema.ts`, `*.migration.ts`, `*.test.ts`). Folders group by feature.
 - **Determinism is cross-engine:** goldens must match bit-for-bit in Node, Chromium, WebKit and Firefox. Never accept a hash mismatch as "flaky".
 - Run `pnpm format` before committing. Use Conventional Commits.
-- Packages publish as `@snekprty/automata-<name>` (GitHub Packages, `SNEKPRTY/automata-framework`).
+- Packages publish as `@mcthaydt/automata-<name>` (GitHub Packages, `mcthaydt/automata-framework`).
 - Heavy GPU, visual and E2E suites run on the Linux GPU runner (from A3), not on the developer's Mac.

@@ -16,7 +16,7 @@ Nothing in A0 or A1 renders, takes device input, or touches a host. Those start 
 
 | Topic | Decision |
 |---|---|
-| Repo and registry | The repo is `SNEKPRTY/automata-framework`. Packages publish privately to GitHub Packages as `@snekprty/automata-<name>`. Game repos authenticate in CI with a read token. |
+| Repo and registry | The repo is `mcthaydt/automata-framework`. Packages publish privately to GitHub Packages as `@mcthaydt/automata-<name>`. Game repos authenticate in CI with a read token. |
 | Naming | Files carry a **role suffix**: `*.component.ts`, `*.system.ts`, `*.command.ts`, `*.event.ts`, `*.resource.ts`, `*.plugin.ts`, `*.manager.ts`, `*.schema.ts`, `*.migration.ts`, `*.test.ts`. Folders group by **feature**, not by role. Utilities use plain names (`rng.ts`, `hash.ts`). A style test enforces this. |
 | Determinism | **Cross-engine**: results must be bit-exact across V8 (Node, Chrome), JavaScriptCore (Safari, iOS) and SpiderMonkey (Firefox). See §4.4. |
 | ECS | Koota, provided spike S1 passes; otherwise Miniplex behind the same facade (§4.1). |
@@ -51,9 +51,9 @@ Nothing in A0 or A1 renders, takes device input, or touches a host. Those start 
 ```
 automata-framework/
 ├─ packages/
-│  ├─ sim/            @snekprty/automata-sim
-│  ├─ content/        @snekprty/automata-content
-│  └─ testing/        @snekprty/automata-testing      (sim goldens + replay only in A1)
+│  ├─ sim/            @mcthaydt/automata-sim
+│  ├─ content/        @mcthaydt/automata-content
+│  └─ testing/        @mcthaydt/automata-testing      (sim goldens + replay only in A1)
 ├─ tooling/
 │  ├─ check-boundaries/   import and global ban checker for `sim`
 │  └─ check-style/        role-suffix and folder rules
@@ -104,7 +104,7 @@ Jobs: `install` → (`lint`, `typecheck`, `boundaries`, `style`, `unit`) in para
 
 Target: under 10 minutes. The GPU runner and visual goldens arrive in A3.
 
-## 4. `@snekprty/automata-sim`
+## 4. `@mcthaydt/automata-sim`
 
 ### 4.1 Public API
 
@@ -184,7 +184,7 @@ There are no arbitrary object or array fields. Collections either become resourc
 
 ### 4.5 Physics plugins
 
-- The plugins are `physics2d()` and `physics3d()`, from the subpath exports `@snekprty/automata-sim/physics-2d` and `/physics-3d`. Each lazy-loads its Rapier wasm, so `createSim` is async.
+- The plugins are `physics2d()` and `physics3d()`, from the subpath exports `@mcthaydt/automata-sim/physics-2d` and `/physics-3d`. Each lazy-loads its Rapier wasm, so `createSim` is async.
 - Components: `RigidBody` (kind, plus linear and angular damping), `Collider` (shape, size, sensor flag, collision groups), and `Transform2D` / `Transform3D` (render rows).
 - Systems:
   - `physics.syncIn` (prePhysics) applies ECS-side changes to Rapier.
@@ -223,7 +223,7 @@ Components are render-flagged by default. A component can opt out with `{ render
 
 In A1 the delta is only produced and tested. A2 consumes it.
 
-## 5. `@snekprty/automata-content`
+## 5. `@mcthaydt/automata-content`
 
 - **Schema registration:**
 
@@ -246,7 +246,7 @@ In A1 the delta is only produced and tested. A2 consumes it.
 - **Tuning.** Fields in `tuning.toml` may declare `{ value, min, max, step }`. The compiler checks that each value is in range and emits the metadata for A6's debug sliders.
 - **Generators.** `defineContentGenerator(name, (compiled) => files)` is only a hook in A1. The telemetry catalog, `ruken.toml`, and locale-key generators come in later phases.
 
-## 6. `@snekprty/automata-testing` (sim half)
+## 6. `@mcthaydt/automata-testing` (sim half)
 
 - **`simGolden({ name, plugins, content, seed, script, ticks, every })`**
   - Runs the sim, recording `{ tick, hash }` every `every` ticks.
