@@ -63,6 +63,28 @@
 9. **`saves.set.writeId`:** what format, and what uniqueness scope (per session, or across reloads)? The stub uses `<gameId>-w<n>`, unique per session only.
 10. Nothing else came up while implementing.
 
+## Ruken's answers (received 2026-10-02, before F1)
+
+1. **Forged welcome:** a §4 rule for the game side: the SDK accepts `welcome` only when `event.source === window.parent` **and** the origin passes `HOST_ALLOWLIST`. This applies in production, not only under rule 3.
+2. **10 MB per game:** key bytes plus value bytes, in UTF-8 (what the stub does). Standalone mode enforces the same limits, even though `localStorage` measures UTF-16, so hosted and standalone behave the same.
+3. **Saves without the capability:** a real P01 gap (§6). Recommendation: saves is granted whenever the game requests it (R-13: cloud saves for everyone). If the game didn't request it, `storage` throws `DENIED` (as the stub does). Never fall back to memory or `localStorage`.
+4. **Revisions:** remove `baseRevision` from `saves.set` and `saves.remove`. The host owns revisions (the sync engine gets them from SavesAdapter / P05 `GET /saves` and builds `If-Match`). Games see revisions only through `saves.changed`, informationally.
+5. **Snapshot size:** keep `welcome.saves.snapshot` as one message; a synchronous `getItem` needs the whole cache before `init` resolves. The 1.1 MB per-message limit (§9) applies to game→host messages only, not to `welcome`.
+6. **`menu.open` before `session.ready`:** the host must not send it (`bridge.openGameMenu()` resolves false or rejects `NOT_READY` unless `bridge.state === "ready"`). If one arrives anyway, the SDK answers `NOT_READY` and never calls `onMenuRequest`.
+7. **`pauseBehavior`:** fixed. P04's `sdk_handshake` check requires `hello.pauseBehavior` to match the manifest, and `lifecycle.changed` is information only. A game with an online mode and a single-player menu declares `"continue"` and pauses itself in single-player.
+8. **`display.metrics.scale`:** P12's TV scale: 4/3 when the host is fullscreen, at least 1920 px wide and in controller mode; otherwise 1. A hint, not CSS zoom: the SDK applies nothing, and the game may enlarge HUD and text for 10-foot viewing. `safeArea` and `hostReserved` stay in the game frame's CSS pixels.
+9. **`writeId`:** remove it. `saves.set` is an event whose envelope id is already a uuid v4; a per-session `<gameId>-w<n>` would collide after a reload in the host's IndexedDB outbox. P05 idempotency uses `deviceId + sha256(value)`. (If the field stays, it is a uuid v4.)
+
+**P01 changes Ruken will make:** remove `baseRevision` and `writeId` (4, 9); add the game-side source rule to §4 (1); place saves in §6 (3); clarify byte counting (2), the game→host-only message limit (5), `NOT_READY` for `menu.open` (6), fixed `pauseBehavior` (7), and the meaning of `scale` (8).
+
+**Consequences for A2 (`automata-host` ruken adapter):**
+- Drop `baseRevision` and `writeId` from `saves.set` / `saves.remove`.
+- Add a contract test: `menu.open` before `session.ready` → `NOT_READY` response, `onMenuRequest` not called.
+- Keep the source check, UTF-8 key+value counting (also in the standalone/web adapter), and `DENIED` without the capability.
+- Time manager: `pauseBehavior` is static per game; single-player pausing in a `"continue"` game is the game's job.
+- Display manager: treat `scale` as a hint for HUD/text size (A4), never as CSS zoom.
+- Re-check all of this against the published P01 after F1 (2026-10-16).
+
 ## Verdict
 **USABLE.** The stub is A2's target for the Ruken `Hosting` adapter. Contract tests to carry into `automata-host`:
 - the allowlist table;
