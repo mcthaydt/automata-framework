@@ -85,12 +85,7 @@ const TYPE_KEYS = new Set([
   'superTypeArguments',
   'implements',
 ])
-const TYPE_NODES = new Set([
-  'TSInterfaceDeclaration',
-  'TSTypeAliasDeclaration',
-  'TSDeclareFunction',
-  'TSModuleDeclaration',
-])
+const TYPE_NODES = new Set(['TSInterfaceDeclaration', 'TSTypeAliasDeclaration', 'TSDeclareFunction'])
 // Identifier positions that name something rather than reference it.
 const BINDING_KEYS = new Set(['id', 'params', 'local', 'imported', 'exported', 'label'])
 
@@ -142,6 +137,11 @@ export function checkSource(file: string, code: string): Finding[] {
 
   const visit = (node: Node, key: string, parent: Node | null): void => {
     if (TYPE_NODES.has(node.type)) return
+    if (
+      node.type === 'TSModuleDeclaration' &&
+      (node.declare === true || typeof (node.id as { value?: unknown })?.value === 'string')
+    )
+      return
     switch (node.type) {
       case 'ImportDeclaration':
       case 'ExportNamedDeclaration':
@@ -215,6 +215,13 @@ export function checkSource(file: string, code: string): Finding[] {
           report(node, 'banned-global', `"${name}" is not available in the sim (no I/O, no clock)`)
         if (name === 'Math' && !(parent?.type === 'MemberExpression' && key === 'object')) {
           report(node, 'math-member', 'Math may only be used as Math.<allowed member>')
+        }
+        if (
+          (name === 'Object' || name === 'Reflect') &&
+          !enumerationExempt &&
+          !(parent?.type === 'MemberExpression' && key === 'object')
+        ) {
+          report(node, 'key-enumeration', `${name} may only be used as ${name}.<member>`)
         }
         break
       }

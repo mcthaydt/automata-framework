@@ -25,6 +25,9 @@ test.each([
   ['for-in.ts', 'key-enumeration', 2, 1],
   ['import-node.ts', 'import', 1, 1],
   ['import-dynamic.ts', 'import', 1, 28],
+  ['namespace-runtime.ts', 'math-member', 2, 20],
+  ['object-alias.ts', 'key-enumeration', 1, 11],
+  ['reflect-destructure.ts', 'key-enumeration', 1, 21],
 ] as const)('%s -> %s at %i:%i', (file, rule, line, col) => {
   const findings = fixture(file)
   expect(findings.map((f) => [f.rule, f.line, f.col])).toEqual([[rule, line, col]])
