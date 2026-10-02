@@ -9,11 +9,13 @@ import {
   type ResourceDef,
   type SystemDef,
 } from '../define/definitions'
-import { canonicalJson } from '../hash/canonical'
-import { createRng, deriveSeed, type Rng } from '../rng/rng'
+import { canonicalJson, utf8 } from '../hash/canonical'
+import { hex64, xxhash64 } from '../hash/xxhash64'
+import { createRng, deriveSeed, type Rng, rngFromState } from '../rng/rng'
 import { orderPlugins, orderSystems } from '../schedule/schedule'
 import { sortedKeys } from '../util/sorted'
-import { EntityStore, type RenderDelta } from './entity-store'
+import { EntityStore, type FieldRecord, type RenderDelta } from './entity-store'
+import { decodeSnapshot, encodeSnapshot, SnapshotFormatError, SnapshotMismatchError } from './snapshot'
 
 /** Input to the sim (spec §4.4 rule 4). `source` is a player slot (u8), `seq` a per-source counter (u32). */
 export interface Command {
@@ -67,6 +69,12 @@ export interface Sim {
   entity(sid: number): EntityRef | undefined
   query(...components: ComponentDef[]): EntityRef[]
   resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>
+  /** Canonical snapshot v1 bytes (spec §4.6). */
+  snapshot(): Uint8Array
+  /** Replaces the whole state. Throws SnapshotFormatError / SnapshotMismatchError and leaves the sim unchanged. */
+  restore(bytes: Uint8Array): void
+  /** xxhash64 of the snapshot, 16 hex digits. */
+  hash(): string
   dispose(): void
 }
 
@@ -109,8 +117,9 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   // Content: an independent, canonical, deep-frozen copy (spec §4.4 rule 6).
   const contentJson = canonicalJson(opts.content === undefined ? {} : opts.content)
   const content = deepFreeze(JSON.parse(contentJson))
+  const contentHash = xxhash64(utf8(contentJson))
   const componentList = [...components.values()]
-  const store = new EntityStore(componentList)
+  let store = new EntityStore(componentList)
   const resources = new Map<string, unknown>()
   for (const def of resourceDefs.values()) resources.set(def.id, def.schema.parse(def.init()))
 
@@ -162,6 +171,23 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   })
   const systems = orderSystems([...builtins, ...wired])
   const rngs = new Map<string, Rng>(systems.map((s) => [s.name, createRng(deriveSeed(opts.seed, s.name))]))
+
+  // Everything that must match for a snapshot to be restorable here.
+  const sortedIds = (m: Map<string, unknown>) => [...m.keys()].sort()
+  const schemaHash = xxhash64(
+    utf8(
+      canonicalJson({
+        plugins: plugins.map((p) => p.name),
+        components: componentList
+          .map((c) => ({ id: c.id, fields: c.fields, render: c.render }))
+          .sort((a, b) => (a.id < b.id ? -1 : 1)),
+        commands: sortedIds(commandDefs),
+        events: sortedIds(eventDefs),
+        resources: sortedIds(resourceDefs),
+        systems: systems.map((s) => `${s.phase}:${s.name}`),
+      }),
+    ),
+  )
 
   const resourceOf = <Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z> => {
     if (resourceDefs.get(def.id) !== def)
@@ -270,6 +296,80 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     entity: (sid) => store.ref(sid),
     query: (...cs) => store.query(cs),
     resource: resourceOf,
+    snapshot() {
+      const entities = store.liveSids().map((sid) => {
+        const ref = store.ref(sid) as EntityRef
+        const map = new Map<string, FieldRecord>()
+        for (const c of store.componentsOf(sid)) map.set(c.id, ref.get(c) as FieldRecord)
+        return { sid, components: map }
+      })
+      const resourceRows = sortedIds(resourceDefs).map((id) => {
+        const def = resourceDefs.get(id) as ResourceDef
+        const checked = def.schema.safeParse(resources.get(id))
+        if (!checked.success)
+          throw new Error(`resource "${id}" no longer matches its schema: ${checked.error.message}`)
+        return { id, json: canonicalJson(resources.get(id)) }
+      })
+      return encodeSnapshot(
+        {
+          schemaHash,
+          contentHash,
+          tick,
+          tickHz,
+          rng: systems.map((s) => ({ name: s.name, state: (rngs.get(s.name) as Rng).state() })),
+          resources: resourceRows,
+          nextId: store.nextId,
+          entities,
+        },
+        componentList,
+      )
+    },
+    restore(bytes) {
+      const data = decodeSnapshot(bytes, componentList)
+      if (data.schemaHash !== schemaHash)
+        throw new SnapshotMismatchError('schemaHash', hex64(schemaHash), hex64(data.schemaHash))
+      if (data.contentHash !== contentHash) {
+        throw new SnapshotMismatchError('contentHash', hex64(contentHash), hex64(data.contentHash))
+      }
+      if (data.tickHz !== tickHz)
+        throw new SnapshotMismatchError('tickHz', String(tickHz), String(data.tickHz))
+      // Build everything first; swap only when it all validated, so a bad snapshot leaves this sim untouched.
+      const next = new EntityStore(componentList)
+      try {
+        for (const e of data.entities) {
+          next.spawnWithId(
+            e.sid,
+            [...e.components].map(([id, values]) => [components.get(id) as ComponentDef, values] as const),
+          )
+        }
+        next.nextId = data.nextId
+        next.takeDelta(false)
+        const nextResources = new Map<string, unknown>()
+        for (const { id, json } of data.resources) {
+          const def = resourceDefs.get(id)
+          if (!def) throw new SnapshotFormatError(`unknown resource "${id}"`)
+          nextResources.set(id, def.schema.parse(JSON.parse(json)))
+        }
+        const nextRngs = new Map<string, Rng>(data.rng.map((r) => [r.name, rngFromState(r.state)]))
+        if (nextRngs.size !== rngs.size || systems.some((s) => !nextRngs.has(s.name))) {
+          throw new SnapshotFormatError('rng streams do not match the systems')
+        }
+        store.dispose()
+        store = next
+        for (const [id, v] of nextResources) resources.set(id, v)
+        for (const [name, r] of nextRngs) rngs.set(name, r)
+      } catch (err) {
+        if (store !== next) next.dispose()
+        throw err instanceof SnapshotFormatError ? err : new SnapshotFormatError(String(err))
+      }
+      tick = data.tick
+      fullResync = true
+      pendingDespawn = new Set()
+      events = []
+    },
+    hash() {
+      return hex64(xxhash64(sim.snapshot()))
+    },
     dispose: () => store.dispose(),
   }
   return sim
