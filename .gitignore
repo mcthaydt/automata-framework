@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.turbo/
+spikes/out/
+*.log
+.DS_Store

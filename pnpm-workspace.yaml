@@ -1,0 +1,7 @@
+packages:
+  - packages/*
+  - tooling/*
+  - examples/*
+  - spikes
+onlyBuiltDependencies:
+  - lefthook
