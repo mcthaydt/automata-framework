@@ -15,7 +15,13 @@ import { createRng, deriveSeed, type Rng, rngFromState } from '../rng/rng'
 import { orderPlugins, orderSystems } from '../schedule/schedule'
 import { sortedKeys } from '../util/sorted'
 import { EntityStore, type FieldRecord, type RenderDelta } from './entity-store'
-import { decodeSnapshot, encodeSnapshot, SnapshotFormatError, SnapshotMismatchError } from './snapshot'
+import {
+  decodeSnapshot,
+  encodeSnapshot,
+  type SnapshotData,
+  SnapshotFormatError,
+  SnapshotMismatchError,
+} from './snapshot'
 
 /** Input to the sim (spec §4.4 rule 4). `source` is a player slot (u8), `seq` a per-source counter (u32). */
 export interface Command {
@@ -332,7 +338,14 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       )
     },
     restore(bytes) {
-      const data = decodeSnapshot(bytes, componentList)
+      let data: SnapshotData
+      try {
+        data = decodeSnapshot(bytes, componentList)
+      } catch (err) {
+        if (err instanceof SnapshotFormatError) throw err
+        // e.g. RangeError from an invalid UTF-8 code point: the contract is one error type for bad bytes.
+        throw new SnapshotFormatError(err instanceof Error ? err.message : String(err), { cause: err })
+      }
       if (data.schemaHash !== schemaHash)
         throw new SnapshotMismatchError('schemaHash', hex64(schemaHash), hex64(data.schemaHash))
       if (data.contentHash !== contentHash) {

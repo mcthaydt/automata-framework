@@ -14,8 +14,8 @@ const MAGIC = [65, 85, 84, 79] // "AUTO"
 const TAG = { strings: 1, rng: 2, resources: 3, entities: 4 } as const
 
 export class SnapshotFormatError extends Error {
-  constructor(message: string) {
-    super(`snapshot format: ${message}`)
+  constructor(message: string, options?: ErrorOptions) {
+    super(`snapshot format: ${message}`, options)
     this.name = 'SnapshotFormatError'
   }
 }

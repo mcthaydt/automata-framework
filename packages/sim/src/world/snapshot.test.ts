@@ -105,6 +105,23 @@ test('restore rejects garbage and truncated input with SnapshotFormatError, leav
   sim.step([])
 })
 
+test('restore reports malformed UTF-8 in the string table as SnapshotFormatError, leaving the sim usable', async () => {
+  const sim = await make()
+  sim.spawn([[Tag, { name: 'wxyz', team: 1 }]])
+  const bytes = sim.snapshot()
+  const before = sim.hash()
+  // Locate the string-table entry for 'wxyz' (u32 length 4, then the bytes) and overwrite it with F4 90 80 80,
+  // which is U+110000: well-formed length, invalid code point.
+  const needle = [4, 0, 0, 0, ...'wxyz'].map((c) => (typeof c === 'string' ? c.charCodeAt(0) : c))
+  const at = bytes.findIndex((_, i) => needle.every((b, j) => bytes[i + j] === b))
+  expect(at).toBeGreaterThan(0)
+  const bad = bytes.slice()
+  bad.set([0xf4, 0x90, 0x80, 0x80], at + 4)
+  expect(() => sim.restore(bad)).toThrow(SnapshotFormatError)
+  expect(sim.hash()).toBe(before)
+  sim.step([])
+})
+
 test('snapshot fails loudly, naming the resource, when a system left a resource outside its schema', async () => {
   const sim = await seeded()
   ;(sim.resource(Stats) as { spawned: unknown }).spawned = 'not a number'
