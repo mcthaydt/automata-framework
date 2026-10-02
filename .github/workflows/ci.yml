@@ -39,8 +39,6 @@ jobs:
     # Keep the tag in step with the `playwright` devDependency.
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
-      env:
-        HOME: /root # Firefox refuses to start when $HOME isn't owned by the current (root) user
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -53,3 +51,5 @@ jobs:
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @mcthaydt/automata-sim exec vitest run --project browsers
+        env:
+          HOME: /root # Actions sets HOME to /github/home (not root's); Firefox refuses to run as root there
