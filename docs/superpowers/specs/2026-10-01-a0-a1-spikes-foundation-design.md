@@ -324,3 +324,19 @@ See `docs/spikes/README.md` and `docs/adr/0001-ecs-choice.md`. All six spikes pa
 - **§4.7:** the first `RenderDelta` after `restore()` is a **full resync**, because Koota's change tracking reports everything as added on that tick.
 - **§3.4 CI:** the Vitest browser projects must pre-declare their browser-side dependencies in `optimizeDeps.include`. Otherwise a cold cache reloads the test pages mid-run and collection fails.
 - **A2/A4 (from S3/S4):** one TSL post stack for Three. Pixi filters are GLSL + WGSL pairs that take pixel position from the vertex stage. WebGPU canvases capture black in headless Chromium on macOS, so verify the capture path on the A3 runner.
+
+## 12. A1a implementation notes (sim core)
+
+`@mcthaydt/automata-sim` implements §4 with these refinements (plan `docs/superpowers/plans/2026-10-01-a1a-sim-core.md`, "Design Decisions"):
+- **Render delta:** facade dirty-tracking; `changed` rows carry the full render state; `resync` marks a fresh sim or a restore.
+- **Invalid commands:** returned in `StepResult.rejected`, with a reason.
+- **Fields:** f32/f64 must be finite.
+- **`EntityRef.get()`:** returns a frozen copy.
+- **Built-in system wiring:** `commands.apply` first in `input`; `entities.flush`, then `render.collect`, last in `cleanup`.
+- **Snapshot sections:** 1 strings, 2 rng, 3 resources, 4 entities. 5 (relations) is reserved; 6 (physics) comes in plan 2b.
+- **Render delta membership:** the store remembers which entities the renderer holds; an entity that loses its last render component is reported in `removed`, one that gains its first is `added`.
+- **Commands:** `intake` stages the tick's commands and the `commands.apply` built-in publishes them (spec §4.3), so input systems must run after it (enforced by the implicit wiring).
+- **f32 fields** also reject values that overflow to Infinity after rounding.
+- **Snapshot validation:** `snapshot()` requires every resource to round-trip through canonical JSON; `restore()` rejects non-ascending, duplicate or zero StableIds, `nextId` not greater than the largest StableId, and missing, duplicate or unknown resource rows, all before any state changes.
+- **Snapshot layout clarifications:** the rng section holds one state per system (there is no root stream object); the entities section is a presence bitmap plus typed columns per component, as in §4.6 (the "presence-flag byte per row" in §11 described the S1 spike's layout).
+- **check-boundaries** also flags runtime namespaces and aliased or destructured `Object`/`Reflect`; **check-style** resolves `export { x }` / `export default x` bindings.
