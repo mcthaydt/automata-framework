@@ -118,12 +118,19 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   let fullResync = true // a renderer starts empty, so the first delta is a resync
   let events: SimEvent[] = []
   let pendingDespawn = new Set<number>()
+  let stagedCommands = new Map<string, Array<CommandRecord<unknown>>>()
   let commandsByType = new Map<string, Array<CommandRecord<unknown>>>()
   let lastDelta: RenderDelta = { resync: false, added: [], changed: [], removed: [] }
 
   // Built-ins. Every input system runs after commands.apply; every cleanup system before entities.flush.
   const builtins: SystemDef[] = [
-    defineSystem({ name: 'commands.apply', phase: 'input', run: () => {} }),
+    defineSystem({
+      name: 'commands.apply',
+      phase: 'input',
+      run: () => {
+        commandsByType = stagedCommands
+      },
+    }),
     defineSystem({
       name: 'entities.flush',
       phase: 'cleanup',
@@ -235,11 +242,11 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       accepted.push({ ...c, parsed: parsed.data })
     }
     accepted.sort((a, b) => a.source - b.source || a.seq - b.seq)
-    commandsByType = new Map()
+    stagedCommands = new Map()
     for (const c of accepted) {
-      const list = commandsByType.get(c.type) ?? []
+      const list = stagedCommands.get(c.type) ?? []
       list.push({ source: c.source, seq: c.seq, payload: c.parsed })
-      commandsByType.set(c.type, list)
+      stagedCommands.set(c.type, list)
     }
     return rejected
   }
@@ -256,6 +263,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       for (const { system, ctx } of contexts) system.run(ctx)
       tick += 1
       commandsByType = new Map()
+      stagedCommands = new Map()
       return { tick, events, render: lastDelta, rejected }
     },
     spawn: (parts) => store.spawn(parts),

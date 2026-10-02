@@ -188,12 +188,7 @@ test('step returns the render delta (resync on the first step, then incremental)
 test('an input system without an explicit `after` still runs after commands.apply', async () => {
   const seen: unknown[] = []
   const Reader = defineSystem({
-    // Name must come before 'commands.apply' alphabetically to test the wiring.
-    // Without wiring (after: ['commands.apply']), name-based ordering would put
-    // this before commands.apply, causing commands to be empty (commands only populated
-    // after commands.apply system has run, though they're prepared in intake).
-    // Actually, commands are prepared in intake before any systems, so this tests
-    // that the design decision is intentionally enforced.
+    // Name sorts before 'commands.apply', so only the implicit wiring makes it see this tick's commands.
     name: 'a-reader',
     phase: 'input',
     // NO after/before; relies on implicit wiring
