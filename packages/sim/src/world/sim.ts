@@ -308,7 +308,11 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         const checked = def.schema.safeParse(resources.get(id))
         if (!checked.success)
           throw new Error(`resource "${id}" no longer matches its schema: ${checked.error.message}`)
-        return { id, json: canonicalJson(resources.get(id)) }
+        const json = canonicalJson(checked.data)
+        const again = def.schema.safeParse(JSON.parse(json))
+        if (!again.success || canonicalJson(again.data) !== json)
+          throw new Error(`resource "${id}" does not round-trip through JSON`)
+        return { id, json }
       })
       return encodeSnapshot(
         {
@@ -344,6 +348,12 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         }
         next.nextId = data.nextId
         next.takeDelta(false)
+        const expectedIds = sortedIds(resourceDefs)
+        if (
+          data.resources.length !== expectedIds.length ||
+          data.resources.some((row, i) => row.id !== expectedIds[i])
+        )
+          throw new SnapshotFormatError('resource rows do not match the registered resources')
         const nextResources = new Map<string, unknown>()
         for (const { id, json } of data.resources) {
           const def = resourceDefs.get(id)

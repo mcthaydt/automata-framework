@@ -1,8 +1,15 @@
-import { afterEach, expect, test } from 'vitest'
-import { definePlugin } from '../define/definitions'
-import { Body, fixturePlugin, Stats, Tag } from '../testing/fixture-world'
+import { afterEach, describe, expect, test } from 'vitest'
+import { z } from 'zod'
+import { definePlugin, defineResource } from '../define/definitions'
+import { Body, fixturePlugin, Hidden, Stats, Tag } from '../testing/fixture-world'
 import { createSim, type Sim } from './sim'
-import { SnapshotFormatError, SnapshotMismatchError } from './snapshot'
+import {
+  decodeSnapshot,
+  encodeSnapshot,
+  type SnapshotData,
+  SnapshotFormatError,
+  SnapshotMismatchError,
+} from './snapshot'
 
 const sims: Sim[] = []
 async function make(opts: Partial<Parameters<typeof createSim>[0]> = {}) {
@@ -110,4 +117,58 @@ test('an empty sim (no entities, no resources) round-trips', async () => {
   other.restore(empty.snapshot())
   expect(other.hash()).toBe(empty.hash())
   expect(other.step([]).render).toEqual({ resync: true, added: [], changed: [], removed: [] })
+})
+
+test('snapshot rejects a resource that does not round-trip through JSON, naming it', async () => {
+  const MapRes = defineResource('mapres', z.object({ m: z.map(z.string(), z.number()) }), () => ({
+    m: new Map<string, number>(),
+  }))
+  const sim = await make({ plugins: [definePlugin({ name: 'maps', resources: [MapRes] })] })
+  sim.resource(MapRes).m.set('a', 1)
+  expect(() => sim.snapshot()).toThrow(/resource "mapres"/)
+})
+
+test('snapshot writes the schema-checked resource value, so extra keys are not written', async () => {
+  const Plain = defineResource('plain', z.object({ n: z.number() }), () => ({ n: 1 }))
+  const plugins = [definePlugin({ name: 'plain', resources: [Plain] })]
+  const sim = await make({ plugins })
+  ;(sim.resource(Plain) as Record<string, unknown>).extra = 'not in the schema'
+  const bytes = sim.snapshot()
+  const other = await make({ plugins })
+  other.restore(bytes)
+  expect(other.snapshot()).toEqual(bytes)
+})
+
+describe('restore rejects structurally corrupt snapshots atomically', () => {
+  type Mutate = (d: SnapshotData) => SnapshotData
+  const withSids = (d: SnapshotData, sids: number[]): SnapshotData => ({
+    ...d,
+    entities: sids.map((sid) => ({
+      sid,
+      components: (d.entities[0] as SnapshotData['entities'][number]).components,
+    })),
+  })
+  const cases: Array<[string, Mutate]> = [
+    ['duplicate sid', (d) => withSids(d, [1, 2, 2, 3])],
+    ['descending sids', (d) => withSids(d, [3, 2, 1])],
+    ['sid 0', (d) => withSids(d, [0, 1, 2])],
+    ['nextId equal to the largest sid', (d) => ({ ...withSids(d, [1, 2, 9]), nextId: 9 })],
+    ['nextId 0', (d) => ({ ...d, nextId: 0 })],
+    ['a missing resource row', (d) => ({ ...d, resources: [] })],
+    ['a duplicate resource row', (d) => ({ ...d, resources: [...d.resources, ...d.resources] })],
+    ['an unknown resource row', (d) => ({ ...d, resources: [...d.resources, { id: 'zzz', json: '{}' }] })],
+  ]
+  for (const [name, mutate] of cases) {
+    test(name, async () => {
+      const sim = await seeded()
+      sim.step([])
+      const defs = [Body, Tag, Hidden]
+      const bad = encodeSnapshot(mutate(decodeSnapshot(sim.snapshot(), defs)), defs)
+      const target = await seeded()
+      const before = target.hash()
+      expect(() => target.restore(bad)).toThrow(SnapshotFormatError)
+      expect(target.hash()).toBe(before)
+      target.step([])
+    })
+  }
 })

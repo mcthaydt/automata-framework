@@ -312,6 +312,13 @@ export function decodeSnapshot(bytes: Uint8Array, components: readonly Component
   const nextId = en.u32()
   const sids: number[] = []
   for (let n = en.u32(); n > 0; n--) sids.push(en.u32())
+  for (let i = 0; i < sids.length; i++) {
+    const sid = sids[i] as number
+    if (sid < 1 || (i > 0 && sid <= (sids[i - 1] as number)))
+      throw new SnapshotFormatError('entity ids must be strictly ascending and at least 1')
+  }
+  if (nextId < 1 || nextId <= (sids[sids.length - 1] ?? 0))
+    throw new SnapshotFormatError('nextId must exceed every entity id')
   const entities = sids.map((sid) => ({ sid, components: new Map<string, FieldRecord>() }))
   const compCount = en.u32()
   if (compCount !== comps.length)
