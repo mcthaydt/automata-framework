@@ -55,3 +55,4 @@
 - `automata-sim/math` = `dmath.ts`, plus a golden table of committed input/output bit patterns.
 - `Math.*` allowlist for `check-boundaries`: `sqrt, fround, round, floor, ceil, trunc, abs, min, max, sign`, plus `imul` for the RNG. `round` and `imul` are additions to spec §2's list; record them in the spec's §11.
 - The boundary checker must strip comments before scanning. The source rule tripped on prose twice during the pre-run.
+- **The boundary checker must also ban `**` and `**=` (final review).** They compute `Math.pow` and are engine-dependent. Biome's `useExponentiationOperator` auto-fix rewrote this spike's own `Math.pow(…)` negative control into `(…) ** (…)` during `pnpm format`. Disable that Biome rule for `packages/sim/**`.

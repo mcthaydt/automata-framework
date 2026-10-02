@@ -12,7 +12,7 @@
 |---|---|---|---|---|
 | Native order + churn hash (10k live) | PASS | PASS | PASS | PASS |
 | Sorted: bytes → restore → continue == straight | PASS | PASS | PASS | PASS |
-| Added/Changed/Removed tracking hash | PASS | PASS | PASS | PASS |
+| Added/Removed tracking hash (see the `Changed` correction below) | PASS | PASS | PASS | PASS |
 | Miniplex sorted restore + hash | PASS | PASS | PASS | PASS |
 
 All four engines produced the same committed hashes:
@@ -27,7 +27,16 @@ Answers to the questions, identical in all four engines:
 - **(c) Does native order survive a restore?** **No.** A world rebuilt in StableId order iterates differently from the original. Consequence: wherever order affects the result, the facade must iterate in StableId order. Native order is deterministic within one uninterrupted run, but replay and save/load break it.
 - **(d) Are IDs recycled?** Yes: 60 live entities reused destroyed Koota IDs. Consequence: the facade owns `StableId`, and Koota IDs never leave the sim (already in spec §4.4).
 - **(e) Can relations with data be snapshotted?** Yes, by reading `targetsFor` plus `get(Contains(t))`, sorting by target StableId, and encoding as `(u32 sid, i32 amount)` pairs. Restore spawns every entity first, then adds the relations.
-- **(f) Change tracking after a restore:** the first tick differs (everything looks added); later ticks are equal. Consequence: after a restore, the render delta must be a **full resync**. Incremental deltas resume on the next tick.
+- **(f) `Changed` never fired in this spike (corrected after the final review).** The tick writes with a default `updateEach`, which does **not** emit `Changed`. A follow-up probe against koota 0.6.6 gave:
+
+  | How Position was written (10 entities) | `Changed(Position)` count |
+  |---|---|
+  | `updateEach`, default options | 0 |
+  | `updateEach(…, { changeDetection: 'always' })` | 10 |
+  | `entity.set` on one entity | 1 |
+
+  So the committed tracking hash proves **Added and Removed** are deterministic; it says nothing about `Changed`. Consequence: the facade's field setters must write through `changeDetection: 'always'` or `entity.set`, and A1's render-delta golden must assert a non-empty `changed` list after a field write.
+- **(f2) Change tracking after a restore:** the first tick differs (everything looks added); later ticks are equal. Consequence: after a restore, the render delta must be a **full resync**. Incremental deltas resume on the next tick.
 - **(g) ms/tick, ~2k growing to ~2.6k entities:**
 
   | | Native | Sorted |
