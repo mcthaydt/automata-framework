@@ -25,8 +25,11 @@ const intIn = (type: FieldType, v: unknown, min: number, max: number): number =>
 
 export function coerceField(type: FieldType, value: unknown): number | boolean | string {
   switch (type) {
-    case 'f32':
-      return Math.fround(finite(type, value))
+    case 'f32': {
+      const r = Math.fround(finite(type, value))
+      if (!Number.isFinite(r)) throw new RangeError(`f32 field out of range: ${value}`)
+      return r
+    }
     case 'f64':
       return finite(type, value)
     case 'i32':

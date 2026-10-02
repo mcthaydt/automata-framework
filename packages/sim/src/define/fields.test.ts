@@ -14,6 +14,11 @@ test.each([
   expect(() => coerceField(type, value)).toThrow(RangeError)
 })
 
+test('f32 rejects values that overflow to Infinity after rounding', () => {
+  expect(() => coerceField('f32', 1e39)).toThrow(RangeError)
+  expect(() => coerceField('f32', -1e39)).toThrow(RangeError)
+})
+
 test('i32 and u32 accept only in-range integers', () => {
   expect(coerceField('i32', -5)).toBe(-5)
   expect(coerceField('u32', 4294967295)).toBe(4294967295)
