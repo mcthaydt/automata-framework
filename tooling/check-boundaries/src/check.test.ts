@@ -28,6 +28,8 @@ test.each([
   ['namespace-runtime.ts', 'math-member', 2, 20],
   ['object-alias.ts', 'key-enumeration', 1, 11],
   ['reflect-destructure.ts', 'key-enumeration', 1, 21],
+  ['locale-compare.ts', 'locale', 1, 44],
+  ['intl.ts', 'banned-global', 1, 22],
 ] as const)('%s -> %s at %i:%i', (file, rule, line, col) => {
   const findings = fixture(file)
   expect(findings.map((f) => [f.rule, f.line, f.col])).toEqual([[rule, line, col]])

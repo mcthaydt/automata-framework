@@ -8,6 +8,7 @@ export type Rule =
   | 'math-member'
   | 'pow-operator'
   | 'key-enumeration'
+  | 'locale'
   | 'import'
   | 'parse-error'
 
@@ -50,6 +51,7 @@ export const BANNED_GLOBALS: ReadonlySet<string> = new Set([
   'setImmediate',
   'eval',
   'Function',
+  'Intl', // ICU data differs per engine and version
 ])
 
 /** Math members that IEEE-754 / ECMAScript define exactly (S5 verdict). Everything else is engine-dependent. */
@@ -68,6 +70,16 @@ export const MATH_ALLOWED: ReadonlySet<string> = new Set([
 ])
 
 const KEY_ENUMERATION = new Set(['keys', 'values', 'entries', 'getOwnPropertyNames', 'getOwnPropertySymbols'])
+
+/** Locale/ICU-dependent methods: checked on any receiver, since the receiver's type is unknown to the AST. */
+const LOCALE_METHODS = new Set([
+  'localeCompare',
+  'toLocaleString',
+  'toLocaleLowerCase',
+  'toLocaleUpperCase',
+  'toLocaleDateString',
+  'toLocaleTimeString',
+])
 
 export const IMPORT_ALLOWED: ReadonlySet<string> = new Set([
   'koota',
@@ -182,6 +194,8 @@ export function checkSource(file: string, code: string): Finding[] {
         const obj = node.object as Node & { name?: string }
         const prop = node.property as Node & { name?: string; value?: unknown }
         const name = node.computed ? (typeof prop.value === 'string' ? prop.value : undefined) : prop.name
+        if (name !== undefined && LOCALE_METHODS.has(name))
+          report(node, 'locale', `"${name}" is locale-dependent; compare/format explicitly`)
         if (
           obj.type === 'Identifier' &&
           obj.name === 'Math' &&
