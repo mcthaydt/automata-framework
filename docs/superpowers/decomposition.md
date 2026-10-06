@@ -1,9 +1,9 @@
 # AutomataFramework: Work Decomposition
 
-- **As of:** 2026-10-02
+- **As of:** 2026-10-05 (planning update; completion evidence below remains the recorded 2026-10-02 snapshot)
 - **Purpose:** One page that says where the project is, what is left, and in what order. It does not replace the specs; it indexes them and breaks every phase into work packages.
 - **Source of truth for *what*:** the overview spec (`specs/2026-10-01-automata-framework-overview-design.md`) and the A0+A1 spec (`specs/2026-10-01-a0-a1-spikes-foundation-design.md`, §11–§12 override earlier sections). If this doc and a spec disagree, the spec wins and this doc is stale.
-- **Rule of detail:** near phases are broken down to deliverables; far phases stay coarse on purpose ("don't over-specify before there is evidence", overview §13).
+- **Rule of detail:** match Ruken's phase-spec and implementation-plan precision when a phase is needed (§3.1). Far phases remain a work inventory until their contracts can be designed from evidence; this does not permit a shallow spec or ambiguous implementation plan. Responsive UI reuse and faster, stronger testing are integrated requirements of the existing phases, not a separate workstream.
 
 ---
 
@@ -69,16 +69,44 @@ Per-phase process (unchanged from A0/A1): **phase spec → plan → task-by-task
 | A1a Sim core | A0+A1 spec | A1a plan | ✅ merged PR #2 | (contributes to A1 exit) |
 | A1b Physics + content | A0+A1 spec | **to write** | ⬜ | (contributes to A1 exit) |
 | A1c Testing + example + release | A0+A1 spec | **to write** | ⬜ | Same seed+inputs → same hash, in hosted CI, 4 engines |
-| A2 Skeleton | **to write** | — | ⬜ | Boots under mock Ruken + standalone; nothing renders before ready |
-| A3 Ship pipeline | **to write** | — | ⬜ | `create-game x` + push → dev host + Ruken zip, no manual steps |
-| A4 Input + Display | — | — | ⬜ | E2E matrix input devices × form factors passes |
-| A5 Save + Audio + i18n | — | — | ⬜ | Save vN loads on vN+1 via migration; every string localized |
+| A2 Skeleton | **to write** | — | ⬜ | Responsive UI foundations independently previewable/testable; boots under mock Ruken + standalone; nothing renders before ready |
+| A3 Ship pipeline | **to write** | — | ⬜ | Focused remote feedback and explicit coverage/evidence; `create-game x` + push → dev host + Ruken zip, no manual steps |
+| A4 Input + Display | — | — | ⬜ | Component/composed-screen layout contracts and E2E input × form-factor matrix pass |
+| A5 Save + Audio + i18n | — | — | ⬜ | Save migration; localized strings; dense settings/long text/save states remain usable across layouts |
 | A6 Debug + Telemetry | — | — | ⬜ | No debug code in release bundles; events validated against catalog |
 | A7 Networking | — | — | ⬜ | Two-client replay golden passes; SP bundles have no netcode |
-| A8 CLI + 1.0 | — | — | ⬜ | `update-game` migrates example from 0.x to 1.0 |
+| A8 CLI + 1.0 | — | — | ⬜ | Scaffolded UI preview/focused testing workflow; `update-game` migrates example from 0.x to 1.0 |
 | A9 Store & Season Pass | — | — | ⬜ | Entitlement replays reproduce; late grants; lapsed sub keeps progress |
 | B1/B2 Asset pipelines | — | — | ⬜ | (defined in their specs) |
 | C1–C8 Gameplay systems | — | — | ⬜ | (defined in their specs) |
+
+---
+
+## 3.1 Required phase-spec and implementation-plan detail
+
+The reference is **Ruken's `docs/superpowers/` planning**, particularly P1's protocol catalog, P5's ordered runtime flows and P9's component/state inventory. Repo configuration changes are not implied by this reference.
+
+Write the phase spec when its work is needed, then its implementation plan after spec review. Preserve existing detailed A0/A1 work. A future-phase row is an inventory entry, not an executable plan or a completion claim.
+
+| Phase spec must define | Concrete detail required before writing its plan |
+|---|---|
+| Goal and boundaries | Observable resulting behavior, included deliverables, exclusions and exact prerequisite artifacts |
+| Ownership | Which package/manager/port owns each state; allowed writers; sim versus presentation/host responsibilities |
+| Contracts | Named types/functions, inputs/outputs, schemas, units, ordering, version/compatibility behavior and the downstream consumer |
+| Data and lifecycle flow | Ordered boot/update/transition/shutdown steps, readiness gates, disposal and restart behavior |
+| Failure policy | Invalid inputs, timeout/cancellation, unavailable capability, partial failure and recovery; identify what state is preserved |
+| UI inventory | Components and screens, supported states, composition rules, input/focus behavior and host-aware actions |
+| Responsive behavior | Container/usable-height policy, orientation changes, safe areas, keyboard/browser bars, host-reserved geometry, long text and UI scaling |
+| Test allocation | Cases assigned to unit, DOM behavior, real-browser layout, parity, GPU, integration and real-device gates; fixtures versus real journeys explicit |
+| Feedback workflow | Focused selection, setup/build reuse, readiness signals, evidence/reporting and measured timing/queue budgets where infrastructure is involved |
+| Exit criteria | Named success and failure cases, required evidence, unresolved dependencies and separate Owner acceptance where applicable |
+| Decisions | Chosen approach and reason; open questions resolved before they affect implementation; changes to upstream contracts recorded explicitly |
+
+Every implementation plan then includes global constraints and review risks; exact create/modify/test files and responsibilities; consumed/produced interfaces per task; independently reviewable deliverables; failing tests and expected failure; minimal implementation steps; passing-test commands and expected outcomes; and integration/exit checks. Checkboxes advance only with the required evidence. Do not use historical test totals or copied plan outputs as current verification.
+
+**UI example of sufficient detail:** an ActionBar spec names primary/secondary/utility states, label-collapse and wrap priority, target-size floors, disabled/processing behavior, keyboard/controller focus, compact-landscape behavior and the corresponding layout/interaction cases. Its plan names the component/model/test files, defines their interfaces and includes a failing 780×270 reachability test. “Make the action bar responsive” is not an executable task.
+
+**Testing example of sufficient detail:** a focused layout run specifies how it mounts production components/styles without a renderer/server, selects screen/state/viewport, waits for fonts/layout readiness, detects covered or clipped controls and reports reproduction evidence. A full journey separately proves production boot/navigation. A screenshot alone does not prove hit testing, and a fixture alone does not prove integration.
 
 ---
 
@@ -161,7 +189,9 @@ Each needs its own phase spec first. The bullets are the work packages that spec
 - **`runtime`**: the 7-step boot sequence (overview §6); app loop with fixed sim step + variable render + interpolation; **Time** manager (pause modes, timescale, lifecycle/menu pause); **Scene/Flow** manager from `flow.toml` (port FloorFifty `screen-manager.ts`); presentation event bus (mitt, facts only; port FloorFifty `presentation-event-bus.ts`); Nano Store mirrors; content virtual module + restart on change.
 - **`render-three`**: WebGPURenderer with forced-WebGL2 fallback, consuming `RenderDelta` (incl. `resync`), one TSL post stack (S3).
 - **`render-pixi`**: same contract on Pixi 8; filters as GLSL+WGSL pairs (S4).
-- **`ui`**: Svelte 5 + Tailwind + GSAP; splash → menu → blank gameplay → pause → end, credits, quick actions that adapt to `Hosting` capabilities.
+- **`ui`**: Svelte 5 + Tailwind + GSAP; splash → menu → blank gameplay → pause → end, credits, quick actions that adapt to `Hosting` capabilities. Establish reusable ScreenFrame, ActionBar and dialog/layout foundations. Define component states and normal/compact composition rules; do not defer all responsive behavior to A4.
+- **UI preview/testing**: mount production components/screens with fixture stores and host/display ports, without a renderer or server. Register normal, dense, disabled, loading and error states where applicable. DOM behavior tests prove interactions; real-browser geometry proves layout.
+- **Geometry contract**: one owner for layout viewport, usable presentation region and visual occlusion; layout shape stays independent of input mode. Define how later A4 safe-area/host metrics extend it without competing breakpoints.
 - **Example**: `blank-game` runs in both renderers.
 - **Decide in spec:** the exact `Hosting` interface; interpolation contract (`RenderDelta` carries current state only, so the adapter keeps previous state); the P01 answers (S6 verdict, "Consequences for A2": drop `baseRevision`/`writeId`, `menu.open` → `NOT_READY` before ready, static `pauseBehavior`, `scale` as a hint); whether the real `@ruken/sdk` lands inside A2 or right after.
 
@@ -170,6 +200,9 @@ Each needs its own phase spec first. The bullets are the work packages that spec
 - **Linux GPU runner**: self-hosted, ephemeral Docker with GPU passthrough, pinned browsers/drivers, defined in OpenTofu. Verify a **non-black WebGPU capture** there (S3 open item).
 - OpenTofu modules: runner, Cloudflare Pages/R2 dev + prod, Neon.
 - Visual goldens (screen × renderer × form factor) and E2E (splash → end) on the runner.
+- Focused remote selection by spec/screen/state/viewport; print selected and omitted gates. Build once per compatible configuration and identify results by exact artifact/content/runner/browser identity. Unknown affected-test dependencies fall back to broader coverage.
+- Measure queue, setup/build and execution time separately; set justified feedback budgets in the A3 spec. Reserve focused-job capacity; tune functional concurrency from measurements and give performance probes exclusive GPU access.
+- Failure reports preserve first-attempt errors, reproduction commands, named screen/state/viewport and relevant trace/screenshot/diff. Separate infrastructure failure, focused success and full release acceptance; isolate run-owned resources and retain the complete release gate.
 - Ruken packaging: `ruken.toml` generator, zip (≤200 MB, ≤4,000 files, relative paths), gate checks (handshake, no render before ready at 5 s, CSP scan, zip limits, manifest validity, FPS budget).
 - Tauri desktop build artifact. Minimal `create-game`. First real prerelease.
 - **Needs from you:** GPU box hardware, Cloudflare/Hetzner/Neon accounts and API tokens, domain(s) for dev/prod hosts.
@@ -178,12 +211,16 @@ Each needs its own phase spec first. The bullets are the work packages that spec
 - Input: keyboard/mouse, gamepad, touch, profiles, rebinding, cursor hiding, touch overlay, gamepad focus nav (port FloorFifty `gamepad-source.ts`, `focus-nav.ts`, `cursor-policy.ts`, gestures).
 - Display: responsive layouts (mobile portrait → mobile landscape → desktop landscape → tablet portrait), safe area + `hostReserved` 48×56, UI scale, letterbox (port `letterbox.ts`, AutomataEngine `viewport.ts`), stacking post-process (LCD, film grain, outline, dither, color grading) per adapter, graphics settings, color-blind UI.
 - Touch targets ≥44 px (48 primary).
+- Complete reusable frames, action bars, dialogs, panels, scroll lists and paged grids. Specify how layout uses container width and usable height, reduces decoration before controls, and preserves selection/focus on resize or rotation.
+- Layout contracts cover small portrait, compact landscape (including 780×270), desktop and tablet orientations, breakpoint boundaries, keyboard/browser-bar occlusion, safe areas and host rectangles. Keep primary actions reachable; verify actual hit testing, target dimensions, clipped rows/text, prohibited overlap and intentional scroll containment.
+- Validate isolated components and composed screens, then representative production input journeys across both renderers. Fixtures and screenshots do not replace integration or Owner visual acceptance.
 
 ### A5 Save + Audio + Localization
 - Save: 3 slots, autosave, versioning + migrations, string-encoded through `Hosting` (Ruken limits: strings only, 1 MB/key, 10 MB/game, 256 keys, key regex). Sync status UI. Flush on `session.exiting` then `exitReady`.
 - Audio: Web Audio buses, music, SFX, settings; respect `audio.focus`/`audio.master`.
 - Paraglide: EN/ES/ZH/KO/PT/JA, dyslexia font; full settings menu.
-- **Decide in spec:** save encoding format (overview §15).
+- Extend the preview/layout matrix with dense settings, long translations, large UI/text scales, audio controls and save checking/syncing/offline/conflict/error states. Define what remains visible and operable under compact height and an open keyboard.
+- **Decide in spec:** save encoding format (overview §15), component/state bindings and localization layout cases.
 
 ### A6 Debug + Telemetry
 - imgui-js panels (state, ECS, perf HUD, toggles) with an overlay registry; stripped from release builds (assert in CI).
@@ -193,9 +230,11 @@ Each needs its own phase spec first. The bullets are the work packages that spec
 - `net`: protocol, prediction + reconciliation (rollback via snapshot/restore), Colyseus client.
 - `server`: Colyseus room running the same sim, input queue + tick scheduler (port FloorFifty server), Prisma/Neon, Hetzner deploy.
 - Two-client replay golden; bundle check that SP builds contain no netcode.
+- Fast deterministic clock/network harnesses cover server cadence drift, jitter, delayed/duplicate packets, stalls, hidden-tab gaps and reconciliation. Define authority timeline ownership and side-effect suppression during replay; keep wall-clock access outside sim. Representative real two-client journeys verify the production transport separately.
 
 ### A8 CLI + 1.0
 - Full `create` / `update` / `lock` / `deploy` / `validate` / `doctor`; codemod infrastructure; docs; 1.0 release; `update-game` migrates the example 0.x → 1.0.
+- Scaffold focused test commands and screen-fixture registration with documentation of selected versus full gates. A new game inherits independent UI previews, layout assertions and the reusable CI workflow.
 
 ### A9 Store & Season Pass
 - Grant-once ledger in Save; TOML schema for SKUs, seasons, tiers, XP curve, tracks, rewards; pass progression as sim state; entitlements enter the sim as timestamped commands; pass-track + store UI with `store.manage`; standalone/dev entitlement overrides. Cosmetic rewards unless server-validated (A7).
@@ -206,6 +245,7 @@ Each needs its own phase spec first. The bullets are the work packages that spec
 
 - **B1 Character pipeline** (can start once A2 lands): Meshy → Blender MCP; rig, animation set, GLB export, budget validator, content TOML. Look: PSP/DS-era low-poly, PS2-Persona proportions, 90s-SNK textures.
 - **B2 Environment pipeline:** TrenchBroom-style brushes (Sencha editor as reference); map compiler → GLB, Rapier colliders, spawn anchors, lighting zones as data.
+- **C7 UI reuse:** inventory, quest log, collectibles and lore compose the existing responsive primitives and register dense/empty/loading/error states in the same gallery and layout contracts.
 - **C1–C8:** ported from automata-template as opt-in `@automata/*` modules, in order: Rule Manager (QB v2) → Objectives + Scene Director → character controller/spawn/vCam → animation + zone lighting → utility BT AI → dialogue/storylets/cutscenes → in-game screens → debug overlays. Start by reading `git show 9d7efa3a:"Hi/2026-05-17-threejs-rust-port-design.md"` in the template repo.
 
 ---

@@ -4,6 +4,8 @@
 - **Status:** Approved 2026-10-01
 - **Scope:** The whole framework at the architecture level. Each phase listed in §12 gets its own spec, then its own plan, then implementation.
 
+> **Owner direction, 2026-10-05:** Reuse FloorFifty's UI learnings through components designed for multiple resolutions and orientations, and dramatically improve test speed and failure diagnosis. These requirements are integrated into the existing phases below; detailed design and implementation happen when each phase needs them.
+
 ---
 
 ## 1. Purpose and success criteria
@@ -210,9 +212,14 @@ Inside Ruken, the host drawer owns Fullscreen, Exit, Language, and Accessibility
 
 ## 11. Testing strategy
 
+**Fast feedback is a framework requirement.** Test each behavior at the cheapest layer that can truthfully verify it. UI behavior and layout must be testable without starting a renderer, server or full game journey. Provide focused selection and local watch feedback; reuse immutable builds across compatible CI jobs. Measure queue, setup/build and execution time separately, and set feedback budgets in the relevant phase specs from actual measurements. Required cross-engine parity, GPU, release and real-device gates remain intact.
+
+Failure reports identify the exact build, component/screen, state and viewport, with reproduction commands and relevant traces/screenshots/diffs. Preserve first-attempt failures when retries recover. Show omitted and pending gates explicitly; focused green does not mean full acceptance. Isolate run-owned ports/processes and reserve GPU capacity for focused feedback; performance probes run without competing GPU jobs.
+
 | Layer | What | Where it runs |
 |---|---|---|
 | Unit / TDD | Every package. Strict red→green→refactor. | hosted CI |
+| UI behavior + layout | Production components and styles in isolated fixtures; focus, hit targets, clipping, overlap, scroll containment, rotation and keyboard occlusion. DOM behavior tests plus real-browser geometry checks. | Node/jsdom and lightweight renderer-free browser tests locally or in hosted CI; heavy visual/E2E stays on Linux GPU runner |
 | Boundary | `sim` imports only allowed modules (no DOM, `Date`, `Math.random`, I/O). Naming and style enforcement. | hosted CI |
 | **Sim golden** | For a given seed and inputs, the state hash every N ticks equals the committed golden. | hosted CI |
 | **Replay golden** | A recorded input stream reproduces the identical final hash. Networked games also run a two-client replay. | hosted CI |
@@ -224,19 +231,21 @@ Inside Ruken, the host drawer owns Fullscreen, Exit, Language, and Accessibility
 
 **Ordering rule:** reach something deployable early. Every phase has fixed exit criteria; anything new goes into a later phase, not the current one (lesson from FloorFifty's scope churn).
 
+**Planning detail (Owner direction, 2026-10-05):** Match the depth of Ruken's `docs/superpowers/specs/` and `plans/`: each phase spec defines scope, state ownership, interfaces, data flow, lifecycle/failure behavior, dependencies and concrete acceptance cases. Its implementation plan names exact files, consumed/produced interfaces, test-first steps, verification commands and evidence-backed tracking. Build this detail when the phase is needed; the decomposition indexes the work and does not substitute for a spec or implementation plan. See [Work Decomposition](../decomposition.md), §3.1, for the required detail. The current A1 sim-core plan stays scoped.
+
 ### Part A: Framework (walking skeleton plus core managers)
 
 | Phase | Scope | Exit criteria |
 |---|---|---|
 | **A0 Spikes** (throwaway code) | ① Koota: deterministic iteration and snapshot/restore. ② Rapier deterministic 2D/3D under Ruken's CSP. ③ Three WebGPU→WebGL2 fallback, with a TSL post-process pass on both backends. ④ Pixi 8 on WebGPU and WebGL. ⑤ A Ruken SDK stub that conforms to P01. | A written verdict for each spike. Koota is confirmed, or we fall back to Miniplex. |
 | **A1 Foundation** | Monorepo (pnpm, turbo, TS, Biome, Vitest, Changesets), the boundary checker, `sim` (world, clock, RNG, commands, scheduler, resources, snapshot), `content` (TOML→Zod→JSON plus hash), and the sim and replay golden harnesses. | The same seed and inputs produce the same hash, verified in hosted CI. |
-| **A2 Skeleton** | The `runtime` app loop, Scene/Flow and Time managers, both render adapters, `host` (web and ruken adapters plus a mock Ruken host), `ui` screens splash → menu → blank gameplay → pause → end, plus credits and quick actions. Store plumbing in `Hosting`: entitlements, `store.purchase`, `store.manage`. `examples/blank-game` runs in both renderers. | It boots under the mock Ruken host and standalone. Nothing renders before ready. |
-| **A3 Ship pipeline** | Reusable workflows; OpenTofu for the GPU runner, Cloudflare dev/prod, and Neon; visual goldens and E2E; the Ruken zip, `ruken.toml`, and gate checks; a Tauri desktop build; a **minimal `create-game`**; a first prerelease of the packages. | `create-game x`, then push, puts x on the dev host and produces a Ruken zip, with no manual steps. |
-| **A4 Input + Display** | Input: keyboard and mouse, gamepad, touch, profiles, rebinding, cursor hiding, the touch overlay, gamepad focus navigation. Display: responsive layouts in the priority order above, safe area and `hostReserved`, UI scale, the stacking post-process (LCD, film grain, outline, dither, color grading), graphics settings, color-blind UI. | An E2E matrix of input devices × form factors passes. |
-| **A5 Save + Audio + Localization** | Save: 3 slots, autosave, versioning and migrations, string-encoded through Hosting. Audio buses, music, SFX, and audio settings. Paraglide in EN/ES/ZH/KO/PT/JA, plus a dyslexia font option. The full settings menu. | A save made on version N loads on version N+1 through its migration. Every UI string is localized. |
+| **A2 Skeleton** | The `runtime` app loop, Scene/Flow and Time managers, both render adapters, `host` (web and ruken adapters plus a mock Ruken host), `ui` screens splash → menu → blank gameplay → pause → end, plus credits and quick actions. Store plumbing in `Hosting`: entitlements, `store.purchase`, `store.manage`. `examples/blank-game` runs in both renderers. Establish reusable responsive screen/layout primitives and a renderer-free component/screen preview and test harness, drawing on FloorFifty. | Components and skeleton screens can be previewed and tested without a renderer or server. It boots under the mock Ruken host and standalone. Nothing renders before ready. |
+| **A3 Ship pipeline** | Reusable workflows; OpenTofu for the GPU runner, Cloudflare dev/prod, and Neon; visual goldens and E2E; the Ruken zip, `ruken.toml`, and gate checks; a Tauri desktop build; a **minimal `create-game`**; a first prerelease of the packages. Focused remote runs, compatible build reuse, GPU preflight, actionable failure artifacts and explicit coverage reports; measure feedback and queue times. | Focused tests can run without repeating the full matrix; full release gates remain required. `create-game x`, then push, puts x on the dev host and produces a Ruken zip, with no manual steps. |
+| **A4 Input + Display** | Input: keyboard and mouse, gamepad, touch, profiles, rebinding, cursor hiding, the touch overlay, gamepad focus navigation. Display: responsive layouts in the priority order above, safe area and `hostReserved`, UI scale, the stacking post-process (LCD, film grain, outline, dither, color grading), graphics settings, color-blind UI. Complete shared frames, action bars, dialogs, lists and panels that adapt to container size and usable height; keep layout geometry separate from input mode. Cover compact landscape, rotation, browser bars, keyboards and host exclusions without losing state or reachable controls. | Responsive component and composed-screen contracts pass at reference sizes and breakpoint boundaries, including focus, target sizes, hit testing, clipping and scroll containment. An E2E matrix of input devices × form factors passes. |
+| **A5 Save + Audio + Localization** | Save: 3 slots, autosave, versioning and migrations, string-encoded through Hosting. Audio buses, music, SFX, and audio settings. Paraglide in EN/ES/ZH/KO/PT/JA, plus a dyslexia font option. The full settings menu. Extend shared UI fixtures and layout contracts with dense settings, long translations, large UI/text scales and save/audio states. | These states remain readable and operable across supported sizes and orientations. A save made on version N loads on version N+1 through its migration. Every UI string is localized. |
 | **A6 Debug + Telemetry** | imgui-js panels (state, ECS, perf HUD, toggles), with a registry so later systems can add overlays. The telemetry port, its three adapters, and consent. | Debug code is absent from release bundles. Events are validated against the catalog. |
-| **A7 Networking** (opt-in) | `net` and `server`: a Colyseus room running the sim, prediction and reconciliation, Prisma/Neon, and the Hetzner deploy. The example game in networked mode. | The two-client replay golden passes. Single-player bundles contain no netcode. |
-| **A8 CLI + 1.0** | The full `create`/`update`/`lock`/`deploy`/`validate`/`doctor`, the codemod infrastructure, docs, and the 1.0 release. | `update-game` migrates the example game from 0.x to 1.0. |
+| **A7 Networking** (opt-in) | `net` and `server`: a Colyseus room running the sim, prediction and reconciliation, Prisma/Neon, and the Hetzner deploy. The example game in networked mode. Deterministic clock/network harnesses cover cadence drift, jitter, delayed/duplicate packets, stalls and reconciliation before representative real multiplayer journeys. | The two-client replay golden passes. Single-player bundles contain no netcode. |
+| **A8 CLI + 1.0** | The full `create`/`update`/`lock`/`deploy`/`validate`/`doctor`, the codemod infrastructure, docs, and the 1.0 release. Scaffold documented focused test commands and screen-fixture registration so games inherit the feedback workflow without custom CI plumbing. | A scaffolded game can preview and test its UI independently and report focused versus full coverage. `update-game` migrates the example game from 0.x to 1.0. |
 | **A9 Store & Season Pass** | Items (DLC, extra content) and subscriptions (e.g. a battle pass), sold through Ruken's `store` capability: a grant-once ledger in Save; a TOML schema for SKUs, seasons, tiers, the XP curve, free/paid tracks and rewards; pass progression as sim state; pass-track and store UI with a `store.manage` entry; standalone/dev entitlement overrides. Challenges hook into C2 later. Rewards should be cosmetic unless server-validated (A7), because saves are client-side. | A replay with entitlement changes reproduces. A purchase that times out still grants when entitlements arrive later. A lapsed subscription locks the paid track without losing earned progress. |
 
 **Deferred beyond Part A:**
@@ -261,7 +270,7 @@ Each system becomes an opt-in `@automata/*` module ported from the Godot templat
 | C4 | Animation system and zone-based semi-unlit lighting with blending |
 | C5 | Utility-based behavior-tree AI (state, pathfinding, rule-driven) |
 | C6 | Quality-based dialogue (Animal Crossing / Firewatch), narrative storylets (BG3-inspired), and cutscenes |
-| C7 | In-game screens: inventory, quest log, collectibles and lore |
+| C7 | In-game screens: inventory, quest log, collectibles and lore, composed from the shared responsive UI primitives and registered in the same preview/layout test harness |
 | C8 | Debug overlays for rules, objectives, beats, cheats, lighting, and AI |
 
 Part C starts by reading the approved 2026-05-17 port design in the template's history: `git show 9d7efa3a:"Hi/2026-05-17-threejs-rust-port-design.md"`.
@@ -274,8 +283,19 @@ Part C starts by reading the approved 2026-05-17 port design in the template's h
 - `screens/screen.ts` and `common/dispose.ts`: the enter/exit contract plus a DisposeBag, with dependencies passed in as ports.
 - `managers/network/network.ts` (`NetworkPort`) and `ui/store/room-store.svelte.ts` (a store that only mirrors the server).
 - `managers/letterbox.ts`, `managers/gamepad-source.ts`, `ui/focus-nav.ts`, `ui/cursor-policy.ts`, and the gesture helpers.
+- `ui/layout/`: ScreenFrame, ActionBar, CornerControls, Split, ScrollList, OptionGroup and dialog/paging patterns. Extract behavior and contracts; keep branding and game-specific state in the game.
+- `ui/{form-factor,height-tier,viewport-tracking.svelte}.ts`: layout shape, usable height and visual viewport occlusion are separate concerns; keyboard opening must not reclassify the layout.
+- `tests/e2e/support/layout.ts` and the responsive sweep: reuse hit-testing, target-size, clipping, overlap and reachability assertions in isolated UI fixtures, then verify composed integration.
+- `playwright.config.ts` and CI: reuse viewport-sensitive selection, separate performance probes and actionable evidence; avoid full GPU journeys for ordinary DOM layout checks.
 - `packages/shared/src/common/{constants,tuning}.ts`: the split between invariants and tunables.
 - `apps/server/src/rooms/{input-queue,tick-scheduler,room-driver}.ts`.
+
+**Ruken planning** (`Ruken/RukenApp/docs/superpowers/`):
+- `specs/2026-10-01-ruken-p01-protocol-sdk-design.md`: message catalog, capabilities, payloads, timeouts, failure handling, paired contract tests and downstream ownership.
+- `specs/2026-10-01-ruken-p05-runtime-services-design.md`: ordered service flows, adapter mappings, save conflicts/quotas and concrete success/failure acceptance cases.
+- `specs/2026-10-01-ruken-p09-player-web-design.md`: component/state inventory, tokens, orientation behavior, host-state bindings and testable interaction rules. Reuse the documentation precision, not Ruken's product branding.
+- `plans/2026-10-01-ruken-p00-foundation.md` and `plans/2026-10-01-ruken-p01-protocol-sdk.md`: global constraints, review risks, exact file responsibilities, consumed/produced interfaces, red→green tasks and verification commands.
+- Ruken has phase specs P0–P14 but executable plans only for P0/P1. Match the level of detail as phases are designed; do not invent future implementation evidence or prewrite every implementation plan.
 
 **Retired AutomataEngine** (`Ruken/[Retired]/AutomataEngine`):
 - `scripts/check-boundaries.ts` (simulation purity)
@@ -309,3 +329,4 @@ Lesson from it: **don't over-specify before there is evidence.**
 - The snapshot and save encoding format (A1 and A5).
 - Post-process implementation per adapter (A4).
 - The exact reusable-workflow interface and the OpenTofu module layout (A3).
+- Responsive component APIs and fixture registration (A2), focused test selection/caching/reporting and measured feedback budgets (A3), and the detailed viewport/occlusion/input coverage matrix (A4). Refine these within existing phase specs when needed; do not create a separate workstream or expand the current A1 sim-core plan.
