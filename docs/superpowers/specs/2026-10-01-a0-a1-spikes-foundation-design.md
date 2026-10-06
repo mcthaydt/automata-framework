@@ -4,6 +4,8 @@
 - **Status:** A0 complete 2026-10-01; A1 pending Plan 2
 - **Parent spec:** [`2026-10-01-automata-framework-overview-design.md`](./2026-10-01-automata-framework-overview-design.md), §12 Part A.
 
+> **Owner direction, 2026-10-05:** preserve completed A0/A1a work, reconcile the remaining foundation design and complete all A/B phase specs before writing the next implementation plan. A real 3D game follows A/B; C's modular extraction from FloorFifty and that game is deferred until there is gameplay evidence. The numbered [overview](../../001-overview.md), [decomposition](../../002-decomposition.md), [master delivery plan](../../003-master-delivery-plan.md) and [continuation](../../004-continuation-prompt.md) own navigation and current task order. Existing recorded implementation results below remain historical evidence, not a fresh verification claim.
+
 This spec covers two phases:
 - **A0** proves the risky library choices with throwaway spikes.
 - **A1** builds the repo foundation and the deterministic core that every later phase depends on. The core is `automata-sim`, `automata-content`, and the sim half of `automata-testing`.
@@ -62,6 +64,8 @@ automata-framework/
 ├─ content/           framework default content (empty in A1)
 ├─ infra/             (empty in A1; reusable workflows arrive in A3)
 ├─ docs/
+│  ├─ 001-overview.md · 002-decomposition.md
+│  ├─ 003-master-delivery-plan.md · 004-continuation-prompt.md
 │  ├─ superpowers/{specs,plans}/
 │  ├─ spikes/
 │  └─ adr/

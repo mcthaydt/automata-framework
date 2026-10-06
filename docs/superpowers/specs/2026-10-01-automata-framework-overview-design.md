@@ -4,7 +4,7 @@
 - **Status:** Approved 2026-10-01
 - **Scope:** The whole framework at the architecture level. Each phase listed in §12 gets its own spec, then its own plan, then implementation.
 
-> **Owner direction, 2026-10-05:** Reuse FloorFifty's UI learnings through components designed for multiple resolutions and orientations, and dramatically improve test speed and failure diagnosis. These requirements are integrated into the existing phases below; detailed design and implementation happen when each phase needs them.
+> **Owner direction, 2026-10-05:** Reuse FloorFifty's UI learnings through components designed for multiple resolutions and orientations, and dramatically improve test speed and failure diagnosis. Complete specs for A and B now, at the level of detail in Ruken's Superpowers folder; write implementation plans just before execution. Read [001 Overview](../../001-overview.md), [002 Decomposition](../../002-decomposition.md), [003 Master delivery plan](../../003-master-delivery-plan.md) and [004 Living continuation](../../004-continuation-prompt.md) for navigation, task order and current status.
 
 ---
 
@@ -231,7 +231,7 @@ Failure reports identify the exact build, component/screen, state and viewport, 
 
 **Ordering rule:** reach something deployable early. Every phase has fixed exit criteria; anything new goes into a later phase, not the current one (lesson from FloorFifty's scope churn).
 
-**Planning detail (Owner direction, 2026-10-05):** Match the depth of Ruken's `docs/superpowers/specs/` and `plans/`: each phase spec defines scope, state ownership, interfaces, data flow, lifecycle/failure behavior, dependencies and concrete acceptance cases. Its implementation plan names exact files, consumed/produced interfaces, test-first steps, verification commands and evidence-backed tracking. Build this detail when the phase is needed; the decomposition indexes the work and does not substitute for a spec or implementation plan. See [Work Decomposition](../decomposition.md), §3.1, for the required detail. The current A1 sim-core plan stays scoped.
+**Planning detail (Owner direction, 2026-10-05):** Match the depth of Ruken's `docs/superpowers/specs/` and `plans/`: each phase spec defines scope, state ownership, interfaces, data flow, lifecycle/failure behavior, dependencies and concrete acceptance cases. Its implementation plan names exact files, consumed/produced interfaces, test-first steps, verification commands and evidence-backed tracking. Complete this design detail for A and B in the current specification pass; implementation plans remain just-in-time. The decomposition indexes the work and does not substitute for a spec or implementation plan. See [Work Decomposition](../../002-decomposition.md), §3.1, for the required detail. Preserve completed A1 sim-core work; the next A1b plan follows the full specification review gate.
 
 ### Part A: Framework (walking skeleton plus core managers)
 
@@ -246,7 +246,7 @@ Failure reports identify the exact build, component/screen, state and viewport, 
 | **A6 Debug + Telemetry** | imgui-js panels (state, ECS, perf HUD, toggles), with a registry so later systems can add overlays. The telemetry port, its three adapters, and consent. | Debug code is absent from release bundles. Events are validated against the catalog. |
 | **A7 Networking** (opt-in) | `net` and `server`: a Colyseus room running the sim, prediction and reconciliation, Prisma/Neon, and the Hetzner deploy. The example game in networked mode. Deterministic clock/network harnesses cover cadence drift, jitter, delayed/duplicate packets, stalls and reconciliation before representative real multiplayer journeys. | The two-client replay golden passes. Single-player bundles contain no netcode. |
 | **A8 CLI + 1.0** | The full `create`/`update`/`lock`/`deploy`/`validate`/`doctor`, the codemod infrastructure, docs, and the 1.0 release. Scaffold documented focused test commands and screen-fixture registration so games inherit the feedback workflow without custom CI plumbing. | A scaffolded game can preview and test its UI independently and report focused versus full coverage. `update-game` migrates the example game from 0.x to 1.0. |
-| **A9 Store & Season Pass** | Items (DLC, extra content) and subscriptions (e.g. a battle pass), sold through Ruken's `store` capability: a grant-once ledger in Save; a TOML schema for SKUs, seasons, tiers, the XP curve, free/paid tracks and rewards; pass progression as sim state; pass-track and store UI with a `store.manage` entry; standalone/dev entitlement overrides. Challenges hook into C2 later. Rewards should be cosmetic unless server-validated (A7), because saves are client-side. | A replay with entitlement changes reproduces. A purchase that times out still grants when entitlements arrive later. A lapsed subscription locks the paid track without losing earned progress. |
+| **A9 Store & Season Pass** | Items (DLC, extra content) and subscriptions (e.g. a battle pass), sold through Ruken's `store` capability: a grant-once ledger in Save; a TOML schema for SKUs, seasons, tiers, the XP curve, free/paid tracks and rewards; pass progression as sim state; pass-track and store UI with a `store.manage` entry; standalone/dev entitlement overrides. Game-specific challenges remain in the game until later modular extraction is justified. Rewards should be cosmetic unless server-validated (A7), because saves are client-side. | A replay with entitlement changes reproduces. A purchase that times out still grants when entitlements arrive later. A lapsed subscription locks the paid track without losing earned progress. |
 
 **Deferred beyond Part A:**
 - Tauri mobile, until there is a standalone app-store target. Ruken mobile is a PWA.
@@ -258,22 +258,19 @@ Failure reports identify the exact build, component/screen, state and viewport, 
 - **B1 Character pipeline:** Meshy → Blender MCP. The target look is PSP/DS-era low-poly, with PS2-Persona proportions and 90s-SNK-style textures. Steps: rig, animation set, GLB export, budget validator, and content TOML.
 - **B2 Environment pipeline:** a TrenchBroom-style brush workflow, with the Sencha editor (`GavynBryan/Sencha/editor`) as the reference. A map compiler outputs GLB, Rapier colliders, spawn anchors, and lighting zones as data.
 
-### Part C: Gameplay systems, ported from automata-template on Part B assets
+### Real 3D game using Parts A and B
 
-Each system becomes an opt-in `@automata/*` module ported from the Godot template:
+**Owner direction, 2026-10-05:** cut the former C1–C8 template-port scope. Deliver A and B, then build a real 3D game with them. A separate reviewed game design selects the concept, playable scope, assets, target devices and relevant optional framework capabilities. Write its implementation plans just before execution. The foundation example is a test fixture, not the real-game milestone.
 
-| Phase | Systems |
-|---|---|
-| C1 | Rule Manager (QB v2: conditions scored 0..1 and multiplied, decision groups, event/tick triggers, per-consumer state trackers, authoring and validation tools) |
-| C2 | Objectives Manager (event-driven dependency graph, branching and optional objectives, logs; win/lose conditions ported here) and Scene Director (beats, fork/join), both built on the Rule Manager |
-| C3 | Floating-capsule character controller, spawn system (anchors, scene-entry contracts), and vCam manager (targets, soft zone, blends, silhouette collision, crow-country orbit) |
-| C4 | Animation system and zone-based semi-unlit lighting with blending |
-| C5 | Utility-based behavior-tree AI (state, pathfinding, rule-driven) |
-| C6 | Quality-based dialogue (Animal Crossing / Firewatch), narrative storylets (BG3-inspired), and cutscenes |
-| C7 | In-game screens: inventory, quest log, collectibles and lore, composed from the shared responsive UI primitives and registered in the same preview/layout test harness |
-| C8 | Debug overlays for rules, objectives, beats, cheats, lighting, and AI |
+Keep gameplay systems in the game initially, obeying the seven laws and consuming A's responsive UI and focused testing infrastructure. Acceptance includes real playable journeys, asset/render/runtime evidence and separate Owner play/visual review.
 
-Part C starts by reading the approved 2026-05-17 port design in the template's history: `git show 9d7efa3a:"Hi/2026-05-17-threejs-rust-port-design.md"`.
+### Part C: modular systems extracted from FloorFifty and the 3D game
+
+After the 3D game has accepted playable behavior, audit it alongside FloorFifty (2D). Select modules from demonstrated behavior and reuse needs rather than a speculative template inventory. No C module list is approved yet, and C specs are not prerequisites for A/B implementation.
+
+Each selected module needs a reviewed spec covering source behavior, public/versioned contracts, state ownership, lifecycle/failure policy, dimensional assumptions, game-specific boundaries and applicable regression cases. Then extract incrementally under TDD and verify adoption in actual consumers. Modules publish under the existing `@mcthaydt/automata-*` convention. Preserve responsive layout/input behavior and testing diagnostics; keep branding, content and game-specific state in the games. A module need not support both 2D and 3D when its justified scope is dimension-specific.
+
+---
 
 ## 13. Prior art to reuse
 
@@ -295,7 +292,7 @@ Part C starts by reading the approved 2026-05-17 port design in the template's h
 - `specs/2026-10-01-ruken-p05-runtime-services-design.md`: ordered service flows, adapter mappings, save conflicts/quotas and concrete success/failure acceptance cases.
 - `specs/2026-10-01-ruken-p09-player-web-design.md`: component/state inventory, tokens, orientation behavior, host-state bindings and testable interaction rules. Reuse the documentation precision, not Ruken's product branding.
 - `plans/2026-10-01-ruken-p00-foundation.md` and `plans/2026-10-01-ruken-p01-protocol-sdk.md`: global constraints, review risks, exact file responsibilities, consumed/produced interfaces, red→green tasks and verification commands.
-- Ruken has phase specs P0–P14 but executable plans only for P0/P1. Match the level of detail as phases are designed; do not invent future implementation evidence or prewrite every implementation plan.
+- Ruken has phase specs P0–P14 but executable plans only for P0/P1. Match that separation here: full phase specs first, implementation plans just before execution. Do not invent future implementation evidence.
 
 **Retired AutomataEngine** (`Ruken/[Retired]/AutomataEngine`):
 - `scripts/check-boundaries.ts` (simulation purity)
@@ -305,12 +302,6 @@ Part C starts by reading the approved 2026-05-17 port design in the template's h
 - versioned saves with migrations
 
 Lesson from it: **don't over-specify before there is evidence.**
-
-**automata-template** (`_Reboots/Crispy Cabaret/Projects/[old]/automata-template`):
-- naming discipline enforced by a style test (its S_/C_/M_/RS_/U_ prefixes map to TS module conventions, which the A1 spec defines)
-- QB v2 (`scripts/core/resources/qb/`)
-- the objective graph and Scene Director
-- `docs/systems/*` and the ADRs
 
 ## 14. Risks
 
@@ -329,4 +320,4 @@ Lesson from it: **don't over-specify before there is evidence.**
 - The snapshot and save encoding format (A1 and A5).
 - Post-process implementation per adapter (A4).
 - The exact reusable-workflow interface and the OpenTofu module layout (A3).
-- Responsive component APIs and fixture registration (A2), focused test selection/caching/reporting and measured feedback budgets (A3), and the detailed viewport/occlusion/input coverage matrix (A4). Refine these within existing phase specs when needed; do not create a separate workstream or expand the current A1 sim-core plan.
+- Responsive component APIs and fixture registration (A2), focused test selection/caching/reporting and measured feedback budgets (A3), and the detailed viewport/occlusion/input coverage matrix (A4). Define these within the full phase-spec pass, with measured feedback budgets refined when A3 has timing evidence. Do not create a separate workstream or rewrite completed A1 sim-core work.
