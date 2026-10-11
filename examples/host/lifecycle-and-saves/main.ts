@@ -6,7 +6,8 @@
 // boot and written each time Wick reaches the ember. The panel shows what the host reports as it happens: the
 // saves status goes to offline-queued while the saves server is out of reach, and if the host denies saves the
 // demo keeps nothing rather than write to the device.
-// Opened directly, the page runs standalone: same code, and the saves live only as long as the page.
+// Opened directly, the page runs standalone: same code, with no host to keep saves, so runs count only while
+// the page is open.
 // Controls: arrows or A/D to move, Space, Z, W or Up to jump; on-screen buttons on touch. The ember is a short
 // dash to the right, so a run takes a couple of seconds.
 // Base: base-2d (`@af-examples/base-2d`: the room, Wick, input and the loop through `playRoom`).
@@ -75,15 +76,20 @@ const program = Effect.gen(function* () {
   }
   let lifecycle = 'active'
   let savesStatus = 'saved'
+  // Standalone there is no host to grant saves, so nothing was refused: runs simply last as long as the page.
+  const savesLabel = () => {
+    if (keepsSaves) return savesStatus
+    return hosting.kind === 'ruken' ? 'not granted, runs are not kept' : 'this page only'
+  }
   const refresh = () => {
     root.dataset.host = hosting.kind
     root.dataset.lifecycle = lifecycle
     root.dataset.runs = String(runs)
-    root.dataset.saves = keepsSaves ? savesStatus : 'not-granted'
+    root.dataset.saves = keepsSaves ? savesStatus : hosting.kind === 'ruken' ? 'not-granted' : 'standalone'
     show({
       host: hosting.kind === 'ruken' ? `Ruken · ${hosting.player.displayName}` : 'Standalone',
       lifecycle: `Lifecycle: ${lifecycle}`,
-      saves: `Saves: ${keepsSaves ? savesStatus : 'not granted, runs are not kept'}`,
+      saves: `Saves: ${savesLabel()}`,
       best: best === 0 ? 'Best: none yet' : `Best ${(best / tuning.TICK_HZ).toFixed(2)} s`,
       runs: runs === 1 ? '1 run' : `${runs} runs`,
     })

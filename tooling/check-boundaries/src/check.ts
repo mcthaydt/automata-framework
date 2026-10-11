@@ -103,9 +103,9 @@ export const IMPORT_ALLOWED: ReadonlySet<string> = new Set([
   '@mcthaydt/automata-sim',
   '@mcthaydt/automata-sim/hash',
   '@mcthaydt/automata-sim/math',
-  // The physics extension's sim entry points (packages/physics), checked by the same root run.
+  // The physics extension's 2D sim entry point (packages/physics), checked by the same root run. /3d joins
+  // when a game sim imports it.
   '@mcthaydt/automata-physics/2d',
-  '@mcthaydt/automata-physics/3d',
 ])
 
 // Keys whose subtree is type-only: skipped entirely.

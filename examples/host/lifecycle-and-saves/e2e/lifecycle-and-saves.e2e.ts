@@ -102,5 +102,8 @@ test('opened directly, it runs standalone', async ({ page }) => {
   await page.goto(url)
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
   await expect(page.locator('#game')).toHaveAttribute('data-host', 'standalone')
+  // No host, so nothing to deny: the panel says runs last as long as the page, not that saves were refused.
+  await expect(page.locator('#game')).toHaveAttribute('data-saves', 'standalone')
+  await expect(page.getByText('Saves: this page only')).toBeVisible()
   expect(errors).toEqual([])
 })

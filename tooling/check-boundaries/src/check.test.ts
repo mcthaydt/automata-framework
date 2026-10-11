@@ -75,13 +75,12 @@ test('sim plugins outside packages/sim may import the sim’s public entry point
   expect(imports('@mcthaydt/automata-sim/src/world/sim')).toEqual(['import'])
 })
 
-test('game sims may import the physics extension’s sim entry points, and only those', () => {
+test('game sims may import the physics extension’s 2D sim entry point, and only that', () => {
   const imports = (source: string) =>
     checkSource('/x/examples/physics/bodies-2d/sim/a.ts', `import { x } from '${source}'\n`).map(
       (f) => f.rule,
     )
   expect(imports('@mcthaydt/automata-physics/2d')).toEqual([])
-  expect(imports('@mcthaydt/automata-physics/3d')).toEqual([])
   expect(imports('@mcthaydt/automata-physics/src/2d')).toEqual(['import'])
 })
 
