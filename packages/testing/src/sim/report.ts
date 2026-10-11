@@ -12,7 +12,7 @@ export type GoldenReport = { readonly name: string } & (
     }
   | {
       readonly kind: 'setup-changed'
-      readonly field: 'seed' | 'tickHz' | 'every'
+      readonly field: 'seed' | 'tickHz' | 'ticks' | 'every'
       readonly expected: number
       readonly actual: number
     }
