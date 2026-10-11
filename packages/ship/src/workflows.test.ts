@@ -28,7 +28,10 @@ interface Job {
   readonly steps?: Step[]
 }
 interface Workflow {
-  readonly on: Record<string, { inputs?: Record<string, unknown>; secrets?: Record<string, unknown> } | null>
+  readonly on: Record<
+    string,
+    { inputs?: Record<string, unknown>; secrets?: Record<string, unknown>; types?: string[] } | null
+  >
   readonly permissions?: Record<string, string>
   readonly jobs: Record<string, Job>
 }
@@ -210,6 +213,14 @@ describe('ci.yml (AF)', () => {
         'pnpm test:unit',
       ]),
     )
+  })
+
+  // af-linux is one shared PC runner. A draft runs parity in a cloud container instead (docs/cloud-parity.md);
+  // the runner takes it once the PR is ready for review, and on every push to main.
+  it('skips cross-engine parity on draft pull requests and runs it when one is marked ready', () => {
+    expect(ci.on.pull_request?.types).toEqual(['opened', 'synchronize', 'reopened', 'ready_for_review'])
+    expect(ci.jobs.parity?.if).toContain('github.event.pull_request.draft != true')
+    expect(ci.jobs.checks?.if ?? '').not.toContain('draft')
   })
 
   it('keeps the parity container on the pinned Playwright version', () => {
