@@ -56,6 +56,7 @@ interface Hosting {
   round: { start: Effect.Effect<void>; end(outcome?: RoundOutcome): Effect.Effect<void> }
   track(event: string, props?: Record<string, string | number | boolean>): Effect.Effect<void>
   exit(reason?: 'player' | 'completed'): Effect.Effect<void, HostError> // default 'player'
+  /** Before `ready` resolves, the dispatcher answers false and skips the handler (the SDK does not guard this). */
   onMenuRequest(handler: () => boolean): Effect.Effect<void, never, Scope.Scope>
   onExiting(handler: Effect.Effect<void>): Effect.Effect<void, never, Scope.Scope>
 }
@@ -99,11 +100,15 @@ Two clocks, kept apart:
 
 ### 1.5 Required tests (host lane)
 
-Against `@ruken/sdk-host`: hosted handshake; top-level page gives `kind: 'standalone'` with `fellBack` = `None`; framed page with no welcome gives `kind: 'standalone'`, `fellBack` = `Some` and one warning logged; wrong origin and wrong source rejected (falls back as above); `ready` before and after; each observed stream's initial value and change; `locale` from the session; saves get/set/remove/flush including `offline-queued`, `conflict` and `recovered` status and a quota error relayed from the SDK; a capability missing from `granted` fails with the SDK's error and no fallback; `setFullscreen` returns `support`; `exit` defaults to `'player'`; `exiting` runs its handler; `onMenuRequest` before ready answers `NOT_READY` (the SDK's behavior, asserted, not reimplemented). Port FloorFifty's `apps/client/src/ruken/` contract tests and spike S6's cases.
+Against `@ruken/sdk-host`: hosted handshake; top-level page gives `kind: 'standalone'` with `fellBack` = `None`; framed page with no welcome gives `kind: 'standalone'`, `fellBack` = `Some` and one warning logged; wrong origin and wrong source rejected (falls back as above); `ready` before and after; each observed stream's initial value and change; `locale` from the session; saves get/set/remove/flush including `offline-queued`, `conflict` and `recovered` status and a quota error relayed from the SDK; a capability missing from `granted` fails with the SDK's error and no fallback; `setFullscreen` returns `support`; `exit` defaults to `'player'`; `exiting` runs its handler; `onMenuRequest` before `ready` resolves answers `false` without calling the game's handler (AF's guard, below). Port FloorFifty's `apps/client/src/ruken/` contract tests and spike S6's cases.
 
 ### 1.6 Known external item
 
 The SDK at `b30d31b` still sends `baseRevision` and `writeId` on `saves.set`/`saves.remove` (Ruken `packages/protocol/src/meta/types.ts`, lines 94–100). AF does not touch them. Whether they stay is Ruken's call, tracked in [03 Continuation](../../03-continuation-prompt.md) as a request to Ruken.
+
+Also at `b30d31b`: without the `saves` grant, the SDK's `storage.setItem` succeeds into an in-memory cache and sends nothing (`packages/sdk/src/saves-storage.ts`, `enabled: granted.has('saves')`); only `saves.flush` fails with `UNSUPPORTED`. That contradicts Ruken's S6 answer 3 ("throw DENIED, never fall back to memory"). AF adds no gate (§1.3); the host tests pin the SDK's current behavior so a re-vendor surfaces Ruken's fix. Tracked as a second request to Ruken.
+
+And: the SDK at `b30d31b` has no `NOT_READY` for `menu.open` before `session.ready`; it calls the game's handler and answers `{ opened: true }`. AF's `onMenuRequest` dispatcher therefore answers `false` and skips the handler until `ready` resolves (a small guard, pinned by a test). Tracked as a third request to Ruken.
 
 ## 2. `defineExtension`
 

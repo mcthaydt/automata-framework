@@ -34,7 +34,7 @@ The seven laws stand. Law 7 is sharpened:
 |---|---|---|
 | Simulation | Koota 0.6.6 behind the `automata-sim` facade; xoshiro128** RNG; `automata-sim/math`; `automata-sim/hash` (XXH64 and canonical JSON) | As built in A1a. No Effect, no DOM, no wall clock (boundary checker). |
 | Physics | Rapier `-deterministic-compat` 0.21 (2D and 3D) in the `physics` extension | Spike S2 proved parity on a fixture, but neither reference game runs it: FloorFifty uses Planck and keeps it, The Last Light uses standard Rapier and moves to the deterministic-compat build when it adopts AF. M2.1 proves four-engine parity before anything depends on it. |
-| Effects, services and errors | **Effect** (`effect`, `@effect/platform`, `@effect/platform-browser`, `@effect/platform-node`) | Outside the sim only. Exact versions are pinned in M1.1 and recorded in `docs/versions.md`. |
+| Effects, services and errors | **Effect** (`effect`; `@effect/platform-browser` only where S8 allows) | Outside the sim only. Exact versions are pinned in M1.1 and recorded in `docs/versions.md`. |
 | Schemas | **Zod 4** (`4.6.5`, the version Ruken pins) | Shared with Ruken's protocol and manifest packages and with the sim's command payloads. Effect Schema is not adopted; one schema language. |
 | Rendering | **PixiJS 8.22+** (2D, core); **`@pixi/3d` 0.1.0-beta.2** (3D, experimental extension, D-1) | **WebGL2 is the default**; WebGPU is opt-in per game (FloorFifty forces WebGL for mobile reach, and Ruken's manifest renderers are `webgl2`, `webgl`, `canvas2d`, `wasm-webgl2`, with no WebGPU value). Filters ship as GLSL + WGSL pairs (S4) so opting in costs nothing. Every game runs Pixi's no-eval build and Zod jitless (FloorFifty `no-eval.ts`), because Ruken's game CSP has no `'unsafe-eval'`. |
 | UI | Svelte 5 with plain CSS and theme custom properties | Svelte as in FloorFifty and Ruken's `packages/ui`. Menus and HUD stay in the DOM. Tailwind and GSAP are not core (Ruken's UI uses neither); tweening belongs to `feel`. |
@@ -121,7 +121,7 @@ See ADR 0003 for the decision record. Effect is adopted by Owner direction (2026
 - **Lifetimes:** `Scope` and finalizers replace FloorFifty's `DisposeBag`; a screen's resources are released on exit by its scope, and a game restart (Ruken requirement: return to the launcher without a page refresh) closes the whole runtime scope.
 - **Time:** Effect's `Clock` is the injected clock (Ruken rule: never call `Date.now()` in domain code). AF's own timing (load stalls, save-flush timeouts, retries) is tested with `TestClock`. The SDK's timing (hello retry, handshake give-up, RPC timeouts) runs on `SdkEnv.timers` and the exit grace is enforced by the host, so tests drive those through an injected fake `SdkEnv` and the fake host's clock, not `TestClock` (shared contracts §1.4).
 - **The frame loop** is plain code driven by `requestAnimationFrame` inside a runtime fiber; it does not allocate an Effect per frame. Measured in spike S8.
-- **Build-time code** (content compiler, CLI, `ship`, `pipelines`) uses `@effect/platform-node` for files, processes and HTTP, with typed errors that become `file:line:col` reports.
+- **Build-time code** (content compiler, CLI, `ship`, `pipelines`) uses `node:fs` and `node:child_process` inside `Effect.try`, behind two small shared services in `packages/node` (`@mcthaydt/automata-node`: `Files` and `ProcessRunner`), with typed errors that become `file:line:col` reports. `@effect/platform-node` is not used: its 0.108 line needs the `@effect/cluster`, `rpc`, `sql` and `workflow` peers and native build scripts (ship lane, 2026-10-11).
 
 ## 7. Boot and loading (core, Ruken first)
 
@@ -133,7 +133,7 @@ Ordered steps, each with a named failure state. This combines the old spec §6 b
 4. **Content.** Compiled content loads; its hash is checked against the build's.
 5. **Assets.** The screen's declared fonts, art and audio load with byte progress (`fetch-progress`); the preload list matches the generated `[loading] preload` in `ruken.toml`. Progress never sits at 0% before the first byte arrives. A load with no progress for 30 s is a stall and shows Try again.
 6. **Renderer.** Pixi initializes on WebGL2 (WebGPU first only when the game opts in, then falling back to WebGL2 once).
-7. **Ready.** The splash shows; gameplay renders **only after `session.ready`**. `menu.open` before ready answers `NOT_READY`.
+7. **Ready.** The splash shows; gameplay renders **only after `session.ready`**. `menu.open` before ready is refused by AF's guard (the SDK at `b30d31b` does not refuse it; shared contracts §1.6).
 
 ## 8. Mobile-first UI (core, early)
 
@@ -152,6 +152,10 @@ UI is designed for a phone first and verified at phone sizes before desktop. Lay
 - **Art direction (Owner, 2026-10-11):** the Endesga 64 palette and a Bubble Bobble × Celeste look for 2D, 2.5D and 3D ([docs/art](../../art/README.md)). The palette is content (compiled and hashed with the rest), the default `ui` theme tokens and `post-retro` LUT come from it, and the `pipelines` palette gate checks assets against it.
 - Generated files are never hand-edited (guard hook); human gates record decisions only (R-80 style: people decide, checks record facts).
 
+### 9.1 Base projects and feature demos
+
+Owner direction (2026-10-11): a teeny tiny base project per dimension (a character in a room: `examples/base-2d`, `base-25d`, `base-3d`), and every modular feature demonstrated by a small standalone demo on the matching base, raylib-examples style (`examples/<package>/<demo>/`, one `main.ts`, smoke-tested, listed in a gallery). The convention is in [`examples/README.md`](../../../examples/README.md). Each lane's PR ships its feature's demo; `base-2d` replaces the old `blank-game` in M1.8, and `base-25d` and `base-3d` land in M3. A feature without a demo is not done.
+
 ## 10. CI/CD and deployment (early)
 
 - **Reusable workflows** in `ship`: a game's `ci.yml` is about five lines calling `game-ci.yml@v<major>`.
@@ -169,9 +173,9 @@ Each milestone gets a spec at its start, reviewed by the Owner, then just-in-tim
 | Milestone | Outcome | Exit (abridged) |
 |---|---|---|
 | **M0 Foundation** | Spikes S1–S6, ADR 0001, sim core (A1a) | Done; merged PRs #1 and #2 |
-| **M1 Blank game on Ruken** | Toolchain aligned with Ruken; Effect runtime skeleton; `content` compiler; `host` (the Ruken SDK, hosted and standalone, fake-host tests); boot and loading; Flow/Time/presentation bus; `render-pixi` 2D; mobile-first `ui` primitives; reusable CI; generated `ruken.toml` and `ruken publish`; standalone dev host; `examples/blank-game`; minimal `create-game` | `create-game x`, push: CI green, published with `ruken publish` (which validates) to Ruken's local stack, and to the dev host, playable on a phone; nothing renders before ready; layout contracts pass at every reference size including 780×270 |
+| **M1 Blank game on Ruken** | Toolchain aligned with Ruken; Effect runtime skeleton; `base-2d` and the demo gallery; `content` compiler; `host` (the Ruken SDK, hosted and standalone, fake-host tests); boot and loading; Flow/Time/presentation bus; `render-pixi` 2D; mobile-first `ui` primitives; reusable CI; generated `ruken.toml` and `ruken publish`; standalone dev host; `examples/base-2d`; minimal `create-game` | `create-game x`, push: CI green, published with `ruken publish` (which validates) to Ruken's local stack, and to the dev host, playable on a phone; nothing renders before ready; layout contracts pass at every reference size including 780×270 |
 | **M2 Deterministic core complete** | Physics plugins, sim and replay goldens, 200-seed property test, first-divergent-tick diff, `0.0.x` prerelease publishing | The A0+A1 spec's A1 exit criteria 2–8 |
-| **M3 2.5D and the pipeline platform** | Spike S7 (`@pixi/3d`); `render-pixi3d` at 2.5D scope; `post-retro`; `pipelines` platform; 2.5D character and props pipelines | A 2.5D example scene (fixed-camera room, billboard characters, GLB props) renders on WebGL2 (and WebGPU when opted in) under Ruken's CSP at ≥30 FPS on the phone profiles, in a private build (D-1); one character goes through the pipeline with its gates |
+| **M3 2.5D and the pipeline platform** | Spike S7 (`@pixi/3d`); `render-pixi3d` at 2.5D scope; `base-25d` and `base-3d`; `post-retro`; `pipelines` platform; 2.5D character and props pipelines | A 2.5D example scene (fixed-camera room, billboard characters, GLB props) renders on WebGL2 (and WebGPU when opted in) under Ruken's CSP at ≥30 FPS on the phone profiles, in a private build (D-1); one character goes through the pipeline with its gates |
 | **M4 Input and display complete** | Gamepad, touch overlay and gestures, rebinding, focus navigation across screens, letterbox, safe area, `hostReserved`, scale hint, graphics settings, color-blind UI | Input × form-factor E2E matrix passes under the fake Ruken host |
 | **M5 Saves, audio, localization** | Ruken saves with versions and migrations, sync status, exit flush; audio buses and focus; `audio-synth` and `audio-stream`; six languages | Save N loads on N+1; save, exit and resume works across devices on Ruken; every UI string localized and laid out at long-text sizes |
 | **M6 Gameplay extensions** | `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`, `debug`, `telemetry-extra`; environment pipeline on `sectors` | Each extension's fixture game passes; The Last Light's route tests pass against the extracted `puzzle` |

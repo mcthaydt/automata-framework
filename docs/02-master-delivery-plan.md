@@ -28,7 +28,7 @@ Each milestone starts with its spec (`docs/superpowers/specs/YYYY-MM-DD-<slug>-d
 | [ ] | M1.5 — Runtime | Lane **runtime**, started after **host** and **ui** merge; within the S8 budgets. `defineExtension`, boot program with `BootError`, loading rules, app loop, Time, Flow, presentation bus, settings. |
 | [ ] | M1.6 — Mobile-first UI primitives | Lane **ui**. Geometry owner and primitives with renderer-free fixtures and layout contracts at every reference size, including 780×270. |
 | [ ] | M1.7 — 2D renderer | Lane **runtime**; M1.5. `render-pixi` no-eval entry, WebGL2-default init, `RenderDelta` consumer, pixel framebuffer, letterbox, filter helpers. |
-| [ ] | M1.8 — Example, scaffold and M1 exit | M1.2–M1.7. `examples/blank-game` through the M1.2 pipeline; minimal `create-game`; exit evidence: CI green, Ruken-validated zip, published to Ruken local stack and dev host, phone play, nothing rendered before ready. |
+| [ ] | M1.8 — Base project, demos, scaffold and M1 exit | M1.2–M1.7. `examples/base-2d` (a character in a room) through the M1.2 pipeline; the demo gallery and the M1 lanes' demos ([`examples/README.md`](../examples/README.md)); minimal `create-game` from `base-2d`; exit evidence: CI green, Ruken-validated zip, published to Ruken local stack and dev host, phone play, nothing rendered before ready. |
 
 ## M2 Deterministic core complete
 
@@ -46,7 +46,7 @@ Each milestone starts with a spec task (`Mn.0`) and is decomposed into tasks whe
 
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
-| [ ] | M3.0 — 2.5D and pipelines spec, with spike S7 | M2. Confirm D-1 (provisional: `render-pixi3d` unpublished, private builds only). `render-pixi3d` at 2.5D scope, `post-retro`, `pipelines`, 2.5D character and props pipelines. |
+| [ ] | M3.0 — 2.5D and pipelines spec, with spike S7 | M2. Confirm D-1 (provisional: `render-pixi3d` unpublished, private builds only). `examples/base-25d` and `examples/base-3d` (the same character in a room); `render-pixi3d` at 2.5D scope, `post-retro`, `pipelines`, 2.5D character and props pipelines. |
 | [ ] | M4.0 — Input and display spec | M1. Complete input paths, display policy, E2E matrix under the fake Ruken host. |
 | [ ] | M5.0 — Saves, audio and localization spec | M2, M4. Ruken saves and migrations, audio extensions, six languages. |
 | [ ] | M6.0 — Gameplay extensions spec | M2, M3. `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`, `debug`, `telemetry-extra`, environment pipeline. |
