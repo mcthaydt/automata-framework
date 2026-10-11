@@ -39,7 +39,7 @@ export const assetsSchema: z.ZodType<AssetsSource> = z.strictObject({
 export type RukenFields = Pick<Manifest, 'content' | 'analytics'>
 
 /** BCP 47 tags of the shapes Ruken's store lists: `en`, `fr`, `pt-BR`, `zh-Hant`, `zh-Hant-TW`. */
-const LANGUAGE_TAG = /^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2})?$/
+export const LANGUAGE_TAG: RegExp = /^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2})?$/
 
 /** The game's languages: never typed, derived from the source language and the translations present. */
 export function languagesOf(sourceLanguage: string, translations: readonly string[]): string[] {

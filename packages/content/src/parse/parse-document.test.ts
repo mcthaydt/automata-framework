@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { formatDiagnostic } from '../diagnostics/diagnostic'
+import { contentHash } from '../hash/content-hash'
 import { parseDocument } from './parse-document'
 
 // Ported from FloorFifty tests/content/parse.test.ts (122a220): unknown keys, TOML syntax errors and the
@@ -108,5 +109,26 @@ describe('TOML values without a JSON form', () => {
     }
     expect(read(crlf)).toEqual({ text: 'Dusk\nRun' })
     expect(read(crlf)).toEqual(read(lf))
+  })
+
+  // Audit of PR #8: `out[key] =` with the key `__proto__` set the object's prototype, so the key vanished from
+  // the data and the hash without a word.
+  it('refuses a __proto__ key at its position', () => {
+    const result = parseDocument({ file, text: 'a = 1\n[b]\n"__proto__" = 2\n' }, anything)
+    expect(result.ok ? [] : result.diagnostics.map(formatDiagnostic)).toEqual([
+      "content/songs/dusk-run.toml:3:1  b.__proto__  reservedKey: __proto__ cannot be a key, because JavaScript reads it as the object's prototype; rename it",
+    ])
+  })
+
+  it('keeps constructor and prototype keys as plain data', () => {
+    const read = (text: string) => {
+      const result = parseDocument({ file, text }, anything)
+      if (!result.ok) throw new Error(result.diagnostics.map(formatDiagnostic).join('\n'))
+      return result.value
+    }
+    const value = read('constructor = 1\nprototype = 2\n')
+    expect(Object.keys(value)).toEqual(['constructor', 'prototype'])
+    expect(value).toEqual({ constructor: 1, prototype: 2 })
+    expect(contentHash(value)).not.toBe(contentHash(read('constructor = 3\nprototype = 2\n')))
   })
 })

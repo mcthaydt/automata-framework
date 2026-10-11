@@ -59,14 +59,24 @@ const tomlNumber = (value: number): string => (Number.isNaN(value) ? 'nan' : val
  *   - `nan` and `inf` have no JSON form, so each one is a problem at its key.
  * Every other value passes through unchanged.
  */
-function toJsonValues(raw: unknown, nonFinite: (string | number)[][]): unknown {
+function toJsonValues(
+  raw: unknown,
+  nonFinite: (string | number)[][],
+  reserved: (string | number)[][],
+): unknown {
   const walk = (node: unknown, path: (string | number)[]): unknown => {
     if (node instanceof TomlDate) return node.toISOString()
     if (typeof node === 'number' && !Number.isFinite(node)) nonFinite.push(path)
     if (Array.isArray(node)) return node.map((child, index) => walk(child, [...path, index]))
     if (typeof node === 'object' && node !== null) {
       const out: Record<string, unknown> = {}
-      for (const [key, child] of Object.entries(node)) out[key] = walk(child, [...path, key])
+      for (const [key, child] of Object.entries(node)) {
+        // `out.__proto__ = x` sets the prototype instead of a key, and every later copy (the schema, the
+        // canonical JSON) would do the same, so the key is refused rather than silently dropped (audit of
+        // PR #8). `constructor` and `prototype` are ordinary own keys and stay data.
+        if (key === '__proto__') reserved.push([...path, key])
+        else out[key] = walk(child, [...path, key])
+      }
       return out
     }
     return node
@@ -97,15 +107,24 @@ export function parseTomlFile(source: SourceFile): TomlResult {
     return { ok: false, diagnostics: [diagnostic] }
   }
   const nonFinite: (string | number)[][] = []
-  const raw = toJsonValues(parsed, nonFinite)
+  const reserved: (string | number)[][] = []
+  const raw = toJsonValues(parsed, nonFinite, reserved)
   const toml: ParsedToml = { file: source.file, raw, keys: locateKeys(text) }
-  if (nonFinite.length === 0) return { ok: true, toml }
-  const diagnostics = nonFinite.map((path) => {
+  if (nonFinite.length === 0 && reserved.length === 0) return { ok: true, toml }
+  const reservedDiagnostics = reserved.map((path) =>
+    diagnosticAt(
+      toml,
+      'reservedKey',
+      path,
+      "__proto__ cannot be a key, because JavaScript reads it as the object's prototype; rename it",
+    ),
+  )
+  const nonFiniteDiagnostics = nonFinite.map((path) => {
     const received = tomlNumber(valueAtPath(parsed, path) as number)
     const keyPath = path.join('.')
     return diagnosticAt(toml, 'invalidType', path, `${keyPath} must be a finite number, received ${received}`)
   })
-  return { ok: false, diagnostics }
+  return { ok: false, diagnostics: [...reservedDiagnostics, ...nonFiniteDiagnostics] }
 }
 
 /** The authored value at a Zod path, to tell "absent" from "wrong". */

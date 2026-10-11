@@ -132,6 +132,51 @@ describe('files the compiler skips', () => {
     expect(hash).toBe(clean.hash)
     expect(files).toEqual(clean.files)
   })
+
+  it('warns about a near miss of a document name at the top of content/, and not about other files', async () => {
+    const root = copyFixture('valid')
+    writeFileSync(join(root, 'content/tunning.toml'), 'GRAVITY = 1\n')
+    writeFileSync(join(root, 'content/Game.toml'), '')
+    writeFileSync(join(root, 'content/flow.toml.bak'), '')
+    writeFileSync(join(root, 'content/README.md'), 'notes\n')
+    const { warnings } = await compiled(fixtureOptions(root))
+    expect(warnings.map(formatDiagnostic)).toEqual([
+      'content/Game.toml:1:1  skippedFile: this file is not read; did you mean game.toml?',
+      'content/flow.toml.bak:1:1  skippedFile: this file is not read; did you mean flow.toml?',
+      'content/tunning.toml:1:1  skippedFile: this file is not read; did you mean tuning.toml?',
+    ])
+  })
+})
+
+// Audit of PR #8: `messages/FR_fr.json` and `messages/notes.json` became languages in ruken-fields.json.
+describe('translation file names', () => {
+  it('must be language tags', async () => {
+    const root = copyFixture('valid')
+    writeFileSync(join(root, 'content/messages/FR_fr.json'), '{}\n')
+    writeFileSync(join(root, 'content/messages/notes.json'), '{}\n')
+    writeFileSync(join(root, 'content/messages/__proto__.json'), '{}\n')
+    expect(await refusals(fixtureOptions(root))).toEqual([
+      'content/messages/FR_fr.json:1:1  invalidId: FR_fr is not a language tag; name translations like fr.json or pt-BR.json',
+      'content/messages/__proto__.json:1:1  invalidId: __proto__ is not a language tag; name translations like fr.json or pt-BR.json',
+      'content/messages/notes.json:1:1  invalidId: notes is not a language tag; name translations like fr.json or pt-BR.json',
+    ])
+  })
+})
+
+// Audit of PR #8: a byte order mark made translation JSON invalid and moved TOML line-1 columns by one.
+describe('a UTF-8 byte order mark', () => {
+  it('is ignored in TOML and translation JSON', async () => {
+    const clean = await compiled(fixtureOptions(copyFixture('valid')))
+    const root = copyFixture('valid')
+    edit(root, 'messages/fr.json', (text) => `\uFEFF${text}`)
+    edit(root, 'tuning.toml', (text) => `\uFEFF${text}`)
+    expect((await compiled(fixtureOptions(root))).hash).toBe(clean.hash)
+
+    edit(root, 'songs/dusk-run.toml', (text) => `\uFEFFtempoDrift = 3\n${text}`)
+    expect(await refusals(fixtureOptions(root))).toEqual([
+      'content/songs/dusk-run.toml:1:1  tempoDrift  unknownField: unknown field: tempoDrift',
+    ])
+  })
 })
 
 describe('equivalent trees', () => {
