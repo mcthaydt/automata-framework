@@ -159,6 +159,17 @@ export class EntityStore {
     return out
   }
 
+  /** Every live entity's component values in ascending StableId order: the snapshot's entities section. */
+  snapshotRows(): Array<{ sid: number; components: Map<string, FieldRecord> }> {
+    const defs = [...this.registered.values()]
+    return this.live.map((sid) => {
+      const e = this.entities.get(sid) as Entity
+      const components = new Map<string, FieldRecord>()
+      for (const def of defs) if (e.has(def.trait)) components.set(def.id, this.read(e, def))
+      return { sid, components }
+    })
+  }
+
   ref(sid: number): EntityRef | undefined {
     return this.entities.has(sid) ? this.makeRef(sid) : undefined
   }

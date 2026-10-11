@@ -372,12 +372,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     resource: resourceOf,
     snapshot() {
       refuseIfFaulted()
-      const entities = store.liveSids().map((sid) => {
-        const ref = store.ref(sid) as EntityRef
-        const map = new Map<string, FieldRecord>()
-        for (const c of store.componentsOf(sid)) map.set(c.id, ref.get(c) as FieldRecord)
-        return { sid, components: map }
-      })
+      const entities = store.snapshotRows()
       const resourceRows = sortedIds(resourceDefs).map((id) => {
         const def = resourceDefs.get(id) as ResourceDef
         const checked = def.schema.safeParse(resources.get(id))

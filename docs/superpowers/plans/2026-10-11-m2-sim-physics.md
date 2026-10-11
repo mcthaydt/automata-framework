@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
 - **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
-- **Progress:** 6 / 13 tasks.
+- **Progress:** 7 / 13 tasks.
 - **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
@@ -55,9 +55,9 @@
 - [x] Failing tests: two plugins differing only in a resource's, command's or event's schema give different schema hashes; a stored resource with a field the current schema strips → `SnapshotFormatError`.
 - [x] Implement; re-run the existing golden and record the new hash with the reason.
 
-### 7. Faster XXH64 (spec §10.5)
-- [ ] Failing test: hashing 1 MB takes under a generous bound relative to the BigInt version (measured ratio, not wall clock): the 32-bit version must agree with the BigInt reference on random inputs of every length 0..300 and on the existing vectors. Benchmark before and after recorded.
-- [ ] Implement; `pnpm check`; browser parity.
+### 7. Faster hashing (spec §10.5)
+- [x] Failing test `hash/xxhash64-equivalence.test.ts`: agrees with the BigInt reference (moved to `testing/xxhash64-reference.ts`) for every length 0..300 and assorted seeds, on an offset view, and is at least 2x faster on 256 KB. (Done as a ratio against the reference, not a wall-clock bound.)
+- [x] Implement 32-bit-halves XXH64; snapshot reads rows straight from the store instead of through frozen `EntityRef` copies. `pnpm check`; browser parity 165/165. Measured in Node 24 (this container): XXH64 17.1 → 6.0 ms/MB; `sim.hash()` with 1,005 entities 2.15 → 1.68 ms. The audit's 33 ms was not reproduced at this size; per-tick hashing stays the caller's choice.
 
 ### 8. Physics package and 3D shell (spec §3.3, §3.5, §4)
 - [ ] Create `packages/physics` (deps: workspace `@mcthaydt/automata-sim`, Rapier pins, zod; the sim's dev deps) and the check-boundaries root and import entries.
