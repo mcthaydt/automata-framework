@@ -1,0 +1,21 @@
+/* The collision counter, over the room's top-left corner, and the drop button beside the base's touch buttons. */
+.bodies-panel {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  padding: 4px 10px;
+  border: 3px solid var(--panel-edge);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 85%, transparent);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.touch .drop {
+  margin-left: auto;
+  color: var(--focus);
+}
+
+.touch .drop + .jump {
+  margin-left: 0;
+}
