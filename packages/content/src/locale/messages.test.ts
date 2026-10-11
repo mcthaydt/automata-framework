@@ -27,7 +27,12 @@ describe('collectMessages', () => {
       content_character_ninja_x_bio: 'A',
     })
     expect(result.collisions).toEqual([
-      { index: 2, path: ['x', 'bio'], key: 'content_character_ninja_x_bio' },
+      {
+        index: 2,
+        path: ['x', 'bio'],
+        key: 'content_character_ninja_x_bio',
+        first: { index: 1, path: ['bio'] },
+      },
     ])
   })
 })

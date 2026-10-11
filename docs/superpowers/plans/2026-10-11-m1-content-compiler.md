@@ -2,7 +2,7 @@
 
 - **Spec:** [`2026-10-11-m1-content-design.md`](../specs/2026-10-11-m1-content-design.md) (extract and improve FloorFifty's compiler, §0)
 - **Branch:** `claude/af-m1-content-tts573`, stacked on PR #4 (`claude/ruken-first-af-60n4bh`)
-- **Progress:** 0 / 14 tasks
+- **Progress:** 11 / 14 tasks (T1–T11 done; T12–T14 next)
 - **Commands:** focused `pnpm --filter @mcthaydt/automata-content exec vitest run --project node <file>`; `pnpm --filter @mcthaydt/automata-content typecheck`; `pnpm check` before each commit; parity `pnpm --filter @mcthaydt/automata-content exec vitest run --project browsers`.
 
 Every task: port or write the test, run it, see it fail for the stated reason (usually "module not found" first, then the assertion), write the least code, see it pass, `pnpm format`, commit with the tick. "Port" means the FloorFifty `122a220` test named, rewritten against the AF API with the same cases.
@@ -24,11 +24,12 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 | `src/locale/messages.ts` | `messageKey`, `renderMessages`, `checkTranslation` | — |
 | `src/hash/canonical-file.ts`, `src/hash/content-hash.ts` | `canonicalFile`, `contentHash` | `@mcthaydt/automata-sim/hash` |
 | `src/generate/content-generator.ts`, `src/generate/render-types.ts` | `defineContentGenerator`, built-in generators, `content.d.ts` | zod `toJSONSchema` |
-| `src/compile/{errors,read-sources,compile-content,write-outputs}.ts` | `compileContent`, `buildContent`, `verifyContent`, tagged errors | everything above, `@effect/platform` `FileSystem` |
-| `src/preload/preload-list.ts` | `preloadList` | `FileSystem` |
+| `src/files/content-files.ts` | `readTextIfPresent`, `listFiles`, `writeFileAtomically`, `FileError`: the only module that touches the disk | `node:fs`, effect |
+| `src/compile/{errors,read-sources,built-in-generators,compile-content,write-outputs}.ts` | `compileContent`, `buildContent`, `verifyContent`, tagged errors | everything above, content-files |
+| `src/preload/preload-list.ts` | `preloadList` | content-files |
 | `src/vite/automata-content.ts`, `src/vite/index.ts` | `automataContent()` | compile, vite |
-| `src/cli/run-cli.ts`, `src/cli/main.ts` | `automata-content` | compile, `@effect/platform-node` |
-| `src/testing/fixtures/{valid,equivalent-a,equivalent-b}/`, `src/testing/fixture-game.ts`, `src/testing/temp-tree.ts` | the FloorFifty-shaped fixture game and temp copies | node:fs |
+| `src/cli/run-cli.ts`, `src/cli/main.ts` | `automata-content` | compile |
+| `src/testing/fixtures/{valid,equivalent-a,equivalent-b}/`, `src/testing/fixture-game.ts` | the FloorFifty-shaped fixture game and `copyFixture` temp copies | node:fs |
 | `src/index.ts` | the public API | — |
 
 ## Tasks
@@ -74,8 +75,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement.
 
 ### T11 Compile, build, verify
-- [ ] Port `parse.test.ts` "readSources …" and `compiler.test.ts` (check writes nothing, build writes, retains prior bytes and leaves no temps after invalid input, reports a missing required source, detects missing/malformed/different-bytes outputs, accepts what it just wrote) and `determinism.test.ts` "equivalent trees"; add: several broken files report every diagnostic sorted, `InvalidContentConfig` cases, generator clash/escape, nested IDs and `invalidId`, the hash moves on any authored change. Fails: module missing.
-- [ ] Implement `read-sources`, `compile-content`, `write-outputs`, `errors`.
+- [x] Port `parse.test.ts` "readSources …" and `compiler.test.ts` (check writes nothing, build writes, retains prior bytes and leaves no temps after invalid input, reports a missing required source, detects missing/malformed/different-bytes outputs, accepts what it just wrote) and `determinism.test.ts` "equivalent trees"; add: several broken files report every diagnostic sorted, `InvalidContentConfig` cases, generator clash/escape, nested IDs and `invalidId`, the hash moves on any authored change. Fails: module missing.
+- [x] Implement `read-sources`, `compile-content`, `write-outputs`, `errors`. Done with file access in `files/content-files.ts` (`node:fs` in Effect) instead of `@effect/platform`, and the built-in generators in `compile/built-in-generators.ts`.
 
 ### T12 Preload list
 - [ ] Test: screens' files in order, deduplicated; default the flow entry; `dir/*` accepted when the folder exists; all missing files listed together; the result passes `parseManifest` as `[loading] preload`. Fails: module missing.
@@ -92,3 +93,5 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 ## Execution log
 
 - 2026-10-11: first spec and plan committed (`1ea5731`, `262352b`); rewritten the same day for the audit's direction (extract FloorFifty's compiler with its tests) and the integration notes (`@mcthaydt/automata-sim/hash`, Effect 3.22.2, palette).
+- 2026-10-11: T1–T10 landed (`71fac06`..`5ec5f1c`): diagnostics with positions, the key locator, document parsing, schema registration and references, tuning, flow, palette, hash, messages, game facts, generators and `content.d.ts`.
+- 2026-10-11: T11 landed: compile, build and verify over one file-access module. Rulings: `@effect/platform` dropped for `node:fs` behind `files/content-files.ts` (coordinator, so `@mcthaydt/automata-node` is a one-file swap); `tuning.toml`/`flow.toml` are required when the game passes `tunables`/`flow`; translations are checked only when every source parsed; generators run only on content that passed every check. `Data.TaggedError` classes extend an annotated constant because `isolatedDeclarations` cannot type a call in `extends`.

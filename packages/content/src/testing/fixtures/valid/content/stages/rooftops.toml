@@ -1,0 +1,19 @@
+displayName = "Rooftops"
+platformAlias = "world.platform"
+song = "dusk-run"
+
+[courseTuning]
+COURSE_FLOOR_COUNT = 24
+
+[theme]
+backdropAlias = "menu.backdrop"
+
+[[theme.layers]]
+alias = "world.clouds"
+plate = "sky"
+depth = 0.06
+
+[[theme.layers]]
+alias = "world.cityFar"
+plate = "city"
+depth = 0.15

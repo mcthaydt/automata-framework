@@ -41,6 +41,8 @@ export interface MessageCollision {
   readonly index: number
   readonly path: DataPath
   readonly key: string
+  /** The text that already has the key: its item's index and its path. */
+  readonly first: { readonly index: number; readonly path: DataPath }
 }
 
 /** Keys every localized text. Snake-casing can map two different fields to one key; those are reported. */
@@ -49,12 +51,17 @@ export function collectMessages(items: readonly TextsOfItem[]): {
   collisions: MessageCollision[]
 } {
   const messages: Record<string, string> = {}
+  const owners = new Map<string, MessageCollision['first']>()
   const collisions: MessageCollision[] = []
   items.forEach((item, index) => {
     for (const { path, text } of item.texts) {
       const key = messageKey(item.kind, item.id, path)
-      if (key in messages) collisions.push({ index, path, key })
-      else messages[key] = text
+      const first = owners.get(key)
+      if (first !== undefined) collisions.push({ index, path, key, first })
+      else {
+        owners.set(key, { index, path })
+        messages[key] = text
+      }
     }
   })
   return { messages, collisions }

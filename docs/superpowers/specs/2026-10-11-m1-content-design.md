@@ -12,14 +12,14 @@
 |---|---|---|---|---|
 | `diagnostics.ts` | 35 | `diagnostics/diagnostic.ts` | stable `code`, `file`, `keyPath`, `message`; one sort for every pass | adds `line`, `column`; format becomes `file:line:col  keyPath  code: message` |
 | `parse.ts` (`parseFile`, `toDiagnostics`, `codeFor`, `valueAt`) | 233 | `parse/parse-document.ts` | TOML then Zod; `unknownField` per unrecognized key; `missingField` versus `invalidType`; one diagnostic per issue | generic over any schema instead of FloorFifty's twelve kinds; TOML syntax errors carry smol-toml's line and column (code `invalidToml`) |
-| `read-sources.ts` | 94 | `compile/read-sources.ts` | `content/...` labels; `.toml.example` ignored; sorted reads; an absent folder is empty; a missing required file is a diagnostic, not a throw | Effect `FileSystem`; folders and files come from the registered schemas; nested folders give `a/b` IDs |
+| `read-sources.ts` | 94 | `compile/read-sources.ts` | `content/...` labels; `.toml.example` ignored; sorted reads; an absent folder is empty; a missing required file is a diagnostic, not a throw | an Effect over the one file-access module (§3.2); folders and files come from the registered schemas; nested folders give `a/b` IDs |
 | `validate/references.ts` | 132 | `schema/references.ts` | `unknownReference`, `wrongKind` (an ID that exists as another kind) | references are declared in the schema with `contentRef(kind)` instead of a hand-written join; IDs are unique per kind, because they are paths |
 | `validate/bounds.ts` | 114 | `tuning/check-tuning.ts` | `TunableDeclaration` (`int`/`float`, inclusive `min`/`max`, `default`); `unknownField`, `invalidType`, `outOfRange`, `missingField`, `invariantNotAuthorable`; complete base versus partial layers | declarations and invariants are passed in by the game; ranges may also be authored inline (A0+A1 §5) |
 | `validate/flow.ts` | 123 | `flow/check-flow.ts` | entry check, one transition per pair, no self-transition, nothing back into the entry, reachability, every reachable screen can leave; `FLOW_TARGETS` as a capability map | the entry, screens, pairs and styles are the game's (`FlowCapabilities`); without a map, the graph rules still apply |
 | `canonicalize.ts` (`canonicalizeValue`) | 143 | `hash/canonical-file.ts` | sorted keys, arrays in authored order, 2-space indent, one trailing newline | the hash is computed separately (below) |
 | `revisions.ts` | 99 | `hash/content-hash.ts` | the hash preimage never contains the hash | one XXH64 (`@mcthaydt/automata-sim/hash`) over `canonicalJson(data)` instead of three SHA-256 revisions; partitioned revisions are an M2.0 question |
 | `messages.ts` | 71 | `locale/messages.ts` | inlang message format; `content_<kind>_<id>_<field>` snake-case keys; written beside the artifact, not in it; a stale file is `staleArtifact` | fields are marked with `localized()` instead of listed by hand; translations are checked for missing and extra keys |
-| `build.ts` (`writeAtomically`) | 41 | `compile/write-outputs.ts` | temp file beside the target, then rename; a failed compile writes nothing | Effect `FileSystem` |
+| `build.ts` (`writeAtomically`) | 41 | `files/content-files.ts`, `compile/write-outputs.ts` | temp file beside the target, then rename; a failed compile writes nothing | an Effect over the one file-access module (§3.2) |
 | `compiler.ts` (`compile`, `verifyArtifact`) | 135 | `compile/compile-content.ts` | every pass runs before reporting; verify rebuilds in memory and compares bytes (`staleArtifact`) | an Effect program with typed errors |
 | `watch.ts` | 91 | `vite/automata-content.ts` | builds serialized on one chain; 50 ms debounce; publish only after a successful write; a bad save reports and keeps the last good bytes | Vite's watcher and HMR instead of chokidar |
 | `author-guide.ts` | 90 | `tuning/tuning-table.ts` | a generated tunable table between markers, verified in CI | reads declared or inline ranges |
@@ -36,7 +36,7 @@ A game author writes TOML under `content/`. `automata-content` turns it into one
 
 **Deliverables**
 1. `defineContentSchema`, `contentRef`, `localized` (schema registration; `ContentSchemaDef` for `defineExtension`).
-2. `compileContent`, `buildContent`, `verifyContent` (Effect programs over `@effect/platform` `FileSystem`) and their typed errors.
+2. `compileContent`, `buildContent`, `verifyContent` (Effect programs) and their typed errors.
 3. Built-in documents: `tuning.toml`, `flow.toml`, `palette.toml`, `game.toml`, `assets.toml`.
 4. Outputs (default folder `content/generated/`): `content.json`, `content.hash`, `content.d.ts`, `messages/<source>.json`, `tuning-meta.json`, `flow.mmd`, `ruken-fields.json`.
 5. `defineContentGenerator` hook; the built-in generators are written on it.
@@ -96,10 +96,12 @@ interface ContentOptions {
   readonly generators?: readonly ContentGenerator[]
   readonly outDir?: string                                // default "content/generated"
 }
-compileContent(options): Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig, FileSystem>
-buildContent(options):   Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig | ContentWriteFailed, FileSystem>
-verifyContent(options):  Effect<void, ContentCompileFailed | InvalidContentConfig, FileSystem>  // staleArtifact per differing file
+compileContent(options): Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig>
+buildContent(options):   Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig | ContentWriteFailed>
+verifyContent(options):  Effect<void, ContentCompileFailed | InvalidContentConfig>  // staleArtifact per differing file
 ```
+
+**File access.** Every read and write goes through one module, `files/content-files.ts` (`readTextIfPresent`, `listFiles`, `writeFileAtomically`), which runs `node:fs` inside `Effect.tryPromise` and fails with `FileError`. Nothing else in the package touches the disk, so moving to `@mcthaydt/automata-node` (ship lane) changes that file alone. The programs therefore need no Effect service; `@effect/platform` is not a dependency.
 
 `CompiledContent = { data, hash, files: ReadonlyMap<string, string> }`, where `files` maps each output path (relative to `outDir`) to its exact text, so build and verify compare the same bytes.
 
@@ -107,9 +109,9 @@ Ordered steps; every step runs on every file even when an earlier file failed:
 1. Validate the options (kinds, places, generator names).
 2. Read sources (sorted; FloorFifty `read-sources.ts`).
 3. Parse each file: smol-toml, then the schema (FloorFifty `parse.ts`). Index key positions (§3.3).
-4. Built-in checks: tuning (§3.4), flow (§3.5), palette (§3.6), game and assets (§3.8).
+4. Built-in checks: tuning (§3.4), flow (§3.5), palette (§3.6), game and assets (§3.8). `tuning.toml` is required when the game passes `tunables`, and `flow.toml` when it passes `flow`; otherwise both are optional. Translations (§3.7) are checked only when every source parsed, because a file that fails to parse contributes no message keys and would make every one of its keys look stale.
 5. Resolve references, collect localized text (§3.1).
-6. Run generators (§3.7).
+6. Run generators (§3.7), only when steps 2 to 5 found nothing, so a generator always sees content that passed every check.
 7. Any diagnostic: fail with `ContentCompileFailed { diagnostics }`, sorted by file, line, column, keyPath, code. Nothing is written.
 8. Assemble `data`; `hash = hex64(xxhash64(utf8(canonicalJson(data))))`; `content.json` is `data` in FloorFifty's canonical file form (sorted keys, 2-space indent, trailing newline). Both forms sort keys, so collections keyed by ID are in ID order; arrays keep authored order because order is meaning.
 
@@ -243,7 +245,7 @@ function automataContent(options: ContentOptions): Plugin
 
 ## 6. Test allocation
 
-Node unit tests (Vitest project `node`) against fixture trees copied to a temp folder, through `@effect/platform-node`'s `NodeFileSystem`:
+Node unit tests (Vitest project `node`) against fixture trees copied to a temp folder:
 - `testing/fixtures/valid/`: a FloorFifty-shaped game registered through the AF API: `characters/*.toml` (localized `displayName`), `songs/*.toml`, `stages/*.toml` (a `contentRef('song')`), `catalog.toml` (references to all three), FloorFifty's real `flow.toml` and `tuning.toml` with its `TUNABLES` declarations, `game.toml`, `assets.toml`, `messages/fr.json`; plus `equivalent-a/` and `equivalent-b/` (same meaning; different key order, file order and line endings).
 - Ported FloorFifty cases (§0) and one test per §5 row asserting the exact formatted line.
 - Exit-criteria tests (§10).
@@ -260,7 +262,7 @@ Focused: `pnpm --filter @mcthaydt/automata-content exec vitest run --project nod
 
 ## 8. Dependencies (exact pins, `packages/content/package.json` only)
 
-`effect` 3.22.2 (repo-wide), `@effect/platform` 0.97.2, `@effect/platform-node` 0.108.2, `smol-toml` 1.9.0 (Ruken's pin), `zod` 4.6.5, `@ruken/manifest` (`file:` the vendored tarball), `@mcthaydt/automata-sim` `workspace:*`; peer and dev `vite` 8.3.2 (Ruken's pin); dev `@types/node` 24.19.1, `vitest` 5.0.3, `@vitest/browser-playwright` 5.0.3, `playwright` 1.63.0 (the sim's pins). Rows for `docs/versions.md` are appended once the ship lane's file exists.
+`effect` 3.22.2 (repo-wide), `smol-toml` 1.9.0 (Ruken's pin), `zod` 4.6.5, `@ruken/manifest` (`file:` the vendored tarball), `@mcthaydt/automata-sim` `workspace:*`; peer and dev `vite` 8.3.2 (Ruken's pin); dev `@types/node` 24.19.1, `vitest` 5.0.3, `@vitest/browser-playwright` 5.0.3, `playwright` 1.63.0 (the sim's pins). Rows for `docs/versions.md` are appended once the ship lane's file exists.
 
 ## 9. Ruken alignment
 

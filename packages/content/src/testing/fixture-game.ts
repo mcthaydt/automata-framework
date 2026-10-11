@@ -4,8 +4,14 @@
 // packages/shared/src/content/presentation.ts (SCREEN_IDS, FLOW_TARGETS, TRANSITION_STYLES).
 // `fixtures/valid/content/flow.toml` and `tuning.toml` are FloorFifty's shipped files, byte for byte.
 
+import { cpSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { z } from 'zod'
+import type { ContentOptions } from '../compile/compile-content'
 import type { FlowCapabilities } from '../flow/check-flow'
+import { type ContentSchemaDef, contentRef, defineContentSchema, localized } from '../schema/content-schema'
 import type { TunableDeclarations } from '../tuning/check-tuning'
 
 export const FIXTURES: string = fileURLToPath(new URL('./fixtures/', import.meta.url))
@@ -90,4 +96,82 @@ export const FLOW: FlowCapabilities = {
     Replay: { replayExit: ['GameEnd'], replayExitToRoom: ['Lobby'] },
   },
   styles: ['cut', 'liquid'],
+}
+
+// FloorFifty's kinds, cut to what the framework's checks need: localized names, nested tables, arrays of
+// tables, and references between kinds. IDs come from file names, so no item repeats its own `id`.
+
+const aliases = z.record(z.string(), z.string())
+
+export const CHARACTER: ContentSchemaDef = defineContentSchema(
+  'character',
+  z.strictObject({ displayName: localized(), sheetAliases: aliases, portraitAliases: aliases }),
+  { folder: 'characters' },
+)
+
+export const SONG: ContentSchemaDef = defineContentSchema(
+  'song',
+  z.strictObject({
+    displayName: localized(),
+    bpm: z.number().positive(),
+    beatOffsetTicks: z.number().int().min(0),
+    loopStartMs: z.number().int().min(0),
+    loopEndMs: z.number().int().min(0),
+    audioAlias: z.string(),
+    coverAlias: z.optional(z.string()),
+  }),
+  { folder: 'songs' },
+)
+
+export const STAGE: ContentSchemaDef = defineContentSchema(
+  'stage',
+  z.strictObject({
+    displayName: localized(),
+    platformAlias: z.string(),
+    song: contentRef('song'),
+    courseTuning: z.record(z.string(), z.number()),
+    theme: z.strictObject({
+      backdropAlias: z.string(),
+      layers: z.array(
+        z.strictObject({
+          alias: z.string(),
+          plate: z.enum(['sky', 'city']),
+          depth: z.number().min(0).max(1),
+        }),
+      ),
+    }),
+  }),
+  { folder: 'stages' },
+)
+
+export const CATALOG: ContentSchemaDef = defineContentSchema(
+  'catalog',
+  z.strictObject({
+    packs: z.array(
+      z.strictObject({
+        id: z.string(),
+        title: localized(),
+        stages: z.array(contentRef('stage')),
+        songs: z.array(contentRef('song')),
+        characters: z.array(contentRef('character')),
+      }),
+    ),
+  }),
+  { file: 'catalog.toml' },
+)
+
+/** The fixture game's options, rooted at `root`. */
+export const fixtureOptions = (root: string): ContentOptions => ({
+  root,
+  schemas: [CHARACTER, SONG, STAGE, CATALOG],
+  tunables: TUNABLES,
+  invariants: INVARIANTS,
+  flow: FLOW,
+})
+
+/** A throwaway copy of a fixture tree, so a test can break files without touching the originals. */
+export function copyFixture(name: string): string {
+  const root = mkdtempSync(join(tmpdir(), `content-${name}-`))
+  cpSync(join(FIXTURES, name), root, { recursive: true })
+  return root
 }

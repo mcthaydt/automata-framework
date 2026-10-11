@@ -2,6 +2,14 @@
 // (122a220) and generalized over game-registered schemas; see the M1.3 spec.
 
 export {
+  type CompiledContent,
+  type ContentOptions,
+  compileContent,
+  DEFAULT_OUT_DIR,
+} from './compile/compile-content'
+export { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from './compile/errors'
+export { buildContent, verifyContent } from './compile/write-outputs'
+export {
   type Diagnostic,
   type DiagnosticCode,
   formatDiagnostic,

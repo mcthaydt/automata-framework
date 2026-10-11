@@ -71,7 +71,9 @@ describe('renderTypes', () => {
           noEmit: true,
           module: 'esnext',
           moduleResolution: 'bundler',
-          types: [],
+          // The package's source uses Node types (its file access), so the consumer needs them too.
+          types: ['node'],
+          typeRoots: [join(import.meta.dirname, '../../node_modules/@types')],
           paths: { '@mcthaydt/automata-content': [join(import.meta.dirname, '../index.ts')] },
         },
         include: ['*.ts'],
