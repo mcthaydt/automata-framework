@@ -4,3 +4,6 @@ dist/
 spikes/out/
 *.log
 .DS_Store
+evidence/
+playwright-report-remote/
+test-results/

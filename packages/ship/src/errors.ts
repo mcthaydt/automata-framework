@@ -97,3 +97,19 @@ export class DeployFailed extends Data.TaggedError('DeployFailed')<{
     return `deploy-dev: ${this.step} failed (exit ${this.exitCode})${this.output === '' ? '' : `:\n${this.output.trim()}`}`
   }
 }
+
+/** Why `test-remote` stopped without a green run. */
+export type TestRemoteReason =
+  | 'usage'
+  | 'detached'
+  | 'uncommitted'
+  | 'push'
+  | 'dispatch'
+  | 'no-run'
+  | 'no-runner'
+  | 'red'
+
+export class TestRemoteFailed extends Data.TaggedError('TestRemoteFailed')<{
+  readonly reason: TestRemoteReason
+  readonly message: string
+}> {}
