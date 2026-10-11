@@ -14,7 +14,10 @@ export interface Physics3DOptions {
  * in rapier-3d.ts, so importing this module costs nothing until a sim uses it.
  */
 export function physics3d(options: Physics3DOptions = {}): PluginDef {
-  const gravity = options.gravity ?? { x: 0, y: -9.81, z: 0 }
+  const given = options.gravity ?? { x: 0, y: -9.81, z: 0 }
+  // A frozen copy: gravity is hashed now, so a caller mutating its own object later must not change what
+  // Rapier runs with. `+ 0` turns -0 into 0, which Rapier treats the same, so they hash the same too.
+  const gravity = Object.freeze({ x: given.x + 0, y: given.y + 0, z: given.z + 0 })
   return definePlugin({
     name: 'physics-3d',
     // Gravity changes what the plugin simulates, so it is part of the schema hash (spec §10.8).

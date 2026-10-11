@@ -137,3 +137,15 @@ test('a lone collider row whose collider the world attaches to a body is refused
   } as unknown as PhysicsAdapter<object>
   expect(() => new PhysicsWorld(adapter).prepareRestore(bytes)).toThrow(/row 1: lone collider is attached/)
 })
+
+test('Rapier returning no world for the bytes is a SnapshotFormatError that says so', () => {
+  const { world: live } = lifecycleWorld()
+  const adapter = {
+    createWorld: () => ({}),
+    restoreWorld: () => null, // what Rapier's restoreSnapshot gives for bytes it cannot decode
+  } as unknown as PhysicsAdapter<object>
+  const world = new PhysicsWorld(adapter)
+  expect(() => world.prepareRestore(live.snapshot())).toThrow(
+    expect.objectContaining({ name: 'SnapshotFormatError', message: expect.stringMatching(/no world/) }),
+  )
+})

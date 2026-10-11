@@ -100,3 +100,26 @@ test('a successful restore commits every plugin and discards nothing', async () 
   expect(log).toEqual(['a:prepare', 'b:prepare', 'a:commit', 'b:commit'])
   sim.dispose()
 })
+
+test('a plugin state whose dispose throws does not stop the others being disposed; the error still surfaces', async () => {
+  const log: string[] = []
+  const throwing = definePlugin({
+    name: 'a-throwing', // sorts between a and b, so its dispose runs before b's
+    state: async (): Promise<PluginState> => ({
+      snapshot: () => Uint8Array.of(1),
+      prepareRestore: () => ({ commit: () => {}, discard: () => {} }),
+      dispose: () => {
+        throw new Error('engine fault on free')
+      },
+    }),
+  })
+  const sim = await createSim({
+    seed: 1,
+    plugins: [fixturePlugin, trackedPlugin('a', log), throwing, trackedPlugin('b', log)],
+  })
+  expect(() => sim.dispose()).toThrow('engine fault on free')
+  expect(log).toEqual(['a:create', 'b:create', 'a:dispose', 'b:dispose'])
+  expect(() => sim.step([])).toThrow(SimDisposedError)
+  sim.dispose() // still idempotent: nothing is disposed twice and nothing throws again
+  expect(log.filter((l) => l.endsWith(':dispose'))).toEqual(['a:dispose', 'b:dispose'])
+})

@@ -21,8 +21,8 @@ export interface PhysicsAdapter<World> {
   readonly ended: EventDef
   /** A new world with the plugin's gravity and the sim's timestep. */
   createWorld(): World
-  /** A world from `takeSnapshot` bytes; throws on bytes Rapier rejects. */
-  restoreWorld(bytes: Uint8Array): World
+  /** A world from `takeSnapshot` bytes; throws on, or returns null for, bytes Rapier rejects. */
+  restoreWorld(bytes: Uint8Array): World | null
   takeSnapshot(world: World): Uint8Array
   /** Steps once and reports each collision start or end as (collider handle, collider handle, started). */
   step(world: World, onCollision: (a: number, b: number, started: boolean) => void): void
@@ -339,7 +339,7 @@ export class PhysicsWorld<World> implements PluginState {
     const worldBytes = bytes.subarray(need(worldLength), at)
     if (at !== bytes.length) fail(`${bytes.length - at} trailing bytes`)
 
-    let world: World
+    let world: World | null
     try {
       world = this.rapier.restoreWorld(worldBytes)
     } catch (err) {
@@ -347,6 +347,8 @@ export class PhysicsWorld<World> implements PluginState {
         cause: err,
       })
     }
+    // Rapier's restoreSnapshot returns null, rather than throwing, for some bytes it cannot decode.
+    if (world == null) throw new SnapshotFormatError('physics: Rapier made no world from the world bytes')
     try {
       this.checkTable(world, rows)
     } catch (err) {

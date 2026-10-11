@@ -1,6 +1,6 @@
 # M2.1 Physics plugins (lane **sim**): design
 
-- **Status:** drafted 2026-10-11, revised the same day for PR #4 at `e34203a` (physics is its own package; the sim gets only a plugin-state hook, plus the audit's sim-core determinism fixes), and again after the PR #9 audit (paired events and contacts in the physics bytes, lifecycle leaks, body–collider pairing, awake measurements, the hashing policy, `canonicalJson` and non-plain objects: §3.1, §3.2, §3.4, §10.5–§10.7). Awaiting review. Stands in for the physics part of M2.0.
+- **Status:** drafted 2026-10-11, revised the same day for PR #4 at `e34203a` (physics is its own package; the sim gets only a plugin-state hook, plus the audit's sim-core determinism fixes), and again after the PR #9 audit (paired events and contacts in the physics bytes, lifecycle leaks, body–collider pairing, awake measurements, the hashing policy, `canonicalJson` and non-plain objects: §3.1, §3.2, §3.4, §10.5–§10.7), and again for the audit's re-check at `4d9e6f4` (gravity copied and frozen, 2D angle wrapping, the remaining low items: §3.2, §3.4, §4, §5, §10.8). Awaiting review. Stands in for the physics part of M2.0.
 - **Task:** M2.1 in `docs/02-master-delivery-plan.md`; lane **sim** in `docs/04-how-we-build.md` (Lanes, 2026-10-11).
 - **Owns:** new `packages/physics/` (`@mcthaydt/automata-physics`); in `packages/sim/`, the plugin-state hook (§3.1) and the determinism fixes (§10); in `tooling/check-boundaries`, only `packages/physics/src` in the source-roots list (the list itself and the checker hardening come from PR #4) and the import entries physics needs.
 - **Builds against:** the [M1 shared contracts](2026-10-11-m1-shared-contracts-design.md) §2: an extension's `sim` field holds `definePlugin` results, and any package with sim plugins runs `check-boundaries` on its sim sources. `defineExtension` itself arrives with the runtime lane (M1.5); until then `packages/physics` exports the plugins, and a `physics.extension.ts` wrapping them is added when `defineExtension` exists (§9).
@@ -77,6 +77,7 @@ Physics     version u8 = 2 | rows u32 | per row, ascending sid:
             | worldLength u32 | world.takeSnapshot()
 ```
 
+- Contacts are checked for shape (sorted, `a < b`, each sid a row with a collider, sensor 0 or 1), not against the restored world's narrow phase. A crafted snapshot can claim a contact the world doesn't have; the only effect is one extra `collision-ended` when Rapier never reports it, and the same holds for any well-formed but invented component value. Restore defends the format and the sim's invariants, not the truth of the state it is given.
 - Rapier handles are f64 bit patterns of `(index, generation)` (they print as denormals, e.g. `5e-324`); `DataView.setFloat64` keeps the bits. The flags byte means no NaN is ever written.
 - `world.takeSnapshot()` goes in verbatim (S2: canonical, round-trip exact; it includes gravity and the timestep).
 - The contact list is the set of pairs whose `collision-started` has been emitted and whose `collision-ended` has not (§3.4), so events stay paired across a restore. Version 2 added it; version 1 bytes are refused.
@@ -143,7 +144,8 @@ Units are metres, seconds and radians. Gravity is a plugin option: `physics2d({ 
    - Velocity fields ≠ the body's velocity → `setLinvel` / `setAngvel`.
    - `kind` or damping changed → `setBodyType` / `setLinearDamping` / `setAngularDamping`.
    - Any `Collider*` field differs from the Rapier collider (shape type and size, sensor, groups, friction, restitution) → remove and re-create that collider.
-   - A lone collider's `Transform*` ≠ its pose → `setTranslation` / `setRotation`, and the rotation Rapier stored is written back into `Transform*`. Rapier keeps a 2D angle as (cos, sin) and a 3D rotation normalized, so the read-back can differ from the authored value; without the write-back the comparison would fail, and the collider be re-rotated, every tick. Bodies get the same canonical value from sync-out.
+   - A lone collider's `Transform*` ≠ its pose → `setTranslation` / `setRotation`, and the rotation Rapier stored is written back into `Transform*`. Rapier keeps a 2D angle as (cos, sin) in f32 and normalizes a 3D quaternion, so the read-back can differ from the authored value; without the write-back the comparison would fail, and the collider be re-rotated, every tick. Bodies get the same canonical value from sync-out.
+   - **2D angles wrap.** After the first sync-in, an authored angle reads back wrapped into [−π, π] and rounded to f32: `4` becomes `-2.2831852…`, `π` becomes `-3.1415925…` and `0.3` becomes `0.29999998…`. A 3D quaternion reads back normalized and rounded to f32: `(0, 0, 0.5, 0.5)` becomes `(0, 0, 0.7071068, 0.7071068)`. Code that compares an authored angle with the stored one compares modulo 2π, with an f32 tolerance.
 
 Because a re-created body takes its velocity from the ECS, a remove-and-create keeps the body's motion.
 
@@ -181,7 +183,7 @@ export { physics3d, Transform3D, RigidBody3D, Collider3D, BodyKind, ShapeKind,
 4. **step** runs sync-in → step → sync-out → events in the existing phase order.
 5. **snapshot** is taken between steps (the event queue is empty then).
 6. **restore**: `prepareRestore` restores into a new world and validates the table and contacts; `commit` frees the old world and adopts the new world, table and contacts; `discard` frees the new world.
-7. **dispose** frees the world and the event queue, once.
+7. **dispose** frees the world and the event queue, once. The sim disposes its store and then every plugin state even when one of them throws, and rethrows the first error afterwards.
 
 ## 5. Failure policy
 
@@ -189,6 +191,8 @@ export { physics3d, Transform3D, RigidBody3D, Collider3D, BodyKind, ShapeKind,
 |---|---|
 | Wasm fails to load or `init()` rejects | `createSim` rejects with that error; states already created are disposed; the failed init is not cached, so the next `createSim` retries it |
 | Snapshot from a sim with other plugin settings (gravity) | `SnapshotMismatchError('schemaHash')` (§10.8) |
+| Rapier's `restoreSnapshot` returns null for the world bytes | `SnapshotFormatError` saying Rapier made no world |
+| A plugin state's `dispose` throws | The other states are still disposed; `dispose` rethrows the first error; the sim is disposed |
 | Two physics plugins of one dimension | `createSim` throws (duplicate plugin name) |
 | Unknown shape or body kind, size ≤ 0, quaternion with \|q\|² outside 1 ± 1e-3 | sync-in throws an `Error` naming the sid and field; the sim is then faulted (§10.2) |
 | Section 6 missing, extra, renamed, truncated, bad version, bad row, unknown handle, wrong body–collider pairing, bad contact | `SnapshotFormatError`; sim unchanged; nothing leaked |
@@ -237,7 +241,7 @@ The audit thread reproduced these in the merged A1a core. Each gets a failing te
    **Hashing policy.** `sim.hash()` encodes a full snapshot and hashes it. Warmed medians in Node 24: about 5 ms at 500 physics bodies (§8) and 5.2 ms for 10,000 entities with two components (a 203 KB snapshot; the audit's cold first call measured 20 ms). That is a third of a 60 Hz frame, so it is not a per-tick operation. The sim never hashes on its own. Callers hash on demand or sampled: replay checkpoints, a desync probe every N ticks (net picks N), and tests. Making per-tick hashing cheap (an incremental hash) is out of scope until a consumer needs it.
 6. **Lifecycle leaks (audit, second pass).** A `createSim` that failed after building its Koota world (a reserved system name, a resource whose initial value fails its schema) never freed it, so after 16 failures no sim could be created; a restore that one plugin rejected leaked what the others prepared; `dispose` was not idempotent, left the Rapier event queue allocated, and later calls failed with unrelated errors. Fix: §3.1 (checks before allocation, `PreparedRestore.discard`, idempotent `dispose`, `SimDisposedError`).
 7. **canonicalJson and non-plain objects (content audit).** `canonicalJson` wrote a `Date`, `Map`, `Set`, typed array or class instance as `{}`, so different dates hashed the same. Fix: it throws `CanonicalJsonError` for anything but arrays and plain objects (prototype `Object.prototype` or `null`), as it already did for NaN, undefined and functions; every failure is now that type. Content converts TOML dates to ISO strings before hashing.
-8. **Plugin settings outside the schema hash (audit, second pass).** A snapshot from `physics3d({ gravity: moon })` restored into a default `physics3d()` sim, and Rapier's snapshot silently replaced the configured gravity. Fix: `definePlugin({ config })` takes plain JSON (canonicalized at definition) that joins the schema hash as `configs`, present only when a plugin has one, so every other hash is unchanged; the physics plugins put their gravity there. A restore across configs is a `SnapshotMismatchError('schemaHash')`.
+8. **Plugin settings outside the schema hash (audit, second pass).** A snapshot from `physics3d({ gravity: moon })` restored into a default `physics3d()` sim, and Rapier's snapshot silently replaced the configured gravity. Fix: `definePlugin({ config })` takes plain JSON (canonicalized at definition) that joins the schema hash as `configs`, present only when a plugin has one, so every other hash is unchanged; the physics plugins put their gravity there. A restore across configs is a `SnapshotMismatchError('schemaHash')`. The factories copy and freeze the gravity they are given and pass that copy to Rapier, so mutating the caller's object after `physics3d({ gravity })` changes neither the sim nor its hash. The copy turns −0 into 0, which Rapier runs identically. Two gravities that differ only below f32 precision still hash as different schemas; that is accepted, since no real caller writes such pairs, and rounding the default to f32 would change every golden for nothing.
 
 ## 11. Exit criteria
 

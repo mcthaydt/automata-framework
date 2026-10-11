@@ -93,6 +93,7 @@
 - [x] Awake-bodies bench and Rapier-alone baseline; the hashing policy in spec §10.5.
 - [x] Mutation check of the new code: 17 mutations, each fails at least one test.
 - [x] The audit's three small items, each with a failing test first: a rotated 2D lone collider is no longer re-rotated every tick (180 `setRotation` calls in 10 ticks before; Rapier's read-back angle is written into the ECS, 3D too); plugin `config` joins the schema hash and the physics plugins put gravity there (`schema-hash.test.ts`, `physics-3d-snapshot.test.ts`); a rejected `RAPIER.init()` is not cached (`init-retry.test.ts`). Both scenes gained a tilted lone ramp; goldens re-recorded and confirmed in all four engines.
+- [x] The audit's re-check at `4d9e6f4`, failing tests first: the physics factories copy and freeze gravity, so mutating the caller's object later changes neither the sim nor its hash, and −0 gravity hashes as 0 (`gravity-config.test.ts`); Rapier returning a null world is a `SnapshotFormatError` (`physics-world.test.ts`); `dispose` disposes every state even when one throws, then rethrows (`lifecycle.test.ts`); the partial-set test now pins Koota keeping the other fields. Spec: 2D angles wrap (§3.4); restored contacts are checked for shape, not against the narrow phase (§3.2, accepted). Goldens unchanged.
 
 ## Execution log
 

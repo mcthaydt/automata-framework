@@ -269,8 +269,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       for (const s of p.systems) stateOfSystem.set(s.name, state)
     }
   } catch (err) {
-    for (const { state } of states) state.dispose()
-    store.dispose()
+    releaseAll(store, states)
     throw err
   }
   // Nothing below can throw: it only builds closures over what exists.
@@ -530,9 +529,30 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     dispose() {
       if (disposed) return
       disposed = true
-      store.dispose()
-      for (const { state } of states) state.dispose()
+      const fault = releaseAll(store, states)
+      if (fault) throw fault.error
     },
   }
   return sim
+}
+
+/**
+ * Disposes the store and every plugin state, in that order. A dispose that throws doesn't stop the rest, since
+ * each one holds its own engine memory; the first error is returned so the caller decides whether to rethrow.
+ */
+function releaseAll(
+  store: EntityStore,
+  states: ReadonlyArray<{ state: PluginState }>,
+): { error: unknown } | undefined {
+  let fault: { error: unknown } | undefined
+  const release = (dispose: () => void) => {
+    try {
+      dispose()
+    } catch (error) {
+      fault ??= { error }
+    }
+  }
+  release(() => store.dispose())
+  for (const { state } of states) release(() => state.dispose())
+  return fault
 }
