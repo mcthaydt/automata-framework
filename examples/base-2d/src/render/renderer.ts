@@ -70,9 +70,12 @@ export interface Renderer {
   fitToHost(): void
   /** The character's hitbox top-left in pixels, for the page's data attributes. */
   playerPixel(): { x: number; y: number } | null
-  /** Adds a demo's layer (see RendererLayer); the returned function removes it again. */
+  /**
+   * Adds a demo's layer (see RendererLayer); the returned function removes it again, and is safe to call after
+   * destroy. The layer's view, and the textures its sprites use, are destroyed with the renderer.
+   */
   addLayer(layer: RendererLayer): () => void
-  /** True if `view` is drawn under the light map, so the room's lights fall on it. */
+  /** True if `view` is drawn under the light map, so the room's lights fall on it (a demo can check its layer). */
   isLitByRoom(view: Container): boolean
   destroy(): void
 }
@@ -403,9 +406,10 @@ export async function createRenderer(host: HTMLElement, room: Room): Promise<Ren
       demoLayers.addChild(layer.view)
       layers.push(layer)
       return () => {
-        demoLayers.removeChild(layer.view)
         const at = layers.indexOf(layer)
-        if (at >= 0) layers.splice(at, 1)
+        if (at < 0) return // already removed, or the renderer was destroyed with everything in it
+        layers.splice(at, 1)
+        demoLayers.removeChild(layer.view)
       }
     },
     isLitByRoom(view) {
@@ -414,6 +418,8 @@ export async function createRenderer(host: HTMLElement, room: Room): Promise<Ren
       return false
     },
     destroy() {
+      // Forget the layers first: a step or frame that arrives late, or a demo's remove, must not reach them.
+      layers.length = 0
       lightMap.destroy(true)
       app.destroy(true, { children: true, texture: true })
     },

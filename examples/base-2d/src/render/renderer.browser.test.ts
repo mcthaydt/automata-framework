@@ -49,4 +49,16 @@ describe('a demo layer', () => {
     renderer.apply(step(2))
     expect(heard).toHaveLength(3)
   })
+
+  it('is safe to remove after the renderer is destroyed, and a destroyed renderer forgets its layers', async () => {
+    const host = document.createElement('div')
+    document.body.append(host)
+    const destroyed = await createRenderer(host, parseRoom(ROOM))
+    const heard: string[] = []
+    const remove = destroyed.addLayer({ view: new Container(), apply: () => heard.push('apply') })
+    destroyed.destroy()
+    destroyed.apply(step(1))
+    expect(heard).toEqual([])
+    expect(() => remove()).not.toThrow()
+  })
 })
