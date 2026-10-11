@@ -184,6 +184,23 @@ describe('vite dev', () => {
     expect(await loadHash(server)).toBe(events[2]?.data.hash)
   }, 30_000)
 
+  it('serves the module under a query too, so a page can import the new content after a save', async () => {
+    // The browser keeps every module it imported, so a page that hears `automata:content` imports the module
+    // again under a new URL (examples/content/hot-reload). The query must not change what is served.
+    const root = copyFixture('valid')
+    const { server, events } = await devServer(root)
+    editFile(root, 'characters/cyan.toml', (text) => text.replace('"Cyan"', '"Cyan Two"'))
+    await waitFor(() => events.length === 1, 'the rebuild')
+    const hash = events[0]?.data.hash ?? ''
+    const fresh = (await server.ssrLoadModule(`virtual:automata/content?v=${hash}`)) as {
+      contentHash: string
+    }
+    expect(fresh.contentHash).toBe(hash)
+    // The browser asks for `/@id/__x00__virtual:automata/content?v=<hash>`; Vite's middleware unwraps it to this.
+    const served = await server.transformRequest(`\0virtual:automata/content?v=${hash}`)
+    expect(served?.code).toContain(hash)
+  }, 30_000)
+
   it("recovers after the game's code throws during a rebuild (audit of PR #8)", async () => {
     const root = copyFixture('valid')
     const mood = defineContentSchema(

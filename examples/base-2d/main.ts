@@ -11,21 +11,15 @@
 import './src/no-eval.ts'
 import '@fontsource/pixelify-sans/latin-400.css'
 import '@fontsource/pixelify-sans/latin-700.css'
-import { Effect } from 'effect'
+import { bootPage } from './src/boot-page.ts'
 import { startGame } from './src/game.ts'
 
 const root = document.querySelector<HTMLElement>('#game')
 if (root === null) throw new Error('index.html has no #game element')
 
-Effect.runPromise(startGame(root)).then(
-  () => {
-    document.documentElement.dataset.state = 'ready'
-  },
-  (error: unknown) => {
-    const tag = (error as { _tag?: string } | null)?._tag
-    root.textContent =
-      tag === 'RendererFailed' ? "This device can't run the game." : "Couldn't connect to Ruken."
-    document.documentElement.dataset.state = 'failed'
-    console.error(error)
-  },
-)
+void bootPage({
+  root,
+  html: document.documentElement,
+  start: startGame(root),
+  log: (message, error) => console.error(message, error),
+})
