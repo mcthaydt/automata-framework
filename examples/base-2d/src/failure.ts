@@ -1,4 +1,5 @@
 import type { RoundOutcome } from '@ruken/sdk'
+import { DEVICE_FAILED } from './boot-failure.ts'
 
 // What happens when a round's sim cannot be made (out of Koota worlds or memory): there is nothing to play on,
 // so the game stops for good. It ends the round it told the host about, stops the loop, removes its input and
@@ -31,7 +32,7 @@ export function createFailure(parts: FailureParts): Failure {
       parts.stopLoop()
       parts.endRound('fail')
       for (const cleanup of parts.cleanups) cleanup()
-      parts.root.textContent = "This device can't run the game."
+      parts.root.textContent = DEVICE_FAILED
       parts.html.dataset.state = 'failed'
     },
   }

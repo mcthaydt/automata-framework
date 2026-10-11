@@ -19,7 +19,14 @@
 | `render-pixi` (M1.7) | `src/render/`: Pixi 8 initialised the way FloorFifty does (no-eval entry, WebGL preference, nearest scaling, integer letterbox) | `render-pixi` with its `RenderDelta` consumer |
 | `ui` (M1.6, #7) | `src/screens/`: plain DOM screens with 44 px controls and 48 px primary actions, colors from Endesga 64 | `ui` primitives and theme tokens |
 
-The sim half is the real thing: a sim plugin on `automata-sim`, checked by `check-boundaries`, with a golden hash identical in Node, Chromium, WebKit and Firefox. Demos and games reuse it through the package exports.
+The sim half is the real thing: a sim plugin on `automata-sim`, checked by `check-boundaries`, with a golden hash identical in Node, Chromium, WebKit and Firefox. Demos and games reuse it through the package exports:
+
+- `@af-examples/base-2d` gives `createBaseSim`, `moveCommand`, the room and the palette. It also gives `bootPage` and the boot failures, so a demo's `main.ts` shows the same error screen. It stays free of Pixi, as do `./sim` and the root's import graph, so Node code never loads the renderer.
+- `@af-examples/base-2d/game` gives `startGame(root, { plugins?, onRound?, layers? })`. The options let a demo add sim plugins to every round's sim (each round makes a fresh one), spawn its own entities on each fresh sim, and add `RendererLayer`s. A throw in `onRound` disposes that sim and ends the game on the device message: on the first sim at boot (`SimFailed`), on a later one through the terminal failure path (`failure.ts`).
+- `@af-examples/base-2d/sim` is the sim plugin and its definitions alone, with no boot code. A demo's sim root can import it under `check-boundaries`' allow option for another package's sim entry (the sim lane's PR #14 names the flag).
+- `@af-examples/base-2d/render` is the renderer, with `addLayer`.
+
+These are what the M2 demos asked for (M2.1b spec, "Needs from integration").
 
 **Deliverables.** `examples/base-2d/` (package `@af-examples/base-2d`): sim plugin, room content, art as palette-indexed pixel maps, renderer, screens, input, loop, boot, ship config, unit and parity tests, browser journeys; a `base-2d` project in the root `playwright.config.ts`; a `base-2d` job in `ci.yml` through `game-ci.yml`; the three `@mcthaydt/automata-sim` entry points added to the `check-boundaries` import allowlist (identical to the change in PR #9, so the two merge cleanly); `pixi.js` pinned in `docs/versions.md`.
 
@@ -70,7 +77,7 @@ The sim half is the real thing: a sim plugin on `automata-sim`, checked by `chec
 ## 5. Failure policy
 
 - `Ruken.init` or `ready` rejects: show "Couldn't connect to Ruken." and set `data-state="failed"` (as the placeholder does). No retry loop; the host owns reloads.
-- Pixi `init` throws (no WebGL): the same failure path with "This device can't run the game." Never a blank canvas.
+- Pixi `init` throws, or the first sim can't be made: the same failure path with "This device can't run the game." Never a blank canvas. Any other failure (a defect) shows the device message too; only a failed `init` or `ready` blames the connection (`src/boot-failure.ts`, picked from the Exit's Cause by `src/boot-page.ts`). Two limits, both from the stand-ins: Pixi 8 falls back to a 2D canvas when WebGL and WebGPU are blocked, so `RendererFailed` means no canvas context at all; and the vendored SDK's `ready` never rejects and `Ruken.init` goes standalone after 10 s without a welcome, so the connection message only shows for a misconfigured host, not a network drop. On a boot failure the first sim and the session are not disposed and the host isn't told; the page is final.
 - A rejected sim command is a bug in the input layer: it is logged once with `console.error`, and the browser journeys fail on any console error.
 - `parseRoom` throws at startup on a malformed room; the room is source code, so this fails the unit tests first.
 
