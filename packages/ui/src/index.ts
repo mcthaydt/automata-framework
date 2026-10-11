@@ -18,11 +18,12 @@ export {
   createGeometryOwner,
   type GeometryOwner,
   type GeometryOwnerOptions,
+  type GeometryState,
   probeEnvSafeArea,
   SETTLE_DELAYS_MS,
   type Timers,
   type ViewportWindow,
-} from './geometry/geometry-owner'
+} from './geometry/geometry-owner.svelte'
 export {
   COMPACT_MAX_HEIGHT,
   classifyHeightTier,

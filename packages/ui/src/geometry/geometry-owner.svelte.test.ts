@@ -1,7 +1,7 @@
 import { fakeViewportWindow, hostDisplay } from '@mcthaydt/automata-testing'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { Geometry } from './geometry'
-import { createGeometryOwner, SETTLE_DELAYS_MS } from './geometry-owner'
+import { createGeometryOwner, SETTLE_DELAYS_MS } from './geometry-owner.svelte'
 
 const NO_ENV = () => ({ top: 0, right: 0, bottom: 0, left: 0 })
 
@@ -25,17 +25,21 @@ describe('createGeometryOwner (M1.6 spec §3.1, §4)', () => {
     const { root, owner } = setup({ width: 780, height: 270 })
     expect(root.dataset.formFactor).toBe('phone-landscape')
     expect(root.dataset.height).toBe('compact')
-    expect(owner.geometry.get().formFactor).toBe('phone-landscape')
+    expect(owner.geometry.current.formFactor).toBe('phone-landscape')
   })
 
   test('follows a rotation and tells subscribers', () => {
     const { win, root, owner } = setup()
     const seen: Geometry[] = []
-    const stop = owner.geometry.listen((g) => seen.push(g))
+    const stop = owner.onChange((g) => seen.push(g))
     win.resize(844, 390)
     expect(root.dataset.formFactor).toBe('phone-landscape')
     expect(seen.at(-1)?.formFactor).toBe('phone-landscape')
+    expect(owner.geometry.current.formFactor).toBe('phone-landscape')
     stop()
+    const heard = seen.length
+    win.resize(390, 844)
+    expect(seen).toHaveLength(heard)
   })
 
   test('measures again as the settle delays pass, restarted by a newer event', () => {
@@ -111,7 +115,7 @@ describe('createGeometryOwner (M1.6 spec §3.1, §4)', () => {
     const root = document.createElement('div')
     const win = { innerWidth: 390, innerHeight: 844, addEventListener() {}, removeEventListener() {} }
     const owner = createGeometryOwner({ window: win, root, readEnvSafeArea: NO_ENV })
-    expect(owner.geometry.get().visualInsetBottom).toBe(0)
+    expect(owner.geometry.current.visualInsetBottom).toBe(0)
   })
 
   test('the default env probe reads 0 where env() is not computed (jsdom)', () => {
@@ -119,7 +123,7 @@ describe('createGeometryOwner (M1.6 spec §3.1, §4)', () => {
     const root = document.createElement('div')
     document.body.append(root)
     const owner = createGeometryOwner({ window: win, root })
-    expect(owner.geometry.get().insets).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
+    expect(owner.geometry.current.insets).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
     owner.dispose()
     root.remove()
   })

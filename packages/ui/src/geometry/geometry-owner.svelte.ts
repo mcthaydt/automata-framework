@@ -4,11 +4,11 @@
  *
  * It decides when to measure: at once, on every resize of the window or the visual viewport, and
  * again as the browser's bars and keyboard finish animating. Each measure is published on the root
- * (for CSS) and in a nanostores atom (for script: the runtime, the renderer's letterbox).
- * Nothing else writes the geometry.
+ * (for CSS), in a Svelte 5 rune store (`geometry.current`, for components) and to `onChange`
+ * listeners (for script outside Svelte: the runtime, the renderer's letterbox). Nothing else
+ * writes the geometry.
  */
 
-import { atom, type ReadableAtom } from 'nanostores'
 import { applyGeometry, type Geometry, type HostDisplay, type Insets, measureGeometry } from './geometry'
 
 type Listen = (type: string, listener: () => void) => void
@@ -45,8 +45,15 @@ export interface GeometryOwnerOptions {
   readonly readEnvSafeArea?: (() => Insets) | undefined
 }
 
+/** The current geometry as rune state: reading `current` in a component or `$derived` tracks it. */
+export interface GeometryState {
+  readonly current: Geometry
+}
+
 export interface GeometryOwner {
-  readonly geometry: ReadableAtom<Geometry>
+  readonly geometry: GeometryState
+  /** Hears every measure; returns the unsubscribe. For consumers outside Svelte. */
+  onChange(listener: (geometry: Geometry) => void): () => void
   /** The host's display metrics changed (Ruken `display.metrics`), or `undefined` for standalone. */
   setHostDisplay(display: HostDisplay | undefined): void
   /** For a screen that just mounted: a WebView's bars can settle with no event at all. */
@@ -93,6 +100,15 @@ export function probeEnvSafeArea(root: HTMLElement): Insets {
   return insets
 }
 
+/** `$state.raw`: a new Geometry object replaces the old one; nothing inside it is mutated. */
+class GeometryRune implements GeometryState {
+  current: Geometry
+
+  constructor(initial: Geometry) {
+    this.current = $state.raw(initial)
+  }
+}
+
 export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner {
   const { window: win, root } = options
   const timers = options.timers ?? defaultTimers
@@ -111,14 +127,16 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
     })
   }
 
-  const geometry = atom<Geometry>(read())
-  applyGeometry(root, geometry.get())
+  const state = new GeometryRune(read())
+  const listeners = new Set<(geometry: Geometry) => void>()
+  applyGeometry(root, state.current)
 
   const measure = (): void => {
     if (disposed) return
     const next = read()
     applyGeometry(root, next)
-    geometry.set(next)
+    state.current = next
+    for (const listener of [...listeners]) listener(next)
   }
 
   const clearSettling = (): void => {
@@ -139,7 +157,13 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
   win.visualViewport?.addEventListener('scroll', update)
 
   return {
-    geometry,
+    geometry: state,
+    onChange(listener) {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
     setHostDisplay(display) {
       host = display
       measure()
@@ -149,6 +173,7 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
       if (disposed) return
       disposed = true
       clearSettling()
+      listeners.clear()
       win.removeEventListener('resize', update)
       win.visualViewport?.removeEventListener('resize', update)
       win.visualViewport?.removeEventListener('scroll', update)

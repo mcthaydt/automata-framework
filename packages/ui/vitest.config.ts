@@ -8,7 +8,6 @@ import { defineConfig } from 'vitest/config'
 // - layout: layout contracts with production CSS in real Chromium, WebKit and Firefox at every reference size.
 export default defineConfig({
   plugins: [svelte(), svelteTesting()],
-  optimizeDeps: { include: ['nanostores'] },
   test: {
     projects: [
       {
