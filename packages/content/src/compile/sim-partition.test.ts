@@ -105,6 +105,25 @@ describe('simReference', () => {
     ])
   })
 
+  it('adds no simReference when the target is not a registered kind (audit L1)', async () => {
+    const roomWithNope = defineContentSchema(
+      'room',
+      z.strictObject({
+        title: localized(),
+        tileSize: z.number().int().positive(),
+        rows: z.array(z.string()),
+        ambience: z.optional(contentRef('nope')),
+      }),
+      { folder: 'rooms' },
+    )
+    const root = copyFixture('sim-rooms')
+    edit(root, 'rooms/room-1.toml', (t) => `ambience = "chime"\n${t}`)
+    const result = await compile({ root, schemas: [roomWithNope, SOUND_KIND] })
+    if (Either.isRight(result) || result.left._tag !== 'ContentCompileFailed')
+      throw new Error('expected a refusal')
+    expect(result.left.diagnostics.map((d) => d.code)).toEqual(['wrongKind'])
+  })
+
   it('lets a non-sim kind refer into sim content', async () => {
     // The fixture's sound already names room-1.
     const { sim } = await compiled({ root: copyFixture('sim-rooms'), schemas: [ROOM_KIND, SOUND_KIND] })

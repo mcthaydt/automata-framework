@@ -38,7 +38,7 @@ import { checkTuning, type TunableDeclarations, type TuningMeta } from '../tunin
 import { builtInGenerators } from './built-in-generators'
 import { ContentCompileFailed, InvalidContentConfig } from './errors'
 import { readSources, type SourceTree } from './read-sources'
-import { type SimPartition, simPartition, simReferenceProblems } from './sim-partition'
+import { type SimPartition, simKindsOf, simPartition, simReferenceProblems } from './sim-partition'
 
 export interface ContentOptions {
   /** The project root; content is read from `<root>/content`. */
@@ -188,9 +188,10 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   }
 
   // 2. References between items, and none from sim content out to a kind the sim does not receive.
+  const simKinds = simKindsOf(options.schemas)
   for (const item of items) {
     place(item.toml, checkReferences(item.refs, ids))
-    place(item.toml, simReferenceProblems(item.kind, item.refs, options.schemas))
+    place(item.toml, simReferenceProblems(item.kind, item.refs, simKinds))
   }
 
   // 3. The source-language messages. A key two texts share is reported where the second one is.

@@ -3,6 +3,7 @@
 // too, so a game's own generator gets exactly what they get. Generators are pure: data in, files and
 // diagnostics out. Writing is the compiler's job.
 
+import type { SimPartition } from '../compile/sim-partition'
 import type { Diagnostic } from '../diagnostics/diagnostic'
 import type { MessageCatalog } from '../locale/messages'
 import type { ContentSchemaDef } from '../schema/content-schema'
@@ -15,7 +16,7 @@ export interface GeneratorInput {
   readonly data: ContentData
   readonly hash: string
   /** The sim partition and its hash (M2.2), so a generator never re-derives it from `schemas`. */
-  readonly sim: { readonly data: ContentData; readonly hash: string }
+  readonly sim: SimPartition
   readonly schemas: readonly ContentSchemaDef[]
   readonly messages: MessageCatalog
   readonly tuning: TuningMeta

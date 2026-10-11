@@ -29,20 +29,34 @@ export function simPartition(data: ContentData, schemas: readonly ContentSchemaD
   return { data: sim, hash: contentHash(sim) }
 }
 
+/** Which registered game kinds the sim receives and which it does not. Built once per compile. */
+export interface SimKinds {
+  readonly sim: ReadonlySet<string>
+  readonly nonSim: ReadonlySet<string>
+}
+
+export function simKindsOf(schemas: readonly ContentSchemaDef[]): SimKinds {
+  return {
+    sim: new Set(schemas.filter((def) => def.sim).map((def) => def.kind)),
+    nonSim: new Set(schemas.filter((def) => !def.sim).map((def) => def.kind)),
+  }
+}
+
 /**
- * A reference from a sim kind to a non-sim kind. The sim would hold an ID whose target it cannot read, and a
- * change to that target would not move the sim hash, so it is refused. References from non-sim kinds into
- * sim content are fine: display data may point at the gameplay item it decorates.
+ * A reference from a sim kind to a registered non-sim kind. The sim would hold an ID whose target it cannot
+ * read, and a change to that target would not move the sim hash, so it is refused. References from non-sim
+ * kinds into sim content are fine: display data may point at the gameplay item it decorates. A target that is
+ * not a registered game kind (a typo, a built-in) is left to the reference check, which already refuses it;
+ * advising `{ sim: true }` for it would be advice the author cannot follow.
  */
 export function simReferenceProblems(
   fromKind: string,
   refs: readonly FoundRef[],
-  schemas: readonly ContentSchemaDef[],
+  kinds: SimKinds,
 ): Problem[] {
-  const simKinds = new Set(schemas.filter((def) => def.sim).map((def) => def.kind))
-  if (!simKinds.has(fromKind)) return []
+  if (!kinds.sim.has(fromKind)) return []
   return refs
-    .filter((ref) => !simKinds.has(ref.kind))
+    .filter((ref) => kinds.nonSim.has(ref.kind))
     .map((ref) => ({
       path: ref.path,
       code: 'simReference' as const,

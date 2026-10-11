@@ -73,9 +73,10 @@ Starts only when `createBaseSim({ content })` takes compiled sim content on `mai
 
 ## Finish
 
-- [ ] `pnpm ci:local` green; record the commands, Node version and results in the PR.
-- [ ] Update **Progress**, add the execution log line, and send the integration owner the rows for 02 and 03 (this lane does not edit numbered docs).
+- [x] `pnpm ci:local` green; record the commands, Node version and results in the PR.
+- [x] Update **Progress**, add the execution log line, and send the integration owner the rows for 02 and 03 (this lane does not edit numbered docs).
 
 ## Execution log
 
 - 2026-10-11, M2.2 thread: Tasks 1–7 landed (`36e8e22`..HEAD on `claude/af-m2-2-content-sim-lp0pim`). Each test was seen failing first for the stated reason (Tasks 2 and 3 were written and implemented together). Deviations: the partition fixture is a small committed tree (`testing/fixtures/sim-rooms`) because the compiler reads files; its kind is `room` (folder `rooms`), so code reads `content.room[...]`; TypeScript 7.0.2 reports the missing export as TS2724, not TS2305; the snapshot header's u64 is little-endian. Parity: `sim.hash` = `sim.contentHash` = `b77281825d95928b` for the sim-rooms fixture in Node, Chromium, WebKit and Firefox (`pnpm --filter @mcthaydt/automata-content test:parity`, Node 24.21.0, Playwright 1.63.0). Task 8 waits on base-2d's content swap.
+- 2026-10-11, M2.2 thread: `pnpm ci:local` green in a Linux container (Node 24.21.0, Playwright 1.63.0 browsers in a local folder, WebKit's system libraries installed); PR #18 CI green on af-linux at `b7c04c4`. Audit (`audits/af-m2.2-content-sim-pr18-2026-10-11.md`): no High or Medium; L1 (no `simReference` advice for an unregistered or built-in target), L2 (`GeneratorInput.sim` is `SimPartition`) and both nits fixed; rows for 02 and 03 sent to the integration owner through the coordinator.
