@@ -7,8 +7,10 @@
 //
 // Run from examples/placeholder: `node s8/measure.ts` (needs Playwright's Chromium; set
 // PLAYWRIGHT_BROWSERS_PATH if it is not in the default place). Prints a Markdown table for
-// docs/spikes/s8-effect.md. This is a measurement script, not product code, so it has no tests (the spikes/
-// exemption, A0+A1 spec §2); its numbers are only as good as the machine it ran on, which the doc records.
+// docs/spikes/s8-effect.md. Its numbers are only as good as the machine it ran on, which the doc records.
+//
+//   --check        also fail (exit 1) when a budget in s8/budgets.ts is broken (CI's nightly run)
+//   --sizes-only   build and weigh only, no browser (E1 and E3; CI's every-push run, with --check)
 import { createReadStream, readdirSync, readFileSync, statSync } from 'node:fs'
 import { createServer, type Server } from 'node:http'
 import { extname, join, resolve } from 'node:path'
@@ -19,6 +21,10 @@ import { Effect } from 'effect'
 import { chromium, devices } from 'playwright'
 import { build } from 'vite'
 import config from '../ship.config.ts'
+import { type Measurement, overBudget } from './budgets.ts'
+
+const check = process.argv.includes('--check')
+const sizesOnly = process.argv.includes('--sizes-only')
 
 const here = import.meta.dirname
 const placeholder = resolve(here, '..')
@@ -153,24 +159,50 @@ async function bootTimes(url: string, profile: (typeof PROFILES)[number]): Promi
 
 const variants = await buildVariants()
 const rows: string[] = []
+const gzipOf: number[] = []
+const mediansOf: number[][] = []
 for (const variant of variants) {
   const { raw, gzip } = bytesOf(variant)
-  const { server, origin } = await serve(variant.outDir)
-  try {
-    const cells: string[] = []
-    for (const profile of PROFILES) {
-      const times = await bootTimes(`${origin}/${variant.page}`, profile)
-      cells.push(`${median(times).toFixed(0)} ms (${times.map((time) => time.toFixed(0)).join(', ')})`)
+  gzipOf.push(gzip)
+  const cells: string[] = []
+  const medians: number[] = []
+  if (!sizesOnly) {
+    const { server, origin } = await serve(variant.outDir)
+    try {
+      for (const profile of PROFILES) {
+        const times = await bootTimes(`${origin}/${variant.page}`, profile)
+        medians.push(median(times))
+        cells.push(`${median(times).toFixed(0)} ms (${times.map((time) => time.toFixed(0)).join(', ')})`)
+      }
+    } finally {
+      server.close()
     }
-    rows.push(
-      `| ${variant.name} | ${(raw / 1000).toFixed(2)} kB | ${(gzip / 1000).toFixed(2)} kB | ${cells.join(' | ')} |`,
-    )
-  } finally {
-    server.close()
   }
+  mediansOf.push(medians)
+  rows.push(
+    [`| ${variant.name}`, `${(raw / 1000).toFixed(2)} kB`, `${(gzip / 1000).toFixed(2)} kB`, ...cells].join(
+      ' | ',
+    ) + ' |',
+  )
 }
-console.log(
-  `| Build | Raw (js+css+html) | Gzip | ${PROFILES.map((p) => `${p}, ${CPU_THROTTLE}x CPU`).join(' | ')} |`,
-)
-console.log(`|---|---|---|${PROFILES.map(() => '---').join('|')}|`)
+const bootColumns = sizesOnly ? [] : PROFILES.map((profile) => `${profile}, ${CPU_THROTTLE}x CPU`)
+console.log(['| Build', 'Raw (js+css+html)', 'Gzip', ...bootColumns].join(' | ') + ' |')
+console.log(`|${['---', '---', '---', ...bootColumns.map(() => '---')].join('|')}|`)
 for (const row of rows) console.log(row)
+
+if (check) {
+  const measured: Measurement = {
+    gzip: { effect: gzipOf[0] ?? 0, noEffect: gzipOf[1] ?? 0 },
+    bootMedians: sizesOnly
+      ? []
+      : PROFILES.map((profile, index) => ({
+          profile,
+          effect: mediansOf[0]?.[index] ?? Number.NaN,
+          noEffect: mediansOf[1]?.[index] ?? Number.NaN,
+        })),
+  }
+  const breaches = overBudget(measured)
+  for (const breach of breaches) console.error(breach)
+  if (breaches.length > 0) process.exit(1)
+  console.log('S8 budgets met')
+}

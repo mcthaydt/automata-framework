@@ -12,7 +12,9 @@
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "measure:s8": "node s8/measure.ts",
     "e2e:game": "vite build && vite preview --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
-    "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT vite build --config e2e/host/vite.config.ts && vite preview --config e2e/host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT"
+    "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT vite build --config e2e/host/vite.config.ts && vite preview --config e2e/host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT",
+    "budget:size": "node s8/measure.ts --check --sizes-only",
+    "budget:boot": "node s8/measure.ts --check"
   },
   "dependencies": {
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",

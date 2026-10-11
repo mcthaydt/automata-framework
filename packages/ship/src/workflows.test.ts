@@ -193,6 +193,13 @@ describe('ci.yml (AF)', () => {
     )
   })
 
+  it('enforces the S8 budgets: sizes on every run, boot times nightly', () => {
+    const checks = (ci.jobs.checks?.steps ?? []).map((step) => step.run)
+    expect(checks).toContain('pnpm --filter @af-examples/placeholder budget:size')
+    const boot = (ci.jobs.e2e?.steps ?? []).find((step) => step.run?.includes('budget:boot'))
+    expect(boot?.if).toBe("inputs.spec == ''")
+  })
+
   it('runs browser journeys only nightly or on request, focused by spec (test:remote)', () => {
     expect(Object.keys(ci.on.workflow_dispatch?.inputs ?? {})).toEqual(['spec', 'nightly'])
     const e2e = ci.jobs.e2e

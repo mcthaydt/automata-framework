@@ -33,7 +33,7 @@ Three runs of the script, back to back:
 
 ## Budgets
 
-The budget check is this script, re-run on the same kind of machine; the numbers are only comparable between runs on one machine class.
+The budgets are enforced by `examples/placeholder/s8/budgets.ts` (tested): `pnpm --filter @af-examples/placeholder budget:size` (E1, E3) runs in CI's checks job and `pnpm ci:local`, and `budget:boot` (E2, E4, E5) runs in the nightly browser job. Boot numbers are only comparable between runs on one machine class; the budgets leave about 2× headroom over this container.
 
 | ID | Budget | Measured |
 |---|---|---|

@@ -59,6 +59,8 @@ jobs:
       - run: pnpm boundaries
       - run: pnpm style
       - run: pnpm test:unit
+      # S8 budgets E1 and E3 (docs/spikes/s8-effect.md): Effect's share and the page's gzip size.
+      - run: pnpm --filter @af-examples/placeholder budget:size
 
   parity:
     name: parity (chromium, webkit, firefox)
@@ -124,6 +126,10 @@ jobs:
           # after one Playwright stops filtering. A SPEC that matches nothing fails ("No tests found").
           # shellcheck disable=SC2086
           pnpm test:e2e $SPEC
+      # S8 budgets E2, E4 and E5 (boot at 4x CPU under Ruken's CSP) on the nightly run, not on a focused one.
+      - name: S8 boot budgets
+        if: inputs.spec == ''
+        run: pnpm --filter @af-examples/placeholder budget:boot
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
