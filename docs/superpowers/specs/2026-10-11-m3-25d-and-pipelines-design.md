@@ -155,7 +155,9 @@ export function filterPrograms(name: string, glsl: string, wgsl: string): { glPr
 
 Until M1.5 builds `defineExtension`, the package exports its content schemas (`render3dContent: ContentSchemaDef[]`) and its functions plainly; the wrapping lands with M1.5 (audit B3).
 
-R4 found that the first draft of `Stage3DOptions` had no way to pass in the lighting: lamps, ambient, key, fill, bounce, or which walls block light. So `kit.box` could not be lit, and `setLampLevel` had no lamps. The options now take the scene's whole `look3d` entry, which already carries the fog, so the separate `fog` option is gone. They also take `isBlocked`. The M3 thread ruled this as spec owner at 23:33Z. It is additive to everything built so far. `CharacterArt` (the colour and normal textures with R3's `AtlasLayout`) and `LitSprite` take their exact shape in R4 and are recorded there.
+R4 found that the first draft of `Stage3DOptions` had no way to pass in the lighting: lamps, ambient, key, fill, bounce, or which walls block light. So `kit.box` could not be lit, and `setLampLevel` had no lamps. The options now take the scene's whole `look3d` entry, which already carries the fog, so the separate `fog` option is gone. They also take `isBlocked`. The M3 thread ruled this as spec owner at 23:33Z. It is additive to everything built so far. R4 gave `CharacterArt` and `LitSprite` their exact shapes, recorded below (`m3-stage` `e2e012d`).
+
+**Colours (R4, measured in Chromium).** `@pixi/3d` reads a colour given as a number (a material's base colour, a sprite's tint, the fog colour) as sRGB, decodes it to linear light and never encodes it again, so `0x806040` draws as `[50, 29, 14]`. Textures (its `FlatMaterial`, `toneMapped` off) and vertex colours reach the screen exactly. The stage therefore passes every numeric colour through `displayColor` (or `displayMultiplier` for a 0–1 multiplier), and the art passes can rely on authored colours showing exactly.
 
 ```ts
 export interface Stage3DOptions {
@@ -226,6 +228,26 @@ export function parsePack(bytes: Uint8Array): PackMesh        // "LLP1" format i
 export function parseGlb(bytes: Uint8Array): GlbMesh
 export function describeCharacterAtlas(entry: CharacterManifestEntry, size: { color: Size; normal: Size }): AtlasLayout  // pure: frame rectangles, anchorY, metres per pixel; throws AtlasError (R3)
 export function loadCharacter(entry: CharacterManifestEntry, load: AssetLoader): Promise<CharacterArt>          // textures from the layout (R4)
+export function characterArtFromPixels(entry: CharacterManifestEntry, pixels: CharacterPixels): CharacterArt    // describes the atlas first, so it throws AtlasError
+export interface PixelImage { readonly width: number; readonly height: number; readonly data: Uint8ClampedArray }  // RGBA, rows top to bottom
+export interface CharacterPixels { readonly atlas: PixelImage; readonly normals: PixelImage; readonly actions?: Readonly<Record<string, { readonly atlas: PixelImage; readonly normals: PixelImage }>> }
+export interface CharacterSheet { readonly color: Texture; readonly normals: Texture; readonly colorPixels: Uint8ClampedArray; readonly normalPixels: Uint8ClampedArray; readonly width: number; readonly height: number }
+export interface CharacterArt {
+  readonly layout: CharacterAtlasDescription            // R3's describeCharacterAtlas
+  readonly walk: CharacterSheet                         // 8 directions × 4 walk frames
+  readonly poses: Readonly<Record<string, CharacterSheet>>  // loaded and size-checked now; played from M6
+  destroy(): void                                       // a lit sprite never destroys the art it draws
+}
+export interface LitSprite {
+  readonly node: Sprite3D                               // node.position is where the feet stand
+  facing: number                                        // world heading 0–7 in DIRECTION_VECTORS order; the drawn row follows the orbit
+  walking: boolean                                      // plays the 4 walk frames at the atlas's step rate
+  shaded(): Uint8ClampedArray | null                    // the cell drawn last, read only
+}
+export interface FigureEmitter { readonly at: Vec3; readonly color: Rgb; readonly range: number; readonly strength: number }
+export function figureLights(at: Vec3, emitters: readonly FigureEmitter[], shot: Shot, isBlocked?: BlockedFn): SpriteLight[]
+export function displayColor(color: number): number              // 0xRRGGBB as @pixi/3d must be given it to show it
+export function displayMultiplier(rgb: Rgb): number              // a 0–1 multiplier per channel, likewise
 export function directionRow(direction: Direction8, azimuthStep: number): number                              // integer table, no sin/cos
 export type Direction8 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
 ```
