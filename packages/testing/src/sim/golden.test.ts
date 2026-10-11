@@ -1,12 +1,16 @@
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { defineComponent, definePlugin } from '@mcthaydt/automata-sim'
+import { defineComponent, definePlugin, defineResource, defineSystem } from '@mcthaydt/automata-sim'
+import { ReplayRecordError } from '@mcthaydt/automata-sim/replay'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { z } from 'zod'
+import { Ball } from './fixtures/bounce.component'
 import { bouncePlugin } from './fixtures/bounce.plugin'
 import { bounceDivergedPlugin } from './fixtures/bounce-diverged.plugin'
-import { BOUNCE_SEED, bounceScript, bounceSetup } from './fixtures/bounce-script'
+import { BOUNCE_SEED, bounceDrive, bounceScript, bounceSetup } from './fixtures/bounce-script'
 import { writeGoldenFile } from './golden-files'
+import { replayGolden } from './replay-golden'
 import { simGolden } from './sim-golden'
 
 let dir: string
@@ -56,7 +60,9 @@ test('simGolden: missing, then written with the update flag, then pass', async (
   ])
   expect(json.hashes).toHaveLength(20)
   expect(json.hashes[0]).toEqual({ hash: expect.stringMatching(/^[0-9a-f]{16}$/), tick: 10 })
-  expect(text.split('\n').length).toBeGreaterThan(40)
+  expect(
+    text.split('\n').filter((line) => /^ {4}\{"hash":"[0-9a-f]{16}","tick":\d+\}/.test(line)),
+  ).toHaveLength(20)
 })
 
 test('simGolden: a changed run reports the first differing recorded tick', async () => {
@@ -119,4 +125,103 @@ test('an interrupted write leaves the old golden whole and no temp file', async 
   expect(await readFile(file, 'utf8')).toBe('old')
   expect(written).toHaveLength(1)
   await expect(readFile(written[0] as string)).rejects.toThrow(/ENOENT/)
+})
+
+// --- replayGolden ---
+
+const replayFile = () => join(dir, '__goldens__', 'bounce.replay')
+const replayBounce = (over: Partial<Parameters<typeof replayGolden>[0]> = {}) =>
+  replayGolden({
+    file: replayFile(),
+    plugins: [bouncePlugin],
+    record: { seed: BOUNCE_SEED, setup: bounceSetup, drive: bounceDrive },
+    ...over,
+  })
+
+test('replayGolden: missing, then written (and checked) with the update flag, then pass', async () => {
+  expect(await replayBounce()).toEqual({ kind: 'missing', name: 'bounce.replay', file: replayFile() })
+  updating()
+  const written = await replayBounce()
+  expect(written).toMatchObject({ kind: 'written', name: 'bounce.replay', file: replayFile() })
+  vi.unstubAllEnvs()
+  expect(await replayBounce()).toEqual({ kind: 'pass', name: 'bounce.replay', checks: 5 })
+  // A replay needs no record options to be checked.
+  expect(await replayGolden({ file: replayFile(), plugins: [bouncePlugin] })).toMatchObject({ kind: 'pass' })
+})
+
+test('replayGolden: a drive that spawns outside step is refused as not reproducing, and nothing is written', async () => {
+  updating()
+  const err = await replayBounce({
+    record: {
+      seed: BOUNCE_SEED,
+      setup: bounceSetup,
+      drive: (recorder, sim) => {
+        for (let t = 0; t < 50; t++) {
+          if (t === 30) sim.spawn([[Ball, { x: 1, y: 1, vx: 1, vy: 1 }]])
+          recorder.step([])
+        }
+      },
+    },
+  }).catch((e: unknown) => e)
+  expect(err).toBeInstanceOf(ReplayRecordError)
+  expect((err as Error).message).toMatch(/does not reproduce: diverged at tick 50/)
+  await expect(readFile(replayFile())).rejects.toThrow(/ENOENT/)
+})
+
+/** A plugin whose resource is replaced every tick: `noise` random numbers, or one long run of one letter. */
+function bulkPlugin(kind: 'noise' | 'run') {
+  const schema = z.object({ data: z.union([z.array(z.number()), z.string()]) })
+  const Bulk = defineResource('bulk.data', schema, () => ({ data: '' }))
+  return definePlugin({
+    name: 'bulk',
+    resources: [Bulk],
+    systems: [
+      defineSystem({
+        name: 'bulk.fill',
+        phase: 'gameplay',
+        run(ctx) {
+          const bulk = ctx.resource(Bulk)
+          bulk.data =
+            kind === 'noise'
+              ? Array.from({ length: 3000 }, () => ctx.rng.nextU32())
+              : String.fromCharCode(97 + (ctx.tick % 26)).repeat(100_000)
+        },
+      }),
+    ],
+  })
+}
+const bulkGolden = (kind: 'noise' | 'run', ticks: number) =>
+  replayGolden({
+    file: replayFile(),
+    plugins: [bulkPlugin(kind)],
+    record: {
+      seed: 1,
+      drive: (recorder) => {
+        for (let t = 0; t < ticks; t++) recorder.step([])
+      },
+    },
+  })
+
+test('replayGolden: a recording over 512 KiB packed is refused, naming the size and snapshotEvery', async () => {
+  updating()
+  await expect(bulkGolden('noise', 60)).rejects.toThrow(/packed.*512 KiB.*snapshotEvery/)
+  await expect(readFile(replayFile())).rejects.toThrow(/ENOENT/)
+})
+
+test('replayGolden: a recording over the inflate cap encoded is refused, however well it packs', async () => {
+  updating()
+  await expect(bulkGolden('run', 90)).rejects.toThrow(/encoded.*8388608.*snapshotEvery/)
+  await expect(readFile(replayFile())).rejects.toThrow(/ENOENT/)
+})
+
+test('replayGolden: schema-changed and content-changed name the golden and current hashes', async () => {
+  updating()
+  await replayBounce()
+  vi.unstubAllEnvs()
+  const extra = definePlugin({ name: 'extra', components: [defineComponent('extra.thing', { n: 'u32' })] })
+  const schema = await replayGolden({ file: replayFile(), plugins: [bouncePlugin, extra] })
+  expect(schema).toMatchObject({ kind: 'schema-changed', expected: expect.stringMatching(/^[0-9a-f]{16}$/) })
+  const content = await replayGolden({ file: replayFile(), plugins: [bouncePlugin], content: { level: 2 } })
+  expect(content).toMatchObject({ kind: 'content-changed' })
+  if (content.kind === 'content-changed') expect(content.expected).not.toBe(content.actual)
 })

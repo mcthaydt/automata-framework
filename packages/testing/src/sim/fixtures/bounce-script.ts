@@ -1,5 +1,6 @@
 // How the bounce goldens drive the fixture: three balls set up before tick 0, then a kick now and then.
-import type { Command, Rng, Sim } from '@mcthaydt/automata-sim'
+import { type Command, createRng, deriveSeed, type Rng, type Sim } from '@mcthaydt/automata-sim'
+import type { Recorder } from '@mcthaydt/automata-sim/replay'
 import { Ball } from './bounce.component'
 
 export const BOUNCE_SEED = 42
@@ -23,4 +24,10 @@ export function bounceScript(tick: number, rng: Rng): readonly Command[] {
       payload: { ball: 1 + rng.int(3), dvx: rng.int(7) - 3 },
     },
   ]
+}
+
+/** Drives a recording of the bounce run: BOUNCE_TICKS steps of bounceScript, as the goldens record it. */
+export function bounceDrive(recorder: Recorder, sim: Sim): void {
+  const rng = createRng(deriveSeed(BOUNCE_SEED, 'script'))
+  for (let t = 0; t < BOUNCE_TICKS; t++) recorder.step(bounceScript(sim.tick, rng))
 }

@@ -43,9 +43,21 @@ interface SimGoldenFile {
 
 const SETUP_FIELDS = ['seed', 'tickHz', 'ticks', 'every'] as const
 
-/** Sorted keys (canonical) but indented, one hash per entry line, so a re-pin reads as a diff. */
-const toFileText = (golden: SimGoldenFile): string =>
-  `${JSON.stringify(JSON.parse(canonicalJson(golden)), null, 2)}\n`
+/**
+ * Canonical JSON per value (sorted keys), laid out one field per line and one hash per line, so a re-pin reads
+ * as a diff of the ticks that moved.
+ */
+function toFileText(golden: SimGoldenFile): string {
+  const { hashes, ...fields } = golden
+  const lines = Object.keys({ ...fields, hashes })
+    .sort()
+    .map((key) =>
+      key === 'hashes'
+        ? `  "hashes": [\n${hashes.map((h) => `    ${canonicalJson(h)}`).join(',\n')}\n  ]`
+        : `  ${JSON.stringify(key)}: ${canonicalJson(fields[key as keyof typeof fields])}`,
+    )
+  return `{\n${lines.join(',\n')}\n}\n`
+}
 
 async function record(options: SimGoldenOptions, every: number): Promise<SimGoldenFile> {
   const sim = await createSim({
