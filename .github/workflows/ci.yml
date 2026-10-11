@@ -145,6 +145,12 @@ jobs:
       - name: S8 boot budgets
         if: inputs.spec == ''
         run: pnpm --filter @af-examples/placeholder budget:boot
+      # The packed packages installed outside the workspace (M2.4 spec §3.6), nightly; pull requests that touch
+      # build config run it in consumer-smoke.yml.
+      - run: pnpm build
+        if: inputs.spec == ''
+      - run: node tooling/consumer-smoke/src/run.ts --from packs
+        if: inputs.spec == ''
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:

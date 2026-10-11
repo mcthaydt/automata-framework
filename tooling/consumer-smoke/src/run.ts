@@ -1,0 +1,253 @@
+// Usage: node tooling/consumer-smoke/src/run.ts --from packs|registry [--version 0.0.n] [--keep]
+//
+// Installs AF's published packages into a project outside the workspace and uses them as a game would (M2.4
+// spec §3.6). `packs` packs the workspace's built packages (run `pnpm build` first); `registry` installs a
+// published version from GitHub Packages (NODE_AUTH_TOKEN must be able to read it). Each check is a named step;
+// the run exits 0 only if every step passed, and removes its temp folder unless --keep.
+import { execFileSync } from 'node:child_process'
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { publishablePackages } from '../../release/src/publishable-packages.ts'
+import { type ConsumerPackage, consumerManifest, consumerNpmrc, type ToolVersions } from './project.ts'
+
+const root = fileURLToPath(new URL('../../..', import.meta.url))
+const fixtures = fileURLToPath(new URL('../fixtures/', import.meta.url))
+
+interface Args {
+  readonly from: 'packs' | 'registry'
+  readonly version: string | undefined
+  readonly keep: boolean
+}
+
+function parseArgs(argv: readonly string[]): Args {
+  const value = (flag: string): string | undefined => {
+    const index = argv.indexOf(flag)
+    return index === -1 ? undefined : argv[index + 1]
+  }
+  const from = value('--from')
+  if (from !== 'packs' && from !== 'registry') {
+    throw new Error('usage: consumer-smoke --from packs|registry [--version 0.0.n] [--keep]')
+  }
+  const version = value('--version')
+  if (from === 'registry' && version === undefined) throw new Error('--from registry needs --version')
+  return { from, version, keep: argv.includes('--keep') }
+}
+
+const manifestOf = (dir: string) =>
+  JSON.parse(readFileSync(join(root, dir, 'package.json'), 'utf8')) as {
+    dependencies?: Record<string, string>
+    devDependencies?: Record<string, string>
+  }
+
+/** The same pins the workspace uses (docs/versions.md), so the smoke project never drifts from them. */
+function toolVersions(): ToolVersions {
+  const rootManifest = manifestOf('.')
+  const ui = manifestOf('packages/ui')
+  const pin = (found: string | undefined, name: string): string => {
+    if (found === undefined) throw new Error(`no workspace pin for ${name}`)
+    return found
+  }
+  return {
+    typescript: pin(rootManifest.devDependencies?.typescript, 'typescript'),
+    typescript6: pin(ui.devDependencies?.typescript, 'typescript 6'),
+    vite: pin(ui.devDependencies?.vite, 'vite'),
+    svelte: pin(ui.devDependencies?.svelte, 'svelte'),
+    vitePluginSvelte: pin(
+      ui.devDependencies?.['@sveltejs/vite-plugin-svelte'],
+      '@sveltejs/vite-plugin-svelte',
+    ),
+    zod: pin(manifestOf('packages/sim').dependencies?.zod, 'zod'),
+    typesNode: pin(manifestOf('packages/node').devDependencies?.['@types/node'], '@types/node'),
+  }
+}
+
+/** Runs a command in `cwd`; on failure the error carries everything it printed. */
+function sh(cwd: string, command: string, args: readonly string[], env: NodeJS.ProcessEnv = {}): string {
+  try {
+    return execFileSync(command, args, {
+      cwd,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, ...env },
+    })
+  } catch (error) {
+    const failed = error as { status?: number; stdout?: string; stderr?: string }
+    throw new Error(
+      `${command} ${args.join(' ')} exited ${failed.status ?? '?'}\n${failed.stdout ?? ''}${failed.stderr ?? ''}`,
+    )
+  }
+}
+
+/** Everything a command printed, whatever its exit code. */
+function output(cwd: string, command: string, args: readonly string[]): string {
+  try {
+    return execFileSync(command, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+  } catch (error) {
+    const failed = error as { stdout?: string; stderr?: string }
+    return `${failed.stdout ?? ''}${failed.stderr ?? ''}`
+  }
+}
+
+/** Exit code of a command expected to fail or pass, without throwing. */
+function exitCode(cwd: string, command: string, args: readonly string[]): number {
+  try {
+    execFileSync(command, args, { cwd, stdio: 'ignore' })
+    return 0
+  } catch (error) {
+    return (error as { status?: number }).status ?? -1
+  }
+}
+
+function filesBelow(dir: string): string[] {
+  return readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => join(entry.parentPath, entry.name))
+}
+
+/** `pnpm pack` each published package (publishConfig and workspace:* applied, as at publish). */
+function packAll(project: string): ConsumerPackage[] {
+  const packs = join(project, 'packs')
+  mkdirSync(packs)
+  return publishablePackages(root).map(({ dir, manifest }) => {
+    if (!existsSync(join(root, dir, 'dist'))) throw new Error(`${dir}/dist is missing: run pnpm build first`)
+    const before = new Set(readdirSync(packs))
+    sh(join(root, dir), 'pnpm', ['pack', '--pack-destination', packs])
+    const tarball = readdirSync(packs).find((name) => !before.has(name))
+    if (tarball === undefined) throw new Error(`pnpm pack wrote nothing for ${manifest.name}`)
+    return { name: manifest.name, tarball: `packs/${tarball}` }
+  })
+}
+
+type Step = readonly [name: string, run: () => string]
+
+/** AF's own code must not need eval: Ruken's CSP has no 'unsafe-eval' (spec §3.6). */
+const EVAL = /\bnew Function\s*\(|(?<![.\w])eval\s*\(/
+
+/** A string only Ruken's SDK has; a bundle with two SDK copies has it twice. */
+const SDK_MARKER = '"ruken:__probe__"'
+
+function steps(project: string): Step[] {
+  const bin = (name: string) => join(project, 'node_modules/.bin', name)
+  const installed = join(project, 'node_modules/@mcthaydt')
+  return [
+    ['node: import every entry, run a physics sim', () => sh(project, 'node', ['node-check.mjs']).trim()],
+    [
+      'content: compile a three-file content folder with the automata-content bin',
+      () => {
+        const out = sh(join(project, 'content'), bin('automata-content'), ['build']).trim()
+        if (!existsSync(join(project, 'content/content/generated/content.json'))) {
+          throw new Error(`automata-content build wrote no content.json\n${out}`)
+        }
+        return out
+      },
+    ],
+    [
+      'ship: automata-ship --help prints its commands',
+      () => {
+        // The CLI answers --help with its usage and exit 2 (a usage answer), so check what it printed.
+        const usage = output(project, bin('automata-ship'), ['--help'])
+        if (!usage.includes('prepare') || !usage.includes('publish')) throw new Error(`no usage:\n${usage}`)
+        return 'usage printed'
+      },
+    ],
+    [
+      'boundaries: automata-check-boundaries passes a clean sim and fails a dirty one',
+      () => {
+        const clean = exitCode(project, bin('automata-check-boundaries'), ['boundaries/clean'])
+        const dirty = exitCode(project, bin('automata-check-boundaries'), ['boundaries/dirty'])
+        if (clean !== 0 || dirty !== 1)
+          throw new Error(`clean exited ${clean} (want 0), dirty ${dirty} (want 1)`)
+        return 'clean 0, dirty 1'
+      },
+    ],
+    [
+      'types: tsc --noEmit with TypeScript 7',
+      () => sh(project, bin('tsc'), ['-p', 'tsconfig.json']) || 'clean',
+    ],
+    [
+      'types: tsc --noEmit with TypeScript 6',
+      () =>
+        sh(project, 'node', [join(project, 'node_modules/typescript6/bin/tsc'), '-p', 'tsconfig.json']) ||
+        'clean',
+    ],
+    [
+      'eval: no new Function or eval( in any published package',
+      () => {
+        const offenders = filesBelow(installed)
+          .filter((file) => file.endsWith('.js') || file.endsWith('.svelte'))
+          .filter((file) => !file.includes('/dist/vendor/')) // ship's copy of Ruken's Node CLI never runs in a game
+          .filter((file) => EVAL.test(readFileSync(file, 'utf8')))
+        if (offenders.length > 0) throw new Error(`eval in:\n${offenders.join('\n')}`)
+        return 'none'
+      },
+    ],
+    [
+      'bundle: vite build of sim + host + a ui component, one Ruken SDK',
+      () => {
+        sh(join(project, 'web'), bin('vite'), ['build', '--config', 'vite.config.ts', '--logLevel', 'warn'])
+        const code = filesBelow(join(project, 'web/dist'))
+          .filter((file) => file.endsWith('.js'))
+          .map((file) => readFileSync(file, 'utf8'))
+          .join('\n')
+        const copies = code.split(SDK_MARKER).length - 1
+        if (copies !== 1) throw new Error(`the bundle has ${copies} copies of Ruken's SDK (want 1)`)
+        return `${Math.round(code.length / 1024)} kB of JavaScript, 1 Ruken SDK`
+      },
+    ],
+  ]
+}
+
+function main(): void {
+  const args = parseArgs(process.argv.slice(2))
+  const project = mkdtempSync(join(tmpdir(), 'af-consumer-smoke-'))
+  console.log(
+    `consumer-smoke: ${args.from}${args.version === undefined ? '' : ` ${args.version}`} in ${project}`,
+  )
+  let failed = 0
+  try {
+    cpSync(fixtures, project, { recursive: true })
+    const packages =
+      args.from === 'packs'
+        ? packAll(project)
+        : publishablePackages(root).map(({ manifest }) => ({ name: manifest.name }))
+    const manifest = consumerManifest({
+      from: args.from,
+      version: args.version,
+      packages,
+      tools: toolVersions(),
+    })
+    writeFileSync(join(project, 'package.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+    writeFileSync(join(project, '.npmrc'), consumerNpmrc())
+    // No workspace above the temp folder, so this is a plain install, as in a game repository.
+    sh(project, 'pnpm', ['install', '--no-frozen-lockfile'])
+    console.log('✓ install')
+    for (const [name, run] of steps(project)) {
+      try {
+        console.log(`✓ ${name}: ${run()}`)
+      } catch (error) {
+        failed += 1
+        console.log(`✗ ${name}\n${error instanceof Error ? error.message : String(error)}`)
+      }
+    }
+  } catch (error) {
+    failed += 1
+    console.log(`✗ setup\n${error instanceof Error ? error.message : String(error)}`)
+  } finally {
+    if (!args.keep) rmSync(project, { recursive: true, force: true })
+  }
+  console.log(failed === 0 ? 'consumer-smoke: passed' : `consumer-smoke: ${failed} step(s) failed`)
+  process.exitCode = failed === 0 ? 0 : 1
+}
+
+main()

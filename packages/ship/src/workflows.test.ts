@@ -33,7 +33,7 @@ interface Workflow {
   readonly jobs: Record<string, Job>
 }
 const workflow = (name: string): Workflow => parse(workflowText(name)) as Workflow
-const ALL = ['ci.yml', 'game-ci.yml', 'game-release.yml', 'release-packages.yml']
+const ALL = ['ci.yml', 'game-ci.yml', 'game-release.yml', 'release-packages.yml', 'consumer-smoke.yml']
 
 describe('every workflow', () => {
   it.each(ALL)('%s pins third-party actions to a commit, as Ruken does', (name) => {
@@ -371,6 +371,42 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
 
   it('publishes without --provenance (GitHub Packages does not document it; spec §8)', () => {
     expect(JSON.stringify(steps)).not.toMatch(/provenance/i)
+  })
+})
+
+describe('consumer smoke (M2.4 spec §3.6, §4)', () => {
+  it('runs nightly in the e2e job, after building the packages', () => {
+    const steps = workflow('ci.yml').jobs.e2e?.steps ?? []
+    const build = steps.findIndex((step) => step.run === 'pnpm build')
+    const smoke = steps.findIndex(
+      (step) => step.run === 'node tooling/consumer-smoke/src/run.ts --from packs',
+    )
+    expect(build).toBeGreaterThan(-1)
+    expect(smoke).toBeGreaterThan(build)
+    for (const index of [build, smoke]) expect(steps[index]?.if).toBe("inputs.spec == ''")
+  })
+
+  it('runs on pull requests that touch build config only, on the AF runner, skipping drafts', () => {
+    const smoke = workflow('consumer-smoke.yml')
+    expect(Object.keys(smoke.on)).toEqual(['pull_request'])
+    const paths = (smoke.on.pull_request as { paths?: string[] }).paths ?? []
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        '**/tsdown.config.ts',
+        '**/svelte.config.js',
+        '**/package.json',
+        '.changeset/**',
+        'tooling/release/**',
+        'tooling/consumer-smoke/**',
+      ]),
+    )
+    const job = smoke.jobs['consumer-smoke']
+    expect(job?.['runs-on']).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+    expect(job?.if).toBe('github.event.pull_request.draft == false')
+    const runs = (job?.steps ?? []).map((step) => step.run)
+    expect(runs.indexOf('node tooling/consumer-smoke/src/run.ts --from packs')).toBeGreaterThan(
+      runs.indexOf('pnpm build'),
+    )
   })
 })
 
