@@ -94,7 +94,7 @@ Retry policy lives in the caller with Effect's `Schedule`, and only when `retrya
 
 Two clocks, kept apart:
 
-- **SDK timing** (hello retry, handshake give-up, RPC timeouts) runs on `SdkEnv.timers`. `HostingTest` passes an `SdkEnv` whose timers are a manual fake the test advances, so these tests do not wait 10 s. AF asserts the SDK's behavior; it never re-implements its timings.
+- **SDK timing** (hello retry, handshake give-up, RPC timeouts) runs on `SdkEnv.timers`, and the exit grace is enforced by the host. `HostingTest` uses one manual fake clock that implements both the SDK's `SdkTimers` (`now`, `setTimeout`, `clearTimeout`) and `@ruken/sdk-host`'s `BridgeClock`, and the test advances it, so these tests do not wait 10 s. (The SDK's own fake env and Ruken's `TestClock` are not exported, so AF writes this small fake.) AF asserts the SDK's behavior; it never re-implements its timings.
 - **AF timing** (exit grace, save-flush timeout, retries chosen with `Schedule`) runs on Effect's `Clock` and is tested with `TestClock`.
 
 ### 1.5 Required tests (host lane)

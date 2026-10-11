@@ -14,7 +14,7 @@
 M0 Foundation ─────────── DONE   PR #1 (spikes S1–S6, ADR 0001), PR #2 (A1a sim core), CI green in 4 engines (2026-10-02)
 M1 Blank game on Ruken ── NEXT   master spec + extraction map + ADRs 0002–0004 drafted 2026-10-11; Owner review pending
 M2 … M8 ───────────────── NOT STARTED
-External: Ruken M1 accepted 2026-10-09; Ruken packages unpublished; Ruken F1 freeze planned 2026-10-16 (tag not yet cut)
+External: Ruken M1 accepted 2026-10-09 (except Ruken M1.7d and the `contracts-f1` tag); Ruken packages unpublished; Ruken F1 freeze planned 2026-10-16 (tag not yet cut)
 ```
 
 **What exists in code** (on `main`, from PR #2, plus this branch's one fixture):
@@ -66,7 +66,7 @@ External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [st
 | M0 Foundation | A0+A1 spec | ✅ merged | Spike verdicts; ECS decided; sim core |
 | M1 Blank game on Ruken | **to write** (`m1-blank-game-on-ruken`) | ⬜ | Push → CI green → Ruken-validated zip → published to Ruken local stack and dev host → playable on a phone; nothing renders before ready; layout contracts pass at every reference size |
 | M2 Deterministic core complete | A0+A1 spec + **to write** (`m2-deterministic-core`) | ⬜ | A1 exits 2–8 of the A0+A1 spec |
-| M3 2.5D and pipelines | **to write** | ⬜ | 2.5D example on WebGPU and WebGL2 under Ruken CSP at ≥30 FPS on phone profiles; one character through the pipeline with gates |
+| M3 2.5D and pipelines | **to write** | ⬜ | 2.5D example (private build, D-1) on WebGL2, and WebGPU when opted in, under Ruken CSP at ≥30 FPS on phone profiles; one character through the pipeline with gates |
 | M4 Input and display | **to write** | ⬜ | Input × form-factor E2E matrix under the fake Ruken host |
 | M5 Saves, audio, localization | **to write** | ⬜ | Save N → N+1 migration; cross-device save/exit/resume on Ruken; all strings localized |
 | M6 Gameplay extensions | **to write** | ⬜ | Each extension's fixture game passes; The Last Light's route tests pass on extracted `puzzle` |
@@ -81,13 +81,13 @@ Each milestone spec decomposes these and may refine them; task IDs are owned by 
 
 ### M1 Blank game on Ruken
 Ordered so the pipeline exists before the runtime: CI/CD and deployment are proven on a placeholder page first, then each runtime piece lands on a working pipeline.
-- **M1.1 Toolchain and CI lanes:** align Node, pnpm, TypeScript, Vitest, Playwright and Zod with Ruken's `docs/versions.md`; add AF's versions page and pins test; add Effect; decide D-3 (lint tooling); spike S8 on the placeholder page (Effect bundle bytes and cold boot on the phone profiles under Ruken's CSP), which sets the runtime's budgets. Split CI into lanes (hosted checks and parity on every push; browser lanes on the reused runners, D-5), add per-checkout ports, server reuse, focused `test:remote`, evidence capture and promotion.
-- **M1.2 Ship skeleton:** reusable `game-ci.yml` (which runs `check-boundaries` on the game's sim sources) and release workflow; Ruken pack with generated `ruken.toml` checked by `@ruken/manifest` and Ruken's validation rules; `ruken publish` to Ruken's local stack and TEST; standalone dev host with per-build URLs (D-4). Proven with a placeholder game page that completes the Ruken handshake through vendored `@ruken/sdk` and waits for `session.ready`.
-- **M1.3 Content compiler** (A0+A1 spec §5): discovery, smol-toml with positions, Zod 4, references, canonical JSON, XXH64 hash (imported from `@mcthaydt/automata-sim/hash`), `content.d.ts`, all errors as `file:line:col`, tuning ranges, generator hook, Vite plugin; generators for `ruken.toml` content fields, locale keys, flow graph and preload list.
-- **M1.4 Host:** `Hosting` Effect service per the [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md); Ruken adapter on vendored `@ruken/sdk`; web adapter with Ruken's limits; test layer on `@ruken/sdk-host`'s fake host; FloorFifty's 13 Ruken test files and the S6 cases ported; `track()` with the Ruken analytics adapter.
+- **M1.1 Toolchain and CI lanes:** align with Ruken's `docs/versions.md` where AF consumes Ruken code (Node, Zod) and record each deliberate difference (TypeScript 7 vs Ruken's 6.0.3) rather than downgrading; add AF's versions page and pins test; add Effect; decide D-3 (lint tooling); spike S8 on the placeholder page (Effect bundle bytes and cold boot on the phone profiles under Ruken's CSP), which sets the runtime's budgets. Split CI into lanes (hosted checks and parity on every push; browser lanes on the reused runners, D-5), add per-checkout ports, server reuse and focused `test:remote`; browser lanes nightly and on request, with the added queue time on the shared runners measured. Evidence promotion and worktree cleanup move to the `dev-tools` extension (M4).
+- **M1.2 Ship skeleton:** reusable `game-ci.yml` (which runs `check-boundaries` on the game's sim sources) and release workflow; `ship prepare` writes `ruken.toml` and checks it with `@ruken/manifest`'s `parseManifest` (plus version, tag and root-absolute path checks); `ship publish` hands `dist/` to `ruken publish`, which packs and validates (no AF zip or validate step; no dry run exists); Ruken's local stack is the only M1 target; standalone dev host with per-build URLs (D-4) serving `compileHeaders`' CSP. Proven with a placeholder game page that completes the Ruken handshake through vendored `@ruken/sdk` and waits for `session.ready`.
+- **M1.3 Content compiler**, extracted from FloorFifty's `packages/content` and its `tests/content/` suite (extraction map), with the A0+A1 spec §5 filling gaps: discovery, smol-toml with positions, Zod 4, references, canonical JSON, XXH64 hash (imported from `@mcthaydt/automata-sim/hash`), `content.d.ts`, all errors as `file:line:col`, tuning ranges, generator hook, Vite plugin; generators for `ruken.toml` content fields, locale keys, flow graph and preload list.
+- **M1.4 Host:** `Hosting` Effect service per the [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md); one layer over vendored `@ruken/sdk`, whose own standalone session covers non-Ruken play (no AF web adapter, no AF copies of Ruken limits); the in-frame handshake fallback reported; test layer on `@ruken/sdk-host`'s fake host; FloorFifty's 13 Ruken test files and the S6 cases ported; `track()` with the Ruken analytics adapter.
 - **M1.5 Runtime:** within the S8 budgets (M1.1), with a frame-loop overhead check; the boot program (master spec §7) with the `BootError` union from the [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md); `defineExtension`; loading with byte progress, 30 s stall and Try again; app loop with fixed sim step and interpolation; Time (lifecycle and menu pause, fixed `pauseBehavior`); Flow from `flow.toml`; presentation bus; settings over host storage.
 - **M1.6 Mobile-first `ui`:** geometry owner (form factor, height tier, visual viewport, safe area, `hostReserved`), ScreenFrame, ActionBar, CornerControls, ScrollList, Dialog, LoaderOverlay, ErrorPanel, focus navigation basics; renderer-free fixtures; layout assertions at every reference size including 780×270. Can start in parallel with M1.3.
-- **M1.7 `render-pixi` 2D:** init with WebGPU → WebGL2 retry, `RenderDelta` consumption with `resync`, pixel framebuffer option, letterbox, filter helpers.
+- **M1.7 `render-pixi` 2D:** the `./no-eval` entry (Pixi's no-eval build and Zod jitless, FloorFifty `no-eval.ts`); init on WebGL2 by default with WebGPU opt-in, `RenderDelta` consumption with `resync`, pixel framebuffer option, letterbox, filter helpers.
 - **M1.8 Example, scaffold and exit:** `examples/blank-game` (splash → menu → blank gameplay → pause → end) replaces the placeholder in the M1.2 pipeline; minimal `create-game`; M1 exit evidence.
 
 ### M2 Deterministic core complete
@@ -149,13 +149,14 @@ Every plan names exact create/modify/test files, consumed and produced interface
 | Item | Blocks | Status |
 |---|---|---|
 | Owner review of the Ruken-first spec, extraction map, ADRs 0002–0004 and decisions D-1 to D-6 | Nothing (defaults in force since 2026-10-11; an override may change lane work) | Pending |
-| Ruken package publication (`@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`) or permission to vendor tarballs from `mcthaydt/RukenApp` | M1.2, M1.4 | Unpublished (Ruken gates it on `NPM_PUBLISH_READY` and M0.3) |
+| Ruken package publication (`@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`, `@ruken/cli`) | M1.2, M1.4 | Unpublished (Ruken gates it on `NPM_PUBLISH_READY` and M0.3); vendored meanwhile (D-6). `@ruken/validation` is private, and AF does not need it because `ruken publish` validates. |
+| Ruken TEST environment | Publishing beyond Ruken's local stack | Not provisioned; M1 targets the local stack only |
 | Ruken F1 contract freeze (`contracts-f1` tag) | Re-vendor after M1.4 | Planned 2026-10-16; not cut as of 2026-10-11 |
 | Ruken `[store]` manifest section | M7 `store` | Not built in Ruken |
 | GitHub Packages publish and game-read tokens | M2.4 publishing, every game repo | Not verified |
 | Runner capacity (reuse of the Owner's WSL and Windows GPU runners, or a Linux GPU box) | M1.1 browser lanes, M3 visual checks | D-5 |
 | Standalone hosting account and domain | M1.2 dev host | D-4 |
-| `@pixi/3d` beta access and version | M3 | D-1 |
+| `@pixi/3d` beta access, version and deployment terms (public deployment is not allowed under the beta, per The Last Light's README) | M3 public builds, GAME-3D deployment | D-1 (provisional: unpublished, private builds only) |
 
 ## 7. Backlog
 

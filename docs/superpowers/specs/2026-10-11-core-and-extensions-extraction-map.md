@@ -9,7 +9,7 @@
 | Repo | Commit | Date |
 |---|---|---|
 | `SNEKPRTY/FloorFifty` (2D, Pixi 8 + Svelte, hosted on Ruken) | `122a220` | 2026-10-10 |
-| `mcthaydt/PixiJS3D_Experiment_001` ("The Last Light", Pixi 8 + `@pixi/3d` beta) | `948abe9` | 2026-10-11 |
+| `mcthaydt/PixiJS3D_Experiment_001` ("The Last Light", Pixi 8 + `@pixi/3d` beta) | `948abe9` (re-check at `0f43f1f` or later before extracting: 36 files under `src/`, `scripts/` and `.github/` changed since) | 2026-10-11 |
 | `mcthaydt/RukenApp` (the host platform) | `b30d31b` | 2026-10-11 |
 
 Paths below are relative to each repo. FloorFifty client paths are under `apps/client/src/` unless they start with another top-level folder. Line counts are approximate.
@@ -41,8 +41,8 @@ Ruken platform services (identity, saves storage, ledger, billing, distribution,
 
 | Source | Take | Improve |
 |---|---|---|
-| FloorFifty `ruken/host.ts` (259; `Hosting` type lines 35–76, `localHosting` 110, `createHosting` 143, `guardRounds` 171) | The port's surface: storage, ready, fullscreen, links, exit, ads/breaks, analytics, menu, lifecycle, exiting, flush, host gain, host-reserved edges, round start/end | Becomes an Effect service with typed errors. A failed handshake while framed is an error state (FloorFifty falls back to standalone). Rounds and ads become optional capabilities. |
-| FloorFifty `ruken/{current,exit,analytics}.ts` | Flush-and-leave on host exit, links routed through the host, disclosed analytics only | Exit grace and flush timeouts tested with `TestClock`. |
+| FloorFifty `ruken/host.ts` (259; `Hosting` type lines 35–76, `localHosting` 110, `createHosting` 143, `guardRounds` 171) | The port's surface: storage, ready, fullscreen, links, exit, ads/breaks, analytics, menu, lifecycle, exiting, flush, host gain, host-reserved edges, round start/end | Becomes an Effect service with typed errors over the SDK's own hosted and standalone sessions. A failed handshake while framed falls back to standalone as the SDK and FloorFifty do (`host.ts` lines 157–161), and is now reported. Rounds stay in core; ads, leaderboards, store and links become extension services. |
+| FloorFifty `ruken/{current,exit,analytics}.ts` | Flush-and-leave on host exit, links routed through the host, disclosed analytics only | AF's flush timeout tested with `TestClock`; the exit grace is the host's and is tested through the fake host. |
 | FloorFifty `common/settings.ts` `keepAudioOnDevice` (line 173) | Per-setting choice of host saves versus device storage | Declared in content, not code. |
 | FloorFifty `tests/client/ruken/*` (13 files), `tests/e2e/ruken-host.spec.ts`, `support/ruken-host*.ts` | Behavior tests | Ported as the adapter's contract suite, together with AF's S6 suite and the S6 answers. |
 | AF `docs/spikes/s6-ruken-stub.md` | Contract cases and Ruken's answers | The stub itself is retired in favour of `@ruken/sdk`; the cases stay as tests. |
@@ -67,6 +67,8 @@ Ruken platform services (identity, saves storage, ledger, billing, distribution,
 | The Last Light `render/stage.ts` lines 355–373 (init with `preference`, `?renderer=webgl`, one WebGL retry, `canvas.dataset.renderer`, framebuffer cap with nearest-neighbour upscale) | Renderer init and pixel framebuffer | Shared by 2D and 3D. |
 | The Last Light `render/filter-programs.ts` (42) | Shared GLSL + WGSL full-screen programs | Combined with S4's vertex-stage pixel-position rule. |
 | FloorFifty `managers/letterbox.ts` (372; fixed 960×540 field, masked) | Letterbox | Logical size from config; geometry from the `ui` owner. |
+| FloorFifty `apps/client/src/no-eval.ts` (`pixi.js/unsafe-eval`, Zod `config({ jitless: true })`), `managers/app.ts` line 65 (`preference: "webgl"`), `canvas-resolution.ts` | No-eval bootstrap, WebGL2 default, canvas resolution | `render-pixi/no-eval` imported first by every game; WebGPU opt-in. |
+| FloorFifty `quality.ts`, `quality-rebuild.ts`, `render-target.ts` | Graphics quality and render targets | M4 (graphics settings). |
 
 ### `ui`
 
@@ -83,7 +85,8 @@ Ruken platform services (identity, saves storage, ledger, billing, distribution,
 
 | Source | Take | Improve |
 |---|---|---|
-| AF A0+A1 spec §5 | Compiler design | Built on Effect for files and errors. |
+| **FloorFifty `packages/content`** (`@floor-fifty/content` 0.10.2, about 3,100 lines in 40 files: `read-sources`, `parse` (smol-toml), `schema/`, `validate/`, `canonicalize`, `compiler` (`buildArtifact`, writes nothing), `diagnostics`, `messages`, `revisions`, `watch`, `build`, `author-guide`) and its tests in `tests/content/` (about 20 files, including `determinism.test.ts`) | The working compiler | Generalized from FloorFifty's game schema (`@floor-fifty/shared/content/game-content`, which stays behind) to schemas registered by games and extensions; Effect for files and errors. Fix first: `revisions.ts` hashes with `node:crypto` and sorts with `localeCompare`; AF hashes with `automata-sim/hash` XXH64 and sorts by code unit. |
+| AF A0+A1 spec §5 | Compiler design | Fills gaps only (generator hook, Vite plugin, `content.d.ts`). |
 | FloorFifty `content/` (`flow.toml`, `tuning.toml`, `juice.toml`), `packages/shared/src/common/{constants,tuning}.ts`, `docs/content-authoring.md` | Invariants versus tunables split, authoring guide | Becomes the framework's authoring guide. |
 | FloorFifty `deploy/tools/ruken-pack.ts` `preloadFor` (line 160) | Preload list derivation | Generated from content and asset manifests. |
 
@@ -92,7 +95,7 @@ Ruken platform services (identity, saves storage, ledger, billing, distribution,
 | Source | Take | Improve |
 |---|---|---|
 | FloorFifty `tests/e2e/support/layout.ts` (292) | Hit testing, target size, clipping, overlap, reachability assertions | Runs against isolated fixtures first, composed screens second. |
-| FloorFifty `playwright.config.ts` (295; per-checkout ports lines 35–46, about 12 projects), `tools/e2e-serve.ts`, `tools/promote-evidence`, `tools/worktree-gc` | Port isolation, server reuse, evidence promotion, worktree hygiene | Exposed as config helpers and CLI commands. |
+| FloorFifty `playwright.config.ts` (295; per-checkout ports lines 35–46, about 12 projects), `tools/e2e-serve.ts` | Port isolation, server reuse | Exposed as config helpers. `tools/promote-evidence` and `tools/worktree-gc` go to the `dev-tools` extension (FloorFifty only). |
 | The Last Light `game/simulation.ts` `record`/`replay`/`worldHash` (lines 79–86, 267–289), `scripts/verify/*.mjs` | Record/replay and scripted playthrough checks | Replay format from the A0+A1 spec §6. |
 | Ruken `e2e/sandbox`, `e2e/golden` | Cross-origin SDK journeys, golden transcripts | Run against the AF host adapter. |
 
@@ -100,35 +103,48 @@ Ruken platform services (identity, saves storage, ledger, billing, distribution,
 
 | Source | Take | Improve |
 |---|---|---|
-| FloorFifty `deploy/tools/ruken-pack.ts` (216; `rukenToml` line 92, write line 211), `deploy/tools/ruken-pack-cli.ts`, `tools/ruken-pack` | Manifest writer and pack | Generated from `automata.config.ts` and content; checked with `@ruken/manifest`. |
+| FloorFifty `deploy/tools/ruken-pack.ts` (216; `rukenToml` line 92, write line 211; `packBuild` path and version checks), `deploy/tools/ruken-pack-cli.ts`, `tools/ruken-pack` | Manifest writer, build path and version checks | Generated from `automata.config.ts` and content; checked with `@ruken/manifest`'s `parseManifest`. Packing and validation are left to `ruken publish`, which already does both. |
 | FloorFifty `tools/test-remote`, `.github/workflows/{ci,release,release-builds}.yml`, `docs/release.md` (staging, `/builds/<buildId>/`, rollback) | Focused remote runs, release builds per tag, dev build hosting, rollback runbook | Reusable workflows; game repos carry no CI logic. |
-| Ruken `tooling/ruken-cli`, `docs/self-hosted-runner.md`, `tooling/versions/*` | Publish, runner setup, pins | — |
+| Ruken `tooling/ruken-cli` (`@ruken/cli`; `publish <dir>` packs, validates and uploads; no dry run), `@ruken/manifest` `compileHeaders`, `docs/self-hosted-runner.md`, `tooling/versions/*` | Publish, dev-host CSP headers, runner setup, pins | Vendored into `vendor/ruken/` by the integration owner when the ship lane needs it. |
 | The Last Light `.github/workflows/{approve-gate,release}.yml` | Gate approval workflow | Feeds the `pipelines` extension's gates. |
 
 ## 3. Extensions
 
 | Extension | Source | Leave behind |
 |---|---|---|
-| `render-pixi3d` | The Last Light `render/stage.ts` (`createKit`: box, sprite, `litSprite`, flat, plaque, pick; `View3D` with fog; camera zones with hysteresis from `contracts/scene.ts`; 45° orbit), `sprite-light.ts` (65), `indirect-light.ts` (154), `occlusion.ts`, `fog.ts` (94), `glb.ts` (62), `props.ts` (48), `showcase.ts` (43); `vendor/pixi-3d-0.1.0-beta.2.tgz` | Ada/Nurse/flame roles in `stage.ts` `load`, `look.ts` values, `grey.ts`, pursuit hooks |
-| `post-retro` | The Last Light `render/{retro-filter (172), bloom-filter (107), lcd-panel (233, MIT lcd-perfect port), palette (15)}.ts` | DUEL LUT choice, `duel-ramps.ts` |
+| `render-pixi3d` (experimental, unpublished, D-1) | The Last Light `render/stage.ts` (`createKit`: box, sprite, `litSprite`, flat, plaque, pick; `View3D` with fog; camera zones with hysteresis from `contracts/scene.ts`; 45° orbit), `sprite-light.ts` (65), `indirect-light.ts` (154), `occlusion.ts`, `fog.ts` (94), `glb.ts` (62), `props.ts` (48), `showcase.ts` (43); `vendor/pixi-3d-0.1.0-beta.2.tgz` | Ada/Nurse/flame roles in `stage.ts` `load`, `look.ts` values, `grey.ts`, pursuit hooks |
+| `post-retro` | The Last Light `render/{retro-filter (172), bloom-filter (107), lcd-panel (233, MIT lcd-perfect port), palette (15)}.ts`; FloorFifty's eight GLSL filters and `filter-stack-guard.ts` | DUEL LUT choice, `duel-ramps.ts` |
 | `audio-synth` | The Last Light `audio/{cues,synth,events,render,board}.ts`; `.claude/skills/make-audio` | The game's cue list and beds (content) |
 | `audio-stream` | FloorFifty `managers/audio/{song-bridge,menu-stream,song-preloader,deck,diagnostics}.ts`; `docs/ipad-audio-check.md` | Song catalog |
-| `feel` | The Last Light `feel/{runtime,effects,overlay,coverage,board}.ts`; FloorFifty `content/juice.toml` | `docs/feel/feel.json` values |
+| `feel` | The Last Light `feel/{runtime,effects,overlay,coverage,board}.ts`; FloorFifty `content/juice.toml`, `haptics.ts` | `docs/feel/feel.json` values |
 | `sectors` | The Last Light `game/{sectors (180),sector-format,rooms,cutaway}.ts`, `render/{sector-mesh (310),dressing (92)}.ts`, `tests/sectors.test.ts` | `scenes/*/map.ts`. Fix first: `game/sectors.ts` imports `scenes/clinic/map` (lines 1, 5). |
-| `nav` | The Last Light `game/nav.ts` | Authored graphs |
+| `nav` | The Last Light `game/nav.ts` | Authored graphs. Fix first: `nav` imports `level` and `sectors`, and `level.ts` line 1 imports the clinic level. |
 | `puzzle` | The Last Light `game/{puzzle,puzzle-solver}.ts`, `contracts/puzzle.ts`, `tests/generated/` route tests, `.claude/skills/make-puzzle` | `scenes/*/puzzle.ts` |
-| `systems` | The Last Light `game/{systems,agents,probes,bots,pursuit,rules,world}.ts`, `contracts/{rules,systems}.ts`, `.claude/skills/make-systems` | Fix first: `contracts/rules.ts` `BaseWorld` (lines 18–35) carries game fields (torch, lighter, fuel, basin). The Nurse and Porter. |
+| `systems` | The Last Light `game/{systems,agents,probes,bots,pursuit,rules,world}.ts`, `contracts/{rules,systems}.ts`, `.claude/skills/make-systems` | Fix first: `contracts/rules.ts` `BaseWorld` (lines 18–35) carries game fields (torch, lighter, fuel, basin), and dialogue and puzzle depend on it; `agents` and `systems` import `level` and `sectors`. The Nurse and Porter. |
 | `narrative` | The Last Light `narrative/{dialogue (134),dialogue-lint (285),lint,coverage,screenplay,canon,lines,help}.ts`, `.claude/skills/make-narrative` | Canon, stance and lines (content). Fix first: `game/simulation.ts` line 14 imports `narrative/dialogue`. |
 | `cutscenes` | The Last Light `game/{cutscenes,cutscene-builder,cutscene-lint}.ts` | Scripts |
-| `net`, `server` | FloorFifty `managers/network/network.ts` (234; `NetworkPort` line 50), `colyseus-network.ts` (923), `ui/store/room-store.svelte.ts`, `apps/server/src/rooms/{input-queue (138),tick-scheduler (92),room-driver (243),replay-recorder}.ts`, `apps/server/src/gate/origins.ts` | Race rooms and rules, Planck race simulation. Note: `network.ts` line 5 says "Socket.IO" but the code uses Colyseus. |
-| `pipelines` | The Last Light `scripts/pipe.mjs` (145), `scripts/pipeline/`, `scripts/mcp/{server,tools,contracts}.ts`, `scripts/guard/{check,validators,pre-tool}.*`, `pipeline.config.json` (budgets, locked values), `docs/pipeline-audit.jsonl`, `.claude/skills/{make-scene,make-character,make-act,refine-art,README}` | Prompts, look bible, per-game gates, generated art |
+| `net`, `server` | FloorFifty `managers/network/network.ts` (234; `NetworkPort` line 50), `colyseus-network.ts` (923), `systems/netcode/*` (prediction and reconciliation), `ui/store/room-store.svelte.ts`, `apps/server/src/rooms/{input-queue (138),tick-scheduler (92),room-driver (243),replay-recorder}.ts`, `apps/server/src/gate/origins.ts` | Race rooms and rules, Planck race simulation. Note: `network.ts` line 5 says "Socket.IO" but the code uses Colyseus. |
+| `pipelines` | The Last Light `direction/*`, `vision/*`, `scripts/pipe.mjs` (145), `scripts/pipeline/`, `scripts/mcp/{server,tools,contracts}.ts`, `scripts/guard/{check,validators,pre-tool}.*`, `pipeline.config.json` (budgets, locked values), `docs/pipeline-audit.jsonl`, `.claude/skills/{make-scene,make-character,make-act,refine-art,README}` | Prompts, look bible, per-game gates, generated art |
 | `debug` | The Last Light `?debug=1` overlay, `feel/board.ts`, `audio/board.ts` | — |
-| `i18n-extra` | FloorFifty `tools/i18n`, `docs/i18n/{README,reviews}.md` | Translations |
+| `i18n-extra` | FloorFifty `tools/i18n`, `docs/i18n/{README,reviews}.md`; Paraglide client setup (core localization may adopt it, M5.0) | Translations |
+| `leaderboards` | Ruken SDK `LeaderboardsApi` (`submit`, `get`) and the `[leaderboards]` manifest table | — |
+| `dev-tools` | FloorFifty `tools/promote-evidence`, `tools/worktree-gc` | — |
+
+### Core additions from the audit (2026-10-11)
+
+| Source | Goes to |
+|---|---|
+| FloorFifty `assets.ts`, `veil.ts`, `boot-version-check.ts` | `runtime` boot and loading (M1.5) |
+| FloorFifty `ui/` browser hygiene: global errors, hidden browser bar, overscroll, page gestures, sleep when hidden, device class, landscape gate, image retry, input method, reduced motion | `ui` (M1.6) |
+| The Last Light `onboarding.ts`, `settings.ts`, `settings-ui.ts` | Settings in `runtime` and `ui` (M1.5, M1.6) as a second consumer; onboarding is decided at M6.0 |
+
+Paths under The Last Light's `contracts/` are really `src/game/contracts/`.
 
 ## 4. Not extracted
 
 - FloorFifty: `content/` characters, stages, songs, modes, unlocks; `packages/shared/src/simulation/` (Planck race, lava, survival, CPU); `packages/asset-contract`; race-specific server rooms; `deploy/bin/ruken-runners*`; art.
 - The Last Light: `src/scenes/{prologue,clinic,bay}/*`; `render/characters.json`, `render/models/*`, `public/art`, `docs/art`, `docs/narrative`, `docs/design`; `src/ui.ts` HUD; `main.ts` scene wiring.
+- Neither reference game nor Ruken uses Effect, so every runtime and host module "extracted" from them is a rewrite onto Effect services: its source tests are ported as behavior specs, not run unchanged.
 - The Last Light uses Miniplex; its ECS code ports onto the Koota facade (ADR 0001) rather than being copied. For `puzzle` and `systems` this is a rewrite, not an extraction: the source tests (route tests, probes, bot playtests) come across as behavior specs and are re-pointed at the Koota version, and a test that cannot be ported is listed in that extension's spec with the reason.
 - Physics: FloorFifty's Planck race simulation stays in FloorFifty. The Last Light uses `@dimforge/rapier3d-compat` 0.21; AF's `physics` extension uses Rapier's deterministic-compat build (spike S2), and The Last Light moves to it only when it adopts AF.
 

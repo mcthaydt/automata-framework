@@ -27,7 +27,7 @@ The seven laws stand: only the sim changes gameplay state; the server owns netwo
 | Koota ECS behind the sim facade | [ADR 0001](adr/0001-ecs-choice.md) |
 | PixiJS for 2D (core) and 3D (`render-pixi3d` extension on `@pixi/3d`) | [ADR 0002](adr/0002-pixi-for-2d-and-3d.md) |
 | Effect for runtime, host, tooling and pipelines; never inside the sim; Zod stays the schema language | [ADR 0003](adr/0003-effect-outside-the-sim.md) |
-| Ruken first: consume `@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`, Ruken validation and `ruken publish`; follow Ruken's doc and milestone process | [ADR 0004](adr/0004-ruken-first-host.md) |
+| Ruken first: consume `@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest` and `ruken publish` (which validates); follow Ruken's doc and milestone process | [ADR 0004](adr/0004-ruken-first-host.md) |
 
 Decisions D-1 to D-6 (the `@pixi/3d` beta dependency, adoption scope, lint tooling, standalone hosting, GPU runner, vendored Ruken packages) run on their recommended defaults since 2026-10-11 until the Owner overrides them; see the master spec §12. M1 runs in parallel lanes ([04 How we build](04-how-we-build.md#lanes-2026-10-11)).
 
@@ -43,7 +43,7 @@ Decisions D-1 to D-6 (the `@pixi/3d` beta dependency, adoption scope, lint tooli
 
 ## Current checkpoint
 
-M0 (spikes S1–S6, ADR 0001, the A1a sim core) is merged. Nothing from M1 onward is implemented. The next task is **M1.0: Owner review of the Ruken-first master spec, the extraction map and ADRs 0002–0004**, then the M1 milestone spec. See [03 Continuation](03-continuation-prompt.md).
+M0 (spikes S1–S6, ADR 0001, the A1a sim core) is merged. Nothing from M1 onward is implemented. M1 runs in parallel lanes, each writing its own task spec against the [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md); the Owner review of the Ruken-first restructure (M1.0a) is pending. See [03 Continuation](03-continuation-prompt.md).
 
 ## Scope map
 
