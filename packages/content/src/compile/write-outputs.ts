@@ -24,8 +24,9 @@ import { ContentCompileFailed, ContentWriteFailed, type InvalidContentConfig } f
 
 /**
  * The outputs the last build listed in `outputs.txt` that this compile no longer produces. Only listed
- * files count, so a file someone else put in the output folder is never removed or reported. A list entry
- * that tries to leave the folder is ignored.
+ * files count, so a file someone else put in the output folder is never removed or reported. The list is
+ * written with `/` only, so an entry with `..` or any backslash (`..\\x` leaves the folder on Windows) is
+ * ignored.
  */
 const noLongerProduced = (outDir: string, compiled: CompiledContent): Effect.Effect<string[]> =>
   readTextIfPresent(join(outDir, OUTPUT_LIST)).pipe(
@@ -33,7 +34,13 @@ const noLongerProduced = (outDir: string, compiled: CompiledContent): Effect.Eff
     Effect.map((list) =>
       (list ?? '')
         .split('\n')
-        .filter((file) => file !== '' && !file.split('/').includes('..') && !compiled.files.has(file)),
+        .filter(
+          (file) =>
+            file !== '' &&
+            !file.includes('\\') &&
+            !file.split('/').includes('..') &&
+            !compiled.files.has(file),
+        ),
     ),
   )
 

@@ -182,7 +182,7 @@ Generators are pure: data in, files and diagnostics out. A throw is `InvalidCont
 | `flow` | `flow.mmd` | §3.5 |
 | `ruken-fields` | `ruken-fields.json` | §3.8 |
 
-`outputs.txt` is added after the generators: every other output path, sorted, one per line. `buildContent` reads the previous `outputs.txt` before writing and, after writing, deletes each file it lists that this compile no longer produces (deleting `game.toml` removes `ruken-fields.json`, so ship never reads a stale one). A file the list does not name is never touched. `verifyContent` reports each listed file that still exists but is no longer produced as `staleArtifact` (`X is no longer produced; run automata-content build`).
+`outputs.txt` is added after the generators: every other output path, sorted, one per line. `buildContent` reads the previous `outputs.txt` before writing and, after writing, deletes each file it lists that this compile no longer produces (deleting `game.toml` removes `ruken-fields.json`, so ship never reads a stale one). A file the list does not name is never touched, and an entry with `..` or any backslash is ignored. `verifyContent` reports each listed file that still exists but is no longer produced as `staleArtifact` (`X is no longer produced; run automata-content build`).
 
 ### 3.8 Game facts, assets, Ruken fields, preload
 

@@ -81,6 +81,21 @@ describe('outputs a build no longer produces', () => {
     expect(readFileSync(generated(root, 'notes.md'), 'utf8')).toBe('mine\n')
   })
 
+  // On Windows `..\\x` leaves the output folder; on Linux it is an ordinary name, which lets this test see
+  // whether a backslash entry is acted on at all.
+  it('ignore an outputs.txt entry with a backslash', async () => {
+    const root = copyFixture('valid')
+    await run(buildContent(fixtureOptions(root)))
+    writeFileSync(generated(root, '..\\x'), 'mine\n')
+    writeFileSync(generated(root, 'outputs.txt'), '..\\x\n')
+    const verified = await run(verifyContent(fixtureOptions(root)))
+    if (Either.isRight(verified) || verified.left._tag !== 'ContentCompileFailed')
+      throw new Error('expected stale')
+    expect(verified.left.diagnostics.map(formatDiagnostic).join('\n')).not.toContain('no longer produced')
+    expect(Either.isRight(await run(buildContent(fixtureOptions(root))))).toBe(true)
+    expect(readFileSync(generated(root, '..\\x'), 'utf8')).toBe('mine\n')
+  })
+
   it('are stale to verify until the next build', async () => {
     const root = copyFixture('valid')
     await run(buildContent(fixtureOptions(root)))
