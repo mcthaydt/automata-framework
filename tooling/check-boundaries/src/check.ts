@@ -1,3 +1,4 @@
+import { dirname, relative, resolve } from 'node:path'
 import { parseSync } from 'oxc-parser'
 
 // Determinism boundary for packages/sim (A0+A1 spec §3.3 and §11). Works on the AST, so comments, strings,
@@ -5,6 +6,7 @@ import { parseSync } from 'oxc-parser'
 
 export type Rule =
   | 'banned-global'
+  | 'banned-member'
   | 'math-member'
   | 'pow-operator'
   | 'key-enumeration'
@@ -52,7 +54,17 @@ export const BANNED_GLOBALS: ReadonlySet<string> = new Set([
   'eval',
   'Function',
   'Intl', // ICU data differs per engine and version
+  'WeakRef', // observes garbage collection timing
+  'FinalizationRegistry',
+  'SharedArrayBuffer', // shared memory between threads
+  'Atomics',
 ])
+
+/**
+ * Members that reach a banned global without naming it: `(() => {}).constructor` is `Function`, so
+ * `.constructor('return Date.now()')` would run code hidden in a string.
+ */
+const BANNED_MEMBERS: ReadonlySet<string> = new Set(['constructor'])
 
 /** Math members that IEEE-754 / ECMAScript define exactly (S5 verdict). Everything else is engine-dependent. */
 export const MATH_ALLOWED: ReadonlySet<string> = new Set([
@@ -114,10 +126,36 @@ function isReference(key: string, parent: Node | null): boolean {
   return true
 }
 
-const importOk = (source: string): boolean =>
-  source.startsWith('./') || source.startsWith('../') || IMPORT_ALLOWED.has(source)
+export interface CheckOptions {
+  /** The source root being checked. When set, a relative import that resolves outside it is reported. */
+  readonly root?: string
+}
 
-export function checkSource(file: string, code: string): Finding[] {
+/**
+ * The name a member expression reads, when it is known without running code: `a.b`, `a['b']` and
+ * a template literal with no substitutions. Returns undefined for any other computed key.
+ */
+function staticMemberName(node: Node): string | undefined {
+  const prop = node.property as Node & { name?: string; value?: unknown; expressions?: unknown[] }
+  if (!node.computed) return prop.name
+  if (prop.type === 'Literal' && typeof prop.value === 'string') return prop.value
+  if (prop.type === 'TemplateLiteral' && prop.expressions?.length === 0) {
+    const quasi = (prop.quasis as { value: { cooked: string | null } }[])[0]
+    return quasi?.value.cooked ?? undefined
+  }
+  return undefined
+}
+
+export function checkSource(file: string, code: string, options: CheckOptions = {}): Finding[] {
+  const importOk = (source: string): boolean => {
+    if (source.startsWith('./') || source.startsWith('../')) {
+      if (options.root === undefined) return true
+      const target = relative(resolve(options.root), resolve(dirname(file), source))
+      return !target.startsWith('..')
+    }
+    return IMPORT_ALLOWED.has(source)
+  }
+
   const lineStarts = [0]
   for (let i = 0; i < code.length; i++) if (code[i] === '\n') lineStarts.push(i + 1)
   const at = (offset: number) => {
@@ -192,8 +230,9 @@ export function checkSource(file: string, code: string): Finding[] {
         break
       case 'MemberExpression': {
         const obj = node.object as Node & { name?: string }
-        const prop = node.property as Node & { name?: string; value?: unknown }
-        const name = node.computed ? (typeof prop.value === 'string' ? prop.value : undefined) : prop.name
+        const name = staticMemberName(node)
+        if (name !== undefined && BANNED_MEMBERS.has(name))
+          report(node, 'banned-member', `".${name}" reaches Function; it is not allowed in the sim`)
         if (name !== undefined && LOCALE_METHODS.has(name))
           report(node, 'locale', `"${name}" is locale-dependent; compare/format explicitly`)
         if (
@@ -212,7 +251,9 @@ export function checkSource(file: string, code: string): Finding[] {
           (obj.name === 'Object' || obj.name === 'Reflect') &&
           !enumerationExempt
         ) {
-          if (name !== undefined && (KEY_ENUMERATION.has(name) || name === 'ownKeys')) {
+          if (name === undefined) {
+            report(node, 'key-enumeration', `${obj.name}[...] needs a literal member name`)
+          } else if (KEY_ENUMERATION.has(name) || name === 'ownKeys') {
             report(
               node,
               'key-enumeration',

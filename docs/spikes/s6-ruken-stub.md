@@ -1,5 +1,7 @@
 # S6: Ruken SDK stub (P01 v1.0, as of 2026-10-01)
 
+> **Update, 2026-10-11:** Ruken now has a working `@ruken/sdk`, `@ruken/sdk-host` fake host and `@ruken/manifest` (Ruken M1 accepted 2026-10-09). AF consumes those instead of this stub ([ADR 0004](../adr/0004-ruken-first-host.md)); the contract cases and Ruken's answers below move into the `host` adapter's tests (M1.4).
+
 - **Question:** Can a game-side SDK stub be built against Ruken's P01 protocol spec well enough to be A2's target for the Ruken `Hosting` adapter, and what in P01 is unclear?
 - **Method:** `spikes/s6-ruken/*`.
   - The protocol and catalog are transcribed from P01 §5–§7. On 2026-10-01, all 31 catalog rows were re-checked against the live spec: identical, including the `dlc` → `store` change.

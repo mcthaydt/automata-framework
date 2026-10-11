@@ -4,7 +4,9 @@
 - **Status:** Approved 2026-10-01
 - **Scope:** The whole framework at the architecture level. Each phase listed in §12 gets its own spec, then its own plan, then implementation.
 
-> **Owner direction, 2026-10-05:** Reuse FloorFifty's UI learnings through components designed for multiple resolutions and orientations, and dramatically improve test speed and failure diagnosis. Complete specs for A and B now, at the level of detail in Ruken's Superpowers folder; write implementation plans just before execution. Read [001 Overview](../../001-overview.md), [002 Decomposition](../../002-decomposition.md), [003 Master delivery plan](../../003-master-delivery-plan.md) and [004 Living continuation](../../004-continuation-prompt.md) for navigation, task order and current status.
+> **Superseded in part, 2026-10-11.** The [Ruken-first master spec](./2026-10-11-automata-framework-ruken-first-design.md) replaces this document's host model, renderer choice (Three.js removed; PixiJS for 2D and 3D), Effect decision (now adopted outside the sim), package map, distribution of extensions, delivery order (§12, Parts A/B/C) and prior-art status (§13). The laws (§2, law 7 refined), state ownership (§5), data flow (§6, boot refined), Ruken integration requirements (§7), hosting notes (§9), telemetry (§10) and testing layers (§11) still apply where the new spec does not replace them. Read [00 Overview](../../00-overview.md) first.
+>
+> **Owner direction, 2026-10-05 (historical):** reuse FloorFifty's UI learnings through components designed for multiple resolutions and orientations, and dramatically improve test speed and failure diagnosis.
 
 ---
 
@@ -18,7 +20,7 @@ snek_attak makes games for **Ruken**, which is pitched as an "Everyday Console".
 - letterbox and mobile gesture handling
 - a settings system
 
-FloorFifty also never integrated Ruken.
+FloorFifty also never integrated Ruken. *(True on 2026-10-01; FloorFifty has since been hosted on Ruken through `@ruken/sdk`, accepted in Ruken M1 on 2026-10-09.)*
 
 AutomataFramework turns that plumbing into reusable, versioned packages so that a game is mostly **content plus game logic**.
 
@@ -231,7 +233,7 @@ Failure reports identify the exact build, component/screen, state and viewport, 
 
 **Ordering rule:** reach something deployable early. Every phase has fixed exit criteria; anything new goes into a later phase, not the current one (lesson from FloorFifty's scope churn).
 
-**Planning detail (Owner direction, 2026-10-05):** Match the depth of Ruken's `docs/superpowers/specs/` and `plans/`: each phase spec defines scope, state ownership, interfaces, data flow, lifecycle/failure behavior, dependencies and concrete acceptance cases. Its implementation plan names exact files, consumed/produced interfaces, test-first steps, verification commands and evidence-backed tracking. Complete this design detail for A and B in the current specification pass; implementation plans remain just-in-time. The decomposition indexes the work and does not substitute for a spec or implementation plan. See [Work Decomposition](../../002-decomposition.md), §3.1, for the required detail. Preserve completed A1 sim-core work; the next A1b plan follows the full specification review gate.
+**Planning detail (Owner direction, 2026-10-05):** Match the depth of Ruken's `docs/superpowers/specs/` and `plans/`: each phase spec defines scope, state ownership, interfaces, data flow, lifecycle/failure behavior, dependencies and concrete acceptance cases. Its implementation plan names exact files, consumed/produced interfaces, test-first steps, verification commands and evidence-backed tracking. Complete this design detail for A and B in the current specification pass; implementation plans remain just-in-time. The decomposition indexes the work and does not substitute for a spec or implementation plan. See [01 Decomposition](../../01-decomposition.md) §5 for the required detail. Preserve completed A1 sim-core work; the next A1b plan follows the full specification review gate.
 
 ### Part A: Framework (walking skeleton plus core managers)
 

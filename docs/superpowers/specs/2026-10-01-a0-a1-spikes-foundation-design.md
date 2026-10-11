@@ -4,7 +4,7 @@
 - **Status:** A0 complete 2026-10-01; A1 pending Plan 2
 - **Parent spec:** [`2026-10-01-automata-framework-overview-design.md`](./2026-10-01-automata-framework-overview-design.md), §12 Part A.
 
-> **Owner direction, 2026-10-05:** preserve completed A0/A1a work, reconcile the remaining foundation design and complete all A/B phase specs before writing the next implementation plan. A real 3D game follows A/B; C's modular extraction from FloorFifty and that game is deferred until there is gameplay evidence. The numbered [overview](../../001-overview.md), [decomposition](../../002-decomposition.md), [master delivery plan](../../003-master-delivery-plan.md) and [continuation](../../004-continuation-prompt.md) own navigation and current task order. Existing recorded implementation results below remain historical evidence, not a fresh verification claim.
+> **Status update, 2026-10-11.** A0 and A1a stand as built (now milestone M0). The rest of this spec's A1 design is re-homed by the [Ruken-first master spec](./2026-10-11-automata-framework-ruken-first-design.md): the content compiler (§5) moves to M1.3, physics (§4.5) to M2.1, the sim half of `testing` (§6) to M2.3, the example (§7) to M1.8 and M2, and publishing (§3.4) to M2.4. The A1 exit criteria (§8) become M2's exit. The S3 consequence in §11 (one TSL post stack for Three) is retired by ADR 0002. The numbered [overview](../../00-overview.md), [decomposition](../../01-decomposition.md), [master delivery plan](../../02-master-delivery-plan.md) and [continuation](../../03-continuation-prompt.md) own navigation and task order. Recorded implementation results below are historical evidence, not a fresh verification claim.
 
 This spec covers two phases:
 - **A0** proves the risky library choices with throwaway spikes.
@@ -64,8 +64,8 @@ automata-framework/
 ├─ content/           framework default content (empty in A1)
 ├─ infra/             (empty in A1; reusable workflows arrive in A3)
 ├─ docs/
-│  ├─ 001-overview.md · 002-decomposition.md
-│  ├─ 003-master-delivery-plan.md · 004-continuation-prompt.md
+│  ├─ 00-overview.md · 01-decomposition.md · 02-master-delivery-plan.md
+│  ├─ 03-continuation-prompt.md · 04-how-we-build.md
 │  ├─ superpowers/{specs,plans}/
 │  ├─ spikes/
 │  └─ adr/
@@ -327,7 +327,7 @@ See `docs/spikes/README.md` and `docs/adr/0001-ecs-choice.md`. All six spikes pa
   Restore spawns entities in StableId order first, then adds relations.
 - **§4.7:** the first `RenderDelta` after `restore()` is a **full resync**, because Koota's change tracking reports everything as added on that tick.
 - **§3.4 CI:** the Vitest browser projects must pre-declare their browser-side dependencies in `optimizeDeps.include`. Otherwise a cold cache reloads the test pages mid-run and collection fails.
-- **A2/A4 (from S3/S4):** one TSL post stack for Three. Pixi filters are GLSL + WGSL pairs that take pixel position from the vertex stage. WebGPU canvases capture black in headless Chromium on macOS, so verify the capture path on the A3 runner.
+- **A2/A4 (from S3/S4):** ~~one TSL post stack for Three~~ (retired by ADR 0002, 2026-10-11). Pixi filters are GLSL + WGSL pairs that take pixel position from the vertex stage. WebGPU canvases capture black in headless Chromium on macOS, so verify the capture path on the A3 runner.
 
 ## 12. A1a implementation notes (sim core)
 

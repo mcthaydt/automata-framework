@@ -1,5 +1,7 @@
 # S3: Three.js r186 WebGPU → WebGL2 with TSL post-processing
 
+> **Historical, 2026-10-11:** AF no longer uses Three.js ([ADR 0002](../adr/0002-pixi-for-2d-and-3d.md)). The capture-path finding below still applies to Pixi on WebGPU.
+
 - **Question:** Can one `WebGPURenderer` + `RenderPipeline` + TSL post effect (Bayer dither) run on both the WebGPU and WebGL2 backends with matching output?
 - **Method:** `spikes/s3-three/*` through `run-page.ts`, headed Chromium.
   - Five flat-shaded icosahedra; `?backend=` picks the backend.

@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./hash": "./src/hash/hash.ts",
     "./math": "./src/math/dmath.ts"
   },
   "scripts": {

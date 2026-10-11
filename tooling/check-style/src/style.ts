@@ -24,6 +24,9 @@ export const ROLES: ReadonlySet<string> = new Set([
   'manager',
   'schema',
   'migration',
+  'content',
+  'generator',
+  'extension',
 ])
 
 /** define* factory -> the role suffix its exported results require. */
@@ -34,6 +37,9 @@ const DEFINE_ROLE: Readonly<Record<string, string>> = {
   defineEvent: 'event',
   defineResource: 'resource',
   definePlugin: 'plugin',
+  defineContentSchema: 'content',
+  defineContentGenerator: 'generator',
+  defineExtension: 'extension',
 }
 const FACTORY_FOR: Readonly<Record<string, string>> = Object.fromEntries(
   Object.entries(DEFINE_ROLE).map(([fn, role]) => [role, fn]),
@@ -127,7 +133,8 @@ export function checkFile(file: string, code: string): StyleFinding[] {
   const name = basename(file)
   const finding = (rule: StyleRule, message: string): StyleFinding[] => [{ file, rule, message }]
   if (name === 'index.ts') return []
-  const m = NAME_RE.exec(name)
+  // Svelte 5 rune modules must be named *.svelte.ts; that marker is Svelte's, not one of our roles.
+  const m = NAME_RE.exec(name.replace(/\.svelte\.ts$/, '.ts'))
   if (!m)
     return finding('file-name', `"${name}" must be kebab-case, optionally with a role suffix (name.role.ts)`)
   const role = m[2]
