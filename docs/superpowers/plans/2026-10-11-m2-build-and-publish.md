@@ -40,9 +40,9 @@ Each task: write the failing test or check, run it and see it fail for the state
 - [x] Convert to the `TaggedErrorClass` pattern of `content/src/compile/errors.ts:11-33` and `host/src/errors.ts:15-40`; annotate any other export the flag reports; delete the two opt-out comments. `pnpm --filter @mcthaydt/automata-node test`, `pnpm --filter @mcthaydt/automata-ship test` and `pnpm typecheck` pass.
 
 ### Task 1: prove tsdown on `sim`
-- [ ] Add `tsdown` 0.23.0 (root dev dependency, row in `docs/versions.md`); `versions.test.ts` fails first on the missing row.
-- [ ] `packages/sim/tsdown.config.ts` per spec §3.2 with four entries; `pnpm --filter @mcthaydt/automata-sim build` writes `dist/{index,hash,math}.js` and `.d.ts` without invoking `tsc` (isolatedDeclarations). If tsdown needs TypeScript's API for any file, stop and report to the coordinator with the error: that decides the tool, not a workaround.
-- [ ] A Node script in the temp folder imports `dist/index.js`, creates a sim and hashes it: equals the workspace hash.
+- [x] Add `tsdown` 0.23.0 (root dev dependency, row in `docs/versions.md`); `versions.test.ts` fails first on the missing row.
+- [x] `packages/sim/tsdown.config.ts` per spec §3.2 with four entries; `pnpm --filter @mcthaydt/automata-sim build` writes `dist/{index,hash,math}.js` and `.d.ts` without invoking `tsc` (isolatedDeclarations). If tsdown needs TypeScript's API for any file, stop and report to the coordinator with the error: that decides the tool, not a workaround.
+- [x] A Node script in the temp folder imports `dist/index.js`, creates a sim and hashes it: equals the workspace hash.
 
 ### Task 2: release list test
 - [ ] `tooling/release/src/release-list.test.ts` (spec §6). Expected failure: every package is `private`.
