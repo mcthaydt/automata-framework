@@ -27,7 +27,8 @@ export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y
 
 prepare      writes ruken.toml into the build (from ship.config.ts) and checks it with Ruken's parser
 publish      prepare, then ruken publish (packs, validates, uploads). Needs RUKEN_API and RUKEN_TOKEN.
-deploy-dev   prepare, then install the build on the dev host. Needs SHIP_DEV_TARGET and SHIP_DEV_URL.
+deploy-dev   prepare, then install the build on the dev host. Needs SHIP_DEV_TARGET and SHIP_DEV_URL;
+             SHIP_DEV_SSH_KEY_FILE and SHIP_DEV_KNOWN_HOSTS_FILE pick the key and known hosts.
 test-remote  push this branch and run CI for it remotely, waiting for the result`
 
 const common = { dist: { type: 'string', default: 'dist' }, tag: { type: 'string' } } as const

@@ -26,6 +26,18 @@ export interface DeployDevInput {
   readonly siteUrl: string
   /** Also make this build the one `/` redirects to. */
   readonly activate: boolean
+  /** The deploy key, when it is not in ~/.ssh (CI writes it to the runner's temp folder and removes it). */
+  readonly sshKeyFile?: string | undefined
+  /** The dev host's known_hosts line, beside the key. */
+  readonly knownHostsFile?: string | undefined
+}
+
+/** ssh options: batch mode, plus only the given key and known hosts when CI passes them. */
+function sshOptions(input: DeployDevInput): string[] {
+  const options = ['-o', 'BatchMode=yes']
+  if (input.sshKeyFile !== undefined) options.push('-i', input.sshKeyFile, '-o', 'IdentitiesOnly=yes')
+  if (input.knownHostsFile !== undefined) options.push('-o', `UserKnownHostsFile=${input.knownHostsFile}`)
+  return options
 }
 
 export type DeployDevError = DeployFailed | ManifestInvalid | FileError | ProcessError
@@ -76,7 +88,7 @@ export function deployDev(
       })
       const ssh = yield* runner.run(
         'ssh',
-        ['-o', 'BatchMode=yes', input.target, input.activate ? 'deploy --activate' : 'deploy'],
+        [...sshOptions(input), input.target, input.activate ? 'deploy --activate' : 'deploy'],
         { stdin: bytes, echo: true },
       )
       if (ssh.exitCode !== 0) {

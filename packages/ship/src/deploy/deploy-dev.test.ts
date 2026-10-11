@@ -82,6 +82,28 @@ describe('deployDev', () => {
     expect(new TextDecoder().decode(ssh?.options.stdin)).toBe('TARBALL')
   })
 
+  it('uses only the given key and known-hosts files when set (CI keeps them out of ~/.ssh)', () => {
+    const { fake, layer } = fakeTools()
+    Effect.runSync(
+      Effect.provide(
+        deployDev({ ...input(preparedDist()), sshKeyFile: '/tmp/k/id', knownHostsFile: '/tmp/k/hosts' }),
+        layer,
+      ),
+    )
+    expect(fake.runs[1]?.args).toEqual([
+      '-o',
+      'BatchMode=yes',
+      '-i',
+      '/tmp/k/id',
+      '-o',
+      'IdentitiesOnly=yes',
+      '-o',
+      'UserKnownHostsFile=/tmp/k/hosts',
+      'deploy@af-dev.example.org',
+      'deploy --activate',
+    ])
+  })
+
   it('asks for a plain deploy when not activating', () => {
     const { fake, layer } = fakeTools()
     Effect.runSync(Effect.provide(deployDev({ ...input(preparedDist()), activate: false }), layer))

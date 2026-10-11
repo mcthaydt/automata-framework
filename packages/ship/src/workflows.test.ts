@@ -16,7 +16,7 @@ interface Step {
   readonly name?: string
   readonly if?: string
   readonly env?: Record<string, string>
-  readonly with?: { readonly cache?: string; readonly dest?: string }
+  readonly with?: Readonly<Record<string, string | undefined>>
 }
 interface Job {
   readonly 'runs-on'?: string
@@ -244,8 +244,47 @@ describe('game-ci.yml (reusable)', () => {
   })
 })
 
+describe('reusable workflows called from a game repository', () => {
+  it.each(['game-ci.yml', 'game-release.yml'])(
+    "%s checks AF out with AF_READ_TOKEN (AF is private) and uses AF's Node version",
+    (name) => {
+      const reusable = workflow(name)
+      expect(Object.keys(reusable.on.workflow_call?.secrets ?? {})).toContain('AF_READ_TOKEN')
+      for (const job of Object.values(reusable.jobs)) {
+        const steps = job.steps ?? []
+        const afCheckout = steps.find((step) =>
+          JSON.stringify(step.with ?? {}).includes('automata-framework'),
+        )
+        expect(afCheckout?.with?.token).toBe('${{ secrets.AF_READ_TOKEN || github.token }}')
+        const setupNode = steps.find((step) => step.uses?.startsWith('actions/setup-node@'))
+        expect(setupNode?.with?.['node-version-file']).toBe(
+          "${{ github.repository == 'mcthaydt/automata-framework' && '.nvmrc' || '.af/.nvmrc' }}",
+        )
+      }
+    },
+  )
+})
+
 describe('game-release.yml (reusable)', () => {
   const release = workflow('game-release.yml')
+
+  it('publishes to the game it is given, and refuses to register a new Ruken game on every release', () => {
+    expect(Object.keys(release.on.workflow_call?.inputs ?? {})).toContain('game')
+    const publish = (release.jobs.ruken?.steps ?? []).map((step) => step.run ?? '').join('\n')
+    expect(publish).toContain('--game "$GAME"')
+    expect(publish).toContain('.ruken/project.json')
+    expect(publish).toContain('exit 1')
+  })
+
+  it('keeps the deploy key out of ~/.ssh and removes it when the job ends', () => {
+    const steps = release.jobs['dev-host']?.steps ?? []
+    const scripts = steps.map((step) => step.run ?? '').join('\n')
+    expect(scripts).not.toContain('~/.ssh')
+    expect(scripts).toContain('SHIP_DEV_SSH_KEY_FILE')
+    const cleanup = steps.at(-1)
+    expect(cleanup?.if).toBe('always()')
+    expect(cleanup?.run).toContain('rm -rf')
+  })
 
   it('publishes to Ruken and deploys to the dev host as separate jobs after one build', () => {
     expect(Object.keys(release.on)).toEqual(['workflow_call'])

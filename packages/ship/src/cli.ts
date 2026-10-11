@@ -87,6 +87,8 @@ async function program(
       target,
       siteUrl,
       activate: command.activate,
+      sshKeyFile: process.env.SHIP_DEV_SSH_KEY_FILE || undefined,
+      knownHostsFile: process.env.SHIP_DEV_KNOWN_HOSTS_FILE || undefined,
     })
   })
   return Effect.provide(
