@@ -1,0 +1,28 @@
+{
+  "name": "@af-examples/ui-primitives",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "e2e:demo": "vite build && vite preview --strictPort --host localhost",
+    "test:parity": "vitest run"
+  },
+  "dependencies": {
+    "@mcthaydt/automata-testing": "workspace:*",
+    "@mcthaydt/automata-ui": "workspace:*",
+    "svelte": "5.57.1"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "playwright": "1.63.0",
+    "svelte-check": "4.7.6",
+    "typescript": "6.0.3",
+    "vite": "8.3.2",
+    "vitest": "5.0.3"
+  }
+}

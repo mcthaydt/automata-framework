@@ -2,7 +2,7 @@ import { createWorld, type Entity, type World } from 'koota'
 import type { EntityRef, SpawnPart } from '../define/context'
 import type { ComponentDef } from '../define/definitions'
 import { coerceField, type FieldType } from '../define/fields'
-import { sortedKeys } from '../util/sorted'
+import { ownKeyCount, sortedKeys } from '../util/sorted'
 
 export type FieldRecord = Record<string, number | boolean | string>
 
@@ -28,8 +28,26 @@ export interface RenderDelta {
  * Entities behind the facade: Koota stores the data; this class owns StableIds (monotonic, never reused),
  * iteration order (ascending StableId), field coercion and render dirty-tracking. Koota ids never escape.
  */
+/** More sims are alive than Koota allows worlds (16 per process). Dispose sims you no longer need. */
+export class SimCapacityError extends Error {
+  constructor(cause: unknown) {
+    super('too many sims are alive at once (Koota allows 16 worlds); dispose sims you no longer need', {
+      cause,
+    })
+    this.name = 'SimCapacityError'
+  }
+}
+
+function createKootaWorld(): World {
+  try {
+    return createWorld()
+  } catch (err) {
+    throw new SimCapacityError(err)
+  }
+}
+
 export class EntityStore {
-  private readonly world: World = createWorld()
+  private readonly world: World = createKootaWorld()
   private readonly registered: Map<string, ComponentDef>
   private readonly entities = new Map<number, Entity>()
   private readonly live: number[] = [] // ascending: StableIds are monotonic, so spawn appends
@@ -53,10 +71,18 @@ export class EntityStore {
     base: FieldRecord,
   ): FieldRecord {
     const out: FieldRecord = { ...base }
-    for (const name of sortedKeys(values)) {
-      const type = def.fields[name] as FieldType | undefined
-      if (!type) throw new Error(`component "${def.id}" has no field: unknown field "${name}"`)
-      out[name] = coerceField(type, values[name])
+    // Walk the component's own (sorted) field names rather than sorting the caller's keys on every write:
+    // this runs for every set in every tick. A key count that differs means the caller passed a field the
+    // component lacks, and only then are the caller's keys sorted to name the first unknown one.
+    let known = 0
+    for (const name of def.fieldNames) {
+      if (!Object.hasOwn(values, name)) continue
+      out[name] = coerceField(def.fields[name] as FieldType, values[name])
+      known += 1
+    }
+    if (known !== ownKeyCount(values)) {
+      const unknown = sortedKeys(values).find((name) => !Object.hasOwn(def.fields, name))
+      throw new Error(`component "${def.id}" has no field: unknown field "${unknown}"`)
     }
     return out
   }
@@ -65,11 +91,10 @@ export class EntityStore {
     return this.coerce(def, {}, def.trait.schema as FieldRecord)
   }
 
+  // Koota stores these traits as structure-of-arrays, and its get builds a fresh object holding exactly the
+  // schema's fields on every call, so the result is already a private copy (the hot path of every system).
   private read(e: Entity, def: ComponentDef): FieldRecord {
-    const raw = e.get(def.trait) as FieldRecord
-    const out: FieldRecord = {}
-    for (const name of def.fieldNames) out[name] = raw[name] as number | boolean | string
-    return out
+    return e.get(def.trait) as FieldRecord
   }
 
   private markChanged(sid: number, def: ComponentDef): void {
@@ -80,6 +105,18 @@ export class EntityStore {
     const e = this.entities.get(sid)
     if (!e) throw new Error(`entity ${sid} is not alive`)
     return e
+  }
+
+  /** Throws exactly what `spawnWithId(sid, parts)` would for bad parts, without touching the world. */
+  checkParts(parts: readonly SpawnPart[]): void {
+    const seen = new Set<string>()
+    for (const part of parts) {
+      const [def, values] = Array.isArray(part) ? part : [part as ComponentDef, {}]
+      this.check(def)
+      if (seen.has(def.id)) throw new Error(`duplicate component "${def.id}"`)
+      seen.add(def.id)
+      this.coerce(def, values, this.defaults(def))
+    }
   }
 
   /** Spawns with a fresh StableId. */
@@ -129,6 +166,17 @@ export class EntityStore {
     return out
   }
 
+  /** Every live entity's component values in ascending StableId order: the snapshot's entities section. */
+  snapshotRows(): Array<{ sid: number; components: Map<string, FieldRecord> }> {
+    const defs = [...this.registered.values()]
+    return this.live.map((sid) => {
+      const e = this.entities.get(sid) as Entity
+      const components = new Map<string, FieldRecord>()
+      for (const def of defs) if (e.has(def.trait)) components.set(def.id, this.read(e, def))
+      return { sid, components }
+    })
+  }
+
   ref(sid: number): EntityRef | undefined {
     return this.entities.has(sid) ? this.makeRef(sid) : undefined
   }
@@ -147,7 +195,8 @@ export class EntityStore {
       set: (def, values) => {
         const e = store.alive(sid)
         if (!e.has(store.check(def).trait)) throw new Error(`entity ${sid} does not have "${def.id}"`)
-        e.set(def.trait, store.coerce(def, values as Record<string, unknown>, store.read(e, def)))
+        // Koota's SoA set writes only the fields present, so the update needs no read of the current values.
+        e.set(def.trait, store.coerce(def, values as Record<string, unknown>, {}))
         store.markChanged(sid, def)
       },
       add: (def, values = {}) => {

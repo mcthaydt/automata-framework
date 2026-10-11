@@ -1,0 +1,7 @@
+JUMP_HEIGHT = { step = 0.25, max = 6, min = 0.5, value = 2.5 }
+HARD_MODE = false
+
+[GRAVITY]
+max = -100
+min = -1200
+value = -275.0

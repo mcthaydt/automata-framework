@@ -18,6 +18,8 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | Package | Version | Date | Why |
 |---|---|---|---|
 | `@biomejs/biome` | 2.5.15 | 2026-10-01 | Lint and format (A0). Ruken uses ESLint and Prettier; AF keeps Biome |
+| `@dimforge/rapier2d-deterministic-compat` | 0.21.0 | 2026-10-11 | 2D physics in `packages/physics` (M2.1). The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox; `-compat` inlines the wasm, so no loader setup |
+| `@dimforge/rapier3d-deterministic-compat` | 0.21.0 | 2026-10-11 | 3D physics in `packages/physics` (M2.1), and the same release as The Last Light; same reasons as the 2D row |
 | `@types/node` | 24.19.1 | 2026-10-11 | Same as Ruken: Node 24 typings for tooling |
 | `@playwright/test` | 1.63.0 | 2026-10-11 | Same as Ruken: browser journeys (`pnpm test:e2e`, root `playwright.config.ts`) |
 | `@vitest/browser-playwright` | 5.0.3 | 2026-10-01 | Cross-engine parity runs (A0); same major as `vitest` |
@@ -26,12 +28,22 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `playwright` | 1.63.0 | 2026-10-01 | Same as Ruken's `@playwright/test`: browsers for parity and DOM checks |
+| `smol-toml` | 1.9.0 | 2026-10-11 | Same as Ruken: reads the TOML under `content/` in `@mcthaydt/automata-content` (M1.3 content spec §8) |
 | `turbo` | 2.11.6 | 2026-10-01 | Same as Ruken: task runner, local cache only |
 | `typescript` | 7.0.2 | 2026-10-01 | Ruken holds 6.0.3 only for svelte-check, typescript-eslint, SvelteKit and Prisma, none of which AF uses (ship spec §3.1) |
 | `vite` | 8.3.2 | 2026-10-11 | Same as Ruken: builds the placeholder page (and later every AF game) |
 | `vitest` | 5.0.3 | 2026-10-01 | Same as Ruken: unit and parity test runner |
 | `yaml` | 2.9.1 | 2026-10-11 | Same as Ruken: parse workflow YAML in ship's workflow tests |
 | `zod` | 4.6.5 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |
+| `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | ui lane: compiles Svelte 5 in `packages/ui` and `examples/ui/primitives` |
+| `@testing-library/dom` | 10.4.2 | 2026-10-11 | ui lane: DOM behaviour tests (AGENTS.md, Responsive UI) |
+| `@testing-library/jest-dom` | 7.0.1 | 2026-10-11 | ui lane: DOM matchers for those tests |
+| `@testing-library/svelte` | 5.4.2 | 2026-10-11 | ui lane: renders Svelte components in those tests |
+| `@testing-library/user-event` | 14.6.7 | 2026-10-11 | ui lane: player input in those tests |
+| `jsdom` | 30.1.1 | 2026-10-11 | ui lane: the `unit` test environment for `packages/ui` |
+| `svelte` | 5.57.1 | 2026-10-11 | ui lane: the UI framework (master spec §3, rune stores) |
+| `svelte-check` | 4.7.6 | 2026-10-11 | ui lane: typechecks `.svelte` files |
+| `typescript` | 6.0.3 | 2026-10-11 | ui lane: only for `svelte-check`, which does not support TypeScript 7 yet; the rest of AF uses 7.0.2 (as Ruken holds 6.0.3 for svelte-check) |
 
 ## Container images
 

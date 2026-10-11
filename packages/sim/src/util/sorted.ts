@@ -10,3 +10,8 @@ export function sortedKeys(obj: object): string[] {
 export function sortedEntries<V>(obj: Readonly<Record<string, V>>): Array<[string, V]> {
   return sortedKeys(obj).map((k) => [k, obj[k] as V])
 }
+
+/** How many own enumerable string keys `obj` has; cheaper than sortedKeys when only the count matters. */
+export function ownKeyCount(obj: object): number {
+  return Object.keys(obj).length
+}

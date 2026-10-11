@@ -1,5 +1,7 @@
 import { type Trait, trait } from 'koota'
 import type { z } from 'zod'
+import { canonicalJson } from '../hash/canonical'
+import { deepFreeze } from '../util/deep-freeze'
 import { sortedKeys } from '../util/sorted'
 import type { SimContext } from './context'
 import { defaultField, FIELD_TYPES, type FieldSchema, type FieldType } from './fields'
@@ -113,15 +115,53 @@ export function defineSystem(spec: {
   }
 }
 
+/**
+ * Engine state a plugin keeps outside the ECS, such as a Rapier world (M2.1 spec §3.1). `createSim` creates
+ * one per sim, so a PluginDef shared by many sims never shares engine state between them.
+ */
+export interface PluginState {
+  /** Bytes for snapshot section 6. Must be canonical: the same state gives the same bytes in every engine. */
+  snapshot(): Uint8Array
+  /**
+   * Validates and parses `bytes` without touching the live state. Throwing here (a SnapshotFormatError for bad
+   * bytes) leaves the sim exactly as it was. Otherwise the sim later calls exactly one of the result's
+   * methods: `commit` when every part of the snapshot was valid, `discard` when another part was not.
+   */
+  prepareRestore(bytes: Uint8Array): PreparedRestore
+  /** Frees the engine. The sim calls it once, on `dispose` or when `createSim` fails after creating it. */
+  dispose(): void
+}
+
+/** A plugin's parsed restore, held until the sim knows whether the whole snapshot is valid. */
+export interface PreparedRestore {
+  /** Adopts the parsed state and frees the state it replaces. Must not throw. */
+  commit(): void
+  /** Frees whatever `prepareRestore` built (a restored engine world). Must not throw. */
+  discard(): void
+}
+
+/** What a plugin's state may know when it is created. */
+export interface PluginStateSetup {
+  /** The sim's fixed step, 1 / tickHz seconds. */
+  readonly dt: number
+}
+
 export interface PluginDef {
   readonly kind: 'plugin'
   readonly name: string
+  /** Creates this plugin's per-sim engine state; its systems see it as `ctx.pluginState`. */
+  readonly state: ((setup: PluginStateSetup) => Promise<PluginState>) | undefined
   readonly dependsOn: readonly string[]
   readonly components: readonly ComponentDef[]
   readonly commands: readonly CommandDef[]
   readonly events: readonly EventDef[]
   readonly resources: readonly ResourceDef[]
   readonly systems: readonly SystemDef[]
+  /**
+   * Settings that change what the plugin simulates (physics gravity), as plain JSON. Part of the schema hash,
+   * so a snapshot never restores into a sim configured differently. Undefined when the plugin has none.
+   */
+  readonly config: unknown
 }
 
 export function definePlugin(spec: {
@@ -132,8 +172,13 @@ export function definePlugin(spec: {
   events?: readonly EventDef[]
   resources?: readonly ResourceDef[]
   systems?: readonly SystemDef[]
+  state?: (setup: PluginStateSetup) => Promise<PluginState>
+  config?: unknown
 }): PluginDef {
   checkId('plugin', spec.name)
+  // A canonical, frozen copy: it throws CanonicalJsonError for anything that cannot hash exactly, and nobody
+  // can change it after it joins the schema hash.
+  const config = spec.config === undefined ? undefined : deepFreeze(JSON.parse(canonicalJson(spec.config)))
   return {
     kind: 'plugin',
     name: spec.name,
@@ -143,5 +188,7 @@ export function definePlugin(spec: {
     events: spec.events ?? [],
     resources: spec.resources ?? [],
     systems: spec.systems ?? [],
+    state: spec.state,
+    config,
   }
 }

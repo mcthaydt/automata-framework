@@ -4,8 +4,12 @@ import * as math from './math/dmath'
 
 test('the public runtime API is exactly this list (changing it is a deliberate, semver-visible act)', () => {
   expect(Object.getOwnPropertyNames(sim).sort()).toEqual([
+    'CanonicalJsonError',
     'PHASES',
     'SNAPSHOT_VERSION',
+    'SimCapacityError',
+    'SimDisposedError',
+    'SimFaultedError',
     'SnapshotFormatError',
     'SnapshotMismatchError',
     'canonicalJson',

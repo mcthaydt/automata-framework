@@ -1,0 +1,98 @@
+# Base gameplay tuning.
+#
+# Every name declared in `packages/shared/src/common/tuning.ts` appears here
+# exactly once, and every value is inside that declaration's inclusive range.
+# Stage and mode files override this layer; they never extend it.
+#
+# See `docs/content-authoring.md` for the generated table of names, types,
+# ranges, and the values below.
+
+# Floors in one ascent, including the fixed starting floor.
+COURSE_FLOOR_COUNT = 20
+
+FLOOR_WIDTH = 120
+FLOOR_HEIGHT = 20
+
+# The player's collision box, squarer than the 48 x 64 art sheet on purpose.
+PLAYER_WIDTH = 59
+PLAYER_HEIGHT = 59
+
+GRAVITY = -275.0
+
+# Applied on contact with any face of a floor, not only from above.
+BOUNCE_VELOCITY = 268.2
+MAX_MOVE_SPEED = 356.0
+FAST_FALL_VELOCITY = -1341.0
+
+# `540 / 4.2`, written to the precision that round-trips. The bounce apex is
+# 130.78 against this gap, and that 2.21 of margin is the game's feel.
+FLOOR_GAP_MIN = 128.57142857142856
+FLOOR_GAP_MAX = 128.57142857142856
+
+MOVING_FLOOR_SPEED_MIN = 100.0
+MOVING_FLOOR_SPEED_MAX = 200.0
+
+DEATH_LINE_MARGIN = 265
+
+# Ticks a racer rests at the spawn after a non-final lap (0.8 s at 60 Hz).
+LAP_HOLD_TICKS = 48
+
+# How much of a moving floor's travel a racer standing on it is carried (0-1).
+MOVING_FLOOR_CARRY = 1.0
+
+# Ticks an endless race runs before its clock ends it; 0 is no limit (finite modes).
+RACE_TIME_LIMIT_TICKS = 0
+
+# Survival's rising edge (Survival only). The logical view each racer's edge is the bottom of.
+SURVIVAL_VIEW_HEIGHT = 480.0
+
+# Ticks after GO before the edge starts to rise.
+SURVIVAL_GRACE_TICKS = 180
+
+# The edge's first rise, in units per second.
+SURVIVAL_RISE_START = 55.0
+
+# Added to the rise every SURVIVAL_RISE_STEP_TICKS.
+SURVIVAL_RISE_STEP = 20.0
+
+# How often the rise steps up (1800 is every 30 s).
+SURVIVAL_RISE_STEP_TICKS = 1800
+
+# The fastest the edge rises; just under the reference bot's climb.
+SURVIVAL_RISE_CAP = 150.0
+
+# The share of the view above which a climbing racer pushes their edge up.
+# With the view, it sets how far below the best floor the push aims (264 units).
+SURVIVAL_PUSH_AT = 0.55
+
+# How much faster than the rise the push may lift the edge, in units/s.
+# A new best floor is closed in under half a second, as a surge, not a jump.
+SURVIVAL_PUSH_SPEED = 300.0
+
+# The lava's rubber band, toward the leader: the leader's rise grows by this
+# share per floor they lead second place by, up to the max...
+SURVIVAL_BAND_AHEAD_STEP = 0.1
+SURVIVAL_BAND_AHEAD_MAX = 1.5
+
+# ...and everyone else's shrinks by this share per floor they trail the leader
+# by, down to the min. The banded rise still stops at SURVIVAL_RISE_CAP.
+SURVIVAL_BAND_BEHIND_STEP = 0.05
+SURVIVAL_BAND_BEHIND_MIN = 0.7
+
+# First floor of the demand ramp (Infinite only; at least 50).
+DEMAND_RAMP_FROM_FLOOR = 50
+
+# Floors per ramp band.
+DEMAND_RAMP_BAND_FLOORS = 10
+
+# Added to the share of moving floors per band, up to MOVING_SHARE_MAX.
+MOVING_SHARE_STEP = 0.05
+
+# The most floors that may move, above the ramp.
+MOVING_SHARE_MAX = 0.8
+
+# Added to both ends of a moving floor speed range per band.
+MOVING_SPEED_STEP = 10.0
+
+# The fastest a ramped floor moves.
+MOVING_FLOOR_SPEED_CAP = 300.0

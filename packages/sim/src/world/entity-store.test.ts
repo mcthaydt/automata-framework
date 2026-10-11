@@ -47,8 +47,11 @@ test('StableIds are never reused, even though Koota recycles its own ids', () =>
 test('set merges, coerces and validates; unknown fields and wrong types throw', () => {
   const s = make()
   const e = s.ref(s.spawn([Position])) as NonNullable<ReturnType<EntityStore['ref']>>
+  // A partial set leaves the other fields alone. The store passes Koota only the given keys, so this pins
+  // Koota's behaviour for that (undocumented) case across upgrades.
+  e.set(Position, { x: 1.5 })
   e.set(Position, { y: 2.5 })
-  expect(e.get(Position)).toEqual({ x: 0, y: 2.5 })
+  expect(e.get(Position)).toEqual({ x: 1.5, y: 2.5 })
   expect(() => e.set(Position, { z: 1 } as never)).toThrow(/unknown field "z"/)
   expect(() => e.set(Health, { hp: 1 })).toThrow(/does not have "health"/)
   expect(() => e.set(Position, { x: Number.NaN })).toThrow(RangeError)

@@ -1,0 +1,128 @@
+/*
+ * AF's default theme tokens (M1.6 spec §3.3). Every primitive reads these; a game overrides the
+ * colours and type in its own stylesheet, loaded after this one, and never lowers the targets.
+ *
+ * Colours come from the Endesga 64 palette, with Bubble Bobble mixed with Celeste as the visual
+ * reference (Owner art direction, 2026-10-11): a deep night-blue ground, bright saturated accents,
+ * chunky light outlines. Every text pair meets 4.5:1 and every edge and focus ring 3:1 against the
+ * surfaces (art README; pinned by theme.test.ts).
+ *
+ * The geometry owner writes `--af-scale` (1, or 1.333 on Ruken's TV mode) and `data-height` on the
+ * root. Scale enlarges text and targets through calc(), never through `zoom`.
+ */
+
+:root {
+  /* Touch targets: 44 px for every control, 48 px for a primary action. */
+  --af-target: calc(44px * var(--af-scale, 1));
+  --af-target-primary: calc(48px * var(--af-scale, 1));
+  --af-row-h: var(--af-target);
+  /* How far a focus ring reaches outside its control; scroll regions pad by it so rings are whole. */
+  --af-ring-width: 3px;
+  --af-ring-room: 6px;
+  --af-gutter: 16px;
+  --af-radius: 6px;
+  --af-edge-width: 2px;
+
+  --af-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --af-text-body: calc(16px * var(--af-scale, 1));
+  --af-text-small: calc(13px * var(--af-scale, 1));
+
+  --af-surface: #1a1932;
+  --af-panel: #2a2f4e;
+  --af-edge: #92a1b9;
+  --af-ink: #ffffff;
+  --af-muted: #92a1b9;
+  --af-accent: #ffc825;
+  --af-on-accent: #1a1932;
+  --af-danger: #c42430;
+  --af-on-danger: #ffffff;
+  --af-ring: #0cf1ff;
+  --af-scrim: color-mix(in srgb, #0e071b 72%, transparent);
+}
+
+/* Short and compact screens spend less on space; the targets stay whole. */
+:root[data-height="short"] {
+  --af-gutter: 12px;
+}
+
+:root[data-height="compact"] {
+  --af-gutter: 8px;
+}
+
+/* The document never scrolls: screens fill the visible region and scroll inside declared regions. */
+html,
+body {
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--af-surface);
+  color: var(--af-ink);
+  font-family: var(--af-font);
+  font-size: var(--af-text-body);
+}
+
+/* A drawn screen is not a page: no text selection or long-press callout, except where a player types. */
+html {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* The shared control look the primitives' buttons use. */
+.af-control {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: var(--af-target);
+  min-height: var(--af-target);
+  padding: 0 14px;
+  border: var(--af-edge-width) solid var(--af-edge);
+  border-radius: var(--af-radius);
+  background: var(--af-panel);
+  color: var(--af-ink);
+  font: 600 var(--af-text-body) / 1.2 var(--af-font);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* One marker sizes a primary, and the layout check reads the same one (M1.6 spec §3.10). */
+.af-control[data-kind="primary"] {
+  min-height: var(--af-target-primary);
+}
+
+.af-control--primary {
+  border-color: var(--af-accent);
+  background: var(--af-accent);
+  color: var(--af-on-accent);
+}
+
+.af-control--ghost {
+  background: transparent;
+}
+
+.af-control:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.af-control:focus-visible {
+  outline: var(--af-ring-width) solid var(--af-ring);
+  outline-offset: 2px;
+}
+
+.af-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
