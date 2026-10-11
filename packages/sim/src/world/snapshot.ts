@@ -7,6 +7,7 @@
 import type { ComponentDef } from '../define/definitions'
 import type { FieldType } from '../define/fields'
 import { utf8 } from '../hash/canonical'
+import { hex64, xxhash64 } from '../hash/xxhash64'
 import type { RngState } from '../rng/rng'
 import type { FieldRecord } from './entity-store'
 
@@ -382,4 +383,60 @@ export function decodeSnapshot(bytes: Uint8Array, components: readonly Component
   }
   rd.end('snapshot')
   return { schemaHash, contentHash, tick, tickHz, rng, resources, nextId, entities, plugins }
+}
+
+/**
+ * A readable copy of a snapshot, for diffs and reports (M2.3 spec §3.1). Plugin bytes are opaque engine state,
+ * so they are described by length and hash only.
+ */
+export interface SnapshotView {
+  readonly header: {
+    readonly formatVersion: number
+    readonly schemaHash: string
+    readonly contentHash: string
+    readonly tick: number
+    readonly tickHz: number
+  }
+  /** Per system, its RNG state words. */
+  readonly rng: Readonly<Record<string, readonly number[]>>
+  /** Per resource id, its value parsed from canonical JSON. */
+  readonly resources: Readonly<Record<string, unknown>>
+  readonly nextId: number
+  /** Ascending sid; per component id, its field values. Components the entity lacks are absent. */
+  readonly entities: ReadonlyArray<{
+    readonly sid: number
+    readonly components: Readonly<Record<string, FieldRecord>>
+  }>
+  /** Section 6, per stateful plugin: byte length and XXH64 of its bytes. */
+  readonly plugins: Readonly<Record<string, { readonly byteLength: number; readonly hash: string }>>
+}
+
+export function viewSnapshot(data: SnapshotData): SnapshotView {
+  const rng: Record<string, readonly number[]> = {}
+  for (const r of data.rng) rng[r.name] = [...r.state]
+  const resources: Record<string, unknown> = {}
+  for (const r of data.resources) resources[r.id] = JSON.parse(r.json)
+  const entities = data.entities.map((e) => {
+    const components: Record<string, FieldRecord> = {}
+    // The decoder fills each entity's map in sorted component order, so the record's key order is canonical.
+    for (const [id, rec] of e.components) components[id] = { ...rec }
+    return { sid: e.sid, components }
+  })
+  const plugins: Record<string, { byteLength: number; hash: string }> = {}
+  for (const p of data.plugins)
+    plugins[p.name] = { byteLength: p.bytes.length, hash: hex64(xxhash64(p.bytes)) }
+  return {
+    header: {
+      formatVersion: SNAPSHOT_VERSION,
+      schemaHash: hex64(data.schemaHash),
+      contentHash: hex64(data.contentHash),
+      tick: data.tick,
+      tickHz: data.tickHz,
+    },
+    rng,
+    resources,
+    nextId: data.nextId,
+    entities,
+    plugins,
+  }
 }

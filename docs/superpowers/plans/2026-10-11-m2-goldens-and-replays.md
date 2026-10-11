@@ -35,12 +35,12 @@
 Each task: write the failing test, run it and see it fail for the stated reason, write the least code, run the package tests, `pnpm check`, commit.
 
 ### Task 1: `describeSnapshot`
-- [ ] `world/describe.test.ts`: a fixture sim with two components, a resource and two systems; the view's header, rng, resources, entities (ascending sid, absent components omitted) and, with #9's stateful fixture, `plugins` (byte length, hash); equal before and after `restore`; a truncated snapshot throws `SnapshotFormatError`; a snapshot from another schema throws `SnapshotMismatchError`; without bytes, a faulted sim throws `SimFaultedError` and a disposed one `SimDisposedError`; `sim.hash()` unchanged by the call. Expected failure: `describeSnapshot is not a function`.
-- [ ] Implement over `decodeSnapshot`; export `SnapshotView`.
+- [x] `world/describe.test.ts`: a fixture sim with two components, a resource and two systems; the view's header, rng, resources, entities (ascending sid, absent components omitted) and, with #9's stateful fixture, `plugins` (byte length, hash); equal before and after `restore`; a truncated snapshot throws `SnapshotFormatError`; a snapshot from another schema throws `SnapshotMismatchError`; without bytes, a faulted sim throws `SimFaultedError` and a disposed one `SimDisposedError`; `sim.hash()` unchanged by the call. Expected failure: `describeSnapshot is not a function`.
+- [x] Implement over `decodeSnapshot`; export `SnapshotView`. (`viewSnapshot` in `world/snapshot.ts`; `restore` and `describeSnapshot` share one `decodeForThisSim` check.)
 
 ### Task 2: exports and version
-- [ ] `index.test.ts`: `createRng`, `deriveSeed`, `SIM_VERSION` exported; `version.test.ts`: `SIM_VERSION` equals `package.json`'s `version`. Expected failure: undefined exports.
-- [ ] Implement.
+- [x] `index.test.ts`: `createRng`, `deriveSeed`, `SIM_VERSION` exported; `version.test.ts`: `SIM_VERSION` equals `package.json`'s `version`. Expected failure: undefined exports.
+- [x] Implement. (`version.test.ts` imports `package.json`, so the sim's tsconfig gains `resolveJsonModule`.)
 
 ### Task 3: varint and strict UTF-8
 - [ ] `replay/varint.test.ts`: 0, 127, 128, 2³² − 1 round-trip; a sixth continuation byte, a value over 2³² − 1 and a truncated varint throw `ReplayFormatError` with the offset. `hash/canonical.test.ts`: the decoder inverts `utf8` for ASCII, BMP and astral text and throws on an overlong form, a lone surrogate and a truncated sequence. Expected failure: modules missing (`Cannot find module './varint.ts'`; `decodeUtf8Strict` not exported).
