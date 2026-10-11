@@ -32,7 +32,8 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 | `examples/base-2d` (M1.8 part 1) | Draft PR #10 from `claude/af-base-2d-x39a9r`, with `main` merged through #9 (`d556d23`). Local gate green: check, parity in every package, 24 browser journeys across every example, build, prepare-ruken. Audited mergeable by the AF framework audit thread. Restyled as Emberwick (Owner, 2026-10-11). Stand-ins for content, host, runtime loop, renderer and ui ([task spec](superpowers/specs/2026-10-11-m1-base-2d-design.md)) | CI on af-linux for the latest head; move the base onto `HostingLive`, compiled content and the ui primitives (#5, #8, #7 are merged); the host, content and physics demos; gallery, `create-game`, M1 exit |
 | Koota under Ruken's CSP | Koota's struct-of-arrays traits compile accessors with `new Function`; under Ruken's `script-src` (no `unsafe-eval`) the sim threw `EvalError` in the browser. `packages/sim` now defines traits as factories (array of structs) with a no-eval test; hashes unchanged | Re-check any new trait helper (#9 adds some) against the no-eval test |
 | Art direction | Owner, 2026-10-11: Endesga 64 palette ([docs/art](art/README.md), file kept verbatim, 64 unique colors checked) and a Bubble Bobble × Celeste look for 2D, 2.5D and 3D | Palette schema (M1.3), theme tokens (M1.6), LUT and palette gate (M3) |
-| Source survey | FloorFifty `122a220`, The Last Light `948abe9`, RukenApp `b30d31b`, all read on 2026-10-11 | Re-survey at M1.0b |
+| M2 specs (M2.0 draft) | [M2 milestone spec](superpowers/specs/2026-10-11-m2-deterministic-core-design.md) and task specs and TDD plans for M2.1b (physics demo), M2.2 (content in the sim), M2.3 (goldens and replays) and M2.4 (build and publish), drafted 2026-10-11 and revised after the PR #12 audit against `main` `d556d23` (#9 merged) and PR #10 `ab4f857`; sources re-read: FloorFifty `122a220` (replay codec), The Last Light `8280918` (record and replay), RukenApp `ccad7c0` (tsdown, Changesets) | Owner review (M2.0); lanes start after it, or now on the Owner's word. Token decision (coordinator, checked against GitHub's docs): releases on `GITHUB_TOKEN`; games on `AF_READ_TOKEN`, a classic PAT with `read:packages` only (the npm registry accepts no fine-grained tokens), which the Owner creates at M2.4 time. Requests to integration: base-2d's `startGame` options, a `./sim` entry, and its room as compiled content (for the M2.1b, M2.3 and M2.2 demos) |
+| Source survey | FloorFifty `122a220`, The Last Light `948abe9` (re-read at `8280918` for the M2 specs), RukenApp `b30d31b`, all read on 2026-10-11 | Re-survey at M1.0b |
 
 ## External inputs and unresolved gates
 
@@ -45,10 +46,10 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 - Ruken's F1 freeze is planned for 2026-10-16; the `contracts-f1` tag did not exist on 2026-10-11. Re-vendor and re-run contract tests after it.
 - Ruken has no `[store]` manifest section yet; the `store` extension waits for it.
 - `@pixi/3d` is a 0.1.0 beta whose terms (per The Last Light's README) allow no public deployment. D-1 is provisional: `render-pixi3d` stays unpublished and out of public builds. D-1 to D-6 run on their defaults (master spec §12) until the Owner overrides them.
-- `@mcthaydt/automata-host` (and `testing`) cannot be published while they depend on a local Ruken tarball; D-8 (default: bundle the vendored Ruken code into their `dist/`) must be settled before M2.4.
+- `@mcthaydt/automata-host` (and `testing`, `ui`, `content`, `ship`) cannot be published while they depend on a local Ruken tarball; D-8 (bundle the vendored Ruken code into their `dist/` and inline Ruken types into their `.d.ts`) is specified in the [M2.4 spec](superpowers/specs/2026-10-11-m2-build-and-publish-design.md) §3.4.
 - Spike S8 gate closed (ship lane, PR #6 `6056f82`, [verdict](spikes/README.md)): Effect costs 28.0 kB gzip and 50–73 ms cold boot at 4×, within the budgets E1–E5 the runtime lane must hold. Still open: measurements on real phones, WebKit throttling, and frame-loop allocation, which the runtime lane checks in M1.5.
 - Ruken's TEST environment is not provisioned; M1 publishes to Ruken's local stack only.
-- GitHub Packages tokens and hosting accounts are not verified.
+- GitHub Packages tokens are decided (M2.4: workflow `GITHUB_TOKEN` to publish; `AF_READ_TOKEN`, a classic PAT with `read:packages`, for games), but not yet created or used. Hosting accounts are not verified.
 
 ## Merge notes for the lane PRs
 
