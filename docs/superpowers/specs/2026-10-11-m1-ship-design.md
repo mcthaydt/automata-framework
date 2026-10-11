@@ -1,6 +1,6 @@
 # M1 ship lane: toolchain, CI and the ship skeleton (M1.1, M1.2)
 
-- **Status:** Draft for Owner review (lane **ship**, [04 How we build](../../04-how-we-build.md#lanes-2026-10-11)). Stacks on PR #4.
+- **Status:** Implemented and locally verified 2026-10-11 (S0–S7 local evidence in PR #6); hosted CI, the staging dev host and Owner review are open. Originally drafted for Owner review (lane **ship**, [04 How we build](../../04-how-we-build.md#lanes-2026-10-11)). Stacks on PR #4.
 - **Tasks:** M1.1 Toolchain, versions and CI lanes; M1.2 Ship skeleton ([02 Master delivery plan](../../02-master-delivery-plan.md)).
 - **Consumes:** [M1 shared contracts](./2026-10-11-m1-shared-contracts-design.md) §2 (`manifest` contributions from extensions feed `ShipConfig`; the determinism check runs in `game-ci.yml`); `vendor/ruken/` (owned by the integration lane, D-6).
 - **Parents:** [Ruken-first master spec](./2026-10-11-automata-framework-ruken-first-design.md) §3 (stack), §4 (`ship` row), §10 (CI/CD and deployment), §12 D-4 and D-5; [extraction map](./2026-10-11-core-and-extensions-extraction-map.md) (`ship` row).
