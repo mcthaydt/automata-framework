@@ -60,6 +60,17 @@ test('counts a CSP violation as an error, even one the console never shows', asy
   await expect.poll(() => errors.some((error) => error.includes('CSP violation: img-src'))).toBe(true)
 })
 
+test('a device with no canvas context gets the device message, not a connection one', async ({ page }) => {
+  // No 2D, WebGL or WebGPU context: Pixi cannot start, so the boot ends with RendererFailed (boot-page.ts).
+  await page.addInitScript(() => {
+    HTMLCanvasElement.prototype.getContext = () => null
+    Object.defineProperty(navigator, 'gpu', { value: undefined })
+  })
+  await page.goto(gameUrl)
+  await expect(page.locator('html')).toHaveAttribute('data-state', 'failed')
+  await expect(game(page)).toHaveText("This device can't run the game.")
+})
+
 test('menu → room → pause → resume → pause → quit, by keyboard and buttons', async ({ page }) => {
   const errors = await collectErrors(page)
   await openMenu(page)

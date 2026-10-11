@@ -30,15 +30,11 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 
 | Demo | Owner | Base | Status |
 |---|---|---|---|
-| `host/lifecycle-and-saves` | host lane | `base-2d` | Built (feature-demos PR, stacked on #10) |
-| `content/hot-reload` | content lane | `base-2d` | Built (feature-demos PR, stacked on #10) |
+| `host/lifecycle-and-saves` | host lane | `base-2d` | Built (feature-demos PR, #14) |
+| `content/hot-reload` | content lane | `base-2d` | Built (feature-demos PR, #14) |
 | `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR (#7); needs no base |
-<<<<<<< HEAD
-| `physics/bodies-2d`, `physics/bodies-3d` | sim lane | `base-2d`, `base-3d` | `bodies-2d`: built (feature-demos PR, stacked on #10); `bodies-3d` waits on `base-3d` |
-=======
-| `physics/bodies-2d` (Rapier crates and balls in the room, pushed by the character; [spec](../docs/superpowers/specs/2026-10-11-m2-physics-demo-design.md)) | sim lane, M2.1b | `base-2d` | Base built and physics merged; to do (needs base-2d's `startGame` options, `./sim` export and typed failure) |
+| `physics/bodies-2d` (Rapier crates and balls in the room, pushed by the character; [spec](../docs/superpowers/specs/2026-10-11-m2-physics-demo-design.md)) | sim lane, M2.1b | `base-2d` | Built (feature-demos PR, #14): on `playRoom` and base-2d's `./sim`, with a golden run and a parity test |
 | `physics/bodies-3d` | sim lane | `base-3d` | Waits on `base-3d` (M3) |
 | `sim/content-restore` (a snapshot is gated by gameplay content, not by store metadata; [spec](../docs/superpowers/specs/2026-10-11-m2-content-in-sim-design.md#8-demo-examplessimcontent-restore)) | content lane, M2.2 | `base-2d` | Base built; to do with M2.2 (needs base-2d's content swap) |
 | `testing/record-replay` (play, then watch the run re-simulated from its `.replay` with every check passing; [spec](../docs/superpowers/specs/2026-10-11-m2-goldens-and-replays-design.md#8-demo-examplestestingrecord-replay)) | testing lane, M2.3 | `base-2d` | Base built; to do with M2.3 (needs base-2d's `startGame` options) |
->>>>>>> origin/main
 | `placeholder` (the ship lane's page: boots under the fake host and publishes through `ship`; not a feature demo) | ship lane | none | With the ship PR |
