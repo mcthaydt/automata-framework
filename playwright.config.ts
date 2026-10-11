@@ -3,6 +3,7 @@ import * as base2d from './examples/base-2d/e2e/origins.ts'
 import * as contentDemo from './examples/content/hot-reload/e2e/origin.ts'
 import { demoHostOrigin, demoHostPort } from './examples/demo-host/ports.ts'
 import * as hostDemo from './examples/host/lifecycle-and-saves/e2e/origin.ts'
+import * as physicsDemo from './examples/physics/bodies-2d/e2e/origin.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './examples/placeholder/e2e/origins.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
 
@@ -92,6 +93,12 @@ export default defineConfig({
       command: 'pnpm --filter @af-examples/content-hot-reload e2e:demo',
       url: contentDemo.url,
       env: { AF_E2E_DEMO_PORT: String(contentDemo.port) },
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      command: 'pnpm --filter @af-examples/physics-bodies-2d e2e:demo',
+      url: physicsDemo.url,
+      env: { AF_E2E_DEMO_PORT: String(physicsDemo.port) },
       reuseExistingServer: process.env.CI === undefined,
     },
     {

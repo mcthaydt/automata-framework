@@ -1,4 +1,5 @@
-import type { StepResult } from '@mcthaydt/automata-sim'
+import type { Command, StepResult } from '@mcthaydt/automata-sim'
+import type { Container } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { readPlayer } from './base-sim.ts'
 import { ROOM, type Room, type RoomSource } from './content/room.ts'
@@ -22,6 +23,7 @@ function fakeRenderer(room: Room) {
     },
     fitToHost: () => {},
     playerPixel: () => ({ x: 1, y: 2 }),
+    layer: { label: `layer of ${room.id}` } as unknown as Container,
     destroy: () => {
       log.destroyed = true
     },
@@ -78,6 +80,23 @@ describe('createPlay', () => {
     expect(results.map((result) => result.tick)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     expect(readPlayer(play.sim()).x).toBeGreaterThan(startX)
     expect(s.renderers[0]?.applied).toBe(10)
+    play.destroy()
+  })
+
+  it("sends the demo's own commands with the move, and hands it the renderer's layer each frame", async () => {
+    const s = seams()
+    const sent: Command[][] = []
+    const drawn: string[] = []
+    const play = await createPlay(s.play, {
+      commands: (sim) => [{ tick: sim.tick, source: 0, seq: sim.tick + 1000, type: 'nothing', payload: {} }],
+      onStep: (result) => sent.push([...result.rejected.map((rejected) => rejected.command)]),
+      onDraw: (layer, sim) => drawn.push(`${(layer as unknown as { label: string }).label} at ${sim.tick}`),
+    })
+    play.start()
+    s.frame()
+    // The base's sim knows no 'nothing' command, so it reports it: proof it was sent alongside the move.
+    expect(sent[0]?.map((command) => command.type)).toEqual(['nothing'])
+    expect(drawn).toEqual(['layer of room-1 at 1'])
     play.destroy()
   })
 

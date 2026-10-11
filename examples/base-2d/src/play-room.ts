@@ -1,4 +1,5 @@
-import type { Sim, StepResult } from '@mcthaydt/automata-sim'
+import type { Command, Sim, StepResult } from '@mcthaydt/automata-sim'
+import type { Container } from 'pixi.js'
 import { createBaseSim, moveCommand } from './base-sim.ts'
 import { parseRoom, ROOM, type Room, type RoomSource } from './content/room.ts'
 import { createInputDevices } from './input/devices.ts'
@@ -15,8 +16,15 @@ export interface PlayRoomOptions {
   readonly room?: RoomSource
   /** Makes each sim. Default: `createBaseSim({ room })`; a demo passes its own to add plugins. */
   readonly createSim?: (room: RoomSource) => Promise<Sim>
+  /** The demo's own commands for the coming step, sent with the base's `move`. */
+  readonly commands?: (sim: Sim) => readonly Command[]
   /** After every sim step, with that step's result. */
   readonly onStep?: (result: StepResult, sim: Sim) => void
+  /**
+   * Each display frame, before the room is drawn: `layer` is the renderer's layer for the demo's own sprites
+   * (above the room, under its lighting).
+   */
+  readonly onDraw?: (layer: Container, sim: Sim, time: number) => void
 }
 
 export interface PlayRoom {
@@ -112,14 +120,16 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
     requestFrame: seams.requestFrame,
     cancelFrame: seams.cancelFrame,
     onStep: () => {
-      const result = sim.step([moveCommand(sim, toMove(seams.held()))])
+      const result = sim.step([moveCommand(sim, toMove(seams.held())), ...(options.commands?.(sim) ?? [])])
       // A rejected command is a bug in the page's input code; the smoke tests fail on any console error.
       for (const rejected of result.rejected) console.error('play-room: the sim rejected a command', rejected)
       renderer.apply(result)
       options.onStep?.(result, sim)
     },
     onFrame: () => {
-      renderer.draw(seams.now())
+      const time = seams.now()
+      options.onDraw?.(renderer.layer, sim, time)
+      renderer.draw(time)
       seams.onFrame?.(renderer, sim)
     },
   })
