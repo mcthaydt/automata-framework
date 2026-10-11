@@ -1,0 +1,192 @@
+/* Colors are Endesga 64 (src/art/palette.ts). Contrast: --text on --panel is about 13:1, --ink on --accent
+   about 14:1, and the --focus ring on --panel about 12:1. */
+:root {
+  --bg: #0e071b;
+  --panel: #1a1932;
+  --text: #f9e6cf;
+  --muted: #c7cfdd;
+  --accent: #ffc825;
+  --ink: #0e071b;
+  --focus: #0cf1ff;
+  --line: #424c6e;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    16px / 1.4 system-ui,
+    sans-serif;
+  overscroll-behavior: none;
+}
+
+#game {
+  position: relative;
+  height: 100dvh;
+  box-sizing: border-box;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.stage-box {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.stage {
+  image-rendering: pixelated;
+}
+
+/* Overlays fill the game's container and centre their panel. */
+.panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  text-align: center;
+}
+
+.panel[hidden],
+.hud[hidden],
+.touch[hidden] {
+  display: none;
+}
+
+.panel h1,
+.panel h2,
+.panel p {
+  margin: 0;
+}
+
+.panel h1 {
+  font-size: 32px;
+}
+
+.panel h2 {
+  font-size: 24px;
+}
+
+.mark {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.hint,
+.time {
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 200px;
+}
+
+button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 20px;
+  border: 2px solid var(--muted);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.primary {
+  min-height: 48px;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--ink);
+}
+
+button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.hud {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+}
+
+.pause {
+  padding: 0;
+  width: 44px;
+}
+
+/* Touch buttons only where the main pointer is coarse (phones and tablets). */
+.touch {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .touch:not([hidden]) {
+    position: absolute;
+    inset: auto 0 0;
+    display: flex;
+    gap: 12px;
+    padding: 0 max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
+    pointer-events: none;
+  }
+
+  .touch button {
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border-color: var(--line);
+    background: color-mix(in srgb, var(--panel) 80%, transparent);
+    font-size: 20px;
+    pointer-events: auto;
+    touch-action: none;
+  }
+
+  .touch .jump {
+    margin-left: auto;
+  }
+
+  .touch button[data-held] {
+    border-color: var(--focus);
+  }
+}
+
+/* Compact height (a landscape phone, 780 × 270): smaller titles, actions in a row so they stay on screen. */
+@media (max-height: 320px) {
+  .panel {
+    gap: 8px;
+  }
+
+  .panel h1 {
+    font-size: 24px;
+  }
+
+  .panel h2 {
+    font-size: 20px;
+  }
+
+  .actions {
+    flex-direction: row;
+  }
+}

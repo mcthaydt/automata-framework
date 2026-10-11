@@ -12,7 +12,7 @@ const SLACK_MS = 0.001
 
 export interface LoopOptions {
   readonly now: () => number
-  readonly requestFrame: (callback: (time: number) => void) => number
+  readonly requestFrame: (callback: () => void) => number
   readonly cancelFrame: (handle: number) => void
   readonly onStep: () => void
   readonly onFrame: () => void
@@ -28,11 +28,15 @@ export function createLoop(options: LoopOptions): Loop {
   let last = 0
   let carried = 0
 
-  const frame = (time: number) => {
+  // Time comes from `now`, not from the frame callback's timestamp: one clock for start and every frame, so a
+  // frame timestamp on another time base (Playwright's fake clock, some WebViews) cannot add phantom steps.
+  const frame = () => {
+    const time = options.now()
     carried += time - last
     last = time
     let steps = 0
-    while (carried >= STEP_MS - SLACK_MS && steps < MAX_STEPS_PER_FRAME) {
+    // A step can stop the loop (the goal is reached, the game pauses): then no further step runs this frame.
+    while (handle !== null && carried >= STEP_MS - SLACK_MS && steps < MAX_STEPS_PER_FRAME) {
       options.onStep()
       carried -= STEP_MS
       steps++
@@ -40,7 +44,7 @@ export function createLoop(options: LoopOptions): Loop {
     // Still behind after the cap: drop the backlog rather than spiralling further behind.
     if (carried >= STEP_MS) carried = 0
     options.onFrame()
-    handle = options.requestFrame(frame)
+    if (handle !== null) handle = options.requestFrame(frame)
   }
 
   return {

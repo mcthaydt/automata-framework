@@ -1,21 +1,24 @@
 import { describe, expect, it } from 'vitest'
 import { createLoop, MAX_STEPS_PER_FRAME, STEP_MS } from './loop.ts'
 
-/** A frame scheduler driven by hand: `frame(t)` runs whatever was scheduled at time t. */
-function fakeFrames() {
-  let pending: ((time: number) => void) | null = null
+/** A clock and frame scheduler driven by hand: `frame(t)` moves the clock to t and runs the scheduled frame. */
+function fakeFrames(start = 1000) {
+  let pending: (() => void) | null = null
+  let time = start
   return {
-    request: (fn: (time: number) => void) => {
+    now: () => time,
+    request: (fn: () => void) => {
       pending = fn
       return 1
     },
     cancel: () => {
       pending = null
     },
-    frame: (time: number) => {
+    frame: (at: number) => {
+      time = at
       const fn = pending
       pending = null
-      fn?.(time)
+      fn?.()
     },
     get scheduled() {
       return pending !== null
@@ -23,11 +26,11 @@ function fakeFrames() {
   }
 }
 
-function setup(start = 1000) {
+function setup() {
   const frames = fakeFrames()
   const counts = { steps: 0, draws: 0 }
   const loop = createLoop({
-    now: () => start,
+    now: frames.now,
     requestFrame: frames.request,
     cancelFrame: frames.cancel,
     onStep: () => {
@@ -73,5 +76,24 @@ describe('the fixed-step loop', () => {
     expect(frames.scheduled).toBe(false)
     frames.frame(1000 + 100 * STEP_MS)
     expect(counts.steps).toBe(1)
+  })
+
+  it('stops stepping at once when a step stops the loop', () => {
+    const frames = fakeFrames()
+    let steps = 0
+    const loop = createLoop({
+      now: frames.now,
+      requestFrame: frames.request,
+      cancelFrame: frames.cancel,
+      onStep: () => {
+        steps++
+        loop.stop() // the goal was reached on this step
+      },
+      onFrame: () => {},
+    })
+    loop.start()
+    frames.frame(1000 + 3 * STEP_MS)
+    expect(steps).toBe(1)
+    expect(frames.scheduled).toBe(false)
   })
 })
