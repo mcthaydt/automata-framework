@@ -58,4 +58,38 @@ describe('checkLayout', () => {
       '<div data-row data-testid="row-Forest" style="height:20px;overflow:hidden"><div style="height:44px"></div></div>'
     expect(await check(row)).toEqual(['row-Forest clips 24px'])
   })
+
+  // An error layer like ErrorPanel's: 120px tall with 8px padding, so its content box ends at 112px,
+  // passing taps through everywhere but its panel.
+  const layer = (panel: string): string =>
+    '<div style="position:fixed;left:0;right:0;top:0;height:120px;box-sizing:border-box;padding:8px;' +
+    `display:flex;flex-direction:column;pointer-events:none">${panel}</div>`
+  const alert = (style: string): string =>
+    `<div role="alert" data-testid="error" style="background:red;pointer-events:auto;${style}">Failed</div>`
+
+  test('fails anything that covers Back', async () => {
+    const cover = '<div style="position:fixed;left:0;top:0;width:100px;height:100px;background:red"></div>'
+    expect(await check(frame() + cover)).toEqual(['back is covered or clipped at its centre'])
+  })
+
+  test('fails an error panel over Back that did not have to rise: taller than its floor', async () => {
+    expect(await check(frame() + layer(alert('min-height:50px;height:104px')))).toEqual([
+      'back is covered or clipped at its centre',
+    ])
+  })
+
+  test('fails an error panel over Back that did not have to rise: room left under it', async () => {
+    expect(await check(frame() + layer(alert('min-height:80px;height:80px')))).toEqual([
+      'back is covered or clipped at its centre',
+    ])
+  })
+
+  test('passes an error panel at its floor that fills the room, so it had to rise over Back', async () => {
+    expect(await check(frame() + layer(alert('min-height:104px;height:104px')))).toEqual([])
+  })
+
+  test('passes Back covered by a modal dialog: the page behind it is inert', async () => {
+    const cover = '<div style="position:fixed;left:0;top:0;width:100px;height:100px;background:red"></div>'
+    expect(await check(`<div inert>${frame()}</div>${cover}`)).toEqual([])
+  })
 })

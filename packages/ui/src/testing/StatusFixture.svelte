@@ -1,17 +1,20 @@
 <!--
   The status overlays for the layout contracts (M1.6 spec §7, plan Task 11): the loader while
   assets arrive; the boot failure with the most words on its button (Continue without loading);
-  an ErrorPanel with two ways forward, with a one-line message or a long one; and a final
+  an ErrorPanel with two ways forward, with a one-line message or a long one, and with three;
+  and a final
   ErrorPanel (no way forward) with a long message. A failure is drawn over a screen with Back in
   its corner row, as a game would show it, so the contract can check Back stays reachable.
 -->
+<script lang="ts" module>
+export type StatusShow = 'loader' | 'boot-failure' | 'error' | 'error-long' | 'error-three' | 'final-long'
+</script>
+
 <script lang="ts">
 import ScreenFrame from '../layout/ScreenFrame.svelte'
 import BootFailurePanel from '../status/BootFailurePanel.svelte'
 import ErrorPanel from '../status/ErrorPanel.svelte'
 import LoaderOverlay from '../status/LoaderOverlay.svelte'
-
-export type StatusShow = 'loader' | 'boot-failure' | 'error' | 'error-long' | 'final-long'
 
 const { show }: { show: StatusShow } = $props()
 const none = (): void => undefined
@@ -38,6 +41,16 @@ const LONG = SENTENCE.repeat(6).trim()
     />
   {:else if show === 'final-long'}
     <ErrorPanel code="unsupported" message={LONG} actions={[]} final />
+  {:else if show === 'error-three'}
+    <ErrorPanel
+      code="progress"
+      message="Couldn't load your progress."
+      actions={[
+        { id: 'retry', label: 'Try again', kind: 'primary', onSelect: none },
+        { id: 'dismiss', label: 'Continue without loading', kind: 'secondary', onSelect: none },
+        { id: 'help', label: 'Get help', kind: 'secondary', onSelect: none },
+      ]}
+    />
   {:else}
     <ErrorPanel
       code="progress"

@@ -15,7 +15,7 @@
   actions sit outside the scrolling part and never shrink (framework audit of #7).
 -->
 <script lang="ts">
-import { observeWidth } from '../layout/observe-size'
+import { observeSize, observeWidth } from '../layout/observe-size'
 import { assertWayForward, type ErrorAction } from './error-panel'
 
 interface Props {
@@ -40,31 +40,109 @@ let messageBox = $state<HTMLElement | undefined>(undefined)
 let actionsBox = $state<HTMLElement | undefined>(undefined)
 /** The panel's least height: its padding and border, one line of message and the actions, in px. */
 let floor = $state<number | undefined>(undefined)
+let layer = $state<HTMLElement | undefined>(undefined)
+/**
+ * How the message and its actions share the panel:
+ * - `row`: side by side, where the message keeps its readable width (its `min-width`, 20
+ *   characters) beside the actions;
+ * - `stack`: the actions under the message, everywhere else;
+ * - `row-tight`: side by side although the message is narrower (down to half its readable width),
+ *   only where the room left to the panel is shorter than the stacked panel and the row fits it.
+ *   There the choice is a narrow message or actions under the keyboard, and a narrow message reads.
+ * Where neither fits (a TV-sized panel in a strip of a window), the panel stacks and `overflows`:
+ * it becomes a scroll region of its own, so its reason reads and every action is a scroll away.
+ * Measured, because the actions' width (their count and labels) is not known to CSS.
+ */
+type Layout = 'row' | 'stack' | 'row-tight'
+let layout = $state<Layout>('stack')
+let overflows = $state(false)
+let stackFloor = $state<number | undefined>(undefined)
 
 const px = (value: string): number => Number.parseFloat(value) || 0
 
-/**
- * Measures the panel's floor. CSS cannot give it: a flex item's automatic minimum is its whole
- * content (the full message), and the message's own `min-height: 1lh` only holds inside the panel.
- * Without the floor the panel would shrink past its actions; with it, the layer shrinks the panel
- * first (down to the floor) and only then the corner gap. Skipped where nothing is laid out (jsdom).
- */
-function measureFloor(): void {
-  if (panel === undefined || messageBox === undefined || panel.offsetHeight === 0) return
-  const style = getComputedStyle(panel)
+/** The actions' own width on one line: each button and the gaps between them. */
+function actionsWidth(actions: HTMLElement): number {
+  const buttons = [...actions.children] as HTMLElement[]
+  const gap = px(getComputedStyle(actions).columnGap)
+  return buttons.reduce((sum, button) => sum + button.offsetWidth, 0) + gap * Math.max(0, buttons.length - 1)
+}
+
+/** The height the layer leaves the panel, its padding taken off. */
+function room(layer: HTMLElement): number {
+  const style = getComputedStyle(layer)
+  return layer.clientHeight - px(style.paddingTop) - px(style.paddingBottom)
+}
+
+/** The panel's least height in the layout it has now: its chrome, one message line and the actions. */
+function floorNow(
+  panel: HTMLElement,
+  style: CSSStyleDeclaration,
+  message: HTMLElement,
+  actions?: HTMLElement,
+): number {
   const chrome =
     px(style.paddingTop) + px(style.paddingBottom) + px(style.borderTopWidth) + px(style.borderBottomWidth)
-  const line = px(getComputedStyle(messageBox).lineHeight)
-  const actionsHeight = actionsBox?.offsetHeight ?? 0
-  const sameRow =
-    actionsBox !== undefined && actionsBox.offsetTop < messageBox.offsetTop + messageBox.offsetHeight
-  const content =
-    actionsBox === undefined
-      ? line
-      : sameRow
-        ? Math.max(line, actionsHeight)
-        : line + px(style.rowGap) + actionsHeight
-  floor = Math.ceil(chrome + content)
+  const line = px(getComputedStyle(message).lineHeight)
+  if (actions === undefined) return Math.ceil(chrome + line)
+  const sameRow = actions.offsetTop < message.offsetTop + message.offsetHeight
+  const content = sameRow
+    ? Math.max(line, actions.offsetHeight)
+    : line + px(style.rowGap) + actions.offsetHeight
+  return Math.ceil(chrome + content)
+}
+
+/**
+ * Picks the layout and measures the panel's floor. CSS cannot give the floor: a flex item's
+ * automatic minimum is its whole content (the full message), and the message's own
+ * `min-height: 1lh` only holds inside the panel. Without the floor the panel would shrink past its
+ * actions; with it, the layer shrinks the panel first (down to the floor) and only then the corner
+ * gap. To compare layouts it lays the panel out in each, synchronously, and reads it back; the
+ * attribute is then left as Svelte last wrote it and `layout` updates it. Skipped where nothing is
+ * laid out (jsdom).
+ */
+function measureFloor(): void {
+  const node = panel
+  const message = messageBox
+  const actions = actionsBox
+  if (node === undefined || message === undefined || layer === undefined || node.offsetHeight === 0) return
+  const style = getComputedStyle(node)
+  const space = room(layer)
+  if (actions === undefined) {
+    layout = 'stack'
+    stackFloor = undefined
+    floor = floorNow(node, style, message)
+    overflows = false
+    return
+  }
+  const shown = node.dataset.layout
+  const tryLayout = (candidate: Layout) => {
+    node.dataset.layout = candidate
+    return { floor: floorNow(node, style, message, actions), width: message.clientWidth }
+  }
+  const stacked = tryLayout('stack')
+  const readable = px(getComputedStyle(message).minWidth)
+  const row = tryLayout('row')
+  // The message's room beside the actions on one line: the panel's inner width less theirs.
+  const inner = node.clientWidth - px(style.paddingLeft) - px(style.paddingRight)
+  const beside = inner - actionsWidth(actions) - px(style.columnGap) >= readable
+  const tight = tryLayout('row-tight')
+  if (shown !== undefined) node.dataset.layout = shown
+  stackFloor = stacked.floor
+  overflows = false
+  if (beside) {
+    layout = 'row'
+    floor = row.floor
+  } else if (stacked.floor <= space) {
+    layout = 'stack'
+    floor = stacked.floor
+  } else if (tight.floor <= space && tight.width >= readable / 2 - 0.5) {
+    layout = 'row-tight'
+    floor = tight.floor
+  } else {
+    layout = 'stack'
+    overflows = true
+    floor = Math.floor(space)
+  }
 }
 
 $effect(() => {
@@ -74,6 +152,8 @@ $effect(() => {
   void actions
   measureFloor()
   const stops = [observeWidth(node, measureFloor)]
+  // The keyboard and the host's reservations change the layer's height, not the panel's width.
+  if (layer !== undefined) stops.push(observeSize(layer, measureFloor))
   if (actionsBox !== undefined) stops.push(observeWidth(actionsBox, measureFloor))
   return () => {
     for (const stop of stops) stop()
@@ -81,13 +161,17 @@ $effect(() => {
 })
 </script>
 
-<div class="af-error-layer" data-final={final ? '' : undefined}>
+<div bind:this={layer} class="af-error-layer" data-final={final ? '' : undefined}>
   <div
     bind:this={panel}
     class="af-error-panel"
     role="alert"
     data-code={code}
     data-testid={testId}
+    data-layout={layout}
+    data-stack-floor={stackFloor}
+    data-overflow={overflows ? '' : undefined}
+    data-scroll-region={overflows ? '' : undefined}
     style:min-height={floor === undefined ? undefined : `${floor}px`}
   >
     <p bind:this={messageBox} class="af-error-panel__message" data-scroll-region data-testid={`${testId}-message`}>
@@ -124,9 +208,6 @@ $effect(() => {
     padding: max(var(--af-gutter), var(--af-inset-top, 0px)) max(var(--af-gutter), var(--af-inset-right, 0px))
       var(--af-gutter) max(var(--af-gutter), var(--af-inset-left, 0px));
     pointer-events: none;
-    /* The panel's width is the layer's content width, capped: the one-row query below reads it
-       here, because a container query styles a container's descendants, never the container. */
-    container: af-error-layer / inline-size;
   }
 
   /* The room the corner row takes, so the panel sits under it. When the layer is short the panel
@@ -167,6 +248,9 @@ $effect(() => {
   .af-error-panel__message {
     margin: 0;
     min-height: 1lh;
+    /* Its readable width, 20 characters: below that the actions stack under it (`layout`). In
+       `row-tight` the grid column overrides it. */
+    min-width: 20ch;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
@@ -177,16 +261,24 @@ $effect(() => {
     gap: 8px;
   }
 
-  /* The message and its actions on one row wherever the panel is wide enough. */
-  @container af-error-layer (min-width: 420px) {
-    .af-error-panel {
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-rows: auto;
-      align-items: center;
-    }
+  /* The message and its actions on one row (decided in script: `layout`). */
+  /* Too little room for any layout: the panel scrolls as a whole (`overflows`). */
+  .af-error-panel[data-overflow] {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 
-    .af-error-panel__message {
-      align-self: stretch;
-    }
+  .af-error-panel:is([data-layout="row"], [data-layout="row-tight"]) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    align-items: center;
+  }
+
+  .af-error-panel:is([data-layout="row"], [data-layout="row-tight"]) .af-error-panel__message {
+    align-self: stretch;
+  }
+
+  .af-error-panel[data-layout="row-tight"] .af-error-panel__message {
+    min-width: 0;
   }
 </style>

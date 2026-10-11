@@ -21,28 +21,73 @@ const ESSENTIALS = {
   'boot-failure': ['error-continue', 'boot-failure-message'],
   error: ['error-retry', 'error-dismiss', 'error-panel-message'],
   'error-long': ['error-retry', 'error-dismiss', 'error-panel-message'],
+  'error-three': ['error-retry', 'error-dismiss', 'error-help', 'error-panel-message'],
   'final-long': ['error-panel-message'],
 } as const
-const SHOWS = ['loader', 'boot-failure', 'error', 'error-long', 'final-long'] as const
+const SHOWS = ['loader', 'boot-failure', 'error', 'error-long', 'error-three', 'final-long'] as const
+
+/** How wide `chars` characters of the message's font are, read from a probe beside it. */
+function charsWide(beside: HTMLElement, chars: number): number {
+  const probe = document.createElement('span')
+  probe.style.cssText = `position:absolute;visibility:hidden;width:${chars}ch;font:inherit`
+  beside.after(probe)
+  const width = probe.getBoundingClientRect().width
+  probe.remove()
+  return width
+}
 
 /**
- * The panel's own checks (spec §3.4). Its message shows at least one whole line. And Back stays
- * reachable, unless the panel rose over the corner row because its actions could not fit
- * otherwise: by then the panel is down to its floor (padding, one line of message, the actions).
- * A final panel has no actions, so it never rises, and Back is its only way out.
+ * The message's own checks (spec §3.4): it shows at least one whole line, at least 20 characters
+ * wide, so the actions never stand without a readable reason. Back's coverage is `checkLayout`'s.
  */
-function panelProblems(show: (typeof SHOWS)[number]): string[] {
+function messageProblems(show: (typeof SHOWS)[number]): string[] {
   if (show === 'loader') return []
-  const panelId = show === 'boot-failure' ? 'boot-failure' : 'error-panel'
-  const panel = byTestId(panelId)
-  const message = byTestId(`${panelId}-message`)
+  const message = byTestId(show === 'boot-failure' ? 'boot-failure-message' : 'error-panel-message')
   const line = Number.parseFloat(getComputedStyle(message).lineHeight)
+  const readable = charsWide(message, 20)
   const problems: string[] = []
   if (message.clientHeight < line - 0.5)
     problems.push(`the message shows ${message.clientHeight}px, under one line`)
-  const backBlocked = findUnreachable([byTestId('corner-back')])
-  const atFloor = panel.offsetHeight <= Number.parseFloat(panel.style.minHeight) + 1
-  if (backBlocked.length > 0 && (show === 'final-long' || !atFloor)) problems.push(...backBlocked)
+  const panel = message.closest<HTMLElement>('[role="alert"]')
+  const tight = panel?.dataset.layout === 'row-tight'
+  if (message.clientWidth < readable - 0.5 && !tight)
+    problems.push(
+      `the message is ${message.clientWidth}px wide, under 20 characters (${Math.round(readable)}px)`,
+    )
+  // A narrow message is allowed only where the stacked panel cannot fit the room left to it.
+  if (tight && panel !== null) {
+    const layer = panel.parentElement as HTMLElement
+    const style = getComputedStyle(layer)
+    const room =
+      layer.clientHeight - Number.parseFloat(style.paddingTop) - Number.parseFloat(style.paddingBottom)
+    const stacked = Number.parseFloat(panel.dataset.stackFloor ?? '')
+    if (!(stacked > room))
+      problems.push(`the row is tight, but the stacked panel (${stacked}px) fits the room (${room}px)`)
+  }
+  return problems
+}
+
+/**
+ * A panel with too little room for any layout scrolls as a whole (spec §3.4). Allowed only where
+ * the stacked panel cannot fit the room, and then each of its essentials must be reachable once
+ * scrolled to.
+ */
+function overflowProblems(scrolled: readonly HTMLElement[]): string[] {
+  const panel = scrolled[0]?.closest<HTMLElement>('[data-overflow]')
+  if (panel === undefined || panel === null) return []
+  const problems: string[] = []
+  const layer = panel.parentElement as HTMLElement
+  const style = getComputedStyle(layer)
+  const room =
+    layer.clientHeight - Number.parseFloat(style.paddingTop) - Number.parseFloat(style.paddingBottom)
+  const stacked = Number.parseFloat(panel.dataset.stackFloor ?? '')
+  if (!(stacked > room))
+    problems.push(`the panel scrolls, but the stacked panel (${stacked}px) fits the room (${room}px)`)
+  for (const element of scrolled) {
+    element.scrollIntoView({ block: 'nearest' })
+    problems.push(...findUnreachable([element]).map((problem) => `once scrolled to, ${problem}`))
+  }
+  panel.scrollTop = 0
   return problems
 }
 
@@ -55,7 +100,16 @@ describe('status layout contract', () => {
         const conditions = publishConditions(document.documentElement, size, variant)
         const fixture = mountFixture(StatusFixture, { show })
         await settleLayout()
-        const found = [...checkLayout(conditions, ESSENTIALS[show].map(byTestId)), ...panelProblems(show)]
+        const essentials = ESSENTIALS[show].map(byTestId)
+        const scrolled = essentials.filter((element) => element.closest('[data-overflow]') !== null)
+        const found = [
+          ...checkLayout(
+            conditions,
+            essentials.filter((element) => !scrolled.includes(element)),
+          ),
+          ...messageProblems(show),
+          ...overflowProblems(scrolled),
+        ]
         for (const problem of found) problems.push(`${variant.name} ${show}: ${problem}`)
         await fixture.unmount()
       }

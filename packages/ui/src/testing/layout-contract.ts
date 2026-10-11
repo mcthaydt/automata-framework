@@ -83,9 +83,46 @@ function findCornerOverlaps(root: ParentNode): string[] {
 }
 
 /**
+ * An ErrorPanel that had to rise over the corner row (spec §3.4): it is at its floor (the least
+ * height it can take, its inline min-height) and still fills the room its layer leaves it. A panel
+ * with room under it, or taller than its floor, could have stayed under the corner row.
+ */
+function roseBecauseItHadTo(panel: HTMLElement): boolean {
+  const layer = panel.parentElement
+  if (layer === null) return false
+  const floor = Number.parseFloat(panel.style.minHeight)
+  if (!(panel.offsetHeight <= floor + 1)) return false
+  const contentBottom =
+    layer.getBoundingClientRect().bottom - Number.parseFloat(getComputedStyle(layer).paddingBottom)
+  return Math.abs(panel.getBoundingClientRect().bottom - contentBottom) <= 1
+}
+
+/**
+ * The corner row's controls (Back, above all) stay reachable: nothing covers them but a modal
+ * dialog, which makes the page behind it inert, or an ErrorPanel that had to rise over them.
+ */
+function findCoveredCorners(root: ParentNode): string[] {
+  // Panels that had to rise are set aside while the corner row is hit tested, so whatever else
+  // covers it (or clips it) still counts.
+  const risen = [...document.querySelectorAll<HTMLElement>('[role="alert"]')].filter(roseBecauseItHadTo)
+  const visibility = risen.map((panel) => panel.style.visibility)
+  for (const panel of risen) panel.style.visibility = 'hidden'
+  const problems: string[] = []
+  for (const row of root.querySelectorAll('[data-corner-controls]')) {
+    if (row.closest('[inert]') !== null) continue
+    problems.push(...findUnreachable(visibleControls(row)))
+  }
+  risen.forEach((panel, index) => {
+    panel.style.visibility = visibility[index] ?? ''
+  })
+  return problems
+}
+
+/**
  * The checks every screen shares: the document never scrolls; every control is at least the target
  * (primaries the primary target) at this scale, on screen unless in a declared scroll region,
- * never under a reserved area and never over the corner row; no ActionBar wraps (level 3); no row
+ * never under a reserved area and never over the corner row; the corner row's controls stay
+ * reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row
  * (`[data-row]`) clips what it holds; and each of `essentials` is reachable without scrolling.
  */
 export function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[] {
@@ -96,6 +133,7 @@ export function checkLayout(conditions: Conditions, essentials: readonly Element
     ...findOffscreenControls(document.body),
     ...findIntrusions(document.body, conditions.reserved),
     ...findCornerOverlaps(document.body),
+    ...findCoveredCorners(document.body),
     ...findWrappedBars(document.body),
     ...findClipped(document.body, '[data-row]'),
     ...findUnreachable(essentials),

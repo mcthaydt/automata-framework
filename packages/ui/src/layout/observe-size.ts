@@ -14,3 +14,11 @@ export function observeWidth(node: Element, listener: (width: number) => void): 
   observer.observe(node)
   return () => observer.disconnect()
 }
+
+/** Like `observeWidth`, but for any change of size, height included (a keyboard rising). */
+export function observeSize(node: Element, listener: () => void): () => void {
+  if (typeof ResizeObserver === 'undefined') return () => {}
+  const observer = new ResizeObserver(() => listener())
+  observer.observe(node)
+  return () => observer.disconnect()
+}
