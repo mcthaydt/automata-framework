@@ -138,7 +138,9 @@ describe('parity across packages', () => {
   ].filter(hasPackageJson)
 
   it("runs every package's parity suite through the root test:parity script", () => {
-    expect(packageJson('.').scripts['test:parity']).toBe('turbo run test:parity')
+    // Three suites at a time: each starts Chromium, WebKit and Firefox, and on the shared WSL Docker runner ten
+    // suites at once (turbo's default) left Firefox past vitest's 60 s connect timeout (#14, 2026-10-11).
+    expect(packageJson('.').scripts['test:parity']).toBe('turbo run test:parity --concurrency=3')
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
   })
 
