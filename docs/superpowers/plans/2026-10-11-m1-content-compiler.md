@@ -46,8 +46,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement (FloorFifty `parseFile`, `toDiagnostics`).
 
 ### T4 Schemas and references
-- [ ] Port `validate/references.test.ts` cases (unknown reference, wrong kind) through `contentRef`; plus kind validation, reserved kinds, references inside arrays/records/unions, `localized` collection with key paths. Fails: module missing.
-- [ ] Implement `content-schema.ts` and `references.ts`.
+- [x] Port `validate/references.test.ts` cases (unknown reference, wrong kind) through `contentRef`; plus kind validation, reserved kinds, references inside arrays/records/unions, `localized` collection with key paths. Fails: module missing.
+- [x] Implement `content-schema.ts` and `references.ts`.
 
 ### T5 Tuning
 - [ ] Port `validate/bounds.test.ts` (complete base, partial layer, int, invariant, inclusive endpoints, unknown name, base transcribed from declarations) with FloorFifty's `TUNABLES` subset as a fixture; add authored-range cases (in range, out of range at `value`, `min > max`, `step <= 0`, ranged non-number, bad name) and the code-owned refusal of inline ranges. Port `compiler.test.ts` "the author guide" to `tuning-table`. Fails: module missing.
