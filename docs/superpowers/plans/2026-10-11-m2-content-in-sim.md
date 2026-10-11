@@ -34,16 +34,16 @@
 Each task: write the failing test, run it and see it fail for the stated reason, write the least code, run the package tests, `pnpm check`, commit.
 
 ### Task 1: `sim` option on schemas
-- [ ] `content-schema.test.ts`: `defineContentSchema('room', S, { folder: 'rooms' })` has `sim: true`; with `{ sim: false }` it is `false`; `configProblems` reports `kind "x": sim must be true or false` for `{ sim: 'yes' as never }`. Expected failure: `sim` is `undefined`.
-- [ ] Implement (fourth parameter, frozen field, one config check).
+- [x] `content-schema.test.ts`: `defineContentSchema('room', S, { folder: 'rooms' })` has `sim: true`; with `{ sim: false }` it is `false`; `configProblems` reports `kind "x": sim must be true or false` for `{ sim: 'yes' as never }`. Expected failure: `sim` is `undefined`.
+- [x] Implement (fourth parameter, frozen field, one config check).
 
 ### Task 2: the partition and its hash
-- [ ] `sim-partition.test.ts` with an in-memory fixture (rooms sim, sounds non-sim, tuning, flow, palette, game, assets): `compileContent` returns `sim.data` with exactly `tuning` and `rooms`; `tuning` is `{}` without `tuning.toml`; `sim.hash === contentHash(sim.data)`; editing a room, or a room's localized source text, changes `sim.hash` and `hash`; editing `game.toml` `descriptors`, `palette.toml`, `flow.toml` or a sound changes `hash` only. Expected failure: `sim` is `undefined`.
-- [ ] Implement `simPartition` and wire it into step 6 (`compile-content.ts:286`).
+- [x] `sim-partition.test.ts` with a committed fixture (`testing/fixtures/sim-rooms`, copied to a temp folder per test; the compiler reads files, so "in-memory" became a small committed tree) (rooms sim, sounds non-sim, tuning, flow, palette, game, assets): `compileContent` returns `sim.data` with exactly `tuning` and `rooms`; `tuning` is `{}` without `tuning.toml`; `sim.hash === contentHash(sim.data)`; editing a room, or a room's localized source text, changes `sim.hash` and `hash`; editing `game.toml` `descriptors`, `palette.toml`, `flow.toml` or a sound changes `hash` only. Expected failure: `sim` is `undefined`.
+- [x] Implement `simPartition` and wire it into step 6 (`compile-content.ts:286`).
 
 ### Task 3: `simReference`
-- [ ] Failing tests in `sim-partition.test.ts`: a room with `ambience = contentRef('sound')` fails with one `simReference` diagnostic at that key's `file:line:col` and the message in spec §3.1; a sound referring to a room passes. Expected failure: the compile succeeds.
-- [ ] Add the code to `DiagnosticCode`; implement `simReferenceProblems` over the references resolved before step 6.
+- [x] Failing tests in `sim-partition.test.ts`: a room with `ambience = contentRef('sound')` fails with one `simReference` diagnostic at that key's `file:line:col` and the message in spec §3.1; a sound referring to a room passes. Expected failure: the compile succeeds.
+- [x] Add the code to `DiagnosticCode`; implement `simReferenceProblems` over the references resolved before step 6.
 
 ### Task 4: outputs and verify
 - [ ] `write-outputs.test.ts`: a build writes `sim-content.json` (canonical file form) and `sim-content.hash`, both listed in `outputs.txt`; `verifyContent` reports `staleArtifact` for a hand-edited `sim-content.hash`. Expected failure: the files are missing.

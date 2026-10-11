@@ -4,6 +4,7 @@ import { defineContentGenerator, type GeneratorInput, runGenerators } from './co
 const input: GeneratorInput = {
   data: { song: { dawn: {} } },
   hash: '0123456789abcdef',
+  sim: { data: { tuning: {} }, hash: 'fedcba9876543210' },
   schemas: [],
   messages: {},
   tuning: {},

@@ -14,6 +14,8 @@ export type ContentData = Readonly<Record<string, unknown>>
 export interface GeneratorInput {
   readonly data: ContentData
   readonly hash: string
+  /** The sim partition and its hash (M2.2), so a generator never re-derives it from `schemas`. */
+  readonly sim: { readonly data: ContentData; readonly hash: string }
   readonly schemas: readonly ContentSchemaDef[]
   readonly messages: MessageCatalog
   readonly tuning: TuningMeta

@@ -38,6 +38,7 @@ import { checkTuning, type TunableDeclarations, type TuningMeta } from '../tunin
 import { builtInGenerators } from './built-in-generators'
 import { ContentCompileFailed, InvalidContentConfig } from './errors'
 import { readSources, type SourceTree } from './read-sources'
+import { type SimPartition, simPartition, simReferenceProblems } from './sim-partition'
 
 export interface ContentOptions {
   /** The project root; content is read from `<root>/content`. */
@@ -56,7 +57,10 @@ export interface ContentOptions {
 
 export interface CompiledContent {
   readonly data: ContentData
+  /** Over all of `data`: the boot check and evidence identity. Never compared with `sim.hash`. */
   readonly hash: string
+  /** What the sim receives, and the hash that gates snapshots and replays (M2.2 spec §3.2). */
+  readonly sim: SimPartition
   /** Each output path, relative to the output folder, to its exact text. Build and verify use the same bytes. */
   readonly files: ReadonlyMap<string, string>
   /** Problems that do not stop a compile (`skippedFile`), sorted. They are not part of the hash or the outputs. */
@@ -183,8 +187,11 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
     if (parsed !== undefined) data[def.kind] = addItem(def.kind, undefined, parsed)
   }
 
-  // 2. References between items.
-  for (const item of items) place(item.toml, checkReferences(item.refs, ids))
+  // 2. References between items, and none from sim content out to a kind the sim does not receive.
+  for (const item of items) {
+    place(item.toml, checkReferences(item.refs, ids))
+    place(item.toml, simReferenceProblems(item.kind, item.refs, options.schemas))
+  }
 
   // 3. The source-language messages. A key two texts share is reported where the second one is.
   const { messages, collisions } = collectMessages(items)
@@ -283,8 +290,9 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
     return { ok: false, error: new ContentCompileFailed({ diagnostics: sortDiagnostics(diagnostics) }) }
   }
 
-  // 6. Hash and generators. Generators only ever see content that passed every check.
+  // 6. Hashes and generators. Generators only ever see content that passed every check.
   const hash = contentHash(data)
+  const sim = simPartition(data, options.schemas)
   const generators = [
     ...builtInGenerators({ flow, game: game?.value, languages, hasAssets: assets !== undefined }),
     ...(options.generators ?? []),
@@ -292,6 +300,7 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   const run = runGenerators(generators, {
     data,
     hash,
+    sim,
     schemas: options.schemas,
     messages,
     tuning: tuning.meta,
@@ -304,7 +313,7 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   }
   return {
     ok: true,
-    content: { data, hash, files: withOutputList(run.files), warnings: sortDiagnostics(tree.warnings) },
+    content: { data, hash, sim, files: withOutputList(run.files), warnings: sortDiagnostics(tree.warnings) },
   }
 }
 
