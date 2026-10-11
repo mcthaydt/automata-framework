@@ -33,7 +33,7 @@ interface Workflow {
   readonly jobs: Record<string, Job>
 }
 const workflow = (name: string): Workflow => parse(workflowText(name)) as Workflow
-const ALL = ['ci.yml', 'game-ci.yml', 'game-release.yml']
+const ALL = ['ci.yml', 'game-ci.yml', 'game-release.yml', 'release-packages.yml']
 
 describe('every workflow', () => {
   it.each(ALL)('%s pins third-party actions to a commit, as Ruken does', (name) => {
@@ -269,6 +269,108 @@ describe('ci.yml (AF)', () => {
       .map((job) => job.with?.['artifact-name'] ?? 'game-dist')
     expect(names.length).toBeGreaterThan(1)
     expect(new Set(names).size).toBe(names.length)
+  })
+})
+
+describe('ci.yml release checks (M2.4 spec §3.5)', () => {
+  const ci = workflow('ci.yml')
+  const steps = ci.jobs.checks?.steps ?? []
+  const runs = steps.map((step) => step.run ?? '')
+
+  it('checks out full history on pull requests, so changeset status can compare with origin/main', () => {
+    const checkout = steps.find((step) => step.uses?.startsWith('actions/checkout@'))
+    expect(checkout?.with?.['fetch-depth']).toBe("${{ github.event_name == 'pull_request' && 0 || 1 }}")
+  })
+
+  it('requires a changeset for a changed published package, allows only patch bumps, and builds every package', () => {
+    const status = runs.indexOf('pnpm changeset status --since=origin/main')
+    const patchOnly = runs.indexOf('node tooling/release/src/check-changesets.ts')
+    const build = runs.indexOf('pnpm build')
+    const dist = runs.indexOf('pnpm --filter @mcthaydt/release test:dist')
+    expect(status).toBeGreaterThan(-1)
+    expect(patchOnly).toBeGreaterThan(status)
+    expect(build).toBeGreaterThan(patchOnly)
+    expect(dist).toBeGreaterThan(build)
+    // On a push to main there is nothing to compare with: changeset status runs on pull requests only.
+    expect(steps[status]?.if).toBe("github.event_name == 'pull_request'")
+  })
+
+  it('runs the same release checks in ci:local', () => {
+    const local = (
+      JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts['ci:local'] as string
+    ).split(' && ')
+    for (const step of [
+      'pnpm changeset status --since=origin/main',
+      'node tooling/release/src/check-changesets.ts',
+      'pnpm build',
+      'pnpm --filter @mcthaydt/release test:dist',
+    ]) {
+      expect(local).toContain(step)
+    }
+  })
+})
+
+describe('release-packages.yml (M2.4 spec §3.5)', () => {
+  const release = workflow('release-packages.yml')
+  const job = release.jobs.release
+  const steps = job?.steps ?? []
+  const step = (prefix: string) => steps.find((each) => each.uses?.startsWith(prefix))
+  const changesets = step('changesets/action@')
+  const PUBLISHED = "steps.changesets.outputs.published == 'true'"
+
+  it('runs on pushes to main only, one release at a time', () => {
+    expect(Object.keys(release.on)).toEqual(['push'])
+    expect(JSON.stringify(release.on.push)).toContain('main')
+    const parsed = parse(workflowText('release-packages.yml')) as { concurrency?: { group: string } }
+    expect(parsed.concurrency?.group).toBe('release')
+  })
+
+  it('stays off the shared self-hosted runners, since it holds a write token', () => {
+    expect(job?.['runs-on']).toBe('ubuntu-latest')
+    expect((job as { 'timeout-minutes'?: number })['timeout-minutes']).toBe(20)
+  })
+
+  it('may write contents, pull requests and packages, nothing else', () => {
+    expect((job as { permissions?: Record<string, string> }).permissions).toEqual({
+      contents: 'write',
+      'pull-requests': 'write',
+      packages: 'write',
+    })
+  })
+
+  it('checks out full history and points npm at GitHub Packages for @mcthaydt', () => {
+    expect(step('actions/checkout@')?.with?.['fetch-depth']).toBe(0)
+    const node = step('actions/setup-node@')
+    expect(node?.with?.['registry-url']).toBe('https://npm.pkg.github.com')
+    expect(node?.with?.scope).toBe('@mcthaydt')
+    expect(node?.with?.['node-version-file']).toBe('.nvmrc')
+  })
+
+  it("opens the Version packages PR or publishes, with Ruken's pinned changesets/action and the workflow token", () => {
+    expect(changesets?.uses).toBe('changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51')
+    expect((changesets as { id?: string }).id).toBe('changesets')
+    expect(changesets?.with?.version).toBe('pnpm release:version')
+    expect(changesets?.with?.publish).toBe('pnpm release')
+    expect(changesets?.with?.title).toBe('Version packages')
+    expect(changesets?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
+    expect(changesets?.env?.GITHUB_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
+  })
+
+  it('after a publish only: verifies every package is on the registry, then installs them from outside', () => {
+    const after = steps.slice(steps.indexOf(changesets as Step) + 1)
+    const version = after.find((each) => each.run?.includes('released-version.ts'))
+    const verify = after.find((each) => each.run?.includes('verify-published.ts'))
+    const smoke = after.find((each) => each.run?.includes('consumer-smoke/src/run.ts'))
+    for (const each of [version, verify, smoke]) expect(each?.if).toBe(PUBLISHED)
+    expect(version?.env?.PUBLISHED).toBe('${{ steps.changesets.outputs.publishedPackages }}')
+    expect(verify?.run).toContain('--version "$VERSION"')
+    expect(smoke?.run).toContain('--from registry --version "$VERSION"')
+    expect(after.indexOf(verify as Step)).toBeLessThan(after.indexOf(smoke as Step))
+    for (const each of [verify, smoke]) expect(each?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
+  })
+
+  it('publishes without --provenance (GitHub Packages does not document it; spec §8)', () => {
+    expect(JSON.stringify(steps)).not.toMatch(/provenance/i)
   })
 })
 

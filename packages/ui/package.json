@@ -1,6 +1,11 @@
 {
   "name": "@mcthaydt/automata-ui",
   "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "packages/ui"
+  },
   "type": "module",
   "sideEffects": [
     "*.css",

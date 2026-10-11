@@ -66,21 +66,21 @@ Each task: write the failing test or check, run it and see it fail for the state
 - [x] The release list test fails on `ui`'s `.d.ts` naming `@ruken/sdk` (`landscape-gate`, `geometry`, `boot-failure`); add the tsdown `dts` pass that inlines them (spec §3.4) and move `@ruken/sdk` to `devDependencies`; the test passes for `ui`. *Done: tsdown inlines `@ruken/sdk`'s types into `dist/vendor/ruken-sdk.d.ts` and `finish-svelte-dist.ts` points ui's declarations at it (and drops tests). svelte-package runs with `tsconfig.package.json` (isolatedDeclarations off: svelte2tsx output has inferred types).*
 
 ### Task 7: Changesets and the version rules
-- [ ] `@changesets/cli` 3.0.3 (row); `.changeset/config.json` per spec §3.5.
-- [ ] `tooling/release/src/check-changesets.test.ts` then `check-changesets.ts` (patch only). Expected failure: module missing.
-- [ ] `sync-versions.test.ts` then `sync-versions.ts` (rewrites `packages/sim/src/version.ts`; skipped with a note until M2.3 merges).
-- [ ] Root scripts `release:version` and `release`; a dry run in a scratch clone: `pnpm changeset` (patch on sim) → `pnpm release:version` bumps every package to `0.0.1` (fixed group) and writes changelogs. Not committed.
+- [x] `@changesets/cli` 3.0.3 (row); `.changeset/config.json` per spec §3.5.
+- [x] `tooling/release/src/check-changesets.test.ts` then `check-changesets.ts` (patch only). Expected failure: module missing.
+- [x] `sync-versions.test.ts` then `sync-versions.ts` (rewrites `packages/sim/src/version.ts`; skipped with a note until M2.3 merges). *Done without a skip: the tests use a temp repository, and with no `version.ts` yet the step reports `no-version-file` and changes nothing.*
+- [x] Root scripts `release:version` and `release`; a dry run in a scratch clone: `pnpm changeset` (patch on sim) → `pnpm release:version` bumps every package to `0.0.1` (fixed group) and writes changelogs. Not committed. *Done 2026-10-11: all nine packages went 0.0.0 → 0.0.1 with changelogs; `SIM_VERSION no-version-file`.*
 
 ### Task 8: CI steps and turbo
-- [ ] `workflows.test.ts`: `checks` checks out with `fetch-depth: 0` and runs `changeset status --since=origin/main`, the patch-only check and `pnpm build`; `ci:local` equals the checks job (the existing equality test). Expected failure: steps missing.
-- [ ] Edit `ci.yml` and `ci:local`; `pnpm lint:actions` clean.
+- [x] `workflows.test.ts`: `checks` checks out with `fetch-depth: 0` and runs `changeset status --since=origin/main`, the patch-only check and `pnpm build`; `ci:local` equals the checks job (the existing equality test). Expected failure: steps missing.
+- [x] Edit `ci.yml` and `ci:local`; `pnpm lint:actions` clean. *Done: actionlint 1.7.12 run from its release binary (no Docker daemon in this container). `changeset status` runs on pull requests only (nothing to compare on a push to main), and the checks job also runs the release list's dist checks after `pnpm build`.*
 - [x] `turbo.test.ts`: only `build` has `dependsOn: ["^build"]`. Expected failure: `typecheck`, `test`, `test:unit`, `test:parity` have it. Edit `turbo.json`; `pnpm check` runs no `build`.
 
 ### Task 9: release workflow
-- [ ] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, `verify-published` then the registry-mode consumer smoke after publish, both guarded by `steps.changesets.outputs.published == 'true'` and given the version from `publishedPackages`). Expected failure: `release-packages.yml` does not exist.
-- [ ] `tooling/release/src/publishable-packages.ts` (workspace packages whose `private` is not `true`), used by `release-list.test.ts` and `verify-published`. Then `verify-published.test.ts` (spec §6: present, missing-then-present, missing after 5 tries, lookup error; fake clock) and `verify-published.ts` (`pnpm view`, bounded retry). Expected failure: module missing.
-- [ ] Write the workflow; `actionlint` clean.
-- [ ] Provenance: GitHub's npm-registry docs (spec, Builds from) do not mention it; leave `--provenance` off and say so in the spec's §8. A test publish to check it needs the Owner's OK and is not part of this task.
+- [x] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, `verify-published` then the registry-mode consumer smoke after publish, both guarded by `steps.changesets.outputs.published == 'true'` and given the version from `publishedPackages`). Expected failure: `release-packages.yml` does not exist.
+- [x] `tooling/release/src/publishable-packages.ts` (workspace packages whose `private` is not `true`), used by `release-list.test.ts` and `verify-published`. Then `verify-published.test.ts` (spec §6: present, missing-then-present, missing after 5 tries, lookup error; fake clock) and `verify-published.ts` (`pnpm view`, bounded retry). Expected failure: module missing.
+- [x] Write the workflow; `actionlint` clean. *Also: each published package.json names this repository (`repository.directory`), which GitHub uses to link a package to the repository whose `GITHUB_TOKEN` may publish it; the release list test pins it. The version comes from `publishedPackages` through `released-version.ts`.*
+- [x] Provenance: GitHub's npm-registry docs (spec, Builds from) do not mention it; leave `--provenance` off and say so in the spec's §8. *Spec §8 already says so; the workflow test asserts no provenance setting.* A test publish to check it needs the Owner's OK and is not part of this task.
 
 ### Task 10: consumer smoke
 - [ ] `tooling/consumer-smoke/src/run.ts` per spec §3.6 with its fixtures. First run fails until every build is right; record what each failure taught in the log.

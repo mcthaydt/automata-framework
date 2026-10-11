@@ -1,6 +1,11 @@
 {
   "name": "@mcthaydt/automata-sim",
   "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "packages/sim"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [

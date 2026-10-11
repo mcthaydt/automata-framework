@@ -9,6 +9,7 @@ export interface PackageManifest {
   readonly version: string
   readonly private?: boolean
   readonly files?: readonly string[]
+  readonly repository?: { readonly type: string; readonly url: string; readonly directory?: string }
   readonly exports?: Readonly<Record<string, unknown>>
   readonly bin?: Readonly<Record<string, string>>
   readonly dependencies?: Readonly<Record<string, string>>

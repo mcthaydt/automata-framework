@@ -65,6 +65,17 @@ describe('the published packages', () => {
   )
 
   it(
+    "name this repository, so the release job's GITHUB_TOKEN may publish them (GitHub links a package by it)",
+    each(({ dir, manifest }) => {
+      expect(manifest.repository, manifest.name).toEqual({
+        type: 'git',
+        url: 'git+https://github.com/mcthaydt/automata-framework.git',
+        directory: dir,
+      })
+    }),
+  )
+
+  it(
     'publish the same export keys as the workspace, pointing into dist',
     each(({ manifest }) => {
       expect(Object.keys(manifest.publishConfig?.exports ?? {}), manifest.name).toEqual(
