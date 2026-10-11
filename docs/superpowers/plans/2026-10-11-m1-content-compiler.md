@@ -70,8 +70,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement. (Parity run in browsers pending; recorded at T14.)
 
 ### T10 Generators and `content.d.ts`
-- [ ] Test `defineContentGenerator` (files, diagnostics, a throw becomes `generatorFailed`); `renderTypes` pinned text for strings, numbers, enums, optionals, arrays, records, references and nested objects, `unknown` with a comment otherwise; the fixture game's `content.d.ts` typechecks in a consumer and a wrong ID literal does not. Fails: module missing.
-- [ ] Implement.
+- [x] Test `defineContentGenerator` (files, diagnostics, a throw becomes `generatorFailed`); `renderTypes` pinned text for strings, numbers, enums, optionals, arrays, records, references and nested objects, `unknown` with a comment otherwise; the fixture game's `content.d.ts` typechecks in a consumer and a wrong ID literal does not. Fails: module missing.
+- [x] Implement.
 
 ### T11 Compile, build, verify
 - [ ] Port `parse.test.ts` "readSources …" and `compiler.test.ts` (check writes nothing, build writes, retains prior bytes and leaves no temps after invalid input, reports a missing required source, detects missing/malformed/different-bytes outputs, accepts what it just wrote) and `determinism.test.ts` "equivalent trees"; add: several broken files report every diagnostic sorted, `InvalidContentConfig` cases, generator clash/escape, nested IDs and `invalidId`, the hash moves on any authored change. Fails: module missing.
