@@ -2,7 +2,9 @@
   A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
 
   It reserves `min(minRows, rowCount)` rows of `--af-row-h` as its minimum height, so on a short
-  screen its siblings shrink before a row is lost. For that to work its parent must give it a
+  screen its siblings shrink before a row is lost. The reserve is capped at the height its parent
+  gives it: where even that cannot hold the rows (TV scale on a compact phone) the list keeps what
+  fits and scrolls the rest inside its own box, rather than painting over the controls below it. For that to work its parent must give it a
   `1fr` grid row or `flex: 1 1 auto`, never `minmax(0, 1fr)`, which ignores an item's minimum.
   Rows mark themselves `data-row`. It is a declared scroll region (`data-scroll-region`): the layout
   contracts allow controls to be off screen only inside one.
@@ -90,7 +92,7 @@ $effect(() => {
   data-testid={testId}
   aria-label={label}
   role="region"
-  style:min-height={reserve}
+  style:min-height={`min(${reserve}, 100%)`}
   onscroll={count}
 >
   {@render children()}

@@ -16,8 +16,9 @@ export interface LayoutRect {
   readonly height: number
 }
 
-/** What a player can press. */
-const CONTROLS = "button, input, select, textarea, [role='button']"
+/** What a player can press or reach with Tab. */
+const CONTROLS =
+  "button, input, select, textarea, summary, a[href], [role='button'], [role='link'], [role='tab'], [tabindex]:not([tabindex='-1'])"
 
 /** Half a pixel of rounding slack, as FloorFifty's checks allow. */
 const SLACK = 0.5
@@ -45,7 +46,30 @@ function viewport(element: Element): { width: number; height: number } {
   return { width: view?.innerWidth ?? 0, height: view?.innerHeight ?? 0 }
 }
 
-/** Each element is fully inside the viewport, and a tap at its centre lands on it or inside it. */
+/** How far inside an edge its hit test is taken: clear of a 1 px border and the rounding slack. */
+const EDGE_INSET = 2
+
+/**
+ * Where a player's tap must land on the element: its centre and the middle of each edge, just
+ * inside. Mid-edges rather than corners, so a rounded or pill-shaped control is not marked down for
+ * its own corners. A control a scroller or an overlay hides even partly fails at the edge it loses.
+ */
+function hitPoints(rect: DOMRect): [string, number, number][] {
+  const midX = rect.left + rect.width / 2
+  const midY = rect.top + rect.height / 2
+  return [
+    ['centre', midX, midY],
+    ['top edge', midX, rect.top + EDGE_INSET],
+    ['bottom edge', midX, rect.bottom - EDGE_INSET],
+    ['left edge', rect.left + EDGE_INSET, midY],
+    ['right edge', rect.right - EDGE_INSET, midY],
+  ]
+}
+
+/**
+ * Each element is fully inside the viewport, and the whole of it is in view: a tap at its centre
+ * and at the middle of each edge lands on it or inside it, so nothing covers or clips any part.
+ */
 export function findUnreachable(elements: readonly Element[]): string[] {
   const problems: string[] = []
   for (const element of elements) {
@@ -60,9 +84,12 @@ export function findUnreachable(elements: readonly Element[]): string[] {
     if (rect.left < -SLACK) problems.push(`${name} starts left of the screen`)
     if (rect.bottom > view.height + SLACK) problems.push(`${name} is below the fold`)
     if (rect.right > view.width + SLACK) problems.push(`${name} runs off the right edge`)
-    const hit = element.ownerDocument.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
-    if (hit === null || (hit !== element && !element.contains(hit))) {
-      problems.push(`${name} is covered or clipped at its centre`)
+    for (const [where, x, y] of hitPoints(rect)) {
+      const hit = element.ownerDocument.elementFromPoint(x, y)
+      if (hit === null || (hit !== element && !element.contains(hit))) {
+        problems.push(`${name} is covered or clipped at its ${where}`)
+        break
+      }
     }
   }
   return problems
@@ -150,10 +177,34 @@ function scrollRegionsAround(node: Element): Element[] {
 }
 
 /**
+ * Whether `region` clips `node`: whether the region sits in the chain of containing blocks from the
+ * node up. An overflow box clips only the descendants it contains, so a `position: fixed` element
+ * (contained by the viewport) and an absolute one whose positioned ancestor lies outside the region
+ * escape it, and scrolling the region would never move them.
+ * Simplified on purpose: a transform or filter that would contain a fixed element is not followed,
+ * so such an element is treated as escaping, the stricter answer.
+ */
+function clippedBy(node: Element, region: Element): boolean {
+  let element: Element | null = node
+  while (element !== null && element !== region) {
+    const position = getComputedStyle(element).position
+    if (position === 'fixed') return false
+    let parent: Element | null = element.parentElement
+    if (position === 'absolute') {
+      // The containing block is the nearest positioned ancestor. A static region on the way is
+      // passed over too: it does not contain the element, so it does not clip it.
+      while (parent !== null && getComputedStyle(parent).position === 'static') parent = parent.parentElement
+    }
+    element = parent
+  }
+  return element === region
+}
+
+/**
  * No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its
- * whole box. The one exception is a control inside a declared scroll region that is itself clear
- * of every area: scrolling brings it into view. An undeclared scroller earns nothing, and a fixed
- * control is measured where it is drawn, whatever it sits inside.
+ * whole box. The one exception is a control that a declared scroll region clips (see `clippedBy`)
+ * where that region is itself clear of every area: scrolling brings it into view. An undeclared
+ * scroller earns nothing, and a fixed control is measured where it is drawn, whatever it sits inside.
  */
 export function findIntrusions(root: ParentNode, rects: readonly LayoutRect[]): string[] {
   const areas = rects.filter((rect) => rect.width > 0 && rect.height > 0)
@@ -161,7 +212,7 @@ export function findIntrusions(root: ParentNode, rects: readonly LayoutRect[]): 
   const problems: string[] = []
   for (const node of visibleControls(root)) {
     if (clear(boxOf(node))) continue
-    if (scrollRegionsAround(node).some((region) => clear(boxOf(region)))) continue
+    if (scrollRegionsAround(node).some((region) => clippedBy(node, region) && clear(boxOf(region)))) continue
     problems.push(`${nameOf(node)} is under a reserved area`)
   }
   return problems

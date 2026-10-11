@@ -18,7 +18,7 @@ export interface ReferenceSize {
   readonly height: number
   readonly formFactor: ReferenceFormFactor
   readonly heightTier: ReferenceHeightTier
-  readonly group: 'phone' | 'tablet' | 'desktop' | 'boundary'
+  readonly group: 'phone' | 'tablet' | 'desktop' | 'boundary' | 'tight'
 }
 
 const size = (
@@ -61,6 +61,18 @@ export const REFERENCE_SIZES: readonly ReferenceSize[] = [
   size('compact-edge', 900, 339, 'phone-landscape', 'compact', 'boundary'),
   size('short-from-compact-edge', 900, 340, 'phone-landscape', 'short', 'boundary'),
   size('tall-edge', 900, 601, 'desktop', undefined, 'boundary'),
+]
+
+/**
+ * Sideways phones shorter than 780x270, where an open keyboard leaves the least room (framework
+ * audit of #7, 2026-10-11). Not resting viewports a screen is laid out for: the overlays that must
+ * keep their actions above a keyboard (ErrorPanel, the boot failure) are checked here too.
+ */
+export const TIGHT_SIZES: readonly ReferenceSize[] = [
+  size('tight-landscape-740', 740, 300, 'phone-landscape', 'compact', 'tight'),
+  size('tight-landscape-667', 667, 260, 'phone-landscape', 'compact', 'tight'),
+  size('tight-landscape-600', 600, 240, 'phone-landscape', 'compact', 'tight'),
+  size('tight-landscape-520', 520, 180, 'phone-landscape', 'compact', 'tight'),
 ]
 
 /**

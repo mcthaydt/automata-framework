@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import Dialog from './Dialog.svelte'
 import Harness from './DialogHarness.test.svelte'
+import Stack from './DialogStack.test.svelte'
 
 // Ported from Ruken packages/ui/src/Dialog.svelte.test.ts at b30d31b.
 async function openDialog(props: Record<string, unknown> = {}) {
@@ -84,5 +85,27 @@ describe('Dialog', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(first.trigger).toHaveFocus()
     expect(first.onexit).toHaveBeenCalledOnce()
+  })
+
+  it('makes the page behind it inert while open, and gives it back on close', async () => {
+    const { onclose } = await openDialog()
+    const behind = screen.getByText('Elsewhere on the page')
+    expect(behind.closest('[inert]')).not.toBeNull()
+    expect(screen.getByRole('dialog').closest('[inert]')).toBeNull()
+    await userEvent.keyboard('{Escape}')
+    expect(onclose).toHaveBeenCalledOnce()
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(behind.closest('[inert]')).toBeNull()
+  })
+
+  it('only the topmost of stacked dialogs answers Escape', async () => {
+    const onfirstclose = vi.fn()
+    const onsecondclose = vi.fn()
+    render(Stack, { onfirstclose, onsecondclose })
+    await userEvent.click(screen.getByText('Discard run'))
+    await screen.findByRole('dialog', { name: 'Discard this run?' })
+    await userEvent.keyboard('{Escape}')
+    expect(onsecondclose).toHaveBeenCalledOnce()
+    expect(onfirstclose).not.toHaveBeenCalled()
   })
 })

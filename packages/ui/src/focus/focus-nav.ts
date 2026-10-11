@@ -10,13 +10,29 @@
 
 const TABBABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
 
+/**
+ * Whether CSS hides the element: `visibility: hidden` (inherited, so the element's own computed
+ * value says) or `display: none` on it or any ancestor. Read from computed style rather than box
+ * size so it also holds where nothing is laid out (jsdom).
+ */
+function hiddenByCss(element: HTMLElement): boolean {
+  const view = element.ownerDocument.defaultView
+  if (view === null) return false
+  if (view.getComputedStyle(element).visibility === 'hidden') return true
+  for (let node: HTMLElement | null = element; node !== null; node = node.parentElement) {
+    if (view.getComputedStyle(node).display === 'none') return true
+  }
+  return false
+}
+
 /** Everything Tab can reach under `root`, in DOM order: not disabled, inert or hidden. */
 export function tabbables(root: ParentNode): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter(
     (element) =>
       element.tabIndex >= 0 &&
       !(element as HTMLButtonElement).disabled &&
-      element.closest('[inert], [hidden]') === null,
+      element.closest('[inert], [hidden]') === null &&
+      !hiddenByCss(element),
   )
 }
 

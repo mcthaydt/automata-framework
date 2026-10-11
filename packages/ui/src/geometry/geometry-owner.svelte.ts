@@ -198,9 +198,22 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
     settling = SETTLE_DELAYS_MS.map((ms) => timers.set(measure, ms))
   }
 
+  // A page shrunk while a field had focus keeps its resting class (`restingLayout`). When the field
+  // loses focus, measure again once the last settle delay has passed: on a phone the keyboard is
+  // still closing at blur, and its own resize restarts the delays anyway; on a desktop window
+  // shrunk while typing no resize ever comes, and this is what reclassifies it.
+  const doc = root.ownerDocument
+  let afterBlur: unknown
+  const onFocusOut = (): void => {
+    if (disposed) return
+    timers.clear(afterBlur)
+    afterBlur = timers.set(measure, SETTLE_DELAYS_MS.at(-1) ?? 0)
+  }
+
   win.addEventListener('resize', update)
   win.visualViewport?.addEventListener('resize', update)
   win.visualViewport?.addEventListener('scroll', update)
+  doc.addEventListener('focusout', onFocusOut)
 
   return {
     geometry: state,
@@ -219,6 +232,8 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
       if (disposed) return
       disposed = true
       clearSettling()
+      timers.clear(afterBlur)
+      doc.removeEventListener('focusout', onFocusOut)
       listeners.clear()
       win.removeEventListener('resize', update)
       win.visualViewport?.removeEventListener('resize', update)

@@ -43,6 +43,20 @@ describe('findUnreachable', () => {
     expect(findUnreachable([under])).toEqual(['under is covered or clipped at its centre'])
   })
 
+  test('reports a control a scroller shows only part of: the whole box must be in view', () => {
+    document.body.innerHTML =
+      '<div data-scroll-region style="position:fixed;left:0;top:0;width:200px;height:100px;overflow:auto">' +
+      '<button data-testid="cut" style="display:block;margin-top:68px;width:60px;height:48px">x</button></div>'
+    expect(findUnreachable([document.querySelector('[data-testid="cut"]') as Element])).toEqual([
+      'cut is covered or clipped at its bottom edge',
+    ])
+  })
+
+  test('passes a pill-shaped control: its edges are tested just inside, away from the corners', () => {
+    const pill = plant(button('pill', 'left:10px;top:10px;width:120px;height:48px;border-radius:24px'))
+    expect(findUnreachable([pill])).toEqual([])
+  })
+
   test('reports a control below the fold', () => {
     const below = plant(button('below', 'left:10px;top:calc(100vh - 20px);width:60px;height:48px'))
     expect(findUnreachable([below])).toContain('below is below the fold')
@@ -79,6 +93,25 @@ describe('findSmallTargets', () => {
       button('tiny', 'left:0;top:0;width:30px;height:30px') +
       '<button data-testid="go" data-kind="primary" style="position:fixed;left:60px;top:0;width:120px;height:44px">Go</button>'
     expect(findSmallTargets(document.body, 44, 48)).toEqual(['tiny is 30x30', 'go (primary) is 120x44'])
+  })
+
+  test('size-checks every kind of control a player can press or tab to', () => {
+    const at = (left: number): string =>
+      `position:fixed;left:${left}px;top:0;width:20px;height:20px;display:block`
+    document.body.innerHTML =
+      `<a href="#x" data-testid="link" style="${at(0)}">a</a>` +
+      `<span role="link" data-testid="role-link" style="${at(30)}">b</span>` +
+      `<span role="tab" data-testid="tab" style="${at(60)}">c</span>` +
+      `<details style="${at(90)}"><summary data-testid="summary" style="display:block;height:20px">d</summary></details>` +
+      `<div tabindex="0" data-testid="focusable" style="${at(120)}">e</div>` +
+      `<div tabindex="-1" data-testid="programmatic" style="${at(150)}">f</div>`
+    expect(findSmallTargets(document.body, 44, 48).map((problem) => problem.split(' ')[0])).toEqual([
+      'link',
+      'role-link',
+      'tab',
+      'summary',
+      'focusable',
+    ])
   })
 
   test("counts a checkbox's label as its target", () => {
@@ -154,6 +187,33 @@ describe('findIntrusions', () => {
     document.body.innerHTML =
       '<div data-scroll-region style="position:fixed;left:0;top:0;width:200px;height:100px;overflow:auto">' +
       '<button data-testid="below" style="display:block;margin-top:120px;width:60px;height:48px">x</button></div>'
+    expect(findIntrusions(document.body, [keyboard])).toEqual([])
+  })
+
+  test('reports a fixed control under an area even inside a clear declared region: the region does not clip it', () => {
+    document.body.innerHTML =
+      '<div data-scroll-region style="position:fixed;left:0;top:0;width:300px;height:200px;overflow:auto">' +
+      button('fixed', 'left:300px;top:10px;width:48px;height:48px') +
+      '</div>'
+    expect(findIntrusions(document.body, [strip])).toEqual(['fixed is under a reserved area'])
+  })
+
+  test("reports an absolute control whose containing block is outside the region, which escapes the region's clip", () => {
+    const keyboard = { x: 0, y: 100, width: 400, height: 100 }
+    document.body.innerHTML =
+      '<div style="position:relative;height:300px">' +
+      '<div data-scroll-region style="height:100px;overflow:auto">' +
+      '<button data-testid="escapes" style="position:absolute;left:0;top:120px;width:60px;height:48px">x</button>' +
+      '</div></div>'
+    expect(findIntrusions(document.body, [keyboard])).toEqual(['escapes is under a reserved area'])
+  })
+
+  test('passes an absolute control positioned inside the region, which the region clips', () => {
+    const keyboard = { x: 0, y: 100, width: 400, height: 100 }
+    document.body.innerHTML =
+      '<div data-scroll-region style="position:fixed;left:0;top:0;width:200px;height:100px;overflow:auto">' +
+      '<button data-testid="clipped" style="position:absolute;left:0;top:120px;width:60px;height:48px">x</button>' +
+      '</div>'
     expect(findIntrusions(document.body, [keyboard])).toEqual([])
   })
 

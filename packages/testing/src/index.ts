@@ -23,6 +23,7 @@ export {
   type ReferenceFormFactor,
   type ReferenceHeightTier,
   type ReferenceSize,
+  TIGHT_SIZES,
   VARIANTS,
   type Variant,
 } from './layout/reference-sizes'

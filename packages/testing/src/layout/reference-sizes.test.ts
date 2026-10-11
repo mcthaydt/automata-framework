@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { REFERENCE_SIZES, VARIANTS } from './reference-sizes'
+import { REFERENCE_SIZES, TIGHT_SIZES, VARIANTS } from './reference-sizes'
 
 const has = (width: number, height: number): boolean =>
   REFERENCE_SIZES.some((size) => size.width === width && size.height === height)
@@ -41,6 +41,20 @@ describe('REFERENCE_SIZES (M1.6 spec §3.10)', () => {
       [900, 601],
     ] as const
     for (const [width, height] of boundaries) expect(has(width, height), `${width}x${height}`).toBe(true)
+  })
+
+  test('holds the tight sideways phones where a keyboard leaves the least room (framework audit, 2026-10-11)', () => {
+    const tight = [
+      [667, 260],
+      [740, 300],
+      [600, 240],
+      [520, 180],
+    ] as const
+    expect(TIGHT_SIZES.map((size) => [size.width, size.height])).toEqual(
+      expect.arrayContaining(tight.map((pair) => [...pair])),
+    )
+    expect(TIGHT_SIZES.every((size) => size.group === 'tight' && size.heightTier === 'compact')).toBe(true)
+    expect(REFERENCE_SIZES.some((size) => size.group === 'tight')).toBe(false)
   })
 
   test('names each size once', () => {

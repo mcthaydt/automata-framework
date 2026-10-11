@@ -11,7 +11,9 @@
     The scrim covers the page, so a pointer cannot reach out either.
   - When the dialog goes away, focus returns to whatever had it before the dialog opened.
   - Escape calls `onclose`. The focus navigator's Back arrives as Escape, so a controller closes
-    it the same way.
+    it the same way. With dialogs stacked, only the topmost answers Escape and holds focus.
+  - While it is open the page behind it is `inert` (every sibling of the dialog and of each of its
+    ancestors up to the body), so assistive technology and the browser cannot reach it either.
 
   Layout: a sheet on the bottom edge on a phone, centred otherwise; always inside the insets and
   above the keyboard. Its body is a declared scroll region, so on a 780 x 270 screen the actions
@@ -49,22 +51,59 @@ function tabStops(): HTMLElement[] {
   return panel === undefined ? [] : Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE))
 }
 
+/**
+ * The topmost open dialog: the last `aria-modal` in the document that is not inert. A dialog opened
+ * over this one comes later in the document, as a sibling (which inerts this one) or inside it.
+ */
+function isTopmost(): boolean {
+  const open = [...document.querySelectorAll('[aria-modal="true"]')].filter(
+    (d) => d.closest('[inert]') === null,
+  )
+  return open.at(-1) === panel
+}
+
+/**
+ * Marks everything outside `node` inert: the siblings of `node` and of each ancestor up to the
+ * body. Returns how to undo it; only what this call marked is unmarked, so an element that was
+ * already inert (or that an inner dialog marked) keeps its state.
+ */
+function inertOutside(node: Element): () => void {
+  const marked: Element[] = []
+  let current: Element = node
+  while (current.parentElement !== null && current !== document.body) {
+    for (const sibling of current.parentElement.children) {
+      if (sibling === current || sibling.hasAttribute('inert')) continue
+      sibling.setAttribute('inert', '')
+      marked.push(sibling)
+    }
+    current = current.parentElement
+  }
+  return () => {
+    for (const element of marked) element.removeAttribute('inert')
+  }
+}
+
 function focusInitial(): void {
   const marked = panel?.querySelector<HTMLElement>('[data-initial-focus]')
   ;(marked ?? tabStops()[0] ?? panel)?.focus()
 }
 
+let scrim = $state<HTMLElement | undefined>(undefined)
+
 onMount(() => {
   const opener = document.activeElement
+  const release = scrim === undefined ? () => undefined : inertOutside(scrim)
   trapping = true
   focusInitial()
   return () => {
     trapping = false
+    release()
     if (opener instanceof HTMLElement && opener.isConnected) opener.focus()
   }
 })
 
 function onKeydown(event: KeyboardEvent): void {
+  if (!isTopmost()) return
   if (event.key === 'Escape') {
     event.preventDefault()
     onclose()
@@ -87,14 +126,14 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 function onFocusIn(event: FocusEvent): void {
-  if (trapping && panel !== undefined && event.target instanceof Node && !panel.contains(event.target))
-    focusInitial()
+  if (!trapping || !isTopmost()) return
+  if (panel !== undefined && event.target instanceof Node && !panel.contains(event.target)) focusInitial()
 }
 </script>
 
 <svelte:window onkeydown={onKeydown} onfocusin={onFocusIn} />
 
-<div class="af-dialog-scrim" data-testid="dialog-scrim">
+<div bind:this={scrim} class="af-dialog-scrim" data-testid="dialog-scrim">
   <div
     bind:this={panel}
     class="af-dialog"

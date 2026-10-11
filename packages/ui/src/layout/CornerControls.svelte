@@ -43,9 +43,18 @@ const { back, backLabel = 'Back', backTestId = 'corner-back', header, end }: Pro
     min-height: var(--af-target);
   }
 
-  .af-corners__start,
+  /* A corner never gives up width its controls need (TV scale enlarges Back past an equal share on
+     a narrow phone): the middle gives way instead, clipped with an ellipsis, so nothing in it can
+     paint over a corner control. The middle then leaves the centre line, which is the lesser loss. */
+  .af-corners__start :global(.af-control) {
+    white-space: nowrap;
+  }
+
   .af-corners__middle {
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .af-corners__end {

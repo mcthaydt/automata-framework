@@ -13,8 +13,11 @@ describe('ErrorPanel', () => {
     const alert = screen.getByRole('alert')
     expect(alert).toHaveTextContent("Couldn't download the game.")
     expect(alert).toHaveAttribute('data-code', 'download')
-    // Where the keyboard leaves less room than it needs, it scrolls its own content (spec §3.4).
-    expect(alert).toHaveAttribute('data-scroll-region')
+    // Where the room left is short, only the message scrolls; the actions never do (spec §3.4).
+    expect(alert).not.toHaveAttribute('data-scroll-region')
+    const region = alert.querySelector('[data-scroll-region]')
+    expect(region).toHaveTextContent("Couldn't download the game.")
+    expect(region?.querySelector('button')).toBeNull()
   })
 
   it('offers each way forward, primary first, and calls it', async () => {

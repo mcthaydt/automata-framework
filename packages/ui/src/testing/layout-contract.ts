@@ -60,14 +60,22 @@ function findWrappedBars(root: ParentNode): string[] {
   )
 }
 
-/** A control outside the corner row drawn over it (spec §3.4: the corner row never sits over content). */
+/**
+ * A control of the same screen drawn over its corner row (spec §3.4: the corner row never sits
+ * over content). Only the screen's own content counts: an overlay above the screen (an ErrorPanel,
+ * a Dialog) interrupts the whole screen, corner row included.
+ */
 function findCornerOverlaps(root: ParentNode): string[] {
   const problems: string[] = []
   for (const row of root.querySelectorAll('[data-corner-controls]')) {
-    for (const control of visibleControls(root)) {
+    const screen = row.closest('[data-screen-frame]') ?? row.parentElement
+    if (screen === null) continue
+    for (const control of visibleControls(screen)) {
       if (row.contains(control)) continue
-      for (const overlap of findOverlaps(control, row)) {
-        problems.push(overlap.replace(/ overlaps .*$/, ' overlaps corner row'))
+      if (findOverlaps(control, row).length > 0) {
+        problems.push(
+          `${control.getAttribute('data-testid') ?? control.tagName.toLowerCase()} overlaps corner row`,
+        )
       }
     }
   }

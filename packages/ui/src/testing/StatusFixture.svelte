@@ -1,7 +1,7 @@
 <!--
   The status overlays for the layout contracts (M1.6 spec §7, plan Task 11): the loader while
   assets arrive; the boot failure with the most words on its button (Continue without loading);
-  and an ErrorPanel with two ways forward. A failure is drawn over a screen with Back in its corner
+  and an ErrorPanel with two ways forward, with a one-line message or a long one. A failure is drawn over a screen with Back in its corner
   row, as a game would show it, so the panel is checked against the corner row too.
 -->
 <script lang="ts">
@@ -10,8 +10,12 @@ import BootFailurePanel from '../status/BootFailurePanel.svelte'
 import ErrorPanel from '../status/ErrorPanel.svelte'
 import LoaderOverlay from '../status/LoaderOverlay.svelte'
 
-const { show }: { show: 'loader' | 'boot-failure' | 'error' } = $props()
+const { show }: { show: 'loader' | 'boot-failure' | 'error' | 'error-long' } = $props()
 const none = (): void => undefined
+const LONG =
+  "Couldn't load your progress. The save on this device could not be read, and the copy kept " +
+  'online did not answer in time. You can try again now, or go on without it and keep this run ' +
+  'separate until the saved copy can be read again.'
 </script>
 
 {#if show === 'loader'}
@@ -31,7 +35,7 @@ const none = (): void => undefined
   {:else}
     <ErrorPanel
       code="progress"
-      message="Couldn't load your progress."
+      message={show === 'error-long' ? LONG : "Couldn't load your progress."}
       actions={[
         { id: 'retry', label: 'Try again', kind: 'primary', onSelect: none },
         { id: 'dismiss', label: 'Continue without loading', kind: 'secondary', onSelect: none },

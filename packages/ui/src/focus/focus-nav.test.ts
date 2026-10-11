@@ -25,6 +25,17 @@ describe('focus navigation', () => {
     expect(tabbables(document).map((element) => element.id)).toEqual(['a', 'd', 'e'])
   })
 
+  it('skips controls that CSS hides: display none on it or an ancestor, or visibility hidden', () => {
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      `<button id="g" style="display:none">G</button>
+       <div style="display:none"><button id="h">H</button></div>
+       <div style="visibility:hidden"><button id="i">I</button></div>
+       <button id="j">J</button>`,
+    )
+    expect(tabbables(document).map((element) => element.id)).toEqual(['a', 'd', 'e', 'j'])
+  })
+
   it('moves next and previous, wrapping at the ends', () => {
     const nav = new FocusNavigator()
     nav.move('next')

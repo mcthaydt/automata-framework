@@ -91,6 +91,9 @@ $effect(() => {
   .af-screen-frame[data-scroll-region] {
     overflow-y: auto;
     overscroll-behavior: contain;
+    /* The frame already ends above the keyboard, which covers the bottom safe area: padding by it
+       too would waste that much of the little room left. */
+    padding-bottom: var(--af-gutter);
   }
 
   .af-screen-frame__content {

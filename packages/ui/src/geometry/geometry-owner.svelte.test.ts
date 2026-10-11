@@ -89,6 +89,27 @@ describe('createGeometryOwner (M1.6 spec §3.1, §4)', () => {
     }
   })
 
+  test('measures again once a field loses focus, so a window shrunk while typing is not left stale', () => {
+    // A desktop window made shorter while a field has focus sends no resize when the field blurs.
+    const { win, root } = setup({ width: 1280, height: 720 })
+    const field = document.body.appendChild(document.createElement('input'))
+    try {
+      field.focus()
+      win.resize(1280, 500)
+      vi.advanceTimersByTime(5000) // every settle re-measure runs while the field still has focus
+      expect(root.hasAttribute('data-height')).toBe(false)
+      expect(root.hasAttribute('data-visual-inset')).toBe(true)
+      field.blur()
+      // Not at once: on a phone the keyboard is still closing, and its own resize follows.
+      expect(root.hasAttribute('data-visual-inset')).toBe(true)
+      vi.advanceTimersByTime(SETTLE_DELAYS_MS.at(-1) ?? 0)
+      expect(root.dataset.height).toBe('short')
+      expect(root.hasAttribute('data-visual-inset')).toBe(false)
+    } finally {
+      field.remove()
+    }
+  })
+
   test('a shorter page with nothing being typed is a real resize, and reclassifies', () => {
     const { win, root } = setup({ width: 844, height: 390 })
     win.resize(844, 270)
@@ -120,6 +141,24 @@ describe('createGeometryOwner (M1.6 spec §3.1, §4)', () => {
     owner.remeasure()
     vi.advanceTimersByTime(1000)
     expect(env).toHaveBeenCalledTimes(4)
+  })
+
+  test('dispose stops listening for focus leaving a field', () => {
+    const { win, root, owner, env } = setup({ width: 1280, height: 720 })
+    const field = document.body.appendChild(document.createElement('input'))
+    try {
+      field.focus()
+      win.resize(1280, 500)
+      vi.advanceTimersByTime(5000)
+      owner.dispose()
+      env.mockClear()
+      field.blur()
+      vi.advanceTimersByTime(5000)
+      expect(env).not.toHaveBeenCalled()
+      expect(root.hasAttribute('data-visual-inset')).toBe(true)
+    } finally {
+      field.remove()
+    }
   })
 
   test('dispose removes every listener and pending re-measure; twice is a no-op', () => {

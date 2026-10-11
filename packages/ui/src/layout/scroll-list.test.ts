@@ -42,14 +42,16 @@ describe('ScrollList', () => {
     expect(list.getAttribute('aria-label')).toBe('Standings')
   })
 
+  // Every reserve is capped at the height the parent gives (`min(..., 100%)`): where even that
+  // cannot hold the rows, the list scrolls inside its own box rather than paint over its siblings.
   it('reserves its rows in the row-height token, or every row when there are fewer', () => {
-    expect(open(4, 6).style.minHeight).toBe('calc(4 * var(--af-row-h))')
+    expect(open(4, 6).style.minHeight).toBe('min(calc(4 * var(--af-row-h)), 100%)')
     document.body.innerHTML = ''
-    expect(open(4, 2).style.minHeight).toBe('calc(2 * var(--af-row-h))')
+    expect(open(4, 2).style.minHeight).toBe('min(calc(2 * var(--af-row-h)), 100%)')
   })
 
   it('reserves the gaps between its rows too, when told them', () => {
-    expect(open(4, 6, '8px').style.minHeight).toBe('calc(4 * var(--af-row-h) + 3 * 8px)')
+    expect(open(4, 6, '8px').style.minHeight).toBe('min(calc(4 * var(--af-row-h) + 3 * 8px), 100%)')
   })
 
   it('reserves at least where its last reserved row actually ends, once rows have a height', () => {
@@ -60,7 +62,7 @@ describe('ScrollList', () => {
     })
     list.dispatchEvent(new Event('scroll'))
     flushSync()
-    expect(list.style.minHeight).toBe('max(calc(2 * var(--af-row-h)), 110px)')
+    expect(list.style.minHeight).toBe('min(max(calc(2 * var(--af-row-h)), 110px), 100%)')
   })
 
   it('says how many rows are out of view, and nothing when none are', () => {
