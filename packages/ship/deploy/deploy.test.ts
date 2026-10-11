@@ -94,6 +94,9 @@ function host() {
         CADDYFILE: '/etc/caddy/Caddyfile',
         CADDY_LOG: log,
         SHIP_CADDY_ENV: join(root, 'no-caddy.env'),
+        // The script waits 120 s for another deploy's lock by default; a test never expects one, so a stray lock
+        // fails within the test's time instead of hanging it.
+        SHIP_DEPLOY_LOCK_WAIT: '5',
         ...env,
       },
     })
@@ -103,7 +106,13 @@ function host() {
 
 const ID = '202610111205-abcdef0'
 
-describe('deploy (dev host)', () => {
+// Each deploy is real processes: bash, three tar runs and two Node starts. Alone that is well under a second,
+// but on the af-linux runner it shares the CPU with every other package's tests (turbo runs them in parallel)
+// and a test that deploys twice took 10.3 s there (PR #7). vitest's 5 s default would fail it, so the
+// describes below that run the script get room for that load.
+const DEPLOY_TIMEOUT_MS = 30_000
+
+describe('deploy (dev host)', { timeout: DEPLOY_TIMEOUT_MS }, () => {
   it('installs a build at builds/<id>/ with its headers snippet, lists it and reloads Caddy', () => {
     const { root, deploy, caddyCalls } = host()
     const result = deploy([goodBuild(ID)])
@@ -197,7 +206,9 @@ describe('deploy (dev host)', () => {
   })
 })
 
-describe('deploy refuses unsafe tarballs (Caddy would serve whatever they point at)', () => {
+describe('deploy refuses unsafe tarballs (Caddy would serve whatever they point at)', {
+  timeout: DEPLOY_TIMEOUT_MS,
+}, () => {
   const refused = (tgz: string) => {
     const { root, deploy } = host()
     const result = deploy([tgz])
@@ -270,7 +281,7 @@ describe('deploy refuses unsafe tarballs (Caddy would serve whatever they point 
   })
 })
 
-describe('deploy under sudo', () => {
+describe('deploy under sudo', { timeout: DEPLOY_TIMEOUT_MS }, () => {
   it("reads Caddy's site settings from caddy.env, because sudo drops the caller's environment", () => {
     const { root, bin, deploy, caddyCalls } = host()
     const caddyEnv = join(bin, 'caddy.env')
@@ -302,15 +313,24 @@ describe('deploy under sudo', () => {
   it('waits for a deploy that is already running, then gives up with exit 5', () => {
     const { root, deploy } = host()
     mkdirSync(root, { recursive: true })
-    const holder = spawn('flock', [join(root, '.deploy.lock'), 'sleep', '3'], { stdio: 'ignore' })
+    const lock = join(root, '.deploy.lock')
+    // The holder gets its own process group so the whole group (flock and its sleep) can be killed at the end;
+    // killing flock alone leaves the sleep holding the lock as an orphan.
+    const holder = spawn('flock', [lock, 'sleep', '60'], { stdio: 'ignore', detached: true })
     try {
-      spawnSync('sleep', ['0.3'])
+      // Wait until the holder really has the lock (a non-blocking flock then fails) rather than for a fixed time,
+      // which a loaded runner can overrun.
+      const deadline = Date.now() + 10_000
+      while (spawnSync('flock', ['-n', lock, 'true']).status === 0) {
+        if (Date.now() > deadline) throw new Error('the holder never took the deploy lock')
+        spawnSync('sleep', ['0.05'])
+      }
       const result = deploy([goodBuild(ID)], { SHIP_DEPLOY_LOCK_WAIT: '1' })
       expect(result.status).toBe(5)
       expect(result.stderr).toContain('another deploy')
       expect(existsSync(join(root, 'builds', ID))).toBe(false)
     } finally {
-      holder.kill()
+      if (holder.pid !== undefined) process.kill(-holder.pid, 'SIGKILL')
     }
   })
 })
