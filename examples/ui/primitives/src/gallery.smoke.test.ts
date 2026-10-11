@@ -1,5 +1,6 @@
 import { REFERENCE_SIZES } from '@mcthaydt/automata-testing'
 import { afterEach, describe, expect, test, vi } from 'vitest'
+import page from '../index.html?raw'
 import { PRIMITIVES, start } from '../main'
 
 // Examples convention: the demo boots, says it is ready, and logs no console errors.
@@ -54,4 +55,8 @@ describe('ui/primitives demo', () => {
     expect(root.querySelector('select[name="variant"]')).not.toBeNull()
     expect(problems).toEqual([])
   })
+})
+
+test('asks the browser to lay the keyboard over the page rather than shrink it (spec §3.1)', () => {
+  expect(page).toMatch(/<meta name="viewport" content="[^"]*interactive-widget=resizes-visual/)
 })

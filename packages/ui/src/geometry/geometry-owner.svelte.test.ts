@@ -71,6 +71,31 @@ describe('createGeometryOwner (M1.6 spec §3.1, §4)', () => {
     expect(root.hasAttribute('data-visual-inset')).toBe(false)
   })
 
+  test('a keyboard that shrinks the page itself never reclassifies it either', () => {
+    // Browsers that ignore `interactive-widget=resizes-visual` shrink the layout viewport.
+    const { win, root } = setup({ width: 844, height: 390 })
+    const field = document.body.appendChild(document.createElement('input'))
+    try {
+      field.focus()
+      win.resize(844, 200)
+      expect(root.dataset.formFactor).toBe('phone-landscape')
+      expect(root.dataset.height).toBe('short')
+      expect(root.hasAttribute('data-visual-inset')).toBe(true)
+      field.blur()
+      win.resize(844, 390)
+      expect(root.hasAttribute('data-visual-inset')).toBe(false)
+    } finally {
+      field.remove()
+    }
+  })
+
+  test('a shorter page with nothing being typed is a real resize, and reclassifies', () => {
+    const { win, root } = setup({ width: 844, height: 390 })
+    win.resize(844, 270)
+    expect(root.dataset.height).toBe('compact')
+    expect(root.hasAttribute('data-visual-inset')).toBe(false)
+  })
+
   test("takes the host's display, and returns to standalone values without it", () => {
     const { root, owner } = setup({ width: 844, height: 390 })
     owner.setHostDisplay(hostDisplay({ scale: 1.333 }))

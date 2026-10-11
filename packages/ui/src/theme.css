@@ -93,8 +93,12 @@ textarea {
   touch-action: manipulation;
 }
 
-.af-control--primary {
+/* One marker sizes a primary, and the layout check reads the same one (M1.6 spec §3.10). */
+.af-control[data-kind="primary"] {
   min-height: var(--af-target-primary);
+}
+
+.af-control--primary {
   border-color: var(--af-accent);
   background: var(--af-accent);
   color: var(--af-on-accent);

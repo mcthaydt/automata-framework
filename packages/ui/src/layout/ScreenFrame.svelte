@@ -29,9 +29,33 @@ interface Props {
 }
 
 const { arrangement, body, hero, actions, back, backLabel, header, end, testId }: Props = $props()
+
+// The geometry owner marks the root with `data-visual-inset` while the browser lays something over
+// the page's foot (the keyboard). Only then is the frame shorter than what it holds, and only then
+// does it scroll and say so: `data-scroll-region` is what the layout check reads (spec §3.10). At
+// rest it is not a scroll region, so everything in it has to fit.
+const root = typeof document === 'undefined' ? undefined : document.documentElement
+const covered = (): boolean => root?.hasAttribute('data-visual-inset') ?? false
+let scrolls = $state(covered())
+
+$effect(() => {
+  if (root === undefined) return
+  const watch = new MutationObserver(() => {
+    scrolls = covered()
+  })
+  watch.observe(root, { attributes: true, attributeFilter: ['data-visual-inset'] })
+  scrolls = covered()
+  return () => watch.disconnect()
+})
 </script>
 
-<div class="af-screen-frame" data-screen-frame data-arrangement={arrangement} data-testid={testId}>
+<div
+  class="af-screen-frame"
+  data-screen-frame
+  data-arrangement={arrangement}
+  data-scroll-region={scrolls ? '' : undefined}
+  data-testid={testId}
+>
   <CornerControls {back} {backLabel} {header} {end} />
   <div class="af-screen-frame__content">
     {#if hero}
@@ -64,7 +88,7 @@ const { arrangement, body, hero, actions, back, backLabel, header, end, testId }
   /* At rest everything fits. While the browser lays something over the page's foot the frame is
      shorter than what it holds, and it scrolls what does not fit into view rather than leaving an
      action under the keyboard. */
-  :global([data-visual-inset]) .af-screen-frame {
+  .af-screen-frame[data-scroll-region] {
     overflow-y: auto;
     overscroll-behavior: contain;
   }

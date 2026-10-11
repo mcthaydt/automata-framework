@@ -30,7 +30,7 @@ $effect.pre(() => {
 </script>
 
 <div class="af-error-layer">
-  <div class="af-error-panel" role="alert" data-code={code} data-testid={testId}>
+  <div class="af-error-panel" role="alert" data-code={code} data-testid={testId} data-scroll-region>
     <p class="af-error-panel__message">{message}</p>
     {#if actions.length > 0}
       <div class="af-error-panel__actions">
@@ -38,6 +38,7 @@ $effect.pre(() => {
           <button
             type="button"
             class={action.kind === 'primary' ? 'af-control af-control--primary' : 'af-control'}
+            data-kind={action.kind}
             data-testid={`error-${action.id}`}
             onclick={action.onSelect}>{action.label}</button
           >
@@ -48,21 +49,31 @@ $effect.pre(() => {
 </div>
 
 <style>
+  /* The layer spans the screen from under the corner row down to whatever the browser lays over
+     the page's foot (the keyboard), so the panel never reaches under it. Taps outside the panel
+     pass through to the screen. */
   .af-error-layer {
     position: fixed;
-    inset: 0 0 auto;
+    inset: 0 0 var(--af-visual-inset-bottom, 0px);
     z-index: 95;
     box-sizing: border-box;
-    display: grid;
-    justify-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: calc(max(var(--af-gutter), var(--af-inset-top, 0px)) + var(--af-target) + var(--af-gutter))
-      max(var(--af-gutter), var(--af-inset-right, 0px)) 0 max(var(--af-gutter), var(--af-inset-left, 0px));
+      max(var(--af-gutter), var(--af-inset-right, 0px)) var(--af-gutter) max(var(--af-gutter), var(--af-inset-left, 0px));
     pointer-events: none;
   }
 
+  /* Where the room left is shorter than the panel (a compact screen with the keyboard up) the panel
+     shrinks and scrolls its own content: a declared scroll region that ends above the keyboard. */
   .af-error-panel {
     box-sizing: border-box;
     width: min(100%, 35rem);
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     display: grid;
     gap: 12px;
     padding: 12px 16px;

@@ -12,6 +12,6 @@ const none = (): void => undefined
   </p>
   {#snippet actions()}
     <button type="button" class="af-control" data-testid="dialog-cancel" data-initial-focus>Keep it</button>
-    <button type="button" class="af-control af-control--primary" data-testid="dialog-confirm">Delete</button>
+    <button type="button" class="af-control af-control--primary" data-kind="primary" data-testid="dialog-confirm">Delete</button>
   {/snippet}
 </Dialog>

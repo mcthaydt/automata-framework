@@ -16,6 +16,7 @@ export {
   findSmallTargets,
   findUnreachable,
   type LayoutRect,
+  visibleControls,
 } from './layout/assertions'
 export {
   REFERENCE_SIZES,

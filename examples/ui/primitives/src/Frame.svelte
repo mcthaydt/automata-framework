@@ -59,7 +59,7 @@ const barActions: BarAction[] = [
       <p>Your progress in this slot will be gone for good. Other slots are not touched.</p>
       {#snippet actions()}
         <button type="button" class="af-control" data-initial-focus>Keep it</button>
-        <button type="button" class="af-control af-control--primary">Delete</button>
+        <button type="button" class="af-control af-control--primary" data-kind="primary">Delete</button>
       {/snippet}
     </Dialog>
   {:else if primitive === 'loader'}

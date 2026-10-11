@@ -7,6 +7,7 @@ import {
   findOverlaps,
   findSmallTargets,
   findUnreachable,
+  visibleControls,
 } from './assertions'
 
 // Each finder against a planted problem, and against a clean page (M1.6 spec §3.10). Real browsers:
@@ -48,24 +49,35 @@ describe('findUnreachable', () => {
   })
 })
 
+describe('visibleControls', () => {
+  test('lists the controls a player could see and press, leaving out hidden, empty and inert ones', () => {
+    document.body.innerHTML =
+      button('shown', 'left:0;top:0;width:60px;height:48px') +
+      button('hidden', 'left:0;top:60px;width:60px;height:48px;visibility:hidden') +
+      button('empty', 'left:0;top:120px;display:none') +
+      `<div inert>${button('inert', 'left:100px;top:0;width:60px;height:48px')}</div>`
+    expect(visibleControls(document.body).map((node) => node.dataset.testid)).toEqual(['shown'])
+  })
+})
+
 describe('findSmallTargets', () => {
   test('passes 44 px controls and a 48 px primary', () => {
     document.body.innerHTML =
       button('a', 'left:0;top:0;width:44px;height:44px') +
-      '<button data-testid="go" data-primary style="position:fixed;left:60px;top:0;width:120px;height:48px">Go</button>'
+      '<button data-testid="go" data-kind="primary" style="position:fixed;left:60px;top:0;width:120px;height:48px">Go</button>'
     expect(findSmallTargets(document.body, 44, 48)).toEqual([])
   })
 
-  test('takes the selector that marks a primary', () => {
+  test('knows a primary by data-kind="primary" alone, the marker the CSS sizes it by', () => {
     document.body.innerHTML =
-      '<button data-testid="go" class="primary" style="position:fixed;left:0;top:0;width:120px;height:44px">Go</button>'
-    expect(findSmallTargets(document.body, 44, 48, '.primary')).toEqual(['go (primary) is 120x44'])
+      '<button data-testid="styled" class="af-control--primary" style="position:fixed;left:0;top:0;width:120px;height:44px">A</button>'
+    expect(findSmallTargets(document.body, 44, 48)).toEqual([])
   })
 
   test('reports a 30 px button and a primary under 48', () => {
     document.body.innerHTML =
       button('tiny', 'left:0;top:0;width:30px;height:30px') +
-      '<button data-testid="go" data-primary style="position:fixed;left:60px;top:0;width:120px;height:44px">Go</button>'
+      '<button data-testid="go" data-kind="primary" style="position:fixed;left:60px;top:0;width:120px;height:44px">Go</button>'
     expect(findSmallTargets(document.body, 44, 48)).toEqual(['tiny is 30x30', 'go (primary) is 120x44'])
   })
 
@@ -85,12 +97,11 @@ describe('findOffscreenControls', () => {
     expect(findOffscreenControls(document.body)).toEqual(['gone is off screen'])
   })
 
-  test('counts a box that scrolls right now as a scroll region, and a box that only clips as not', () => {
-    const box = (overflow: string, id: string): string =>
-      `<div style="position:fixed;left:0;top:0;width:100px;height:100px;overflow:${overflow}">` +
-      `<div style="height:2000px"></div><button data-testid="${id}" style="height:48px">${id}</button></div>`
-    document.body.innerHTML = box('auto', 'scrolled') + box('hidden', 'clipped')
-    expect(findOffscreenControls(document.body)).toEqual(['clipped is off screen'])
+  test('reports a control in a box that scrolls but was never declared a scroll region', () => {
+    document.body.innerHTML =
+      '<div style="position:fixed;left:0;top:0;width:100px;height:100px;overflow:auto">' +
+      '<div style="height:2000px"></div><button data-testid="undeclared" style="height:48px">x</button></div>'
+    expect(findOffscreenControls(document.body)).toEqual(['undeclared is off screen'])
   })
 })
 
@@ -130,13 +141,33 @@ describe('findIntrusions', () => {
     expect(findIntrusions(document.body, [{ x: 300, y: 0, width: 48, height: 200 }])).toEqual([])
   })
 
-  test('passes a control a scroller has clipped out of view above the area, and reports the part still shown', () => {
+  test('reports a fixed control under a strip even inside a scroller, which does not clip it', () => {
+    document.body.innerHTML =
+      '<div style="position:fixed;left:0;top:0;width:100px;height:100px;overflow:auto">' +
+      button('fixed', 'left:290px;top:10px;width:60px;height:48px') +
+      '</div>'
+    expect(findIntrusions(document.body, [strip])).toEqual(['fixed is under a reserved area'])
+  })
+
+  test('passes a control in a declared scroll region that ends above the area: it scrolls into view', () => {
+    const keyboard = { x: 0, y: 100, width: 400, height: 100 }
+    document.body.innerHTML =
+      '<div data-scroll-region style="position:fixed;left:0;top:0;width:200px;height:100px;overflow:auto">' +
+      '<button data-testid="below" style="display:block;margin-top:120px;width:60px;height:48px">x</button></div>'
+    expect(findIntrusions(document.body, [keyboard])).toEqual([])
+  })
+
+  test('reports a control in a scroller that is not declared, or whose region itself reaches the area', () => {
     const keyboard = { x: 0, y: 100, width: 400, height: 100 }
     document.body.innerHTML =
       '<div style="position:fixed;left:0;top:0;width:200px;height:100px;overflow:auto">' +
-      '<button data-testid="hidden-below" style="display:block;margin-top:120px;width:60px;height:48px">x</button></div>' +
-      button('showing', 'left:250px;top:80px;width:60px;height:48px')
-    expect(findIntrusions(document.body, [keyboard])).toEqual(['showing is under a reserved area'])
+      '<button data-testid="undeclared" style="display:block;margin-top:120px;width:60px;height:48px">x</button></div>' +
+      '<div data-scroll-region style="position:fixed;left:250px;top:0;width:100px;height:150px;overflow:auto">' +
+      '<button data-testid="region-under" style="display:block;margin-top:120px;width:60px;height:48px">y</button></div>'
+    expect(findIntrusions(document.body, [keyboard])).toEqual([
+      'undeclared is under a reserved area',
+      'region-under is under a reserved area',
+    ])
   })
 })
 

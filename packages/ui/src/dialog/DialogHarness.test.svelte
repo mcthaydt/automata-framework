@@ -33,6 +33,7 @@ function close(): void {
       <button
         type="button"
         class="af-control af-control--primary"
+        data-kind="primary"
         onclick={() => {
           open = false
           onexit?.()

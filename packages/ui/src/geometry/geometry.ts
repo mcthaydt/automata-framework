@@ -44,6 +44,13 @@ export interface GeometryInput {
   readonly host?: HostDisplay | undefined
   /** A bar the browser draws over the page without reporting it (`browser/hidden-browser-bar.ts`). */
   readonly hiddenBarBottom?: number | undefined
+  /**
+   * The layout viewport before a keyboard shrank it, when one did. Browsers that ignore
+   * `interactive-widget=resizes-visual` shrink the page itself for the keyboard; classifying the
+   * shrunken page would remount the screen mid-typing, so the class comes from this instead.
+   * The owner passes it only while a text field has focus and the width has not changed.
+   */
+  readonly restingLayout?: { readonly width: number; readonly height: number } | undefined
 }
 
 export interface Geometry {
@@ -59,6 +66,8 @@ export interface Geometry {
   readonly visualInsetBottom: number
   /** The part of `visualInsetBottom` that is a bar the browser does not report, in whole px. */
   readonly hiddenBarBottom: number
+  /** How much a keyboard shrank the layout viewport itself (see `restingLayout`), in whole px. */
+  readonly keyboardResize: number
   /** `usable` less the visual inset: what the player can actually see and reach. */
   readonly visible: Rect
   readonly scale: HostDisplay['scale']
@@ -98,15 +107,17 @@ export function measureGeometry(input: GeometryInput): Geometry {
   // The visual inset is measured from the layout's foot, so the bottom safe area already sits
   // inside it: only the part beyond the safe area shortens the usable region.
   const covered = Math.max(0, visualInsetBottom - insets.bottom)
+  const classed = input.restingLayout ?? layout
   return {
     layout: { width: layout.width, height: layout.height },
-    formFactor: classifyFormFactor(layout.width, layout.height),
-    heightTier: classifyHeightTier(layout.height),
+    formFactor: classifyFormFactor(classed.width, classed.height),
+    heightTier: classifyHeightTier(classed.height),
     insets,
     hostReserved: reserved,
     usable,
     visualInsetBottom,
     hiddenBarBottom,
+    keyboardResize: Math.max(0, Math.round(classed.height - layout.height)),
     visible: { ...usable, height: Math.max(0, usable.height - covered) },
     scale: host?.scale ?? 1,
   }
@@ -117,8 +128,9 @@ export function applyGeometry(root: HTMLElement, geometry: Geometry): void {
   root.dataset.formFactor = geometry.formFactor
   if (geometry.heightTier === undefined) delete root.dataset.height
   else root.dataset.height = geometry.heightTier
-  // A screen frame scrolls what an overlay hides rather than leaving an action under it.
-  if (geometry.visualInsetBottom > 0) root.dataset.visualInset = ''
+  // A screen frame scrolls what a keyboard hides rather than leaving an action under it, whether
+  // the keyboard lies over the page's foot or shrank the page.
+  if (geometry.visualInsetBottom > 0 || geometry.keyboardResize > 0) root.dataset.visualInset = ''
   else delete root.dataset.visualInset
   const px = (name: string, value: number): void => root.style.setProperty(name, `${value}px`)
   px('--af-inset-top', geometry.insets.top)

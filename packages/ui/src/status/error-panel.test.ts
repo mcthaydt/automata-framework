@@ -13,6 +13,8 @@ describe('ErrorPanel', () => {
     const alert = screen.getByRole('alert')
     expect(alert).toHaveTextContent("Couldn't download the game.")
     expect(alert).toHaveAttribute('data-code', 'download')
+    // Where the keyboard leaves less room than it needs, it scrolls its own content (spec §3.4).
+    expect(alert).toHaveAttribute('data-scroll-region')
   })
 
   it('offers each way forward, primary first, and calls it', async () => {
@@ -29,6 +31,8 @@ describe('ErrorPanel', () => {
     const buttons = screen.getAllByRole('button')
     expect(buttons.map((b) => b.textContent?.trim())).toEqual(['Try again', 'Continue without loading'])
     expect(buttons[0]).toHaveClass('af-control--primary')
+    expect(buttons[0]).toHaveAttribute('data-kind', 'primary')
+    expect(buttons[1]).toHaveAttribute('data-kind', 'secondary')
     await userEvent.click(buttons[0] as HTMLElement)
     await userEvent.click(buttons[1] as HTMLElement)
     expect(retry).toHaveBeenCalledOnce()

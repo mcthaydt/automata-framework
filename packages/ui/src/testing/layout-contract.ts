@@ -6,14 +6,17 @@
 
 import {
   documentScrolls,
+  findClipped,
   findIntrusions,
   findOffscreenControls,
+  findOverlaps,
   findSmallTargets,
   findUnreachable,
   hostDisplay,
   type LayoutRect,
   type ReferenceSize,
   type Variant,
+  visibleControls,
 } from '@mcthaydt/automata-testing'
 import { applyGeometry, type Geometry, measureGeometry } from '../geometry/geometry'
 
@@ -50,18 +53,43 @@ export function publishConditions(root: HTMLElement, size: ReferenceSize, varian
   return { geometry, reserved }
 }
 
+/** An ActionBar that had to wrap, putting its primary on a row of its own (spec §3.4: never level 3). */
+function findWrappedBars(root: ParentNode): string[] {
+  return [...root.querySelectorAll('[data-action-bar][data-collapse="3"]')].map(
+    (bar) => `${bar.getAttribute('data-testid') ?? 'action bar'} collapsed to level 3`,
+  )
+}
+
+/** A control outside the corner row drawn over it (spec §3.4: the corner row never sits over content). */
+function findCornerOverlaps(root: ParentNode): string[] {
+  const problems: string[] = []
+  for (const row of root.querySelectorAll('[data-corner-controls]')) {
+    for (const control of visibleControls(root)) {
+      if (row.contains(control)) continue
+      for (const overlap of findOverlaps(control, row)) {
+        problems.push(overlap.replace(/ overlaps .*$/, ' overlaps corner row'))
+      }
+    }
+  }
+  return problems
+}
+
 /**
  * The checks every screen shares: the document never scrolls; every control is at least the target
- * (primaries the primary target) at this scale, on screen unless in a declared scroll region and
- * never under a reserved area; and each of `essentials` is reachable without scrolling.
+ * (primaries the primary target) at this scale, on screen unless in a declared scroll region,
+ * never under a reserved area and never over the corner row; no ActionBar wraps (level 3); no row
+ * (`[data-row]`) clips what it holds; and each of `essentials` is reachable without scrolling.
  */
 export function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[] {
   const scale = conditions.geometry.scale
   return [
     ...documentScrolls(document),
-    ...findSmallTargets(document.body, 44 * scale, 48 * scale, '.af-control--primary'),
+    ...findSmallTargets(document.body, 44 * scale, 48 * scale),
     ...findOffscreenControls(document.body),
     ...findIntrusions(document.body, conditions.reserved),
+    ...findCornerOverlaps(document.body),
+    ...findWrappedBars(document.body),
+    ...findClipped(document.body, '[data-row]'),
     ...findUnreachable(essentials),
   ]
 }

@@ -31,7 +31,7 @@ function nameOf(element: Element): string {
 }
 
 /** Controls a player could see and reach: laid out, not hidden, not in an inert subtree. */
-function visibleControls(root: ParentNode): HTMLElement[] {
+export function visibleControls(root: ParentNode): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(CONTROLS)].filter((node) => {
     const rect = node.getBoundingClientRect()
     if (rect.width === 0 || rect.height === 0) return false
@@ -68,17 +68,14 @@ export function findUnreachable(elements: readonly Element[]): string[] {
   return problems
 }
 
+/** The one marker of a primary action. The theme sizes a primary by the same attribute. */
+const PRIMARY = '[data-kind="primary"]'
+
 /**
- * Every visible control is at least `min` square, and a primary one (matching `primarySelector`)
- * at least `minPrimary` tall. A checkbox or radio is pressed through its label too, so the label is
- * its target.
+ * Every visible control is at least `min` square, and a primary (`data-kind="primary"`) at least
+ * `minPrimary` tall. A checkbox or radio is pressed through its label too, so the label is its target.
  */
-export function findSmallTargets(
-  root: ParentNode,
-  min: number,
-  minPrimary: number,
-  primarySelector = '[data-primary]',
-): string[] {
+export function findSmallTargets(root: ParentNode, min: number, minPrimary: number): string[] {
   const problems: string[] = []
   for (const node of visibleControls(root)) {
     const input =
@@ -86,7 +83,7 @@ export function findSmallTargets(
         ? node
         : undefined
     const target = input?.labels?.[0]?.getBoundingClientRect() ?? node.getBoundingClientRect()
-    const primary = node.matches(primarySelector)
+    const primary = node.matches(PRIMARY)
     const tall = primary ? minPrimary : min
     if (target.width < min - SLACK || target.height < tall - SLACK) {
       const size = `${Math.round(target.width)}x${Math.round(target.height)}`
@@ -96,24 +93,11 @@ export function findSmallTargets(
   return problems
 }
 
-/** Whether an ancestor of `node` scrolls right now: overflow auto or scroll, with more than it shows. */
-function insideLiveScroller(node: Element): boolean {
-  for (let at = node.parentElement; at !== null; at = at.parentElement) {
-    const overflowY = getComputedStyle(at).overflowY
-    if ((overflowY === 'auto' || overflowY === 'scroll') && at.scrollHeight > at.clientHeight) return true
-  }
-  return false
-}
-
-/**
- * Every visible control is on screen, unless it sits in a scroll region: one declared with
- * `[data-scroll-region]`, or a box that scrolls right now (a screen frame while the keyboard is
- * open). A box that only clips (`overflow: hidden`) is not one: what it hides cannot be reached.
- */
+/** Every visible control is on screen, unless it sits in a declared scroll region (`[data-scroll-region]`). */
 export function findOffscreenControls(root: ParentNode): string[] {
   const problems: string[] = []
   for (const node of visibleControls(root)) {
-    if (node.closest('[data-scroll-region]') !== null || insideLiveScroller(node)) continue
+    if (node.closest('[data-scroll-region]') !== null) continue
     const rect = node.getBoundingClientRect()
     const view = viewport(node)
     const off =
@@ -154,42 +138,31 @@ export function findOverlaps(a: Element, b: Element): string[] {
   return intersects(boxOf(a), boxOf(b)) ? [`${nameOf(a)} overlaps ${nameOf(b)}`] : []
 }
 
-/**
- * The part of an element its scrolling or clipping ancestors still show, in viewport px; `undefined`
- * when they hide all of it. A control scrolled out of view is not under anything.
- */
-function shownBox(element: Element): LayoutRect | undefined {
-  const rect = element.getBoundingClientRect()
-  let left = rect.left
-  let top = rect.top
-  let right = rect.right
-  let bottom = rect.bottom
-  for (let at = element.parentElement; at !== null; at = at.parentElement) {
-    const style = getComputedStyle(at)
-    if (style.overflowX === 'visible' && style.overflowY === 'visible') continue
-    const clip = at.getBoundingClientRect()
-    left = Math.max(left, clip.left)
-    top = Math.max(top, clip.top)
-    right = Math.min(right, clip.right)
-    bottom = Math.min(bottom, clip.bottom)
+/** The declared scroll regions around `node`, innermost first. */
+function scrollRegionsAround(node: Element): Element[] {
+  const regions: Element[] = []
+  let region = node.parentElement?.closest('[data-scroll-region]') ?? null
+  while (region !== null) {
+    regions.push(region)
+    region = region.parentElement?.closest('[data-scroll-region]') ?? null
   }
-  if (right - left < SLACK || bottom - top < SLACK) return undefined
-  return { x: left, y: top, width: right - left, height: bottom - top }
+  return regions
 }
 
 /**
- * No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px. Only
- * the part a scroller still shows counts: a frame that scrolls its actions out from under the
- * keyboard passes.
+ * No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its
+ * whole box. The one exception is a control inside a declared scroll region that is itself clear
+ * of every area: scrolling brings it into view. An undeclared scroller earns nothing, and a fixed
+ * control is measured where it is drawn, whatever it sits inside.
  */
 export function findIntrusions(root: ParentNode, rects: readonly LayoutRect[]): string[] {
+  const areas = rects.filter((rect) => rect.width > 0 && rect.height > 0)
+  const clear = (box: LayoutRect): boolean => !areas.some((rect) => intersects(box, rect))
   const problems: string[] = []
   for (const node of visibleControls(root)) {
-    const box = shownBox(node)
-    if (box === undefined) continue
-    if (rects.some((rect) => rect.width > 0 && rect.height > 0 && intersects(box, rect))) {
-      problems.push(`${nameOf(node)} is under a reserved area`)
-    }
+    if (clear(boxOf(node))) continue
+    if (scrollRegionsAround(node).some((region) => clear(boxOf(region)))) continue
+    problems.push(`${nameOf(node)} is under a reserved area`)
   }
   return problems
 }

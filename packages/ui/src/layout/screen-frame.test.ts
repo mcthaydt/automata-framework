@@ -1,9 +1,13 @@
 import { textSnippet } from '@mcthaydt/automata-testing'
 import { render } from '@testing-library/svelte'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import ScreenFrame from './ScreenFrame.svelte'
 
 describe('ScreenFrame', () => {
+  afterEach(() => {
+    delete document.documentElement.dataset.visualInset
+  })
+
   it('renders the corner row, hero, body and actions in that order, marked with its arrangement', () => {
     const { container } = render(ScreenFrame, {
       arrangement: 'stack',
@@ -31,5 +35,21 @@ describe('ScreenFrame', () => {
     expect(frame.querySelector('.af-screen-frame__hero')).toBeNull()
     expect(frame.querySelector('.af-screen-frame__actions')).toBeNull()
     expect(frame.querySelector('button')).toBeNull()
+  })
+
+  it('declares itself a scroll region while the browser lays something over the foot, and only then', async () => {
+    const { container } = render(ScreenFrame, { arrangement: 'stack', body: textSnippet('Body') })
+    const frame = container.querySelector('[data-screen-frame]') as HTMLElement
+    expect(frame.hasAttribute('data-scroll-region')).toBe(false)
+    document.documentElement.dataset.visualInset = ''
+    await vi.waitFor(() => expect(frame.hasAttribute('data-scroll-region')).toBe(true))
+    delete document.documentElement.dataset.visualInset
+    await vi.waitFor(() => expect(frame.hasAttribute('data-scroll-region')).toBe(false))
+  })
+
+  it('starts as a scroll region when it mounts with the keyboard already up', () => {
+    document.documentElement.dataset.visualInset = ''
+    const { container } = render(ScreenFrame, { arrangement: 'stack', body: textSnippet('Body') })
+    expect(container.querySelector('[data-screen-frame]')?.hasAttribute('data-scroll-region')).toBe(true)
   })
 })

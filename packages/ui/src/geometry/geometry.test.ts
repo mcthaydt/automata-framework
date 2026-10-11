@@ -104,6 +104,20 @@ describe('measureGeometry (M1.6 spec §3.1)', () => {
     expect(measureGeometry(input()).hiddenBarBottom).toBe(0)
   })
 
+  test('a page the keyboard shrank keeps its resting class, and says how much was taken', () => {
+    // Without `interactive-widget=resizes-visual` some browsers shrink the layout viewport itself.
+    const resting = measureGeometry(input({ layout: { width: 390, height: 844 } }))
+    const g = measureGeometry(
+      input({ layout: { width: 390, height: 500 }, restingLayout: { width: 390, height: 844 } }),
+    )
+    expect(g.formFactor).toBe(resting.formFactor)
+    expect(g.heightTier).toBe(resting.heightTier)
+    expect(g.keyboardResize).toBe(344)
+    expect(g.visualInsetBottom).toBe(0)
+    expect(g.layout).toEqual({ width: 390, height: 500 })
+    expect(measureGeometry(input()).keyboardResize).toBe(0)
+  })
+
   test("carries the host's scale hint", () => {
     expect(measureGeometry(input({ host: host({ scale: 1.333 }) })).scale).toBe(1.333)
   })
@@ -147,5 +161,15 @@ describe('applyGeometry (M1.6 spec §3.2)', () => {
     expect(root.hasAttribute('data-visual-inset')).toBe(true)
     expect(prop('--af-hidden-bar-bottom')).toBe('64px')
     expect(prop('--af-visual-inset-bottom')).toBe('64px')
+
+    // A keyboard that shrank the page: the frame already ends above it, and scrolls what it hides.
+    applyGeometry(
+      root,
+      measureGeometry(
+        input({ layout: { width: 390, height: 500 }, restingLayout: { width: 390, height: 844 } }),
+      ),
+    )
+    expect(root.hasAttribute('data-visual-inset')).toBe(true)
+    expect(prop('--af-visual-inset-bottom')).toBe('0px')
   })
 })

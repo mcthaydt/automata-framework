@@ -75,6 +75,11 @@ describe('theme.css', () => {
     expect(css).not.toMatch(/\bzoom\s*:/)
   })
 
+  test('a primary is sized by data-kind="primary", the one marker the layout check reads', () => {
+    expect(block('.af-control[data-kind="primary"]')).toContain('min-height: var(--af-target-primary)')
+    expect(block('.af-control--primary')).not.toContain('min-height')
+  })
+
   test('short and compact screens tighten the gutter and never the targets', () => {
     for (const selector of [':root[data-height="short"]', ':root[data-height="compact"]']) {
       const rule = block(selector)

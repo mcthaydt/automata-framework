@@ -129,6 +129,8 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
   // Only DuckDuckGo for Android forgets its bar (spec §3.9); every other browser skips the check.
   const hiddenBar = win.navigator != null && isDuckDuckGo(win.navigator) ? new HiddenBrowserBar() : undefined
   let lastHeight: number | undefined
+  // The layout viewport when no keyboard had shrunk it (see `GeometryInput.restingLayout`).
+  let resting = { width: win.innerWidth, height: win.innerHeight }
 
   const readHiddenBar = (): number => {
     const screen = win.screen
@@ -147,10 +149,23 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
     return hidden
   }
 
+  // A page that got shorter, at the same width, while a text field has focus was shrunk by the
+  // keyboard: it keeps the class it had at rest. Anything else (a rotation, a window drag, a
+  // shorter page with nothing being typed) is a real resize and becomes the new resting size.
+  const restingLayout = (layout: { width: number; height: number }) => {
+    const shrunkByKeyboard =
+      layout.width === resting.width && layout.height < resting.height && isEditing(root.ownerDocument)
+    if (shrunkByKeyboard) return resting
+    resting = layout
+    return undefined
+  }
+
   const read = (): Geometry => {
     const visual = win.visualViewport
+    const layout = { width: win.innerWidth, height: win.innerHeight }
     return measureGeometry({
-      layout: { width: win.innerWidth, height: win.innerHeight },
+      layout,
+      restingLayout: restingLayout(layout),
       visual: visual == null ? undefined : { height: visual.height, offsetTop: visual.offsetTop },
       envSafeArea: readEnv(),
       host,
