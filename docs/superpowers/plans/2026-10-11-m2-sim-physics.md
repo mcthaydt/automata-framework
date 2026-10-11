@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
 - **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
-- **Progress:** 9 / 13 tasks.
+- **Progress:** 10 / 13 tasks.
 - **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
@@ -69,8 +69,8 @@
 - [x] Implement; `pnpm check`. (`physics/src/physics-3d.test.ts`, 17 tests.) Failing-first shown by mutation: removing each of removal, teleport, kinematic target, velocity write, kind change, damping, collider rebuild, lone-collider move, the write-back equality check and create-time validation fails at least one test (script output in the PR).
 
 ### 10. 3D events (spec §3.4)
-- [ ] Failing tests: started events sorted with `a < b`; sensor flag; ended on separation; an event for a collider removed this tick is dropped.
-- [ ] Implement; `pnpm check`.
+- [x] Failing tests: started events sorted with `a < b`; sensor flag; ended on separation; an event for a collider removed this tick is dropped.
+- [x] Implement; `pnpm check`. (`physics-3d-events.test.ts` against Rapier; `physics-world.test.ts` with a fake adapter that reports pairs out of order, because real Rapier happened to report them in sid order and a mutation dropping `a < b` survived the Rapier-only tests.) Mutations removing the sort, `a < b`, the drop and the sensor flag each fail a test.
 
 ### 11. 3D physics bytes and restore (spec §3.2)
 - [ ] Failing tests: snapshot → restore into a fresh sim → 100 more ticks equal the uninterrupted run (hash and events); bad version, unsorted rows, bad flags, unknown handle, trailing bytes → `SnapshotFormatError` with the sim unchanged; a dead-sid row is accepted and removed at the next tick.
