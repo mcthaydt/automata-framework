@@ -8,3 +8,4 @@ spikes/out/
 evidence/
 playwright-report-remote/
 test-results/
+.ruken/

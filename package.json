@@ -17,7 +17,8 @@
     "style": "node tooling/check-style/src/cli.ts packages/*/src",
     "check": "pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit",
     "test:e2e": "turbo run test:e2e",
-    "lint:actions": "docker run --rm -v \"$PWD:/repo\" --workdir /repo rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color"
+    "lint:actions": "docker run --rm -v \"$PWD:/repo\" --workdir /repo rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color",
+    "test:parity": "turbo run test:parity"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

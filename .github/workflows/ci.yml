@@ -1,10 +1,15 @@
 name: ci
 
-# AF's own CI (ship spec §3.7). Checks and cross-engine parity run on every push and pull request on GitHub's
-# Ubuntu. Browser journeys run only nightly and on request (`automata-ship test-remote <spec>`), on the
-# Owner's runner when vars.AF_GPU_RUNNER names it (D-5): AF is the third tenant there, after Ruken and
-# FloorFifty. Hosted jobs are not getting runners on this account (2026-10-11), so a full local run is the
-# green gate meanwhile (docs/04-how-we-build.md).
+# AF's own CI (ship spec §3.7). Checks and cross-engine parity run on every push and pull request. Browser
+# journeys run only nightly and on request (`automata-ship test-remote <spec>`).
+#
+# Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
+# about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
+# label af-linux (WSL2 Ubuntu with Docker, like Ruken's ruken-linux; ship spec §3.7). There is deliberately no
+# fallback to ubuntu-latest: with no runner online a job waits in the queue instead of failing at once. The
+# repository variable AF_LINUX_RUNNER switches every job to another label (ubuntu-latest once hosted minutes
+# are back), and AF_GPU_RUNNER moves the browser journeys alone. Until a runner serves AF, a full local run is
+# the green gate (docs/04-how-we-build.md).
 
 on:
   push:
@@ -34,17 +39,20 @@ jobs:
   checks:
     name: lint, typecheck, boundaries, style, unit
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
@@ -55,7 +63,7 @@ jobs:
   parity:
     name: parity (chromium, webkit, firefox)
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 10
     # Browsers and their OS deps come preinstalled and pinned; installing them per run blew the 10-minute budget.
     # Keep the tag in step with the `playwright` devDependency (docs/versions.md, Container images).
@@ -66,15 +74,19 @@ jobs:
         with:
           persist-credentials: false
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       # The container runs as root but the checkout belongs to the runner user; without this, git (and so the
       # `prepare` hook install) refuses the repo as "dubious ownership".
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @mcthaydt/automata-sim exec vitest run --project browsers
+      # Every package with a browsers vitest project (sim, content, physics, ui, ...) runs its parity suite.
+      - run: pnpm test:parity
         env:
           HOME: /root # Actions sets HOME to /github/home (not root's); Firefox refuses to run as root there
 
@@ -83,7 +95,7 @@ jobs:
     if: >-
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && (inputs.spec != '' || inputs.nightly))
-    runs-on: ${{ vars.AF_GPU_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.AF_GPU_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -96,10 +108,14 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
         if: runner.environment == 'github-hosted'
+      # A self-hosted runner has the system libraries installed once and no sudo; the browser itself is fetched
+      # into its cache here (a no-op when it is already there).
+      - run: pnpm exec playwright install chromium
+        if: runner.environment == 'self-hosted'
       - name: Browser journeys
         env:
           SPEC: ${{ inputs.spec }}
@@ -121,3 +137,4 @@ jobs:
     with:
       working-directory: examples/placeholder
       sim-roots: ""
+      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}

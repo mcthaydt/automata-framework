@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -16,6 +16,7 @@ interface Step {
   readonly name?: string
   readonly if?: string
   readonly env?: Record<string, string>
+  readonly with?: { readonly cache?: string; readonly dest?: string }
 }
 interface Job {
   readonly 'runs-on'?: string
@@ -58,6 +59,89 @@ describe('every workflow', () => {
   })
 })
 
+describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runner on this account)", () => {
+  const ci = workflow('ci.yml')
+
+  it.each(['checks', 'parity', 'e2e'])(
+    'ci.yml %s runs on the AF runner label, switchable by vars.AF_LINUX_RUNNER, never falling back to hosted',
+    (name) => {
+      const runsOn = ci.jobs[name]?.['runs-on'] ?? ''
+      expect(runsOn).toContain('vars.AF_LINUX_RUNNER')
+      expect(runsOn).toContain("'af-linux'")
+      expect(runsOn).not.toContain('ubuntu-latest')
+    },
+  )
+
+  it('passes the same runner to the placeholder through game-ci', () => {
+    expect(ci.jobs.placeholder?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+  })
+
+  it.each(['game-ci.yml', 'game-release.yml'])(
+    '%s takes its runner as an input (a game repository has its own runners)',
+    (name) => {
+      const reusable = workflow(name)
+      expect(Object.keys(reusable.on.workflow_call?.inputs ?? {})).toContain('runner')
+      for (const job of Object.values(reusable.jobs)) expect(job['runs-on']).toBe('${{ inputs.runner }}')
+    },
+  )
+
+  it.each(ALL)(
+    '%s keeps pnpm in a per-job folder and saves the Actions cache only on hosted runners',
+    (name) => {
+      for (const job of Object.values(workflow(name).jobs)) {
+        const steps = job.steps ?? []
+        for (const step of steps.filter((each) => each.uses?.startsWith('pnpm/action-setup@'))) {
+          expect(step.with?.dest).toBe('${{ runner.temp }}/setup-pnpm')
+        }
+        for (const step of steps.filter((each) => each.uses?.startsWith('actions/setup-node@'))) {
+          expect(step.with?.cache).toBe("${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}")
+        }
+      }
+    },
+  )
+})
+
+describe('parity across packages', () => {
+  const ci = workflow('ci.yml')
+  const packageJson = (path: string) => JSON.parse(readFileSync(join(root, path, 'package.json'), 'utf8'))
+  const foldersIn = (group: string): string[] =>
+    readdirSync(join(root, group), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && entry.name !== 'node_modules')
+      .map((entry) => `${group}/${entry.name}`)
+  const hasPackageJson = (path: string): boolean => {
+    try {
+      readFileSync(join(root, path, 'package.json'))
+      return true
+    } catch {
+      return false
+    }
+  }
+  // The workspace globs: packages/*, tooling/*, examples/* and examples/*/* (pnpm-workspace.yaml).
+  const workspacePackages = [
+    ...['packages', 'tooling', 'examples'].flatMap(foldersIn),
+    ...foldersIn('examples').flatMap(foldersIn),
+  ].filter(hasPackageJson)
+
+  it("runs every package's parity suite through the root test:parity script", () => {
+    expect(packageJson('.').scripts['test:parity']).toBe('turbo run test:parity')
+    expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
+  })
+
+  it('gives every package with a browsers vitest project a test:parity script', () => {
+    const withBrowsers = workspacePackages.filter((path) => {
+      try {
+        return /name:\s*'browsers'/.test(readFileSync(join(root, path, 'vitest.config.ts'), 'utf8'))
+      } catch {
+        return false
+      }
+    })
+    expect(withBrowsers).toContain('packages/sim')
+    for (const path of withBrowsers) {
+      expect(packageJson(path).scripts['test:parity']).toBe('vitest run --project browsers')
+    }
+  })
+})
+
 describe('ci.yml (AF)', () => {
   const ci = workflow('ci.yml')
 
@@ -75,7 +159,6 @@ describe('ci.yml (AF)', () => {
         'pnpm test:unit',
       ]),
     )
-    expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('--project browsers')
   })
 
   it('keeps the parity container on the pinned Playwright version', () => {

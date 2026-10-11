@@ -2,6 +2,7 @@ packages:
   - packages/*
   - tooling/*
   - examples/*
+  - examples/*/*
 # Same runtime as Ruken (docs/versions.md): pnpm runs scripts on this exact Node, whatever the system has.
 useNodeVersion: 24.21.0
 saveExact: true
