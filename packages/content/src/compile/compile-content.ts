@@ -251,15 +251,15 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
     place(game.toml, checkGame(game.value, { assetScreens }))
     data.game = game.value
   }
-  // Ruken's own parser has the last word on the fields and preload paths content hands to ruken.toml.
-  if (gameSource === undefined || game !== undefined) {
-    const ruken = checkWithRuken({
-      fields: game === undefined ? undefined : rukenFields(game.value, languages),
-      assets: assetsFile?.value,
-    })
-    if (game !== undefined) place(game.toml, ruken.game)
-    if (assetsFile !== undefined) place(assetsFile.toml, ruken.assets)
-  }
+  // Ruken's own parser has the last word on the fields and preload paths content hands to ruken.toml. The
+  // assets are checked even when game.toml did not parse, with placeholder fields, so one broken file does
+  // not hide the other's problems.
+  const ruken = checkWithRuken({
+    fields: game === undefined ? undefined : rukenFields(game.value, languages),
+    assets: assetsFile?.value,
+  })
+  if (game !== undefined) place(game.toml, ruken.game)
+  if (assetsFile !== undefined) place(assetsFile.toml, ruken.assets)
 
   // 5. Translations must have exactly the source keys.
   for (const { source } of everySourceParsed ? tree.translations : []) {

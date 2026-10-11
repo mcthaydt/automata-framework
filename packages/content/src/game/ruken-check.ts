@@ -17,9 +17,12 @@ const PLACEHOLDER_FIELDS: RukenFields = {
   analytics: { custom_events: [] },
 }
 
-// A JSON string is a valid TOML basic string: TOML has the same escapes (\" \\ \b \f \n \r \t \uXXXX).
-const tomlList = (values: readonly string[]): string =>
-  `[${values.map((value) => JSON.stringify(value)).join(', ')}]`
+// A JSON string is almost a TOML basic string: both have the escapes \" \\ \b \f \n \r \t \uXXXX, and JSON
+// escapes U+0000 to U+001F. TOML also refuses a raw DEL (U+007F), which JSON leaves as it is, so DEL is
+// escaped too (audit of PR #8). Any other text TOML refuses is still reported, by `placeError`.
+const tomlString = (value: string): string => JSON.stringify(value).replaceAll('\u007f', '\\u007F')
+
+const tomlList = (values: readonly string[]): string => `[${values.map(tomlString).join(', ')}]`
 
 function manifestText(fields: RukenFields, preload: readonly string[]): string {
   const { content, analytics } = fields
@@ -40,7 +43,7 @@ function manifestText(fields: RukenFields, preload: readonly string[]): string {
     'connect = []',
     '[content]',
     `languages = ${tomlList(content.languages)}`,
-    `rating = ${JSON.stringify(content.rating)}`,
+    `rating = ${tomlString(content.rating)}`,
     `descriptors = ${tomlList(content.descriptors)}`,
     ...(content.estimated_hours === undefined ? [] : [`estimated_hours = ${content.estimated_hours}`]),
     '[analytics]',
@@ -117,8 +120,18 @@ function placeError(
   }
   const key = GAME_KEYS[table]
   if (key === undefined || !hasGame) {
-    // A placeholder table Ruken refused means this check is out of date with Ruken, not that content is wrong.
-    throw new Error(`Ruken refused a placeholder in the content check: ${error.path} ${error.code}`)
+    // Ruken refused something this check cannot trace to a key: text TOML cannot hold even escaped, or a
+    // placeholder table, which would mean the check is out of date with Ruken. It is still a problem for the
+    // author to see, never a crash, so it goes at the top of the file content handed over.
+    const where = error.path === '' ? '' : ` (${error.path})`
+    const problem: Problem = {
+      path: [],
+      code: 'invalidGame',
+      message: `Ruken ${error.code}: ${error.message}${where}`,
+    }
+    if (hasGame) result.game.push(problem)
+    else result.assets.push(problem)
+    return
   }
   const path: DataPath = index === undefined ? [key] : [key, index]
   result.game.push({ path, code: 'invalidGame', message: `Ruken ${error.code}: ${error.message}` })

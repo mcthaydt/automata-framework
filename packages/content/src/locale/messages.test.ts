@@ -62,4 +62,16 @@ describe('checkTranslation', () => {
       { path: [], code: 'staleTranslation', message: 'a translation is a JSON object of message keys' },
     ])
   })
+
+  // Audit of PR #8: `key in entries` found these on Object.prototype, so they passed as source keys.
+  it('treats keys named like object properties as ordinary extra keys', () => {
+    const translation = JSON.parse(
+      '{"content_a":"Á","content_b":"Ḃ","__proto__":"x","constructor":"y","toString":"z"}',
+    ) as unknown
+    expect(checkTranslation(source, translation)).toEqual([
+      { path: ['__proto__'], code: 'staleTranslation', message: '__proto__ is not a source key' },
+      { path: ['constructor'], code: 'staleTranslation', message: 'constructor is not a source key' },
+      { path: ['toString'], code: 'staleTranslation', message: 'toString is not a source key' },
+    ])
+  })
 })

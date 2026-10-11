@@ -56,4 +56,34 @@ describe('checkWithRuken', () => {
       },
     ])
   })
+
+  // Audit of PR #8: JSON.stringify leaves DEL (U+007F) raw, TOML refuses it, and the refusal could not be
+  // placed, so the compile crashed. Every control character must reach Ruken escaped and come back placed.
+  it('places a control character in any value at its key, and never throws', () => {
+    const controls = [
+      ...Array.from({ length: 0x20 }, (_, code) => code),
+      0x7f,
+      ...Array.from({ length: 0x20 }, (_, code) => 0x80 + code),
+    ].map((code) => String.fromCharCode(code))
+    for (const control of controls) {
+      const result = checkWithRuken({
+        fields: {
+          content: { ...fields.content, descriptors: [`x${control}`] },
+          analytics: { custom_events: [`a${control}`] },
+        },
+        assets: { screens: { Splash: { files: [`art/a${control}.png`] } } },
+      })
+      const paths = [...result.game, ...result.assets].map((problem) => problem.path.join('.'))
+      expect(paths, `U+${control.charCodeAt(0).toString(16)}`).toEqual(
+        expect.arrayContaining(['custom_events.0', 'screens.Splash.files.0']),
+      )
+    }
+  })
+
+  it('reports a refusal it cannot place as a problem at the top of the file, never a throw', () => {
+    const lone = String.fromCharCode(0xd800)
+    const result = checkWithRuken({ assets: { screens: { Splash: { files: [`art/${lone}.png`] } } } })
+    expect(result.assets).toHaveLength(1)
+    expect(result.assets[0]?.message).toMatch(/^Ruken /)
+  })
 })

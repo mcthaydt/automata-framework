@@ -201,6 +201,8 @@ export const readSources = (root: string, schemas: readonly ContentSchemaDef[]):
     ]
     for (const name of yield* listOne('')) {
       if (name.includes('/') || documentNames.includes(name) || isQuietlySkipped(name)) continue
+      // Documents are TOML, so only a TOML-ish name (`x.toml`, `x.TOML`, `x.toml.bak`) can be one misnamed.
+      if (!name.toLowerCase().includes('.toml')) continue
       const meant = nearestDocument(name, documentNames)
       if (meant !== undefined) skipped(name, `did you mean ${meant}?`)
     }

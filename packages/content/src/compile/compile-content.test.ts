@@ -139,6 +139,9 @@ describe('files the compiler skips', () => {
     writeFileSync(join(root, 'content/Game.toml'), '')
     writeFileSync(join(root, 'content/flow.toml.bak'), '')
     writeFileSync(join(root, 'content/README.md'), 'notes\n')
+    // Near in name but not TOML, so never a misnamed document (audit of PR #8).
+    writeFileSync(join(root, 'content/log.txt'), '')
+    writeFileSync(join(root, 'content/game.md'), '')
     const { warnings } = await compiled(fixtureOptions(root))
     expect(warnings.map(formatDiagnostic)).toEqual([
       'content/Game.toml:1:1  skippedFile: this file is not read; did you mean game.toml?',
@@ -329,6 +332,20 @@ describe('refusals (one formatted line per failure policy row)', () => {
       'content/assets.toml:5:1  screens.MainMenu.files.1  invalidGame: Ruken PRELOAD_PATH_INVALID: ../secrets must be a file path inside the build, such as audio/menu.m4a, or a folder path ending in /* such as audio/*.',
       'content/game.toml:5:1  custom_events.0  invalidGame: Ruken CUSTOM_EVENT_INVALID: analytics.custom_events[0] must be lowercase letters, digits and underscores, starting with a letter.',
     ])
+  })
+
+  // Audit of PR #8: a game.toml that failed to parse used to hide Ruken's verdict on assets.toml.
+  it('an asset path, even while game.toml does not parse', async () => {
+    const root = copyFixture('valid')
+    writeFileSync(join(root, 'content/game.toml'), 'rating = \n')
+    edit(root, 'assets.toml', (t) => t.replace('"audio/*"', '"../secrets"'))
+    const lines = await refusals(fixtureOptions(root))
+    expect(lines).toContain(
+      'content/assets.toml:5:1  screens.MainMenu.files.1  invalidGame: Ruken PRELOAD_PATH_INVALID: ../secrets must be a file path inside the build, such as audio/menu.m4a, or a folder path ending in /* such as audio/*.',
+    )
+    expect(
+      lines.some((line) => line.startsWith('content/game.toml:1:') && line.includes('invalidToml')),
+    ).toBe(true)
   })
 
   it('a stale translation', async () => {

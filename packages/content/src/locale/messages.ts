@@ -81,8 +81,9 @@ export function checkTranslation(source: MessageCatalog, translation: unknown): 
   const keys = new Set([...Object.keys(source), ...Object.keys(entries)].filter((key) => key !== '$schema'))
   const problems: Problem[] = []
   for (const key of [...keys].sort()) {
-    const inSource = key in source
-    const inTranslation = key in entries
+    // `Object.hasOwn`, not `in`: `in` also finds `constructor` or `toString` on Object.prototype.
+    const inSource = Object.hasOwn(source, key)
+    const inTranslation = Object.hasOwn(entries, key)
     if (!inTranslation) problems.push({ path: [key], code: 'staleTranslation', message: `missing ${key}` })
     else if (!inSource) {
       problems.push({ path: [key], code: 'staleTranslation', message: `${key} is not a source key` })
