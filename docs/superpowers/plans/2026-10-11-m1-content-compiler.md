@@ -62,8 +62,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement.
 
 ### T8 Messages, game facts, Ruken fields
-- [ ] Port `messages.test.ts` (keys, inlang `$schema`, stays out of the payload); add key collision, translation missing/extra keys, `languages` derived with `en` required, rating and event-name checks, and a `ruken.toml` built around `rukenFields` that `@ruken/manifest`'s `parseManifest` accepts. Fails: module missing.
-- [ ] Implement.
+- [x] Port `messages.test.ts` (keys, inlang `$schema`, stays out of the payload); add key collision, translation missing/extra keys, `languages` derived with `en` required, rating and event-name checks, and a `ruken.toml` built around `rukenFields` that `@ruken/manifest`'s `parseManifest` accepts. Fails: module missing.
+- [x] Implement.
 
 ### T9 Canonical file and hash
 - [x] Port `determinism.test.ts` `canonicalizeValue` cases to `canonicalFile`; test `contentHash(data)` equals `hex64(xxhash64(utf8(canonicalJson(data))))`; `content-hash.parity.test.ts` pins one hash in Chromium, WebKit and Firefox. Fails: module missing.
