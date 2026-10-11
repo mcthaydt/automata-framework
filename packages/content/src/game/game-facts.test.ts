@@ -40,35 +40,23 @@ describe('languagesOf', () => {
 
 describe('checkGame', () => {
   it('accepts a well-formed game.toml', () => {
-    expect(checkGame(game, { languages: ['en', 'fr'] })).toEqual([])
+    expect(checkGame(game, {})).toEqual([])
   })
 
-  it('refuses event names Ruken would refuse, a repeated event, a bad tag and a missing en', () => {
-    const bad = { ...game, source_language: 'French', custom_events: ['Level Done', 'ok_event', 'ok_event'] }
-    expect(checkGame(bad, { languages: ['French'] })).toEqual([
-      {
-        path: ['custom_events', 0],
-        code: 'invalidGame',
-        message: 'event names match ^[a-z][a-z0-9_]{1,39}$, received Level Done',
-      },
-      { path: ['custom_events', 2], code: 'invalidGame', message: 'ok_event is listed more than once' },
+  it("refuses what Ruken's parser cannot see: a repeated event and a source language that is not a tag", () => {
+    const bad = { ...game, source_language: 'French', custom_events: ['ok_event', 'ok_event'] }
+    expect(checkGame(bad, {})).toEqual([
+      { path: ['custom_events', 1], code: 'invalidGame', message: 'ok_event is listed more than once' },
       {
         path: ['source_language'],
         code: 'invalidGame',
         message: 'French is not a language tag like en or pt-BR',
       },
-      {
-        path: ['source_language'],
-        code: 'invalidGame',
-        message: 'Ruken needs en among the languages (LANGUAGES_MISSING_EN); they are French',
-      },
     ])
   })
 
   it('requires preload screens to have assets', () => {
-    expect(
-      checkGame({ ...game, preload_screens: ['Splash'] }, { languages: ['en'], assetScreens: [] }),
-    ).toEqual([
+    expect(checkGame({ ...game, preload_screens: ['Splash'] }, { assetScreens: [] })).toEqual([
       { path: ['preload_screens', 0], code: 'invalidGame', message: 'Splash has no files in assets.toml' },
     ])
   })
@@ -81,27 +69,10 @@ describe('checkAssets', () => {
     expect(checkAssets(assets, ['Splash', 'Menu'])).toEqual([])
   })
 
-  it('refuses unknown screens and paths outside the build', () => {
-    const bad: AssetsSource = {
-      screens: { Credits: { files: ['/abs.png', '../up.png', 'a\\b.png', 'ok.png'] } },
-    }
+  it('refuses screens the flow does not have', () => {
+    const bad: AssetsSource = { screens: { Credits: { files: ['ok.png'] } } }
     expect(checkAssets(bad, ['Splash'])).toEqual([
       { path: ['screens', 'Credits'], code: 'invalidGame', message: 'Credits is not a screen in flow.toml' },
-      {
-        path: ['screens', 'Credits', 'files', 0],
-        code: 'invalidGame',
-        message: '/abs.png must be a relative path inside the build, such as audio/menu.m4a or audio/*',
-      },
-      {
-        path: ['screens', 'Credits', 'files', 1],
-        code: 'invalidGame',
-        message: '../up.png must be a relative path inside the build, such as audio/menu.m4a or audio/*',
-      },
-      {
-        path: ['screens', 'Credits', 'files', 2],
-        code: 'invalidGame',
-        message: 'a\\b.png must be a relative path inside the build, such as audio/menu.m4a or audio/*',
-      },
     ])
   })
 })

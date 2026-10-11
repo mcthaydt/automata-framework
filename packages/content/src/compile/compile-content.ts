@@ -18,7 +18,9 @@ import {
   checkGame,
   gameSchema,
   languagesOf,
+  rukenFields,
 } from '../game/game-facts'
+import { checkWithRuken } from '../game/ruken-check'
 import { type ContentData, type ContentGenerator, runGenerators } from '../generate/content-generator'
 import { contentHash } from '../hash/content-hash'
 import { checkTranslation, collectMessages } from '../locale/messages'
@@ -227,12 +229,12 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   // unknown and nothing that depends on them is checked).
   let assets: AssetsSource | undefined | null
   const assetsSource = tree.documents.get('assets')
+  const assetsFile = assetsSource === undefined ? undefined : parse(assetsSource, assetsSchema, 'assets')
   if (assetsSource !== undefined) {
-    const parsed = parse(assetsSource, assetsSchema, 'assets')
-    assets = parsed === undefined ? null : parsed.value
-    if (parsed !== undefined) {
-      place(parsed.toml, checkAssets(parsed.value, flow?.screens))
-      data.assets = parsed.value
+    assets = assetsFile === undefined ? null : assetsFile.value
+    if (assetsFile !== undefined) {
+      place(assetsFile.toml, checkAssets(assetsFile.value, flow?.screens))
+      data.assets = assetsFile.value
     }
   }
 
@@ -244,8 +246,17 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   )
   if (game !== undefined) {
     const assetScreens = assets === null ? undefined : Object.keys(assets?.screens ?? {})
-    place(game.toml, checkGame(game.value, { languages, assetScreens }))
+    place(game.toml, checkGame(game.value, { assetScreens }))
     data.game = game.value
+  }
+  // Ruken's own parser has the last word on the fields and preload paths content hands to ruken.toml.
+  if (gameSource === undefined || game !== undefined) {
+    const ruken = checkWithRuken({
+      fields: game === undefined ? undefined : rukenFields(game.value, languages),
+      assets: assetsFile?.value,
+    })
+    if (game !== undefined) place(game.toml, ruken.game)
+    if (assetsFile !== undefined) place(assetsFile.toml, ruken.assets)
   }
 
   // 5. Translations must have exactly the source keys.

@@ -255,8 +255,8 @@ describe('refusals (one formatted line per failure policy row)', () => {
     edit(root, 'game.toml', (t) => t.replace('"race_finished"', '"Race Finished"'))
     edit(root, 'assets.toml', (t) => t.replace('"audio/*"', '"../secrets"'))
     expect(await refusals(fixtureOptions(root))).toEqual([
-      'content/assets.toml:5:1  screens.MainMenu.files.1  invalidGame: ../secrets must be a relative path inside the build, such as audio/menu.m4a or audio/*',
-      'content/game.toml:5:1  custom_events.0  invalidGame: event names match ^[a-z][a-z0-9_]{1,39}$, received Race Finished',
+      'content/assets.toml:5:1  screens.MainMenu.files.1  invalidGame: Ruken PRELOAD_PATH_INVALID: ../secrets must be a file path inside the build, such as audio/menu.m4a, or a folder path ending in /* such as audio/*.',
+      'content/game.toml:5:1  custom_events.0  invalidGame: Ruken CUSTOM_EVENT_INVALID: analytics.custom_events[0] must be lowercase letters, digits and underscores, starting with a letter.',
     ])
   })
 
