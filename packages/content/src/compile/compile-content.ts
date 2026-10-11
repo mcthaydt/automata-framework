@@ -59,6 +59,8 @@ export interface CompiledContent {
   readonly hash: string
   /** Each output path, relative to the output folder, to its exact text. Build and verify use the same bytes. */
   readonly files: ReadonlyMap<string, string>
+  /** Problems that do not stop a compile (`skippedFile`), sorted. They are not part of the hash or the outputs. */
+  readonly warnings: readonly Diagnostic[]
 }
 
 export const DEFAULT_OUT_DIR = 'content/generated'
@@ -300,7 +302,10 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   if (run.diagnostics.length > 0) {
     return { ok: false, error: new ContentCompileFailed({ diagnostics: sortDiagnostics(run.diagnostics) }) }
   }
-  return { ok: true, content: { data, hash, files: withOutputList(run.files) } }
+  return {
+    ok: true,
+    content: { data, hash, files: withOutputList(run.files), warnings: sortDiagnostics(tree.warnings) },
+  }
 }
 
 /** The list of everything a build writes, kept in the output folder so the next build can remove what it no longer produces. */

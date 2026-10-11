@@ -140,6 +140,7 @@ export async function runCli(argv: readonly string[], cwd: string, io: CliIo = c
   const program = command.name === 'build' ? buildContent(options) : compileContent(options)
   const compiled = await Effect.runPromise(Effect.either(program))
   if (Either.isLeft(compiled)) return reportFailure(compiled.left, io)
+  for (const warning of compiled.right.warnings) io.err(`warning ${formatDiagnostic(warning)}`)
 
   if (command.name === 'docs') {
     const guide = command.guide ?? configGuide

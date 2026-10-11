@@ -23,6 +23,8 @@ export type DiagnosticCode =
   | 'duplicateMessageKey'
   | 'staleTranslation'
   | 'staleArtifact'
+  /** A warning, never a refusal: a file in a content folder the compiler does not read. */
+  | 'skippedFile'
 
 export interface Diagnostic {
   readonly code: DiagnosticCode

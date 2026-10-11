@@ -45,11 +45,21 @@ export interface SourceTree {
   /** Sorted by language. */
   readonly translations: readonly TranslationSource[]
   readonly diagnostics: readonly Diagnostic[]
+  /** `skippedFile` for each file in a content folder that is not read. They never fail a compile. */
+  readonly warnings: readonly Diagnostic[]
 }
 
 const ID_SEGMENT = /^[a-z0-9-]+$/
 
 const isSource = (name: string): boolean => name.endsWith('.toml') && !name.endsWith('.toml.example')
+
+/**
+ * Files that are meant to be skipped without a word: drafts kept as `.toml.example` and hidden files the
+ * operating system or an editor leaves behind (`.DS_Store`, `.dusk-run.toml.swp`). Anything else the
+ * compiler skips is most likely a misnamed file (`dusk-run.TOML`), so it gets a warning (audit of PR #8).
+ */
+const isQuietlySkipped = (name: string): boolean =>
+  name.endsWith('.toml.example') || (name.split('/').at(-1) ?? '').startsWith('.')
 
 const atFile = (file: string, code: Diagnostic['code'], message: string): Diagnostic => ({
   code,
@@ -66,6 +76,10 @@ export const readSources = (root: string, schemas: readonly ContentSchemaDef[]):
   Effect.gen(function* () {
     const contentRoot = join(root, 'content')
     const diagnostics: Diagnostic[] = []
+    const warnings: Diagnostic[] = []
+    const skipped = (relative: string, namedLike: string): void => {
+      warnings.push(atFile(`content/${relative}`, 'skippedFile', `this file is not read; ${namedLike}`))
+    }
 
     const readOne = (relative: string): Effect.Effect<SourceFile | undefined> => {
       const file = `content/${relative}`
@@ -105,7 +119,12 @@ export const readSources = (root: string, schemas: readonly ContentSchemaDef[]):
         continue
       }
       const items: ItemSource[] = []
-      for (const name of (yield* listOne(place.folder)).filter(isSource)) {
+      for (const name of yield* listOne(place.folder)) {
+        if (!isSource(name)) {
+          if (!isQuietlySkipped(name))
+            skipped(`${place.folder}/${name}`, 'items are named like dusk-run.toml')
+          continue
+        }
         const id = name.slice(0, -'.toml'.length)
         const relative = `${place.folder}/${name}`
         if (!id.split('/').every((segment) => ID_SEGMENT.test(segment))) {
@@ -126,10 +145,14 @@ export const readSources = (root: string, schemas: readonly ContentSchemaDef[]):
 
     const translations: TranslationSource[] = []
     for (const name of yield* listOne(TRANSLATIONS_FOLDER)) {
-      if (name.includes('/') || !name.endsWith('.json')) continue
+      if (name.includes('/') || !name.endsWith('.json')) {
+        if (!isQuietlySkipped(name))
+          skipped(`${TRANSLATIONS_FOLDER}/${name}`, 'translations are named like fr.json')
+        continue
+      }
       const source = yield* readOne(`${TRANSLATIONS_FOLDER}/${name}`)
       if (source !== undefined) translations.push({ language: name.slice(0, -'.json'.length), source })
     }
 
-    return { collections, documents, translations, diagnostics }
+    return { collections, documents, translations, diagnostics, warnings }
   })

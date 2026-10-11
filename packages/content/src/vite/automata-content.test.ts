@@ -5,7 +5,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Effect } from 'effect'
-import { build, createServer, type HotPayload, type ViteDevServer } from 'vite'
+import { build, createLogger, createServer, type HotPayload, type ViteDevServer } from 'vite'
 import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { compileContent } from '../compile/compile-content'
@@ -101,6 +101,32 @@ describe('vite build', () => {
     editFile(root, 'songs/dusk-run.toml', (text) => `${text}tempoDrift = 3\n`)
     await expect(buildApp(root)).rejects.toThrow(
       'content/songs/dusk-run.toml:8:1  tempoDrift  unknownField: unknown field: tempoDrift',
+    )
+  }, 30_000)
+})
+
+describe('warnings', () => {
+  it('logs a skipped file as a warning and still builds', async () => {
+    const root = copyFixture('valid')
+    writeFileSync(join(root, 'content/songs/night-run.TOML'), 'title = "x"\n')
+    writeFileSync(
+      join(root, 'main.js'),
+      "import { contentHash } from 'virtual:automata/content'\nconsole.log(contentHash)\n",
+    )
+    const warnings: string[] = []
+    const logger = createLogger('silent')
+    logger.warn = (message) => {
+      warnings.push(message)
+    }
+    await build({
+      root,
+      configFile: false,
+      customLogger: logger,
+      plugins: [automataContent(options(root))],
+      build: { write: false, rolldownOptions: { input: join(root, 'main.js') } },
+    })
+    expect(warnings).toContain(
+      'content/songs/night-run.TOML:1:1  skippedFile: this file is not read; items are named like dusk-run.toml',
     )
   }, 30_000)
 })

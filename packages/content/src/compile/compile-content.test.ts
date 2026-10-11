@@ -112,6 +112,28 @@ describe('the fixture game', () => {
   })
 })
 
+// Audit of PR #8: a song saved as dusk-run.TOML vanished from the game without a word.
+describe('files the compiler skips', () => {
+  it('are reported as warnings, and change nothing else', async () => {
+    const clean = await compiled(fixtureOptions(copyFixture('valid')))
+    expect(clean.warnings).toEqual([])
+
+    const root = copyFixture('valid')
+    writeFileSync(join(root, 'content/songs/night-run.TOML'), 'title = "x"\n')
+    writeFileSync(join(root, 'content/songs/notes.md'), 'ideas\n')
+    writeFileSync(join(root, 'content/songs/.DS_Store'), '')
+    writeFileSync(join(root, 'content/messages/de.JSON'), '{}\n')
+    const { warnings, hash, files } = await compiled(fixtureOptions(root))
+    expect(warnings.map(formatDiagnostic)).toEqual([
+      'content/messages/de.JSON:1:1  skippedFile: this file is not read; translations are named like fr.json',
+      'content/songs/night-run.TOML:1:1  skippedFile: this file is not read; items are named like dusk-run.toml',
+      'content/songs/notes.md:1:1  skippedFile: this file is not read; items are named like dusk-run.toml',
+    ])
+    expect(hash).toBe(clean.hash)
+    expect(files).toEqual(clean.files)
+  })
+})
+
 describe('equivalent trees', () => {
   it('give byte-identical outputs', async () => {
     const options = (root: string): ContentOptions => ({ root, schemas: [CHARACTER, SONG] })

@@ -67,6 +67,7 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
   let options: ContentOptions | undefined
   let command: ResolvedConfig['command'] = 'serve'
   let logError: (message: string) => void = () => {}
+  let logWarning: (message: string) => void = () => {}
 
   let latest: CompiledContent | undefined
   let latestErrors: readonly string[] = []
@@ -80,6 +81,7 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     const next = chain.then(async () => {
       const outcome = await runBuild(options as ContentOptions)
       if (outcome.ok) {
+        for (const warning of outcome.content.warnings) logWarning(formatDiagnostic(warning))
         latest = outcome.content
         latestErrors = []
       } else latestErrors = outcome.lines
@@ -132,6 +134,7 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       options = { ...pluginOptions, root: pluginOptions.root ?? config.root }
       command = config.command
       logError = (message) => config.logger.error(message)
+      logWarning = (message) => config.logger.warn(message)
     },
 
     async buildStart() {

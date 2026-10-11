@@ -54,6 +54,16 @@ describe('runCli', () => {
     expect(existsSync(join(root, 'content/generated'))).toBe(false)
   }, 30_000)
 
+  it('check prints a warning for a skipped file and still exits 0', async () => {
+    const root = project()
+    writeFileSync(join(root, 'content/songs/night-run.TOML'), 'title = "x"\n')
+    const result = await cli(root, 'check')
+    expect(result.code).toBe(0)
+    expect(result.err).toEqual([
+      'warning content/songs/night-run.TOML:1:1  skippedFile: this file is not read; items are named like dusk-run.toml',
+    ])
+  }, 30_000)
+
   it('check exits 1 and prints every diagnostic', async () => {
     const root = project()
     const song = join(root, 'content/songs/dusk-run.toml')
