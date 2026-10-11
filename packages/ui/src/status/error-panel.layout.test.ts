@@ -91,9 +91,11 @@ describe('ErrorPanel one-row layout', () => {
     )
   })
 
-  test('keeps Back reachable with a tight row before it rises: two actions at 667x260 with the keyboard', async () => {
+  test('keeps Back reachable with a row before it rises: two actions at 667x260 with the keyboard', async () => {
     await show('tight-landscape-667', 'error', 'keyboard')
-    expect(byTestId('error-panel').dataset.layout).toBe('row-tight')
+    // A row, not the stack that would rise over Back. Whether the message keeps 20 characters there
+    // (`row`) or fewer (`row-tight`) depends on the system font's width, so either passes.
+    expect(byTestId('error-panel').dataset.layout).toMatch(/^row(-tight)?$/)
     expect(
       findUnreachable([byTestId('corner-back'), byTestId('error-retry'), byTestId('error-dismiss')]),
     ).toEqual([])
