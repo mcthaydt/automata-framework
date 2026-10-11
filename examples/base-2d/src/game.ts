@@ -84,17 +84,23 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
       },
     })
 
-    // A new round gets a fresh sim, so play always starts from the same state (rounds.ts keeps only the newest).
-    const rounds = createRounds(
-      firstSim,
-      () => createBaseSim(),
-      () => {
-        session.round.start()
+    // A new round gets a fresh sim, so play always starts from the same state (rounds.ts makes one at a time and
+    // keeps only the newest). The host hears of the round when Play is pressed, not when its sim arrives, so a
+    // Quit before the sim arrives still ends a round that has started.
+    const rounds = createRounds(firstSim, () => createBaseSim(), {
+      onReady: () => {
         if (screen === 'room') loop.start()
       },
-    )
+      onFailed: (error) => {
+        // Out of sim worlds or memory: nothing to play on. Say so as boot failures do (main.ts).
+        console.error('base-2d: could not make a sim for the round', error)
+        loop.stop()
+        root.textContent = "This device can't run the game."
+      },
+    })
     const startRound = () => {
       renderer.reset()
+      session.round.start()
       rounds.start()
     }
 
@@ -120,7 +126,7 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
     session.lifecycle.on('change', (change) => {
       if (change.state === 'background') dispatch('background')
     })
-    window.addEventListener('resize', () => renderer.fit())
+    window.addEventListener('resize', () => renderer.fitToHost())
 
     screens.show('splash')
     renderer.draw(performance.now())

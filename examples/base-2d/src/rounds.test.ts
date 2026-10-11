@@ -14,34 +14,45 @@ const fake = (name: string): FakeSim => ({
   },
 })
 
-/** A sim factory whose results arrive only when the test resolves them, in any order. */
+/** A sim factory whose results arrive only when the test settles them, one creation at a time. */
 function slowFactory() {
-  const pending: Array<(sim: FakeSim) => void> = []
+  const pending: Array<{ resolve: (sim: FakeSim) => void; reject: (error: Error) => void }> = []
   let made = 0
   return {
     create: () =>
-      new Promise<FakeSim>((resolve) => {
-        pending.push(resolve)
+      new Promise<FakeSim>((resolve, reject) => {
+        pending.push({ resolve, reject })
       }),
-    resolveNext: (index: number) => {
+    inFlight: () => pending.length,
+    resolveNext: () => {
       const sim = fake(`sim-${++made}`)
-      pending[index]?.(sim)
+      pending.shift()?.resolve(sim)
       return sim
     },
+    rejectNext: (error: Error) => pending.shift()?.reject(error),
   }
 }
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
+function setup() {
+  const first = fake('first')
+  const factory = slowFactory()
+  const ready: string[] = []
+  const failures: unknown[] = []
+  const rounds = createRounds(first, factory.create, {
+    onReady: (sim) => ready.push(sim.name),
+    onFailed: (error) => failures.push(error),
+  })
+  return { first, factory, ready, failures, rounds }
+}
+
 describe('rounds', () => {
   it('swaps in a fresh sim and disposes the old one once', async () => {
-    const first = fake('first')
-    const factory = slowFactory()
-    const ready: string[] = []
-    const rounds = createRounds(first, factory.create, (sim) => ready.push(sim.name))
+    const { first, factory, ready, rounds } = setup()
     rounds.start()
     expect(rounds.starting()).toBe(true)
-    const fresh = factory.resolveNext(0)
+    const fresh = factory.resolveNext()
     await flush()
     expect(rounds.current()).toBe(fresh)
     expect(rounds.starting()).toBe(false)
@@ -49,34 +60,41 @@ describe('rounds', () => {
     expect(ready).toEqual(['sim-1'])
   })
 
-  it('keeps only the newest round when a second starts before the first sim arrives', async () => {
-    const first = fake('first')
-    const factory = slowFactory()
-    const ready: string[] = []
-    const rounds = createRounds(first, factory.create, (sim) => ready.push(sim.name))
+  it('makes one sim at a time, and only the newest start is kept', async () => {
+    const { first, factory, ready, rounds } = setup()
     rounds.start()
     rounds.start()
-    const stale = factory.resolveNext(0)
-    const newest = factory.resolveNext(1)
+    rounds.start()
+    expect(factory.inFlight()).toBe(1)
+    const stale = factory.resolveNext()
+    await flush()
+    expect(stale.disposed).toBe(1)
+    expect(rounds.starting()).toBe(true)
+    expect(factory.inFlight()).toBe(1)
+    const newest = factory.resolveNext()
     await flush()
     expect(rounds.current()).toBe(newest)
-    expect(stale.disposed).toBe(1)
     expect(first.disposed).toBe(1)
     expect(ready).toEqual(['sim-2'])
   })
 
-  it('stays starting until the newest sim arrives, whatever order they come in', async () => {
-    const factory = slowFactory()
-    const rounds = createRounds(fake('first'), factory.create, () => {})
-    rounds.start()
-    rounds.start()
-    const newest = factory.resolveNext(1)
+  it('never has more than two sims alive, however fast rounds start (Koota allows 16 worlds)', async () => {
+    const { factory, rounds } = setup()
+    for (let i = 0; i < 20; i++) rounds.start()
+    expect(factory.inFlight()).toBe(1)
+    factory.resolveNext()
     await flush()
-    expect(rounds.current()).toBe(newest)
+    expect(factory.inFlight()).toBe(1)
+  })
+
+  it('reports a failed sim, stops starting and leaves no unhandled rejection', async () => {
+    const { factory, failures, ready, rounds } = setup()
+    rounds.start()
+    const error = new Error('Too many worlds')
+    factory.rejectNext(error)
+    await flush()
+    expect(failures).toEqual([error])
+    expect(ready).toEqual([])
     expect(rounds.starting()).toBe(false)
-    const stale = factory.resolveNext(0)
-    await flush()
-    expect(rounds.current()).toBe(newest)
-    expect(stale.disposed).toBe(1)
   })
 })

@@ -250,7 +250,7 @@ describe('falling and jumping', () => {
 })
 
 describe('the goal', () => {
-  it('fires once when the character touches the bubble', async () => {
+  it('fires once when the character touches the goal', async () => {
     const sim = await make({ room: CORRIDOR })
     const events = drive(sim, repeat(RIGHT, 120))
     const reached = events.filter((event) => event.type === 'goal.reached')

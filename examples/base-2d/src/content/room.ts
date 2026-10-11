@@ -2,7 +2,7 @@
 // `content/rooms/*.toml` file compiled by `automata-content`. The sim receives it as `content`, so the room is
 // frozen and hashed together with the sim state either way.
 //
-// Tiles: `#` solid, `.` empty, `P` where the character starts (standing on the tile below), `G` the goal bubble.
+// Tiles: `#` solid, `.` empty, `P` where the character starts (standing on the tile below), `G` the ember (the goal).
 // 40 × 24 tiles of 8 pixels is 320 × 192 pixels: a single screen, Bubble Bobble style. Platforms climb in steps
 // of three tiles, about the height of a held jump, with two free rows under each so the character can walk under.
 

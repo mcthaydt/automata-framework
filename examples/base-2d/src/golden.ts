@@ -1,4 +1,4 @@
-// A scripted run from the start to the goal bubble, as (direction, jump held, ticks) segments. It pins the
+// A scripted run from the start to the goal (the ember), as (direction, jump held, ticks) segments. It pins the
 // sim's behavior: the golden tests replay it and compare the final state hash, in Node and in Chromium, WebKit
 // and Firefox (determinism is cross-engine, AGENTS.md). The browser journeys replay it with real key presses.
 // Any change to movement, the room or the plugin changes the hash on purpose: investigate it, never rebaseline
@@ -29,7 +29,7 @@ export const GOLDEN_ROUTE: readonly RouteSegment[] = [
   [0, false, 10],
   [-1, false, 24],
   [-1, true, 18], // the top platform
-  [-1, false, 30], // and into the bubble
+  [-1, false, 30], // and into the ember
 ]
 
 /** The route as one input per tick. */

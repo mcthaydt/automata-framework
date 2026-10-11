@@ -9,7 +9,7 @@
 
 **Observable result.** `pnpm --filter @af-examples/base-2d dev` serves a pixel-art character in one single-screen room. The player goes splash → menu → room → pause → end: they walk, jump and reach the ember at the top of the room, which ends the round. It boots standalone and inside a Ruken frame (the real SDK handshake), renders nothing before the host says ready, plays with keyboard or touch on a phone in either orientation, and builds through the M1.2 pipeline (`vite build`, `automata-ship prepare`, `game-ci.yml` with the determinism check on its sim sources).
 
-**What `main` lacks, and what the base does meanwhile.** The master spec builds `base-2d` on `sim`, `content`, `host`, `runtime`, `render-pixi` and `ui`. On 2026-10-11 only `sim`, `node` and `ship` are on `main`; content (#8), host (#5) and ui (#7) are open PRs, and runtime and `render-pixi` (M1.5, M1.7) are not started. The coordinator's instruction is to use only what is on `main`. So each missing piece is a small, clearly marked stand-in inside the example, never a copy of another lane's API:
+**What `main` lacks, and what the base does meanwhile.** The master spec builds `base-2d` on `sim`, `content`, `host`, `runtime`, `render-pixi` and `ui`. On 2026-10-11 only `sim`, `node` and `ship` are on `main`; content (#8), host (#5) and ui (#7) are open PRs, and runtime and `render-pixi` (M1.5, M1.7) are not started. The coordinator's instruction is to use only what is on `main`. (Since then content #8, host #5 and ui #7 have merged; moving the base onto them is the next step, and the stand-ins below stay recorded until it is done.) So each missing piece is a small, clearly marked stand-in inside the example, never a copy of another lane's API:
 
 | Missing core piece | Stand-in in `base-2d` (file) | Replaced by |
 |---|---|---|
@@ -114,4 +114,4 @@ Cost of the CSP fix in `packages/sim`: array-of-structs traits make snapshots ab
 
 - **Success:** `pnpm check` and `pnpm test:parity` pass; `pnpm --filter @af-examples/base-2d check`, `build` and `prepare-ruken` pass; the `base-2d` browser journeys pass locally; `game-ci` on `af-linux` is green for the PR.
 - **Failure cases covered:** a host that never says ready shows nothing; a failing handshake shows the error text; walking into a wall stops at it; the goal fires once.
-- **Open after this slice (M1.8):** demos waiting on #5, #7, #8, #9; the gallery; `create-game`; S8 re-measured on `base-2d`; published to Ruken's local stack and the dev host; phone play and the Owner's look review.
+- **Open after this slice (M1.8):** the host and content demos (their lanes are merged), the physics demo (waiting on #9); the gallery; `create-game`; S8 re-measured on `base-2d`; published to Ruken's local stack and the dev host; phone play and the Owner's look review.

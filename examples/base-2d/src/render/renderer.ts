@@ -55,7 +55,7 @@ export interface Renderer {
   /** Forgets the old sim's entities (a new round starts with a fresh sim and a resync). */
   reset(): void
   /** Re-fits the canvas to its container. */
-  fit(): void
+  fitToHost(): void
   /** The character's hitbox top-left in pixels, for the page's data attributes. */
   playerPixel(): { x: number; y: number } | null
   destroy(): void
@@ -227,14 +227,14 @@ export async function createRenderer(host: HTMLElement, room: Room): Promise<Ren
   let shake = 0
   const trail: Array<{ sprite: Sprite; life: number }> = []
 
-  const fit = () => {
+  const fitToHost = () => {
     const scale = Math.min(host.clientWidth / width, host.clientHeight / height)
     // Whole-pixel scaling keeps pixel art crisp; below 2× a phone gets the fractional fit instead of a tiny game.
     const shown = scale >= 2 ? Math.floor(scale) : Math.max(scale, 0.25)
     app.canvas.style.width = `${Math.round(width * shown)}px`
     app.canvas.style.height = `${Math.round(height * shown)}px`
   }
-  fit()
+  fitToHost()
 
   return {
     apply(result) {
@@ -372,7 +372,7 @@ export async function createRenderer(host: HTMLElement, room: Room): Promise<Ren
       for (const ghost of trail) ghost.sprite.destroy()
       trail.length = 0
     },
-    fit,
+    fitToHost,
     playerPixel() {
       return player === null ? null : { x: Math.floor(player.x / SUB), y: Math.floor(player.y / SUB) }
     },

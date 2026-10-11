@@ -5,7 +5,7 @@ import { Progress } from './progress.resource.ts'
 import { hitboxTouches, roomOf } from './tiles.ts'
 import { SUB } from './tuning.ts'
 
-/** Ends the round the first time the character touches the goal bubble. */
+/** Ends the round the first time the character touches the goal (the ember). */
 export const goal: SystemDef = defineSystem({
   name: 'goal',
   phase: 'postPhysics',

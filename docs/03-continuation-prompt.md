@@ -69,7 +69,8 @@ Each PR rebases on `main` after the one before it merges and re-runs local check
   2. Keep #10's copying `read()` in `entity-store.ts`.
   3. Make #9's partial `set` coerce against the current record (`store.read(e, def)`), not against `{}`.
   4. Re-record the base-2d golden: `GOLDEN_HASH` becomes `31f50888ccb4cf0a` (was `a40a6dbda55f4932`), because #9's schema hash now covers resources and commands. Confirm it in Node, Chromium, WebKit and Firefox.
-  5. Run `pnpm check`, `pnpm test:parity` and `pnpm test:e2e` (which fails on CSP violations).
+  5. `pnpm-lock.yaml` conflicts too (main added smol-toml, #10 the font package): take main's and run `pnpm install`, never edit it by hand.
+  6. Run `pnpm check`, `pnpm test:parity` and `pnpm test:e2e` (which fails on CSP violations).
 - The base-2d PR adds the same `check-boundaries` allowlist lines as #9 (identical text, so the merge is clean or trivially resolved).
 - #9 spec §12 defaults: transforms live in `physics`, velocity is on `RigidBody`, and the sim fails closed.
 

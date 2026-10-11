@@ -1,9 +1,9 @@
 import { Ruken, type RukenSession, type SdkEnv } from '@ruken/sdk'
 import { Data, Effect } from 'effect'
 
-// The connection to Ruken: the handshake, then the wait for ready. It calls the SDK directly because the
-// `Hosting` service (host lane, M1.4, PR #5) is not on main yet; once it is, the base moves onto it. Opened
-// outside Ruken, the SDK runs standalone and this resolves at once.
+// The connection to Ruken: the handshake, then the wait for ready. It calls the SDK directly, a stand-in from
+// before the `Hosting` service (host lane, M1.4, PR #5) merged; moving onto `HostingLive` is the next step for
+// this file. Opened outside Ruken, the SDK runs standalone and this resolves at once.
 
 /** Must equal `[game] id` in ship.config.ts; Ruken checks it. */
 export const GAME_ID = 'base-2d'

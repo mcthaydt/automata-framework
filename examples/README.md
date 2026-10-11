@@ -27,8 +27,8 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 
 | Demo | Owner | Base | Status |
 |---|---|---|---|
-| `host/lifecycle-and-saves` | host lane | `base-2d` | Base built; waits on the host PR (#5) |
-| `content/hot-reload` | content lane | `base-2d` | Base built; waits on the content PR (#8) |
+| `host/lifecycle-and-saves` | host lane | `base-2d` | Base built and host merged; to do |
+| `content/hot-reload` | content lane | `base-2d` | Base built and content merged; to do |
 | `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR (#7); needs no base |
 | `physics/bodies-2d`, `physics/bodies-3d` | sim lane | `base-2d`, `base-3d` | `bodies-2d`: base built, waits on the physics PR (#9); `bodies-3d` waits on `base-3d` |
 | `placeholder` (the ship lane's page: boots under the fake host and publishes through `ship`; not a feature demo) | ship lane | none | With the ship PR |

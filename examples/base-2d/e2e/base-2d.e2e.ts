@@ -102,7 +102,7 @@ test('the character walks and jumps with the keyboard', async ({ page }) => {
 // real key presses tick for tick. Frames come every 16 ms and steps every 16.67 ms, so a frame runs at most one
 // step: the test moves the clock one frame at a time, reads the sim tick the page shows, and changes keys right
 // after the frame that ran a segment's last step.
-test('playing the golden route with the keyboard reaches the bubble and the end screen', async ({ page }) => {
+test('playing the golden route with the keyboard reaches the ember and the end screen', async ({ page }) => {
   const errors = await collectErrors(page)
   await page.clock.install()
   await page.goto(gameUrl)
@@ -174,6 +174,7 @@ test('the touch buttons move the character', async ({ page, isMobile }) => {
 })
 
 test('every button of the room and the pause screen is on screen and at least 44 px', async ({ page }) => {
+  const errors = await collectErrors(page)
   await openMenu(page)
   await page.keyboard.press('Enter')
   await expect(game(page)).toHaveAttribute('data-screen', 'room')
@@ -195,6 +196,7 @@ test('every button of the room and the pause screen is on screen and at least 44
   await check('.hud button, .touch button')
   await page.keyboard.press('Escape')
   await check('[data-for="paused"] button')
+  expect(errors).toEqual([])
 })
 
 test('completes the Ruken handshake inside a fake host frame on another origin', async ({ page }) => {
