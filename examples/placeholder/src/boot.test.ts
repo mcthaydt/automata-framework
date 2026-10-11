@@ -36,6 +36,16 @@ describe('placeholder boot', () => {
     host.dispose()
   })
 
+  it('says hello without a name when opened outside Ruken (standalone has no player name)', async () => {
+    const { host, env } = fakeHost(true)
+    const root = { textContent: '' }
+    const session = await Effect.runPromise(boot({ root, env: { ...env, isTopLevel: true } }))
+    expect(session.hosted).toBe(false)
+    expect(root.textContent).toBe('Ready. Hello.')
+    session.dispose()
+    host.dispose()
+  })
+
   it('renders nothing before the host says ready', async () => {
     const { host, env } = fakeHost(false)
     const root = { textContent: '' }

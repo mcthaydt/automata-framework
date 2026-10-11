@@ -32,7 +32,12 @@ export function boot(options: BootOptions): Effect.Effect<RukenSession, Placehol
       try: () => session.ready,
       catch: (cause) => new PlaceholderBootFailed({ step: 'ready', cause }),
     })
-    options.root.textContent = `Ready. Hello, ${session.player.displayName}.`
+    options.root.textContent = greeting(session.player.displayName)
     return session
   })
+}
+
+// Standalone (opened outside Ruken) the SDK's player has an empty display name.
+function greeting(displayName: string): string {
+  return displayName === '' ? 'Ready. Hello.' : `Ready. Hello, ${displayName}.`
 }
