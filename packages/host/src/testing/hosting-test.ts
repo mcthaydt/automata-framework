@@ -23,6 +23,8 @@ export interface HostingTestOptions {
   readonly host?: Partial<Omit<FakeHostOptions, 'gameOrigin' | 'gameId'>>
   /** Rewrites the game's `SdkEnv`, for example to forge where messages come from. */
   readonly env?: (env: SdkEnv) => SdkEnv
+  /** Where the game is served from; the SDK's allowlist depends on it. Defaults to `TEST_GAME_ORIGIN`. */
+  readonly gameOrigin?: string
 }
 
 export const TEST_GAME_ORIGIN = 'http://localhost:4400'
@@ -44,7 +46,7 @@ export function HostingTest(options: HostingTestOptions = {}): Layer.Layer<Hosti
       const host = yield* Effect.acquireRelease(
         Effect.sync(() =>
           createFakeHost({
-            gameOrigin: TEST_GAME_ORIGIN,
+            gameOrigin: options.gameOrigin ?? TEST_GAME_ORIGIN,
             gameId: gameOptions.gameId,
             clock: realClock,
             ...options.host,
