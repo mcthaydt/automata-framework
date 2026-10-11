@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { consumerManifest, consumerNpmrc } from './project.ts'
+import { consumerManifest, consumerNpmrc, consumerWorkspace } from './project.ts'
 
+const PNPM = 'pnpm@10.34.6+sha512.abc'
 const tools = {
   typescript: '7.0.2',
   typescript6: '6.0.3',
@@ -20,12 +21,22 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
         { name: '@mcthaydt/automata-physics', tarball: 'packs/mcthaydt-automata-physics-0.0.1.tgz' },
       ],
       tools,
+      packageManager: PNPM,
     })
     expect(manifest.dependencies).toEqual({
       '@mcthaydt/automata-physics': 'file:packs/mcthaydt-automata-physics-0.0.1.tgz',
       '@mcthaydt/automata-sim': 'file:packs/mcthaydt-automata-sim-0.0.1.tgz',
     })
-    expect(manifest.pnpm.overrides).toEqual(manifest.dependencies)
+    expect(
+      consumerWorkspace({
+        from: 'packs',
+        packages: [{ name: '@mcthaydt/automata-sim', tarball: 'packs/mcthaydt-automata-sim-0.0.1.tgz' }],
+      }),
+    ).toBe(
+      ['overrides:', "  '@mcthaydt/automata-sim': 'file:packs/mcthaydt-automata-sim-0.0.1.tgz'", ''].join(
+        '\n',
+      ),
+    )
   })
 
   it('depends on the registry version and needs no overrides', () => {
@@ -34,13 +45,38 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
       version: '0.0.3',
       packages: [{ name: '@mcthaydt/automata-sim' }],
       tools,
+      packageManager: PNPM,
     })
     expect(manifest.dependencies).toEqual({ '@mcthaydt/automata-sim': '0.0.3' })
-    expect(manifest.pnpm.overrides).toEqual({})
+    expect(
+      consumerWorkspace({
+        from: 'registry',
+        version: '0.0.3',
+        packages: [{ name: '@mcthaydt/automata-sim' }],
+      }),
+    ).toBe('overrides: {}\n')
+  })
+
+  it("pins the workspace's own pnpm, so corepack never picks a pnpm that reads its settings differently", () => {
+    const manifest = consumerManifest({
+      from: 'registry',
+      version: '0.0.3',
+      packages: [],
+      tools,
+      packageManager: PNPM,
+    })
+    expect(manifest.packageManager).toBe(PNPM)
+    expect(manifest).not.toHaveProperty('pnpm')
   })
 
   it('brings the peers and tools a game has: both TypeScripts, Vite, Svelte and its Vite plugin, zod', () => {
-    const manifest = consumerManifest({ from: 'registry', version: '0.0.3', packages: [], tools })
+    const manifest = consumerManifest({
+      from: 'registry',
+      version: '0.0.3',
+      packages: [],
+      tools,
+      packageManager: PNPM,
+    })
     expect(manifest.devDependencies).toEqual({
       '@sveltejs/vite-plugin-svelte': '7.3.1',
       '@types/node': '24.19.1',
@@ -55,8 +91,12 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
   })
 
   it('refuses a registry run without a version and a packs run without tarballs', () => {
-    expect(() => consumerManifest({ from: 'registry', packages: [{ name: 'a' }], tools })).toThrow(/version/)
-    expect(() => consumerManifest({ from: 'packs', packages: [{ name: 'a' }], tools })).toThrow(/tarball/)
+    expect(() =>
+      consumerManifest({ from: 'registry', packages: [{ name: 'a' }], tools, packageManager: PNPM }),
+    ).toThrow(/version/)
+    expect(() =>
+      consumerManifest({ from: 'packs', packages: [{ name: 'a' }], tools, packageManager: PNPM }),
+    ).toThrow(/tarball/)
   })
 })
 

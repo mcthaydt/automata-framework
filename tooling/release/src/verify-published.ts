@@ -60,7 +60,7 @@ export async function verifyPublished(
 }
 
 /**
- * The one version a release published, from changesets/action's `publishedPackages` output
+ * The one version a release published, from changesets/action's `published-packages` output
  * (`[{ "name": …, "version": … }]`). Every package shares it (the fixed group), so disagreement is an error.
  */
 export function releasedVersion(publishedPackages: string): string {

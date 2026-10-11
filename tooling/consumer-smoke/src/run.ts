@@ -19,7 +19,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { publishablePackages } from '../../release/src/publishable-packages.ts'
-import { type ConsumerPackage, consumerManifest, consumerNpmrc, type ToolVersions } from './project.ts'
+import {
+  type ConsumerPackage,
+  consumerManifest,
+  consumerNpmrc,
+  consumerWorkspace,
+  type ToolVersions,
+} from './project.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const fixtures = fileURLToPath(new URL('../fixtures/', import.meta.url))
@@ -48,7 +54,15 @@ const manifestOf = (dir: string) =>
   JSON.parse(readFileSync(join(root, dir, 'package.json'), 'utf8')) as {
     dependencies?: Record<string, string>
     devDependencies?: Record<string, string>
+    packageManager?: string
   }
+
+/** The workspace's pnpm. Without it, corepack may run a newer pnpm that ignores the project's overrides. */
+function rootPackageManager(): string {
+  const found = manifestOf('.').packageManager
+  if (found === undefined) throw new Error('the workspace package.json has no packageManager')
+  return found
+}
 
 /** The same pins the workspace uses (docs/versions.md), so the smoke project never drifts from them. */
 function toolVersions(): ToolVersions {
@@ -176,6 +190,11 @@ function steps(project: string): Step[] {
       () => sh(project, bin('tsc'), ['-p', 'tsconfig.json']) || 'clean',
     ],
     [
+      // Node's own resolution, as a game without a bundler (or a tool's tsconfig) checks it: needs full paths.
+      'types: tsc --noEmit with TypeScript 7 and nodenext resolution',
+      () => sh(project, bin('tsc'), ['-p', 'tsconfig.nodenext.json']) || 'clean',
+    ],
+    [
       'types: tsc --noEmit with TypeScript 6',
       () =>
         sh(project, 'node', [join(project, 'node_modules/typescript6/bin/tsc'), '-p', 'tsconfig.json']) ||
@@ -226,8 +245,13 @@ function main(): void {
       version: args.version,
       packages,
       tools: toolVersions(),
+      packageManager: rootPackageManager(),
     })
     writeFileSync(join(project, 'package.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+    writeFileSync(
+      join(project, 'pnpm-workspace.yaml'),
+      consumerWorkspace({ from: args.from, version: args.version, packages }),
+    )
     writeFileSync(join(project, '.npmrc'), consumerNpmrc())
     // No workspace above the temp folder, so this is a plain install, as in a game repository.
     sh(project, 'pnpm', ['install', '--no-frozen-lockfile'])

@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { publishablePackages, type WorkspacePackage } from './publishable-packages.ts'
@@ -30,6 +30,9 @@ function targets(entry: unknown): string[] {
   return []
 }
 
+/** `from './x'`, `import './x'` and `import('./x')`. */
+const RELATIVE_IMPORT = /(?:\bfrom\s*|\bimport\s*\(?\s*)['"](\.{1,2}\/[^'"]*)['"]/g
+
 const each = (test: (pkg: WorkspacePackage) => void) => () => {
   for (const pkg of published) test(pkg)
 }
@@ -53,6 +56,16 @@ describe('the published packages', () => {
       expect(
         Object.keys(manifest.peerDependencies ?? {}).filter((name) => name.startsWith('@ruken/')),
       ).toEqual([])
+    }),
+  )
+
+  it(
+    "accept a range of each outside peer, so a game's own Svelte or Vite patch release still satisfies it",
+    each(({ manifest }) => {
+      const exact = Object.entries(manifest.peerDependencies ?? {})
+        .filter(([name]) => !name.startsWith('@mcthaydt/'))
+        .filter(([, range]) => !range.startsWith('^'))
+      expect(exact, manifest.name).toEqual([])
     }),
   )
 
@@ -145,6 +158,24 @@ describe.skipIf(process.env.AF_CHECK_DIST !== '1')('the built packages', () => {
         .filter((file) => !file.includes('/dist/vendor/')) // ship's copy of the Ruken CLI is Ruken's own build
         .filter((file) => RUKEN_SPECIFIER.test(readFileSync(file, 'utf8')))
       expect(offenders, manifest.name).toEqual([])
+    }),
+  )
+
+  it(
+    "name a file in every relative import, as Node's loader and nodenext types require",
+    each(({ dir, manifest }) => {
+      const unresolved: string[] = []
+      for (const file of filesBelow(join(root, dir, 'dist'))) {
+        if (!/\.(js|d\.ts)$/.test(file) || file.includes('/dist/vendor/')) continue
+        for (const [, specifier] of readFileSync(file, 'utf8').matchAll(RELATIVE_IMPORT)) {
+          const target = join(dirname(file), specifier as string)
+          // A `.js` import resolves to its `.d.ts` in a declaration file.
+          const exists = existsSync(target) || existsSync(target.replace(/\.js$/, '.d.ts'))
+          if (!exists || !/\.(js|svelte|css)$/.test(specifier as string))
+            unresolved.push(`${file}: ${specifier}`)
+        }
+      }
+      expect(unresolved, manifest.name).toEqual([])
     }),
   )
 })

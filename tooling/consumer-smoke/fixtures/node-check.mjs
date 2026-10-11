@@ -1,5 +1,6 @@
 // consumer-smoke's Node step (M2.4 spec §3.6): import every published entry from the installed packages, as a
-// game's build tools and tests would, and run a sim with physics.
+// game's build tools and tests would, and run a sim with physics. ui's root is left to the Vite step: it
+// exports Svelte components, which only load through the Svelte compiler.
 import * as content from '@mcthaydt/automata-content'
 import * as contentVite from '@mcthaydt/automata-content/vite'
 import * as host from '@mcthaydt/automata-host'
@@ -12,8 +13,21 @@ import { createSim } from '@mcthaydt/automata-sim'
 import * as hash from '@mcthaydt/automata-sim/hash'
 import * as math from '@mcthaydt/automata-sim/math'
 import * as testing from '@mcthaydt/automata-testing'
+import * as uiTesting from '@mcthaydt/automata-ui/testing'
 
-const entries = { content, contentVite, host, hostTesting, node, physics3d, ship, hash, math, testing }
+const entries = {
+  content,
+  contentVite,
+  host,
+  hostTesting,
+  node,
+  physics3d,
+  ship,
+  hash,
+  math,
+  testing,
+  uiTesting,
+}
 for (const [name, entry] of Object.entries(entries)) {
   if (Object.keys(entry).length === 0) throw new Error(`${name} exports nothing`)
 }

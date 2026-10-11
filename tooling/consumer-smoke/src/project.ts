@@ -27,6 +27,8 @@ export interface ConsumerOptions {
   readonly version?: string | undefined
   readonly packages: readonly ConsumerPackage[]
   readonly tools: ToolVersions
+  /** The workspace's own `packageManager`, so corepack runs the pnpm the smoke was written against. */
+  readonly packageManager: string
 }
 
 export interface ConsumerManifest {
@@ -35,13 +37,15 @@ export interface ConsumerManifest {
   readonly type: 'module'
   readonly dependencies: Record<string, string>
   readonly devDependencies: Record<string, string>
-  readonly pnpm: { readonly overrides: Record<string, string> }
+  readonly packageManager: string
 }
 
 const sorted = (entries: [string, string][]): Record<string, string> =>
   Object.fromEntries(entries.sort(([a], [b]) => a.localeCompare(b)))
 
-export function consumerManifest(options: ConsumerOptions): ConsumerManifest {
+type PackageSource = Pick<ConsumerOptions, 'from' | 'version' | 'packages'>
+
+function dependenciesOf(options: PackageSource): Record<string, string> {
   const specOf = (pkg: ConsumerPackage): string => {
     if (options.from === 'registry') {
       if (options.version === undefined) throw new Error('a registry run needs --version')
@@ -50,7 +54,11 @@ export function consumerManifest(options: ConsumerOptions): ConsumerManifest {
     if (pkg.tarball === undefined) throw new Error(`no packed tarball for ${pkg.name}`)
     return `file:${pkg.tarball}`
   }
-  const dependencies = sorted(options.packages.map((pkg) => [pkg.name, specOf(pkg)]))
+  return sorted(options.packages.map((pkg) => [pkg.name, specOf(pkg)]))
+}
+
+export function consumerManifest(options: ConsumerOptions): ConsumerManifest {
+  const dependencies = dependenciesOf(options)
   return {
     name: 'af-consumer-smoke',
     private: true,
@@ -65,10 +73,19 @@ export function consumerManifest(options: ConsumerOptions): ConsumerManifest {
       ['vite', options.tools.vite],
       ['zod', options.tools.zod],
     ]),
-    // A tarball's own `@mcthaydt/*` dependencies name the shared version, which is not on any registry yet in
-    // packs mode; the overrides send them to the same tarballs.
-    pnpm: { overrides: options.from === 'packs' ? { ...dependencies } : {} },
+    packageManager: options.packageManager,
   }
+}
+
+/**
+ * The project's `pnpm-workspace.yaml`, which holds its overrides: a tarball's own `@mcthaydt/*` dependencies name
+ * the shared version, which is not on any registry yet in packs mode, so the overrides send them to the same
+ * tarballs. Settings live here rather than under `pnpm` in package.json, which newer pnpm no longer reads.
+ */
+export function consumerWorkspace(options: PackageSource): string {
+  if (options.from === 'registry') return 'overrides: {}\n'
+  const lines = Object.entries(dependenciesOf(options)).map(([name, spec]) => `  '${name}': '${spec}'`)
+  return ['overrides:', ...lines, ''].join('\n')
 }
 
 /** `${NODE_AUTH_TOKEN}` is expanded by pnpm at install time, so no token is ever written to disk. */

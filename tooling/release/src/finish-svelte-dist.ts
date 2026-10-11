@@ -4,8 +4,10 @@
 //
 // 1. removes test files, the test setup and the test-only fixture components from `dist/`;
 // 2. rewrites each vendored specifier in a `.d.ts` to a relative path to the declarations tsdown inlined for it
-//    (`tsdown.dts.config.ts` writes `dist/vendor/ruken-sdk.d.ts`).
-import { readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+//    (`tsdown.dts.config.ts` writes `dist/vendor/ruken-sdk.d.ts`);
+// 3. gives every relative import in `.js` and `.d.ts` a file extension. `src/` imports without one (`'./layout'`)
+//    because Vite resolves it, but Node's ESM loader and TypeScript's nodenext resolution need the exact file.
+import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, sep } from 'node:path'
 
 export interface FinishSvelteDistOptions {
@@ -30,6 +32,33 @@ function relativeSpecifier(dist: string, file: string, target: string): string {
 
 const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
 
+const isFile = (path: string): boolean => existsSync(path) && statSync(path).isFile()
+
+/**
+ * The specifier Node would need for `specifier` imported from `file`: unchanged when it already names a file
+ * (`./Dialog.svelte`, `./theme.css`), `+ '.js'` when the output is a module or a declaration-only module
+ * (`./input-method.svelte` → `./input-method.svelte.js`), `+ '/index.js'` for a folder. Anything else is
+ * left alone, and the dist checks catch it.
+ */
+function withExtension(file: string, specifier: string): string {
+  const target = join(dirname(file), specifier)
+  if (isFile(target)) return specifier
+  if (isFile(`${target}.js`) || isFile(`${target}.d.ts`)) return `${specifier}.js`
+  if (isFile(join(target, 'index.js')) || isFile(join(target, 'index.d.ts'))) return `${specifier}/index.js`
+  return specifier
+}
+
+/** `from './x'`, `import './x'` and `import('./x')`, with either quote. */
+const RELATIVE_IMPORT = /(\bfrom\s*|\bimport\s*\(?\s*)(['"])(\.{1,2}\/[^'"]*)\2/g
+
+function addExtensions(file: string, text: string): string {
+  return text.replace(
+    RELATIVE_IMPORT,
+    (_match, lead: string, quote: string, specifier: string) =>
+      `${lead}${quote}${withExtension(file, specifier)}${quote}`,
+  )
+}
+
 export function finishSvelteDist(dist: string, options: FinishSvelteDistOptions): void {
   for (const file of filesBelow(dist)) {
     const name = file.slice(file.lastIndexOf(sep) + 1)
@@ -46,5 +75,8 @@ export function finishSvelteDist(dist: string, options: FinishSvelteDistOptions)
       )
     }
     writeFileSync(file, text)
+  }
+  for (const file of filesBelow(dist).filter((path) => path.endsWith('.js') || path.endsWith('.d.ts'))) {
+    writeFileSync(file, addExtensions(file, readFileSync(file, 'utf8')))
   }
 }

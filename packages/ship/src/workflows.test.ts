@@ -36,6 +36,8 @@ interface Workflow {
   readonly jobs: Record<string, Job>
 }
 const workflow = (name: string): Workflow => parse(workflowText(name)) as Workflow
+const packageJson = (path: string) => JSON.parse(readFileSync(join(root, path, 'package.json'), 'utf8'))
+
 const ALL = ['ci.yml', 'game-ci.yml', 'game-release.yml', 'release-packages.yml', 'consumer-smoke.yml']
 
 describe('every workflow', () => {
@@ -121,7 +123,6 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
 
 describe('parity across packages', () => {
   const ci = workflow('ci.yml')
-  const packageJson = (path: string) => JSON.parse(readFileSync(join(root, path, 'package.json'), 'utf8'))
   const foldersIn = (group: string): string[] =>
     readdirSync(join(root, group), { withFileTypes: true })
       .filter((entry) => entry.isDirectory() && entry.name !== 'node_modules')
@@ -351,8 +352,10 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
     })
   })
 
-  it('checks out full history and points npm at GitHub Packages for @mcthaydt', () => {
+  it('checks out full history without keeping the write token in .git/config, and points npm at GitHub Packages', () => {
     expect(step('actions/checkout@')?.with?.['fetch-depth']).toBe(0)
+    // changesets/action pushes through the GitHub API with its own token input, so git never needs it.
+    expect(step('actions/checkout@')?.with?.['persist-credentials']).toBe(false)
     const node = step('actions/setup-node@')
     expect(node?.with?.['registry-url']).toBe('https://npm.pkg.github.com')
     expect(node?.with?.scope).toBe('@mcthaydt')
@@ -362,9 +365,16 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
   it("opens the Version packages PR or publishes, with Ruken's pinned changesets/action and the workflow token", () => {
     expect(changesets?.uses).toBe('changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51')
     expect((changesets as { id?: string }).id).toBe('changesets')
-    expect(changesets?.with?.version).toBe('pnpm release:version')
-    expect(changesets?.with?.publish).toBe('pnpm release')
-    expect(changesets?.with?.title).toBe('Version packages')
+    // v2 renamed its inputs and fails on the old names (version, publish, commit, title).
+    expect(Object.keys(changesets?.with ?? {}).sort()).toEqual([
+      'commit-message',
+      'pr-title',
+      'publish-script',
+      'version-script',
+    ])
+    expect(changesets?.with?.['version-script']).toBe('pnpm release:version')
+    expect(changesets?.with?.['publish-script']).toBe('pnpm release')
+    expect(changesets?.with?.['pr-title']).toBe('Version packages')
     expect(changesets?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
     expect(changesets?.env?.GITHUB_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
   })
@@ -375,7 +385,7 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
     const verify = after.find((each) => each.run?.includes('verify-published.ts'))
     const smoke = after.find((each) => each.run?.includes('consumer-smoke/src/run.ts'))
     for (const each of [version, verify, smoke]) expect(each?.if).toBe(PUBLISHED)
-    expect(version?.env?.PUBLISHED).toBe('${{ steps.changesets.outputs.publishedPackages }}')
+    expect(version?.env?.PUBLISHED).toBe("${{ steps.changesets.outputs['published-packages'] }}")
     expect(verify?.run).toContain('--version "$VERSION"')
     expect(smoke?.run).toContain('--from registry --version "$VERSION"')
     expect(after.indexOf(verify as Step)).toBeLessThan(after.indexOf(smoke as Step))
@@ -384,6 +394,17 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
 
   it('publishes without --provenance (GitHub Packages does not document it; spec §8)', () => {
     expect(JSON.stringify(steps)).not.toMatch(/provenance/i)
+    expect(packageJson('.').scripts.release).not.toMatch(/provenance/i)
+  })
+
+  it('builds before publishing, so a fresh checkout never publishes packages without dist', () => {
+    expect(packageJson('.').scripts.release).toBe('pnpm build && changeset publish')
+  })
+
+  it('runs the unit gate on the commit it releases, since nothing else checks the version commit first', () => {
+    const check = steps.findIndex((each) => each.run === 'pnpm check')
+    expect(check).toBeGreaterThan(-1)
+    expect(check).toBeLessThan(steps.indexOf(changesets as Step))
   })
 })
 

@@ -56,7 +56,7 @@ describe('verifyPublished', () => {
   })
 })
 
-describe('releasedVersion (from changesets/action publishedPackages)', () => {
+describe('releasedVersion (from changesets/action published-packages)', () => {
   it('is the one version every published package shares', () => {
     const published = JSON.stringify([
       { name: '@mcthaydt/automata-sim', version: '0.0.3' },
