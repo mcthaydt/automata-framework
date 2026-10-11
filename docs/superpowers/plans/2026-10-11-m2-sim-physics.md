@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
 - **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
-- **Progress:** 7 / 13 tasks.
+- **Progress:** 8 / 13 tasks.
 - **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
@@ -60,9 +60,9 @@
 - [x] Implement 32-bit-halves XXH64; snapshot reads rows straight from the store instead of through frozen `EntityRef` copies. `pnpm check`; browser parity 165/165. Measured in Node 24 (this container): XXH64 17.1 → 6.0 ms/MB; `sim.hash()` with 1,005 entities 2.15 → 1.68 ms. The audit's 33 ms was not reproduced at this size; per-tick hashing stays the caller's choice.
 
 ### 8. Physics package and 3D shell (spec §3.3, §3.5, §4)
-- [ ] Create `packages/physics` (deps: workspace `@mcthaydt/automata-sim`, Rapier pins, zod; the sim's dev deps) and the check-boundaries root and import entries.
-- [ ] Failing tests: importing `./3d` loads no Rapier until `createSim`; `physics3d()` has the four systems in the right phases; spawn helpers give spec §3.3 defaults.
-- [ ] Implement; `pnpm check`.
+- [x] Create `packages/physics` (deps: workspace `@mcthaydt/automata-sim`, Rapier pins, zod; the sim's dev deps) and the check-boundaries root and import entries.
+- [x] Failing tests: importing `./3d` loads no Rapier until `createSim`; `physics3d()` has the four systems in the right phases; spawn helpers give spec §3.3 defaults.
+- [x] Implement; `pnpm check`. The root `boundaries` script now lists `packages/physics/src` (the one root-config line this lane changes, as the coordinator asked); `check-boundaries` allows `@mcthaydt/automata-sim` and its `./hash`, `./math` entry points, with a test. Deviation: `physics-world.ts` and `rapier-3d.ts` were written whole here, so tasks 9–11 add their behaviour tests against existing code; each of those tests is shown failing by breaking the line it covers before committing.
 
 ### 9. 3D create, step, write back, update, remove (spec §3.4)
 - [ ] Failing tests, one per behaviour: a ball falls onto a lone cuboid collider and rests; body without collider; despawn removes; losing `Collider3D` recreates as body-only; teleport; kinematic-position follows its transform; velocity write; kind and damping; collider change rebuilds; lone collider moves; validation errors name sid and field.

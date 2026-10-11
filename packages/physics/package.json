@@ -1,0 +1,26 @@
+{
+  "name": "@mcthaydt/automata-physics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./2d": "./src/2d.ts",
+    "./3d": "./src/3d.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project node",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@dimforge/rapier2d-deterministic-compat": "0.21.0",
+    "@dimforge/rapier3d-deterministic-compat": "0.21.0",
+    "@mcthaydt/automata-sim": "workspace:*",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@vitest/browser-playwright": "5.0.3",
+    "playwright": "1.63.0",
+    "vitest": "5.0.3"
+  }
+}
