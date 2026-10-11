@@ -8,7 +8,7 @@ import {
 } from '@mcthaydt/automata-testing'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
-import { byTestId, checkLayout, publishConditions } from '../testing/layout-contract'
+import { byTestId, checkLayout, errorPanelFloor, publishConditions } from '../testing/layout-contract'
 import StatusFixture from '../testing/StatusFixture.svelte'
 import { settleLayout } from '../testing/settle'
 
@@ -86,7 +86,7 @@ function overflowProblems(scrolled: readonly HTMLElement[]): string[] {
   const gutter = Number.parseFloat(style.getPropertyValue('--af-gutter'))
   const top = Math.max(gutter, Number.parseFloat(style.getPropertyValue('--af-inset-top')) || 0)
   const room = layer.clientHeight - top - gutter
-  const fit = Number.parseFloat(panel.dataset.fitFloor ?? '')
+  const fit = errorPanelFloor(panel)
   if (!(fit > room)) problems.push(`the panel scrolls, but a layout (${fit}px) fits the room (${room}px)`)
   for (const element of scrolled) {
     element.scrollIntoView({ block: 'nearest' })

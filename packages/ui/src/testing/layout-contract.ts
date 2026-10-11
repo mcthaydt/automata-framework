@@ -85,18 +85,58 @@ function findCornerOverlaps(root: ParentNode): string[] {
 const px = (value: string): number => Number.parseFloat(value) || 0
 
 /**
- * An ErrorPanel that had to rise over the corner row (spec §3.4). The panel publishes the least
- * floor of the layouts it could take (`data-fit-floor`); the room is measured here. A panel that
- * scrolls as a whole (`data-overflow`) had to when no layout fits the room its layer normally
- * leaves it (the layer's gutters taken off). Any other panel had to rise when no layout fits under
- * the corner row (the layer's `[data-corner-gap]` taken off too), and it is at its floor (its
- * inline min-height) and still fills its layer's room: with room under it, or taller than its
- * floor, it could have stayed lower.
+ * The least height any of an ErrorPanel's layouts needs, measured here rather than read from the
+ * panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7). For each layout
+ * (`row`, `stack`, `row-tight`) it lays the panel out, keeps the layout only where its message is
+ * readable there (20 characters or the whole panel, half that in `row-tight`, and clear of the
+ * actions), and takes the panel's chrome, one message line and the actions as laid out. The
+ * panel's own layout is put back after.
+ */
+export function errorPanelFloor(panel: HTMLElement): number {
+  const message = panel.querySelector<HTMLElement>('.af-error-panel__message')
+  const actions = panel.querySelector<HTMLElement>('.af-error-panel__actions')
+  if (message === null) return Number.NaN
+  const style = getComputedStyle(panel)
+  const chrome =
+    px(style.paddingTop) + px(style.paddingBottom) + px(style.borderTopWidth) + px(style.borderBottomWidth)
+  const line = px(getComputedStyle(message).lineHeight)
+  if (actions === null) return chrome + line
+  const inner = panel.clientWidth - px(style.paddingLeft) - px(style.paddingRight)
+  const probe = document.createElement('span')
+  probe.style.cssText = 'position:absolute;visibility:hidden;width:20ch'
+  message.append(probe)
+  const readable = Math.min(probe.getBoundingClientRect().width, inner)
+  probe.remove()
+  const shown = panel.dataset.layout
+  let least = Number.POSITIVE_INFINITY
+  for (const layout of ['row', 'stack', 'row-tight']) {
+    panel.dataset.layout = layout
+    const box = message.getBoundingClientRect()
+    const actionsBox = actions.getBoundingClientRect()
+    const sameRow = actionsBox.top < box.top + line
+    const clear = !sameRow || box.right <= actionsBox.left + 0.5
+    const wide = box.width >= readable / (layout === 'row-tight' ? 2 : 1) - 0.5
+    if (!clear || !wide) continue
+    const content = sameRow ? Math.max(line, actionsBox.height) : line + px(style.rowGap) + actionsBox.height
+    least = Math.min(least, chrome + content)
+  }
+  if (shown === undefined) delete panel.dataset.layout
+  else panel.dataset.layout = shown
+  return least
+}
+
+/**
+ * An ErrorPanel that had to rise over the corner row (spec §3.4), by its floor as measured here
+ * (`errorPanelFloor`). A panel that scrolls as a whole (`data-overflow`) had to when no layout
+ * fits the room its layer normally leaves it (the layer's gutters taken off). Any other panel had
+ * to rise when no layout fits under the corner row (the layer's `[data-corner-gap]` taken off too),
+ * and it is at its floor (its inline min-height) and still fills its layer's room: with room under
+ * it, or taller than its floor, it could have stayed lower.
  */
 function roseBecauseItHadTo(panel: HTMLElement): boolean {
   const layer = panel.parentElement
   if (layer === null) return false
-  const fit = Number.parseFloat(panel.dataset.fitFloor ?? '')
+  const fit = errorPanelFloor(panel)
   const style = getComputedStyle(layer)
   if (panel.hasAttribute('data-overflow')) {
     const gutter = px(style.getPropertyValue('--af-gutter'))

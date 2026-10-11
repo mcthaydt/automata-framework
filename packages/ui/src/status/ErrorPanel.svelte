@@ -59,8 +59,6 @@ let cornerGap = $state<HTMLElement | undefined>(undefined)
 type Layout = 'row' | 'stack' | 'row-tight'
 let layout = $state<Layout>('stack')
 let overflows = $state(false)
-/** The least floor of the layouts the panel could take, published for the layout contract. */
-let fitFloor = $state<number | undefined>(undefined)
 
 const px = (value: string): number => Number.parseFloat(value) || 0
 
@@ -88,12 +86,7 @@ function charsWide(panel: HTMLElement, chars: number): number {
 }
 
 /** The panel's least height in the layout it has now: its chrome, one message line and the actions. */
-function floorNow(
-  panel: HTMLElement,
-  style: CSSStyleDeclaration,
-  message: HTMLElement,
-  actions?: HTMLElement,
-): number {
+function floorNow(style: CSSStyleDeclaration, message: HTMLElement, actions?: HTMLElement): number {
   const chrome =
     px(style.paddingTop) + px(style.paddingBottom) + px(style.borderTopWidth) + px(style.borderBottomWidth)
   const line = px(getComputedStyle(message).lineHeight)
@@ -132,14 +125,13 @@ function measureFloor(): void {
     if (shortRoom !== undefined) layerNode.dataset.room = shortRoom
     layout = 'stack'
     overflows = false
-    fitFloor = undefined
-    floor = floorNow(node, style, message)
+    floor = floorNow(style, message)
     return
   }
   const shown = node.dataset.layout
   const tryLayout = (candidate: Layout) => {
     node.dataset.layout = candidate
-    return { layout: candidate, floor: floorNow(node, style, message, actions), width: message.clientWidth }
+    return { layout: candidate, floor: floorNow(style, message, actions), width: message.clientWidth }
   }
   const inner = node.clientWidth - px(style.paddingLeft) - px(style.paddingRight)
   const readable = Math.min(charsWide(node, 20), inner)
@@ -155,7 +147,6 @@ function measureFloor(): void {
     stacked,
     ...(tight.width >= readable / 2 - 0.5 ? [tight] : []),
   ]
-  fitFloor = Math.min(...candidates.map((candidate) => candidate.floor))
   // Under the corner row: the first that fits. Over it: the least floor, so it covers the least.
   const rising = candidates.filter((candidate) => candidate.floor <= space).sort((a, b) => a.floor - b.floor)
   const chosen = candidates.find((candidate) => candidate.floor <= underCorner) ?? rising[0]
@@ -200,7 +191,6 @@ $effect(() => {
     data-code={code}
     data-testid={testId}
     data-layout={layout}
-    data-fit-floor={fitFloor}
     data-overflow={overflows ? '' : undefined}
     data-scroll-region={overflows ? '' : undefined}
     style:min-height={floor === undefined ? undefined : `${floor}px`}
