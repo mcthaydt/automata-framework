@@ -65,8 +65,16 @@ export function configProblems(schemas: readonly ContentSchemaDef[]): string[] {
 // inside arrays, records and unions without re-implementing Zod's traversal. The declared output type stays
 // `string` because nothing outside the compiler ever sees a marker.
 
+// Markers and registrations must work across copies of this module. A game's `automata.content.ts` or Vite
+// config can be loaded by a different module runner than the compiler, and each runner evaluates its own
+// copy of this file. So a marker is recognized by its `automataContentMarker` brand, not by `instanceof`,
+// and the registries live on `globalThis` under a global symbol (`Symbol.for` returns the same symbol in
+// every copy) so every copy adds to and reads from the same ones.
+const REGISTRIES: unique symbol = Symbol.for('@mcthaydt/automata-content/registries')
+
 /** A parsed reference to another content item, before it is checked. */
 export class ContentRefMarker {
+  readonly automataContentMarker: 'ref' = 'ref'
   constructor(
     readonly kind: string,
     readonly id: string,
@@ -75,13 +83,31 @@ export class ContentRefMarker {
 
 /** A parsed player-facing text, before it gets its message key. */
 export class LocalizedMarker {
+  readonly automataContentMarker: 'localized' = 'localized'
   constructor(readonly text: string) {}
 }
 
+const brandOf = (value: unknown): unknown =>
+  typeof value === 'object' && value !== null
+    ? (value as { automataContentMarker?: unknown }).automataContentMarker
+    : undefined
+
+export const isContentRefMarker = (value: unknown): value is ContentRefMarker => brandOf(value) === 'ref'
+export const isLocalizedMarker = (value: unknown): value is LocalizedMarker => brandOf(value) === 'localized'
+
+interface Registries {
+  readonly refs: z.core.$ZodRegistry<{ kind: string }>
+  readonly texts: z.core.$ZodRegistry<{ localized: true }>
+}
+
+const holder = globalThis as typeof globalThis & { [REGISTRIES]?: Registries }
+holder[REGISTRIES] ??= { refs: z.registry<{ kind: string }>(), texts: z.registry<{ localized: true }>() }
+const registries: Registries = holder[REGISTRIES]
+
 /** The kind each `contentRef` schema points at, for the `content.d.ts` generator. */
-export const contentRefKinds: z.core.$ZodRegistry<{ kind: string }> = z.registry<{ kind: string }>()
+export const contentRefKinds: z.core.$ZodRegistry<{ kind: string }> = registries.refs
 /** Every `localized` schema, for the `content.d.ts` generator. */
-export const localizedTexts: z.core.$ZodRegistry<{ localized: true }> = z.registry<{ localized: true }>()
+export const localizedTexts: z.core.$ZodRegistry<{ localized: true }> = registries.texts
 
 /** The ID of another content item of `kind`. Checked to exist, and to be that kind, after parsing. */
 export function contentRef<const K extends string>(kind: K): z.ZodType<string, string> {

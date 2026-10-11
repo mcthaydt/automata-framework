@@ -83,6 +83,7 @@ function localized(): z.ZodType<string>                                    // pl
 - Write schemas with `z.strictObject` so a misspelled key is reported, not ignored (FloorFifty's lesson).
 - `contentRef(kind)` checks the ID shape and tags the value. After validation the compiler walks the parsed value, checks each tagged ID against the IDs of `kind`, and replaces the tag with the plain string. Errors: `unknownReference` (`no song has the id dusk-rnu`), `wrongKind` (`dusk-run is a song, not a stage`). Why tag-and-walk: Zod 4 cannot report facts out of a refinement, and walking the data finds references inside arrays, records and unions without re-implementing Zod's traversal.
 - `localized()` works the same way; the text stays in `content.json` and gets a message key (§3.7).
+- Markers and registrations work across copies of this module: a game's `automata.content.ts` or Vite config can be loaded by another module runner, which evaluates its own copy. A marker is recognized by its `automataContentMarker` brand rather than `instanceof`, and the `contentRef`/`localized` registries live on `globalThis` under a `Symbol.for` key.
 
 ### 3.2 Compile, build, verify (`compile/`)
 
@@ -216,7 +217,7 @@ function automataContent(options: Omit<ContentOptions, 'root'> & { root?: string
 
 ### 3.10 CLI (`cli/`, bin `automata-content`)
 
-`check` (compile, write nothing), `build` (write), `check --verify-artifact` (fail on any stale output: FloorFifty's repository gate), `docs <guide.md>` (rewrite the tunable table). Options come from `automata.content.ts` in the working directory (default export `ContentOptions` without `root`) until M1.8's `automata.config.ts` replaces it. Exit 0 clean, 1 diagnostics, 2 config or write errors and usage. `runCli(argv, cwd)` is the tested function; `main.ts` only runs it on the Node layer.
+`check` (compile, write nothing, print `content <hash>`), `build` (write), `check --verify-artifact` (fail on any stale output, and on a stale tunable table in the configured guide: FloorFifty's repository gate), `docs [guide.md]` (rewrite the tunable table; the path defaults to the config's `guide`). Options come from `automata.content.ts` in the working directory (default export `ContentConfig`: `ContentOptions` without `root`, plus an optional `guide`) until M1.8's `automata.config.ts` replaces it; it is loaded with Vite's `runnerImport`, so it may be TypeScript. Exit 0 clean, 1 diagnostics, 2 config or write errors and usage. `runCli(argv, cwd, io?)` is the tested function; `main.ts` is the bin, which Node runs directly and which loads `run-cli.ts` through `runnerImport` because the package source uses extensionless imports Node cannot resolve.
 
 ## 4. Lifecycle
 

@@ -87,7 +87,7 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement. `root` defaults to Vite's root; the tests record HMR events by replacing `server.ws.send` on a middleware-mode server.
 
 ### T14 CLI, exports, full check
-- [ ] Port `bin/content.ts` behavior as `runCli` tests: `check` 0/1, `build` writes, `check --verify-artifact` fails after a hand edit, `docs` rewrites the table, a bad command or config is 2. Fails: module missing.
+- [x] Port `bin/content.ts` behavior as `runCli` tests: `check` 0/1, `build` writes, `check --verify-artifact` fails after a hand edit, `docs` rewrites the table, a bad command or config is 2. Fails: module missing.
 - [ ] Implement; export the public API; `pnpm check`, browsers project and the full local CI run green.
 
 ## Execution log
@@ -97,3 +97,4 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - 2026-10-11: T11 landed: compile, build and verify over one file-access module. Rulings: `@effect/platform` dropped for `node:fs` behind `files/content-files.ts` (coordinator, so `@mcthaydt/automata-node` is a one-file swap); `tuning.toml`/`flow.toml` are required when the game passes `tunables`/`flow`; translations are checked only when every source parsed; generators run only on content that passed every check. `Data.TaggedError` classes extend an annotated constant because `isolatedDeclarations` cannot type a call in `extends`.
 - 2026-10-11: T12 landed: `preloadList` compiles, then checks each preload file (or `dir/*` folder) in `dist/` and reports every missing one as `missingAsset` at its `assets.toml` line.
 - 2026-10-11: T13 landed: the `automataContent()` Vite plugin (serialized builds, 50 ms debounce, `automata:content` / `automata:content-error`, last good module kept) with FloorFifty's watch tests ported to a dev server, plus `vite build` embedding the hash and failing on a broken file.
+- 2026-10-11: T14 CLI landed: `runCli` with check, build, docs and `--verify-artifact` (outputs and the guide's table), exit codes 0/1/2, and a bin Node runs directly. Found by the bin test: a config loaded through another module runner had its own copy of `content-schema.ts`, so `instanceof` missed its markers; markers now carry a brand and the registries live on `globalThis` (test: a second module copy).

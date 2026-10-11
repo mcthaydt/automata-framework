@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
-import { configProblems, contentRef, defineContentSchema, localized } from './content-schema'
+import {
+  configProblems,
+  contentRef,
+  contentRefKinds,
+  defineContentSchema,
+  localized,
+  localizedTexts,
+} from './content-schema'
 import { checkReferences, resolveMarkers } from './references'
 
 const song = defineContentSchema('song', z.strictObject({ displayName: localized() }), { folder: 'songs' })
@@ -95,5 +102,21 @@ describe('checkReferences', () => {
       { path: ['song'], code: 'unknownReference', message: 'no song has the id dusk-rnu' },
       { path: ['extras', 0], code: 'wrongKind', message: 'rooftops is a stage, not a song' },
     ])
+  })
+})
+
+// A game's `automata.content.ts`, or a Vite config, can be loaded through a different module runner than
+// the compiler, which gives it a second copy of this module. Markers and registrations must still count.
+describe('a second copy of the schema module', () => {
+  it('makes markers and registrations the compiler recognizes', async () => {
+    vi.resetModules()
+    const copy = await import('./content-schema')
+    expect(copy.contentRef).not.toBe(contentRef)
+    const schema = z.strictObject({ song: copy.contentRef('song'), name: copy.localized() })
+    const resolved = resolveMarkers(schema.parse({ song: 'dusk-run', name: 'Rooftops' }))
+    expect(resolved.refs).toEqual([{ path: ['song'], kind: 'song', id: 'dusk-run' }])
+    expect(resolved.texts).toEqual([{ path: ['name'], text: 'Rooftops' }])
+    expect(contentRefKinds.get(schema.shape.song)).toEqual({ kind: 'song' })
+    expect(localizedTexts.get(schema.shape.name)).toEqual({ localized: true })
   })
 })

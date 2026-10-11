@@ -4,7 +4,7 @@
 // how references are found: they are marked in the schema (`contentRef`) and collected by walking the data.
 
 import type { DataPath, Problem } from '../diagnostics/diagnostic'
-import { ContentRefMarker, LocalizedMarker } from './content-schema'
+import { isContentRefMarker, isLocalizedMarker } from './content-schema'
 
 export interface FoundRef {
   readonly path: DataPath
@@ -33,11 +33,11 @@ export function resolveMarkers(value: unknown): ResolvedMarkers {
   const texts: FoundText[] = []
 
   const walk = (node: unknown, path: (string | number)[]): unknown => {
-    if (node instanceof ContentRefMarker) {
+    if (isContentRefMarker(node)) {
       refs.push({ path, kind: node.kind, id: node.id })
       return node.id
     }
-    if (node instanceof LocalizedMarker) {
+    if (isLocalizedMarker(node)) {
       texts.push({ path, text: node.text })
       return node.text
     }

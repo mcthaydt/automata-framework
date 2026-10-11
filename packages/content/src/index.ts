@@ -1,6 +1,7 @@
 // @mcthaydt/automata-content: the content compiler (M1.3). Extracted from FloorFifty's packages/content
 // (122a220) and generalized over game-registered schemas; see the M1.3 spec.
 
+export type { ContentConfig } from './cli/run-cli'
 export {
   type CompiledContent,
   type ContentOptions,
@@ -41,3 +42,4 @@ export {
   type TunableDeclarations,
   type TuningMeta,
 } from './tuning/check-tuning'
+export { renderTuningTable, withTuningTable } from './tuning/tuning-table'
