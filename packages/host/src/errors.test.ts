@@ -1,30 +1,46 @@
 import { RukenError } from '@ruken/sdk'
 import { describe, expect, it } from 'vitest'
-import { CapabilityDenied, HostRequestFailed, toHostError } from './errors'
+import { HostError, HostHandshakeFailed, toHostError } from './errors'
 
-describe('toHostError', () => {
-  it("keeps Ruken's code and retryable flag for a refused or failed request", () => {
-    const error = toHostError('saves.flush', 'saves', new RukenError('TIMEOUT', 'no answer'))
-    expect(error).toBeInstanceOf(HostRequestFailed)
+describe('toHostError (shared contracts §1.2)', () => {
+  it("keeps Ruken's code and retryable flag, and names the operation", () => {
+    const cause = new RukenError('TIMEOUT', 'no answer')
+    const error = toHostError('saves.flush', cause)
+    expect(error).toBeInstanceOf(HostError)
     expect(error).toMatchObject({
-      _tag: 'HostRequestFailed',
+      _tag: 'HostError',
       operation: 'saves.flush',
       code: 'TIMEOUT',
       retryable: true,
+      cause,
     })
   })
 
-  it('names the capability when the host answers DENIED', () => {
-    const error = toHostError('links.open', 'links', new RukenError('DENIED', 'not granted'))
-    expect(error).toBeInstanceOf(CapabilityDenied)
-    expect(error).toMatchObject({ _tag: 'CapabilityDenied', capability: 'links' })
+  it('keeps DENIED as DENIED', () => {
+    expect(toHostError('display.fullscreen', new RukenError('DENIED', 'no'))).toMatchObject({
+      code: 'DENIED',
+      retryable: false,
+    })
   })
 
-  it('treats anything that is not a RukenError as an internal failure that may be retried', () => {
-    expect(toHostError('ads.break', 'ads', new Error('port closed'))).toMatchObject({
-      _tag: 'HostRequestFailed',
+  it("maps a QuotaExceededError from Ruken's save map to QUOTA_EXCEEDED, not retryable", () => {
+    const error = toHostError('saves.set', new DOMException('save value exceeds 1 MiB', 'QuotaExceededError'))
+    expect(error).toMatchObject({ code: 'QUOTA_EXCEEDED', retryable: false })
+  })
+
+  it('treats any other throw as INTERNAL, which Ruken treats as retryable', () => {
+    expect(toHostError('saves.flush', new Error('port closed'))).toMatchObject({
       code: 'INTERNAL',
       retryable: true,
+    })
+  })
+})
+
+describe('HostHandshakeFailed', () => {
+  it('carries the reason', () => {
+    expect(new HostHandshakeFailed({ reason: 'no-welcome' })).toMatchObject({
+      _tag: 'HostHandshakeFailed',
+      reason: 'no-welcome',
     })
   })
 })

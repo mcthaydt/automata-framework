@@ -2,7 +2,7 @@ import type { RoundOutcome } from '@ruken/sdk'
 
 export interface RoundReporter {
   start(): void
-  end(outcome: RoundOutcome): void
+  end(outcome?: RoundOutcome): void
 }
 
 /**
