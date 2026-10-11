@@ -48,6 +48,26 @@ describe('fakeViewportWindow', () => {
   })
 })
 
+describe('fakeViewportWindow screen and navigator', () => {
+  test('carries the screen and navigator it is given, for browser-specific corrections', () => {
+    const navigator = { userAgentData: { brands: [{ brand: 'DuckDuckGo' }] } }
+    const win = fakeViewportWindow({
+      width: 411,
+      height: 866,
+      screen: { width: 412, height: 915 },
+      navigator,
+    })
+    expect(win.screen).toEqual({ width: 412, height: 915 })
+    expect(win.navigator).toBe(navigator)
+  })
+
+  test('defaults the screen to the window size and the navigator to an empty one', () => {
+    const win = fakeViewportWindow({ width: 390, height: 844 })
+    expect(win.screen).toEqual({ width: 390, height: 844 })
+    expect(win.navigator).toEqual({})
+  })
+})
+
 describe('hostDisplay', () => {
   test("defaults to Ruken's fixture: a 48 px strip on the right, no safe area, scale 1", () => {
     expect(hostDisplay()).toEqual({

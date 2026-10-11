@@ -49,6 +49,10 @@ export interface FakeViewportWindow {
   readonly innerWidth: number
   readonly innerHeight: number
   readonly visualViewport: FakeVisualViewport
+  /** `screen`, which does not move when the page does. */
+  readonly screen: { readonly width: number; readonly height: number }
+  /** `navigator`, for corrections that only one browser needs (DuckDuckGo's client-hint brands). */
+  readonly navigator: object
   addEventListener(type: string, listener: Listener): void
   removeEventListener(type: string, listener: Listener): void
   /** Rotation, a browser bar, a window drag: both viewports take the new size. */
@@ -60,7 +64,14 @@ export interface FakeViewportWindow {
   listenerCount(): number
 }
 
-export function fakeViewportWindow(size: { width: number; height: number }): FakeViewportWindow {
+export function fakeViewportWindow(size: {
+  width: number
+  height: number
+  /** Defaults to the window's starting size. */
+  screen?: { width: number; height: number }
+  /** Defaults to a navigator that names no browser. */
+  navigator?: object
+}): FakeViewportWindow {
   const windowEvents = new Events()
   const visualEvents = new Events()
   let width = size.width
@@ -84,6 +95,8 @@ export function fakeViewportWindow(size: { width: number; height: number }): Fak
       return height
     },
     visualViewport,
+    screen: size.screen ?? { width: size.width, height: size.height },
+    navigator: size.navigator ?? {},
     addEventListener: (type, listener) => windowEvents.add(type, listener),
     removeEventListener: (type, listener) => windowEvents.remove(type, listener),
     resize(nextWidth, nextHeight) {

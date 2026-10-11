@@ -127,4 +127,40 @@ describe('createGeometryOwner (M1.6 spec §3.1, §4)', () => {
     owner.dispose()
     root.remove()
   })
+
+  describe("DuckDuckGo's forgotten bottom bar (§3.9, FloorFifty viewport-tracking)", () => {
+    /** The emulator's DuckDuckGo: a 915 px screen, 802 px of page while the bar is counted. */
+    const DUCKDUCKGO = { userAgentData: { brands: [{ brand: 'Chromium' }, { brand: 'DuckDuckGo' }] } }
+    const SCREEN = { width: 412, height: 915 }
+
+    function duckDuckGo(height: number, navigator: object = DUCKDUCKGO) {
+      const win = fakeViewportWindow({ width: 411, height, screen: SCREEN, navigator })
+      const root = document.createElement('div')
+      const owner = createGeometryOwner({ window: win, root, readEnvSafeArea: NO_ENV })
+      return { win, root, owner }
+    }
+
+    test('keeps the page above a bar the browser grew the page under', () => {
+      const { win, root, owner } = duckDuckGo(802)
+      vi.advanceTimersByTime(1000)
+      expect(root.style.getPropertyValue('--af-hidden-bar-bottom')).toBe('0px')
+      win.resize(411, 866)
+      vi.advanceTimersByTime(1000)
+      expect(root.style.getPropertyValue('--af-hidden-bar-bottom')).toBe('64px')
+      expect(root.style.getPropertyValue('--af-visual-inset-bottom')).toBe('64px')
+      expect(owner.geometry.current.visible.height).toBe(866 - 64)
+      expect(root.dataset.formFactor).toBe('phone-portrait')
+    })
+
+    test('catches a page that loads already grown', () => {
+      const { root } = duckDuckGo(866)
+      expect(root.style.getPropertyValue('--af-hidden-bar-bottom')).toBe('64px')
+    })
+
+    test('leaves every other browser alone, however little room the page is given', () => {
+      const { root } = duckDuckGo(866, {})
+      expect(root.style.getPropertyValue('--af-hidden-bar-bottom')).toBe('0px')
+      expect(root.style.getPropertyValue('--af-visual-inset-bottom')).toBe('0px')
+    })
+  })
 })

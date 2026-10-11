@@ -42,6 +42,8 @@ export interface GeometryInput {
   readonly envSafeArea: Insets
   /** Absent standalone. */
   readonly host?: HostDisplay | undefined
+  /** A bar the browser draws over the page without reporting it (`browser/hidden-browser-bar.ts`). */
+  readonly hiddenBarBottom?: number | undefined
 }
 
 export interface Geometry {
@@ -53,8 +55,10 @@ export interface Geometry {
   readonly hostReserved: { readonly left: number; readonly right: number }
   /** The layout viewport less the insets. */
   readonly usable: Rect
-  /** What the browser lays over the page's foot (keyboard, a bottom toolbar), in whole px. */
+  /** What the browser lays over the page's foot (keyboard, a bottom toolbar, a hidden bar), in whole px. */
   readonly visualInsetBottom: number
+  /** The part of `visualInsetBottom` that is a bar the browser does not report, in whole px. */
+  readonly hiddenBarBottom: number
   /** `usable` less the visual inset: what the player can actually see and reach. */
   readonly visible: Rect
   readonly scale: HostDisplay['scale']
@@ -87,8 +91,10 @@ export function measureGeometry(input: GeometryInput): Geometry {
   }
   // Whatever covers the layout viewport's foot. The keyboard shrinks the visual viewport and,
   // on iOS, scrolls it (offsetTop); what is left below it is covered.
-  const visualInsetBottom =
-    visual === undefined ? 0 : Math.max(0, Math.round(layout.height - visual.height - visual.offsetTop))
+  // A hidden bar is reported by nothing the page can read, so it is added on top (spec §3.9).
+  const keyboard = visual === undefined ? 0 : Math.max(0, layout.height - visual.height - visual.offsetTop)
+  const hiddenBarBottom = Math.max(0, Math.round(input.hiddenBarBottom ?? 0))
+  const visualInsetBottom = Math.round(keyboard) + hiddenBarBottom
   // The visual inset is measured from the layout's foot, so the bottom safe area already sits
   // inside it: only the part beyond the safe area shortens the usable region.
   const covered = Math.max(0, visualInsetBottom - insets.bottom)
@@ -100,6 +106,7 @@ export function measureGeometry(input: GeometryInput): Geometry {
     hostReserved: reserved,
     usable,
     visualInsetBottom,
+    hiddenBarBottom,
     visible: { ...usable, height: Math.max(0, usable.height - covered) },
     scale: host?.scale ?? 1,
   }
@@ -121,5 +128,6 @@ export function applyGeometry(root: HTMLElement, geometry: Geometry): void {
   px('--af-host-reserved-left', geometry.hostReserved.left)
   px('--af-host-reserved-right', geometry.hostReserved.right)
   px('--af-visual-inset-bottom', geometry.visualInsetBottom)
+  px('--af-hidden-bar-bottom', geometry.hiddenBarBottom)
   root.style.setProperty('--af-scale', String(geometry.scale))
 }

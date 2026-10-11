@@ -9,6 +9,7 @@
  * writes the geometry.
  */
 
+import { HiddenBrowserBar, isDuckDuckGo } from '../browser/hidden-browser-bar'
 import { applyGeometry, type Geometry, type HostDisplay, type Insets, measureGeometry } from './geometry'
 
 type Listen = (type: string, listener: () => void) => void
@@ -26,6 +27,9 @@ export interface ViewportWindow {
       }
     | null
     | undefined
+  /** Read only where the browser needs its bar recognised (`browser/hidden-browser-bar.ts`). */
+  readonly screen?: { readonly width: number; readonly height: number } | undefined
+  readonly navigator?: object | undefined
   addEventListener: Listen
   removeEventListener: Listen
 }
@@ -100,6 +104,12 @@ export function probeEnvSafeArea(root: HTMLElement): Insets {
   return insets
 }
 
+/** Whether a text field has focus, which on some browsers shrinks the whole page. */
+function isEditing(doc: Document): boolean {
+  const active = doc.activeElement
+  return active instanceof HTMLElement && active.closest("input, textarea, [contenteditable='true']") !== null
+}
+
 /** `$state.raw`: a new Geometry object replaces the old one; nothing inside it is mutated. */
 class GeometryRune implements GeometryState {
   current: Geometry
@@ -116,6 +126,26 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
   let host = options.host
   let settling: unknown[] = []
   let disposed = false
+  // Only DuckDuckGo for Android forgets its bar (spec §3.9); every other browser skips the check.
+  const hiddenBar = win.navigator != null && isDuckDuckGo(win.navigator) ? new HiddenBrowserBar() : undefined
+  let lastHeight: number | undefined
+
+  const readHiddenBar = (): number => {
+    const screen = win.screen
+    if (hiddenBar === undefined || screen == null) return 0
+    const doc = root.ownerDocument
+    const hidden = hiddenBar.measure({
+      screenHeight: screen.height,
+      innerHeight: win.innerHeight,
+      portrait: screen.height > screen.width,
+      editing: isEditing(doc),
+      fullscreen: doc.fullscreenElement != null,
+      // Unchanged since the last measure: the settle delays make this true once a size stops moving.
+      settled: lastHeight === win.innerHeight,
+    })
+    lastHeight = win.innerHeight
+    return hidden
+  }
 
   const read = (): Geometry => {
     const visual = win.visualViewport
@@ -124,6 +154,7 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
       visual: visual == null ? undefined : { height: visual.height, offsetTop: visual.offsetTop },
       envSafeArea: readEnv(),
       host,
+      hiddenBarBottom: readHiddenBar(),
     })
   }
 

@@ -61,6 +61,19 @@ body {
   font-size: var(--af-text-body);
 }
 
+/* A drawn screen is not a page: no text selection or long-press callout, except where a player types. */
+html {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* The shared control look the primitives' buttons use. */
 .af-control {
   box-sizing: border-box;

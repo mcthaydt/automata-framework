@@ -90,6 +90,20 @@ describe('measureGeometry (M1.6 spec §3.1)', () => {
     ).toBe(0)
   })
 
+  test('folds a hidden browser bar into the visual inset, and keeps its own count (§3.9)', () => {
+    const g = measureGeometry(
+      input({
+        layout: { width: 411, height: 866 },
+        visual: { height: 866, offsetTop: 0 },
+        hiddenBarBottom: 64,
+      }),
+    )
+    expect(g.hiddenBarBottom).toBe(64)
+    expect(g.visualInsetBottom).toBe(64)
+    expect(g.visible.height).toBe(866 - 64)
+    expect(measureGeometry(input()).hiddenBarBottom).toBe(0)
+  })
+
   test("carries the host's scale hint", () => {
     expect(measureGeometry(input({ host: host({ scale: 1.333 }) })).scale).toBe(1.333)
   })
@@ -120,6 +134,7 @@ describe('applyGeometry (M1.6 spec §3.2)', () => {
     expect(prop('--af-host-reserved-left')).toBe('0px')
     expect(prop('--af-host-reserved-right')).toBe('48px')
     expect(prop('--af-visual-inset-bottom')).toBe('70px')
+    expect(prop('--af-hidden-bar-bottom')).toBe('0px')
     expect(prop('--af-scale')).toBe('1.333')
 
     applyGeometry(root, measureGeometry(input({ layout: { width: 1280, height: 720 } })))
@@ -127,5 +142,10 @@ describe('applyGeometry (M1.6 spec §3.2)', () => {
     expect(root.hasAttribute('data-height')).toBe(false)
     expect(root.hasAttribute('data-visual-inset')).toBe(false)
     expect(prop('--af-visual-inset-bottom')).toBe('0px')
+
+    applyGeometry(root, measureGeometry(input({ layout: { width: 411, height: 866 }, hiddenBarBottom: 64 })))
+    expect(root.hasAttribute('data-visual-inset')).toBe(true)
+    expect(prop('--af-hidden-bar-bottom')).toBe('64px')
+    expect(prop('--af-visual-inset-bottom')).toBe('64px')
   })
 })
