@@ -129,7 +129,8 @@ Ruken platform services (identity, saves storage, ledger, billing, distribution,
 
 - FloorFifty: `content/` characters, stages, songs, modes, unlocks; `packages/shared/src/simulation/` (Planck race, lava, survival, CPU); `packages/asset-contract`; race-specific server rooms; `deploy/bin/ruken-runners*`; art.
 - The Last Light: `src/scenes/{prologue,clinic,bay}/*`; `render/characters.json`, `render/models/*`, `public/art`, `docs/art`, `docs/narrative`, `docs/design`; `src/ui.ts` HUD; `main.ts` scene wiring.
-- The Last Light uses Miniplex; its ECS code ports onto the Koota facade (ADR 0001) rather than being copied.
+- The Last Light uses Miniplex; its ECS code ports onto the Koota facade (ADR 0001) rather than being copied. For `puzzle` and `systems` this is a rewrite, not an extraction: the source tests (route tests, probes, bot playtests) come across as behavior specs and are re-pointed at the Koota version, and a test that cannot be ported is listed in that extension's spec with the reason.
+- Physics: FloorFifty's Planck race simulation stays in FloorFifty. The Last Light uses `@dimforge/rapier3d-compat` 0.21; AF's `physics` extension uses Rapier's deterministic-compat build (spike S2), and The Last Light moves to it only when it adopts AF.
 
 ## 5. Known stale docs in the sources
 

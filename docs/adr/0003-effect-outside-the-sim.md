@@ -15,6 +15,6 @@ The 2026-10-01 design skipped Effect: a second paradigm for game developers, ove
 - Game code meets Effect only at registration points (`defineExtension` layers, custom services). Sim systems, components and commands remain Effect-free.
 
 ## Consequences
-- New spike **S8** before the M1 runtime plan: bundle size and cold-boot time with Effect on the S20 and iPhone 13 profiles, under Ruken's CSP, and a frame-loop overhead check.
+- New spike **S8** in M1.1, on the placeholder page: bundle size and cold-boot time with Effect on the S20 and iPhone 13 profiles, under Ruken's CSP. Effect is adopted by Owner direction whatever S8 measures; S8 sets the budgets and the mitigations if they are exceeded (fewer modules, lazy layers). The frame-loop overhead check runs in M1.5.
 - Extension authors need Effect only for runtime services; gameplay authoring is unchanged.
 - The `Hosting` service's errors become a closed union of typed errors, each with a named UI state in `ui`.

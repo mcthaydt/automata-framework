@@ -32,14 +32,15 @@ The seven laws stand. Law 7 is sharpened:
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Simulation | Koota 0.6.6 behind the `automata-sim` facade; Rapier `-deterministic-compat` 0.21 (2D and 3D); xoshiro128** RNG; `automata-sim/math` | As built in A1a. No Effect, no DOM, no wall clock (boundary checker). |
+| Simulation | Koota 0.6.6 behind the `automata-sim` facade; xoshiro128** RNG; `automata-sim/math`; `automata-sim/hash` (XXH64 and canonical JSON) | As built in A1a. No Effect, no DOM, no wall clock (boundary checker). |
+| Physics | Rapier `-deterministic-compat` 0.21 (2D and 3D) in the `physics` extension | Spike S2 proved parity on a fixture, but neither reference game runs it: FloorFifty uses Planck and keeps it, The Last Light uses standard Rapier and moves to the deterministic-compat build when it adopts AF. M2.1 proves four-engine parity before anything depends on it. |
 | Effects, services and errors | **Effect** (`effect`, `@effect/platform`, `@effect/platform-browser`, `@effect/platform-node`) | Outside the sim only. Exact versions are pinned in M1.1 and recorded in `docs/versions.md`. |
 | Schemas | **Zod 4** (`4.6.5`, the version Ruken pins) | Shared with Ruken's protocol and manifest packages and with the sim's command payloads. Effect Schema is not adopted; one schema language. |
 | Rendering | **PixiJS 8.22+** (2D, core); **`@pixi/3d` 0.1.0-beta.2** (3D, extension) | WebGPU preferred, WebGL2 fallback mandatory (Ruken's manifest renderers are `webgl2`, `webgl`, `canvas2d`, `wasm-webgl2`). Filters ship as GLSL + WGSL pairs (S4). |
 | UI | Svelte 5, Tailwind 4, GSAP 3 | As in FloorFifty and Ruken's `packages/ui`. Menus and HUD stay in the DOM. |
 | App and UI state | Nano Stores | Mirrors of sim state are read-only (old spec §5). |
 | Presentation facts | Typed synchronous FIFO bus (FloorFifty `presentation-event-bus.ts`), exposed as an Effect service | Replaces raw mitt in core. mitt is no longer a core dependency. |
-| Host | `@ruken/sdk`; `@ruken/manifest`; `@ruken/sdk-host` (fake host for tests) | Vendored as tarballs (FloorFifty's `vendor/ruken/` pattern) until Ruken publishes them; Ruken gates publication on its `NPM_PUBLISH_READY` variable and the M0.3 npm scope. |
+| Host | `@ruken/sdk`; `@ruken/manifest`; `@ruken/sdk-host` (fake host for tests) | Vendored as tarballs in [`vendor/ruken/`](../../../vendor/ruken/README.md) at a recorded RukenApp commit (D-6, FloorFifty's pattern) until Ruken publishes them; Ruken gates publication on its `NPM_PUBLISH_READY` variable and the M0.3 npm scope. |
 | Tooling | Node 24, pnpm 10, Turborepo, TypeScript, Vitest 5, Playwright 1.63, Changesets, lefthook | Versions are aligned with Ruken's `docs/versions.md` pins in M1.1. Lint and format stay on Biome for now (open decision D-3 in §12). |
 
 ## 4. Package map: core and extensions
@@ -50,10 +51,10 @@ Every package publishes as `@mcthaydt/automata-<name>` on GitHub Packages. **Cor
 
 | Package | Owns | Built from |
 |---|---|---|
-| `sim` | Deterministic simulation: Koota facade, fixed step, RNG substreams, commands, scheduler, resources, snapshot/restore, render delta, `math`; physics as `./physics-2d` and `./physics-3d` subpaths | AF A1a (merged). The Last Light's record/replay and `worldHash` inform the replay harness. |
+| `sim` | Deterministic simulation: Koota facade, fixed step, RNG substreams, commands, scheduler, resources, snapshot/restore, render delta, `./math`, `./hash` (XXH64 and canonical JSON, shared with `content`); a snapshot-section hook so plugins such as `physics` add their own snapshot section | AF A1a (merged). The Last Light's record/replay and `worldHash` inform the replay harness. |
 | `content` | TOML → Zod → canonical JSON + hash; typed accessors; Vite plugin; generators for the `ruken.toml` content fields, locale keys, the telemetry catalog and the loading preload list | AF A0+A1 §5 design; FloorFifty `content/*.toml`, `flow.toml`, `tuning.toml` and its invariants/tunables split; Ruken's manifest `content`, `analytics` and `loading.preload` sections |
 | `host` | The `Hosting` Effect service. Adapters: **`ruken`** (wraps `@ruken/sdk`), **`web`** (standalone; same limits). Test layer from `@ruken/sdk-host` fake host. | FloorFifty `apps/client/src/ruken/{host,current,exit,analytics}.ts` and its 13 Ruken test files; AF S6 contract tests and Ruken's answers |
-| `runtime` | Boot and loading, app loop (fixed sim step, variable render, interpolation), Time (pause modes, lifecycle and menu pause), Flow (screens from `flow.toml`, one transition at a time), presentation bus, settings store over `Hosting` storage, Input (keyboard, pointer, touch, gamepad), Save (Ruken saves), Audio core (buses, unlock, `audio.focus`/`audio.master`), Localization core | FloorFifty `main.ts` boot, `load-meter.ts`, `fetch-progress.ts`, `screen-manager.ts`, `screens/screen.ts`, `presentation/*`, `common/settings.ts`, `gamepad-source.ts`, `swipe-tracker.ts`, `audio/*` engine; The Last Light `clock.ts`, `session.ts`, `input.ts`, `audio/mixer.ts` |
+| `runtime` | Boot and loading, app loop (fixed sim step, variable render, interpolation), Time (pause modes, lifecycle and menu pause), Flow (screens from `flow.toml`, one transition at a time), presentation bus, settings store over `Hosting` storage, Input (keyboard, pointer, touch, gamepad), Save (Ruken saves), Audio core (buses, unlock, `audio.focus`/`audio.master`), Localization core | FloorFifty `main.ts` boot, `load-meter.ts`, `fetch-progress.ts`, `screen-manager.ts`, `screens/screen.ts`, `presentation/*`, `common/settings.ts`, `gamepad-source.ts`, `swipe-tracker.ts`, `audio/*` engine; The Last Light `clock.ts`, `session.ts`, `input.ts`, `audio/mixer.ts`. One package in M1 with a folder per service; the M4 and M5 specs decide whether Input, Save and Audio move to their own core packages once their scope is complete. |
 | `render-pixi` | Pixi 8 2D adapter: renderer init with WebGPU → WebGL2 retry and `?renderer=` override, `RenderDelta` consumer with interpolation and `resync`, pixel framebuffer option, letterbox, filter-program helpers (GLSL + WGSL pairs, pixel position from the vertex stage) | FloorFifty `letterbox.ts` and render setup; The Last Light `stage.ts` init (lines 355–373), `filter-programs.ts` |
 | `ui` | Mobile-first Svelte primitives: geometry owner (form factor, height tier, visual-viewport tracking), ScreenFrame, ActionBar, CornerControls, Split, ScrollList, OptionGroup, PagerDots, Dialog, LoaderOverlay, ErrorPanel with Try again, focus navigation, cursor policy, back gesture, touch-control surface, theme tokens | FloorFifty `ui/layout/*`, `ui/{form-factor,height-tier,viewport-tracking.svelte}.ts`, `ui/focus-nav.ts`, `ui/cursor-policy.ts`, loader/error components; Ruken `packages/ui` (Button, IconButton, Dialog, Toast, theme tests); The Last Light `ui/kit.ts` tokens and `ui/access.ts` |
 | `testing` | Sim and replay goldens; renderer-free component/screen fixtures; layout assertions (hit testing, target size, clipping, overlap, reachability); Playwright config helpers (per-checkout ports, reuse server, viewport projects); fake-host journeys; evidence capture and promotion | AF A0+A1 §6; FloorFifty `tests/e2e/support/layout.ts`, `playwright.config.ts`, `tools/e2e-serve.ts`, `tools/promote-evidence`; Ruken `e2e/sandbox`, `e2e/golden`, `@ruken/sdk-host` testing |
@@ -65,6 +66,7 @@ Every package publishes as `@mcthaydt/automata-<name>` on GitHub Packages. **Cor
 
 | Extension | What it adds | Built from |
 |---|---|---|
+| `physics` | Rapier 2D and 3D sim plugins (deterministic-compat build), snapshot section 6, contact-event order, measured size and ms/tick. `net` stays physics-agnostic. | AF A0+A1 §4 physics design; spike S2 (Rapier parity); The Last Light's Rapier use, rewritten for the deterministic build |
 | `render-pixi3d` | `@pixi/3d` adapter, scoped to 2.5D until M9: `View3D` setup, fixed-zone and orbit camera rigs, `Sprite3D` billboards (cylindrical/spherical), lit sprites from normal maps, single-mesh GLB and `.pack` loading, fog and particle mist, baked vertex lighting and occlusion | The Last Light `render/{stage,sprite-light,indirect-light,occlusion,fog,glb,props,showcase}.ts` |
 | `post-retro` | Post chain as data: Bayer dither, LCD snap and panel, palette LUT, grade, bloom, grain, vignette (2D and 3D) | The Last Light `retro-filter.ts`, `bloom-filter.ts`, `lcd-panel.ts`, `palette.ts`; S4 dither |
 | `audio-synth` | Procedural cues and beds as data, game-event → cue mapping, ducking, listener panning, offline render, audio checks (true peak, clicks, loudness) | The Last Light `audio/*` and its make-audio pipeline |
@@ -88,7 +90,7 @@ Every package publishes as `@mcthaydt/automata-<name>` on GitHub Packages. **Cor
 
 ## 5. Extension contract
 
-A single registration function ties the layers together. Exact types are specified in the M1 spec; the shape is:
+A single registration function ties the layers together. Exact types are in the [M1 shared contracts](./2026-10-11-m1-shared-contracts-design.md#2-defineextension); the shape is:
 
 ```ts
 export const sectorsExtension = defineExtension({
@@ -104,9 +106,11 @@ export const sectorsExtension = defineExtension({
 
 Rules: an extension never edits a core file; core never imports an extension; an extension's sim plugin obeys every sim boundary rule; manifest contributions may only set fields in Ruken's manifest schema; each extension has its own tests and a fixture game under `examples/`.
 
+**Determinism check beyond `packages/sim`.** Any package that exports a sim plugin (`physics`, `sectors`, `puzzle`, `systems`, and a game's own `sim/` folder) runs `check-boundaries` on its sim sources, in AF CI and in the game CI template (`game-ci.yml`, M1.2). The checker takes a list of source roots; the lane that adds a plugin package adds its root.
+
 ## 6. Effect boundaries
 
-See ADR 0003 for the decision record.
+See ADR 0003 for the decision record. Effect is adopted by Owner direction (2026-10-11) and stays whatever spike S8 measures: S8 sets the budgets (bundle bytes, boot time on the phone profiles) and the mitigations if they are exceeded (fewer modules, lazy layers, `@effect/platform-browser` only where needed). S8 runs in M1.1 against the ship lane's placeholder page, so the budget exists before the runtime is built.
 
 - **Inside `packages/sim`: no Effect.** The step function, systems, snapshot and hash stay plain synchronous code. `check-boundaries` already rejects `effect` and `@effect/*` through its import allowlist; the `import-effect.ts` fixture pins that.
 - **Runtime and host:** each manager is an Effect service (`Context.Tag` + `Layer`): `Hosting`, `Storage`, `Clock`, `Renderer`, `Flow`, `Time`, `Input`, `Audio`, `Save`, `Settings`, `Telemetry`, `PresentationBus`. Boot is one Effect program (§7). Failures are typed errors (for example `HostHandshakeFailed`, `ContentHashMismatch`, `LoadStalled`, `CapabilityDenied`), so every failure path has a named UI state.
@@ -182,6 +186,7 @@ The Owner asked on 2026-10-11 to proceed in parallel, so each decision below run
 | D-3 | Lint and format | Keep Biome. Revisit only if aligning with Ruken's ESLint + Prettier becomes necessary; the sim's `useExponentiationOperator` rule must survive either way | M1.1 |
 | D-4 | Standalone hosting | Reuse FloorFifty's proven pattern: a Caddy static host with a build per URL (`/builds/<buildId>/`) and the live release at `/`. `ship` keeps the provider behind a deploy step, so a later move to Cloudflare Pages/R2 does not change games. | M1.2 |
 | D-5 | GPU runner | Reuse the Owner's existing runners (the WSL Linux runner and the Windows GPU runner). Until they are wired to AF, every CI job, including parity, is also run locally before a PR is called green (hosted Actions jobs are not getting runners). No new Linux GPU box. | M1.1 |
+| D-6 | How AF gets Ruken's unpublished packages | Vendor `@ruken/sdk`, `@ruken/sdk-host` and `@ruken/manifest` tarballs in `vendor/ruken/` at a recorded RukenApp commit (`b30d31b`), with their SHA-256 and rebuild steps, as FloorFifty does. The integration owner re-vendors (after Ruken's F1 freeze and on request); lanes consume. | M1.2, M1.4 |
 
 ## 13. Risks
 
@@ -189,6 +194,7 @@ The Owner asked on 2026-10-11 to proceed in parallel, so each decision below run
 |---|---|
 | `@pixi/3d` beta changes or stalls | 3D lives in one extension behind the renderer-agnostic `RenderDelta`; spike S7 records what AF relies on; 2D core is unaffected |
 | Ruken packages are unpublished and still moving before F1 (planned 2026-10-16) | Vendor tarballs with recorded Ruken commits; run Ruken's fake-host and contract tests in AF CI; re-vendor after F1 and after each additive change |
-| Effect adds bundle size and startup cost on phones | Spike S8 measures boot time and bundle size on the S20 and iPhone 13 profiles before M1's runtime plan; the frame loop never allocates Effects per frame |
+| Effect adds bundle size and startup cost on phones | Effect stays (Owner direction); spike S8 in M1.1 sets the bundle and boot-time budgets on the S20 and iPhone 13 profiles and the mitigations if they are exceeded; the frame loop never allocates Effects per frame |
+| Rapier's deterministic-compat build is proven only by spike S2, not by either reference game | Physics is an extension (`physics`), not core; M2.1 proves four-engine parity and measures cost before any extension or game depends on it |
 | Extracting from two live games while they keep changing | Extraction copies from a recorded source commit; each extracted module brings the source game's tests with it; adoption is a separate milestone |
 | Early CI/CD before the runtime is complete | M1 targets a blank game on purpose, the same "something deployable early" rule the old spec used, now ending at Ruken rather than at a dev host |

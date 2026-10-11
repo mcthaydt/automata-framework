@@ -12,11 +12,11 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 **Current task: M1.0a — Owner review of the Ruken-first restructure.**
 
-1. The Owner reviews the master spec, the extraction map, ADRs 0002–0004 and decisions D-1 to D-5 (master spec §12).
+1. The Owner reviews the master spec, the extraction map, ADRs 0002–0004 and decisions D-1 to D-6 (master spec §12).
 2. Record the outcome in the [02 execution record](02-master-delivery-plan.md#execution-record-and-handoff) and tick M1.0a only on that review.
 3. Then **M1.0b**: write the M1 milestone spec (`docs/superpowers/specs/<date>-m1-blank-game-on-ruken-design.md`) at the detail in [01 Decomposition §5](01-decomposition.md#5-required-milestone-spec-and-plan-detail). Start by reading Ruken's `packages/sdk`, `packages/sdk-host/src/testing`, `packages/manifest`, `packages/validation` and `tooling/ruken-cli` at their current commit, and FloorFifty's `apps/client/src/ruken/`, `deploy/tools/ruken-pack.ts`, loading and `ui/layout/` code.
 
-**Parallel lanes (Owner, 2026-10-11):** work now runs in lanes ([04 How we build](04-how-we-build.md#lanes-2026-10-11)): ship (M1.1–M1.2), content (M1.3), host (M1.4), ui (M1.6) and sim (M2.1) in parallel, then runtime (M1.5, M1.7) after host and ui merge. Each lane writes its task spec first and is reviewed in its own PR. Decisions D-1 to D-5 run on their recommended defaults (master spec §12) until the Owner overrides them.
+**Parallel lanes (Owner, 2026-10-11):** work now runs in lanes ([04 How we build](04-how-we-build.md#lanes-2026-10-11)): ship (M1.1–M1.2), content (M1.3), host (M1.4), ui (M1.6) and sim (M2.1) in parallel, then runtime (M1.5, M1.7) after host and ui merge. Each lane writes its task spec first and is reviewed in its own PR. Decisions D-1 to D-6 run on their recommended defaults (master spec §12) until the Owner overrides them.
 
 ## Current artifacts and evidence limits
 
@@ -26,14 +26,17 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 | Ruken-first restructure | This branch's draft PR: new master spec, extraction map, ADRs 0002–0004, docs renamed `001`–`004` → `00`–`03` plus new `04-how-we-build.md`, superseded notes on the 2026-10-01 specs and S3, updated `AGENTS.md` | Owner review (M1.0a) |
 | `check-boundaries` fixture `import-effect.ts` | Added on this branch; the existing import allowlist already rejects it, so the test passed on first run (a regression pin for ADR 0003, not a red→green change) | — |
 | Checks on `99c853c` | Hosted Actions jobs got no runner (account minutes, likely). Run locally on Node 24.21.0 with Playwright 1.63 browsers: lint, typecheck, boundaries, style pass; unit sim 147, boundaries 21, style 17; parity 165/165 in Chromium, WebKit, Firefox. Owner (2026-10-11): run CI locally. | Re-run locally after each push |
+| Audit fixes | Ruken tarballs vendored (D-6); `@mcthaydt/automata-sim/hash` export (test written first, failed on the missing export, then passed); [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md) drafted; physics as a `physics` extension; S8 in M1.1; determinism check for every sim-plugin package and `game-ci.yml` | Owner review with M1.0a |
 | Source survey | FloorFifty `122a220`, The Last Light `948abe9`, RukenApp `b30d31b`, all read on 2026-10-11 | Re-survey at M1.0b |
 
 ## External inputs and unresolved gates
 
-- Ruken packages (`@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`) are unpublished; Ruken gates publication on `NPM_PUBLISH_READY` and its M0.3. AF plans to vendor tarballs (FloorFifty's `vendor/ruken/` pattern) and needs the Owner's OK to do so.
+- Ruken packages (`@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`) are unpublished; Ruken gates publication on `NPM_PUBLISH_READY` and its M0.3. AF vendors them in `vendor/ruken/` at RukenApp `b30d31b` (D-6); the integration owner re-vendors.
+- Request to Ruken: the SDK at `b30d31b` still sends `baseRevision` and `writeId` on `saves.set`/`saves.remove` (Ruken `packages/protocol/src/meta/types.ts` lines 94–100). AF does not use them; whether they stay is Ruken's call.
+- What counts as green: hosted Actions get no runner. The Owner is choosing between local CI only, a self-hosted runner for AF, or raising the Actions limit. Lanes are paused until PR #4 is green by that answer.
 - Ruken's F1 freeze is planned for 2026-10-16; the `contracts-f1` tag did not exist on 2026-10-11. Re-vendor and re-run contract tests after it.
 - Ruken has no `[store]` manifest section yet; the `store` extension waits for it.
-- `@pixi/3d` is a 0.1.0 beta (D-1). Runner reuse (D-5), standalone hosting (D-4), lint tooling (D-3) and adoption scope (D-2) are open.
+- `@pixi/3d` is a 0.1.0 beta (D-1). D-1 to D-6 run on their defaults (master spec §12) until the Owner overrides them.
 - GitHub Packages tokens and hosting accounts are not verified.
 
 ## Maintenance checklist

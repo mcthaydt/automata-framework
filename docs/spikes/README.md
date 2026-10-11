@@ -18,4 +18,4 @@ The spike code was removed when A0 closed. It is recoverable from git history: t
 | Spike | Question | Before |
 |---|---|---|
 | S7 `@pixi/3d` | Does the `@pixi/3d` beta run under Ruken's CSP with WebGL2 parity for the post chain, ≥30 FPS on the S20 and iPhone 13 profiles, and a non-black capture on the CI GPU runner? Which beta APIs does AF depend on? | M3 plan (ADR 0002) |
-| S8 Effect runtime | What do Effect's bundle size and cold boot cost on the phone profiles under Ruken's CSP, and does the frame loop stay allocation-free? | M1.5 plan (ADR 0003) |
+| S8 Effect runtime | What do Effect's bundle size and cold boot cost on the phone profiles under Ruken's CSP, and does the frame loop stay allocation-free? | M1.1, on the ship lane's placeholder page; sets budgets and mitigations, it does not decide whether Effect is used (ADR 0003) |

@@ -29,7 +29,7 @@ The seven laws stand: only the sim changes gameplay state; the server owns netwo
 | Effect for runtime, host, tooling and pipelines; never inside the sim; Zod stays the schema language | [ADR 0003](adr/0003-effect-outside-the-sim.md) |
 | Ruken first: consume `@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`, Ruken validation and `ruken publish`; follow Ruken's doc and milestone process | [ADR 0004](adr/0004-ruken-first-host.md) |
 
-Decisions D-1 to D-5 (the `@pixi/3d` beta dependency, adoption scope, lint tooling, standalone hosting, GPU runner) run on their recommended defaults since 2026-10-11 until the Owner overrides them; see the master spec §12. M1 runs in parallel lanes ([04 How we build](04-how-we-build.md#lanes-2026-10-11)).
+Decisions D-1 to D-6 (the `@pixi/3d` beta dependency, adoption scope, lint tooling, standalone hosting, GPU runner, vendored Ruken packages) run on their recommended defaults since 2026-10-11 until the Owner overrides them; see the master spec §12. M1 runs in parallel lanes ([04 How we build](04-how-we-build.md#lanes-2026-10-11)).
 
 ## Product and engineering priorities
 
