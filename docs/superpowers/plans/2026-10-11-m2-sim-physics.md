@@ -1,85 +1,91 @@
 # M2.1 Physics plugins: TDD plan
 
-- **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` (cited below as "spec").
-- **Lane:** sim. Touches only `packages/sim/` and this plan.
-- **Progress:** 3 / 11 tasks.
-- **Local CI (every task ends with these green):** Node 24, `pnpm check`; for tasks that touch parity, `pnpm --filter @mcthaydt/automata-sim exec vitest run --project browsers` (Chromium, WebKit, Firefox, Playwright 1.63 browsers).
+- **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
+- **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
+- **Progress:** 2 / 13 tasks.
+- **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
 
-- **Consumed:** `definePlugin`, `defineSystem`, `defineComponent`, `defineEvent`, `createSim`, `EntityStore`, `encodeSnapshot` / `decodeSnapshot` (A1a); `@dimforge/rapier2d-deterministic-compat@0.21.0`, `@dimforge/rapier3d-deterministic-compat@0.21.0`.
-- **Produced:** `PluginDef.state`, `PluginState`, `SimContext.pluginState` (spec §3.1); snapshot section 6 (spec §3.2); `./physics-2d` and `./physics-3d` exports (spec §3.5).
+- **Consumed:** `definePlugin`, `defineSystem`, `defineComponent`, `defineEvent`, `createSim`, `SpawnPart`, `SnapshotFormatError` from `@mcthaydt/automata-sim`; `@dimforge/rapier2d-deterministic-compat@0.21.0`, `@dimforge/rapier3d-deterministic-compat@0.21.0`.
+- **Produced:** `PluginState`, `PluginStateSetup`, `PluginDef.state`, `SimContext.pluginState`, snapshot section 6, `SimFaultedError`, `SimCapacityError` (sim); `@mcthaydt/automata-physics/2d` and `/3d` (spec §3.5).
 
 ## Files
 
 | File | Change |
 |---|---|
-| `packages/sim/package.json` | Rapier deps; `./physics-2d`, `./physics-3d` exports |
-| `packages/sim/vitest.config.ts` | Rapier in `optimizeDeps.include` |
-| `packages/sim/src/define/definitions.ts` | `state` on `definePlugin` / `PluginDef`; `PluginState` type |
-| `packages/sim/src/define/context.ts` | `pluginState` on `SimContext` |
-| `packages/sim/src/world/sim.ts` | await states, per-plugin context, schema hash, section 6 in snapshot / two-phase restore, dispose |
-| `packages/sim/src/world/snapshot.ts` | section 6 framing (`plugins` on `SnapshotData`) |
-| `packages/sim/src/physics/physics-world.ts` | dimension-neutral sync-in / sync-out / events / table encode over a small adapter |
-| `packages/sim/src/physics/rapier-2d.ts`, `rapier-3d.ts` | the adapters (the only files that call Rapier) |
-| `packages/sim/src/physics/physics-2d.component.ts`, `physics-3d.component.ts` | components |
-| `packages/sim/src/physics/physics-2d.event.ts`, `physics-3d.event.ts` | events |
-| `packages/sim/src/physics/physics-2d.plugin.ts`, `physics-3d.plugin.ts` | `physics2d()` / `physics3d()` |
-| `packages/sim/src/physics-2d.ts`, `physics-3d.ts` | subpath entry points |
-| Tests | `world/plugin-state.test.ts`, `world/snapshot.test.ts` (extended), `physics/physics-3d.test.ts`, `physics/physics-2d.test.ts`, `physics/physics-snapshot.test.ts`, `physics/physics-2d.parity.test.ts`, `physics/physics-3d.parity.test.ts`, `physics/physics.bench.test.ts` |
+| `packages/sim/src/define/definitions.ts`, `define/context.ts` | `PluginState`, `state`, `pluginState` |
+| `packages/sim/src/world/sim.ts`, `world/snapshot.ts` | states, section 6, two-phase restore; fault state; capacity error; schema hash |
+| `packages/sim/src/world/entity-store.ts` | row validation without Koota; capacity error |
+| `packages/sim/src/hash/canonical.ts`, `hash/xxhash64.ts` | −0; 32-bit XXH64 |
+| `packages/sim/src/index.ts` | export the new types and errors |
+| `packages/physics/package.json`, `tsconfig.json`, `vitest.config.ts` | new package |
+| `packages/physics/src/physics-world.ts` | dimension-neutral sync-in / sync-out / events / bytes over an adapter |
+| `packages/physics/src/rapier-2d.ts`, `rapier-3d.ts` | adapters: the only files that call Rapier |
+| `packages/physics/src/physics-2d.component.ts`, `physics-3d.component.ts` | components |
+| `packages/physics/src/physics-2d.event.ts`, `physics-3d.event.ts` | events |
+| `packages/physics/src/physics-2d.plugin.ts`, `physics-3d.plugin.ts` | `physics2d()` / `physics3d()` |
+| `packages/physics/src/spawn-2d.ts`, `spawn-3d.ts` | spawn helpers |
+| `packages/physics/src/2d.ts`, `3d.ts` | entry points |
+| `tooling/check-boundaries` | `packages/physics/src` root; `@mcthaydt/automata-sim` imports |
 
 ## Tasks
 
-### 1. Dependencies and wiring
-- [x] Add both Rapier packages (exact `0.21.0`) to `packages/sim/package.json` dependencies; add them to `optimizeDeps.include`. Verify: `pnpm install`, `pnpm check` green, browser project green.
+### 1. Plugin state hook (spec §3.1)
+- [x] Failing tests `world/plugin-state.test.ts`: per-sim state visible only to its plugin's systems; canonical setup order with `dt`; dispose; no section 6 without state; stateful plugin changes the schema hash; a rejected setup disposes earlier states.
+- [x] Implement; `pnpm check`. (`a216775`, rebased as `358892d`)
 
-### 2. Plugin state hook (spec §3.1)
-- [x] Failing test `world/plugin-state.test.ts`: a plugin with `state` gets one fresh state per `createSim` (two sims → two states), its systems see it as `ctx.pluginState`, another plugin's systems see `undefined`. Expected failure: `state` ignored, `pluginState` undefined.
-- [x] Failing test: `state` setups are awaited in canonical plugin order and receive `{ dt }`.
-- [x] Failing test: `sim.dispose()` calls `dispose` on every state.
-- [x] Failing test: a sim without stateful plugins keeps the same schema hash and snapshot bytes as before (the existing golden `2dfe1971eaf6af8f` stays); a stateful and a stateless plugin with the same name give different schema hashes.
-- [x] Implement minimal; `pnpm check`.
+### 2. Section 6 framing and two-phase restore (spec §3.2)
+- [x] Failing tests through `createSim` in `plugin-state.test.ts` (framing is only reachable with matching plugins): round-trip and continue; a failing `prepareRestore` leaves the sim unchanged and commits no plugin; truncated, renamed row, trailing byte, empty section, section on a stateless sim → `SnapshotFormatError`.
+- [x] Implement; `pnpm check`. (same commit)
 
-### 3. Snapshot section 6 framing and two-phase restore (spec §3.2, §4.6)
-- [x] Failing tests for the framing: round-trip with plugin rows; no section 6 when there are none; truncated, renamed row, trailing byte, empty section, a section on a stateless sim → `SnapshotFormatError`. (Done in `world/plugin-state.test.ts` through `createSim`, not `world/snapshot.test.ts`: the framing is only reachable with matching plugins.)
-- [x] Failing tests in `plugin-state.test.ts`: `restore` passes each plugin its bytes; a throwing `prepareRestore` leaves entities, resources, rng and tick unchanged and commits no other plugin; success commits all.
-- [x] Implement; `pnpm check`.
-
-### 4. Physics 3D: components, plugin shell, lazy load (spec §3.3, §3.5, §4.1–2)
-- [ ] Failing test: importing `./physics-3d` does not import Rapier (vitest module mock records the dynamic import only at `createSim`).
-- [ ] Failing test: `physics3d()` returns plugin `physics-3d` with the four systems in the right phases; `createSim` with it resolves.
-- [ ] Implement components, events, plugin, adapter skeleton; `pnpm check`.
-
-### 5. Create, step, write back (spec §3.4 rules 1, syncOut)
-- [ ] Failing test: a dynamic ball above a fixed cuboid collider falls (y decreases each tick, `vy` < 0) and comes to rest above it; render delta `changed` carries `transform-3d`.
-- [ ] Failing test: a body with no collider and a collider with no body are both created.
+### 3. Fix −0 in canonical JSON (spec §10.1)
+- [ ] Failing tests: `canonicalJson(-0) === '-0'`; a sim whose resource holds −0 restores to −0 (`Object.is`) and matches the uninterrupted run for 5 more ticks.
 - [ ] Implement; `pnpm check`.
 
-### 6. Removal and diffs (spec §3.4 rules 2–4)
-- [ ] Failing tests, one each: despawn removes the body (no further contacts, table row gone); removing `Collider3D` removes only the collider; writing `Transform3D` teleports a dynamic body; a kinematic-position body follows its transform with the velocity Rapier derives; writing `vx` sets the velocity; changing `kind`, damping or gravity scale applies; changing collider size rebuilds the collider; moving a fixed collider moves it.
-- [ ] Failing tests for spec §5 validation: bad shape, zero size, non-unit quaternion, kind out of range → `Error` naming sid and field.
+### 4. Fail closed on a throwing system (spec §10.2)
+- [ ] Failing tests: a system that throws at tick 3 → `step` throws `SimFaultedError` naming the system and tick; later `step`, `snapshot`, `hash` throw `SimFaultedError`; `restore` of a good snapshot clears the fault and the run continues identically.
 - [ ] Implement; `pnpm check`.
 
-### 7. Events (spec §3.4 events)
-- [ ] Failing test: three balls dropped onto the floor emit `physics3d.collision-started` with `a < b`, sorted by kind then sids; a sensor reports `sensor: true`; separation emits `collision-ended`; an event for a collider removed this tick is dropped.
+### 5. Koota world limit (spec §10.3)
+- [ ] Failing tests: with 16 sims alive, `restore` succeeds; a 17th `createSim` rejects with `SimCapacityError`; a restore with a bad row still leaves the sim unchanged.
+- [ ] Implement (validate rows without Koota, free the old world before building the new one); `pnpm check`.
+
+### 6. Schema hash covers schemas; restore re-encodes exactly (spec §10.4)
+- [ ] Failing tests: two plugins differing only in a resource's, command's or event's schema give different schema hashes; a stored resource with a field the current schema strips → `SnapshotFormatError`.
+- [ ] Implement; re-run the existing golden and record the new hash with the reason.
+
+### 7. Faster XXH64 (spec §10.5)
+- [ ] Failing test: hashing 1 MB takes under a generous bound relative to the BigInt version (measured ratio, not wall clock): the 32-bit version must agree with the BigInt reference on random inputs of every length 0..300 and on the existing vectors. Benchmark before and after recorded.
+- [ ] Implement; `pnpm check`; browser parity.
+
+### 8. Physics package and 3D shell (spec §3.3, §3.5, §4)
+- [ ] Create `packages/physics` (deps: workspace `@mcthaydt/automata-sim`, Rapier pins, zod; the sim's dev deps) and the check-boundaries root and import entries.
+- [ ] Failing tests: importing `./3d` loads no Rapier until `createSim`; `physics3d()` has the four systems in the right phases; spawn helpers give spec §3.3 defaults.
 - [ ] Implement; `pnpm check`.
 
-### 8. Physics bytes and restore (spec §3.2, §4.5–6)
-- [ ] Failing tests `physics/physics-snapshot.test.ts`: snapshot → restore into a fresh sim → continue 100 ticks equals the uninterrupted run (hash and event stream); restoring twice gives the same bytes; bad version, unsorted rows, dead sid, missing handle → `SnapshotFormatError` with the sim unchanged.
-- [ ] Check the NaN open point (spec §3.2): if `body = NaN` is not one bit pattern across engines, switch to a flag byte.
+### 9. 3D create, step, write back, update, remove (spec §3.4)
+- [ ] Failing tests, one per behaviour: a ball falls onto a lone cuboid collider and rests; body without collider; despawn removes; losing `Collider3D` recreates as body-only; teleport; kinematic-position follows its transform; velocity write; kind and damping; collider change rebuilds; lone collider moves; validation errors name sid and field.
 - [ ] Implement; `pnpm check`.
 
-### 9. Physics 2D
-- [ ] Mirror tasks 4–8 for 2D in `physics/physics-2d.test.ts` (failing first), using the shared `physics-world.ts` with the 2D adapter.
+### 10. 3D events (spec §3.4)
+- [ ] Failing tests: started events sorted with `a < b`; sensor flag; ended on separation; an event for a collider removed this tick is dropped.
 - [ ] Implement; `pnpm check`.
 
-### 10. Four-engine parity (spec §7)
-- [ ] Failing parity tests (`physics-2d.parity.test.ts`, `physics-3d.parity.test.ts`) with placeholder goldens: 300 ticks of the mixed scene, with and without restore at 150, hash of the sim and of the event stream. Expected failure: placeholder mismatch.
-- [ ] Commit the Node hash, then run Chromium, WebKit and Firefox; all four must match without edits. A mismatch is investigated, never rebaselined per engine.
+### 11. 3D physics bytes and restore (spec §3.2)
+- [ ] Failing tests: snapshot → restore into a fresh sim → 100 more ticks equal the uninterrupted run (hash and events); bad version, unsorted rows, bad flags, unknown handle, trailing bytes → `SnapshotFormatError` with the sim unchanged; a dead-sid row is accepted and removed at the next tick.
+- [ ] Implement; `pnpm check`.
 
-### 11. Measurements (spec §8)
-- [ ] Bench test prints median ms/tick at 100 and 500 bodies (2D and 3D) and init time; record results plus measured package sizes (raw and gzip -9) in the execution log and the PR.
+### 12. 2D
+- [ ] Mirror tasks 8–11 for 2D (failing first) on the shared `physics-world.ts`.
+- [ ] Implement; `pnpm check`.
+
+### 13. Four-engine parity and measurements (spec §7, §8)
+- [ ] Failing parity tests with placeholder goldens (2D and 3D); commit the Node hashes; run Chromium, WebKit and Firefox; all four must match without edits.
+- [ ] Bench (`AF_BENCH=1`): ms/tick at 100 and 500 bodies, init time; package sizes raw and gzip -9. Record below and in the PR.
 
 ## Execution log
 
-(empty)
+| Date | Task | Commits | Notes |
+|---|---|---|---|
+| 2026-10-11 | 1–2 | `358892d` | Framing tests live in `plugin-state.test.ts`, not `snapshot.test.ts` (deviation noted in task 2). |

@@ -23,12 +23,6 @@ importers:
 
   packages/sim:
     dependencies:
-      '@dimforge/rapier2d-deterministic-compat':
-        specifier: 0.21.0
-        version: 0.21.0
-      '@dimforge/rapier3d-deterministic-compat':
-        specifier: 0.21.0
-        version: 0.21.0
       koota:
         specifier: 0.6.6
         version: 0.6.6
@@ -133,12 +127,6 @@ packages:
 
   '@blazediff/core@1.10.0':
     resolution: {integrity: sha512-AOQff0zgR7cGsZL+4E7hVkmujoPUpm0J9xzWGWZj5wCjd3gmxESXAPfKyuzs93VdpQNFhHlBhfOjrcZ+XTERtQ==}
-
-  '@dimforge/rapier2d-deterministic-compat@0.21.0':
-    resolution: {integrity: sha512-qVwHqqpRX73ktQRqiAa/0JdBfWdzsGHg8r8d+snaZB0WRXaTs3m7GU6jN+Qf3gEjMEUqk3Rc9q87yGXHkktTbA==}
-
-  '@dimforge/rapier3d-deterministic-compat@0.21.0':
-    resolution: {integrity: sha512-n7JuU62Obljlgq+OeH2DHhTmRSjRzwuJPl54tS9pFIzVQyvXsO5CH+a5KkIRBtnFWDbg1Zicv9BulG0jfBAopA==}
 
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
@@ -997,10 +985,6 @@ snapshots:
     optional: true
 
   '@blazediff/core@1.10.0': {}
-
-  '@dimforge/rapier2d-deterministic-compat@0.21.0': {}
-
-  '@dimforge/rapier3d-deterministic-compat@0.21.0': {}
 
   '@jridgewell/resolve-uri@3.1.2': {}
 

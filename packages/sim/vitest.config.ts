@@ -3,14 +3,7 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   // Pre-bundle browser-side deps; on a cold cache Vite otherwise reloads test pages mid-run (A0 spec §11).
-  optimizeDeps: {
-    include: [
-      'koota',
-      'zod',
-      '@dimforge/rapier2d-deterministic-compat',
-      '@dimforge/rapier3d-deterministic-compat',
-    ],
-  },
+  optimizeDeps: { include: ['koota', 'zod'] },
   test: {
     projects: [
       { test: { name: 'node', environment: 'node', include: ['src/**/*.test.ts'] } },
