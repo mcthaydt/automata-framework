@@ -6,7 +6,8 @@ import { z } from 'zod'
 import { formatDiagnostic } from '../diagnostics/diagnostic'
 import { contentHash } from '../hash/content-hash'
 import { contentRef, defineContentSchema, localized } from '../schema/content-schema'
-import { copyFixture, ROOM_KIND, SOUND_KIND, simRoomsOptions } from '../testing/fixture-game'
+import { copyFixture, FIXTURES, ROOM_KIND, SOUND_KIND, simRoomsOptions } from '../testing/fixture-game'
+import { SIM_ROOMS_HASH } from '../testing/sim-rooms-hash'
 import { type CompiledContent, type ContentOptions, compileContent } from './compile-content'
 
 const compile = (options: ContentOptions) => Effect.runPromise(Effect.either(compileContent(options)))
@@ -116,5 +117,16 @@ describe('simReference', () => {
     const simSound = defineContentSchema('sound', SOUND_KIND.schema, SOUND_KIND.place)
     const { sim } = await compiled({ root, schemas: [roomWithAmbience, simSound] })
     expect(Object.keys(sim.data).sort()).toEqual(['room', 'sound', 'tuning'])
+  })
+})
+
+describe('the committed parity fixture', () => {
+  it('is what the compiler makes of sim-rooms, so the browsers check the real partition', async () => {
+    const { sim, files } = await compiled(simRoomsOptions(copyFixture('sim-rooms')))
+    // Compared as data: the formatter owns the committed file's layout, and the hash is over canonical JSON.
+    const committed = JSON.parse(readFileSync(join(FIXTURES, 'sim-rooms/sim-content.json'), 'utf8'))
+    expect(committed).toEqual(sim.data)
+    expect(contentHash(committed)).toBe(SIM_ROOMS_HASH)
+    expect(files.get('sim-content.hash')).toBe(`${SIM_ROOMS_HASH}\n`)
   })
 })

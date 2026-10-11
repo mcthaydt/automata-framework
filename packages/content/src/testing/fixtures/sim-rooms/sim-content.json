@@ -1,0 +1,13 @@
+{
+  "room": {
+    "room-1": {
+      "rows": ["########", "#..G...#", "#.###..#", "#P.....#", "########"],
+      "tileSize": 8,
+      "title": "Mossy ruins"
+    }
+  },
+  "tuning": {
+    "GRAVITY": -275,
+    "JUMP_HEIGHT": 2.5
+  }
+}

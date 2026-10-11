@@ -4,7 +4,7 @@
 
 - **Spec:** [m2-content-in-sim](../specs/2026-10-11-m2-content-in-sim-design.md) ("spec"); milestone: [M2](../specs/2026-10-11-m2-deterministic-core-design.md).
 - **Lane:** content, on its own branch and worktree from `main` (#9 is merged, `d556d23`). Draft PR titled `M2.2 Content in the sim`.
-- **Progress:** 0 / 7 tasks, plus the demo (Task 8), which waits on base-2d's content swap.
+- **Progress:** 7 / 7 tasks, plus the demo (Task 8), which waits on base-2d's content swap.
 - **Local CI (every task ends green):** Node 24.21.0; `pnpm vitest run <file>` first, then `pnpm --filter @mcthaydt/automata-content test` (or `-sim`), then `pnpm check`. Parity tasks also run `pnpm --filter <pkg> test:parity`. Before calling the PR green: `pnpm ci:local`.
 
 ## Interfaces
@@ -59,9 +59,9 @@ Each task: write the failing test, run it and see it fail for the stated reason,
 - [x] Implement in `moduleCode`.
 
 ### Task 7: `Sim.contentHash` and the cross-package proof
-- [ ] `sim.test.ts`: `sim.contentHash` is 16 hex digits, equals `hex64(xxhash64(utf8(canonicalJson(content))))`, equals the hash after `restore`; `snapshot.test.ts`: two sims given the same content with keys in different orders have equal `contentHash` and restore each other's snapshots. Expected failure: `contentHash` is `undefined`.
-- [ ] Implement (one getter over the existing value).
-- [ ] `sim-hash.parity.test.ts` in `packages/content` (`browsers` project and Node): the committed fixture's compiled `sim.hash` equals `(await createSim({ seed: 1, content: sim.data, plugins: [] })).contentHash` and the committed value. Run `pnpm --filter @mcthaydt/automata-content test:parity`: Chromium, WebKit, Firefox identical. Record the value in the execution log.
+- [x] `sim.test.ts`: `sim.contentHash` is 16 hex digits, equals `hex64(xxhash64(utf8(canonicalJson(content))))`, equals the hash after `restore`; `snapshot.test.ts`: two sims given the same content with keys in different orders have equal `contentHash` and restore each other's snapshots. Expected failure: `contentHash` is `undefined`.
+- [x] Implement (one getter over the existing value).
+- [x] `sim-hash.parity.test.ts` in `packages/content` (`browsers` project and Node): the committed fixture's compiled `sim.hash` equals `(await createSim({ seed: 1, content: sim.data, plugins: [] })).contentHash` and the committed value. Run `pnpm --filter @mcthaydt/automata-content test:parity`: Chromium, WebKit, Firefox identical. Record the value in the execution log. Done as: the compiler cannot run in a browser, so the fixture's compiled `sim-content.json` is committed beside it and a Node test keeps it equal to a fresh compile; the value lives in `testing/sim-rooms-hash.ts`.
 
 ### Task 8: demo `examples/sim/content-restore` (waits on #10 and base-2d's content swap)
 Starts only when `createBaseSim({ content })` takes compiled sim content on `main` (spec §8; integration's work, asked through the coordinator). Until then the demo's row in `examples/README.md` says "waits on base-2d content swap", nothing here is ticked, and the package work (Tasks 1–7) merges alone. The demo then lands as its own PR with this task ID.
@@ -78,4 +78,4 @@ Starts only when `createBaseSim({ content })` takes compiled sim content on `mai
 
 ## Execution log
 
-- (empty)
+- 2026-10-11, M2.2 thread: Tasks 1–7 landed (`36e8e22`..HEAD on `claude/af-m2-2-content-sim-lp0pim`). Each test was seen failing first for the stated reason (Tasks 2 and 3 were written and implemented together). Deviations: the partition fixture is a small committed tree (`testing/fixtures/sim-rooms`) because the compiler reads files; its kind is `room` (folder `rooms`), so code reads `content.room[...]`; TypeScript 7.0.2 reports the missing export as TS2724, not TS2305; the snapshot header's u64 is little-endian. Parity: `sim.hash` = `sim.contentHash` = `b77281825d95928b` for the sim-rooms fixture in Node, Chromium, WebKit and Firefox (`pnpm --filter @mcthaydt/automata-content test:parity`, Node 24.21.0, Playwright 1.63.0). Task 8 waits on base-2d's content swap.
