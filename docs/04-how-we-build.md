@@ -45,7 +45,6 @@ Rules for every lane:
 - Ship your feature's demo in `examples/<package>/<demo>/` on the matching base, per [`examples/README.md`](../examples/README.md). If the base is not there yet, add the demo's row to that README as waiting; the integration owner finishes it in M1.8 or M3. A lane only edits its own rows and folders under `examples/`.
 - Build against the [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md) (`Hosting`, `HostError`, `defineExtension`, `BootError`). A lane that needs one changed asks the integration owner; it does not edit the shape itself.
 - Run CI locally before calling a PR green: Node 24, `pnpm check`, and the parity suite in Chromium, WebKit and Firefox (hosted Actions jobs are not getting runners).
-- A PR that changes how packages are built or published (any `tsdown.config.ts`, `svelte.config.js`, `package.json`, `.changeset/`, `tooling/release/` or `tooling/consumer-smoke/`) also runs the consumer smoke locally: `pnpm build && node tooling/consumer-smoke/src/run.ts --from packs` (add `--keep` to inspect the temp project). It installs the packed packages outside the workspace and uses them as a game would (M2.4 spec §3.6).
 - Report status through the PR and to the integration owner; do not edit the numbered docs.
 
 ## How a task flows

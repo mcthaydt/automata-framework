@@ -4,7 +4,7 @@
 
 - **Spec:** [m2-build-and-publish](../specs/2026-10-11-m2-build-and-publish-design.md) ("spec"); milestone: [M2](../specs/2026-10-11-m2-deterministic-core-design.md).
 - **Lane:** ship, on its own branch and worktree from `main`. Draft PR titled `M2.4 Build and publish`. Packaging work can start now; the PR merges after M2.2 and M2.3 (milestone spec §5), after merging `main` and re-running every step. The first publish is the Owner's merge of the first "Version packages" PR, after this one.
-- **Progress:** 0 / 13 tasks.
+- **Progress:** 13 / 13 tasks; Finish: PR body and hand-off open.
 - **Local CI (every task ends green):** Node 24.21.0; focused `pnpm vitest run <file>`; `pnpm check`; for workflow edits `pnpm lint:actions`; before calling the PR green `pnpm ci:local` and `consumer-smoke --from packs`.
 
 ## Interfaces
@@ -85,7 +85,7 @@ Each task: write the failing test or check, run it and see it fail for the state
 ### Task 10: consumer smoke
 - [x] `tooling/consumer-smoke/src/run.ts` per spec §3.6 with its fixtures. First run fails until every build is right; record what each failure taught in the log. *First run (2026-10-11) failed four steps, all in the smoke itself, none in a package: `automata-ship --help` answers with exit 2 (the step now checks the usage it prints); the fixture `game.toml` named preload screens without assets; the types step needed `@types/node` and `lib: ESNext` because content's Vite plugin types pull in Vite's and Rolldown's (a game has both); one wrong call in the fixture. The `.replay` round trip waits for M2.3's `./replay` entry.*
 - [x] `consumer-smoke --from packs` passes: Node checks, TypeScript 7.0.2 and 6.0.3, the Vite bundle (one Ruken SDK copy, no `new Function`/`eval(` from AF).
-- [x] Add it to the nightly `e2e` job in `ci.yml` and as a `consumer-smoke` job on pull requests filtered by the spec §4 paths, not to every push (it takes minutes); document it beside `ci:local`. `workflows.test.ts` asserts both triggers (expected failure: no such job). *Done: the pull request trigger is its own workflow, `consumer-smoke.yml` (a `paths` filter applies to a whole workflow, not a job), skipping drafts like parity and e2e; documented in 04 How we build.*
+- [x] Add it to the nightly `e2e` job in `ci.yml` and as a `consumer-smoke` job on pull requests filtered by the spec §4 paths, not to every push (it takes minutes); document it beside `ci:local`. `workflows.test.ts` asserts both triggers (expected failure: no such job). *Done: the pull request trigger is its own workflow, `consumer-smoke.yml` (a `paths` filter applies to a whole workflow, not a job), skipping drafts like parity and e2e; documented in `tooling/consumer-smoke/README.md` (04 is the integration owner's, so the line for it goes to the coordinator).*
 
 ### Task 11: `game-ci.yml` on published packages
 - [x] `workflows.test.ts`: for a repository other than AF, the workflow no longer checks out AF, uses `registry-url` with `NODE_AUTH_TOKEN: secrets.AF_READ_TOKEN`, fails early naming a classic `read:packages` token when the secret is missing, runs `pnpm exec automata-check-boundaries` (with the new `allow-imports` input) and `pnpm exec automata-ship prepare`, and describes `AF_READ_TOKEN` as a classic PAT with `read:packages`. Expected failure: the AF checkout step is still there.
@@ -97,10 +97,10 @@ Each task: write the failing test or check, run it and see it fail for the state
 
 ## Finish
 
-- [ ] `pnpm ci:local` green; local wall time of the checks and parity jobs recorded (exit 8 evidence until af-linux returns).
+- [x] `pnpm ci:local` green; local wall time of the checks and parity jobs recorded (exit 8 evidence until af-linux returns). *2026-10-11, this container, Node 24.21.0, parity in Chromium, WebKit and Firefox (Playwright 1.63.0 browsers): `ci:local` 1 min 43 s in all, the parity step 1 min 12 s, `pnpm check` 42 s cold, `pnpm build` 6 s. `consumer-smoke --from packs` passed (about 20 s). af-linux timings stay open (exit 6).*
 - [ ] PR body: what the Owner must do for the first release (create `AF_READ_TOKEN` as a classic PAT with `read:packages` only when the first game repository needs it; merge the "Version packages" PR).
 - [ ] Update **Progress**, add the execution log line, and send the integration owner the rows for 02 and 03.
 
 ## Execution log
 
-- (empty)
+- 2026-10-11, M2.4 lane thread, `f4065a2`..HEAD on `claude/af-m2-4-publish-hklgxc`: Tasks 0–12. Rulings and deviations: every package builds through one shared `tooling/release/src/tsdown-shared.ts` (deps external, `@ruken/*` bundled via `onlyBundle`, `onlyImport` = declared dependencies); content's published bin is `packages/content/build/cli.ts`; ui's Ruken types are inlined into `dist/vendor/ruken-sdk.d.ts` and its tests dropped by `finish-svelte-dist.ts`; `node`'s service tags became `GenericTag` constants (isolatedDeclarations); packages carry `repository` so the workflow token may publish them; `consumer-smoke.yml` is its own workflow (a `paths` filter cannot apply to one job); game workflows drop `af-ref`. The `.replay` round trip and `SIM_VERSION` sync wait for M2.3. Nothing published.
