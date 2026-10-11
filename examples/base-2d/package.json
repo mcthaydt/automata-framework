@@ -5,7 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./render": "./src/render/index.ts"
+    "./game": "./src/game-entry.ts",
+    "./render": "./src/render/index.ts",
+    "./sim": "./src/sim/index.ts"
   },
   "scripts": {
     "dev": "vite",
