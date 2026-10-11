@@ -155,6 +155,11 @@ describe('parity across packages', () => {
   // exports test). The root script passes a 30 s default to every package's vitest; a test's own timeout still wins.
   it('gives every unit suite a 30 s default timeout through the root test:unit script', () => {
     expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=30000')
+    // The flag only means something to vitest, so every package's test:unit must be a vitest run.
+    for (const path of workspacePackages) {
+      const script = packageJson(path).scripts?.['test:unit']
+      if (script !== undefined) expect(script, path).toMatch(/^vitest run( |$)/)
+    }
   })
 
   it('gives every package with a browsers vitest project a test:parity script', () => {
