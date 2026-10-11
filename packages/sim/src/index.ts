@@ -32,6 +32,7 @@ export {
   type RejectedCommand,
   type RejectReason,
   type Sim,
+  SimCapacityError,
   type SimEvent,
   SimFaultedError,
   type SimOptions,

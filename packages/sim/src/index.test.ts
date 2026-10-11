@@ -6,6 +6,7 @@ test('the public runtime API is exactly this list (changing it is a deliberate, 
   expect(Object.getOwnPropertyNames(sim).sort()).toEqual([
     'PHASES',
     'SNAPSHOT_VERSION',
+    'SimCapacityError',
     'SimFaultedError',
     'SnapshotFormatError',
     'SnapshotMismatchError',

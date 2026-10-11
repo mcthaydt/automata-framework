@@ -15,7 +15,7 @@ import { hex64, xxhash64 } from '../hash/xxhash64'
 import { createRng, deriveSeed, type Rng, rngFromState } from '../rng/rng'
 import { orderPlugins, orderSystems } from '../schedule/schedule'
 import { sortedKeys } from '../util/sorted'
-import { EntityStore, type FieldRecord, type RenderDelta } from './entity-store'
+import { EntityStore, type FieldRecord, type RenderDelta, SimCapacityError } from './entity-store'
 import {
   decodeSnapshot,
   encodeSnapshot,
@@ -89,6 +89,8 @@ export interface Sim {
  * A system threw during `step`. The tick was left half-applied, so the sim refuses `step`, `snapshot` and
  * `hash` until a successful `restore` (M2.1 spec §10.2). Failing closed is cheaper than rolling back every tick.
  */
+export { SimCapacityError }
+
 export class SimFaultedError extends Error {
   readonly system: string
   readonly tick: number
@@ -407,30 +409,33 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       }
       if (data.tickHz !== tickHz)
         throw new SnapshotMismatchError('tickHz', String(tickHz), String(data.tickHz))
-      // Build everything first; swap only when it all validated, so a bad snapshot leaves this sim untouched.
-      const next = new EntityStore(componentList)
+      // Validate everything first, without touching this sim. Then free the old Koota world before building the
+      // new one, so a restore never needs a second world (Koota allows 16 per process; M2.1 spec §10.3).
+      let rows: Array<{ sid: number; parts: SpawnPart[] }>
+      let nextResources: Map<string, unknown>
+      let nextRngs: Map<string, Rng>
+      let commits: Array<() => void>
       try {
-        for (const e of data.entities) {
-          next.spawnWithId(
-            e.sid,
-            [...e.components].map(([id, values]) => [components.get(id) as ComponentDef, values] as const),
-          )
-        }
-        next.nextId = data.nextId
-        next.takeDelta(false)
+        rows = data.entities.map((e) => ({
+          sid: e.sid,
+          parts: [...e.components].map(
+            ([id, values]) => [components.get(id) as ComponentDef, values] as const,
+          ),
+        }))
+        for (const row of rows) store.checkParts(row.parts)
         const expectedIds = sortedIds(resourceDefs)
         if (
           data.resources.length !== expectedIds.length ||
           data.resources.some((row, i) => row.id !== expectedIds[i])
         )
           throw new SnapshotFormatError('resource rows do not match the registered resources')
-        const nextResources = new Map<string, unknown>()
+        nextResources = new Map<string, unknown>()
         for (const { id, json } of data.resources) {
           const def = resourceDefs.get(id)
           if (!def) throw new SnapshotFormatError(`unknown resource "${id}"`)
           nextResources.set(id, def.schema.parse(JSON.parse(json)))
         }
-        const nextRngs = new Map<string, Rng>(data.rng.map((r) => [r.name, rngFromState(r.state)]))
+        nextRngs = new Map<string, Rng>(data.rng.map((r) => [r.name, rngFromState(r.state)]))
         if (nextRngs.size !== rngs.size || systems.some((s) => !nextRngs.has(s.name))) {
           throw new SnapshotFormatError('rng streams do not match the systems')
         }
@@ -440,18 +445,21 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         )
           throw new SnapshotFormatError('plugin state rows do not match the stateful plugins')
         // Every plugin validates before anything is committed, so one bad row leaves every plugin untouched.
-        const commits = states.map(({ state }, i) =>
+        commits = states.map(({ state }, i) =>
           state.prepareRestore((data.plugins[i] as { bytes: Uint8Array }).bytes),
         )
-        store.dispose()
-        store = next
-        for (const [id, v] of nextResources) resources.set(id, v)
-        for (const [name, r] of nextRngs) rngs.set(name, r)
-        for (const commit of commits) commit()
       } catch (err) {
-        if (store !== next) next.dispose()
-        throw err instanceof SnapshotFormatError ? err : new SnapshotFormatError(String(err))
+        throw err instanceof SnapshotFormatError ? err : new SnapshotFormatError(String(err), { cause: err })
       }
+      // Commit. Nothing below can fail on snapshot contents; everything it reads was validated above.
+      store.dispose()
+      store = new EntityStore(componentList)
+      for (const row of rows) store.spawnWithId(row.sid, row.parts)
+      store.nextId = data.nextId
+      store.takeDelta(false)
+      for (const [id, v] of nextResources) resources.set(id, v)
+      for (const [name, r] of nextRngs) rngs.set(name, r)
+      for (const commit of commits) commit()
       tick = data.tick
       fault = undefined
       fullResync = true

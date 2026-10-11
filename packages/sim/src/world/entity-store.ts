@@ -28,8 +28,26 @@ export interface RenderDelta {
  * Entities behind the facade: Koota stores the data; this class owns StableIds (monotonic, never reused),
  * iteration order (ascending StableId), field coercion and render dirty-tracking. Koota ids never escape.
  */
+/** More sims are alive than Koota allows worlds (16 per process). Dispose sims you no longer need. */
+export class SimCapacityError extends Error {
+  constructor(cause: unknown) {
+    super('too many sims are alive at once (Koota allows 16 worlds); dispose sims you no longer need', {
+      cause,
+    })
+    this.name = 'SimCapacityError'
+  }
+}
+
+function createKootaWorld(): World {
+  try {
+    return createWorld()
+  } catch (err) {
+    throw new SimCapacityError(err)
+  }
+}
+
 export class EntityStore {
-  private readonly world: World = createWorld()
+  private readonly world: World = createKootaWorld()
   private readonly registered: Map<string, ComponentDef>
   private readonly entities = new Map<number, Entity>()
   private readonly live: number[] = [] // ascending: StableIds are monotonic, so spawn appends
@@ -80,6 +98,18 @@ export class EntityStore {
     const e = this.entities.get(sid)
     if (!e) throw new Error(`entity ${sid} is not alive`)
     return e
+  }
+
+  /** Throws exactly what `spawnWithId(sid, parts)` would for bad parts, without touching the world. */
+  checkParts(parts: readonly SpawnPart[]): void {
+    const seen = new Set<string>()
+    for (const part of parts) {
+      const [def, values] = Array.isArray(part) ? part : [part as ComponentDef, {}]
+      this.check(def)
+      if (seen.has(def.id)) throw new Error(`duplicate component "${def.id}"`)
+      seen.add(def.id)
+      this.coerce(def, values, this.defaults(def))
+    }
   }
 
   /** Spawns with a fresh StableId. */

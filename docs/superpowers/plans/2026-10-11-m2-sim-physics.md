@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
 - **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
-- **Progress:** 4 / 13 tasks.
+- **Progress:** 5 / 13 tasks.
 - **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
@@ -48,8 +48,8 @@
 - [x] Implement; `pnpm check`.
 
 ### 5. Koota world limit (spec §10.3)
-- [ ] Failing tests: with 16 sims alive, `restore` succeeds; a 17th `createSim` rejects with `SimCapacityError`; a restore with a bad row still leaves the sim unchanged.
-- [ ] Implement (validate rows without Koota, free the old world before building the new one); `pnpm check`.
+- [x] Failing tests: with 16 sims alive, `restore` succeeds; a 17th `createSim` rejects with `SimCapacityError`; a restore with a bad row still leaves the sim unchanged.
+- [x] Implement (validate rows without Koota, free the old world before building the new one); `pnpm check`.
 
 ### 6. Schema hash covers schemas; restore re-encodes exactly (spec §10.4)
 - [ ] Failing tests: two plugins differing only in a resource's, command's or event's schema give different schema hashes; a stored resource with a field the current schema strips → `SnapshotFormatError`.
