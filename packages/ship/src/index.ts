@@ -1,0 +1,15 @@
+// @mcthaydt/automata-ship: Ruken packaging, publish and dev hosting for AF games (ship spec).
+export const SHIP_PACKAGE = '@mcthaydt/automata-ship'
+
+export { defineShipConfig, type ShipConfig } from './config/ship-config.ts'
+export { BUILD_ID_PATTERN, buildIdFor } from './deploy/build-id.ts'
+export { type DeployDevInput, deployDev } from './deploy/deploy-dev.ts'
+export * from './errors.ts'
+export { checkManifest } from './manifest/check-manifest.ts'
+export { rukenToml } from './manifest/ruken-toml.ts'
+export { portsFor } from './ports/ports-for.ts'
+export { checkVersion } from './prepare/check-version.ts'
+export { type PrepareInput, prepareBuild } from './prepare/prepare-build.ts'
+export { findRootAbsoluteReferences } from './prepare/root-absolute.ts'
+export { type PublishInput, publishToRuken, rukenCliPath } from './publish/publish-to-ruken.ts'
+export { type TestRemoteInput, testRemote } from './remote/test-remote.ts'

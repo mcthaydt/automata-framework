@@ -1,0 +1,107 @@
+name: game-ci
+
+# The reusable CI for a game built on AF (ship spec §3.7). A game's own .github/workflows/ci.yml is:
+#
+#   on: [push, pull_request]
+#   jobs:
+#     ci:
+#       uses: mcthaydt/automata-framework/.github/workflows/game-ci.yml@main
+#       with:
+#         sim-roots: src/sim
+#
+# It installs and checks the game, runs AF's determinism checker on the game's sim-plugin sources (M1 shared
+# contracts §2), builds, and prepares the build for Ruken with `automata-ship prepare` (ruken.toml checked by
+# Ruken's parser). Until AF's packages are published (M2.4), the AF tools run from a checkout of AF at af-ref.
+#
+# Status (2026-10-11): runs for AF's own examples. A game in another repository is blocked until M2.4 publishes
+# AF's packages, because its package.json cannot depend on unpublished @mcthaydt/automata-* packages. When that
+# lands it also needs, since AF is private: AF's Settings → Actions → General → Access set to "Accessible from
+# repositories owned by mcthaydt", and the secret AF_READ_TOKEN (Contents read on automata-framework).
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: The runner label for the job. GitHub's own by default; AF passes its self-hosted af-linux.
+        type: string
+        default: ubuntu-latest
+      working-directory:
+        description: The game's folder in its repository.
+        type: string
+        default: "."
+      sim-roots:
+        description: Space-separated folders of the game's sim plugins, checked by check-boundaries. Empty skips the check.
+        type: string
+        default: ""
+      af-ref:
+        description: The automata-framework ref whose tools to use.
+        type: string
+        default: main
+      build-command:
+        description: How the game builds its dist/.
+        type: string
+        default: pnpm build
+
+    secrets:
+      AF_READ_TOKEN:
+        description: A fine-grained token with Contents read on mcthaydt/automata-framework (AF is private). Not needed inside AF.
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  game:
+    name: check, determinism, build, prepare
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 15
+    env:
+      WORKDIR: ${{ inputs.working-directory }}
+      SIM_ROOTS: ${{ inputs.sim-roots }}
+      BUILD_COMMAND: ${{ inputs.build-command }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # A game in its own repository gets AF's tools from an AF checkout; AF's own examples use this one.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.repository != 'mcthaydt/automata-framework'
+        with:
+          repository: mcthaydt/automata-framework
+          ref: ${{ inputs.af-ref }}
+          path: .af
+          # AF is a private repository: a game's own token cannot read it, so the game passes AF_READ_TOKEN.
+          token: ${{ secrets.AF_READ_TOKEN || github.token }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ${{ github.repository == 'mcthaydt/automata-framework' && '.nvmrc' || '.af/.nvmrc' }}
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - name: Install
+        run: |
+          pnpm install --frozen-lockfile
+          if [[ -d .af ]]; then pnpm --dir .af install --frozen-lockfile; echo "AF=$PWD/.af" >> "$GITHUB_ENV"; else echo "AF=$PWD" >> "$GITHUB_ENV"; fi
+      - name: Check
+        run: pnpm --dir "$WORKDIR" run --if-present check
+      - name: Determinism checker on the sim sources
+        if: inputs.sim-roots != ''
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          # SIM_ROOTS is split on whitespace on purpose: one argument per folder.
+          # shellcheck disable=SC2086
+          node "$AF/tooling/check-boundaries/src/cli.ts" $SIM_ROOTS
+      - name: Build
+        working-directory: ${{ inputs.working-directory }}
+        run: $BUILD_COMMAND
+      - name: Prepare for Ruken
+        working-directory: ${{ inputs.working-directory }}
+        run: node "$AF/packages/ship/src/cli.ts" prepare
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: game-dist
+          path: ${{ inputs.working-directory }}/dist/
+          retention-days: 7

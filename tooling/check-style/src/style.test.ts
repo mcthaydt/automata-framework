@@ -5,6 +5,12 @@ const sys =
   "import { defineSystem } from 'x'\nexport const moveSystem = defineSystem({ name: 'move', phase: 'gameplay', run() {} })\n"
 const comp =
   "import { defineComponent } from 'x'\nexport const Health = defineComponent('health', { hp: 'i32' })\n"
+const schema =
+  "import { defineContentSchema } from 'x'\nexport const Rooms = defineContentSchema('rooms', {})\n"
+const gen =
+  "import { defineContentGenerator } from 'x'\nexport const Palette = defineContentGenerator('palette', {})\n"
+const ext =
+  "import { defineExtension } from 'x'\nexport const physics = defineExtension({ name: 'physics' })\n"
 const plain = 'export function clamp(x: number): number {\n  return x\n}\n'
 
 test.each([
@@ -16,6 +22,9 @@ test.each([
   // Svelte 5 rune modules must end in .svelte.ts; ".svelte" is Svelte's marker, not a role.
   ['room-store.svelte.ts', plain],
   ['save.manager.svelte.ts', 'export class SaveManager {}\n'],
+  ['rooms.content.ts', schema],
+  ['palette.generator.ts', gen],
+  ['physics.extension.ts', ext],
 ])('%s is fine', (name, code) => {
   expect(checkFile(`/p/src/${name}`, code)).toEqual([])
 })
@@ -40,6 +49,10 @@ test.each([
   ['RoomStore.svelte.ts', plain, 'file-name', 'kebab-case'],
   ['weird.foo.svelte.ts', plain, 'file-name', 'unknown role "foo"'],
   ['movement.svelte.ts', sys, 'role-suffix', 'must be named *.system.ts'],
+  ['rooms.ts', schema, 'role-suffix', 'must be named *.content.ts'],
+  ['palette.ts', gen, 'role-suffix', 'must be named *.generator.ts'],
+  ['physics.ts', ext, 'role-suffix', 'must be named *.extension.ts'],
+  ['empty.content.ts', plain, 'role-missing', 'must export at least one defineContentSchema result'],
 ] as const)('%s -> %s', (name, code, rule, message) => {
   const findings = checkFile(`/p/src/${name}`, code)
   expect(findings.map((f) => f.rule)).toEqual([rule])

@@ -20,6 +20,8 @@ Revised 2026-10-11 (audit round 3, coordinator decisions): follow the SDK's own 
 
 `Hosting` is an Effect service (`Context.Tag`). **One layer, `HostingLive`, wraps `Ruken.init`** for every case. The SDK already decides between a hosted session (framed by Ruken, `welcome` received) and its standalone session (top-level page, or no valid `welcome` within the SDK's timeout, `packages/sdk/src/handshake.ts`), and its standalone session already provides local saves and unsupported services (`standalone.ts`). AF does not write a second web adapter. `HostingTest` is `HostingLive` with an `SdkEnv` wired to `@ruken/sdk-host`'s fake host. A later desktop adapter (`host-tauri`, M7) implements the same service itself.
 
+`HostingLive` is a `Layer<Hosting, HostError>`: `Ruken.init` can still throw (for example `INVALID_PAYLOAD` for a bad `gameId` or `wants`), and that failure surfaces as `HostError{ operation: 'init' }` so the runtime maps it to a boot state (§3). The layer is scoped: when the runtime scope closes, the session is disposed and every later `Hosting` operation fails with `HostError{ code: 'CANCELLED', retryable: false }`.
+
 ```ts
 import type { RukenError } from '@ruken/sdk'
 // The SDK at b30d31b does not export its ErrorCode alias, so AF names it from the error class.
@@ -130,7 +132,7 @@ declare function defineExtension<const N extends string>(def: ExtensionDef<N>): 
 
 Rules:
 
-- `defineExtension` results live in a `*.extension.ts` file (the `style` rule gains this suffix in M1.5).
+- `defineExtension` results live in a `*.extension.ts` file (enforced by `pnpm style`, as are `defineContentSchema` in `*.content.ts` and `defineContentGenerator` in `*.generator.ts`).
 - Extensions are resolved by `requires` and then ordered by name, like sim plugins. A cycle or a missing requirement fails the build with both names.
 - `RukenManifestContribution` is a partial of `@ruken/manifest`'s own input type: `wants` capabilities and the `[loading] preload` list. Any field Ruken's schema lacks is a type error.
 - `UiSlotName` is a closed union the ui lane defines in its spec (for example `'debug.panels'`, `'settings.sections'`). An extension cannot add a slot.
@@ -145,7 +147,7 @@ Every boot step in master spec §7 fails with a typed error. The runtime's boot 
 
 | Step | Error tag | Fields | UI state | Player action |
 |---|---|---|---|---|
-| 2 Host | none: an in-frame handshake failure is a reported fallback to standalone (§1.2), not a boot error | | Optional dev overlay | — |
+| 2 Host | `HostError` (op `init`) when `Ruken.init` throws; an in-frame handshake failure is not an error but a reported fallback to standalone (§1.2) | `code`, `retryable` | "Couldn't start the game" | Try again if retryable; otherwise none (a build or config fault) |
 | 3 Storage | `HostError` (op `saves.*`) | `code`, `retryable` | "Couldn't load your progress" | Try again if retryable. Not retryable: "Back to Ruken" (`exit`) when `kind` is `ruken`; Continue without loading when `kind` is `standalone` |
 | 4 Content | `ContentHashMismatch` | `expected`, `actual` | "This build is damaged" | Try again (reload) |
 | 5 Assets | `AssetLoadFailed` | `url`, `status` | "Couldn't download the game" | Try again |
