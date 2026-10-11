@@ -26,10 +26,14 @@ export interface ProcessRunnerService {
   run(command: string, args: readonly string[], options?: RunOptions): Effect.Effect<RunResult, ProcessError>
 }
 
-export class ProcessRunner extends Context.Tag('@mcthaydt/automata-node/ProcessRunner')<
+/** The service's tag; see `Files` for why it is not a `Context.Tag` class. */
+export interface ProcessRunner {
+  readonly _ProcessRunner: unique symbol
+}
+export const ProcessRunner: Context.Tag<ProcessRunner, ProcessRunnerService> = Context.GenericTag<
   ProcessRunner,
   ProcessRunnerService
->() {}
+>('@mcthaydt/automata-node/ProcessRunner')
 
 function runProcess(
   command: string,

@@ -1,14 +1,20 @@
+import type { TaggedErrorClass } from '@mcthaydt/automata-node'
 import type { ManifestError } from '@ruken/manifest'
 import { Data } from 'effect'
 
 export { FileError, ProcessError } from '@mcthaydt/automata-node'
 
 // Every way a ship step can fail, as tagged errors (ADR 0003). The CLI prints `message`, one line per problem.
+// Each extends a constant typed with `TaggedErrorClass` so the package builds with isolatedDeclarations.
 
+const ManifestInvalidBase: TaggedErrorClass<
+  'ManifestInvalid',
+  {
+    readonly problems: readonly ManifestError[]
+  }
+> = Data.TaggedError('ManifestInvalid')
 /** Ruken's parser refused the generated `ruken.toml`. `problems` are Ruken's own issues, unchanged. */
-export class ManifestInvalid extends Data.TaggedError('ManifestInvalid')<{
-  readonly problems: readonly ManifestError[]
-}> {
+export class ManifestInvalid extends ManifestInvalidBase {
   override get message(): string {
     return this.problems
       .map((problem) => `ruken.toml ${problem.path || '(file)'}: ${problem.message}`)
@@ -16,33 +22,47 @@ export class ManifestInvalid extends Data.TaggedError('ManifestInvalid')<{
   }
 }
 
+const VersionMismatchBase: TaggedErrorClass<
+  'VersionMismatch',
+  {
+    readonly version: string
+    readonly tag: string
+    readonly message: string
+  }
+> = Data.TaggedError('VersionMismatch')
 /** A release tag that is not `v<version>`. */
-export class VersionMismatch extends Data.TaggedError('VersionMismatch')<{
-  readonly version: string
-  readonly tag: string
-  readonly message: string
-}> {}
+export class VersionMismatch extends VersionMismatchBase {}
 
+const RootAbsoluteReferenceBase: TaggedErrorClass<
+  'RootAbsoluteReference',
+  {
+    readonly references: readonly { readonly file: string; readonly reference: string }[]
+  }
+> = Data.TaggedError('RootAbsoluteReference')
 /** The build names its own files from the origin's root, which 404s under `/b/<buildId>/`. */
-export class RootAbsoluteReference extends Data.TaggedError('RootAbsoluteReference')<{
-  readonly references: readonly { readonly file: string; readonly reference: string }[]
-}> {
+export class RootAbsoluteReference extends RootAbsoluteReferenceBase {
   override get message(): string {
     const listed = this.references.map((found) => `${found.file}: ${found.reference}`).join('\n')
     return `the build names its own files by root-absolute paths, which 404 inside Ruken (/b/<buildId>/), or has a script that could not be checked:\n${listed}`
   }
 }
 
+const EntryMissingBase: TaggedErrorClass<
+  'EntryMissing',
+  {
+    readonly entry: string
+    readonly distDir: string
+  }
+> = Data.TaggedError('EntryMissing')
 /** `[game] entry` names a file the build does not have. */
-export class EntryMissing extends Data.TaggedError('EntryMissing')<{
-  readonly entry: string
-  readonly distDir: string
-}> {
+export class EntryMissing extends EntryMissingBase {
   override get message(): string {
     return `the entry page ${this.entry} is not in ${this.distDir}`
   }
 }
 
+const PublishRejectedBase: TaggedErrorClass<'PublishRejected', PublishFailure> =
+  Data.TaggedError('PublishRejected')
 /** What `ruken publish` printed on stderr, kept so the CLI can show Ruken's own words. */
 interface PublishFailure {
   readonly exitCode: number
@@ -53,46 +73,55 @@ const publishMessage = (what: string, failure: PublishFailure): string =>
   `ruken publish ${what} (exit ${failure.exitCode})${failure.output === '' ? '' : `:\n${failure.output.trim()}`}`
 
 /** Exit 1: Ruken's checks rejected the build. */
-export class PublishRejected extends Data.TaggedError('PublishRejected')<PublishFailure> {
+export class PublishRejected extends PublishRejectedBase {
   override get message(): string {
     return publishMessage('rejected the build', this)
   }
 }
 
+const PublishUsageBase: TaggedErrorClass<'PublishUsage', PublishFailure> = Data.TaggedError('PublishUsage')
 /** Exit 2: the command line was wrong. */
-export class PublishUsage extends Data.TaggedError('PublishUsage')<PublishFailure> {
+export class PublishUsage extends PublishUsageBase {
   override get message(): string {
     return publishMessage('did not understand the command', this)
   }
 }
 
+const PublishAuthBase: TaggedErrorClass<'PublishAuth', PublishFailure> = Data.TaggedError('PublishAuth')
 /** Exit 3: the token was missing, wrong or lacks the rights. */
-export class PublishAuth extends Data.TaggedError('PublishAuth')<PublishFailure> {
+export class PublishAuth extends PublishAuthBase {
   override get message(): string {
     return publishMessage('was refused the token', this)
   }
 }
 
+const PublishTimeoutBase: TaggedErrorClass<'PublishTimeout', PublishFailure> =
+  Data.TaggedError('PublishTimeout')
 /** Exit 4: Ruken's checks took longer than the CLI waits. */
-export class PublishTimeout extends Data.TaggedError('PublishTimeout')<PublishFailure> {
+export class PublishTimeout extends PublishTimeoutBase {
   override get message(): string {
     return publishMessage('gave up waiting for Ruken', this)
   }
 }
 
+const PublishFailedBase: TaggedErrorClass<'PublishFailed', PublishFailure> = Data.TaggedError('PublishFailed')
 /** Any other exit code. */
-export class PublishFailed extends Data.TaggedError('PublishFailed')<PublishFailure> {
+export class PublishFailed extends PublishFailedBase {
   override get message(): string {
     return publishMessage('failed', this)
   }
 }
 
+const DeployFailedBase: TaggedErrorClass<
+  'DeployFailed',
+  {
+    readonly step: 'tar' | 'ssh'
+    readonly exitCode: number
+    readonly output: string
+  }
+> = Data.TaggedError('DeployFailed')
 /** The dev host's deploy step (tar or ssh) failed; `output` is what it printed. */
-export class DeployFailed extends Data.TaggedError('DeployFailed')<{
-  readonly step: 'tar' | 'ssh'
-  readonly exitCode: number
-  readonly output: string
-}> {
+export class DeployFailed extends DeployFailedBase {
   override get message(): string {
     return `deploy-dev: ${this.step} failed (exit ${this.exitCode})${this.output === '' ? '' : `:\n${this.output.trim()}`}`
   }
@@ -111,7 +140,11 @@ export type TestRemoteReason =
   | 'gh-unavailable'
   | 'red'
 
-export class TestRemoteFailed extends Data.TaggedError('TestRemoteFailed')<{
-  readonly reason: TestRemoteReason
-  readonly message: string
-}> {}
+const TestRemoteFailedBase: TaggedErrorClass<
+  'TestRemoteFailed',
+  {
+    readonly reason: TestRemoteReason
+    readonly message: string
+  }
+> = Data.TaggedError('TestRemoteFailed')
+export class TestRemoteFailed extends TestRemoteFailedBase {}

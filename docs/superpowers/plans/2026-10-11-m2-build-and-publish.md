@@ -36,8 +36,8 @@
 Each task: write the failing test or check, run it and see it fail for the stated reason, make the least change, re-run, `pnpm check`, commit.
 
 ### Task 0: isolated declarations in `node` and `ship`
-- [ ] `errors.test.ts` in each package: every error keeps its `_tag` and fields, `Effect.catchTag` catches it, and it is an `instanceof` its class. Then set `isolatedDeclarations: true` in both `tsconfig.json`s. Expected failure: `tsc -p packages/node` and `tsc -p packages/ship` report TS9021-family errors on the `Data.TaggedError(...)` bases (`node/src/errors.ts:4,14`, `ship/src/errors.ts:9`) and any other inferred export.
-- [ ] Convert to the `TaggedErrorClass` pattern of `content/src/compile/errors.ts:11-33` and `host/src/errors.ts:15-40`; annotate any other export the flag reports; delete the two opt-out comments. `pnpm --filter @mcthaydt/automata-node test`, `pnpm --filter @mcthaydt/automata-ship test` and `pnpm typecheck` pass.
+- [x] `errors.test.ts` in each package: every error keeps its `_tag` and fields, `Effect.catchTag` catches it, and it is an `instanceof` its class. Then set `isolatedDeclarations: true` in both `tsconfig.json`s. Expected failure: `tsc -p packages/node` and `tsc -p packages/ship` report TS9021-family errors on the `Data.TaggedError(...)` bases (`node/src/errors.ts:4,14`, `ship/src/errors.ts:9`) and any other inferred export.
+- [x] Convert to the `TaggedErrorClass` pattern of `content/src/compile/errors.ts:11-33` and `host/src/errors.ts:15-40`; annotate any other export the flag reports; delete the two opt-out comments. `pnpm --filter @mcthaydt/automata-node test`, `pnpm --filter @mcthaydt/automata-ship test` and `pnpm typecheck` pass.
 
 ### Task 1: prove tsdown on `sim`
 - [ ] Add `tsdown` 0.23.0 (root dev dependency, row in `docs/versions.md`); `versions.test.ts` fails first on the missing row.
