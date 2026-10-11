@@ -53,7 +53,7 @@ The sim never sees `Hosting` (law 1, ADR 0003).
 The `Hosting` shape, `HostError` and `HostHandshakeFailed` are exactly the shared contracts' §1.1 and §1.2. Ruken's types come from `@ruken/sdk` and are never copied. This lane adds:
 
 - **`HostingOptions`:** `gameId`, `wants`, `pauseBehavior`, optional `disclosedEvents`, and optional `testHostOrigins` (for test builds only, passed to `Ruken.init` unchanged). In M1 the game passes these by hand; from M1.5 content supplies them.
-- **`HostingLive(options, seams?)`** is a `Layer<Hosting>`. `makeHosting` is the same thing as a scoped Effect. The only seam is `env: SdkEnv`, the SDK's own test hook. `Ruken.init` rejects only for invalid options (a build bug), so that rejection is a defect, not a typed error.
+- **`HostingLive(options, seams?)`** is a `Layer<Hosting, HostError>`. `makeHosting` is the same thing as a scoped Effect. The only seam is `env: SdkEnv`, the SDK's own test hook. `Ruken.init` rejects only for invalid options (a build bug); that rejection becomes `HostError{operation:'init'}`, so boot can show an error state instead of crashing.
 - **`toHostError(operation, cause)`:**
   - a `RukenError` keeps its code and retryable flag;
   - the `QuotaExceededError` that Ruken's save map throws becomes `QUOTA_EXCEEDED`, not retryable (Ruken's flag);
@@ -72,7 +72,9 @@ The `Hosting` shape, `HostError` and `HostHandshakeFailed` are exactly the share
 4. Once `session.ready` resolves, the menu dispatcher starts asking handlers. Until then it answers `false` without asking (§5).
 5. The observed state (lifecycle, input, display, audio, entitlements and saves status) wraps the SDK's current values and their `on('change')` events.
 6. `onExiting(handler)` registers an SDK `exiting` listener for its scope. The listener runs the handler on the caller's runtime, so it uses the same `Clock`, and cuts it off at `HOST_EXIT_CAP`. A failure is logged, never thrown at the host.
-7. Closing the scope disposes the session and ends the streams.
+7. `makeHosting` registers one exiting handler of its own: it flushes saves, capped at `HOST_EXIT_CAP`, so saves still in flight reach the host before it closes the game (FloorFifty `ruken/exit.ts`).
+8. The handshake can be interrupted, so boot may stop waiting on a frame that isn't Ruken's. A session that arrives after the interrupt is disposed at once.
+9. When the scope closes, three things happen in order. Hosting marks itself closed, after which saves, `setFullscreen` and `exit` fail with `HostError{code:'CANCELLED'}` instead of being dropped. Every observed stream ends. Then the session is disposed.
 
 ## 5. Failure policy
 
@@ -88,7 +90,10 @@ AF relays every SDK error as `HostError` and adds no gate, fallback or no-op of 
 | Bad save key | `HostError{code:'INVALID_PAYLOAD'}` |
 | `saves` not granted | SDK behavior, pinned: writes stay in memory, nothing is sent, `flush` fails with `UNSUPPORTED` (§7) |
 | No `localStorage` on a standalone page | SDK behavior, pinned: saves last the visit |
-| Undisclosed, unconsented or malformed analytics event | Dropped, never thrown |
+| Undisclosed or malformed analytics event | Dropped with a logged warning, never thrown |
+| Unconsented analytics event | Dropped by the SDK |
+| Call after Hosting shut down | `HostError{code:'CANCELLED'}` |
+| Invalid options passed to `Ruken.init` | `HostError{operation:'init'}` from the layer |
 | Unbalanced rounds | A second start and an orphan end are dropped |
 | An exiting handler that never ends | Cut off at 1 s on Effect time |
 
@@ -133,6 +138,7 @@ All tests run in Vitest on Node, against the real SDK and the fake host over in-
 | `saves.test.ts` | Snapshot read, set, remove, flush; quota and bad key relayed; syncing, saved, offline-queued, conflict, recovered; no grant (pinned) |
 | `requests.test.ts` | Menu (refused until a handler says yes, latest handler wins, removed with its scope, guarded before ready); exiting (runs before `exitReady`, cut off at 1 s on `TestClock`, removed with its scope); `exit` defaults to `player`; `setFullscreen` returns `support`; rounds; analytics (consent, none without, undisclosed dropped) |
 | `test-host-origin.test.ts` | A listed test host is accepted; an unlisted one, or a different origin, falls back |
+| `shutdown.test.ts` | Streams end on shutdown; calls after shutdown fail with `CANCELLED`; the built-in exit flush runs, and is cut off at 1 s; the dropped-`track` warning; an interrupted handshake disposes a late session; invalid options give a typed error |
 | `standalone.test.ts` | Ready at once, neutral state, nothing sent; saves under `ruken:<gameId>:`; exit, fullscreen and rounds relayed; no storage (pinned) |
 | `vendor.test.ts` | The vendored tarballs install and complete a handshake |
 

@@ -1,6 +1,6 @@
 import { type InitOptions, type InputModePayload, Ruken, type RukenSession, type SdkEnv } from '@ruken/sdk'
-import { Duration, Effect, Layer, Option, Runtime, type Scope } from 'effect'
-import { HostHandshakeFailed, toHostError } from './errors'
+import { Deferred, Duration, Effect, Layer, Option, Runtime, type Scope } from 'effect'
+import { HostError, HostHandshakeFailed, toHostError } from './errors'
 import { Hosting, type HostingOptions } from './hosting'
 import { makeMenuHandlers } from './menu'
 import { guardRounds } from './rounds'
@@ -29,18 +29,49 @@ function isFramed(env: SdkEnv | undefined): boolean {
 }
 
 /**
+ * `Ruken.init` as an interruptible Effect.
+ *
+ * Inside a frame that is not Ruken's, the SDK waits up to 10 s for a welcome.
+ * Boot may give up sooner by interrupting; the SDK's promise cannot be
+ * cancelled, so a session that arrives after the interrupt is disposed at once
+ * instead of leaking. `Ruken.init` rejects only for invalid options (for
+ * example a bad `testHostOrigins` entry); that becomes a `HostError` for
+ * `init`, so boot can show an error state instead of crashing.
+ */
+function initSession(
+  initOptions: InitOptions,
+  env: SdkEnv | undefined,
+): Effect.Effect<RukenSession, HostError> {
+  return Effect.async<RukenSession, HostError>((resume) => {
+    let interrupted = false
+    Ruken.init(initOptions, env).then(
+      (session) => {
+        if (interrupted) session.dispose()
+        else resume(Effect.succeed(session))
+      },
+      (cause: unknown) => {
+        if (!interrupted) resume(Effect.fail(toHostError('init', cause)))
+      },
+    )
+    return Effect.sync(() => {
+      interrupted = true
+    })
+  })
+}
+
+/**
  * Builds `Hosting` over `Ruken.init`. The SDK decides between a hosted session
  * and its standalone one (shared contracts §1.1), enforces grants and limits,
  * and owns the handshake's timing; AF relays what it reports.
  *
- * `Ruken.init` itself rejects only for invalid options (for example a bad
- * `testHostOrigins` entry), which is a bug in the game's build, so that is a
- * defect rather than a typed error.
+ * When the scope closes, in this order: Hosting marks itself closed (later
+ * calls fail with `HostError{code:'CANCELLED'}`), every observed stream ends,
+ * and then the session is disposed.
  */
 export function makeHosting(
   options: HostingOptions,
   seams: HostingSeams = {},
-): Effect.Effect<Hosting, never, Scope.Scope> {
+): Effect.Effect<Hosting, HostError, Scope.Scope> {
   return Effect.gen(function* () {
     const menu = makeMenuHandlers()
     const initOptions: InitOptions = {
@@ -50,9 +81,21 @@ export function makeHosting(
       testHostOrigins: options.testHostOrigins,
       onMenuRequest: () => menu.answer(),
     }
-    const session = yield* Effect.acquireRelease(
-      Effect.promise(() => Ruken.init(initOptions, seams.env)),
-      (opened) => Effect.sync(() => opened.dispose()),
+    // The handshake itself may be interrupted; once a session exists, its disposal
+    // is registered before anything else can interrupt.
+    const session = yield* Effect.uninterruptibleMask((restore) =>
+      restore(initSession(initOptions, seams.env)).pipe(
+        Effect.tap((opened) => Effect.addFinalizer(() => Effect.sync(() => opened.dispose()))),
+      ),
+    )
+
+    // Registered after the session's disposal, so it runs before it (finalizers run in reverse).
+    const shutdown = yield* Deferred.make<void>()
+    let open = true
+    yield* Effect.addFinalizer(() =>
+      Effect.sync(() => {
+        open = false
+      }).pipe(Effect.zipRight(Deferred.succeed(shutdown, undefined))),
     )
 
     // Handlers answer the host's menu only once the session is ready (see menu.ts).
@@ -70,105 +113,159 @@ export function makeHosting(
       )
     }
 
-    return hostingOver(session, options, fellBack, menu.register)
+    const hosting = hostingOver(session, options, {
+      fellBack,
+      registerMenuHandler: menu.register,
+      isOpen: () => open,
+      shutdown: Deferred.await(shutdown),
+    })
+
+    // FloorFifty `ruken/exit.ts`: when the host closes the game, every save still
+    // on its way is handed to the host first, within HOST_EXIT_CAP. A flush the
+    // host refuses (no `saves` grant) or that times out is simply over.
+    yield* hosting.onExiting(Effect.ignore(hosting.saves.flush))
+
+    return hosting
   })
 }
 
 /** The single `Hosting` layer for games (shared contracts §1.1). */
-export function HostingLive(options: HostingOptions, seams: HostingSeams = {}): Layer.Layer<Hosting> {
+export function HostingLive(
+  options: HostingOptions,
+  seams: HostingSeams = {},
+): Layer.Layer<Hosting, HostError> {
   return Layer.scoped(Hosting, makeHosting(options, seams))
 }
 
-function hostingOver(
-  session: RukenSession,
-  options: HostingOptions,
-  fellBack: Option.Option<HostHandshakeFailed>,
-  registerMenuHandler: Hosting['onMenuRequest'],
-): Hosting {
+interface HostingState {
+  readonly fellBack: Option.Option<HostHandshakeFailed>
+  readonly registerMenuHandler: Hosting['onMenuRequest']
+  readonly isOpen: () => boolean
+  /** Completes when Hosting shuts down; every observed stream ends then. */
+  readonly shutdown: Effect.Effect<void>
+}
+
+function hostingOver(session: RukenSession, options: HostingOptions, state: HostingState): Hosting {
   const storage = session.saves.storage
   const rounds = guardRounds({
     start: () => session.round.start(),
     end: (outcome) => session.round.end(outcome),
   })
 
+  /** Runs `request` while Hosting is open; afterwards fails it, so nothing is silently dropped. */
+  const whileOpen = <A>(
+    operation: string,
+    request: Effect.Effect<A, HostError>,
+  ): Effect.Effect<A, HostError> =>
+    Effect.suspend(() =>
+      state.isOpen()
+        ? request
+        : Effect.fail(new HostError({ code: 'CANCELLED', retryable: false, operation })),
+    )
+
+  const observe = <A>(current: () => A, listen: (onChange: (value: A) => void) => () => void) =>
+    fromListener(current, listen, state.shutdown)
+
   return {
     kind: session.hosted ? 'ruken' : 'standalone',
-    handshake: { fellBack },
+    handshake: { fellBack: state.fellBack },
     player: session.player,
     locale: session.locale,
     granted: session.granted,
     ready: Effect.tryPromise({ try: () => session.ready, catch: (cause) => toHostError('ready', cause) }),
 
-    lifecycle: fromListener(
+    lifecycle: observe(
       () => ({ state: session.lifecycle.state, reasons: [...session.lifecycle.reasons] }),
       (onChange) => session.lifecycle.on('change', onChange),
     ),
-    input: fromListener<InputModePayload>(
+    input: observe<InputModePayload>(
       () => {
         const gamepad = session.input.gamepad
         return gamepad === undefined ? { mode: session.input.mode } : { mode: session.input.mode, gamepad }
       },
       (onChange) => session.input.on('change', onChange),
     ),
-    display: fromListener(
+    display: observe(
       () => session.display.metrics,
       (onChange) => session.display.on('change', onChange),
     ),
-    audio: fromListener(
+    audio: observe(
       () => ({ focus: session.audio.focus, master: session.audio.master, gain: session.audio.gain }),
       (onChange) => session.audio.on('change', onChange),
     ),
-    entitlements: fromListener(
+    entitlements: observe(
       () => session.entitlements,
       (onChange) => session.on('entitlements', onChange),
     ),
-    savesStatus: fromListener(
+    savesStatus: observe(
       () => session.saves.status,
       (onChange) => session.saves.on('status', onChange),
     ),
 
     saves: {
       get: (key) =>
-        Effect.try({ try: () => storage.getItem(key), catch: (cause) => toHostError('saves.get', cause) }),
+        whileOpen(
+          'saves.get',
+          Effect.try({ try: () => storage.getItem(key), catch: (cause) => toHostError('saves.get', cause) }),
+        ),
       set: (key, value) =>
-        Effect.try({
-          try: () => storage.setItem(key, value),
-          catch: (cause) => toHostError('saves.set', cause),
-        }),
+        whileOpen(
+          'saves.set',
+          Effect.try({
+            try: () => storage.setItem(key, value),
+            catch: (cause) => toHostError('saves.set', cause),
+          }),
+        ),
       remove: (key) =>
-        Effect.try({
-          try: () => storage.removeItem(key),
-          catch: (cause) => toHostError('saves.remove', cause),
+        whileOpen(
+          'saves.remove',
+          Effect.try({
+            try: () => storage.removeItem(key),
+            catch: (cause) => toHostError('saves.remove', cause),
+          }),
+        ),
+      flush: whileOpen(
+        'saves.flush',
+        Effect.tryPromise({
+          try: () => session.saves.flush(),
+          catch: (cause) => toHostError('saves.flush', cause),
         }),
-      flush: Effect.tryPromise({
-        try: () => session.saves.flush(),
-        catch: (cause) => toHostError('saves.flush', cause),
-      }),
+      ),
     },
     setFullscreen: (on) =>
-      Effect.tryPromise({
-        try: () => session.display.setFullscreen(on),
-        catch: (cause) => toHostError('display.fullscreen', cause),
-      }),
+      whileOpen(
+        'display.fullscreen',
+        Effect.tryPromise({
+          try: () => session.display.setFullscreen(on),
+          catch: (cause) => toHostError('display.fullscreen', cause),
+        }),
+      ),
     round: {
       start: Effect.sync(() => rounds.start()),
       end: (outcome) => Effect.sync(() => rounds.end(outcome)),
     },
     track: (event, props) =>
-      Effect.sync(() => {
-        if (options.disclosedEvents !== undefined && !options.disclosedEvents.includes(event)) return
+      Effect.suspend(() => {
+        if (options.disclosedEvents !== undefined && !options.disclosedEvents.includes(event)) {
+          return Effect.logWarning(`track("${event}") dropped: not in the game's disclosed analytics events`)
+        }
         try {
           session.analytics.track(event, props)
-        } catch {
+          return Effect.void
+        } catch (cause) {
           // The SDK refuses a malformed event by throwing; analytics never break the game.
+          return Effect.logWarning(`track("${event}") dropped: the Ruken SDK refused it`, cause)
         }
       }),
     exit: (reason = 'player') =>
-      Effect.tryPromise({
-        try: () => session.exit({ reason }),
-        catch: (cause) => toHostError('session.exit', cause),
-      }),
-    onMenuRequest: registerMenuHandler,
+      whileOpen(
+        'session.exit',
+        Effect.tryPromise({
+          try: () => session.exit({ reason }),
+          catch: (cause) => toHostError('session.exit', cause),
+        }),
+      ),
+    onMenuRequest: state.registerMenuHandler,
     onExiting: (handler) =>
       Effect.gen(function* () {
         // The SDK calls exiting listeners as plain promises; run the handler on the

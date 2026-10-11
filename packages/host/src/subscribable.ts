@@ -8,11 +8,12 @@ import { Effect, Stream, Subscribable } from 'effect'
  * `SubscriptionRef.changes`. The listener is registered before the current
  * value is read, so a change that lands between the two is never lost (at
  * worst a subscriber sees the same value twice). The listener is removed when
- * the stream ends.
+ * the stream ends, and the stream ends when `until` completes (Hosting shutting down).
  */
 export function fromListener<A>(
   current: () => A,
   listen: (onChange: (value: A) => void) => () => void,
+  until: Effect.Effect<void>,
 ): Subscribable.Subscribable<A> {
   return Subscribable.make({
     get: Effect.sync(current),
@@ -22,11 +23,6 @@ export function fromListener<A>(
       })
       void emit.single(current())
       return Effect.sync(stop)
-    }),
+    }).pipe(Stream.interruptWhen(until)),
   })
-}
-
-/** A value that never changes, for what a standalone page cannot observe. */
-export function constant<A>(value: A): Subscribable.Subscribable<A> {
-  return Subscribable.make({ get: Effect.succeed(value), changes: Stream.make(value) })
 }

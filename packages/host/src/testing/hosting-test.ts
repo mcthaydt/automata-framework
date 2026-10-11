@@ -1,6 +1,7 @@
 import type { SdkEnv } from '@ruken/sdk'
 import { createFakeHost, type FakeHost, type FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Context, Effect, Layer } from 'effect'
+import type { HostError } from '../errors'
 import { Hosting, type HostingOptions } from '../hosting'
 import { makeHosting } from '../hosting-live'
 import { realClock } from './clocks'
@@ -34,7 +35,9 @@ export const TEST_GAME_ORIGIN = 'http://localhost:4400'
  * with the real SDK in between (shared contracts §1.1). Provides `Hosting` and
  * `FakeHostHandle`; both are disposed when the scope closes.
  */
-export function HostingTest(options: HostingTestOptions = {}): Layer.Layer<Hosting | FakeHostHandle> {
+export function HostingTest(
+  options: HostingTestOptions = {},
+): Layer.Layer<Hosting | FakeHostHandle, HostError> {
   return Layer.scopedContext(
     Effect.gen(function* () {
       const gameOptions: HostingOptions = {
