@@ -43,6 +43,8 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 - Ruken's F1 freeze is planned for 2026-10-16; the `contracts-f1` tag did not exist on 2026-10-11. Re-vendor and re-run contract tests after it.
 - Ruken has no `[store]` manifest section yet; the `store` extension waits for it.
 - `@pixi/3d` is a 0.1.0 beta whose terms (per The Last Light's README) allow no public deployment. D-1 is provisional: `render-pixi3d` stays unpublished and out of public builds. D-1 to D-6 run on their defaults (master spec §12) until the Owner overrides them.
+- `@mcthaydt/automata-host` (and `testing`) cannot be published while they depend on a local Ruken tarball; D-8 (default: bundle the vendored Ruken code into their `dist/`) must be settled before M2.4.
+- Spike S8 (Effect's phone cost) has not run yet although `host` is now built on Effect; the ship lane runs it in M1.1, before the runtime lane starts.
 - Ruken's TEST environment is not provisioned; M1 publishes to Ruken's local stack only.
 - GitHub Packages tokens and hosting accounts are not verified.
 
