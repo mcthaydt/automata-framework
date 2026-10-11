@@ -12,7 +12,7 @@
 
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
-import { runnerImport } from 'vite'
+import { normalizePath, runnerImport } from 'vite'
 import { type CompiledContent, type ContentOptions, compileContent } from '../compile/compile-content'
 import type { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from '../compile/errors'
 import { buildContent, verifyContent } from '../compile/write-outputs'
@@ -63,7 +63,7 @@ async function loadConfig(cwd: string): Promise<{ config: ContentConfig } | { pr
   const exists = await Effect.runPromise(Effect.either(readTextIfPresent(path)))
   if (Either.isLeft(exists) || exists.right === undefined) return { problem: `no ${CONFIG_FILE} in ${cwd}` }
   try {
-    const { module } = await runnerImport<{ default?: unknown }>(path, {
+    const { module } = await runnerImport<{ default?: unknown }>(normalizePath(path), {
       root: cwd,
       configFile: false,
       logLevel: 'silent',

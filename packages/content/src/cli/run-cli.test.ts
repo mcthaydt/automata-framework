@@ -2,7 +2,8 @@
 // `runCli`, plus one run of the real bin to prove it starts under Node.
 
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { copyFixture } from '../testing/fixture-game'
@@ -131,6 +132,20 @@ describe('runCli', () => {
 })
 
 describe('the automata-content bin', () => {
+  // Audit of PR #8: the bin found its own files through a URL's `pathname`, which spells a space `%20`.
+  it('runs from a package path and a project path with spaces', () => {
+    const copy = join(mkdtempSync(join(tmpdir(), 'content-bin-')), 'package with spaces')
+    cpSync(join(import.meta.dirname, '..'), join(copy, 'src'), { recursive: true })
+    symlinkSync(join(import.meta.dirname, '../../node_modules'), join(copy, 'node_modules'))
+    const root = join(mkdtempSync(join(tmpdir(), 'content-project-')), 'my game')
+    cpSync(project(), root, { recursive: true })
+    const stdout = execFileSync(process.execPath, [join(copy, 'src/cli/main.ts'), 'check'], {
+      cwd: root,
+      encoding: 'utf8',
+    })
+    expect(stdout).toMatch(/^content [0-9a-f]{16}\n$/)
+  }, 60_000)
+
   it('runs under Node', () => {
     const root = project()
     const main = join(import.meta.dirname, 'main.ts')
