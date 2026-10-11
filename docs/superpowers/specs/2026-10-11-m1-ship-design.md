@@ -22,10 +22,11 @@
 |---|---|
 | Versions (M1.1) | `docs/versions.md`; `tooling/versions/` (`pins.ts`, `pins.test.ts`, `versions.test.ts`) |
 | Root toolchain (M1.1) | `.nvmrc`, root `package.json` (`packageManager`, scripts), `pnpm-workspace.yaml` (`useNodeVersion`, `saveExact`, `engineStrict`), `turbo.json`, `biome.json`, `lefthook.yml` |
-| Effect (M1.1) | `effect` 3.22.2 as a dependency of `packages/ship` (coordinator decision 2026-10-11: Effect 3 repo-wide; 4.0 is ten days old and renames the Context API); pinned in `docs/versions.md`. **Deviation from ADR 0003:** `ship` does not use `@effect/platform-node`: its 0.108 line requires `@effect/cluster`, `rpc`, `sql` and `workflow` as peers (with native build scripts). Files use `node:fs` inside `Effect.try` with tagged errors (tests use temp folders); processes go through one small Effect service, `ProcessRunner` (`node:child_process`), replaced by a fake in tests |
+| Effect (M1.1) | `effect` 3.22.2 (coordinator decision 2026-10-11: Effect 3 repo-wide; 4.0 is ten days old and renames the Context API); pinned in `docs/versions.md`. `@effect/platform-node` is not used (its 0.108 line requires the `@effect/cluster`, `rpc`, `sql` and `workflow` peers and native build scripts; ADR 0003 as amended) |
+| Node services (M1.1) | `packages/node` (`@mcthaydt/automata-node`): the `Files` and `ProcessRunner` Effect services over `node:fs` and `node:child_process`, shared with content and the CLI (§3.8) |
 | Spike S8 (M1.1) | `docs/spikes/s8-effect.md`: Effect's bundle bytes and cold boot on the S20 and iPhone 13 profiles, measured on `examples/placeholder`; sets budgets and mitigations, not whether Effect is used (ADR 0003) |
 | CI lanes (M1.1) | `.github/workflows/ci.yml` (AF's own), `game-ci.yml` (reusable, `workflow_call`) |
-| Feedback tools (M1.1) | `packages/ship/src/ports/` (per-checkout ports), `packages/ship/src/remote/` (focused `test:remote`), `packages/ship/src/evidence/` (capture folder and promotion) |
+| Feedback tools (M1.1) | `packages/ship/src/ports/` (per-checkout ports), `packages/ship/src/remote/` (focused `test:remote`), an ignored `evidence/` folder (promotion and `worktree-gc` move to a later dev-tools extension, coordinator 2026-10-11) |
 | Ship skeleton (M1.2) | `packages/ship/src/{config,manifest,prepare,publish,deploy}/`, `packages/ship/src/cli.ts`, `packages/ship/deploy/` (Caddyfile, host scripts), `.github/workflows/game-release.yml` |
 | Ruken packages (M1.2) | Consumed from `vendor/ruken/` (integration lane): `ruken-manifest-0.0.0.tgz` |
 | Proof (M1.2) | `examples/placeholder/` |
@@ -43,7 +44,7 @@
 | `ShipConfig` (game id, title, version, network, runtime, content fields) | the game's `ship.config.ts` | the game; `content` contributes `[content]`, `[analytics]` and `[loading]` fields later (M1.3), through `ShipConfig` inputs, not by writing the TOML |
 | Generated `ruken.toml` | `packages/ship` | generated into `dist/` at prepare time, never committed |
 | Build ID | `packages/ship` | derived from the commit (§3.5); never typed |
-| Dev host layout `/srv/<game>/builds/<buildId>/`, `/srv/<game>/live` | the host's `deploy` script | only `deploy` (via the locked `deploy` user) |
+| Dev host layout `/srv/<game>/builds/<buildId>/`, `/srv/<game>/live.caddy` | the host's `deploy` script | only `deploy` (via the locked `deploy` user) |
 | `evidence/` | the run that produced it | ignored by git; `promote` copies Owner-approved files into committed baselines |
 
 ## 3. Contracts
@@ -106,20 +107,42 @@ Runs Ruken's own CLI (`node <cliPath> publish <distDir> [--activate] [--game <id
 ### 3.5 Build ID and dev deploy
 
 - `buildIdFor(commit: { time: Date; sha: string }): string` → `YYYYMMDDTHHMMSSZ-<sha7>` (UTC commit time first, so IDs sort as commits do; FloorFifty `build-tag`).
-- `ship deploy-dev [--activate]`: tars `dist/` with a `build.json` (`buildId`, commit, tag) and streams it to `deploy@$DEV_HOST`, whose forced command runs `deploy <tarball>`. `deploy` installs into `/srv/<game>/builds/<buildId>/`, refuses to overwrite an existing ID, rewrites `/srv/<game>/builds/index.json` (ten newest), and with `--activate` re-points `/srv/<game>/live`. The host is reached only through this step (D-4), so a later provider swap changes `deploy`, not games.
-- Caddyfile: `/` serves `live`; `/builds/<id>/` serves that build; security headers in an imported file; no access log, and `remote_ip` stripped from error logs (FloorFifty `deploy/caddy/`).
+- `ship deploy-dev [--activate]`: tars `dist/` with a `build.json` (`buildId`, commit, tag) and the rendered `headers.caddy`, and streams it to `deploy@$DEV_HOST`, whose forced command runs `deploy <tarball>`. `deploy` installs into `/srv/<game>/builds/<buildId>/`, refuses to overwrite an existing ID, rewrites `/srv/<game>/builds/index.json` (ten newest), and with `--activate` rewrites `live.caddy` to redirect `/` to the new build. The host is reached only through this step (D-4), so a later provider swap changes `deploy`, not games.
+- Headers: each build is served with `@ruken/manifest`'s `compileHeaders(manifest, { hostOrigins: [devHostOrigin] })` (the same CSP Ruken serves, so a build that breaks under Ruken's CSP breaks on the dev host too) and `cacheControlFor` (entry no-cache, the rest immutable). `ship deploy-dev` renders them into the build's `headers.caddy` snippet, matched on `/builds/<id>/*`. No hand-written CSP.
+- Caddyfile: imports every build's `headers.caddy`; `/builds/<id>/` serves that build; `/` redirects to the active build (`live.caddy`, rewritten on `--activate`), so the live build keeps its own headers; no access log, and `remote_ip` stripped from error logs (FloorFifty `deploy/caddy/`). `deploy` runs `caddy validate` before `caddy reload`, and a failed validate removes the new build.
 
 ### 3.6 Feedback tools
 
 - `portsFor(checkoutPath): { server: number; preview: number }`: a stable hash of the absolute checkout path into a private range, so worktrees never test each other's servers (FloorFifty `playwright.config.ts`). The `testing` package re-exports it when the ui lane adds Playwright helpers.
 - `test-remote [spec] [--project=<p>] [--nightly]`: pushes the branch, dispatches `ci.yml` with the spec and project as inputs, waits, and downloads the Playwright report into `playwright-report-remote/` on failure (FloorFifty `tools/test-remote`). Without hosted runners it reports "no runner picked the job up" instead of waiting forever.
-- `evidence`: `evidencePath(spec, name)` under ignored `evidence/`; `promote-evidence` lists files that differ from committed baselines and copies only the paths given (FloorFifty `tools/promote-evidence`). Never promotes on its own.
+- `evidence/` and `playwright-report-remote/` are git-ignored; specs write screenshots under `evidence/`. Promotion to baselines is a later dev-tools extension.
 
 ### 3.7 Workflows
 
 - `ci.yml` (AF): `checks` (lint, typecheck, boundaries, style, unit incl. pins) and `parity` (Chromium, WebKit, Firefox in the pinned Playwright container) on push and PR; `workflow_dispatch` inputs `spec` and `project` for focused remote runs, routed to the GPU runner label once D-5 wires it.
 - `game-ci.yml` (`workflow_call`): inputs `node-version-file`, `working-directory`, `sim-roots` (the game's sim-plugin source folders) and `browsers` (default `chromium`); runs install, `check`, `check-boundaries` on `sim-roots` (shared contracts §2), `ship prepare`, and uploads `dist/` as an artifact. A game's `ci.yml` is `uses: mcthaydt/automata-framework/.github/workflows/game-ci.yml@v0`.
 - `game-release.yml` (`workflow_call`, on a published release): prepare with the tag, then publish to Ruken when `RUKEN_TOKEN` is set and deploy to the dev host when `DEV_HOST` is set; each target is a separate job so one failing does not hide the other.
+
+### 3.8 Node services (`@mcthaydt/automata-node`)
+
+```ts
+class Files extends Context.Tag('Files')<Files, {
+  readText(path: string): Effect<string, FileError>
+  writeText(path: string, text: string): Effect<void, FileError>   // creates parent folders
+  exists(path: string): Effect<boolean>
+  listFiles(dir: string): Effect<readonly string[], FileError>     // every file below dir, '/'-separated, sorted
+  remove(path: string): Effect<void, FileError>                    // recursive, missing is fine
+}>() {}
+const FilesLive: Layer<Files>
+
+class ProcessRunner extends Context.Tag('ProcessRunner')<ProcessRunner, {
+  run(command: string, args: readonly string[], options?: { cwd?: string; env?: Record<string, string>;
+      stdin?: Uint8Array; echo?: boolean }): Effect<{ exitCode: number; stdout: string; stderr: string }, ProcessError>
+}>() {}
+const ProcessRunnerLive: Layer<ProcessRunner>
+```
+
+A non-zero exit is a result, not an error, so callers map Ruken's exit codes themselves; `ProcessError` means the program could not be started. `echo` copies output to the parent's stdout/stderr as it arrives (long Ruken waits stay visible). Tests use real temp folders for `Files` and a recorded fake `ProcessRunner`.
 
 ## 4. Data and lifecycle flow
 
