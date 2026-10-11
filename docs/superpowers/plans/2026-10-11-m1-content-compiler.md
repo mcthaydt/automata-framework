@@ -50,12 +50,12 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement `content-schema.ts` and `references.ts`.
 
 ### T5 Tuning
-- [ ] Port `validate/bounds.test.ts` (complete base, partial layer, int, invariant, inclusive endpoints, unknown name, base transcribed from declarations) with FloorFifty's `TUNABLES` subset as a fixture; add authored-range cases (in range, out of range at `value`, `min > max`, `step <= 0`, ranged non-number, bad name) and the code-owned refusal of inline ranges. Port `compiler.test.ts` "the author guide" to `tuning-table`. Fails: module missing.
-- [ ] Implement.
+- [x] Port `validate/bounds.test.ts` (complete base, partial layer, int, invariant, inclusive endpoints, unknown name, base transcribed from declarations) with FloorFifty's `TUNABLES` subset as a fixture; add authored-range cases (in range, out of range at `value`, `min > max`, `step <= 0`, ranged non-number, bad name) and the code-owned refusal of inline ranges. Port `compiler.test.ts` "the author guide" to `tuning-table`. Fails: module missing.
+- [x] Implement.
 
 ### T6 Flow
-- [ ] Port `validate/flow.test.ts` with FloorFifty's real `flow.toml` and its `FLOW_TARGETS`/`SCREEN_IDS`/`TRANSITION_STYLES` as a fixture capability map; add: no capabilities (graph rules only), `terminal` exempts a dead end, unknown style, sorted output, pinned `flowMermaid`. Fails: module missing.
-- [ ] Implement.
+- [x] Port `validate/flow.test.ts` with FloorFifty's real `flow.toml` and its `FLOW_TARGETS`/`SCREEN_IDS`/`TRANSITION_STYLES` as a fixture capability map; add: no capabilities (graph rules only), `terminal` exempts a dead end, unknown style, sorted output, pinned `flowMermaid`. Fails: module missing.
+- [x] Implement.
 
 ### T7 Palette
 - [ ] Test: `parsePaintNetPalette` of `docs/art/palettes/endesga-64.txt` equals `ENDESGA_64` (64 unique, in order); `palette.toml` with uppercase hex is stored lowercase; duplicate, bad hex, 1 color and 257 colors are `invalidPalette`. Fails: module missing.

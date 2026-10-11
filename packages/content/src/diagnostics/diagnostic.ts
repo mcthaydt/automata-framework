@@ -64,3 +64,16 @@ export function compareDiagnostics(a: Diagnostic, b: Diagnostic): number {
 export function sortDiagnostics(diagnostics: readonly Diagnostic[]): Diagnostic[] {
   return [...diagnostics].sort(compareDiagnostics)
 }
+
+/** A path into parsed data: object keys and array indices. */
+export type DataPath = readonly (string | number)[]
+
+/**
+ * A problem found by a check that sees values, not files. The compiler places it in its file with
+ * `diagnosticAt`, which turns the path into a line and column.
+ */
+export interface Problem {
+  readonly path: DataPath
+  readonly code: DiagnosticCode
+  readonly message: string
+}

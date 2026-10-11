@@ -3,10 +3,8 @@
 // an existing item (`unknownReference`), and that item must be the right kind (`wrongKind`). What changed is
 // how references are found: they are marked in the schema (`contentRef`) and collected by walking the data.
 
-import type { DiagnosticCode } from '../diagnostics/diagnostic'
+import type { DataPath, Problem } from '../diagnostics/diagnostic'
 import { ContentRefMarker, LocalizedMarker } from './content-schema'
-
-export type DataPath = readonly (string | number)[]
 
 export interface FoundRef {
   readonly path: DataPath
@@ -56,18 +54,12 @@ export function resolveMarkers(value: unknown): ResolvedMarkers {
   return { value: walk(value, []), refs, texts }
 }
 
-export interface ReferenceProblem {
-  readonly path: DataPath
-  readonly code: DiagnosticCode
-  readonly message: string
-}
-
 /** Checks references against the IDs of every kind. `ids` maps a kind to its IDs. */
 export function checkReferences(
   refs: readonly FoundRef[],
   ids: ReadonlyMap<string, ReadonlySet<string>>,
-): ReferenceProblem[] {
-  const problems: ReferenceProblem[] = []
+): Problem[] {
+  const problems: Problem[] = []
   for (const ref of refs) {
     if (ids.get(ref.kind)?.has(ref.id)) continue
     // The more specific answer first: an ID that exists as another kind is a wrong pick, not a typo.
