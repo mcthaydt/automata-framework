@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { type ProcessError, ProcessRunner } from '@mcthaydt/automata-node'
@@ -34,8 +35,19 @@ export type PublishError =
   | PublishFailed
   | ProcessError
 
-/** The `ruken` bin of the vendored `@ruken/cli` package (`dist/cli.js`, next to its `dist/index.js`). */
-export function rukenCliPath(): string {
+/**
+ * The `ruken` bin of the vendored `@ruken/cli` package. The published `@mcthaydt/automata-ship` carries a copy of
+ * Ruken's built CLI in `dist/vendor/ruken-cli/` (D-8, M2.4 spec §3.4); every built module sits directly in
+ * `dist/`, so the copy is `./vendor/ruken-cli/cli.js` next to it. Running from `src` in the workspace there is
+ * no copy, and the workspace's `@ruken/cli` dev dependency is used instead (`dist/cli.js`, next to its
+ * `dist/index.js`). `moduleUrl` and `exists` are parameters only so tests can stand in for a built package.
+ */
+export function rukenCliPath(
+  moduleUrl: string = import.meta.url,
+  exists: (path: string) => boolean = existsSync,
+): string {
+  const copy = fileURLToPath(new URL('./vendor/ruken-cli/cli.js', moduleUrl))
+  if (exists(copy)) return copy
   // The package only exports an `import` condition, so `require.resolve` cannot find it.
   return join(dirname(fileURLToPath(import.meta.resolve('@ruken/cli'))), 'cli.js')
 }

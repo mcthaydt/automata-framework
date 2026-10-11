@@ -1,12 +1,32 @@
 {
   "name": "@mcthaydt/automata-sim",
   "version": "0.0.0",
-  "private": true,
   "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./hash": "./src/hash/hash.ts",
     "./math": "./src/math/dmath.ts"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./hash": {
+        "types": "./dist/hash.d.ts",
+        "import": "./dist/hash.js"
+      },
+      "./math": {
+        "types": "./dist/math.d.ts",
+        "import": "./dist/math.js"
+      }
+    }
   },
   "scripts": {
     "test": "vitest run --project node --project browsers",

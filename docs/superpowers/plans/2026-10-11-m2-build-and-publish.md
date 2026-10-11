@@ -45,25 +45,25 @@ Each task: write the failing test or check, run it and see it fail for the state
 - [x] A Node script in the temp folder imports `dist/index.js`, creates a sim and hashes it: equals the workspace hash.
 
 ### Task 2: release list test
-- [ ] `tooling/release/src/release-list.test.ts` (spec §6). Expected failure: every package is `private`.
-- [ ] Add `publishConfig`, `files`, `sideEffects` and drop `private` for the §3.1 packages, keeping workspace `exports` unchanged.
+- [x] `tooling/release/src/release-list.test.ts` (spec §6). Expected failure: every package is `private`.
+- [x] Add `publishConfig`, `files`, `sideEffects` and drop `private` for the §3.1 packages, keeping workspace `exports` unchanged.
 
 ### Task 3: build every node-side package
-- [ ] tsdown configs for `node`, `content` (bin with shebang; `@ruken/manifest` bundled, its declarations inlined), `ship` (bin; manifest bundled), `check-boundaries` (renamed; bin). Move the vendored tarballs to `devDependencies`. Expected failure first: the release list test's "no `@ruken/` in dist" check fails on `content` while `@ruken/manifest` is external. `pnpm build` passes; the release list test's dist checks pass.
-- [ ] `write-vendored.test.ts` then `write-vendored.ts`: writes `VENDORED.md` from `vendor/ruken/README.md` for the packages that bundle Ruken code; run from each such package's build.
-- [ ] Rename: `@mcthaydt/check-boundaries` → `@mcthaydt/automata-check-boundaries`; root `boundaries` script, `game-ci.yml` and every example's `check` script use the new bin; `pnpm boundaries` still passes.
+- [x] tsdown configs for `node`, `content` (bin with shebang; `@ruken/manifest` bundled, its declarations inlined), `ship` (bin; manifest bundled), `check-boundaries` (renamed; bin). Move the vendored tarballs to `devDependencies`. Expected failure first: the release list test's "no `@ruken/` in dist" check fails on `content` while `@ruken/manifest` is external. `pnpm build` passes; the release list test's dist checks pass. *Done: every config goes through `tooling/release/src/tsdown-shared.ts` (deps external, `@ruken/*` bundled with `onlyBundle`, `onlyImport` limited to declared dependencies, `.js` names). content's published bin is `packages/content/build/cli.ts` (calls `runCli` directly; the workspace bin loads `.ts` through Vite's runner, which a built package cannot).*
+- [x] `write-vendored.test.ts` then `write-vendored.ts`: writes `VENDORED.md` from `vendor/ruken/README.md` for the packages that bundle Ruken code; run from each such package's build.
+- [x] Rename: `@mcthaydt/check-boundaries` → `@mcthaydt/automata-check-boundaries`; root `boundaries` script, `game-ci.yml` and every example's `check` script use the new bin; `pnpm boundaries` still passes.
 
 ### Task 4: `ship`'s Ruken CLI
-- [ ] `publish-to-ruken.test.ts` gains a case: with the CLI at `dist/vendor/ruken-cli/cli.js` relative to the module, the default path resolves there. Expected failure: it resolves through `@ruken/cli`.
-- [ ] Copy step in `ship`'s build; declare the four runtime dependencies at Ruken's versions; default path falls back to the workspace's `@ruken/cli` when running from `src`.
+- [x] `publish-to-ruken.test.ts` gains a case: with the CLI at `dist/vendor/ruken-cli/cli.js` relative to the module, the default path resolves there. Expected failure: it resolves through `@ruken/cli`.
+- [x] Copy step in `ship`'s build; declare the four runtime dependencies at Ruken's versions; default path falls back to the workspace's `@ruken/cli` when running from `src`.
 
 ### Task 5: build the browser-side packages
-- [ ] A test in `tooling/release` builds `host` and asserts `dist/index.js`, `dist/testing.js` and their `.d.ts` hold no `from '@ruken/` and `dependencies` hold `zod` and no `file:` path. Expected failure: no build config.
-- [ ] tsdown for `sim` (done), `physics` (`./2d`, `./3d`; Rapier external), `host` (`.` bundles `@ruken/sdk`, `./testing` bundles `@ruken/sdk-host`; `zod` 4.6.5 added to `dependencies`), `testing` (`.`, `./sim`; svelte external; Ruken types inlined into `.d.ts`, no Ruken JavaScript).
+- [x] A test in `tooling/release` builds `host` and asserts `dist/index.js`, `dist/testing.js` and their `.d.ts` hold no `from '@ruken/` and `dependencies` hold `zod` and no `file:` path. Expected failure: no build config. *Done as the release list test's dist checks (`pnpm --filter @mcthaydt/release test:dist` after `pnpm build`), which cover host with every other package.*
+- [x] tsdown for `sim` (done), `physics` (`./2d`, `./3d`; Rapier external), `host` (`.` bundles `@ruken/sdk`, `./testing` bundles `@ruken/sdk-host`; `zod` 4.6.5 added to `dependencies`), `testing` (`.`, `./sim`; svelte external; Ruken types inlined into `.d.ts`, no Ruken JavaScript).
 
 ### Task 6: `ui` with `@sveltejs/package`
-- [ ] Add the pinned dependency (row in `docs/versions.md`); `svelte.config.js` with the TypeScript preprocessor; build writes `dist/` with `.svelte`, `.js`, `.d.ts` and `theme.css`; `publishConfig.exports` has `svelte`, `types`, `import` conditions.
-- [ ] The release list test fails on `ui`'s `.d.ts` naming `@ruken/sdk` (`landscape-gate`, `geometry`, `boot-failure`); add the tsdown `dts` pass that inlines them (spec §3.4) and move `@ruken/sdk` to `devDependencies`; the test passes for `ui`.
+- [x] Add the pinned dependency (row in `docs/versions.md`); `svelte.config.js` with the TypeScript preprocessor; build writes `dist/` with `.svelte`, `.js`, `.d.ts` and `theme.css`; `publishConfig.exports` has `svelte`, `types`, `import` conditions.
+- [x] The release list test fails on `ui`'s `.d.ts` naming `@ruken/sdk` (`landscape-gate`, `geometry`, `boot-failure`); add the tsdown `dts` pass that inlines them (spec §3.4) and move `@ruken/sdk` to `devDependencies`; the test passes for `ui`. *Done: tsdown inlines `@ruken/sdk`'s types into `dist/vendor/ruken-sdk.d.ts` and `finish-svelte-dist.ts` points ui's declarations at it (and drops tests). svelte-package runs with `tsconfig.package.json` (isolatedDeclarations off: svelte2tsx output has inferred types).*
 
 ### Task 7: Changesets and the version rules
 - [ ] `@changesets/cli` 3.0.3 (row); `.changeset/config.json` per spec §3.5.
@@ -74,7 +74,7 @@ Each task: write the failing test or check, run it and see it fail for the state
 ### Task 8: CI steps and turbo
 - [ ] `workflows.test.ts`: `checks` checks out with `fetch-depth: 0` and runs `changeset status --since=origin/main`, the patch-only check and `pnpm build`; `ci:local` equals the checks job (the existing equality test). Expected failure: steps missing.
 - [ ] Edit `ci.yml` and `ci:local`; `pnpm lint:actions` clean.
-- [ ] `turbo.test.ts`: only `build` has `dependsOn: ["^build"]`. Expected failure: `typecheck`, `test`, `test:unit`, `test:parity` have it. Edit `turbo.json`; `pnpm check` runs no `build`.
+- [x] `turbo.test.ts`: only `build` has `dependsOn: ["^build"]`. Expected failure: `typecheck`, `test`, `test:unit`, `test:parity` have it. Edit `turbo.json`; `pnpm check` runs no `build`.
 
 ### Task 9: release workflow
 - [ ] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, `verify-published` then the registry-mode consumer smoke after publish, both guarded by `steps.changesets.outputs.published == 'true'` and given the version from `publishedPackages`). Expected failure: `release-packages.yml` does not exist.

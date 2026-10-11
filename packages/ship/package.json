@@ -1,27 +1,48 @@
 {
   "name": "@mcthaydt/automata-ship",
   "version": "0.0.0",
-  "private": true,
   "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "VENDORED.md"
+  ],
   "exports": {
     ".": "./src/index.ts"
   },
   "bin": {
     "automata-ship": "./src/cli.ts"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    },
+    "bin": {
+      "automata-ship": "./dist/cli.js"
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
   },
   "dependencies": {
     "@mcthaydt/automata-node": "workspace:*",
-    "@ruken/cli": "file:../../vendor/ruken/ruken-cli-0.0.0.tgz",
-    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "effect": "3.22.2",
-    "oxc-parser": "0.152.0"
+    "oxc-parser": "0.152.0",
+    "smol-toml": "1.9.0",
+    "yauzl": "3.4.0",
+    "yazl": "3.3.1",
+    "zod": "4.6.5"
   },
   "devDependencies": {
+    "@ruken/cli": "file:../../vendor/ruken/ruken-cli-0.0.0.tgz",
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
     "vitest": "5.0.3",
     "yaml": "2.9.1"

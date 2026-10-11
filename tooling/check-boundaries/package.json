@@ -1,12 +1,25 @@
 {
-  "name": "@mcthaydt/check-boundaries",
+  "name": "@mcthaydt/automata-check-boundaries",
   "version": "0.0.0",
-  "private": true,
   "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "automata-check-boundaries": "./src/cli.ts"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "bin": {
+      "automata-check-boundaries": "./dist/cli.js"
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
   },
   "dependencies": {
     "oxc-parser": "0.152.0"

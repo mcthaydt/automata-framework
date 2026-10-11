@@ -8,13 +8,14 @@
   },
   "scripts": {
     "prepare": "lefthook install",
+    "build": "turbo run build --filter='./packages/*' --filter=./tooling/check-boundaries",
     "lint": "biome check .",
     "format": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:unit": "turbo run test:unit",
     "bench": "pnpm --recursive --workspace-concurrency=1 --if-present bench",
-    "boundaries": "node tooling/check-boundaries/src/cli.ts packages/sim/src packages/physics/src",
+    "boundaries": "automata-check-boundaries packages/sim/src packages/physics/src",
     "style": "node tooling/check-style/src/cli.ts packages/*/src",
     "check": "pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit",
     "test:e2e": "playwright test",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
+    "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@playwright/test": "1.63.0",
     "lefthook": "2.1.16",
     "tsdown": "0.23.0",

@@ -1,22 +1,41 @@
 {
   "name": "@mcthaydt/automata-host",
   "version": "0.0.0",
-  "private": true,
   "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "VENDORED.md"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./testing": "./src/testing/index.ts"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./testing": {
+        "types": "./dist/testing.d.ts",
+        "import": "./dist/testing.js"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
   },
   "dependencies": {
-    "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
-    "effect": "3.22.2"
+    "effect": "3.22.2",
+    "zod": "4.6.5"
   },
   "devDependencies": {
+    "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "vitest": "5.0.3"
   }
