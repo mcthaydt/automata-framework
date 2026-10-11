@@ -49,7 +49,8 @@ describe('ui/primitives demo', () => {
     stop = await start(root, new URL('http://demo.test/?show=dialog&variant=keyboard'))
     const frames = [...root.querySelectorAll<HTMLIFrameElement>('iframe[data-size]')]
     expect(frames.map((frame) => frame.dataset.size)).toEqual(REFERENCE_SIZES.map((size) => size.name))
-    expect(frames[0]?.getAttribute('src')).toContain('frame=dialog')
+    // Each card loads the page the gallery was opened from (a bundled copy of index.html is a 404).
+    expect(frames[0]?.getAttribute('src')).toMatch(/^http:\/\/demo\.test\/\?frame=dialog/)
     expect(frames[0]?.getAttribute('src')).toContain('variant=keyboard')
     expect(root.querySelector('select[name="show"]')).not.toBeNull()
     expect(root.querySelector('select[name="variant"]')).not.toBeNull()

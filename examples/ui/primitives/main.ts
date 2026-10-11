@@ -123,6 +123,7 @@ async function startGallery(
   target: HTMLElement,
   primitive: Primitive,
   variant: Variant,
+  url: URL,
 ): Promise<() => Promise<void>> {
   const app = mount(Gallery, {
     target,
@@ -132,8 +133,9 @@ async function startGallery(
       variants: VARIANTS.map((each) => each.name),
       initialShow: primitive,
       initialVariant: variant.name,
-      // Each card loads this page in frame mode.
-      page: new URL('./index.html', import.meta.url).href,
+      // Each card loads this same page in frame mode. Not `new URL('./index.html', import.meta.url)`: Vite
+      // bundles that as an asset copy, whose `./main.ts` is a 404 in the build.
+      page: `${url.origin}${url.pathname}`,
     },
   })
   await settled()
@@ -148,7 +150,7 @@ export function start(target: HTMLElement, url: URL): Promise<() => Promise<void
   const variant = variantNamed(url.searchParams.get('variant'))
   if (isPrimitive(frame)) return startFrame(target, frame, variant)
   const show = url.searchParams.get('show')
-  return startGallery(target, isPrimitive(show) ? show : 'screen', variant)
+  return startGallery(target, isPrimitive(show) ? show : 'screen', variant, url)
 }
 
 const app = document.getElementById('app')

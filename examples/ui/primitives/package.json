@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "e2e:demo": "vite build && vite preview --strictPort --host localhost",
+    "test:parity": "vitest run"
   },
   "dependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
