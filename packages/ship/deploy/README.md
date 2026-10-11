@@ -13,7 +13,7 @@ The standalone dev host for AF games (ship spec §3.5, decision D-4): a second C
 
 1. `sudo install -d -o root -m 755 /usr/local/lib/automata/bin /srv/automata/placeholder` and copy the four `bin/` files there (`install -m 755`).
 2. `/etc/automata/dev-host.env` (read by `deploy`): `SHIP_ROOT=/srv/automata/placeholder`, `SHIP_BASE_URL=https://af-dev.floorfifty.duckdns.org`.
-3. Caddy's environment (FloorFifty's `/etc/floor-fifty/caddy.env` pattern) gains `AF_DEV_SITE=af-dev.floorfifty.duckdns.org`, `SHIP_ROOT=/srv/automata/placeholder` and `AF_ACME_EMAIL`. Point the DNS name at the VM.
+3. Caddy's environment, `/etc/floor-fifty/caddy.env` (FloorFifty's `caddy-env.conf` drop-in gives it to `caddy.service`), gains `AF_DEV_SITE=af-dev.floorfifty.duckdns.org`, `SHIP_ROOT=/srv/automata/placeholder` and `AF_ACME_EMAIL`. Point the DNS name at the VM. `deploy` reads the same file itself before `caddy validate` and `caddy reload`, because sudo drops the deploy user's environment and Caddy would otherwise refuse the empty site address.
 4. sudoers: `deploy ALL=(root) NOPASSWD: /usr/local/lib/automata/bin/deploy`.
 5. `~deploy/.ssh/authorized_keys`: `command="/usr/local/lib/automata/bin/ssh-deploy",no-pty,no-port-forwarding,no-agent-forwarding,no-X11-forwarding <CI public key>`.
 6. Validate in `/etc/caddy` (imports are relative to the Caddyfile), then reload: `sudo -E caddy validate --adapter caddyfile --config /etc/caddy/Caddyfile && sudo systemctl reload caddy`.
@@ -23,3 +23,4 @@ The standalone dev host for AF games (ship spec §3.5, decision D-4): a second C
 - From a game: `automata-ship deploy-dev [--activate]` with `SHIP_DEV_TARGET=deploy@<host>` and `SHIP_DEV_URL=https://<host>`.
 - What is installed: `https://<host>/builds/index.json`. What is live: `cat /srv/automata/<game>/live`.
 - A build ID is never replaced. Builds are not pruned in M1.
+- One deploy runs at a time per game (`flock` on `<SHIP_ROOT>/.deploy.lock`); a second waits up to 120 s, then exits 5.

@@ -11,14 +11,32 @@
 # the new build is removed and the previous live build stays live.
 #
 # Environment: SHIP_ROOT (the game's folder, default /srv/automata/game), SHIP_BASE_URL (the site's URL,
-# for builds-index.json), CADDY (default caddy), CADDYFILE (default /etc/caddy/Caddyfile).
+# for builds-index.json), CADDY (default caddy), CADDYFILE (default /etc/caddy/Caddyfile),
+# SHIP_DEPLOY_LOCK_WAIT (seconds to wait for another deploy, default 120). Tests point SHIP_DEV_HOST_ENV and
+# SHIP_CADDY_ENV at their own files; on the host sudo drops both and the defaults below apply.
+#
+# Exit codes: 2 not a build or refused headers, 3 ID already installed, 4 Caddy rejected the config, 5 another
+# deploy held the lock for too long.
 set -euo pipefail
 
 # On the host the settings live in one file (deploy/README.md); a caller that sets SHIP_ROOT (the tests) skips it.
-if [[ -z "${SHIP_ROOT:-}" && -r /etc/automata/dev-host.env ]]; then
+dev_host_env="${SHIP_DEV_HOST_ENV:-/etc/automata/dev-host.env}"
+if [[ -z "${SHIP_ROOT:-}" && -r "$dev_host_env" ]]; then
   set -a
-  # shellcheck disable=SC1091
-  . /etc/automata/dev-host.env
+  # shellcheck source=/dev/null
+  . "$dev_host_env"
+  set +a
+fi
+
+# `caddy validate` and `caddy reload` adapt the Caddyfile in this process, so {$AF_DEV_SITE}, {$SHIP_ROOT} and
+# {$AF_ACME_EMAIL} come from this process's environment. caddy.service has them from caddy.env (FloorFifty's
+# deploy/caddy/caddy-env.conf); a sudo from the deploy user does not, and Caddy would then refuse every deploy
+# (FloorFifty's first staging deploy was refused over an empty `email`; deploy/bin/activate there).
+caddy_env="${SHIP_CADDY_ENV:-/etc/floor-fifty/caddy.env}"
+if [[ -r "$caddy_env" ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  . "$caddy_env"
   set +a
 fi
 
@@ -33,6 +51,15 @@ activate=0
 [[ "${2:-}" == "--activate" ]] && activate=1
 
 mkdir -p "$root/builds"
+
+# One deploy at a time per game: two at once could both read the old live.caddy and one Caddy reload could
+# pick up the other's half-installed build. The lock is released when this process exits.
+exec 9> "$root/.deploy.lock"
+if ! flock -w "${SHIP_DEPLOY_LOCK_WAIT:-120}" 9; then
+  echo "another deploy is still running for $root; try again when it finishes" >&2
+  exit 5
+fi
+
 [[ -f "$root/live.caddy" ]] || : > "$root/live.caddy"
 
 incoming="$(mktemp -d "$root/builds/.incoming.XXXXXX")"
