@@ -3,13 +3,15 @@ name: ci
 # AF's own CI (ship spec §3.7). Checks and cross-engine parity run on every push and pull request. Browser
 # journeys run only nightly and on request (`automata-ship test-remote <spec>`).
 #
-# Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
-# about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
-# label af-linux (WSL2 Ubuntu with Docker, like Ruken's ruken-linux; ship spec §3.7). There is deliberately no
-# fallback to ubuntu-latest: with no runner online a job waits in the queue instead of failing at once. The
-# repository variable AF_LINUX_RUNNER switches every job to another label (ubuntu-latest once hosted minutes
-# are back), and AF_GPU_RUNNER moves the browser journeys alone. Until a runner serves AF, a full local run is
-# the green gate (docs/04-how-we-build.md).
+# Runners (D-5, reuse the Owner's runners): while AF is private, hosted jobs get no runner on this account
+# (2026-10-11; they fail in about 2 s with runner_id 0), so the checks run on a self-hosted runner registered to
+# this repository with the label af-linux (WSL2 Ubuntu with Docker, like Ruken's ruken-linux; ship spec §3.7).
+# The repository variable AF_LINUX_RUNNER switches them to another label. Once the repository is public, GitHub's
+# hosted runners are free, and every push and pull request runs on ubuntu-latest instead. That matters for
+# safety too: a public repository takes pull requests from forks, and a fork's code must never run on the
+# Owner's PC. The switch reads github.event.repository.private, so flipping the visibility moves the jobs with
+# no workflow change. Only the browser journeys (nightly and on request, which only someone with write access
+# can start) stay on the Owner's GPU runner, chosen by AF_GPU_RUNNER.
 
 on:
   push:
@@ -39,7 +41,7 @@ jobs:
   checks:
     name: lint, typecheck, boundaries, style, unit
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    runs-on: ${{ github.event.repository.private && (vars.AF_LINUX_RUNNER || 'af-linux') || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -65,7 +67,7 @@ jobs:
   parity:
     name: parity (chromium, webkit, firefox)
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    runs-on: ${{ github.event.repository.private && (vars.AF_LINUX_RUNNER || 'af-linux') || 'ubuntu-latest' }}
     timeout-minutes: 10
     # Browsers and their OS deps come preinstalled and pinned; installing them per run blew the 10-minute budget.
     # Keep the tag in step with the `playwright` devDependency (docs/versions.md, Container images).
@@ -100,9 +102,11 @@ jobs:
 
   e2e:
     name: browser journeys (nightly and on request)
+    # The repository check keeps a fork's scheduled run off the GPU runner label.
     if: >-
-      github.event_name == 'schedule' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.spec != '' || inputs.nightly))
+      github.repository == 'mcthaydt/automata-framework' &&
+      (github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.spec != '' || inputs.nightly)))
     runs-on: ${{ vars.AF_GPU_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 30
     steps:
@@ -150,4 +154,4 @@ jobs:
     with:
       working-directory: examples/placeholder
       sim-roots: ""
-      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+      runner: ${{ github.event.repository.private && (vars.AF_LINUX_RUNNER || 'af-linux') || 'ubuntu-latest' }}

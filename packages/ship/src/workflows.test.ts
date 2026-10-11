@@ -74,21 +74,31 @@ describe('every workflow', () => {
   })
 })
 
-describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runner on this account)", () => {
+describe("runners (D-5: the Owner's self-hosted runners while AF is private, GitHub's hosted runners once public)", () => {
   const ci = workflow('ci.yml')
+  const linuxRunner =
+    "${{ github.event.repository.private && (vars.AF_LINUX_RUNNER || 'af-linux') || 'ubuntu-latest' }}"
 
-  it.each(['checks', 'parity', 'e2e'])(
-    'ci.yml %s runs on the AF runner label, switchable by vars.AF_LINUX_RUNNER, never falling back to hosted',
+  it.each(['checks', 'parity'])(
+    'ci.yml %s runs on the AF runner label while private and on ubuntu-latest once public',
     (name) => {
-      const runsOn = ci.jobs[name]?.['runs-on'] ?? ''
-      expect(runsOn).toContain('vars.AF_LINUX_RUNNER')
-      expect(runsOn).toContain("'af-linux'")
-      expect(runsOn).not.toContain('ubuntu-latest')
+      expect(ci.jobs[name]?.['runs-on']).toBe(linuxRunner)
     },
   )
 
   it('passes the same runner to the placeholder through game-ci', () => {
-    expect(ci.jobs.placeholder?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+    expect(ci.jobs.placeholder?.with?.runner).toBe(linuxRunner)
+  })
+
+  it("keeps the browser journeys on the Owner's runner and never runs them for a fork", () => {
+    const e2e = ci.jobs.e2e
+    expect(e2e?.['runs-on']).toContain('vars.AF_GPU_RUNNER')
+    expect(e2e?.['runs-on']).not.toContain('ubuntu-latest')
+    expect(e2e?.if).toContain("github.repository == 'mcthaydt/automata-framework'")
+  })
+
+  it('never uses pull_request_target, which would run fork code with secrets', () => {
+    for (const name of ALL) expect(Object.keys(workflow(name).on ?? {})).not.toContain('pull_request_target')
   })
 
   it.each(['game-ci.yml', 'game-release.yml'])(
