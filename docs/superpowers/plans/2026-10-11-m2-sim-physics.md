@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
 - **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
-- **Progress:** 11 / 13 tasks.
+- **Progress:** 12 / 13 tasks.
 - **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
@@ -77,8 +77,8 @@
 - [x] Implement; `pnpm check`. (`physics-3d-snapshot.test.ts` on the mixed scene in `testing/scene-3d.ts`, which despawns on tick 149 so the tick-150 snapshot carries a dead-sid row.) The unknown-handle test failed first for a real reason: Rapier resolved the corrupted handle to a live body, so the table check now compares exact handle bits with the world's own handle lists (spec §3.2 updated).
 
 ### 12. 2D
-- [ ] Mirror tasks 8–11 for 2D (failing first) on the shared `physics-world.ts`.
-- [ ] Implement; `pnpm check`.
+- [x] Mirror tasks 8–11 for 2D (failing first) on the shared `physics-world.ts`.
+- [x] Implement; `pnpm check`. (`physics-2d.test.ts`, `physics-2d-snapshot.test.ts`, the 2D lazy-load case; tests written and seen failing on the missing `./2d` before `rapier-2d.ts` existed. Mutations of teleport, kinematic target, linear and angular velocity, collider rebuild, lone-collider move, write-back equality and validation each fail a test.)
 
 ### 13. Four-engine parity and measurements (spec §7, §8)
 - [ ] Failing parity tests with placeholder goldens (2D and 3D); commit the Node hashes; run Chromium, WebKit and Firefox; all four must match without edits.
