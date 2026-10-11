@@ -1,4 +1,4 @@
-import type { z } from 'zod'
+import { z } from 'zod'
 import type { CommandRecord, EntityRef, SimContext, SpawnPart } from '../define/context'
 import {
   type CommandDef,
@@ -101,6 +101,20 @@ export class SimFaultedError extends Error {
     this.system = system
     this.tick = tick
   }
+}
+
+/**
+ * Each definition's id with its Zod schema as JSON Schema, sorted by id, for the schema hash (M2.1 spec §10.4).
+ * `io: 'input'` describes what a snapshot or command must contain; parts JSON Schema cannot express (a
+ * transform's function, a refinement) hash as "any", which is why restore also re-checks values (see restore).
+ */
+function describeSchemas(defs: ReadonlyMap<string, { readonly schema: z.ZodType }>): unknown[] {
+  return [...defs.keys()]
+    .sort()
+    .map((id) => [
+      id,
+      z.toJSONSchema((defs.get(id) as { schema: z.ZodType }).schema, { io: 'input', unrepresentable: 'any' }),
+    ])
 }
 
 function deepFreeze<T>(value: T): T {
@@ -230,9 +244,9 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         components: componentList
           .map((c) => ({ id: c.id, fields: c.fields, render: c.render }))
           .sort((a, b) => (a.id < b.id ? -1 : 1)),
-        commands: sortedIds(commandDefs),
-        events: sortedIds(eventDefs),
-        resources: sortedIds(resourceDefs),
+        commands: describeSchemas(commandDefs),
+        events: describeSchemas(eventDefs),
+        resources: describeSchemas(resourceDefs),
         systems: systems.map((s) => `${s.phase}:${s.name}`),
       }),
     ),
@@ -433,7 +447,11 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         for (const { id, json } of data.resources) {
           const def = resourceDefs.get(id)
           if (!def) throw new SnapshotFormatError(`unknown resource "${id}"`)
-          nextResources.set(id, def.schema.parse(JSON.parse(json)))
+          const value = def.schema.parse(JSON.parse(json))
+          // A value this build's schema reshapes (a stripped field, a default filled in) is not the stored state.
+          if (canonicalJson(value) !== json)
+            throw new SnapshotFormatError(`resource "${id}" does not re-encode to the stored bytes`)
+          nextResources.set(id, value)
         }
         nextRngs = new Map<string, Rng>(data.rng.map((r) => [r.name, rngFromState(r.state)]))
         if (nextRngs.size !== rngs.size || systems.some((s) => !nextRngs.has(s.name))) {

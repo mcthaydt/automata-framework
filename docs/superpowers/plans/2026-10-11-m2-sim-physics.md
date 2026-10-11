@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
 - **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
-- **Progress:** 5 / 13 tasks.
+- **Progress:** 6 / 13 tasks.
 - **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
@@ -52,8 +52,8 @@
 - [x] Implement (validate rows without Koota, free the old world before building the new one); `pnpm check`.
 
 ### 6. Schema hash covers schemas; restore re-encodes exactly (spec §10.4)
-- [ ] Failing tests: two plugins differing only in a resource's, command's or event's schema give different schema hashes; a stored resource with a field the current schema strips → `SnapshotFormatError`.
-- [ ] Implement; re-run the existing golden and record the new hash with the reason.
+- [x] Failing tests: two plugins differing only in a resource's, command's or event's schema give different schema hashes; a stored resource with a field the current schema strips → `SnapshotFormatError`.
+- [x] Implement; re-run the existing golden and record the new hash with the reason.
 
 ### 7. Faster XXH64 (spec §10.5)
 - [ ] Failing test: hashing 1 MB takes under a generous bound relative to the BigInt version (measured ratio, not wall clock): the 32-bit version must agree with the BigInt reference on random inputs of every length 0..300 and on the existing vectors. Benchmark before and after recorded.
@@ -89,3 +89,4 @@
 | Date | Task | Commits | Notes |
 |---|---|---|---|
 | 2026-10-11 | 1–2 | `358892d` | Framing tests live in `plugin-state.test.ts`, not `snapshot.test.ts` (deviation noted in task 2). |
+| 2026-10-11 | 3–6 | this and the three commits before it | Sim golden `2dfe1971eaf6af8f` → `98cc273719c10ef2` (task 6: the schema hash now covers resource, command and event schemas); identical in Node, Chromium, WebKit and Firefox. Fault handling is fail-closed (spec §10.2). |
