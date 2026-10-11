@@ -65,7 +65,7 @@ External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [st
 |---|---|---|---|
 | M0 Foundation | A0+A1 spec | ✅ merged | Spike verdicts; ECS decided; sim core |
 | M1 Blank game on Ruken | **to write** (`m1-blank-game-on-ruken`) | ⬜ | Push → CI green → Ruken-validated zip → published to Ruken local stack and dev host → playable on a phone; nothing renders before ready; layout contracts pass at every reference size |
-| M2 Deterministic core complete | A0+A1 spec + **to write** (`m2-deterministic-core`) | ⬜ | A1 exits 2–8 of the A0+A1 spec |
+| M2 Deterministic core complete | A0+A1 spec + [`m2-deterministic-core`](superpowers/specs/2026-10-11-m2-deterministic-core-design.md) (drafted 2026-10-11, review pending) | ⬜ | A1 exits 2–8 of the A0+A1 spec |
 | M3 2.5D and pipelines | **to write** | ⬜ | 2.5D example (private build, D-1) on WebGL2, and WebGPU when opted in, under Ruken CSP at ≥30 FPS on phone profiles; one character through the pipeline with gates |
 | M4 Input and display | **to write** | ⬜ | Input × form-factor E2E matrix under the fake Ruken host |
 | M5 Saves, audio, localization | **to write** | ⬜ | Save N → N+1 migration; cross-device save/exit/resume on Ruken; all strings localized |
@@ -93,9 +93,9 @@ Ordered so the pipeline exists before the runtime: CI/CD and deployment are prov
 
 ### M2 Deterministic core complete
 - **Physics plugins** (the `physics` extension package, `packages/physics`, with a snapshot-section hook added to `packages/sim`; `net` stays physics-agnostic): Rapier `-deterministic-compat` 0.21, lazy wasm, `RigidBody`/`Collider`/`Transform2D`/`Transform3D`, `physics.syncIn`/`step`/`syncOut`/`events`, deterministic contact order, snapshot section 6, parity tests in four engines, measured wasm size and ms/tick.
-- **Wire content into the sim:** typed, deep-frozen `SimOptions.content`; snapshot `contentHash` from the compiler; restore with another hash throws `SnapshotMismatchError`.
-- **Goldens and replays** (`testing`): `simGolden`, `.replay` v1 and `recordReplay`, `replayGolden` with first-divergent-tick bisection and structural diff, a divergent fixture, the ≥200-seed property test, the cross-engine runner. The Last Light's `record`/`replay`/`worldHash` tests are a second consumer.
-- **Build and publish:** Vite library mode, Changesets, `0.0.x` prereleases to GitHub Packages; CI under 10 minutes.
+- **Wire content into the sim** (M2.2): a sim partition of the compiled content (by kind; store and display metadata out) with its own hash, which gates snapshots and replays; a generated `SimContentData` type; `Sim.contentHash`; restore with another hash throws `SnapshotMismatchError`.
+- **Goldens and replays** (M2.3): the `.replay` v1 codec, recorder and stepper in `sim` (`@mcthaydt/automata-sim/replay`, `createRecorder`); `simGolden`, `replayGolden` with first-divergent-tick bisection and structural diff, a divergent fixture, the ≥200-seed property test and the cross-engine runner in `testing` (`@mcthaydt/automata-testing/sim`). The Last Light's `record`/`replay`/`worldHash` inform the design; moving The Last Light onto AF replays is deferred to its adoption slice (M8, D-2), not an M2 consumer.
+- **Build and publish** (M2.4): tsdown (Ruken's tool and pin), Changesets with one fixed `0.0.x` version, prereleases to GitHub Packages; games install with a classic `read:packages` token; CI under 10 minutes.
 
 ### M3 2.5D and pipelines
 - **Spike S7:** `@pixi/3d` under Ruken's CSP, WebGL2 parity, phone FPS, CI capture path, API surface; decide D-1.
@@ -154,7 +154,7 @@ Every plan names exact create/modify/test files, consumed and produced interface
 | Ruken TEST environment | Publishing beyond Ruken's local stack | Not provisioned; M1 targets the local stack only |
 | Ruken F1 contract freeze (`contracts-f1` tag) | Re-vendor after M1.4 | Planned 2026-10-16; not cut as of 2026-10-11 |
 | Ruken `[store]` manifest section | M7 `store` | Not built in Ruken |
-| GitHub Packages publish and game-read tokens | M2.4 publishing, every game repo | Not verified |
+| GitHub Packages publish and game-read tokens | M2.4 publishing, every game repo | Decided (coordinator, 2026-10-11; checked against GitHub's docs): publish with the release workflow's `GITHUB_TOKEN`; games read with `AF_READ_TOKEN`, a classic PAT with `read:packages` (the npm registry accepts only classic tokens). The Owner creates it when the first game repository needs it |
 | Runner capacity (reuse of the Owner's WSL and Windows GPU runners, or a Linux GPU box) | M1.1 browser lanes, M3 visual checks | D-5 |
 | Standalone hosting account and domain | M1.2 dev host | D-4 |
 | `@pixi/3d` beta access, version and deployment terms (public deployment is not allowed under the beta, per The Last Light's README) | M3 public builds, GAME-3D deployment | D-1 (provisional: unpublished, private builds only) |
