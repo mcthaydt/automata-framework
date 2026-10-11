@@ -11,7 +11,7 @@ export default defineConfig({
         test: {
           name: 'node',
           environment: 'node',
-          include: ['sim/**/*.test.ts', '*.test.ts'],
+          include: ['sim/**/*.test.ts', 'art/*.test.ts', '*.test.ts'],
           exclude: ['**/*.parity.test.ts'],
         },
       },

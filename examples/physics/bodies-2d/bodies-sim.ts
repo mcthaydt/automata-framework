@@ -2,17 +2,8 @@
 import { createBaseSim, Player, parseRoom, type RoomSource, tuning } from '@af-examples/base-2d'
 import { BodyKind, body2d, collider2d, physics2d, transform2d } from '@mcthaydt/automata-physics/2d'
 import type { Sim } from '@mcthaydt/automata-sim'
-import {
-  bodiesPlugin,
-  crate,
-  Follower,
-  GRAVITY,
-  metresX,
-  metresY,
-  PX_PER_M,
-  stone,
-  wickCentre,
-} from './sim/bodies.plugin.ts'
+import { bodiesPlugin, crate, Follower, GRAVITY, PX_PER_M, stone, wickCentre } from './sim/bodies.plugin.ts'
+import { roomColliders } from './sim/room-colliders.ts'
 
 /**
  * Adds the bodies to a fresh base sim: the room's tiles as fixed bodies, the box that follows Wick, and the
@@ -24,22 +15,10 @@ export async function createBodiesSim(source: RoomSource): Promise<Sim> {
   const heightPx = room.height * room.tileSize
   const sim = await createBaseSim({
     room: source,
-    plugins: [physics2d({ gravity: { x: 0, y: GRAVITY } }), bodiesPlugin(heightPx)],
+    plugins: [physics2d({ gravity: { x: 0, y: GRAVITY } }), bodiesPlugin(room)],
   })
-  const half = room.tileSize / 2 / PX_PER_M
-  room.rows.forEach((row, ty) => {
-    for (const run of row.matchAll(/#+/g)) {
-      const startPx = (run.index ?? 0) * room.tileSize
-      const widthPx = run[0].length * room.tileSize
-      sim.spawn([
-        transform2d({
-          x: metresX(startPx + widthPx / 2),
-          y: metresY(ty * room.tileSize + room.tileSize / 2, heightPx),
-        }),
-        collider2d.cuboid(metresX(widthPx / 2), half),
-      ])
-    }
-  })
+  for (const wall of roomColliders(room))
+    sim.spawn([transform2d({ x: wall.x, y: wall.y }), collider2d.cuboid(wall.hx, wall.hy)])
   const [wick] = sim.query(Player)
   if (wick !== undefined)
     sim.spawn([

@@ -1,4 +1,5 @@
-// A scripted run of the demo's sim: Wick walks into the crates and back while bodies drop on fixed ticks. The
+// A scripted run of the demo's sim: Wick walks into the crates, jumps, and walks back while bodies drop on fixed
+// ticks (some under the low platform, so the drop's climb above it is pinned too). The
 // golden tests replay it and compare the final state hash, in Node (golden.test.ts) and in Chromium, WebKit and
 // Firefox (golden.parity.test.ts): the pile must come out bit for bit the same on every engine (AGENTS.md,
 // determinism). A change to the bodies, the physics extension or the base's sim changes the hash on purpose:
@@ -7,12 +8,12 @@ import { moveCommand, ROOM } from '@af-examples/base-2d'
 import { createBodiesSim } from './bodies-sim.ts'
 import { Drop } from './sim/bodies.plugin.ts'
 
-/** Ticks the golden run lasts: long enough for every drop to land and tumble. */
-export const GOLDEN_TICKS = 360
+/** Ticks the golden run lasts (ten seconds): long enough for every drop to land and the pile to settle. */
+export const GOLDEN_TICKS = 600
 /** The ticks a body drops on: a crate on even ticks, a stone on odd ones. */
-export const GOLDEN_DROPS: readonly number[] = [10, 25, 26, 60, 61, 62, 63, 120, 121, 200, 240, 241]
-/** The sim's state hash after the golden run, recorded in Node on 2026-10-11. */
-export const GOLDEN_HASH = '54bfb33a9790ef21'
+export const GOLDEN_DROPS: readonly number[] = [10, 25, 26, 60, 61, 62, 63, 120, 121, 200, 240, 241, 400, 401]
+/** The sim's state hash after the golden run, re-recorded in Node on 2026-10-11 (M2.1b: Prop tags, drop heights, the jump). */
+export const GOLDEN_HASH = 'ad621eea6325a8db'
 
 /** Wick walks right for 90 ticks, waits, walks back left for 90, then waits out the rest. */
 function wickX(tick: number): -1 | 0 | 1 {
@@ -21,13 +22,16 @@ function wickX(tick: number): -1 | 0 | 1 {
   return 0
 }
 
+/** Wick jumps (holding the button for a full jump) while walking into the crates. */
+const wickJumps = (tick: number) => tick >= 70 && tick < 82
+
 /** Replays the golden run on a fresh sim and reports what the golden tests compare. */
 export async function runGolden(): Promise<{ hash: string; rejected: number; collisions: number }> {
   const sim = await createBodiesSim(ROOM)
   let rejected = 0
   let collisions = 0
   for (let i = 0; i < GOLDEN_TICKS; i++) {
-    const commands = [moveCommand(sim, { x: wickX(sim.tick), jump: false })]
+    const commands = [moveCommand(sim, { x: wickX(sim.tick), jump: wickJumps(sim.tick) })]
     if (GOLDEN_DROPS.includes(sim.tick))
       commands.push({ tick: sim.tick, source: 0, seq: 0x80000000 + sim.tick, type: Drop.id, payload: {} })
     const result = sim.step(commands)
