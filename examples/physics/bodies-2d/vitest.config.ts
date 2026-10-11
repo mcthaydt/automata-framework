@@ -1,8 +1,8 @@
 // By path: Node loads this config without a bundler, and the package's ./sim entry uses extensionless imports.
 
+import { goldenCommands } from '@mcthaydt/automata-testing/sim/commands'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
-import { goldenCommands } from '../../../packages/testing/src/sim/commands.ts'
 
 // Node runs every unit test; the browsers project replays the golden run in Chromium, WebKit and Firefox, so
 // the demo's sim is held to the same cross-engine rule as automata-sim itself (AGENTS.md, determinism).
