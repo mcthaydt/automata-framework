@@ -1,6 +1,8 @@
 import type { ManifestError } from '@ruken/manifest'
 import { Data } from 'effect'
 
+export { FileError, ProcessError } from '@mcthaydt/automata-node'
+
 // Every way a ship step can fail, as tagged errors (ADR 0003). The CLI prints `message`, one line per problem.
 
 /** Ruken's parser refused the generated `ruken.toml`. `problems` are Ruken's own issues, unchanged. */
@@ -38,15 +40,5 @@ export class EntryMissing extends Data.TaggedError('EntryMissing')<{
 }> {
   override get message(): string {
     return `the entry page ${this.entry} is not in ${this.distDir}`
-  }
-}
-
-/** Reading or writing a file failed. */
-export class FileError extends Data.TaggedError('FileError')<{
-  readonly path: string
-  readonly cause: unknown
-}> {
-  override get message(): string {
-    return `${this.path}: ${this.cause instanceof Error ? this.cause.message : String(this.cause)}`
   }
 }

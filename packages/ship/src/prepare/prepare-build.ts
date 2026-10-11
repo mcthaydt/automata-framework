@@ -1,14 +1,8 @@
-import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { FileError, Files } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
 import type { ShipConfig } from '../config/ship-config.ts'
-import {
-  EntryMissing,
-  FileError,
-  type ManifestInvalid,
-  RootAbsoluteReference,
-  VersionMismatch,
-} from '../errors.ts'
+import { EntryMissing, type ManifestInvalid, RootAbsoluteReference, VersionMismatch } from '../errors.ts'
 import { checkManifest } from '../manifest/check-manifest.ts'
 import { rukenToml } from '../manifest/ruken-toml.ts'
 import { checkVersion } from './check-version.ts'
@@ -35,9 +29,12 @@ export type PrepareError =
  * runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
  * (archive, size, file types) happen inside `ruken publish`, not here.
  */
-export function prepareBuild(input: PrepareInput): Effect.Effect<{ manifestPath: string }, PrepareError> {
+export function prepareBuild(
+  input: PrepareInput,
+): Effect.Effect<{ manifestPath: string }, PrepareError, Files> {
   return Effect.gen(function* () {
     const { distDir, config, tag } = input
+    const files = yield* Files
     const mismatch = checkVersion(config.game.version, tag)
     if (mismatch !== undefined && tag !== undefined) {
       return yield* new VersionMismatch({ version: config.game.version, tag, message: mismatch })
@@ -49,17 +46,14 @@ export function prepareBuild(input: PrepareInput): Effect.Effect<{ manifestPath:
     })
     if (references.length > 0) return yield* new RootAbsoluteReference({ references })
 
-    if (!existsSync(join(distDir, config.game.entry))) {
+    if (!(yield* files.exists(join(distDir, config.game.entry)))) {
       return yield* new EntryMissing({ entry: config.game.entry, distDir })
     }
 
     const toml = rukenToml(config)
     yield* checkManifest(toml)
     const manifestPath = join(distDir, 'ruken.toml')
-    yield* Effect.try({
-      try: () => writeFileSync(manifestPath, toml),
-      catch: (cause) => new FileError({ path: manifestPath, cause }),
-    })
+    yield* files.writeText(manifestPath, toml)
     return { manifestPath }
   })
 }
