@@ -30,5 +30,8 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 | `host/lifecycle-and-saves` | host lane | `base-2d` | Waits on `base-2d` |
 | `content/hot-reload` | content lane | `base-2d` | Waits on `base-2d` |
 | `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR |
-| `physics/bodies-2d`, `physics/bodies-3d` | sim lane | `base-2d`, `base-3d` | Waits on the bases |
+| `physics/bodies-2d` (Rapier crates and balls in the room, pushed by the character; [spec](../docs/superpowers/specs/2026-10-11-m2-physics-demo-design.md)) | sim lane, M2.1b | `base-2d` | Waits on `base-2d` |
+| `physics/bodies-3d` | sim lane | `base-3d` | Waits on `base-3d` (M3) |
+| `sim/content-restore` (a snapshot is gated by gameplay content, not by store metadata; [spec](../docs/superpowers/specs/2026-10-11-m2-content-in-sim-design.md#8-demo-examplessimcontent-restore)) | content lane, M2.2 | `base-2d` | Waits on `base-2d` |
+| `testing/record-replay` (play, then watch the run re-simulated from its `.replay` with every check passing; [spec](../docs/superpowers/specs/2026-10-11-m2-goldens-and-replays-design.md#8-demo-examplestestingrecord-replay)) | testing lane, M2.3 | `base-2d` | Waits on `base-2d` |
 | `placeholder` (the ship lane's page: boots under the fake host and publishes through `ship`; not a feature demo) | ship lane | none | With the ship PR |
