@@ -15,7 +15,7 @@ import { hex64, xxhash64 } from '../hash/xxhash64'
 import { createRng, deriveSeed, type Rng, rngFromState } from '../rng/rng'
 import { orderPlugins, orderSystems } from '../schedule/schedule'
 import { sortedKeys } from '../util/sorted'
-import { EntityStore, type FieldRecord, type RenderDelta, SimCapacityError } from './entity-store'
+import { EntityStore, type RenderDelta, SimCapacityError } from './entity-store'
 import {
   decodeSnapshot,
   encodeSnapshot,

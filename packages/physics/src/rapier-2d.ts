@@ -116,7 +116,10 @@ export async function createRapier2D(setup: {
       const body = world.getRigidBody(handle)
       const t = entity.get(Transform2D)
       const b = entity.get(RigidBody2D)
-      if (body.bodyType() !== b.kind) body.setBodyType(b.kind as RAPIER.RigidBodyType, true)
+      if (body.bodyType() !== b.kind) {
+        checkBody(entity.sid, 'physics2d.rigid-body', b.kind)
+        body.setBodyType(b.kind as RAPIER.RigidBodyType, true)
+      }
       if (body.linearDamping() !== b.linearDamping) body.setLinearDamping(b.linearDamping)
       if (body.angularDamping() !== b.angularDamping) body.setAngularDamping(b.angularDamping)
       const p = body.translation()
@@ -159,8 +162,11 @@ export async function createRapier2D(setup: {
       if (t.x !== p.x || t.y !== p.y) collider.setTranslation({ x: t.x, y: t.y })
       if (t.rotation !== collider.rotation()) collider.setRotation(t.rotation)
     },
-    writeBack(world, handle, entity) {
+    writeBack(world, handle, entity, wasAsleep) {
       const body = world.getRigidBody(handle)
+      const asleep = body.isSleeping()
+      // Rapier zeroes a body's velocity as it falls asleep, so that tick is still written; after it, nothing moves.
+      if (asleep && wasAsleep) return true
       const p = body.translation()
       const rotation = body.rotation()
       const v = body.linvel()
@@ -172,6 +178,7 @@ export async function createRapier2D(setup: {
       const b = entity.get(RigidBody2D)
       if (b.vx !== v.x || b.vy !== v.y || b.angvel !== angvel)
         entity.set(RigidBody2D, { vx: v.x, vy: v.y, angvel })
+      return asleep
     },
     isSensor: (world, handle) => world.getCollider(handle).isSensor(),
   }

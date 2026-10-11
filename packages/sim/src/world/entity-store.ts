@@ -83,11 +83,10 @@ export class EntityStore {
     return this.coerce(def, {}, def.trait.schema as FieldRecord)
   }
 
+  // Koota stores these traits as structure-of-arrays, and its get builds a fresh object holding exactly the
+  // schema's fields on every call, so the result is already a private copy (the hot path of every system).
   private read(e: Entity, def: ComponentDef): FieldRecord {
-    const raw = e.get(def.trait) as FieldRecord
-    const out: FieldRecord = {}
-    for (const name of def.fieldNames) out[name] = raw[name] as number | boolean | string
-    return out
+    return e.get(def.trait) as FieldRecord
   }
 
   private markChanged(sid: number, def: ComponentDef): void {

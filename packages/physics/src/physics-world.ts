@@ -28,7 +28,10 @@ export interface PhysicsAdapter<World> {
   free(world: World): void
   /** Every body and collider handle the world holds, as Rapier reports them. */
   handles(world: World): { bodies: number[]; colliders: number[] }
-  /** Throws an Error naming the sid and field when the entity's physics fields are invalid (spec §5). */
+  /**
+   * Throws an Error naming the sid and field when the entity's physics fields are invalid (spec §5). Called
+   * before anything is built from the fields; `updateBody` checks the fields it applies itself.
+   */
   validate(entity: EntityRef): void
   createBody(world: World, entity: EntityRef): number
   /** Attached to `body` when given, else a lone collider placed by the entity's transform. */
@@ -42,8 +45,11 @@ export interface PhysicsAdapter<World> {
   colliderMatches(world: World, collider: number, entity: EntityRef): boolean
   /** Moves a lone collider to the entity's transform if it differs. */
   updateLoneCollider(world: World, collider: number, entity: EntityRef): void
-  /** Writes the body's pose and velocities into the entity (sync-out). */
-  writeBack(world: World, body: number, entity: EntityRef): void
+  /**
+   * Writes the body's pose and velocities into the entity (sync-out) and returns whether the body is asleep.
+   * When it was already asleep at the last write-back nothing can have moved, so it may skip the reads.
+   */
+  writeBack(world: World, body: number, entity: EntityRef, wasAsleep: boolean): boolean
   isSensor(world: World, collider: number): boolean
 }
 
@@ -51,6 +57,8 @@ export interface PhysicsAdapter<World> {
 interface Row {
   readonly body: number | undefined
   collider: number | undefined
+  /** The body was asleep at the last sync-out. Not in the snapshot: after a restore it starts false. */
+  asleep?: boolean
 }
 
 const PHYSICS_BYTES_VERSION = 1
@@ -131,11 +139,11 @@ export class PhysicsWorld<World> implements PluginState {
     for (const sid of this.sortedSids()) {
       const row = this.rows.get(sid) as Row
       const entity = ctx.entity(sid) as EntityRef
-      this.rapier.validate(entity)
       if (row.body !== undefined) this.rapier.updateBody(this.world, row.body, entity)
       if (row.collider === undefined) continue
       if (!this.rapier.colliderMatches(this.world, row.collider, entity)) {
         // Rapier cannot reshape every collider in place, so a changed collider is rebuilt.
+        this.rapier.validate(entity)
         this.rapier.removeCollider(this.world, row.collider)
         this.colliderOwner.delete(row.collider)
         this.addCollider(sid, row, entity)
@@ -155,7 +163,8 @@ export class PhysicsWorld<World> implements PluginState {
     for (const sid of this.sortedSids()) {
       const row = this.rows.get(sid) as Row
       const entity = ctx.entity(sid)
-      if (row.body !== undefined && entity) this.rapier.writeBack(this.world, row.body, entity)
+      if (row.body !== undefined && entity)
+        row.asleep = this.rapier.writeBack(this.world, row.body, entity, row.asleep === true)
     }
   }
 

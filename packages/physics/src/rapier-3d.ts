@@ -130,10 +130,15 @@ export async function createRapier3D(setup: {
       const body = world.getRigidBody(handle)
       const t = entity.get(Transform3D)
       const b = entity.get(RigidBody3D)
-      if (body.bodyType() !== b.kind) body.setBodyType(b.kind as RAPIER.RigidBodyType, true)
+      if (body.bodyType() !== b.kind) {
+        checkBody(entity.sid, 'physics3d.rigid-body', b.kind)
+        body.setBodyType(b.kind as RAPIER.RigidBodyType, true)
+      }
       if (body.linearDamping() !== b.linearDamping) body.setLinearDamping(b.linearDamping)
       if (body.angularDamping() !== b.angularDamping) body.setAngularDamping(b.angularDamping)
       const same = samePose(t, body.translation(), body.rotation())
+      if (!same.rotation)
+        checkUnitQuaternion(entity.sid, 'transform-3d', t.qx * t.qx + t.qy * t.qy + t.qz * t.qz + t.qw * t.qw)
       // sync-out wrote Rapier's own values, so a difference means game code moved the entity.
       if (b.kind === BodyKind.kinematicPosition) {
         if (!same.position) body.setNextKinematicTranslation({ x: t.x, y: t.y, z: t.z })
@@ -169,11 +174,16 @@ export async function createRapier3D(setup: {
       const collider = world.getCollider(handle)
       const t = entity.get(Transform3D)
       const same = samePose(t, collider.translation(), collider.rotation())
+      if (!same.rotation)
+        checkUnitQuaternion(entity.sid, 'transform-3d', t.qx * t.qx + t.qy * t.qy + t.qz * t.qz + t.qw * t.qw)
       if (!same.position) collider.setTranslation({ x: t.x, y: t.y, z: t.z })
       if (!same.rotation) collider.setRotation({ x: t.qx, y: t.qy, z: t.qz, w: t.qw })
     },
-    writeBack(world, handle, entity) {
+    writeBack(world, handle, entity, wasAsleep) {
       const body = world.getRigidBody(handle)
+      const asleep = body.isSleeping()
+      // Rapier zeroes a body's velocity as it falls asleep, so that tick is still written; after it, nothing moves.
+      if (asleep && wasAsleep) return true
       const p = body.translation()
       const q = body.rotation()
       const v = body.linvel()
@@ -185,6 +195,7 @@ export async function createRapier3D(setup: {
       const b = entity.get(RigidBody3D)
       if (b.vx !== v.x || b.vy !== v.y || b.vz !== v.z || b.wx !== w.x || b.wy !== w.y || b.wz !== w.z)
         entity.set(RigidBody3D, { vx: v.x, vy: v.y, vz: v.z, wx: w.x, wy: w.y, wz: w.z })
+      return asleep
     },
     isSensor: (world, handle) => world.getCollider(handle).isSensor(),
   }

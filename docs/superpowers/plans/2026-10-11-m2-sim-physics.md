@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
 - **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
-- **Progress:** 12 / 13 tasks.
+- **Progress:** 13 / 13 tasks.
 - **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
@@ -24,7 +24,7 @@
 | `packages/physics/src/rapier-2d.ts`, `rapier-3d.ts` | adapters: the only files that call Rapier |
 | `packages/physics/src/physics-2d.component.ts`, `physics-3d.component.ts` | components |
 | `packages/physics/src/physics-2d.event.ts`, `physics-3d.event.ts` | events |
-| `packages/physics/src/physics-2d.plugin.ts`, `physics-3d.plugin.ts` | `physics2d()` / `physics3d()` |
+| `packages/physics/src/physics-2d.ts`, `physics-3d.ts` | `physics2d()` / `physics3d()` |
 | `packages/physics/src/spawn-2d.ts`, `spawn-3d.ts` | spawn helpers |
 | `packages/physics/src/2d.ts`, `3d.ts` | entry points |
 | `tooling/check-boundaries` | `packages/physics/src` root; `@mcthaydt/automata-sim` imports |
@@ -81,8 +81,8 @@
 - [x] Implement; `pnpm check`. (`physics-2d.test.ts`, `physics-2d-snapshot.test.ts`, the 2D lazy-load case; tests written and seen failing on the missing `./2d` before `rapier-2d.ts` existed. Mutations of teleport, kinematic target, linear and angular velocity, collider rebuild, lone-collider move, write-back equality and validation each fail a test.)
 
 ### 13. Four-engine parity and measurements (spec §7, §8)
-- [ ] Failing parity tests with placeholder goldens (2D and 3D); commit the Node hashes; run Chromium, WebKit and Firefox; all four must match without edits.
-- [ ] Bench (`AF_BENCH=1`): ms/tick at 100 and 500 bodies, init time; package sizes raw and gzip -9. Record below and in the PR.
+- [x] Failing parity tests with placeholder goldens (2D and 3D); commit the Node hashes; run Chromium, WebKit and Firefox; all four must match without edits. (`physics-2d.parity.test.ts`, `physics-3d.parity.test.ts`: 300 ticks of the mixed scene, uninterrupted and with a restore at tick 150. 2D `785b4ebfe6874caa`, 3D `580a47f5c068b59f`; 6/6 browser tests, unchanged after the overhead work below.)
+- [x] Bench (`AF_BENCH=1`): ms/tick at 100 and 500 bodies, init time; package sizes raw and gzip -9. Record below and in the PR. (`physics.bench.test.ts`, skipped unless `AF_BENCH=1`. The first run showed 2.47 ms/tick at 500 3D bodies against 0.11 ms for Rapier alone, so before recording: `EntityStore.read` returns Koota's fresh object without a second copy, validation runs only when a body or collider is created or rebuilt, and write-back skips a body that was already asleep at its last write-back. Goldens unchanged.)
 
 ## Execution log
 
@@ -90,3 +90,6 @@
 |---|---|---|---|
 | 2026-10-11 | 1–2 | `358892d` | Framing tests live in `plugin-state.test.ts`, not `snapshot.test.ts` (deviation noted in task 2). |
 | 2026-10-11 | 3–6 | this and the three commits before it | Sim golden `2dfe1971eaf6af8f` → `98cc273719c10ef2` (task 6: the schema hash now covers resource, command and event schemas); identical in Node, Chromium, WebKit and Firefox. Fault handling is fail-closed (spec §10.2). |
+| 2026-10-11 | 7 | `c2423d6` | XXH64 on 32-bit halves; the BigInt version kept as `testing/xxhash64-reference.ts` for the equivalence test. |
+| 2026-10-11 | 8–12 | `cab4784`..`74f7638` | Deviation: the plugin factories live in `physics-2d.ts` / `physics-3d.ts`, not `*.plugin.ts`, because `pnpm style` requires a `*.plugin.ts` file to export a `definePlugin` result directly and the factories build one per call. |
+| 2026-10-11 | 13 | this commit | Node 24, Intel Xeon 2.10 GHz, 4 cores. First `createSim` with `RAPIER.init()`: 3D 105.8 ms, 2D 66.3 ms. Median ms/tick over 300 ticks, 100 / 500 dynamic bodies: 3D 0.252 / 0.998, 2D 0.227 / 0.815 (before the overhead work: 3D 0.606 / 2.470, 2D 0.451 / 1.994; Rapier alone at 500 3D bodies 0.111). `dist/rapier.mjs`, raw / gzip -9: rapier2d-deterministic-compat 3,452,335 / 1,301,241 bytes; rapier3d-deterministic-compat 4,372,012 / 1,659,546 bytes. |
