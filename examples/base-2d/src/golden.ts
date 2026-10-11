@@ -40,7 +40,10 @@ export function routeInputs(route: readonly RouteSegment[] = GOLDEN_ROUTE): Move
 /** The tick the golden route touches the goal on. */
 export const GOLDEN_GOAL_TICK = 342
 /**
- * The sim's state hash after the whole golden route, with seed 1. Re-recorded when physics (#9) merged: its
- * schema hash also covers resource and command schemas (was `a40a6dbda55f4932`; same route, same goal tick).
+ * The sim's state hash after the whole golden route, with seed 1. Re-recorded when the room moved into
+ * compiled content (`content/rooms/room-1.toml`): the sim's content went from `{ room }` to the compiled sim
+ * partition `{ tuning, rooms }` (M2.2's `simContent` shape), so its content hash, part of the state hash,
+ * changed. The route, the goal tick and every movement test are the same. Was `31f50888ccb4cf0a`, itself
+ * re-recorded when physics #9 merged, from `a40a6dbda55f4932`.
  */
-export const GOLDEN_HASH = '31f50888ccb4cf0a'
+export const GOLDEN_HASH = 'd8a0f00cf8cae7e8'
