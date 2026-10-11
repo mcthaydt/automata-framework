@@ -23,6 +23,9 @@ importers:
 
   packages/ship:
     dependencies:
+      '@ruken/manifest':
+        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
+        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       effect:
         specifier: 3.22.2
         version: 3.22.2
@@ -386,6 +389,10 @@ packages:
 
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+
+  '@ruken/manifest@file:vendor/ruken/ruken-manifest-0.0.0.tgz':
+    resolution: {integrity: sha512-ZgDo8pOZEEbppL7kO+1qzUbB9xhDk8q20t8tEDURl6l1OS2lb8F9nwR0GabbTrYEGLg/0WgGA/YiSbW4Fge4Wg==, tarball: file:vendor/ruken/ruken-manifest-0.0.0.tgz}
+    version: 0.0.0
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -842,6 +849,10 @@ packages:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
     engines: {node: '>=18'}
 
+  smol-toml@1.9.0:
+    resolution: {integrity: sha512-hpd+HLON7HdZXqYchMM/+LaTTbdK0AU3NngIJ4KVyWbY9bfQqdL9cD+4yf6dUoU2Ap4VsU0JkQi6FxAI1B2mXQ==}
+    engines: {node: '>= 18'}
+
   source-map-js@1.2.2:
     resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
     engines: {node: '>=0.10.0'}
@@ -1143,6 +1154,10 @@ snapshots:
     optional: true
 
   '@rolldown/pluginutils@1.0.1': {}
+
+  '@ruken/manifest@file:vendor/ruken/ruken-manifest-0.0.0.tgz':
+    dependencies:
+      smol-toml: 1.9.0
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -1558,6 +1573,8 @@ snapshots:
       '@polka/url': 1.0.0-next.29
       mrmime: 2.0.1
       totalist: 3.0.1
+
+  smol-toml@1.9.0: {}
 
   source-map-js@1.2.2: {}
 
