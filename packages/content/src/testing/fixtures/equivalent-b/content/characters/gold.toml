@@ -1,0 +1,3 @@
+portraitAliases = { gold = "portrait.gold" }
+sheetAliases = { gold = "ninja.gold" }
+displayName = 'Gold'

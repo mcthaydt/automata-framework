@@ -1,0 +1,16 @@
+entry = "Title"
+
+[[transitions]]
+event = "play"
+from = "Menu"
+to = "Play"
+
+[[transitions]]
+to = "Play"
+from = "Title"
+event = "play"
+
+[[transitions]]
+from = "Play"
+to = "Menu"
+event = "quit"

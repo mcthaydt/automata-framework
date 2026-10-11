@@ -1,0 +1,5 @@
+[screens.Splash]
+files = ["fonts/inter-latin.woff2", "art/splash.png"]
+
+[screens.MainMenu]
+files = ["art/splash.png", "audio/*"]

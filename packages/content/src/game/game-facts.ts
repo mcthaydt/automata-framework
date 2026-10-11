@@ -1,0 +1,106 @@
+// Facts Ruken's manifest asks for that only the game knows (`content/game.toml`), and the files each screen
+// waits for (`content/assets.toml`). The compiler turns them into Ruken's `[content]` and `[analytics]`
+// tables (`ruken-fields.json`) and, after a build, the `[loading] preload` list. The ship lane writes
+// `ruken.toml` from these; content never writes it. Ruken's rules are never copied here: `RATINGS` is
+// imported, and everything else Ruken checks is checked by Ruken's own parser (ruken-check.ts).
+
+import { type Manifest, RATINGS, type Rating } from '@ruken/manifest'
+import { z } from 'zod'
+import type { Problem } from '../diagnostics/diagnostic'
+
+export interface GameSource {
+  /** The language the TOML is written in. Default `en`. */
+  readonly source_language: string
+  readonly rating: Rating
+  readonly descriptors: string[]
+  readonly estimated_hours?: number | undefined
+  readonly custom_events: string[]
+  /** The screens whose files Ruken preloads, in order. Default: the flow's entry. */
+  readonly preload_screens?: string[] | undefined
+}
+
+export const gameSchema: z.ZodType<GameSource, unknown> = z.strictObject({
+  source_language: z.string().default('en'),
+  rating: z.enum(RATINGS),
+  descriptors: z.array(z.string()).default([]),
+  estimated_hours: z.optional(z.number().positive()),
+  custom_events: z.array(z.string()).default([]),
+  preload_screens: z.optional(z.array(z.string())),
+})
+
+export interface AssetsSource {
+  readonly screens: Readonly<Record<string, { readonly files: readonly string[] }>>
+}
+
+export const assetsSchema: z.ZodType<AssetsSource> = z.strictObject({
+  screens: z.record(z.string(), z.strictObject({ files: z.array(z.string()) })),
+})
+
+export type RukenFields = Pick<Manifest, 'content' | 'analytics'>
+
+/** BCP 47 tags of the shapes Ruken's store lists: `en`, `fr`, `pt-BR`, `zh-Hant`, `zh-Hant-TW`. */
+export const LANGUAGE_TAG: RegExp = /^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2})?$/
+
+/** The game's languages: never typed, derived from the source language and the translations present. */
+export function languagesOf(sourceLanguage: string, translations: readonly string[]): string[] {
+  const others = translations.filter((language) => language !== sourceLanguage).sort()
+  return [sourceLanguage, ...others]
+}
+
+export function checkGame(
+  game: GameSource,
+  context: { readonly assetScreens?: readonly string[] | undefined },
+): Problem[] {
+  const problems: Problem[] = []
+  const refuse = (path: Problem['path'], message: string): void => {
+    problems.push({ path, code: 'invalidGame', message })
+  }
+  // Ruken's parser checks each name and that `en` is among the languages (ruken-check.ts). These are the
+  // rules it does not have: a name listed twice, and a source language written as a language tag.
+  const seen = new Set<string>()
+  game.custom_events.forEach((event, index) => {
+    if (seen.has(event)) refuse(['custom_events', index], `${event} is listed more than once`)
+    seen.add(event)
+  })
+  if (!LANGUAGE_TAG.test(game.source_language)) {
+    refuse(['source_language'], `${game.source_language} is not a language tag like en or pt-BR`)
+  }
+  const assetScreens = context.assetScreens
+  if (assetScreens !== undefined) {
+    game.preload_screens?.forEach((screen, index) => {
+      if (!assetScreens.includes(screen))
+        refuse(['preload_screens', index], `${screen} has no files in assets.toml`)
+    })
+  }
+  return problems
+}
+
+/**
+ * `screens` is the flow's screens, or undefined when the game has no flow. Each file's path is Ruken's to
+ * judge (ruken-check.ts).
+ */
+export function checkAssets(assets: AssetsSource, screens: readonly string[] | undefined): Problem[] {
+  const problems: Problem[] = []
+  for (const screen of Object.keys(assets.screens).sort()) {
+    if (screens !== undefined && !screens.includes(screen)) {
+      problems.push({
+        path: ['screens', screen],
+        code: 'invalidGame',
+        message: `${screen} is not a screen in flow.toml`,
+      })
+    }
+  }
+  return problems
+}
+
+export function rukenFields(game: GameSource, languages: readonly string[]): RukenFields {
+  return {
+    content: {
+      languages: [...languages],
+      rating: game.rating,
+      descriptors: [...game.descriptors],
+      ...(game.estimated_hours === undefined ? {} : { estimated_hours: game.estimated_hours }),
+    },
+    analytics: { custom_events: [...game.custom_events] },
+  }
+}

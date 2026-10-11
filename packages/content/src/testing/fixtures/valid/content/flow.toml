@@ -1,0 +1,120 @@
+# Client presentation navigation.
+#
+# Screens, events, and the destinations each pair may choose are code-owned:
+# see `FLOW_TARGETS` in `packages/shared/src/content/presentation.ts`. This
+# file selects among them and can introduce none of them.
+#
+# transition: "liquid" wipes under the veil (race-flow spec §7); absent is a cut.
+
+entry = "Splash"
+
+[[transitions]]
+from = "Splash"
+event = "splashComplete"
+to = "MainMenu"
+
+[[transitions]]
+from = "Splash"
+event = "resumeRoom"
+to = "Lobby"
+
+[[transitions]]
+from = "MainMenu"
+event = "play"
+to = "Lobby"
+
+[[transitions]]
+from = "Lobby"
+event = "back"
+to = "MainMenu"
+
+[[transitions]]
+from = "Lobby"
+event = "roomRacing"
+to = "Gameplay"
+transition = "liquid"
+
+[[transitions]]
+from = "Lobby"
+event = "raceFinished"
+to = "GameEnd"
+
+[[transitions]]
+from = "Gameplay"
+event = "raceFinished"
+to = "GameEnd"
+transition = "liquid"
+
+[[transitions]]
+from = "Gameplay"
+event = "recoverToMenu"
+to = "MainMenu"
+
+[[transitions]]
+from = "Gameplay"
+event = "leaveRace"
+to = "MainMenu"
+transition = "liquid"
+
+[[transitions]]
+from = "GameEnd"
+event = "raceAgain"
+to = "Lobby"
+transition = "liquid"
+
+[[transitions]]
+from = "GameEnd"
+event = "returnToMenu"
+to = "MainMenu"
+transition = "liquid"
+
+[[transitions]]
+from = "GameEnd"
+event = "roomRacing"
+to = "Gameplay"
+transition = "liquid"
+
+[[transitions]]
+from = "MainMenu"
+event = "tutorial"
+to = "Tutorial"
+transition = "liquid"
+
+[[transitions]]
+from = "Lobby"
+event = "tutorial"
+to = "Tutorial"
+transition = "liquid"
+
+[[transitions]]
+from = "Tutorial"
+event = "tutorialToTitle"
+to = "MainMenu"
+transition = "liquid"
+
+[[transitions]]
+from = "Tutorial"
+event = "tutorialToLobby"
+to = "Lobby"
+transition = "liquid"
+
+# The replay of the race just finished (race-options spec §7.1). The viewer is
+# the client's own: it returns to results, or to the room once the room has
+# moved on.
+[[transitions]]
+from = "GameEnd"
+event = "watchReplay"
+to = "Replay"
+transition = "liquid"
+
+[[transitions]]
+from = "Replay"
+event = "replayExit"
+to = "GameEnd"
+transition = "liquid"
+
+[[transitions]]
+from = "Replay"
+event = "replayExitToRoom"
+to = "Lobby"
+transition = "liquid"
