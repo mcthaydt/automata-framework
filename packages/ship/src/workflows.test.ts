@@ -151,8 +151,11 @@ describe('parity across packages', () => {
       }
     })
     expect(withBrowsers).toContain('packages/sim')
+    // A package may add more browser projects to the same run (base-2d adds its Chromium renderer tests).
     for (const path of withBrowsers) {
-      expect(packageJson(path).scripts['test:parity']).toBe('vitest run --project browsers')
+      expect(packageJson(path).scripts['test:parity']).toMatch(
+        /^vitest run --project browsers( --project [\w-]+)*$/,
+      )
     }
   })
 })
