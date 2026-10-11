@@ -32,6 +32,7 @@ export type BootFailure =
 export type HostKind = 'ruken' | 'standalone'
 
 export type BootFailureState =
+  | 'start'
   | 'connect'
   | 'progress'
   | 'damaged'
@@ -51,6 +52,7 @@ export type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureActi
 
 /** English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5. */
 export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
+  start: "Couldn't start the game.",
   connect: "Couldn't connect to Ruken.",
   progress: "Couldn't load your progress.",
   damaged: 'This copy of the game is damaged.',
@@ -65,6 +67,9 @@ export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
 /**
  * Which state a failure draws and which ways forward it offers.
  *
+ * - Host start (`init`): `Ruken.init` threw. Try again when Ruken says a retry can succeed;
+ *   otherwise it is a build or config fault (a bad `gameId` or `wants`) the player cannot fix, so
+ *   the panel is final. A failed in-frame handshake is not an error: the SDK falls back to standalone.
  * - Storage (`saves.*`): Try again when Ruken says a retry can succeed. Otherwise a standalone page
  *   may go on without the saved progress; inside Ruken the way forward is Back to Ruken, because
  *   playing on without the player's saves would silently fork their progress.
@@ -76,6 +81,7 @@ export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
 export function bootFailureView(failure: BootFailure, hostKind: HostKind): BootFailureViewModel {
   switch (failure._tag) {
     case 'HostError':
+      if (failure.operation === 'init') return { state: 'start', actions: failure.retryable ? ['retry'] : [] }
       if (!failure.operation.startsWith('saves.')) return { state: 'connect', actions: ['retry'] }
       if (failure.retryable) return { state: 'progress', actions: ['retry'] }
       return { state: 'progress', actions: [hostKind === 'standalone' ? 'continue' : 'exit'] }

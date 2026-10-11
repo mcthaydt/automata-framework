@@ -15,6 +15,19 @@ describe('bootFailureView', () => {
     [saves(true), 'standalone', 'progress', ['retry']],
     [saves(false), 'standalone', 'progress', ['continue']],
     [saves(false), 'ruken', 'progress', ['exit']],
+    [{ _tag: 'HostError', code: 'TIMEOUT', retryable: true, operation: 'init' }, 'ruken', 'start', ['retry']],
+    [
+      { _tag: 'HostError', code: 'INVALID_PAYLOAD', retryable: false, operation: 'init' },
+      'ruken',
+      'start',
+      [],
+    ],
+    [
+      { _tag: 'HostError', code: 'INVALID_PAYLOAD', retryable: false, operation: 'init' },
+      'standalone',
+      'start',
+      [],
+    ],
     [
       { _tag: 'HostError', code: 'TIMEOUT', retryable: true, operation: 'ready' },
       'ruken',
@@ -37,6 +50,7 @@ describe('bootFailureView', () => {
 
   it('has English copy for every state and action', () => {
     for (const key of [
+      'start',
       'connect',
       'progress',
       'damaged',

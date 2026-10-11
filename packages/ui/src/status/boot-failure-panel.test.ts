@@ -6,6 +6,7 @@ import type { BootFailure } from './boot-failure'
 
 // The ui lane draws every BootError state from a fixture without a renderer (shared contracts §4).
 const FIXTURES: readonly BootFailure[] = [
+  { _tag: 'HostError', code: 'TIMEOUT', retryable: true, operation: 'init' },
   { _tag: 'HostError', code: 'TIMEOUT', retryable: true, operation: 'saves.get' },
   { _tag: 'HostError', code: 'TIMEOUT', retryable: true, operation: 'ready' },
   { _tag: 'ContentHashMismatch', expected: 'a', actual: 'b' },
@@ -24,7 +25,9 @@ describe('BootFailurePanel', () => {
   it.each(FIXTURES)('draws %j as an alert with its state and copy', (failure) => {
     open(failure)
     const alert = screen.getByRole('alert')
-    expect(alert.dataset.code).toMatch(/^(connect|progress|damaged|download|download-stalled|unsupported)$/)
+    expect(alert.dataset.code).toMatch(
+      /^(start|connect|progress|damaged|download|download-stalled|unsupported)$/,
+    )
     expect(alert.textContent?.trim().length).toBeGreaterThan(0)
   })
 
@@ -54,6 +57,13 @@ describe('BootFailurePanel', () => {
   it('a standalone device that cannot run the game shows a final panel with no buttons', () => {
     open({ _tag: 'RendererUnavailable', tried: ['webgl2'] }, 'standalone')
     expect(screen.getByRole('alert')).toHaveAttribute('data-code', 'unsupported')
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('a host that cannot start for a build or config fault shows a final panel with no buttons', () => {
+    open({ _tag: 'HostError', code: 'INVALID_PAYLOAD', retryable: false, operation: 'init' })
+    expect(screen.getByRole('alert')).toHaveAttribute('data-code', 'start')
+    expect(screen.getByRole('alert')).toHaveTextContent("Couldn't start the game.")
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
