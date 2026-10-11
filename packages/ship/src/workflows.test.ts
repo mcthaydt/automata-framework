@@ -151,8 +151,11 @@ describe('parity across packages', () => {
       }
     })
     expect(withBrowsers).toContain('packages/sim')
+    // A package may add more browser projects to the same run (base-2d adds its Chromium renderer tests).
     for (const path of withBrowsers) {
-      expect(packageJson(path).scripts['test:parity']).toBe('vitest run --project browsers')
+      expect(packageJson(path).scripts['test:parity']).toMatch(
+        /^vitest run --project browsers( --project [\w-]+)*$/,
+      )
     }
   })
 })
@@ -179,6 +182,12 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
   it('builds and prepares the placeholder as game-ci does', () => {
     expect(localSteps).toContain('pnpm --filter @af-examples/placeholder build')
     expect(localSteps).toContain('pnpm --filter @af-examples/placeholder prepare-ruken')
+  })
+
+  it('builds and prepares base-2d and runs the determinism check on its sim, as game-ci does', () => {
+    expect(localSteps).toContain('pnpm --filter @af-examples/base-2d check')
+    expect(localSteps).toContain('pnpm --filter @af-examples/base-2d build')
+    expect(localSteps).toContain('pnpm --filter @af-examples/base-2d prepare-ruken')
   })
 })
 
@@ -246,6 +255,21 @@ describe('ci.yml (AF)', () => {
     expect(ci.jobs.placeholder?.uses).toBe('./.github/workflows/game-ci.yml')
     expect(ci.jobs.placeholder?.with?.['working-directory']).toBe('examples/placeholder')
   })
+
+  it('builds base-2d through the reusable game workflow, with the determinism check on its sim', () => {
+    expect(ci.jobs['base-2d']?.uses).toBe('./.github/workflows/game-ci.yml')
+    expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('examples/base-2d')
+    expect(ci.jobs['base-2d']?.with?.['sim-roots']).toBe('src/sim')
+    expect(ci.jobs['base-2d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+  })
+
+  it('gives each game-ci caller its own artifact name, since one run cannot upload two artifacts of the same name', () => {
+    const names = Object.values(ci.jobs)
+      .filter((job) => job.uses === './.github/workflows/game-ci.yml')
+      .map((job) => job.with?.['artifact-name'] ?? 'game-dist')
+    expect(names.length).toBeGreaterThan(1)
+    expect(new Set(names).size).toBe(names.length)
+  })
 })
 
 describe('game-ci.yml (reusable)', () => {
@@ -263,6 +287,14 @@ describe('game-ci.yml (reusable)', () => {
     expect(scripts).toContain('tooling/check-boundaries/src/cli.ts')
     expect(scripts).toContain('packages/ship/src/cli.ts" prepare')
     expect(scripts.indexOf('check-boundaries')).toBeLessThan(scripts.indexOf('prepare'))
+  })
+
+  it('uploads the build under the artifact name its caller passes', () => {
+    expect(gameCi.on.workflow_call?.inputs).toHaveProperty('artifact-name')
+    const upload = (gameCi.jobs.game?.steps ?? []).find((step) =>
+      step.uses?.startsWith('actions/upload-artifact@'),
+    )
+    expect(upload?.with?.name).toBe('${{ inputs.artifact-name }}')
   })
 })
 

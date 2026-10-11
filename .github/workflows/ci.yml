@@ -151,3 +151,13 @@ jobs:
       working-directory: examples/placeholder
       sim-roots: ""
       runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+
+  base-2d:
+    name: base-2d through game-ci
+    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    uses: ./.github/workflows/game-ci.yml
+    with:
+      working-directory: examples/base-2d
+      sim-roots: src/sim
+      artifact-name: base-2d-dist
+      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}

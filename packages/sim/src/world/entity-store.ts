@@ -1,7 +1,7 @@
 import { createWorld, type Entity, type World } from 'koota'
 import type { EntityRef, SpawnPart } from '../define/context'
 import type { ComponentDef } from '../define/definitions'
-import { coerceField, type FieldType } from '../define/fields'
+import { coerceField, defaultField, type FieldType } from '../define/fields'
 import { ownKeyCount, sortedKeys } from '../util/sorted'
 
 export type FieldRecord = Record<string, number | boolean | string>
@@ -88,13 +88,18 @@ export class EntityStore {
   }
 
   private defaults(def: ComponentDef): FieldRecord {
-    return this.coerce(def, {}, def.trait.schema as FieldRecord)
+    const out: FieldRecord = {}
+    for (const name of def.fieldNames) out[name] = defaultField(def.fields[name] as FieldType)
+    return out
   }
 
-  // Koota stores these traits as structure-of-arrays, and its get builds a fresh object holding exactly the
-  // schema's fields on every call, so the result is already a private copy (the hot path of every system).
+  // The traits are factories (array-of-structures, definitions.ts), so Koota's get returns the entity's live
+  // record. Copy the schema's fields out, so a caller can never mutate stored state through what it read.
   private read(e: Entity, def: ComponentDef): FieldRecord {
-    return e.get(def.trait) as FieldRecord
+    const raw = e.get(def.trait) as FieldRecord
+    const out: FieldRecord = {}
+    for (const name of def.fieldNames) out[name] = raw[name] as number | boolean | string
+    return out
   }
 
   private markChanged(sid: number, def: ComponentDef): void {
@@ -195,8 +200,9 @@ export class EntityStore {
       set: (def, values) => {
         const e = store.alive(sid)
         if (!e.has(store.check(def).trait)) throw new Error(`entity ${sid} does not have "${def.id}"`)
-        // Koota's SoA set writes only the fields present, so the update needs no read of the current values.
-        e.set(def.trait, store.coerce(def, values as Record<string, unknown>, {}))
+        // With array-of-structures traits Koota's set replaces the whole record, so a partial update merges
+        // into the current values first; a field the caller leaves out keeps its value.
+        e.set(def.trait, store.coerce(def, values as Record<string, unknown>, store.read(e, def)))
         store.markChanged(sid, def)
       },
       add: (def, values = {}) => {

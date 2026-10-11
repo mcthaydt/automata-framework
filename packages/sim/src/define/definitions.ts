@@ -46,7 +46,11 @@ export function defineComponent<S extends FieldSchema>(
       throw new Error(`component "${id}" field "${name}" has unknown field type "${type}"`)
     defaults[name] = defaultField(type)
   }
-  return { kind: 'component', id, fields, fieldNames, render: opts.render ?? true, trait: trait(defaults) }
+  // A factory, not a schema object: Koota builds structure-of-arrays accessors for a schema object with
+  // `new Function`, which Ruken's CSP (no 'unsafe-eval') blocks. Each entity holds its own record instead
+  // (array-of-structures); the entity store always writes whole records, so nothing else changes.
+  const traitDef = trait(() => ({ ...defaults }))
+  return { kind: 'component', id, fields, fieldNames, render: opts.render ?? true, trait: traitDef }
 }
 
 export interface CommandDef<Z extends z.ZodType = z.ZodType> {
