@@ -56,12 +56,20 @@ async function runBuild(options: ContentOptions): Promise<BuildOutcome> {
   }
 }
 
-const moduleCode = (content: CompiledContent): string =>
-  [
+// `simContent` is built from `content`'s own properties (`{ "room": content["room"], ... }`) rather than a
+// second JSON literal, so the bundle holds the data once and the two share their objects (M2.2 spec §3.2).
+const moduleCode = (content: CompiledContent): string => {
+  const simFields = Object.keys(content.sim.data)
+    .sort()
+    .map((kind) => `${JSON.stringify(kind)}: content[${JSON.stringify(kind)}]`)
+  return [
     `export const content = ${content.files.get('content.json') ?? '{}'}`,
     `export const contentHash = ${JSON.stringify(content.hash)}`,
+    `export const simContent = { ${simFields.join(', ')} }`,
+    `export const simContentHash = ${JSON.stringify(content.sim.hash)}`,
     '',
   ].join('\n')
+}
 
 export function automataContent(pluginOptions: AutomataContentOptions = { schemas: [] }): Plugin {
   let options: ContentOptions | undefined
