@@ -5,6 +5,8 @@
 // determinism). A change to the bodies, the physics extension or the base's sim changes the hash on purpose:
 // investigate it, never rebaseline it per engine.
 import { moveCommand, ROOM } from '@af-examples/base-2d'
+import type { Command, Sim, StepResult } from '@mcthaydt/automata-sim'
+import type { Recorder } from '@mcthaydt/automata-sim/replay'
 import { createBodiesSim } from './bodies-sim.ts'
 import { Drop } from './sim/bodies.plugin.ts'
 
@@ -25,16 +27,30 @@ function wickX(tick: number): -1 | 0 | 1 {
 /** Wick jumps (holding the button for a full jump) while walking into the crates. */
 const wickJumps = (tick: number) => tick >= 70 && tick < 82
 
+/** Steps `sim` through the golden run with `step` (sim.step, or a recorder's step); returns every result. */
+function drive(sim: Sim, step: (commands: readonly Command[]) => StepResult): StepResult[] {
+  const results: StepResult[] = []
+  for (let i = 0; i < GOLDEN_TICKS; i++) {
+    const commands: Command[] = [moveCommand(sim, { x: wickX(sim.tick), jump: wickJumps(sim.tick) })]
+    if (GOLDEN_DROPS.includes(sim.tick))
+      commands.push({ tick: sim.tick, source: 0, seq: 0x80000000 + sim.tick, type: Drop.id, payload: {} })
+    results.push(step(commands))
+  }
+  return results
+}
+
+/** Records the golden run (golden.test.ts's bodies.replay). */
+export function goldenDrive(recorder: Recorder, sim: Sim): void {
+  drive(sim, (commands) => recorder.step(commands))
+}
+
 /** Replays the golden run on a fresh sim and reports what the golden tests compare. */
 export async function runGolden(): Promise<{ hash: string; rejected: number; collisions: number }> {
   const sim = await createBodiesSim(ROOM)
+  const results = drive(sim, (commands) => sim.step(commands))
   let rejected = 0
   let collisions = 0
-  for (let i = 0; i < GOLDEN_TICKS; i++) {
-    const commands = [moveCommand(sim, { x: wickX(sim.tick), jump: wickJumps(sim.tick) })]
-    if (GOLDEN_DROPS.includes(sim.tick))
-      commands.push({ tick: sim.tick, source: 0, seq: 0x80000000 + sim.tick, type: Drop.id, payload: {} })
-    const result = sim.step(commands)
+  for (const result of results) {
     rejected += result.rejected.length
     for (const event of result.events) if (event.type === 'physics2d.collision-started') collisions++
   }

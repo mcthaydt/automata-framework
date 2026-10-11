@@ -211,6 +211,9 @@ importers:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../../packages/ship
+      '@mcthaydt/automata-testing':
+        specifier: workspace:*
+        version: link:../../../packages/testing
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0

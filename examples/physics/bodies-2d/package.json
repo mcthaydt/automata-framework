@@ -24,6 +24,7 @@
   "devDependencies": {
     "@af-examples/demo-host": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
+    "@mcthaydt/automata-testing": "workspace:*",
     "@playwright/test": "1.63.0",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
