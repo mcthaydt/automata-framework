@@ -24,6 +24,9 @@ export default defineConfig({
       },
       {
         extends: true,
+        // Svelte's client build: mountFixture comes through the testing package, which Vite would
+        // otherwise resolve to Svelte's server entry.
+        resolve: { conditions: ['browser'] },
         test: {
           name: 'layout',
           include: ['src/**/*.layout.test.ts'],

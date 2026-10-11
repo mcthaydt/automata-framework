@@ -56,6 +56,12 @@ describe('findSmallTargets', () => {
     expect(findSmallTargets(document.body, 44, 48)).toEqual([])
   })
 
+  test('takes the selector that marks a primary', () => {
+    document.body.innerHTML =
+      '<button data-testid="go" class="primary" style="position:fixed;left:0;top:0;width:120px;height:44px">Go</button>'
+    expect(findSmallTargets(document.body, 44, 48, '.primary')).toEqual(['go (primary) is 120x44'])
+  })
+
   test('reports a 30 px button and a primary under 48', () => {
     document.body.innerHTML =
       button('tiny', 'left:0;top:0;width:30px;height:30px') +
@@ -77,6 +83,14 @@ describe('findOffscreenControls', () => {
       '<div data-scroll-region style="position:fixed;left:0;top:0;width:100px;height:100px;overflow:auto">' +
       '<div style="height:2000px"></div><button data-testid="later" style="height:48px">later</button></div>'
     expect(findOffscreenControls(document.body)).toEqual(['gone is off screen'])
+  })
+
+  test('counts a box that scrolls right now as a scroll region, and a box that only clips as not', () => {
+    const box = (overflow: string, id: string): string =>
+      `<div style="position:fixed;left:0;top:0;width:100px;height:100px;overflow:${overflow}">` +
+      `<div style="height:2000px"></div><button data-testid="${id}" style="height:48px">${id}</button></div>`
+    document.body.innerHTML = box('auto', 'scrolled') + box('hidden', 'clipped')
+    expect(findOffscreenControls(document.body)).toEqual(['clipped is off screen'])
   })
 })
 
@@ -109,6 +123,20 @@ describe('findIntrusions', () => {
       button('under', 'left:290px;top:10px;width:60px;height:48px') +
       button('beside', 'left:200px;top:10px;width:60px;height:48px')
     expect(findIntrusions(document.body, [strip])).toEqual(['under is under a reserved area'])
+  })
+
+  test('allows a sub-pixel touch, as a browser rounds an edge', () => {
+    document.body.innerHTML = button('edge', 'left:240.25px;top:10px;width:60px;height:48px')
+    expect(findIntrusions(document.body, [{ x: 300, y: 0, width: 48, height: 200 }])).toEqual([])
+  })
+
+  test('passes a control a scroller has clipped out of view above the area, and reports the part still shown', () => {
+    const keyboard = { x: 0, y: 100, width: 400, height: 100 }
+    document.body.innerHTML =
+      '<div style="position:fixed;left:0;top:0;width:200px;height:100px;overflow:auto">' +
+      '<button data-testid="hidden-below" style="display:block;margin-top:120px;width:60px;height:48px">x</button></div>' +
+      button('showing', 'left:250px;top:80px;width:60px;height:48px')
+    expect(findIntrusions(document.body, [keyboard])).toEqual(['showing is under a reserved area'])
   })
 })
 

@@ -69,10 +69,16 @@ export function findUnreachable(elements: readonly Element[]): string[] {
 }
 
 /**
- * Every visible control is at least `min` square, and a primary one (`[data-primary]`) at least
- * `minPrimary` tall. A checkbox or radio is pressed through its label too, so the label is its target.
+ * Every visible control is at least `min` square, and a primary one (matching `primarySelector`)
+ * at least `minPrimary` tall. A checkbox or radio is pressed through its label too, so the label is
+ * its target.
  */
-export function findSmallTargets(root: ParentNode, min: number, minPrimary: number): string[] {
+export function findSmallTargets(
+  root: ParentNode,
+  min: number,
+  minPrimary: number,
+  primarySelector = '[data-primary]',
+): string[] {
   const problems: string[] = []
   for (const node of visibleControls(root)) {
     const input =
@@ -80,7 +86,7 @@ export function findSmallTargets(root: ParentNode, min: number, minPrimary: numb
         ? node
         : undefined
     const target = input?.labels?.[0]?.getBoundingClientRect() ?? node.getBoundingClientRect()
-    const primary = node.hasAttribute('data-primary')
+    const primary = node.matches(primarySelector)
     const tall = primary ? minPrimary : min
     if (target.width < min - SLACK || target.height < tall - SLACK) {
       const size = `${Math.round(target.width)}x${Math.round(target.height)}`
@@ -90,11 +96,24 @@ export function findSmallTargets(root: ParentNode, min: number, minPrimary: numb
   return problems
 }
 
-/** Every visible control is on screen, unless it sits in a declared scroll region. */
+/** Whether an ancestor of `node` scrolls right now: overflow auto or scroll, with more than it shows. */
+function insideLiveScroller(node: Element): boolean {
+  for (let at = node.parentElement; at !== null; at = at.parentElement) {
+    const overflowY = getComputedStyle(at).overflowY
+    if ((overflowY === 'auto' || overflowY === 'scroll') && at.scrollHeight > at.clientHeight) return true
+  }
+  return false
+}
+
+/**
+ * Every visible control is on screen, unless it sits in a scroll region: one declared with
+ * `[data-scroll-region]`, or a box that scrolls right now (a screen frame while the keyboard is
+ * open). A box that only clips (`overflow: hidden`) is not one: what it hides cannot be reached.
+ */
 export function findOffscreenControls(root: ParentNode): string[] {
   const problems: string[] = []
   for (const node of visibleControls(root)) {
-    if (node.closest('[data-scroll-region]') !== null) continue
+    if (node.closest('[data-scroll-region]') !== null || insideLiveScroller(node)) continue
     const rect = node.getBoundingClientRect()
     const view = viewport(node)
     const off =
@@ -118,8 +137,11 @@ export function findClipped(root: ParentNode, selector: string): string[] {
   return problems
 }
 
+/** Whether two boxes share more than the rounding slack on both axes; touching edges do not count. */
 function intersects(a: LayoutRect, b: LayoutRect): boolean {
-  return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+  const across = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)
+  const down = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y)
+  return across > SLACK && down > SLACK
 }
 
 function boxOf(element: Element): LayoutRect {
@@ -132,11 +154,39 @@ export function findOverlaps(a: Element, b: Element): string[] {
   return intersects(boxOf(a), boxOf(b)) ? [`${nameOf(a)} overlaps ${nameOf(b)}`] : []
 }
 
-/** No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px. */
+/**
+ * The part of an element its scrolling or clipping ancestors still show, in viewport px; `undefined`
+ * when they hide all of it. A control scrolled out of view is not under anything.
+ */
+function shownBox(element: Element): LayoutRect | undefined {
+  const rect = element.getBoundingClientRect()
+  let left = rect.left
+  let top = rect.top
+  let right = rect.right
+  let bottom = rect.bottom
+  for (let at = element.parentElement; at !== null; at = at.parentElement) {
+    const style = getComputedStyle(at)
+    if (style.overflowX === 'visible' && style.overflowY === 'visible') continue
+    const clip = at.getBoundingClientRect()
+    left = Math.max(left, clip.left)
+    top = Math.max(top, clip.top)
+    right = Math.min(right, clip.right)
+    bottom = Math.min(bottom, clip.bottom)
+  }
+  if (right - left < SLACK || bottom - top < SLACK) return undefined
+  return { x: left, y: top, width: right - left, height: bottom - top }
+}
+
+/**
+ * No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px. Only
+ * the part a scroller still shows counts: a frame that scrolls its actions out from under the
+ * keyboard passes.
+ */
 export function findIntrusions(root: ParentNode, rects: readonly LayoutRect[]): string[] {
   const problems: string[] = []
   for (const node of visibleControls(root)) {
-    const box = boxOf(node)
+    const box = shownBox(node)
+    if (box === undefined) continue
     if (rects.some((rect) => rect.width > 0 && rect.height > 0 && intersects(box, rect))) {
       problems.push(`${nameOf(node)} is under a reserved area`)
     }
