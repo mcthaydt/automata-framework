@@ -26,8 +26,11 @@ export function bounceScript(tick: number, rng: Rng): readonly Command[] {
   ]
 }
 
-/** Drives a recording of the bounce run: BOUNCE_TICKS steps of bounceScript, as the goldens record it. */
+/**
+ * Drives a recording of the bounce run: BOUNCE_TICKS steps of bounceScript, from the rng stream simGolden gives a
+ * script, so bounce.replay and bounce.golden.json pin the same run.
+ */
 export function bounceDrive(recorder: Recorder, sim: Sim): void {
-  const rng = createRng(deriveSeed(BOUNCE_SEED, 'script'))
+  const rng = createRng(deriveSeed(BOUNCE_SEED, 'golden-script'))
   for (let t = 0; t < BOUNCE_TICKS; t++) recorder.step(bounceScript(sim.tick, rng))
 }

@@ -1,7 +1,10 @@
 // Re-simulates a Replay through the one simulation there is (M2.3 spec §3.4): a fresh sim restored from the
 // replay's start snapshot, fed the recorded commands tick by tick, its hash compared at every check.
 import type { PluginDef } from '../define/definitions'
+import { hex64 } from '../hash/xxhash64'
 import { type Command, createSim, type Sim, type StepResult } from '../world/sim'
+import { decodeSnapshotHeader } from '../world/snapshot'
+import { ReplayFormatError } from './errors'
 import type { Replay, ReplayCommand } from './replay'
 
 export interface ReplayStepSetup {
@@ -32,8 +35,26 @@ export interface ReplayStepper {
 
 /**
  * Throws SnapshotMismatchError when the replay's start snapshot belongs to another schema or content, and
- * SnapshotFormatError when it is malformed; the sim it created is disposed first.
+ * SnapshotFormatError when it is malformed, and ReplayFormatError when the header disagrees with the start snapshot
+ * it describes; the sim it created is disposed first.
  */
+/**
+ * The header is written from the start snapshot, so they agree in any replay the recorder made. A forged start
+ * tick would let playback begin at or past finalTick and pass with no hash compared.
+ */
+function checkHeaderMatchesStart({ header, start }: Replay): void {
+  const snapshot = decodeSnapshotHeader(start)
+  if (snapshot.tick !== header.startTick)
+    throw new ReplayFormatError(
+      `the start snapshot is at tick ${snapshot.tick}, the header says startTick ${header.startTick}`,
+    )
+  for (const field of ['schemaHash', 'contentHash'] as const) {
+    const actual = hex64(snapshot[field])
+    if (actual !== header[field])
+      throw new ReplayFormatError(`header ${field} ${header[field]} is not the start snapshot's ${actual}`)
+  }
+}
+
 export async function createReplayStepper(replay: Replay, setup: ReplayStepSetup): Promise<ReplayStepper> {
   const { header } = replay
   const sim = await createSim({
@@ -44,6 +65,7 @@ export async function createReplayStepper(replay: Replay, setup: ReplayStepSetup
   })
   try {
     sim.restore(replay.start)
+    checkHeaderMatchesStart(replay)
   } catch (err) {
     sim.dispose()
     throw err

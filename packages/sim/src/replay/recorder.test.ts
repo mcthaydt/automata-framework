@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { defineCommand, definePlugin, defineSystem } from '../define/definitions'
 import { hex64, xxhash64 } from '../hash/xxhash64'
 import { Body, fixturePlugin } from '../testing/fixture-world'
+import { SIM_VERSION } from '../version'
 import { createSim, type Sim } from '../world/sim'
 import { decodeReplay, encodeReplay } from './codec'
 import { ReplayRecordError } from './errors'
@@ -42,7 +43,7 @@ test('start is the snapshot when recording began; the header copies the sim and 
     contentHash: view.header.contentHash,
     startTick: 1,
     checkEvery: 60,
-    framework: '0.0.0',
+    framework: SIM_VERSION,
     meta: { game: 'test' },
   })
   expect(replay.finalTick).toBe(1)

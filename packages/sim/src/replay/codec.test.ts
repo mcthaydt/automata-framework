@@ -2,7 +2,7 @@ import { expect, test } from 'vitest'
 import { canonicalJson, utf8 } from '../hash/canonical'
 import { decodeReplay, encodeReplay } from './codec'
 import { ReplayFormatError } from './errors'
-import type { Replay } from './replay'
+import { REPLAY_MAX_TICKS, type Replay } from './replay'
 
 const H = (n: number): string => n.toString(16).padStart(16, '0')
 
@@ -112,7 +112,7 @@ test('round trips: commands on non-consecutive ticks, many sources, large values
     payload: { s: 'Ünï 😀', n: -0.5, list: [i, null, true] },
   }))
   const r = replay({
-    header: { ...replay().header, startTick: 0, meta: { game: 'g', build: '1' } },
+    header: { ...replay().header, startTick: 0, checkEvery: 70001, meta: { game: 'g', build: '1' } },
     ticks: [
       { tick: 0, commands },
       { tick: 1000, commands: commands.slice(0, 3) },
@@ -248,4 +248,49 @@ test('encoding refuses a value the format cannot hold', () => {
   ).toThrow(ReplayFormatError)
   expect(() => encodeReplay(replay({ checks: [{ tick: 10, hash: H(1) }] }))).toThrow(ReplayFormatError)
   expect(() => encodeReplay(replay({ finalHash: 'xyz' }))).toThrow(ReplayFormatError)
+})
+
+/** An empty run whose final delta varint is replaced, to claim a longer run than the bytes hold. */
+function emptyRunEndingAt(delta: number, checkEvery: number): Uint8Array {
+  const r = replay({
+    header: { ...replay().header, checkEvery },
+    ticks: [],
+    checks: [],
+    finalTick: 10,
+    finalHash: H(1),
+  })
+  const b = [...encodeReplay(r)]
+  const finalAt = b.length - 1 - 8 - 1
+  const varint: number[] = []
+  for (let v = delta; ; v = Math.floor(v / 128)) {
+    if (v < 128) {
+      varint.push(v)
+      break
+    }
+    varint.push((v % 128) | 128)
+  }
+  b.splice(finalAt, 1, ...varint)
+  return Uint8Array.from(b)
+}
+
+test('a run longer than REPLAY_MAX_TICKS', () => {
+  expect(REPLAY_MAX_TICKS).toBe(16_777_216) // 2^24
+  expect(decodeReplay(emptyRunEndingAt(REPLAY_MAX_TICKS, 4294967295)).finalTick).toBe(10 + REPLAY_MAX_TICKS)
+  expect(decodeError(emptyRunEndingAt(REPLAY_MAX_TICKS + 1, 4294967295)).message).toMatch(/longer than/)
+  expect(decodeError(emptyRunEndingAt(4294967295 - 10, 4294967295)).message).toMatch(/longer than/)
+  const long = replay({
+    header: { ...replay().header, checkEvery: 4294967295 },
+    ticks: [],
+    checks: [],
+    finalTick: 11 + REPLAY_MAX_TICKS,
+    finalHash: H(1),
+  })
+  expect(() => encodeReplay(long)).toThrow(/longer than/)
+})
+
+test('more than checkEvery ticks without a check', () => {
+  // checkEvery 2: the final hash at tick 13 is three ticks after the start, with no check between.
+  expect(decodeError(emptyRunEndingAt(3, 2)).message).toMatch(/3 ticks without a check \(checkEvery 2\)/)
+  expect(decodeReplay(emptyRunEndingAt(2, 2)).finalTick).toBe(12)
+  expect(() => encodeReplay(replay({ checks: [{ tick: 13, hash: H(0x13) }] }))).toThrow(/without a check/)
 })

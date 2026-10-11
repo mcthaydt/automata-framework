@@ -7,6 +7,7 @@ export { createRecorder, type Recorder, type RecorderOptions } from './recorder'
 export {
   DEFAULT_CHECK_EVERY,
   REPLAY_FORMAT,
+  REPLAY_MAX_TICKS,
   type Replay,
   type ReplayCommand,
   type ReplayHeader,

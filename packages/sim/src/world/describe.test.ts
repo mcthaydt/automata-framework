@@ -1,5 +1,6 @@
 import { afterEach, expect, test } from 'vitest'
 import { definePlugin, defineSystem, type PluginState } from '../define/definitions'
+import { canonicalJson, utf8 } from '../hash/canonical'
 import { hex64, xxhash64 } from '../hash/xxhash64'
 import { Body, fixturePlugin, Hidden, Stats, Tag } from '../testing/fixture-world'
 import { createSim, type Sim, SimDisposedError, SimFaultedError } from './sim'
@@ -105,6 +106,18 @@ test('bad bytes throw what restore throws', async () => {
   }
   expect(caught).toBeInstanceOf(SnapshotMismatchError)
   expect((caught as SnapshotMismatchError).field).toBe('contentHash')
+})
+
+test('resource bytes that are not JSON throw SnapshotFormatError, as restore does', async () => {
+  const sim = await described()
+  const bytes = sim.snapshot()
+  const json = utf8(canonicalJson(sim.resource(Stats)))
+  const at = bytes.findIndex((_, i) => json.every((b, j) => bytes[i + j] === b))
+  expect(at).toBeGreaterThan(0)
+  const broken = bytes.slice()
+  broken[at] = 0x5b // "{" becomes "[": no longer JSON
+  expect(() => sim.restore(broken)).toThrow(SnapshotFormatError)
+  expect(() => sim.describeSnapshot(broken)).toThrow(SnapshotFormatError)
 })
 
 test('without bytes, a faulted sim throws SimFaultedError and a disposed one SimDisposedError', async () => {

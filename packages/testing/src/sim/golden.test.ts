@@ -90,6 +90,34 @@ test('simGolden: a changed component is schema-changed; other content is content
   expect(await bounce({ content: { level: 2 } })).toMatchObject({ kind: 'content-changed' })
 })
 
+test('simGolden: a difference at the first recorded tick has the setup’s last tick as lastGoodTick', async () => {
+  // The setup steps the sim five ticks before spawning, so the recording starts at tick 5.
+  const steppedSetup = (vx: number) => (sim: Parameters<typeof bounceSetup>[0]) => {
+    for (let t = 0; t < 5; t++) sim.step([])
+    sim.spawn([[Ball, { x: 100, y: 200, vx, vy: 3 }]])
+  }
+  updating()
+  await bounce({ setup: steppedSetup(7), every: 1 })
+  vi.unstubAllEnvs()
+  expect(await bounce({ setup: steppedSetup(8), every: 1 })).toMatchObject({
+    kind: 'diverged',
+    firstTick: 6,
+    lastGoodTick: 5,
+    exact: true,
+  })
+})
+
+test('simGolden: a file that is not a simGolden file is an error naming it', async () => {
+  updating()
+  await bounce()
+  vi.unstubAllEnvs()
+  const json = JSON.parse(await readFile(goldenFile(), 'utf8'))
+  await writeFile(goldenFile(), JSON.stringify({ ...json, hashes: [{ tick: 'ten', hash: 'x' }] }))
+  await expect(bounce()).rejects.toThrow(/bounce\.golden\.json is not a simGolden file/)
+  await writeFile(goldenFile(), '{"hashes": [')
+  await expect(bounce()).rejects.toThrow(/bounce\.golden\.json is not a simGolden file/)
+})
+
 test.each([
   ['tickHz', { tickHz: 30 }, 60, 30],
   ['seed', { seed: 7 }, BOUNCE_SEED, 7],

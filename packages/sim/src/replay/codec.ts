@@ -12,7 +12,7 @@
 import { z } from 'zod'
 import { canonicalJson, decodeUtf8Strict, utf8 } from '../hash/canonical'
 import { ReplayFormatError } from './errors'
-import { REPLAY_FORMAT, type Replay, type ReplayCommand, type ReplayHeader } from './replay'
+import { REPLAY_FORMAT, REPLAY_MAX_TICKS, type Replay, type ReplayCommand, type ReplayHeader } from './replay'
 import { readVarint, writeVarint } from './varint'
 
 const MAGIC = [0x41, 0x46, 0x52, 0x50] // "AFRP"
@@ -133,6 +133,34 @@ const fail = (message: string): never => {
   throw new ReplayFormatError(message)
 }
 
+/**
+ * A run is at most REPLAY_MAX_TICKS long, and no stretch of it goes more than checkEvery ticks without a hash to
+ * compare (the checks, then the final hash). The recorder writes exactly that cadence; holding readers to it means a
+ * replay cannot claim a long run that playback would step through unchecked.
+ */
+function checkCadence(
+  header: ReplayHeader,
+  checks: ReadonlyArray<{ tick: number }>,
+  finalTick: number,
+  offset?: number,
+): void {
+  const span = finalTick - header.startTick
+  if (span > REPLAY_MAX_TICKS)
+    throw new ReplayFormatError(
+      `a run of ${span} ticks is longer than REPLAY_MAX_TICKS (${REPLAY_MAX_TICKS})`,
+      offset,
+    )
+  let previous = header.startTick
+  for (const tick of [...checks.map((c) => c.tick), finalTick]) {
+    if (tick - previous > header.checkEvery)
+      throw new ReplayFormatError(
+        `${tick - previous} ticks without a check (checkEvery ${header.checkEvery}), ending at tick ${tick}`,
+        offset,
+      )
+    previous = tick
+  }
+}
+
 /** Checks what the type system cannot: everything the byte layout needs to hold the value exactly. */
 function checkEncodable(replay: Replay): void {
   const { header, finalTick } = replay
@@ -160,6 +188,7 @@ function checkEncodable(replay: Replay): void {
     }
   }
   inRange('check', replay.checks)
+  checkCadence(header, replay.checks, finalTick)
   for (const { hash } of replay.checks)
     if (!HASH_RE.test(hash)) fail(`check hash "${hash}" is not 16 hex digits`)
   if (replay.reference) {
@@ -282,6 +311,7 @@ export function decodeReplay(bytes: Uint8Array): Replay {
     previous += rd.atLeast(1, 'check delta')
     checks.push({ tick: previous, hash: rd.hash(), at })
   }
+  const finalAt = rd.pos
   const finalTick = header.startTick + rd.varint()
   const finalHash = rd.hash()
   for (const c of checks)
@@ -293,6 +323,7 @@ export function decodeReplay(bytes: Uint8Array): Replay {
   const lastTick = ticks[ticks.length - 1]
   if (lastTick && lastTick.tick >= finalTick)
     throw new ReplayFormatError(`commands at tick ${lastTick.tick}, at or past finalTick ${finalTick}`)
+  checkCadence(header, checks, finalTick, finalAt)
 
   const replay = {
     header,

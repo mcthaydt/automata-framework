@@ -431,7 +431,13 @@ export function viewSnapshot(data: SnapshotData): SnapshotView {
   const rng: Record<string, readonly number[]> = {}
   for (const r of data.rng) rng[r.name] = [...r.state]
   const resources: Record<string, unknown> = {}
-  for (const r of data.resources) resources[r.id] = JSON.parse(r.json)
+  for (const r of data.resources) {
+    try {
+      resources[r.id] = JSON.parse(r.json)
+    } catch (err) {
+      throw new SnapshotFormatError(`resource "${r.id}" is not JSON`, { cause: err })
+    }
+  }
   const entities = data.entities.map((e) => {
     const components: Record<string, FieldRecord> = {}
     // The decoder fills each entity's map in sorted component order, so the record's key order is canonical.

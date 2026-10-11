@@ -50,6 +50,7 @@ test('replays are the ./replay subpath', () => {
     'DEFAULT_CHECK_EVERY',
     'REPLAY_FORMAT',
     'REPLAY_INFLATE_MAX_BYTES',
+    'REPLAY_MAX_TICKS',
     'ReplayFormatError',
     'ReplayRecordError',
     'createRecorder',

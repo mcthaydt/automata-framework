@@ -6,6 +6,7 @@ import { Body, fixturePlugin, Tag } from '../testing/fixture-world'
 import { type Command, createSim, type Sim } from '../world/sim'
 import { SnapshotMismatchError } from '../world/snapshot'
 import { decodeReplay, encodeReplay } from './codec'
+import { ReplayFormatError } from './errors'
 import { createRecorder } from './recorder'
 import type { Replay } from './replay'
 import { createReplayStepper, type ReplayStepper } from './stepper'
@@ -110,6 +111,25 @@ test('a schema change and a content change refuse at creation', async () => {
   }).catch((err: unknown) => err)
   expect(content).toBeInstanceOf(SnapshotMismatchError)
   expect((content as SnapshotMismatchError).field).toBe('contentHash')
+})
+
+test('a header that disagrees with its start snapshot refuses at creation', async () => {
+  const replay = await record(await make(), 10)
+  // A forged start tick: the snapshot is at tick 0, so a check-free run could otherwise pass.
+  const ticked = await createReplayStepper(
+    { ...replay, header: { ...replay.header, startTick: 50 }, ticks: [], checks: [], finalTick: 50 },
+    { plugins: [fixturePlugin], content: { level: 1 } },
+  ).catch((err: unknown) => err)
+  expect(ticked).toBeInstanceOf(ReplayFormatError)
+  expect((ticked as Error).message).toMatch(/start snapshot is at tick 0, the header says startTick 50/)
+  for (const field of ['schemaHash', 'contentHash'] as const) {
+    const forged = await createReplayStepper(
+      { ...replay, header: { ...replay.header, [field]: 'ffffffffffffffff' } },
+      { plugins: [fixturePlugin], content: { level: 1 } },
+    ).catch((err: unknown) => err)
+    expect(forged).toBeInstanceOf(ReplayFormatError)
+    expect((forged as Error).message).toMatch(new RegExp(`header ${field} ffffffffffffffff`))
+  }
 })
 
 function kickPlugin(refined: boolean) {

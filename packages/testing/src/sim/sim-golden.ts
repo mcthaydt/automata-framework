@@ -11,6 +11,7 @@ import {
   type Rng,
   type Sim,
 } from '@mcthaydt/automata-sim'
+import { z } from 'zod'
 import { fileName, readGoldenFile, resolveGoldenPath, updatingGoldens, writeGoldenFile } from './golden-files'
 import type { GoldenReport } from './report'
 
@@ -41,6 +42,32 @@ interface SimGoldenFile {
   readonly hashes: ReadonlyArray<{ readonly tick: number; readonly hash: string }>
 }
 
+const hex16 = z.string().regex(/^[0-9a-f]{16}$/)
+const tick = z.number().int().min(0)
+const SimGoldenFileSchema = z.object({
+  name: z.string(),
+  seed: z.number().int(),
+  tickHz: z.number().int(),
+  ticks: z.number().int(),
+  every: z.number().int(),
+  schemaHash: hex16,
+  contentHash: hex16,
+  hashes: z.array(z.object({ tick, hash: hex16 })),
+})
+
+/** A golden that is not JSON or not this shape is a broken file, not a difference in the run. */
+function parseGoldenFile(name: string, bytes: Uint8Array): SimGoldenFile {
+  let json: unknown
+  try {
+    json = JSON.parse(new TextDecoder().decode(bytes))
+  } catch (err) {
+    throw new Error(`simGolden: ${name} is not a simGolden file (not JSON)`, { cause: err })
+  }
+  const parsed = SimGoldenFileSchema.safeParse(json)
+  if (!parsed.success) throw new Error(`simGolden: ${name} is not a simGolden file: ${parsed.error.message}`)
+  return parsed.data
+}
+
 const SETUP_FIELDS = ['seed', 'tickHz', 'ticks', 'every'] as const
 
 /**
@@ -59,7 +86,11 @@ function toFileText(golden: SimGoldenFile): string {
   return `{\n${lines.join(',\n')}\n}\n`
 }
 
-async function record(options: SimGoldenOptions, every: number): Promise<SimGoldenFile> {
+/** The recorded file, and the tick the run started from (after setup) for a difference at the first record. */
+async function record(
+  options: SimGoldenOptions,
+  every: number,
+): Promise<{ golden: SimGoldenFile; startTick: number }> {
   const sim = await createSim({
     seed: options.seed,
     plugins: options.plugins,
@@ -69,13 +100,14 @@ async function record(options: SimGoldenOptions, every: number): Promise<SimGold
   try {
     options.setup?.(sim)
     const { schemaHash, contentHash } = sim.describeSnapshot().header
+    const startTick = sim.tick
     const rng = createRng(deriveSeed(options.seed, 'golden-script'))
     const hashes: Array<{ tick: number; hash: string }> = []
     for (let t = 0; t < options.ticks; t++) {
       const { tick } = sim.step(options.script(sim.tick, rng))
       if (tick % every === 0) hashes.push({ tick, hash: sim.hash() })
     }
-    return {
+    const golden = {
       name: options.name,
       seed: options.seed,
       tickHz: sim.tickHz,
@@ -85,6 +117,7 @@ async function record(options: SimGoldenOptions, every: number): Promise<SimGold
       contentHash,
       hashes,
     }
+    return { golden, startTick }
   } finally {
     sim.dispose()
   }
@@ -95,7 +128,7 @@ export async function simGolden(options: SimGoldenOptions): Promise<GoldenReport
   if (!Number.isInteger(every) || every < 1) throw new Error(`simGolden: every must be an integer >= 1`)
   const file = resolveGoldenPath(`${options.dir}/__goldens__/${options.name}.golden.json`)
   const name = fileName(file)
-  const actual = await record(options, every)
+  const { golden: actual, startTick } = await record(options, every)
 
   if (updatingGoldens()) {
     const bytes = new TextEncoder().encode(toFileText(actual))
@@ -104,7 +137,7 @@ export async function simGolden(options: SimGoldenOptions): Promise<GoldenReport
   }
   const stored = await readGoldenFile(file)
   if (!stored) return { kind: 'missing', name, file }
-  const expected = JSON.parse(new TextDecoder().decode(stored)) as SimGoldenFile
+  const expected = parseGoldenFile(name, stored)
 
   for (const field of SETUP_FIELDS)
     if (expected[field] !== actual[field])
@@ -122,7 +155,7 @@ export async function simGolden(options: SimGoldenOptions): Promise<GoldenReport
       kind: 'diverged',
       name,
       firstTick: a.tick,
-      lastGoodTick: i === 0 ? 0 : (actual.hashes[i - 1] as { tick: number }).tick,
+      lastGoodTick: i === 0 ? startTick : (actual.hashes[i - 1] as { tick: number }).tick,
       exact: every === 1,
       differences: [],
     }

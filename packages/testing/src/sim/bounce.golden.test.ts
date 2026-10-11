@@ -33,6 +33,17 @@ test('bounce.replay: the bounce run as a replay with a reference snapshot every 
   expectGolden(report)
 })
 
+test('bounce.replay and bounce.golden.json pin the same run', async () => {
+  const replay = await committedReplay()
+  const text = await readGoldenFile(resolveGoldenPath('./fixtures/__goldens__/bounce.golden.json'))
+  if (!text) throw new Error('bounce.golden.json is missing')
+  const golden = JSON.parse(new TextDecoder().decode(text)) as {
+    hashes: Array<{ tick: number; hash: string }>
+  }
+  expect(golden.hashes).toHaveLength(BOUNCE_TICKS)
+  expect(replay.reference?.hashes).toEqual(golden.hashes.map((h) => h.hash))
+})
+
 /** The encoded bytes with the header fields that never take part in a comparison neutralized (spec §3.3). */
 const comparable = (replay: Replay): Uint8Array =>
   encodeReplay({ ...replay, header: { ...replay.header, framework: '', meta: {} } })

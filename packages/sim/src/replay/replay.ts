@@ -3,6 +3,11 @@
 
 export const REPLAY_FORMAT = 1
 export const DEFAULT_CHECK_EVERY = 60
+/**
+ * The longest run a replay may hold: 2^24 ticks, over 77 hours at 60 Hz. Bounds the work a small forged file can
+ * ask of playback (its final delta is one varint).
+ */
+export const REPLAY_MAX_TICKS: number = 16_777_216
 
 export interface ReplayCommand {
   readonly source: number

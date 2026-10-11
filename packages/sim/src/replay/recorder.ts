@@ -102,6 +102,7 @@ export function createRecorder(sim: Sim, options: RecorderOptions = {}): Recorde
       const wantSnapshot = snapshotEvery !== undefined && since % snapshotEvery === 0
       const wantHash = options.reference !== undefined || since % checkEvery === 0
       if (wantSnapshot || wantHash) {
+        // sim.hash() is exactly this; taking the snapshot once serves both the hash and the reference snapshot.
         const bytes = sim.snapshot()
         const hash = hex64(xxhash64(bytes))
         if (since % checkEvery === 0) checks.push({ tick: result.tick, hash })
