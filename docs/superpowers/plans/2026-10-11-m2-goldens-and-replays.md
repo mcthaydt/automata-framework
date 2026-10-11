@@ -4,7 +4,7 @@
 
 - **Spec:** [m2-goldens-and-replays](../specs/2026-10-11-m2-goldens-and-replays-design.md) ("spec"); milestone: [M2](../specs/2026-10-11-m2-deterministic-core-design.md).
 - **Lane:** testing (new in [04](../../04-how-we-build.md)), on its own branch and worktree from `main` (#9 is merged, `d556d23`). Draft PR titled `M2.3 Goldens and replays`. It does not need M2.2: content is `unknown` in every signature here. It merges after M2.2 (milestone spec §5): merge `main` then, re-run every golden and the property test, and re-record any golden whose content hash moved (with the reason in the commit).
-- **Progress:** 0 / 13 tasks.
+- **Progress:** 12 / 13 tasks (Task 13, the demo, waits on base-2d's `startGame` options in #15).
 - **Local CI (every task ends green):** Node 24.21.0; `pnpm vitest run <file>` first, then `pnpm --filter <pkg> test`, then `pnpm check`. Parity tasks also run `pnpm --filter <pkg> test:parity` (Chromium, WebKit, Firefox; Playwright 1.63). Before calling the PR green: `pnpm ci:local`.
 
 ## Interfaces
@@ -98,9 +98,9 @@ Starts only when base-2d (#10) and its `startGame` options are on `main`. Until 
 
 ## Finish
 
-- [ ] `pnpm ci:local` green; record commands, Node version, per-engine results and the property test times in the PR.
+- [x] `pnpm ci:local` green; record commands, Node version, per-engine results and the property test times in the PR.
 - [ ] Update **Progress**, add the execution log line, and send the integration owner the rows for 02 and 03.
 
 ## Execution log
 
-- (empty)
+- 2026-10-11, tasks 1–12 (`9ea7971`..`0e2c061`, branch `claude/af-m2-3-replays-7nhxe8`): the `.replay` format, recorder, stepper and packing in `sim/replay`; `describeSnapshot`; the `testing/sim` harness, bounce fixtures and goldens; the property test (bounce ~1 s, 2D physics 15.3 s, 3D 18.6 s); goldens identical in Node, Chromium, WebKit and Firefox. `pnpm ci:local` green in a cloud container (Node 24.21.0, Playwright 1.63 browsers): exit 0, testing parity 87/87, sim parity 165/165. Rulings and deviations are noted on each task: restore checks the snapshot header before the body (a schema change is now `SnapshotMismatchError`); `GoldenReport` carries `name`; the `simGolden` file is indented canonical JSON with `ticks`; `./sim/property` is its own subpath so physics (lib ES2023) can typecheck it. Task 13 waits on #15.
