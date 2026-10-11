@@ -33,6 +33,15 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `vitest` | 5.0.3 | 2026-10-01 | Same as Ruken: unit and parity test runner |
 | `yaml` | 2.9.1 | 2026-10-11 | Same as Ruken: parse workflow YAML in ship's workflow tests |
 | `zod` | 4.6.5 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |
+| `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | ui lane: compiles Svelte 5 in `packages/ui` and `examples/ui/primitives` |
+| `@testing-library/dom` | 10.4.2 | 2026-10-11 | ui lane: DOM behaviour tests (AGENTS.md, Responsive UI) |
+| `@testing-library/jest-dom` | 7.0.1 | 2026-10-11 | ui lane: DOM matchers for those tests |
+| `@testing-library/svelte` | 5.4.2 | 2026-10-11 | ui lane: renders Svelte components in those tests |
+| `@testing-library/user-event` | 14.6.7 | 2026-10-11 | ui lane: player input in those tests |
+| `jsdom` | 30.1.1 | 2026-10-11 | ui lane: the `unit` test environment for `packages/ui` |
+| `svelte` | 5.57.1 | 2026-10-11 | ui lane: the UI framework (master spec §3, rune stores) |
+| `svelte-check` | 4.7.6 | 2026-10-11 | ui lane: typechecks `.svelte` files |
+| `typescript` | 6.0.3 | 2026-10-11 | ui lane: only for `svelte-check`, which does not support TypeScript 7 yet; the rest of AF uses 7.0.2 (as Ruken holds 6.0.3 for svelte-check) |
 
 ## Container images
 
