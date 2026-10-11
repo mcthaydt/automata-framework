@@ -33,6 +33,8 @@ Decisions D-1 to D-6 (the `@pixi/3d` beta dependency, adoption scope, lint tooli
 
 ## Product and engineering priorities
 
+- **One look.** Endesga 64 palette, Bubble Bobble mixed with Celeste, in 2D, 2.5D and 3D ([art direction](art/README.md), Owner 2026-10-11).
+
 - **Ship to Ruken early.** M1 ends with a blank game built, validated by Ruken's own checks, published to Ruken and playable on a phone. Everything after builds on a working pipeline.
 - **Mobile first.** Layout is designed and tested at phone sizes first, with FloorFifty's geometry, target-size and reachability rules. UI tests do not need a renderer, server or full journey.
 - **Core is small and proven; extensions are opt-in.** A capability is core only if Ruken requires it of every game or both reference games need it.

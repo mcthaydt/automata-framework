@@ -145,6 +145,7 @@ UI is designed for a phone first and verified at phone sizes before desktop. Lay
 
 - **M1:** the `content` compiler and Vite plugin as specified in the A0+A1 spec §5, plus generators for the Ruken manifest fields (`content.languages`, `analytics.custom_events`, `loading.preload`), locale keys and the flow graph. Errors are `file:line:col`. Content hash feeds the snapshot header.
 - **M3:** the `pipelines` extension: The Last Light's router, MCP server, budgets, gates, guard and audit log, made game-agnostic (its look bible, prompts and gates per game become content), with its 2.5D character and props pipelines. The sector-based environment pipeline follows in M6. Rigged 3D characters and brush-based environments (old B1/B2 in full) come from the 3D game in M9.
+- **Art direction (Owner, 2026-10-11):** the Endesga 64 palette and a Bubble Bobble × Celeste look for 2D, 2.5D and 3D ([docs/art](../../art/README.md)). The palette is content (compiled and hashed with the rest), the default `ui` theme tokens and `post-retro` LUT come from it, and the `pipelines` palette gate checks assets against it.
 - Generated files are never hand-edited (guard hook); human gates record decisions only (R-80 style: people decide, checks record facts).
 
 ## 10. CI/CD and deployment (early)

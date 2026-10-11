@@ -27,6 +27,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 | `check-boundaries` fixture `import-effect.ts` | Added on this branch; the existing import allowlist already rejects it, so the test passed on first run (a regression pin for ADR 0003, not a red→green change) | — |
 | Checks on `99c853c` | Hosted Actions jobs got no runner (account minutes, likely). Run locally on Node 24.21.0 with Playwright 1.63 browsers: lint, typecheck, boundaries, style pass; unit sim 147, boundaries 21, style 17; parity 165/165 in Chromium, WebKit, Firefox. Owner (2026-10-11): run CI locally. | Re-run locally after each push |
 | Audit fixes | Ruken tarballs vendored (D-6); `@mcthaydt/automata-sim/hash` export (test written first, failed on the missing export, then passed); [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md) drafted; physics as a `physics` extension; S8 in M1.1; determinism check for every sim-plugin package and `game-ci.yml` | Owner review with M1.0a |
+| Art direction | Owner, 2026-10-11: Endesga 64 palette ([docs/art](art/README.md), file kept verbatim, 64 unique colors checked) and a Bubble Bobble × Celeste look for 2D, 2.5D and 3D | Palette schema (M1.3), theme tokens (M1.6), LUT and palette gate (M3) |
 | Source survey | FloorFifty `122a220`, The Last Light `948abe9`, RukenApp `b30d31b`, all read on 2026-10-11 | Re-survey at M1.0b |
 
 ## External inputs and unresolved gates

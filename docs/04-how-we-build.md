@@ -30,10 +30,10 @@ The Owner asked on 2026-10-11 for work to run in parallel threads. Each lane is 
 | Lane | Tasks | Owns | Must not touch |
 |---|---|---|---|
 | **ship** | M1.1, M1.2 | `.github/workflows/`, root `package.json`, `turbo.json`, `.nvmrc`, `pnpm-workspace.yaml`, `biome.json`, `lefthook.yml`, `docs/versions.md`, `tooling/versions/`, `packages/ship/`, `examples/placeholder/`; spike S8 (`docs/spikes/s8-effect.md`, measured on the placeholder) | Any other `packages/*`; `vendor/ruken/`; numbered docs |
-| **content** | M1.3 | `packages/content/` (hashes through `@mcthaydt/automata-sim/hash`, already exported) | Everything else |
+| **content** | M1.3 | `packages/content/` (hashes through `@mcthaydt/automata-sim/hash`, already exported; includes a palette content schema, see [art direction](art/README.md)) | Everything else |
 | **host** | M1.4 | `packages/host/` | Everything else; `vendor/ruken/` (consumed, not repacked) |
-| **ui** | M1.6 | `packages/ui/`, `packages/testing/` (layout assertions and renderer-free fixture mounting only; goldens arrive in M2.3) | Everything else |
-| **sim** | M2.1 | New `packages/physics/` (the physics extension); in `packages/sim/`, only a snapshot-section hook for plugins; `tooling/check-boundaries` (the Rapier import entry and a list of source roots so it can check `packages/physics`) | Everything else |
+| **ui** | M1.6 | `packages/ui/` (default theme tokens from Endesga 64, [art direction](art/README.md)), `packages/testing/` (layout assertions and renderer-free fixture mounting only; goldens arrive in M2.3) | Everything else |
+| **sim** | M2.1 | New `packages/physics/` (the physics extension); in `packages/sim/`, only a snapshot-section hook for plugins; `tooling/check-boundaries` (the Rapier import entry, a list of source roots so it can check `packages/physics`, and closing the audit's bypasses: the `Function` constructor reached through `.constructor`, computed and template-literal member keys, `WeakRef`/`Atomics`/`SharedArrayBuffer`, unscanned `.mts`/`.cts` files, and relative imports that leave the source root) | Everything else |
 | **runtime** (later) | M1.5, M1.7 | `packages/runtime/`, `packages/render-pixi/` | Starts after **host** and **ui** merge |
 | **integration** | M1.0a, M1.0b shared contracts, M1.8, all docs | The numbered docs, specs (including the [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md)), ADRs, `vendor/ruken/` (D-6), `examples/blank-game/`, `packages/cli/` | Lane folders, except to merge |
 
