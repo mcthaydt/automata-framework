@@ -1,0 +1,180 @@
+name: game-release
+
+# The reusable release for a game built on AF (ship spec §3.7). A game calls it when a release is published:
+#
+#   on:
+#     release:
+#       types: [published]
+#   jobs:
+#     release:
+#       uses: mcthaydt/automata-framework/.github/workflows/game-release.yml@main
+#       with:
+#         ruken-api: ${{ vars.RUKEN_API }}
+#         dev-target: ${{ vars.SHIP_DEV_TARGET }}
+#         dev-url: ${{ vars.SHIP_DEV_URL }}
+#       secrets: inherit
+#
+# One build, prepared with the release tag (its version must match), then two separate jobs so one failing
+# never hides the other: `ruken publish` (Ruken packs, validates and uploads; Ruken's local stack is the only
+# M1 target, so hosted runners skip it unless ruken-api is a reachable Ruken) and the dev host deploy. A job
+# whose settings are missing says so and stops without failing.
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        default: "."
+      af-ref:
+        type: string
+        default: main
+      build-command:
+        type: string
+        default: pnpm build
+      ruken-api:
+        description: The Ruken site to publish to. Empty skips the Ruken job.
+        type: string
+        default: ""
+      dev-target:
+        description: The dev host's ssh destination, e.g. deploy@af-dev.floorfifty.duckdns.org. Empty skips the dev host job.
+        type: string
+        default: ""
+      dev-url:
+        type: string
+        default: ""
+    secrets:
+      RUKEN_TOKEN:
+        required: false
+      SHIP_DEV_SSH_KEY:
+        required: false
+      SHIP_DEV_KNOWN_HOSTS:
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  WORKDIR: ${{ inputs.working-directory }}
+  TAG: ${{ github.ref_name }}
+
+jobs:
+  build:
+    name: build and prepare ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BUILD_COMMAND: ${{ inputs.build-command }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.repository != 'mcthaydt/automata-framework'
+        with:
+          repository: mcthaydt/automata-framework
+          ref: ${{ inputs.af-ref }}
+          path: .af
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install
+        run: |
+          pnpm install --frozen-lockfile
+          if [[ -d .af ]]; then pnpm --dir .af install --frozen-lockfile; echo "AF=$PWD/.af" >> "$GITHUB_ENV"; else echo "AF=$PWD" >> "$GITHUB_ENV"; fi
+      - name: Build
+        working-directory: ${{ inputs.working-directory }}
+        run: $BUILD_COMMAND
+      - name: Prepare for Ruken (the version must match the tag)
+        working-directory: ${{ inputs.working-directory }}
+        run: node "$AF/packages/ship/src/cli.ts" prepare --tag "$TAG"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-dist
+          path: ${{ inputs.working-directory }}/dist/
+          retention-days: 30
+
+  ruken:
+    name: ruken publish
+    needs: build
+    if: inputs.ruken-api != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.repository != 'mcthaydt/automata-framework'
+        with:
+          repository: mcthaydt/automata-framework
+          ref: ${{ inputs.af-ref }}
+          path: .af
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install
+        run: |
+          pnpm install --frozen-lockfile
+          if [[ -d .af ]]; then pnpm --dir .af install --frozen-lockfile; echo "AF=$PWD/.af" >> "$GITHUB_ENV"; else echo "AF=$PWD" >> "$GITHUB_ENV"; fi
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-dist
+          path: ${{ inputs.working-directory }}/dist
+      - name: Publish to Ruken
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          RUKEN_API: ${{ inputs.ruken-api }}
+          RUKEN_TOKEN: ${{ secrets.RUKEN_TOKEN }}
+        run: |
+          if [[ -z "$RUKEN_TOKEN" ]]; then echo "::notice::RUKEN_TOKEN is not set; skipping ruken publish"; exit 0; fi
+          node "$AF/packages/ship/src/cli.ts" publish --tag "$TAG"
+
+  dev-host:
+    name: dev host deploy
+    needs: build
+    if: inputs.dev-target != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.repository != 'mcthaydt/automata-framework'
+        with:
+          repository: mcthaydt/automata-framework
+          ref: ${{ inputs.af-ref }}
+          path: .af
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install
+        run: |
+          pnpm install --frozen-lockfile
+          if [[ -d .af ]]; then pnpm --dir .af install --frozen-lockfile; echo "AF=$PWD/.af" >> "$GITHUB_ENV"; else echo "AF=$PWD" >> "$GITHUB_ENV"; fi
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-dist
+          path: ${{ inputs.working-directory }}/dist
+      - name: Deploy to the dev host and make it live
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          SHIP_DEV_TARGET: ${{ inputs.dev-target }}
+          SHIP_DEV_URL: ${{ inputs.dev-url }}
+          SHIP_DEV_SSH_KEY: ${{ secrets.SHIP_DEV_SSH_KEY }}
+          SHIP_DEV_KNOWN_HOSTS: ${{ secrets.SHIP_DEV_KNOWN_HOSTS }}
+        run: |
+          if [[ -z "$SHIP_DEV_SSH_KEY" ]]; then echo "::notice::SHIP_DEV_SSH_KEY is not set; skipping the dev host"; exit 0; fi
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SHIP_DEV_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SHIP_DEV_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          node "$AF/packages/ship/src/cli.ts" deploy-dev --tag "$TAG" --activate

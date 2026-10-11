@@ -1,26 +1,47 @@
 name: ci
 
+# AF's own CI (ship spec §3.7). Checks and cross-engine parity run on every push and pull request on GitHub's
+# Ubuntu. Browser journeys run only nightly and on request (`automata-ship test-remote <spec>`), on the
+# Owner's runner when vars.AF_GPU_RUNNER names it (D-5): AF is the third tenant there, after Ruken and
+# FloorFifty. Hosted jobs are not getting runners on this account (2026-10-11), so a full local run is the
+# green gate meanwhile (docs/04-how-we-build.md).
+
 on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      spec:
+        description: Playwright arguments for one focused browser run (test-remote), e.g. "examples/placeholder/e2e/boot.e2e.ts --project=desktop". Empty runs the checks.
+        type: string
+        default: ""
+      nightly:
+        description: Run the nightly set now.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
   checks:
     name: lint, typecheck, boundaries, style, unit
+    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -31,18 +52,21 @@ jobs:
       - run: pnpm style
       - run: pnpm test:unit
 
-  cross-engine:
+  parity:
     name: parity (chromium, webkit, firefox)
+    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Browsers and their OS deps come preinstalled and pinned; installing them per run blew the 10-minute budget.
-    # Keep the tag in step with the `playwright` devDependency.
+    # Keep the tag in step with the `playwright` devDependency (docs/versions.md, Container images).
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -53,3 +77,47 @@ jobs:
       - run: pnpm --filter @mcthaydt/automata-sim exec vitest run --project browsers
         env:
           HOME: /root # Actions sets HOME to /github/home (not root's); Firefox refuses to run as root there
+
+  e2e:
+    name: browser journeys (nightly and on request)
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.spec != '' || inputs.nightly))
+    runs-on: ${{ vars.AF_GPU_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+        if: runner.environment == 'github-hosted'
+      - name: Browser journeys
+        env:
+          SPEC: ${{ inputs.spec }}
+        run: |
+          # SPEC is split on whitespace on purpose (test-remote passes Playwright arguments through).
+          # shellcheck disable=SC2086
+          pnpm test:e2e -- $SPEC
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: e2e-report
+          path: "**/playwright-report/"
+          retention-days: 7
+
+  placeholder:
+    name: placeholder through game-ci
+    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    uses: ./.github/workflows/game-ci.yml
+    with:
+      working-directory: examples/placeholder
+      sim-roots: ""
