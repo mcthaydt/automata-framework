@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 import * as base2d from './examples/base-2d/e2e/origins.ts'
+import { demoHostOrigin, demoHostPort } from './examples/demo-host/ports.ts'
+import * as hostDemo from './examples/host/lifecycle-and-saves/e2e/origin.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './examples/placeholder/e2e/origins.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
 
@@ -35,6 +37,13 @@ export default defineConfig({
       use: { ...devices['Pixel 7 landscape'], viewport: { width: 780, height: 270 } },
     },
     { name: 'ui-primitives', testDir: 'examples/ui/primitives/e2e', use: { ...devices['Pixel 7'] } },
+    // The feature demos on base-2d, each under the shared fake host (examples/demo-host).
+    {
+      name: 'demos',
+      testDir: 'examples',
+      testMatch: ['host/*/e2e/*.e2e.ts', 'content/*/e2e/*.e2e.ts', 'physics/*/e2e/*.e2e.ts'],
+      use: { ...devices['Pixel 7'] },
+    },
   ],
   webServer: [
     {
@@ -64,6 +73,18 @@ export default defineConfig({
     {
       command: `pnpm --filter @af-examples/ui-primitives e2e:demo --port ${demoPort}`,
       url: demoUrl,
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      command: 'pnpm --filter @af-examples/demo-host e2e:host',
+      url: `${demoHostOrigin}/`,
+      env: { AF_E2E_DEMO_HOST_PORT: String(demoHostPort) },
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      command: 'pnpm --filter @af-examples/host-lifecycle-and-saves e2e:demo',
+      url: hostDemo.url,
+      env: { AF_E2E_DEMO_PORT: String(hostDemo.port) },
       reuseExistingServer: process.env.CI === undefined,
     },
   ],

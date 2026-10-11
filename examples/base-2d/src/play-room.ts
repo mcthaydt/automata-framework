@@ -1,0 +1,169 @@
+import type { Sim, StepResult } from '@mcthaydt/automata-sim'
+import { createBaseSim, moveCommand } from './base-sim.ts'
+import { parseRoom, ROOM, type Room, type RoomSource } from './content/room.ts'
+import { createInputDevices } from './input/devices.ts'
+import { type Held, toMove } from './input/keys.ts'
+import { createLoop } from './loop.ts'
+import { createRenderer, type Renderer } from './render/renderer.ts'
+
+// The room, playable, with nothing around it: what a feature demo starts from (examples/README.md). The base's
+// own game (game.ts) adds the splash, menu, pause and end screens; a demo gets the room, the character, input
+// and the loop, and adds only the thing it shows.
+
+export interface PlayRoomOptions {
+  /** The room to play. Default: the base's room. */
+  readonly room?: RoomSource
+  /** Makes each sim. Default: `createBaseSim({ room })`; a demo passes its own to add plugins. */
+  readonly createSim?: (room: RoomSource) => Promise<Sim>
+  /** After every sim step, with that step's result. */
+  readonly onStep?: (result: StepResult, sim: Sim) => void
+}
+
+export interface PlayRoom {
+  /** The sim in play. */
+  sim(): Sim
+  running(): boolean
+  /** Starts (or resumes) the loop. */
+  start(): void
+  /** Stops the loop; the sim keeps its state. */
+  stop(): void
+  /**
+   * Plays again on a fresh sim, in `room` when given (a new room gets a new renderer). The loop keeps the
+   * state it had. When two restarts overlap, only the newest is kept.
+   */
+  restart(room?: RoomSource): Promise<void>
+  /** Re-fits the canvas to its container. */
+  fit(): void
+  destroy(): void
+}
+
+/** What `createPlay` needs from the page. `playRoom` passes the real ones; tests pass fakes. */
+export interface PlaySeams {
+  readonly createRenderer: (room: Room) => Promise<Renderer>
+  readonly held: () => Held
+  readonly now: () => number
+  readonly requestFrame: (callback: () => void) => number
+  readonly cancelFrame: (handle: number) => void
+  /** After each display frame. */
+  readonly onFrame?: (renderer: Renderer, sim: Sim) => void
+}
+
+/** Puts the room in `root` and returns it stopped: call `start()` to play. */
+export async function playRoom(root: HTMLElement, options: PlayRoomOptions = {}): Promise<PlayRoom> {
+  root.insertAdjacentHTML(
+    'afterbegin',
+    `<div class="stage-box"></div>
+    <div class="touch" aria-hidden="true">
+      <button type="button" tabindex="-1" data-hold="left">◀</button>
+      <button type="button" tabindex="-1" data-hold="right">▶</button>
+      <button type="button" tabindex="-1" data-hold="jump" class="jump">▲</button>
+    </div>`,
+  )
+  const stage = root.querySelector<HTMLElement>('.stage-box')
+  if (stage === null) throw new Error('playRoom: no stage')
+  const input = createInputDevices({
+    target: window,
+    touchButtons: [...root.querySelectorAll<HTMLElement>('[data-hold]')],
+    // A demo has no pause screen of its own; one that wants pause adds it.
+    onPause: () => {},
+    onAnyInput: () => {},
+  })
+  const play = await createPlay(
+    {
+      createRenderer: (room) => createRenderer(stage, room),
+      held: () => input.held(),
+      now: () => performance.now(),
+      requestFrame: (callback) => requestAnimationFrame(() => callback()),
+      cancelFrame: (handle) => cancelAnimationFrame(handle),
+      // The browser journeys read where the character is and how far the sim has run.
+      onFrame: (renderer, sim) => {
+        const at = renderer.playerPixel()
+        if (at !== null) {
+          root.dataset.playerX = String(at.x)
+          root.dataset.playerY = String(at.y)
+        }
+        root.dataset.tick = String(sim.tick)
+      },
+    },
+    options,
+  )
+  const onResize = () => play.fit()
+  window.addEventListener('resize', onResize)
+  return {
+    ...play,
+    destroy() {
+      window.removeEventListener('resize', onResize)
+      input.dispose()
+      play.destroy()
+    },
+  }
+}
+
+export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}): Promise<PlayRoom> {
+  const makeSim = options.createSim ?? ((room: RoomSource) => createBaseSim({ room }))
+  let source = options.room ?? ROOM
+  let renderer = await seams.createRenderer(parseRoom(source))
+  let sim = await makeSim(source)
+  let latest = 0
+
+  const loop = createLoop({
+    now: seams.now,
+    requestFrame: seams.requestFrame,
+    cancelFrame: seams.cancelFrame,
+    onStep: () => {
+      const result = sim.step([moveCommand(sim, toMove(seams.held()))])
+      // A rejected command is a bug in the page's input code; the smoke tests fail on any console error.
+      for (const rejected of result.rejected) console.error('play-room: the sim rejected a command', rejected)
+      renderer.apply(result)
+      options.onStep?.(result, sim)
+    },
+    onFrame: () => {
+      renderer.draw(seams.now())
+      seams.onFrame?.(renderer, sim)
+    },
+  })
+  let running = false
+
+  return {
+    sim: () => sim,
+    running: () => running,
+    fit: () => renderer.fit(),
+    start() {
+      running = true
+      loop.start()
+    },
+    stop() {
+      running = false
+      loop.stop()
+    },
+    async restart(room) {
+      // Each restart takes a number; a slower, older one throws its results away (see rounds.ts for why).
+      const restart = ++latest
+      const next = room ?? source
+      const freshRenderer = room === undefined ? null : await seams.createRenderer(parseRoom(next))
+      const freshSim = await makeSim(next)
+      if (restart !== latest) {
+        freshRenderer?.destroy()
+        freshSim.dispose()
+        return
+      }
+      loop.stop()
+      sim.dispose()
+      sim = freshSim
+      source = next
+      if (freshRenderer === null) renderer.reset()
+      else {
+        renderer.destroy()
+        renderer = freshRenderer
+      }
+      renderer.draw(seams.now())
+      if (running) loop.start()
+    },
+    destroy() {
+      loop.stop()
+      running = false
+      renderer.destroy()
+      sim.dispose()
+    },
+  }
+}
