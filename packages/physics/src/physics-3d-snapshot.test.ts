@@ -61,6 +61,44 @@ function withPhysicsBytes(snapshot: Uint8Array, bytes: Uint8Array): Uint8Array {
   return out
 }
 
+/** Row offsets in the physics bytes: sid u32 | flags u8 | body f64? | collider f64? (spec §3.2). */
+function rowsOf(b: Uint8Array): Array<{ sid: number; flags: number; collider?: number }> {
+  const view = new DataView(b.buffer, b.byteOffset, b.byteLength)
+  const rows: Array<{ sid: number; flags: number; collider?: number }> = []
+  let at = 5
+  for (let i = view.getUint32(1, true); i > 0; i--) {
+    const sid = view.getUint32(at, true)
+    const flags = view.getUint8(at + 4)
+    at += 5 + (flags & 1 ? 8 : 0)
+    rows.push(flags & 2 ? { sid, flags, collider: at } : { sid, flags })
+    at += flags & 2 ? 8 : 0
+  }
+  return rows
+}
+/** Offset of the first contact (a u32 | b u32 | sensor u8), right after the table and the contact count. */
+function firstContactAt(b: Uint8Array): number {
+  const rows = rowsOf(b)
+  const view = new DataView(b.buffer, b.byteOffset, b.byteLength)
+  let at = 5
+  for (const r of rows) at += 5 + (r.flags & 1 ? 8 : 0) + (r.flags & 2 ? 8 : 0)
+  if (view.getUint32(at, true) === 0) throw new Error('the scene has no contact at this tick')
+  return at + 4
+}
+function editFirstContact(b: Uint8Array, edit: (view: DataView, at: number) => void): void {
+  edit(new DataView(b.buffer, b.byteOffset, b.byteLength), firstContactAt(b))
+}
+
+/** Swaps the collider handles of the first row matching `x` and the first other row matching `y`. */
+function swapColliders(b: Uint8Array, x: number, y: number): void {
+  const rows = rowsOf(b)
+  const first = rows.find((r) => r.flags === x) as { collider: number }
+  const second = rows.find((r) => r.flags === y && r !== first) as { collider: number }
+  const view = new DataView(b.buffer, b.byteOffset, b.byteLength)
+  const handle = view.getFloat64(first.collider, true)
+  view.setFloat64(first.collider, view.getFloat64(second.collider, true), true)
+  view.setFloat64(second.collider, handle, true)
+}
+
 test.each([
   ['an unknown version', (b: Uint8Array) => b.set([9], 0), /unsupported version 9/],
   ['rows out of order', (b: Uint8Array) => new DataView(b.buffer).setUint32(5, 999, true), /ascending/],
@@ -69,6 +107,32 @@ test.each([
     'a handle the world lacks',
     (b: Uint8Array) => new DataView(b.buffer).setFloat64(10, 12345.5, true),
     /handle table does not match/,
+  ],
+  ['two bodies’ colliders swapped', (b: Uint8Array) => swapColliders(b, 3, 3), /row \d+: collider .* body/],
+  [
+    'a contact naming the higher sid first',
+    (b: Uint8Array) =>
+      editFirstContact(b, (v, at) => {
+        const a = v.getUint32(at, true)
+        v.setUint32(at, v.getUint32(at + 4, true), true)
+        v.setUint32(at + 4, a, true)
+      }),
+    /lower sid first/,
+  ],
+  [
+    'a contact naming an entity without a collider',
+    (b: Uint8Array) => editFirstContact(b, (v, at) => v.setUint32(at + 4, 999, true)),
+    /without a collider/,
+  ],
+  [
+    'a contact with an invalid sensor byte',
+    (b: Uint8Array) => editFirstContact(b, (v, at) => v.setUint8(at + 8, 7)),
+    /invalid sensor byte/,
+  ],
+  [
+    'a body’s and a lone collider swapped',
+    (b: Uint8Array) => swapColliders(b, 3, 2),
+    /row \d+: collider .* body/,
   ],
 ] as const)('physics bytes with %s are refused and the sim is unchanged', async (_, corrupt, message) => {
   const source = await scene()

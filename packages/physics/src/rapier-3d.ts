@@ -75,6 +75,9 @@ export async function createRapier3D(setup: {
     free(world) {
       world.free()
     },
+    close() {
+      queue.free()
+    },
     handles(world) {
       const bodies: number[] = []
       const colliders: number[] = []
@@ -198,6 +201,9 @@ export async function createRapier3D(setup: {
       return asleep
     },
     isSensor: (world, handle) => world.getCollider(handle).isSensor(),
+    // Rapier's `Collider.parent()` is a JS-side cache that a restored world fills by looking up the raw parent,
+    // and for a lone collider that lookup returns a body; the raw set reports the true parent handle.
+    colliderParent: (world, handle) => world.colliders.raw.coParent(handle),
   }
   return adapter
 }

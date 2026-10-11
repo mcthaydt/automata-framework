@@ -12,6 +12,7 @@ import {
   Transform2D,
   transform2d,
 } from './2d'
+import { createScene2D, sceneCommands2D } from './testing/scene-2d'
 
 const sims: Sim[] = []
 afterEach(() => {
@@ -129,4 +130,23 @@ test.each([
   }
   expect(caught).toBeInstanceOf(SimFaultedError)
   expect(((caught as SimFaultedError).cause as Error).message).toContain(`entity ${sid}: ${field}`)
+})
+
+test('the mixed 2D scene, with its spawns, despawns and component edits, reports balanced pairs', async () => {
+  const sim = await createScene2D()
+  const touching = new Set<string>()
+  let count = 0
+  for (let t = 0; t < 300; t++)
+    for (const e of sim.step(sceneCommands2D(t)).events) {
+      if (!e.type.startsWith('physics2d.collision-')) continue
+      const { a, b } = e.payload as { a: number; b: number }
+      const key = `${a}:${b}`
+      const started = e.type === 'physics2d.collision-started'
+      expect(touching.has(key), `${e.type} ${key}`).toBe(!started)
+      if (started) touching.add(key)
+      else touching.delete(key)
+      count += 1
+    }
+  sim.dispose()
+  expect(count).toBeGreaterThan(20)
 })

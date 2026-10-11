@@ -7,6 +7,7 @@ import {
   type EntityRef,
   type EventDef,
   type PluginState,
+  type PreparedRestore,
   type SimContext,
   SnapshotFormatError,
 } from '@mcthaydt/automata-sim'
@@ -26,6 +27,8 @@ export interface PhysicsAdapter<World> {
   /** Steps once and reports each collision start or end as (collider handle, collider handle, started). */
   step(world: World, onCollision: (a: number, b: number, started: boolean) => void): void
   free(world: World): void
+  /** Frees what the adapter holds for its sim besides worlds (its event queue). Called once, on dispose. */
+  close(): void
   /** Every body and collider handle the world holds, as Rapier reports them. */
   handles(world: World): { bodies: number[]; colliders: number[] }
   /**
@@ -51,6 +54,8 @@ export interface PhysicsAdapter<World> {
    */
   writeBack(world: World, body: number, entity: EntityRef, wasAsleep: boolean): boolean
   isSensor(world: World, collider: number): boolean
+  /** The handle of the body the collider is attached to, or undefined for a lone collider. */
+  colliderParent(world: World, collider: number): number | undefined
 }
 
 /** What one entity owns in Rapier. A row exists only while the entity qualifies (spec §3.3). */
@@ -61,7 +66,18 @@ interface Row {
   asleep?: boolean
 }
 
-const PHYSICS_BYTES_VERSION = 1
+/** A pair of entities whose colliders touch: started was emitted and ended not yet. Always a < b. */
+interface Contact {
+  readonly a: number
+  readonly b: number
+  readonly sensor: boolean
+}
+
+const contactKey = (a: number, b: number): string => `${a}:${b}`
+const byPair = (x: Contact, y: Contact): number => x.a - y.a || x.b - y.b
+
+// Version 2 added the contact list (spec §3.2), so events stay paired across a restore.
+const PHYSICS_BYTES_VERSION = 2
 const HAS_BODY = 1
 const HAS_COLLIDER = 2
 
@@ -85,6 +101,15 @@ export class PhysicsWorld<World> implements PluginState {
   private rows = new Map<number, Row>()
   private colliderOwner = new Map<number, number>() // collider handle -> sid
   private collisions: Array<{ a: number; b: number; started: boolean }> = []
+  /**
+   * Every pair currently touching, by contactKey. Events are emitted from changes to this set, so each
+   * started is followed by exactly one ended for the same pair (spec §3.4): when Rapier reports the
+   * separation, or when sync-in removes or rebuilds one of the colliders.
+   */
+  private touching = new Map<string, Contact>()
+  /** Contacts sync-in ended this tick by removing or rebuilding a collider; emitted with this tick's events. */
+  private ending: Contact[] = []
+  private disposed = false
 
   constructor(private readonly rapier: PhysicsAdapter<World>) {
     this.world = rapier.createWorld()
@@ -104,8 +129,21 @@ export class PhysicsWorld<World> implements PluginState {
   private removeRow(sid: number, row: Row): void {
     if (row.body !== undefined) this.rapier.removeBody(this.world, row.body)
     else if (row.collider !== undefined) this.rapier.removeCollider(this.world, row.collider)
-    if (row.collider !== undefined) this.colliderOwner.delete(row.collider)
+    if (row.collider !== undefined) this.forgetCollider(sid, row.collider)
     this.rows.delete(sid)
+  }
+
+  /**
+   * The entity's collider is gone from Rapier, so its contacts end now. Rapier would report the separation
+   * against a handle that no longer has an owner, which emitEvents could not name, so it is ended here.
+   */
+  private forgetCollider(sid: number, collider: number): void {
+    this.colliderOwner.delete(collider)
+    for (const [key, contact] of this.touching) {
+      if (contact.a !== sid && contact.b !== sid) continue
+      this.touching.delete(key)
+      this.ending.push(contact)
+    }
   }
 
   private addCollider(sid: number, row: Row, entity: EntityRef): void {
@@ -145,7 +183,7 @@ export class PhysicsWorld<World> implements PluginState {
         // Rapier cannot reshape every collider in place, so a changed collider is rebuilt.
         this.rapier.validate(entity)
         this.rapier.removeCollider(this.world, row.collider)
-        this.colliderOwner.delete(row.collider)
+        this.forgetCollider(sid, row.collider)
         this.addCollider(sid, row, entity)
       } else if (row.body === undefined) {
         this.rapier.updateLoneCollider(this.world, row.collider, entity)
@@ -169,29 +207,50 @@ export class PhysicsWorld<World> implements PluginState {
   }
 
   /**
-   * Collision events, sorted by (started before ended, lower sid, higher sid) so the order is a contract and
-   * not Rapier's internal pair order. A collider without an owner (removed this tick) drops its event.
+   * Collision events from the changes to `touching` this tick: every ended (sync-in's, then Rapier's), then
+   * every started, each sorted by (lower sid, higher sid). The order is a contract, not Rapier's pair order.
+   * Ended comes first so a contact rebuilt this tick reads as ended then started, leaving it touching.
+   * A collider without an owner (removed this tick) drops Rapier's event; sync-in already ended its contacts.
    */
   emitEvents(ctx: SimContext): void {
-    const out: Array<{ started: boolean; a: number; b: number; sensor: boolean }> = []
+    const ended = this.ending
+    const started: Contact[] = []
+    this.ending = []
     for (const c of this.collisions) {
       const sa = this.colliderOwner.get(c.a)
       const sb = this.colliderOwner.get(c.b)
       if (sa === undefined || sb === undefined) continue
-      const sensor = this.rapier.isSensor(this.world, c.a) || this.rapier.isSensor(this.world, c.b)
-      out.push({ started: c.started, a: Math.min(sa, sb), b: Math.max(sa, sb), sensor })
+      const a = Math.min(sa, sb)
+      const b = Math.max(sa, sb)
+      const key = contactKey(a, b)
+      const current = this.touching.get(key)
+      if (c.started) {
+        if (current) continue // already touching: never a second started
+        const sensor = this.rapier.isSensor(this.world, c.a) || this.rapier.isSensor(this.world, c.b)
+        const contact = { a, b, sensor }
+        this.touching.set(key, contact)
+        started.push(contact)
+      } else if (current) {
+        this.touching.delete(key)
+        // Started and ended in one step: the pair never touched between ticks, so it reports nothing.
+        const index = started.indexOf(current)
+        if (index >= 0) started.splice(index, 1)
+        else ended.push(current)
+      }
     }
-    out.sort((x, y) => Number(y.started) - Number(x.started) || x.a - y.a || x.b - y.b)
-    for (const e of out)
-      ctx.emit(e.started ? this.rapier.started : this.rapier.ended, { a: e.a, b: e.b, sensor: e.sensor })
+    ended.sort(byPair)
+    started.sort(byPair)
+    for (const e of ended) ctx.emit(this.rapier.ended, { a: e.a, b: e.b, sensor: e.sensor })
+    for (const e of started) ctx.emit(this.rapier.started, { a: e.a, b: e.b, sensor: e.sensor })
     this.collisions = []
   }
 
-  /** Section 6 bytes (spec §3.2): version, the sid -> handle table, then Rapier's own snapshot. */
+  /** Section 6 bytes (spec §3.2): version, the sid -> handle table, the contacts, then Rapier's snapshot. */
   snapshot(): Uint8Array {
     const world = this.rapier.takeSnapshot(this.world)
     const sids = this.sortedSids()
-    let size = 1 + 4 + 4 + world.length
+    const contacts = [...this.touching.values()].sort(byPair)
+    let size = 1 + 4 + 4 + contacts.length * 9 + 4 + world.length
     for (const sid of sids) {
       const row = this.rows.get(sid) as Row
       size += 4 + 1 + (row.body !== undefined ? 8 : 0) + (row.collider !== undefined ? 8 : 0)
@@ -220,12 +279,20 @@ export class PhysicsWorld<World> implements PluginState {
         at += 8
       }
     }
+    view.setUint32(at, contacts.length, true)
+    at += 4
+    for (const contact of contacts) {
+      view.setUint32(at, contact.a, true)
+      view.setUint32(at + 4, contact.b, true)
+      view.setUint8(at + 8, contact.sensor ? 1 : 0)
+      at += 9
+    }
     view.setUint32(at, world.length, true)
     out.set(world, at + 4)
     return out
   }
 
-  prepareRestore(bytes: Uint8Array): () => void {
+  prepareRestore(bytes: Uint8Array): PreparedRestore {
     const fail = (why: string): never => {
       throw new SnapshotFormatError(`physics: ${why}`)
     }
@@ -252,6 +319,22 @@ export class PhysicsWorld<World> implements PluginState {
       const collider = flags & HAS_COLLIDER ? view.getFloat64(need(8), true) : undefined
       rows.set(sid, { body, collider })
     }
+    const contactCount = view.getUint32(need(4), true)
+    const touching = new Map<string, Contact>()
+    let last: Contact | undefined
+    for (let i = 0; i < contactCount; i++) {
+      const a = view.getUint32(need(4), true)
+      const b = view.getUint32(need(4), true)
+      const sensorByte = view.getUint8(need(1))
+      const contact = { a, b, sensor: sensorByte === 1 }
+      if (a >= b) fail(`contact ${a}:${b} must name the lower sid first`)
+      if (last && byPair(last, contact) >= 0) fail('contacts must be in strictly ascending (a, b) order')
+      if (sensorByte > 1) fail(`contact ${a}:${b} has invalid sensor byte ${sensorByte}`)
+      if (rows.get(a)?.collider === undefined || rows.get(b)?.collider === undefined)
+        fail(`contact ${a}:${b} names an entity without a collider`)
+      touching.set(contactKey(a, b), contact)
+      last = contact
+    }
     const worldLength = view.getUint32(need(4), true)
     const worldBytes = bytes.subarray(need(worldLength), at)
     if (at !== bytes.length) fail(`${bytes.length - at} trailing bytes`)
@@ -264,29 +347,59 @@ export class PhysicsWorld<World> implements PluginState {
         cause: err,
       })
     }
-    // The table must name exactly the world's bodies and colliders. Rapier's own lookup is not enough: it
-    // resolves some malformed handles to a live object, so the check compares exact handle bits instead.
+    try {
+      this.checkTable(world, rows)
+    } catch (err) {
+      this.rapier.free(world)
+      throw err
+    }
+    return {
+      commit: () => {
+        this.rapier.free(this.world)
+        this.world = world
+        this.rows = rows
+        this.colliderOwner = new Map()
+        for (const [sid, row] of rows)
+          if (row.collider !== undefined) this.colliderOwner.set(row.collider, sid)
+        this.touching = touching
+        this.ending = []
+        this.collisions = []
+      },
+      discard: () => this.rapier.free(world),
+    }
+  }
+
+  /**
+   * The table must name exactly the world's bodies and colliders, and attach each collider as the world
+   * does: a wrong pairing would report contacts against the wrong entity. Rapier's own lookup is not enough
+   * (it resolves some malformed handles to a live object), so every comparison uses exact handle bits.
+   */
+  private checkTable(world: World, rows: ReadonlyMap<number, Row>): void {
     const inWorld = this.rapier.handles(world)
     const inTable = { bodies: [] as number[], colliders: [] as number[] }
     for (const row of rows.values()) {
       if (row.body !== undefined) inTable.bodies.push(row.body)
       if (row.collider !== undefined) inTable.colliders.push(row.collider)
     }
-    if (!sameHandles(inWorld.bodies, inTable.bodies) || !sameHandles(inWorld.colliders, inTable.colliders)) {
-      this.rapier.free(world)
-      fail('the handle table does not match the world’s bodies and colliders')
-    }
-    return () => {
-      this.rapier.free(this.world)
-      this.world = world
-      this.rows = rows
-      this.colliderOwner = new Map()
-      for (const [sid, row] of rows) if (row.collider !== undefined) this.colliderOwner.set(row.collider, sid)
-      this.collisions = []
+    if (!sameHandles(inWorld.bodies, inTable.bodies) || !sameHandles(inWorld.colliders, inTable.colliders))
+      throw new SnapshotFormatError(
+        'physics: the handle table does not match the world’s bodies and colliders',
+      )
+    for (const [sid, row] of rows) {
+      if (row.collider === undefined) continue
+      const parent = this.rapier.colliderParent(world, row.collider)
+      if (row.body === undefined && parent !== undefined)
+        throw new SnapshotFormatError(`physics: row ${sid}: lone collider is attached to a body`)
+      if (row.body !== undefined && (parent === undefined || handleBits(parent) !== handleBits(row.body)))
+        throw new SnapshotFormatError(`physics: row ${sid}: collider is not attached to the row’s body`)
     }
   }
 
+  /** Frees the Rapier world and the adapter's queue. Safe to call more than once. */
   dispose(): void {
+    if (this.disposed) return
+    this.disposed = true
     this.rapier.free(this.world)
+    this.rapier.close()
   }
 }
