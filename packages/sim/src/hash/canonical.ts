@@ -2,7 +2,7 @@ import { sortedKeys } from '../util/sorted'
 
 /**
  * Canonical JSON: object keys sorted at every depth, no whitespace. Numbers use the ECMAScript
- * Number-to-string algorithm, which every engine implements identically. Rejects anything that
+ * Number-to-string algorithm, which every engine implements identically, except that -0 is written as -0. Rejects anything that
  * JSON can't represent exactly (NaN, Infinity, undefined, bigint, functions, symbols).
  */
 export function canonicalJson(value: unknown): string {
@@ -14,7 +14,8 @@ export function canonicalJson(value: unknown): string {
       return JSON.stringify(value)
     case 'number':
       if (!Number.isFinite(value)) throw new Error(`canonicalJson: non-finite number ${value}`)
-      return JSON.stringify(value)
+      // JSON.stringify(-0) is "0", which would turn -0 into 0 on restore; "-0" parses back to -0.
+      return Object.is(value, -0) ? '-0' : JSON.stringify(value)
     case 'object': {
       if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`
       const obj = value as Record<string, unknown>

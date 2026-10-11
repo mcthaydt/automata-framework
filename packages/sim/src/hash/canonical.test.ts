@@ -27,3 +27,9 @@ test('utf8 encodes 1-, 2-, 3- and 4-byte code points and lone surrogates as U+FF
   expect([...utf8('aé€😀')]).toEqual([0x61, 0xc3, 0xa9, 0xe2, 0x82, 0xac, 0xf0, 0x9f, 0x98, 0x80])
   expect([...utf8('\ud800')]).toEqual([0xef, 0xbf, 0xbd])
 })
+
+test('-0 is written as -0, so it survives a JSON round trip (audit, spec M2.1 §10.1)', () => {
+  expect(canonicalJson(-0)).toBe('-0')
+  expect(canonicalJson({ a: [-0, 0] })).toBe('{"a":[-0,0]}')
+  expect(Object.is(JSON.parse(canonicalJson(-0)), -0)).toBe(true)
+})
