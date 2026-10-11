@@ -206,12 +206,13 @@ Tests write a minimal `ruken.toml` around `ruken-fields.json` and a preload list
 ### 3.9 Vite plugin (`vite/automata-content.ts`, export `@mcthaydt/automata-content/vite`)
 
 ```ts
-function automataContent(options: ContentOptions): Plugin
+function automataContent(options: Omit<ContentOptions, 'root'> & { root?: string }): Plugin  // root defaults to Vite's
 ```
 
 - `buildStart`: `buildContent`. In `vite build` a failure fails the build with every formatted diagnostic. In `vite dev` diagnostics print and the last good output keeps being served.
 - `configureServer`: watches `content/`; changes to `.toml` and message files (not `*.toml.example`, not `outDir`) debounce 50 ms, then rebuild on one serialized chain (FloorFifty `watch.ts`). Success: invalidate the virtual module and send the custom HMR event `automata:content` with `{ hash }`. Failure: send `automata:content-error` with the formatted diagnostics; outputs and the module stay as they were.
-- `virtual:automata/content` exports `content` and `contentHash`.
+- `virtual:automata/content` exports `content` and `contentHash`. Its `load` waits for the build chain, so it never serves a build in progress; with no good build yet it fails with the diagnostics.
+- Closing the server (`buildEnd`) clears the pending debounce and awaits the chain.
 
 ### 3.10 CLI (`cli/`, bin `automata-content`)
 

@@ -2,7 +2,7 @@
 
 - **Spec:** [`2026-10-11-m1-content-design.md`](../specs/2026-10-11-m1-content-design.md) (extract and improve FloorFifty's compiler, §0)
 - **Branch:** `claude/af-m1-content-tts573`, stacked on PR #4 (`claude/ruken-first-af-60n4bh`)
-- **Progress:** 12 / 14 tasks (T1–T12 done; T13–T14 next)
+- **Progress:** 13 / 14 tasks (T1–T13 done; T14 next)
 - **Commands:** focused `pnpm --filter @mcthaydt/automata-content exec vitest run --project node <file>`; `pnpm --filter @mcthaydt/automata-content typecheck`; `pnpm check` before each commit; parity `pnpm --filter @mcthaydt/automata-content exec vitest run --project browsers`.
 
 Every task: port or write the test, run it, see it fail for the stated reason (usually "module not found" first, then the assertion), write the least code, see it pass, `pnpm format`, commit with the tick. "Port" means the FloorFifty `122a220` test named, rewritten against the AF API with the same cases.
@@ -83,8 +83,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement. Also added `pathKind` to `files/content-files.ts`; no `game.toml` gives an empty list.
 
 ### T13 Vite plugin
-- [ ] Port `watch.test.ts` to the dev server: a valid save sends `automata:content` with the new hash; a bad save sends `automata:content-error`, keeps the last good bytes and module; the next good save recovers; a `*.toml.example` change does nothing. Plus `vite build` embeds the hash and a broken file fails the build. Fails: module missing.
-- [ ] Implement.
+- [x] Port `watch.test.ts` to the dev server: a valid save sends `automata:content` with the new hash; a bad save sends `automata:content-error`, keeps the last good bytes and module; the next good save recovers; a `*.toml.example` change does nothing. Plus `vite build` embeds the hash and a broken file fails the build. Fails: module missing.
+- [x] Implement. `root` defaults to Vite's root; the tests record HMR events by replacing `server.ws.send` on a middleware-mode server.
 
 ### T14 CLI, exports, full check
 - [ ] Port `bin/content.ts` behavior as `runCli` tests: `check` 0/1, `build` writes, `check --verify-artifact` fails after a hand edit, `docs` rewrites the table, a bad command or config is 2. Fails: module missing.
@@ -96,3 +96,4 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - 2026-10-11: T1–T10 landed (`71fac06`..`5ec5f1c`): diagnostics with positions, the key locator, document parsing, schema registration and references, tuning, flow, palette, hash, messages, game facts, generators and `content.d.ts`.
 - 2026-10-11: T11 landed: compile, build and verify over one file-access module. Rulings: `@effect/platform` dropped for `node:fs` behind `files/content-files.ts` (coordinator, so `@mcthaydt/automata-node` is a one-file swap); `tuning.toml`/`flow.toml` are required when the game passes `tunables`/`flow`; translations are checked only when every source parsed; generators run only on content that passed every check. `Data.TaggedError` classes extend an annotated constant because `isolatedDeclarations` cannot type a call in `extends`.
 - 2026-10-11: T12 landed: `preloadList` compiles, then checks each preload file (or `dir/*` folder) in `dist/` and reports every missing one as `missingAsset` at its `assets.toml` line.
+- 2026-10-11: T13 landed: the `automataContent()` Vite plugin (serialized builds, 50 ms debounce, `automata:content` / `automata:content-error`, last good module kept) with FloorFifty's watch tests ported to a dev server, plus `vite build` embedding the hash and failing on a broken file.
