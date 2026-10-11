@@ -150,6 +150,13 @@ describe('parity across packages', () => {
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
   })
 
+  // af-linux is one PC shared with Ruken's GPU runs. Under that load, tests that build worlds or import whole
+  // entry modules ran past vitest's 5 s default (main after #16: sim's snapshot test at 5.2 s; #15: base-2d's
+  // exports test). The root script passes a 30 s default to every package's vitest; a test's own timeout still wins.
+  it('gives every unit suite a 30 s default timeout through the root test:unit script', () => {
+    expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=30000')
+  })
+
   it('gives every package with a browsers vitest project a test:parity script', () => {
     const withBrowsers = workspacePackages.filter((path) => {
       try {
