@@ -4,8 +4,8 @@
  *
  * Colours come from the Endesga 64 palette, with Bubble Bobble mixed with Celeste as the visual
  * reference (Owner art direction, 2026-10-11): a deep night-blue ground, bright saturated accents,
- * chunky edges. Text pairs are chosen for contrast: ink on surface and panel, dark ink on the
- * yellow accent, white on the danger red.
+ * chunky light outlines. Every text pair meets 4.5:1 and every edge and focus ring 3:1 against the
+ * surfaces (art README; pinned by theme.test.ts).
  *
  * The geometry owner writes `--af-scale` (1, or 1.333 on Ruken's TV mode) and `data-height` on the
  * root. Scale enlarges text and targets through calc(), never through `zoom`.
@@ -29,7 +29,7 @@
 
   --af-surface: #1a1932;
   --af-panel: #2a2f4e;
-  --af-edge: #424c6e;
+  --af-edge: #92a1b9;
   --af-ink: #ffffff;
   --af-muted: #92a1b9;
   --af-accent: #ffc825;

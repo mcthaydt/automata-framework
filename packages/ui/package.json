@@ -22,6 +22,7 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
+    "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "nanostores": "1.5.5"
   },
   "peerDependencies": {
@@ -40,6 +41,7 @@
     "svelte": "5.57.1",
     "svelte-check": "4.7.6",
     "typescript": "6.0.3",
+    "vite": "8.3.2",
     "vitest": "5.0.3"
   }
 }

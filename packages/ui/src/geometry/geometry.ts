@@ -7,6 +7,7 @@
  * and `ruken/host.ts` `reservedOf` at 122a220.
  */
 
+import type { DisplayMetricsPayload } from '@ruken/sdk'
 import { classifyFormFactor, type FormFactor } from './form-factor'
 import { classifyHeightTier, type HeightTier } from './height-tier'
 
@@ -26,20 +27,11 @@ export interface Rect {
 }
 
 /**
- * What the host says about the display: a structural subset of Ruken's `DisplayMetricsPayload`
- * (`packages/protocol/src/meta/types.ts`). Replaced by a `Pick` of the vendored SDK type once
- * lane host vendors `@ruken/sdk` (spec §9).
+ * What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
+ * Imported from the vendored `@ruken/sdk`, never copied (M1 shared contracts).
+ * `scale` is 1.333 on Ruken's TV mode: a hint to enlarge text and targets, never CSS zoom.
  */
-export interface HostDisplay {
-  readonly safeArea: Insets
-  /** The strip on one side where Ruken draws its own tab. Only its edge and width matter here. */
-  readonly hostReserved: {
-    readonly edge: 'left' | 'right'
-    readonly rect: { readonly x: number; readonly y: number; readonly w: number; readonly h: number }
-  }
-  /** 1.333 on Ruken's TV mode: a hint to enlarge text and targets, never CSS zoom. */
-  readonly scale: 1 | 1.333
-}
+export type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'scale'>
 
 export interface GeometryInput {
   /** The layout viewport, `innerWidth x innerHeight`. Form factor and tier come from this alone. */
@@ -65,7 +57,7 @@ export interface Geometry {
   readonly visualInsetBottom: number
   /** `usable` less the visual inset: what the player can actually see and reach. */
   readonly visible: Rect
-  readonly scale: 1 | 1.333
+  readonly scale: HostDisplay['scale']
 }
 
 const NO_INSETS: Insets = { top: 0, right: 0, bottom: 0, left: 0 }

@@ -53,6 +53,8 @@ describe('hostDisplay', () => {
     expect(hostDisplay()).toEqual({
       safeArea: { top: 0, right: 0, bottom: 0, left: 0 },
       hostReserved: { edge: 'right', rect: { x: 1232, y: 332, w: 48, h: 56 } },
+      orientation: 'landscape',
+      fullscreen: false,
       scale: 1,
     })
   })

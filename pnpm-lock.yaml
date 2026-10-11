@@ -41,6 +41,10 @@ importers:
         version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.2(@types/node@26.6.4))
 
   packages/testing:
+    dependencies:
+      '@ruken/sdk':
+        specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
+        version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
     devDependencies:
       '@vitest/browser-playwright':
         specifier: 5.0.3
@@ -60,6 +64,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@ruken/sdk':
+        specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
+        version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
       nanostores:
         specifier: 1.5.5
         version: 1.5.5
@@ -100,6 +107,9 @@ importers:
       typescript:
         specifier: 6.0.3
         version: 6.0.3
+      vite:
+        specifier: 8.3.2
+        version: 8.3.2(@types/node@26.6.4)
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.2(@types/node@26.6.4))
@@ -506,6 +516,10 @@ packages:
 
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+
+  '@ruken/sdk@file:vendor/ruken/ruken-sdk-0.0.0.tgz':
+    resolution: {integrity: sha512-ChYL+q7ovmv0hgD7vpCbO6Ce3LqHUSWe40EyVZw6eEvRABHGZueY024eCzNMuH4UsNh/3UrewFNFfLt+tE4Wxw==, tarball: file:vendor/ruken/ruken-sdk-0.0.0.tgz}
+    version: 0.0.0
 
   '@sveltejs/acorn-typescript@1.0.13':
     resolution: {integrity: sha512-wgKggnhZVL9Bfx1OaKKTrYY9BFRk6C8UAkQNUcIv1+llzYrIqy+RZm5HPKzn0NpEBvTVhTqB4kQyllZywsRBRQ==}
@@ -1625,6 +1639,8 @@ snapshots:
     optional: true
 
   '@rolldown/pluginutils@1.0.1': {}
+
+  '@ruken/sdk@file:vendor/ruken/ruken-sdk-0.0.0.tgz': {}
 
   '@sveltejs/acorn-typescript@1.0.13(acorn@8.19.0)':
     dependencies:

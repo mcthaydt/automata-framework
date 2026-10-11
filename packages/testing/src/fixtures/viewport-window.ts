@@ -2,10 +2,11 @@
  * Renderer-free stand-ins for the browser and the host (M1.6 spec §3.6), so the geometry owner
  * and the screens built on it can be tested without a real viewport, keyboard or Ruken.
  *
- * The shapes are structural: they match what `@mcthaydt/automata-ui`'s owner reads from a window
- * and Ruken's `DisplayMetricsPayload`, without importing either, so this package depends on
- * neither.
+ * The window is structural (what `@mcthaydt/automata-ui`'s owner reads), so this package does not
+ * depend on ui. The host display is Ruken's own `DisplayMetricsPayload` from the vendored SDK.
  */
+
+import type { DisplayMetricsPayload } from '@ruken/sdk'
 
 type Listener = () => void
 
@@ -103,38 +104,26 @@ export function fakeViewportWindow(size: { width: number; height: number }): Fak
   }
 }
 
-export interface HostDisplayFixture {
-  readonly safeArea: {
-    readonly top: number
-    readonly right: number
-    readonly bottom: number
-    readonly left: number
-  }
-  readonly hostReserved: {
-    readonly edge: 'left' | 'right'
-    readonly rect: { readonly x: number; readonly y: number; readonly w: number; readonly h: number }
-  }
-  readonly scale: 1 | 1.333
-}
-
 /**
  * Ruken's display metrics for a hosted game. Defaults are Ruken's own fixture
- * (`packages/protocol/src/fixtures/display.ts` at b30d31b): a 48 x 56 tab on the right.
+ * (`packages/protocol/src/fixtures/display.ts` at b30d31b): a 48 x 56 tab on the right, landscape.
  */
 export function hostDisplay(
   options: {
     edge?: 'left' | 'right'
     width?: number
-    scale?: 1 | 1.333
-    safeArea?: HostDisplayFixture['safeArea']
+    scale?: DisplayMetricsPayload['scale']
+    safeArea?: DisplayMetricsPayload['safeArea']
   } = {},
-): HostDisplayFixture {
+): DisplayMetricsPayload {
   return {
     safeArea: options.safeArea ?? { top: 0, right: 0, bottom: 0, left: 0 },
     hostReserved: {
       edge: options.edge ?? 'right',
       rect: { x: options.edge === 'left' ? 0 : 1232, y: 332, w: options.width ?? 48, h: 56 },
     },
+    orientation: 'landscape',
+    fullscreen: false,
     scale: options.scale ?? 1,
   }
 }
