@@ -17,7 +17,9 @@ A base is the smallest complete game on AF: it boots under the fake Ruken host a
 - **Location:** `examples/<package>/<demo>/`, where `<package>` is the core package or extension shown (`examples/physics/bodies-2d/`, `examples/feel/hit-stop/`, `examples/ui/action-bar/`). The folder name says what it shows.
 - **Shape:** one entry file (`main.ts`) plus the demo's own content, on top of a base. A reader learns the feature from that one file. No demo depends on another demo.
 - **Header:** `main.ts` starts with a comment block: what it shows, the controls, the base it uses and the packages it needs.
-- **Runs:** `pnpm --filter <demo> dev` serves it under the fake Ruken host (`cli dev`); the gallery (`examples/gallery`, M1.8) lists every demo with a screenshot and a link to its source.
+- **Runs:** `pnpm --filter <demo> dev` serves it under the fake Ruken host (`cli dev`); the gallery (`examples/gallery`, M1.8) lists every demo with a screenshot and a link to its source. Today the gallery is its list (`examples/gallery/src/demos.ts`, checked against the demo folders); its page and screenshots come with Owner-approved shots. Until `cli dev` exists, `pnpm --filter <demo> dev` serves the demo standalone.
+- **Built on the base:** a 2D demo plays the room through `playRoom` from `@af-examples/base-2d` (the room, Wick, input and the loop, without the base's screens), passing its own room, sim plugins, commands and sprites (`Renderer.layer`).
+- **Smoke tests:** `examples/demo-host` is Ruken's fake host around any demo (`?game=<url>&id=<game id>`); each demo's `e2e/*.e2e.ts` runs in the `demos` project of `pnpm test:e2e`, against its build served with Ruken's headers.
 - **Checked:** each demo has a smoke test that boots it under the fake host, waits for ready and asserts no console errors; CI builds every demo. Screenshots for the gallery are evidence, promoted only after Owner approval.
 - **Art:** Endesga 64 and the look in the [art direction](../docs/art/README.md): Bubble Bobble and Celeste as influences, with a modern, original treatment like `base-2d`'s. Art may come from any generation API the project has access to (Owner, 2026-10-11), through the `pipelines` gates once they exist (M3), with provenance recorded.
 
@@ -27,8 +29,8 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 
 | Demo | Owner | Base | Status |
 |---|---|---|---|
-| `host/lifecycle-and-saves` | host lane | `base-2d` | Base built and host merged; to do |
-| `content/hot-reload` | content lane | `base-2d` | Base built and content merged; to do |
+| `host/lifecycle-and-saves` | host lane | `base-2d` | Built (feature-demos PR, stacked on #10) |
+| `content/hot-reload` | content lane | `base-2d` | Built (feature-demos PR, stacked on #10) |
 | `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR (#7); needs no base |
-| `physics/bodies-2d`, `physics/bodies-3d` | sim lane | `base-2d`, `base-3d` | `bodies-2d`: base built and physics merged; to do; `bodies-3d` waits on `base-3d` |
+| `physics/bodies-2d`, `physics/bodies-3d` | sim lane | `base-2d`, `base-3d` | `bodies-2d`: built (feature-demos PR, stacked on #10); `bodies-3d` waits on `base-3d` |
 | `placeholder` (the ship lane's page: boots under the fake host and publishes through `ship`; not a feature demo) | ship lane | none | With the ship PR |

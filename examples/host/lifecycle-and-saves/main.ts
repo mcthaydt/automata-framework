@@ -74,7 +74,7 @@ const program = Effect.gen(function* () {
     root.dataset.lifecycle = lifecycle
     root.dataset.runs = String(runs)
     show({
-      host: `${hosting.kind === 'ruken' ? 'Ruken' : 'Standalone'} · ${hosting.player.displayName}`,
+      host: hosting.kind === 'ruken' ? `Ruken · ${hosting.player.displayName}` : 'Standalone',
       lifecycle: `Lifecycle: ${lifecycle}`,
       saves: `Saves: ${hosting.granted.has('saves') ? savesStatus : 'this page only'}`,
       best: best === 0 ? 'Best: none yet' : `Best ${(best / tuning.TICK_HZ).toFixed(2)} s`,
