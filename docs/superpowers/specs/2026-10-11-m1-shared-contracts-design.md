@@ -132,7 +132,7 @@ declare function defineExtension<const N extends string>(def: ExtensionDef<N>): 
 
 Rules:
 
-- `defineExtension` results live in a `*.extension.ts` file (the `style` rule gains this suffix in M1.5).
+- `defineExtension` results live in a `*.extension.ts` file (enforced by `pnpm style`, as are `defineContentSchema` in `*.content.ts` and `defineContentGenerator` in `*.generator.ts`).
 - Extensions are resolved by `requires` and then ordered by name, like sim plugins. A cycle or a missing requirement fails the build with both names.
 - `RukenManifestContribution` is a partial of `@ruken/manifest`'s own input type: `wants` capabilities and the `[loading] preload` list. Any field Ruken's schema lacks is a type error.
 - `UiSlotName` is a closed union the ui lane defines in its spec (for example `'debug.panels'`, `'settings.sections'`). An extension cannot add a slot.

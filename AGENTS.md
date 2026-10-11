@@ -55,7 +55,7 @@ Then read the milestone spec, its ADR/spike references and the task's plan when 
 - **The seven laws** (2026-10-01 master spec §2, law 7 refined in the 2026-10-11 spec): only the sim changes gameplay state; the sim has no I/O, no wall clock and no `Math.random`; the host is a port and Ruken is the reference host.
 - **Effect outside the sim only** (ADR 0003): runtime managers are Effect services; inject time through Effect's `Clock` and test it with `TestClock`; use `Scope` for disposal; no Effect allocation per frame. Zod is the only schema language.
 - **PixiJS only** (ADR 0002): core 2D in `render-pixi`; 3D only in the `render-pixi3d` extension. WebGL2 is the default renderer and WebGPU is opt-in; every game imports `render-pixi/no-eval` first (Ruken's CSP has no `eval`). Filters are GLSL + WGSL pairs taking pixel position from the vertex stage; WebGL2 stays at parity with WebGPU. `render-pixi3d` stays unpublished (D-1).
-- **Naming:** role suffixes (`*.component.ts`, `*.system.ts`, `*.command.ts`, `*.event.ts`, `*.resource.ts`, `*.plugin.ts`, `*.manager.ts`, `*.schema.ts`, `*.migration.ts`, `*.test.ts`). Folders group by feature.
+- **Naming:** role suffixes (`*.component.ts`, `*.system.ts`, `*.command.ts`, `*.event.ts`, `*.resource.ts`, `*.plugin.ts`, `*.manager.ts`, `*.schema.ts`, `*.migration.ts`, `*.content.ts`, `*.generator.ts`, `*.extension.ts`, `*.test.ts`). Folders group by feature.
 - **Determinism is cross-engine:** goldens must match bit-for-bit in Node, Chromium, WebKit and Firefox. Never accept a hash mismatch as "flaky".
 - Run `pnpm format` before committing. Use Conventional Commits.
 - Packages publish as `@mcthaydt/automata-<name>` (GitHub Packages, `mcthaydt/automata-framework`).
