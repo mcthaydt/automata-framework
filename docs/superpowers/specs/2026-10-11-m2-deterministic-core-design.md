@@ -64,7 +64,7 @@ Each is specified in full in its task spec; listed here so the lanes build again
 | `SimContentData` in the generated `content.d.ts`; `SimContext.content` stays `unknown` | additive to M1.3's generated types | M2.2 §3.3 | game sim code |
 | `Sim.contentHash: string` (16 hex) | additive | M2.2 §3.4 | runtime, replays, saves |
 | `Sim.describeSnapshot(bytes?): SnapshotView` | additive | M2.3 §3.1 | `testing`, `debug` (M6) |
-| `.replay` format v1 and `@mcthaydt/automata-sim/replay` (`REPLAY_FORMAT`, `DEFAULT_CHECK_EVERY`, `REPLAY_INFLATE_MAX_BYTES`, the `Replay`/`ReplayHeader`/`ReplayCommand` types, `createRecorder`, `encodeReplay`, `decodeReplay`, `createReplayStepper`, `ReplayCompression`, `packReplay`, `unpackReplay`, `ReplayFormatError`, `ReplayRecordError`) | new | M2.3 §3.2–§3.5 | `testing`, runtime (M1.5 recording), `net` (M7), saves |
+| `.replay` format v1 and `@mcthaydt/automata-sim/replay` (`REPLAY_FORMAT`, `DEFAULT_CHECK_EVERY`, `REPLAY_MAX_TICKS`, `REPLAY_INFLATE_MAX_BYTES`, the `Replay`/`ReplayHeader`/`ReplayCommand` types, `createRecorder`, `encodeReplay`, `decodeReplay`, `createReplayStepper`, `ReplayCompression`, `packReplay`, `unpackReplay`, `ReplayFormatError`, `ReplayRecordError`) | new | M2.3 §3.2–§3.5 | `testing`, runtime (M1.5 recording), `net` (M7), saves |
 | `@mcthaydt/automata-testing/sim` (`simGolden`, `replayGolden`, `GoldenReport`, `expectGolden`, `diffSnapshotViews`, `formatGoldenReport`, `snapshotRoundTripProperty`, `goldenCommands`, `nodeCompression`, `streamCompression`) | new | M2.3 §3.6–§3.9 | every package with sim plugins, every game's tests |
 | Published package layout (`exports` → `src` in the workspace, `publishConfig.exports` → `dist`), one fixed version for every `@mcthaydt/automata-*` package | new | M2.4 §3 | every game repository, `create-game` (M1.8), `update-game` (M8) |
 
@@ -108,6 +108,7 @@ M2.4 build and publish ── packaging can start now; the first release waits f
 | Snapshot or replay from other gameplay content | `SnapshotMismatchError('contentHash')`; the report says "content changed", never "diverged" | M2.2, M2.3 |
 | Store or display metadata changed (`game.toml`) | Accepted: not in the sim partition | M2.2 |
 | Schema changed (component, command, resource, plugin config) | `SnapshotMismatchError('schemaHash')`; a golden must be re-recorded with the reason written in the commit and the plan's log | M2.3 |
+| Restore or describe bytes whose header names another schema, content or tick rate | `SnapshotMismatchError` naming the field, checked on the header **before** the body is decoded, so a changed component set never surfaces as a `SnapshotFormatError` from decoding the body with this build's components (coordinator ruling, 2026-10-11, on the M2.3 audit: `main` before #20 threw `SnapshotFormatError` for a changed component set; nothing depended on that type) | M2.3 |
 | Hash differs in one engine only | A failure, never a flake; never rebaselined per engine (AGENTS.md) | M2.3 |
 | Malformed or truncated replay, oversized inflate | `ReplayFormatError`; nothing is stepped | M2.3 |
 | A browser project asked to update goldens | Fails: only the Node project writes goldens | M2.3 |
