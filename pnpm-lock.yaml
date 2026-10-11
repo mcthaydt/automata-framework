@@ -39,6 +39,9 @@ importers:
       '@mcthaydt/automata-node':
         specifier: workspace:*
         version: link:../node
+      '@ruken/cli':
+        specifier: file:../../vendor/ruken/ruken-cli-0.0.0.tgz
+        version: file:vendor/ruken/ruken-cli-0.0.0.tgz
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -406,6 +409,11 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
+  '@ruken/cli@file:vendor/ruken/ruken-cli-0.0.0.tgz':
+    resolution: {integrity: sha512-tS/9pqGhvyX1uphJ50zOE2rQj0yWMawJ3hQyGiK7NyXkzq0kZkkZ+M7UQVqxpQXL1MZpq5C0HVwpNCSe97YIZw==, tarball: file:vendor/ruken/ruken-cli-0.0.0.tgz}
+    version: 0.0.0
+    hasBin: true
+
   '@ruken/manifest@file:vendor/ruken/ruken-manifest-0.0.0.tgz':
     resolution: {integrity: sha512-ZgDo8pOZEEbppL7kO+1qzUbB9xhDk8q20t8tEDURl6l1OS2lb8F9nwR0GabbTrYEGLg/0WgGA/YiSbW4Fge4Wg==, tarball: file:vendor/ruken/ruken-manifest-0.0.0.tgz}
     version: 0.0.0
@@ -618,6 +626,10 @@ packages:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
 
+  buffer-crc32@1.0.0:
+    resolution: {integrity: sha512-Db1SbgBS/fg/392AblrMJk97KggmvYhr4pB5ZIMTWtaivCPMWLkmb7m21cJvpvgK+J3nsU2CmmixNBZx4vFj/w==}
+    engines: {node: '>=8.0.0'}
+
   chai@6.3.0:
     resolution: {integrity: sha512-XWAtwJ6OHO+tj0EKCs0Y2UamnyOxseZWltU4x2U2wh8g4AigdjwvtUjvLP2tqkA/avxHEtzxNaqGq/YGNwckKg==}
     engines: {node: '>=18'}
@@ -828,6 +840,9 @@ packages:
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
 
+  pend@1.2.0:
+    resolution: {integrity: sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==}
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -1012,6 +1027,13 @@ packages:
       utf-8-validate:
         optional: true
 
+  yauzl@3.4.0:
+    resolution: {integrity: sha512-jIH9yLR9wqr0wOS0TpBvo/g/2UgZH5qePVbjgRliiF0BYvOZyaBknKsF+x9Iht0O6sqgnB93rCICdOZFecJuDw==}
+    engines: {node: '>=12'}
+
+  yazl@3.3.1:
+    resolution: {integrity: sha512-BbETDVWG+VcMUle37k5Fqp//7SDOK2/1+T7X8TD96M3D9G8jK5VLUdQVdVjGi8im7FGkazX7kk5hkU8X4L5Bng==}
+
   zod@4.6.5:
     resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
@@ -1170,6 +1192,13 @@ snapshots:
     optional: true
 
   '@rolldown/pluginutils@1.0.1': {}
+
+  '@ruken/cli@file:vendor/ruken/ruken-cli-0.0.0.tgz':
+    dependencies:
+      smol-toml: 1.9.0
+      yauzl: 3.4.0
+      yazl: 3.3.1
+      zod: 4.6.5
 
   '@ruken/manifest@file:vendor/ruken/ruken-manifest-0.0.0.tgz':
     dependencies:
@@ -1379,6 +1408,8 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
+  buffer-crc32@1.0.0: {}
+
   chai@6.3.0: {}
 
   convert-source-map@2.0.0: {}
@@ -1542,6 +1573,8 @@ snapshots:
       '@oxc-parser/binding-win32-x64-msvc': 0.152.0
 
   pathe@2.0.3: {}
+
+  pend@1.2.0: {}
 
   picocolors@1.1.1: {}
 
@@ -1717,5 +1750,13 @@ snapshots:
   why-is-node-running@3.2.1: {}
 
   ws@8.22.0: {}
+
+  yauzl@3.4.0:
+    dependencies:
+      pend: 1.2.0
+
+  yazl@3.3.1:
+    dependencies:
+      buffer-crc32: 1.0.0
 
   zod@4.6.5: {}

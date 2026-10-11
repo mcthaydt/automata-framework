@@ -42,3 +42,47 @@ export class EntryMissing extends Data.TaggedError('EntryMissing')<{
     return `the entry page ${this.entry} is not in ${this.distDir}`
   }
 }
+
+/** What `ruken publish` printed on stderr, kept so the CLI can show Ruken's own words. */
+interface PublishFailure {
+  readonly exitCode: number
+  readonly output: string
+}
+
+const publishMessage = (what: string, failure: PublishFailure): string =>
+  `ruken publish ${what} (exit ${failure.exitCode})${failure.output === '' ? '' : `:\n${failure.output.trim()}`}`
+
+/** Exit 1: Ruken's checks rejected the build. */
+export class PublishRejected extends Data.TaggedError('PublishRejected')<PublishFailure> {
+  override get message(): string {
+    return publishMessage('rejected the build', this)
+  }
+}
+
+/** Exit 2: the command line was wrong. */
+export class PublishUsage extends Data.TaggedError('PublishUsage')<PublishFailure> {
+  override get message(): string {
+    return publishMessage('did not understand the command', this)
+  }
+}
+
+/** Exit 3: the token was missing, wrong or lacks the rights. */
+export class PublishAuth extends Data.TaggedError('PublishAuth')<PublishFailure> {
+  override get message(): string {
+    return publishMessage('was refused the token', this)
+  }
+}
+
+/** Exit 4: Ruken's checks took longer than the CLI waits. */
+export class PublishTimeout extends Data.TaggedError('PublishTimeout')<PublishFailure> {
+  override get message(): string {
+    return publishMessage('gave up waiting for Ruken', this)
+  }
+}
+
+/** Any other exit code. */
+export class PublishFailed extends Data.TaggedError('PublishFailed')<PublishFailure> {
+  override get message(): string {
+    return publishMessage('failed', this)
+  }
+}

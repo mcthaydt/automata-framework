@@ -102,7 +102,7 @@ const publishToRuken: (input: { distDir: string; cliPath: string; api: string; t
   => Effect<{ url: string }, PublishRejected | PublishUsage | PublishAuth | PublishTimeout | FileError>;
 ```
 
-Runs Ruken's own CLI (`node <cliPath> publish <distDir> [--activate] [--game <id>]`) with `RUKEN_API` and `RUKEN_TOKEN` in its environment, streams its output, takes the URL from its `Ready:`/`Active:` line, and maps its exit codes (0 done, 1 rejected, 2 usage, 3 auth, 4 timeout; Ruken `run.ts`). `cliPath` comes from `RUKEN_CLI`, a RukenApp checkout's `tooling/ruken-cli/src/cli.ts`, until `@ruken/cli` is published; then it becomes a pinned dependency. There is no dry run (Ruken has none).
+Runs Ruken's own CLI, vendored as `vendor/ruken/ruken-cli-0.0.0.tgz` (built at RukenApp `b30d31b` with `@ruken/*` bundled; integration lane, D-6): `node <@ruken/cli>/dist/cli.js publish <distDir> [--activate] [--game <id>]` with `RUKEN_API` and `RUKEN_TOKEN` in its environment (never the token on the command line), in the game's folder so `.ruken/project.json` lands there. It streams the CLI's output, takes the URL from its `Ready:`/`Active:` line, and maps its exit codes (0 done, 1 rejected, 2 usage, 3 auth, 4 timeout, anything else `PublishFailed`; Ruken `run.ts`). There is no dry run (Ruken has none).
 
 ### 3.5 Build ID and dev deploy
 
@@ -180,7 +180,7 @@ Focused `pnpm vitest run <file>` first; `pnpm check` and the three-browser parit
 
 ## 9. Ruken alignment
 
-`@ruken/manifest` (`packages/manifest/src/parse.ts`) for every manifest field; `tooling/ruken-cli/src/publish.ts` (packs, runs `@ruken/validation`, uploads) and `run.ts` for exit codes; `tooling/versions/pins.ts` and `docs/versions.md` for pins. Request to Ruken: publish `@ruken/cli` so `RUKEN_CLI` can become a pinned dependency, and consider a `--dry-run` (check without uploading) for CI.
+`@ruken/manifest` (`packages/manifest/src/parse.ts`) for every manifest field; `tooling/ruken-cli/src/publish.ts` (packs, runs `@ruken/validation`, uploads) and `run.ts` for exit codes; `tooling/versions/pins.ts` and `docs/versions.md` for pins. Request to Ruken: publish `@ruken/cli` so the vendored tarball can become a pinned npm dependency, and consider a `--dry-run` (check without uploading) for CI.
 
 ## 10. Exit criteria
 
