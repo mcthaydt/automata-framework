@@ -7,6 +7,7 @@ import {
   type EventDef,
   type PluginDef,
   type PluginState,
+  type PreparedRestore,
   type ResourceDef,
   type SystemDef,
 } from '../define/definitions'
@@ -82,15 +83,24 @@ export interface Sim {
   restore(bytes: Uint8Array): void
   /** xxhash64 of the snapshot, 16 hex digits. */
   hash(): string
+  /** Frees the Koota world and every plugin's engine. Idempotent; any later call throws SimDisposedError. */
   dispose(): void
+}
+
+export { SimCapacityError }
+
+/** The sim was disposed; it holds no world any more, so every call that reads or changes state refuses. */
+export class SimDisposedError extends Error {
+  constructor() {
+    super('this sim has been disposed; create a new one')
+    this.name = 'SimDisposedError'
+  }
 }
 
 /**
  * A system threw during `step`. The tick was left half-applied, so the sim refuses `step`, `snapshot` and
  * `hash` until a successful `restore` (M2.1 spec §10.2). Failing closed is cheaper than rolling back every tick.
  */
-export { SimCapacityError }
-
 export class SimFaultedError extends Error {
   readonly system: string
   readonly tick: number
@@ -158,13 +168,17 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   const content = deepFreeze(JSON.parse(contentJson))
   const contentHash = xxhash64(utf8(contentJson))
   const componentList = [...components.values()]
-  let store = new EntityStore(componentList)
   const resources = new Map<string, unknown>()
   for (const def of resourceDefs.values()) resources.set(def.id, def.schema.parse(def.init()))
 
   let tick = 0
   let fault: SimFaultedError | undefined
+  let disposed = false
+  const refuseIfDisposed = (): void => {
+    if (disposed) throw new SimDisposedError()
+  }
   const refuseIfFaulted = (): void => {
+    refuseIfDisposed()
     if (fault) throw fault
   }
   let fullResync = true // a renderer starts empty, so the first delta is a resync
@@ -201,23 +215,6 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       },
     }),
   ]
-  // Per-sim engine state (M2.1 spec §3.1), created in canonical plugin order. Only the owning plugin's systems
-  // see it. If one setup rejects, the states already created are disposed before the error propagates.
-  const states: Array<{ name: string; state: PluginState }> = []
-  const stateOfSystem = new Map<string, PluginState>()
-  try {
-    for (const p of plugins) {
-      if (!p.state) continue
-      const state = await p.state({ dt })
-      states.push({ name: p.name, state })
-      for (const s of p.systems) stateOfSystem.set(s.name, state)
-    }
-  } catch (err) {
-    for (const { state } of states) state.dispose()
-    store.dispose()
-    throw err
-  }
-
   const builtinNames = new Set(builtins.map((s) => s.name))
   const userSystems = plugins.flatMap((p) => p.systems)
   for (const s of userSystems)
@@ -235,7 +232,8 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   // Everything that must match for a snapshot to be restorable here.
   const sortedIds = (m: Map<string, unknown>) => [...m.keys()].sort()
   // `stateful` is only present when a plugin keeps engine state, so every pre-M2.1 schema hash is unchanged.
-  const stateful = states.length > 0 ? { stateful: states.map((s) => s.name) } : {}
+  const statefulNames = plugins.filter((p) => p.state).map((p) => p.name)
+  const stateful = statefulNames.length > 0 ? { stateful: statefulNames } : {}
   const schemaHash = xxhash64(
     utf8(
       canonicalJson({
@@ -251,6 +249,27 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       }),
     ),
   )
+
+  // Everything above only validates. From here the sim takes resources that must be released if setup fails:
+  // a Koota world (16 per process) and each plugin's engine state (M2.1 spec §10.6).
+  let store = new EntityStore(componentList)
+  // Per-sim engine state (M2.1 spec §3.1), created in canonical plugin order. Only the owning plugin's systems
+  // see it. If one setup rejects, the states already created are disposed before the error propagates.
+  const states: Array<{ name: string; state: PluginState }> = []
+  const stateOfSystem = new Map<string, PluginState>()
+  try {
+    for (const p of plugins) {
+      if (!p.state) continue
+      const state = await p.state({ dt })
+      states.push({ name: p.name, state })
+      for (const s of p.systems) stateOfSystem.set(s.name, state)
+    }
+  } catch (err) {
+    for (const { state } of states) state.dispose()
+    store.dispose()
+    throw err
+  }
+  // Nothing below can throw: it only builds closures over what exists.
 
   const resourceOf = <Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z> => {
     if (resourceDefs.get(def.id) !== def)
@@ -366,10 +385,22 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       stagedCommands = new Map()
       return { tick, events, render: lastDelta, rejected }
     },
-    spawn: (parts) => store.spawn(parts),
-    entity: (sid) => store.ref(sid),
-    query: (...cs) => store.query(cs),
-    resource: resourceOf,
+    spawn: (parts) => {
+      refuseIfDisposed()
+      return store.spawn(parts)
+    },
+    entity: (sid) => {
+      refuseIfDisposed()
+      return store.ref(sid)
+    },
+    query: (...cs) => {
+      refuseIfDisposed()
+      return store.query(cs)
+    },
+    resource: (def) => {
+      refuseIfDisposed()
+      return resourceOf(def)
+    },
     snapshot() {
       refuseIfFaulted()
       const entities = store.snapshotRows()
@@ -378,7 +409,14 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         const checked = def.schema.safeParse(resources.get(id))
         if (!checked.success)
           throw new Error(`resource "${id}" no longer matches its schema: ${checked.error.message}`)
-        const json = canonicalJson(checked.data)
+        let json: string
+        try {
+          json = canonicalJson(checked.data)
+        } catch (err) {
+          throw new Error(`resource "${id}" does not round-trip through JSON: ${(err as Error).message}`, {
+            cause: err,
+          })
+        }
         const again = def.schema.safeParse(JSON.parse(json))
         if (!again.success || canonicalJson(again.data) !== json)
           throw new Error(`resource "${id}" does not round-trip through JSON`)
@@ -403,6 +441,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       )
     },
     restore(bytes) {
+      refuseIfDisposed()
       let data: SnapshotData
       try {
         data = decodeSnapshot(bytes, componentList)
@@ -423,7 +462,8 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       let rows: Array<{ sid: number; parts: SpawnPart[] }>
       let nextResources: Map<string, unknown>
       let nextRngs: Map<string, Rng>
-      let commits: Array<() => void>
+      // Each plugin's parsed restore; on any failure every one of them is discarded, so none leaks.
+      const prepared: PreparedRestore[] = []
       try {
         rows = data.entities.map((e) => ({
           sid: e.sid,
@@ -458,10 +498,11 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         )
           throw new SnapshotFormatError('plugin state rows do not match the stateful plugins')
         // Every plugin validates before anything is committed, so one bad row leaves every plugin untouched.
-        commits = states.map(({ state }, i) =>
-          state.prepareRestore((data.plugins[i] as { bytes: Uint8Array }).bytes),
-        )
+        states.forEach(({ state }, i) => {
+          prepared.push(state.prepareRestore((data.plugins[i] as { bytes: Uint8Array }).bytes))
+        })
       } catch (err) {
+        for (const p of prepared) p.discard()
         throw err instanceof SnapshotFormatError ? err : new SnapshotFormatError(String(err), { cause: err })
       }
       // Commit. Nothing below can fail on snapshot contents; everything it reads was validated above.
@@ -472,7 +513,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       store.takeDelta(false)
       for (const [id, v] of nextResources) resources.set(id, v)
       for (const [name, r] of nextRngs) rngs.set(name, r)
-      for (const commit of commits) commit()
+      for (const p of prepared) p.commit()
       tick = data.tick
       fault = undefined
       fullResync = true
@@ -483,6 +524,8 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       return hex64(xxhash64(sim.snapshot()))
     },
     dispose() {
+      if (disposed) return
+      disposed = true
       store.dispose()
       for (const { state } of states) state.dispose()
     },

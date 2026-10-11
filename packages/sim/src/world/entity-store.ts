@@ -2,7 +2,7 @@ import { createWorld, type Entity, type World } from 'koota'
 import type { EntityRef, SpawnPart } from '../define/context'
 import type { ComponentDef } from '../define/definitions'
 import { coerceField, type FieldType } from '../define/fields'
-import { sortedKeys } from '../util/sorted'
+import { ownKeyCount, sortedKeys } from '../util/sorted'
 
 export type FieldRecord = Record<string, number | boolean | string>
 
@@ -71,10 +71,18 @@ export class EntityStore {
     base: FieldRecord,
   ): FieldRecord {
     const out: FieldRecord = { ...base }
-    for (const name of sortedKeys(values)) {
-      const type = def.fields[name] as FieldType | undefined
-      if (!type) throw new Error(`component "${def.id}" has no field: unknown field "${name}"`)
-      out[name] = coerceField(type, values[name])
+    // Walk the component's own (sorted) field names rather than sorting the caller's keys on every write:
+    // this runs for every set in every tick. A key count that differs means the caller passed a field the
+    // component lacks, and only then are the caller's keys sorted to name the first unknown one.
+    let known = 0
+    for (const name of def.fieldNames) {
+      if (!Object.hasOwn(values, name)) continue
+      out[name] = coerceField(def.fields[name] as FieldType, values[name])
+      known += 1
+    }
+    if (known !== ownKeyCount(values)) {
+      const unknown = sortedKeys(values).find((name) => !Object.hasOwn(def.fields, name))
+      throw new Error(`component "${def.id}" has no field: unknown field "${unknown}"`)
     }
     return out
   }
@@ -187,7 +195,8 @@ export class EntityStore {
       set: (def, values) => {
         const e = store.alive(sid)
         if (!e.has(store.check(def).trait)) throw new Error(`entity ${sid} does not have "${def.id}"`)
-        e.set(def.trait, store.coerce(def, values as Record<string, unknown>, store.read(e, def)))
+        // Koota's SoA set writes only the fields present, so the update needs no read of the current values.
+        e.set(def.trait, store.coerce(def, values as Record<string, unknown>, {}))
         store.markChanged(sid, def)
       },
       add: (def, values = {}) => {

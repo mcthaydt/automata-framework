@@ -121,11 +121,21 @@ export interface PluginState {
   /** Bytes for snapshot section 6. Must be canonical: the same state gives the same bytes in every engine. */
   snapshot(): Uint8Array
   /**
-   * Validates and parses `bytes` without touching the live state, and returns the commit that adopts them.
-   * Throwing here (a SnapshotFormatError for bad bytes) leaves the sim exactly as it was.
+   * Validates and parses `bytes` without touching the live state. Throwing here (a SnapshotFormatError for bad
+   * bytes) leaves the sim exactly as it was. Otherwise the sim later calls exactly one of the result's
+   * methods: `commit` when every part of the snapshot was valid, `discard` when another part was not.
    */
-  prepareRestore(bytes: Uint8Array): () => void
+  prepareRestore(bytes: Uint8Array): PreparedRestore
+  /** Frees the engine. The sim calls it once, on `dispose` or when `createSim` fails after creating it. */
   dispose(): void
+}
+
+/** A plugin's parsed restore, held until the sim knows whether the whole snapshot is valid. */
+export interface PreparedRestore {
+  /** Adopts the parsed state and frees the state it replaces. Must not throw. */
+  commit(): void
+  /** Frees whatever `prepareRestore` built (a restored engine world). Must not throw. */
+  discard(): void
 }
 
 /** What a plugin's state may know when it is created. */

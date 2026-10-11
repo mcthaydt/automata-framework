@@ -17,11 +17,12 @@ export {
   type PluginDef,
   type PluginState,
   type PluginStateSetup,
+  type PreparedRestore,
   type ResourceDef,
   type SystemDef,
 } from './define/definitions'
 export type { FieldSchema, FieldType, FieldValue, FieldValues } from './define/fields'
-export { canonicalJson } from './hash/canonical'
+export { CanonicalJsonError, canonicalJson } from './hash/canonical'
 export { hex64, xxhash64 } from './hash/xxhash64'
 export type { Rng, RngState } from './rng/rng'
 export { sortedEntries, sortedKeys } from './util/sorted'
@@ -33,6 +34,7 @@ export {
   type RejectReason,
   type Sim,
   SimCapacityError,
+  SimDisposedError,
   type SimEvent,
   SimFaultedError,
   type SimOptions,

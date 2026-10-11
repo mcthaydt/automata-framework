@@ -22,8 +22,11 @@ function counterPlugin(name = 'counter', log: string[] = []) {
         prepareRestore(bytes) {
           if (bytes.length !== 1) throw new SnapshotFormatError(`${name}: expected 1 byte`)
           const next = bytes[0] as number
-          return () => {
-            count = next
+          return {
+            commit: () => {
+              count = next
+            },
+            discard: () => {},
           }
         },
         dispose: () => log.push(`${name}:dispose`),
@@ -59,7 +62,7 @@ test('each sim gets its own plugin state, visible only to that plugin’s system
     name: 'spy',
     state: async () => ({
       snapshot: () => new Uint8Array(),
-      prepareRestore: () => () => {},
+      prepareRestore: () => ({ commit: () => {}, discard: () => {} }),
       dispose: () => {},
     }),
     systems: [
@@ -134,7 +137,7 @@ test('a failing prepareRestore leaves the whole sim unchanged and commits no oth
       snapshot: () => Uint8Array.of(7),
       prepareRestore: () => {
         if (failing) throw new SnapshotFormatError('fragile: refused')
-        return () => {}
+        return { commit: () => {}, discard: () => {} }
       },
       dispose: () => {},
     }),
