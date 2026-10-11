@@ -104,6 +104,8 @@ export async function createScene3D(): Promise<Sim> {
         ? collider3d.cuboid(0.3, 0.3, 0.3)
         : collider3d.ball(0.35, { friction: 0.7, restitution: 0.4 }),
     ])
+  // A tilted lone ramp, whose rotation Rapier stores normalized (spec §3.4).
+  sim.spawn([transform3d({ x: -6, y: 0.5, qz: 0.2588, qw: 0.9659 }), collider3d.cuboid(1.5, 0.1, 1.5)])
   return sim
 }
 

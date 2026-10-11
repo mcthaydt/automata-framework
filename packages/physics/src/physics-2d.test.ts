@@ -1,5 +1,5 @@
 import { createSim, type Sim, SimFaultedError, type SpawnPart } from '@mcthaydt/automata-sim'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import {
   BodyKind,
   body2d,
@@ -149,4 +149,16 @@ test('the mixed 2D scene, with its spawns, despawns and component edits, reports
     }
   sim.dispose()
   expect(count).toBeGreaterThan(20)
+})
+
+test('a rotated lone collider is not re-rotated every tick (audit: Rapier stores the angle as cos/sin)', async () => {
+  const RAPIER = (await import('@dimforge/rapier2d-deterministic-compat')).default
+  const sim = await world()
+  for (let i = 0; i < 200; i++)
+    sim.spawn([transform2d({ x: i, rotation: i * 0.0314 - Math.PI }), collider2d.cuboid(0.4, 0.2)])
+  sim.step([]) // creates them
+  const spy = vi.spyOn(RAPIER.Collider.prototype, 'setRotation')
+  for (let t = 0; t < 10; t++) sim.step([])
+  expect(spy).not.toHaveBeenCalled()
+  spy.mockRestore()
 })

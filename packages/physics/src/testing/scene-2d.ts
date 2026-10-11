@@ -92,6 +92,8 @@ export async function createScene2D(): Promise<Sim> {
       body2d(BodyKind.dynamic, { linearDamping: 0.05 }),
       i % 3 === 0 ? collider2d.cuboid(0.3, 0.3) : collider2d.ball(0.35, { friction: 0.7, restitution: 0.4 }),
     ])
+  // A tilted lone ramp: its angle reads back from Rapier differently from the authored 0.3 (spec §3.4).
+  sim.spawn([transform2d({ x: -6, y: 0.5, rotation: 0.3 }), collider2d.cuboid(1.5, 0.1)])
   return sim
 }
 

@@ -17,6 +17,8 @@ export function physics2d(options: Physics2DOptions = {}): PluginDef {
   const gravity = options.gravity ?? { x: 0, y: -9.81 }
   return definePlugin({
     name: 'physics-2d',
+    // Gravity changes what the plugin simulates, so it is part of the schema hash (spec §10.8).
+    config: { gravity },
     components: [Transform2D, RigidBody2D, Collider2D],
     events: [CollisionStarted2D, CollisionEnded2D],
     systems: [syncIn2D, step2D, syncOut2D, events2D],

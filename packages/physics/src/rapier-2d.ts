@@ -42,7 +42,11 @@ export async function createRapier2D(setup: {
   gravity: { x: number; y: number }
   dt: number
 }): Promise<PhysicsAdapter<World>> {
-  ready ??= RAPIER.init()
+  // A rejected init is not kept: the next createSim retries it (a wasm fetch can fail transiently).
+  ready ??= RAPIER.init().catch((err: unknown) => {
+    ready = undefined
+    throw err
+  })
   await ready
   const queue = new RAPIER.EventQueue(true)
   const adapter: PhysicsAdapter<World> = {
@@ -163,7 +167,13 @@ export async function createRapier2D(setup: {
       const t = entity.get(Transform2D)
       const p = collider.translation()
       if (t.x !== p.x || t.y !== p.y) collider.setTranslation({ x: t.x, y: t.y })
-      if (t.rotation !== collider.rotation()) collider.setRotation(t.rotation)
+      if (t.rotation !== collider.rotation()) {
+        // Rapier keeps the angle as (cos, sin) and reads it back with atan2, which can differ from the authored
+        // f32 angle; writing the read-back angle into the ECS makes the next comparison equal, so the collider
+        // is not re-rotated (and marked modified) every tick.
+        collider.setRotation(t.rotation)
+        entity.set(Transform2D, { rotation: collider.rotation() })
+      }
     },
     writeBack(world, handle, entity, wasAsleep) {
       const body = world.getRigidBody(handle)

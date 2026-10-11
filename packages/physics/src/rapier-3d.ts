@@ -51,7 +51,11 @@ export async function createRapier3D(setup: {
   gravity: { x: number; y: number; z: number }
   dt: number
 }): Promise<PhysicsAdapter<World>> {
-  ready ??= RAPIER.init()
+  // A rejected init is not kept: the next createSim retries it (a wasm fetch can fail transiently).
+  ready ??= RAPIER.init().catch((err: unknown) => {
+    ready = undefined
+    throw err
+  })
   await ready
   const queue = new RAPIER.EventQueue(true)
   const adapter: PhysicsAdapter<World> = {
@@ -180,7 +184,12 @@ export async function createRapier3D(setup: {
       if (!same.rotation)
         checkUnitQuaternion(entity.sid, 'transform-3d', t.qx * t.qx + t.qy * t.qy + t.qz * t.qz + t.qw * t.qw)
       if (!same.position) collider.setTranslation({ x: t.x, y: t.y, z: t.z })
-      if (!same.rotation) collider.setRotation({ x: t.qx, y: t.qy, z: t.qz, w: t.qw })
+      if (!same.rotation) {
+        // As in 2D: write Rapier's stored (normalized) rotation back, so an equal pose compares equal next tick.
+        collider.setRotation({ x: t.qx, y: t.qy, z: t.qz, w: t.qw })
+        const q = collider.rotation()
+        entity.set(Transform3D, { qx: q.x, qy: q.y, qz: q.z, qw: q.w })
+      }
     },
     writeBack(world, handle, entity, wasAsleep) {
       const body = world.getRigidBody(handle)

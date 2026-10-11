@@ -15,5 +15,5 @@ test('3D physics: 300 ticks, straight and restored at 150, match the golden in e
 
 // Recorded from Node 24 on 2026-10-11, then confirmed unchanged in Chromium, WebKit and Firefox. Re-recorded
 // once for the audit fixes: physics bytes v2 carry contacts, events are paired and ended-first, and the scene
-// now makes component edits.
-const EXPECTED = { hash: '87a29a3b4e8e0a36', events: 'f469427df085c740', eventCount: 192 }
+// now makes component edits and has a tilted lone ramp; gravity joined the schema hash (spec §10.8).
+const EXPECTED = { hash: '5ab771a640ac4b78', events: '770efcd4f89ac854', eventCount: 194 }

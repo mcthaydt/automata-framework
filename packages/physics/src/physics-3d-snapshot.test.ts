@@ -1,5 +1,12 @@
-import { canonicalJson, type Sim, SnapshotFormatError } from '@mcthaydt/automata-sim'
+import {
+  canonicalJson,
+  createSim,
+  type Sim,
+  SnapshotFormatError,
+  SnapshotMismatchError,
+} from '@mcthaydt/automata-sim'
 import { afterEach, expect, test } from 'vitest'
+import { BodyKind, body3d, collider3d, physics3d, transform3d } from './3d'
 import { createScene3D, sceneCommands } from './testing/scene-3d'
 
 const sims: Sim[] = []
@@ -161,4 +168,13 @@ test('trailing or truncated physics bytes are refused', async () => {
   longer.set(bytes)
   expect(() => target.restore(withPhysicsBytes(good, longer))).toThrow(SnapshotFormatError)
   expect(() => target.restore(withPhysicsBytes(good, bytes.subarray(0, 20)))).toThrow(SnapshotFormatError)
+})
+
+test('a snapshot from a sim with other gravity is refused, not silently adopted (audit, spec §10.8)', async () => {
+  const moon = await createSim({ seed: 1, plugins: [physics3d({ gravity: { x: 0, y: -1.62, z: 0 } })] })
+  const earth = await createSim({ seed: 1, plugins: [physics3d()] })
+  sims.push(moon, earth)
+  moon.spawn([transform3d({ y: 3 }), body3d(BodyKind.dynamic), collider3d.ball(0.5)])
+  for (let t = 0; t < 10; t++) moon.step([])
+  expect(() => earth.restore(moon.snapshot())).toThrow(SnapshotMismatchError)
 })

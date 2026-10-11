@@ -17,6 +17,8 @@ export function physics3d(options: Physics3DOptions = {}): PluginDef {
   const gravity = options.gravity ?? { x: 0, y: -9.81, z: 0 }
   return definePlugin({
     name: 'physics-3d',
+    // Gravity changes what the plugin simulates, so it is part of the schema hash (spec §10.8).
+    config: { gravity },
     components: [Transform3D, RigidBody3D, Collider3D],
     events: [CollisionStarted3D, CollisionEnded3D],
     systems: [syncIn3D, step3D, syncOut3D, events3D],
