@@ -9,7 +9,7 @@ The 2026-10-01 design had two render adapters: Three.js (WebGPURenderer with a T
 
 ## Decision
 - One renderer family. Core `render-pixi` covers 2D and the shared pieces (renderer init with WebGPU preferred and one WebGL2 retry, pixel framebuffer, `RenderDelta` consumption and interpolation, GLSL + WGSL filter helpers).
-- 3D is the `render-pixi3d` extension on `@pixi/3d`, pinned to a vendored tarball. Core never imports it.
+- 3D is the `render-pixi3d` extension on `@pixi/3d`, pinned to a vendored tarball. Core never imports it. Until AF 1.0 it covers the 2.5D scope The Last Light proves (fixed-zone cameras, billboards, GLB props); full 3D is added in M9 from a 3D game built on AF (Owner roadmap, 2026-10-11).
 - Post effects are written once as GLSL + WGSL pairs that work in 2D and 3D, taking pixel position from the vertex stage (S4).
 - The `RenderDelta` contract from the sim stays renderer-agnostic, so a different 3D backend could be added later without touching the sim.
 

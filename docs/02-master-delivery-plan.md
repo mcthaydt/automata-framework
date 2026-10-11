@@ -46,12 +46,22 @@ Each milestone starts with a spec task (`Mn.0`) and is decomposed into tasks whe
 
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
-| [ ] | M3.0 — 3D and pipelines spec, with spike S7 | M2. Decide D-1. `render-pixi3d`, `post-retro`, `pipelines`, character pipeline. |
+| [ ] | M3.0 — 2.5D and pipelines spec, with spike S7 | M2. Decide D-1. `render-pixi3d` at 2.5D scope, `post-retro`, `pipelines`, 2.5D character and props pipelines. |
 | [ ] | M4.0 — Input and display spec | M1. Complete input paths, display policy, E2E matrix under the fake Ruken host. |
 | [ ] | M5.0 — Saves, audio and localization spec | M2, M4. Ruken saves and migrations, audio extensions, six languages. |
 | [ ] | M6.0 — Gameplay extensions spec | M2, M3. `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`, `debug`, `telemetry-extra`, environment pipeline. |
 | [ ] | M7.0 — Online and store spec | M2, M5; Ruken `[store]` for `store`. `net`/`server`, `store`, `host-tauri`. |
-| [ ] | M8.0 — CLI 1.0 and adoption spec | All before. Decide D-2. Full CLI, 1.0, FloorFifty and The Last Light adoption slices. |
+| [ ] | M8.0 — CLI 1.0 and adoption spec | All before. Decide D-2. Full CLI, 1.0 (AF finished for 2D and 2.5D), FloorFifty and The Last Light adoption slices. |
+
+## After AF 1.0: the 3D game, then the 3D merge
+
+Owner roadmap (2026-10-11): 2D and 2.5D first, then 3D. The 3D pieces come from a working 3D game, the same way the 2D and 2.5D pieces come from FloorFifty and The Last Light.
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | GAME-3D.0 — Design and review the 3D game | M8. Concept (a small third-person action-adventure is the current suggestion), playable scope, target devices and acceptance cases in its own repo. |
+| [ ] | GAME-3D.1 — Build and accept the 3D game on AF | GAME-3D.0. Playable, deployed on Ruken, Owner-accepted. 3D-only systems live in the game. |
+| [ ] | M9.0 — 3D merge spec | GAME-3D.1. Select the proven pieces: full 3D `render-pixi3d`, rigged character and animation pipeline, third-person camera and controller, brush-based environments. |
 
 ## Execution record and handoff
 

@@ -42,9 +42,9 @@ The A/B/C phase IDs remain in historical documents (the A0 and A1a plans, spike 
 | A7 Networking | `net`/`server` extensions, **M7** | Built from FloorFifty's Colyseus code. |
 | A8 CLI + 1.0 | Minimal `create-game` in M1; full CLI in **M8** | |
 | A9 Store & Season Pass | `store` extension, **M7** | Blocked on Ruken's `[store]` manifest section. |
-| B1 Character pipeline | `pipelines` extension, **M3** | Starts from The Last Light's character pipeline. |
-| B2 Environment pipeline | `sectors` extension + environment pipeline, **M6** | Starts from The Last Light's sector maps; TrenchBroom/Sencha stays a reference to compare against. |
-| "Real 3D game" | Replaced by The Last Light as the 3D reference game; adoption in **M8** | |
+| B1 Character pipeline | 2.5D sprite-atlas characters in the `pipelines` extension, **M3**; rigged 3D characters, **M9** | Starts from The Last Light's character pipeline; the rigged pipeline comes from the 3D game. |
+| B2 Environment pipeline | `sectors` extension + sector environment pipeline, **M6**; brush-based 3D environments, **M9** | Starts from The Last Light's sector maps; TrenchBroom/Sencha stays a reference for the 3D game. |
+| "Real 3D game" | **GAME-3D**, after AF 1.0 (M8), then **M9** merges its 3D pieces back | Owner roadmap 2026-10-11: 2D and 2.5D first, then 3D. The Last Light is the 2.5D reference. |
 | Part C modular extraction | Replaced by core + extensions from day one | |
 
 ## 3. Milestone map and dependencies
@@ -54,6 +54,7 @@ M0 ─► M1 ─┬─► M2 ─┬─► M3 ─► M6
           │       ├─► M5 ─┐
           └─► M4 ─┘       ├─► M7 ─► M8
                     M2 ───┘
+M8 (AF 1.0, 2D + 2.5D) ─► GAME-3D (a 3D game on AF) ─► M9 (3D merge)
 External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [store] ─► M7 store
 ```
 
@@ -65,12 +66,14 @@ External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [st
 | M0 Foundation | A0+A1 spec | ✅ merged | Spike verdicts; ECS decided; sim core |
 | M1 Blank game on Ruken | **to write** (`m1-blank-game-on-ruken`) | ⬜ | Push → CI green → Ruken-validated zip → published to Ruken local stack and dev host → playable on a phone; nothing renders before ready; layout contracts pass at every reference size |
 | M2 Deterministic core complete | A0+A1 spec + **to write** (`m2-deterministic-core`) | ⬜ | A1 exits 2–8 of the A0+A1 spec |
-| M3 3D and pipelines | **to write** | ⬜ | 3D example on WebGPU and WebGL2 under Ruken CSP at ≥30 FPS on phone profiles; one character through the pipeline with gates |
+| M3 2.5D and pipelines | **to write** | ⬜ | 2.5D example on WebGPU and WebGL2 under Ruken CSP at ≥30 FPS on phone profiles; one character through the pipeline with gates |
 | M4 Input and display | **to write** | ⬜ | Input × form-factor E2E matrix under the fake Ruken host |
 | M5 Saves, audio, localization | **to write** | ⬜ | Save N → N+1 migration; cross-device save/exit/resume on Ruken; all strings localized |
 | M6 Gameplay extensions | **to write** | ⬜ | Each extension's fixture game passes; The Last Light's route tests pass on extracted `puzzle` |
 | M7 Online and store | **to write** | ⬜ | Two-client replay golden; no netcode in single-player bundles; entitlement replays reproduce |
 | M8 CLI 1.0 and adoption | **to write** | ⬜ | `update-game` 0.x → 1.0; each reference game's adopted slice passes its existing tests |
+| GAME-3D | **its own game design** | ⬜ | A 3D game built on AF 1.0, playable and Owner-accepted on Ruken |
+| M9 3D merge | **to write** | ⬜ | The 3D game's proven pieces pass in AF and the game consumes them from AF |
 
 ## 4. Milestone work packages
 
@@ -93,10 +96,10 @@ Ordered so the pipeline exists before the runtime: CI/CD and deployment are prov
 - **Goldens and replays** (`testing`): `simGolden`, `.replay` v1 and `recordReplay`, `replayGolden` with first-divergent-tick bisection and structural diff, a divergent fixture, the ≥200-seed property test, the cross-engine runner. The Last Light's `record`/`replay`/`worldHash` tests are a second consumer.
 - **Build and publish:** Vite library mode, Changesets, `0.0.x` prereleases to GitHub Packages; CI under 10 minutes.
 
-### M3 3D and pipelines
+### M3 2.5D and pipelines
 - **Spike S7:** `@pixi/3d` under Ruken's CSP, WebGL2 parity, phone FPS, CI capture path, API surface; decide D-1.
-- **`render-pixi3d`**, **`post-retro`**, a 3D example scene.
-- **`pipelines`:** router, MCP server, budgets, gates, guard, audit log, made game-agnostic; character pipeline (Meshy → Blender, rig, animation set, GLB, budget validator, content TOML) with its gates.
+- **`render-pixi3d`** at 2.5D scope (fixed-zone and orbit cameras, billboards, lit sprites, GLB props, fog, baked lighting), **`post-retro`**, a 2.5D example scene.
+- **`pipelines`:** router, MCP server, budgets, gates, guard, audit log, made game-agnostic; The Last Light's 2.5D character (lit sprite atlas with normal map) and props (image → Meshy → flattened GLB) pipelines with their gates.
 
 ### M4 Input and display
 - Gamepad, touch overlay and gestures, profiles and rebinding, cursor hiding, focus navigation across composed screens; letterbox and safe area; `scale` hint; graphics settings; color-blind UI; complete frames, panels, lists and paged grids; input × form-factor E2E matrix under the fake Ruken host.
@@ -116,6 +119,10 @@ Ordered so the pipeline exists before the runtime: CI/CD and deployment are prov
 ### M8 CLI 1.0 and adoption
 - Full `create`/`update`/`lock`/`deploy`/`validate`/`doctor`, codemods, docs, 1.0.
 - Adoption slices (D-2): FloorFifty on AF `host` + loading + `ui` layout; The Last Light on AF `puzzle` + `sectors`, each passing its own existing tests at a pinned commit (Ruken's `floorfifty.sha` pattern).
+
+### GAME-3D and M9 3D merge
+- **GAME-3D:** a 3D game in its own repo on AF 1.0, with its own reviewed game design and TDD plans (a small third-person action-adventure is the current suggestion; the Owner picks). 3D-only systems stay in the game until they work there.
+- **M9:** merge the game's proven 3D pieces into AF: full 3D in `render-pixi3d`, the rigged character and animation pipeline (Meshy → Blender, rig, animation set, GLB, budget validator, content TOML), third-person camera and character controller, and the brush-based environment pipeline. Each piece keeps passing in the game, which then consumes it from AF.
 
 ## 5. Required milestone-spec and plan detail
 
