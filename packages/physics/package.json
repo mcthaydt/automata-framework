@@ -8,7 +8,8 @@
     "./3d": "./src/3d.ts"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --project node --project browsers",
+    "bench": "vitest run --project bench",
     "test:unit": "vitest run --project node",
     "test:parity": "vitest run --project browsers",
     "typecheck": "tsc -p ."

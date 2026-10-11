@@ -13,7 +13,16 @@ export default defineConfig({
   },
   test: {
     projects: [
-      { test: { name: 'node', environment: 'node', include: ['src/**/*.test.ts'] } },
+      {
+        test: {
+          name: 'node',
+          environment: 'node',
+          include: ['src/**/*.test.ts'],
+          // The bench measures and never asserts, so it is not part of the gate; `pnpm bench` runs it.
+          exclude: ['src/**/*.bench.test.ts'],
+        },
+      },
+      { test: { name: 'bench', environment: 'node', include: ['src/**/*.bench.test.ts'] } },
       {
         test: {
           name: 'browsers',
