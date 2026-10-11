@@ -190,3 +190,14 @@ Focused `pnpm vitest run <file>` first; `pnpm check` and the three-browser parit
 - **External dependencies:** S5 needs Ruken's local stack (Docker) and a token; S6 needs a host and its `deploy` key. Where the container cannot run them, the gate stays open and the PR says so.
 - **Open questions for the Owner:**
 - **Decided (2026-10-11):** TypeScript stays 7.0.2; the dev host is a second Caddy site on the FloorFifty staging VM; the placeholder uses `@ruken/sdk` and `@ruken/sdk-host` from `vendor/ruken/`, as `packages/host` does, until `Hosting` exists (then the placeholder moves onto it).
+
+## Audit round 1 (2026-10-11)
+
+Changes from the audit thread's review of PR #6, now part of this spec:
+
+- **Dev host (§3.5):** `deploy` sources `/etc/floor-fifty/caddy.env` itself, because sudo drops the deploy user's environment and Caddy refuses an empty `{$AF_DEV_SITE}`. One deploy runs at a time per game (`flock`, exit 5 after 120 s).
+- **test-remote (§3.6):** it polls the run; no job started after 10 minutes cancels it as "no runner", 60 minutes in all cancels it as "timeout". `pnpm ci:local` is the local command it prints, and a workflow test keeps it equal to ci.yml's checks and parity steps plus the placeholder build and prepare.
+- **Browser journeys (§3.7):** Playwright runs from the root config; each example adds a project and its servers. A run that selects no test fails. The placeholder's journeys cover standalone boot under `compileHeaders` and the handshake inside Ruken's fake host frame on another origin.
+- **Reusable workflows (§3.7):** a game outside AF is blocked until M2.4 publishes AF's packages; then it needs `AF_READ_TOKEN` (AF is private) and AF's Actions access set to the owner's repositories. `game-release` publishes to its `game` input (or a committed `.ruken/project.json`) and otherwise fails. The deploy key never touches `~/.ssh`.
+- **prepare (§3.3):** the root-absolute check also covers `srcset`, unquoted attributes and JSON assets.
+- **S8:** budgets E1 and E3 run on every CI run, E2, E4 and E5 nightly (`examples/placeholder/s8/budgets.ts`).
