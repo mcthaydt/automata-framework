@@ -21,8 +21,9 @@
 
 The sim half is the real thing: a sim plugin on `automata-sim`, checked by `check-boundaries`, with a golden hash identical in Node, Chromium, WebKit and Firefox. Demos and games reuse it through the package exports:
 
-- `@af-examples/base-2d` gives `createBaseSim`, `moveCommand`, the room, and `startGame(root, { plugins?, onRound?, layers? })`. The options let a demo add sim plugins to every round's sim, spawn its own entities on each fresh sim (a throw there fails the round), and add `RendererLayer`s. It also gives `bootPage` and the boot failures, so a demo's `main.ts` shows the same error screen.
-- `@af-examples/base-2d/sim` is the sim plugin and its definitions alone, with no boot code. A demo's sim root can import it under `check-boundaries --allow-import`.
+- `@af-examples/base-2d` gives `createBaseSim`, `moveCommand`, the room and the palette. It also gives `bootPage` and the boot failures, so a demo's `main.ts` shows the same error screen. It stays free of Pixi, as do `./sim` and the root's import graph, so Node code never loads the renderer.
+- `@af-examples/base-2d/game` gives `startGame(root, { plugins?, onRound?, layers? })`. The options let a demo add sim plugins to every round's sim (each round makes a fresh one), spawn its own entities on each fresh sim, and add `RendererLayer`s. A throw in `onRound` disposes that sim and ends the game on the device message: on the first sim at boot (`SimFailed`), on a later one through the terminal failure path (`failure.ts`).
+- `@af-examples/base-2d/sim` is the sim plugin and its definitions alone, with no boot code. A demo's sim root can import it under `check-boundaries`' allow option for another package's sim entry (the sim lane's PR #14 names the flag).
 - `@af-examples/base-2d/render` is the renderer, with `addLayer`.
 
 These are what the M2 demos asked for (M2.1b spec, "Needs from integration").

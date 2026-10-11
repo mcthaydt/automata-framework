@@ -7,7 +7,8 @@ import { RendererFailed, SimFailed } from './boot-failure.ts'
 // test sees what startGame does with it (the typed error a failed step becomes, and where a demo's options go).
 const fakes = vi.hoisted(() => ({
   connect: { fail: false },
-  sim: { fail: false, calls: [] as unknown[] },
+  sim: { fail: false, calls: [] as unknown[], disposed: 0 },
+  screens: { callbacks: {} as Record<string, () => void> },
   renderer: { fail: false, layers: [] as unknown[] },
 }))
 
@@ -25,13 +26,20 @@ vi.mock('./base-sim.ts', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./base-sim.ts')>()),
   createBaseSim: (options: unknown) => {
     fakes.sim.calls.push(options)
-    return fakes.sim.fail
-      ? Promise.reject(new Error('wasm blocked'))
-      : Promise.resolve({ tick: 0, dispose() {} })
+    if (fakes.sim.fail) return Promise.reject(new Error('wasm blocked'))
+    return Promise.resolve({
+      tick: 0,
+      dispose() {
+        fakes.sim.disposed++
+      },
+    })
   },
 }))
 vi.mock('./screens/screens.ts', () => ({
-  createScreens: () => ({ stage: {}, touchButtons: [], show() {} }),
+  createScreens: (_root: unknown, callbacks: Record<string, () => void>) => {
+    fakes.screens.callbacks = callbacks
+    return { stage: {}, touchButtons: [], show() {} }
+  },
 }))
 vi.mock('./input/devices.ts', () => ({
   createInputDevices: () => ({ held: () => new Set(), dispose() {} }),
@@ -65,9 +73,13 @@ beforeEach(() => {
   vi.useFakeTimers()
   vi.stubGlobal('window', { addEventListener() {}, removeEventListener() {} })
   vi.stubGlobal('document', { documentElement: { dataset: {} } })
+  vi.stubGlobal('requestAnimationFrame', () => 0)
+  vi.stubGlobal('cancelAnimationFrame', () => {})
   fakes.connect.fail = false
   fakes.sim.fail = false
   fakes.sim.calls = []
+  fakes.sim.disposed = 0
+  fakes.screens.callbacks = {}
   fakes.renderer.fail = false
   fakes.renderer.layers = []
 })
@@ -130,5 +142,34 @@ describe('startGame options (what a demo adds without copying the game)', () => 
     expect(Exit.isSuccess(exit)).toBe(true)
     expect(fakes.sim.calls).toEqual([{ plugins: [] }])
     expect(fakes.renderer.layers).toEqual([])
+  })
+
+  it('applies the plugins and onRound to every round’s sim, not only the first', async () => {
+    const plugin = { name: 'demo' }
+    const rounds: unknown[] = []
+    const exit = await Effect.runPromiseExit(
+      startGame({ dataset: {} } as HTMLElement, {
+        plugins: [plugin as never],
+        onRound: (sim) => rounds.push(sim),
+      }),
+    )
+    expect(Exit.isSuccess(exit)).toBe(true)
+    // Splash, menu, Play: Play starts a round on a fresh sim.
+    fakes.screens.callbacks.onContinue?.()
+    fakes.screens.callbacks.onPlay?.()
+    await vi.waitFor(() => expect(rounds).toHaveLength(2))
+    expect(fakes.sim.calls).toEqual([{ plugins: [plugin] }, { plugins: [plugin] }])
+  })
+
+  it('disposes a sim whose onRound threw', async () => {
+    const exit = await Effect.runPromiseExit(
+      startGame({ dataset: {} } as HTMLElement, {
+        onRound: () => {
+          throw new Error('bad spawn')
+        },
+      }),
+    )
+    expect(Exit.isFailure(exit)).toBe(true)
+    expect(fakes.sim.disposed).toBe(1)
   })
 })

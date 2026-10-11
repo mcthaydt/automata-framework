@@ -1,4 +1,5 @@
-// `@af-examples/base-2d`: what demos reuse from the base instead of copying it (examples/README.md).
+// `@af-examples/base-2d`: what demos reuse from the base instead of copying it (examples/README.md). It stays
+// free of Pixi: the game is `./game`, the renderer `./render`, and the sim plugin alone `./sim`.
 
 export { ENDESGA_64, endesga } from './art/palette.ts'
 export { ALL_SPRITES, type PixelSprite } from './art/sprites.ts'
@@ -14,6 +15,5 @@ export {
 export { type BootPageParts, bootPage } from './boot-page.ts'
 export { parseRoom, ROOM, type Room, type RoomSource } from './content/room.ts'
 export { type FlowEvent, next, type Screen } from './flow.ts'
-export { type GameOptions, startGame } from './game.ts'
 export { createLoop, type Loop, type LoopOptions } from './loop.ts'
 export * from './sim/index.ts'

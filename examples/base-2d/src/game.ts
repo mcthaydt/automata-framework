@@ -25,7 +25,7 @@ const SPLASH_MS = 1500
 export interface GameOptions {
   /** Extra sim plugins, added to every round's sim after the base's own. */
   readonly plugins?: readonly PluginDef[]
-  /** Runs on each round's fresh sim before it plays, e.g. to spawn a demo's bodies. Throwing fails the round. */
+  /** Runs on each round's fresh sim before it plays, e.g. to spawn a demo's bodies. A throw disposes that sim and ends the game (failure.ts). */
   readonly onRound?: (sim: Sim) => void
   /** Drawing layers, added to the renderer once (see RendererLayer: lit like the room, reset each round). */
   readonly layers?: readonly RendererLayer[]
