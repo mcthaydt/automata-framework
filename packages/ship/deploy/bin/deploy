@@ -64,7 +64,7 @@ activate=0
 
 mkdir -p "$root/builds"
 
-# One deploy at a time per game: two at once could both read the old live.caddy and one Caddy reload could
+# One deploy at a time per game: two at once could both read the old live redirect and one Caddy reload could
 # pick up the other's half-installed build. The lock is released when this process exits.
 exec 9> "$root/.deploy.lock"
 if ! flock -w "${SHIP_DEPLOY_LOCK_WAIT:-120}" 9; then
@@ -72,7 +72,11 @@ if ! flock -w "${SHIP_DEPLOY_LOCK_WAIT:-120}" 9; then
   exit 5
 fi
 
-[[ -f "$root/live.caddy" ]] || : > "$root/live.caddy"
+# The live redirect lives alone in live.d/, which the Caddyfile imports as live.d/*.caddy: nothing else there
+# is ever imported by accident (a stray live-old.caddy in $root would have been, with a live*.caddy glob).
+live_caddy="$root/live.d/live.caddy"
+mkdir -p "$root/live.d"
+[[ -f "$live_caddy" ]] || : > "$live_caddy"
 
 incoming="$(mktemp -d "$root/builds/.incoming.XXXXXX")"
 archive="$incoming.tgz"
@@ -140,7 +144,7 @@ mv "$incoming" "$root/builds/$id"
 rm -f "$archive"
 trap - EXIT
 
-previous_live_caddy="$(cat "$root/live.caddy")"
+previous_live_caddy="$(cat "$live_caddy")"
 previous_live="$(cat "$root/live" 2>/dev/null || true)"
 
 # Writes a file through a temporary file and a rename, so Caddy or builds-index never read half of it.
@@ -151,12 +155,12 @@ write_file() {
 }
 put_back_previous() {
   rm -rf "${root:?}/builds/$id"
-  write_file "$root/live.caddy" "${previous_live_caddy:+$previous_live_caddy$'\n'}"
+  write_file "$live_caddy" "${previous_live_caddy:+$previous_live_caddy$'\n'}"
   if [[ -n "$previous_live" ]]; then write_file "$root/live" "$previous_live"$'\n'; else rm -f "$root/live"; fi
 }
 
 if (( activate )); then
-  write_file "$root/live.caddy" "redir / /builds/$id/ 302"$'\n'
+  write_file "$live_caddy" "redir / /builds/$id/ 302"$'\n'
   write_file "$root/live" "$id"$'\n'
 fi
 

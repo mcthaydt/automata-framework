@@ -70,18 +70,20 @@ function isRunView(value: unknown): value is RunView {
   return typeof view?.status === 'string' && Array.isArray(view.jobs)
 }
 
-const WAITING_FOR_RUNNER = new Set(['queued', 'waiting', 'pending', 'requested'])
+// Job states that mean "no runner has taken it yet". `waiting` is not one: GitHub uses it for a job held for an
+// environment's approval, which a person gives, not a runner.
+const WAITING_FOR_RUNNER = new Set(['queued', 'pending', 'requested'])
 
 /**
- * True when the run is held up only by jobs no runner has taken: nothing is in progress and some job (or the
- * run itself, before its jobs exist) is still queued. Covers a run whose first job finished on one runner and
- * whose next job never got one.
+ * True when the run is held up only by jobs no runner has taken: nothing is in progress or waiting for an
+ * approval, and some job (or the run itself, queued before its jobs exist) is still queued. Covers a run whose
+ * first job finished on one runner and whose next job never got one.
  */
 function waitingForRunner(viewed: RunView): boolean {
   if (viewed.status === 'completed') return false
-  if (viewed.jobs.length === 0) return true
-  const running = viewed.jobs.some((job) => job.status === 'in_progress')
-  return !running && viewed.jobs.some((job) => WAITING_FOR_RUNNER.has(job.status))
+  if (viewed.jobs.length === 0) return viewed.status === 'queued'
+  const busy = viewed.jobs.some((job) => job.status === 'in_progress' || job.status === 'waiting')
+  return !busy && viewed.jobs.some((job) => WAITING_FOR_RUNNER.has(job.status))
 }
 
 const fail = (reason: TestRemoteFailed['reason'], message: string) =>

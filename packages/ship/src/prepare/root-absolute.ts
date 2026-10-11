@@ -32,18 +32,28 @@ export interface RootAbsoluteReferenceFound {
   readonly reference: string
 }
 
-const SCRIPT = /\.(?:js|mjs|cjs)$/
-const JSON_FILE = /\.(?:json|webmanifest)$/
+// Extensions in any case: a build can contain APP.JS.
+const PAGE = /\.(?:html|htm|svg)$/i
+const STYLE = /\.css$/i
+const SCRIPT = /\.(?:js|mjs|cjs)$/i
+const JSON_FILE = /\.(?:json|webmanifest)$/i
 
-/** Every file under `dir`, following symlinked folders once each (a link back up would loop forever). */
+/**
+ * Every file under `dir`, in name order, following symlinked folders once each (a link back up would loop
+ * forever). A dangling symlink points at nothing a browser could load, so it is skipped.
+ */
 function walk(dir: string, seen = new Set<string>()): string[] {
   const real = realpathSync(dir)
   if (seen.has(real)) return []
   seen.add(real)
-  return readdirSync(dir).flatMap((name) => {
-    const path = join(dir, name)
-    return statSync(path).isDirectory() ? walk(path, seen) : [path]
-  })
+  return readdirSync(dir)
+    .sort()
+    .flatMap((name) => {
+      const path = join(dir, name)
+      const stats = statSync(path, { throwIfNoEntry: false })
+      if (stats === undefined) return []
+      return stats.isDirectory() ? walk(path, seen) : [path]
+    })
 }
 
 const isRootAbsolute = (url: string): boolean => url.startsWith('/') && !url.startsWith('//')
@@ -60,8 +70,8 @@ export function findRootAbsoluteReferences(distDir: string): RootAbsoluteReferen
   for (const path of walk(distDir)) {
     const file = relative(distDir, path).split(sep).join('/')
     let references: string[]
-    if (path.endsWith('.html')) references = inPage(readFileSync(path, 'utf8'), namesOwnFile)
-    else if (path.endsWith('.css')) references = inStyle(readFileSync(path, 'utf8'))
+    if (PAGE.test(path)) references = inPage(readFileSync(path, 'utf8'), namesOwnFile)
+    else if (STYLE.test(path)) references = inStyle(readFileSync(path, 'utf8'))
     else if (SCRIPT.test(path)) references = inScript(file, readFileSync(path, 'utf8'), namesOwnFile)
     else if (JSON_FILE.test(path)) references = inJson(readFileSync(path, 'utf8'), namesOwnFile)
     else continue
@@ -98,7 +108,12 @@ function inScript(filename: string, code: string, namesOwnFile: (text: string) =
     for (const value of Object.values(record)) if (typeof value === 'object') visit(value)
   }
   // oxc picks the dialect from the name; an inline script has none, so it is read as an ES module.
-  visit(parseSync(SCRIPT.test(filename) ? filename : 'inline.mjs', code).program)
+  const parsed = parseSync(SCRIPT.test(filename) ? filename.toLowerCase() : 'inline.mjs', code)
+  // oxc recovers from syntax errors and returns a partial tree, which could miss a path. A script the browser
+  // would refuse is broken anyway, so it is reported rather than half-read.
+  const firstError = parsed.errors[0]
+  if (firstError !== undefined) return [`could not be parsed: ${firstError.message}`]
+  visit(parsed.program)
   return references
 }
 

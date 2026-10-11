@@ -174,4 +174,35 @@ describe('root-absolute references in a built client', () => {
       findRootAbsoluteReferences(dist).map((reference) => `${reference.file}: ${reference.reference}`),
     ).toEqual(['linked/app.js: "/assets/hero.png"'])
   })
+
+  it('reports a script it cannot parse instead of passing it', () => {
+    expect(found({ 'build/index.js': 'fetch("/assets/x"); }}}}' })).toEqual([
+      expect.stringMatching(/^build\/index\.js: could not be parsed: /),
+    ])
+    expect(found({ 'index.html': '<script>fetch("/assets/x"); }}}}</script>' })).toEqual([
+      expect.stringMatching(/^index\.html: could not be parsed: /),
+    ])
+  })
+
+  it('reads .svg and .htm files and extensions in any case', () => {
+    expect(
+      found({
+        'icons/sprite.svg': '<svg xmlns="http://www.w3.org/2000/svg"><image href="/icons/a.png"/></svg>',
+        'about.htm': '<img src="/icons/b.png">',
+        'build/APP.JS': 'load("/assets/c.png")',
+        'build/MAIN.CSS': 'a { background: url(/icons/d.png) }',
+      }),
+    ).toEqual([
+      'about.htm: src="/icons/b.png"',
+      'build/APP.JS: "/assets/c.png"',
+      'build/MAIN.CSS: url(/icons/d.png)',
+      'icons/sprite.svg: href="/icons/a.png"',
+    ])
+  })
+
+  it('skips a dangling symlink instead of failing', () => {
+    const dist = build({})
+    symlinkSync(join(dist, 'missing.js'), join(dist, 'dangling.js'))
+    expect(findRootAbsoluteReferences(dist)).toEqual([])
+  })
 })

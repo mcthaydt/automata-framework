@@ -188,6 +188,17 @@ describe('testRemote', () => {
     expect(commands(fake)).toContain('gh run cancel 7')
   })
 
+  it('does not take a job waiting for an environment approval for one with no runner', async () => {
+    const fake = fakeGitAndGh({
+      views: [
+        view('waiting', null, [job('completed', 'success'), { ...job('waiting', null, 0), name: 'deploy' }]),
+      ],
+    })
+    const result = await run([], fake)
+    expect(reasonOf(result).reason).toBe('timeout')
+    expect(commands(fake).filter((line) => line.startsWith('gh run view'))).toHaveLength(10)
+  })
+
   it('reports jobs that failed without running a step as no runner, not as red CI', async () => {
     const fake = fakeGitAndGh({ views: [view('completed', 'failure', [job('completed', 'failure', 0)])] })
     const result = await run([], fake)

@@ -208,3 +208,10 @@ Changes from the audit thread's review of PR #6, now part of this spec:
 - **test-remote (§3.6):** "no runner" is decided only from successful looks at the run, including a run where one job finished and the next was never picked up. Failed looks are retried; five in a row stop as `gh-unavailable` and leave the run alone.
 - **prepare (§3.3):** the root-absolute check reads syntax, not text: scripts through oxc, pages through a tag reader that skips comments and prose, stylesheets without comments, and srcsets split as the HTML spec does.
 - **Browser journeys (§3.7):** the game is served from `/b/<buildId>/` on its origin, as Ruken serves it, and nothing is served at the root, so a root-absolute URL fails the journey.
+
+## Audit round 3 (2026-10-11)
+
+- **prepare (§3.3):** a script that does not parse is a finding, not a pass. Pages include `.svg` and `.htm`; extensions match in any case.
+- **Dev host (§3.5):** the live redirect is `live.d/live.caddy`; the Caddyfile imports `live.d/*.caddy`, a folder only `deploy` writes.
+- **test-remote (§3.6):** a job held for an environment approval is waiting on a person, not on a runner.
+

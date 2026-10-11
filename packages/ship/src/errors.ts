@@ -29,7 +29,7 @@ export class RootAbsoluteReference extends Data.TaggedError('RootAbsoluteReferen
 }> {
   override get message(): string {
     const listed = this.references.map((found) => `${found.file}: ${found.reference}`).join('\n')
-    return `the build names its own files by root-absolute paths, which 404 inside Ruken (/b/<buildId>/):\n${listed}`
+    return `the build names its own files by root-absolute paths, which 404 inside Ruken (/b/<buildId>/), or has a script that could not be checked:\n${listed}`
   }
 }
 

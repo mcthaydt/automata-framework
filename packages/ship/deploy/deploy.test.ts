@@ -121,7 +121,7 @@ describe('deploy (dev host)', () => {
       'validate --config /etc/caddy/Caddyfile --adapter caddyfile',
       'reload --config /etc/caddy/Caddyfile --adapter caddyfile',
     ])
-    expect(readFileSync(join(root, 'live.caddy'), 'utf8')).toBe('') // nothing is live until --activate
+    expect(readFileSync(join(root, 'live.d', 'live.caddy'), 'utf8')).toBe('') // nothing is live until --activate
     expect(execFileSync('ls', ['-A', join(root, 'builds')], { encoding: 'utf8' })).toBe(`${ID}\n`)
   })
 
@@ -135,6 +135,7 @@ describe('deploy (dev host)', () => {
         SHIP_ROOT: root,
         CADDY: 'true',
         SHIP_BASE_URL: 'https://x',
+        SHIP_CADDY_ENV: join(root, 'no-caddy.env'),
       },
     })
     expect(result.status).toBe(0)
@@ -144,7 +145,7 @@ describe('deploy (dev host)', () => {
   it('makes the build live with --activate: / redirects to it', () => {
     const { root, deploy } = host()
     expect(deploy([goodBuild(ID), '--activate']).status).toBe(0)
-    expect(readFileSync(join(root, 'live.caddy'), 'utf8')).toBe(`redir / /builds/${ID}/ 302\n`)
+    expect(readFileSync(join(root, 'live.d', 'live.caddy'), 'utf8')).toBe(`redir / /builds/${ID}/ 302\n`)
     expect(readFileSync(join(root, 'live'), 'utf8').trim()).toBe(ID)
   })
 
@@ -176,7 +177,9 @@ describe('deploy (dev host)', () => {
     const result = deploy([goodBuild(ID), '--activate'], { CADDY_FAIL_VALIDATE: '1' })
     expect(result.status).toBe(4)
     expect(existsSync(join(root, 'builds', ID))).toBe(false)
-    expect(readFileSync(join(root, 'live.caddy'), 'utf8')).toBe('redir / /builds/202610100900-aaaaaaa/ 302\n')
+    expect(readFileSync(join(root, 'live.d', 'live.caddy'), 'utf8')).toBe(
+      'redir / /builds/202610100900-aaaaaaa/ 302\n',
+    )
   })
 
   it('rolls back to the previous live build and exits 6 when Caddy fails to reload', () => {
@@ -187,7 +190,7 @@ describe('deploy (dev host)', () => {
     expect(result.status).toBe(6)
     expect(result.stderr).toContain('reload')
     expect(existsSync(join(root, 'builds', ID))).toBe(false)
-    expect(readFileSync(join(root, 'live.caddy'), 'utf8')).toBe(`redir / /builds/${old}/ 302\n`)
+    expect(readFileSync(join(root, 'live.d', 'live.caddy'), 'utf8')).toBe(`redir / /builds/${old}/ 302\n`)
     expect(readFileSync(join(root, 'live'), 'utf8').trim()).toBe(old)
     // A second reload puts the old config back in the running Caddy.
     expect(caddyCalls().filter((call) => call.startsWith('reload'))).toHaveLength(3)
@@ -342,10 +345,11 @@ describe('Caddyfile (shared with FloorFifty on the VM)', () => {
   const caddyfile = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'caddy/Caddyfile'), 'utf8')
 
   it('imports only through globs, so a missing file before the first deploy cannot break the shared Caddy', () => {
-    // Caddy refuses an import of a missing file but accepts a glob that matches nothing (checked with Caddy
-    // 2.10.2, which allows one `*` and no other wildcard in a glob).
+    // Caddy refuses an import of a missing file but accepts a glob that matches nothing, even in a missing
+    // folder (checked with Caddy 2.10.2, which allows one `*` and no other wildcard in a glob). live.d holds
+    // only deploy's live.caddy, so a stray live-old.caddy beside it is never imported.
     const imports = [...caddyfile.matchAll(/^\s*import\s+(\S+)/gm)].map((match) => match[1] ?? '')
-    expect(imports).toEqual(['{$SHIP_ROOT}/builds/*/headers.caddy', '{$SHIP_ROOT}/live*.caddy'])
+    expect(imports).toEqual(['{$SHIP_ROOT}/builds/*/headers.caddy', '{$SHIP_ROOT}/live.d/*.caddy'])
     for (const path of imports) expect(path.split('*')).toHaveLength(2)
   })
 })
