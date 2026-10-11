@@ -25,22 +25,22 @@ import { ContentCompileFailed, ContentWriteFailed, type InvalidContentConfig } f
 /**
  * The outputs the last build listed in `outputs.txt` that this compile no longer produces. Only listed
  * files count, so a file someone else put in the output folder is never removed or reported. The list is
- * written with `/` only, so an entry with `..` or any backslash (`..\x` leaves the folder on Windows) is
- * ignored.
+ * written with `/` only and relative to the folder, so an entry that could leave it is ignored: one with
+ * `..`, any backslash (`..\x` on Windows), or an absolute start (`/x`, `C:/x`). A checkout that turned the
+ * line endings into CRLF still reads as one entry per line.
  */
+const insideOutDir = (file: string): boolean =>
+  file !== '' &&
+  !file.includes('\\') &&
+  !file.startsWith('/') &&
+  !/^[A-Za-z]:/.test(file) &&
+  !file.split('/').includes('..')
+
 const noLongerProduced = (outDir: string, compiled: CompiledContent): Effect.Effect<string[]> =>
   readTextIfPresent(join(outDir, OUTPUT_LIST)).pipe(
     Effect.orElseSucceed(() => undefined),
     Effect.map((list) =>
-      (list ?? '')
-        .split('\n')
-        .filter(
-          (file) =>
-            file !== '' &&
-            !file.includes('\\') &&
-            !file.split('/').includes('..') &&
-            !compiled.files.has(file),
-        ),
+      (list ?? '').split(/\r?\n/).filter((file) => insideOutDir(file) && !compiled.files.has(file)),
     ),
   )
 

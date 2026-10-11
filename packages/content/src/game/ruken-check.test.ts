@@ -59,7 +59,7 @@ describe('checkWithRuken', () => {
 
   // Audit of PR #8: JSON.stringify leaves DEL (U+007F) raw, TOML refuses it, and the refusal could not be
   // placed, so the compile crashed. Every control character must reach Ruken escaped and come back placed.
-  it('places a control character in any value at its key, and never throws', () => {
+  it('places every C0 and C1 control character and DEL at its key (an exhaustive loop, not a random fuzz)', () => {
     const controls = [
       ...Array.from({ length: 0x20 }, (_, code) => code),
       0x7f,

@@ -99,6 +99,7 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Low: `skippedFile` warnings for misnamed files; schema and generator throws are `InvalidContentConfig` (code `generatorFailed` removed).
 - [x] Re-audit at `7430820`: `__proto__` keys refused (`reservedKey`; `constructor` and `prototype` stay data), translation names must be language tags, a BOM is stripped, near-miss document names warn.
 - [x] Third round at `7e89357`: control characters (DEL) escaped for Ruken and unplaceable refusals reported instead of thrown; translation keys checked with `Object.hasOwn`; near-miss warnings only for TOML-ish names; the assets Ruken check runs while `game.toml` fails to parse.
+- [x] Last low items: `outputs.txt` read with LF or CRLF; absolute entries (`/x`, `C:/x`) ignored; the control-character test renamed to an exhaustive loop, which is what it is.
 - [x] Spec updated, with the M2.2 decision that store and display metadata in `game.toml` stays out of the save-gating hash.
 
 ## Execution log
@@ -117,3 +118,4 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - 2026-10-11: after the backslash fix (`4bf7911`), local CI on Node 24.21.0 (`turbo --force`) is green (content 173, sim 149, check-style 29, check-boundaries 29); parity passes in Chromium, WebKit and Firefox (content 3, sim 165).
 - 2026-10-11: T15 third round: DEL escaped in the Ruken check's TOML, with a test over U+0000–001F, U+007F and U+0080–009F in events, descriptors and asset paths; a refusal the check cannot place (a lone surrogate, which disk text never holds) is a problem at the top of the file, not a throw. `checkTranslation` uses `Object.hasOwn`. Near-miss warnings skip names without `.toml`. `checkWithRuken` always runs, with placeholder fields when `game.toml` did not parse.
 - 2026-10-11: after the third round (`5e8670f`), local CI on Node 24.21.0 (`turbo --force`) is green (content 177, sim 149, check-style 29, check-boundaries 29); parity passes in Chromium, WebKit and Firefox (content 3, sim 165).
+- 2026-10-11: T15 last low items: `outputs.txt` splits on `/\r?\n/` and ignores absolute entries (spec §3.7); the control-character test keeps its exhaustive loop over U+0000–001F, U+007F and U+0080–009F and is named for it rather than called a fuzz.

@@ -96,6 +96,26 @@ describe('outputs a build no longer produces', () => {
     expect(readFileSync(generated(root, '..\\x'), 'utf8')).toBe('mine\n')
   })
 
+  it('are removed when outputs.txt has CRLF line endings', async () => {
+    const root = copyFixture('valid')
+    await run(buildContent(fixtureOptions(root)))
+    const list = readFileSync(generated(root, 'outputs.txt'), 'utf8')
+    writeFileSync(generated(root, 'outputs.txt'), list.replaceAll('\n', '\r\n'))
+    rmSync(join(root, 'content/game.toml'))
+    await run(buildContent(fixtureOptions(root)))
+    expect(existsSync(generated(root, 'ruken-fields.json'))).toBe(false)
+  })
+
+  it('ignore an absolute outputs.txt entry', async () => {
+    const root = copyFixture('valid')
+    await run(buildContent(fixtureOptions(root)))
+    // On Linux `join` keeps `/kept.txt` inside the folder, so the file there shows whether the entry was used.
+    writeFileSync(generated(root, 'kept.txt'), 'mine\n')
+    writeFileSync(generated(root, 'outputs.txt'), '/kept.txt\nC:/kept.txt\n')
+    await run(buildContent(fixtureOptions(root)))
+    expect(readFileSync(generated(root, 'kept.txt'), 'utf8')).toBe('mine\n')
+  })
+
   it('are stale to verify until the next build', async () => {
     const root = copyFixture('valid')
     await run(buildContent(fixtureOptions(root)))
