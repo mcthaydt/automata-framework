@@ -7,6 +7,7 @@ import {
   defineCommand,
   definePlugin,
   defineSystem,
+  type PluginDef,
   type Sim,
   type SimContext,
 } from '@mcthaydt/automata-sim'
@@ -79,7 +80,18 @@ const scenePlugin = definePlugin({
 const WALKER_SID = 1
 
 export async function createScene3D(): Promise<Sim> {
-  const sim = await createSim({ seed: 2026, plugins: [physics3d(), scenePlugin] })
+  const sim = await createSim({ seed: 2026, plugins: scenePlugins3D() })
+  spawnScene3D(sim)
+  return sim
+}
+
+/** The scene's plugins, for callers that create the sim themselves (the snapshot property test). */
+export function scenePlugins3D(): PluginDef[] {
+  return [physics3d(), scenePlugin]
+}
+
+/** The scene's walker, floor, walls, sensor, two dozen bodies and ramp. */
+export function spawnScene3D(sim: Sim): void {
   sim.spawn([
     transform3d({ x: -3, y: 0.75 }),
     body3d(BodyKind.kinematicPosition),
@@ -106,7 +118,6 @@ export async function createScene3D(): Promise<Sim> {
     ])
   // A tilted lone ramp, whose rotation Rapier stores normalized (spec §3.4).
   sim.spawn([transform3d({ x: -6, y: 0.5, qz: 0.2588, qw: 0.9659 }), collider3d.cuboid(1.5, 0.1, 1.5)])
-  return sim
 }
 
 /** The commands for tick `t`: a walk every tick for 120 ticks, drops every 25, two despawns and the edits. */

@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./hash": "./src/hash/hash.ts",
-    "./math": "./src/math/dmath.ts"
+    "./math": "./src/math/dmath.ts",
+    "./replay": "./src/replay/index.ts"
   },
   "scripts": {
     "test": "vitest run --project node --project browsers",
