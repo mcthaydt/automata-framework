@@ -77,3 +77,7 @@ export const pathKind = (path: string): Effect.Effect<'file' | 'folder' | undefi
       throw error
     }
   })
+
+/** Deletes the file at `path`; nothing there is not an error. */
+export const removeFile = (path: string): Effect.Effect<void, FileError> =>
+  attempt(path, () => rm(path, { force: true }))

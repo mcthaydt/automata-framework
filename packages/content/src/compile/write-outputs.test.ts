@@ -66,6 +66,38 @@ describe('compile and build', () => {
   })
 })
 
+// Audit of PR #8: deleting game.toml left the old ruken-fields.json behind, and ship would have read it.
+describe('outputs a build no longer produces', () => {
+  it('are removed by the next build, and nothing the compiler did not write is touched', async () => {
+    const root = copyFixture('valid')
+    await run(buildContent(fixtureOptions(root)))
+    expect(existsSync(generated(root, 'ruken-fields.json'))).toBe(true)
+    writeFileSync(generated(root, 'notes.md'), 'mine\n')
+
+    rmSync(join(root, 'content/game.toml'))
+    expect(Either.isRight(await run(buildContent(fixtureOptions(root))))).toBe(true)
+    expect(existsSync(generated(root, 'ruken-fields.json'))).toBe(false)
+    expect(readFileSync(generated(root, 'outputs.txt'), 'utf8')).not.toContain('ruken-fields.json')
+    expect(readFileSync(generated(root, 'notes.md'), 'utf8')).toBe('mine\n')
+  })
+
+  it('are stale to verify until the next build', async () => {
+    const root = copyFixture('valid')
+    await run(buildContent(fixtureOptions(root)))
+    rmSync(join(root, 'content/game.toml'))
+    const result = await run(verifyContent(fixtureOptions(root)))
+    if (Either.isRight(result) || result.left._tag !== 'ContentCompileFailed')
+      throw new Error('expected stale')
+    // game.toml is also part of content.json, so those outputs are stale too; these are the two this is about.
+    expect(result.left.diagnostics.map(formatDiagnostic)).toEqual(
+      expect.arrayContaining([
+        'content/generated/outputs.txt:1:1  staleArtifact: content/generated/outputs.txt does not match content/; run automata-content build',
+        'content/generated/ruken-fields.json:1:1  staleArtifact: content/generated/ruken-fields.json is no longer produced; run automata-content build',
+      ]),
+    )
+  })
+})
+
 describe('verifyContent', () => {
   const stale = async (root: string): Promise<string[]> => {
     const result = await run(verifyContent(fixtureOptions(root)))

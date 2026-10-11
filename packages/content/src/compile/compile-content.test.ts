@@ -72,9 +72,13 @@ describe('the fixture game', () => {
       'content.json',
       'flow.mmd',
       'messages/en.json',
+      'outputs.txt',
       'ruken-fields.json',
       'tuning-meta.json',
     ])
+    expect(files.get('outputs.txt')).toBe(
+      'content.d.ts\ncontent.hash\ncontent.json\nflow.mmd\nmessages/en.json\nruken-fields.json\ntuning-meta.json\n',
+    )
     expect(files.get('content.json')).toBe(canonicalFile(data))
     expect(files.get('content.hash')).toBe(`${hash}\n`)
     expect(files.get('messages/en.json')).toContain('"content_stage_rooftops_display_name": "Rooftops"')

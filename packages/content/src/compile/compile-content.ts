@@ -300,7 +300,20 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   if (run.diagnostics.length > 0) {
     return { ok: false, error: new ContentCompileFailed({ diagnostics: sortDiagnostics(run.diagnostics) }) }
   }
-  return { ok: true, content: { data, hash, files: run.files } }
+  return { ok: true, content: { data, hash, files: withOutputList(run.files) } }
+}
+
+/** The list of everything a build writes, kept in the output folder so the next build can remove what it no longer produces. */
+export const OUTPUT_LIST = 'outputs.txt'
+
+/**
+ * Adds `outputs.txt`: every other output path, sorted, one per line. `buildContent` reads the previous list
+ * to delete outputs that are no longer produced (a deleted game.toml must not leave its ruken-fields.json
+ * for ship to read), and never touches a file the list does not name.
+ */
+function withOutputList(files: ReadonlyMap<string, string>): ReadonlyMap<string, string> {
+  const paths = [...files.keys()].filter((path) => path !== OUTPUT_LIST).sort()
+  return new Map([...files, [OUTPUT_LIST, paths.map((path) => `${path}\n`).join('')]])
 }
 
 /** `tuning.toml`: required when the game declares its tunables in code, optional otherwise. */

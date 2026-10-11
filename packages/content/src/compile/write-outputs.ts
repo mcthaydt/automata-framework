@@ -12,20 +12,48 @@
 import { join } from 'node:path'
 import { Effect } from 'effect'
 import type { Diagnostic } from '../diagnostics/diagnostic'
-import { readTextIfPresent, writeFileAtomically } from '../files/content-files'
-import { type CompiledContent, type ContentOptions, compileContent, outDirOf } from './compile-content'
+import { pathKind, readTextIfPresent, removeFile, writeFileAtomically } from '../files/content-files'
+import {
+  type CompiledContent,
+  type ContentOptions,
+  compileContent,
+  OUTPUT_LIST,
+  outDirOf,
+} from './compile-content'
 import { ContentCompileFailed, ContentWriteFailed, type InvalidContentConfig } from './errors'
 
-/** Compiles, then writes every output under the output folder. */
+/**
+ * The outputs the last build listed in `outputs.txt` that this compile no longer produces. Only listed
+ * files count, so a file someone else put in the output folder is never removed or reported. A list entry
+ * that tries to leave the folder is ignored.
+ */
+const noLongerProduced = (outDir: string, compiled: CompiledContent): Effect.Effect<string[]> =>
+  readTextIfPresent(join(outDir, OUTPUT_LIST)).pipe(
+    Effect.orElseSucceed(() => undefined),
+    Effect.map((list) =>
+      (list ?? '')
+        .split('\n')
+        .filter((file) => file !== '' && !file.split('/').includes('..') && !compiled.files.has(file)),
+    ),
+  )
+
+/** Compiles, writes every output under the output folder, then removes the outputs it no longer produces. */
 export const buildContent = (
   options: ContentOptions,
 ): Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig | ContentWriteFailed> =>
   Effect.gen(function* () {
     const compiled = yield* compileContent(options)
     const outDir = join(options.root, outDirOf(options))
+    const leftovers = yield* noLongerProduced(outDir, compiled)
     for (const [file, text] of compiled.files) {
       const path = join(outDir, file)
       yield* writeFileAtomically(path, text).pipe(
+        Effect.mapError((error) => new ContentWriteFailed({ path, cause: error.cause })),
+      )
+    }
+    for (const file of leftovers) {
+      const path = join(outDir, file)
+      yield* removeFile(path).pipe(
         Effect.mapError((error) => new ContentWriteFailed({ path, cause: error.cause })),
       )
     }
@@ -58,6 +86,15 @@ export const verifyContent = (
         diagnostics.push(stale(label, `${label} is missing; run automata-content build`))
       } else if (committed !== text) {
         diagnostics.push(stale(label, `${label} does not match content/; run automata-content build`))
+      }
+    }
+    for (const file of yield* noLongerProduced(join(options.root, outDir), compiled)) {
+      const label = `${outDir}/${file}`
+      const kind = yield* pathKind(join(options.root, outDir, file)).pipe(
+        Effect.orElseSucceed(() => undefined),
+      )
+      if (kind !== undefined) {
+        diagnostics.push(stale(label, `${label} is no longer produced; run automata-content build`))
       }
     }
     if (diagnostics.length > 0) return yield* new ContentCompileFailed({ diagnostics })
