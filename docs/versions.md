@@ -26,6 +26,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `pixi.js` | 8.21.0 | 2026-10-11 | 2D renderer (ADR 0002). FloorFifty's version (`45482fb`, `pnpm-lock.yaml`); used by `examples/base-2d` until `render-pixi` (M1.7) owns it |
+| `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for `examples/base-2d`'s screens (OFL-1.1), bundled so it loads under Ruken's `font-src 'self' data:` |
 | `playwright` | 1.63.0 | 2026-10-01 | Same as Ruken's `@playwright/test`: browsers for parity and DOM checks |
 | `turbo` | 2.11.6 | 2026-10-01 | Same as Ruken: task runner, local cache only |
 | `typescript` | 7.0.2 | 2026-10-01 | Ruken holds 6.0.3 only for svelte-check, typescript-eslint, SvelteKit and Prisma, none of which AF uses (ship spec §3.1) |

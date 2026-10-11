@@ -24,12 +24,13 @@ export function createScreens(root: HTMLElement, handlers: ScreenHandlers): Scre
     <div class="stage-box"></div>
     <section class="panel" data-for="splash" aria-label="Splash">
       <p class="mark">AutomataFramework</p>
-      <p class="hint">Press any key or tap</p>
+      <p class="hint blink">Press any key or tap</p>
     </section>
     <section class="panel" data-for="menu" aria-labelledby="menu-title">
-      <h1 id="menu-title">Base 2D</h1>
-      <p class="hint">Reach the bubble.</p>
+      <h1 id="menu-title" class="title">Emberwick</h1>
+      <p class="hint">Carry your lantern up to the ember.</p>
       <div class="actions"><button type="button" class="primary" data-action="play">Play</button></div>
+      <p class="keys"><kbd>←</kbd><kbd>→</kbd> move <kbd>Space</kbd> jump <kbd>Esc</kbd> pause</p>
     </section>
     <section class="panel" data-for="paused" aria-labelledby="paused-title">
       <h2 id="paused-title">Paused</h2>
@@ -39,7 +40,7 @@ export function createScreens(root: HTMLElement, handlers: ScreenHandlers): Scre
       </div>
     </section>
     <section class="panel" data-for="end" aria-labelledby="end-title">
-      <h2 id="end-title">You reached the bubble</h2>
+      <h2 id="end-title">The ember is yours</h2>
       <p class="time" data-slot="time"></p>
       <div class="actions">
         <button type="button" class="primary" data-action="play">Play again</button>

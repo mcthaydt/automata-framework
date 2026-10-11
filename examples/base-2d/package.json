@@ -19,6 +19,7 @@
     "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT VITE_GAME_PATH=$AF_E2E_GAME_PATH vite build --config e2e/host/vite.config.ts && vite preview --config e2e/host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT"
   },
   "dependencies": {
+    "@fontsource/pixelify-sans": "5.3.0",
     "@mcthaydt/automata-sim": "workspace:*",
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "effect": "3.22.2",

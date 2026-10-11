@@ -7,7 +7,7 @@
 
 ## 1. Goal and boundaries
 
-**Observable result.** `pnpm --filter @af-examples/base-2d dev` serves a pixel-art character in one single-screen room. The player goes splash → menu → room → pause → end: they walk, jump and reach the bubble at the top of the room, which ends the round. It boots standalone and inside a Ruken frame (the real SDK handshake), renders nothing before the host says ready, plays with keyboard or touch on a phone in either orientation, and builds through the M1.2 pipeline (`vite build`, `automata-ship prepare`, `game-ci.yml` with the determinism check on its sim sources).
+**Observable result.** `pnpm --filter @af-examples/base-2d dev` serves a pixel-art character in one single-screen room. The player goes splash → menu → room → pause → end: they walk, jump and reach the ember at the top of the room, which ends the round. It boots standalone and inside a Ruken frame (the real SDK handshake), renders nothing before the host says ready, plays with keyboard or touch on a phone in either orientation, and builds through the M1.2 pipeline (`vite build`, `automata-ship prepare`, `game-ci.yml` with the determinism check on its sim sources).
 
 **What `main` lacks, and what the base does meanwhile.** The master spec builds `base-2d` on `sim`, `content`, `host`, `runtime`, `render-pixi` and `ui`. On 2026-10-11 only `sim`, `node` and `ship` are on `main`; content (#8), host (#5) and ui (#7) are open PRs, and runtime and `render-pixi` (M1.5, M1.7) are not started. The coordinator's instruction is to use only what is on `main`. So each missing piece is a small, clearly marked stand-in inside the example, never a copy of another lane's API:
 
@@ -82,7 +82,7 @@ The sim half is the real thing: a sim plugin on `automata-sim`, checked by `chec
 | Menu | Title, Play (primary, 48 px) | Play focused; Enter or tap |
 | Room | Canvas; Pause button (44 px, top right, inside safe areas); touch left, right, jump (56 px) on coarse pointers | Keyboard and touch as §3 |
 | Paused | Resume (primary), Quit | Resume focused; Escape resumes |
-| End | "You reached the bubble", time, Play again (primary), Menu | Play again focused |
+| End | "The ember is yours", time, Play again (primary), Menu | Play again focused |
 
 The canvas is the room at 320 × 192 scaled by the largest integer that fits the usable area (inside safe-area insets), letterboxed on Endesga's darkest navy. Below 1× the canvas scales down smoothly rather than cropping. Overlays use the container's size, not the viewport's, and keep their buttons on screen at 780 × 270 (compact height) by stacking actions in a row.
 

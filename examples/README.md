@@ -6,7 +6,7 @@ Owner direction (2026-10-11): every dimension has a teeny tiny **base project** 
 
 | Base | What it is | Built on | Lands in |
 |---|---|---|---|
-| `base-2d` | A pixel-art character who walks and jumps in one single-screen room (Bubble Bobble × Celeste, Endesga 64). Splash → menu → room → pause → end. | Core only: `sim`, `content`, `host`, `runtime`, `render-pixi`, `ui` | M1.8 (replaces the old `blank-game`). First version built: [`examples/base-2d`](base-2d/), on `sim` with stand-ins for the core pieces not yet on `main` (content module, direct `Ruken.init`, its own loop and Pixi renderer, DOM screens); each stand-in is swapped for the core package when its lane merges ([task spec](../docs/superpowers/specs/2026-10-11-m1-base-2d-design.md)) |
+| `base-2d` | Emberwick: Wick, a hooded lantern-bearer, walks and jumps through one single-screen room of mossy night ruins to an ember (Endesga 64, pixel lighting). Splash → menu → room → pause → end. | Core only: `sim`, `content`, `host`, `runtime`, `render-pixi`, `ui` | M1.8 (replaces the old `blank-game`). First version built: [`examples/base-2d`](base-2d/), on `sim` with stand-ins for the core pieces not yet on `main` (content module, direct `Ruken.init`, its own loop and Pixi renderer, DOM screens); each stand-in is swapped for the core package when its lane merges ([task spec](../docs/superpowers/specs/2026-10-11-m1-base-2d-design.md)) |
 | `base-25d` | The same character as a billboard sprite in a fixed-camera 3D room with GLB props | Core + `render-pixi3d` (private builds, D-1) | M3 |
 | `base-3d` | The same character as a mesh in a 3D room with a follow camera | Core + `render-pixi3d` (private builds, D-1) | M3; the starting point for GAME-3D |
 
@@ -19,7 +19,7 @@ A base is the smallest complete game on AF: it boots under the fake Ruken host a
 - **Header:** `main.ts` starts with a comment block: what it shows, the controls, the base it uses and the packages it needs.
 - **Runs:** `pnpm --filter <demo> dev` serves it under the fake Ruken host (`cli dev`); the gallery (`examples/gallery`, M1.8) lists every demo with a screenshot and a link to its source.
 - **Checked:** each demo has a smoke test that boots it under the fake host, waits for ready and asserts no console errors; CI builds every demo. Screenshots for the gallery are evidence, promoted only after Owner approval.
-- **Art:** Endesga 64 and the Bubble Bobble × Celeste look ([art direction](../docs/art/README.md)). Art may come from any generation API the project has access to (Owner, 2026-10-11), through the `pipelines` gates once they exist (M3), with provenance recorded.
+- **Art:** Endesga 64 and the look in the [art direction](../docs/art/README.md): Bubble Bobble and Celeste as influences, with a modern, original treatment like `base-2d`'s. Art may come from any generation API the project has access to (Owner, 2026-10-11), through the `pipelines` gates once they exist (M3), with provenance recorded.
 
 ## Who builds what
 

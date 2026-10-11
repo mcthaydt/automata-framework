@@ -6,12 +6,22 @@ import { gameUrl, hostOrigin } from './origins.ts'
 // base-2d in a real browser, served from /b/<buildId>/ with the headers Ruken would serve it with
 // (vite.config.ts, compileHeaders: no eval). Every journey fails on any console error, CSP violations included.
 
-function collectErrors(page: Page): string[] {
+/**
+ * Collects console errors, page errors and CSP violations. A violation does not always reach the console
+ * (a blocked fetch or image only fires `securitypolicyviolation`), so a listener installed before the page's
+ * own scripts turns each one into a console error.
+ */
+async function collectErrors(page: Page): Promise<string[]> {
   const errors: string[] = []
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text())
   })
   page.on('pageerror', (error) => errors.push(String(error)))
+  await page.addInitScript(() => {
+    document.addEventListener('securitypolicyviolation', (event) => {
+      console.error(`CSP violation: ${event.violatedDirective} blocked ${event.blockedURI}`)
+    })
+  })
   return errors
 }
 
@@ -26,7 +36,7 @@ async function openMenu(page: Page) {
 }
 
 test('boots standalone under Ruken’s headers and shows the splash, then the menu', async ({ page }) => {
-  const errors = collectErrors(page)
+  const errors = await collectErrors(page)
   const response = await page.goto(gameUrl)
   expect(response?.headers()['content-security-policy']).toContain("script-src 'self'")
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
@@ -38,8 +48,20 @@ test('boots standalone under Ruken’s headers and shows the splash, then the me
   expect(errors).toEqual([])
 })
 
+test('counts a CSP violation as an error, even one the console never shows', async ({ page }) => {
+  const errors = await collectErrors(page)
+  await openMenu(page)
+  // Ruken's CSP allows images only from the game's own origin, so this one is blocked.
+  await page.evaluate(() => {
+    const image = new Image()
+    image.src = 'https://example.com/blocked.png'
+    document.body.append(image)
+  })
+  await expect.poll(() => errors.some((error) => error.includes('CSP violation: img-src'))).toBe(true)
+})
+
 test('menu → room → pause → resume → pause → quit, by keyboard and buttons', async ({ page }) => {
-  const errors = collectErrors(page)
+  const errors = await collectErrors(page)
   await openMenu(page)
   await page.keyboard.press('Enter')
   await expect(game(page)).toHaveAttribute('data-screen', 'room')
@@ -57,16 +79,18 @@ test('menu → room → pause → resume → pause → quit, by keyboard and but
 })
 
 test('the character walks and jumps with the keyboard', async ({ page }) => {
-  const errors = collectErrors(page)
+  const errors = await collectErrors(page)
   await openMenu(page)
   await page.keyboard.press('Enter')
   await expect(game(page)).toHaveAttribute('data-player-x', /\d+/)
   const x0 = Number(await game(page).getAttribute('data-player-x'))
   const y0 = Number(await game(page).getAttribute('data-player-y'))
   await page.keyboard.down('ArrowRight')
+  // Walk out from under the low platform over the start (columns 3 to 10, ending at pixel 88), or the jump
+  // hits its underside after four pixels.
   await expect
     .poll(async () => Number(await game(page).getAttribute('data-player-x')))
-    .toBeGreaterThan(x0 + 16)
+    .toBeGreaterThan(Math.max(x0 + 16, 92))
   await page.keyboard.up('ArrowRight')
   await page.keyboard.down('KeyZ')
   await expect.poll(async () => Number(await game(page).getAttribute('data-player-y'))).toBeLessThan(y0 - 8)
@@ -79,7 +103,7 @@ test('the character walks and jumps with the keyboard', async ({ page }) => {
 // step: the test moves the clock one frame at a time, reads the sim tick the page shows, and changes keys right
 // after the frame that ran a segment's last step.
 test('playing the golden route with the keyboard reaches the bubble and the end screen', async ({ page }) => {
-  const errors = collectErrors(page)
+  const errors = await collectErrors(page)
   await page.clock.install()
   await page.goto(gameUrl)
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
@@ -131,7 +155,7 @@ test('playing the golden route with the keyboard reaches the bubble and the end 
 
 test('the touch buttons move the character', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'touch buttons show on coarse pointers')
-  const errors = collectErrors(page)
+  const errors = await collectErrors(page)
   await openMenu(page)
   await page.getByRole('button', { name: 'Play' }).tap()
   await expect(game(page)).toHaveAttribute('data-player-x', /\d+/)
@@ -174,7 +198,7 @@ test('every button of the room and the pause screen is on screen and at least 44
 })
 
 test('completes the Ruken handshake inside a fake host frame on another origin', async ({ page }) => {
-  const errors = collectErrors(page)
+  const errors = await collectErrors(page)
   await page.goto(`${hostOrigin}/`)
   const frame = page.frameLocator('iframe')
   await expect(frame.locator('#game')).toHaveAttribute('data-screen', /splash|menu/)
