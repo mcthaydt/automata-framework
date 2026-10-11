@@ -51,6 +51,23 @@ describe('root-absolute references in a built client', () => {
     expect(found({ 'index.html': '<link rel="icon" href=\'/icons/icon-32.png\'>' })).toHaveLength(1)
   })
 
+  it('finds an unquoted root-absolute attribute and each root-absolute srcset candidate', () => {
+    expect(found({ 'index.html': '<script type=module src=/build/index.js></script>' })).toEqual([
+      'index.html: src=/build/index.js',
+    ])
+    expect(
+      found({ 'index.html': '<img srcset="icons/a.png 1x, /icons/a@2x.png 2x" src="icons/a.png">' }),
+    ).toEqual(['index.html: /icons/a@2x.png'])
+    expect(found({ 'index.html': '<img srcset="icons/a.png 1x, icons/a@2x.png 2x">' })).toEqual([])
+  })
+
+  it("finds a JSON asset (a Pixi spritesheet, a manifest) that names one of the build's files from the root", () => {
+    expect(
+      found({ 'assets/hero.json': '{"frames":{},"meta":{"image":"/assets/hero.png","scale":"1"}}' }),
+    ).toEqual(['assets/hero.json: "/assets/hero.png"'])
+    expect(found({ 'assets/hero.json': '{"meta":{"image":"hero.png","app":"/"}}' })).toEqual([])
+  })
+
   it("finds a script that fetches or loads something of the build's from the root", () => {
     expect(found({ 'build/index.js': 'fetch("/assets/manifest.json")' })).toEqual([
       'build/index.js: "/assets/manifest.json"',
