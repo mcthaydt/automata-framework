@@ -1,0 +1,6 @@
+audioAlias = "music.duskRun"
+loopEndMs = 96_000
+loopStartMs = 0
+beatOffsetTicks = 12
+bpm = 128
+displayName = "Dusk Run"

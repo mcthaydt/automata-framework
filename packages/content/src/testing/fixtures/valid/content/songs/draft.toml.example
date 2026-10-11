@@ -1,0 +1,3 @@
+# Outside the compiler's source glob: an example may describe assets and rules
+# that do not exist yet without failing a build.
+id = "example"

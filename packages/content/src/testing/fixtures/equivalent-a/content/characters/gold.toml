@@ -1,0 +1,7 @@
+displayName = "Gold"
+
+[sheetAliases]
+gold = "ninja.gold"
+
+[portraitAliases]
+gold = "portrait.gold"
