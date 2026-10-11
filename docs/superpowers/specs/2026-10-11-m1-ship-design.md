@@ -22,7 +22,7 @@
 |---|---|
 | Versions (M1.1) | `docs/versions.md`; `tooling/versions/` (`pins.ts`, `pins.test.ts`, `versions.test.ts`) |
 | Root toolchain (M1.1) | `.nvmrc`, root `package.json` (`packageManager`, scripts), `pnpm-workspace.yaml` (`useNodeVersion`, `saveExact`, `engineStrict`), `turbo.json`, `biome.json`, `lefthook.yml` |
-| Effect (M1.1) | `effect` 3.22.2 with `@effect/platform` 0.97.2 and `@effect/platform-node` 0.108.2 as dependencies of `packages/ship` (coordinator decision 2026-10-11: Effect 3 repo-wide; 4.0 is ten days old and renames the Context API); pinned in `docs/versions.md` |
+| Effect (M1.1) | `effect` 3.22.2 as a dependency of `packages/ship` (coordinator decision 2026-10-11: Effect 3 repo-wide; 4.0 is ten days old and renames the Context API); pinned in `docs/versions.md`. **Deviation from ADR 0003:** `ship` does not use `@effect/platform-node`: its 0.108 line requires `@effect/cluster`, `rpc`, `sql` and `workflow` as peers (with native build scripts). Files use `node:fs` inside `Effect.try` with tagged errors (tests use temp folders); processes go through one small Effect service, `ProcessRunner` (`node:child_process`), replaced by a fake in tests |
 | Spike S8 (M1.1) | `docs/spikes/s8-effect.md`: Effect's bundle bytes and cold boot on the S20 and iPhone 13 profiles, measured on `examples/placeholder`; sets budgets and mitigations, not whether Effect is used (ADR 0003) |
 | CI lanes (M1.1) | `.github/workflows/ci.yml` (AF's own), `game-ci.yml` (reusable, `workflow_call`) |
 | Feedback tools (M1.1) | `packages/ship/src/ports/` (per-checkout ports), `packages/ship/src/remote/` (focused `test:remote`), `packages/ship/src/evidence/` (capture folder and promotion) |
@@ -83,7 +83,7 @@ Field names, types and allowed values are Ruken's, imported from `@ruken/manifes
 
 ```ts
 const prepareBuild: (input: { distDir: string; config: ShipConfig; tag?: string })
-  => Effect<{ manifestPath: string }, VersionMismatch | RootAbsoluteReference | ManifestInvalid | PlatformError>;
+  => Effect<{ manifestPath: string }, VersionMismatch | RootAbsoluteReference | ManifestInvalid | FileError>;
 ```
 
 Order (each step stops before anything is written when it fails):
@@ -98,7 +98,7 @@ Zipping, archive safety, size and file-type limits are Ruken's (`packages/valida
 
 ```ts
 const publishToRuken: (input: { distDir: string; cliPath: string; api: string; token: string; activate: boolean; game?: string })
-  => Effect<{ url: string }, PublishRejected | PublishUsage | PublishAuth | PublishTimeout | PlatformError>;
+  => Effect<{ url: string }, PublishRejected | PublishUsage | PublishAuth | PublishTimeout | FileError>;
 ```
 
 Runs Ruken's own CLI (`node <cliPath> publish <distDir> [--activate] [--game <id>]`) with `RUKEN_API` and `RUKEN_TOKEN` in its environment, streams its output, takes the URL from its `Ready:`/`Active:` line, and maps its exit codes (0 done, 1 rejected, 2 usage, 3 auth, 4 timeout; Ruken `run.ts`). `cliPath` comes from `RUKEN_CLI`, a RukenApp checkout's `tooling/ruken-cli/src/cli.ts`, until `@ruken/cli` is published; then it becomes a pinned dependency. There is no dry run (Ruken has none).
