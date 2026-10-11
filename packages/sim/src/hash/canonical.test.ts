@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { canonicalJson, utf8 } from './canonical'
+import { CanonicalJsonError, canonicalJson, utf8 } from './canonical'
 
 test('object keys are sorted at every depth; arrays keep their order', () => {
   expect(canonicalJson({ b: 1, a: { d: [3, 1], c: true } })).toBe('{"a":{"c":true,"d":[3,1]},"b":1}')
@@ -26,4 +26,30 @@ test.each([
 test('utf8 encodes 1-, 2-, 3- and 4-byte code points and lone surrogates as U+FFFD', () => {
   expect([...utf8('aé€😀')]).toEqual([0x61, 0xc3, 0xa9, 0xe2, 0x82, 0xac, 0xf0, 0x9f, 0x98, 0x80])
   expect([...utf8('\ud800')]).toEqual([0xef, 0xbf, 0xbd])
+})
+
+test('-0 is written as -0, so it survives a JSON round trip (audit, spec M2.1 §10.1)', () => {
+  expect(canonicalJson(-0)).toBe('-0')
+  expect(canonicalJson({ a: [-0, 0] })).toBe('{"a":[-0,0]}')
+  expect(Object.is(JSON.parse(canonicalJson(-0)), -0)).toBe(true)
+})
+
+test('non-plain objects throw CanonicalJsonError instead of hashing as {} (content audit, M2.1 spec §10.7)', () => {
+  class Point {
+    x = 1
+  }
+  for (const value of [new Date(0), new Map([[1, 2]]), new Set([1]), new Point(), new Uint8Array(2), /x/]) {
+    expect(() => canonicalJson({ nested: [value] })).toThrow(CanonicalJsonError)
+  }
+  expect(() => canonicalJson(new Date(0))).toThrow(/unsupported Date/)
+  expect(() => canonicalJson(new Point())).toThrow(/unsupported class instance/)
+  // Plain objects, including ones without a prototype, are still accepted.
+  const bare = Object.create(null) as Record<string, number>
+  bare.b = 2
+  expect(canonicalJson({ a: bare })).toBe('{"a":{"b":2}}')
+})
+
+test('every canonicalJson failure is a CanonicalJsonError', () => {
+  expect(() => canonicalJson(Number.NaN)).toThrow(CanonicalJsonError)
+  expect(() => canonicalJson({ a: undefined })).toThrow(CanonicalJsonError)
 })

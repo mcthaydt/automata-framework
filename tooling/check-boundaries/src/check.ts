@@ -98,6 +98,11 @@ export const IMPORT_ALLOWED: ReadonlySet<string> = new Set([
   'zod',
   '@dimforge/rapier2d-deterministic-compat',
   '@dimforge/rapier3d-deterministic-compat',
+  // The sim's public entry points, for sim plugins in other packages (packages/physics). They are checked
+  // sources themselves; deep imports into the sim's internals stay banned.
+  '@mcthaydt/automata-sim',
+  '@mcthaydt/automata-sim/hash',
+  '@mcthaydt/automata-sim/math',
 ])
 
 // Keys whose subtree is type-only: skipped entirely.
