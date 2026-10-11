@@ -16,8 +16,6 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@effect/platform": "0.97.2",
-    "@effect/platform-node": "0.108.2",
     "@mcthaydt/automata-sim": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "effect": "3.22.2",

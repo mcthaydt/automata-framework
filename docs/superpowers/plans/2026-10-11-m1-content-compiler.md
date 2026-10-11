@@ -38,8 +38,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement `diagnostics/diagnostic.ts`; add `tsconfig.json` and `vitest.config.ts` (sim's shape).
 
 ### T2 Key positions
-- [ ] Test `locate-keys`: top-level key; `[table]` key; `[[transitions]]` third element's `to`; dotted key `a.b = 1`; quoted key; a `key =` inside a multi-line string is not indexed; a multi-line array is skipped; `positionOf` falls back to the deepest indexed prefix, then `1:1`. Fails: module missing.
-- [ ] Implement the line scanner.
+- [x] Test `locate-keys`: top-level key; `[table]` key; `[[transitions]]` third element's `to`; dotted key `a.b = 1`; quoted key; a `key =` inside a multi-line string is not indexed; a multi-line array is skipped; `positionOf` falls back to the deepest indexed prefix, then `1:1`. Fails: module missing.
+- [x] Implement the line scanner.
 
 ### T3 Parse one document
 - [ ] Port `parse.test.ts` "maps unknown keys … to source diagnostics" and "reports a TOML syntax error against the file that carries it", plus: a missing required key is `missingField`, a wrong type is `invalidType`, each at its key's line and column; a syntax error is `invalidToml` at smol-toml's line/col. Fails: module missing.
