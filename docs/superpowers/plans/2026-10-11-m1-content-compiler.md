@@ -66,8 +66,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [ ] Implement.
 
 ### T9 Canonical file and hash
-- [ ] Port `determinism.test.ts` `canonicalizeValue` cases to `canonicalFile`; test `contentHash(data)` equals `hex64(xxhash64(utf8(canonicalJson(data))))`; `content-hash.parity.test.ts` pins one hash in Chromium, WebKit and Firefox. Fails: module missing.
-- [ ] Implement.
+- [x] Port `determinism.test.ts` `canonicalizeValue` cases to `canonicalFile`; test `contentHash(data)` equals `hex64(xxhash64(utf8(canonicalJson(data))))`; `content-hash.parity.test.ts` pins one hash in Chromium, WebKit and Firefox. Fails: module missing.
+- [x] Implement. (Parity run in browsers pending; recorded at T14.)
 
 ### T10 Generators and `content.d.ts`
 - [ ] Test `defineContentGenerator` (files, diagnostics, a throw becomes `generatorFailed`); `renderTypes` pinned text for strings, numbers, enums, optionals, arrays, records, references and nested objects, `unknown` with a comment otherwise; the fixture game's `content.d.ts` typechecks in a consumer and a wrong ID literal does not. Fails: module missing.
