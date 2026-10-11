@@ -155,13 +155,18 @@ export function filterPrograms(name: string, glsl: string, wgsl: string): { glPr
 
 Until M1.5 builds `defineExtension`, the package exports its content schemas (`render3dContent: ContentSchemaDef[]`) and its functions plainly; the wrapping lands with M1.5 (audit B3).
 
+R4 found that the first draft of `Stage3DOptions` had no way to pass in the lighting: lamps, ambient, key, fill, bounce, or which walls block light. So `kit.box` could not be lit, and `setLampLevel` had no lamps. The options now take the scene's whole `look3d` entry, which already carries the fog, so the separate `fog` option is gone. They also take `isBlocked`. The M3 thread ruled this as spec owner at 23:33Z. It is additive to everything built so far. `CharacterArt` (the colour and normal textures with R3's `AtlasLayout`) and `LitSprite` take their exact shape in R4 and are recorded there.
+
 ```ts
 export interface Stage3DOptions {
   renderer: RendererHandle            // from render-pixi
   camera?: { lensMm?: number /* 50 */; tiltDeg?: number /* 30 */; near?: number /* 0.2 */; far?: number /* 90 */ }
-  fog?: FogSettings                   // from content kind 'look3d' (§5.3); omitted = no fog
+  look?: Look3d                       // the scene's parsed 'look3d' entry (§5.3): lamps, ambient, key, fill, bounce, fog, outline; omitted = ambient 1, no lamps, no fog
+  isBlocked?: BlockedFn               // walls between a lamp or bounce pool and a point; default none
   post?: readonly Filter[]            // from post-retro; set on the View3D
 }
+export type AssetLoader = (path: string) => Promise<Uint8Array>   // a path inside the build; the bases fetch from their own origin
+export type Object3DHandle = Container3D
 export interface Stage3D {
   readonly view: View3D
   readonly kit: Kit                   // primitives added at load
@@ -213,7 +218,7 @@ export function shadeFrame(/* as The Last Light sprite-light.ts:19, plus */ outl
 export function createShadeCache(maxEntries: number): ShadeCache   // keyed by frame index and quantized lights
 
 // Fog and mist
-export interface FogSettings { color: number; near: number; far: number; mist?: { count: number; size: number } }
+export interface FogSettings { color: number; near: number; far: number; mist?: { count: number; size: number } }  // near and far in metres from the camera's focus; negative is in front of it (The Last Light's haze starts at −5)
 export function createFogVolume(view: View3D, settings: FogSettings, seed: number): FogVolume  // mist positions are seeded, never Math.random
 
 // Assets
@@ -238,7 +243,7 @@ export type Direction8 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
 |---|---|---|---|
 | `characters` | `render-pixi3d` | `{ atlas, normals, cell: [w, h], metres, feet, stepRate, height, actions? }` per id (above) | out (presentation) |
 | `props` | `render-pixi3d` | `{ pack: '<id>.bin', scale, yaw (degrees), footprint: [w, d] }` per id (the field keeps the format's name; a `.pack` path is a compile error that says Ruken refuses it) | out |
-| `look3d` | `render-pixi3d` | `{ lamps: { id, at, color: 0xRRGGBB, range, peak }[], ambient: { level, tint }, key: { strength }, fill?: { level, tint }, bounce: { at, radius, color }[] (each adds color · exp(−(d/radius)²)), fog?: FogSettings }` per scene; a parsed entry is the lighting's input as is | out |
+| `look3d` | `render-pixi3d` | `{ lamps: { id, at, color: 0xRRGGBB, range, peak }[], ambient: { level, tint }, key: { strength }, fill?: { level, tint }, bounce: { at, radius, color }[] (each adds color · exp(−(d/radius)²)), fog?: FogSettings, outline?: 0xRRGGBB }` per scene; a parsed entry is the stage's `look` as is. `outline` is the lit sprites' one-texel outline (base-2d draws coloured outlines); omitted, none is drawn | out |
 | `post` | `post-retro` | `{ passes: PassConfig[] }` (§5.4) | out |
 | `room25d` | `base-25d` (example only) | `{ size: [w, d], height, walls, props: { id, at, yaw }[], zones, spawn }` | **in** (walls gate movement) |
 
