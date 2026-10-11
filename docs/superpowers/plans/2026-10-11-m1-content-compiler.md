@@ -2,7 +2,7 @@
 
 - **Spec:** [`2026-10-11-m1-content-design.md`](../specs/2026-10-11-m1-content-design.md) (extract and improve FloorFifty's compiler, §0)
 - **Branch:** `claude/af-m1-content-tts573`, stacked on PR #4 (`claude/ruken-first-af-60n4bh`)
-- **Progress:** 13 / 14 tasks (T1–T13 done; T14 next)
+- **Progress:** 14 / 14 tasks, locally verified; not CI verified (hosted Actions get no runners) and not yet reviewed
 - **Commands:** focused `pnpm --filter @mcthaydt/automata-content exec vitest run --project node <file>`; `pnpm --filter @mcthaydt/automata-content typecheck`; `pnpm check` before each commit; parity `pnpm --filter @mcthaydt/automata-content exec vitest run --project browsers`.
 
 Every task: port or write the test, run it, see it fail for the stated reason (usually "module not found" first, then the assertion), write the least code, see it pass, `pnpm format`, commit with the tick. "Port" means the FloorFifty `122a220` test named, rewritten against the AF API with the same cases.
@@ -68,7 +68,7 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 
 ### T9 Canonical file and hash
 - [x] Port `determinism.test.ts` `canonicalizeValue` cases to `canonicalFile`; test `contentHash(data)` equals `hex64(xxhash64(utf8(canonicalJson(data))))`; `content-hash.parity.test.ts` pins one hash in Chromium, WebKit and Firefox. Fails: module missing.
-- [x] Implement. (Parity run in browsers pending; recorded at T14.)
+- [x] Implement. (Parity passed in Chromium, WebKit and Firefox at T14.)
 
 ### T10 Generators and `content.d.ts`
 - [x] Test `defineContentGenerator` (files, diagnostics, a throw becomes `generatorFailed`); `renderTypes` pinned text for strings, numbers, enums, optionals, arrays, records, references and nested objects, `unknown` with a comment otherwise; the fixture game's `content.d.ts` typechecks in a consumer and a wrong ID literal does not. Fails: module missing.
@@ -88,7 +88,7 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 
 ### T14 CLI, exports, full check
 - [x] Port `bin/content.ts` behavior as `runCli` tests: `check` 0/1, `build` writes, `check --verify-artifact` fails after a hand edit, `docs` rewrites the table, a bad command or config is 2. Fails: module missing.
-- [ ] Implement; export the public API; `pnpm check`, browsers project and the full local CI run green.
+- [x] Implement; export the public API; `pnpm check`, browsers project and the full local CI run green.
 
 ## Execution log
 
@@ -98,3 +98,4 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - 2026-10-11: T12 landed: `preloadList` compiles, then checks each preload file (or `dir/*` folder) in `dist/` and reports every missing one as `missingAsset` at its `assets.toml` line.
 - 2026-10-11: T13 landed: the `automataContent()` Vite plugin (serialized builds, 50 ms debounce, `automata:content` / `automata:content-error`, last good module kept) with FloorFifty's watch tests ported to a dev server, plus `vite build` embedding the hash and failing on a broken file.
 - 2026-10-11: T14 CLI landed: `runCli` with check, build, docs and `--verify-artifact` (outputs and the guide's table), exit codes 0/1/2, and a bin Node runs directly. Found by the bin test: a config loaded through another module runner had its own copy of `content-schema.ts`, so `instanceof` missed its markers; markers now carry a brand and the registries live on `globalThis` (test: a second module copy).
+- 2026-10-11: rebased on PR #4 at `476688e`. Local CI on Node 24.21.0: lint, typecheck, boundaries, style and every unit test (`turbo --force`: content 150, sim 149, check-style 22, check-boundaries 29) pass; parity passes in Chromium, WebKit and Firefox for content (3) and sim (165). `ci.yml`'s parity job runs only the sim's browsers project, so the content hash parity test is not in hosted CI yet (request to the integration owner).
