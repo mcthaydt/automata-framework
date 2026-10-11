@@ -43,12 +43,12 @@ Each task: write the failing test, run it and see it fail for the stated reason,
 - [x] Implement. (`version.test.ts` imports `package.json`, so the sim's tsconfig gains `resolveJsonModule`.)
 
 ### Task 3: varint and strict UTF-8
-- [ ] `replay/varint.test.ts`: 0, 127, 128, 2³² − 1 round-trip; a sixth continuation byte, a value over 2³² − 1 and a truncated varint throw `ReplayFormatError` with the offset. `hash/canonical.test.ts`: the decoder inverts `utf8` for ASCII, BMP and astral text and throws on an overlong form, a lone surrogate and a truncated sequence. Expected failure: modules missing (`Cannot find module './varint.ts'`; `decodeUtf8Strict` not exported).
-- [ ] Implement; `pnpm boundaries` passes on `src/replay`.
+- [x] `replay/varint.test.ts`: 0, 127, 128, 2³² − 1 round-trip; a sixth continuation byte, a value over 2³² − 1 and a truncated varint throw `ReplayFormatError` with the offset. `hash/canonical.test.ts`: the decoder inverts `utf8` for ASCII, BMP and astral text and throws on an overlong form, a lone surrogate and a truncated sequence. Expected failure: modules missing (`Cannot find module './varint.ts'`; `decodeUtf8Strict` not exported).
+- [x] Implement; `pnpm boundaries` passes on `src/replay`. (`ReplayFormatError` and `ReplayRecordError` live in `replay/errors.ts`; the varint test also checks a write outside 0..2³² − 1.)
 
 ### Task 4: codec
-- [ ] `replay/codec.test.ts`: round trips per spec §7; the committed hex of a three-tick replay (written by hand from spec §3.3 first, so the test pins the layout, not the implementation); one test per format error in spec §5. Expected failure: module missing.
-- [ ] Implement `encodeReplay` and `decodeReplay` in `codec.ts`.
+- [x] `replay/codec.test.ts`: round trips per spec §7; the committed hex of a three-tick replay (written by hand from spec §3.3 first, so the test pins the layout, not the implementation); one test per format error in spec §5. Expected failure: module missing.
+- [x] Implement `encodeReplay` and `decodeReplay` in `codec.ts`. (The reference hash count is implied by `finalTick − startTick`, so a short list decodes as truncated and `encodeReplay` refuses a wrong count; the decoder also refuses commands at or past `finalTick`, invalid UTF-8 and a header the schema rejects.)
 
 ### Task 5: recorder
 - [ ] `replay/recorder.test.ts`: `start` equals `sim.snapshot()` at creation; only accepted commands recorded (a wrong-tick command is dropped); two commands in one tick recorded in (source, seq) order whatever order they were passed; an explicit `undefined` optional field records (the key dropped) and plays back; checks at 60, 120 and the final tick; reference hashes for every tick and snapshots every `snapshotEvery`; `ReplayRecordError` for stepping outside, a `NaN` payload, `finish` twice, `checkEvery: 0`. Expected failure: `createRecorder` not exported.
