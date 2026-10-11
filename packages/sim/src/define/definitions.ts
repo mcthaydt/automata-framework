@@ -1,5 +1,6 @@
 import { type Trait, trait } from 'koota'
 import type { z } from 'zod'
+import { canonicalJson } from '../hash/canonical'
 import { sortedKeys } from '../util/sorted'
 import type { SimContext } from './context'
 import { defaultField, FIELD_TYPES, type FieldSchema, type FieldType } from './fields'
@@ -155,6 +156,11 @@ export interface PluginDef {
   readonly events: readonly EventDef[]
   readonly resources: readonly ResourceDef[]
   readonly systems: readonly SystemDef[]
+  /**
+   * Settings that change what the plugin simulates (physics gravity), as plain JSON. Part of the schema hash,
+   * so a snapshot never restores into a sim configured differently. Undefined when the plugin has none.
+   */
+  readonly config: unknown
 }
 
 export function definePlugin(spec: {
@@ -166,8 +172,11 @@ export function definePlugin(spec: {
   resources?: readonly ResourceDef[]
   systems?: readonly SystemDef[]
   state?: (setup: PluginStateSetup) => Promise<PluginState>
+  config?: unknown
 }): PluginDef {
   checkId('plugin', spec.name)
+  // A canonical copy: it throws CanonicalJsonError for anything that cannot hash exactly.
+  const config = spec.config === undefined ? undefined : JSON.parse(canonicalJson(spec.config))
   return {
     kind: 'plugin',
     name: spec.name,
@@ -178,5 +187,6 @@ export function definePlugin(spec: {
     resources: spec.resources ?? [],
     systems: spec.systems ?? [],
     state: spec.state,
+    config,
   }
 }

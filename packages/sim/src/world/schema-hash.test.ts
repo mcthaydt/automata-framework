@@ -54,3 +54,20 @@ test('a stored resource the current schema would strip is refused, not silently 
   edited[at + 2] = 'b'.charCodeAt(0)
   await expect(restoreInto(plugin, edited)).rejects.toThrow(SnapshotFormatError)
 })
+
+test('a plugin config is part of the schema hash: a snapshot from another config is refused (audit, §10.8)', async () => {
+  const moon = definePlugin({ name: 'engine', config: { gravity: -1.62 } })
+  const earth = definePlugin({ name: 'engine', config: { gravity: -9.81 } })
+  const bytes = await snapshotWith(moon)
+  await expect(restoreInto(earth, bytes)).rejects.toThrow(SnapshotMismatchError)
+  await expect(restoreInto(moon, bytes)).resolves.toBeUndefined()
+})
+
+test('a plugin without a config keeps its schema hash, and a config must be canonical JSON', async () => {
+  const plain = definePlugin({ name: 'engine' })
+  expect(plain.config).toBeUndefined()
+  // Same bytes as before configs existed: the snapshot golden in snapshot.parity.test.ts pins this too.
+  const bytes = await snapshotWith(plain)
+  await expect(restoreInto(definePlugin({ name: 'engine' }), bytes)).resolves.toBeUndefined()
+  expect(() => definePlugin({ name: 'engine', config: { at: new Date(0) } })).toThrow(/canonicalJson/)
+})

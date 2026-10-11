@@ -234,10 +234,14 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   // `stateful` is only present when a plugin keeps engine state, so every pre-M2.1 schema hash is unchanged.
   const statefulNames = plugins.filter((p) => p.state).map((p) => p.name)
   const stateful = statefulNames.length > 0 ? { stateful: statefulNames } : {}
+  // Likewise `configs` only appears when a plugin has one (M2.1 spec §10.8).
+  const configured = plugins.filter((p) => p.config !== undefined).map((p) => [p.name, p.config])
+  const configs = configured.length > 0 ? { configs: configured } : {}
   const schemaHash = xxhash64(
     utf8(
       canonicalJson({
         ...stateful,
+        ...configs,
         plugins: plugins.map((p) => p.name),
         components: componentList
           .map((c) => ({ id: c.id, fields: c.fields, render: c.render }))
