@@ -60,6 +60,7 @@ It decodes with `decodeSnapshot` and the sim's own component definitions, so a m
 ```ts
 export const REPLAY_FORMAT = 1
 export const DEFAULT_CHECK_EVERY = 60
+export const REPLAY_MAX_TICKS = 16_777_216 // 2^24: the longest run a replay holds (§3.3)
 
 export interface Replay {
   readonly header: ReplayHeader
@@ -113,6 +114,7 @@ reference   0 | 1, then: hash u64 × (finalTick − startTick) | snapshots varin
 - `commandTypes` is the sorted set of types used; an index out of range is a format error.
 - Payloads are canonical JSON, so the encoded bytes (before deflate) for a run are identical in every engine, and the parity test compares those, with two header fields neutralized first: `framework` (M2.4's version step rewrites `SIM_VERSION` on every release, though the sim may be unchanged) and `meta` (free-form, may name the engine). The comparison re-encodes both sides with `framework: ''` and `meta: {}`, so a release never fails a golden and only simulation facts are compared. `replayGolden` writes goldens with `meta: {}`. The deflated file is **not** compared across engines: deflate output is not canonical (Node's zlib and each browser's `CompressionStream` may choose differently); only that each engine inflates the other's.
 - Varint deltas and a change-only layout follow FloorFifty's codec; deflate on top (§3.5) does the rest.
+- A run is at most `REPLAY_MAX_TICKS` = 2²⁴ ticks (over 77 hours at 60 Hz), and no stretch of it goes more than `checkEvery` ticks without a hash: from `startTick` to the first check, between checks, and from the last check to `finalTick`. The recorder writes exactly that cadence (a check every `checkEvery` ticks, then the final hash, so a partial last interval is fine); `encodeReplay` and `decodeReplay` both refuse anything else, so a small file cannot claim a long run that playback would step through unchecked. A forged file can still ask for up to 2²⁴ ticks with only the final hash when its `checkEvery` is that large; M5 player replays may want a lower cap the caller sets, as with the inflate cap.
 
 ### 3.4 Recorder and stepper
 
@@ -143,7 +145,7 @@ export interface ReplayStepper {
 ```
 
 - The recorder takes the start snapshot at creation, refuses a `checkEvery` or `snapshotEvery` below 1, and throws `ReplayRecordError` when the sim's tick moved since the last `recorder.step` (someone stepped it directly) or a payload still is not canonical JSON (a `NaN`, a function). Object keys whose value is `undefined` are dropped before encoding, as `JSON.stringify` drops them, so a legal payload with an explicit `undefined` optional field records; the playback check would catch the rare schema where that changes meaning. Spawning outside `step` cannot be detected; the golden harness catches it by playing every new golden back before writing it (§3.6).
-- The stepper creates a sim (`seed`, `tickHz` from the header), restores `start` (a schema or content change surfaces here as `SnapshotMismatchError`), then steps exactly `finalTick − startTick` times, feeding each recorded tick's commands. A recorded command the current code rejects is a check failure at that tick, not a silent skip: `step()` reports it as `check: { expected: 'accepted', actual: '<reason>' }`. Reaching this path needs a command whose JSON Schema is unchanged but whose accepted values narrowed (a `.refine()`, which Zod's JSON Schema output omits) or a hand-edited payload; any change that alters the JSON Schema (`.max(5)` adds `"maximum": 5`) moves the schema hash (`sim.ts:122-129, 242`) and is refused earlier as `schema-changed`.
+- The stepper creates a sim (`seed`, `tickHz` from the header), restores `start` (a schema or content change surfaces here as `SnapshotMismatchError`), checks that the header's `startTick`, `schemaHash` and `contentHash` are the start snapshot's own (the recorder copies them, so only a forged or hand-edited file differs; a forged `startTick` at or past `finalTick` would otherwise pass with no hash compared), then steps exactly `finalTick − startTick` times, feeding each recorded tick's commands. A recorded command the current code rejects is a check failure at that tick, not a silent skip: `step()` reports it as `check: { expected: 'accepted', actual: '<reason>' }`. Reaching this path needs a command whose JSON Schema is unchanged but whose accepted values narrowed (a `.refine()`, which Zod's JSON Schema output omits) or a hand-edited payload; any change that alters the JSON Schema (`.max(5)` adds `"maximum": 5`) moves the schema hash (`sim.ts:122-129, 242`) and is refused earlier as `schema-changed`.
 
 ### 3.5 Packing
 
@@ -254,7 +256,9 @@ Each case draws `simSeed`, `ticks` in [1, `maxTicks`] and a restore point `at` i
 |---|---|
 | Bad magic, unknown format, truncated, trailing bytes, varint over 5 bytes, delta 0 where ≥ 1 is required, a type index out of range, a payload that is not JSON, a check outside (startTick, finalTick], a reference hash count that does not match | `ReplayFormatError` naming what and where (byte offset); nothing stepped |
 | Not deflate, or inflates past the cap | `ReplayFormatError('not a deflated replay')` / `('inflates past N bytes')`, without inflating the rest |
+| A run longer than `REPLAY_MAX_TICKS`, or more than `checkEvery` ticks without a hash | `ReplayFormatError` from `encodeReplay` / `decodeReplay` |
 | Start snapshot from another schema or content | `SnapshotMismatchError` from `createReplayStepper`; the golden report is `schema-changed` or `content-changed` |
+| A header whose `startTick`, `schemaHash` or `contentHash` is not the start snapshot's | `ReplayFormatError` from `createReplayStepper`; its sim is disposed |
 | The sim stepped outside the recorder, a non-canonical payload, a finished recorder, `checkEvery < 1` | `ReplayRecordError` |
 | A new golden that does not replay | Not written; `ReplayRecordError('the recording does not reproduce: diverged at tick t')` |
 | Golden over 512 KiB packed, or over `REPLAY_INFLATE_MAX_BYTES` encoded | Not written; the message names the size and `snapshotEvery` |

@@ -8,6 +8,7 @@ import {
   defineResource,
   defineSystem,
 } from '../define/definitions'
+import { canonicalJson, hex64, utf8, xxhash64 } from '../hash/hash'
 import { type Command, createSim, type Sim } from './sim'
 
 const Position = defineComponent('position', { x: 'f32', y: 'f32' })
@@ -264,4 +265,17 @@ test('cleanup systems run before entities.flush; a deferred despawn shows in ren
   expect(cleanupSeen).toEqual([1])
   // and render delta reports it as removed
   expect(result.render.removed).toEqual([sid])
+})
+
+test('contentHash is XXH64 of the canonical content, the value the snapshot header carries (M2.2)', async () => {
+  const content = { tuning: { g: 9.81 }, rooms: { 'room-1': { rows: ['#.#'] } } }
+  const sim = await make({ content })
+  expect(sim.contentHash).toMatch(/^[0-9a-f]{16}$/)
+  expect(sim.contentHash).toBe(hex64(xxhash64(utf8(canonicalJson(content)))))
+  const bytes = sim.snapshot()
+  // Bytes 14..21 are the header's contentHash (after "AUTO", the version and the schema hash), little-endian.
+  expect(hex64(new DataView(bytes.buffer, bytes.byteOffset).getBigUint64(14, true))).toBe(sim.contentHash)
+  sim.step([])
+  sim.restore(bytes)
+  expect(sim.contentHash).toBe(hex64(xxhash64(utf8(canonicalJson(content)))))
 })

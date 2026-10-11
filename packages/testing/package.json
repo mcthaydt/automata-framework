@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./sim": "./src/sim/index.ts",
+    "./sim/commands": "./src/sim/commands.ts",
     "./sim/property": "./src/sim/property.ts"
   },
   "scripts": {

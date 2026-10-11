@@ -103,9 +103,9 @@ export const IMPORT_ALLOWED: ReadonlySet<string> = new Set([
   '@mcthaydt/automata-sim',
   '@mcthaydt/automata-sim/hash',
   '@mcthaydt/automata-sim/math',
-  // The physics extension's 2D sim entry point (packages/physics), checked by the same root run. /3d joins
-  // when a game sim imports it.
+  // The physics extension's sim entry points (packages/physics), checked by the same root run (M2.1b spec §3.4).
   '@mcthaydt/automata-physics/2d',
+  '@mcthaydt/automata-physics/3d',
 ])
 
 // Keys whose subtree is type-only: skipped entirely.
@@ -141,7 +141,7 @@ export interface CheckOptions {
    * More import specifiers this root may use, by exact name: another sim folder's entry point that is checked
    * on its own (a demo's sim on its base's sim, `@af-examples/base-2d/sim`).
    */
-  readonly allow?: readonly string[]
+  readonly allowImports?: readonly string[]
 }
 
 /**
@@ -166,7 +166,7 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
       const target = relative(resolve(options.root), resolve(dirname(file), source))
       return !target.startsWith('..')
     }
-    return IMPORT_ALLOWED.has(source) || (options.allow?.includes(source) ?? false)
+    return IMPORT_ALLOWED.has(source) || (options.allowImports?.includes(source) ?? false)
   }
 
   const lineStarts = [0]

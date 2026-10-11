@@ -186,3 +186,14 @@ describe('restore rejects structurally corrupt snapshots atomically', () => {
     })
   }
 })
+
+test('two sims given the same content in another key order share the hash and restore each other (M2.2)', async () => {
+  const a = await make({ content: { tuning: { g: 1, h: 2 }, level: 'a' } })
+  const b = await make({ content: { level: 'a', tuning: { h: 2, g: 1 } } })
+  expect(a.contentHash).toMatch(/^[0-9a-f]{16}$/)
+  expect(b.contentHash).toBe(a.contentHash)
+  a.step([])
+  b.restore(a.snapshot())
+  expect(b.hash()).toBe(a.hash())
+  a.restore(b.snapshot())
+})

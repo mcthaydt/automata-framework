@@ -45,6 +45,18 @@ describe('configProblems', () => {
   })
 })
 
+describe('the sim option', () => {
+  it('defaults to sim content, and keeps an explicit false', () => {
+    expect(defineContentSchema('room', z.object({}), { folder: 'rooms' }).sim).toBe(true)
+    expect(defineContentSchema('sound', z.object({}), { folder: 'sounds' }, { sim: false }).sim).toBe(false)
+  })
+
+  it('refuses a sim option that is not a boolean', () => {
+    const bad = defineContentSchema('x', z.object({}), { folder: 'xs' }, { sim: 'yes' as never })
+    expect(configProblems([bad])).toEqual(['kind "x": sim must be true or false'])
+  })
+})
+
 describe('resolveMarkers', () => {
   it('finds references and localized text anywhere, and leaves plain strings', () => {
     const parsed = stage.schema.parse({

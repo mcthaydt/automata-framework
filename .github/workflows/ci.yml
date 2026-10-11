@@ -1,7 +1,8 @@
 name: ci
 
-# AF's own CI (ship spec §3.7). Checks and cross-engine parity run on every push and pull request. Browser
-# journeys run only nightly and on request (`automata-ship test-remote <spec>`).
+# AF's own CI (ship spec §3.7). Checks run on every push and pull request; cross-engine parity runs on every push
+# to main and on pull requests that are not drafts (a draft runs it in a cloud container, docs/cloud-parity.md).
+# Browser journeys run only nightly and on request (`automata-ship test-remote <spec>`).
 #
 # Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
 # about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
@@ -15,6 +16,8 @@ on:
   push:
     branches: [main]
   pull_request:
+    # ready_for_review: a draft skips parity (below), so it runs when the PR leaves draft.
+    types: [opened, synchronize, reopened, ready_for_review]
   schedule:
     - cron: "0 9 * * *"
   workflow_dispatch:
@@ -66,7 +69,11 @@ jobs:
 
   parity:
     name: parity (chromium, webkit, firefox)
-    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    # af-linux is one shared PC runner, so a draft PR runs parity in a cloud container instead
+    # (docs/cloud-parity.md). Pushes to main have no pull_request and always run it.
+    if: >-
+      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
+      github.event.pull_request.draft != true
     runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 10
     # Browsers and their OS deps come preinstalled and pinned; installing them per run blew the 10-minute budget.

@@ -18,6 +18,13 @@ declare module 'virtual:automata/content' {
     readonly palette: Palette
   }
 
+  export interface SimContentData {
+    readonly tuning: Readonly<Record<TuningName, number | boolean | string>>
+    readonly room: Room
+  }
+
   export const content: ContentData
   export const contentHash: string
+  export const simContent: SimContentData
+  export const simContentHash: string
 }
