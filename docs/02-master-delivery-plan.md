@@ -38,7 +38,7 @@ Each milestone starts with its spec (`docs/superpowers/specs/YYYY-MM-DD-<slug>-d
 | [ ] | M2.1 — Physics plugins | Lane **sim** (its task spec stands in for M2.0's physics part). A new `packages/physics` extension plus a snapshot-section hook in `packages/sim`. Rapier deterministic-compat 2D/3D plugins, snapshot section 6, four-engine parity, measured size and ms/tick. |
 | [ ] | M2.2 — Content in the sim | M1.3, M2.0. Typed frozen content; snapshot `contentHash`; mismatch on restore. |
 | [ ] | M2.3 — Goldens and replays | M2.1, M2.2. `simGolden`, `.replay` v1, `replayGolden` with first-divergent-tick diff, ≥200-seed property test, cross-engine runner. |
-| [ ] | M2.4 — Build and publish | M2.3; GitHub Packages tokens. Library builds, Changesets, `0.0.x` prereleases; CI under 10 minutes. |
+| [ ] | M2.4 — Build and publish | M2.3; GitHub Packages tokens; D-8 (bundle the vendored Ruken code into `host` and `testing` builds). Library builds, Changesets, `0.0.x` prereleases; CI under 10 minutes. |
 
 ## M3 to M8
 
