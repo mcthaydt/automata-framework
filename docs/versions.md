@@ -24,7 +24,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `effect` | 3.22.2 | 2026-10-11 | Everything outside the sim (ADR 0003). Effect 3, not 4.0: 4.0 is ten days old and renames the Context API (coordinator decision 2026-10-11). `ship` uses it without `@effect/platform-node`, whose 0.108 line requires `@effect/cluster`, `rpc`, `sql` and `workflow` as peers (ship spec §3) |
 | `koota` | 0.6.6 | 2026-10-01 | ECS inside the sim (ADR 0001) |
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
-| `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries` and `check-style` |
+| `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `playwright` | 1.63.0 | 2026-10-01 | Same as Ruken's `@playwright/test`: browsers for parity and DOM checks |
 | `turbo` | 2.11.6 | 2026-10-01 | Same as Ruken: task runner, local cache only |
 | `typescript` | 7.0.2 | 2026-10-01 | Ruken holds 6.0.3 only for svelte-check, typescript-eslint, SvelteKit and Prisma, none of which AF uses (ship spec §3.1) |

@@ -35,4 +35,13 @@ describe('S8 budgets', () => {
   it('checks sizes alone when no boot was measured', () => {
     expect(overBudget({ gzip: measured.gzip, bootMedians: [] })).toEqual([])
   })
+
+  it('counts a measurement that is missing or not a number as a breach, never as a pass', () => {
+    expect(
+      overBudget({
+        gzip: { effect: Number.NaN, noEffect: 18_660 },
+        bootMedians: [{ profile: 'iPhone 13', effect: Number.NaN, noEffect: 95 }],
+      }),
+    ).toEqual(['E1/E3: the page size was not measured', 'E2/E4: boot on iPhone 13 was not measured'])
+  })
 })

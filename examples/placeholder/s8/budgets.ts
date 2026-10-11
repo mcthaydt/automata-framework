@@ -25,6 +25,10 @@ const kB = (bytes: number): string => (bytes / 1000).toFixed(2)
 /** Every budget the measurement breaks, as a line naming it; empty when all are met. */
 export function overBudget(measured: Measurement): string[] {
   const breaches: string[] = []
+  // A missing number (NaN) compares false with every budget, so it would pass silently; it is a breach.
+  if (!Number.isFinite(measured.gzip.effect) || !Number.isFinite(measured.gzip.noEffect)) {
+    breaches.push('E1/E3: the page size was not measured')
+  }
   const effectShare = measured.gzip.effect - measured.gzip.noEffect
   if (effectShare > BUDGETS.effectShareBytes) {
     breaches.push(`E1: Effect adds ${kB(effectShare)} kB gzip (budget ${BUDGETS.effectShareBytes / 1000} kB)`)
@@ -35,6 +39,10 @@ export function overBudget(measured: Measurement): string[] {
     )
   }
   for (const { profile, effect, noEffect } of measured.bootMedians) {
+    if (!Number.isFinite(effect) || !Number.isFinite(noEffect)) {
+      breaches.push(`E2/E4: boot on ${profile} was not measured`)
+      continue
+    }
     if (effect - noEffect > BUDGETS.effectBootMs) {
       breaches.push(
         `E2: Effect adds ${Math.round(effect - noEffect)} ms of boot on ${profile} (budget ${BUDGETS.effectBootMs} ms)`,

@@ -201,3 +201,10 @@ Changes from the audit thread's review of PR #6, now part of this spec:
 - **Reusable workflows (§3.7):** a game outside AF is blocked until M2.4 publishes AF's packages; then it needs `AF_READ_TOKEN` (AF is private) and AF's Actions access set to the owner's repositories. `game-release` publishes to its `game` input (or a committed `.ruken/project.json`) and otherwise fails. The deploy key never touches `~/.ssh`.
 - **prepare (§3.3):** the root-absolute check also covers `srcset`, unquoted attributes and JSON assets.
 - **S8:** budgets E1 and E3 run on every CI run, E2, E4 and E5 nightly (`examples/placeholder/s8/budgets.ts`).
+
+## Audit round 2 (2026-10-11)
+
+- **Dev host (§3.5):** a build tarball is untrusted. It may hold only regular files and folders inside the build; anything else is refused before extraction (exit 2), and its owners and modes are ignored. A failed reload rolls back to the previous live build (exit 6). `caddy.env` and `dev-host.env` must agree on `SHIP_ROOT` (exit 7). The Caddyfile imports `live.caddy` through a glob, so the shared Caddy never depends on AF's files existing.
+- **test-remote (§3.6):** "no runner" is decided only from successful looks at the run, including a run where one job finished and the next was never picked up. Failed looks are retried; five in a row stop as `gh-unavailable` and leave the run alone.
+- **prepare (§3.3):** the root-absolute check reads syntax, not text: scripts through oxc, pages through a tag reader that skips comments and prose, stylesheets without comments, and srcsets split as the HTML spec does.
+

@@ -2,7 +2,7 @@
 // Inside Ruken the game is served from `https://<game-origin>/b/<buildId>/`, so `/fonts/x.woff2` is the game
 // origin's root: a 404, and a font that silently falls back.
 
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -96,5 +96,82 @@ describe('root-absolute references in a built client', () => {
     expect(findRootAbsoluteReferences(dist).map((reference) => reference.reference)).toEqual([
       '"/sprites/hero.png"',
     ])
+  })
+
+  it('reads markup, not text: prose, comments and data URIs are not references', () => {
+    expect(
+      found({
+        'index.html': [
+          '<img srcset="data:image/jpeg;base64,/9j/4AAQSkZJRg==, icons/a@2x.png 2x" src="icons/a.png">',
+          '<p>Set src=/fonts/x.woff2 or href="/icons/a.png" in your config.</p>',
+          '<!-- <script src="/build/old.js"></script> -->',
+        ].join(''),
+      }),
+    ).toEqual([])
+    expect(
+      found({
+        'build/index.js':
+          '// fetch("/assets/x.json")\n/* load("/fonts/y.woff2") */\nconst ok = "assets/x.json"',
+      }),
+    ).toEqual([])
+    expect(found({ 'build/index.css': '/* url(/fonts/x.woff2) */ a { color: red }' })).toEqual([])
+  })
+
+  it('reads JS strings by parsing: only the start of a template literal counts', () => {
+    expect(
+      found({ 'build/index.js': 'const a = `${base}/assets/x.png`; const b = `/assets/${name}.png`' }),
+    ).toEqual(['build/index.js: `/assets/${...}`'])
+    expect(found({ 'build/index.cjs': 'module.exports = require("/assets/x.cjs")' })).toEqual([
+      'build/index.cjs: "/assets/x.cjs"',
+    ])
+  })
+
+  it('finds references inside inline scripts, import maps, style attributes and meta tags', () => {
+    expect(
+      found({
+        'index.html': [
+          '<script>fetch("/assets/x.json")</script>',
+          '<script type="importmap">{"imports":{"x":"/build/x.js"}}</script>',
+          '<div style="background: url(/icons/a.png)"></div>',
+          '<meta property="og:image" content="/icons/og.png">',
+          '<meta name="description" content="/ a quiet game">',
+        ].join(''),
+      }),
+    ).toEqual([
+      'index.html: "/assets/x.json"',
+      'index.html: "/build/x.js"',
+      'index.html: url(/icons/a.png)',
+      'index.html: content="/icons/og.png"',
+    ])
+  })
+
+  it('finds svg hrefs, a single unquoted srcset, imagesrcset and CSS image-set', () => {
+    expect(
+      found({
+        'index.html': [
+          '<svg><use href="/icons/s.svg#a"/><image xlink:href="/icons/b.png"/></svg>',
+          '<img srcset=/icons/c.png>',
+          '<link rel=preload as=image imagesrcset="/icons/d.png 1x, icons/d@2x.png 2x">',
+        ].join(''),
+      }),
+    ).toEqual([
+      'index.html: href="/icons/s.svg#a"',
+      'index.html: xlink:href="/icons/b.png"',
+      'index.html: /icons/c.png',
+      'index.html: /icons/d.png',
+    ])
+    expect(
+      found({ 'build/index.css': 'a { background: image-set("/icons/a.png" 1x, "icons/b.png" 2x) }' }),
+    ).toEqual(['build/index.css: "/icons/a.png"'])
+  })
+
+  it('looks inside a symlinked folder', () => {
+    const dist = build({})
+    const elsewhere = mkdtempSync(join(tmpdir(), 'ship-root-absolute-linked-'))
+    writeFileSync(join(elsewhere, 'app.js'), 'load("/assets/hero.png")')
+    symlinkSync(elsewhere, join(dist, 'linked'))
+    expect(
+      findRootAbsoluteReferences(dist).map((reference) => `${reference.file}: ${reference.reference}`),
+    ).toEqual(['linked/app.js: "/assets/hero.png"'])
   })
 })
