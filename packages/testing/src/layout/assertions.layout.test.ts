@@ -130,6 +130,14 @@ describe('findOffscreenControls', () => {
     expect(findOffscreenControls(document.body)).toEqual(['gone is off screen'])
   })
 
+  test('reports a fixed control off screen inside a declared region, which does not clip it', () => {
+    document.body.innerHTML =
+      '<div data-scroll-region style="position:fixed;left:0;top:0;width:100px;height:100px;overflow:auto">' +
+      button('escaped', 'left:-200px;top:0;width:60px;height:48px') +
+      '</div>'
+    expect(findOffscreenControls(document.body)).toEqual(['escaped is off screen'])
+  })
+
   test('reports a control in a box that scrolls but was never declared a scroll region', () => {
     document.body.innerHTML =
       '<div style="position:fixed;left:0;top:0;width:100px;height:100px;overflow:auto">' +

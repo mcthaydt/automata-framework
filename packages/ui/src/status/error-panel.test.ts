@@ -16,6 +16,7 @@ describe('ErrorPanel', () => {
     // Where the room left is short, only the message scrolls; the actions never do (spec §3.4).
     expect(alert).not.toHaveAttribute('data-scroll-region')
     const region = alert.querySelector('[data-scroll-region]')
+    expect(region).toHaveAttribute('data-testid', 'error-panel-message')
     expect(region).toHaveTextContent("Couldn't download the game.")
     expect(region?.querySelector('button')).toBeNull()
   })

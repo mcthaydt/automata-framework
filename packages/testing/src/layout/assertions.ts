@@ -120,11 +120,15 @@ export function findSmallTargets(root: ParentNode, min: number, minPrimary: numb
   return problems
 }
 
-/** Every visible control is on screen, unless it sits in a declared scroll region (`[data-scroll-region]`). */
+/**
+ * Every visible control is on screen, unless a declared scroll region (`[data-scroll-region]`)
+ * clips it (see `clippedBy`): a fixed control, or one positioned outside the region, is judged
+ * where it is drawn, since scrolling the region would never bring it into view.
+ */
 export function findOffscreenControls(root: ParentNode): string[] {
   const problems: string[] = []
   for (const node of visibleControls(root)) {
-    if (node.closest('[data-scroll-region]') !== null) continue
+    if (scrollRegionsAround(node).some((region) => clippedBy(node, region))) continue
     const rect = node.getBoundingClientRect()
     const view = viewport(node)
     const off =

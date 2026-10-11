@@ -1,8 +1,9 @@
 <!--
   The status overlays for the layout contracts (M1.6 spec §7, plan Task 11): the loader while
   assets arrive; the boot failure with the most words on its button (Continue without loading);
-  and an ErrorPanel with two ways forward, with a one-line message or a long one. A failure is drawn over a screen with Back in its corner
-  row, as a game would show it, so the panel is checked against the corner row too.
+  an ErrorPanel with two ways forward, with a one-line message or a long one; and a final
+  ErrorPanel (no way forward) with a long message. A failure is drawn over a screen with Back in
+  its corner row, as a game would show it, so the contract can check Back stays reachable.
 -->
 <script lang="ts">
 import ScreenFrame from '../layout/ScreenFrame.svelte'
@@ -10,12 +11,15 @@ import BootFailurePanel from '../status/BootFailurePanel.svelte'
 import ErrorPanel from '../status/ErrorPanel.svelte'
 import LoaderOverlay from '../status/LoaderOverlay.svelte'
 
-const { show }: { show: 'loader' | 'boot-failure' | 'error' | 'error-long' } = $props()
+export type StatusShow = 'loader' | 'boot-failure' | 'error' | 'error-long' | 'final-long'
+
+const { show }: { show: StatusShow } = $props()
 const none = (): void => undefined
-const LONG =
+// About 1000 characters, as the framework audit used: longer than any screen can show at once.
+const SENTENCE =
   "Couldn't load your progress. The save on this device could not be read, and the copy kept " +
-  'online did not answer in time. You can try again now, or go on without it and keep this run ' +
-  'separate until the saved copy can be read again.'
+  'online did not answer in time. You can try again now, or go on without it for this run. '
+const LONG = SENTENCE.repeat(6).trim()
 </script>
 
 {#if show === 'loader'}
@@ -32,6 +36,8 @@ const LONG =
       onContinue={none}
       onExit={none}
     />
+  {:else if show === 'final-long'}
+    <ErrorPanel code="unsupported" message={LONG} actions={[]} final />
   {:else}
     <ErrorPanel
       code="progress"
