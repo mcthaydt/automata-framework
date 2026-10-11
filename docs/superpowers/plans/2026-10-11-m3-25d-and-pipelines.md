@@ -5,10 +5,10 @@
 - **Spec:** [m3-25d-and-pipelines](../specs/2026-10-11-m3-25d-and-pipelines-design.md) ("spec"). Each task below is small enough for one lane thread; the spec's §5 contracts are what lanes build against.
 - **Model and effort (Owner, 2026-10-11 22:08Z):** every role runs on the one model the project instructions name; effort is high for routine work (Executor, its subagents, Reviewer, Designer) and max for plans, specs and debugging. No model switch mid-session. (The first wave of P1–P2, M3.2, M1.7a, Q1 and R1–R3 ran under the earlier 21:07Z policy; the Reviewer re-reads it.)
 - **Sign-off and review:** the Owner signed off the spec and this plan at 22:04Z (via the hub). The AF framework audit's findings (`audits/af-m3-spec-plan-review-2026-10-11.md`, B1–B5 and S1–S9) are folded into both. No paid stage runs until the coordinator relays the Owner's OK (spec §15 Q3). The `@pixi/3d` tarball stays out of AF git (the Owner's ruling at 22:19Z, spec §15 Q6).
-- **Task IDs:** PRs are titled with the spec's IDs: M3.1 (S7a, S7b), M3.2 (pins), M1.7a, M3.3 (Q1–Q4), M3.4 (R1–R5), M3.5 (P1–P6), M3.6 (C1–C3), M3.7 (D1–D2), M3.8 (H0, B1), M3.9a (controller), M3.9 (B2), M3.10 (S1), M3.11 (X1, X2). A lane may put several of its letters in one PR.
+- **Task IDs:** PRs are titled with the spec's IDs: M3.1 (S7a, S7b), M3.2 (pins), M1.7a, M3.3 (Q1–Q4), M3.4 (R1–R5), M3.5 (P1–P6), M3.6 (C1–C3), M3.7 (D1–D2), M3.8 (H0, B1), M3.9a (controller), M3.9 (B2), M3.10 (S1), M3.11 (X1, X2), M3.12 (K1, content lane). A lane may put several of its letters in one PR.
 - **Branches and runners:** one local branch and worktree per lane, from `main` (`bced229` today; merge `main` again after #19 and #22). A push to a non-`main` branch runs nothing, so lanes push freely. `ci.yml` runs af-linux `checks` on every pull-request event, drafts included, so draft PRs are opened only inside a coordinator claim for their merge wave (spec §9.3; X1).
 - **Edits to `examples/base-2d`** go to the base-2d thread as patches after #22 (spec §3); lane branches drop their local base-2d edits before their PR.
-- **Progress:** 8 / 31 tasks done locally (P1, P3, P4, P6, Q1, Q2, R1, R2); none is in review yet. Part done: P2 and R3 (their audit steps), P5 (the hand-edit check), M3.2 (the tarball move), M1.7a (`'webgl2'`), Q3 (the dependency test and the browser import). S7a is running.
+- **Progress:** 8 / 32 tasks done locally (P1, P3, P4, P6, Q1, Q2, R1, R2); none is in review yet. Part done: P2 and R3 (their audit steps), P5 (the hand-edit check), M3.2 (the tarball move), M1.7a (`'webgl2'`), Q3 (the dependency test and the browser import). S7a is running.
 
 ## Runner legend
 
@@ -33,6 +33,7 @@ render3d:  M3.2 pins ─► M1.7a render-pixi ─► M3.1 S7a ──────
 post:                   M1.7a ─► Q1 LUT/config ─► Q2 passes ─► Q3 chain ─► (B1) ─► Q4 demos
 pipelines: P1 contracts ─► P2 runner ─┬─► P3 CLI, P4 MCP, P5 guard, P6 providers ─► C1–C3 character ─► D1–D2 props
 sim:       M3.9a controller ─────────────────────────────────────────────► (B2) ─► S1 bodies-3d
+content:   K1 browser-safe entry ─► post-retro and render-pixi3d switch to it (before W2)
 integration: H0 design ─► B1 base-25d (needs R4, Q3) ─► B2 base-3d (needs R4, M3.9a)
 exit:      merge waves W1–W4 (X1) ─► GPU claim ─► X2 evidence and docs
 ```
@@ -46,7 +47,7 @@ R1, R2 and R3 ran in parallel (pure modules). Q1 and Q2 run in parallel with R1�
 ### M3.2 Pins (ship lane does the root edits) — L
 **Files:** modify `docs/versions.md`, `tooling/versions/src/versions.test.ts`, root `package.json` (`pnpm:devPreinstall`), `.gitignore`; create `vendor/pixi-3d/{README.md, LICENSE-pixi-3d.txt, fetch.mjs}` and `tooling/versions/src/pixi3d-fetch.test.ts`. Source: The Last Light `741e595` `vendor/`.
 - [x] Failing test: `versions.test.ts` with a package at `pixi.js` 8.22.0 and the table at 8.21.0; expected failure "8.22.0 unrecorded". Then the row is 8.22.0 (reason: `@pixi/3d` peer `^8.22.0`) and the test passes. *Done on `m3-render3d` (`4bb9a9a`); the `@modelcontextprotocol/sdk` row went to the pipelines lane (P4), because the test forbids a row nothing uses.*
-- [ ] Tarball out of AF git (the Owner's ruling at 22:19Z, spec §15 Q6 and §5.2, audit B1): `vendor/pixi-3d/*.tgz` git-ignored. Failing tests first in `pixi3d-fetch.test.ts`: `fetch.mjs` writes the file from `PIXI3D_TARBALL` when its SHA-256 equals the README's (`f515c1b6…013a`); exits 1 and writes nothing on a mismatch; with no reachable source it prints one notice and exits 0, or exits 1 with `--required`; a present, matching file is left alone. The second source is a shallow `git fetch` of The Last Light at `741e595c`, using the caller's own git access (no token in the repo). The versions test checks the README row, not the file. *`4bb9a9a` committed the tarball on the local branch; that commit is rewritten before the branch is pushed (the branch is ours and unpushed).*
+- [ ] Tarball out of AF git (the Owner's ruling at 22:19Z, spec §15 Q6 and §5.2, audit B1): `vendor/pixi-3d/*.tgz` git-ignored. Failing tests first in `pixi3d-fetch.test.ts`: `fetch.mjs` writes the file from `PIXI3D_TARBALL` when its SHA-256 equals the README's (`f515c1b6…013a`); exits 1 and writes nothing on a mismatch; with no reachable source it prints one notice and exits 0, or exits 1 with `--required`; a present, matching file is left alone. The second source is a shallow `git fetch` of The Last Light at `741e595c`, using the caller's own git access (no token in the repo). In CI the token reaches git outside the URL, and a test checks that a token set in the environment never appears in the script's output (audit re-review R2). The versions test checks the README row, not the file. *`4bb9a9a` committed the tarball on the local branch; that commit is rewritten before the branch is pushed (the branch is ours and unpushed).*
 - [ ] `@pixi/3d` is an `optionalDependencies` entry (`file:` the vendored path) wherever it is bundled, and the root `pnpm:devPreinstall` runs `fetch.mjs`. Check: with the tarball removed, `pnpm install --frozen-lockfile` passes and the pure render-pixi3d tests pass; with it present, the lockfile's integrity matches.
 - [ ] The `pixi.js` 8.22.0 pins in `examples/base-2d` and `examples/physics/bodies-2d` go to the base-2d thread as a patch after #22 (audit S3). *Checked locally on `m3-render3d`: base-2d `check` (140 tests), its `renderer` project (2/2) and bodies-2d (25 tests) pass on 8.22.0; no pixel comparison exists, so "no pixel change" is not claimed.*
 
@@ -115,7 +116,7 @@ R1, R2 and R3 ran in parallel (pure modules). Q1 and Q2 run in parallel with R1�
 ### Q3 Chain — L, LB
 **Files:** `src/{post-chain.ts, post-chain.test.ts, index.ts}`, `content/post.toml`, `src/dependencies.test.ts`.
 - [x] `post-chain.test.ts`: order follows the config; `setEnabled` toggles without rebuilding; `destroy` frees the LUT texture. Red on the missing module. Implement. Export `postContent` plainly (no `defineExtension` until M1.5). *`154578a` on `m3-post`; 53 package tests. `createPostChain(passes, { lut, time }, parts?)`: the optional `parts` lets the Node test inject fakes. Exports `postRetroContent = [postContent]`; default `content/post.toml`.*
-- [ ] Browser import (found in Q2): `@mcthaydt/automata-content`'s root entry imports `node:crypto` and `node:fs`, so importing `post-retro`'s index in a browser fails. Needs a browser-safe content entry for `defineContentSchema` and `DEFAULT_PALETTE` (content lane, through the coordinator) before Q4 and B1. The browser tests import the pass modules directly meanwhile.
+- [ ] Browser import (found in Q2): `@mcthaydt/automata-content`'s root entry imports `node:crypto` and `node:fs`, so importing `post-retro`'s index in a browser fails. After K1, `post-retro` imports from `@mcthaydt/automata-content/schema` and a Chromium test imports its index. The browser tests import the pass modules directly meanwhile.
 - [ ] `dependencies.test.ts` (audit S4): `post-retro` never imports `@pixi/3d` (its `package.json` and every source import); `pixi.js` is a caret peer `^8.22.0`. After #19: ship's build fields and a changeset.
 - [ ] WebGL2 vs WebGPU pixel parity per pass: in the final GPU claim (R).
 
@@ -185,6 +186,14 @@ All P tasks are **L**: Node only, no network, providers faked. Package `packages
 ### S1 `examples/physics/bodies-3d` — L, C, then R
 - [ ] As M2.1b's bodies-2d on base-3d: crates and balls settle, the character pushes them, golden in four engines, boot test, focused e2e; `examples/README.md` row from waiting to built. `beta-only` captures.
 
+## Lane content
+
+### K1 Browser-safe content entry (M3.12) — L, LB
+**Files:** `packages/content/{package.json, src/schema.ts}` (the `./schema` export), `src/schema/references.ts` if its `node:` import is in the way, `src/schema-entry.test.ts`, `src/schema-entry.browser.test.ts`. Coordinator, 22:33Z, and audit re-review R1, 22:35Z: a content-lane task in W1, so `post-retro` (published in W2) and `render-pixi3d` switch to it before their W2 PRs.
+- [ ] Failing test: walking the `./schema` entry's import graph finds no `node:` import (and no import of the compiler, files or CLI modules); a Chromium test imports it and builds a schema with `defineContentSchema`. Red on the missing entry.
+- [ ] Implement: `./schema` re-exports `defineContentSchema`, `contentRef`, `localized`, `DEFAULT_PALETTE`, `ENDESGA_64`, `ContentSchemaDef`, `ContentSchemaOptions`, `ContentSchemaPlace` and `Palette`; the root entry keeps exporting them too (additive). The content package's own tests stay green.
+- [ ] Switch the consumers: `post-retro` and `render-pixi3d` import from `@mcthaydt/automata-content/schema`; a Chromium test imports `post-retro`'s own index (red before the switch on the externalized `node:crypto`). Fallback if the subpath is refused: each extension's schemas on its own `./content` subpath.
+
 ## Lane integration
 
 ### H0 HUD design — O
@@ -205,9 +214,9 @@ All P tasks are **L**: Node only, no network, providers faked. Package `packages
 
 ### X1 Runner claims per merge wave — R
 Each wave is one claim through the coordinator, covering af-linux `checks` and `parity` for every PR in it (draft PRs are opened inside the claim) and any `approve-gate.yml` runs that fall in it (spec §9.3, audit B5):
-- [ ] **W1:** M3.2 (the `pixi.js` bump and the tarball fetch), M1.7a, P1–P3. Needs #19 merged (changesets).
-- [ ] **W2:** R1–R3, Q1–Q3, P4–P6, the S7a verdict, M3.9a.
-- [ ] **W3:** R4, C1–C2, D1, B1, B2. Needs CI read access to The Last Light, so the jobs can run `fetch.mjs --required` first (spec §15 Q6, an Owner follow-up).
+- [ ] **W1:** M3.2 (the `pixi.js` bump and the tarball fetch), M1.7a, P1–P3, K1. Needs #19 merged (changesets).
+- [ ] **W2:** R1–R3, Q1–Q3, P4–P6, the S7a verdict, M3.9a. `post-retro` and `render-pixi3d` already import from the K1 subpath.
+- [ ] **W3:** R4, C1–C2, D1, B1, B2. Needs CI read access to The Last Light, so the jobs can run `fetch.mjs --required` first: a fine-grained token, Contents: read on that one repo, an Actions secret never echoed (spec §5.2 and §15 Q6, an Owner follow-up).
 - [ ] **W4:** R5, Q4, S1.
 - [ ] **GPU claim (end):** S7b FPS (S7 scene and base-25d; WebGL2 and WebGPU; S20 and iPhone 13 profiles); WebGL2 vs WebGPU pixel parity for each post pass and the base-25d frame; journeys for base-25d, base-3d and the `render-pixi3d`, `post-retro` and `bodies-3d` demos (Pixel 7, 780×270, desktop); a deterministic 1920×1080 capture of base-25d for CAPTURE (`beta-only`).
 
@@ -223,3 +232,4 @@ Each wave is one claim through the coordinator, covering af-linux `checks` and `
 - 2026-10-11: AF framework audit folded in (B1–B5, S1–S9 and nits): `'webgl2'` backend names; schemas exported plainly until M1.5; claims per merge wave; the tarball out of git; `.bin` mesh files; the audit log guarded and fail-closed; gate decisions through the hub and `approve-gate.yml`; M3.9a added for base-3d's controller; integer move directions; base-2d edits through the base-2d thread; `private: true` pin tests; one model for every role, effort by task.
 - 2026-10-11: the Owner ruled on B1 at 22:19Z (spec §15 Q6, "Keep it out"): the tarball stays out of AF git; `fetch.mjs` checks its SHA-256; `@pixi/3d` is an optional dependency so AF installs without it (checked with pnpm 10: a missing optional tarball is skipped, a missing regular one fails the install). CI read access to The Last Light is needed before W3.
 - 2026-10-11: P3–P6 (`8171e2d`, `m3-pipelines`; 253 tests and 1 todo; typecheck, biome and style clean) and Q2–Q3 (`df8e62b`, `154578a`, `m3-post`; 53 tests, 10 of them in Chromium). Deviations are noted on each step. Found: `@mcthaydt/automata-content`'s root entry is not browser-safe (Q3 step).
+- 2026-10-11: audit re-review of `b05755d` (22:35Z): ready to freeze once R1 is in. R1: K1 (M3.12, content lane) added in W1, with ENDESGA_64 and the consumer switch before W2. R2: CI's token is fine-grained (Contents: read on The Last Light only), never echoed, and `fetch.mjs --required` is the gate, not the tarball's absence (a warm pnpm store installs it anyway).
