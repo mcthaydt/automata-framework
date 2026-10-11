@@ -2,5 +2,7 @@ packages:
   - packages/*
   - tooling/*
   - examples/*
+  # examples/<package>/<demo>/ (examples/README.md)
+  - examples/*/*
 onlyBuiltDependencies:
   - lefthook
