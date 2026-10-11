@@ -12,8 +12,13 @@ export const realClock: FakeHostClock = {
   clearTimeout: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
 }
 
-/** A clock that moves only when the test calls `advance`. */
+/**
+ * A clock that moves only when the test calls `advance`. It is both the fake
+ * host's `BridgeClock` (`epochMs`) and the SDK's `SdkTimers` (`now`), so one
+ * clock drives both sides (shared contracts §1.4).
+ */
 export interface ManualClock extends FakeHostClock {
+  now(): number
   advance(ms: number): void
 }
 
@@ -30,6 +35,7 @@ export function manualClock(startMs = 1_760_000_000_000): ManualClock {
   const timers = new Map<number, { due: number; fn: () => void }>()
   return {
     epochMs: () => now,
+    now: () => now,
     setTimeout: (fn, ms) => {
       const id = nextId++
       timers.set(id, { due: now + Math.max(0, ms), fn })

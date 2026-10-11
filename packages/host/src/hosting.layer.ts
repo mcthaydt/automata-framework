@@ -55,6 +55,10 @@ export function makeHosting(
       (opened) => Effect.sync(() => opened.dispose()),
     )
 
+    // Handlers answer the host's menu only once the session is ready (see menu.ts).
+    // `ready` rejecting means the session is unusable anyway, so the menu simply stays refused.
+    void session.ready.then(menu.markReady, () => undefined)
+
     const fellBack =
       !session.hosted && isFramed(seams.env)
         ? Option.some(new HostHandshakeFailed({ reason: 'no-welcome' }))
