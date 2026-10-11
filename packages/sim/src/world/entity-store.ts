@@ -1,7 +1,7 @@
 import { createWorld, type Entity, type World } from 'koota'
 import type { EntityRef, SpawnPart } from '../define/context'
 import type { ComponentDef } from '../define/definitions'
-import { coerceField, type FieldType } from '../define/fields'
+import { coerceField, defaultField, type FieldType } from '../define/fields'
 import { sortedKeys } from '../util/sorted'
 
 export type FieldRecord = Record<string, number | boolean | string>
@@ -62,7 +62,9 @@ export class EntityStore {
   }
 
   private defaults(def: ComponentDef): FieldRecord {
-    return this.coerce(def, {}, def.trait.schema as FieldRecord)
+    const out: FieldRecord = {}
+    for (const name of def.fieldNames) out[name] = defaultField(def.fields[name] as FieldType)
+    return out
   }
 
   private read(e: Entity, def: ComponentDef): FieldRecord {
