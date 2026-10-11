@@ -1,37 +1,70 @@
 import { execFileSync, spawn, spawnSync } from 'node:child_process'
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import {
+  chmodSync,
+  existsSync,
+  linkSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 
 // Runs the host's `deploy` script for real (bash, tar, node) against a temporary SHIP_ROOT, with a stub
 // `caddy` that records its arguments and fails `validate` when CADDY_FAIL_VALIDATE=1, or, with
-// CADDY_REQUIRE_SITE=1, when the Caddyfile's {$AF_DEV_SITE} would be empty (as real Caddy rejects it).
+// CADDY_FAIL_RELOAD=1 fails `reload`, and with CADDY_REQUIRE_SITE=1 fails when the Caddyfile's {$AF_DEV_SITE} would be empty (as real Caddy rejects it).
 
 const deployScript = join(dirname(fileURLToPath(import.meta.url)), 'bin/deploy')
 
-function tarball(files: Record<string, string>): string {
-  const dir = mkdtempSync(join(tmpdir(), 'ship-deploy-src-'))
+// Every temporary folder a test makes, removed when the file's tests are done.
+const temporary: string[] = []
+function temp(prefix: string): string {
+  const dir = mkdtempSync(join(tmpdir(), prefix))
+  temporary.push(dir)
+  return dir
+}
+afterAll(() => {
+  for (const dir of temporary) rmSync(dir, { recursive: true, force: true })
+})
+
+interface TarballOptions {
+  // Changes the source folder before it is packed (adds links, odd modes).
+  readonly prepare?: (dir: string) => void
+  // Extra GNU tar arguments, before the member list (--owner, --transform, -P).
+  readonly tarArgs?: readonly string[]
+  // Members to pack instead of `.`.
+  readonly members?: readonly string[]
+}
+
+function tarball(files: Record<string, string>, options: TarballOptions = {}): string {
+  const dir = temp('ship-deploy-src-')
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(dirname(join(dir, path)), { recursive: true })
     writeFileSync(join(dir, path), text)
   }
-  const out = join(mkdtempSync(join(tmpdir(), 'ship-deploy-tgz-')), 'build.tgz')
-  execFileSync('tar', ['-czf', out, '-C', dir, '.'])
+  options.prepare?.(dir)
+  const out = join(temp('ship-deploy-tgz-'), 'build.tgz')
+  execFileSync('tar', ['-czf', out, ...(options.tarArgs ?? []), '-C', dir, ...(options.members ?? ['.'])])
   return out
 }
 
-const goodBuild = (id: string, title = 'Placeholder') =>
-  tarball({
-    'build.json': JSON.stringify({ buildId: id, commit: id.slice(13), tag: null, branch: 'main' }),
-    'headers.json': JSON.stringify({ headers: { 'X-Content-Type-Options': 'nosniff' }, entry: 'index.html' }),
-    'client/index.html': `<title>${title}</title>`,
-  })
+const buildFiles = (id: string, title = 'Placeholder'): Record<string, string> => ({
+  'build.json': JSON.stringify({ buildId: id, commit: id.slice(13), tag: null, branch: 'main' }),
+  'headers.json': JSON.stringify({ headers: { 'X-Content-Type-Options': 'nosniff' }, entry: 'index.html' }),
+  'client/index.html': `<title>${title}</title>`,
+})
+
+const goodBuild = (id: string, title = 'Placeholder') => tarball(buildFiles(id, title))
 
 function host() {
-  const root = mkdtempSync(join(tmpdir(), 'ship-deploy-root-'))
-  const bin = mkdtempSync(join(tmpdir(), 'ship-deploy-bin-'))
+  const root = temp('ship-deploy-root-')
+  const bin = temp('ship-deploy-bin-')
   const caddy = join(bin, 'caddy')
   writeFileSync(
     caddy,
@@ -39,6 +72,7 @@ function host() {
       '#!/usr/bin/env bash',
       'echo "$*" >> "$CADDY_LOG"',
       'if [[ "$1" == validate && "${CADDY_FAIL_VALIDATE:-0}" == 1 ]]; then exit 1; fi',
+      'if [[ "$1" == reload && "${CADDY_FAIL_RELOAD:-0}" == 1 ]]; then exit 1; fi',
       'if [[ "${CADDY_REQUIRE_SITE:-0}" == 1 ]]; then',
       '  [[ -n "${AF_DEV_SITE:-}" && -n "${AF_ACME_EMAIL:-}" ]] || { echo "empty site" >&2; exit 1; }',
       '  echo "site=$AF_DEV_SITE" >> "$CADDY_LOG"',
@@ -88,6 +122,7 @@ describe('deploy (dev host)', () => {
       'reload --config /etc/caddy/Caddyfile --adapter caddyfile',
     ])
     expect(readFileSync(join(root, 'live.caddy'), 'utf8')).toBe('') // nothing is live until --activate
+    expect(execFileSync('ls', ['-A', join(root, 'builds')], { encoding: 'utf8' })).toBe(`${ID}\n`)
   })
 
   it('reads the tarball from stdin when given -', () => {
@@ -143,6 +178,93 @@ describe('deploy (dev host)', () => {
     expect(existsSync(join(root, 'builds', ID))).toBe(false)
     expect(readFileSync(join(root, 'live.caddy'), 'utf8')).toBe('redir / /builds/202610100900-aaaaaaa/ 302\n')
   })
+
+  it('rolls back to the previous live build and exits 6 when Caddy fails to reload', () => {
+    const { root, deploy, caddyCalls } = host()
+    const old = '202610100900-aaaaaaa'
+    expect(deploy([goodBuild(old), '--activate']).status).toBe(0)
+    const result = deploy([goodBuild(ID), '--activate'], { CADDY_FAIL_RELOAD: '1' })
+    expect(result.status).toBe(6)
+    expect(result.stderr).toContain('reload')
+    expect(existsSync(join(root, 'builds', ID))).toBe(false)
+    expect(readFileSync(join(root, 'live.caddy'), 'utf8')).toBe(`redir / /builds/${old}/ 302\n`)
+    expect(readFileSync(join(root, 'live'), 'utf8').trim()).toBe(old)
+    // A second reload puts the old config back in the running Caddy.
+    expect(caddyCalls().filter((call) => call.startsWith('reload'))).toHaveLength(3)
+  })
+})
+
+describe('deploy refuses unsafe tarballs (Caddy would serve whatever they point at)', () => {
+  const refused = (tgz: string) => {
+    const { root, deploy } = host()
+    const result = deploy([tgz])
+    const left = execFileSync('ls', ['-A', join(root, 'builds')], { encoding: 'utf8' })
+    return { result, left }
+  }
+
+  it('refuses a symlink, even one inside the build', () => {
+    for (const target of ['/etc/passwd', '/etc', 'index.html']) {
+      const { result, left } = refused(
+        tarball(buildFiles(ID), { prepare: (dir) => symlinkSync(target, join(dir, 'client/leak.txt')) }),
+      )
+      expect(result.status).toBe(2)
+      expect(result.stderr).toContain('only regular files and folders')
+      expect(left).toBe('')
+    }
+  })
+
+  it('refuses a hard link', () => {
+    const { result, left } = refused(
+      tarball(buildFiles(ID), {
+        prepare: (dir) => linkSync(join(dir, 'client/index.html'), join(dir, 'client/again.html')),
+      }),
+    )
+    expect(result.status).toBe(2)
+    expect(result.stderr).toContain('only regular files and folders')
+    expect(left).toBe('')
+  })
+
+  it('refuses a member outside the build folder (.. or an absolute path)', () => {
+    const dotdot = tarball(buildFiles(ID), { tarArgs: ['--transform', 's|^\\./client/index.html$|../evil|'] })
+    // -P keeps the leading / of a member named by its absolute path.
+    const withAbsolute = join(temp('ship-deploy-tgz-'), 'absolute.tgz')
+    const source = temp('ship-deploy-src-')
+    writeFileSync(join(source, 'evil'), 'x')
+    execFileSync('tar', ['-czPf', withAbsolute, join(source, 'evil')])
+    for (const tgz of [dotdot, withAbsolute]) {
+      const { result, left } = refused(tgz)
+      expect(result.status).toBe(2)
+      expect(result.stderr).toContain('outside the build')
+      expect(left).toBe('')
+    }
+  })
+
+  it('refuses a tarball that is not gzip tar at all', () => {
+    const junk = join(temp('ship-deploy-tgz-'), 'junk.tgz')
+    writeFileSync(junk, 'not a tarball')
+    const { result, left } = refused(junk)
+    expect(result.status).toBe(2)
+    expect(left).toBe('')
+  })
+
+  it("ignores the tarball's owners and modes: files belong to the deploy user and are readable, never setuid", () => {
+    const { root, deploy } = host()
+    const tgz = tarball(buildFiles(ID), {
+      prepare: (dir) => {
+        chmodSync(join(dir, 'client/index.html'), 0o4777)
+        chmodSync(join(dir, 'client'), 0o700)
+      },
+      tarArgs: ['--owner=4242', '--group=4242'],
+    })
+    const result = deploy([tgz])
+    expect(result.stderr).toBe('')
+    expect(result.status).toBe(0)
+    const file = statSync(join(root, 'builds', ID, 'client/index.html'))
+    const folder = statSync(join(root, 'builds', ID, 'client'))
+    expect(file.uid).toBe(process.getuid?.())
+    expect(file.mode & 0o7777).toBe(0o644)
+    expect(folder.mode & 0o7777).toBe(0o755)
+  })
 })
 
 describe('deploy under sudo', () => {
@@ -162,6 +284,16 @@ describe('deploy under sudo', () => {
     expect(result.stderr).toBe('')
     expect(result.status).toBe(0)
     expect(caddyCalls()).toContain('site=af-dev.example.org')
+  })
+
+  it('refuses to run when caddy.env and the dev host settings name different game folders', () => {
+    const { root, bin, deploy } = host()
+    const caddyEnv = join(bin, 'caddy.env')
+    writeFileSync(caddyEnv, 'SHIP_ROOT=/srv/automata/other\n')
+    const result = deploy([goodBuild(ID)], { SHIP_CADDY_ENV: caddyEnv })
+    expect(result.status).toBe(7)
+    expect(result.stderr).toContain('SHIP_ROOT')
+    expect(existsSync(join(root, 'builds', ID))).toBe(false)
   })
 
   it('waits for a deploy that is already running, then gives up with exit 5', () => {
@@ -184,7 +316,7 @@ describe("ssh-deploy (the deploy key's forced command)", () => {
   const sshDeploy = join(dirname(fileURLToPath(import.meta.url)), 'bin/ssh-deploy')
 
   function run(original: string | undefined) {
-    const bin = mkdtempSync(join(tmpdir(), 'ship-ssh-bin-'))
+    const bin = temp('ship-ssh-bin-')
     writeFileSync(join(bin, 'sudo'), '#!/usr/bin/env bash\necho "sudo $*"\n')
     chmodSync(join(bin, 'sudo'), 0o755)
     const env: Record<string, string> = { PATH: `${bin}:${process.env.PATH ?? ''}`, SHIP_DEPLOY: '/x/deploy' }
@@ -203,5 +335,17 @@ describe("ssh-deploy (the deploy key's forced command)", () => {
       expect(result.status).toBe(2)
       expect(result.stdout).toBe('')
     }
+  })
+})
+
+describe('Caddyfile (shared with FloorFifty on the VM)', () => {
+  const caddyfile = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'caddy/Caddyfile'), 'utf8')
+
+  it('imports only through globs, so a missing file before the first deploy cannot break the shared Caddy', () => {
+    // Caddy refuses an import of a missing file but accepts a glob that matches nothing (checked with Caddy
+    // 2.10.2, which allows one `*` and no other wildcard in a glob).
+    const imports = [...caddyfile.matchAll(/^\s*import\s+(\S+)/gm)].map((match) => match[1] ?? '')
+    expect(imports).toEqual(['{$SHIP_ROOT}/builds/*/headers.caddy', '{$SHIP_ROOT}/live*.caddy'])
+    for (const path of imports) expect(path.split('*')).toHaveLength(2)
   })
 })

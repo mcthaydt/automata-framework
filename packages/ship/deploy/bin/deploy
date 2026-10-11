@@ -15,8 +15,13 @@
 # SHIP_DEPLOY_LOCK_WAIT (seconds to wait for another deploy, default 120). Tests point SHIP_DEV_HOST_ENV and
 # SHIP_CADDY_ENV at their own files; on the host sudo drops both and the defaults below apply.
 #
-# Exit codes: 2 not a build or refused headers, 3 ID already installed, 4 Caddy rejected the config, 5 another
-# deploy held the lock for too long.
+# The tarball is untrusted: it may hold only regular files and folders, all inside the build folder. A symlink,
+# hard link, device or a member named with .. or an absolute path is refused before anything is extracted,
+# because Caddy would serve whatever such a member points at. The tarball's owners and modes are ignored.
+#
+# Exit codes: 2 not a build, an unsafe tarball or refused headers, 3 ID already installed, 4 Caddy rejected
+# the config, 5 another deploy held the lock for too long, 6 Caddy failed to reload (the previous live build
+# is put back), 7 caddy.env and the dev host settings name different game folders.
 set -euo pipefail
 
 # On the host the settings live in one file (deploy/README.md); a caller that sets SHIP_ROOT (the tests) skips it.
@@ -33,11 +38,18 @@ fi
 # deploy/caddy/caddy-env.conf); a sudo from the deploy user does not, and Caddy would then refuse every deploy
 # (FloorFifty's first staging deploy was refused over an empty `email`; deploy/bin/activate there).
 caddy_env="${SHIP_CADDY_ENV:-/etc/floor-fifty/caddy.env}"
+ship_root_before="${SHIP_ROOT:-}"
 if [[ -r "$caddy_env" ]]; then
   set -a
   # shellcheck source=/dev/null
   . "$caddy_env"
   set +a
+fi
+# caddy.env also sets SHIP_ROOT, for the Caddyfile. If it named another folder than the dev host settings, the
+# build would land where Caddy does not look; refuse rather than pick one.
+if [[ -n "$ship_root_before" && "${SHIP_ROOT:-}" != "$ship_root_before" ]]; then
+  echo "SHIP_ROOT is $ship_root_before in the dev host settings but ${SHIP_ROOT:-empty} in $caddy_env; make them agree" >&2
+  exit 7
 fi
 
 root="${SHIP_ROOT:-/srv/automata/game}"
@@ -63,16 +75,47 @@ fi
 [[ -f "$root/live.caddy" ]] || : > "$root/live.caddy"
 
 incoming="$(mktemp -d "$root/builds/.incoming.XXXXXX")"
-cleanup() { rm -rf "$incoming"; }
+archive="$incoming.tgz"
+cleanup() { rm -rf "$incoming" "$archive"; }
 trap cleanup EXIT
+refuse() {
+  echo "$1" >&2
+  exit 2
+}
+# Keep the tarball in a file: it is listed (checked) and then extracted, and stdin can be read only once.
 if [[ "$source_tgz" == "-" ]]; then
-  tar -xzf - -C "$incoming"
+  cat > "$archive"
 else
-  tar -xzf "$source_tgz" -C "$incoming"
+  cp "$source_tgz" "$archive"
 fi
-# mktemp makes the folder 0700 and GNU tar, as root, copies the archive's ./ mode onto it. Caddy runs as
-# its own user and would answer 403 (FloorFifty found this on staging).
-chmod 755 "$incoming"
+
+# Check every member before extracting any. In `tar -tv` output the first character of a line is the
+# member's type: - a regular file, d a folder; anything else (l symlink, h hard link, c/b/p devices and
+# fifos) is refused. GNU tar escapes newlines in names, so one member is one line.
+listing="$(tar -tvzf "$archive" 2> /dev/null)" || refuse "not a gzip tar archive"
+while IFS= read -r line; do
+  [[ -z "$line" || "$line" == -* || "$line" == d* ]] ||
+    refuse "a build may hold only regular files and folders; refused: $line"
+done <<< "$listing"
+names="$(tar -tzf "$archive")"
+while IFS= read -r name; do
+  if [[ "$name" == /* || "$name" =~ (^|/)\.\.(/|$) ]]; then
+    refuse "a build member is outside the build folder; refused: $name"
+  fi
+done <<< "$names"
+
+# --no-same-owner and --no-same-permissions: as root, tar would otherwise keep the archive's uid and modes
+# (setuid bits included).
+tar -xzf "$archive" -C "$incoming" --no-same-owner --no-same-permissions
+# The listing already allowed only files and folders; check what landed too, in case tar and this script
+# ever read an entry differently.
+if [[ -n "$(find "$incoming" ! -type f ! -type d -print -quit)" ]]; then
+  refuse "a build may hold only regular files and folders"
+fi
+# Caddy runs as its own user, so everything must be readable by others (mktemp makes the folder 0700, and
+# FloorFifty's staging answered 403 for that); nothing is writable by others, executable as a file or setuid.
+chmod -R u=rwX,go=rX "$incoming"
+find "$incoming" -type f -exec chmod 644 {} +
 
 id=""
 if [[ -f "$incoming/build.json" ]]; then
@@ -94,24 +137,45 @@ if ! node "$bin/render-headers.ts" "$id" "$incoming/headers.json" > "$incoming/h
 fi
 
 mv "$incoming" "$root/builds/$id"
+rm -f "$archive"
 trap - EXIT
 
 previous_live_caddy="$(cat "$root/live.caddy")"
 previous_live="$(cat "$root/live" 2>/dev/null || true)"
+
+# Writes a file through a temporary file and a rename, so Caddy or builds-index never read half of it.
+write_file() {
+  local path="$1" contents="$2"
+  printf '%s' "$contents" > "$path.tmp"
+  mv "$path.tmp" "$path"
+}
+put_back_previous() {
+  rm -rf "${root:?}/builds/$id"
+  write_file "$root/live.caddy" "${previous_live_caddy:+$previous_live_caddy$'\n'}"
+  if [[ -n "$previous_live" ]]; then write_file "$root/live" "$previous_live"$'\n'; else rm -f "$root/live"; fi
+}
+
 if (( activate )); then
-  printf 'redir / /builds/%s/ 302\n' "$id" > "$root/live.caddy"
-  printf '%s\n' "$id" > "$root/live"
+  write_file "$root/live.caddy" "redir / /builds/$id/ 302"$'\n'
+  write_file "$root/live" "$id"$'\n'
 fi
 
 if ! "$caddy" validate --config "$caddyfile" --adapter caddyfile; then
-  rm -rf "${root:?}/builds/$id"
-  printf '%s' "$previous_live_caddy" > "$root/live.caddy"
-  [[ -n "$previous_live_caddy" ]] && printf '\n' >> "$root/live.caddy"
-  if [[ -n "$previous_live" ]]; then printf '%s\n' "$previous_live" > "$root/live"; else rm -f "$root/live"; fi
+  put_back_previous
   echo "caddy rejected the config with build $id; it was removed and nothing else changed" >&2
   exit 4
 fi
-"$caddy" reload --config "$caddyfile" --adapter caddyfile
+if ! "$caddy" reload --config "$caddyfile" --adapter caddyfile; then
+  # Caddy may still run the old config, or may have taken part of the new one. Put the files back and reload
+  # again, so the running Caddy and the next restart both serve the previous live build.
+  put_back_previous
+  if "$caddy" reload --config "$caddyfile" --adapter caddyfile; then
+    echo "caddy failed to reload with build $id; it was removed and the previous config is back" >&2
+  else
+    echo "caddy failed to reload with build $id and again with the previous config; check caddy.service" >&2
+  fi
+  exit 6
+fi
 
 node "$bin/builds-index.ts" "$root" "$base_url" 10 > "$root/.builds-index.json.tmp"
 mv "$root/.builds-index.json.tmp" "$root/builds-index.json"

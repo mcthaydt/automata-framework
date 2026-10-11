@@ -9,9 +9,13 @@ const SINCE = '2026-10-11T08:00:00Z'
 
 interface Script {
   readonly status?: string
-  readonly runs?: object[]
-  /** What each `gh run view` answers, in order; the last answer repeats. */
-  readonly views?: object[]
+  /** What `gh run list` answers; a string is printed as is (not JSON). */
+  readonly runs?: object[] | string
+  /**
+   * What each `gh run view` answers, in order; the last answer repeats. A string is printed as is (not JSON);
+   * `{ fail }` makes gh exit 1 with that message, as on an HTTP 502.
+   */
+  readonly views?: (object | string)[]
 }
 
 const job = (status: string, conclusion: string | null, steps = 1) => ({
@@ -32,6 +36,7 @@ function fakeGitAndGh(script: Script = {}) {
     if (line === 'git status --porcelain') return ok(script.status ?? '')
     if (line === 'git rev-parse HEAD') return ok('abc123\n')
     if (line.startsWith('gh run list')) {
+      if (typeof script.runs === 'string') return ok(script.runs)
       return ok(
         JSON.stringify(
           script.runs ?? [{ databaseId: 7, createdAt: '2026-10-11T08:00:05Z', url: 'https://gh/run/7' }],
@@ -42,6 +47,9 @@ function fakeGitAndGh(script: Script = {}) {
       const views = script.views ?? [GREEN]
       const answer = views[Math.min(viewCalls, views.length - 1)]
       viewCalls += 1
+      if (typeof answer === 'string') return ok(answer)
+      if (answer !== undefined && 'fail' in answer)
+        return { exitCode: 1, stdout: '', stderr: String(answer.fail) }
       return ok(JSON.stringify(answer))
     }
     return ok()
@@ -113,6 +121,11 @@ describe('testRemote', () => {
     expect(reasonOf(result).reason).toBe('no-run')
   })
 
+  it('treats a garbled run list as no run yet, not as a crash', async () => {
+    const result = await run([], fakeGitAndGh({ runs: '<html>502 Bad Gateway</html>' }))
+    expect(reasonOf(result).reason).toBe('no-run')
+  })
+
   it('waits while the run is queued and running, then reports it green', async () => {
     const fake = fakeGitAndGh({
       views: [
@@ -132,6 +145,47 @@ describe('testRemote', () => {
     expect(reasonOf(result).message).toContain('pnpm ci:local')
     expect(commands(fake)).toContain('gh run cancel 7')
     expect(commands(fake).filter((line) => line.startsWith('gh run view'))).toHaveLength(3)
+  })
+
+  it('does not take a failed look at the run (an HTTP 502) for a queued run', async () => {
+    const queued = view('queued', null, [job('queued', null, 0)])
+    const fake = fakeGitAndGh({
+      views: [
+        queued,
+        queued,
+        { fail: 'HTTP 502: Bad Gateway' },
+        view('in_progress', null, [job('in_progress', null)]),
+        GREEN,
+      ],
+    })
+    const result = await run([], fake)
+    expect(result).toEqual(Either.right({ runUrl: 'https://gh/run/7', jobs: ['success\tchecks'] }))
+    expect(commands(fake)).not.toContain('gh run cancel 7')
+  })
+
+  it('looks again when gh prints something that is not JSON', async () => {
+    const fake = fakeGitAndGh({ views: ['<html>502 Bad Gateway</html>', GREEN] })
+    const result = await run([], fake)
+    expect(result).toEqual(Either.right({ runUrl: 'https://gh/run/7', jobs: ['success\tchecks'] }))
+  })
+
+  it('stops with gh-unavailable after repeated failed looks, and leaves the run alone', async () => {
+    const fake = fakeGitAndGh({ views: [{ fail: 'HTTP 502: Bad Gateway' }] })
+    const result = await run([], fake)
+    expect(reasonOf(result).reason).toBe('gh-unavailable')
+    expect(reasonOf(result).message).toContain('https://gh/run/7')
+    expect(commands(fake)).not.toContain('gh run cancel 7')
+  })
+
+  it('reports no runner when one job finished and another stays queued with nothing running', async () => {
+    const fake = fakeGitAndGh({
+      views: [
+        view('in_progress', null, [job('completed', 'success'), { ...job('queued', null, 0), name: 'e2e' }]),
+      ],
+    })
+    const result = await run([], fake)
+    expect(reasonOf(result).reason).toBe('no-runner')
+    expect(commands(fake)).toContain('gh run cancel 7')
   })
 
   it('reports jobs that failed without running a step as no runner, not as red CI', async () => {

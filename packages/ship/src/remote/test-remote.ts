@@ -6,7 +6,7 @@ import { TestRemoteFailed } from '../errors.ts'
 // remote runners and waits, so a developer's machine runs no heavy suite itself.
 //
 //   test-remote                         the hosted checks for this commit
-//   test-remote <playwright args>       one focused browser run, e.g. tests/e2e/boot.spec.ts --project=desktop
+//   test-remote <playwright args>       one focused browser run, e.g. examples/placeholder/e2e/boot.e2e.ts --project=placeholder
 //   test-remote --nightly               the nightly set now (every viewport, the GPU lanes)
 //
 // The runner tests what is pushed, so uncommitted changes are refused instead of silently left out.
@@ -17,6 +17,11 @@ import { TestRemoteFailed } from '../errors.ts'
 // instead (ship spec §6), and a run still going after the run timeout (60 minutes, past every job's
 // timeout-minutes) is cancelled as "timeout". A hosted job that failed without running a step (no hosted
 // minutes) is also "no runner", not red CI.
+//
+// "No runner" is decided only from looks that worked: a `gh run view` that fails (an HTTP 502) or prints
+// something that is not JSON says nothing about the run, so it is retried and never counted. After
+// `viewRetries` failed looks in a row test-remote stops as "gh-unavailable" and leaves the run alone, since it
+// cannot tell whether the run is healthy.
 
 export interface TestRemoteInput {
   /** The words after `test-remote`. Split on whitespace, so a quoted multi-word value does not survive. */
@@ -32,6 +37,8 @@ export interface TestRemoteInput {
   readonly queuePolls?: number
   /** Looks at a run in all before giving up on it (default 180, 60 minutes). */
   readonly runPolls?: number
+  /** Failed looks in a row (gh error or not JSON) before giving up on gh (default 5). */
+  readonly viewRetries?: number
 }
 
 interface Job {
@@ -48,6 +55,34 @@ interface RunView {
 }
 
 const LOCAL_GATE = 'run CI locally instead: pnpm ci:local'
+
+/** Parses gh's JSON output; undefined when it is not JSON, so the caller can look again. */
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text)
+  } catch {
+    return undefined
+  }
+}
+
+function isRunView(value: unknown): value is RunView {
+  const view = value as RunView | undefined
+  return typeof view?.status === 'string' && Array.isArray(view.jobs)
+}
+
+const WAITING_FOR_RUNNER = new Set(['queued', 'waiting', 'pending', 'requested'])
+
+/**
+ * True when the run is held up only by jobs no runner has taken: nothing is in progress and some job (or the
+ * run itself, before its jobs exist) is still queued. Covers a run whose first job finished on one runner and
+ * whose next job never got one.
+ */
+function waitingForRunner(viewed: RunView): boolean {
+  if (viewed.status === 'completed') return false
+  if (viewed.jobs.length === 0) return true
+  const running = viewed.jobs.some((job) => job.status === 'in_progress')
+  return !running && viewed.jobs.some((job) => WAITING_FOR_RUNNER.has(job.status))
+}
 
 const fail = (reason: TestRemoteFailed['reason'], message: string) =>
   new TestRemoteFailed({ reason, message })
@@ -112,46 +147,74 @@ export function testRemote(
         '--json',
         'databaseId,createdAt,url',
       ])
-      const runs = JSON.parse(listed.text || '[]') as { databaseId: number; createdAt: string; url: string }[]
-      run = runs.find((candidate) => candidate.createdAt >= input.since)
+      // A failed or garbled answer just means another try.
+      const runs = listed.exitCode === 0 ? parseJson(listed.text || '[]') : undefined
+      if (!Array.isArray(runs)) continue
+      run = (runs as { databaseId: number; createdAt: string; url: string }[]).find(
+        (candidate) => candidate.createdAt >= input.since,
+      )
     }
     if (run === undefined) return yield* fail('no-run', `no workflow_dispatch run appeared for ${sha}`)
 
     const id = String(run.databaseId)
     const runUrl = run.url
+    // One look at the run: its view, or undefined when gh failed or printed something that is not a run.
     const look = Effect.map(
       output('gh', ['run', 'view', id, '--json', 'status,conclusion,jobs']),
-      (viewed) => JSON.parse(viewed.text || '{"status":"queued","conclusion":null,"jobs":[]}') as RunView,
+      (viewed) => {
+        if (viewed.exitCode !== 0) return undefined
+        const parsed = parseJson(viewed.text)
+        return isRunView(parsed) ? parsed : undefined
+      },
     )
     const cancel = runner.run('gh', ['run', 'cancel', id])
     const summaryOf = (viewed: RunView) =>
       viewed.jobs.map((job) => `${job.conclusion ?? job.status}\t${job.name}`)
-    const started = (viewed: RunView) =>
-      viewed.jobs.some((job) => job.status !== 'queued' && job.status !== 'waiting')
 
-    let viewed = yield* look
-    let polls = 1
-    while (viewed.status !== 'completed') {
-      if (!started(viewed) && polls >= (input.queuePolls ?? 30)) {
-        yield* cancel
-        return yield* fail(
-          'no-runner',
-          `${runUrl}: no runner picked the jobs up; it was cancelled. ${LOCAL_GATE}`,
-        )
+    let polls = 0
+    let failedLooks = 0
+    // Looks in a row, among those that worked, that found the run waiting for a runner.
+    let waitingLooks = 0
+    let completed: RunView | undefined
+    while (completed === undefined) {
+      if (polls > 0) yield* Effect.sleep(input.watchIntervalMs ?? 20_000)
+      const viewed = yield* look
+      polls += 1
+      if (viewed === undefined) {
+        failedLooks += 1
+        if (failedLooks >= (input.viewRetries ?? 5)) {
+          return yield* fail(
+            'gh-unavailable',
+            `gh could not read ${runUrl} ${failedLooks} times in a row; the run was left alone, check it there`,
+          )
+        }
+      } else {
+        failedLooks = 0
+        if (viewed.status === 'completed') {
+          completed = viewed
+          continue
+        }
+        waitingLooks = waitingForRunner(viewed) ? waitingLooks + 1 : 0
+        if (waitingLooks >= (input.queuePolls ?? 30)) {
+          yield* cancel
+          return yield* fail(
+            'no-runner',
+            `${runUrl}: no runner picked the jobs up; it was cancelled. ${LOCAL_GATE}`,
+          )
+        }
       }
       if (polls >= (input.runPolls ?? 180)) {
         yield* cancel
         return yield* fail('timeout', `${runUrl} was still running after the run timeout; it was cancelled`)
       }
-      yield* Effect.sleep(input.watchIntervalMs ?? 20_000)
-      viewed = yield* look
-      polls += 1
     }
 
-    const summary = summaryOf(viewed)
-    if (viewed.conclusion === 'success') return { runUrl, jobs: summary }
+    const summary = summaryOf(completed)
+    if (completed.conclusion === 'success') return { runUrl, jobs: summary }
 
-    const failed = viewed.jobs.filter((job) => job.conclusion !== 'success' && job.conclusion !== 'skipped')
+    const failed = completed.jobs.filter(
+      (job) => job.conclusion !== 'success' && job.conclusion !== 'skipped',
+    )
     if (failed.length > 0 && failed.every((job) => job.steps.length === 0)) {
       return yield* fail(
         'no-runner',

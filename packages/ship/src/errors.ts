@@ -108,6 +108,7 @@ export type TestRemoteReason =
   | 'no-run'
   | 'no-runner'
   | 'timeout'
+  | 'gh-unavailable'
   | 'red'
 
 export class TestRemoteFailed extends Data.TaggedError('TestRemoteFailed')<{

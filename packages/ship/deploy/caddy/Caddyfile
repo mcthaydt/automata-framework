@@ -27,8 +27,9 @@
 
 	# One snippet per installed build: its Ruken headers on its own path only.
 	import {$SHIP_ROOT}/builds/*/headers.caddy
-	# `redir / /builds/<id>/ 302` for the live build, or empty before the first --activate.
-	import {$SHIP_ROOT}/live.caddy
+	# `redir / /builds/<id>/ 302` for the live build, or empty before the first --activate. A glob, so that
+	# Caddy (and FloorFifty, which shares it) still starts when live.caddy is missing.
+	import {$SHIP_ROOT}/live*.caddy
 
 	# Every build, newest first, with its link (builds-index.ts).
 	handle /builds/index.json {

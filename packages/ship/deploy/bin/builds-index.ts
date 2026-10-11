@@ -29,11 +29,13 @@ function readOrUndefined(path: string): string | undefined {
 export function buildsIndex(root: string, baseUrl: string, limit: number): IndexedBuild[] {
   const live = readOrUndefined(join(root, 'live'))
   // Build IDs start with the commit time, so a reverse sort of the names is newest first.
-  const ids = readdirSync(join(root, 'builds'))
+  const all = readdirSync(join(root, 'builds'))
     .filter((name) => BUILD_ID.test(name))
     .sort()
     .reverse()
-    .slice(0, limit)
+  const ids = all.slice(0, limit)
+  // The live build is always listed, last if it is older than the newest `limit`.
+  if (live !== undefined && all.includes(live) && !ids.includes(live)) ids.push(live)
   return ids.map((buildId) => {
     const build = JSON.parse(readFileSync(join(root, 'builds', buildId, 'build.json'), 'utf8')) as {
       commit: string

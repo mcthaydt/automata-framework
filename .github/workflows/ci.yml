@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       spec:
-        description: Playwright arguments for one focused browser run (test-remote), e.g. "examples/placeholder/e2e/boot.e2e.ts --project=desktop". Empty runs the checks.
+        description: Playwright arguments for one focused browser run (test-remote), e.g. "examples/placeholder/e2e/boot.e2e.ts --project=placeholder". Empty runs the checks.
         type: string
         default: ""
       nightly:

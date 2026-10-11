@@ -64,4 +64,15 @@ describe('buildsIndex', () => {
     expect(listed).toHaveLength(10)
     expect(listed[0]).toBe('202610111224-abcdef0')
   })
+
+  it('still lists the live build when it is older than the newest `limit`', () => {
+    const builds: Record<string, object> = {}
+    for (let minute = 10; minute < 22; minute++) {
+      const id = `2026101112${minute}-abcdef0`
+      builds[id] = { buildId: id, commit: 'abcdef0', tag: null, branch: 'main' }
+    }
+    const listed = buildsIndex(root(builds, '202610111210-abcdef0'), 'https://x', 10)
+    expect(listed).toHaveLength(11)
+    expect(listed.at(-1)).toMatchObject({ buildId: '202610111210-abcdef0', live: true })
+  })
 })
