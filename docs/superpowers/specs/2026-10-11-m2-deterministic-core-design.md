@@ -73,7 +73,7 @@ Each is specified in full in its task spec; listed here so the lanes build again
 - **One gating hash, partitioned by kind.** FloorFifty splits a ruleset revision from per-stage course revisions, choosing fields (`packages/content/src/revisions.ts:9-20, 49-66`, 122a220), so a new stage does not invalidate replays of the others. AF starts with one sim-content hash over whole kinds: the partition that matters now is gameplay versus presentation and store data (the M1.3 audit decision; coordinator, 2026-10-11: store metadata is out of the gating hash). The cost of by-kind (text and display fields inside a sim kind gate saves) is stated in M2.2 §3.1. Per-field marking and per-level hashes go to the backlog until a game needs them.
 - **Two content hashes, two jobs.** `content.hash` (everything) stays the M1.5 boot check and evidence identity (M1.3 spec); the sim hash gates snapshots and replays only (M2.2 §3.2).
 - **The replay codec is core.** A `.replay` is recorded during play and checked in tests, so its format lives in `sim` (pure, boundary-checked), not in the dev-only `testing` package. Compression is injected, as in FloorFifty (`replay/compression.ts`), so `sim` imports no `zlib` and no `CompressionStream`.
-- **Builds use tsdown, not Vite library mode.** The A0+A1 spec and 01 Decomposition say "Vite library mode". Ruken builds its published packages with `tsdown` 0.23.0 and AF follows Ruken's pins (ADR 0004, `docs/versions.md`). `isolatedDeclarations` lets tsdown emit `.d.ts` without TypeScript's JS API (TypeScript 7 has none); every package sets it except `node` and `ship`, which M2.4 converts first (M2.4 §2). M2.4's PR updates 01 and A0+A1 to say tsdown.
+- **Builds use tsdown, not Vite library mode.** The A0+A1 spec and 01 Decomposition say "Vite library mode". Ruken builds its published packages with `tsdown` 0.23.0 and AF follows Ruken's pins (ADR 0004, `docs/versions.md`). `isolatedDeclarations` lets tsdown emit `.d.ts` without TypeScript's JS API (TypeScript 7 has none); every package sets it except `node` and `ship`, which M2.4 converts first (M2.4 §2). 01 and A0+A1 now say tsdown (updated in PR #12).
 - **D-8 widened.** D-8 named `host` and `testing`. `content` and `ship` also depend on vendored `@ruken/manifest`, `ship` spawns `@ruken/cli`, and `ui` and `testing` import Ruken types. The default is unchanged in kind: bundle what the package imports from the vendored tarballs into its JavaScript, inline the Ruken types into its `.d.ts`, keep the tarballs as dev dependencies, and record the RukenApp commit; M2.4 §3.4 lists each case. The master spec's D-8 row is updated to match.
 
 ## 5. Order and parallelism
@@ -111,7 +111,8 @@ M2.4 build and publish ── packaging can start now; the first release waits f
 | Hash differs in one engine only | A failure, never a flake; never rebaselined per engine (AGENTS.md) | M2.3 |
 | Malformed or truncated replay, oversized inflate | `ReplayFormatError`; nothing is stepped | M2.3 |
 | A browser project asked to update goldens | Fails: only the Node project writes goldens | M2.3 |
-| Publish without a token, or with a version already on the registry | The release job fails before uploading anything; nothing partial is published | M2.4 |
+| Publish without a token | The publish step fails at the first package; nothing is uploaded | M2.4 |
+| A version already on the registry, or a partial earlier publish | `changeset publish` skips versions already there and publishes the rest, so a re-run completes a partial release and never overwrites a version (npm forbids reuse) | M2.4 |
 
 ## 8. Test allocation
 
@@ -165,7 +166,7 @@ M2 is done when each holds, with evidence recorded in 02's execution record (A0+
 
 Plus: each demo in §11 (except `bodies-3d`) merged with its smoke test and golden, and its screenshots shown to the Owner.
 
-**Failure cases that must be proven by tests:** content change refuses a snapshot and a replay; store metadata change does not; schema change refuses a replay with a schema message; truncated replay; inflate bomb; per-engine mismatch fails; a browser cannot rebaseline; publishing an existing version fails.
+**Failure cases that must be proven by tests:** content change refuses a snapshot and a replay; store metadata change does not; schema change refuses a replay with a schema message; truncated replay; inflate bomb; per-engine mismatch fails; a browser cannot rebaseline; publishing again publishes nothing (M2.4's release job runs `changeset publish` a second time and asserts it uploads nothing).
 
 ## 13. Risks
 

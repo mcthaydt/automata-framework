@@ -22,7 +22,7 @@ A game in its own repository adds `@mcthaydt/automata-*` packages from GitHub Pa
 
 | Decision | Why |
 |---|---|
-| **tsdown 0.23.0**, not Vite library mode (A0+A1 §8, 01 Decomposition §4, both updated by this spec's PR) | Ruken's pin and Ruken's tool for the same job. With `isolatedDeclarations`, tsdown writes `.d.ts` with oxc and never needs TypeScript's JS API, which TypeScript 7 does not have. Proven on `sim` first (plan Task 1) before any other package. |
+| **tsdown 0.23.0**, not Vite library mode (A0+A1 §8 and 01 Decomposition §4, both updated by the M2 specs PR, #12) | Ruken's pin and Ruken's tool for the same job. With `isolatedDeclarations`, tsdown writes `.d.ts` with oxc and never needs TypeScript's JS API, which TypeScript 7 does not have. Proven on `sim` first (plan Task 1) before any other package. |
 | **`isolatedDeclarations` everywhere that publishes** | `node` and `ship` turn it off today (`packages/node/tsconfig.json:8`, `packages/ship/tsconfig.json:8`), because `Data.TaggedError(...)` classes need inferred base types (`node/src/errors.ts:4,14`, `ship/src/errors.ts:9`). This task converts them to the `TaggedErrorClass` pattern `content` (`src/compile/errors.ts:11-33`) and `host` (`src/errors.ts:15-40`) already use, then turns the flag on. Same `_tag`, same fields, so callers and `Effect.catchTag` are unchanged |
 | **One fixed version** for every published package (Changesets `fixed`) | A game upgrades AF as one thing; `update-game` (M8) and bug reports name one version |
 | **Patch bumps only before 1.0** | The master plan says `0.0.x` prereleases; `tooling/release` refuses a `minor` or `major` changeset until the M8 spec changes this rule |
@@ -132,7 +132,7 @@ Inside AF (`github.repository == 'mcthaydt/automata-framework'`), the examples r
 ## 4. Lifecycle
 
 1. A PR changes `packages/sim`; it adds `.changeset/<name>.md` with `'@mcthaydt/automata-sim': patch`.
-2. CI: `changeset status` and the patch-only check pass; `pnpm build` passes; `consumer-smoke --from packs` runs nightly and on PRs that touch build config.
+2. CI: `changeset status` and the patch-only check pass; `pnpm build` passes; `consumer-smoke --from packs` runs nightly and on PRs that touch build config (a `paths` filter: any `tsdown.config.ts`, `svelte.config.js`, `package.json`, `.changeset/`, `tooling/release/`, `tooling/consumer-smoke/`).
 3. The PR merges (Owner). `release-packages.yml` opens or updates "Version packages", bumping every package to the next shared `0.0.n` and writing changelogs.
 4. The Owner merges "Version packages". The workflow builds and publishes each changed package (with `fixed`, all of them), tags `@mcthaydt/automata-sim@0.0.n` etc., then runs `consumer-smoke --from registry --version 0.0.n`.
 
@@ -143,7 +143,7 @@ Inside AF (`github.repository == 'mcthaydt/automata-framework'`), the examples r
 | A PR changes a published package without a changeset | `checks` fails at `changeset status` |
 | A `minor` or `major` changeset | `checks` fails naming the file (patch only before 1.0) |
 | A build fails, or `.d.ts` cannot be emitted without TypeScript's API | `checks` fails at `pnpm build`; never published |
-| Version already on the registry | `changeset publish` skips it (it publishes only versions not yet there); a partial earlier publish is completed, never overwritten |
+| Version already on the registry | `changeset publish` skips it (it publishes only versions not yet there); a partial earlier publish is completed by re-running the job, never overwritten. Proven in every release: after publishing, the job runs `changeset publish` again and fails if that second run uploads anything (milestone §7, §12) |
 | No `packages: write` / token rejected | The publish step fails; nothing is half-written because npm uploads per package atomically; the job is re-run after the fix |
 | `consumer-smoke` fails after a publish | The release job fails loudly; the versions stay published (npm forbids reuse); the fix ships as the next patch, and the failure is recorded in 02's execution record |
 | A game installs without `AF_READ_TOKEN` | `game-ci.yml` and `game-release.yml` check for the secret first and say it is missing and that it must be a classic PAT with `read:packages` |

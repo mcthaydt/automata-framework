@@ -37,7 +37,7 @@
 
 ### Task 4: golden
 - [ ] `golden.test.ts`: the scripted 600-tick run against a committed final hash, like base-2d's `golden.test.ts`. Expected failure: no golden recorded. Record in Node, commit the golden alone with the reason; `golden.parity.test.ts` identical in Chromium, WebKit and Firefox.
-- [ ] After M2.3 merges (a separate small commit, or this PR if M2.3 is already in): swap to `replayGolden` with `snapshotEvery: 10`. Expected failure: no `.golden` file until recorded.
+- [ ] After M2.3 merges (a separate small commit, or this PR if M2.3 is already in): swap to `replayGolden` with `snapshotEvery: 10`. Expected failure: no `.replay` golden until recorded.
 
 ### Task 5: page
 - [ ] `art.test.ts`: every pixel of the crate and ball sprites is an Endesga 64 index. Expected failure: module missing. Then `sprites.ts` and `PROVENANCE.md`.

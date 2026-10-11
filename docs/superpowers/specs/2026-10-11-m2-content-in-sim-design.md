@@ -2,7 +2,7 @@
 
 - **Status:** drafted 2026-10-11 by the M2 specs thread; revised after the PR #12 audit (H4, H5, M3, M4 and lows); awaiting Owner review with the [M2 milestone spec](./2026-10-11-m2-deterministic-core-design.md).
 - **Task:** M2.2 in [02 Master delivery plan](../../02-master-delivery-plan.md). Plan: [m2-content-in-sim](../plans/2026-10-11-m2-content-in-sim.md).
-- **Owns:** in `packages/content/`, the sim partition, its hash, its outputs and types; in `packages/sim/`, only `Sim.contentHash` (`src/world/sim.ts`); `examples/sim/content-restore/`; this lane's rows in `examples/README.md` and `docs/versions.md`.
+- **Owns:** in `packages/content/`, the sim partition, its hash, its outputs and types; in `packages/sim/`, only `Sim.contentHash` (`src/world/sim.ts`); `examples/sim/content-restore/`; this lane's row in `examples/README.md` (`docs/versions.md` is ship's; this task adds no pin).
 - **Must not touch:** `packages/testing`, the replay files M2.3 adds to `packages/sim/src/replay/`, `examples/base-2d/` (integration), root config (ship).
 - **Builds from:**
   - M1.3 content spec, [§3.2 "Decision for M2.2"](./2026-10-11-m1-content-design.md): store and display metadata in `game.toml` must not gate save restore.
@@ -75,7 +75,7 @@ export interface CompiledContent {
 
 ### 3.3 Types
 
-The sim's types do not change: `SimContext.content` and `SimOptions.content` stay `unknown` (`packages/sim/src/define/context.ts:33,67`). The compiler's `content.d.ts` gains
+The sim's types do not change: `SimContext.content` and `SimOptions.content` stay `unknown` (`packages/sim/src/define/context.ts:33` and `packages/sim/src/world/sim.ts:67`). The compiler's `content.d.ts` gains
 
 ```ts
 export interface SimContentData {

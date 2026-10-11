@@ -84,8 +84,8 @@ export interface ReplayHeader {
   readonly contentHash: string       // 16 hex, likewise (whatever content the sim was given; M2.2 makes that the sim partition)
   readonly startTick: number
   readonly checkEvery: number
-  readonly framework: string         // SIM_VERSION, informational
-  readonly meta: Readonly<Record<string, string>>  // free-form: game, build id, recorded-in
+  readonly framework: string         // SIM_VERSION, informational; never compared (below)
+  readonly meta: Readonly<Record<string, string>>  // free-form: game, build id; always {} in a golden
 }
 export interface ReplayCommand { readonly source: number; readonly seq: number; readonly type: string; readonly payload: unknown }
 ```
@@ -111,7 +111,7 @@ reference   0 | 1, then: hash u64 × (finalTick − startTick) | snapshots varin
 ```
 
 - `commandTypes` is the sorted set of types used; an index out of range is a format error.
-- Payloads are canonical JSON, so the encoded bytes (before deflate) for a run are identical in every engine, and the parity test compares those. The deflated file is **not** compared across engines: deflate output is not canonical (Node's zlib and each browser's `CompressionStream` may choose differently); only that each engine inflates the other's.
+- Payloads are canonical JSON, so the encoded bytes (before deflate) for a run are identical in every engine, and the parity test compares those, with two header fields neutralized first: `framework` (M2.4's version step rewrites `SIM_VERSION` on every release, though the sim may be unchanged) and `meta` (free-form, may name the engine). The comparison re-encodes both sides with `framework: ''` and `meta: {}`, so a release never fails a golden and only simulation facts are compared. `replayGolden` writes goldens with `meta: {}`. The deflated file is **not** compared across engines: deflate output is not canonical (Node's zlib and each browser's `CompressionStream` may choose differently); only that each engine inflates the other's.
 - Varint deltas and a change-only layout follow FloorFifty's codec; deflate on top (§3.5) does the rest.
 
 ### 3.4 Recorder and stepper
@@ -177,6 +177,8 @@ replayGolden(options: {
   plugins: readonly PluginDef[]; content?: unknown
   /** Records the golden when updating (Node, AUTOMATA_UPDATE_GOLDENS=1); absent for replays recorded elsewhere. */
   record?: { seed: number; tickHz?: number; setup?: (sim: Sim) => void
+             /** Makes the sim to record instead of seed/tickHz/setup (a game's own factory, e.g. base-2d's createBaseSim). */
+             create?: () => Promise<Sim>
              drive: (recorder: Recorder, sim: Sim) => void | Promise<void>; snapshotEvery?: number }
 }): Promise<GoldenReport>
 
@@ -285,7 +287,7 @@ Each case draws `simSeed`, `ticks` in [1, `maxTicks`] and a restore point `at` i
 | Fixture | `packages/testing/src/sim/fixtures/bounce.plugin.ts` (exports `bouncePlugin`) and its role-suffixed parts (`bounce.component.ts`, `bounce.system.ts`, `bounce.resource.ts`, `bounce.command.ts`), `bounce-diverged.plugin.ts`, `__goldens__/bounce.golden.json`, `__goldens__/bounce.replay` | Integer-math balls in a box with RNG spawns and a resource; the diverged twin adds 1 to one ball's `vx` in the step its system sees `ctx.tick === 136`, with identical definitions (same schema hash). `check-style` applies to `fixtures/` (only `testing/` folders are exempt), hence the suffixes |
 | Exit 7 | `packages/testing/src/sim/divergence.test.ts` | The bounce golden checked with the diverged plugin reports `firstTick: 137` (the first hash that differs, §3.2), `exact: true`, and `bounce.ball.vx` on the right sid first; with `snapshotEvery: 10`, `diffTick: 140` |
 | Exit 4 | `packages/testing/src/sim/property.test.ts` (`sim` project); `packages/physics/src/snapshot-property.test.ts` (physics' `node` project) | 200 cases on the bounce fixture; 200 cases each on #9's 2D and 3D scenes (`src/testing/scene-*.ts`), Node; both in `test:unit`, so CI runs them; the measured run time recorded |
-| Exit 3 | `*.golden.test.ts` in `sim` and `sim-browsers` | The bounce goldens and the demo's base-2d golden, identical in Node, Chromium, WebKit, Firefox; each engine's re-recorded run encodes (before deflate) to the same bytes as the committed file inflates to; each engine inflates the committed file |
+| Exit 3 | `*.golden.test.ts` in `sim` and `sim-browsers` | The bounce goldens and the demo's base-2d golden, identical in Node, Chromium, WebKit, Firefox; each engine's re-recorded run and the committed file, both re-encoded with `framework: ''` and `meta: {}` (§3.3), are byte-equal before deflate; each engine inflates the committed file |
 | Boundaries | `pnpm boundaries` | `src/replay` passes; re-confirm each rule's rejecting fixture still exists (exit 5) |
 | Demo | `examples/testing/record-replay/` | §8 |
 
@@ -293,7 +295,7 @@ Each case draws `simSeed`, `ticks` in [1, `maxTicks`] and a restore point `at` i
 
 **Shows one thing:** a run is recorded, then re-simulated from its `.replay` with every check passing.
 
-- **Base:** `@af-examples/base-2d` (`createBaseSim`, `moveCommand`, and the `startGame` options and `./render` entry the physics demo also asks for). Waits on #10, which is open; nothing here assumes base-2d is on `main` before then.
+- **Base:** `@af-examples/base-2d` (`createBaseSim`, `moveCommand`, and the `startGame` options and `./render` entry the physics demo also asks for). The golden records with `record.create: () => createBaseSim()`, so base-2d's room and player spawn are not restated; playback passes `plugins: [base2dPlugin]` and `content: { room: parseRoom(ROOM) }`, the same content `createBaseSim` gives the sim (`base-sim.ts:16-21`), and any drift there shows as `content-changed`, never a silent pass. Waits on #10, which is open; nothing here assumes base-2d is on `main` before then.
 - **Play:** walk and jump to the ember as in base-2d. Recording starts at the round's tick 0 (§4); the corner shows `REC` and the tick. The step that reports `GoalReached`, or pressing `R`, ends the recording.
 - **Replay:** the room resets and Wick retraces the run from the replay at normal speed, drawn by base-2d's renderer from a second sim fed only by the stepper. A small panel shows the replay's packed size in bytes, the checks passed (`checks 5 / 5`) and the final hash; a failed check would turn the line red and stop. `R` again plays it back again; `N` starts a new run.
 - **Golden:** `__goldens__/route.replay`: base-2d's `routeInputs()` driven from tick 0 through `replayGolden({ record: { drive } })`, stopping at the step that reports `GoalReached`, exactly as the demo stops. That is tick `GOLDEN_GOAL_TICK` (342), not the full 355-tick route, so the golden's `finalHash` is its own and is **not** base-2d's `GOLDEN_HASH` (which is taken after all 355 ticks, `golden.ts:41-46`). Reference snapshots every tick. Its test runs in Node and the three browsers (exit 3).

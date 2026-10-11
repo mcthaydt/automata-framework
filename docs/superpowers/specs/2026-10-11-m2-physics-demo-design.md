@@ -3,7 +3,7 @@
 - **Status:** drafted 2026-10-11 by the M2 specs thread; revised after the PR #12 audit (base-2d checked at PR #10 head `ab4f857`); awaiting Owner review with the [M2 milestone spec](./2026-10-11-m2-deterministic-core-design.md).
 - **Task:** M2.1b, the demo M2.1 (PR #9, merged as `d556d23`) listed as waiting on `base-2d` ([`examples/README.md`](../../../examples/README.md)). Plan: [m2-physics-demo](../plans/2026-10-11-m2-physics-demo.md).
 - **Waits on:** `base-2d` (#10, open) on `main`. Nothing else: #9 is merged; the golden starts as a final-hash test and becomes a `replayGolden` when M2.3 merges.
-- **Needs from integration (base-2d), asked through the coordinator:** (1) `startGame` is not exported and builds its sims with a bare `createBaseSim()` (`src/game.ts:24,40,91`); the request is to export it with options `{ plugins?, onRound?(sim), layers? }`, so a demo adds plugins, spawns per round and adds layers without copying the game loop. (2) A `./sim` export (§3.4). The demo edits no base-2d file.
+- **Needs from integration (base-2d), asked through the coordinator:** (1) `startGame` is not exported and builds its sims with a bare `createBaseSim()` (`src/game.ts:24,40,91`); the request is to export it with options `{ plugins?, onRound?(sim), layers? }`, so a demo adds plugins, spawns per round and adds layers without copying the game loop. (2) A `./sim` export (§3.4). (3) A typed first-sim failure (§6). The demo edits no base-2d file.
 - **Builds from:** the [M2.1 physics spec](./2026-10-11-m2-sim-physics-design.md) §3.3 (components, spawn helpers) and §3.4 (systems and phases, paired collision events); base-2d at #10 head `ab4f857`: `createBaseSim({ room?, plugins? })` (`src/base-sim.ts:8-21`), `Player` (hitbox top-left in subpixels, `SUB = 256`, 8 px tiles, y down; `src/sim/player.component.ts`), `moveCommand`, and the `@af-examples/base-2d/render` entry with `createRenderer` and `Renderer.addLayer(layer: RendererLayer): () => void` (`src/render/renderer.ts:55-80`, drawn above the tiles, under the light map and under Wick).
 
 ## 1. What it shows
@@ -57,7 +57,7 @@ createBaseSim({ plugins: [physics2d({ gravity: { x: 0, y: 30 } }), bodiesPlugin]
 
 ### 3.3 Rendering
 
-`main.ts` passes a `RendererLayer` to `renderer.addLayer`. Its `apply(result)` reads `Transform2D` rows from the step's `RenderDelta` (`added`, `changed`, `removed`, `resync`) for entities that carry `Crate` or `Ball` (walls are tiles already, so they draw nothing), and places one sprite each at pixel = metres × 8, rotated by `rotation`, snapped to whole pixels. `reset()` clears the sprites for a new round. The layer sits under the light map, so Wick's lantern lights the crates like the room.
+`main.ts` passes a `RendererLayer` in `startGame({ layers })`; base-2d's game, which owns the renderer, calls `renderer.addLayer` with it. Its `apply(result)` reads `Transform2D` rows from the step's `RenderDelta` (`added`, `changed`, `removed`, `resync`) for entities that carry `Crate` or `Ball` (walls are tiles already, so they draw nothing), and places one sprite each at pixel = metres × 8, rotated by `rotation`, snapped to whole pixels. `reset()` clears the sprites for a new round. The layer sits under the light map, so Wick's lantern lights the crates like the room.
 
 Crate and ball are new 8×8 palette-indexed pixel maps (Endesga 64 only): a moss-banded wooden crate and a lantern-glass ball, in base-2d's original Emberwick style. No reference game's sprites are copied. Provenance in `src/art/PROVENANCE.md`.
 
@@ -83,7 +83,7 @@ Boot is base-2d's: handshake, then ready, then the first round. Each round makes
 
 | Case | Behaviour |
 |---|---|
-| Rapier fails to load (`createSim` rejects, #9 §5) | base-2d's boot failure: the plain message "This device can't run the game." and `data-state="failed"` (base-2d `main.ts`); no retry, as in base-2d |
+| Rapier fails to load (`createSim` rejects, #9 §5) | Whatever base-2d's boot failure shows, with `data-state="failed"`; no retry, as in base-2d. **Today that is the wrong message:** base-2d makes its first sim with `Effect.promise` (`src/game.ts:40` at `ab4f857`), so the rejection is a defect, and `main.ts:24-28` picks its text from `error._tag`, which the `FiberFailure` from `Effect.runPromise` never has, so the page says "Couldn't connect to Ruken." The request to integration (with #10's own fix, raised by the audit): fail the first sim as a typed error and read the tag from the `Cause`, so a Rapier failure says "This device can't run the game." The demo's `boot.test.ts` pins that text once the fix is on `main`; until then the demo row stays waiting |
 | A round's sim cannot be made | base-2d's terminal failure path (`src/failure.ts`) |
 | `drop-ball` at 64 balls | Ignored by the system; nothing else changes |
 | A hash differs in one engine | A failure; never rebaselined per engine |

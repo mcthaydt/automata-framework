@@ -77,14 +77,14 @@ Each task: write the failing test or check, run it and see it fail for the state
 - [ ] `turbo.test.ts`: only `build` has `dependsOn: ["^build"]`. Expected failure: `typecheck`, `test`, `test:unit`, `test:parity` have it. Edit `turbo.json`; `pnpm check` runs no `build`.
 
 ### Task 9: release workflow
-- [ ] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, the registry-mode consumer smoke after publish). Expected failure: file missing.
+- [ ] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, the registry-mode consumer smoke after publish, and a second `changeset publish` step that fails if it uploads anything). Expected failure: file missing.
 - [ ] Write the workflow; `actionlint` clean.
 - [ ] Provenance: GitHub's npm-registry docs (spec, Builds from) do not mention it; leave `--provenance` off and say so in the spec's §8. A test publish to check it needs the Owner's OK and is not part of this task.
 
 ### Task 10: consumer smoke
 - [ ] `tooling/consumer-smoke/src/run.ts` per spec §3.6 with its fixtures. First run fails until every build is right; record what each failure taught in the log.
 - [ ] `consumer-smoke --from packs` passes: Node checks, TypeScript 7.0.2 and 6.0.3, the Vite bundle (one Ruken SDK copy, no `new Function`/`eval(` from AF).
-- [ ] Add it to the nightly `e2e` job in `ci.yml` and to `ci:local`'s documentation, not to every push (it takes minutes).
+- [ ] Add it to the nightly `e2e` job in `ci.yml` and as a `consumer-smoke` job on pull requests filtered by the spec §4 paths, not to every push (it takes minutes); document it beside `ci:local`. `workflows.test.ts` asserts both triggers (expected failure: no such job).
 
 ### Task 11: `game-ci.yml` on published packages
 - [ ] `workflows.test.ts`: for a repository other than AF, the workflow no longer checks out AF, uses `registry-url` with `NODE_AUTH_TOKEN: secrets.AF_READ_TOKEN`, fails early naming a classic `read:packages` token when the secret is missing, runs `pnpm exec automata-check-boundaries` (with the new `allow-imports` input) and `pnpm exec automata-ship prepare`, and describes `AF_READ_TOKEN` as a classic PAT with `read:packages`. Expected failure: the AF checkout step is still there.

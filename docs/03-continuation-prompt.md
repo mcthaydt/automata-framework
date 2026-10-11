@@ -31,7 +31,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 | Examples convention | Owner, 2026-10-11: a character-in-a-room base per dimension and a raylib-style demo per feature ([`examples/README.md`](../examples/README.md)); `base-2d` in M1.8, `base-25d` and `base-3d` in M3 | Bases and demos |
 | Art direction | Owner, 2026-10-11: Endesga 64 palette ([docs/art](art/README.md), file kept verbatim, 64 unique colors checked) and a Bubble Bobble × Celeste look for 2D, 2.5D and 3D | Palette schema (M1.3), theme tokens (M1.6), LUT and palette gate (M3) |
 | M2 specs (M2.0 draft) | [M2 milestone spec](superpowers/specs/2026-10-11-m2-deterministic-core-design.md) and task specs and TDD plans for M2.1b (physics demo), M2.2 (content in the sim), M2.3 (goldens and replays) and M2.4 (build and publish), drafted 2026-10-11 and revised after the PR #12 audit against `main` `d556d23` (#9 merged) and PR #10 `ab4f857`; sources re-read: FloorFifty `122a220` (replay codec), The Last Light `8280918` (record and replay), RukenApp `ccad7c0` (tsdown, Changesets) | Owner review (M2.0); lanes start after it, or now on the Owner's word. Token decision (coordinator, checked against GitHub's docs): releases on `GITHUB_TOKEN`; games on `AF_READ_TOKEN`, a classic PAT with `read:packages` only (the npm registry accepts no fine-grained tokens), which the Owner creates at M2.4 time. Requests to integration: base-2d's `startGame` options, a `./sim` entry, and its room as compiled content (for the M2.1b, M2.3 and M2.2 demos) |
-| Source survey | FloorFifty `122a220`, The Last Light `948abe9`, RukenApp `b30d31b`, all read on 2026-10-11 | Re-survey at M1.0b |
+| Source survey | FloorFifty `122a220`, The Last Light `948abe9` (re-read at `8280918` for the M2 specs), RukenApp `b30d31b`, all read on 2026-10-11 | Re-survey at M1.0b |
 
 ## External inputs and unresolved gates
 
@@ -47,7 +47,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 - `@mcthaydt/automata-host` (and `testing`, `ui`, `content`, `ship`) cannot be published while they depend on a local Ruken tarball; D-8 (bundle the vendored Ruken code into their `dist/` and inline Ruken types into their `.d.ts`) is specified in the [M2.4 spec](superpowers/specs/2026-10-11-m2-build-and-publish-design.md) §3.4.
 - Spike S8 gate closed (ship lane, PR #6 `6056f82`, [verdict](spikes/README.md)): Effect costs 28.0 kB gzip and 50–73 ms cold boot at 4×, within the budgets E1–E5 the runtime lane must hold. Still open: measurements on real phones, WebKit throttling, and frame-loop allocation, which the runtime lane checks in M1.5.
 - Ruken's TEST environment is not provisioned; M1 publishes to Ruken's local stack only.
-- GitHub Packages tokens and hosting accounts are not verified.
+- GitHub Packages tokens are decided (M2.4: workflow `GITHUB_TOKEN` to publish; `AF_READ_TOKEN`, a classic PAT with `read:packages`, for games), but not yet created or used. Hosting accounts are not verified.
 
 ## Merge notes for the lane PRs
 

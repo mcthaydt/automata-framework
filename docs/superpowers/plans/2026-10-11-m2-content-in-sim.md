@@ -47,11 +47,11 @@ Each task: write the failing test, run it and see it fail for the stated reason,
 
 ### Task 4: outputs and verify
 - [ ] `write-outputs.test.ts`: a build writes `sim-content.json` (canonical file form) and `sim-content.hash`, both listed in `outputs.txt`; `verifyContent` reports `staleArtifact` for a hand-edited `sim-content.hash`. Expected failure: the files are missing.
-- [ ] Add `GeneratorInput.sim`; the built-in content generator writes both files from it. A test that a game generator writing `sim-content.json` fails with `InvalidContentConfig` (expected failure: it overwrites silently, or passes).
+- [ ] Add `GeneratorInput.sim`; the built-in content generator writes both files from it. A regression guard that a game generator writing `sim-content.json` fails with `InvalidContentConfig`: clashes are already rejected (`content-generator.ts:50`), so it passes as soon as the built-in writes the file and never goes red; it pins that the new outputs are covered.
 
 ### Task 5: types
 - [ ] `render-types.test.ts`: `content.d.ts` declares `SimContentData` with `tuning` and `rooms` only and no index signature, plus `simContent` and `simContentHash`. Expected failure: no `SimContentData` in the text.
-- [ ] `sim-content-types.test.ts`: compile a fixture project into a temp folder; write `uses.ts`, a `defineSystem` whose `run` does `const content = ctx.content as SimContentData` (type-only import from `virtual:automata/content`) and reads `content.rooms['room-1'].rows`; `bad.ts`, which reads `content.palette`; and `other.ts`, which calls `createSim({ content: { room: 1 } })`. Run the workspace `tsc` (7.0.2): `uses.ts` and `other.ts` pass, `bad.ts` fails with TS2339. Expected failure first: `SimContentData` is not exported (TS2305).
+- [ ] `sim-content-types.test.ts`: compile a fixture project into a temp folder; write `uses.ts`, a `defineSystem` whose `run` does `const content = ctx.content as SimContentData` (type-only import from `virtual:automata/content`) and reads `content.rooms['room-1'].rows`; `bad.ts`, which reads `content.palette`; and `other.ts`, which calls `createSim({ seed: 1, plugins: [], content: { room: 1 } })`. Run the workspace `tsc` (7.0.2): `uses.ts` and `other.ts` pass, `bad.ts` fails with TS2339. Expected failure first: `SimContentData` is not exported (TS2305). `other.ts` is a regression guard (it compiles today and must keep compiling), so it never goes red.
 - [ ] Implement in `render-types.ts`. `packages/sim`'s types are not touched; `pnpm typecheck` across the repo passes unchanged.
 
 ### Task 6: virtual module
