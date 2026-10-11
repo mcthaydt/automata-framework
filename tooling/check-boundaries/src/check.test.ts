@@ -75,18 +75,19 @@ test('sim plugins outside packages/sim may import the sim’s public entry point
   expect(imports('@mcthaydt/automata-sim/src/world/sim')).toEqual(['import'])
 })
 
-test('game sims may import the physics extension’s 2D sim entry point, and only that', () => {
+test('game sims may import the physics extension’s sim entry points, and only those', () => {
   const imports = (source: string) =>
     checkSource('/x/examples/physics/bodies-2d/sim/a.ts', `import { x } from '${source}'\n`).map(
       (f) => f.rule,
     )
   expect(imports('@mcthaydt/automata-physics/2d')).toEqual([])
+  expect(imports('@mcthaydt/automata-physics/3d')).toEqual([])
   expect(imports('@mcthaydt/automata-physics/src/2d')).toEqual(['import'])
 })
 
 test('a root may allow another checked sim folder’s entry point by its exact name', () => {
-  const imports = (source: string, allow: readonly string[] = []) =>
-    checkSource('/x/demo/sim/a.ts', `import { x } from '${source}'\n`, { allow }).map((f) => f.rule)
+  const imports = (source: string, allowImports: readonly string[] = []) =>
+    checkSource('/x/demo/sim/a.ts', `import { x } from '${source}'\n`, { allowImports }).map((f) => f.rule)
   expect(imports('@af-examples/base-2d/sim')).toEqual(['import'])
   expect(imports('@af-examples/base-2d/sim', ['@af-examples/base-2d/sim'])).toEqual([])
   // Exact names only: the package root (which reaches the host bridge) stays out.

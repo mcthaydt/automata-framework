@@ -28,7 +28,10 @@ interface Job {
   readonly steps?: Step[]
 }
 interface Workflow {
-  readonly on: Record<string, { inputs?: Record<string, unknown>; secrets?: Record<string, unknown> } | null>
+  readonly on: Record<
+    string,
+    { inputs?: Record<string, unknown>; secrets?: Record<string, unknown>; types?: string[] } | null
+  >
   readonly permissions?: Record<string, string>
   readonly jobs: Record<string, Job>
 }
@@ -138,7 +141,9 @@ describe('parity across packages', () => {
   ].filter(hasPackageJson)
 
   it("runs every package's parity suite through the root test:parity script", () => {
-    expect(packageJson('.').scripts['test:parity']).toBe('turbo run test:parity')
+    // Three suites at a time: each starts Chromium, WebKit and Firefox, and on the shared WSL Docker runner ten
+    // suites at once (turbo's default) left Firefox past vitest's 60 s connect timeout (#14, 2026-10-11).
+    expect(packageJson('.').scripts['test:parity']).toBe('turbo run test:parity --concurrency=3')
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
   })
 
@@ -214,6 +219,14 @@ describe('ci.yml (AF)', () => {
         'pnpm test:unit',
       ]),
     )
+  })
+
+  // af-linux is one shared PC runner. A draft runs parity in a cloud container instead (docs/cloud-parity.md);
+  // the runner takes it once the PR is ready for review, and on every push to main.
+  it('skips cross-engine parity on draft pull requests and runs it when one is marked ready', () => {
+    expect(ci.on.pull_request?.types).toEqual(['opened', 'synchronize', 'reopened', 'ready_for_review'])
+    expect(ci.jobs.parity?.if).toContain('github.event.pull_request.draft != true')
+    expect(ci.jobs.checks?.if ?? '').not.toContain('draft')
   })
 
   it('keeps the parity container on the pinned Playwright version', () => {

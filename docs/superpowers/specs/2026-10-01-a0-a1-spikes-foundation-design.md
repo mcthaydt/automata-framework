@@ -83,7 +83,7 @@ automata-framework/
 | Package manager | pnpm 10 workspaces, with `packageManager` pinned |
 | Task runner | Turborepo, with caching for build, typecheck, test, and the checks |
 | Language | TypeScript strict, `"type": "module"`, ESM only, `exports` maps, `isolatedDeclarations` |
-| Builds | Vite library mode, ESM plus `.d.ts` |
+| Builds | tsdown (Ruken's tool and pin), ESM plus `.d.ts`, replacing Vite library mode ([M2 milestone spec](./2026-10-11-m2-deterministic-core-design.md) §4 and M2.4) |
 | Lint and format | Biome |
 | Tests | Vitest in Node, plus Vitest browser mode with Playwright on Chromium, WebKit and Firefox (golden suites only) |
 | Versioning | Changesets, publishing to GitHub Packages |

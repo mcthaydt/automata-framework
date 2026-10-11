@@ -96,7 +96,7 @@ Ruken platform services (identity, saves storage, ledger, billing, distribution,
 |---|---|---|
 | FloorFifty `tests/e2e/support/layout.ts` (292) | Hit testing, target size, clipping, overlap, reachability assertions | Runs against isolated fixtures first, composed screens second. |
 | FloorFifty `playwright.config.ts` (295; per-checkout ports lines 35–46, about 12 projects), `tools/e2e-serve.ts` | Port isolation, server reuse | Exposed as config helpers. `tools/promote-evidence` and `tools/worktree-gc` go to the `dev-tools` extension (FloorFifty only). |
-| The Last Light `game/simulation.ts` `record`/`replay`/`worldHash` (lines 79–86, 267–289), `scripts/verify/*.mjs` | Record/replay and scripted playthrough checks | Replay format from the A0+A1 spec §6. |
+| The Last Light `game/simulation.ts` `record`/`replay`/`worldHash` (lines 79–86, 267–289), `scripts/verify/*.mjs` | Record/replay and scripted playthrough checks | Informs M2.3: the codec, recorder and stepper live in `sim` (`./replay`), the golden harness in `testing` (`./sim`); format in the [M2.3 spec](./2026-10-11-m2-goldens-and-replays-design.md). The Last Light moves onto it at its adoption slice (M8), not in M2. |
 | Ruken `e2e/sandbox`, `e2e/golden` | Cross-origin SDK journeys, golden transcripts | Run against the AF host adapter. |
 
 ### `ship` and `cli`
