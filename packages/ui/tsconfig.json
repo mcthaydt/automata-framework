@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["@testing-library/jest-dom/vitest", "vitest/browser"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.svelte"]
+}

@@ -1,0 +1,157 @@
+/**
+ * The one geometry owner per document (M1.6 spec §3.1, §4; from FloorFifty
+ * `viewport-tracking.svelte.ts` `trackViewport` at 122a220).
+ *
+ * It decides when to measure: at once, on every resize of the window or the visual viewport, and
+ * again as the browser's bars and keyboard finish animating. Each measure is published on the root
+ * (for CSS) and in a nanostores atom (for script: the runtime, the renderer's letterbox).
+ * Nothing else writes the geometry.
+ */
+
+import { atom, type ReadableAtom } from 'nanostores'
+import { applyGeometry, type Geometry, type HostDisplay, type Insets, measureGeometry } from './geometry'
+
+type Listen = (type: string, listener: () => void) => void
+
+/** The parts of `window` the owner reads; a fake from `@mcthaydt/automata-testing` stands in for it in tests. */
+export interface ViewportWindow {
+  readonly innerWidth: number
+  readonly innerHeight: number
+  readonly visualViewport?:
+    | {
+        readonly height: number
+        readonly offsetTop: number
+        addEventListener: Listen
+        removeEventListener: Listen
+      }
+    | null
+    | undefined
+  addEventListener: Listen
+  removeEventListener: Listen
+}
+
+/** Injected so tests drive the settle delays with fake timers. */
+export interface Timers {
+  set(callback: () => void, ms: number): unknown
+  clear(handle: unknown): void
+}
+
+export interface GeometryOwnerOptions {
+  readonly window: ViewportWindow
+  /** Where the geometry is published: normally `document.documentElement`. */
+  readonly root: HTMLElement
+  readonly host?: HostDisplay | undefined
+  readonly timers?: Timers | undefined
+  readonly readEnvSafeArea?: (() => Insets) | undefined
+}
+
+export interface GeometryOwner {
+  readonly geometry: ReadableAtom<Geometry>
+  /** The host's display metrics changed (Ruken `display.metrics`), or `undefined` for standalone. */
+  setHostDisplay(display: HostDisplay | undefined): void
+  /** For a screen that just mounted: a WebView's bars can settle with no event at all. */
+  remeasure(): void
+  dispose(): void
+}
+
+/**
+ * When to measure again after a viewport event, in ms. A browser's bars and keyboard animate,
+ * and the event can fire before the sizes stop moving: on an Android emulator the keyboard closed,
+ * the last event fired mid-animation, and the inset was left at the keyboard's height with no
+ * further event to correct it (FloorFifty). Each re-measure is only a read and a style write.
+ */
+export const SETTLE_DELAYS_MS: readonly number[] = [100, 400, 1000]
+
+const defaultTimers: Timers = {
+  set: (callback, ms) => setTimeout(callback, ms),
+  clear: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
+}
+
+/**
+ * Reads `env(safe-area-inset-*)` through a hidden probe, since script cannot read `env()` directly.
+ * An engine that does not compute `env()` (jsdom) yields 0 on every side.
+ */
+export function probeEnvSafeArea(root: HTMLElement): Insets {
+  const doc = root.ownerDocument
+  const probe = doc.createElement('div')
+  probe.style.cssText =
+    'position:fixed;visibility:hidden;pointer-events:none;' +
+    'padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)'
+  ;(doc.body ?? root).append(probe)
+  const style = doc.defaultView?.getComputedStyle(probe)
+  const read = (value: string | undefined): number => {
+    const px = Number.parseFloat(value ?? '')
+    return Number.isFinite(px) && px > 0 ? px : 0
+  }
+  const insets = {
+    top: read(style?.paddingTop),
+    right: read(style?.paddingRight),
+    bottom: read(style?.paddingBottom),
+    left: read(style?.paddingLeft),
+  }
+  probe.remove()
+  return insets
+}
+
+export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner {
+  const { window: win, root } = options
+  const timers = options.timers ?? defaultTimers
+  const readEnv = options.readEnvSafeArea ?? (() => probeEnvSafeArea(root))
+  let host = options.host
+  let settling: unknown[] = []
+  let disposed = false
+
+  const read = (): Geometry => {
+    const visual = win.visualViewport
+    return measureGeometry({
+      layout: { width: win.innerWidth, height: win.innerHeight },
+      visual: visual == null ? undefined : { height: visual.height, offsetTop: visual.offsetTop },
+      envSafeArea: readEnv(),
+      host,
+    })
+  }
+
+  const geometry = atom<Geometry>(read())
+  applyGeometry(root, geometry.get())
+
+  const measure = (): void => {
+    if (disposed) return
+    const next = read()
+    applyGeometry(root, next)
+    geometry.set(next)
+  }
+
+  const clearSettling = (): void => {
+    for (const handle of settling) timers.clear(handle)
+    settling = []
+  }
+
+  // Measure now, then again as the settle delays pass; a newer event restarts the delays.
+  const update = (): void => {
+    if (disposed) return
+    measure()
+    clearSettling()
+    settling = SETTLE_DELAYS_MS.map((ms) => timers.set(measure, ms))
+  }
+
+  win.addEventListener('resize', update)
+  win.visualViewport?.addEventListener('resize', update)
+  win.visualViewport?.addEventListener('scroll', update)
+
+  return {
+    geometry,
+    setHostDisplay(display) {
+      host = display
+      measure()
+    },
+    remeasure: update,
+    dispose() {
+      if (disposed) return
+      disposed = true
+      clearSettling()
+      win.removeEventListener('resize', update)
+      win.visualViewport?.removeEventListener('resize', update)
+      win.visualViewport?.removeEventListener('scroll', update)
+    },
+  }
+}
