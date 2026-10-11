@@ -43,4 +43,6 @@ export interface SimContext {
   }
   emit<Z extends z.ZodType>(def: EventDef<Z>, payload: z.input<Z>): void
   resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>
+  /** The per-sim state of the plugin that registered this system (`definePlugin({ state })`), else undefined. */
+  readonly pluginState: unknown
 }

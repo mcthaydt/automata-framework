@@ -65,3 +65,12 @@ test('collectSources finds every TS and JS module kind, skipping tests, declarat
   const names = collectSources(dir).map((f) => f.slice(dir.length + 1).replaceAll('\\', '/'))
   expect(names).toEqual(['a.ts', 'b.mts', 'c.cts', 'nested/d.js'])
 })
+
+test('sim plugins outside packages/sim may import the sim’s public entry points, and only those', () => {
+  const imports = (source: string) =>
+    checkSource('/x/packages/physics/src/a.ts', `import { x } from '${source}'\n`).map((f) => f.rule)
+  expect(imports('@mcthaydt/automata-sim')).toEqual([])
+  expect(imports('@mcthaydt/automata-sim/math')).toEqual([])
+  expect(imports('@mcthaydt/automata-sim/hash')).toEqual([])
+  expect(imports('@mcthaydt/automata-sim/src/world/sim')).toEqual(['import'])
+})
