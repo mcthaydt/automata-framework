@@ -1,7 +1,7 @@
+import { goldenCommands } from '@mcthaydt/automata-testing/sim/commands'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
-import { goldenCommands } from './src/sim/commands.ts'
 
 // unit: pure data and fixtures in jsdom. layout: the DOM assertions against planted problems in real browsers.
 // sim: the golden and replay harness in Node, without the `browser` condition. sim-browsers: the goldens in
