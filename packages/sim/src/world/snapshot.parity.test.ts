@@ -34,4 +34,5 @@ test('a 300-tick run with churn, every field type and a mid-run restore hashes i
   expect(straight.hash).toBe(SIM_EXPECTED)
 })
 
-const SIM_EXPECTED = '2dfe1971eaf6af8f'
+// Was 2dfe1971eaf6af8f until the schema hash covered resource, command and event schemas (M2.1 spec §10.4).
+const SIM_EXPECTED = '98cc273719c10ef2'

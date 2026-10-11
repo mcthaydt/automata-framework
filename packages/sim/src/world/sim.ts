@@ -1,4 +1,4 @@
-import type { z } from 'zod'
+import { z } from 'zod'
 import type { CommandRecord, EntityRef, SimContext, SpawnPart } from '../define/context'
 import {
   type CommandDef,
@@ -6,6 +6,8 @@ import {
   defineSystem,
   type EventDef,
   type PluginDef,
+  type PluginState,
+  type PreparedRestore,
   type ResourceDef,
   type SystemDef,
 } from '../define/definitions'
@@ -13,8 +15,9 @@ import { canonicalJson, utf8 } from '../hash/canonical'
 import { hex64, xxhash64 } from '../hash/xxhash64'
 import { createRng, deriveSeed, type Rng, rngFromState } from '../rng/rng'
 import { orderPlugins, orderSystems } from '../schedule/schedule'
+import { deepFreeze } from '../util/deep-freeze'
 import { sortedKeys } from '../util/sorted'
-import { EntityStore, type FieldRecord, type RenderDelta } from './entity-store'
+import { EntityStore, type RenderDelta, SimCapacityError } from './entity-store'
 import {
   decodeSnapshot,
   encodeSnapshot,
@@ -81,15 +84,48 @@ export interface Sim {
   restore(bytes: Uint8Array): void
   /** xxhash64 of the snapshot, 16 hex digits. */
   hash(): string
+  /** Frees the Koota world and every plugin's engine. Idempotent; any later call throws SimDisposedError. */
   dispose(): void
 }
 
-function deepFreeze<T>(value: T): T {
-  if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
-    Object.freeze(value)
-    for (const k of sortedKeys(value as object)) deepFreeze((value as Record<string, unknown>)[k])
+export { SimCapacityError }
+
+/** The sim was disposed; it holds no world any more, so every call that reads or changes state refuses. */
+export class SimDisposedError extends Error {
+  constructor() {
+    super('this sim has been disposed; create a new one')
+    this.name = 'SimDisposedError'
   }
-  return value
+}
+
+/**
+ * A system threw during `step`. The tick was left half-applied, so the sim refuses `step`, `snapshot` and
+ * `hash` until a successful `restore` (M2.1 spec §10.2). Failing closed is cheaper than rolling back every tick.
+ */
+export class SimFaultedError extends Error {
+  readonly system: string
+  readonly tick: number
+  constructor(system: string, tick: number, cause: unknown) {
+    const reason = cause instanceof Error ? cause.message : String(cause)
+    super(`system "${system}" threw at tick ${tick}: ${reason}. Restore a snapshot to continue.`, { cause })
+    this.name = 'SimFaultedError'
+    this.system = system
+    this.tick = tick
+  }
+}
+
+/**
+ * Each definition's id with its Zod schema as JSON Schema, sorted by id, for the schema hash (M2.1 spec §10.4).
+ * `io: 'input'` describes what a snapshot or command must contain; parts JSON Schema cannot express (a
+ * transform's function, a refinement) hash as "any", which is why restore also re-checks values (see restore).
+ */
+function describeSchemas(defs: ReadonlyMap<string, { readonly schema: z.ZodType }>): unknown[] {
+  return [...defs.keys()]
+    .sort()
+    .map((id) => [
+      id,
+      z.toJSONSchema((defs.get(id) as { schema: z.ZodType }).schema, { io: 'input', unrepresentable: 'any' }),
+    ])
 }
 
 function register<T extends { id: string }>(what: string, map: Map<string, T>, items: readonly T[]): void {
@@ -125,11 +161,19 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   const content = deepFreeze(JSON.parse(contentJson))
   const contentHash = xxhash64(utf8(contentJson))
   const componentList = [...components.values()]
-  let store = new EntityStore(componentList)
   const resources = new Map<string, unknown>()
   for (const def of resourceDefs.values()) resources.set(def.id, def.schema.parse(def.init()))
 
   let tick = 0
+  let fault: SimFaultedError | undefined
+  let disposed = false
+  const refuseIfDisposed = (): void => {
+    if (disposed) throw new SimDisposedError()
+  }
+  const refuseIfFaulted = (): void => {
+    refuseIfDisposed()
+    if (fault) throw fault
+  }
   let fullResync = true // a renderer starts empty, so the first delta is a resync
   let events: SimEvent[] = []
   let pendingDespawn = new Set<number>()
@@ -180,20 +224,48 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
 
   // Everything that must match for a snapshot to be restorable here.
   const sortedIds = (m: Map<string, unknown>) => [...m.keys()].sort()
+  // `stateful` is only present when a plugin keeps engine state, so every pre-M2.1 schema hash is unchanged.
+  const statefulNames = plugins.filter((p) => p.state).map((p) => p.name)
+  const stateful = statefulNames.length > 0 ? { stateful: statefulNames } : {}
+  // Likewise `configs` only appears when a plugin has one (M2.1 spec §10.8).
+  const configured = plugins.filter((p) => p.config !== undefined).map((p) => [p.name, p.config])
+  const configs = configured.length > 0 ? { configs: configured } : {}
   const schemaHash = xxhash64(
     utf8(
       canonicalJson({
+        ...stateful,
+        ...configs,
         plugins: plugins.map((p) => p.name),
         components: componentList
           .map((c) => ({ id: c.id, fields: c.fields, render: c.render }))
           .sort((a, b) => (a.id < b.id ? -1 : 1)),
-        commands: sortedIds(commandDefs),
-        events: sortedIds(eventDefs),
-        resources: sortedIds(resourceDefs),
+        commands: describeSchemas(commandDefs),
+        events: describeSchemas(eventDefs),
+        resources: describeSchemas(resourceDefs),
         systems: systems.map((s) => `${s.phase}:${s.name}`),
       }),
     ),
   )
+
+  // Everything above only validates. From here the sim takes resources that must be released if setup fails:
+  // a Koota world (16 per process) and each plugin's engine state (M2.1 spec §10.6).
+  let store = new EntityStore(componentList)
+  // Per-sim engine state (M2.1 spec §3.1), created in canonical plugin order. Only the owning plugin's systems
+  // see it. If one setup rejects, the states already created are disposed before the error propagates.
+  const states: Array<{ name: string; state: PluginState }> = []
+  const stateOfSystem = new Map<string, PluginState>()
+  try {
+    for (const p of plugins) {
+      if (!p.state) continue
+      const state = await p.state({ dt })
+      states.push({ name: p.name, state })
+      for (const s of p.systems) stateOfSystem.set(s.name, state)
+    }
+  } catch (err) {
+    releaseAll(store, states)
+    throw err
+  }
+  // Nothing below can throw: it only builds closures over what exists.
 
   const resourceOf = <Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z> => {
     if (resourceDefs.get(def.id) !== def)
@@ -233,6 +305,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         events.push({ type: def.id, payload: parsed.data })
       },
       resource: resourceOf,
+      pluginState: stateOfSystem.get(system.name),
     }
     return { system, ctx }
   })
@@ -292,31 +365,54 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       return tick
     },
     step(commands) {
+      refuseIfFaulted()
       const rejected = intake(commands)
       events = []
-      for (const { system, ctx } of contexts) system.run(ctx)
+      for (const { system, ctx } of contexts) {
+        try {
+          system.run(ctx)
+        } catch (err) {
+          fault = new SimFaultedError(system.name, tick, err)
+          throw fault
+        }
+      }
       tick += 1
       commandsByType = new Map()
       stagedCommands = new Map()
       return { tick, events, render: lastDelta, rejected }
     },
-    spawn: (parts) => store.spawn(parts),
-    entity: (sid) => store.ref(sid),
-    query: (...cs) => store.query(cs),
-    resource: resourceOf,
+    spawn: (parts) => {
+      refuseIfDisposed()
+      return store.spawn(parts)
+    },
+    entity: (sid) => {
+      refuseIfDisposed()
+      return store.ref(sid)
+    },
+    query: (...cs) => {
+      refuseIfDisposed()
+      return store.query(cs)
+    },
+    resource: (def) => {
+      refuseIfDisposed()
+      return resourceOf(def)
+    },
     snapshot() {
-      const entities = store.liveSids().map((sid) => {
-        const ref = store.ref(sid) as EntityRef
-        const map = new Map<string, FieldRecord>()
-        for (const c of store.componentsOf(sid)) map.set(c.id, ref.get(c) as FieldRecord)
-        return { sid, components: map }
-      })
+      refuseIfFaulted()
+      const entities = store.snapshotRows()
       const resourceRows = sortedIds(resourceDefs).map((id) => {
         const def = resourceDefs.get(id) as ResourceDef
         const checked = def.schema.safeParse(resources.get(id))
         if (!checked.success)
           throw new Error(`resource "${id}" no longer matches its schema: ${checked.error.message}`)
-        const json = canonicalJson(checked.data)
+        let json: string
+        try {
+          json = canonicalJson(checked.data)
+        } catch (err) {
+          throw new Error(`resource "${id}" does not round-trip through JSON: ${(err as Error).message}`, {
+            cause: err,
+          })
+        }
         const again = def.schema.safeParse(JSON.parse(json))
         if (!again.success || canonicalJson(again.data) !== json)
           throw new Error(`resource "${id}" does not round-trip through JSON`)
@@ -335,11 +431,13 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
           resources: resourceRows,
           nextId: store.nextId,
           entities,
+          plugins: states.map(({ name, state }) => ({ name, bytes: state.snapshot() })),
         },
         componentList,
       )
     },
     restore(bytes) {
+      refuseIfDisposed()
       let data: SnapshotData
       try {
         data = decodeSnapshot(bytes, componentList)
@@ -355,42 +453,65 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       }
       if (data.tickHz !== tickHz)
         throw new SnapshotMismatchError('tickHz', String(tickHz), String(data.tickHz))
-      // Build everything first; swap only when it all validated, so a bad snapshot leaves this sim untouched.
-      const next = new EntityStore(componentList)
+      // Validate everything first, without touching this sim. Then free the old Koota world before building the
+      // new one, so a restore never needs a second world (Koota allows 16 per process; M2.1 spec §10.3).
+      let rows: Array<{ sid: number; parts: SpawnPart[] }>
+      let nextResources: Map<string, unknown>
+      let nextRngs: Map<string, Rng>
+      // Each plugin's parsed restore; on any failure every one of them is discarded, so none leaks.
+      const prepared: PreparedRestore[] = []
       try {
-        for (const e of data.entities) {
-          next.spawnWithId(
-            e.sid,
-            [...e.components].map(([id, values]) => [components.get(id) as ComponentDef, values] as const),
-          )
-        }
-        next.nextId = data.nextId
-        next.takeDelta(false)
+        rows = data.entities.map((e) => ({
+          sid: e.sid,
+          parts: [...e.components].map(
+            ([id, values]) => [components.get(id) as ComponentDef, values] as const,
+          ),
+        }))
+        for (const row of rows) store.checkParts(row.parts)
         const expectedIds = sortedIds(resourceDefs)
         if (
           data.resources.length !== expectedIds.length ||
           data.resources.some((row, i) => row.id !== expectedIds[i])
         )
           throw new SnapshotFormatError('resource rows do not match the registered resources')
-        const nextResources = new Map<string, unknown>()
+        nextResources = new Map<string, unknown>()
         for (const { id, json } of data.resources) {
           const def = resourceDefs.get(id)
           if (!def) throw new SnapshotFormatError(`unknown resource "${id}"`)
-          nextResources.set(id, def.schema.parse(JSON.parse(json)))
+          const value = def.schema.parse(JSON.parse(json))
+          // A value this build's schema reshapes (a stripped field, a default filled in) is not the stored state.
+          if (canonicalJson(value) !== json)
+            throw new SnapshotFormatError(`resource "${id}" does not re-encode to the stored bytes`)
+          nextResources.set(id, value)
         }
-        const nextRngs = new Map<string, Rng>(data.rng.map((r) => [r.name, rngFromState(r.state)]))
+        nextRngs = new Map<string, Rng>(data.rng.map((r) => [r.name, rngFromState(r.state)]))
         if (nextRngs.size !== rngs.size || systems.some((s) => !nextRngs.has(s.name))) {
           throw new SnapshotFormatError('rng streams do not match the systems')
         }
-        store.dispose()
-        store = next
-        for (const [id, v] of nextResources) resources.set(id, v)
-        for (const [name, r] of nextRngs) rngs.set(name, r)
+        if (
+          data.plugins.length !== states.length ||
+          data.plugins.some((row, i) => row.name !== states[i]?.name)
+        )
+          throw new SnapshotFormatError('plugin state rows do not match the stateful plugins')
+        // Every plugin validates before anything is committed, so one bad row leaves every plugin untouched.
+        states.forEach(({ state }, i) => {
+          prepared.push(state.prepareRestore((data.plugins[i] as { bytes: Uint8Array }).bytes))
+        })
       } catch (err) {
-        if (store !== next) next.dispose()
-        throw err instanceof SnapshotFormatError ? err : new SnapshotFormatError(String(err))
+        for (const p of prepared) p.discard()
+        throw err instanceof SnapshotFormatError ? err : new SnapshotFormatError(String(err), { cause: err })
       }
+      // Commit. Nothing below can fail on snapshot contents; everything it reads was validated above.
+      store.dispose()
+      store = new EntityStore(componentList)
+      for (const row of rows) store.spawnWithId(row.sid, row.parts)
+      store.nextId = data.nextId
+      store.takeDelta(false)
+      for (const [id, v] of nextResources) resources.set(id, v)
+      for (const [name, r] of nextRngs) rngs.set(name, r)
+      for (const p of prepared) p.commit()
       tick = data.tick
+      fault = undefined
       fullResync = true
       pendingDespawn = new Set()
       events = []
@@ -398,7 +519,33 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     hash() {
       return hex64(xxhash64(sim.snapshot()))
     },
-    dispose: () => store.dispose(),
+    dispose() {
+      if (disposed) return
+      disposed = true
+      const fault = releaseAll(store, states)
+      if (fault) throw fault.error
+    },
   }
   return sim
+}
+
+/**
+ * Disposes the store and every plugin state, in that order. A dispose that throws doesn't stop the rest, since
+ * each one holds its own engine memory; the first error is returned so the caller decides whether to rethrow.
+ */
+function releaseAll(
+  store: EntityStore,
+  states: ReadonlyArray<{ state: PluginState }>,
+): { error: unknown } | undefined {
+  let fault: { error: unknown } | undefined
+  const release = (dispose: () => void) => {
+    try {
+      dispose()
+    } catch (error) {
+      fault ??= { error }
+    }
+  }
+  release(() => store.dispose())
+  for (const { state } of states) release(() => state.dispose())
+  return fault
 }

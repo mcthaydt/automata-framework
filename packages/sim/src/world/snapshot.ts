@@ -1,6 +1,7 @@
 // Snapshot format v1 (spec §4.6), little-endian throughout:
 //   header   "AUTO" | version u16 | schemaHash u64 | contentHash u64 | tick u32 | tickHz u16
-//   sections [tag u8 | byteLength u32 | payload] in fixed order: 1 strings, 2 rng, 3 resources, 4 entities
+//   sections [tag u8 | byteLength u32 | payload] in fixed order: 1 strings, 2 rng, 3 resources, 4 entities,
+//   then 6 plugin state (M2.1 spec §3.2) only when a plugin keeps engine state, so other snapshots are unchanged
 // Floats are written with DataView; values are finite by construction (coerceField), so bytes are canonical.
 
 import type { ComponentDef } from '../define/definitions'
@@ -11,7 +12,7 @@ import type { FieldRecord } from './entity-store'
 
 export const SNAPSHOT_VERSION = 1
 const MAGIC = [65, 85, 84, 79] // "AUTO"
-const TAG = { strings: 1, rng: 2, resources: 3, entities: 4 } as const
+const TAG = { strings: 1, rng: 2, resources: 3, entities: 4, pluginState: 6 } as const
 
 export class SnapshotFormatError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -48,6 +49,8 @@ export interface SnapshotData {
     readonly sid: number
     readonly components: ReadonlyMap<string, FieldRecord>
   }>
+  /** Section 6: each stateful plugin's own bytes, in canonical plugin order. Empty means no section 6. */
+  readonly plugins: ReadonlyArray<{ readonly name: string; readonly bytes: Uint8Array }>
 }
 
 class Writer {
@@ -154,6 +157,9 @@ class Reader {
     const got = this.u8()
     if (got !== tag) throw new SnapshotFormatError(`expected section ${tag}, found ${got}`)
     return new Reader(this.take(this.u32()))
+  }
+  atEnd(): boolean {
+    return this.pos === this.bytes.length
   }
   end(what: string): void {
     if (this.pos !== this.bytes.length)
@@ -270,6 +276,19 @@ export function encodeSnapshot(data: SnapshotData, components: readonly Componen
     }
   }
   out.section(TAG.entities, en)
+
+  if (data.plugins.length > 0) {
+    const ps = new Writer()
+    ps.u16(data.plugins.length)
+    for (const { name, bytes } of data.plugins) {
+      const b = utf8(name)
+      ps.u16(b.length)
+      ps.bytes(b)
+      ps.u32(bytes.length)
+      ps.bytes(bytes)
+    }
+    out.section(TAG.pluginState, ps)
+  }
   return out.done()
 }
 
@@ -350,6 +369,17 @@ export function decodeSnapshot(bytes: Uint8Array, components: readonly Component
     }
   }
   en.end('entities')
+
+  const plugins: Array<{ name: string; bytes: Uint8Array }> = []
+  if (!rd.atEnd()) {
+    const ps = rd.section(TAG.pluginState)
+    for (let n = ps.u16(); n > 0; n--) {
+      const name = decodeUtf8(ps.take(ps.u16()))
+      plugins.push({ name, bytes: ps.take(ps.u32()).slice() })
+    }
+    ps.end('plugin state')
+    if (plugins.length === 0) throw new SnapshotFormatError('an empty plugin state section must be omitted')
+  }
   rd.end('snapshot')
-  return { schemaHash, contentHash, tick, tickHz, rng, resources, nextId, entities }
+  return { schemaHash, contentHash, tick, tickHz, rng, resources, nextId, entities, plugins }
 }

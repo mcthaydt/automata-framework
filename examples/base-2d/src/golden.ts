@@ -39,5 +39,8 @@ export function routeInputs(route: readonly RouteSegment[] = GOLDEN_ROUTE): Move
 
 /** The tick the golden route touches the goal on. */
 export const GOLDEN_GOAL_TICK = 342
-/** The sim's state hash after the whole golden route, with seed 1. */
-export const GOLDEN_HASH = 'a40a6dbda55f4932'
+/**
+ * The sim's state hash after the whole golden route, with seed 1. Re-recorded when physics (#9) merged: its
+ * schema hash also covers resource and command schemas (was `a40a6dbda55f4932`; same route, same goal tick).
+ */
+export const GOLDEN_HASH = '31f50888ccb4cf0a'

@@ -114,4 +114,4 @@ Cost of the CSP fix in `packages/sim`: array-of-structs traits make snapshots ab
 
 - **Success:** `pnpm check` and `pnpm test:parity` pass; `pnpm --filter @af-examples/base-2d check`, `build` and `prepare-ruken` pass; the `base-2d` browser journeys pass locally; `game-ci` on `af-linux` is green for the PR.
 - **Failure cases covered:** a host that never says ready shows nothing; a failing handshake shows the error text; walking into a wall stops at it; the goal fires once.
-- **Open after this slice (M1.8):** the host and content demos (their lanes are merged), the physics demo (waiting on #9); the gallery; `create-game`; S8 re-measured on `base-2d`; published to Ruken's local stack and the dev host; phone play and the Owner's look review.
+- **Open after this slice (M1.8):** the host, content and physics demos (their lanes are merged); the gallery; `create-game`; S8 re-measured on `base-2d`; published to Ruken's local stack and the dev host; phone play and the Owner's look review.
