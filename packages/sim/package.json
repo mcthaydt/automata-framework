@@ -12,7 +12,8 @@
     "test": "vitest run --project node --project browsers",
     "bench": "vitest run --project bench",
     "test:unit": "vitest run --project node",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "test:parity": "vitest run --project browsers"
   },
   "dependencies": {
     "koota": "0.6.6",

@@ -1,6 +1,13 @@
 node_modules/
 dist/
+dist-s8/
+dist-e2e-host/
+playwright-report/
 .turbo/
 spikes/out/
 *.log
 .DS_Store
+evidence/
+playwright-report-remote/
+test-results/
+.ruken/
