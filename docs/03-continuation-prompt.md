@@ -33,7 +33,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 - Ruken packages (`@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`) are unpublished; Ruken gates publication on `NPM_PUBLISH_READY` and its M0.3. AF vendors them in `vendor/ruken/` at RukenApp `b30d31b` (D-6); the integration owner re-vendors.
 - Request to Ruken: the SDK at `b30d31b` still sends `baseRevision` and `writeId` on `saves.set`/`saves.remove` (Ruken `packages/protocol/src/meta/types.ts` lines 94–100). AF does not use them; whether they stay is Ruken's call.
-- What counts as green: hosted Actions get no runner. The Owner is choosing between local CI only, a self-hosted runner for AF, or raising the Actions limit. Lanes are paused until PR #4 is green by that answer.
+- What counts as green (Owner, 2026-10-11): a full local CI run (Node 24, `pnpm check`, parity in Chromium, WebKit and Firefox) is the gate while hosted Actions get no runner. PR #4 is green by that rule on `e34203a`; the lanes may restart. Wiring a self-hosted runner stays under D-5.
 - Ruken's F1 freeze is planned for 2026-10-16; the `contracts-f1` tag did not exist on 2026-10-11. Re-vendor and re-run contract tests after it.
 - Ruken has no `[store]` manifest section yet; the `store` extension waits for it.
 - `@pixi/3d` is a 0.1.0 beta (D-1). D-1 to D-6 run on their defaults (master spec §12) until the Owner overrides them.

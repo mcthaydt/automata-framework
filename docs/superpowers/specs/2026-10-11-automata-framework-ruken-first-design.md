@@ -185,7 +185,7 @@ The Owner asked on 2026-10-11 to proceed in parallel, so each decision below run
 | D-2 | Adoption scope for the reference games in M8, and the 3D game's concept | A slice each (FloorFifty: host, loading and layout; The Last Light: puzzle and sectors), not full migration. The 3D game's concept is chosen at GAME-3D.0. | M8, GAME-3D |
 | D-3 | Lint and format | Keep Biome. Revisit only if aligning with Ruken's ESLint + Prettier becomes necessary; the sim's `useExponentiationOperator` rule must survive either way | M1.1 |
 | D-4 | Standalone hosting | Reuse FloorFifty's proven pattern: a Caddy static host with a build per URL (`/builds/<buildId>/`) and the live release at `/`. `ship` keeps the provider behind a deploy step, so a later move to Cloudflare Pages/R2 does not change games. | M1.2 |
-| D-5 | GPU runner | Reuse the Owner's existing runners (the WSL Linux runner and the Windows GPU runner). Until they are wired to AF, every CI job, including parity, is also run locally before a PR is called green (hosted Actions jobs are not getting runners). No new Linux GPU box. | M1.1 |
+| D-5 | GPU runner | Reuse the Owner's existing runners (the WSL Linux runner and the Windows GPU runner). Until they are wired to AF, every CI job, including parity, is run locally, and that local run is the green gate (Owner, 2026-10-11; hosted Actions jobs are not getting runners). No new Linux GPU box. | M1.1 |
 | D-6 | How AF gets Ruken's unpublished packages | Vendor `@ruken/sdk`, `@ruken/sdk-host` and `@ruken/manifest` tarballs in `vendor/ruken/` at a recorded RukenApp commit (`b30d31b`), with their SHA-256 and rebuild steps, as FloorFifty does. The integration owner re-vendors (after Ruken's F1 freeze and on request); lanes consume. | M1.2, M1.4 |
 
 ## 13. Risks
