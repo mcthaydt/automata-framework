@@ -1,0 +1,36 @@
+{
+  "name": "@mcthaydt/automata-content",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./vite": "./src/vite/index.ts"
+  },
+  "bin": {
+    "automata-content": "./src/cli/main.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project node",
+    "test:parity": "vitest run --project browsers",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@mcthaydt/automata-sim": "workspace:*",
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
+    "effect": "3.22.2",
+    "smol-toml": "1.9.0",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "vite": "8.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "playwright": "1.63.0",
+    "vite": "8.3.2",
+    "vitest": "5.0.3"
+  }
+}

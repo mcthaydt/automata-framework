@@ -1,0 +1,8 @@
+# Same meaning as equivalent-a: keys and tables in another order.
+sheetAliases.gold = "ninja.gold"
+sheetAliases.cyan = "ninja.cyan"
+displayName = "Cyan"
+
+[portraitAliases]
+gold = "portrait.gold"
+cyan = "portrait.cyan"
