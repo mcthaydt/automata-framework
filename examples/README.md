@@ -33,7 +33,7 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 | `host/lifecycle-and-saves` | host lane | `base-2d` | Built (feature-demos PR, stacked on #10) |
 | `content/hot-reload` | content lane | `base-2d` | Built (feature-demos PR, stacked on #10) |
 | `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR (#7); needs no base |
-| `physics/bodies-2d` (Rapier crates and balls in the room, pushed by the character; [spec](../docs/superpowers/specs/2026-10-11-m2-physics-demo-design.md)) | sim lane, M2.1b | `base-2d` | First version built on `playRoom` (feature-demos PR #14); M2.1b gap work in its own PR; waits on base-2d's `startGame` options and typed failure |
+| `physics/bodies-2d` (Rapier crates and balls in the room, pushed by the character; [spec](../docs/superpowers/specs/2026-10-11-m2-physics-demo-design.md)) | sim lane, M2.1b | `base-2d` | Built on `playRoom` (#14, finished in #17; spec §11 lists the deviations); waits on the Owner's look at the screenshots |
 | `physics/bodies-3d` | sim lane | `base-3d` | Waits on `base-3d` (M3) |
 | `sim/content-restore` (a snapshot is gated by gameplay content, not by store metadata; [spec](../docs/superpowers/specs/2026-10-11-m2-content-in-sim-design.md#8-demo-examplessimcontent-restore)) | content lane, M2.2 | `base-2d` | Base built; to do with M2.2 (needs base-2d's content swap) |
 | `testing/record-replay` (play, then watch the run re-simulated from its `.replay` with every check passing; [spec](../docs/superpowers/specs/2026-10-11-m2-goldens-and-replays-design.md#8-demo-examplestestingrecord-replay)) | testing lane, M2.3 | `base-2d` | Base built; to do with M2.3 (needs base-2d's `startGame` options) |

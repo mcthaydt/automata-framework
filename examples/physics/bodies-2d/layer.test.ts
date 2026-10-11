@@ -4,7 +4,7 @@ import type { Command, Sim, StepResult } from '@mcthaydt/automata-sim'
 import { type Sprite, Texture } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createBodiesSim } from './bodies-sim.ts'
-import { bodiesLayer } from './layer.ts'
+import { bodiesLayer, type Drawn } from './layer.ts'
 import { Drop, MAX_LOOSE, Prop, PropKind } from './sim/bodies.plugin.ts'
 
 // The layer draws from the sim's RenderDelta alone, the way render-pixi will: it never reads the sim.
@@ -52,6 +52,32 @@ describe('bodiesLayer', () => {
     expect(after.some((y, i) => y > (before[i] as number))).toBe(true)
     layer.reset?.()
     expect(sprites(layer)).toHaveLength(0)
+  })
+
+  it('starts over on a resync delta, keeping only the bodies it lists', async () => {
+    const sim = await createBodiesSim(ROOM)
+    sims.push(sim)
+    const layer = bodiesLayer(ROOM.rows.length * ROOM.tileSize, textures)
+    const first = step(sim)
+    layer.apply?.(first)
+    expect(sprites(layer)).toHaveLength(7)
+    const [one] = first.render.added.filter((row) => row.components[Prop.id] !== undefined)
+    const resync: StepResult = {
+      ...first,
+      render: { resync: true, added: one ? [one] : [], changed: [], removed: [] },
+    }
+    layer.apply?.(resync)
+    expect(sprites(layer)).toHaveLength(1)
+  })
+
+  it('reports how many bodies it drew and where the rightmost crate is', async () => {
+    const sim = await createBodiesSim(ROOM)
+    sims.push(sim)
+    const drawn: Drawn[] = []
+    const layer = bodiesLayer(ROOM.rows.length * ROOM.tileSize, textures, (d) => drawn.push(d))
+    layer.apply?.(step(sim))
+    // The crate stack starts at x = 6.5 m, 104 px.
+    expect(drawn.at(-1)).toEqual({ count: 7, crateX: 104 })
   })
 
   it('drops the sprite of a body the sim removed', async () => {

@@ -17,3 +17,24 @@ test('boots under the fake host, ready and quiet; bodies collide, and a drop add
   await expect(game).toHaveAttribute('data-bodies', '8')
   expect(errors).toEqual([])
 })
+
+// Wick walks into the crate stack and shoves it: the rightmost crate's sprite moves right. On the demos
+// project's phone (portrait), and at the 780 × 270 phone-landscape size.
+for (const size of [undefined, { width: 780, height: 270 }]) {
+  test.describe(size === undefined ? 'phone portrait' : '780 × 270', () => {
+    if (size !== undefined) test.use({ viewport: size })
+
+    test('walking into the crates moves a crate’s sprite', async ({ page }) => {
+      const errors = await collectErrors(page)
+      const frame = await openHosted(page, url, GAME_ID)
+      const game = frame.locator('#game')
+      // The stack settles where it started, 104 px across the room.
+      await expect(game).toHaveAttribute('data-crate-x', '104')
+      await frame.locator('canvas').click()
+      await page.keyboard.down('ArrowRight')
+      await expect.poll(async () => Number(await game.getAttribute('data-crate-x'))).toBeGreaterThan(108)
+      await page.keyboard.up('ArrowRight')
+      expect(errors).toEqual([])
+    })
+  })
+}

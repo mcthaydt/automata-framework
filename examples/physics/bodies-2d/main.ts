@@ -5,7 +5,7 @@
 // ledges and pile up. Drop more and watch the collision events count up. Physics runs inside the sim
 // (sim/bodies.plugin.ts), so the pile is the same on every engine (golden.parity.test.ts); this page only
 // sends the drops and draws the bodies.
-// Files: bodies-sim.ts makes the sim and places the bodies (walls from sim/room-colliders.ts); sim/ is what runs
+// Files: boot.ts types the boot failures for base-2d's bootPage; bodies-sim.ts makes the sim and places the bodies (walls from sim/room-colliders.ts); sim/ is what runs
 // each step; layer.ts draws the bodies from the sim's RenderDelta with the 8 × 8 sprites in art/.
 // Controls: arrows or A/D to move, Space, Z, W or Up to jump, B, X or C to drop a body above Wick; on-screen
 // buttons on touch (▣ drops).
@@ -17,14 +17,15 @@ import '@fontsource/pixelify-sans/latin-400.css'
 import '@fontsource/pixelify-sans/latin-700.css'
 import '@af-examples/base-2d/style.css'
 import './bodies-panel.css'
-import { ROOM } from '@af-examples/base-2d'
+import { bootPage, ROOM } from '@af-examples/base-2d'
 import { playRoom } from '@af-examples/base-2d/play'
 import { textureFromPixels } from '@af-examples/base-2d/render'
 import { makeHosting } from '@mcthaydt/automata-host'
 import type { Command, Sim } from '@mcthaydt/automata-sim'
-import { Effect } from 'effect'
+import { Effect, Scope } from 'effect'
 import { CRATE, STONE } from './art/sprites.ts'
 import { createBodiesSim } from './bodies-sim.ts'
+import { hostReady, playBodies } from './boot.ts'
 import { bodiesLayer } from './layer.ts'
 import { Drop } from './sim/bodies.plugin.ts'
 
@@ -53,8 +54,12 @@ function dropCommands(sim: Sim): Command[] {
 }
 
 const program = Effect.gen(function* () {
-  const hosting = yield* makeHosting({ gameId: GAME_ID, wants: [], pauseBehavior: 'pause' })
-  yield* hosting.ready
+  yield* hostReady(
+    Effect.gen(function* () {
+      const hosting = yield* makeHosting({ gameId: GAME_ID, wants: [], pauseBehavior: 'pause' })
+      yield* hosting.ready
+    }),
+  )
   // Nothing was drawn before this line: the page stays empty until the host says ready.
   let bumps = 0
   const counter = document.createElement('aside')
@@ -66,11 +71,12 @@ const program = Effect.gen(function* () {
   const bodies = bodiesLayer(
     ROOM.rows.length * ROOM.tileSize,
     { crate: textureFromPixels(CRATE), stone: textureFromPixels(STONE) },
-    (count) => {
-      root.dataset.bodies = String(count)
+    (drawn) => {
+      root.dataset.bodies = String(drawn.count)
+      root.dataset.crateX = String(drawn.crateX)
     },
   )
-  const play = yield* Effect.promise(() =>
+  const play = yield* playBodies(() =>
     playRoom(root, {
       createSim: createBodiesSim,
       commands: dropCommands,
@@ -98,12 +104,14 @@ const program = Effect.gen(function* () {
   root.append(counter)
   showBumps()
   play.start()
-  document.documentElement.dataset.state = 'ready'
-  yield* Effect.never
 })
 
-Effect.runPromise(Effect.scoped(program)).catch((error: unknown) => {
-  root.textContent = "Couldn't start the demo."
-  document.documentElement.dataset.state = 'failed'
-  console.error(error)
+// The host connection lives as long as the page, so its scope is never closed. bootPage sets data-state to
+// ready, or shows base-2d's failure message ("This device can't run the game." when Rapier won't load).
+const pageScope = Effect.runSync(Scope.make())
+void bootPage({
+  root,
+  html: document.documentElement,
+  start: program.pipe(Scope.extend(pageScope)),
+  log: (message, error) => console.error(message, error),
 })

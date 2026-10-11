@@ -15,14 +15,19 @@ export interface BodyTextures {
   readonly stone: Texture
 }
 
-/**
- * `roomHeightPx` flips physics' y (up) to the room's (down). `onCount` hears how many bodies are drawn after each
- * step, for the page's `data-bodies` attribute.
- */
+/** What the layer drew after a step, for the page's data attributes (the browser journeys read them). */
+export interface Drawn {
+  /** Sprites on screen. */
+  readonly count: number
+  /** The rightmost crate's x in room pixels, or -1 with no crate; a shove moves it. */
+  readonly crateX: number
+}
+
+/** `roomHeightPx` flips physics' y (up) to the room's (down). `onDrawn` hears what is drawn after each step. */
 export function bodiesLayer(
   roomHeightPx: number,
   textures: BodyTextures,
-  onCount: (count: number) => void = () => {},
+  onDrawn: (drawn: Drawn) => void = () => {},
 ): RendererLayer {
   const view = new Container()
   const sprites = new Map<number, Sprite>()
@@ -64,7 +69,10 @@ export function bodiesLayer(
       for (const row of delta.added) place(row)
       for (const row of delta.changed) place(row)
       for (const sid of delta.removed) forget(sid)
-      onCount(sprites.size)
+      let crateX = -1
+      for (const sprite of sprites.values())
+        if (sprite.texture === textures.crate) crateX = Math.max(crateX, sprite.x)
+      onDrawn({ count: sprites.size, crateX })
     },
     // A new round starts a fresh sim, whose first delta is a resync; drop the old round's sprites now.
     reset: clear,
