@@ -19,6 +19,8 @@ export default defineConfig({
           include: ['src/**/*.test.ts'],
           exclude: ['src/**/*.layout.test.ts'],
           setupFiles: ['./src/vitest-setup.ts'],
+          // Real CSS, so the theme test reads theme.css and components carry their styles.
+          css: true,
         },
       },
       {
