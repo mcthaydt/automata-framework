@@ -19,7 +19,13 @@
 | `render-pixi` (M1.7) | `src/render/`: Pixi 8 initialised the way FloorFifty does (no-eval entry, WebGL preference, nearest scaling, integer letterbox) | `render-pixi` with its `RenderDelta` consumer |
 | `ui` (M1.6, #7) | `src/screens/`: plain DOM screens with 44 px controls and 48 px primary actions, colors from Endesga 64 | `ui` primitives and theme tokens |
 
-The sim half is the real thing: a sim plugin on `automata-sim`, checked by `check-boundaries`, with a golden hash identical in Node, Chromium, WebKit and Firefox. Demos and games reuse it through the package exports.
+The sim half is the real thing: a sim plugin on `automata-sim`, checked by `check-boundaries`, with a golden hash identical in Node, Chromium, WebKit and Firefox. Demos and games reuse it through the package exports:
+
+- `@af-examples/base-2d` gives `createBaseSim`, `moveCommand`, the room, and `startGame(root, { plugins?, onRound?, layers? })`. The options let a demo add sim plugins to every round's sim, spawn its own entities on each fresh sim (a throw there fails the round), and add `RendererLayer`s. It also gives `bootPage` and the boot failures, so a demo's `main.ts` shows the same error screen.
+- `@af-examples/base-2d/sim` is the sim plugin and its definitions alone, with no boot code. A demo's sim root can import it under `check-boundaries --allow-import`.
+- `@af-examples/base-2d/render` is the renderer, with `addLayer`.
+
+These are what the M2 demos asked for (M2.1b spec, "Needs from integration").
 
 **Deliverables.** `examples/base-2d/` (package `@af-examples/base-2d`): sim plugin, room content, art as palette-indexed pixel maps, renderer, screens, input, loop, boot, ship config, unit and parity tests, browser journeys; a `base-2d` project in the root `playwright.config.ts`; a `base-2d` job in `ci.yml` through `game-ci.yml`; the three `@mcthaydt/automata-sim` entry points added to the `check-boundaries` import allowlist (identical to the change in PR #9, so the two merge cleanly); `pixi.js` pinned in `docs/versions.md`.
 
