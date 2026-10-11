@@ -12,7 +12,7 @@
 - **Provenance (the hub, 23:22Z):** [`docs/provenance/the-last-light.md`](../../provenance/the-last-light.md) maps every file taken from The Last Light to its source at `741e595`. A PR that brings in, changes or removes Last Light material updates its rows in the same PR. The Owner reviews the list file by file before anything goes public.
 - **Progress:** 18 / 36 tasks done locally (P1–P6, C1, C2, Q1, Q2, R1, R2, R3, S7a, K1, M3.9a, M3.2). None is in review yet.
   - **Part done:** M1.7a (its changeset waits for #19); R4 (all but the GPU claim: `f68d726` on `m3-stage`); Q3 (the caret peer is in, `efa312d`, and its package test no longer reaches into `tooling`, `68055a9`; the GPU parity step remains).
-  - **In progress:** H0 v2.
+  - **In progress:** H0 v2 (with the Owner), B1 (sim and golden), D1.
 
 ## Runner legend
 
@@ -261,6 +261,8 @@ Needs C2's money-safety step first (done, `ce2f3cd`).
   - *concept scenes rendered from base-2d's own tiles with The Last Light's lighting ideas, labelled concept and kept private.*
 
   *base-2d was captured at those three sizes for this (`bced229`). It scales its room by a fraction on touch screens (1.2875× at 412×915, 1.406× at 780×270, 3× on desktop), although its renderer's comment says whole pixels. This goes to the base-2d thread through the coordinator.*
+
+  *v2b sent to the coordinator for the Owner's look (2026-10-11, about 00:00Z): three compare boards (base-2d's shipped screenshot beside the 2.5D and 3D frames at each size), six clean frames, the stick states and the geometry board in the shared folder's `designs/m3-hud-v2/`, private. The scenes are concept renders from base-2d's own sprites (`inputs/concept/`): every pixel Endesga 64, no AI image generation. The corner row sits 8 px in and the bottom row 16 px, as in base-2d. Open point sent with it: the skin's outlines are faint (about 1.1:1) over the night scenes, as base-2d's shipped pause is; recommended keeping base-2d's skin.*
 
   *HUD code waits for the Owner's approval of v2.*
 
