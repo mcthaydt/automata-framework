@@ -200,7 +200,7 @@ All P tasks are **L**: Node only, no network, providers faked. Package `packages
 ## Lane integration
 
 ### H0 HUD design — O
-- [ ] The Designer (effort high) lays out the base-25d and base-3d HUD in Figma at phone portrait, 780×270 and desktop (spec §8), Endesga 64 tokens, `hostReserved` and safe area shown. The Owner looks (O) before B1's HUD code.
+- [ ] The Designer (effort high) lays out the base-25d and base-3d HUD in Figma at phone portrait, 780×270 and desktop (spec §8), Endesga 64 tokens, `hostReserved` and safe area shown. The Owner looks (O) before B1's HUD code. *Laid out 2026-10-11: [Figma](https://www.figma.com/design/1V9C2V0DfkyI7Q9Ow05HpN), PNGs and README in the shared folder's `designs/m3-hud/`; sent for the Owner's look with six defaults (orbit top-right, 8-cell pad, no action button, light orbit skin, pause flush to the strip, the base-3d drag hint). B1 note: base-2d's pad insets from the safe area only, not from `hostReserved`.*
 
 ### B1 `examples/base-25d` — L, LB, C, then R
 **Files:** `examples/base-25d/{package.json, index.html, main.ts, vite.config.ts, vitest.config.ts, ship.config.ts}`, `src/{index.ts (Pixi-free), game.ts, render.ts, sim/{base-25d.plugin.ts, player.component.ts, move.command.ts, walls.system.ts, directions.ts}, content/room25d.{schema,content}.ts, golden.ts, golden.test.ts, golden.parity.test.ts, hud/, boot.test.ts}`, `content/{room.toml, look3d.toml, characters.toml, props.toml, post.toml}`, `e2e/base-25d.e2e.ts`. Needs M1.7a, R4, Q3, H0, and base-2d's `./screens` export (from the base-2d thread).
@@ -217,8 +217,8 @@ All P tasks are **L**: Node only, no network, providers faked. Package `packages
 
 ### X1 Runner claims per merge wave — R
 Each wave is one claim through the coordinator, covering af-linux `checks` and `parity` for every PR in it (draft PRs are opened inside the claim) and any `approve-gate.yml` runs that fall in it (spec §9.3, audit B5):
-- [ ] **W1:** M3.2 (the `pixi.js` bump and the tarball fetch), M1.7a, P1–P3, K1. Needs #19 merged (changesets).
-- [ ] **W2:** R1–R3, Q1–Q3, P4–P6, the S7a verdict, M3.9a. `post-retro` and `render-pixi3d` already import from the K1 subpath.
+- [ ] **W1:** M3.2 (the `pixi.js` bump and the tarball fetch), M1.7a, P1–P6 and C1 (one pipelines PR: P3–P6 were built together on one runner), K1. Needs #19 merged (changesets).
+- [ ] **W2:** R1–R3, Q1–Q3, the S7a verdict, M3.9a. `post-retro` and `render-pixi3d` already import from the K1 subpath.
 - [ ] **W3:** R4, C1–C2, D1, B1, B2. Needs CI read access to The Last Light, so the jobs can run `fetch.mjs --required` first: a fine-grained token, Contents: read on that one repo, an Actions secret never echoed (spec §5.2 and §15 Q6, an Owner follow-up).
 - [ ] **W4:** R5, Q4, S1.
 - [ ] **GPU claim (end):** S7b FPS (S7 scene and base-25d; WebGL2 and WebGPU; S20 and iPhone 13 profiles); WebGL2 vs WebGPU pixel parity for each post pass and the base-25d frame; journeys for base-25d, base-3d and the `render-pixi3d`, `post-retro` and `bodies-3d` demos (Pixel 7, 780×270, desktop); a deterministic 1920×1080 capture of base-25d for CAPTURE (`beta-only`).

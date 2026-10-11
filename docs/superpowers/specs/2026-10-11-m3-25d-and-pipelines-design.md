@@ -421,8 +421,8 @@ af-linux work is claimed per merge wave, so lanes do not stack on unmerged branc
 
 | Wave | PRs | Needs before the claim |
 |---|---|---|
-| W1 | M3.2 (the `pixi.js` bump and the tarball fetch), M1.7a, P1–P3, M3.12 | #19 merged (changesets); green locally |
-| W2 | R1–R3, Q1–Q3, P4–P6, the S7a verdict, M3.9a | W1 merged; `post-retro` and `render-pixi3d` import from `@mcthaydt/automata-content/schema` |
+| W1 | M3.2 (the `pixi.js` bump and the tarball fetch), M1.7a, P1–P6 and C1 (one pipelines PR), M3.12 | #19 merged (changesets); green locally |
+| W2 | R1–R3, Q1–Q3, the S7a verdict, M3.9a | W1 merged; `post-retro` and `render-pixi3d` import from `@mcthaydt/automata-content/schema` |
 | W3 | R4, C1–C2, D1, B1, B2 | W2 merged; H0 design approved; CI can fetch `@pixi/3d` (read access to The Last Light, §15 Q6) |
 | W4 | R5, Q4, S1 | W3 merged |
 
