@@ -88,8 +88,8 @@
 
 | Date | Task | Commits | Notes |
 |---|---|---|---|
-| 2026-10-11 | 1–2 | `358892d` | Framing tests live in `plugin-state.test.ts`, not `snapshot.test.ts` (deviation noted in task 2). |
-| 2026-10-11 | 3–6 | this and the three commits before it | Sim golden `2dfe1971eaf6af8f` → `98cc273719c10ef2` (task 6: the schema hash now covers resource, command and event schemas); identical in Node, Chromium, WebKit and Firefox. Fault handling is fail-closed (spec §10.2). |
-| 2026-10-11 | 7 | `c2423d6` | XXH64 on 32-bit halves; the BigInt version kept as `testing/xxhash64-reference.ts` for the equivalence test. |
-| 2026-10-11 | 8–12 | `cab4784`..`74f7638` | Deviation: the plugin factories live in `physics-2d.ts` / `physics-3d.ts`, not `*.plugin.ts`, because `pnpm style` requires a `*.plugin.ts` file to export a `definePlugin` result directly and the factories build one per call. |
-| 2026-10-11 | 13 | this commit | Node 24, Intel Xeon 2.10 GHz, 4 cores. First `createSim` with `RAPIER.init()`: 3D 105.8 ms, 2D 66.3 ms. Median ms/tick over 300 ticks, 100 / 500 dynamic bodies: 3D 0.252 / 0.998, 2D 0.227 / 0.815 (before the overhead work: 3D 0.606 / 2.470, 2D 0.451 / 1.994; Rapier alone at 500 3D bodies 0.111). `dist/rapier.mjs`, raw / gzip -9: rapier2d-deterministic-compat 3,452,335 / 1,301,241 bytes; rapier3d-deterministic-compat 4,372,012 / 1,659,546 bytes. |
+| 2026-10-11 | 1–2 | `3720e4a` | Framing tests live in `plugin-state.test.ts`, not `snapshot.test.ts` (deviation noted in task 2). |
+| 2026-10-11 | 3–6 | `29c64ff`..`4337067` | Sim golden `2dfe1971eaf6af8f` → `98cc273719c10ef2` (task 6: the schema hash now covers resource, command and event schemas); identical in Node, Chromium, WebKit and Firefox. Fault handling is fail-closed (spec §10.2). |
+| 2026-10-11 | 7 | `0ff07a9` | XXH64 on 32-bit halves; the BigInt version kept as `testing/xxhash64-reference.ts` for the equivalence test. |
+| 2026-10-11 | 8–12 | `389e2ce`..`dba2df3` | Deviation: the plugin factories live in `physics-2d.ts` / `physics-3d.ts`, not `*.plugin.ts`, because `pnpm style` requires a `*.plugin.ts` file to export a `definePlugin` result directly and the factories build one per call. |
+| 2026-10-11 | 13 | `df9c55f` | Node 24, Intel Xeon 2.10 GHz, 4 cores. First `createSim` with `RAPIER.init()`: 3D 105.8 ms, 2D 66.3 ms. Median ms/tick over 300 ticks, 100 / 500 dynamic bodies: 3D 0.252 / 0.998, 2D 0.227 / 0.815 (before the overhead work: 3D 0.606 / 2.470, 2D 0.451 / 1.994; Rapier alone at 500 3D bodies 0.111). `dist/rapier.mjs`, raw / gzip -9: rapier2d-deterministic-compat 3,452,335 / 1,301,241 bytes; rapier3d-deterministic-compat 4,372,012 / 1,659,546 bytes. |
