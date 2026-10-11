@@ -12,6 +12,8 @@ export interface Manifest {
   readonly devDependencies?: Readonly<Record<string, string>>
   readonly peerDependencies?: Readonly<Record<string, string>>
   readonly optionalDependencies?: Readonly<Record<string, string>>
+  readonly private?: boolean
+  readonly publishConfig?: unknown
 }
 
 const SECTIONS = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'] as const
@@ -52,4 +54,22 @@ const EXACT_VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/
 /** The pins that are ranges (`^1`, `~1`, `*`, `>=1`, `1.x`) rather than exact versions. */
 export function findRanges(pins: readonly Pin[]): Pin[] {
   return pins.filter((pin) => !EXACT_VERSION.test(pin.version))
+}
+
+/** `^1.2.3` on an exact version, and nothing looser. */
+const CARET_ON_EXACT = /^\^(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/
+
+/**
+ * The one place a range is allowed: a published package's peerDependencies. An exact peer makes a game on the
+ * next patch of Svelte or Vite fail to install AF under npm or strict pnpm, so a published package declares
+ * `^<workspace pin>` there. This reads each such peer as its floor (`^5.57.1` → `5.57.1`), which then has to be a
+ * recorded pin like any other; every other range, and every peer of a private package, is left for findRanges.
+ */
+export function publishedPeerFloors(manifest: Manifest): Manifest {
+  if (manifest.private === true || manifest.publishConfig === undefined) return manifest
+  const peers = Object.entries(manifest.peerDependencies ?? {}).map(([name, version]) => {
+    const floor = CARET_ON_EXACT.exec(version)?.[1]
+    return [name, floor ?? version] as const
+  })
+  return { ...manifest, peerDependencies: Object.fromEntries(peers) }
 }

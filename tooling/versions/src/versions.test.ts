@@ -2,7 +2,14 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { findRanges, type Manifest, type Pin, pinsFromManifests, pinsFromVersionsDoc } from './pins.ts'
+import {
+  findRanges,
+  type Manifest,
+  type Pin,
+  pinsFromManifests,
+  pinsFromVersionsDoc,
+  publishedPeerFloors,
+} from './pins.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 
@@ -30,7 +37,7 @@ function workspaceManifests(): Manifest[] {
 const key = (pin: Pin): string => `${pin.name}@${pin.version}`
 
 describe('docs/versions.md', () => {
-  const used = pinsFromManifests(workspaceManifests())
+  const used = pinsFromManifests(workspaceManifests().map(publishedPeerFloors))
   const recorded = pinsFromVersionsDoc(readFileSync(join(root, 'docs/versions.md'), 'utf8'))
 
   it('has no version ranges in any package.json', () => {
@@ -40,6 +47,16 @@ describe('docs/versions.md', () => {
   it('records every exact pin in a package.json', () => {
     const recordedKeys = new Set(recorded.map(key))
     expect(used.map(key).filter((pin) => !recordedKeys.has(pin))).toEqual([])
+  })
+
+  it("floors a published package's peer ranges at that package's own workspace pin", () => {
+    for (const manifest of workspaceManifests()) {
+      const floors = publishedPeerFloors(manifest).peerDependencies ?? {}
+      for (const [name, version] of Object.entries(manifest.peerDependencies ?? {})) {
+        if (version === floors[name]) continue // exact, workspace: or file:
+        expect(manifest.devDependencies?.[name], `${name} ${version}`).toBe(floors[name])
+      }
+    }
   })
 
   it('has no row for a version nothing uses', () => {

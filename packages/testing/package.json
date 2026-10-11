@@ -33,7 +33,7 @@
     "build": "tsdown"
   },
   "peerDependencies": {
-    "svelte": "5.57.1"
+    "svelte": "^5.57.1"
   },
   "devDependencies": {
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",

@@ -10,6 +10,7 @@
         "$TURBO_ROOT$/packages/*/package.json",
         "$TURBO_ROOT$/tooling/*/package.json",
         "$TURBO_ROOT$/examples/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/turbo.json",
         "$TURBO_ROOT$/.changeset/**"
       ]
@@ -22,6 +23,7 @@
         "$TURBO_ROOT$/packages/*/package.json",
         "$TURBO_ROOT$/tooling/*/package.json",
         "$TURBO_ROOT$/examples/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/turbo.json",
         "$TURBO_ROOT$/.changeset/**"
       ]
