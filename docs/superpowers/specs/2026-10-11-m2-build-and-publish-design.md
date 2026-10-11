@@ -167,6 +167,6 @@ Follows Ruken's tooling, pins and package layout (§2). Ruken publishes to npmjs
 
 ## 10. Open questions
 
-- **Q1 (Owner input):** confirm the release job may use `GITHUB_TOKEN` with `packages: write`, and create `AF_READ_TOKEN` (`read:packages`) for game repositories.
+- **Q1, decided (coordinator, 2026-10-11):** the release job publishes with the workflow's own `GITHUB_TOKEN` (`packages: write`); game repositories install with a read-only `AF_READ_TOKEN` (`read:packages`). Creating that read token is an Owner step at M2.4 time; nothing in this task blocks on it before the first game repository needs it.
 - **Q2:** `access: restricted` (packages visible to those with access to AF, which is private). Recommended while AF is private; M10 decides public core packages.
 - **Q3:** `@sveltejs/package` for `ui` (recommended) or publish `ui` later.

@@ -177,7 +177,7 @@ Plus: each demo in §11 (except `bodies-3d`) merged with its smoke test and gold
 
 ## 14. Open questions and Owner inputs
 
-- **Q1 (Owner):** a GitHub token with `write:packages` for the release job, and one with `read:packages` for games (01 Decomposition §6: "not verified"). Recommended: the release job uses the workflow's own `GITHUB_TOKEN` with `packages: write` (works for packages linked to this repository); games use a fine-grained read token stored as `AF_READ_TOKEN`.
+- **Q1, decided (coordinator, 2026-10-11):** releases use the workflow's own `GITHUB_TOKEN` with `packages: write`; games use a read-only `AF_READ_TOKEN` (`read:packages`), which the Owner creates at M2.4 time (not a blocker before then).
 - **Q2:** one fixed version for all AF packages (recommended, §4) or independent versions? Fixed keeps `update-game` and support simple while everything is `0.0.x`; revisit at 1.0 (M8).
 - **Q3:** `@sveltejs/package` for `ui` (recommended) or ship `ui` unbuilt.
 - **Q4:** the demo names in §11. Recommended as written.
