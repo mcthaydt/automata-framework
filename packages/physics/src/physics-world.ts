@@ -26,8 +26,8 @@ export interface PhysicsAdapter<World> {
   /** Steps once and reports each collision start or end as (collider handle, collider handle, started). */
   step(world: World, onCollision: (a: number, b: number, started: boolean) => void): void
   free(world: World): void
-  hasBody(world: World, body: number): boolean
-  hasCollider(world: World, collider: number): boolean
+  /** Every body and collider handle the world holds, as Rapier reports them. */
+  handles(world: World): { bodies: number[]; colliders: number[] }
   /** Throws an Error naming the sid and field when the entity's physics fields are invalid (spec §5). */
   validate(entity: EntityRef): void
   createBody(world: World, entity: EntityRef): number
@@ -56,6 +56,20 @@ interface Row {
 const PHYSICS_BYTES_VERSION = 1
 const HAS_BODY = 1
 const HAS_COLLIDER = 2
+
+/** The exact 64 bits of a handle, so two handles compare equal only when Rapier would treat them the same. */
+function handleBits(handle: number): bigint {
+  const view = new DataView(new ArrayBuffer(8))
+  view.setFloat64(0, handle, true)
+  return view.getBigUint64(0, true)
+}
+
+function sameHandles(a: readonly number[], b: readonly number[]): boolean {
+  if (a.length !== b.length) return false
+  const left = a.map(handleBits).sort((x, y) => (x < y ? -1 : x > y ? 1 : 0))
+  const right = b.map(handleBits).sort((x, y) => (x < y ? -1 : x > y ? 1 : 0))
+  return left.every((bits, i) => bits === right[i])
+}
 
 /** The per-sim physics state: the plugin's `PluginState`, read by its systems through `ctx.pluginState`. */
 export class PhysicsWorld<World> implements PluginState {
@@ -241,14 +255,17 @@ export class PhysicsWorld<World> implements PluginState {
         cause: err,
       })
     }
-    for (const [sid, row] of rows) {
-      const missing =
-        (row.body !== undefined && !this.rapier.hasBody(world, row.body)) ||
-        (row.collider !== undefined && !this.rapier.hasCollider(world, row.collider))
-      if (missing) {
-        this.rapier.free(world)
-        fail(`row ${sid} names a handle the world does not have`)
-      }
+    // The table must name exactly the world's bodies and colliders. Rapier's own lookup is not enough: it
+    // resolves some malformed handles to a live object, so the check compares exact handle bits instead.
+    const inWorld = this.rapier.handles(world)
+    const inTable = { bodies: [] as number[], colliders: [] as number[] }
+    for (const row of rows.values()) {
+      if (row.body !== undefined) inTable.bodies.push(row.body)
+      if (row.collider !== undefined) inTable.colliders.push(row.collider)
+    }
+    if (!sameHandles(inWorld.bodies, inTable.bodies) || !sameHandles(inWorld.colliders, inTable.colliders)) {
+      this.rapier.free(world)
+      fail('the handle table does not match the world’s bodies and colliders')
     }
     return () => {
       this.rapier.free(this.world)

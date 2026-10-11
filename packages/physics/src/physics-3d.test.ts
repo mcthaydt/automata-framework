@@ -53,8 +53,12 @@ const pose = (sim: Sim, sid: number) =>
   sim.entity(sid)?.get(Transform3D) as { x: number; y: number; z: number }
 const floor = (sim: Sim, y = 0): number =>
   sim.spawn([transform3d({ y: y - 0.1 }), collider3d.cuboid(5, 0.1, 5)]) // top face at `y`
-const ball = (sim: Sim, at: { x?: number; y?: number }, radius = 0.5, extra: SpawnPart[] = []): number =>
-  sim.spawn([transform3d(at), body3d(BodyKind.dynamic), collider3d.ball(radius), ...extra])
+const ball = (
+  sim: Sim,
+  at: { x?: number; y?: number; z?: number },
+  radius = 0.5,
+  extra: SpawnPart[] = [],
+): number => sim.spawn([transform3d(at), body3d(BodyKind.dynamic), collider3d.ball(radius), ...extra])
 
 test('a dynamic ball falls onto a lone cuboid collider and comes to rest on it', async () => {
   const sim = await world()
@@ -116,7 +120,7 @@ test('a removed collider comes back when the component is added again', async ()
   const b = ball(sim, { y: 1 })
   sim.entity(f)?.remove(Collider3D)
   sim.step([])
-  sim.entity(f)?.add(Collider3D, collider3d.cuboid(5, 0.1, 5)[1] as never)
+  sim.entity(f)?.add(Collider3D, (collider3d.cuboid(5, 0.1, 5) as readonly [unknown, never])[1])
   run(sim, 180)
   expect(pose(sim, b).y).toBeCloseTo(0.5, 1)
 })

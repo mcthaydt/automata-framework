@@ -75,9 +75,17 @@ export async function createRapier3D(setup: {
     free(world) {
       world.free()
     },
-    // getRigidBody / getCollider return null for a handle the world does not have.
-    hasBody: (world, body) => (world.getRigidBody(body) as RAPIER.RigidBody | null) !== null,
-    hasCollider: (world, collider) => (world.getCollider(collider) as RAPIER.Collider | null) !== null,
+    handles(world) {
+      const bodies: number[] = []
+      const colliders: number[] = []
+      world.bodies.forEach((body) => {
+        bodies.push(body.handle)
+      })
+      world.colliders.forEach((collider) => {
+        colliders.push(collider.handle)
+      })
+      return { bodies, colliders }
+    },
 
     validate(entity) {
       if (entity.has(Transform3D)) {

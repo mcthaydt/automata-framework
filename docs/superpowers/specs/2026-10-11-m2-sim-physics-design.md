@@ -75,7 +75,7 @@ Physics     version u8 = 1 | rows u32 | per row, ascending sid:
 
 - Rapier handles are f64 bit patterns of `(index, generation)` (they print as denormals, e.g. `5e-324`); `DataView.setFloat64` keeps the bits. The flags byte means no NaN is ever written.
 - `world.takeSnapshot()` goes in verbatim (S2: canonical, round-trip exact; it includes gravity and the timestep).
-- Restore checks: version; rows ascending and unique; flags in range; every handle present in the restored world; no trailing bytes. Any failure is a `SnapshotFormatError`.
+- Restore checks: version; rows ascending and unique; flags in range; the table's handles are exactly the restored world's bodies and colliders, compared bit for bit (Rapier's `getRigidBody` resolves some malformed handles to a live body, so it cannot be the check); no trailing bytes. Any failure is a `SnapshotFormatError`.
 - A row whose sid is no longer alive is valid: a snapshot taken after `entities.flush` still holds the body of an entity despawned that tick, and the next `sync-in` removes it as usual.
 
 ### 3.3 Components
