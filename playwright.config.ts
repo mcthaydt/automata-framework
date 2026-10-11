@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 import * as base2d from './examples/base-2d/e2e/origins.ts'
+import * as contentDemo from './examples/content/hot-reload/e2e/origin.ts'
 import { demoHostOrigin, demoHostPort } from './examples/demo-host/ports.ts'
 import * as hostDemo from './examples/host/lifecycle-and-saves/e2e/origin.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './examples/placeholder/e2e/origins.ts'
@@ -86,6 +87,19 @@ export default defineConfig({
       url: hostDemo.url,
       env: { AF_E2E_DEMO_PORT: String(hostDemo.port) },
       reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      command: 'pnpm --filter @af-examples/content-hot-reload e2e:demo',
+      url: contentDemo.url,
+      env: { AF_E2E_DEMO_PORT: String(contentDemo.port) },
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      // The dev server, for the hot-reload check. Never reused: it must compile this run's copy of content/.
+      command: 'pnpm --filter @af-examples/content-hot-reload e2e:dev',
+      url: contentDemo.devUrl,
+      env: { AF_E2E_DEMO_PORT: String(contentDemo.devPort) },
+      reuseExistingServer: false,
     },
   ],
 })

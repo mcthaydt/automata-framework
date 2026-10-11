@@ -157,11 +157,13 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     },
 
     resolveId(id) {
-      return id === VIRTUAL_MODULE_ID ? RESOLVED_ID : undefined
+      // A query (`virtual:automata/content?v=<hash>`) is how a page imports the module again after a save; it
+      // names the same module.
+      return id.split('?')[0] === VIRTUAL_MODULE_ID ? RESOLVED_ID : undefined
     },
 
     async load(id) {
-      if (id !== RESOLVED_ID) return undefined
+      if (id.split('?')[0] !== RESOLVED_ID) return undefined
       // A dev server may be asked for the module before `buildStart` ran.
       if (!started) await enqueue()
       await chain

@@ -1,0 +1,31 @@
+/* The compiler's messages after a bad save: a panel over the top of the room, in the base's colors and font. */
+.content-problems {
+  position: absolute;
+  inset: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) auto
+    max(8px, env(safe-area-inset-left));
+  padding: 8px 12px;
+  border: 3px solid var(--ember);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  max-height: 60%;
+  overflow: auto;
+}
+
+.content-problems[hidden] {
+  display: none;
+}
+
+.content-problems h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: var(--accent-lit);
+}
+
+.content-problems pre {
+  margin: 0;
+  font:
+    13px / 1.4 ui-monospace,
+    monospace;
+  white-space: pre-wrap;
+  color: var(--text);
+}
