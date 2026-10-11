@@ -25,6 +25,7 @@ test.each([
   ['for-in.ts', 'key-enumeration', 2, 1],
   ['import-node.ts', 'import', 1, 1],
   ['import-dynamic.ts', 'import', 1, 28],
+  ['import-effect.ts', 'import', 1, 1], // ADR 0003: no Effect inside the sim
   ['namespace-runtime.ts', 'math-member', 2, 20],
   ['object-alias.ts', 'key-enumeration', 1, 11],
   ['reflect-destructure.ts', 'key-enumeration', 1, 21],
