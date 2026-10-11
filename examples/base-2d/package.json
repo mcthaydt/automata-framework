@@ -5,7 +5,12 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./render": "./src/render/index.ts"
+    "./render": "./src/render/index.ts",
+    "./play": "./src/play-room.ts",
+    "./no-eval": "./src/no-eval.ts",
+    "./room": "./src/content/room.ts",
+    "./sim": "./src/sim/index.ts",
+    "./style.css": "./style.css"
   },
   "scripts": {
     "dev": "vite",

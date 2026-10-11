@@ -184,6 +184,12 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     expect(localSteps).toContain('pnpm --filter @af-examples/placeholder prepare-ruken')
   })
 
+  it('builds every feature demo (examples/README.md: CI builds every demo)', () => {
+    expect(scripts['build:demos']).toBe('pnpm --filter "./examples/*/*" build')
+    expect(JSON.stringify(ci.jobs.checks?.steps)).toContain('pnpm build:demos')
+    expect(localSteps).toContain('pnpm build:demos')
+  })
+
   it('builds and prepares base-2d and runs the determinism check on its sim, as game-ci does', () => {
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d check')
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d build')
