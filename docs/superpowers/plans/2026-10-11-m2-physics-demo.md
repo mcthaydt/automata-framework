@@ -5,7 +5,7 @@
 - **Spec:** [m2-physics-demo](../specs/2026-10-11-m2-physics-demo-design.md) ("spec"); milestone: [M2](../specs/2026-10-11-m2-deterministic-core-design.md).
 - **Lane:** sim, on its own branch and worktree from `main` once `base-2d` (#10) is merged. Draft PR titled `M2.1b Physics demo`.
 - **Before Task 1:** base-2d's `startGame` options, `./sim` export and typed first-sim failure (spec, "Needs from integration" (1)–(3), §6) are on `main`. Until (3) lands the demo row stays waiting, even if everything else is done. They are integration's work, asked through the coordinator; this plan does not tick them. Tasks 1–3 need neither and can start as soon as #10 merges.
-- **Progress:** 3 / 6 tasks (1–3). Task 4 waits on the WebKit and Firefox parity run, Task 5 on base-2d's typed first-sim failure and `startGame` options, and Task 6 on the Owner's look at the screenshots.
+- **Progress:** 3 / 6 tasks (1–3), and Task 4's golden step. Task 4's `replayGolden` waits on M2.3, Task 5 on base-2d's typed first-sim failure and `startGame` options, and Task 6 on the Owner's look at the screenshots.
 - **Local CI:** Node 24.21.0; `pnpm vitest run <file>`; `pnpm --filter @af-examples/physics-bodies-2d test`; `pnpm --filter @af-examples/physics-bodies-2d test:parity`; `pnpm check`; before calling the PR green `pnpm ci:local`.
 
 ## Interfaces
@@ -36,7 +36,7 @@
 - [x] Implement the five `src/sim` files *#14's single `sim/bodies.plugin.ts`, plus a `Prop` component (crate or stone; rendered, so the layer reads it from the RenderDelta). Also `dropHeight`: when 1.25 m above Wick is inside a platform, the drop moves up a tile at a time until it is clear. `follow-wick` stays in `postPhysics` as in #14. Like the spec's version, it follows one tick late. `pnpm boundaries` passes.* (spec §3.2), `follow-wick` with `before: ['physics2d.sync-in']`; the package's `check` script runs `check-boundaries src/sim --allow-import @af-examples/base-2d/sim`; `pnpm boundaries` and `pnpm style` pass.
 
 ### Task 4: golden
-- [ ] `golden.test.ts`: the scripted 600-tick run against a committed final hash, like base-2d's `golden.test.ts`. Expected failure: no golden recorded. Record in Node, commit the golden alone with the reason; `golden.parity.test.ts` identical in Chromium, WebKit and Firefox.
+- [x] `golden.test.ts`: the scripted 600-tick run against a committed final hash, like base-2d's `golden.test.ts`. Expected failure: no golden recorded. Record in Node, commit the golden alone with the reason; `golden.parity.test.ts` identical in Chromium, WebKit and Firefox. *#14 had a 360-tick golden. It was re-recorded with the spec's 600-tick script and a jump (`ad621eea6325a8db`). On 2026-10-11, `pnpm ci:local` passed in this thread's container, with the same hash in Chromium, WebKit and Firefox.*
 - [ ] After M2.3 merges (a separate small commit, or this PR if M2.3 is already in): swap to `replayGolden` with `snapshotEvery: 10`. Expected failure: no `.replay` golden until recorded.
 
 ### Task 5: page
