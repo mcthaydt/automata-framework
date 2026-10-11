@@ -1,5 +1,12 @@
 import '../theme.css'
-import { mountFixture, REFERENCE_SIZES, TIGHT_SIZES, VARIANTS } from '@mcthaydt/automata-testing'
+import {
+  findUnreachable,
+  mountFixture,
+  REFERENCE_SIZES,
+  type ReferenceSize,
+  TIGHT_SIZES,
+  VARIANTS,
+} from '@mcthaydt/automata-testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { byTestId, publishConditions } from '../testing/layout-contract'
@@ -17,12 +24,29 @@ afterEach(async () => {
   unmount = undefined
 })
 
-async function show(sizeName: string, which: StatusShow): Promise<{ message: DOMRect; actions: DOMRect }> {
-  const size = [...REFERENCE_SIZES, ...TIGHT_SIZES].find((candidate) => candidate.name === sizeName)
-  const rest = VARIANTS.find((variant) => variant.name === 'rest')
-  if (size === undefined || rest === undefined) throw new Error(`no ${sizeName} or rest variant`)
+/** A size outside the reference lists, for the audit's own sweep (smaller than any gate size). */
+const custom = (width: number, height: number): ReferenceSize => ({
+  name: `${width}x${height}`,
+  width,
+  height,
+  formFactor: width > height ? 'phone-landscape' : 'phone-portrait',
+  heightTier: width > height ? 'compact' : undefined,
+  group: 'tight',
+})
+
+async function show(
+  sizeName: string | ReferenceSize,
+  which: StatusShow,
+  variantName = 'rest',
+): Promise<{ message: DOMRect; actions: DOMRect }> {
+  const size =
+    typeof sizeName === 'string'
+      ? [...REFERENCE_SIZES, ...TIGHT_SIZES].find((candidate) => candidate.name === sizeName)
+      : sizeName
+  const variant = VARIANTS.find((candidate) => candidate.name === variantName)
+  if (size === undefined || variant === undefined) throw new Error(`no ${String(sizeName)} or ${variantName}`)
   await page.viewport(size.width, size.height)
-  publishConditions(document.documentElement, size, rest)
+  publishConditions(document.documentElement, size, variant)
   unmount = mountFixture(StatusFixture, { show: which }).unmount
   await settleLayout()
   const boot = which === 'boot-failure'
@@ -64,6 +88,44 @@ describe('ErrorPanel one-row layout', () => {
     const actions = byTestId('error-retry').parentElement?.getBoundingClientRect()
     expect(actions?.left).toBeGreaterThanOrEqual(
       byTestId('error-panel-message').getBoundingClientRect().right,
+    )
+  })
+
+  test('keeps Back reachable with a tight row before it rises: two actions at 667x260 with the keyboard', async () => {
+    await show('tight-landscape-667', 'error', 'keyboard')
+    expect(byTestId('error-panel').dataset.layout).toBe('row-tight')
+    expect(
+      findUnreachable([byTestId('corner-back'), byTestId('error-retry'), byTestId('error-dismiss')]),
+    ).toEqual([])
+  })
+
+  test('never picks a row that does not fit: one action at 480x150 with the keyboard', async () => {
+    await show(custom(480, 150), 'boot-failure', 'keyboard')
+    const panel = byTestId('boot-failure')
+    const layer = panel.parentElement as HTMLElement
+    const contentBottom =
+      layer.getBoundingClientRect().bottom - Number.parseFloat(getComputedStyle(layer).paddingBottom)
+    expect(panel.getBoundingClientRect().bottom).toBeLessThanOrEqual(contentBottom + 0.5)
+  })
+
+  test('shows a whole action once scrolled to, even where the room is shorter than it: 320x120 with the keyboard', async () => {
+    await show(custom(320, 120), 'error', 'keyboard')
+    for (const id of ['error-retry', 'error-dismiss']) {
+      byTestId(id).scrollIntoView({ block: 'nearest' })
+      expect(findUnreachable([byTestId(id)])).toEqual([])
+    }
+  })
+
+  test('keeps the message inside the panel at TV scale on a narrow phone: 320x640', async () => {
+    await show(custom(320, 640), 'error', 'tv-scale')
+    const panel = byTestId('error-panel')
+    const style = getComputedStyle(panel)
+    const contentRight =
+      panel.getBoundingClientRect().right -
+      Number.parseFloat(style.paddingRight) -
+      Number.parseFloat(style.borderRightWidth)
+    expect(byTestId('error-panel-message').getBoundingClientRect().right).toBeLessThanOrEqual(
+      contentRight + 0.5,
     )
   })
 })

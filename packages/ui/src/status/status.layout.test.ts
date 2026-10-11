@@ -36,41 +36,46 @@ function charsWide(beside: HTMLElement, chars: number): number {
   return width
 }
 
+/** The width of the panel's content box: where the message can be at its widest. */
+function contentWidth(panel: HTMLElement): number {
+  const style = getComputedStyle(panel)
+  return panel.clientWidth - Number.parseFloat(style.paddingLeft) - Number.parseFloat(style.paddingRight)
+}
+
 /**
- * The message's own checks (spec §3.4): it shows at least one whole line, at least 20 characters
- * wide, so the actions never stand without a readable reason. Back's coverage is `checkLayout`'s.
+ * The message's own checks (spec §3.4): it shows at least one whole line, and it is at least 20
+ * characters wide (or the whole panel, where that is narrower), so the actions never stand without
+ * a readable reason; in a tight row, at least half that. Back's coverage is `checkLayout`'s.
  */
 function messageProblems(show: (typeof SHOWS)[number]): string[] {
   if (show === 'loader') return []
   const message = byTestId(show === 'boot-failure' ? 'boot-failure-message' : 'error-panel-message')
+  const panel = message.closest<HTMLElement>('[role="alert"]')
+  if (panel === null) return ['the message is not in a panel']
   const line = Number.parseFloat(getComputedStyle(message).lineHeight)
-  const readable = charsWide(message, 20)
   const problems: string[] = []
   if (message.clientHeight < line - 0.5)
     problems.push(`the message shows ${message.clientHeight}px, under one line`)
-  const panel = message.closest<HTMLElement>('[role="alert"]')
-  const tight = panel?.dataset.layout === 'row-tight'
-  if (message.clientWidth < readable - 0.5 && !tight)
+  const tight = panel.dataset.layout === 'row-tight'
+  const readable = Math.min(charsWide(message, 20), contentWidth(panel)) / (tight ? 2 : 1)
+  if (message.clientWidth < readable - 0.5)
     problems.push(
-      `the message is ${message.clientWidth}px wide, under 20 characters (${Math.round(readable)}px)`,
+      `the message is ${message.clientWidth}px wide, under ${tight ? 'half of ' : ''}its readable width (${Math.round(readable)}px)`,
     )
-  // A narrow message is allowed only where the stacked panel cannot fit the room left to it.
-  if (tight && panel !== null) {
-    const layer = panel.parentElement as HTMLElement
-    const style = getComputedStyle(layer)
-    const room =
-      layer.clientHeight - Number.parseFloat(style.paddingTop) - Number.parseFloat(style.paddingBottom)
-    const stacked = Number.parseFloat(panel.dataset.stackFloor ?? '')
-    if (!(stacked > room))
-      problems.push(`the row is tight, but the stacked panel (${stacked}px) fits the room (${room}px)`)
-  }
+  const box = message.getBoundingClientRect()
+  const inner = panel.getBoundingClientRect()
+  const style = getComputedStyle(panel)
+  const right =
+    inner.right - Number.parseFloat(style.borderRightWidth) - Number.parseFloat(style.paddingRight)
+  if (box.right > right + 0.5)
+    problems.push(`the message runs ${Math.round(box.right - right)}px past the panel`)
   return problems
 }
 
 /**
  * A panel with too little room for any layout scrolls as a whole (spec §3.4). Allowed only where
- * the stacked panel cannot fit the room, and then each of its essentials must be reachable once
- * scrolled to.
+ * no layout fits the room the layer normally leaves it (its gutters taken off), and then each of
+ * its essentials must be reachable once scrolled to.
  */
 function overflowProblems(scrolled: readonly HTMLElement[]): string[] {
   const panel = scrolled[0]?.closest<HTMLElement>('[data-overflow]')
@@ -78,11 +83,11 @@ function overflowProblems(scrolled: readonly HTMLElement[]): string[] {
   const problems: string[] = []
   const layer = panel.parentElement as HTMLElement
   const style = getComputedStyle(layer)
-  const room =
-    layer.clientHeight - Number.parseFloat(style.paddingTop) - Number.parseFloat(style.paddingBottom)
-  const stacked = Number.parseFloat(panel.dataset.stackFloor ?? '')
-  if (!(stacked > room))
-    problems.push(`the panel scrolls, but the stacked panel (${stacked}px) fits the room (${room}px)`)
+  const gutter = Number.parseFloat(style.getPropertyValue('--af-gutter'))
+  const top = Math.max(gutter, Number.parseFloat(style.getPropertyValue('--af-inset-top')) || 0)
+  const room = layer.clientHeight - top - gutter
+  const fit = Number.parseFloat(panel.dataset.fitFloor ?? '')
+  if (!(fit > room)) problems.push(`the panel scrolls, but a layout (${fit}px) fits the room (${room}px)`)
   for (const element of scrolled) {
     element.scrollIntoView({ block: 'nearest' })
     problems.push(...findUnreachable([element]).map((problem) => `once scrolled to, ${problem}`))

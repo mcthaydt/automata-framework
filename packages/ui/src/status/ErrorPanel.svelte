@@ -41,22 +41,26 @@ let actionsBox = $state<HTMLElement | undefined>(undefined)
 /** The panel's least height: its padding and border, one line of message and the actions, in px. */
 let floor = $state<number | undefined>(undefined)
 let layer = $state<HTMLElement | undefined>(undefined)
+let cornerGap = $state<HTMLElement | undefined>(undefined)
 /**
  * How the message and its actions share the panel:
- * - `row`: side by side, where the message keeps its readable width (its `min-width`, 20
- *   characters) beside the actions;
- * - `stack`: the actions under the message, everywhere else;
- * - `row-tight`: side by side although the message is narrower (down to half its readable width),
- *   only where the room left to the panel is shorter than the stacked panel and the row fits it.
- *   There the choice is a narrow message or actions under the keyboard, and a narrow message reads.
- * Where neither fits (a TV-sized panel in a strip of a window), the panel stacks and `overflows`:
- * it becomes a scroll region of its own, so its reason reads and every action is a scroll away.
- * Measured, because the actions' width (their count and labels) is not known to CSS.
+ * - `row`: side by side, where the message keeps its readable width (20 characters, or the whole
+ *   panel where that is narrower) beside the actions;
+ * - `stack`: the actions under the message;
+ * - `row-tight`: side by side with the message down to half its readable width.
+ * The panel takes the first of those, in that order, that fits under the corner row; only where
+ * none does may it rise over the corner row, taking the one with the least floor (stable sort, so
+ * that order breaks ties), which covers the least of it. Where
+ * nothing fits even then (a TV-sized panel in a strip of a window), the panel stacks and
+ * `overflows`: it fills the visible region and scrolls as a whole, so its reason reads and every
+ * action is a scroll away. Measured, because the actions' width (their count and labels) is not
+ * known to CSS.
  */
 type Layout = 'row' | 'stack' | 'row-tight'
 let layout = $state<Layout>('stack')
 let overflows = $state(false)
-let stackFloor = $state<number | undefined>(undefined)
+/** The least floor of the layouts the panel could take, published for the layout contract. */
+let fitFloor = $state<number | undefined>(undefined)
 
 const px = (value: string): number => Number.parseFloat(value) || 0
 
@@ -71,6 +75,16 @@ function actionsWidth(actions: HTMLElement): number {
 function room(layer: HTMLElement): number {
   const style = getComputedStyle(layer)
   return layer.clientHeight - px(style.paddingTop) - px(style.paddingBottom)
+}
+
+/** How wide `chars` characters of the message's font are, from a probe laid out in the panel. */
+function charsWide(panel: HTMLElement, chars: number): number {
+  const probe = document.createElement('span')
+  probe.style.cssText = `position:absolute;visibility:hidden;width:${chars}ch`
+  panel.append(probe)
+  const width = probe.getBoundingClientRect().width
+  probe.remove()
+  return width
 }
 
 /** The panel's least height in the layout it has now: its chrome, one message line and the actions. */
@@ -104,45 +118,56 @@ function measureFloor(): void {
   const node = panel
   const message = messageBox
   const actions = actionsBox
-  if (node === undefined || message === undefined || layer === undefined || node.offsetHeight === 0) return
+  const layerNode = layer
+  const gap = cornerGap
+  if (node === undefined || message === undefined || layerNode === undefined || node.offsetHeight === 0)
+    return
+  // Measure as the panel normally lies: an overflowing layer drops its padding and corner gap.
+  const shortRoom = layerNode.dataset.room
+  delete layerNode.dataset.room
   const style = getComputedStyle(node)
-  const space = room(layer)
+  const space = room(layerNode)
+  const underCorner = space - (gap === undefined ? 0 : px(getComputedStyle(gap).flexBasis))
   if (actions === undefined) {
+    if (shortRoom !== undefined) layerNode.dataset.room = shortRoom
     layout = 'stack'
-    stackFloor = undefined
-    floor = floorNow(node, style, message)
     overflows = false
+    fitFloor = undefined
+    floor = floorNow(node, style, message)
     return
   }
   const shown = node.dataset.layout
   const tryLayout = (candidate: Layout) => {
     node.dataset.layout = candidate
-    return { floor: floorNow(node, style, message, actions), width: message.clientWidth }
+    return { layout: candidate, floor: floorNow(node, style, message, actions), width: message.clientWidth }
   }
-  const stacked = tryLayout('stack')
-  const readable = px(getComputedStyle(message).minWidth)
-  const row = tryLayout('row')
-  // The message's room beside the actions on one line: the panel's inner width less theirs.
   const inner = node.clientWidth - px(style.paddingLeft) - px(style.paddingRight)
-  const beside = inner - actionsWidth(actions) - px(style.columnGap) >= readable
+  const readable = Math.min(charsWide(node, 20), inner)
+  const row = tryLayout('row')
+  const beside = inner - actionsWidth(actions) - px(style.columnGap) >= readable - 0.5
+  const stacked = tryLayout('stack')
   const tight = tryLayout('row-tight')
   if (shown !== undefined) node.dataset.layout = shown
-  stackFloor = stacked.floor
-  overflows = false
-  if (beside) {
-    layout = 'row'
-    floor = row.floor
-  } else if (stacked.floor <= space) {
-    layout = 'stack'
-    floor = stacked.floor
-  } else if (tight.floor <= space && tight.width >= readable / 2 - 0.5) {
-    layout = 'row-tight'
-    floor = tight.floor
-  } else {
+  if (shortRoom !== undefined) layerNode.dataset.room = shortRoom
+  // The layouts the panel may take, in the order it prefers them.
+  const candidates = [
+    ...(beside ? [row] : []),
+    stacked,
+    ...(tight.width >= readable / 2 - 0.5 ? [tight] : []),
+  ]
+  fitFloor = Math.min(...candidates.map((candidate) => candidate.floor))
+  // Under the corner row: the first that fits. Over it: the least floor, so it covers the least.
+  const rising = candidates.filter((candidate) => candidate.floor <= space).sort((a, b) => a.floor - b.floor)
+  const chosen = candidates.find((candidate) => candidate.floor <= underCorner) ?? rising[0]
+  if (chosen === undefined) {
     layout = 'stack'
     overflows = true
-    floor = Math.floor(space)
+    floor = undefined
+    return
   }
+  layout = chosen.layout
+  overflows = false
+  floor = chosen.floor
 }
 
 $effect(() => {
@@ -161,7 +186,13 @@ $effect(() => {
 })
 </script>
 
-<div bind:this={layer} class="af-error-layer" data-final={final ? '' : undefined}>
+<div
+  bind:this={layer}
+  class="af-error-layer"
+  data-final={final ? '' : undefined}
+  data-room={overflows ? 'short' : undefined}
+>
+  <div bind:this={cornerGap} class="af-error-layer__corner" data-corner-gap aria-hidden="true"></div>
   <div
     bind:this={panel}
     class="af-error-panel"
@@ -169,7 +200,7 @@ $effect(() => {
     data-code={code}
     data-testid={testId}
     data-layout={layout}
-    data-stack-floor={stackFloor}
+    data-fit-floor={fitFloor}
     data-overflow={overflows ? '' : undefined}
     data-scroll-region={overflows ? '' : undefined}
     style:min-height={floor === undefined ? undefined : `${floor}px`}
@@ -213,14 +244,29 @@ $effect(() => {
   /* The room the corner row takes, so the panel sits under it. When the layer is short the panel
      shrinks first, far faster (its shrink weight is 100000 to this gap's 1), until it reaches its
      floor; then this gap gives way, and the panel rises over the corner row. */
-  .af-error-layer::before {
-    content: "";
+  .af-error-layer__corner {
     flex: 0 1 calc(var(--af-target) + var(--af-gutter));
   }
 
   /* A final panel never covers Back: with no actions, Back is the only way out. */
-  .af-error-layer[data-final]::before {
+  .af-error-layer[data-final] .af-error-layer__corner {
     flex-shrink: 0;
+  }
+
+  /* Too little room for any layout (`overflows`): the panel takes the whole visible region, from
+     the top inset to the keyboard, and scrolls; its scrollport is then as tall as it can be, so
+     each action shows whole once scrolled to. */
+  .af-error-layer[data-room="short"] {
+    padding-top: var(--af-inset-top, 0px);
+    padding-bottom: 0;
+  }
+
+  .af-error-layer[data-room="short"] .af-error-layer__corner {
+    flex-basis: 0;
+  }
+
+  .af-error-layer[data-room="short"] .af-error-panel {
+    flex: 1 1 0;
   }
 
   /* Two rows, the message and the actions. The panel shrinks to fit the layer, down to the floor
@@ -250,7 +296,7 @@ $effect(() => {
     min-height: 1lh;
     /* Its readable width, 20 characters: below that the actions stack under it (`layout`). In
        `row-tight` the grid column overrides it. */
-    min-width: 20ch;
+    min-width: min(20ch, 100%);
     overflow-y: auto;
     overscroll-behavior: contain;
   }

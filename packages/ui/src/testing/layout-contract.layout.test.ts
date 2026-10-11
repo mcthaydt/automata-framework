@@ -60,12 +60,16 @@ describe('checkLayout', () => {
   })
 
   // An error layer like ErrorPanel's: 120px tall with 8px padding, so its content box ends at 112px,
-  // passing taps through everywhere but its panel.
-  const layer = (panel: string): string =>
-    '<div style="position:fixed;left:0;right:0;top:0;height:120px;box-sizing:border-box;padding:8px;' +
-    `display:flex;flex-direction:column;pointer-events:none">${panel}</div>`
-  const alert = (style: string): string =>
-    `<div role="alert" data-testid="error" style="background:red;pointer-events:auto;${style}">Failed</div>`
+  // passing taps through everywhere but its panel; a 52px corner gap (Back and a gutter) sits above
+  // the panel, so 52px of the 104px room is under the corner row.
+  const layer = (panel: string, short = false): string =>
+    '<div style="position:fixed;left:0;right:0;top:0;height:120px;box-sizing:border-box;' +
+    `padding:${short ? '0' : '8px'};display:flex;flex-direction:column;pointer-events:none;--af-gutter:8px">` +
+    `<div data-corner-gap style="flex:0 1 ${short ? '0px' : '52px'}"></div>${panel}</div>`
+  /** A panel with its inline floor and the least floor of its layouts (`data-fit-floor`). */
+  const alert = (style: string, fit: number, extra = ''): string =>
+    `<div role="alert" data-testid="error" data-fit-floor="${fit}" ${extra} ` +
+    `style="background:red;pointer-events:auto;flex-shrink:0;${style}">Failed</div>`
 
   test('fails anything that covers Back', async () => {
     const cover = '<div style="position:fixed;left:0;top:0;width:100px;height:100px;background:red"></div>'
@@ -73,23 +77,44 @@ describe('checkLayout', () => {
   })
 
   test('fails an error panel over Back that did not have to rise: taller than its floor', async () => {
-    expect(await check(frame() + layer(alert('min-height:50px;height:104px')))).toEqual([
+    expect(await check(frame() + layer(alert('min-height:50px;height:104px', 104)))).toEqual([
       'back is covered or clipped at its centre',
     ])
   })
 
   test('fails an error panel over Back that did not have to rise: room left under it', async () => {
-    expect(await check(frame() + layer(alert('min-height:80px;height:80px')))).toEqual([
+    expect(await check(frame() + layer(alert('min-height:80px;height:80px;margin-bottom:20px', 80)))).toEqual(
+      ['back is covered or clipped at its centre'],
+    )
+  })
+
+  test('fails an error panel over Back where another layout fits under the corner row', async () => {
+    expect(await check(frame() + layer(alert('min-height:104px;height:104px', 40)))).toEqual([
       'back is covered or clipped at its centre',
     ])
   })
 
   test('passes an error panel at its floor that fills the room, so it had to rise over Back', async () => {
-    expect(await check(frame() + layer(alert('min-height:104px;height:104px')))).toEqual([])
+    expect(await check(frame() + layer(alert('min-height:104px;height:104px', 104)))).toEqual([])
+  })
+
+  test('passes a scrolling panel where no layout fits the room, and fails one where a layout does', async () => {
+    const scrolling = (fit: number): string =>
+      frame() + layer(alert('flex:1 1 0;overflow-y:auto', fit, 'data-overflow data-scroll-region'), true)
+    expect(await check(scrolling(200))).toEqual([])
+    expect(await check(scrolling(90))).toEqual(['back is covered or clipped at its centre'])
   })
 
   test('passes Back covered by a modal dialog: the page behind it is inert', async () => {
     const cover = '<div style="position:fixed;left:0;top:0;width:100px;height:100px;background:red"></div>'
     expect(await check(`<div inert>${frame()}</div>${cover}`)).toEqual([])
+  })
+
+  test("checks a screen's own way out (data-way-out) where it has no corner row", async () => {
+    const back =
+      '<button data-way-out data-testid="leave" style="position:fixed;left:200px;top:200px;width:48px;height:48px">Leave</button>'
+    const cover =
+      '<div style="position:fixed;left:190px;top:190px;width:100px;height:100px;background:red"></div>'
+    expect(await check(back + cover)).toEqual(['leave is covered or clipped at its centre'])
   })
 })

@@ -82,23 +82,40 @@ function findCornerOverlaps(root: ParentNode): string[] {
   return problems
 }
 
+const px = (value: string): number => Number.parseFloat(value) || 0
+
 /**
- * An ErrorPanel that had to rise over the corner row (spec §3.4): it is at its floor (the least
- * height it can take, its inline min-height) and still fills the room its layer leaves it. A panel
- * with room under it, or taller than its floor, could have stayed under the corner row.
+ * An ErrorPanel that had to rise over the corner row (spec §3.4). The panel publishes the least
+ * floor of the layouts it could take (`data-fit-floor`); the room is measured here. A panel that
+ * scrolls as a whole (`data-overflow`) had to when no layout fits the room its layer normally
+ * leaves it (the layer's gutters taken off). Any other panel had to rise when no layout fits under
+ * the corner row (the layer's `[data-corner-gap]` taken off too), and it is at its floor (its
+ * inline min-height) and still fills its layer's room: with room under it, or taller than its
+ * floor, it could have stayed lower.
  */
 function roseBecauseItHadTo(panel: HTMLElement): boolean {
   const layer = panel.parentElement
   if (layer === null) return false
+  const fit = Number.parseFloat(panel.dataset.fitFloor ?? '')
+  const style = getComputedStyle(layer)
+  if (panel.hasAttribute('data-overflow')) {
+    const gutter = px(style.getPropertyValue('--af-gutter'))
+    const top = Math.max(gutter, px(style.getPropertyValue('--af-inset-top')))
+    return fit > layer.clientHeight - top - gutter
+  }
+  const gap = layer.querySelector('[data-corner-gap]')
+  const room = layer.clientHeight - px(style.paddingTop) - px(style.paddingBottom)
+  const underCorner = room - (gap === null ? 0 : px(getComputedStyle(gap).flexBasis))
+  if (!(fit > underCorner)) return false
   const floor = Number.parseFloat(panel.style.minHeight)
   if (!(panel.offsetHeight <= floor + 1)) return false
-  const contentBottom =
-    layer.getBoundingClientRect().bottom - Number.parseFloat(getComputedStyle(layer).paddingBottom)
+  const contentBottom = layer.getBoundingClientRect().bottom - px(style.paddingBottom)
   return Math.abs(panel.getBoundingClientRect().bottom - contentBottom) <= 1
 }
 
 /**
- * The corner row's controls (Back, above all) stay reachable: nothing covers them but a modal
+ * The corner row's controls (Back, above all), and any other control a screen marks as its way out
+ * (`data-way-out`, for a screen without a corner row), stay reachable: nothing covers them but a modal
  * dialog, which makes the page behind it inert, or an ErrorPanel that had to rise over them.
  */
 function findCoveredCorners(root: ParentNode): string[] {
@@ -112,6 +129,11 @@ function findCoveredCorners(root: ParentNode): string[] {
     if (row.closest('[inert]') !== null) continue
     problems.push(...findUnreachable(visibleControls(row)))
   }
+  // A screen without a corner row marks its own way out.
+  const ownWays = [...root.querySelectorAll<HTMLElement>('[data-way-out]')].filter(
+    (control) => control.closest('[inert], [data-corner-controls]') === null,
+  )
+  problems.push(...findUnreachable(ownWays))
   risen.forEach((panel, index) => {
     panel.style.visibility = visibility[index] ?? ''
   })
@@ -121,9 +143,10 @@ function findCoveredCorners(root: ParentNode): string[] {
 /**
  * The checks every screen shares: the document never scrolls; every control is at least the target
  * (primaries the primary target) at this scale, on screen unless in a declared scroll region,
- * never under a reserved area and never over the corner row; the corner row's controls stay
- * reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row
- * (`[data-row]`) clips what it holds; and each of `essentials` is reachable without scrolling.
+ * never under a reserved area and never over the corner row; the corner row's controls and any
+ * `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
+ * ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials`
+ * is reachable without scrolling.
  */
 export function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[] {
   const scale = conditions.geometry.scale
