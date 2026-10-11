@@ -136,7 +136,7 @@ export const FILTER_VERTEX: string; export const WGSL_FILTER_HEADER: string
 export function filterPrograms(name: string, glsl: string, wgsl: string): { glProgram: GlProgram; gpuProgram: GpuProgram }
 ```
 
-- Behaviour from The Last Light `stage.ts:369-387` (try the preference, destroy and retry WebGL once, `dataset.renderer`, `resolution = min(devicePixelRatio, 2)`, `antialias: false`, the framebuffer cap via `renderer.resize(w, h, min(1, capW/w, capH/h))`) with two changes: the default preference is WebGL2 (ADR 0002), and `?renderer=` is read by the game, not by the package (no URL reads in library code).
+- Behaviour from The Last Light `stage.ts:369-387` (try the preference, destroy and retry WebGL once, `dataset.renderer`, `resolution = min(devicePixelRatio, 2)`, `antialias: false`, the framebuffer cap via `renderer.resize(w, h, min(1, capW/w, capH/h))`) with three changes: the default preference is WebGL2 (ADR 0002); `?renderer=` is read by the game, not by the package (no URL reads in library code); and the depth-stencil texture's pixel size is rounded like the colour texture's. S7a found that Pixi 8.22 leaves it fractional at a fractional resolution (the framebuffer cap gives 480/839 on a Pixel 7), WebGL truncates it, the framebuffer is incomplete and every frame with a filter draws black (`docs/spikes/s7-pixi3d.md`).
 - `filterPrograms` and the two shared strings are The Last Light `filter-programs.ts` (42 lines) unchanged, including its leading `name` argument (the `GlProgram` name), with S4's rule (pixel position from the vertex stage).
 - **Packaging:** `render-pixi` is published, so after #19 its PRs carry changesets and ship's build and publish fields. `pixi.js` is a caret peer with the floor at the dev pin (`^8.22.0`) and an exact dev dependency (the standing rule for published packages).
 - Not in M1.7a: `RenderDelta` interpolation, letterbox, canvas resolution policy, 2D sprite layers. They stay M1.7.
@@ -145,6 +145,8 @@ export function filterPrograms(name: string, glsl: string, wgsl: string): { glPr
 ### 5.2 `@mcthaydt/automata-render-pixi3d` (extension, unpublished, D-1)
 
 `private: true`, pinned by a test that fails if the flag is ever dropped (after #19 it is the only thing keeping the package out of a release).
+
+**`./no-eval` (S7a).** Every game that bundles `@pixi/3d` imports `@mcthaydt/automata-render-pixi3d/no-eval` right after `render-pixi/no-eval`. `@pixi/3d` calls no `eval` itself, but it adds four uniform parsers at import (Matrix4, Matrix3, and vec3 from xyz or rgb) that exist only as generated-code source; `pixi.js/unsafe-eval` has no sync function for them, so the first 3D draw throws `functionMap[i] is not a function`. The entry registers those four functions (ported from `spikes/s7-pixi3d/src/pixi3d-no-eval.ts`, no tarball patch). Its uniform-buffer half (the WebGPU path) is unproven until S7b. The gap goes to the beta through the Owner.
 
 **Getting `@pixi/3d` (§15 Q6).** The beta tarball is never committed to AF. `vendor/pixi-3d/` holds a README (version, source commit, SHA-256) and `fetch.mjs`; the tarball itself is git-ignored. `fetch.mjs` takes the file from `PIXI3D_TARBALL` (a path) or from The Last Light's private repo at the pinned commit with the caller's own git access, and writes it only when its SHA-256 equals the README's; a mismatch always exits 1. `@pixi/3d` is an *optional* dependency of the packages that bundle it (`render-pixi3d`, the S7 spike, base-25d, base-3d), so `pnpm install --frozen-lockfile` still works without the file: pnpm skips a missing optional tarball, while a missing regular one fails the whole install (checked with pnpm 10, 2026-10-11). That keeps AF installable where the beta is not available, such as a game's CI installing AF into `.af` (`game-ci.yml`). The root `pnpm:devPreinstall` hook runs `fetch.mjs` and carries on with one notice when no source is reachable. AF's CI jobs run `fetch.mjs --required` first from W3, when the first code that imports `@pixi/3d` merges; that step is the real gate, never the tarball's absence (a machine whose pnpm store already holds the package installs it without the file, which is harmless because the lockfile's integrity pins the same bytes). CI reads The Last Light with a fine-grained read-only token (Contents: read on that one repo), stored as an Actions secret and never echoed; `fetch.mjs` passes credentials outside the URL and never logs a URL that carries them. Code that imports `@pixi/3d` fails to typecheck and to load without the file; the pure modules (camera, lighting, assets) never import it.
 
@@ -336,7 +338,7 @@ The Python scripts move to `packages/pipelines/python/` with their behaviour unc
 
 ## 6. Data and lifecycle flow
 
-**2.5D boot (base-25d)** follows master spec §7: no-eval import → `Hosting` (until M1.5, base-2d's `Ruken.init` stand-in) → content (room, look3d, characters, props, post) → assets (atlas, normals, packs, through the loader with byte progress) → `initRenderer` (WebGL2) → `createStage3D` → bake vertex lighting once per static mesh → splash; gameplay renders only after `session.ready`.
+**2.5D boot (base-25d)** follows master spec §7: no-eval imports (`render-pixi/no-eval`, then `render-pixi3d/no-eval`) → `Hosting` (until M1.5, base-2d's `Ruken.init` stand-in) → content (room, look3d, characters, props, post) → assets (atlas, normals, packs, through the loader with byte progress) → `initRenderer` (WebGL2) → `createStage3D` → bake vertex lighting once per static mesh → splash; gameplay renders only after `session.ready`.
 
 **Input:** the game reads the camera rig's orbit step (presentation) and the player's stick or keys, and sends `move` with a world-space `Direction8`; the sim never sees the azimuth.
 
@@ -362,7 +364,7 @@ The Python scripts move to `packages/pipelines/python/` with their behaviour unc
 |---|---|---|
 | WebGPU preferred but unavailable | One WebGL2 retry; `backend` says which ran; a second failure throws `RendererUnavailable` → the boot failure state | M1.7a |
 | WebGL2 unavailable | `RendererUnavailable`; the page shows the device message (base-2d's existing state) | M1.7a, bases |
-| `@pixi/3d` needs `eval` under Ruken's CSP | S7a fails; M3.4 does not start until the cause is fixed (Pixi's unsafe-eval shim covers it, or the beta is patched in the vendored tarball with the patch recorded) | M3.1 |
+| `@pixi/3d` needs `eval` under Ruken's CSP | S7a fails; M3.4 does not start until the cause is fixed (Pixi's unsafe-eval shim covers it, or the beta is patched in the vendored tarball with the patch recorded). **S7a, 2026-10-11:** neither fit; `render-pixi3d/no-eval` supplies the four missing uniform sync functions (§5.2), so the scene renders under the CSP without patching the tarball | M3.1 |
 | An `LLP1` `.bin` with the wrong magic, a short buffer, or > 65 535 vertices | `PackFormatError` naming the field; the prop is skipped and the load reports it (never a silent empty mesh) | M3.4 |
 | A character atlas whose size is not 8 × 4 cells, or whose normal atlas differs in size | Content error at compile (`file:line:col` on the manifest) when sizes are known; at load, `AtlasError` | M3.4 |
 | A content `post` pass with an unknown name or out-of-range value | Compile error | M3.3 |
@@ -432,7 +434,7 @@ The GPU work is one claim at the end (M3.11):
 
 ## 10. Ruken alignment
 
-- Ruken's game CSP has no `'unsafe-eval'` (`script-src 'self' 'wasm-unsafe-eval'`, via `@ruken/manifest` `compileHeaders`); every M3 page runs under those headers in preview and e2e, as base-2d does (`examples/base-2d/vite.config.ts:11-15, 22`). S7a proves `@pixi/3d` works there.
+- Ruken's game CSP has no `'unsafe-eval'` (`script-src 'self' 'wasm-unsafe-eval'`, via `@ruken/manifest` `compileHeaders`); every M3 page runs under those headers in preview and e2e, as base-2d does (`examples/base-2d/vite.config.ts:11-15, 22`). S7a showed `@pixi/3d` works there with `render-pixi3d/no-eval` on WebGL2; the WebGPU half waits for S7b.
 - `ruken.toml` declares `renderer = "webgl2"` (Ruken's values: `webgl2`, `webgl`, `canvas2d`, `wasm-webgl2`); a game that opts into WebGPU still declares `webgl2`, because WebGL2 is the path every device takes.
 - Size and file-type limits are Ruken's (`packages/validation`, checked by `ruken publish`); M3 quotes none. Ruken's file-type list has `glb`, `bin` and `png` and not `pack` (`content-types.ts:10-50`), so the mesh file is `.bin` (§5.2). Ruken's CSP allows `connect-src 'self'` (`headers.ts:88`).
 - `pipelines` never ships in a game bundle, and no build that bundles `@pixi/3d` goes to the dev host or a public gallery list; `ship prepare` fails either (a check added by M3.5 through the ship lane).
