@@ -54,6 +54,21 @@ describe('every workflow', () => {
     for (const script of runs) expect(script).not.toMatch(/\$\{\{\s*(inputs|github\.event|github\.head_ref)/)
   })
 
+  it.each(ALL)(
+    "%s hands a container job's files back to the runner user, or the next job on the runner cannot check out",
+    (name) => {
+      // A container job runs as root in the runner's shared work folder; root-owned node_modules then break the
+      // next job's checkout (PR #6 on af-linux, 2026-10-11). always() also runs when the job is cancelled.
+      for (const job of Object.values(workflow(name).jobs).filter((each) => each.container !== undefined)) {
+        const last = job.steps?.at(-1)
+        expect(last?.if).toBe('always()')
+        expect(last?.run).toContain('chown -R')
+        expect(last?.run).toContain('/__w')
+        expect(last?.run).toContain('/__t')
+      }
+    },
+  )
+
   it.each(ALL)('%s reads the repository and nothing more by default', (name) => {
     expect(workflow(name).permissions).toEqual({ contents: 'read' })
   })

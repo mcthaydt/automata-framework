@@ -91,6 +91,12 @@ jobs:
       - run: pnpm test:parity
         env:
           HOME: /root # Actions sets HOME to /github/home (not root's); Firefox refuses to run as root there
+      # The container runs as root in the runner's shared work folder (/__w is _work, /__t the tool cache). Hand
+      # everything back to the runner user, the owner of /__w, or the next job's checkout cannot delete the
+      # root-owned node_modules ("Permission denied"). always() runs on failure and on cancel too.
+      - name: Give the work folder back to the runner user
+        if: always()
+        run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
 
   e2e:
     name: browser journeys (nightly and on request)
