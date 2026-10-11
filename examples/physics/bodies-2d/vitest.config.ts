@@ -1,3 +1,6 @@
+// By path: Node loads this config without a bundler, and the package's ./sim entry uses extensionless imports.
+
+import { goldenCommands } from '@mcthaydt/automata-testing/sim/commands'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
@@ -11,7 +14,9 @@ export default defineConfig({
         test: {
           name: 'node',
           environment: 'node',
-          include: ['sim/**/*.test.ts', '*.test.ts'],
+          // Rapier runs hundreds of steps in some tests; the 5 s default fails them on a busy machine.
+          testTimeout: 30_000,
+          include: ['sim/**/*.test.ts', 'art/*.test.ts', '*.test.ts'],
           exclude: ['**/*.parity.test.ts'],
         },
       },
@@ -23,6 +28,8 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
+            // bodies.replay is read through this command in a browser (browsers can read goldens, never write them).
+            commands: goldenCommands(),
             instances: [{ browser: 'chromium' }, { browser: 'webkit' }, { browser: 'firefox' }],
           },
         },

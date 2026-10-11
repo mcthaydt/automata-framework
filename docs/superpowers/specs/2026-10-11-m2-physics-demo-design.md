@@ -1,6 +1,7 @@
 # M2.1b Physics demo `examples/physics/bodies-2d` (lane **sim**): design
 
 - **Status:** drafted 2026-10-11 by the M2 specs thread; revised after the PR #12 audit (base-2d checked at PR #10 head `ab4f857`); awaiting Owner review with the [M2 milestone spec](./2026-10-11-m2-deterministic-core-design.md).
+- **Amended 2026-10-11 (PR #17):** the demo was built on feature-demos PR #14's version, and §11 lists where it differs from §§3–7 below, with the reason for each. §11 wins where the two disagree.
 - **Task:** M2.1b, the demo M2.1 (PR #9, merged as `d556d23`) listed as waiting on `base-2d` ([`examples/README.md`](../../../examples/README.md)). Plan: [m2-physics-demo](../plans/2026-10-11-m2-physics-demo.md).
 - **Waits on:** `base-2d` (#10, open) on `main`. Nothing else: #9 is merged; the golden starts as a final-hash test and becomes a `replayGolden` when M2.3 merges.
 - **Needs from integration (base-2d), asked through the coordinator:** (1) `startGame` is not exported and builds its sims with a bare `createBaseSim()` (`src/game.ts:24,40,91`); the request is to export it with options `{ plugins?, onRound?(sim), layers? }`, so a demo adds plugins, spawns per round and adds layers without copying the game loop. (2) A `./sim` export (§3.4). (3) A typed first-sim failure (§6). The demo edits no base-2d file.
@@ -113,3 +114,21 @@ Nothing new crosses the host boundary: the demo is base-2d's game with a plugin,
 1. Every test in §7 green locally, each seen failing first; parity identical in four engines.
 2. Screenshots (phone portrait, 780×270, desktop; crates at rest and mid-tumble) in `evidence/`, shown to the Owner before promotion.
 3. The README row moves from waiting to built.
+
+## 11. As built (PR #17, stacked on #14)
+
+Feature-demos PR #14 shipped a first `physics/bodies-2d` before this lane started. M2.1b finished that demo rather than making a second one, which the coordinator asked for. Where this spec and the code differ, the code was kept for the reason given, and this section is the contract.
+
+| Spec (§§3–7) | As built | Why |
+|---|---|---|
+| Boots through base-2d's `startGame({ plugins, onRound, layers })` | Boots through `playRoom` (`@af-examples/base-2d/play`), under `bootPage` (`boot.ts` types the failures) | `startGame` (#15, `@af-examples/base-2d/game`) runs base-2d's game: its game id, its connect, and only the `move` command each step. The demo needs its own game id (the host checks it), a `drop` command and an `onStep` for the collision counter, and `playRoom` has all three. `examples/README.md` makes `playRoom` the way 2D demos are built. Moving to `startGame` would need base-2d to add `commands`, `onStep` and a game id. That is not needed for this demo. |
+| Rapier failing shows "This device can't run the game." | Same: `playBodies` turns a rejected start into `SimFailed`, and a host failure becomes `BaseBootFailed`. base-2d's `bootPage` picks the message and sets `data-state` | `boot.test.ts` mocks physics' Rapier loader to reject, and checks the text, the state and the logged cause |
+| 8 px a metre, gravity +30, y down | 16 px a metre (a tile is 8 px, half a metre), gravity −40, y up | Rapier's convention is y up. Base-2d's tiles are 8 px, and at 16 px a metre a 0.5 m crate is exactly one 8 × 8 sprite. The −40 is tuned so crates fall as briskly as Wick |
+| `Crate`, `Ball`, `Wall` and `WickBody` tags; a `Balls` resource | One rendered `Prop { kind }` (crate or stone) on loose bodies, and a `Follower` on Wick's box. Walls carry neither | The layer only needs to tell a crate from a stone; a wall is drawn by the room's tiles. Bodies are counted with a query, so no resource is needed |
+| Six crates and four balls; drop 2 m above Wick; 64 cap, the 65th drop ignored | Four crates and three stones; drop 1.25 m above Wick, moved up a tile at a time until clear of solid tiles; a cap of 40 loose bodies, removing the oldest | Wick walks under the low platform, and 2 m (or 1.25 m) above him can be inside it, so the drop climbs out first. Removing the oldest keeps `B` working forever, and 40 is cheaper on phones than 64 |
+| `follow-wick` in `prePhysics`, before `physics2d.sync-in` | In `postPhysics`, after base-2d's `player.move` | Both follow Wick one tick late. After the move, the box reads this tick's position, and the next step uses it |
+| Five sim files (`bodies.plugin.ts`, `bodies.component.ts`, `drop-ball.command.ts`, `bodies.system.ts`, `balls.resource.ts`) plus `room-colliders.ts` | One `sim/bodies.plugin.ts` (components, the `drop` command and both systems) plus `sim/room-colliders.ts` | #14's layout. The root `check-style` covers `packages/*/src` only, so the role-suffix split is not enforced for examples, and a reader finds the whole sim in one file |
+| Files under `src/` | At the package root (`main.ts`, `boot.ts`, `bodies-sim.ts`, `layer.ts`, `sim/`, `art/`) | #14's layout, like the other feature demos |
+| `--allow-import`; `/2d` and `/3d` allowed | `--allow`; only `/2d` | Done in #14. Its audit left `/3d` out until a game sim imports it |
+| `replayGolden` with `snapshotEvery: 10`; drop with `B` | `__goldens__/bodies.replay` with `snapshotEvery: 30`, next to a final-hash golden (`ad621eea6325a8db`) for the same 600-tick run; `B`, `X` and `C` all drop | At 10 the replay packs to 497 KB, under the 512 KiB golden cap but with little headroom; at 30 it is 175 KB and still bisects to the exact tick. `X` and `C` were #14's keys |
+| A journey on phone portrait and 780 × 270 | `e2e/bodies-2d.e2e.ts` in the `demos` project, on Pixel 7 portrait and 780 × 270: a pushed crate's sprite moves (`data-crate-x`) | It runs with the demos project's servers. No separate root project is needed |

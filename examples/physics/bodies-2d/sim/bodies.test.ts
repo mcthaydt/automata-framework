@@ -3,7 +3,7 @@ import { BodyKind, RigidBody2D, Transform2D } from '@mcthaydt/automata-physics/2
 import type { Command, Sim } from '@mcthaydt/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createBodiesSim } from '../bodies-sim.ts'
-import { Drop, Follower, MAX_LOOSE } from './bodies.plugin.ts'
+import { DROP_ABOVE, Drop, Follower, MAX_LOOSE, Prop, PropKind } from './bodies.plugin.ts'
 
 const sims: Sim[] = []
 afterEach(() => {
@@ -72,6 +72,62 @@ describe('bodies in the room', () => {
     )
     expect(loose(sim)).toHaveLength(MAX_LOOSE)
     expect(loose(sim).map((body) => body.sid)).not.toContain(first)
+  })
+
+  it('lets Wick shove the crate stack to the right', async () => {
+    const sim = await make()
+    const crates = () => loose(sim).filter((body) => body.get(Prop).kind === PropKind.crate)
+    run(sim, 60) // let the stack settle first
+    const before = Math.max(...crates().map((body) => body.get(Transform2D).x))
+    run(sim, 90, 1)
+    const after = Math.max(...crates().map((body) => body.get(Transform2D).x))
+    expect(after).toBeGreaterThan(before + 0.25)
+  })
+
+  it('tags every loose body with what it looks like, and sends that to the renderer', async () => {
+    const sim = await make()
+    const kinds = loose(sim).map((body) => body.get(Prop).kind)
+    expect(kinds.filter((kind) => kind === PropKind.crate)).toHaveLength(4)
+    expect(kinds.filter((kind) => kind === PropKind.stone)).toHaveLength(3)
+    // The first step's delta is a resync listing every rendered entity; the loose bodies come with their
+    // Prop and Transform2D (RigidBody2D and Collider2D are not rendered, so the layer cannot tell them apart).
+    const result = sim.step([moveCommand(sim, { x: 0, jump: false })])
+    const props = result.render.added.filter((row) => row.components[Prop.id] !== undefined)
+    expect(props).toHaveLength(7)
+    for (const row of props) expect(row.components[Transform2D.id]).toBeDefined()
+  })
+
+  /** Drops one body on the next tick and returns where it is after that step, with Wick's centre before it. */
+  function dropOne(sim: Sim) {
+    const wick = (sim.query(Transform2D, Follower)[0] as NonNullable<ReturnType<Sim['entity']>>).get(
+      Transform2D,
+    )
+    const ids = new Set(loose(sim).map((body) => body.sid))
+    run(sim, 1, 0, [sim.tick])
+    const dropped = loose(sim).find((body) => !ids.has(body.sid))
+    if (dropped === undefined) throw new Error('nothing dropped')
+    return { wick, at: dropped.get(Transform2D) }
+  }
+
+  it(`drops the new body ${DROP_ABOVE} m above Wick where nothing is in the way`, async () => {
+    const sim = await make()
+    run(sim, 60, -1) // to the left wall, where no platform hangs over Wick
+    run(sim, 2) // stop, and let the box that follows Wick catch up
+    const { wick, at } = dropOne(sim)
+    expect(wick.x).toBeLessThan(1)
+    // One step of gravity has already pulled it down a hair.
+    expect(at.y).toBeGreaterThan(wick.y + DROP_ABOVE - 0.05)
+    expect(at.y).toBeLessThanOrEqual(wick.y + DROP_ABOVE)
+  })
+
+  it('drops it above the platform instead when Wick stands under one', async () => {
+    const sim = await make()
+    run(sim, 2)
+    // At the start Wick is under the low platform (row 20, its top 2 m up): 1.25 m above him is inside it.
+    const { wick, at } = dropOne(sim)
+    expect(wick.y + DROP_ABOVE).toBeLessThan(2.25)
+    expect(at.y).toBeGreaterThan(wick.y + DROP_ABOVE + 0.45)
+    expect(at.y).toBeLessThanOrEqual(wick.y + DROP_ABOVE + 0.5)
   })
 
   it('gives the same pile for the same drops', async () => {
