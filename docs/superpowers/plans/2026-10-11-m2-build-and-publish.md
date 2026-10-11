@@ -67,7 +67,7 @@ Each task: write the failing test or check, run it and see it fail for the state
 
 ### Task 7: Changesets and the version rules
 - [ ] `@changesets/cli` 3.0.3 (row); `.changeset/config.json` per spec §3.5.
-- [ ] `check-changesets.test.ts` then `check-changesets.ts` (patch only).
+- [ ] `tooling/release/src/check-changesets.test.ts` then `check-changesets.ts` (patch only). Expected failure: module missing.
 - [ ] `sync-versions.test.ts` then `sync-versions.ts` (rewrites `packages/sim/src/version.ts`; skipped with a note until M2.3 merges).
 - [ ] Root scripts `release:version` and `release`; a dry run in a scratch clone: `pnpm changeset` (patch on sim) → `pnpm release:version` bumps every package to `0.0.1` (fixed group) and writes changelogs. Not committed.
 
@@ -77,8 +77,8 @@ Each task: write the failing test or check, run it and see it fail for the state
 - [ ] `turbo.test.ts`: only `build` has `dependsOn: ["^build"]`. Expected failure: `typecheck`, `test`, `test:unit`, `test:parity` have it. Edit `turbo.json`; `pnpm check` runs no `build`.
 
 ### Task 9: release workflow
-- [ ] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, `verify-published` then the registry-mode consumer smoke after publish).
-- [ ] `verify-published.test.ts` (spec §6) then `tooling/release/src/verify-published.ts`. Expected failure: module missing; then a fake lookup missing one package must fail. Expected failure: file missing.
+- [ ] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, `verify-published` then the registry-mode consumer smoke after publish, both guarded by `steps.changesets.outputs.published == 'true'` and given the version from `publishedPackages`). Expected failure: `release-packages.yml` does not exist.
+- [ ] `tooling/release/src/publishable-packages.ts` (workspace packages whose `private` is not `true`), used by `release-list.test.ts` and `verify-published`. Then `verify-published.test.ts` (spec §6: present, missing-then-present, missing after 5 tries, lookup error; fake clock) and `verify-published.ts` (`pnpm view`, bounded retry). Expected failure: module missing.
 - [ ] Write the workflow; `actionlint` clean.
 - [ ] Provenance: GitHub's npm-registry docs (spec, Builds from) do not mention it; leave `--provenance` off and say so in the spec's §8. A test publish to check it needs the Owner's OK and is not part of this task.
 

@@ -41,7 +41,7 @@
 
 ### Task 5: page
 - [ ] `art.test.ts`: every pixel of the crate and ball sprites is an Endesga 64 index. Expected failure: module missing. Then `sprites.ts` and `PROVENANCE.md`.
-- [ ] `boot.test.ts` under the fake host: ready, no console errors, no CSP violations; with Rapier's loader made to reject, the page shows "This device can't run the game." and `data-state="failed"` (needs request (3)). Expected failure: `main.ts` missing. Then `layer.ts` and `main.ts` with its header (spec §3.1), the `B` key and touch button.
+- [ ] `boot.test.ts` under the fake host: ready, no console errors, no CSP violations; with Rapier's loader made to reject (`vi.mock` of physics' `./rapier-2d`), the page shows "This device can't run the game." and `data-state="failed"` (needs request (3)). Expected failure: `main.ts` missing. Then `layer.ts` and `main.ts` with its header (spec §3.1), the `B` key and touch button.
 - [ ] `e2e/bodies.e2e.ts` and its project in the root `playwright.config.ts` (nightly): walk into a crate, its sprite moves. Expected failure: no project named `physics-bodies-2d`. Run on the GPU runner on request; record the run.
 
 ### Task 6: evidence and docs
