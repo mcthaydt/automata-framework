@@ -143,7 +143,7 @@ Units are metres, seconds and radians. Gravity is a plugin option: `physics2d({ 
    - Velocity fields ≠ the body's velocity → `setLinvel` / `setAngvel`.
    - `kind` or damping changed → `setBodyType` / `setLinearDamping` / `setAngularDamping`.
    - Any `Collider*` field differs from the Rapier collider (shape type and size, sensor, groups, friction, restitution) → remove and re-create that collider.
-   - A lone collider's `Transform*` ≠ its pose → `setTranslation` / `setRotation`.
+   - A lone collider's `Transform*` ≠ its pose → `setTranslation` / `setRotation`, and the rotation Rapier stored is written back into `Transform*`. Rapier keeps a 2D angle as (cos, sin) and a 3D rotation normalized, so the read-back can differ from the authored value; without the write-back the comparison would fail, and the collider be re-rotated, every tick. Bodies get the same canonical value from sync-out.
 
 Because a re-created body takes its velocity from the ECS, a remove-and-create keeps the body's motion.
 
@@ -187,7 +187,8 @@ export { physics3d, Transform3D, RigidBody3D, Collider3D, BodyKind, ShapeKind,
 
 | Case | Behaviour |
 |---|---|
-| Wasm fails to load or `init()` rejects | `createSim` rejects with that error; states already created are disposed |
+| Wasm fails to load or `init()` rejects | `createSim` rejects with that error; states already created are disposed; the failed init is not cached, so the next `createSim` retries it |
+| Snapshot from a sim with other plugin settings (gravity) | `SnapshotMismatchError('schemaHash')` (§10.8) |
 | Two physics plugins of one dimension | `createSim` throws (duplicate plugin name) |
 | Unknown shape or body kind, size ≤ 0, quaternion with \|q\|² outside 1 ± 1e-3 | sync-in throws an `Error` naming the sid and field; the sim is then faulted (§10.2) |
 | Section 6 missing, extra, renamed, truncated, bad version, bad row, unknown handle, wrong body–collider pairing, bad contact | `SnapshotFormatError`; sim unchanged; nothing leaked |
@@ -233,9 +234,10 @@ The audit thread reproduced these in the merged A1a core. Each gets a failing te
 3. **Koota's 16-world limit.** `restore` built a second Koota world before freeing the first, so with 16 sims alive it threw Koota's plain `Error`. Fix: validate every row before touching the store, then free the old world and rebuild in its slot, so restore never needs a second world. `createSim` beyond the limit throws `SimCapacityError`.
 4. **Schema hash misses resource, command and event schemas.** Fix: hash each schema's JSON Schema (`z.toJSONSchema`, canonical JSON) alongside its id, and on restore require each resource's parsed value to re-encode to the exact JSON stored, so a field the current schema drops is a `SnapshotFormatError`, not silent loss. This changes the existing golden once, with the reason recorded.
 5. **Hash cost.** `xxhash64` uses BigInt arithmetic per 8-byte lane. Fix: compute with 32-bit halves (`Math.imul`), same output, checked against the existing XXH64 vectors and the goldens.
-   **Hashing policy.** `sim.hash()` encodes a full snapshot and hashes it: about 5 ms at 500 physics bodies in Node 24 (§8), a third of a 60 Hz frame, so it is not a per-tick operation. The sim never hashes on its own. Callers hash on demand or sampled: replay checkpoints, a desync probe every N ticks (net picks N), and tests. Making per-tick hashing cheap (an incremental hash) is out of scope until a consumer needs it.
+   **Hashing policy.** `sim.hash()` encodes a full snapshot and hashes it. Warmed medians in Node 24: about 5 ms at 500 physics bodies (§8) and 5.2 ms for 10,000 entities with two components (a 203 KB snapshot; the audit's cold first call measured 20 ms). That is a third of a 60 Hz frame, so it is not a per-tick operation. The sim never hashes on its own. Callers hash on demand or sampled: replay checkpoints, a desync probe every N ticks (net picks N), and tests. Making per-tick hashing cheap (an incremental hash) is out of scope until a consumer needs it.
 6. **Lifecycle leaks (audit, second pass).** A `createSim` that failed after building its Koota world (a reserved system name, a resource whose initial value fails its schema) never freed it, so after 16 failures no sim could be created; a restore that one plugin rejected leaked what the others prepared; `dispose` was not idempotent, left the Rapier event queue allocated, and later calls failed with unrelated errors. Fix: §3.1 (checks before allocation, `PreparedRestore.discard`, idempotent `dispose`, `SimDisposedError`).
 7. **canonicalJson and non-plain objects (content audit).** `canonicalJson` wrote a `Date`, `Map`, `Set`, typed array or class instance as `{}`, so different dates hashed the same. Fix: it throws `CanonicalJsonError` for anything but arrays and plain objects (prototype `Object.prototype` or `null`), as it already did for NaN, undefined and functions; every failure is now that type. Content converts TOML dates to ISO strings before hashing.
+8. **Plugin settings outside the schema hash (audit, second pass).** A snapshot from `physics3d({ gravity: moon })` restored into a default `physics3d()` sim, and Rapier's snapshot silently replaced the configured gravity. Fix: `definePlugin({ config })` takes plain JSON (canonicalized at definition) that joins the schema hash as `configs`, present only when a plugin has one, so every other hash is unchanged; the physics plugins put their gravity there. A restore across configs is a `SnapshotMismatchError('schemaHash')`.
 
 ## 11. Exit criteria
 
