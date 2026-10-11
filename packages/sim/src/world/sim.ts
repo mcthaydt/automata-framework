@@ -20,6 +20,7 @@ import { sortedKeys } from '../util/sorted'
 import { EntityStore, type RenderDelta, SimCapacityError } from './entity-store'
 import {
   decodeSnapshot,
+  decodeSnapshotHeader,
   encodeSnapshot,
   type SnapshotData,
   SnapshotFormatError,
@@ -320,20 +321,22 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
 
   /** Decodes snapshot bytes and checks they belong to this sim's schema, content and tick rate. */
   function decodeForThisSim(bytes: Uint8Array): SnapshotData {
-    let data: SnapshotData
+    // The header first: a snapshot from another schema reports the mismatch, not whatever its body's shape
+    // breaks in this build's decoder.
+    const header = decodeSnapshotHeader(bytes)
+    if (header.schemaHash !== schemaHash)
+      throw new SnapshotMismatchError('schemaHash', hex64(schemaHash), hex64(header.schemaHash))
+    if (header.contentHash !== contentHash)
+      throw new SnapshotMismatchError('contentHash', hex64(contentHash), hex64(header.contentHash))
+    if (header.tickHz !== tickHz)
+      throw new SnapshotMismatchError('tickHz', String(tickHz), String(header.tickHz))
     try {
-      data = decodeSnapshot(bytes, componentList)
+      return decodeSnapshot(bytes, componentList)
     } catch (err) {
       if (err instanceof SnapshotFormatError) throw err
       // e.g. RangeError from an invalid UTF-8 code point: the contract is one error type for bad bytes.
       throw new SnapshotFormatError(err instanceof Error ? err.message : String(err), { cause: err })
     }
-    if (data.schemaHash !== schemaHash)
-      throw new SnapshotMismatchError('schemaHash', hex64(schemaHash), hex64(data.schemaHash))
-    if (data.contentHash !== contentHash)
-      throw new SnapshotMismatchError('contentHash', hex64(contentHash), hex64(data.contentHash))
-    if (data.tickHz !== tickHz) throw new SnapshotMismatchError('tickHz', String(tickHz), String(data.tickHz))
-    return data
   }
 
   function intake(commands: readonly Command[]): RejectedCommand[] {

@@ -34,6 +34,7 @@ class ByteWriter {
   private buf = new Uint8Array(1024)
   private view = new DataView(this.buf.buffer)
   length = 0
+  /** Reserves `n` bytes and returns their offset. It may replace buf and view, so callers call it first. */
   private room(n: number): number {
     if (this.length + n > this.buf.length) {
       let size = this.buf.length * 2
@@ -48,16 +49,20 @@ class ByteWriter {
     return at
   }
   u8(v: number): void {
-    this.view.setUint8(this.room(1), v)
+    const at = this.room(1)
+    this.view.setUint8(at, v)
   }
   u16(v: number): void {
-    this.view.setUint16(this.room(2), v, true)
+    const at = this.room(2)
+    this.view.setUint16(at, v, true)
   }
   u32(v: number): void {
-    this.view.setUint32(this.room(4), v, true)
+    const at = this.room(4)
+    this.view.setUint32(at, v, true)
   }
   hash(hex: string): void {
-    this.view.setBigUint64(this.room(8), BigInt(`0x${hex}`), true)
+    const at = this.room(8)
+    this.view.setBigUint64(at, BigInt(`0x${hex}`), true)
   }
   varint(v: number): void {
     const out: number[] = []
@@ -65,7 +70,7 @@ class ByteWriter {
     for (const b of out) this.u8(b)
   }
   bytes(b: Uint8Array): void {
-    const at = this.room(b.length) // first: room() may replace this.buf
+    const at = this.room(b.length)
     this.buf.set(b, at)
   }
   done(): Uint8Array {

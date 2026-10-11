@@ -293,16 +293,32 @@ export function encodeSnapshot(data: SnapshotData, components: readonly Componen
   return out.done()
 }
 
-export function decodeSnapshot(bytes: Uint8Array, components: readonly ComponentDef[]): SnapshotData {
-  const comps = [...components].sort((a, b) => compareStr(a.id, b.id))
-  const rd = new Reader(bytes)
+export interface SnapshotHeader {
+  readonly schemaHash: bigint
+  readonly contentHash: bigint
+  readonly tick: number
+  readonly tickHz: number
+}
+
+function readHeader(rd: Reader): SnapshotHeader {
   for (const b of MAGIC) if (rd.u8() !== b) throw new SnapshotFormatError('bad magic (not an AUTO snapshot)')
   const version = rd.u16()
   if (version !== SNAPSHOT_VERSION) throw new SnapshotFormatError(`unsupported version ${version}`)
-  const schemaHash = rd.u64()
-  const contentHash = rd.u64()
-  const tick = rd.u32()
-  const tickHz = rd.u16()
+  return { schemaHash: rd.u64(), contentHash: rd.u64(), tick: rd.u32(), tickHz: rd.u16() }
+}
+
+/**
+ * Only the fixed header, so a snapshot from another schema can be told apart before its body is decoded with
+ * this build's component list (which would fail on the body's shape first, M2.3 spec §3.4).
+ */
+export function decodeSnapshotHeader(bytes: Uint8Array): SnapshotHeader {
+  return readHeader(new Reader(bytes))
+}
+
+export function decodeSnapshot(bytes: Uint8Array, components: readonly ComponentDef[]): SnapshotData {
+  const comps = [...components].sort((a, b) => compareStr(a.id, b.id))
+  const rd = new Reader(bytes)
+  const { schemaHash, contentHash, tick, tickHz } = readHeader(rd)
 
   const s = rd.section(TAG.strings)
   const strings: string[] = []
