@@ -92,6 +92,22 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@24.19.1)(yaml@2.9.1))
 
+  packages/host:
+    dependencies:
+      '@ruken/sdk':
+        specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
+        version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+    devDependencies:
+      '@ruken/sdk-host':
+        specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
+        version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@26.6.4)(yaml@2.9.1))
+
   packages/node:
     dependencies:
       effect:
