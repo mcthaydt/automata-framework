@@ -1,8 +1,8 @@
 import type { SdkEnv } from '@ruken/sdk'
 import { createFakeHost, type FakeHost, type FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Context, Effect, Layer } from 'effect'
-import { makeHosting } from '../hosting.layer'
-import { Hosting, type HostingOptions } from '../hosting.service'
+import { Hosting, type HostingOptions } from '../hosting'
+import { makeHosting } from '../hosting-live'
 import { realClock } from './clocks'
 
 /** The fake host behind `HostingTest`, for tests that drive the host side. */

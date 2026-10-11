@@ -1,235 +1,164 @@
-# M1.4 Host: the `Hosting` service, its Ruken and web adapters, and the fake-host test layer
+# M1.4 Host: `Hosting` on Ruken's SDK, and the fake-host test layer
 
-- **Status:** Drafted 2026-10-11 (lane **host**). Not yet reviewed.
-- **Task:** M1.4 in the [master delivery plan](../../02-master-delivery-plan.md); [01 Decomposition §4 M1](../../01-decomposition.md) and §5 for the level of detail.
-- **Parents:** [Ruken-first master spec](./2026-10-11-automata-framework-ruken-first-design.md) §§3 law 7, 4 (`host` row), 6, 7 steps 2–3; [extraction map](./2026-10-11-core-and-extensions-extraction-map.md) `host` section; [ADR 0003](../../adr/0003-effect-outside-the-sim.md); [ADR 0004](../../adr/0004-ruken-first-host.md); [S6 verdict and Ruken's answers](../../spikes/s6-ruken-stub.md).
-- **Source commits:** RukenApp `b30d31b` (2026-10-11) for `packages/sdk` and `packages/sdk-host`; FloorFifty `122a220` (2026-10-10) for `apps/client/src/ruken/*` and `tests/client/ruken/*`. These are the extraction map's recorded commits.
+- **Status:** Drafted 2026-10-11 (lane **host**) and revised the same day to follow the [M1 shared contracts](./2026-10-11-m1-shared-contracts-design.md) §1. Not yet reviewed.
+- **Task:** M1.4 in the [master delivery plan](../../02-master-delivery-plan.md). Detail level: [01 Decomposition](../../01-decomposition.md) §5.
+- **Parents:**
+  - the shared contracts §1, which own the `Hosting` shape, the errors, the fallback rule and the required tests;
+  - the [Ruken-first master spec](./2026-10-11-automata-framework-ruken-first-design.md), law 7 and §§4, 6, 7;
+  - the [extraction map](./2026-10-11-core-and-extensions-extraction-map.md), `host` section;
+  - [ADR 0003](../../adr/0003-effect-outside-the-sim.md) and [ADR 0004](../../adr/0004-ruken-first-host.md);
+  - the [S6 verdict and Ruken's answers](../../spikes/s6-ruken-stub.md).
+- **Source commits:**
+  - RukenApp `b30d31b`: `packages/sdk` and `packages/sdk-host`, consumed from [`vendor/ruken/`](../../../vendor/ruken/README.md), which the integration owner owns.
+  - FloorFifty `122a220`: `apps/client/src/ruken/*` and `tests/client/ruken/*`.
+
+This spec refines behavior inside the contract's shape. Where the two differ, the shared contracts win.
 
 ## 1. Goal and boundaries
 
-A game built on AF reaches its host only through one Effect service, `Hosting`. Inside a Ruken frame the service is backed by `@ruken/sdk`; on a top-level page it is backed by the SDK's own standalone session plus browser APIs. Tests swap in a layer backed by `@ruken/sdk-host`'s fake host. Every behavior FloorFifty proved on Ruken (its 13 test files) and every S6 contract case still meaningful against the real SDK is a test of this package.
+A game reaches its host only through `Hosting`. One layer, `HostingLive`, wraps `Ruken.init`, and the SDK decides between a hosted session and its standalone one. Tests use `HostingTest`: `HostingLive` running on an `SdkEnv` wired to `@ruken/sdk-host`'s fake host, with the real SDK in between.
 
-**Deliverables**
-- `packages/host/` publishing `@mcthaydt/automata-host` with three entry points: `.` (the service, its types and errors, both live layers), `./testing` (the fake-host layer and helpers) and `./web` (only if the browser-API code needs its own entry; decided in the plan).
-- `vendor/ruken/ruken-sdk-<version>.tgz` and `vendor/ruken/ruken-sdk-host-<version>.tgz`, packed from RukenApp at a recorded commit, with their SHA-256 and the commit in `vendor/ruken/sdk.md` (the **ship** lane owns the manifest tarball and its own notes, so this lane does not edit a shared README).
-- The ported test suite (§8).
+**Deliverables:** `packages/host` (`@mcthaydt/automata-host`) with two entry points:
+- `.`: `Hosting`, `HostingLive`, `makeHosting`, `HostError`, `HostHandshakeFailed`, `toHostError` and `HOST_EXIT_CAP`;
+- `./testing`: `HostingTest`, `FakeHostHandle`, `manualClock`, `realClock` and `runScoped`.
 
-**Not in M1.4** (each has an owner elsewhere)
-- Leaderboards, store and entitlements: extensions in M6/M7. The service exposes no surface for them yet.
-- Input mode and gamepad events (`input.mode`): M4.
-- Turning metrics into layout (`hostReserved` insets, `scale` as HUD size, safe area): the `ui` geometry owner (M1.6) consumes `Hosting.display`. This package only reports.
-- Settings, and the per-setting choice between host saves and device storage (FloorFifty's `keepAudioOnDevice`): `runtime` settings (M1.5), declared in content. `Hosting` exposes host saves and, separately, device storage; it does not decide which setting goes where.
-- Time and pause policy from lifecycle and the menu: `runtime` Time (M1.5). `Hosting` reports lifecycle and forwards the menu request.
-- Standalone analytics providers (Umami, Faro): the `telemetry-extra` extension. Standalone `track()` validates and drops.
-- The two-origin browser check from S6: runs on the GPU/browser runner once **ship** wires it (M1.1). This package provides the fake-host page support it needs, not the run.
+**Not in M1.4:**
 
-**Prerequisites:** PR #4 (this lane's base). Effect is added in this package's `package.json` only; the **ship** lane pins the version repo-wide later and this lane follows its pin on merge.
+| Work | Where it goes |
+|---|---|
+| Leaderboards, store, ads and links | Extension services (shared contracts §1.1). FloorFifty's breaks and links tests move with them. |
+| `hostReserved` insets, `scale` as HUD size, safe area | The `ui` geometry owner (M1.6) reads `Hosting.display`. |
+| Settings, and which settings stay on the device (FloorFifty's `keepAudioOnDevice`) | `runtime` settings (M1.5) |
+| Pause policy from lifecycle and the menu | `runtime` Time (M1.5) |
+| Standalone analytics providers | The `telemetry-extra` extension |
+| The two-origin browser check from S6 | The browser runner, once **ship** wires it (M1.1) |
+| The `host/lifecycle-and-saves` demo | Waits on `base-2d` ([examples README](../../../examples/README.md)) |
 
 ## 2. Ownership
 
 | State | Owner | Writers | Readers |
 |---|---|---|---|
-| Handshake, origin/source checks, request timeouts, saves engine, limits | `@ruken/sdk` | The SDK only | `Hosting` |
-| Which adapter runs (Ruken or web) | `HostingLive` layer, at boot | Boot (M1.5) by choosing the layer | Everything else, via `Hosting.kind` |
-| Session readiness (`session.ready`, R-04) | Host; mirrored by `Hosting.ready` | Host | Boot (renders nothing before it) |
-| Host saves | Host (Ruken) or the SDK's standalone store (web) | Game code through `Hosting.saves` | Settings, Save (M5) |
-| Device storage (this browser only) | `Hosting.deviceStorage` | Settings for device-only values | Settings |
-| Display metrics, audio gain, lifecycle | Host | Host only | `ui`, Audio, Time via `Hosting` streams |
-| Open round (rounds guard) | `Hosting` | `roundStart` / `roundEnd` | Ruken play metrics |
-| Menu handler | `Hosting` (one handler at a time) | `runtime` Flow sets it per screen | The host's "Open game menu" |
-| Exiting work | `Hosting` (capped) | Registered finalizers | The host's close |
-| Disclosed analytics names | The game's content (`ruken.toml` `[analytics].custom_events`, generated by M1.3) | Content compiler | `Hosting.track` |
+| Handshake, origin and source checks, grants, request timeouts, saves engine and limits | `@ruken/sdk` | The SDK only | `Hosting` relays them |
+| Hosted or standalone, and whether a framed page fell back | `HostingLive`, from the SDK's session | The SDK's choice | Boot (M1.5), a dev overlay |
+| Readiness (`session.ready`, R-04) | The host | The host | Boot renders no gameplay before it |
+| Menu handlers | `Hosting` (latest registered, held back until ready) | Screens, for their scope | The host's "Open game menu" |
+| Exiting handlers | `Hosting` (each cut at `HOST_EXIT_CAP`) | Any scope | The host's close |
+| Open round | `Hosting` (`guardRounds`) | `round.start` / `round.end` | Ruken's play metrics |
+| Disclosed analytics names | The game (`HostingOptions.disclosedEvents`, from `[analytics].custom_events`) | Content (M1.3) | `track` |
 
 The sim never sees `Hosting` (law 1, ADR 0003).
 
 ## 3. Contracts
 
-All names are exported from `@mcthaydt/automata-host`. Ruken types (`Capability`, `DisplayMetricsPayload`, `LifecyclePayload`, `AudioChange`, `FullscreenRes`, `LinksOpenRes`, `AdBreakRes`, `RoundOutcome`, `PauseBehavior`, `SavesStorage`, `SavesStatus`) are re-exported from `@ruken/sdk`, never redefined (AGENTS.md "Ruken first").
+The `Hosting` shape, `HostError` and `HostHandshakeFailed` are exactly the shared contracts' §1.1 and §1.2. Ruken's types come from `@ruken/sdk` and are never copied. This lane adds:
 
-### 3.1 Options
-
-```ts
-interface HostingOptions {
-  readonly gameId: string;                       // [game].id in ruken.toml
-  readonly wants: readonly Capability[];         // what the game asks the host for
-  readonly pauseBehavior: PauseBehavior;         // fixed per game (S6 answer 7)
-  readonly disclosedEvents: readonly string[];   // [analytics].custom_events
-  readonly testHostOrigins?: readonly string[];  // test builds only; passed to Ruken.init unchanged
-}
-```
-
-In M1 the game passes these by hand; M1.3's generated content supplies them once `runtime` boots from content (M1.5).
-
-### 3.2 The service
-
-`class Hosting extends Context.Tag("@mcthaydt/automata-host/Hosting")<Hosting, HostingService>()`.
-
-```ts
-interface HostingService {
-  readonly kind: "ruken" | "web";
-  readonly hosted: boolean;                       // true only for kind "ruken"
-  readonly granted: ReadonlySet<Capability>;
-  readonly player: { readonly id: string; readonly displayName: string };
-  readonly locale: string;
-
-  readonly ready: Effect<void>;                   // session.ready; at once on web
-
-  // Saves: Ruken's synchronous Storage-like object (snapshot from welcome).
-  readonly saves: Effect<SavesStorage, CapabilityDenied>;
-  readonly flushSaves: Effect<void, CapabilityDenied | HostRequestFailed>;
-  readonly savesStatus: Effect<SavesStatus>;
-  readonly deviceStorage: Storage | undefined;    // this browser's localStorage, or undefined when it throws
-
-  // Display, audio, lifecycle: current value plus changes.
-  readonly display: Effect<DisplayMetricsPayload>;
-  readonly displayChanges: Stream<DisplayMetricsPayload>;
-  readonly hostReserved: Effect<HostReserved>;    // { left, right } in CSS px, from display.hostReserved
-  readonly setFullscreen: (on: boolean) => Effect<FullscreenRes, HostRequestFailed>;
-  readonly audioGain: Effect<number>;             // 0..1
-  readonly audioChanges: Stream<AudioChange>;
-  readonly lifecycle: Effect<LifecyclePayload>;
-  readonly lifecycleChanges: Stream<LifecyclePayload>;
-
-  // Menu and exit.
-  readonly setMenuHandler: (handler: () => boolean) => Effect<void>;
-  readonly onExiting: (work: Effect<void>) => Effect<void, never, Scope>;
-  readonly exit: (reason: "player" | "completed") => Effect<void, HostRequestFailed>;
-
-  // Optional host services.
-  readonly openLink: (url: string) => Effect<LinksOpenRes, CapabilityDenied | HostRequestFailed>;
-  readonly naturalBreak: Effect<AdBreakRes, CapabilityDenied | HostRequestFailed>;
-  readonly track: (name: string, props?: Record<string, string | number | boolean>) => Effect<void>;
-  readonly roundStart: Effect<void>;
-  readonly roundEnd: (outcome: RoundOutcome) => Effect<void>;
-}
-```
-
-`HostReserved = { readonly left: number; readonly right: number }` (FloorFifty `host.ts` `reservedOf`).
-
-Ordering and units: all geometry is CSS pixels of the game frame (S6 answer 8). `audioGain` multiplies the game's own mix. Stream subscribers receive changes after subscription only; the current value comes from the matching `Effect`.
-
-### 3.3 Typed errors (`Data.TaggedError`)
-
-| Error | Fields | Raised when |
-|---|---|---|
-| `HostHandshakeFailed` | `cause: unknown` | Framed, and `Ruken.init` rejects or returns a session that is not hosted (no valid `welcome` within the SDK's 10 s, wrong origin, wrong source). The layer fails; boot shows an error state. |
-| `CapabilityDenied` | `capability: Capability` | The operation needs a capability that `granted` lacks, or the host answers `DENIED`. |
-| `HostRequestFailed` | `operation: string`, `code: string`, `retryable: boolean` | Any other `RukenError` from a request (`TIMEOUT`, `RATE_LIMITED`, `UNSUPPORTED`, `NOT_READY`, …). `code` is Ruken's code verbatim. |
-
-`track`, `roundStart`, `roundEnd`, `setMenuHandler` never fail: an undisclosed name, a refused event or an unbalanced round is dropped (FloorFifty `host.ts` `track`, `guardRounds`).
-
-Synchronous `SavesStorage.setItem` keeps Ruken's behavior: it throws `RukenError(INVALID_PAYLOAD)` for a bad key and `QuotaExceededError` for a limit (Ruken `sdk/src/save-map.ts`). The web adapter throws the same, because it is the same code (§4.2). Settings (M1.5) catch these, as FloorFifty's settings do today.
-
-### 3.4 Layers
-
-| Layer | Entry | Builds |
-|---|---|---|
-| `RukenHostingLive(options, env?)` | `.` | Calls `Ruken.init`; fails with `HostHandshakeFailed` when not hosted. Scoped: `session.dispose()` on release. `env` is the SDK's test seam. |
-| `WebHostingLive(options)` | `.` | The SDK's standalone session plus browser fullscreen, links and visibility (§4.2). |
-| `HostingLive(options)` | `.` | `window.parent !== window` → `RukenHostingLive`; otherwise `WebHostingLive`. Never falls back from Ruken to web. |
-| `FakeRukenHosting(options, fakeHostOptions)` | `./testing` | A `createFakeHost` with the real SDK over in-memory ports, `RukenHostingLive` on its `gameEnv`, and a `FakeHostHandle` service giving tests the `FakeHost`, `settle()` and `sentByGame(type)`. |
-| `RecordingHosting()` | `./testing` | No protocol: records breaks, rounds, tracks, exits and links, with `endBreak()` and `emitLifecycle()` for screen tests (FloorFifty `support.ts` `recordingHosting`). |
-
-### 3.5 Constants
-
-`HOST_EXIT_CAP = Duration.seconds(1)` (FloorFifty `exit.ts` `HOST_EXIT_CAP_MS`, Ruken P6 §4).
+- **`HostingOptions`:** `gameId`, `wants`, `pauseBehavior`, optional `disclosedEvents`, and optional `testHostOrigins` (for test builds only, passed to `Ruken.init` unchanged). In M1 the game passes these by hand; from M1.5 content supplies them.
+- **`HostingLive(options, seams?)`** is a `Layer<Hosting>`. `makeHosting` is the same thing as a scoped Effect. The only seam is `env: SdkEnv`, the SDK's own test hook. `Ruken.init` rejects only for invalid options (a build bug), so that rejection is a defect, not a typed error.
+- **`toHostError(operation, cause)`:**
+  - a `RukenError` keeps its code and retryable flag;
+  - the `QuotaExceededError` that Ruken's save map throws becomes `QUOTA_EXCEEDED`, not retryable (Ruken's flag);
+  - anything else becomes `INTERNAL`, retryable.
+- **`HOST_EXIT_CAP = 1 s`** comes from FloorFifty `ruken/exit.ts`. It is inside Ruken's 1.5 s grace (`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`).
+- **Subscribables:** `changes` starts with the current value and then emits each change, like `SubscriptionRef.changes`. The listener is registered before the current value is read, so no change can be lost in between.
+- **`./testing`:**
+  - `HostingTest({ hosting?, host?, env?, gameOrigin? })` provides `Hosting` and `FakeHostHandle` (`host`, `sentByGame(type)`).
+  - `manualClock()` implements both the fake host's `BridgeClock` and the SDK's `SdkTimers`, so one clock drives SDK and host timing (shared contracts §1.4).
 
 ## 4. Data and lifecycle flow
 
-### 4.1 Ruken adapter
-
-1. `HostingLive` sees a frame and builds `RukenHostingLive`.
-2. `Ruken.init({ gameId, wants, pauseBehavior, testHostOrigins, onMenuRequest })`. The SDK sends `hello` every 250 ms, gives up after 10 s, and accepts `welcome` only when `event.source === window.parent` and the origin passes its allowlist (plus `testHostOrigins`).
-3. A non-hosted session or a rejection → `HostHandshakeFailed`; the session, if any, is disposed. The layer never returns a web adapter here (master spec law 7; FloorFifty falls back, AF does not).
-4. The service is built over the session. `saves` comes from the `welcome` snapshot synchronously.
-5. Boot (M1.5) awaits `Hosting.ready` before rendering anything (R-04).
-6. `onMenuRequest` calls the current menu handler; before one is set it answers `false` (host keeps its drawer). Before `session.ready` the SDK answers `NOT_READY` itself and never calls the handler (S6 answer 6).
-7. `session.exiting`: every work registered by `onExiting` runs in parallel, raced against `HOST_EXIT_CAP` on Effect's `Clock`; the SDK's `exiting` promise resolves when they finish or the cap fires. Registrations are removed when their `Scope` closes.
-8. Scope close: `session.dispose()`; streams end.
-
-### 4.2 Web adapter
-
-1. Top-level page → `WebHostingLive` calls `Ruken.init` with the same options. The SDK sees no parent and returns its standalone session: ready at once, saves in `localStorage` under `ruken:<gameId>:` with Ruken's limits (1 MiB per value, 10 MiB per game counting key plus value in UTF-8, 256 keys, key regex; S6 answer 2). AF writes no limit code of its own.
-2. Ruken's standalone session grants nothing, so AF's web adapter answers these itself:
-   - `saves`: available (the standalone store) even though `granted` is empty; saves are the one service the web adapter provides locally (S6 answer 3 applies to Ruken; standalone has no host to deny).
-   - `setFullscreen`: the browser Fullscreen API on `document.documentElement`; `support` is `"element"` when the API exists (Ruken's value for element fullscreen) and `"none"` when it is missing; a refusal returns `fullscreen: false`.
-   - `openLink`: `window.open(url, "_blank", "noopener")`, https only; anything else is `HostRequestFailed { code: "INVALID_PAYLOAD" }`.
-   - `lifecycle`: `active` / `background` with reason `"hidden"` from `document.visibilitychange`.
-   - `exit`: succeeds and does nothing (a web page has nowhere to return to).
-   - `naturalBreak`: `CapabilityDenied("ads")`; `track`: validated by the SDK and dropped; rounds: validated and dropped.
-3. Scope close removes the visibility and fullscreen listeners.
-
-### 4.3 Restart
-
-A new boot builds a new layer; nothing is module-global (FloorFifty's `current.ts` singleton becomes the Effect context).
+1. `makeHosting` creates the menu dispatcher. It then calls `Ruken.init({ gameId, wants, pauseBehavior, testHostOrigins, onMenuRequest })` and releases the session with `dispose()` when the scope closes.
+2. The SDK sends `hello` every 250 ms and gives up after 10 s. It accepts a `welcome` only from `window.parent` and an allowlisted origin. With no usable welcome it returns its standalone session (`sdk/src/handshake.ts`).
+3. If the session is not hosted and the page is framed (`!env.isTopLevel`, or `window !== window.top`), `handshake.fellBack` is `Some(HostHandshakeFailed{ reason: 'no-welcome' })` and one warning is logged with `Effect.logWarning`. The game keeps running standalone.
+4. Once `session.ready` resolves, the menu dispatcher starts asking handlers. Until then it answers `false` without asking (§5).
+5. The observed state (lifecycle, input, display, audio, entitlements and saves status) wraps the SDK's current values and their `on('change')` events.
+6. `onExiting(handler)` registers an SDK `exiting` listener for its scope. The listener runs the handler on the caller's runtime, so it uses the same `Clock`, and cuts it off at `HOST_EXIT_CAP`. A failure is logged, never thrown at the host.
+7. Closing the scope disposes the session and ends the streams.
 
 ## 5. Failure policy
 
-| Case | Behavior | Test |
-|---|---|---|
-| Framed, no welcome within 10 s | `HostHandshakeFailed`; no web fallback | TestClock or SDK timers via `env` |
-| Welcome from a disallowed origin or a forged source | Ignored by the SDK; ends as the 10 s case | S6 forged-welcome case |
-| Capability not granted (saves, ads, links) | `CapabilityDenied`, no device-storage fallback | per capability |
-| Host refuses (`RATE_LIMITED`, `DENIED`, `TIMEOUT`) | `HostRequestFailed` / `CapabilityDenied` with Ruken's code | ads rate limit; flush timeout |
-| A late response after `TIMEOUT` | Dropped by the SDK; the Effect already failed | S6 late-response case |
-| `menu.open` before ready | SDK answers `NOT_READY`; handler not called | S6 answer 6 |
-| Exiting work that never finishes | Cut at 1 s | TestClock |
-| Save over a limit | `QuotaExceededError`, the cached value unchanged, nothing sent | both adapters |
-| `localStorage` throws (private mode) | `deviceStorage` is `undefined`; web saves fail as Ruken's standalone store does | web |
-| Undisclosed analytics name, no consent | Dropped, never thrown | analytics |
-| Unbalanced rounds | Second start and orphan end dropped | rounds |
+AF relays every SDK error as `HostError` and adds no gate, fallback or no-op of its own (shared contracts §1.3). There are two exceptions, both pinned by tests:
+- **Menu before ready:** a `menu.open` that arrives before `session.ready` answers `false` and never reaches a handler. The SDK at `b30d31b` has no `NOT_READY` check (§7).
+- **Exiting handlers:** each is cut off at 1 s, and its failure is logged.
+
+| Case | Behavior |
+|---|---|
+| Framed, no welcome within 10 s (wrong origin, forged source, no host) | Standalone, `fellBack` set, one warning |
+| Second welcome | Ignored by the SDK |
+| Save over a Ruken limit | `HostError{code:'QUOTA_EXCEEDED'}`, cached value unchanged, nothing sent |
+| Bad save key | `HostError{code:'INVALID_PAYLOAD'}` |
+| `saves` not granted | SDK behavior, pinned: writes stay in memory, nothing is sent, `flush` fails with `UNSUPPORTED` (§7) |
+| No `localStorage` on a standalone page | SDK behavior, pinned: saves last the visit |
+| Undisclosed, unconsented or malformed analytics event | Dropped, never thrown |
+| Unbalanced rounds | A second start and an orphan end are dropped |
+| An exiting handler that never ends | Cut off at 1 s on Effect time |
 
 ## 6. UI inventory and responsive behavior
 
-`Hosting` has no UI. It supplies the inputs other lanes render: `ready` (boot gate), `hostReserved`, `safeArea`, `scale`, `fullscreen` and `orientation` from `display` (the `ui` geometry owner, M1.6), lifecycle (Time, M1.5), `audioGain` (Audio, M5), `HostHandshakeFailed` (ErrorPanel, M1.6/M1.5). FloorFifty's screen-level tests that rely on these (pause overlays, Quit, Home Screen hint, breaks after results, side insets) port their **host half** here and leave the screen half to the lane that owns the screen (§8).
+`Hosting` has no UI. It feeds other lanes:
 
-## 7. Ruken alignment
+| Input | Consumer |
+|---|---|
+| `ready` | The boot gate (M1.5) |
+| `display` (`hostReserved`, `safeArea`, `scale`, `fullscreen`, `orientation`) | The `ui` geometry owner (M1.6) |
+| `lifecycle` | Time (M1.5) |
+| `audio.gain` | Audio (M5) |
+| `setFullscreen().support` | FloorFifty's Home Screen hint (`ui`) |
+| `handshake.fellBack` | A dev overlay (M1.5/M1.6) |
+
+## 7. Ruken alignment and requests to Ruken
 
 | Behavior | Ruken source |
 |---|---|
-| Handshake, allowlist, source check, `testHostOrigins` | `packages/sdk/src/{handshake,allowlist,init}.ts` |
-| Request timeouts and error codes | `packages/sdk/src/{rpc,errors}.ts`; `packages/protocol` catalog |
-| Saves and limits (both adapters) | `packages/sdk/src/{save-map,saves-storage,saves-local}.ts` |
-| Standalone session | `packages/sdk/src/standalone.ts` |
-| Fake host | `packages/sdk-host/src/testing/{fake-host,settle,fake-adapters}.ts` |
+| Handshake, allowlist, source check, `testHostOrigins` | `sdk/src/{handshake,allowlist,init}.ts` |
+| Errors and codes | `sdk/src/errors.ts`; `protocol/src/meta/errors.ts` |
+| Saves and limits | `sdk/src/{save-map,saves-storage,saves-local}.ts` (a value's size counts its bytes only, `save-map.ts:48`) |
+| Standalone session | `sdk/src/standalone.ts` |
+| Fake host | `sdk-host/src/testing/*` |
 
-**Differences from S6 found in the real SDK** (recorded, not changed): Ruken's answers 4 and 9 said `baseRevision` and `writeId` would leave `saves.set`, but RukenApp `b30d31b` still sends both (`sdk/src/saves-storage.ts:52–55`, `protocol/src/catalog/saves.ts:15`), and FloorFifty's test asserts `baseRevision: 1`. AF asserts whatever the vendored SDK sends and does not set either field itself; the contract test is written so it passes before and after Ruken drops them (it checks `key` and `value` only and records the extra fields in a comment). This goes to the integration owner to raise with Ruken.
-
-**Requests to Ruken:** none new. The web adapter's fullscreen, links and visibility are AF-side because the standalone session reports them as unsupported by design.
+Found while building this lane, recorded in shared contracts §1.6 and in 03 Continuation as requests to Ruken:
+1. `saves.set` and `saves.remove` still carry `baseRevision` and `writeId` (S6 answers 4 and 9 said they would go). The tests assert only `key` and `value`.
+2. A write without the `saves` grant is cached in memory instead of failing with DENIED (S6 answer 3).
+3. The SDK has no `NOT_READY` answer for `menu.open` before ready (S6 answer 6). AF guards it (§5).
 
 ## 8. Test allocation
 
-All in `packages/host/src/**/*.test.ts` on Vitest (Node project with jsdom where DOM is needed), real SDK against the fake host over in-memory ports. Fake timers or Effect `TestClock` replace sleeps.
+All tests run in Vitest on Node, against the real SDK and the fake host over in-memory ports. SDK timing runs on `manualClock` and AF timing on `TestClock`. No test sleeps on wall time.
 
-**FloorFifty's 13 files** (`tests/client/ruken/*`, 1 185 lines):
+| File | Covers |
+|---|---|
+| `errors.test.ts` | `toHostError` mapping; `HostHandshakeFailed` |
+| `rounds.test.ts` | `guardRounds` |
+| `handshake.test.ts` | Hosted; top-level standalone with no fallback; framed timeout falls back with one warning; forged source, forged self-welcome and wrong origin; one welcome; locale and player; `ready` before and after |
+| `state.test.ts` | Display (with the reserved edge), audio gain (master, mute, ad ducking), lifecycle (hidden and shown, drawer reason), input mode, entitlements: each one's current value and change |
+| `saves.test.ts` | Snapshot read, set, remove, flush; quota and bad key relayed; syncing, saved, offline-queued, conflict, recovered; no grant (pinned) |
+| `requests.test.ts` | Menu (refused until a handler says yes, latest handler wins, removed with its scope, guarded before ready); exiting (runs before `exitReady`, cut off at 1 s on `TestClock`, removed with its scope); `exit` defaults to `player`; `setFullscreen` returns `support`; rounds; analytics (consent, none without, undisclosed dropped) |
+| `test-host-origin.test.ts` | A listed test host is accepted; an unlisted one, or a different origin, falls back |
+| `standalone.test.ts` | Ready at once, neutral state, nothing sent; saves under `ruken:<gameId>:`; exit, fullscreen and rounds relayed; no storage (pinned) |
+| `vendor.test.ts` | The vendored tarballs install and complete a handshake |
 
-| Source file | Ported here (host half) | Left to |
-|---|---|---|
-| `hosting.test.ts` | all 9 cases, standalone cases rewritten for the web adapter (`ruken:` keys are now expected) | — |
-| `menu-request.test.ts` | handler reached / refused until set | screen cases → M1.5 Flow |
-| `exit-and-links.test.ts` | `session.exit` reason player; exiting flush and 1 s cap; links through the host; web `window.open` | link click capture → M1.6 `ui` |
-| `analytics.test.ts` | disclosed with consent; none without; undisclosed dropped | `character_selected` wiring stays in FloorFifty |
-| `audio-host-gain.test.ts` | gain follows master volume and ad ducking; 1 on web | mixer → M5 |
-| `fullscreen-hosted.test.ts` | asked of the host; follows host state; reports `ios-home-screen` | Home Screen hint → M1.6 |
-| `host-reserved.test.ts` | reserved width on its side, zero on the other, follows changes; zero on web | inset CSS → M1.6 |
-| `game-end-break.test.ts` | break resolves on every outcome | one-break-per-results screen → M1.8 |
-| `rounds.test.ts` | guard: one start, end only when open | race/tutorial timing stays in FloorFifty |
-| `sleep-hosted.test.ts` | lifecycle hidden/shown reported; host overlay reported as background reason | sleep policy → M1.5 Time |
-| `settings-hosted.test.ts` | saves snapshot read; write → `saves.set`; quota refusal throws and keeps cache; device storage separate | settings shape, audio-on-device → M1.5 |
-| `test-host-origin.test.ts` | listed origin accepted; none given → dropped; other origin dropped | build-time env → M1.2 ship |
-| `support.ts` | becomes `./testing` (`FakeRukenHosting`, `RecordingHosting`, `sentByGame`, `settle`) | — |
+**FloorFifty's 13 files and where each one went:**
 
-**S6 cases** re-run against the real SDK through `Hosting` (not re-implementing the SDK's own unit tests): forged self-welcome ignored; second welcome ignored; give-up after 10 s → `HostHandshakeFailed`; ready gating; `menu.open` before ready → `NOT_READY`, handler not called; error response → `HostRequestFailed { code, retryable }`; flush timeout → `TIMEOUT`; saves limits (key regex, 1 MiB, 10 MiB UTF-8 key+value, 256 keys) on **both** adapters through one shared suite; `DENIED` without the `saves` capability, no fallback. The allowlist table and catalog-generated tests are the SDK's own tests (Ruken `allowlist.test.ts`, `golden.test.ts`); AF does not copy them, and re-vendoring runs them in Ruken.
+| FloorFifty file | Where it lives now |
+|---|---|
+| `hosting.test.ts` | Here (`handshake`, `saves`, `standalone`, `requests`) |
+| `menu-request.test.ts` | Host half here; the screen cases go to M1.5 |
+| `exit-and-links.test.ts` | Exit and exiting here; links go to the links extension |
+| `analytics.test.ts` | Here; `character_selected` wiring stays in FloorFifty |
+| `audio-host-gain.test.ts` | Here; the mixer is M5's |
+| `fullscreen-hosted.test.ts` | Here; the Home Screen hint goes to M1.6 |
+| `host-reserved.test.ts` | Metrics here; the inset CSS goes to M1.6 |
+| `game-end-break.test.ts` | Ads extension |
+| `rounds.test.ts` | The guard here; round timing stays in the game |
+| `sleep-hosted.test.ts` | Lifecycle here; the sleep policy goes to M1.5 |
+| `settings-hosted.test.ts` | Saves here; the settings shape goes to M1.5 |
+| `test-host-origin.test.ts` | Here; the build-time variable goes to M1.2 |
+| `support.ts` | Became `./testing` |
 
-**Not here:** two-origin browser check (GPU/browser runner, after M1.1); Owner gates (none for this package).
+**S6 cases:** forged source and self-welcome, second welcome, the 10 s give-up, ready gating, the menu before ready, error mapping, and saves limits relayed. The allowlist table and the catalog-generated tests stay in Ruken's own SDK suite (`allowlist.test.ts`, `golden.test.ts`), which runs there whenever the SDK is re-vendored.
 
-## 9. Feedback workflow
+## 9. Feedback workflow and exit criteria
 
-`pnpm --filter @mcthaydt/automata-host test` for the package, `pnpm vitest run <file>` while iterating. Before the PR: `pnpm check` on Node 24 and the sim parity suite in Chromium, WebKit and Firefox (lane rule; this package adds no parity suite). Results go in the PR body with the command and its summary line.
-
-## 10. Exit criteria
-
-- **Success:** every case in §8 passes locally on Node 24; `pnpm check` green; `HostingLive` in a framed fake host is `kind: "ruken"` and in a top-level jsdom page is `kind: "web"`; no test sleeps on wall time.
-- **Failure cases that must be shown failing first (TDD):** handshake give-up without fallback; `CapabilityDenied` for saves without the grant; exiting cap at 1 s; quota error on both adapters.
-- **Evidence:** vendored tarball SHA-256 and Ruken commit in `vendor/ruken/sdk.md`; test summary in the PR.
-- **Not claimed:** CI verified (hosted runners), two-origin browser run, Owner acceptance of the M1 milestone spec (M1.0b), which may still rename or move fields; this spec follows it once it lands.
+- **Iterate:** `pnpm --filter @mcthaydt/automata-host test`, or `pnpm vitest run <file>`.
+- **Gate:** a full local CI run on Node 24 (`pnpm check`, plus the parity suites in Chromium, WebKit and Firefox), recorded in the PR. Hosted runners are unavailable.
+- **Done when:** every case in §8 passes, `pnpm check` is green, and the gate's summary is in the PR.
+- **Not claimed:** hosted CI, the two-origin browser run, and Owner review of this spec or of the shared contracts.

@@ -1,7 +1,7 @@
 import { type InitOptions, type InputModePayload, Ruken, type RukenSession, type SdkEnv } from '@ruken/sdk'
 import { Duration, Effect, Layer, Option, Runtime, type Scope } from 'effect'
 import { HostHandshakeFailed, toHostError } from './errors'
-import { Hosting, type HostingOptions } from './hosting.service'
+import { Hosting, type HostingOptions } from './hosting'
 import { makeMenuHandlers } from './menu'
 import { guardRounds } from './rounds'
 import { fromListener } from './subscribable'

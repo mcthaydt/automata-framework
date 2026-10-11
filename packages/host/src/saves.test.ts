@@ -1,7 +1,7 @@
 import { settle } from '@ruken/sdk-host/testing'
 import { Effect, Either, Fiber, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { Hosting } from './hosting.service'
+import { Hosting } from './hosting'
 import { FakeHostHandle, HostingTest, manualClock, runScoped } from './testing'
 
 const settled: Effect.Effect<void> = Effect.promise(() => settle())

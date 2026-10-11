@@ -2,7 +2,7 @@ import type { DisplayMetricsPayload } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
 import { Chunk, Effect, Fiber, Stream, type Subscribable } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { Hosting } from './hosting.service'
+import { Hosting } from './hosting'
 import { FakeHostHandle, HostingTest, runScoped } from './testing'
 
 /** Starts reading the first `count` values of `changes` (the current value, then changes). */

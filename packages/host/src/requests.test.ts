@@ -2,8 +2,8 @@ import type { SdkEnv, SdkMessagePort } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
 import { Effect, Exit, Fiber, Scope, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { HOST_EXIT_CAP } from './hosting.layer'
-import { Hosting } from './hosting.service'
+import { Hosting } from './hosting'
+import { HOST_EXIT_CAP } from './hosting-live'
 import { FakeHostHandle, HostingTest, manualClock, runScoped } from './testing'
 
 const settled: Effect.Effect<void> = Effect.promise(() => settle())

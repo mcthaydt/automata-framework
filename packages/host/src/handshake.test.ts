@@ -2,7 +2,7 @@ import type { SdkEnv } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
 import { Effect, Fiber, Logger, Option } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { Hosting } from './hosting.service'
+import { Hosting } from './hosting'
 import { FakeHostHandle, HostingTest, type ManualClock, manualClock, runScoped } from './testing'
 
 /** Steps the SDK's clock past its 10 s give-up, 250 ms (one hello) at a time. */
