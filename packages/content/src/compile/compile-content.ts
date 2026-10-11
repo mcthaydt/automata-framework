@@ -119,8 +119,23 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   // A file that does not parse contributes no message keys, so checking translations against the rest would
   // report every key of that file as stale. Translations are checked only when every source parsed.
   let everySourceParsed = true
-  const parse = <T>(source: SourceFile, schema: z.ZodType<T>): { value: T; toml: ParsedToml } | undefined => {
-    const result = parseDocument(source, schema)
+  // A schema is the game's code: one that throws (a transform or refinement with a bug) is reported as a
+  // mistake in that code, naming the file it was reading, never as a crash of the compiler.
+  const codeProblems: string[] = []
+  const parse = <T>(
+    source: SourceFile,
+    schema: z.ZodType<T>,
+    kind: string,
+  ): { value: T; toml: ParsedToml } | undefined => {
+    let result: ReturnType<typeof parseDocument<T>>
+    try {
+      result = parseDocument(source, schema)
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error)
+      codeProblems.push(`the schema for ${kind} threw while reading ${source.file}: ${reason}`)
+      everySourceParsed = false
+      return undefined
+    }
     if (result.ok) return result
     everySourceParsed = false
     diagnostics.push(...result.diagnostics)
@@ -143,7 +158,7 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
       const kindIds = new Set<string>()
       for (const { id, source } of tree.collections.get(def.kind) ?? []) {
         kindIds.add(id)
-        const parsed = parse(source, def.schema)
+        const parsed = parse(source, def.schema, def.kind)
         if (parsed !== undefined) entries[id] = addItem(def.kind, id, parsed)
       }
       ids.set(def.kind, kindIds)
@@ -160,7 +175,7 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
       } else if (absent.data !== undefined) data[def.kind] = resolveMarkers(absent.data).value
       continue
     }
-    const parsed = parse(source, def.schema)
+    const parsed = parse(source, def.schema, def.kind)
     if (parsed !== undefined) data[def.kind] = addItem(def.kind, undefined, parsed)
   }
 
@@ -192,7 +207,7 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   if (flowSource === undefined) {
     if (options.flow !== undefined) diagnostics.push(atFile('content/flow.toml', REQUIRED))
   } else {
-    const parsed = parse(flowSource, flowSchema)
+    const parsed = parse(flowSource, flowSchema, 'flow')
     if (parsed !== undefined) {
       const checked = checkFlow(parsed.value, options.flow)
       place(parsed.toml, checked.problems)
@@ -202,7 +217,8 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   }
 
   const paletteSource = tree.documents.get('palette')
-  const authoredPalette = paletteSource === undefined ? undefined : parse(paletteSource, paletteSchema)
+  const authoredPalette =
+    paletteSource === undefined ? undefined : parse(paletteSource, paletteSchema, 'palette')
   const palette = checkPalette(authoredPalette?.value)
   if (authoredPalette !== undefined) place(authoredPalette.toml, palette.problems)
   data.palette = palette.palette
@@ -212,7 +228,7 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   let assets: AssetsSource | undefined | null
   const assetsSource = tree.documents.get('assets')
   if (assetsSource !== undefined) {
-    const parsed = parse(assetsSource, assetsSchema)
+    const parsed = parse(assetsSource, assetsSchema, 'assets')
     assets = parsed === undefined ? null : parsed.value
     if (parsed !== undefined) {
       place(parsed.toml, checkAssets(parsed.value, flow?.screens))
@@ -221,7 +237,7 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   }
 
   const gameSource = tree.documents.get('game')
-  const game = gameSource === undefined ? undefined : parse(gameSource, gameSchema)
+  const game = gameSource === undefined ? undefined : parse(gameSource, gameSchema, 'game')
   const languages = languagesOf(
     game?.value.source_language ?? 'en',
     tree.translations.map((translation) => translation.language),
@@ -247,6 +263,9 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
     place({ file: source.file, keys: NO_KEYS }, checkTranslation(messages, parsed))
   }
 
+  if (codeProblems.length > 0) {
+    return { ok: false, error: new InvalidContentConfig({ message: codeProblems.join('; ') }) }
+  }
   if (diagnostics.length > 0) {
     return { ok: false, error: new ContentCompileFailed({ diagnostics: sortDiagnostics(diagnostics) }) }
   }

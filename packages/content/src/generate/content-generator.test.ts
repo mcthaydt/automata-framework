@@ -29,20 +29,13 @@ describe('runGenerators', () => {
     expect(result.configProblems).toEqual([])
   })
 
-  it('turns a throw into generatorFailed naming the generator', () => {
+  it("reports a throw as a mistake in the game's code, naming the generator", () => {
     const broken = defineContentGenerator('broken', () => {
       throw new Error('no catalog')
     })
-    expect(runGenerators([broken], input).diagnostics).toEqual([
-      {
-        code: 'generatorFailed',
-        file: 'content',
-        line: 1,
-        column: 1,
-        keyPath: '',
-        message: 'broken: no catalog',
-      },
-    ])
+    const result = runGenerators([broken], input)
+    expect(result.diagnostics).toEqual([])
+    expect(result.configProblems).toEqual(['generator "broken" threw: no catalog'])
   })
 
   it('refuses two generators on one path, a path outside the output folder, and a repeated name', () => {

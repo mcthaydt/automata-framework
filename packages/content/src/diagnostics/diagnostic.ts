@@ -23,7 +23,6 @@ export type DiagnosticCode =
   | 'duplicateMessageKey'
   | 'staleTranslation'
   | 'staleArtifact'
-  | 'generatorFailed'
 
 export interface Diagnostic {
   readonly code: DiagnosticCode

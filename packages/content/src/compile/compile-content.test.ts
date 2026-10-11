@@ -283,14 +283,6 @@ describe('refusals (one formatted line per failure policy row)', () => {
     ])
   })
 
-  it('a generator that throws', async () => {
-    const boom = defineContentGenerator('boom', () => {
-      throw new Error('no luck')
-    })
-    const options = { ...fixtureOptions(copyFixture('valid')), generators: [boom] }
-    expect(await refusals(options)).toEqual(['content:1:1  generatorFailed: boom: no luck'])
-  })
-
   it('several broken files at once, every one reported, sorted', async () => {
     const root = copyFixture('valid')
     edit(root, 'stages/rooftops.toml', (t) => t.replace('song = "dusk-run"', 'song = "dusk-rnu"'))
@@ -312,6 +304,32 @@ describe('InvalidContentConfig', () => {
     const tuning = defineContentSchema('tuning', z.strictObject({}), { file: 'other.toml' })
     expect(await configError({ root, schemas: [SONG, SONG, tuning] })).toBe(
       'kind "song" is registered twice; kind "tuning" is reserved for the built-in tuning.toml',
+    )
+  })
+
+  it("reports a generator that throws as the game's code, not its content", async () => {
+    const boom = defineContentGenerator('boom', () => {
+      throw new Error('no luck')
+    })
+    const options = { ...fixtureOptions(copyFixture('valid')), generators: [boom] }
+    expect(await configError(options)).toBe('generator "boom" threw: no luck')
+  })
+
+  it("reports a schema that throws as the game's code, naming the file it was reading", async () => {
+    const root = copyFixture('equivalent-a')
+    const boom = defineContentSchema(
+      'boom',
+      z.strictObject({
+        mood: z.string().transform((mood) => {
+          if (mood === 'crash') throw new Error('kaboom')
+          return mood
+        }),
+      }),
+      { file: 'boom.toml' },
+    )
+    writeFileSync(join(root, 'content/boom.toml'), 'mood = "crash"\n')
+    expect(await configError({ root, schemas: [CHARACTER, SONG, boom] })).toBe(
+      'the schema for boom threw while reading content/boom.toml: kaboom',
     )
   })
 

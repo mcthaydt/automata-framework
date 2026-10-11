@@ -13,6 +13,7 @@ import { dirname, join, sep } from 'node:path'
 import { Effect, Either } from 'effect'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 import { type CompiledContent, type ContentOptions, outDirOf } from '../compile/compile-content'
+import type { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from '../compile/errors'
 import { TRANSLATIONS_FOLDER } from '../compile/read-sources'
 import { buildContent } from '../compile/write-outputs'
 import { formatDiagnostic } from '../diagnostics/diagnostic'
@@ -32,7 +33,17 @@ type BuildOutcome =
 
 /** Runs one build and turns every way it can fail into lines an author can read. */
 async function runBuild(options: ContentOptions): Promise<BuildOutcome> {
-  const result = await Effect.runPromise(Effect.either(buildContent(options)))
+  let result: Either.Either<CompiledContent, ContentCompileFailed | InvalidContentConfig | ContentWriteFailed>
+  try {
+    result = await Effect.runPromise(Effect.either(buildContent(options)))
+  } catch (error) {
+    // A defect (a bug, not a typed failure). It is reported like any failed build, so the chain stays
+    // usable and the next save is the retry.
+    return {
+      ok: false,
+      lines: [`the content compiler crashed: ${error instanceof Error ? error.message : error}`],
+    }
+  }
   if (Either.isRight(result)) return { ok: true, content: result.right }
   const error = result.left
   switch (error._tag) {
@@ -74,7 +85,8 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
       } else latestErrors = outcome.lines
       return outcome
     })
-    chain = next
+    // The chain itself never rejects: one failed build must not stop every later one (audit of PR #8).
+    chain = next.catch(() => undefined)
     return next
   }
 

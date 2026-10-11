@@ -7,9 +7,11 @@ import { join } from 'node:path'
 import { Effect } from 'effect'
 import { build, createServer, type HotPayload, type ViteDevServer } from 'vite'
 import { afterEach, describe, expect, it } from 'vitest'
+import { z } from 'zod'
 import { compileContent } from '../compile/compile-content'
+import { defineContentSchema } from '../schema/content-schema'
 import { copyFixture, fixtureOptions } from '../testing/fixture-game'
-import { automataContent } from './automata-content'
+import { type AutomataContentOptions, automataContent } from './automata-content'
 
 const servers: ViteDevServer[] = []
 
@@ -45,12 +47,15 @@ interface CustomEvent {
 }
 
 /** A dev server on the fixture, with every custom HMR event it sends recorded. */
-async function devServer(root: string): Promise<{ server: ViteDevServer; events: CustomEvent[] }> {
+async function devServer(
+  root: string,
+  pluginOptions: AutomataContentOptions = options(root),
+): Promise<{ server: ViteDevServer; events: CustomEvent[] }> {
   const server = await createServer({
     root,
     configFile: false,
     logLevel: 'silent',
-    plugins: [automataContent(options(root))],
+    plugins: [automataContent(pluginOptions)],
     server: { middlewareMode: true, hmr: false },
   })
   servers.push(server)
@@ -131,6 +136,44 @@ describe('vite dev', () => {
     await waitFor(() => events.length === 3, 'recovery on the next valid save')
     expect(events[2]?.event).toBe('automata:content')
     expect(await loadHash(server)).toBe(events[2]?.data.hash)
+  }, 30_000)
+
+  it("recovers after the game's code throws during a rebuild (audit of PR #8)", async () => {
+    const root = copyFixture('valid')
+    const mood = defineContentSchema(
+      'mood',
+      z.strictObject({
+        name: z.string().transform((name) => {
+          if (name === 'crash') throw new Error('kaboom')
+          return name
+        }),
+      }),
+      { file: 'mood.toml' },
+    )
+    writeFileSync(join(root, 'content/mood.toml'), 'name = "calm"\n')
+    const { server, events } = await devServer(root, {
+      ...options(root),
+      schemas: [...options(root).schemas, mood],
+    })
+    const first = await loadHash(server)
+
+    writeFileSync(join(root, 'content/mood.toml'), 'name = "crash"\n')
+    await waitFor(() => events.length === 1, 'the error event for the throw')
+    expect(events[0]).toEqual({
+      type: 'custom',
+      event: 'automata:content-error',
+      data: {
+        diagnostics: [
+          'automata-content options: the schema for mood threw while reading content/mood.toml: kaboom',
+        ],
+      },
+    })
+    expect(await loadHash(server)).toBe(first)
+
+    writeFileSync(join(root, 'content/mood.toml'), 'name = "tense"\n')
+    await waitFor(() => events.length === 2, 'recovery on the next valid save')
+    expect(events[1]?.event).toBe('automata:content')
+    expect(await loadHash(server)).toBe(events[1]?.data.hash)
   }, 30_000)
 
   it('ignores a file that is not an authored source', async () => {

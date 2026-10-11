@@ -47,7 +47,7 @@ export interface GeneratorRun {
   /** In generator order, then each generator's own file order. */
   readonly files: ReadonlyMap<string, string>
   readonly diagnostics: Diagnostic[]
-  /** Mistakes in the game's generator code; the compiler reports them as `InvalidContentConfig`. */
+  /** Mistakes in the game's generator code (a clash, an escape, a throw); reported as `InvalidContentConfig`. */
   readonly configProblems: string[]
 }
 
@@ -68,15 +68,9 @@ export function runGenerators(generators: readonly ContentGenerator[], input: Ge
     try {
       output = generator.generate(input)
     } catch (error) {
+      // The content passed every check, so a throw is a bug in the generator: the game's code, not its content.
       const reason = error instanceof Error ? error.message : String(error)
-      diagnostics.push({
-        code: 'generatorFailed',
-        file: 'content',
-        line: 1,
-        column: 1,
-        keyPath: '',
-        message: `${generator.name}: ${reason}`,
-      })
+      configProblems.push(`generator "${generator.name}" threw: ${reason}`)
       continue
     }
     diagnostics.push(...(output.diagnostics ?? []))
