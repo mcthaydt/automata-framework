@@ -29,7 +29,7 @@
 | Backend names (audit B2) | Pixi's `'webgl' | 'webgpu'`, or AF's `'webgl2' | 'webgpu'` | **AF's** | The M1 shared contracts already froze `RendererUnavailable { tried: ('webgl2' \| 'webgpu')[] }`, and `ruken.toml` says `webgl2`. Pixi's `renderer.name` is mapped once, where it is read. |
 | Where the `@pixi/3d` beta tarball lives (audit B1) | (a) committed under `vendor/pixi-3d/`; (b) out of AF git: a git-ignored `vendor/pixi-3d/` filled from The Last Light's private repo and checked by SHA-256 at install | **(b)**, the Owner's ruling at 22:19Z (§15 Q6) | The beta's terms keep "the source, beta tarball and generated builds inside the beta" (The Last Light `README.md:239`); AF's history would carry the file into a public repo later. `@pixi/3d` is an optional dependency, so AF still installs where the beta is not available (§5.2). |
 | `defineExtension` (audit B3) | (a) build the bare `defineExtension` in M1.7a; (b) export each extension's schemas and services plainly and wrap them when M1.5 builds `defineExtension` | **(b)** | Smaller, and it leaves `defineExtension`'s one owner (the runtime lane, M1 shared contracts §2) in place. |
-| Camera-relative movement and replays (audit S9) | Send the camera azimuth to the sim, or send a world-space direction | **World-space integer direction 0–7** | The azimuth is presentation state. The game turns input into one of eight world directions (orbit moves in π/4 steps) before sending `move`, and the sim maps the integer through a table of constants, so no engine-computed `sin` or `cos` enters a command and goldens stay engine-independent. |
+| Camera-relative movement and replays (audit S9) | Send the camera azimuth to the sim, or send a world-space direction | **World-space integer heading 0–31** (eight directions at first; 32 since the Owner put an analog stick on both bases, 23:02Z, §5.3) | The azimuth is presentation state. The game rounds input plus the camera's azimuth to one of 32 world headings before sending `move`, and the sim maps the integer through a table of constants, so no engine-computed `sin` or `cos` enters a command and goldens stay engine-independent. Sprite facings stay eight (`Direction8`, `directionRow`). |
 
 ## 1. Goal and boundaries
 
@@ -40,6 +40,8 @@ At the end of M3:
 - `post-retro` turns any Pixi container (2D or 3D) into the retro look from content: dither, LCD snap, Endesga 64 palette LUT, grade, bloom, LCD panel;
 - the `pipelines` dev extension runs game-agnostic pipelines with budgets, estimates, gates, a guard hook and an audit log, from a CLI and an MCP server;
 - **one character (Wick) goes through the 2.5D character pipeline with its gates**, and its output loads in `base-25d` with no hand edits; the props pipeline produces `.bin` props (the `LLP1` mesh format) that load the same way.
+
+**The look bar (Owner, 2026-10-11, 23:02–23:13Z via the hub).** The Owner saw the first HUD boards and said 2.5D and 3D "look noticeably worse compared to 2D", then set the bar: "Visually in 2.5D and 3D as it is in 2D". The design and quality reference for every base and the HUD is "Bubble Bobble x Celeste as an itch indie hit": Bubble Bobble's readable single-screen arcade design and Celeste's feel and pixel-art polish, finished like an itch.io hit. Both are influences, not motifs to copy (base-2d's `PROVENANCE.md`). base-2d's room is the anchor. M3.13 gives base-25d and base-3d the art pass base-2d got and checks them against that anchor (§11). The Last Light is a source to borrow from freely, not the target (§15 Q7).
 
 **Exclusions.** Full 3D (rigged characters, animation sets, third-person controller, brush environments) is M9. Sectors, cutaways, nav, puzzles, systems, narrative and cutscenes are M6 (`sectors`, `nav`, … extensions); M3's room is a box room, not a sector map. The reference, scene/blockout, vision, art (Aseprite), audio, FMV and sound pipelines stay in The Last Light until the M6 or later spec that needs them. Graphics settings and quality tiers are M4. Publishing `render-pixi3d` is out (D-1). FloorFifty's eight GLSL filters and `filter-stack-guard.ts` (extraction map, `post-retro` row) are deferred until a game asks for them (FloorFifty's adoption, M8): neither base needs them.
 
@@ -79,11 +81,12 @@ Nothing of `render-pixi`, `render-pixi3d`, `post-retro`, `pipelines`, `base-25d`
 | M3.9 `base-3d` | integration | `examples/base-3d/` | M1.7a, M3.4, M3.9a | As M3.8 |
 | M3.10 `physics/bodies-3d` | sim | `examples/physics/bodies-3d/` | M3.9 | Local unit, cloud parity golden; **runner** e2e |
 | M3.12 Browser-safe content entry | content | `packages/content/`: a `./schema` export (`defineContentSchema`, `contentRef`, `localized`, `DEFAULT_PALETTE`, `ENDESGA_64` and their types) whose module graph has no `node:` import; `post-retro` and `render-pixi3d` switch to it before their W2 PRs (fallback: each extension's schemas on its own `./content` subpath, base-2d's pattern) | — | Local unit; one Chromium import test (LB). Found in Q2: the root entry imports `node:crypto` and `node:fs`, so a browser import of `post-retro`, published in W2, fails (audit re-review R1) |
+| M3.13 Look parity (Owner, 23:02–23:13Z; §1, §11) | integration (the art in each base), pipelines (the `style` validator) | `examples/base-25d/src/art/`, `examples/base-3d/src/art/`, `packages/pipelines/src/validators/style.ts` and `python/style_metrics.py`. base-2d's art reaches the bases through an `./art` export made by the base-2d thread, as `./screens` is | M3.3, M3.4 R4, H0 v2 approved | Local unit and Chromium renders (LB); Owner look gates A-G1 (base-25d) and A-G2 (base-3d) on screenshots beside base-2d's |
 | M3.11 M3 exit | integration | numbered docs, `examples/README.md`, gallery | all | The last merge wave and the GPU claim (§9.3); Owner gates |
 
 Lanes run in parallel: **render3d** (S7, M1.7a, M3.4), **post** (M3.3), **pipelines** (M3.5–M3.7), **sim** (M3.9a, then M3.10), **content** (M3.12, in W1) and, once their packages exist, **integration** (M3.8, M3.9). The pipelines lane depends on nothing else in M3 and starts first. The new lanes and the M1.7a carve-out from the runtime lane's `packages/render-pixi/` go into [04 How we build](../../04-how-we-build.md#lanes-2026-10-11)'s lane table.
 
-**Edits to `examples/base-2d`** (the M3.2 pin, M1.7a's `no-eval` swap, B1's `./screens` and touch-button exports, the `chain-2d` demo's needs) belong to the base-2d thread, which is changing base-2d through #22 and the `startGame` options PR. M3 lanes send that thread the change as a patch, applied after #22; they do not commit to `examples/base-2d` on their own branches.
+**Edits to `examples/base-2d`** (the M3.2 pin, M1.7a's `no-eval` swap, B1's `./screens` and touch-button exports, M3.13's `./art` export, the `chain-2d` demo's needs) belong to the base-2d thread, which is changing base-2d through #22 and the `startGame` options PR. M3 lanes send that thread the change as a patch, applied after #22; they do not commit to `examples/base-2d` on their own branches.
 
 ## 4. Ownership
 
@@ -239,7 +242,7 @@ export type Direction8 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
 | `post` | `post-retro` | `{ passes: PassConfig[] }` (§5.4) | out |
 | `room25d` | `base-25d` (example only) | `{ size: [w, d], height, walls, props: { id, at, yaw }[], zones, spawn }` | **in** (walls gate movement) |
 
-The bases' `move` command carries a world-space `Direction8` (0–7) and a run flag, never an angle; the sim turns it into a step through a constant table (audit S9).
+The bases' `move` command carries a world-space `heading` (an integer 0–31, steps of 11.25°) and a `speed` (`walk` or `run`), never a float angle. The sim turns it into a step through a constant table of 32 unit vectors (audit S9). The input layer rounds the stick's angle plus the camera's azimuth to the nearest heading; keys give the 8 headings that are multiples of 4, and Shift runs. Why 32: both bases use an analog stick (Owner, 23:02Z), and 32 steps are finer than a thumb can aim on the stick's 40 px travel (neighbouring headings are about 8 px apart at the rim), while replays stay integers.
 
 All are registered with `defineContentSchema` (M2.2) in `*.content.ts` files (the style checker's role for `defineContentSchema` results). `characters` and `props` entries are written only by the pipelines' `install` stages and listed as generated in the game's `pipelines.config.json`.
 
@@ -340,7 +343,7 @@ The Python scripts move to `packages/pipelines/python/` with their behaviour unc
 
 **2.5D boot (base-25d)** follows master spec §7: no-eval imports (`render-pixi/no-eval`, then `render-pixi3d/no-eval`) → `Hosting` (until M1.5, base-2d's `Ruken.init` stand-in) → content (room, look3d, characters, props, post) → assets (atlas, normals, packs, through the loader with byte progress) → `initRenderer` (WebGL2) → `createStage3D` → bake vertex lighting once per static mesh → splash; gameplay renders only after `session.ready`.
 
-**Input:** the game reads the camera rig's orbit step (presentation) and the player's stick or keys, and sends `move` with a world-space `Direction8`; the sim never sees the azimuth.
+**Input:** the game reads the camera rig's orbit step (presentation) and the player's stick or keys, and sends `move` with a world-space `heading` and `speed` (§5.3); the sim never sees the azimuth.
 
 **Frame order:**
 1. The app loop steps the sim at 60 Hz (fixed); each step's `RenderDelta` goes to `stage.apply` (create, update, remove objects through the game's bindings; `resync` rebuilds all bound objects).
@@ -386,12 +389,14 @@ M3 adds no new screens: `base-25d` and `base-3d` reuse base-2d's splash, menu, p
 
 | Element | base-25d | base-3d | States |
 |---|---|---|---|
-| Move | Touch pad (base-2d's touch buttons, reused) and keys | Same | — |
-| Orbit left and right | Two corner buttons (`CornerControls` from `ui`), Q and E keys, gamepad shoulders | Drag to orbit, keys | Disabled while a zone has orbit locked (content) |
+| Move | Analog thumbstick, fixed bottom-left, in base-2d's button skin (Owner, 23:01–23:02Z: the joystick on both bases); keys; gamepad left stick | Same | Idle, active (walk), full tilt (run), dead zone, disabled, reduced motion |
+| Orbit left and right | Two corner buttons (`CornerControls` from `ui`) in base-2d's key-cap skin, Q and E keys, gamepad shoulders | Drag outside the stick's zone, Q and E keys, gamepad right stick | Disabled while a zone has orbit locked (content) |
+| Drag hint | — | A chip in base-2d's panel style until the first drag | Shown, fading, gone (at once under reduced motion) |
 | Pause | Base-2d's HUD pause | Same | — |
 
 - **Design first:** before M3.8 and M3.9 write HUD code, the Designer step lays out the HUD in Figma (a Figma connector is available to this project) at phone portrait, 780×270 and desktop, on Endesga 64 tokens, with `hostReserved` and the safe area shown; the Owner looks before code. Generated images, if any, are design input only.
-- Touch targets 44 px (orbit buttons are secondary), primary 48 px; the orbit buttons sit in the corners outside the move pad's reach zone; nothing overlaps `hostReserved`.
+- **H0 v2:** the Owner answered the first boards with "Changes" (23:01Z): the joystick on both bases, and every control held to base-2d's quality (§1). v2 draws each control in base-2d's own skin (its chunky key caps, Pixelify Sans, solid glyphs) and shows each frame beside base-2d's at the same size. HUD code waits for the Owner's approval of v2.
+- Touch targets 44 px (orbit buttons are secondary), primary 48 px. The stick's knob is 60 px, base-2d's touch button, with 40 px of travel; under 20 % tilt is the dead zone, and from 80 % it runs. A touch that starts within 100 px of the stick's centre belongs to the stick; in base-3d a drag that starts anywhere else outside the controls orbits. The orbit buttons sit in the corners, outside the stick's reach; nothing overlaps `hostReserved`.
 - Narrow aspect (portrait phones) is handled by the camera pull-back (§6), not by shrinking the HUD.
 - Reduced motion snaps the camera instead of easing.
 - Layout contracts run at every reference size through `@mcthaydt/automata-ui/testing` (renderer-free fixtures of the HUD over a fixed-size placeholder canvas), so they stay local.
@@ -454,7 +459,14 @@ The GPU work is one claim at the end (M3.11):
 
 Every demo on base-25d or base-3d bundles `@pixi/3d`, so it stays out of the public gallery list and its captures are `beta-only` until the Owner clears them (§1).
 
-Art: Endesga 64 only, Emberwick (mossy night ruins, lantern light). The 2.5D room is new art through the props pipeline or simple palette-indexed boxes until the props run is approved; provenance in each demo's `PROVENANCE.md`.
+Art: Endesga 64 only, Emberwick (mossy night ruins, lantern light), held to the look bar (§1). Both 3D bases get the free art pass base-2d got (M3.13):
+- base-2d's stone, moss, grass, vine, mushroom and ember art as pixel textures and billboards, at base-2d's pixel size;
+- its night backdrop as the sky beyond the room's open roof;
+- Wick for 2.5D as an outlined, rim-lit sprite with eight facings, drawn in code as base-2d's Wick was; for 3D, a low-poly mesh built in code;
+- pixel lighting on The Last Light's stepped lamp model (lantern, ember, mushrooms, moon), with bounce light and haze, retuned brighter for Emberwick;
+- `post-retro` tuned so the frame reads like base-2d (Q4).
+
+The props pipeline and the paid Wick run (§15 Q3) are upgrades on top, not the route to the bar. Provenance is in each demo's `PROVENANCE.md`; anything taken from The Last Light is listed there and stays private (§15 Q7).
 
 ## 12. Exit criteria
 
@@ -471,6 +483,7 @@ Art: Endesga 64 only, Emberwick (mossy night ruins, lantern light). The 2.5D roo
 | 9 | Every demo in §11 merged with its smoke test (`pipelines/character-wick` after §15 Q3); screenshots shown to the Owner | PRs, evidence |
 | 10 | `render-pixi3d` and `pipelines` are private, pinned by tests; no build that bundles `@pixi/3d` deploys to the dev host or appears in a public gallery list | the pin tests; `ship prepare` check and its failing-case test |
 | 11 | base-3d's character stops at walls and pushes bodies through `physics`' controller, identical in four engines | M3.9a parity output |
+| 12 | base-25d and base-3d meet the look bar (§1): within the `style` check's bounds against base-2d's anchor, and the Owner's look gates A-G1 and A-G2 recorded | the style report, screenshots beside base-2d's at the three sizes, Owner word via the coordinator |
 
 **Failure cases proven by tests:** WebGPU init failure falls back once; WebGL2 failure shows the device message; bad `LLP1` magic and truncation; a `.pack` path in `props` content; atlas size mismatch; unknown post pass; paid stage refused four ways; path-policy violation; guard blocks approve, key print, a generated-file edit and an audit-log edit; a short audit log refuses paid stages; a dropped `private: true` fails its pin test; missing Python module reported as a gap.
 
@@ -503,7 +516,19 @@ Answered by the coordinator on 2026-10-11 (22:03Z); the Owner's sign-off on this
 
 - **Q1 (D-1), decided:** `render-pixi3d` stays unpublished and out of public builds until the beta's terms allow public deployment (matches the standing `@pixi/3d` decision).
 - **Q2, decided:** the render3d lane builds M1.7a in `packages/render-pixi` now.
-- **Q3, held:** no paid image or Meshy spend until the coordinator relays the Owner's OK (credits are low). Until then the pipelines are built and tested with fake providers only, base-25d uses a procedural palette-indexed placeholder atlas for Wick and palette-indexed box props, and the live runs (plan C3, D2) stay unchecked. Exit criteria 5 and 6 wait on this. Expected cost when approved: Wick about 10 images and 38 Meshy credits; one prop about 1 image and 30 credits.
+- **Q3, held:** no paid image or Meshy spend until the coordinator relays the Owner's OK (credits are low). Until then the pipelines are built and tested with fake providers only, and the live runs (plan C3, D2) stay unchecked. The bases' look no longer waits on Q3: the art pass (M3.13) draws Wick and the room in code, as base-2d's art was, replacing the placeholder atlas and box props this answer first named (Owner, 23:02Z: 2.5D and 3D must look as good as 2D). Exit criteria 5 and 6 wait on this. Expected cost when approved: Wick about 10 images and 38 Meshy credits; one prop about 1 image and 30 credits.
 - **Q4, default:** `post.toml` starts from The Last Light's pass values (`look.ts:39-44`, `lcd-panel.ts:24`) with the palette pass on Endesga 64; the Owner tunes the look at the Q4 demo screenshots (plan Q4).
 - **Q5, default:** the demo names in §11 as written.
 - **Q6, answered by the Owner 2026-10-11 22:19Z through the hub (audit B1): "Keep it out."** The `@pixi/3d` beta tarball stays out of AF's git history. AF fetches it from The Last Light's private repo and checks its SHA-256 (§5.2). Builds that bundle `@pixi/3d` and their captures stay private (no dev host, no gallery; captures `beta-only`) until the beta allows public use. Follow-up for the Owner, needed before W3: AF's CI needs read access to The Last Light to fetch the file: a fine-grained token with Contents: read on that one repo only, saved as an Actions secret and never echoed (audit re-review R2).
+- **Q7, the Owner through the hub, 2026-10-11 23:12Z:** "the pixi project looks amazing so feel free to steal from there", corrected at 23:12:26Z: the bar is base-2d (§1); The Last Light is a source, not the target. Borrowed and retuned for Emberwick:
+  - its stepped lamp lighting, with bounce light and haze;
+  - its outlined, rim-lit sprites;
+  - the post chain;
+  - the fixed 50 mm camera;
+  - the style check against an anchor, as M3.13's `style` validator.
+
+  The hub's guardrails:
+  1. Anything copied from The Last Light, and every 2.5D and 3D build or capture, stays private, like the beta tarball. It stays out of public AF git and releases until the Owner says otherwise.
+  2. Its paid Meshy models may appear privately in concept frames. Reusing them in a shipped AF template needs an Owner card first.
+
+  Open point (asked of the coordinator): guardrail 1 as worded also covers the extractions this spec already planned from The Last Light. `render-pixi3d` and `pipelines` are private packages, but `post-retro` is published to the repo's GitHub Packages after #19. Read here as: those extractions go ahead as specified, everything else from The Last Light stays private, and before AF's repo or packages go public, the Owner rules on each file that came from The Last Light.
