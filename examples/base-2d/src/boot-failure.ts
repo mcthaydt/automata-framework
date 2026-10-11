@@ -2,14 +2,14 @@ import { Cause, Data, Option } from 'effect'
 import { BaseBootFailed } from './boot.ts'
 
 // What the page says when the game cannot start (main.ts). Only a failed Ruken handshake or ready is a
-// connection problem; everything else (no WebGL2, the physics engine's WebAssembly blocked, a bug) means this
+// connection problem; everything else (no canvas context, a sim that can't be made, a bug) means this
 // device can't run the game, and a "check your connection" message would send the player looking in the wrong
 // place.
 
-/** The renderer could not start (no WebGL2, or the GPU refused the context). */
+/** The renderer could not start (Pixi found no canvas context it can draw with). */
 export class RendererFailed extends Data.TaggedError('RendererFailed')<{ readonly cause: unknown }> {}
 
-/** The first sim could not be made (Rapier's WebAssembly did not load, or the world could not be created). */
+/** The first sim could not be made (its world could not be created, or a module it loads failed to load). */
 export class SimFailed extends Data.TaggedError('SimFailed')<{ readonly cause: unknown }> {}
 
 export const CONNECT_FAILED = "Couldn't connect to Ruken."

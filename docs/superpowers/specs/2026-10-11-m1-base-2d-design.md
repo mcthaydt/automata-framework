@@ -70,7 +70,7 @@ The sim half is the real thing: a sim plugin on `automata-sim`, checked by `chec
 ## 5. Failure policy
 
 - `Ruken.init` or `ready` rejects: show "Couldn't connect to Ruken." and set `data-state="failed"` (as the placeholder does). No retry loop; the host owns reloads.
-- Pixi `init` throws (no WebGL), or the first sim can't be made (Rapier's WebAssembly fails to load): the same failure path with "This device can't run the game." Never a blank canvas. Any other failure (a defect) shows the device message too; only a failed `init` or `ready` blames the connection (`src/boot-failure.ts`, picked from the Exit's Cause).
+- Pixi `init` throws, or the first sim can't be made: the same failure path with "This device can't run the game." Never a blank canvas. Any other failure (a defect) shows the device message too; only a failed `init` or `ready` blames the connection (`src/boot-failure.ts`, picked from the Exit's Cause by `src/boot-page.ts`). Two limits, both from the stand-ins: Pixi 8 falls back to a 2D canvas when WebGL and WebGPU are blocked, so `RendererFailed` means no canvas context at all; and the vendored SDK's `ready` never rejects and `Ruken.init` goes standalone after 10 s without a welcome, so the connection message only shows for a misconfigured host, not a network drop. On a boot failure the first sim and the session are not disposed and the host isn't told; the page is final.
 - A rejected sim command is a bug in the input layer: it is logged once with `console.error`, and the browser journeys fail on any console error.
 - `parseRoom` throws at startup on a malformed room; the room is source code, so this fails the unit tests first.
 
