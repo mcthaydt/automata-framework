@@ -67,3 +67,46 @@ describe('parseDocument', () => {
     ])
   })
 })
+
+// Values TOML has and JSON does not. Audit of PR #8: `nan` used to crash the compiler, and dates were erased.
+describe('TOML values without a JSON form', () => {
+  const anything = z.record(z.string(), z.unknown())
+
+  it('turns dates and times into canonical ISO strings', () => {
+    const text = [
+      'day = 2026-01-01',
+      'clock = 07:32:00',
+      'local = 1979-05-27T07:32:00',
+      'offset = 1979-05-27 07:32:00.5-07:00',
+      '[nested]',
+      'at = [1979-05-27T07:32:00Z]',
+    ].join('\n')
+    const result = parseDocument({ file, text }, anything)
+    expect(result.ok && result.value).toEqual({
+      day: '2026-01-01',
+      clock: '07:32:00.000',
+      local: '1979-05-27T07:32:00.000',
+      offset: '1979-05-27T07:32:00.500-07:00',
+      nested: { at: ['1979-05-27T07:32:00.000Z'] },
+    })
+  })
+
+  it('refuses nan and inf at their keys', () => {
+    const result = parseDocument({ file, text: 'a = 1\nb = nan\n[c]\nd = [1, -inf]\n' }, anything)
+    expect(result.ok ? [] : result.diagnostics.map(formatDiagnostic)).toEqual([
+      'content/songs/dusk-run.toml:2:1  b  invalidType: b must be a finite number, received nan',
+      'content/songs/dusk-run.toml:4:1  c.d.1  invalidType: c.d.1 must be a finite number, received -inf',
+    ])
+  })
+
+  it('reads a multi-line string the same with CRLF and LF line endings', () => {
+    const lf = 'text = """\nDusk\nRun"""\n'
+    const crlf = lf.replaceAll('\n', '\r\n')
+    const read = (text: string) => {
+      const result = parseDocument({ file, text }, anything)
+      return result.ok ? result.value : undefined
+    }
+    expect(read(crlf)).toEqual({ text: 'Dusk\nRun' })
+    expect(read(crlf)).toEqual(read(lf))
+  })
+})

@@ -30,6 +30,19 @@ describe('checkTuning with code-owned declarations (FloorFifty)', () => {
     })
   })
 
+  it('refuses a value that is not a finite number (FloorFifty), for games that layer tuning themselves', () => {
+    const layer = (gravity: number) => checkTuningLayer({ GRAVITY: gravity }, declared, { complete: false })
+    for (const gravity of [Number.NaN, Number.NEGATIVE_INFINITY]) {
+      expect(layer(gravity)).toEqual([
+        {
+          path: ['GRAVITY'],
+          code: 'invalidType',
+          message: `GRAVITY must be a finite number, received ${gravity}`,
+        },
+      ])
+    }
+  })
+
   it('checks partial layers for type, range, unknown names and invariants', () => {
     const layer = (values: Record<string, unknown>) => checkTuningLayer(values, declared, { complete: false })
     expect(layer({ COURSE_FLOOR_COUNT: 20.5 })).toEqual([

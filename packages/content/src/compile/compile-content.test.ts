@@ -219,6 +219,23 @@ describe('refusals (one formatted line per failure policy row)', () => {
     ])
   })
 
+  it('nan or inf in tuning, at its line (audit of PR #8: it used to crash)', async () => {
+    expect(await broken('tuning.toml', (t) => t.replace('GRAVITY = -275.0', 'GRAVITY = nan'))).toEqual([
+      'content/tuning.toml:20:1  GRAVITY  invalidType: GRAVITY must be a finite number, received nan',
+    ])
+    expect(await broken('tuning.toml', (t) => t.replace('GRAVITY = -275.0', 'GRAVITY = -inf'))).toEqual([
+      'content/tuning.toml:20:1  GRAVITY  invalidType: GRAVITY must be a finite number, received -inf',
+    ])
+  })
+
+  it('a TOML date, kept as its ISO string', async () => {
+    const root = copyFixture('equivalent-a')
+    const event = defineContentSchema('event', z.strictObject({ at: z.iso.date() }), { file: 'event.toml' })
+    writeFileSync(join(root, 'content/event.toml'), 'at = 2026-01-01\n')
+    const { data } = await compiled({ root, schemas: [CHARACTER, SONG, event] })
+    expect(data.event).toEqual({ at: '2026-01-01' })
+  })
+
   it('a flow problem', async () => {
     expect(await broken('flow.toml', (t) => t.replace('entry = "Splash"', 'entry = "MainMenu"'))).toContain(
       'content/flow.toml:9:1  entry  invalidFlow: entry must be Splash, received MainMenu',

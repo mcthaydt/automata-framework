@@ -92,6 +92,11 @@ export function checkTuningLayer(
       problems.push(problem([name], 'invalidType', `${name} must be a number`))
       continue
     }
+    // NaN passes every range comparison, so it is refused before the range check (FloorFifty).
+    if (!Number.isFinite(value)) {
+      problems.push(problem([name], 'invalidType', `${name} must be a finite number, received ${value}`))
+      continue
+    }
     if (declaration.type === 'int' && !Number.isInteger(value)) {
       problems.push(problem([name], 'invalidType', `${name} is declared int, received ${value}`))
       continue
