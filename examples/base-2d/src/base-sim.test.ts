@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createBaseSim, readPlayer } from './base-sim.ts'
-import { BASE_SIM_CONTENT } from './content/room.ts'
+import { BASE_SIM_CONTENT, ROOM } from './content/room.ts'
 import { readRoomGrid } from './content/room-grid.ts'
 import { SUB } from './sim/tuning.ts'
 
@@ -29,6 +29,14 @@ describe('createBaseSim', () => {
     const sim = await createBaseSim({ content: { rooms: { 'room-1': corridor } } })
     expect(Math.floor(readPlayer(sim).x / SUB)).toBe(16)
     sim.dispose()
+  })
+
+  it('makes the same sim from the shipped room’s rows as from the compiled content, so snapshots cross', async () => {
+    const fromContent = await createBaseSim()
+    const fromRoom = await createBaseSim({ room: ROOM })
+    expect(fromRoom.hash()).toBe(fromContent.hash())
+    fromContent.dispose()
+    fromRoom.dispose()
   })
 
   it('refuses content and a room together', async () => {

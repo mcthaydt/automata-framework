@@ -26,7 +26,11 @@ export async function createBaseSim(options: BaseSimOptions = {}): Promise<Sim> 
   const content =
     options.room === undefined
       ? (options.content ?? BASE_SIM_CONTENT)
-      : { rooms: { [FIRST_ROOM]: readRoomGrid(options.room.tileSize, options.room.rows) } }
+      : // The base's content with this room swapped in, so the content's shape (and its hash) stays the same.
+        {
+          ...BASE_SIM_CONTENT,
+          rooms: { [FIRST_ROOM]: readRoomGrid(options.room.tileSize, options.room.rows) },
+        }
   // Checked before the sim exists, so content without the base's room fails here, not on the first step.
   const room = roomOf(content)
   const sim = await createSim({
