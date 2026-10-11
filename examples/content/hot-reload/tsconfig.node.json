@@ -2,5 +2,12 @@
   // The files that run in Node (Vite, Playwright, ship.config.ts, the room schema).
   "extends": "./tsconfig.json",
   "compilerOptions": { "types": ["node"] },
-  "include": ["ship.config.ts", "vite.config.ts", "room.schema.ts", "e2e/**/*.ts"]
+  "include": [
+    "ship.config.ts",
+    "vite.config.ts",
+    "room.schema.ts",
+    "room.schema.test.ts",
+    "vitest.config.ts",
+    "e2e/**/*.ts"
+  ]
 }

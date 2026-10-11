@@ -14,7 +14,7 @@
     "test": "turbo run test",
     "test:unit": "turbo run test:unit",
     "bench": "pnpm --recursive --workspace-concurrency=1 --if-present bench",
-    "boundaries": "node tooling/check-boundaries/src/cli.ts packages/sim/src packages/physics/src",
+    "boundaries": "node tooling/check-boundaries/src/cli.ts packages/sim/src packages/physics/src examples/base-2d/src/sim && node tooling/check-boundaries/src/cli.ts --allow @af-examples/base-2d/sim examples/physics/bodies-2d/sim",
     "style": "node tooling/check-style/src/cli.ts packages/*/src",
     "check": "pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit",
     "test:e2e": "playwright test",

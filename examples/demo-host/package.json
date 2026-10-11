@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./ports": "./ports.ts",
-    "./preview-headers": "./preview-headers.ts"
+    "./preview-headers": "./preview-headers.ts",
+    "./testing": "./testing.ts"
   },
   "scripts": {
     "typecheck": "tsc -p .",
@@ -18,6 +19,7 @@
     "effect": "3.22.2"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@types/node": "24.19.1",
     "vite": "8.3.2"
   }

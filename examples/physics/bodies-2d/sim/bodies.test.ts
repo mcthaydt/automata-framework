@@ -2,7 +2,8 @@ import { moveCommand, ROOM } from '@af-examples/base-2d'
 import { BodyKind, RigidBody2D, Transform2D } from '@mcthaydt/automata-physics/2d'
 import type { Command, Sim } from '@mcthaydt/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createBodiesSim, Drop, Follower, MAX_LOOSE } from './bodies.plugin.ts'
+import { createBodiesSim } from '../bodies-sim.ts'
+import { Drop, Follower, MAX_LOOSE } from './bodies.plugin.ts'
 
 const sims: Sim[] = []
 afterEach(() => {

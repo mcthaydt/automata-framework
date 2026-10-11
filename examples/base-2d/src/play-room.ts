@@ -136,6 +136,7 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
     },
   })
   let running = false
+  let destroyed = false
 
   return {
     sim: () => sim,
@@ -155,9 +156,14 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
       // rounds.ts for the same rule in the base's own game).
       const restart = ++latest
       const run = queue.then(async () => {
-        if (restart !== latest) return
+        if (restart !== latest || destroyed) return
         const next = room ?? source
         const freshSim = await makeSim(next)
+        // Destroyed while the sim was being made: nothing is left to hand it to.
+        if (destroyed) {
+          freshSim.dispose()
+          return
+        }
         // Nothing steps while the sims and renderers change hands.
         loop.stop()
         if (room === undefined) renderer.reset()
@@ -167,6 +173,13 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
           for (const detach of detachLayers) detach()
           try {
             const fresh = await withLayers(next)
+            if (destroyed) {
+              fresh.made.destroy()
+              freshSim.dispose()
+              return
+            }
+            // What the layers drew belongs to the old room's sim; they start over with the new one.
+            for (const layer of options.layers ?? []) layer.reset?.()
             renderer.destroy()
             renderer = fresh.made
             detachLayers = fresh.detach
@@ -188,6 +201,8 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
       return run
     },
     destroy() {
+      // A restart still running sees this and disposes what it made.
+      destroyed = true
       loop.stop()
       running = false
       renderer.destroy()

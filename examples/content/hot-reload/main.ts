@@ -39,9 +39,12 @@ function showContent(hash: string): void {
   problems.replaceChildren()
 }
 
-function showProblems(lines: readonly string[]): void {
+function showProblems(
+  lines: readonly string[],
+  heading = "content/room.toml didn't compile. Still playing the last good room.",
+): void {
   const title = document.createElement('h2')
-  title.textContent = "content/room.toml didn't compile. Still playing the last good room."
+  title.textContent = heading
   const list = document.createElement('pre')
   list.textContent = lines.join('\n')
   problems.replaceChildren(title, list)
@@ -57,12 +60,25 @@ function showProblems(lines: readonly string[]): void {
 function followSaves(play: PlayRoom): void {
   const hot = import.meta.hot
   if (hot === undefined) return
+  // Two quick saves start two imports, and the older one can finish last: only the newest save's room plays.
+  let newest = ''
   hot.on('automata:content', async ({ hash }: { hash: string }) => {
+    newest = hash
     const url = `/@id/__x00__virtual:automata/content?v=${hash}`
-    const fresh: typeof import('virtual:automata/content') = await import(/* @vite-ignore */ url)
-    // A new room is a new world: the sim and the renderer start over in it.
-    await play.restart(fresh.content.room)
-    showContent(fresh.contentHash)
+    try {
+      const fresh: typeof import('virtual:automata/content') = await import(/* @vite-ignore */ url)
+      if (hash !== newest) return
+      // A new room is a new world: the sim and the renderer start over in it.
+      await play.restart(fresh.content.room)
+      if (hash === newest) showContent(fresh.contentHash)
+    } catch (error) {
+      // The compiler checked the room, so this is the page failing (a lost dev server, a renderer that could not
+      // start): the last good room plays on, and the panel says what went wrong.
+      showProblems(
+        [error instanceof Error ? error.message : String(error)],
+        "The new room couldn't start. Still playing the last good room.",
+      )
+    }
   })
   hot.on('automata:content-error', ({ diagnostics }: { diagnostics: readonly string[] }) =>
     showProblems(diagnostics),

@@ -1,6 +1,6 @@
-import type { Command, StepResult } from '@mcthaydt/automata-sim'
+import type { Sim, StepResult } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import { readPlayer } from './base-sim.ts'
+import { createBaseSim, readPlayer } from './base-sim.ts'
 import { ROOM, type Room, type RoomSource } from './content/room.ts'
 import type { Held } from './input/keys.ts'
 import { STEP_MS } from './loop.ts'
@@ -78,6 +78,23 @@ function seams(held: Held = { left: false, right: true, jump: false }) {
 }
 
 const shifted: RoomSource = { ...ROOM, id: 'room-2' }
+
+/** A `createSim` that keeps every sim it makes and notes which ones were disposed. */
+function trackedSims() {
+  const sims: Sim[] = []
+  const disposed = new Set<Sim>()
+  const createSim = async (room: RoomSource) => {
+    const sim = await createBaseSim({ room })
+    const dispose = sim.dispose.bind(sim)
+    sim.dispose = () => {
+      disposed.add(sim)
+      dispose()
+    }
+    sims.push(sim)
+    return sim
+  }
+  return { sims, disposed, createSim }
+}
 
 describe('createPlay', () => {
   it('steps the sim with the held input and hands each result to the demo', async () => {
@@ -171,5 +188,59 @@ describe('createPlay', () => {
     await play.restart()
     expect(play.running()).toBe(false)
     play.destroy()
+  })
+
+  it('resets the layers when the room changes, so they drop what they drew for the old one', async () => {
+    const s = seams()
+    let resets = 0
+    const layer = {
+      view: {},
+      reset: () => {
+        resets++
+      },
+    } as RendererLayer
+    const play = await createPlay(s.play, { layers: [layer] })
+    await play.restart(shifted)
+    expect(resets).toBe(1)
+    play.destroy()
+  })
+
+  it('keeps the old room playing when the new room cannot start', async () => {
+    const s = seams()
+    const { sims, disposed, createSim } = trackedSims()
+    const layer = { view: {} } as RendererLayer
+    const play = await createPlay(
+      {
+        ...s.play,
+        createRenderer: async (room) => {
+          if (room.id === shifted.id) throw new Error('no WebGL')
+          return s.play.createRenderer(room)
+        },
+      },
+      { createSim, layers: [layer] },
+    )
+    play.start()
+    await expect(play.restart(shifted)).rejects.toThrow('no WebGL')
+    // The old sim and renderer play on, the layers back on it; the sim made for the new room is gone.
+    expect(play.sim()).toBe(sims[0])
+    expect(disposed).toEqual(new Set([sims[1]]))
+    expect(s.renderers[0]?.layers).toEqual([layer])
+    expect(s.renderers[0]?.destroyed).toBe(false)
+    expect(play.running()).toBe(true)
+    s.frame()
+    expect(play.sim().tick).toBe(1)
+    play.destroy()
+  })
+
+  it('a restart still running when the room is destroyed makes nothing that outlives it', async () => {
+    const s = seams()
+    const { sims, disposed, createSim } = trackedSims()
+    const play = await createPlay(s.play, { createSim })
+    const restart = play.restart(shifted)
+    play.destroy()
+    await restart
+    expect(disposed).toEqual(new Set(sims))
+    expect(s.renderers.every((log) => log.destroyed)).toBe(true)
+    expect(s.scheduled).toBe(false)
   })
 })

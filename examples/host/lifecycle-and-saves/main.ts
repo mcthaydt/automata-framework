@@ -3,7 +3,9 @@
 // Shows: the three things every Ruken game does with its host. It waits for ready before drawing anything
 // (Ruken R-04); it stops the room while the host has it in the background (a drawer, an ad, a hidden tab) and
 // plays on when it comes back; and it keeps the player's best time and run count in their host saves, read at
-// boot and written each time Wick reaches the ember. The panel shows what the host reports as it happens.
+// boot and written each time Wick reaches the ember. The panel shows what the host reports as it happens: the
+// saves status goes to offline-queued while the saves server is out of reach, and if the host denies saves the
+// demo keeps nothing rather than write to the device.
 // Opened directly, the page runs standalone: same code, and the saves live only as long as the page.
 // Controls: arrows or A/D to move, Space, Z, W or Up to jump; on-screen buttons on touch. The ember is a short
 // dash to the right, so a run takes a couple of seconds.
@@ -52,8 +54,11 @@ const program = Effect.gen(function* () {
   yield* hosting.ready
   // Nothing was drawn before this line: the page stays empty until the host says ready.
 
-  let best = yield* readCount(hosting, BEST_TICKS)
-  let runs = yield* readCount(hosting, RUNS)
+  // Saves are a capability the host may deny. Denied, the demo keeps nothing: it never falls back to device
+  // storage behind the host's back (AGENTS.md, host authority), and says so in the panel.
+  const keepsSaves = hosting.granted.has('saves')
+  let best = keepsSaves ? yield* readCount(hosting, BEST_TICKS) : 0
+  let runs = keepsSaves ? yield* readCount(hosting, RUNS) : 0
 
   const panel = document.createElement('aside')
   panel.className = 'host-panel'
@@ -74,10 +79,11 @@ const program = Effect.gen(function* () {
     root.dataset.host = hosting.kind
     root.dataset.lifecycle = lifecycle
     root.dataset.runs = String(runs)
+    root.dataset.saves = keepsSaves ? savesStatus : 'not-granted'
     show({
       host: hosting.kind === 'ruken' ? `Ruken · ${hosting.player.displayName}` : 'Standalone',
       lifecycle: `Lifecycle: ${lifecycle}`,
-      saves: `Saves: ${hosting.granted.has('saves') ? savesStatus : 'this page only'}`,
+      saves: `Saves: ${keepsSaves ? savesStatus : 'not granted, runs are not kept'}`,
       best: best === 0 ? 'Best: none yet' : `Best ${(best / tuning.TICK_HZ).toFixed(2)} s`,
       runs: runs === 1 ? '1 run' : `${runs} runs`,
     })
@@ -91,8 +97,10 @@ const program = Effect.gen(function* () {
       if (best === 0 || ticks < best) best = ticks
       refresh()
       yield* hosting.round.end('complete')
-      yield* hosting.saves.set(RUNS, String(runs))
-      yield* hosting.saves.set(BEST_TICKS, String(best))
+      if (keepsSaves) {
+        yield* hosting.saves.set(RUNS, String(runs))
+        yield* hosting.saves.set(BEST_TICKS, String(best))
+      }
       yield* Effect.sleep(NEXT_RUN_MS)
       yield* Effect.promise(() => play.restart())
       yield* hosting.round.start

@@ -3,8 +3,8 @@
 // Shows: @mcthaydt/automata-physics/2d inside base-2d's sim. The room's tiles are fixed bodies, an invisible
 // kinematic box follows Wick, and crates and stones are dynamic bodies: Wick shoves them, they tumble down the
 // ledges and pile up. Drop more and watch the collision events count up. Physics runs inside the sim
-// (sim/bodies.plugin.ts), so the pile is the same on every engine; this page only sends the drops and draws
-// the bodies.
+// (sim/bodies.plugin.ts), so the pile is the same on every engine (golden.parity.test.ts); this page only
+// sends the drops and draws the bodies.
 // Controls: arrows or A/D to move, Space, Z, W or Up to jump, X or C to drop a body above Wick; on-screen
 // buttons on touch (▣ drops).
 // Base: base-2d (`@af-examples/base-2d`: the room, Wick, input and the loop through `playRoom`).
@@ -23,7 +23,8 @@ import { BodyKind, Collider2D, RigidBody2D, ShapeKind, Transform2D } from '@mcth
 import type { Command, Sim } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
 import { Container, Graphics } from 'pixi.js'
-import { createBodiesSim, Drop, PX_PER_M } from './sim/bodies.plugin.ts'
+import { createBodiesSim } from './bodies-sim.ts'
+import { Drop, PX_PER_M } from './sim/bodies.plugin.ts'
 
 /** Must equal `[game] id` in ship.config.ts; the host checks it. */
 const GAME_ID = 'demo-physics-bodies-2d'

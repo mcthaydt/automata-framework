@@ -15,8 +15,20 @@ export function demoPort(slot: number): number {
 }
 
 /** The fake host page around the demo served at `gameUrl`, whose ruken.toml says `[game] id = gameId`. */
-export function hostedUrl(gameUrl: string, gameId: string, saves?: Record<string, string>): string {
+/** How the fake host treats the demo. Each field left out keeps the fake host's default. */
+export interface HostedOptions {
+  /** The player's server saves, seeded before the demo boots. */
+  readonly saves?: Record<string, string>
+  /** Grant exactly these capabilities (`[]` denies all), instead of what the demo asks for. */
+  readonly grant?: readonly string[]
+  /** The saves server is unreachable: writes queue on the host until it comes back. */
+  readonly offline?: boolean
+}
+
+export function hostedUrl(gameUrl: string, gameId: string, options: HostedOptions = {}): string {
   const query = new URLSearchParams({ game: gameUrl, id: gameId })
-  if (saves !== undefined) query.set('saves', JSON.stringify(saves))
+  if (options.saves !== undefined) query.set('saves', JSON.stringify(options.saves))
+  if (options.grant !== undefined) query.set('grant', options.grant.join(','))
+  if (options.offline === true) query.set('offline', '1')
   return `${demoHostOrigin}/?${query}`
 }

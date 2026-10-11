@@ -1,26 +1,14 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { hostedUrl } from '@af-examples/demo-host/ports'
-import { expect, type Page, test } from '@playwright/test'
+import { collectErrors, openHosted } from '@af-examples/demo-host/testing'
+import { expect, test } from '@playwright/test'
 import { devUrl, e2eRoomFile, GAME_ID, url } from './origin.ts'
 
 // The content demo: its build boots under the fake host, ready and quiet; its dev server swaps the room in place
 // on a good save, and on a bad one keeps the last good room and shows the compiler's message until the fix.
 
-async function collectErrors(page: Page): Promise<string[]> {
-  const errors: string[] = []
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text())
-  })
-  page.on('pageerror', (error) => errors.push(String(error)))
-  return errors
-}
-
 test('the build boots under the fake host, ready and quiet, with its content embedded', async ({ page }) => {
   const errors = await collectErrors(page)
-  await page.goto(hostedUrl(url, GAME_ID))
-  const frame = page.frames().find((candidate) => candidate.url().startsWith(url))
-  if (frame === undefined) throw new Error('the demo frame did not load')
-  await expect(frame.locator('html')).toHaveAttribute('data-state', 'ready')
+  const frame = await openHosted(page, url, GAME_ID)
   await expect(frame.locator('#game')).toHaveAttribute('data-content-hash', /^[0-9a-f]{16}$/)
   await expect(frame.locator('#game')).toHaveAttribute('data-tick', /\d+/)
   expect(errors).toEqual([])

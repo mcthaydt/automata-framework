@@ -2,5 +2,12 @@
   // The files that run in Node (Vite, Vitest, Playwright, ship.config.ts).
   "extends": "./tsconfig.json",
   "compilerOptions": { "types": ["node"] },
-  "include": ["ship.config.ts", "vite.config.ts", "vitest.config.ts", "e2e/**/*.ts", "sim/**/*.test.ts"]
+  "include": [
+    "ship.config.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "e2e/**/*.ts",
+    "sim/**/*.test.ts",
+    "*.test.ts"
+  ]
 }

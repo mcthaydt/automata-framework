@@ -8,14 +8,14 @@
 //
 // Units: physics works in metres with y up; the room is in pixels with y down. 16 pixels are a metre, so a tile
 // is half a metre and the room 20 × 12 m. Everything here runs inside the sim: no I/O, no clock, no
-// randomness, so the same drops give the same pile in every browser.
-import { createBaseSim, Player, type RoomSource, tuning } from '@af-examples/base-2d'
-import { parseRoom } from '@af-examples/base-2d/room'
+// randomness, so the same drops give the same pile in every browser (bodies.parity.test.ts). `pnpm boundaries`
+// checks this folder; it imports only the sim, the physics extension and the base's sim
+// (`@af-examples/base-2d/sim`), never the base's package root, which reaches the host bridge.
+import { Player, tuning } from '@af-examples/base-2d/sim'
 import {
   BodyKind,
   body2d,
   collider2d,
-  physics2d,
   RigidBody2D,
   Transform2D,
   transform2d,
@@ -26,14 +26,13 @@ import {
   definePlugin,
   defineSystem,
   type PluginDef,
-  type Sim,
   type SpawnPart,
 } from '@mcthaydt/automata-sim'
 import { z } from 'zod'
 
 export const PX_PER_M = 16
 /** Stronger than Earth's 9.81, so 8-pixel crates fall as briskly as Wick does. */
-const GRAVITY = -40
+export const GRAVITY = -40
 /** Past this many loose bodies, the oldest is removed to make room for a new drop. */
 export const MAX_LOOSE = 40
 
@@ -44,28 +43,28 @@ export const Follower = defineComponent('bodies.follower', { player: 'u32' })
 export const Drop = defineCommand('bodies.drop', z.object({}))
 
 /** Room pixels to metres, for a point (y flips). */
-const metresX = (px: number) => px / PX_PER_M
-const metresY = (py: number, roomHeightPx: number) => (roomHeightPx - py) / PX_PER_M
+export const metresX = (px: number) => px / PX_PER_M
+export const metresY = (py: number, roomHeightPx: number) => (roomHeightPx - py) / PX_PER_M
 
-const crate = (x: number, y: number): SpawnPart[] => [
+export const crate = (x: number, y: number): SpawnPart[] => [
   transform2d({ x, y }),
   body2d(BodyKind.dynamic, { angularDamping: 0.5 }),
   collider2d.cuboid(0.25, 0.25, { friction: 0.8 }),
 ]
-const stone = (x: number, y: number): SpawnPart[] => [
+export const stone = (x: number, y: number): SpawnPart[] => [
   transform2d({ x, y }),
   body2d(BodyKind.dynamic, { angularDamping: 0.2 }),
   collider2d.ball(0.22, { friction: 0.6, restitution: 0.45 }),
 ]
 
 /** Where Wick's hitbox centre is, in metres. */
-function wickCentre(player: { x: number; y: number }, roomHeightPx: number) {
+export function wickCentre(player: { x: number; y: number }, roomHeightPx: number) {
   const px = player.x / tuning.SUB + tuning.HITBOX_W / 2
   const py = player.y / tuning.SUB + tuning.HITBOX_H / 2
   return { x: metresX(px), y: metresY(py, roomHeightPx) }
 }
 
-function bodiesPlugin(roomHeightPx: number): PluginDef {
+export function bodiesPlugin(roomHeightPx: number): PluginDef {
   return definePlugin({
     name: 'bodies-2d-demo',
     commands: [Drop],
@@ -106,43 +105,4 @@ function bodiesPlugin(roomHeightPx: number): PluginDef {
     ],
     components: [Follower],
   })
-}
-
-/**
- * Adds the bodies to a fresh base sim: the room's tiles as fixed bodies, the box that follows Wick, and the
- * starting crates and stones. Pass it to `playRoom` as `createSim`.
- */
-export async function createBodiesSim(source: RoomSource): Promise<Sim> {
-  const room = parseRoom(source)
-  const heightPx = room.height * room.tileSize
-  const sim = await createBaseSim({
-    room: source,
-    plugins: [physics2d({ gravity: { x: 0, y: GRAVITY } }), bodiesPlugin(heightPx)],
-  })
-  const half = room.tileSize / 2 / PX_PER_M
-  room.rows.forEach((row, ty) => {
-    for (const run of row.matchAll(/#+/g)) {
-      const startPx = (run.index ?? 0) * room.tileSize
-      const widthPx = run[0].length * room.tileSize
-      sim.spawn([
-        transform2d({
-          x: metresX(startPx + widthPx / 2),
-          y: metresY(ty * room.tileSize + room.tileSize / 2, heightPx),
-        }),
-        collider2d.cuboid(metresX(widthPx / 2), half),
-      ])
-    }
-  })
-  const [wick] = sim.query(Player)
-  if (wick !== undefined)
-    sim.spawn([
-      transform2d(wickCentre(wick.get(Player), heightPx)),
-      body2d(BodyKind.kinematicPosition),
-      collider2d.cuboid(tuning.HITBOX_W / 2 / PX_PER_M, tuning.HITBOX_H / 2 / PX_PER_M),
-      Follower,
-    ])
-  // A stack of crates on the floor right of the start, and stones on the first ledges.
-  for (let i = 0; i < 4; i++) sim.spawn(crate(6.5, 0.8 + i * 0.5))
-  for (const x of [2.2, 3, 3.8]) sim.spawn(stone(x, 6))
-  return sim
 }
