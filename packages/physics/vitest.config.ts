@@ -18,6 +18,9 @@ export default defineConfig({
           name: 'node',
           environment: 'node',
           include: ['src/**/*.test.ts'],
+          // The scene tests step Rapier for 300 ticks (about 1.7 s alone). On the af-linux runner, where turbo runs
+          // every package's tests at once, three of them passed 5 s; 30 s still catches a hang.
+          testTimeout: 30_000,
           // The bench measures and never asserts, so it is not part of the gate; `pnpm bench` runs it.
           exclude: ['src/**/*.bench.test.ts'],
         },
@@ -27,6 +30,7 @@ export default defineConfig({
         test: {
           name: 'browsers',
           include: ['src/**/*.parity.test.ts'],
+          testTimeout: 30_000, // as above: 300-tick scenes, three engines at once
           browser: {
             enabled: true,
             headless: true,
