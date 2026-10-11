@@ -1,14 +1,16 @@
+import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
 import type { RukenSession } from '@ruken/sdk'
-import { Data, Effect } from 'effect'
+import { Effect } from 'effect'
 import { createBaseSim, moveCommand } from './base-sim.ts'
 import { type BaseBootFailed, connect } from './boot.ts'
+import { RendererFailed, SimFailed } from './boot-failure.ts'
 import { parseRoom, ROOM } from './content/room.ts'
 import { createFailure } from './failure.ts'
 import { type FlowEvent, next, type Screen } from './flow.ts'
 import { createInputDevices } from './input/devices.ts'
 import { toMove } from './input/keys.ts'
 import { createLoop } from './loop.ts'
-import { createRenderer, type Renderer } from './render/renderer.ts'
+import { createRenderer, type Renderer, type RendererLayer } from './render/renderer.ts'
 import { createRounds } from './rounds.ts'
 import { createScreens } from './screens/screens.ts'
 import { TICK_HZ } from './sim/tuning.ts'
@@ -16,12 +18,35 @@ import { TICK_HZ } from './sim/tuning.ts'
 // Wires the base together: connect to Ruken, then (only after ready) the renderer, the screens, input and the
 // loop. The screen flow (flow.ts) decides what shows; this file does what each change means.
 
-export class RendererFailed extends Data.TaggedError('RendererFailed')<{ readonly cause: unknown }> {}
-
 /** How long the splash shows before moving on by itself. */
 const SPLASH_MS = 1500
 
-export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed | RendererFailed> {
+/** What a demo adds to the base without copying the game (examples/README.md). */
+export interface GameOptions {
+  /** Extra sim plugins, added to every round's sim after the base's own. */
+  readonly plugins?: readonly PluginDef[]
+  /** Runs on each round's fresh sim before it plays, e.g. to spawn a demo's bodies. A throw disposes that sim and ends the game (failure.ts). */
+  readonly onRound?: (sim: Sim) => void
+  /** Drawing layers, added to the renderer once (see RendererLayer: lit like the room, reset each round). */
+  readonly layers?: readonly RendererLayer[]
+}
+
+export function startGame(
+  root: HTMLElement,
+  options: GameOptions = {},
+): Effect.Effect<void, BaseBootFailed | RendererFailed | SimFailed> {
+  // Every round's sim is made the same way, the first one included.
+  const makeSim = async (): Promise<Sim> => {
+    const sim = await createBaseSim({ plugins: options.plugins ?? [] })
+    try {
+      options.onRound?.(sim)
+    } catch (error) {
+      sim.dispose()
+      throw error
+    }
+    return sim
+  }
+
   return Effect.gen(function* () {
     let screen: Screen = 'splash'
     // Replaced below once the screens exist; the host can only ask for the menu after ready anyway.
@@ -37,7 +62,10 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
 
     // Nothing is created before the host says ready (Ruken R-04): the page was empty until here.
     const room = parseRoom(ROOM)
-    const firstSim = yield* Effect.promise(() => createBaseSim())
+    const firstSim = yield* Effect.tryPromise({
+      try: makeSim,
+      catch: (cause) => new SimFailed({ cause }),
+    })
     const screens = createScreens(root, {
       onContinue: () => dispatch('continue'),
       onPlay: () => dispatch('play'),
@@ -49,6 +77,7 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
       try: () => createRenderer(screens.stage, room),
       catch: (cause) => new RendererFailed({ cause }),
     })
+    for (const layer of options.layers ?? []) renderer.addLayer(layer)
 
     const input = createInputDevices({
       target: window,
@@ -88,7 +117,7 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
     // A new round gets a fresh sim, so play always starts from the same state (rounds.ts makes one at a time and
     // keeps only the newest). The host hears of the round when Play is pressed, not when its sim arrives, so a
     // Quit before the sim arrives still ends a round that has started.
-    const rounds = createRounds(firstSim, () => createBaseSim(), {
+    const rounds = createRounds(firstSim, makeSim, {
       onReady: () => {
         if (screen === 'room') loop.start()
       },

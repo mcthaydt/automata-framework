@@ -175,3 +175,22 @@ export function copyFixture(name: string): string {
   cpSync(join(FIXTURES, name), root, { recursive: true })
   return root
 }
+
+// The sim-rooms fixture (M2.2): a sim kind (rooms), a non-sim kind (sounds) that refers into it, and every
+// built-in document, so tests can show which edits move the sim hash and which do not.
+
+export const ROOM_KIND: ContentSchemaDef = defineContentSchema(
+  'room',
+  z.strictObject({ title: localized(), tileSize: z.number().int().positive(), rows: z.array(z.string()) }),
+  { folder: 'rooms' },
+)
+
+export const SOUND_KIND: ContentSchemaDef = defineContentSchema(
+  'sound',
+  z.strictObject({ file: z.string(), room: z.optional(contentRef('room')) }),
+  { folder: 'sounds' },
+  { sim: false },
+)
+
+/** The sim-rooms fixture's options, rooted at `root`. Ranges are authored in its `tuning.toml`. */
+export const simRoomsOptions = (root: string): ContentOptions => ({ root, schemas: [ROOM_KIND, SOUND_KIND] })

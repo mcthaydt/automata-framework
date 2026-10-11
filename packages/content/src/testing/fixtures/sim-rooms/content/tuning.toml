@@ -1,0 +1,2 @@
+GRAVITY = { value = -275, min = -1200, max = -100 }
+JUMP_HEIGHT = { value = 2.5, min = 0.5, max = 6, step = 0.25 }
