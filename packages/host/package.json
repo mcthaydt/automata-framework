@@ -1,0 +1,23 @@
+{
+  "name": "@mcthaydt/automata-host",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
+    "effect": "3.22.2"
+  },
+  "devDependencies": {
+    "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
+    "vitest": "5.0.3"
+  }
+}
