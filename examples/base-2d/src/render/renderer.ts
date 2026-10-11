@@ -47,6 +47,18 @@ interface PlayerView {
   grounded: boolean
 }
 
+/**
+ * An extra drawing layer for a demo built on the base (crates and balls for the physics demo, say). It is drawn
+ * above the room's tiles and plants and below the light map, so the lantern and the ember light it like the
+ * room, and below Wick. It hears every sim step, display frame and round reset, as the renderer itself does.
+ */
+export interface RendererLayer {
+  readonly view: Container
+  apply?(result: StepResult): void
+  draw?(time: number): void
+  reset?(): void
+}
+
 export interface Renderer {
   /** Takes one sim step's render changes and events. */
   apply(result: StepResult): void
@@ -58,6 +70,10 @@ export interface Renderer {
   fitToHost(): void
   /** The character's hitbox top-left in pixels, for the page's data attributes. */
   playerPixel(): { x: number; y: number } | null
+  /** Adds a demo's layer (see RendererLayer); the returned function removes it again. */
+  addLayer(layer: RendererLayer): () => void
+  /** True if `view` is drawn under the light map, so the room's lights fall on it. */
+  isLitByRoom(view: Container): boolean
   destroy(): void
 }
 
@@ -148,6 +164,10 @@ export async function createRenderer(host: HTMLElement, room: Room): Promise<Ren
   for (const { tx, ty } of plan.mushrooms)
     place(growthLayer, mushroomTexture, tx * size, ty * size + size - 6)
   world.addChild(growthLayer)
+  // Demo layers go here: over the room, under the light map (addLayer).
+  const demoLayers = new Container()
+  world.addChild(demoLayers)
+  const layers: RendererLayer[] = []
 
   // The light map.
   const lightStage = new Container()
@@ -238,6 +258,7 @@ export async function createRenderer(host: HTMLElement, room: Room): Promise<Ren
 
   return {
     apply(result) {
+      for (const layer of layers) layer.apply?.(result)
       stepCount++
       const delta = result.render
       if (delta.resync) player = null
@@ -356,6 +377,7 @@ export async function createRenderer(host: HTMLElement, room: Room): Promise<Ren
       for (const { vine, home, phase } of vines)
         vine.x = home + Math.round(Math.sin(time / 900 + phase) * 0.6)
 
+      for (const layer of layers) layer.draw?.(time)
       app.renderer.render({ container: lightStage, target: lightMap, clear: true })
       app.render()
     },
@@ -371,10 +393,25 @@ export async function createRenderer(host: HTMLElement, room: Room): Promise<Ren
       particles.clear()
       for (const ghost of trail) ghost.sprite.destroy()
       trail.length = 0
+      for (const layer of layers) layer.reset?.()
     },
     fitToHost,
     playerPixel() {
       return player === null ? null : { x: Math.floor(player.x / SUB), y: Math.floor(player.y / SUB) }
+    },
+    addLayer(layer) {
+      demoLayers.addChild(layer.view)
+      layers.push(layer)
+      return () => {
+        demoLayers.removeChild(layer.view)
+        const at = layers.indexOf(layer)
+        if (at >= 0) layers.splice(at, 1)
+      }
+    },
+    isLitByRoom(view) {
+      for (let node: Container | null = view; node !== null; node = node.parent)
+        if (node.parent === world) return world.getChildIndex(node) < world.getChildIndex(lightOverlay)
+      return false
     },
     destroy() {
       lightMap.destroy(true)

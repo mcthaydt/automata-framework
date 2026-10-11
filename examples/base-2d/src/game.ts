@@ -3,6 +3,7 @@ import { Data, Effect } from 'effect'
 import { createBaseSim, moveCommand } from './base-sim.ts'
 import { type BaseBootFailed, connect } from './boot.ts'
 import { parseRoom, ROOM } from './content/room.ts'
+import { createFailure } from './failure.ts'
 import { type FlowEvent, next, type Screen } from './flow.ts'
 import { createInputDevices } from './input/devices.ts'
 import { toMove } from './input/keys.ts'
@@ -28,7 +29,7 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
 
     const session: RukenSession = yield* connect({
       onMenuRequest: () => {
-        if (screen !== 'room') return false
+        if (screen !== 'room' || failure.failed()) return false
         dispatch('menu-request')
         return true
       },
@@ -91,12 +92,21 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
       onReady: () => {
         if (screen === 'room') loop.start()
       },
-      onFailed: (error) => {
-        // Out of sim worlds or memory: nothing to play on. Say so as boot failures do (main.ts).
-        console.error('base-2d: could not make a sim for the round', error)
-        loop.stop()
-        root.textContent = "This device can't run the game."
-      },
+      onFailed: (error) => failure.fail(error),
+    })
+    const onResize = () => renderer.fitToHost()
+    // Out of sim worlds or memory: nothing to play on, for good (failure.ts).
+    const failure = createFailure({
+      root,
+      html: document.documentElement,
+      stopLoop: () => loop.stop(),
+      endRound: (outcome) => session.round.end(outcome),
+      cleanups: [
+        () => input.dispose(),
+        () => window.removeEventListener('resize', onResize),
+        () => renderer.destroy(),
+      ],
+      log: (error) => console.error('base-2d: could not make a sim for the round', error),
     })
     const startRound = () => {
       renderer.reset()
@@ -105,6 +115,7 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
     }
 
     dispatch = (event) => {
+      if (failure.failed()) return
       const from = screen
       const to = next(from, event)
       if (to === from) return
@@ -126,7 +137,7 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
     session.lifecycle.on('change', (change) => {
       if (change.state === 'background') dispatch('background')
     })
-    window.addEventListener('resize', () => renderer.fitToHost())
+    window.addEventListener('resize', onResize)
 
     screens.show('splash')
     renderer.draw(performance.now())
