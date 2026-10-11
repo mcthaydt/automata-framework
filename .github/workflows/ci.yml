@@ -1,55 +1,153 @@
 name: ci
 
+# AF's own CI (ship spec §3.7). Checks and cross-engine parity run on every push and pull request. Browser
+# journeys run only nightly and on request (`automata-ship test-remote <spec>`).
+#
+# Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
+# about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
+# label af-linux (WSL2 Ubuntu with Docker, like Ruken's ruken-linux; ship spec §3.7). There is deliberately no
+# fallback to ubuntu-latest: with no runner online a job waits in the queue instead of failing at once. The
+# repository variable AF_LINUX_RUNNER switches every job to another label (ubuntu-latest once hosted minutes
+# are back), and AF_GPU_RUNNER moves the browser journeys alone. Until a runner serves AF, a full local run is
+# the green gate (docs/04-how-we-build.md).
+
 on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      spec:
+        description: Playwright arguments for one focused browser run (test-remote), e.g. "examples/placeholder/e2e/boot.e2e.ts --project=placeholder". Empty runs the checks.
+        type: string
+        default: ""
+      nightly:
+        description: Run the nightly set now.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
   checks:
     name: lint, typecheck, boundaries, style, unit
-    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm boundaries
       - run: pnpm style
       - run: pnpm test:unit
+      # S8 budgets E1 and E3 (docs/spikes/s8-effect.md): Effect's share and the page's gzip size.
+      - run: pnpm --filter @af-examples/placeholder budget:size
 
-  cross-engine:
+  parity:
     name: parity (chromium, webkit, firefox)
-    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 10
     # Browsers and their OS deps come preinstalled and pinned; installing them per run blew the 10-minute budget.
-    # Keep the tag in step with the `playwright` devDependency.
+    # Keep the tag in step with the `playwright` devDependency (docs/versions.md, Container images).
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       # The container runs as root but the checkout belongs to the runner user; without this, git (and so the
       # `prepare` hook install) refuses the repo as "dubious ownership".
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @mcthaydt/automata-sim exec vitest run --project browsers
+      # Every package with a browsers vitest project (sim, content, physics, ui, ...) runs its parity suite.
+      - run: pnpm test:parity
         env:
           HOME: /root # Actions sets HOME to /github/home (not root's); Firefox refuses to run as root there
+      # The container runs as root in the runner's shared work folder (/__w is _work, /__t the tool cache). Hand
+      # everything back to the runner user, the owner of /__w, or the next job's checkout cannot delete the
+      # root-owned node_modules ("Permission denied"). always() runs on failure and on cancel too.
+      - name: Give the work folder back to the runner user
+        if: always()
+        run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
+
+  e2e:
+    name: browser journeys (nightly and on request)
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.spec != '' || inputs.nightly))
+    runs-on: ${{ vars.AF_GPU_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+        if: runner.environment == 'github-hosted'
+      # A self-hosted runner has the system libraries installed once and no sudo; the browser itself is fetched
+      # into its cache here (a no-op when it is already there).
+      - run: pnpm exec playwright install chromium
+        if: runner.environment == 'self-hosted'
+      - name: Browser journeys
+        env:
+          SPEC: ${{ inputs.spec }}
+        run: |
+          # SPEC is split on whitespace on purpose (test-remote passes Playwright arguments through). No `--`:
+          # after one Playwright stops filtering. A SPEC that matches nothing fails ("No tests found").
+          # shellcheck disable=SC2086
+          pnpm test:e2e $SPEC
+      # S8 budgets E2, E4 and E5 (boot at 4x CPU under Ruken's CSP) on the nightly run, not on a focused one.
+      - name: S8 boot budgets
+        if: inputs.spec == ''
+        run: pnpm --filter @af-examples/placeholder budget:boot
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: e2e-report
+          path: "**/playwright-report/"
+          retention-days: 7
+
+  placeholder:
+    name: placeholder through game-ci
+    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    uses: ./.github/workflows/game-ci.yml
+    with:
+      working-directory: examples/placeholder
+      sim-roots: ""
+      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}

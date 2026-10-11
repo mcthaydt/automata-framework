@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    // Effect's tagged errors (`class X extends Data.TaggedError('X')<...>`) extend a call expression, which
+    // isolatedDeclarations forbids. ship is build tooling, not a published library, so it opts out.
+    "isolatedDeclarations": false
+  },
+  "include": ["src/**/*.ts", "deploy/**/*.ts"]
+}
