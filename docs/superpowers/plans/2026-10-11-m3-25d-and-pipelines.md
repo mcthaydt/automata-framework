@@ -9,8 +9,9 @@
 - **Branches and runners:** one local branch and worktree per lane, from `main` (`bced229` today; merge `main` again after #19 and #22). A push to a non-`main` branch runs nothing, so lanes push freely. `ci.yml` runs af-linux `checks` on every pull-request event, drafts included, so draft PRs are opened only inside a coordinator claim for their merge wave (spec §9.3; X1).
 - **Edits to `examples/base-2d`** go to the base-2d thread as patches after #22 (spec §3); lane branches drop their local base-2d edits before their PR.
 - **The look bar (Owner, 23:02–23:13Z, spec §1):** 2.5D and 3D must look as good as base-2d. The reference is "Bubble Bobble x Celeste as an itch indie hit". The Last Light is a source to borrow from, kept private (spec §15 Q7). M3.13 (the art lane below) does this work.
+- **Provenance (the hub, 23:22Z):** [`docs/provenance/the-last-light.md`](../../provenance/the-last-light.md) maps every file taken from The Last Light to its source at `741e595`. A PR that brings in, changes or removes Last Light material updates its rows in the same PR. The Owner reviews the list file by file before anything goes public.
 - **Progress:** 17 / 36 tasks done locally (P1–P6, C1, Q1, Q2, R1, R2, R3, S7a, K1, M3.9a, M3.2). None is in review yet.
-  - **Part done:** M1.7a (its changeset waits for #19); Q3 (the caret peer is in, `efa312d`, and its package test no longer reaches into `tooling`, `68055a9`; the GPU parity step remains); C2 (the bytes and stages are in; the `render` browser test and money safety remain).
+  - **Part done:** M1.7a (its changeset waits for #19); Q3 (the caret peer is in, `efa312d`, and its package test no longer reaches into `tooling`, `68055a9`; the GPU parity step remains); C2 (the bytes, the stages and the `render` browser test are in, and so are staleness and job resume; counting spend when a provider charges is in progress).
   - **In progress:** H0 v2.
 
 ## Runner legend
@@ -81,7 +82,7 @@ R1, R2 and R3 ran in parallel (pure modules). Q1 and Q2 run in parallel with R1�
 - [x] `filter-programs.test.ts` (L), then `filter-programs.ts` ported unchanged (it keeps The Last Light's leading `name` argument; the spec now says so). *4 tests.*
 - [x] `init-renderer.browser.test.ts` (LB): real WebGL2 init, the framebuffer cap, five init/destroy cycles with no live context, `destroy()` twice. *6/6; a mutation (no `app.destroy`) turned it red.*
 - [x] Backend names follow the M1 shared contracts (audit B2): `Backend = 'webgl2' | 'webgpu'`, Pixi's `renderer.name` `'webgl'` mapped to `'webgl2'` where it is read, `canvas.dataset.renderer` and `tried` use AF's names. Failing test first: `backend === 'webgl2'`. *`f9066ba`. Red: 6 Node and 2 Chromium tests ("expected 'webgl' to be 'webgl2'") and a TS2820 typecheck error. Green: 21/21 and 6/6.*
-- [ ] Packaging (audit S2, S4): `pixi.js` as a caret peer `^8.22.0` with an exact dev dependency; after #19, ship's build and publish fields and a changeset. *The caret peer is in (`4abdcd9`). It rests on a new versions rule (`9874029`, test-first: red on "findRangeViolations is not a function", then 32/32): a published package may take a `^x.y.z` peer when an exact dev pin sets the floor. render-pixi dropped `"private": true`, because the rule only lets a published package take a caret peer. Nothing publishes before #19. The fields and the changeset come after #19.*
+- [ ] Packaging (audit S2, S4): `pixi.js` as a caret peer `^8.22.0` with an exact dev dependency; after #19, ship's build and publish fields and a changeset. *The caret peer is in (`4abdcd9`). It rests on a new versions rule (`9874029`, test-first: red on "findRangeViolations is not a function", then 32/32): a published package may take a `^x.y.z` peer when an exact dev pin sets the floor. render-pixi dropped `"private": true`, because the rule only lets a published package take a caret peer. Nothing publishes before #19. The fields and the changeset come after #19. #19's fields are `"license": "UNLICENSED"`, `repository`, `files: ["dist"]` and `publishConfig`, and its `release-list.test.ts` checks the licence; the provenance list found the licence missing today.*
 - [x] Depth-stencil rounding (S7a, spec §5.1): a browser test (LB) that renders a filtered stage at a fractional resolution under the framebuffer cap (480/839) is black with framebuffer-incomplete warnings, then non-black after rounding the depth-stencil size in `initRenderer` (from `spikes/s7-pixi3d/src/depth-stencil-fix.ts`). *`fd542ec`. The test needs a padded `AlphaFilter` at the renderer's resolution: a plain one runs at resolution 1 and doesn't reproduce the bug. Red: framebuffer status 36057 (FRAMEBUFFER_INCOMPLETE_DIMENSIONS), 0% lit, and a Node case with `pixelWidth` 255.99999999999997. Green: 7/7 in Chromium and 22/22 in Node.*
 - [x] base-2d's `no-eval.ts` importing `@mcthaydt/automata-render-pixi/no-eval` goes to the base-2d thread as a patch after #22. *In the same patch as M3.2's pins (`handoff/m3-base-2d/`). Applied on the rebuilt branch, it passes base-2d `check` 140/140, `renderer` 2/2, bodies-2d 25/25 and versions 32/32.* *Done locally on `m3-render3d` (base-2d `check`, `renderer` project and one focused e2e passed); `initRenderer` is not adopted in base-2d, whose fixed 320×192 canvas at resolution 1 differs from `initRenderer`'s host-sized canvas.*
 
@@ -132,7 +133,7 @@ R1, R2 and R3 ran in parallel (pure modules). Q1 and Q2 run in parallel with R1�
 **Files:** `src/{post-chain.ts, post-chain.test.ts, index.ts}`, `content/post.toml`, `src/dependencies.test.ts`.
 - [x] `post-chain.test.ts`: order follows the config; `setEnabled` toggles without rebuilding; `destroy` frees the LUT texture. Red on the missing module. Implement. Export `postContent` plainly (no `defineExtension` until M1.5). *`154578a` on `m3-post`; 53 package tests. `createPostChain(passes, { lut, time }, parts?)`: the optional `parts` lets the Node test inject fakes. Exports `postRetroContent = [postContent]`; default `content/post.toml`.*
 - [x] Browser import (found in Q2): `@mcthaydt/automata-content`'s root entry imports `node:crypto` and `node:fs`, so importing `post-retro`'s index in a browser fails. After K1, `post-retro` imports from `@mcthaydt/automata-content/schema` and a Chromium test imports its index. The browser tests import the pass modules directly meanwhile. *Done with K1's switch (`3970b7b`).*
-- [ ] `dependencies.test.ts` (audit S4): `post-retro` never imports `@pixi/3d` (its `package.json` and every source import); `pixi.js` is a caret peer `^8.22.0`. After #19: ship's build fields and a changeset. *The `@pixi/3d` checks are in (`c36052c`). The caret peer is in on the rebuilt `m3-post` (`efa312d`, on `m3-render3d`'s versions rule `9874029`). Red: "expected undefined to be '^8.22.0'", and with `"private": true` kept, the rule's own violation. Green: 3/3. post-retro is no longer `private`, as render-pixi isn't. `68055a9` then pins its own fields without importing `tooling/versions`. The fields and the changeset come after #19.*
+- [ ] `dependencies.test.ts` (audit S4): `post-retro` never imports `@pixi/3d` (its `package.json` and every source import); `pixi.js` is a caret peer `^8.22.0`. After #19: ship's build fields and a changeset. *The `@pixi/3d` checks are in (`c36052c`). The caret peer is in on the rebuilt `m3-post` (`efa312d`, on `m3-render3d`'s versions rule `9874029`). Red: "expected undefined to be '^8.22.0'", and with `"private": true` kept, the rule's own violation. Green: 3/3. post-retro is no longer `private`, as render-pixi isn't. `68055a9` then pins its own fields without importing `tooling/versions`. The fields and the changeset come after #19. With #19's `files: ["dist"]`, post-retro also lists `LICENSE-lcd-perfect.txt`, or the MIT notice for the lcd-perfect port would not ship (npm always packs `LICENSE` and `LICENCE`, not that name); a test on the packed file list checks it.*
 - [ ] WebGL2 vs WebGPU pixel parity per pass: in the final GPU claim (R).
 
 ### Q4 Demos `post-retro/{chain-2d, chain-3d}` — L, LB, then R, O
@@ -178,7 +179,7 @@ All P tasks are **L**: Node only, no network, providers faked. Package `packages
 ### C2 Character pipeline: stages — L
 **Files:** `src/character/{character-pipeline.ts, character-spec.schema.ts, render-sprites.ts, character.test.ts}` (no `.pipeline.ts`: the style checker has no `pipeline` role).
 - [x] Bytes first: additive `readBytes` and `writeBytes` on `@mcthaydt/automata-node`'s `Files` (the ship lane's package, by agreement; test-first). The runner hashes outputs through it and the optional `RunnerContext.readBytes` goes; stages write provider PNGs through `writeBytes`. *`36d03bd` on `m3-character`. Red: "files.writeBytes is not a function", "files.readBytes is not a function", the binary-hash test, and the byte path-policy test. The path policy covers `writeBytes`, and the in-memory `Files` keeps bytes beside text. node 10 tests, pipelines 275.*
-- [ ] Port `character-pipeline.test.ts` with fake providers: stages and gates G1, G3, G5, G6; estimate 10 images and 38 mesh credits; `install` writes atlas, normals and a `characters` entry that compiles; `restore` re-downloads without spending; `render` runs headless Chromium (LB) on a tiny committed GLB. Red on the missing module. Implement; px-per-metre and the house prompt come from the spec and content. A stage that hits a missing Python module fails naming its `requirements.txt` line; scripts run as `python3 <dir>/script.py` (not `-I`), so they find `palette.py`. The CLI's `check` runs the registry's validators too (spec §7: the palette validator fails both `check` and `guard_check`). *Done in `73849ab` except the `render` stage's Chromium test, which is in progress after merging the clean `m3-render3d` (it needs `@pixi/3d` and an original tiny GLB). Pipelines 306 tests. The stages stop at G1, G3, G5 and G6, and the audit log sums to 10 images and 38 credits. One test runs the real scripts on real files, views through install, and the atlas passes the palette validator. That test found three bugs, fixed or recorded on the step. Deviations from The Last Light are recorded in the commit:*
+- [x] Port `character-pipeline.test.ts` with fake providers: stages and gates G1, G3, G5, G6; estimate 10 images and 38 mesh credits; `install` writes atlas, normals and a `characters` entry that compiles; `restore` re-downloads without spending; `render` runs headless Chromium (LB) on a tiny committed GLB. Red on the missing module. Implement; px-per-metre and the house prompt come from the spec and content. A stage that hits a missing Python module fails naming its `requirements.txt` line; scripts run as `python3 <dir>/script.py` (not `-I`), so they find `palette.py`. The CLI's `check` runs the registry's validators too (spec §7: the palette validator fails both `check` and `guard_check`). *Done in `73849ab`, and the `render` stage's Chromium test in `35547ef` (after merging the clean `m3-render3d`, `ba4b66a`). That test checks the sheet sizes, opaque pixels in every row, grey-or-white light passes and the missing-clip `StageError`: 3/3 in 5.9 s. It never went red, because the page from `73849ab` needed no fix, so four mutations of `sprite-page.ts` each failed exactly the matching test instead. The fixture `src/testing/walk-box.glb` is two boxes skinned to Hips and Chest with the clip `Armature|walking_man|baselayer`, built from hand-written numbers by the committed `walk-box-glb.ts`; a unit test keeps the file byte-identical to the script's output. `packages/pipelines` now takes `@pixi/3d` as an optional `file:` dependency, as the spike does, so it typechecks only with the tarball and ships in W3. Pipelines 306 tests. The stages stop at G1, G3, G5 and G6, and the audit log sums to 10 images and 38 credits. One test runs the real scripts on real files, views through install, and the atlas passes the palette validator. That test found three bugs, fixed or recorded on the step. Deviations from The Last Light are recorded in the commit:*
   - *the presets became spec fields;*
   - *the house prompt and palette come from content;*
   - *views are cut into equal columns;*
@@ -191,10 +192,23 @@ All P tasks are **L**: Node only, no network, providers faked. Package `packages
   - *Staleness:* today every stage hashes the whole spec, so any spec edit makes paid stages stale again, while a changed house prompt or palette makes nothing stale. A stage's inputs hash will cover only the spec fields and options it declares it reads, plus the stages it depends on.
   - *Failed paid jobs:* a paid stage that failed after the provider accepted its job keeps the job id, and the next run resumes that job instead of paying for a new one.
   
-  Test-first, with fake providers. In progress on `m3-character`.
+  Test-first, with fake providers.
+  - *Staleness, `278ca27`:*
+    - *An optional `Stage.reads` names what a stage reads: spec fields (`spec(spec)`), options (`values()`), files no stage writes (`files(spec, target)`; a missing one hashes as "missing") and upstream stages (`stages`, hashed from their records' `outputHashes`).*
+    - *A stage without `reads` keeps the whole-spec hash, so old records stay valid. `definePipeline` refuses a `reads.stages` entry that isn't an earlier stage. All twelve character stages declare their reads.*
+    - *The runner takes each stage's hash when the stage runs, not at plan time. Otherwise the next run finds the downstream stages stale and pays for them again; a mutation confirmed it.*
+    - *Red: editing `stepRate` re-ran `look` instead of only `install`; a changed house prompt, style image or upstream output re-ran nothing.*
+  - *Failed paid jobs, `4949f55`:*
+    - *`MeshProvider.resume(job)` only polls. The runner hands a failed record's jobs to the stage when its inputs hash is unchanged, and `model` and `rig` resume and download instead of submitting.*
+    - *Every failure after Meshy accepts a job names that job. A job that ended FAILED, CANCELED or EXPIRED is dropped, so a re-run starts a new one.*
+    - *Red: a timeout after submit, then a re-run, called `imageTo3d` twice. Green: once, and the audit log shows one charge.*
+  - *Open, in progress: a failed stage records no cost. A job the provider charged for that is never resumed would be missing from the audit log, which the caps and the fail-closed check read. Spend will count when the provider charges, and never twice.*
+  - *Accepted:*
+    - *A resumed stage still counts its full estimate and needs `--paid`. That over-counts, the safe direction.*
+    - *The plan still cascades: after a free stage re-runs, the paid `detail` below it re-runs even when that stage's output came out byte-identical. The cascade keeps estimates from undercounting.*
 
 ### C3 Skill and live run for Wick — $, O
-Needs C2's money-safety step first.
+Needs C2's money-safety step first, including counting spend when a provider charges.
 **Files:** `packages/pipelines/skills/make-character-25d/SKILL.md`; in `examples/base-25d`, `pipelines/character/wick/character.json` and the first `pipelines.config.json` (written in a PR the Owner approves before the guard is installed there).
 - [ ] Skill text adapted from The Last Light's make-character (no game names).
 - [ ] **Waits on spec §15 Q3.** Then: `pipeline_estimate` → the coordinator relays it → `pipeline_run` stops at G1, G3, G5, G6 in turn. Each gate: the thread sends the review files to the coordinator, the hub relays them, and the Owner runs `approve-gate.yml` (an af-linux run in that wave's claim) or `automata-pipe … approve` in their own terminal. Record cost from the audit log. **CAPTURE:** keep `look.png`, the turnaround, the raw render and the polished atlas as before/after media; log asked-at, first commit and each gate time.
@@ -262,6 +276,12 @@ Needs C2's money-safety step first.
 
 **Who does what:** A2 and A3 run in the integration lane's base folders, A1 goes to the base-2d thread as a patch, and V1 is in the pipelines lane. The concept renders in the shared folder's `designs/m3-hud-v2/inputs/concept/` set the pixel scale and composition each pass starts from.
 
+**Camera and pixel size, from the concept renders.**
+- Desktop and compact landscape hold base-2d's on-screen pixel: 3× at 1280×720 and 1.406× at 780×270.
+- On a phone portrait, holding base-2d's 1.29× would put the camera about 3× back. That is past §6's 1.75× pull-back, and it leaves a small, flat room.
+- So the camera keeps §6's rule: pull back at most 1.75×, follow 0.55. The framebuffer follows the camera, so one texel at the focus stays one pixel: 189×420 at 412×915, about 2.18×. B1 and B2 size it through `initRenderer`'s framebuffer cap.
+- The narrow-screen follow should run along the camera's sideways axis. R1's rig follows world x, as The Last Light does, which moves the look point in depth once the camera is orbited or diagonal. The fix is queued on `m3-stage` with R4.
+
 ### A1 Emberwick art kit from base-2d — L
 **Files:** a patch for the base-2d thread after #22: `examples/base-2d/package.json` (an `./art` export) and `src/art/{index.ts, exports.test.ts}`.
 - [ ] Failing test in base-2d: `./art` exports the palette, the palette-indexed maps (stone, moss, grass, vine, mushroom, ember, Wick) and the backdrop's painter, and nothing in it imports the game loop or the screens. Red on the missing export. Then the export, sent as a patch (spec §3).
@@ -306,7 +326,14 @@ Needs C2's money-safety step first.
 ## Exit
 
 ### X1 Runner claims per merge wave — R
-Each wave is one claim through the coordinator, covering af-linux `checks` and `parity` for every PR in it (draft PRs are opened inside the claim) and any `approve-gate.yml` runs that fall in it (spec §9.3, audit B5):
+Each wave is one claim through the coordinator, covering af-linux `checks` and `parity` for every PR in it (draft PRs are opened inside the claim) and any `approve-gate.yml` runs that fall in it (spec §9.3, audit B5).
+
+Before each claim, check every branch in the wave:
+- The tarball check prints nothing: `git rev-list --objects bced229..<branch> | grep -i tgz`.
+- Its rows in the provenance list are current. Re-run the list's commands for the branch.
+- Every file of the branch under the list's "Copies whose file names no source" has a one-line source comment.
+
+The waves:
 - [ ] **W1:** M3.2 (the `pixi.js` bump and the tarball fetch), M1.7a, P1–P6 and C1 (one pipelines PR: P3–P6 were built together on one runner), K1. Needs #19 merged (changesets).
 - [ ] **W2:** R1–R3, Q1–Q3, the S7a verdict (the doc; the spike's code needs `@pixi/3d`, so it goes in W3), M3.9a. `post-retro` and `render-pixi3d` already import from the K1 subpath.
 - [ ] **W3:** R4, the S7 spike's code, C1–C2, D1, V1, B1 with A2, B2 with A3 (A1 through the base-2d thread). Needs CI read access to The Last Light, so the jobs can run `fetch.mjs --required` first: a fine-grained token, Contents: read on that one repo, an Actions secret never echoed (spec §5.2 and §15 Q6, an Owner follow-up).
@@ -338,3 +365,12 @@ Each wave is one claim through the coordinator, covering af-linux `checks` and `
   - The Last Light free to borrow from, privately.
 
   Spec §1, §3, §5.3, §6, §8, §11, §12 and §15 Q3/Q7 updated. M3.13 added (A1–A3, V1). `move` carries `heading` 0–31 and `speed`. H0 v2 is being drawn in base-2d's skin beside fresh base-2d captures, with concept scenes made from base-2d's tiles.
+- 2026-10-11: R4's contract gap ruled (23:33Z, spec §5.2): the stage takes `look` and `isBlocked`.
+- 2026-10-11: C2's `render` Chromium test and money safety, `ba4b66a`..`4949f55` on `m3-character`. `pnpm check` exits 0, with 321 pipelines unit tests and 3/3 in Chromium. Counting spend when a provider charges is still in progress.
+- 2026-10-11: provenance list in `docs/provenance/the-last-light.md`. Of the paths the lanes change:
+  - 91 hold Last Light material: 4 byte-identical, 29 ported, 39 adapted and 19 modelled on;
+  - 16 only mention it;
+  - 117 hold none.
+
+  Its gaps are folded into M1.7a and Q3 (the licence fields and the lcd-perfect notice) and into X1 (in-file credits).
+- 2026-10-11: H0 v2 concept renders, by a Python ray caster from base-2d's own sprites and palette. Every pixel is Endesga 64. They are in the boards. The phone portraits use §6's camera with a pixel-locked framebuffer (the art lane note). The `m3-post` bundle is refreshed at `68055a9`.
