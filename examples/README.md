@@ -31,3 +31,4 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 | `content/hot-reload` | content lane | `base-2d` | Waits on `base-2d` |
 | `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR |
 | `physics/bodies-2d`, `physics/bodies-3d` | sim lane | `base-2d`, `base-3d` | Waits on the bases |
+| `placeholder` (the ship lane's page: boots under the fake host and publishes through `ship`; not a feature demo) | ship lane | none | With the ship PR |

@@ -21,6 +21,28 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
+  examples/placeholder:
+    dependencies:
+      '@ruken/sdk':
+        specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
+        version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+    devDependencies:
+      '@mcthaydt/automata-ship':
+        specifier: workspace:*
+        version: link:../../packages/ship
+      '@ruken/sdk-host':
+        specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
+        version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
+      vite:
+        specifier: 8.3.2
+        version: 8.3.2(@types/node@26.6.4)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@26.6.4)(yaml@2.9.1))
+
   packages/node:
     dependencies:
       effect:
@@ -419,6 +441,14 @@ packages:
 
   '@ruken/manifest@file:vendor/ruken/ruken-manifest-0.0.0.tgz':
     resolution: {integrity: sha512-ZgDo8pOZEEbppL7kO+1qzUbB9xhDk8q20t8tEDURl6l1OS2lb8F9nwR0GabbTrYEGLg/0WgGA/YiSbW4Fge4Wg==, tarball: file:vendor/ruken/ruken-manifest-0.0.0.tgz}
+    version: 0.0.0
+
+  '@ruken/sdk-host@file:vendor/ruken/ruken-sdk-host-0.0.0.tgz':
+    resolution: {integrity: sha512-7nSVGnPJXHV/Pe/bItzOGCmv7V5VVmvOycDaIZxHwckE3VX2GAWd7oqIbGSZO00EgsrIUtzLmEo+Ue4L3sIs8w==, tarball: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz}
+    version: 0.0.0
+
+  '@ruken/sdk@file:vendor/ruken/ruken-sdk-0.0.0.tgz':
+    resolution: {integrity: sha512-ChYL+q7ovmv0hgD7vpCbO6Ce3LqHUSWe40EyVZw6eEvRABHGZueY024eCzNMuH4UsNh/3UrewFNFfLt+tE4Wxw==, tarball: file:vendor/ruken/ruken-sdk-0.0.0.tgz}
     version: 0.0.0
 
   '@standard-schema/spec@1.1.0':
@@ -1212,6 +1242,12 @@ snapshots:
     dependencies:
       smol-toml: 1.9.0
 
+  '@ruken/sdk-host@file:vendor/ruken/ruken-sdk-host-0.0.0.tgz':
+    dependencies:
+      zod: 4.6.5
+
+  '@ruken/sdk@file:vendor/ruken/ruken-sdk-0.0.0.tgz': {}
+
   '@standard-schema/spec@1.1.0': {}
 
   '@turbo/darwin-64@2.11.6':
@@ -1406,7 +1442,7 @@ snapshots:
       pathe: 2.0.3
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@24.19.1)(yaml@2.9.1))
+      vitest: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@26.6.4)(yaml@2.9.1))
 
   '@vitest/utils@5.0.3':
     dependencies:
