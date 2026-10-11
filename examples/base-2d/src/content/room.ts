@@ -1,14 +1,16 @@
-// The base's one room, as content. Stand-in until the content compiler lands (M1.3, PR #8): then this becomes a
-// `content/rooms/*.toml` file compiled by `automata-content`. The sim receives it as `content`, so the room is
-// frozen and hashed together with the sim state either way.
+// The base's rooms as the game reads them. The room itself is content: `content/rooms/room-1.toml`, checked
+// and compiled by `automata-content` (rooms.content.ts) into `content/generated/content.json`, which this
+// file reads. The sim receives the compiled rooms as its content, so the room is frozen and hashed with the
+// sim state.
 //
 // Tiles: `#` solid, `.` empty, `P` where the character starts (standing on the tile below), `G` the ember (the goal).
-// 40 × 24 tiles of 8 pixels is 320 × 192 pixels: a single screen, Bubble Bobble style. Platforms climb in steps
-// of three tiles, about the height of a held jump, with two free rows under each so the character can walk under.
 
-import type { RoomGrid, TilePosition } from '../sim/tiles.ts'
+import compiled from '../../content/generated/content.json' with { type: 'json' }
+import { FIRST_ROOM, type RoomGrid } from '../sim/tiles.ts'
+import { readRoomGrid } from './room-grid.ts'
 
 export { isSolid } from '../sim/tiles.ts'
+export { readRoomGrid } from './room-grid.ts'
 
 export interface RoomSource {
   readonly id: string
@@ -21,76 +23,30 @@ export interface Room extends RoomGrid {
   readonly id: string
 }
 
-export const ROOM: RoomSource = {
-  id: 'room-1',
-  tileSize: 8,
-  rows: [
-    '########################################',
-    '#......................................#',
-    '#......................................#',
-    '#..............G.......................#',
-    '#......................................#',
-    '#...........#######....................#',
-    '#......................................#',
-    '#......................................#',
-    '#....................########..........#',
-    '#...######.............................#',
-    '#......................................#',
-    '#...............................######.#',
-    '#......................................#',
-    '#......................................#',
-    '#..######..............########........#',
-    '#......................................#',
-    '#......................................#',
-    '#............########..................#',
-    '#......................................#',
-    '#......................................#',
-    '#..########............................#',
-    '#.............................##.......#',
-    '#.....P.......................##.......#',
-    '########################################',
-  ],
+/**
+ * The compiled content the base's sim is made with (`createBaseSim`'s default): the sim's partition of the
+ * compiled content, `tuning` and `rooms`, the same shape M2.2's compiler emits as `simContent`. The sim hashes
+ * its content, so this shape is part of the golden (`src/golden.ts`).
+ */
+export const BASE_SIM_CONTENT: {
+  readonly tuning: Readonly<Record<string, number | boolean | string>>
+  readonly rooms: Readonly<Record<string, RoomGrid>>
+} = {
+  tuning: compiled.tuning,
+  rooms: compiled.rooms,
 }
 
-const TILES = new Set(['#', '.', 'P', 'G'])
+const firstRoom = BASE_SIM_CONTENT.rooms[FIRST_ROOM]
+if (firstRoom === undefined) throw new Error(`base-2d: content/rooms/${FIRST_ROOM}.toml is missing`)
 
-/** Checks a room and finds its start and goal. Throws, naming the row and column, on anything malformed. */
+/** The shipped room as a source, for code that draws or edits it (the renderer, demos, tests). */
+export const ROOM: RoomSource = { id: FIRST_ROOM, tileSize: firstRoom.tileSize, rows: firstRoom.rows }
+
+/** Checks a room and finds its start and goal. Throws, naming the room, row and column, on anything malformed. */
 export function parseRoom(source: RoomSource): Room {
-  const width = source.rows[0]?.length ?? 0
-  const starts: TilePosition[] = []
-  const goals: TilePosition[] = []
-  source.rows.forEach((row, ty) => {
-    if (row.length !== width)
-      throw new Error(`room ${source.id}: row ${ty} is ${row.length} tiles wide, expected ${width}`)
-    for (let tx = 0; tx < row.length; tx++) {
-      const tile = row.charAt(tx)
-      if (!TILES.has(tile))
-        throw new Error(`room ${source.id}: unknown tile "${tile}" at column ${tx}, row ${ty}`)
-      if (tile === 'P') starts.push({ tx, ty })
-      if (tile === 'G') goals.push({ tx, ty })
-    }
-  })
-  const start = exactlyOne(source.id, 'P', starts)
-  const goal = exactlyOne(source.id, 'G', goals)
-  // The character is a tile and a half tall, so it stands in P's tile and half of the one above.
-  if (source.rows[start.ty - 1]?.charAt(start.tx) !== '.')
-    throw new Error(
-      `room ${source.id}: the tile above P (column ${start.tx}, row ${start.ty - 1}) must be empty`,
-    )
-  return {
-    id: source.id,
-    tileSize: source.tileSize,
-    width,
-    height: source.rows.length,
-    rows: source.rows,
-    start,
-    goal,
+  try {
+    return { id: source.id, ...readRoomGrid(source.tileSize, source.rows) }
+  } catch (error) {
+    throw new Error(`room ${source.id}: ${error instanceof Error ? error.message : String(error)}`)
   }
-}
-
-function exactlyOne(roomId: string, tile: string, found: readonly TilePosition[]): TilePosition {
-  const [first] = found
-  if (found.length !== 1 || first === undefined)
-    throw new Error(`room ${roomId}: needs exactly one ${tile}, found ${found.length}`)
-  return first
 }

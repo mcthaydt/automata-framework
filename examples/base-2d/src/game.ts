@@ -4,7 +4,7 @@ import { Effect } from 'effect'
 import { createBaseSim, moveCommand } from './base-sim.ts'
 import { type BaseBootFailed, connect } from './boot.ts'
 import { RendererFailed, SimFailed } from './boot-failure.ts'
-import { parseRoom, ROOM } from './content/room.ts'
+import { BASE_SIM_CONTENT } from './content/room.ts'
 import { createFailure } from './failure.ts'
 import { type FlowEvent, next, type Screen } from './flow.ts'
 import { createInputDevices } from './input/devices.ts'
@@ -13,6 +13,7 @@ import { createLoop } from './loop.ts'
 import { createRenderer, type Renderer, type RendererLayer } from './render/renderer.ts'
 import { createRounds } from './rounds.ts'
 import { createScreens } from './screens/screens.ts'
+import { FIRST_ROOM, roomOf } from './sim/tiles.ts'
 import { TICK_HZ } from './sim/tuning.ts'
 
 // Wires the base together: connect to Ruken, then (only after ready) the renderer, the screens, input and the
@@ -23,6 +24,8 @@ const SPLASH_MS = 1500
 
 /** What a demo adds to the base without copying the game (examples/README.md). */
 export interface GameOptions {
+  /** Compiled sim content for every round's sim (createBaseSim's `content`). Default: base-2d's own rooms. */
+  readonly content?: unknown
   /** Extra sim plugins, added to every round's sim after the base's own. */
   readonly plugins?: readonly PluginDef[]
   /** Runs on each round's fresh sim before it plays, e.g. to spawn a demo's bodies. A throw disposes that sim and ends the game (failure.ts). */
@@ -37,7 +40,7 @@ export function startGame(
 ): Effect.Effect<void, BaseBootFailed | RendererFailed | SimFailed> {
   // Every round's sim is made the same way, the first one included.
   const makeSim = async (): Promise<Sim> => {
-    const sim = await createBaseSim({ plugins: options.plugins ?? [] })
+    const sim = await createBaseSim({ plugins: options.plugins ?? [], content: options.content })
     try {
       options.onRound?.(sim)
     } catch (error) {
@@ -61,7 +64,8 @@ export function startGame(
     })
 
     // Nothing is created before the host says ready (Ruken R-04): the page was empty until here.
-    const room = parseRoom(ROOM)
+    // The renderer draws the room the sims are made from.
+    const room = { id: FIRST_ROOM, ...roomOf(options.content ?? BASE_SIM_CONTENT) }
     const firstSim = yield* Effect.tryPromise({
       try: makeSim,
       catch: (cause) => new SimFailed({ cause }),

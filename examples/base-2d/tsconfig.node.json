@@ -8,6 +8,8 @@
     "vitest.config.ts",
     "src/ship-config.test.ts",
     "src/art/art.test.ts",
+    "src/content/rooms.content.test.ts",
+    "automata.content.ts",
     "e2e/**/*.ts"
   ],
   "exclude": []

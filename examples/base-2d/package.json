@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./content": "./src/content-entry.ts",
     "./game": "./src/game-entry.ts",
     "./render": "./src/render/index.ts",
     "./sim": "./src/sim/index.ts"
@@ -12,7 +13,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "check": "pnpm typecheck && pnpm test:unit && node ../../tooling/check-boundaries/src/cli.ts src/sim",
+    "check": "pnpm typecheck && pnpm test:unit && node ../../tooling/check-boundaries/src/cli.ts src/sim && automata-content check --verify-artifact",
+    "content:build": "automata-content build",
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run",
     "test:unit": "vitest run --project node",
@@ -23,6 +25,7 @@
   },
   "dependencies": {
     "@fontsource/pixelify-sans": "5.3.0",
+    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "effect": "3.22.2",

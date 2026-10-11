@@ -13,7 +13,14 @@ export {
   SimFailed,
 } from './boot-failure.ts'
 export { type BootPageParts, bootPage } from './boot-page.ts'
-export { parseRoom, ROOM, type Room, type RoomSource } from './content/room.ts'
+export {
+  BASE_SIM_CONTENT,
+  parseRoom,
+  ROOM,
+  type Room,
+  type RoomSource,
+  readRoomGrid,
+} from './content/room.ts'
 export { type FlowEvent, next, type Screen } from './flow.ts'
 export { createLoop, type Loop, type LoopOptions } from './loop.ts'
 export * from './sim/index.ts'

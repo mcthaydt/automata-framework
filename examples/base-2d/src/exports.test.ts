@@ -24,4 +24,10 @@ describe('@af-examples/base-2d entries', { timeout: 30_000 }, () => {
     expect(sim.base2dPlugin.name).toBe('base-2d')
     expect(sim.Player).toBeDefined()
   })
+
+  it('./content has the rooms schema, for a demo’s own content config', async () => {
+    const content = await import('@af-examples/base-2d/content')
+    expect(content.rooms.kind).toBe('rooms')
+    expect(content.rooms.place).toEqual({ folder: 'rooms' })
+  })
 })

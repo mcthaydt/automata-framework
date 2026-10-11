@@ -2,6 +2,9 @@
 // `src/content/room.ts`, so the sim and the content agree on what is solid.
 import { HITBOX_H, HITBOX_W } from './tuning.ts'
 
+/** The base has one room. A game with several would keep the current one in a resource. */
+export const FIRST_ROOM = 'room-1'
+
 export interface TilePosition {
   readonly tx: number
   readonly ty: number
@@ -43,11 +46,12 @@ export function hitsSolid(room: RoomGrid, px: number, py: number): boolean {
 }
 
 /**
- * The room inside the sim's content. The content is frozen JSON, typed `unknown` by the sim, so this checks
- * its shape once per use rather than trusting a cast; a wrong shape is a setup bug and throws.
+ * The room inside the sim's content: `content.rooms[FIRST_ROOM]`, the compiled `rooms` kind. The content is
+ * frozen JSON, typed `unknown` by the sim, so this checks its shape on each use rather than trusting a cast; a
+ * wrong shape is a setup bug and throws.
  */
 export function roomOf(content: unknown): RoomGrid {
-  const room = (content as { room?: RoomGrid } | null)?.room
+  const room = (content as { rooms?: Record<string, RoomGrid | undefined> } | null)?.rooms?.[FIRST_ROOM]
   if (
     room === undefined ||
     typeof room.tileSize !== 'number' ||
@@ -57,6 +61,6 @@ export function roomOf(content: unknown): RoomGrid {
     typeof room.goal?.tx !== 'number' ||
     typeof room.start?.tx !== 'number'
   )
-    throw new Error('base-2d: the sim content has no room')
+    throw new Error(`base-2d: the sim content has no room ${FIRST_ROOM}`)
   return room
 }

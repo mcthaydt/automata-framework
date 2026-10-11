@@ -29,6 +29,9 @@ importers:
       '@fontsource/pixelify-sans':
         specifier: 5.3.0
         version: 5.3.0
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../../packages/content
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../../packages/sim

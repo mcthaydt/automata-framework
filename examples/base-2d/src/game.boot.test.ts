@@ -2,6 +2,7 @@ import { Cause, Effect, Exit, Option } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BaseBootFailed } from './boot.ts'
 import { RendererFailed, SimFailed } from './boot-failure.ts'
+import { readRoomGrid } from './content/room-grid.ts'
 
 // startGame's boot in Node: each step that touches the host, the GPU or the DOM is replaced by a fake, so the
 // test sees what startGame does with it (the typed error a failed step becomes, and where a demo's options go).
@@ -9,7 +10,7 @@ const fakes = vi.hoisted(() => ({
   connect: { fail: false },
   sim: { fail: false, calls: [] as unknown[], disposed: 0 },
   screens: { callbacks: {} as Record<string, () => void> },
-  renderer: { fail: false, layers: [] as unknown[] },
+  renderer: { fail: false, layers: [] as unknown[], rooms: [] as unknown[] },
 }))
 
 vi.mock('./boot.ts', async (importOriginal) => {
@@ -45,8 +46,9 @@ vi.mock('./input/devices.ts', () => ({
   createInputDevices: () => ({ held: () => new Set(), dispose() {} }),
 }))
 vi.mock('./render/renderer.ts', () => ({
-  createRenderer: () =>
-    fakes.renderer.fail
+  createRenderer: (_stage: unknown, room: unknown) => {
+    fakes.renderer.rooms.push(room)
+    return fakes.renderer.fail
       ? Promise.reject(new Error('no canvas context'))
       : Promise.resolve({
           addLayer: (layer: unknown) => {
@@ -58,7 +60,8 @@ vi.mock('./render/renderer.ts', () => ({
           fitToHost() {},
           playerPixel: () => null,
           destroy() {},
-        }),
+        })
+  },
 }))
 
 const { startGame } = await import('./game.ts')
@@ -82,6 +85,7 @@ beforeEach(() => {
   fakes.screens.callbacks = {}
   fakes.renderer.fail = false
   fakes.renderer.layers = []
+  fakes.renderer.rooms = []
 })
 
 afterEach(() => {
@@ -135,6 +139,22 @@ describe('startGame options (what a demo adds without copying the game)', () => 
     expect(fakes.sim.calls).toEqual([{ plugins: [plugin] }])
     expect(rounds).toHaveLength(1)
     expect(fakes.renderer.layers).toEqual([layer])
+  })
+
+  it('makes every round’s sim from the demo’s compiled content', async () => {
+    const content = { rooms: { 'room-1': readRoomGrid(8, ['######', '#....#', '#.P.G#', '######']) } }
+    const exit = await Effect.runPromiseExit(startGame({ dataset: {} } as HTMLElement, { content }))
+    expect(Exit.isSuccess(exit)).toBe(true)
+    expect(fakes.sim.calls).toEqual([{ plugins: [], content }])
+  })
+
+  it('draws the room of the demo’s content, the one its sims are made from', async () => {
+    const corridor = readRoomGrid(8, ['######', '#....#', '#.P.G#', '######'])
+    const exit = await Effect.runPromiseExit(
+      startGame({ dataset: {} } as HTMLElement, { content: { rooms: { 'room-1': corridor } } }),
+    )
+    expect(Exit.isSuccess(exit)).toBe(true)
+    expect(fakes.renderer.rooms).toEqual([{ id: 'room-1', ...corridor }])
   })
 
   it('without options, makes the base sim alone', async () => {

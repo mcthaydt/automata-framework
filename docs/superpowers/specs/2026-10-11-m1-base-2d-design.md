@@ -13,7 +13,7 @@
 
 | Missing core piece | Stand-in in `base-2d` (file) | Replaced by |
 |---|---|---|
-| `content` (M1.3, #8) | The room is a typed TypeScript module (`src/content/room.ts`), passed to the sim as `content` so it is hashed with the snapshot | A `content/rooms/*.toml` file compiled by `automata-content` |
+| `content` (M1.3, #8) | Swapped: the room is `content/rooms/room-1.toml`, compiled by `automata-content` (`automata.content.ts`, the `rooms` kind in `src/content/rooms.content.ts`) into the committed `content/generated/`, which `check` verifies (`check --verify-artifact`). The sim's content is the compiled `rooms` kind | M2.2 makes the compiler emit the sim partition (`simContent`) itself; then `BASE_SIM_CONTENT` reads it |
 | `host` (M1.4, #5) | `src/boot.ts` calls `Ruken.init` directly, as `examples/placeholder` does; no bridge code of its own | The `Hosting` service |
 | `runtime` (M1.5) | `src/loop.ts`: a fixed-step loop with an injected clock and frame scheduler | The runtime app loop, Time and Flow managers |
 | `render-pixi` (M1.7) | `src/render/`: Pixi 8 initialised the way FloorFifty does (no-eval entry, WebGL preference, nearest scaling, integer letterbox) | `render-pixi` with its `RenderDelta` consumer |
@@ -25,6 +25,7 @@ The sim half is the real thing: a sim plugin on `automata-sim`, checked by `chec
 - `@af-examples/base-2d/game` gives `startGame(root, { plugins?, onRound?, layers? })`. The options let a demo add sim plugins to every round's sim (each round makes a fresh one), spawn its own entities on each fresh sim, and add `RendererLayer`s. A throw in `onRound` disposes that sim and ends the game on the device message: on the first sim at boot (`SimFailed`), on a later one through the terminal failure path (`failure.ts`).
 - `@af-examples/base-2d/sim` is the sim plugin and its definitions alone, with no boot code. A demo's sim root can import it under `check-boundaries`' allow option for another package's sim entry (the sim lane's PR #14 names the flag).
 - `@af-examples/base-2d/render` is the renderer, with `addLayer`.
+- `@af-examples/base-2d/content` gives the `rooms` content schema, so a demo's `automata.content.ts` registers base-2d's rooms without copying the schema. It is build-time only and off the root, because the content compiler writes files with Node.
 
 These are what the M2 demos asked for (M2.1b spec, "Needs from integration").
 
@@ -37,7 +38,7 @@ These are what the M2 demos asked for (M2.1b spec, "Needs from integration").
 | State | Owner | Writers |
 |---|---|---|
 | Character position, velocity, grounded, jump timers; whether the goal is reached | The sim (`src/sim/`) | Only sim systems, from `move` commands |
-| The room (tiles, start, goal) | Content (`src/content/room.ts`) | Authors; frozen inside the sim |
+| The room (tiles, start, goal) | Content (`content/rooms/room-1.toml`) | Authors; the compiler checks it; frozen inside the sim |
 | Which screen shows (splash, menu, room, paused, end) | `src/flow.ts`, a pure state machine | The page's event handlers and the host's lifecycle and menu events |
 | Held keys and touch buttons | `src/input/` | DOM events |
 | Pixels, squash and stretch, dust | `src/render/` | Reads `RenderDelta` and sim events; never writes the sim |
@@ -56,7 +57,7 @@ These are what the M2 demos asked for (M2.1b spec, "Needs from integration").
 - Movement is resolved one pixel at a time on each axis against solid tiles, so the character never tunnels or overlaps a wall.
 - `createBaseSim({ seed, room? })` creates the sim with the room as content and spawns the player at the room's `P`.
 
-**Room (`src/content/room.ts`).** `{ id, tileSize: 8, rows: string[] }`, 40 × 24 tiles (320 × 192 pixels). `#` is solid, `.` empty, `P` the start, `G` the goal. `parseRoom` rejects ragged rows, unknown characters, or anything but one `P` and one `G`.
+**Room (`content/rooms/room-1.toml`).** `tile_size = 8` and `rows`, 40 × 24 tiles (320 × 192 pixels). `#` is solid, `.` empty, `P` the start, `G` the goal. The `rooms` schema (`readRoomGrid`) rejects ragged rows, unknown characters, or anything but one `P` and one `G`, reported in the room's file. The compiled grid (size, start, goal) is what the sim reads, as `content.rooms['room-1']`; the schema pipes into the grid's shape, so `content.d.ts` types `Rooms` as that grid. The sim's content is the compiled sim partition, `{ tuning, rooms }`, the shape of M2.2's `simContent`. `createBaseSim({ content })` takes compiled sim content (default: base-2d's own, `BASE_SIM_CONTENT`), and so does `startGame`'s `content` option; the renderer draws the room the sims are made from. Changing the content shape re-recorded the golden (`src/golden.ts`).
 
 **Flow (`src/flow.ts`).** `type Screen = 'splash' | 'menu' | 'room' | 'paused' | 'end'`; `next(screen, event)` with events `continue`, `play`, `pause`, `resume`, `quit`, `goal`, `background`, `menu-request`. Invalid pairs return the same screen.
 
