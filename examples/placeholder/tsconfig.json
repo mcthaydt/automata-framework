@@ -1,5 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "types": [], "allowImportingTsExtensions": true, "isolatedDeclarations": false },
-  "include": ["*.ts", "src/**/*.ts"]
+  "include": ["main.ts", "src/**/*.ts"],
+  // Reads ship.config.ts, which brings in ship's Node code; tsconfig.node.json checks it.
+  "exclude": ["src/ship-config.test.ts"]
 }

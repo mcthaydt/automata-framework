@@ -202,6 +202,24 @@ describe('ci.yml (AF)', () => {
     expect(JSON.stringify(e2e?.steps)).toContain('e2e-report')
   })
 
+  it('runs the journeys with Playwright from the root, with the spec passed straight through', () => {
+    const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
+    expect(rootPackage.scripts['test:e2e']).toBe('playwright test')
+    expect(rootPackage.devDependencies['@playwright/test']).toBeDefined()
+    const scripts = (ci.jobs.e2e?.steps ?? []).map((step) => step.run ?? '').join('\n')
+    // No `--`: Playwright takes everything after one as files and stops filtering, so the run would select
+    // every journey instead of the one asked for.
+    expect(scripts).toContain('pnpm test:e2e $SPEC')
+  })
+
+  it('has a journey for the placeholder, so a nightly run cannot pass with nothing to run', () => {
+    const config = readFileSync(join(root, 'playwright.config.ts'), 'utf8')
+    expect(config).toContain("testDir: 'examples/placeholder/e2e'")
+    expect(readdirSync(join(root, 'examples/placeholder/e2e')).some((name) => name.endsWith('.e2e.ts'))).toBe(
+      true,
+    )
+  })
+
   it('builds the placeholder through the reusable game workflow', () => {
     expect(ci.jobs.placeholder?.uses).toBe('./.github/workflows/game-ci.yml')
     expect(ci.jobs.placeholder?.with?.['working-directory']).toBe('examples/placeholder')

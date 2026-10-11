@@ -15,11 +15,6 @@
     "test:unit": {
       "dependsOn": ["^build"]
     },
-    "test:e2e": {
-      "dependsOn": ["^build"],
-      "cache": false,
-      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
-    },
     "test:parity": {
       "dependsOn": ["^build"],
       "cache": false,

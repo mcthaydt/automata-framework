@@ -9,8 +9,10 @@
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run",
     "test:unit": "vitest run",
-    "typecheck": "tsc -p . && tsc -p s8",
-    "measure:s8": "node s8/measure.ts"
+    "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
+    "measure:s8": "node s8/measure.ts",
+    "e2e:game": "vite build && vite preview --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
+    "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT vite build --config e2e/host/vite.config.ts && vite preview --config e2e/host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT"
   },
   "dependencies": {
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
@@ -18,6 +20,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-ship": "workspace:*",
+    "@playwright/test": "1.63.0",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "@types/node": "24.19.1",
