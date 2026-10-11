@@ -293,7 +293,8 @@ describe('ci.yml release checks (M2.4 spec §3.5)', () => {
 
   it('checks out full history on pull requests, so changeset status can compare with origin/main', () => {
     const checkout = steps.find((step) => step.uses?.startsWith('actions/checkout@'))
-    expect(checkout?.with?.['fetch-depth']).toBe("${{ github.event_name == 'pull_request' && 0 || 1 }}")
+    // Always 0: an expression like `cond && 0 || 1` yields 1, since 0 is falsy in Actions expressions.
+    expect(checkout?.with?.['fetch-depth']).toBe(0)
   })
 
   it('requires a changeset for a changed published package, allows only patch bumps, and builds every package', () => {

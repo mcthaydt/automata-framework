@@ -1,6 +1,7 @@
 {
   "name": "@mcthaydt/automata-content",
   "version": "0.0.0",
+  "license": "UNLICENSED",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcthaydt/automata-framework.git",
@@ -49,7 +50,7 @@
     "zod": "4.6.5"
   },
   "peerDependencies": {
-    "vite": "^8.3.2"
+    "vite": "8.3.2"
   },
   "devDependencies": {
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",

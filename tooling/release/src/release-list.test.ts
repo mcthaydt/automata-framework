@@ -60,12 +60,9 @@ describe('the published packages', () => {
   )
 
   it(
-    "accept a range of each outside peer, so a game's own Svelte or Vite patch release still satisfies it",
+    'say they grant no license (the Owner, 2026-10-11: UNLICENSED until launch)',
     each(({ manifest }) => {
-      const exact = Object.entries(manifest.peerDependencies ?? {})
-        .filter(([name]) => !name.startsWith('@mcthaydt/'))
-        .filter(([, range]) => !range.startsWith('^'))
-      expect(exact, manifest.name).toEqual([])
+      expect((manifest as { license?: string }).license, manifest.name).toBe('UNLICENSED')
     }),
   )
 

@@ -1,6 +1,7 @@
 {
   "name": "@mcthaydt/automata-ship",
   "version": "0.0.0",
+  "license": "UNLICENSED",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcthaydt/automata-framework.git",
