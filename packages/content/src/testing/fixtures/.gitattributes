@@ -1,0 +1,2 @@
+# equivalent-b ships CRLF sources on purpose: the compiler, not git, must make them equal.
+equivalent-b/** -text

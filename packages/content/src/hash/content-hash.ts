@@ -1,0 +1,11 @@
+// The content hash. FloorFifty stamped three SHA-256 revisions with node:crypto (packages/content/src/
+// revisions.ts, 122a220); AF uses one XXH64 from `@mcthaydt/automata-sim/hash`, over the sim's canonical
+// JSON, so the hash the compiler writes is exactly the one the sim recomputes when it checks a snapshot
+// (M2.2). The preimage never contains the hash itself.
+
+import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+
+/** 16 lowercase hex digits. */
+export function contentHash(data: unknown): string {
+  return hex64(xxhash64(utf8(canonicalJson(data))))
+}

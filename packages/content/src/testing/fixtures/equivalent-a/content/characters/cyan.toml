@@ -1,0 +1,9 @@
+displayName = "Cyan"
+
+[sheetAliases]
+cyan = "ninja.cyan"
+gold = "ninja.gold"
+
+[portraitAliases]
+cyan = "portrait.cyan"
+gold = "portrait.gold"
