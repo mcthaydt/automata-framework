@@ -85,6 +85,22 @@ export interface Sim {
   dispose(): void
 }
 
+/**
+ * A system threw during `step`. The tick was left half-applied, so the sim refuses `step`, `snapshot` and
+ * `hash` until a successful `restore` (M2.1 spec §10.2). Failing closed is cheaper than rolling back every tick.
+ */
+export class SimFaultedError extends Error {
+  readonly system: string
+  readonly tick: number
+  constructor(system: string, tick: number, cause: unknown) {
+    const reason = cause instanceof Error ? cause.message : String(cause)
+    super(`system "${system}" threw at tick ${tick}: ${reason}. Restore a snapshot to continue.`, { cause })
+    this.name = 'SimFaultedError'
+    this.system = system
+    this.tick = tick
+  }
+}
+
 function deepFreeze<T>(value: T): T {
   if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
     Object.freeze(value)
@@ -131,6 +147,10 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   for (const def of resourceDefs.values()) resources.set(def.id, def.schema.parse(def.init()))
 
   let tick = 0
+  let fault: SimFaultedError | undefined
+  const refuseIfFaulted = (): void => {
+    if (fault) throw fault
+  }
   let fullResync = true // a renderer starts empty, so the first delta is a resync
   let events: SimEvent[] = []
   let pendingDespawn = new Set<number>()
@@ -314,9 +334,17 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       return tick
     },
     step(commands) {
+      refuseIfFaulted()
       const rejected = intake(commands)
       events = []
-      for (const { system, ctx } of contexts) system.run(ctx)
+      for (const { system, ctx } of contexts) {
+        try {
+          system.run(ctx)
+        } catch (err) {
+          fault = new SimFaultedError(system.name, tick, err)
+          throw fault
+        }
+      }
       tick += 1
       commandsByType = new Map()
       stagedCommands = new Map()
@@ -327,6 +355,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     query: (...cs) => store.query(cs),
     resource: resourceOf,
     snapshot() {
+      refuseIfFaulted()
       const entities = store.liveSids().map((sid) => {
         const ref = store.ref(sid) as EntityRef
         const map = new Map<string, FieldRecord>()
@@ -424,6 +453,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         throw err instanceof SnapshotFormatError ? err : new SnapshotFormatError(String(err))
       }
       tick = data.tick
+      fault = undefined
       fullResync = true
       pendingDespawn = new Set()
       events = []

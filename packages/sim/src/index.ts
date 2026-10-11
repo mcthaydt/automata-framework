@@ -15,6 +15,8 @@ export {
   PHASES,
   type Phase,
   type PluginDef,
+  type PluginState,
+  type PluginStateSetup,
   type ResourceDef,
   type SystemDef,
 } from './define/definitions'
@@ -31,6 +33,7 @@ export {
   type RejectReason,
   type Sim,
   type SimEvent,
+  SimFaultedError,
   type SimOptions,
   type StepResult,
 } from './world/sim'

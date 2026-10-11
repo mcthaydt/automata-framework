@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
 - **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
-- **Progress:** 3 / 13 tasks.
+- **Progress:** 4 / 13 tasks.
 - **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
@@ -44,8 +44,8 @@
 - [x] Implement; `pnpm check`.
 
 ### 4. Fail closed on a throwing system (spec §10.2)
-- [ ] Failing tests: a system that throws at tick 3 → `step` throws `SimFaultedError` naming the system and tick; later `step`, `snapshot`, `hash` throw `SimFaultedError`; `restore` of a good snapshot clears the fault and the run continues identically.
-- [ ] Implement; `pnpm check`.
+- [x] Failing tests: a system that throws at tick 3 → `step` throws `SimFaultedError` naming the system and tick; later `step`, `snapshot`, `hash` throw `SimFaultedError`; `restore` of a good snapshot clears the fault and the run continues identically.
+- [x] Implement; `pnpm check`.
 
 ### 5. Koota world limit (spec §10.3)
 - [ ] Failing tests: with 16 sims alive, `restore` succeeds; a 17th `createSim` rejects with `SimCapacityError`; a restore with a bad row still leaves the sim unchanged.
