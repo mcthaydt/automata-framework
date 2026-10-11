@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest'
-import { CanonicalJsonError, canonicalJson, utf8 } from './canonical'
+import { describe, expect, test } from 'vitest'
+import { CanonicalJsonError, canonicalJson, decodeUtf8Strict, utf8 } from './canonical'
 
 test('object keys are sorted at every depth; arrays keep their order', () => {
   expect(canonicalJson({ b: 1, a: { d: [3, 1], c: true } })).toBe('{"a":{"c":true,"d":[3,1]},"b":1}')
@@ -52,4 +52,27 @@ test('non-plain objects throw CanonicalJsonError instead of hashing as {} (conte
 test('every canonicalJson failure is a CanonicalJsonError', () => {
   expect(() => canonicalJson(Number.NaN)).toThrow(CanonicalJsonError)
   expect(() => canonicalJson({ a: undefined })).toThrow(CanonicalJsonError)
+})
+
+describe('decodeUtf8Strict', () => {
+  test.each([
+    ['ascii', 'hello, world'],
+    ['bmp', 'Ünïcödé ✓ 日本'],
+    ['astral', '😀 𝄞'],
+    ['empty', ''],
+  ])('inverts utf8 for %s text', (_, text) => {
+    expect(decodeUtf8Strict(utf8(text))).toBe(text)
+  })
+
+  test.each([
+    ['an overlong form', [0xc0, 0xaf]],
+    ['an overlong three-byte form', [0xe0, 0x80, 0xaf]],
+    ['a lone surrogate', [0xed, 0xa0, 0x80]],
+    ['a truncated sequence', [0xe6, 0x97]],
+    ['a stray continuation byte', [0x80]],
+    ['a code point past U+10FFFF', [0xf4, 0x90, 0x80, 0x80]],
+    ['a bad continuation byte', [0xc3, 0x28]],
+  ])('throws on %s', (_, bytes) => {
+    expect(() => decodeUtf8Strict(Uint8Array.from(bytes))).toThrow(RangeError)
+  })
 })

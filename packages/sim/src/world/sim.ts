@@ -20,10 +20,13 @@ import { sortedKeys } from '../util/sorted'
 import { EntityStore, type RenderDelta, SimCapacityError } from './entity-store'
 import {
   decodeSnapshot,
+  decodeSnapshotHeader,
   encodeSnapshot,
   type SnapshotData,
   SnapshotFormatError,
   SnapshotMismatchError,
+  type SnapshotView,
+  viewSnapshot,
 } from './snapshot'
 
 /** Input to the sim (spec §4.4 rule 4). `source` is a player slot (u8), `seq` a per-source counter (u32). */
@@ -82,6 +85,12 @@ export interface Sim {
   snapshot(): Uint8Array
   /** Replaces the whole state. Throws SnapshotFormatError / SnapshotMismatchError and leaves the sim unchanged. */
   restore(bytes: Uint8Array): void
+  /**
+   * A readable view of `bytes`, or of the current state when none are given (M2.3 spec §3.1). Decodes and checks
+   * the header as `restore` does (SnapshotFormatError / SnapshotMismatchError) but not restore's later
+   * cross-checks, and changes nothing.
+   */
+  describeSnapshot(bytes?: Uint8Array): SnapshotView
   /** xxhash64 of the snapshot, 16 hex digits. */
   hash(): string
   /** Frees the Koota world and every plugin's engine. Idempotent; any later call throws SimDisposedError. */
@@ -310,6 +319,26 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     return { system, ctx }
   })
 
+  /** Decodes snapshot bytes and checks they belong to this sim's schema, content and tick rate. */
+  function decodeForThisSim(bytes: Uint8Array): SnapshotData {
+    // The header first: a snapshot from another schema reports the mismatch, not whatever its body's shape
+    // breaks in this build's decoder.
+    const header = decodeSnapshotHeader(bytes)
+    if (header.schemaHash !== schemaHash)
+      throw new SnapshotMismatchError('schemaHash', hex64(schemaHash), hex64(header.schemaHash))
+    if (header.contentHash !== contentHash)
+      throw new SnapshotMismatchError('contentHash', hex64(contentHash), hex64(header.contentHash))
+    if (header.tickHz !== tickHz)
+      throw new SnapshotMismatchError('tickHz', String(tickHz), String(header.tickHz))
+    try {
+      return decodeSnapshot(bytes, componentList)
+    } catch (err) {
+      if (err instanceof SnapshotFormatError) throw err
+      // e.g. RangeError from an invalid UTF-8 code point: the contract is one error type for bad bytes.
+      throw new SnapshotFormatError(err instanceof Error ? err.message : String(err), { cause: err })
+    }
+  }
+
   function intake(commands: readonly Command[]): RejectedCommand[] {
     const rejected: RejectedCommand[] = []
     const accepted: Array<Command & { parsed: unknown }> = []
@@ -438,21 +467,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     },
     restore(bytes) {
       refuseIfDisposed()
-      let data: SnapshotData
-      try {
-        data = decodeSnapshot(bytes, componentList)
-      } catch (err) {
-        if (err instanceof SnapshotFormatError) throw err
-        // e.g. RangeError from an invalid UTF-8 code point: the contract is one error type for bad bytes.
-        throw new SnapshotFormatError(err instanceof Error ? err.message : String(err), { cause: err })
-      }
-      if (data.schemaHash !== schemaHash)
-        throw new SnapshotMismatchError('schemaHash', hex64(schemaHash), hex64(data.schemaHash))
-      if (data.contentHash !== contentHash) {
-        throw new SnapshotMismatchError('contentHash', hex64(contentHash), hex64(data.contentHash))
-      }
-      if (data.tickHz !== tickHz)
-        throw new SnapshotMismatchError('tickHz', String(tickHz), String(data.tickHz))
+      const data = decodeForThisSim(bytes)
       // Validate everything first, without touching this sim. Then free the old Koota world before building the
       // new one, so a restore never needs a second world (Koota allows 16 per process; M2.1 spec §10.3).
       let rows: Array<{ sid: number; parts: SpawnPart[] }>
@@ -518,6 +533,10 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     },
     hash() {
       return hex64(xxhash64(sim.snapshot()))
+    },
+    describeSnapshot(bytes) {
+      refuseIfDisposed()
+      return viewSnapshot(decodeForThisSim(bytes ?? sim.snapshot()))
     },
     dispose() {
       if (disposed) return

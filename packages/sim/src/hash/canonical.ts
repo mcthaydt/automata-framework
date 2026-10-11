@@ -70,3 +70,59 @@ export function utf8(s: string): Uint8Array {
   }
   return Uint8Array.from(out)
 }
+
+/**
+ * Strict UTF-8 decoding, the inverse of `utf8` for well-formed text. Throws RangeError on anything else: a stray
+ * or missing continuation byte, an overlong form, an encoded surrogate, a code point past U+10FFFF or a truncated
+ * sequence. Replays need it because their bytes come from outside (M2.3 spec §6); the snapshot decoder's loose
+ * one only ever reads bytes the sim wrote.
+ */
+export function decodeUtf8Strict(bytes: Uint8Array): string {
+  const parts: string[] = []
+  let codes: number[] = []
+  const fail = (at: number, what: string): never => {
+    throw new RangeError(`invalid UTF-8 at byte ${at}: ${what}`)
+  }
+  const continuation = (at: number): number => {
+    const b = bytes[at]
+    if (b === undefined) return fail(at, 'truncated sequence')
+    if ((b & 0xc0) !== 0x80) return fail(at, 'expected a continuation byte')
+    return b & 0x3f
+  }
+  for (let i = 0; i < bytes.length; ) {
+    const lead = bytes[i] as number
+    let cp: number
+    let min: number
+    let length: number
+    if (lead < 0x80) {
+      cp = lead
+      min = 0
+      length = 1
+    } else if (lead >= 0xc0 && lead < 0xe0) {
+      cp = lead & 0x1f
+      min = 0x80
+      length = 2
+    } else if (lead >= 0xe0 && lead < 0xf0) {
+      cp = lead & 0x0f
+      min = 0x800
+      length = 3
+    } else if (lead >= 0xf0 && lead < 0xf8) {
+      cp = lead & 0x07
+      min = 0x10000
+      length = 4
+    } else return fail(i, lead < 0xc0 ? 'stray continuation byte' : 'invalid lead byte')
+    for (let k = 1; k < length; k++) cp = cp * 64 + continuation(i + k)
+    if (cp < min) fail(i, 'overlong form')
+    if (cp >= 0xd800 && cp <= 0xdfff) fail(i, 'encoded surrogate')
+    if (cp > 0x10ffff) fail(i, 'code point past U+10FFFF')
+    codes.push(cp)
+    // fromCodePoint takes its code points as arguments, so flush in chunks well under any engine's limit.
+    if (codes.length === 4096) {
+      parts.push(String.fromCodePoint(...codes))
+      codes = []
+    }
+    i += length
+  }
+  parts.push(String.fromCodePoint(...codes))
+  return parts.join('')
+}
