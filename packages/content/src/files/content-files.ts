@@ -3,7 +3,7 @@
 // change to this file alone. The rest of the package sees Effects that fail with `FileError`.
 
 import { randomUUID } from 'node:crypto'
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 import { Data, Effect } from 'effect'
 import type { TaggedErrorClass } from '../compile/errors'
@@ -63,5 +63,17 @@ export const writeFileAtomically = (path: string, text: string): Effect.Effect<v
       await rename(temporary, path)
     } finally {
       await rm(temporary, { force: true })
+    }
+  })
+
+/** Whether `path` is a file, a folder, or nothing. */
+export const pathKind = (path: string): Effect.Effect<'file' | 'folder' | undefined, FileError> =>
+  attempt(path, async () => {
+    try {
+      const stats = await stat(path)
+      return stats.isDirectory() ? 'folder' : 'file'
+    } catch (error) {
+      if (isMissing(error)) return undefined
+      throw error
     }
   })

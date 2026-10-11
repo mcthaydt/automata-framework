@@ -27,6 +27,7 @@ export {
 export { contentHash } from './hash/content-hash'
 export { type MessageCatalog, messageKey } from './locale/messages'
 export { DEFAULT_PALETTE, type Palette } from './palette/palette'
+export { type PreloadInput, preloadList } from './preload/preload-list'
 export {
   type ContentSchemaDef,
   type ContentSchemaPlace,

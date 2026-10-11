@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { listFiles, readTextIfPresent, writeFileAtomically } from './content-files'
+import { listFiles, pathKind, readTextIfPresent, writeFileAtomically } from './content-files'
 
 const scratch = (): string => mkdtempSync(join(tmpdir(), 'content-files-'))
 
@@ -52,5 +52,15 @@ describe('writeFileAtomically', () => {
     )
     expect(Either.isLeft(result)).toBe(true)
     expect(readdirSync(dir)).toEqual(['content.json'])
+  })
+})
+
+describe('pathKind', () => {
+  it('tells a file from a folder from nothing', async () => {
+    const dir = scratch()
+    writeFileSync(join(dir, 'a.png'), '')
+    expect(await Effect.runPromise(pathKind(join(dir, 'a.png')))).toBe('file')
+    expect(await Effect.runPromise(pathKind(dir))).toBe('folder')
+    expect(await Effect.runPromise(pathKind(join(dir, 'b.png')))).toBeUndefined()
   })
 })
