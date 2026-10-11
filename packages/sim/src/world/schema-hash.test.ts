@@ -71,3 +71,14 @@ test('a plugin without a config keeps its schema hash, and a config must be cano
   await expect(restoreInto(definePlugin({ name: 'engine' }), bytes)).resolves.toBeUndefined()
   expect(() => definePlugin({ name: 'engine', config: { at: new Date(0) } })).toThrow(/canonicalJson/)
 })
+
+test('a plugin config is frozen all the way down, so the hashed value is the value the plugin reads', () => {
+  const plugin = definePlugin({ name: 'engine', config: { gravity: { x: 0, y: -9.81 }, tags: ['a'] } })
+  const config = plugin.config as { gravity: { y: number }; tags: string[] }
+  expect(Object.isFrozen(config)).toBe(true)
+  expect(Object.isFrozen(config.gravity)).toBe(true)
+  expect(Object.isFrozen(config.tags)).toBe(true)
+  expect(() => {
+    config.gravity.y = 0
+  }).toThrow(TypeError)
+})

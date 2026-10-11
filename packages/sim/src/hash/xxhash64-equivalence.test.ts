@@ -28,22 +28,3 @@ test('agrees on a subarray view with a non-zero byte offset', () => {
   const data = bytes(1000, 3).subarray(13, 913)
   expect(xxhash64(data)).toBe(xxhash64Reference(data))
 })
-
-// The sim's lib has no DOM types; performance exists in Node and every browser the tests run in.
-const { performance } = globalThis as unknown as { performance: { now(): number } }
-
-test('is at least 2x faster than the BigInt reference on 256 KB (best of 5 each)', () => {
-  const data = bytes(256 * 1024, 11)
-  const best = (f: () => void) => {
-    let min = Number.POSITIVE_INFINITY
-    for (let i = 0; i < 5; i++) {
-      const t = performance.now()
-      f()
-      min = Math.min(min, performance.now() - t)
-    }
-    return min
-  }
-  const fast = best(() => xxhash64(data))
-  const slow = best(() => xxhash64Reference(data))
-  expect(slow / fast).toBeGreaterThan(2) // measured about 2.8x in Node 24 (17 vs 6 ms per MB)
-})

@@ -149,3 +149,21 @@ test('Rapier returning no world for the bytes is a SnapshotFormatError that says
     expect.objectContaining({ name: 'SnapshotFormatError', message: expect.stringMatching(/no world/) }),
   )
 })
+
+test('dispose closes the adapter even when freeing the world throws', () => {
+  let closed = 0
+  const adapter = {
+    createWorld: () => ({}),
+    free: () => {
+      throw new Error('wasm trap on free')
+    },
+    close: () => {
+      closed += 1
+    },
+  } as unknown as PhysicsAdapter<object>
+  const world = new PhysicsWorld(adapter)
+  expect(() => world.dispose()).toThrow('wasm trap on free')
+  expect(closed).toBe(1)
+  world.dispose() // already disposed: nothing runs again
+  expect(closed).toBe(1)
+})

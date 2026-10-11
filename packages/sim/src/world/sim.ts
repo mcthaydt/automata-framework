@@ -15,6 +15,7 @@ import { canonicalJson, utf8 } from '../hash/canonical'
 import { hex64, xxhash64 } from '../hash/xxhash64'
 import { createRng, deriveSeed, type Rng, rngFromState } from '../rng/rng'
 import { orderPlugins, orderSystems } from '../schedule/schedule'
+import { deepFreeze } from '../util/deep-freeze'
 import { sortedKeys } from '../util/sorted'
 import { EntityStore, type RenderDelta, SimCapacityError } from './entity-store'
 import {
@@ -125,14 +126,6 @@ function describeSchemas(defs: ReadonlyMap<string, { readonly schema: z.ZodType 
       id,
       z.toJSONSchema((defs.get(id) as { schema: z.ZodType }).schema, { io: 'input', unrepresentable: 'any' }),
     ])
-}
-
-function deepFreeze<T>(value: T): T {
-  if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
-    Object.freeze(value)
-    for (const k of sortedKeys(value as object)) deepFreeze((value as Record<string, unknown>)[k])
-  }
-  return value
 }
 
 function register<T extends { id: string }>(what: string, map: Map<string, T>, items: readonly T[]): void {

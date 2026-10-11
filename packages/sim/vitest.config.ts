@@ -6,7 +6,16 @@ export default defineConfig({
   optimizeDeps: { include: ['koota', 'zod'] },
   test: {
     projects: [
-      { test: { name: 'node', environment: 'node', include: ['src/**/*.test.ts'] } },
+      {
+        test: {
+          name: 'node',
+          environment: 'node',
+          include: ['src/**/*.test.ts'],
+          // Timings measure the machine as much as the code, so they stay out of the gate; `pnpm bench` runs them.
+          exclude: ['src/**/*.bench.test.ts'],
+        },
+      },
+      { test: { name: 'bench', environment: 'node', include: ['src/**/*.bench.test.ts'] } },
       {
         test: {
           name: 'browsers',

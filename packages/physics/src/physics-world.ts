@@ -401,7 +401,10 @@ export class PhysicsWorld<World> implements PluginState {
   dispose(): void {
     if (this.disposed) return
     this.disposed = true
-    this.rapier.free(this.world)
-    this.rapier.close()
+    try {
+      this.rapier.free(this.world)
+    } finally {
+      this.rapier.close() // the event queue is separate wasm memory, so it is freed even if the world's free fails
+    }
   }
 }

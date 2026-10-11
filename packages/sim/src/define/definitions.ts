@@ -1,6 +1,7 @@
 import { type Trait, trait } from 'koota'
 import type { z } from 'zod'
 import { canonicalJson } from '../hash/canonical'
+import { deepFreeze } from '../util/deep-freeze'
 import { sortedKeys } from '../util/sorted'
 import type { SimContext } from './context'
 import { defaultField, FIELD_TYPES, type FieldSchema, type FieldType } from './fields'
@@ -175,8 +176,9 @@ export function definePlugin(spec: {
   config?: unknown
 }): PluginDef {
   checkId('plugin', spec.name)
-  // A canonical copy: it throws CanonicalJsonError for anything that cannot hash exactly.
-  const config = spec.config === undefined ? undefined : JSON.parse(canonicalJson(spec.config))
+  // A canonical, frozen copy: it throws CanonicalJsonError for anything that cannot hash exactly, and nobody
+  // can change it after it joins the schema hash.
+  const config = spec.config === undefined ? undefined : deepFreeze(JSON.parse(canonicalJson(spec.config)))
   return {
     kind: 'plugin',
     name: spec.name,

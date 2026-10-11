@@ -9,7 +9,8 @@
     "./math": "./src/math/dmath.ts"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --project node --project browsers",
+    "bench": "vitest run --project bench",
     "test:unit": "vitest run --project node",
     "typecheck": "tsc -p ."
   },
