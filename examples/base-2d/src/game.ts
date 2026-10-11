@@ -8,6 +8,7 @@ import { createInputDevices } from './input/devices.ts'
 import { toMove } from './input/keys.ts'
 import { createLoop } from './loop.ts'
 import { createRenderer, type Renderer } from './render/renderer.ts'
+import { createRounds } from './rounds.ts'
 import { createScreens } from './screens/screens.ts'
 import { TICK_HZ } from './sim/tuning.ts'
 
@@ -35,7 +36,7 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
 
     // Nothing is created before the host says ready (Ruken R-04): the page was empty until here.
     const room = parseRoom(ROOM)
-    let sim = yield* Effect.promise(() => createBaseSim())
+    const firstSim = yield* Effect.promise(() => createBaseSim())
     const screens = createScreens(root, {
       onContinue: () => dispatch('continue'),
       onPlay: () => dispatch('play'),
@@ -62,7 +63,7 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
       if (at === null) return
       root.dataset.playerX = String(at.x)
       root.dataset.playerY = String(at.y)
-      root.dataset.tick = String(sim.tick)
+      root.dataset.tick = String(rounds.current().tick)
     }
 
     const loop = createLoop({
@@ -70,6 +71,7 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
       requestFrame: (callback) => requestAnimationFrame(() => callback()),
       cancelFrame: (handle) => cancelAnimationFrame(handle),
       onStep: () => {
+        const sim = rounds.current()
         const result = sim.step([moveCommand(sim, toMove(input.held()))])
         // A rejected command is a bug in this page's input code; the browser journeys fail on any console error.
         for (const rejected of result.rejected) console.error('base-2d: the sim rejected a command', rejected)
@@ -82,18 +84,18 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
       },
     })
 
-    // A new round gets a fresh sim, so play always starts from the same state.
-    let starting = false
-    const startRound = () => {
-      starting = true
-      sim.dispose()
-      renderer.reset()
-      void createBaseSim().then((fresh) => {
-        sim = fresh
-        starting = false
+    // A new round gets a fresh sim, so play always starts from the same state (rounds.ts keeps only the newest).
+    const rounds = createRounds(
+      firstSim,
+      () => createBaseSim(),
+      () => {
         session.round.start()
         if (screen === 'room') loop.start()
-      })
+      },
+    )
+    const startRound = () => {
+      renderer.reset()
+      rounds.start()
     }
 
     dispatch = (event) => {
@@ -103,14 +105,16 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
       screen = to
       if (from === 'room') loop.stop()
       if (to === 'room') {
-        if (from === 'paused') loop.start()
-        else startRound()
+        // Resuming while a round is still starting waits for its sim; the round starts the loop itself.
+        if (from === 'paused') {
+          if (!rounds.starting()) loop.start()
+        } else startRound()
       }
       if (event === 'goal') session.round.end('complete')
       if (event === 'quit' && from === 'paused') session.round.end('quit')
-      const seconds = to === 'end' ? sim.tick / TICK_HZ : undefined
+      const seconds = to === 'end' ? rounds.current().tick / TICK_HZ : undefined
       screens.show(to, seconds === undefined ? {} : { seconds })
-      if (to === 'room' && !starting) renderer.draw(performance.now())
+      if (to === 'room' && !rounds.starting()) renderer.draw(performance.now())
     }
 
     session.lifecycle.on('change', (change) => {

@@ -2,7 +2,8 @@
  * The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
  * Several agents run at once, each in its own worktree; with fixed ports a second run either failed on a busy
  * port or, reusing the first run's server, silently tested another worktree's code. So each checkout path
- * hashes to its own slot. AF uses 4600–4799, clear of FloorFifty's 4400–4599 on the same machine.
+ * hashes to its own slot. AF uses 4600–4799, clear of FloorFifty's 4400–4599 on the same machine; a second
+ * example in the same run adds a fixed offset (`examples/base-2d` uses +200, so 4800–4999).
  * CI runs one job per machine and uses the fixed pair; AF_E2E_SERVER_PORT / AF_E2E_PREVIEW_PORT override.
  */
 export function portsFor(

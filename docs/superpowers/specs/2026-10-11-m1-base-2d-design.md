@@ -60,7 +60,7 @@ The sim half is the real thing: a sim plugin on `automata-sim`, checked by `chec
 ## 4. Data and lifecycle flow
 
 1. The page loads with an empty `#game` (nothing renders before ready, Ruken R-04). `main.ts` imports `src/no-eval.ts` first (`pixi.js/unsafe-eval`, Zod jitless).
-2. `boot` runs `Ruken.init({ gameId: 'base-2d', wants: [], pauseBehavior: 'pause', onMenuRequest })` and waits for `session.ready`. Before ready, `onMenuRequest` returns `false`.
+2. `boot` runs `Ruken.init({ gameId: 'base-2d', wants: ['menu'], pauseBehavior: 'pause', onMenuRequest })` (the SDK only routes `menu.open` to a game that asks for `menu`) and waits for `session.ready`. Before ready, `onMenuRequest` returns `false`.
 3. After ready: create the sim, initialise Pixi into `#game`, build the screens, show `splash`. `data-state="ready"` is set on `<html>`.
 4. Splash continues on any key or tap (or after 1.5 s) to the menu; Play enters the room and calls `session.round.start()`.
 5. In the room, the loop steps the sim at 60 Hz from the accumulated real time (at most 5 steps per frame, so a long stall does not spiral) and sends one `move` command per step. The renderer draws after each frame.
@@ -93,8 +93,10 @@ The canvas is the room at 320 × 192 scaled by the largest integer that fits the
 | Unit (Node) | Room parsing; movement (run, walls, gravity, landing, jump, coyote, buffer, variable height, ceiling); goal; golden hash of a scripted run; flow transitions; input mapping; loop stepping with a fake clock; palette check of every art color against `docs/art/palettes/endesga-64.txt`; ship config; boot under Ruken's fake host | `src/**/*.test.ts` |
 | Parity | The scripted run's golden hash in Chromium, WebKit and Firefox equals Node's | `src/sim/golden.parity.test.ts` |
 | Determinism check | `check-boundaries` on `src/sim` | `game-ci.yml` with `sim-roots: src/sim`, and locally |
-| Browser journeys (Pixel 7 and a 780 × 270 landscape phone) | Boots standalone under Ruken's headers with no console errors; splash → menu → room → pause → resume; walks and jumps to the goal with the keyboard and reaches the end screen; touch controls; completes the handshake inside a fake host frame on another origin | `e2e/*.e2e.ts`, project `base-2d` |
+| Browser journeys (Pixel 7 and a 780 × 270 landscape phone) | Boots standalone under Ruken's headers with no console errors and no CSP violations (an init script reports every `securitypolicyviolation`, with a journey proving a blocked image is caught); splash → menu → room → pause → resume; walks and jumps to the goal with the keyboard and reaches the end screen; touch controls; completes the handshake inside a fake host frame on another origin | `e2e/*.e2e.ts`, projects `base-2d` and `base-2d-compact`. Servers sit 200 above the placeholder's ports (4800–4999, `e2e/origins.ts`), and every `pnpm test:e2e` builds and serves both examples, even with `--project=placeholder` |
 | Owner gates | The look (screenshots under `evidence/`), playing on a real phone | PR review |
+
+Cost of the CSP fix in `packages/sim`: array-of-structs traits make snapshots about 40–80 % slower on 10 000 entities (audit, 2026-10-11). The base has one entity; revisit if a game's snapshot cost shows in its frame budget.
 
 ## 8. Ruken alignment
 

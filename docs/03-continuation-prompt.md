@@ -64,7 +64,12 @@ Each PR rebases on `main` after the one before it merges and re-runs local check
 
 - #9 physics appends its pins (`@dimforge/rapier2d-deterministic-compat` and `rapier3d-deterministic-compat` 0.21.0) to `docs/versions.md` once #6 has created that file. Lanes may append rows for their own pins.
 - #9 changes the sim golden hash on purpose (`2dfe1971eaf6af8f` → `98cc273719c10ef2`), because the schema hash now covers the resource and command schemas. Before #9 merges, confirm the new hash is identical in Node, Chromium, WebKit and Firefox, then record it in the execution record.
-- #9 and the base-2d PR both edit `packages/sim/src/define/definitions.ts` and `world/entity-store.ts`; whichever merges second keeps the factory traits (no `new Function`) and the no-eval test green.
+- #9 merges first, and the base-2d PR (#10) second (coordinator, 2026-10-11). Both edit `packages/sim/src/define/definitions.ts` and `world/entity-store.ts`. The audit's trial merge (report `audits/af-m1.8-base-2d-pr10-2026-10-11.md` in the project's shared files) found that git conflicts only on the entity-store imports and silently takes #9's version of the rest, which breaks under factory (array-of-structs) traits. Koota's `set` then replaces the whole record and `get` returns the live record, so sim fails 11 of 185 tests, physics 41 of 69 and base-2d 5 of 77; `player-input.system.ts` wipes coyote, buffer and varJump. When merging `main` (with #9) into #10:
+  1. Keep the factory traits in `definitions.ts` and the no-eval test.
+  2. Keep #10's copying `read()` in `entity-store.ts`.
+  3. Make #9's partial `set` coerce against the current record (`store.read(e, def)`), not against `{}`.
+  4. Re-record the base-2d golden: `GOLDEN_HASH` becomes `31f50888ccb4cf0a` (was `a40a6dbda55f4932`), because #9's schema hash now covers resources and commands. Confirm it in Node, Chromium, WebKit and Firefox.
+  5. Run `pnpm check`, `pnpm test:parity` and `pnpm test:e2e` (which fails on CSP violations).
 - The base-2d PR adds the same `check-boundaries` allowlist lines as #9 (identical text, so the merge is clean or trivially resolved).
 - #9 spec §12 defaults: transforms live in `physics`, velocity is on `RigidBody`, and the sim fails closed.
 
