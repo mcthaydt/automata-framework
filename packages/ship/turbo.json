@@ -1,0 +1,42 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test:unit": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/.github/workflows/**",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/playwright.config.ts",
+        "$TURBO_ROOT$/packages/*/package.json",
+        "$TURBO_ROOT$/packages/*/vitest.config.ts",
+        "$TURBO_ROOT$/tooling/*/package.json",
+        "$TURBO_ROOT$/tooling/*/vitest.config.ts",
+        "$TURBO_ROOT$/examples/*/package.json",
+        "$TURBO_ROOT$/examples/*/vitest.config.ts",
+        "$TURBO_ROOT$/examples/*/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/vitest.config.ts",
+        "$TURBO_ROOT$/examples/placeholder/e2e/**"
+      ]
+    },
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/.github/workflows/**",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/playwright.config.ts",
+        "$TURBO_ROOT$/packages/*/package.json",
+        "$TURBO_ROOT$/packages/*/vitest.config.ts",
+        "$TURBO_ROOT$/tooling/*/package.json",
+        "$TURBO_ROOT$/tooling/*/vitest.config.ts",
+        "$TURBO_ROOT$/examples/*/package.json",
+        "$TURBO_ROOT$/examples/*/vitest.config.ts",
+        "$TURBO_ROOT$/examples/*/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/vitest.config.ts",
+        "$TURBO_ROOT$/examples/placeholder/e2e/**"
+      ]
+    }
+  }
+}
