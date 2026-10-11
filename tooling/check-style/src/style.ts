@@ -24,6 +24,9 @@ export const ROLES: ReadonlySet<string> = new Set([
   'manager',
   'schema',
   'migration',
+  'content',
+  'generator',
+  'extension',
 ])
 
 /** define* factory -> the role suffix its exported results require. */
@@ -34,6 +37,9 @@ const DEFINE_ROLE: Readonly<Record<string, string>> = {
   defineEvent: 'event',
   defineResource: 'resource',
   definePlugin: 'plugin',
+  defineContentSchema: 'content',
+  defineContentGenerator: 'generator',
+  defineExtension: 'extension',
 }
 const FACTORY_FOR: Readonly<Record<string, string>> = Object.fromEntries(
   Object.entries(DEFINE_ROLE).map(([fn, role]) => [role, fn]),
