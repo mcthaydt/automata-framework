@@ -142,6 +142,31 @@ describe('parity across packages', () => {
   })
 })
 
+describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
+  const ci = workflow('ci.yml')
+  const scripts = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts as Record<
+    string,
+    string
+  >
+  const localSteps = (scripts['ci:local'] ?? '').split(' && ')
+
+  it('runs every pnpm step of the checks and parity jobs, in order, from a frozen install', () => {
+    const ciSteps = ['checks', 'parity'].flatMap((name) =>
+      (ci.jobs[name]?.steps ?? [])
+        .map((step) => step.run ?? '')
+        .filter((script) => script.startsWith('pnpm ')),
+    )
+    expect(localSteps[0]).toBe('pnpm install --frozen-lockfile')
+    const inOrder = localSteps.filter((step) => ciSteps.includes(step))
+    expect(inOrder).toEqual([...new Set(ciSteps)])
+  })
+
+  it('builds and prepares the placeholder as game-ci does', () => {
+    expect(localSteps).toContain('pnpm --filter @af-examples/placeholder build')
+    expect(localSteps).toContain('pnpm --filter @af-examples/placeholder prepare-ruken')
+  })
+})
+
 describe('ci.yml (AF)', () => {
   const ci = workflow('ci.yml')
 

@@ -18,7 +18,8 @@
     "check": "pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit",
     "test:e2e": "turbo run test:e2e",
     "lint:actions": "docker run --rm -v \"$PWD:/repo\" --workdir /repo rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color",
-    "test:parity": "turbo run test:parity"
+    "test:parity": "turbo run test:parity",
+    "ci:local": "pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit && pnpm test:parity && pnpm --filter @af-examples/placeholder build && pnpm --filter @af-examples/placeholder prepare-ruken"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

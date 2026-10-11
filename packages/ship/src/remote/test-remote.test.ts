@@ -10,12 +10,22 @@ const SINCE = '2026-10-11T08:00:00Z'
 interface Script {
   readonly status?: string
   readonly runs?: object[]
-  readonly watchExit?: number
-  readonly jobs?: object[]
+  /** What each `gh run view` answers, in order; the last answer repeats. */
+  readonly views?: object[]
 }
+
+const job = (status: string, conclusion: string | null, steps = 1) => ({
+  name: 'checks',
+  status,
+  conclusion,
+  steps: Array.from({ length: steps }, () => ({})),
+})
+const view = (status: string, conclusion: string | null, jobs: object[]) => ({ status, conclusion, jobs })
+const GREEN = view('completed', 'success', [job('completed', 'success')])
 
 /** A fake git and gh that answer like a branch with one dispatched run. */
 function fakeGitAndGh(script: Script = {}) {
+  let viewCalls = 0
   return fakeProcessRunner((run: RecordedRun) => {
     const line = [run.command, ...run.args].join(' ')
     if (line === 'git rev-parse --abbrev-ref HEAD') return ok('claude/af-m1-ship\n')
@@ -28,11 +38,11 @@ function fakeGitAndGh(script: Script = {}) {
         ),
       )
     }
-    if (line.startsWith('gh run watch')) return { exitCode: script.watchExit ?? 0, stdout: '', stderr: '' }
     if (line.startsWith('gh run view')) {
-      return ok(
-        JSON.stringify({ jobs: script.jobs ?? [{ name: 'checks', conclusion: 'success', steps: [{}] }] }),
-      )
+      const views = script.views ?? [GREEN]
+      const answer = views[Math.min(viewCalls, views.length - 1)]
+      viewCalls += 1
+      return ok(JSON.stringify(answer))
     }
     return ok()
   })
@@ -41,7 +51,18 @@ function fakeGitAndGh(script: Script = {}) {
 const run = (args: readonly string[], fake: ReturnType<typeof fakeGitAndGh>) =>
   Effect.runPromise(
     Effect.either(
-      Effect.provide(testRemote({ args, since: SINCE, pollAttempts: 3, pollIntervalMs: 0 }), fake.layer),
+      Effect.provide(
+        testRemote({
+          args,
+          since: SINCE,
+          pollAttempts: 3,
+          pollIntervalMs: 0,
+          watchIntervalMs: 0,
+          queuePolls: 3,
+          runPolls: 10,
+        }),
+        fake.layer,
+      ),
     ),
   )
 
@@ -92,17 +113,43 @@ describe('testRemote', () => {
     expect(reasonOf(result).reason).toBe('no-run')
   })
 
-  it('reports a run whose jobs never got a runner, with the local command to use instead', async () => {
-    const fake = fakeGitAndGh({ watchExit: 1, jobs: [{ name: 'checks', conclusion: 'failure', steps: [] }] })
+  it('waits while the run is queued and running, then reports it green', async () => {
+    const fake = fakeGitAndGh({
+      views: [
+        view('queued', null, [job('queued', null, 0)]),
+        view('in_progress', null, [job('in_progress', null)]),
+        GREEN,
+      ],
+    })
+    const result = await run([], fake)
+    expect(result).toEqual(Either.right({ runUrl: 'https://gh/run/7', jobs: ['success\tchecks'] }))
+  })
+
+  it('cancels a run that no runner picks up within the queue timeout and says to run CI locally', async () => {
+    const fake = fakeGitAndGh({ views: [view('queued', null, [job('queued', null, 0)])] })
     const result = await run([], fake)
     expect(reasonOf(result).reason).toBe('no-runner')
-    expect(reasonOf(result).message).toContain('pnpm check')
+    expect(reasonOf(result).message).toContain('pnpm ci:local')
+    expect(commands(fake)).toContain('gh run cancel 7')
+    expect(commands(fake).filter((line) => line.startsWith('gh run view'))).toHaveLength(3)
+  })
+
+  it('reports jobs that failed without running a step as no runner, not as red CI', async () => {
+    const fake = fakeGitAndGh({ views: [view('completed', 'failure', [job('completed', 'failure', 0)])] })
+    const result = await run([], fake)
+    expect(reasonOf(result).reason).toBe('no-runner')
+  })
+
+  it('gives up on a run still going after the run timeout, and cancels it', async () => {
+    const fake = fakeGitAndGh({ views: [view('in_progress', null, [job('in_progress', null)])] })
+    const result = await run([], fake)
+    expect(reasonOf(result).reason).toBe('timeout')
+    expect(commands(fake)).toContain('gh run cancel 7')
   })
 
   it('downloads the Playwright report when a run is red', async () => {
     const fake = fakeGitAndGh({
-      watchExit: 1,
-      jobs: [{ name: 'e2e', conclusion: 'failure', steps: [{}, {}] }],
+      views: [view('completed', 'failure', [{ ...job('completed', 'failure', 2), name: 'e2e' }])],
     })
     const result = await run(['tests/e2e/boot.spec.ts'], fake)
     expect(reasonOf(result).reason).toBe('red')

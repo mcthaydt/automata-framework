@@ -107,6 +107,7 @@ export type TestRemoteReason =
   | 'dispatch'
   | 'no-run'
   | 'no-runner'
+  | 'timeout'
   | 'red'
 
 export class TestRemoteFailed extends Data.TaggedError('TestRemoteFailed')<{

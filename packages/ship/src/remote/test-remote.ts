@@ -9,27 +9,45 @@ import { TestRemoteFailed } from '../errors.ts'
 //   test-remote <playwright args>       one focused browser run, e.g. tests/e2e/boot.spec.ts --project=desktop
 //   test-remote --nightly               the nightly set now (every viewport, the GPU lanes)
 //
-// The runner tests what is pushed, so uncommitted changes are refused instead of silently left out. Hosted
-// Actions jobs are not getting runners on this account (2026-10-11): such a run fails at once with jobs that
-// never ran a step, and that is reported as "no runner" with the local command to run instead, not as red CI.
+// The runner tests what is pushed, so uncommitted changes are refused instead of silently left out.
+//
+// AF's jobs run on a self-hosted runner (ci.yml header). With none online a job does not fail, it waits in the
+// queue, and GitHub only gives up after a day. So test-remote polls the run itself: a run with no job started
+// after the queue timeout (10 minutes) is cancelled and reported as "no runner" with the local command to run
+// instead (ship spec §6), and a run still going after the run timeout (60 minutes, past every job's
+// timeout-minutes) is cancelled as "timeout". A hosted job that failed without running a step (no hosted
+// minutes) is also "no runner", not red CI.
 
 export interface TestRemoteInput {
   /** The words after `test-remote`. Split on whitespace, so a quoted multi-word value does not survive. */
   readonly args: readonly string[]
   /** Only a run created at or after this time (ISO 8601, UTC) is ours. */
   readonly since: string
+  /** How often, and how many times, to look for the dispatched run (default 45 × 2 s). */
   readonly pollAttempts?: number
   readonly pollIntervalMs?: number
+  /** How often to look at the run while it is queued or running (default 20 s). */
+  readonly watchIntervalMs?: number
+  /** Looks at a run with no job started before it counts as having no runner (default 30, 10 minutes). */
+  readonly queuePolls?: number
+  /** Looks at a run in all before giving up on it (default 180, 60 minutes). */
+  readonly runPolls?: number
 }
 
 interface Job {
   readonly name: string
+  readonly status: string
   readonly conclusion: string | null
   readonly steps: readonly unknown[]
 }
 
-const LOCAL_GATE =
-  'run CI locally instead: pnpm install --frozen-lockfile && pnpm check && pnpm --filter @mcthaydt/automata-sim exec vitest run --project browsers'
+interface RunView {
+  readonly status: string
+  readonly conclusion: string | null
+  readonly jobs: readonly Job[]
+}
+
+const LOCAL_GATE = 'run CI locally instead: pnpm ci:local'
 
 const fail = (reason: TestRemoteFailed['reason'], message: string) =>
   new TestRemoteFailed({ reason, message })
@@ -100,17 +118,44 @@ export function testRemote(
     if (run === undefined) return yield* fail('no-run', `no workflow_dispatch run appeared for ${sha}`)
 
     const id = String(run.databaseId)
-    const watch = yield* runner.run('gh', ['run', 'watch', id, '--exit-status', '--interval', '20'])
-    const view = yield* output('gh', ['run', 'view', id, '--json', 'jobs'])
-    const jobs = (JSON.parse(view.text || '{"jobs":[]}') as { jobs: Job[] }).jobs
-    const summary = jobs.map((job) => `${job.conclusion ?? 'pending'}\t${job.name}`)
-    if (watch.exitCode === 0) return { runUrl: run.url, jobs: summary }
+    const runUrl = run.url
+    const look = Effect.map(
+      output('gh', ['run', 'view', id, '--json', 'status,conclusion,jobs']),
+      (viewed) => JSON.parse(viewed.text || '{"status":"queued","conclusion":null,"jobs":[]}') as RunView,
+    )
+    const cancel = runner.run('gh', ['run', 'cancel', id])
+    const summaryOf = (viewed: RunView) =>
+      viewed.jobs.map((job) => `${job.conclusion ?? job.status}\t${job.name}`)
+    const started = (viewed: RunView) =>
+      viewed.jobs.some((job) => job.status !== 'queued' && job.status !== 'waiting')
 
-    const failed = jobs.filter((job) => job.conclusion !== 'success' && job.conclusion !== 'skipped')
+    let viewed = yield* look
+    let polls = 1
+    while (viewed.status !== 'completed') {
+      if (!started(viewed) && polls >= (input.queuePolls ?? 30)) {
+        yield* cancel
+        return yield* fail(
+          'no-runner',
+          `${runUrl}: no runner picked the jobs up; it was cancelled. ${LOCAL_GATE}`,
+        )
+      }
+      if (polls >= (input.runPolls ?? 180)) {
+        yield* cancel
+        return yield* fail('timeout', `${runUrl} was still running after the run timeout; it was cancelled`)
+      }
+      yield* Effect.sleep(input.watchIntervalMs ?? 20_000)
+      viewed = yield* look
+      polls += 1
+    }
+
+    const summary = summaryOf(viewed)
+    if (viewed.conclusion === 'success') return { runUrl, jobs: summary }
+
+    const failed = viewed.jobs.filter((job) => job.conclusion !== 'success' && job.conclusion !== 'skipped')
     if (failed.length > 0 && failed.every((job) => job.steps.length === 0)) {
       return yield* fail(
         'no-runner',
-        `${run.url}: no runner picked the jobs up (${summary.join(', ')}); ${LOCAL_GATE}`,
+        `${runUrl}: no runner picked the jobs up (${summary.join(', ')}); ${LOCAL_GATE}`,
       )
     }
     yield* runner.run('rm', ['-rf', 'playwright-report-remote'])
@@ -124,6 +169,6 @@ export function testRemote(
       'playwright-report-remote',
     ])
     const where = report.exitCode === 0 ? '\nreport: playwright-report-remote/' : ''
-    return yield* fail('red', `${run.url} is red:\n${summary.join('\n')}${where}`)
+    return yield* fail('red', `${runUrl} is red:\n${summary.join('\n')}${where}`)
   })
 }
