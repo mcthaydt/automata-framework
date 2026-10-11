@@ -113,9 +113,32 @@ export function defineSystem(spec: {
   }
 }
 
+/**
+ * Engine state a plugin keeps outside the ECS, such as a Rapier world (M2.1 spec §3.1). `createSim` creates
+ * one per sim, so a PluginDef shared by many sims never shares engine state between them.
+ */
+export interface PluginState {
+  /** Bytes for snapshot section 6. Must be canonical: the same state gives the same bytes in every engine. */
+  snapshot(): Uint8Array
+  /**
+   * Validates and parses `bytes` without touching the live state, and returns the commit that adopts them.
+   * Throwing here (a SnapshotFormatError for bad bytes) leaves the sim exactly as it was.
+   */
+  prepareRestore(bytes: Uint8Array): () => void
+  dispose(): void
+}
+
+/** What a plugin's state may know when it is created. */
+export interface PluginStateSetup {
+  /** The sim's fixed step, 1 / tickHz seconds. */
+  readonly dt: number
+}
+
 export interface PluginDef {
   readonly kind: 'plugin'
   readonly name: string
+  /** Creates this plugin's per-sim engine state; its systems see it as `ctx.pluginState`. */
+  readonly state: ((setup: PluginStateSetup) => Promise<PluginState>) | undefined
   readonly dependsOn: readonly string[]
   readonly components: readonly ComponentDef[]
   readonly commands: readonly CommandDef[]
@@ -132,6 +155,7 @@ export function definePlugin(spec: {
   events?: readonly EventDef[]
   resources?: readonly ResourceDef[]
   systems?: readonly SystemDef[]
+  state?: (setup: PluginStateSetup) => Promise<PluginState>
 }): PluginDef {
   checkId('plugin', spec.name)
   return {
@@ -143,5 +167,6 @@ export function definePlugin(spec: {
     events: spec.events ?? [],
     resources: spec.resources ?? [],
     systems: spec.systems ?? [],
+    state: spec.state,
   }
 }

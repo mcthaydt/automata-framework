@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` (cited below as "spec").
 - **Lane:** sim. Touches only `packages/sim/` and this plan.
-- **Progress:** 0 / 11 tasks.
+- **Progress:** 3 / 11 tasks.
 - **Local CI (every task ends with these green):** Node 24, `pnpm check`; for tasks that touch parity, `pnpm --filter @mcthaydt/automata-sim exec vitest run --project browsers` (Chromium, WebKit, Firefox, Playwright 1.63 browsers).
 
 ## Interfaces
@@ -31,19 +31,19 @@
 ## Tasks
 
 ### 1. Dependencies and wiring
-- [ ] Add both Rapier packages (exact `0.21.0`) to `packages/sim/package.json` dependencies; add them to `optimizeDeps.include`. Verify: `pnpm install`, `pnpm check` green, browser project green.
+- [x] Add both Rapier packages (exact `0.21.0`) to `packages/sim/package.json` dependencies; add them to `optimizeDeps.include`. Verify: `pnpm install`, `pnpm check` green, browser project green.
 
 ### 2. Plugin state hook (spec §3.1)
-- [ ] Failing test `world/plugin-state.test.ts`: a plugin with `state` gets one fresh state per `createSim` (two sims → two states), its systems see it as `ctx.pluginState`, another plugin's systems see `undefined`. Expected failure: `state` ignored, `pluginState` undefined.
-- [ ] Failing test: `state` setups are awaited in canonical plugin order and receive `{ dt }`.
-- [ ] Failing test: `sim.dispose()` calls `dispose` on every state.
-- [ ] Failing test: a sim without stateful plugins keeps the same schema hash and snapshot bytes as before (the existing golden `2dfe1971eaf6af8f` stays); a stateful and a stateless plugin with the same name give different schema hashes.
-- [ ] Implement minimal; `pnpm check`.
+- [x] Failing test `world/plugin-state.test.ts`: a plugin with `state` gets one fresh state per `createSim` (two sims → two states), its systems see it as `ctx.pluginState`, another plugin's systems see `undefined`. Expected failure: `state` ignored, `pluginState` undefined.
+- [x] Failing test: `state` setups are awaited in canonical plugin order and receive `{ dt }`.
+- [x] Failing test: `sim.dispose()` calls `dispose` on every state.
+- [x] Failing test: a sim without stateful plugins keeps the same schema hash and snapshot bytes as before (the existing golden `2dfe1971eaf6af8f` stays); a stateful and a stateless plugin with the same name give different schema hashes.
+- [x] Implement minimal; `pnpm check`.
 
 ### 3. Snapshot section 6 framing and two-phase restore (spec §3.2, §4.6)
-- [ ] Failing tests in `world/snapshot.test.ts`: encode/decode round-trip with plugin rows; no section 6 when there are none; truncated, wrong count, wrong name order → `SnapshotFormatError`.
-- [ ] Failing tests in `plugin-state.test.ts`: `restore` passes each plugin its bytes; a throwing `prepareRestore` leaves entities, resources, rng and tick unchanged and commits no other plugin; success commits all.
-- [ ] Implement; `pnpm check`.
+- [x] Failing tests for the framing: round-trip with plugin rows; no section 6 when there are none; truncated, renamed row, trailing byte, empty section, a section on a stateless sim → `SnapshotFormatError`. (Done in `world/plugin-state.test.ts` through `createSim`, not `world/snapshot.test.ts`: the framing is only reachable with matching plugins.)
+- [x] Failing tests in `plugin-state.test.ts`: `restore` passes each plugin its bytes; a throwing `prepareRestore` leaves entities, resources, rng and tick unchanged and commits no other plugin; success commits all.
+- [x] Implement; `pnpm check`.
 
 ### 4. Physics 3D: components, plugin shell, lazy load (spec §3.3, §3.5, §4.1–2)
 - [ ] Failing test: importing `./physics-3d` does not import Rapier (vitest module mock records the dynamic import only at `createSim`).

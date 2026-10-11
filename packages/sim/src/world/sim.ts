@@ -6,6 +6,7 @@ import {
   defineSystem,
   type EventDef,
   type PluginDef,
+  type PluginState,
   type ResourceDef,
   type SystemDef,
 } from '../define/definitions'
@@ -164,6 +165,23 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
       },
     }),
   ]
+  // Per-sim engine state (M2.1 spec §3.1), created in canonical plugin order. Only the owning plugin's systems
+  // see it. If one setup rejects, the states already created are disposed before the error propagates.
+  const states: Array<{ name: string; state: PluginState }> = []
+  const stateOfSystem = new Map<string, PluginState>()
+  try {
+    for (const p of plugins) {
+      if (!p.state) continue
+      const state = await p.state({ dt })
+      states.push({ name: p.name, state })
+      for (const s of p.systems) stateOfSystem.set(s.name, state)
+    }
+  } catch (err) {
+    for (const { state } of states) state.dispose()
+    store.dispose()
+    throw err
+  }
+
   const builtinNames = new Set(builtins.map((s) => s.name))
   const userSystems = plugins.flatMap((p) => p.systems)
   for (const s of userSystems)
@@ -180,9 +198,12 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
 
   // Everything that must match for a snapshot to be restorable here.
   const sortedIds = (m: Map<string, unknown>) => [...m.keys()].sort()
+  // `stateful` is only present when a plugin keeps engine state, so every pre-M2.1 schema hash is unchanged.
+  const stateful = states.length > 0 ? { stateful: states.map((s) => s.name) } : {}
   const schemaHash = xxhash64(
     utf8(
       canonicalJson({
+        ...stateful,
         plugins: plugins.map((p) => p.name),
         components: componentList
           .map((c) => ({ id: c.id, fields: c.fields, render: c.render }))
@@ -233,6 +254,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         events.push({ type: def.id, payload: parsed.data })
       },
       resource: resourceOf,
+      pluginState: stateOfSystem.get(system.name),
     }
     return { system, ctx }
   })
@@ -335,6 +357,7 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
           resources: resourceRows,
           nextId: store.nextId,
           entities,
+          plugins: states.map(({ name, state }) => ({ name, bytes: state.snapshot() })),
         },
         componentList,
       )
@@ -382,10 +405,20 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
         if (nextRngs.size !== rngs.size || systems.some((s) => !nextRngs.has(s.name))) {
           throw new SnapshotFormatError('rng streams do not match the systems')
         }
+        if (
+          data.plugins.length !== states.length ||
+          data.plugins.some((row, i) => row.name !== states[i]?.name)
+        )
+          throw new SnapshotFormatError('plugin state rows do not match the stateful plugins')
+        // Every plugin validates before anything is committed, so one bad row leaves every plugin untouched.
+        const commits = states.map(({ state }, i) =>
+          state.prepareRestore((data.plugins[i] as { bytes: Uint8Array }).bytes),
+        )
         store.dispose()
         store = next
         for (const [id, v] of nextResources) resources.set(id, v)
         for (const [name, r] of nextRngs) rngs.set(name, r)
+        for (const commit of commits) commit()
       } catch (err) {
         if (store !== next) next.dispose()
         throw err instanceof SnapshotFormatError ? err : new SnapshotFormatError(String(err))
@@ -398,7 +431,10 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
     hash() {
       return hex64(xxhash64(sim.snapshot()))
     },
-    dispose: () => store.dispose(),
+    dispose() {
+      store.dispose()
+      for (const { state } of states) state.dispose()
+    },
   }
   return sim
 }
