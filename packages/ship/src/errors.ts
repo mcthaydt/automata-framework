@@ -86,3 +86,14 @@ export class PublishFailed extends Data.TaggedError('PublishFailed')<PublishFail
     return publishMessage('failed', this)
   }
 }
+
+/** The dev host's deploy step (tar or ssh) failed; `output` is what it printed. */
+export class DeployFailed extends Data.TaggedError('DeployFailed')<{
+  readonly step: 'tar' | 'ssh'
+  readonly exitCode: number
+  readonly output: string
+}> {
+  override get message(): string {
+    return `deploy-dev: ${this.step} failed (exit ${this.exitCode})${this.output === '' ? '' : `:\n${this.output.trim()}`}`
+  }
+}

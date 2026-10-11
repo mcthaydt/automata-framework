@@ -1,0 +1,51 @@
+# The AF standalone dev host for one game (ship spec §3.5, decision D-4): a second site on the FloorFifty
+# staging VM's Caddy. Every build is served at /builds/<buildId>/ with the headers Ruken would serve it with
+# (its headers.caddy, written by deploy from @ruken/manifest's compileHeaders), and / redirects to the live
+# build (live.caddy, rewritten by `deploy --activate`). Adapted from FloorFifty deploy/caddy/Caddyfile.
+#
+# {$AF_DEV_SITE} (e.g. af-dev.floorfifty.duckdns.org), {$SHIP_ROOT} (e.g. /srv/automata/placeholder) and
+# {$AF_ACME_EMAIL} come from the environment Caddy is started and reloaded with (see deploy/README.md).
+#
+# No player IP address is stored: no site has an access log, and the default logger deletes the address
+# fields from error entries (FloorFifty release readiness §7).
+{
+	email {$AF_ACME_EMAIL}
+	log default {
+		format filter {
+			wrap json
+			request>remote_ip delete
+			request>remote_port delete
+			request>client_ip delete
+			request>headers>X-Forwarded-For delete
+			request>headers>X-Real-Ip delete
+		}
+	}
+}
+
+{$AF_DEV_SITE} {
+	encode zstd gzip
+
+	# One snippet per installed build: its Ruken headers on its own path only.
+	import {$SHIP_ROOT}/builds/*/headers.caddy
+	# `redir / /builds/<id>/ 302` for the live build, or empty before the first --activate.
+	import {$SHIP_ROOT}/live.caddy
+
+	# Every build, newest first, with its link (builds-index.ts).
+	handle /builds/index.json {
+		header Cache-Control "no-cache"
+		root * {$SHIP_ROOT}
+		rewrite * /builds-index.json
+		file_server
+	}
+
+	@build path_regexp build ^/builds/([0-9]{12}-[0-9a-f]{7,40})/(.*)$
+	handle @build {
+		root * {$SHIP_ROOT}/builds
+		rewrite * /{re.build.1}/client/{re.build.2}
+		file_server
+	}
+
+	handle {
+		respond "No build is live yet." 404
+	}
+}

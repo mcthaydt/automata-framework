@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Installs one AF game build on the standalone dev host (ship spec §3.5, decision D-4), and with --activate
+# makes it the one / redirects to. Adapted from FloorFifty deploy/bin/deploy, cut down to static builds.
+#
+# Usage: deploy <build.tgz|-> [--activate]      (- reads the tarball from stdin, as over ssh)
+#
+# The tarball is `ship deploy-dev`'s: build.json ({ buildId, commit, tag, branch }), headers.json
+# ({ headers, entry }, Ruken's compileHeaders for this build) and client/ (the prepared game folder).
+# Each build gets /builds/<id>/ and keeps it: an installed ID is never replaced, so a URL always shows the
+# same build. The new config is checked with `caddy validate` before `caddy reload`; if Caddy rejects it,
+# the new build is removed and the previous live build stays live.
+#
+# Environment: SHIP_ROOT (the game's folder, default /srv/automata/game), SHIP_BASE_URL (the site's URL,
+# for builds-index.json), CADDY (default caddy), CADDYFILE (default /etc/caddy/Caddyfile).
+set -euo pipefail
+
+# On the host the settings live in one file (deploy/README.md); a caller that sets SHIP_ROOT (the tests) skips it.
+if [[ -z "${SHIP_ROOT:-}" && -r /etc/automata/dev-host.env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  . /etc/automata/dev-host.env
+  set +a
+fi
+
+root="${SHIP_ROOT:-/srv/automata/game}"
+base_url="${SHIP_BASE_URL:?SHIP_BASE_URL is the dev host URL, e.g. https://af-dev.example.org}"
+caddy="${CADDY:-caddy}"
+caddyfile="${CADDYFILE:-/etc/caddy/Caddyfile}"
+bin="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source_tgz="${1:?usage: deploy <build.tgz|-> [--activate]}"
+activate=0
+[[ "${2:-}" == "--activate" ]] && activate=1
+
+mkdir -p "$root/builds"
+[[ -f "$root/live.caddy" ]] || : > "$root/live.caddy"
+
+incoming="$(mktemp -d "$root/builds/.incoming.XXXXXX")"
+cleanup() { rm -rf "$incoming"; }
+trap cleanup EXIT
+if [[ "$source_tgz" == "-" ]]; then
+  tar -xzf - -C "$incoming"
+else
+  tar -xzf "$source_tgz" -C "$incoming"
+fi
+# mktemp makes the folder 0700 and GNU tar, as root, copies the archive's ./ mode onto it. Caddy runs as
+# its own user and would answer 403 (FloorFifty found this on staging).
+chmod 755 "$incoming"
+
+id=""
+if [[ -f "$incoming/build.json" ]]; then
+  id="$(node -e 'const b = require(process.argv[1]); process.stdout.write(String(b.buildId ?? ""))' "$incoming/build.json")"
+fi
+if [[ ! "$id" =~ ^[0-9]{12}-[0-9a-f]{7,40}$ || ! -d "$incoming/client" || ! -f "$incoming/headers.json" ]]; then
+  echo "not a ship build: build.json must name a build ID, with headers.json and client/ beside it" >&2
+  exit 2
+fi
+if [[ -e "$root/builds/$id" ]]; then
+  echo "build $id is already installed; a build ID is never replaced" >&2
+  exit 3
+fi
+
+# The host writes the Caddy snippet itself from headers.json and refuses unsafe values (render-headers.ts).
+if ! node "$bin/render-headers.ts" "$id" "$incoming/headers.json" > "$incoming/headers.caddy"; then
+  echo "headers.json for $id was refused" >&2
+  exit 2
+fi
+
+mv "$incoming" "$root/builds/$id"
+trap - EXIT
+
+previous_live_caddy="$(cat "$root/live.caddy")"
+previous_live="$(cat "$root/live" 2>/dev/null || true)"
+if (( activate )); then
+  printf 'redir / /builds/%s/ 302\n' "$id" > "$root/live.caddy"
+  printf '%s\n' "$id" > "$root/live"
+fi
+
+if ! "$caddy" validate --config "$caddyfile" --adapter caddyfile; then
+  rm -rf "${root:?}/builds/$id"
+  printf '%s' "$previous_live_caddy" > "$root/live.caddy"
+  [[ -n "$previous_live_caddy" ]] && printf '\n' >> "$root/live.caddy"
+  if [[ -n "$previous_live" ]]; then printf '%s\n' "$previous_live" > "$root/live"; else rm -f "$root/live"; fi
+  echo "caddy rejected the config with build $id; it was removed and nothing else changed" >&2
+  exit 4
+fi
+"$caddy" reload --config "$caddyfile" --adapter caddyfile
+
+node "$bin/builds-index.ts" "$root" "$base_url" 10 > "$root/.builds-index.json.tmp"
+mv "$root/.builds-index.json.tmp" "$root/builds-index.json"
+
+echo "build $id is at $base_url/builds/$id/$( (( activate )) && echo ' and is live at /')"
