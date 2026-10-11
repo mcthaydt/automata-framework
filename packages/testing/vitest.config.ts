@@ -1,8 +1,12 @@
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
 // unit: pure data and fixtures in jsdom. layout: the DOM assertions against planted problems in real browsers.
 export default defineConfig({
+  plugins: [svelte()],
+  // Svelte's browser build in jsdom too, so mount() works in unit tests.
+  resolve: { conditions: ['browser'] },
   test: {
     projects: [
       {
