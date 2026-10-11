@@ -34,8 +34,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 ## Tasks
 
 ### T1 Scaffold and diagnostics
-- [ ] Port `parse.test.ts` "formats source-aware diagnostics": `formatDiagnostic` gives `content/tuning.toml:12:1  GRAVITY  outOfRange: expected -1200..-100, received -2000`; `sortDiagnostics` orders by file, line, column, keyPath, code. Fails: module missing.
-- [ ] Implement `diagnostics/diagnostic.ts`; add `tsconfig.json` and `vitest.config.ts` (sim's shape).
+- [x] Port `parse.test.ts` "formats source-aware diagnostics": `formatDiagnostic` gives `content/tuning.toml:12:1  GRAVITY  outOfRange: expected -1200..-100, received -2000`; `sortDiagnostics` orders by file, line, column, keyPath, code. Fails: module missing.
+- [x] Implement `diagnostics/diagnostic.ts`; add `tsconfig.json` and `vitest.config.ts` (sim's shape).
 
 ### T2 Key positions
 - [ ] Test `locate-keys`: top-level key; `[table]` key; `[[transitions]]` third element's `to`; dotted key `a.b = 1`; quoted key; a `key =` inside a multi-line string is not indexed; a multi-line array is skipped; `positionOf` falls back to the deepest indexed prefix, then `1:1`. Fails: module missing.
