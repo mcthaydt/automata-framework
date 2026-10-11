@@ -38,7 +38,7 @@ A game author writes TOML under `content/`. `automata-content` turns it into one
 1. `defineContentSchema`, `contentRef`, `localized` (schema registration; `ContentSchemaDef` for `defineExtension`).
 2. `compileContent`, `buildContent`, `verifyContent` (Effect programs) and their typed errors.
 3. Built-in documents: `tuning.toml`, `flow.toml`, `palette.toml`, `game.toml`, `assets.toml`.
-4. Outputs (default folder `content/generated/`): `content.json`, `content.hash`, `content.d.ts`, `messages/<source>.json`, `tuning-meta.json`, `flow.mmd`, `ruken-fields.json`.
+4. Outputs (default folder `content/generated/`): `content.json`, `content.hash`, `content.d.ts`, `messages/<source>.json`, `tuning-meta.json`, `flow.mmd`, `ruken-fields.json`, and `outputs.txt` (the list of all of them, §3.7).
 5. `defineContentGenerator` hook; the built-in generators are written on it.
 6. `preloadList` (post-build) for Ruken's `[loading] preload`.
 7. `automataContent()` Vite plugin with `virtual:automata/content`.
@@ -102,25 +102,29 @@ buildContent(options):   Effect<CompiledContent, ContentCompileFailed | InvalidC
 verifyContent(options):  Effect<void, ContentCompileFailed | InvalidContentConfig>  // staleArtifact per differing file
 ```
 
-**File access.** Every read and write goes through one module, `files/content-files.ts` (`readTextIfPresent`, `listFiles`, `writeFileAtomically`), which runs `node:fs` inside `Effect.tryPromise` and fails with `FileError`. Nothing else in the package touches the disk, so moving to `@mcthaydt/automata-node` (ship lane) changes that file alone. The programs therefore need no Effect service; `@effect/platform` is not a dependency.
+**File access.** Every read and write goes through one module, `files/content-files.ts` (`readTextIfPresent`, `listFiles`, `writeFileAtomically`, `pathKind`, `removeFile`), which runs `node:fs` inside `Effect.tryPromise` and fails with `FileError`. Nothing else in the package touches the disk, so moving to `@mcthaydt/automata-node` (ship lane) changes that file alone. The programs therefore need no Effect service; `@effect/platform` is not a dependency.
 
-`CompiledContent = { data, hash, files: ReadonlyMap<string, string> }`, where `files` maps each output path (relative to `outDir`) to its exact text, so build and verify compare the same bytes.
+`CompiledContent = { data, hash, files: ReadonlyMap<string, string>, warnings: readonly Diagnostic[] }`, where `files` maps each output path (relative to `outDir`) to its exact text, so build and verify compare the same bytes. `warnings` are `skippedFile` diagnostics (step 2); they never fail a compile and are not in the hash or the outputs. The CLI prints each as `warning <formatted line>` and the plugin logs it with Vite's `logger.warn`.
 
 Ordered steps; every step runs on every file even when an earlier file failed:
 1. Validate the options (kinds, places, generator names).
-2. Read sources (sorted; FloorFifty `read-sources.ts`).
-3. Parse each file: smol-toml, then the schema (FloorFifty `parse.ts`). Index key positions (§3.3).
+2. Read sources (sorted; FloorFifty `read-sources.ts`). Items are `*.toml` files; `*.toml.example` drafts and hidden files (`.DS_Store`, editor swap files) are skipped silently. Any other file in a collection folder or in `content/messages/` (`dusk-run.TOML`, `notes.md`, `de.JSON`) is skipped with a `skippedFile` warning, so a misnamed file never vanishes without a word (audit of PR #8).
+3. Parse each file: smol-toml, then the schema (FloorFifty `parse.ts`). Index key positions (§3.3). CRLF is normalized to LF before parsing, so line endings inside multi-line strings never change the hash. TOML dates and times become their canonical ISO strings (`TomlDate.toISOString()`), so JSON never silently drops them. `nan`, `inf` and `-inf` are refused as `invalidType` at the key (`KEY must be a finite number, received nan`), because canonical JSON cannot hold them. A schema that throws (a bug in a transform or refinement) is `InvalidContentConfig` naming the schema and the file it was reading: the game's code is wrong, not the content.
 4. Built-in checks: tuning (§3.4), flow (§3.5), palette (§3.6), game and assets (§3.8). `tuning.toml` is required when the game passes `tunables`, and `flow.toml` when it passes `flow`; otherwise both are optional. Translations (§3.7) are checked only when every source parsed, because a file that fails to parse contributes no message keys and would make every one of its keys look stale.
 5. Resolve references, collect localized text (§3.1).
 6. Run generators (§3.7), only when steps 2 to 5 found nothing, so a generator always sees content that passed every check.
 7. Any diagnostic: fail with `ContentCompileFailed { diagnostics }`, sorted by file, line, column, keyPath, code. Nothing is written.
 8. Assemble `data`; `hash = hex64(xxhash64(utf8(canonicalJson(data))))`; `content.json` is `data` in FloorFifty's canonical file form (sorted keys, 2-space indent, trailing newline). Both forms sort keys, so collections keyed by ID are in ID order; arrays keep authored order because order is meaning.
 
-`data` = `{ <collection kind>: { <id>: item }, <document kind>: value, tuning: { NAME: value }, flow?, palette, game?, assets? }`. The hash covers all of it. Tuning metadata, messages, `flow.mmd`, `content.d.ts` and `ruken-fields.json` are derived files outside the hash (FloorFifty: "derived beside the artifact, never inside it").
+`data` = `{ <collection kind>: { <id>: item }, <document kind>: value, tuning: { NAME: value }, flow?, palette, game?, assets? }`. The hash covers all of it.
+
+**Decision for M2.2 (audit of PR #8, coordinator, 2026-10-11).** Store and display metadata in `game.toml` (rating, descriptors, estimated hours, analytics event names and any later listing fields) must not be part of the content hash that gates save restore: fixing a store descriptor must not refuse every player's save. M2.2, which brings the hash into the sim's snapshot header, either splits it into a separate hash or excludes it from the gating hash. Until then `content.hash` keeps covering all of `data`; the boot check (M1.5) and evidence identity use it as it is.
+
+Tuning metadata, messages, `flow.mmd`, `content.d.ts` and `ruken-fields.json` are derived files outside the hash (FloorFifty: "derived beside the artifact, never inside it").
 
 **Errors** (`Data.TaggedError`): `ContentCompileFailed { diagnostics }`; `InvalidContentConfig { message }` (the game's code is wrong); `ContentWriteFailed { path, cause }`. A source that cannot be read is a diagnostic, as in FloorFifty, so check and watch keep their recovery path.
 
-**Diagnostic** (`diagnostics/diagnostic.ts`): `{ code, file, line, column, keyPath, message }`, `line` and `column` 1-based, `file` project-relative with `/`. `formatDiagnostic` gives `content/tuning.toml:12:1  GRAVITY  outOfRange: expected -1200..-100, received -2000`. `keyPath` is the dotted path (`transitions.3.to`), or empty for the whole file. Codes (FloorFifty's where they apply): `invalidToml`, `invalidType`, `missingField`, `unknownField`, `invalidId`, `unknownReference`, `wrongKind`, `outOfRange`, `invariantNotAuthorable`, `invalidFlow`, `invalidPalette`, `invalidGame`, `missingAsset`, `duplicateMessageKey`, `staleTranslation`, `staleArtifact`, `generatorFailed`.
+**Diagnostic** (`diagnostics/diagnostic.ts`): `{ code, file, line, column, keyPath, message }`, `line` and `column` 1-based, `file` project-relative with `/`. `formatDiagnostic` gives `content/tuning.toml:12:1  GRAVITY  outOfRange: expected -1200..-100, received -2000`. `keyPath` is the dotted path (`transitions.3.to`), or empty for the whole file. Codes (FloorFifty's where they apply): `invalidToml`, `invalidType`, `missingField`, `unknownField`, `invalidId`, `unknownReference`, `wrongKind`, `outOfRange`, `invariantNotAuthorable`, `invalidFlow`, `invalidPalette`, `invalidGame`, `missingAsset`, `duplicateMessageKey`, `staleTranslation`, `staleArtifact`, and the warning `skippedFile`. (A draft had `generatorFailed`; a generator that throws is a bug in the game's code, so it is `InvalidContentConfig`.)
 
 ### 3.3 Source positions (`parse/locate-keys.ts`)
 
@@ -168,7 +172,7 @@ interface GeneratorOutput { readonly files?: Readonly<Record<string, string>>; r
 function defineContentGenerator(name: string, generate: (input: GeneratorInput) => GeneratorOutput): ContentGenerator
 ```
 
-Generators are pure: data in, files and diagnostics out. A throw is `generatorFailed` naming the generator. Two generators writing one path, or a path outside `outDir`, is `InvalidContentConfig`. Built-in generators (always on, written with the same hook):
+Generators are pure: data in, files and diagnostics out. A throw is `InvalidContentConfig` (`generator "NAME" threw: message`), like any other bug in the game's code. Two generators writing one path, or a path outside `outDir`, is `InvalidContentConfig`. Built-in generators (always on, written with the same hook):
 
 | Name | File | Rule |
 |---|---|---|
@@ -177,6 +181,8 @@ Generators are pure: data in, files and diagnostics out. A throw is `generatorFa
 | `tuning-meta` | `tuning-meta.json` | §3.4 |
 | `flow` | `flow.mmd` | §3.5 |
 | `ruken-fields` | `ruken-fields.json` | §3.8 |
+
+`outputs.txt` is added after the generators: every other output path, sorted, one per line. `buildContent` reads the previous `outputs.txt` before writing and, after writing, deletes each file it lists that this compile no longer produces (deleting `game.toml` removes `ruken-fields.json`, so ship never reads a stale one). A file the list does not name is never touched. `verifyContent` reports each listed file that still exists but is no longer produced as `staleArtifact` (`X is no longer produced; run automata-content build`).
 
 ### 3.8 Game facts, assets, Ruken fields, preload
 
@@ -196,13 +202,11 @@ preload_screens = ["Splash"]     # optional; default [flow entry]
 files = ["fonts/inter-latin.woff2", "art/splash.png"]
 ```
 
-- `languages` is derived, never typed: the source language, then each `content/messages/<lang>.json` present, sorted. It must contain `en` (Ruken's `LANGUAGES_MISSING_EN`), reported at `game.toml`.
-- `custom_events` names match `ANALYTICS_NAME_RE` and are unique. Code `invalidGame`.
-- `assets.toml` screens must be flow screens when there is a flow; `preload_screens` must have `assets.toml` entries; paths are relative and `/`-separated, without `..`, a leading `/` or `\`; a folder is written `dir/*`.
+- `languages` is derived, never typed: the source language, then each `content/messages/<lang>.json` present, sorted.
+- Content's own rules: `source_language` is a language tag; `custom_events` are unique; `assets.toml` screens must be flow screens when there is a flow; `preload_screens` must have `assets.toml` entries. Code `invalidGame`.
+- **Ruken decides the rest** (`game/ruken-check.ts`, audit of PR #8). `checkWithRuken` writes a minimal `ruken.toml` around the `[content]` and `[analytics]` fields and a `[loading] preload` of every file in `assets.toml` (screens sorted, files in order), runs Ruken's own `parseManifest`, and places each refusal back at the key that produced it: `content.languages` at `source_language`, `content.rating`, `content.descriptors`, `content.estimated_hours` and `analytics.custom_events` at their `game.toml` keys, and `loading.preload[i]` at the asset path, with the file named instead of the slot. The message is `Ruken CODE: message` (for example `Ruken PRELOAD_PATH_INVALID: …`). Content keeps no copy of Ruken's path, rating, language or event-name rules. The other tables are placeholders Ruken accepts; if Ruken ever refuses one, the check throws, because the check is out of date, not the content.
 - `ruken-fields.json` = `{ content: { languages, rating, descriptors, estimated_hours? }, analytics: { custom_events } }`, typed `Pick<Manifest, 'content' | 'analytics'>` from `@ruken/manifest`. Without `game.toml` it is not written, and ship reports the missing fields.
 - **`preloadList({ options, distDir })`** (post-build Effect, FloorFifty's `preloadFor`): the files of each `preload_screens` screen in order, deduplicated in first-seen order. Every file must exist in `dist/` (a `dir/*` entry needs the folder); otherwise `missingAsset` lists every missing path at once.
-
-Tests write a minimal `ruken.toml` around `ruken-fields.json` and a preload list and run Ruken's `parseManifest` on it, so a value Ruken would refuse fails here first.
 
 ### 3.9 Vite plugin (`vite/automata-content.ts`, export `@mcthaydt/automata-content/vite`)
 
@@ -213,11 +217,13 @@ function automataContent(options: Omit<ContentOptions, 'root'> & { root?: string
 - `buildStart`: `buildContent`. In `vite build` a failure fails the build with every formatted diagnostic. In `vite dev` diagnostics print and the last good output keeps being served.
 - `configureServer`: watches `content/`; changes to `.toml` and message files (not `*.toml.example`, not `outDir`) debounce 50 ms, then rebuild on one serialized chain (FloorFifty `watch.ts`). Success: invalidate the virtual module and send the custom HMR event `automata:content` with `{ hash }`. Failure: send `automata:content-error` with the formatted diagnostics; outputs and the module stay as they were.
 - `virtual:automata/content` exports `content` and `contentHash`. Its `load` waits for the build chain, so it never serves a build in progress; with no good build yet it fails with the diagnostics.
+- A build that crashes (a defect, not a typed failure) is reported like a failed build (`the content compiler crashed: …`); the chain never rejects, so the next good save recovers without a server restart (audit of PR #8).
+- `skippedFile` warnings are logged with Vite's `logger.warn` after each good build.
 - Closing the server (`buildEnd`) clears the pending debounce and awaits the chain.
 
 ### 3.10 CLI (`cli/`, bin `automata-content`)
 
-`check` (compile, write nothing, print `content <hash>`), `build` (write), `check --verify-artifact` (fail on any stale output, and on a stale tunable table in the configured guide: FloorFifty's repository gate), `docs [guide.md]` (rewrite the tunable table; the path defaults to the config's `guide`). Options come from `automata.content.ts` in the working directory (default export `ContentConfig`: `ContentOptions` without `root`, plus an optional `guide`) until M1.8's `automata.config.ts` replaces it; it is loaded with Vite's `runnerImport`, so it may be TypeScript. Exit 0 clean, 1 diagnostics, 2 config or write errors and usage. `runCli(argv, cwd, io?)` is the tested function; `main.ts` is the bin, which Node runs directly and which loads `run-cli.ts` through `runnerImport` because the package source uses extensionless imports Node cannot resolve.
+`check` (compile, write nothing, print `content <hash>`), `build` (write), `check --verify-artifact` (fail on any stale output, and on a stale tunable table in the configured guide: FloorFifty's repository gate), `docs [guide.md]` (rewrite the tunable table; the path defaults to the config's `guide`). Options come from `automata.content.ts` in the working directory (default export `ContentConfig`: `ContentOptions` without `root`, plus an optional `guide`) until M1.8's `automata.config.ts` replaces it; it is loaded with Vite's `runnerImport`, so it may be TypeScript. Exit 0 clean, 1 diagnostics, 2 config or write errors and usage. `runCli(argv, cwd, io?)` is the tested function; `main.ts` is the bin, which Node runs directly and which loads `run-cli.ts` through `runnerImport` because the package source uses extensionless imports Node cannot resolve. It turns its own URL into a path with `fileURLToPath` and Vite's `normalizePath`, so the bin works from a folder with spaces and on Windows (a URL's `pathname` spells a space `%20` and a drive `/C:`).
 
 ## 4. Lifecycle
 
@@ -240,8 +246,12 @@ function automataContent(options: Omit<ContentOptions, 'root'> & { root?: string
 | Palette | `invalidPalette` at `colors` |
 | Game / assets | `invalidGame` / `missingAsset` at the key |
 | Message key clash / translation drift | `duplicateMessageKey` / `staleTranslation` |
-| Generator throws | `generatorFailed` with its name and message |
+| `nan` / `inf` / `-inf` | `invalidType` at the key |
+| File in a content folder that is not read | `skippedFile` warning at `file:1:1`; the compile still succeeds |
+| Schema or generator throws | `InvalidContentConfig` naming the schema and file, or the generator, exit 2 |
 | Committed output differs | `staleArtifact` per file (`--verify-artifact`) |
+| Output no longer produced | `build` deletes it (only files in the last `outputs.txt`); `--verify-artifact` reports `staleArtifact` while it is there |
+| Compiler crash in dev | logged and sent as `automata:content-error`; the next good save recovers |
 | Bad options | `InvalidContentConfig`, exit 2, before reading content |
 | Write fails | `ContentWriteFailed`, exit 2; each file is written to a temp beside it and renamed, so no file is half written and temps are removed |
 
@@ -270,14 +280,14 @@ Focused: `pnpm --filter @mcthaydt/automata-content exec vitest run --project nod
 
 | Behavior | Ruken contract |
 |---|---|
-| `ruken-fields.json` `content` and `analytics` | `@ruken/manifest` `Manifest`, `RATINGS`, `ANALYTICS_NAME_RE`, `LANGUAGES_MISSING_EN` |
-| `preloadList` entries | `Manifest.loading.preload` (Ruken M2.1g), `PRELOAD_PATH_INVALID` |
+| `ruken-fields.json` `content` and `analytics` | `@ruken/manifest` `Manifest`, checked with `parseManifest` (§3.8) |
+| `assets.toml` files and `preloadList` entries | `Manifest.loading.preload` (Ruken M2.1g), checked with `parseManifest` (`PRELOAD_PATH_INVALID`) |
 
 Content never writes `ruken.toml` and never redefines a Ruken field.
 
 **Requests to the integration owner**
-- `tooling/check-style`: map `defineContentSchema` to a role (suggest `*.content.ts`, like `*.extension.ts` in the shared contracts) and `defineContentGenerator` to `*.generator.ts`, or confirm they stay unenforced.
-- Confirm the two tuning modes (§3.4): code-owned ranges (FloorFifty) and authored ranges (A0+A1).
+- Resolved (coordinator, 2026-10-11): `defineContentSchema` results live in `*.content.ts` and `defineContentGenerator` results in `*.generator.ts`, enforced by `tooling/check-style`.
+- Resolved (coordinator, 2026-10-11): both tuning modes (§3.4) stay: code-owned ranges (FloorFifty) and authored ranges (A0+A1).
 
 ## 10. Exit criteria
 
@@ -288,6 +298,6 @@ Content never writes `ruken.toml` and never redefines a Ruken field.
 5. `equivalent-a` and `equivalent-b` give byte-identical outputs; changing any authored value changes the hash.
 6. `content.d.ts` typechecks in a fixture consumer, and a wrong ID literal is a type error there.
 7. `vite build` embeds the hash; a broken file fails it; in dev a broken save keeps the last good content and sends the error event, and the next good save recovers.
-8. `check --verify-artifact` catches a hand-edited, missing or reformatted output; `build` leaves no temp files and keeps good bytes on failure.
+8. `check --verify-artifact` catches a hand-edited, missing, reformatted or no-longer-produced output; `build` removes outputs it no longer produces; `build` leaves no temp files and keeps good bytes on failure.
 9. The embedded Endesga 64 equals `docs/art/palettes/endesga-64.txt`.
 10. `pnpm check` and the full local CI run pass on Node 24.

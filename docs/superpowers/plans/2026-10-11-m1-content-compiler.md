@@ -2,7 +2,7 @@
 
 - **Spec:** [`2026-10-11-m1-content-design.md`](../specs/2026-10-11-m1-content-design.md) (extract and improve FloorFifty's compiler, §0)
 - **Branch:** `claude/af-m1-content-tts573`, stacked on PR #4 (`claude/ruken-first-af-60n4bh`)
-- **Progress:** 14 / 14 tasks, locally verified; not CI verified (hosted Actions get no runners) and not yet reviewed
+- **Progress:** 15 / 15 tasks (T15: the PR #8 audit fixes), locally verified; not CI verified (hosted Actions get no runners) and not yet reviewed
 - **Commands:** focused `pnpm --filter @mcthaydt/automata-content exec vitest run --project node <file>`; `pnpm --filter @mcthaydt/automata-content typecheck`; `pnpm check` before each commit; parity `pnpm --filter @mcthaydt/automata-content exec vitest run --project browsers`.
 
 Every task: port or write the test, run it, see it fail for the stated reason (usually "module not found" first, then the assertion), write the least code, see it pass, `pnpm format`, commit with the tick. "Port" means the FloorFifty `122a220` test named, rewritten against the AF API with the same cases.
@@ -71,7 +71,7 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement. (Parity passed in Chromium, WebKit and Firefox at T14.)
 
 ### T10 Generators and `content.d.ts`
-- [x] Test `defineContentGenerator` (files, diagnostics, a throw becomes `generatorFailed`); `renderTypes` pinned text for strings, numbers, enums, optionals, arrays, records, references and nested objects, `unknown` with a comment otherwise; the fixture game's `content.d.ts` typechecks in a consumer and a wrong ID literal does not. Fails: module missing.
+- [x] Test `defineContentGenerator` (files, diagnostics, a throw becomes `generatorFailed`; T15 changed this to `InvalidContentConfig`); `renderTypes` pinned text for strings, numbers, enums, optionals, arrays, records, references and nested objects, `unknown` with a comment otherwise; the fixture game's `content.d.ts` typechecks in a consumer and a wrong ID literal does not. Fails: module missing.
 - [x] Implement.
 
 ### T11 Compile, build, verify
@@ -90,6 +90,15 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Port `bin/content.ts` behavior as `runCli` tests: `check` 0/1, `build` writes, `check --verify-artifact` fails after a hand edit, `docs` rewrites the table, a bad command or config is 2. Fails: module missing.
 - [x] Implement; export the public API; `pnpm check`, browsers project and the full local CI run green.
 
+### T15 PR #8 audit fixes (each with a failing test first)
+- [x] The dev plugin recovers on the next good save after a crash (test timed out before the fix).
+- [x] `nan`/`inf`/`-inf` refused as `invalidType` at the key, in documents and in tuning; TOML dates become ISO strings; CRLF normalized before parsing, so multi-line strings hash the same.
+- [x] Ruken fields and asset paths checked by Ruken's `parseManifest` (`game/ruken-check.ts`); the copied path, rating, language and event-name rules deleted.
+- [x] The bin runs from a path with spaces (`fileURLToPath` + `normalizePath`).
+- [x] `outputs.txt` lists every output; `build` removes listed outputs it no longer produces, and `--verify-artifact` reports them.
+- [x] Low: `skippedFile` warnings for misnamed files; schema and generator throws are `InvalidContentConfig` (code `generatorFailed` removed).
+- [x] Spec updated, with the M2.2 decision that store and display metadata in `game.toml` stays out of the save-gating hash.
+
 ## Execution log
 
 - 2026-10-11: first spec and plan committed (`1ea5731`, `262352b`); rewritten the same day for the audit's direction (extract FloorFifty's compiler with its tests) and the integration notes (`@mcthaydt/automata-sim/hash`, Effect 3.22.2, palette).
@@ -99,3 +108,4 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - 2026-10-11: T13 landed: the `automataContent()` Vite plugin (serialized builds, 50 ms debounce, `automata:content` / `automata:content-error`, last good module kept) with FloorFifty's watch tests ported to a dev server, plus `vite build` embedding the hash and failing on a broken file.
 - 2026-10-11: T14 CLI landed: `runCli` with check, build, docs and `--verify-artifact` (outputs and the guide's table), exit codes 0/1/2, and a bin Node runs directly. Found by the bin test: a config loaded through another module runner had its own copy of `content-schema.ts`, so `instanceof` missed its markers; markers now carry a brand and the registries live on `globalThis` (test: a second module copy).
 - 2026-10-11: rebased on PR #4 at `476688e`. Local CI on Node 24.21.0: lint, typecheck, boundaries, style and every unit test (`turbo --force`: content 150, sim 149, check-style 22, check-boundaries 29) pass; parity passes in Chromium, WebKit and Firefox for content (3) and sim (165). `ci.yml`'s parity job runs only the sim's browsers project, so the content hash parity test is not in hosted CI yet (request to the integration owner).
+- 2026-10-11: T15 landed (`275d0ce`..`e00bd89`), the coordinator's audit of PR #8: crash recovery in the dev plugin, nan/inf refused, dates kept as ISO strings, CRLF normalized, Ruken's `parseManifest` instead of copied rules, the bin in paths with spaces, stale-output removal through `outputs.txt`, `skippedFile` warnings, and game-code throws as `InvalidContentConfig`. Ruling: the M2.2 hash split for `game.toml` store metadata is recorded in spec §3.2, not built now. Deviation: the verify test for a deleted `game.toml` asserts the two lines it is about, because `game` is also in `content.json`, so the content outputs are stale too.
