@@ -19,6 +19,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:layout": "vitest run --project layout",
+    "test:parity": "vitest run --project layout",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
