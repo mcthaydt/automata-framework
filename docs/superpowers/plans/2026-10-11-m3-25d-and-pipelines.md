@@ -10,8 +10,8 @@
 - **Edits to `examples/base-2d`** go to the base-2d thread as patches after #22 (spec §3); lane branches drop their local base-2d edits before their PR.
 - **The look bar (Owner, 23:02–23:13Z, spec §1):** 2.5D and 3D must look as good as base-2d. The reference is "Bubble Bobble x Celeste as an itch indie hit". The Last Light is a source to borrow from, kept private (spec §15 Q7). M3.13 (the art lane below) does this work.
 - **Provenance (the hub, 23:22Z):** [`docs/provenance/the-last-light.md`](../../provenance/the-last-light.md) maps every file taken from The Last Light to its source at `741e595`. A PR that brings in, changes or removes Last Light material updates its rows in the same PR. The Owner reviews the list file by file before anything goes public.
-- **Progress:** 17 / 36 tasks done locally (P1–P6, C1, Q1, Q2, R1, R2, R3, S7a, K1, M3.9a, M3.2). None is in review yet.
-  - **Part done:** M1.7a (its changeset waits for #19); R4 (all but the GPU claim: `f68d726` on `m3-stage`); Q3 (the caret peer is in, `efa312d`, and its package test no longer reaches into `tooling`, `68055a9`; the GPU parity step remains); C2 (the bytes, the stages and the `render` browser test are in, and so are staleness and job resume; counting spend when a provider charges is in progress).
+- **Progress:** 18 / 36 tasks done locally (P1–P6, C1, C2, Q1, Q2, R1, R2, R3, S7a, K1, M3.9a, M3.2). None is in review yet.
+  - **Part done:** M1.7a (its changeset waits for #19); R4 (all but the GPU claim: `f68d726` on `m3-stage`); Q3 (the caret peer is in, `efa312d`, and its package test no longer reaches into `tooling`, `68055a9`; the GPU parity step remains).
   - **In progress:** H0 v2.
 
 ## Runner legend
@@ -189,7 +189,7 @@ All P tasks are **L**: Node only, no network, providers faked. Package `packages
   - *`detail_pass.py` is ported, with a `stack` command.*
 
   *Note: the runner's `estimate` plans only to the next gate, so a new target's estimate shows 1 image. The stage sum, pinned by a test, is the full cost.*
-- [ ] Money safety before any paid run (found in C2):
+- [x] Money safety before any paid run (found in C2):
   - *Staleness:* today every stage hashes the whole spec, so any spec edit makes paid stages stale again, while a changed house prompt or palette makes nothing stale. A stage's inputs hash will cover only the spec fields and options it declares it reads, plus the stages it depends on.
   - *Failed paid jobs:* a paid stage that failed after the provider accepted its job keeps the job id, and the next run resumes that job instead of paying for a new one.
   
@@ -203,13 +203,17 @@ All P tasks are **L**: Node only, no network, providers faked. Package `packages
     - *`MeshProvider.resume(job)` only polls. The runner hands a failed record's jobs to the stage when its inputs hash is unchanged, and `model` and `rig` resume and download instead of submitting.*
     - *Every failure after Meshy accepts a job names that job. A job that ended FAILED, CANCELED or EXPIRED is dropped, so a re-run starts a new one.*
     - *Red: a timeout after submit, then a re-run, called `imageTo3d` twice. Green: once, and the audit log shows one charge.*
-  - *Open, in progress: a failed stage records no cost. A job the provider charged for that is never resumed would be missing from the audit log, which the caps and the fail-closed check read. Spend will count when the provider charges, and never twice.*
+  - *Spend counts when the provider charges, `ce2f3cd`:*
+    - *A meter on each stage's provider calls counts an image when it comes back and a Meshy job when Meshy accepts it (its reported credits, else the stage's estimate). A failed call counts unless it surely charged nothing: a 4xx refusal, or `ProviderError.sent: false` when no request left (a missing key). A lost answer, a timeout or a 5xx counts. `resume`, `download` and `balance` are free.*
+    - *A failed stage's charge goes into the run's audit entry and its record's `cost`; S6 sums failed records too. A resumed job adds nothing and its record carries the earlier charge forward; a new job after an edited spec counts again.*
+    - *Red: a timeout after submit cost `{ images: 1 }` without the model's 30 credits; the project cap and S6 let the next paid run through ("expected +0 to be 4"); a lost answer and a 502 counted nothing. Green: 327 pipelines tests, `pnpm check` exit 0, and four mutations each broke the matching tests.*
   - *Accepted:*
     - *A resumed stage still counts its full estimate and needs `--paid`. That over-counts, the safe direction.*
     - *The plan still cascades: after a free stage re-runs, the paid `detail` below it re-runs even when that stage's output came out byte-identical. The cascade keeps estimates from undercounting.*
+    - *When Meshy never reports a job's credits, the meter counts the stage's estimate, which is short if the real charge was higher. A stage that isn't marked paid but calls Meshy would count 0; none does.*
 
 ### C3 Skill and live run for Wick — $, O
-Needs C2's money-safety step first, including counting spend when a provider charges.
+Needs C2's money-safety step first (done, `ce2f3cd`).
 **Files:** `packages/pipelines/skills/make-character-25d/SKILL.md`; in `examples/base-25d`, `pipelines/character/wick/character.json` and the first `pipelines.config.json` (written in a PR the Owner approves before the guard is installed there).
 - [ ] Skill text adapted from The Last Light's make-character (no game names).
 - [ ] **Waits on spec §15 Q3.** Then: `pipeline_estimate` → the coordinator relays it → `pipeline_run` stops at G1, G3, G5, G6 in turn. Each gate: the thread sends the review files to the coordinator, the hub relays them, and the Owner runs `approve-gate.yml` (an af-linux run in that wave's claim) or `automata-pipe … approve` in their own terminal. Record cost from the audit log. **CAPTURE:** keep `look.png`, the turnaround, the raw render and the polished atlas as before/after media; log asked-at, first commit and each gate time.
@@ -369,7 +373,7 @@ The waves:
   Spec §1, §3, §5.3, §6, §8, §11, §12 and §15 Q3/Q7 updated. M3.13 added (A1–A3, V1). `move` carries `heading` 0–31 and `speed`. H0 v2 is being drawn in base-2d's skin beside fresh base-2d captures, with concept scenes made from base-2d's tiles.
 - 2026-10-11: R4's contract gap ruled (23:33Z, spec §5.2): the stage takes `look` and `isBlocked`.
 - 2026-10-11: R4 done locally but for the GPU claim (`bdd550e`..`f68d726` on `m3-stage`): `createStage3D`, the kit, lit sprites, bindings and `loadCharacter`; Chromium 13/13, Node 109/109, `pnpm check` exit 0. Colour finding recorded in spec §5.2; R1's follow fixed to the camera's sideways axis.
-- 2026-10-11: C2's `render` Chromium test and money safety, `ba4b66a`..`4949f55` on `m3-character`. `pnpm check` exits 0, with 321 pipelines unit tests and 3/3 in Chromium. Counting spend when a provider charges is still in progress.
+- 2026-10-11: C2's `render` Chromium test and money safety, `ba4b66a`..`4949f55` on `m3-character`. `pnpm check` exits 0, with 321 pipelines unit tests and 3/3 in Chromium. Spend now counts when a provider charges (`ce2f3cd`), so C2 is done locally.
 - 2026-10-11: provenance list in `docs/provenance/the-last-light.md`. Of the paths the lanes change:
   - 91 hold Last Light material: 4 byte-identical, 29 ported, 39 adapted and 19 modelled on;
   - 16 only mention it;
