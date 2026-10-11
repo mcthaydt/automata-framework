@@ -72,6 +72,8 @@ export interface Sim {
   readonly seed: number
   readonly tickHz: number
   readonly tick: number
+  /** XXH64 of the canonical content this sim was created with, 16 hex digits; the snapshot header's value. */
+  readonly contentHash: string
   step(commands: readonly Command[]): StepResult
   /** Setup and inspection outside `step` (tests, scene setup). Runtime changes go through commands. */
   spawn(parts: readonly SpawnPart[]): number
@@ -361,6 +363,8 @@ export async function createSim(opts: SimOptions): Promise<Sim> {
   const sim: Sim = {
     seed: opts.seed,
     tickHz,
+    // Never changes for the life of the sim: restore refuses a snapshot taken with other content.
+    contentHash: hex64(contentHash),
     get tick() {
       return tick
     },

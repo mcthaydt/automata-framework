@@ -9,6 +9,7 @@ export {
   DEFAULT_OUT_DIR,
 } from './compile/compile-content'
 export { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from './compile/errors'
+export type { SimPartition } from './compile/sim-partition'
 export { buildContent, verifyContent } from './compile/write-outputs'
 export {
   type Diagnostic,
@@ -31,6 +32,7 @@ export { DEFAULT_PALETTE, type Palette } from './palette/palette'
 export { type PreloadInput, preloadList } from './preload/preload-list'
 export {
   type ContentSchemaDef,
+  type ContentSchemaOptions,
   type ContentSchemaPlace,
   contentRef,
   defineContentSchema,

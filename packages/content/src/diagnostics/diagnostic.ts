@@ -24,6 +24,8 @@ export type DiagnosticCode =
   | 'staleTranslation'
   | 'staleArtifact'
   | 'reservedKey'
+  /** A sim kind refers to a kind the sim does not receive (M2.2). */
+  | 'simReference'
   /** A warning, never a refusal: a file in a content folder the compiler does not read. */
   | 'skippedFile'
 

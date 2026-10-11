@@ -59,6 +59,36 @@ describe('renderTypes', () => {
     expect(rendered).toContain('export const contentHash: string')
   })
 
+  it('declares the sim content: tuning and the sim kinds only, with no index signature (M2.2)', () => {
+    const look = defineContentSchema(
+      'song-look',
+      z.strictObject({ colour: z.string() }),
+      { file: 'look.toml' },
+      { sim: false },
+    )
+    const text = renderTypes({
+      schemas: [song, look],
+      ids: new Map([['song', ['dawn']]]),
+      flow: undefined,
+      tuningNames: ['GRAVITY'],
+      hasGame: false,
+      hasAssets: false,
+    })
+    expect(text).toContain(
+      [
+        '  export interface SimContentData {',
+        '    readonly tuning: Readonly<Record<TuningName, number | boolean | string>>',
+        '    readonly song: Readonly<Record<SongId, Song>>',
+        '  }',
+        '',
+        '  export const content: ContentData',
+        '  export const contentHash: string',
+        '  export const simContent: SimContentData',
+        '  export const simContentHash: string',
+      ].join('\n'),
+    )
+  })
+
   it('typechecks in a consumer, and a wrong ID is a type error', () => {
     const dir = mkdtempSync(join(tmpdir(), 'content-types-'))
     writeFileSync(join(dir, 'content.d.ts'), rendered)

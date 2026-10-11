@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { compileContent } from '../compile/compile-content'
 import { defineContentSchema } from '../schema/content-schema'
-import { copyFixture, fixtureOptions } from '../testing/fixture-game'
+import { copyFixture, fixtureOptions, simRoomsOptions } from '../testing/fixture-game'
 import { type AutomataContentOptions, automataContent } from './automata-content'
 
 const servers: ViteDevServer[] = []
@@ -101,6 +101,26 @@ describe('vite build', () => {
     editFile(root, 'songs/dusk-run.toml', (text) => `${text}tempoDrift = 3\n`)
     await expect(buildApp(root)).rejects.toThrow(
       'content/songs/dusk-run.toml:8:1  tempoDrift  unknownField: unknown field: tempoDrift',
+    )
+  }, 30_000)
+})
+
+describe('the sim content (M2.2)', () => {
+  it('is exported beside the content, sharing its objects, with the sim hash', async () => {
+    const root = copyFixture('sim-rooms')
+    const { root: _root, ...rest } = simRoomsOptions(root)
+    const { server } = await devServer(root, rest)
+    const module = (await server.ssrLoadModule('virtual:automata/content')) as {
+      content: Record<string, unknown>
+      simContent: Record<string, unknown>
+      simContentHash: string
+    }
+    expect(Object.keys(module.simContent).sort()).toEqual(['room', 'tuning'])
+    // Built from `content`'s own properties, so the bundle holds the data once.
+    expect(module.simContent.room).toBe(module.content.room)
+    expect(module.simContent.tuning).toBe(module.content.tuning)
+    expect(module.simContentHash).toBe(
+      readFileSync(join(root, 'content/generated/sim-content.hash'), 'utf8').trim(),
     )
   }, 30_000)
 })

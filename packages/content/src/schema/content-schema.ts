@@ -13,14 +13,24 @@ export interface ContentSchemaDef<K extends string = string, S extends z.ZodType
   readonly kind: K
   readonly schema: S
   readonly place: ContentSchemaPlace
+  /**
+   * Whether the sim receives this kind (M2.2 spec §3.1). Default true: content is gameplay unless the game
+   * says otherwise, so a forgotten flag can only refuse a snapshot, never let a gameplay change through.
+   */
+  readonly sim: boolean
+}
+
+export interface ContentSchemaOptions {
+  readonly sim?: boolean
 }
 
 export function defineContentSchema<const K extends string, S extends z.ZodType>(
   kind: K,
   schema: S,
   place: ContentSchemaPlace,
+  options: ContentSchemaOptions = {},
 ): ContentSchemaDef<K, S> {
-  return Object.freeze({ kind, schema, place })
+  return Object.freeze({ kind, schema, place, sim: options.sim ?? true })
 }
 
 /** Kinds the compiler owns: each is a built-in file in `content/`. */
@@ -37,7 +47,8 @@ export function configProblems(schemas: readonly ContentSchemaDef[]): string[] {
   const problems: string[] = []
   const kinds = new Set<string>()
   const places = new Map<string, string>()
-  for (const { kind, place } of schemas) {
+  for (const { kind, place, sim } of schemas) {
+    if (typeof sim !== 'boolean') problems.push(`kind "${kind}": sim must be true or false`)
     if (!KIND_PATTERN.test(kind)) {
       problems.push(`kind "${kind}" must match ${KIND_PATTERN.source}`)
       continue

@@ -1,7 +1,7 @@
 // The derived files every build writes (M1.3 spec §3.7). They are generators on the same hook a game uses,
 // so a game's generator sees exactly what they see, and a game generator that writes one of these paths is
-// refused as a clash. `content.json` and `content.hash` come from the `artifact` generator, which runs
-// first.
+// refused as a clash. `content.json`, `content.hash`, `sim-content.json` and `sim-content.hash` come from the
+// `artifact` generator, which runs first.
 
 import type { FlowGraph } from '../flow/check-flow'
 import { flowMermaid } from '../flow/flow-mermaid'
@@ -25,8 +25,15 @@ const sortedUnique = (values: Iterable<string>): string[] => [...new Set(values)
 export function builtInGenerators(facts: BuiltInFacts): ContentGenerator[] {
   const sourceLanguage = facts.languages[0] ?? 'en'
   return [
-    defineContentGenerator('artifact', ({ data, hash }) => ({
-      files: { 'content.json': canonicalFile(data), 'content.hash': `${hash}\n` },
+    defineContentGenerator('artifact', ({ data, hash, sim }) => ({
+      files: {
+        'content.json': canonicalFile(data),
+        'content.hash': `${hash}\n`,
+        // The partition the sim receives and the hash that gates snapshots (M2.2), written from what the
+        // compiler made rather than re-derived here.
+        'sim-content.json': canonicalFile(sim.data),
+        'sim-content.hash': `${sim.hash}\n`,
+      },
     })),
     defineContentGenerator('types', ({ data, schemas }) => {
       const ids = new Map<string, string[]>()
