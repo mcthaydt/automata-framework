@@ -42,8 +42,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement the line scanner.
 
 ### T3 Parse one document
-- [ ] Port `parse.test.ts` "maps unknown keys … to source diagnostics" and "reports a TOML syntax error against the file that carries it", plus: a missing required key is `missingField`, a wrong type is `invalidType`, each at its key's line and column; a syntax error is `invalidToml` at smol-toml's line/col. Fails: module missing.
-- [ ] Implement (FloorFifty `parseFile`, `toDiagnostics`).
+- [x] Port `parse.test.ts` "maps unknown keys … to source diagnostics" and "reports a TOML syntax error against the file that carries it", plus: a missing required key is `missingField`, a wrong type is `invalidType`, each at its key's line and column; a syntax error is `invalidToml` at smol-toml's line/col. Fails: module missing.
+- [x] Implement (FloorFifty `parseFile`, `toDiagnostics`).
 
 ### T4 Schemas and references
 - [ ] Port `validate/references.test.ts` cases (unknown reference, wrong kind) through `contentRef`; plus kind validation, reserved kinds, references inside arrays/records/unions, `localized` collection with key paths. Fails: module missing.
