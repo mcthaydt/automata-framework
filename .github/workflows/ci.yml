@@ -15,6 +15,8 @@ on:
   push:
     branches: [main]
   pull_request:
+    # ready_for_review: a draft skips parity (below), so it runs when the PR leaves draft.
+    types: [opened, synchronize, reopened, ready_for_review]
   schedule:
     - cron: "0 9 * * *"
   workflow_dispatch:
@@ -73,7 +75,11 @@ jobs:
 
   parity:
     name: parity (chromium, webkit, firefox)
-    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    # af-linux is one shared PC runner, so a draft PR runs parity in a cloud container instead
+    # (docs/cloud-parity.md). Pushes to main have no pull_request and always run it.
+    if: >-
+      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
+      github.event.pull_request.draft != true
     runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 10
     # Browsers and their OS deps come preinstalled and pinned; installing them per run blew the 10-minute budget.
