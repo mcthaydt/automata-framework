@@ -39,12 +39,12 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 - Request to Ruken: without the `saves` grant the SDK's `storage.setItem` writes to memory and sends nothing (`packages/sdk/src/saves-storage.ts`), contradicting Ruken's S6 answer 3. AF pins the current behavior in host tests and adds no gate.
 - Request to Ruken: `menu.open` before `session.ready` is not refused with `NOT_READY`; the SDK calls the game's handler. AF guards it in `Hosting`.
 - Request to Ruken: publish `@ruken/cli` (it already has `publishConfig`) so `ship publish` need not vendor it.
-- What counts as green (Owner, 2026-10-11): a full local CI run (Node 24, `pnpm check`, parity in Chromium, WebKit and Firefox) is the gate while hosted Actions get no runner. PR #4 is green by that rule on `e34203a`; the lanes may restart. Wiring a self-hosted runner stays under D-5.
+- What counts as green (Owner, 2026-10-11): a full local CI run (Node 24, `pnpm check`, parity in Chromium, WebKit and Firefox) is the gate while hosted Actions get no runner. PR #4 is green by that rule on `e34203a`; the lanes may restart. Once #6 merges, parity runs as the root `pnpm test:parity` (every package with a browsers project), replacing the sim-only filter, and CI jobs target the self-hosted runner label `af-linux` (D-5); until that runner is registered, local runs stay the gate.
 - Ruken's F1 freeze is planned for 2026-10-16; the `contracts-f1` tag did not exist on 2026-10-11. Re-vendor and re-run contract tests after it.
 - Ruken has no `[store]` manifest section yet; the `store` extension waits for it.
 - `@pixi/3d` is a 0.1.0 beta whose terms (per The Last Light's README) allow no public deployment. D-1 is provisional: `render-pixi3d` stays unpublished and out of public builds. D-1 to D-6 run on their defaults (master spec §12) until the Owner overrides them.
 - `@mcthaydt/automata-host` (and `testing`) cannot be published while they depend on a local Ruken tarball; D-8 (default: bundle the vendored Ruken code into their `dist/`) must be settled before M2.4.
-- Spike S8 (Effect's phone cost) has not run yet although `host` is now built on Effect; the ship lane runs it in M1.1, before the runtime lane starts.
+- Spike S8 gate closed (ship lane, PR #6 `6056f82`, [verdict](spikes/README.md)): Effect costs 28.0 kB gzip and 50–73 ms cold boot at 4×, within the budgets E1–E5 the runtime lane must hold. Still open: measurements on real phones, WebKit throttling, and frame-loop allocation, which the runtime lane checks in M1.5.
 - Ruken's TEST environment is not provisioned; M1 publishes to Ruken's local stack only.
 - GitHub Packages tokens and hosting accounts are not verified.
 
