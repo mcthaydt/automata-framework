@@ -15,6 +15,7 @@ ready for review and on every push to `main`. While a PR is a draft, run the sam
 3. Install WebKit's and Firefox's system libraries:
 
    ```sh
+   apt-get update   # a fresh container's package index is stale; without this, four packages are not found
    apt-get install -y libgtk-4-1 libgraphene-1.0-0 libevent-2.1-7 libgstreamer-gl1.0-0 \
      libgstreamer-plugins-bad1.0-0 libavif16 libwayland-server0 libmanette-0.2-0 libenchant-2-2 \
      libsecret-1-0 libgles2
