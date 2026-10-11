@@ -1,6 +1,6 @@
 # M1 shared contracts: Hosting, defineExtension, boot failures
 
-> Status: drafted 2026-10-11 by the integration owner (PR #4), part of M1.0b. Owner review pending. The host, ui, runtime and content lanes build against this file; a change goes through the integration owner, not a lane.
+> Status: drafted 2026-10-11 by the integration owner (PR #4), part of M1.0b; §1 and §3 revised the same day after audit round 3. Owner review pending. The host, ui, runtime and content lanes build against this file; a change goes through the integration owner, not a lane.
 
 The master spec ([§5](2026-10-11-automata-framework-ruken-first-design.md#5-extension-contract), [§6](2026-10-11-automata-framework-ruken-first-design.md#6-effect-boundaries), [§7](2026-10-11-automata-framework-ruken-first-design.md#7-boot-and-loading-core-ruken-first)) names three contracts that more than one lane consumes. This spec fixes their shapes so the lanes can work in parallel. Lane specs refine behavior inside these shapes; they do not change them.
 
@@ -14,20 +14,27 @@ Source of truth for Ruken types: `@ruken/sdk` packed from RukenApp `b30d31b` ([`
 
 ## 1. `Hosting`
 
+Revised 2026-10-11 (audit round 3, coordinator decisions): follow the SDK's own handshake fallback, one adapter instead of two, Ruken's return types for `setFullscreen` and `exit`, and no AF copies of Ruken limits.
+
 ### 1.1 Shape
 
-`Hosting` is an Effect service (`Context.Tag`). Two layers provide it: `HostingRuken` (wraps `Ruken.init`; used when framed by Ruken and in tests against `@ruken/sdk-host`) and `HostingWeb` (standalone page, no Ruken frame). A third, `HostingTest`, is `HostingRuken` wired to the fake host.
+`Hosting` is an Effect service (`Context.Tag`). **One layer, `HostingLive`, wraps `Ruken.init`** for every case. The SDK already decides between a hosted session (framed by Ruken, `welcome` received) and its standalone session (top-level page, or no valid `welcome` within the SDK's timeout, `packages/sdk/src/handshake.ts`), and its standalone session already provides local saves and unsupported services (`standalone.ts`). AF does not write a second web adapter. `HostingTest` is `HostingLive` with an `SdkEnv` wired to `@ruken/sdk-host`'s fake host. A later desktop adapter (`host-tauri`, M7) implements the same service itself.
 
 ```ts
 import type { Capability, ErrorCode, SavesStatus, DisplayMetricsPayload, InputModePayload,
-  LifecyclePayload, AudioChange, EntitlementsPayload, RoundOutcome } from '@ruken/sdk'
+  LifecyclePayload, AudioChange, EntitlementsPayload, RoundOutcome, FullscreenRes,
+  SavesFlushRes } from '@ruken/sdk'
 
 interface Hosting {
-  readonly kind: 'ruken' | 'web'
+  /** 'ruken' when the session is hosted; 'standalone' when the SDK returned its standalone session. */
+  readonly kind: 'ruken' | 'standalone'
+  /** Some when the page is inside a frame but the SDK fell back to standalone (see 1.2). */
+  readonly handshake: { readonly fellBack: Option.Option<HostHandshakeFailed> }
   readonly player: { readonly id: string; readonly displayName: string }
+  /** Ruken's `session.locale`; the runtime's localization picks its language from it. */
   readonly locale: string
   readonly granted: ReadonlySet<Capability>
-  /** Resolves when the host says the game may render gameplay (Ruken `session.ready`). */
+  /** Resolves on `session.ready` (immediately when standalone). No gameplay renders before it. */
   readonly ready: Effect.Effect<void, HostError>
 
   // Observed host state: current value plus changes. Streams end when the runtime scope closes.
@@ -38,54 +45,63 @@ interface Hosting {
   readonly entitlements: Subscribable<EntitlementsPayload>
   readonly savesStatus: Subscribable<SavesStatus>
 
-  // Requests. Each fails with a HostError; none falls back to another path on its own.
+  // Requests. Each surfaces the SDK's RukenError as a HostError; none adds a fallback of its own.
   readonly saves: {
     get(key: string): Effect.Effect<string | null, HostError>
     set(key: string, value: string): Effect.Effect<void, HostError>
     remove(key: string): Effect.Effect<void, HostError>
-    flush: Effect.Effect<{ persisted: 'host-outbox' | 'server' }, HostError>
+    flush: Effect.Effect<SavesFlushRes, HostError>
   }
-  setFullscreen(on: boolean): Effect.Effect<{ fullscreen: boolean }, HostError>
+  setFullscreen(on: boolean): Effect.Effect<FullscreenRes, HostError>   // { fullscreen, support }
   round: { start: Effect.Effect<void>; end(outcome?: RoundOutcome): Effect.Effect<void> }
   track(event: string, props?: Record<string, string | number | boolean>): Effect.Effect<void>
-  exit(reason?: string): Effect.Effect<void, HostError>
+  exit(reason?: 'player' | 'completed'): Effect.Effect<void, HostError> // default 'player'
   onMenuRequest(handler: () => boolean): Effect.Effect<void, never, Scope.Scope>
   onExiting(handler: Effect.Effect<void>): Effect.Effect<void, never, Scope.Scope>
 }
 ```
 
-`Subscribable<A>` is Effect's `Subscribable` (a `get` plus a `changes` stream). Leaderboards, store, ads and links are **not** in core `Hosting`; their extensions add their own services built on the same session (master spec §4.2), so core never imports them.
+`Subscribable<A>` is Effect's `Subscribable` (a `get` plus a `changes` stream). `setFullscreen` returns Ruken's `FullscreenRes` unchanged, so a game can show FloorFifty's iOS home-screen hint when `support` is `'ios-home-screen'`. `exit` takes Ruken's two reasons.
 
-### 1.2 `HostError`
+**Not in core `Hosting`, on purpose:** leaderboards, store, ads and links. Each is an extension service built on the same session (`leaderboards` joins the extension list in master spec §4.2). Core never imports them. The gamepad's host button and Escape reach the game only through `onMenuRequest`; the SDK owns the gamepad watching (`packages/sdk/src/gamepad.ts`), and AF's Input service never reads the host button itself.
 
-One tagged union, mapped one to one from Ruken's `ErrorCode` so no information is lost or invented:
+### 1.2 Errors and the handshake fallback
 
 ```ts
 class HostError extends Data.TaggedError('HostError')<{
   readonly code: ErrorCode          // Ruken's code, unchanged
   readonly retryable: boolean       // Ruken's flag, unchanged
-  readonly operation: string        // e.g. 'saves.set', 'init'
+  readonly operation: string        // e.g. 'saves.set', 'ready'
   readonly cause?: unknown
 }> {}
 
 class HostHandshakeFailed extends Data.TaggedError('HostHandshakeFailed')<{
-  readonly reason: 'timeout' | 'bad-origin' | 'version' | 'internal'
+  readonly reason: 'no-welcome'     // the SDK does not say whether it timed out or rejected a welcome
 }> {}
 ```
 
-`HostHandshakeFailed` covers `Ruken.init` failing inside a Ruken frame (10 s with no `welcome`, origin rejected, version refused). Everything after the handshake is a `HostError`. Retry policy lives in the caller with Effect's `Schedule`, and only when `retryable` is true.
+**A failed in-frame handshake is a reported fallback, not a fatal error** (coordinator decision, matching Ruken's `handshake.ts`). When the page is framed (`window !== window.top`) and `Ruken.init` returns a standalone session, `HostingLive` sets `handshake.fellBack` to `Some(HostHandshakeFailed)` and logs it with `Effect.logWarning`; the game keeps running standalone. The runtime may also show it in a dev overlay. There is no analytics requirement: after the fallback, `track` goes through the standalone session and cannot reach Ruken.
 
-### 1.3 Capability rules
+Retry policy lives in the caller with Effect's `Schedule`, and only when `retryable` is true.
+
+### 1.3 Capabilities and limits
 
 - Requested capabilities come from the game config and the extensions' manifest contributions; `Hosting` passes them to `Ruken.init` as `wants`.
-- A capability not in `granted` fails its requests with `HostError{code:'UNSUPPORTED'}` (or `DENIED` when the host says so). It never switches to `localStorage`, a standalone path or a silent no-op (AGENTS.md "Honor host authority"). `track` is the one exception: it is fire-and-forget and drops events without `telemetry`.
-- `HostingWeb` grants what a standalone page can honestly provide: `lifecycle`, `input`, `display`, `audio`, `saves` (device storage, with the player told saves stay on this device), `exit` as a no-op. It never claims `store`, `ads` or `leaderboards`.
+- The SDK enforces grants and limits. AF relays its `RukenError`s as `HostError` and adds no gate, no fallback to device storage and no silent no-op of its own (AGENTS.md "Honor host authority"). `track` is fire-and-forget as in the SDK.
+- **AF quotes no Ruken limit.** Save sizes, key counts, zip size and rate limits are Ruken's (for example the SDK counts save *value* bytes, `save-map.ts` line 48). Tests that need a limit import Ruken's constant or trigger Ruken's own error; AF documents link to Ruken's code instead of copying numbers.
 
-### 1.4 Required tests (host lane)
+### 1.4 Time in tests
 
-Against `@ruken/sdk-host`: handshake success; handshake timeout (`TestClock`, 10 s); wrong origin and wrong source rejected; `ready` before and after; each observed stream's initial value and change; saves get/set/remove/flush including `offline-queued`, `conflict` and `recovered` status; a capability missing from `granted` fails without fallback; `exiting` runs its handler within the 1,500 ms grace; `onMenuRequest` before ready answers `NOT_READY` (the SDK's behavior, asserted, not reimplemented). Port FloorFifty's `apps/client/src/ruken/` contract tests and spike S6's cases.
+Two clocks, kept apart:
 
-### 1.5 Known external item
+- **SDK timing** (hello retry, handshake give-up, RPC timeouts) runs on `SdkEnv.timers`. `HostingTest` passes an `SdkEnv` whose timers are a manual fake the test advances, so these tests do not wait 10 s. AF asserts the SDK's behavior; it never re-implements its timings.
+- **AF timing** (exit grace, save-flush timeout, retries chosen with `Schedule`) runs on Effect's `Clock` and is tested with `TestClock`.
+
+### 1.5 Required tests (host lane)
+
+Against `@ruken/sdk-host`: hosted handshake; top-level page gives `kind: 'standalone'` with `fellBack` = `None`; framed page with no welcome gives `kind: 'standalone'`, `fellBack` = `Some` and one warning logged; wrong origin and wrong source rejected (falls back as above); `ready` before and after; each observed stream's initial value and change; `locale` from the session; saves get/set/remove/flush including `offline-queued`, `conflict` and `recovered` status and a quota error relayed from the SDK; a capability missing from `granted` fails with the SDK's error and no fallback; `setFullscreen` returns `support`; `exit` defaults to `'player'`; `exiting` runs its handler; `onMenuRequest` before ready answers `NOT_READY` (the SDK's behavior, asserted, not reimplemented). Port FloorFifty's `apps/client/src/ruken/` contract tests and spike S6's cases.
+
+### 1.6 Known external item
 
 The SDK at `b30d31b` still sends `baseRevision` and `writeId` on `saves.set`/`saves.remove` (Ruken `packages/protocol/src/meta/types.ts`, lines 94–100). AF does not touch them. Whether they stay is Ruken's call, tracked in [03 Continuation](../../03-continuation-prompt.md) as a request to Ruken.
 
@@ -121,19 +137,19 @@ Every boot step in master spec §7 fails with a typed error. The runtime's boot 
 
 | Step | Error tag | Fields | UI state | Player action |
 |---|---|---|---|---|
-| 2 Host | `HostHandshakeFailed` | `reason` | "Couldn't connect to Ruken" | Try again (reload inside the frame) |
-| 3 Storage | `HostError` (op `saves.*`) | `code`, `retryable` | "Couldn't load your progress" | Try again if retryable; otherwise Continue without loading (only under `HostingWeb`) |
+| 2 Host | none: an in-frame handshake failure is a reported fallback to standalone (§1.2), not a boot error | | Optional dev overlay | — |
+| 3 Storage | `HostError` (op `saves.*`) | `code`, `retryable` | "Couldn't load your progress" | Try again if retryable; otherwise Continue without loading (only when `kind` is `standalone`) |
 | 4 Content | `ContentHashMismatch` | `expected`, `actual` | "This build is damaged" | Try again (reload) |
 | 5 Assets | `AssetLoadFailed` | `url`, `status` | "Couldn't download the game" | Try again |
 | 5 Assets | `LoadStalled` | `url`, `bytesSoFar`, `stalledMs` (30,000) | Same state, "Still waiting" copy | Try again |
-| 6 Renderer | `RendererUnavailable` | `tried: ('webgpu'|'webgl2')[]` | "This device can't run the game" | None (exit) |
+| 6 Renderer | `RendererUnavailable` | `tried: ('webgl2'|'webgpu')[]` (WebGL2 is the default; WebGPU only when the game opts in) | "This device can't run the game" | None (exit) |
 | 7 Ready | `HostError` (op `ready`) | `code` | "Couldn't connect to Ruken" | Try again |
 
-Copy here is a placeholder for the ui lane spec; tone follows Ruken's rules (quiet, human, no blame). Try again re-runs the boot program from step 2 in a fresh runtime scope; it never refreshes the page from inside a Ruken frame.
+Copy here is a placeholder for the ui lane spec; tone follows Ruken's rules (quiet, human, no blame). Try again re-runs the boot program in a fresh runtime scope (a new SDK session included); it never refreshes the page from inside a Ruken frame.
 
 ## 4. Acceptance
 
-- The host lane's `Hosting` passes §1.4 against the fake host.
+- The host lane's `Hosting` passes §1.5 against the fake host.
 - The ui lane renders every §3 state from a fixture without a renderer.
 - The runtime lane's boot program has an exhaustive match over `BootError` (a new tag fails typecheck until the UI handles it).
 - `defineExtension` rejects a cycle, a missing requirement and a manifest field outside Ruken's schema, each with a test.
