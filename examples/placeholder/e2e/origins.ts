@@ -8,3 +8,8 @@ export const gamePort: number = ports.preview
 export const hostPort: number = ports.server
 export const gameOrigin = `http://localhost:${gamePort}`
 export const hostOrigin = `http://127.0.0.1:${hostPort}`
+
+// Ruken serves a build from /b/<buildId>/ on the game origin, never from its root, so the journeys load the game
+// from there too: a root-absolute URL in the build is then a 404 here, as it would be inside Ruken.
+export const gameBuildPath = '/b/202610110000-e2e0000/'
+export const gameUrl = `${gameOrigin}${gameBuildPath}`

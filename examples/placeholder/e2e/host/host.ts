@@ -4,7 +4,10 @@ import { createFakeHost } from '@ruken/sdk-host/testing'
 import { GAME_ID } from '../../src/boot.ts'
 
 const gameOrigin = import.meta.env.VITE_GAME_ORIGIN
+const gamePath = import.meta.env.VITE_GAME_PATH
 if (typeof gameOrigin !== 'string' || gameOrigin === '') throw new Error('VITE_GAME_ORIGIN is not set')
+if (typeof gamePath !== 'string' || !gamePath.startsWith('/b/'))
+  throw new Error('VITE_GAME_PATH is not /b/<id>/')
 const iframe = document.querySelector('iframe')
 if (iframe === null) throw new Error('the host page has no iframe')
 
@@ -22,7 +25,7 @@ const host = createFakeHost({
   hostOrigin: window.location.origin,
   player: { id: 'p-1', displayName: 'Ada' },
 })
-iframe.src = `${gameOrigin}/`
+iframe.src = `${gameOrigin}${gamePath}`
 
 // The protocol trace the e2e spec reads.
 ;(window as unknown as { hostTrace: () => string[] }).hostTrace = () =>
