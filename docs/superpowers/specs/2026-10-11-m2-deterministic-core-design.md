@@ -166,7 +166,7 @@ M2 is done when each holds, with evidence recorded in 02's execution record (A0+
 
 Plus: each demo in §11 (except `bodies-3d`) merged with its smoke test and golden, and its screenshots shown to the Owner.
 
-**Failure cases that must be proven by tests:** content change refuses a snapshot and a replay; store metadata change does not; schema change refuses a replay with a schema message; truncated replay; inflate bomb; per-engine mismatch fails; a browser cannot rebaseline; publishing again publishes nothing (M2.4's release job runs `changeset publish` a second time and asserts it uploads nothing).
+**Failure cases that must be proven by tests:** content change refuses a snapshot and a replay; store metadata change does not; schema change refuses a replay with a schema message; truncated replay; inflate bomb; per-engine mismatch fails; a browser cannot rebaseline; a release with a package missing from the registry fails (M2.4's `verify-published`, unit-tested against a fake registry).
 
 ## 13. Risks
 

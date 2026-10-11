@@ -176,10 +176,10 @@ replayGolden(options: {
   file: string                                        // a .replay (deflated), e.g. <dir>/__goldens__/route.replay
   plugins: readonly PluginDef[]; content?: unknown
   /** Records the golden when updating (Node, AUTOMATA_UPDATE_GOLDENS=1); absent for replays recorded elsewhere. */
-  record?: { seed: number; tickHz?: number; setup?: (sim: Sim) => void
-             /** Makes the sim to record instead of seed/tickHz/setup (a game's own factory, e.g. base-2d's createBaseSim). */
-             create?: () => Promise<Sim>
-             drive: (recorder: Recorder, sim: Sim) => void | Promise<void>; snapshotEvery?: number }
+  /** Either seed/tickHz/setup, or create: a game's own factory such as base-2d's createBaseSim. Exactly one; giving both is a TypeScript error. */
+  record?: ({ seed: number; tickHz?: number; setup?: (sim: Sim) => void; create?: never }
+            | { create: () => Promise<Sim>; seed?: never; tickHz?: never; setup?: never })
+           & { drive: (recorder: Recorder, sim: Sim) => void | Promise<void>; snapshotEvery?: number }
 }): Promise<GoldenReport>
 
 expectGolden(report: GoldenReport): void              // throws with formatGoldenReport(report)

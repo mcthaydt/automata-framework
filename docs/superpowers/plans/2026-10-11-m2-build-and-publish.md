@@ -77,7 +77,8 @@ Each task: write the failing test or check, run it and see it fail for the state
 - [ ] `turbo.test.ts`: only `build` has `dependsOn: ["^build"]`. Expected failure: `typecheck`, `test`, `test:unit`, `test:parity` have it. Edit `turbo.json`; `pnpm check` runs no `build`.
 
 ### Task 9: release workflow
-- [ ] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, the registry-mode consumer smoke after publish, and a second `changeset publish` step that fails if it uploads anything). Expected failure: file missing.
+- [ ] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, `verify-published` then the registry-mode consumer smoke after publish).
+- [ ] `verify-published.test.ts` (spec §6) then `tooling/release/src/verify-published.ts`. Expected failure: module missing; then a fake lookup missing one package must fail. Expected failure: file missing.
 - [ ] Write the workflow; `actionlint` clean.
 - [ ] Provenance: GitHub's npm-registry docs (spec, Builds from) do not mention it; leave `--provenance` off and say so in the spec's §8. A test publish to check it needs the Owner's OK and is not part of this task.
 

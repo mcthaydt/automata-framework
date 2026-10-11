@@ -4,7 +4,7 @@
 
 - **Spec:** [m2-physics-demo](../specs/2026-10-11-m2-physics-demo-design.md) ("spec"); milestone: [M2](../specs/2026-10-11-m2-deterministic-core-design.md).
 - **Lane:** sim, on its own branch and worktree from `main` once `base-2d` (#10) is merged. Draft PR titled `M2.1b Physics demo`.
-- **Before Task 1:** base-2d's `startGame` options and `./sim` export (spec, "Needs from integration") are on `main`. They are integration's work, asked through the coordinator; this plan does not tick them. Tasks 1–3 need neither and can start as soon as #10 merges.
+- **Before Task 1:** base-2d's `startGame` options, `./sim` export and typed first-sim failure (spec, "Needs from integration" (1)–(3), §6) are on `main`. Until (3) lands the demo row stays waiting, even if everything else is done. They are integration's work, asked through the coordinator; this plan does not tick them. Tasks 1–3 need neither and can start as soon as #10 merges.
 - **Progress:** 0 / 6 tasks.
 - **Local CI:** Node 24.21.0; `pnpm vitest run <file>`; `pnpm --filter @af-examples/physics-bodies-2d test`; `pnpm --filter @af-examples/physics-bodies-2d test:parity`; `pnpm check`; before calling the PR green `pnpm ci:local`.
 
@@ -41,7 +41,7 @@
 
 ### Task 5: page
 - [ ] `art.test.ts`: every pixel of the crate and ball sprites is an Endesga 64 index. Expected failure: module missing. Then `sprites.ts` and `PROVENANCE.md`.
-- [ ] `boot.test.ts` under the fake host: ready, no console errors, no CSP violations. Expected failure: `main.ts` missing. Then `layer.ts` and `main.ts` with its header (spec §3.1), the `B` key and touch button.
+- [ ] `boot.test.ts` under the fake host: ready, no console errors, no CSP violations; with Rapier's loader made to reject, the page shows "This device can't run the game." and `data-state="failed"` (needs request (3)). Expected failure: `main.ts` missing. Then `layer.ts` and `main.ts` with its header (spec §3.1), the `B` key and touch button.
 - [ ] `e2e/bodies.e2e.ts` and its project in the root `playwright.config.ts` (nightly): walk into a crate, its sprite moves. Expected failure: no project named `physics-bodies-2d`. Run on the GPU runner on request; record the run.
 
 ### Task 6: evidence and docs
