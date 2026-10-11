@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/superpowers/specs/2026-10-11-m2-sim-physics-design.md` ("spec").
 - **Lane:** sim. Touches `packages/sim/`, new `packages/physics/`, the physics row of `tooling/check-boundaries`' source roots and import allowlist, rows for its own pins in `docs/versions.md` (once the ship lane creates it), and this plan.
-- **Progress:** 13 / 13 tasks.
+- **Progress:** 14 / 14 tasks.
 - **Local CI (every task ends green):** Node 24, `pnpm check`; for parity tasks, `vitest run --project browsers` in the touched package (Chromium, WebKit, Firefox, Playwright 1.63).
 
 ## Interfaces
@@ -83,6 +83,15 @@
 ### 13. Four-engine parity and measurements (spec §7, §8)
 - [x] Failing parity tests with placeholder goldens (2D and 3D); commit the Node hashes; run Chromium, WebKit and Firefox; all four must match without edits. (`physics-2d.parity.test.ts`, `physics-3d.parity.test.ts`: 300 ticks of the mixed scene, uninterrupted and with a restore at tick 150. 2D `785b4ebfe6874caa`, 3D `580a47f5c068b59f`; 6/6 browser tests, unchanged after the overhead work below.)
 - [x] Bench (`AF_BENCH=1`): ms/tick at 100 and 500 bodies, init time; package sizes raw and gzip -9. Record below and in the PR. (`physics.bench.test.ts`, skipped unless `AF_BENCH=1`. The first run showed 2.47 ms/tick at 500 3D bodies against 0.11 ms for Rapier alone, so before recording: `EntityStore.read` returns Koota's fresh object without a second copy, validation runs only when a body or collider is created or rebuilt, and write-back skips a body that was already asleep at its last write-back. Goldens unchanged.)
+
+### 14. Audit fixes on PR #9 (spec §3.1, §3.2, §3.4, §10.5–§10.7)
+- [x] Failing tests first: a failed `createSim` (reserved system name, bad resource init) 20 times, then a new sim; idempotent `dispose`; `SimDisposedError` from every call after it; a rejected restore discards what other plugins prepared (`sim/src/world/lifecycle.test.ts`). Implement: checks before allocation, `PreparedRestore { commit, discard }`, `SimDisposedError`.
+- [x] Failing tests first: despawn, `Collider3D` removal, a rebuild and a sensor toggle each end their contacts; ended before started; a contact begun before a snapshot still ends after a restore; balanced pairs over both mixed scenes. Implement the touching set, physics bytes v2 with contacts, ended-first order.
+- [x] Failing tests first: swapped colliders between two bodies, and between a body and a lone collider, are refused; bad contacts are refused; `dispose` frees the world and closes the queue once; `discard` frees the prepared world. Implement `checkTable` with the raw parent handle and the adapter's `close`.
+- [x] Component edits in both parity scenes; goldens re-recorded once and confirmed in Node, Chromium, WebKit and Firefox.
+- [x] `canonicalJson` throws `CanonicalJsonError` on non-plain objects (failing test first).
+- [x] Awake-bodies bench and Rapier-alone baseline; the hashing policy in spec §10.5.
+- [x] Mutation check of the new code: 17 mutations, each fails at least one test.
 
 ## Execution log
 

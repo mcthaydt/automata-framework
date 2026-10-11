@@ -1,6 +1,6 @@
 # M2.1 Physics plugins (lane **sim**): design
 
-- **Status:** drafted 2026-10-11, revised the same day for PR #4 at `e34203a` (physics is its own package; the sim gets only a plugin-state hook, plus the audit's sim-core determinism fixes). Awaiting review. Stands in for the physics part of M2.0.
+- **Status:** drafted 2026-10-11, revised the same day for PR #4 at `e34203a` (physics is its own package; the sim gets only a plugin-state hook, plus the audit's sim-core determinism fixes), and again after the PR #9 audit (paired events and contacts in the physics bytes, lifecycle leaks, body–collider pairing, awake measurements, the hashing policy, `canonicalJson` and non-plain objects: §3.1, §3.2, §3.4, §10.5–§10.7). Awaiting review. Stands in for the physics part of M2.0.
 - **Task:** M2.1 in `docs/02-master-delivery-plan.md`; lane **sim** in `docs/04-how-we-build.md` (Lanes, 2026-10-11).
 - **Owns:** new `packages/physics/` (`@mcthaydt/automata-physics`); in `packages/sim/`, the plugin-state hook (§3.1) and the determinism fixes (§10); in `tooling/check-boundaries`, only `packages/physics/src` in the source-roots list (the list itself and the checker hardening come from PR #4) and the import entries physics needs.
 - **Builds against:** the [M1 shared contracts](2026-10-11-m1-shared-contracts-design.md) §2: an extension's `sim` field holds `definePlugin` results, and any package with sim plugins runs `check-boundaries` on its sim sources. `defineExtension` itself arrives with the runtime lane (M1.5); until then `packages/physics` exports the plugins, and a `physics.extension.ts` wrapping them is added when `defineExtension` exists (§9).
@@ -45,10 +45,13 @@ Presentation never reads Rapier. It reads `Transform2D` / `Transform3D` rows fro
 export interface PluginState {
   /** Bytes for snapshot section 6. Must be canonical: the same state gives the same bytes in every engine. */
   snapshot(): Uint8Array
-  /** Validates and parses without touching live state; returns the commit. Throwing leaves the sim unchanged. */
-  prepareRestore(bytes: Uint8Array): () => void
+  /** Validates and parses without touching live state. Throwing leaves the sim unchanged. */
+  prepareRestore(bytes: Uint8Array): PreparedRestore
+  /** Called exactly once: on Sim.dispose, or when createSim fails after creating this state. */
   dispose(): void
 }
+/** The sim calls exactly one of these: commit when the whole snapshot is valid, discard otherwise. */
+export interface PreparedRestore { commit(): void; discard(): void }
 export interface PluginStateSetup { readonly dt: number }
 
 definePlugin({ name, state: async (setup: PluginStateSetup) => PluginState, systems })
@@ -56,9 +59,9 @@ definePlugin({ name, state: async (setup: PluginStateSetup) => PluginState, syst
 ```
 
 - **Per-sim instances.** A `PluginDef` is shared by many sims, so its systems cannot close over one Rapier world. `createSim` calls `state(setup)` once per sim and gives the result to that plugin's systems as `ctx.pluginState`.
-- **Order and failure.** States are awaited in canonical plugin order. If one rejects, the states already created are disposed and `createSim` rejects with that error.
-- **Restore is two-phase.** `restore` decodes and validates everything, calls every `prepareRestore`, and only if all succeed swaps the entity store and calls each commit. One bad plugin row leaves every plugin and the ECS unchanged.
-- **dispose** disposes the entity store, then every state.
+- **Order and failure.** `createSim` first does every check that can fail (registrations, resource initial values, system order, the schema hash), and only then takes the Koota world and awaits the states in canonical plugin order. If a state rejects, the states already created and the Koota world are freed and `createSim` rejects with that error, so failures never use up Koota's 16 worlds (§10.6).
+- **Restore is two-phase.** `restore` decodes and validates everything, calls every `prepareRestore`, and only if all succeed swaps the entity store and calls each `commit`. If any part fails, every `PreparedRestore` already returned is discarded, so a prepared Rapier world never leaks, and the sim is unchanged.
+- **dispose** disposes the entity store, then every state. It is idempotent; afterwards every method that reads or changes state (`step`, `spawn`, `entity`, `query`, `resource`, `snapshot`, `restore`, `hash`) throws `SimDisposedError`.
 - **Schema hash** gains `stateful: [plugin names]` only when a stateful plugin exists, so a snapshot from a sim with physics never restores into one without it, and every snapshot without stateful plugins keeps its hash.
 
 ### 3.2 Snapshot section 6
@@ -68,14 +71,16 @@ Written only when at least one plugin has state; absent otherwise.
 ```
 Section 6   count u16 (≥ 1) | per stateful plugin, in canonical plugin order:
             name (u16 length + UTF-8) | byteLength u32 | bytes
-Physics     version u8 = 1 | rows u32 | per row, ascending sid:
+Physics     version u8 = 2 | rows u32 | per row, ascending sid:
             sid u32 | flags u8 (bit 0 body, bit 1 collider) | body f64 if bit 0 | collider f64 if bit 1
+            | contacts u32 | per contact, ascending (a, b): a u32 | b u32 | sensor u8
             | worldLength u32 | world.takeSnapshot()
 ```
 
 - Rapier handles are f64 bit patterns of `(index, generation)` (they print as denormals, e.g. `5e-324`); `DataView.setFloat64` keeps the bits. The flags byte means no NaN is ever written.
 - `world.takeSnapshot()` goes in verbatim (S2: canonical, round-trip exact; it includes gravity and the timestep).
-- Restore checks: version; rows ascending and unique; flags in range; the table's handles are exactly the restored world's bodies and colliders, compared bit for bit (Rapier's `getRigidBody` resolves some malformed handles to a live body, so it cannot be the check); no trailing bytes. Any failure is a `SnapshotFormatError`.
+- The contact list is the set of pairs whose `collision-started` has been emitted and whose `collision-ended` has not (§3.4), so events stay paired across a restore. Version 2 added it; version 1 bytes are refused.
+- Restore checks: version; rows ascending and unique; flags in range; contacts strictly ascending with a < b, a sensor byte of 0 or 1, and both sids holding a collider row; the table's handles are exactly the restored world's bodies and colliders, compared bit for bit (Rapier's `getRigidBody` resolves some malformed handles to a live body, so it cannot be the check); each row's collider is attached to that row's body, and a lone collider to none, read from Rapier's raw collider set (the JS `Collider.parent()` cache is wrong for a lone collider in a restored world); no trailing bytes. Any failure is a `SnapshotFormatError`, and the restored world is freed.
 - A row whose sid is no longer alive is valid: a snapshot taken after `entities.flush` still holds the body of an entity despawned that tick, and the next `sync-in` removes it as usual.
 
 ### 3.3 Components
@@ -142,14 +147,21 @@ Units are metres, seconds and radians. Gravity is a plugin option: `physics2d({ 
 
 Because a re-created body takes its velocity from the ECS, a remove-and-create keeps the body's motion.
 
-**Events.** After the step, `events` drains `drainCollisionEvents`, maps both collider handles to sids, and emits, sorted by (started before ended, lower sid, higher sid):
+**Events are paired.** The plugin keeps the set of touching pairs (by sid) and emits from changes to it, so every `collision-started` is followed by exactly one `collision-ended` for the same pair, and never a second started before it:
+
+- Rapier reports a start for a pair not in the set → added, started emitted. A start for a pair already in it is ignored.
+- Rapier reports a stop for a pair in the set → removed, ended emitted. A start and a stop for one pair within one step cancel out.
+- sync-in removes a collider (despawn, `Collider*` or `RigidBody*` removed) or rebuilds it (a `Collider*` field changed) → every pair holding that entity ends then, emitted with that tick's events. Rapier's own later stop names a handle with no owner and is dropped. A despawn lands in `cleanup`, after the tick's physics, so its ended events come at the next tick.
+- A rebuilt collider still touching gets a new start from Rapier in the same step, so a friction or group change reads as ended then started in one tick and the pair stays touching. Changing `sensor` ends the old contact with its old flag and starts the new one with the new flag.
+
+`events` emits every ended, then every started, each sorted by (lower sid, higher sid):
 
 ```ts
-physics3d.collision-started { a: sid, b: sid, sensor: boolean }   // a < b
-physics3d.collision-ended   { a: sid, b: sid, sensor: boolean }
+physics3d.collision-ended   { a: sid, b: sid, sensor: boolean }   // a < b
+physics3d.collision-started { a: sid, b: sid, sensor: boolean }
 ```
 
-`sensor` is true when either collider is a sensor. An event whose collider no longer maps to a live row (removed this tick) is dropped. Rapier's drain order is already deterministic in these builds; the sort makes it a contract.
+`sensor` is true when either collider was a sensor when the contact started. Ended comes first so a consumer that adds on started and deletes on ended keeps a rebuilt pair. The order is a contract, not Rapier's pair order.
 
 ### 3.5 Entry points
 
@@ -168,8 +180,8 @@ export { physics3d, Transform3D, RigidBody3D, Collider3D, BodyKind, ShapeKind,
 3. **spawn** writes only ECS. Rapier objects appear at the next sync-in, so they are created in one deterministic place.
 4. **step** runs sync-in → step → sync-out → events in the existing phase order.
 5. **snapshot** is taken between steps (the event queue is empty then).
-6. **restore**: `prepareRestore` restores into a new world and validates the table; the commit frees the old world and adopts the new world, table and an empty event queue.
-7. **dispose** frees the world and the event queue.
+6. **restore**: `prepareRestore` restores into a new world and validates the table and contacts; `commit` frees the old world and adopts the new world, table and contacts; `discard` frees the new world.
+7. **dispose** frees the world and the event queue, once.
 
 ## 5. Failure policy
 
@@ -178,9 +190,11 @@ export { physics3d, Transform3D, RigidBody3D, Collider3D, BodyKind, ShapeKind,
 | Wasm fails to load or `init()` rejects | `createSim` rejects with that error; states already created are disposed |
 | Two physics plugins of one dimension | `createSim` throws (duplicate plugin name) |
 | Unknown shape or body kind, size ≤ 0, quaternion with \|q\|² outside 1 ± 1e-3 | sync-in throws an `Error` naming the sid and field; the sim is then faulted (§10.2) |
-| Section 6 missing, extra, renamed, truncated, bad version, bad row, unknown handle | `SnapshotFormatError`; sim unchanged |
+| Section 6 missing, extra, renamed, truncated, bad version, bad row, unknown handle, wrong body–collider pairing, bad contact | `SnapshotFormatError`; sim unchanged; nothing leaked |
+| `createSim` fails after taking the Koota world or a state | Both are freed before it rejects |
+| Any call after `dispose` | `SimDisposedError`; a second `dispose` does nothing |
 | Snapshot from a sim with a different plugin set | `SnapshotMismatchError('schemaHash')` |
-| Collision event for a collider removed this tick | Dropped (tested) |
+| Collider removed or rebuilt while touching | Its contacts end at that sync-in (tested); Rapier's later stop for the old handle is dropped |
 
 ## 6. Determinism rules (added to A0+A1 §4.4)
 
@@ -194,15 +208,15 @@ export { physics3d, Transform3D, RigidBody3D, Collider3D, BodyKind, ShapeKind,
 | Layer | Where | What |
 |---|---|---|
 | Unit (Node) | `packages/physics/src/*.test.ts` | Each sync-in case (create, remove, teleport, kinematic, velocity, kind and damping, collider rebuild, lone collider), sync-out, event order and payloads, section 6 bytes and every §5 row, restore continuing identically, lazy loading |
-| Sim core (Node) | `packages/sim/src/world/plugin-state.test.ts` | The hook: per-sim instances, order, failure cleanup, two-phase restore, framing errors, dispose, schema hash, no section 6 without state |
-| Parity | `packages/physics/src/physics-2d.parity.test.ts`, `physics-3d.parity.test.ts` | A mixed scene (balls, cuboids, a capsule, a kinematic body, a sensor, lone colliders, despawns and spawns mid-run) for 300 ticks, with and without a restore at tick 150; the sim hash and an event-stream hash match one committed golden in Node, Chromium, WebKit and Firefox |
-| Measurement | `packages/physics/src/physics.bench.test.ts` (skipped unless `AF_BENCH=1`; not a gate) | ms/tick at 100 and 500 bodies, init time |
+| Sim core (Node) | `packages/sim/src/world/plugin-state.test.ts`, `lifecycle.test.ts` | The hook: per-sim instances, order, failure cleanup, two-phase restore with discard, framing errors, idempotent dispose and `SimDisposedError`, schema hash, no section 6 without state |
+| Parity | `packages/physics/src/physics-2d.parity.test.ts`, `physics-3d.parity.test.ts` | A mixed scene (balls, cuboids, a capsule, a kinematic body, a sensor, lone colliders, despawns and spawns mid-run, and component edits: friction, sensor toggles, velocity, kind, damping, collider removal and re-adding, teleport, groups and size, either side of the restore) for 300 ticks, with and without a restore at tick 150; the sim hash and an event-stream hash match one committed golden in Node, Chromium, WebKit and Firefox |
+| Measurement | `packages/physics/src/physics.bench.test.ts` (skipped unless `AF_BENCH=1`; not a gate) | ms/tick at 100 and 500 bodies, resting (mostly asleep) and awake (zero gravity, bouncing in a closed box), init time, `sim.hash()` time |
 
 The browser project lists both Rapier packages in `optimizeDeps.include` (A0 §11).
 
 ## 8. Measurements to record
 
-From the real build, never estimated: each Rapier package's JS (base64 wasm) size raw and gzip -9; median ms/tick at 100 and 500 dynamic bodies in Node 24 on the named machine; `RAPIER.init()` time. They go in the PR and the plan's execution log; the integration owner moves them into the numbered docs.
+From the real build, never estimated: each Rapier package's JS (base64 wasm) size raw and gzip -9; median ms/tick at 100 and 500 dynamic bodies in Node 24 on the named machine, both resting and awake (a resting pile is mostly asleep, so it understates a busy scene); Rapier alone on the same awake scene for comparison; `RAPIER.init()` time; `sim.hash()` time at 500 bodies. They go in the PR and the plan's execution log; the integration owner moves them into the numbered docs.
 
 ## 9. Out of scope
 
@@ -218,7 +232,10 @@ The audit thread reproduced these in the merged A1a core. Each gets a failing te
 2. **A throwing system leaves a half-updated sim.** Fix: fail closed. If a system throws during `step`, the sim is faulted: `step`, `snapshot` and `hash` throw `SimFaultedError` (with the system name, tick and cause) until a successful `restore`. Rolling back each tick would need a snapshot per tick, which costs more than the fault it hides.
 3. **Koota's 16-world limit.** `restore` built a second Koota world before freeing the first, so with 16 sims alive it threw Koota's plain `Error`. Fix: validate every row before touching the store, then free the old world and rebuild in its slot, so restore never needs a second world. `createSim` beyond the limit throws `SimCapacityError`.
 4. **Schema hash misses resource, command and event schemas.** Fix: hash each schema's JSON Schema (`z.toJSONSchema`, canonical JSON) alongside its id, and on restore require each resource's parsed value to re-encode to the exact JSON stored, so a field the current schema drops is a `SnapshotFormatError`, not silent loss. This changes the existing golden once, with the reason recorded.
-5. **Hash cost.** `xxhash64` uses BigInt arithmetic per 8-byte lane. Fix: compute with 32-bit halves (`Math.imul`), same output, checked against the existing XXH64 vectors and the goldens. Per-tick hashing stays the caller's choice; the sim never hashes on its own.
+5. **Hash cost.** `xxhash64` uses BigInt arithmetic per 8-byte lane. Fix: compute with 32-bit halves (`Math.imul`), same output, checked against the existing XXH64 vectors and the goldens.
+   **Hashing policy.** `sim.hash()` encodes a full snapshot and hashes it: about 5 ms at 500 physics bodies in Node 24 (§8), a third of a 60 Hz frame, so it is not a per-tick operation. The sim never hashes on its own. Callers hash on demand or sampled: replay checkpoints, a desync probe every N ticks (net picks N), and tests. Making per-tick hashing cheap (an incremental hash) is out of scope until a consumer needs it.
+6. **Lifecycle leaks (audit, second pass).** A `createSim` that failed after building its Koota world (a reserved system name, a resource whose initial value fails its schema) never freed it, so after 16 failures no sim could be created; a restore that one plugin rejected leaked what the others prepared; `dispose` was not idempotent, left the Rapier event queue allocated, and later calls failed with unrelated errors. Fix: §3.1 (checks before allocation, `PreparedRestore.discard`, idempotent `dispose`, `SimDisposedError`).
+7. **canonicalJson and non-plain objects (content audit).** `canonicalJson` wrote a `Date`, `Map`, `Set`, typed array or class instance as `{}`, so different dates hashed the same. Fix: it throws `CanonicalJsonError` for anything but arrays and plain objects (prototype `Object.prototype` or `null`), as it already did for NaN, undefined and functions; every failure is now that type. Content converts TOML dates to ISO strings before hashing.
 
 ## 11. Exit criteria
 
