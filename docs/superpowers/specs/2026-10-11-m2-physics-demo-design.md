@@ -1,70 +1,114 @@
 # M2.1b Physics demo `examples/physics/bodies-2d` (lane **sim**): design
 
-- **Status:** drafted 2026-10-11 by the M2 specs thread; awaiting Owner review with the [M2 milestone spec](./2026-10-11-m2-deterministic-core-design.md).
-- **Task:** M2.1b, the demo M2.1 (PR #9) listed as waiting on `base-2d` ([`examples/README.md`](../../../examples/README.md)). Plan: [m2-physics-demo](../plans/2026-10-11-m2-physics-demo.md).
-- **Owns:** `examples/physics/bodies-2d/`; the `physics/bodies-2d` row in `examples/README.md`.
-- **Waits on:** #9 (physics) and #10 (`base-2d`) on `main`; M2.3's `replayGolden` for the golden (until M2.3 merges, the golden is a final-hash test like base-2d's `golden.test.ts`, swapped for `replayGolden` afterwards).
-- **Needs from integration (`base-2d`):** a way to add a layer to base-2d's renderer. `Renderer` (`examples/base-2d/src/render/renderer.ts:50`) exposes `apply`, `draw`, `reset`, `fit`, `playerPixel` and `destroy`, but no container. The request: `addLayer(layer: Container, above: 'tiles' | 'player')` on `Renderer`. The demo does not edit base-2d's files.
-- **Builds from:** the [M2.1 physics spec](./2026-10-11-m2-sim-physics-design.md) §3.3 (components, spawn helpers, what makes a Rapier object), §3.4 (systems and phases, paired collision events); base-2d's `createBaseSim({ room, plugins })`, `Player` (subpixel position, `SUB = 256`, 8 px tiles, y down), `moveCommand`, input, screens.
+- **Status:** drafted 2026-10-11 by the M2 specs thread; revised after the PR #12 audit (base-2d checked at PR #10 head `ab4f857`); awaiting Owner review with the [M2 milestone spec](./2026-10-11-m2-deterministic-core-design.md).
+- **Task:** M2.1b, the demo M2.1 (PR #9, merged as `d556d23`) listed as waiting on `base-2d` ([`examples/README.md`](../../../examples/README.md)). Plan: [m2-physics-demo](../plans/2026-10-11-m2-physics-demo.md).
+- **Waits on:** `base-2d` (#10, open) on `main`. Nothing else: #9 is merged; the golden starts as a final-hash test and becomes a `replayGolden` when M2.3 merges.
+- **Needs from integration (base-2d), asked through the coordinator:** (1) `startGame` is not exported and builds its sims with a bare `createBaseSim()` (`src/game.ts:24,40,91`); the request is to export it with options `{ plugins?, onRound?(sim), layers? }`, so a demo adds plugins, spawns per round and adds layers without copying the game loop. (2) A `./sim` export (§3.4). The demo edits no base-2d file.
+- **Builds from:** the [M2.1 physics spec](./2026-10-11-m2-sim-physics-design.md) §3.3 (components, spawn helpers) and §3.4 (systems and phases, paired collision events); base-2d at #10 head `ab4f857`: `createBaseSim({ room?, plugins? })` (`src/base-sim.ts:8-21`), `Player` (hitbox top-left in subpixels, `SUB = 256`, 8 px tiles, y down; `src/sim/player.component.ts`), `moveCommand`, and the `@af-examples/base-2d/render` entry with `createRenderer` and `Renderer.addLayer(layer: RendererLayer): () => void` (`src/render/renderer.ts:55-80`, drawn above the tiles, under the light map and under Wick).
 
 ## 1. What it shows
 
-One thing: **Rapier bodies living in a base-2d room.** Crates and balls fall, tumble and settle on the room's platforms; Wick shoves them as he walks; `B` drops a new ball above him. Contact events puff a little dust.
+One thing: **Rapier bodies living in a base-2d room.** Crates and balls fall, tumble and settle on the room's platforms; Wick shoves them as he walks; `B` drops a new ball above him.
 
-## 2. How it works (the one `main.ts` a reader learns from)
+## 2. Ownership
+
+| Owns | Must not touch |
+|---|---|
+| `examples/physics/bodies-2d/` (package `@af-examples/physics-bodies-2d`, private); the `physics/bodies-2d` row in `examples/README.md`; in `tooling/check-boundaries/src/check.ts`, the two physics entries in `IMPORT_ALLOWED` and an `--allow-import` option (§3.4; agreed in [04 How we build](../../04-how-we-build.md)'s sim row) | `examples/base-2d/` (integration: requests go through the coordinator); `packages/physics/` (merged; a bug found here is a separate fix PR); every other package |
+
+## 3. How it works
+
+### 3.1 Files
+
+The examples rule is "one entry file a reader learns from" ([`examples/README.md`](../../../examples/README.md)). `check-style` puts every `define*` call in a file with its role suffix, so the sim definitions cannot live in `main.ts`. The demo keeps that split small and says so in `main.ts`'s header:
+
+| File | What |
+|---|---|
+| `main.ts` | The entry and the lesson: calls base-2d's `startGame` with the plugins, an `onRound` that spawns the room colliders and bodies, the layer, and the `B` key. Its header names the files below. |
+| `src/sim/bodies.plugin.ts` | `definePlugin` with the systems, the command, the tag components and the resource below |
+| `src/sim/bodies.component.ts` | `Crate`, `Ball`, `Wall`, `WickBody` tags (rendered, so the layer can tell bodies apart: `RigidBody2D` and `Collider2D` are `render: false`, `packages/physics/src/physics-2d.component.ts:26,46`) |
+| `src/sim/drop-ball.command.ts`, `src/sim/bodies.system.ts`, `src/sim/balls.resource.ts` | The command; `bodies.follow-wick` and `bodies.drop-ball`; the ball counter |
+| `src/sim/room-colliders.ts` | A plain function from base-2d's parsed room to wall rectangles |
+| `src/layer.ts` | The `RendererLayer`: one sprite per body |
+| `src/art/sprites.ts`, `src/art/PROVENANCE.md` | Two 8×8 sprites |
+
+No HUD, no particles, no new screens: the demo shows bodies, and nothing it adds distracts from that.
+
+### 3.2 Sim
 
 - **Units.** One tile is one metre (8 px). Positions convert at the edges only: `metres = pixels / 8`. Gravity is `{ x: 0, y: 30 }` (y down, as base-2d), tuned by eye; it is in the physics plugin's config, so it is part of the schema hash (#9 §10.8).
-- **Room.** At setup (outside `step`, like base-2d's player spawn) each horizontal run of `#` tiles becomes one lone cuboid collider (`transform2d` + `collider2d.cuboid`), so the room is a few dozen colliders, not hundreds.
-- **Bodies.** Six crates (`collider2d.cuboid(0.5, 0.5, { friction: 0.8 })`) and four balls (`collider2d.ball(0.4, { restitution: 0.5 })`), dynamic, spawned at fixed places from the demo's content.
-- **Wick.** A kinematic-position body with a capsule collider follows the `Player` component. A demo system `bodies.follow-wick` runs in `prePhysics` before `physics2d.sync-in`, copying the player's hitbox centre into the body's `Transform2D`. Wick moves in `gameplay`, after physics, so the body lags him by one tick, which is invisible at 60 Hz. Wick's own movement still collides with tiles only: he pushes bodies but never stands on them (standing would need base-2d's movement to read physics, a game decision, not the demo's).
-- **Dropping a ball.** A `drop-ball` command (no payload); the demo's input sends it on `B` or the touch button. Its system spawns a ball 2 m above Wick. Commands are the only input (A0+A1 §4.4).
-- **Dust.** `physics2d.collision-started` events with a crate or ball reach the renderer through `StepResult.events`; the demo draws a 4-frame dust puff at the contact's lower body. Presentation only.
-
-## 3. Sim plugin
+- **Room.** At setup (outside `step`, like base-2d's player spawn in `createBaseSim`) each horizontal run of solid tiles becomes one fixed cuboid (`transform2d` + `collider2d.cuboid` + `Wall`), so the room is a few dozen colliders, not hundreds.
+- **Bodies.** Six crates (`collider2d.cuboid(0.5, 0.5, { friction: 0.8 })` + `Crate`) and four balls (`collider2d.ball(0.4, { restitution: 0.5 })` + `Ball`), dynamic, at fixed places listed in `main.ts`.
+- **Wick.** A kinematic-position body with a capsule collider and `WickBody`. `bodies.follow-wick` runs in `prePhysics`, `before: ['physics2d.sync-in']`, and copies the `Player` hitbox centre into that body's `Transform2D`. base-2d moves Wick in `player.move`, which is in the `physics` phase (`src/sim/player-move.system.ts:25`) next to `physics2d.step`; the schedule breaks the tie by name (`packages/sim/src/schedule/schedule.ts:54`), so `physics2d.step` runs first, every time, in every engine. The body therefore follows Wick one tick late, which is invisible at 60 Hz. Wick's own movement still collides with tiles only: he pushes bodies but never stands on them (standing would need base-2d's movement to read physics, a game decision, not the demo's).
+- **Dropping a ball.** A `drop-ball` command with an empty payload; `bodies.drop-ball` (phase `gameplay`) spawns a ball 2 m above Wick and increments the `Balls` resource. When `Balls.count` is 64 the system ignores the command, so the scene stays cheap on phones. Commands are the only input (A0+A1 §4.4).
 
 ```ts
-export const bodiesDemoPlugin = definePlugin({
-  name: 'bodies-demo',
-  dependsOn: ['physics-2d', 'base-2d'],    // plugin names as registered
-  components: [WickBody],                   // marks the kinematic body
+export const bodiesPlugin = definePlugin({
+  name: 'bodies',
+  dependsOn: ['physics-2d', 'base-2d'],
+  components: [Crate, Ball, Wall, WickBody],
+  resources: [Balls],
   commands: [DropBall],
-  systems: [followWickSystem, dropBallSystem],
+  systems: [followWick, dropBall],
 })
-createBaseSim({ plugins: [physics2d({ gravity: { x: 0, y: 30 } }), bodiesDemoPlugin] })
+// main.ts
+createBaseSim({ plugins: [physics2d({ gravity: { x: 0, y: 30 } }), bodiesPlugin] })
 ```
 
-`examples/physics/bodies-2d/src/sim/` is added to the demo's `check-boundaries` run (master spec §5: every package with sim plugins).
+### 3.3 Rendering
 
-## 4. Rendering
+`main.ts` passes a `RendererLayer` to `renderer.addLayer`. Its `apply(result)` reads `Transform2D` rows from the step's `RenderDelta` (`added`, `changed`, `removed`, `resync`) for entities that carry `Crate` or `Ball` (walls are tiles already, so they draw nothing), and places one sprite each at pixel = metres × 8, rotated by `rotation`, snapped to whole pixels. `reset()` clears the sprites for a new round. The layer sits under the light map, so Wick's lantern lights the crates like the room.
 
-A Pixi `Container` added through base-2d's `addLayer(…, 'player')`: one sprite per body, positioned from `Transform2D` rows in each `RenderDelta` (`added`, `changed`, `removed`, `resync`), at pixel = metres × 8, rotated by `rotation`, snapped to whole pixels for the crisp pixel look. Crate and ball sprites are new 8×8 palette-indexed pixel maps in the demo's `src/art/sprites.ts` (Endesga 64 only): a moss-banded wooden crate and a lantern-glass ball that catches Wick's light, in base-2d's original Emberwick style. No reference game's sprites are copied. Provenance in `src/art/PROVENANCE.md`.
+Crate and ball are new 8×8 palette-indexed pixel maps (Endesga 64 only): a moss-banded wooden crate and a lantern-glass ball, in base-2d's original Emberwick style. No reference game's sprites are copied. Provenance in `src/art/PROVENANCE.md`.
 
-## 5. Controls, layout, input
+### 3.4 Boundaries
 
-`←`/`→` walk, `Z`/`Space` jump (base-2d), `B` drop a ball, `Esc` pause. Touch: base-2d's touch controls plus a 48 px `B` button in the corner controls area. Phone portrait, 780×270 and desktop all show the whole room (base-2d's letterbox). No new `ui` primitives.
+`IMPORT_ALLOWED` (`tooling/check-boundaries/src/check.ts:96-106`) has neither `@mcthaydt/automata-physics/2d` nor any game's own sim package, so the demo's `src/sim` fails `check-boundaries` as it stands. The same wall stops any game whose sim imports physics. This task adds:
+
+- `@mcthaydt/automata-physics/2d` and `/3d` to `IMPORT_ALLOWED`, with the sim entries' reason: they are checked sources themselves (the root `boundaries` script checks `packages/physics/src`).
+- `--allow-import <specifier>` (repeatable): a game passes the sim entry of another package it also checks. The demo's script is `check-boundaries src/sim --allow-import @af-examples/base-2d/sim`.
+- A request to integration: a `./sim` export on base-2d pointing at `src/sim/index.ts` (already sim-only). The package root re-exports boot code that imports `@ruken/sdk`, so the demo's sim must not import it.
+
+M2.4 renames the package and threads the option through `game-ci.yml` (`allow-imports` input).
+
+## 4. Controls, layout, input
+
+`←`/`→` walk, `Z`/`Space` jump, `Esc` pause (all base-2d), `B` drop a ball. Touch: base-2d's controls plus one 48 px `B` button in the same corner group. Phone portrait, 780×270 and desktop show the whole room (base-2d's letterbox). No new `ui` primitives.
+
+## 5. Lifecycle
+
+Boot is base-2d's: handshake, then ready, then the first round. Each round makes a fresh sim (base-2d's `rounds.ts`), so `main.ts`'s `onRound` spawns colliders and bodies per round, the layer's `reset()` drops the old sprites, and the `Balls` count restarts at 0. Pause stops stepping; the bodies freeze where they are. Dispose is base-2d's: the sim and the Rapier world go with the round.
 
 ## 6. Failure policy
 
 | Case | Behaviour |
 |---|---|
-| Rapier fails to load | The demo shows base-2d's error panel with Try again (the `createSim` rejection, #9 §5) |
-| More than 64 balls | `drop-ball` is rejected by its system's guard (a resource counter), so the scene stays cheap on phones; the HUD shows `64 / 64` |
+| Rapier fails to load (`createSim` rejects, #9 §5) | base-2d's boot failure: the plain message "This device can't run the game." and `data-state="failed"` (base-2d `main.ts`); no retry, as in base-2d |
+| A round's sim cannot be made | base-2d's terminal failure path (`src/failure.ts`) |
+| `drop-ball` at 64 balls | Ignored by the system; nothing else changes |
 | A hash differs in one engine | A failure; never rebaselined per engine |
 
 ## 7. Tests
 
-| Test | What |
-|---|---|
-| `bodies.test.ts` (Node) | The room becomes the expected number of merged colliders; a crate dropped on a platform comes to rest on its top (y within 0.01 m) within 120 ticks; walking right into a crate moves it right; `drop-ball` spawns a ball 2 m above Wick; the 65th is refused |
-| `bodies.golden.test.ts` (Node and browsers) | A scripted 600-tick run (walk right pushing crates, jump, drop five balls, walk back) as a `replayGolden` with `snapshotEvery: 10`, identical in Node, Chromium, WebKit and Firefox (milestone exit 3) |
-| `smoke.test.ts` | Boots under the fake Ruken host, reaches ready, no console errors, no CSP violations (Rapier's wasm needs `'wasm-unsafe-eval'`, which Ruken's CSP allows, S2) |
-| Journey (nightly, GPU runner) | Phone portrait and 780×270: walk into a crate and see it move (its sprite's x changes) |
+| Test | What | Expected first failure |
+|---|---|---|
+| `src/sim/room-colliders.test.ts` (Node) | base-2d's `ROOM` becomes the hand-counted number of rectangles; the first three match | module missing |
+| `src/sim/bodies.test.ts` (Node) | a crate dropped on a platform rests on its top (y within 0.01 m) within 120 ticks; walking right into a crate moves it right; `drop-ball` spawns 2 m above Wick; the 65th does nothing | plugin missing |
+| `tooling/check-boundaries/src/check.test.ts` (Node) | an import of `@mcthaydt/automata-physics/2d` passes; `@af-examples/base-2d/sim` fails without `--allow-import` and passes with it | the import is reported |
+| `src/art/art.test.ts` | every pixel is an Endesga 64 index | module missing |
+| `src/golden.test.ts`, `src/golden.parity.test.ts` | a scripted 600-tick run (walk right pushing crates, jump, drop five balls, walk back): a final-hash golden like base-2d's; after M2.3, `replayGolden` with `snapshotEvery: 10`. Identical in Node, Chromium, WebKit and Firefox (milestone exit 3) | no golden file |
+| `src/boot.test.ts` | boots under the fake Ruken host, reaches ready, no console errors, no CSP violations (Rapier's wasm needs `'wasm-unsafe-eval'`, which Ruken's CSP allows, S2) | `main.ts` missing |
+| Journey (nightly, GPU runner; root `playwright.config.ts`) | phone portrait and 780×270: walk into a crate and its sprite's x changes | project missing |
 
-## 8. Header of `main.ts`
+## 8. Feedback workflow
 
-What it shows; controls; base `@af-examples/base-2d`; packages `@mcthaydt/automata-sim`, `@mcthaydt/automata-physics/2d`.
+`pnpm vitest run src/sim/bodies.test.ts` while writing systems; `pnpm --filter @af-examples/physics-bodies-2d test:parity` for the golden; `pnpm check` (boundaries and style) before each commit; `pnpm ci:local` before calling the PR green. The journey runs on the GPU runner on request (`AGENTS.md`).
 
-## 9. Exit criteria
+## 9. Ruken alignment
+
+Nothing new crosses the host boundary: the demo is base-2d's game with a plugin, so handshake, ready and rounds are base-2d's. CSP: Rapier needs `'wasm-unsafe-eval'`, which Ruken allows; the demo adds no `eval`.
+
+## 10. Exit criteria
 
 1. Every test in §7 green locally, each seen failing first; parity identical in four engines.
 2. Screenshots (phone portrait, 780×270, desktop; crates at rest and mid-tumble) in `evidence/`, shown to the Owner before promotion.
