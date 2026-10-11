@@ -1,16 +1,22 @@
 import type { Command, StepResult } from '@mcthaydt/automata-sim'
-import type { Container } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { readPlayer } from './base-sim.ts'
 import { ROOM, type Room, type RoomSource } from './content/room.ts'
 import type { Held } from './input/keys.ts'
 import { STEP_MS } from './loop.ts'
 import { createPlay, type PlaySeams } from './play-room.ts'
-import type { Renderer } from './render/renderer.ts'
+import type { Renderer, RendererLayer } from './render/renderer.ts'
 
 /** A renderer that records what it was given instead of drawing. */
 function fakeRenderer(room: Room) {
-  const log = { room: room.id, applied: 0, draws: 0, resets: 0, destroyed: false }
+  const log = {
+    room: room.id,
+    applied: 0,
+    draws: 0,
+    resets: 0,
+    destroyed: false,
+    layers: [] as RendererLayer[],
+  }
   const renderer: Renderer = {
     apply: () => {
       log.applied++
@@ -23,7 +29,11 @@ function fakeRenderer(room: Room) {
     },
     fitToHost: () => {},
     playerPixel: () => ({ x: 1, y: 2 }),
-    layer: { label: `layer of ${room.id}` } as unknown as Container,
+    addLayer: (layer) => {
+      log.layers.push(layer)
+      return () => log.layers.splice(log.layers.indexOf(layer), 1)
+    },
+    isLitByRoom: () => true,
     destroy: () => {
       log.destroyed = true
     },
@@ -83,20 +93,29 @@ describe('createPlay', () => {
     play.destroy()
   })
 
-  it("sends the demo's own commands with the move, and hands it the renderer's layer each frame", async () => {
+  it("sends the demo's own commands with the move", async () => {
     const s = seams()
-    const sent: Command[][] = []
-    const drawn: string[] = []
+    const rejected: string[] = []
     const play = await createPlay(s.play, {
       commands: (sim) => [{ tick: sim.tick, source: 0, seq: sim.tick + 1000, type: 'nothing', payload: {} }],
-      onStep: (result) => sent.push([...result.rejected.map((rejected) => rejected.command)]),
-      onDraw: (layer, sim) => drawn.push(`${(layer as unknown as { label: string }).label} at ${sim.tick}`),
+      onStep: (result) => rejected.push(...result.rejected.map((each) => each.command.type)),
     })
     play.start()
     s.frame()
     // The base's sim knows no 'nothing' command, so it reports it: proof it was sent alongside the move.
-    expect(sent[0]?.map((command) => command.type)).toEqual(['nothing'])
-    expect(drawn).toEqual(['layer of room-1 at 1'])
+    expect(rejected).toEqual(['nothing'])
+    play.destroy()
+  })
+
+  it("adds the demo's layers to the renderer, and to the new one when the room changes", async () => {
+    const s = seams()
+    const layer = { view: {} } as RendererLayer
+    const play = await createPlay(s.play, { layers: [layer] })
+    expect(s.renderers[0]?.layers).toEqual([layer])
+    await play.restart(shifted)
+    expect(s.renderers[1]?.layers).toEqual([layer])
+    // Taken back from the old renderer before it was destroyed, so destroying it did not destroy them.
+    expect(s.renderers[0]?.layers).toEqual([])
     play.destroy()
   })
 

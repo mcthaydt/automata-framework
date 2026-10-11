@@ -15,12 +15,14 @@ import '@fontsource/pixelify-sans/latin-400.css'
 import '@fontsource/pixelify-sans/latin-700.css'
 import '@af-examples/base-2d/style.css'
 import './bodies-panel.css'
-import { endesga, playRoom, ROOM } from '@af-examples/base-2d'
+import { endesga, ROOM } from '@af-examples/base-2d'
+import { type PlayRoom, playRoom } from '@af-examples/base-2d/play'
+import type { RendererLayer } from '@af-examples/base-2d/render'
 import { makeHosting } from '@mcthaydt/automata-host'
 import { BodyKind, Collider2D, RigidBody2D, ShapeKind, Transform2D } from '@mcthaydt/automata-physics/2d'
 import type { Command, Sim } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
-import { type Container, Graphics } from 'pixi.js'
+import { Container, Graphics } from 'pixi.js'
 import { createBodiesSim, Drop, PX_PER_M } from './sim/bodies.plugin.ts'
 
 /** Must equal `[game] id` in ship.config.ts; the host checks it. */
@@ -47,12 +49,18 @@ function dropCommands(sim: Sim): Command[] {
 }
 
 /**
- * Draws every dynamic body from the sim's state, one Graphics per body, in room pixels (y flips). A crate is
- * a wooden box, a stone a glowing pebble, both in Endesga 64 and under the room's lighting.
+ * The bodies, as a layer on the base's renderer: each display frame it draws every dynamic body from the
+ * sim's state, one Graphics per body, in room pixels (y flips). A crate is a wooden box, a stone a glowing
+ * pebble, both in Endesga 64; the layer sits under the room's light map, so the lantern lights them too.
+ * (render-pixi, M1.7, will drive views from the sim's RenderDelta; reading the sim's state each frame is the
+ * simple way for now.)
  */
-function createBodyViews(roomHeightPx: number) {
+function bodiesLayer(roomHeightPx: number, currentSim: () => Sim | undefined): RendererLayer {
+  const layer = new Container()
   const views = new Map<number, Graphics>()
-  return (layer: Container, sim: Sim) => {
+  const draw = () => {
+    const sim = currentSim()
+    if (sim === undefined) return
     const seen = new Set<number>()
     for (const body of sim.query(Transform2D, RigidBody2D, Collider2D)) {
       if (body.get(RigidBody2D).kind !== BodyKind.dynamic) continue
@@ -89,6 +97,12 @@ function createBodyViews(roomHeightPx: number) {
     }
     root.dataset.bodies = String(seen.size)
   }
+  // A new round (or room) starts from fresh bodies: forget the old views.
+  const reset = () => {
+    for (const view of views.values()) view.destroy()
+    views.clear()
+  }
+  return { view: layer, draw, reset }
 }
 
 const program = Effect.gen(function* () {
@@ -102,8 +116,9 @@ const program = Effect.gen(function* () {
     counter.textContent = `Collisions: ${bumps}`
     root.dataset.bumps = String(bumps)
   }
-  const drawBodies = createBodyViews(ROOM.rows.length * ROOM.tileSize)
-  const play = yield* Effect.promise(() =>
+  let play: PlayRoom | undefined
+  const bodies = bodiesLayer(ROOM.rows.length * ROOM.tileSize, () => play?.sim())
+  play = yield* Effect.promise(() =>
     playRoom(root, {
       createSim: createBodiesSim,
       commands: dropCommands,
@@ -114,7 +129,7 @@ const program = Effect.gen(function* () {
           showBumps()
         }
       },
-      onDraw: drawBodies,
+      layers: [bodies],
     }),
   )
   // A touch button for drops, beside the base's move and jump buttons.

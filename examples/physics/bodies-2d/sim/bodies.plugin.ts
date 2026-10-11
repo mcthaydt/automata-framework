@@ -84,7 +84,10 @@ function bodiesPlugin(roomHeightPx: number): PluginDef {
             const oldest = loose[0]
             if (loose.length >= MAX_LOOSE && oldest !== undefined) ctx.despawn(oldest.sid)
             const at = wickCentre(wick.get(Player), roomHeightPx)
-            const parts = ctx.tick % 2 === 0 ? crate(at.x, at.y + 1.25) : stone(at.x, at.y + 1.25)
+            // A small sideways nudge that changes with the tick, so drops on one spot topple into a pile
+            // instead of balancing in a perfect column.
+            const x = at.x + ((ctx.tick % 5) - 2) * 0.05
+            const parts = ctx.tick % 2 === 0 ? crate(x, at.y + 1.25) : stone(x, at.y + 1.25)
             ctx.spawn(...parts)
           }
         },

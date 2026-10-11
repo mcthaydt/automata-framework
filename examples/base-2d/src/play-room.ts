@@ -1,11 +1,10 @@
 import type { Command, Sim, StepResult } from '@mcthaydt/automata-sim'
-import type { Container } from 'pixi.js'
 import { createBaseSim, moveCommand } from './base-sim.ts'
 import { parseRoom, ROOM, type Room, type RoomSource } from './content/room.ts'
 import { createInputDevices } from './input/devices.ts'
 import { type Held, toMove } from './input/keys.ts'
 import { createLoop } from './loop.ts'
-import { createRenderer, type Renderer } from './render/renderer.ts'
+import { createRenderer, type Renderer, type RendererLayer } from './render/renderer.ts'
 
 // The room, playable, with nothing around it: what a feature demo starts from (examples/README.md). The base's
 // own game (game.ts) adds the splash, menu, pause and end screens; a demo gets the room, the character, input
@@ -20,11 +19,8 @@ export interface PlayRoomOptions {
   readonly commands?: (sim: Sim) => readonly Command[]
   /** After every sim step, with that step's result. */
   readonly onStep?: (result: StepResult, sim: Sim) => void
-  /**
-   * Each display frame, before the room is drawn: `layer` is the renderer's layer for the demo's own sprites
-   * (above the room, under its lighting).
-   */
-  readonly onDraw?: (layer: Container, sim: Sim, time: number) => void
+  /** The demo's own drawing (`Renderer.addLayer`): above the room, under its lighting, in room pixels. */
+  readonly layers?: readonly RendererLayer[]
 }
 
 export interface PlayRoom {
@@ -110,7 +106,15 @@ export async function playRoom(root: HTMLElement, options: PlayRoomOptions = {})
 export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}): Promise<PlayRoom> {
   const makeSim = options.createSim ?? ((room: RoomSource) => createBaseSim({ room }))
   let source = options.room ?? ROOM
-  let renderer = await seams.createRenderer(parseRoom(source))
+  // Every renderer, the first and each one a new room brings, draws the demo's layers. A renderer being
+  // replaced gives them back first: destroying it destroys everything still in it.
+  const withLayers = async (room: RoomSource) => {
+    const made = await seams.createRenderer(parseRoom(room))
+    return { made, detach: (options.layers ?? []).map((layer) => made.addLayer(layer)) }
+  }
+  const first = await withLayers(source)
+  let renderer = first.made
+  let detachLayers = first.detach
   let sim = await makeSim(source)
   let latest = 0
   let queue: Promise<unknown> = Promise.resolve()
@@ -127,9 +131,7 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
       options.onStep?.(result, sim)
     },
     onFrame: () => {
-      const time = seams.now()
-      options.onDraw?.(renderer.layer, sim, time)
-      renderer.draw(time)
+      renderer.draw(seams.now())
       seams.onFrame?.(renderer, sim)
     },
   })
@@ -155,20 +157,29 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
       const run = queue.then(async () => {
         if (restart !== latest) return
         const next = room ?? source
-        const freshRenderer = room === undefined ? null : await seams.createRenderer(parseRoom(next))
-        const freshSim = await makeSim(next).catch((error: unknown) => {
-          freshRenderer?.destroy()
-          throw error
-        })
+        const freshSim = await makeSim(next)
+        // Nothing steps while the sims and renderers change hands.
         loop.stop()
+        if (room === undefined) renderer.reset()
+        else {
+          // A view has one parent, so the layers leave the old renderer before the new one takes them; if the
+          // new one cannot be made, they go back and the old room plays on.
+          for (const detach of detachLayers) detach()
+          try {
+            const fresh = await withLayers(next)
+            renderer.destroy()
+            renderer = fresh.made
+            detachLayers = fresh.detach
+          } catch (error) {
+            detachLayers = (options.layers ?? []).map((layer) => renderer.addLayer(layer))
+            freshSim.dispose()
+            if (running) loop.start()
+            throw error
+          }
+        }
         sim.dispose()
         sim = freshSim
         source = next
-        if (freshRenderer === null) renderer.reset()
-        else {
-          renderer.destroy()
-          renderer = freshRenderer
-        }
         renderer.draw(seams.now())
         if (running) loop.start()
       })

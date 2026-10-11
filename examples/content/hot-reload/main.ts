@@ -16,7 +16,7 @@ import '@fontsource/pixelify-sans/latin-700.css'
 import '@af-examples/base-2d/style.css'
 import './content-panel.css'
 import { content, contentHash } from 'virtual:automata/content'
-import { type PlayRoom, playRoom } from '@af-examples/base-2d'
+import { type PlayRoom, playRoom } from '@af-examples/base-2d/play'
 import { makeHosting } from '@mcthaydt/automata-host'
 import { Effect } from 'effect'
 
