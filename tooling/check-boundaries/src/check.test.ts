@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test } from 'vitest'
 import { checkSource } from './check'
+import { collectSources } from './files'
 
 const fixture = (name: string) => {
   const path = join(import.meta.dirname, '../fixtures', name)
@@ -31,6 +32,13 @@ test.each([
   ['reflect-destructure.ts', 'key-enumeration', 1, 21],
   ['locale-compare.ts', 'locale', 1, 44],
   ['intl.ts', 'banned-global', 1, 22],
+  // Audit bypasses (2026-10-11): each typechecked and passed before these rules.
+  ['constructor-access.ts', 'banned-member', 1, 18], // reaches Function without naming it
+  ['template-key.ts', 'key-enumeration', 1, 18],
+  ['dynamic-key.ts', 'key-enumeration', 2, 18],
+  ['global-weakref.ts', 'banned-global', 1, 22], // GC timing
+  ['global-shared-buffer.ts', 'banned-global', 1, 22], // shared memory between threads
+  ['global-atomics.ts', 'banned-global', 1, 18],
 ] as const)('%s -> %s at %i:%i', (file, rule, line, col) => {
   const findings = fixture(file)
   expect(findings.map((f) => [f.rule, f.line, f.col])).toEqual([[rule, line, col]])
@@ -43,4 +51,17 @@ test('util/sorted.ts may enumerate keys (it is the sanctioned implementation); o
 
 test('syntax errors are reported as a finding, not a crash', () => {
   expect(checkSource('/x/bad.ts', 'const = 1').map((f) => f.rule)).toEqual(['parse-error'])
+})
+
+test('a relative import that leaves the source root is reported; one inside it is not', () => {
+  const root = '/repo/packages/sim/src'
+  const file = `${root}/world/sim.ts`
+  const src = "import { a } from '../util/sorted'\nimport { b } from '../../../content/src/x'\n"
+  expect(checkSource(file, src, { root }).map((f) => [f.rule, f.line])).toEqual([['import', 2]])
+})
+
+test('collectSources finds every TS and JS module kind, skipping tests, declarations and other files', () => {
+  const dir = join(import.meta.dirname, '../fixtures/tree')
+  const names = collectSources(dir).map((f) => f.slice(dir.length + 1).replaceAll('\\', '/'))
+  expect(names).toEqual(['a.ts', 'b.mts', 'c.cts', 'nested/d.js'])
 })

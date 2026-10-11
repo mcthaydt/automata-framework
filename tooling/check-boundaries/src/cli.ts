@@ -1,16 +1,10 @@
-// Usage: node tooling/check-boundaries/src/cli.ts <dir> [<dir>...]
-// Checks every non-test .ts file under each directory; exits 1 on any finding.
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
+// Usage: node tooling/check-boundaries/src/cli.ts <root> [<root>...]
+// Each root is a sim source folder (packages/sim/src, a sim-plugin package, a game's sim folder). Checks
+// every non-test source file under it, and that relative imports stay inside it; exits 1 on any finding.
+import { readFileSync } from 'node:fs'
+import { relative } from 'node:path'
 import { checkSource, type Finding } from './check.ts'
-
-function collect(dir: string, out: string[]): void {
-  for (const name of readdirSync(dir).sort()) {
-    const path = join(dir, name)
-    if (statSync(path).isDirectory()) collect(path, out)
-    else if (name.endsWith('.ts') && !name.endsWith('.test.ts') && !name.endsWith('.d.ts')) out.push(path)
-  }
-}
+import { collectSources } from './files.ts'
 
 const dirs = process.argv.slice(2)
 if (dirs.length === 0) {
@@ -18,8 +12,13 @@ if (dirs.length === 0) {
   process.exit(2)
 }
 const files: string[] = []
-for (const d of dirs) collect(d, files)
-const findings: Finding[] = files.flatMap((f) => checkSource(f, readFileSync(f, 'utf8')))
+const findings: Finding[] = []
+for (const root of dirs) {
+  for (const file of collectSources(root)) {
+    files.push(file)
+    findings.push(...checkSource(file, readFileSync(file, 'utf8'), { root }))
+  }
+}
 for (const f of findings)
   console.log(`${relative(process.cwd(), f.file)}:${f.line}:${f.col}  ${f.rule}  ${f.message}`)
 console.log(`check-boundaries: ${files.length} files, ${findings.length} findings`)
