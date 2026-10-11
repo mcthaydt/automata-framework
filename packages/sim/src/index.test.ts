@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
 import * as sim from './index'
 import * as math from './math/dmath'
+import * as replay from './replay/index'
 
 test('the public runtime API is exactly this list (changing it is a deliberate, semver-visible act)', () => {
   expect(Object.getOwnPropertyNames(sim).sort()).toEqual([
@@ -41,5 +42,21 @@ test('deterministic math is the ./math subpath', () => {
     'pow',
     'sin',
     'tan',
+  ])
+})
+
+test('replays are the ./replay subpath', () => {
+  expect(Object.getOwnPropertyNames(replay).sort()).toEqual([
+    'DEFAULT_CHECK_EVERY',
+    'REPLAY_FORMAT',
+    'REPLAY_INFLATE_MAX_BYTES',
+    'ReplayFormatError',
+    'ReplayRecordError',
+    'createRecorder',
+    'createReplayStepper',
+    'decodeReplay',
+    'encodeReplay',
+    'packReplay',
+    'unpackReplay',
   ])
 })
