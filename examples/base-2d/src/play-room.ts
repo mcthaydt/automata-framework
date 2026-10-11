@@ -29,11 +29,11 @@ export interface PlayRoom {
   stop(): void
   /**
    * Plays again on a fresh sim, in `room` when given (a new room gets a new renderer). The loop keeps the
-   * state it had. When two restarts overlap, only the newest is kept.
+   * state it had. Restarts run one at a time; one overtaken by a newer restart is skipped.
    */
   restart(room?: RoomSource): Promise<void>
   /** Re-fits the canvas to its container. */
-  fit(): void
+  fitToHost(): void
   destroy(): void
 }
 
@@ -87,7 +87,7 @@ export async function playRoom(root: HTMLElement, options: PlayRoomOptions = {})
     },
     options,
   )
-  const onResize = () => play.fit()
+  const onResize = () => play.fitToHost()
   window.addEventListener('resize', onResize)
   return {
     ...play,
@@ -105,6 +105,7 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
   let renderer = await seams.createRenderer(parseRoom(source))
   let sim = await makeSim(source)
   let latest = 0
+  let queue: Promise<unknown> = Promise.resolve()
 
   const loop = createLoop({
     now: seams.now,
@@ -127,7 +128,7 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
   return {
     sim: () => sim,
     running: () => running,
-    fit: () => renderer.fit(),
+    fitToHost: () => renderer.fitToHost(),
     start() {
       running = true
       loop.start()
@@ -136,28 +137,34 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
       running = false
       loop.stop()
     },
-    async restart(room) {
-      // Each restart takes a number; a slower, older one throws its results away (see rounds.ts for why).
+    restart(room) {
+      // Restarts run one at a time, and one that a newer restart has overtaken is skipped before it makes
+      // anything: so quick saves or clicks never make several sims at once (Koota allows 16 worlds; see
+      // rounds.ts for the same rule in the base's own game).
       const restart = ++latest
-      const next = room ?? source
-      const freshRenderer = room === undefined ? null : await seams.createRenderer(parseRoom(next))
-      const freshSim = await makeSim(next)
-      if (restart !== latest) {
-        freshRenderer?.destroy()
-        freshSim.dispose()
-        return
-      }
-      loop.stop()
-      sim.dispose()
-      sim = freshSim
-      source = next
-      if (freshRenderer === null) renderer.reset()
-      else {
-        renderer.destroy()
-        renderer = freshRenderer
-      }
-      renderer.draw(seams.now())
-      if (running) loop.start()
+      const run = queue.then(async () => {
+        if (restart !== latest) return
+        const next = room ?? source
+        const freshRenderer = room === undefined ? null : await seams.createRenderer(parseRoom(next))
+        const freshSim = await makeSim(next).catch((error: unknown) => {
+          freshRenderer?.destroy()
+          throw error
+        })
+        loop.stop()
+        sim.dispose()
+        sim = freshSim
+        source = next
+        if (freshRenderer === null) renderer.reset()
+        else {
+          renderer.destroy()
+          renderer = freshRenderer
+        }
+        renderer.draw(seams.now())
+        if (running) loop.start()
+      })
+      // A failed restart is the caller's to report; the next restart still runs.
+      queue = run.catch(() => undefined)
+      return run
     },
     destroy() {
       loop.stop()

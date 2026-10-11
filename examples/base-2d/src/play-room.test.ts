@@ -20,7 +20,7 @@ function fakeRenderer(room: Room) {
     reset: () => {
       log.resets++
     },
-    fit: () => {},
+    fitToHost: () => {},
     playerPixel: () => ({ x: 1, y: 2 }),
     destroy: () => {
       log.destroyed = true
@@ -115,14 +115,14 @@ describe('createPlay', () => {
     play.destroy()
   })
 
-  it('keeps only the newest of two overlapping restarts', async () => {
+  it('skips a restart that a newer one overtook, making nothing for it', async () => {
     const s = seams()
     const play = await createPlay(s.play)
     const older = play.restart(shifted)
     const newer = play.restart()
     await Promise.all([older, newer])
-    // The older restart's renderer was made, then thrown away; the room in play is the original one.
-    expect(s.renderers.filter((log) => !log.destroyed).map((log) => log.room)).toEqual(['room-1'])
+    // The older restart never made its renderer; the room in play is the original one.
+    expect(s.renderers.map((log) => log.room)).toEqual(['room-1'])
     expect(play.sim().tick).toBe(0)
     play.destroy()
   })
