@@ -16,7 +16,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 2. Record the outcome in the [02 execution record](02-master-delivery-plan.md#execution-record-and-handoff) and tick M1.0a only on that review.
 3. Then **M1.0b**: write the M1 milestone spec (`docs/superpowers/specs/<date>-m1-blank-game-on-ruken-design.md`) at the detail in [01 Decomposition §5](01-decomposition.md#5-required-milestone-spec-and-plan-detail). Start by reading Ruken's `packages/sdk`, `packages/sdk-host/src/testing`, `packages/manifest`, `packages/validation` and `tooling/ruken-cli` at their current commit, and FloorFifty's `apps/client/src/ruken/`, `deploy/tools/ruken-pack.ts`, loading and `ui/layout/` code.
 
-Do not write an M1 task plan or product code before M1.0b is reviewed.
+**Parallel lanes (Owner, 2026-10-11):** work now runs in lanes ([04 How we build](04-how-we-build.md#lanes-2026-10-11)): ship (M1.1–M1.2), content (M1.3), host (M1.4), ui (M1.6) and sim (M2.1) in parallel, then runtime (M1.5, M1.7) after host and ui merge. Each lane writes its task spec first and is reviewed in its own PR. Decisions D-1 to D-5 run on their recommended defaults (master spec §12) until the Owner overrides them.
 
 ## Current artifacts and evidence limits
 

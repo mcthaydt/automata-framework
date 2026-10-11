@@ -171,15 +171,17 @@ Each milestone gets a spec at its start, reviewed by the Owner, then just-in-tim
 | **GAME-3D** | A 3D game built on AF 1.0 in its own repo, with its own reviewed design. A small third-person action-adventure is the current suggestion; the Owner picks the concept. 3D-only systems live in the game first. | The game's own playable, deployed and Owner-accepted evidence on Ruken |
 | **M9 3D merge** | The 3D game's proven pieces move into AF: full 3D in `render-pixi3d`, rigged character and animation pipeline, third-person camera and character controller, brush-based environment pipeline | Each merged piece passes in AF and in the 3D game, which then consumes it from AF |
 
-## 12. Open decisions for the Owner
+## 12. Decisions in force
 
-| ID | Decision | Recommendation | Blocks |
+The Owner asked on 2026-10-11 to proceed in parallel, so each decision below runs on its recommended default from that date. The Owner can override any of them; an override is recorded here and in [03 Continuation](../../03-continuation-prompt.md).
+
+| ID | Decision | Default in force (2026-10-11) | Affects |
 |---|---|---|---|
-| D-1 | `@pixi/3d` is a 0.1.0 beta from an invited program, vendored as a tarball (MIT licensed). May AF publish an extension that depends on it, and on which version? | Yes, as the `render-pixi3d` extension only, pinned to the tarball's version and re-vendored per beta; core never depends on it | M3 |
-| D-2 | Adoption scope for the reference games in M8 (and the 3D game's concept before GAME-3D) | A slice each (FloorFifty: host + loading + layout; The Last Light: puzzle + sectors), not full migration | M8 |
-| D-3 | Lint and format: keep Biome or move to Ruken's ESLint + Prettier | Keep Biome until M1.1 measures the cost of switching; the sim's `useExponentiationOperator` rule must survive either way | M1.1 |
-| D-4 | Standalone hosting provider | Decide in the M1 spec between Cloudflare Pages/R2 and FloorFifty's existing Caddy VM pattern | M1 |
-| D-5 | Whether a dedicated Linux GPU runner is still needed | Reuse the existing runners in M1 and decide from measured queue times | M1 |
+| D-1 | May AF publish an extension that depends on the `@pixi/3d` 0.1.0 beta (invited program, MIT licensed, vendored tarball)? | Yes, in `render-pixi3d` only, pinned to the vendored tarball and re-vendored per beta; core never depends on it | M3 |
+| D-2 | Adoption scope for the reference games in M8, and the 3D game's concept | A slice each (FloorFifty: host, loading and layout; The Last Light: puzzle and sectors), not full migration. The 3D game's concept is chosen at GAME-3D.0. | M8, GAME-3D |
+| D-3 | Lint and format | Keep Biome. Revisit only if aligning with Ruken's ESLint + Prettier becomes necessary; the sim's `useExponentiationOperator` rule must survive either way | M1.1 |
+| D-4 | Standalone hosting | Reuse FloorFifty's proven pattern: a Caddy static host with a build per URL (`/builds/<buildId>/`) and the live release at `/`. `ship` keeps the provider behind a deploy step, so a later move to Cloudflare Pages/R2 does not change games. | M1.2 |
+| D-5 | GPU runner | Reuse the Owner's existing runners (the WSL Linux runner and the Windows GPU runner). Until they are wired to AF, every CI job, including parity, is also run locally before a PR is called green (hosted Actions jobs are not getting runners). No new Linux GPU box. | M1.1 |
 
 ## 13. Risks
 

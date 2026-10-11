@@ -148,7 +148,7 @@ Every plan names exact create/modify/test files, consumed and produced interface
 
 | Item | Blocks | Status |
 |---|---|---|
-| Owner review of the Ruken-first spec, extraction map, ADRs 0002–0004 and decisions D-1 to D-5 | M1 spec | Pending |
+| Owner review of the Ruken-first spec, extraction map, ADRs 0002–0004 and decisions D-1 to D-5 | Nothing (defaults in force since 2026-10-11; an override may change lane work) | Pending |
 | Ruken package publication (`@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`) or permission to vendor tarballs from `mcthaydt/RukenApp` | M1.2, M1.4 | Unpublished (Ruken gates it on `NPM_PUBLISH_READY` and M0.3) |
 | Ruken F1 contract freeze (`contracts-f1` tag) | Re-vendor after M1.4 | Planned 2026-10-16; not cut as of 2026-10-11 |
 | Ruken `[store]` manifest section | M7 `store` | Not built in Ruken |

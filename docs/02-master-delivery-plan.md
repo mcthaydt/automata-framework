@@ -19,15 +19,15 @@ Each milestone starts with its spec (`docs/superpowers/specs/YYYY-MM-DD-<slug>-d
 
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
-| [ ] | M1.0a — Owner review of the Ruken-first restructure | The [master spec](superpowers/specs/2026-10-11-automata-framework-ruken-first-design.md), [extraction map](superpowers/specs/2026-10-11-core-and-extensions-extraction-map.md), ADRs [0002](adr/0002-pixi-for-2d-and-3d.md)–[0004](adr/0004-ruken-first-host.md) and decisions D-1 to D-5. Drafted 2026-10-11; not yet reviewed. |
-| [ ] | M1.0b — Write and review the M1 milestone spec | M1.0a. `m1-blank-game-on-ruken`: contracts for `Hosting`, the boot program and its errors, Flow, Time, the presentation bus, the `RenderDelta` consumer, the geometry owner and UI primitives, `content` outputs, `defineExtension`, the reusable workflows and the pack/publish flow, at the [01 Decomposition §5](01-decomposition.md#5-required-milestone-spec-and-plan-detail) level. Resolves D-3, D-4, D-5. Re-read Ruken's packages at their current commit first. |
-| [ ] | M1.1 — Toolchain, versions and CI lanes | M1.0b. Versions aligned with Ruken and pinned by a test; Effect added; hosted lanes and reused browser runners; per-checkout ports, focused `test:remote`, evidence capture/promotion. |
-| [ ] | M1.2 — Ship skeleton | M1.1; vendored Ruken packages. Reusable `game-ci.yml` and release workflow; generated `ruken.toml` checked by `@ruken/manifest` and Ruken's validation rules; zip; `ruken publish` to Ruken's local stack and TEST; standalone dev host per build. Proven with a placeholder page that completes the Ruken handshake. |
-| [ ] | M1.3 — Content compiler | M1.0b. `@mcthaydt/automata-content` per the A0+A1 spec §5 plus Ruken manifest, locale-key, flow and preload generators; Effect for files and errors. |
-| [ ] | M1.4 — Host | M1.0b; vendored Ruken packages. `Hosting` service, Ruken and web adapters, fake-host test layer, ported FloorFifty and S6 contract tests, `track()`. |
-| [ ] | M1.5 — Runtime | M1.4; spike S8 verdict. Boot program, loading rules, app loop, Time, Flow, presentation bus, settings. |
-| [ ] | M1.6 — Mobile-first UI primitives | M1.0b. Geometry owner and primitives with renderer-free fixtures and layout contracts at every reference size, including 780×270. |
-| [ ] | M1.7 — 2D renderer | M1.5. `render-pixi` init, `RenderDelta` consumer, pixel framebuffer, letterbox, filter helpers. |
+| [ ] | M1.0a — Owner review of the Ruken-first restructure | The [master spec](superpowers/specs/2026-10-11-automata-framework-ruken-first-design.md), [extraction map](superpowers/specs/2026-10-11-core-and-extensions-extraction-map.md), ADRs [0002](adr/0002-pixi-for-2d-and-3d.md)–[0004](adr/0004-ruken-first-host.md) and decisions D-1 to D-5 (running on their recommended defaults since 2026-10-11, master spec §12). Drafted 2026-10-11; not yet reviewed. Work proceeds in parallel lanes meanwhile (Owner, 2026-10-11). |
+| [ ] | M1.0b — M1 contracts, written per lane | Split by lane ([04 How we build](04-how-we-build.md#lanes-2026-10-11)) so lanes run in parallel: each lane's first commit is its task spec (`docs/superpowers/specs/2026-10-11-m1-<lane>-design.md`) at the [01 Decomposition §5](01-decomposition.md#5-required-milestone-spec-and-plan-detail) level, reviewed by the Owner in that lane's PR. The integration owner (the PR #4 thread) checks the lane specs against each other and writes the shared `defineExtension` and boot-program contracts before M1.5. |
+| [ ] | M1.1 — Toolchain, versions and CI lanes | Lane **ship**. Versions aligned with Ruken and pinned by a test; Effect added; hosted lanes and reused browser runners; per-checkout ports, focused `test:remote`, evidence capture/promotion. |
+| [ ] | M1.2 — Ship skeleton | Lane **ship**; M1.1. Reusable `game-ci.yml` and release workflow; generated `ruken.toml` checked by `@ruken/manifest` and Ruken's validation rules; zip; `ruken publish` to Ruken's local stack and TEST; standalone dev host per build. Proven with a placeholder page that completes the Ruken handshake. |
+| [ ] | M1.3 — Content compiler | Lane **content**. `@mcthaydt/automata-content` per the A0+A1 spec §5 plus Ruken manifest, locale-key, flow and preload generators; Effect for files and errors. |
+| [ ] | M1.4 — Host | Lane **host**. `Hosting` service, Ruken and web adapters, fake-host test layer, ported FloorFifty and S6 contract tests, `track()`. |
+| [ ] | M1.5 — Runtime | Lane **runtime**, started after **host** and **ui** merge; spike S8 verdict. Boot program, loading rules, app loop, Time, Flow, presentation bus, settings. |
+| [ ] | M1.6 — Mobile-first UI primitives | Lane **ui**. Geometry owner and primitives with renderer-free fixtures and layout contracts at every reference size, including 780×270. |
+| [ ] | M1.7 — 2D renderer | Lane **runtime**; M1.5. `render-pixi` init, `RenderDelta` consumer, pixel framebuffer, letterbox, filter helpers. |
 | [ ] | M1.8 — Example, scaffold and M1 exit | M1.2–M1.7. `examples/blank-game` through the M1.2 pipeline; minimal `create-game`; exit evidence: CI green, Ruken-validated zip, published to Ruken local stack and dev host, phone play, nothing rendered before ready. |
 
 ## M2 Deterministic core complete
@@ -35,7 +35,7 @@ Each milestone starts with its spec (`docs/superpowers/specs/YYYY-MM-DD-<slug>-d
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
 | [ ] | M2.0 — Write and review the M2 milestone spec | M1.3 (content hash). Reconcile the A0+A1 spec's remaining A1b/A1c design; resolve the shared XXH64 location and Rapier contact-event order. |
-| [ ] | M2.1 — Physics plugins | M2.0. Rapier 2D/3D plugins, snapshot section 6, four-engine parity, measured size and ms/tick. |
+| [ ] | M2.1 — Physics plugins | Lane **sim** (its task spec stands in for M2.0's physics part; started early because it touches only `packages/sim`). Rapier 2D/3D plugins, snapshot section 6, four-engine parity, measured size and ms/tick. |
 | [ ] | M2.2 — Content in the sim | M1.3, M2.0. Typed frozen content; snapshot `contentHash`; mismatch on restore. |
 | [ ] | M2.3 — Goldens and replays | M2.1, M2.2. `simGolden`, `.replay` v1, `replayGolden` with first-divergent-tick diff, ≥200-seed property test, cross-engine runner. |
 | [ ] | M2.4 — Build and publish | M2.3; GitHub Packages tokens. Library builds, Changesets, `0.0.x` prereleases; CI under 10 minutes. |
