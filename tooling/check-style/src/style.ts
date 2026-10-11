@@ -127,7 +127,8 @@ export function checkFile(file: string, code: string): StyleFinding[] {
   const name = basename(file)
   const finding = (rule: StyleRule, message: string): StyleFinding[] => [{ file, rule, message }]
   if (name === 'index.ts') return []
-  const m = NAME_RE.exec(name)
+  // Svelte 5 rune modules must be named *.svelte.ts; that marker is Svelte's, not one of our roles.
+  const m = NAME_RE.exec(name.replace(/\.svelte\.ts$/, '.ts'))
   if (!m)
     return finding('file-name', `"${name}" must be kebab-case, optionally with a role suffix (name.role.ts)`)
   const role = m[2]

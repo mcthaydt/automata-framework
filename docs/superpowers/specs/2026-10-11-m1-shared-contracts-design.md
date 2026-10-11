@@ -21,7 +21,10 @@ Revised 2026-10-11 (audit round 3, coordinator decisions): follow the SDK's own 
 `Hosting` is an Effect service (`Context.Tag`). **One layer, `HostingLive`, wraps `Ruken.init`** for every case. The SDK already decides between a hosted session (framed by Ruken, `welcome` received) and its standalone session (top-level page, or no valid `welcome` within the SDK's timeout, `packages/sdk/src/handshake.ts`), and its standalone session already provides local saves and unsupported services (`standalone.ts`). AF does not write a second web adapter. `HostingTest` is `HostingLive` with an `SdkEnv` wired to `@ruken/sdk-host`'s fake host. A later desktop adapter (`host-tauri`, M7) implements the same service itself.
 
 ```ts
-import type { Capability, ErrorCode, SavesStatus, DisplayMetricsPayload, InputModePayload,
+import type { RukenError } from '@ruken/sdk'
+// The SDK at b30d31b does not export its ErrorCode alias, so AF names it from the error class.
+type ErrorCode = RukenError['code']
+import type { Capability, SavesStatus, DisplayMetricsPayload, InputModePayload,
   LifecyclePayload, AudioChange, EntitlementsPayload, RoundOutcome, FullscreenRes,
   SavesFlushRes } from '@ruken/sdk'
 
@@ -143,11 +146,11 @@ Every boot step in master spec §7 fails with a typed error. The runtime's boot 
 | Step | Error tag | Fields | UI state | Player action |
 |---|---|---|---|---|
 | 2 Host | none: an in-frame handshake failure is a reported fallback to standalone (§1.2), not a boot error | | Optional dev overlay | — |
-| 3 Storage | `HostError` (op `saves.*`) | `code`, `retryable` | "Couldn't load your progress" | Try again if retryable; otherwise Continue without loading (only when `kind` is `standalone`) |
+| 3 Storage | `HostError` (op `saves.*`) | `code`, `retryable` | "Couldn't load your progress" | Try again if retryable. Not retryable: "Back to Ruken" (`exit`) when `kind` is `ruken`; Continue without loading when `kind` is `standalone` |
 | 4 Content | `ContentHashMismatch` | `expected`, `actual` | "This build is damaged" | Try again (reload) |
 | 5 Assets | `AssetLoadFailed` | `url`, `status` | "Couldn't download the game" | Try again |
 | 5 Assets | `LoadStalled` | `url`, `bytesSoFar`, `stalledMs` (30,000) | Same state, "Still waiting" copy | Try again |
-| 6 Renderer | `RendererUnavailable` | `tried: ('webgl2'|'webgpu')[]` (WebGL2 is the default; WebGPU only when the game opts in) | "This device can't run the game" | None (exit) |
+| 6 Renderer | `RendererUnavailable` | `tried: ('webgl2'|'webgpu')[]` (WebGL2 is the default; WebGPU only when the game opts in) | "This device can't run the game" | "Back to Ruken" (`exit`) when `kind` is `ruken`; a final panel with no action when `standalone` |
 | 7 Ready | `HostError` (op `ready`) | `code` | "Couldn't connect to Ruken" | Try again |
 
 Copy here is a placeholder for the ui lane spec; tone follows Ruken's rules (quiet, human, no blame). Try again re-runs the boot program in a fresh runtime scope (a new SDK session included); it never refreshes the page from inside a Ruken frame.

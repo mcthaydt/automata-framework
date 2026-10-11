@@ -74,6 +74,7 @@ External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [st
 | M8 CLI 1.0 and adoption | **to write** | ⬜ | `update-game` 0.x → 1.0; each reference game's adopted slice passes its existing tests |
 | GAME-3D | **its own game design** | ⬜ | A 3D game built on AF 1.0, playable and Owner-accepted on Ruken |
 | M9 3D merge | **to write** | ⬜ | The 3D game's proven pieces pass in AF and the game consumes them from AF |
+| M10 Website | **to write** | ⬜ | The site sells extensions individually and as an all-access pass, hosts the docs and the playable demo gallery |
 
 ## 4. Milestone work packages
 

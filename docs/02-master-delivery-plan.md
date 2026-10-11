@@ -62,6 +62,7 @@ Owner roadmap (2026-10-11): 2D and 2.5D first, then 3D. The 3D pieces come from 
 | [ ] | GAME-3D.0 — Design and review the 3D game | M8. Concept (a small third-person action-adventure is the current suggestion), playable scope, target devices and acceptance cases in its own repo. |
 | [ ] | GAME-3D.1 — Build and accept the 3D game on AF | GAME-3D.0. Playable, deployed on Ruken, Owner-accepted. 3D-only systems live in the game. |
 | [ ] | M9.0 — 3D merge spec | GAME-3D.1. Select the proven pieces: full 3D `render-pixi3d`, rigged character and animation pipeline, third-person camera and controller, brush-based environments. |
+| [ ] | M10.0 — Website spec (final phase) | M9. The AF site: store for paid extensions (individual and all-access), documentation, the playable demo gallery from `examples/`, and everything else a framework site needs. Decide D-7 (licensing and paid-extension distribution). Owner direction 2026-10-11; nothing is built before this spec. |
 
 ## Execution record and handoff
 

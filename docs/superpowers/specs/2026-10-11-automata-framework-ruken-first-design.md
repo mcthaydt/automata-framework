@@ -183,6 +183,7 @@ Each milestone gets a spec at its start, reviewed by the Owner, then just-in-tim
 | **M8 CLI 1.0 and adoption** | Full CLI, codemods, docs, 1.0 (AF is finished for 2D and 2.5D); FloorFifty and The Last Light each run a slice on AF packages | `update-game` migrates the example from 0.x to 1.0; each reference game's adopted slice passes its own existing tests |
 | **GAME-3D** | A 3D game built on AF 1.0 in its own repo, with its own reviewed design. A small third-person action-adventure is the current suggestion; the Owner picks the concept. 3D-only systems live in the game first. | The game's own playable, deployed and Owner-accepted evidence on Ruken |
 | **M9 3D merge** | The 3D game's proven pieces move into AF: full 3D in `render-pixi3d`, rigged character and animation pipeline, third-person camera and character controller, brush-based environment pipeline | Each merged piece passes in AF and in the 3D game, which then consumes it from AF |
+| **M10 Website** (final phase) | The AF site: a store selling extensions individually and as an all-access pass, documentation, the playable demo gallery, and everything else a framework site needs | Specified at M10.0 |
 
 ## 12. Decisions in force
 
@@ -195,7 +196,8 @@ The Owner asked on 2026-10-11 to proceed in parallel, so each decision below run
 | D-3 | Lint and format | Keep Biome. Revisit only if aligning with Ruken's ESLint + Prettier becomes necessary; the sim's `useExponentiationOperator` rule must survive either way | M1.1 |
 | D-4 | Standalone hosting | Reuse FloorFifty's proven pattern: a Caddy static host with a build per URL (`/builds/<buildId>/`) and the live release at `/`. `ship` keeps the provider behind a deploy step, so a later move to Cloudflare Pages/R2 does not change games. | M1.2 |
 | D-5 | GPU runner | Reuse the Owner's existing runners (the WSL Linux runner and the Windows GPU runner). Until they are wired to AF, every CI job, including parity, is run locally, and that local run is the green gate (Owner, 2026-10-11; hosted Actions jobs are not getting runners). No new Linux GPU box. | M1.1 |
-| D-6 | How AF gets Ruken's unpublished packages | Vendor `@ruken/sdk`, `@ruken/sdk-host` and `@ruken/manifest` tarballs in `vendor/ruken/` at a recorded RukenApp commit (`b30d31b`), with their SHA-256 and rebuild steps, as FloorFifty does. The integration owner re-vendors (after Ruken's F1 freeze and on request); lanes consume. | M1.2, M1.4 |
+| D-7 | Licensing and distribution of paid extensions (Owner, 2026-10-11: Tailwind-style; core free, extensions paid individually or all-access) | Open until M10.0. Meanwhile every extension stays its own package that edits no core file, so paid ones can move to a private repo and registry. | M10 |
+| D-6 | How AF gets Ruken's unpublished packages | Vendor `@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest` and `@ruken/cli` (built) tarballs in `vendor/ruken/` at a recorded RukenApp commit (`b30d31b`), with their SHA-256 and rebuild steps, as FloorFifty does. The integration owner re-vendors (after Ruken's F1 freeze and on request); lanes consume. | M1.2, M1.4 |
 
 ## 13. Risks
 

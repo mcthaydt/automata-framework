@@ -13,6 +13,9 @@ test.each([
   ['math-utils.ts', plain],
   ['index.ts', "export { x } from './y'\n"],
   ['save.manager.ts', 'export class SaveManager {}\n'],
+  // Svelte 5 rune modules must end in .svelte.ts; ".svelte" is Svelte's marker, not a role.
+  ['room-store.svelte.ts', plain],
+  ['save.manager.svelte.ts', 'export class SaveManager {}\n'],
 ])('%s is fine', (name, code) => {
   expect(checkFile(`/p/src/${name}`, code)).toEqual([])
 })
@@ -34,6 +37,9 @@ test.each([
   ['BadName.ts', plain, 'file-name', 'kebab-case'],
   ['weird.foo.ts', plain, 'file-name', 'unknown role "foo"'],
   ['two_words.ts', plain, 'file-name', 'kebab-case'],
+  ['RoomStore.svelte.ts', plain, 'file-name', 'kebab-case'],
+  ['weird.foo.svelte.ts', plain, 'file-name', 'unknown role "foo"'],
+  ['movement.svelte.ts', sys, 'role-suffix', 'must be named *.system.ts'],
 ] as const)('%s -> %s', (name, code, rule, message) => {
   const findings = checkFile(`/p/src/${name}`, code)
   expect(findings.map((f) => f.rule)).toEqual([rule])

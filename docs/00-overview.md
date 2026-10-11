@@ -60,5 +60,8 @@ M0 (spikes S1–S6, ADR 0001, the A1a sim core) is merged. Nothing from M1 onwar
 | M8 CLI 1.0 and adoption | Full CLI, 1.0 (AF finished for 2D and 2.5D), a slice of FloorFifty and The Last Light running on AF |
 | GAME-3D | A 3D game built on AF 1.0, in its own repo |
 | M9 3D merge | The 3D game's proven pieces merged back into AF |
+| M10 Website (final phase) | The AF site: store, documentation, playable demos and everything else a framework site needs |
+
+**Business model (Owner, 2026-10-11, recorded only):** Tailwind-style. The core is free; extensions are paid, sold individually or through an all-access pass on the site. Extensions therefore stay separate packages with no core file edited by any of them, so paid ones can move to a private repo and registry later. Licensing and distribution are decided at M10.0 (D-7).
 
 External inputs (Ruken package publication and F1, GitHub Packages tokens, runner capacity, hosting accounts) are tracked in [01 Decomposition](01-decomposition.md) §6; do not infer readiness from a planned date.
