@@ -1,7 +1,8 @@
 import type { RukenSession } from '@ruken/sdk'
-import { Data, Effect } from 'effect'
+import { Effect } from 'effect'
 import { createBaseSim, moveCommand } from './base-sim.ts'
 import { type BaseBootFailed, connect } from './boot.ts'
+import { RendererFailed, SimFailed } from './boot-failure.ts'
 import { parseRoom, ROOM } from './content/room.ts'
 import { createFailure } from './failure.ts'
 import { type FlowEvent, next, type Screen } from './flow.ts'
@@ -16,12 +17,12 @@ import { TICK_HZ } from './sim/tuning.ts'
 // Wires the base together: connect to Ruken, then (only after ready) the renderer, the screens, input and the
 // loop. The screen flow (flow.ts) decides what shows; this file does what each change means.
 
-export class RendererFailed extends Data.TaggedError('RendererFailed')<{ readonly cause: unknown }> {}
-
 /** How long the splash shows before moving on by itself. */
 const SPLASH_MS = 1500
 
-export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed | RendererFailed> {
+export function startGame(
+  root: HTMLElement,
+): Effect.Effect<void, BaseBootFailed | RendererFailed | SimFailed> {
   return Effect.gen(function* () {
     let screen: Screen = 'splash'
     // Replaced below once the screens exist; the host can only ask for the menu after ready anyway.
@@ -37,7 +38,10 @@ export function startGame(root: HTMLElement): Effect.Effect<void, BaseBootFailed
 
     // Nothing is created before the host says ready (Ruken R-04): the page was empty until here.
     const room = parseRoom(ROOM)
-    const firstSim = yield* Effect.promise(() => createBaseSim())
+    const firstSim = yield* Effect.tryPromise({
+      try: () => createBaseSim(),
+      catch: (cause) => new SimFailed({ cause }),
+    })
     const screens = createScreens(root, {
       onContinue: () => dispatch('continue'),
       onPlay: () => dispatch('play'),

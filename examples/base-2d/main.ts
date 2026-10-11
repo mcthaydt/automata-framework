@@ -11,21 +11,21 @@
 import './src/no-eval.ts'
 import '@fontsource/pixelify-sans/latin-400.css'
 import '@fontsource/pixelify-sans/latin-700.css'
-import { Effect } from 'effect'
+import { Cause, Effect, Exit } from 'effect'
+import { bootFailureMessage } from './src/boot-failure.ts'
 import { startGame } from './src/game.ts'
 
 const root = document.querySelector<HTMLElement>('#game')
 if (root === null) throw new Error('index.html has no #game element')
 
-Effect.runPromise(startGame(root)).then(
-  () => {
+// runPromiseExit, not runPromise: the Exit keeps the failure itself, so the message can tell a failed Ruken
+// connection from a device that can't run the game (boot-failure.ts).
+Effect.runPromiseExit(startGame(root)).then((exit) => {
+  if (Exit.isSuccess(exit)) {
     document.documentElement.dataset.state = 'ready'
-  },
-  (error: unknown) => {
-    const tag = (error as { _tag?: string } | null)?._tag
-    root.textContent =
-      tag === 'RendererFailed' ? "This device can't run the game." : "Couldn't connect to Ruken."
-    document.documentElement.dataset.state = 'failed'
-    console.error(error)
-  },
-)
+    return
+  }
+  root.textContent = bootFailureMessage(exit.cause)
+  document.documentElement.dataset.state = 'failed'
+  console.error(Cause.pretty(exit.cause))
+})
