@@ -28,7 +28,9 @@ for (const size of [undefined, { width: 780, height: 270 }]) {
       const errors = await collectErrors(page)
       const frame = await openHosted(page, url, GAME_ID)
       const game = frame.locator('#game')
-      // The stack settles where it started, 104 px across the room.
+      // The crates land for the first half second; a shove before that only presses them down. Wait for a
+      // second of sim time (as the Node shove test does), with the stack where it started, 104 px across.
+      await expect.poll(async () => Number(await game.getAttribute('data-tick'))).toBeGreaterThanOrEqual(60)
       await expect(game).toHaveAttribute('data-crate-x', '104')
       await frame.locator('canvas').click()
       await page.keyboard.down('ArrowRight')

@@ -24,8 +24,8 @@
 ## Tasks
 
 ### Task 1: boundaries for physics and game sims
-- [x] `check.test.ts`: `import { physics2d } *Done in feature-demos PR #14 (`957b63d`). The option is named `--allow`, not `--allow-import`.* from '@mcthaydt/automata-physics/2d'` in a sim root passes; `@af-examples/base-2d/sim` is reported; with `allowImports: ['@af-examples/base-2d/sim']` it passes. Expected failure: the physics import is reported as not allowed.
-- [x] Add the two physics entries *Done in #14 with `/2d` only. Its audit fix left `/3d` out until a game sim imports it. The demo has no per-package `check` script: the root `pnpm boundaries` lists `examples/physics/bodies-2d/sim` with `--allow @af-examples/base-2d/sim`.* to `IMPORT_ALLOWED` (with the reason comment) and the `--allow-import` option to `cli.ts`; `pnpm --filter @mcthaydt/check-boundaries test` passes.
+- [x] `check.test.ts`: `import { physics2d } from '@mcthaydt/automata-physics/2d'` in a sim root passes; `@af-examples/base-2d/sim` is reported; with `allowImports: ['@af-examples/base-2d/sim']` it passes. Expected failure: the physics import is reported as not allowed. *Done in feature-demos PR #14 (`957b63d`). The option is named `--allow`, not `--allow-import`.*
+- [x] Add the two physics entries to `IMPORT_ALLOWED` (with the reason comment) and the `--allow-import` option to `cli.ts`; `pnpm --filter @mcthaydt/check-boundaries test` passes. *Done in #14 with `/2d` only. Its audit fix left `/3d` out until a game sim imports it. The demo has no per-package `check` script: the root `pnpm boundaries` lists `examples/physics/bodies-2d/sim` with `--allow @af-examples/base-2d/sim`.*
 
 ### Task 2: room colliders
 - [x] `room-colliders.test.ts` *At `sim/room-colliders.test.ts`: the demo keeps #14's layout with no `src/`. 56 rectangles at 16 px a metre (a tile is 8 px, half a metre). Seen failing first: module missing.*: `roomColliders(parseRoom(ROOM))` merges horizontal runs; the count and the first three rectangles match a hand count of base-2d's room. Expected failure: module missing.
