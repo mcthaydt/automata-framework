@@ -413,18 +413,28 @@ describe('consumer smoke (M2.4 spec §3.6, §4)', () => {
 describe('game-ci.yml (reusable)', () => {
   const gameCi = workflow('game-ci.yml')
 
-  it("is called by a game's own ci.yml with its folder, its sim sources and the AF ref", () => {
+  it("is called by a game's own ci.yml with its folder and its sim sources; AF comes from its package.json", () => {
     expect(Object.keys(gameCi.on)).toEqual(['workflow_call'])
-    expect(Object.keys(gameCi.on.workflow_call?.inputs ?? {})).toEqual(
-      expect.arrayContaining(['working-directory', 'sim-roots', 'af-ref']),
-    )
+    const inputs = Object.keys(gameCi.on.workflow_call?.inputs ?? {})
+    expect(inputs).toEqual(expect.arrayContaining(['working-directory', 'sim-roots', 'allow-imports']))
+    expect(inputs).not.toContain('af-ref')
   })
 
   it("runs the determinism checker on the game's sim sources (shared contracts §2), then prepares the build", () => {
     const scripts = (gameCi.jobs.game?.steps ?? []).map((step) => step.run ?? '').join('\n')
-    expect(scripts).toContain('tooling/check-boundaries/src/cli.ts')
-    expect(scripts).toContain('packages/ship/src/cli.ts" prepare')
-    expect(scripts.indexOf('check-boundaries')).toBeLessThan(scripts.indexOf('prepare'))
+    expect(scripts).toContain('pnpm exec automata-check-boundaries $SIM_ROOTS')
+    expect(scripts).toContain('pnpm exec automata-ship prepare')
+    expect(scripts.indexOf('automata-check-boundaries')).toBeLessThan(
+      scripts.indexOf('automata-ship prepare'),
+    )
+  })
+
+  it('passes each allow-imports entry to the checker as --allow-import (M2.1b)', () => {
+    const step = (gameCi.jobs.game?.steps ?? []).find((each) =>
+      each.run?.includes('automata-check-boundaries'),
+    )
+    expect(step?.env?.ALLOW_IMPORTS).toBe('${{ inputs.allow-imports }}')
+    expect(step?.run).toContain('--allow-import')
   })
 
   it('uploads the build under the artifact name its caller passes', () => {
@@ -436,29 +446,81 @@ describe('game-ci.yml (reusable)', () => {
   })
 })
 
-describe('reusable workflows called from a game repository', () => {
+describe('reusable workflows called from a game repository (M2.4 spec §3.7)', () => {
+  const CLASSIC = 'a classic personal access token with read:packages'
+
   it.each(['game-ci.yml', 'game-release.yml'])(
-    "%s checks AF out with AF_READ_TOKEN (AF is private) and uses AF's Node version",
+    '%s never checks AF out: a read:packages token cannot read its contents, and the tools come from the game',
     (name) => {
-      const reusable = workflow(name)
-      expect(Object.keys(reusable.on.workflow_call?.secrets ?? {})).toContain('AF_READ_TOKEN')
-      for (const job of Object.values(reusable.jobs)) {
+      for (const job of Object.values(workflow(name).jobs)) {
         const steps = job.steps ?? []
-        const afCheckout = steps.find((step) =>
-          JSON.stringify(step.with ?? {}).includes('automata-framework'),
-        )
-        expect(afCheckout?.with?.token).toBe('${{ secrets.AF_READ_TOKEN || github.token }}')
-        const setupNode = steps.find((step) => step.uses?.startsWith('actions/setup-node@'))
-        expect(setupNode?.with?.['node-version-file']).toBe(
-          "${{ github.repository == 'mcthaydt/automata-framework' && '.nvmrc' || '.af/.nvmrc' }}",
-        )
+        expect(
+          steps.filter((step) => JSON.stringify(step.with ?? {}).includes('automata-framework')),
+        ).toEqual([])
+        expect(steps.filter((step) => step.uses?.startsWith('actions/checkout@'))).toHaveLength(1)
+        expect(JSON.stringify(steps)).not.toContain('$AF/')
       }
+    },
+  )
+
+  it.each(['game-ci.yml', 'game-release.yml'])(
+    "%s installs AF from GitHub Packages with AF_READ_TOKEN, on the game's own Node version",
+    (name) => {
+      for (const job of Object.values(workflow(name).jobs)) {
+        const steps = job.steps ?? []
+        const setupNode = steps.find((step) => step.uses?.startsWith('actions/setup-node@'))
+        expect(setupNode?.with?.['node-version-file']).toBe('.nvmrc')
+        expect(setupNode?.with?.['registry-url']).toBe('https://npm.pkg.github.com')
+        expect(setupNode?.with?.scope).toBe('@mcthaydt')
+        const install = steps.find((step) => step.name === 'Install')
+        expect(install?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.AF_READ_TOKEN }}')
+        expect(install?.run).toContain('pnpm install --frozen-lockfile')
+        expect(install?.run).toContain(CLASSIC)
+      }
+    },
+  )
+
+  it.each(['game-ci.yml', 'game-release.yml'])(
+    '%s stops first, naming the token, when a game passes no AF_READ_TOKEN',
+    (name) => {
+      for (const job of Object.values(workflow(name).jobs)) {
+        const steps = job.steps ?? []
+        const check = steps.findIndex(
+          (step) => step.run?.includes('AF_READ_TOKEN') && step.run.includes('exit 1'),
+        )
+        const install = steps.findIndex((step) => step.name === 'Install')
+        expect(check).toBeGreaterThan(-1)
+        expect(check).toBeLessThan(install)
+        expect(steps[check]?.if).toBe("github.repository != 'mcthaydt/automata-framework'")
+        expect(steps[check]?.run).toContain(`AF_READ_TOKEN (${CLASSIC}) is missing`)
+      }
+    },
+  )
+
+  it.each(['game-ci.yml', 'game-release.yml'])(
+    '%s describes AF_READ_TOKEN as a classic read:packages token, in its secrets and its header',
+    (name) => {
+      const secret = workflow(name).on.workflow_call?.secrets?.AF_READ_TOKEN as { description?: string }
+      expect(secret.description?.toLowerCase()).toContain(CLASSIC)
+      const header = (workflowText(name).split('\non:')[0] ?? '').replace(/\n#\s*/g, ' ')
+      expect(header).toContain(CLASSIC)
+      expect(workflowText(name)).not.toMatch(/fine-grained token with|Contents read on/)
     },
   )
 })
 
 describe('game-release.yml (reusable)', () => {
   const release = workflow('game-release.yml')
+
+  it('runs ship from the game with pnpm exec, with the same arguments as before', () => {
+    const scripts = Object.values(release.jobs)
+      .flatMap((job) => (job.steps ?? []).map((step) => step.run ?? ''))
+      .join('\n')
+    expect(scripts).toContain('pnpm exec automata-ship prepare --tag "$TAG"')
+    expect(scripts).toContain('pnpm exec automata-ship publish --tag "$TAG" --game "$GAME"')
+    expect(scripts).toContain('pnpm exec automata-ship deploy-dev --tag "$TAG" --activate')
+    expect(release.on.workflow_call?.inputs?.runner).toMatchObject({ default: 'ubuntu-latest' })
+  })
 
   it('publishes to the game it is given, and refuses to register a new Ruken game on every release', () => {
     expect(Object.keys(release.on.workflow_call?.inputs ?? {})).toContain('game')
