@@ -46,8 +46,8 @@ Each task: write the failing test, run it and see it fail for the stated reason,
 - [x] Add the code to `DiagnosticCode`; implement `simReferenceProblems` over the references resolved before step 6.
 
 ### Task 4: outputs and verify
-- [ ] `write-outputs.test.ts`: a build writes `sim-content.json` (canonical file form) and `sim-content.hash`, both listed in `outputs.txt`; `verifyContent` reports `staleArtifact` for a hand-edited `sim-content.hash`. Expected failure: the files are missing.
-- [ ] Add `GeneratorInput.sim`; the built-in content generator writes both files from it. A regression guard that a game generator writing `sim-content.json` fails with `InvalidContentConfig`: clashes are already rejected (`content-generator.ts:50`), so it passes as soon as the built-in writes the file and never goes red; it pins that the new outputs are covered.
+- [x] `write-outputs.test.ts`: a build writes `sim-content.json` (canonical file form) and `sim-content.hash`, both listed in `outputs.txt`; `verifyContent` reports `staleArtifact` for a hand-edited `sim-content.hash`. Expected failure: the files are missing.
+- [x] Add `GeneratorInput.sim`; the built-in content generator writes both files from it. A regression guard that a game generator writing `sim-content.json` fails with `InvalidContentConfig`: clashes are already rejected (`content-generator.ts:50`), so it passes as soon as the built-in writes the file and never goes red; it pins that the new outputs are covered.
 
 ### Task 5: types
 - [ ] `render-types.test.ts`: `content.d.ts` declares `SimContentData` with `tuning` and `rooms` only and no index signature, plus `simContent` and `simContentHash`. Expected failure: no `SimContentData` in the text.
