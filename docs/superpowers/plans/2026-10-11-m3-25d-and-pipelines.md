@@ -10,7 +10,7 @@
 - **Edits to `examples/base-2d`** go to the base-2d thread as patches after #22 (spec §3); lane branches drop their local base-2d edits before their PR.
 - **The look bar (Owner, 23:02–23:13Z, spec §1):** 2.5D and 3D must look as good as base-2d. The reference is "Bubble Bobble x Celeste as an itch indie hit". The Last Light is a source to borrow from, kept private (spec §15 Q7). M3.13 (the art lane below) does this work.
 - **Progress:** 17 / 36 tasks done locally (P1–P6, C1, Q1, Q2, R1, R2, R3, S7a, K1, M3.9a, M3.2). None is in review yet.
-  - **Part done:** M1.7a (its changeset waits for #19), Q3 (the caret peer, being finished on the rebuilt `m3-post`), C2 (the bytes step).
+  - **Part done:** M1.7a (its changeset waits for #19); Q3 (the caret peer is in, `efa312d`, and its package test no longer reaches into `tooling`, `68055a9`; the GPU parity step remains); C2 (the bytes and stages are in; the `render` browser test and money safety remain).
   - **In progress:** H0 v2.
 
 ## Runner legend
@@ -131,7 +131,7 @@ R1, R2 and R3 ran in parallel (pure modules). Q1 and Q2 run in parallel with R1�
 **Files:** `src/{post-chain.ts, post-chain.test.ts, index.ts}`, `content/post.toml`, `src/dependencies.test.ts`.
 - [x] `post-chain.test.ts`: order follows the config; `setEnabled` toggles without rebuilding; `destroy` frees the LUT texture. Red on the missing module. Implement. Export `postContent` plainly (no `defineExtension` until M1.5). *`154578a` on `m3-post`; 53 package tests. `createPostChain(passes, { lut, time }, parts?)`: the optional `parts` lets the Node test inject fakes. Exports `postRetroContent = [postContent]`; default `content/post.toml`.*
 - [x] Browser import (found in Q2): `@mcthaydt/automata-content`'s root entry imports `node:crypto` and `node:fs`, so importing `post-retro`'s index in a browser fails. After K1, `post-retro` imports from `@mcthaydt/automata-content/schema` and a Chromium test imports its index. The browser tests import the pass modules directly meanwhile. *Done with K1's switch (`3970b7b`).*
-- [ ] `dependencies.test.ts` (audit S4): `post-retro` never imports `@pixi/3d` (its `package.json` and every source import); `pixi.js` is a caret peer `^8.22.0`. After #19: ship's build fields and a changeset. *The `@pixi/3d` checks are in (`c36052c`). The caret peer waits for `tooling/versions` to allow `^` in a published package's peers when an exact dev pin sets the floor (being added with M1.7a's packaging step); it is a `test.todo` meanwhile.*
+- [ ] `dependencies.test.ts` (audit S4): `post-retro` never imports `@pixi/3d` (its `package.json` and every source import); `pixi.js` is a caret peer `^8.22.0`. After #19: ship's build fields and a changeset. *The `@pixi/3d` checks are in (`c36052c`). The caret peer is in on the rebuilt `m3-post` (`efa312d`, on `m3-render3d`'s versions rule `9874029`). Red: "expected undefined to be '^8.22.0'", and with `"private": true` kept, the rule's own violation. Green: 3/3. post-retro is no longer `private`, as render-pixi isn't. `68055a9` then pins its own fields without importing `tooling/versions`. The fields and the changeset come after #19.*
 - [ ] WebGL2 vs WebGPU pixel parity per pass: in the final GPU claim (R).
 
 ### Q4 Demos `post-retro/{chain-2d, chain-3d}` — L, LB, then R, O
@@ -176,10 +176,24 @@ All P tasks are **L**: Node only, no network, providers faked. Package `packages
 
 ### C2 Character pipeline: stages — L
 **Files:** `src/character/{character-pipeline.ts, character-spec.schema.ts, render-sprites.ts, character.test.ts}` (no `.pipeline.ts`: the style checker has no `pipeline` role).
-- [ ] Bytes first: additive `readBytes` and `writeBytes` on `@mcthaydt/automata-node`'s `Files` (the ship lane's package, by agreement; test-first). The runner hashes outputs through it and the optional `RunnerContext.readBytes` goes; stages write provider PNGs through `writeBytes`.
-- [ ] Port `character-pipeline.test.ts` with fake providers: stages and gates G1, G3, G5, G6; estimate 10 images and 38 mesh credits; `install` writes atlas, normals and a `characters` entry that compiles; `restore` re-downloads without spending; `render` runs headless Chromium (LB) on a tiny committed GLB. Red on the missing module. Implement; px-per-metre and the house prompt come from the spec and content. A stage that hits a missing Python module fails naming its `requirements.txt` line; scripts run as `python3 <dir>/script.py` (not `-I`), so they find `palette.py`. The CLI's `check` runs the registry's validators too (spec §7: the palette validator fails both `check` and `guard_check`).
+- [x] Bytes first: additive `readBytes` and `writeBytes` on `@mcthaydt/automata-node`'s `Files` (the ship lane's package, by agreement; test-first). The runner hashes outputs through it and the optional `RunnerContext.readBytes` goes; stages write provider PNGs through `writeBytes`. *`36d03bd` on `m3-character`. Red: "files.writeBytes is not a function", "files.readBytes is not a function", the binary-hash test, and the byte path-policy test. The path policy covers `writeBytes`, and the in-memory `Files` keeps bytes beside text. node 10 tests, pipelines 275.*
+- [ ] Port `character-pipeline.test.ts` with fake providers: stages and gates G1, G3, G5, G6; estimate 10 images and 38 mesh credits; `install` writes atlas, normals and a `characters` entry that compiles; `restore` re-downloads without spending; `render` runs headless Chromium (LB) on a tiny committed GLB. Red on the missing module. Implement; px-per-metre and the house prompt come from the spec and content. A stage that hits a missing Python module fails naming its `requirements.txt` line; scripts run as `python3 <dir>/script.py` (not `-I`), so they find `palette.py`. The CLI's `check` runs the registry's validators too (spec §7: the palette validator fails both `check` and `guard_check`). *Done in `73849ab` except the `render` stage's Chromium test, which is in progress after merging the clean `m3-render3d` (it needs `@pixi/3d` and an original tiny GLB). Pipelines 306 tests. The stages stop at G1, G3, G5 and G6, and the audit log sums to 10 images and 38 credits. One test runs the real scripts on real files, views through install, and the atlas passes the palette validator. That test found three bugs, fixed or recorded on the step. Deviations from The Last Light are recorded in the commit:*
+  - *the presets became spec fields;*
+  - *the house prompt and palette come from content;*
+  - *views are cut into equal columns;*
+  - *jobs live in stage records;*
+  - *the walk clip is checked at `render`, so a mismatch never loses the paid rig;*
+  - *`detail_pass.py` is ported, with a `stack` command.*
+
+  *Note: the runner's `estimate` plans only to the next gate, so a new target's estimate shows 1 image. The stage sum, pinned by a test, is the full cost.*
+- [ ] Money safety before any paid run (found in C2):
+  - *Staleness:* today every stage hashes the whole spec, so any spec edit makes paid stages stale again, while a changed house prompt or palette makes nothing stale. A stage's inputs hash will cover only the spec fields and options it declares it reads, plus the stages it depends on.
+  - *Failed paid jobs:* a paid stage that failed after the provider accepted its job keeps the job id, and the next run resumes that job instead of paying for a new one.
+  
+  Test-first, with fake providers. In progress on `m3-character`.
 
 ### C3 Skill and live run for Wick — $, O
+Needs C2's money-safety step first.
 **Files:** `packages/pipelines/skills/make-character-25d/SKILL.md`; in `examples/base-25d`, `pipelines/character/wick/character.json` and the first `pipelines.config.json` (written in a PR the Owner approves before the guard is installed there).
 - [ ] Skill text adapted from The Last Light's make-character (no game names).
 - [ ] **Waits on spec §15 Q3.** Then: `pipeline_estimate` → the coordinator relays it → `pipeline_run` stops at G1, G3, G5, G6 in turn. Each gate: the thread sends the review files to the coordinator, the hub relays them, and the Owner runs `approve-gate.yml` (an af-linux run in that wave's claim) or `automata-pipe … approve` in their own terminal. Record cost from the audit log. **CAPTURE:** keep `look.png`, the turnaround, the raw render and the polished atlas as before/after media; log asked-at, first commit and each gate time.
