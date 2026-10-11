@@ -6,7 +6,7 @@ Owner direction (2026-10-11): every dimension has a teeny tiny **base project** 
 
 | Base | What it is | Built on | Lands in |
 |---|---|---|---|
-| `base-2d` | A pixel-art character who walks and jumps in one single-screen room (Bubble Bobble × Celeste, Endesga 64). Splash → menu → room → pause → end. | Core only: `sim`, `content`, `host`, `runtime`, `render-pixi`, `ui` | M1.8 (replaces the old `blank-game`) |
+| `base-2d` | A pixel-art character who walks and jumps in one single-screen room (Bubble Bobble × Celeste, Endesga 64). Splash → menu → room → pause → end. | Core only: `sim`, `content`, `host`, `runtime`, `render-pixi`, `ui` | M1.8 (replaces the old `blank-game`). First version built: [`examples/base-2d`](base-2d/), on `sim` with stand-ins for the core pieces not yet on `main` (content module, direct `Ruken.init`, its own loop and Pixi renderer, DOM screens); each stand-in is swapped for the core package when its lane merges ([task spec](../docs/superpowers/specs/2026-10-11-m1-base-2d-design.md)) |
 | `base-25d` | The same character as a billboard sprite in a fixed-camera 3D room with GLB props | Core + `render-pixi3d` (private builds, D-1) | M3 |
 | `base-3d` | The same character as a mesh in a 3D room with a follow camera | Core + `render-pixi3d` (private builds, D-1) | M3; the starting point for GAME-3D |
 
@@ -27,8 +27,8 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 
 | Demo | Owner | Base | Status |
 |---|---|---|---|
-| `host/lifecycle-and-saves` | host lane | `base-2d` | Waits on `base-2d` |
-| `content/hot-reload` | content lane | `base-2d` | Waits on `base-2d` |
-| `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR |
-| `physics/bodies-2d`, `physics/bodies-3d` | sim lane | `base-2d`, `base-3d` | Waits on the bases |
+| `host/lifecycle-and-saves` | host lane | `base-2d` | Base built; waits on the host PR (#5) |
+| `content/hot-reload` | content lane | `base-2d` | Base built; waits on the content PR (#8) |
+| `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR (#7); needs no base |
+| `physics/bodies-2d`, `physics/bodies-3d` | sim lane | `base-2d`, `base-3d` | `bodies-2d`: base built, waits on the physics PR (#9); `bodies-3d` waits on `base-3d` |
 | `placeholder` (the ship lane's page: boots under the fake host and publishes through `ship`; not a feature demo) | ship lane | none | With the ship PR |
