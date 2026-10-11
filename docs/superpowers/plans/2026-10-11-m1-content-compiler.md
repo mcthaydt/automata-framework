@@ -58,8 +58,8 @@ Every task: port or write the test, run it, see it fail for the stated reason (u
 - [x] Implement.
 
 ### T7 Palette
-- [ ] Test: `parsePaintNetPalette` of `docs/art/palettes/endesga-64.txt` equals `ENDESGA_64` (64 unique, in order); `palette.toml` with uppercase hex is stored lowercase; duplicate, bad hex, 1 color and 257 colors are `invalidPalette`. Fails: module missing.
-- [ ] Implement.
+- [x] Test: `parsePaintNetPalette` of `docs/art/palettes/endesga-64.txt` equals `ENDESGA_64` (64 unique, in order); `palette.toml` with uppercase hex is stored lowercase; duplicate, bad hex, 1 color and 257 colors are `invalidPalette`. Fails: module missing.
+- [x] Implement.
 
 ### T8 Messages, game facts, Ruken fields
 - [ ] Port `messages.test.ts` (keys, inlang `$schema`, stays out of the payload); add key collision, translation missing/extra keys, `languages` derived with `en` required, rating and event-name checks, and a `ruken.toml` built around `rukenFields` that `@ruken/manifest`'s `parseManifest` accepts. Fails: module missing.
