@@ -9,7 +9,8 @@
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run",
     "test:unit": "vitest run",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p . && tsc -p s8",
+    "measure:s8": "node s8/measure.ts"
   },
   "dependencies": {
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
@@ -17,7 +18,10 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-ship": "workspace:*",
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
+    "@types/node": "24.19.1",
+    "playwright": "1.63.0",
     "vite": "8.3.2",
     "vitest": "5.0.3"
   }

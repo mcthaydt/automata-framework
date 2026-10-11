@@ -33,15 +33,24 @@ importers:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship
+      '@ruken/manifest':
+        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
+        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
       vite:
         specifier: 8.3.2
-        version: 8.3.2(@types/node@26.6.4)(yaml@2.9.1)
+        version: 8.3.2(@types/node@24.19.1)(yaml@2.9.1)
       vitest:
         specifier: 5.0.3
-        version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@26.6.4)(yaml@2.9.1))
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@24.19.1)(yaml@2.9.1))
 
   packages/node:
     dependencies:
@@ -1442,7 +1451,7 @@ snapshots:
       pathe: 2.0.3
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@26.6.4)(yaml@2.9.1))
+      vitest: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@24.19.1)(yaml@2.9.1))
 
   '@vitest/utils@5.0.3':
     dependencies:
