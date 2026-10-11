@@ -16,30 +16,40 @@ describe('the room', () => {
   })
 
   it('finds the start and the goal', () => {
-    const room = parseRoom(tiny(['####', '#PG#', '####']))
-    expect(room.start).toEqual({ tx: 1, ty: 1 })
-    expect(room.goal).toEqual({ tx: 2, ty: 1 })
+    const room = parseRoom(tiny(['####', '#..#', '#PG#', '####']))
+    expect(room.start).toEqual({ tx: 1, ty: 2 })
+    expect(room.goal).toEqual({ tx: 2, ty: 2 })
   })
 
   it('treats everything outside the room as solid', () => {
-    const room = parseRoom(tiny(['....', '.PG.', '....']))
+    const room = parseRoom(tiny(['....', '.PG.', '....', '....']))
     expect(isSolid(room, -1, 0)).toBe(true)
     expect(isSolid(room, 4, 0)).toBe(true)
     expect(isSolid(room, 0, -1)).toBe(true)
-    expect(isSolid(room, 0, 3)).toBe(true)
+    expect(isSolid(room, 0, 4)).toBe(true)
     expect(isSolid(room, 0, 0)).toBe(false)
   })
 
   it('rejects ragged rows, naming the row', () => {
-    expect(() => parseRoom(tiny(['####', '#PG', '####']))).toThrow('row 1 is 3 tiles wide, expected 4')
+    expect(() => parseRoom(tiny(['####', '#..#', '#PG', '####']))).toThrow(
+      'row 2 is 3 tiles wide, expected 4',
+    )
   })
 
   it('rejects unknown tiles, naming where they are', () => {
-    expect(() => parseRoom(tiny(['####', '#PGx', '####']))).toThrow('unknown tile "x" at column 3, row 1')
+    expect(() => parseRoom(tiny(['####', '#..#', '#PGx', '####']))).toThrow(
+      'unknown tile "x" at column 3, row 2',
+    )
+  })
+
+  it('needs room above the start for the character, who is a tile and a half tall', () => {
+    expect(() => parseRoom(tiny(['####', '#PG#', '####']))).toThrow(
+      'the tile above P (column 1, row 0) must be empty',
+    )
   })
 
   it('needs exactly one start and one goal', () => {
-    expect(() => parseRoom(tiny(['####', '#PP#', '#G.#']))).toThrow('needs exactly one P, found 2')
-    expect(() => parseRoom(tiny(['####', '#P.#', '####']))).toThrow('needs exactly one G, found 0')
+    expect(() => parseRoom(tiny(['####', '#..#', '#PP#', '#G.#']))).toThrow('needs exactly one P, found 2')
+    expect(() => parseRoom(tiny(['####', '#..#', '#P.#', '####']))).toThrow('needs exactly one G, found 0')
   })
 })

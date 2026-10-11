@@ -6,26 +6,19 @@
 // 40 × 24 tiles of 8 pixels is 320 × 192 pixels: a single screen, Bubble Bobble style. Platforms climb in steps
 // of three tiles, about the height of a held jump, with two free rows under each so the character can walk under.
 
+import type { RoomGrid, TilePosition } from '../sim/tiles.ts'
+
+export { isSolid } from '../sim/tiles.ts'
+
 export interface RoomSource {
   readonly id: string
   readonly tileSize: number
   readonly rows: readonly string[]
 }
 
-export interface TilePosition {
-  readonly tx: number
-  readonly ty: number
-}
-
-export interface Room {
+/** A checked room: its size in tiles, and where the start and the goal are. */
+export interface Room extends RoomGrid {
   readonly id: string
-  readonly tileSize: number
-  /** Width and height in tiles. */
-  readonly width: number
-  readonly height: number
-  readonly rows: readonly string[]
-  readonly start: TilePosition
-  readonly goal: TilePosition
 }
 
 export const ROOM: RoomSource = {
@@ -79,6 +72,11 @@ export function parseRoom(source: RoomSource): Room {
   })
   const start = exactlyOne(source.id, 'P', starts)
   const goal = exactlyOne(source.id, 'G', goals)
+  // The character is a tile and a half tall, so it stands in P's tile and half of the one above.
+  if (source.rows[start.ty - 1]?.charAt(start.tx) !== '.')
+    throw new Error(
+      `room ${source.id}: the tile above P (column ${start.tx}, row ${start.ty - 1}) must be empty`,
+    )
   return {
     id: source.id,
     tileSize: source.tileSize,
@@ -95,10 +93,4 @@ function exactlyOne(roomId: string, tile: string, found: readonly TilePosition[]
   if (found.length !== 1 || first === undefined)
     throw new Error(`room ${roomId}: needs exactly one ${tile}, found ${found.length}`)
   return first
-}
-
-/** Whether a tile blocks movement. Outside the room counts as solid, so nothing can leave it. */
-export function isSolid(room: Room, tx: number, ty: number): boolean {
-  if (tx < 0 || ty < 0 || tx >= room.width || ty >= room.height) return true
-  return room.rows[ty]?.charAt(tx) === '#'
 }
