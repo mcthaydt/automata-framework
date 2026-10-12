@@ -1,6 +1,6 @@
 # M1.5 Runtime: boot, loading, app loop, Time, Flow, presentation bus, settings, `defineExtension`
 
-- **Status:** Draft 2026-10-12, Owner review pending.
+- **Status:** Draft 2026-10-12. Open questions answered by the Owner 2026-10-12: all nine recommended defaults accepted (§13). Next: the TDD plan, reviewed before any code.
 - **Task:** M1.5 in the [master delivery plan](../../02-master-delivery-plan.md). Detail level: [01 Decomposition](../../01-decomposition.md) §5. Operating rules of 2026-10-12 apply: this spec is reviewed before its TDD plan, and the plan before any code.
 - **Builds against:**
   - the [M1 shared contracts](./2026-10-11-m1-shared-contracts-design.md): §1 `Hosting` (consumed), §2 `defineExtension` and §3 `BootError` (both owned here);
@@ -70,7 +70,7 @@ Rule for every service: a method called per frame or from a DOM handler is a pla
 packages/runtime/src/
   index.ts                     extension/index.ts             testing/index.ts
   extension/  define-extension.ts  resolve-extensions.ts  extension-error.ts
-  boot/       game-definition.ts  boot-error.ts  boot-program.ts  run-game.ts  page-layers.ts
+  boot/       game-definition.ts  boot-error.ts  boot-program.ts  run-game.ts  page-layers.svelte.ts
   loading/    load-meter.ts  fetch-progress.ts  assets.manager.ts
   loop/       frames.ts  frame-loop.ts  app-loop.manager.ts
   time/       time.manager.ts
@@ -85,11 +85,11 @@ Services live in `*.manager.ts` (the role `pnpm style` already knows); `defineEx
 
 | Entry | Exports |
 |---|---|
-| `@mcthaydt/automata-runtime` | `runGame`, `GameDefinition`, `RuntimeHandle`, `RuntimeServices` (the union of the runtime's service tags a screen or extension layer may require); `BootError`, `ContentHashMismatch`, `AssetLoadFailed`, `LoadStalled`, `RendererUnavailable`; `Flow`, `ScreenDef`, `ScreenContext`, `FlowFailure`; `Time`, `PauseReason`; `AppLoop`, `FrameInfo`; `Assets`; `Settings`, `SettingsDef`, `SettingsStore`, `settingsStore`; `PresentationBus`, `RuntimeFacts`, `typedBus`; `Renderer`, `GameRenderer`, `RenderTarget`, `RendererFactory`; `STALL_MS`, `SLOW_MS`, `MAX_FRAME_MS` |
+| `@mcthaydt/automata-runtime` | `runGame`, `GameDefinition`, `RuntimeHandle`, `RuntimeServices` (the union of the runtime's service tags a screen or extension layer may require); `BootError`, `ContentHashMismatch`, `AssetLoadFailed`, `LoadStalled`, `RendererUnavailable`, `BootDefect`; `Flow`, `ScreenDef`, `ScreenContext`, `FlowFailure`; `Time`, `PauseReason`; `AppLoop`, `FrameInfo`; `Assets`; `Settings`, `SettingsDef`, `SettingsStore`, `settingsStore`; `PresentationBus`, `RuntimeFacts`, `typedBus`; `Renderer`, `GameRenderer`, `RenderTarget`, `RendererFactory`; `STALL_MS`, `SLOW_MS`, `MAX_FRAME_MS` |
 | `./extension` | `defineExtension`, `resolveExtensions`, `ExtensionDef`, `ResolvedExtensions`, `ExtensionError`, `GameConfig`, `RukenManifestContribution`. No DOM or Svelte import, so a game's `vite.config.ts` and `ship` can load it in Node. |
 | `./testing` | `RuntimeTest`, `manualFrames`, `nullRenderer`, `fakeFetch` |
 
-Dependencies: `effect` 3.22.2, `zod` 4.6.5, `@mcthaydt/automata-host`, `@mcthaydt/automata-ui`, `@mcthaydt/automata-sim` (types and `./hash`), `svelte` 5.57.1 as a peer; `@mcthaydt/automata-content` as types only (its compiler imports `node:*`, so no value import). Dev: `@ruken/sdk-host`, `vitest`, `jsdom`.
+Dependencies: `effect` 3.22.2, `zod` 4.6.5, `@mcthaydt/automata-host`, `@mcthaydt/automata-ui`, `@mcthaydt/automata-sim` (types and `./hash`), `svelte` 5.57.1 as a peer; `@mcthaydt/automata-content` as types only (its compiler imports `node:*`, so no value import). `@ruken/manifest` (types, for `GameConfig`). Dev: `@ruken/sdk-host`, `vitest`, `jsdom`, `@types/node`, `@sveltejs/vite-plugin-svelte` (mounting ui components), `svelte-check` with TypeScript 6 for typecheck as ui does, `@vitest/browser-playwright` and `playwright` (the Chromium bench); all already pinned in `docs/versions.md`.
 
 ### 3.2 `defineExtension` (shared contracts §2, owned here)
 
@@ -116,7 +116,7 @@ class ExtensionError extends Data.TaggedError('ExtensionError')<{
 }> {}
 ```
 
-Order is Kahn's algorithm over `requires`, taking the smallest ready name each time, so order never depends on array order. A manifest contribution with a key outside `RukenManifestContribution` is a type error and, for untyped JavaScript, `ExtensionError{reason:'manifest-field'}` at resolve time. `resolveExtensions` is synchronous and throws so a Vite config fails the build with the message; at runtime the build has already resolved the same list, so a throw there is a defect. An extension's layer may require runtime services (`Hosting`, `PresentationBus`, `Time`, `Flow`, `Settings`); it is provided after them.
+Order is Kahn's algorithm over `requires`, taking the smallest ready name each time, so order never depends on array order. A manifest contribution with a key outside `RukenManifestContribution` is a type error and, for untyped JavaScript, `ExtensionError{reason:'manifest-field'}` thrown by `resolved.manifest(config)`, which runs at build time (contributions are functions of `config`). `resolveExtensions` is synchronous and throws so a Vite config fails the build with the message; at runtime the build has already resolved the same list, so a throw there is a defect. An extension's layer may require runtime services (`Hosting`, `PresentationBus`, `Time`, `Flow`, `Settings`); it is provided after them.
 
 ### 3.3 Game definition, boot program and `BootError`
 
@@ -132,17 +132,18 @@ interface GameDefinition<S = never> {
   readonly copy?: Partial<BootFailureCopy> & { readonly loading?: string; readonly slow?: string }
   readonly seams?: { fetch?; frames?; fonts?; sdkEnv?; document? }   // tests only, like HostingLive's seams
 }
-interface RuntimeHandle { readonly shutdown: Promise<void> }   // closes the runtime scope (Ruken's return to launcher)
+interface RuntimeHandle { shutdown(): Promise<void> }   // closes the runtime scope (Ruken's return to launcher)
 function runGame<S>(game: GameDefinition<S>): RuntimeHandle
 
-type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable
+type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect
 class ContentHashMismatch extends Data.TaggedError('ContentHashMismatch')<{ expected: string; actual: string }> {}
 class AssetLoadFailed   extends Data.TaggedError('AssetLoadFailed')<{ url: string; status: number }> {}    // status 0: network error
 class LoadStalled       extends Data.TaggedError('LoadStalled')<{ url: string; bytesSoFar: number; stalledMs: number }> {}
 class RendererUnavailable extends Data.TaggedError('RendererUnavailable')<{ tried: readonly ('webgl2' | 'webgpu')[] }> {}
+class BootDefect        extends Data.TaggedError('BootDefect')<{ cause: unknown }> {}   // a bug, not a typed failure (Q1)
 ```
 
-`CompiledContentData` is the compiled JSON with the fields the runtime reads typed: `flow: FlowGraph`, optional `assets: AssetsSource`, optional `game: GameSource`. `boot-error.ts` checks at the type level that `BootError` is assignable to ui's `BootFailure`, and the exhaustive `switch` in `run-game.ts` ends in `never`, so a new tag fails typecheck until ui draws it (shared contracts §4).
+`CompiledContentData` is the compiled JSON with the fields the runtime reads typed: `flow: FlowGraph`, optional `assets: AssetsSource`, optional `game: GameSource`. `boot-error.ts` checks at the type level that `BootError` is assignable to ui's `BootFailure`, and the exhaustive `switch` in `run-game.ts` ends in `never`, so a new tag fails typecheck until ui draws it (shared contracts §4). `BootDefect` (Q1) is additive to shared contracts §3 and to ui's `BootFailure` (a `{ _tag: 'BootDefect' }` member drawn as the `start` state with Try again); that ui change is a small additive task in the plan.
 
 ### 3.4 Loading (`Assets`, the stall rule)
 
@@ -261,7 +262,7 @@ The factory's scope is the runtime scope; its finalizer destroys the renderer. T
 | Case | Behavior |
 |---|---|
 | Any boot step fails | Its `BootError` (§3.3, shared contracts §3); never a blank screen |
-| A defect (a bug, not a typed failure) during boot | Logged with its cause. With Q1 accepted it is `BootDefect`, drawn as the `start` state with Try again; until then it is the one case with no named state |
+| A defect (a bug, not a typed failure) during boot | Logged with its cause. `BootDefect` (Q1, accepted), drawn as the `start` state with Try again |
 | Host never says ready | `HostError{TIMEOUT, ready}` after 30 s of silence (Q2) |
 | A file returns a non-OK status, or the network fails | `AssetLoadFailed{url, status}` (0 for a network error) |
 | Nothing arrives for 30 s | `LoadStalled{url, bytesSoFar, stalledMs: 30000}`; the fetch is aborted |
@@ -304,7 +305,7 @@ Vitest on Node (jsdom where something mounts), against the real SDK and `@ruken/
 | `loop/frame-loop.test.ts` | The Last Light `clock.test.ts` (fixed ticks however frames group; paused time dropped; long frames capped; reset); base-2d `loop.test.ts` (time from `now`, a step that stops the loop) |
 | `loop/app-loop.test.ts` | Step order (commands, step, apply, bus only with events); `draw` every frame with alpha; paused draws without stepping; a faulted sim stops the loop |
 | `loop/frame-loop-purity.test.ts` | `frame-loop.ts` and the per-frame path import nothing from `effect` (reads the import graph) |
-| `loop/frame-loop.bench.ts` | Loop overhead per frame with a no-op sim and renderer, in Node and Chromium (§9) |
+| `loop/frame-loop.bench.test.ts` | Loop overhead per frame with a no-op sim and renderer, in Node and Chromium (§9) |
 | `time/time.test.ts` | Background pauses under `'pause'`, not under `'continue'`; document hidden pauses standalone; menu reason from `pausesSim`; resumes only when no reason is held; background opens the menu once and play does not resume on its own |
 | `flow/flow.test.ts` | FloorFifty `screen-manager.test.ts` and `presentation-flow.test.ts` cases that apply: never two screens live, exit before enter, current before enter, same-screen no-op, failed enter closes its scope and a later retry works, finalizers once in reverse order, fade cover/reveal and the queued-under-cover case, reduced motion; plus unmatched event, files loaded before exit, focus after enter, `openMenu` routing |
 | `presentation/presentation-bus.test.ts` | FloorFifty bus cases: nested publish drained after, idempotent unsubscribe, dispose twice; a throwing listener isolated |
@@ -365,6 +366,8 @@ Draft #22 (the room as compiled content) stays held until M1.8 resumes. `example
 5. **Not claimed by M1.5:** `base-2d` on the runtime (M1.8), the renderer (M1.7), real-phone timing, Owner visual acceptance.
 
 ## 13. Open questions for the Owner
+
+**Answered 2026-10-12 (Owner):** all nine recommended defaults below are accepted. Q1 adds `BootDefect` to `BootError` and ui's `BootFailure` additively (shared contracts §3).
 
 1. **Q1, defects at boot.** `BootError` has no tag for a bug (a throw that is not a typed failure). Recommended: add `BootDefect` to `BootError` and ui's `BootFailure` (additive to shared contracts §3), drawn as the `start` state with Try again.
 2. **Q2, ready that never comes.** Recommended: guard `Hosting.ready` with the 30 s stall rule and fail with `HostError{code:'TIMEOUT', retryable:true, operation:'ready'}`, as FloorFifty does (`main.ts` line 518). The risk is a host pre-roll longer than 30 s; Ruken does not say.
