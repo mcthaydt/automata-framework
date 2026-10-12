@@ -124,7 +124,7 @@ interface ExtensionDef<Name extends string = string> {
   readonly sim?: readonly PluginDef[]                   // definePlugin results; pass the determinism checker
   readonly content?: readonly ContentSchemaDef[]        // defineContentSchema results (content lane)
   readonly layers?: Layer.Layer<any, never, any>        // Effect services the extension provides
-  readonly ui?: { readonly slots?: Readonly<Record<UiSlotName, UiComponent>> }
+  readonly ui?: { readonly slots?: Readonly<Partial<Record<UiSlotName, UiComponent>>> }
   readonly manifest?: (config: GameConfig) => RukenManifestContribution
 }
 declare function defineExtension<const N extends string>(def: ExtensionDef<N>): ExtensionDef<N>
