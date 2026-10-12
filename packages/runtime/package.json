@@ -15,7 +15,7 @@
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
     "bench": "vitest run --project bench --project bench-chromium",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
     "@mcthaydt/automata-content": "workspace:*",
