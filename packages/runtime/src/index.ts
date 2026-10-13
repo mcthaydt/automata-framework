@@ -5,6 +5,7 @@ export {
   SLOW_MS,
   STALL_MS,
 } from './loading/load-meter.js'
+export { AppLoop } from './loop/app-loop.manager.js'
 export { type FrameInfo, MAX_FRAME_MS } from './loop/frames.js'
 export {
   PresentationBus,

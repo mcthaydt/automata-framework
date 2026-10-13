@@ -3,6 +3,7 @@ import { expect, test } from 'vitest'
 // The public surface (M1.5 spec §3.1): one expected export list per entry point.
 // Each later task adds its names here when it adds the export.
 const ROOT_EXPORTS: string[] = [
+  'AppLoop',
   'AssetLoadFailed',
   'Assets',
   'LoadStalled',

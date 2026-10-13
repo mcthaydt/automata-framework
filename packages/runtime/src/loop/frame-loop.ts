@@ -1,9 +1,12 @@
+import type { Command, Sim } from '@mcthaydt/automata-sim'
+import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
+import type { GameRenderer } from '../render/renderer.js'
 import { type FrameInfo, type FrameSource, MAX_FRAME_MS } from './frames.js'
 
 export interface FrameLoopOptions {
   readonly frames: FrameSource
   readonly isPaused: () => boolean
-  readonly stepMs: number
+  readonly stepMs: number | (() => number)
   readonly step: () => void
   readonly draw: (frame: FrameInfo) => void
 }
@@ -17,6 +20,34 @@ export interface FrameLoop {
 
 // 1e-6 ms tolerance keeps a frame of exactly one step from losing it due to float inaccuracy (The Last Light clock.ts)
 const TOLERANCE_MS = 1e-6
+
+/**
+ * Executes a single simulation step in order:
+ * 1. commands(sim.tick)
+ * 2. sim.step(cmds)
+ * 3. renderer.apply(result)
+ * 4. rejected commands logged to logError if provided
+ * 5. sim.events published on the bus only when result.events is non-empty
+ */
+export function stepOnce(
+  sim: Sim,
+  commands: (tick: number) => readonly Command[],
+  renderer: GameRenderer,
+  bus: PresentationBus,
+  logError?: (error: unknown) => void,
+): void {
+  const cmds = commands(sim.tick)
+  const result = sim.step(cmds)
+  renderer.apply(result)
+  if (result.rejected.length > 0 && logError) {
+    for (const rejected of result.rejected) {
+      logError(rejected)
+    }
+  }
+  if (result.events.length > 0) {
+    bus.publish('sim.events', result.events)
+  }
+}
 
 export function createFrameLoop(options: FrameLoopOptions): FrameLoop {
   let isRunning = false
@@ -53,9 +84,10 @@ export function createFrameLoop(options: FrameLoopOptions): FrameLoop {
       options.draw(frameInfo)
     } else {
       // 3. Otherwise accumulator += elapsed; while accumulator >= stepMs - 1e-6, run step
+      const stepMs = typeof options.stepMs === 'function' ? options.stepMs() : options.stepMs
       accumulator += elapsed
-      while (isRunning && accumulator >= options.stepMs - TOLERANCE_MS) {
-        accumulator -= options.stepMs
+      while (isRunning && accumulator >= stepMs - TOLERANCE_MS) {
+        accumulator -= stepMs
         options.step()
       }
 
@@ -64,7 +96,7 @@ export function createFrameLoop(options: FrameLoopOptions): FrameLoop {
         accumulator = 0
       } else {
         // 4. renderer.draw(frame) with alpha = accumulator / stepMs
-        frameInfo.alpha = accumulator / options.stepMs
+        frameInfo.alpha = accumulator / stepMs
         options.draw(frameInfo)
       }
     }

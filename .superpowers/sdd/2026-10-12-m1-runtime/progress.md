@@ -13,4 +13,5 @@ Task 7: complete (commit ef813a3, feat(runtime): Time with lifecycle and menu pa
 Audit 4: complete (commit afb22ff)
 Task 8: complete (commit 5f025e6, feat(runtime): versioned settings over Hosting.saves)
 Task 9: complete (commit ae4fc4a, feat(runtime): the renderer interface and nullRenderer)
-Audit 5: complete
+Audit 5: complete (commit cc5f674)
+Task 10: complete (feat(runtime): AppLoop with fixed step and interpolated draw)
