@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { compileContent } from '../compile/compile-content'
 import { defineContentSchema } from '../schema/content-schema'
-import { copyFixture, fixtureOptions } from '../testing/fixture-game'
+import { copyFixture, fixtureOptions, simRoomsOptions } from '../testing/fixture-game'
 import { type AutomataContentOptions, automataContent } from './automata-content'
 
 const servers: ViteDevServer[] = []
@@ -105,6 +105,26 @@ describe('vite build', () => {
   }, 30_000)
 })
 
+describe('the sim content (M2.2)', () => {
+  it('is exported beside the content, sharing its objects, with the sim hash', async () => {
+    const root = copyFixture('sim-rooms')
+    const { root: _root, ...rest } = simRoomsOptions(root)
+    const { server } = await devServer(root, rest)
+    const module = (await server.ssrLoadModule('virtual:automata/content')) as {
+      content: Record<string, unknown>
+      simContent: Record<string, unknown>
+      simContentHash: string
+    }
+    expect(Object.keys(module.simContent).sort()).toEqual(['room', 'tuning'])
+    // Built from `content`'s own properties, so the bundle holds the data once.
+    expect(module.simContent.room).toBe(module.content.room)
+    expect(module.simContent.tuning).toBe(module.content.tuning)
+    expect(module.simContentHash).toBe(
+      readFileSync(join(root, 'content/generated/sim-content.hash'), 'utf8').trim(),
+    )
+  }, 30_000)
+})
+
 describe('warnings', () => {
   it('logs a skipped file as a warning and still builds', async () => {
     const root = copyFixture('valid')
@@ -162,6 +182,23 @@ describe('vite dev', () => {
     await waitFor(() => events.length === 3, 'recovery on the next valid save')
     expect(events[2]?.event).toBe('automata:content')
     expect(await loadHash(server)).toBe(events[2]?.data.hash)
+  }, 30_000)
+
+  it('serves the module under a query too, so a page can import the new content after a save', async () => {
+    // The browser keeps every module it imported, so a page that hears `automata:content` imports the module
+    // again under a new URL (examples/content/hot-reload). The query must not change what is served.
+    const root = copyFixture('valid')
+    const { server, events } = await devServer(root)
+    editFile(root, 'characters/cyan.toml', (text) => text.replace('"Cyan"', '"Cyan Two"'))
+    await waitFor(() => events.length === 1, 'the rebuild')
+    const hash = events[0]?.data.hash ?? ''
+    const fresh = (await server.ssrLoadModule(`virtual:automata/content?v=${hash}`)) as {
+      contentHash: string
+    }
+    expect(fresh.contentHash).toBe(hash)
+    // The browser asks for `/@id/__x00__virtual:automata/content?v=<hash>`; Vite's middleware unwraps it to this.
+    const served = await server.transformRequest(`\0virtual:automata/content?v=${hash}`)
+    expect(served?.code).toContain(hash)
   }, 30_000)
 
   it("recovers after the game's code throws during a rebuild (audit of PR #8)", async () => {

@@ -142,10 +142,25 @@ describe('parity across packages', () => {
   ].filter(hasPackageJson)
 
   it("runs every package's parity suite through the root test:parity script", () => {
-    // Three suites at a time: each starts Chromium, WebKit and Firefox, and on the shared WSL Docker runner ten
-    // suites at once (turbo's default) left Firefox past vitest's 60 s connect timeout (#14, 2026-10-11).
-    expect(packageJson('.').scripts['test:parity']).toBe('turbo run test:parity --concurrency=3')
+    // Three suites at a time: each starts Chromium, WebKit and Firefox, and on the shared WSL Docker runner all of
+    // #14's eight suites at once left Firefox past vitest's 60 s connect timeout (2026-10-11). The longer connect
+    // timeout, passed through to every suite's vitest, is a backstop for a busy runner.
+    expect(packageJson('.').scripts['test:parity']).toBe(
+      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=120000',
+    )
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
+  })
+
+  // af-linux is one PC shared with Ruken's GPU runs. Under that load, tests that build worlds or import whole
+  // entry modules ran past vitest's 5 s default (main after #16: sim's snapshot test at 5.2 s; #15: base-2d's
+  // exports test). The root script passes a 30 s default to every package's vitest; a test's own timeout still wins.
+  it('gives every unit suite a 30 s default timeout through the root test:unit script', () => {
+    expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=30000')
+    // The flag only means something to vitest, so every package's test:unit must be a vitest run.
+    for (const path of workspacePackages) {
+      const script = packageJson(path).scripts?.['test:unit']
+      if (script !== undefined) expect(script, path).toMatch(/^vitest run( |$)/)
+    }
   })
 
   it('gives every package with a browsers vitest project a test:parity script', () => {
@@ -188,6 +203,12 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
   it('builds and prepares the placeholder as game-ci does', () => {
     expect(localSteps).toContain('pnpm --filter @af-examples/placeholder build')
     expect(localSteps).toContain('pnpm --filter @af-examples/placeholder prepare-ruken')
+  })
+
+  it('builds every feature demo (examples/README.md: CI builds every demo)', () => {
+    expect(scripts['build:demos']).toBe('pnpm --filter "./examples/*/*" build')
+    expect(JSON.stringify(ci.jobs.checks?.steps)).toContain('pnpm build:demos')
+    expect(localSteps).toContain('pnpm build:demos')
   })
 
   it('builds and prepares base-2d and runs the determinism check on its sim, as game-ci does', () => {

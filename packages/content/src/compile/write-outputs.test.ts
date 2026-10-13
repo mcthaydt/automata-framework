@@ -3,7 +3,9 @@ import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { formatDiagnostic } from '../diagnostics/diagnostic'
-import { copyFixture, fixtureOptions } from '../testing/fixture-game'
+import { defineContentGenerator } from '../generate/content-generator'
+import { canonicalFile } from '../hash/canonical-file'
+import { copyFixture, fixtureOptions, simRoomsOptions } from '../testing/fixture-game'
 import { compileContent } from './compile-content'
 import { buildContent, verifyContent } from './write-outputs'
 
@@ -178,5 +180,42 @@ describe('verifyContent', () => {
     const root = copyFixture('valid')
     breakSong(root)
     expect((await stale(root)).every((line) => line.startsWith('content/songs/dusk-run.toml'))).toBe(true)
+  })
+})
+
+describe('the sim outputs (M2.2)', () => {
+  it('are written beside content.json, listed, and match the partition', async () => {
+    const root = copyFixture('sim-rooms')
+    const built = await run(buildContent(simRoomsOptions(root)))
+    if (Either.isLeft(built)) throw new Error(String(built.left))
+    const { sim } = built.right
+    expect(readFileSync(generated(root, 'sim-content.json'), 'utf8')).toBe(canonicalFile(sim.data))
+    expect(readFileSync(generated(root, 'sim-content.hash'), 'utf8')).toBe(`${sim.hash}\n`)
+    const listed = readFileSync(generated(root, 'outputs.txt'), 'utf8').split('\n')
+    expect(listed).toContain('sim-content.json')
+    expect(listed).toContain('sim-content.hash')
+  })
+
+  it('are stale to verify after a hand edit', async () => {
+    const root = copyFixture('sim-rooms')
+    await run(buildContent(simRoomsOptions(root)))
+    writeFileSync(generated(root, 'sim-content.hash'), '0000000000000000\n')
+    const result = await run(verifyContent(simRoomsOptions(root)))
+    if (Either.isRight(result) || result.left._tag !== 'ContentCompileFailed')
+      throw new Error('expected stale')
+    expect(result.left.diagnostics.map(formatDiagnostic)).toEqual([
+      'content/generated/sim-content.hash:1:1  staleArtifact: content/generated/sim-content.hash does not match content/; run automata-content build',
+    ])
+  })
+
+  // A regression guard: clashes are already refused, so this passes as soon as the built-in writes the file.
+  it('cannot be written by a game generator', async () => {
+    const mine = defineContentGenerator('mine', () => ({ files: { 'sim-content.json': '{}' } }))
+    const result = await run(
+      compileContent({ ...simRoomsOptions(copyFixture('sim-rooms')), generators: [mine] }),
+    )
+    if (Either.isRight(result) || result.left._tag !== 'InvalidContentConfig')
+      throw new Error('expected a clash')
+    expect(result.left.message).toBe('generators "artifact" and "mine" both write sim-content.json')
   })
 })

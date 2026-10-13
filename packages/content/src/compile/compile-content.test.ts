@@ -74,10 +74,12 @@ describe('the fixture game', () => {
       'messages/en.json',
       'outputs.txt',
       'ruken-fields.json',
+      'sim-content.hash',
+      'sim-content.json',
       'tuning-meta.json',
     ])
     expect(files.get('outputs.txt')).toBe(
-      'content.d.ts\ncontent.hash\ncontent.json\nflow.mmd\nmessages/en.json\nruken-fields.json\ntuning-meta.json\n',
+      'content.d.ts\ncontent.hash\ncontent.json\nflow.mmd\nmessages/en.json\nruken-fields.json\nsim-content.hash\nsim-content.json\ntuning-meta.json\n',
     )
     expect(files.get('content.json')).toBe(canonicalFile(data))
     expect(files.get('content.hash')).toBe(`${hash}\n`)

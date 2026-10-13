@@ -13,7 +13,10 @@
     "dist"
   ],
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./sim": "./src/sim/index.ts",
+    "./sim/commands": "./src/sim/commands.ts",
+    "./sim/property": "./src/sim/property.ts"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
@@ -21,16 +24,32 @@
       ".": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
+      },
+      "./sim": {
+        "types": "./dist/sim/index.d.ts",
+        "import": "./dist/sim/index.js"
+      },
+      "./sim/commands": {
+        "types": "./dist/sim/commands.d.ts",
+        "import": "./dist/sim/commands.js"
+      },
+      "./sim/property": {
+        "types": "./dist/sim/property.d.ts",
+        "import": "./dist/sim/property.js"
       }
     }
   },
   "scripts": {
     "test": "vitest run",
-    "test:unit": "vitest run --project unit",
+    "test:unit": "vitest run --project unit --project sim",
     "test:layout": "vitest run --project layout",
-    "test:parity": "vitest run --project layout",
+    "test:parity": "vitest run --project layout --project sim-browsers",
     "typecheck": "tsc -p .",
     "build": "tsdown"
+  },
+  "dependencies": {
+    "@mcthaydt/automata-sim": "workspace:*",
+    "zod": "4.6.5"
   },
   "peerDependencies": {
     "svelte": "^5.57.1"
@@ -38,6 +57,7 @@
   "devDependencies": {
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
     "jsdom": "30.1.1",
     "playwright": "1.63.0",

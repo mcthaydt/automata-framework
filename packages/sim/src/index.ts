@@ -24,8 +24,9 @@ export {
 export type { FieldSchema, FieldType, FieldValue, FieldValues } from './define/fields'
 export { CanonicalJsonError, canonicalJson } from './hash/canonical'
 export { hex64, xxhash64 } from './hash/xxhash64'
-export type { Rng, RngState } from './rng/rng'
+export { createRng, deriveSeed, type Rng, type RngState } from './rng/rng'
 export { sortedEntries, sortedKeys } from './util/sorted'
+export { SIM_VERSION } from './version'
 export type { FieldRecord, RenderDelta, RenderRow } from './world/entity-store'
 export {
   type Command,
@@ -40,4 +41,9 @@ export {
   type SimOptions,
   type StepResult,
 } from './world/sim'
-export { SNAPSHOT_VERSION, SnapshotFormatError, SnapshotMismatchError } from './world/snapshot'
+export {
+  SNAPSHOT_VERSION,
+  SnapshotFormatError,
+  SnapshotMismatchError,
+  type SnapshotView,
+} from './world/snapshot'

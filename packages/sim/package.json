@@ -15,7 +15,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./hash": "./src/hash/hash.ts",
-    "./math": "./src/math/dmath.ts"
+    "./math": "./src/math/dmath.ts",
+    "./replay": "./src/replay/index.ts"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
@@ -31,6 +32,10 @@
       "./math": {
         "types": "./dist/math.d.ts",
         "import": "./dist/math.js"
+      },
+      "./replay": {
+        "types": "./dist/replay.d.ts",
+        "import": "./dist/replay.js"
       }
     }
   },
