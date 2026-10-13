@@ -5,6 +5,7 @@ import { demoHostOrigin, demoHostPort } from './examples/demo-host/ports.ts'
 import * as hostDemo from './examples/host/lifecycle-and-saves/e2e/origin.ts'
 import * as physicsDemo from './examples/physics/bodies-2d/e2e/origin.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './examples/placeholder/e2e/origins.ts'
+import * as runtimeDemo from './examples/runtime/boot-and-flow/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
 
 // Browser journeys for every AF example (ship spec §3.7): `pnpm test:e2e [playwright args]`. CI runs them
@@ -43,7 +44,12 @@ export default defineConfig({
     {
       name: 'demos',
       testDir: 'examples',
-      testMatch: ['host/*/e2e/*.e2e.ts', 'content/*/e2e/*.e2e.ts', 'physics/*/e2e/*.e2e.ts'],
+      testMatch: [
+        'host/*/e2e/*.e2e.ts',
+        'content/*/e2e/*.e2e.ts',
+        'physics/*/e2e/*.e2e.ts',
+        'runtime/*/e2e/*.e2e.ts',
+      ],
       use: { ...devices['Pixel 7'] },
     },
   ],
@@ -99,6 +105,12 @@ export default defineConfig({
       command: 'pnpm --filter @af-examples/physics-bodies-2d e2e:demo',
       url: physicsDemo.url,
       env: { AF_E2E_DEMO_PORT: String(physicsDemo.port) },
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      command: 'pnpm --filter @af-examples/runtime-boot-and-flow e2e:demo',
+      url: runtimeDemo.url,
+      env: { AF_E2E_DEMO_PORT: String(runtimeDemo.port) },
       reuseExistingServer: process.env.CI === undefined,
     },
     {
