@@ -62,7 +62,14 @@ function valueSpecifiersIn(source: string): string[] {
 /** Finds the file a relative import means: the path itself, then `.ts`, `.svelte.ts`, then `/index.ts`. */
 function resolveRelative(fromFile: string, specifier: string): string {
   const base = resolve(dirname(fromFile), specifier)
-  const candidates = [base, `${base}.ts`, `${base}.svelte.ts`, `${base}/index.ts`]
+  const stripped = specifier.endsWith('.js') ? resolve(dirname(fromFile), specifier.slice(0, -3)) : undefined
+  const candidates = [
+    base,
+    `${base}.ts`,
+    `${base}.svelte.ts`,
+    `${base}/index.ts`,
+    ...(stripped ? [stripped, `${stripped}.ts`, `${stripped}.svelte.ts`, `${stripped}/index.ts`] : []),
+  ]
   const found = candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile())
   if (found === undefined) {
     throw new Error(`import-graph: cannot resolve '${specifier}' imported from ${fromFile}`)

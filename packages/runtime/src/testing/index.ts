@@ -4,3 +4,4 @@ export {
   type FakeRoute,
   fakeFetch,
 } from './fake-fetch.js'
+export { type ManualFrames, manualFrames } from './manual-frames.js'
