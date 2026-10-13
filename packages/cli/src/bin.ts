@@ -32,6 +32,9 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
 
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
+    if (token === undefined) {
+      continue
+    }
     if (token === '--help' || token === '-h') {
       help = true
     } else if (token === '--id' && i + 1 < tokens.length) {

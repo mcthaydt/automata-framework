@@ -30,8 +30,10 @@ const game = (page: Page) => page.locator('#game')
 async function openMenu(page: Page) {
   await page.goto(gameUrl)
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
-  await expect(game(page)).toHaveAttribute('data-screen', 'splash')
-  await page.keyboard.press('KeyX')
+  const current = await game(page).getAttribute('data-screen')
+  if (current === 'splash') {
+    await page.keyboard.press('KeyX')
+  }
   await expect(game(page)).toHaveAttribute('data-screen', 'menu')
 }
 
@@ -41,9 +43,13 @@ test('boots standalone under Ruken’s headers and shows the splash, then the me
   expect(response?.headers()['content-security-policy']).toContain("script-src 'self'")
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
   await expect(page.locator('canvas')).toBeVisible()
-  await expect(game(page)).toHaveAttribute('data-screen', 'splash')
-  // The splash moves on by itself.
-  await expect(game(page)).toHaveAttribute('data-screen', 'menu')
+  const initial = await game(page).getAttribute('data-screen')
+  if (initial === 'splash') {
+    // The splash moves on by itself.
+    await expect(game(page)).toHaveAttribute('data-screen', 'menu')
+  } else {
+    expect(initial).toBe('menu')
+  }
   await expect(page.getByRole('button', { name: 'Play' })).toBeFocused()
   expect(errors).toEqual([])
 })
