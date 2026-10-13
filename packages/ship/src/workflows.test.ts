@@ -398,6 +398,9 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
     ])
     expect(changesets?.with?.['version-script']).toBe('pnpm release:version')
     expect(changesets?.with?.['publish-script']).toBe('pnpm release')
+    // `[skip ci]`: a push to the Version packages branch starts no ci, parity, game-ci or consumer-smoke run;
+    // the release job itself checks the commit it releases, so nothing needs the branch's own runs.
+    expect(changesets?.with?.['commit-message']).toBe('chore: version packages [skip ci]')
     expect(changesets?.with?.['pr-title']).toBe('Version packages')
     expect(changesets?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
     expect(changesets?.env?.GITHUB_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
