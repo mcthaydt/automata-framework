@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-13. Source HEAD verified before this update: `1ed77cc` on `main`, af-linux CI green at that merge (checks, parity in Chromium, WebKit and Firefox, consumer smoke, base-2d and placeholder game-ci). This file is a handoff snapshot, not proof of current CI, deployment or acceptance. Agents maintain it at every handoff.
+> Updated 2026-10-13. Source HEAD verified before this update: `08396fa` on `main`, af-linux CI green at PR #32 merge (checks, parity in Chromium, WebKit and Firefox, consumer smoke, base-2d and placeholder game-ci). This file is a handoff snapshot, not proof of current CI, deployment or acceptance. Agents maintain it at every handoff.
 
 ## Prompt for the next agent
 
@@ -10,7 +10,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 ## Exact next action
 
-**M1 Milestone complete and exited.** All M1 tasks (M1.1–M1.8) are complete and verified on branch `claude/project-thread-pwjmcz`:
+**M1 Milestone complete, merged into `main` (`08396fa`), and exited.** All M1 tasks (M1.1–M1.8) have landed on `main`:
 1. **M1.5 Runtime** — Complete (`packages/runtime`, `examples/runtime/boot-and-flow`). Tasks 1–20 and Audits 1–12 complete.
 2. **M1.7 `render-pixi` (2D renderer)** — Complete (`packages/render-pixi`, `examples/render-pixi/renderer-2d`). Tasks 1–8 complete.
 3. **M1.8 Base project, demos, scaffold and M1 exit** — Complete!
@@ -18,13 +18,13 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
    - `packages/cli` created and verified with `createGame` scaffolder and `create-game` executable binary (`automata create-game <target-dir>`).
    - Integration test verifies scaffolded project builds and produces valid `ruken.toml` accepted by `@ruken/manifest`.
    - Full exit verification gate: `pnpm check` clean (22/22 tasks), `pnpm test:parity` clean across Chromium, WebKit, Firefox (9/9 tasks), full Playwright browser journeys clean (`pnpm test:e2e`, 46/46 passed).
-4. **Next Step:** Owner review and merge of [PR #32](https://github.com/mcthaydt/automata-framework/pull/32), then proceed to M3.0 (2.5D and pipelines spec).
+4. **Next Step:** Proceed to M3.0 (2.5D and pipelines spec, with spike S7).
 
 ## Current artifacts and evidence limits
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
-| M1.8 Base project, demos, scaffold & M1 exit | Complete. Unit tests in `packages/cli` (4 files / 18 tests) and `examples/gallery` (3 tests); `pnpm check` clean (22/22 tasks); `pnpm test:parity` clean across 3 browsers (9/9 tasks); `pnpm test:e2e` clean (46/46 passed); `create-game` integration test verifies valid `ruken.toml` | [PR #32](https://github.com/mcthaydt/automata-framework/pull/32) open for Owner review |
+| M1.8 Base project, demos, scaffold & M1 exit | Complete. Unit tests in `packages/cli` (4 files / 18 tests) and `examples/gallery` (3 tests); `pnpm check` clean (22/22 tasks); `pnpm test:parity` clean across 3 browsers (9/9 tasks); `pnpm test:e2e` clean (46/46 passed); `create-game` integration test verifies valid `ruken.toml` | Merged into `main` (PR #32, `08396fa`) |
 | M1.7 `render-pixi` (2D renderer) | Tasks 1–8 complete, committed (`cb13b20` + Task 8 record). Local verification clean: unit tests (7 files / 29 tests), test:parity across 3 browsers (Chromium, WebKit, Firefox), typecheck, build, boundaries, style, lint, Playwright E2E with fake host (zero CSP violations) | PR review/merge, hosted CI |
 | M1.5 Runtime | Tasks 1–20 complete, committed (`278af83` + records). Local verification clean: unit tests (148 runtime, 19 demo), typecheck, build, boundaries, style, lint, frame-loop bench (Node 0.117 µs, Chromium 0.100 µs vs 0.30 µs budget), Playwright E2E (8/8 pass under fake host with 0 CSP violations) | PR #4 review/merge, hosted CI |
 | M0 (A0 spikes, A1a sim core) | Merged PRs #1 and #2; historical CI green 2026-10-02 | Not re-run in hosted CI in this update |
