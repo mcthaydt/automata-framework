@@ -2,7 +2,15 @@ import { expect, test } from 'vitest'
 
 // The public surface (M1.5 spec §3.1): one expected export list per entry point.
 // Each later task adds its names here when it adds the export.
-const ROOT_EXPORTS: string[] = ['LoadStalled', 'PresentationBus', 'SLOW_MS', 'STALL_MS', 'typedBus']
+const ROOT_EXPORTS: string[] = [
+  'AssetLoadFailed',
+  'Assets',
+  'LoadStalled',
+  'PresentationBus',
+  'SLOW_MS',
+  'STALL_MS',
+  'typedBus',
+]
 const EXTENSION_EXPORTS: string[] = ['ExtensionError', 'defineExtension', 'resolveExtensions']
 const TESTING_EXPORTS: string[] = ['fakeFetch']
 

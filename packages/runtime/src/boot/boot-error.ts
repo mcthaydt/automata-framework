@@ -16,3 +16,14 @@ const LoadStalledBase: TaggedErrorClass<'LoadStalled', LoadStalledFields> = Data
  * Triggers the "Taking a while" screen with a Try again button.
  */
 export class LoadStalled extends LoadStalledBase {}
+
+export interface AssetLoadFailedFields {
+  readonly url: string
+  readonly status: number
+}
+const AssetLoadFailedBase: TaggedErrorClass<'AssetLoadFailed', AssetLoadFailedFields> =
+  Data.TaggedError('AssetLoadFailed')
+/**
+ * An asset download failed with a non-OK HTTP status or network error (status 0).
+ */
+export class AssetLoadFailed extends AssetLoadFailedBase {}

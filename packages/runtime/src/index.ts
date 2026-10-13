@@ -1,4 +1,5 @@
-export { LoadStalled } from './boot/boot-error.js'
+export { AssetLoadFailed, LoadStalled } from './boot/boot-error.js'
+export { Assets } from './loading/assets.manager.js'
 export {
   type LoadMeter,
   SLOW_MS,
