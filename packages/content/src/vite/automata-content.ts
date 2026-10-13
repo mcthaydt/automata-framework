@@ -56,6 +56,14 @@ async function runBuild(options: ContentOptions): Promise<BuildOutcome> {
   }
 }
 
+/** Two outcomes a client cannot tell apart: the same content hash, or the same diagnostics. */
+function sameOutcome(previous: BuildOutcome | undefined, next: BuildOutcome): boolean {
+  if (previous === undefined || previous.ok !== next.ok) return false
+  if (previous.ok && next.ok) return previous.content.hash === next.content.hash
+  if (!previous.ok && !next.ok) return previous.lines.join('\n') === next.lines.join('\n')
+  return false
+}
+
 // `simContent` is built from `content`'s own properties (`{ "room": content["room"], ... }`) rather than a
 // second JSON literal, so the bundle holds the data once and the two share their objects (M2.2 spec §3.2).
 const moduleCode = (content: CompiledContent): string => {
@@ -83,6 +91,9 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
   let chain: Promise<unknown> = Promise.resolve()
   let started = false
   let timer: ReturnType<typeof setTimeout> | undefined
+  // The last build's outcome. `publish` sends an event only when it changes, so the several `change` events a
+  // single save can fire (macOS) — or the watcher's startup noise — never send a second, identical event.
+  let lastOutcome: BuildOutcome | undefined
 
   const enqueue = (): Promise<BuildOutcome> => {
     started = true
@@ -147,6 +158,7 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
 
     async buildStart() {
       const outcome = await enqueue()
+      lastOutcome = outcome
       if (outcome.ok) return
       // A build must not ship stale content; a dev server keeps serving the last good content instead.
       if (command === 'build') this.error(`content has errors:\n${outcome.lines.join('\n')}`)
@@ -159,7 +171,11 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
         if (timer !== undefined) clearTimeout(timer)
         timer = setTimeout(() => {
           timer = undefined
-          void enqueue().then((outcome) => publish(server, outcome))
+          void enqueue().then((outcome) => {
+            if (sameOutcome(lastOutcome, outcome)) return
+            lastOutcome = outcome
+            publish(server, outcome)
+          })
         }, DEBOUNCE_MS)
       })
     },
@@ -173,7 +189,7 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     async load(id) {
       if (id.split('?')[0] !== RESOLVED_ID) return undefined
       // A dev server may be asked for the module before `buildStart` ran.
-      if (!started) await enqueue()
+      if (!started) lastOutcome = await enqueue()
       await chain
       if (latest === undefined) throw new Error(`content has errors:\n${latestErrors.join('\n')}`)
       return moduleCode(latest)
