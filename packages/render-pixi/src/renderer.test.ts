@@ -149,12 +149,14 @@ describe('createPixiRenderer', () => {
       this.stage = new Container()
     }
 
+    const destroySpy = vi.spyOn(Application.prototype, 'destroy')
     const factory = createPixiRenderer({ preference: 'webgpu' })
 
     const program = Effect.scoped(
       Effect.gen(function* () {
         const renderer = yield* factory(target)
         expect(attempts).toBe(2)
+        expect(destroySpy).toHaveBeenCalledWith(true, { children: true })
         expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgpu')
         expect(initSpy.mock.calls[1]?.[0]?.preference).toBe('webgl')
         expect(renderer.stage.app.canvas.dataset.renderer).toBe('webgl')
@@ -162,6 +164,7 @@ describe('createPixiRenderer', () => {
     )
 
     await Effect.runPromise(program)
+    destroySpy.mockRestore()
   })
 
   it('fails with RendererUnavailable when all backends fail', async () => {

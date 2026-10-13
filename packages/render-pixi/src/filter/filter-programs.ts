@@ -37,6 +37,10 @@ struct GlobalFilterUniforms {
     uOutputTexture: vec4<f32>,
 };
 
+@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;
+@group(0) @binding(1) var uTexture: texture_2d<f32>;
+@group(0) @binding(2) var uSampler: sampler;
+
 struct VSOutput {
     @builtin(position) position: vec4<f32>,
     @location(0) uv: vec2<f32>,

@@ -80,6 +80,24 @@ export class LetterboxFrame {
   }
 
   layout(viewWidth: number, viewHeight: number): LetterboxGeometry {
+    if (viewWidth <= 0 || viewHeight <= 0) {
+      this.mask.clear()
+      this.field.clear()
+      this.topBar.clear()
+      this.bottomBar.clear()
+      return {
+        scale: 1,
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        gameplay: { x: 0, y: 0, width: 0, height: 0 },
+        scenery: { x: 0, y: 0, width: 0, height: 0 },
+        portrait: false,
+        fieldHeight: this.logicalHeight,
+      }
+    }
+
     const scale = viewWidth / this.logicalWidth
     const width = viewWidth
     const formFactor = classifyFormFactor(viewWidth, viewHeight)

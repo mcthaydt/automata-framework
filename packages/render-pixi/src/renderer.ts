@@ -81,24 +81,25 @@ export function createPixiRenderer(
       const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1
       const initialResolution = canvasResolutionFor(initialGeometry.formFactor, dpr)
 
-      const initApp = async (preference: RendererPreference): Promise<Application> => {
-        const app = new Application()
-        await app.init({
-          preference,
-          width: initialGeometry.usable.width,
-          height: initialGeometry.usable.height,
-          resolution: initialResolution,
-          backgroundColor: options.backgroundColor ?? 0x000000,
-          autoStart: false,
-          autoDensity: true,
-        })
-        return app
-      }
-
       const tryInit = async (pref: RendererPreference): Promise<Application | null> => {
+        const app = new Application()
         try {
-          return await initApp(pref)
+          await app.init({
+            preference: pref,
+            width: initialGeometry.usable.width,
+            height: initialGeometry.usable.height,
+            resolution: initialResolution,
+            backgroundColor: options.backgroundColor ?? 0x000000,
+            autoStart: false,
+            autoDensity: true,
+          })
+          return app
         } catch {
+          try {
+            app.destroy(true, { children: true })
+          } catch {
+            // ignore teardown errors on failed init
+          }
           return null
         }
       }

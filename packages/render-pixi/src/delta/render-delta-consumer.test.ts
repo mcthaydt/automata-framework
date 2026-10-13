@@ -37,7 +37,7 @@ describe('RenderDeltaConsumer', () => {
 
     expect(resolver).toHaveBeenCalledTimes(1)
     expect(world.children).toContain(viewContainer)
-    expect(updateSpy).toHaveBeenCalledWith({ position: { x: 10, y: 20 } }, { position: { x: 10, y: 20 } }, 1)
+    expect(updateSpy).toHaveBeenCalledWith({ position: { x: 10, y: 20 } }, undefined, 1)
   })
 
   it('supports record-based resolver matching first present component', () => {

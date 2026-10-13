@@ -12,6 +12,9 @@ describe('filterPrograms and shader headers', () => {
   it('computes pixel coordinates in WGSL vertex stage', () => {
     expect(WGSL_FILTER_HEADER).toContain('@location(1) pixelCoord: vec2<f32>')
     expect(WGSL_FILTER_HEADER).toContain('aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy')
+    expect(WGSL_FILTER_HEADER).toContain('@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;')
+    expect(WGSL_FILTER_HEADER).toContain('@group(0) @binding(1) var uTexture: texture_2d<f32>;')
+    expect(WGSL_FILTER_HEADER).toContain('@group(0) @binding(2) var uSampler: sampler;')
   })
 
   it('creates GlProgram and GpuProgram pair from fragments', () => {

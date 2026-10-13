@@ -17,7 +17,7 @@ export type EntityViewResolver = EntityViewFactory | Readonly<Record<string, Ent
 
 interface CachedEntity {
   curr: Readonly<Record<string, Readonly<FieldRecord>>>
-  prev: Readonly<Record<string, Readonly<FieldRecord>>>
+  prev: Readonly<Record<string, Readonly<FieldRecord>>> | undefined
 }
 
 export class RenderDeltaConsumer {
@@ -81,9 +81,9 @@ export class RenderDeltaConsumer {
       }
       this.cache.set(row.sid, {
         curr: row.components,
-        prev: row.components,
+        prev: undefined,
       })
-      view?.update?.(row.components, row.components, 1)
+      view?.update?.(row.components, undefined, 1)
     }
 
     for (const row of delta.changed) {

@@ -87,6 +87,17 @@ describe('LetterboxFrame', () => {
     expect(frame.bottomBar.tint).toBe(0xffffff)
   })
 
+  it('handles zero or negative viewport dimensions gracefully without NaN', () => {
+    const frame = new LetterboxFrame({
+      logicalWidth: LOGICAL.width,
+      logicalHeight: LOGICAL.height,
+    })
+    const geo = frame.layout(0, 0)
+    expect(geo.scale).toBe(1)
+    expect(geo.width).toBe(0)
+    expect(geo.height).toBe(0)
+  })
+
   it('cleans up masks and children on destroy', () => {
     const frame = new LetterboxFrame({
       logicalWidth: LOGICAL.width,
