@@ -56,7 +56,10 @@ export function publishedBuild(configUrl: string, options: PublishedBuildOptions
     dts: { eager: true },
     deps: {
       onlyBundle: bundleRuken.map(packageAndSubpaths),
-      onlyImport: external.map(packageAndSubpaths),
+      // Node built-ins stay external and are always allowed: a browser-platform package may still reach for
+      // them behind a runtime guard (e.g. `@mcthaydt/automata-testing/sim` reads files in Node, and reads
+      // golden files through a Vitest command in a browser).
+      onlyImport: [...external.map(packageAndSubpaths), /^node:/],
     },
     ...(options.copy === undefined ? {} : { copy: options.copy }),
     hooks: {
