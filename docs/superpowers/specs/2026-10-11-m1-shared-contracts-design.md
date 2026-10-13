@@ -154,6 +154,7 @@ Every boot step in master spec §7 fails with a typed error. The runtime's boot 
 | 5 Assets | `LoadStalled` | `url`, `bytesSoFar`, `stalledMs` (30,000) | Same state, "Still waiting" copy | Try again |
 | 6 Renderer | `RendererUnavailable` | `tried: ('webgl2'|'webgpu')[]` (WebGL2 is the default; WebGPU only when the game opts in) | "This device can't run the game" | "Back to Ruken" (`exit`) when `kind` is `ruken`; a final panel with no action when `standalone` |
 | 7 Ready | `HostError` (op `ready`) | `code` | "Couldn't connect to Ruken" | Try again |
+| any step, a defect (added 2026-10-12, M1.5 Q1) | `BootDefect` | — | "Couldn't start the game" | Try again |
 
 Copy here is a placeholder for the ui lane spec; tone follows Ruken's rules (quiet, human, no blame). Try again re-runs the boot program in a fresh runtime scope (a new SDK session included); it never refreshes the page from inside a Ruken frame.
 

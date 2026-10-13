@@ -13,6 +13,7 @@ const FIXTURES: readonly BootFailure[] = [
   { _tag: 'AssetLoadFailed', url: '/a.png', status: 404 },
   { _tag: 'LoadStalled', url: '/a.png', bytesSoFar: 10, stalledMs: 30_000 },
   { _tag: 'RendererUnavailable', tried: ['webgl2'] },
+  { _tag: 'BootDefect' },
 ]
 
 function open(failure: BootFailure, hostKind: 'ruken' | 'standalone' = 'ruken') {

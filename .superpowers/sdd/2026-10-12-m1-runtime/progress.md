@@ -20,4 +20,5 @@ Task 11: complete (commit 0859414, feat(runtime): page layers and overlay mounts
 Task 12: complete (commit 5121128, feat(runtime): fade veil)
 Audit 7: complete (commit 568965d)
 Task 13: complete (commit 4181ead, feat(runtime): Flow with one transition at a time)
-Audit 8: complete (record)
+Audit 8: complete (commit f33ad66)
+Task 14: complete (feat(ui): draw BootDefect as the start state)

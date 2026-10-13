@@ -44,6 +44,8 @@ describe('bootFailureView', () => {
     ],
     [{ _tag: 'RendererUnavailable', tried: ['webgl2'] }, 'ruken', 'unsupported', ['exit']],
     [{ _tag: 'RendererUnavailable', tried: ['webgl2', 'webgpu'] }, 'standalone', 'unsupported', []],
+    [{ _tag: 'BootDefect' }, 'ruken', 'start', ['retry']],
+    [{ _tag: 'BootDefect' }, 'standalone', 'start', ['retry']],
   ] as const)('%j under %s is %s with %j', (failure, host, state, actions) => {
     expect(bootFailureView(failure, host)).toEqual({ state, actions: [...actions] })
   })
