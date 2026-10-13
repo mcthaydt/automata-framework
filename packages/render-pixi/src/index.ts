@@ -3,6 +3,12 @@
 export const VERSION = '0.0.1'
 
 export {
+  type EntityView,
+  type EntityViewFactory,
+  type EntityViewResolver,
+  RenderDeltaConsumer,
+} from './delta/render-delta-consumer.js'
+export {
   FILTER_VERTEX,
   type FilterProgramsResult,
   filterPrograms,
