@@ -66,7 +66,9 @@ jobs:
         with:
           version-script: pnpm release:version
           publish-script: pnpm release
-          commit-message: "chore: version packages"
+          # `[skip ci]`: the Version packages branch is mechanical (versions and changelogs) and the release job
+          # checks and publishes it, so a push to it starts no ci, parity, game-ci or consumer-smoke run.
+          commit-message: "chore: version packages [skip ci]"
           pr-title: Version packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
