@@ -10,6 +10,7 @@ const ROOT_EXPORTS: string[] = [
   'PresentationBus',
   'SLOW_MS',
   'STALL_MS',
+  'Time',
   'typedBus',
 ]
 const EXTENSION_EXPORTS: string[] = ['ExtensionError', 'defineExtension', 'resolveExtensions']
