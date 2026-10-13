@@ -21,9 +21,9 @@ export interface LetterboxGeometry {
 export interface LetterboxOptions {
   readonly logicalWidth: number
   readonly logicalHeight: number
-  readonly barFraction?: number
-  readonly barColor?: number
-  readonly fieldColor?: number
+  readonly barFraction?: number | undefined
+  readonly barColor?: number | undefined
+  readonly fieldColor?: number | undefined
 }
 
 export function portraitFieldHeight(

@@ -18,23 +18,23 @@ export interface PixiRendererOptions {
    * Preferred backend. Default is 'webgl' (WebGL2).
    * Overridden by URL query param `?renderer=webgl` or `?renderer=webgpu` if present in browser.
    */
-  readonly preference?: RendererPreference
+  readonly preference?: RendererPreference | undefined
   /** Logical playfield width in pixels (e.g. 960 or 320). If omitted, renders unletterboxed. */
-  readonly logicalWidth?: number
+  readonly logicalWidth?: number | undefined
   /** Logical playfield height in pixels (e.g. 540 or 192). If omitted, renders unletterboxed. */
-  readonly logicalHeight?: number
+  readonly logicalHeight?: number | undefined
   /** Background clear colour (hex number, e.g. 0x000000). Default is 0x000000. */
-  readonly backgroundColor?: number
+  readonly backgroundColor?: number | undefined
   /** If true, textures default to nearest-neighbour sampling for crisp pixel art. Default is true. */
-  readonly pixelArt?: boolean
+  readonly pixelArt?: boolean | undefined
   /** Letterbox cropping fraction for top and bottom bars. Default is 0.05 (5%). */
-  readonly barFraction?: number
+  readonly barFraction?: number | undefined
   /** Bar color in hex. Default is 0x2e222f (FloorFifty plum black). */
-  readonly barColor?: number
+  readonly barColor?: number | undefined
   /** Optional view factory resolver for entity components. */
-  readonly entityViews?: EntityViewResolver
+  readonly entityViews?: EntityViewResolver | undefined
   /** Optional setup hook called before the first frame to add layers/filters. */
-  readonly setup?: (stage: PixiStage) => void
+  readonly setup?: ((stage: PixiStage) => void) | undefined
 }
 
 export interface PixiStage {
@@ -134,8 +134,8 @@ export function createPixiRenderer(
 
       if (options.logicalWidth != null && options.logicalHeight != null) {
         frame = new LetterboxFrame({
-          targetWidth: options.logicalWidth,
-          targetHeight: options.logicalHeight,
+          logicalWidth: options.logicalWidth,
+          logicalHeight: options.logicalHeight,
           barFraction: options.barFraction,
           barColor: options.barColor,
         })

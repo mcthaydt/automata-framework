@@ -1,0 +1,36 @@
+{
+  "name": "@af-examples/renderer-2d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test:e2e": "playwright test --config=../../../playwright.config.ts examples/render-pixi/renderer-2d/e2e/renderer-2d.e2e.ts",
+    "typecheck": "tsc -p .",
+    "e2e:demo": "vite build && vite preview --strictPort --host localhost --port $AF_E2E_DEMO_PORT"
+  },
+  "dependencies": {
+    "@mcthaydt/automata-host": "workspace:*",
+    "@mcthaydt/automata-render-pixi": "workspace:*",
+    "@mcthaydt/automata-runtime": "workspace:*",
+    "@mcthaydt/automata-sim": "workspace:*",
+    "@mcthaydt/automata-ui": "workspace:*",
+    "effect": "3.22.2",
+    "koota": "0.6.6",
+    "pixi.js": "8.21.0",
+    "svelte": "5.57.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@af-examples/demo-host": "workspace:*",
+    "@mcthaydt/automata-ship": "workspace:*",
+    "@mcthaydt/automata-testing": "workspace:*",
+    "@playwright/test": "1.63.0",
+    "@ruken/manifest": "file:../../../vendor/ruken/ruken-manifest-0.0.0.tgz",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@types/node": "24.19.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.2"
+  }
+}
