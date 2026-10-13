@@ -6,6 +6,13 @@ export {
   LoadStalled,
   RendererUnavailable,
 } from './boot/boot-error.js'
+export type {
+  CompiledContentData,
+  GameDefinition,
+  RuntimeHandle,
+  RuntimeSeams,
+} from './boot/game-definition.js'
+export { runGame } from './boot/run-game.js'
 export { Flow } from './flow/flow.manager.js'
 export type {
   FlowFailure,

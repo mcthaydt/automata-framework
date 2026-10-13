@@ -28,6 +28,7 @@ import { makeSettings, Settings } from '../settings/settings.manager.js'
 import { makeTime, Time, watchLifecycle } from '../time/time.manager.js'
 import { BootDefect, type BootError, ContentHashMismatch } from './boot-error.js'
 import type { GameDefinition } from './game-definition.js'
+import type { LoaderControls, PageLayers } from './page-layers.svelte.js'
 import { createPageLayers } from './page-layers.svelte.js'
 
 /**
@@ -47,6 +48,8 @@ const SAVE_KEY_RE = /^[A-Za-z0-9._:-]{1,128}$/
 export interface BootProgramOptions {
   readonly skipSettingsRead?: boolean
   readonly onHosting?: (hosting: Hosting) => void
+  readonly onLayers?: (layers: PageLayers) => void
+  readonly onLoader?: (loader: LoaderControls) => void
 }
 
 /**
@@ -90,6 +93,7 @@ export function bootProgram<S>(
     const frames = game.seams?.frames ?? liveFrames()
 
     const layers = createPageLayers(game.root, doc)
+    options?.onLayers?.(layers)
     yield* Effect.addFinalizer(() => Effect.sync(() => layers.dispose()))
     layers.setState('loading')
 
@@ -112,6 +116,7 @@ export function bootProgram<S>(
       label: game.copy?.loading ?? 'Loading…',
       slowLabel: game.copy?.slow ?? 'Taking a while…',
     })
+    options?.onLoader?.(loaderHandle)
     yield* Effect.addFinalizer(() => Effect.sync(() => loaderHandle.close()))
 
     // Wait one display frame so host lifts its cover onto the game's loader

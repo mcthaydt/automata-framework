@@ -18,6 +18,7 @@ const ROOT_EXPORTS: string[] = [
   'STALL_MS',
   'Settings',
   'Time',
+  'runGame',
   'settingsStore',
   'typedBus',
 ]
