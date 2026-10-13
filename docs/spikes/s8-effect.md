@@ -57,5 +57,12 @@ E3 and E4 cover the placeholder only. `base-2d` (M1.8) re-runs this script with 
 
 - **Real phones.** These numbers come from emulation on a server CPU. Real-device numbers need the GPU runner (D-5) or the Owner's phones.
 - **WebKit.** Playwright's WebKit has no CPU throttling, so the iPhone 13 profile ran in Chromium with the iPhone's viewport, pixel ratio and user agent.
-- **The frame loop.** The placeholder has no frame loop, so whether it stays allocation-free can't be measured here. The runtime lane measures it with the first real frame loop, against the "no Effect per frame" rule above.
+- **The frame loop (measured M1.5 Task 20, commit `278af83`):**
+  - **Machine:** Apple M-series Mac (Darwin arm64, Node v24.8.0, Chromium via Playwright 1.63.0).
+  - **Measurements (`frame-loop.bench.test.ts`, 10 000 frames after 1 000 warm-up, no-op sim double and nullRenderer on `manualFrames`):**
+    - **Node 24:** **0.117 µs/frame** median
+    - **Chromium:** **0.100 µs/frame** median
+  - **Budget:** 2× measured median = **0.30 µs/frame** (0.0003 ms/frame). Frame loop overhead consumes < 0.002% of a 16.67 ms frame budget at 60 Hz.
+  - **Purity:** `packages/runtime/src/loop/frame-loop-purity.test.ts` pins that `frame-loop.ts` and the per-frame execution path import nothing from `effect`.
+  - **E1 runtime demo measurement:** On `examples/runtime/boot-and-flow` (the blank game on Ruken with runtime flow and DOM screens), Rollup module code contains 158 Effect modules (404.60 kB raw, 86.25 kB gzip).
 - **Inside a Ruken frame.** The page booted standalone, which skips the `hello`/`welcome` round trip. The handshake itself is covered by `examples/placeholder/src/boot.test.ts` under the fake host.

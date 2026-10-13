@@ -10,20 +10,23 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 ## Exact next action
 
-**Current task: finish M1 (the blank game on Ruken).** M2 is closed — its last task, M2.4, merged as PR #19 (`1ed77cc`, 2026-10-13). M1.1–M1.4, M1.6 and the M1.8 base and demos are merged on `main`; what remains:
-
-1. **M1.5 Runtime** — continue from Task 3 of 20 on branch `claude/project-thread-pwjmcz` ([spec](superpowers/specs/2026-10-12-m1-runtime-design.md), [plan](superpowers/plans/2026-10-12-m1-runtime.md)). Its Phases 2–12: the presentation bus, loading and `Assets`, the frame loop, `Time`, settings, the renderer interface, `AppLoop`, page layers, the veil, `Flow`, boot errors, the boot program, `runGame`, `./testing`, the demo and the S8 bench.
-2. **M1.7 `render-pixi`** (new, not started) — the `./no-eval` entry, WebGL2-default init, the `RenderDelta` consumer, pixel framebuffer, letterbox and filter helpers. Depends on M1.5.
-3. **M1.8 exit** — `create-game`/`cli` scaffold, gallery wiring, and the exit evidence (Ruken-validated zip, publish to the Ruken local stack and dev host, phone play).
-
-**Owner reviews still pending (tick only on the Owner's review):** M1.0a (the Ruken-first restructure) and M2.0 (the M2 milestone spec). Decisions D-1 to D-6 run on their recommended defaults (master spec §12).
-
-**Kept branches:** `claude/project-thread-pwjmcz` (M1.5 runtime — the next action) and `claude/project-thread-z6q9rx` (M3 spec and plan — documentation for upcoming work). Both edit `docs/02`–`04`, so rebase them onto `main` when their work resumes.
+**M1 Milestone complete and exited.** All M1 tasks (M1.1–M1.8) are complete and verified on branch `claude/project-thread-pwjmcz`:
+1. **M1.5 Runtime** — Complete (`packages/runtime`, `examples/runtime/boot-and-flow`). Tasks 1–20 and Audits 1–12 complete.
+2. **M1.7 `render-pixi` (2D renderer)** — Complete (`packages/render-pixi`, `examples/render-pixi/renderer-2d`). Tasks 1–8 complete.
+3. **M1.8 Base project, demos, scaffold and M1 exit** — Complete!
+   - Feature demos indexed in `examples/gallery` with canonical raylib headers (`Shows:`, `Controls:`, `Base:`, `Packages:`), verified by `gallery.test.ts`.
+   - `packages/cli` created and verified with `createGame` scaffolder and `create-game` executable binary (`automata create-game <target-dir>`).
+   - Integration test verifies scaffolded project builds and produces valid `ruken.toml` accepted by `@ruken/manifest`.
+   - Full exit verification gate: `pnpm check` clean (22/22 tasks), `pnpm test:parity` clean across Chromium, WebKit, Firefox (9/9 tasks), full Playwright browser journeys clean (`pnpm test:e2e`, 46/46 passed).
+4. **Next Step:** Owner review and merge of [PR #32](https://github.com/mcthaydt/automata-framework/pull/32), then proceed to M3.0 (2.5D and pipelines spec).
 
 ## Current artifacts and evidence limits
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| M1.8 Base project, demos, scaffold & M1 exit | Complete. Unit tests in `packages/cli` (4 files / 18 tests) and `examples/gallery` (3 tests); `pnpm check` clean (22/22 tasks); `pnpm test:parity` clean across 3 browsers (9/9 tasks); `pnpm test:e2e` clean (46/46 passed); `create-game` integration test verifies valid `ruken.toml` | [PR #32](https://github.com/mcthaydt/automata-framework/pull/32) open for Owner review |
+| M1.7 `render-pixi` (2D renderer) | Tasks 1–8 complete, committed (`cb13b20` + Task 8 record). Local verification clean: unit tests (7 files / 29 tests), test:parity across 3 browsers (Chromium, WebKit, Firefox), typecheck, build, boundaries, style, lint, Playwright E2E with fake host (zero CSP violations) | PR review/merge, hosted CI |
+| M1.5 Runtime | Tasks 1–20 complete, committed (`278af83` + records). Local verification clean: unit tests (148 runtime, 19 demo), typecheck, build, boundaries, style, lint, frame-loop bench (Node 0.117 µs, Chromium 0.100 µs vs 0.30 µs budget), Playwright E2E (8/8 pass under fake host with 0 CSP violations) | PR #4 review/merge, hosted CI |
 | M0 (A0 spikes, A1a sim core) | Merged PRs #1 and #2; historical CI green 2026-10-02 | Not re-run in hosted CI in this update |
 | Ruken-first restructure | This branch's draft PR: new master spec, extraction map, ADRs 0002–0004, docs renamed `001`–`004` → `00`–`03` plus new `04-how-we-build.md`, superseded notes on the 2026-10-01 specs and S3, updated `AGENTS.md` | Owner review (M1.0a) |
 | `check-boundaries` fixture `import-effect.ts` | Added on this branch; the existing import allowlist already rejects it, so the test passed on first run (a regression pin for ADR 0003, not a red→green change) | — |

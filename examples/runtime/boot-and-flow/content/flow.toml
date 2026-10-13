@@ -1,0 +1,19 @@
+entry = "title"
+
+[[transitions]]
+from = "title"
+event = "play"
+to = "play"
+transition = "cut"
+
+[[transitions]]
+from = "play"
+event = "pause"
+to = "paused"
+transition = "cut"
+
+[[transitions]]
+from = "paused"
+event = "resume"
+to = "play"
+transition = "cut"

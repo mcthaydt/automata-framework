@@ -88,8 +88,10 @@ export function probeEnvSafeArea(root: HTMLElement): Insets {
   probe.style.cssText =
     'position:fixed;visibility:hidden;pointer-events:none;' +
     'padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)'
-  ;(doc.body ?? root).append(probe)
-  const style = doc.defaultView?.getComputedStyle(probe)
+  const style =
+    typeof doc.defaultView?.getComputedStyle === 'function'
+      ? doc.defaultView.getComputedStyle(probe)
+      : undefined
   const read = (value: string | undefined): number => {
     const px = Number.parseFloat(value ?? '')
     return Number.isFinite(px) && px > 0 ? px : 0

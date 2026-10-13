@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": [],
+    "allowImportingTsExtensions": true,
+    "isolatedDeclarations": false
+  },
+  "include": ["src/**/*.ts", "e2e/**/*.ts", "main.ts", "ship.config.ts", "env.d.ts"]
+}

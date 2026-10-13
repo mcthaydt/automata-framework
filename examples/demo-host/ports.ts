@@ -23,6 +23,8 @@ export interface HostedOptions {
   readonly grant?: readonly string[]
   /** The saves server is unreachable: writes queue on the host until it comes back. */
   readonly offline?: boolean
+  /** When 'never', the fake host never says ready (autoReady: false) */
+  readonly ready?: 'never'
 }
 
 export function hostedUrl(gameUrl: string, gameId: string, options: HostedOptions = {}): string {
@@ -30,5 +32,6 @@ export function hostedUrl(gameUrl: string, gameId: string, options: HostedOption
   if (options.saves !== undefined) query.set('saves', JSON.stringify(options.saves))
   if (options.grant !== undefined) query.set('grant', options.grant.join(','))
   if (options.offline === true) query.set('offline', '1')
+  if (options.ready === 'never') query.set('ready', 'never')
   return `${demoHostOrigin}/?${query}`
 }

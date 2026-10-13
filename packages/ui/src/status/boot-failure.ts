@@ -27,6 +27,7 @@ export type BootFailure =
       readonly stalledMs: number
     }
   | { readonly _tag: 'RendererUnavailable'; readonly tried: readonly ('webgl2' | 'webgpu')[] }
+  | { readonly _tag: 'BootDefect' }
 
 /** `Hosting['kind']` (shared contracts §1.1), written out until packages/host lands. */
 export type HostKind = 'ruken' | 'standalone'
@@ -93,6 +94,9 @@ export function bootFailureView(failure: BootFailure, hostKind: HostKind): BootF
       return { state: 'download-stalled', actions: ['retry'] }
     case 'RendererUnavailable':
       return { state: 'unsupported', actions: hostKind === 'ruken' ? ['exit'] : [] }
+    case 'BootDefect':
+      // A bug, not a typed failure; Try again re-runs boot.
+      return { state: 'start', actions: ['retry'] }
     default:
       return unhandled(failure)
   }

@@ -19,6 +19,9 @@ const grant =
 const iframe = document.querySelector('iframe')
 if (iframe === null) throw new Error('demo host: the page has no iframe')
 
+const readyParam = query.get('ready')
+const autoReady = readyParam !== 'never'
+
 const host = createFakeHost({
   gameOrigin: new URL(game).origin,
   gameId,
@@ -34,6 +37,7 @@ const host = createFakeHost({
   player: { id: 'p-1', displayName: 'Ada' },
   saves,
   grant,
+  autoReady,
 })
 host.fakes.saves.offline = query.get('offline') === '1'
 iframe.src = game
