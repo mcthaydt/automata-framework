@@ -471,6 +471,46 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.2(@types/node@26.6.4)(yaml@2.9.1))
 
+  packages/render-pixi:
+    dependencies:
+      '@mcthaydt/automata-runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@mcthaydt/automata-sim':
+        specifier: workspace:*
+        version: link:../sim
+      '@mcthaydt/automata-ui':
+        specifier: workspace:*
+        version: link:../ui
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@mcthaydt/automata-testing':
+        specifier: workspace:*
+        version: link:../testing
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      '@vitest/browser-playwright':
+        specifier: 5.0.3
+        version: 5.0.3(playwright@1.63.0)(vite@8.3.2(@types/node@24.19.1)(yaml@2.9.1))(vitest@5.0.3)
+      pixi.js:
+        specifier: 8.21.0
+        version: 8.21.0
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.2(@types/node@24.19.1)(yaml@2.9.1))
+
   packages/runtime:
     dependencies:
       '@mcthaydt/automata-content':
