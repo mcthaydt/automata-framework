@@ -1,4 +1,5 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
@@ -38,6 +39,17 @@ async function configError(options: ContentOptions): Promise<string> {
 const edit = (root: string, file: string, change: (text: string) => string): void => {
   const path = join(root, 'content', file)
   writeFileSync(path, change(readFileSync(path, 'utf8')))
+}
+
+/** False on a case-insensitive filesystem (macOS APFS by default), where two names differing only in case collide. */
+function caseSensitiveFs(): boolean {
+  const probe = mkdtempSync(join(tmpdir(), 'content-case-'))
+  try {
+    writeFileSync(join(probe, 'a'), '')
+    return !existsSync(join(probe, 'A'))
+  } finally {
+    rmSync(probe, { recursive: true, force: true })
+  }
 }
 
 describe('the fixture game', () => {
@@ -137,19 +149,25 @@ describe('files the compiler skips', () => {
 
   it('warns about a near miss of a document name at the top of content/, and not about other files', async () => {
     const root = copyFixture('valid')
+    // `Game.toml` is a case-only near miss of the fixture's `game.toml`; on a case-insensitive filesystem the two
+    // are one file, so that case can only be exercised where the filesystem can hold both.
+    const caseSensitive = caseSensitiveFs()
+    if (caseSensitive) writeFileSync(join(root, 'content/Game.toml'), '')
     writeFileSync(join(root, 'content/tunning.toml'), 'GRAVITY = 1\n')
-    writeFileSync(join(root, 'content/Game.toml'), '')
     writeFileSync(join(root, 'content/flow.toml.bak'), '')
     writeFileSync(join(root, 'content/README.md'), 'notes\n')
     // Near in name but not TOML, so never a misnamed document (audit of PR #8).
     writeFileSync(join(root, 'content/log.txt'), '')
     writeFileSync(join(root, 'content/game.md'), '')
     const { warnings } = await compiled(fixtureOptions(root))
-    expect(warnings.map(formatDiagnostic)).toEqual([
-      'content/Game.toml:1:1  skippedFile: this file is not read; did you mean game.toml?',
+    const expected = [
       'content/flow.toml.bak:1:1  skippedFile: this file is not read; did you mean flow.toml?',
       'content/tunning.toml:1:1  skippedFile: this file is not read; did you mean tuning.toml?',
-    ])
+    ]
+    if (caseSensitive) {
+      expected.unshift('content/Game.toml:1:1  skippedFile: this file is not read; did you mean game.toml?')
+    }
+    expect(warnings.map(formatDiagnostic)).toEqual(expected)
   })
 })
 
