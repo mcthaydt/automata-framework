@@ -8,25 +8,32 @@
   },
   "scripts": {
     "prepare": "lefthook install",
+    "build": "turbo run build --filter='./packages/*' --filter=./tooling/check-boundaries",
+    "changeset": "changeset",
+    "release:version": "changeset version && node tooling/release/src/sync-versions.ts",
+    "release": "pnpm build && changeset publish",
     "lint": "biome check .",
     "format": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:unit": "turbo run test:unit -- --testTimeout=30000",
     "bench": "pnpm --recursive --workspace-concurrency=1 --if-present bench",
-    "boundaries": "node tooling/check-boundaries/src/cli.ts packages/sim/src packages/physics/src examples/base-2d/src/sim && node tooling/check-boundaries/src/cli.ts --allow-import @af-examples/base-2d/sim examples/physics/bodies-2d/sim",
+    "boundaries": "automata-check-boundaries packages/sim/src packages/physics/src examples/base-2d/src/sim && automata-check-boundaries --allow-import @af-examples/base-2d/sim examples/physics/bodies-2d/sim",
     "style": "node tooling/check-style/src/cli.ts packages/*/src",
     "check": "pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit",
     "test:e2e": "playwright test",
     "build:demos": "pnpm --filter \"./examples/*/*\" build",
     "lint:actions": "docker run --rm -v \"$PWD:/repo\" --workdir /repo rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color",
     "test:parity": "turbo run test:parity --concurrency=3 -- --browser.connectTimeout=120000",
-    "ci:local": "pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit && pnpm build:demos && pnpm --filter @af-examples/placeholder budget:size && pnpm test:parity && pnpm --filter @af-examples/placeholder build && pnpm --filter @af-examples/placeholder prepare-ruken && pnpm --filter @af-examples/base-2d check && pnpm --filter @af-examples/base-2d build && pnpm --filter @af-examples/base-2d prepare-ruken"
+    "ci:local": "pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit && pnpm build:demos && pnpm --filter @af-examples/placeholder budget:size && pnpm changeset status --since=origin/main && node tooling/release/src/check-changesets.ts && pnpm build && pnpm --filter @mcthaydt/release test:dist && pnpm test:parity && pnpm --filter @af-examples/placeholder build && pnpm --filter @af-examples/placeholder prepare-ruken && pnpm --filter @af-examples/base-2d check && pnpm --filter @af-examples/base-2d build && pnpm --filter @af-examples/base-2d prepare-ruken"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
+    "@changesets/cli": "3.0.3",
+    "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@playwright/test": "1.63.0",
     "lefthook": "2.1.16",
+    "tsdown": "0.23.0",
     "turbo": "2.11.6",
     "typescript": "7.0.2"
   }

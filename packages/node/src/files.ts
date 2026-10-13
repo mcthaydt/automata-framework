@@ -19,7 +19,16 @@ export interface FilesService {
   remove(path: string): Effect.Effect<void, FileError>
 }
 
-export class Files extends Context.Tag('@mcthaydt/automata-node/Files')<Files, FilesService>() {}
+/**
+ * The service's tag. A tag and an identity interface instead of `class Files extends Context.Tag(...)`, because
+ * isolatedDeclarations cannot type a call in an `extends` clause (the pattern `host`'s `Hosting` uses).
+ */
+export interface Files {
+  readonly _Files: unique symbol
+}
+export const Files: Context.Tag<Files, FilesService> = Context.GenericTag<Files, FilesService>(
+  '@mcthaydt/automata-node/Files',
+)
 
 const attempt = <A>(path: string, run: () => A): Effect.Effect<A, FileError> =>
   Effect.try({ try: run, catch: (cause) => new FileError({ path, cause }) })

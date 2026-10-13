@@ -48,6 +48,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Full history, so `changeset status` on a pull request can find where it left origin/main. Not an
+          # expression: `cond && 0 || 1` always gives 1, because 0 is falsy in Actions expressions.
+          fetch-depth: 0
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -66,6 +69,13 @@ jobs:
       - run: pnpm build:demos
       # S8 budgets E1 and E3 (docs/spikes/s8-effect.md): Effect's share and the page's gzip size.
       - run: pnpm --filter @af-examples/placeholder budget:size
+      # Releases (M2.4 spec §3.5): a pull request that changes a published package carries a changeset, every
+      # changeset is a patch before 1.0, and every published package builds with nothing of Ruken's imported.
+      - run: pnpm changeset status --since=origin/main
+        if: github.event_name == 'pull_request'
+      - run: node tooling/release/src/check-changesets.ts
+      - run: pnpm build
+      - run: pnpm --filter @mcthaydt/release test:dist
 
   parity:
     name: parity (chromium, webkit, firefox)
@@ -145,6 +155,12 @@ jobs:
       - name: S8 boot budgets
         if: inputs.spec == ''
         run: pnpm --filter @af-examples/placeholder budget:boot
+      # The packed packages installed outside the workspace (M2.4 spec §3.6), nightly; pull requests that touch
+      # build config run it in consumer-smoke.yml.
+      - run: pnpm build
+        if: inputs.spec == ''
+      - run: node tooling/consumer-smoke/src/run.ts --from packs
+        if: inputs.spec == ''
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:

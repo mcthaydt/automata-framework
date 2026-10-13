@@ -1,5 +1,5 @@
 // @mcthaydt/automata-node: the Files and ProcessRunner Effect services AF's build-time packages share.
-export { FileError, ProcessError } from './errors.ts'
+export { FileError, ProcessError, type TaggedErrorClass } from './errors.ts'
 export { Files, FilesLive, type FilesService } from './files.ts'
 export {
   ProcessRunner,

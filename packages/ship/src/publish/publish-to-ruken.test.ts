@@ -72,4 +72,14 @@ describe('rukenCliPath', () => {
   it('finds the bin of the vendored @ruken/cli', () => {
     expect(rukenCliPath()).toMatch(/@ruken[/\\]cli[/\\]dist[/\\]cli\.js$/)
   })
+
+  it("uses the copy in the published package's dist/vendor/ruken-cli when it is there (M2.4 spec §3.4)", () => {
+    const built = 'file:///game/node_modules/@mcthaydt/automata-ship/dist/index.js'
+    const copy = '/game/node_modules/@mcthaydt/automata-ship/dist/vendor/ruken-cli/cli.js'
+    expect(rukenCliPath(built, (path) => path === copy)).toBe(copy)
+  })
+
+  it('falls back to the workspace @ruken/cli when running from src', () => {
+    expect(rukenCliPath(import.meta.url, () => false)).toMatch(/@ruken[/\\]cli[/\\]dist[/\\]cli\.js$/)
+  })
 })

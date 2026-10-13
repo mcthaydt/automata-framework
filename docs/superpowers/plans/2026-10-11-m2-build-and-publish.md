@@ -4,7 +4,7 @@
 
 - **Spec:** [m2-build-and-publish](../specs/2026-10-11-m2-build-and-publish-design.md) ("spec"); milestone: [M2](../specs/2026-10-11-m2-deterministic-core-design.md).
 - **Lane:** ship, on its own branch and worktree from `main`. Draft PR titled `M2.4 Build and publish`. Packaging work can start now; the PR merges after M2.2 and M2.3 (milestone spec §5), after merging `main` and re-running every step. The first publish is the Owner's merge of the first "Version packages" PR, after this one.
-- **Progress:** 0 / 13 tasks.
+- **Progress:** 13 / 13 tasks; Finish: PR body and hand-off open.
 - **Local CI (every task ends green):** Node 24.21.0; focused `pnpm vitest run <file>`; `pnpm check`; for workflow edits `pnpm lint:actions`; before calling the PR green `pnpm ci:local` and `consumer-smoke --from packs`.
 
 ## Interfaces
@@ -36,71 +36,74 @@
 Each task: write the failing test or check, run it and see it fail for the stated reason, make the least change, re-run, `pnpm check`, commit.
 
 ### Task 0: isolated declarations in `node` and `ship`
-- [ ] `errors.test.ts` in each package: every error keeps its `_tag` and fields, `Effect.catchTag` catches it, and it is an `instanceof` its class. Then set `isolatedDeclarations: true` in both `tsconfig.json`s. Expected failure: `tsc -p packages/node` and `tsc -p packages/ship` report TS9021-family errors on the `Data.TaggedError(...)` bases (`node/src/errors.ts:4,14`, `ship/src/errors.ts:9`) and any other inferred export.
-- [ ] Convert to the `TaggedErrorClass` pattern of `content/src/compile/errors.ts:11-33` and `host/src/errors.ts:15-40`; annotate any other export the flag reports; delete the two opt-out comments. `pnpm --filter @mcthaydt/automata-node test`, `pnpm --filter @mcthaydt/automata-ship test` and `pnpm typecheck` pass.
+- [x] `errors.test.ts` in each package: every error keeps its `_tag` and fields, `Effect.catchTag` catches it, and it is an `instanceof` its class. Then set `isolatedDeclarations: true` in both `tsconfig.json`s. Expected failure: `tsc -p packages/node` and `tsc -p packages/ship` report TS9021-family errors on the `Data.TaggedError(...)` bases (`node/src/errors.ts:4,14`, `ship/src/errors.ts:9`) and any other inferred export.
+- [x] Convert to the `TaggedErrorClass` pattern of `content/src/compile/errors.ts:11-33` and `host/src/errors.ts:15-40`; annotate any other export the flag reports; delete the two opt-out comments. `pnpm --filter @mcthaydt/automata-node test`, `pnpm --filter @mcthaydt/automata-ship test` and `pnpm typecheck` pass.
 
 ### Task 1: prove tsdown on `sim`
-- [ ] Add `tsdown` 0.23.0 (root dev dependency, row in `docs/versions.md`); `versions.test.ts` fails first on the missing row.
-- [ ] `packages/sim/tsdown.config.ts` per spec §3.2 with four entries; `pnpm --filter @mcthaydt/automata-sim build` writes `dist/{index,hash,math}.js` and `.d.ts` without invoking `tsc` (isolatedDeclarations). If tsdown needs TypeScript's API for any file, stop and report to the coordinator with the error: that decides the tool, not a workaround.
-- [ ] A Node script in the temp folder imports `dist/index.js`, creates a sim and hashes it: equals the workspace hash.
+- [x] Add `tsdown` 0.23.0 (root dev dependency, row in `docs/versions.md`); `versions.test.ts` fails first on the missing row.
+- [x] `packages/sim/tsdown.config.ts` per spec §3.2 with four entries; `pnpm --filter @mcthaydt/automata-sim build` writes `dist/{index,hash,math}.js` and `.d.ts` without invoking `tsc` (isolatedDeclarations). If tsdown needs TypeScript's API for any file, stop and report to the coordinator with the error: that decides the tool, not a workaround.
+- [x] A Node script in the temp folder imports `dist/index.js`, creates a sim and hashes it: equals the workspace hash.
 
 ### Task 2: release list test
-- [ ] `tooling/release/src/release-list.test.ts` (spec §6). Expected failure: every package is `private`.
-- [ ] Add `publishConfig`, `files`, `sideEffects` and drop `private` for the §3.1 packages, keeping workspace `exports` unchanged.
+- [x] `tooling/release/src/release-list.test.ts` (spec §6). Expected failure: every package is `private`.
+- [x] Add `publishConfig`, `files`, `sideEffects` and drop `private` for the §3.1 packages, keeping workspace `exports` unchanged.
 
 ### Task 3: build every node-side package
-- [ ] tsdown configs for `node`, `content` (bin with shebang; `@ruken/manifest` bundled, its declarations inlined), `ship` (bin; manifest bundled), `check-boundaries` (renamed; bin). Move the vendored tarballs to `devDependencies`. Expected failure first: the release list test's "no `@ruken/` in dist" check fails on `content` while `@ruken/manifest` is external. `pnpm build` passes; the release list test's dist checks pass.
-- [ ] `write-vendored.test.ts` then `write-vendored.ts`: writes `VENDORED.md` from `vendor/ruken/README.md` for the packages that bundle Ruken code; run from each such package's build.
-- [ ] Rename: `@mcthaydt/check-boundaries` → `@mcthaydt/automata-check-boundaries`; root `boundaries` script, `game-ci.yml` and every example's `check` script use the new bin; `pnpm boundaries` still passes.
+- [x] tsdown configs for `node`, `content` (bin with shebang; `@ruken/manifest` bundled, its declarations inlined), `ship` (bin; manifest bundled), `check-boundaries` (renamed; bin). Move the vendored tarballs to `devDependencies`. Expected failure first: the release list test's "no `@ruken/` in dist" check fails on `content` while `@ruken/manifest` is external. `pnpm build` passes; the release list test's dist checks pass. *Done: every config goes through `tooling/release/src/tsdown-shared.ts` (deps external, `@ruken/*` bundled with `onlyBundle`, `onlyImport` limited to declared dependencies, `.js` names). content's published bin is `packages/content/build/cli.ts` (calls `runCli` directly; the workspace bin loads `.ts` through Vite's runner, which a built package cannot).*
+- [x] `write-vendored.test.ts` then `write-vendored.ts`: writes `VENDORED.md` from `vendor/ruken/README.md` for the packages that bundle Ruken code; run from each such package's build.
+- [x] Rename: `@mcthaydt/check-boundaries` → `@mcthaydt/automata-check-boundaries`; root `boundaries` script, `game-ci.yml` and every example's `check` script use the new bin; `pnpm boundaries` still passes.
 
 ### Task 4: `ship`'s Ruken CLI
-- [ ] `publish-to-ruken.test.ts` gains a case: with the CLI at `dist/vendor/ruken-cli/cli.js` relative to the module, the default path resolves there. Expected failure: it resolves through `@ruken/cli`.
-- [ ] Copy step in `ship`'s build; declare the four runtime dependencies at Ruken's versions; default path falls back to the workspace's `@ruken/cli` when running from `src`.
+- [x] `publish-to-ruken.test.ts` gains a case: with the CLI at `dist/vendor/ruken-cli/cli.js` relative to the module, the default path resolves there. Expected failure: it resolves through `@ruken/cli`.
+- [x] Copy step in `ship`'s build; declare the four runtime dependencies at Ruken's versions; default path falls back to the workspace's `@ruken/cli` when running from `src`.
 
 ### Task 5: build the browser-side packages
-- [ ] A test in `tooling/release` builds `host` and asserts `dist/index.js`, `dist/testing.js` and their `.d.ts` hold no `from '@ruken/` and `dependencies` hold `zod` and no `file:` path. Expected failure: no build config.
-- [ ] tsdown for `sim` (done), `physics` (`./2d`, `./3d`; Rapier external), `host` (`.` bundles `@ruken/sdk`, `./testing` bundles `@ruken/sdk-host`; `zod` 4.6.5 added to `dependencies`), `testing` (`.`, `./sim`; svelte external; Ruken types inlined into `.d.ts`, no Ruken JavaScript).
+- [x] A test in `tooling/release` builds `host` and asserts `dist/index.js`, `dist/testing.js` and their `.d.ts` hold no `from '@ruken/` and `dependencies` hold `zod` and no `file:` path. Expected failure: no build config. *Done as the release list test's dist checks (`pnpm --filter @mcthaydt/release test:dist` after `pnpm build`), which cover host with every other package.*
+- [x] tsdown for `sim` (done), `physics` (`./2d`, `./3d`; Rapier external), `host` (`.` bundles `@ruken/sdk`, `./testing` bundles `@ruken/sdk-host`; `zod` 4.6.5 added to `dependencies`), `testing` (`.`, `./sim`; svelte external; Ruken types inlined into `.d.ts`, no Ruken JavaScript).
 
 ### Task 6: `ui` with `@sveltejs/package`
-- [ ] Add the pinned dependency (row in `docs/versions.md`); `svelte.config.js` with the TypeScript preprocessor; build writes `dist/` with `.svelte`, `.js`, `.d.ts` and `theme.css`; `publishConfig.exports` has `svelte`, `types`, `import` conditions.
-- [ ] The release list test fails on `ui`'s `.d.ts` naming `@ruken/sdk` (`landscape-gate`, `geometry`, `boot-failure`); add the tsdown `dts` pass that inlines them (spec §3.4) and move `@ruken/sdk` to `devDependencies`; the test passes for `ui`.
+- [x] Add the pinned dependency (row in `docs/versions.md`); `svelte.config.js` with the TypeScript preprocessor; build writes `dist/` with `.svelte`, `.js`, `.d.ts` and `theme.css`; `publishConfig.exports` has `svelte`, `types`, `import` conditions.
+- [x] The release list test fails on `ui`'s `.d.ts` naming `@ruken/sdk` (`landscape-gate`, `geometry`, `boot-failure`); add the tsdown `dts` pass that inlines them (spec §3.4) and move `@ruken/sdk` to `devDependencies`; the test passes for `ui`. *Done: tsdown inlines `@ruken/sdk`'s types into `dist/vendor/ruken-sdk.d.ts` and `finish-svelte-dist.ts` points ui's declarations at it (and drops tests). svelte-package runs with `tsconfig.package.json` (isolatedDeclarations off: svelte2tsx output has inferred types).*
 
 ### Task 7: Changesets and the version rules
-- [ ] `@changesets/cli` 3.0.3 (row); `.changeset/config.json` per spec §3.5.
-- [ ] `tooling/release/src/check-changesets.test.ts` then `check-changesets.ts` (patch only). Expected failure: module missing.
-- [ ] `sync-versions.test.ts` then `sync-versions.ts` (rewrites `packages/sim/src/version.ts`; skipped with a note until M2.3 merges).
-- [ ] Root scripts `release:version` and `release`; a dry run in a scratch clone: `pnpm changeset` (patch on sim) → `pnpm release:version` bumps every package to `0.0.1` (fixed group) and writes changelogs. Not committed.
+- [x] `@changesets/cli` 3.0.3 (row); `.changeset/config.json` per spec §3.5.
+- [x] `tooling/release/src/check-changesets.test.ts` then `check-changesets.ts` (patch only). Expected failure: module missing.
+- [x] `sync-versions.test.ts` then `sync-versions.ts` (rewrites `packages/sim/src/version.ts`; skipped with a note until M2.3 merges). *Done without a skip: the tests use a temp repository, and with no `version.ts` yet the step reports `no-version-file` and changes nothing.*
+- [x] Root scripts `release:version` and `release`; a dry run in a scratch clone: `pnpm changeset` (patch on sim) → `pnpm release:version` bumps every package to `0.0.1` (fixed group) and writes changelogs. Not committed. *Done 2026-10-11: all nine packages went 0.0.0 → 0.0.1 with changelogs; `SIM_VERSION no-version-file`.*
 
 ### Task 8: CI steps and turbo
-- [ ] `workflows.test.ts`: `checks` checks out with `fetch-depth: 0` and runs `changeset status --since=origin/main`, the patch-only check and `pnpm build`; `ci:local` equals the checks job (the existing equality test). Expected failure: steps missing.
-- [ ] Edit `ci.yml` and `ci:local`; `pnpm lint:actions` clean.
-- [ ] `turbo.test.ts`: only `build` has `dependsOn: ["^build"]`. Expected failure: `typecheck`, `test`, `test:unit`, `test:parity` have it. Edit `turbo.json`; `pnpm check` runs no `build`.
+- [x] `workflows.test.ts`: `checks` checks out with `fetch-depth: 0` and runs `changeset status --since=origin/main`, the patch-only check and `pnpm build`; `ci:local` equals the checks job (the existing equality test). Expected failure: steps missing.
+- [x] Edit `ci.yml` and `ci:local`; `pnpm lint:actions` clean. *Done: actionlint 1.7.12 run from its release binary (no Docker daemon in this container). `changeset status` runs on pull requests only (nothing to compare on a push to main), and the checks job also runs the release list's dist checks after `pnpm build`.*
+- [x] `turbo.test.ts`: only `build` has `dependsOn: ["^build"]`. Expected failure: `typecheck`, `test`, `test:unit`, `test:parity` have it. Edit `turbo.json`; `pnpm check` runs no `build`.
 
 ### Task 9: release workflow
-- [ ] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, `verify-published` then the registry-mode consumer smoke after publish, both guarded by `steps.changesets.outputs.published == 'true'` and given the version from `publishedPackages`). Expected failure: `release-packages.yml` does not exist.
-- [ ] `tooling/release/src/publishable-packages.ts` (workspace packages whose `private` is not `true`), used by `release-list.test.ts` and `verify-published`. Then `verify-published.test.ts` (spec §6: present, missing-then-present, missing after 5 tries, lookup error; fake clock) and `verify-published.ts` (`pnpm view`, bounded retry). Expected failure: module missing.
-- [ ] Write the workflow; `actionlint` clean.
-- [ ] Provenance: GitHub's npm-registry docs (spec, Builds from) do not mention it; leave `--provenance` off and say so in the spec's §8. A test publish to check it needs the Owner's OK and is not part of this task.
+- [x] `workflows.test.ts`: `release-packages.yml` per spec §3.5 (`ubuntu-latest`, permissions, `changesets/action` pinned to `ae32849d5ba541f9ae29e40e22a623bc13562f51`, concurrency, `timeout-minutes: 20`, checkout `fetch-depth: 0`, `registry-url`, `NODE_AUTH_TOKEN: secrets.GITHUB_TOKEN`, `verify-published` then the registry-mode consumer smoke after publish, both guarded by `steps.changesets.outputs.published == 'true'` and given the version from `publishedPackages`). Expected failure: `release-packages.yml` does not exist.
+- [x] `tooling/release/src/publishable-packages.ts` (workspace packages whose `private` is not `true`), used by `release-list.test.ts` and `verify-published`. Then `verify-published.test.ts` (spec §6: present, missing-then-present, missing after 5 tries, lookup error; fake clock) and `verify-published.ts` (`pnpm view`, bounded retry). Expected failure: module missing.
+- [x] Write the workflow; `actionlint` clean. *Also: each published package.json names this repository (`repository.directory`), which GitHub uses to link a package to the repository whose `GITHUB_TOKEN` may publish it; the release list test pins it. The version comes from `publishedPackages` through `released-version.ts`.*
+- [x] Provenance: GitHub's npm-registry docs (spec, Builds from) do not mention it; leave `--provenance` off and say so in the spec's §8. *Spec §8 already says so; the workflow test asserts no provenance setting.* A test publish to check it needs the Owner's OK and is not part of this task.
 
 ### Task 10: consumer smoke
-- [ ] `tooling/consumer-smoke/src/run.ts` per spec §3.6 with its fixtures. First run fails until every build is right; record what each failure taught in the log.
-- [ ] `consumer-smoke --from packs` passes: Node checks, TypeScript 7.0.2 and 6.0.3, the Vite bundle (one Ruken SDK copy, no `new Function`/`eval(` from AF).
-- [ ] Add it to the nightly `e2e` job in `ci.yml` and as a `consumer-smoke` job on pull requests filtered by the spec §4 paths, not to every push (it takes minutes); document it beside `ci:local`. `workflows.test.ts` asserts both triggers (expected failure: no such job).
+- [x] `tooling/consumer-smoke/src/run.ts` per spec §3.6 with its fixtures. First run fails until every build is right; record what each failure taught in the log. *First run (2026-10-11) failed four steps, all in the smoke itself, none in a package: `automata-ship --help` answers with exit 2 (the step now checks the usage it prints); the fixture `game.toml` named preload screens without assets; the types step needed `@types/node` and `lib: ESNext` because content's Vite plugin types pull in Vite's and Rolldown's (a game has both); one wrong call in the fixture. The `.replay` round trip waits for M2.3's `./replay` entry.*
+- [x] `consumer-smoke --from packs` passes: Node checks, TypeScript 7.0.2 and 6.0.3, the Vite bundle (one Ruken SDK copy, no `new Function`/`eval(` from AF).
+- [x] Add it to the nightly `e2e` job in `ci.yml` and as a `consumer-smoke` job on pull requests filtered by the spec §4 paths, not to every push (it takes minutes); document it beside `ci:local`. `workflows.test.ts` asserts both triggers (expected failure: no such job). *Done: the pull request trigger is its own workflow, `consumer-smoke.yml` (a `paths` filter applies to a whole workflow, not a job), skipping drafts like parity and e2e; documented in `tooling/consumer-smoke/README.md` (04 is the integration owner's, so the line for it goes to the coordinator).*
 
 ### Task 11: `game-ci.yml` on published packages
-- [ ] `workflows.test.ts`: for a repository other than AF, the workflow no longer checks out AF, uses `registry-url` with `NODE_AUTH_TOKEN: secrets.AF_READ_TOKEN`, fails early naming a classic `read:packages` token when the secret is missing, runs `pnpm exec automata-check-boundaries` (with the new `allow-imports` input) and `pnpm exec automata-ship prepare`, and describes `AF_READ_TOKEN` as a classic PAT with `read:packages`. Expected failure: the AF checkout step is still there.
-- [ ] Edit the workflow; inside AF it still runs from the workspace.
+- [x] `workflows.test.ts`: for a repository other than AF, the workflow no longer checks out AF, uses `registry-url` with `NODE_AUTH_TOKEN: secrets.AF_READ_TOKEN`, fails early naming a classic `read:packages` token when the secret is missing, runs `pnpm exec automata-check-boundaries` (with the new `allow-imports` input) and `pnpm exec automata-ship prepare`, and describes `AF_READ_TOKEN` as a classic PAT with `read:packages`. Expected failure: the AF checkout step is still there.
+- [x] Edit the workflow; inside AF it still runs from the workspace. *Done: one path for both, `pnpm exec` in the game's folder: inside AF the examples' workspace bins run `src`, outside AF the installed packages run `dist`. The `af-ref` input is gone (the game's package.json picks the AF version); `allow-imports` passes `--allow-import` per entry and needs M2.1b's checker.*
 
 ### Task 12: `game-release.yml` on published packages
-- [ ] `workflows.test.ts`: each of `build`, `ruken`, `dev-host`, for a repository other than AF, checks out only the game, installs with `AF_READ_TOKEN` through `registry-url`, runs `pnpm exec automata-ship prepare | publish | deploy-dev` with today's arguments, and keeps `ubuntu-latest` as the default runner; the secret's description and the header say classic PAT with `read:packages`. Expected failure: the jobs still check out AF with `AF_READ_TOKEN` (`game-release.yml:87,130,183`).
-- [ ] Edit the workflow; inside AF the jobs keep their in-repo paths; `actionlint` clean.
+- [x] `workflows.test.ts`: each of `build`, `ruken`, `dev-host`, for a repository other than AF, checks out only the game, installs with `AF_READ_TOKEN` through `registry-url`, runs `pnpm exec automata-ship prepare | publish | deploy-dev` with today's arguments, and keeps `ubuntu-latest` as the default runner; the secret's description and the header say classic PAT with `read:packages`. Expected failure: the jobs still check out AF with `AF_READ_TOKEN` (`game-release.yml:87,130,183`).
+- [x] Edit the workflow; inside AF the jobs keep their in-repo paths; `actionlint` clean. *Done the same way as game-ci (`pnpm exec automata-ship …` from the game's folder, inside and outside AF); `af-ref` removed.*
 
 ## Finish
 
-- [ ] `pnpm ci:local` green; local wall time of the checks and parity jobs recorded (exit 8 evidence until af-linux returns).
+- [x] `pnpm ci:local` green; local wall time of the checks and parity jobs recorded (exit 8 evidence until af-linux returns). *2026-10-11, this container, Node 24.21.0, parity in Chromium, WebKit and Firefox (Playwright 1.63.0 browsers): `ci:local` 1 min 43 s in all, the parity step 1 min 12 s, `pnpm check` 42 s cold, `pnpm build` 6 s. `consumer-smoke --from packs` passed (about 20 s). af-linux timings stay open (exit 6).*
 - [ ] PR body: what the Owner must do for the first release (create `AF_READ_TOKEN` as a classic PAT with `read:packages` only when the first game repository needs it; merge the "Version packages" PR).
 - [ ] Update **Progress**, add the execution log line, and send the integration owner the rows for 02 and 03.
 
 ## Execution log
 
-- (empty)
+- 2026-10-11, M2.4 lane thread, `f4065a2`..HEAD on `claude/af-m2-4-publish-hklgxc`: Tasks 0–12. Rulings and deviations: every package builds through one shared `tooling/release/src/tsdown-shared.ts` (deps external, `@ruken/*` bundled via `onlyBundle`, `onlyImport` = declared dependencies); content's published bin is `packages/content/build/cli.ts`; ui's Ruken types are inlined into `dist/vendor/ruken-sdk.d.ts` and its tests dropped by `finish-svelte-dist.ts`; `node`'s service tags became `GenericTag` constants (isolatedDeclarations); packages carry `repository` so the workflow token may publish them; `consumer-smoke.yml` is its own workflow (a `paths` filter cannot apply to one job); game workflows drop `af-ref`. The `.replay` round trip and `SIM_VERSION` sync wait for M2.3. Nothing published.
+- 2026-10-11, M2.4 lane thread, after the #19 audit (`/mnt/project-files/audits/af-m2.4-build-publish-pr19-2026-10-11.md`), merged `main` (`3795827`, #16) and fixed: M1 `finish-svelte-dist.ts` adds `.js` to ui's relative imports (dist check and a nodenext consumer-smoke step guard it; ui/testing joins the Node step); M2 the smoke project pins the root `packageManager` and keeps overrides in its own `pnpm-workspace.yaml`; M3 the release job runs `pnpm check` first; L1 `persist-credentials: false`; L2 tests pin the root `release` script; L5 outside peers are `^` ranges (no `license` field: the Owner's call). Also found: the pinned changesets/action v2.1.2 rejects v1 input names (`version`, `publish`, `commit`, `title`) and names its output `published-packages`, so the release would have failed at once; fixed and pinned by test. Turbo's `build` now hashes `tooling/release/src/**` (a stale cached ui dist hid the M1 fix).
+- 2026-10-11, follow-up: the checks job's `fetch-depth: ${{ … && 0 || 1 }}` always gave 1 (0 is falsy in Actions expressions), so `changeset status --since=origin/main` failed on af-linux; now `fetch-depth: 0`. Every published package says `"license": "UNLICENSED"` (Owner, 2026-10-11, until launch), pinned by the release list test. L5's peer ranges are reverted: the repository pins every specifier exactly, peers included (`tooling/versions`, ported from Ruken), and the earlier green run had replayed a cached versions test; `tooling/versions` and `tooling/release` now have turbo inputs covering every package.json they read.
+- 2026-10-11, audit re-check: L5 taken after all (coordinator's ruling). A game on svelte 5.57.2 failed to install AF under npm and strict pnpm with exact peers, so published packages' outside peers are `^<workspace pin>` again; `tooling/versions` reads them as their floor (`publishedPeerFloors`), which must equal the package's devDependency pin, and rejects ranges everywhere else. N3: the release and versions turbo inputs cover `examples/*/*/package.json`.

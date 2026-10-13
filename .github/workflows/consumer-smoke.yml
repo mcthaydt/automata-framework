@@ -1,0 +1,49 @@
+name: consumer smoke
+
+# Installs AF's packed packages into a project outside the workspace and uses them as a game would: imports,
+# TypeScript 7 and 6, the bins, and a Vite bundle with one Ruken SDK and no eval (M2.4 spec §3.6). It takes
+# minutes, so it runs only on pull requests that touch how packages are built or published (spec §4), and
+# nightly in ci.yml's e2e job. Drafts skip it, as they skip parity and e2e on af-linux; run it locally with
+# `pnpm build && node tooling/consumer-smoke/src/run.ts --from packs` before marking a pull request ready.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "**/tsdown.config.ts"
+      - "**/tsdown.dts.config.ts"
+      - "**/svelte.config.js"
+      - "**/package.json"
+      - pnpm-lock.yaml
+      - .changeset/**
+      - tooling/release/**
+      - tooling/consumer-smoke/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: consumer-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  consumer-smoke:
+    name: consumer smoke (packed packages, outside the workspace)
+    if: github.event.pull_request.draft == false
+    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: node tooling/consumer-smoke/src/run.ts --from packs

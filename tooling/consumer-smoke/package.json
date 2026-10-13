@@ -1,0 +1,16 @@
+{
+  "name": "@mcthaydt/consumer-smoke",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "smoke": "node src/run.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "vitest": "5.0.3"
+  }
+}

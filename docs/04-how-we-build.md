@@ -45,6 +45,8 @@ Rules for every lane:
 - Ship your feature's demo in `examples/<package>/<demo>/` on the matching base, per [`examples/README.md`](../examples/README.md). If the base is not there yet, add the demo's row to that README as waiting; the integration owner finishes it in M1.8 or M3. A lane only edits its own rows and folders under `examples/`.
 - Build against the [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md) (`Hosting`, `HostError`, `defineExtension`, `BootError`). A lane that needs one changed asks the integration owner; it does not edit the shape itself.
 - Run CI locally before calling a PR green: Node 24, `pnpm check`, and the parity suite in Chromium, WebKit and Firefox (hosted Actions jobs are not getting runners).
+- A PR that changes how packages are built or published (a `tsdown.config.ts`, `svelte.config.js`, `package.json`, `.changeset/`, `tooling/release/` or `tooling/consumer-smoke/`) also runs `pnpm build && node tooling/consumer-smoke/src/run.ts --from packs` locally ([consumer-smoke](../tooling/consumer-smoke/README.md)).
+- A PR that changes a published package (anything under the nine `packages/*` and `tooling/check-boundaries/` that `tooling/release` publishes) adds a changeset: `pnpm changeset`, pick the packages, choose `patch` (every change is a patch before 1.0). CI fails without one (`pnpm changeset status --since=origin/main`), and a branch that predates M2.4 hits this once it merges `main`. A PR that publishes nothing (docs, examples, workflows) needs no changeset; `pnpm changeset --empty` records that explicitly when `changeset status` still asks.
 - Report status through the PR and to the integration owner; do not edit the numbered docs.
 
 ## How a task flows

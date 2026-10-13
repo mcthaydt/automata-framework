@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "check": "pnpm typecheck && pnpm test:unit && node ../../tooling/check-boundaries/src/cli.ts src/sim",
+    "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries src/sim",
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run",
     "test:unit": "vitest run --project node",
@@ -34,6 +34,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@playwright/test": "1.63.0",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findRanges, pinsFromManifests, pinsFromVersionsDoc } from './pins.ts'
+import { findRanges, pinsFromManifests, pinsFromVersionsDoc, publishedPeerFloors } from './pins.ts'
 
 describe('pinsFromVersionsDoc', () => {
   it('reads the npm packages table and ignores the other tables', () => {
@@ -57,5 +57,34 @@ describe('findRanges', () => {
         { name: 'g', version: '0.1.0-beta.2' },
       ]).map((pin) => pin.name),
     ).toEqual(['a', 'b', 'c', 'd', 'e'])
+  })
+})
+
+describe('publishedPeerFloors', () => {
+  const published = {
+    publishConfig: { registry: 'https://npm.pkg.github.com' },
+    peerDependencies: { svelte: '^5.57.1', '@mcthaydt/automata-testing': 'workspace:*' },
+    devDependencies: { svelte: '5.57.1', vitest: '^5.0.3' },
+  }
+
+  it("reads a published package's caret peers as their floor, so a game's patch release still satisfies them", () => {
+    expect(publishedPeerFloors(published).peerDependencies).toEqual({
+      svelte: '5.57.1',
+      '@mcthaydt/automata-testing': 'workspace:*',
+    })
+  })
+
+  it('leaves every other range a range: in devDependencies, and in a private or unpublished package', () => {
+    expect(findRanges(pinsFromManifests([publishedPeerFloors(published)])).map((pin) => pin.name)).toEqual([
+      'vitest',
+    ])
+    for (const manifest of [{ ...published, private: true }, { peerDependencies: { svelte: '^5.57.1' } }]) {
+      expect(publishedPeerFloors(manifest).peerDependencies).toEqual(manifest.peerDependencies)
+    }
+  })
+
+  it('keeps a peer range that is not a plain caret on an exact version', () => {
+    const loose = { ...published, peerDependencies: { svelte: '^5', vite: '>=8.3.2' } }
+    expect(publishedPeerFloors(loose).peerDependencies).toEqual({ svelte: '^5', vite: '>=8.3.2' })
   })
 })

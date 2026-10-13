@@ -11,12 +11,13 @@ name: game-ci
 #
 # It installs and checks the game, runs AF's determinism checker on the game's sim-plugin sources (M1 shared
 # contracts §2), builds, and prepares the build for Ruken with `automata-ship prepare` (ruken.toml checked by
-# Ruken's parser). Until AF's packages are published (M2.4), the AF tools run from a checkout of AF at af-ref.
+# Ruken's parser). The AF tools are the game's own dev dependencies (@mcthaydt/automata-ship and
+# @mcthaydt/automata-check-boundaries from GitHub Packages, M2.4 spec §3.7), so the game's package.json picks
+# the AF version; this workflow never checks AF out.
 #
-# Status (2026-10-11): runs for AF's own examples. A game in another repository is blocked until M2.4 publishes
-# AF's packages, because its package.json cannot depend on unpublished @mcthaydt/automata-* packages. When that
-# lands it also needs, since AF is private: AF's Settings → Actions → General → Access set to "Accessible from
-# repositories owned by mcthaydt", and the secret AF_READ_TOKEN (Contents read on automata-framework).
+# A game in another repository needs, since AF is private: AF's Settings → Actions → General → Access set to
+# "Accessible from repositories owned by mcthaydt", and the secret AF_READ_TOKEN, a classic personal access
+# token with read:packages (GitHub Packages' npm registry accepts no other kind). AF's own examples need neither.
 
 on:
   workflow_call:
@@ -33,10 +34,10 @@ on:
         description: Space-separated folders of the game's sim plugins, checked by check-boundaries. Empty skips the check.
         type: string
         default: ""
-      af-ref:
-        description: The automata-framework ref whose tools to use.
+      allow-imports:
+        description: Space-separated extra imports the determinism checker allows in sim sources (each passed as --allow-import; needs the checker from M2.1b). Empty adds none.
         type: string
-        default: main
+        default: ""
       build-command:
         description: How the game builds its dist/.
         type: string
@@ -48,7 +49,7 @@ on:
 
     secrets:
       AF_READ_TOKEN:
-        description: A fine-grained token with Contents read on mcthaydt/automata-framework (AF is private). Not needed inside AF.
+        description: A classic personal access token with read:packages, to install AF's packages from GitHub Packages (its npm registry accepts no other kind). Not needed inside AF.
         required: false
 
 permissions:
@@ -67,43 +68,52 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # A game in its own repository gets AF's tools from an AF checkout; AF's own examples use this one.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # A game installs AF's packages from GitHub Packages, so without the token nothing else can work.
+      - name: AF_READ_TOKEN is set
         if: github.repository != 'mcthaydt/automata-framework'
-        with:
-          repository: mcthaydt/automata-framework
-          ref: ${{ inputs.af-ref }}
-          path: .af
-          # AF is a private repository: a game's own token cannot read it, so the game passes AF_READ_TOKEN.
-          token: ${{ secrets.AF_READ_TOKEN || github.token }}
-          persist-credentials: false
+        env:
+          AF_READ_TOKEN: ${{ secrets.AF_READ_TOKEN }}
+        run: |
+          if [[ -z "$AF_READ_TOKEN" ]]; then echo "::error::AF_READ_TOKEN (a classic personal access token with read:packages) is missing"; exit 1; fi
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
           dest: ${{ runner.temp }}/setup-pnpm
+      # registry-url and scope write an .npmrc that sends NODE_AUTH_TOKEN to GitHub Packages for @mcthaydt.
+      # Inside AF every @mcthaydt package is a workspace link and the token is not needed.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: ${{ github.repository == 'mcthaydt/automata-framework' && '.nvmrc' || '.af/.nvmrc' }}
+          node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+          registry-url: https://npm.pkg.github.com
+          scope: "@mcthaydt"
       - name: Install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.AF_READ_TOKEN }}
         run: |
-          pnpm install --frozen-lockfile
-          if [[ -d .af ]]; then pnpm --dir .af install --frozen-lockfile; echo "AF=$PWD/.af" >> "$GITHUB_ENV"; else echo "AF=$PWD" >> "$GITHUB_ENV"; fi
+          if ! pnpm install --frozen-lockfile; then
+            echo "::error::pnpm install failed. If GitHub Packages answered 401 or 403: AF_READ_TOKEN must be a classic personal access token with read:packages (GitHub Packages' npm registry accepts no other kind)."
+            exit 1
+          fi
       - name: Check
         run: pnpm --dir "$WORKDIR" run --if-present check
       - name: Determinism checker on the sim sources
         if: inputs.sim-roots != ''
         working-directory: ${{ inputs.working-directory }}
+        env:
+          ALLOW_IMPORTS: ${{ inputs.allow-imports }}
         run: |
+          allow=()
+          for name in $ALLOW_IMPORTS; do allow+=(--allow-import "$name"); done
           # SIM_ROOTS is split on whitespace on purpose: one argument per folder.
           # shellcheck disable=SC2086
-          node "$AF/tooling/check-boundaries/src/cli.ts" $SIM_ROOTS
+          pnpm exec automata-check-boundaries $SIM_ROOTS "${allow[@]}"
       - name: Build
         working-directory: ${{ inputs.working-directory }}
         run: $BUILD_COMMAND
       - name: Prepare for Ruken
         working-directory: ${{ inputs.working-directory }}
-        run: node "$AF/packages/ship/src/cli.ts" prepare
+        run: pnpm exec automata-ship prepare
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ inputs.artifact-name }}

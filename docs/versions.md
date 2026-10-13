@@ -1,6 +1,6 @@
 # Pinned versions
 
-Every external dependency in AF is pinned to an exact version, as in Ruken (`RukenApp/docs/versions.md`, P0 R-20). Upgrade one package per PR and update this file in the same PR. `tooling/versions/src/versions.test.ts` fails when a `package.json` uses a range, when a pin has no row in the npm table or a different version there, when a row is no longer used, or when Node and pnpm drift from the Runtimes table.
+Every external dependency in AF is pinned to an exact version, as in Ruken (`RukenApp/docs/versions.md`, P0 R-20). The one exception is a published package's `peerDependencies`: there an outside peer is `^<pin>`, floored at the workspace's own pin (`svelte`, `vite`), so a game on the next patch still installs AF under npm or strict pnpm (M2.4 audit). Upgrade one package per PR and update this file in the same PR. `tooling/versions/src/versions.test.ts` fails when a `package.json` uses a range (other than that peer floor), when a pin has no row in the npm table or a different version there, when a row is no longer used, or when Node and pnpm drift from the Runtimes table.
 
 Lanes may append rows for their own dependencies (agreed 2026-10-11); the ship lane owns the file.
 
@@ -18,6 +18,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | Package | Version | Date | Why |
 |---|---|---|---|
 | `@biomejs/biome` | 2.5.15 | 2026-10-01 | Lint and format (A0). Ruken uses ESLint and Prettier; AF keeps Biome |
+| `@changesets/cli` | 3.0.3 | 2026-10-11 | Same as Ruken: one shared `0.0.x` version for every published package and the "Version packages" release PR (M2.4 spec §3.5) |
 | `@dimforge/rapier2d-deterministic-compat` | 0.21.0 | 2026-10-11 | 2D physics in `packages/physics` (M2.1). The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox; `-compat` inlines the wasm, so no loader setup |
 | `@dimforge/rapier3d-deterministic-compat` | 0.21.0 | 2026-10-11 | 3D physics in `packages/physics` (M2.1), and the same release as The Last Light; same reasons as the 2D row |
 | `@types/node` | 24.19.1 | 2026-10-11 | Same as Ruken: Node 24 typings for tooling |
@@ -31,12 +32,16 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for `examples/base-2d`'s screens (OFL-1.1), bundled so it loads under Ruken's `font-src 'self' data:` |
 | `playwright` | 1.63.0 | 2026-10-01 | Same as Ruken's `@playwright/test`: browsers for parity and DOM checks |
 | `smol-toml` | 1.9.0 | 2026-10-11 | Same as Ruken: reads the TOML under `content/` in `@mcthaydt/automata-content` (M1.3 content spec §8) |
+| `tsdown` | 0.23.0 | 2026-10-11 | Same as Ruken: builds every published package's `dist` (M2.4). With isolatedDeclarations it writes `.d.ts` with oxc and never needs TypeScript's JS API, which TypeScript 7 lacks |
 | `turbo` | 2.11.6 | 2026-10-01 | Same as Ruken: task runner, local cache only |
 | `typescript` | 7.0.2 | 2026-10-01 | Ruken holds 6.0.3 only for svelte-check, typescript-eslint, SvelteKit and Prisma, none of which AF uses (ship spec §3.1) |
 | `vite` | 8.3.2 | 2026-10-11 | Same as Ruken: builds the placeholder page (and later every AF game) |
 | `vitest` | 5.0.3 | 2026-10-01 | Same as Ruken: unit and parity test runner |
 | `yaml` | 2.9.1 | 2026-10-11 | Same as Ruken: parse workflow YAML in ship's workflow tests |
+| `yauzl` | 3.4.0 | 2026-10-11 | Same as Ruken: a runtime dependency of the vendored `@ruken/cli`, which `@mcthaydt/automata-ship` ships in `dist/vendor/ruken-cli/` (M2.4 spec §3.4) |
+| `yazl` | 3.3.1 | 2026-10-11 | Same as Ruken: the same, for `@ruken/cli` inside `@mcthaydt/automata-ship` |
 | `zod` | 4.6.5 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |
+| `@sveltejs/package` | 3.0.0 | 2026-10-11 | ship lane: builds `@mcthaydt/automata-ui`'s published `dist/` (M2.4 spec §3.3), Svelte's documented library layout: `.svelte` shipped as Svelte source with TypeScript stripped. Peer `typescript` ^6, so it runs on ui's 6.0.3 |
 | `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | ui lane: compiles Svelte 5 in `packages/ui` and `examples/ui/primitives` |
 | `@testing-library/dom` | 10.4.2 | 2026-10-11 | ui lane: DOM behaviour tests (AGENTS.md, Responsive UI) |
 | `@testing-library/jest-dom` | 7.0.1 | 2026-10-11 | ui lane: DOM matchers for those tests |

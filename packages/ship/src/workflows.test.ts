@@ -36,7 +36,9 @@ interface Workflow {
   readonly jobs: Record<string, Job>
 }
 const workflow = (name: string): Workflow => parse(workflowText(name)) as Workflow
-const ALL = ['ci.yml', 'game-ci.yml', 'game-release.yml']
+const packageJson = (path: string) => JSON.parse(readFileSync(join(root, path, 'package.json'), 'utf8'))
+
+const ALL = ['ci.yml', 'game-ci.yml', 'game-release.yml', 'release-packages.yml', 'consumer-smoke.yml']
 
 describe('every workflow', () => {
   it.each(ALL)('%s pins third-party actions to a commit, as Ruken does', (name) => {
@@ -121,7 +123,6 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
 
 describe('parity across packages', () => {
   const ci = workflow('ci.yml')
-  const packageJson = (path: string) => JSON.parse(readFileSync(join(root, path, 'package.json'), 'utf8'))
   const foldersIn = (group: string): string[] =>
     readdirSync(join(root, group), { withFileTypes: true })
       .filter((entry) => entry.isDirectory() && entry.name !== 'node_modules')
@@ -306,21 +307,190 @@ describe('ci.yml (AF)', () => {
   })
 })
 
+describe('ci.yml release checks (M2.4 spec §3.5)', () => {
+  const ci = workflow('ci.yml')
+  const steps = ci.jobs.checks?.steps ?? []
+  const runs = steps.map((step) => step.run ?? '')
+
+  it('checks out full history on pull requests, so changeset status can compare with origin/main', () => {
+    const checkout = steps.find((step) => step.uses?.startsWith('actions/checkout@'))
+    // Always 0: an expression like `cond && 0 || 1` yields 1, since 0 is falsy in Actions expressions.
+    expect(checkout?.with?.['fetch-depth']).toBe(0)
+  })
+
+  it('requires a changeset for a changed published package, allows only patch bumps, and builds every package', () => {
+    const status = runs.indexOf('pnpm changeset status --since=origin/main')
+    const patchOnly = runs.indexOf('node tooling/release/src/check-changesets.ts')
+    const build = runs.indexOf('pnpm build')
+    const dist = runs.indexOf('pnpm --filter @mcthaydt/release test:dist')
+    expect(status).toBeGreaterThan(-1)
+    expect(patchOnly).toBeGreaterThan(status)
+    expect(build).toBeGreaterThan(patchOnly)
+    expect(dist).toBeGreaterThan(build)
+    // On a push to main there is nothing to compare with: changeset status runs on pull requests only.
+    expect(steps[status]?.if).toBe("github.event_name == 'pull_request'")
+  })
+
+  it('runs the same release checks in ci:local', () => {
+    const local = (
+      JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts['ci:local'] as string
+    ).split(' && ')
+    for (const step of [
+      'pnpm changeset status --since=origin/main',
+      'node tooling/release/src/check-changesets.ts',
+      'pnpm build',
+      'pnpm --filter @mcthaydt/release test:dist',
+    ]) {
+      expect(local).toContain(step)
+    }
+  })
+})
+
+describe('release-packages.yml (M2.4 spec §3.5)', () => {
+  const release = workflow('release-packages.yml')
+  const job = release.jobs.release
+  const steps = job?.steps ?? []
+  const step = (prefix: string) => steps.find((each) => each.uses?.startsWith(prefix))
+  const changesets = step('changesets/action@')
+  const PUBLISHED = "steps.changesets.outputs.published == 'true'"
+
+  it('runs on pushes to main only, one release at a time', () => {
+    expect(Object.keys(release.on)).toEqual(['push'])
+    expect(JSON.stringify(release.on.push)).toContain('main')
+    const parsed = parse(workflowText('release-packages.yml')) as { concurrency?: { group: string } }
+    expect(parsed.concurrency?.group).toBe('release')
+  })
+
+  it('stays off the shared self-hosted runners, since it holds a write token', () => {
+    expect(job?.['runs-on']).toBe('ubuntu-latest')
+    expect((job as { 'timeout-minutes'?: number })['timeout-minutes']).toBe(20)
+  })
+
+  it('may write contents, pull requests and packages, nothing else', () => {
+    expect((job as { permissions?: Record<string, string> }).permissions).toEqual({
+      contents: 'write',
+      'pull-requests': 'write',
+      packages: 'write',
+    })
+  })
+
+  it('checks out full history without keeping the write token in .git/config, and points npm at GitHub Packages', () => {
+    expect(step('actions/checkout@')?.with?.['fetch-depth']).toBe(0)
+    // changesets/action pushes through the GitHub API with its own token input, so git never needs it.
+    expect(step('actions/checkout@')?.with?.['persist-credentials']).toBe(false)
+    const node = step('actions/setup-node@')
+    expect(node?.with?.['registry-url']).toBe('https://npm.pkg.github.com')
+    expect(node?.with?.scope).toBe('@mcthaydt')
+    expect(node?.with?.['node-version-file']).toBe('.nvmrc')
+  })
+
+  it("opens the Version packages PR or publishes, with Ruken's pinned changesets/action and the workflow token", () => {
+    expect(changesets?.uses).toBe('changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51')
+    expect((changesets as { id?: string }).id).toBe('changesets')
+    // v2 renamed its inputs and fails on the old names (version, publish, commit, title).
+    expect(Object.keys(changesets?.with ?? {}).sort()).toEqual([
+      'commit-message',
+      'pr-title',
+      'publish-script',
+      'version-script',
+    ])
+    expect(changesets?.with?.['version-script']).toBe('pnpm release:version')
+    expect(changesets?.with?.['publish-script']).toBe('pnpm release')
+    expect(changesets?.with?.['pr-title']).toBe('Version packages')
+    expect(changesets?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
+    expect(changesets?.env?.GITHUB_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
+  })
+
+  it('after a publish only: verifies every package is on the registry, then installs them from outside', () => {
+    const after = steps.slice(steps.indexOf(changesets as Step) + 1)
+    const version = after.find((each) => each.run?.includes('released-version.ts'))
+    const verify = after.find((each) => each.run?.includes('verify-published.ts'))
+    const smoke = after.find((each) => each.run?.includes('consumer-smoke/src/run.ts'))
+    for (const each of [version, verify, smoke]) expect(each?.if).toBe(PUBLISHED)
+    expect(version?.env?.PUBLISHED).toBe("${{ steps.changesets.outputs['published-packages'] }}")
+    expect(verify?.run).toContain('--version "$VERSION"')
+    expect(smoke?.run).toContain('--from registry --version "$VERSION"')
+    expect(after.indexOf(verify as Step)).toBeLessThan(after.indexOf(smoke as Step))
+    for (const each of [verify, smoke]) expect(each?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
+  })
+
+  it('publishes without --provenance (GitHub Packages does not document it; spec §8)', () => {
+    expect(JSON.stringify(steps)).not.toMatch(/provenance/i)
+    expect(packageJson('.').scripts.release).not.toMatch(/provenance/i)
+  })
+
+  it('builds before publishing, so a fresh checkout never publishes packages without dist', () => {
+    expect(packageJson('.').scripts.release).toBe('pnpm build && changeset publish')
+  })
+
+  it('runs the unit gate on the commit it releases, since nothing else checks the version commit first', () => {
+    const check = steps.findIndex((each) => each.run === 'pnpm check')
+    expect(check).toBeGreaterThan(-1)
+    expect(check).toBeLessThan(steps.indexOf(changesets as Step))
+  })
+})
+
+describe('consumer smoke (M2.4 spec §3.6, §4)', () => {
+  it('runs nightly in the e2e job, after building the packages', () => {
+    const steps = workflow('ci.yml').jobs.e2e?.steps ?? []
+    const build = steps.findIndex((step) => step.run === 'pnpm build')
+    const smoke = steps.findIndex(
+      (step) => step.run === 'node tooling/consumer-smoke/src/run.ts --from packs',
+    )
+    expect(build).toBeGreaterThan(-1)
+    expect(smoke).toBeGreaterThan(build)
+    for (const index of [build, smoke]) expect(steps[index]?.if).toBe("inputs.spec == ''")
+  })
+
+  it('runs on pull requests that touch build config only, on the AF runner, skipping drafts', () => {
+    const smoke = workflow('consumer-smoke.yml')
+    expect(Object.keys(smoke.on)).toEqual(['pull_request'])
+    const paths = (smoke.on.pull_request as { paths?: string[] }).paths ?? []
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        '**/tsdown.config.ts',
+        '**/svelte.config.js',
+        '**/package.json',
+        '.changeset/**',
+        'tooling/release/**',
+        'tooling/consumer-smoke/**',
+      ]),
+    )
+    const job = smoke.jobs['consumer-smoke']
+    expect(job?.['runs-on']).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+    expect(job?.if).toBe('github.event.pull_request.draft == false')
+    const runs = (job?.steps ?? []).map((step) => step.run)
+    expect(runs.indexOf('node tooling/consumer-smoke/src/run.ts --from packs')).toBeGreaterThan(
+      runs.indexOf('pnpm build'),
+    )
+  })
+})
+
 describe('game-ci.yml (reusable)', () => {
   const gameCi = workflow('game-ci.yml')
 
-  it("is called by a game's own ci.yml with its folder, its sim sources and the AF ref", () => {
+  it("is called by a game's own ci.yml with its folder and its sim sources; AF comes from its package.json", () => {
     expect(Object.keys(gameCi.on)).toEqual(['workflow_call'])
-    expect(Object.keys(gameCi.on.workflow_call?.inputs ?? {})).toEqual(
-      expect.arrayContaining(['working-directory', 'sim-roots', 'af-ref']),
-    )
+    const inputs = Object.keys(gameCi.on.workflow_call?.inputs ?? {})
+    expect(inputs).toEqual(expect.arrayContaining(['working-directory', 'sim-roots', 'allow-imports']))
+    expect(inputs).not.toContain('af-ref')
   })
 
   it("runs the determinism checker on the game's sim sources (shared contracts §2), then prepares the build", () => {
     const scripts = (gameCi.jobs.game?.steps ?? []).map((step) => step.run ?? '').join('\n')
-    expect(scripts).toContain('tooling/check-boundaries/src/cli.ts')
-    expect(scripts).toContain('packages/ship/src/cli.ts" prepare')
-    expect(scripts.indexOf('check-boundaries')).toBeLessThan(scripts.indexOf('prepare'))
+    expect(scripts).toContain('pnpm exec automata-check-boundaries $SIM_ROOTS')
+    expect(scripts).toContain('pnpm exec automata-ship prepare')
+    expect(scripts.indexOf('automata-check-boundaries')).toBeLessThan(
+      scripts.indexOf('automata-ship prepare'),
+    )
+  })
+
+  it('passes each allow-imports entry to the checker as --allow-import (M2.1b)', () => {
+    const step = (gameCi.jobs.game?.steps ?? []).find((each) =>
+      each.run?.includes('automata-check-boundaries'),
+    )
+    expect(step?.env?.ALLOW_IMPORTS).toBe('${{ inputs.allow-imports }}')
+    expect(step?.run).toContain('--allow-import')
   })
 
   it('uploads the build under the artifact name its caller passes', () => {
@@ -332,29 +502,81 @@ describe('game-ci.yml (reusable)', () => {
   })
 })
 
-describe('reusable workflows called from a game repository', () => {
+describe('reusable workflows called from a game repository (M2.4 spec §3.7)', () => {
+  const CLASSIC = 'a classic personal access token with read:packages'
+
   it.each(['game-ci.yml', 'game-release.yml'])(
-    "%s checks AF out with AF_READ_TOKEN (AF is private) and uses AF's Node version",
+    '%s never checks AF out: a read:packages token cannot read its contents, and the tools come from the game',
     (name) => {
-      const reusable = workflow(name)
-      expect(Object.keys(reusable.on.workflow_call?.secrets ?? {})).toContain('AF_READ_TOKEN')
-      for (const job of Object.values(reusable.jobs)) {
+      for (const job of Object.values(workflow(name).jobs)) {
         const steps = job.steps ?? []
-        const afCheckout = steps.find((step) =>
-          JSON.stringify(step.with ?? {}).includes('automata-framework'),
-        )
-        expect(afCheckout?.with?.token).toBe('${{ secrets.AF_READ_TOKEN || github.token }}')
-        const setupNode = steps.find((step) => step.uses?.startsWith('actions/setup-node@'))
-        expect(setupNode?.with?.['node-version-file']).toBe(
-          "${{ github.repository == 'mcthaydt/automata-framework' && '.nvmrc' || '.af/.nvmrc' }}",
-        )
+        expect(
+          steps.filter((step) => JSON.stringify(step.with ?? {}).includes('automata-framework')),
+        ).toEqual([])
+        expect(steps.filter((step) => step.uses?.startsWith('actions/checkout@'))).toHaveLength(1)
+        expect(JSON.stringify(steps)).not.toContain('$AF/')
       }
+    },
+  )
+
+  it.each(['game-ci.yml', 'game-release.yml'])(
+    "%s installs AF from GitHub Packages with AF_READ_TOKEN, on the game's own Node version",
+    (name) => {
+      for (const job of Object.values(workflow(name).jobs)) {
+        const steps = job.steps ?? []
+        const setupNode = steps.find((step) => step.uses?.startsWith('actions/setup-node@'))
+        expect(setupNode?.with?.['node-version-file']).toBe('.nvmrc')
+        expect(setupNode?.with?.['registry-url']).toBe('https://npm.pkg.github.com')
+        expect(setupNode?.with?.scope).toBe('@mcthaydt')
+        const install = steps.find((step) => step.name === 'Install')
+        expect(install?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.AF_READ_TOKEN }}')
+        expect(install?.run).toContain('pnpm install --frozen-lockfile')
+        expect(install?.run).toContain(CLASSIC)
+      }
+    },
+  )
+
+  it.each(['game-ci.yml', 'game-release.yml'])(
+    '%s stops first, naming the token, when a game passes no AF_READ_TOKEN',
+    (name) => {
+      for (const job of Object.values(workflow(name).jobs)) {
+        const steps = job.steps ?? []
+        const check = steps.findIndex(
+          (step) => step.run?.includes('AF_READ_TOKEN') && step.run.includes('exit 1'),
+        )
+        const install = steps.findIndex((step) => step.name === 'Install')
+        expect(check).toBeGreaterThan(-1)
+        expect(check).toBeLessThan(install)
+        expect(steps[check]?.if).toBe("github.repository != 'mcthaydt/automata-framework'")
+        expect(steps[check]?.run).toContain(`AF_READ_TOKEN (${CLASSIC}) is missing`)
+      }
+    },
+  )
+
+  it.each(['game-ci.yml', 'game-release.yml'])(
+    '%s describes AF_READ_TOKEN as a classic read:packages token, in its secrets and its header',
+    (name) => {
+      const secret = workflow(name).on.workflow_call?.secrets?.AF_READ_TOKEN as { description?: string }
+      expect(secret.description?.toLowerCase()).toContain(CLASSIC)
+      const header = (workflowText(name).split('\non:')[0] ?? '').replace(/\n#\s*/g, ' ')
+      expect(header).toContain(CLASSIC)
+      expect(workflowText(name)).not.toMatch(/fine-grained token with|Contents read on/)
     },
   )
 })
 
 describe('game-release.yml (reusable)', () => {
   const release = workflow('game-release.yml')
+
+  it('runs ship from the game with pnpm exec, with the same arguments as before', () => {
+    const scripts = Object.values(release.jobs)
+      .flatMap((job) => (job.steps ?? []).map((step) => step.run ?? ''))
+      .join('\n')
+    expect(scripts).toContain('pnpm exec automata-ship prepare --tag "$TAG"')
+    expect(scripts).toContain('pnpm exec automata-ship publish --tag "$TAG" --game "$GAME"')
+    expect(scripts).toContain('pnpm exec automata-ship deploy-dev --tag "$TAG" --activate')
+    expect(release.on.workflow_call?.inputs?.runner).toMatchObject({ default: 'ubuntu-latest' })
+  })
 
   it('publishes to the game it is given, and refuses to register a new Ruken game on every release', () => {
     expect(Object.keys(release.on.workflow_call?.inputs ?? {})).toContain('game')

@@ -1,8 +1,18 @@
 {
   "name": "@mcthaydt/automata-content",
   "version": "0.0.0",
-  "private": true,
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "packages/content"
+  },
   "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "VENDORED.md"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./vite": "./src/vite/index.ts"
@@ -10,23 +20,40 @@
   "bin": {
     "automata-content": "./src/cli/main.ts"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./vite": {
+        "types": "./dist/vite.d.ts",
+        "import": "./dist/vite.js"
+      }
+    },
+    "bin": {
+      "automata-content": "./dist/cli.js"
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project node",
     "test:parity": "vitest run --project browsers",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
   },
   "dependencies": {
     "@mcthaydt/automata-sim": "workspace:*",
-    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "effect": "3.22.2",
     "smol-toml": "1.9.0",
     "zod": "4.6.5"
   },
   "peerDependencies": {
-    "vite": "8.3.2"
+    "vite": "^8.3.2"
   },
   "devDependencies": {
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",

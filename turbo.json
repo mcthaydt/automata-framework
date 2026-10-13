@@ -4,19 +4,13 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", "VENDORED.md"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tooling/release/src/**"]
     },
-    "typecheck": {
-      "dependsOn": ["^build"]
-    },
-    "test": {
-      "dependsOn": ["^build"]
-    },
-    "test:unit": {
-      "dependsOn": ["^build"]
-    },
+    "typecheck": {},
+    "test": {},
+    "test:unit": {},
     "test:parity": {
-      "dependsOn": ["^build"],
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     }

@@ -3,9 +3,7 @@
   "compilerOptions": {
     "types": ["node"],
     "allowImportingTsExtensions": true,
-    // Effect's tagged errors (`class X extends Data.TaggedError('X')<...>`) extend a call expression, which
-    // isolatedDeclarations forbids. Build-time packages opt out until M2.4 decides how libraries publish declarations.
-    "isolatedDeclarations": false
+    "isolatedDeclarations": true
   },
   "include": ["src/**/*.ts"]
 }
