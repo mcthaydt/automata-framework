@@ -1,4 +1,4 @@
-export { AssetLoadFailed, LoadStalled } from './boot/boot-error.js'
+export { AssetLoadFailed, LoadStalled, RendererUnavailable } from './boot/boot-error.js'
 export { Assets } from './loading/assets.manager.js'
 export {
   type LoadMeter,
@@ -11,6 +11,12 @@ export {
   type RuntimeFacts,
   typedBus,
 } from './presentation/presentation-bus.manager.js'
+export {
+  type GameRenderer,
+  Renderer,
+  type RendererFactory,
+  type RenderTarget,
+} from './render/renderer.js'
 export {
   Settings,
   type SettingsDef,

@@ -27,3 +27,14 @@ const AssetLoadFailedBase: TaggedErrorClass<'AssetLoadFailed', AssetLoadFailedFi
  * An asset download failed with a non-OK HTTP status or network error (status 0).
  */
 export class AssetLoadFailed extends AssetLoadFailedBase {}
+
+export interface RendererUnavailableFields {
+  readonly tried: readonly string[]
+}
+const RendererUnavailableBase: TaggedErrorClass<'RendererUnavailable', RendererUnavailableFields> =
+  Data.TaggedError('RendererUnavailable')
+/**
+ * Neither WebGL2 nor WebGPU could be initialized.
+ * In Ruken this presents the "unsupported" screen with an exit button.
+ */
+export class RendererUnavailable extends RendererUnavailableBase {}

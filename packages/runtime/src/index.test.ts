@@ -8,6 +8,8 @@ const ROOT_EXPORTS: string[] = [
   'LoadStalled',
   'MAX_FRAME_MS',
   'PresentationBus',
+  'Renderer',
+  'RendererUnavailable',
   'SLOW_MS',
   'STALL_MS',
   'Settings',
@@ -16,7 +18,7 @@ const ROOT_EXPORTS: string[] = [
   'typedBus',
 ]
 const EXTENSION_EXPORTS: string[] = ['ExtensionError', 'defineExtension', 'resolveExtensions']
-const TESTING_EXPORTS: string[] = ['fakeFetch', 'manualFrames']
+const TESTING_EXPORTS: string[] = ['fakeFetch', 'manualFrames', 'nullRenderer']
 
 test('the root entry exports exactly the expected names', async () => {
   const entry = await import('./index')

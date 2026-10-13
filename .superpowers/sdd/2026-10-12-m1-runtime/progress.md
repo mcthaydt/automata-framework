@@ -1,0 +1,15 @@
+# SDD ledger — plan: docs/superpowers/plans/2026-10-12-m1-runtime.md
+
+Task 1: complete (commit 528a67e, scaffold @mcthaydt/automata-runtime)
+Task 2: complete (commit 2651e8d, feat(runtime): defineExtension and resolveExtensions)
+Audit 1: complete (commit 43aa781)
+Task 3: complete (commit d89fc3a, feat(runtime): presentation bus)
+Task 4: complete (commit 1e6ae47, feat(runtime): load meter and byte progress)
+Audit 2: complete (commit 784434a)
+Task 5: complete (commit 782804f, feat(runtime): Assets with single flight, stall rule and fonts)
+Audit 3: complete (commit a2d5a0e)
+Task 6: complete (commit 7ad3a15, feat(runtime): fixed-step frame loop with no Effect per frame)
+Task 7: complete (commit ef813a3, feat(runtime): Time with lifecycle and menu pause reasons)
+Audit 4: complete (commit afb22ff)
+Task 8: complete (commit 5f025e6, feat(runtime): versioned settings over Hosting.saves)
+Task 9: complete (feat(runtime): the renderer interface and nullRenderer)
