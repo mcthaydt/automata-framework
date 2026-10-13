@@ -96,9 +96,13 @@ jobs:
             exit 1
           fi
       - name: Check
+        # Inside AF, the `checks` job runs every example's check (typecheck + test:unit + check-boundaries), so
+        # an example's own job does not repeat it. A game repository runs its own check here.
+        if: github.repository != 'mcthaydt/automata-framework'
         run: pnpm --dir "$WORKDIR" run --if-present check
       - name: Determinism checker on the sim sources
-        if: inputs.sim-roots != ''
+        # Inside AF the root `boundaries` script already checks the examples' sim sources; a game runs it here.
+        if: inputs.sim-roots != '' && github.repository != 'mcthaydt/automata-framework'
         working-directory: ${{ inputs.working-directory }}
         env:
           ALLOW_IMPORTS: ${{ inputs.allow-imports }}
