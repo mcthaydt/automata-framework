@@ -1,3 +1,5 @@
+import type { HostError } from '@mcthaydt/automata-host'
+import type { BootFailure } from '@mcthaydt/automata-ui'
 import { Data } from 'effect'
 import type { YieldableError } from 'effect/Cause'
 
@@ -29,7 +31,7 @@ const AssetLoadFailedBase: TaggedErrorClass<'AssetLoadFailed', AssetLoadFailedFi
 export class AssetLoadFailed extends AssetLoadFailedBase {}
 
 export interface RendererUnavailableFields {
-  readonly tried: readonly string[]
+  readonly tried: readonly ('webgl2' | 'webgpu')[]
 }
 const RendererUnavailableBase: TaggedErrorClass<'RendererUnavailable', RendererUnavailableFields> =
   Data.TaggedError('RendererUnavailable')
@@ -38,3 +40,35 @@ const RendererUnavailableBase: TaggedErrorClass<'RendererUnavailable', RendererU
  * In Ruken this presents the "unsupported" screen with an exit button.
  */
 export class RendererUnavailable extends RendererUnavailableBase {}
+
+export interface ContentHashMismatchFields {
+  readonly expected: string
+  readonly actual: string
+}
+const ContentHashMismatchBase: TaggedErrorClass<'ContentHashMismatch', ContentHashMismatchFields> =
+  Data.TaggedError('ContentHashMismatch')
+/**
+ * Content hash does not match expected hash.
+ */
+export class ContentHashMismatch extends ContentHashMismatchBase {}
+
+export interface BootDefectFields {
+  readonly cause: unknown
+}
+const BootDefectBase: TaggedErrorClass<'BootDefect', BootDefectFields> = Data.TaggedError('BootDefect')
+/**
+ * An unexpected defect during boot.
+ */
+export class BootDefect extends BootDefectBase {}
+
+export type BootError =
+  | HostError
+  | ContentHashMismatch
+  | AssetLoadFailed
+  | LoadStalled
+  | RendererUnavailable
+  | BootDefect
+
+// Shared contracts §4: BootError must be structurally assignable to BootFailure.
+type Drawable<T extends BootFailure> = T
+export type BootErrorIsDrawable = Drawable<BootError>

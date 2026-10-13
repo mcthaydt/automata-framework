@@ -1,4 +1,11 @@
-export { AssetLoadFailed, LoadStalled, RendererUnavailable } from './boot/boot-error.js'
+export {
+  AssetLoadFailed,
+  BootDefect,
+  type BootError,
+  ContentHashMismatch,
+  LoadStalled,
+  RendererUnavailable,
+} from './boot/boot-error.js'
 export { Flow } from './flow/flow.manager.js'
 export type {
   FlowFailure,

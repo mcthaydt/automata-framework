@@ -6,6 +6,8 @@ const ROOT_EXPORTS: string[] = [
   'AppLoop',
   'AssetLoadFailed',
   'Assets',
+  'BootDefect',
+  'ContentHashMismatch',
   'Flow',
   'LoadStalled',
   'MAX_FRAME_MS',
