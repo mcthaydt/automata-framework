@@ -1,0 +1,48 @@
+{
+  "name": "@mcthaydt/automata-cli",
+  "version": "0.0.1",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "packages/cli"
+  },
+  "type": "module",
+  "bin": {
+    "automata": "./bin/create-game.js",
+    "create-game": "./bin/create-game.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "@mcthaydt/automata-node": "workspace:*",
+    "@mcthaydt/automata-ship": "workspace:*",
+    "effect": "3.22.2",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "vitest": "5.0.3"
+  }
+}
