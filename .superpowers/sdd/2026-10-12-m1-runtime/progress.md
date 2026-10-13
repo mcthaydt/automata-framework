@@ -14,4 +14,5 @@ Audit 4: complete (commit afb22ff)
 Task 8: complete (commit 5f025e6, feat(runtime): versioned settings over Hosting.saves)
 Task 9: complete (commit ae4fc4a, feat(runtime): the renderer interface and nullRenderer)
 Audit 5: complete (commit cc5f674)
-Task 10: complete (feat(runtime): AppLoop with fixed step and interpolated draw)
+Task 10: complete (commit 4553e24, feat(runtime): AppLoop with fixed step and interpolated draw)
+Audit 6: complete
