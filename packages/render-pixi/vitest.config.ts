@@ -9,7 +9,7 @@ export default defineConfig({
       {
         test: {
           name: 'node',
-          environment: 'node',
+          environment: 'jsdom',
           include: ['src/**/*.test.ts'],
           exclude: ['src/**/*.parity.test.ts'],
         },
