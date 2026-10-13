@@ -12,4 +12,5 @@ Task 6: complete (commit 7ad3a15, feat(runtime): fixed-step frame loop with no E
 Task 7: complete (commit ef813a3, feat(runtime): Time with lifecycle and menu pause reasons)
 Audit 4: complete (commit afb22ff)
 Task 8: complete (commit 5f025e6, feat(runtime): versioned settings over Hosting.saves)
-Task 9: complete (feat(runtime): the renderer interface and nullRenderer)
+Task 9: complete (commit ae4fc4a, feat(runtime): the renderer interface and nullRenderer)
+Audit 5: complete
