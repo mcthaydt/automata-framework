@@ -33,9 +33,9 @@ export interface Flow {
 
 export const Flow: Context.Tag<Flow, Flow> = Context.GenericTag<Flow>('@mcthaydt/automata-runtime/Flow')
 
-export interface MakeFlowOptions {
+export interface MakeFlowOptions<R = never> {
   readonly graph: FlowGraph
-  readonly screens: readonly ScreenDef[]
+  readonly screens: readonly ScreenDef<R>[]
   readonly layers: PageLayers
   readonly assets: Assets
   readonly time: Time
@@ -43,7 +43,7 @@ export interface MakeFlowOptions {
   readonly geometry: GeometryOwner
   readonly veil: Veil
   readonly copy?: Partial<BootFailureCopy> & { readonly loading?: string; readonly slow?: string }
-  readonly services: () => Context.Context<RuntimeServices>
+  readonly services: () => Context.Context<RuntimeServices | R>
   readonly logUnmatched?: (screen: string, event: string) => void
 }
 
@@ -65,7 +65,9 @@ interface QueuedTransition {
  * Follows the 9-step transition order, coordinates single-flight screens,
  * veil fading, loader overlay over missing assets, and menu pauses.
  */
-export function makeFlow(options: MakeFlowOptions): Effect.Effect<FlowHandle, never, Scope.Scope> {
+export function makeFlow<R = never>(
+  options: MakeFlowOptions<R>,
+): Effect.Effect<FlowHandle, never, Scope.Scope> {
   return Effect.gen(function* () {
     const runtimeScope = yield* Scope.Scope
     const queue: QueuedTransition[] = []
@@ -76,7 +78,7 @@ export function makeFlow(options: MakeFlowOptions): Effect.Effect<FlowHandle, ne
     let closed = false
     let isCovered = false
     let currentScreenId: string | undefined
-    let currentScreenDef: ScreenDef | undefined
+    let currentScreenDef: ScreenDef<R> | undefined
     let currentScreenScope: Scope.CloseableScope | null = null
 
     let idleDeferred: Deferred.Deferred<void, never> = yield* Deferred.make<void>()

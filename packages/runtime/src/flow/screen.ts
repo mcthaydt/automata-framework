@@ -24,11 +24,11 @@ export type RuntimeServices =
   | Assets
   | GameRenderer
 
-export interface ScreenDef {
+export interface ScreenDef<R = never> {
   readonly id: string
   readonly pausesSim?: boolean
   readonly fonts?: readonly string[]
-  enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices>
+  enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>
   openMenu?(): boolean
 }
 

@@ -23,7 +23,7 @@ const ROOT_EXPORTS: string[] = [
   'typedBus',
 ]
 const EXTENSION_EXPORTS: string[] = ['ExtensionError', 'defineExtension', 'resolveExtensions']
-const TESTING_EXPORTS: string[] = ['fakeFetch', 'manualFrames', 'nullRenderer']
+const TESTING_EXPORTS: string[] = ['RuntimeTest', 'fakeFetch', 'manualFrames', 'nullRenderer']
 
 test('the root entry exports exactly the expected names', async () => {
   const entry = await import('./index')

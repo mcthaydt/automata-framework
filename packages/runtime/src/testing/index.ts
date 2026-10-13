@@ -10,3 +10,7 @@ export {
   type NullRendererOptions,
   nullRenderer,
 } from './null-renderer.js'
+export {
+  RuntimeTest,
+  type RuntimeTestOptions,
+} from './runtime-test.js'
