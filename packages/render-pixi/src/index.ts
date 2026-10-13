@@ -28,3 +28,10 @@ export {
   PORTRAIT_FIELD_TOP,
   portraitFieldHeight,
 } from './letterbox/letterbox.js'
+export {
+  createPixiRenderer,
+  type PixiRenderer,
+  type PixiRendererOptions,
+  type PixiStage,
+  type RendererPreference,
+} from './renderer.js'
