@@ -1,5 +1,11 @@
 # @mcthaydt/automata-physics
 
+## 0.0.2
+
+### Patch Changes
+
+- @mcthaydt/automata-sim@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes

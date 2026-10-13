@@ -1,5 +1,14 @@
 # @mcthaydt/automata-ship
 
+## 0.0.2
+
+### Patch Changes
+
+- 77be686: Inside AF, an example's game-ci job skips `Check` and the determinism checker (the `checks` job already runs
+  them for every package), and `ci:local` stops repeating base-2d's check.
+- 66914aa: Make the deploy test's tarball fixtures portable to bsdtar (macOS `tar`).
+- @mcthaydt/automata-node@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes
