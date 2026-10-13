@@ -12,13 +12,14 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 **Current task: finish M1 (the blank game on Ruken).** We are currently on branch `claude/project-thread-pwjmcz` (rebased cleanly onto `main` `d1c387c`):
 1. **M1.5 Runtime** — Complete! Tasks 1 through 20 and Audits 1 through 12 complete and committed. Local gate clean: 22 test files / 148 unit tests in `packages/runtime`, 3 test files / 19 unit tests in `examples/runtime/boot-and-flow`, 8/8 Playwright E2E tests passing under fake host, frame loop overhead bench recorded (Node 0.117 µs, Chromium 0.100 µs vs 0.30 µs budget), S8 E1 size budget and E5 CSP checks pass. PR 4 boundary reached.
-2. **M1.7 `render-pixi`** (active next task) — the `./no-eval` entry, WebGL2-default init, the `RenderDelta` consumer, pixel framebuffer, letterbox and filter helpers. Depends on M1.5. Write task spec and plan first.
-3. **M1.8 exit** — `create-game`/`cli` scaffold, gallery wiring, and exit evidence.
+2. **M1.7 `render-pixi` (2D renderer)** — Complete! Tasks 1 through 8 complete and committed (`cb13b20` + Task 8 record). Local gate clean: 7 test files / 29 unit tests in `packages/render-pixi`, browser parity passes across Chromium, WebKit, and Firefox, `@af-examples/renderer-2d` E2E passes under fake host with 0 CSP violations, exact pins verified (`pixi.js` 8.21.0).
+3. **M1.8 Base project, demos, scaffold and M1 exit** (active next task) — `examples/base-2d` (character in a room) through the M1.2 pipeline, demo gallery wiring (`examples/README.md`), minimal `create-game` scaffold from `base-2d`, and exit evidence (CI green, Ruken-validated zip, published to Ruken local stack and dev host, phone play, nothing rendered before ready).
 
 ## Current artifacts and evidence limits
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| M1.7 `render-pixi` (2D renderer) | Tasks 1–8 complete, committed (`cb13b20` + Task 8 record). Local verification clean: unit tests (7 files / 29 tests), test:parity across 3 browsers (Chromium, WebKit, Firefox), typecheck, build, boundaries, style, lint, Playwright E2E with fake host (zero CSP violations) | PR review/merge, hosted CI |
 | M1.5 Runtime | Tasks 1–20 complete, committed (`278af83` + records). Local verification clean: unit tests (148 runtime, 19 demo), typecheck, build, boundaries, style, lint, frame-loop bench (Node 0.117 µs, Chromium 0.100 µs vs 0.30 µs budget), Playwright E2E (8/8 pass under fake host with 0 CSP violations) | PR #4 review/merge, hosted CI |
 | M0 (A0 spikes, A1a sim core) | Merged PRs #1 and #2; historical CI green 2026-10-02 | Not re-run in hosted CI in this update |
 | Ruken-first restructure | This branch's draft PR: new master spec, extraction map, ADRs 0002–0004, docs renamed `001`–`004` → `00`–`03` plus new `04-how-we-build.md`, superseded notes on the 2026-10-01 specs and S3, updated `AGENTS.md` | Owner review (M1.0a) |

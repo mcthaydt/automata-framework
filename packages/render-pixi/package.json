@@ -48,7 +48,7 @@
     "zod": "4.6.5"
   },
   "peerDependencies": {
-    "pixi.js": "^8.21.0"
+    "pixi.js": "8.21.0"
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",

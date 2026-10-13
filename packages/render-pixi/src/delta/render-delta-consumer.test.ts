@@ -184,7 +184,7 @@ describe('RenderDeltaConsumer', () => {
 
     consumer.apply({
       resync: false,
-      added: [{ sid: 42, components: { a: 1 } }],
+      added: [{ sid: 42, components: { a: { val: 1 } } }],
       changed: [],
       removed: [],
     })

@@ -1,7 +1,7 @@
 import type { FrameInfo, RendererUnavailable } from '@mcthaydt/automata-runtime'
 import type { StepResult } from '@mcthaydt/automata-sim'
 import type { Geometry } from '@mcthaydt/automata-ui'
-import { Effect, Scope } from 'effect'
+import { Effect, Exit, Scope } from 'effect'
 import { Application, type ApplicationOptions, Container } from 'pixi.js'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { createPixiRenderer } from './renderer.js'
@@ -18,7 +18,7 @@ describe('createPixiRenderer', () => {
       usable: { x: 0, y: 0, ...initialUsable },
       formFactor: 'desktop',
       layout: { ...initialUsable },
-      heightTier: 'standard',
+      heightTier: undefined,
       insets: { top: 0, right: 0, bottom: 0, left: 0 },
       hostReserved: { left: 0, right: 0 },
       visualInsetBottom: 0,
@@ -38,6 +38,9 @@ describe('createPixiRenderer', () => {
             changeListener = undefined
           }
         },
+        setHostDisplay: () => {},
+        remeasure: () => {},
+        dispose: () => {},
       },
       assets: { get: () => undefined },
       triggerResize(usable: { width: number; height: number }) {
@@ -91,7 +94,7 @@ describe('createPixiRenderer', () => {
         const renderer = yield* factory(target)
         expect(renderer).toBeDefined()
         expect(initSpy).toHaveBeenCalledTimes(1)
-        expect(initSpy.mock.calls[0][0].preference).toBe('webgl')
+        expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgl')
 
         const canvas = target.host.querySelector('canvas')
         expect(canvas).not.toBeNull()
@@ -116,7 +119,7 @@ describe('createPixiRenderer', () => {
       Effect.gen(function* () {
         const renderer = yield* factory(target)
         expect(initSpy).toHaveBeenCalledTimes(1)
-        expect(initSpy.mock.calls[0][0].preference).toBe('webgpu')
+        expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgpu')
         expect(renderer.stage.app.canvas.dataset.renderer).toBe('webgpu')
       }),
     )
@@ -152,8 +155,8 @@ describe('createPixiRenderer', () => {
       Effect.gen(function* () {
         const renderer = yield* factory(target)
         expect(attempts).toBe(2)
-        expect(initSpy.mock.calls[0][0].preference).toBe('webgpu')
-        expect(initSpy.mock.calls[1][0].preference).toBe('webgl')
+        expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgpu')
+        expect(initSpy.mock.calls[1]?.[0]?.preference).toBe('webgl')
         expect(renderer.stage.app.canvas.dataset.renderer).toBe('webgl')
       }),
     )
@@ -217,7 +220,7 @@ describe('createPixiRenderer', () => {
 
     expect(target.host.children.length).toBe(1)
 
-    await Effect.runPromise(Scope.close(scope, Effect.void))
+    await Effect.runPromise(Scope.close(scope, Exit.void))
 
     expect(destroySpy).toHaveBeenCalled()
     expect(frameDestroySpy).toHaveBeenCalled()
@@ -236,7 +239,7 @@ describe('createPixiRenderer', () => {
         const renderSpy = vi.spyOn(renderer.stage.app, 'render')
 
         const stepResult: StepResult = {
-          stepMs: 16,
+          tick: 0,
           render: {
             resync: false,
             added: [],
@@ -244,22 +247,16 @@ describe('createPixiRenderer', () => {
             removed: [],
           },
           events: [],
-          sound: [],
-          haptics: [],
-          saves: [],
+          rejected: [],
         }
 
         renderer.apply(stepResult)
         expect(consumerSpy).toHaveBeenCalledWith(stepResult.render)
 
         const frameInfo: FrameInfo = {
-          seq: 1,
-          simMs: 16,
-          renderMs: 16,
           alpha: 0.75,
-          dtMs: 16,
-          active: true,
-          nowMs: 1016,
+          frameMs: 16,
+          paused: false,
         }
         renderer.draw(frameInfo)
         expect(interpolateSpy).toHaveBeenCalledWith(0.75)
