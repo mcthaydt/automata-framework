@@ -10,15 +10,12 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 ## Exact next action
 
-**Current task: finish M1 (the blank game on Ruken).** M2 is closed — its last task, M2.4, merged as PR #19 (`1ed77cc`, 2026-10-13). M1.1–M1.4, M1.6 and the M1.8 base and demos are merged on `main`; what remains:
-
-1. **M1.5 Runtime** — continue from Task 3 of 20 on branch `claude/project-thread-pwjmcz` ([spec](superpowers/specs/2026-10-12-m1-runtime-design.md), [plan](superpowers/plans/2026-10-12-m1-runtime.md)). Its Phases 2–12: the presentation bus, loading and `Assets`, the frame loop, `Time`, settings, the renderer interface, `AppLoop`, page layers, the veil, `Flow`, boot errors, the boot program, `runGame`, `./testing`, the demo and the S8 bench.
+**Current task: finish M1 (the blank game on Ruken).** We are currently on branch `claude/project-thread-pwjmcz` (rebased cleanly onto `main` `d1c387c`):
+1. **M1.5 Runtime** — Tasks 1 through 12 and Audits 1 through 7 are complete and committed.
+   - Task 13 (Flow: `src/flow/screen.ts`, `src/flow/flow.manager.ts` + `flow.test.ts`) is the active next task.
+   - Phases 9–12 follow (Tasks 14–20, Audits 8–12).
 2. **M1.7 `render-pixi`** (new, not started) — the `./no-eval` entry, WebGL2-default init, the `RenderDelta` consumer, pixel framebuffer, letterbox and filter helpers. Depends on M1.5.
-3. **M1.8 exit** — `create-game`/`cli` scaffold, gallery wiring, and the exit evidence (Ruken-validated zip, publish to the Ruken local stack and dev host, phone play).
-
-**Owner reviews still pending (tick only on the Owner's review):** M1.0a (the Ruken-first restructure) and M2.0 (the M2 milestone spec). Decisions D-1 to D-6 run on their recommended defaults (master spec §12).
-
-**Kept branches:** `claude/project-thread-pwjmcz` (M1.5 runtime — the next action) and `claude/project-thread-z6q9rx` (M3 spec and plan — documentation for upcoming work). Both edit `docs/02`–`04`, so rebase them onto `main` when their work resumes.
+3. **M1.8 exit** — `create-game`/`cli` scaffold, gallery wiring, and exit evidence.
 
 ## Current artifacts and evidence limits
 
