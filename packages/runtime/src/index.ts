@@ -11,4 +11,10 @@ export {
   type RuntimeFacts,
   typedBus,
 } from './presentation/presentation-bus.manager.js'
+export {
+  Settings,
+  type SettingsDef,
+  type SettingsStore,
+  settingsStore,
+} from './settings/settings.manager.js'
 export { type PauseReason, Time } from './time/time.manager.js'
