@@ -127,7 +127,7 @@ After M2.4, a game depends on the published packages (`@mcthaydt/automata-ship` 
 - check for `AF_READ_TOKEN` first when the caller is not AF itself and stop with "AF_READ_TOKEN (a classic personal access token with read:packages) is missing", as the release jobs already do for their own secrets;
 - describe `AF_READ_TOKEN` as "a classic personal access token with read:packages; GitHub Packages' npm registry accepts no other kind" in both `secrets:` blocks and both header comments (today: "Contents read on mcthaydt/automata-framework").
 
-Inside AF (`github.repository == 'mcthaydt/automata-framework'`), the examples run from the workspace and the workflows keep their in-repo paths, without the token. `game-release.yml`'s token jobs stay on `ubuntu-latest` by default, as now. Calling the reusable workflows from a game still needs AF's Actions access setting ("Accessible from repositories owned by mcthaydt"), which is unchanged.
+Inside AF (`github.repository == 'mcthaydt/automata-framework'`), the examples run from the workspace and the workflows keep their in-repo paths, without the token. Inside AF an example's own job also skips `Check` and the determinism checker: AF's `checks` job already runs every package's `typecheck`, `test:unit` and `boundaries` (which include the examples' sim roots), so the example job only builds, prepares and uploads the artifact; a game repository runs every step. `game-release.yml`'s token jobs stay on `ubuntu-latest` by default, as now. Calling the reusable workflows from a game still needs AF's Actions access setting ("Accessible from repositories owned by mcthaydt"), which is unchanged.
 
 ## 4. Lifecycle
 

@@ -211,10 +211,12 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     expect(localSteps).toContain('pnpm build:demos')
   })
 
-  it('builds and prepares base-2d and runs the determinism check on its sim, as game-ci does', () => {
-    expect(localSteps).toContain('pnpm --filter @af-examples/base-2d check')
+  it('builds and prepares base-2d, without repeating its check inside AF', () => {
+    // build:demos only covers `examples/*/*`; base-2d and placeholder are one level deep, so they build here.
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d build')
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d prepare-ruken')
+    // `pnpm check` already runs base-2d's check (typecheck + test:unit + boundaries).
+    expect(localSteps).not.toContain('pnpm --filter @af-examples/base-2d check')
   })
 })
 
@@ -483,6 +485,15 @@ describe('game-ci.yml (reusable)', () => {
     expect(scripts.indexOf('automata-check-boundaries')).toBeLessThan(
       scripts.indexOf('automata-ship prepare'),
     )
+  })
+
+  it('skips Check and the determinism checker inside AF, where the `checks` job already runs them', () => {
+    const guard = "github.repository != 'mcthaydt/automata-framework'"
+    const steps = gameCi.jobs.game?.steps ?? []
+    const check = steps.find((step) => step.name === 'Check')
+    const determinism = steps.find((step) => step.run?.includes('automata-check-boundaries'))
+    expect(check?.if).toBe(guard)
+    expect(determinism?.if).toContain(guard)
   })
 
   it('passes each allow-imports entry to the checker as --allow-import (M2.1b)', () => {
