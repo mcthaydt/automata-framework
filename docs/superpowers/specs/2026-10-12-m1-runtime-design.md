@@ -1,6 +1,6 @@
 # M1.5 Runtime: boot, loading, app loop, Time, Flow, presentation bus, settings, `defineExtension`
 
-- **Status:** Draft 2026-10-12. Open questions answered by the Owner 2026-10-12: all nine recommended defaults accepted (§13). Next: the TDD plan, reviewed before any code.
+- **Status:** Implemented and locally verified 2026-10-13 (Tasks 1 through 20 complete, PR 4 boundary reached; CI and Owner acceptance pending). Next: M1.7 `render-pixi`.
 - **Task:** M1.5 in the [master delivery plan](../../02-master-delivery-plan.md). Detail level: [01 Decomposition](../../01-decomposition.md) §5. Operating rules of 2026-10-12 apply: this spec is reviewed before its TDD plan, and the plan before any code.
 - **Builds against:**
   - the [M1 shared contracts](./2026-10-11-m1-shared-contracts-design.md): §1 `Hosting` (consumed), §2 `defineExtension` and §3 `BootError` (both owned here);

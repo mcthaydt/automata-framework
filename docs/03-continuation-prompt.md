@@ -11,16 +11,15 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 ## Exact next action
 
 **Current task: finish M1 (the blank game on Ruken).** We are currently on branch `claude/project-thread-pwjmcz` (rebased cleanly onto `main` `d1c387c`):
-1. **M1.5 Runtime** — Tasks 1 through 12 and Audits 1 through 7 are complete and committed.
-   - Task 13 (Flow: `src/flow/screen.ts`, `src/flow/flow.manager.ts` + `flow.test.ts`) is the active next task.
-   - Phases 9–12 follow (Tasks 14–20, Audits 8–12).
-2. **M1.7 `render-pixi`** (new, not started) — the `./no-eval` entry, WebGL2-default init, the `RenderDelta` consumer, pixel framebuffer, letterbox and filter helpers. Depends on M1.5.
+1. **M1.5 Runtime** — Complete! Tasks 1 through 20 and Audits 1 through 12 complete and committed. Local gate clean: 22 test files / 148 unit tests in `packages/runtime`, 3 test files / 19 unit tests in `examples/runtime/boot-and-flow`, 8/8 Playwright E2E tests passing under fake host, frame loop overhead bench recorded (Node 0.117 µs, Chromium 0.100 µs vs 0.30 µs budget), S8 E1 size budget and E5 CSP checks pass. PR 4 boundary reached.
+2. **M1.7 `render-pixi`** (active next task) — the `./no-eval` entry, WebGL2-default init, the `RenderDelta` consumer, pixel framebuffer, letterbox and filter helpers. Depends on M1.5. Write task spec and plan first.
 3. **M1.8 exit** — `create-game`/`cli` scaffold, gallery wiring, and exit evidence.
 
 ## Current artifacts and evidence limits
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| M1.5 Runtime | Tasks 1–20 complete, committed (`278af83` + records). Local verification clean: unit tests (148 runtime, 19 demo), typecheck, build, boundaries, style, lint, frame-loop bench (Node 0.117 µs, Chromium 0.100 µs vs 0.30 µs budget), Playwright E2E (8/8 pass under fake host with 0 CSP violations) | PR #4 review/merge, hosted CI |
 | M0 (A0 spikes, A1a sim core) | Merged PRs #1 and #2; historical CI green 2026-10-02 | Not re-run in hosted CI in this update |
 | Ruken-first restructure | This branch's draft PR: new master spec, extraction map, ADRs 0002–0004, docs renamed `001`–`004` → `00`–`03` plus new `04-how-we-build.md`, superseded notes on the 2026-10-01 specs and S3, updated `AGENTS.md` | Owner review (M1.0a) |
 | `check-boundaries` fixture `import-effect.ts` | Added on this branch; the existing import allowlist already rejects it, so the test passed on first run (a regression pin for ADR 0003, not a red→green change) | — |
