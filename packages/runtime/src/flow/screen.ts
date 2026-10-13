@@ -1,0 +1,38 @@
+import type { Hosting } from '@mcthaydt/automata-host'
+import type { Effect, Scope } from 'effect'
+import type { AssetLoadFailed, LoadStalled } from '../boot/boot-error.js'
+import type { Assets } from '../loading/assets.manager.js'
+import type { AppLoop } from '../loop/app-loop.manager.js'
+import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
+import type { GameRenderer } from '../render/renderer.js'
+import type { Settings } from '../settings/settings.manager.js'
+import type { Time } from '../time/time.manager.js'
+import type { Flow } from './flow.manager.js'
+
+export interface ScreenContext {
+  readonly layer: HTMLElement
+  readonly from: string | undefined
+}
+
+export type RuntimeServices =
+  | Hosting
+  | PresentationBus
+  | Time
+  | Flow
+  | Settings
+  | AppLoop
+  | Assets
+  | GameRenderer
+
+export interface ScreenDef {
+  readonly id: string
+  readonly pausesSim?: boolean
+  readonly fonts?: readonly string[]
+  enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices>
+  openMenu?(): boolean
+}
+
+export type FlowFailure =
+  | AssetLoadFailed
+  | LoadStalled
+  | { readonly _tag: 'ScreenFailed'; readonly screen: string; readonly cause: unknown }

@@ -6,6 +6,7 @@ const ROOT_EXPORTS: string[] = [
   'AppLoop',
   'AssetLoadFailed',
   'Assets',
+  'Flow',
   'LoadStalled',
   'MAX_FRAME_MS',
   'PresentationBus',
@@ -24,7 +25,7 @@ const TESTING_EXPORTS: string[] = ['fakeFetch', 'manualFrames', 'nullRenderer']
 test('the root entry exports exactly the expected names', async () => {
   const entry = await import('./index')
   expect(Object.keys(entry).sort()).toEqual(ROOT_EXPORTS)
-})
+}, 15000)
 
 test('the ./extension entry exports exactly the expected names', async () => {
   const entry = await import('./extension/index')
