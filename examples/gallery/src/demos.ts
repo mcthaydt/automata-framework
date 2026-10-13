@@ -46,4 +46,19 @@ export const DEMOS: readonly GalleryDemo[] = [
     shows: 'Every ui primitive at every reference size, phone first.',
     base: 'none',
   },
+  {
+    path: 'runtime/boot-and-flow',
+    package: '@af-examples/runtime-boot-and-flow',
+    title: 'Runtime: boot and flow',
+    shows: 'Boot program with veil overlay, error panels on failure modes, and Flow screen transitions.',
+    base: 'none',
+  },
+  {
+    path: 'render-pixi/renderer-2d',
+    package: '@af-examples/renderer-2d',
+    title: 'Renderer: 2D PixiJS',
+    shows:
+      'WebGL2 default init with WebGPU fallback, sub-tick interpolation, and screen-space filter shader.',
+    base: 'none',
+  },
 ]

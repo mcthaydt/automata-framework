@@ -1,4 +1,9 @@
-// Import no-eval bootstrap entry first!
+// examples/render-pixi/renderer-2d: 2D PixiJS renderer with sub-tick interpolation and filter shader.
+//
+// Shows: WebGL2 default init with WebGPU fallback, sub-tick interpolation across ticks, and screen-space filter shader.
+// Controls: automatic motion; moving entity updates across interpolated ticks.
+// Base: none.
+// Packages: @mcthaydt/automata-render-pixi, @mcthaydt/automata-sim, @mcthaydt/automata-ui, pixi.js, effect.
 import '@mcthaydt/automata-render-pixi/no-eval'
 
 import { createPixiRenderer, type EntityView, filterPrograms } from '@mcthaydt/automata-render-pixi'
