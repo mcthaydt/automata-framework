@@ -36,11 +36,19 @@ afterAll(() => {
 interface TarballOptions {
   // Changes the source folder before it is packed (adds links, odd modes).
   readonly prepare?: (dir: string) => void
-  // Extra GNU tar arguments, before the member list (--owner, --transform, -P).
+  // Extra tar arguments, before the member list (--owner, -P; a member rename is spelled per tar flavor).
   readonly tarArgs?: readonly string[]
   // Members to pack instead of `.`.
   readonly members?: readonly string[]
 }
+
+// GNU tar and bsdtar (macOS `tar`) spell a member rename differently; `-P` works on both. The deploy script runs
+// on the VM's GNU tar, but this suite also runs on a developer's macOS, whose `tar` is bsdtar.
+const GNU_TAR: boolean = execFileSync('tar', ['--version'], { encoding: 'utf8' }).includes('GNU tar')
+
+/** Rename a packed member to `to`: GNU tar `--transform`, bsdtar `-s`. */
+const renameMember = (from: string, to: string): string[] =>
+  GNU_TAR ? ['--transform', `s|${from}|${to}|`] : ['-s', `|${from}|${to}|`]
 
 function tarball(files: Record<string, string>, options: TarballOptions = {}): string {
   const dir = temp('ship-deploy-src-')
@@ -239,7 +247,7 @@ describe('deploy refuses unsafe tarballs (Caddy would serve whatever they point 
   })
 
   it('refuses a member outside the build folder (.. or an absolute path)', () => {
-    const dotdot = tarball(buildFiles(ID), { tarArgs: ['--transform', 's|^\\./client/index.html$|../evil|'] })
+    const dotdot = tarball(buildFiles(ID), { tarArgs: renameMember('^\\./client/index.html$', '../evil') })
     // -P keeps the leading / of a member named by its absolute path.
     const withAbsolute = join(temp('ship-deploy-tgz-'), 'absolute.tgz')
     const source = temp('ship-deploy-src-')
