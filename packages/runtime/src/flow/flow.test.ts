@@ -52,6 +52,7 @@ describe('Flow and screens (spec §3.6)', () => {
         meter,
       })
       const geometry = createGeometryOwner({ window, root })
+      yield* Effect.addFinalizer(() => Effect.sync(() => geometry.dispose()))
       const veil = yield* makeVeil({
         overlay: layers.overlay,
         reducedMotion: () => options.reducedMotion ?? false,

@@ -1,0 +1,46 @@
+import type { AssetsSource, FlowGraph, GameSource } from '@mcthaydt/automata-content'
+import type { HostingOptions, HostingSeams } from '@mcthaydt/automata-host'
+import type { BootFailureCopy } from '@mcthaydt/automata-ui'
+import type { ExtensionDef } from '../extension/define-extension.js'
+import type { ScreenDef } from '../flow/screen.js'
+import type { FrameSource } from '../loop/frames.js'
+import type { RendererFactory } from '../render/renderer.js'
+import type { SettingsDef } from '../settings/settings.manager.js'
+
+/** The compiled JSON content read by the runtime (spec §3.3). */
+export interface CompiledContentData {
+  readonly flow: FlowGraph
+  readonly assets?: AssetsSource | undefined
+  readonly game?: GameSource | undefined
+  readonly [key: string]: unknown
+}
+
+/** Test seams injected into the runtime boot program (spec §3.3, planning note 10). */
+export interface RuntimeSeams {
+  readonly fetch?: typeof fetch
+  readonly frames?: FrameSource
+  readonly fonts?: Pick<FontFaceSet, 'load'>
+  readonly sdkEnv?: () => NonNullable<HostingSeams['env']>
+  readonly document?: Document
+}
+
+/** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */
+export interface RuntimeHandle {
+  shutdown(): Promise<void>
+}
+
+/** Everything a game provides to the runtime to boot (spec §3.3). */
+export interface GameDefinition<S = never> {
+  readonly root: HTMLElement
+  readonly hosting: Omit<HostingOptions, 'disclosedEvents'>
+  readonly content: { readonly data: CompiledContentData; readonly hash: string }
+  readonly screens: readonly ScreenDef[]
+  readonly renderer: RendererFactory
+  readonly settings?: SettingsDef<S> | undefined
+  readonly extensions?: readonly ExtensionDef[] | undefined
+  readonly copy?: Partial<BootFailureCopy> & {
+    readonly loading?: string
+    readonly slow?: string
+  }
+  readonly seams?: RuntimeSeams
+}

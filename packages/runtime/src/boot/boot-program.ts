@@ -1,0 +1,297 @@
+import {
+  HostError,
+  Hosting,
+  type HostingOptions,
+  type HostingSeams,
+  makeHosting,
+} from '@mcthaydt/automata-host'
+import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import {
+  createGeometryOwner,
+  installGlobalErrorHandlers,
+  lockOverscroll,
+  reducedMotion,
+  suppressPageGestures,
+} from '@mcthaydt/automata-ui'
+import { Context, Duration, Effect, Layer, type Scope, Stream } from 'effect'
+import { resolveExtensions } from '../extension/resolve-extensions.js'
+import { Flow, makeFlow } from '../flow/flow.manager.js'
+import type { RuntimeServices } from '../flow/screen.js'
+import { makeVeil } from '../flow/veil.js'
+import { Assets, makeAssets } from '../loading/assets.manager.js'
+import { makeLoadMeter, SLOW_MS } from '../loading/load-meter.js'
+import { AppLoop, makeAppLoop } from '../loop/app-loop.manager.js'
+import { liveFrames } from '../loop/frames.js'
+import { makePresentationBus, PresentationBus } from '../presentation/presentation-bus.manager.js'
+import { type GameRenderer, Renderer, type RenderTarget } from '../render/renderer.js'
+import { makeSettings, Settings } from '../settings/settings.manager.js'
+import { makeTime, Time, watchLifecycle } from '../time/time.manager.js'
+import { BootDefect, type BootError, ContentHashMismatch } from './boot-error.js'
+import type { GameDefinition } from './game-definition.js'
+import { createPageLayers } from './page-layers.svelte.js'
+
+/**
+ * The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
+ * Matches @mcthaydt/automata-content's contentHash formula (M1.3), pinned by tests.
+ */
+export function contentHashOf(data: unknown): string {
+  return hex64(xxhash64(utf8(canonicalJson(data))))
+}
+
+/**
+ * Ruken's save key pattern (/^[A-Za-z0-9._:-]{1,128}$/, sdk/src/save-map.ts).
+ * Refused keys fail with HostError{code: 'INVALID_PAYLOAD', operation: 'saves.get'} (spec §4 step 3).
+ */
+const SAVE_KEY_RE = /^[A-Za-z0-9._:-]{1,128}$/
+
+export interface BootProgramOptions {
+  readonly skipSettingsRead?: boolean
+  readonly onHosting?: (hosting: Hosting) => void
+}
+
+/**
+ * Builds the Context<RuntimeServices> containing all 8 runtime tags (spec §3.1, §4).
+ * Extracted so RuntimeTest reuses the exact service wiring (Task 18).
+ */
+export function buildRuntimeServices(services: {
+  readonly hosting: Hosting
+  readonly bus: PresentationBus
+  readonly time: Time
+  readonly flow: Flow
+  readonly settings: Settings
+  readonly appLoop: AppLoop
+  readonly assets: Assets
+  readonly renderer: GameRenderer
+}): Context.Context<RuntimeServices> {
+  return Context.empty().pipe(
+    Context.add(Hosting, services.hosting),
+    Context.add(PresentationBus, services.bus),
+    Context.add(Time, services.time),
+    Context.add(Flow, services.flow),
+    Context.add(Settings, services.settings),
+    Context.add(AppLoop, services.appLoop),
+    Context.add(Assets, services.assets),
+    Context.add(Renderer, services.renderer),
+  ) as Context.Context<RuntimeServices>
+}
+
+/**
+ * Executes the boot sequence (spec §4 steps 1-7 in order).
+ * Errors are typed in BootError; unexpected defects are caught and mapped to BootDefect.
+ */
+export function bootProgram<S>(
+  game: GameDefinition<S>,
+  options?: BootProgramOptions,
+): Effect.Effect<void, BootError, Scope.Scope> {
+  const program = Effect.gen(function* () {
+    // Step 1: page layers, geometry owner, ui hygiene, loader overlay, and wait one frame
+    const doc = game.seams?.document ?? game.root.ownerDocument ?? document
+    const win = doc.defaultView ?? window
+    const frames = game.seams?.frames ?? liveFrames()
+
+    const layers = createPageLayers(game.root, doc)
+    yield* Effect.addFinalizer(() => Effect.sync(() => layers.dispose()))
+    layers.setState('loading')
+
+    const geometry = createGeometryOwner({ window: win, root: doc.documentElement })
+    yield* Effect.addFinalizer(() => Effect.sync(() => geometry.dispose()))
+
+    const uninstallErrors = installGlobalErrorHandlers(win, (cls) => {
+      // Uncaught errors reported by class name only
+      void Effect.runFork(Effect.logError(`Global error: ${cls}`))
+    })
+    yield* Effect.addFinalizer(() => Effect.sync(uninstallErrors))
+
+    const uninstallGestures = suppressPageGestures(doc)
+    yield* Effect.addFinalizer(() => Effect.sync(uninstallGestures))
+
+    const lock = lockOverscroll(doc.documentElement)
+    yield* Effect.addFinalizer(() => Effect.sync(() => lock.destroy()))
+
+    const loaderHandle = layers.showLoader({
+      label: game.copy?.loading ?? 'Loading…',
+      slowLabel: game.copy?.slow ?? 'Taking a while…',
+    })
+    yield* Effect.addFinalizer(() => Effect.sync(() => loaderHandle.close()))
+
+    // Wait one display frame so host lifts its cover onto the game's loader
+    yield* Effect.async<void>((resume) => {
+      const handle = frames.request(() => resume(Effect.void))
+      return Effect.sync(() => frames.cancel(handle))
+    })
+
+    // Step 2: host session over Hosting
+    const disclosedEvents = game.content.data.game?.custom_events
+    const hostingOptions: HostingOptions = {
+      ...game.hosting,
+      ...(disclosedEvents !== undefined ? { disclosedEvents } : {}),
+    }
+    const sdkEnv = game.seams?.sdkEnv?.()
+    const hostingSeams: HostingSeams = sdkEnv !== undefined ? { env: sdkEnv } : {}
+    const hosting = yield* makeHosting(hostingOptions, hostingSeams)
+    options?.onHosting?.(hosting)
+
+    const initialDisplay = yield* hosting.display.get
+    geometry.setHostDisplay(initialDisplay)
+    yield* Effect.forkScoped(
+      Stream.runForEach(hosting.display.changes, (metrics) =>
+        Effect.sync(() => geometry.setHostDisplay(metrics)),
+      ),
+    )
+
+    // Step 3: storage and settings
+    let rawSettings: string | null = null
+    if (game.settings !== undefined && !options?.skipSettingsRead) {
+      if (!SAVE_KEY_RE.test(game.settings.key)) {
+        return yield* Effect.fail(
+          new HostError({
+            code: 'INVALID_PAYLOAD',
+            retryable: false,
+            operation: 'saves.get',
+          }),
+        )
+      }
+      rawSettings = yield* hosting.saves.get(game.settings.key)
+    }
+    const settingsService = yield* makeSettings(game.settings, rawSettings, hosting.saves)
+
+    // Step 4: content hash verification
+    const actualHash = contentHashOf(game.content.data)
+    if (actualHash !== game.content.hash) {
+      return yield* Effect.fail(new ContentHashMismatch({ expected: game.content.hash, actual: actualHash }))
+    }
+
+    // Step 5: load assets and fonts under the stall rule
+    const meter = yield* makeLoadMeter
+    yield* Effect.forkScoped(
+      Effect.sleep(Duration.millis(SLOW_MS)).pipe(
+        Effect.andThen(Effect.sync(() => loaderHandle.setSlow(true))),
+      ),
+    )
+
+    const screenFonts: Record<string, readonly string[]> = {}
+    for (const screen of game.screens) {
+      if (screen.fonts) screenFonts[screen.id] = screen.fonts
+    }
+
+    const fontFaces = game.seams?.fonts ?? (typeof document !== 'undefined' ? document.fonts : undefined)
+    const assets = yield* makeAssets({
+      assets: game.content.data.assets,
+      fonts: screenFonts,
+      ...(game.seams?.fetch !== undefined ? { fetch: game.seams.fetch } : {}),
+      ...(fontFaces !== undefined ? { fontFaces } : {}),
+      meter,
+    })
+
+    const preloadScreens =
+      game.content.data.game?.preload_screens !== undefined &&
+      game.content.data.game.preload_screens.length > 0
+        ? game.content.data.game.preload_screens
+        : [game.content.data.flow.entry]
+
+    for (const screenId of preloadScreens) {
+      yield* assets.load(screenId, (fraction) => loaderHandle.setProgress(fraction))
+    }
+
+    // Step 6: renderer factory
+    const renderTarget: RenderTarget = {
+      host: layers.stage,
+      geometry,
+      assets,
+    }
+    const renderer = yield* game.renderer(renderTarget)
+
+    // Step 7: ready guarded by stall rule, runtime services, extensions and flow start
+    yield* meter
+      .guard(hosting.ready, {
+        url: 'session.ready',
+        onSlow: () => loaderHandle.setSlow(true),
+      })
+      .pipe(
+        Effect.catchTag('LoadStalled', () =>
+          Effect.fail(new HostError({ code: 'TIMEOUT', retryable: true, operation: 'ready' })),
+        ),
+      )
+
+    // Ready resolved: close loader overlay and set state ready
+    loaderHandle.close()
+    layers.setState('ready')
+
+    const bus = yield* makePresentationBus()
+    const time = makeTime(bus)
+    const veil = yield* makeVeil({
+      overlay: layers.overlay,
+      reducedMotion: () => reducedMotion(win),
+    })
+
+    let runtimeContext: Context.Context<RuntimeServices> = Context.empty() as Context.Context<RuntimeServices>
+
+    const flowHandle = yield* makeFlow({
+      graph: game.content.data.flow,
+      screens: game.screens,
+      layers,
+      assets,
+      time,
+      bus,
+      geometry,
+      veil,
+      ...(game.copy !== undefined ? { copy: game.copy } : {}),
+      services: () => runtimeContext,
+      ...(import.meta.env?.DEV
+        ? {
+            logUnmatched: (screen: string, event: string) =>
+              console.warn(`Unmatched event '${event}' on screen '${screen}'`),
+          }
+        : {}),
+    })
+
+    yield* hosting.onMenuRequest(() => flowHandle.flow.openMenu())
+
+    yield* watchLifecycle({
+      hosting,
+      time,
+      pauseBehavior: game.hosting.pauseBehavior,
+      document: doc,
+      openMenu: () => flowHandle.flow.openMenu(),
+    })
+
+    const appLoop = yield* makeAppLoop({
+      frames,
+      renderer,
+      time,
+      bus,
+      onFault: (cause) =>
+        flowHandle.reportFailure({
+          _tag: 'ScreenFailed',
+          screen: flowHandle.flow.current ?? '',
+          cause,
+        }),
+    })
+
+    runtimeContext = buildRuntimeServices({
+      hosting,
+      bus,
+      time,
+      flow: flowHandle.flow,
+      settings: settingsService,
+      appLoop,
+      assets,
+      renderer,
+    })
+
+    if (game.extensions && game.extensions.length > 0) {
+      const resolved = resolveExtensions(game.extensions)
+      yield* Layer.build(resolved.layer).pipe(Effect.provide(runtimeContext))
+    }
+
+    yield* flowHandle.start()
+  })
+
+  return program.pipe(
+    Effect.catchAllDefect((defect) =>
+      Effect.logError('Boot defect', defect).pipe(
+        Effect.zipRight(Effect.fail(new BootDefect({ cause: defect }))),
+      ),
+    ),
+  )
+}
