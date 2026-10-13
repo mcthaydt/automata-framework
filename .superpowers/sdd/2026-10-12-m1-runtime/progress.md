@@ -16,4 +16,5 @@ Task 9: complete (commit ae4fc4a, feat(runtime): the renderer interface and null
 Audit 5: complete (commit cc5f674)
 Task 10: complete (commit 4553e24, feat(runtime): AppLoop with fixed step and interpolated draw)
 Audit 6: complete (commit f86a13c)
-Task 11: complete (feat(runtime): page layers and overlay mounts)
+Task 11: complete (commit 0859414, feat(runtime): page layers and overlay mounts)
+Task 12: complete (feat(runtime): fade veil)
