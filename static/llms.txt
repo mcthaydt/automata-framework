@@ -1,0 +1,17 @@
+# Automata Framework
+
+> Automata is a deterministic 2D game framework built for modern web browsers and the Ruken gaming platform.
+
+## Documentation
+- [Overview & Vision](/docs/overview): High-level architecture, design laws, and Ruken-first direction.
+- [Quick Start](/docs/quick-start): Scaffold your first Automata game in seconds with npx automata.
+- [ECS Simulation & Determinism](/docs/sim-ecs): Fixed 60Hz timestep, Koota ECS traits, and bit-identical replays.
+- [PixiJS 2D Presentation](/docs/render-pixi): Sub-tick alpha interpolation, entity views, and WebGL2/WebGPU shaders.
+- [Effect Runtime & Concurrency](/docs/effect-runtime): Structured concurrency, typed errors, and automatic resource scoping.
+- [Zero-Eval CSP & Ruken Security](/docs/security-csp): Running games under strict Content Security Policy without eval or new Function.
+- [Mobile UI Primitives](/docs/mobile-ui): Responsive geometry ownership, safe areas, and touch controls.
+- [AI Coding Agent Rules](/docs/ai-rules): Official rules, constraints, and guardrails for AI coding assistants.
+
+## AI & Agent Skills
+- [Automata AI Portal](/ai): Official skills, agent install commands, and prompt templates.
+- [Full Text Docs](/llms-full.txt): Complete plain-text documentation for LLMs.

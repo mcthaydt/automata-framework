@@ -3,35 +3,173 @@
     "id": "overview",
     "slug": "overview",
     "title": "Overview & Vision",
+    "category": "Getting Started",
+    "badge": "v0.1",
     "description": "High-level architecture, design laws, and Ruken-first direction.",
-    "content": "# AutomataFramework: overview\n\n> **Owner direction, 2026-10-11:** AF is **Ruken first**. Core packages are built from proven code in FloorFifty (2D), The Last Light (the PixiJS 3D experiment) and Ruken itself; everything else is a modular extension. PixiJS renders 2D and 3D. Effect runs everything outside the sim; the sim stays on Koota. CI/CD, deployment, mobile UI and the content compiler come first, in M1. AF is finished on 2D (FloorFifty) and 2.5D (The Last Light); a 3D game is then built on AF and its 3D pieces are merged back. This replaces the 2026-10-05 direction (all A/B specs first, a future 3D game, then \"Part C\" extraction).\n\n## Read order and document ownership\n\n1. This overview.\n2. The [Ruken-first master spec](superpowers/specs/2026-10-11-automata-framework-ruken-first-design.md) and its [extraction map](superpowers/specs/2026-10-11-core-and-extensions-extraction-map.md). The [2026-10-01 master spec](superpowers/specs/2026-10-01-automata-framework-overview-design.md) still owns the laws, state ownership and determinism rules that the new spec does not replace.\n3. [01 Decomposition](01-decomposition.md): packages, milestones, dependencies and the old-phase mapping.\n4. [02 Master delivery plan](02-master-delivery-plan.md): the only task list, with task IDs.\n5. [03 Continuation](03-continuation-prompt.md): current status, blockers and the exact next action.\n6. [04 How we build](04-how-we-build.md): how a task flows from spec to merged PR.\n7. The milestone's spec, the ADRs (`docs/adr/`), the spike verdicts (`docs/spikes/`) and the task's plan when one exists.\n\nThe numbering and roles match Ruken's own `docs/00`–`04`. Dated specs own architecture and behavior; the numbered documents own navigation, order and status. `AGENTS.md` holds the working rules and `CLAUDE.md` imports it.\n\n## Purpose\n\nAutomataFramework makes Ruken games mostly content and game logic. Versioned `@mcthaydt/automata-*` packages provide a deterministic Koota simulation, a content compiler, an Effect-based runtime, a Ruken-first host layer, PixiJS rendering, mobile-first Svelte UI, testing harnesses and the CI/CD and packaging that put a game on Ruken (and on a standalone site) with no per-game plumbing.\n\nThe seven laws stand: only the sim changes gameplay state; the server owns networked truth; each state has one owner; presentation observes truth; the sim has no I/O or wall clock; identical seed, content and ordered inputs reproduce; the host is a port, and Ruken is the reference host.\n\n## Decisions in force\n\n| Decision | Record |\n|---|---|\n| Koota ECS behind the sim facade | [ADR 0001](adr/0001-ecs-choice.md) |\n| PixiJS for 2D (core) and 3D (`render-pixi3d` extension on `@pixi/3d`) | [ADR 0002](adr/0002-pixi-for-2d-and-3d.md) |\n| Effect for runtime, host, tooling and pipelines; never inside the sim; Zod stays the schema language | [ADR 0003](adr/0003-effect-outside-the-sim.md) |\n| Ruken first: consume `@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest` and `ruken publish` (which validates); follow Ruken's doc and milestone process | [ADR 0004](adr/0004-ruken-first-host.md) |\n\nDecisions D-1 to D-6 (the `@pixi/3d` beta dependency, adoption scope, lint tooling, standalone hosting, GPU runner, vendored Ruken packages) run on their recommended defaults since 2026-10-11 until the Owner overrides them; see the master spec §12. M1 runs in parallel lanes ([04 How we build](04-how-we-build.md#lanes-2026-10-11)).\n\n## Product and engineering priorities\n\n- **One look.** Endesga 64 palette, Bubble Bobble mixed with Celeste, in 2D, 2.5D and 3D ([art direction](art/README.md), Owner 2026-10-11).\n\n- **Ship to Ruken early.** M1 ends with a blank game built, validated by Ruken's own checks, published to Ruken and playable on a phone. Everything after builds on a working pipeline.\n- **Mobile first.** Layout is designed and tested at phone sizes first, with FloorFifty's geometry, target-size and reachability rules. UI tests do not need a renderer, server or full journey.\n- **Core is small and proven; extensions are opt-in.** A capability is core only if Ruken requires it of every game or both reference games need it.\n- **Fast feedback with honest gates.** Focused runs for iteration; full parity, GPU, release and device gates remain separate and required.\n- **Evidence controls status.** Drafted, reviewed, implemented, locally verified, CI verified, deployed and Owner accepted are different facts.\n\n## Current checkpoint\n\nM0 (spikes S1–S6, ADR 0001, the A1a sim core) is merged. Nothing from M1 onward is implemented. M1 runs in parallel lanes, each writing its own task spec against the [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md); the Owner review of the Ruken-first restructure (M1.0a) is pending. See [03 Continuation](03-continuation-prompt.md).\n\n## Scope map\n\n| Milestone | Scope |\n|---|---|\n| M0 Foundation | Spikes, ECS decision, sim core (done) |\n| M1 Blank game on Ruken | Toolchain, Effect runtime skeleton, content compiler, host, boot and loading, 2D renderer, mobile UI primitives, CI/CD, packaging, publish, dev host, example, minimal `create-game` |\n| M2 Deterministic core complete | Physics, goldens and replays, publishing |\n| M3 2.5D and pipelines | `render-pixi3d` at 2.5D scope, `post-retro`, the pipeline platform, 2.5D character and props pipelines |\n| M4 Input and display complete | All input paths and display policy, E2E matrix |\n| M5 Saves, audio, localization | Ruken saves and migrations, audio extensions, six languages |\n| M6 Gameplay extensions | Sectors, nav, puzzle, systems, narrative, cutscenes, feel, debug, environment pipeline |\n| M7 Online and store | `net`/`server`, `store`, `host-tauri` |\n| M8 CLI 1.0 and adoption | Full CLI, 1.0 (AF finished for 2D and 2.5D), a slice of FloorFifty and The Last Light running on AF |\n| GAME-3D | A 3D game built on AF 1.0, in its own repo |\n| M9 3D merge | The 3D game's proven pieces merged back into AF |\n| M10 Website (final phase) | The AF site: store, documentation, playable demos and everything else a framework site needs |\n\n**Business model (Owner, 2026-10-11, recorded only):** Tailwind-style. The core is free; extensions are paid, sold individually or through an all-access pass on the site. Extensions therefore stay separate packages with no core file edited by any of them, so paid ones can move to a private repo and registry later. Licensing and distribution are decided at M10.0 (D-7).\n\nExternal inputs (Ruken package publication and F1, GitHub Packages tokens, runner capacity, hosting accounts) are tracked in [01 Decomposition](01-decomposition.md) §6; do not infer readiness from a planned date.\n"
+    "content": "# AutomataFramework: overview\n\n> **Owner direction, 2026-10-11:** AF is **Ruken first**. Core packages are built from proven code in FloorFifty (2D), The Last Light (the PixiJS 3D experiment) and Ruken itself; everything else is a modular extension. PixiJS renders 2D and 3D. Effect runs everything outside the sim; the sim stays on Koota. CI/CD, deployment, mobile UI and the content compiler come first, in M1. AF is finished on 2D (FloorFifty) and 2.5D (The Last Light); a 3D game is then built on AF and its 3D pieces are merged back. This replaces the 2026-10-05 direction (all A/B specs first, a future 3D game, then \"Part C\" extraction).\n\n## Read order and document ownership\n\n1. This overview.\n2. The [Ruken-first master spec](superpowers/specs/2026-10-11-automata-framework-ruken-first-design.md) and its [extraction map](superpowers/specs/2026-10-11-core-and-extensions-extraction-map.md). The [2026-10-01 master spec](superpowers/specs/2026-10-01-automata-framework-overview-design.md) still owns the laws, state ownership and determinism rules that the new spec does not replace.\n3. [01 Decomposition](01-decomposition.md): packages, milestones, dependencies and the old-phase mapping.\n4. [02 Master delivery plan](02-master-delivery-plan.md): the only task list, with task IDs.\n5. [03 Continuation](03-continuation-prompt.md): current status, blockers and the exact next action.\n6. [04 How we build](04-how-we-build.md): how a task flows from spec to merged PR.\n7. The milestone's spec, the ADRs (`docs/adr/`), the spike verdicts (`docs/spikes/`) and the task's plan when one exists.\n\nThe numbering and roles match Ruken's own `docs/00`–`04`. Dated specs own architecture and behavior; the numbered documents own navigation, order and status. `AGENTS.md` holds the working rules and `CLAUDE.md` imports it.\n\n## Purpose\n\nAutomataFramework makes Ruken games mostly content and game logic. Versioned `@mcthaydt/automata-*` packages provide a deterministic Koota simulation, a content compiler, an Effect-based runtime, a Ruken-first host layer, PixiJS rendering, mobile-first Svelte UI, testing harnesses and the CI/CD and packaging that put a game on Ruken (and on a standalone site) with no per-game plumbing.\n\nThe seven laws stand: only the sim changes gameplay state; the server owns networked truth; each state has one owner; presentation observes truth; the sim has no I/O or wall clock; identical seed, content and ordered inputs reproduce; the host is a port, and Ruken is the reference host.\n\n## Decisions in force\n\n| Decision | Record |\n|---|---|\n| Koota ECS behind the sim facade | [ADR 0001](adr/0001-ecs-choice.md) |\n| PixiJS for 2D (core) and 3D (`render-pixi3d` extension on `@pixi/3d`) | [ADR 0002](adr/0002-pixi-for-2d-and-3d.md) |\n| Effect for runtime, host, tooling and pipelines; never inside the sim; Zod stays the schema language | [ADR 0003](adr/0003-effect-outside-the-sim.md) |\n| Ruken first: consume `@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest` and `ruken publish` (which validates); follow Ruken's doc and milestone process | [ADR 0004](adr/0004-ruken-first-host.md) |\n\nDecisions D-1 to D-6 (the `@pixi/3d` beta dependency, adoption scope, lint tooling, standalone hosting, GPU runner, vendored Ruken packages) run on their recommended defaults since 2026-10-11 until the Owner overrides them; see the master spec §12. M1 runs in parallel lanes ([04 How we build](04-how-we-build.md#lanes-2026-10-11)).\n\n## Product and engineering priorities\n\n- **One look.** Endesga 64 palette, Bubble Bobble mixed with Celeste, in 2D, 2.5D and 3D ([art direction](art/README.md), Owner 2026-10-11).\n\n- **Ship to Ruken early.** M1 ends with a blank game built, validated by Ruken's own checks, published to Ruken and playable on a phone. Everything after builds on a working pipeline.\n- **Mobile first.** Layout is designed and tested at phone sizes first, with FloorFifty's geometry, target-size and reachability rules. UI tests do not need a renderer, server or full journey.\n- **Core is small and proven; extensions are opt-in.** A capability is core only if Ruken requires it of every game or both reference games need it.\n- **Fast feedback with honest gates.** Focused runs for iteration; full parity, GPU, release and device gates remain separate and required.\n- **Evidence controls status.** Drafted, reviewed, implemented, locally verified, CI verified, deployed and Owner accepted are different facts.\n\n## Current checkpoint\n\nM0 (spikes S1–S6, ADR 0001, the A1a sim core) is merged. Nothing from M1 onward is implemented. M1 runs in parallel lanes, each writing its own task spec against the [M1 shared contracts](superpowers/specs/2026-10-11-m1-shared-contracts-design.md); the Owner review of the Ruken-first restructure (M1.0a) is pending. See [03 Continuation](03-continuation-prompt.md).\n\n## Scope map\n\n| Milestone | Scope |\n|---|---|\n| M0 Foundation | Spikes, ECS decision, sim core (done) |\n| M1 Blank game on Ruken | Toolchain, Effect runtime skeleton, content compiler, host, boot and loading, 2D renderer, mobile UI primitives, CI/CD, packaging, publish, dev host, example, minimal `create-game` |\n| M2 Deterministic core complete | Physics, goldens and replays, publishing |\n| M3 2.5D and pipelines | `render-pixi3d` at 2.5D scope, `post-retro`, the pipeline platform, 2.5D character and props pipelines |\n| M4 Input and display complete | All input paths and display policy, E2E matrix |\n| M5 Saves, audio, localization | Ruken saves and migrations, audio extensions, six languages |\n| M6 Gameplay extensions | Sectors, nav, puzzle, systems, narrative, cutscenes, feel, debug, environment pipeline |\n| M7 Online and store | `net`/`server`, `store`, `host-tauri` |\n| M8 CLI 1.0 and adoption | Full CLI, 1.0 (AF finished for 2D and 2.5D), a slice of FloorFifty and The Last Light running on AF |\n| GAME-3D | A 3D game built on AF 1.0, in its own repo |\n| M9 3D merge | The 3D game's proven pieces merged back into AF |\n| M10 Website (final phase) | The AF site: store, documentation, playable demos and everything else a framework site needs |\n\n**Business model (Owner, 2026-10-11, recorded only):** Tailwind-style. The core is free; extensions are paid, sold individually or through an all-access pass on the site. Extensions therefore stay separate packages with no core file edited by any of them, so paid ones can move to a private repo and registry later. Licensing and distribution are decided at M10.0 (D-7).\n\nExternal inputs (Ruken package publication and F1, GitHub Packages tokens, runner capacity, hosting accounts) are tracked in [01 Decomposition](01-decomposition.md) §6; do not infer readiness from a planned date.\n",
+    "toc": [
+      {
+        "id": "read-order-and-document-ownership",
+        "text": "Read order and document ownership",
+        "level": 2
+      },
+      {
+        "id": "purpose",
+        "text": "Purpose",
+        "level": 2
+      },
+      {
+        "id": "decisions-in-force",
+        "text": "Decisions in force",
+        "level": 2
+      },
+      {
+        "id": "product-and-engineering-priorities",
+        "text": "Product and engineering priorities",
+        "level": 2
+      },
+      {
+        "id": "current-checkpoint",
+        "text": "Current checkpoint",
+        "level": 2
+      },
+      {
+        "id": "scope-map",
+        "text": "Scope map",
+        "level": 2
+      }
+    ]
   },
   {
-    "id": "sim-vs-presentation",
-    "slug": "sim-vs-presentation",
-    "title": "ECS Sim vs. Presentation",
-    "description": "The strict separation between deterministic game logic and interpolated visuals.",
-    "content": "# ECS Sim vs. Presentation Boundary\n\nAutomata enforces a clean boundary between simulation state and visual representation.\n\n## Simulation Layer\n- Runs at a fixed 60Hz timestep.\n- Built on Koota ECS.\n- Does not know about pixels, DOM, WebGL, or window events.\n- Produces a `RenderDelta` containing dirty entity positions and states.\n\n## Presentation Layer\n- Runs at whatever refresh rate the player's monitor supports (60Hz, 120Hz, 144Hz, 240Hz).\n- Consumes `RenderDelta` via `RenderDeltaConsumer`.\n- Computes sub-tick alpha interpolation (`alpha = accumulator / dt`) for buttery smooth motion.\n- Renders via PixiJS."
+    "id": "quick-start",
+    "slug": "quick-start",
+    "title": "Quick Start",
+    "category": "Getting Started",
+    "badge": "Guide",
+    "description": "Scaffold your first Automata game in seconds with npx automata.",
+    "content": "# Quick Start Guide\n\nStart building deterministic browser games in seconds using the official CLI.\n\n## Installation\n\n```bash\n# Create a new Automata 2D game project\nnpx automata create-game my-game\n\n# Enter project directory\ncd my-game\n\n# Install dependencies and start development server\npnpm install\npnpm dev\n```\n\n## Project Anatomy\n\nA standard Automata game project has three clean layers:\n\n```\nmy-game/\n├── src/\n│   ├── sim/             # Pure deterministic ECS logic (Koota)\n│   │   ├── traits.ts    # Entity components & schemas\n│   │   └── systems.ts   # Movement, combat, collisions\n│   ├── render/          # PixiJS visual representation\n│   │   └── views.ts     # Sprites, shaders, animations\n│   └── main.ts          # Effect runtime bootloader & loop\n└── package.json\n```\n\n> [!TIP]\n> The `sim/` folder never imports browser APIs, PixiJS, or Effect. This guarantees your game logic can run headless on a multiplayer game server or inside a test runner.",
+    "toc": [
+      {
+        "id": "installation",
+        "text": "Installation",
+        "level": 2
+      },
+      {
+        "id": "project-anatomy",
+        "text": "Project Anatomy",
+        "level": 2
+      }
+    ]
   },
   {
-    "id": "effect-boundaries",
-    "slug": "effect-boundaries",
-    "title": "Effect Runtime & Error Boundaries",
-    "description": "How structured concurrency, typed errors, and scopes prevent game crashes.",
-    "content": "# Effect Runtime & Error Boundaries\n\nEverything outside the simulation loop runs as an Effect service.\n\n## Why Effect?\n- **Typed Errors:** Boot errors, asset load failures, and host disconnections are represented as explicit TypeScript unions (`BootError`, `AssetLoadFailed`, `HostHandshakeFailed`). Every error has a dedicated recovery UI.\n- **Resource Scoping:** When navigating between screens or restarting a game, Effect's `Scope` automatically disposes textures, event listeners, and audio handles.\n- **Structured Concurrency:** Background tasks (like asset streaming or save flushing) are supervised fibers that cancel cleanly on exit."
+    "id": "sim-ecs",
+    "slug": "sim-ecs",
+    "title": "ECS Simulation & Determinism",
+    "category": "Core Simulation",
+    "badge": "M1",
+    "description": "Fixed 60Hz timestep, Koota ECS traits, and bit-identical replays.",
+    "content": "# ECS Simulation & Determinism\n\nThe heart of Automata is a pure, deterministic simulation built on Koota ECS.\n\n## Fixed Timestep Simulation Loop\n\nThe simulation advances in discrete, uniform steps of exactly 16.666ms (60 ticks per second):\n\n```typescript\nimport { createSim, defineTrait } from '@mcthaydt/automata-sim'\n\n// Define traits as pure schemas\nexport const Position = defineTrait({ x: 0, y: 0 })\nexport const Velocity = defineTrait({ vx: 0, vy: 0 })\n\n// Create sim instance\nexport const sim = createSim({\n  fixedDeltaMs: 16.666,\n  systems: [\n    (world) => {\n      // Query entities with Position and Velocity\n      world.query(Position, Velocity).each(([pos, vel]) => {\n        pos.x += vel.vx\n        pos.y += vel.vy\n      })\n    }\n  ]\n})\n```\n\n## Deterministic Verification\n\nEvery commit runs cross-engine replay testing across Chromium (V8), WebKit (JavaScriptCore), and Firefox (SpiderMonkey). A 500-tick run produces bit-identical XXH64 state hashes.",
+    "toc": [
+      {
+        "id": "fixed-timestep-simulation-loop",
+        "text": "Fixed Timestep Simulation Loop",
+        "level": 2
+      },
+      {
+        "id": "deterministic-verification",
+        "text": "Deterministic Verification",
+        "level": 2
+      }
+    ]
   },
   {
-    "id": "no-eval-csp",
-    "slug": "no-eval-csp",
-    "title": "No-Eval CSP & Ruken Rules",
-    "description": "Ensuring 100% compliance with strict Content Security Policy without compromising performance.",
-    "content": "# No-Eval CSP & Ruken Rules\n\nRuken executes games inside an iframe with a zero-trust Content Security Policy:\n```http\nscript-src 'self'; object-src 'none'; base-uri 'none';\n```\n\n## The Challenge\nMost JavaScript game engines rely on dynamic code generation (`new Function` or `eval`) to compile ECS accessors or shader programs. Under Ruken, this throws an immediate `EvalError`.\n\n## The Automata Solution\n- **Koota Array-of-Structs:** Traits are defined as factory functions rather than dynamic code-generated accessors.\n- **PixiJS No-Eval Entry:** Automata imports `@mcthaydt/automata-render-pixi/no-eval`, which utilizes static WebGL program linkers and JIT-less Zod validators.\n- **CI Enforcement:** Automated Playwright test runs verify that the entire bundle loads with zero CSP violation reports."
+    "id": "render-pixi",
+    "slug": "render-pixi",
+    "title": "PixiJS 2D Presentation",
+    "category": "Rendering",
+    "badge": "PixiJS v8",
+    "description": "Sub-tick alpha interpolation, entity views, and WebGL2/WebGPU shaders.",
+    "content": "# PixiJS 2D Presentation Boundary\n\nAutomata enforces a strict boundary between simulation state and visual rendering.\n\n## Sub-Tick Alpha Interpolation\n\nHigh refresh-rate monitors (120Hz, 144Hz, 240Hz) render faster than the 60Hz simulation. To avoid jitter, Automata calculates sub-tick alpha:\n\n```\nalpha = accumulator / fixedDeltaMs\nposition_rendered = prev_pos * (1 - alpha) + current_pos * alpha\n```\n\n```typescript\nimport { createPixiRenderer, type EntityView } from '@mcthaydt/automata-render-pixi'\n\nconst playerView: EntityView = {\n  container: playerSprite,\n  update(curr, prev, alpha = 1) {\n    const p = prev?.transform ?? curr?.transform\n    const c = curr?.transform\n    if (c && p) {\n      playerSprite.x = p.x + (c.x - p.x) * alpha\n      playerSprite.y = p.y + (c.y - p.y) * alpha\n    }\n  }\n}\n```\n\n> [!NOTE]\n> PixiJS v8 automatically uses WebGPU when supported by the client device, falling back seamlessly to WebGL2.",
+    "toc": [
+      {
+        "id": "sub-tick-alpha-interpolation",
+        "text": "Sub-Tick Alpha Interpolation",
+        "level": 2
+      }
+    ]
   },
   {
-    "id": "how-we-build",
-    "slug": "how-we-build",
-    "title": "How We Build & Test Parity",
-    "description": "Cross-engine test automation, golden replay testing, and Changesets versioning.",
-    "content": "# How We Build & Test Parity\n\nAutomata employs an uncompromising testing harness:\n\n## 1. Cross-Engine Parity Gate\nEvery commit runs automated headless browser checks across three distinct browser engines:\n- Chromium (V8)\n- WebKit (JavaScriptCore)\n- Firefox (SpiderMonkey)\n\nA golden hash gate verifies that a 500-tick simulation run produces the exact same XXH64 hash across all three engines down to the last bit.\n\n## 2. Boundary Verification\nAST static analysis (`check-boundaries`) verifies that no file inside `packages/sim` ever imports Effect or external I/O."
+    "id": "effect-runtime",
+    "slug": "effect-runtime",
+    "title": "Effect Runtime & Concurrency",
+    "category": "Architecture",
+    "badge": "Effect",
+    "description": "Structured concurrency, typed errors, and automatic resource scoping.",
+    "content": "# Effect Runtime & Concurrency\n\nOutside the simulation loop, everything is managed by Effect.\n\n## Typed Error Boundaries\n\nRather than uncaught runtime exceptions crashing the game canvas, all failures are typed and handled:\n\n```typescript\nimport { Effect, Scope } from 'effect'\nimport { bootGame, type BootError } from '@mcthaydt/automata-runtime'\n\nconst program = Effect.gen(function* () {\n  const scope = yield* Scope.make()\n  const runtime = yield* bootGame({\n    canvasId: '#game',\n    manifestUrl: '/assets/manifest.json'\n  })\n  return runtime\n}).pipe(\n  Effect.catchTags({\n    AssetLoadFailed: (err) => Effect.logError('Assets failed', err),\n    WebGLContextLost: (err) => Effect.logWarning('Restoring context', err)\n  })\n)\n```\n\n## Resource Scoping\n\nTextures, audio streams, and event listeners are automatically cleaned up when game rooms exit, eliminating memory leaks.",
+    "toc": [
+      {
+        "id": "typed-error-boundaries",
+        "text": "Typed Error Boundaries",
+        "level": 2
+      },
+      {
+        "id": "resource-scoping",
+        "text": "Resource Scoping",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "security-csp",
+    "slug": "security-csp",
+    "title": "Zero-Eval CSP & Ruken Security",
+    "category": "Security",
+    "badge": "CSP Safe",
+    "description": "Running games under strict Content Security Policy without eval or new Function.",
+    "content": "# Zero-Eval CSP & Ruken Security\n\nGames on the Ruken platform execute inside an isolated iframe with a zero-trust Content Security Policy:\n\n```http\nscript-src 'self'; object-src 'none'; base-uri 'none';\n```\n\n> [!WARNING]\n> Most game engines rely on `new Function` or `eval` to compile shaders, schemas, or accessor expressions. Under Ruken, this throws an immediate `EvalError` and terminates execution.\n\n## The Automata Solution\n\n- **No-Eval Shader Programs:** Shaders are linked statically via `@mcthaydt/automata-render-pixi/no-eval`.\n- **Precompiled Accessors:** Koota ECS accessors use array structs without dynamic code generation.\n- **Zod Ahead-Of-Time Validation:** Schemas validate without JIT code generation.",
+    "toc": [
+      {
+        "id": "the-automata-solution",
+        "text": "The Automata Solution",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "mobile-ui",
+    "slug": "mobile-ui",
+    "title": "Mobile UI Primitives",
+    "category": "UI Primitives",
+    "badge": "Mobile First",
+    "description": "Responsive geometry ownership, safe areas, and touch controls.",
+    "content": "# Mobile UI Primitives\n\nAutomata UI is mobile-first, designed for phones, tablets, and handheld devices.\n\n## Geometry Ownership & Reachability\n\nThe geometry owner handles viewport scaling, virtual safe areas, and touch zones:\n\n```typescript\nimport { createGeometryOwner } from '@mcthaydt/automata-ui'\n\nconst geometry = createGeometryOwner({\n  window,\n  root: document.documentElement,\n  referenceWidth: 320,\n  referenceHeight: 192\n})\n```\n\n## Virtual Controls\n\nTouch joysticks and virtual buttons respond to multitouch without interfering with browser gestures.",
+    "toc": [
+      {
+        "id": "geometry-ownership-reachability",
+        "text": "Geometry Ownership & Reachability",
+        "level": 2
+      },
+      {
+        "id": "virtual-controls",
+        "text": "Virtual Controls",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "ai-rules",
+    "slug": "ai-rules",
+    "title": "AI Coding Agent Rules",
+    "category": "AI & Skills",
+    "badge": "LLMs",
+    "description": "Official rules, constraints, and guardrails for AI coding assistants.",
+    "content": "# AI Coding Agent Rules & Guidelines\n\nWhen generating code for Automata Framework games, AI coding assistants (Claude Code, Cursor, Windsurf, Copilot, Antigravity) MUST obey the 5 Golden Rules.\n\n## The 5 Golden Rules for LLMs\n\n1. **Simulation is Pure and Deterministic:**\n   - NEVER import `effect`, browser DOM, `window`, `document`, or PixiJS inside `packages/sim` or game simulation files.\n   - Simulation logic must run synchronously and deterministically.\n2. **Effect Outside the Sim:**\n   - Side effects (file saving, networking, audio, timer intervals) belong strictly in the runtime layer using Effect.\n3. **Zero Eval:**\n   - NEVER generate `eval()`, `new Function()`, or dynamic code evaluation. It violates Ruken's strict CSP (`script-src 'self'`).\n4. **Sub-Tick Alpha Interpolation:**\n   - Entity views must interpolate positions between previous and current ticks:\n   ```typescript\n   x_render = prev.x + (curr.x - prev.x) * alpha\n   ```\n5. **Single State Ownership:**\n   - Only simulation systems mutate entity components. Presentation only observes `RenderDelta`.",
+    "toc": [
+      {
+        "id": "the-5-golden-rules-for-llms",
+        "text": "The 5 Golden Rules for LLMs",
+        "level": 2
+      }
+    ]
   }
 ]
