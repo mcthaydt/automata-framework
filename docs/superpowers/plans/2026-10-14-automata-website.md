@@ -2,20 +2,20 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a high-craft developer website for Automata Framework located in `website/` within `automata-framework`, featuring Raylib-inspired feature parity (interactive hero demo, split-view examples gallery with canonical headers, searchable API cheatsheet, game showcase, and spartan docs sourced directly from `docs/`) styled as a minimalistic SF developer startup.
+**Goal:** Build a standalone, high-craft developer website for Automata Framework located in `automata_website`, featuring Raylib-inspired feature parity (interactive hero demo, split-view examples gallery with canonical headers, searchable API cheatsheet, game showcase, and spartan docs synced from `../automata-framework/docs/`) styled as a minimalistic SF developer startup.
 
-**Architecture:** Built with SvelteKit and Svelte 5 (matching `@mcthaydt/automata-ui`), Tailwind CSS v4 for minimalist dark tokens, and `@sveltejs/adapter-static` for static site generation. Direct monorepo access allows rendering live framework markdown documents from `docs/`, directly referencing example source code from `examples/`, and isolating runnable demos inside sandboxed iframes.
+**Architecture:** Built with SvelteKit and Svelte 5, Tailwind CSS v4 for minimalist dark tokens, and `@sveltejs/adapter-static` for static site generation. Demos run inside isolated, sandboxed iframes driven by a pre-built static demo catalog synced from `../automata-framework`, ensuring bulletproof WebGL lifecycle isolation and independent CI deployment.
 
 **Tech Stack:** SvelteKit, Svelte 5, TypeScript, Vite, Tailwind CSS v4, Lucide Icons (`lucide-svelte`), Shiki, Zod, Vitest, `@testing-library/svelte`.
 
-**Spec:** [`automata-framework/docs/superpowers/specs/2026-10-14-automata-website-design.md`](file:///Users/mcthaydt/Developer/Business/Automata/automata-framework/docs/superpowers/specs/2026-10-14-automata-website-design.md)
+**Spec:** [`docs/superpowers/specs/2026-10-14-automata-website-design.md`](docs/superpowers/specs/2026-10-14-automata-website-design.md)
 
 ---
 
 ## Global Constraints
 
-- **Location:** Project files reside in `website/` inside `automata-framework`.
-- **Monorepo Integration:** Registered in `pnpm-workspace.yaml` as `website` with Turborepo task pipeline integration.
+- **Location:** Project files reside in `/Users/mcthaydt/Developer/Business/Automata/automata_website`.
+- **Independence:** The website must build and deploy completely independently as a standalone repository without requiring monorepo workspace links in CI.
 - **Framework & Runtime:** SvelteKit with Svelte 5 and `@sveltejs/adapter-static` (zero Node runtime dependencies in production build).
 - **Styling:** Tailwind CSS v4 with neutral dark theme (`#09090b` background, `#121215` card surfaces, `border-white/10` hairline borders) and Endesga 64 accents.
 - **Security:** CSP-safe; zero `unsafe-eval` usage in application code.
