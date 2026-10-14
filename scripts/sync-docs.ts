@@ -329,19 +329,7 @@ export function syncDocs() {
   const docs: DocSection[] = []
 
   for (const item of DEFAULT_DOCS) {
-    let content = item.content
-    // If overview file exists in monorepo, try reading
-    if (item.slug === 'overview' && existsSync(frameworkDocsDir)) {
-      try {
-        const overviewPath = join(frameworkDocsDir, '00-overview.md')
-        if (existsSync(overviewPath)) {
-          content = readFileSync(overviewPath, 'utf-8')
-        }
-      } catch (_e) {
-        // Fallback
-      }
-    }
-
+    const content = item.content
     const toc = extractToc(content)
     docs.push({
       ...item,

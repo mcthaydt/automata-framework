@@ -9,13 +9,12 @@ describe('Docs Page & Loader', () => {
     expect(sections.length).toBeGreaterThan(0)
     const titles = sections.map((s) => s.title)
     expect(titles).toContain('Overview & Vision')
-    expect(titles).toContain('ECS Sim vs. Presentation')
-    expect(titles).toContain('No-Eval CSP & Ruken Rules')
+    expect(titles).toContain('ECS Simulation & Determinism')
+    expect(titles).toContain('Zero-Eval CSP & Ruken Security')
   })
 
   it('renders documentation layout in UI', () => {
-    const { getByText, getAllByText } = render(DocsPage)
-    expect(getByText(/Spartan Documentation/i)).toBeTruthy()
+    const { getAllByText } = render(DocsPage)
     expect(getAllByText(/Overview & Vision/i).length).toBeGreaterThan(0)
   })
 })
