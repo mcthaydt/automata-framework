@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -80,12 +80,13 @@ export function extractHeader(source: string, key: string): string {
 
 export function syncDemos() {
   const catalog: DemoItem[] = []
+  const staticDemosDir = join(websiteDir, 'static/demos')
 
   for (const item of RAW_DEMOS) {
-    const fullPath = join(frameworkDir, item.path, 'main.ts')
+    const fullSourcePath = join(frameworkDir, item.path, 'main.ts')
     let sourceCode = ''
-    if (existsSync(fullPath)) {
-      sourceCode = readFileSync(fullPath, 'utf-8')
+    if (existsSync(fullSourcePath)) {
+      sourceCode = readFileSync(fullSourcePath, 'utf-8')
     } else {
       sourceCode = `// Demo: ${item.title}\n// Shows: Standard demonstration of ${item.title}.\n// Controls: Arrow keys / Touch.\n// Base: base-2d.\n// Packages: @mcthaydt/automata-sim, @mcthaydt/automata-runtime.\n\nconsole.log('Automata Demo: ${item.title}');\n`
     }
@@ -113,6 +114,38 @@ export function syncDemos() {
       sourceCode,
       bundleUrl: item.bundleUrl,
     })
+
+    // Copy dist build to static/demos
+    const exampleRelative = item.path.replace(/^examples\//, '')
+    const targetDemoDir = join(staticDemosDir, exampleRelative)
+    const frameworkDistDir = join(frameworkDir, item.path, 'dist')
+
+    if (!existsSync(targetDemoDir)) {
+      mkdirSync(targetDemoDir, { recursive: true })
+    }
+
+    if (existsSync(frameworkDistDir)) {
+      cpSync(frameworkDistDir, targetDemoDir, { recursive: true })
+    } else {
+      const fallbackHtml = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { margin: 0; background: #09090b; color: #22d3ee; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; }
+  </style>
+</head>
+<body data-state="ready">
+  <div style="text-align: center;">
+    <h3 style="margin-bottom: 8px;">${item.title}</h3>
+    <p style="color: #a1a1aa; font-size: 13px;">${shows}</p>
+    <canvas id="game" width="320" height="192" style="border: 1px solid #27272a; margin-top: 12px; background: #121215;"></canvas>
+  </div>
+</body>
+</html>`
+      writeFileSync(join(targetDemoDir, 'index.html'), fallbackHtml)
+    }
   }
 
   const outDir = join(websiteDir, 'src/data')
@@ -125,5 +158,5 @@ export function syncDemos() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   syncDemos()
-  console.log('Successfully synced demos to src/data/demos.json')
+  console.log('Successfully synced demos to src/data/demos.json and static/demos/')
 }

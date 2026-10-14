@@ -3,6 +3,7 @@ import demosJson from './demos.json'
 export interface DemoItem {
   id: string
   slug: string
+  path: string
   title: string
   category: string
   shows: string
