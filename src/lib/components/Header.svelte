@@ -39,6 +39,10 @@
         <a href="/docs" class="rounded-md px-3 py-1.5 text-sm font-medium text-zinc-300 transition hover:bg-white/5 hover:text-white">
           Docs
         </a>
+        <a href="/ai" class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-cyan-300 transition hover:bg-white/5 hover:text-cyan-200">
+          <span>AI</span>
+          <span class="rounded bg-cyan-500/20 px-1 py-0.2 font-mono text-[9px] uppercase tracking-wider text-cyan-300">New</span>
+        </a>
       </nav>
     </div>
 

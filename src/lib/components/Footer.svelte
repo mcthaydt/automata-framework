@@ -30,6 +30,7 @@
           <li><a href="/cheatsheet" class="transition hover:text-white">API Cheatsheet</a></li>
           <li><a href="/showcase" class="transition hover:text-white">Game Showcase</a></li>
           <li><a href="/docs" class="transition hover:text-white">Spartan Docs</a></li>
+          <li><a href="/ai" class="transition hover:text-white">AI & Skills</a></li>
         </ul>
       </div>
 

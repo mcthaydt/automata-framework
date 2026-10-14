@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowRight, BookOpen, Code, Gamepad2, Layers, Search, Terminal, X } from 'lucide-svelte'
+  import { ArrowRight, BookOpen, Code, Gamepad2, Layers, Search, Sparkles, Terminal, X } from 'lucide-svelte'
   import { getDemosCatalog } from '../../data/demos'
 
   interface Props {
@@ -19,6 +19,7 @@
     { title: 'API Cheatsheet', desc: 'Searchable API signatures across 7 packages', url: '/cheatsheet', icon: Terminal },
     { title: 'Showcase', desc: 'Games and templates built with Automata', url: '/showcase', icon: Gamepad2 },
     { title: 'Spartan Docs', desc: 'Architecture laws & developer guides', url: '/docs', icon: BookOpen },
+    { title: 'AI & Agent Skills', desc: 'Agent install commands, 5 Golden Rules, llms.txt', url: '/ai', icon: Sparkles },
   ]
 
   let filteredLinks = $derived.by(() => {
