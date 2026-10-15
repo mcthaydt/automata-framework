@@ -1,0 +1,124 @@
+# Claims cut from the Automata site
+
+This is the restoration ledger for factual claims, commands and examples removed or narrowed in the 14 October 2026 redesign. The comparison baseline is website commit `265315d` (`Added docs + ai`). The original wording remains in Git history.
+
+Some claims were wrong; others described intended capabilities or lacked evidence for their advertised scope. An unverified claim is not proof that a feature is absent. This document separates those cases so it does not become a misleading implementation backlog.
+
+## Distribution and integrations that need verification
+
+| Cut item | Why it was removed | Evidence needed before publishing it again |
+| --- | --- | --- |
+| `npx automata create-game my-game` and “Scaffold a complete game in seconds” | The checkout's CLI package is `@mcthaydt/automata-cli`, marked private and configured for GitHub Packages. The audit did not establish a public unscoped `automata` package or a working unauthenticated install path. The local CLI itself exists. | Verify the intended package, registry, access/authentication instructions, generated project and clean-machine install/build/run journey. Measure setup time before making a speed claim. |
+| The advertised generated project tree (`src/sim/traits.ts`, `src/sim/systems.ts`, `src/render/views.ts`, `src/main.ts`) | It was illustrative, not established as the CLI's actual output. | Generate a project with the supported CLI and document the actual file tree and startup flow. |
+| `npx skills add mcthaydt/automata` | No verified published skill package and successful install were established. | Publish or identify the real skill repository; test installation and discovery with a supported agent version. |
+| `claude /plugin marketplace add mcthaydt/automata` | The command syntax, marketplace and install result were not verified. | Confirm current Claude Code syntax, a real marketplace manifest, successful installation and which instructions are loaded. |
+| `agy skill install mcthaydt/automata` | The CLI command and package distribution were not verified. | Establish the supported Antigravity workflow and demonstrate installation with a specified version. |
+| `curl -fsSL https://automata.dev/llms.txt >> .cursorrules` | The host was unverified and is not the selected site origin. Current Cursor project-context conventions were not validated. | Verify the deployed endpoint at `automata.ruken.com` and the supported Cursor instructions mechanism. Document what gets added to the project. |
+| `curl -fsSL https://automata.dev/llms.txt >> .windsurfrules` | Same host problem; the supported Windsurf mechanism was not verified. | Verify the deployed endpoint and current Windsurf instructions mechanism. |
+| “Official AI & LLM Integration,” agent installation tabs and automatic rule enforcement | Providing text context was presented as a shipped integration that enforces code behavior. The remaining page provides context and verification guidance. | Demonstrate each actual integration, its supported versions and limits. Keep instruction loading separate from compiler/linter/runtime enforcement. |
+| `https://discord.gg/automata` in the header and footer | The invite's ownership, validity and destination were not verified. | Confirm the invite reaches the intended owned community and is suitable for a public site. |
+| `v0.0.2` navigation badge and `v0.1` documentation badge | These fixed labels were not tied to a verified published framework release or documentation version. | Derive version labels from the actual release and identify which version the docs cover. |
+
+The selected public origin is now `https://automata.ruken.com`. A configured canonical URL does not establish that the domain, deployment, public packages or agent integrations are live.
+
+## Promises that must be narrowed rather than guaranteed
+
+| Cut wording | Problem | Supported direction |
+| --- | --- | --- |
+| “Eliminate hallucinations” | Agent instructions cannot guarantee this outcome. | Explain the supplied context and require source/type/test verification. |
+| “Guarantee zero-eval CSP compliance” and “100% compliant with strict Content Security Policy” | Avoiding dynamic evaluation addresses one part of CSP. Asset, connection, worker and other directives still matter. Instructions also do not enforce compliance. | Name the actual policy and test the built game under it. Describe the no-eval import and its scope. |
+| “Tested prompt patterns that yield clean, working, zero-eval Automata code on the first attempt” | No reproducible prompt/model/task evaluation supported the claim; universal first-attempt correctness is not a credible guarantee. | Offer example prompts. If publishing evaluation results, state models, versions, tasks, acceptance rules and measured results. |
+| “Zero untrapped crashes,” “all failures are typed and handled” | Typed boot errors and Effect scopes do not prove every defect or exception is caught. | Document handled failure types, recovery paths and their tested boundaries. |
+| “Eliminating memory leaks” | Scoped resources do not prove all resources in all game code are correctly owned. | Explain disposal ownership and report bounded leak/lifecycle checks where available. |
+| “Complete determinism,” “100% Match” | These were unconditional claims without linked artifact, inputs or test scope. | State matching code, content, seed, initial state and command requirements; link current cross-engine evidence. |
+| Desktop/Tauri and web “run identically” | Host abstraction does not establish platform parity for rendering, input, lifecycle and performance. | Publish the supported platform matrix with platform-specific acceptance results. |
+| “Silky smooth” 120/144/240 Hz presentation and broad “mobile-first from day one” promises | Interpolation and responsive primitives do not establish measured smoothness, complete input parity or real-device acceptance. | Describe interpolation and geometry features precisely; attach device, browser, refresh-rate and frame-time evidence for broader claims. |
+| “Most game engines rely on new Function or eval” | Unsupported industry-wide comparison. | Describe Automata's actual restrictions and implementation without claiming facts about other engines. |
+
+These are not TODOs to make software infallible. Restore specific, bounded statements when evidence supports them; do not restore the universal guarantees.
+
+## Product scope, release and proof that were overstated
+
+| Cut or narrowed claim | Current treatment | Restoration gate |
+| --- | --- | --- |
+| “PixiJS 2D & 3D rendering” as one currently delivered core capability | The site focuses on the bundled 2D starter and current renderer. Framework guidance separates core 2D from the 3D extension and later delivery work. | Identify delivered 3D packages, release status, runnable examples, supported APIs and acceptance evidence before advertising current 3D support. |
+| “WebGPU fallback” and docs saying WebGPU is automatically selected first | Corrected to WebGL2 by default, WebGPU opt-in. The two old descriptions also contradicted each other. | Change the copy only if the actual renderer-selection policy changes and is tested. |
+| “M1 & M2 Foundation Live” | Internal milestone shorthand implied release completeness without linking an accepted release. | Tie public milestone claims to a completed, reviewable scope and release evidence. |
+| “Core / Stable” across the package table | Stability labels were not backed by a published compatibility policy and accepted release. | Establish release/version policy, package status and acceptance evidence. |
+| “Every commit” runs cross-engine testing; “a 500-tick run” always yields identical XXH64 hashes | CI execution frequency and the exact run selection were not verified in the site audit. | Link actual CI configuration plus successful runs for the claimed revision and input set. |
+| Golden hash `54bfb33a` repeated for Chromium/WebKit/Firefox with “100% Match” | Static decorative proof, not a result generated for the current site/framework revision. | Generate or link a real report with revision, engine versions, scenario, tick count and full hash format. |
+| Emberwick golden hash `31f50888ccb4cf0a` | No current artifact identity or replay inputs supported displaying this fixed value as proof. | Regenerate the actual scenario and publish its provenance. |
+| Homepage “60 fps” label | The original frame was a static launch placeholder and did not measure runtime frame rate. | Use actual measurements with device/browser/scenario context, or an actual live counter clearly labelled as such. |
+| Touch/gamepad/keyboard parity and “verified at 780×270” | Geometry/input primitives may exist, but the website audit did not prove this complete acceptance claim. | Provide the relevant input journeys and device/viewport evidence; distinguish DOM geometry tests from real-device/GPU checks. |
+| “Instant in-place hot reload,” exact file/line/column diagnostics and snapshot-content-hash marketing checklist | The underlying compiler/hot-reload work was not declared nonexistent. These detailed claims were removed from the promotional surface without a current linked scope/evidence report. | Check each behavior against its actual demo/compiler contract and publish the limits. Do not equate the full content hash with the simulation partition hash. |
+| “Clean Restart Without Reload” as a broad framework promise | A site iframe restart is not proof of every game's scoped runtime retry behavior. | Demonstrate the specific runtime restart/retry flow and resource cleanup; name that scope. |
+| “Complete plain-text documentation” | The endpoints contain curated introductory material, not every framework document or the complete source. | Either publish and maintain a genuinely complete defined corpus or keep the accurate “combined introductory documentation” label. |
+| “Exhaustive” API reference | The manually authored inventory was incomplete and included invalid signatures. | Generate a versioned complete reference from package declarations, or continue labelling the current page as selected APIs. |
+
+## Showcase claims and links held back
+
+The real relationship is now explicit: Emberwick is the bundled Automata starter; FloorFifty and The Last Light are reference projects that informed the framework. Reference status does not prove migration to the current Automata packages.
+
+| Removed detail | Why / condition for restoring |
+| --- | --- |
+| “Made with Automata” applied indiscriminately to all three projects | Verify an actual current dependency/integration before labelling a project as an Automata consumer. |
+| FloorFifty described as “built on Ruken and Automata sim principles,” with Koota ECS / Flow State / Replay Codec tags | Establish the actual project's implementation and its relationship to the current framework. Architectural influence and package adoption are different claims. |
+| FloorFifty “deployed on Ruken” | Verify the live product and supported access route before presenting a deployment claim. |
+| “Proven test suite of 13 Ruken integration contract tests” | Link current test evidence and its revision; a fixed total is not ongoing proof. |
+| “Full .replay v1 recording, playback, and bisection” | Verify the actual consumer journey and versioned replay contract before advertising the full suite. |
+| FloorFifty UI “tested across 780×270 viewports” | Attach current viewport/device acceptance and identify whether it is DOM, integration or actual-device evidence. |
+| Emberwick Web/Ruken App/Desktop platform badges and “Rapier 2D” / “Deterministic Replays” tags | Verify each capability for that exact starter, not another physics demo or the wider framework. |
+| Emberwick's measured high-refresh behavior, custom-vignette and strict Ruken CSP claims | Match these claims to the starter's current source, built bundle and runtime acceptance. The room/lifecycle itself remains described on the site. |
+| The Last Light platform and technical feature badges: PixiJS 3D, normal maps, dynamic lighting, GLB props/budget validators, fixed-camera sector navigation and room boundaries | These may describe the reference project. They were not verified as current delivered Automata capabilities; verify the project revision and label the relationship before restoring them. |
+| GitHub links used as public project destinations for `SNEKPRTY/FloorFifty` and `mcthaydt/PixiJS3D_Experiment_001` | Public accessibility and the intended visitor destination were not established. A repository URL is not a playable public game link. Confirm access and label links accurately. |
+
+## API examples that were incorrect as published
+
+These are corrections, not requests to add duplicate APIs to make the old marketing code compile. The current package types should remain authoritative.
+
+| Former published API or example | Issue / current direction |
+| --- | --- |
+| `createSim(...): SimInstance` without `await` | Creation is asynchronous and returns `Promise<Sim>`. |
+| Free functions `step(sim, commands)`, `snapshot(sim)` and `hash(sim): bigint` | The advertised free functions were not the actual entry-point surface. Step/snapshot are instance methods; the actual hash method is `sim.hash(): string`. |
+| `defineTrait(...)` plus `createSim({ fixedDeltaMs, systems })` | The generated docs invented an API shape. Current code uses component/system/plugin definitions, seed/plugins options and synchronous instance stepping after creation. |
+| `definePlugin({ update: ({ store }) => ... })`, `store.query(...).forEach(...)` and direct component-record mutation in the homepage example | These did not match the public plugin/system/context API. Replaced by the typechecked `defineSystem` example using `ctx.query` and `entity.set`. |
+| `runApp`, `createApp`, `bootGame`, `AppConfig`, `AppHandle`, `AppInstance` | The advertised entry points/types were not established by the current runtime exports. Current boot is `runGame(GameDefinition): RuntimeHandle`. |
+| `defineExtension(config: ExtensionConfig): Extension` | Not an exported runtime API at the advertised entry point. Link a real extension contract if and when one is supported. |
+| `createPixiRenderer({ resolution: 'pixel-perfect' }): RendererService` and passing it to the invented `runApp` config | Wrong options/return/boot shape. Current factory accepts runtime render targets and produces a scoped Effect. |
+| `FilterHelper` / `createFilter(...)` and `setupLetterbox(...)` | Not the advertised exports. Existing `filterPrograms` / `LetterboxFrame` work should be documented through their real contracts, not renamed by the site. |
+| `physicsPlugin`, `defineRigidBody`, `defineCollider`, free `raycast(...)` | Not the advertised physics entry-point surface. The selected reference now names `/2d`, `physics2d`, `RigidBody2D` and `Collider2D`. Do not imply the underlying engine has no ray queries merely because this free function was wrong. |
+| `defineResource(name, initial)` | Missing the actual schema and initialization-function contract. |
+| `Storage` service tag and top-level `track(...)` | Not exported by the documented host entry point. Document actual hosting save/analytics capabilities through the real hosting contract. |
+| `compileContent(contentDir): Promise<CompiledContent>` | Actual input is options and the return is an Effect. Compilation reads/validates in memory; output writing is separate. |
+| `defineContentSchema(name, schema)` | Omitted the required file/folder placement argument and actual generic contract. |
+| Hand-written `Time`, `Flow`, `Settings`, `PresentationBus` service signatures | Do not invent `...Service` interfaces. Current selected entries use real exported tag names; exact service types belong in package declarations. |
+| The old full `EntityView` sample, geometry-owner options and illustrative `world.query(...).each(...)`, `host.save(data)`, `renderer.apply(delta); renderer.draw({ alpha })` snippets | These were not established as complete, valid current examples. Use package Props/types and runnable source examples; typecheck any replacement presented as copy-and-run code. The interpolation formula itself remains documented. |
+| “Zod Ahead-Of-Time Validation” | The wording conflated avoiding JIT/dynamic evaluation with an established ahead-of-time compilation pipeline. Describe the actual validation path; prove AOT before using that term. |
+| A fixed abbreviated CSP presented as the whole Ruken policy | State the actual host policy and test against it; do not invent or truncate a security contract into a compatibility guarantee. |
+
+## Incorrect UI promises that are now implemented
+
+These do not belong in a future-feature backlog: the redesign fixed them.
+
+- “Search docs & API” previously searched navigation and demo metadata only. It now includes documentation content and API signatures.
+- Advertised arrow-key result navigation previously had no implementation. It now moves focus among results in a native modal dialog.
+- Demo deep links previously ignored the selected slug. URL-driven selection is now implemented.
+- The “live” homepage demonstration was previously a static launch panel. A real starter iframe is now embedded.
+- “Copied” previously appeared even when the clipboard rejected access. Failure now produces an honest message.
+- The demo-sync fallback could manufacture a blank canvas marked ready. That fallback was removed; missing real bundles must be built or an existing real bundle retained.
+
+Implementation is distinct from acceptance: live HTTP/GPU behavior and final 1440/768/390 visual captures remain open because local server binding and reliable native capture were unavailable in this session. See the redesign results for the completed checks.
+
+## Cuts that were editorial or design choices, not false claims
+
+Dark surfaces, hairlines, bento cards, Lucide icons, glow/blur, pill badges, decorative window chrome, monospace UI labels, “Spartan” positioning, “no bloatware” rhetoric and the old feature-grid layout were removed for the approved Design Taste direction. They are not undelivered product features.
+
+Likewise, `PresentationBus`, `ActionBar`, `CornerControls` and `LoaderOverlay` were omitted from the smaller selected reference even though they are exported. Their removal is curation, not evidence that they do not exist. The Ruken platform and Endesga palette footer links were removed during navigation simplification, not found to be false.
+
+## Sources and restoration workflow
+
+Original website sources: `src/routes/+page.svelte`, `src/routes/ai/+page.svelte`, `src/data/cheatsheet.ts`, `src/data/showcase.ts`, `src/lib/components/Header.svelte`, `src/lib/components/Footer.svelte`, `src/lib/components/CommandMenu.svelte`, and `scripts/sync-docs.ts` at `265315d`.
+
+Implementation comparisons used the adjacent framework's `packages/*/src` entry points, simulation definitions/context, renderer factory, runtime boot, CLI package metadata, geometry-owner types and example boot markers. This was a targeted source review, not a current operational audit of every reference project or external service.
+
+Before restoring a claim: identify whether it needs implementation, corrected wording or evidence; verify the exact supported version and user journey; publish a bounded statement with its proof. Update generated documentation through its generator. Keep universal guarantees permanently retired.

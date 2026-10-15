@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import DocsPage from '../src/routes/docs/+page.svelte'
 
-describe('Tailwind-Inspired Docs Page', () => {
+describe('Documentation navigation', () => {
   it('renders 3-column structure: categories, content, and on-this-page toc', () => {
     const { getByText, getByPlaceholderText } = render(DocsPage)
     expect(getByPlaceholderText(/Search docs.../i)).toBeTruthy()
@@ -15,7 +15,7 @@ describe('Tailwind-Inspired Docs Page', () => {
 
     // Test regex safety
     await fireEvent.input(input, { target: { value: 'Koota (' } })
-    expect(queryByText(/ECS Simulation/i)).toBeTruthy()
+    expect(queryByText(/No matching sections/i)).toBeTruthy()
   })
 
   it('renders styled callout boxes and parameter tables', () => {

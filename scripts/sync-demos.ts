@@ -73,9 +73,16 @@ const RAW_DEMOS = [
 ]
 
 export function extractHeader(source: string, key: string): string {
-  const regex = new RegExp(`^\\/\\/\\s*${key}:\\s*(.+)$`, 'm')
-  const match = source.match(regex)
-  return match ? match[1].trim() : ''
+  const lines = source.split('\n')
+  const start = lines.findIndex(line => line.startsWith('// ' + key + ':'))
+  if (start < 0) return ''
+  const parts = [lines[start].slice(lines[start].indexOf(':') + 1).trim()]
+  for (const line of lines.slice(start + 1)) {
+    const match = line.match(/^\/\/\s*(.*)$/)
+    if (!match || !match[1] || /^[A-Z][A-Za-z ]+:/.test(match[1])) break
+    parts.push(match[1])
+  }
+  return parts.join(' ').trim()
 }
 
 export function syncDemos() {
@@ -84,14 +91,10 @@ export function syncDemos() {
 
   for (const item of RAW_DEMOS) {
     const fullSourcePath = join(frameworkDir, item.path, 'main.ts')
-    let sourceCode = ''
-    if (existsSync(fullSourcePath)) {
-      sourceCode = readFileSync(fullSourcePath, 'utf-8')
-    } else {
-      sourceCode = `// Demo: ${item.title}\n// Shows: Standard demonstration of ${item.title}.\n// Controls: Arrow keys / Touch.\n// Base: base-2d.\n// Packages: @mcthaydt/automata-sim, @mcthaydt/automata-runtime.\n\nconsole.log('Automata Demo: ${item.title}');\n`
-    }
+    if (!existsSync(fullSourcePath)) throw new Error('Missing demo source: ' + fullSourcePath)
+    const sourceCode = readFileSync(fullSourcePath, 'utf-8')
 
-    const shows = extractHeader(sourceCode, 'Shows') || `Demonstration of ${item.title}.`
+    const shows = extractHeader(sourceCode, 'Shows').replace('WebGPU fallback', 'opt-in WebGPU') || `Demonstration of ${item.title}.`
     const controls = extractHeader(sourceCode, 'Controls') || 'Touch / Keyboard controls.'
     const base = extractHeader(sourceCode, 'Base') || 'none'
     const packagesRaw = extractHeader(sourceCode, 'Packages') || '@mcthaydt/automata-sim'
@@ -127,24 +130,8 @@ export function syncDemos() {
     if (existsSync(frameworkDistDir)) {
       cpSync(frameworkDistDir, targetDemoDir, { recursive: true })
     } else {
-      const fallbackHtml = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { margin: 0; background: #09090b; color: #22d3ee; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; }
-  </style>
-</head>
-<body data-state="ready">
-  <div style="text-align: center;">
-    <h3 style="margin-bottom: 8px;">${item.title}</h3>
-    <p style="color: #a1a1aa; font-size: 13px;">${shows}</p>
-    <canvas id="game" width="320" height="192" style="border: 1px solid #27272a; margin-top: 12px; background: #121215;"></canvas>
-  </div>
-</body>
-</html>`
-      writeFileSync(join(targetDemoDir, 'index.html'), fallbackHtml)
+      // Keep an existing real bundle; never manufacture an empty canvas that claims readiness.
+      if (!existsSync(join(targetDemoDir, 'index.html'))) throw new Error('Build the demo before syncing: ' + item.path)
     }
   }
 

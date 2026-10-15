@@ -1,31 +1,29 @@
 <script lang="ts">
   import '../app.css'
+  import { SITE_ORIGIN } from '$lib/site.js'
+  import { page } from '$app/stores'
   import Header from '$lib/components/Header.svelte'
   import Footer from '$lib/components/Footer.svelte'
   import CommandMenu from '$lib/components/CommandMenu.svelte'
-
-  interface Props {
-    children?: import('svelte').Snippet
-  }
-
-  let { children }: Props = $props()
+  let { children }: { children?: import('svelte').Snippet } = $props()
   let isSearchOpen = $state(false)
-
-  function handleKeydown(e: KeyboardEvent) {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault()
-      isSearchOpen = !isSearchOpen
+  function keydown(event: KeyboardEvent) {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault(); isSearchOpen = !isSearchOpen
     }
   }
+
 </script>
-
-<svelte:window onkeydown={handleKeydown} />
-
-<div class="flex min-h-screen flex-col bg-zinc-950 text-zinc-100">
-  <Header onOpenSearch={() => (isSearchOpen = true)} />
-  <div class="flex-1">
-    {@render children?.()}
-  </div>
-  <Footer />
-  <CommandMenu isOpen={isSearchOpen} onClose={() => (isSearchOpen = false)} />
-</div>
+<svelte:window onkeydown={keydown} />
+<svelte:head>
+  <link rel="canonical" href={SITE_ORIGIN + $page.url.pathname} /><meta property="og:url" content={SITE_ORIGIN + $page.url.pathname} /><meta property="og:image" content={SITE_ORIGIN + '/social.png'} />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Automata" />
+  <meta property="og:image:alt" content="Automata. Games, in your hands." />
+  <meta name="twitter:card" content="summary_large_image" />
+</svelte:head>
+<a class="skip-link" href="#main">Skip to content</a>
+<Header pathname={$page.url.pathname} onOpenSearch={() => isSearchOpen = true} />
+<main id="main" tabindex="-1">{@render children?.()}</main>
+<Footer />
+<CommandMenu isOpen={isSearchOpen} onClose={() => isSearchOpen = false} />

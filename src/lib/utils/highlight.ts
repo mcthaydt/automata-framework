@@ -1,17 +1,21 @@
-import { codeToHtml } from 'shiki'
-
+import type { HighlighterCore } from 'shiki/core'
+let highlighter: Promise<HighlighterCore> | undefined
+function getHighlighter() {
+  return highlighter ??= Promise.all([
+    import('shiki/core'), import('shiki/engine/javascript'),
+    import('shiki/themes/github-light.mjs'),
+    import('shiki/langs/typescript.mjs'), import('shiki/langs/javascript.mjs'),
+    import('shiki/langs/json.mjs'), import('shiki/langs/toml.mjs'), import('shiki/langs/shellscript.mjs'),
+  ]).then(([core, engine, theme, ...languages]) => core.createHighlighterCore({
+    engine: engine.createJavaScriptRegexEngine(), themes: [theme.default], langs: languages.map(l => l.default),
+  }))
+}
 export async function highlightCode(code: string, lang = 'typescript'): Promise<string> {
+  const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   try {
-    return await codeToHtml(code, {
-      lang,
-      theme: 'vitesse-dark',
-    })
-  } catch (_e) {
-    // Fallback safe pre/code
-    const escaped = code
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-    return `<pre class="shiki vitesse-dark font-mono text-sm leading-relaxed p-4 overflow-x-auto"><code>${escaped}</code></pre>`
+    const instance = await getHighlighter()
+    return instance.codeToHtml(code, { lang: lang === 'sh' ? 'shellscript' : lang, theme: 'github-light' })
+  } catch {
+    return `<pre><code>${escaped}</code></pre>`
   }
 }

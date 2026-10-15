@@ -11,10 +11,10 @@ describe('Showcase Page', () => {
     expect(titles).toContain('The Last Light')
   })
 
-  it('renders game cards in UI', () => {
-    const { getByText } = render(ShowcasePage)
-    expect(getByText(/Emberwick/i)).toBeTruthy()
-    expect(getByText(/FloorFifty/i)).toBeTruthy()
-    expect(getByText(/The Last Light/i)).toBeTruthy()
+  it('renders starter and reference project headings', () => {
+    const { getByRole } = render(ShowcasePage)
+    expect(getByRole('heading', { name: 'Emberwick' })).toBeTruthy()
+    expect(getByRole('heading', { name: 'FloorFifty' })).toBeTruthy()
+    expect(getByRole('heading', { name: 'The Last Light' })).toBeTruthy()
   })
 })

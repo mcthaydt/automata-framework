@@ -1,4 +1,5 @@
 import adapter from '@sveltejs/adapter-static'
+import { SITE_ORIGIN } from './src/lib/site.js'
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -9,11 +10,12 @@ const config = {
       pages: 'build',
       assets: 'build',
       fallback: '404.html',
-      precompress: false,
-      strict: false,
+      precompress: true,
+      strict: true,
     }),
     prerender: {
-      handleHttpError: 'warn',
+      origin: SITE_ORIGIN,
+      handleHttpError: 'fail',
     },
   },
 }

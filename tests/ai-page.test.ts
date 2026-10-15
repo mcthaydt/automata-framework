@@ -1,24 +1,14 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
-import AiPage from '../src/routes/ai/+page.svelte'
+import Page from '../src/routes/ai/+page.svelte'
 
-describe('AI & LLMs Page', () => {
-  it('renders hero title and agent installation tabs', () => {
-    const { getByText, getAllByText } = render(AiPage)
-    expect(getByText(/Automata AI & Agent Skills/i)).toBeTruthy()
-    expect(getAllByText(/Claude Code/i).length).toBeGreaterThan(0)
-    expect(getAllByText(/Cursor/i).length).toBeGreaterThan(0)
-  })
-
-  it('renders the 5 Golden Laws for LLMs', () => {
-    const { getByText } = render(AiPage)
-    expect(getByText(/The 5 Golden Rules for LLMs/i)).toBeTruthy()
-    expect(getByText(/Sub-tick Interpolation/i)).toBeTruthy()
-    expect(getByText(/Zero Eval CSP/i)).toBeTruthy()
-  })
-
-  it('provides links to plain-text llms.txt endpoints', () => {
-    const { getByRole } = render(AiPage)
-    expect(getByRole('link', { name: /view llms\.txt/i })).toBeTruthy()
+describe('AI guidance', () => {
+  it('offers project context and verification instead of guarantees or guessed installers', () => {
+    const view = render(Page)
+    expect(view.getByRole('heading', { level: 1 }).textContent).toContain('Context for your agent')
+    expect(view.getByText(/Claude Code, Cursor/)).toBeTruthy()
+    expect(view.getByRole('link', { name: /view llms.txt/i }).getAttribute('href')).toBe('/llms.txt')
+    expect(view.container.textContent).not.toMatch(/Eliminate hallucinations|on the first attempt|npx skills add|agy skill install/)
+    expect(view.getAllByText(/simulation/i).length).toBeGreaterThan(0)
   })
 })

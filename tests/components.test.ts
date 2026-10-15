@@ -21,8 +21,8 @@ describe('UI Components', () => {
   })
 
   it('renders AI link in navigation header', () => {
-    const { getByRole } = render(Header)
-    expect(getByRole('link', { name: /AI/i })).toBeTruthy()
+    const { getAllByRole } = render(Header)
+    expect(getAllByRole('link', { name: /^AI$/ }).length).toBeGreaterThan(0)
   })
 
   it('includes AI portal link in footer', () => {

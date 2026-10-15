@@ -1,4 +1,4 @@
-# Automata Framework — Full Documentation for LLMs
+# Automata Framework — Introductory Documentation for Coding Agents
 
 > Automata is a deterministic 2D game framework for the modern web and Ruken platform.
 > Strict Core Laws: Koota ECS determinism, Effect outside sim, Zero Eval CSP, PixiJS 2D sub-tick alpha interpolation.
@@ -16,270 +16,227 @@
 
 ## Document: Overview & Vision (Getting Started)
 URL: /docs/overview
-Description: High-level architecture, design laws, and Ruken-first direction.
+Description: The architecture and current developer-preview scope.
 
 # Overview & Vision
 
-Automata Framework (AF) is a deterministic game framework designed for modern web browsers and the Ruken gaming platform.
+Automata is a TypeScript game framework for modern web browsers and Ruken, the reference gaming host.
 
 > [!NOTE]
-> AF is **Ruken first**. Core packages are built from proven code in FloorFifty (2D), The Last Light (PixiJS 3D experiment), and Ruken itself.
+> This is a developer preview. The bundled examples demonstrate current behavior; a roadmap describes planned work, not shipped features.
 
-## The Seven Architectural Laws
+## Ownership
 
-1. **Only the simulation changes gameplay state.** Presentation and UI can observe, but never mutate.
-2. **Deterministic simulation.** Pure, synchronous Koota ECS loop yielding bit-identical hashes across Chromium, WebKit, and Firefox.
-3. **Effect runs everything outside the sim.** I/O, network, timers, lifecycles, and storage run in Effect. The sim never imports Effect.
-4. **Zero eval.** No `new Function` or `eval` anywhere, guaranteeing compliance with Ruken's strict CSP (`script-src 'self'`).
-5. **PixiJS renders 2D.** PixiJS v8 powers high-performance WebGL2 and WebGPU graphics.
-6. **Sub-tick alpha interpolation.** Simulation runs at fixed 60Hz; presentation computes `alpha = accumulator / dt` to interpolate smooth motion for 120Hz/144Hz/240Hz monitors.
-7. **The host is a port.** Ruken is the reference host, but desktop (Tauri) and web run identically.
+Only simulation systems change gameplay state during a run. Input sends commands. PixiJS reads render deltas. Effect manages resources and side effects outside the simulation.
 
-## Package Ecosystem
+## Current starting point
 
-| Package | Role | Status |
-|---|---|---|
-| `@mcthaydt/automata-sim` | Pure Koota ECS, traits, systems, fixed loop | Core / Stable |
-| `@mcthaydt/automata-runtime` | Boot sequence, Effect loop runner, scene lifecycle | Core / Stable |
-| `@mcthaydt/automata-render-pixi` | PixiJS 2D renderer, entity views, sub-tick interpolation | Core / Stable |
-| `@mcthaydt/automata-physics` | 2D Rapier deterministic collision and rigidbodies | Core / Stable |
-| `@mcthaydt/automata-ui` | Mobile touch primitives, geometry ownership | Core / Stable |
-| `@mcthaydt/automata-host` | Ruken SDK bridge, persistent saves, lifecycle ports | Core / Stable |
-| `@mcthaydt/automata-content` | Hot-reloading content compiler, asset schemas | Extension |
+Explore the 2D starter and focused examples before adding your own systems. The Last Light and FloorFifty are reference projects that informed the architecture.
+
+## Packages
+
+| Package | Responsibility |
+|---|---|
+| @mcthaydt/automata-sim | Simulation, definitions, snapshots and RNG |
+| @mcthaydt/automata-runtime | Boot, flow and scoped runtime |
+| @mcthaydt/automata-render-pixi | PixiJS presentation |
+| @mcthaydt/automata-physics/2d | Deterministic 2D physics |
+| @mcthaydt/automata-ui | Responsive geometry and UI |
+| @mcthaydt/automata-host | Hosting sessions |
+| @mcthaydt/automata-content | Content validation and compilation |
 
 ---
 
 ## Document: Quick Start (Getting Started)
 URL: /docs/quick-start
-Description: Scaffold your first Automata game in seconds with npx automata.
+Description: Access prerequisites and a local example workflow.
 
-# Quick Start Guide
+# Quick Start
 
-Start building deterministic browser games in seconds using the official CLI.
+## Before you start
 
-## Installation
+You need access to the framework repository and its private dependencies. Packages use the @mcthaydt scope on GitHub Packages. Follow the repository's current authentication instructions; never put access tokens in source files or prompts.
 
-```bash
-# Create a new Automata 2D game project
-npx automata create-game my-game
+There is no verified public unscoped npx installer documented here. Use the checked-out repository as the source of truth.
 
-# Enter project directory
-cd my-game
+## Run an example
 
-# Install dependencies and start development server
+From an authorized checkout, use Node 24 and the repository's package manager. Install dependencies, then run the renderer example:
+
+```sh
 pnpm install
-pnpm dev
+pnpm --filter @af-examples/renderer-2d dev
 ```
 
-## Project Anatomy
+## Learn the simulation
 
-A standard Automata game project has three clean layers:
+The following example creates a headless simulation. Rendering and hosting are separate responsibilities.
 
+```typescript
+import { createSim, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+
+const Position = defineComponent('position', { x: 'f64' })
+const movement = defineSystem({
+  name: 'movement',
+  phase: 'gameplay',
+  run(ctx) {
+    for (const entity of ctx.query(Position)) {
+      entity.set(Position, { x: entity.get(Position).x + ctx.dt })
+    }
+  },
+})
+const sim = await createSim({
+  seed: 42,
+  plugins: [definePlugin({
+    name: 'motion',
+    components: [Position],
+    systems: [movement],
+  })],
+})
+const player = sim.spawn([[Position, { x: 0 }]])
+sim.step([])
+console.log(sim.entity(player)?.get(Position).x) // 1 / 60
+sim.dispose()
 ```
-my-game/
-├── src/
-│   ├── sim/             # Pure deterministic ECS logic (Koota)
-│   │   ├── traits.ts    # Entity components & schemas
-│   │   └── systems.ts   # Movement, combat, collisions
-│   ├── render/          # PixiJS visual representation
-│   │   └── views.ts     # Sprites, shaders, animations
-│   └── main.ts          # Effect runtime bootloader & loop
-└── package.json
-```
 
-> [!TIP]
-> The `sim/` folder never imports browser APIs, PixiJS, or Effect. This guarantees your game logic can run headless on a multiplayer game server or inside a test runner.
+## Next steps
+
+Read ECS Simulation & Determinism, then inspect the examples gallery for input, presentation and hosting flows.
 
 ---
 
-## Document: ECS Simulation & Determinism (Core Simulation)
+## Document: ECS Simulation & Determinism (Core)
 URL: /docs/sim-ecs
-Description: Fixed 60Hz timestep, Koota ECS traits, and bit-identical replays.
+Description: Components, systems, async creation and synchronous stepping.
 
 # ECS Simulation & Determinism
 
-The heart of Automata is a pure, deterministic simulation built on Koota ECS.
+## Definitions
 
-## Fixed Timestep Simulation Loop
+Use defineComponent for fields, defineSystem for a synchronous run function, and definePlugin to register components and systems. Systems query entities through SimContext and write through entity.set.
 
-The simulation advances in discrete, uniform steps of exactly 16.666ms (60 ticks per second):
+## Creation and ticks
 
-```typescript
-import { createSim, defineTrait } from '@mcthaydt/automata-sim'
+Await createSim with a seed and plugins. Creation can initialize plugin engines asynchronously. Once created, sim.step(commands) advances one fixed tick synchronously. The default tick rate is 60 Hz.
 
-// Define traits as pure schemas
-export const Position = defineTrait({ x: 0, y: 0 })
-export const Velocity = defineTrait({ vx: 0, vy: 0 })
+## Repeatable runs
 
-// Create sim instance
-export const sim = createSim({
-  fixedDeltaMs: 16.666,
-  systems: [
-    (world) => {
-      // Query entities with Position and Velocity
-      world.query(Position, Velocity).each(([pos, vel]) => {
-        pos.x += vel.vx
-        pos.y += vel.vy
-      })
-    }
-  ]
-})
-```
+Keep I/O, wall-clock time, Math.random, DOM and Effect outside simulation steps. Use context RNG streams and the framework's deterministic math where required. Replay equivalence depends on matching code, content, initial state and commands; use the cross-engine checks for evidence.
 
-## Deterministic Verification
+## Snapshots and lifetime
 
-Every commit runs cross-engine replay testing across Chromium (V8), WebKit (JavaScriptCore), and Firefox (SpiderMonkey). A 500-tick run produces bit-identical XXH64 state hashes.
+Use sim.snapshot() to serialize state and sim.restore(bytes) to restore a compatible snapshot. Call sim.dispose() when the simulation is no longer needed.
 
 ---
 
-## Document: PixiJS 2D Presentation (Rendering)
+## Document: PixiJS 2D Presentation (Core)
 URL: /docs/render-pixi
-Description: Sub-tick alpha interpolation, entity views, and WebGL2/WebGPU shaders.
+Description: Renderer setup, render deltas and interpolation.
 
-# PixiJS 2D Presentation Boundary
+# PixiJS 2D Presentation
 
-Automata enforces a strict boundary between simulation state and visual rendering.
+## Renderer setup
 
-## Sub-Tick Alpha Interpolation
+Import @mcthaydt/automata-render-pixi/no-eval before initializing PixiJS. createPixiRenderer returns a factory that accepts the runtime render target and produces a scoped Effect.
 
-High refresh-rate monitors (120Hz, 144Hz, 240Hz) render faster than the 60Hz simulation. To avoid jitter, Automata calculates sub-tick alpha:
+WebGL2 is the default. WebGPU is opt-in. Test the renderer you plan to ship on the devices you support.
 
-```
-alpha = accumulator / fixedDeltaMs
-position_rendered = prev_pos * (1 - alpha) + current_pos * alpha
-```
+## Between ticks
 
-```typescript
-import { createPixiRenderer, type EntityView } from '@mcthaydt/automata-render-pixi'
+Presentation reads render deltas instead of changing gameplay state. Interpolate between previous and current values when drawing between simulation ticks.
 
-const playerView: EntityView = {
-  container: playerSprite,
-  update(curr, prev, alpha = 1) {
-    const p = prev?.transform ?? curr?.transform
-    const c = curr?.transform
-    if (c && p) {
-      playerSprite.x = p.x + (c.x - p.x) * alpha
-      playerSprite.y = p.y + (c.y - p.y) * alpha
-    }
-  }
-}
+```ts
+sprite.x = previous.x + (current.x - previous.x) * alpha
 ```
 
-> [!NOTE]
-> PixiJS v8 automatically uses WebGPU when supported by the client device, falling back seamlessly to WebGL2.
+## Working examples
+
+The renderer example demonstrates presentation in isolation. Emberwick adds a playable room. Use those sources for the complete boot and disposal flow.
 
 ---
 
-## Document: Effect Runtime & Concurrency (Architecture)
+## Document: Effect Runtime & Concurrency (Core)
 URL: /docs/effect-runtime
-Description: Structured concurrency, typed errors, and automatic resource scoping.
+Description: Loading, errors and resource lifetimes outside the sim.
 
 # Effect Runtime & Concurrency
 
-Outside the simulation loop, everything is managed by Effect.
+## Boot
 
-## Typed Error Boundaries
+runGame accepts a GameDefinition and returns a RuntimeHandle. It owns boot attempts, resources and shutdown. Use the runtime package types for the full definition.
 
-Rather than uncaught runtime exceptions crashing the game canvas, all failures are typed and handled:
+## Resource ownership
 
-```typescript
-import { Effect, Scope } from 'effect'
-import { bootGame, type BootError } from '@mcthaydt/automata-runtime'
+Effect scopes manage resource lifetimes outside the simulation. Keep file and network access, loading, timers and persistent saves out of simulation systems.
 
-const program = Effect.gen(function* () {
-  const scope = yield* Scope.make()
-  const runtime = yield* bootGame({
-    canvasId: '#game',
-    manifestUrl: '/assets/manifest.json'
-  })
-  return runtime
-}).pipe(
-  Effect.catchTags({
-    AssetLoadFailed: (err) => Effect.logError('Assets failed', err),
-    WebGLContextLost: (err) => Effect.logWarning('Restoring context', err)
-  })
-)
-```
+## Failure and recovery
 
-## Resource Scoping
-
-Textures, audio streams, and event listeners are automatically cleaned up when game rooms exit, eliminating memory leaks.
+Boot failures are typed. Inspect the runtime example for its loading, retry and failure behavior. A typed boundary makes failure explicit; it does not guarantee a game cannot crash.
 
 ---
 
-## Document: Zero-Eval CSP & Ruken Security (Security)
+## Document: Zero-Eval CSP & Ruken Security (Core)
 URL: /docs/security-csp
-Description: Running games under strict Content Security Policy without eval or new Function.
+Description: Avoiding dynamic evaluation under the host policy.
 
 # Zero-Eval CSP & Ruken Security
 
-Games on the Ruken platform execute inside an isolated iframe with a zero-trust Content Security Policy:
+## Dynamic evaluation
 
-```http
-script-src 'self'; object-src 'none'; base-uri 'none';
-```
+Do not use eval or new Function in game code. Ruken does not permit unsafe-eval. Import the renderer's no-eval entry before initializing PixiJS.
 
-> [!WARNING]
-> Most game engines rely on `new Function` or `eval` to compile shaders, schemas, or accessor expressions. Under Ruken, this throws an immediate `EvalError` and terminates execution.
+## Policy scope
 
-## The Automata Solution
+Avoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under that actual policy.
 
-- **No-Eval Shader Programs:** Shaders are linked statically via `@mcthaydt/automata-render-pixi/no-eval`.
-- **Precompiled Accessors:** Koota ECS accessors use array structs without dynamic code generation.
-- **Zod Ahead-Of-Time Validation:** Schemas validate without JIT code generation.
+## Trust boundaries
+
+Keep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake.
 
 ---
 
-## Document: Mobile UI Primitives (UI Primitives)
+## Document: Mobile UI Primitives (Core)
 URL: /docs/mobile-ui
-Description: Responsive geometry ownership, safe areas, and touch controls.
+Description: Geometry, controls and accessible layout.
 
 # Mobile UI Primitives
 
-Automata UI is mobile-first, designed for phones, tablets, and handheld devices.
+## Geometry
 
-## Geometry Ownership & Reachability
+createGeometryOwner tracks the space available to game UI, including host geometry and viewport changes. Use its state instead of independent measurements in every component.
 
-The geometry owner handles viewport scaling, virtual safe areas, and touch zones:
+## Layout and controls
 
-```typescript
-import { createGeometryOwner } from '@mcthaydt/automata-ui'
+ScreenFrame, ActionBar, CornerControls and Dialog provide building blocks. Check their current Props definitions rather than guessing component inputs.
 
-const geometry = createGeometryOwner({
-  window,
-  root: document.documentElement,
-  referenceWidth: 320,
-  referenceHeight: 192
-})
-```
+## Device checks
 
-## Virtual Controls
-
-Touch joysticks and virtual buttons respond to multitouch without interfering with browser gestures.
+Verify touch targets, focus order, orientation changes, safe areas and keyboard occlusion on supported devices. A responsive layout test does not establish GPU performance or real-device acceptance.
 
 ---
 
-## Document: AI Coding Agent Rules (AI & Skills)
+## Document: AI Coding Agent Rules (Guidance)
 URL: /docs/ai-rules
-Description: Official rules, constraints, and guardrails for AI coding assistants.
+Description: Project context for agents, followed by verification.
 
-# AI Coding Agent Rules & Guidelines
+# AI Coding Agent Rules
 
-When generating code for Automata Framework games, AI coding assistants (Claude Code, Cursor, Windsurf, Copilot, Antigravity) MUST obey the 5 Golden Rules.
+## Start from source
 
-## The 5 Golden Rules for LLMs
+Give the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.
 
-1. **Simulation is Pure and Deterministic:**
-   - NEVER import `effect`, browser DOM, `window`, `document`, or PixiJS inside `packages/sim` or game simulation files.
-   - Simulation logic must run synchronously and deterministically.
-2. **Effect Outside the Sim:**
-   - Side effects (file saving, networking, audio, timer intervals) belong strictly in the runtime layer using Effect.
-3. **Zero Eval:**
-   - NEVER generate `eval()`, `new Function()`, or dynamic code evaluation. It violates Ruken's strict CSP (`script-src 'self'`).
-4. **Sub-Tick Alpha Interpolation:**
-   - Entity views must interpolate positions between previous and current ticks:
-   ```typescript
-   x_render = prev.x + (curr.x - prev.x) * alpha
-   ```
-5. **Single State Ownership:**
-   - Only simulation systems mutate entity components. Presentation only observes `RenderDelta`.
+## Boundaries
+
+- Only simulation systems mutate gameplay state during a run.
+- Effect runs outside the sim.
+- Avoid dynamic evaluation; verify the actual host CSP.
+- Presentation interpolates between ticks and observes render deltas.
+- Report the checks performed and the gates still open.
+
+## Verify the result
+
+Instructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.
+
+## Plain-text context
+
+The website publishes llms.txt as an index and llms-full.txt as a combined text reference. They contain curated introductory documentation, not the complete framework source.

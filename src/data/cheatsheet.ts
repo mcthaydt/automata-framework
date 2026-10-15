@@ -16,262 +16,198 @@ export interface CheatsheetModule {
 
 export const CHEATSHEET_MODULES: CheatsheetModule[] = [
   {
-    name: '@mcthaydt/automata-sim',
-    title: 'Sim Core',
-    description: 'Deterministic math, ECS simulation, snapshot serialization, and RNG.',
-    entries: [
+    "name": "@mcthaydt/automata-sim",
+    "title": "Simulation",
+    "description": "Simulation definitions, fixed ticks, snapshots and seeded randomness.",
+    "entries": [
       {
-        name: 'createSim',
-        signature: 'createSim(options: SimOptions): SimInstance',
-        description: 'Creates a deterministic ECS simulation instance with ordered plugins and systems.',
-        returnType: 'SimInstance',
-        parameters: [
-          { name: 'options.plugins', type: 'Plugin[]', desc: 'Ordered list of sim plugins' },
-          { name: 'options.seed', type: 'number', desc: 'Initial RNG seed for xoshiro128**' },
-        ],
-        example: `const sim = createSim({ plugins: [motionPlugin], seed: 1337 })`,
+        "name": "createSim",
+        "signature": "createSim(options: SimOptions): Promise<Sim>",
+        "description": "Creates and initializes a simulation. Await creation; stepping stays synchronous.",
+        "returnType": "Promise<Sim>"
       },
       {
-        name: 'step',
-        signature: 'step(sim: SimInstance, commands: Command[]): StepResult',
-        description: 'Advances the simulation by exactly one fixed 60Hz tick, executing systems and producing render deltas.',
-        returnType: 'StepResult',
-        parameters: [
-          { name: 'sim', type: 'SimInstance', desc: 'The simulation instance' },
-          { name: 'commands', type: 'Command[]', desc: 'Commands for this tick' },
-        ],
+        "name": "defineComponent",
+        "signature": "defineComponent<S extends FieldSchema>(id: string, fields: S, opts?: { render?: boolean }): ComponentDef<S>",
+        "description": "Defines component fields and whether they appear in render deltas.",
+        "returnType": "ComponentDef<S>"
       },
       {
-        name: 'defineComponent',
-        signature: 'defineComponent<T>(name: string, schema: SchemaDef<T>): ComponentDef<T>',
-        description: 'Defines a typed ECS component schema with pure primitive fields.',
-        returnType: 'ComponentDef<T>',
-        example: `const Position = defineComponent('pos', { x: 'f64', y: 'f64' })`,
+        "name": "defineSystem",
+        "signature": "defineSystem(spec: { name: string; phase: Phase; run: (ctx: SimContext) => void; before?: readonly string[]; after?: readonly string[] }): SystemDef",
+        "description": "Declares a synchronous system and its ordering constraints.",
+        "returnType": "SystemDef"
       },
       {
-        name: 'definePlugin',
-        signature: 'definePlugin(config: PluginConfig): Plugin',
-        description: 'Defines a modular simulation plugin declaring components, systems, and execution order.',
-        returnType: 'Plugin',
+        "name": "definePlugin",
+        "signature": "definePlugin(spec: { name: string; components?: readonly ComponentDef[]; systems?: readonly SystemDef[]; dependsOn?: readonly string[]; commands?: readonly CommandDef[]; events?: readonly EventDef[]; resources?: readonly ResourceDef[]; state?: (setup: PluginStateSetup) => Promise<PluginState>; config?: unknown }): PluginDef",
+        "description": "Groups simulation definitions and optional engine state.",
+        "returnType": "PluginDef"
       },
       {
-        name: 'defineResource',
-        signature: 'defineResource<T>(name: string, initial: T): ResourceDef<T>',
-        description: 'Defines a shared deterministic singleton resource accessible to systems.',
-        returnType: 'ResourceDef<T>',
+        "name": "defineResource",
+        "signature": "defineResource<Z extends z.ZodType>(id: string, schema: Z, init: () => z.input<Z>): ResourceDef<Z>",
+        "description": "Defines validated per-simulation resource state.",
+        "returnType": "ResourceDef<Z>"
       },
       {
-        name: 'snapshot',
-        signature: 'snapshot(sim: SimInstance): Uint8Array',
-        description: 'Serializes the entire ECS world into a validated, canonical binary snapshot.',
-        returnType: 'Uint8Array',
+        "name": "step",
+        "signature": "sim.step(commands: readonly Command[]): StepResult",
+        "description": "Instance method. Advances one tick and returns events, rejected commands and render deltas.",
+        "returnType": "StepResult"
       },
       {
-        name: 'hash',
-        signature: 'hash(sim: SimInstance): bigint',
-        description: 'Calculates the 64-bit XXH64 golden state hash of the current tick.',
-        returnType: 'bigint',
+        "name": "snapshot",
+        "signature": "sim.snapshot(): Uint8Array",
+        "description": "Instance method. Serializes the current simulation in its canonical binary format.",
+        "returnType": "Uint8Array"
       },
-    ],
+      {
+        "name": "createRng",
+        "signature": "createRng(seed: number): Rng",
+        "description": "Creates a seeded random stream. Systems receive their own stream through context.",
+        "returnType": "Rng"
+      }
+    ]
   },
   {
-    name: '@mcthaydt/automata-runtime',
-    title: 'Runtime & Boot',
-    description: 'Application loop, structured Effect lifecycles, Flow transitions, and Time.',
-    entries: [
+    "name": "@mcthaydt/automata-runtime",
+    "title": "Runtime",
+    "description": "Effect-scoped boot, screen flow and resource lifetimes.",
+    "entries": [
       {
-        name: 'runApp',
-        signature: 'runApp(config: AppConfig): Promise<AppHandle>',
-        description: 'Boots the game loop, validates Ruken handshake, initializes rendering, and runs the main loop.',
-        returnType: 'Promise<AppHandle>',
+        "name": "runGame",
+        "signature": "runGame<S>(game: GameDefinition<S>): RuntimeHandle",
+        "description": "Starts the game runtime. The handle owns shutdown.",
+        "returnType": "RuntimeHandle"
       },
       {
-        name: 'createApp',
-        signature: 'createApp(config: AppConfig): Effect<AppInstance, BootError, Scope>',
-        description: 'Low-level Effect program that boots the runtime within an Effect scope.',
-        returnType: 'Effect<AppInstance, BootError, Scope>',
+        "name": "Time",
+        "signature": "Time",
+        "description": "Effect service tag for runtime time and pause behavior.",
+        "returnType": "Effect service tag"
       },
       {
-        name: 'defineExtension',
-        signature: 'defineExtension(config: ExtensionConfig): Extension',
-        description: 'Declares an opt-in runtime extension providing layers, sim plugins, and UI slots.',
-        returnType: 'Extension',
+        "name": "Flow",
+        "signature": "Flow",
+        "description": "Effect service tag for screen transitions.",
+        "returnType": "Effect service tag"
       },
       {
-        name: 'Time',
-        signature: 'Time: Context.Tag<TimeService>',
-        description: 'Effect service providing game time, pause state, and lifecycle clock.',
-        returnType: 'TimeService',
-      },
-      {
-        name: 'Flow',
-        signature: 'Flow: Context.Tag<FlowService>',
-        description: 'State machine managing screen transitions declared in flow.toml.',
-        returnType: 'FlowService',
-      },
-      {
-        name: 'PresentationBus',
-        signature: 'PresentationBus: Context.Tag<PresentationBusService>',
-        description: 'Publish-subscribe event bus decoupling sim events from presentation audio/vfx.',
-        returnType: 'PresentationBusService',
-      },
-      {
-        name: 'Settings',
-        signature: 'Settings: Context.Tag<SettingsService>',
-        description: 'Persistent user configuration and options backed by host storage.',
-        returnType: 'SettingsService',
-      },
-    ],
+        "name": "Settings",
+        "signature": "Settings",
+        "description": "Effect service tag for runtime settings.",
+        "returnType": "Effect service tag"
+      }
+    ]
   },
   {
-    name: '@mcthaydt/automata-render-pixi',
-    title: 'PixiJS 2D Renderer',
-    description: 'WebGL2/WebGPU rendering, sub-tick interpolation, and screen-space shaders.',
-    entries: [
+    "name": "@mcthaydt/automata-render-pixi",
+    "title": "PixiJS presentation",
+    "description": "2D presentation with WebGL2 by default and opt-in WebGPU.",
+    "entries": [
       {
-        name: 'createPixiRenderer',
-        signature: 'createPixiRenderer(options?: PixiRendererOptions): RendererService',
-        description: 'Initializes PixiJS v8 with WebGL2 default, WebGPU fallback, and no-eval compliance.',
-        returnType: 'RendererService',
+        "name": "createPixiRenderer",
+        "signature": "createPixiRenderer(options?: PixiRendererOptions): (target: RenderTarget) => Effect.Effect<PixiRenderer, RendererUnavailable, Scope.Scope>",
+        "description": "Builds a renderer factory for the runtime. Import the no-eval entry before initializing PixiJS.",
+        "returnType": "Renderer factory"
       },
       {
-        name: 'RenderDeltaConsumer',
-        signature: 'class RenderDeltaConsumer',
-        description: 'Consumes sim render deltas and computes sub-tick alpha interpolation for smooth 120Hz/144Hz displays.',
-        returnType: 'RenderDeltaConsumer',
-      },
-      {
-        name: 'FilterHelper',
-        signature: 'createFilter(glFragment: string, wgslSource?: string): Filter',
-        description: 'Creates a custom screen-space post-processing filter shader compatible with Ruken CSP.',
-        returnType: 'Filter',
-      },
-      {
-        name: 'setupLetterbox',
-        signature: 'setupLetterbox(container: HTMLElement, targetRatio: number): LetterboxResult',
-        description: 'Calculates pixel-perfect integer scale letterbox dimensions for game canvas viewports.',
-        returnType: 'LetterboxResult',
-      },
-    ],
+        "name": "RenderDeltaConsumer",
+        "signature": "RenderDeltaConsumer",
+        "description": "Consumes simulation render deltas for entity views. See the class type for constructor and methods.",
+        "returnType": "Class"
+      }
+    ]
   },
   {
-    name: '@mcthaydt/automata-physics',
-    title: 'Deterministic Physics',
-    description: 'Rapier2D and Rapier3D deterministic-compat physics extension.',
-    entries: [
+    "name": "@mcthaydt/automata-physics",
+    "title": "Physics",
+    "description": "Import the 2D plugin from @mcthaydt/automata-physics/2d.",
+    "entries": [
       {
-        name: 'physicsPlugin',
-        signature: 'physicsPlugin(options?: PhysicsOptions): Plugin',
-        description: 'Sim plugin integrating Rapier deterministic physics with snapshot section 6 support.',
-        returnType: 'Plugin',
+        "name": "physics2d",
+        "signature": "physics2d(options?: Physics2DOptions): PluginDef",
+        "description": "Creates the deterministic 2D physics plugin. Its engine is initialized during async simulation creation.",
+        "returnType": "PluginDef"
       },
       {
-        name: 'RigidBody',
-        signature: 'defineRigidBody(bodyType: "fixed" | "dynamic" | "kinematic"): ComponentDef',
-        description: 'Defines a physics rigid body component synchronized with Rapier.',
-        returnType: 'ComponentDef',
+        "name": "RigidBody2D",
+        "signature": "RigidBody2D",
+        "description": "Rigid-body component exported by the /2d entry.",
+        "returnType": "Component definition"
       },
       {
-        name: 'Collider',
-        signature: 'defineCollider(shape: ColliderShape): ComponentDef',
-        description: 'Defines a collision geometry (box, ball, capsule, trimesh).',
-        returnType: 'ComponentDef',
-      },
-      {
-        name: 'raycast',
-        signature: 'raycast(world: PhysicsWorld, origin: Vec2, direction: Vec2, maxDist: number): RaycastHit | null',
-        description: 'Performs a deterministic raycast against active physics colliders.',
-        returnType: 'RaycastHit | null',
-      },
-    ],
+        "name": "Collider2D",
+        "signature": "Collider2D",
+        "description": "Collider component exported by the /2d entry.",
+        "returnType": "Component definition"
+      }
+    ]
   },
   {
-    name: '@mcthaydt/automata-ui',
-    title: 'Mobile-First UI',
-    description: 'Geometry tracking, responsive height tiers, action bars, and dialogs.',
-    entries: [
+    "name": "@mcthaydt/automata-ui",
+    "title": "Responsive UI",
+    "description": "Geometry ownership, layout and status components.",
+    "entries": [
       {
-        name: 'createGeometryOwner',
-        signature: 'createGeometryOwner(options: GeometryOptions): GeometryOwner',
-        description: 'Tracks safe area insets, usable screen height, and visual viewport occlusion.',
-        returnType: 'GeometryOwner',
+        "name": "createGeometryOwner",
+        "signature": "createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner",
+        "description": "Owns viewport geometry and updates for responsive game UI.",
+        "returnType": "GeometryOwner"
       },
       {
-        name: 'ScreenFrame',
-        signature: 'component ScreenFrame',
-        description: 'Base responsive container providing root safe areas and host reserved edge bounds.',
-        returnType: 'SvelteComponent',
+        "name": "ScreenFrame",
+        "signature": "ScreenFrame",
+        "description": "Svelte layout component. Consult its Props type for supported inputs.",
+        "returnType": "Svelte component"
       },
       {
-        name: 'ActionBar',
-        signature: 'component ActionBar',
-        description: 'Standard touch-friendly action bar conforming to 44px/48px touch targets.',
-        returnType: 'SvelteComponent',
-      },
-      {
-        name: 'CornerControls',
-        signature: 'component CornerControls',
-        description: 'Fixed corner touch overlay controls for pause, sound, and quick inventory.',
-        returnType: 'SvelteComponent',
-      },
-      {
-        name: 'Dialog',
-        signature: 'component Dialog',
-        description: 'Modal alert and confirmation dialog supporting keyboard and gamepad navigation.',
-        returnType: 'SvelteComponent',
-      },
-      {
-        name: 'LoaderOverlay',
-        signature: 'component LoaderOverlay',
-        description: 'Progress and loading overlay with retry affordance on stalled asset loads.',
-        returnType: 'SvelteComponent',
-      },
-    ],
+        "name": "Dialog",
+        "signature": "Dialog",
+        "description": "Svelte dialog component with framework focus handling.",
+        "returnType": "Svelte component"
+      }
+    ]
   },
   {
-    name: '@mcthaydt/automata-host',
-    title: 'Host & Ruken SDK',
-    description: 'Handshake protocol, persistent saves, analytics, and telemetry.',
-    entries: [
+    "name": "@mcthaydt/automata-host",
+    "title": "Hosting",
+    "description": "Ruken hosting and standalone sessions.",
+    "entries": [
       {
-        name: 'Hosting',
-        signature: 'Hosting: Context.Tag<HostingService>',
-        description: 'Effect service wrapping the Ruken SDK and standalone iframe fallback session.',
-        returnType: 'HostingService',
+        "name": "makeHosting",
+        "signature": "makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>",
+        "description": "Creates a scoped hosting session. Wait for its ready effect before presenting the game.",
+        "returnType": "Effect.Effect<Hosting, HostError, Scope.Scope>"
       },
       {
-        name: 'Storage',
-        signature: 'Storage: Context.Tag<StorageService>',
-        description: 'Host-managed persistent key-value save storage.',
-        returnType: 'StorageService',
-      },
-      {
-        name: 'track',
-        signature: 'track(eventName: string, payload?: Record<string, unknown>): Effect<void>',
-        description: 'Dispatches custom telemetry and analytics events to the host container.',
-        returnType: 'Effect<void>',
-      },
-    ],
+        "name": "Hosting",
+        "signature": "Hosting",
+        "description": "The hosting service and its Effect context tag.",
+        "returnType": "Effect service tag"
+      }
+    ]
   },
   {
-    name: '@mcthaydt/automata-content',
-    title: 'Content Compiler',
-    description: 'Smol-TOML discovery, schema validation, and virtual module compilation.',
-    entries: [
+    "name": "@mcthaydt/automata-content",
+    "title": "Content",
+    "description": "TOML compilation and registered schemas.",
+    "entries": [
       {
-        name: 'compileContent',
-        signature: 'compileContent(contentDir: string): Promise<CompiledContent>',
-        description: 'Discovers and validates all TOML files in the content folder against Zod schemas.',
-        returnType: 'Promise<CompiledContent>',
+        "name": "compileContent",
+        "signature": "compileContent(options: ContentOptions): Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig>",
+        "description": "Reads and validates content in memory. Writes nothing.",
+        "returnType": "Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig>"
       },
       {
-        name: 'defineContentSchema',
-        signature: 'defineContentSchema<T>(name: string, schema: z.ZodType<T>): ContentSchema<T>',
-        description: 'Registers a typed game content schema with exact line:column error reporting.',
-        returnType: 'ContentSchema<T>',
-      },
-    ],
-  },
+        "name": "defineContentSchema",
+        "signature": "defineContentSchema<K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>",
+        "description": "Registers a schema and the file or folder containing that kind.",
+        "returnType": "ContentSchemaDef<K, S>"
+      }
+    ]
+  }
 ]
 
 function escapeRegex(str: string): string {
