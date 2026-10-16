@@ -2,7 +2,7 @@
 
 - **Spec:** [`docs/superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md`](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.2, §4, §8, §10 (Owner-approved 2026-10-16).
 - **Status:** drafted 2026-10-16.
-- **Progress:** 3 of 4 steps.
+- **Progress:** 4 of 4 steps.
 
 ## Global constraints
 
@@ -37,7 +37,7 @@
 - [x] **1. `defineSystem` overloads.** In `definitions.test.ts`: `defineSystem('move', run)` gives phase `gameplay`, empty `before`/`after`, the same `run`; `defineSystem('kick', 'input', run)` gives phase `input`; `defineSystem('x', 'late', run)` throws `/phase/`; `defineSystem('Bad', run)` throws `/id/`. Run `pnpm --filter @mcthaydt/automata-sim exec vitest run --project node src/define` and confirm it fails because `defineSystem` reads `spec.name` of a string. Implement the overloads delegating to the object form, confirm it passes.
 - [x] **2. `definePlugin({ defs })` sorting.** In `definitions.test.ts`: a `defs` list with one of each kind fills `components`, `commands`, `events`, `resources`, `systems`; keyed entries come first, then `defs` entries of that kind in order; an entry of unknown kind throws `/unknown kind/`. Confirm it fails (`defs` ignored, lists empty), implement, confirm it passes.
 - [x] **3. Hash equality and duplicates in the sim.** In `schema-hash.test.ts`: a plugin keyed, the same plugin as `defs`, and a mixed one have the same `describeSnapshot().header.schemaHash` and byte-identical snapshots after stepping; a component in both `components` and `defs` makes `createSim` reject with `duplicate component`; a system twice in `defs` rejects with `duplicate system`. Write the test before step 2's change lands to see it fail; it passes after step 2.
-- [ ] **4. Golden contract.** Create `bounce-defs.golden.test.ts`: the bounce plugin rebuilt as `definePlugin({ name: 'bounce', defs: [Ball, Kick, BounceStats, BounceKick, BounceMove, BounceSpawn] })` passes `simGolden` against the committed `bounce.golden.json` (same schema hash, same hash every tick) in the `sim` (Node) and `sim-browsers` projects. Before step 2 it fails with `schema-changed`. Verify with `pnpm --filter @mcthaydt/automata-testing exec vitest run --project sim src/sim/bounce-defs`.
+- [x] **4. Golden contract.** Create `bounce-defs.golden.test.ts`: the bounce plugin rebuilt as `definePlugin({ name: 'bounce', defs: [Ball, Kick, BounceStats, BounceKick, BounceMove, BounceSpawn] })` passes `simGolden` against the committed `bounce.golden.json` (same schema hash, same hash every tick) in the `sim` (Node) and `sim-browsers` projects. Before step 2 it fails with `schema-changed`. Verify with `pnpm --filter @mcthaydt/automata-testing exec vitest run --project sim src/sim/bounce-defs`.
 - [ ] **Gates.** `pnpm format`, `pnpm check`, `pnpm test:parity` (every existing golden unchanged), changeset added.
 
 ## Execution log
