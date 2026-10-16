@@ -75,7 +75,7 @@ describe('the Claude Code plugin', () => {
   })
 
   it("blocks a sim edit that imports effect, through the installed hook, in the reference game's own check", () => {
-    const game = join(REPO, 'examples/base-2d')
+    const game = join(REPO, 'games/emberwick')
     const seeded = join(game, 'src/sim/dx7-seeded.system.ts')
     const hook = join(installPath(), 'scripts/check.mjs')
     const event = (file: string) =>

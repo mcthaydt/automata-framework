@@ -3,7 +3,7 @@
   "compilerOptions": {
     "types": ["node"],
     "allowImportingTsExtensions": true,
-    // Games are not published libraries (examples/base-2d sets the same), so the example is checked as a game is.
+    // Games are not published libraries (games/emberwick sets the same), so the example is checked as a game is.
     "isolatedDeclarations": false,
     // The automata-feature example (outside this package) resolves its imports as a game would.
     "paths": {
