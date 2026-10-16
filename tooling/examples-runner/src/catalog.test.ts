@@ -13,14 +13,19 @@ const entry = (path: string): CatalogEntry => {
 describe('readCatalog', () => {
   it('finds every example file, skipping old demo packages', () => {
     expect(catalog.map((candidate) => candidate.path)).toEqual([
+      'core/core-both-done.ts',
+      'core/core-both.ts',
       'core/core-deep.ts',
       'core/core-done.ts',
+      'core/core-future-ready.ts',
+      'core/core-future.ts',
       'core/core-ghost.ts',
       'core/core-good.ts',
       'core/core-headless.ts',
       'core/core-long.ts',
       'core/core-relative.ts',
       'core/core-renamed.ts',
+      'core/core-schema.ts',
       'core/core-shot.ts',
       'core/core-waiting.ts',
       'core/misplaced.ts',
@@ -44,15 +49,35 @@ describe('readCatalog', () => {
     expect(entry('core/core-waiting.ts')).toMatchObject({ problems: [], header: { pending: 'OPEN.1' } })
   })
 
+  it('accepts zod, the schema language every command takes', () => {
+    expect(entry('core/core-schema.ts')).toMatchObject({
+      problems: [],
+      imports: ['@mcthaydt/automata-sim', 'zod'],
+    })
+  })
+
+  it('accepts a pending example importing the package its task will add', () => {
+    expect(entry('core/core-future.ts')).toMatchObject({ problems: [], header: { pending: 'OPEN.1' } })
+  })
+
+  it('accepts a pending example that waits for several open tasks', () => {
+    expect(entry('core/core-both.ts')).toMatchObject({ problems: [], header: { pending: 'OPEN.1, OPEN.2' } })
+  })
+
   it.each([
     ['core/misplaced.ts', 'must be <module>/<module>-<name>.ts'],
     ['widgets/widgets-spin.ts', '"widgets" is not a module'],
     ['core/core-long.ts', '101 code lines, over the budget of 100'],
     ['core/core-relative.ts', 'import "./core-good.ts" is relative'],
+    ['core/core-future-ready.ts', 'import "@mcthaydt/automata-future" is not a public entry'],
     ['core/core-deep.ts', 'import "@mcthaydt/automata-sim/src/world/sim" is not a public entry'],
     ['core/core-shot.ts', 'core/core-shot.png is not in screenshots-approved.json'],
     ['core/core-done.ts', 'Pending: DONE.1 is ticked in the delivery plan; remove the Pending line'],
     ['core/core-ghost.ts', 'Pending: NOPE.9 is not a task in the delivery plan'],
+    [
+      'core/core-both-done.ts',
+      'Pending: DONE.1 is ticked in the delivery plan; remove it from the Pending line',
+    ],
     ['core/core-headless.ts', 'line 1: Shows: is required'],
     ['core/core-renamed.ts', 'the title line names "core-other", not "core-renamed"'],
   ])('%s fails: %s', (path, problem) => {

@@ -24,7 +24,7 @@ export interface Header {
   readonly host?: HostSettings
   /** Ticks the parity test replays. */
   readonly golden?: number
-  /** The task ID whose verbs this example waits for. */
+  /** The open task IDs whose verbs this example waits for, as written (`DX.2, DX.2b`). */
   readonly pending?: string
   /** How many lines the header takes, so the catalog counts only the code after it. */
   readonly lines: number

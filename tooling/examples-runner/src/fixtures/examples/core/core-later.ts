@@ -5,6 +5,7 @@
 // Packages: @mcthaydt/automata
 // Difficulty: ★☆☆☆
 // Tier: core
+// Golden: 60
 // Pending: OPEN.1
 import { defineGame } from '@mcthaydt/automata'
 
