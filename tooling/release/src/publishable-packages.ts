@@ -29,7 +29,7 @@ export interface WorkspacePackage {
 }
 
 /** Folders that hold workspace packages, one level down (`pnpm-workspace.yaml`); `examples/*\/*` is two. */
-const GROUPS: readonly string[] = ['packages', 'tooling', 'examples']
+const GROUPS: readonly string[] = ['packages', 'tooling', 'games', 'examples']
 
 function subfolders(root: string, dir: string): string[] {
   try {
