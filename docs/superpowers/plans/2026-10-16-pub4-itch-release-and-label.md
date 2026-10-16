@@ -27,7 +27,7 @@
   - Docs: the M1 ui spec (`bootFailureView`, panel props, the two exit rows), M1 shared contracts §3 rows 3 and 6, PUB spec §5 flow 4 (opt-in input, fail closed).
 - **Create:**
   - `packages/runtime/src/boot/failure-host.ts`, `failure-host.test.ts`
-  - `.changeset/pub4-host-label.md` (patch: ui, runtime)
+  - `.changeset/pub4-host-label.md` (patch: ui; runtime is private)
 
 ## Interfaces
 
