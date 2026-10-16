@@ -1,8 +1,8 @@
 # DX.2b: `rect` and `sprite` entity views TDD plan
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.4, §4, §8; usage in the [EX spec](../specs/2026-10-16-examples-one-file-design.md) §3 (`views: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`); `entityViews` and `RenderDeltaConsumer` from the [M1.7 render-pixi spec](../specs/2026-10-13-m1-render-pixi-design.md).
-- **Status:** drafted 2026-10-16. DX.0 is Owner-approved, so this plan may be implemented.
-- **Progress:** 0 of 6 steps.
+- **Status:** implemented and locally verified 2026-10-16 on branch `claude/clever-pasteur-ujmu6e-dx2b`. Owner review pending.
+- **Progress:** 6 of 6 steps.
 - **Owner:** `packages/render-pixi` (runtime lane). Consumer: `packages/game` (DX.2), Emberwick (DX.3).
 
 ## Global constraints
@@ -58,4 +58,10 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-10-16 | Plan | `98b22d1` | TDD plan. |
+| 2026-10-16 | 1, 2 | `021096c` | Pose test failed first on the missing module, then on `lerp(0.7, 0.1, 1)` = 0.09999999999999998 (fixed: `t = 1` returns `b`); consumer test failed with the factory called with one argument. |
+| 2026-10-16 | 3 | `6d511f9` | `rect-view.test.ts` failed on the missing module, then 8/8 green. |
+| 2026-10-16 | 4, 6 | `27ce691` | `sprite-view.test.ts` failed on the missing module; the once-per-factory `reportError` test then failed (2 calls) until the catch moved inside the first load. `index.test.ts` failed on `rect` undefined. Parity test failed in Chromium, WebKit and Firefox with "`/src/index.ts` does not provide an export named `rect`", then 3/3 green. |
+| 2026-10-16 | 5 | `4cc3150` | Characterization of existing consumer behavior: passed first run, as the plan expected. |
+| 2026-10-16 | Gates | `961d03d` | First `pnpm check` failed on render-pixi typecheck (the `Assets.load` stub's generic type in the test); fixed. Then `pnpm check` 26/26 tasks, unit 1,689 passed in 22 packages (render-pixi 61 in 11 files; 4 skipped in `@mcthaydt/release`, pre-existing); `check-style` 180 files 0 findings. `pnpm test:parity` 9/9 tasks, 593 tests (render-pixi 6/6 incl. the new view test in 3 engines). `pnpm test:e2e` with 4660/4760: 28 passed, 18 failed, all base-2d with `net::ERR_UNSAFE_PORT` because base-2d's game port is preview + 300 = 5060, which browsers block (SIP); rerun with 4660/4762: 44 passed, 2 failed (base-2d golden route, 30 s test timeout in `clock.runFor` at load average ~25–30); those 2 rerun alone: 2/2 passed. No changeset (render-pixi is private). |
+
