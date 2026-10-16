@@ -4,6 +4,47 @@
 
 ## `.`
 
+### `CheckFinding` (interface)
+
+```ts
+interface CheckFinding {
+    readonly file: string;
+    readonly line: number;
+    readonly col: number;
+    readonly rule: string;
+    readonly message: string;
+}
+```
+
+### `CheckOptions` (interface)
+
+```ts
+interface CheckOptions {
+    readonly dir: string | undefined;
+    readonly json: boolean;
+    readonly simOnly: boolean;
+    readonly csp: boolean;
+    readonly failFast: boolean;
+}
+```
+
+### `CheckReport` (interface)
+
+```ts
+interface CheckReport {
+    readonly ok: boolean;
+    readonly steps: readonly StepResult[];
+}
+```
+
+### `CheckToolError` (class)
+
+```ts
+class CheckToolError extends CheckToolErrorBase {
+    get message(): string;
+}
+```
+
 ### `createGame` (function)
 
 ```ts
@@ -38,4 +79,96 @@ interface CreateGameResult {
     readonly title: string;
     readonly createdFiles: readonly string[];
 }
+```
+
+### `CspProbe` (interface)
+
+```ts
+interface CspProbe {
+    readonly _CspProbe: unique symbol;
+}
+const CspProbe: Context.Tag<CspProbe, CspProbeService>;
+```
+
+### `CspProbeLive` (const)
+
+```ts
+const CspProbeLive: Layer.Layer<CspProbe>;
+```
+
+### `CspProbeResult` (interface)
+
+```ts
+interface CspProbeResult {
+    readonly ready: boolean;
+    readonly state: string | undefined;
+    readonly violations: readonly string[];
+}
+```
+
+### `CspProbeService` (interface)
+
+```ts
+interface CspProbeService {
+    run(input: CspProbeInput): Effect.Effect<CspProbeResult, CheckToolError>;
+}
+```
+
+### `exitCodeFor` (function)
+
+```ts
+function exitCodeFor(report: CheckReport): 0 | 1 | 2;
+```
+
+### `formatText` (function)
+
+```ts
+function formatText(report: CheckReport): string;
+```
+
+### `parseCheckArgs` (function)
+
+```ts
+function parseCheckArgs(args: readonly string[]): CheckArgs;
+```
+
+### `runCheck` (function)
+
+```ts
+function runCheck(options: RunCheckOptions): Effect.Effect<CheckReport, never, ProcessRunner | Files | CspProbe>;
+```
+
+### `RunCheckOptions` (interface)
+
+```ts
+interface RunCheckOptions {
+    readonly gameDir: string;
+    readonly simOnly: boolean;
+    readonly csp: boolean;
+    readonly failFast: boolean;
+}
+```
+
+### `StepName` (type)
+
+```ts
+type StepName = 'boundaries' | 'typecheck' | 'test' | 'no-eval' | 'csp';
+```
+
+### `StepResult` (interface)
+
+```ts
+interface StepResult {
+    readonly name: StepName;
+    readonly ok: boolean;
+    readonly ms: number;
+    readonly findings: readonly CheckFinding[];
+    readonly toolError: boolean;
+}
+```
+
+### `toJson` (function)
+
+```ts
+function toJson(report: CheckReport): string;
 ```
