@@ -1,8 +1,8 @@
 # PRODUCT.4: stack page TDD plan
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §8 (the library table and the Planck → Rapier note) and §9 (`docs/stack.md` is owned by the ship lane and generated).
-- **Status:** drafted 2026-10-16. PRODUCT.0 is Owner-approved (2026-10-16).
-- **Progress:** 4 of 5 steps.
+- **Status:** implemented and locally verified 2026-10-16 on branch `claude/clever-pasteur-ujmu6e-product4`; Owner review pending. PRODUCT.0 is Owner-approved (2026-10-16).
+- **Progress:** 5 of 5 steps.
 
 ## Global constraints
 
@@ -39,9 +39,14 @@
 - [x] **2. Collect facts from a fixture workspace.** In `stack.test.ts`, a temporary root with `docs/versions.md`, a `package.json` per workspace folder and `node_modules/<name>/package.json` gives each package's pinned version and installed `license`; a `file:` tarball gives the installed version and the vendored commit; a package with no `license` field reads "not declared in the installed package". Failure cases, each naming the package: no pin; not installed; installed version differs from the pin; a planned package now in a `package.json`. Confirm they fail on the missing function; implement `collectStackFacts`; confirm they pass.
 - [x] **3. The real cards.** Write `stack-cards.ts` with one card per §8 row (PixiJS, Koota, Effect, Zod, Svelte, Paraglide, smol-toml, Ruken SDK, Vite/Vitest/Playwright, Rapier, Colyseus) and the Planck → Rapier note. Prose is sourced from ADRs 0001–0004, the master spec §3 and §4, the PRODUCT spec and `docs/versions.md`.
 - [x] **4. Freshness check.** Write `stack-page.test.ts`: `docs/stack.md` equals `renderStackPage(STACK_CARDS, collectStackFacts(root, STACK_CARDS), …)`, with the message "docs/stack.md is out of date; run `pnpm docs:stack`". Confirm it fails because `docs/stack.md` does not exist. Write `write-stack.ts`, add `docs:stack`, run it; confirm it passes. Confirm the check fails again when the page is edited by hand (one changed version), then regenerate. Add the turbo inputs.
-- [ ] **5. Gates and bookkeeping.** `pnpm format`, `pnpm check`. Record the evidence in 02 (row and execution record), 03 and this plan's log. Add the website `/inside` page as a follow-up row if 02 has none.
+- [x] **5. Gates and bookkeeping.** `pnpm format`, `pnpm check`. Record the evidence in 02 (row and execution record), 03 and this plan's log. Add the website `/inside` page as a follow-up row if 02 has none.
 
 ## Execution log
 
 | Date | Step | Evidence |
 |---|---|---|
+| 2026-10-16 | 1 | `stack.test.ts` failed: `Cannot find module './stack.ts'`; `renderStackPage` added; 6/6 passed |
+| 2026-10-16 | 2 | 8 new tests failed: `collectStackFacts is not a function`; implemented; 14/14 passed; `tsc -p .` clean |
+| 2026-10-16 | 3 | `stack-cards.ts`: 11 cards and the Planck → Rapier note; two unverified claims corrected against the source (no typed accessors in `content`, no `zod` in `host/src`) |
+| 2026-10-16 | 4 | `stack-page.test.ts` failed with "docs/stack.md is out of date" (no page); `pnpm docs:stack` wrote it; passed. Hand-editing `koota` to 0.6.7 failed it again; regenerated. Then the planned-library line and a LICENSE-file fallback were test-first changes (2 failing, then 15/15) |
+| 2026-10-16 | 5 | `pnpm format`; `pnpm check` exit 0 (`test:unit` 26/26 tasks; `@mcthaydt/versions` 29/29 tests). Parity and E2E omitted: no runtime, rendering, UI, host or game change. No changeset: `tooling/versions` is private. Follow-ups PRODUCT.4w and PRODUCT.4r added to 02 |
