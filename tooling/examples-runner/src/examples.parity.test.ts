@@ -26,24 +26,32 @@ const fixtures = goldenExamples(
   './fixtures/examples/__goldens__',
 )
 
-it('finds the stub example’s golden, so this suite never runs empty', () => {
-  expect(fixtures.map((example) => example.id)).toEqual(['core-stub'])
+it('finds the stub example’s golden, so this suite never runs empty, and lists the pending one', () => {
+  expect(fixtures.map(({ id, pending }) => ({ id, pending }))).toEqual([
+    { id: 'core-later', pending: 'OPEN.1' },
+    { id: 'core-stub', pending: undefined },
+  ])
 })
 
+// A pending example is reported as skipped, with the tasks it waits for, and never imported (EX spec §7).
 for (const example of [...examples, ...fixtures]) {
-  it(`${example.id}: ${example.ticks} ticks replay to the recorded hashes`, async () => {
-    const game = await example.load()
-    const report = await replayGolden({
-      file: example.replay,
-      plugins: game.sim.plugins,
-      record: {
-        seed: game.sim.seed,
-        ...(game.sim.setup === undefined ? {} : { setup: game.sim.setup }),
-        drive: (recorder) => {
-          for (let tick = 0; tick < example.ticks; tick++) recorder.step([])
+  const title = `${example.id}: ${example.ticks} ticks replay to the recorded hashes`
+  it.skipIf(example.pending !== undefined)(
+    example.pending === undefined ? title : `${title} (pending: ${example.pending})`,
+    async () => {
+      const game = await example.load()
+      const report = await replayGolden({
+        file: example.replay,
+        plugins: game.sim.plugins,
+        record: {
+          seed: game.sim.seed,
+          ...(game.sim.setup === undefined ? {} : { setup: game.sim.setup }),
+          drive: (recorder) => {
+            for (let tick = 0; tick < example.ticks; tick++) recorder.step([])
+          },
         },
-      },
-    })
-    expectGolden(report)
-  })
+      })
+      expectGolden(report)
+    },
+  )
 }

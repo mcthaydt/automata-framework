@@ -19,13 +19,16 @@ export interface GoldenEntry {
   /** The `.replay`, relative to the parity test file. */
   readonly replay: string
   readonly load: () => Promise<GoldenExample>
+  /** The `Pending:` tasks, when the example waits for verbs that have not landed: its test is skipped. */
+  readonly pending?: string
 }
 
 const EXAMPLE_FILE = /\/([a-z0-9]+)\/(\1-[a-z0-9-]+)\.ts$/
 
 /**
- * The examples that declare `Golden:` and are not pending, from `import.meta.glob` results (file path to source,
- * and file path to a lazy import), so it runs where there is no file system. A pending example is never imported.
+ * The examples that declare `Golden:`, from `import.meta.glob` results (file path to source, and file path to a
+ * lazy import), so it runs where there is no file system. A pending example is listed with its tasks so the test
+ * reports it as pending, and is never imported.
  */
 export function goldenExamples(
   { sources }: { readonly sources: Readonly<Record<string, unknown>> },
@@ -38,12 +41,13 @@ export function goldenExamples(
     const header = parseHeader(String(sources[path]))
     const load = modules[path]
     if (id === undefined || Array.isArray(header) || load === undefined) continue
-    if (header.golden === undefined || header.pending !== undefined) continue
+    if (header.golden === undefined) continue
     entries.push({
       id,
       ticks: header.golden,
       replay: `${goldensDir}/${id}.replay`,
       load: async () => (await load()) as GoldenExample,
+      ...(header.pending === undefined ? {} : { pending: header.pending }),
     })
   }
   return entries
