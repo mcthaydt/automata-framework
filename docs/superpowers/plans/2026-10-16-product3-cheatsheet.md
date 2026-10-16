@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §7 ("The cheatsheet: one page grouped by module, generated from the API index (DX.4)"), §10 (PRODUCT.3). Consumes [DX.4](2026-10-16-dx4-api-index.md) ([DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.8).
 - **Status:** drafted 2026-10-16; PRODUCT.0 Owner-approved 2026-10-16 with every recommended default. Stacks on DX.4 (PR #37), not yet merged.
-- **Progress:** 2 of 3 steps.
+- **Progress:** 3 of 3 steps.
 
 ## Decisions
 
@@ -29,7 +29,7 @@
 
 - [x] **1. Renderer.** `cheatsheet.test.ts` over `fixtures/repo`: the title names no version; one `##` per package and one subsection per entry point in index order; `add(a, b)` appears once for the two overloads; `area(size)` for the chunk-renamed export; `Named` (interface), `DEFAULT_SIZE` (const), `Counter` (class) with `(deprecated)`; the summary is the doc's first sentence; `undocumented` has no summary. Run `pnpm --filter @mcthaydt/api-index test`; it fails because `cheatsheet.ts` does not exist. Implement; pass.
 - [x] **2. Stale check and CLI.** `run.test.ts`: with `cheatsheet: { file, write: false }` a missing or different committed page exits 1 naming the file and `pnpm cheatsheet`; with `write: true` it is written and the run exits 0; a matching page exits 0; `cheatsheet.md` is written to `out` either way. `ci.test.ts`: the root `cheatsheet` script runs the CLI with `--write-cheatsheet`. Fail (no stale finding; no script); add the option, the CLI flag and the script; pass.
-- [ ] **3. Real run.** `pnpm build && pnpm cheatsheet` writes `docs/cheatsheet.md`; read it; `pnpm api-index` exits 0; edit one line of the page and confirm `pnpm api-index` exits 1, then regenerate. Then `pnpm format`, `pnpm check`.
+- [x] **3. Real run.** `pnpm build && pnpm cheatsheet` writes `docs/cheatsheet.md`; read it; `pnpm api-index` exits 0; edit one line of the page and confirm `pnpm api-index` exits 1, then regenerate. Then `pnpm format`, `pnpm check`.
 
 ## Gates
 
