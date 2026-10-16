@@ -86,7 +86,7 @@ test.describe('phone 375×667', () => {
 
   for (const path of PAGES) {
     test(`${path}: every visible button does something`, async ({ page }) => {
-      test.setTimeout(120_000)
+      test.setTimeout(300_000)
       await open(page, path)
       expect(await deadButtons(page)).toEqual([])
     })
@@ -122,10 +122,15 @@ test.describe('desktop 1280×800', () => {
       })
     })
 
-    test(`${path}: every visible button does something`, async ({ page }) => {
-      test.setTimeout(120_000)
-      await open(page, path)
-      expect(await deadButtons(page)).toEqual([])
+    test.describe(() => {
+      // As above: no auto-started demo. /examples has a button per source file, and each click re-highlights code;
+      // with a software-rendered WebGL demo also running on a loaded machine that took over two minutes (first full run).
+      test.use({ reducedMotion: 'reduce' })
+      test(`${path}: every visible button does something`, async ({ page }) => {
+        test.setTimeout(300_000)
+        await open(page, path)
+        expect(await deadButtons(page)).toEqual([])
+      })
     })
   }
 
