@@ -31,7 +31,24 @@ async function bundle(target: 'ruken' | 'web' | 'itch'): Promise<string> {
     .join('\n')
 }
 
+/**
+ * A string Effect's stream machinery keeps through minification: the channel executor's state type id
+ * (`Symbol.for("effect/ChannelState")`), which running any Stream needs. (`effect/Stream` itself is no marker:
+ * every Effect carries that type id.)
+ * A game that never subscribes to a host value must not carry Stream code (S8 budgets E1/E3,
+ * docs/spikes/s8-effect.md): `Observed` is plain callbacks, and only `changes()` builds a Stream.
+ */
+const STREAM_MARKER = 'effect/ChannelState'
+
 describe('the ./target export in a real bundle (PUB spec §3)', () => {
+  it.each(['ruken', 'web'] as const)(
+    'a %s game that reads host values but never subscribes carries no Stream code',
+    async (target) => {
+      expect(await bundle(target)).not.toContain(STREAM_MARKER)
+    },
+    60_000,
+  )
+
   it('an automata-web build holds the web adapter and no Ruken SDK code', async () => {
     const code = await bundle('web')
     expect(findRukenSdkMarkers(code)).toEqual([])

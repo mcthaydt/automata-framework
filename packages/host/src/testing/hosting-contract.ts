@@ -4,8 +4,10 @@
 // intended difference has its own test named after it. Internal to the host package's tests.
 import { Chunk, Context, Effect, Either, Exit, Fiber, Layer, Option, Scope, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { changes } from '../changes'
 import type { HostError } from '../errors'
 import { Hosting } from '../hosting'
+import type { Observed } from '../observed'
 import { runScoped } from './run'
 
 /** An adapter under test: a fresh layer per case, with `saves` granted. */
@@ -90,9 +92,9 @@ export function describeHostingContract(name: string, layer: HostingLayer, settl
       withHosting((hosting) =>
         Effect.gen(function* () {
           for (const [stream, observed] of Object.entries(observedOf(hosting))) {
-            const subscribable = observed as typeof hosting.lifecycle
-            const first = yield* subscribable.changes.pipe(Stream.take(1), Stream.runCollect)
-            expect(Chunk.toReadonlyArray(first), stream).toEqual([yield* subscribable.get])
+            const value = observed as Observed<unknown>
+            const first = yield* changes(value).pipe(Stream.take(1), Stream.runCollect)
+            expect(Chunk.toReadonlyArray(first), stream).toEqual([yield* value.get])
           }
         }),
       ))
@@ -124,12 +126,41 @@ export function describeHostingContract(name: string, layer: HostingLayer, settl
           const scope = yield* Scope.make()
           const hosting = Context.get(yield* Layer.buildWithScope(layer(), scope), Hosting)
           const readers = yield* Effect.forEach(Object.values(observedOf(hosting)), (observed) =>
-            Effect.fork(Stream.runCollect((observed as typeof hosting.lifecycle).changes)),
+            Effect.fork(Stream.runCollect(changes(observed as Observed<unknown>))),
           )
           yield* settled
           yield* Scope.close(scope, Exit.void)
           const collected = yield* Effect.forEach(readers, Fiber.join)
           expect(collected.map(Chunk.size)).toEqual([1, 1, 1, 1, 1, 1])
+        }),
+      ))
+
+    it('ends every plain subscription once when Hosting shuts down, and a later one at once', () =>
+      runScoped(
+        Effect.gen(function* () {
+          const scope = yield* Scope.make()
+          const hosting = Context.get(yield* Layer.buildWithScope(layer(), scope), Hosting)
+          const observed = Object.values(observedOf(hosting)) as Observed<unknown>[]
+          const ended: string[] = []
+          for (const [index, value] of observed.entries()) {
+            value.subscribe(
+              () => undefined,
+              () => ended.push(`open ${index}`),
+            )
+          }
+          yield* settled
+          expect(ended).toEqual([])
+          yield* Scope.close(scope, Exit.void)
+          for (const [index, value] of observed.entries()) {
+            value.subscribe(
+              () => undefined,
+              () => ended.push(`late ${index}`),
+            )
+          }
+          expect(ended).toEqual([
+            ...observed.map((_, index) => `open ${index}`),
+            ...observed.map((_, index) => `late ${index}`),
+          ])
         }),
       ))
 

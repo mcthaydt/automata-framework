@@ -1,4 +1,4 @@
-import { HostError, Hosting, type HostingOptions, type HostingSeams } from '@mcthaydt/automata-host'
+import { changes, HostError, Hosting, type HostingOptions, type HostingSeams } from '@mcthaydt/automata-host'
 // The build's publish target picks the adapter: Ruken by default, the web adapter under `automata-web` (PUB spec §3).
 import { makeHosting } from '@mcthaydt/automata-host/target'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
@@ -135,7 +135,7 @@ export function bootProgram<S>(
     const initialDisplay = yield* hosting.display.get
     geometry.setHostDisplay(initialDisplay)
     yield* Effect.forkScoped(
-      Stream.runForEach(hosting.display.changes, (metrics) =>
+      Stream.runForEach(changes(hosting.display), (metrics) =>
         Effect.sync(() => geometry.setHostDisplay(metrics)),
       ),
     )

@@ -1,10 +1,10 @@
 import { type InitOptions, type InputModePayload, Ruken, type RukenSession, type SdkEnv } from '@ruken/sdk'
-import { Deferred, Duration, Effect, Layer, Option, Runtime, type Scope } from 'effect'
+import { Duration, Effect, Layer, Option, Runtime, type Scope } from 'effect'
 import { HostError, HostHandshakeFailed, toHostError } from './errors'
 import { Hosting, type HostingOptions } from './hosting'
 import { makeMenuHandlers } from './menu'
+import { fromListener, makeShutdownSignal, type ShutdownSignal } from './observed'
 import { guardRounds } from './rounds'
-import { fromListener } from './subscribable'
 
 /**
  * How long the game may hold the host's close (FloorFifty `ruken/exit.ts`,
@@ -90,12 +90,13 @@ export function makeHosting(
     )
 
     // Registered after the session's disposal, so it runs before it (finalizers run in reverse).
-    const shutdown = yield* Deferred.make<void>()
+    const shutdown = makeShutdownSignal()
     let open = true
     yield* Effect.addFinalizer(() =>
       Effect.sync(() => {
         open = false
-      }).pipe(Effect.zipRight(Deferred.succeed(shutdown, undefined))),
+        shutdown.close()
+      }),
     )
 
     // Handlers answer the host's menu only once the session is ready (see menu.ts).
@@ -117,7 +118,7 @@ export function makeHosting(
       fellBack,
       registerMenuHandler: menu.register,
       isOpen: () => open,
-      shutdown: Deferred.await(shutdown),
+      shutdown,
     })
 
     // FloorFifty `ruken/exit.ts`: when the host closes the game, every save still
@@ -141,8 +142,8 @@ interface HostingState {
   readonly fellBack: Option.Option<HostHandshakeFailed>
   readonly registerMenuHandler: Hosting['onMenuRequest']
   readonly isOpen: () => boolean
-  /** Completes when Hosting shuts down; every observed stream ends then. */
-  readonly shutdown: Effect.Effect<void>
+  /** Closes when Hosting shuts down; every subscription ends then. */
+  readonly shutdown: ShutdownSignal
 }
 
 function hostingOver(session: RukenSession, options: HostingOptions, state: HostingState): Hosting {

@@ -1,6 +1,6 @@
 import type { Hosting } from '@mcthaydt/automata-host'
 import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
-import { Effect, Scope, Stream } from 'effect'
+import { Effect, Scope } from 'effect'
 import { createBaseSim, moveCommand } from './base-sim.ts'
 import { type BaseBootFailed, connect } from './boot.ts'
 import { RendererFailed, SimFailed } from './boot-failure.ts'
@@ -174,14 +174,11 @@ export function startGame(
       if (to === 'room' && !rounds.starting()) renderer.draw(performance.now())
     }
 
-    yield* Effect.forkIn(
-      Stream.runForEach(hosting.lifecycle.changes, (change) =>
-        Effect.sync(() => {
-          if (change.state === 'background') dispatch('background')
-        }),
-      ),
-      page,
-    )
+    // A plain subscription (no Stream), ended with the page's scope.
+    const stopLifecycle = hosting.lifecycle.subscribe((change) => {
+      if (change.state === 'background') dispatch('background')
+    })
+    yield* Scope.addFinalizer(page, Effect.sync(stopLifecycle))
     window.addEventListener('resize', onResize)
 
     screens.show('splash')

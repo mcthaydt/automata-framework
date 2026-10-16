@@ -10,11 +10,11 @@ import type {
   LifecycleReason,
   StorageLike,
 } from '@ruken/sdk'
-import { Deferred, Effect, Layer, Option, type Scope } from 'effect'
+import { Effect, Layer, Option, type Scope } from 'effect'
 import { HostError } from './errors'
 import { Hosting, type HostingOptions } from './hosting'
 import type { HostingSeams } from './hosting-live'
-import { fromListener } from './subscribable'
+import { fromListener, makeShutdownSignal } from './observed'
 
 /*
  * The web adapter (PUB spec §3.1): `Hosting` for a page outside Ruken, chosen at build time for the `itch` and
@@ -190,7 +190,7 @@ function trackInput(page: WebPage): InputTracker {
 
 /**
  * Builds the web adapter over `page`. When the scope closes, Hosting marks itself closed (later calls fail
- * `HostError{code:'CANCELLED'}`), then every observed stream ends, as the Ruken adapter does.
+ * `HostError{code:'CANCELLED'}`), then every subscription ends, as the Ruken adapter does.
  */
 export function makeWebHosting(
   options: HostingOptions,
@@ -198,18 +198,18 @@ export function makeWebHosting(
   target: WebTarget,
 ): Effect.Effect<Hosting, never, Scope.Scope> {
   return Effect.gen(function* () {
-    const shutdown = yield* Deferred.make<void>()
+    const until = makeShutdownSignal()
     let open = true
     yield* Effect.addFinalizer(() =>
       Effect.sync(() => {
         open = false
-      }).pipe(Effect.zipRight(Deferred.succeed(shutdown, undefined))),
+        until.close()
+      }),
     )
     const whileOpen = <A>(operation: string, request: Effect.Effect<A, HostError>) =>
       Effect.suspend(() =>
         open ? request : Effect.fail(new HostError({ code: 'CANCELLED', retryable: false, operation })),
       )
-    const until = Deferred.await(shutdown)
     const constant = <A>(value: A) =>
       fromListener(
         () => value,

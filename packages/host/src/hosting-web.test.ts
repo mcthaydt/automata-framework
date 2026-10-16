@@ -9,13 +9,14 @@ import {
   Option,
   type Scope,
   Stream,
-  type Subscribable,
   TestClock,
   TestContext,
 } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
+import { changes } from './changes'
 import { Hosting, type HostingOptions } from './hosting'
 import { buildTarget, makeWebHosting, WEB_STORAGE_PROBE_KEY, type WebTarget } from './hosting-web'
+import type { Observed } from './observed'
 import { HostingTest, runScoped } from './testing'
 import { type FakeWebPage, type FakeWebPageOptions, fakeWebPage } from './testing/fake-web-page'
 import { describeHostingContract } from './testing/hosting-contract'
@@ -55,11 +56,11 @@ const delivered: Effect.Effect<void> = Effect.promise(
  * Collects every value `observed` gives (the current one first) until the test's scope closes. `step` runs
  * page events one at a time, each delivered before the next, so the test sees each change on its own.
  */
-const record = <A>(observed: Subscribable.Subscribable<A>) =>
+const record = <A>(observed: Observed<A>) =>
   Effect.gen(function* () {
     const values: A[] = []
     yield* Effect.forkScoped(
-      Stream.runForEach(observed.changes, (value) => Effect.sync(() => values.push(value))),
+      Stream.runForEach(changes(observed), (value) => Effect.sync(() => values.push(value))),
     )
     yield* delivered
     const step = (...events: (() => void)[]) =>

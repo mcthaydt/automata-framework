@@ -1,5 +1,5 @@
 import type { FlowGraph } from '@mcthaydt/automata-content'
-import { Hosting } from '@mcthaydt/automata-host'
+import { changes, Hosting } from '@mcthaydt/automata-host'
 import { FakeHostHandle, HostingTest, type HostingTestOptions } from '@mcthaydt/automata-host/testing'
 import { createGeometryOwner } from '@mcthaydt/automata-ui'
 import type { FakeHostOptions } from '@ruken/sdk-host/testing'
@@ -91,7 +91,7 @@ export function RuntimeTest(
       const initialDisplay = yield* hosting.display.get
       geometry.setHostDisplay(initialDisplay)
       yield* Effect.forkScoped(
-        Stream.runForEach(hosting.display.changes, (metrics) =>
+        Stream.runForEach(changes(hosting.display), (metrics) =>
           Effect.sync(() => geometry.setHostDisplay(metrics)),
         ),
       )

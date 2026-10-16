@@ -1,13 +1,17 @@
 import type { DisplayMetricsPayload } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
-import { Chunk, Effect, Fiber, Stream, type Subscribable } from 'effect'
+import { Chunk, Effect, Fiber, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { changes } from './changes'
 import { Hosting } from './hosting'
+import type { Observed } from './observed'
 import { FakeHostHandle, HostingTest, runScoped } from './testing'
 
 /** Starts reading the first `count` values of `changes` (the current value, then changes). */
-const firstValues = <A>(observed: Subscribable.Subscribable<A>, count: number) =>
-  Effect.fork(observed.changes.pipe(Stream.take(count), Stream.runCollect, Effect.map(Chunk.toReadonlyArray)))
+const firstValues = <A>(observed: Observed<A>, count: number) =>
+  Effect.fork(
+    changes(observed).pipe(Stream.take(count), Stream.runCollect, Effect.map(Chunk.toReadonlyArray)),
+  )
 
 const drive = (step: () => unknown): Effect.Effect<void> =>
   Effect.promise(async () => {

@@ -19,7 +19,7 @@ import '@af-examples/base-2d/style.css'
 import './panel.css'
 import { ROOM, type RoomSource, tuning } from '@af-examples/base-2d'
 import { playRoom } from '@af-examples/base-2d/play'
-import { type Hosting, makeHosting } from '@mcthaydt/automata-host'
+import { changes, type Hosting, makeHosting } from '@mcthaydt/automata-host'
 import { Effect, Stream } from 'effect'
 
 /** Must equal `[game] id` in ship.config.ts; the host checks it. */
@@ -124,7 +124,7 @@ const program = Effect.gen(function* () {
 
   // The host's lifecycle as a stream: its current value first, then each change. In the background the room
   // stops (pauseBehavior 'pause' promises the host this); back in front it plays on from the same tick.
-  yield* hosting.lifecycle.changes.pipe(
+  yield* changes(hosting.lifecycle).pipe(
     Stream.runForEach((change) =>
       Effect.sync(() => {
         lifecycle = change.state
@@ -135,7 +135,7 @@ const program = Effect.gen(function* () {
     ),
     Effect.forkScoped,
   )
-  yield* hosting.savesStatus.changes.pipe(
+  yield* changes(hosting.savesStatus).pipe(
     Stream.runForEach((status) =>
       Effect.sync(() => {
         savesStatus = status

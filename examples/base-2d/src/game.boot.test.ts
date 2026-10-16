@@ -1,4 +1,4 @@
-import { Cause, Effect, Exit, Option, Stream } from 'effect'
+import { Cause, Effect, Exit, Option } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BaseBootFailed } from './boot.ts'
 import { RendererFailed, SimFailed } from './boot-failure.ts'
@@ -21,7 +21,7 @@ vi.mock('./boot.ts', async (importOriginal) => {
         ? Effect.fail(new real.BaseBootFailed({ step: 'init', cause: 'no host' }))
         : Effect.succeed({
             round: { start: Effect.void, end: () => Effect.void },
-            lifecycle: { changes: Stream.empty },
+            lifecycle: { subscribe: () => () => undefined },
           }),
   }
 })

@@ -1,4 +1,4 @@
-import type { Hosting, HostingOptions } from '@mcthaydt/automata-host'
+import { changes, type Hosting, type HostingOptions } from '@mcthaydt/automata-host'
 import { Context, Effect, type Scope, Stream } from 'effect'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 
@@ -97,8 +97,8 @@ export function watchLifecycle(options: WatchLifecycleOptions): Effect.Effect<vo
       )
     }
 
-    // 2. Stream hosting.lifecycle.changes in a scoped fiber
-    yield* Stream.runForEach(options.hosting.lifecycle.changes, (payload) =>
+    // 2. Stream the host's lifecycle (current value, then changes) in a scoped fiber
+    yield* Stream.runForEach(changes(options.hosting.lifecycle), (payload) =>
       Effect.sync(() => {
         update(payload.state === 'background', docHidden)
       }),

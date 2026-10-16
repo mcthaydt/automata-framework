@@ -15,8 +15,10 @@ import {
   TestContext,
 } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { changes } from './changes'
 import { Hosting } from './hosting'
 import { HOST_EXIT_CAP } from './hosting-live'
+import type { Observed } from './observed'
 import { FakeHostHandle, HostingTest, type HostingTestOptions, manualClock, runScoped } from './testing'
 
 const settled: Effect.Effect<void> = Effect.promise(() => settle())
@@ -41,7 +43,7 @@ describe('shutting Hosting down (audit of PR #5)', () => {
           hosting.audio,
           hosting.entitlements,
           hosting.savesStatus,
-        ].map((observed) => observed.changes as Stream.Stream<unknown>)
+        ].map((observed) => changes(observed as Observed<unknown>))
         const readers = yield* Effect.forEach(streams, (changes) => Effect.fork(Stream.runCollect(changes)))
         yield* settled
         yield* Scope.close(scope, Exit.void)

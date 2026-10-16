@@ -1,6 +1,7 @@
 import { settle } from '@ruken/sdk-host/testing'
 import { Effect, Either, Fiber, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { changes } from './changes'
 import { Hosting } from './hosting'
 import { FakeHostHandle, HostingTest, manualClock, runScoped } from './testing'
 
@@ -87,7 +88,7 @@ describe('saves (shared contracts §1.5; FloorFifty hosting and settings-hosted)
         const { host } = yield* FakeHostHandle
         const statuses: string[] = []
         yield* Effect.forkScoped(
-          Stream.runForEach(hosting.savesStatus.changes, (status) =>
+          Stream.runForEach(changes(hosting.savesStatus), (status) =>
             Effect.sync(() => statuses.push(status)),
           ),
         )

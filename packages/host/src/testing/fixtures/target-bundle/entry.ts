@@ -7,7 +7,9 @@ import { Effect } from 'effect'
 const boot = Effect.scoped(
   Effect.gen(function* () {
     const hosting = yield* makeHosting({ gameId: 'bundle-check', wants: ['saves'], pauseBehavior: 'pause' })
-    yield* Effect.log(hosting.kind, hosting.hostName, Hosting.key)
+    // Reads a host value without subscribing to it, as the placeholder does: no Stream code may follow.
+    const display = yield* hosting.display.get
+    yield* Effect.log(hosting.kind, hosting.hostName, Hosting.key, display.orientation)
     return yield* Effect.fail(new HostError({ code: 'CANCELLED', retryable: false, operation: 'fixture' }))
   }),
 )

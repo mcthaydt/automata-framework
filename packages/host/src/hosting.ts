@@ -11,9 +11,10 @@ import type {
   SavesFlushRes,
   SavesStatus,
 } from '@ruken/sdk'
-import type { Effect, Option, Scope, Subscribable } from 'effect'
+import type { Effect, Option, Scope } from 'effect'
 import { Context } from 'effect'
 import type { HostError, HostHandshakeFailed } from './errors'
+import type { Observed } from './observed'
 
 /** What the game asks of its host. In M1 the game passes these by hand; later they come from content. */
 export interface HostingOptions {
@@ -62,13 +63,13 @@ export interface Hosting {
   /** Resolves on `session.ready` (at once standalone). No gameplay renders before it (R-04). */
   readonly ready: Effect.Effect<void, HostError>
 
-  // Observed host state: the current value plus its changes.
-  readonly lifecycle: Subscribable.Subscribable<LifecyclePayload>
-  readonly input: Subscribable.Subscribable<InputModePayload>
-  readonly display: Subscribable.Subscribable<DisplayMetricsPayload>
-  readonly audio: Subscribable.Subscribable<AudioChange>
-  readonly entitlements: Subscribable.Subscribable<EntitlementsPayload>
-  readonly savesStatus: Subscribable.Subscribable<SavesStatus>
+  // Observed host state: the current value plus its changes (`changes(hosting.x)` gives a Stream).
+  readonly lifecycle: Observed<LifecyclePayload>
+  readonly input: Observed<InputModePayload>
+  readonly display: Observed<DisplayMetricsPayload>
+  readonly audio: Observed<AudioChange>
+  readonly entitlements: Observed<EntitlementsPayload>
+  readonly savesStatus: Observed<SavesStatus>
 
   readonly saves: HostingSaves
   /** Ruken's `FullscreenRes`: `support` says what the device allows (for example `ios-home-screen`). */

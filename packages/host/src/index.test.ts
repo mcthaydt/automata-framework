@@ -7,6 +7,7 @@ describe('public entry points', () => {
     expect(Object.keys(host).sort()).toEqual(
       [
         'HOST_EXIT_CAP',
+        'changes',
         'RUKEN_SDK_MARKERS',
         'findRukenSdkMarkers',
         'HostError',
