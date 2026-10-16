@@ -64,6 +64,14 @@ body {
   position: absolute;
   inset: 0;
 }
+/* The overlay layer sits on top but is empty while the game runs: only what the runtime puts in it (the
+   loader, the failure panel) takes the pointer. */
+[data-layer="overlay"] {
+  pointer-events: none;
+}
+[data-layer="overlay"] > * {
+  pointer-events: auto;
+}
 
 /* Overlays fill the game's container and centre their panel over a dimmed, darker-at-the-edges game. */
 .panel {
