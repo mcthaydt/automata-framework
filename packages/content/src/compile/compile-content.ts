@@ -23,7 +23,7 @@ import {
 import { checkWithRuken } from '../game/ruken-check'
 import { type ContentData, type ContentGenerator, runGenerators } from '../generate/content-generator'
 import { contentHash } from '../hash/content-hash'
-import { checkTranslation, collectMessages } from '../locale/messages'
+import { checkTranslation, collectMessages, type MessageCatalog } from '../locale/messages'
 import { checkPalette, paletteSchema } from '../palette/palette'
 import { locateJsonKeys } from '../parse/locate-json-keys'
 import {
@@ -66,6 +66,13 @@ export interface CompiledContent {
   readonly files: ReadonlyMap<string, string>
   /** Problems that do not stop a compile (`skippedFile`), sorted. They are not part of the hash or the outputs. */
   readonly warnings: readonly Diagnostic[]
+  /** The source language, then each translation's language, sorted. */
+  readonly languages: readonly string[]
+  /**
+   * Each language's checked catalog (without `$schema`), in `languages` order. Derived beside the hashed data,
+   * never inside it, so a translation edit moves neither hash. Paraglide and the glyph sets read these.
+   */
+  readonly catalogs: ReadonlyMap<string, MessageCatalog>
 }
 
 export const DEFAULT_OUT_DIR = 'content/generated'
@@ -271,7 +278,8 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   if (assetsFile !== undefined) place(assetsFile.toml, ruken.assets)
 
   // 5. Translations must have exactly the source keys.
-  for (const { source } of everySourceParsed ? tree.translations : []) {
+  const translated = new Map<string, MessageCatalog>()
+  for (const { language, source } of everySourceParsed ? tree.translations : []) {
     let parsed: unknown
     try {
       parsed = JSON.parse(source.text)
@@ -296,6 +304,9 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
       const item = items[origin.index] as ParsedItem
       place(item.toml, [{ ...problem, path: origin.path, message: `${key} is missing from ${source.file}` }])
     }
+    // Only read once the whole compile passed, when every value is known to be text.
+    const { $schema: _schema, ...catalog } = parsed as Record<string, string>
+    translated.set(language, catalog)
   }
 
   if (codeProblems.length > 0) {
@@ -328,7 +339,22 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   }
   return {
     ok: true,
-    content: { data, hash, sim, files: withOutputList(run.files), warnings: sortDiagnostics(tree.warnings) },
+    content: {
+      data,
+      hash,
+      sim,
+      files: withOutputList(run.files),
+      warnings: sortDiagnostics(tree.warnings),
+      languages,
+      // The source catalog is the TOML's text, so an authored translation named after the source language
+      // never replaces it.
+      catalogs: new Map(
+        languages.map((language, index) => [
+          language,
+          index === 0 ? messages : (translated.get(language) as MessageCatalog),
+        ]),
+      ),
+    },
   }
 }
 

@@ -110,6 +110,22 @@ describe('the fixture game', () => {
     expect(files.get('flow.mmd')).toMatch(/^stateDiagram-v2\n/)
   })
 
+  it('keeps each language’s catalog, source first, outside the hashed data', async () => {
+    const root = copyFixture('valid')
+    const before = await compiled(fixtureOptions(root))
+    expect(before.languages).toEqual(['en', 'fr'])
+    expect([...before.catalogs.keys()]).toEqual(['en', 'fr'])
+    expect(before.catalogs.get('en')?.content_stage_dawn_display_name).toBe('Dawn')
+    expect(before.catalogs.get('fr')?.content_stage_dawn_display_name).toBe('Aube')
+    expect(before.catalogs.get('fr')).not.toHaveProperty('$schema')
+    // The sim stores keys, never strings: a translation edit moves neither hash (PRODUCT spec §4 item 5).
+    edit(root, 'messages/fr.json', (text) => text.replace('"Aube"', '"Aurore"'))
+    const after = await compiled(fixtureOptions(root))
+    expect(after.catalogs.get('fr')?.content_stage_dawn_display_name).toBe('Aurore')
+    expect(after.hash).toBe(before.hash)
+    expect(after.sim.hash).toBe(before.sim.hash)
+  })
+
   it('gives nested files path IDs', async () => {
     const root = copyFixture('valid')
     mkdirSync(join(root, 'content/songs/night'))
