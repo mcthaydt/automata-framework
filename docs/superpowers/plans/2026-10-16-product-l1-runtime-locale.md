@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §4 items 1 to 4 (the runtime part of "Messages", "Negotiation", "Formatting", "Document"), acceptance cases L-b and L-c (runtime level); §9 ownership: `runtime` owns negotiation and `t()`.
 - **Status:** drafted 2026-10-16. PRODUCT.0 is Owner-approved with every recommended default (2026-10-16), so this plan may run.
-- **Progress:** 0 of 7 steps.
+- **Progress:** 3 of 7 steps.
 - **Split (PRODUCT.L is three PRs).** This plan is **PRODUCT.L1**, the runtime part. **PRODUCT.L2** (content: Paraglide compile of the content catalogs, per-locale TOML text, glyph sets, L-d, L-e once M5's asset build exists) and **PRODUCT.L3** (ui: language picker, `xx-long` pseudo-locale in every layout contract, logical properties and the right-to-left contract, the L-a example and the e2e first-frame check) are recorded as rows in 02. The `automata check` additions (§4 item 8) wait for DX.6 (PR #42) and are a follow-up row.
 
 ## Source
@@ -45,15 +45,15 @@ FloorFifty's tests for these files are UI-level (Svelte stores); the AF tests be
 
 ## Steps
 
-- [ ] **1. Negotiation.** `negotiate-locale.test.ts`:
+- [x] **1. Negotiation.** `negotiate-locale.test.ts`:
   - hosted `fr-CA` with locales `en, fr` gives `fr` (exact tag first, then primary subtag);
   - hosted wins over saved and browser; an unsupported hosted locale falls through to saved, then to the first supported browser language, then to `baseLocale`;
   - a saved choice that is no longer a locale is ignored;
   - matching is case-insensitive and returns the game's own spelling (`pt-br` → `pt-BR`).
 
   Run `pnpm --filter @mcthaydt/automata-runtime exec vitest run --project unit src/locale` and confirm it fails because `./negotiate-locale` does not exist. Implement, confirm it passes.
-- [ ] **2. Formatting.** `format.test.ts`: `formatNumber('de', 1234.5)` is `1.234,5`; `formatPercent('fr', 0.5)` uses a narrow no-break space before `%`; `formatDuration('en', 75_000)` is `1:15` and `formatDuration('en', 3_725_000)` is `1:02:05`; `pluralCategory('en', 1)` is `one`, `pluralCategory('en', 2, 'ordinal')` is `two`; `selectPlural('fr', 0, { one, other })` picks `one` (French zero is singular). Confirm it fails on the missing module, implement, confirm it passes.
-- [ ] **3. Document.** `document-locale.test.ts`: `textDirection` is `rtl` for `ar`, `he`, `fa`, `ur` and `ar-EG`, and `ltr` for `en`, `ja`, `zh-Hans`, `xx-long`; `applyDocumentLocale` sets `lang` and `dir` on the element. Confirm the failure, implement from `Intl.Locale#maximize().script` (the same answer in every engine), confirm it passes.
+- [x] **2. Formatting.** `format.test.ts`: `formatNumber('de', 1234.5)` is `1.234,5`; `formatPercent('fr', 0.5)` uses a narrow no-break space before `%`; `formatDuration('en', 75_000)` is `01:15` and `formatDuration('en', 3_725_000)` is `1:02:05`; `pluralCategory('en', 1)` is `one`, `pluralCategory('en', 2, 'ordinal')` is `two`; `selectPlural('fr', 0, { one, other })` picks `one` (French zero is singular). Confirm it fails on the missing module, implement, confirm it passes.
+- [x] **3. Document.** `document-locale.test.ts`: `textDirection` is `rtl` for `ar`, `he`, `fa`, `ur` and `ar-EG`, and `ltr` for `en`, `ja`, `zh-Hans`, `xx-long`; `applyDocumentLocale` sets `lang` and `dir` on the element. Confirm the failure, implement from `Intl.Locale#maximize().script` (the same answer in every engine), confirm it passes.
 - [ ] **4. Paraglide `t()`.** `testing/compile-fixture.ts` compiles `testing/fixture.inlang` (en, fr) with Paraglide's `compile` into a temporary folder. `paraglide.test.ts`:
   - `bindParaglide(runtime, () => 'fr')` makes the generated `m.play()` answer `Jouer`;
   - `createT(m)('hello', { name: 'Ada' })` answers `Bonjour Ada` while the getter answers `fr`, and `Hello Ada` after it answers `en`, with no reload;
