@@ -2,7 +2,7 @@
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.6, §4 (owner: `packages/cli`, integration), §6 (tool missing → exit 2), §8 (unit layer); [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) F3 (style step).
 - **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16.
-- **Progress:** 6 of 8 steps.
+- **Progress:** 7 of 8 steps.
 
 ## Global constraints
 
@@ -95,7 +95,7 @@
   - `csp-probe.slow.test.ts` (Chromium, run by `pnpm --filter @mcthaydt/automata-cli test:slow` with `PLAYWRIGHT_BROWSERS_PATH`): a ready fixture passes, an `eval` fixture reports a violation, a never-ready fixture times out (short timeout), and a `failed` fixture fails.
 
   Confirm both fail, implement `CspProbeLive` (a `node:http` static server on an ephemeral port, plus Playwright resolved from the game folder), then confirm green. The slow suite is not part of `pnpm check`: the hosted unit job has no browsers, and turbo does not pass `PLAYWRIGHT_BROWSERS_PATH` to `test:unit`.
-- [ ] **7. CLI.** Extend `bin.test.ts`: `check` dispatches to `runCheck` (an injected runner), `--json` prints only the JSON, and the exit code passes through. Confirm it fails, wire it into `bin.ts`, then confirm green.
+- [x] **7. CLI.** Extend `bin.test.ts`: `check` dispatches to `runCheck` (an injected runner), `--json` prints only the JSON, and the exit code passes through. Confirm it fails, wire it into `bin.ts`, then confirm green.
 - [ ] **8. Integration and gates.**
   - Run `pnpm --filter @mcthaydt/automata-cli check:example` (`automata check --json --csp` in `examples/base-2d`) and `--sim-only`. Record each step's result and time.
   - Show a seeded failure (an `effect` import in the sim) giving exit 1, then revert it.

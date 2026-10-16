@@ -34,7 +34,8 @@
     "test:unit": "vitest run",
     "typecheck": "tsc -p .",
     "build": "tsdown",
-    "test:slow": "vitest run --config vitest.slow.config.ts"
+    "test:slow": "vitest run --config vitest.slow.config.ts",
+    "check:example": "node src/bin.ts check ../../examples/base-2d --csp"
   },
   "dependencies": {
     "@mcthaydt/automata-node": "workspace:*",
