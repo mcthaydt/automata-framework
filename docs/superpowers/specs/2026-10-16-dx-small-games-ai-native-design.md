@@ -180,7 +180,7 @@ Two view factories for `entityViews`, both interpolating `x`/`y` (and `angle`, s
 
 Components without a view draw nothing. A full resync after restore rebuilds views from the snapshot (existing consumer behavior).
 
-**Amendment (DX.3, decision E-1; pending Owner review).** A game that draws more than entity views (Emberwick's light map, particles and backdrop) uses the default renderer through stage hooks: `PixiRendererOptions.setup(stage)` may return `PixiStageHooks { apply?(result), draw?(frame), reset?() }`, called after the delta consumer applies a step, after interpolation and before `app.render()`, and after the consumer resets. A `setup` that returns nothing behaves as before. See the [DX.3 plan](../plans/2026-10-16-dx3-emberwick-on-start-game.md).
+**Amendment (DX.3, decision E-1; approved by the Owner, 2026-10-16).** A game that draws more than entity views (Emberwick's light map, particles and backdrop) uses the default renderer through stage hooks: `PixiRendererOptions.setup(stage)` may return `PixiStageHooks { apply?(result), draw?(frame), reset?() }`, called after the delta consumer applies a step, after interpolation and before `app.render()`, and after the consumer resets. A `setup` that returns nothing behaves as before. See the [DX.3 plan](../plans/2026-10-16-dx3-emberwick-on-start-game.md).
 
 ### 3.5 `create-game` makes a real game
 
