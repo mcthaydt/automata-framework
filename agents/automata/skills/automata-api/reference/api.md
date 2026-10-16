@@ -1382,7 +1382,7 @@ The ports a checkout's test server and preview build listen on (FloorFifty `play
 Several agents run at once, each in its own worktree; with fixed ports a second run either failed on a busy
 port or, reusing the first run's server, silently tested another worktree's code. So each checkout path
 hashes to its own slot. AF uses 4600–4799, clear of FloorFifty's 4400–4599 on the same machine; a second
-example in the same run adds a fixed offset (the ui demo +100 on the preview port, `examples/base-2d` +300).
+example in the same run adds a fixed offset (the ui demo +100 on the preview port, Emberwick (`games/emberwick`) +300).
 CI runs one job per machine and uses the fixed pair; AF_E2E_SERVER_PORT / AF_E2E_PREVIEW_PORT override.
 
 ```ts
@@ -1728,6 +1728,14 @@ _No doc comment._
 function createSim(opts: SimOptions): Promise<Sim>;
 ```
 
+#### `Def` (type)
+
+Anything `definePlugin`'s flat `defs` list takes (DX spec §3.2).
+
+```ts
+type Def = ComponentDef | CommandDef | EventDef | ResourceDef | SystemDef;
+```
+
 #### `defineCommand` (function)
 
 _No doc comment._
@@ -1762,6 +1770,8 @@ _No doc comment._
 function definePlugin(spec: {
   name: string;
   dependsOn?: readonly string[];
+  /** One flat list, sorted into the keyed lists by `kind`; each entry follows that list's keyed entries. */
+  defs?: readonly Def[];
   components?: readonly ComponentDef[];
   commands?: readonly CommandDef[];
   events?: readonly EventDef[];
@@ -1782,16 +1792,13 @@ function defineResource<Z extends z.ZodType>(id: string, schema: Z, init: () => 
 
 #### `defineSystem` (function)
 
-_No doc comment._
+A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the
+object form also takes `before`/`after`. All three build the same SystemDef (DX spec §3.2).
 
 ```ts
-function defineSystem(spec: {
-  name: string;
-  phase: Phase;
-  before?: readonly string[];
-  after?: readonly string[];
-  run: (ctx: SimContext) => void;
-}): SystemDef;
+function defineSystem(name: string, run: (ctx: SimContext) => void): SystemDef;
+function defineSystem(name: string, phase: Phase, run: (ctx: SimContext) => void): SystemDef;
+function defineSystem(spec: SystemSpec): SystemDef;
 ```
 
 #### `deriveSeed` (function)
@@ -2289,6 +2296,20 @@ interface SystemDef {
   readonly before: readonly string[];
   readonly after: readonly string[];
   readonly run: (ctx: SimContext) => void;
+}
+```
+
+#### `SystemSpec` (interface)
+
+The object form of `defineSystem`: a name, a phase, the optional `before`/`after` ordering and the run.
+
+```ts
+interface SystemSpec {
+  name: string;
+  phase: Phase;
+  before?: readonly string[];
+  after?: readonly string[];
+  run: (ctx: SimContext) => void;
 }
 ```
 
