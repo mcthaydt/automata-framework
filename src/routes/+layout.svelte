@@ -1,4 +1,6 @@
 <script lang="ts">
+  import '@fontsource-variable/geist/wght.css'
+  import '@fontsource-variable/geist-mono/wght.css'
   import '../app.css'
   import { SITE_ORIGIN } from '$lib/site.js'
   import { page } from '$app/stores'

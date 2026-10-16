@@ -5,12 +5,12 @@
   const current = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href)
 </script>
 <header class="site-header">
-  <a class="brand" href="/" aria-label="Automata home">automata</a>
+  <a class="brand" href="/" aria-label="Automata home">automata<span class="brand-dot" aria-hidden="true"></span></a>
   <nav class="desktop-nav" aria-label="Main navigation">
     {#each links as [href, label]}<a {href} aria-current={current(href) ? 'page' : undefined}>{label}</a>{/each}
   </nav>
   <div class="header-actions">
-    <button class="search-trigger" type="button" onclick={onOpenSearch} aria-label="Search documentation and API">Search</button>
+    <button class="search-trigger" type="button" onclick={onOpenSearch} aria-label="Search documentation and API">Search<kbd aria-hidden="true">⌘K</kbd></button>
     <details bind:this={mobile} class="mobile-nav">
       <summary>Menu</summary>
       <nav aria-label="Mobile navigation">

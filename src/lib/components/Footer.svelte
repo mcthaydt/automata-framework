@@ -6,6 +6,6 @@
       <a href="https://github.com/mcthaydt/automata-framework">Framework source</a>
     </nav>
   </div>
-  <a href="/" class="footer-wordmark" aria-label="Automata home">automata</a>
+  <a href="/" class="footer-wordmark" aria-label="Automata home">automata<span class="brand-dot" aria-hidden="true"></span></a>
   <p class="small">MIT framework code · © {new Date().getFullYear()} Automata</p>
 </footer>

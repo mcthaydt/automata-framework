@@ -48,7 +48,7 @@
 
 <style>
   .api-module { min-width: 0; margin-top: 4rem; }
-  .task-heading { font-size: var(--step-lead); margin-top: 2.5rem; }
+  .task-heading { margin: 2.5rem 0 0; font-family: var(--font-mono); font-size: var(--step-micro); font-weight: 400; letter-spacing: .1em; word-spacing: normal; text-transform: uppercase; color: var(--muted); }
   .api-module > :global(.code-block) { margin-block: 1.5rem 2rem; }
   .api-entry { min-width: 0; }
   .api-signature { overflow-x: auto; margin-block: 1rem; }
