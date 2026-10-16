@@ -2,7 +2,7 @@
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §2.3 ("Complete plain-text documentation", "Exhaustive API reference"), §3.7 (`automata-api` reads `reference/api.md`), §3.8, §8 (unit: API index extraction), §10 (DX.4).
 - **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16 with every recommended default.
-- **Progress:** 0 of 6 steps.
+- **Progress:** 2 of 6 steps.
 
 ## Decisions
 
@@ -29,8 +29,8 @@
 
 ## Steps
 
-- [ ] **1. Entry points.** `entry-points.test.ts` over `fixtures/repo`: a package with `.` and `./sub`, a `./theme.css` key, a private package and a bin-only package give exactly the two typed entry points with their versions; a missing `types` file is reported. Run `pnpm --filter @mcthaydt/api-index test`; it fails because `entry-points.ts` does not exist. Implement; pass.
-- [ ] **2. Extraction.** `extract.test.ts` over the fixture `.d.ts`: a documented function (overloads joined), interface, type alias, const, class and enum get the right kind, signature (no `export`/`declare`) and doc (with `@tags`); an export renamed through a chunk (`export { n as Renamed }`) is named `Renamed` in its signature; an undocumented export has `doc: ''`. Fails on the missing module; implement with the TypeScript 6 checker; pass.
+- [x] **1. Entry points.** `entry-points.test.ts` over `fixtures/repo`: a package with `.` and `./sub`, a `./theme.css` key, a private package and a bin-only package give exactly the two typed entry points with their versions; a missing `types` file is reported. Run `pnpm --filter @mcthaydt/api-index test`; it fails because `entry-points.ts` does not exist. Implement; pass.
+- [x] **2. Extraction.** `extract.test.ts` over the fixture `.d.ts`: a documented function (overloads joined), interface, type alias, const, class and enum get the right kind, signature (no `export`/`declare`) and doc (with `@tags`); an export renamed through a chunk (`export { n as Renamed }`) is named `Renamed` in its signature; an undocumented export has `doc: ''`. Fails on the missing module; implement with the TypeScript 6 checker; pass.
 - [ ] **3. Doc check and baseline.** `baseline.test.ts`: an undocumented export not in the baseline is reported; a baseline id that is documented or missing is reported as stale; a clean set reports nothing. Fails; implement; pass.
 - [ ] **4. Renderers and corpus.** `render.test.ts`: `api.json` carries the version and every field; `api.md` states the version and has one section per entry point with each signature in a `ts` block; `llms-full.txt` holds every `CORPUS` file in order, then the API index; a missing corpus file throws. Fails; implement; pass.
 - [ ] **5. CLI and CI hook.** `cli.test.ts`: on the fixture repo the CLI writes the four files and exits 1 naming the undocumented export; with a matching baseline it exits 0; with no build it exits 2. `ci.test.ts`: `ci.yml`'s checks job and `ci:local` run `pnpm api-index` after `pnpm build`. Fail; add the root script, `ci:local` step and `ci.yml` step; pass.
