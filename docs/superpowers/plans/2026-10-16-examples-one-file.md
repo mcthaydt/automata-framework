@@ -124,18 +124,35 @@
 
 ## Task EX.3: target examples, written first (EX-D2)
 
-### Files
-**Create:**
-- `examples/core/core-basic-window.ts`
-- `examples/core/core-input-keys.ts`
-- `examples/shapes/shapes-rects.ts`
-- `examples/textures/textures-sprite.ts`
-- `examples/resources/sprites/` (Endesga 64, with `PROVENANCE.md`)
+### Files (refined at `1206310`, stacked on EX.1)
+- **Create:**
+  - `examples/core/core-basic-window.ts` (40 lines or fewer, DX.2's row in 02)
+  - `examples/core/core-input-keys.ts`
+  - `examples/shapes/shapes-rects.ts`
+  - `examples/textures/textures-sprite.ts`
+  - `examples/resources/sprites/wick-run.png` and `PROVENANCE.md` (Emberwick's two run frames of Wick, Endesga 64 only, as a 32 × 16 sheet)
+- **Modify** in `tooling/examples-runner/`:
+  - `src/catalog.ts` + `catalog.test.ts`, fixtures `src/fixtures/catalog/core/core-{both,both-done,schema,future,future-ready}.ts` and `delivery-plan.md` (`OPEN.2`);
+  - `src/parity.ts`, `src/examples.parity.test.ts` and the pending fixture `src/fixtures/examples/core/core-later.ts` (`Golden:`).
+
+### Interfaces
+- **Consumed (target API, not in this tree yet):** `defineGame` and `keys` from `@mcthaydt/automata-game` (DX.2, DX spec §3.1, §3.3); `rect({ w, h, color, anchor? })` and `sprite(url, { frames: { width, height } })` from `@mcthaydt/automata-render-pixi` (DX.2b, PR #39, exact names); `defineSystem(name, run)` and `definePlugin({ name, defs })` from `@mcthaydt/automata-sim` (DX.1, which DX.2 depends on); `z` from `zod` for command schemas.
+- **Produced:** the four examples; a `Pending:` line that may name several open tasks (`Pending: DX.2, DX.2b`); `GoldenEntry.pending`, so parity reports a pending golden example as skipped.
+
+### Deviations recorded here
+- **`Pending:` takes a list.** An example that needs `defineGame` (DX.2) and `rect` or `sprite` (DX.2b) names both. DX.2b can land first (it is parallel to DX.1, which DX.2 waits for); with one ID it would either be unblocked too early or not name DX.2b at all. Each ID must be an open task; when one is ticked the catalog asks to remove that ID. The smoke and parity skip reasons print the list.
+- **`zod` is a public import.** Commands take a Zod schema (`defineCommand(id, z.object(…))`; Zod is AF's only schema language), and no core package re-exports `z`. Once the umbrella exists (PRODUCT.2), EX.6 decides whether it re-exports `z`.
+- **A pending example may import a package that does not exist yet.** `@mcthaydt/automata-game` is DX.2's new package. The catalog accepts an `@mcthaydt/automata-*` import of a package missing from `packages/` only while the example is pending; a non-pending one still fails, and a package that exists must still declare the entry.
+- **Imports are the per-package entries** (EX.1's deviation), not the umbrella the spec's sketch uses: `@mcthaydt/automata-game`, `-render-pixi` and `-sim`. EX.6 narrows them to `@mcthaydt/automata` with PRODUCT.2.
+- **Spec sketch verbs not adopted:** the EX spec §3 sketch writes `u.f32`, `commands(Move)` and a plugin `setup`, which no task defines. The examples use the sim's field types (`'f32'`), `ctx.commands.of(Move)` and `GameSpec.sim.setup` (DX spec §3.1).
 
 ### Steps
-- [ ] **1.** Write each file against the API in the DX spec §3.1 and §3.4, with `Pending: DX.2` or `Pending: DX.2b`. The catalog passes; they show as pending in smoke and parity.
-- [ ] **2.** Remove `Pending:` from one example, and confirm typecheck fails naming the missing verb (for example `defineGame`). Then restore the line. This is the recorded red state that DX.2 must turn green.
-- [ ] **3.** In the DX.2 and DX.2b PRs, not here: remove `Pending:`, record each `Golden:` replay, and get smoke and parity green. This plan's step is ticked when they merge.
+- [ ] **1. Catalog: a list of pending tasks.** In `catalog.test.ts`, `core/core-both.ts` (`Pending: OPEN.1, OPEN.2`) is accepted; `core/core-both-done.ts` (`Pending: OPEN.1, DONE.1`) fails with `Pending: DONE.1 is ticked in the delivery plan; remove it from the Pending line`. Confirm they fail (`OPEN.1, OPEN.2 is not a task`), implement, confirm green.
+- [ ] **2. Catalog: imports a pending example may use.** `core/core-schema.ts` imports `zod` and is accepted; `core/core-future.ts` (pending) imports `@mcthaydt/automata-future` and is accepted; `core/core-future-ready.ts` (not pending) importing it fails with `is not a public entry`. Confirm the first two fail (`not a public entry`), implement, confirm green.
+- [ ] **3. Parity lists pending examples.** In `examples.parity.test.ts`, the fixtures' golden entries are `core-stub` and `core-later` (pending `OPEN.1`, given `Golden: 60`), and a pending entry's test is skipped with `pending: <tasks>`. Confirm it fails (`core-later` missing), implement, confirm green in Node.
+- [ ] **4. The four examples.** Write each against the API above, with `Pending: DX.2` (`core-basic-window`) or `Pending: DX.2, DX.2b` (the three that draw). `catalog.test.ts`'s real-examples test passes; `pnpm --filter @af-examples/examples typecheck` lists them as pending; smoke and parity skip them as pending; `pnpm boundaries` passes on their systems.
+- [ ] **5. The recorded red.** Remove `Pending:` from `core-basic-window` and from `shapes-rects`, run the catalog test and the examples typecheck, and record the failures (the missing `@mcthaydt/automata-game` package and the missing `rect` export). Restore the lines. This is the red state DX.2 and DX.2b must turn green.
+- [ ] **6.** In the DX.2 and DX.2b PRs, not here: remove each landed task from `Pending:`, add the examples' dependencies (`@mcthaydt/automata-game`, `@mcthaydt/automata-sim`, `zod`) to `examples/package.json`, record each `Golden:` replay, and get smoke and parity green. This step is ticked when they merge.
 
 ## Task EX.4: port the existing demos (after DX.2 and DX.2b)
 
