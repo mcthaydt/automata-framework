@@ -1,6 +1,10 @@
 // PRODUCT.4: `docs/stack.md`, the "what's inside" page (PRODUCT spec §8). The prose lives in stack-cards.ts;
 // versions and licenses are facts read from the pins and the installed packages, never typed by hand.
 
+import { readdirSync, readFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
+import { type Manifest, pinsFromVersionsDoc } from './pins.ts'
+
 export interface StackCard {
   readonly library: string
   readonly tier: 'Core' | 'Plus'
@@ -103,4 +107,129 @@ export function renderStackPage(source: StackSource, facts: ReadonlyMap<string, 
   for (const card of source.cards) lines.push(...cardSection(card, facts))
   for (const note of source.notes) lines.push(`## ${note.title}`, '', note.body, '')
   return `${lines.join('\n').trimEnd()}\n`
+}
+
+interface WorkspaceEntry {
+  /** Relative to the root, `.` for the root itself. */
+  readonly dir: string
+  readonly manifest: Manifest
+}
+
+const NOT_DECLARED = 'not declared in the installed package'
+
+function readJson<T>(path: string): T | undefined {
+  try {
+    return JSON.parse(readFileSync(path, 'utf8')) as T
+  } catch {
+    return undefined
+  }
+}
+
+/** The root plus every folder pnpm-workspace.yaml names (packages/*, tooling/*, examples/*, examples/*\/*). */
+function workspace(root: string): WorkspaceEntry[] {
+  const dirs = ['.']
+  const children = (dir: string): string[] => {
+    try {
+      return readdirSync(join(root, dir), { withFileTypes: true })
+        .filter((entry) => entry.isDirectory() && entry.name !== 'node_modules')
+        .map((entry) => join(dir, entry.name))
+        .sort()
+    } catch {
+      return [] // the group folder does not exist
+    }
+  }
+  dirs.push(...children('packages'), ...children('tooling'))
+  for (const example of children('examples')) dirs.push(example, ...children(example))
+  const entries: WorkspaceEntry[] = []
+  for (const dir of dirs) {
+    const manifest = readJson<Manifest>(join(root, dir, 'package.json'))
+    if (manifest !== undefined) entries.push({ dir: relative(root, join(root, dir)) || '.', manifest })
+  }
+  return entries
+}
+
+/** The specifier a manifest installs `name` with. Peers are skipped: a peer range is not what gets installed. */
+function installSpecifier(manifest: Manifest, name: string): string | undefined {
+  return (
+    manifest.dependencies?.[name] ?? manifest.devDependencies?.[name] ?? manifest.optionalDependencies?.[name]
+  )
+}
+
+function mentions(manifest: Manifest, name: string): boolean {
+  return installSpecifier(manifest, name) !== undefined || manifest.peerDependencies?.[name] !== undefined
+}
+
+/** The commit `vendor/ruken/README.md` records the tarballs as packed from. */
+function vendoredRukenCommit(root: string): string {
+  const readme = readFileSync(join(root, 'vendor/ruken/README.md'), 'utf8')
+  const commit = /RukenApp `main` at `([0-9a-f]+)`/.exec(readme)?.[1]
+  if (commit === undefined) throw new Error('vendor/ruken/README.md does not record the RukenApp commit')
+  return commit
+}
+
+function licenseOf(installed: { license?: unknown }): string {
+  if (typeof installed.license === 'string') return installed.license
+  // The old `{ "type": "MIT" }` form some packages still publish.
+  const type = (installed.license as { type?: unknown } | undefined)?.type
+  return typeof type === 'string' ? type : NOT_DECLARED
+}
+
+function packageFacts(
+  root: string,
+  name: string,
+  users: readonly WorkspaceEntry[],
+  pinned: readonly string[],
+): PackageFacts {
+  let license: string | undefined
+  let vendored: string[] = []
+  for (const user of users) {
+    const specifier = installSpecifier(user.manifest, name) ?? ''
+    const installed = readJson<{ version?: string; license?: unknown }>(
+      join(root, user.dir, 'node_modules', name, 'package.json'),
+    )
+    if (installed === undefined) throw new Error(`${name}: not installed in ${user.dir}; run pnpm install`)
+    if (specifier.startsWith('file:')) {
+      vendored = [...new Set([...vendored, installed.version ?? 'unknown'])]
+    } else if (installed.version !== specifier) {
+      throw new Error(
+        `${name}: ${user.dir} has ${installed.version} installed but pins ${specifier}; run pnpm install`,
+      )
+    }
+    license ??= licenseOf(installed)
+  }
+  if (pinned.length > 0) return { name, versions: pinned, license: license ?? NOT_DECLARED }
+  if (vendored.length === 0) throw new Error(`${name}: no row in docs/versions.md`)
+  return {
+    name,
+    versions: vendored,
+    license: license ?? NOT_DECLARED,
+    source: `vendored tarball, RukenApp \`${vendoredRukenCommit(root)}\``,
+  }
+}
+
+/**
+ * Versions and licenses for every package the cards name, read from docs/versions.md and the installed
+ * packages. Throws, naming the package, on anything that would make the page claim something unverified.
+ */
+export function collectStackFacts(root: string, cards: readonly StackCard[]): Map<string, PackageFacts> {
+  const entries = workspace(root)
+  const pins = pinsFromVersionsDoc(readFileSync(join(root, 'docs/versions.md'), 'utf8'))
+  const facts = new Map<string, PackageFacts>()
+  for (const card of cards) {
+    for (const name of card.planned?.packages ?? []) {
+      const user = entries.find((entry) => mentions(entry.manifest, name))
+      if (user !== undefined) {
+        throw new Error(
+          `${name}: planned for ${card.planned?.task} but ${user.dir} depends on it now; move it to the card's packages`,
+        )
+      }
+    }
+    for (const name of card.packages) {
+      const users = entries.filter((entry) => installSpecifier(entry.manifest, name) !== undefined)
+      if (users.length === 0) throw new Error(`${name}: no package.json depends on it`)
+      const pinned = pins.filter((pin) => pin.name === name).map((pin) => pin.version)
+      facts.set(name, packageFacts(root, name, users, pinned))
+    }
+  }
+  return facts
 }

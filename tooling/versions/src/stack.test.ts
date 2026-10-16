@@ -1,5 +1,14 @@
-import { describe, expect, it } from 'vitest'
-import { type PackageFacts, renderStackPage, type StackSource } from './stack.ts'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import {
+  collectStackFacts,
+  type PackageFacts,
+  renderStackPage,
+  type StackCard,
+  type StackSource,
+} from './stack.ts'
 
 const source: StackSource = {
   intro: 'The libraries AF is built on.',
@@ -76,5 +85,117 @@ describe('renderStackPage', () => {
 
   it('fails when an installed package has no facts', () => {
     expect(() => renderStackPage(source, new Map())).toThrow('zod: no facts collected')
+  })
+})
+
+describe('collectStackFacts', () => {
+  let root = ''
+
+  const write = (path: string, content: unknown): void => {
+    mkdirSync(dirname(join(root, path)), { recursive: true })
+    writeFileSync(join(root, path), typeof content === 'string' ? content : JSON.stringify(content))
+  }
+
+  const card = (packages: string[], planned?: StackCard['planned']): StackCard => ({
+    library: 'X',
+    tier: 'Core',
+    packages,
+    ...(planned === undefined ? {} : { planned }),
+    does: '',
+    why: '',
+    adds: '',
+  })
+
+  beforeEach(() => {
+    root = mkdtempSync(join(tmpdir(), 'af-stack-'))
+    write(
+      'docs/versions.md',
+      [
+        '## npm packages',
+        '| Package | Version | Date | Why |',
+        '|---|---|---|---|',
+        '| `vitest` | 5.0.3 | 2026-10-01 | tests |',
+        '| `zod` | 4.6.5 | 2026-10-01 | schemas |',
+        '| `bare` | 1.0.0 | 2026-10-01 | no license field |',
+        '| `drifted` | 2.0.0 | 2026-10-01 | installed at another version |',
+        '| `absent` | 3.0.0 | 2026-10-01 | never installed |',
+      ].join('\n'),
+    )
+    write('vendor/ruken/README.md', '**Source:** RukenApp `main` at `b30d31b`, packed 2026-10-11.')
+    write('package.json', { devDependencies: { vitest: '5.0.3' } })
+    write('node_modules/vitest/package.json', { name: 'vitest', version: '5.0.3', license: 'MIT' })
+    write('packages/a/package.json', {
+      dependencies: {
+        zod: '4.6.5',
+        bare: '1.0.0',
+        drifted: '2.0.0',
+        absent: '3.0.0',
+        unpinned: '1.2.3',
+        '@ruken/sdk': 'file:../../vendor/ruken/ruken-sdk-0.0.0.tgz',
+      },
+      peerDependencies: { zod: '^4.6.5' },
+    })
+    write('packages/a/node_modules/zod/package.json', { name: 'zod', version: '4.6.5', license: 'MIT' })
+    write('packages/a/node_modules/bare/package.json', { name: 'bare', version: '1.0.0' })
+    write('packages/a/node_modules/drifted/package.json', {
+      name: 'drifted',
+      version: '2.0.1',
+      license: 'MIT',
+    })
+    write('packages/a/node_modules/unpinned/package.json', { name: 'unpinned', version: '1.2.3' })
+    write('packages/a/node_modules/@ruken/sdk/package.json', { name: '@ruken/sdk', version: '0.0.0' })
+  })
+
+  afterEach(() => {
+    rmSync(root, { recursive: true, force: true })
+  })
+
+  it('reads the pinned version and the installed license', () => {
+    const facts = collectStackFacts(root, [card(['zod', 'vitest'])])
+    expect(facts.get('zod')).toEqual({ name: 'zod', versions: ['4.6.5'], license: 'MIT' })
+    expect(facts.get('vitest')).toEqual({ name: 'vitest', versions: ['5.0.3'], license: 'MIT' })
+  })
+
+  it('says so when the installed package declares no license', () => {
+    expect(collectStackFacts(root, [card(['bare'])]).get('bare')?.license).toBe(
+      'not declared in the installed package',
+    )
+  })
+
+  it('reads a vendored Ruken tarball from the installed package and the vendored commit', () => {
+    expect(collectStackFacts(root, [card(['@ruken/sdk'])]).get('@ruken/sdk')).toEqual({
+      name: '@ruken/sdk',
+      versions: ['0.0.0'],
+      license: 'not declared in the installed package',
+      source: 'vendored tarball, RukenApp `b30d31b`',
+    })
+  })
+
+  it('fails on a package nothing depends on', () => {
+    expect(() => collectStackFacts(root, [card(['ghost'])])).toThrow('ghost: no package.json depends on it')
+  })
+
+  it('fails on a package with no pin in docs/versions.md', () => {
+    expect(() => collectStackFacts(root, [card(['unpinned'])])).toThrow(
+      'unpinned: no row in docs/versions.md',
+    )
+  })
+
+  it('fails on a package that is not installed', () => {
+    expect(() => collectStackFacts(root, [card(['absent'])])).toThrow(
+      'absent: not installed in packages/a; run pnpm install',
+    )
+  })
+
+  it('fails when the installed version is not the pin', () => {
+    expect(() => collectStackFacts(root, [card(['drifted'])])).toThrow(
+      'drifted: packages/a has 2.0.1 installed but pins 2.0.0; run pnpm install',
+    )
+  })
+
+  it('fails when a planned package is now in a package.json', () => {
+    expect(() => collectStackFacts(root, [card([], { packages: ['zod'], task: 'PRODUCT.L' })])).toThrow(
+      "zod: planned for PRODUCT.L but packages/a depends on it now; move it to the card's packages",
+    )
   })
 })
