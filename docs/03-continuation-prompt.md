@@ -26,9 +26,18 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 **Blocked on the Owner:** an `NPM_TOKEN` secret (DX.11); attaching `mcthaydt/automata-skills` to the agent session (the repo exists; DX.11); hosting and DNS for `automata.ruken.com` (DX.12, QB.4); a Discord server and bot, and a working Discord connector (DX.13); an itch.io account and `BUTLER_API_KEY` (PUB.5); the go-ahead to post the two drafted Ruken issues (QB spec §6, PUB spec §9); QB-D4; the QB.1 repository settings (release environment, Renovate, private vulnerability reporting); the DX.2b `frames` shape; PRODUCT.L's negotiation order (Ruken `session.locale` before the saved choice, as the spec says); reviews of each new milestone spec and of every draft PR. `mcthaydt/automata-plus` now exists (private), which unblocks PRODUCT.5 and PRODUCT.1b once their dependencies merge.
 
-**CI capacity:** the one af-linux runner is overloaded; unit jobs fail on timeouts in untouched packages. The fix is the Owner's: a second runner labelled `af-linux` or another label in the `AF_LINUX_RUNNER` variable.
+**CI capacity:** af-linux (shared with Ruken) runs one job at a time and is scheduled by the orchestrator session. #52 (merged 2026-10-16) raised the unit-test budgets to 90 s and plans turbo's inputs once, so load alone should no longer turn a PR red. Locally, clear `node_modules/.vite` after merging `main`: browser projects pre-bundle workspace packages and that cache does not see source changes (a stale bundle fails `bounce-defs.golden` with a wrong schema hash; CI starts clean).
 
-**Next:** Wave 1 is drafted: every task has a draft PR (02's execution record lists them, #35–#48 and `automata_website` #2), and they wait on Owner review and merge. Wave 2 runs stacked on its unmerged dependencies, each PR based on its dependency's branch: EX.3 on EX.1 (#43), PRODUCT.3 on DX.4 (#37), PUB.4 on PUB.2 (#41) are in progress. Then QB.2 (on DX.6, #42), EX.5 (on EX.1), DX.7 (needs DX.4 and DX.6), PUB.3 (needs PUB.1 and PUB.2); DX.2 after EX.3 and DX.1 (#36), then DX.3 and PRODUCT.2. A fresh session resumes by checking which PRs merged (retarget stacked PRs to `main` after their base merges) and starting the next unblocked Wave 2 task.
+**Itch is skipped for now (Owner, 2026-10-16).** PUB.3's work-in-progress is parked on `claude/clever-pasteur-ujmu6e-pub3-wip` (no PR, do not merge); PUB.5 is dropped from the queue; the itch PRs (#40 PUB.1, #41 PUB.2, #50 PUB.4) stay open drafts and get their `main` merges last, only when the Owner resumes itch.
+
+**Merged:** #52 (CI budgets, turbo inputs), #36 (DX.1).
+
+**Next (one af-linux run at a time, full local gates before each push, each PR marked ready before its push so the run includes parity):**
+1. Merge `main` into each waiting PR and push: #39 DX.2b, #44 PRODUCT.4, #45 PRODUCT.1 (its committed API reports regenerated for DX.1's sim API), #37 DX.4, #38 QB.1, #46 PRODUCT.7, #48 PRODUCT.L1 (with the locale-order commit `67d645d`), #49 PRODUCT.3. Send each green PR to the Owner for merge.
+2. Open the stacked PRs once their bases merge (retarget to `main`): QB.2 (`-qb2`, on DX.6 #42), EX.5 (`-ex5`, on EX.3 #51), DX.7 (`-dx7`, on DX.6), PRODUCT.L2 (`-productl2`, on PRODUCT.L1 #48), DX.2 (`-dx2`, on EX.3 #51 and DX.2b #39).
+3. Open the milestone spec drafts, each stopping for Owner review: M4.0 (`-m4spec`), then M5.0 (`-m5spec`, links to M4); M3.0 and M6.0 are being drafted.
+4. In progress locally: DX.3 (Emberwick on `startGame`, on `-dx2`). Then PRODUCT.2.
+A fresh session resumes by listing open PRs, checking which merged, and continuing this list from the first item not done.
 
 **Earlier history (M1 and the 2026-10-16 drafts):**
 
