@@ -2,7 +2,7 @@
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.6, §4 (owner: `packages/cli`, integration), §6 (tool missing → exit 2), §8 (unit layer); [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) F3 (style step).
 - **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16.
-- **Progress:** 0 of 8 steps.
+- **Progress:** 3 of 8 steps.
 
 ## Global constraints
 
@@ -27,7 +27,7 @@
 - **Steps listed:** the JSON lists only the steps that ran (skipped by `--sim-only`, not asked for with `--csp`, or after a failure with `--fail-fast` are absent).
 - **JSON:** exactly `{ ok, steps: [{ name, ok, ms, findings: [{ file, line, col, rule, message }] }] }`. A tool error is a step with `ok: false` and one finding whose rule is `tool-missing` (with what to install) or `tool-error` (with the tool's output).
 - **Exit codes:** 2 if any step had a tool error; else 1 if any step has findings; else 0. A missing tool is never a pass.
-- **No-eval allowlist** (`no-eval-allowlist.ts`): an entry matches by rule, exact string-literal arguments and being inside a `try` block. Entries, measured on the `examples/base-2d` build at `71c3410`: Pixi's `unsafeEvalSupported` probe and Zod 4's `allowsEval` probe. Both are feature probes guarded by `try`, and neither runs once the game imports `no-eval` (`pixi.js/unsafe-eval`, Zod `jitless`). Known limit: an alias (`const F = Function; new F(…)`, as in Zod's `Doc.compile`) is not seen by a syntactic scan. The `csp` step is the runtime check that catches it.
+- **No-eval allowlist** (`no-eval-allowlist.ts`): an entry matches a `Function(…)` call by its exact parameter-name literals and its body (an exact literal, or any expression for a generator); a probe must also sit inside a `try` block. Entries, measured on the `examples/base-2d` build at `71c3410` (the first scan found 8 calls there and 0 in the placeholder): Pixi's `unsafeEvalSupported` and Zod 4's `allowsEval` probes; Pixi's four code generators, which `pixi.js/unsafe-eval` (imported by `no-eval`) replaces; koota's SoA accessors, which AF's AoS components never reach. Known limits: an alias (`const F = Function; new F(…)`, as in Zod's `Doc.compile`) is not seen, and a game creating koota SoA traits directly passes the scan. The `csp` step is the runtime check for both.
 - **Style (PRODUCT F3):** `tooling/check-style` is `private` with no bin, so a game cannot run it. No `style` step; the gap is recorded in 02 as a follow-up. DX §3.6 and PRODUCT F3 disagree until it is published.
 
 ## Files
@@ -65,13 +65,13 @@
 
 ## Steps
 
-- [ ] **1. Args.** Write `check-args.test.ts`: the defaults, each flag, a `dir` positional, and an unknown flag rejected as a usage error. Run `pnpm --filter @mcthaydt/automata-cli test -- check-args`; it fails because the module is missing. Implement, then confirm green.
-- [ ] **2. Report.** Write `check-report.test.ts`:
+- [x] **1. Args.** Write `check-args.test.ts`: the defaults, each flag, a `dir` positional, and an unknown flag rejected as a usage error. Run `pnpm --filter @mcthaydt/automata-cli test -- check-args`; it fails because the module is missing. Implement, then confirm green.
+- [x] **2. Report.** Write `check-report.test.ts`:
   - `toJson` has exactly the spec's keys, and a tool error is a finding;
   - `exitCodeFor` gives 0 for all passing, 1 for findings, and 2 for a tool error even when another step has findings.
 
   Confirm it fails (missing module), implement, then confirm green.
-- [ ] **3. No-eval scanner.** Write `no-eval-scan.test.ts` over inline bundle fixtures:
+- [x] **3. No-eval scanner.** Write `no-eval-scan.test.ts` over inline bundle fixtures:
   - `clean.js`, which has Effect-style `eval(e){}` methods, `x.eval(…)`, `"eval("` in a string, and `setTimeout(fn)`, gives no findings;
   - `dirty.js` gives one finding for each form, with line and col;
   - the Pixi and Zod probes inside `try` are allowed;
