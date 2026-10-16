@@ -75,7 +75,7 @@ describe('renderStackPage', () => {
 
   it('says a planned library is not yet installed and invents no version or license', () => {
     const card = page.slice(page.indexOf('## Paraglide'), page.indexOf('## Why Rapier'))
-    expect(card).toContain('Not yet installed; planned for PRODUCT.L (`@inlang/paraglide-js`).')
+    expect(card).toContain('Not yet installed; planned for PRODUCT.L. Package: `@inlang/paraglide-js`.')
     expect(card).not.toContain('| Package |')
   })
 
@@ -137,6 +137,7 @@ describe('collectStackFacts', () => {
     })
     write('packages/a/node_modules/zod/package.json', { name: 'zod', version: '4.6.5', license: 'MIT' })
     write('packages/a/node_modules/bare/package.json', { name: 'bare', version: '1.0.0' })
+    write('packages/a/node_modules/unpinned/LICENSE', 'license text')
     write('packages/a/node_modules/drifted/package.json', {
       name: 'drifted',
       version: '2.0.1',
@@ -159,6 +160,13 @@ describe('collectStackFacts', () => {
   it('says so when the installed package declares no license', () => {
     expect(collectStackFacts(root, [card(['bare'])]).get('bare')?.license).toBe(
       'not declared in the installed package',
+    )
+  })
+
+  it('points at the LICENSE file when the package.json declares none', () => {
+    write('docs/versions.md', '## npm packages\n| `unpinned` | 1.2.3 | 2026-10-01 | x |')
+    expect(collectStackFacts(root, [card(['unpinned'])]).get('unpinned')?.license).toBe(
+      "no `license` field; see the package's LICENSE file",
     )
   })
 

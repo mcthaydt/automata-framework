@@ -86,7 +86,8 @@ function cardSection(card: StackCard, facts: ReadonlyMap<string, PackageFacts>):
   if (card.planned !== undefined) {
     const names = card.planned.packages.map((name) => `\`${name}\``).join(', ')
     const text = plannedText(card)
-    lines.push(`${text[0]?.toUpperCase()}${text.slice(1)} (${names}).`, '')
+    const label = card.planned.packages.length === 1 ? 'Package' : 'Packages'
+    lines.push(`${text[0]?.toUpperCase()}${text.slice(1)}. ${label}: ${names}.`, '')
   }
   lines.push(
     `- **Tier:** ${card.tier}`,
@@ -167,11 +168,13 @@ function vendoredRukenCommit(root: string): string {
   return commit
 }
 
-function licenseOf(installed: { license?: unknown }): string {
+function licenseOf(installed: { license?: unknown }, packageDir: string): string {
   if (typeof installed.license === 'string') return installed.license
   // The old `{ "type": "MIT" }` form some packages still publish.
   const type = (installed.license as { type?: unknown } | undefined)?.type
-  return typeof type === 'string' ? type : NOT_DECLARED
+  if (typeof type === 'string') return type
+  const hasLicenseFile = readdirSync(packageDir).some((file) => /^(licen[cs]e|copying)/i.test(file))
+  return hasLicenseFile ? "no `license` field; see the package's LICENSE file" : NOT_DECLARED
 }
 
 function packageFacts(
@@ -184,9 +187,8 @@ function packageFacts(
   let vendored: string[] = []
   for (const user of users) {
     const specifier = installSpecifier(user.manifest, name) ?? ''
-    const installed = readJson<{ version?: string; license?: unknown }>(
-      join(root, user.dir, 'node_modules', name, 'package.json'),
-    )
+    const packageDir = join(root, user.dir, 'node_modules', name)
+    const installed = readJson<{ version?: string; license?: unknown }>(join(packageDir, 'package.json'))
     if (installed === undefined) throw new Error(`${name}: not installed in ${user.dir}; run pnpm install`)
     if (specifier.startsWith('file:')) {
       vendored = [...new Set([...vendored, installed.version ?? 'unknown'])]
@@ -195,7 +197,7 @@ function packageFacts(
         `${name}: ${user.dir} has ${installed.version} installed but pins ${specifier}; run pnpm install`,
       )
     }
-    license ??= licenseOf(installed)
+    license ??= licenseOf(installed, packageDir)
   }
   if (pinned.length > 0) return { name, versions: pinned, license: license ?? NOT_DECLARED }
   if (vendored.length === 0) throw new Error(`${name}: no row in docs/versions.md`)
