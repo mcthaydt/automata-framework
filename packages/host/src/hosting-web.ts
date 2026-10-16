@@ -4,8 +4,10 @@ import type {
   DisplayMetricsPayload,
   EntitlementsPayload,
   FullscreenRes,
+  InputMode,
   InputModePayload,
   LifecyclePayload,
+  LifecycleReason,
   StorageLike,
 } from '@ruken/sdk'
 import { Deferred, Effect, Layer, Option, type Scope } from 'effect'
@@ -95,6 +97,25 @@ function storageError(operation: string, cause: unknown): HostError {
   return new HostError({ code: 'INTERNAL', retryable: true, operation, cause })
 }
 
+/** Capture and passive, as the SDK listens for input (`env-browser.ts`): the game's own handlers are untouched. */
+const LISTEN: AddEventListenerOptions = { capture: true, passive: true }
+
+/** Calls `onEvent` for each of `types` on `target`, until the returned function is called. */
+function listen(target: WebEvents, types: readonly string[], onEvent: PageListener): () => void {
+  for (const type of types) target.addEventListener(type, onEvent, LISTEN)
+  return () => {
+    for (const type of types) target.removeEventListener(type, onEvent, LISTEN)
+  }
+}
+
+/** A hidden tab or an unfocused page is in the background, so a game that pauses does (PUB spec §3.1). */
+function lifecycleOf(page: WebPage): LifecyclePayload {
+  const reasons: LifecycleReason[] = []
+  if (page.document.visibilityState === 'hidden') reasons.push('hidden')
+  if (!page.document.hasFocus()) reasons.push('blurred')
+  return { state: reasons.length === 0 ? 'active' : 'background', reasons }
+}
+
 function displayOf(page: WebPage): DisplayMetricsPayload {
   const width = page.visualViewport?.width ?? page.innerWidth
   const height = page.visualViewport?.height ?? page.innerHeight
@@ -102,6 +123,57 @@ function displayOf(page: WebPage): DisplayMetricsPayload {
     ...NOTHING_RESERVED,
     orientation: height > width ? 'portrait' : 'landscape',
     fullscreen: page.document.fullscreenElement !== null,
+  }
+}
+
+interface InputTracker {
+  current(): InputModePayload
+  on(onChange: (value: InputModePayload) => void): () => void
+  stop(): void
+}
+
+/**
+ * The last input the player used, from real events (PUB spec §3.1). A phone starts in touch mode. Ruken's host
+ * names the gamepad layout itself; outside it, AF reads 'xbox' from the gamepad's id and calls the rest 'other'.
+ */
+function trackInput(page: WebPage): InputTracker {
+  let mode: InputMode = page.matchMedia?.('(pointer: coarse)').matches === true ? 'touch' : 'keyboard-mouse'
+  let gamepad: InputModePayload['gamepad']
+  const subscribers = new Set<(value: InputModePayload) => void>()
+  const current = (): InputModePayload => (gamepad === undefined ? { mode } : { mode, gamepad })
+  const update = (nextMode: InputMode, nextGamepad: InputModePayload['gamepad'] = gamepad) => {
+    if (nextMode === mode && nextGamepad === gamepad) return
+    mode = nextMode
+    gamepad = nextGamepad
+    const value = current()
+    for (const subscriber of subscribers) subscriber(value)
+  }
+  const layoutOf = (event: Event): 'xbox' | 'other' => {
+    const id = (event as { gamepad?: { id?: string } }).gamepad?.id ?? ''
+    return /xbox|xinput/i.test(id) ? 'xbox' : 'other'
+  }
+  const stops = [
+    listen(page, ['pointerdown'], (event) =>
+      update((event as { pointerType?: string }).pointerType === 'touch' ? 'touch' : 'keyboard-mouse'),
+    ),
+    listen(page, ['touchstart'], () => update('touch')),
+    listen(page, ['keydown', 'wheel'], () => update('keyboard-mouse')),
+    listen(page, ['gamepadconnected'], (event) =>
+      update('gamepad', { layout: layoutOf(event), connected: true }),
+    ),
+    listen(page, ['gamepaddisconnected'], (event) =>
+      update(mode === 'gamepad' ? 'keyboard-mouse' : mode, { layout: layoutOf(event), connected: false }),
+    ),
+  ]
+  return {
+    current,
+    on: (onChange) => {
+      subscribers.add(onChange)
+      return () => void subscribers.delete(onChange)
+    },
+    stop: () => {
+      for (const stop of stops) stop()
+    },
   }
 }
 
@@ -126,12 +198,40 @@ export function makeWebHosting(
       Effect.suspend(() =>
         open ? request : Effect.fail(new HostError({ code: 'CANCELLED', retryable: false, operation })),
       )
+    const until = Deferred.await(shutdown)
     const constant = <A>(value: A) =>
       fromListener(
         () => value,
         () => () => undefined,
-        Deferred.await(shutdown),
+        until,
       )
+    /** A value read from the page, reported again when one of `sources` fires and the value has changed. */
+    const derived = <A>(
+      read: () => A,
+      sources: readonly (readonly [WebEvents | null | undefined, readonly string[]])[],
+    ) =>
+      fromListener(
+        read,
+        (onChange) => {
+          let last = JSON.stringify(read())
+          const check = () => {
+            const next = read()
+            const key = JSON.stringify(next)
+            if (key === last) return
+            last = key
+            onChange(next)
+          }
+          const stops = sources.flatMap(([target, types]) => (target ? [listen(target, types, check)] : []))
+          return () => {
+            for (const stop of stops) stop()
+          }
+        },
+        until,
+      )
+    const input = yield* Effect.acquireRelease(
+      Effect.sync(() => trackInput(page)),
+      (tracker) => Effect.sync(() => tracker.stop()),
+    )
 
     const storage = probeStorage(page)
     // The SDK's standalone prefix, so a game's saves are the same keys whichever adapter wrote them.
@@ -148,8 +248,9 @@ export function makeWebHosting(
         ),
       )
 
-    const lifecycle: LifecyclePayload = { state: 'active', reasons: [] }
-    const input: InputModePayload = { mode: 'keyboard-mouse' }
+    const fullscreenRoot = page.document.documentElement
+    const fullscreenSupported =
+      page.document.fullscreenEnabled === true && fullscreenRoot.requestFullscreen !== undefined
 
     const hosting: Hosting = {
       kind: 'web',
@@ -160,9 +261,22 @@ export function makeWebHosting(
       granted,
       ready: Effect.void,
 
-      lifecycle: constant(lifecycle),
-      input: constant(input),
-      display: constant(displayOf(page)),
+      lifecycle: derived(
+        () => lifecycleOf(page),
+        [
+          [page.document, ['visibilitychange']],
+          [page, ['focus', 'blur']],
+        ],
+      ),
+      input: fromListener(input.current, input.on, until),
+      display: derived(
+        () => displayOf(page),
+        [
+          [page.visualViewport, ['resize']],
+          [page, ['resize', 'orientationchange']],
+          [page.document, ['fullscreenchange']],
+        ],
+      ),
       audio: constant(FULL_VOLUME),
       entitlements: constant(NO_ENTITLEMENTS),
       savesStatus: constant('saved'),
@@ -176,13 +290,30 @@ export function makeWebHosting(
         // standalone session does.
         flush: withStorage('saves.flush', () => ({ persisted: 'host-outbox' as const })),
       },
-      setFullscreen: () =>
+      // The Element Fullscreen API on the page's root; itch.io's frame allows it. A request the browser
+      // refuses (no user gesture, a frame without allowfullscreen) fails DENIED rather than pretending.
+      setFullscreen: (on) =>
         whileOpen(
           'display.fullscreen',
-          Effect.succeed<FullscreenRes>({ fullscreen: false, support: 'none' }),
+          Effect.tryPromise({
+            try: async (): Promise<FullscreenRes> => {
+              if (!fullscreenSupported) return { fullscreen: false, support: 'none' }
+              const active = page.document.fullscreenElement !== null
+              if (on && !active) await fullscreenRoot.requestFullscreen?.()
+              if (!on && active) await page.document.exitFullscreen?.()
+              return { fullscreen: page.document.fullscreenElement !== null, support: 'element' }
+            },
+            catch: (cause) =>
+              new HostError({ code: 'DENIED', retryable: false, operation: 'display.fullscreen', cause }),
+          }),
         ),
       round: { start: Effect.void, end: () => Effect.void },
-      track: () => Effect.void,
+      // Nothing outside Ruken collects analytics. An undisclosed event is still reported, as the Ruken adapter
+      // reports it, so a game finds the mistake on any target.
+      track: (event) =>
+        options.disclosedEvents !== undefined && !options.disclosedEvents.includes(event)
+          ? Effect.logWarning(`track("${event}") dropped: not in the game's disclosed analytics events`)
+          : Effect.void,
       exit: () => whileOpen('session.exit', Effect.void),
       // Nothing outside Ruken asks for the game's menu or closes the game, so these are registered and never called.
       onMenuRequest: () => Effect.void,
