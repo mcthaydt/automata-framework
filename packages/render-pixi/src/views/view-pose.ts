@@ -1,4 +1,5 @@
 import type { FieldRecord } from '@mcthaydt/automata-sim'
+import type { Container } from 'pixi.js'
 
 /** Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`). */
 export interface Pose {
@@ -71,4 +72,33 @@ export function interpolatePose(
     y: lerp(numberField(prev, 'y'), y, alpha),
     angle: lerpAngle(numberField(prev, 'angle'), angle, alpha),
   }
+}
+
+/** Where the view's own box sits on its position: 0 = left/top, 0.5 = centre, 1 = right/bottom. */
+export type ViewAnchor = number | { readonly x: number; readonly y: number }
+
+/** The default anchor is the centre, so `angle` turns a view about its position. */
+export function anchorXY(anchor: ViewAnchor | undefined): { x: number; y: number } {
+  if (anchor === undefined) return { x: 0.5, y: 0.5 }
+  if (typeof anchor === 'number') return { x: anchor, y: anchor }
+  return { x: anchor.x, y: anchor.y }
+}
+
+/**
+ * Moves a view's container to the interpolated pose of its component. `alpha` is the frame's position
+ * between the previous tick and the current one, as `RenderDeltaConsumer` passes it.
+ */
+export function placeView(
+  container: Container,
+  curr: Components,
+  prev: Components | undefined,
+  alpha: number,
+  componentId: string | undefined,
+): void {
+  const current = poseComponent(curr, componentId)
+  if (current === undefined) return
+  const previous = prev === undefined ? undefined : poseComponent(prev, componentId)
+  const pose = interpolatePose(current, previous, alpha)
+  container.position.set(pose.x, pose.y)
+  container.rotation = pose.angle
 }
