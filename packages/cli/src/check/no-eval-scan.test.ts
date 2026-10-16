@@ -62,8 +62,8 @@ describe('scanForEval', () => {
       'function b(c){return Function(`r`,`s`,`sD`,c)}',
       'function d(n){return Function(`ud`,`uv`,`renderer`,`syncData`,n.join(`\\n`))}',
       'function e(i){return Function(`ps`,`f32v`,`u32v`,i)}',
-      'function f(t){return Function(`index`,`store`,`value`,`\\n ${t}`)}',
-      'function g(t){return Function(`index`,`store`,`return ${t}`)}',
+      'function f(t){return Function(`index`,`store`,`value`,`\\n `+t)}',
+      'function g(t){return Function(`index`,`store`,`return `+t)}',
     ].join('\n')
     expect(scanForEval('assets/vendor.js', generators)).toEqual([])
     // The same body with other parameter names is not a vendor generator.
