@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §2 F5 and the §3 row "Frame-budget probe (`playwright.config.ts` `frame-budget` projects)": new, core.
 - **Row:** [02](../../02-master-delivery-plan.md) PRODUCT.7. **Status:** drafted 2026-10-16 on the Owner-approved PRODUCT.0 (all recommended defaults).
-- **Progress:** 5 of 7 steps.
+- **Progress:** 6 of 7 steps.
 
 ## What "done" means
 
@@ -116,7 +116,7 @@ AGENTS.md requires that a performance probe have exclusive use of the GPU. With 
     - ticks rise as frames advance;
     - the content hash matches.
   - Expect it to fail because the module is missing. Implement it, then confirm green, along with `vite build`.
-- [ ] **6. Probe and selection.**
+- [x] **6. Probe and selection.**
   - `playwright-run.test.ts`:
     - without `AF_FRAME_BUDGET` it returns the journeys unchanged, with no `frame-budget` project;
     - with `AF_FRAME_BUDGET=1` it returns only the `frame-budget-phone` and `frame-budget-desktop` projects and the one stress server.

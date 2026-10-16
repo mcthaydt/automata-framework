@@ -8,10 +8,15 @@ import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './exampl
 import * as rendererDemo from './examples/render-pixi/renderer-2d/e2e/origin.ts'
 import * as runtimeDemo from './examples/runtime/boot-and-flow/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
+import { selectRun } from './tooling/frame-budget/src/playwright-run.ts'
 
 // Browser journeys for every AF example (ship spec §3.7): `pnpm test:e2e [playwright args]`. CI runs them
 // nightly and on request (`automata-ship test-remote <spec>`). Each example adds a project and the servers it
 // needs. Playwright exits non-zero when no test matches, so a journey run that selects nothing is red.
+//
+// `AF_FRAME_BUDGET=1` (`pnpm test:frame-budget`) swaps every journey for the frame-budget projects alone
+// (tooling/frame-budget, PRODUCT.7): a performance probe needs the GPU to itself, so it never runs inside the
+// default selection and the journeys never run beside it.
 
 const ports = {
   AF_E2E_PREVIEW_PORT: String(gamePort),
@@ -24,7 +29,7 @@ const base2dPorts = {
   AF_E2E_GAME_PATH: base2d.gameBuildPath,
 }
 
-export default defineConfig({
+const journeys = defineConfig({
   testMatch: '**/*.e2e.ts',
   forbidOnly: process.env.CI !== undefined,
   retries: 0,
@@ -130,3 +135,5 @@ export default defineConfig({
     },
   ],
 })
+
+export default selectRun(process.env, journeys)

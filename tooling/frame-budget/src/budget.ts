@@ -84,6 +84,7 @@ export function isSoftwareGpu(gpu: string): boolean {
 }
 
 const ms = (value: number): string => `${value.toFixed(2)} ms`
+const shown = (value: number | null): string => (value === null ? 'not measured' : ms(value))
 
 export function checkFrameBudget(budgetInput: unknown, resultInputs: readonly unknown[]): CheckOutcome {
   const found: { verdict: Verdict; line: string }[] = []
@@ -120,7 +121,7 @@ export function checkFrameBudget(budgetInput: unknown, resultInputs: readonly un
     for (const result of results) {
       add(
         'unset',
-        `  ${result.project}: work p95 ${String(result.workMs.p95)} ms, interval p95 ${String(result.intervalMs.p95)} ms (not compared)`,
+        `  ${result.project}: work p95 ${shown(result.workMs.p95)}, interval p95 ${shown(result.intervalMs.p95)} (not compared)`,
       )
     }
   }
