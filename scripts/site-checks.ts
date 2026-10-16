@@ -20,6 +20,7 @@ export function checkSite(root: string): string[] {
   // Store plain ID sets: a long reference page can be linked dozens of times.
   // Rebuilding a JSDOM window for every fragment link retains too much memory.
   const pageIds = new Map<string, Set<string>>()
+  const canonicals = new Set<string>()
   function destinationIds(file: string): Set<string> {
     const cached = pageIds.get(file)
     if (cached) return cached
@@ -36,7 +37,9 @@ export function checkSite(root: string): string[] {
     for (const selector of ['title', 'h1', 'main#main', 'meta[name="description"]', 'meta[property="og:title"]', 'link[rel="canonical"]']) {
       if (doc.querySelectorAll(selector).length !== 1) failures.push(file + ': expected one ' + selector)
     }
-    if (!doc.querySelector('link[rel="canonical"]')?.getAttribute('href')?.startsWith(SITE_ORIGIN + '/')) failures.push(file + ': wrong canonical origin')
+    const canonical = doc.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? ''
+    if (!canonical.startsWith(SITE_ORIGIN + '/')) failures.push(file + ': wrong canonical origin')
+    canonicals.add(canonical)
     if (doc.querySelector('meta[property="og:image"]')?.getAttribute('content') !== SITE_ORIGIN + '/social.png') failures.push(file + ': wrong social image')
     for (const anchor of doc.querySelectorAll('a[href]')) {
       const href = anchor.getAttribute('href')!
@@ -54,6 +57,25 @@ export function checkSite(root: string): string[] {
       }
     }
     window.close()
+  }
+  failures.push(...checkSeoFiles(root, canonicals))
+  return failures
+}
+
+/** sitemap.xml lists exactly the canonical URL of every page, and robots.txt points at it (spec F-3). */
+function checkSeoFiles(root: string, canonicals: Set<string>): string[] {
+  const failures: string[] = []
+  const sitemapPath = join(root, 'sitemap.xml')
+  if (!existsSync(sitemapPath)) failures.push('sitemap.xml: missing')
+  else {
+    const listed = new Set(Array.from(readFileSync(sitemapPath, 'utf8').matchAll(/<loc>([^<]+)<\/loc>/g), match => match[1]))
+    for (const url of canonicals) if (!listed.has(url)) failures.push('sitemap.xml: missing ' + url)
+    for (const url of listed) if (!canonicals.has(url)) failures.push('sitemap.xml: no page for ' + url)
+  }
+  const robotsPath = join(root, 'robots.txt')
+  if (!existsSync(robotsPath)) failures.push('robots.txt: missing')
+  else if (!readFileSync(robotsPath, 'utf8').split('\n').includes(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`)) {
+    failures.push(`robots.txt: no Sitemap: ${SITE_ORIGIN}/sitemap.xml line`)
   }
   return failures
 }

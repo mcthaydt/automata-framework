@@ -2,7 +2,7 @@
 
 - **Spec:** framework repo `docs/superpowers/specs/2026-10-16-quality-bar-design.md` (§3 F-1 to F-6, §4.2, §7 QB.3, §9 QB-c). Approved by the Owner 2026-10-16 with QB-D1 (no analytics, no cookies) and QB-D3 (a contact email and a security email, no postal address).
 - **Status:** drafted 2026-10-16.
-- **Progress:** 1 of 11 steps.
+- **Progress:** 2 of 11 steps.
 - **Branch:** `claude/clever-pasteur-ujmu6e-qb3`.
 
 ## Global constraints
@@ -31,7 +31,7 @@
 ## Steps
 
 - [x] **1. Extract `checkSite`.** Write `tests/site-checks.test.ts` with a minimal good build written to a temp directory; it expects `checkSite` to return `[]`. Confirm it fails because `scripts/site-checks.ts` does not exist. Move the current rules from `scripts/check-site.ts` into `checkSite` unchanged, then confirm the test and `pnpm check:site` pass.
-- [ ] **2. Sitemap and robots (F-3).** Add cases:
+- [x] **2. Sitemap and robots (F-3).** Add cases:
   - a page missing from `sitemap.xml` fails with that page's URL;
   - a sitemap entry with no page fails;
   - no `robots.txt`, or one without the `Sitemap:` line, fails.
