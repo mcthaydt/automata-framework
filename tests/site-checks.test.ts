@@ -28,7 +28,9 @@ function pngOfSize(width: number, height: number): Uint8Array {
   new DataView(bytes.buffer).setUint32(20, height)
   return bytes
 }
-const ICON_LINKS = '<link rel="icon" href="./favicon.svg" /><link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" /><link rel="apple-touch-icon" href="./apple-touch-icon.png" />'
+const FONT_PRELOAD = '<link rel="preload" as="font" type="font/woff2" crossorigin href="/_app/immutable/assets/geist-latin.woff2" />'
+const FONT_CSS = '@font-face{font-family:Geist Variable;font-display:swap;src:url(./geist-latin.woff2) format("woff2-variations")}'
+const ICON_LINKS = FONT_PRELOAD + '<link rel="icon" href="./favicon.svg" /><link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" /><link rel="apple-touch-icon" href="./apple-touch-icon.png" />'
 const JPEG_BYTES = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0])
 
 /** A minimal build that passes every rule. Each case below breaks exactly one thing. */
@@ -46,6 +48,8 @@ function goodSite(): { root: string; write: (file: string, content: string | Uin
   write('favicon.svg', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"></svg>')
   write('favicon-32.png', pngOfSize(32, 32))
   write('apple-touch-icon.png', pngOfSize(180, 180))
+  write('_app/immutable/assets/app.css', FONT_CSS)
+  write('_app/immutable/assets/geist-latin.woff2', 'wOF2')
   write('sitemap.xml', sitemap(['/', '/docs']))
   write('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${ORIGIN}/sitemap.xml\n`)
   return { root, write }
@@ -126,5 +130,27 @@ describe('checkSite', () => {
       'docs.html: no <link rel="icon" sizes="32x32"> to /favicon-32.png',
       'docs.html: no <link rel="apple-touch-icon"> to /apple-touch-icon.png',
     ]))
+  })
+
+  it('fails on an @font-face without font-display: swap', () => {
+    const site = goodSite()
+    site.write('_app/immutable/assets/app.css', FONT_CSS.replace('font-display:swap;', ''))
+    expect(checkSite(site.root)).toContain('_app/immutable/assets/app.css: @font-face for Geist Variable without font-display: swap')
+  })
+
+  it('fails when a page or stylesheet loads a font or style from another origin', () => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { head: ICON_LINKS + '<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi" />' }))
+    site.write('_app/immutable/assets/app.css', FONT_CSS + '@font-face{font-family:X;font-display:swap;src:url(https://fonts.gstatic.com/x.woff2)}')
+    expect(checkSite(site.root)).toEqual(expect.arrayContaining([
+      'docs.html: loads https://api.fontshare.com/v2/css?f[]=satoshi from another origin',
+      '_app/immutable/assets/app.css: loads https://fonts.gstatic.com/x.woff2 from another origin',
+    ]))
+  })
+
+  it('fails when a page does not preload a self-hosted woff2', () => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { head: ICON_LINKS.replace(FONT_PRELOAD, '') }))
+    expect(checkSite(site.root)).toContain('docs.html: no <link rel="preload" as="font"> to a woff2 that a built @font-face uses')
   })
 })

@@ -1,3 +1,4 @@
+/// <reference path="./jsdom.d.ts" />
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
@@ -20,6 +21,8 @@ export function checkSite(root: string): string[] {
   // Store plain ID sets: a long reference page can be linked dozens of times.
   // Rebuilding a JSDOM window for every fragment link retains too much memory.
   const pageIds = new Map<string, Set<string>>()
+  const fonts = readFontFaces(root)
+  failures.push(...fonts.failures)
   const canonicals = new Set<string>()
   function destinationIds(file: string): Set<string> {
     const cached = pageIds.get(file)
@@ -37,7 +40,7 @@ export function checkSite(root: string): string[] {
     for (const selector of ['title', 'h1', 'main#main', 'meta[name="description"]', 'meta[property="og:title"]', 'link[rel="canonical"]']) {
       if (doc.querySelectorAll(selector).length !== 1) failures.push(file + ': expected one ' + selector)
     }
-    failures.push(...checkIconLinks(file, doc))
+    failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls))
     for (const image of doc.querySelectorAll('img')) {
       // Decorative images say so with alt=""; a missing attribute is always a defect.
       if (!image.hasAttribute('alt')) failures.push(`${file}: <img src="${image.getAttribute('src')}"> has no alt`)
@@ -147,4 +150,49 @@ function checkIconFiles(root: string): string[] {
     if (width !== icon.size || height !== icon.size) failures.push(`${icon.file}: ${width}×${height}, expected ${icon.size}×${icon.size}`)
   }
   return failures
+}
+
+/** Assets a page loads itself (not links it offers): a third-party one is a privacy leak and a slower first paint. */
+const LOADED_RESOURCES = 'link[rel~="stylesheet"][href], link[rel~="preload"][href], link[rel~="modulepreload"][href], link[rel~="icon"][href], link[rel~="apple-touch-icon"][href], script[src], img[src], iframe[src], source[src], video[src], audio[src]'
+
+function isOtherOrigin(reference: string): boolean {
+  return /^(https?:)?\/\//i.test(reference) && new URL(reference, SITE_ORIGIN).origin !== SITE_ORIGIN
+}
+
+/** No page loads a resource from another origin, and each preloads a self-hosted font face (spec F-5). */
+function checkPageResources(file: string, doc: Document, fontUrls: Set<string>): string[] {
+  const failures: string[] = []
+  for (const element of doc.querySelectorAll(LOADED_RESOURCES)) {
+    const reference = element.getAttribute('href') ?? element.getAttribute('src')!
+    if (isOtherOrigin(reference)) failures.push(`${file}: loads ${reference} from another origin`)
+  }
+  const preloadsFont = Array.from(doc.querySelectorAll('link[rel="preload"][as="font"][type="font/woff2"][crossorigin]'))
+    .some(link => fontUrls.has(new URL(link.getAttribute('href') ?? '', pageUrl(file)).pathname))
+  if (!preloadsFont) failures.push(`${file}: no <link rel="preload" as="font"> to a woff2 that a built @font-face uses`)
+  return failures
+}
+
+/**
+ * Reads the site's built stylesheets (not the demo bundles, which are framework examples with their own fonts):
+ * every @font-face must use font-display: swap, and no stylesheet may load from another origin.
+ * Returns the site paths of the woff2 files the font faces use, for the preload check.
+ */
+function readFontFaces(root: string): { urls: Set<string>; failures: string[] } {
+  const urls = new Set<string>()
+  const failures: string[] = []
+  const stylesheets = readdirSync(root, { recursive: true }).map(String).filter(p => p.endsWith('.css') && !p.startsWith('demos/')).sort()
+  for (const file of stylesheets) {
+    const css = readFileSync(join(root, file), 'utf8')
+    for (const [, reference] of css.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)|@import\s+["']([^"']+)["']/g)) {
+      if (reference && isOtherOrigin(reference)) failures.push(`${file}: loads ${reference} from another origin`)
+    }
+    for (const [, body] of css.matchAll(/@font-face\s*{([^}]*)}/g)) {
+      const family = /font-family:\s*["']?([^;"']+)/.exec(body)?.[1]?.trim() ?? 'an unnamed family'
+      if (!/font-display:\s*swap/.test(body)) failures.push(`${file}: @font-face for ${family} without font-display: swap`)
+      for (const [, source] of body.matchAll(/url\(\s*["']?([^"')]+\.woff2)["']?\s*\)/g)) {
+        if (!isOtherOrigin(source)) urls.add(new URL(source, new URL('/' + file, SITE_ORIGIN)).pathname)
+      }
+    }
+  }
+  return { urls, failures }
 }

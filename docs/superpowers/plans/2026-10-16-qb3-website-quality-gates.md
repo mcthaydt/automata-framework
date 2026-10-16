@@ -2,7 +2,7 @@
 
 - **Spec:** framework repo `docs/superpowers/specs/2026-10-16-quality-bar-design.md` (§3 F-1 to F-6, §4.2, §7 QB.3, §9 QB-c). Approved by the Owner 2026-10-16 with QB-D1 (no analytics, no cookies) and QB-D3 (a contact email and a security email, no postal address).
 - **Status:** drafted 2026-10-16.
-- **Progress:** 4 of 11 steps.
+- **Progress:** 5 of 11 steps.
 - **Branch:** `claude/clever-pasteur-ujmu6e-qb3`.
 
 ## Global constraints
@@ -43,7 +43,7 @@
 
   Confirm they fail, add the rules, confirm `check:site` now fails on the six previews. Fix: `git mv` the previews to `.jpg`, add 640 w and 1280 w WebP copies from `scripts/encode-previews.ts`, serve them through `<picture>` with `srcset` and `sizes` and the JPEG fallback. Confirm `check:site` passes.
 - [x] **4. Favicon set.** Add cases: a missing `apple-touch-icon.png` (180 × 180) or `favicon-32.png` (32 × 32), wrong dimensions, or a page without the `<link>` fails. Confirm they fail, add the rules, render both PNGs from `favicon.svg` with `scripts/render-favicons.ts`, link them in `src/app.html`, confirm they pass.
-- [ ] **5. Fonts (F-5).** Add cases: an `@font-face` without `font-display: swap`, a stylesheet or font from another origin, or a page without a `woff2` preload that exists in the build fails. Confirm they fail, add the rules. Fix: preload the Geist latin variable `woff2` in `+layout.svelte`. (The `api.fontshare.com` link named in F-5 was already replaced by `@fontsource-variable` on `main`; this step adds the gate and the preload.)
+- [x] **5. Fonts (F-5).** Add cases: an `@font-face` without `font-display: swap`, a stylesheet or font from another origin, or a page without a `woff2` preload that exists in the build fails. Confirm they fail, add the rules. Fix: preload the Geist latin variable `woff2` in `+layout.svelte`. (The `api.fontshare.com` link named in F-5 was already replaced by `@fontsource-variable` on `main`; this step adds the gate and the preload.)
 - [ ] **6. Trust pages (F-4).** Add cases: a page without footer links to `/privacy` and `/terms` and a `mailto:` contact fails; a missing `/.well-known/security.txt`, or one without `Contact:` and a future `Expires:`, fails. Confirm they fail, add the rules, then add the privacy and terms pages, the footer links and `security.txt` (QB-D3: contact and security email, no postal address).
 - [ ] **7. Banned phrases.** Add a case: each phrase in `BANNED_PHRASES` in a page's text fails with the phrase. Confirm it fails, add the rule, confirm the real site passes (rewrite any copy it catches).
 - [ ] **8. MIT claim (F-1).** Write `tests/license-claim.test.ts`: every framework package's `license` is `MIT` and the root `LICENSE` is the MIT text. Confirm it fails on today's framework (`UNLICENSED`, no `LICENSE`). Mark it `it.fails` with the reason `expected red until DX.11`: Vitest then passes while the claim is false and fails hard once the framework is MIT, forcing the marker's removal. The MIT copy stays on the site (the spec keeps it).
