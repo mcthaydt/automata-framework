@@ -12,7 +12,7 @@ import './src/no-eval.ts'
 import '@fontsource/pixelify-sans/latin-400.css'
 import '@fontsource/pixelify-sans/latin-700.css'
 import { bootPage } from './src/boot-page.ts'
-import { startGame } from './src/game.ts'
+import { startGame } from './src/old-game.ts'
 
 const root = document.querySelector<HTMLElement>('#game')
 if (root === null) throw new Error('index.html has no #game element')

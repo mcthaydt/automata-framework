@@ -61,7 +61,7 @@ vi.mock('./render/renderer.ts', () => ({
         }),
 }))
 
-const { startGame } = await import('./game.ts')
+const { startGame } = await import('./old-game.ts')
 
 async function failureOf(): Promise<unknown> {
   const exit = await Effect.runPromiseExit(startGame({ dataset: {} } as HTMLElement))

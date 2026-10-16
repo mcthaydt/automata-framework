@@ -1,7 +1,7 @@
 // Sets up the base's sim: the room as content, the plugin, and the character at the room's start. Demos and
 // games start from here (`@af-examples/base-2d`), then add their own plugins.
 import { type Command, createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { parseRoom, ROOM, type RoomSource } from './content/room.ts'
+import { parseRoom, ROOM, type Room, type RoomSource } from './content/room.ts'
 import { base2dPlugin, type MoveInput, Player, PlayerControl } from './sim/index.ts'
 import { HITBOX_H, SUB, TICK_HZ } from './sim/tuning.ts'
 
@@ -20,11 +20,15 @@ export async function createBaseSim(options: BaseSimOptions = {}): Promise<Sim> 
     content: { room },
     plugins: [base2dPlugin, ...(options.plugins ?? [])],
   })
-  // Standing on the tile below P: feet on that tile's top edge.
+  placeWick(sim, room)
+  return sim
+}
+
+/** Spawns Wick at the room's start (P), standing on the tile below it: feet on that tile's top edge. */
+export function placeWick(sim: Sim, room: Room = parseRoom(ROOM)): void {
   const x = room.start.tx * room.tileSize * SUB
   const y = ((room.start.ty + 1) * room.tileSize - HITBOX_H) * SUB
   sim.spawn([[Player, { x, y, facing: 1 }], PlayerControl])
-  return sim
 }
 
 /** This tick's `move` command from player slot 0. One per tick, so the tick doubles as the sequence number. */
