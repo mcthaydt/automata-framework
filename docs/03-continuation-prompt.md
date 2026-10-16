@@ -44,6 +44,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| PUB.4 release CI and UI label | Branch `claude/clever-pasteur-ujmu6e-pub4` (stacked on PUB.2): opt-in `itch` job in `game-release.yml`, failing closed without `BUTLER_API_KEY`; "Back to {host}" from `hostName`, hidden without `exit`; `pnpm check`, parity and e2e (46) green | PR review; `BUTLER_API_KEY` secret and a real release push (PUB.5); merge with PUB.1 (`failureHost` reads `Hosting.hostName`); visual approval |
 | PUB.2 `ship --target itch` | Branch `claude/clever-pasteur-ujmu6e-pub2`: `prepare`/`publish --target itch` in `packages/ship`; `pnpm check` green; CLI smoked with a fake butler | PR review; a real `butler push` (PUB.5); games' `build:itch` (PUB.1/PUB.5); release job (PUB.4) |
 | PUB (spec only) | PUB.0 drafted 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | Owner review; PUB-D1 to PUB-D4; Ruken requests in spec §9 |
 | QB (spec only) | QB.0 drafted 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | Owner review; QB-D1 to QB-D4 |

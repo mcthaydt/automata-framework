@@ -1,7 +1,7 @@
 # PUB.4: release CI and UI label TDD plan
 
 - **Spec:** [PUB spec](../specs/2026-10-16-publish-targets-design.md) §3, §3.1 (`exit`), §5 flow 4, §8, §11 PUB.4; [ADR 0005](../../adr/0005-publish-targets.md).
-- **Status:** drafted 2026-10-16 (PUB.0 Owner-approved 2026-10-16 with every recommended default). Owner review pending.
+- **Status:** drafted 2026-10-16 (PUB.0 Owner-approved 2026-10-16 with every recommended default); steps 1–5 implemented and locally verified 2026-10-16. Owner review pending.
 - **Lanes:** ship (release job) and ui (label). **Branch:** `claude/clever-pasteur-ujmu6e-pub4`, stacked on PUB.2 (`claude/clever-pasteur-ujmu6e-pub2`, PR #41).
 
 ## Global constraints
@@ -51,10 +51,14 @@
 - [x] **2. View model.** `boot-failure.test.ts`: the existing table gains `canExit`; new rows: Ruken without `exit` gives a final `progress` and `unsupported` panel; `withHostName('Back to {host}', 'itch.io')` is `Back to itch.io`; the exit copy holds `{host}`. Fails: `bootFailureView` ignores `canExit`, `withHostName` missing. Add both.
 - [x] **3. Panel (DOM behavior).** `boot-failure-panel.test.ts`: "Back to Ruken" calls `onExit` with `hostName: 'Ruken'`; with `hostName: 'itch.io'` the button reads "Back to itch.io"; with `canExit: false` no "Back to" button exists and a renderer failure is a final panel; a game's own `exit` copy with `{host}` is filled; Continue still works standalone. Fails: props ignored, label is the raw template. Add the props; update `StatusFixture.svelte`, `Frame.svelte`, the index export.
 - [x] **4. Runtime.** `failure-host.test.ts`: no Hosting gives `standalone`, `this page`, no exit; a `ruken` session with `exit` granted gives `Ruken` and `canExit`; a session without `exit` gives no exit. `run-game.test.ts`: the existing Back to Ruken test stays green; under the SDK's standalone session (no `exit`), a renderer failure draws no button. Fails: module missing; the panel lacks the props. Add `failure-host.ts`, wire `run-game.ts`, update `page-layers.test.ts` and `boot-error.test.ts`.
-- [ ] **5. Docs and gates.** Spec text (ui spec, shared contracts §3, PUB spec §5); changeset; `pnpm format`; `pnpm check`; `pnpm test:parity`; `pnpm test:e2e` (`AF_E2E_SERVER_PORT=4740`, `AF_E2E_PREVIEW_PORT=4840`, `CI=1`). `actionlint` if available (`pnpm lint:actions` needs docker).
+- [x] **5. Docs and gates.** Spec text (ui spec, shared contracts §3, PUB spec §5); changeset; `pnpm format`; `pnpm check`; `pnpm test:parity`; `pnpm test:e2e` (`AF_E2E_SERVER_PORT=4740`, `AF_E2E_PREVIEW_PORT=4840`, `CI=1`). `actionlint` if available (`pnpm lint:actions` needs docker).
 
 ## Execution log
 
 | Date       | Step | Commits     | Notes |
 | ---------- | ---- | ----------- | ----- |
-| 2026-10-16 | Plan | this commit | —     |
+| 2026-10-16 | Plan | `52e6369` | — |
+| 2026-10-16 | 1 | `77a48a5` | Red: 6 new tests (no `itch` job). Green: 86/86 in `workflows.test.ts`. The job's key check and butler install were extracted from the YAML and run: missing key exit 1 with the `::error::`; Linux X64 install verified the hash and `butler -V` printed 15.32.0; a tampered hash and `Windows-X64` exit 1. macOS uses `shasum -a 256` when `sha256sum` is missing. Deviation from spec §5 flow 4 ("when `ship.config.ts` has `itch` and the secret exists"): the job is gated by an `itch` input, because a workflow condition cannot read `ship.config.ts` and the coordinator's rule is to fail closed, not skip; spec §5 updated. |
+| 2026-10-16 | 2–3 | `9680556` | Red: 6 view-model tests (`canExit` ignored, `withHostName` missing, copy `Back to Ruken`), 3 panel tests (labels), 1 index export. The panel's hide-without-exit tests passed before the props were wired (an undefined `canExit` already filters `exit`); the label tests were the red ones. `StatusFixture.svelte` and the primitives `Frame.svelte` pass the new props; no fixture draws the exit button, so no golden changed. |
+| 2026-10-16 | 4 | `bb573b3` | Red: `failure-host.ts` missing; the existing "Back to Ruken" run-game test went red after step 3 (no `canExit`). The new standalone no-exit run-game test is a guard (green before wiring, for the same reason as step 3). Runtime boot tests 43/43; runtime typecheck 0 errors. |
+| 2026-10-16 | 5 | `72568b9`, this commit | `pnpm format` clean; `pnpm check` exit 0: lint, typecheck 26/26, boundaries 0 findings, style 186 files 0 findings, test:unit 22/22 (ship 238, ui 301, runtime 153 tests). `pnpm test:parity` 9/9 tasks (ui 303 tests). `pnpm test:e2e` 46 passed, `CI=1`, ports 4740/4840. actionlint 1.7.12 (release binary, since the docker daemon is absent) on every workflow: exit 0, without shellcheck. |
