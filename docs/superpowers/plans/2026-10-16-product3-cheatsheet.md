@@ -41,4 +41,7 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-16 | Plan | | |
+| 2026-10-16 | Plan | `077375c` | |
+| 2026-10-16 | 1 | `af8658a` | Red: missing `cheatsheet.ts`. Green: 8 tests. Call forms come from parsing the index's signature text with `ts.createSourceFile`; no extra extraction. |
+| 2026-10-16 | 2 | `08200bc` | Red: 3 run tests (no stale finding, exit 0) and the missing `cheatsheet` script. `RunOptions.cheatsheet` is optional so DX.4's existing run tests stay unchanged; the CLI always passes it. |
+| 2026-10-16 | 3 | `e8f39ce` | Real run: 359 exports, 8 packages, 18 entry points, 432 lines. Before writing, `pnpm api-index` exited 1 (page missing); after `pnpm cheatsheet`, 0 and `dist/cheatsheet.md` identical; one edited summary made it exit 1. `pnpm format` leaves the page unchanged (Biome does not format Markdown). `pnpm check` green (1,696 passed, 4 skipped). |
