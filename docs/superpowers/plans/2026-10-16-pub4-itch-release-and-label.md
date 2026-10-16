@@ -39,7 +39,7 @@
 
 ## Steps
 
-- [ ] **1. Release job shape.** `workflows.test.ts`, a new `describe('game-release.yml itch job (PUB spec §5)')`:
+- [x] **1. Release job shape.** `workflows.test.ts`, a new `describe('game-release.yml itch job (PUB spec §5)')`:
   - the job exists, is gated on `inputs.itch` and on the event not being `pull_request` or `pull_request_target`;
   - `itch` (boolean, default false) and `itch-build-command` (default `pnpm build:itch`) are inputs; `BUTLER_API_KEY` is a secret, not required at the call;
   - its first step checks `BUTLER_API_KEY` and `exit 1`s with `::error::` naming it (no `exit 0`, no `::notice::` skip);
