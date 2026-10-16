@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-13. Source HEAD verified before this update: `08396fa` on `main`, af-linux CI green at PR #32 merge (checks, parity in Chromium, WebKit and Firefox, consumer smoke, base-2d and placeholder game-ci). This file is a handoff snapshot, not proof of current CI, deployment or acceptance. Agents maintain it at every handoff.
+> Updated 2026-10-16. Source HEAD verified before this update: `365f115` on `main` (af-linux CI was last recorded green at the PR #32 merge, `08396fa`; not re-run for this docs-only update). This file is a handoff snapshot, not proof of current CI, deployment or acceptance. Agents maintain it at every handoff.
 
 ## Prompt for the next agent
 
@@ -19,11 +19,13 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
    - Integration test verifies scaffolded project builds and produces valid `ruken.toml` accepted by `@ruken/manifest`.
    - Full exit verification gate: `pnpm check` clean (22/22 tasks), `pnpm test:parity` clean across Chromium, WebKit, Firefox (9/9 tasks), full Playwright browser journeys clean (`pnpm test:e2e`, 46/46 passed).
 4. **Next Step:** Proceed to M3.0 (2.5D and pipelines spec, with spike S7).
+5. **DX.0 drafted (2026-10-16, Owner request):** the [DX spec](superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md) makes the website's cut claims true where they should be (`automata_website` `docs/2026-10-14-cut-claims.md` at `bfeaf91`). Next action: Owner review of DX.0 and answers to D-DX-1 to D-DX-5. Then DX.1, DX.2b, DX.4, DX.6 and DX.9 can start in parallel, each with its TDD plan first. M3 work on its own branch is unaffected.
 
 ## Current artifacts and evidence limits
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| DX milestone (spec only) | DX.0 drafted 2026-10-16: ledger disposition for every cut website claim, `@mcthaydt/automata-game` (`startGame`), `automata check`, the `agents/automata/` skills and Claude Code plugin, a generated API index, agent evals and an evidence file. Baseline measured at `365f115`: base-2d 3,457 non-test lines, 1,939 of them plumbing; `create-game` output prints text and pins `workspace:*` | Owner review; D-DX-1 to D-DX-5 |
 | M1.8 Base project, demos, scaffold & M1 exit | Complete. Unit tests in `packages/cli` (4 files / 18 tests) and `examples/gallery` (3 tests); `pnpm check` clean (22/22 tasks); `pnpm test:parity` clean across 3 browsers (9/9 tasks); `pnpm test:e2e` clean (46/46 passed); `create-game` integration test verifies valid `ruken.toml` | Merged into `main` (PR #32, `08396fa`) |
 | M1.7 `render-pixi` (2D renderer) | Tasks 1–8 complete, committed (`cb13b20` + Task 8 record). Local verification clean: unit tests (7 files / 29 tests), test:parity across 3 browsers (Chromium, WebKit, Firefox), typecheck, build, boundaries, style, lint, Playwright E2E with fake host (zero CSP violations) | PR review/merge, hosted CI |
 | M1.5 Runtime | Tasks 1–20 complete, committed (`278af83` + records). Local verification clean: unit tests (148 runtime, 19 demo), typecheck, build, boundaries, style, lint, frame-loop bench (Node 0.117 µs, Chromium 0.100 µs vs 0.30 µs budget), Playwright E2E (8/8 pass under fake host with 0 CSP violations) | PR #4 review/merge, hosted CI |
@@ -44,6 +46,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 ## External inputs and unresolved gates
 
+- **License mismatch (D-DX-1):** the website's FAQ says the framework is MIT licensed, but every package says `"license": "UNLICENSED"` (Owner, 2026-10-11, until launch) and the repo is private. Either the license is granted or the site's FAQ changes; no public install command can be published until then.
 - Ruken packages (`@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`) are unpublished; Ruken gates publication on `NPM_PUBLISH_READY` and its M0.3. AF vendors them in `vendor/ruken/` at RukenApp `b30d31b` (D-6); the integration owner re-vendors.
 - Request to Ruken: the SDK at `b30d31b` still sends `baseRevision` and `writeId` on `saves.set`/`saves.remove` (Ruken `packages/protocol/src/meta/types.ts` lines 94–100). AF does not use them; whether they stay is Ruken's call.
 - Request to Ruken: without the `saves` grant the SDK's `storage.setItem` writes to memory and sends nothing (`packages/sdk/src/saves-storage.ts`), contradicting Ruken's S6 answer 3. AF pins the current behavior in host tests and adds no gate.
