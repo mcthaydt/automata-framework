@@ -79,6 +79,10 @@ export function extractExports(entries: readonly EntryPoint[]): ApiExport[] {
   const program = ts.createProgram(
     entries.map((entry) => entry.typesFile),
     {
+      // Only declarations, aliases and doc comments are read, never types, so the default lib and @types are
+      // not loaded (loading them made each run several seconds slower). Diagnostics are not read.
+      noLib: true,
+      types: [],
       noEmit: true,
       skipLibCheck: true,
       target: ts.ScriptTarget.ES2022,
