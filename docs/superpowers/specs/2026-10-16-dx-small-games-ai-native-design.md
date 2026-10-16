@@ -166,7 +166,7 @@ Contract test: a plugin defined both ways yields byte-identical `schemaHash` and
 
 ### 3.3 `InputMap` (`packages/game`, extracted from Emberwick)
 
-`keys(command, bindings, options?)` builds one command per tick from held keys, merging object payloads (later keys win per field) and validating them through the command's Zod schema. On-screen touch buttons are generated from the same bindings by `ui` (`ActionBar`) unless `options.touch === false`. Gamepad buttons map via `options.pad` (standard mapping only). It is extracted from `examples/base-2d/src/input/` (keys and devices, 128 lines with tests), which already produces Emberwick's `move` command.
+`keys(command, bindings, options?)` builds one command per tick from held keys, merging object payloads (later keys win per field) and validating them through the command's Zod schema. On-screen touch buttons are generated from the same bindings by `ui` (`ActionBar`) unless `options.touch === false`. Gamepad buttons map via `options.pad` (standard mapping only). It is extracted from `games/emberwick/src/input/` (keys and devices, 128 lines with tests), which already produces Emberwick's `move` command.
 
 Edge-triggered fields such as "jump pressed" stay a sim concern: the sim compares this tick's command with last tick's, as Emberwick's `player.input` system does. The input map never sends "pressed" edges, so replays stay a pure function of the command stream.
 
