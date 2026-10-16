@@ -10,7 +10,7 @@
 - **Strict TDD** in `packages/render-pixi`: write the failing test, run it, confirm the failure reason, make the minimal change, confirm it passes.
 - **Additive only.** The consumer's contract stays as M1.7 shipped it. The one change is additive: a record resolver passes the matched component id as a second argument to the factory (`EntityViewFactory = (row, componentId?) => …`). Existing factories ignore it.
 - **Views read only `RenderDelta`** (DX §4); nothing here touches the sim.
-- **Process:** `pnpm format` before committing; Conventional Commits; a patch changeset for `@mcthaydt/automata-render-pixi`.
+- **Process:** `pnpm format` before committing; Conventional Commits. No changeset: `@mcthaydt/automata-render-pixi` is `private: true`, and `tooling/release/src/check-changesets.ts` rejects a changeset naming it ("not a published package"); `pnpm changeset status --since=origin/main` passes without one.
 - **Bookkeeping:** tick each step here when its checks pass, in the same commit or the next one.
 
 ## Interfaces
@@ -34,7 +34,6 @@
   - `packages/render-pixi/src/views/sprite-view.ts`, `sprite-view.test.ts`
   - `packages/render-pixi/src/views/views-resync.test.ts` (real sim restore → resync rebuild)
   - `packages/render-pixi/src/parity/entity-views.parity.test.ts`
-  - `.changeset/dx2b-entity-views.md`
 - **Modify:**
   - `packages/render-pixi/src/delta/render-delta-consumer.ts` and its test (pass the matched component id)
   - `packages/render-pixi/src/index.ts`, `src/index.test.ts` (exports)
@@ -45,7 +44,7 @@
 - [x] **2. Consumer passes the component id.** In `render-delta-consumer.test.ts`, assert a record resolver's factory receives `(row, 'body')`. Expect failure: called with one argument. Pass `key` in `resolveView`. Confirm green and every existing consumer test unchanged.
 - [x] **3. `rect`.** Write `rect-view.test.ts`: the factory returns a view whose container is at the interpolated position and `rotation` after `update(curr, prev, 0.5)`; anchor 0.5 centres the drawn rect (local bounds `-w/2…w/2`), anchor `{x:0,y:0}` puts it at `0…w`; a component other than the registered one moving doesn't move it; a consumer with `{ body: rect(…) }` draws nothing for an entity with only another component; `destroy` destroys the graphics. Expect failure: cannot resolve `./rect-view.js`. Implement, confirm green.
 - [x] **4. `sprite`.** Write `sprite-view.test.ts`: a `Texture` source shows that texture, anchored, interpolated like `rect`; `frames` slices a 32×8 texture into four 8×8 frames and the `frame` field picks frame `floor(frame) mod count`; a url already in `Assets.cache` is used synchronously; an unloaded url shows `Texture.EMPTY`, then the loaded texture after `Assets.load` resolves (stubbed); destroy before load leaves the sprite untouched. Expect failure: cannot resolve `./sprite-view.js`. Implement, confirm green. Export both factories and the types from `index.ts` and assert them in `index.test.ts`.
-- [ ] **5. Resync after restore.** Write `views-resync.test.ts` with a real sim (`createSim`, one render component `body {x, y}`): step, snapshot at x=1, move to x=9 and step, `restore`, step; the resync delta through a consumer with `{ body: rect(…) }` leaves exactly one view, a new container, at x=1. This exercises existing behavior, so it is expected to pass first time; if it does, record that (a characterization test, not new code).
+- [x] **5. Resync after restore.** Write `views-resync.test.ts` with a real sim (`createSim`, one render component `body {x, y}`): step, snapshot at x=1, move to x=9 and step, `restore`, step; the resync delta through a consumer with `{ body: rect(…) }` leaves exactly one view, a new container, at x=1. This exercises existing behavior, so it is expected to pass first time; if it does, record that (a characterization test, not new code).
 - [x] **6. Browser parity.** Write `parity/entity-views.parity.test.ts` (browsers project: Chromium, WebKit, Firefox): a real WebGL2 `Application` (64×64), a consumer with `{ body: rect({ w: 4, h: 4, color: 0xff0000, anchor: 0 }) }`, tick 1 at x=8, tick 2 at x=24, `interpolate(0.5)`, `render()`; the container's global position is (16, y) and the extracted pixels have red exactly in columns 16–19. It imports `rect` from the package entry (`../index.js`); written before step 4's export lands, expect failure: `rect` is not exported. Run `pnpm --filter @mcthaydt/automata-render-pixi test:parity`.
 
 ## Gates
