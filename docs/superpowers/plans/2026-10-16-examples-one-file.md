@@ -66,7 +66,7 @@
   - a clean system body passes.
 
   Confirm they fail on the missing mode. Implement it by reusing the existing visitor scoped to those function bodies, then confirm they pass. Add `--inline examples` to the root `boundaries` script.
-- [ ] **4. Vite plugin.** Write `vite-plugin.test.ts`:
+- [x] **4. Vite plugin.** Write `vite-plugin.test.ts`:
   - `/core/core-stub/` returns the generated HTML with the `no-eval` import first and the example's module;
   - preview responses carry `compileHeaders`' CSP.
 

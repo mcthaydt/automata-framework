@@ -1,6 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
 import * as contentDemo from './examples/content/hot-reload/e2e/origin.ts'
-import { demoHostOrigin, demoHostPort } from './examples/demo-host/ports.ts'
 import * as hostDemo from './examples/host/lifecycle-and-saves/e2e/origin.ts'
 import * as physicsDemo from './examples/physics/bodies-2d/e2e/origin.ts'
 import * as rendererDemo from './examples/render-pixi/renderer-2d/e2e/origin.ts'
@@ -8,6 +7,7 @@ import * as runtimeDemo from './examples/runtime/boot-and-flow/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
 import * as base2d from './games/emberwick/e2e/origins.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './games/placeholder/e2e/origins.ts'
+import { demoHostOrigin, demoHostPort } from './tooling/examples-runner/host/ports.ts'
 
 // Browser journeys for every AF example (ship spec §3.7): `pnpm test:e2e [playwright args]`. CI runs them
 // nightly and on request (`automata-ship test-remote <spec>`). Each example adds a project and the servers it
@@ -41,7 +41,7 @@ export default defineConfig({
       use: { ...devices['Pixel 7 landscape'], viewport: { width: 780, height: 270 } },
     },
     { name: 'ui-primitives', testDir: 'examples/ui/primitives/e2e', use: { ...devices['Pixel 7'] } },
-    // The feature demos on base-2d, each under the shared fake host (examples/demo-host).
+    // The feature demos on base-2d, each under the shared fake host (tooling/examples-runner/host).
     {
       name: 'demos',
       testDir: 'examples',
@@ -86,7 +86,7 @@ export default defineConfig({
       reuseExistingServer: process.env.CI === undefined,
     },
     {
-      command: 'pnpm --filter @af-examples/demo-host e2e:host',
+      command: 'pnpm --filter @mcthaydt/examples-runner e2e:host',
       url: `${demoHostOrigin}/`,
       env: { AF_E2E_DEMO_HOST_PORT: String(demoHostPort) },
       reuseExistingServer: process.env.CI === undefined,
