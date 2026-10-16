@@ -39,6 +39,7 @@ describe('the handshake (shared contracts §1.4; S6)', () => {
       Hosting.pipe(Effect.provide(HostingTest({ hosting: { wants: ['saves'] } }))),
     )
     expect(hosting.kind).toBe('ruken')
+    expect(hosting.hostName).toBe('Ruken')
     expect(Option.isNone(hosting.handshake.fellBack)).toBe(true)
     expect([...hosting.granted]).toEqual(expect.arrayContaining(['saves', 'lifecycle', 'display']))
   })
@@ -48,6 +49,8 @@ describe('the handshake (shared contracts §1.4; S6)', () => {
       Hosting.pipe(Effect.provide(HostingTest({ env: (env) => ({ ...env, isTopLevel: true }) }))),
     )
     expect(hosting.kind).toBe('standalone')
+    // A Ruken build names Ruken even standalone; the UI hides "Back to …" there because exit is not granted.
+    expect(hosting.hostName).toBe('Ruken')
     expect(Option.isNone(hosting.handshake.fellBack)).toBe(true)
     expect(hosting.granted.size).toBe(0)
   })
