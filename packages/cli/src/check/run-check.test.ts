@@ -1,0 +1,263 @@
+import { FileError, Files, ProcessRunner, type RunResult } from '@mcthaydt/automata-node'
+import { Effect, Layer } from 'effect'
+import { describe, expect, it } from 'vitest'
+import { exitCodeFor, type StepResult } from './check-report.ts'
+import { CheckToolError, CspProbe, type CspProbeResult } from './csp-probe.ts'
+import { runCheck } from './run-check.ts'
+
+const GAME = '/work/game'
+const BIN = `${GAME}/node_modules/.bin`
+const VITEST_REPORT = `${GAME}/node_modules/.cache/automata-check/vitest.json`
+
+const ok: RunResult = { exitCode: 0, stdout: '', stderr: '' }
+const passingVitest = JSON.stringify({ numFailedTests: 0, testResults: [] })
+
+interface FakeGame {
+  /** Files that exist, with their text. Folders exist when a file is below them. */
+  readonly files: Map<string, string>
+  /** The answer for each tool, by bin name; a tool not listed is "not installed" (no bin file). */
+  readonly tools: Record<string, ((args: readonly string[]) => RunResult) | undefined>
+  readonly csp?: CspProbeResult | CheckToolError
+  readonly ran: string[]
+}
+
+function fakeGame(overrides: Partial<Omit<FakeGame, 'ran'>> = {}): FakeGame {
+  const files = new Map<string, string>([
+    [`${GAME}/src/sim/game.plugin.ts`, ''],
+    [`${GAME}/dist/index.html`, '<script src="./assets/index.js"></script>'],
+    [`${GAME}/dist/assets/index.js`, 'export const x = 1'],
+  ])
+  for (const [path, text] of overrides.files ?? []) files.set(path, text)
+  return {
+    files,
+    // Overrides replace the passing defaults; `undefined` uninstalls a tool.
+    tools: {
+      'automata-check-boundaries': () => ok,
+      tsc: () => ok,
+      vitest: () => {
+        files.set(VITEST_REPORT, passingVitest)
+        return ok
+      },
+      vite: () => ok,
+      ...overrides.tools,
+    },
+    csp: overrides.csp ?? { ready: true, state: 'ready', violations: [] },
+    ran: [],
+  }
+}
+
+function layers(game: FakeGame) {
+  const runner = Layer.succeed(ProcessRunner, {
+    run: (command, args) =>
+      Effect.sync(() => {
+        const name = command.slice(BIN.length + 1)
+        game.ran.push([name, ...args].join(' '))
+        const tool = game.tools[name]
+        if (tool === undefined) throw new Error(`fake: ${command} was run but is not installed`)
+        return tool(args)
+      }),
+  })
+  const below = (dir: string) => [...game.files.keys()].filter((path) => path.startsWith(`${dir}/`))
+  const files = Layer.succeed(Files, {
+    readText: (path) =>
+      game.files.has(path)
+        ? Effect.succeed(game.files.get(path) as string)
+        : Effect.fail(new FileError({ path, cause: 'missing' })),
+    writeText: (path, text) => Effect.sync(() => void game.files.set(path, text)),
+    exists: (path) =>
+      Effect.succeed(
+        game.files.has(path) ||
+          below(path).length > 0 ||
+          (path.startsWith(`${BIN}/`) && game.tools[path.slice(BIN.length + 1)] !== undefined),
+      ),
+    listFiles: (dir) => Effect.succeed(below(dir).map((path) => path.slice(dir.length + 1))),
+    remove: (path) => Effect.sync(() => void game.files.delete(path)),
+  })
+  const csp = Layer.succeed(CspProbe, {
+    run: () =>
+      game.csp instanceof CheckToolError ? Effect.fail(game.csp) : Effect.succeed(game.csp as CspProbeResult),
+  })
+  return Layer.mergeAll(runner, files, csp)
+}
+
+const options = { gameDir: GAME, simOnly: false, csp: false, failFast: false }
+
+async function check(game: FakeGame, extra: Partial<typeof options> = {}) {
+  const report = await Effect.runPromise(Effect.provide(runCheck({ ...options, ...extra }), layers(game)))
+  return { report, names: report.steps.map((step: StepResult) => step.name), code: exitCodeFor(report) }
+}
+
+describe('runCheck', () => {
+  it('runs boundaries, typecheck, test and no-eval in order, and passes a clean game', async () => {
+    const game = fakeGame()
+    const { report, names, code } = await check(game)
+    expect(names).toEqual(['boundaries', 'typecheck', 'test', 'no-eval'])
+    expect(report.ok).toBe(true)
+    expect(code).toBe(0)
+    expect(game.ran).toEqual([
+      'automata-check-boundaries src/sim',
+      'tsc -p . --noEmit --pretty false',
+      `vitest run --reporter=json --outputFile=${VITEST_REPORT} --includeTaskLocation`,
+      'vite build',
+    ])
+  })
+
+  it('--sim-only skips the build; csp runs only with --csp', async () => {
+    expect((await check(fakeGame(), { simOnly: true })).names).toEqual(['boundaries', 'typecheck', 'test'])
+    expect((await check(fakeGame(), { simOnly: true, csp: true })).names).toEqual([
+      'boundaries',
+      'typecheck',
+      'test',
+    ])
+    expect((await check(fakeGame(), { csp: true })).names).toEqual([
+      'boundaries',
+      'typecheck',
+      'test',
+      'no-eval',
+      'csp',
+    ])
+  })
+
+  it('keeps going after findings, unless --fail-fast', async () => {
+    const tools = {
+      'automata-check-boundaries': () => ({
+        exitCode: 1,
+        stdout: 'src/sim/a.ts:1:1  import  import of "effect" is not allowed in the sim\n',
+        stderr: '',
+      }),
+    }
+    const all = await check(fakeGame({ tools }))
+    expect(all.names).toEqual(['boundaries', 'typecheck', 'test', 'no-eval'])
+    expect(all.report.steps[0]?.findings).toEqual([
+      {
+        file: 'src/sim/a.ts',
+        line: 1,
+        col: 1,
+        rule: 'import',
+        message: 'import of "effect" is not allowed in the sim',
+      },
+    ])
+    expect(all.code).toBe(1)
+
+    const fast = await check(fakeGame({ tools }), { failFast: true })
+    expect(fast.names).toEqual(['boundaries'])
+    expect(fast.code).toBe(1)
+  })
+
+  it('a missing vitest is exit 2 with what to install, never a pass', async () => {
+    const { report, code } = await check(fakeGame({ tools: { vitest: undefined } }))
+    const test = report.steps.find((step) => step.name === 'test')
+    expect(test).toMatchObject({ ok: false, toolError: true })
+    expect(test?.findings[0]?.rule).toBe('tool-missing')
+    expect(test?.findings[0]?.message).toContain('npm install --save-dev vitest')
+    expect(code).toBe(2)
+  })
+
+  it('a game without src/sim is a tool error, not a pass', async () => {
+    const game = fakeGame()
+    game.files.delete(`${GAME}/src/sim/game.plugin.ts`)
+    const { report, code } = await check(game)
+    expect(report.steps[0]).toMatchObject({ name: 'boundaries', ok: false, toolError: true })
+    expect(report.steps[0]?.findings[0]?.message).toContain('src/sim')
+    expect(code).toBe(2)
+  })
+
+  it('reports type errors and failed tests as findings', async () => {
+    const tools = {
+      tsc: () => ({
+        exitCode: 2,
+        stdout: "src/main.ts(1,7): error TS2322: Type 'string' is bad.\n",
+        stderr: '',
+      }),
+    }
+    const game = fakeGame({ tools })
+    game.tools.vitest = () => {
+      game.files.set(
+        VITEST_REPORT,
+        JSON.stringify({
+          testResults: [
+            {
+              name: `${GAME}/src/a.test.ts`,
+              status: 'failed',
+              message: '',
+              assertionResults: [
+                {
+                  fullName: 'a',
+                  status: 'failed',
+                  location: { line: 2, column: 1 },
+                  failureMessages: ['boom'],
+                },
+              ],
+            },
+          ],
+        }),
+      )
+      return { exitCode: 1, stdout: '', stderr: '' }
+    }
+    const { report, code } = await check(game)
+    expect(report.steps[1]?.findings.map((f) => f.rule)).toEqual(['TS2322'])
+    expect(report.steps[2]?.findings).toEqual([
+      { file: 'src/a.test.ts', line: 2, col: 1, rule: 'test', message: 'a: boom' },
+    ])
+    expect(code).toBe(1)
+  })
+
+  it('a tool that fails without findings is a tool error', async () => {
+    const tools = { tsc: () => ({ exitCode: 1, stdout: '', stderr: 'tsc crashed' }) }
+    const { report, code } = await check(fakeGame({ tools }))
+    expect(report.steps[1]).toMatchObject({ name: 'typecheck', ok: false, toolError: true })
+    expect(report.steps[1]?.findings[0]).toMatchObject({ rule: 'tool-error' })
+    expect(report.steps[1]?.findings[0]?.message).toContain('tsc crashed')
+    expect(code).toBe(2)
+  })
+
+  it('a failed build is a build finding; eval in the bundle is a no-eval finding', async () => {
+    const broken = { vite: () => ({ exitCode: 1, stdout: '', stderr: 'Could not resolve "./x"' }) }
+    const failedBuild = await check(fakeGame({ tools: broken }))
+    expect(failedBuild.report.steps[3]?.findings).toEqual([
+      { file: '', line: 0, col: 0, rule: 'build', message: 'vite build failed: Could not resolve "./x"' },
+    ])
+    expect(failedBuild.code).toBe(1)
+
+    const withEval = fakeGame({
+      files: new Map([[`${GAME}/dist/assets/index.js`, 'export const run = (s) => eval(s)']]),
+    })
+    const evalCheck = await check(withEval)
+    expect(evalCheck.report.steps[3]?.findings).toMatchObject([
+      { file: 'dist/assets/index.js', line: 1, rule: 'eval' },
+    ])
+    expect(evalCheck.code).toBe(1)
+  })
+
+  it('a CSP violation or no ready signal fails csp; a missing Playwright is exit 2', async () => {
+    const violation = await check(
+      fakeGame({ csp: { ready: true, state: 'ready', violations: ['script-src blocked eval'] } }),
+      { csp: true },
+    )
+    expect(violation.report.steps[4]?.findings).toEqual([
+      { file: '', line: 0, col: 0, rule: 'csp-violation', message: 'script-src blocked eval' },
+    ])
+    expect(violation.code).toBe(1)
+
+    const notReady = await check(fakeGame({ csp: { ready: false, state: 'loading', violations: [] } }), {
+      csp: true,
+    })
+    expect(notReady.report.steps[4]?.findings[0]).toMatchObject({ rule: 'not-ready' })
+    expect(notReady.report.steps[4]?.findings[0]?.message).toContain('20 s')
+
+    const failed = await check(fakeGame({ csp: { ready: false, state: 'failed', violations: [] } }), {
+      csp: true,
+    })
+    expect(failed.report.steps[4]?.findings[0]).toMatchObject({ rule: 'boot-failed' })
+
+    const missing = new CheckToolError({
+      kind: 'missing',
+      tool: 'playwright',
+      detail: 'install it: npm install --save-dev playwright && npx playwright install chromium',
+    })
+    const noPlaywright = await check(fakeGame({ csp: missing }), { csp: true })
+    expect(noPlaywright.report.steps[4]).toMatchObject({ ok: false, toolError: true })
+    expect(noPlaywright.report.steps[4]?.findings[0]?.rule).toBe('tool-missing')
+    expect(noPlaywright.code).toBe(2)
+  })
+})
