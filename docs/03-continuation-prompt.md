@@ -30,6 +30,8 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 **Itch is skipped for now (Owner, 2026-10-16).** PUB.3's work-in-progress is parked on `claude/clever-pasteur-ujmu6e-pub3-wip` (no PR, do not merge); PUB.5 is dropped from the queue; the itch PRs (#40 PUB.1, #41 PUB.2, #50 PUB.4) stay open drafts and get their `main` merges last, only when the Owner resumes itch.
 
+**Overnight merge authority (Owner, 2026-10-16):** the agent may merge its own PRs into `main` when every check, parity included, is green on the latest head, with a merge commit and no force-push. It skips the itch PRs (#40, #41, #50) and anything that needs Owner review (milestone specs), and stops on any failure that is not runner load.
+
 **Merged:** #52 (CI budgets, turbo inputs), #36 (DX.1).
 
 **Next (one af-linux run at a time, full local gates before each push, each PR marked ready before its push so the run includes parity):**
