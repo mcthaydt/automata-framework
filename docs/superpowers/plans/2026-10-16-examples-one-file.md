@@ -81,7 +81,7 @@
   - Confirm it fails with no server.
   - Add the `examples` project (Pixel 7 and 780×270) and its `webServer` to `playwright.config.ts`.
   - Confirm it passes on the stub.
-- [ ] **7. Parity.** Write `examples.parity.test.ts`. For each `Golden:` entry it runs `replayGolden` against `examples/__goldens__/<name>.replay` in Node and the browsers project.
+- [x] **7. Parity.** Write `examples.parity.test.ts`. For each `Golden:` entry it runs `replayGolden` against `examples/__goldens__/<name>.replay` in Node and the browsers project.
   - Confirm it fails on a stub with no replay.
   - Record the stub's replay once, in Node.
   - Confirm it passes in Node, Chromium, WebKit and Firefox.
