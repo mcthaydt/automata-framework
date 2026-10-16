@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { changesetProblems } from './check-changesets.ts'
+import { changesetProblems, readChangeset } from './check-changesets.ts'
 
 const published = ['@mcthaydt/automata-sim', '@mcthaydt/automata-host']
 const file = (body: string) => `---\n${body}\n---\n\nWhat changed.\n`
@@ -35,5 +35,19 @@ describe('changesetProblems (patch only before 1.0)', () => {
     expect(changesetProblems({ 'bad.md': 'no front matter' }, published)).toEqual([
       'bad.md: no front matter (expected --- … --- with one package per line)',
     ])
+  })
+})
+
+describe('readChangeset (shared with tooling/api-report)', () => {
+  it('reads each release line and the body after the front matter', () => {
+    expect(readChangeset(`---\n'@mcthaydt/automata-host': patch\n---\n\nBREAKING: a member.\n`)).toEqual({
+      releases: [{ name: '@mcthaydt/automata-host', bump: 'patch' }],
+      body: '\nBREAKING: a member.\n',
+    })
+  })
+
+  it('is undefined without front matter and skips unreadable lines', () => {
+    expect(readChangeset('no front matter')).toBeUndefined()
+    expect(readChangeset('---\nnot a release\n---\n')?.releases).toEqual([])
   })
 })
