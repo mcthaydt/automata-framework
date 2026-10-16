@@ -348,6 +348,29 @@ describe('ci.yml release checks (M2.4 spec §3.5)', () => {
   })
 })
 
+describe('repo hygiene in ci.yml and ci:local (QB.1)', () => {
+  const steps = workflow('ci.yml').jobs.checks?.steps ?? []
+  const runs = steps.map((step) => step.run ?? '')
+  const local = (
+    JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts['ci:local'] as string
+  ).split(' && ')
+
+  it.each(['pnpm knip', 'pnpm audit:deps', 'pnpm secrets'])('runs %s in CI and in ci:local', (command) => {
+    expect(runs).toContain(command)
+    expect(local).toContain(command)
+  })
+
+  it('runs knip in pnpm check', () => {
+    expect((packageJson('.').scripts.check as string).split(' && ')).toContain('pnpm knip')
+  })
+
+  it('reports new dependencies on pull requests, against the base branch', () => {
+    const report = steps.find((step) => step.run?.includes('pnpm deps:new'))
+    expect(report?.if).toBe("github.event_name == 'pull_request'")
+    expect(report?.run).toContain('--base origin/main')
+  })
+})
+
 describe('release-packages.yml (M2.4 spec §3.5)', () => {
   const release = workflow('release-packages.yml')
   const job = release.jobs.release
@@ -366,6 +389,10 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
   it('stays off the shared self-hosted runners, since it holds a write token', () => {
     expect(job?.['runs-on']).toBe('ubuntu-latest')
     expect((job as { 'timeout-minutes'?: number })['timeout-minutes']).toBe(20)
+  })
+
+  it('waits for the Owner: the job runs in the release environment, which requires the Owner as reviewer (QB.1)', () => {
+    expect((job as { environment?: string }).environment).toBe('release')
   })
 
   it('may write contents, pull requests and packages, nothing else', () => {

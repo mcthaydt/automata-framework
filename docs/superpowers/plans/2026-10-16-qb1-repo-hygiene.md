@@ -2,7 +2,7 @@
 
 - **Spec:** [`docs/superpowers/specs/2026-10-16-quality-bar-design.md`](../specs/2026-10-16-quality-bar-design.md) §3 F-7, §4.1, §7 QB.1, acceptance QB-a (§9). QB.0 approved by the Owner 2026-10-16 with every recommended default.
 - **Lane:** ship. **Branch:** `claude/clever-pasteur-ujmu6e-qb1`.
-- **Progress:** 6 of 9 steps.
+- **Progress:** 7 of 9 steps.
 
 ## Global constraints
 
@@ -47,7 +47,7 @@
 - [x] **4. Audit.** In `audit.test.ts`: `auditVerdict` reads pnpm's "N vulnerabilities found" output as `advisories`, exit 0 as `clean`, and a registry error as `error`. Confirm it fails, implement. `audit-cli.ts` first audits `fixtures/audit` (minimist 1.2.5, a critical advisory) and requires `advisories`, then audits the workspace with `pnpm audit --prod --audit-level=high` and requires `clean`. Run `pnpm audit:deps` and record the result.
 - [x] **5. Secrets.** In `gitleaks.test.ts`: the asset name and SHA-256 for linux/darwin x64/arm64; an unsupported platform throws; a download whose bytes do not match the pinned SHA-256 is rejected (injected fetch). Confirm it fails, implement `gitleaks.ts`. `secrets.ts` copies `fixtures/secrets/` into a temporary repository, commits it and requires gitleaks to find the planted key; then it scans this repository's full history with `.gitleaks.toml` (which allowlists the fixture folder) and requires no finding. Run `pnpm secrets`.
 - [x] **6. New-dependency report.** In `new-deps.test.ts`: a dependency absent from every base manifest is reported with its manifest, version and registry (`workspace:` and `file:` are not); a version change is not "new"; with an injected fetch, an npm package gets its publisher and weekly downloads, and a 404 marks it missing; `formatReport` prints a Markdown table and the CLI exits 1 on a missing package. Confirm it fails, implement.
-- [ ] **7. knip.** In `knip.test.ts`: knip on `fixtures/knip` (an unused export) exits 1 and names the export. Confirm it fails (no fixture), add the fixture, confirm. Configure `knip.jsonc` for the monorepo; `pnpm knip` passes on `main`. Real findings go to 02 as follow-ups.
+- [x] **7. knip.** In `knip.test.ts`: knip on `fixtures/knip` (an unused export) exits 1 and names the export. Confirm it fails (no fixture), add the fixture, confirm. Configure `knip.jsonc` for the monorepo; `pnpm knip` passes on `main`. Real findings go to 02 as follow-ups.
 - [ ] **8. Repository files and workflows.** In `repo-files.test.ts`: `SECURITY.md` names a contact and a response window, `.github/CODEOWNERS` assigns `*` to `@mcthaydt`, the README links `SECURITY.md` and `docs/runbook.md`, and the runbook has the "Lost credentials" and "Rebuild from Git" sections. In `workflows.test.ts`: the release job uses `environment: release`; `ci.yml` runs `pnpm audit:deps`, `pnpm secrets` and `pnpm knip`, and the new-dependency report on pull requests only; `ci:local` runs the same checks. Confirm they fail, then write the files and workflow steps.
 - [ ] **9. Gates and bookkeeping.** `pnpm format`, `pnpm check`, `pnpm audit:deps`, `pnpm secrets`, `pnpm knip`, `pnpm deps:new`. Record results here, in 02 and in 03.
 

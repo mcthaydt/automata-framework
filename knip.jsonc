@@ -1,0 +1,43 @@
+// knip (QB spec §4.1, QB.1): unused files, exports, dependencies and binaries, in `pnpm check`.
+// tooling/repo-hygiene/src/knip.test.ts proves it fails on a planted unused export.
+{
+  "$schema": "https://unpkg.com/knip@6.39.0/schema.json",
+  // An export its own file uses is not dead code (constants and types that tests also read).
+  "ignoreExportsUsedInFile": true,
+  // Fixtures are test inputs read as files, never imported.
+  "ignore": ["**/fixtures/**"],
+  // automata-ship is packages/ship's own bin, which game repositories call through the reusable workflows;
+  // flock is a system tool that packages/ship's deploy test uses.
+  "ignoreBinaries": ["automata-ship", "flock"],
+  // BootErrorIsDrawable is a compile-time assertion (shared contracts §4); exporting it keeps it checked.
+  "ignoreIssues": { "packages/runtime/src/boot/boot-error.ts": ["types"] },
+  "workspaces": {
+    // s8/measure.ts builds s8/no-effect.html, whose script is this file.
+    "examples/placeholder": { "entry": ["s8/no-effect.ts"] },
+    // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
+    "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
+    "packages/host": { "ignoreDependencies": ["zod"] },
+    // Known unused dependencies on main at QB.1 (2026-10-16), each a follow-up in docs/02 (QB.1 knip
+    // baseline). Remove an entry when its follow-up lands; nothing new may be added here without one.
+    "packages/cli": { "ignoreDependencies": ["zod"] },
+    "examples/render-pixi/renderer-2d": {
+      "ignoreDependencies": [
+        "@mcthaydt/automata-host",
+        "@mcthaydt/automata-runtime",
+        "koota",
+        "zod",
+        "@ruken/manifest"
+      ]
+    },
+    "examples/runtime/boot-and-flow": {
+      "ignoreDependencies": [
+        "@mcthaydt/automata-content",
+        "@mcthaydt/automata-host",
+        "@mcthaydt/automata-ui",
+        "koota",
+        "@mcthaydt/automata-testing",
+        "@ruken/manifest"
+      ]
+    }
+  }
+}

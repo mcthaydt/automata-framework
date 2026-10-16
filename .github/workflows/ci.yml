@@ -64,7 +64,18 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm boundaries
       - run: pnpm style
+      # QB.1 (QB spec §4.1): unused files, exports and dependencies (knip.jsonc).
+      - run: pnpm knip
       - run: pnpm test:unit
+      # QB.1: each of these first proves it fails on its planted fixture, then checks the repository. The audit is
+      # `pnpm audit --prod --audit-level=high`; the secret scan runs the pinned gitleaks over the full history
+      # (fetch-depth 0 above).
+      - run: pnpm audit:deps
+      - run: pnpm secrets
+      # QB.1: every package this pull request adds that main never used, with its registry, publisher and weekly
+      # downloads, in the job summary. Fails when a package or version is not on its registry.
+      - run: pnpm deps:new --base origin/main
+        if: github.event_name == 'pull_request'
       # Every feature demo builds (examples/README.md); their browser checks run with the journeys.
       - run: pnpm build:demos
       # S8 budgets E1 and E3 (docs/spikes/s8-effect.md): Effect's share and the page's gzip size.
