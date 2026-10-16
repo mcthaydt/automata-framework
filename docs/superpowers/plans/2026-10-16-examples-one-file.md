@@ -101,7 +101,7 @@
   - `git mv` both folders.
   - Update `ci.yml` (`working-directory`), `playwright.config.ts`, the root `package.json` scripts, `packages/ship` ports, `test-remote` and `turbo.json`, `tooling/check-boundaries` and `tooling/release` tests, and the demo imports of `@af-examples/base-2d` (the package names are unchanged).
   - Confirm step 1's tests pass.
-- [ ] **3. Prove nothing changed.**
+- [x] **3. Prove nothing changed.**
   - `pnpm check`;
   - `pnpm test:parity` (Emberwick's golden `31f50888ccb4cf0a` unchanged);
   - `pnpm test:e2e` (the base-2d and placeholder journeys);
@@ -149,4 +149,4 @@ Per demo:
 
 | Date | Task | Commits | Notes |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-10-16 | EX.2 | `d81fa9b` (file list), `6d8e5c7` (move) on `claude/clever-pasteur-ujmu6e-ex2` | Red first: ship's workflow and turbo-input tests and release's workspace walk failed on the missing `games/`. Green after the move. `pnpm check` 26/26 + 22/22 turbo tasks (1,660 unit tests passed, 4 skipped; 35 of 48 tasks replayed from turbo's cache on identical inputs); `pnpm test:parity` 9/9 tasks, none cached (590 tests; Emberwick's golden `31f50888ccb4cf0a` green in Chromium, WebKit and Firefox, and its Node golden test 3/3); `pnpm test:e2e` 46/46 (placeholder 3, base-2d 9, base-2d-compact 9, ui-primitives 5, demos 20; ports 4620/4720); `build` + `prepare-ruken` for both games and the placeholder's `budget:size` (S8 budgets met). `pnpm lint:actions` not run: no Docker daemon in the container. |

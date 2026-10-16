@@ -44,6 +44,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| EX.2 games folder | Branch `claude/clever-pasteur-ujmu6e-ex2` (`6d8e5c7`): Emberwick at `games/emberwick`, the placeholder at `games/placeholder`, package names kept. Local 2026-10-16: `pnpm check`, parity 9/9 (golden `31f50888ccb4cf0a` green in Node, Chromium, WebKit, Firefox), e2e 46/46, build + prepare-ruken for both, placeholder `budget:size` | PR review and merge; `pnpm lint:actions` not run (no Docker daemon); hosted CI |
 | PUB (spec only) | PUB.0 drafted 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | Owner review; PUB-D1 to PUB-D4; Ruken requests in spec §9 |
 | QB (spec only) | QB.0 drafted 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | Owner review; QB-D1 to QB-D4 |
 | EX (spec and plan only) | EX.0 drafted 2026-10-16. Today's demos measured at `5d54594`: 9–30 files and 228–688 non-test lines each, on Emberwick's 77 files | Owner review |
