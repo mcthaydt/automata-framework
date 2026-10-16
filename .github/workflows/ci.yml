@@ -78,6 +78,10 @@ jobs:
       - run: pnpm --filter @mcthaydt/release test:dist
       # DX.4: the API index and llms-full.txt from the built .d.ts; fails on a new export with no doc comment.
       - run: pnpm api-index
+      # DX.7: the automata-api skill carries that api.md and the plugin its version; then Claude Code validates the
+      # plugin and the marketplace (--strict).
+      - run: pnpm agent-skills
+      - run: pnpm plugin:validate
 
   parity:
     name: parity (chromium, webkit, firefox)
