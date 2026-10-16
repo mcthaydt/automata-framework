@@ -1,6 +1,6 @@
 import { portsFor } from '../../../packages/ship/src/ports/ports-for.ts'
 
-// The game and the fake host on different origins, as Ruken serves them (examples/placeholder/e2e/origins.ts).
+// The game and the fake host on different origins, as Ruken serves them (games/placeholder/e2e/origins.ts).
 // The placeholder's servers use the checkout's port pair and the ui demo sits 100 above the preview port;
 // base-2d's sit 300 above the pair (host 4900–4999, game 5000–5099), so one `pnpm test:e2e` runs every
 // example's journeys side by side without two servers on one port.
