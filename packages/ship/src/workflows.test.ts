@@ -153,9 +153,11 @@ describe('parity across packages', () => {
 
   // af-linux is one PC shared with Ruken's GPU runs. Under that load, tests that build worlds or import whole
   // entry modules ran past vitest's 5 s default (main after #16: sim's snapshot test at 5.2 s; #15: base-2d's
-  // exports test). The root script passes a 30 s default to every package's vitest; a test's own timeout still wins.
-  it('gives every unit suite a 30 s default timeout through the root test:unit script', () => {
-    expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=30000')
+  // exports test), and then past 30 s while Ruken's CI ran alongside (2026-10-16: base-2d's exports test at
+  // 30.5 s, physics parity at 32–33 s, content's render-types file at 70.7 s). The root script passes a 90 s
+  // default to every package's vitest, which still catches a hang; a test's own timeout still wins.
+  it('gives every unit suite a 90 s default timeout through the root test:unit script', () => {
+    expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=90000')
     // The flag only means something to vitest, so every package's test:unit must be a vitest run.
     for (const path of workspacePackages) {
       const script = packageJson(path).scripts?.['test:unit']
