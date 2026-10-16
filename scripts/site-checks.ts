@@ -4,6 +4,22 @@ import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
 import { SITE_ORIGIN } from '../src/lib/site.js'
 
+/**
+ * Placeholder and AI-filler phrases (quality-bar spec §4.2). Matched on whole words in each page's text, title and
+ * description; TODO is matched in capitals only, so prose about a "todo list" is not flagged.
+ */
+export const BANNED_PHRASES: { label: string; pattern: RegExp }[] = [
+  { label: 'lorem', pattern: /\blorem\b/i },
+  { label: 'TODO', pattern: /\bTODO\b/ },
+  { label: 'coming soon', pattern: /\bcoming soon\b/i },
+  { label: 'seamless', pattern: /\bseamless(ly)?\b/i },
+  { label: 'cutting-edge', pattern: /\bcutting[- ]edge\b/i },
+  { label: 'unleash', pattern: /\bunleash(es|ed|ing)?\b/i },
+  { label: 'supercharge', pattern: /\bsupercharg(e|es|ed|ing)\b/i },
+  { label: 'revolutionize', pattern: /\brevolutioni[sz](e|es|ed|ing)\b/i },
+  { label: 'game-changer', pattern: /\bgame[- ]?changer(s)?\b/i },
+]
+
 /** The prerendered pages of a build: every HTML file except the demo bundles and the 404 fallback. */
 export function builtPages(root: string): string[] {
   return readdirSync(root, { recursive: true }).map(String)
@@ -40,6 +56,8 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     for (const selector of ['title', 'h1', 'main#main', 'meta[name="description"]', 'meta[property="og:title"]', 'link[rel="canonical"]']) {
       if (doc.querySelectorAll(selector).length !== 1) failures.push(file + ': expected one ' + selector)
     }
+    const text = [doc.title, doc.querySelector('meta[name="description"]')?.getAttribute('content') ?? '', doc.body.textContent ?? ''].join('\n')
+    for (const banned of BANNED_PHRASES) if (banned.pattern.test(text)) failures.push(`${file}: banned phrase "${banned.label}"`)
     failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkFooter(file, doc))
     for (const image of doc.querySelectorAll('img')) {
       // Decorative images say so with alt=""; a missing attribute is always a defect.

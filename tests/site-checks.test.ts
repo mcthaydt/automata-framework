@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { checkSite } from '../scripts/site-checks'
+import { BANNED_PHRASES, checkSite } from '../scripts/site-checks'
 import { writeSeoFiles } from '../scripts/write-seo-files'
 
 const ORIGIN = 'https://automata.ruken.com'
@@ -187,5 +187,18 @@ describe('checkSite', () => {
     const site = goodSite()
     site.write('docs.html', page('/docs', { body: '<form action="/subscribe"><input name="email" /></form>' }))
     expect(checkSite(site.root, { now: NOW })).toContain('docs.html: has a <form>; the privacy page says there are none')
+  })
+
+  it.each(['lorem', 'TODO', 'coming soon', 'seamless', 'cutting-edge', 'unleash', 'supercharge', 'revolutionize', 'game-changer'])('fails on the banned phrase %s', phrase => {
+    expect(BANNED_PHRASES.map(banned => banned.label)).toContain(phrase)
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { body: `<p>A ${phrase.toUpperCase() === phrase ? phrase : phrase[0].toUpperCase() + phrase.slice(1)} thing.</p>` }))
+    expect(checkSite(site.root, { now: NOW })).toContain(`docs.html: banned phrase "${phrase}"`)
+  })
+
+  it('does not flag words that merely contain a banned phrase', () => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { body: '<p>Todos and seamlessness are fine; so is a todo list.</p>' }))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
   })
 })
