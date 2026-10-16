@@ -32,9 +32,10 @@
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
     "packages/host": { "ignoreDependencies": ["zod"] },
+    // automata check (DX.6) bundles @ruken/manifest, which imports smol-toml at runtime.
+    "packages/cli": { "ignoreDependencies": ["smol-toml"] },
     // Known unused dependencies on main at QB.1 (2026-10-16), each a follow-up in docs/02 (QB.1 knip
     // baseline). Remove an entry when its follow-up lands; nothing new may be added here without one.
-    "packages/cli": { "ignoreDependencies": ["zod"] },
     "examples/render-pixi/renderer-2d": {
       "ignoreDependencies": [
         "@mcthaydt/automata-host",
