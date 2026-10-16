@@ -7,7 +7,7 @@
 // Difficulty: ★★☆☆
 // Tier: core
 // Golden: 120
-// Pending: DX.2, DX.2b
+// Pending: DX.2
 import { defineGame, sprite } from '@mcthaydt/automata-game'
 import { defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 
