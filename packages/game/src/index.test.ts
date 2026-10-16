@@ -1,0 +1,13 @@
+import { describe, expect, it } from 'vitest'
+import * as game from './index.ts'
+
+// What a game imports from `@mcthaydt/automata-game` (DX spec §3.1, §3.3): one call to start a game, its pure half,
+// the input map, the entity views (re-exported from render-pixi, DX.2b), and the defaults it fills in.
+describe('@mcthaydt/automata-game', () => {
+  it.each(['defineGame', 'startGame', 'keys', 'rect', 'sprite', 'defaultContent', 'defaultScreens'] as const)(
+    'exports %s',
+    (name) => {
+      expect(typeof game[name]).toBe('function')
+    },
+  )
+})

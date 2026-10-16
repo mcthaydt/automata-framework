@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["vite/client", "@testing-library/jest-dom/vitest", "vitest/browser", "node"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.svelte"]
+}
