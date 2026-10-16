@@ -59,7 +59,7 @@
   - a `Pending:` naming a task already ticked in `docs/02-master-delivery-plan.md`.
 
   Confirm it fails, implement `catalog.ts`, confirm it passes.
-- [ ] **3. `--inline` boundaries.** In `tooling/check-boundaries/src/check.test.ts`:
+- [x] **3. `--inline` boundaries.** In `tooling/check-boundaries/src/check.test.ts`:
   - `Date.now()` in a `defineSystem` callback fails with rule and line (spec E-g);
   - `Math.random()` in `definePlugin` `setup` fails;
   - `document` at file level passes in inline mode;

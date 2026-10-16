@@ -142,7 +142,17 @@ export interface CheckOptions {
    * on its own (a demo's sim on its base's sim, `@af-examples/base-2d/sim`).
    */
   readonly allowImports?: readonly string[]
+  /**
+   * Inline mode (EX spec §4), for a one-file example: the file is a browser file, so only the sim inside it is
+   * checked, which is every argument of a `defineSystem` or `definePlugin` call (the system bodies, the plugin's
+   * setup). File-level code and imports are not checked. A helper the sim calls that is declared outside those
+   * calls is not checked either; a sim that big belongs in a game's `sim/` folder, under the per-file check.
+   */
+  readonly inline?: boolean
 }
+
+/** The calls whose arguments are sim code in inline mode. */
+const INLINE_SIM_CALLS: ReadonlySet<string> = new Set(['defineSystem', 'definePlugin'])
 
 /**
  * The name a member expression reads, when it is known without running code: `a.b`, `a['b']` and
@@ -301,6 +311,38 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
       } else if (isNode(v)) visit(v, k, node)
     }
   }
-  visit(parsed.program as unknown as Node, 'program', null)
+  const children = (node: Node): [string, Node][] => {
+    const found: [string, Node][] = []
+    for (const [k, v] of Object.entries(node)) {
+      if (k === 'type' || TYPE_KEYS.has(k)) continue
+      if (Array.isArray(v)) {
+        for (const child of v) if (isNode(child)) found.push([k, child])
+      } else if (isNode(v)) found.push([k, v])
+    }
+    return found
+  }
+
+  // Inline mode: walk without reporting until a sim call, then check its arguments with the full rules.
+  const findSim = (node: Node): void => {
+    if (TYPE_NODES.has(node.type)) return
+    if (node.type === 'CallExpression') {
+      const callee = node.callee as Node & { name?: string }
+      const name =
+        callee.type === 'Identifier'
+          ? callee.name
+          : callee.type === 'MemberExpression'
+            ? staticMemberName(callee)
+            : undefined
+      if (name !== undefined && INLINE_SIM_CALLS.has(name)) {
+        for (const argument of node.arguments as unknown[])
+          if (isNode(argument)) visit(argument, 'arguments', node)
+        return
+      }
+    }
+    for (const [, child] of children(node)) findSim(child)
+  }
+
+  if (options.inline === true) findSim(parsed.program as unknown as Node)
+  else visit(parsed.program as unknown as Node, 'program', null)
   return findings.sort((a, b) => a.line - b.line || a.col - b.col)
 }
