@@ -19,7 +19,7 @@
     "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries src/sim",
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run",
-    "test:unit": "vitest run --project node",
+    "test:unit": "vitest run --project node --project dom",
     "test:parity": "vitest run --project browsers --project renderer",
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "e2e:game": "vite build && vite preview --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
