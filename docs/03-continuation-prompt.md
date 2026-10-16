@@ -24,9 +24,11 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 4. Website: DX.10, DX.12, QB.4, DX.13.
 5. M4.0 and M5.0 drafts → PRODUCT.6; M3.0 (S7); M6.0; M7.0 (with QB spec §5's server requirements) → PRODUCT.8; M8.0; QB.5 with D-7.
 
-**Blocked on the Owner:** an `NPM_TOKEN` secret and the `mcthaydt/automata-skills` repo (DX.11); the private `mcthaydt/automata-plus` repo (PRODUCT.5); hosting and DNS for `automata.ruken.com` (DX.12, QB.4); a Discord server and bot (DX.13); an itch.io account and `BUTLER_API_KEY` (PUB.5); filing the Ruken requests (QB spec §6, PUB spec §9); QB-D4; reviews of each new milestone spec.
+**Blocked on the Owner:** an `NPM_TOKEN` secret (DX.11); attaching `mcthaydt/automata-skills` to the agent session (the repo exists; DX.11); hosting and DNS for `automata.ruken.com` (DX.12, QB.4); a Discord server and bot, and a working Discord connector (DX.13); an itch.io account and `BUTLER_API_KEY` (PUB.5); the go-ahead to post the two drafted Ruken issues (QB spec §6, PUB spec §9); QB-D4; the QB.1 repository settings (release environment, Renovate, private vulnerability reporting); the DX.2b `frames` shape; PRODUCT.L's negotiation order (Ruken `session.locale` before the saved choice, as the spec says); reviews of each new milestone spec and of every draft PR. `mcthaydt/automata-plus` now exists (private), which unblocks PRODUCT.5 and PRODUCT.1b once their dependencies merge.
 
-**Next:** Wave 1. The status of each Wave 1 task (its PR and gates) is recorded in 02's execution record as it lands.
+**CI capacity:** the one af-linux runner is overloaded; unit jobs fail on timeouts in untouched packages. The fix is the Owner's: a second runner labelled `af-linux` or another label in the `AF_LINUX_RUNNER` variable.
+
+**Next:** Wave 1 is drafted: every task has a draft PR (02's execution record lists them, #35–#48 and `automata_website` #2), and they wait on Owner review and merge. Wave 2 runs stacked on its unmerged dependencies, each PR based on its dependency's branch: EX.3 on EX.1 (#43), PRODUCT.3 on DX.4 (#37), PUB.4 on PUB.2 (#41) are in progress. Then QB.2 (on DX.6, #42), EX.5 (on EX.1), DX.7 (needs DX.4 and DX.6), PUB.3 (needs PUB.1 and PUB.2); DX.2 after EX.3 and DX.1 (#36), then DX.3 and PRODUCT.2. A fresh session resumes by checking which PRs merged (retarget stacked PRs to `main` after their base merges) and starting the next unblocked Wave 2 task.
 
 **Earlier history (M1 and the 2026-10-16 drafts):**
 
@@ -64,6 +66,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| QB.3 website quality gates | `automata_website` PR #2 @ `8a0d54b`; results in that repo's `docs/2026-10-14-site-redesign-results.md` | Implemented and locally verified, not merged. Fixes F-2 to F-6 (F-5's third-party link was already gone on main); every §4.2 gate has a fixture in `check:site` and a Chromium/WebKit Playwright suite. The MIT test is `it.fails` until DX.11 (F-1 still open in the framework). Lighthouse CI pending (QB.3f). Not deployed. Owner real-phone, Safari and second-person pass, and the privacy/terms wording, are open. |
 | PUB (spec reviewed) | PUB.0 drafted 2026-10-16, Owner-approved 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | PUB.1–PUB.5; Ruken requests in spec §9 (Owner files) |
 | QB (spec reviewed) | QB.0 drafted 2026-10-16, Owner-approved 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | QB.1–QB.5; QB-D4 (Owner action) |
 | EX (spec reviewed, plan only) | EX.0 drafted 2026-10-16, Owner-approved 2026-10-16. Today's demos measured at `5d54594`: 9–30 files and 228–688 non-test lines each, on Emberwick's 77 files | EX.1–EX.5 |
