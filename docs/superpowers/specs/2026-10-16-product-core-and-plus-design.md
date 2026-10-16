@@ -117,10 +117,12 @@ Ruken requires localization from `session.locale` of every game (master spec §5
 **Core:**
 1. **Messages.** Paraglide compiles the content compiler's locale keys into typed `t()` functions. This settles the open question in the master spec's `i18n-extra` row on FloorFifty's proven setup. A key missing from a declared language fails the content compile with `file:line:col`.
 2. **Negotiation** (`detect.ts`, `strategy.ts`). The order is:
-   1. Ruken `session.locale`;
-   2. the saved setting;
+   1. the saved setting (the player's own choice in the game's picker);
+   2. Ruken `session.locale`;
    3. the browser's languages;
    4. the game's default.
+
+   Decided 2026-10-16 (PRODUCT.L1): the saved setting comes before `session.locale`, so a player's explicit choice holds under Ruken. This follows FloorFifty, which detects a language only "when the player has not chosen one". With nothing saved, Ruken's locale still decides the first screen (L-b).
 
    The result is known before first render. A runtime change is a presentation-bus event; the screen is not remounted, focus is kept, and the sim is untouched.
 3. **Formatting** (`format.ts`): numbers, durations, ordinals and plurals through `Intl`.

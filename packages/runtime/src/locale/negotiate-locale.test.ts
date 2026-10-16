@@ -25,12 +25,16 @@ describe('matchLocale', () => {
 describe('negotiateLocale (PRODUCT spec §4 item 2)', () => {
   const base = { locales, baseLocale: 'en' }
 
-  it('takes the hosted session locale first', () => {
-    expect(negotiateLocale({ ...base, hosted: 'fr-CA', saved: 'pt-BR', browser: ['pt-BR'] })).toBe('fr')
+  it("takes the player's saved choice first, over the hosted session locale", () => {
+    expect(negotiateLocale({ ...base, hosted: 'fr-CA', saved: 'pt-BR', browser: ['fr'] })).toBe('pt-BR')
   })
 
-  it('falls through an unsupported hosted locale to the saved choice', () => {
-    expect(negotiateLocale({ ...base, hosted: 'de', saved: 'pt-BR', browser: ['fr'] })).toBe('pt-BR')
+  it('then the hosted session locale, when the player has not chosen', () => {
+    expect(negotiateLocale({ ...base, hosted: 'fr-CA', saved: undefined, browser: ['pt-BR'] })).toBe('fr')
+  })
+
+  it('falls through an unsupported saved choice to the hosted session locale', () => {
+    expect(negotiateLocale({ ...base, hosted: 'fr', saved: 'ko', browser: ['pt-BR'] })).toBe('fr')
   })
 
   it("then to the browser's first supported language", () => {
