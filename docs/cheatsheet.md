@@ -68,6 +68,7 @@
 - `HostError` (class): Any failure after the handshake.
 - `HostHandshakeFailed` (class): The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session.
 - `Hosting` (interface): Everything a game may ask of, or hear from, its host: the `Hosting` contract of the M1 shared contracts spec §1, implemented by the host lane.
+- `HostingLeaderboards` (interface): The host's leaderboards (Ruken's `LeaderboardsApi`, PRODUCT spec §2 F1).
 - `HostingLive(options, seams?)`: The single `Hosting` layer for games (shared contracts §1.1).
 - `HostingOptions` (interface): What the game asks of its host.
 - `HostingSaves` (interface): The player's saves (shared contracts §1.1).
