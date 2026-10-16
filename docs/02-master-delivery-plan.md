@@ -78,6 +78,7 @@ Owner, 2026-10-16: each example is one file, like raylib's. The [EX spec](superp
 | [ ] | EX.3 — Target examples first | Integration; EX.1. `core-basic-window`, `core-input-keys`, `shapes-rects`, `textures-sprite`, marked `Pending: DX.2`/`DX.2b` until those land. |
 | [ ] | EX.4 — Port the demos | Each owning lane; EX.1, DX.2, DX.2b. Behavior tests move into their packages first, then the one-file example, then the old folder is deleted. Physics goes to `automata-plus` with PRODUCT.5. |
 | [ ] | EX.5 — Index page | Integration; EX.1. Examples by module, with source beside the running frame; replaces `examples/gallery`. |
+| [ ] | EX.1 follow-up — turbo inputs for the catalog test | Integration; EX.1. `tooling/examples-runner`'s catalog test reads `docs/02-master-delivery-plan.md` and `examples/*`, but turbo's default inputs for its `test:unit` cover only the package's own files, so a change to either gets a cached pass locally (found on #51: CI failed on `Pending: DX.2b` after #39 merged while the cached local `pnpm check` passed). Declare those inputs in `turbo.json`. |
 
 ## PRODUCT Free core, Automata Plus, FloorFifty as the measure
 
