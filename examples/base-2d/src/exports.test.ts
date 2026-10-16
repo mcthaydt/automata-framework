@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest'
 // The entries demos import (examples/README.md), resolved by package name as a demo resolves them. The root
 // and ./sim stay free of Pixi, so Node code (sims, goldens) that reads the room or the plugin never loads the
 // renderer; the game and the renderer have their own entries.
-// Each test imports a whole entry cold, which took 5.6 s on a loaded runner (past vitest's 5 s default), so the
-// block gets the same 30 s allowance as ship's deploy tests.
-describe('@af-examples/base-2d entries', { timeout: 30_000 }, () => {
+// Each test imports a whole entry cold, which took 5.6 s on a loaded runner (past vitest's 5 s default) and
+// 30.5 s while Ruken's CI shared the runner (2026-10-16), so the block gets the root script's 90 s default.
+describe('@af-examples/base-2d entries', { timeout: 90_000 }, () => {
   it('the root has the sim setup, the room, bootPage and the boot failures, but not the game', async () => {
     const root = await import('@af-examples/base-2d')
     expect(typeof root.createBaseSim).toBe('function')
