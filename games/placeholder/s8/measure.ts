@@ -5,7 +5,7 @@
 // Pages are served with the headers Ruken would send for this game (`compileHeaders` on the placeholder's
 // manifest, so Ruken's CSP with no `eval`); a CSP violation fails the run.
 //
-// Run from examples/placeholder: `node s8/measure.ts` (needs Playwright's Chromium; set
+// Run from games/placeholder: `node s8/measure.ts` (needs Playwright's Chromium; set
 // PLAYWRIGHT_BROWSERS_PATH if it is not in the default place). Prints a Markdown table for
 // docs/spikes/s8-effect.md. Its numbers are only as good as the machine it ran on, which the doc records.
 //
