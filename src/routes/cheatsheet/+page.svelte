@@ -52,6 +52,8 @@
   .api-module > :global(.code-block) { margin-block: 1.5rem 2rem; }
   .api-entry { min-width: 0; }
   .api-signature { overflow-x: auto; margin-block: 1rem; }
+  /* The focusable region scrolls, not the <pre> inside it, so keyboard users can scroll a long signature. */
+  .api-signature pre { overflow: visible; margin-block: 0; }
   .api-return { margin-top: 1.25rem; }
   .table-scroll { margin-top: 1.5rem; }
   table { width: 100%; text-align: left; font-size: var(--step-small); }

@@ -96,6 +96,8 @@ export async function keyboardProblems(page: Page): Promise<string[]> {
 /**
  * Clicks every visible, enabled button and expects something to happen: a DOM change, a navigation, a popup or a
  * fullscreen change. After each click the page is put back (navigate back, close a dialog, leave fullscreen).
+ * A button that marks the current choice (aria-pressed="true", aria-selected="true" or aria-current) is skipped:
+ * choosing what is already chosen is a no-op by design.
  */
 export async function deadButtons(page: Page): Promise<string[]> {
   const start = page.url()
@@ -104,6 +106,7 @@ export async function deadButtons(page: Page): Promise<string[]> {
   for (let index = 0; index < count; index++) {
     const button = page.locator('button:visible').nth(index)
     if (!(await button.isVisible()) || !(await button.isEnabled())) continue
+    if (await button.evaluate(element => element.getAttribute('aria-pressed') === 'true' || element.getAttribute('aria-selected') === 'true' || element.hasAttribute('aria-current'))) continue
     const label = ((await button.getAttribute('aria-label')) ?? (await button.innerText())).trim().replace(/\s+/g, ' ')
     await page.evaluate(() => {
       const state = window as unknown as { __qbChanges: number; __qbObserver?: MutationObserver }
