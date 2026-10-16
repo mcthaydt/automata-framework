@@ -1,4 +1,4 @@
-# Art provenance: `examples/base-2d`
+# Art provenance: `games/emberwick`
 
 | Asset | Where | Made by | How | Date |
 |---|---|---|---|---|

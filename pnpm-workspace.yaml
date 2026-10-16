@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - tooling/*
+  - games/*
   - examples/*
   - examples/*/*
 # Same runtime as Ruken (docs/versions.md): pnpm runs scripts on this exact Node, whatever the system has.

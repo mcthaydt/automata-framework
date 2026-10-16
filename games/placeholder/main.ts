@@ -1,4 +1,4 @@
-// examples/placeholder: the ship lane's proof page.
+// games/placeholder: the ship lane's proof page.
 //
 // Shows: a build made by AF's ship pipeline (vite build, `automata-ship prepare`, `ruken publish` or
 // `automata-ship deploy-dev`) that completes the Ruken handshake and renders one line only after the host

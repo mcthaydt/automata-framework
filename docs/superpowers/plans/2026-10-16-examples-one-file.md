@@ -96,8 +96,8 @@
   - Unchanged: package names, the demos' `@af-examples/base-2d` imports (resolved by name), `build:demos` (`./examples/*/*`).
 
 ### Steps
-- [ ] **1. Pin the paths.** In `packages/ship/src/workflows.test.ts` and `turbo-inputs.test.ts`, expect `games/emberwick` and `games/placeholder` (and `games/*` in `pnpm-workspace.yaml`); in `tooling/release/src/release-list.test.ts`, expect the workspace walk to find `games/emberwick` and `games/placeholder`. Confirm the tests fail (folders missing, paths still `examples/…`).
-- [ ] **2. Move and update.**
+- [x] **1. Pin the paths.** In `packages/ship/src/workflows.test.ts` and `turbo-inputs.test.ts`, expect `games/emberwick` and `games/placeholder` (and `games/*` in `pnpm-workspace.yaml`); in `tooling/release/src/release-list.test.ts`, expect the workspace walk to find `games/emberwick` and `games/placeholder`. Confirm the tests fail (folders missing, paths still `examples/…`).
+- [x] **2. Move and update.**
   - `git mv` both folders.
   - Update `ci.yml` (`working-directory`), `playwright.config.ts`, the root `package.json` scripts, `packages/ship` ports, `test-remote` and `turbo.json`, `tooling/check-boundaries` and `tooling/release` tests, and the demo imports of `@af-examples/base-2d` (the package names are unchanged).
   - Confirm step 1's tests pass.

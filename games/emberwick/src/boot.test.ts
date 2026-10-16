@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { connect, GAME_ID } from './boot.ts'
 
 // The base's connection to Ruken under Ruken's own fake host (`@ruken/sdk-host/testing`, in-memory ports): the
-// real SDK against the real host bridge, as in examples/placeholder.
+// real SDK against the real host bridge, as in games/placeholder.
 
 const clock = {
   epochMs: () => Date.parse('2026-10-11T12:00:00Z'),

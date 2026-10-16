@@ -1,4 +1,4 @@
-// examples/base-2d: AF's 2D base project, a character in a room.
+// games/emberwick: AF's 2D base project, a character in a room.
 //
 // Shows: the smallest complete game on AF. A pixel-art character runs and jumps through one single-screen room
 // to an ember (Wick, a hooded lantern-bearer in mossy ruins at night, Endesga 64, lit by pixel lights),
