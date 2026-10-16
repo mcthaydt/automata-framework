@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §4 items 1 to 4 (the runtime part of "Messages", "Negotiation", "Formatting", "Document"), acceptance cases L-b and L-c (runtime level); §9 ownership: `runtime` owns negotiation and `t()`.
 - **Status:** drafted 2026-10-16. PRODUCT.0 is Owner-approved with every recommended default (2026-10-16), so this plan may run.
-- **Progress:** 6 of 7 steps.
+- **Progress:** 7 of 7 steps.
 - **Split (PRODUCT.L is three PRs).** This plan is **PRODUCT.L1**, the runtime part. **PRODUCT.L2** (content: Paraglide compile of the content catalogs, per-locale TOML text, glyph sets, L-d, L-e once M5's asset build exists) and **PRODUCT.L3** (ui: language picker, `xx-long` pseudo-locale in every layout contract, logical properties and the right-to-left contract, the L-a example and the e2e first-frame check) are recorded as rows in 02. The `automata check` additions (§4 item 8) wait for DX.6 (PR #42) and are a follow-up row.
 
 ## Source
@@ -75,10 +75,15 @@ FloorFifty's tests for these files are UI-level (Svelte stores); the AF tests be
   - **L-c:** with a focused button inside the entered screen, `Locale.set('en')` keeps `Flow.current`, publishes no `screen.entered`, and keeps `document.activeElement`.
 
   Confirm they fail (no `Locale` service), wire `makeLocale` into `bootProgram` step 7 before `flowHandle.start()` and into `RuntimeTest`, add `Locale` to `RuntimeServices` and the root exports (`index.test.ts`), confirm they pass.
-- [ ] **7. Pins, gates, bookkeeping.** Add the two rows to `docs/versions.md`; run `pnpm --filter @mcthaydt/versions test`. Run `pnpm format`, `pnpm check`, `pnpm test:parity`, `pnpm test:e2e` (ports per lane). Record the evidence in 02, 03 and the execution log; add the PRODUCT.L2, PRODUCT.L3 and `automata check` rows to 02.
+- [x] **7. Pins, gates, bookkeeping.** Add the two rows to `docs/versions.md`; run `pnpm --filter @mcthaydt/versions test`. Run `pnpm format`, `pnpm check`, `pnpm test:parity`, `pnpm test:e2e` (ports per lane). Record the evidence in 02, 03 and the execution log; add the PRODUCT.L2, PRODUCT.L3 and `automata check` rows to 02.
 
 ## Execution log
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-10-16 | Plan | `6290b7d` | — |
+| 2026-10-16 | 1–3 | `a7b54f3` | Each test failed first on the missing module. French percent spacing is U+00A0 in Node's ICU, so the check accepts U+00A0 or U+202F |
+| 2026-10-16 | 4 | `16fe2a7` | Failed first on the missing module. The first commit attempt's pre-commit hook (affected unit tests across the workspace after the lockfile change) failed and its output was not kept; the retry passed |
+| 2026-10-16 | 5 | `dbb7501` | Failed first on the missing module |
+| 2026-10-16 | 6 | `eaab3b2` | Failed first for the expected reasons (`':Play'` instead of `'fr:Jouer'`; no `Locale` service). The fixture moved to a Node `globalSetup` (the inlang SDK rejects jsdom's `Uint8Array`) and is inlined through Vite (otherwise the generated messages and runtime loaded as two instances) |
+| 2026-10-16 | 7 | `484d41d`, bookkeeping | First `pnpm check` failed: `render-pixi` and `examples/renderer-2d` typecheck runtime's source without the ES2025 lib, so `Intl.DurationFormat` was replaced with `NumberFormat` parts. Then `pnpm check` passed (1,691 unit tests), `pnpm test:parity` passed (590), `pnpm test:e2e` passed (46, ports 4700/4800, `CI=1`) |
