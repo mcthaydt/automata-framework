@@ -44,6 +44,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| QB.1 repo hygiene (branch `claude/clever-pasteur-ujmu6e-qb1`) | Implemented and locally verified 2026-10-16: README, `SECURITY.md`, `CODEOWNERS`, runbook, Renovate, audit, gitleaks, new-dependency report, knip, 600-line ceiling, `environment: release`; each check fails on its fixture ([plan](superpowers/plans/2026-10-16-qb1-repo-hygiene.md)). `pnpm secrets` needs a full clone (verified in one) | PR review and merge; CI on af-linux; Owner: create the `release` environment with a required reviewer, install Renovate, enable private vulnerability reporting; follow-ups QB.1a–QB.1c |
 | PUB (spec only) | PUB.0 drafted 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | Owner review; PUB-D1 to PUB-D4; Ruken requests in spec §9 |
 | QB (spec only) | QB.0 drafted 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | Owner review; QB-D1 to QB-D4 |
 | EX (spec and plan only) | EX.0 drafted 2026-10-16. Today's demos measured at `5d54594`: 9–30 files and 228–688 non-test lines each, on Emberwick's 77 files | Owner review |
