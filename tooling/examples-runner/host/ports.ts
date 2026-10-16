@@ -35,3 +35,8 @@ export function hostedUrl(gameUrl: string, gameId: string, options: HostedOption
   if (options.ready === 'never') query.set('ready', 'never')
   return `${demoHostOrigin}/?${query}`
 }
+
+/** The examples package's preview build (EX spec §5), in the slot after the six feature demos. */
+export const examplesPort: number = demoPort(6)
+/** The runner's own fixture build (the stub example), in the next slot. */
+export const runnerFixturesPort: number = demoPort(7)

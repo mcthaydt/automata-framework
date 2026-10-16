@@ -77,7 +77,7 @@
   - Update `pnpm-workspace.yaml`.
 
   Verify that `pnpm install`, `pnpm typecheck` and `pnpm examples` serve the index with a stub example.
-- [ ] **6. Smoke project.** Write `examples/e2e/examples.e2e.ts`, which loops over `readCatalog()`. For each non-pending entry it opens the example hosted, waits for ready, and asserts no errors. Pending entries are reported with `test.skip(true, 'pending: <task>')`.
+- [x] **6. Smoke project.** Write `examples/e2e/examples.e2e.ts`, which loops over `readCatalog()`. For each non-pending entry it opens the example hosted, waits for ready, and asserts no errors. Pending entries are reported with `test.skip(true, 'pending: <task>')`.
   - Confirm it fails with no server.
   - Add the `examples` project (Pixel 7 and 780×270) and its `webServer` to `playwright.config.ts`.
   - Confirm it passes on the stub.
