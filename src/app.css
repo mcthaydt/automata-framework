@@ -209,6 +209,12 @@ input::placeholder { color: var(--muted); }
 }
 .footer-wordmark .brand-dot { width: .16em; height: .16em; margin-left: .06em; border-radius: .03em; box-shadow: 0 0 0 1px var(--lime-deep), 0 0 .3em rgb(203 242 92 / .8); } /* taste-skill-ignore: the logo mark */
 .site-footer .small { font-size: var(--step-small); color: #a3b5b2; margin: 0; }
+.footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 2rem; }
+.footer-bottom nav { display: flex; flex-wrap: wrap; gap: 0 1.5rem; min-width: 0; }
+.footer-bottom nav a { display: flex; align-items: center; min-height: 44px; font-size: var(--step-small); color: #b4c4c2; overflow-wrap: anywhere; }
+.footer-bottom nav a:hover { color: var(--stage-ink); }
+.legal-page > section { max-width: 68ch; }
+.legal-page > section > h2 { margin-bottom: .75rem; }
 .site-footer :focus-visible { outline-color: var(--lime); }
 
 /* Inner pages */

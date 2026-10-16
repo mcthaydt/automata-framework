@@ -1,3 +1,6 @@
+<script lang="ts">
+  import { CONTACT_EMAIL } from '$lib/site.js'
+</script>
 <footer class="site-footer">
   <div class="footer-top">
     <p>AI-first game development.<br />Code with agents. Keep creative control.</p>
@@ -7,5 +10,8 @@
     </nav>
   </div>
   <a href="/" class="footer-wordmark" aria-label="Automata home">automata<span class="brand-dot" aria-hidden="true"></span></a>
-  <p class="small">MIT framework code · © {new Date().getFullYear()} Automata</p>
+  <div class="footer-bottom">
+    <p class="small">MIT framework code · © {new Date().getFullYear()} Automata</p>
+    <nav aria-label="Legal and contact"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/.well-known/security.txt">Security</a><a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a></nav>
+  </div>
 </footer>
