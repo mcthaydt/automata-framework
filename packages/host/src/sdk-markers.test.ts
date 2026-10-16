@@ -9,7 +9,7 @@ describe("the Ruken SDK's bundle markers (PUB spec §3)", () => {
 
   it('finds each marker in minified code, once per marker', () => {
     const minified =
-      'const k="ruken:__probe__";s.setItem(k,"1");const u=w=>Promise.reject(new E("UNSUPPORTED",`${w} needs the Ruken host`));'
+      'const k="ruken:__probe__";s.setItem(k,"1");const u=w=>Promise.reject(new E("UNSUPPORTED",w+" needs the Ruken host"));'
     expect(findRukenSdkMarkers(minified)).toEqual(['ruken:__probe__', 'needs the Ruken host'])
     expect(findRukenSdkMarkers('x="needs the Ruken host";y="needs the Ruken host"')).toEqual([
       'needs the Ruken host',

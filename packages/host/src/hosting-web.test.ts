@@ -13,9 +13,9 @@ import {
   TestClock,
   TestContext,
 } from 'effect'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { Hosting, type HostingOptions } from './hosting'
-import { makeWebHosting, WEB_STORAGE_PROBE_KEY, type WebTarget } from './hosting-web'
+import { buildTarget, makeWebHosting, WEB_STORAGE_PROBE_KEY, type WebTarget } from './hosting-web'
 import { HostingTest, runScoped } from './testing'
 import { type FakeWebPage, type FakeWebPageOptions, fakeWebPage } from './testing/fake-web-page'
 import { describeHostingContract } from './testing/hosting-contract'
@@ -306,4 +306,22 @@ describe('the web adapter: intended differences from the Ruken adapter', () => {
         expect(yield* hosting.saves.get('not a valid key!')).toBe('1')
       }),
     ))
+})
+
+describe('the build target the web adapter names (PUB spec §3)', () => {
+  const global = globalThis as { __AUTOMATA_TARGET__?: unknown }
+  afterEach(() => {
+    delete global.__AUTOMATA_TARGET__
+  })
+
+  it("is 'itch' when the build defines __AUTOMATA_TARGET__ as 'itch'", () => {
+    global.__AUTOMATA_TARGET__ = 'itch'
+    expect(buildTarget()).toBe('itch')
+  })
+
+  it("is 'web' when the build defines anything else, or nothing", () => {
+    expect(buildTarget()).toBe('web')
+    global.__AUTOMATA_TARGET__ = 'ruken'
+    expect(buildTarget()).toBe('web')
+  })
 })

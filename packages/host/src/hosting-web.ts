@@ -56,6 +56,17 @@ export interface WebPage extends WebEvents {
 /** The build's publish target among those that use this adapter (PUB spec §3). */
 export type WebTarget = 'itch' | 'web'
 
+/** Set by an `itch` or `web` build through Vite's `define` (PUB spec §3); absent in tests and other builds. */
+declare const __AUTOMATA_TARGET__: unknown
+
+/**
+ * The target this build was made for: 'itch' when the build defines `__AUTOMATA_TARGET__` as 'itch', else 'web'.
+ * It only chooses `hostName`; every behavior is the same on both.
+ */
+export function buildTarget(): WebTarget {
+  return typeof __AUTOMATA_TARGET__ !== 'undefined' && __AUTOMATA_TARGET__ === 'itch' ? 'itch' : 'web'
+}
+
 /**
  * The storage probe's key. Deliberately not the SDK's own probe key: that string marks SDK code in a bundle
  * (`RUKEN_SDK_MARKERS`), and an itch build must not contain it.
@@ -337,7 +348,7 @@ export function makeHosting(
   options: HostingOptions,
   _seams: HostingSeams = {},
 ): Effect.Effect<Hosting, HostError, Scope.Scope> {
-  return makeWebHosting(options, window, 'web')
+  return makeWebHosting(options, window, buildTarget())
 }
 
 /** The single `Hosting` layer for a web build, as `HostingLive` is for a Ruken build. */
