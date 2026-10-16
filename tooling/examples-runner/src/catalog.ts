@@ -99,6 +99,14 @@ function deliveryTasks(planPath: string): Map<string, boolean> {
   return tasks
 }
 
+/** The task IDs a `Pending:` line lists, comma-separated; none when the example is not pending. */
+export function pendingTasks(header: Header): string[] {
+  return (header.pending ?? '')
+    .split(',')
+    .map((task) => task.trim())
+    .filter((task) => task !== '')
+}
+
 /** Lines that are code: after the header, not blank and not only a comment. */
 function countCodeLines(source: string, headerLines: number): number {
   let count = 0
@@ -164,12 +172,13 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
         problems.push(`the title line names "${header.name}", not "${fileId}"`)
       if (known && header.tier !== (CORE_MODULES.includes(module) ? 'core' : 'plus'))
         problems.push(`Tier: ${header.tier} does not match the ${module} module`)
-      if (header.pending !== undefined) {
-        const ticked = tasks.get(header.pending)
-        if (ticked === undefined)
-          problems.push(`Pending: ${header.pending} is not a task in the delivery plan`)
-        else if (ticked)
-          problems.push(`Pending: ${header.pending} is ticked in the delivery plan; remove the Pending line`)
+      // `Pending:` names every open task whose verbs the example needs (`Pending: DX.2, DX.2b`).
+      const waitingFor = pendingTasks(header)
+      for (const task of waitingFor) {
+        const ticked = tasks.get(task)
+        const remove = waitingFor.length === 1 ? 'remove the Pending line' : 'remove it from the Pending line'
+        if (ticked === undefined) problems.push(`Pending: ${task} is not a task in the delivery plan`)
+        else if (ticked) problems.push(`Pending: ${task} is ticked in the delivery plan; ${remove}`)
       }
     }
 

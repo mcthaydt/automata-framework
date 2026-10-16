@@ -13,6 +13,8 @@ const entry = (path: string): CatalogEntry => {
 describe('readCatalog', () => {
   it('finds every example file, skipping old demo packages', () => {
     expect(catalog.map((candidate) => candidate.path)).toEqual([
+      'core/core-both-done.ts',
+      'core/core-both.ts',
       'core/core-deep.ts',
       'core/core-done.ts',
       'core/core-ghost.ts',
@@ -44,6 +46,10 @@ describe('readCatalog', () => {
     expect(entry('core/core-waiting.ts')).toMatchObject({ problems: [], header: { pending: 'OPEN.1' } })
   })
 
+  it('accepts a pending example that waits for several open tasks', () => {
+    expect(entry('core/core-both.ts')).toMatchObject({ problems: [], header: { pending: 'OPEN.1, OPEN.2' } })
+  })
+
   it.each([
     ['core/misplaced.ts', 'must be <module>/<module>-<name>.ts'],
     ['widgets/widgets-spin.ts', '"widgets" is not a module'],
@@ -53,6 +59,10 @@ describe('readCatalog', () => {
     ['core/core-shot.ts', 'core/core-shot.png is not in screenshots-approved.json'],
     ['core/core-done.ts', 'Pending: DONE.1 is ticked in the delivery plan; remove the Pending line'],
     ['core/core-ghost.ts', 'Pending: NOPE.9 is not a task in the delivery plan'],
+    [
+      'core/core-both-done.ts',
+      'Pending: DONE.1 is ticked in the delivery plan; remove it from the Pending line',
+    ],
     ['core/core-headless.ts', 'line 1: Shows: is required'],
     ['core/core-renamed.ts', 'the title line names "core-other", not "core-renamed"'],
   ])('%s fails: %s', (path, problem) => {
