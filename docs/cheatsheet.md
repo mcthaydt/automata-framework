@@ -187,12 +187,13 @@
 - `ComponentDef` (interface)
 - `createRng(seed)`
 - `createSim(opts)`
+- `Def` (type): Anything `definePlugin`'s flat `defs` list takes (DX spec §3.2).
 - `defineCommand(id, schema)`
 - `defineComponent(id, fields, opts?)`
 - `defineEvent(id, schema)`
 - `definePlugin(spec)`
 - `defineResource(id, schema, init)`
-- `defineSystem(spec)`
+- `defineSystem(name, run)`, `defineSystem(name, phase, run)`, `defineSystem(spec)`: A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the object form also takes `before`/`after`.
 - `deriveSeed(rootSeed, name)`: Seed for a named substream: FNV-1a over the name's UTF-16 code units, mixed with the root seed.
 - `EntityRef` (interface): A live entity, addressed by its StableId.
 - `EventDef` (interface)
@@ -232,6 +233,7 @@
 - `SpawnPart` (type): A component to spawn with: the definition alone (defaults) or [definition, initial values].
 - `StepResult` (interface)
 - `SystemDef` (interface)
+- `SystemSpec` (interface): The object form of `defineSystem`: a name, a phase, the optional `before`/`after` ordering and the run.
 - `xxhash64(data, seed?)`: XXH64 of `data` with an unsigned 64-bit `seed`.
 
 ### `import { … } from '@mcthaydt/automata-sim/hash'`
