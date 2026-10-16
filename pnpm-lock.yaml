@@ -60,6 +60,9 @@ importers:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship
+      '@mcthaydt/evidence':
+        specifier: workspace:*
+        version: link:../../tooling/evidence
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -226,6 +229,9 @@ importers:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../../../packages/testing
+      '@mcthaydt/evidence':
+        specifier: workspace:*
+        version: link:../../../tooling/evidence
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -544,6 +550,9 @@ importers:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
+      '@mcthaydt/evidence':
+        specifier: workspace:*
+        version: link:../../tooling/evidence
       '@vitest/browser-playwright':
         specifier: 5.0.3
         version: 5.0.3(playwright@1.63.0)(vite@8.3.2(@types/node@26.6.4)(yaml@2.9.1))(vitest@5.0.3)
@@ -707,6 +716,9 @@ importers:
         specifier: 4.6.5
         version: 4.6.5
     devDependencies:
+      '@mcthaydt/evidence':
+        specifier: workspace:*
+        version: link:../../tooling/evidence
       '@vitest/browser-playwright':
         specifier: 5.0.3
         version: 5.0.3(playwright@1.63.0)(vite@8.3.2(@types/node@26.6.4)(yaml@2.9.1))(vitest@5.0.3)
@@ -726,6 +738,9 @@ importers:
         specifier: 4.6.5
         version: 4.6.5
     devDependencies:
+      '@mcthaydt/evidence':
+        specifier: workspace:*
+        version: link:../../tooling/evidence
       '@ruken/sdk':
         specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-0.0.0.tgz

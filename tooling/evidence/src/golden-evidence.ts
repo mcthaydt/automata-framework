@@ -17,13 +17,17 @@ export interface GoldenRun {
 
 type Runtime = { kind: 'node'; version: string } | { kind: 'browser'; userAgent: string }
 
+/** What this reads from the global scope; typed here, since the sim's packages compile without DOM or Node types. */
+const scope = globalThis as {
+  readonly window?: unknown
+  readonly navigator?: { readonly userAgent?: string }
+  readonly process?: { readonly version?: string }
+}
+
 /** The engine's own description of itself: Node's version, or the browser's user agent. */
 function runtime(): Runtime {
-  if (typeof window === 'undefined') {
-    const version = (globalThis as { process?: { version?: string } }).process?.version ?? 'unknown'
-    return { kind: 'node', version }
-  }
-  return { kind: 'browser', userAgent: globalThis.navigator.userAgent }
+  if (scope.window === undefined) return { kind: 'node', version: scope.process?.version ?? 'unknown' }
+  return { kind: 'browser', userAgent: scope.navigator?.userAgent ?? 'unknown' }
 }
 
 /** Records `run` in `task.meta.goldenEvidence`. Call it with the test context's `task`, after the run's assertions. */
