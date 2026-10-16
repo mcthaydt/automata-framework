@@ -39,7 +39,7 @@
   },
   "peerDependencies": {
     "pixi.js": "8.21.0",
-    "svelte": "^5.57.1"
+    "svelte": "5.57.1"
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
