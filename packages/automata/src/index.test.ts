@@ -26,6 +26,10 @@ const FROM_SIM = [
   'defineSystem',
 ] as const
 
+const umbrella = new Map(Object.entries(automata))
+const gameExports = new Map(Object.entries(game))
+const simExports = new Map(Object.entries(sim))
+
 describe('@mcthaydt/automata', () => {
   it('exports exactly the pinned verbs', () => {
     expect(Object.keys(automata).sort()).toEqual([...FROM_GAME, ...FROM_SIM].sort())
@@ -36,11 +40,11 @@ describe('@mcthaydt/automata', () => {
   })
 
   it.each(FROM_GAME)('%s is the game package’s own', (name) => {
-    expect(automata[name]).toBe(game[name])
+    expect(umbrella.get(name)).toBe(gameExports.get(name))
   })
 
   it.each(FROM_SIM)('%s is the sim’s own', (name) => {
-    expect(automata[name]).toBe(sim[name])
+    expect(umbrella.get(name)).toBe(simExports.get(name))
   })
 
   it('has a no-eval entry that loads', async () => {

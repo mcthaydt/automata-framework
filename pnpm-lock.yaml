@@ -35,6 +35,9 @@ importers:
 
   examples:
     dependencies:
+      '@mcthaydt/automata':
+        specifier: workspace:*
+        version: link:../packages/automata
       '@mcthaydt/automata-game':
         specifier: workspace:*
         version: link:../packages/game
