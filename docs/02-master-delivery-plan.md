@@ -47,7 +47,7 @@ Owner, 2026-10-16: the framework must match what the website sells: small change
 
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
-| [ ] | DX.0 — DX spec, reviewed | Drafted 2026-10-16. Owner decisions recorded 2026-10-16: MIT on public npm (D-DX-1), a public `mcthaydt/automata-skills` mirror (D-DX-2), no evals (D-DX-3), Antigravity dropped and Discord set up (D-DX-4), and the site deploy planned (D-DX-5). Review of the whole spec pending. |
+| [x] | DX.0 — DX spec, reviewed | Drafted 2026-10-16. **Approved by the Owner 2026-10-16** with every recommended default: MIT on public npm (D-DX-1), a public `mcthaydt/automata-skills` mirror (D-DX-2), no evals (D-DX-3), Antigravity dropped and Discord set up (D-DX-4), and the site deploy planned (D-DX-5). |
 | [ ] | DX.1 — Sim conveniences | Lane **sim**; DX.0. `definePlugin({ defs })`, `defineSystem` overloads; identical schema hash either way. |
 | [ ] | DX.2 — `@mcthaydt/automata-game` | Lane **game** (new); DX.0, DX.1. `startGame`/`defineGame` with defaults over runtime, render-pixi, host and ui; `InputMap` from base-2d's input; default screens; demo `examples/core/core-basic-window.ts` in 40 lines or fewer, written first by EX.3. |
 | [ ] | DX.2b — `rect` and `sprite` entity views | Lane **runtime**; DX.0. Interpolated view factories in render-pixi. |
@@ -69,7 +69,7 @@ Owner, 2026-10-16: each example is one file, like raylib's. The [EX spec](superp
 
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
-| [ ] | EX.0 — EX spec, reviewed | Drafted 2026-10-16 with EX-D1 and EX-D2. Review pending. |
+| [x] | EX.0 — EX spec, reviewed | Drafted 2026-10-16 with EX-D1 and EX-D2. **Approved by the Owner 2026-10-16.** |
 | [ ] | EX.1 — Runner and tests | Integration, sim (`--inline`); EX.0. `tooling/examples-runner` (Vite plugin, fake host, catalog), the single `examples` package, smoke at Pixel 7 and 780×270, golden parity, `check-boundaries --inline`. |
 | [ ] | EX.2 — Games folder | Integration, ship; EX.0. `examples/base-2d` → `games/emberwick`, `examples/placeholder` → `games/placeholder`; journeys and golden `31f50888ccb4cf0a` unchanged. |
 | [ ] | EX.3 — Target examples first | Integration; EX.1. `core-basic-window`, `core-input-keys`, `shapes-rects`, `textures-sprite`, marked `Pending: DX.2`/`DX.2b` until those land. |
@@ -84,7 +84,7 @@ Owner, 2026-10-16: someone can build FloorFifty (content excluded) on AF. Core i
 
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
-| [ ] | PRODUCT.0 — PRODUCT spec, reviewed | Drafted 2026-10-16 with Owner decisions PD-1 to PD-5 (spec §11). Review of the whole spec pending. |
+| [x] | PRODUCT.0 — PRODUCT spec, reviewed | Drafted 2026-10-16 with Owner decisions PD-1 to PD-5 (spec §11). **Approved by the Owner 2026-10-16.** |
 | [ ] | PRODUCT.1 — Core seams and API reports | Integration + owning lanes; PRODUCT.0. Input profiles, `NetworkPort`, audio buses, render layer and post-filter slot, settings schema, presentation events, host leaderboard call; public API reports with a release break check; the Plus public-entry boundary test (spec §2 F1, F6). |
 | [ ] | PRODUCT.L — Core localization | Lanes **runtime**, **content**, **ui**; PRODUCT.0. Paraglide `t()`, negotiation from Ruken `session.locale`, `Intl` formatting, `<html lang dir>`, per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract, language picker, `automata check` additions (spec §4, cases L-a to L-e). Replaces M5's localization part. |
 | [ ] | PRODUCT.2 — Umbrella import and `draw` layer | Lane **game**; DX.2. `@mcthaydt/automata` and a read-only `draw(ctx)` (spec §7). |
@@ -101,7 +101,7 @@ Owner, 2026-10-16: loosen the Ruken coupling so a game publishes to Ruken or itc
 
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
-| [ ] | PUB.0 — PUB spec and ADR 0005, reviewed | Drafted 2026-10-16; PUB-D1 to PUB-D4 on recommended defaults. Review pending. |
+| [x] | PUB.0 — PUB spec and ADR 0005, reviewed | Drafted 2026-10-16. **Approved by the Owner 2026-10-16** with PUB-D1 to PUB-D4 as recommended; ADR 0005 accepted. |
 | [ ] | PUB.1 — Web adapter and `./target` | Lane **host**; PUB.0. `hosting-web.ts` behind a `./target` export condition, the contract suite on both adapters, a bundle check for SDK markers, `kind`/`hostName` in shared contracts §1 (PUB-a). |
 | [ ] | PUB.2 — `ship --target itch` | Lane **ship**; PUB.0. `index.html`, relative-path, case and itch.io limit checks; a deterministic zip; `butler push` with `--userversion` (PUB-b). |
 | [ ] | PUB.3 — itch-like harness and E2E | Lanes **ship** and **testing**; PUB.1, PUB.2. Cross-origin iframe harness: ready within 2 s, saves across reloads, blocked-storage notice, fullscreen; the golden matches across targets (PUB-c). |
@@ -114,7 +114,7 @@ Owner, 2026-10-16: a checklist "to make sure it doesn't look vibecoded". The [QB
 
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
-| [ ] | QB.0 — QB spec, reviewed | Drafted 2026-10-16; QB-D1 to QB-D4 on recommended defaults. Review pending. |
+| [x] | QB.0 — QB spec, reviewed | Drafted 2026-10-16. **Approved by the Owner 2026-10-16** with QB-D1 to QB-D3 as recommended; QB-D4 is an Owner action, still open. |
 | [ ] | QB.1 — Framework repo hygiene | Lane **ship**; QB.0. Root README run by consumer smoke, `SECURITY.md`, `CODEOWNERS`, Renovate, `pnpm audit`, gitleaks, a new-dependency report, `knip`, a 600-line source ceiling, an Owner-approved `release` environment, a runbook (spec §7, QB-a). |
 | [ ] | QB.2 — Game build gates | Lanes **ship** and **ui**; QB.0, DX.6. A bundle secret scan in `prepare-ruken` and `automata check`; no `{@html}` in `ui`; no platform-chrome mimicry in kits (QB-b). |
 | [ ] | QB.3 — Website quality gates | Website; QB.0. `check:site` plus a Playwright suite in Chromium and WebKit covering SEO, responsive, keyboard, axe, console, performance, privacy and copy gates; fixes F-2 to F-6; the Owner's real-device pass recorded (spec §4.2, QB-c). |
@@ -167,5 +167,6 @@ Owner roadmap (2026-10-11): 2D and 2.5D first, then 3D. The 3D pieces come from 
 | 2026-10-16 | EX.0 draft and decisions | [EX spec](superpowers/specs/2026-10-16-examples-one-file-design.md) and [TDD plan](superpowers/plans/2026-10-16-examples-one-file.md): one-file examples, a single runner, parametric tests, Emberwick to `games/` (EX-D1), examples written first (EX-D2); EX rows above; DX.2's demo renamed | Docs only; demo file and line counts from the spec's appendix A script at `5d54594`; relative links checked | Draft; Owner review pending |
 | 2026-10-16 | QB.0 draft | [QB spec](superpowers/specs/2026-10-16-quality-bar-design.md): every item of the Owner's anti-vibe checklist given a gate, task, Ruken request or not-applicable trigger; findings F-1 to F-8; QB rows above; requests to Ruken in spec §6 | Docs only; findings from `file`, `grep` and `ls` at website `bfeaf91` and `489f170`; relative links checked | Draft; Owner review pending |
 | 2026-10-16 | PUB.0 draft | [PUB spec](superpowers/specs/2026-10-16-publish-targets-design.md) and [ADR 0005](adr/0005-publish-targets.md) (proposed): build-time `ruken`/`itch`/`web` targets, a web `Hosting` adapter, `ship --target itch` with butler, an itch-like harness; ADR 0004 and AGENTS.md direction notes; three requests to Ruken (spec §9) | Docs only; coupling measured at `cc2ee8c`; SDK behavior read from the vendored `@ruken/sdk` (`b30d31b`); itch.io and butler docs read 2026-10-16; relative links checked | Draft; Owner review pending |
+| 2026-10-16 | DX.0, PRODUCT.0, EX.0, QB.0, PUB.0 reviewed | Owner approval of the five specs and ADR 0005 with every recommended default (D-DX-*, PD-*, EX-D*, QB-D1 to QB-D3, PUB-D*); spec status lines, ADR 0005 status, the EX plan status and AGENTS.md updated | Docs only | **Owner approved** 2026-10-16 (in the session that started the DX/EX/QB/PUB/PRODUCT work); QB-D4 open |
 
 For each completed task record its ID, PR or commit, the checks that ran and their result, review status and remaining gates. Update this table, the affected spec and [03 Continuation](03-continuation-prompt.md) in the same session.

@@ -1,7 +1,7 @@
 # EX: one-file examples TDD plan
 
 - **Spec:** [`docs/superpowers/specs/2026-10-16-examples-one-file-design.md`](../specs/2026-10-16-examples-one-file-design.md)
-- **Status:** drafted 2026-10-16. **Pending EX.0 review.** Do not start before the Owner reviews the spec (AGENTS.md: a draft spec does not authorize implementation).
+- **Status:** drafted 2026-10-16; EX.0 approved by the Owner 2026-10-16, so tasks may start in dependency order.
 - **Progress:** 0 of 5 tasks.
 
 ## Global constraints

@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-16. Source HEAD verified before this update: `365f115` on `main` (af-linux CI was last recorded green at the PR #32 merge, `08396fa`; not re-run for this docs-only update). This file is a handoff snapshot, not proof of current CI, deployment or acceptance. Agents maintain it at every handoff.
+> Updated 2026-10-16. Source HEAD verified before this update: `71c3410` on `main` (PR #33 merged; local `pnpm check`, `pnpm test:parity` in Chromium, WebKit and Firefox, and `pnpm test:e2e` 46/46 all green on it in a cloud container, Node 24.21.0). Earlier: `365f115` (af-linux CI was last recorded green at the PR #32 merge, `08396fa`; not re-run for this docs-only update). This file is a handoff snapshot, not proof of current CI, deployment or acceptance. Agents maintain it at every handoff.
 
 ## Prompt for the next agent
 
@@ -9,6 +9,26 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 **Owner direction (2026-10-11):** AF is Ruken first. Core is built from FloorFifty, The Last Light and Ruken; everything else is an opt-in extension. PixiJS renders 2D and 3D. Effect runs everything outside the sim; the sim stays on Koota with no Effect. Handle CI/CD, deployment, mobile UI and the content pipeline early. Roadmap: finish AF on 2D and 2.5D (M8), build a 3D game on AF (GAME-3D), then merge its 3D pieces back (M9). This replaces the 2026-10-05 direction (all A/B specs first, a future 3D game, later "Part C").
 
 ## Exact next action
+
+**Owner approval (2026-10-16):** the Owner approved DX.0, PRODUCT.0, EX.0, QB.0, PUB.0 and ADR 0005 with every recommended default (D-DX-1 to D-DX-5, PD-1 to PD-5, EX-D1 and EX-D2, QB-D1 to QB-D3, PUB-D1 to PUB-D4). QB-D4 is an Owner action and stays open. PR #33 is merged. The Owner's working rules for this programme:
+- Start each task from current `main`. Only EX has a TDD plan; for every other task, the first commit of its PR is the task's TDD plan (AGENTS.md level), and the Owner reviews plan and code together.
+- One task per draft PR, Conventional Commits, each lane in its own git worktree with its own ports; never `git stash`.
+- Before each push: `pnpm format`, `pnpm check`; `pnpm test:parity` and `pnpm test:e2e` when the runtime, rendering, UI or a game changes. Report selected, omitted and pending gates.
+- Never tick an Owner-acceptance step (real devices, the real itch.io push, visual approvals, the site deploy); list them for the Owner.
+- New milestone specs (M3.0–M8.0) are drafted each in its own PR, and that line stops until the Owner reviews it.
+
+**Waves (02 owns the order where it disagrees):**
+1. Guardrails and seams, in parallel: QB.1, EX.2, EX.1, DX.1, DX.2b, DX.4, DX.6, PUB.1, PUB.2, PRODUCT.1, PRODUCT.4, PRODUCT.7, QB.3 (website).
+2. EX.3 (committed red) → DX.2 → DX.3 → PRODUCT.2; alongside PRODUCT.L, DX.7, PRODUCT.3, DX.9, EX.5, QB.2, PUB.3, PUB.4.
+3. PRODUCT.5 → DX.11 → DX.5 → PUB.5; EX.4 one PR per demo.
+4. Website: DX.10, DX.12, QB.4, DX.13.
+5. M4.0 and M5.0 drafts → PRODUCT.6; M3.0 (S7); M6.0; M7.0 (with QB spec §5's server requirements) → PRODUCT.8; M8.0; QB.5 with D-7.
+
+**Blocked on the Owner:** an `NPM_TOKEN` secret and the `mcthaydt/automata-skills` repo (DX.11); the private `mcthaydt/automata-plus` repo (PRODUCT.5); hosting and DNS for `automata.ruken.com` (DX.12, QB.4); a Discord server and bot (DX.13); an itch.io account and `BUTLER_API_KEY` (PUB.5); filing the Ruken requests (QB spec §6, PUB spec §9); QB-D4; reviews of each new milestone spec.
+
+**Next:** Wave 1. The status of each Wave 1 task (its PR and gates) is recorded in 02's execution record as it lands.
+
+**Earlier history (M1 and the 2026-10-16 drafts):**
 
 **M1 Milestone complete, merged into `main` (`08396fa`), and exited.** All M1 tasks (M1.1–M1.8) have landed on `main`:
 1. **M1.5 Runtime** — Complete (`packages/runtime`, `examples/runtime/boot-and-flow`). Tasks 1–20 and Audits 1–12 complete.
@@ -44,11 +64,11 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
-| PUB (spec only) | PUB.0 drafted 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | Owner review; PUB-D1 to PUB-D4; Ruken requests in spec §9 |
-| QB (spec only) | QB.0 drafted 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | Owner review; QB-D1 to QB-D4 |
-| EX (spec and plan only) | EX.0 drafted 2026-10-16. Today's demos measured at `5d54594`: 9–30 files and 228–688 non-test lines each, on Emberwick's 77 files | Owner review |
-| PRODUCT (spec only) | PRODUCT.0 drafted 2026-10-16: FloorFifty gap ledger (client 52,832, server 5,548, shared 6,273 non-test lines at `ac72660`; appendix A script), tiers, cuts, localization (PRODUCT.L), raylib API rules, stack page, tasks PRODUCT.1–8 | Owner review; the Owner creates `mcthaydt/automata-plus` (private) for PRODUCT.5 |
-| DX milestone (spec only) | DX.0 drafted 2026-10-16: ledger disposition for every cut website claim, `@mcthaydt/automata-game` (`startGame`), `automata check`, the `agents/automata/` skills and Claude Code plugin, a generated API index, agent evals and an evidence file. Baseline measured at `365f115`: base-2d 3,457 non-test lines, 1,939 of them plumbing; `create-game` output prints text and pins `workspace:*` | Owner review of the spec; Owner to-dos below |
+| PUB (spec reviewed) | PUB.0 drafted 2026-10-16, Owner-approved 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | PUB.1–PUB.5; Ruken requests in spec §9 (Owner files) |
+| QB (spec reviewed) | QB.0 drafted 2026-10-16, Owner-approved 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | QB.1–QB.5; QB-D4 (Owner action) |
+| EX (spec reviewed, plan only) | EX.0 drafted 2026-10-16, Owner-approved 2026-10-16. Today's demos measured at `5d54594`: 9–30 files and 228–688 non-test lines each, on Emberwick's 77 files | EX.1–EX.5 |
+| PRODUCT (spec reviewed) | PRODUCT.0 drafted 2026-10-16 and Owner-approved 2026-10-16: FloorFifty gap ledger (client 52,832, server 5,548, shared 6,273 non-test lines at `ac72660`; appendix A script), tiers, cuts, localization (PRODUCT.L), raylib API rules, stack page, tasks PRODUCT.1–8 | PRODUCT.1–PRODUCT.8; the Owner creates `mcthaydt/automata-plus` (private) for PRODUCT.5 |
+| DX milestone (spec reviewed) | DX.0 drafted 2026-10-16 and Owner-approved 2026-10-16: ledger disposition for every cut website claim, `@mcthaydt/automata-game` (`startGame`), `automata check`, the `agents/automata/` skills and Claude Code plugin, a generated API index, agent evals and an evidence file. Baseline measured at `365f115`: base-2d 3,457 non-test lines, 1,939 of them plumbing; `create-game` output prints text and pins `workspace:*` | DX.1–DX.13; Owner to-dos below |
 | M1.8 Base project, demos, scaffold & M1 exit | Complete. Unit tests in `packages/cli` (4 files / 18 tests) and `examples/gallery` (3 tests); `pnpm check` clean (22/22 tasks); `pnpm test:parity` clean across 3 browsers (9/9 tasks); `pnpm test:e2e` clean (46/46 passed); `create-game` integration test verifies valid `ruken.toml` | Merged into `main` (PR #32, `08396fa`) |
 | M1.7 `render-pixi` (2D renderer) | Tasks 1–8 complete, committed (`cb13b20` + Task 8 record). Local verification clean: unit tests (7 files / 29 tests), test:parity across 3 browsers (Chromium, WebKit, Firefox), typecheck, build, boundaries, style, lint, Playwright E2E with fake host (zero CSP violations) | PR review/merge, hosted CI |
 | M1.5 Runtime | Tasks 1–20 complete, committed (`278af83` + records). Local verification clean: unit tests (148 runtime, 19 demo), typecheck, build, boundaries, style, lint, frame-loop bench (Node 0.117 µs, Chromium 0.100 µs vs 0.30 µs budget), Playwright E2E (8/8 pass under fake host with 0 CSP violations) | PR #4 review/merge, hosted CI |
