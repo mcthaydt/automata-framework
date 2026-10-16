@@ -12,7 +12,8 @@
     "test": "vitest run",
     "check:site": "node --import tsx scripts/check-site.ts",
     "verify:workshop": "vitest run tests/first-change.test.ts tests/double-jump.test.ts --reporter=json --outputFile=.svelte-kit/first-change-results.json && node scripts/record-workshop-proof.mjs",
-    "build:workshop": "node scripts/build-workshop.mjs"
+    "build:workshop": "node scripts/build-workshop.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "zod": "4.6.5"

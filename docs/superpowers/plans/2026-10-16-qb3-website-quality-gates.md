@@ -2,7 +2,7 @@
 
 - **Spec:** framework repo `docs/superpowers/specs/2026-10-16-quality-bar-design.md` (§3 F-1 to F-6, §4.2, §7 QB.3, §9 QB-c). Approved by the Owner 2026-10-16 with QB-D1 (no analytics, no cookies) and QB-D3 (a contact email and a security email, no postal address).
 - **Status:** drafted 2026-10-16.
-- **Progress:** 8 of 11 steps.
+- **Progress:** 9 of 11 steps.
 - **Branch:** `claude/clever-pasteur-ujmu6e-qb3`.
 
 ## Global constraints
@@ -47,7 +47,7 @@
 - [x] **6. Trust pages (F-4).** Add cases: a page without footer links to `/privacy` and `/terms` and a `mailto:` contact fails; a missing `/.well-known/security.txt`, or one without `Contact:` and a future `Expires:`, fails. Confirm they fail, add the rules, then add the privacy and terms pages, the footer links and `security.txt` (QB-D3: contact and security email, no postal address).
 - [x] **7. Banned phrases.** Add a case: each phrase in `BANNED_PHRASES` in a page's text fails with the phrase. Confirm it fails, add the rule, confirm the real site passes (rewrite any copy it catches).
 - [x] **8. MIT claim (F-1).** Write `tests/license-claim.test.ts`: every framework package's `license` is `MIT` and the root `LICENSE` is the MIT text. Confirm it fails on today's framework (`UNLICENSED`, no `LICENSE`). Mark it `it.fails` with the reason `expected red until DX.11`: Vitest then passes while the claim is false and fails hard once the framework is MIT, forcing the marker's removal. The MIT copy stays on the site (the spec keeps it).
-- [ ] **9. Browser gates fail on fixtures.** Add `@playwright/test` and `@axe-core/playwright`, `playwright.config.ts` (Chromium and WebKit; servers on 4650 and 4651) and `tests/e2e/gates.ts`. Write `tests/e2e/gates.e2e.ts` over `tests/e2e/fixtures/`: horizontal overflow at 375 px, a console error, a `pageerror`, a third-party request, a cookie, an element with `outline: none` on focus, a dead button, and an axe violation. Confirm each fails for its own reason before its helper exists, then implement the helper and confirm the fixture is caught.
+- [x] **9. Browser gates fail on fixtures.** Add `@playwright/test` and `@axe-core/playwright`, `playwright.config.ts` (Chromium and WebKit; servers on 4650 and 4651) and `tests/e2e/gates.ts`. Write `tests/e2e/gates.e2e.ts` over `tests/e2e/fixtures/`: horizontal overflow at 375 px, a console error, a `pageerror`, a third-party request, a cookie, an element with `outline: none` on focus, a dead button, and an axe violation. Confirm each fails for its own reason before its helper exists, then implement the helper and confirm the fixture is caught.
 - [ ] **10. Browser gates pass on the site.** Write `tests/e2e/site.e2e.ts`, enumerating pages from the built `sitemap.xml`, at 375×667, 768×1024, 1280×800 and 780×270 in Chromium and WebKit:
   - no horizontal scroll, console error, `pageerror`, third-party request, cookie or `localStorage` entry; axe (WCAG 2.2 AA) has no violations;
   - the header nav (or the opened mobile menu) shows every primary link; "Make your first change" is visible without scrolling at 375×667 and a Start link is in the header at every width;
