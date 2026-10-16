@@ -33,8 +33,25 @@ export interface PixiRendererOptions {
   readonly barColor?: number | undefined
   /** Optional view factory resolver for entity components. */
   readonly entityViews?: EntityViewResolver | undefined
-  /** Optional setup hook called before the first frame to add layers/filters. */
-  readonly setup?: ((stage: PixiStage) => void) | undefined
+  /**
+   * Optional setup hook called before the first frame to add layers/filters. It may return hooks for a game
+   * that draws its own scene: they run after the entity views each step, before Pixi renders each frame, and
+   * after the views reset.
+   */
+  readonly setup?:
+    | ((stage: PixiStage) => PixiStageHooks | undefined)
+    | ((stage: PixiStage) => void)
+    | undefined
+}
+
+/** What a `setup` may return to hear every step, frame and reset (DX spec §3.4, DX.3 decision E-1). */
+export interface PixiStageHooks {
+  /** After the entity views took the step's render delta. */
+  readonly apply?: ((result: StepResult) => void) | undefined
+  /** Each display frame, after the views interpolated and before Pixi renders. */
+  readonly draw?: ((frame: FrameInfo) => void) | undefined
+  /** After the views reset (a new sim or a resync). */
+  readonly reset?: (() => void) | undefined
 }
 
 export interface PixiStage {
@@ -176,7 +193,7 @@ export function createPixiRenderer(
         },
       }
 
-      options.setup?.(stage)
+      const hooks: PixiStageHooks = options.setup?.(stage) ?? {}
 
       const unsubscribe = target.geometry.onChange((g) => {
         app.renderer.resize(g.usable.width, g.usable.height)
@@ -205,13 +222,16 @@ export function createPixiRenderer(
         stage,
         apply(result: StepResult): void {
           consumer.apply(result.render)
+          hooks.apply?.(result)
         },
         draw(frameInfo: FrameInfo): void {
           consumer.interpolate(frameInfo.alpha)
+          hooks.draw?.(frameInfo)
           app.render()
         },
         reset(): void {
           consumer.reset()
+          hooks.reset?.()
         },
       }
 

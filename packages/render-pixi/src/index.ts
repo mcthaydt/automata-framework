@@ -33,6 +33,7 @@ export {
   type PixiRenderer,
   type PixiRendererOptions,
   type PixiStage,
+  type PixiStageHooks,
   type RendererPreference,
 } from './renderer.js'
 export { type RectViewOptions, rect } from './views/rect-view.js'

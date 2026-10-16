@@ -269,4 +269,49 @@ describe('createPixiRenderer', () => {
 
     await Effect.runPromise(program)
   })
+  it('runs the hooks a setup returns: apply after the consumer, draw before app.render, reset after the consumer', async () => {
+    const target = createFakeTarget()
+    const calls: string[] = []
+    const factory = createPixiRenderer({
+      setup: () => ({
+        apply: (result) => calls.push(`hook.apply:${result.tick}`),
+        draw: (frame) => calls.push(`hook.draw:${frame.alpha}`),
+        reset: () => calls.push('hook.reset'),
+      }),
+    })
+
+    const program = Effect.scoped(
+      Effect.gen(function* () {
+        const renderer = yield* factory(target)
+        const { consumer, app } = renderer.stage
+        const applyConsumer = consumer.apply.bind(consumer)
+        vi.spyOn(consumer, 'apply').mockImplementation((delta) => {
+          calls.push('consumer.apply')
+          applyConsumer(delta)
+        })
+        vi.spyOn(consumer, 'reset').mockImplementation(() => void calls.push('consumer.reset'))
+        vi.spyOn(app, 'render').mockImplementation(() => void calls.push('app.render'))
+
+        renderer.apply({
+          tick: 7,
+          render: { resync: false, added: [], changed: [], removed: [] },
+          events: [],
+          rejected: [],
+        })
+        renderer.draw({ alpha: 0.5, frameMs: 16, paused: false })
+        renderer.reset()
+        // Read before the scope closes: closing destroys the consumer, which resets it once more.
+        return [...calls]
+      }),
+    )
+
+    expect(await Effect.runPromise(program)).toEqual([
+      'consumer.apply',
+      'hook.apply:7',
+      'hook.draw:0.5',
+      'app.render',
+      'consumer.reset',
+      'hook.reset',
+    ])
+  })
 })
