@@ -1,7 +1,7 @@
 # PUB.2: `ship --target itch` TDD plan
 
 - **Spec:** [PUB spec](../specs/2026-10-16-publish-targets-design.md) §4, §6, §7 (`packages/ship` rows), §8, §12 PUB-b; [ADR 0005](../../adr/0005-publish-targets.md).
-- **Status:** drafted 2026-10-16; PUB.0 Owner-approved 2026-10-16 with every recommended default.
+- **Status:** drafted 2026-10-16 (PUB.0 Owner-approved 2026-10-16 with every recommended default); steps 1–7 implemented and locally verified 2026-10-16. Owner review pending.
 - **Lane:** ship. **Branch:** `claude/clever-pasteur-ujmu6e-pub2`.
 
 ## Global constraints
@@ -33,10 +33,10 @@
 - **Produced:**
   - `ShipConfig.itch?: { project: string; channel?: string }`; `itchConfigSchema` (Zod: `project` is lower-case `user/game`, `channel` defaults to `html5`).
   - `ITCH_LIMITS`, `ITCH_LIMITS_SOURCE`.
-  - `checkItchEntry`, `checkItchLimits`, `findCaseMismatches`, `checkNoRukenToml` (each returns problems naming file and limit).
+  - `checkItchEntry`, `checkFileCount`, `checkPathLengths`, `checkFileSizes`, `findCaseMismatches`, `checkNoRukenToml` (each returns problems naming file and limit); `buildFiles(distDir)`.
   - `writeDeterministicZip(outPath, distDir, files)`.
-  - `prepareItch({ distDir, config, tag }): Effect<{ zipPath }, PrepareItchError, Files>`.
-  - `publishToItch({ distDir, config, tag, apiKey, butlerFound }): Effect<{ firstPush, checklist }, PublishItchError, Files | ProcessRunner>`; `ITCH_FIRST_PUSH_CHECKLIST`.
+  - `prepareItch({ distDir, config, tag }): Effect<{ zipPath }, PrepareItchError>` (the zip goes beside `dist/`, never inside it, so `butler push <dist>` does not upload it).
+  - `publishToItch({ distDir, config, tag, apiKey, butlerPath }): Effect<{ firstPush }, PublishItchError, ProcessRunner>`; `ITCH_FIRST_PUSH_CHECKLIST` (the CLI prints it when `firstPush`); `findExecutable(name, PATH)`.
   - Errors: `ItchBuildInvalid { check, problems }`, `ItchSettingMissing { setting }`, `ButlerFailed { exitCode }`.
   - CLI: `prepare --target itch`, `publish --target itch`; `target` on the parsed `prepare`/`publish` commands.
 
@@ -62,7 +62,7 @@
   `find-executable.test.ts`: finds an executable on a given `PATH`, not a plain file, not a missing one. Fails: modules missing. Add both.
 
 - [x] **6. CLI.** `cli-args.test.ts`: `--target itch` on prepare and publish; `--target` absent leaves the old shape; `--target steam` and `publish --target itch --activate` are usage errors; `deploy-dev --target itch` is a usage error. Fails on the missing option. Add it, then wire `cli.ts` (butler's exit code becomes the CLI's; the checklist is printed on a first push).
-- [ ] **7. Gates.** Changeset; `pnpm format`; `pnpm check`. Record counts below.
+- [x] **7. Gates.** Changeset; `pnpm format`; `pnpm check`. Record counts below.
 
 ## First-push detection
 
@@ -72,4 +72,9 @@ butler prints ``For channel `<channel>`: pushing first build`` when the channel 
 
 | Date | Step | Commits | Notes |
 | ---- | ---- | ------- | ----- |
-| —    | —    | —       | —     |
+| 2026-10-16 | Plan | `6596a97` | — |
+| 2026-10-16 | 1–3 | `6719812` | Each test file failed first on its missing module. Step 2's test needed `buildFiles`, so the walk moved to `build-files.ts` here, not in step 4; `root-absolute.test.ts` (16 tests) stayed green. Zip checked with `unzip -t`/`zipinfo` too: 1980-01-01 00:00, `-rw-r--r--`, deflate only where smaller. |
+| 2026-10-16 | 4 | `3206b0c` | Red on the missing module and on `ItchBuildInvalid is not a constructor`. `prepareItch` needs no `Files` service (all reads are synchronous `node:fs` inside `Effect.try`). |
+| 2026-10-16 | 5 | `25578bd` | Red on the missing modules. `butlerPath` (found on PATH by `findExecutable`) replaces the plan's `butlerFound`, so butler runs from the path that was checked. |
+| 2026-10-16 | 6 | `231ee57` | Red: 3 of 8 `cli-args` tests. No `--target` gives `target: undefined` (not `'ruken'`) so the existing `toEqual` tests pass unedited. CLI smoke against a temp build and a fake `butler` on PATH: prepare wrote the zip with the same sha256 twice; missing key and missing butler exit 2 before butler runs; the push printed the exact argv and the checklist; butler exit 7 became ship's exit 7; Ruken `prepare` still wrote `ruken.toml`. Built `dist/cli.js` gave the same zip hash. |
+| 2026-10-16 | 7 | this commit | `pnpm format` clean; `pnpm check` exit 0: lint 0 errors (warnings all pre-existing, none in new files), typecheck 26/26, boundaries 62 files 0 findings, style 185 files 0 findings, test:unit 22/22 tasks (ship 24 files, 232 tests). Parity and E2E omitted: no runtime, rendering, UI, host or game code changed. |
