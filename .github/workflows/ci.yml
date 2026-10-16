@@ -74,6 +74,9 @@ jobs:
       - run: pnpm changeset status --since=origin/main
         if: github.event_name == 'pull_request'
       - run: node tooling/release/src/check-changesets.ts
+      # PRODUCT.1 (PRODUCT spec §2 F6): each core package's API report matches its source, and every API break
+      # against origin/main's reports is declared by a changeset.
+      - run: pnpm api-report
       - run: pnpm build
       - run: pnpm --filter @mcthaydt/release test:dist
 

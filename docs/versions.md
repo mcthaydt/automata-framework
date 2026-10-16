@@ -50,7 +50,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `jsdom` | 30.1.1 | 2026-10-11 | ui lane: the `unit` test environment for `packages/ui` |
 | `svelte` | 5.57.1 | 2026-10-11 | ui lane: the UI framework (master spec §3, rune stores) |
 | `svelte-check` | 4.7.6 | 2026-10-11 | ui lane: typechecks `.svelte` files |
-| `typescript` | 6.0.3 | 2026-10-11 | ui lane: only for `svelte-check`, which does not support TypeScript 7 yet; the rest of AF uses 7.0.2 (as Ruken holds 6.0.3 for svelte-check) |
+| `typescript` | 6.0.3 | 2026-10-11 | ui lane: only for `svelte-check`, which does not support TypeScript 7 yet; the rest of AF uses 7.0.2 (as Ruken holds 6.0.3 for svelte-check). `tooling/api-report` (PRODUCT.1) also uses its compiler API (`transpileDeclaration`, the checker), which TypeScript 7 has no stable version of yet |
 
 ## Container images
 

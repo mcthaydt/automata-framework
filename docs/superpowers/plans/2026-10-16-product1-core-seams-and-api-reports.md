@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §2 F1 and F6, §9 (ownership), §10 (PRODUCT.1). Owner-approved 2026-10-16 with every recommended default.
 - **Status:** drafted 2026-10-16.
-- **Progress:** 7 of 10 steps.
+- **Progress:** 9 of 10 steps.
 
 ## What exists (verified on `main` `71c3410`)
 
@@ -65,8 +65,8 @@
 - [x] **5. Settings, presentation bus, extension through the public barrel.** `public-seams.test.ts` imports only from `../index.js` and `../extension/index.js`: a game `SettingsDef` embedding `inputProfileSchema` and `audioBusGainsSchema` round-trips through `settingsStore` over `HostingTest` saves; a typed game fact reaches a subscriber; `defineExtension` registers. Red: the step 2–4 names are not exported from the barrel until wired (written before wiring); green.
 - [x] **6. Post-filter slot.** `post-filter-slot.test.ts` (jsdom, fake filters): two ids compose by order then id; replacing an id keeps its place; remove restores `null` when empty; a removed id's remover is idempotent. Red: missing module. Implement; add `postFilters` to `PixiStage`; export; green.
 - [x] **7. API extraction and reports.** `extract.test.ts` over `fixtures/repo` (a package with `.` and `./sub`, a CSS export, a Svelte re-export, a function with a body, an interface+const merge, a re-export from a sibling package): names, kinds and body-free declarations; `report.test.ts`: render then parse round-trips. Red: missing modules; implement; green.
-- [ ] **8. Break check.** `breaks.test.ts`: removed export, removed entry and changed declaration are breaks, an addition is not; a break is declared by a `major` changeset, or before 1.0 by a patch changeset with `BREAKING:` for that package; a changeset for another package does not declare it. Planted fixture per committed report: removing one export from each core package's report is an undeclared break. Red; implement (reusing the exported changeset reader from `check-changesets.ts`); green.
-- [ ] **9. CLI, committed reports, seam reachability.** `run.test.ts` on the fixture repo: a stale committed report exits 1 naming the package, `--update` writes and then exits 0, a planted undeclared break against a base exits 1. `seams.test.ts`: every F1 seam in `SEAMS` appears in its package's committed report under a public `exports` entry, and the committed reports equal freshly generated ones. Red; `pnpm api-report --update`; green. Wire `api-report` into root scripts, `ci:local` and `ci.yml`; `ci.test.ts` pins it.
+- [x] **8. Break check.** `breaks.test.ts`: removed export, removed entry and changed declaration are breaks, an addition is not; a break is declared by a `major` changeset, or before 1.0 by a patch changeset with `BREAKING:` for that package; a changeset for another package does not declare it. Planted fixture per committed report: removing one export from each core package's report is an undeclared break. Red; implement (reusing the exported changeset reader from `check-changesets.ts`); green.
+- [x] **9. CLI, committed reports, seam reachability.** `run.test.ts` on the fixture repo: a stale committed report exits 1 naming the package, `--update` writes and then exits 0, a planted undeclared break against a base exits 1. `seams.test.ts`: every F1 seam in `SEAMS` appears in its package's committed report under a public `exports` entry, and the committed reports equal freshly generated ones. Red; `pnpm api-report --update`; green. Wire `api-report` into root scripts, `ci:local` and `ci.yml`; `ci.test.ts` pins it.
 - [ ] **10. Gates and bookkeeping.** `pnpm format`, `pnpm check`, `pnpm test:parity`, `pnpm test:e2e` (host and runtime changed), `pnpm api-report`; build + consumer smoke (`host` publish surface changed). Spec §2 seam locations, 02 row/follow-ups, execution record, 03 row.
 
 ## Gates
