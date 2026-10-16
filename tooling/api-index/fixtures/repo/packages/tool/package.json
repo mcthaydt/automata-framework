@@ -1,0 +1,7 @@
+{
+  "name": "@fixture/tool",
+  "version": "1.2.3",
+  "bin": {
+    "tool": "./types/cli.js"
+  }
+}

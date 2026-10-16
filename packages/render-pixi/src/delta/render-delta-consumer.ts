@@ -11,7 +11,12 @@ export interface EntityView {
   destroy?(): void
 }
 
-export type EntityViewFactory = (row: RenderRow) => EntityView | undefined
+/**
+ * Builds the view for one entity, or `undefined` to draw nothing. A record resolver passes the component id
+ * the factory was registered under, so a view such as `rect()` knows which component holds its pose; a bare
+ * function resolver passes no id.
+ */
+export type EntityViewFactory = (row: RenderRow, componentId?: string) => EntityView | undefined
 
 export type EntityViewResolver = EntityViewFactory | Readonly<Record<string, EntityViewFactory>>
 
@@ -40,7 +45,7 @@ export class RenderDeltaConsumer {
       if (key in row.components) {
         const factory = this.resolver[key]
         if (factory) {
-          return factory(row)
+          return factory(row, key)
         }
       }
     }

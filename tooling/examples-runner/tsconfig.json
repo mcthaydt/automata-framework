@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"],
+    "allowImportingTsExtensions": true,
+    "isolatedDeclarations": false
+  },
+  "include": ["src/**/*.ts", "host/*.ts", "e2e/*.ts", "*.ts"],
+  "exclude": [
+    "src/fixtures/catalog/**",
+    "src/fixtures/examples/core/core-later.ts",
+    "src/fixtures/examples/dist"
+  ]
+}
