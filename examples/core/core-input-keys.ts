@@ -1,0 +1,50 @@
+// core-input-keys: move a square with the keyboard
+//
+// Shows: keys() turns held keys into one sim command per tick; rect() draws an entity, interpolated.
+// Controls: arrows or WASD
+// Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, zod
+// Difficulty: ★☆☆☆
+// Tier: core
+// Golden: 120
+// Pending: DX.2, DX.2b
+import { defineGame, keys, rect } from '@mcthaydt/automata-game'
+import { defineCommand, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+import { z } from 'zod'
+
+const Body = defineComponent('body', { x: 'f32', y: 'f32' })
+const step = z.number().int().min(-1).max(1).default(0)
+const Move = defineCommand('move', z.object({ x: step, y: step }))
+
+// The sim only sees commands: the same commands replay to the same positions.
+const move = defineSystem('move', (ctx) => {
+  for (const { payload } of ctx.commands.of(Move))
+    for (const body of ctx.query(Body)) {
+      const { x, y } = body.get(Body)
+      body.set(Body, { x: x + payload.x * 2, y: y + payload.y * 2 })
+    }
+})
+
+const square = definePlugin({ name: 'square', defs: [Body, Move, move] })
+
+export default defineGame({
+  id: 'core-input-keys',
+  size: { width: 320, height: 180 },
+  sim: {
+    plugins: [square],
+    seed: 1,
+    setup: (sim) => {
+      sim.spawn([[Body, { x: 160, y: 90 }]])
+    },
+  },
+  input: keys(Move, {
+    ArrowLeft: { x: -1 },
+    KeyA: { x: -1 },
+    ArrowRight: { x: 1 },
+    KeyD: { x: 1 },
+    ArrowUp: { y: -1 },
+    KeyW: { y: -1 },
+    ArrowDown: { y: 1 },
+    KeyS: { y: 1 },
+  }),
+  views: { [Body.id]: rect({ w: 8, h: 8, color: 0xffc825 }) },
+})
