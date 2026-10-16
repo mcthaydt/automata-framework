@@ -1,11 +1,13 @@
 // Compiles a tiny Paraglide project (en, fr) with Paraglide's own compiler, so the runtime's tests run
-// against real generated code rather than a stand-in. The project is written to a temporary folder with an
+// against real generated code rather than a stand-in. The project is written under the package's
+// `node_modules/.cache/` (inside Vite's root, so the test files can import it, and ignored by git) with an
 // absolute path to the message-format plugin, so nothing is fetched and nothing lands in the source tree.
+// It runs once per test run, in Node, from `global-setup.ts`: the inlang SDK behind the compiler rejects
+// jsdom's Uint8Array (another realm), so it cannot run inside a jsdom test file.
 
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { compile } from '@inlang/paraglide-js'
 
 export const FIXTURE_MESSAGES = {
@@ -13,19 +15,15 @@ export const FIXTURE_MESSAGES = {
   fr: { hello: 'Bonjour {name}', play: 'Jouer' },
 } as const
 
-export interface CompiledFixture {
-  /** The generated `runtime.js`. */
-  readonly runtime: Record<string, unknown>
-  /** The generated `messages.js`. */
-  readonly messages: Record<string, unknown>
-}
-
-export async function compileFixture(): Promise<CompiledFixture> {
-  const folder = await mkdtemp(join(tmpdir(), 'af-paraglide-'))
+/** Compiles the fixture into `folder`; returns the folder holding `fixture.js` (the generated runtime and messages). */
+export async function compileFixture(folder: string): Promise<string> {
+  await rm(folder, { recursive: true, force: true })
+  await mkdir(folder, { recursive: true })
   const project = join(folder, 'project.inlang')
   await mkdir(join(folder, 'messages'))
   await mkdir(project)
-  const plugin = fileURLToPath(import.meta.resolve('@inlang/plugin-message-format'))
+  // createRequire, not import.meta.resolve, which Vite's module runner (global setup) does not support.
+  const plugin = createRequire(import.meta.url).resolve('@inlang/plugin-message-format')
   await writeFile(
     join(project, 'settings.json'),
     JSON.stringify({
@@ -47,8 +45,10 @@ export async function compileFixture(): Promise<CompiledFixture> {
     emitGitIgnore: false,
     emitPrettierIgnore: false,
   })
-  return {
-    runtime: (await import(/* @vite-ignore */ join(outdir, 'runtime.js'))) as Record<string, unknown>,
-    messages: (await import(/* @vite-ignore */ join(outdir, 'messages.js'))) as Record<string, unknown>,
-  }
+  // One entry, so the test imports both modules through one loader and they share one runtime instance.
+  await writeFile(
+    join(outdir, 'fixture.js'),
+    "export * as runtime from './runtime.js'\nexport * as messages from './messages.js'\n",
+  )
+  return outdir
 }

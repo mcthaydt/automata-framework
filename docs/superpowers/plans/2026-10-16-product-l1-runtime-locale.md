@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §4 items 1 to 4 (the runtime part of "Messages", "Negotiation", "Formatting", "Document"), acceptance cases L-b and L-c (runtime level); §9 ownership: `runtime` owns negotiation and `t()`.
 - **Status:** drafted 2026-10-16. PRODUCT.0 is Owner-approved with every recommended default (2026-10-16), so this plan may run.
-- **Progress:** 5 of 7 steps.
+- **Progress:** 6 of 7 steps.
 - **Split (PRODUCT.L is three PRs).** This plan is **PRODUCT.L1**, the runtime part. **PRODUCT.L2** (content: Paraglide compile of the content catalogs, per-locale TOML text, glyph sets, L-d, L-e once M5's asset build exists) and **PRODUCT.L3** (ui: language picker, `xx-long` pseudo-locale in every layout contract, logical properties and the right-to-left contract, the L-a example and the e2e first-frame check) are recorded as rows in 02. The `automata check` additions (§4 item 8) wait for DX.6 (PR #42) and are a follow-up row.
 
 ## Source
@@ -29,8 +29,8 @@ FloorFifty's tests for these files are UI-level (Svelte stores); the AF tests be
 
 ## Files
 
-- **Create** (all in `packages/runtime/src/locale/`): `negotiate-locale.ts`, `negotiate-locale.test.ts`, `format.ts`, `format.test.ts`, `document-locale.ts`, `document-locale.test.ts`, `paraglide.ts`, `paraglide.test.ts`, `locale.manager.ts`, `locale.test.ts`, `testing/fixture.inlang/settings.json`, `testing/messages/en.json`, `testing/messages/fr.json`, `testing/compile-fixture.ts`.
-- **Modify:** `packages/runtime/src/boot/game-definition.ts` (`locale?: LocaleDef`, `seams.languages`), `boot/boot-program.ts` (negotiate before the flow starts; add `Locale` to the services), `flow/screen.ts` (`RuntimeServices` gains `Locale`), `presentation/presentation-bus.manager.ts` (`'locale.changed'` fact), `testing/runtime-test.ts` (`locale`, `languages` options), `boot/run-game.test.ts`, `index.ts`, `index.test.ts`, `packages/runtime/package.json`, `docs/versions.md`.
+- **Create** (all in `packages/runtime/src/locale/`): `negotiate-locale.ts`, `negotiate-locale.test.ts`, `format.ts`, `format.test.ts`, `document-locale.ts`, `document-locale.test.ts`, `paraglide.ts`, `paraglide.test.ts`, `locale.manager.ts`, `locale.test.ts`, `testing/compile-fixture.ts`, `testing/global-setup.ts`, `testing/load-fixture.ts`; `packages/runtime/src/boot/run-game-locale.test.ts`.
+- **Modify:** `packages/runtime/src/boot/game-definition.ts` (`locale?: LocaleDef`, `seams.languages`), `boot/boot-program.ts` (negotiate before the flow starts; add `Locale` to the services), `flow/screen.ts` (`RuntimeServices` gains `Locale`), `presentation/presentation-bus.manager.ts` (`'locale.changed'` fact), `testing/runtime-test.ts` (`locale`, `languages` options), `index.ts`, `index.test.ts`, `packages/runtime/package.json`, `packages/runtime/tsconfig.json` (`ES2025.Intl` for `Intl.DurationFormat`), `packages/runtime/vitest.config.ts` (`globalSetup`, inline the fixture), `docs/versions.md`.
 
 ## Interfaces
 
@@ -52,9 +52,9 @@ FloorFifty's tests for these files are UI-level (Svelte stores); the AF tests be
   - matching is case-insensitive and returns the game's own spelling (`pt-br` → `pt-BR`).
 
   Run `pnpm --filter @mcthaydt/automata-runtime exec vitest run --project unit src/locale` and confirm it fails because `./negotiate-locale` does not exist. Implement, confirm it passes.
-- [x] **2. Formatting.** `format.test.ts`: `formatNumber('de', 1234.5)` is `1.234,5`; `formatPercent('fr', 0.5)` uses a narrow no-break space before `%`; `formatDuration('en', 75_000)` is `01:15` and `formatDuration('en', 3_725_000)` is `1:02:05`; `pluralCategory('en', 1)` is `one`, `pluralCategory('en', 2, 'ordinal')` is `two`; `selectPlural('fr', 0, { one, other })` picks `one` (French zero is singular). Confirm it fails on the missing module, implement, confirm it passes.
+- [x] **2. Formatting.** `format.test.ts`: `formatNumber('de', 1234.5)` is `1.234,5`; `formatPercent('fr', 0.5)` has a no-break space before `%` (U+00A0 or U+202F, by ICU data); `formatDuration('en', 75_000)` is `01:15` and `formatDuration('en', 3_725_000)` is `1:02:05`; `pluralCategory('en', 1)` is `one`, `pluralCategory('en', 2, 'ordinal')` is `two`; `selectPlural('fr', 0, { one, other })` picks `one` (French zero is singular). Confirm it fails on the missing module, implement, confirm it passes.
 - [x] **3. Document.** `document-locale.test.ts`: `textDirection` is `rtl` for `ar`, `he`, `fa`, `ur` and `ar-EG`, and `ltr` for `en`, `ja`, `zh-Hans`, `xx-long`; `applyDocumentLocale` sets `lang` and `dir` on the element. Confirm the failure, implement from `Intl.Locale#maximize().script` (the same answer in every engine), confirm it passes.
-- [x] **4. Paraglide `t()`.** `testing/compile-fixture.ts` compiles `testing/fixture.inlang` (en, fr) with Paraglide's `compile` into a temporary folder. `paraglide.test.ts`:
+- [x] **4. Paraglide `t()`.** `testing/compile-fixture.ts` writes a tiny inlang project (en, fr) and compiles it with Paraglide's `compile`, once per run in Node from the unit project's `globalSetup` (`testing/global-setup.ts`; the inlang SDK rejects jsdom's `Uint8Array`), into `node_modules/.cache/af-paraglide-fixture`; `testing/load-fixture.ts` imports it (inlined through Vite so the generated messages and runtime share one module graph). `paraglide.test.ts`:
   - `bindParaglide(runtime, () => 'fr')` makes the generated `m.play()` answer `Jouer`;
   - `createT(m)('hello', { name: 'Ada' })` answers `Bonjour Ada` while the getter answers `fr`, and `Hello Ada` after it answers `en`, with no reload;
   - a type test: `t('nope')` and `t('hello')` without inputs are type errors (`// @ts-expect-error`).
@@ -68,10 +68,10 @@ FloorFifty's tests for these files are UI-level (Svelte stores); the AF tests be
   - a refused `saves.set` is logged and the locale still changes in memory (no device-storage fallback).
 
   Confirm the failure, implement, confirm it passes.
-- [ ] **6. Boot (L-b, L-c at runtime level).** In `boot/run-game.test.ts`, under the fake Ruken host:
+- [x] **6. Boot (L-b, L-c at runtime level).** In a new `boot/run-game-locale.test.ts`, under the fake Ruken host (its welcome is always `en-US`, so the test rewrites the welcome's `locale` in `onWindowMessage`, as the host package's tests wrap it; a fake-host `locale` option is a Ruken request, recorded in 02):
   - **L-b:** the welcome's `locale: 'fr'` and `locale: <fixture runtime>` give `document.documentElement.lang === 'fr'` and a first screen whose `enter` reads `t('play') === 'Jouer'`; the screen never saw English;
   - with no `locale` in the game, the locale is the content's `source_language` and `lang` is set;
-  - a saved `automata.locale` of `fr` wins in standalone over the browser languages (`seams.languages`);
+  - a saved `automata.locale` of `fr` (seeded in the fake host's saves) wins over the browser languages (`seams.languages`) when the session locale (`ja`) is not offered (standalone ignoring the session locale is covered in `locale.test.ts`);
   - **L-c:** with a focused button inside the entered screen, `Locale.set('en')` keeps `Flow.current`, publishes no `screen.entered`, and keeps `document.activeElement`.
 
   Confirm they fail (no `Locale` service), wire `makeLocale` into `bootProgram` step 7 before `flowHandle.start()` and into `RuntimeTest`, add `Locale` to `RuntimeServices` and the root exports (`index.test.ts`), confirm they pass.

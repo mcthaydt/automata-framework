@@ -46,6 +46,21 @@ export const Locale: Context.Tag<Locale, Locale> = Context.GenericTag<Locale>(
   '@mcthaydt/automata-runtime/Locale',
 )
 
+/** The game's locales when it declares none: the one language its content is written in. */
+export const singleLocale = (sourceLanguage: string): LocaleDef => ({
+  locales: [sourceLanguage],
+  baseLocale: sourceLanguage,
+})
+
+/** The browser's languages, best first; some WebViews report an empty list and only `language` (FloorFifty strategy.ts). */
+export function browserLanguages(
+  navigator: Pick<Navigator, 'languages' | 'language'> | undefined,
+): readonly string[] {
+  if (navigator === undefined) return []
+  if (navigator.languages !== undefined && navigator.languages.length > 0) return navigator.languages
+  return navigator.language ? [navigator.language] : []
+}
+
 export interface MakeLocaleOptions {
   readonly def: LocaleDef
   readonly hosting: Pick<Hosting, 'kind' | 'locale' | 'saves'>
