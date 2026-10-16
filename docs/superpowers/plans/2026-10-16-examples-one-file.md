@@ -2,7 +2,7 @@
 
 - **Spec:** [`docs/superpowers/specs/2026-10-16-examples-one-file-design.md`](../specs/2026-10-16-examples-one-file-design.md)
 - **Status:** drafted 2026-10-16. **Pending EX.0 review.** Do not start before the Owner reviews the spec (AGENTS.md: a draft spec does not authorize implementation).
-- **Progress:** 0 of 5 tasks.
+- **Progress:** EX.2 and EX.1 implemented and locally verified (draft PRs, Owner review pending); EX.3–EX.5 open.
 
 ## Global constraints
 
@@ -40,6 +40,9 @@
 ### Deviations recorded here
 - **Workspace globs:** the spec replaces `examples/*` and `examples/*/*` with `examples`; the old demos and the gallery are still packages until EX.4/EX.5, so the globs stay and `examples` is added. pnpm accepts a package whose folder holds other packages.
 - **Public imports:** the umbrella `@mcthaydt/automata` does not exist until PRODUCT.2, so the catalog accepts `@mcthaydt/automata` and any entry a `@mcthaydt/automata-*` package declares in `exports` (never `/src`). Narrowing core imports to the umbrella is a PRODUCT.2 follow-up.
+- **Catalog scope:** the catalog skips folders that hold a `package.json` (the old demos and the gallery, until EX.4/EX.5), `node_modules`, `dist`, `e2e`, `resources` and `__goldens__`, and the root `vite.config.ts`. Screenshot approval is recorded in `examples/screenshots-approved.json` (`"<module>/<module>-<name>.png": "<approval record>"`), written only from an Owner decision.
+- **Smoke projects:** `examples` and `examples-compact` also run the runner's own fixture smoke (`tooling/examples-runner/e2e/runner.e2e.ts`), so the path is proven while `examples/` has no runnable example; each suite also checks the index lists every catalog entry. Ports: examples build at `demoPort(6)`, runner fixtures at `demoPort(7)` (`host/ports.ts`).
+- **Parity in a browser:** the parity test reads headers and loads examples through `import.meta.glob` (no file system in a browser), and its Vitest config turns dependency discovery off, since the scan would follow the glob into a pending example's unresolved imports and reload the page mid-run.
 - **Stub:** with no `defineGame` yet, the stub example exports a plain object of the shape the runner reads (`id`, `sim.plugins`, `sim.seed`); it never imports or defines anything named like DX.2's API.
 
 ### Steps
@@ -85,7 +88,7 @@
   - Confirm it fails on a stub with no replay.
   - Record the stub's replay once, in Node.
   - Confirm it passes in Node, Chromium, WebKit and Firefox.
-- [ ] **8. CI.**
+- [x] **8. CI.**
   - In `ci.yml` and `ci:local`, `build:demos` becomes `build:examples`.
   - Run actionlint.
   - Run `pnpm check`, `pnpm test:parity` and `pnpm test:e2e`. The old demos keep running until EX.4.
@@ -160,3 +163,4 @@ Per demo:
 | Date | Task | Commits | Notes |
 |---|---|---|---|
 | 2026-10-16 | EX.2 | `d81fa9b` (file list), `6d8e5c7` (move) on `claude/clever-pasteur-ujmu6e-ex2` | Red first: ship's workflow and turbo-input tests and release's workspace walk failed on the missing `games/`. Green after the move. `pnpm check` 26/26 + 22/22 turbo tasks (1,660 unit tests passed, 4 skipped; 35 of 48 tasks replayed from turbo's cache on identical inputs); `pnpm test:parity` 9/9 tasks, none cached (590 tests; Emberwick's golden `31f50888ccb4cf0a` green in Chromium, WebKit and Firefox, and its Node golden test 3/3); `pnpm test:e2e` 46/46 (placeholder 3, base-2d 9, base-2d-compact 9, ui-primitives 5, demos 20; ports 4620/4720); `build` + `prepare-ruken` for both games and the placeholder's `budget:size` (S8 budgets met). `pnpm lint:actions` not run: no Docker daemon in the container. |
+| 2026-10-16 | EX.1 | `cd54e67` (file list), `c32b1cc` (header, catalog), `d4254cf` (`--inline`), `363f787` (plugin, pages, host move), `7c7906e` (examples package), `d37ce3a` (smoke), `533b481` (parity), `d8c8d5a` (CI) on `claude/clever-pasteur-ujmu6e-ex1`, stacked on EX.2 | Red first at each step: `parseHeader`/`readCatalog`/`typecheckConfig`/plugin modules missing; inline tests reported the file-level import and walked `node_modules`; smoke `ERR_CONNECTION_REFUSED` before its servers; parity `core-stub.replay is missing`; ship's workflow test missing `pnpm build:examples` in `ci.yml`. Stub replay recorded once in Node (`AUTOMATA_UPDATE_GOLDENS=1`). Gates in 02's execution record. `pnpm lint:actions` not run: no Docker daemon. |
