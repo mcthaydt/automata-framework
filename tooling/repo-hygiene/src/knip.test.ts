@@ -9,7 +9,8 @@ import { expect, it } from 'vitest'
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const fixture = fileURLToPath(new URL('../fixtures/knip', import.meta.url))
 
-it('fails on an unused export and names it', { timeout: 60_000 }, () => {
+// 90 s matches main's budget floor (#54) for the shared af-linux runner.
+it('fails on an unused export and names it', { timeout: 90_000 }, () => {
   const result = spawnSync(join(root, 'node_modules/.bin/knip'), ['--no-progress', '--directory', fixture], {
     encoding: 'utf8',
   })
