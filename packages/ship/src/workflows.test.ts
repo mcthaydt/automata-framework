@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -144,23 +145,57 @@ describe('parity across packages', () => {
   it("runs every package's parity suite through the root test:parity script", () => {
     // Three suites at a time: each starts Chromium, WebKit and Firefox, and on the shared WSL Docker runner all of
     // #14's eight suites at once left Firefox past vitest's 60 s connect timeout (2026-10-11). The longer connect
-    // timeout, passed through to every suite's vitest, is a backstop for a busy runner.
+    // timeout, passed through to every suite's vitest, is a backstop for a busy runner. 120 s was not enough on
+    // af-linux: on 2026-10-16 (PR #39, run 38862520260) sim's suite failed to connect to Firefox within it while
+    // every test that ran passed, so it is 240 s.
     expect(packageJson('.').scripts['test:parity']).toBe(
-      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=120000',
+      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000',
     )
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
   })
 
   // af-linux is one PC shared with Ruken's GPU runs. Under that load, tests that build worlds or import whole
   // entry modules ran past vitest's 5 s default (main after #16: sim's snapshot test at 5.2 s; #15: base-2d's
-  // exports test). The root script passes a 30 s default to every package's vitest; a test's own timeout still wins.
-  it('gives every unit suite a 30 s default timeout through the root test:unit script', () => {
-    expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=30000')
+  // exports test), and then past 30 s while Ruken's CI ran alongside (2026-10-16: base-2d's exports test at
+  // 30.5 s, physics parity at 32–33 s, content's render-types file at 70.7 s). The root script passes a 90 s
+  // default to every package's vitest, which still catches a hang; a test's own timeout still wins.
+  it('gives every unit suite a 90 s default timeout through the root test:unit script', () => {
+    expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=90000')
     // The flag only means something to vitest, so every package's test:unit must be a vitest run.
     for (const path of workspacePackages) {
       const script = packageJson(path).scripts?.['test:unit']
       if (script !== undefined) expect(script, path).toMatch(/^vitest run( |$)/)
     }
+  })
+
+  // A test's own timeout overrides that 90 s default, so a smaller one still failed on af-linux: on 2026-10-16
+  // (PR #39, run 38862520260) runtime's root-exports test took 28.5 s against its own 15 s. Every per-test or
+  // per-describe budget must be at least the root default. `vi.waitFor(..., { timeout })` is a wait, not a test
+  // budget, so it is left out.
+  it('keeps every explicit per-test and per-describe timeout at 90 s or more', () => {
+    const testFiles = execFileSync(
+      'git',
+      ['ls-files', 'packages/*.test.ts', 'examples/*.test.ts', 'tooling/*.test.ts', 'games/*.test.ts'],
+      { cwd: root, encoding: 'utf8' },
+    )
+      .split('\n')
+      .filter((file) => file !== '')
+    // `}, 15000)` closing a test/describe callback, and `{ timeout: N }` passed on a test/describe line.
+    const trailingBudget = /^\s*\}\s*,\s*([\d_]+)\s*\)/
+    const optionsBudget = /\b(?:it|test|describe)\b[\w.]*\(.*\btimeout:\s*([\d_]+)/
+    const tooShort: string[] = []
+    for (const file of testFiles) {
+      readFileSync(join(root, file), 'utf8')
+        .split('\n')
+        .forEach((line, index) => {
+          if (/\bwaitFor\(/.test(line)) return
+          const budget = trailingBudget.exec(line)?.[1] ?? optionsBudget.exec(line)?.[1]
+          if (budget !== undefined && Number(budget.replaceAll('_', '')) < 90_000) {
+            tooShort.push(`${file}:${index + 1}`)
+          }
+        })
+    }
+    expect(tooShort).toEqual([])
   })
 
   it('gives every package with a browsers vitest project a test:parity script', () => {

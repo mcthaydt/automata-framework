@@ -27,6 +27,7 @@ function build(name: string, script: string): string {
   return dist
 }
 
+// Test budgets are 90 s to meet main's floor (#54) for the shared af-linux runner.
 const probe = (distDir: string, timeoutMs = 20_000) =>
   Effect.runPromise(probeDist({ distDir, headers, timeoutMs, resolveFrom: repoRoot }))
 
@@ -34,7 +35,7 @@ describe('probeDist in Chromium', () => {
   it('passes a build that reports ready', async () => {
     const dist = build('ready', 'document.documentElement.dataset.state = "ready"')
     expect(await probe(dist)).toEqual({ ready: true, state: 'ready', violations: [] })
-  }, 60_000)
+  }, 90_000)
 
   it('reports a CSP violation even when the game catches the EvalError', async () => {
     const dist = build(
@@ -45,14 +46,14 @@ describe('probeDist in Chromium', () => {
     expect(result.ready).toBe(true)
     expect(result.violations).toHaveLength(1)
     expect(result.violations[0]).toContain('script-src')
-  }, 60_000)
+  }, 90_000)
 
   it('reports a game that never gets ready, and one that fails', async () => {
     const loading = build('loading', 'document.documentElement.dataset.state = "loading"')
     expect(await probe(loading, 1_000)).toEqual({ ready: false, state: 'loading', violations: [] })
     const failed = build('failed', 'document.documentElement.dataset.state = "failed"')
     expect(await probe(failed)).toEqual({ ready: false, state: 'failed', violations: [] })
-  }, 60_000)
+  }, 90_000)
 
   it('without Playwright it is a missing tool, not a pass', async () => {
     const dist = build('no-playwright', '')
@@ -64,5 +65,5 @@ describe('probeDist in Chromium', () => {
       expect(outcome.left.kind).toBe('missing')
       expect(outcome.left.message).toContain('npx playwright install chromium')
     }
-  }, 60_000)
+  }, 90_000)
 })
