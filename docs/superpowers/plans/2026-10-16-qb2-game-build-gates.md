@@ -25,7 +25,7 @@
   - `parseEnvFile(file, text): EnvValue[]`.
   - `readEnvValues(gameDir): EnvValue[]` reads every top-level `.env*` file.
   - `findSecretsInBuild(distDir, envValues): SecretFound[]`.
-  - `PrepareInput.gameDir?` defaults to the parent of `distDir`.
+  - `PrepareInput.gameDir?`: when it is left out, no `.env` file is read. The CLI passes its working folder.
   - `SecretFound` is `{ file, offset, line, col, rule, detail }`.
 - **Consumed:** nothing new.
 
@@ -40,7 +40,7 @@
   Tuned against today's placeholder and Emberwick builds, which have zero matches. Hashed asset names hold `.`, and GL constants have no lower case, so neither matches.
 
 ### Steps
-- [ ] **1. Scanner.** Write `secret-scan.test.ts`:
+- [x] **1. Scanner.** Write `secret-scan.test.ts`:
   - a planted `sk_live_` key in a script is found with its file, byte offset, line and column, and the message does not contain the key;
   - each known format is found;
   - a `.env` value is found and named by variable;
@@ -52,13 +52,13 @@
   - `findSecretsInBuild` walks folders.
 
   Run `pnpm --filter @mcthaydt/automata-ship exec vitest run src/prepare/secret-scan.test.ts`. Confirm it fails because `./secret-scan.ts` does not exist. Implement it and confirm it passes.
-- [ ] **2. `prepareBuild` gate.** In `prepare-build.test.ts`:
+- [x] **2. `prepareBuild` gate.** In `prepare-build.test.ts`:
   - a build with a planted `sk_live_` key fails with `SecretInBuild`, the message names `assets/main.js` and the offset, and no `ruken.toml` is written;
   - a `.env` value copied into the bundle fails the same way, naming the variable;
   - the clean build still passes.
 
   Confirm it fails because prepare writes `ruken.toml`. Add the check after the root-absolute check, then confirm it passes. Pass `gameDir: cwd` from `cli.ts`.
-- [ ] **3. Real builds.** Run the following and confirm both pass (QB-b's clean builds):
+- [x] **3. Real builds.** Run the following and confirm both pass (QB-b's clean builds):
 
   ```
   pnpm --filter @af-examples/placeholder build && pnpm --filter @af-examples/placeholder prepare-ruken
@@ -66,6 +66,10 @@
   ```
 
   Then plant `sk_live_…` in a copy of the placeholder's `dist/` and confirm `automata-ship prepare` exits 1 naming the file and offset.
+
+  Done: both clean builds wrote `ruken.toml`. A planted key gave exit 1 with `assets/index-CB5OYeBD.js:15:66042 (byte 142511): stripe-access-token`. A value from a `.env.qb2-test` in the placeholder folder, appended to `index.html`, gave exit 1 with `env-value: the value of QB2_PLANTED`.
+
+  Deviation: `gameDir` has no default. When it is left out, no `.env` file is read, because defaulting to the parent of `dist` would read `/tmp` in tests. The CLI always passes its working folder.
 
 ## Task 2: `secrets` step in `automata check`
 
