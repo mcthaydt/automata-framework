@@ -25,6 +25,7 @@ import { type ContentData, type ContentGenerator, runGenerators } from '../gener
 import { contentHash } from '../hash/content-hash'
 import { checkTranslation, collectMessages } from '../locale/messages'
 import { checkPalette, paletteSchema } from '../palette/palette'
+import { locateJsonKeys } from '../parse/locate-json-keys'
 import {
   diagnosticAt,
   type ParsedToml,
@@ -195,7 +196,7 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
   }
 
   // 3. The source-language messages. A key two texts share is reported where the second one is.
-  const { messages, collisions } = collectMessages(items)
+  const { messages, origins, collisions } = collectMessages(items)
   for (const collision of collisions) {
     const item = items[collision.index] as ParsedItem
     const first = items[collision.first.index] as ParsedItem
@@ -281,7 +282,20 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
       ])
       continue
     }
-    place({ file: source.file, keys: NO_KEYS }, checkTranslation(messages, parsed))
+    // A key the translation lacks has no place in its file, so it is reported at the source text it
+    // translates (L-d); every other problem is placed at its own key in the translation.
+    const keys = locateJsonKeys(source.text)
+    for (const problem of checkTranslation(messages, parsed)) {
+      const key = String(problem.path[0])
+      const origin = origins.get(key)
+      const missing = origin !== undefined && !Object.hasOwn(parsed as object, key)
+      if (!missing) {
+        place({ file: source.file, keys }, [problem])
+        continue
+      }
+      const item = items[origin.index] as ParsedItem
+      place(item.toml, [{ ...problem, path: origin.path, message: `${key} is missing from ${source.file}` }])
+    }
   }
 
   if (codeProblems.length > 0) {

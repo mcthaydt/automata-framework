@@ -48,6 +48,8 @@ export interface MessageCollision {
 /** Keys every localized text. Snake-casing can map two different fields to one key; those are reported. */
 export function collectMessages(items: readonly TextsOfItem[]): {
   messages: MessageCatalog
+  /** Where each key's text is: its item's index and its path, so a problem with the key can name the text. */
+  origins: ReadonlyMap<string, MessageCollision['first']>
   collisions: MessageCollision[]
 } {
   const messages: Record<string, string> = {}
@@ -64,7 +66,7 @@ export function collectMessages(items: readonly TextsOfItem[]): {
       }
     }
   })
-  return { messages, collisions }
+  return { messages, origins: owners, collisions }
 }
 
 /** The catalog file's exact text. `$schema` sorts first because `$` comes before every letter. */

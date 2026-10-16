@@ -372,7 +372,27 @@ describe('refusals (one formatted line per failure policy row)', () => {
     const root = copyFixture('valid')
     edit(root, 'messages/fr.json', (t) => t.replace('"content_stage_dawn_display_name": "Aube",\n', ''))
     expect(await refusals(fixtureOptions(root))).toEqual([
-      'content/messages/fr.json:1:1  content_stage_dawn_display_name  staleTranslation: missing content_stage_dawn_display_name',
+      'content/stages/dawn.toml:2:1  displayName  staleTranslation: content_stage_dawn_display_name is missing from content/messages/fr.json',
+    ])
+  })
+
+  // L-d (PRODUCT spec §4): each translation problem carries the line and column an author opens.
+  it('an extra key and a non-text value, each at its own key', async () => {
+    const root = copyFixture('valid')
+    edit(root, 'messages/fr.json', (t) =>
+      t
+        .replace(
+          '"content_catalog_packs_0_title": "Base",',
+          '"content_extra": "X",\n  "content_catalog_packs_0_title": "Base",',
+        )
+        .replace(
+          '"content_stage_rooftops_display_name": "Toits"',
+          '"content_stage_rooftops_display_name": 7',
+        ),
+    )
+    expect(await refusals(fixtureOptions(root))).toEqual([
+      'content/messages/fr.json:3:3  content_extra  staleTranslation: content_extra is not a source key',
+      'content/messages/fr.json:12:3  content_stage_rooftops_display_name  staleTranslation: content_stage_rooftops_display_name must be text',
     ])
   })
 
