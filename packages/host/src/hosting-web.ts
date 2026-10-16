@@ -23,7 +23,7 @@ import { fromListener } from './subscribable'
  * the browser blocks storage, `saves` is not granted and every call fails `DENIED`.
  *
  * Ruken stays the vocabulary: every type comes from `@ruken/sdk`, imported as types only, so a bundle built with
- * this adapter holds no SDK code. Nothing this module imports at run time may import the SDK.
+ * this adapter holds no SDK code (`target.build.test.ts` builds one and checks for `RUKEN_SDK_MARKERS`).
  */
 
 type PageListener = (event: Event) => void
