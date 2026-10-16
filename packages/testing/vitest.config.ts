@@ -39,8 +39,9 @@ export default defineConfig({
           environment: 'node',
           include: ['src/sim/**/*.test.ts'],
           // As physics: on the af-linux runner turbo runs every package's tests at once, and the 300-tick
-          // re-recording and the 100 KB deflate round trips passed 5 s there (PR #20). 30 s still catches a hang.
-          testTimeout: 30_000,
+          // re-recording and the 100 KB deflate round trips passed 5 s there (PR #20). 90 s, as physics, still
+          // catches a hang.
+          testTimeout: 90_000,
         },
       },
       {
@@ -51,7 +52,7 @@ export default defineConfig({
         test: {
           name: 'sim-browsers',
           include: ['src/sim/**/*.golden.test.ts'],
-          testTimeout: 30_000, // as above, three engines at once
+          testTimeout: 90_000, // as above, three engines at once
           browser: {
             enabled: true,
             commands: goldenCommands(),
