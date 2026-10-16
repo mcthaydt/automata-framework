@@ -44,6 +44,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| PUB.1 web adapter and `./target` (branch `claude/clever-pasteur-ujmu6e-pub1`) | Implemented 2026-10-16 with TDD ([plan](superpowers/plans/2026-10-16-pub1-web-adapter.md)): contract suite green on both adapters (12 cases each) plus 5 pinned differences; a real Vite build shows an `automata-web` bundle with no Ruken SDK marker and a default bundle with both; consumer smoke from packs passed with the new web-target step; `pnpm check` (unit on rerun after load timeouts), parity 590/590, E2E 44 + 2 load timeouts green on rerun | Owner PR review; PUB.2 sets `resolve.conditions` and `__AUTOMATA_TARGET__` in the build; PUB.3 moves the placeholder onto `./target`; PUB.4 replaces ui's `HostKind`; Ruken request 4 (save limits, PUB spec §9) |
 | PUB (spec only) | PUB.0 drafted 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | Owner review; PUB-D1 to PUB-D4; Ruken requests in spec §9 |
 | QB (spec only) | QB.0 drafted 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | Owner review; QB-D1 to QB-D4 |
 | EX (spec and plan only) | EX.0 drafted 2026-10-16. Today's demos measured at `5d54594`: 9–30 files and 228–688 non-test lines each, on Emberwick's 77 files | Owner review |
