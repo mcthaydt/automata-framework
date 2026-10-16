@@ -8,7 +8,14 @@ export {
   sprite,
 } from '@mcthaydt/automata-render-pixi'
 export { defaultContent } from './default-content.ts'
-export { defineGame } from './define-game.ts'
-export { keys } from './input/keys.ts'
-export { defaultScreens } from './screens/default-screens.ts'
+export { type DefinedGame, defineGame, type GameSpec, GameSpecError } from './define-game.ts'
+export {
+  type InputMap,
+  type InputSource,
+  type KeyBindings,
+  type KeysOptions,
+  keys,
+  type TouchButton,
+} from './input/keys.ts'
+export { defaultScreens, type ScreensGame } from './screens/default-screens.ts'
 export { startGame } from './start-game.ts'

@@ -5,9 +5,6 @@ import { expect, test } from '@playwright/test'
 import { collectErrors, openHosted } from '../host/testing.ts'
 import type { CatalogEntry } from './catalog.ts'
 
-/** The game id every example is served under (the runner's shared manifest, vite-plugin.ts). */
-const EXAMPLES_GAME_ID = 'af-examples'
-
 /**
  * Defines, under `suite`, the index test and one smoke test per entry; `origin` is where the examples build is
  * served.
@@ -30,7 +27,10 @@ function defineSmokeTests(entries: readonly CatalogEntry[], origin: string): voi
       const pending = entry.header?.pending
       test.skip(pending !== undefined, `pending: ${pending}`)
       const errors = await collectErrors(page)
-      await openHosted(page, `${origin}${entry.url}`, EXAMPLES_GAME_ID, entry.header?.host ?? {})
+      // Each example says hello under its own id (`defineGame` makes it the hosting game id), and the fake host
+      // refuses a hello from any other game (DX.2 plan G-6). The shared manifest (vite-plugin.ts) only sets the
+      // pages' headers.
+      await openHosted(page, `${origin}${entry.url}`, entry.id, entry.header?.host ?? {})
       expect(errors).toEqual([])
     })
   }

@@ -19,10 +19,12 @@ describe('readCatalog', () => {
       'core/core-done.ts',
       'core/core-future-ready.ts',
       'core/core-future.ts',
+      'core/core-game.ts',
       'core/core-ghost.ts',
       'core/core-good.ts',
       'core/core-headless.ts',
       'core/core-long.ts',
+      'core/core-private.ts',
       'core/core-relative.ts',
       'core/core-renamed.ts',
       'core/core-schema.ts',
@@ -56,6 +58,12 @@ describe('readCatalog', () => {
     })
   })
 
+  // G-1 (DX.2 plan): the game package is private until runtime and render-pixi publish, yet it is the
+  // examples' one entry point, so it is the one private package an example may import.
+  it('accepts the game package, private until its dependencies publish', () => {
+    expect(entry('core/core-game.ts')).toMatchObject({ problems: [], imports: ['@mcthaydt/automata-game'] })
+  })
+
   it('accepts a pending example importing the package its task will add', () => {
     expect(entry('core/core-future.ts')).toMatchObject({ problems: [], header: { pending: 'OPEN.1' } })
   })
@@ -71,6 +79,7 @@ describe('readCatalog', () => {
     ['core/core-relative.ts', 'import "./core-good.ts" is relative'],
     ['core/core-future-ready.ts', 'import "@mcthaydt/automata-future" is not a public entry'],
     ['core/core-deep.ts', 'import "@mcthaydt/automata-sim/src/world/sim" is not a public entry'],
+    ['core/core-private.ts', 'import "@mcthaydt/automata-render-pixi" is not a public entry'],
     ['core/core-shot.ts', 'core/core-shot.png is not in screenshots-approved.json'],
     ['core/core-done.ts', 'Pending: DONE.1 is ticked in the delivery plan; remove the Pending line'],
     ['core/core-ghost.ts', 'Pending: NOPE.9 is not a task in the delivery plan'],
