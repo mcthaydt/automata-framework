@@ -1,8 +1,8 @@
 # DX.6: `automata check` TDD plan
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.6, §4 (owner: `packages/cli`, integration), §6 (tool missing → exit 2), §8 (unit layer); [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) F3 (style step).
-- **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16.
-- **Progress:** 7 of 8 steps.
+- **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16. Implemented and locally verified 2026-10-16 on `claude/clever-pasteur-ujmu6e-dx6`; PR review pending.
+- **Progress:** 8 of 8 steps.
 
 ## Global constraints
 
@@ -96,7 +96,7 @@
 
   Confirm both fail, implement `CspProbeLive` (a `node:http` static server on an ephemeral port, plus Playwright resolved from the game folder), then confirm green. The slow suite is not part of `pnpm check`: the hosted unit job has no browsers, and turbo does not pass `PLAYWRIGHT_BROWSERS_PATH` to `test:unit`.
 - [x] **7. CLI.** Extend `bin.test.ts`: `check` dispatches to `runCheck` (an injected runner), `--json` prints only the JSON, and the exit code passes through. Confirm it fails, wire it into `bin.ts`, then confirm green.
-- [ ] **8. Integration and gates.**
+- [x] **8. Integration and gates.**
   - Run `pnpm --filter @mcthaydt/automata-cli check:example` (`automata check --json --csp` in `examples/base-2d`) and `--sim-only`. Record each step's result and time.
   - Show a seeded failure (an `effect` import in the sim) giving exit 1, then revert it.
   - Gates: `pnpm format`, `pnpm check`. `test:parity` is omitted (no sim, runtime or render change). `test:e2e` is omitted (no Playwright project added; the CSP probe's own slow suite covers the browser path).
@@ -105,4 +105,10 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-10-16 | Plan | `5b7fc73` | — |
+| 2026-10-16 | 1–3 | `5ba0f22`, `61ed481` | Args, report and scanner red (missing modules), then green. The first scan of the real base-2d build found 8 `Function(…)` calls (Pixi generators, koota SoA), not only the 2 probes a regex grep showed, so the allowlist became parameter-and-body matching. Effect's `eval(e){}` methods are no finding on the AST. |
+| 2026-10-16 | 4 | `4f88471` | Parsers red, then green (3 tests). |
+| 2026-10-16 | 5 | `d9fa2eb` | 9 orchestration tests over fake `ProcessRunner`, `Files` and `CspProbe`. The first run failed on a fake bug: overridden tools wrote vitest's report to another fake's files. |
+| 2026-10-16 | 6 | `3d850d1` | Node: headers and static server (2 tests). Chromium: 4 tests. First run: a string `waitForFunction` is compiled in the page, so the page's own CSP blocked it and reported a violation, which became a selector wait. Playwright was also found through NODE_PATH's global copy, so it is now resolved only from the game's `node_modules`. |
+| 2026-10-16 | 7 | `4e61d77` | `check` subcommand, 3 tests. A first failing run scaffolded a stray `packages/cli/check/` folder, because `create-game` treated `check` as a target; it was deleted. |
+| 2026-10-16 | 8 | `4e13484` | `tsdown` failed on the bundled `@ruken/manifest`'s `smol-toml`, which is now declared (as in ship). base-2d `--csp --json`: exit 0, all five steps pass (about 27 s), and the same from the built bin. `--sim-only`: exit 0. Seeded `effect` import in the sim: exit 1. Placeholder: exit 2 (no `src/sim`). A bare folder: exit 2 with install lines. `pnpm check` exit 0; forced `turbo run test:unit` 22/22. |
