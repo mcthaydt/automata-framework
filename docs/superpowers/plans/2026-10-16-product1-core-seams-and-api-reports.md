@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §2 F1 and F6, §9 (ownership), §10 (PRODUCT.1). Owner-approved 2026-10-16 with every recommended default.
 - **Status:** drafted 2026-10-16.
-- **Progress:** 9 of 10 steps.
+- **Progress:** 10 of 10 steps (core part; PRODUCT.1b follow-ups open).
 
 ## What exists (verified on `main` `71c3410`)
 
@@ -67,7 +67,7 @@
 - [x] **7. API extraction and reports.** `extract.test.ts` over `fixtures/repo` (a package with `.` and `./sub`, a CSS export, a Svelte re-export, a function with a body, an interface+const merge, a re-export from a sibling package): names, kinds and body-free declarations; `report.test.ts`: render then parse round-trips. Red: missing modules; implement; green.
 - [x] **8. Break check.** `breaks.test.ts`: removed export, removed entry and changed declaration are breaks, an addition is not; a break is declared by a `major` changeset, or before 1.0 by a patch changeset with `BREAKING:` for that package; a changeset for another package does not declare it. Planted fixture per committed report: removing one export from each core package's report is an undeclared break. Red; implement (reusing the exported changeset reader from `check-changesets.ts`); green.
 - [x] **9. CLI, committed reports, seam reachability.** `run.test.ts` on the fixture repo: a stale committed report exits 1 naming the package, `--update` writes and then exits 0, a planted undeclared break against a base exits 1. `seams.test.ts`: every F1 seam in `SEAMS` appears in its package's committed report under a public `exports` entry, and the committed reports equal freshly generated ones. Red; `pnpm api-report --update`; green. Wire `api-report` into root scripts, `ci:local` and `ci.yml`; `ci.test.ts` pins it.
-- [ ] **10. Gates and bookkeeping.** `pnpm format`, `pnpm check`, `pnpm test:parity`, `pnpm test:e2e` (host and runtime changed), `pnpm api-report`; build + consumer smoke (`host` publish surface changed). Spec §2 seam locations, 02 row/follow-ups, execution record, 03 row.
+- [x] **10. Gates and bookkeeping.** `pnpm format`, `pnpm check`, `pnpm test:parity`, `pnpm test:e2e` (host and runtime changed), `pnpm api-report`; build + consumer smoke (`host` publish surface changed). Spec §2 seam locations, 02 row/follow-ups, execution record, 03 row.
 
 ## Gates
 
@@ -84,3 +84,10 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
+| 2026-10-16 | Plan | `09de344` | TDD plan. |
+| 2026-10-16 | 1 | `0859c82` | Red: `hosting.leaderboards` undefined. Green: 5 tests (granted, not granted `UNSUPPORTED`, standalone `UNSUPPORTED`, offline `OFFLINE`, closed `CANCELLED`). Patch changeset with `BREAKING:` (new required `Hosting` member). |
+| 2026-10-16 | 2–5 | `20886f3` | Red: missing modules, then names missing from the barrel. Fixed an `exactOptionalPropertyTypes` mismatch in `InputProfileInput`. |
+| 2026-10-16 | 6 | `39ba650` | Red: missing module. A stale remover is ignored (the test uses the remover from the replacing `set`). |
+| 2026-10-16 | 7 | `0a33757` | Red: missing modules. Reports read source (`paths`), not `dist`, so private `runtime`/`render-pixi` are covered. |
+| 2026-10-16 | 8–9 | `4367250` | Red: missing modules; seam regex widened to match method members. 51 api-report tests; 10 committed reports. Real-repo check: planted removal of `HostingLeaderboards` is declared by the changeset (exit 0) and undeclared without it (exit 1); reverted. |
+| 2026-10-16 | 10 | bookkeeping commit | `pnpm check` green (1,731 unit tests passed, 4 skipped); `pnpm test:parity` 590 tests; `pnpm test:e2e` (`CI=1`, ports 4680/4780) 46/46; `pnpm build` 11/11; consumer smoke `--from packs` passed; release `test:dist` 13/13; changeset status OK; `check-changesets` 0 problems; `pnpm api-report` clean. Omitted: `pnpm lint:actions` (no docker daemon). |
