@@ -75,6 +75,12 @@ function createRng(seed: number): Rng;
 function createSim(opts: SimOptions): Promise<Sim>;
 ```
 
+### `Def` (type)
+
+```ts
+type Def = ComponentDef | CommandDef | EventDef | ResourceDef | SystemDef;
+```
+
 ### `defineCommand` (function)
 
 ```ts
@@ -101,6 +107,7 @@ function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z>;
 function definePlugin(spec: {
     name: string;
     dependsOn?: readonly string[];
+    defs?: readonly Def[];
     components?: readonly ComponentDef[];
     commands?: readonly CommandDef[];
     events?: readonly EventDef[];
@@ -120,13 +127,9 @@ function defineResource<Z extends z.ZodType>(id: string, schema: Z, init: () => 
 ### `defineSystem` (function)
 
 ```ts
-function defineSystem(spec: {
-    name: string;
-    phase: Phase;
-    before?: readonly string[];
-    after?: readonly string[];
-    run: (ctx: SimContext) => void;
-}): SystemDef;
+function defineSystem(name: string, run: (ctx: SimContext) => void): SystemDef;
+function defineSystem(name: string, phase: Phase, run: (ctx: SimContext) => void): SystemDef;
+function defineSystem(spec: SystemSpec): SystemDef;
 ```
 
 ### `deriveSeed` (function)
@@ -498,6 +501,18 @@ interface SystemDef {
     readonly before: readonly string[];
     readonly after: readonly string[];
     readonly run: (ctx: SimContext) => void;
+}
+```
+
+### `SystemSpec` (interface)
+
+```ts
+interface SystemSpec {
+    name: string;
+    phase: Phase;
+    before?: readonly string[];
+    after?: readonly string[];
+    run: (ctx: SimContext) => void;
 }
 ```
 
