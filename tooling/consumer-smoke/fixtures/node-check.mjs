@@ -4,6 +4,7 @@
 import * as content from '@mcthaydt/automata-content'
 import * as contentVite from '@mcthaydt/automata-content/vite'
 import * as host from '@mcthaydt/automata-host'
+import * as hostTarget from '@mcthaydt/automata-host/target'
 import * as hostTesting from '@mcthaydt/automata-host/testing'
 import * as node from '@mcthaydt/automata-node'
 import { BodyKind, body2d, collider2d, physics2d, transform2d } from '@mcthaydt/automata-physics/2d'
@@ -19,6 +20,7 @@ const entries = {
   content,
   contentVite,
   host,
+  hostTarget,
   hostTesting,
   node,
   physics3d,

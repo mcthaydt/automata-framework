@@ -57,7 +57,7 @@ export interface WebPage extends WebEvents {
 export type WebTarget = 'itch' | 'web'
 
 /**
- * The storage probe's key. Deliberately not the SDK's `ruken:__probe__`: that string marks SDK code in a bundle
+ * The storage probe's key. Deliberately not the SDK's own probe key: that string marks SDK code in a bundle
  * (`RUKEN_SDK_MARKERS`), and an itch build must not contain it.
  */
 export const WEB_STORAGE_PROBE_KEY = 'automata:storage-probe'
