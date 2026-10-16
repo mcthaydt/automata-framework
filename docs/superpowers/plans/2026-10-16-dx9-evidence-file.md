@@ -1,8 +1,8 @@
 # DX.9: evidence file TDD plan
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.10, §4 (ownership: `tooling/evidence`, ship lane, consumed by the website), §2 (the rows marked DX.9) and §12 (`evidence.json` is produced by af-linux CI on `main`, and the website renders it).
-- **Status:** drafted 2026-10-16. DX.0 Owner-approved 2026-10-16.
-- **Progress:** 6 of 7 steps.
+- **Status:** drafted 2026-10-16 (DX.0 Owner-approved 2026-10-16); implemented and locally verified 2026-10-16; draft PR, Owner review pending.
+- **Progress:** 7 of 7 steps.
 - **Scope:** the AF side only. The website's sync, rendering and the "hard-coded hash fails `audit-regressions.test.ts`" test live in `mcthaydt/automata_website` and are follow-up DX.9w in [02](../../02-master-delivery-plan.md). The `automata check` results for the `create-game` output wait on DX.5 and DX.6; the file says so explicitly (follow-up DX.9a).
 
 ## Design
@@ -40,8 +40,12 @@
 - [x] **4. Golden tests record evidence.** Add the `recordGoldenEvidence` calls and the `seed`/`ticks` return fields. Run each package's `test:evidence` and confirm the JSON report holds one `goldenEvidence` per engine for each scenario (the failing check: before the change, the report has none). Each package's existing golden tests still pass in Node and the browsers.
 - [x] **5. CLI.** `cli.ts` wires the readers to `buildEvidence`; the root `evidence` script and turbo's uncached `test:evidence`. Run `pnpm evidence` once against the real reports and check `evidence.json` by eye against the committed goldens (`bounce.golden.json`'s last hash, `GOLDEN_HASH` values, physics `EXPECTED`). Not committed.
 - [x] **6. CI.** In `workflows.test.ts`, failing first: the parity job's checkout fetches tags; on pushes only it runs `pnpm evidence` (with `HOME: /root`) and uploads `evidence.json` and `evidence.schema.json` as the artifact `evidence` before the chown step; the root `evidence` script; every golden package has a `test:evidence` writing `.evidence/goldens.json`; `ci:local` runs `pnpm evidence` after `pnpm test:parity` (the existing order test). Change `ci.yml` and `ci:local`; confirm green. `pnpm lint:actions` if docker is present.
-- [ ] **7. Gates and bookkeeping.** `pnpm format`, `pnpm check`, `pnpm test:parity`, `pnpm evidence`. 02 (DX.9 row, follow-ups DX.9a and DX.9w, execution record), 03 artifacts row, this plan's execution log.
+- [x] **7. Gates and bookkeeping.** `pnpm format`, `pnpm check`, `pnpm test:parity`, `pnpm evidence`. 02 (DX.9 row, follow-ups DX.9a and DX.9w, execution record), 03 artifacts row, this plan's execution log.
 
 ## Execution log
 
-- (empty)
+- 2026-10-16, step 1–3: schema, recording helper and collector red on the missing modules, then green (29 tests in `tooling/evidence`). The root `.gitignore`'s `evidence/` (screenshots, M1 ship plan 7.3) also ignored `tooling/evidence/`; it is now `/evidence/`, plus `/evidence.json`, `/evidence.schema.json` and `.evidence/`.
+- 2026-10-16, step 4: red check: `packages/testing`'s `test:evidence` report held 0 `goldenEvidence` entries before the change. After it, every package's report holds one per engine per scenario. base-2d first recorded Node twice (its node project also runs `golden.parity.test.ts`), so base-2d records from that file only. Physics' `EXPECTED` now also pins `seed: 2026, ticks: 300`; no hash changed. `golden-evidence.ts` types its globals itself, because sim and physics compile without DOM or Node types.
+- 2026-10-16, step 5: `pnpm evidence` at `3fa513e` (local, clean tree), about 27 s on the shared container: 6 goldens, all four engines agree, each equal to the committed value (`testing/bounce` `021df7c6554d00c6` = `bounce.golden.json` tick 300; `sim/snapshot-churn` `98cc273719c10ef2`; `physics/scene-2d` `46042079c99bfdf1`; `physics/scene-3d` `5ab771a640ac4b78`; `base-2d/golden-route` `31f50888ccb4cf0a`; `physics-bodies-2d/golden-run` `ad621eea6325a8db`); engines Node v24.21.0, Chromium 153.0.8010.12, Firefox 155.0, WebKit 26.6 (Playwright 1.63.0); 9 publishable packages at 0.0.2, all with release tags (tags fetched first). Output not committed.
+- 2026-10-16, step 6: 5 new `workflows.test.ts` cases red on the missing script, steps and tags, then green (85 tests). `pnpm lint:actions` not run: the Docker CLI exists but no daemon. The parity job keeps its 10-minute limit; the evidence run adds about half a minute locally.
+- 2026-10-16, step 7: `pnpm format`; `pnpm check` (typecheck 27 tasks, unit 23 tasks, 1,692 tests, some replayed from turbo's cache); `pnpm test:parity` (9 suites, 590 tests, 86 s); `pnpm test:e2e` on ports 4705/4805 (46 passed). An empty changeset covers the test-only changes in sim, testing and physics.
