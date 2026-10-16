@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -135,18 +136,27 @@ describe('parity across packages', () => {
       return false
     }
   }
-  // The workspace globs: packages/*, tooling/*, examples/* and examples/*/* (pnpm-workspace.yaml).
+  // The workspace globs: packages/*, tooling/*, games/*, examples/* and examples/*/* (pnpm-workspace.yaml).
   const workspacePackages = [
-    ...['packages', 'tooling', 'examples'].flatMap(foldersIn),
+    ...['packages', 'tooling', 'games', 'examples'].flatMap(foldersIn),
     ...foldersIn('examples').flatMap(foldersIn),
   ].filter(hasPackageJson)
+
+  // EX-D1: games (Emberwick, the placeholder) live apart from the one-file examples.
+  it('lists the games folder in the workspace', () => {
+    const globs = readFileSync(join(root, 'pnpm-workspace.yaml'), 'utf8')
+    expect(globs).toMatch(/^\s*- games\/\*$/m)
+    expect(workspacePackages).toEqual(expect.arrayContaining(['games/emberwick', 'games/placeholder']))
+  })
 
   it("runs every package's parity suite through the root test:parity script", () => {
     // Three suites at a time: each starts Chromium, WebKit and Firefox, and on the shared WSL Docker runner all of
     // #14's eight suites at once left Firefox past vitest's 60 s connect timeout (2026-10-11). The longer connect
-    // timeout, passed through to every suite's vitest, is a backstop for a busy runner.
+    // timeout, passed through to every suite's vitest, is a backstop for a busy runner. 120 s was not enough on
+    // af-linux: on 2026-10-16 (PR #39, run 38862520260) sim's suite failed to connect to Firefox within it while
+    // every test that ran passed, so it is 240 s.
     expect(packageJson('.').scripts['test:parity']).toBe(
-      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=120000',
+      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000',
     )
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
   })
@@ -165,6 +175,36 @@ describe('parity across packages', () => {
     }
   })
 
+  // A test's own timeout overrides that 90 s default, so a smaller one still failed on af-linux: on 2026-10-16
+  // (PR #39, run 38862520260) runtime's root-exports test took 28.5 s against its own 15 s. Every per-test or
+  // per-describe budget must be at least the root default. `vi.waitFor(..., { timeout })` is a wait, not a test
+  // budget, so it is left out.
+  it('keeps every explicit per-test and per-describe timeout at 90 s or more', () => {
+    const testFiles = execFileSync(
+      'git',
+      ['ls-files', 'packages/*.test.ts', 'examples/*.test.ts', 'tooling/*.test.ts', 'games/*.test.ts'],
+      { cwd: root, encoding: 'utf8' },
+    )
+      .split('\n')
+      .filter((file) => file !== '')
+    // `}, 15000)` closing a test/describe callback, and `{ timeout: N }` passed on a test/describe line.
+    const trailingBudget = /^\s*\}\s*,\s*([\d_]+)\s*\)/
+    const optionsBudget = /\b(?:it|test|describe)\b[\w.]*\(.*\btimeout:\s*([\d_]+)/
+    const tooShort: string[] = []
+    for (const file of testFiles) {
+      readFileSync(join(root, file), 'utf8')
+        .split('\n')
+        .forEach((line, index) => {
+          if (/\bwaitFor\(/.test(line)) return
+          const budget = trailingBudget.exec(line)?.[1] ?? optionsBudget.exec(line)?.[1]
+          if (budget !== undefined && Number(budget.replaceAll('_', '')) < 90_000) {
+            tooShort.push(`${file}:${index + 1}`)
+          }
+        })
+    }
+    expect(tooShort).toEqual([])
+  })
+
   it('gives every package with a browsers vitest project a test:parity script', () => {
     const withBrowsers = workspacePackages.filter((path) => {
       try {
@@ -174,6 +214,7 @@ describe('parity across packages', () => {
       }
     })
     expect(withBrowsers).toContain('packages/sim')
+    expect(withBrowsers).toContain('games/emberwick')
     // A package may add more browser projects to the same run (base-2d adds its Chromium renderer tests).
     for (const path of withBrowsers) {
       expect(packageJson(path).scripts['test:parity']).toMatch(
@@ -213,8 +254,14 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     expect(localSteps).toContain('pnpm build:demos')
   })
 
+  it('builds every one-file example (EX spec §5), beside the old demos until EX.4 deletes them', () => {
+    expect(scripts['build:examples']).toBe('pnpm --filter @af-examples/examples build')
+    expect(JSON.stringify(ci.jobs.checks?.steps)).toContain('pnpm build:examples')
+    expect(localSteps).toContain('pnpm build:examples')
+  })
+
   it('builds and prepares base-2d, without repeating its check inside AF', () => {
-    // build:demos only covers `examples/*/*`; base-2d and placeholder are one level deep, so they build here.
+    // build:demos only covers `examples/*/*`; the games (Emberwick, the placeholder) live in `games/`, so they build here.
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d build')
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d prepare-ruken')
     // `pnpm check` already runs base-2d's check (typecheck + test:unit + boundaries).
@@ -284,20 +331,20 @@ describe('ci.yml (AF)', () => {
 
   it('has a journey for the placeholder, so a nightly run cannot pass with nothing to run', () => {
     const config = readFileSync(join(root, 'playwright.config.ts'), 'utf8')
-    expect(config).toContain("testDir: 'examples/placeholder/e2e'")
-    expect(readdirSync(join(root, 'examples/placeholder/e2e')).some((name) => name.endsWith('.e2e.ts'))).toBe(
+    expect(config).toContain("testDir: 'games/placeholder/e2e'")
+    expect(readdirSync(join(root, 'games/placeholder/e2e')).some((name) => name.endsWith('.e2e.ts'))).toBe(
       true,
     )
   })
 
   it('builds the placeholder through the reusable game workflow', () => {
     expect(ci.jobs.placeholder?.uses).toBe('./.github/workflows/game-ci.yml')
-    expect(ci.jobs.placeholder?.with?.['working-directory']).toBe('examples/placeholder')
+    expect(ci.jobs.placeholder?.with?.['working-directory']).toBe('games/placeholder')
   })
 
   it('builds base-2d through the reusable game workflow, with the determinism check on its sim', () => {
     expect(ci.jobs['base-2d']?.uses).toBe('./.github/workflows/game-ci.yml')
-    expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('examples/base-2d')
+    expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('games/emberwick')
     expect(ci.jobs['base-2d']?.with?.['sim-roots']).toBe('src/sim')
     expect(ci.jobs['base-2d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
   })
