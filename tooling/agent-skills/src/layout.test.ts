@@ -53,7 +53,7 @@ function goodPackage(): Record<string, string> {
     'agents/automata/hooks/hooks.json': JSON.stringify(HOOKS),
     'agents/automata/scripts/check.mjs': '',
     'agents/automata/skills/automata/SKILL.md': skill('automata'),
-    'agents/automata/skills/automata-api/SKILL.md': skill('automata-api', 'Has: a colon.'),
+    'agents/automata/skills/automata-api/SKILL.md': skill('automata-api', '"Has: a colon, quoted."'),
   }
 }
 
@@ -63,7 +63,7 @@ describe('readAgentPackage on fixtures', () => {
     expect(result.problems).toEqual([])
     expect(result.skills.map((s) => [s.name, s.description])).toEqual([
       ['automata', 'Use automata.'],
-      ['automata-api', 'Has: a colon.'],
+      ['automata-api', 'Has: a colon, quoted.'],
     ])
   })
 
@@ -96,6 +96,13 @@ describe('readAgentPackage on fixtures', () => {
         f['agents/automata/skills/automata/SKILL.md'] = skill('automata', 'x'.repeat(1025))
       },
       /skills\/automata\/SKILL\.md: description/,
+    ],
+    [
+      'a description YAML would misread (an unquoted ": ")',
+      (f) => {
+        f['agents/automata/skills/automata/SKILL.md'] = skill('automata', 'Rules: the laws.')
+      },
+      /skills\/automata\/SKILL\.md: description .*quote/,
     ],
     [
       'a skill folder without SKILL.md',

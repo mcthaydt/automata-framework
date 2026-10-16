@@ -173,8 +173,12 @@ function readSkills(skillsDir: string, rel: (path: string) => string, problems: 
       continue
     }
     const fields = frontMatter(readFileSync(file, 'utf8'))
-    const name = fields.get('name') ?? ''
-    const description = fields.get('description') ?? ''
+    const name = scalar(fields.get('name') ?? '')
+    const rawDescription = fields.get('description') ?? ''
+    const description = scalar(rawDescription)
+    if (!isSafePlainScalar(rawDescription)) {
+      problems.push(`${rel(file)}: description has ": " or " #" or a YAML indicator first; quote it with "…"`)
+    }
     if (!SKILL_NAME.test(name) || name.length > 64) {
       problems.push(`${rel(file)}: name "${name}" must be 1–64 lowercase letters, digits and hyphens`)
     } else if (name !== folder) {
@@ -186,6 +190,29 @@ function readSkills(skillsDir: string, rel: (path: string) => string, problems: 
     skills.push({ name, description, dir })
   }
   return skills
+}
+
+/** A quoted value without its quotes (double quotes with JSON escapes, single quotes with '' for '). */
+function scalar(raw: string): string {
+  if (raw.startsWith('"') && raw.endsWith('"') && raw.length >= 2) {
+    try {
+      return JSON.parse(raw) as string
+    } catch {
+      return raw
+    }
+  }
+  if (raw.startsWith("'") && raw.endsWith("'") && raw.length >= 2)
+    return raw.slice(1, -1).split("''").join("'")
+  return raw
+}
+
+/**
+ * Whether an unquoted value reads back as the same string in YAML. Claude Code and the Agent Skills tools parse the
+ * front matter as YAML, where `a: b` inside a plain value starts a mapping and ` #` starts a comment.
+ */
+function isSafePlainScalar(raw: string): boolean {
+  if (raw.startsWith('"') || raw.startsWith("'")) return true
+  return !raw.includes(': ') && !raw.includes(' #') && !/^[-?:,[\]{}#&*!|>%@`]/.test(raw)
 }
 
 /**
