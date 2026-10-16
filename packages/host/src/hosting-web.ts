@@ -314,7 +314,12 @@ export function makeWebHosting(
         options.disclosedEvents !== undefined && !options.disclosedEvents.includes(event)
           ? Effect.logWarning(`track("${event}") dropped: not in the game's disclosed analytics events`)
           : Effect.void,
-      exit: () => whileOpen('session.exit', Effect.void),
+      // There is no host to go back to; the UI hides "Back to …" because `exit` is not granted (PUB spec §3.1).
+      exit: () =>
+        whileOpen(
+          'session.exit',
+          Effect.fail(new HostError({ code: 'UNSUPPORTED', retryable: false, operation: 'session.exit' })),
+        ),
       // Nothing outside Ruken asks for the game's menu or closes the game, so these are registered and never called.
       onMenuRequest: () => Effect.void,
       onExiting: () => Effect.void,

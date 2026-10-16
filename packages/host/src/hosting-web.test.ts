@@ -1,5 +1,18 @@
 import { settle } from '@ruken/sdk-host/testing'
-import { Effect, Either, Layer, Logger, type Scope, Stream, type Subscribable } from 'effect'
+import {
+  Effect,
+  Either,
+  Exit,
+  Fiber,
+  Layer,
+  Logger,
+  Option,
+  type Scope,
+  Stream,
+  type Subscribable,
+  TestClock,
+  TestContext,
+} from 'effect'
 import { describe, expect, it } from 'vitest'
 import { Hosting, type HostingOptions } from './hosting'
 import { makeWebHosting, WEB_STORAGE_PROBE_KEY, type WebTarget } from './hosting-web'
@@ -206,4 +219,91 @@ describe('the web adapter: what a page outside Ruken can observe (PUB spec §3.1
     expect(warnings.flat().join(' ')).toContain('not_disclosed')
     expect(warnings.flat().join(' ')).not.toContain('race_started')
   })
+})
+
+// PUB-a: each intended difference from the Ruken adapter, pinned by a test named after it (PUB spec §3.1, §12).
+describe('the web adapter: intended differences from the Ruken adapter', () => {
+  it('exit fails UNSUPPORTED and is not granted (Ruken standalone: exit does nothing)', async () => {
+    const { granted, result } = await onWebPage((hosting) =>
+      Effect.map(Effect.either(hosting.exit()), (result) => ({
+        granted: hosting.granted.has('exit'),
+        result,
+      })),
+    )
+    expect(granted).toBe(false)
+    expect(Either.isLeft(result) && result.left).toMatchObject({
+      _tag: 'HostError',
+      code: 'UNSUPPORTED',
+      retryable: false,
+      operation: 'session.exit',
+    })
+  })
+
+  it('blocked storage probe: saves are not granted and every call fails DENIED (Ruken standalone: memory)', () =>
+    onWebPage(
+      (hosting, fake) =>
+        Effect.gen(function* () {
+          expect(hosting.granted.has('saves')).toBe(false)
+          for (const attempt of [
+            hosting.saves.set('progress', '2'),
+            hosting.saves.get('progress'),
+            hosting.saves.remove('progress'),
+            hosting.saves.flush,
+          ] as Effect.Effect<unknown, unknown>[]) {
+            const result = yield* Effect.either(attempt)
+            expect(Either.isLeft(result) && result.left).toMatchObject({
+              _tag: 'HostError',
+              code: 'DENIED',
+              retryable: false,
+            })
+          }
+          // Nothing was kept anywhere, so nothing can be silently lost later.
+          expect(fake.writes).toEqual([])
+        }),
+      { storage: 'blocked' },
+    ))
+
+  it('QUOTA_EXCEEDED when the origin quota is full (itch.io games share one origin), keeping the old value', () =>
+    onWebPage(
+      (hosting) =>
+        Effect.gen(function* () {
+          yield* hosting.saves.set('progress', 'small')
+          const result = yield* Effect.either(hosting.saves.set('progress', 'x'.repeat(200)))
+          expect(Either.isLeft(result) && result.left).toMatchObject({
+            _tag: 'HostError',
+            code: 'QUOTA_EXCEEDED',
+            retryable: false,
+            operation: 'saves.set',
+          })
+          expect(yield* hosting.saves.get('progress')).toBe('small')
+        }),
+      { quotaBytes: 100 },
+    ))
+
+  it('no handshake wait: Hosting is built and ready without the TestClock moving (Ruken in a frame: up to 10 s)', async () => {
+    const { layer } = webHosting()
+    const finished = await runScoped(
+      Effect.gen(function* () {
+        const building = yield* Effect.fork(
+          Effect.scoped(Effect.flatMap(Hosting, (hosting) => hosting.ready).pipe(Effect.provide(layer))),
+        )
+        yield* Effect.yieldNow()
+        const done = yield* Fiber.poll(building)
+        expect(yield* TestClock.currentTimeMillis).toBe(0)
+        return Option.isSome(done) && Exit.isSuccess(done.value)
+      }).pipe(Effect.provide(TestContext.TestContext)),
+    )
+    expect(finished).toBe(true)
+  })
+
+  it("no AF copy of Ruken's save limits: the browser's quota is the only limit (spec §9 request 4)", () =>
+    // The Ruken SDK refuses a key outside its pattern (INVALID_PAYLOAD) and a value over its per-save size.
+    // AF may not copy those limits (AGENTS.md "Ruken first"), and the SDK does not export them, so the web
+    // adapter leaves them to Ruken until Ruken publishes them for other hosts.
+    onWebPage((hosting) =>
+      Effect.gen(function* () {
+        yield* hosting.saves.set('not a valid key!', '1')
+        expect(yield* hosting.saves.get('not a valid key!')).toBe('1')
+      }),
+    ))
 })
