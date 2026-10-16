@@ -69,6 +69,8 @@ async function devServer(
 const loadHash = async (server: ViteDevServer): Promise<string> =>
   ((await server.ssrLoadModule('virtual:automata/content')) as { contentHash: string }).contentHash
 
+// 90 s budgets: real Vite builds and servers, slow on the shared af-linux runner under load. The root test:unit
+// default is the same 90 s; packages/ship's workflows test pins both.
 describe('vite build', () => {
   const buildApp = (root: string) => {
     writeFileSync(
@@ -94,7 +96,7 @@ describe('vite build', () => {
     const code = chunks.map((chunk) => ('code' in chunk ? chunk.code : '')).join('\n')
     expect(code).toContain(hash)
     expect(readFileSync(join(root, 'content/generated/content.hash'), 'utf8')).toBe(`${hash}\n`)
-  }, 30_000)
+  }, 90_000)
 
   it('fails on a broken file, naming every diagnostic', async () => {
     const root = copyFixture('valid')
@@ -102,7 +104,7 @@ describe('vite build', () => {
     await expect(buildApp(root)).rejects.toThrow(
       'content/songs/dusk-run.toml:8:1  tempoDrift  unknownField: unknown field: tempoDrift',
     )
-  }, 30_000)
+  }, 90_000)
 })
 
 describe('the sim content (M2.2)', () => {
@@ -122,7 +124,7 @@ describe('the sim content (M2.2)', () => {
     expect(module.simContentHash).toBe(
       readFileSync(join(root, 'content/generated/sim-content.hash'), 'utf8').trim(),
     )
-  }, 30_000)
+  }, 90_000)
 })
 
 describe('warnings', () => {
@@ -148,7 +150,7 @@ describe('warnings', () => {
     expect(warnings).toContain(
       'content/songs/night-run.TOML:1:1  skippedFile: this file is not read; items are named like dusk-run.toml',
     )
-  }, 30_000)
+  }, 90_000)
 })
 
 describe('vite dev', () => {
@@ -182,7 +184,7 @@ describe('vite dev', () => {
     await waitFor(() => events.length === 3, 'recovery on the next valid save')
     expect(events[2]?.event).toBe('automata:content')
     expect(await loadHash(server)).toBe(events[2]?.data.hash)
-  }, 30_000)
+  }, 90_000)
 
   it('serves the module under a query too, so a page can import the new content after a save', async () => {
     // The browser keeps every module it imported, so a page that hears `automata:content` imports the module
@@ -199,7 +201,7 @@ describe('vite dev', () => {
     // The browser asks for `/@id/__x00__virtual:automata/content?v=<hash>`; Vite's middleware unwraps it to this.
     const served = await server.transformRequest(`\0virtual:automata/content?v=${hash}`)
     expect(served?.code).toContain(hash)
-  }, 30_000)
+  }, 90_000)
 
   it("recovers after the game's code throws during a rebuild (audit of PR #8)", async () => {
     const root = copyFixture('valid')
@@ -237,7 +239,7 @@ describe('vite dev', () => {
     await waitFor(() => events.length === 2, 'recovery on the next valid save')
     expect(events[1]?.event).toBe('automata:content')
     expect(await loadHash(server)).toBe(events[1]?.data.hash)
-  }, 30_000)
+  }, 90_000)
 
   it('ignores a file that is not an authored source', async () => {
     const root = copyFixture('valid')
@@ -247,5 +249,5 @@ describe('vite dev', () => {
     writeFileSync(join(root, 'content/generated/scratch.toml'), 'x = 1\n')
     await new Promise((resolve) => setTimeout(resolve, 300))
     expect(events).toEqual([])
-  }, 30_000)
+  }, 90_000)
 })

@@ -14,8 +14,9 @@ export default defineConfig({
         test: {
           name: 'node',
           environment: 'node',
-          // Rapier runs hundreds of steps in some tests; the 5 s default fails them on a busy machine.
-          testTimeout: 30_000,
+          // Rapier runs hundreds of steps in some tests; the 5 s default fails them on a busy machine. 90 s, as
+          // physics.
+          testTimeout: 90_000,
           include: ['sim/**/*.test.ts', 'art/*.test.ts', '*.test.ts'],
           exclude: ['**/*.parity.test.ts'],
         },
