@@ -168,6 +168,49 @@ jobs:
           path: "**/playwright-report/"
           retention-days: 7
 
+  frame-budget:
+    name: frame budget (nightly, GPU runner)
+    # PRODUCT.7 (PRODUCT spec §2 F5): ms/frame of the core stress example's production build. A performance probe
+    # needs the GPU to itself (AGENTS.md), so it runs after the journeys (`needs`, whatever their result) and one
+    # at a time (`concurrency`). `pnpm budget:frame` fails closed until tooling/frame-budget/budget.json is set
+    # from the first run on this runner (Owner acceptance), and on any software-rendered result.
+    needs: e2e
+    if: >-
+      !cancelled() &&
+      (github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && inputs.spec == '' && inputs.nightly))
+    runs-on: ${{ vars.AF_GPU_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 20
+    concurrency:
+      group: af-gpu-probe
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+        if: runner.environment == 'github-hosted'
+      - run: pnpm exec playwright install chromium
+        if: runner.environment == 'self-hosted'
+      - run: pnpm test:frame-budget
+      - run: pnpm budget:frame
+      # The results are the evidence a budget is set from, so they are kept whatever the check said.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: frame-budget-results
+          path: frame-budget-results/
+          retention-days: 30
+
   placeholder:
     name: placeholder through game-ci
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''

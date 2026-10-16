@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §2 F5 and the §3 row "Frame-budget probe (`playwright.config.ts` `frame-budget` projects)": new, core.
 - **Row:** [02](../../02-master-delivery-plan.md) PRODUCT.7. **Status:** drafted 2026-10-16 on the Owner-approved PRODUCT.0 (all recommended defaults).
-- **Progress:** 6 of 7 steps.
+- **Progress:** 7 of 7 steps.
 
 ## What "done" means
 
@@ -124,7 +124,7 @@ AGENTS.md requires that a performance probe have exclusive use of the GPU. With 
   - Write `e2e/frame-budget.e2e.ts`. Confirm that `pnpm test:e2e --list` lists no frame-budget test and that `pnpm test:frame-budget --list` lists only them.
   - Run `pnpm test:frame-budget` once here. Record the numbers only as a "local software-rendering smoke, not a budget".
   - Run `pnpm budget:frame` and confirm it fails closed with `unset`.
-- [ ] **7. CI.**
+- [x] **7. CI.**
   - In `workflows.test.ts`, assert that `ci.yml` has a `frame-budget` job with:
     - nightly or `nightly` dispatch only;
     - runs-on `vars.AF_GPU_RUNNER` (falling back like `e2e`);
