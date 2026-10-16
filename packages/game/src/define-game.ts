@@ -106,6 +106,14 @@ function rootOf<S>(spec: GameSpec<S>): HTMLElement {
   return root
 }
 
+/** Every game `defineGame` returned, so `startGame` can tell one from a spec without guessing from its shape. */
+const definedGames = new WeakSet<object>()
+
+/** Whether `value` came from `defineGame`. */
+export function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is DefinedGame<S> {
+  return definedGames.has(value)
+}
+
 export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
   const problems = problemsOf(spec)
   if (problems.length > 0) throw new BootDefect({ cause: new GameSpecError(problems) })
@@ -127,7 +135,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     ...spec.renderer,
   })
 
-  return {
+  const game: DefinedGame<S> = {
     id: spec.id,
     title,
     size: spec.size,
@@ -145,4 +153,6 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     ...(spec.copy === undefined ? {} : { copy: spec.copy }),
     ...(spec.seams === undefined ? {} : { seams: spec.seams }),
   }
+  definedGames.add(game)
+  return game
 }
