@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-13. Source HEAD verified before this update: `08396fa` on `main`, af-linux CI green at PR #32 merge (checks, parity in Chromium, WebKit and Firefox, consumer smoke, base-2d and placeholder game-ci). This file is a handoff snapshot, not proof of current CI, deployment or acceptance. Agents maintain it at every handoff.
+> Updated 2026-10-16. Source HEAD verified before this update: `365f115` on `main` (af-linux CI was last recorded green at the PR #32 merge, `08396fa`; not re-run for this docs-only update). This file is a handoff snapshot, not proof of current CI, deployment or acceptance. Agents maintain it at every handoff.
 
 ## Prompt for the next agent
 
@@ -19,11 +19,36 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
    - Integration test verifies scaffolded project builds and produces valid `ruken.toml` accepted by `@ruken/manifest`.
    - Full exit verification gate: `pnpm check` clean (22/22 tasks), `pnpm test:parity` clean across Chromium, WebKit, Firefox (9/9 tasks), full Playwright browser journeys clean (`pnpm test:e2e`, 46/46 passed).
 4. **Next Step:** Proceed to M3.0 (2.5D and pipelines spec, with spike S7).
+5. **DX.0 drafted (2026-10-16, Owner request):** the [DX spec](superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md) makes the website's cut claims true where they should be (`automata_website` `docs/2026-10-14-cut-claims.md` at `bfeaf91`). Owner decisions recorded 2026-10-16 (spec §13: MIT on public npm, a public skills mirror, no evals, Antigravity dropped, Discord via the Owner's plugin, site deploy planned). Next action: Owner review of the DX.0 spec. Then DX.1, DX.2b, DX.4, DX.6 and DX.9 can start in parallel, each with its TDD plan first. M3 work on its own branch is unaffected.
+6. **PRODUCT.0 drafted (2026-10-16, Owner request):** the [PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md) measures AF against FloorFifty (`SNEKPRTY/FloorFifty` `ac72660`, content excluded). Owner decisions PD-1 to PD-5 (spec §11):
+   - Core is the free MIT foundation. Automata Plus (paid) is every extension plus copy-in kits and starters.
+   - Rapier only.
+   - Foundation first (PRODUCT.1, PRODUCT.L, the core parts of M4 and M5, PRODUCT.7); M3 no longer gates the 2D path.
+   - Localization is core.
+   - The Owner's pain points (UI, gamepad, mobile responsiveness, networking, post-processing, screens) get depth; CPU players, progression, the replay viewer, beat clock, parallax, particles, leaderboards and telemetry extensions and a tutorial system are cut to examples or hooks.
+
+   PRODUCT.5 (moving `packages/physics` to the private `mcthaydt/automata-plus`) must land before DX.11's first public publish. Next action: Owner review of DX.0 and PRODUCT.0 together (PR #33).
+7. **EX.0 drafted (2026-10-16, Owner request):** the [EX spec](superpowers/specs/2026-10-16-examples-one-file-design.md) and its [TDD plan](superpowers/plans/2026-10-16-examples-one-file.md) make each example one raylib-style file (`examples/<module>/<module>-<name>.ts`, 100 code lines or fewer, one runner, parametric tests).
+   - Emberwick moves to `games/emberwick` (EX-D1).
+   - The examples are written first, as DX.2's and DX.2b's acceptance tests (EX-D2).
+   - Next action: Owner review of EX.0 with DX.0 and PRODUCT.0 (PR #33). After that, EX.1 and EX.2 can start alongside DX.1.
+8. **QB.0 drafted (2026-10-16, Owner request):** the [QB spec](superpowers/specs/2026-10-16-quality-bar-design.md) turns the Owner's anti-vibe checklist into gates, tasks, Ruken requests and not-applicable rows with triggers.
+   - QB.1 (repo hygiene) and QB.3 (website gates) need only QB.0; QB.4 waits on DX.12, QB.5 on PRODUCT.5 and D-7, QB.2 on DX.6.
+   - Next action: Owner review of QB.0 with the others in PR #33, then QB.1 and QB.3 can start in parallel with DX.1.
+9. **PUB.0 drafted (2026-10-16, Owner request):** the [PUB spec](superpowers/specs/2026-10-16-publish-targets-design.md) and [ADR 0005](adr/0005-publish-targets.md) let a game publish to Ruken or itch.io, with the target chosen at build time.
+   - Today an AF game inside itch.io's iframe waits 10 s for a Ruken handshake, and `ship` publishes only to Ruken.
+   - PUB.1 and PUB.2 need only PUB.0; PUB.3 needs both; PUB.5 also needs DX.5.
+   - Next action: Owner review with the other specs in PR #33.
 
 ## Current artifacts and evidence limits
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| PUB (spec only) | PUB.0 drafted 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | Owner review; PUB-D1 to PUB-D4; Ruken requests in spec §9 |
+| QB (spec only) | QB.0 drafted 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | Owner review; QB-D1 to QB-D4 |
+| EX (spec and plan only) | EX.0 drafted 2026-10-16. Today's demos measured at `5d54594`: 9–30 files and 228–688 non-test lines each, on Emberwick's 77 files | Owner review |
+| PRODUCT (spec only) | PRODUCT.0 drafted 2026-10-16: FloorFifty gap ledger (client 52,832, server 5,548, shared 6,273 non-test lines at `ac72660`; appendix A script), tiers, cuts, localization (PRODUCT.L), raylib API rules, stack page, tasks PRODUCT.1–8 | Owner review; the Owner creates `mcthaydt/automata-plus` (private) for PRODUCT.5 |
+| DX milestone (spec only) | DX.0 drafted 2026-10-16: ledger disposition for every cut website claim, `@mcthaydt/automata-game` (`startGame`), `automata check`, the `agents/automata/` skills and Claude Code plugin, a generated API index, agent evals and an evidence file. Baseline measured at `365f115`: base-2d 3,457 non-test lines, 1,939 of them plumbing; `create-game` output prints text and pins `workspace:*` | Owner review of the spec; Owner to-dos below |
 | M1.8 Base project, demos, scaffold & M1 exit | Complete. Unit tests in `packages/cli` (4 files / 18 tests) and `examples/gallery` (3 tests); `pnpm check` clean (22/22 tasks); `pnpm test:parity` clean across 3 browsers (9/9 tasks); `pnpm test:e2e` clean (46/46 passed); `create-game` integration test verifies valid `ruken.toml` | Merged into `main` (PR #32, `08396fa`) |
 | M1.7 `render-pixi` (2D renderer) | Tasks 1–8 complete, committed (`cb13b20` + Task 8 record). Local verification clean: unit tests (7 files / 29 tests), test:parity across 3 browsers (Chromium, WebKit, Firefox), typecheck, build, boundaries, style, lint, Playwright E2E with fake host (zero CSP violations) | PR review/merge, hosted CI |
 | M1.5 Runtime | Tasks 1–20 complete, committed (`278af83` + records). Local verification clean: unit tests (148 runtime, 19 demo), typecheck, build, boundaries, style, lint, frame-loop bench (Node 0.117 µs, Chromium 0.100 µs vs 0.30 µs budget), Playwright E2E (8/8 pass under fake host with 0 CSP violations) | PR #4 review/merge, hosted CI |
@@ -44,6 +69,9 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 ## External inputs and unresolved gates
 
+- **License (D-DX-1, decided 2026-10-16): MIT, on public npm.** Until DX.11 lands, every package still says `"license": "UNLICENSED"`, so the website's MIT FAQ is ahead of the packages. This replaces the 2026-10-11 "UNLICENSED until launch" ruling. Public packages need no `AF_READ_TOKEN`.
+- **Paid tier (PD-1, 2026-10-16):** extensions, kits and starters are Automata Plus, in the private `mcthaydt/automata-plus` repo and registry. DX.11's public npm publish covers core only, and `packages/physics` moves first (PRODUCT.5). Pricing and the store stay open until M10 (D-7).
+- **Owner to-dos for DX:** add an `NPM_TOKEN` secret for the `@mcthaydt` scope (DX.11); create the public `mcthaydt/automata-skills` repo, or tell Claude to (DX.11); create the Discord server and add the Discord plugin's bot (DX.13); provide hosting and DNS for `automata.ruken.com` (DX.12); create the private `mcthaydt/automata-plus` repo (PRODUCT.5). For QB: file the requests in QB spec §6 with Ruken and record their links there; decide QB-D4 (move repos, npm scope and domain to the business; add a second maintainer). For PUB: file the three requests in PUB spec §9 with Ruken; for PUB.5's acceptance, an itch.io account and a `BUTLER_API_KEY` secret.
 - Ruken packages (`@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest`) are unpublished; Ruken gates publication on `NPM_PUBLISH_READY` and its M0.3. AF vendors them in `vendor/ruken/` at RukenApp `b30d31b` (D-6); the integration owner re-vendors.
 - Request to Ruken: the SDK at `b30d31b` still sends `baseRevision` and `writeId` on `saves.set`/`saves.remove` (Ruken `packages/protocol/src/meta/types.ts` lines 94–100). AF does not use them; whether they stay is Ruken's call.
 - Request to Ruken: without the `saves` grant the SDK's `storage.setItem` writes to memory and sends nothing (`packages/sdk/src/saves-storage.ts`), contradicting Ruken's S6 answer 3. AF pins the current behavior in host tests and adds no gate.

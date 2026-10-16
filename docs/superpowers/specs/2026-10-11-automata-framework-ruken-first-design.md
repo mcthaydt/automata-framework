@@ -185,6 +185,13 @@ Each milestone gets a spec at its start, reviewed by the Owner, then just-in-tim
 | **M9 3D merge** | The 3D game's proven pieces move into AF: full 3D in `render-pixi3d`, rigged character and animation pipeline, third-person camera and character controller, brush-based environment pipeline | Each merged piece passes in AF and in the 3D game, which then consumes it from AF |
 | **M10 Website** (final phase) | The AF site: a store selling extensions individually and as an all-access pass, documentation, the playable demo gallery, and everything else a framework site needs | Specified at M10.0 |
 
+**Revised order and scope (Owner, 2026-10-16, [PRODUCT spec](./2026-10-16-product-core-and-plus-design.md) PD-3 to PD-5):**
+- The free foundation comes first: core seams, localization (PRODUCT.L, taken out of M5), the core parts of M4 and M5, and a frame-budget probe.
+- Then the Plus extensions on the FloorFifty path (`net`, `server`, the 2D part of `post-retro`, `feel`, `audio-stream`).
+- Then the Party Racer starter, which is the FloorFifty acceptance case.
+- M4, M5 and M7 no longer wait on M3.
+- CPU players, progression, the replay viewer, the beat clock, parallax, a particles package, a leaderboards extension, extra telemetry and a tutorial system are cut to examples or hooks.
+
 ## 12. Decisions in force
 
 The Owner asked on 2026-10-11 to proceed in parallel, so each decision below runs on its recommended default from that date. The Owner can override any of them; an override is recorded here and in [03 Continuation](../../03-continuation-prompt.md).
@@ -196,7 +203,7 @@ The Owner asked on 2026-10-11 to proceed in parallel, so each decision below run
 | D-3 | Lint and format | Keep Biome. Revisit only if aligning with Ruken's ESLint + Prettier becomes necessary; the sim's `useExponentiationOperator` rule must survive either way | M1.1 |
 | D-4 | Standalone hosting | Reuse FloorFifty's proven pattern: a Caddy static host with a build per URL (`/builds/<buildId>/`) and the live release at `/`. `ship` keeps the provider behind a deploy step, so a later move to Cloudflare Pages/R2 does not change games. | M1.2 |
 | D-5 | GPU runner | Reuse the Owner's existing runners (the WSL Linux runner and the Windows GPU runner). Until they are wired to AF, every CI job, including parity, is run locally, and that local run is the green gate (Owner, 2026-10-11; hosted Actions jobs are not getting runners). No new Linux GPU box. | M1.1 |
-| D-7 | Licensing and distribution of paid extensions (Owner, 2026-10-11: Tailwind-style; core free, extensions paid individually or all-access) | Open until M10.0. Meanwhile every extension stays its own package that edits no core file, so paid ones can move to a private repo and registry. | M10 |
+| D-7 | Licensing and distribution of paid extensions (Owner, 2026-10-11: Tailwind-style; core free, extensions paid individually or all-access) | Open until M10.0 for pricing, the store and license enforcement. **Refined 2026-10-16 (PRODUCT spec PD-1):** Automata Plus is every extension plus copy-in kits and starters; core is MIT on public npm; Plus lives in the private `mcthaydt/automata-plus` repo and registry from PRODUCT.5, before the first public publish. | M10, PRODUCT |
 | D-8 | How AF publishes packages that depend on unpublished Ruken packages (`host` on `@ruken/sdk` and `@ruken/sdk-host`; `content` and `ship` on `@ruken/manifest`; `ship` spawning `@ruken/cli`; `ui` and `testing` on Ruken types) | Bundle the vendored Ruken code into that package's `dist/` at build time, as Ruken's own CLI bundles its workspace packages, inline the Ruken types into its `.d.ts`, keep the tarballs as dev dependencies and declare the bundled code's own runtime dependencies, with the Ruken commit recorded in the package (widened in the [M2 milestone spec](./2026-10-11-m2-deterministic-core-design.md) §4; cases in M2.4 §3.4); switch to the published `@ruken/*` versions once Ruken publishes them. AF does not republish Ruken packages under its own scope (Ruken owns them, ADR 0004). Decided before M2.4. | M2.4 |
 | D-6 | How AF gets Ruken's unpublished packages | Vendor `@ruken/sdk`, `@ruken/sdk-host`, `@ruken/manifest` and `@ruken/cli` (built) tarballs in `vendor/ruken/` at a recorded RukenApp commit (`b30d31b`), with their SHA-256 and rebuild steps, as FloorFifty does. The integration owner re-vendors (after Ruken's F1 freeze and on request); lanes consume. | M1.2, M1.4 |
 

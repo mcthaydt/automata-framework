@@ -27,7 +27,7 @@ Each milestone starts with its spec (`docs/superpowers/specs/YYYY-MM-DD-<slug>-d
 | [x] | M1.4 — Host | **Merged** on `main` (PR #5). Lane **host**. `Hosting` service over the Ruken SDK's hosted and standalone sessions (shared contracts §1), fake-host test layer, ported FloorFifty and S6 contract tests, `track()`. |
 | [x] | M1.5 — Runtime | Lane **runtime**; implemented and locally checked (Tasks 1–20 complete, PR 4 boundary reached; CI and Owner acceptance open). Within S8 budgets (frame loop 0.10–0.12 µs/frame vs 0.30 µs budget; demo E1 & E5 pass). `defineExtension`, boot program with `BootError`, loading rules, app loop, Time, Flow, presentation bus, settings, `RuntimeTest`, demo `boot-and-flow`. |
 | [x] | M1.6 — Mobile-first UI primitives | **Merged** on `main` (PR #7). Lane **ui**. Geometry owner and primitives with renderer-free fixtures and layout contracts at every reference size, including 780×270. |
-| [x] | M1.7 — 2D renderer | Lane **runtime**; M1.5. Implemented and locally checked (Tasks 1–8 complete). `render-pixi` no-eval entry, WebGL2 default with WebGPU fallback, `RenderDeltaConsumer` sub-tick interpolation, pixel framebuffer, letterbox, filter shader helpers, three-browser parity, `examples/render-pixi/renderer-2d` E2E clean under fake host. |
+| [x] | M1.7 — 2D renderer | Lane **runtime**; M1.5. Implemented and locally checked (Tasks 1–8 complete). `render-pixi` no-eval entry, WebGL2 default with opt-in WebGPU (falls back to WebGL2 only when WebGPU was requested), `RenderDeltaConsumer` sub-tick interpolation, pixel framebuffer, letterbox, filter shader helpers, three-browser parity, `examples/render-pixi/renderer-2d` E2E clean under fake host. |
 | [x] | M1.8 — Base project, demos, scaffold and M1 exit | M1.2–M1.7. `examples/base-2d` (a character in a room) through the M1.2 pipeline; the demo gallery (`examples/gallery`) indexing all feature demos with raylib headers; minimal `packages/cli` (`create-game`) from `base-2d`; exit evidence: `pnpm check` clean (22/22 tasks), cross-engine parity in Chromium, WebKit, and Firefox (`pnpm test:parity`, 9/9 tasks clean), full Playwright browser journeys (46/46 passed), and valid Ruken manifest validation. |
 
 ## M2 Deterministic core complete
@@ -41,6 +41,86 @@ Each milestone starts with its spec (`docs/superpowers/specs/YYYY-MM-DD-<slug>-d
 | [x] | M2.3 — Goldens and replays | **Merged** on `main` (PR #20). Lane **testing** (new in [04](04-how-we-build.md#lanes-2026-10-11)); M2.1; merges after M2.2 but does not depend on it. `simGolden`, `.replay` v1 (`@mcthaydt/automata-sim/replay`, from FloorFifty's replay codec), `replayGolden` with first-divergent-tick diff, ≥200-seed property test, cross-engine runner; demo `testing/record-replay` ([spec](superpowers/specs/2026-10-11-m2-goldens-and-replays-design.md), [plan](superpowers/plans/2026-10-11-m2-goldens-and-replays.md)). |
 | [x] | M2.4 — Build and publish | Lane **ship**; merges after M2.2 and M2.3; tokens decided (publish with the workflow's `GITHUB_TOKEN`; games read with `AF_READ_TOKEN`, a classic PAT with `read:packages`); D-8 (bundle the vendored Ruken code into `host`, `content` and `ship` builds and inline Ruken types into `host`, `testing`, `ui`, `content` and `ship` declarations); `isolatedDeclarations` in `node` and `ship`; `game-ci.yml` and `game-release.yml` install AF from the registry. tsdown library builds (Ruken's tool), Changesets with one fixed version, `0.0.x` prereleases, a consumer smoke project; CI under 10 minutes ([spec](superpowers/specs/2026-10-11-m2-build-and-publish-design.md), [plan](superpowers/plans/2026-10-11-m2-build-and-publish.md)). **Merged** on `main` as PR #19 (`1ed77cc`, 2026-10-13), rebased onto the M2.2 and M2.3 `main`. af-linux CI at the merge: checks, parity in Chromium, WebKit and Firefox, consumer smoke, base-2d and placeholder game-ci all green. Open: the first publish on the Owner's merge of the "Version packages" PR (`0.0.1` to GitHub Packages, exit 4); the Owner sets the Actions spending limit first. Nothing published yet. |
 
+## DX Small games, agent-native, website claims made true
+
+Owner, 2026-10-16: the framework must match what the website sells: small changes are small diffs, and agents get AF's rules, real API and checks from AF. The [DX spec](superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md) maps every row of the website's restoration ledger (`automata_website` `docs/2026-10-14-cut-claims.md`) to a task, an evidence step, an Owner decision or a permanent retirement. Proposed to run alongside M3 (the M3 thread is unaffected; DX touches no M3 folder).
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | DX.0 — DX spec, reviewed | Drafted 2026-10-16. Owner decisions recorded 2026-10-16: MIT on public npm (D-DX-1), a public `mcthaydt/automata-skills` mirror (D-DX-2), no evals (D-DX-3), Antigravity dropped and Discord set up (D-DX-4), and the site deploy planned (D-DX-5). Review of the whole spec pending. |
+| [ ] | DX.1 — Sim conveniences | Lane **sim**; DX.0. `definePlugin({ defs })`, `defineSystem` overloads; identical schema hash either way. |
+| [ ] | DX.2 — `@mcthaydt/automata-game` | Lane **game** (new); DX.0, DX.1. `startGame`/`defineGame` with defaults over runtime, render-pixi, host and ui; `InputMap` from base-2d's input; default screens; demo `examples/core/core-basic-window.ts` in 40 lines or fewer, written first by EX.3. |
+| [ ] | DX.2b — `rect` and `sprite` entity views | Lane **runtime**; DX.0. Interpolated view factories in render-pixi. |
+| [ ] | DX.3 — Emberwick on `startGame` | Integration; DX.2, DX.2b. Plumbing from 1,939 lines to 400 or fewer, golden unchanged, journeys green. |
+| [ ] | DX.4 — Generated API index | Lane **ship**; DX.0. `tooling/api-index`: `api.json`, the skill's `api.md`, `llms-api.txt`, from the published `.d.ts`. |
+| [ ] | DX.5 — `create-game` makes a real game | Integration; DX.2, DX.6, DX.7, DX.11. Boots on `startGame`, golden test, `AGENTS.md`, skills, `automata check`; no `workspace:*`. |
+| [ ] | DX.6 — `automata check` | Integration; DX.0. Boundaries, typecheck, tests, built-bundle no-eval scan, opt-in CSP smoke; `--json`. |
+| [ ] | DX.7 — Agent skills and Claude Code plugin | Integration; DX.4, DX.6. `agents/automata/` skills, marketplace, check hooks; tested installs. |
+| [ ] | ~~DX.8 — Agent evals~~ | Dropped by the Owner (D-DX-3, 2026-10-16); "tested prompts" stays retired. |
+| [ ] | DX.9 — Evidence file | Lane **ship** + website; DX.0. `evidence.json` from af-linux on `main`; the site renders proof from it. |
+| [ ] | DX.10 — Website restorations | Website; each row's task. Restored copy pinned to its evidence by a test. |
+| [ ] | DX.11 — MIT license and public npm | Lane **ship**; DX.0, PRODUCT.5 (core only: extensions are Automata Plus, PD-1). `LICENSE`, `"license": "MIT"`, the release to npmjs.org, `@mcthaydt/create-automata`, the public skills mirror job, consumer smoke from npm. Owner: `NPM_TOKEN` secret. |
+| [ ] | DX.12 — Website deploy to `automata.ruken.com` | Website; DX.0; Owner hosting and DNS. Static deploy, plus a check that `/llms.txt` is served there. |
+| [ ] | DX.13 — Discord server | Integration; the Owner's server with the Discord plugin's bot. Channels, roles, rules, moderation and a permanent invite, read back to verify them. |
+
+## EX One-file examples, like raylib
+
+Owner, 2026-10-16: each example is one file, like raylib's. The [EX spec](superpowers/specs/2026-10-16-examples-one-file-design.md) replaces today's demos, which are whole Vite apps of 9–30 files built on Emberwick. Each example becomes `examples/<module>/<module>-<name>.ts`: 100 code lines or fewer, `export default defineGame(...)`, a raylib header, one runner, and parametric catalog, smoke and parity tests. Emberwick moves to `games/emberwick` (EX-D1). The examples are written first, as DX.2's and DX.2b's acceptance tests (EX-D2). TDD plan: [`2026-10-16-examples-one-file.md`](superpowers/plans/2026-10-16-examples-one-file.md).
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | EX.0 — EX spec, reviewed | Drafted 2026-10-16 with EX-D1 and EX-D2. Review pending. |
+| [ ] | EX.1 — Runner and tests | Integration, sim (`--inline`); EX.0. `tooling/examples-runner` (Vite plugin, fake host, catalog), the single `examples` package, smoke at Pixel 7 and 780×270, golden parity, `check-boundaries --inline`. |
+| [ ] | EX.2 — Games folder | Integration, ship; EX.0. `examples/base-2d` → `games/emberwick`, `examples/placeholder` → `games/placeholder`; journeys and golden `31f50888ccb4cf0a` unchanged. |
+| [ ] | EX.3 — Target examples first | Integration; EX.1. `core-basic-window`, `core-input-keys`, `shapes-rects`, `textures-sprite`, marked `Pending: DX.2`/`DX.2b` until those land. |
+| [ ] | EX.4 — Port the demos | Each owning lane; EX.1, DX.2, DX.2b. Behavior tests move into their packages first, then the one-file example, then the old folder is deleted. Physics goes to `automata-plus` with PRODUCT.5. |
+| [ ] | EX.5 — Index page | Integration; EX.1. Examples by module, with source beside the running frame; replaces `examples/gallery`. |
+
+## PRODUCT Free core, Automata Plus, FloorFifty as the measure
+
+Owner, 2026-10-16: someone can build FloorFifty (content excluded) on AF. Core is free and is a foundation that scales, and localization is part of it. Automata Plus is paid: every extension, copy-in UI and screen kits, and starter games. The [PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md) has the FloorFifty gap ledger (at `ac72660`), the tiers, the cuts and the raylib API rules.
+
+**Order (PD-3):** the foundation first (PRODUCT.1, PRODUCT.L, the core parts of M4 and M5, PRODUCT.7), then the Plus extensions on the FloorFifty path, then PRODUCT.8.
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | PRODUCT.0 — PRODUCT spec, reviewed | Drafted 2026-10-16 with Owner decisions PD-1 to PD-5 (spec §11). Review of the whole spec pending. |
+| [ ] | PRODUCT.1 — Core seams and API reports | Integration + owning lanes; PRODUCT.0. Input profiles, `NetworkPort`, audio buses, render layer and post-filter slot, settings schema, presentation events, host leaderboard call; public API reports with a release break check; the Plus public-entry boundary test (spec §2 F1, F6). |
+| [ ] | PRODUCT.L — Core localization | Lanes **runtime**, **content**, **ui**; PRODUCT.0. Paraglide `t()`, negotiation from Ruken `session.locale`, `Intl` formatting, `<html lang dir>`, per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract, language picker, `automata check` additions (spec §4, cases L-a to L-e). Replaces M5's localization part. |
+| [ ] | PRODUCT.2 — Umbrella import and `draw` layer | Lane **game**; DX.2. `@mcthaydt/automata` and a read-only `draw(ctx)` (spec §7). |
+| [ ] | PRODUCT.3 — Cheatsheet | Lane **ship**; DX.4. One page by module, generated from the API index. |
+| [ ] | PRODUCT.4 — Stack page | Lane **ship**; PRODUCT.0. Generated `docs/stack.md` from the pins (spec §8); the site's `/inside` page follows as a website task. |
+| [ ] | PRODUCT.5 — `automata-plus` repo and `automata add` | Lanes **ship** and integration; PRODUCT.0; the Owner creates the private `mcthaydt/automata-plus` repo. Private registry, `npx automata add <kit>`, and `packages/physics` with its demo moved there before DX.11's first public publish (spec §6). |
+| [ ] | PRODUCT.6 — UI and screen kit, first set | Lane **ui**; PRODUCT.1 and the core parts of M4. Settings, pause, results, title, loading and error screens on core primitives (spec §5). Plus. |
+| [ ] | PRODUCT.7 — Frame-budget probe and stress example | Lane **testing**; PRODUCT.0. Measured ms/frame on the GPU runner; the budget is set from the first recorded run (spec §2 F5). |
+| [ ] | PRODUCT.8 — Party Racer starter | Integration; `net`, `server`, the 2D part of `post-retro`, `feel`, `audio-stream`, PRODUCT.6. FloorFifty's loop on placeholder content; game-specific code measured against FloorFifty (spec §10, P-b). Plus. |
+
+## PUB Publish to Ruken or itch.io
+
+Owner, 2026-10-16: loosen the Ruken coupling so a game publishes to Ruken or itch.io easily. The [PUB spec](superpowers/specs/2026-10-16-publish-targets-design.md) and [ADR 0005](adr/0005-publish-targets.md) keep Ruken as the reference host and contract vocabulary, and choose the target at build time (`--target ruken|itch|web`). Measured at `cc2ee8c`: `makeHosting` always calls `Ruken.init`, so inside itch.io's iframe the SDK waits 10 s (`HANDSHAKE_TIMEOUT_MS`) before falling back, and its standalone saves silently use memory when storage is blocked. `ship` can only prepare and publish for Ruken.
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | PUB.0 — PUB spec and ADR 0005, reviewed | Drafted 2026-10-16; PUB-D1 to PUB-D4 on recommended defaults. Review pending. |
+| [ ] | PUB.1 — Web adapter and `./target` | Lane **host**; PUB.0. `hosting-web.ts` behind a `./target` export condition, the contract suite on both adapters, a bundle check for SDK markers, `kind`/`hostName` in shared contracts §1 (PUB-a). |
+| [ ] | PUB.2 — `ship --target itch` | Lane **ship**; PUB.0. `index.html`, relative-path, case and itch.io limit checks; a deterministic zip; `butler push` with `--userversion` (PUB-b). |
+| [ ] | PUB.3 — itch-like harness and E2E | Lanes **ship** and **testing**; PUB.1, PUB.2. Cross-origin iframe harness: ready within 2 s, saves across reloads, blocked-storage notice, fullscreen; the golden matches across targets (PUB-c). |
+| [ ] | PUB.4 — Release CI and UI label | Lanes **ship** and **ui**; PUB.2. The `itch` job in `game-release.yml`; "Back to …" from `hostName`, hidden without `exit`. |
+| [ ] | PUB.5 — `create-game` and docs | Integration; PUB.3, DX.5. Both targets in generated games; a "Publish to itch.io" guide; the Owner's real itch.io push recorded (PUB-d). |
+
+## QB The quality bar (doesn't look vibecoded)
+
+Owner, 2026-10-16: a checklist "to make sure it doesn't look vibecoded". The [QB spec](superpowers/specs/2026-10-16-quality-bar-design.md) gives each item one disposition: a gate (a check that fails), a task, a request to Ruken (game hosting is Ruken's), or not applicable with the trigger that would reopen it. AF has no database, login, uploads or model calls, so most SaaS and platform items are triggers or Ruken requests. Findings at website `bfeaf91` and `489f170`: the site's MIT claim is ahead of the packages (F-1, DX.11), JPEG files named `.png`, no robots.txt or sitemap, no privacy, terms or contact pages, third-party fonts, no browser tests for the site, and no root README, `SECURITY.md` or dependency audit here.
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | QB.0 — QB spec, reviewed | Drafted 2026-10-16; QB-D1 to QB-D4 on recommended defaults. Review pending. |
+| [ ] | QB.1 — Framework repo hygiene | Lane **ship**; QB.0. Root README run by consumer smoke, `SECURITY.md`, `CODEOWNERS`, Renovate, `pnpm audit`, gitleaks, a new-dependency report, `knip`, a 600-line source ceiling, an Owner-approved `release` environment, a runbook (spec §7, QB-a). |
+| [ ] | QB.2 — Game build gates | Lanes **ship** and **ui**; QB.0, DX.6. A bundle secret scan in `prepare-ruken` and `automata check`; no `{@html}` in `ui`; no platform-chrome mimicry in kits (QB-b). |
+| [ ] | QB.3 — Website quality gates | Website; QB.0. `check:site` plus a Playwright suite in Chromium and WebKit covering SEO, responsive, keyboard, axe, console, performance, privacy and copy gates; fixes F-2 to F-6; the Owner's real-device pass recorded (spec §4.2, QB-c). |
+| [ ] | QB.4 — Website deploy hardening | Website; DX.12. HTTPS and HSTS, the header set checked on the live origin, uptime and certificate checks, a rehearsed rollback, a spend alert (QB-d). |
+| [ ] | QB.5 — Plus store integrity | Lane **ship**; PRODUCT.5, D-7. A merchant of record (QB-D2); verified, idempotent webhooks; token grant and revocation with an audit log; EULA and refund policy (QB-e). |
+
 ## M3 to M8
 
 Each milestone starts with a spec task (`Mn.0`) and is decomposed into tasks when that spec is reviewed. Work packages are in [01 Decomposition §4](01-decomposition.md#4-milestone-work-packages).
@@ -48,11 +128,11 @@ Each milestone starts with a spec task (`Mn.0`) and is decomposed into tasks whe
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
 | [ ] | M3.0 — 2.5D and pipelines spec, with spike S7 | M2. Confirm D-1 (provisional: `render-pixi3d` unpublished, private builds only). `examples/base-25d` and `examples/base-3d` (the same character in a room); `render-pixi3d` at 2.5D scope, `post-retro`, `pipelines`, 2.5D character and props pipelines. |
-| [ ] | M4.0 — Input and display spec | M1. Complete input paths, display policy, E2E matrix under the fake Ruken host. |
-| [ ] | M5.0 — Saves, audio and localization spec | M2, M4. Ruken saves and migrations, audio extensions, six languages. |
-| [ ] | M6.0 — Gameplay extensions spec | M2, M3. `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`, `debug`, `telemetry-extra`, environment pipeline. |
-| [ ] | M7.0 — Online and store spec | M2, M5; Ruken `[store]` for `store`. `net`/`server`, `store`, `host-tauri`. |
-| [ ] | M8.0 — CLI 1.0 and adoption spec | All before. Decide D-2. Full CLI, 1.0 (AF finished for 2D and 2.5D), FloorFifty and The Last Light adoption slices. |
+| [ ] | M4.0 — Input and display spec | M1 (not M3; PD-3). Complete input paths (gamepad hot-plug, deadzones, rebinding, gestures as data, device prompts), display policy (safe area, `hostReserved`, rotate gate, keyboard and browser-bar occlusion), `camera2d`, graphics quality tiers, E2E matrix under the fake Ruken host ([PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md) §5). |
+| [ ] | M5.0 — Saves and audio spec | M2, M4. Ruken saves and migrations, core audio, `audio-stream` (Plus), the asset build (font subsetting, atlas packing), the host leaderboard call. Localization moved to PRODUCT.L (PD-4). |
+| [ ] | M6.0 — Gameplay extensions spec | M2 for `feel` (Plus, on the FloorFifty path, PD-3); M3 for the rest. `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`, `debug`, environment pipeline. `telemetry-extra` is cut (PD-5). |
+| [ ] | M7.0 — Online and store spec | M2, M5, PRODUCT.1 (`NetworkPort`); Ruken `[store]` for `store`. `net`/`server` (Plus) with a server deploy target and a bot-seat hook, `store`, `host-tauri`. |
+| [ ] | M8.0 — CLI 1.0 and adoption spec | All before. Decide D-2 (proposed in the PRODUCT spec: FloorFifty acceptance through PRODUCT.8). Full CLI, 1.0 (AF finished for 2D and 2.5D), FloorFifty and The Last Light adoption slices. |
 
 ## After AF 1.0: the 3D game, then the 3D merge
 
@@ -81,5 +161,11 @@ Owner roadmap (2026-10-11): 2D and 2.5D first, then 3D. The 3D pieces come from 
 | 2026-10-13 | M1.5 Runtime | `packages/runtime`, `examples/runtime/boot-and-flow` | Local: vitest unit (22 files, 148 passed), typecheck, build, size budget (E1: 404.60 kB raw, 86.25 kB gzip, 158 modules), pnpm boundaries (60/60 files clean), pnpm style (167 files clean), pnpm lint, frame-loop bench (Node 0.117 µs, Chromium 0.100 µs), Playwright e2e under fake host (8/8 passed) | Implemented and locally checked (Tasks 1–20 complete, PR 4 boundary reached); CI and Owner acceptance pending |
 | 2026-10-13 | M1.7 2D Renderer | `packages/render-pixi`, `examples/render-pixi/renderer-2d` | Local: vitest unit (7 files, 29 passed), test:parity in Chromium, WebKit, and Firefox (3/3 passed), typecheck, build, pnpm boundaries (clean), pnpm style (174 files clean), pnpm lint (0 errors), pnpm check (21/21 tasks clean), Playwright e2e under fake host (passed) | Implemented, locally verified, cross-engine parity verified; CI and Owner acceptance pending |
 | 2026-10-13 | M1.8 Base project, demos, scaffold & M1 exit | `packages/cli`, `examples/gallery`, `examples/base-2d` | Local: vitest unit (4 files, 18 passed in cli; 3 passed in gallery), pnpm check clean (22/22 tasks), pnpm test:parity clean across 3 browsers (9/9 tasks), pnpm test:e2e (46/46 passed), create-game integration test valid ruken.toml | Implemented, locally verified, parity & E2E gates green; M1 exited; Owner acceptance pending |
+| 2026-10-16 | DX.0 draft | [DX spec](superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md); DX rows above; M1.7 row corrected to WebGPU opt-in (ADR 0002) | Docs only; line counts measured at `365f115`; plugin and Agent Skills mechanics checked against their docs on 2026-10-16 | Draft; Owner review pending |
+| 2026-10-16 | DX.0 Owner decisions | Spec §13 and §2 updated: MIT on public npm, a public skills mirror, no evals (DX.8 dropped), Antigravity dropped, Discord via the Owner's plugin, site deploy planned; DX.11–DX.13 added | Docs only; relative links checked | Decisions recorded; spec review pending |
+| 2026-10-16 | PRODUCT.0 draft and decisions | [PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md): FloorFifty gap ledger at `ac72660`, free core and Automata Plus (PD-1), Rapier only (PD-2), foundation first (PD-3), localization core (PD-4), pain points and cuts (PD-5); PRODUCT rows above; M4, M5, M7, M8 rows and DX.11 updated; 00 business model, master spec D-7 and §11 noted | Docs only; FloorFifty line counts from the spec's appendix A script; AF "exists" cells checked against `packages/*/src`; relative links checked | Draft; Owner review pending |
+| 2026-10-16 | EX.0 draft and decisions | [EX spec](superpowers/specs/2026-10-16-examples-one-file-design.md) and [TDD plan](superpowers/plans/2026-10-16-examples-one-file.md): one-file examples, a single runner, parametric tests, Emberwick to `games/` (EX-D1), examples written first (EX-D2); EX rows above; DX.2's demo renamed | Docs only; demo file and line counts from the spec's appendix A script at `5d54594`; relative links checked | Draft; Owner review pending |
+| 2026-10-16 | QB.0 draft | [QB spec](superpowers/specs/2026-10-16-quality-bar-design.md): every item of the Owner's anti-vibe checklist given a gate, task, Ruken request or not-applicable trigger; findings F-1 to F-8; QB rows above; requests to Ruken in spec §6 | Docs only; findings from `file`, `grep` and `ls` at website `bfeaf91` and `489f170`; relative links checked | Draft; Owner review pending |
+| 2026-10-16 | PUB.0 draft | [PUB spec](superpowers/specs/2026-10-16-publish-targets-design.md) and [ADR 0005](adr/0005-publish-targets.md) (proposed): build-time `ruken`/`itch`/`web` targets, a web `Hosting` adapter, `ship --target itch` with butler, an itch-like harness; ADR 0004 and AGENTS.md direction notes; three requests to Ruken (spec §9) | Docs only; coupling measured at `cc2ee8c`; SDK behavior read from the vendored `@ruken/sdk` (`b30d31b`); itch.io and butler docs read 2026-10-16; relative links checked | Draft; Owner review pending |
 
 For each completed task record its ID, PR or commit, the checks that ran and their result, review status and remaining gates. Update this table, the affected spec and [03 Continuation](03-continuation-prompt.md) in the same session.
