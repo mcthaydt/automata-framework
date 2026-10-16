@@ -18,6 +18,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { walk } from './root-absolute.ts'
 
+/** One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build. */
 export interface EnvValue {
   /** The `.env*` file the variable came from, relative to the game folder. */
   readonly file: string
@@ -25,6 +26,7 @@ export interface EnvValue {
   readonly value: string
 }
 
+/** A secret the bundle scan found in a built file, located without repeating the secret. */
 export interface SecretFound {
   /** Relative to the build, with forward slashes. */
   readonly file: string

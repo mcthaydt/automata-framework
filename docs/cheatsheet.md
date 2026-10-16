@@ -150,11 +150,14 @@
 - `DeployDevInput` (interface)
 - `DeployFailed` (class): The dev host's deploy step (tar or ssh) failed; `output` is what it printed.
 - `EntryMissing` (class): `[game] entry` names a file the build does not have.
+- `EnvValue` (interface): One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build.
 - `FileError` (class): Reading, writing, listing or removing a file failed.
 - `findRootAbsoluteReferences(distDir)`
+- `findSecretsInBuild(distDir, envValues)`: Every secret in a built folder.
 - `ManifestInvalid` (class): Ruken's parser refused the generated `ruken.toml`.
+- `parseEnvFile(file, text)`: The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
-- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page and root-absolute paths, then writes `ruken.toml` once Ruken's parser accepts it.
+- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths and secrets (QB-b), then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface)
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
@@ -164,9 +167,13 @@
 - `PublishTimeout` (class): Exit 4: Ruken's checks took longer than the CLI waits.
 - `publishToRuken(input)`
 - `PublishUsage` (class): Exit 2: the command line was wrong.
+- `readEnvValues(gameDir)`: The variables of every top-level `.env*` file in the game folder; none when the folder does not exist.
 - `RootAbsoluteReference` (class): The build names its own files from the origin's root, which 404s under `/b/<buildId>/`.
 - `rukenCliPath(moduleUrl?, exists?)`: The `ruken` bin of the vendored `@ruken/cli` package.
 - `rukenToml(config)`
+- `scanTextForSecrets(file, text, envValues)`: Every secret in one file's text.
+- `SecretFound` (interface): A secret the bundle scan found in a built file, located without repeating the secret.
+- `SecretInBuild` (class): The build holds a key, an `.env` value or a high-entropy string (QB-b).
 - `SHIP_PACKAGE` (const)
 - `ShipConfig` (interface): What a game tells ship about itself, in Ruken's own manifest shape (`@ruken/manifest`'s `Manifest`).
 - `testRemote(input)`
