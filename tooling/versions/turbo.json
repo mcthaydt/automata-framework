@@ -14,6 +14,9 @@
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/docs/versions.md",
         "$TURBO_ROOT$/renovate.json",
+        "$TURBO_ROOT$/docs/stack.md",
+        "$TURBO_ROOT$/vendor/ruken/README.md",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
         "$TURBO_ROOT$/.nvmrc"
       ]
     },
@@ -29,6 +32,9 @@
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/docs/versions.md",
         "$TURBO_ROOT$/renovate.json",
+        "$TURBO_ROOT$/docs/stack.md",
+        "$TURBO_ROOT$/vendor/ruken/README.md",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
         "$TURBO_ROOT$/.nvmrc"
       ]
     }

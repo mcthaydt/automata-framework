@@ -10,6 +10,7 @@
     "prepare": "lefthook install",
     "build": "turbo run build --filter='./packages/*' --filter=./tooling/check-boundaries",
     "changeset": "changeset",
+    "docs:stack": "node tooling/versions/src/write-stack.ts",
     "release:version": "changeset version && node tooling/release/src/sync-versions.ts",
     "release": "pnpm build && changeset publish",
     "lint": "biome check .",
