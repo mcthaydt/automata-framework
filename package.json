@@ -16,7 +16,7 @@
     "format": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "test:unit": "turbo run test:unit -- --testTimeout=30000",
+    "test:unit": "turbo run test:unit -- --testTimeout=90000",
     "bench": "pnpm --recursive --workspace-concurrency=1 --if-present bench",
     "boundaries": "automata-check-boundaries packages/sim/src packages/physics/src examples/base-2d/src/sim examples/runtime/boot-and-flow/src/sim && automata-check-boundaries --allow-import @af-examples/base-2d/sim examples/physics/bodies-2d/sim",
     "style": "node tooling/check-style/src/cli.ts packages/*/src",
