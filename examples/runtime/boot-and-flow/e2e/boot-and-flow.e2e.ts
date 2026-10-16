@@ -1,9 +1,9 @@
-import { hostedUrl } from '@af-examples/demo-host/ports'
-import { collectErrors, openHosted } from '@af-examples/demo-host/testing'
+import { hostedUrl } from '@mcthaydt/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
 import { expect, type Frame, type Page, test } from '@playwright/test'
 import { GAME_ID, url } from './origin.ts'
 
-// The runtime boot-and-flow demo under Ruken's fake host (examples/demo-host):
+// The runtime boot-and-flow demo under Ruken's fake host (tooling/examples-runner/host):
 // Boots to ready on title screen, walks flow title -> play -> paused -> play,
 // and verifies every failMode (?fail=) renders its failure panel with the correct data-code and actions.
 

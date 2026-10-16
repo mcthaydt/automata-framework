@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
     inputs:
       spec:
-        description: Playwright arguments for one focused browser run (test-remote), e.g. "examples/placeholder/e2e/boot.e2e.ts --project=placeholder". Empty runs the checks.
+        description: Playwright arguments for one focused browser run (test-remote), e.g. "games/placeholder/e2e/boot.e2e.ts --project=placeholder". Empty runs the checks.
         type: string
         default: ""
       nightly:
@@ -65,7 +65,9 @@ jobs:
       - run: pnpm boundaries
       - run: pnpm style
       - run: pnpm test:unit
-      # Every feature demo builds (examples/README.md); their browser checks run with the journeys.
+      # Every one-file example builds through the runner (EX spec §5); their smoke runs with the journeys.
+      - run: pnpm build:examples
+      # Every old feature demo builds (examples/README.md) until EX.4 ports and deletes them.
       - run: pnpm build:demos
       # S8 budgets E1 and E3 (docs/spikes/s8-effect.md): Effect's share and the page's gzip size.
       - run: pnpm --filter @af-examples/placeholder budget:size
@@ -79,6 +81,8 @@ jobs:
       - run: pnpm api-report
       - run: pnpm build
       - run: pnpm --filter @mcthaydt/release test:dist
+      # DX.4: the API index and llms-full.txt from the built .d.ts; fails on a new export with no doc comment.
+      - run: pnpm api-index
 
   parity:
     name: parity (chromium, webkit, firefox)
@@ -176,7 +180,7 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
     uses: ./.github/workflows/game-ci.yml
     with:
-      working-directory: examples/placeholder
+      working-directory: games/placeholder
       sim-roots: ""
       runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
 
@@ -185,7 +189,7 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
     uses: ./.github/workflows/game-ci.yml
     with:
-      working-directory: examples/base-2d
+      working-directory: games/emberwick
       sim-roots: src/sim
       artifact-name: base-2d-dist
       runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}

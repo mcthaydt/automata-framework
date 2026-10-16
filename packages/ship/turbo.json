@@ -13,11 +13,13 @@
         "$TURBO_ROOT$/packages/*/vitest.config.ts",
         "$TURBO_ROOT$/tooling/*/package.json",
         "$TURBO_ROOT$/tooling/*/vitest.config.ts",
+        "$TURBO_ROOT$/games/*/package.json",
+        "$TURBO_ROOT$/games/*/vitest.config.ts",
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/vitest.config.ts",
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/examples/*/*/vitest.config.ts",
-        "$TURBO_ROOT$/examples/placeholder/e2e/**"
+        "$TURBO_ROOT$/games/placeholder/e2e/**"
       ]
     },
     "test": {
@@ -31,11 +33,13 @@
         "$TURBO_ROOT$/packages/*/vitest.config.ts",
         "$TURBO_ROOT$/tooling/*/package.json",
         "$TURBO_ROOT$/tooling/*/vitest.config.ts",
+        "$TURBO_ROOT$/games/*/package.json",
+        "$TURBO_ROOT$/games/*/vitest.config.ts",
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/vitest.config.ts",
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/examples/*/*/vitest.config.ts",
-        "$TURBO_ROOT$/examples/placeholder/e2e/**"
+        "$TURBO_ROOT$/games/placeholder/e2e/**"
       ]
     }
   }

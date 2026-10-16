@@ -53,7 +53,7 @@ interface EntityView {
 ### `EntityViewFactory` (type)
 
 ```ts
-type EntityViewFactory = (row: RenderRow) => EntityView | undefined;
+type EntityViewFactory = (row: RenderRow, componentId?: string) => EntityView | undefined;
 ```
 
 ### `EntityViewResolver` (type)
@@ -81,6 +81,24 @@ interface FilterProgramsResult {
     readonly glProgram: GlProgram;
     readonly gpuProgram: GpuProgram;
 }
+```
+
+### `interpolatePose` (function)
+
+```ts
+function interpolatePose(curr: Readonly<FieldRecord>, prev: Readonly<FieldRecord> | undefined, alpha: number): Pose;
+```
+
+### `lerp` (function)
+
+```ts
+function lerp(a: number, b: number, t: number): number;
+```
+
+### `lerpAngle` (function)
+
+```ts
+function lerpAngle(a: number, b: number, t: number): number;
 ```
 
 ### `LetterboxFrame` (class)
@@ -204,6 +222,22 @@ const PORTRAIT_FIELD_TOP = 60;
 function portraitFieldHeight(viewHeight: number, scale: number, band: number, baseHeight?: number): number;
 ```
 
+### `Pose` (interface)
+
+```ts
+interface Pose {
+    readonly x: number;
+    readonly y: number;
+    readonly angle: number;
+}
+```
+
+### `poseComponent` (function)
+
+```ts
+function poseComponent(components: Components, componentId?: string | undefined): Readonly<FieldRecord> | undefined;
+```
+
 ### `PostFilterSlot` (interface)
 
 ```ts
@@ -219,6 +253,23 @@ interface PostFilterSlot {
 ```ts
 interface PostFilterTarget {
     filters: Filter[] | null;
+}
+```
+
+### `rect` (function)
+
+```ts
+function rect(options: RectViewOptions): EntityViewFactory;
+```
+
+### `RectViewOptions` (interface)
+
+```ts
+interface RectViewOptions {
+    readonly w: number;
+    readonly h: number;
+    readonly color: number;
+    readonly anchor?: ViewAnchor | undefined;
 }
 ```
 
@@ -246,10 +297,44 @@ class RenderDeltaConsumer {
 type RendererPreference = 'webgl' | 'webgpu';
 ```
 
+### `sprite` (function)
+
+```ts
+function sprite(source: Texture | string, options?: SpriteViewOptions): EntityViewFactory;
+```
+
+### `SpriteFrames` (interface)
+
+```ts
+interface SpriteFrames {
+    readonly width: number;
+    readonly height: number;
+    readonly count?: number | undefined;
+}
+```
+
+### `SpriteViewOptions` (interface)
+
+```ts
+interface SpriteViewOptions {
+    readonly anchor?: ViewAnchor | undefined;
+    readonly frames?: SpriteFrames | undefined;
+}
+```
+
 ### `VERSION` (const)
 
 ```ts
 const VERSION = "0.0.1";
+```
+
+### `ViewAnchor` (type)
+
+```ts
+type ViewAnchor = number | {
+    readonly x: number;
+    readonly y: number;
+};
 ```
 
 ### `WGSL_FILTER_HEADER` (const)

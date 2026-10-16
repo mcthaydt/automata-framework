@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { publishablePackages, type WorkspacePackage } from './publishable-packages.ts'
+import { publishablePackages, type WorkspacePackage, workspacePackages } from './publishable-packages.ts'
 
 // What AF publishes to GitHub Packages, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
 // act: an example, `render-pixi3d` (D-1) or a tool marked publishable fails here before anything is released.
@@ -36,6 +36,14 @@ const RELATIVE_IMPORT = /(?:\bfrom\s*|\bimport\s*\(?\s*)['"](\.{1,2}\/[^'"]*)['"
 const each = (test: (pkg: WorkspacePackage) => void) => () => {
   for (const pkg of published) test(pkg)
 }
+
+// EX-D1: the games sit in `games/`, private, so the walk must find them to prove they stay unpublished.
+it('walks every workspace folder, games included', () => {
+  const dirs = workspacePackages(root).map((pkg) => pkg.dir)
+  expect(dirs).toEqual(
+    expect.arrayContaining(['games/emberwick', 'games/placeholder', 'examples/ui/primitives']),
+  )
+})
 
 describe('the published packages', () => {
   it('are exactly the M2.4 list', () => {
