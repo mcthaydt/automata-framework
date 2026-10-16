@@ -2,7 +2,7 @@
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.6, §4 (owner: `packages/cli`, integration), §6 (tool missing → exit 2), §8 (unit layer); [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) F3 (style step).
 - **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16.
-- **Progress:** 3 of 8 steps.
+- **Progress:** 4 of 8 steps.
 
 ## Global constraints
 
@@ -78,7 +78,7 @@
   - the same probe outside `try` is reported.
 
   Confirm it fails, implement, then confirm green.
-- [ ] **4. Tool output parsers.** Write `tool-output.test.ts`: boundaries lines, tsc lines (including a file-less `error TS5083`), and a vitest JSON with a failed assertion and a failed import. Confirm it fails, implement, then confirm green.
+- [x] **4. Tool output parsers.** Write `tool-output.test.ts`: boundaries lines, tsc lines (including a file-less `error TS5083`), and a vitest JSON with a failed assertion and a failed import. Confirm it fails, implement, then confirm green.
 - [ ] **5. Steps and orchestration.** Write `run-check.test.ts` with a fake `ProcessRunner`, a fake `Files` and a fake `CspProbe`:
   - the steps run in order;
   - `--sim-only` drops `no-eval`;
