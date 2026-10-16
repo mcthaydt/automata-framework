@@ -50,3 +50,41 @@ The session cannot bind a local preview server (`listen EPERM`). Design Taste's 
 The build also emits warnings from SvelteKit's generated `root.svelte` about initial store references. Application Svelte diagnostics are clean; generated framework files were not edited or warning filters added. Chivo is requested from Google Fonts with a system fallback; network/font loading and final line wrapping still need the browser pass.
 
 Run `pnpm preview --host 127.0.0.1 --port 5198` in an environment that permits local servers, then use the Design Taste inspector against that URL. These are acceptance steps, not completed checks.
+
+## Quality gates (QB.3, 2026-10-16)
+
+Implements the framework's quality-bar spec (QB.3, §4.2 and QB-c) on branch `claude/clever-pasteur-ujmu6e-qb3`. Plan: [`docs/superpowers/plans/2026-10-16-qb3-website-quality-gates.md`](superpowers/plans/2026-10-16-qb3-website-quality-gates.md).
+
+| Finding | Fix and gate |
+| --- | --- |
+| F-1: the site says MIT; the framework says `UNLICENSED` | `tests/license-claim.test.ts` reads the sibling framework's published `license` fields and `LICENSE`. It is `it.fails` ("expected red until DX.11"): green while the claim is false, red once the framework is MIT, so DX.11 must remove the marker. The MIT copy stays. |
+| F-2: six JPEG previews named `.png` | Renamed to `.jpg`; 640 px and full-width WebP copies (`scripts/encode-previews.ts`) served through `<picture>` with `srcset`. `check:site` fails when an image's bytes differ from its extension or an `<img>` has no `alt`; the browser suite fails when an image is more than 2× its rendered width. |
+| F-3: no `robots.txt` or `sitemap.xml` | Generated after `vite build` from each page's canonical URL (`scripts/write-seo-files.ts`); `check:site` fails on a page missing from the sitemap, an entry with no page, or a `robots.txt` without the `Sitemap:` line. |
+| F-4: no privacy, terms, contact or security contact | `/privacy`, `/terms`, footer links and a `mailto:` contact on every page, `/.well-known/security.txt` (Contact, Expires, Canonical). QB-D3: one contact and one security address, no postal address. `check:site` fails on a missing link, a missing or expired `security.txt`, or any `<form>`. |
+| F-5: fonts from `api.fontshare.com` | Already replaced by `@fontsource-variable/geist` on `main` before QB.3. Added a preload of the Geist latin face. `check:site` fails on an `@font-face` without `font-display: swap`, any asset from another origin, or a page without a font preload. |
+| F-6: no real-browser tests | `pnpm test:e2e` (Playwright 1.63, Chromium and WebKit) on the built site at 375×667, 768×1024, 1280×800 and 780×270. See below. |
+| Favicon set | 32 px PNG and 180 px apple-touch icon rendered from `favicon.svg` (`scripts/render-favicons.ts`); `check:site` checks their sizes and links. |
+| Placeholder copy | `check:site` fails on `lorem`, `TODO`, `coming soon`, `seamless`, `cutting-edge`, `unleash`, `supercharge`, `revolutionize`, `game-changer`. |
+
+Browser suite, per page and viewport: no horizontal scroll, console error, page error, third-party request, cookie or browser storage; axe (WCAG 2.2 AA) at 375 and 1280. Also: every primary link reachable in the header or the opened menu; a Start link in the header at every width; "Make your first change" visible without scrolling at 375×667; Tab reaches every control with a visible focus ring; every visible button changes something; branded 404 with links; demo runner loading and failure states; search empty state; content and links with JavaScript off; heading and primary action on an emulated slow 3G connection (Chromium only, as it needs the DevTools protocol). `tests/e2e/gates.e2e.ts` proves each gate catches a planted fixture.
+
+Defects the suite found and this branch fixed: below 1050 px the Start link was only inside the folded menu (now always in the header); the API reference's focusable signature regions did not scroll themselves (axe `scrollable-region-focusable`).
+
+### Verification (2026-10-16, shared container, load average about 30)
+
+- `pnpm check`: 0 errors, 0 warnings.
+- `pnpm build`: passed; `pnpm check:site`: 26 pages verified. `tests/site-checks.test.ts` holds a failing fixture for every rule (27 cases).
+- `pnpm test`: 29 files, 104 tests. First attempt: 99 passed, 1 expected fail (the MIT claim), 4 failed: three 5 s timeouts under load and `api-contract` "publishes the exact current project files", which fails identically on `main` because the sibling framework checkout has no `LICENSE` file. Rerun of the two affected files with `--testTimeout=60000`: 5 passed, 1 failed (that same pre-existing test).
+- `pnpm test:e2e` (Chromium and WebKit): 424 tests. First attempt: 422 passed, 1 skipped (slow 3G on WebKit, by design), 1 failed: `/examples` buttons at 1280 in Chromium hit the 120 s test timeout while its WebGL demo ran. The button tests now run with reduced motion (no auto-started demo) and a 300 s limit; rerun of all 104 button tests: 104 passed.
+
+### Pending and open
+
+- **Lighthouse CI budget: pending.** Not added. The spec takes its thresholds from the first recorded run, and the only machine available is a shared 4-CPU container running other jobs (load average about 30), so a performance score from it would set a meaningless baseline. Record it on a quiet machine or against the deployed origin (DX.12/QB.4).
+- **Owner acceptance pass: open.** A real phone, Safari, and a second person walking the journey, recorded here with device, browser and date. Also open: the Owner's read-through of each page against its purpose, and the privacy and terms wording.
+
+| Owner check | Device and browser | Date | Result |
+| --- | --- | --- | --- |
+| Real phone journey | | | open |
+| Safari | | | open |
+| Second person runs the journey | | | open |
+| Privacy and terms wording | | | open |

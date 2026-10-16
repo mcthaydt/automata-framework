@@ -2,7 +2,7 @@
 
 - **Spec:** framework repo `docs/superpowers/specs/2026-10-16-quality-bar-design.md` (§3 F-1 to F-6, §4.2, §7 QB.3, §9 QB-c). Approved by the Owner 2026-10-16 with QB-D1 (no analytics, no cookies) and QB-D3 (a contact email and a security email, no postal address).
 - **Status:** drafted 2026-10-16.
-- **Progress:** 10 of 11 steps.
+- **Progress:** 11 of 11 steps.
 - **Branch:** `claude/clever-pasteur-ujmu6e-qb3`.
 
 ## Global constraints
@@ -59,7 +59,7 @@
   - Chromium only: on an emulated slow 3G connection the home page's heading and primary action appear.
 
   Fix every real failure it finds. Lighthouse CI is not added (step 11 records why).
-- [ ] **11. Bookkeeping.** Record gate results, the pending Lighthouse budget and the open Owner acceptance pass in `docs/2026-10-14-site-redesign-results.md`, fill the execution log and hand the framework's 02 and 03 rows to the coordinator.
+- [x] **11. Bookkeeping.** Record gate results, the pending Lighthouse budget and the open Owner acceptance pass in `docs/2026-10-14-site-redesign-results.md`, fill the execution log and hand the framework's 02 and 03 rows to the coordinator.
 
 ## Gates
 
@@ -67,4 +67,8 @@
 
 ## Execution log
 
-(Filled when the task is done.)
+- 2026-10-16: steps 1 to 11 done on `claude/clever-pasteur-ujmu6e-qb3`, each rule with its failing fixture first.
+- Results and gate counts: `docs/2026-10-14-site-redesign-results.md`, "Quality gates (QB.3, 2026-10-16)".
+- Deviations: F-5's third-party font link was already gone on `main` (step 5 added the gate and the preload only). The browser keyboard and button tests use reduced motion so `/examples` does not auto-start its WebGL demo (first full run timed out on `/examples` buttons under load). Lighthouse CI is pending (no quiet machine for a baseline). The MIT test is `it.fails` until DX.11.
+- Environment: the website's tests read `../automata-framework`; in this worktree that is a symlink `/home/user/wt/automata-framework` to the framework checkout.
+- Open: the Owner's real-phone, Safari and second-person pass; the Owner's read of the privacy and terms wording.
