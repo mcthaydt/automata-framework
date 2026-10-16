@@ -1,0 +1,30 @@
+import { z } from 'zod'
+
+// The `itch` section of a game's ship.config.ts (PUB spec §4). butler names a project `user/game` in lower case
+// (https://itch.io/docs/butler/pushing.html), and a channel is a lower-case slug such as `html5`.
+
+/** What a game writes in `ship.config.ts`. */
+export interface ItchConfig {
+  /** The itch.io project as butler names it: `user/game`, lower case. */
+  readonly project: string
+  /** The butler channel. Defaults to `html5`. */
+  readonly channel?: string | undefined
+}
+
+/** The checked settings, with the channel filled in. */
+export interface ItchSettings {
+  readonly project: string
+  readonly channel: string
+}
+
+const SLUG = /^[a-z0-9][a-z0-9._-]*$/
+
+export const itchConfigSchema: z.ZodType<ItchSettings, ItchConfig> = z.object({
+  project: z
+    .string()
+    .regex(
+      /^[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*$/,
+      'must be the lower-case itch.io project, user/game',
+    ),
+  channel: z.string().regex(SLUG, 'must be a lower-case channel name such as html5').default('html5'),
+})

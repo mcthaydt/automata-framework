@@ -42,8 +42,8 @@
 
 ## Steps
 
-- [ ] **1. Config.** `itch-config.schema.test.ts`: `mcthaydt/emberwick` parses with channel `html5`; `McThaydt/Emberwick`, `emberwick` and `a/b/c` fail naming `project`. Fails: module missing. Add the schema and `ShipConfig.itch`.
-- [ ] **2. Limits and checks.** `itch-checks.test.ts`, one fixture each, each problem naming the file and the limit:
+- [x] **1. Config.** `itch-config.schema.test.ts`: `mcthaydt/emberwick` parses with channel `html5`; `McThaydt/Emberwick`, `emberwick` and `a/b/c` fail naming `project`. Fails: module missing. Add the schema and `ShipConfig.itch`.
+- [x] **2. Limits and checks.** `itch-checks.test.ts`, one fixture each, each problem naming the file and the limit:
   - no `index.html`; `game.entry = 'play.html'` says itch.io needs `index.html`;
   - 1,001 files (limit 1,000); a 241-character path (limit 240); a sparse 200 MB + 1 byte file (limit 200 MB); three 200 MB sparse files (total limit 500 MB);
   - `<img src="assets/Hero.png">` with `assets/hero.png` on disk; a CSS `url()` and a JS string the same; an exactly-cased build passes;
@@ -51,8 +51,8 @@
 
   Fails: module missing. Add `itch-limits.ts` and `itch-checks.ts`.
 
-- [ ] **3. Zip.** `itch-zip.test.ts`: two zips of the same folder are byte-identical; entries are sorted; every entry's DOS date is 1980-01-01; the zip unpacks (`yauzl`) to the same bytes. Fails: module missing. Add `itch-zip.ts`.
-- [ ] **4. `prepareItch`.** `prepare-itch.test.ts`: writes `<id>-<version>-itch.zip` next to `dist`; a wrong tag, a root-absolute path, a missing `index.html`, a case mismatch and `ruken.toml` each stop it with their own error and no zip, in the spec's order. Fails: module missing. Add `prepare-itch.ts` (moving the walk to `build-files.ts`; `root-absolute.test.ts` stays green).
+- [x] **3. Zip.** `itch-zip.test.ts`: two zips of the same folder are byte-identical; entries are sorted; every entry's DOS date is 1980-01-01; the zip unpacks (`yauzl`) to the same bytes. Fails: module missing. Add `itch-zip.ts`.
+- [ ] **4. `prepareItch`.** `prepare-itch.test.ts`: writes `<id>-<version>-itch.zip` next to `dist`; a wrong tag, a root-absolute path, a missing `index.html`, a case mismatch and `ruken.toml` each stop it with their own error and no zip, in the spec's order. Fails: module missing. Add `prepare-itch.ts`. (The walk moved to `build-files.ts` in step 2, which the checks test needed; `root-absolute.test.ts` stayed green.)
 - [ ] **5. `publishToItch`.** `publish-to-itch.test.ts` with the fake `ProcessRunner`:
   - exact argv `butler push <dist> mcthaydt/emberwick:html5 --userversion 1.2.0 --if-changed`, the key in `env`, never in argv, `echo: true`;
   - no `itch` section, no key, no butler: `ItchSettingMissing` naming how to get it, and zero runs;
