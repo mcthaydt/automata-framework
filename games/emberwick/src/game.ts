@@ -3,6 +3,7 @@
 import { defineGame, keys } from '@mcthaydt/automata-game'
 import { placeWick } from './base-sim.ts'
 import { parseRoom, ROOM } from './content/room.ts'
+import { EMBERWICK_FLOW } from './flow.ts'
 import { base2dPlugin, Move } from './sim/index.ts'
 
 const room = parseRoom(ROOM)
@@ -29,4 +30,6 @@ export const emberwick = defineGame({
   size: { width: room.width * room.tileSize, height: room.height * room.tileSize },
   sim: { plugins: [base2dPlugin], seed: 1, setup: (sim) => placeWick(sim, room) },
   input,
+  // The flow for the runtime; the room is the sim's content (`sim.content.room`).
+  content: { ...EMBERWICK_FLOW, sim: { room } },
 })

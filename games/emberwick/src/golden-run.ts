@@ -1,6 +1,4 @@
-import type { Command } from '@mcthaydt/automata-sim'
-import { createSim } from '@mcthaydt/automata-sim'
-import { parseRoom, ROOM } from './content/room.ts'
+import { type Command, createSim } from '@mcthaydt/automata-sim'
 import { emberwick } from './game.ts'
 import { routeInputs } from './golden.ts'
 import type { MoveInput } from './sim/index.ts'
@@ -36,8 +34,8 @@ export async function runGolden(): Promise<{
   inputs: MoveInput[]
   commands: Command[]
 }> {
-  const { plugins, seed, setup } = emberwick.sim
-  const sim = await createSim({ plugins: [...plugins], seed, content: { room: parseRoom(ROOM) } })
+  const { plugins, seed, content, setup } = emberwick.sim
+  const sim = await createSim({ plugins: [...plugins], seed, content })
   setup?.(sim)
   const target = fakeWindow()
   const source = emberwick.input?.attach(target)
