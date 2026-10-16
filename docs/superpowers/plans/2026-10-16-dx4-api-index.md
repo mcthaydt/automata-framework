@@ -2,7 +2,7 @@
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §2.3 ("Complete plain-text documentation", "Exhaustive API reference"), §3.7 (`automata-api` reads `reference/api.md`), §3.8, §8 (unit: API index extraction), §10 (DX.4).
 - **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16 with every recommended default.
-- **Progress:** 4 of 6 steps.
+- **Progress:** 6 of 6 steps.
 
 ## Decisions
 
@@ -14,8 +14,8 @@
 
 ## Files
 
-- **Create** `tooling/api-index/`: `package.json` (`@mcthaydt/api-index`, private), `tsconfig.json`, `src/entry-points.ts`, `src/extract.ts`, `src/render.ts`, `src/corpus.ts`, `src/baseline.ts`, `src/cli.ts`, `src/*.test.ts`, `fixtures/repo/` (a tiny workspace with built `.d.ts`), `undocumented-baseline.json`.
-- **Modify:** root `package.json` (`api-index` script; `ci:local` after `pnpm build`), `.github/workflows/ci.yml` (checks job, after `pnpm build`), `docs/versions.md` (the 6.0.3 row names api-index), 02, 03.
+- **Create** `tooling/api-index/`: `package.json` (`@mcthaydt/api-index`, private), `tsconfig.json`, `src/entry-points.ts`, `src/extract.ts`, `src/render.ts`, `src/corpus.ts`, `src/baseline.ts`, `src/run.ts`, `src/cli.ts`, `src/*.test.ts`, `vitest.config.ts`, `turbo.json`, `fixtures/repo/` (a tiny workspace with built `.d.ts`), `undocumented-baseline.json`.
+- **Modify:** `biome.json` (fixtures excluded, like `dist`), root `package.json` (`api-index` script; `ci:local` after `pnpm build`), `.github/workflows/ci.yml` (checks job, after `pnpm build`), `docs/versions.md` (the 6.0.3 row names api-index), 02, 03.
 
 ## Interfaces
 
@@ -33,8 +33,8 @@
 - [x] **2. Extraction.** `extract.test.ts` over the fixture `.d.ts`: a documented function (overloads joined), interface, type alias, const, class and enum get the right kind, signature (no `export`/`declare`) and doc (with `@tags`); an export renamed through a chunk (`export { n as Renamed }`) is named `Renamed` in its signature; an undocumented export has `doc: ''`. Fails on the missing module; implement with the TypeScript 6 checker; pass.
 - [x] **3. Doc check and baseline.** `baseline.test.ts`: an undocumented export not in the baseline is reported; a baseline id that is documented or missing is reported as stale; a clean set reports nothing. Fails; implement; pass.
 - [x] **4. Renderers and corpus.** `render.test.ts`: `api.json` carries the version and every field; `api.md` states the version and has one section per entry point with each signature in a `ts` block; `llms-full.txt` holds every `CORPUS` file in order, then the API index; a missing corpus file throws. Fails; implement; pass.
-- [ ] **5. CLI and CI hook.** `cli.test.ts`: on the fixture repo the CLI writes the four files and exits 1 naming the undocumented export; with a matching baseline it exits 0; with no build it exits 2. `ci.test.ts`: `ci.yml`'s checks job and `ci:local` run `pnpm api-index` after `pnpm build`. Fail; add the root script, `ci:local` step and `ci.yml` step; pass.
-- [ ] **6. Real run.** `pnpm build && pnpm api-index`: write `undocumented-baseline.json` from the first run's findings, record the export and undocumented counts, rerun to exit 0, and read `api.md` and `llms-full.txt`. Then `pnpm format`, `pnpm check`.
+- [x] **5. CLI and CI hook.** `run.test.ts`: on the fixture repo `runApiIndex` (the CLI's body) writes the four files and exits 1 naming the undocumented export; with a matching baseline it exits 0; with no build it exits 2. `ci.test.ts`: `ci.yml`'s checks job and `ci:local` run `pnpm api-index` after `pnpm build`. Fail; add the root script, `ci:local` step and `ci.yml` step; pass.
+- [x] **6. Real run.** `pnpm build && pnpm api-index`: write `undocumented-baseline.json` from the first run's findings, record the export and undocumented counts, rerun to exit 0, and read `api.md` and `llms-full.txt`. Then `pnpm format`, `pnpm check`.
 
 ## Gates
 
@@ -46,4 +46,7 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-10-16 | Plan | `73d7dfb` | |
+| 2026-10-16 | 1, 2 | `5016c81` | Red: missing modules. Biome reformatted the fixture `.d.ts` (dropped semicolons), so `tooling/api-index/fixtures` is excluded from biome like `dist`. TypeScript joins the doc comments of overloads; the test pins that. |
+| 2026-10-16 | 3, 4 | `a2ded4b` | Red: missing modules. `api.md` and `llms-api.txt` are one text (`apiReference`), so they cannot differ. |
+| 2026-10-16 | 5, 6 | `a5c2780` | Red: missing `run.ts`; `ci.test.ts` failed on the missing script and steps. The first fixture run timed out at 5 s loading the default lib; the checker reads no types, so `noLib` and `types: []` (26 tests in 5.7 s). Real run: 359 exports, 18 entry points, 184 undocumented written to the baseline, rerun exit 0, two runs byte-identical, no absolute paths in the outputs. `pnpm check` green (1,684 unit tests passed, 4 skipped). |
