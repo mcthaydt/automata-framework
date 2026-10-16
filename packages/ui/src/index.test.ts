@@ -21,6 +21,7 @@ test.each([
   // boot failures and slots (§3.6, §3.7)
   'bootFailureView',
   'BOOT_FAILURE_COPY_EN',
+  'withHostName',
   'UI_SLOT_NAMES',
   // focus (§3.5)
   'FocusNavigator',

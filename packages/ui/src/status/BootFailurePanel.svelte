@@ -11,6 +11,7 @@ import {
   type BootFailureCopy,
   bootFailureView,
   type HostKind,
+  withHostName,
 } from './boot-failure'
 import ErrorPanel from './ErrorPanel.svelte'
 import type { ErrorAction } from './error-panel'
@@ -18,6 +19,10 @@ import type { ErrorAction } from './error-panel'
 interface Props {
   failure: BootFailure
   hostKind: HostKind
+  /** `Hosting.hostName` ('Ruken', 'itch.io' …): fills "Back to {host}". */
+  hostName: string
+  /** Whether the host granted `exit`. Without it "Back to …" is never drawn (PUB spec §3.1). */
+  canExit: boolean
   /** The game's copy, merged over the English defaults. */
   copy?: Partial<BootFailureCopy> | undefined
   onRetry: () => void
@@ -26,10 +31,10 @@ interface Props {
   onExit: () => void
 }
 
-const { failure, hostKind, copy = {}, onRetry, onContinue, onExit }: Props = $props()
+const { failure, hostKind, hostName, canExit, copy = {}, onRetry, onContinue, onExit }: Props = $props()
 
 const words = $derived({ ...BOOT_FAILURE_COPY_EN, ...copy })
-const view = $derived(bootFailureView(failure, hostKind))
+const view = $derived(bootFailureView(failure, hostKind, canExit))
 
 const handlerFor = (action: BootFailureAction): (() => void) =>
   action === 'retry' ? onRetry : action === 'exit' ? onExit : (onContinue ?? onExit)
@@ -37,7 +42,7 @@ const handlerFor = (action: BootFailureAction): (() => void) =>
 const actions = $derived<ErrorAction[]>(
   view.actions.map((action, index) => ({
     id: action,
-    label: words[action],
+    label: withHostName(words[action], hostName),
     kind: index === 0 ? 'primary' : 'secondary',
     onSelect: handlerFor(action),
   })),

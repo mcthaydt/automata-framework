@@ -77,6 +77,7 @@ export {
   bootFailureView,
   type ErrorCode,
   type HostKind,
+  withHostName,
 } from './status/boot-failure'
 export { default as ErrorPanel } from './status/ErrorPanel.svelte'
 export type { ErrorAction } from './status/error-panel'
