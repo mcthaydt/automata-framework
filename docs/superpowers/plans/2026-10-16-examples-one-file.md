@@ -2,7 +2,7 @@
 
 - **Spec:** [`docs/superpowers/specs/2026-10-16-examples-one-file-design.md`](../specs/2026-10-16-examples-one-file-design.md)
 - **Status:** drafted 2026-10-16. **Pending EX.0 review.** Do not start before the Owner reviews the spec (AGENTS.md: a draft spec does not authorize implementation).
-- **Progress:** 0 of 5 tasks.
+- **Progress:** EX.2 and EX.1 implemented and locally verified (draft PRs, Owner review pending); EX.3–EX.5 open.
 
 ## Global constraints
 
@@ -17,29 +17,42 @@
 
 ## Task EX.1: runner, single package, catalog, smoke, parity, `--inline`
 
-### Files
-- **Create:**
-  - `tooling/examples-runner/` with `package.json`, `src/catalog.ts`, `src/catalog.test.ts`, `src/header.ts`, `src/header.test.ts`, `src/vite-plugin.ts`, `src/vite-plugin.test.ts`, `src/page-template.ts`, `src/parity.ts`, `src/examples.parity.test.ts` and `src/fixtures/`;
-  - `host/`, moved from `examples/demo-host/`;
-  - `examples/package.json`, `examples/tsconfig.json`, `examples/vite.config.ts`, `examples/e2e/examples.e2e.ts`.
+### Files (refined at `4d29ab0`, stacked on EX.2)
+- **Create** in `tooling/examples-runner/` (package `@mcthaydt/examples-runner`, private):
+  - `package.json`, `tsconfig.json`, `vitest.config.ts`;
+  - `src/header.ts` + `header.test.ts`, `src/catalog.ts` + `catalog.test.ts`, `src/page-template.ts`, `src/vite-plugin.ts` + `vite-plugin.test.ts`, `src/typecheck.ts` (+ test; pending examples are left out of `tsc`), `src/cli.ts` (`pnpm examples [name]`), `src/smoke.ts` (the parametric Playwright smoke), `src/parity.ts` + `src/examples.parity.test.ts`;
+  - `src/fixtures/catalog/` (one bad example per catalog rule) and `src/fixtures/examples/` (the stub example `core/core-stub.ts`, its `__goldens__/core-stub.replay`, and `stub-start-game.ts`, a test stand-in for DX.2's `startGame` that is named as a stub and exported only to the fixture runner);
+  - `fixtures.vite.config.ts` and `e2e/runner.e2e.ts` (the runner's own smoke over the stub);
+  - `host/` (`host.ts`, `index.html`, `ports.ts`, `preview-headers.ts`, `testing.ts`, `vite.config.ts`), moved with `git mv` from `examples/demo-host/` and exported as `@mcthaydt/examples-runner/host/{ports,preview-headers,testing}`.
+- **Create** in `examples/` (package `@af-examples/examples`): `package.json`, `tsconfig.json`, `vite.config.ts`, `e2e/examples.e2e.ts`, `__goldens__/.gitkeep`.
 - **Modify:**
-  - `tooling/check-boundaries/src/check.ts`, `check.test.ts`, `cli.ts` (`--inline`);
-  - `pnpm-workspace.yaml`, the root `package.json` (`examples`, `build:examples`, `boundaries`);
-  - `playwright.config.ts` (the `examples` project);
-  - `.github/workflows/ci.yml`.
+  - `tooling/check-boundaries/src/{check,check.test,cli,files}.ts`, `fixtures/inline/*.ts` (`--inline`; a directory walk skips `node_modules` and `dist`); changeset (patch);
+  - `pnpm-workspace.yaml` (adds `examples`; keeps `examples/*` and `examples/*/*` until EX.4 deletes the old demos and EX.5 the gallery), root `package.json` (`examples`, `build:examples`, `boundaries`, `ci:local`);
+  - the old demos' imports of `@af-examples/demo-host/*` (5 demos: `package.json`, `vite.config.ts`, `e2e/*.ts`);
+  - `playwright.config.ts` (`examples` at Pixel 7 and `examples-compact` at 780×270; the runner and examples servers; the host server from its new package);
+  - `.github/workflows/ci.yml` (`build:examples` beside `build:demos` until EX.4);
+  - `tooling/release` workspace walk tests if the new top-level `examples` package changes what they list.
 
 ### Interfaces
-- **Consumed:** `startGame`/`defineGame` (DX.2, until then a stub fixture), `compileHeaders` (`@ruken/manifest`), `replayGolden` (`@mcthaydt/automata-testing/sim`), the demo-host's `openHosted` and `collectErrors`.
-- **Produced:** `readCatalog(root): CatalogEntry[]`, `parseHeader(source): Header | HeaderError[]`, and the `examplesRunner()` Vite plugin.
+- **Consumed:** `compileHeaders` (`@ruken/manifest`) through the host's `previewHeaders`, `replayGolden`/`goldenCommands` (`@mcthaydt/automata-testing/sim`), `createSim` and the `define*` verbs (`@mcthaydt/automata-sim`), the host's `openHosted` and `collectErrors`. `startGame` comes from the module the plugin is given (`start`, default `@mcthaydt/automata`, DX.2/PRODUCT.2); until then only the stub fixture runs.
+- **Produced:** `parseHeader(source): Header | HeaderError[]`, `readCatalog(root, options): CatalogEntry[]` (each entry carries its `problems`), `examplesRunner({ root, start?, noEval? })` (Vite plugin), `smokeExamples(entries, baseUrl)` and `goldenExamples(root)`.
+
+### Deviations recorded here
+- **Workspace globs:** the spec replaces `examples/*` and `examples/*/*` with `examples`; the old demos and the gallery are still packages until EX.4/EX.5, so the globs stay and `examples` is added. pnpm accepts a package whose folder holds other packages.
+- **Public imports:** the umbrella `@mcthaydt/automata` does not exist until PRODUCT.2, so the catalog accepts `@mcthaydt/automata` and any entry a `@mcthaydt/automata-*` package declares in `exports` (never `/src`). Narrowing core imports to the umbrella is a PRODUCT.2 follow-up.
+- **Catalog scope:** the catalog skips folders that hold a `package.json` (the old demos and the gallery, until EX.4/EX.5), `node_modules`, `dist`, `e2e`, `resources` and `__goldens__`, and the root `vite.config.ts`. Screenshot approval is recorded in `examples/screenshots-approved.json` (`"<module>/<module>-<name>.png": "<approval record>"`), written only from an Owner decision.
+- **Smoke projects:** `examples` and `examples-compact` also run the runner's own fixture smoke (`tooling/examples-runner/e2e/runner.e2e.ts`), so the path is proven while `examples/` has no runnable example; each suite also checks the index lists every catalog entry. Ports: examples build at `demoPort(6)`, runner fixtures at `demoPort(7)` (`host/ports.ts`).
+- **Parity in a browser:** the parity test reads headers and loads examples through `import.meta.glob` (no file system in a browser), and its Vitest config turns dependency discovery off, since the scan would follow the glob into a pending example's unresolved imports and reload the page mid-run.
+- **Stub:** with no `defineGame` yet, the stub example exports a plain object of the shape the runner reads (`id`, `sim.plugins`, `sim.seed`); it never imports or defines anything named like DX.2's API.
 
 ### Steps
-- [ ] **1. Header parser.** Write `header.test.ts`:
+- [x] **1. Header parser.** Write `header.test.ts`:
   - a fixture with every field parses;
   - a missing `Shows:` gives a `HeaderError` with its line;
   - `Difficulty: ★★★★★` is rejected.
 
-  Run `pnpm --filter @mcthaydt/examples-runner test` and confirm it fails because `parseHeader` does not exist. Implement `header.ts`, then confirm it passes.
-- [ ] **2. Catalog rules.** Write `catalog.test.ts` over `src/fixtures/`, where each bad fixture fails for its own reason:
+  Run `pnpm --filter @mcthaydt/examples-runner test:unit` and confirm it fails because `parseHeader` does not exist. Implement `header.ts`, then confirm it passes.
+- [x] **2. Catalog rules.** Write `catalog.test.ts` over `src/fixtures/`, where each bad fixture fails for its own reason:
   - a file outside `<module>/<module>-<name>.ts`;
   - an unknown module;
   - 101 code lines (spec E-h);
@@ -49,33 +62,33 @@
   - a `Pending:` naming a task already ticked in `docs/02-master-delivery-plan.md`.
 
   Confirm it fails, implement `catalog.ts`, confirm it passes.
-- [ ] **3. `--inline` boundaries.** In `tooling/check-boundaries/src/check.test.ts`:
+- [x] **3. `--inline` boundaries.** In `tooling/check-boundaries/src/check.test.ts`:
   - `Date.now()` in a `defineSystem` callback fails with rule and line (spec E-g);
   - `Math.random()` in `definePlugin` `setup` fails;
   - `document` at file level passes in inline mode;
   - a clean system body passes.
 
   Confirm they fail on the missing mode. Implement it by reusing the existing visitor scoped to those function bodies, then confirm they pass. Add `--inline examples` to the root `boundaries` script.
-- [ ] **4. Vite plugin.** Write `vite-plugin.test.ts`:
+- [x] **4. Vite plugin.** Write `vite-plugin.test.ts`:
   - `/core/core-stub/` returns the generated HTML with the `no-eval` import first and the example's module;
   - preview responses carry `compileHeaders`' CSP.
 
   Confirm it fails, implement `vite-plugin.ts` and `page-template.ts`, confirm it passes.
-- [ ] **5. Single examples package.**
+- [x] **5. Single examples package.**
   - Create `examples/package.json` (`@af-examples/examples`), `tsconfig.json` and `vite.config.ts`.
   - Move `examples/demo-host` to `tooling/examples-runner/host` with `git mv`, and update its importers.
   - Update `pnpm-workspace.yaml`.
 
   Verify that `pnpm install`, `pnpm typecheck` and `pnpm examples` serve the index with a stub example.
-- [ ] **6. Smoke project.** Write `examples/e2e/examples.e2e.ts`, which loops over `readCatalog()`. For each non-pending entry it opens the example hosted, waits for ready, and asserts no errors. Pending entries are reported with `test.skip(true, 'pending: <task>')`.
+- [x] **6. Smoke project.** Write `examples/e2e/examples.e2e.ts`, which loops over `readCatalog()`. For each non-pending entry it opens the example hosted, waits for ready, and asserts no errors. Pending entries are reported with `test.skip(true, 'pending: <task>')`.
   - Confirm it fails with no server.
   - Add the `examples` project (Pixel 7 and 780×270) and its `webServer` to `playwright.config.ts`.
   - Confirm it passes on the stub.
-- [ ] **7. Parity.** Write `examples.parity.test.ts`. For each `Golden:` entry it runs `replayGolden` against `examples/__goldens__/<name>.replay` in Node and the browsers project.
+- [x] **7. Parity.** Write `examples.parity.test.ts`. For each `Golden:` entry it runs `replayGolden` against `examples/__goldens__/<name>.replay` in Node and the browsers project.
   - Confirm it fails on a stub with no replay.
   - Record the stub's replay once, in Node.
   - Confirm it passes in Node, Chromium, WebKit and Firefox.
-- [ ] **8. CI.**
+- [x] **8. CI.**
   - In `ci.yml` and `ci:local`, `build:demos` becomes `build:examples`.
   - Run actionlint.
   - Run `pnpm check`, `pnpm test:parity` and `pnpm test:e2e`. The old demos keep running until EX.4.
@@ -150,3 +163,4 @@ Per demo:
 | Date | Task | Commits | Notes |
 |---|---|---|---|
 | 2026-10-16 | EX.2 | `d81fa9b` (file list), `6d8e5c7` (move) on `claude/clever-pasteur-ujmu6e-ex2` | Red first: ship's workflow and turbo-input tests and release's workspace walk failed on the missing `games/`. Green after the move. `pnpm check` 26/26 + 22/22 turbo tasks (1,660 unit tests passed, 4 skipped; 35 of 48 tasks replayed from turbo's cache on identical inputs); `pnpm test:parity` 9/9 tasks, none cached (590 tests; Emberwick's golden `31f50888ccb4cf0a` green in Chromium, WebKit and Firefox, and its Node golden test 3/3); `pnpm test:e2e` 46/46 (placeholder 3, base-2d 9, base-2d-compact 9, ui-primitives 5, demos 20; ports 4620/4720); `build` + `prepare-ruken` for both games and the placeholder's `budget:size` (S8 budgets met). `pnpm lint:actions` not run: no Docker daemon in the container. |
+| 2026-10-16 | EX.1 | `cd54e67` (file list), `c32b1cc` (header, catalog), `d4254cf` (`--inline`), `363f787` (plugin, pages, host move), `7c7906e` (examples package), `d37ce3a` (smoke), `533b481` (parity), `d8c8d5a` (CI) on `claude/clever-pasteur-ujmu6e-ex1`, stacked on EX.2 | Red first at each step: `parseHeader`/`readCatalog`/`typecheckConfig`/plugin modules missing; inline tests reported the file-level import and walked `node_modules`; smoke `ERR_CONNECTION_REFUSED` before its servers; parity `core-stub.replay is missing`; ship's workflow test missing `pnpm build:examples` in `ci.yml`. Stub replay recorded once in Node (`AUTOMATA_UPDATE_GOLDENS=1`). Gates in 02's execution record. `pnpm lint:actions` not run: no Docker daemon. |

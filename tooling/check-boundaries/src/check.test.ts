@@ -1,6 +1,7 @@
-import { readFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { expect, test } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { checkSource } from './check'
 import { collectSources } from './files'
 
@@ -92,4 +93,41 @@ test('a root may allow another checked sim folder’s entry point by its exact n
   expect(imports('@af-examples/base-2d/sim', ['@af-examples/base-2d/sim'])).toEqual([])
   // Exact names only: the package root (which reaches the host bridge) stays out.
   expect(imports('@af-examples/base-2d', ['@af-examples/base-2d/sim'])).toEqual(['import'])
+})
+
+describe('inline mode (EX spec §4): only the sim inside a browser file is checked', () => {
+  const inline = (name: string) => {
+    const path = join(import.meta.dirname, '../fixtures/inline', name)
+    return checkSource(path, readFileSync(path, 'utf8'), { inline: true }).map((f) => [f.rule, f.line, f.col])
+  }
+
+  test('Date.now() in a defineSystem callback is reported with its rule and line', () => {
+    expect(inline('system-date.ts')).toEqual([['banned-global', 4, 41]])
+  })
+
+  test('Math.random() in definePlugin setup is reported', () => {
+    expect(inline('plugin-random.ts')).toEqual([['math-member', 3, 81]])
+  })
+
+  test('the DOM, the clock, the console and any import at file level pass', () => {
+    expect(inline('file-level-dom.ts')).toEqual([])
+  })
+
+  test('a clean system and plugin pass', () => {
+    expect(inline('clean-system.ts')).toEqual([])
+  })
+})
+
+test('a folder walk never descends into installed packages or build output', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'check-boundaries-'))
+  try {
+    for (const sub of ['node_modules/pkg', 'dist', 'src']) mkdirSync(join(dir, sub), { recursive: true })
+    for (const file of ['node_modules/pkg/index.js', 'dist/main.js', 'src/a.ts'])
+      writeFileSync(join(dir, file), 'export {}\n')
+    expect(collectSources(dir).map((f) => f.slice(dir.length + 1).replaceAll('\\', '/'))).toEqual([
+      'src/a.ts',
+    ])
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
 })
