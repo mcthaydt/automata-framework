@@ -70,6 +70,19 @@ describe('RenderDeltaConsumer', () => {
     expect(world.children).toContain(spriteContainer)
   })
 
+  it('passes the matched component id to a record resolver factory', () => {
+    const world = new Container()
+    const factory = vi.fn(
+      (_row: RenderRow, _componentId?: string): EntityView => ({ container: new Container() }),
+    )
+    const consumer = new RenderDeltaConsumer(world, { body: factory })
+    const row = { sid: 7, components: { body: { x: 1, y: 2 } } }
+
+    consumer.apply({ resync: false, added: [row], changed: [], removed: [] })
+
+    expect(factory).toHaveBeenCalledWith(row, 'body')
+  })
+
   it('advances prev = curr on changed and updates view', () => {
     const world = new Container()
     const viewContainer = new Container()
