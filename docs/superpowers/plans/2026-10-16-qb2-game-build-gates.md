@@ -86,13 +86,17 @@
 - **Produced:** a step named `secrets` after `no-eval`, skipped with `--sim-only`. Each finding is `{ file: 'dist/<path>', line, col, rule: 'secret-<rule>', message }`.
 
 ### Steps
-- [ ] **4. Step.** In `run-check.test.ts`:
+- [x] **4. Step.** In `run-check.test.ts`:
   - the clean game's step order is `boundaries, typecheck, test, no-eval, secrets`;
   - `--sim-only` skips `secrets`;
   - a planted `sk_live_` key in the fake `dist/assets/index.js` is a `secrets` finding with file, line and column, and the run exits 1.
 
   Confirm they fail on the missing step. Implement it: dist files come through `Files`, so the fake works, and the step reads the game's `.env*` files with `readEnvValues`. Then confirm they pass.
-- [ ] **5. Real run.** Run `pnpm --filter @mcthaydt/automata-cli check:example` on Emberwick and confirm that `secrets` passes.
+- [x] **5. Real run.** Run `pnpm --filter @mcthaydt/automata-cli check:example` on Emberwick and confirm that `secrets` passes.
+
+  Done: all six steps passed, `secrets` in 11 ms.
+
+  Deviation: when `no-eval` reports a failed build, `secrets` reports "not scanned: the build failed (see no-eval)" rather than reading a stale `dist/`. The `csp` test now reads step index 5, because `secrets` comes before it.
 
 ## Task 3: `ui` rules: no `{@html}`, no platform chrome in kits
 
