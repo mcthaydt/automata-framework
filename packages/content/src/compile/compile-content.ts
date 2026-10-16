@@ -23,6 +23,7 @@ import {
 import { checkWithRuken } from '../game/ruken-check'
 import { type ContentData, type ContentGenerator, runGenerators } from '../generate/content-generator'
 import { contentHash } from '../hash/content-hash'
+import { type ParaglideOptions, paraglideProblems } from '../locale/compile-messages'
 import { checkTranslation, collectMessages, type MessageCatalog } from '../locale/messages'
 import { checkPalette, paletteSchema } from '../palette/palette'
 import { locateJsonKeys } from '../parse/locate-json-keys'
@@ -54,6 +55,8 @@ export interface ContentOptions {
   readonly generators?: readonly ContentGenerator[] | undefined
   /** Relative to `root`. Default `content/generated`. */
   readonly outDir?: string | undefined
+  /** Compile the catalogs with Paraglide on each build (PRODUCT.L2). Absent: no Paraglide output. */
+  readonly paraglide?: ParaglideOptions | undefined
 }
 
 export interface CompiledContent {
@@ -96,6 +99,7 @@ function optionProblems(options: ContentOptions): string[] {
   const outDir = outDirOf(options)
   if (!isRelativeFolder(outDir))
     problems.push(`outDir ${outDir} must be a relative folder inside the project`)
+  if (options.paraglide !== undefined) problems.push(...paraglideProblems(options.paraglide, outDir))
   return problems
 }
 

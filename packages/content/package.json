@@ -44,6 +44,8 @@
     "build": "tsdown"
   },
   "dependencies": {
+    "@inlang/paraglide-js": "2.25.4",
+    "@inlang/plugin-message-format": "4.4.4",
     "@mcthaydt/automata-sim": "workspace:*",
     "effect": "3.22.2",
     "smol-toml": "1.9.0",

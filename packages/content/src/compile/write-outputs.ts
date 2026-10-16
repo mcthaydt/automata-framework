@@ -13,6 +13,7 @@ import { join } from 'node:path'
 import { Effect } from 'effect'
 import type { Diagnostic } from '../diagnostics/diagnostic'
 import { pathKind, readTextIfPresent, removeFile, writeFileAtomically } from '../files/content-files'
+import { compileMessages } from '../locale/compile-messages'
 import {
   type CompiledContent,
   type ContentOptions,
@@ -63,6 +64,10 @@ export const buildContent = (
       yield* removeFile(path).pipe(
         Effect.mapError((error) => new ContentWriteFailed({ path, cause: error.cause })),
       )
+    }
+    // After the outputs, so a failed Paraglide compile leaves the checked content written.
+    if (options.paraglide !== undefined) {
+      yield* compileMessages({ root: options.root, ...compiled, paraglide: options.paraglide })
     }
     return compiled
   })
