@@ -58,6 +58,16 @@ const SKIPPED_DIRS: ReadonlySet<string> = new Set(['node_modules', 'dist', 'e2e'
 const ROOT_FILES: ReadonlySet<string> = new Set(['vite.config.ts'])
 // The core umbrella (PRODUCT.2); until it exists, the catalog also accepts the core packages' own entries.
 const UMBRELLA = '@mcthaydt/automata'
+// Zod is AF's only schema language: every command takes a Zod schema, and no core package re-exports `z`.
+const SCHEMA_LANGUAGE = 'zod'
+const AUTOMATA_PACKAGE = /^(@mcthaydt\/automata-[a-z0-9-]+)(?:\/|$)/
+
+interface PublicEntries {
+  /** Every specifier an example may import. */
+  readonly entries: ReadonlySet<string>
+  /** The names of the `@mcthaydt/automata*` packages in the workspace. */
+  readonly packages: ReadonlySet<string>
+}
 
 /** Every `.ts` file under `root`, skipping tooling folders and nested packages (the old demos, until EX.4). */
 function exampleFiles(root: string, dir = root): string[] {
@@ -73,9 +83,10 @@ function exampleFiles(root: string, dir = root): string[] {
   return files
 }
 
-/** Every specifier a published `@mcthaydt/automata*` package declares in `exports`. */
-function publicEntries(packagesDir: string): Set<string> {
-  const entries = new Set([UMBRELLA])
+/** Every specifier a published `@mcthaydt/automata*` package declares in `exports`, plus Zod. */
+function publicEntries(packagesDir: string): PublicEntries {
+  const entries = new Set([UMBRELLA, SCHEMA_LANGUAGE])
+  const packages = new Set<string>()
   for (const dir of readdirSync(packagesDir)) {
     const manifestPath = join(packagesDir, dir, 'package.json')
     if (!existsSync(manifestPath)) continue
@@ -85,10 +96,11 @@ function publicEntries(packagesDir: string): Set<string> {
       exports?: Record<string, unknown>
     }
     if (manifest.private === true || !manifest.name.startsWith(UMBRELLA)) continue
+    packages.add(manifest.name)
     for (const key of Object.keys(manifest.exports ?? {}))
       entries.add(key === '.' ? manifest.name : `${manifest.name}/${key.slice(2)}`)
   }
-  return entries
+  return { entries, packages }
 }
 
 /** Task IDs in the delivery plan, and which of them are ticked. */
@@ -97,6 +109,14 @@ function deliveryTasks(planPath: string): Map<string, boolean> {
   for (const match of readFileSync(planPath, 'utf8').matchAll(/^\| \[( |x)\] \| ([A-Za-z0-9.-]+) —/gm))
     tasks.set(match[2] as string, match[1] === 'x')
   return tasks
+}
+
+/** The task IDs a `Pending:` line lists, comma-separated; none when the example is not pending. */
+export function pendingTasks(header: Header): string[] {
+  return (header.pending ?? '')
+    .split(',')
+    .map((task) => task.trim())
+    .filter((task) => task !== '')
 }
 
 /** Lines that are code: after the header, not blank and not only a comment. */
@@ -128,14 +148,25 @@ function importsOf(file: string, source: string): string[] {
   return imports
 }
 
-function importProblem(specifier: string, entries: ReadonlySet<string>): string | undefined {
+/**
+ * Why an import is not allowed, if it is not. A pending example may import an `@mcthaydt/automata-*` package the
+ * workspace does not have yet: its pending task adds it (DX.2 adds `@mcthaydt/automata-game`). Once the example is
+ * no longer pending, the package must exist and declare the entry.
+ */
+function importProblem(
+  specifier: string,
+  publicImports: PublicEntries,
+  pending: boolean,
+): string | undefined {
   if (specifier.startsWith('.') || specifier.startsWith('/')) return `import "${specifier}" is relative`
-  if (!entries.has(specifier)) return `import "${specifier}" is not a public entry`
-  return undefined
+  if (publicImports.entries.has(specifier)) return undefined
+  const packageName = AUTOMATA_PACKAGE.exec(specifier)?.[1]
+  if (pending && packageName !== undefined && !publicImports.packages.has(packageName)) return undefined
+  return `import "${specifier}" is not a public entry`
 }
 
 export function readCatalog(root: string, options: CatalogOptions = {}): CatalogEntry[] {
-  const entries = publicEntries(options.packagesDir ?? join(repoRoot, 'packages'))
+  const publicImports = publicEntries(options.packagesDir ?? join(repoRoot, 'packages'))
   const tasks = deliveryTasks(options.deliveryPlan ?? join(repoRoot, 'docs/02-master-delivery-plan.md'))
   const approvedPath = join(root, 'screenshots-approved.json')
   const approved = existsSync(approvedPath)
@@ -164,12 +195,13 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
         problems.push(`the title line names "${header.name}", not "${fileId}"`)
       if (known && header.tier !== (CORE_MODULES.includes(module) ? 'core' : 'plus'))
         problems.push(`Tier: ${header.tier} does not match the ${module} module`)
-      if (header.pending !== undefined) {
-        const ticked = tasks.get(header.pending)
-        if (ticked === undefined)
-          problems.push(`Pending: ${header.pending} is not a task in the delivery plan`)
-        else if (ticked)
-          problems.push(`Pending: ${header.pending} is ticked in the delivery plan; remove the Pending line`)
+      // `Pending:` names every open task whose verbs the example needs (`Pending: DX.2, DX.2b`).
+      const waitingFor = pendingTasks(header)
+      for (const task of waitingFor) {
+        const ticked = tasks.get(task)
+        const remove = waitingFor.length === 1 ? 'remove the Pending line' : 'remove it from the Pending line'
+        if (ticked === undefined) problems.push(`Pending: ${task} is not a task in the delivery plan`)
+        else if (ticked) problems.push(`Pending: ${task} is ticked in the delivery plan; ${remove}`)
       }
     }
 
@@ -178,7 +210,7 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
       problems.push(`${codeLines} code lines, over the budget of ${CODE_LINE_BUDGET}`)
     const imports = importsOf(file, source)
     for (const specifier of imports) {
-      const problem = importProblem(specifier, entries)
+      const problem = importProblem(specifier, publicImports, header?.pending !== undefined)
       if (problem !== undefined) problems.push(problem)
     }
     const screenshot = path.replace(/\.ts$/, '.png')
