@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §4 items 1 to 4 (the runtime part of "Messages", "Negotiation", "Formatting", "Document"), acceptance cases L-b and L-c (runtime level); §9 ownership: `runtime` owns negotiation and `t()`.
 - **Status:** drafted 2026-10-16. PRODUCT.0 is Owner-approved with every recommended default (2026-10-16), so this plan may run.
-- **Progress:** 4 of 7 steps.
+- **Progress:** 5 of 7 steps.
 - **Split (PRODUCT.L is three PRs).** This plan is **PRODUCT.L1**, the runtime part. **PRODUCT.L2** (content: Paraglide compile of the content catalogs, per-locale TOML text, glyph sets, L-d, L-e once M5's asset build exists) and **PRODUCT.L3** (ui: language picker, `xx-long` pseudo-locale in every layout contract, logical properties and the right-to-left contract, the L-a example and the e2e first-frame check) are recorded as rows in 02. The `automata check` additions (§4 item 8) wait for DX.6 (PR #42) and are a follow-up row.
 
 ## Source
@@ -60,11 +60,11 @@ FloorFifty's tests for these files are UI-level (Svelte stores); the AF tests be
   - a type test: `t('nope')` and `t('hello')` without inputs are type errors (`// @ts-expect-error`).
 
   Confirm it fails on the missing module, implement, confirm it passes.
-- [ ] **5. `Locale` service.** `locale.test.ts`, with a fake `Hosting` (kind, locale, saves) and a presentation bus:
+- [x] **5. `Locale` service.** `locale.test.ts`, with a fake `Hosting` (kind, locale, saves) and a presentation bus:
   - the initial locale is the negotiated one, and the element's `lang`/`dir` are set before `makeLocale` returns;
   - `set('fr')` updates `current`, publishes `'locale.changed'` with the previous locale, calls subscribers, updates `lang`, and writes `automata.locale` through `Hosting.saves`;
   - `set(null)` (Automatic) removes the saved key and goes back to negotiation without the saved step;
-  - `set('de')` with locales `en, fr` dies with a defect naming the locale (a picker never offers it);
+  - `set('de')` with locales `en, fr` throws, naming the locale (a picker never offers it);
   - a refused `saves.set` is logged and the locale still changes in memory (no device-storage fallback).
 
   Confirm the failure, implement, confirm it passes.

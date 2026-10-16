@@ -19,7 +19,7 @@ describe('bindParaglide (PRODUCT spec §4 item 1)', () => {
         current = locale
       },
     })
-    const play = fixture.messages['play'] as () => string
+    const play = fixture.messages.play as () => string
     expect(play()).toBe('Jouer')
     current = 'en'
     expect(play()).toBe('Play')
@@ -33,10 +33,10 @@ describe('bindParaglide (PRODUCT spec §4 item 1)', () => {
         current = locale
       },
     })
-    const setLocale = fixture.runtime['setLocale'] as (locale: string) => void
+    const setLocale = fixture.runtime.setLocale as (locale: string) => void
     setLocale('fr')
     expect(current).toBe('fr')
-    expect((fixture.messages['play'] as () => string)()).toBe('Jouer')
+    expect((fixture.messages.play as () => string)()).toBe('Jouer')
   })
 })
 
