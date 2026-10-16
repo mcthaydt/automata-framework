@@ -220,11 +220,11 @@ Per demo:
 
 ### Steps
 
-- [ ] **1. Red.**
+- [x] **1. Red.** Confirmed: the catalog test failed on `expected undefined to be 'core/core-good.png'`; the plugin tests on the missing `<img>` and `data-module`, a 404 for `/core/stub/source/` and the build inputs `[ 'core-stub', 'index' ]`; the e2e tests (both projects) on `section[data-module="core"] [data-example="core-later"]` not found and no View link to click. The pre-commit hook runs the affected unit tests, so the red tests landed with step 2's change.
   - `catalog.test.ts`: `core/core-good.ts` carries `screenshot: 'core/core-good.png'`; `core/core-shot.ts` carries none. Fails: no `screenshot` field.
   - `vite-plugin.test.ts`: `/core/stub/source/` and `/core/later/source/` serve the escaped source with Ruken's CSP and no script; the build inputs add `core-stub-source` and `core-later-source`; the index links `core-stub`'s View and both Source pages, and shows an approved screenshot. Fails: 404s and missing links.
   - `e2e/index.e2e.ts` and the smoke index test: each entry is under `section[data-module=<module>]`; `core-later` says `pending: OPEN.1` and has no View link; `core-stub`'s View opens the fake host with the example ready in one frame and its source (equal to the file) in the other, the two frames not overlapping and inside the viewport (side by side at 780 × 270, stacked at Pixel 7); no console errors. Fails: no `data-module`, no View link.
-- [ ] **2. Green.** Implement the files above; the unit tests and both e2e projects pass. Screenshots of the index and the viewer at both sizes go to `evidence/examples-index/` for Owner approval.
+- [x] **2. Green.** Implement the files above; the unit tests and both e2e projects pass. Screenshots of the index and the viewer at both sizes go to `evidence/examples-index/` for Owner approval. Done: catalog and plugin tests 27/27; `examples` and `examples-compact` 10 passed, 10 skipped (the pending examples); `pnpm examples` serves the index, the source pages and the fake host (`127.0.0.1:<server port + 500>`).
 - [ ] **3. Delete `examples/gallery`.** `git rm`, `pnpm install`, update `examples/README.md` and the workspace comment; `pnpm check`, `pnpm test:parity` and `pnpm test:e2e`.
 
 ## Execution log
