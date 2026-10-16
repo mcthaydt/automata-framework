@@ -2,7 +2,7 @@
 
 - **Spec:** [`docs/superpowers/specs/2026-10-16-quality-bar-design.md`](../specs/2026-10-16-quality-bar-design.md) §4.1 (input sanitization row), §4.3 (secrets in bundles, platform UI), §4.4, §7 QB.2, §9 QB-b. Owner-approved 2026-10-16.
 - **Status:** drafted 2026-10-16. Stacks on DX.6 (`automata check`, PR #42), which is not merged yet.
-- **Progress:** 0 of 3 tasks.
+- **Progress:** 3 of 3 tasks.
 
 ## Global constraints
 
@@ -110,6 +110,8 @@
   - `tooling/check-style/package.json`: `svelte`, at the version `ui` pins;
   - the `ui` spec (`docs/superpowers/specs/2026-10-11-m1-ui-design.md`): a new section with the kit rules.
 
+  Done as §3.11; the spec has no §3.8.
+
 ### Interfaces
 - **Produced:** `checkSvelte(file, code): StyleFinding[]`, with the rules `no-html` and `platform-chrome`.
   - The check parses with `svelte/compiler`. Comments are never read.
@@ -121,20 +123,22 @@
     - sign-in or payment wording: "sign in", "log in", "sign up", "create account", "password", "card number", "CVV", "CVC", "billing" or "checkout".
 
 ### Steps
-- [ ] **6. Rules.** Write `svelte.test.ts` over the fixtures:
+- [x] **6. Rules.** Write `svelte.test.ts` over the fixtures:
   - `clean-screen.svelte` passes;
   - each mimic fixture fails with `platform-chrome` and its line;
   - `html-tag.svelte` fails with `no-html`;
   - a mention of Ruken in a comment passes.
 
   Confirm it fails because `./svelte.ts` does not exist. Implement it and confirm it passes.
-- [ ] **7. CLI.** Write `cli.test.ts`:
+- [x] **7. CLI.** Write `cli.test.ts`:
   - a temporary `src/` with a planted `{@html}` makes `cli.ts` exit 1, naming the file and `no-html`;
   - a clean one exits 0;
   - `*.test.svelte` files and `testing/` folders are skipped.
 
   Confirm it fails because `.svelte` files are not read. Extend `cli.ts`, then confirm it passes. Run `pnpm style` and confirm it passes on today's `packages/ui`. If it finds an existing use, report it and stop.
-- [ ] **8. Spec.** Record the kit rule in the `ui` spec, covering what counts as platform chrome, where the check runs, and that kits (PRODUCT.6, in Automata Plus) run `check-style` over their sources. No kit exists in core yet, so the rule is proven on fixtures.
+
+  Done: `check-style: 195 files, 0 findings`. There is no existing `{@html}`. A `{@html}` planted in `ErrorPanel.svelte` gave 1 finding and exit 1, and was then reverted.
+- [x] **8. Spec.** Record the kit rule in the `ui` spec, covering what counts as platform chrome, where the check runs, and that kits (PRODUCT.6, in Automata Plus) run `check-style` over their sources. No kit exists in core yet, so the rule is proven on fixtures.
 
 ## Execution log
 

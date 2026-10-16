@@ -6,12 +6,21 @@ import { parseSync } from 'oxc-parser'
 // Note: namespace-qualified (ns.defineSystem) and aliased (import { defineSystem as ds }) factories are not recognized.
 // Call define* directly.
 
-export type StyleRule = 'file-name' | 'role-suffix' | 'role-mismatch' | 'role-missing' | 'parse-error'
+export type StyleRule =
+  | 'file-name'
+  | 'role-suffix'
+  | 'role-mismatch'
+  | 'role-missing'
+  | 'parse-error'
+  | 'no-html'
+  | 'platform-chrome'
 
 export interface StyleFinding {
   readonly file: string
   readonly rule: StyleRule
   readonly message: string
+  /** 1-based, for rules that point into the file (the Svelte rules); 0 when unknown. */
+  readonly line?: number
 }
 
 export const ROLES: ReadonlySet<string> = new Set([
