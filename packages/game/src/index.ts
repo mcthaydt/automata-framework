@@ -9,6 +9,8 @@ export {
 } from '@mcthaydt/automata-render-pixi'
 export { defaultContent } from './default-content.ts'
 export { type DefinedGame, defineGame, type GameSpec, GameSpecError } from './define-game.ts'
+export type { DrawContext, DrawTextOptions } from './draw/draw-layer.ts'
+export type { DrawEntity, DrawSim } from './draw/read-sim.ts'
 export {
   type InputMap,
   type InputSource,
