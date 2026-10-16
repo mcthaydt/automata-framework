@@ -45,3 +45,15 @@ test('readGolden refuses a symlink inside the project that points outside it', a
   await symlink(base, join(root, 'out'))
   await expect(read(join(root, 'out', 'secret.golden.json'))).rejects.toThrow(/is not inside/)
 })
+
+test('readGolden reads inside a wider root when one is given, and still refuses outside it', async () => {
+  // A package whose goldens sit beside it (the examples runner reads examples/__goldens__) names the folder
+  // that holds both; the project root stays the package's own.
+  const wider = (path: string) =>
+    goldenCommands({ root: base }).readGolden?.(
+      { project: { config: { root } } } as unknown as BrowserCommandContext,
+      path,
+    )
+  expect(await wider(join(base, 'secret.golden.json'))).toBe(Buffer.from('{"secret":1}').toString('base64'))
+  await expect(wider(join(base, '..', 'elsewhere.golden.json'))).rejects.toThrow(/is not inside/)
+})
