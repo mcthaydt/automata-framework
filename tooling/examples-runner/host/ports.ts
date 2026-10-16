@@ -1,10 +1,10 @@
-import { portsFor } from '../../packages/ship/src/ports/ports-for.ts'
+import { portsFor } from '../../../packages/ship/src/ports/ports-for.ts'
 
 // Where the feature demos' browser checks listen. The placeholder uses the checkout's port pair, the ui demo sits
 // 100 above the preview port and Emberwick 300 above the pair (games/emberwick/e2e/origins.ts). The shared demo
 // host sits 500 above the server port (5100–5199), and each demo's build 600 + 100 × its slot above the preview
 // port (5300–5399, 5400–5499, …), so one `pnpm test:e2e` runs every example side by side.
-const ports = portsFor(new URL('../..', import.meta.url).pathname, process.env)
+const ports = portsFor(new URL('../../..', import.meta.url).pathname, process.env)
 
 export const demoHostPort: number = Number(process.env.AF_E2E_DEMO_HOST_PORT ?? ports.server + 500)
 export const demoHostOrigin = `http://127.0.0.1:${demoHostPort}`
@@ -35,3 +35,8 @@ export function hostedUrl(gameUrl: string, gameId: string, options: HostedOption
   if (options.ready === 'never') query.set('ready', 'never')
   return `${demoHostOrigin}/?${query}`
 }
+
+/** The examples package's preview build (EX spec §5), in the slot after the six feature demos. */
+export const examplesPort: number = demoPort(6)
+/** The runner's own fixture build (the stub example), in the next slot. */
+export const runnerFixturesPort: number = demoPort(7)

@@ -2,6 +2,14 @@
 
 Owner direction (2026-10-11): every dimension has a teeny tiny **base project** (a character in a room), and every modular feature is shown by a small standalone **demo** built on the matching base, in the style of [raylib's examples](https://www.raylib.com/examples.html). Each demo shows one thing.
 
+## One-file examples (EX spec, replacing the demos below)
+
+The [EX spec](../docs/superpowers/specs/2026-10-16-examples-one-file-design.md) turns each demo into one file, like raylib's: `examples/<module>/<module>-<name>.ts`, a header (`Shows:`, `Controls:`, `Packages:`, `Difficulty:`, `Tier:`, and optionally `Host:`, `Golden:`, `Pending:`), 100 code lines or fewer, public imports only. This folder is one package (`@af-examples/examples`) on the runner in [`tooling/examples-runner`](../tooling/examples-runner/):
+
+- `pnpm examples` serves the index; `pnpm examples <module>-<name>` opens one example; `pnpm build:examples` builds them all.
+- The catalog test checks every file's path, module, header, budget, imports, screenshot approval (`screenshots-approved.json`) and `Pending:` task; the `examples` and `examples-compact` Playwright projects boot each one under the fake host at Pixel 7 and 780 × 270; the parity test replays each `Golden:` example from `__goldens__/<module>-<name>.replay` in Node, Chromium, WebKit and Firefox; `pnpm boundaries` runs `--inline` over this folder. Adding an example adds one file (and its `.replay` when it declares `Golden:`).
+- The first examples arrive with EX.3; the demos below keep running until EX.4 ports and deletes them.
+
 ## Bases
 
 | Base | What it is | Built on | Lands in |
@@ -19,7 +27,7 @@ A base is the smallest complete game on AF: it boots under the fake Ruken host a
 - **Header:** `main.ts` starts with a comment block: what it shows, the controls, the base it uses and the packages it needs.
 - **Runs:** `pnpm --filter <demo> dev` serves it under the fake Ruken host (`cli dev`); the gallery (`examples/gallery`, M1.8) lists every demo with a screenshot and a link to its source. Today the gallery is its list (`examples/gallery/src/demos.ts`, checked against the demo folders); its page and screenshots come with Owner-approved shots. Until `cli dev` exists, `pnpm --filter <demo> dev` serves the demo standalone.
 - **Built on the base:** a 2D demo plays the room through `playRoom` from `@af-examples/base-2d/play` (the room, Wick, input and the loop, without the base's screens), passing its own room, sim (with its plugins), commands and drawing layers (`RendererLayer`, `@af-examples/base-2d/render`).
-- **Smoke tests:** `examples/demo-host` is Ruken's fake host around any demo (`?game=<url>&id=<game id>`, plus seeded `saves`, a `grant` list and `offline`; `hostedUrl` builds it). `@af-examples/demo-host/testing` has `openHosted`, which waits for the demo's frame and its ready, and `collectErrors`, which also turns CSP violations into errors. Each demo's `e2e/*.e2e.ts` runs in the `demos` project of `pnpm test:e2e`, against its build served with Ruken's headers.
+- **Smoke tests:** `tooling/examples-runner/host` is Ruken's fake host around any demo (`?game=<url>&id=<game id>`, plus seeded `saves`, a `grant` list and `offline`; `hostedUrl` builds it). `@mcthaydt/examples-runner/host/testing` has `openHosted`, which waits for the demo's frame and its ready, and `collectErrors`, which also turns CSP violations into errors. Each demo's `e2e/*.e2e.ts` runs in the `demos` project of `pnpm test:e2e`, against its build served with Ruken's headers.
 - **A demo's sim:** sim code the demo adds lives in its `sim/` folder, imports only the sim, extension sim entry points and the base's sim (`@af-examples/base-2d/sim`, never the base's package root), and is listed in the root `pnpm boundaries`. A demo whose sim claims the same result on every engine has a golden run and a `*.parity.test.ts` (as `physics/bodies-2d` does).
 - **Checked:** each demo has a smoke test that boots it under the fake host, waits for ready and asserts no console errors; CI builds every demo. Screenshots for the gallery are evidence, promoted only after Owner approval.
 - **Art:** Endesga 64 and the look in the [art direction](../docs/art/README.md): Bubble Bobble and Celeste as influences, with a modern, original treatment like `base-2d`'s. Art may come from any generation API the project has access to (Owner, 2026-10-11), through the `pipelines` gates once they exist (M3), with provenance recorded.
