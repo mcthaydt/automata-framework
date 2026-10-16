@@ -15,6 +15,11 @@ export {
   WGSL_FILTER_HEADER,
 } from './filter/filter-programs.js'
 export {
+  createPostFilterSlot,
+  type PostFilterSlot,
+  type PostFilterTarget,
+} from './filter/post-filter-slot.js'
+export {
   canvasResolutionFor,
   MAX_RESOLUTION,
 } from './letterbox/canvas-resolution.js'
