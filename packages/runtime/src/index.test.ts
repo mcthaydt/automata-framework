@@ -37,10 +37,12 @@ const ROOT_EXPORTS: string[] = [
 const EXTENSION_EXPORTS: string[] = ['ExtensionError', 'defineExtension', 'resolveExtensions']
 const TESTING_EXPORTS: string[] = ['RuntimeTest', 'fakeFetch', 'manualFrames', 'nullRenderer']
 
+// 90 s budget: importing the whole entry took 28.5 s on the shared af-linux runner (2026-10-16, run
+// 38862520260), past the old 15 s. The root test:unit default is the same 90 s; packages/ship's workflows test pins both.
 test('the root entry exports exactly the expected names', async () => {
   const entry = await import('./index')
   expect(Object.keys(entry).sort()).toEqual(ROOT_EXPORTS)
-}, 15000)
+}, 90_000)
 
 test('the ./extension entry exports exactly the expected names', async () => {
   const entry = await import('./extension/index')
