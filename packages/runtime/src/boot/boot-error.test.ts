@@ -23,6 +23,6 @@ describe('BootError', () => {
     [new RendererUnavailable({ tried: ['webgl2'] }), 'unsupported'],
     [new BootDefect({ cause: new Error('boom') }), 'start'],
   ])('maps %j to expected UI state %s', (instance, expectedState) => {
-    expect(bootFailureView(instance, 'ruken').state).toBe(expectedState)
+    expect(bootFailureView(instance, 'ruken', true).state).toBe(expectedState)
   })
 })

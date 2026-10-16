@@ -1,8 +1,8 @@
 import type { Hosting } from '@mcthaydt/automata-host'
-import type { HostKind } from '@mcthaydt/automata-ui'
 import { Cause, Effect, Exit, Fiber, Option, Scope } from 'effect'
 import { BootDefect, type BootError } from './boot-error.js'
 import { bootProgram } from './boot-program.js'
+import { failureHost } from './failure-host.js'
 import type { GameDefinition, RuntimeHandle } from './game-definition.js'
 import type { LoaderControls, PageLayers } from './page-layers.svelte.js'
 import { createPageLayers } from './page-layers.svelte.js'
@@ -36,7 +36,7 @@ export function describeBootError(error: BootError): string {
  * Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
  *
  * Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
- * the attempt scope open so Back to Ruken can access its Hosting service. Try again
+ * the attempt scope open so Back to {host} can access its Hosting service. Try again
  * and Continue without loading close the failed attempt scope and re-run bootProgram
  * in a fresh Scope on the same root without reloading the page.
  *
@@ -109,12 +109,10 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
         const layers = layersRef.current ?? createPageLayers(game.root, doc)
         layers.setState('failed')
 
-        const hostKind: HostKind = hostingRef.current ? hostingRef.current.kind : 'standalone'
-
-        // Mount BootFailurePanel; attempt scope is kept open so Back to Ruken has Hosting
+        // Mount BootFailurePanel; attempt scope is kept open so Back to {host} has Hosting
         const closeFailure = layers.showBootFailure({
           failure: error,
-          hostKind,
+          ...failureHost(hostingRef.current),
           copy: game.copy,
           onRetry: () => {
             closeFailure()
