@@ -4,7 +4,8 @@
 //   rule sets can be compared and later share one list. The GitHub and npm formats are also the Plus registry
 //   token's (QB spec §4.4);
 // - the value of any variable in the game folder's `.env*` files, 8 characters or longer (a shorter value such
-//   as `true` or `en` would match by chance);
+//   as `true` or `en` would match by chance). `VITE_` variables are skipped: Vite inlines exactly those into the
+//   bundle, so they are public by design (decided 2026-10-16). A known key format in one is still found above;
 // - high-entropy strings: a quoted string in a text file whose whole content is 24 to 200 characters of
 //   base64/base64url, with an upper-case letter, a lower-case letter and a digit, and at least 4.25 bits of
 //   Shannon entropy per character. Tuned on the placeholder and Emberwick builds, which have none: hashed asset
@@ -82,6 +83,8 @@ const QUOTED = /(["'`])([A-Za-z0-9+/=_-]{24,200})\1/g
 const SRI_HASH = /^sha(?:256|384|512)-/
 const MIN_ENTROPY = 4.25
 const MIN_ENV_VALUE_LENGTH = 8
+/** Vite's public prefix: only these variables reach the bundle through `import.meta.env`. */
+const PUBLIC_ENV_PREFIX = 'VITE_'
 
 /** Shannon entropy in bits per character. */
 function entropy(text: string): number {
@@ -123,7 +126,7 @@ export function scanTextForSecrets(
     }
   }
   for (const env of envValues) {
-    if (env.value.length < MIN_ENV_VALUE_LENGTH) continue
+    if (env.value.length < MIN_ENV_VALUE_LENGTH || env.name.startsWith(PUBLIC_ENV_PREFIX)) continue
     for (let at = text.indexOf(env.value); at !== -1; at = text.indexOf(env.value, at + 1)) {
       spans.push({
         start: at,

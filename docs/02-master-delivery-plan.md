@@ -129,7 +129,7 @@ Owner, 2026-10-16: a checklist "to make sure it doesn't look vibecoded". The [QB
 
 QB.2 follow-ups (found 2026-10-16, not started):
 - **QB.1 and QB.2 converge on one secret rule list.** Once #38 (QB.1, a gitleaks wrapper in `tooling/repo-hygiene`) and QB.2 both merge, choose one of two paths. Either generate QB.1's gitleaks config from `ship`'s `KEY_RULES` (they already use gitleaks' rule IDs), or test that every `KEY_RULES` ID exists in the gitleaks rule set QB.1 pins.
-- **Public `.env` values (Owner decision).** QB-b fails on the value of any `.env*` variable 8 characters or longer. That includes `VITE_*` values, which Vite inlines into the bundle by design. If a game needs a public build-time value, decide on an allowlist (for example, a `public` list in `ship.config.ts`).
+- **Public `.env` values (decided 2026-10-16, implemented in QB.2).** QB-b skips `VITE_*` variables, which Vite inlines into the bundle by design, so they are public. Their values can't be secret, and a known key format in one is still caught by the key rules. Every other `.env*` value of 8 characters or more still fails the build. No allowlist is needed.
 - **PRODUCT.6 kits run `check-style`.** The kit rule (`ui` spec §3.11) must run over the kit sources in Automata Plus when PRODUCT.6 creates them.
 
 ## M3 to M8

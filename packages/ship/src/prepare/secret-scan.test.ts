@@ -63,6 +63,15 @@ describe('scanTextForSecrets', () => {
     expect(scanTextForSecrets('a.js', 'const debug = true', env)).toEqual([])
   })
 
+  it('skips VITE_ variables, which Vite puts into the bundle on purpose, but still finds a key format in one', () => {
+    const env = [
+      { file: '.env', name: 'VITE_API_ORIGIN', value: 'https://api.example.test' },
+      { file: '.env', name: 'VITE_STRIPE', value: STRIPE },
+    ]
+    const text = `fetch("https://api.example.test"); key("${STRIPE}")`
+    expect(scanTextForSecrets('a.js', text, env).map((found) => found.rule)).toEqual(['stripe-access-token'])
+  })
+
   it('finds a random high-entropy string in quotes', () => {
     const found = scanTextForSecrets('a.js', `const t='Xk3j9Lq2Pz8Rt5Wv7Yb1Nm4Hc6Gd0Fs'`, [])
     expect(found.map((f) => [f.rule, f.offset])).toEqual([['high-entropy', 9]])

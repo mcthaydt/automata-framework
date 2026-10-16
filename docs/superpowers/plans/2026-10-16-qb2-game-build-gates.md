@@ -149,3 +149,4 @@
 | 2026-10-16 | 4–5 | `9cd0ad5` | `secrets` step; a failed build reports "not scanned" (deviation noted in step 5). `check:example` passes all six steps; DX spec §3.6 has a `secrets` row |
 | 2026-10-16 | 6–8 | `4122fcc` | `checkSvelte` with `svelte/compiler` 5.57.1; `pnpm style` 195 files, 0 findings; `ui` spec §3.11 |
 | 2026-10-16 | Gates | — | `pnpm check` exit 0 (1,732 tests passed, 4 skipped); `pnpm build` 11/11; `test:dist` 13/13; `check-changesets` 0 problems. Parity and e2e omitted: no runtime, render, host, game or `ui` source change |
+| 2026-10-16 | Decision | (this commit) | `VITE_*` variables are skipped by the `.env` value rule (public by design in Vite). Test-first: the new test failed with `[ 'env-value', …(2) ]` vs `[ 'stripe-access-token' ]`, then passed; ship prepare tests 55/55 |
