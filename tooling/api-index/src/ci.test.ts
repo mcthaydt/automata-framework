@@ -12,6 +12,10 @@ describe('pnpm api-index in the gates', () => {
     expect(scripts['api-index']).toBe('node tooling/api-index/src/cli.ts')
   })
 
+  it('has a root cheatsheet script that rewrites the committed page', () => {
+    expect(scripts.cheatsheet).toBe('node tooling/api-index/src/cli.ts --write-cheatsheet')
+  })
+
   it('runs after pnpm build in ci:local', () => {
     const steps = (scripts['ci:local'] ?? '').split(' && ')
     expect(steps.indexOf('pnpm api-index')).toBeGreaterThan(steps.indexOf('pnpm build'))
