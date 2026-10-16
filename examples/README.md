@@ -2,6 +2,14 @@
 
 Owner direction (2026-10-11): every dimension has a teeny tiny **base project** (a character in a room), and every modular feature is shown by a small standalone **demo** built on the matching base, in the style of [raylib's examples](https://www.raylib.com/examples.html). Each demo shows one thing.
 
+## One-file examples (EX spec, replacing the demos below)
+
+The [EX spec](../docs/superpowers/specs/2026-10-16-examples-one-file-design.md) turns each demo into one file, like raylib's: `examples/<module>/<module>-<name>.ts`, a header (`Shows:`, `Controls:`, `Packages:`, `Difficulty:`, `Tier:`, and optionally `Host:`, `Golden:`, `Pending:`), 100 code lines or fewer, public imports only. This folder is one package (`@af-examples/examples`) on the runner in [`tooling/examples-runner`](../tooling/examples-runner/):
+
+- `pnpm examples` serves the index; `pnpm examples <module>-<name>` opens one example; `pnpm build:examples` builds them all.
+- The catalog test checks every file's path, module, header, budget, imports, screenshot approval (`screenshots-approved.json`) and `Pending:` task; the `examples` and `examples-compact` Playwright projects boot each one under the fake host at Pixel 7 and 780 × 270; the parity test replays each `Golden:` example from `__goldens__/<module>-<name>.replay` in Node, Chromium, WebKit and Firefox; `pnpm boundaries` runs `--inline` over this folder. Adding an example adds one file (and its `.replay` when it declares `Golden:`).
+- The first examples arrive with EX.3; the demos below keep running until EX.4 ports and deletes them.
+
 ## Bases
 
 | Base | What it is | Built on | Lands in |
