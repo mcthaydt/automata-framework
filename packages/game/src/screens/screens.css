@@ -1,0 +1,66 @@
+/*
+ * The default screens' layout (DX spec §7). The runtime's three layers fill the game's root: the
+ * renderer's stage at the back, the screens over it, status overlays on top. The ui frame
+ * (`ScreenFrame`) fills the visible region itself; these rules only say what lets the game show
+ * through and what takes the pointer.
+ */
+[data-layer="stage"] {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+[data-layer="stage"] > canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.af-game-menu__body {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  text-align: center;
+}
+
+.af-game-menu__title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Paused: the game shows dimmed behind the menu. */
+.af-game-menu--scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--af-scrim);
+}
+
+/* Play: the frame lets the pointer through to the game; only its controls take it. */
+.af-game-play [data-screen-frame] {
+  pointer-events: none;
+}
+
+.af-game-play button {
+  pointer-events: auto;
+}
+
+.af-game-play__field {
+  min-height: 0;
+}
+
+.af-game-play__touch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* A thumb's target: at least the primary size, never smaller. */
+.af-game-play__touch-button {
+  min-width: calc(var(--af-target-primary) * 1.5);
+  min-height: calc(var(--af-target-primary) * 1.5);
+  font-size: calc(var(--af-text-body) * 1.5);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
