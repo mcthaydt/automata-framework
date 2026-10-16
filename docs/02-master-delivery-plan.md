@@ -49,7 +49,7 @@ Owner, 2026-10-16: the framework must match what the website sells: small change
 |---|---|---|
 | [ ] | DX.0 — DX spec, reviewed | Drafted 2026-10-16. Owner decisions recorded 2026-10-16: MIT on public npm (D-DX-1), a public `mcthaydt/automata-skills` mirror (D-DX-2), no evals (D-DX-3), Antigravity dropped and Discord set up (D-DX-4), and the site deploy planned (D-DX-5). Review of the whole spec pending. |
 | [ ] | DX.1 — Sim conveniences | Lane **sim**; DX.0. `definePlugin({ defs })`, `defineSystem` overloads; identical schema hash either way. |
-| [ ] | DX.2 — `@mcthaydt/automata-game` | Lane **game** (new); DX.0, DX.1. `startGame`/`defineGame` with defaults over runtime, render-pixi, host and ui; `InputMap` from base-2d's input; default screens; demo `examples/game/hello` in 40 lines or fewer. |
+| [ ] | DX.2 — `@mcthaydt/automata-game` | Lane **game** (new); DX.0, DX.1. `startGame`/`defineGame` with defaults over runtime, render-pixi, host and ui; `InputMap` from base-2d's input; default screens; demo `examples/core/core-basic-window.ts` in 40 lines or fewer, written first by EX.3. |
 | [ ] | DX.2b — `rect` and `sprite` entity views | Lane **runtime**; DX.0. Interpolated view factories in render-pixi. |
 | [ ] | DX.3 — Emberwick on `startGame` | Integration; DX.2, DX.2b. Plumbing from 1,939 lines to 400 or fewer, golden unchanged, journeys green. |
 | [ ] | DX.4 — Generated API index | Lane **ship**; DX.0. `tooling/api-index`: `api.json`, the skill's `api.md`, `llms-api.txt`, from the published `.d.ts`. |
@@ -62,6 +62,19 @@ Owner, 2026-10-16: the framework must match what the website sells: small change
 | [ ] | DX.11 — MIT license and public npm | Lane **ship**; DX.0, PRODUCT.5 (core only: extensions are Automata Plus, PD-1). `LICENSE`, `"license": "MIT"`, the release to npmjs.org, `@mcthaydt/create-automata`, the public skills mirror job, consumer smoke from npm. Owner: `NPM_TOKEN` secret. |
 | [ ] | DX.12 — Website deploy to `automata.ruken.com` | Website; DX.0; Owner hosting and DNS. Static deploy, plus a check that `/llms.txt` is served there. |
 | [ ] | DX.13 — Discord server | Integration; the Owner's server with the Discord plugin's bot. Channels, roles, rules, moderation and a permanent invite, read back to verify them. |
+
+## EX One-file examples, like raylib
+
+Owner, 2026-10-16: each example is one file, like raylib's. The [EX spec](superpowers/specs/2026-10-16-examples-one-file-design.md) replaces today's demos, which are whole Vite apps of 9–30 files built on Emberwick. Each example becomes `examples/<module>/<module>-<name>.ts`: 100 code lines or fewer, `export default defineGame(...)`, a raylib header, one runner, and parametric catalog, smoke and parity tests. Emberwick moves to `games/emberwick` (EX-D1). The examples are written first, as DX.2's and DX.2b's acceptance tests (EX-D2). TDD plan: [`2026-10-16-examples-one-file.md`](superpowers/plans/2026-10-16-examples-one-file.md).
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | EX.0 — EX spec, reviewed | Drafted 2026-10-16 with EX-D1 and EX-D2. Review pending. |
+| [ ] | EX.1 — Runner and tests | Integration, sim (`--inline`); EX.0. `tooling/examples-runner` (Vite plugin, fake host, catalog), the single `examples` package, smoke at Pixel 7 and 780×270, golden parity, `check-boundaries --inline`. |
+| [ ] | EX.2 — Games folder | Integration, ship; EX.0. `examples/base-2d` → `games/emberwick`, `examples/placeholder` → `games/placeholder`; journeys and golden `31f50888ccb4cf0a` unchanged. |
+| [ ] | EX.3 — Target examples first | Integration; EX.1. `core-basic-window`, `core-input-keys`, `shapes-rects`, `textures-sprite`, marked `Pending: DX.2`/`DX.2b` until those land. |
+| [ ] | EX.4 — Port the demos | Each owning lane; EX.1, DX.2, DX.2b. Behavior tests move into their packages first, then the one-file example, then the old folder is deleted. Physics goes to `automata-plus` with PRODUCT.5. |
+| [ ] | EX.5 — Index page | Integration; EX.1. Examples by module, with source beside the running frame; replaces `examples/gallery`. |
 
 ## PRODUCT Free core, Automata Plus, FloorFifty as the measure
 
@@ -125,5 +138,6 @@ Owner roadmap (2026-10-11): 2D and 2.5D first, then 3D. The 3D pieces come from 
 | 2026-10-16 | DX.0 draft | [DX spec](superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md); DX rows above; M1.7 row corrected to WebGPU opt-in (ADR 0002) | Docs only; line counts measured at `365f115`; plugin and Agent Skills mechanics checked against their docs on 2026-10-16 | Draft; Owner review pending |
 | 2026-10-16 | DX.0 Owner decisions | Spec §13 and §2 updated: MIT on public npm, a public skills mirror, no evals (DX.8 dropped), Antigravity dropped, Discord via the Owner's plugin, site deploy planned; DX.11–DX.13 added | Docs only; relative links checked | Decisions recorded; spec review pending |
 | 2026-10-16 | PRODUCT.0 draft and decisions | [PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md): FloorFifty gap ledger at `ac72660`, free core and Automata Plus (PD-1), Rapier only (PD-2), foundation first (PD-3), localization core (PD-4), pain points and cuts (PD-5); PRODUCT rows above; M4, M5, M7, M8 rows and DX.11 updated; 00 business model, master spec D-7 and §11 noted | Docs only; FloorFifty line counts from the spec's appendix A script; AF "exists" cells checked against `packages/*/src`; relative links checked | Draft; Owner review pending |
+| 2026-10-16 | EX.0 draft and decisions | [EX spec](superpowers/specs/2026-10-16-examples-one-file-design.md) and [TDD plan](superpowers/plans/2026-10-16-examples-one-file.md): one-file examples, a single runner, parametric tests, Emberwick to `games/` (EX-D1), examples written first (EX-D2); EX rows above; DX.2's demo renamed | Docs only; demo file and line counts from the spec's appendix A script at `5d54594`; relative links checked | Draft; Owner review pending |
 
 For each completed task record its ID, PR or commit, the checks that ran and their result, review status and remaining gates. Update this table, the affected spec and [03 Continuation](03-continuation-prompt.md) in the same session.

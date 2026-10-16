@@ -331,7 +331,7 @@ Lanes as in 04 How we build. Each task gets its TDD plan before code.
 |---|---|---|---|---|
 | DX.0 | This spec, reviewed | integration | — | Owner review; D-DX-1 to D-DX-5 answered |
 | DX.1 | Sim conveniences | sim | DX.0 | §3.2 with the hash-equality test |
-| DX.2 | `packages/game`: `startGame`, defaults, `InputMap`, default screens | game (new) | DX.0, DX.1 | §3.1, §3.3, §7; demo `examples/game/hello` (≤ 40 lines of non-test TS) |
+| DX.2 | `packages/game`: `startGame`, defaults, `InputMap`, default screens | game (new) | DX.0, DX.1 | §3.1, §3.3, §7; demo `examples/core/core-basic-window.ts`, one file written first as DX.2's acceptance test ([EX spec](./2026-10-16-examples-one-file-design.md), EX-D2) (≤ 40 lines of non-test TS) |
 | DX.2b | `rect` and `sprite` views | runtime | DX.0 | §3.4 |
 | DX.3 | Emberwick on `startGame` | integration | DX.2, DX.2b | Plumbing from 1,939 lines to ≤ 400, golden unchanged, every base-2d journey green |
 | DX.4 | API index and generated `llms-full.txt` corpus | ship | DX.0 | §3.8 |
@@ -354,7 +354,7 @@ In the website repo, per restored row: update `docs/2026-10-14-cut-claims.md` (m
 ## 12. Exit criteria
 
 **Success:**
-- `examples/game/hello` is ≤ 40 lines of non-test TS, boots under the fake host and passes its golden in four engines.
+- `examples/core/core-basic-window.ts` ([EX spec](./2026-10-16-examples-one-file-design.md)) is ≤ 40 lines of non-test TS, boots under the fake host and passes its golden in four engines.
 - Emberwick's plumbing is ≤ 400 lines (measured by a script in DX.3, replacing §1's table). Its golden is unchanged, and all its journeys are green.
 - The double-jump change from the website's task is a diff of ≤ 60 lines of non-test code on the rebuilt Emberwick. It's measured by hand in DX.3.
 - The `create-game` output passes `automata check --csp` in a clean container from published packages (or packs, until D-DX-1).

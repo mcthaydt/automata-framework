@@ -28,11 +28,16 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
    - The Owner's pain points (UI, gamepad, mobile responsiveness, networking, post-processing, screens) get depth; CPU players, progression, the replay viewer, beat clock, parallax, particles, leaderboards and telemetry extensions and a tutorial system are cut to examples or hooks.
 
    PRODUCT.5 (moving `packages/physics` to the private `mcthaydt/automata-plus`) must land before DX.11's first public publish. Next action: Owner review of DX.0 and PRODUCT.0 together (PR #33).
+7. **EX.0 drafted (2026-10-16, Owner request):** the [EX spec](superpowers/specs/2026-10-16-examples-one-file-design.md) and its [TDD plan](superpowers/plans/2026-10-16-examples-one-file.md) make each example one raylib-style file (`examples/<module>/<module>-<name>.ts`, 100 code lines or fewer, one runner, parametric tests).
+   - Emberwick moves to `games/emberwick` (EX-D1).
+   - The examples are written first, as DX.2's and DX.2b's acceptance tests (EX-D2).
+   - Next action: Owner review of EX.0 with DX.0 and PRODUCT.0 (PR #33). After that, EX.1 and EX.2 can start alongside DX.1.
 
 ## Current artifacts and evidence limits
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| EX (spec and plan only) | EX.0 drafted 2026-10-16. Today's demos measured at `5d54594`: 9–30 files and 228–688 non-test lines each, on Emberwick's 77 files | Owner review |
 | PRODUCT (spec only) | PRODUCT.0 drafted 2026-10-16: FloorFifty gap ledger (client 52,832, server 5,548, shared 6,273 non-test lines at `ac72660`; appendix A script), tiers, cuts, localization (PRODUCT.L), raylib API rules, stack page, tasks PRODUCT.1–8 | Owner review; the Owner creates `mcthaydt/automata-plus` (private) for PRODUCT.5 |
 | DX milestone (spec only) | DX.0 drafted 2026-10-16: ledger disposition for every cut website claim, `@mcthaydt/automata-game` (`startGame`), `automata check`, the `agents/automata/` skills and Claude Code plugin, a generated API index, agent evals and an evidence file. Baseline measured at `365f115`: base-2d 3,457 non-test lines, 1,939 of them plumbing; `create-game` output prints text and pins `workspace:*` | Owner review of the spec; Owner to-dos below |
 | M1.8 Base project, demos, scaffold & M1 exit | Complete. Unit tests in `packages/cli` (4 files / 18 tests) and `examples/gallery` (3 tests); `pnpm check` clean (22/22 tasks); `pnpm test:parity` clean across 3 browsers (9/9 tasks); `pnpm test:e2e` clean (46/46 passed); `create-game` integration test verifies valid `ruken.toml` | Merged into `main` (PR #32, `08396fa`) |
