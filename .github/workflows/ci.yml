@@ -78,6 +78,8 @@ jobs:
       - run: node tooling/release/src/check-changesets.ts
       - run: pnpm build
       - run: pnpm --filter @mcthaydt/release test:dist
+      # DX.4: the API index and llms-full.txt from the built .d.ts; fails on a new export with no doc comment.
+      - run: pnpm api-index
 
   parity:
     name: parity (chromium, webkit, firefox)
