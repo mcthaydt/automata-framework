@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §2 F5 and the §3 row "Frame-budget probe (`playwright.config.ts` `frame-budget` projects)": new, core.
 - **Row:** [02](../../02-master-delivery-plan.md) PRODUCT.7. **Status:** drafted 2026-10-16 on the Owner-approved PRODUCT.0 (all recommended defaults).
-- **Progress:** 3 of 7 steps.
+- **Progress:** 4 of 7 steps.
 
 ## What "done" means
 
@@ -101,7 +101,7 @@ AGENTS.md requires that a performance probe have exclusive use of the GPU. With 
     - (f) a NaN or missing metric, or a project with no result, gives `invalid`;
     - (g) no results at all gives `invalid`.
   - Expect it to fail because the module is missing. Implement `budget.ts` and `check-cli.ts` (exit 0 only on `pass`), then confirm green.
-- [ ] **4. Stress sim.**
+- [x] **4. Stress sim.**
   - `stress/sim/stress.test.ts`:
     - `stressPlugin(M)` registers M systems with distinct names;
     - spawning N entities and stepping moves them inside the bounds;
