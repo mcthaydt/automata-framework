@@ -1,0 +1,50 @@
+# DX.3: Emberwick on `startGame` TDD plan
+
+- **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §1 (the 1,939-line plumbing baseline), §3.1 (`startGame` must not change sim behavior), §3.3 (`keys()`), §3.4 (render-pixi), §8 (parity: Emberwick's golden unchanged), §10 (DX.3: plumbing ≤ 400, golden unchanged, every base-2d journey green), §12 (the measuring script; the double-jump diff measured by hand).
+- **Status:** drafted 2026-10-16 on branch `claude/clever-pasteur-ujmu6e-dx3`, stacked on DX.2 (`claude/clever-pasteur-ujmu6e-dx2`, which carries EX.2's move of Emberwick to `games/emberwick`, DX.1 and DX.2b) with `main` merged in.
+- **Progress:** 0 of 8 steps.
+- **Owner:** `games/emberwick` (integration). One additive change in `packages/render-pixi` (runtime lane's package, decision E-1).
+
+## Global constraints
+
+- **Strict TDD** in `games/`, `packages/`: failing test first, run it, confirm the failure reason, minimal change, green.
+- **Golden rule:** `GOLDEN_HASH = '31f50888ccb4cf0a'` and `GOLDEN_GOAL_TICK = 342` (`games/emberwick/src/golden.ts`) stay byte-identical in Node, Chromium, WebKit and Firefox. A changed hash is investigated, never re-recorded.
+- **Effect outside the sim only.** Screens are runtime `ScreenDef`s; per-frame drawing is plain code.
+- `pnpm format` before committing; Conventional Commits. No changeset: `render-pixi`, `game` and Emberwick are private.
+
+## Decisions (mine, recorded for review)
+
+- **E-1. `PixiRendererOptions.setup` may return stage hooks** `{ apply?(result), draw?(frame), reset?() }`, called after the delta consumer applies, before `app.render()` and after the consumer resets. Emberwick's scene reacts to sim events (jump, land, goal), animates each frame (lantern, fireflies, ember) and renders its light map into a texture before the frame is drawn. `setup` alone gives the stage once and nothing per step or frame, and `GameSpec.renderer` takes options, not a factory. The hook is additive (a `setup` that returns nothing behaves as before), lives in render-pixi's options, and is the smallest contract that lets a game with its own drawing use the default renderer. Added to DX §3.4 as an amendment for the Owner's review.
+- **E-2. Emberwick keeps its five screens** (splash, menu, room, paused, end) as its own `ScreenDef`s over its own flow content (`content: { data, hash, sim: { room } }`), not the game package's default title/play/paused. The end screen (time to the ember) and the splash are Emberwick's, and its look is its own pixel UI. The screens use the runtime's `Flow`, `AppLoop`, `PresentationBus` (`sim.events` for the goal) and `Hosting` (rounds); the runtime does the handshake, ready, lifecycle pause, host menu and the boot failure panel.
+- **E-3. Demo support stays until the demos move.** `host/lifecycle-and-saves`, `content/hot-reload` and `physics/bodies-2d` still build on `playRoom`, the `Renderer`/`RendererLayer` shell, `createLoop`, the input devices, `bootPage` and the typed boot failures. The EX plan replaces those demos with one-file examples (EX step 7); deleting that code now would break them. They stay, unused by the game, and the measuring script reports them on their own line. Follow-up in 02: delete them when the three demos move.
+- **E-4. "Plumbing" is measured from the game's own import graph.** `src/plumbing.test.ts` walks the relative imports from `main.ts`, counts non-test `.ts` lines, and classes each file by folder: `src/sim/` sim, `src/art/` art, `src/content/` content, `src/render/` drawing (the room, light map, particles and backdrop Emberwick draws), everything else plumbing. It asserts plumbing ≤ 400 and prints the table. §1's 1,939 counted the whole renderer (Pixi setup and drawing) as plumbing; Pixi setup, fitting, the loop and the boot now come from render-pixi and the runtime, and the drawing is reported on its own line.
+- **E-5. Left and right held together: the later key wins** (`keys()`, DX.2 G-7), where Emberwick's own input cancelled them out. Replays are unaffected (the golden route never holds both).
+- **E-6. The canvas is fitted by render-pixi's letterbox** (bars, fractional scale) instead of Emberwick's whole-pixel CSS scaling. Owner visual acceptance.
+
+## Interfaces
+
+- **Consumed:** `defineGame`, `startGame`, `keys`, `DefinedGame` (`@mcthaydt/automata-game`, `./no-eval`); `ScreenDef`, `Flow`, `AppLoop`, `PresentationBus`, `CompiledContentData`, `runGame`, `FrameInfo` (`@mcthaydt/automata-runtime`), `manualFrames`, `fakeFetch` (`./testing`) in tests; `Hosting` (`@mcthaydt/automata-host`); `PixiStage`, `PixiStageHooks` (`@mcthaydt/automata-render-pixi`); `canonicalJson`, `hex64`, `utf8`, `xxhash64` (`@mcthaydt/automata-sim/hash`).
+- **Produced:** `PixiStageHooks` and the `setup` return (render-pixi). In Emberwick: `emberwick: DefinedGame` (`./game`), `EMBERWICK_FLOW` (`src/flow.ts`), `emberwickScreens()`, `createScene(...)`, `placeWick(sim)`; `createBaseSim`, `moveCommand`, `readPlayer`, `playRoom`, `createRenderer` keep their signatures for the demos.
+
+## Files
+
+- **Modify** `packages/render-pixi/src/renderer.ts` (+ `renderer.test.ts`), `src/index.ts`.
+- **Create** in `games/emberwick/src/`: `render/scene.ts` (the drawing, out of `render/renderer.ts`), `render/stage-hooks.ts`, `screens/screens.dom.test.ts`, `golden.game.test.ts` is folded into `golden-run.ts`, `plumbing.test.ts`.
+- **Modify** in `games/emberwick/`: `main.ts`, `src/game.ts`, `src/game-entry.ts`, `src/flow.ts` (+ `flow.test.ts`), `src/screens/screens.ts`, `src/base-sim.ts`, `src/golden-run.ts`, `src/render/renderer.ts` (now Application + scene, for the demos), `src/index.ts`, `src/exports.test.ts`, `style.css`, `package.json`, `vite.config.ts`, `vitest.config.ts`, `tsconfig.node.json`, `e2e/base-2d.e2e.ts`, `e2e/host/host.ts`.
+- **Delete** (game-only plumbing the runtime now owns): `src/failure.ts`, `src/rounds.ts` and their tests, `src/game.boot.test.ts` (replaced by `screens.dom.test.ts`).
+- **Docs:** DX spec §3.4 (E-1 amendment), `docs/02`, `docs/03`, this plan.
+
+## Steps
+
+- [ ] **1. render-pixi stage hooks (E-1).** `renderer.test.ts`: a `setup` returning `{ apply, draw, reset }` sees `apply(result)` after the consumer, `draw(frame)` before `app.render()`, and `reset()` after the consumer's; a `setup` returning nothing still renders. Red: hooks never called. Implement; green.
+- [ ] **2. The game's sim through `startGame` replays the golden (golden rule).** `golden-run.ts` replays the route through `emberwick.sim` (plugins, seed, content, `setup`) and `emberwick.input` (`keys(Move, …, { idle })` attached to a fake window, one key event per change), the commands `startGame` would step. `golden.test.ts` and `golden.parity.test.ts` keep their assertions (hash, goal tick, no rejections) and add: the commands equal `moveCommand`'s for every tick. Red: `./game.ts` has no `emberwick`. Implement `placeWick`, `emberwick = defineGame(...)`; green in Node (parity at step 8).
+- [ ] **3. Emberwick's flow content.** `flow.test.ts`: `EMBERWICK_FLOW.data.flow` has entry `splash`, screens `splash, menu, room, paused, end`, and the transitions of the old table (continue, play, pause, resume, quit, goal); its hash is `contentHashOf(data)` (runtime formula) and pinned. Red: the old module exports `next`, not `EMBERWICK_FLOW`. Implement; green.
+- [ ] **4. The scene out of the renderer.** `render/renderer.browser.test.ts` (Chromium) keeps passing on the legacy `createRenderer` (now an Application around `createScene`), and adds: `stageHooks(room)`'s `setup` draws the room into a real `createPixiRenderer` stage and its hooks report Wick's pixel after a step with the player row. Red: `stage-hooks.ts` missing. Move the drawing to `scene.ts`; green.
+- [ ] **5. Screens on the runtime (E-2).** `screens/screens.dom.test.ts` (jsdom, `runGame` with manual frames and a recording renderer, standalone host): splash, then menu on any key or after 1.5 s; Play (primary, focused) and Enter start the room on a fresh sim at tick 0 and start a host round; the room steps `move` commands from held keys; Escape, P and the Pause button pause; Resume and Escape return with the same tick; Quit from paused goes to the menu and ends the round `quit`; `goal.reached` shows the end screen with the time (`5.70 s` for tick 342) and ends the round `complete`; Play again starts at tick 0; the host's menu request pauses the room; `#game` carries `data-screen`. Red: the screens module exports `createScreens`. Implement; green.
+- [ ] **6. `main.ts` on `startGame`; old plumbing out.** `exports.test.ts`: the root still exports what the demos import, `./game` exports `emberwick`. `main.ts` is the font imports and `startGame(emberwick)`. Delete `failure.ts`, `rounds.ts`, `game.boot.test.ts`; `pnpm --filter @af-examples/base-2d typecheck`, unit tests and `build` green.
+- [ ] **7. Plumbing measured (E-4).** `plumbing.test.ts`: plumbing ≤ 400. Red first by running it before step 6's deletions are reachable-checked (the old `main.ts` graph reports > 400). Green after step 6. Record the table in the execution log; measure the double-jump diff by hand (DX §12) and record it.
+- [ ] **8. Journeys and gates.** `e2e/base-2d.e2e.ts` keeps every journey; selectors follow the runtime's layers (the boot failure text is in the runtime panel, so `toContainText`; button names unchanged). Gates: `pnpm format`, `pnpm check`, `pnpm test:parity`, `CI=1 pnpm test:e2e` (under the heavy-gates lock), `pnpm --filter @af-examples/base-2d build && prepare-ruken`, `pnpm build:demos`.
+
+## Execution log
+
+(filled in as steps land)
