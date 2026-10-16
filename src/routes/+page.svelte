@@ -6,6 +6,7 @@
   import { MIGRATION_GUIDES } from '../data/migrations'
   import PageMeta from '$lib/components/PageMeta.svelte'
   import { getExampleProject } from '../data/projects'
+  import { previewSrcset } from '$lib/previews'
   const starterProject = getExampleProject('base-2d')!
   const sourceGuides = [
     { label: 'Edit the room', path: 'examples/base-2d/src/content/room.ts', description: 'Author the room as content: # is solid, . is empty, P is the player start and G is the goal. Keep one P and one G, equal row widths, and empty space above P.' },
@@ -30,7 +31,7 @@
   </div>
   <div id="play" class="hero-stage">
     <span class="vertical-label" aria-hidden="true">Emberwick</span>
-    <DemoRunner src="/demos/base-2d/index.html" title="Emberwick" autoStart={false} poster="/previews/emberwick.png" posterAlt="Emberwick platforming gameplay" />
+    <DemoRunner src="/demos/base-2d/index.html" title="Emberwick" autoStart={false} poster="/previews/emberwick.jpg" posterAlt="Emberwick platforming gameplay" />
     <div class="stage-caption"><p>Emberwick, the playable 2D starter.</p><p>Move with arrows or A/D. Jump with Space.</p><a href="/examples?demo=base-2d">Source and controls</a></div>
   </div>
 </section>
@@ -52,7 +53,7 @@
   <div class="example-index">
     {#each previews as demo}
       <article>
-        <a class="example-preview" href={'/examples?demo=' + demo.slug} aria-label={'Explore ' + demo.title.toLowerCase()}><img src={'/previews/' + demo.slug + '.png'} alt={demo.title + ' example running in Automata'} width="960" height="600" loading="lazy" /></a>
+        <a class="example-preview" href={'/examples?demo=' + demo.slug} aria-label={'Explore ' + demo.title.toLowerCase()}><picture><source type="image/webp" srcset={previewSrcset('/previews/' + demo.slug + '.jpg')} sizes="(max-width: 700px) 100vw, 40vw" /><img src={'/previews/' + demo.slug + '.jpg'} alt={demo.title + ' example running in Automata'} width="960" height="600" loading="lazy" /></picture></a>
         <div class="example-description"><h3><a href={'/examples?demo=' + demo.slug}>{demo.title}</a></h3><p>{demo.description}</p></div>
       </article>
     {/each}

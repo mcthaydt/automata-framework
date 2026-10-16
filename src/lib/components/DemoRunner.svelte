@@ -2,6 +2,7 @@
   import { onMount, untrack } from 'svelte'
   import { getDemosCatalog } from '../../data/demos'
   import { demoStatus } from '../utils/demo-status'
+  import { previewSrcset } from '$lib/previews'
   let { src, title, autoStart = true, poster, posterAlt = title + ' preview', class: className = '' }: { src: string; title: string; autoStart?: boolean; poster?: string; posterAlt?: string; aspect?: string; class?: string } = $props()
   let container: HTMLDivElement
   let iframe: HTMLIFrameElement | undefined = $state()
@@ -57,7 +58,7 @@
       {#if status === 'loading'}<div class="demo-status" role="status"><p>Starting the demo…</p></div>{/if}
       {#if status === 'failed'}<div class="demo-status"><p role="alert">This demo couldn't start. Try again or open it in a new tab.</p><button type="button" onclick={() => attempt++}>Retry</button></div>{/if}
     {:else}
-      {#if poster && allowed}<img class="demo-poster" src={poster} alt={posterAlt} width="1280" height="720" />{/if}
+      {#if poster && allowed}<picture><source type="image/webp" srcset={previewSrcset(poster)} sizes="(max-width: 700px) 100vw, 75vw" /><img class="demo-poster" src={poster} alt={posterAlt} width="1280" height="720" /></picture>{/if}
       <div class:has-poster={poster && allowed} class="demo-status"><p>{!allowed ? 'This demo is unavailable.' : active && !mounted ? 'Starting the demo…' : poster ? 'Play here. No setup needed.' : 'The demo is stopped. Play to start a fresh session.'}</p>{#if allowed && (!active || mounted)}<button class="button" type="button" onclick={() => active = true}>Play demo</button>{/if}</div>
     {/if}
   </div>

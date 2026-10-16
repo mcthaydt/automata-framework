@@ -1,11 +1,12 @@
 <script lang="ts">
   import { CREATIVE_STARTS } from '../../data/creative-starts'
+  import { previewSrcset } from '$lib/previews'
 </script>
 
 <div class="creative-starts">
   {#each CREATIVE_STARTS as game}
     <article>
-      <a class="creative-preview" href={game.href}><img src={game.image} alt={game.alt} width="1280" height="720" loading="lazy" /></a>
+      <a class="creative-preview" href={game.href}><picture><source type="image/webp" srcset={previewSrcset(game.image)} sizes="(max-width: 700px) 100vw, 50vw" /><img src={game.image} alt={game.alt} width="1280" height="720" loading="lazy" /></picture></a>
       <div class="creative-copy"><h3>{game.title}</h3><p>{game.description}</p><div class="link-row"><a class="button" href={game.href}>{game.action}</a><a href={game.nextHref}>{game.next}</a></div></div>
     </article>
   {/each}

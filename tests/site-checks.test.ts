@@ -20,6 +20,9 @@ function sitemap(paths: string[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.map(p => `<url><loc>${ORIGIN}${p}</loc></url>`).join('\n')}\n</urlset>\n`
 }
 
+const PNG_BYTES = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0x0d, 0x49, 0x48, 0x44, 0x52, 0, 0, 0, 1, 0, 0, 0, 1])
+const JPEG_BYTES = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0])
+
 /** A minimal build that passes every rule. Each case below breaks exactly one thing. */
 function goodSite(): { root: string; write: (file: string, content: string | Uint8Array) => void } {
   const root = mkdtempSync(join(tmpdir(), 'qb3-site-'))
@@ -29,7 +32,9 @@ function goodSite(): { root: string; write: (file: string, content: string | Uin
     writeFileSync(join(root, file), content)
   }
   write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>' }))
-  write('docs.html', page('/docs'))
+  write('docs.html', page('/docs', { body: '<img src="/previews/a.jpg" alt="A game" /><img src="/divider.png" alt="" />' }))
+  write('previews/a.jpg', JPEG_BYTES)
+  write('divider.png', PNG_BYTES)
   write('sitemap.xml', sitemap(['/', '/docs']))
   write('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${ORIGIN}/sitemap.xml\n`)
   return { root, write }
@@ -79,5 +84,17 @@ describe('checkSite', () => {
     rmSync(join(site.root, 'robots.txt'))
     writeSeoFiles(site.root)
     expect(checkSite(site.root)).toEqual([])
+  })
+
+  it('fails when an image file holds another format than its extension says', () => {
+    const site = goodSite()
+    site.write('previews/b.png', JPEG_BYTES)
+    expect(checkSite(site.root)).toContain('previews/b.png: bytes are jpeg, extension says png')
+  })
+
+  it('fails on an <img> without alt (alt="" passes)', () => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { body: '<img src="/previews/a.jpg" />' }))
+    expect(checkSite(site.root)).toContain('docs.html: <img src="/previews/a.jpg"> has no alt')
   })
 })

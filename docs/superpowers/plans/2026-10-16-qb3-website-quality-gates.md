@@ -2,7 +2,7 @@
 
 - **Spec:** framework repo `docs/superpowers/specs/2026-10-16-quality-bar-design.md` (§3 F-1 to F-6, §4.2, §7 QB.3, §9 QB-c). Approved by the Owner 2026-10-16 with QB-D1 (no analytics, no cookies) and QB-D3 (a contact email and a security email, no postal address).
 - **Status:** drafted 2026-10-16.
-- **Progress:** 2 of 11 steps.
+- **Progress:** 3 of 11 steps.
 - **Branch:** `claude/clever-pasteur-ujmu6e-qb3`.
 
 ## Global constraints
@@ -37,7 +37,7 @@
   - no `robots.txt`, or one without the `Sitemap:` line, fails.
 
   Confirm they fail (no rule yet). Add the rules, write `writeSeoFiles` with a test that its output passes, and append it to `pnpm build`. Confirm the real build passes.
-- [ ] **3. Images (F-2) and alt text.** Add cases:
+- [x] **3. Images (F-2) and alt text.** Add cases:
   - JPEG bytes in a `.png` file fails with the file name;
   - an `<img>` without `alt` fails (`alt=""` passes).
 
