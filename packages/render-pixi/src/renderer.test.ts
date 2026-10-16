@@ -230,6 +230,22 @@ describe('createPixiRenderer', () => {
     expect(target.host.children.length).toBe(0)
   })
 
+  it('closes cleanly after a real destroy, which leaves the app without a renderer (and so without a canvas)', async () => {
+    const target = createFakeTarget()
+    const scope = Effect.runSync(Scope.make())
+    const renderer = await Effect.runPromise(Scope.extend(createPixiRenderer()(target), scope))
+    const app = renderer.stage.app as unknown as { renderer: unknown; destroy: () => void }
+    // Pixi's Application.destroy drops its renderer; its `canvas` getter then throws.
+    vi.spyOn(renderer.stage.app, 'destroy').mockImplementation(() => {
+      app.renderer = null
+    })
+
+    const exit = await Effect.runPromiseExit(Scope.close(scope, Exit.void))
+
+    expect(Exit.isSuccess(exit)).toBe(true)
+    expect(target.host.children.length).toBe(0)
+  })
+
   it('forwards delta in apply and executes synchronous draw without Effect allocation', async () => {
     const target = createFakeTarget()
     const factory = createPixiRenderer()

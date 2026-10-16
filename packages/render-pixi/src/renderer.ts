@@ -142,8 +142,9 @@ export function createPixiRenderer(
 
       const rendererName = app.renderer.name === 'webgpu' ? 'webgpu' : 'webgl'
       app.canvas.dataset.renderer = rendererName
-      app.canvas.classList.add('af-stage')
-      target.host.appendChild(app.canvas)
+      const canvas = app.canvas
+      canvas.classList.add('af-stage')
+      target.host.appendChild(canvas)
 
       let frame: LetterboxFrame | undefined
       let world: Container
@@ -212,9 +213,8 @@ export function createPixiRenderer(
           } catch {
             // ignore error
           }
-          if (app.canvas.parentNode) {
-            app.canvas.parentNode.removeChild(app.canvas)
-          }
+          // The canvas held from creation: once destroyed, the app has no renderer and its `canvas` getter throws.
+          canvas.remove()
         }),
       )
 
