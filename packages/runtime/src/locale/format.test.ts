@@ -17,6 +17,8 @@ describe('format (PRODUCT spec §4 item 3)', () => {
     expect(formatDuration('en', 75_000)).toBe('01:15')
     expect(formatDuration('en', 3_725_000)).toBe('1:02:05')
     expect(formatDuration('en', 75_999)).toBe('01:15')
+    // Each part in the locale's digits.
+    expect(formatDuration('ar-EG', 75_000)).toBe('٠١:١٥')
   })
 
   it('answers the plural and ordinal category for a count', () => {

@@ -10,15 +10,17 @@ export const formatNumber = (locale: string, value: number, options?: Intl.Numbe
 export const formatPercent = (locale: string, fraction: number): string =>
   formatNumber(locale, fraction, { style: 'percent', maximumFractionDigits: 0 })
 
-/** A clock-style duration from milliseconds, whole seconds: `01:15`, or `1:02:05` once there are hours. */
+/**
+ * A clock-style duration from milliseconds, whole seconds: `01:15`, or `1:02:05` once there are hours.
+ * Each part is a locale number (Arabic-Indic digits in `ar-EG`); the separator is a colon. NumberFormat, not
+ * Intl.DurationFormat, so it needs no ES2025 lib in a game's tsconfig and runs on engines without it.
+ */
 export function formatDuration(locale: string, milliseconds: number): string {
   const totalSeconds = Math.floor(milliseconds / 1000)
-  const duration = {
-    hours: Math.floor(totalSeconds / 3600),
-    minutes: Math.floor(totalSeconds / 60) % 60,
-    seconds: totalSeconds % 60,
-  }
-  return new Intl.DurationFormat(locale, { style: 'digital', hoursDisplay: 'auto' }).format(duration)
+  const hours = Math.floor(totalSeconds / 3600)
+  const twoDigits = new Intl.NumberFormat(locale, { minimumIntegerDigits: 2, useGrouping: false })
+  const clock = [twoDigits.format(Math.floor(totalSeconds / 60) % 60), twoDigits.format(totalSeconds % 60)]
+  return (hours > 0 ? [formatNumber(locale, hours, { useGrouping: false }), ...clock] : clock).join(':')
 }
 
 /** The CLDR plural (or, with 'ordinal', ordinal) category of a count: one, two, few, many, zero or other. */

@@ -1,6 +1,4 @@
 {
   "extends": "../../tsconfig.base.json",
-  // ES2025.Intl for Intl.DurationFormat (src/locale/format.ts); every engine AF targets ships it.
-  "compilerOptions": { "lib": ["ES2023", "ES2025.Intl", "DOM", "DOM.Iterable"] },
   "include": ["src/**/*.ts"]
 }
