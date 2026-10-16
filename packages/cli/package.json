@@ -33,7 +33,8 @@
     "test": "vitest run",
     "test:unit": "vitest run",
     "typecheck": "tsc -p .",
-    "build": "tsdown"
+    "build": "tsdown",
+    "test:slow": "vitest run --config vitest.slow.config.ts"
   },
   "dependencies": {
     "@mcthaydt/automata-node": "workspace:*",

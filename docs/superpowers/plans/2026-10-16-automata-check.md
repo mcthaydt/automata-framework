@@ -2,7 +2,7 @@
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.6, §4 (owner: `packages/cli`, integration), §6 (tool missing → exit 2), §8 (unit layer); [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) F3 (style step).
 - **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16.
-- **Progress:** 5 of 8 steps.
+- **Progress:** 6 of 8 steps.
 
 ## Global constraints
 
@@ -90,7 +90,7 @@
   - the CSP probe's violation is a finding, and a missing Playwright is exit 2.
 
   Confirm it fails, implement `check-steps.ts` and `run-check.ts`, then confirm green.
-- [ ] **6. CSP probe.**
+- [x] **6. CSP probe.**
   - `csp-probe.test.ts` (Node): `headersFor(config)` on an inline `ShipConfig` holds Ruken's `script-src 'self' 'wasm-unsafe-eval'`.
   - `csp-probe.slow.test.ts` (Chromium, run by `pnpm --filter @mcthaydt/automata-cli test:slow` with `PLAYWRIGHT_BROWSERS_PATH`): a ready fixture passes, an `eval` fixture reports a violation, a never-ready fixture times out (short timeout), and a `failed` fixture fails.
 
