@@ -6,6 +6,6 @@
     "isolatedDeclarations": false
   },
   "include": ["main.ts", "src/**/*.ts"],
-  // These read Node-only files (ship.config.ts, the palette file); tsconfig.node.json checks them.
-  "exclude": ["src/ship-config.test.ts", "src/art/art.test.ts"]
+  // These read Node-only files (ship.config.ts, the palette file, the game's sources); tsconfig.node.json checks them.
+  "exclude": ["src/ship-config.test.ts", "src/art/art.test.ts", "src/plumbing.test.ts"]
 }

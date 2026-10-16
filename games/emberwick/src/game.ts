@@ -2,12 +2,12 @@
 // own flow, and its scene drawn through render-pixi's stage hooks. `main.ts` passes it to `startGame`.
 import { defineGame, keys } from '@mcthaydt/automata-game'
 import type { Sim } from '@mcthaydt/automata-sim'
-import { placeWick } from './base-sim.ts'
 import { parseRoom, ROOM } from './content/room.ts'
 import { EMBERWICK_FLOW } from './flow.ts'
 import { sceneRenderer, type WickAt } from './render/scene-renderer.ts'
 import { emberwickScreens } from './screens/emberwick-screens.ts'
 import { base2dPlugin, Move } from './sim/index.ts'
+import { placeWick } from './sim/place-wick.ts'
 
 const room = parseRoom(ROOM)
 
