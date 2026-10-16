@@ -5,6 +5,7 @@ export type { CommandRecord, EntityRef, SimContext, SpawnPart } from './define/c
 export {
   type CommandDef,
   type ComponentDef,
+  type Def,
   defineCommand,
   defineComponent,
   defineEvent,
@@ -20,6 +21,7 @@ export {
   type PreparedRestore,
   type ResourceDef,
   type SystemDef,
+  type SystemSpec,
 } from './define/definitions'
 export type { FieldSchema, FieldType, FieldValue, FieldValues } from './define/fields'
 export { CanonicalJsonError, canonicalJson } from './hash/canonical'
