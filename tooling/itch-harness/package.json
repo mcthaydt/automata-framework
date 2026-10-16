@@ -1,0 +1,17 @@
+{
+  "name": "@mcthaydt/itch-harness",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "node src/cli.ts",
+    "e2e:serve": "pnpm --filter @af-examples/placeholder build:itch && pnpm --filter @af-examples/base-2d build:itch && node src/cli.ts --game placeholder=../../examples/placeholder/dist-itch --game base-2d=../../examples/base-2d/dist-itch",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "vitest": "5.0.3"
+  }
+}
