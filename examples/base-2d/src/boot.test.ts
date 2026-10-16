@@ -1,10 +1,18 @@
 import { createFakeHost, settle } from '@ruken/sdk-host/testing'
-import { Effect } from 'effect'
+import { Effect, Exit, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { connect, GAME_ID } from './boot.ts'
+import { type ConnectOptions, connect, GAME_ID } from './boot.ts'
 
-// The base's connection to Ruken under Ruken's own fake host (`@ruken/sdk-host/testing`, in-memory ports): the
-// real SDK against the real host bridge, as in examples/placeholder.
+// The base's connection to its host under Ruken's own fake host (`@ruken/sdk-host/testing`, in-memory ports):
+// `Hosting`'s Ruken adapter over the real SDK against the real host bridge, as in examples/placeholder. An itch
+// build gets the web adapter from the same `connect` (e2e/itch.itch.e2e.ts).
+
+/** Connects in a scope the test closes, as the page's scope would close when it unloads. */
+async function connected(options: ConnectOptions) {
+  const scope = Effect.runSync(Scope.make())
+  const hosting = await Effect.runPromise(Scope.extend(connect(options), scope))
+  return { hosting, close: () => Effect.runPromise(Scope.close(scope, Exit.void)) }
+}
 
 const clock = {
   epochMs: () => Date.parse('2026-10-11T12:00:00Z'),
@@ -27,15 +35,15 @@ function fakeHost(autoReady: boolean) {
 describe('connecting to Ruken', () => {
   it('completes the handshake and resolves once the host is ready', async () => {
     const { host, env } = fakeHost(true)
-    const session = await Effect.runPromise(connect({ env, onMenuRequest: () => true }))
-    expect(session.hosted).toBe(true)
-    expect(session.player.displayName).toBe('Ada')
+    const { hosting, close } = await connected({ seams: { env }, onMenuRequest: () => true })
+    expect(hosting.kind).toBe('ruken')
+    expect(hosting.player.displayName).toBe('Ada')
     expect(host.messages.map((entry) => entry.msg.type).slice(0, 3)).toEqual([
       'hello',
       'welcome',
       'session.ready',
     ])
-    session.dispose()
+    await close()
     host.dispose()
   })
 
@@ -43,17 +51,15 @@ describe('connecting to Ruken', () => {
     const { host, env } = fakeHost(false)
     let resolved = false
     let menuCalls = 0
-    const connecting = Effect.runPromise(
-      connect({
-        env,
-        onMenuRequest: () => {
-          menuCalls++
-          return true
-        },
-      }),
-    ).then((session) => {
+    const connecting = connected({
+      seams: { env },
+      onMenuRequest: () => {
+        menuCalls++
+        return true
+      },
+    }).then((result) => {
       resolved = true
-      return session
+      return result
     })
     await settle()
     await host.connected()
@@ -63,21 +69,22 @@ describe('connecting to Ruken', () => {
     expect(menuCalls).toBe(0)
 
     await host.bridge.markReady()
-    const session = await connecting
+    const { close } = await connecting
     expect(resolved).toBe(true)
     expect(await host.bridge.openGameMenu()).toBe(true)
     expect(menuCalls).toBe(1)
-    session.dispose()
+    await close()
     host.dispose()
   })
 
   it('runs standalone when opened outside Ruken', async () => {
     const { host, env } = fakeHost(true)
-    const session = await Effect.runPromise(
-      connect({ env: { ...env, isTopLevel: true }, onMenuRequest: () => true }),
-    )
-    expect(session.hosted).toBe(false)
-    session.dispose()
+    const { hosting, close } = await connected({
+      seams: { env: { ...env, isTopLevel: true } },
+      onMenuRequest: () => true,
+    })
+    expect(hosting.kind).toBe('standalone')
+    await close()
     host.dispose()
   })
 })

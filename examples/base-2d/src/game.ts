@@ -1,6 +1,6 @@
+import type { Hosting } from '@mcthaydt/automata-host'
 import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
-import type { RukenSession } from '@ruken/sdk'
-import { Effect } from 'effect'
+import { Effect, Scope, Stream } from 'effect'
 import { createBaseSim, moveCommand } from './base-sim.ts'
 import { type BaseBootFailed, connect } from './boot.ts'
 import { RendererFailed, SimFailed } from './boot-failure.ts'
@@ -15,7 +15,7 @@ import { createRounds } from './rounds.ts'
 import { createScreens } from './screens/screens.ts'
 import { TICK_HZ } from './sim/tuning.ts'
 
-// Wires the base together: connect to Ruken, then (only after ready) the renderer, the screens, input and the
+// Wires the base together: connect to the host, then (only after ready) the renderer, the screens, input and the
 // loop. The screen flow (flow.ts) decides what shows; this file does what each change means.
 
 /** How long the splash shows before moving on by itself. */
@@ -52,13 +52,18 @@ export function startGame(
     // Replaced below once the screens exist; the host can only ask for the menu after ready anyway.
     let dispatch: (event: FlowEvent) => void = () => {}
 
-    const session: RukenSession = yield* connect({
-      onMenuRequest: () => {
-        if (screen !== 'room' || failure.failed()) return false
-        dispatch('menu-request')
-        return true
-      },
-    })
+    // `Hosting` lives as long as the page, so its scope is never closed.
+    const page = yield* Scope.make()
+    const hosting: Hosting = yield* Scope.extend(
+      connect({
+        onMenuRequest: () => {
+          if (screen !== 'room' || failure.failed()) return false
+          dispatch('menu-request')
+          return true
+        },
+      }),
+      page,
+    )
 
     // Nothing is created before the host says ready (Ruken R-04): the page was empty until here.
     const room = parseRoom(ROOM)
@@ -129,7 +134,7 @@ export function startGame(
       root,
       html: document.documentElement,
       stopLoop: () => loop.stop(),
-      endRound: (outcome) => session.round.end(outcome),
+      endRound: (outcome) => Effect.runSync(hosting.round.end(outcome)),
       cleanups: [
         () => input.dispose(),
         () => window.removeEventListener('resize', onResize),
@@ -139,7 +144,8 @@ export function startGame(
     })
     const startRound = () => {
       renderer.reset()
-      session.round.start()
+      delete root.dataset.hash
+      Effect.runSync(hosting.round.start)
       rounds.start()
     }
 
@@ -156,16 +162,26 @@ export function startGame(
           if (!rounds.starting()) loop.start()
         } else startRound()
       }
-      if (event === 'goal') session.round.end('complete')
-      if (event === 'quit' && from === 'paused') session.round.end('quit')
+      if (event === 'goal') {
+        Effect.runSync(hosting.round.end('complete'))
+        // The sim's state hash where the round ended, for the browser journeys: the same golden route must end
+        // on the same hash in every build target (PUB spec §12 PUB-c), as data-tick shows the tick.
+        root.dataset.hash = rounds.current().hash()
+      }
+      if (event === 'quit' && from === 'paused') Effect.runSync(hosting.round.end('quit'))
       const seconds = to === 'end' ? rounds.current().tick / TICK_HZ : undefined
       screens.show(to, seconds === undefined ? {} : { seconds })
       if (to === 'room' && !rounds.starting()) renderer.draw(performance.now())
     }
 
-    session.lifecycle.on('change', (change) => {
-      if (change.state === 'background') dispatch('background')
-    })
+    yield* Effect.forkIn(
+      Stream.runForEach(hosting.lifecycle.changes, (change) =>
+        Effect.sync(() => {
+          if (change.state === 'background') dispatch('background')
+        }),
+      ),
+      page,
+    )
     window.addEventListener('resize', onResize)
 
     screens.show('splash')

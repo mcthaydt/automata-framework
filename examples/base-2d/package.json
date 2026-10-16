@@ -16,6 +16,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:itch": "vite build --mode itch",
     "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries src/sim",
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run",
@@ -27,6 +28,7 @@
   },
   "dependencies": {
     "@fontsource/pixelify-sans": "5.3.0",
+    "@mcthaydt/automata-host": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "effect": "3.22.2",
