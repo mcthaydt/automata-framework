@@ -43,13 +43,13 @@
 - **Stub:** with no `defineGame` yet, the stub example exports a plain object of the shape the runner reads (`id`, `sim.plugins`, `sim.seed`); it never imports or defines anything named like DX.2's API.
 
 ### Steps
-- [ ] **1. Header parser.** Write `header.test.ts`:
+- [x] **1. Header parser.** Write `header.test.ts`:
   - a fixture with every field parses;
   - a missing `Shows:` gives a `HeaderError` with its line;
   - `Difficulty: ★★★★★` is rejected.
 
   Run `pnpm --filter @mcthaydt/examples-runner test:unit` and confirm it fails because `parseHeader` does not exist. Implement `header.ts`, then confirm it passes.
-- [ ] **2. Catalog rules.** Write `catalog.test.ts` over `src/fixtures/`, where each bad fixture fails for its own reason:
+- [x] **2. Catalog rules.** Write `catalog.test.ts` over `src/fixtures/`, where each bad fixture fails for its own reason:
   - a file outside `<module>/<module>-<name>.ts`;
   - an unknown module;
   - 101 code lines (spec E-h);

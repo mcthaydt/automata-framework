@@ -1,0 +1,26 @@
+{
+  "name": "@mcthaydt/examples-runner",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./catalog": "./src/catalog.ts",
+    "./smoke": "./src/smoke.ts",
+    "./host/ports": "./host/ports.ts",
+    "./host/preview-headers": "./host/preview-headers.ts",
+    "./host/testing": "./host/testing.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project node",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "oxc-parser": "0.152.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "vitest": "5.0.3"
+  }
+}
