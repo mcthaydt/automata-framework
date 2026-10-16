@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §2 F5 and the §3 row "Frame-budget probe (`playwright.config.ts` `frame-budget` projects)": new, core.
 - **Row:** [02](../../02-master-delivery-plan.md) PRODUCT.7. **Status:** drafted 2026-10-16 on the Owner-approved PRODUCT.0 (all recommended defaults).
-- **Progress:** 0 of 7 steps.
+- **Progress:** 3 of 7 steps.
 
 ## What "done" means
 
@@ -84,14 +84,14 @@ AGENTS.md requires that a performance probe have exclusive use of the GPU. With 
 
 ## Steps
 
-- [ ] **1. Plan.** This file. Commit `docs(frame-budget): PRODUCT.7 TDD plan`.
-- [ ] **2. Stats.**
+- [x] **1. Plan.** This file. Commit `docs(frame-budget): PRODUCT.7 TDD plan`.
+- [x] **2. Stats.**
   - `stats.test.ts`:
     - p50, p95 and p99 use nearest rank on a known 1..100 array;
     - an empty sample gives NaN everywhere, never 0.
   - Run `pnpm --filter @mcthaydt/frame-budget test`. Expect it to fail because `stats.ts` is missing.
   - Implement it and confirm green.
-- [ ] **3. Budget check.**
+- [x] **3. Budget check.**
   - `budget.test.ts`, over fixtures:
     - (a) the repository's `budget.json` parses and is `unset`, and checking any result gives `unset` (fail closed);
     - (b) a planted over-budget result against a set fixture budget gives `over` and names the project and metric;
