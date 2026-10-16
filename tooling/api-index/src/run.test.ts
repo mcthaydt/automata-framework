@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -67,5 +67,49 @@ describe('runApiIndex', () => {
     const result = runApiIndex({ root: unbuilt, out: tempDir(), corpus: [], baseline: baselineFile([]) })
     expect(result.exitCode).toBe(2)
     expect(result.report.join('\n')).toMatch(/pnpm build/)
+  })
+
+  describe('the committed cheatsheet', () => {
+    const documented = ['@fixture/alpha#area', '@fixture/alpha#undocumented']
+
+    function run(file: string, write: boolean) {
+      const out = tempDir()
+      const result = runApiIndex({
+        root: repo,
+        out,
+        corpus,
+        baseline: baselineFile(documented),
+        cheatsheet: { file, write },
+      })
+      return { result, out }
+    }
+
+    it('fails naming the page and the fix when it is missing', () => {
+      const file = join(tempDir(), 'cheatsheet.md')
+      const { result } = run(file, false)
+      expect(result.exitCode).toBe(1)
+      expect(result.report.join('\n')).toContain(`${file} is stale`)
+      expect(result.report.join('\n')).toContain('pnpm cheatsheet')
+      expect(existsSync(file)).toBe(false)
+    })
+
+    it('fails when it differs from the page the index renders', () => {
+      const file = join(tempDir(), 'cheatsheet.md')
+      run(file, true)
+      writeFileSync(file, readFileSync(file, 'utf8').replace('Adds two numbers.', 'Adds numbers.'))
+      const { result } = run(file, false)
+      expect(result.exitCode).toBe(1)
+      expect(result.report.join('\n')).toContain(`${file} is stale`)
+    })
+
+    it('writes the page on request, then passes, and always writes cheatsheet.md beside the index', () => {
+      const file = join(tempDir(), 'cheatsheet.md')
+      const written = run(file, true)
+      expect(written.result.exitCode).toBe(0)
+      expect(written.result.report.join('\n')).toContain(`wrote ${file}`)
+      const checked = run(file, false)
+      expect(checked.result.exitCode).toBe(0)
+      expect(readFileSync(join(checked.out, 'cheatsheet.md'), 'utf8')).toBe(readFileSync(file, 'utf8'))
+    })
   })
 })
