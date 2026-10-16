@@ -44,6 +44,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| M5 (spec only) | M5.0 drafted 2026-10-16 on branch `claude/clever-pasteur-ujmu6e-m5spec`: [M5 spec](superpowers/specs/2026-10-16-m5-saves-audio-design.md). "Exists" cells checked at AF `71c3410`; PRODUCT.1 seams read at its branch `a42c58f` (not merged); FloorFifty sources re-surveyed at `ac72660`; Ruken saves and CSP behavior read from the vendored SDK (`b30d31b`). Depends on the M4 draft (branch `claude/clever-pasteur-ujmu6e-m4spec`, pending review) | Owner review (after M4); M5-D1 to M5-D10; Ruken requests R-5 to R-7 (spec §11) |
 | PUB (spec only) | PUB.0 drafted 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | Owner review; PUB-D1 to PUB-D4; Ruken requests in spec §9 |
 | QB (spec only) | QB.0 drafted 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | Owner review; QB-D1 to QB-D4 |
 | EX (spec and plan only) | EX.0 drafted 2026-10-16. Today's demos measured at `5d54594`: 9–30 files and 228–688 non-test lines each, on Emberwick's 77 files | Owner review |
