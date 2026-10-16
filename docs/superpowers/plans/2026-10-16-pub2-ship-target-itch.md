@@ -61,7 +61,7 @@
 
   `find-executable.test.ts`: finds an executable on a given `PATH`, not a plain file, not a missing one. Fails: modules missing. Add both.
 
-- [ ] **6. CLI.** `cli-args.test.ts`: `--target itch` on prepare and publish; `--target` absent leaves the old shape; `--target steam` and `publish --target itch --activate` are usage errors; `deploy-dev --target itch` is a usage error. Fails on the missing option. Add it, then wire `cli.ts` (butler's exit code becomes the CLI's; the checklist is printed on a first push).
+- [x] **6. CLI.** `cli-args.test.ts`: `--target itch` on prepare and publish; `--target` absent leaves the old shape; `--target steam` and `publish --target itch --activate` are usage errors; `deploy-dev --target itch` is a usage error. Fails on the missing option. Add it, then wire `cli.ts` (butler's exit code becomes the CLI's; the checklist is printed on a first push).
 - [ ] **7. Gates.** Changeset; `pnpm format`; `pnpm check`. Record counts below.
 
 ## First-push detection
