@@ -14,6 +14,11 @@ function spriteOf(view: { container: unknown } | undefined): Sprite {
   return view.container as Sprite
 }
 
+/** Assets.load is generic over its result; the stub only ever yields textures. */
+function stubLoad(result: () => Promise<Texture>) {
+  return vi.spyOn(Assets, 'load').mockImplementation((() => result()) as unknown as typeof Assets.load)
+}
+
 afterEach(() => {
   vi.restoreAllMocks()
 })
@@ -68,7 +73,7 @@ describe('sprite view', () => {
 
   it('shows nothing until an unloaded url loads, then the texture', async () => {
     const loaded = texture(4, 4)
-    vi.spyOn(Assets, 'load').mockResolvedValue(loaded)
+    stubLoad(() => Promise.resolve(loaded))
     const shown = spriteOf(sprite('late.png')(row, 'body'))
 
     expect(shown.texture).toBe(Texture.EMPTY)
@@ -77,7 +82,7 @@ describe('sprite view', () => {
 
   it('leaves a view destroyed before its texture loads alone', async () => {
     let resolve: (value: Texture) => void = () => {}
-    vi.spyOn(Assets, 'load').mockReturnValue(new Promise<Texture>((r) => (resolve = r)))
+    stubLoad(() => new Promise<Texture>((r) => (resolve = r)))
     const view = sprite('slow.png')(row, 'body')
     view?.destroy?.()
 
@@ -90,7 +95,7 @@ describe('sprite view', () => {
 
   it('reports a url that fails to load instead of swallowing it', async () => {
     const failure = new Error('404')
-    vi.spyOn(Assets, 'load').mockRejectedValue(failure)
+    stubLoad(() => Promise.reject(failure))
     const report = vi.fn()
     vi.stubGlobal('reportError', report)
 
