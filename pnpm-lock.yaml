@@ -57,6 +57,9 @@ importers:
       '@mcthaydt/automata-check-boundaries':
         specifier: workspace:*
         version: link:../../tooling/check-boundaries
+      '@mcthaydt/automata-cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship

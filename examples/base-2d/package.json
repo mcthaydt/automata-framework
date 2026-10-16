@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-check-boundaries": "workspace:*",
+    "@mcthaydt/automata-cli": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@playwright/test": "1.63.0",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
