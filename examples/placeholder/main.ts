@@ -21,21 +21,32 @@ const root = element<HTMLElement>('#game')
 const saves = element<HTMLElement>('#saves')
 const fullscreen = element<HTMLButtonElement>('#fullscreen')
 
-/** Fullscreen through the host (Ruken's frame, or the browser's on the web), shown only once the game is ready. */
+/**
+ * Fullscreen through the host (Ruken's frame, or the browser's on the web), offered only once the game is ready
+ * and only where it works. Asking to leave fullscreen while not in it changes nothing, and the answer's
+ * `support` says whether entering can work: a phone browser without the Fullscreen API answers 'none'.
+ */
 function offerFullscreen(hosting: Hosting): void {
-  fullscreen.hidden = false
-  fullscreen.addEventListener('click', () => {
-    const on = document.fullscreenElement === null
-    Effect.runPromise(hosting.setFullscreen(on)).then(
-      (result) => {
-        fullscreen.textContent = result.fullscreen ? 'Leave fullscreen' : 'Fullscreen'
-      },
-      (error: unknown) => console.warn('fullscreen refused', error),
-    )
-  })
-  document.addEventListener('fullscreenchange', () => {
-    fullscreen.textContent = document.fullscreenElement === null ? 'Fullscreen' : 'Leave fullscreen'
-  })
+  const label = () => (document.fullscreenElement === null ? 'Fullscreen' : 'Leave fullscreen')
+  Effect.runPromise(hosting.setFullscreen(false)).then(
+    (result) => {
+      if (result.support === 'none') return
+      fullscreen.hidden = false
+      fullscreen.addEventListener('click', () => {
+        Effect.runPromise(hosting.setFullscreen(document.fullscreenElement === null)).then(
+          () => {
+            fullscreen.textContent = label()
+          },
+          (error: unknown) => console.warn('fullscreen refused', error),
+        )
+      })
+      document.addEventListener('fullscreenchange', () => {
+        fullscreen.textContent = label()
+      })
+    },
+    // Not granted, or the host cannot say: no button.
+    () => undefined,
+  )
 }
 
 // `Hosting` lives as long as the page, so its scope is never closed.

@@ -1,6 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { createBaseSim, moveCommand, readPlayer } from '../src/base-sim.ts'
-import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '../src/golden.ts'
+import { playGoldenRoute } from './golden-route.ts'
 import { gameUrl, hostOrigin } from './origins.ts'
 
 // base-2d in a real browser, served from /b/<buildId>/ with the headers Ruken would serve it with
@@ -116,9 +115,7 @@ test('the character walks and jumps with the keyboard', async ({ page }) => {
 })
 
 // Playwright's clock drives requestAnimationFrame and performance.now, so the golden route can be played with
-// real key presses tick for tick. Frames come every 16 ms and steps every 16.67 ms, so a frame runs at most one
-// step: the test moves the clock one frame at a time, reads the sim tick the page shows, and changes keys right
-// after the frame that ran a segment's last step.
+// real key presses tick for tick (golden-route.ts).
 test('playing the golden route with the keyboard reaches the ember and the end screen', async ({ page }) => {
   const errors = await collectErrors(page)
   await page.clock.install()
@@ -131,40 +128,9 @@ test('playing the golden route with the keyboard reaches the ember and the end s
   await page.keyboard.press('Enter')
   await expect(game(page)).toHaveAttribute('data-screen', 'room')
 
-  const keyFor = { [-1]: 'ArrowLeft', 0: null, 1: 'ArrowRight' } as const
-  let held: string[] = []
-  const hold = async (wanted: string[]) => {
-    for (const key of held) if (!wanted.includes(key)) await page.keyboard.up(key)
-    for (const key of wanted) if (!held.includes(key)) await page.keyboard.down(key)
-    held = wanted
-  }
-  const pageTick = async () => Number((await game(page).getAttribute('data-tick')) ?? 0)
-
-  // The same route in a sim in this Node process: after every segment the page's character must be exactly
-  // where the sim says, so a mismatch names the segment where the page and the sim parted.
-  const reference = await createBaseSim()
-  let ticks = 0
-  for (const [index, [x, jump, length]] of GOLDEN_ROUTE.entries()) {
-    const direction = keyFor[x]
-    await hold([...(direction === null ? [] : [direction]), ...(jump ? ['KeyZ'] : [])])
-    ticks = Math.min(ticks + length, GOLDEN_GOAL_TICK)
-    while ((await pageTick()) < ticks) await page.clock.runFor(16)
-    expect(await pageTick(), `the page ran past segment ${index}`).toBe(ticks)
-    while (reference.tick < ticks) reference.step([moveCommand(reference, { x, jump })])
-    const expected = readPlayer(reference)
-    const actual = {
-      x: await game(page).getAttribute('data-player-x'),
-      y: await game(page).getAttribute('data-player-y'),
-    }
-    expect(actual, `after segment ${index} (tick ${ticks})`).toEqual({
-      x: String(Math.floor(expected.x / 256)),
-      y: String(Math.floor(expected.y / 256)),
-    })
-    if (ticks === GOLDEN_GOAL_TICK) break
-  }
-  reference.dispose()
-  await hold([])
+  const { expectedHash } = await playGoldenRoute(page, game(page))
   await expect(game(page)).toHaveAttribute('data-screen', 'end')
+  await expect(game(page)).toHaveAttribute('data-hash', expectedHash)
   await expect(page.getByRole('button', { name: 'Play again' })).toBeFocused()
   await expect(page.locator('[data-slot="time"]')).toHaveText('5.70 s')
   expect(errors).toEqual([])
