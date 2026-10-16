@@ -45,6 +45,8 @@ async function cli(root: string, ...argv: string[]): Promise<{ code: number; out
 
 const generated = (root: string, file = 'content.json'): string => join(root, 'content/generated', file)
 
+// 90 s budgets: the shared af-linux runner is slow under load (2026-10-16: this package's render-types file took
+// 70.7 s). The root test:unit default is the same 90 s; packages/ship's workflows test pins both.
 describe('runCli', () => {
   it('check exits 0 and writes nothing', async () => {
     const root = project()
@@ -52,7 +54,7 @@ describe('runCli', () => {
     expect(result.code).toBe(0)
     expect(result.out).toEqual([expect.stringMatching(/^content [0-9a-f]{16}$/)])
     expect(existsSync(join(root, 'content/generated'))).toBe(false)
-  }, 30_000)
+  }, 90_000)
 
   it('check prints a warning for a skipped file and still exits 0', async () => {
     const root = project()
@@ -62,7 +64,7 @@ describe('runCli', () => {
     expect(result.err).toEqual([
       'warning content/songs/night-run.TOML:1:1  skippedFile: this file is not read; items are named like dusk-run.toml',
     ])
-  }, 30_000)
+  }, 90_000)
 
   it('check exits 1 and prints every diagnostic', async () => {
     const root = project()
@@ -73,7 +75,7 @@ describe('runCli', () => {
     expect(result.err).toEqual([
       'content/songs/dusk-run.toml:8:1  tempoDrift  unknownField: unknown field: tempoDrift',
     ])
-  }, 30_000)
+  }, 90_000)
 
   it('build writes the outputs, and check --verify-artifact accepts them', async () => {
     const root = project()
@@ -85,7 +87,7 @@ describe('runCli', () => {
       out: [expect.stringMatching(/^content [0-9a-f]{16}$/)],
       err: [],
     })
-  }, 30_000)
+  }, 90_000)
 
   it('check --verify-artifact fails after a hand edit', async () => {
     const root = project()
@@ -97,7 +99,7 @@ describe('runCli', () => {
     expect(result.err).toEqual([
       'content/generated/content.json:1:1  staleArtifact: content/generated/content.json does not match content/; run automata-content build',
     ])
-  }, 30_000)
+  }, 90_000)
 
   it('docs rewrites the tunable table, and verify catches a stale one', async () => {
     const root = project()
@@ -112,7 +114,7 @@ describe('runCli', () => {
     expect(result.err).toEqual([
       'docs/authoring.md:1:1  staleArtifact: the tunable table in docs/authoring.md is out of date; run automata-content docs',
     ])
-  }, 30_000)
+  }, 90_000)
 
   it.each([[['watch']], [['build', '--verify-artifact']], [[]]])(
     'exits 2 with usage for %j',
@@ -138,7 +140,7 @@ describe('runCli', () => {
     const result = await cli(root, 'check')
     expect(result.code).toBe(2)
     expect(result.err).toEqual(['automata.content.ts: kind "song" is registered twice'])
-  }, 30_000)
+  }, 90_000)
 })
 
 describe('the automata-content bin', () => {
@@ -154,12 +156,12 @@ describe('the automata-content bin', () => {
       encoding: 'utf8',
     })
     expect(stdout).toMatch(/^content [0-9a-f]{16}\n$/)
-  }, 60_000)
+  }, 90_000)
 
   it('runs under Node', () => {
     const root = project()
     const main = join(import.meta.dirname, 'main.ts')
     const stdout = execFileSync(process.execPath, [main, 'check'], { cwd: root, encoding: 'utf8' })
     expect(stdout).toMatch(/^content [0-9a-f]{16}\n$/)
-  }, 60_000)
+  }, 90_000)
 })
