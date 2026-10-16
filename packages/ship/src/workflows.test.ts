@@ -254,6 +254,12 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     expect(localSteps).toContain('pnpm build:demos')
   })
 
+  it('builds every one-file example (EX spec §5), beside the old demos until EX.4 deletes them', () => {
+    expect(scripts['build:examples']).toBe('pnpm --filter @af-examples/examples build')
+    expect(JSON.stringify(ci.jobs.checks?.steps)).toContain('pnpm build:examples')
+    expect(localSteps).toContain('pnpm build:examples')
+  })
+
   it('builds and prepares base-2d, without repeating its check inside AF', () => {
     // build:demos only covers `examples/*/*`; the games (Emberwick, the placeholder) live in `games/`, so they build here.
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d build')

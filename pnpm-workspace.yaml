@@ -2,6 +2,9 @@ packages:
   - packages/*
   - tooling/*
   - games/*
+  # The one-file examples (EX spec §5). examples/* and examples/*/* hold the old demos and the gallery until EX.4
+  # and EX.5 delete them.
+  - examples
   - examples/*
   - examples/*/*
 # Same runtime as Ruken (docs/versions.md): pnpm runs scripts on this exact Node, whatever the system has.
