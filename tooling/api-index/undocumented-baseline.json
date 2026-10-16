@@ -95,7 +95,6 @@
   "@mcthaydt/automata-sim#defineEvent",
   "@mcthaydt/automata-sim#definePlugin",
   "@mcthaydt/automata-sim#defineResource",
-  "@mcthaydt/automata-sim#defineSystem",
   "@mcthaydt/automata-sim/math#atan",
   "@mcthaydt/automata-sim/math#cos",
   "@mcthaydt/automata-sim/math#exp",
