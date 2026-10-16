@@ -40,12 +40,13 @@
 </script>
 <div bind:this={container} data-testid="demo-runner-container" data-ui class={`demo-runner ${className}`}>
   <div class="demo-toolbar">
-    <strong>{title}</strong>
+    <strong><span class="led" data-state={active && mounted ? (status === 'ready' ? 'live' : status === 'loading' ? 'loading' : 'off') : 'off'} aria-hidden="true"></span>{title}</strong>
     <div class="control-row">
       <button type="button" aria-label="Restart demo" onclick={() => { attempt++; active = true }}>Restart</button>
       <button type="button" aria-label="Toggle fullscreen" onclick={fullscreen}>Fullscreen</button>
       {#if allowed}<a href={src} target="_blank" rel="noopener noreferrer">Open demo</a>{/if}
-      <button type="button" onclick={() => active = !active}>{active ? 'Stop demo' : 'Play demo'}</button>
+      <!-- While stopped, the viewport overlay owns the single "Play demo" control. -->
+      {#if active}<button type="button" onclick={() => active = false}>Stop demo</button>{/if}
     </div>
   </div>
   <div class="demo-viewport">

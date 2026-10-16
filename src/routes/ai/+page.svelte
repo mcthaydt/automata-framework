@@ -20,7 +20,7 @@
 </div>
 
 <style>
-  .task-prompt { margin-block: 1.5rem; padding: 1.25rem; background: var(--surface); }
+  .task-prompt { margin-block: 1rem; padding: 1.25rem 1.5rem; border-radius: var(--radius); background: var(--paper); }
   .task-prompt summary { padding: .5rem 0; font-size: var(--step-lead); min-height: 44px; overflow-wrap: anywhere; }
   .task-prompt[open] summary { margin-bottom: 1rem; }
 </style>
