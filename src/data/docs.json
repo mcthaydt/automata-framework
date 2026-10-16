@@ -4,9 +4,14 @@
     "slug": "overview",
     "title": "Overview & Vision",
     "category": "Getting Started",
-    "description": "The architecture and current developer-preview scope.",
-    "content": "# Overview & Vision\n\nAutomata is a TypeScript game framework for modern web browsers and Ruken, the reference gaming host.\n\n> [!NOTE]\n> This is a developer preview. The bundled examples demonstrate current behavior; a roadmap describes planned work, not shipped features.\n\n## Ownership\n\nOnly simulation systems change gameplay state during a run. Input sends commands. PixiJS reads render deltas. Effect manages resources and side effects outside the simulation.\n\n## Current starting point\n\nExplore the 2D starter and focused examples before adding your own systems. The Last Light and FloorFifty are reference projects that informed the architecture.\n\n## Packages\n\n| Package | Responsibility |\n|---|---|\n| @mcthaydt/automata-sim | Simulation, definitions, snapshots and RNG |\n| @mcthaydt/automata-runtime | Boot, flow and scoped runtime |\n| @mcthaydt/automata-render-pixi | PixiJS presentation |\n| @mcthaydt/automata-physics/2d | Deterministic 2D physics |\n| @mcthaydt/automata-ui | Responsive geometry and UI |\n| @mcthaydt/automata-host | Hosting sessions |\n| @mcthaydt/automata-content | Content validation and compilation |",
+    "description": "AI-assisted game development with code and content you can own.",
+    "content": "# Overview & Vision\n\nAutomata is a TypeScript game framework for modern web browsers and Ruken, the reference gaming host.\n\nAutomata is designed for developers using coding agents: agents write code and tests; people direct the game and author its content. Start with a working example, make a bounded change, and review the result.\n\n## License\n\n> [!NOTE]\n> Framework code is MIT licensed. Third-party dependencies and example artwork retain their own stated terms. See the repository license and asset provenance before redistributing assets.\n\n## Ownership\n\nOnly simulation systems change gameplay state during a run. Input sends commands. PixiJS reads render deltas. Effect manages resources and side effects outside the simulation.\n\n## Current starting point\n\nExplore the 2D starter and focused examples before adding your own systems. The Last Light and FloorFifty are reference projects that informed the architecture.\n\n## Packages\n\n| Package | Responsibility |\n|---|---|\n| @mcthaydt/automata-sim | Simulation, definitions, snapshots and RNG |\n| @mcthaydt/automata-runtime | Boot, flow and scoped runtime |\n| @mcthaydt/automata-render-pixi | PixiJS presentation |\n| @mcthaydt/automata-physics/2d | Deterministic 2D physics |\n| @mcthaydt/automata-ui | Responsive geometry and UI |\n| @mcthaydt/automata-host | Hosting sessions |\n| @mcthaydt/automata-content | Content validation and compilation |",
     "toc": [
+      {
+        "id": "license",
+        "text": "License",
+        "level": 2
+      },
       {
         "id": "ownership",
         "text": "Ownership",
@@ -29,27 +34,187 @@
     "slug": "quick-start",
     "title": "Quick Start",
     "category": "Getting Started",
-    "description": "Access prerequisites and a local example workflow.",
-    "content": "# Quick Start\n\n## Before you start\n\nYou need access to the framework repository and its private dependencies. Packages use the @mcthaydt scope on GitHub Packages. Follow the repository's current authentication instructions; never put access tokens in source files or prompts.\n\nThere is no verified public unscoped npx installer documented here. Use the checked-out repository as the source of truth.\n\n## Run an example\n\nFrom an authorized checkout, use Node 24 and the repository's package manager. Install dependencies, then run the renderer example:\n\n```sh\npnpm install\npnpm --filter @af-examples/renderer-2d dev\n```\n\n## Learn the simulation\n\nThe following example creates a headless simulation. Rendering and hosting are separate responsibilities.\n\n```typescript\nimport { createSim, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'\n\nconst Position = defineComponent('position', { x: 'f64' })\nconst movement = defineSystem({\n  name: 'movement',\n  phase: 'gameplay',\n  run(ctx) {\n    for (const entity of ctx.query(Position)) {\n      entity.set(Position, { x: entity.get(Position).x + ctx.dt })\n    }\n  },\n})\nconst sim = await createSim({\n  seed: 42,\n  plugins: [definePlugin({\n    name: 'motion',\n    components: [Position],\n    systems: [movement],\n  })],\n})\nconst player = sim.spawn([[Position, { x: 0 }]])\nsim.step([])\nconsole.log(sim.entity(player)?.get(Position).x) // 1 / 60\nsim.dispose()\n```\n\n## Next steps\n\nRead ECS Simulation & Determinism, then inspect the examples gallery for input, presentation and hosting flows.",
+    "description": "Play a double-jump remix, copy a task, and run the starter on your machine.",
+    "content": "# Quick Start\n\n## Play before setup\n\n[Try the double-jump remix](/start#worked-change) in your browser. Jump, release, and press again before landing. Toggle the extra jump off to compare the original. The same page includes the prompt, source, and tests.\n\n## Run the starter locally\n\nUse Node 24.21.0 or newer and pnpm 10.34.6.\n\n```sh\ngit clone https://github.com/mcthaydt/automata-framework.git\ncd automata-framework\npnpm install --frozen-lockfile\npnpm --filter @af-examples/base-2d dev\n```\n\nOpen the URL printed by Vite and play Emberwick. The starter is a working TypeScript browser game that you can edit directly or with a coding agent.\n\n## Give your agent one idea\n\n[Copy the double-jump task](/start#first-task). It adds one extra jump through a plugin, reuses the existing player input and movement definitions, and tests held input, landing, and snapshots. [Install agent skills](/docs/agent-setup) for the guided workflow when you set up your agent.\n\nA configurable player start is also included as a smaller content exercise. Its helper uses parseRoom to validate the new room while keeping the source content unchanged.\n\n## Check and play the result\n\n```sh\npnpm --filter @af-examples/base-2d check\npnpm --filter @af-examples/base-2d build\n```\n\nTry the new behavior and the original controls yourself. Ask the agent to report the files changed, the checks it ran, and any browser or device behavior it has not verified.\n\n## Choose your next change\n\n[Choose a task prompt](/ai#task-prompts) for a collectible, dash, jump feedback, room content, saves, or release preparation. The [API reference](/cheatsheet) provides examples and current package entry points.\n\n## License and scope\n\nFramework code is MIT licensed; assets and third-party dependencies retain their own terms. Browser and mobile foundations are available. Networking and server packages remain planned. See [capabilities and licensing](/docs/capabilities).\n",
     "toc": [
       {
-        "id": "before-you-start",
-        "text": "Before you start",
+        "id": "play-before-setup",
+        "text": "Play before setup",
         "level": 2
       },
       {
-        "id": "run-an-example",
-        "text": "Run an example",
+        "id": "run-the-starter-locally",
+        "text": "Run the starter locally",
         "level": 2
       },
       {
-        "id": "learn-the-simulation",
-        "text": "Learn the simulation",
+        "id": "give-your-agent-one-idea",
+        "text": "Give your agent one idea",
         "level": 2
       },
       {
-        "id": "next-steps",
-        "text": "Next steps",
+        "id": "check-and-play-the-result",
+        "text": "Check and play the result",
+        "level": 2
+      },
+      {
+        "id": "choose-your-next-change",
+        "text": "Choose your next change",
+        "level": 2
+      },
+      {
+        "id": "license-and-scope",
+        "text": "License and scope",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "from-unity",
+    "slug": "from-unity",
+    "title": "From Unity",
+    "category": "Coming from another engine",
+    "description": "Map GameObjects, MonoBehaviours, scenes and ScriptableObjects to Automata ownership.",
+    "content": "# From Unity\n\nKeep the habit of composing a game from small pieces. In Automata, separate the data that determines gameplay from the objects that draw it.\n\n## Map familiar concepts\n\n| Your starting point | Automata responsibility |\n|---|---|\n| GameObject and gameplay components | A simulation entity with data components; its PixiJS view is separate. |\n| FixedUpdate gameplay rules | Synchronous systems running in fixed simulation ticks. |\n| Update and visual feedback | Presentation and input outside the simulation; drawing can happen between ticks. |\n| Scenes, prefabs and ScriptableObjects | Authored content plus explicit spawning and setup code. There is no scene or prefab importer. |\n| Editor inspector tweaks | Edit typed content or tuning values and verify the result with tests and the playable example. |\n\n## The habit to change\n\nAvoid making each view object responsible for its own gameplay state. Send input as commands and let simulation systems own the resulting state.\n\n## Your first small port\n\nStart by moving P in Emberwick’s room content. Read room.test.ts, then follow player-move.system.ts and play-room.ts to see how content, rules and drawing connect.\n\n[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).\n\n## Compatibility and scope\n\nUnity APIs, packages, serialized scenes and editor tooling are not drop-in dependencies. Port one mechanic first rather than translating a whole project.\n\n[Current capabilities](/docs/capabilities).",
+    "toc": [
+      {
+        "id": "map-familiar-concepts",
+        "text": "Map familiar concepts",
+        "level": 2
+      },
+      {
+        "id": "the-habit-to-change",
+        "text": "The habit to change",
+        "level": 2
+      },
+      {
+        "id": "your-first-small-port",
+        "text": "Your first small port",
+        "level": 2
+      },
+      {
+        "id": "compatibility-and-scope",
+        "text": "Compatibility and scope",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "from-godot",
+    "slug": "from-godot",
+    "title": "From Godot",
+    "category": "Coming from another engine",
+    "description": "Map nodes, scenes, signals, resources and physics callbacks to simulation and presentation.",
+    "content": "# From Godot\n\nA Godot scene tree combines several responsibilities. In Automata, identify which parts describe gameplay state, which parts draw it, and which parts manage input or resources.\n\n## Map familiar concepts\n\n| Your starting point | Automata responsibility |\n|---|---|\n| Nodes and scenes | Entities and data for gameplay, with separate PixiJS containers or HTML/Svelte UI for presentation. |\n| _physics_process gameplay logic | Fixed-tick simulation systems. |\n| _process visual updates | Presentation outside the simulation, including drawing between ticks. |\n| Signals | Explicit commands and events at ownership boundaries; do not assume a global signal replacement. |\n| Resources and exported properties | Typed content and tuning data, validated by the project’s parsers and schemas. |\n\n## The habit to change\n\nKeep the scene graph as a presentation structure. Do not turn it into a second owner of gameplay state.\n\n## Your first small port\n\nRead the room content and its validation tests, then trace input through play-room.ts into the movement system. Rebuild one small scene interaction as a command and system.\n\n[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).\n\n## Compatibility and scope\n\nThere is no .tscn, GDScript or resource converter. Preserve the behavior you need, then implement it using Automata’s current APIs.\n\n[Current capabilities](/docs/capabilities).",
+    "toc": [
+      {
+        "id": "map-familiar-concepts",
+        "text": "Map familiar concepts",
+        "level": 2
+      },
+      {
+        "id": "the-habit-to-change",
+        "text": "The habit to change",
+        "level": 2
+      },
+      {
+        "id": "your-first-small-port",
+        "text": "Your first small port",
+        "level": 2
+      },
+      {
+        "id": "compatibility-and-scope",
+        "text": "Compatibility and scope",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "from-unreal",
+    "slug": "from-unreal",
+    "title": "From Unreal",
+    "category": "Coming from another engine",
+    "description": "Map Actors, components, Blueprints and replication expectations to the current 2D framework.",
+    "content": "# From Unreal\n\nBring the habit of defining ownership and boundaries, but evaluate the current 2D browser toolchain before planning a port from a full Unreal project.\n\n## Map familiar concepts\n\n| Your starting point | Automata responsibility |\n|---|---|\n| Actors and gameplay components | Simulation entities with data components and systems; rendering is a separate view. |\n| Blueprint gameplay graphs | Reviewable TypeScript systems, commands and tests. Automata has no Blueprint editor. |\n| Tick | Fixed simulation ticks for rules and a separate frame loop for drawing. |\n| Levels and data assets | Authored content and explicit project setup. |\n| Replication and server authority | A roadmap concern: networking and server packages are planned, not a replacement for Unreal replication today. |\n\n## The habit to change\n\nMake the server/networking requirement an explicit capability check. A deterministic simulation alone does not supply transport, matchmaking or replication.\n\n## Your first small port\n\nTry the browser starter and the fixed-step loop tests. Port one self-contained 2D mechanic with a clear command, state change and test before considering a larger project.\n\n[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).\n\n## Compatibility and scope\n\nDo not choose the current framework as a drop-in replacement for Unreal’s 3D renderer, editor, asset pipeline or networking stack.\n\n[Current capabilities](/docs/capabilities).",
+    "toc": [
+      {
+        "id": "map-familiar-concepts",
+        "text": "Map familiar concepts",
+        "level": 2
+      },
+      {
+        "id": "the-habit-to-change",
+        "text": "The habit to change",
+        "level": 2
+      },
+      {
+        "id": "your-first-small-port",
+        "text": "Your first small port",
+        "level": 2
+      },
+      {
+        "id": "compatibility-and-scope",
+        "text": "Compatibility and scope",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "from-gamemaker",
+    "slug": "from-gamemaker",
+    "title": "From GameMaker",
+    "category": "Coming from another engine",
+    "description": "Map objects, instances, events, rooms and alarms to data, systems and content.",
+    "content": "# From GameMaker\n\nThe room and event model is a useful starting vocabulary. The main change is to make gameplay state explicit and keep drawing separate from rules.\n\n## Map familiar concepts\n\n| Your starting point | Automata responsibility |\n|---|---|\n| Objects and instances | Entities carrying data components, created through explicit setup. |\n| Create events | Entity initialization and plugin/project setup. |\n| Step events | Systems that advance gameplay in fixed ticks. |\n| Draw and Draw GUI events | PixiJS presentation and game UI outside the simulation. |\n| Rooms and alarms | Authored room content and tick-based state for timed gameplay. Keep wall-clock timers outside the sim. |\n\n## The habit to change\n\nAvoid coupling a drawing instance to the only copy of gameplay state. Keep rules in systems and let views observe the result.\n\n## Your first small port\n\nOpen room.ts and map #, ., P and G to the playable room. Make one content edit, run the room tests, then inspect the movement system as the equivalent of a focused Step rule.\n\n[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).\n\n## Compatibility and scope\n\nAutomata does not import .yy projects or execute GML. Rebuild a small room or mechanic first and retain your original project as the behavior reference.\n\n[Current capabilities](/docs/capabilities).",
+    "toc": [
+      {
+        "id": "map-familiar-concepts",
+        "text": "Map familiar concepts",
+        "level": 2
+      },
+      {
+        "id": "the-habit-to-change",
+        "text": "The habit to change",
+        "level": 2
+      },
+      {
+        "id": "your-first-small-port",
+        "text": "Your first small port",
+        "level": 2
+      },
+      {
+        "id": "compatibility-and-scope",
+        "text": "Compatibility and scope",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "from-web",
+    "slug": "from-web",
+    "title": "From web development",
+    "category": "Coming from another engine",
+    "description": "Map application state, components, requestAnimationFrame and async work to game ownership.",
+    "content": "# From web development\n\nTypeScript, Vite and browser tools will be familiar. The new discipline is to give simulation time and gameplay state explicit owners rather than updating them from every UI callback.\n\n## Map familiar concepts\n\n| Your starting point | Automata responsibility |\n|---|---|\n| Application state | Gameplay state belongs to the simulation; menus and UI can still own their own UI state. |\n| UI components and DOM | Svelte/HTML UI or PixiJS presentation. Simulation components are data, not UI components. |\n| requestAnimationFrame | Drive drawing per frame; advance game rules through the fixed-step loop. |\n| Click/key callbacks | Translate input into commands instead of mutating gameplay entities from the view. |\n| fetch, timers and cleanup effects | Resource work outside the simulation, with Effect-managed lifetimes where the runtime owns it. |\n\n## The habit to change\n\nKeep Date, Math.random, network requests and DOM access out of simulation steps. Use the framework’s deterministic inputs, time and RNG where gameplay depends on them.\n\n## Your first small port\n\nRead loop.ts and loop.test.ts, then trace play-room.ts from input to sim.step and renderer.draw. Make the configurable-start change before adding a new mechanic.\n\n[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).\n\n## Compatibility and scope\n\nA game loop is not a component rerender loop. Browser and device performance still require measurement, even when the source looks like a familiar web application.\n\n[Current capabilities](/docs/capabilities).",
+    "toc": [
+      {
+        "id": "map-familiar-concepts",
+        "text": "Map familiar concepts",
+        "level": 2
+      },
+      {
+        "id": "the-habit-to-change",
+        "text": "The habit to change",
+        "level": 2
+      },
+      {
+        "id": "your-first-small-port",
+        "text": "Your first small port",
+        "level": 2
+      },
+      {
+        "id": "compatibility-and-scope",
+        "text": "Compatibility and scope",
         "level": 2
       }
     ]
@@ -190,7 +355,7 @@
     "title": "AI Coding Agent Rules",
     "category": "Guidance",
     "description": "Project context for agents, followed by verification.",
-    "content": "# AI Coding Agent Rules\n\n## Start from source\n\nGive the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.\n\n## Boundaries\n\n- Only simulation systems mutate gameplay state during a run.\n- Effect runs outside the sim.\n- Avoid dynamic evaluation; verify the actual host CSP.\n- Presentation interpolates between ticks and observes render deltas.\n- Report the checks performed and the gates still open.\n\n## Verify the result\n\nInstructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.\n\n## Plain-text context\n\nThe website publishes llms.txt as an index and llms-full.txt as a combined text reference. They contain curated introductory documentation, not the complete framework source.",
+    "content": "# AI Coding Agent Rules\n\n## Start from source\n\nInstall Superpowers and the official PixiJS v8 skills, then have the agent report which guidance it loaded. See [Install agent skills](/docs/agent-setup). Give the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.\n\n## Boundaries\n\n- Only simulation systems mutate gameplay state during a run.\n- Effect runs outside the sim.\n- Avoid dynamic evaluation; verify the actual host CSP.\n- Presentation interpolates between ticks and observes render deltas.\n- Report the checks performed and the gates still open.\n\n## Verify the result\n\nInstructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.\n\n## Plain-text context\n\nThe website publishes llms.txt as an index and llms-full.txt as a combined text reference. They contain curated introductory documentation, not the complete framework source.",
     "toc": [
       {
         "id": "start-from-source",
@@ -210,6 +375,166 @@
       {
         "id": "plain-text-context",
         "text": "Plain-text context",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "capabilities",
+    "slug": "capabilities",
+    "title": "Capabilities and licensing",
+    "category": "Getting Started",
+    "description": "What you can use today, what is planned, and how the license applies.",
+    "content": "# Capabilities and licensing\n\n## Available foundations\n\n- Browser games with a playable 2D starter and standalone delivery.\n- Phone-first interface primitives, keyboard and touch input examples.\n- Simulation systems, seeded randomness, snapshots and replays.\n- Explicit source files and tests that people and coding agents can inspect and change.\n\n## Planned\n\nMultiplayer networking and server packages are planned. Deterministic simulation and replays are foundations for that work, not a complete multiplayer service. Full 3D support and further gameplay extensions follow the framework roadmap.\n\n## MIT framework code\n\nThe framework code uses the MIT license. You may use it in commercial games and modify it without publishing your game's source, subject to retaining the required license notice. Read the repository's LICENSE for the full terms.\n\n## Assets and extensions\n\nThe framework license does not replace third-party dependency licenses or asset-specific terms. Example art has provenance files in its project; fonts have their own licenses. Any extension sold under separate terms must state those terms explicitly.\n",
+    "toc": [
+      {
+        "id": "available-foundations",
+        "text": "Available foundations",
+        "level": 2
+      },
+      {
+        "id": "planned",
+        "text": "Planned",
+        "level": 2
+      },
+      {
+        "id": "mit-framework-code",
+        "text": "MIT framework code",
+        "level": 2
+      },
+      {
+        "id": "assets-and-extensions",
+        "text": "Assets and extensions",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "agent-setup",
+    "slug": "agent-setup",
+    "title": "Install agent skills",
+    "category": "Getting Started",
+    "description": "Install Superpowers and the official PixiJS collection, then verify the agent can load them.",
+    "content": "# Install agent skills\n\n## Required for the guided AI workflow\n\nInstall Superpowers and the official PixiJS v8 skill collection for the agent you will use. They guide planning, testing and rendering work; they are not runtime dependencies of the game.\n\n## Install Superpowers\n\nIn the Codex app, open Plugins and install Superpowers. In Codex CLI, use /plugins, search for Superpowers and select Install Plugin.\n\nIn Claude Code, use its official plugin marketplace:\n\n```text\n/plugin install superpowers@claude-plugins-official\n```\n\nIn Cursor Agent chat:\n\n```text\n/add-plugin superpowers\n```\n\nOther agents have their own installation routes. Use the [upstream Superpowers instructions](https://github.com/obra/superpowers#installation).\n\n## Install PixiJS skills\n\nRun this in the checkout and follow the prompts for your coding agent and the full PixiJS collection:\n\n```sh\nnpx skills add https://github.com/pixijs/pixijs-skills\n```\n\nSee the [official PixiJS instructions](https://github.com/pixijs/pixijs-skills#installing).\n\n## Verify before coding\n\nAsk the agent to confirm installed and loaded skills, rather than inferring readiness from a website checkbox.\n\n```text\nBefore coding, check the skills available in this agent session.\nConfirm Superpowers is installed, including using-superpowers and its planning/testing workflows.\nConfirm the official PixiJS v8 skill collection is installed, including the pixijs router and relevant rendering skills.\nRead the applicable SKILL.md files and report their loaded paths or plugin names.\nIf either collection is missing or cannot be loaded, stop and follow its upstream installation instructions before implementing.\nThen read this checkout's AGENTS.md and current package types. Project rules take precedence.\nDo not report a skill as installed or loaded without evidence.\n```\n\n[Use the interactive setup checklist](/start). Installation sources were checked on 15 October 2026; follow upstream instructions when a tool changes.",
+    "toc": [
+      {
+        "id": "required-for-the-guided-ai-workflow",
+        "text": "Required for the guided AI workflow",
+        "level": 2
+      },
+      {
+        "id": "install-superpowers",
+        "text": "Install Superpowers",
+        "level": 2
+      },
+      {
+        "id": "install-pixijs-skills",
+        "text": "Install PixiJS skills",
+        "level": 2
+      },
+      {
+        "id": "verify-before-coding",
+        "text": "Verify before coding",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "audience",
+    "slug": "audience",
+    "title": "Who Automata is for",
+    "category": "Getting Started",
+    "description": "Choose Automata based on your workflow and current requirements.",
+    "content": "# Who Automata is for\n\n## Who this is for\n\n- You build with coding agents and want source files and tests you can inspect.\n- You are making a 2D browser game and want phone-first interface foundations.\n- You want people to own the art, rooms, rules and creative direction.\n- You are willing to work in TypeScript, review changes and keep tests with the game.\n\n## Who this is not for\n\n- You need a visual scene editor or drag-and-drop game-making workflow.\n- You need a complete 3D engine, editor tooling or Unreal-style rendering pipeline today.\n- You need production-ready multiplayer networking and server packages out of the box.\n- You expect a finished game from one prompt without reviewing code or testing the result.\n\n## Start from your background\n\n- [From Unity](/docs/from-unity)\n- [From Godot](/docs/from-godot)\n- [From Unreal](/docs/from-unreal)\n- [From GameMaker](/docs/from-gamemaker)\n- [From web development](/docs/from-web)\n\n[Current capabilities and licensing](/docs/capabilities).",
+    "toc": [
+      {
+        "id": "who-this-is-for",
+        "text": "Who this is for",
+        "level": 2
+      },
+      {
+        "id": "who-this-is-not-for",
+        "text": "Who this is not for",
+        "level": 2
+      },
+      {
+        "id": "start-from-your-background",
+        "text": "Start from your background",
+        "level": 2
+      }
+    ]
+  },
+  {
+    "id": "faq",
+    "slug": "faq",
+    "title": "FAQ",
+    "category": "Getting Started",
+    "description": "Answers about agents, content, licensing, platforms, migration and community games.",
+    "content": "# FAQ\n\n## Do I need to know how to code?\n\nYou should be willing to read and change TypeScript, or learn it alongside your agent. Automata makes ownership explicit, but it does not turn game development into a no-code workflow.\n\n## Do I have to use AI?\n\nNo. The framework is ordinary source code that you can edit and test yourself. The guided workflow is designed for coding agents, with human review and creative control.\n\n## Which skills should my agent have?\n\nInstall Superpowers and the official PixiJS v8 skill collection for the agent you are actually using. Then ask it to report the available skills and load the relevant guidance. These are requirements for the recommended AI workflow, not runtime dependencies of your game.\n\n## Which coding agents can I use?\n\nUse an agent that can read the checkout, edit files and run tests. Installation differs between Codex, Claude Code, Cursor and other tools; the agent setup guide links the current upstream instructions.\n\n## Can I sell a game built with Automata?\n\nThe framework code is MIT licensed, which permits commercial use under the license terms without requiring publication of your game source. Keep required notices and check separate asset, dependency, extension and tool terms.\n\n## Can I make the content myself?\n\nYes. Edit room data, art, rules and narrative directly. The worked example lets you choose a starting position while reusing the existing simulation and renderer. You can also edit any of the code yourself.\n\n## Does it run in browsers and on phones?\n\nBrowser delivery and phone-first UI foundations are available, with keyboard and touch examples. Test your own game on the devices, orientations and browsers you intend to support.\n\n## Is multiplayer ready?\n\nNetworking and server packages are planned. Deterministic state, snapshots and replays provide foundations for that work; they are not a complete multiplayer service.\n\n## Does it support full 3D today?\n\nThe current public starting point is 2D. Further rendering and full 3D work are on the roadmap. Choose based on current capability status rather than planned features.\n\n## Can I import an existing engine project?\n\nThere is no automatic Unity, Godot, Unreal or GameMaker project converter. The migration guides map familiar concepts and recommend rebuilding one small mechanic first.\n\n## How does it help a game grow beyond a prototype?\n\nExplicit state ownership, separate systems and packages, and repeatable tests help keep changes bounded as the project grows. They do not promise a particular player count or performance level; measure your own game.\n\n## What is Ruken?\n\nRuken is the reference gaming host integrated by the framework. The starter can also run standalone in a browser; see hosting guidance when adding platform services.\n\n## How do I get my game into the showcase?\n\nUse the community showcase submission link. Include a public playable URL, your creator name, a short description, the Automata version and screenshots you have permission to share. Submissions are reviewed before publication.\n\n[Install agent skills](/docs/agent-setup), [make a first change](/start), or [visit the community showcase](/showcase).",
+    "toc": [
+      {
+        "id": "do-i-need-to-know-how-to-code",
+        "text": "Do I need to know how to code?",
+        "level": 2
+      },
+      {
+        "id": "do-i-have-to-use-ai",
+        "text": "Do I have to use AI?",
+        "level": 2
+      },
+      {
+        "id": "which-skills-should-my-agent-have",
+        "text": "Which skills should my agent have?",
+        "level": 2
+      },
+      {
+        "id": "which-coding-agents-can-i-use",
+        "text": "Which coding agents can I use?",
+        "level": 2
+      },
+      {
+        "id": "can-i-sell-a-game-built-with-automata",
+        "text": "Can I sell a game built with Automata?",
+        "level": 2
+      },
+      {
+        "id": "can-i-make-the-content-myself",
+        "text": "Can I make the content myself?",
+        "level": 2
+      },
+      {
+        "id": "does-it-run-in-browsers-and-on-phones",
+        "text": "Does it run in browsers and on phones?",
+        "level": 2
+      },
+      {
+        "id": "is-multiplayer-ready",
+        "text": "Is multiplayer ready?",
+        "level": 2
+      },
+      {
+        "id": "does-it-support-full-3d-today",
+        "text": "Does it support full 3D today?",
+        "level": 2
+      },
+      {
+        "id": "can-i-import-an-existing-engine-project",
+        "text": "Can I import an existing engine project?",
+        "level": 2
+      },
+      {
+        "id": "how-does-it-help-a-game-grow-beyond-a-prototype",
+        "text": "How does it help a game grow beyond a prototype?",
+        "level": 2
+      },
+      {
+        "id": "what-is-ruken",
+        "text": "What is Ruken?",
+        "level": 2
+      },
+      {
+        "id": "how-do-i-get-my-game-into-the-showcase",
+        "text": "How do I get my game into the showcase?",
         "level": 2
       }
     ]

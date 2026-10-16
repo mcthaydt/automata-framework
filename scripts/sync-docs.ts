@@ -1,7 +1,11 @@
-import { STARTER_CODE } from '../src/data/starter'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { MIGRATION_GUIDES } from '../src/data/migrations'
+import { AUDIENCE_FIT, AUDIENCE_NOT_FIT, FAQ_ITEMS } from '../src/data/audience'
+import { SKILL_PREFLIGHT, PIXIJS_INSTALL, SKILL_SOURCES } from '../src/data/agent-setup'
+import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
+import { AI_CONTEXT_FILES, AI_PROJECT_PROMPT, AI_RULES, AI_TASKS, AI_REVIEW_CHECKS, AI_VERIFY_COMMANDS } from '../src/data/ai-guidance'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const websiteDir = resolve(__dirname, '..')
@@ -48,16 +52,16 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "slug": "overview",
     "title": "Overview & Vision",
     "category": "Getting Started",
-    "description": "The architecture and current developer-preview scope.",
-    "content": "# Overview & Vision\n\nAutomata is a TypeScript game framework for modern web browsers and Ruken, the reference gaming host.\n\n> [!NOTE]\n> This is a developer preview. The bundled examples demonstrate current behavior; a roadmap describes planned work, not shipped features.\n\n## Ownership\n\nOnly simulation systems change gameplay state during a run. Input sends commands. PixiJS reads render deltas. Effect manages resources and side effects outside the simulation.\n\n## Current starting point\n\nExplore the 2D starter and focused examples before adding your own systems. The Last Light and FloorFifty are reference projects that informed the architecture.\n\n## Packages\n\n| Package | Responsibility |\n|---|---|\n| @mcthaydt/automata-sim | Simulation, definitions, snapshots and RNG |\n| @mcthaydt/automata-runtime | Boot, flow and scoped runtime |\n| @mcthaydt/automata-render-pixi | PixiJS presentation |\n| @mcthaydt/automata-physics/2d | Deterministic 2D physics |\n| @mcthaydt/automata-ui | Responsive geometry and UI |\n| @mcthaydt/automata-host | Hosting sessions |\n| @mcthaydt/automata-content | Content validation and compilation |"
+    "description": "AI-assisted game development with code and content you can own.",
+    "content": "# Overview & Vision\n\nAutomata is a TypeScript game framework for modern web browsers and Ruken, the reference gaming host.\n\nAutomata is designed for developers using coding agents: agents write code and tests; people direct the game and author its content. Start with a working example, make a bounded change, and review the result.\n\n## License\n\n> [!NOTE]\n> Framework code is MIT licensed. Third-party dependencies and example artwork retain their own stated terms. See the repository license and asset provenance before redistributing assets.\n\n## Ownership\n\nOnly simulation systems change gameplay state during a run. Input sends commands. PixiJS reads render deltas. Effect manages resources and side effects outside the simulation.\n\n## Current starting point\n\nExplore the 2D starter and focused examples before adding your own systems. The Last Light and FloorFifty are reference projects that informed the architecture.\n\n## Packages\n\n| Package | Responsibility |\n|---|---|\n| @mcthaydt/automata-sim | Simulation, definitions, snapshots and RNG |\n| @mcthaydt/automata-runtime | Boot, flow and scoped runtime |\n| @mcthaydt/automata-render-pixi | PixiJS presentation |\n| @mcthaydt/automata-physics/2d | Deterministic 2D physics |\n| @mcthaydt/automata-ui | Responsive geometry and UI |\n| @mcthaydt/automata-host | Hosting sessions |\n| @mcthaydt/automata-content | Content validation and compilation |"
   },
   {
     "id": "quick-start",
     "slug": "quick-start",
     "title": "Quick Start",
     "category": "Getting Started",
-    "description": "Access prerequisites and a local example workflow.",
-    "content": "# Quick Start\n\n## Before you start\n\nYou need access to the framework repository and its private dependencies. Packages use the @mcthaydt scope on GitHub Packages. Follow the repository's current authentication instructions; never put access tokens in source files or prompts.\n\nThere is no verified public unscoped npx installer documented here. Use the checked-out repository as the source of truth.\n\n## Run an example\n\nFrom an authorized checkout, use Node 24 and the repository's package manager. Install dependencies, then run the renderer example:\n\n```sh\npnpm install\npnpm --filter @af-examples/renderer-2d dev\n```\n\n## Learn the simulation\n\nThe following example creates a headless simulation. Rendering and hosting are separate responsibilities.\n\nSTARTER_PLACEHOLDER\n\n## Next steps\n\nRead ECS Simulation & Determinism, then inspect the examples gallery for input, presentation and hosting flows."
+    "description": "Play a double-jump remix, copy a task, and run the starter on your machine.",
+    "content": "# Quick Start\n\n## Play before setup\n\n[Try the double-jump remix](/start#worked-change) in your browser. Jump, release, and press again before landing. Toggle the extra jump off to compare the original. The same page includes the prompt, source, and tests.\n\n## Run the starter locally\n\nUse Node 24.21.0 or newer and pnpm 10.34.6.\n\n```sh\ngit clone https://github.com/mcthaydt/automata-framework.git\ncd automata-framework\npnpm install --frozen-lockfile\npnpm --filter @af-examples/base-2d dev\n```\n\nOpen the URL printed by Vite and play Emberwick. The starter is a working TypeScript browser game that you can edit directly or with a coding agent.\n\n## Give your agent one idea\n\n[Copy the double-jump task](/start#first-task). It adds one extra jump through a plugin, reuses the existing player input and movement definitions, and tests held input, landing, and snapshots. [Install agent skills](/docs/agent-setup) for the guided workflow when you set up your agent.\n\nA configurable player start is also included as a smaller content exercise. Its helper uses parseRoom to validate the new room while keeping the source content unchanged.\n\n## Check and play the result\n\n```sh\npnpm --filter @af-examples/base-2d check\npnpm --filter @af-examples/base-2d build\n```\n\nTry the new behavior and the original controls yourself. Ask the agent to report the files changed, the checks it ran, and any browser or device behavior it has not verified.\n\n## Choose your next change\n\n[Choose a task prompt](/ai#task-prompts) for a collectible, dash, jump feedback, room content, saves, or release preparation. The [API reference](/cheatsheet) provides examples and current package entry points.\n\n## License and scope\n\nFramework code is MIT licensed; assets and third-party dependencies retain their own terms. Browser and mobile foundations are available. Networking and server packages remain planned. See [capabilities and licensing](/docs/capabilities).\n"
   },
   {
     "id": "sim-ecs",
@@ -105,15 +109,34 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "title": "AI Coding Agent Rules",
     "category": "Guidance",
     "description": "Project context for agents, followed by verification.",
-    "content": "# AI Coding Agent Rules\n\n## Start from source\n\nGive the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.\n\n## Boundaries\n\n- Only simulation systems mutate gameplay state during a run.\n- Effect runs outside the sim.\n- Avoid dynamic evaluation; verify the actual host CSP.\n- Presentation interpolates between ticks and observes render deltas.\n- Report the checks performed and the gates still open.\n\n## Verify the result\n\nInstructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.\n\n## Plain-text context\n\nThe website publishes llms.txt as an index and llms-full.txt as a combined text reference. They contain curated introductory documentation, not the complete framework source."
+    "content": "# AI Coding Agent Rules\n\n## Start from source\n\nInstall Superpowers and the official PixiJS v8 skills, then have the agent report which guidance it loaded. See [Install agent skills](/docs/agent-setup). Give the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.\n\n## Boundaries\n\n- Only simulation systems mutate gameplay state during a run.\n- Effect runs outside the sim.\n- Avoid dynamic evaluation; verify the actual host CSP.\n- Presentation interpolates between ticks and observes render deltas.\n- Report the checks performed and the gates still open.\n\n## Verify the result\n\nInstructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.\n\n## Plain-text context\n\nThe website publishes llms.txt as an index and llms-full.txt as a combined text reference. They contain curated introductory documentation, not the complete framework source."
+  },
+  {
+    "id": "capabilities",
+    "slug": "capabilities",
+    "title": "Capabilities and licensing",
+    "category": "Getting Started",
+    "description": "What you can use today, what is planned, and how the license applies.",
+    "content": "# Capabilities and licensing\n\n## Available foundations\n\n- Browser games with a playable 2D starter and standalone delivery.\n- Phone-first interface primitives, keyboard and touch input examples.\n- Simulation systems, seeded randomness, snapshots and replays.\n- Explicit source files and tests that people and coding agents can inspect and change.\n\n## Planned\n\nMultiplayer networking and server packages are planned. Deterministic simulation and replays are foundations for that work, not a complete multiplayer service. Full 3D support and further gameplay extensions follow the framework roadmap.\n\n## MIT framework code\n\nThe framework code uses the MIT license. You may use it in commercial games and modify it without publishing your game's source, subject to retaining the required license notice. Read the repository's LICENSE for the full terms.\n\n## Assets and extensions\n\nThe framework license does not replace third-party dependency licenses or asset-specific terms. Example art has provenance files in its project; fonts have their own licenses. Any extension sold under separate terms must state those terms explicitly.\n"
   }
 ]
 
-export function syncDocs() {
+const migrationDocs: Omit<DocSection, 'toc'>[] = MIGRATION_GUIDES.map(guide => ({
+  id: guide.slug, slug: guide.slug, title: 'From ' + guide.engine, category: 'Coming from another engine', description: guide.description,
+  content: '# From ' + guide.engine + '\n\n' + guide.introduction + '\n\n## Map familiar concepts\n\n| Your starting point | Automata responsibility |\n|---|---|\n' + guide.mappings.map(([from, to]) => '| ' + from + ' | ' + to + ' |').join('\n') + '\n\n## The habit to change\n\n' + guide.habit + '\n\n## Your first small port\n\n' + guide.task + '\n\n[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).\n\n## Compatibility and scope\n\n' + guide.caution + '\n\n[Current capabilities](/docs/capabilities).',
+}))
+DEFAULT_DOCS.splice(2, 0, ...migrationDocs)
+DEFAULT_DOCS.push(
+  { id: 'agent-setup', slug: 'agent-setup', title: 'Install agent skills', category: 'Getting Started', description: 'Install Superpowers and the official PixiJS collection, then verify the agent can load them.', content: '# Install agent skills\n\n## Required for the guided AI workflow\n\nInstall Superpowers and the official PixiJS v8 skill collection for the agent you will use. They guide planning, testing and rendering work; they are not runtime dependencies of the game.\n\n## Install Superpowers\n\nIn the Codex app, open Plugins and install Superpowers. In Codex CLI, use /plugins, search for Superpowers and select Install Plugin.\n\nIn Claude Code, use its official plugin marketplace:\n\n```text\n/plugin install superpowers@claude-plugins-official\n```\n\nIn Cursor Agent chat:\n\n```text\n/add-plugin superpowers\n```\n\nOther agents have their own installation routes. Use the [upstream Superpowers instructions](' + SKILL_SOURCES.superpowers + ').\n\n## Install PixiJS skills\n\nRun this in the checkout and follow the prompts for your coding agent and the full PixiJS collection:\n\n```sh\n' + PIXIJS_INSTALL + '\n```\n\nSee the [official PixiJS instructions](' + SKILL_SOURCES.pixijs + ').\n\n## Verify before coding\n\nAsk the agent to confirm installed and loaded skills, rather than inferring readiness from a website checkbox.\n\n```text\n' + SKILL_PREFLIGHT + '\n```\n\n[Use the interactive setup checklist](/start). Installation sources were checked on 15 October 2026; follow upstream instructions when a tool changes.' },
+  { id: 'audience', slug: 'audience', title: 'Who Automata is for', category: 'Getting Started', description: 'Choose Automata based on your workflow and current requirements.', content: '# Who Automata is for\n\n## Who this is for\n\n' + AUDIENCE_FIT.map(item => '- ' + item).join('\n') + '\n\n## Who this is not for\n\n' + AUDIENCE_NOT_FIT.map(item => '- ' + item).join('\n') + '\n\n## Start from your background\n\n' + MIGRATION_GUIDES.map(guide => '- [From ' + guide.engine + '](/docs/' + guide.slug + ')').join('\n') + '\n\n[Current capabilities and licensing](/docs/capabilities).'},
+  { id: 'faq', slug: 'faq', title: 'FAQ', category: 'Getting Started', description: 'Answers about agents, content, licensing, platforms, migration and community games.', content: '# FAQ\n\n' + FAQ_ITEMS.map(item => '## ' + item.question + '\n\n' + item.answer).join('\n\n') + '\n\n[Install agent skills](/docs/agent-setup), [make a first change](/start), or [visit the community showcase](/showcase).' },
+)
+
+export function syncDocs(outputDir = websiteDir) {
   const docs: DocSection[] = []
 
   for (const item of DEFAULT_DOCS) {
-    const content = item.content.replace('STARTER_PLACEHOLDER', '```typescript\n' + STARTER_CODE + '\n```')
+    const content = item.content
     const toc = extractToc(content)
     docs.push({
       ...item,
@@ -123,14 +146,14 @@ export function syncDocs() {
   }
 
   // 1. Write src/data/docs.json
-  const dataDir = join(websiteDir, 'src/data')
+  const dataDir = join(outputDir, 'src/data')
   if (!existsSync(dataDir)) {
     mkdirSync(dataDir, { recursive: true })
   }
   writeFileSync(join(dataDir, 'docs.json'), JSON.stringify(docs, null, 2))
 
   // 2. Generate static/llms.txt
-  const staticDir = join(websiteDir, 'static')
+  const staticDir = join(outputDir, 'static')
   if (!existsSync(staticDir)) {
     mkdirSync(staticDir, { recursive: true })
   }
@@ -144,12 +167,15 @@ ${docs.map((d) => `- [${d.title}](/docs/${d.slug}): ${d.description}`).join('\n'
 
 ## AI & Agent Skills
 - [Automata AI Portal](/ai): Project context, architectural rules, and verification guidance.
-- [Full Text Docs](/llms-full.txt): Combined introductory documentation for coding agents.
+- [Full Text Docs](/llms-full.txt): Guides, selected API contracts, examples, and task prompts for coding agents.
+
+## API Reference
+${CHEATSHEET_MODULES.map(module => `- [${module.title}](/cheatsheet#${module.id}): ${module.description}`).join('\n')}
 `
   writeFileSync(join(staticDir, 'llms.txt'), llmsIndex.trim() + '\n')
 
   // 3. Generate static/llms-full.txt
-  const llmsFull = `# Automata Framework — Introductory Documentation for Coding Agents
+  const llmsFull = `# Automata Framework — Documentation and API Reference for Coding Agents
 
 > Automata is a deterministic 2D game framework for the modern web and Ruken platform.
 > Strict Core Laws: Koota ECS determinism, Effect outside sim, Zero Eval CSP, PixiJS 2D sub-tick alpha interpolation.
@@ -174,6 +200,40 @@ Description: ${d.description}
 ${d.content}`
   )
   .join('\n\n---\n\n')}
+
+---
+
+# AI workflow
+URL: /ai
+
+## Project context
+${AI_CONTEXT_FILES.map(file => `- ${file.path}: ${file.purpose}`).join('\n')}
+
+## Architectural boundaries
+${AI_RULES.map(rule => `### ${rule.title}\n\n${rule.detail}`).join('\n\n')}
+
+## First task prompt
+\`\`\`text
+${AI_PROJECT_PROMPT}
+\`\`\`
+
+${AI_TASKS.map(task => `## ${task.title}\n\n${task.description}\nAPI: ${task.apiHref}\n\n\`\`\`text\n${task.prompt}\n\`\`\``).join('\n\n')}
+
+## Review and verify
+${AI_REVIEW_CHECKS.map(check => `- ${check}`).join('\n')}
+
+\`\`\`sh
+${AI_VERIFY_COMMANDS}
+\`\`\`
+
+---
+
+# Selected API reference
+URL: /cheatsheet
+These examples and abbreviated contracts describe selected APIs, not every export.
+The current checkout's instructions and TypeScript definitions take precedence.
+
+${CHEATSHEET_MODULES.map(module => `## ${module.title}\nImport: ${module.name}\nURL: /cheatsheet#${module.id}\nSource: https://github.com/mcthaydt/automata-framework/blob/main/${module.sourcePath}\n\n${module.description}\n\n\`\`\`ts\n${module.example}\n\`\`\`\n\n${module.entries.map(entry => `### ${entry.name}\n\n${entry.description}\n${entry.receiver ? `Instance method on ${entry.receiver}.\n` : ''}\n\`\`\`ts\n${entry.signature}\n\`\`\`\nReturns: ${entry.returnType}\n${(entry.parameters ?? []).map(parameter => `- ${parameter.name} (${parameter.type}): ${parameter.desc}`).join('\n')}\n${(entry.notes ?? []).map(note => `- ${note}`).join('\n')}`).join('\n\n')}`).join('\n\n---\n\n')}
 `
   writeFileSync(join(staticDir, 'llms-full.txt'), llmsFull.trim() + '\n')
 

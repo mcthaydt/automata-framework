@@ -6,6 +6,9 @@ function getHighlighter() {
     import('shiki/themes/github-light.mjs'),
     import('shiki/langs/typescript.mjs'), import('shiki/langs/javascript.mjs'),
     import('shiki/langs/json.mjs'), import('shiki/langs/toml.mjs'), import('shiki/langs/shellscript.mjs'),
+    import('shiki/langs/svelte.mjs'), import('shiki/langs/html.mjs'), import('shiki/langs/css.mjs'),
+    import('shiki/langs/yaml.mjs'), import('shiki/langs/markdown.mjs'), import('shiki/langs/xml.mjs'),
+    import('shiki/langs/glsl.mjs'), import('shiki/langs/wgsl.mjs'),
   ]).then(([core, engine, theme, ...languages]) => core.createHighlighterCore({
     engine: engine.createJavaScriptRegexEngine(), themes: [theme.default], langs: languages.map(l => l.default),
   }))

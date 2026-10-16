@@ -3,15 +3,35 @@
 > Automata is a deterministic 2D game framework built for modern web browsers and the Ruken gaming platform.
 
 ## Documentation
-- [Overview & Vision](/docs/overview): The architecture and current developer-preview scope.
-- [Quick Start](/docs/quick-start): Access prerequisites and a local example workflow.
+- [Overview & Vision](/docs/overview): AI-assisted game development with code and content you can own.
+- [Quick Start](/docs/quick-start): Play a double-jump remix, copy a task, and run the starter on your machine.
+- [From Unity](/docs/from-unity): Map GameObjects, MonoBehaviours, scenes and ScriptableObjects to Automata ownership.
+- [From Godot](/docs/from-godot): Map nodes, scenes, signals, resources and physics callbacks to simulation and presentation.
+- [From Unreal](/docs/from-unreal): Map Actors, components, Blueprints and replication expectations to the current 2D framework.
+- [From GameMaker](/docs/from-gamemaker): Map objects, instances, events, rooms and alarms to data, systems and content.
+- [From web development](/docs/from-web): Map application state, components, requestAnimationFrame and async work to game ownership.
 - [ECS Simulation & Determinism](/docs/sim-ecs): Components, systems, async creation and synchronous stepping.
 - [PixiJS 2D Presentation](/docs/render-pixi): Renderer setup, render deltas and interpolation.
 - [Effect Runtime & Concurrency](/docs/effect-runtime): Loading, errors and resource lifetimes outside the sim.
 - [Zero-Eval CSP & Ruken Security](/docs/security-csp): Avoiding dynamic evaluation under the host policy.
 - [Mobile UI Primitives](/docs/mobile-ui): Geometry, controls and accessible layout.
 - [AI Coding Agent Rules](/docs/ai-rules): Project context for agents, followed by verification.
+- [Capabilities and licensing](/docs/capabilities): What you can use today, what is planned, and how the license applies.
+- [Install agent skills](/docs/agent-setup): Install Superpowers and the official PixiJS collection, then verify the agent can load them.
+- [Who Automata is for](/docs/audience): Choose Automata based on your workflow and current requirements.
+- [FAQ](/docs/faq): Answers about agents, content, licensing, platforms, migration and community games.
 
 ## AI & Agent Skills
 - [Automata AI Portal](/ai): Project context, architectural rules, and verification guidance.
-- [Full Text Docs](/llms-full.txt): Combined introductory documentation for coding agents.
+- [Full Text Docs](/llms-full.txt): Guides, selected API contracts, examples, and task prompts for coding agents.
+
+## API Reference
+- [Simulation](/cheatsheet#simulation): Define gameplay state and advance it with synchronous fixed ticks. Use instance methods on the Sim returned by createSim.
+- [Snapshots and replays](/cheatsheet#replays): Record accepted commands with checkpoints, encode a run, and verify it against matching plugins and content. Import replays through this simulation subpath.
+- [Runtime](/cheatsheet#runtime): Effect-scoped boot, screens, loading, settings, and shutdown. Runtime service tags are available inside runtime-provided contexts.
+- [PixiJS presentation](/cheatsheet#presentation): Draw render deltas without changing gameplay state. WebGL2 is the default; WebGPU is opt-in. Import no-eval before initializing PixiJS.
+- [Physics](/cheatsheet#physics): Deterministic 2D physics inside the simulation. Use the /2d entry and spawn helpers rather than importing Rapier or relying on zero-valued collider defaults.
+- [Responsive UI](/cheatsheet#ui): One geometry owner coordinates usable space, safe areas, browser bars, keyboard occlusion, and host display metrics. Svelte primitives consume that geometry.
+- [Hosting](/cheatsheet#hosting): Use Hosting for readiness, capabilities, saves, lifecycle, and platform actions. The Ruken SDK owns the host protocol.
+- [Content](/cheatsheet#content): Register Zod schemas for authored TOML, compile content, and pass the appropriate partition to the runtime or simulation.
+- [Shipping](/cheatsheet#shipping): Configure identity and prepare a built folder. Preparation checks the local artifact; publishing needs a destination and credentials.

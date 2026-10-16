@@ -1,0 +1,16 @@
+body { display: flex; flex-direction: column; font-family: system-ui, sans-serif; }
+#controls { padding: .75rem 1rem; display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1.5rem; background: #17201c; color: white; }
+#controls p { flex-basis: 100%; margin: 0; font-size: .8125rem; }
+#controls button { font: inherit; min-height: 44px; padding: .5rem .8rem; border: 0; background: #29392f; color: white; }
+#controls button[aria-pressed="true"] { background: #e9efe8; color: #17201c; }
+#controls label { display: flex; align-items: center; gap: .5rem; font-size: .875rem; }
+#controls input[type="range"] { width: 8rem; min-height: 44px; accent-color: #d1e4cf; }
+#controls input[type="checkbox"] { width: 22px; height: 22px; accent-color: #f2cd65; }
+.jump-toggle { min-height: 44px; font-weight: 700; }
+#jump-status { font-size: .875rem; }
+#controls summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: .875rem; }
+#controls details[open] { flex-basis: 100%; }
+#controls details[open] > div { display: inline-flex; gap: .5rem; margin-right: 1rem; }
+#controls details[open] > label { display: inline-flex; }
+#game { flex: 1; min-height: 0; height: auto; }
+:focus-visible { outline: 3px solid white; outline-offset: 3px; }

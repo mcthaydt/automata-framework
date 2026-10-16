@@ -1,6 +1,6 @@
 <script lang="ts">
   let { onOpenSearch, pathname = '/' }: { onOpenSearch?: () => void; pathname?: string } = $props()
-  const links = [['/', 'Overview'], ['/examples', 'Examples'], ['/cheatsheet', 'Cheatsheet'], ['/showcase', 'Showcase'], ['/docs', 'Docs'], ['/ai', 'AI']]
+  const links = [['/start', 'Start'], ['/examples', 'Examples'], ['/showcase', 'Showcase'], ['/docs', 'Docs'], ['/ai', 'AI']]
   let mobile: HTMLDetailsElement
   const current = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href)
 </script>

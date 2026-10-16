@@ -1,8 +1,25 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
+import { AI_PROJECT_PROMPT, AI_TASKS } from '../src/data/ai-guidance'
 
 describe('LLMs.txt & Docs Pipeline', () => {
+  it('publishes the same API examples and task prompts that people read on the site', () => {
+    const full = readFileSync(resolve(__dirname, '../static/llms-full.txt'), 'utf8')
+    const index = readFileSync(resolve(__dirname, '../static/llms.txt'), 'utf8')
+    expect(full).toContain(AI_PROJECT_PROMPT)
+    for (const task of AI_TASKS) expect(full).toContain(task.prompt)
+    for (const mod of CHEATSHEET_MODULES) {
+      expect(index).toContain(`/cheatsheet#${mod.id}`)
+      expect(full).toContain(mod.example)
+      for (const entry of mod.entries) {
+        expect(full).toContain(entry.signature)
+        for (const parameter of entry.parameters ?? []) expect(full).toContain(parameter.desc)
+      }
+    }
+  })
+
   it('generates llms.txt matching llmstxt.org specification', () => {
     const filePath = resolve(__dirname, '../static/llms.txt')
     expect(existsSync(filePath)).toBe(true)

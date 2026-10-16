@@ -2,15 +2,18 @@
   import { onMount, untrack } from 'svelte'
   import { getDemosCatalog } from '../../data/demos'
   import { demoStatus } from '../utils/demo-status'
-  let { src, title, autoStart = true, class: className = '' }: { src: string; title: string; autoStart?: boolean; aspect?: string; class?: string } = $props()
+  let { src, title, autoStart = true, poster, posterAlt = title + ' preview', class: className = '' }: { src: string; title: string; autoStart?: boolean; poster?: string; posterAlt?: string; aspect?: string; class?: string } = $props()
   let container: HTMLDivElement
   let iframe: HTMLIFrameElement | undefined = $state()
   let active = $state(untrack(() => autoStart))
+  let mounted = $state(false)
   let attempt = $state(0)
   let status = $state<'loading' | 'ready' | 'failed'>('loading')
   let fullscreenMessage = $state('')
-  let allowed = $derived(getDemosCatalog().some(d => d.bundleUrl === src))
-  onMount(() => { if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) active = false })
+  let allowed = $derived(src === '/demos/first-change/index.html' || getDemosCatalog().some(d => d.bundleUrl === src))
+  // Prerendered /examples has no query selection. Create resource URLs only after hydration,
+  // otherwise Svelte preserves the server's default iframe src for a different selected demo.
+  onMount(() => { if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) active = false; mounted = true })
   $effect(() => {
     // A changed src or retry gets a fresh deadline. Cleanup prevents late results from previous frames.
     const source = src
@@ -46,14 +49,15 @@
     </div>
   </div>
   <div class="demo-viewport">
-    {#if active && allowed}
+    {#if active && allowed && mounted}
       {#key src + attempt}
         <iframe bind:this={iframe} {src} {title} allow="autoplay; fullscreen" sandbox="allow-scripts allow-same-origin"></iframe>
       {/key}
       {#if status === 'loading'}<div class="demo-status" role="status"><p>Starting the demo…</p></div>{/if}
       {#if status === 'failed'}<div class="demo-status"><p role="alert">This demo couldn't start. Try again or open it in a new tab.</p><button type="button" onclick={() => attempt++}>Retry</button></div>{/if}
     {:else}
-      <div class="demo-status"><p>{allowed ? 'The demo is stopped. Play to start a fresh session.' : 'This demo is unavailable.'}</p>{#if allowed}<button class="button" type="button" onclick={() => active = true}>Play demo</button>{/if}</div>
+      {#if poster && allowed}<img class="demo-poster" src={poster} alt={posterAlt} width="1280" height="720" />{/if}
+      <div class:has-poster={poster && allowed} class="demo-status"><p>{!allowed ? 'This demo is unavailable.' : active && !mounted ? 'Starting the demo…' : poster ? 'Play here. No setup needed.' : 'The demo is stopped. Play to start a fresh session.'}</p>{#if allowed && (!active || mounted)}<button class="button" type="button" onclick={() => active = true}>Play demo</button>{/if}</div>
     {/if}
   </div>
   {#if fullscreenMessage}<p class="small" role="status">{fullscreenMessage}</p>{/if}

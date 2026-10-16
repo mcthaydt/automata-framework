@@ -1,5 +1,6 @@
 <script lang="ts">
   import CodeBlock from '$lib/components/CodeBlock.svelte'
+  import InlineText from '$lib/components/InlineText.svelte'
   import PageMeta from '$lib/components/PageMeta.svelte'
   import { parseMarkdown } from '$lib/utils/markdown'
   import { isEditing } from '$lib/utils/keyboard'
@@ -29,13 +30,13 @@
       {#if block.type === 'h2'}<h2 id={block.headingId}>{block.content}</h2>
       {:else if block.type === 'h3'}<h3 id={block.headingId}>{block.content}</h3>
       {:else if block.type === 'code'}<CodeBlock code={block.code ?? ''} lang={block.lang} />
-      {:else if block.type === 'callout'}<aside data-callout={block.calloutType} class="callout"><p>{block.content}</p></aside>
+      {:else if block.type === 'callout'}<aside data-callout={block.calloutType} class="callout"><p><InlineText text={block.content} /></p></aside>
       {:else if block.type === 'table'}<!-- Keyboard access to horizontally overflowing tables. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div class="table-scroll" tabindex="0" role="region" aria-label="Documentation table"><table><thead><tr>{#each block.tableHeaders ?? [] as cell}<th scope="col">{cell}</th>{/each}</tr></thead><tbody>{#each block.tableRows ?? [] as row}<tr>{#each row as cell}<td>{cell}</td>{/each}</tr>{/each}</tbody></table></div>
-      {:else if block.type === 'ul'}<ul>{#each block.listItems ?? [] as item}<li>{item}</li>{/each}</ul>
-      {:else if block.type === 'ol'}<ol>{#each block.listItems ?? [] as item}<li>{item}</li>{/each}</ol>
-      {:else}<p>{block.content}</p>{/if}
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Documentation table"><table><thead><tr>{#each block.tableHeaders ?? [] as cell}<th scope="col">{cell}</th>{/each}</tr></thead><tbody>{#each block.tableRows ?? [] as row}<tr>{#each row as cell}<td><InlineText text={cell} /></td>{/each}</tr>{/each}</tbody></table></div>
+      {:else if block.type === 'ul'}<ul>{#each block.listItems ?? [] as item}<li><InlineText text={item} /></li>{/each}</ul>
+      {:else if block.type === 'ol'}<ol>{#each block.listItems ?? [] as item}<li><InlineText text={item} /></li>{/each}</ol>
+      {:else}<p><InlineText text={block.content} /></p>{/if}
     {/each}
     <nav class="doc-pagination" aria-label="Previous and next documentation">{#if index > 0}<a href={'/docs/' + docs[index - 1].slug}>Previous: {docs[index - 1].title}</a>{/if}{#if index < docs.length - 1}<a href={'/docs/' + docs[index + 1].slug}>Next: {docs[index + 1].title}</a>{/if}</nav>
   </article>

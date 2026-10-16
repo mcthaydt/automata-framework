@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { CHEATSHEET_MODULES, searchCheatsheet } from '../src/data/cheatsheet'
 
 describe('Cheatsheet Data & Search', () => {
-  it('covers all 7 framework modules', () => {
+  it('covers core modules, the physics and replay subpaths, and shipping', () => {
     const moduleNames = CHEATSHEET_MODULES.map((m) => m.name)
     expect(moduleNames).toContain('@mcthaydt/automata-sim')
     expect(moduleNames).toContain('@mcthaydt/automata-runtime')
     expect(moduleNames).toContain('@mcthaydt/automata-render-pixi')
-    expect(moduleNames).toContain('@mcthaydt/automata-physics')
+    expect(moduleNames).toContain('@mcthaydt/automata-physics/2d')
+    expect(moduleNames).toContain('@mcthaydt/automata-sim/replay')
+    expect(moduleNames).toContain('@mcthaydt/automata-ship')
     expect(moduleNames).toContain('@mcthaydt/automata-ui')
     expect(moduleNames).toContain('@mcthaydt/automata-host')
     expect(moduleNames).toContain('@mcthaydt/automata-content')

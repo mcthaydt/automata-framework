@@ -1,9 +1,16 @@
 <script lang="ts">
   import PageMeta from '$lib/components/PageMeta.svelte'
-  import DemoRunner from '$lib/components/DemoRunner.svelte'
-  import { SHOWCASE_GAMES } from '../../data/showcase'
+  import CreativeStarts from '$lib/components/CreativeStarts.svelte'
+  import { COMMUNITY_GAMES, SHOWCASE_GAMES, SHOWCASE_SUBMISSION_URL } from '../../data/showcase'
 </script>
-<PageMeta title="Starter and references" description="Play Emberwick, Automata’s 2D starter, and learn which reference projects informed the framework." />
-<div class="page-shell showcase-page"><h1>Play. Then build.</h1><p class="lead">A working starter, and the projects behind the framework.</p>
-  {#each SHOWCASE_GAMES as game}<section class="project-section"><div><h2>{game.title}</h2><p><strong>{game.relationship}</strong></p><p class="lead">{game.tagline}</p><p>{game.description}</p></div>{#if game.bundleUrl}<DemoRunner src={game.bundleUrl} title={game.title} /><a href="/examples?demo=base-2d">Explore the starter source</a>{/if}</section>{/each}
+<PageMeta title="Made with Automata" description="Play and remix real Automata starters: a platformer, a double-jump change, and a physics playground. See reference projects and share your own game." />
+<div class="page-shell showcase-page">
+  <h1>Your next<br />game starts here.</h1><p class="lead">Play something. Change one thing. See where it takes you.</p>
+  <section><h2>Play a starting point</h2><p>These are Automata starters and feature demos, with real code to build on. Pick the kind of game you want to make.</p><CreativeStarts /></section>
+  <section class="community-showcase"><h2>Games from the community</h2>
+    {#if COMMUNITY_GAMES.length}<div class="community-games">{#each COMMUNITY_GAMES as game}<article>{#if game.image}<img src={game.image} alt={game.title + ' gameplay'} loading="lazy" />{/if}<h3>{game.title}</h3><p>By {game.creator}</p><p>{game.description}</p><a href={game.url}>Play {game.title}</a></article>{/each}</div>
+    {:else}<p>No community submissions have been published here yet.</p>{/if}
+    <div class="showcase-submit"><div><h3>Share your game.</h3><p>Include a playable link, your creator name, the Automata version, a short description and screenshots you have permission to share. Submissions are reviewed before being added here.</p></div><a class="button" href={SHOWCASE_SUBMISSION_URL}>Submit your game</a></div>
+  </section>
+  <section class="reference-projects"><h2>Reference projects</h2><p>These projects informed the framework. They are distinct from reviewed games made with Automata.</p>{#each SHOWCASE_GAMES.filter(game => !game.bundleUrl) as game}<article><h3>{game.title}</h3><p>{game.relationship}</p><p>{game.description}</p></article>{/each}</section>
 </div>

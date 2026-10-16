@@ -1,6 +1,8 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, lstatSync, writeFileSync } from 'node:fs'
+import { dirname, extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import ts from 'typescript'
+import type { ExampleSources, SourceFile } from '../src/data/project-types'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const frameworkDir = resolve(__dirname, '../../automata-framework')
@@ -20,7 +22,7 @@ export interface DemoItem {
   bundleUrl: string
 }
 
-const RAW_DEMOS = [
+export const RAW_DEMOS = [
   {
     slug: 'renderer-2d',
     title: 'Renderer: 2D PixiJS',
@@ -85,6 +87,115 @@ export function extractHeader(source: string, key: string): string {
   return parts.join(' ').trim()
 }
 
+// Publish authored files only. Framework packages remain declared dependencies; shared example
+// packages are included because their source is part of the example, rather than the library API.
+export function collectExampleSources(root: string, entries: readonly { slug: string; path: string }[]): ExampleSources {
+  const packages = new Map<string, string>()
+  const findPackages = (directory: string) => {
+    if (existsSync(join(directory, 'package.json'))) {
+      const manifest = JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8'))
+      packages.set(manifest.name, directory)
+      return
+    }
+    for (const item of readdirSync(directory, { withFileTypes: true })) {
+      if (item.isDirectory() && !item.name.startsWith('.') && !['node_modules', 'dist'].includes(item.name)) findPackages(join(directory, item.name))
+    }
+  }
+  findPackages(join(root, 'examples'))
+  const files = new Map<string, SourceFile>()
+  const languages: Record<string, string> = { '.ts': 'typescript', '.js': 'javascript', '.mjs': 'javascript', '.svelte': 'svelte', '.json': 'json', '.css': 'css', '.html': 'html', '.toml': 'toml', '.yaml': 'yaml', '.yml': 'yaml', '.md': 'markdown', '.txt': 'text', '.glsl': 'glsl', '.wgsl': 'wgsl', '.svg': 'xml' }
+  const binary = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.woff', '.woff2', '.mp3', '.ogg', '.wav', '.mp4', '.wasm'])
+  const addFile = (absolute: string, paths: Set<string>) => {
+    const path = relative(root, absolute).split('\\').join('/')
+    if (path.startsWith('../') || path.split('/').some(part => part.startsWith('.'))) throw new Error('Source path outside published project scope: ' + path)
+    const extension = path.endsWith('/LICENSE') || path === 'LICENSE' ? '.txt' : extname(path)
+    if (!(extension in languages) && !binary.has(extension)) return
+    paths.add(path)
+    if (!files.has(path)) files.set(path, { path, language: languages[extension] ?? 'text', ...(binary.has(extension) ? {} : { content: readFileSync(absolute, 'utf8') }) })
+  }
+  const projects = entries.map(entry => {
+    const paths = new Set<string>()
+    const visited = new Set<string>()
+    const collect = (directory: string) => {
+      for (const item of readdirSync(directory, { withFileTypes: true })) {
+        if (item.name.startsWith('.') || (/\.(spec|e2e)\./.test(item.name) || /\.(browser|parity|layout)\.test\./.test(item.name))) continue
+        const absolute = join(directory, item.name)
+        if (item.isDirectory()) {
+          if (!item.name.startsWith('dist-') && !['node_modules', 'dist', 'build', 'coverage', 'e2e', 'tests', '__tests__', '__snapshots__', 'test-results', 'playwright-report'].includes(item.name)) collect(absolute)
+        } else if (item.isFile()) addFile(absolute, paths)
+      }
+    }
+    const visit = (directory: string) => {
+      if (visited.has(directory)) return
+      visited.add(directory)
+      collect(directory)
+      const manifest = JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8'))
+      for (const name of Object.keys({ ...manifest.dependencies, ...manifest.devDependencies }).sort()) {
+        if (!name.startsWith('@af-examples/')) continue
+        const dependency = packages.get(name)
+        if (!dependency) throw new Error('Missing shared example package: ' + name)
+        visit(dependency)
+      }
+    }
+    const directory = join(root, entry.path)
+    visit(directory)
+    for (const name of ['package.json', 'pnpm-workspace.yaml', 'tsconfig.base.json', 'LICENSE', 'LICENSE-SCOPE.md']) {
+      if (existsSync(join(root, name))) addFile(join(root, name), paths)
+    }
+    // Vite configs and shared helpers sometimes import sibling framework files by relative
+    // path instead of a package name. Follow that closure so every displayed import has source.
+    const queue = [...paths]
+    for (let index = 0; index < queue.length; index++) {
+      const path = queue[index]
+      const source = files.get(path)
+      if (!source?.content || !/\.(ts|js|mjs|svelte)$/.test(path)) continue
+      for (const imported of ts.preProcessFile(source.content).importedFiles) {
+        if (!imported.fileName.startsWith('.')) continue
+        const target = resolve(root, dirname(path), imported.fileName.split('?')[0])
+        const candidates = [target, target + '.ts', join(target, 'index.ts'), target.replace(/\.js$/, '.ts')]
+        const absolute = candidates.find(candidate => existsSync(candidate) && lstatSync(candidate).isFile())
+        if (!absolute) throw new Error('Unresolved example import: ' + path + ' -> ' + imported.fileName)
+        const importedPath = relative(root, absolute).split('\\').join('/')
+        if (!paths.has(importedPath)) { addFile(absolute, paths); queue.push(importedPath) }
+      }
+    }
+    const manifest = JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8'))
+    if (!manifest.scripts?.dev) throw new Error('Missing dev command for ' + entry.path)
+    return { slug: entry.slug, root: entry.path, name: manifest.name as string, command: 'pnpm --filter ' + manifest.name + ' dev', files: [...paths].sort() }
+  })
+  return { files: [...files.values()].sort((a, b) => a.path.localeCompare(b.path)), projects }
+}
+
+export function syncExampleSources() {
+  const sources = collectExampleSources(frameworkDir, RAW_DEMOS)
+  writeFileSync(join(websiteDir, 'src/data/projects.json'), JSON.stringify(sources, null, 2) + '\n')
+  return sources
+}
+
+/** Keep website-hosting fixes outside the framework and its content-hash boundary. */
+export function relocateDemoAssets(html: string, base: string): string {
+  return html.replace(/(["'])\/assets\//g, '$1' + base + 'assets/')
+}
+
+export function prepareDemoHosting(staticRoot = join(websiteDir, 'static')) {
+  for (const demo of RAW_DEMOS) {
+    const index = join(staticRoot, demo.bundleUrl)
+    if (existsSync(index)) {
+      const html = readFileSync(index, 'utf8')
+      writeFileSync(index, relocateDemoAssets(html, demo.bundleUrl.replace('index.html', '')))
+    }
+  }
+  // This older runtime bundle deliberately hashes its manifest with /assets/*.txt paths.
+  // Serve those two compatibility URLs as static files; rewriting its JS would invalidate that hash.
+  const assets = join(staticRoot, 'assets')
+  mkdirSync(assets, { recursive: true })
+  for (const name of ['title.txt', 'play.txt']) {
+    const source = join(staticRoot, 'demos/runtime/boot-and-flow/assets', name)
+    if (!existsSync(source)) throw new Error('Missing runtime demo asset: ' + name)
+    cpSync(source, join(assets, name))
+  }
+}
+
 export function syncDemos() {
   const catalog: DemoItem[] = []
   const staticDemosDir = join(websiteDir, 'static/demos')
@@ -145,5 +256,7 @@ export function syncDemos() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   syncDemos()
+  syncExampleSources()
+  prepareDemoHosting()
   console.log('Successfully synced demos to src/data/demos.json and static/demos/')
 }

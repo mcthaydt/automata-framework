@@ -2,7 +2,8 @@
   import { tick } from 'svelte'
   import { getDemosCatalog } from '../../data/demos'
   import { getDocSections } from '../../data/docs-loader'
-  import { CHEATSHEET_MODULES } from '../../data/cheatsheet'
+  import { CHEATSHEET_MODULES, cheatsheetSearchText } from '../../data/cheatsheet'
+  import { AI_TASKS } from '../../data/ai-guidance'
   let { isOpen = false, onClose = () => {} }: { isOpen?: boolean; onClose?: () => void } = $props()
   let dialog: HTMLDialogElement
   let input: HTMLInputElement
@@ -13,9 +14,10 @@
     { title: 'API reference', detail: 'Selected current APIs', url: '/cheatsheet' },
     { title: 'Showcase', detail: 'Starter and reference projects', url: '/showcase' },
     { title: 'AI guidance', detail: 'Rules and plain-text docs', url: '/ai' },
+    ...AI_TASKS.map(task => ({ title: task.title, detail: task.description + ' ' + task.prompt, url: '/ai#prompt-' + task.id })),
     ...getDocSections().map(d => ({ title: d.title, detail: d.description + ' ' + d.content, url: '/docs/' + d.slug })),
     ...getDemosCatalog().map(d => ({ title: d.title, detail: d.shows, url: '/examples?demo=' + d.slug })),
-    ...CHEATSHEET_MODULES.flatMap(m => m.entries.map(e => ({ title: e.name, detail: e.description + ' ' + e.signature, url: '/cheatsheet#' + e.name }))),
+    ...CHEATSHEET_MODULES.flatMap(m => m.entries.map(e => ({ title: e.name, detail: cheatsheetSearchText(m, e), url: '/cheatsheet#' + e.name }))),
   ]
   let results = $derived(links.filter(l => query.trim().toLowerCase().split(/\s+/).every(q => (l.title + ' ' + l.detail).toLowerCase().includes(q))))
   $effect(() => {

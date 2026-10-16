@@ -13,6 +13,12 @@ describe('Demo URLs and readiness', () => {
     const unknown = await load({ url: new URL('https://example.test/examples?demo=missing') } as any)
     expect(unknown).toEqual({ demo: 'renderer-2d' })
   })
+  it('opens a requested published file and ignores paths outside the source inventory', async () => {
+    const selected = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=examples/base-2d/src/content/room.test.ts') } as any)
+    expect(selected).toEqual({ demo: 'base-2d', file: 'examples/base-2d/src/content/room.test.ts' })
+    const invalid = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=../../.env') } as any)
+    expect(invalid).toEqual({ demo: 'base-2d' })
+  })
   it('does not equate document load with game readiness', () => {
     const doc = document.implementation.createHTMLDocument('404')
     expect(demoStatus(doc)).toBe('loading')
@@ -22,6 +28,12 @@ describe('Demo URLs and readiness', () => {
     expect(demoStatus(doc)).toBe('failed')
     delete doc.documentElement.dataset.state
     doc.documentElement.setAttribute('data-ready', '')
+    expect(demoStatus(doc)).toBe('ready')
+  })
+  it('recognizes a mounted UI gallery, without declaring an empty page ready', () => {
+    const doc = document.implementation.createHTMLDocument('UI example')
+    expect(demoStatus(doc)).toBe('loading')
+    doc.body.innerHTML = '<main class="gallery"><select name="show"><option>screen</option></select><iframe title="screen at 360 by 640"></iframe></main>'
     expect(demoStatus(doc)).toBe('ready')
   })
   it('unloads the iframe when stopped and restarts a fresh session', async () => {

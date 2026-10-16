@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { title, description = 'Explore Automata, a TypeScript game framework for deterministic simulation and PixiJS presentation. Play examples and read the documentation.' }: { title: string; description?: string } = $props()
+  let { title, description = 'Automata is an AI-first TypeScript game framework. Build with coding agents, verify their work, author the content and stay in control of the source.' }: { title: string; description?: string } = $props()
 </script>
 <svelte:head>
   <title>{title} | Automata</title>
