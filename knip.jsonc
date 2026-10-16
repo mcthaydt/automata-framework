@@ -13,7 +13,22 @@
   "ignoreIssues": { "packages/runtime/src/boot/boot-error.ts": ["types"] },
   "workspaces": {
     // s8/measure.ts builds s8/no-effect.html, whose script is this file.
-    "examples/placeholder": { "entry": ["s8/no-effect.ts"] },
+    "games/placeholder": { "entry": ["s8/no-effect.ts"] },
+    // The runner injects `@mcthaydt/automata-render-pixi/no-eval` into every page as a string (vite-plugin.ts),
+    // which knip cannot follow; the smoke specs run from the root playwright.config.ts.
+    "examples": {
+      "entry": ["e2e/*.e2e.ts"],
+      "ignoreDependencies": [
+        "@mcthaydt/automata-render-pixi",
+        // EX.3's examples are committed red against DX.2's API (`Pending: DX.2`); DX.2 adds the package and
+        // these dependencies. Follow-up in docs/02 (QB.1 knip baseline).
+        "@mcthaydt/automata-game",
+        "zod",
+        // Imported by the runner's smoke helper, not by this package; same follow-up.
+        "@playwright/test"
+      ]
+    },
+    "tooling/examples-runner": { "ignoreDependencies": ["@mcthaydt/automata-render-pixi"] },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
     "packages/host": { "ignoreDependencies": ["zod"] },
