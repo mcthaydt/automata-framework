@@ -247,6 +247,9 @@ importers:
 
   examples/placeholder:
     dependencies:
+      '@mcthaydt/automata-host':
+        specifier: workspace:*
+        version: link:../../packages/host
       '@ruken/sdk':
         specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-0.0.0.tgz

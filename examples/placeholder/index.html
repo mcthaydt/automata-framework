@@ -8,7 +8,11 @@
   </head>
   <body>
     <!-- Empty until the host says ready: nothing renders before ready (Ruken R-04). -->
-    <main id="game" aria-live="polite"></main>
+    <main>
+      <p id="game" aria-live="polite"></p>
+      <p id="saves" aria-live="polite"></p>
+      <button id="fullscreen" type="button" hidden>Fullscreen</button>
+    </main>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

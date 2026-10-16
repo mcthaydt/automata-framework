@@ -9,12 +9,34 @@ body {
     sans-serif;
 }
 
-#game {
+main {
   display: grid;
-  place-items: center;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
   height: 100%;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
   box-sizing: border-box;
   text-align: center;
+}
+
+#game,
+#saves {
+  margin: 0;
+}
+
+#fullscreen {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 16px;
+  font: inherit;
+  color: #181425;
+  background: #ead4aa;
+  border: 0;
+  border-radius: 4px;
+}
+
+#fullscreen[hidden] {
+  display: none;
 }

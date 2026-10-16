@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-s8/
+dist-itch/
 dist-e2e-host/
 playwright-report/
 .turbo/

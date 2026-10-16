@@ -1,7 +1,7 @@
 import { checkManifest, rukenToml } from '@mcthaydt/automata-ship'
 import { compileHeaders } from '@ruken/manifest'
 import { Effect } from 'effect'
-import { defineConfig } from 'vite'
+import { defaultClientConditions, defineConfig, type UserConfig } from 'vite'
 import config from './ship.config.ts'
 
 // `vite preview` serves the build with the headers Ruken would serve it with (compileHeaders on this game's
@@ -14,10 +14,22 @@ function previewHeaders(): Record<string, string> {
   return compileHeaders(Effect.runSync(checkManifest(rukenToml(config))), { hostOrigins })
 }
 
-export default defineConfig({
-  // Relative URLs: inside Ruken the game is served from /b/<buildId>/ and on the dev host from
-  // /builds/<buildId>/, never from the origin's root (ship prepare refuses root-absolute paths).
+/**
+ * `pnpm build:itch` (mode `itch`, PUB spec §3): the `automata-web` condition makes
+ * `@mcthaydt/automata-host/target` the web adapter, so the build holds no Ruken SDK, and `__AUTOMATA_TARGET__`
+ * names itch.io as the host. `resolve.conditions` replaces Vite's defaults, so they follow the target's.
+ */
+const itch: UserConfig = {
+  resolve: { conditions: ['automata-web', ...defaultClientConditions] },
+  define: { __AUTOMATA_TARGET__: JSON.stringify('itch') },
+  build: { outDir: 'dist-itch', emptyOutDir: true },
+}
+
+export default defineConfig(({ mode }) => ({
+  // Relative URLs: inside Ruken the game is served from /b/<buildId>/, on the dev host from /builds/<buildId>/
+  // and on itch.io from /html/<uploadId>/, never from the origin's root (ship prepare refuses root-absolute paths).
   base: './',
   build: { outDir: 'dist', emptyOutDir: true },
   preview: { headers: previewHeaders() },
-})
+  ...(mode === 'itch' ? itch : {}),
+}))
