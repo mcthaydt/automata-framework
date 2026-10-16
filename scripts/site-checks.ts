@@ -37,6 +37,7 @@ export function checkSite(root: string): string[] {
     for (const selector of ['title', 'h1', 'main#main', 'meta[name="description"]', 'meta[property="og:title"]', 'link[rel="canonical"]']) {
       if (doc.querySelectorAll(selector).length !== 1) failures.push(file + ': expected one ' + selector)
     }
+    failures.push(...checkIconLinks(file, doc))
     for (const image of doc.querySelectorAll('img')) {
       // Decorative images say so with alt=""; a missing attribute is always a defect.
       if (!image.hasAttribute('alt')) failures.push(`${file}: <img src="${image.getAttribute('src')}"> has no alt`)
@@ -62,7 +63,7 @@ export function checkSite(root: string): string[] {
     }
     window.close()
   }
-  failures.push(...checkSeoFiles(root, canonicals), ...checkImageFormats(root))
+  failures.push(...checkSeoFiles(root, canonicals), ...checkImageFormats(root), ...checkIconFiles(root))
   return failures
 }
 
@@ -106,6 +107,44 @@ function checkImageFormats(root: string): string[] {
     if (!expected) continue
     const actual = sniffImage(readFileSync(join(root, file)))
     if (actual !== expected) failures.push(`${file}: bytes are ${actual}, extension says ${file.split('.').pop()}`)
+  }
+  return failures
+}
+
+/** The URL a built page is served at: `index.html` is `/`, `docs/faq.html` is `/docs/faq`. */
+export function pageUrl(file: string): URL {
+  const path = file === 'index.html' ? '' : file.endsWith('/index.html') ? file.slice(0, -'index.html'.length) : file.replace(/\.html$/, '')
+  return new URL('/' + path, SITE_ORIGIN)
+}
+
+const ICONS = [
+  { file: 'favicon-32.png', size: 32, selector: 'link[rel="icon"][sizes="32x32"]', label: '<link rel="icon" sizes="32x32">' },
+  { file: 'apple-touch-icon.png', size: 180, selector: 'link[rel="apple-touch-icon"]', label: '<link rel="apple-touch-icon">' },
+]
+
+/** Every page links the PNG icons beside the SVG favicon (spec §4.2 favicon set). */
+function checkIconLinks(file: string, doc: Document): string[] {
+  const failures: string[] = []
+  for (const icon of ICONS) {
+    // SvelteKit writes %sveltekit.assets% as a relative path (./ or ../), so resolve it against the page's URL.
+    const linked = Array.from(doc.querySelectorAll(icon.selector))
+      .some(link => new URL(link.getAttribute('href') ?? '', pageUrl(file)).pathname === '/' + icon.file)
+    if (!linked) failures.push(`${file}: no ${icon.label} to /${icon.file}`)
+  }
+  return failures
+}
+
+/** The PNG icons exist at their exact sizes, read from the IHDR chunk. */
+function checkIconFiles(root: string): string[] {
+  const failures: string[] = []
+  for (const icon of ICONS) {
+    const path = join(root, icon.file)
+    if (!existsSync(path)) { failures.push(`${icon.file}: missing (expected a ${icon.size}×${icon.size} PNG)`); continue }
+    const bytes = readFileSync(path)
+    if (sniffImage(bytes) !== 'png') { failures.push(`${icon.file}: not a PNG`); continue }
+    const width = bytes.readUInt32BE(16)
+    const height = bytes.readUInt32BE(20)
+    if (width !== icon.size || height !== icon.size) failures.push(`${icon.file}: ${width}×${height}, expected ${icon.size}×${icon.size}`)
   }
   return failures
 }

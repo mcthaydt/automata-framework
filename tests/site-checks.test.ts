@@ -9,7 +9,7 @@ import { writeSeoFiles } from '../scripts/write-seo-files'
 const ORIGIN = 'https://automata.ruken.com'
 const roots: string[] = []
 
-function page(path: string, { body = '<p>Real content.</p>', head = '' } = {}): string {
+function page(path: string, { body = '<p>Real content.</p>', head = ICON_LINKS } = {}): string {
   return `<!doctype html><html lang="en"><head>
 <title>Page</title><meta name="description" content="A page." /><meta property="og:title" content="Page" />
 <link rel="canonical" href="${ORIGIN}${path}" /><meta property="og:image" content="${ORIGIN}/social.png" />${head}
@@ -21,6 +21,14 @@ function sitemap(paths: string[]): string {
 }
 
 const PNG_BYTES = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0x0d, 0x49, 0x48, 0x44, 0x52, 0, 0, 0, 1, 0, 0, 0, 1])
+/** A PNG header whose IHDR chunk declares the given size; enough for a dimension check. */
+function pngOfSize(width: number, height: number): Uint8Array {
+  const bytes = PNG_BYTES.slice()
+  new DataView(bytes.buffer).setUint32(16, width)
+  new DataView(bytes.buffer).setUint32(20, height)
+  return bytes
+}
+const ICON_LINKS = '<link rel="icon" href="./favicon.svg" /><link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" /><link rel="apple-touch-icon" href="./apple-touch-icon.png" />'
 const JPEG_BYTES = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0])
 
 /** A minimal build that passes every rule. Each case below breaks exactly one thing. */
@@ -35,6 +43,9 @@ function goodSite(): { root: string; write: (file: string, content: string | Uin
   write('docs.html', page('/docs', { body: '<img src="/previews/a.jpg" alt="A game" /><img src="/divider.png" alt="" />' }))
   write('previews/a.jpg', JPEG_BYTES)
   write('divider.png', PNG_BYTES)
+  write('favicon.svg', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"></svg>')
+  write('favicon-32.png', pngOfSize(32, 32))
+  write('apple-touch-icon.png', pngOfSize(180, 180))
   write('sitemap.xml', sitemap(['/', '/docs']))
   write('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${ORIGIN}/sitemap.xml\n`)
   return { root, write }
@@ -96,5 +107,24 @@ describe('checkSite', () => {
     const site = goodSite()
     site.write('docs.html', page('/docs', { body: '<img src="/previews/a.jpg" />' }))
     expect(checkSite(site.root)).toContain('docs.html: <img src="/previews/a.jpg"> has no alt')
+  })
+
+  it('fails when an icon of the favicon set is missing or the wrong size', () => {
+    const site = goodSite()
+    rmSync(join(site.root, 'favicon-32.png'))
+    site.write('apple-touch-icon.png', pngOfSize(120, 120))
+    expect(checkSite(site.root)).toEqual(expect.arrayContaining([
+      'favicon-32.png: missing (expected a 32×32 PNG)',
+      'apple-touch-icon.png: 120×120, expected 180×180',
+    ]))
+  })
+
+  it('fails when a page does not link the favicon set', () => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { head: '<link rel="icon" href="./favicon.svg" />' }))
+    expect(checkSite(site.root)).toEqual(expect.arrayContaining([
+      'docs.html: no <link rel="icon" sizes="32x32"> to /favicon-32.png',
+      'docs.html: no <link rel="apple-touch-icon"> to /apple-touch-icon.png',
+    ]))
   })
 })
