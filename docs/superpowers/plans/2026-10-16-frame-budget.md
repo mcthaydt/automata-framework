@@ -1,7 +1,7 @@
 # PRODUCT.7: frame-budget probe and core stress example, TDD plan
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §2 F5 and the §3 row "Frame-budget probe (`playwright.config.ts` `frame-budget` projects)": new, core.
-- **Row:** [02](../../02-master-delivery-plan.md) PRODUCT.7. **Status:** drafted 2026-10-16 on the Owner-approved PRODUCT.0 (all recommended defaults).
+- **Row:** [02](../../02-master-delivery-plan.md) PRODUCT.7. **Status:** implemented and locally verified 2026-10-16 on the Owner-approved PRODUCT.0 (all recommended defaults); Owner acceptance (the first GPU-runner budget) open.
 - **Progress:** 7 of 7 steps.
 
 ## What "done" means
@@ -56,8 +56,8 @@ AGENTS.md requires that a performance probe have exclusive use of the GPU. With 
   - `src/check-cli.ts`: `node tooling/frame-budget/src/check-cli.ts [results dir]`;
   - `src/playwright-run.ts`, `src/playwright-run.test.ts`: `selectRun(env, journeys)`, the projects and the server;
   - `src/origin.ts`: the stress port, preview + 200;
-  - `stress/main.ts`, `stress/stress-game.ts`, `stress/stress.screen.ts`, `stress/views.ts`, `stress/params.ts`, `stress/no-eval.ts`;
-  - `stress/sim/stress.component.ts`, `stress/sim/stress.system.ts`, `stress/sim/stress.plugin.ts`, `stress/sim/stress.test.ts`;
+  - `stress/main.ts`, `stress/stress-game.ts`, `stress/stress-screen.ts`, `stress/Hud.svelte`, `stress/views.ts`, `stress/params.ts`, `biome.json` (Svelte overrides);
+  - `stress/sim/stress.component.ts`, `stress/sim/stress.system.ts`, `stress/sim/stress.event.ts`, `stress/sim/stress.plugin.ts`, `stress/sim/stress.test.ts`;
   - `stress/stress-game.test.ts`, `stress/public-api.test.ts`;
   - `e2e/frame-budget.e2e.ts`.
 - **Modify:**
@@ -76,7 +76,7 @@ AGENTS.md requires that a performance probe have exclusive use of the GPU. With 
   - Playwright 1.63.
 - **Produced:**
   - `summarize(samples: readonly number[]): FrameStats`;
-  - `FrameBudgetResult` (Zod), with `project`, `environment`, `scene: { entities, systems }`, `sampleSeconds`, `workMs: FrameStats`, `intervalMs: FrameStats`;
+  - `FrameBudgetResult` (Zod), with `project`, `environment`, `scene: { entities, systems }`, `sample: { warmupMs, sampleMs }`, `workMs: FrameStats`, `intervalMs: FrameStats`;
   - `BudgetFile` (Zod), either `{ status: 'unset', note }` or `{ status: 'set', evidence, gpu, projects: Record<project, { workMsP95, intervalMsP95 }> }`;
   - `checkFrameBudget(budget, results): { verdict: 'pass' | 'over' | 'unset' | 'not-comparable' | 'invalid', lines: string[] }`;
   - `selectRun(env, journeys)`;
@@ -149,4 +149,9 @@ AGENTS.md requires that a performance probe have exclusive use of the GPU. With 
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-10-16 | 1 | `ae41b2d` | Plan. |
+| 2026-10-16 | 2–3 | `6054181` | Stats and budget tests failed on the missing modules, then passed (13). |
+| 2026-10-16 | 4 | `b670e91` | Stress sim tests failed on the missing module, then passed (4); boundaries clean. |
+| 2026-10-16 | 5 | `fcf13af` | Game tests failed on the missing module; content hash pinned from the test's actual value `5fe00a8b56426bc9`; `vite build` passed. |
+| 2026-10-16 | 6 | `9e5513e` | `selectRun` tests failed, then passed. `test:e2e --list`: 46 tests, none frame-budget; `test:frame-budget --list`: 2. Smoke (SwiftShader, load average 5–9; a local software-rendering smoke, not a budget): phone work p95 97.50 ms, interval p95 266.70 ms; desktop work p95 100.50 ms, interval p95 216.70 ms. `budget:frame`: NOT-COMPARABLE and UNSET, exit 1. A favicon 404 on the first run was fixed with a `data:` icon. |
+| 2026-10-16 | 7 | `501e20d`, `366180b`, `fa28657` | Workflow test failed, then passed. Empty changeset; jsdom pinned to 30.1.1 for the versions test. Gates: `pnpm check` green (unit 1,695 passed, 4 skipped), parity 590 tests, `test:e2e` 46/46 with `CI=1`. `lint:actions` not run (no Docker daemon). |
