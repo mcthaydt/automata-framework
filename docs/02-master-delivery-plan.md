@@ -47,18 +47,21 @@ Owner, 2026-10-16: the framework must match what the website sells: small change
 
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
-| [ ] | DX.0 — DX spec, reviewed | Drafted 2026-10-16; Owner review pending. Owner decisions D-DX-1 (license and registry: the site says MIT, packages say `UNLICENSED`), D-DX-2 (public agent repo), D-DX-3 (eval budget), D-DX-4, D-DX-5. |
+| [ ] | DX.0 — DX spec, reviewed | Drafted 2026-10-16. Owner decisions recorded 2026-10-16: MIT on public npm (D-DX-1), a public `mcthaydt/automata-skills` mirror (D-DX-2), no evals (D-DX-3), Antigravity dropped and Discord set up (D-DX-4), and the site deploy planned (D-DX-5). Review of the whole spec pending. |
 | [ ] | DX.1 — Sim conveniences | Lane **sim**; DX.0. `definePlugin({ defs })`, `defineSystem` overloads; identical schema hash either way. |
 | [ ] | DX.2 — `@mcthaydt/automata-game` | Lane **game** (new); DX.0, DX.1. `startGame`/`defineGame` with defaults over runtime, render-pixi, host and ui; `InputMap` from base-2d's input; default screens; demo `examples/game/hello` in 40 lines or fewer. |
 | [ ] | DX.2b — `rect` and `sprite` entity views | Lane **runtime**; DX.0. Interpolated view factories in render-pixi. |
 | [ ] | DX.3 — Emberwick on `startGame` | Integration; DX.2, DX.2b. Plumbing from 1,939 lines to 400 or fewer, golden unchanged, journeys green. |
 | [ ] | DX.4 — Generated API index | Lane **ship**; DX.0. `tooling/api-index`: `api.json`, the skill's `api.md`, `llms-api.txt`, from the published `.d.ts`. |
-| [ ] | DX.5 — `create-game` makes a real game | Integration; DX.2, DX.6, DX.7. Boots on `startGame`, golden test, `AGENTS.md`, skills, `automata check`; no `workspace:*`. |
+| [ ] | DX.5 — `create-game` makes a real game | Integration; DX.2, DX.6, DX.7, DX.11. Boots on `startGame`, golden test, `AGENTS.md`, skills, `automata check`; no `workspace:*`. |
 | [ ] | DX.6 — `automata check` | Integration; DX.0. Boundaries, typecheck, tests, built-bundle no-eval scan, opt-in CSP smoke; `--json`. |
 | [ ] | DX.7 — Agent skills and Claude Code plugin | Integration; DX.4, DX.6. `agents/automata/` skills, marketplace, check hooks; tested installs. |
-| [ ] | DX.8 — Agent evals | Integration; DX.5, DX.7, D-DX-3. Measured pass rates for the website's prompts. |
+| [ ] | ~~DX.8 — Agent evals~~ | Dropped by the Owner (D-DX-3, 2026-10-16); "tested prompts" stays retired. |
 | [ ] | DX.9 — Evidence file | Lane **ship** + website; DX.0. `evidence.json` from af-linux on `main`; the site renders proof from it. |
 | [ ] | DX.10 — Website restorations | Website; each row's task. Restored copy pinned to its evidence by a test. |
+| [ ] | DX.11 — MIT license and public npm | Lane **ship**; DX.0. `LICENSE`, `"license": "MIT"`, the release to npmjs.org, `@mcthaydt/create-automata`, the public skills mirror job, consumer smoke from npm. Owner: `NPM_TOKEN` secret. |
+| [ ] | DX.12 — Website deploy to `automata.ruken.com` | Website; DX.0; Owner hosting and DNS. Static deploy, plus a check that `/llms.txt` is served there. |
+| [ ] | DX.13 — Discord server | Integration; the Owner's server with the Discord plugin's bot. Channels, roles, rules, moderation and a permanent invite, read back to verify them. |
 
 ## M3 to M8
 
@@ -101,5 +104,6 @@ Owner roadmap (2026-10-11): 2D and 2.5D first, then 3D. The 3D pieces come from 
 | 2026-10-13 | M1.7 2D Renderer | `packages/render-pixi`, `examples/render-pixi/renderer-2d` | Local: vitest unit (7 files, 29 passed), test:parity in Chromium, WebKit, and Firefox (3/3 passed), typecheck, build, pnpm boundaries (clean), pnpm style (174 files clean), pnpm lint (0 errors), pnpm check (21/21 tasks clean), Playwright e2e under fake host (passed) | Implemented, locally verified, cross-engine parity verified; CI and Owner acceptance pending |
 | 2026-10-13 | M1.8 Base project, demos, scaffold & M1 exit | `packages/cli`, `examples/gallery`, `examples/base-2d` | Local: vitest unit (4 files, 18 passed in cli; 3 passed in gallery), pnpm check clean (22/22 tasks), pnpm test:parity clean across 3 browsers (9/9 tasks), pnpm test:e2e (46/46 passed), create-game integration test valid ruken.toml | Implemented, locally verified, parity & E2E gates green; M1 exited; Owner acceptance pending |
 | 2026-10-16 | DX.0 draft | [DX spec](superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md); DX rows above; M1.7 row corrected to WebGPU opt-in (ADR 0002) | Docs only; line counts measured at `365f115`; plugin and Agent Skills mechanics checked against their docs on 2026-10-16 | Draft; Owner review pending |
+| 2026-10-16 | DX.0 Owner decisions | Spec §13 and §2 updated: MIT on public npm, a public skills mirror, no evals (DX.8 dropped), Antigravity dropped, Discord via the Owner's plugin, site deploy planned; DX.11–DX.13 added | Docs only; relative links checked | Decisions recorded; spec review pending |
 
 For each completed task record its ID, PR or commit, the checks that ran and their result, review status and remaining gates. Update this table, the affected spec and [03 Continuation](03-continuation-prompt.md) in the same session.

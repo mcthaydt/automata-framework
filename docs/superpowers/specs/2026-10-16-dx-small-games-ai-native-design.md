@@ -1,6 +1,6 @@
 # DX: small games, agent-native, claims made true
 
-> **Status:** draft, 2026-10-16. Milestone spec for task **DX.0**; Owner review pending. Nothing in this milestone is implemented until this spec is reviewed (01 Decomposition §5, 04 How we build).
+> **Status:** draft, 2026-10-16. Milestone spec for task **DX.0**; Owner decisions D-DX-1 to D-DX-5 recorded 2026-10-16 (§13); Owner review of the whole spec pending. Nothing in this milestone is implemented until this spec is reviewed (01 Decomposition §5, 04 How we build).
 >
 > **Why now (Owner, 2026-10-16):** the framework is not optimized for what the website sells. Small changes take too much code, and the agent story is weaker than the site's pitch. The website's restoration ledger lists every claim the 14 October redesign cut. This milestone makes the cuttable-but-wanted ones true, then restores them with their proof.
 
@@ -52,23 +52,23 @@ Every ledger row gets one disposition:
 
 | Cut claim | Disposition | Task | Restored wording (once its proof exists) |
 |---|---|---|---|
-| `npx automata create-game my-game`, "Scaffold a complete game in seconds" | Build + Owner (registry, D-DX-1) | DX.5, DX.10 | The exact install command for the chosen registry, then: "Scaffolds a playable game with tests and agent rules. Measured: N s on a clean machine (DX.10 run)." |
+| `npx automata create-game my-game`, "Scaffold a complete game in seconds" | Build (D-DX-1: public npm) | DX.11, DX.5, DX.10 | `npm create @mcthaydt/automata my-game` (npm runs `@mcthaydt/create-automata`), then: "Scaffolds a playable game with tests and agent rules. Measured: N s on a clean machine (DX.10 run)." |
 | The advertised generated project tree | Build | DX.5 | The tree DX.5 actually generates, captured from a run, not hand-written |
-| `npx skills add mcthaydt/automata` | Build + Owner (public skills repo, D-DX-2) | DX.7 | `npx skills add <public repo>`, tested with the agents listed in DX.7's install log |
-| `claude /plugin marketplace add mcthaydt/automata` | Build + Owner (D-DX-2) | DX.7 | The two documented commands (`/plugin marketplace add <repo>`, then `/plugin install automata@<marketplace>`), tested on a named Claude Code version |
-| `agy skill install mcthaydt/automata` | Owner | — | Restored only if the Owner names a supported Antigravity workflow; otherwise covered by the Agent Skills standard row |
-| `curl … automata.dev/llms.txt >> .cursorrules` / `.windsurfrules` | Build | DX.5, DX.7 | Generated projects carry `AGENTS.md` and Agent Skills folders, which these tools read. The `automata.dev` host is retired; the origin is `automata.ruken.com` once deployed (D-DX-5). |
+| `npx skills add mcthaydt/automata` | Build (D-DX-2: public mirror) | DX.7 | `npx skills add mcthaydt/automata-skills`, tested with the agents listed in DX.7's install log |
+| `claude /plugin marketplace add mcthaydt/automata` | Build (D-DX-2: public mirror) | DX.7 | `/plugin marketplace add mcthaydt/automata-skills`, then `/plugin install automata@automata-skills`, tested on a named Claude Code version |
+| `agy skill install mcthaydt/automata` | Retired (D-DX-4) | — | Antigravity users are pointed to the Agent Skills install (`npx skills add`) instead |
+| `curl … automata.dev/llms.txt >> .cursorrules` / `.windsurfrules` | Build | DX.5, DX.7 | Generated projects carry `AGENTS.md` and Agent Skills folders, which these tools read. The `automata.dev` host is retired. URL-based instructions on `automata.ruken.com` come back only after DX.12 verifies the deploy (D-DX-5). |
 | "Official AI & LLM integration", "automatically enforces" | Build (bounded) | DX.6, DX.7 | "The Automata plugin loads AF's rules and runs `automata check` after edits. The check fails sim code that breaks the boundaries, and builds that contain `eval`." This scope is enforcement by a checker, not by instructions. |
-| Discord invite | Owner | — | Only once the Owner confirms an owned invite |
+| Discord invite | Build (D-DX-4) | DX.13 | A permanent invite to the Owner's server, set up through the Owner's Discord plugin and read back to verify it |
 | `v0.0.2` / `v0.1` badges | Evidence | DX.9 | Version labels read from the published release in the evidence file |
 
 ### 2.2 Promises narrowed, not guaranteed
 
 | Cut wording | Disposition | Task | Bounded replacement |
 |---|---|---|---|
-| "Eliminate hallucinations" | Retired | DX.8 | "Agents get AF's generated API index and run AF's checks. In DX.8's evaluation, N of M tasks passed on <model, version, date>." |
+| "Eliminate hallucinations" | Retired | DX.4, DX.6 | "Agents get AF's generated API index for the installed version and run AF's checks on their changes." No pass rate is claimed (D-DX-3). |
 | "Guarantee zero-eval CSP compliance", "100% compliant" | Retired | DX.6 | "`automata check` fails a build that contains dynamic evaluation, and the CSP smoke test runs it under Ruken's `compileHeaders` policy." Name the policy and link the run. |
-| "Tested prompt patterns … on the first attempt" | Build (bounded) | DX.8 | The measured pass rate for each prompt, with model, version, task and acceptance test |
+| "Tested prompt patterns … on the first attempt" | Retired (D-DX-3: no evals) | DX.7 | "Example prompts." Each prompt's worked example code (the `automata-feature` skill) is typechecked and tested in CI; no claim is made about what an agent produces from it. |
 | "Zero untrapped crashes", "all failures are typed and handled" | Retired | — | Keep the existing docs on the typed `BootError` states and their tested recovery |
 | "Eliminating memory leaks" | Retired | — | Explain scope ownership; cite the runtime's finalizer tests |
 | "Complete determinism", "100% Match" | Evidence | DX.9 | "Same code, content, seed and commands give the same hash in Node, Chromium, WebKit and Firefox", linked to the generated parity report |
@@ -189,9 +189,9 @@ Components without a view draw nothing. A full resync after restore rebuilds vie
 - `AGENTS.md` (the game's rules and checks), and `CLAUDE.md` containing `@AGENTS.md`.
 - The Automata skills (§3.7), copied into `.claude/skills/` and `.agents/skills/` from the same source as the plugin, so a clone works in Claude Code and in any Agent Skills tool without a separate install.
 - `package.json` scripts `dev`, `build`, `test`, `check` (`automata check`, §3.6) and `prepare-ruken`.
-- Dependency ranges at the CLI's own published version, never `workspace:*`. Inside this repo, a test rewrites them to the workspace for its integration run.
+- Dependency ranges at the CLI's own published npm version, never `workspace:*`. Packages are public on npm (D-DX-1), so a game needs no `.npmrc` and no `AF_READ_TOKEN`. Inside this repo, a test rewrites the ranges to the workspace for its integration run.
 
-Command: `automata create-game <dir> [--id <id>] [--title <title>]`. Installing it from the registry is D-DX-1.
+Commands: `automata create-game <dir> [--id <id>] [--title <title>]` from `@mcthaydt/automata-cli`, and `npm create @mcthaydt/automata <dir>`, which runs the thin `@mcthaydt/create-automata` package that calls the same `createGame` (DX.11 publishes it; npm maps `npm create @scope/x` to `@scope/create-x`).
 
 ### 3.6 `automata check`: what enforces the rules
 
@@ -219,7 +219,7 @@ One source folder in AF, `agents/automata/`, is the single owner of every agent-
 | `automata-verify` | How to run and read `automata check --json`, and what each rule means and how to fix it. |
 
 It is delivered three ways from that one source:
-1. **Claude Code plugin.** `.claude-plugin/marketplace.json` at the repo root (or the public repo of D-DX-2) lists plugin `automata` from `agents/automata/`. The plugin adds the skills and two hooks: `PostToolUse` on `Edit|Write` under `src/sim/` runs `automata check --sim-only --json`, and `Stop` runs `automata check --json`. Findings go back to the model through the hook's blocking feedback. A hook never edits files.
+1. **Claude Code plugin.** The public mirror `mcthaydt/automata-skills` (D-DX-2) carries `.claude-plugin/marketplace.json` (marketplace `automata-skills`) listing plugin `automata`. The release workflow regenerates the mirror from `agents/automata/` at each release; AF's own repo keeps a marketplace file pointing at `./agents/automata` for collaborators. The plugin adds the skills and two hooks: `PostToolUse` on `Edit|Write` under `src/sim/` runs `automata check --sim-only --json`, and `Stop` runs `automata check --json`. Findings go back to the model through the hook's blocking feedback. A hook never edits files.
 2. **Agent Skills install** (`npx skills add <repo>`) for Cursor, Codex, Windsurf and other tools that read the standard.
 3. **Copied into generated games** by `create-game` (§3.5).
 
@@ -229,7 +229,7 @@ A CI test keeps the three byte-identical and validates the plugin manifest. DX.7
 - **Layout.** The marketplace is `.claude-plugin/marketplace.json` at the repo root, with the required `name`, `owner.name` and `plugins`. It holds one entry, `{ "name": "automata", "source": "./agents/automata" }`; a relative source must start with `./`. The plugin root `agents/automata/` holds `.claude-plugin/plugin.json` (`name` only), `skills/<name>/SKILL.md` and `hooks/hooks.json`. The event map must sit under a top-level `"hooks"` key, or the file doesn't load. Hook commands run `"${CLAUDE_PLUGIN_ROOT}"/scripts/check.sh`, which calls the project's own `automata check` from `${CLAUDE_PROJECT_DIR}`.
 - **Feedback.** A hook that finds problems exits 2 with the JSON findings on stderr. For `PostToolUse`, Claude sees the findings after the edit; for `Stop`, Claude keeps working instead of ending the turn. Exit 0 says nothing. A plugin `CLAUDE.md` isn't loaded, so every instruction lives in a skill.
 - **Commands.** `claude plugin marketplace add <owner/repo>`, then `claude plugin install automata@<marketplace>`; in a session, `/plugin marketplace add` and `/plugin install`. `claude plugin validate <path> --strict` runs in CI on both the plugin and the marketplace. A local install from a path (`claude plugin marketplace add ./`) is DX.7's container test.
-- **Private repo.** Claude Code clones a marketplace with the machine's own git credentials (SSH, or an HTTPS credential helper such as `gh auth setup-git`). Today, only people who can already read the private AF repo can install it. That's why a public install command needs D-DX-2.
+- **Private repo.** Claude Code clones a marketplace with the machine's own git credentials (SSH, or an HTTPS credential helper such as `gh auth setup-git`). Only people who can read the private AF repo could install from it, so public installs come from the public mirror (D-DX-2).
 - **Skill format.** Each `SKILL.md` sets both `name` (matching its folder, lowercase and hyphens) and `description`. The open standard requires both; Claude Code only recommends `description`.
 - **`npx skills add <owner/repo>`** finds a repo's `skills/` folder and installs into `.claude/skills/` for Claude Code, `.agents/skills/` for Cursor, Codex and others, and `.windsurf/skills/` for Windsurf. DX.7 pins the agents it actually tested.
 - **Generated games.** They get `CLAUDE.md` containing `@AGENTS.md`. Claude Code reads `AGENTS.md` alone only when no `CLAUDE.md` exists, so the import is the form that works in every session.
@@ -238,14 +238,9 @@ A CI test keeps the three byte-identical and validates the plugin manifest. DX.7
 
 Built after `pnpm build`. Reads each published package's emitted `.d.ts` and writes `api.json` (package, entry point, export name, kind, signature, doc comment, version) plus `api.md` (for the skill) and `llms-api.txt` (for the website). It covers every export of every published entry point, so "complete" means exactly that set for one version. A test fails if an export has no doc comment, so new exports arrive documented.
 
-### 3.9 Agent evaluation (`tooling/agent-evals`)
+### 3.9 Agent evaluation (dropped)
 
-Makes "tested prompts" a measured claim:
-- **Tasks:** the website's prompts (double jump, collectible, dash, jump feedback), each with hidden acceptance tests and `automata check`.
-- **Runner:** on a fresh `create-game` project, runs a named agent headless (Claude Code `claude -p` with the plugin installed) N times per task.
-- **Report** (`agent-evals.json`): agent, model, versions, task, trials, passes, median time and cost. Logs are kept.
-
-A run costs money, so it runs only on the Owner's word with a set budget (D-DX-3). It never runs in `pnpm check` or CI.
+Dropped by the Owner (D-DX-3, 2026-10-16). No agent pass rates are measured or claimed; the "tested prompts" claim stays retired (§2.2).
 
 ### 3.10 Evidence file (`tooling/evidence`)
 
@@ -258,11 +253,12 @@ On every push to `main` (the af-linux `parity` job), writes `evidence.json`: AF 
 | `GameSpec`, `startGame`, default screens, `InputMap` | `packages/game` | game lane | create-game output, Emberwick, skills |
 | `definePlugin({ defs })`, `defineSystem` overloads | `packages/sim` | sim lane (additive only) | everyone |
 | `rect`, `sprite` views | `packages/render-pixi` | runtime lane | game |
-| `create-game` template, `automata check` | `packages/cli` | integration | games, plugin hooks, evals |
+| `create-game` template, `automata check` | `packages/cli`, `packages/create-automata` | integration | games, plugin hooks |
 | Agent skills, plugin manifest, marketplace | `agents/automata/`, `.claude-plugin/` | integration | Claude Code, Agent Skills tools, create-game |
 | API index | `tooling/api-index` | ship lane | skills, website |
 | Evidence file | `tooling/evidence` | ship lane | website |
-| Eval tasks and reports | `tooling/agent-evals` | integration | website |
+| Public skills mirror | `mcthaydt/automata-skills`, generated | ship lane (release workflow) | Claude Code, Agent Skills tools |
+| Discord server setup | Owner's server, via the Owner's Discord plugin | integration (on the Owner's word) | website |
 | Website copy restorations | `automata_website` | website | — |
 
 Sim versus presentation is unchanged: `packages/game` never writes sim state except through commands, and views read only `RenderDelta`.
@@ -318,7 +314,6 @@ Responsive behavior is inherited: container and usable height from the geometry 
 | Parity | A `startGame` game's golden in Node, Chromium, WebKit and Firefox; Emberwick's golden unchanged after DX.3 |
 | Fake-host E2E | A `create-game` output: boots under the fake host, plays, pauses, resumes; a CSP smoke test under `compileHeaders` |
 | Plugin | `claude plugin validate` (or the documented equivalent) on the manifest; a scripted local install from a path, in a container |
-| Evals | Only on the Owner's word (D-DX-3) |
 | Owner | Look at the default screens; accept the restored website copy |
 
 ## 9. Ruken alignment
@@ -340,14 +335,17 @@ Lanes as in 04 How we build. Each task gets its TDD plan before code.
 | DX.2b | `rect` and `sprite` views | runtime | DX.0 | §3.4 |
 | DX.3 | Emberwick on `startGame` | integration | DX.2, DX.2b | Plumbing from 1,939 lines to ≤ 400, golden unchanged, every base-2d journey green |
 | DX.4 | API index and generated `llms-full.txt` corpus | ship | DX.0 | §3.8 |
-| DX.5 | `create-game` makes a real game | integration | DX.2, DX.6, DX.7 | §3.5 |
+| DX.5 | `create-game` makes a real game | integration | DX.2, DX.6, DX.7, DX.11 | §3.5 |
 | DX.6 | `automata check` | integration | DX.0 | §3.6 |
 | DX.7 | Agent skills, Claude Code plugin, Agent Skills install | integration | DX.4, DX.6 | §3.7, with install logs |
-| DX.8 | Agent evals | integration | DX.5, DX.7, D-DX-3 | §3.9 and the first report |
+| ~~DX.8~~ | ~~Agent evals~~ | — | — | Dropped (D-DX-3) |
 | DX.9 | Evidence file and website proof | ship + website | DX.0 | §3.10 |
 | DX.10 | Website restorations | website | Each row's task | §11 |
+| DX.11 | MIT license and public npm | ship | DX.0 | Root `LICENSE` (MIT), `"license": "MIT"` in every published package, the release workflow publishing to npmjs.org (the Owner adds an `NPM_TOKEN` secret for the `@mcthaydt` scope), the `@mcthaydt/create-automata` package, the public mirror job (D-DX-2), and the consumer smoke installing from npm |
+| DX.12 | Website deploy to `automata.ruken.com` | website | DX.0; Owner hosting and DNS | Static deploy, plus a check that `/llms.txt` and `/llms-full.txt` are served from that origin |
+| DX.13 | Discord server | integration | The Owner's server with the Discord plugin's bot in it | Channels, roles, rules, welcome, moderation and a permanent invite, set up through the plugin and read back; anything the plugin can't do goes in a click-through checklist |
 
-Order: DX.1, DX.2b, DX.4, DX.6 and DX.9 can run in parallel. DX.2 needs DX.1. DX.3 and DX.5 come after DX.2. DX.7 comes after DX.4 and DX.6. DX.8 comes last.
+Order: DX.1, DX.2b, DX.4, DX.6 and DX.9 can run in parallel. DX.2 needs DX.1. DX.3 and DX.5 come after DX.2. DX.7 comes after DX.4 and DX.6. DX.11, DX.12 and DX.13 can start any time after DX.0; DX.5 waits for DX.11.
 
 ## 11. Website restoration rules
 
@@ -358,12 +356,13 @@ In the website repo, per restored row: update `docs/2026-10-14-cut-claims.md` (m
 **Success:**
 - `examples/game/hello` is ≤ 40 lines of non-test TS, boots under the fake host and passes its golden in four engines.
 - Emberwick's plumbing is ≤ 400 lines (measured by a script in DX.3, replacing §1's table). Its golden is unchanged, and all its journeys are green.
-- The double-jump change from the website's task is a diff of ≤ 60 lines of non-test code on the rebuilt Emberwick. It's measured once by hand in DX.3 and again by DX.8 for agents.
+- The double-jump change from the website's task is a diff of ≤ 60 lines of non-test code on the rebuilt Emberwick. It's measured by hand in DX.3.
 - The `create-game` output passes `automata check --csp` in a clean container from published packages (or packs, until D-DX-1).
 - The plugin installs from its marketplace on a named Claude Code version, its skills load, and its hook blocks a sim edit that imports `effect`.
 - `npx skills add` installs the skills into at least one other named agent.
 - `evidence.json` is produced by af-linux CI on `main`, and the website renders it.
-- DX.8 has published one report, if D-DX-3 allows.
+- A `create-game` output installs from public npm (`npm create @mcthaydt/automata`) on a clean machine with no token, and every published package says MIT.
+- `https://automata.ruken.com/llms.txt` is served (DX.12 check).
 
 **Failure (not acceptable as done):**
 - Any restored claim without a linked artifact.
@@ -371,14 +370,14 @@ In the website repo, per restored row: update `docs/2026-10-14-cut-claims.md` (m
 - A skill file that differs between the plugin, the skills repo and generated games.
 - An install command published before its install log exists.
 
-**Owner acceptance:** default screens, the restored website copy and the first eval report.
+**Owner acceptance:** default screens and the restored website copy.
 
-## 13. Owner decisions
+## 13. Owner decisions (decided 2026-10-16)
 
-| ID | Decision | Why it blocks | Recommended default |
+| ID | Question | Owner decision | Follow-up |
 |---|---|---|---|
-| D-DX-1 | **License and registry.** The site says "The framework code is MIT licensed"; every package says `"license": "UNLICENSED"`; the repo is private; packages target GitHub Packages, which needs a classic PAT even to read. | No public install command (`npm create`, `npx`) can be true until this is decided. The site's MIT claim is false today. | Decide the license (D-7) now. If MIT: publish to npm as `@mcthaydt/automata-*` plus `create-automata-game`. Until then, the site's FAQ must say the license is not yet granted. |
-| D-DX-2 | **Public agent repo.** Plugin marketplaces and `npx skills add` clone a Git repo with the user's own credentials, and the AF repo is private. | Install commands for anyone without access to the AF repo | A public `mcthaydt/automata-skills` repo, generated from `agents/automata/` at each release by the release workflow |
-| D-DX-3 | **Eval budget.** A model and an API key for the runs, plus a spend cap | DX.8 | Claude Code headless on one named model, 10 trials × 4 tasks per release, with a cap set by the Owner |
-| D-DX-4 | **Antigravity and Discord.** Keep or drop these | Their ledger rows | Drop both until the Owner names a supported workflow or an owned invite |
-| D-DX-5 | **Site origin.** Is `automata.ruken.com` deployed? | The endpoint in agent instructions | Restore URL-based instructions only after the deploy is verified |
+| D-DX-1 | License and registry. The site said MIT; every package said `UNLICENSED`; packages targeted GitHub Packages. | **MIT, published to public npm.** | DX.11. Until it lands, the site's MIT FAQ is ahead of the packages. The M2.4 GitHub Packages and `AF_READ_TOKEN` setup is superseded for public packages. The Owner adds an `NPM_TOKEN` secret. |
+| D-DX-2 | How to distribute the agent skills while the AF repo is private | **A public mirror repo, `mcthaydt/automata-skills`,** generated at each release | DX.7, DX.11. The repo is created by the Owner, or by Claude on the Owner's word. |
+| D-DX-3 | An eval budget | **No evals.** DX.8 is dropped. | "Tested prompts" stays retired (§2.2). |
+| D-DX-4 | Antigravity and Discord | **Antigravity dropped.** **Discord: set it up** through the Discord plugin the Owner added. | DX.13. A bot can't create a server, so the Owner creates it and adds the plugin's bot. |
+| D-DX-5 | Is `automata.ruken.com` deployed? | **Not yet; plan the deploy.** | DX.12. The Owner provides hosting and DNS. |
