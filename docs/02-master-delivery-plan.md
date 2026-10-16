@@ -95,6 +95,19 @@ Owner, 2026-10-16: someone can build FloorFifty (content excluded) on AF. Core i
 | [ ] | PRODUCT.7 — Frame-budget probe and stress example | Lane **testing**; PRODUCT.0. Measured ms/frame on the GPU runner; the budget is set from the first recorded run (spec §2 F5). |
 | [ ] | PRODUCT.8 — Party Racer starter | Integration; `net`, `server`, the 2D part of `post-retro`, `feel`, `audio-stream`, PRODUCT.6. FloorFifty's loop on placeholder content; game-specific code measured against FloorFifty (spec §10, P-b). Plus. |
 
+## QB The quality bar (doesn't look vibecoded)
+
+Owner, 2026-10-16: a checklist "to make sure it doesn't look vibecoded". The [QB spec](superpowers/specs/2026-10-16-quality-bar-design.md) gives each item one disposition: a gate (a check that fails), a task, a request to Ruken (game hosting is Ruken's), or not applicable with the trigger that would reopen it. AF has no database, login, uploads or model calls, so most SaaS and platform items are triggers or Ruken requests. Findings at website `bfeaf91` and `489f170`: the site's MIT claim is ahead of the packages (F-1, DX.11), JPEG files named `.png`, no robots.txt or sitemap, no privacy, terms or contact pages, third-party fonts, no browser tests for the site, and no root README, `SECURITY.md` or dependency audit here.
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | QB.0 — QB spec, reviewed | Drafted 2026-10-16; QB-D1 to QB-D4 on recommended defaults. Review pending. |
+| [ ] | QB.1 — Framework repo hygiene | Lane **ship**; QB.0. Root README run by consumer smoke, `SECURITY.md`, `CODEOWNERS`, Renovate, `pnpm audit`, gitleaks, a new-dependency report, `knip`, a 600-line source ceiling, an Owner-approved `release` environment, a runbook (spec §7, QB-a). |
+| [ ] | QB.2 — Game build gates | Lanes **ship** and **ui**; QB.0, DX.6. A bundle secret scan in `prepare-ruken` and `automata check`; no `{@html}` in `ui`; no platform-chrome mimicry in kits (QB-b). |
+| [ ] | QB.3 — Website quality gates | Website; QB.0. `check:site` plus a Playwright suite in Chromium and WebKit covering SEO, responsive, keyboard, axe, console, performance, privacy and copy gates; fixes F-2 to F-6; the Owner's real-device pass recorded (spec §4.2, QB-c). |
+| [ ] | QB.4 — Website deploy hardening | Website; DX.12. HTTPS and HSTS, the header set checked on the live origin, uptime and certificate checks, a rehearsed rollback, a spend alert (QB-d). |
+| [ ] | QB.5 — Plus store integrity | Lane **ship**; PRODUCT.5, D-7. A merchant of record (QB-D2); verified, idempotent webhooks; token grant and revocation with an audit log; EULA and refund policy (QB-e). |
+
 ## M3 to M8
 
 Each milestone starts with a spec task (`Mn.0`) and is decomposed into tasks when that spec is reviewed. Work packages are in [01 Decomposition §4](01-decomposition.md#4-milestone-work-packages).
@@ -139,5 +152,6 @@ Owner roadmap (2026-10-11): 2D and 2.5D first, then 3D. The 3D pieces come from 
 | 2026-10-16 | DX.0 Owner decisions | Spec §13 and §2 updated: MIT on public npm, a public skills mirror, no evals (DX.8 dropped), Antigravity dropped, Discord via the Owner's plugin, site deploy planned; DX.11–DX.13 added | Docs only; relative links checked | Decisions recorded; spec review pending |
 | 2026-10-16 | PRODUCT.0 draft and decisions | [PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md): FloorFifty gap ledger at `ac72660`, free core and Automata Plus (PD-1), Rapier only (PD-2), foundation first (PD-3), localization core (PD-4), pain points and cuts (PD-5); PRODUCT rows above; M4, M5, M7, M8 rows and DX.11 updated; 00 business model, master spec D-7 and §11 noted | Docs only; FloorFifty line counts from the spec's appendix A script; AF "exists" cells checked against `packages/*/src`; relative links checked | Draft; Owner review pending |
 | 2026-10-16 | EX.0 draft and decisions | [EX spec](superpowers/specs/2026-10-16-examples-one-file-design.md) and [TDD plan](superpowers/plans/2026-10-16-examples-one-file.md): one-file examples, a single runner, parametric tests, Emberwick to `games/` (EX-D1), examples written first (EX-D2); EX rows above; DX.2's demo renamed | Docs only; demo file and line counts from the spec's appendix A script at `5d54594`; relative links checked | Draft; Owner review pending |
+| 2026-10-16 | QB.0 draft | [QB spec](superpowers/specs/2026-10-16-quality-bar-design.md): every item of the Owner's anti-vibe checklist given a gate, task, Ruken request or not-applicable trigger; findings F-1 to F-8; QB rows above; requests to Ruken in spec §6 | Docs only; findings from `file`, `grep` and `ls` at website `bfeaf91` and `489f170`; relative links checked | Draft; Owner review pending |
 
 For each completed task record its ID, PR or commit, the checks that ran and their result, review status and remaining gates. Update this table, the affected spec and [03 Continuation](03-continuation-prompt.md) in the same session.
