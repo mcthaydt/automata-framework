@@ -1,0 +1,9 @@
+{
+  "name": "@fixture/beta",
+  "version": "0.1.0",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts"
+    }
+  }
+}

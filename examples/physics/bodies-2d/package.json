@@ -23,7 +23,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
-    "@af-examples/demo-host": "workspace:*",
+    "@mcthaydt/examples-runner": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/automata-testing": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
