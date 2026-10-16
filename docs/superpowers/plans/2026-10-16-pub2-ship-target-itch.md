@@ -53,7 +53,7 @@
 
 - [x] **3. Zip.** `itch-zip.test.ts`: two zips of the same folder are byte-identical; entries are sorted; every entry's DOS date is 1980-01-01; the zip unpacks (`yauzl`) to the same bytes. Fails: module missing. Add `itch-zip.ts`.
 - [x] **4. `prepareItch`.** `prepare-itch.test.ts`: writes `<id>-<version>-itch.zip` next to `dist`; a wrong tag, a root-absolute path, a missing `index.html`, a case mismatch and `ruken.toml` each stop it with their own error and no zip, in the spec's order. Fails: module missing. Add `prepare-itch.ts`. (The walk moved to `build-files.ts` in step 2, which the checks test needed; `root-absolute.test.ts` stayed green.)
-- [ ] **5. `publishToItch`.** `publish-to-itch.test.ts` with the fake `ProcessRunner`:
+- [x] **5. `publishToItch`.** `publish-to-itch.test.ts` with the fake `ProcessRunner`:
   - exact argv `butler push <dist> mcthaydt/emberwick:html5 --userversion 1.2.0 --if-changed`, the key in `env`, never in argv, `echo: true`;
   - no `itch` section, no key, no butler: `ItchSettingMissing` naming how to get it, and zero runs;
   - a non-zero exit: `ButlerFailed` with butler's exit code, no retry (one run);
