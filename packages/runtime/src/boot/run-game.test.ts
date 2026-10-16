@@ -21,7 +21,7 @@ import {
 } from './boot-error.js'
 import { contentHashOf } from './boot-program.js'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
-import { describeBootError, runGame } from './run-game.js'
+import { describeBootError, failureHostKind, runGame } from './run-game.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -625,5 +625,14 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     // 5. second shutdown resolves and does nothing
     await handle.shutdown()
     expect(events).toEqual(['screen:exit', 'renderer:destroy'])
+  })
+})
+
+describe('failureHostKind (PUB spec §3: the web kind)', () => {
+  it("draws a web session's boot failures as standalone: no host to go back to", () => {
+    expect(failureHostKind({ kind: 'web' })).toBe('standalone')
+    expect(failureHostKind({ kind: 'standalone' })).toBe('standalone')
+    expect(failureHostKind({ kind: 'ruken' })).toBe('ruken')
+    expect(failureHostKind(undefined)).toBe('standalone')
   })
 })

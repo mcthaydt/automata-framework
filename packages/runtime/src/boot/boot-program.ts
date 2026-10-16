@@ -1,10 +1,6 @@
-import {
-  HostError,
-  Hosting,
-  type HostingOptions,
-  type HostingSeams,
-  makeHosting,
-} from '@mcthaydt/automata-host'
+import { HostError, Hosting, type HostingOptions, type HostingSeams } from '@mcthaydt/automata-host'
+// The build's publish target picks the adapter: Ruken by default, the web adapter under `automata-web` (PUB spec §3).
+import { makeHosting } from '@mcthaydt/automata-host/target'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import {
   createGeometryOwner,

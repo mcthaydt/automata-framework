@@ -54,6 +54,7 @@ Already target-neutral: `packages/ship/src/prepare/root-absolute.ts` rejects roo
   - The build adds `resolve.conditions: ['automata-web']` for `itch` and `web`.
   - The runtime imports `makeHosting` from `./target`, so each bundle holds exactly one adapter. An itch bundle contains no `@ruken/sdk` code.
   - PUB.1 adds a bundle check that fails on the SDK's string literals that survive minification (`ruken:__probe__`, `needs the Ruken host`) in an `itch` build. The web adapter's own storage probe uses a different key.
+  - How the web adapter knows itch.io from any other page (PUB.1): the build also sets the define `__AUTOMATA_TARGET__` to `'itch'` or `'web'`. It only chooses `hostName` (`'itch.io'` or `'this page'`); without it, `hostName` is `'this page'`. Because `resolve.conditions` replaces Vite's defaults, a target build lists `automata-web` before `defaultClientConditions`.
 - **Ruken stays the vocabulary.** `Hosting` keeps every type from `@ruken/sdk`, imported as types only. The web adapter answers in Ruken's terms:
   - It **mirrors the SDK's standalone session** wherever the SDK defines one (§3.1).
   - It **adds** what a page outside Ruken can observe (visibility, input mode, viewport, fullscreen).
@@ -162,6 +163,7 @@ It needs `BUTLER_API_KEY`, and fails early, with how to get one, when the key or
 1. A supported way to start a standalone session without the handshake wait (for example `init({ standalone: true })`). Today only the test-only `env` seam does it, so AF writes its own web adapter. With this option, the web adapter could reuse the SDK.
 2. Standalone saves should report when they fall back to memory, instead of granting `saves` silently.
 3. A `SavesFlushRes.persisted` value for device storage (for example `'device'`). Until then, the web adapter answers `'host-outbox'`, as the SDK's standalone session does.
+4. (Added by PUB.1.) Publish the save-key pattern and the per-save limits (1 MiB per value, 256 keys, 10 MiB per game in the SDK's `save-map.ts` at `b30d31b`) from a package other hosts can import, such as `@ruken/manifest`. AF may not copy them, so until then the web adapter enforces only the browser's quota, and a key or value Ruken would refuse is caught only on a Ruken build (pinned by a test).
 
 ## 10. Owner decisions (recommended defaults in effect until reviewed)
 

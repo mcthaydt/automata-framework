@@ -18,6 +18,7 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { findRukenSdkMarkers } from '../../../packages/host/src/sdk-markers.ts'
 import { publishablePackages } from '../../release/src/publishable-packages.ts'
 import {
   type ConsumerPackage,
@@ -222,6 +223,30 @@ function steps(project: string): Step[] {
         const copies = code.split(SDK_MARKER).length - 1
         if (copies !== 1) throw new Error(`the bundle has ${copies} copies of Ruken's SDK (want 1)`)
         return `${Math.round(code.length / 1024)} kB of JavaScript, 1 Ruken SDK`
+      },
+    ],
+    [
+      // PUB spec §3: an itch.io or web build resolves `@mcthaydt/automata-host/target` to the web adapter, so the
+      // published `dist` must let it drop every byte of the Ruken SDK that `.` bundles.
+      'bundle: vite build with the automata-web condition, no Ruken SDK',
+      () => {
+        sh(join(project, 'web-target'), bin('vite'), [
+          'build',
+          '--config',
+          'vite.config.ts',
+          '--logLevel',
+          'warn',
+        ])
+        const code = filesBelow(join(project, 'web-target/dist'))
+          .filter((file) => file.endsWith('.js'))
+          .map((file) => readFileSync(file, 'utf8'))
+          .join('\n')
+        const markers = findRukenSdkMarkers(code)
+        if (markers.length > 0)
+          throw new Error(`the web-target bundle has Ruken SDK code: ${markers.join(', ')}`)
+        if (!code.includes('automata:storage-probe'))
+          throw new Error('the web-target bundle has no web adapter')
+        return `${Math.round(code.length / 1024)} kB of JavaScript, no Ruken SDK`
       },
     ],
   ]

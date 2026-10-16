@@ -42,6 +42,15 @@ export function describeBootError(error: BootError): string {
  *
  * RuntimeHandle.shutdown() closes the runtime scope, running all finalizers in LIFO order.
  */
+/**
+ * The host kind the boot-failure panel draws. A `web` session (PUB spec §3) has no host to go back to, so its
+ * failures read as standalone, and before Hosting exists the page is standalone too. The ui's `HostKind` names
+ * only Ruken's two kinds until PUB.4 moves the panel to `hostName` and the `exit` grant.
+ */
+export function failureHostKind(hosting: Pick<Hosting, 'kind'> | null | undefined): HostKind {
+  return hosting?.kind === 'ruken' ? 'ruken' : 'standalone'
+}
+
 export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
   let currentScope: Scope.CloseableScope | null = null
   let capturedHosting: Hosting | null = null
@@ -109,7 +118,7 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
         const layers = layersRef.current ?? createPageLayers(game.root, doc)
         layers.setState('failed')
 
-        const hostKind: HostKind = hostingRef.current ? hostingRef.current.kind : 'standalone'
+        const hostKind = failureHostKind(hostingRef.current)
 
         // Mount BootFailurePanel; attempt scope is kept open so Back to Ruken has Hosting
         const closeFailure = layers.showBootFailure({

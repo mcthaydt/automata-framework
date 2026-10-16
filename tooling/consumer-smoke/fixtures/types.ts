@@ -3,6 +3,7 @@
 import type { CompiledContent, ContentConfig, Diagnostic } from '@mcthaydt/automata-content'
 import { automataContent } from '@mcthaydt/automata-content/vite'
 import { HostError, type Hosting, HostingLive } from '@mcthaydt/automata-host'
+import { makeHosting } from '@mcthaydt/automata-host/target'
 import { HostingTest } from '@mcthaydt/automata-host/testing'
 import { type FilesService, ProcessRunner } from '@mcthaydt/automata-node'
 import { BodyKind, body2d, physics2d } from '@mcthaydt/automata-physics/2d'
@@ -18,7 +19,15 @@ import { checkLayout } from '@mcthaydt/automata-ui/testing'
 export const sizes: readonly ReferenceSize[] = REFERENCE_SIZES
 export const factor: FormFactor = classifyFormFactor(390, 844)
 export type Uses = [CompiledContent, ContentConfig, Diagnostic, Hosting, FilesService, ShipConfig, Geometry]
-export const values = [automataContent, HostError, HostingLive, HostingTest, ProcessRunner, prepareBuild]
+export const values = [
+  automataContent,
+  HostError,
+  HostingLive,
+  HostingTest,
+  makeHosting,
+  ProcessRunner,
+  prepareBuild,
+]
 export const component: typeof Dialog = Dialog
 export const layout: typeof checkLayout = checkLayout
 export const position = defineComponent('position', { x: 'f32', y: 'f32' })
