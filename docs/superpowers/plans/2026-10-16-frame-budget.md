@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §2 F5 and the §3 row "Frame-budget probe (`playwright.config.ts` `frame-budget` projects)": new, core.
 - **Row:** [02](../../02-master-delivery-plan.md) PRODUCT.7. **Status:** drafted 2026-10-16 on the Owner-approved PRODUCT.0 (all recommended defaults).
-- **Progress:** 4 of 7 steps.
+- **Progress:** 5 of 7 steps.
 
 ## What "done" means
 
@@ -108,7 +108,7 @@ AGENTS.md requires that a performance probe have exclusive use of the GPU. With 
     - two sims with the same seed have the same `hash()` after 60 ticks;
     - M < 1 throws.
   - Expect it to fail because the module is missing. Implement it, add `tooling/frame-budget/stress/sim` to `pnpm boundaries`, and confirm green.
-- [ ] **5. Stress game on public APIs.**
+- [x] **5. Stress game on public APIs.**
   - `stress/public-api.test.ts`: every import under `stress/` is relative, a public `exports` entry of an `@mcthaydt/automata-*` package (never `./testing`), or `pixi.js`, `effect`, `svelte`, `zod`.
   - `stress/stress-game.test.ts` (jsdom, `manualFrames`, `nullRenderer`):
     - `stressGame()` boots to `ready`;

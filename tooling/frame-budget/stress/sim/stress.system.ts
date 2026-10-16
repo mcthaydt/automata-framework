@@ -1,5 +1,6 @@
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { Body, Pulse, WORLD } from './stress.component.ts'
+import { BEAT_TICKS, Beat } from './stress.event.ts'
 
 const MAX_X = WORLD.width * WORLD.sub
 const MAX_Y = WORLD.height * WORLD.sub
@@ -23,6 +24,7 @@ export const stressMove: SystemDef = defineSystem({
       }
       entity.set(Body, body)
     }
+    if (ctx.tick % BEAT_TICKS === 0) ctx.emit(Beat, { tick: ctx.tick })
   },
 })
 

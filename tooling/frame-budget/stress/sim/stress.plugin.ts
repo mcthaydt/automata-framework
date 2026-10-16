@@ -1,5 +1,6 @@
 import { createRng, definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Body, Pulse, WORLD } from './stress.component.ts'
+import { Beat } from './stress.event.ts'
 import { stressMove, stressWorker } from './stress.system.ts'
 
 /** Fastest speed on each axis, in subpixels per tick (2 px at 60 Hz). */
@@ -9,7 +10,12 @@ const MAX_SPEED = 2 * WORLD.sub
 export function stressPlugin(systems: number): PluginDef {
   if (!Number.isInteger(systems) || systems < 1) throw new Error('the stress sim needs at least one system')
   const workers = Array.from({ length: systems - 1 }, (_, index) => stressWorker(index + 1))
-  return definePlugin({ name: 'stress', components: [Body, Pulse], systems: [stressMove, ...workers] })
+  return definePlugin({
+    name: 'stress',
+    components: [Body, Pulse],
+    events: [Beat],
+    systems: [stressMove, ...workers],
+  })
 }
 
 /** Scene setup: `entities` bodies at seeded positions and speeds (never zero on an axis). */
