@@ -17,20 +17,30 @@
 
 ## Task EX.1: runner, single package, catalog, smoke, parity, `--inline`
 
-### Files
-- **Create:**
-  - `tooling/examples-runner/` with `package.json`, `src/catalog.ts`, `src/catalog.test.ts`, `src/header.ts`, `src/header.test.ts`, `src/vite-plugin.ts`, `src/vite-plugin.test.ts`, `src/page-template.ts`, `src/parity.ts`, `src/examples.parity.test.ts` and `src/fixtures/`;
-  - `host/`, moved from `examples/demo-host/`;
-  - `examples/package.json`, `examples/tsconfig.json`, `examples/vite.config.ts`, `examples/e2e/examples.e2e.ts`.
+### Files (refined at `4d29ab0`, stacked on EX.2)
+- **Create** in `tooling/examples-runner/` (package `@mcthaydt/examples-runner`, private):
+  - `package.json`, `tsconfig.json`, `vitest.config.ts`;
+  - `src/header.ts` + `header.test.ts`, `src/catalog.ts` + `catalog.test.ts`, `src/page-template.ts`, `src/vite-plugin.ts` + `vite-plugin.test.ts`, `src/typecheck.ts` (+ test; pending examples are left out of `tsc`), `src/cli.ts` (`pnpm examples [name]`), `src/smoke.ts` (the parametric Playwright smoke), `src/parity.ts` + `src/examples.parity.test.ts`;
+  - `src/fixtures/catalog/` (one bad example per catalog rule) and `src/fixtures/examples/` (the stub example `core/core-stub.ts`, its `__goldens__/core-stub.replay`, and `stub-start-game.ts`, a test stand-in for DX.2's `startGame` that is named as a stub and exported only to the fixture runner);
+  - `fixtures.vite.config.ts` and `e2e/runner.e2e.ts` (the runner's own smoke over the stub);
+  - `host/` (`host.ts`, `index.html`, `ports.ts`, `preview-headers.ts`, `testing.ts`, `vite.config.ts`), moved with `git mv` from `examples/demo-host/` and exported as `@mcthaydt/examples-runner/host/{ports,preview-headers,testing}`.
+- **Create** in `examples/` (package `@af-examples/examples`): `package.json`, `tsconfig.json`, `vite.config.ts`, `e2e/examples.e2e.ts`, `__goldens__/.gitkeep`.
 - **Modify:**
-  - `tooling/check-boundaries/src/check.ts`, `check.test.ts`, `cli.ts` (`--inline`);
-  - `pnpm-workspace.yaml`, the root `package.json` (`examples`, `build:examples`, `boundaries`);
-  - `playwright.config.ts` (the `examples` project);
-  - `.github/workflows/ci.yml`.
+  - `tooling/check-boundaries/src/{check,check.test,cli,files}.ts`, `fixtures/inline/*.ts` (`--inline`; a directory walk skips `node_modules` and `dist`); changeset (patch);
+  - `pnpm-workspace.yaml` (adds `examples`; keeps `examples/*` and `examples/*/*` until EX.4 deletes the old demos and EX.5 the gallery), root `package.json` (`examples`, `build:examples`, `boundaries`, `ci:local`);
+  - the old demos' imports of `@af-examples/demo-host/*` (5 demos: `package.json`, `vite.config.ts`, `e2e/*.ts`);
+  - `playwright.config.ts` (`examples` at Pixel 7 and `examples-compact` at 780×270; the runner and examples servers; the host server from its new package);
+  - `.github/workflows/ci.yml` (`build:examples` beside `build:demos` until EX.4);
+  - `tooling/release` workspace walk tests if the new top-level `examples` package changes what they list.
 
 ### Interfaces
-- **Consumed:** `startGame`/`defineGame` (DX.2, until then a stub fixture), `compileHeaders` (`@ruken/manifest`), `replayGolden` (`@mcthaydt/automata-testing/sim`), the demo-host's `openHosted` and `collectErrors`.
-- **Produced:** `readCatalog(root): CatalogEntry[]`, `parseHeader(source): Header | HeaderError[]`, and the `examplesRunner()` Vite plugin.
+- **Consumed:** `compileHeaders` (`@ruken/manifest`) through the host's `previewHeaders`, `replayGolden`/`goldenCommands` (`@mcthaydt/automata-testing/sim`), `createSim` and the `define*` verbs (`@mcthaydt/automata-sim`), the host's `openHosted` and `collectErrors`. `startGame` comes from the module the plugin is given (`start`, default `@mcthaydt/automata`, DX.2/PRODUCT.2); until then only the stub fixture runs.
+- **Produced:** `parseHeader(source): Header | HeaderError[]`, `readCatalog(root, options): CatalogEntry[]` (each entry carries its `problems`), `examplesRunner({ root, start?, noEval? })` (Vite plugin), `smokeExamples(entries, baseUrl)` and `goldenExamples(root)`.
+
+### Deviations recorded here
+- **Workspace globs:** the spec replaces `examples/*` and `examples/*/*` with `examples`; the old demos and the gallery are still packages until EX.4/EX.5, so the globs stay and `examples` is added. pnpm accepts a package whose folder holds other packages.
+- **Public imports:** the umbrella `@mcthaydt/automata` does not exist until PRODUCT.2, so the catalog accepts `@mcthaydt/automata` and any entry a `@mcthaydt/automata-*` package declares in `exports` (never `/src`). Narrowing core imports to the umbrella is a PRODUCT.2 follow-up.
+- **Stub:** with no `defineGame` yet, the stub example exports a plain object of the shape the runner reads (`id`, `sim.plugins`, `sim.seed`); it never imports or defines anything named like DX.2's API.
 
 ### Steps
 - [ ] **1. Header parser.** Write `header.test.ts`:
@@ -38,7 +48,7 @@
   - a missing `Shows:` gives a `HeaderError` with its line;
   - `Difficulty: ★★★★★` is rejected.
 
-  Run `pnpm --filter @mcthaydt/examples-runner test` and confirm it fails because `parseHeader` does not exist. Implement `header.ts`, then confirm it passes.
+  Run `pnpm --filter @mcthaydt/examples-runner test:unit` and confirm it fails because `parseHeader` does not exist. Implement `header.ts`, then confirm it passes.
 - [ ] **2. Catalog rules.** Write `catalog.test.ts` over `src/fixtures/`, where each bad fixture fails for its own reason:
   - a file outside `<module>/<module>-<name>.ts`;
   - an unknown module;
