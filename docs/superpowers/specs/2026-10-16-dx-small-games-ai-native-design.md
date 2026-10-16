@@ -341,7 +341,7 @@ Lanes as in 04 How we build. Each task gets its TDD plan before code.
 | ~~DX.8~~ | ~~Agent evals~~ | — | — | Dropped (D-DX-3) |
 | DX.9 | Evidence file and website proof | ship + website | DX.0 | §3.10 |
 | DX.10 | Website restorations | website | Each row's task | §11 |
-| DX.11 | MIT license and public npm | ship | DX.0 | Root `LICENSE` (MIT), `"license": "MIT"` in every published package, the release workflow publishing to npmjs.org (the Owner adds an `NPM_TOKEN` secret for the `@mcthaydt` scope), the `@mcthaydt/create-automata` package, the public mirror job (D-DX-2), and the consumer smoke installing from npm |
+| DX.11 | MIT license and public npm (core only) | ship | DX.0, PRODUCT.5 | Root `LICENSE` (MIT), `"license": "MIT"` in every published core package (extensions are Automata Plus and publish privately: [PRODUCT spec](./2026-10-16-product-core-and-plus-design.md) PD-1), the release workflow publishing to npmjs.org (the Owner adds an `NPM_TOKEN` secret for the `@mcthaydt` scope), the `@mcthaydt/create-automata` package, the public mirror job (D-DX-2), and the consumer smoke installing from npm |
 | DX.12 | Website deploy to `automata.ruken.com` | website | DX.0; Owner hosting and DNS | Static deploy, plus a check that `/llms.txt` and `/llms-full.txt` are served from that origin |
 | DX.13 | Discord server | integration | The Owner's server with the Discord plugin's bot in it | Channels, roles, rules, welcome, moderation and a permanent invite, set up through the plugin and read back; anything the plugin can't do goes in a click-through checklist |
 
@@ -361,7 +361,7 @@ In the website repo, per restored row: update `docs/2026-10-14-cut-claims.md` (m
 - The plugin installs from its marketplace on a named Claude Code version, its skills load, and its hook blocks a sim edit that imports `effect`.
 - `npx skills add` installs the skills into at least one other named agent.
 - `evidence.json` is produced by af-linux CI on `main`, and the website renders it.
-- A `create-game` output installs from public npm (`npm create @mcthaydt/automata`) on a clean machine with no token, and every published package says MIT.
+- A `create-game` output installs from public npm (`npm create @mcthaydt/automata`) on a clean machine with no token, and every public package says MIT. The generated game uses core packages only (Plus extensions are added by the buyer, PRODUCT spec §6).
 - `https://automata.ruken.com/llms.txt` is served (DX.12 check).
 
 **Failure (not acceptable as done):**

@@ -59,9 +59,28 @@ Owner, 2026-10-16: the framework must match what the website sells: small change
 | [ ] | ~~DX.8 — Agent evals~~ | Dropped by the Owner (D-DX-3, 2026-10-16); "tested prompts" stays retired. |
 | [ ] | DX.9 — Evidence file | Lane **ship** + website; DX.0. `evidence.json` from af-linux on `main`; the site renders proof from it. |
 | [ ] | DX.10 — Website restorations | Website; each row's task. Restored copy pinned to its evidence by a test. |
-| [ ] | DX.11 — MIT license and public npm | Lane **ship**; DX.0. `LICENSE`, `"license": "MIT"`, the release to npmjs.org, `@mcthaydt/create-automata`, the public skills mirror job, consumer smoke from npm. Owner: `NPM_TOKEN` secret. |
+| [ ] | DX.11 — MIT license and public npm | Lane **ship**; DX.0, PRODUCT.5 (core only: extensions are Automata Plus, PD-1). `LICENSE`, `"license": "MIT"`, the release to npmjs.org, `@mcthaydt/create-automata`, the public skills mirror job, consumer smoke from npm. Owner: `NPM_TOKEN` secret. |
 | [ ] | DX.12 — Website deploy to `automata.ruken.com` | Website; DX.0; Owner hosting and DNS. Static deploy, plus a check that `/llms.txt` is served there. |
 | [ ] | DX.13 — Discord server | Integration; the Owner's server with the Discord plugin's bot. Channels, roles, rules, moderation and a permanent invite, read back to verify them. |
+
+## PRODUCT Free core, Automata Plus, FloorFifty as the measure
+
+Owner, 2026-10-16: someone can build FloorFifty (content excluded) on AF. Core is free and is a foundation that scales, and localization is part of it. Automata Plus is paid: every extension, copy-in UI and screen kits, and starter games. The [PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md) has the FloorFifty gap ledger (at `ac72660`), the tiers, the cuts and the raylib API rules.
+
+**Order (PD-3):** the foundation first (PRODUCT.1, PRODUCT.L, the core parts of M4 and M5, PRODUCT.7), then the Plus extensions on the FloorFifty path, then PRODUCT.8.
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | PRODUCT.0 — PRODUCT spec, reviewed | Drafted 2026-10-16 with Owner decisions PD-1 to PD-5 (spec §11). Review of the whole spec pending. |
+| [ ] | PRODUCT.1 — Core seams and API reports | Integration + owning lanes; PRODUCT.0. Input profiles, `NetworkPort`, audio buses, render layer and post-filter slot, settings schema, presentation events, host leaderboard call; public API reports with a release break check; the Plus public-entry boundary test (spec §2 F1, F6). |
+| [ ] | PRODUCT.L — Core localization | Lanes **runtime**, **content**, **ui**; PRODUCT.0. Paraglide `t()`, negotiation from Ruken `session.locale`, `Intl` formatting, `<html lang dir>`, per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract, language picker, `automata check` additions (spec §4, cases L-a to L-e). Replaces M5's localization part. |
+| [ ] | PRODUCT.2 — Umbrella import and `draw` layer | Lane **game**; DX.2. `@mcthaydt/automata` and a read-only `draw(ctx)` (spec §7). |
+| [ ] | PRODUCT.3 — Cheatsheet | Lane **ship**; DX.4. One page by module, generated from the API index. |
+| [ ] | PRODUCT.4 — Stack page | Lane **ship**; PRODUCT.0. Generated `docs/stack.md` from the pins (spec §8); the site's `/inside` page follows as a website task. |
+| [ ] | PRODUCT.5 — `automata-plus` repo and `automata add` | Lanes **ship** and integration; PRODUCT.0; the Owner creates the private `mcthaydt/automata-plus` repo. Private registry, `npx automata add <kit>`, and `packages/physics` with its demo moved there before DX.11's first public publish (spec §6). |
+| [ ] | PRODUCT.6 — UI and screen kit, first set | Lane **ui**; PRODUCT.1 and the core parts of M4. Settings, pause, results, title, loading and error screens on core primitives (spec §5). Plus. |
+| [ ] | PRODUCT.7 — Frame-budget probe and stress example | Lane **testing**; PRODUCT.0. Measured ms/frame on the GPU runner; the budget is set from the first recorded run (spec §2 F5). |
+| [ ] | PRODUCT.8 — Party Racer starter | Integration; `net`, `server`, the 2D part of `post-retro`, `feel`, `audio-stream`, PRODUCT.6. FloorFifty's loop on placeholder content; game-specific code measured against FloorFifty (spec §10, P-b). Plus. |
 
 ## M3 to M8
 
@@ -70,11 +89,11 @@ Each milestone starts with a spec task (`Mn.0`) and is decomposed into tasks whe
 | Done | Task | Prerequisite and deliverable |
 |---|---|---|
 | [ ] | M3.0 — 2.5D and pipelines spec, with spike S7 | M2. Confirm D-1 (provisional: `render-pixi3d` unpublished, private builds only). `examples/base-25d` and `examples/base-3d` (the same character in a room); `render-pixi3d` at 2.5D scope, `post-retro`, `pipelines`, 2.5D character and props pipelines. |
-| [ ] | M4.0 — Input and display spec | M1. Complete input paths, display policy, E2E matrix under the fake Ruken host. |
-| [ ] | M5.0 — Saves, audio and localization spec | M2, M4. Ruken saves and migrations, audio extensions, six languages. |
-| [ ] | M6.0 — Gameplay extensions spec | M2, M3. `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`, `debug`, `telemetry-extra`, environment pipeline. |
-| [ ] | M7.0 — Online and store spec | M2, M5; Ruken `[store]` for `store`. `net`/`server`, `store`, `host-tauri`. |
-| [ ] | M8.0 — CLI 1.0 and adoption spec | All before. Decide D-2. Full CLI, 1.0 (AF finished for 2D and 2.5D), FloorFifty and The Last Light adoption slices. |
+| [ ] | M4.0 — Input and display spec | M1 (not M3; PD-3). Complete input paths (gamepad hot-plug, deadzones, rebinding, gestures as data, device prompts), display policy (safe area, `hostReserved`, rotate gate, keyboard and browser-bar occlusion), `camera2d`, graphics quality tiers, E2E matrix under the fake Ruken host ([PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md) §5). |
+| [ ] | M5.0 — Saves and audio spec | M2, M4. Ruken saves and migrations, core audio, `audio-stream` (Plus), the asset build (font subsetting, atlas packing), the host leaderboard call. Localization moved to PRODUCT.L (PD-4). |
+| [ ] | M6.0 — Gameplay extensions spec | M2 for `feel` (Plus, on the FloorFifty path, PD-3); M3 for the rest. `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`, `debug`, environment pipeline. `telemetry-extra` is cut (PD-5). |
+| [ ] | M7.0 — Online and store spec | M2, M5, PRODUCT.1 (`NetworkPort`); Ruken `[store]` for `store`. `net`/`server` (Plus) with a server deploy target and a bot-seat hook, `store`, `host-tauri`. |
+| [ ] | M8.0 — CLI 1.0 and adoption spec | All before. Decide D-2 (proposed in the PRODUCT spec: FloorFifty acceptance through PRODUCT.8). Full CLI, 1.0 (AF finished for 2D and 2.5D), FloorFifty and The Last Light adoption slices. |
 
 ## After AF 1.0: the 3D game, then the 3D merge
 
@@ -105,5 +124,6 @@ Owner roadmap (2026-10-11): 2D and 2.5D first, then 3D. The 3D pieces come from 
 | 2026-10-13 | M1.8 Base project, demos, scaffold & M1 exit | `packages/cli`, `examples/gallery`, `examples/base-2d` | Local: vitest unit (4 files, 18 passed in cli; 3 passed in gallery), pnpm check clean (22/22 tasks), pnpm test:parity clean across 3 browsers (9/9 tasks), pnpm test:e2e (46/46 passed), create-game integration test valid ruken.toml | Implemented, locally verified, parity & E2E gates green; M1 exited; Owner acceptance pending |
 | 2026-10-16 | DX.0 draft | [DX spec](superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md); DX rows above; M1.7 row corrected to WebGPU opt-in (ADR 0002) | Docs only; line counts measured at `365f115`; plugin and Agent Skills mechanics checked against their docs on 2026-10-16 | Draft; Owner review pending |
 | 2026-10-16 | DX.0 Owner decisions | Spec §13 and §2 updated: MIT on public npm, a public skills mirror, no evals (DX.8 dropped), Antigravity dropped, Discord via the Owner's plugin, site deploy planned; DX.11–DX.13 added | Docs only; relative links checked | Decisions recorded; spec review pending |
+| 2026-10-16 | PRODUCT.0 draft and decisions | [PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md): FloorFifty gap ledger at `ac72660`, free core and Automata Plus (PD-1), Rapier only (PD-2), foundation first (PD-3), localization core (PD-4), pain points and cuts (PD-5); PRODUCT rows above; M4, M5, M7, M8 rows and DX.11 updated; 00 business model, master spec D-7 and §11 noted | Docs only; FloorFifty line counts from the spec's appendix A script; AF "exists" cells checked against `packages/*/src`; relative links checked | Draft; Owner review pending |
 
 For each completed task record its ID, PR or commit, the checks that ran and their result, review status and remaining gates. Update this table, the affected spec and [03 Continuation](03-continuation-prompt.md) in the same session.
