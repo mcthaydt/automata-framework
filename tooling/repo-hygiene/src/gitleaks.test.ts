@@ -9,7 +9,7 @@ import { ensureGitleaks, GITLEAKS_VERSION, gitleaksAsset, verifiedDownload } fro
 // release, the same way locally and in CI (QB.1). No network here: every download goes through an injected fetch.
 
 const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex')
-const bytesResponse = (bytes: Uint8Array) => async () => new Response(bytes)
+const bytesResponse = (bytes: Uint8Array) => async () => new Response(new Blob([new Uint8Array(bytes)]))
 
 describe('gitleaksAsset', () => {
   it.each([
