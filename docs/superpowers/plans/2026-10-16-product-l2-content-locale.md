@@ -2,7 +2,7 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §4 items 1, 5 and 6 (the content part of "Messages", "Content", "Glyph coverage"), acceptance case **L-d**; §9 ownership: `content` owns the compile and the glyph sets.
 - **Status:** drafted 2026-10-16. PRODUCT.0 is Owner-approved with every recommended default (2026-10-16), so this plan may run. Depends on PRODUCT.L1 (PR #48, branch `claude/clever-pasteur-ujmu6e-productl`), which it is based on.
-- **Progress:** 5 of 6 steps.
+- **Progress:** 6 of 6 steps. Implemented and locally verified 2026-10-16; Owner review pending.
 - **Out of scope:** L-e (a glyph missing from the subset font fails the asset build) waits for M5's font-subsetting asset build, which consumes the glyph sets made here; the language picker, `xx-long` and right-to-left are PRODUCT.L3; missing/unused keys and glyph coverage in `automata check` are PRODUCT.L4.
 
 ## Source
@@ -57,10 +57,16 @@ FloorFifty's `tests/client/i18n/content.test.ts` and `fonts.test.ts` are app-lev
 - [x] **3. Per-locale catalogs and glyph sets.** In `compile-content.test.ts`: the fixture's `languages` is `['en', 'fr']` and `catalogs.get('fr')` holds `content_stage_dawn_display_name: 'Aube'` without `$schema`; changing `Aube` to `Aurore` in `fr.json` leaves `hash` and `sim.hash` unchanged. `locale/glyphs.test.ts`: `catalogCharacters({ a: 'Écarlate', b: 'Aube' })` is the set of their characters; `localeCharacters` adds `ALWAYS_CHARACTERS` (printable ASCII, CJK punctuation, full-width forms, `… — · ← → ✓ ×`); `$schema` is never counted. Confirm both fail (no `catalogs`; no module), implement, confirm they pass.
 - [x] **4. Paraglide compile.** `locale/compile-messages.test.ts` (node): `buildContent` on the fixture with `paraglide: { outdir: 'src/paraglide' }` writes `src/paraglide/messages.js`; importing it, `content_stage_dawn_display_name({}, { locale: 'fr' })` is `Aube` and `({}, { locale: 'en' })` is `Dawn`, and `runtime.locales` is `['en', 'fr']`; with `catalogs: ['messages/ui/{locale}.json']` and a `messages/ui/en.json` and `fr.json` holding `play`, `play({}, { locale: 'fr' })` answers from it; a build without `paraglide` writes no `src/paraglide`. Confirm it fails (no option, no files), implement `compileMessages` and call it from `buildContent`, confirm it passes.
 - [x] **5. Content text at run time.** `locale/content-text.test.ts`: with messages `{ content_stage_snow_shrine_display_name: () => 'Sanctuaire' }`, `text('stage', 'snow-shrine', ['displayName'], 'Snow Shrine')` is `Sanctuaire`; a missing key returns the authored text and calls `onMissing` once per key however often it is asked; a nested ID and field path use `messageKey`'s key; inputs reach the message. Add the `./locale` subpath (package `exports`, `publishConfig.exports`, `tsdown` entry) and a test that `locale/index.ts` imports nothing from `node:`. Confirm the failure on the missing module, implement, confirm it passes.
-- [ ] **6. Pins, gates, bookkeeping.** Update the two `docs/versions.md` rows; run `pnpm --filter @mcthaydt/versions test`. Add the changeset. Run `pnpm format`, `pnpm check`, content's parity project and the consumer smoke. Record the evidence in 02, 03 and the execution log.
+- [x] **6. Pins, gates, bookkeeping.** Update the two `docs/versions.md` rows; run `pnpm --filter @mcthaydt/versions test`. Add the changeset. Run `pnpm format`, `pnpm check`, content's parity project and the consumer smoke. Record the evidence in 02, 03 and the execution log.
 
 ## Execution log
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-16 | Plan | (this commit) | — |
+| 2026-10-16 | Plan | `1815355` | — |
+| 2026-10-16 | 1 | `6f732e0` | Failed first on the missing module. The expected column of `g` in the nested-value case was miscounted in the first draft of the test (50, not 51) and corrected before the implementation |
+| 2026-10-16 | 2 | `a2ff893` | Failed first for the expected reason: all three problems at `content/messages/fr.json:1:1`, and `origins` undefined |
+| 2026-10-16 | 3 | `7429e66` | Failed first: `languages` undefined; `./glyphs` missing |
+| 2026-10-16 | 4 | `e09d11b` | Failed first: no `src/paraglide/messages.js` written. Deviation: the outdir guard (`paraglideProblems`, since Paraglide empties its outdir) was written with the compile; its test was added after and shown to fail with the guard removed (`expected InvalidContentConfig`). A literal `import('@inlang/paraglide-js')` made TypeScript read Paraglide's declarations in the two consumer type tests (`render-types`, `sim-content-types`, which check without `skipLibCheck`), so the specifier is a variable with a local type |
+| 2026-10-16 | 5 | `556b95d` | Failed first on the missing module; the import-graph test first matched a `from '…'` inside a comment and was narrowed to import/export lines. The consumer smoke imports the new entry |
+| 2026-10-16 | 6 | (bookkeeping) | `pnpm --filter @mcthaydt/versions test` 13/13. `pnpm format`; `pnpm check` passed (22/22 turbo tasks, 17 replayed from cache; 1,710 unit tests, 4 skipped); content parity 6/6 (Chromium, WebKit, Firefox); `pnpm build` and consumer smoke `--from packs` 10/10. `pnpm test:parity` and `pnpm test:e2e` omitted (no runtime, rendering, UI, host, game or example change) |
