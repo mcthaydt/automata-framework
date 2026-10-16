@@ -40,9 +40,9 @@
     {#each nodes as node (node.name)}
       <li>
         {#if node.file}
-          <button type="button" aria-label={'Open ' + node.file.path} aria-current={selected?.path === node.file.path ? 'true' : undefined} onclick={() => select(node.file!.path)}>{node.name}</button>
+          <button type="button" aria-label={'Open ' + node.file.path} aria-current={selected?.path === node.file.path ? 'true' : undefined} onclick={() => select(node.file!.path)}><code>{node.name}</code></button>
         {:else}
-          <details open={node.name === 'src' || contains(node.children, selected?.path ?? '')}><summary>{node.name}</summary>{@render branches(node.children)}</details>
+          <details open={node.name === 'src' || contains(node.children, selected?.path ?? '')}><summary><code>{node.name}</code></summary>{@render branches(node.children)}</details>
         {/if}
       </li>
     {/each}
@@ -50,7 +50,7 @@
 {/snippet}
 
 <section class="source-explorer" aria-label={'Source for ' + project.name} data-ui>
-  <div class="source-project"><div><strong>{project.root}</strong><span>{project.files.length} files</span></div><a href={'https://github.com/mcthaydt/automata-framework/tree/main/' + project.root}>Open project on GitHub</a></div>
+  <div class="source-project"><div><strong><code>{project.root}</code></strong><span>{project.files.length} files</span></div><a href={'https://github.com/mcthaydt/automata-framework/tree/main/' + project.root}>Open project on GitHub</a></div>
   {#if guides.length}
     <div class="source-guides" role="group" aria-label="Explore how Emberwick works">
       {#each guides as item}<button type="button" aria-pressed={selected?.path === item.path} onclick={() => select(item.path)}>{item.label}</button>{/each}
@@ -64,7 +64,7 @@
       {#if selected}
         {#key selected.path}
           {#if selected.content !== undefined}<CodeBlock code={selected.content} lang={selected.language} filename={selected.path} />
-          {:else}<div class="source-asset"><strong>{selected.path}</strong><p>This binary asset is part of the project. View or download it from the repository.</p></div>{/if}
+          {:else}<div class="source-asset"><strong><code>{selected.path}</code></strong><p>This binary asset is part of the project. View or download it from the repository.</p></div>{/if}
           <div class="source-file-footer"><a href={sourceUrl}>View file on GitHub</a></div>
         {/key}
       {:else}<p>This project has no published files.</p>{/if}

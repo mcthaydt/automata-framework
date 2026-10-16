@@ -25,19 +25,19 @@
 <PageMeta title="Make a game. Make it yours." description="Make browser games with your coding agent. Play a starter, try a double jump, copy a tested task, and make the next change your own." />
 <section class="hero chapter">
   <div class="hero-heading">
-    <div><p class="eyebrow live">TypeScript game framework</p><h1>Make a game.<br />Make it yours.</h1></div>
-    <div class="hero-copy"><p>You bring the idea. Your coding agent helps with code and tests. Start with a playable TypeScript browser game, give it a twist, and keep building.</p><a class="button" href="/start#worked-change">Make your first change</a><a class="hero-guide" href="#play">Play the starter</a></div>
+    <div><h1>Make a game.<br />Make it yours.</h1></div>
+    <div class="hero-copy"><p>A TypeScript framework for browser games. You bring the idea; your coding agent helps with code and tests.</p><a class="button" href="/start#worked-change">Make your first change</a><a class="hero-guide" href="#play">Play the starter</a></div>
   </div>
   <div id="play" class="hero-stage">
-    <span class="vertical-label" aria-hidden="true">Emberwick · Starter 01</span>
+    <span class="vertical-label" aria-hidden="true">Emberwick</span>
     <DemoRunner src="/demos/base-2d/index.html" title="Emberwick" autoStart={false} poster="/previews/emberwick.png" posterAlt="Emberwick platforming gameplay" />
     <div class="stage-caption"><p>Emberwick, the playable 2D starter.</p><p>Move with arrows or A/D. Jump with Space.</p><a href="/examples?demo=base-2d">Source and controls</a></div>
   </div>
 </section>
-<section class="chapter first-change-intro"><div><p class="eyebrow"><span>01</span>First remix</p><h2>One more jump.<br />Your first remix.</h2><p>Turn on double jump. Press jump again in the air. Feel the difference, then give your agent the prompt that builds it.</p></div><div class="first-change-actions"><p>Play the original and the remix here. Follow the actual code and tests when you are ready to make it yours.</p><a class="button" href="/start#worked-change">Try a double jump</a><a href="/start#first-task">Get the prompt</a></div></section>
-<section class="chapter creative-section"><div class="examples-heading"><div><p class="eyebrow"><span>02</span>Starters</p><h2>Pick your<br />starting point.</h2></div><p>Platforming, a new movement trick, or a room full of physics. These are working starters and demos you can play and extend.</p></div><CreativeStarts /></section>
+<section class="chapter first-change-intro"><div><h2>One more jump.<br />Your first remix.</h2><p>Turn on double jump. Press jump again in the air. Feel the difference, then give your agent the prompt that builds it.</p></div><div class="first-change-actions"><p>Play the original and the remix here. Follow the actual code and tests when you are ready to make it yours.</p><a class="button" href="/start#worked-change">Try a double jump</a><a href="/start#first-task">Get the prompt</a></div></section>
+<section class="chapter creative-section"><div class="section-heading"><h2>Pick your<br />starting point.</h2><p>Platforming, a new movement trick, or a room full of physics. These are working starters and demos you can play and extend.</p></div><CreativeStarts /></section>
 <section class="chapter workflow-section">
-  <div class="workflow-intro"><p class="eyebrow"><span>03</span>Workflow</p><h2>Have an idea?<br />Give it a go.</h2><p>Ask for a dash. Add a collectible. Change the room. Make one thing work, play it, and choose what comes next.</p><a href="/ai#task-prompts">Choose a prompt for your agent</a></div>
+  <div class="workflow-intro"><h2>Have an idea?<br />Give it a go.</h2><p>Ask for a dash. Add a collectible. Change the room. Make one thing work, play it, and choose what comes next.</p><a href="/ai#task-prompts">Choose a prompt for your agent</a></div>
   <dl class="workflow-details">
     <div><dt>Agents write code and tests</dt><dd>Give an agent the project rules and a focused task. Use type checks, simulation tests and browser checks to review what it produces.</dd></div>
     <div><dt>You make the content</dt><dd>Shape the rooms, art, rules and narrative. Keep creative decisions with the people making the game.</dd></div>
@@ -45,10 +45,10 @@
     <div><dt>Browser and mobile foundations</dt><dd>Browser delivery, phone-first UI and keyboard and touch examples are here to build on. Deterministic state, snapshots and replays lay the groundwork for multiplayer; networking and server packages are planned.</dd></div>
   </dl>
 </section>
-<section id="fit" class="chapter fit-section"><div><p class="eyebrow"><span>04</span>For</p><h2>Who this is for</h2><ul>{#each AUDIENCE_FIT as item}<li>{item}</li>{/each}</ul></div><div><p class="eyebrow"><span>04</span>Not for</p><h2>Who this is not for</h2><ul>{#each AUDIENCE_NOT_FIT as item}<li>{item}</li>{/each}</ul></div></section>
-<section class="chapter migration-section"><div><p class="eyebrow"><span>05</span>Migration</p><h2>Bring what<br />you know.</h2><p>Start with familiar concepts, then rebuild one small feature with explicit ownership.</p></div><nav aria-label="Coming from another engine">{#each MIGRATION_GUIDES as guide}<a href={'/docs/' + guide.slug}>From {guide.engine}</a>{/each}</nav></section>
+<section id="fit" class="chapter fit-section"><div><h2>Who this is for</h2><ul>{#each AUDIENCE_FIT as item}<li>{item}</li>{/each}</ul></div><div><h2>Who this is not for</h2><ul>{#each AUDIENCE_NOT_FIT as item}<li>{item}</li>{/each}</ul></div></section>
+<section class="chapter migration-section"><div><h2>Bring what<br />you know.</h2><p>Start with familiar concepts, then rebuild one small feature with explicit ownership.</p></div><nav aria-label="Coming from another engine">{#each MIGRATION_GUIDES as guide}<a href={'/docs/' + guide.slug}>From {guide.engine}</a>{/each}</nav></section>
 <section class="chapter examples-section">
-  <div class="examples-heading"><div><p class="eyebrow"><span>06</span>Examples</p><h2>Explore the<br />working parts.</h2></div><div><p>Give your agent a working example to extend. Run it here, inspect every project file, then make the next change yourself or with AI.</p><a href="/examples">Browse all examples</a></div></div>
+  <div class="section-heading"><h2>Explore the<br />working parts.</h2><p>Give your agent a working example to extend. Run it here, inspect every project file, then make the next change yourself or with AI.</p><a href="/examples">Browse all examples</a></div>
   <div class="example-index">
     {#each previews as demo}
       <article>
@@ -59,10 +59,10 @@
   </div>
 </section>
 <section class="chapter architecture-section">
-  <div class="architecture-heading"><div><p class="eyebrow"><span>07</span>Source</p><h2>One state.<br />Many views.</h2></div><p>Clear ownership makes changes easier to review.<br />Follow the real files your agent will work in.</p></div>
+  <div class="section-heading"><h2>One state.<br />Many views.</h2><p>Clear ownership makes changes easier to review. Follow the real files your agent will work in.</p></div>
   <SourceExplorer project={starterProject} initialFile={sourceGuides[0].path} guides={sourceGuides} />
   <p class="source-architecture-link"><a href="/docs/overview">Read the architecture</a></p>
 </section>
-<section id="faq" class="chapter faq-section"><div><p class="eyebrow"><span>08</span>Questions</p><h2>FAQ</h2><p>The practical questions before you build.</p><a href="/docs/faq">Read all questions</a></div><div class="faq-list">{#each FAQ_ITEMS.filter((_, index) => [0, 2, 4, 7, 9, 10].includes(index)) as item}<article><h3>{item.question}</h3><p>{item.answer}</p></article>{/each}</div></section>
-<section class="chapter showcase-invitation"><div><p class="eyebrow"><span>09</span>Showcase</p><h2>What will<br />you make?</h2></div><div><p>Play the starters, see the work that shaped Automata, or submit your own game. Community submissions are reviewed before publication.</p><a href="/showcase">Browse the community showcase</a></div></section>
-<section class="chapter setup-section closing"><span class="vertical-label" aria-hidden="true">Automata · MIT</span><div><p class="eyebrow live">Ready when you are</p><h2>Your idea.<br />Next playable.</h2></div><div><p>Take the working starter, give your agent one change, and play what happens. The framework code is MIT licensed for personal and commercial games.</p><a class="button" href="/start">Make your first change</a></div></section>
+<section id="faq" class="chapter faq-section"><div><h2>FAQ</h2><p>The practical questions before you build.</p><a href="/docs/faq">Read all questions</a></div><div class="faq-list">{#each FAQ_ITEMS.filter((_, index) => [0, 2, 4, 7, 9, 10].includes(index)) as item}<article><h3>{item.question}</h3><p>{item.answer}</p></article>{/each}</div></section>
+<section class="chapter showcase-invitation"><div><h2>What will<br />you make?</h2></div><div><p>Play the starters, see the work that shaped Automata, or submit your own game. Community submissions are reviewed before publication.</p><a href="/showcase">Browse the community showcase</a></div></section>
+<section class="chapter setup-section closing"><div><h2>Your idea.<br />Next playable.</h2></div><div><p>Take the working starter, give your agent one change, and play what happens. The framework code is MIT licensed for personal and commercial games.</p><a class="button" href="/start">Make your first change</a></div></section>
