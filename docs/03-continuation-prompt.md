@@ -44,6 +44,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 | Artifact / work | Evidence | What remains |
 |---|---|---|
+| QB.2 game build gates (branch `claude/clever-pasteur-ujmu6e-qb2`, stacked on DX.6) | Implemented 2026-10-16. Bundle secret scan in `ship` (`prepare`, and so `publish` and `deploy-dev`) and in `automata check` (`secrets` step). `no-html` and `platform-chrome` in `pnpm style`; `ui` spec §3.11. The placeholder and base-2d builds pass. Planted key, `.env` value and `{@html}` each fail. `pnpm check` green | PR review (after DX.6 #42); the QB.1 convergence, the public `.env` value decision and the PRODUCT.6 kits running `check-style` (02 QB.2 follow-ups) |
 | DX.6 `automata check` (branch `claude/clever-pasteur-ujmu6e-dx6`) | Implemented in `packages/cli` on 2026-10-16. `examples/base-2d` passes all five steps with `--csp`. cli unit 49/49, Chromium probe suite 4/4, `pnpm check` green. Scan allowlist measured on the base-2d build at `71c3410` | PR review; the `style` step (check-style unpublished, PRODUCT F3); the koota SoA scan gap; the `check:example` path after EX.2 (02 follow-ups) |
 | PUB (spec only) | PUB.0 drafted 2026-10-16; coupling measured at `cc2ee8c`, SDK behavior at `b30d31b`, itch.io docs read 2026-10-16 | Owner review; PUB-D1 to PUB-D4; Ruken requests in spec §9 |
 | QB (spec only) | QB.0 drafted 2026-10-16. Findings F-1 to F-8 measured at website `bfeaf91` and framework `489f170` (spec §3) | Owner review; QB-D1 to QB-D4 |

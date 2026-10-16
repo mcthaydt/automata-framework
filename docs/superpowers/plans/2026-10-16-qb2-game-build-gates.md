@@ -1,7 +1,7 @@
 # QB.2: game build gates TDD plan
 
 - **Spec:** [`docs/superpowers/specs/2026-10-16-quality-bar-design.md`](../specs/2026-10-16-quality-bar-design.md) §4.1 (input sanitization row), §4.3 (secrets in bundles, platform UI), §4.4, §7 QB.2, §9 QB-b. Owner-approved 2026-10-16.
-- **Status:** drafted 2026-10-16. Stacks on DX.6 (`automata check`, PR #42), which is not merged yet.
+- **Status:** implemented and locally verified 2026-10-16; Owner review pending. Stacks on DX.6 (`automata check`, PR #42), which is not merged yet.
 - **Progress:** 3 of 3 tasks.
 
 ## Global constraints
@@ -144,3 +144,8 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
+| 2026-10-16 | Plan | `55d5878` | Stacked on DX.6 (`07d6bf1`) |
+| 2026-10-16 | 1–3 | `85a0399`, `0d0c38d` | The scanner in `ship`; `prepare` fails with `SecretInBuild`. `gameDir` has no default (deviation noted in step 3). Placeholder and base-2d `prepare-ruken` pass; a planted key and a planted `.env` value fail |
+| 2026-10-16 | 4–5 | `9cd0ad5` | `secrets` step; a failed build reports "not scanned" (deviation noted in step 5). `check:example` passes all six steps; DX spec §3.6 has a `secrets` row |
+| 2026-10-16 | 6–8 | `4122fcc` | `checkSvelte` with `svelte/compiler` 5.57.1; `pnpm style` 195 files, 0 findings; `ui` spec §3.11 |
+| 2026-10-16 | Gates | — | `pnpm check` exit 0 (1,732 tests passed, 4 skipped); `pnpm build` 11/11; `test:dist` 13/13; `check-changesets` 0 problems. Parity and e2e omitted: no runtime, render, host, game or `ui` source change |
