@@ -1,5 +1,5 @@
-import { previewHeaders } from '@af-examples/demo-host/preview-headers'
 import { automataContent } from '@mcthaydt/automata-content/vite'
+import { previewHeaders } from '@mcthaydt/examples-runner/host/preview-headers'
 import { defineConfig } from 'vite'
 import { roomSchema } from './room.schema.ts'
 import config from './ship.config.ts'

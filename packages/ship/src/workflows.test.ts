@@ -136,11 +136,18 @@ describe('parity across packages', () => {
       return false
     }
   }
-  // The workspace globs: packages/*, tooling/*, examples/* and examples/*/* (pnpm-workspace.yaml).
+  // The workspace globs: packages/*, tooling/*, games/*, examples/* and examples/*/* (pnpm-workspace.yaml).
   const workspacePackages = [
-    ...['packages', 'tooling', 'examples'].flatMap(foldersIn),
+    ...['packages', 'tooling', 'games', 'examples'].flatMap(foldersIn),
     ...foldersIn('examples').flatMap(foldersIn),
   ].filter(hasPackageJson)
+
+  // EX-D1: games (Emberwick, the placeholder) live apart from the one-file examples.
+  it('lists the games folder in the workspace', () => {
+    const globs = readFileSync(join(root, 'pnpm-workspace.yaml'), 'utf8')
+    expect(globs).toMatch(/^\s*- games\/\*$/m)
+    expect(workspacePackages).toEqual(expect.arrayContaining(['games/emberwick', 'games/placeholder']))
+  })
 
   it("runs every package's parity suite through the root test:parity script", () => {
     // Three suites at a time: each starts Chromium, WebKit and Firefox, and on the shared WSL Docker runner all of
@@ -207,6 +214,7 @@ describe('parity across packages', () => {
       }
     })
     expect(withBrowsers).toContain('packages/sim')
+    expect(withBrowsers).toContain('games/emberwick')
     // A package may add more browser projects to the same run (base-2d adds its Chromium renderer tests).
     for (const path of withBrowsers) {
       expect(packageJson(path).scripts['test:parity']).toMatch(
@@ -246,8 +254,14 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     expect(localSteps).toContain('pnpm build:demos')
   })
 
+  it('builds every one-file example (EX spec §5), beside the old demos until EX.4 deletes them', () => {
+    expect(scripts['build:examples']).toBe('pnpm --filter @af-examples/examples build')
+    expect(JSON.stringify(ci.jobs.checks?.steps)).toContain('pnpm build:examples')
+    expect(localSteps).toContain('pnpm build:examples')
+  })
+
   it('builds and prepares base-2d, without repeating its check inside AF', () => {
-    // build:demos only covers `examples/*/*`; base-2d and placeholder are one level deep, so they build here.
+    // build:demos only covers `examples/*/*`; the games (Emberwick, the placeholder) live in `games/`, so they build here.
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d build')
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d prepare-ruken')
     // `pnpm check` already runs base-2d's check (typecheck + test:unit + boundaries).
@@ -317,20 +331,20 @@ describe('ci.yml (AF)', () => {
 
   it('has a journey for the placeholder, so a nightly run cannot pass with nothing to run', () => {
     const config = readFileSync(join(root, 'playwright.config.ts'), 'utf8')
-    expect(config).toContain("testDir: 'examples/placeholder/e2e'")
-    expect(readdirSync(join(root, 'examples/placeholder/e2e')).some((name) => name.endsWith('.e2e.ts'))).toBe(
+    expect(config).toContain("testDir: 'games/placeholder/e2e'")
+    expect(readdirSync(join(root, 'games/placeholder/e2e')).some((name) => name.endsWith('.e2e.ts'))).toBe(
       true,
     )
   })
 
   it('builds the placeholder through the reusable game workflow', () => {
     expect(ci.jobs.placeholder?.uses).toBe('./.github/workflows/game-ci.yml')
-    expect(ci.jobs.placeholder?.with?.['working-directory']).toBe('examples/placeholder')
+    expect(ci.jobs.placeholder?.with?.['working-directory']).toBe('games/placeholder')
   })
 
   it('builds base-2d through the reusable game workflow, with the determinism check on its sim', () => {
     expect(ci.jobs['base-2d']?.uses).toBe('./.github/workflows/game-ci.yml')
-    expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('examples/base-2d')
+    expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('games/emberwick')
     expect(ci.jobs['base-2d']?.with?.['sim-roots']).toBe('src/sim')
     expect(ci.jobs['base-2d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
   })
