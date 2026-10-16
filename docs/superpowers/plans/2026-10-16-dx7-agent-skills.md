@@ -1,9 +1,9 @@
 # DX.7: agent skills and the Claude Code plugin TDD plan
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §2.2 (install and "example prompts" rows), §3.6 (`--json` shape the hook feeds back), §3.7 (the agent package, install mechanics), §4 (owner: `agents/automata/`, `.claude-plugin/`, integration), §5 (agent edit loop), §8 (unit: skill-copy identity; plugin layer), §10 (DX.7), §12 (plugin and `npx skills add` exit criteria).
-- **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16 with every recommended default.
+- **Status:** drafted 2026-10-16; DX.0 Owner-approved 2026-10-16 with every recommended default. Implemented and locally verified 2026-10-16 on `claude/clever-pasteur-ujmu6e-dx7`; PR review pending.
 - **Depends on:** DX.4 (`tooling/api-index`, branch `claude/clever-pasteur-ujmu6e-dx4`, PR #37) and DX.6 (`automata check`, branch `claude/clever-pasteur-ujmu6e-dx6`, PR #42), both unmerged; this branch starts from DX.6 with DX.4 merged in.
-- **Progress:** 8 of 9 steps.
+- **Progress:** 9 of 9 steps.
 
 ## Decisions (made in this lane, from the spec and the repo's patterns)
 
@@ -51,7 +51,7 @@
 - [x] **6. Skills content and rule coverage.** `skill-content.test.ts` (named for what it covers, not only rules): every rule id from check-boundaries' `Rule` union and `packages/cli/src/check/*.ts` appears in `automata-verify/SKILL.md` as `` `id` ``; `automata-feature` links each example file that exists. Fails on the skeleton skill; write the four skills (`automata`: laws, owners, where changes go, verify order, routing; `automata-feature`: the test-first flow over the example; `automata-api`: how to use `reference/api.md`; `automata-verify`: running and reading `automata check --json`, each rule and its fix); pass.
 - [x] **7. CI hooks.** `ci.test.ts`: `ci.yml`'s checks job and `ci:local` run `pnpm agent-skills` and `pnpm plugin:validate` after `pnpm api-index`. Fails; add the scripts and steps and the `docs/versions.md` rows; pass. Run `pnpm plugin:validate`. (The two pins went in a new "Tools run without installing" table: `tooling/versions` fails an npm-table row that no `package.json` uses.)
 - [x] **8. Install tests.** `install.test.ts` (`test:install`), in a throwaway `CLAUDE_CONFIG_DIR`/`HOME`: `claude plugin validate --strict` on the plugin and marketplace; `claude plugin marketplace add <repo>`; `claude plugin install automata@automata-framework`; `claude plugin details` lists the four skills and the `PostToolUse` and `Stop` hooks; the installed hook command, given a `PostToolUse` event for `examples/base-2d/src/sim/` with an `effect` import seeded there, exits 2 with an `import` finding on stderr (the seed is removed in `finally`); `npx -y skills@1.7.0 add agents/automata --agent claude-code codex cursor --skill '*' -y --copy` in a temp project installs the four skills, and `diffSkillTrees` finds every copy identical to the source. Add D10's dev dependency first and `pnpm build` (the bin imports `dist`). Run; record the output in spec §3.7 "As built".
-- [ ] **9. Gates.** `pnpm format`, `pnpm check`, `pnpm build && pnpm api-index && pnpm agent-skills`, `pnpm plugin:validate`, `pnpm --filter @mcthaydt/agent-skills test:install`.
+- [x] **9. Gates.** `pnpm format`, `pnpm check`, `pnpm build && pnpm api-index && pnpm agent-skills`, `pnpm plugin:validate`, `pnpm --filter @mcthaydt/agent-skills test:install`.
 
 ## Gates
 
@@ -63,4 +63,13 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-16 | Plan | — | — |
+| 2026-10-16 | Plan | `2ce5121` | — |
+| 2026-10-16 | 1 | `2d54f32` | Red: missing `layout.ts`. One fixture case first failed on the test's own string replace inside JSON-escaped text; fixed in the test. `isolatedDeclarations` needed explicit interfaces for the Zod schemas. `check.mjs` was committed as a stub so the repo layout test could pass, so step 2's red was 9 failing behavior assertions, not a missing file. |
+| 2026-10-16 | 2 | `1a49cc0` | 13 hook tests (9 red on the stub). The env-var lint on `CLAUDE_PROJECT_DIR` is suppressed with its reason (Claude Code sets it; no turbo task reads it). |
+| 2026-10-16 | 3 | `b24b90e` | Red: missing module; 3 tests. |
+| 2026-10-16 | 4 | `4a4abf8` | Red: missing module. The CLI fixture first failed because the API reference sat in a skill folder without `SKILL.md`; the fixture now has one. Real run: `pnpm agent-skills` exit 1 (no copy), `--write` wrote the 111,116-byte `api.md`, rerun exit 0. |
+| 2026-10-16 | 5 | `7546cfc` | Red: missing modules, then the placeholder hash; hash `771f4164dd23d207` recorded from the first passing run and stable across two runs. Seeded `Math.random()` gave a `math-member` finding in `pnpm boundaries`; reverted. The example's typecheck turns `isolatedDeclarations` off, as `examples/base-2d` does. |
+| 2026-10-16 | 6 | `c360aa1` | 30 red. The rule collector first picked up two non-rule literals (`failed`, `missing`); narrowed to `rule:` values and `report(node, …)`: 19 rules. Writing the skills found a real bug: the `automata` description had an unquoted `: `, which YAML reads as a mapping. A new layout rule now fails that; `claude plugin validate --strict` 2.1.301 passes it, so the check is ours. |
+| 2026-10-16 | 7 | `b6ae427` | Red: no `plugin:validate`, no CI steps. `tooling/versions` fails an npm-table row no `package.json` uses, so the two pins went in a new "Tools run without installing" table. `pnpm plugin:validate` passed both. |
+| 2026-10-16 | 8 | `a345e58` | First run of base-2d's own check from the hook failed with exit 2 without `PLAYWRIGHT_BROWSERS_PATH` (base-2d's vitest includes browser projects); with it, `--sim-only` passed in about 8 s. Install suite 7/7 in 23 s; log in the spec's §3.7 "As built". Vitest hid the log for passing tests until `silent: false`. |
+| 2026-10-16 | 9 | bookkeeping | `pnpm format`; `pnpm check` exit 0 (24/24 unit tasks, 1,791 passed and 4 skipped; 18 of 24 tasks replayed from turbo's cache on identical inputs); `pnpm build` then `pnpm api-index` (359 exports) then `pnpm agent-skills` exit 0; `pnpm plugin:validate` exit 0; `test:install` 7/7 rerun on the final tree; agent-skills unit 7 files, 76 tests. `pnpm lint:actions` not run: docker has no daemon here. |
