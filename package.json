@@ -18,7 +18,7 @@
     "test": "turbo run test",
     "test:unit": "turbo run test:unit -- --testTimeout=30000",
     "bench": "pnpm --recursive --workspace-concurrency=1 --if-present bench",
-    "boundaries": "automata-check-boundaries packages/sim/src packages/physics/src examples/base-2d/src/sim examples/runtime/boot-and-flow/src/sim && automata-check-boundaries --allow-import @af-examples/base-2d/sim examples/physics/bodies-2d/sim",
+    "boundaries": "automata-check-boundaries packages/sim/src packages/physics/src examples/base-2d/src/sim examples/runtime/boot-and-flow/src/sim agents/automata/skills/automata-feature/example/src/sim && automata-check-boundaries --allow-import @af-examples/base-2d/sim examples/physics/bodies-2d/sim",
     "style": "node tooling/check-style/src/cli.ts packages/*/src",
     "check": "pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit",
     "test:e2e": "playwright test",
