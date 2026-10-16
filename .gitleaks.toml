@@ -1,0 +1,11 @@
+# The secret scan over the full history (QB.1, `pnpm secrets`): gitleaks' default rules, plus one allowlisted
+# folder. tooling/repo-hygiene/fixtures/secrets/ holds a planted fake key that the scan's self-test must find in
+# a scratch repository; here it is expected and ignored.
+title = "AutomataFramework gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "The planted fake key of the scan's own self-test"
+paths = ['''^tooling/repo-hygiene/fixtures/secrets/''']
