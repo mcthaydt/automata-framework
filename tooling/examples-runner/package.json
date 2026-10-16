@@ -11,12 +11,16 @@
     "./host/preview-headers": "./host/preview-headers.ts",
     "./host/testing": "./host/testing.ts"
   },
+  "bin": {
+    "automata-examples": "./src/cli.ts"
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project node",
     "test:parity": "vitest run --project browsers",
     "typecheck": "tsc -p .",
-    "e2e:host": "vite build -c host/vite.config.ts && vite preview -c host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_DEMO_HOST_PORT"
+    "e2e:host": "vite build -c host/vite.config.ts && vite preview -c host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_DEMO_HOST_PORT",
+    "e2e:fixtures": "vite build -c fixtures.vite.config.ts && vite preview -c fixtures.vite.config.ts --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT"
   },
   "dependencies": {
     "@mcthaydt/automata-render-pixi": "workspace:*",

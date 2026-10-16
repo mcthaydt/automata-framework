@@ -71,7 +71,7 @@
   - preview responses carry `compileHeaders`' CSP.
 
   Confirm it fails, implement `vite-plugin.ts` and `page-template.ts`, confirm it passes.
-- [ ] **5. Single examples package.**
+- [x] **5. Single examples package.**
   - Create `examples/package.json` (`@af-examples/examples`), `tsconfig.json` and `vite.config.ts`.
   - Move `examples/demo-host` to `tooling/examples-runner/host` with `git mv`, and update its importers.
   - Update `pnpm-workspace.yaml`.

@@ -44,6 +44,7 @@ export function examplesRunner(options: ExamplesRunnerOptions): Plugin {
 
   /** The generated HTML for a page file, or undefined when the file is not one of the runner's pages. */
   const pageFor = (file: string): string | undefined => {
+    if (!file.endsWith('index.html')) return undefined // most ids: skip reading the catalog
     const entries = catalog()
     if (file === indexFile) return indexPage(entries)
     const entry = entries.find((candidate) => pageFile(candidate) === file)

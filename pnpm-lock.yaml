@@ -33,6 +33,25 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
+  examples:
+    dependencies:
+      '@mcthaydt/automata-render-pixi':
+        specifier: workspace:*
+        version: link:../packages/render-pixi
+    devDependencies:
+      '@mcthaydt/examples-runner':
+        specifier: workspace:*
+        version: link:../tooling/examples-runner
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      vite:
+        specifier: 8.3.2
+        version: 8.3.2(@types/node@24.19.1)(yaml@2.9.1)
+
   examples/content/hot-reload:
     dependencies:
       '@af-examples/base-2d':
