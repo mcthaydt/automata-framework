@@ -19,7 +19,7 @@ describe('the committed API reports', () => {
     const result = runApiReport({ root: ROOT, reportsDir, update: false, changesets: {} })
     expect(result.report.filter((line) => line.includes('.api.md'))).toEqual([])
     expect(result.exitCode).toBe(0)
-  }, 30_000)
+  }, 90_000) // main's budget floor (#54): runApiReport builds every package, slow on the shared af-linux runner
 
   it.each(committed.map(({ file, report }) => [file, report] as const))(
     '%s: a planted removal of one export is an undeclared break',
