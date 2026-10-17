@@ -235,6 +235,8 @@ export interface Camera2d {
 export function createCamera2d(stage: Container, options: Camera2dOptions, seed?: number): Camera2d
 ```
 
+**Amended in M4.8 (2026-10-17, [plan](../plans/2026-10-17-m4-8-camera2d.md)).** `view: { width, height }` is required: centring a target needs the size of the area shown, and a Pixi `Container` has no viewport. `reducedMotion?: () => boolean` is injectable (default `ui`'s `reducedMotion()`, read every frame). `follow.deadZone` is a `{ width, height }` centred on the view, not a `Rect`. `SHAKE_DECAY` (1.5/s) and `SHAKE_MAX_OFFSET` (8 px × trauma²) are exported. `@mcthaydt/automata-game` re-exports `createCamera2d`, so examples and the umbrella reach it through a public entry.
+
 From FloorFifty `systems/gameplay/camera.ts` (258; follow by `rate * delta` approach, `visibleField`, punch and freeze). It is presentation only (FloorFifty's comment: "never touches a coordinate the simulation produced"). It reads interpolated positions from `RenderDeltaConsumer` and writes only the stage container's transform. Shake noise comes from a seeded generator so visual tests are stable; `reducedMotion()` sets amplitude 0. FloorFifty's race-specific zoom (`contentFitZoom`, danger) stays in the game. Parallax stays an example on top of it (PRODUCT spec §3, cut).
 
 ### 4.11 Graphics quality and render targets (`packages/render-pixi`, M4.9)

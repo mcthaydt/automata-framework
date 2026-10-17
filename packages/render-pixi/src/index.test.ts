@@ -13,4 +13,10 @@ describe('@mcthaydt/automata-render-pixi', () => {
     expect(typeof RenderPixi.lerpAngle).toBe('function')
     expect(typeof RenderPixi.interpolatePose).toBe('function')
   })
+
+  it('exports camera2d and its shake constants (M4.8)', () => {
+    expect(typeof RenderPixi.createCamera2d).toBe('function')
+    expect(RenderPixi.SHAKE_DECAY).toBe(1.5)
+    expect(RenderPixi.SHAKE_MAX_OFFSET).toBe(8)
+  })
 })
