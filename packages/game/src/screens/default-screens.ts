@@ -7,10 +7,11 @@ import {
   makeInput,
   PresentationBus,
   type ScreenDef,
+  Time,
 } from '@mcthaydt/automata-runtime'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { InputMethodTracker } from '@mcthaydt/automata-ui'
-import { Effect, type Scope } from 'effect'
+import { Effect, type Scope, SubscriptionRef } from 'effect'
 import { type Component, flushSync, mount, unmount } from 'svelte'
 import type { InputMap } from '../input/keys.ts'
 import { menuPad } from './menu-pad.ts'
@@ -100,6 +101,8 @@ const plain = (event: KeyboardEvent): boolean =>
 export function defaultScreens(game: ScreensGame): ScreenDef[] {
   let sim: Sim | undefined
   let playFlow: Flow | undefined
+  /** Set when play paused because the pad in use was unplugged (M4-D9); Resume or Quit clears it. */
+  let reconnect = false
 
   const dropSim = (): void => {
     game.watchSim?.(undefined)
@@ -154,11 +157,8 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
 
         // The Input service for this play session (M4 spec §4.2): sampled once per fixed step, closed with the screen.
         const map = game.input
-        const input = yield* makeInput({
-          target,
-          profile: map?.profile ?? NO_BINDINGS,
-          bus: yield* PresentationBus,
-        })
+        const bus = yield* PresentationBus
+        const input = yield* makeInput({ target, profile: map?.profile ?? NO_BINDINGS, bus })
         const running = current
         game.watchSim?.(running)
         appLoop.run({
@@ -172,6 +172,21 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.stop()))
 
         const pause = (): void => void flow.dispatch('pause')
+        // The pad in use unplugged mid-play pauses with a reconnect message (M4-D9), under the `input` reason so
+        // nothing else resumes the sim behind the player's back. Another pad or the keyboard in use: play on.
+        const time = yield* Time
+        yield* Effect.acquireRelease(
+          Effect.sync(() =>
+            bus.subscribe('input.pad.disconnected', (pad) => {
+              if (!pad.wasActive || Effect.runSync(SubscriptionRef.get(input.device)).device !== 'gamepad')
+                return
+              reconnect = true
+              time.pause('input')
+              pause()
+            }),
+          ),
+          (stop) => Effect.sync(stop),
+        )
         // Escape and the pad's Start are the Input's pause edge; KeyP is the default screens' own extra.
         yield* Effect.acquireRelease(
           Effect.sync(() => input.onPress('pause', pause)),
@@ -202,9 +217,23 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
     enter: ({ layer }) =>
       Effect.gen(function* () {
         const flow = yield* Flow
+        const time = yield* Time
         const target = windowOf(layer)
-        const resume = (): void => void flow.dispatch('resume')
-        yield* show(PausedScreen, layer, { onResume: resume, onQuit: () => void flow.dispatch('quit') })
+        const message = reconnect ? 'Reconnect your controller' : undefined
+        // Any device that reaches Resume or Quit lets the game go on (M4 spec §5, pad hot-plug).
+        const clearReconnect = (): void => {
+          reconnect = false
+          time.resume('input')
+        }
+        const resume = (): void => {
+          clearReconnect()
+          flow.dispatch('resume')
+        }
+        const quit = (): void => {
+          clearReconnect()
+          flow.dispatch('quit')
+        }
+        yield* show(PausedScreen, layer, { onResume: resume, onQuit: quit, message })
         yield* listen(target, 'keydown', (event) => {
           if (event.code !== 'Escape' || event.repeat) return
           event.preventDefault()

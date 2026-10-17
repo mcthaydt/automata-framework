@@ -203,7 +203,16 @@ describe('default screens', () => {
     const buttons: boolean[] = []
     Object.defineProperty(window.navigator, 'getGamepads', {
       configurable: true,
-      value: () => [{ index: 0, mapping: 'standard', buttons: buttons.map((pressed) => ({ pressed })) }],
+      value: () => [
+        {
+          id: 'Standard Gamepad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [0, 0, 0, 0],
+          buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+        },
+      ],
     })
     try {
       await boot()
@@ -215,6 +224,62 @@ describe('default screens', () => {
     } finally {
       Reflect.deleteProperty(window.navigator, 'getGamepads')
     }
+  })
+
+  describe('a pad unplugged during play (M4-D9)', () => {
+    const buttons: boolean[] = []
+    const pad = () => ({
+      id: 'Standard Gamepad',
+      index: 0,
+      connected: true,
+      mapping: 'standard',
+      axes: [0, 0, 0, 0],
+      buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+    })
+    const unplug = () =>
+      window.dispatchEvent(Object.assign(new Event('gamepaddisconnected'), { gamepad: pad() }))
+    beforeEach(() => {
+      buttons.length = 0
+      Object.defineProperty(window.navigator, 'getGamepads', { configurable: true, value: () => [pad()] })
+    })
+    afterEach(() => {
+      Reflect.deleteProperty(window.navigator, 'getGamepads')
+    })
+
+    it('pauses with "Reconnect your controller" when the active pad goes; Resume by any device plays on', async () => {
+      await boot()
+      await toPlay()
+      buttons[15] = true
+      step(2)
+      buttons[15] = false
+      step()
+      unplug()
+      await until(() => screen('paused') !== null, 'the paused screen')
+      expect(screen('paused')?.textContent).toContain('Reconnect your controller')
+      const applied = results.length
+      step(3)
+      expect(results.length).toBe(applied)
+      button('resume')?.click()
+      await until(() => screen('play') !== null, 'the play screen again')
+      step()
+      expect(results.length).toBe(applied + 1)
+      press('Escape')
+      await until(() => screen('paused') !== null, 'paused again')
+      expect(screen('paused')?.textContent).not.toContain('Reconnect')
+    })
+
+    it('does not pause when the keyboard was the last input', async () => {
+      await boot()
+      await toPlay()
+      buttons[15] = true
+      step()
+      buttons[15] = false
+      press('ArrowRight')
+      step()
+      unplug()
+      await tick()
+      expect(screen('play')).not.toBeNull()
+    })
   })
 
   it('shows touch buttons only when the player uses touch', async () => {
