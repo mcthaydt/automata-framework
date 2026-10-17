@@ -1,5 +1,5 @@
 import { HostError, type HostingSaves } from '@mcthaydt/automata-host'
-import { Effect, Logger, type Scope } from 'effect'
+import { Effect, Logger, type Scope, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { makePresentationBus, type RuntimeFacts } from '../presentation/presentation-bus.manager.js'
 import { LOCALE_SAVE_KEY, type Locale, type LocaleDef, makeLocale } from './locale.manager.js'
@@ -21,6 +21,8 @@ function fakeSaves(initial: Record<string, string> = {}, refuse = false): FakeSa
     remove: (key) =>
       refuse ? Effect.fail(refused('saves.remove')) : Effect.sync(() => void values.delete(key)),
     flush: Effect.succeed({ persisted: 'host-outbox' }),
+    keys: Effect.sync(() => [...values.keys()].sort()),
+    changed: Stream.empty,
   }
 }
 
