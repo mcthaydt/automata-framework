@@ -22,12 +22,15 @@ export interface CorePackage {
   readonly dir: string
   readonly name: string
   readonly version: string
+  /** `private: true` in package.json: not published, so no changeset can name it. */
+  readonly private: boolean
   readonly entries: readonly CoreEntry[]
 }
 
 interface Manifest {
   readonly name: string
   readonly version: string
+  readonly private?: boolean
   readonly exports?: Readonly<Record<string, unknown>>
 }
 
@@ -68,7 +71,14 @@ export function corePackages(
       if (target === undefined || !/\.[cm]?ts$/.test(target)) continue // `./theme.css` has no API
       entries.push({ entryPoint, file: join(dir, target) })
     }
-    found.push({ folder, dir, name: manifest.name, version: manifest.version, entries })
+    found.push({
+      folder,
+      dir,
+      name: manifest.name,
+      version: manifest.version,
+      private: manifest.private === true,
+      entries,
+    })
   }
   return found
 }
