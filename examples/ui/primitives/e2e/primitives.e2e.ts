@@ -13,7 +13,22 @@ function collectErrors(page: Page): string[] {
   return errors
 }
 
-for (const primitive of ['screen', 'dialog', 'loader', 'error']) {
+// The same list as `PRIMITIVES` in main.ts (which mounts the demo when imported, so it is not imported here).
+for (const primitive of [
+  'screen',
+  'dialog',
+  'loader',
+  'error',
+  'split',
+  'options',
+  'pager',
+  'paged-grid',
+  'controls',
+  'chip',
+  'modal',
+  'sheet',
+  'toast',
+]) {
   test(`draws ${primitive} full-window, ready and quiet`, async ({ page }) => {
     const errors = collectErrors(page)
     await page.goto(`${demoUrl}?frame=${primitive}`)

@@ -1,4 +1,5 @@
 <!--
+  @component
   A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser
   gives the arrow keys and the focus navigator's `adjust` steps it. `valueText` gives the value its
   words for assistive technology (`aria-valuetext`), and the same words show beside the track. The

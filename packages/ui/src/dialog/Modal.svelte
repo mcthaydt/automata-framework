@@ -1,4 +1,5 @@
 <!--
+  @component
   A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty
   `ui/components/Modal.svelte` at ac72660). Where Dialog asks a question that needs an answer,
   Modal shows something the player can close at any time: a level list, a credits page.
@@ -13,6 +14,7 @@
 <script lang="ts" module>
 import type { Snippet } from 'svelte'
 
+/** The props Modal and Sheet share. */
 export interface ModalProps {
   title: string
   /** The Close button's name, in the game's language. */

@@ -1,4 +1,5 @@
 <!--
+  @component
   A button whose face is an icon (M4 spec §4.12). Its accessible name is `label`, which it cannot
   do without: an empty label throws while it mounts, so a nameless icon button fails its first test
   instead of reaching a player. The icon is decoration and hidden from assistive technology.

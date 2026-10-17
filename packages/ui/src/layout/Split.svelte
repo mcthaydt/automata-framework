@@ -1,4 +1,5 @@
 <!--
+  @component
   Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty
   `ui/layout/Split.svelte` at `ac72660`). Measured, because a container query cannot read a prop; stacked
   until the first measurement, so a pane never starts squeezed.

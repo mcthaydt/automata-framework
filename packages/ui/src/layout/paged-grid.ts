@@ -21,11 +21,13 @@ export interface GridPage<T> {
   readonly slots: readonly (T | undefined)[]
 }
 
+/** A page's columns and rows. */
 export interface GridShape {
   readonly columns: number
   readonly rows: number
 }
 
+/** The measured box a page is fitted into, in CSS px. */
 export interface GridBox {
   readonly width: number
   readonly height: number

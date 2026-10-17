@@ -1,4 +1,5 @@
 <!--
+  @component
   A passing message (M4 spec §4.12): "Pad connected", "Saved", "This controller is not supported".
   The owner shows it and takes it away; Toast neither times itself nor takes focus, so a player
   in the middle of a menu is never moved.

@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 11 of 13 steps.
+- **Progress:** 12 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -112,7 +112,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
     - Red before each fixture exists;
     - essentials named per primitive: OptionGroup's options, the dots, the Slider thumb, Modal's Close, Sheet's actions, the Toast;
     - no 44 px target shrinks under `scale`, nothing sits under the keyboard or Ruken's strip, and the document never scrolls.
-12. [ ] **Fixture viewer and exports.**
+12. [x] **Fixture viewer and exports.** Red: `index.test.ts` 21 failed (the new names unexported); the viewer smoke 9 failed (`expected [...] to include 'split'`). Green: index 55 of 55, smoke 24 of 24, `svelte-check` clean in both. The viewer gains `split`, `options`, `pager`, `paged-grid`, `controls` (Button, IconButton, Toggle, Slider), `chip`, `modal`, `sheet` and `toast` frames, and the E2E covers each. Doc comments: the new components' headers start with `@component`, so the comment reaches the `.d.ts` and `pnpm api-index` passes with the baseline unchanged (the M1.6 components stay in it). The changeset is a patch: `check-changesets` holds every AF changeset to patch before 1.0. `api-report`: 0 breaks. The follow-up row is in 02.
     - `examples/ui/primitives` lists the new primitives, and its smoke and E2E cover them.
     - `index.ts` exports them; `index.test.ts` pins the names.
     - A ui changeset (minor if the API report counts additions as minor, else as `check-changesets` decides).

@@ -1,4 +1,5 @@
 <!--
+  @component
   Where a paged view is (M4 spec §4.8; from FloorFifty `ui/layout/PagerDots.svelte` at `ac72660`): one row of
   dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row. It never wraps.
 -->
