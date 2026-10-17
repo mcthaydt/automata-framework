@@ -3,7 +3,7 @@
 - **Task:** M4.5 in [02](../../02-master-delivery-plan.md). M4 spec [§4.7](../specs/2026-10-16-m4-input-display-design.md), §4.2 (context), §5 (screen change), §7 and §8 (focus rows), M4-D10. Acceptance F-a, F-b, F-c.
 - **Lanes:** ui (`FocusNavigator` and the FloorFifty ports), runtime (`ScreenDef.kind`, Flow's focus step), and the game lane's default screens. This session owns all three. **Depends on:** M4.0 (merged). It is stacked on M4.2 (`claude/clever-pasteur-ujmu6e-m4-2`), because the menus read M4.2's `Input` (nav repeat, the pad's menu edges) rather than a second pad poller.
 - **Status:** In progress.
-- **Progress:** 5 of 10 steps.
+- **Progress:** 6 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -75,7 +75,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
 5. [x] **Pad guard (F-a), keyboard half.** Red: 2 failed, `nav.guard is not a function`. Green 39 of 39. Deviation: the pad half moved to the menu driver (step 9), because `Input` fires on the first poll that sees a press (M4.2, I-d).
    - Red (ui): after `guard()`, a repeating Enter keydown on the focused button is `defaultPrevented`. After a keyup of Enter, the next repeating Enter is not prevented.
    - The pad half is step 9's first case.
-6. [ ] **Focus on screen change (F-b).** Test file: `packages/runtime/src/flow/flow.manager.test.ts`.
+6. [x] **Focus on screen change (F-b).** Test file: `packages/runtime/src/flow/flow.test.ts` (the Flow tests live there). Red: `expected 'resume' to be 'settings'` for both the autofocus and the return case; `kind` red in typecheck (`'kind' does not exist in type 'ScreenDef<never>'`). Green: flow 23 of 23, typecheck 0 errors.
    - Red: a screen with `[data-autofocus]` on its second button focuses that button on entry.
    - Red: on a fixture flow `pause ⇄ settings`, focusing pause's `settings` button (`data-testid="settings"`), going to settings and back focuses `settings` again, not the primary.
    - Red: `ScreenDef.kind` types as `'menu' | 'gameplay'` (typecheck).
@@ -100,7 +100,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
 | Case | Test |
 |---|---|
 | F-a | `focus-nav.test.ts` (keyboard repeat guard) and `menu-input.test.ts` (pad held at the menu's first poll) |
-| F-b | `flow.manager.test.ts` (focus restored by name on return) |
+| F-b | `flow.test.ts` (focus restored by name on return) |
 | F-c | `back-gesture.test.ts` and `default-screens.test.ts` (paused → play; the title leaves) |
 
 ## Risks
