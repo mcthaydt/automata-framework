@@ -37,9 +37,10 @@
 - `GeneratorOutput` (interface)
 - `InvalidContentConfig` (class): The game's code registered something unusable (a duplicate kind, a clashing generator).
 - `localized()`: Text a player reads, written in the source language.
-- `MessageCatalog` (type)
+- `MessageCatalog` (type): One locale's messages: message key to translated text.
 - `messageKey(kind, id, path)`: The message key of one text.
 - `Palette` (interface)
+- `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
 - `PreloadInput` (interface)
 - `preloadList` (const)
 - `renderTuningTable(meta)`: Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
@@ -51,6 +52,18 @@
 - `TuningMeta` (type)
 - `verifyContent` (const): Fails with `staleArtifact` for each committed output that differs from a fresh compile.
 - `withTuningTable(guide, meta)`: The guide with its generated section replaced, or undefined when it has no markers.
+
+### `import { … } from '@mcthaydt/automata-content/locale'`
+
+- `ALWAYS_CHARACTERS` (const): Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.
+- `catalogCharacters(catalog)`: Every character the catalog's messages show.
+- `ContentText` (type): `text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
+- `ContentTextOptions` (interface): Options for `createContentText`.
+- `createContentText(messages, options?)`: A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
+- `localeCharacters(catalog)`: What a locale's subset font is cut to: `ALWAYS_CHARACTERS` and the catalog's characters.
+- `MessageCatalog` (type): One locale's messages: message key to translated text.
+- `messageKey(kind, id, path)`: The message key of one text.
+- `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
 
 ### `import { … } from '@mcthaydt/automata-content/vite'`
 

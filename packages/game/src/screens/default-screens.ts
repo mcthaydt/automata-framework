@@ -21,6 +21,8 @@ export interface ScreensGame {
     readonly content?: unknown
   }
   readonly input?: InputMap | undefined
+  /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it (PRODUCT.2). */
+  readonly watchSim?: ((sim: Sim | undefined) => void) | undefined
 }
 
 /** Mounts a screen component into the screen's layer for as long as the screen is open. */
@@ -90,6 +92,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
   let playFlow: Flow | undefined
 
   const dropSim = (): void => {
+    game.watchSim?.(undefined)
     sim?.dispose()
     sim = undefined
   }
@@ -142,6 +145,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const input = game.input?.attach(target)
         yield* Effect.addFinalizer(() => Effect.sync(() => input?.dispose()))
         const running = current
+        game.watchSim?.(running)
         appLoop.run({ sim: running, commands: (tick) => input?.commands(tick) ?? [] })
         yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.stop()))
 

@@ -42,6 +42,51 @@ interface DefinedGame<S = never> extends GameDefinition<S> {
 function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S>;
 ```
 
+### `DrawContext` (interface)
+
+```ts
+interface DrawContext {
+    readonly sim: DrawSim;
+    readonly frame: FrameInfo;
+    readonly width: number;
+    readonly height: number;
+    rect(x: number, y: number, w: number, h: number, color: number): void;
+    circle(x: number, y: number, radius: number, color: number): void;
+    line(x1: number, y1: number, x2: number, y2: number, color: number, width?: number): void;
+    text(value: string, x: number, y: number, options?: DrawTextOptions): void;
+}
+```
+
+### `DrawEntity` (interface)
+
+```ts
+interface DrawEntity {
+    readonly sid: number;
+    has(component: ComponentDef): boolean;
+    get<S extends FieldSchema>(component: ComponentDef<S>): Readonly<FieldValues<S>>;
+}
+```
+
+### `DrawSim` (interface)
+
+```ts
+interface DrawSim {
+    readonly tick: number;
+    query(...components: ComponentDef[]): DrawEntity[];
+    entity(sid: number): DrawEntity | undefined;
+    resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>;
+}
+```
+
+### `DrawTextOptions` (interface)
+
+```ts
+interface DrawTextOptions {
+    readonly color?: number | undefined;
+    readonly size?: number | undefined;
+}
+```
+
 ### `GameSpec` (interface)
 
 ```ts
@@ -69,6 +114,7 @@ interface GameSpec<S = never> {
     readonly hosting?: Partial<Omit<HostingOptions, 'gameId' | 'disclosedEvents'>>;
     readonly settings?: SettingsDef<S>;
     readonly extensions?: readonly ExtensionDef[];
+    readonly draw?: (ctx: DrawContext) => void;
     readonly renderer?: PixiRendererOptions;
     readonly copy?: GameDefinition['copy'];
     readonly seams?: RuntimeSeams;
@@ -157,6 +203,7 @@ interface ScreensGame {
         readonly content?: unknown;
     };
     readonly input?: InputMap | undefined;
+    readonly watchSim?: ((sim: Sim | undefined) => void) | undefined;
 }
 ```
 

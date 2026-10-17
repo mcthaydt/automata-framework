@@ -18,6 +18,7 @@ import type { ExtensionDef } from '@mcthaydt/automata-runtime/extension'
 import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
 import { SLUG_RE } from '@ruken/manifest'
 import { defaultContent } from './default-content.ts'
+import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } from './draw/draw-layer.ts'
 import type { InputMap } from './input/keys.ts'
 import { defaultScreens } from './screens/default-screens.ts'
 
@@ -48,6 +49,11 @@ export interface GameSpec<S = never> {
   readonly hosting?: Partial<Omit<HostingOptions, 'gameId' | 'disclosedEvents'>>
   readonly settings?: SettingsDef<S>
   readonly extensions?: readonly ExtensionDef[]
+  /**
+   * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
+   * default screens hold a sim (PRODUCT spec §7). It reads the sim and never writes it. Needs the default screens.
+   */
+  readonly draw?: (ctx: DrawContext) => void
   /** Merged over the defaults (`pixelArt`, the logical size and the views). */
   readonly renderer?: PixiRendererOptions
   readonly copy?: GameDefinition['copy']
@@ -93,6 +99,9 @@ function problemsOf<S>(spec: GameSpec<S>): string[] {
   )
   for (const key of Object.keys(spec.views ?? {}))
     if (!drawn.has(key)) problems.push(`views.${key}: no plugin has a drawn component "${key}"`)
+  if (spec.draw !== undefined && typeof spec.draw !== 'function') problems.push('draw: is not a function')
+  else if (spec.draw !== undefined && spec.screens !== undefined)
+    problems.push('draw: needs the default screens (custom screens do not hand their sim to the draw layer)')
   if (spec.content !== undefined && !HASH.test(spec.content.hash))
     problems.push(`content.hash: "${spec.content.hash}" is not 16 hex digits`)
   return problems
@@ -114,6 +123,27 @@ export function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is 
   return definedGames.has(value)
 }
 
+/**
+ * The Pixi renderer's options: the logical size, pixel art and the views, under the game's own `renderer`
+ * options. With a draw layer, the game's own `setup` runs first and the layer mounts over it; their frame
+ * hooks run in that order.
+ */
+export function pixiOptions<S>(spec: GameSpec<S>, layer: DrawLayer | undefined): PixiRendererOptions {
+  const options: PixiRendererOptions = {
+    logicalWidth: spec.size.width,
+    logicalHeight: spec.size.height,
+    pixelArt: true,
+    ...(spec.views === undefined ? {} : { entityViews: spec.views }),
+    ...spec.renderer,
+  }
+  if (layer === undefined) return options
+  const ownSetup = spec.renderer?.setup
+  return {
+    ...options,
+    setup: (stage) => mergeStageHooks(ownSetup?.(stage) ?? undefined, layer.setup(stage)),
+  }
+}
+
 export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
   const problems = problemsOf(spec)
   if (problems.length > 0) throw new BootDefect({ cause: new GameSpecError(problems) })
@@ -127,13 +157,8 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
   }
   const content =
     spec.content === undefined ? defaultContent() : { data: spec.content.data, hash: spec.content.hash }
-  const renderer = createPixiRenderer({
-    logicalWidth: spec.size.width,
-    logicalHeight: spec.size.height,
-    pixelArt: true,
-    ...(spec.views === undefined ? {} : { entityViews: spec.views }),
-    ...spec.renderer,
-  })
+  const layer = spec.draw === undefined ? undefined : createDrawLayer(spec.draw, spec.size)
+  const renderer = createPixiRenderer(pixiOptions(spec, layer))
 
   const game: DefinedGame<S> = {
     id: spec.id,
@@ -146,7 +171,14 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     },
     hosting: { wants: [], pauseBehavior: 'pause', ...spec.hosting, gameId: spec.id },
     content,
-    screens: spec.screens ?? defaultScreens({ title, sim, input: spec.input }),
+    screens:
+      spec.screens ??
+      defaultScreens({
+        title,
+        sim,
+        input: spec.input,
+        ...(layer === undefined ? {} : { watchSim: layer.watch }),
+      }),
     renderer,
     ...(spec.settings === undefined ? {} : { settings: spec.settings }),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),

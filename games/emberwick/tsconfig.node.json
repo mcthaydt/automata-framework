@@ -8,6 +8,7 @@
     "vitest.config.ts",
     "src/ship-config.test.ts",
     "src/art/art.test.ts",
+    "src/plumbing.test.ts",
     "e2e/**/*.ts"
   ],
   "exclude": []

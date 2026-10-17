@@ -34,3 +34,35 @@ test('core-input-keys walks title, play, paused and back on the default screens'
   await expect(screen('title')).toBeVisible()
   expect(errors).toEqual([])
 })
+
+// The draw layer (PRODUCT.2) on the real renderer: shapes-draw-hud draws its HUD every frame of play, and the
+// play, pause and quit walk stays free of console errors. The pixels are proven by the game package's browser
+// parity test (`draw-layer.parity.test.ts`).
+test('shapes-draw-hud draws through play, pause and quit with no errors', async ({ page }) => {
+  const errors = await collectErrors(page)
+  const frame = await openHosted(page, `${origin}/shapes/draw-hud/`, 'shapes-draw-hud')
+  const screen = (id: string) => frame.getByTestId(`${id}-screen`)
+
+  await expect(screen('title')).toBeVisible()
+  await frame.getByTestId('play').click()
+  await expect(screen('play')).toBeVisible()
+  // Ten display frames of play, each one calling draw.
+  await frame.locator('body').evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        let left = 10
+        const next = (): void => {
+          left--
+          if (left === 0) resolve()
+          else requestAnimationFrame(next)
+        }
+        requestAnimationFrame(next)
+      }),
+  )
+
+  await frame.getByTestId('pause').click()
+  await expect(screen('paused')).toBeVisible()
+  await frame.getByTestId('quit').click()
+  await expect(screen('title')).toBeVisible()
+  expect(errors).toEqual([])
+})

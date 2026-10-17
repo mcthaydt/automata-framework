@@ -38,6 +38,9 @@ importers:
 
   examples:
     dependencies:
+      '@mcthaydt/automata':
+        specifier: workspace:*
+        version: link:../packages/automata
       '@mcthaydt/automata-game':
         specifier: workspace:*
         version: link:../packages/game
@@ -366,6 +369,18 @@ importers:
       '@fontsource/pixelify-sans':
         specifier: 5.3.0
         version: 5.3.0
+      '@mcthaydt/automata-game':
+        specifier: workspace:*
+        version: link:../../packages/game
+      '@mcthaydt/automata-host':
+        specifier: workspace:*
+        version: link:../../packages/host
+      '@mcthaydt/automata-render-pixi':
+        specifier: workspace:*
+        version: link:../../packages/render-pixi
+      '@mcthaydt/automata-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../../packages/sim
@@ -378,6 +393,9 @@ importers:
       pixi.js:
         specifier: 8.21.0
         version: 8.21.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
       zod:
         specifier: 4.6.5
         version: 4.6.5
@@ -403,12 +421,18 @@ importers:
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
       '@vitest/browser-playwright':
         specifier: 5.0.3
         version: 5.0.3(playwright@1.63.0)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
+      jsdom:
+        specifier: 30.1.1
+        version: 30.1.1
       playwright:
         specifier: 1.63.0
         version: 1.63.0
@@ -453,6 +477,43 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
 
+  packages/automata:
+    dependencies:
+      '@mcthaydt/automata-game':
+        specifier: workspace:*
+        version: link:../game
+      '@mcthaydt/automata-sim':
+        specifier: workspace:*
+        version: link:../sim
+    devDependencies:
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      jsdom:
+        specifier: 30.1.1
+        version: 30.1.1
+      pixi.js:
+        specifier: 8.21.0
+        version: 8.21.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+      svelte-check:
+        specifier: 4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.3.2
+        version: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+
   packages/cli:
     dependencies:
       '@mcthaydt/automata-node':
@@ -486,6 +547,12 @@ importers:
 
   packages/content:
     dependencies:
+      '@inlang/paraglide-js':
+        specifier: 2.25.4
+        version: 2.25.4(typescript@7.0.2)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@inlang/plugin-message-format':
+        specifier: 4.4.4
+        version: 4.4.4
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../sim
@@ -4025,6 +4092,21 @@ snapshots:
       typescript: 6.0.3
       vite: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
 
+  '@inlang/paraglide-js@2.25.4(typescript@7.0.2)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))':
+    dependencies:
+      '@inlang/recommend-sherlock': 0.2.1
+      '@inlang/sdk': 3.1.0
+      commander: 11.1.0
+      consola: 3.4.0
+      jiti: 2.7.0
+      json5: 2.2.3
+      unplugin: 2.3.11
+      urlpattern-polyfill: 10.1.0
+      valibot: 1.5.0(typescript@7.0.2)
+    optionalDependencies:
+      typescript: 7.0.2
+      vite: 8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
+
   '@inlang/plugin-message-format@4.4.4':
     dependencies:
       flat: 6.0.1
@@ -5702,6 +5784,10 @@ snapshots:
   valibot@1.5.0(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
+
+  valibot@1.5.0(typescript@7.0.2):
+    optionalDependencies:
+      typescript: 7.0.2
 
   verkit@0.4.1: {}
 
