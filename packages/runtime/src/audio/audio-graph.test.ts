@@ -86,3 +86,55 @@ describe('AudioGraph: build and gains', () => {
     expect(graph.gain('sfx')).toBe(0.25)
   })
 })
+
+describe('AudioGraph: sleep, wake and gestures', () => {
+  it('puts a running graph to sleep and wakes it', async () => {
+    const { graph, context } = built()
+    await graph.resumeUnlessRunning()
+    await graph.sleep()
+    expect(context.state).toBe('suspended')
+    expect(graph.silenced).toBe(true)
+    await graph.wake()
+    expect(context.state).toBe('running')
+    expect(graph.silenced).toBe(false)
+  })
+
+  it('leaves a graph that was not running alone, so waking never starts sound nobody unlocked', async () => {
+    const { graph, context } = built()
+    await graph.sleep()
+    await graph.wake()
+    expect(context.state).toBe('suspended')
+    expect(context.resumed).toBe(0)
+  })
+
+  it('wakes a graph the system interrupted, which sleep never saw running', async () => {
+    const { graph, context } = built()
+    await graph.resumeUnlessRunning()
+    context.interrupt()
+    expect(graph.silenced).toBe(true)
+    await graph.wake()
+    expect(context.state).toBe('running')
+  })
+
+  it('resumes on a gesture only a graph the system stopped while in view', async () => {
+    const { graph, context } = built()
+    await graph.resumeUnlessRunning()
+    await context.suspend() // the system, not sleep
+    await graph.resumeOnGesture()
+    expect(context.state).toBe('running')
+
+    await graph.sleep()
+    await graph.resumeOnGesture()
+    expect(context.state).toBe('suspended') // asleep: left for wake
+  })
+
+  it('builds nothing on sleep, wake or a gesture before an unlock (A-c)', async () => {
+    const graph = new AudioGraph()
+    await graph.sleep()
+    await graph.wake()
+    await graph.resumeOnGesture()
+    await graph.resumeUnlessRunning()
+    expect(graph.context).toBeUndefined()
+    expect(graph.silenced).toBe(false)
+  })
+})

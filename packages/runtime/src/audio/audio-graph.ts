@@ -47,6 +47,8 @@ export class AudioGraph {
   private muted = false
   /** The window has lost focus and the player asked for quiet then; apart from `muted`, which is theirs. */
   private unfocused = false
+  /** Whether `sleep` suspended the graph, so `wake` knows it may resume it. */
+  private asleep = false
 
   /**
    * Builds the graph, once. Returns whether it built. Safe to call on every gesture: a context already built is
@@ -104,6 +106,45 @@ export class AudioGraph {
   setUnfocused(unfocused: boolean): void {
     this.unfocused = unfocused
     this.applyMaster()
+  }
+
+  /** Resumes the graph unless it is already running. */
+  async resumeUnlessRunning(): Promise<void> {
+    if (this.context === undefined) return
+    if (this.context.state !== 'running') await this.context.resume()
+  }
+
+  /**
+   * Suspends the graph while the page is hidden: a locked phone or a backgrounded tab. Only a running graph is
+   * put to sleep, and `wake` resumes only a graph this put to sleep, so waking never starts sound a player had not
+   * unlocked. Suspending pauses every voice where it is, so a loop carries on from the same place.
+   */
+  async sleep(): Promise<void> {
+    if (this.context?.state !== 'running') return
+    this.asleep = true
+    await this.context.suspend()
+  }
+
+  /** Resumes a graph `sleep` suspended, or one the system interrupted (a call, Siri), which `sleep` never saw. */
+  async wake(): Promise<void> {
+    if (this.context === undefined) return
+    if (!this.asleep && this.context.state !== 'interrupted') return
+    this.asleep = false
+    if (this.context.state !== 'running') await this.context.resume()
+  }
+
+  /**
+   * On any gesture: resumes a graph the system suspended while the page stayed in view, which nothing else would,
+   * since only a gesture may. One `sleep` suspended is left for `wake`, and one never unlocked is never built.
+   */
+  async resumeOnGesture(): Promise<void> {
+    if (this.context === undefined || this.asleep || this.context.state === 'running') return
+    await this.context.resume()
+  }
+
+  /** Whether a sound asked for now would wait on a stopped clock rather than play. */
+  get silenced(): boolean {
+    return this.asleep || this.context?.state === 'interrupted'
   }
 
   get masterGain(): number {
