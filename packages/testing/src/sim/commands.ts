@@ -48,6 +48,7 @@ const readGoldenUnder =
     }
   }
 
+/** Options for {@link goldenCommands}. */
 export interface GoldenCommandsOptions {
   /**
    * The folder golden files must be inside; defaults to the Vitest project's root. A package whose goldens sit
