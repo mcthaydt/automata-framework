@@ -1,0 +1,14 @@
+{
+  "status": "set",
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "evidence": {
+    "result": "fixture: not a real measurement",
+    "commit": "0000000000000000000000000000000000000000",
+    "runner": "af-linux",
+    "date": "2026-10-16",
+    "headroom": 1.5
+  },
+  "projects": {
+    "frame-budget-phone": { "workMsP95": 6, "intervalMsP95": 20 }
+  }
+}

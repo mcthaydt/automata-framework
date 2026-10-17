@@ -1,6 +1,6 @@
 # PRODUCT: a free core you can scale on, and Automata Plus
 
-> **Status:** draft, 2026-10-16. Milestone spec for task **PRODUCT.0**; Owner decisions PD-1 to PD-5 recorded 2026-10-16 (§11); Owner review of the whole spec pending. Nothing here is implemented until this spec is reviewed (01 Decomposition §5, 04 How we build).
+> **Status:** reviewed. Drafted 2026-10-16; **approved by the Owner on 2026-10-16** with PD-1 to PD-5 (§11). Its contracts are frozen; changes are additive or go through a written change request. Each task still writes its TDD plan before code.
 >
 > **Why (Owner, 2026-10-16):** "I want to be at a point where someone can build FloorFifty using the automata framework with extensions (excluding content)." The framework splits into a free core and a paid plan that works like Tailwind's paid plan. The framework side should be as close to raylib in spirit as possible, the packages AF is built on should be explained, and the product is "a hybrid between those ShipFast website templates and raylib". Then: "let's make that extra stuff be paid; can't recreate FloorFifty without the paid stuff, but you should have a VERY solid foundation to make sure whatever you prompt next will scale well." Localization is part of that foundation. The Owner's biggest pain points building FloorFifty were UI, gamepad, mobile responsiveness, networking, post-processing and screens.
 >
@@ -39,6 +39,8 @@ Each property has a check. A property without a passing check is not claimed.
 | F5 | **Performance is measured, not assumed.** A frame-budget probe and a core stress example (N entities, M systems, views and UI), with budgets checked on the GPU runner. No Effect allocation per frame (ADR 0003). | The probe reports ms/frame from the actual build; the budget is set from the first measured run and recorded with its evidence. | PRODUCT.7 |
 | F6 | **Contracts are versioned.** A public API report per core package is diffed on each release; a breaking change needs a major changeset and, from M8, a codemod. | A release check fails on an undeclared API break. | PRODUCT.1 |
 | F7 | **Localization is built in, not bolted on** (§4). A new screen that breaks in a long language fails `automata check`. | PRODUCT.L acceptance cases. | PRODUCT.L |
+
+**Where the F1 seams live (PRODUCT.1).** All are exports of a public `exports` entry, listed in `tooling/api-report/src/seams.ts` and checked against the committed reports by `seams.test.ts`. `runtime` `.`: `inputProfileSchema`, `InputProfile`, `actionsForKey`, `actionsForPadButton`; `NetworkPort`, `AuthoritativeSnapshot`; `AudioBuses`, `audioBusGainsSchema`; `settingsStore`/`SettingsDef`; `PresentationBus`, `RuntimeFacts`, `typedBus`; `runtime/extension`: `defineExtension`. `render-pixi` `.`: `PixiStage` (layers `backdrop`, `world`, `ui` and `postFilters`), `createPixiRenderer`, `createPostFilterSlot`, `filterPrograms`. `host` `.`: `Hosting.leaderboards` (`HostingLeaderboards`), relaying Ruken's `LeaderboardsApi` with the SDK's error codes; Ruken lacks nothing for it, so no Ruken request was needed. `runtime` and `render-pixi` are not published yet; publishing them is PRODUCT.1b.
 
 ## 3. FloorFifty on AF: gaps by tier (content excluded)
 
@@ -117,10 +119,12 @@ Ruken requires localization from `session.locale` of every game (master spec §5
 **Core:**
 1. **Messages.** Paraglide compiles the content compiler's locale keys into typed `t()` functions. This settles the open question in the master spec's `i18n-extra` row on FloorFifty's proven setup. A key missing from a declared language fails the content compile with `file:line:col`.
 2. **Negotiation** (`detect.ts`, `strategy.ts`). The order is:
-   1. Ruken `session.locale`;
-   2. the saved setting;
+   1. the saved setting (the player's own choice in the game's picker);
+   2. Ruken `session.locale`;
    3. the browser's languages;
    4. the game's default.
+
+   Decided 2026-10-16 (PRODUCT.L1): the saved setting comes before `session.locale`, so a player's explicit choice holds under Ruken. This follows FloorFifty, which detects a language only "when the player has not chosen one". With nothing saved, Ruken's locale still decides the first screen (L-b).
 
    The result is known before first render. A runtime change is a presentation-bus event; the screen is not remounted, focus is kept, and the sim is untouched.
 3. **Formatting** (`format.ts`): numbers, durations, ordinals and plurals through `Intl`.

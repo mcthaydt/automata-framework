@@ -1,9 +1,9 @@
-import type { HostedOptions } from '@af-examples/demo-host/ports'
-import { collectErrors, openHosted } from '@af-examples/demo-host/testing'
+import type { HostedOptions } from '@mcthaydt/examples-runner/host/ports'
+import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
 import { expect, type Frame, type Page, test } from '@playwright/test'
 import { GAME_ID, url } from './origin.ts'
 
-// The host demo under Ruken's fake host (examples/demo-host): it boots to ready with no console errors, reads
+// The host demo under Ruken's fake host (tooling/examples-runner/host): it boots to ready with no console errors, reads
 // the player's saves the host hands it, pauses while the host has it in the background, and writes a run back
 // to the host's saves when Wick reaches the ember.
 

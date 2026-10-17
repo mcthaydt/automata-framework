@@ -110,6 +110,22 @@ describe('the fixture game', () => {
     expect(files.get('flow.mmd')).toMatch(/^stateDiagram-v2\n/)
   })
 
+  it('keeps each language’s catalog, source first, outside the hashed data', async () => {
+    const root = copyFixture('valid')
+    const before = await compiled(fixtureOptions(root))
+    expect(before.languages).toEqual(['en', 'fr'])
+    expect([...before.catalogs.keys()]).toEqual(['en', 'fr'])
+    expect(before.catalogs.get('en')?.content_stage_dawn_display_name).toBe('Dawn')
+    expect(before.catalogs.get('fr')?.content_stage_dawn_display_name).toBe('Aube')
+    expect(before.catalogs.get('fr')).not.toHaveProperty('$schema')
+    // The sim stores keys, never strings: a translation edit moves neither hash (PRODUCT spec §4 item 5).
+    edit(root, 'messages/fr.json', (text) => text.replace('"Aube"', '"Aurore"'))
+    const after = await compiled(fixtureOptions(root))
+    expect(after.catalogs.get('fr')?.content_stage_dawn_display_name).toBe('Aurore')
+    expect(after.hash).toBe(before.hash)
+    expect(after.sim.hash).toBe(before.sim.hash)
+  })
+
   it('gives nested files path IDs', async () => {
     const root = copyFixture('valid')
     mkdirSync(join(root, 'content/songs/night'))
@@ -372,7 +388,27 @@ describe('refusals (one formatted line per failure policy row)', () => {
     const root = copyFixture('valid')
     edit(root, 'messages/fr.json', (t) => t.replace('"content_stage_dawn_display_name": "Aube",\n', ''))
     expect(await refusals(fixtureOptions(root))).toEqual([
-      'content/messages/fr.json:1:1  content_stage_dawn_display_name  staleTranslation: missing content_stage_dawn_display_name',
+      'content/stages/dawn.toml:2:1  displayName  staleTranslation: content_stage_dawn_display_name is missing from content/messages/fr.json',
+    ])
+  })
+
+  // L-d (PRODUCT spec §4): each translation problem carries the line and column an author opens.
+  it('an extra key and a non-text value, each at its own key', async () => {
+    const root = copyFixture('valid')
+    edit(root, 'messages/fr.json', (t) =>
+      t
+        .replace(
+          '"content_catalog_packs_0_title": "Base",',
+          '"content_extra": "X",\n  "content_catalog_packs_0_title": "Base",',
+        )
+        .replace(
+          '"content_stage_rooftops_display_name": "Toits"',
+          '"content_stage_rooftops_display_name": 7',
+        ),
+    )
+    expect(await refusals(fixtureOptions(root))).toEqual([
+      'content/messages/fr.json:3:3  content_extra  staleTranslation: content_extra is not a source key',
+      'content/messages/fr.json:12:3  content_stage_rooftops_display_name  staleTranslation: content_stage_rooftops_display_name must be text',
     ])
   })
 

@@ -1,3 +1,10 @@
+export { AudioBuses } from './audio/audio-buses.js'
+export {
+  AUDIO_BUS_NAMES,
+  type AudioBusGains,
+  type AudioBusName,
+  audioBusGainsSchema,
+} from './audio/audio-buses.schema.js'
 export {
   AssetLoadFailed,
   BootDefect,
@@ -20,14 +27,39 @@ export type {
   ScreenContext,
   ScreenDef,
 } from './flow/screen.js'
+export {
+  actionsForKey,
+  actionsForPadButton,
+  type InputBinding,
+  type InputProfile,
+  type InputProfileInput,
+  inputProfileSchema,
+  STANDARD_PAD_BUTTON_MAX,
+} from './input/input-profile.schema.js'
 export { Assets } from './loading/assets.manager.js'
 export {
   type LoadMeter,
   SLOW_MS,
   STALL_MS,
 } from './loading/load-meter.js'
+export { applyDocumentLocale, textDirection } from './locale/document-locale.js'
+export {
+  formatDuration,
+  formatNumber,
+  formatPercent,
+  pluralCategory,
+  selectPlural,
+} from './locale/format.js'
+export {
+  LOCALE_SAVE_KEY,
+  Locale,
+  type LocaleDef,
+} from './locale/locale.manager.js'
+export { type LocaleCandidates, matchLocale, negotiateLocale } from './locale/negotiate-locale.js'
+export { createT, type MessageFunction, type ParaglideRuntime, type Translate } from './locale/paraglide.js'
 export { AppLoop } from './loop/app-loop.manager.js'
 export { type FrameInfo, MAX_FRAME_MS } from './loop/frames.js'
+export { type AuthoritativeSnapshot, NetworkPort } from './net/network-port.js'
 export {
   PresentationBus,
   type RuntimeFacts,

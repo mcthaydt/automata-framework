@@ -1,0 +1,30 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test:unit": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/README.md",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/packages/*/package.json",
+        "$TURBO_ROOT$/tooling/*/package.json",
+        "$TURBO_ROOT$/tooling/**/*.ts",
+        "$TURBO_ROOT$/examples/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/package.json"
+      ]
+    },
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/README.md",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/packages/*/package.json",
+        "$TURBO_ROOT$/tooling/*/package.json",
+        "$TURBO_ROOT$/tooling/**/*.ts",
+        "$TURBO_ROOT$/examples/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/package.json"
+      ]
+    }
+  }
+}

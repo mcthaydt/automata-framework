@@ -1,0 +1,10 @@
+{
+  "name": "@fixture/hidden",
+  "version": "1.2.3",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts"
+    }
+  }
+}
