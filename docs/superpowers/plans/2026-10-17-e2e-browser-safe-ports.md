@@ -2,7 +2,7 @@
 
 - **Task:** 02 follow-up "E2E ports avoid browser-blocked ports" (found in DX.2b), now red on `main`'s nightly.
 - **Status:** In progress.
-- **Progress:** 0 of 4 steps.
+- **Progress:** 2 of 4 steps.
 
 ## Why now
 
@@ -17,8 +17,8 @@ The scheduled nightly on `main` (`e3dfc6b`, run 39033701826, and `41d88f9` the d
 
 ## Steps
 
-1. [ ] **Red.** `packages/ship/src/ports/browser-safe-port.test.ts`: an allowed port is kept (4700, 5900); 6000 → 6001; runs of bad ports are stepped past (5060 → 5062, 6665 → 6670). Run `pnpm --filter @mcthaydt/automata-ship exec vitest run src/ports/browser-safe-port.test.ts`; expect it to fail because `./browser-safe-port.ts` does not exist.
-2. [ ] **Green.** Create `packages/ship/src/ports/browser-safe-port.ts` with the bad-port set and the stepping loop. The same test passes.
+1. [x] **Red.** `packages/ship/src/ports/browser-safe-port.test.ts`: an allowed port is kept (4700, 5900); 6000 → 6001; runs of bad ports are stepped past (5060 → 5062, 6665 → 6670). Run `pnpm --filter @mcthaydt/automata-ship exec vitest run src/ports/browser-safe-port.test.ts`; expect it to fail because `./browser-safe-port.ts` does not exist. Done: "Cannot find module './browser-safe-port.ts'" (the pre-commit hook runs affected unit tests, so the red test was committed with its code, not alone).
+2. [x] **Green.** Create `packages/ship/src/ports/browser-safe-port.ts` with the bad-port set and the stepping loop. The same test passes. Done: 3 passed.
 3. [ ] **Apply.** Modify `tooling/examples-runner/host/ports.ts` (`demoPort`, `demoHostPort`), `games/emberwick/e2e/origins.ts` (game and host ports) and `examples/ui/primitives/e2e/origin.ts` (default demo port) to pass derived ports through `browserSafePort`. Red first for the runner: a test in `tooling/examples-runner/src/ports.test.ts` that with `GITHUB_ACTIONS` set no derived port is a bad port (fails on 6000 before the change).
 4. [ ] **Verify.** `pnpm format`, `pnpm check`, the CI checks-job extras, `pnpm test:parity`, and the browser journeys with CI's fixed ports (`GITHUB_ACTIONS=1 CI=1 pnpm test:e2e`), which reproduce the nightly's port 6000 failure before the change and pass after it. Tick the 02 follow-up row; record the evidence in 02 and 03.
 
