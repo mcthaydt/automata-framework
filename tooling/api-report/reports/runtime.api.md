@@ -225,6 +225,26 @@ interface GameRenderer {
 type GestureName = (typeof GESTURE_NAMES)[number];
 ```
 
+### `Input` (interface)
+
+```ts
+interface Input {
+    held(): ReadonlySet<string>;
+    stick(side: 'left' | 'right'): {
+        readonly x: number;
+        readonly y: number;
+    };
+    onPress(action: MenuAction, listener: () => void): () => void;
+    poll(): void;
+    hold(action: string): void;
+    release(action: string): void;
+    setContext(context: InputContextNow): void;
+    readonly device: SubscriptionRef.SubscriptionRef<InputDevice>;
+    readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
+}
+const Input: Context.Tag<Input, Input>;
+```
+
 ### `InputBinding` (interface)
 
 ```ts
@@ -243,6 +263,28 @@ interface InputBinding {
 
 ```ts
 type InputContext = 'play' | 'menu' | 'any';
+```
+
+### `InputContextNow` (type)
+
+```ts
+type InputContextNow = 'play' | 'menu';
+```
+
+### `InputDevice` (type)
+
+```ts
+type InputDevice = 'keyboard' | 'gamepad' | 'touch';
+```
+
+### `InputOptions` (interface)
+
+```ts
+interface InputOptions {
+    readonly target: Window;
+    readonly profile: InputProfile;
+    readonly bus: PresentationBus;
+}
 ```
 
 ### `InputProfile` (interface)
@@ -336,6 +378,12 @@ interface LocaleDef {
 }
 ```
 
+### `makeInput` (function)
+
+```ts
+function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope>;
+```
+
 ### `matchLocale` (function)
 
 ```ts
@@ -346,6 +394,12 @@ function matchLocale(requested: string, locales: readonly string[]): string | un
 
 ```ts
 const MAX_FRAME_MS = 100;
+```
+
+### `MenuAction` (type)
+
+```ts
+type MenuAction = 'nav-up' | 'nav-down' | 'nav-left' | 'nav-right' | 'confirm' | 'back' | 'page-prev' | 'page-next' | 'adjust-dec' | 'adjust-inc' | 'pause';
 ```
 
 ### `MessageFunction` (type)
@@ -467,6 +521,10 @@ interface RuntimeFacts {
     readonly 'locale.changed': {
         readonly locale: string;
         readonly previous: string;
+    };
+    readonly 'input.device.changed': {
+        readonly device: 'keyboard' | 'gamepad' | 'touch';
+        readonly previous: 'keyboard' | 'gamepad' | 'touch';
     };
 }
 ```

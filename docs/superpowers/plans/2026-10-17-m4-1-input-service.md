@@ -3,7 +3,7 @@
 - **Task:** M4.1 in [02](../../02-master-delivery-plan.md). M4 spec [§4.1, §4.2, §4.13](../specs/2026-10-16-m4-input-display-design.md), §5 (boot, per fixed step, lifecycle) and §6. Acceptance I-a, I-b, I-g and I-j.
 - **Lane:** runtime, with one change to the game lane (step 3, the change request in spec §2.2). **Depends on:** M4.0 (`8a345a1`), PRODUCT.1 (input profile) and DX.2 (`InputMap`), all merged.
 - **Status:** In progress.
-- **Progress:** 3 of 8 steps.
+- **Progress:** 4 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -167,7 +167,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
      - An empty set gives the idle payload.
    - **Green:** derive the profile and add `toCommand`, implemented by the same merge `attach` uses. Move the touch ids in `screens.layout.test.ts` and `default-screens.test.ts`. The existing `attach` tests stay green unchanged, apart from the ids.
    - Done: red was 9 failed (no `profile`, no `toCommand`, `touch-<n>` ids), then 21 passed. `keys()` now parses its profile through `inputProfileSchema`, so a reserved key or pad button throws at definition (I-j). The id rename also reached `examples/e2e/default-screens.e2e.ts` and Emberwick's `TOUCH_IDS` (`games/emberwick/src/screens/emberwick-screens.ts`), which the file table missed; `screens.layout.test.ts` builds its own fixture buttons and keeps its ids. Emberwick: unit 138 passed, Node golden 1 passed, unchanged.
-4. [ ] **`Input` core (I-b).**
+4. [x] **`Input` core (I-b).**
    - **Red:** in `input.test.ts`, under jsdom, with a stub `getGamepads` and the `PresentationBus` test layer:
      - A key and a pad button bound to `jump` both held: releasing the key keeps `jump` held (I-b).
      - A key repeat changes nothing.
@@ -181,6 +181,11 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
      - A non-standard pad is ignored.
    - **Run:** `pnpm --filter @mcthaydt/automata-runtime exec vitest run --project unit src/input/`. Expect it to fail because `input.manager.ts` does not exist.
    - **Green:** create `menu-actions.ts` and `input.manager.ts`; export them from `index.ts`, with `index.test.ts` and `public-seams.test.ts` red first.
+   - Done: red was "Failed to resolve import \"./input.manager.js\""; then 17 Input tests and 27 in `src/input/` passed. `index.test.ts` was red on `Input` and `makeInput`, then green (33 passed with `public-seams`).
+     - Deviation: `makeInput` takes the bus in its options, as `makeTime(bus)` does, rather than requiring `PresentationBus` from the context.
+     - Deviation: `device` and `profile` are `SubscriptionRef`s, which are Effect's `Subscribable`.
+     - `RuntimeFacts` gains `input.device.changed`.
+     - The menu table also binds PageUp and PageDown for paging; the triggers 6 and 7 adjust.
 5. [ ] **Play screen and `attach` through `Input`.**
    - **Red:** in `default-screens.test.ts`, the play screen samples one command per step from a key and from a touch button through the service. An Escape press pauses through `onPress('pause')`. Leaving play closes the service, so a key after leaving does nothing.
    - **Green:**

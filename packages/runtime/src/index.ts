@@ -28,6 +28,13 @@ export type {
   ScreenDef,
 } from './flow/screen.js'
 export {
+  Input,
+  type InputContextNow,
+  type InputDevice,
+  type InputOptions,
+  makeInput,
+} from './input/input.manager.js'
+export {
   actionsForKey,
   actionsForPadButton,
   type GestureName,
@@ -41,6 +48,7 @@ export {
   STANDARD_PAD_BUTTON_MAX,
   type StickDirection,
 } from './input/input-profile.schema.js'
+export type { MenuAction } from './input/menu-actions.js'
 export { Assets } from './loading/assets.manager.js'
 export {
   type LoadMeter,
