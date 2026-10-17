@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 2 of 13 steps.
+- **Progress:** 3 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -67,7 +67,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
 2. [x] **Split.** Red: `Failed to resolve import "./Split.svelte"`; green 6 of 6. jsdom has no ResizeObserver, so the measured case stubs one. `split.test.ts`:
    - Red: FloorFifty's `splitMode` cases (row when `2 × min + gap` fits, stack otherwise).
    - Red (DOM): stacked until measured; `data-split="row"` once a measured width fits; both panes render.
-3. [ ] **OptionGroup.** `option-group.test.ts`, from FloorFifty's:
+3. [x] **OptionGroup.** Red: `Failed to resolve import "./OptionGroup.svelte"`; then `expected false to be true` for `disabled`, because a disabled fieldset leaves each radio's `disabled` property false, and M4.5's `adjust` reads that property. So each radio carries `disabled` itself. Green 6 of 6; `svelte-check` clean. `option-group.test.ts`, from FloorFifty's:
    - Red: a `<fieldset>` whose `<legend>` is the `label`, and one named radio per option;
    - Red: the radio for `value` is checked, and none is while `value` is `undefined`;
    - Red: a change reports the option's value through `onchange`, and the checked radio still follows `value` (controlled);
