@@ -2,8 +2,8 @@
 
 - **Task:** M4.3 in [02](../../02-master-delivery-plan.md). M4 spec [§4.4](../specs/2026-10-16-m4-input-display-design.md), §5 (device change), §6 (`TouchControls`, `SwipeSurface` rows) and §8. Acceptance I-f.
 - **Lane:** runtime and ui, with the game lane's play screen and `keys()` as consumers (this session owns that lane). **Depends on:** M4.1 (`Input`, merged in #74).
-- **Status:** In progress.
-- **Progress:** 8 of 9 steps.
+- **Status:** Implemented and locally verified 2026-10-17; CI and review pending. Owner acceptance (a real phone) open.
+- **Progress:** 9 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -173,7 +173,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
    - **Red:** in `keys.test.ts`: a `gestures` payload joins the profile (`gesture` on an equal key payload's action, else a new action); a refused gesture payload throws; `touchMode` defaults; `source.gesture.pulse('flick-down')` reaches exactly one tick's command. In `default-screens.test.ts`: under touch, a map in `swipe` mode shows the swipe surface and no buttons, and a flick through pointer events on it gives a command; in `buttons` mode, the `TouchControls` buttons hold and release as before.
    - **Green:** the options, `InputSource.gesture`, the play screen on both components. The existing touch-button layout contract (`screens.layout.test.ts`) must stay green unchanged.
    - **Emberwick check:** its golden stays unchanged.
-9. [ ] **Example, exports, reports and docs.**
+9. [x] **Example, exports, reports and docs.** Done (`e317692`). Gates, local, first attempt each, `TURBO_FORCE=true`: `pnpm check` 30 of 30 tasks; CI extras (build, api-index, build:examples, changesets) passed; `pnpm test:parity` 11 of 11 tasks (ui 378 cases); `CI=1 pnpm test:e2e` 74 passed, 2 skipped; `prepare-ruken` passed for the placeholder and Emberwick. Goldens unchanged.
    - `examples/core/core-input-touch.ts`: a square steered by swiping, a flick down drops it; the catalog test and the `examples` E2E projects boot it.
    - Regenerate the API reports, cheatsheet, API index and agent skills; add the changeset.
    - Tick the 02 row; record the evidence in 02's execution record and in 03.
