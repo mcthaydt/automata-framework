@@ -28,6 +28,13 @@ export type {
   ScreenDef,
 } from './flow/screen.js'
 export {
+  GESTURE_TUNING,
+  type GestureSink,
+  type GestureTuning,
+  type SwipeIndicator,
+  SwipeTracker,
+} from './input/gestures/swipe-tracker.js'
+export {
   Input,
   type InputContextNow,
   type InputDevice,
@@ -35,6 +42,7 @@ export {
   makeInput,
 } from './input/input.manager.js'
 export {
+  actionsForGesture,
   actionsForKey,
   actionsForPadButton,
   type GestureName,
@@ -47,6 +55,8 @@ export {
   RESERVED_PAD_BUTTONS,
   STANDARD_PAD_BUTTON_MAX,
   type StickDirection,
+  type TouchMode,
+  touchModesFor,
 } from './input/input-profile.schema.js'
 export type { MenuAction } from './input/menu-actions.js'
 export { Assets } from './loading/assets.manager.js'

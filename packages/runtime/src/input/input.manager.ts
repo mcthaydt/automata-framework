@@ -5,7 +5,14 @@
 // `onPress` serves menus and the pause screen, and gameplay compares this tick's command with the last one's.
 import { Context, Effect, type Scope, SubscriptionRef } from 'effect'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
-import { actionsForKey, actionsForPadButton, type InputProfile } from './input-profile.schema.js'
+import type { GestureSink } from './gestures/swipe-tracker.js'
+import {
+  actionsForGesture,
+  actionsForKey,
+  actionsForPadButton,
+  type GestureName,
+  type InputProfile,
+} from './input-profile.schema.js'
 import { isMenuActionLive, MENU_BINDINGS, type MenuAction } from './menu-actions.js'
 
 export type InputDevice = 'keyboard' | 'gamepad' | 'touch'
@@ -23,6 +30,11 @@ export interface Input {
   /** A touch button held or let go, by action. */
   hold(action: string): void
   release(action: string): void
+  /**
+   * Gestures from a `SwipeTracker` (M4.3), as touch: a held gesture holds its actions until released, and a pulse
+   * (a flick or a tap) holds them for exactly one sample.
+   */
+  readonly gesture: GestureSink
   /** `play` during gameplay, `menu` while a screen pauses the sim or a modal is open. Releases what is held. */
   setContext(context: InputContextNow): void
   readonly device: SubscriptionRef.SubscriptionRef<InputDevice>
@@ -49,12 +61,18 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
     const profileRef = yield* SubscriptionRef.make(profile)
     let context: InputContextNow = 'play'
 
-    // Each pressed source (`key:<code>`, `pad:<pad>:<button>`, `touch:<action>`) and the actions it drives;
+    // Each pressed source (`key:<code>`, `pad:<pad>:<button>`, `touch:<action>`, `gesture:<name>`, and
+    // `gesture:<name>:pulse`) and the actions it drives;
     // `count` is how many sources hold each action, and `held` the actions with a count, in first-press order.
     const sources = new Map<string, readonly string[]>()
     const count = new Map<string, number>()
     const held = new Set<string>()
     const listeners = new Map<MenuAction, Set<() => void>>()
+    // The pulse latch (FloorFifty's InputManager latch): a pulse is pressed at once, seen by the next sample
+    // (`poll()` then `held()`), and lifted by the poll after that, so a pulse between two steps is never lost. A
+    // pulse again before it is lifted keeps it one more sample.
+    let pulsed = new Set<string>()
+    let sampled = new Set<string>()
 
     const isLive = (action: string): boolean => {
       const where = profile.bindings[action]?.context ?? 'play'
@@ -135,6 +153,7 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
     const onBlur = (): void => {
       liftWhere('key:')
       liftWhere('touch:')
+      liftWhere('gesture:')
     }
     // A bare event target (a replay's fake window) has no document, and so no visibility to follow.
     const page: Document | undefined = (target as Partial<Window>).document
@@ -178,6 +197,9 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
         return () => void set.delete(listener)
       },
       poll() {
+        for (const source of sampled) if (!pulsed.has(source)) lift(source)
+        ;[sampled, pulsed] = [pulsed, sampled]
+        pulsed.clear()
         const pads = target.navigator.getGamepads?.() ?? []
         for (const pad of pads) {
           // Only the standard mapping is bound (DX spec §3.3); another layout is M4.2's to report.
@@ -195,6 +217,15 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       },
       release(action) {
         lift(`touch:${action}`)
+      },
+      gesture: {
+        hold: (name: GestureName) => press('touch', `gesture:${name}`, actionsForGesture(profile, name), []),
+        release: (name: GestureName) => lift(`gesture:${name}`),
+        pulse(name: GestureName) {
+          const source = `gesture:${name}:pulse`
+          press('touch', source, actionsForGesture(profile, name), [])
+          pulsed.add(source)
+        },
       },
       setContext(next) {
         if (next === context) return
