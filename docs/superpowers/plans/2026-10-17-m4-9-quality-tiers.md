@@ -3,7 +3,7 @@
 - **Task:** M4.9 in [02](../../02-master-delivery-plan.md), M4 spec [§4.11](../specs/2026-10-16-m4-input-display-design.md) (acceptance Q-a, Q-b), §6 (a filter that fails to compile), M4-D6 (`high`, no auto-detect).
 - **Lanes:** render (`render-pixi`) and runtime (the settings field and the fact). **Depends on:** M4.0 (merged) and PRODUCT.1 (merged; the post-filter slot this extends).
 - **Status:** In progress.
-- **Progress:** 3 of 10 steps.
+- **Progress:** 4 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -58,7 +58,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: at device pixel ratio 3, `low` gives 1, `medium` 1.5 and `high` 2.
    - Red: a portrait tablet gives 1 at every tier.
    - Existing calls without a tier are unchanged.
-4. [ ] **Slot tiers (Q-a, slot half).** Test file: `post-filter-slot.test.ts`.
+4. [x] **Slot tiers (Q-a, slot half).** Test file: `post-filter-slot.test.ts`. Red: `expected undefined to be 'high'` and `slot.setTier is not a function`; green 5 of 5 (the three PRODUCT.1 cases unchanged). `ids` lists only the owners that run at the tier. `meetsTier` lives in `packages/render-pixi/src/quality/meets-tier.ts`.
    - Red: an owner set with `{ minTier: 'medium' }` is in the filter list at `high` and `medium`, and leaves at `setTier('low')`.
    - Red: it comes back at `setTier('high')`, in its old place by order.
    - Red: an owner with no `minTier` stays at every tier, as the FloorFifty palette lock does.

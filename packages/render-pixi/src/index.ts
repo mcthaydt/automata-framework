@@ -24,6 +24,7 @@ export {
 } from './filter/filter-programs.js'
 export {
   createPostFilterSlot,
+  type PostFilterOptions,
   type PostFilterSlot,
   type PostFilterTarget,
 } from './filter/post-filter-slot.js'
@@ -42,6 +43,7 @@ export {
   PORTRAIT_FIELD_TOP,
   portraitFieldHeight,
 } from './letterbox/letterbox.js'
+export { meetsTier } from './quality/meets-tier.js'
 export {
   createPixiRenderer,
   type PixiRenderer,
