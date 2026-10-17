@@ -8,6 +8,8 @@ export interface RuntimeFacts {
     readonly from: string | undefined
   }
   readonly 'time.changed': { readonly paused: boolean }
+  /** The player's language changed (PRODUCT spec §4 item 2). Screens redraw their text; nothing remounts. */
+  readonly 'locale.changed': { readonly locale: string; readonly previous: string }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {

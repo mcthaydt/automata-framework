@@ -54,11 +54,10 @@ export const STACK: StackSource = {
     {
       library: 'Paraglide',
       tier: 'Core',
-      packages: [],
-      planned: { packages: ['@inlang/paraglide-js'], task: 'PRODUCT.L (core localization)' },
+      packages: ['@inlang/paraglide-js'],
       does: "Compiles the content compiler's locale keys into typed `t()` message functions (PRODUCT spec §4).",
       why: 'FloorFifty already ships its localization on Paraglide, and Ruken asks every game to localize from `session.locale` (PRODUCT spec §4).',
-      adds: "Planned in PRODUCT.L: language negotiation from Ruken's `session.locale`, `Intl` formatting, `<html lang dir>`, per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract and a language picker.",
+      adds: "`@mcthaydt/automata-runtime` (PRODUCT.L1): language negotiation (the player's saved choice, then Ruken's `session.locale`, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`. Planned in PRODUCT.L2 to L4: per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract and a language picker.",
     },
     {
       library: 'smol-toml',
