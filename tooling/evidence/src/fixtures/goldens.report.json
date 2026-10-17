@@ -1,0 +1,307 @@
+{
+  "numTotalTestSuites": 8,
+  "numPassedTestSuites": 8,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 12,
+  "numPassedTests": 12,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "startTime": 1,
+  "success": true,
+  "testResults": [
+    {
+      "name": "/repo/packages/testing/src/sim/bounce.golden.test.ts",
+      "status": "passed",
+      "message": "",
+      "startTime": 1,
+      "endTime": 2,
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "bounce.golden.json: a hash every tick of the bounce run",
+          "status": "passed",
+          "title": "bounce.golden.json: a hash every tick of the bounce run",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [],
+          "fullName": "this engine re-records the bounce run to the committed replay’s exact bytes (before deflate)",
+          "status": "passed",
+          "title": "this engine re-records the bounce run to the committed replay’s exact bytes (before deflate)",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {
+            "goldenEvidence": {
+              "scenario": "testing/bounce",
+              "seed": 42,
+              "ticks": 300,
+              "hash": "c00ffee0c00ffee0",
+              "runtime": {
+                "kind": "node",
+                "version": "v24.21.0"
+              }
+            }
+          },
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "/repo/packages/testing/src/sim/bounce.golden.test.ts",
+      "status": "passed",
+      "message": "",
+      "startTime": 1,
+      "endTime": 2,
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "bounce.golden.json: a hash every tick of the bounce run",
+          "status": "passed",
+          "title": "bounce.golden.json: a hash every tick of the bounce run",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [],
+          "fullName": "this engine re-records the bounce run to the committed replay’s exact bytes (before deflate)",
+          "status": "passed",
+          "title": "this engine re-records the bounce run to the committed replay’s exact bytes (before deflate)",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {
+            "goldenEvidence": {
+              "scenario": "testing/bounce",
+              "seed": 42,
+              "ticks": 300,
+              "hash": "c00ffee0c00ffee0",
+              "runtime": {
+                "kind": "browser",
+                "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36"
+              }
+            }
+          },
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "/repo/packages/testing/src/sim/bounce.golden.test.ts",
+      "status": "passed",
+      "message": "",
+      "startTime": 1,
+      "endTime": 2,
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "bounce.golden.json: a hash every tick of the bounce run",
+          "status": "passed",
+          "title": "bounce.golden.json: a hash every tick of the bounce run",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [],
+          "fullName": "this engine re-records the bounce run to the committed replay’s exact bytes (before deflate)",
+          "status": "passed",
+          "title": "this engine re-records the bounce run to the committed replay’s exact bytes (before deflate)",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {
+            "goldenEvidence": {
+              "scenario": "testing/bounce",
+              "seed": 42,
+              "ticks": 300,
+              "hash": "c00ffee0c00ffee0",
+              "runtime": {
+                "kind": "browser",
+                "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+              }
+            }
+          },
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "/repo/packages/testing/src/sim/bounce.golden.test.ts",
+      "status": "passed",
+      "message": "",
+      "startTime": 1,
+      "endTime": 2,
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "bounce.golden.json: a hash every tick of the bounce run",
+          "status": "passed",
+          "title": "bounce.golden.json: a hash every tick of the bounce run",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [],
+          "fullName": "this engine re-records the bounce run to the committed replay’s exact bytes (before deflate)",
+          "status": "passed",
+          "title": "this engine re-records the bounce run to the committed replay’s exact bytes (before deflate)",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {
+            "goldenEvidence": {
+              "scenario": "testing/bounce",
+              "seed": 42,
+              "ticks": 300,
+              "hash": "c00ffee0c00ffee0",
+              "runtime": {
+                "kind": "browser",
+                "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:155.0) Gecko/20100101 Firefox/155.0"
+              }
+            }
+          },
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "/repo/examples/base-2d/src/golden.test.ts",
+      "status": "passed",
+      "message": "",
+      "startTime": 1,
+      "endTime": 2,
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "the golden route reaches the goal on the recorded tick and ends on the recorded hash",
+          "status": "passed",
+          "title": "the golden route reaches the goal on the recorded tick and ends on the recorded hash",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {
+            "goldenEvidence": {
+              "scenario": "base-2d/golden-route",
+              "seed": 1,
+              "ticks": 342,
+              "hash": "31f50888ccb4cf0a",
+              "runtime": {
+                "kind": "node",
+                "version": "v24.21.0"
+              }
+            }
+          },
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "/repo/examples/base-2d/src/golden.parity.test.ts",
+      "status": "passed",
+      "message": "",
+      "startTime": 1,
+      "endTime": 2,
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "the golden route ends on the recorded hash in this browser",
+          "status": "passed",
+          "title": "the golden route ends on the recorded hash in this browser",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {
+            "goldenEvidence": {
+              "scenario": "base-2d/golden-route",
+              "seed": 1,
+              "ticks": 342,
+              "hash": "31f50888ccb4cf0a",
+              "runtime": {
+                "kind": "browser",
+                "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36"
+              }
+            }
+          },
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "/repo/examples/base-2d/src/golden.parity.test.ts",
+      "status": "passed",
+      "message": "",
+      "startTime": 1,
+      "endTime": 2,
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "the golden route ends on the recorded hash in this browser",
+          "status": "passed",
+          "title": "the golden route ends on the recorded hash in this browser",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {
+            "goldenEvidence": {
+              "scenario": "base-2d/golden-route",
+              "seed": 1,
+              "ticks": 342,
+              "hash": "31f50888ccb4cf0a",
+              "runtime": {
+                "kind": "browser",
+                "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+              }
+            }
+          },
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "/repo/examples/base-2d/src/golden.parity.test.ts",
+      "status": "passed",
+      "message": "",
+      "startTime": 1,
+      "endTime": 2,
+      "assertionResults": [
+        {
+          "ancestorTitles": [],
+          "fullName": "the golden route ends on the recorded hash in this browser",
+          "status": "passed",
+          "title": "the golden route ends on the recorded hash in this browser",
+          "duration": 12.3,
+          "failureMessages": [],
+          "location": null,
+          "meta": {
+            "goldenEvidence": {
+              "scenario": "base-2d/golden-route",
+              "seed": 1,
+              "ticks": 342,
+              "hash": "31f50888ccb4cf0a",
+              "runtime": {
+                "kind": "browser",
+                "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:155.0) Gecko/20100101 Firefox/155.0"
+              }
+            }
+          },
+          "tags": []
+        }
+      ]
+    }
+  ]
+}
