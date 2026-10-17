@@ -5,6 +5,7 @@
 // `onPress` serves menus and the pause screen, and gameplay compares this tick's command with the last one's.
 import { Context, Effect, type Scope, SubscriptionRef } from 'effect'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
+import { type GlyphFamily, glyphFamily } from './gamepad/glyph-family.js'
 import { HandoverMask } from './gamepad/handover-mask.js'
 import { NavRepeat } from './gamepad/nav-repeat.js'
 import { type PadDirection, type PadLike, quantizeStick, readPad } from './gamepad/read-pad.js'
@@ -17,6 +18,17 @@ import {
 import { isMenuActionLive, MENU_BINDINGS, type MenuAction } from './menu-actions.js'
 
 export type InputDevice = 'keyboard' | 'gamepad' | 'touch'
+/** The device of the last real input, and the button labels of the active pad (`generic` before any pad). */
+export interface ActiveDevice {
+  readonly device: InputDevice
+  readonly glyphs: GlyphFamily
+}
+/** A connected pad. Only `standard` pads drive bindings (DX spec §3.3). */
+export interface PadInfo {
+  readonly index: number
+  readonly id: string
+  readonly standard: boolean
+}
 export type InputContextNow = 'play' | 'menu'
 
 export interface Input {
@@ -36,8 +48,10 @@ export interface Input {
   release(action: string): void
   /** `play` during gameplay, `menu` while a screen pauses the sim or a modal is open. Releases what is held. */
   setContext(context: InputContextNow): void
-  readonly device: SubscriptionRef.SubscriptionRef<InputDevice>
+  readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>
   readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>
+  /** The pads connected since this Input started, in connection order. */
+  readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>
 }
 
 export const Input: Context.Tag<Input, Input> = Context.GenericTag<Input>('@mcthaydt/automata-runtime/Input')
@@ -62,9 +76,11 @@ const isNav = (action: MenuAction): boolean => action.startsWith('nav-')
 export function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope> {
   return Effect.gen(function* () {
     const { target, profile, bus } = options
-    const device = yield* SubscriptionRef.make<InputDevice>(
-      target.matchMedia?.('(pointer: coarse)').matches === true ? 'touch' : 'keyboard',
-    )
+    const device = yield* SubscriptionRef.make<ActiveDevice>({
+      device: target.matchMedia?.('(pointer: coarse)').matches === true ? 'touch' : 'keyboard',
+      glyphs: 'generic',
+    })
+    const pads = yield* SubscriptionRef.make<readonly PadInfo[]>([])
     const profileRef = yield* SubscriptionRef.make(profile)
     let context: InputContextNow = 'play'
 
@@ -84,14 +100,15 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
     ): MenuAction[] =>
       (Object.keys(MENU_BINDINGS) as MenuAction[]).filter((action) => matches(MENU_BINDINGS[action]))
 
-    let current: InputDevice = yield* SubscriptionRef.get(device)
-    const use = (next: InputDevice): void => {
-      if (next === current) return
-      const previous = current
-      current = next
-      Effect.runSync(SubscriptionRef.set(device, next))
-      bus.publish('input.device.changed', { device: next, previous })
+    let current: ActiveDevice = yield* SubscriptionRef.get(device)
+    const become = (next: InputDevice, glyphs: GlyphFamily = current.glyphs): void => {
+      if (next === current.device && glyphs === current.glyphs) return
+      const previous = current.device
+      current = { device: next, glyphs }
+      Effect.runSync(SubscriptionRef.set(device, current))
+      bus.publish('input.device.changed', { device: next, glyphs, previous })
     }
+    const use = (next: InputDevice): void => become(next)
 
     const fire = (menu: readonly MenuAction[]): void => {
       for (const action of menu) {
@@ -217,7 +234,7 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       const busy = raw.buttons.size > 0 || raw.sticks.size > 0
       if (busy && inUse.get(pad.index) !== true) {
         activeIndex = pad.index
-        use('gamepad')
+        become('gamepad', glyphFamily(pad.id))
       }
       inUse.set(pad.index, busy)
       const seen = maskFor(pad.index).apply(pad)
@@ -236,6 +253,45 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       if (pad.index === activeIndex) activeAxes = seen.axes
       return reading
     }
+
+    const infoOf = (pad: PadLike): PadInfo => ({
+      index: pad.index,
+      id: pad.id,
+      standard: pad.mapping === 'standard',
+    })
+    const onConnect = (event: Event): void => {
+      const pad = (event as GamepadEvent).gamepad
+      const info = infoOf(pad)
+      Effect.runSync(
+        SubscriptionRef.update(pads, (list) => [...list.filter((known) => known.index !== info.index), info]),
+      )
+      bus.publish('input.pad.connected', info)
+    }
+    // An unplugged pad lets go of everything it held at once; the next pad to be used becomes active.
+    const onDisconnect = (event: Event): void => {
+      const pad = (event as GamepadEvent).gamepad
+      liftWhere(`pad:${pad.index}:`)
+      lastRead.delete(pad.index)
+      masks.delete(pad.index)
+      inUse.delete(pad.index)
+      if (activeIndex === pad.index) {
+        activeIndex = undefined
+        activeAxes = []
+        repeat.clear()
+      }
+      Effect.runSync(
+        SubscriptionRef.update(pads, (list) => list.filter((known) => known.index !== pad.index)),
+      )
+      bus.publish('input.pad.disconnected', infoOf(pad))
+    }
+    target.addEventListener('gamepadconnected', onConnect)
+    target.addEventListener('gamepaddisconnected', onDisconnect)
+    yield* Effect.addFinalizer(() =>
+      Effect.sync(() => {
+        target.removeEventListener('gamepadconnected', onConnect)
+        target.removeEventListener('gamepaddisconnected', onDisconnect)
+      }),
+    )
 
     return {
       held: () => held,
@@ -282,6 +338,7 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       },
       device,
       profile: profileRef,
+      pads,
     }
   })
 }

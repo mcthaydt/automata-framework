@@ -3,7 +3,7 @@
 - **Task:** M4.2 in [02](../../02-master-delivery-plan.md). M4 spec [§4.3](../specs/2026-10-16-m4-input-display-design.md), §4.2 (active device, facts), §5 (pad hot-plug), §6 (non-standard pad, pad unplugged mid-play), §9 (unit and SDK-contract layers), M4-D2, M4-D3, M4-D9. Acceptance I-c, I-d, I-e.
 - **Lane:** runtime, with the game lane's `keys()` and default screens (this session owns both). **Depends on:** M4.0 (merged) and M4.1 (stacked: this branch starts from `claude/clever-pasteur-ujmu6e-m4-1`, because the gamepad source feeds M4.1's `Input` rather than a second copy of its bookkeeping).
 - **Status:** In progress.
-- **Progress:** 4 of 9 steps.
+- **Progress:** 5 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -139,7 +139,7 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - `quantizeAxis` became `quantizeStick(x, y)`, which is radial like the deadzone, so `stick()` and the stick directions agree at (0.2, 0.2). Its tests were rewritten first, and they went red.
      - Real `Gamepad`s always carry `id`, `connected`, `axes` and `value`, so the test pad stubs (`input.test.ts`, `keys.test.ts`, `default-screens.test.ts`, `device-run.ts`) now do too, and `readPad` stays strict.
      - Pad menu directions come only through the repeat (D-pad or left stick), not as button edges.
-5. [ ] **Hot-plug and active device (I-e).**
+5. [x] **Hot-plug and active device (I-e).**
    - **Test:** `input.test.ts`.
    - **Red:**
      - `gamepadconnected` adds a `PadInfo` to `pads` and publishes `input.pad.connected` (with `standard: false` for a non-standard pad);
@@ -149,6 +149,7 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - a non-standard pad's buttons drive nothing.
    - **Red reason:** no connect listeners; `device` is a bare `InputDevice`.
    - **Also:** M4.1's tests and the game's default-screens test move to the `ActiveDevice` shape.
+   - **Done.** Red: 4 failed. The device was still the bare `'keyboard'` string; `input.pads` was undefined (`reading 'ref'`); the glyph family was missing; an unplugged pad still held `left`. Green: 52 passed in `runtime/src/input`; game unit 90 passed; runtime typecheck 0 errors. `RuntimeFacts` gains `input.pad.connected` and `input.pad.disconnected` (`PadInfo`) and `glyphs` on `input.device.changed`. The runtime index exports `ActiveDevice`, `PadInfo` and `GlyphFamily`. The game's default-screens test reads no device, so it needed no change.
 6. [ ] **Reserved button contract (M4-D3, R-3).**
    - **Test:** `packages/runtime/src/input/reserved.contract.test.ts`, using `HostingTest` with an `env` override: injected `getGamepads`, `hasFocus` true, and a manual `requestFrame` and `timers.now`.
    - **Red:**

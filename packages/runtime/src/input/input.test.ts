@@ -217,23 +217,99 @@ describe('Input active device and profile', () => {
         const facts: unknown[] = []
         bus.subscribe('input.device.changed', (fact) => facts.push(fact))
         const input = yield* makeInput({ target: window, profile, bus })
-        expect(yield* SubscriptionRef.get(input.device)).toBe('keyboard')
+        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'keyboard', glyphs: 'generic' })
         buttons[0] = true
         input.poll()
         input.poll()
-        expect(yield* SubscriptionRef.get(input.device)).toBe('gamepad')
+        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'generic' })
         input.hold('left')
         press('Space')
-        expect(yield* SubscriptionRef.get(input.device)).toBe('keyboard')
+        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'keyboard', glyphs: 'generic' })
         expect(facts).toEqual([
-          { device: 'gamepad', previous: 'keyboard' },
-          { device: 'touch', previous: 'gamepad' },
-          { device: 'keyboard', previous: 'touch' },
+          { device: 'gamepad', glyphs: 'generic', previous: 'keyboard' },
+          { device: 'touch', glyphs: 'generic', previous: 'gamepad' },
+          { device: 'keyboard', glyphs: 'generic', previous: 'touch' },
         ])
         expect(yield* SubscriptionRef.get(input.profile)).toBe(profile)
       }),
     )
   })
+})
+
+const DUALSENSE = 'DualSense Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)'
+const XBOX = 'Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)'
+const plug = (type: 'gamepadconnected' | 'gamepaddisconnected', gamepad: PadLike) =>
+  window.dispatchEvent(Object.assign(new Event(type), { gamepad }))
+
+describe('Input hot-plug and the active pad (M4.2, I-e)', () => {
+  it('lists connected pads and publishes input.pad.connected, saying when a pad is not standard', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const bus = yield* makePresentationBus()
+        const facts: unknown[] = []
+        bus.subscribe('input.pad.connected', (fact) => facts.push(fact))
+        const input = yield* makeInput({ target: window, profile: padProfile, bus })
+        plug('gamepadconnected', fakePad({ id: XBOX }))
+        plug('gamepadconnected', fakePad({ id: 'Odd pad', index: 1, mapping: '' }))
+        expect(yield* SubscriptionRef.get(input.pads)).toEqual([
+          { index: 0, id: XBOX, standard: true },
+          { index: 1, id: 'Odd pad', standard: false },
+        ])
+        expect(facts).toEqual([
+          { index: 0, id: XBOX, standard: true },
+          { index: 1, id: 'Odd pad', standard: false },
+        ])
+      }),
+    )
+  })
+
+  it('makes a second pad active on its first press, with its glyph family', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const bus = yield* makePresentationBus()
+        const input = yield* makeInput({ target: window, profile: padProfile, bus })
+        pads = [fakePad({ id: XBOX }).press(14), fakePad({ id: DUALSENSE, index: 1 })]
+        input.poll(0)
+        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'xbox' })
+        pads = [
+          fakePad({ id: XBOX }).press(14),
+          fakePad({ id: DUALSENSE, index: 1 }).stick(0, 0, 'left').press(0),
+        ]
+        input.poll(16)
+        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'playstation' })
+        expect([...input.held()]).toEqual(['left', 'jump'])
+      }),
+    )
+  })
+
+  it('releases what an unplugged pad held, drops it from pads and publishes input.pad.disconnected', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const bus = yield* makePresentationBus()
+        const facts: unknown[] = []
+        bus.subscribe('input.pad.disconnected', (fact) => facts.push(fact))
+        const input = yield* makeInput({ target: window, profile: padProfile, bus })
+        const xbox = fakePad({ id: XBOX })
+        plug('gamepadconnected', xbox)
+        pads = [xbox.press(14).stick(-0.9, 0)]
+        input.poll(0)
+        expect([...input.held()]).toEqual(['left'])
+        pads = [null]
+        plug('gamepaddisconnected', xbox)
+        expect([...input.held()]).toEqual([])
+        expect(input.stick('left')).toEqual({ x: 0, y: 0 })
+        expect(yield* SubscriptionRef.get(input.pads)).toEqual([])
+        expect(facts).toEqual([{ index: 0, id: XBOX, standard: true }])
+      }),
+    )
+  })
+
+  it('never lets a non-standard pad drive bindings', () =>
+    withInput((input) => {
+      pads = [fakePad({ mapping: '' }).press(14).stick(-0.9, 0)]
+      input.poll(0)
+      expect([...input.held()]).toEqual([])
+    }, padProfile))
 })
 
 describe('Input scope', () => {
