@@ -2,8 +2,8 @@
 
 - **Task:** M4.2 in [02](../../02-master-delivery-plan.md). M4 spec [§4.3](../specs/2026-10-16-m4-input-display-design.md), §4.2 (active device, facts), §5 (pad hot-plug), §6 (non-standard pad, pad unplugged mid-play), §9 (unit and SDK-contract layers), M4-D2, M4-D3, M4-D9. Acceptance I-c, I-d, I-e.
 - **Lane:** runtime, with the game lane's `keys()` and default screens (this session owns both). **Depends on:** M4.0 (merged) and M4.1 (stacked: this branch starts from `claude/clever-pasteur-ujmu6e-m4-1`, because the gamepad source feeds M4.1's `Input` rather than a second copy of its bookkeeping).
-- **Status:** Planned.
-- **Progress:** 1 of 9 steps.
+- **Status:** In progress.
+- **Progress:** 2 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -102,7 +102,7 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
 ## Steps
 
 1. [x] **Plan.** This file, committed first.
-2. [ ] **`readPad` and `quantizeAxis` (I-c).**
+2. [x] **`readPad` and `quantizeAxis` (I-c).**
    - **Files:** `packages/runtime/src/input/gamepad/read-pad.ts`, with the test `read-pad.test.ts`.
    - **Red:** Ported cases:
      - (0.15, 0.15) gives no direction and no nav; (0.2, 0.2) gives `left-right` and `left-down` (I-c);
@@ -114,6 +114,9 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - `quantizeAxis(0.2)` is 0 and `quantizeAxis(-1)` is −127.
    - **Red reason:** the module is missing.
    - **Green:** the minimal port.
+   - **Done.** Red: "Failed to resolve import ./read-pad.js". Green: 8 passed. *Deviations:*
+     - Stick directions are eight-way: past the radial deadzone, an axis counts when it carries at least sin(22.5°) of the push. FloorFifty's per-axis 0.25 threshold would leave (0.2, 0.2) still, against I-c.
+     - The first green failed on `quantizeAxis(-0.5)`: `Math.round(-63.5)` is −63. Halves now round away from zero, so equal pushes either way read the same size (−64 and 64), and the test pins the symmetry.
 3. [ ] **`HandoverMask`, `NavRepeat` and `glyphFamily`.**
    - **Files:** `handover-mask.ts`, `nav-repeat.ts`, `glyph-family.ts`, each with its test.
    - **Red:**
