@@ -13,7 +13,6 @@
   "@mcthaydt/automata-content#GameSource",
   "@mcthaydt/automata-content#GeneratorInput",
   "@mcthaydt/automata-content#GeneratorOutput",
-  "@mcthaydt/automata-content#MessageCatalog",
   "@mcthaydt/automata-content#Palette",
   "@mcthaydt/automata-content#PreloadInput",
   "@mcthaydt/automata-content#RukenFields",

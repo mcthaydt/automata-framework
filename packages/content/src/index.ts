@@ -27,6 +27,7 @@ export {
   type GeneratorOutput,
 } from './generate/content-generator'
 export { contentHash } from './hash/content-hash'
+export type { ParaglideOptions } from './locale/compile-messages'
 export { type MessageCatalog, messageKey } from './locale/messages'
 export { DEFAULT_PALETTE, type Palette } from './palette/palette'
 export { type PreloadInput, preloadList } from './preload/preload-list'
