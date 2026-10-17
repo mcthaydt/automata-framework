@@ -83,6 +83,9 @@ const ARROWS: Readonly<Record<string, NavDirection>> = {
   ArrowRight: 'right',
 }
 
+/** The keys that click a focused button. */
+const CONFIRM_KEYS = new Set(['Enter', 'Space'])
+
 /** Inputs that take Left and Right for themselves: a slider's step, a radio group's choice. */
 const SIDEWAYS_INPUTS = new Set(['range', 'radio'])
 
@@ -127,6 +130,8 @@ export class FocusNavigator {
    */
   private engaged = false
   private paused = false
+  /** Armed by `guard()` on a screen change; a confirm key held from the last screen is cancelled until it comes up. */
+  private guarded = false
   private readonly root: () => ParentNode
 
   constructor(root: () => ParentNode = modalOrDocument) {
@@ -141,13 +146,31 @@ export class FocusNavigator {
     // The navigator's own Back arrives here as Escape; it is still the navigator.
     const onKey = (event: Event): void => {
       if (!padKeyEvents.has(event)) this.engaged = false
+      if (!this.guarded || !(event instanceof KeyboardEvent) || !CONFIRM_KEYS.has(event.code)) return
+      // A repeat is the key held over from the last screen: the browser would click the new screen's button.
+      if (event.repeat) event.preventDefault()
+      else this.guarded = false
+    }
+    const onKeyUp = (event: Event): void => {
+      if (event instanceof KeyboardEvent && CONFIRM_KEYS.has(event.code)) this.guarded = false
     }
     target.addEventListener('pointerdown', onPointer, { capture: true })
     target.addEventListener('keydown', onKey, { capture: true })
+    target.addEventListener('keyup', onKeyUp, { capture: true })
     return () => {
       target.removeEventListener('pointerdown', onPointer, { capture: true })
       target.removeEventListener('keydown', onKey, { capture: true })
+      target.removeEventListener('keyup', onKeyUp, { capture: true })
     }
+  }
+
+  /**
+   * Arms the pad guard (M4 spec §4.7, F-a): called on a screen change, it cancels repeating Enter and Space
+   * keydowns until the key comes up or is pressed afresh. A pad's own confirm is an edge from `Input`, which
+   * cannot repeat, so only the keyboard needs this; `attach` must be listening.
+   */
+  guard(): void {
+    this.guarded = true
   }
 
   /** Paused while a screen transition covers the screen. */

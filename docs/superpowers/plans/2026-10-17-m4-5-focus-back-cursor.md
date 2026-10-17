@@ -1,9 +1,9 @@
 # M4.5 Focus navigation, back and cursor policy: TDD plan
 
 - **Task:** M4.5 in [02](../../02-master-delivery-plan.md). M4 spec [§4.7](../specs/2026-10-16-m4-input-display-design.md), §4.2 (context), §5 (screen change), §7 and §8 (focus rows), M4-D10. Acceptance F-a, F-b, F-c.
-- **Lanes:** ui (`FocusNavigator` and the FloorFifty ports), runtime (`ScreenDef.kind`, Flow's focus step, `Input`'s first poll), and the game lane's default screens. This session owns all three. **Depends on:** M4.0 (merged). It is stacked on M4.2 (`claude/clever-pasteur-ujmu6e-m4-2`), because the menus read M4.2's `Input` (nav repeat, the pad's menu edges) rather than a second pad poller.
+- **Lanes:** ui (`FocusNavigator` and the FloorFifty ports), runtime (`ScreenDef.kind`, Flow's focus step), and the game lane's default screens. This session owns all three. **Depends on:** M4.0 (merged). It is stacked on M4.2 (`claude/clever-pasteur-ujmu6e-m4-2`), because the menus read M4.2's `Input` (nav repeat, the pad's menu edges) rather than a second pad poller.
 - **Status:** In progress.
-- **Progress:** 4 of 10 steps.
+- **Progress:** 5 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -24,7 +24,7 @@
   - `page(delta)`: offers a cancelable `af-page` event with `{ delta }` to the focused element; a `[data-pager]` region takes it.
   - `adjust(delta)`: steps a focused range input, or checks the next radio in a focused radio group, without leaving it.
   - `guard()`: armed on a screen change. A repeating Enter or Space keydown (a key still held from the last screen) is cancelled before the browser can click the new screen's focused button. The guard ends when that key comes up.
-- **The pad half of F-a** (`packages/runtime/src/input/input.manager.ts`): a pad button already held at an `Input`'s first poll is masked until it is released. The menus build their `Input` on entry, so without this the A that pressed Play would press the next screen's first button.
+- **The pad half of F-a** is in the menu driver (`menu-input.ts`, below): its first poll on a screen only records what is held, as `menuPad` did. `Input` itself still fires on the first poll that sees a press (M4.2's I-d timings start at 0 ms), so the guard is not put there.
 - **`ScreenDef.kind?: 'menu' | 'gameplay'`** (default `menu`), in `packages/runtime/src/flow/screen.ts`.
 - **Flow's focus step** (`packages/runtime/src/flow/flow.manager.ts`, step 7):
   - entering a screen focuses `[data-autofocus]`, else `[data-kind="primary"]`, else the first tabbable;
@@ -72,9 +72,9 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: a focused range at 5 (step 1) reads 6 after `adjust(1)` and fires one `input` event.
    - Red: in a focused radio group, `adjust(1)` checks the next radio, fires `change`, and focus stays in the group.
    - Red: on a plain button, `adjust` returns false.
-5. [ ] **Pad guard (F-a).**
+5. [x] **Pad guard (F-a), keyboard half.** Red: 2 failed, `nav.guard is not a function`. Green 39 of 39. Deviation: the pad half moved to the menu driver (step 9), because `Input` fires on the first poll that sees a press (M4.2, I-d).
    - Red (ui): after `guard()`, a repeating Enter keydown on the focused button is `defaultPrevented`. After a keyup of Enter, the next repeating Enter is not prevented.
-   - Red (runtime, `input.test.ts`): an `Input` whose first poll finds pad button 0 held fires no `confirm`. After release and a fresh press it fires once.
+   - The pad half is step 9's first case.
 6. [ ] **Focus on screen change (F-b).** Test file: `packages/runtime/src/flow/flow.manager.test.ts`.
    - Red: a screen with `[data-autofocus]` on its second button focuses that button on entry.
    - Red: on a fixture flow `pause ⇄ settings`, focusing pause's `settings` button (`data-testid="settings"`), going to settings and back focuses `settings` again, not the primary.
@@ -85,6 +85,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
 8. [ ] **Cursor policy.** Test file: `cursor-policy.test.ts`, the FloorFifty cases, keyed by `kind`.
    - Red (`default-screens.test.ts`): on play, after a keydown and with the injected clock past 2000 ms of pointer stillness, the layer's cursor is `none`. On paused it is `''`.
 9. [ ] **Menus through `Input`.** Test file: `packages/game/src/screens/menu-input.test.ts`.
+   - Red (F-a, pad half): with pad A held when the menu starts, its first poll clicks nothing; a fresh press after release clicks once.
    - Red: an Input stub firing `nav-down` steers or moves focus, `confirm` clicks, and `back` sends Escape.
    - Red: the held-direction repeat from M4.2 moves focus at 0, 400 and 520 ms (I-d's focus half).
    - Red: the title and paused screens no longer import `menu-pad`.
@@ -98,7 +99,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
 
 | Case | Test |
 |---|---|
-| F-a | `focus-nav.test.ts` (keyboard repeat guard) and `input.test.ts` (pad held at first poll) |
+| F-a | `focus-nav.test.ts` (keyboard repeat guard) and `menu-input.test.ts` (pad held at the menu's first poll) |
 | F-b | `flow.manager.test.ts` (focus restored by name on return) |
 | F-c | `back-gesture.test.ts` and `default-screens.test.ts` (paused → play; the title leaves) |
 

@@ -436,3 +436,43 @@ describe('adjust', () => {
     expect(new FocusNavigator().adjust(1)).toBe(false)
   })
 })
+
+// M4 spec §4.7 (F-a): a confirm still held from the last screen does not press the new screen's first button. A
+// browser clicks a focused button on each repeating Enter or Space keydown, so the guard cancels those until the
+// key comes up.
+describe('guard', () => {
+  const key = (type: 'keydown' | 'keyup', code: string, repeat = false): KeyboardEvent => {
+    const event = new KeyboardEvent(type, {
+      code,
+      key: code === 'Space' ? ' ' : code,
+      repeat,
+      bubbles: true,
+      cancelable: true,
+    })
+    byId('first').dispatchEvent(event)
+    return event
+  }
+
+  it('cancels a repeating Enter or Space after a screen change until that key comes up', () => {
+    document.body.innerHTML = `<button id="first">First</button>`
+    const nav = new FocusNavigator()
+    const detach = nav.attach(window)
+    byId('first').focus()
+    nav.guard()
+    expect(key('keydown', 'Enter', true).defaultPrevented).toBe(true)
+    expect(key('keydown', 'Space', true).defaultPrevented).toBe(true)
+    key('keyup', 'Enter')
+    expect(key('keydown', 'Enter', true).defaultPrevented).toBe(false)
+    detach()
+  })
+
+  it('lets a fresh press through at once', () => {
+    document.body.innerHTML = `<button id="first">First</button>`
+    const nav = new FocusNavigator()
+    const detach = nav.attach(window)
+    byId('first').focus()
+    nav.guard()
+    expect(key('keydown', 'Enter').defaultPrevented).toBe(false)
+    detach()
+  })
+})
