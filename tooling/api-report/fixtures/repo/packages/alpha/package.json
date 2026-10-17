@@ -1,0 +1,13 @@
+{
+  "name": "@fx/alpha",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "svelte": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./sub": "./src/sub.ts",
+    "./theme.css": "./src/theme.css"
+  }
+}
