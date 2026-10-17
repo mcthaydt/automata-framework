@@ -7,9 +7,14 @@ playwright-report/
 spikes/out/
 *.log
 .DS_Store
-evidence/
+/evidence/
+# DX.9: the generated evidence file and the per-package golden reports it is read from.
+/evidence.json
+/evidence.schema.json
+.evidence/
 playwright-report-remote/
 test-results/
 .ruken/
 packages/*/VENDORED.md
 .svelte-kit/
+frame-budget-results/

@@ -1,0 +1,6 @@
+{
+  "name": "automata-framework",
+  "description": "The Automata Framework's agent package, for collaborators on the framework repo. Public installs use the mcthaydt/automata-skills mirror.",
+  "owner": { "name": "mcthaydt" },
+  "plugins": [{ "name": "automata", "source": "./agents/automata" }]
+}

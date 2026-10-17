@@ -44,6 +44,7 @@
     "test:unit": "vitest run --project unit --project sim",
     "test:layout": "vitest run --project layout",
     "test:parity": "vitest run --project layout --project sim-browsers",
+    "test:evidence": "vitest run --project sim --project sim-browsers src/sim/bounce.golden.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p .",
     "build": "tsdown"
   },
@@ -56,6 +57,7 @@
     "vitest": "^5.0.3"
   },
   "devDependencies": {
+    "@mcthaydt/evidence": "workspace:*",
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

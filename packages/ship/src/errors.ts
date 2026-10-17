@@ -1,6 +1,7 @@
 import type { TaggedErrorClass } from '@mcthaydt/automata-node'
 import type { ManifestError } from '@ruken/manifest'
 import { Data } from 'effect'
+import type { SecretFound } from './prepare/secret-scan.ts'
 
 export { FileError, ProcessError } from '@mcthaydt/automata-node'
 
@@ -44,6 +45,25 @@ export class RootAbsoluteReference extends RootAbsoluteReferenceBase {
   override get message(): string {
     const listed = this.references.map((found) => `${found.file}: ${found.reference}`).join('\n')
     return `the build names its own files by root-absolute paths, which 404 inside Ruken (/b/<buildId>/), or has a script that could not be checked:\n${listed}`
+  }
+}
+
+const SecretInBuildBase: TaggedErrorClass<
+  'SecretInBuild',
+  {
+    readonly found: readonly SecretFound[]
+  }
+> = Data.TaggedError('SecretInBuild')
+/** The build holds a key, an `.env` value or a high-entropy string (QB-b). The message never holds the secret. */
+export class SecretInBuild extends SecretInBuildBase {
+  override get message(): string {
+    const listed = this.found
+      .map(
+        (found) =>
+          `${found.file}:${found.line}:${found.col} (byte ${found.offset}): ${found.rule}: ${found.detail}`,
+      )
+      .join('\n')
+    return `the build holds what looks like a secret, and everything in a build is public. Remove it from the game's code (keep secrets on a server), then build again:\n${listed}`
   }
 }
 

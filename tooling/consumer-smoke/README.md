@@ -5,7 +5,9 @@ spec §3.6): every entry imports in Node (ui's root, which exports Svelte compon
 physics sim runs, `automata-content` compiles a small content folder, `automata-ship` and
 `automata-check-boundaries` run, TypeScript 7.0.2 and 6.0.3 read every declaration (7.0.2 also under nodenext
 resolution), no published file uses `eval`, and a Vite bundle of the sim, the host and a ui component holds one
-copy of Ruken's SDK.
+copy of Ruken's SDK. Its first step checks that every command in the root `README.md` still names a root
+script, a workspace package's script or a file that exists (`src/readme.ts`, QB.1); `src/readme.test.ts` runs
+the same check in `pnpm check`.
 
 ```sh
 pnpm build && node tooling/consumer-smoke/src/run.ts --from packs          # the workspace's packed packages

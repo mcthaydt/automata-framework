@@ -40,6 +40,8 @@ const rendered = renderTypes({
   hasAssets: false,
 })
 
+// 90 s budget: this file, which runs tsc, took 70.7 s on the shared af-linux runner (2026-10-16). The root test:unit
+// default is the same 90 s; packages/ship's workflows test pins both.
 describe('renderTypes', () => {
   it('declares ID unions, item types and the virtual module', () => {
     expect(rendered).toContain("export type SongId = 'dawn' | 'dusk-run'")
@@ -130,5 +132,5 @@ describe('renderTypes', () => {
     expect(
       check("import type { SongId } from 'virtual:automata/content'\nexport const id: SongId = 'dusk-rnu'\n"),
     ).toContain('dusk-rnu')
-  }, 60_000)
+  }, 90_000)
 })

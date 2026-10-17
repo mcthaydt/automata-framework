@@ -1,6 +1,6 @@
 # M4: Input and display (milestone spec)
 
-- **Status:** Draft, pending Owner review. Task **M4.0** in [02 Master delivery plan](../../02-master-delivery-plan.md). Nothing here is implemented before that review (01 Decomposition §5, [04 How we build](../../04-how-we-build.md)). Review freezes the contracts in §4; after that they change only additively or through a written change request. Open decisions M4-D1 to M4-D11 (§15) run on their recommended defaults until the Owner changes them.
+- **Status:** Owner-approved 2026-10-16, every open decision on its recommended default. Task **M4.0** in [02 Master delivery plan](../../02-master-delivery-plan.md). Nothing here is implemented before that review (01 Decomposition §5, [04 How we build](../../04-how-we-build.md)). Review freezes the contracts in §4; after that they change only additively or through a written change request. Open decisions M4-D1 to M4-D11 (§15) run on their recommended defaults until the Owner changes them.
 - **Owner direction (2026-10-16):** "Draft M4.0 and M5.0, core parts first." Per the [PRODUCT spec](./2026-10-16-product-core-and-plus-design.md) PD-3, the free core comes first and the Plus parts after it. Gamepad and all input and mobile responsiveness are two of the Owner's six pain points (PRODUCT spec §5), so they get the deepest work here.
 - **Depends on:** M1 (merged). It does not wait on M3 (PD-3). It consumes the PRODUCT.1 seams (input profiles, post-filter slot, settings schema) and DX.2's `InputMap` (§2.2).
 

@@ -6,7 +6,7 @@ import { TestRemoteFailed } from '../errors.ts'
 // remote runners and waits, so a developer's machine runs no heavy suite itself.
 //
 //   test-remote                         the hosted checks for this commit
-//   test-remote <playwright args>       one focused browser run, e.g. examples/placeholder/e2e/boot.e2e.ts --project=placeholder
+//   test-remote <playwright args>       one focused browser run, e.g. games/placeholder/e2e/boot.e2e.ts --project=placeholder
 //   test-remote --nightly               the nightly set now (every viewport, the GPU lanes)
 //
 // The runner tests what is pushed, so uncommitted changes are refused instead of silently left out.

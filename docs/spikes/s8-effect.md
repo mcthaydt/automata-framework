@@ -5,7 +5,7 @@
 
 ## Method
 
-- **Subject:** `examples/placeholder`, built twice by [`examples/placeholder/s8/measure.ts`](../../examples/placeholder/s8/measure.ts) (`pnpm --filter @af-examples/placeholder measure:s8`):
+- **Subject:** `examples/placeholder` (now `games/placeholder`, EX.2), built twice by [`games/placeholder/s8/measure.ts`](../../games/placeholder/s8/measure.ts) (`pnpm --filter @af-examples/placeholder measure:s8`):
   - **with Effect:** the shipped page (`main.ts` → `boot`: `Effect.gen`, `Effect.tryPromise`, `Data.TaggedError`, `Effect.runPromise` around `Ruken.init`);
   - **without Effect:** `s8/no-effect.ts`, the same handshake and line of text on plain promises.
   - Both include `@ruken/sdk`, so the difference is Effect alone.
@@ -33,7 +33,7 @@ Three runs of the script, back to back:
 
 ## Budgets
 
-The budgets are enforced by `examples/placeholder/s8/budgets.ts` (tested): `pnpm --filter @af-examples/placeholder budget:size` (E1, E3) runs in CI's checks job and `pnpm ci:local`, and `budget:boot` (E2, E4, E5) runs in the nightly browser job. Boot numbers are only comparable between runs on one machine class; the budgets leave about 2× headroom over this container.
+The budgets are enforced by `games/placeholder/s8/budgets.ts` (tested): `pnpm --filter @af-examples/placeholder budget:size` (E1, E3) runs in CI's checks job and `pnpm ci:local`, and `budget:boot` (E2, E4, E5) runs in the nightly browser job. Boot numbers are only comparable between runs on one machine class; the budgets leave about 2× headroom over this container.
 
 | ID | Budget | Measured |
 |---|---|---|
@@ -65,4 +65,4 @@ E3 and E4 cover the placeholder only. `base-2d` (M1.8) re-runs this script with 
   - **Budget:** 2× measured median = **0.30 µs/frame** (0.0003 ms/frame). Frame loop overhead consumes < 0.002% of a 16.67 ms frame budget at 60 Hz.
   - **Purity:** `packages/runtime/src/loop/frame-loop-purity.test.ts` pins that `frame-loop.ts` and the per-frame execution path import nothing from `effect`.
   - **E1 runtime demo measurement:** On `examples/runtime/boot-and-flow` (the blank game on Ruken with runtime flow and DOM screens), Rollup module code contains 158 Effect modules (404.60 kB raw, 86.25 kB gzip).
-- **Inside a Ruken frame.** The page booted standalone, which skips the `hello`/`welcome` round trip. The handshake itself is covered by `examples/placeholder/src/boot.test.ts` under the fake host.
+- **Inside a Ruken frame.** The page booted standalone, which skips the `hello`/`welcome` round trip. The handshake itself is covered by `games/placeholder/src/boot.test.ts` under the fake host.

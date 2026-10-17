@@ -13,6 +13,7 @@ import type { RuntimeServices, ScreenDef } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
 import { makeAssets } from '../loading/assets.manager.js'
 import { makeLoadMeter } from '../loading/load-meter.js'
+import { type LocaleDef, makeLocale, singleLocale } from '../locale/locale.manager.js'
 import { makeAppLoop } from '../loop/app-loop.manager.js'
 import type { FrameSource } from '../loop/frames.js'
 import { makePresentationBus } from '../presentation/presentation-bus.manager.js'
@@ -31,6 +32,10 @@ export interface RuntimeTestOptions {
   readonly frames?: ManualFrames | FrameSource
   readonly renderer?: GameRenderer | RendererFactory
   readonly fetch?: typeof fetch
+  /** The game's languages (a Paraglide `runtime.js`); absent, the content's source language alone. */
+  readonly locale?: LocaleDef
+  /** The browser's languages, best first; default none. */
+  readonly languages?: readonly string[]
 }
 
 /**
@@ -160,6 +165,13 @@ export function RuntimeTest(
 
       const bus = yield* makePresentationBus()
       const time = makeTime(bus)
+      const locale = yield* makeLocale({
+        def: options.locale ?? singleLocale(content.game?.source_language ?? 'en'),
+        hosting,
+        browser: options.languages ?? [],
+        bus,
+        element: doc?.documentElement,
+      })
       const veil = yield* makeVeil({
         overlay: layers.overlay,
         reducedMotion: () => false,
@@ -212,6 +224,7 @@ export function RuntimeTest(
         appLoop,
         assets,
         renderer,
+        locale,
       })
 
       runtimeContext = Context.merge(runtimeServices, Context.make(FakeHostHandle, fakeHostHandle))

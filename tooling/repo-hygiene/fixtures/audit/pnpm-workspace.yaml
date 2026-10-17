@@ -1,0 +1,2 @@
+# Its own workspace root, so pnpm audits this lockfile and not the repository's.
+packages: []
