@@ -65,7 +65,7 @@ const PANELS = {
 type ScreenId = keyof typeof PANELS
 
 /** The touch buttons' holds, in the order `keys()` made its buttons: left, right, jump. */
-const TOUCH_IDS: Readonly<Record<string, string>> = { left: 'touch-0', right: 'touch-1', jump: 'touch-2' }
+const TOUCH_IDS: Readonly<Record<string, string>> = { left: 'move-0', right: 'move-1', jump: 'move-2' }
 
 /** A listener for as long as the screen is open. */
 function listen<K extends keyof WindowEventMap>(

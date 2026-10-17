@@ -3,6 +3,7 @@
 // `6d8e5c7`): keys by `KeyboardEvent.code`, touch buttons that hold while pressed, everything released when the
 // window loses focus. It sends what is held, never a "pressed" edge: the sim compares this tick's command with
 // the last one's, so a replay stays a pure function of the command stream.
+import { type InputProfile, inputProfileSchema } from '@mcthaydt/automata-runtime'
 import type { Command, CommandDef } from '@mcthaydt/automata-sim'
 import type { z } from 'zod'
 
@@ -29,6 +30,13 @@ export interface InputMap {
   /** Whether the play screen shows touch buttons when the player uses touch. */
   readonly touch: boolean
   readonly touchButtons: readonly TouchButton[]
+  /**
+   * The bindings as data (M4 spec §2.2): one action per distinct payload, id `<command id>-<n>`, with its keys, its
+   * pad buttons and whether it has a touch button. Rebinding swaps the profile and never the command mapping.
+   */
+  readonly profile: InputProfile
+  /** Pure: the one command for the held actions, merged in iteration order (a later action wins per field). */
+  toCommand(held: Iterable<string>, tick: number): readonly Command[]
   attach(target: Window): InputSource
 }
 
@@ -83,23 +91,57 @@ export function keys<Z extends z.ZodType>(
   const pad = Object.entries(options.pad ?? {}).map(([index, payload]) => ({ index: Number(index), payload }))
   for (const { index, payload } of pad) check(`pad button ${index}`, payload)
 
-  // One touch button per distinct payload, in binding order.
-  const groups = new Map<string, string[]>()
-  for (const [code, payload] of Object.entries(bindings)) {
+  // One action per distinct payload: the keys' payloads in binding order, then any pad payload no key shares.
+  const actions: { id: string; payload: unknown; keys: string[]; pad: number[] }[] = []
+  const actionFor = (payload: unknown): (typeof actions)[number] => {
     const key = JSON.stringify(payload)
-    groups.set(key, [...(groups.get(key) ?? []), code])
+    const found = actions.find((action) => JSON.stringify(action.payload) === key)
+    if (found !== undefined) return found
+    const made = { id: `${command.id}-${actions.length}`, payload, keys: [], pad: [] }
+    actions.push(made)
+    return made
   }
-  const touchButtons: TouchButton[] = [...groups.values()].map((codes, index) => ({
-    id: `touch-${index}`,
-    label: labelFor(codes[0] as string),
-    keys: codes,
-  }))
-  const touchPayload = new Map(touchButtons.map((button) => [button.id, bindings[button.keys[0] as string]]))
+  for (const [code, payload] of Object.entries(bindings)) actionFor(payload).keys.push(code)
+  for (const { index, payload } of pad) actionFor(payload).pad.push(index)
+
+  const touch = options.touch !== false
+  const parsedProfile = inputProfileSchema.safeParse({
+    id: command.id,
+    bindings: Object.fromEntries(
+      actions.map((action) => [
+        action.id,
+        { keys: action.keys, pad: action.pad, touch: touch && action.keys.length > 0 },
+      ]),
+    ),
+  })
+  // A reserved key or pad button is a developer error, thrown now (M4-D3, I-j).
+  if (!parsedProfile.success)
+    throw new Error(`keys(): ${parsedProfile.error.issues.map((issue) => issue.message).join('; ')}`)
+  const profile = parsedProfile.data
+
+  const touchButtons: TouchButton[] = actions
+    .filter((action) => action.keys.length > 0)
+    .map((action) => ({ id: action.id, label: labelFor(action.keys[0] as string), keys: action.keys }))
+  const payloadOf = new Map(actions.map((action) => [action.id, action.payload]))
+
+  /** The parsed payload for payloads merged in order over the idle payload; undefined when the schema refuses it. */
+  const merge = (payloads: readonly unknown[]): unknown => {
+    const parsed = schema.safeParse(Object.assign({}, base, ...payloads.map(asRecord)))
+    return parsed.success ? parsed.data : undefined
+  }
+  const asCommands = (payload: unknown, tick: number): readonly Command[] =>
+    payload === undefined ? [] : [{ tick, source: 0, seq: tick, type: command.id, payload }]
 
   return {
     command,
-    touch: options.touch !== false,
+    touch,
     touchButtons,
+    profile,
+    toCommand(held, tick) {
+      const payloads: unknown[] = []
+      for (const action of held) if (payloadOf.has(action)) payloads.push(payloadOf.get(action))
+      return asCommands(merge(payloads), tick)
+    },
     attach(target) {
       // Every source held right now (`key:<code>`, `touch:<id>`, `pad:<index>`), in the order it was pressed:
       // merging in this order lets the later press win per field.
@@ -148,22 +190,18 @@ export function keys<Z extends z.ZodType>(
       const payloadNow = (): unknown => {
         const key = held.join('|')
         if (key === cachedFor && cached !== undefined) return cached
-        const merged = Object.assign({}, base, ...held.map((source) => asRecord(payloads.get(source))))
-        const parsed = schema.safeParse(merged)
         cachedFor = key
-        cached = parsed.success ? parsed.data : undefined
+        cached = merge(held.map((source) => payloads.get(source)))
         return cached
       }
 
       return {
         commands(tick) {
           pollPad()
-          const payload = payloadNow()
-          if (payload === undefined) return []
-          return [{ tick, source: 0, seq: tick, type: command.id, payload }]
+          return asCommands(payloadNow(), tick)
         },
         hold(buttonId) {
-          const payload = touchPayload.get(buttonId)
+          const payload = payloadOf.get(buttonId)
           if (payload !== undefined) down(`touch:${buttonId}`, payload)
         },
         release(buttonId) {

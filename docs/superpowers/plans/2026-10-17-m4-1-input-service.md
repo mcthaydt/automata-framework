@@ -3,7 +3,7 @@
 - **Task:** M4.1 in [02](../../02-master-delivery-plan.md). M4 spec [§4.1, §4.2, §4.13](../specs/2026-10-16-m4-input-display-design.md), §5 (boot, per fixed step, lifecycle) and §6. Acceptance I-a, I-b, I-g and I-j.
 - **Lane:** runtime, with one change to the game lane (step 3, the change request in spec §2.2). **Depends on:** M4.0 (`8a345a1`), PRODUCT.1 (input profile) and DX.2 (`InputMap`), all merged.
 - **Status:** In progress.
-- **Progress:** 2 of 8 steps.
+- **Progress:** 3 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -158,7 +158,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
    - **Run:** `pnpm --filter @mcthaydt/automata-runtime exec vitest run --project unit src/input/input-profile.test.ts`. Expect it to fail on the missing exports and on a parse that should fail.
    - **Green:** extend the schema.
    - Done: red was 7 failed (the missing `RESERVED_*` exports, `stick`/`gesture`/`required` dropped by the parse, reserved bindings accepted); then 10 passed. `index.test.ts` was red on the two new names, then green. The API report records the new fields and constants.
-3. [ ] **`InputMap.profile` and `toCommand` (the §2.2 change request).**
+3. [x] **`InputMap.profile` and `toCommand` (the §2.2 change request).**
    - **Red:** in `keys.test.ts`:
      - The profile has one action per distinct payload, with keys, pad buttons and `touch` set.
      - Touch button ids equal the action ids.
@@ -166,6 +166,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
      - Two held actions merge with the later one winning per field.
      - An empty set gives the idle payload.
    - **Green:** derive the profile and add `toCommand`, implemented by the same merge `attach` uses. Move the touch ids in `screens.layout.test.ts` and `default-screens.test.ts`. The existing `attach` tests stay green unchanged, apart from the ids.
+   - Done: red was 9 failed (no `profile`, no `toCommand`, `touch-<n>` ids), then 21 passed. `keys()` now parses its profile through `inputProfileSchema`, so a reserved key or pad button throws at definition (I-j). The id rename also reached `examples/e2e/default-screens.e2e.ts` and Emberwick's `TOUCH_IDS` (`games/emberwick/src/screens/emberwick-screens.ts`), which the file table missed; `screens.layout.test.ts` builds its own fixture buttons and keeps its ids. Emberwick: unit 138 passed, Node golden 1 passed, unchanged.
 4. [ ] **`Input` core (I-b).**
    - **Red:** in `input.test.ts`, under jsdom, with a stub `getGamepads` and the `PresentationBus` test layer:
      - A key and a pad button bound to `jump` both held: releasing the key keeps `jump` held (I-b).
