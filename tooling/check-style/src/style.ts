@@ -6,13 +6,25 @@ import { parseSync } from 'oxc-parser'
 // Note: namespace-qualified (ns.defineSystem) and aliased (import { defineSystem as ds }) factories are not recognized.
 // Call define* directly.
 
-export type StyleRule = 'file-name' | 'role-suffix' | 'role-mismatch' | 'role-missing' | 'parse-error'
+export type StyleRule =
+  | 'file-name'
+  | 'role-suffix'
+  | 'role-mismatch'
+  | 'role-missing'
+  | 'parse-error'
+  | 'file-length'
 
 export interface StyleFinding {
   readonly file: string
   readonly rule: StyleRule
   readonly message: string
 }
+
+/**
+ * The longest a non-test source file may be (QB spec §4.1: "huge files"). Past it, split the file by
+ * responsibility. Counted as text lines, so a trailing newline does not add one.
+ */
+export const MAX_SOURCE_LINES = 600
 
 export const ROLES: ReadonlySet<string> = new Set([
   'component',
@@ -130,6 +142,22 @@ function exportedFactories(program: Node): string[] {
 }
 
 export function checkFile(file: string, code: string): StyleFinding[] {
+  return [...lengthFindings(file, code), ...namingFindings(file, code)]
+}
+
+function lengthFindings(file: string, code: string): StyleFinding[] {
+  const lineCount = code.endsWith('\n') ? code.split('\n').length - 1 : code.split('\n').length
+  if (lineCount <= MAX_SOURCE_LINES) return []
+  return [
+    {
+      file,
+      rule: 'file-length',
+      message: `${lineCount} lines; non-test source may have at most ${MAX_SOURCE_LINES}, so split it by responsibility`,
+    },
+  ]
+}
+
+function namingFindings(file: string, code: string): StyleFinding[] {
   const name = basename(file)
   const finding = (rule: StyleRule, message: string): StyleFinding[] => [{ file, rule, message }]
   if (name === 'index.ts') return []
