@@ -1,6 +1,6 @@
 import { Hosting } from '@mcthaydt/automata-host'
 import { HostingTest, runScoped } from '@mcthaydt/automata-host/testing'
-import { Effect, Exit, Scope, SubscriptionRef } from 'effect'
+import { Effect, Exit, Scope } from 'effect'
 import { expect, test } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 import { makePresentationBus } from '../presentation/presentation-bus.manager.js'
@@ -38,7 +38,7 @@ test.runIf(server.browser === 'chromium')(
         expect(contexts).toEqual([])
 
         yield* Effect.promise(() => userEvent.click(document.body))
-        yield* Effect.promise(() => waitFor(() => SubscriptionRef.get(audio.unlocked).pipe(Effect.runSync)))
+        yield* Effect.promise(() => waitFor(() => Effect.runSync(audio.unlocked.get)))
         expect(contexts.map((context) => context.state)).toEqual(['running'])
         expect(unlockedFacts).toEqual([{}])
 
