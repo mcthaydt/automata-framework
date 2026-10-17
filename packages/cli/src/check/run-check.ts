@@ -1,7 +1,7 @@
 import type { Files, ProcessRunner } from '@mcthaydt/automata-node'
 import { Clock, Effect } from 'effect'
 import { type CheckReport, reportOf, type StepName, type StepResult } from './check-report.ts'
-import { boundariesStep, cspStep, noEvalStep, testStep, typecheckStep } from './check-steps.ts'
+import { boundariesStep, cspStep, noEvalStep, secretsStep, testStep, typecheckStep } from './check-steps.ts'
 import type { CspProbe } from './csp-probe.ts'
 
 // `automata check` (DX spec §3.6): the steps in order, each timed with Effect's Clock. Without --fail-fast every
@@ -23,11 +23,16 @@ function stepsFor(options: RunCheckOptions): readonly Step[] {
     ['typecheck', typecheckStep],
     ['test', testStep],
   ]
-  // --sim-only skips the build, and the csp step serves that build.
-  if (!options.simOnly) steps.push(['no-eval', noEvalStep])
+  // --sim-only skips the build, and the secrets and csp steps read that build.
+  if (!options.simOnly) steps.push(['no-eval', noEvalStep], ['secrets', secretsStep])
   if (!options.simOnly && options.csp) steps.push(['csp', cspStep])
   return steps
 }
+
+const buildFailed = (results: readonly StepResult[]): boolean =>
+  results.some(
+    (result) => result.name === 'no-eval' && result.findings.some((finding) => finding.rule === 'build'),
+  )
 
 export function runCheck(
   options: RunCheckOptions,
@@ -35,6 +40,26 @@ export function runCheck(
   return Effect.gen(function* () {
     const results: StepResult[] = []
     for (const [name, step] of stepsFor(options)) {
+      // A dist/ left over from an earlier build is not this game's bundle: say it was not scanned, never pass it.
+      if (name === 'secrets' && buildFailed(results)) {
+        results.push({
+          name,
+          ok: false,
+          ms: 0,
+          toolError: false,
+          findings: [
+            {
+              file: '',
+              line: 0,
+              col: 0,
+              rule: 'build',
+              message: 'not scanned: the build failed (see no-eval)',
+            },
+          ],
+        })
+        if (options.failFast) break
+        continue
+      }
       const start = yield* Clock.currentTimeMillis
       const outcome = yield* Effect.either(step(options.gameDir))
       const ms = (yield* Clock.currentTimeMillis) - start

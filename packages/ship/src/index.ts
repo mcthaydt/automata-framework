@@ -11,5 +11,13 @@ export { portsFor } from './ports/ports-for.ts'
 export { checkVersion } from './prepare/check-version.ts'
 export { type PrepareInput, prepareBuild } from './prepare/prepare-build.ts'
 export { findRootAbsoluteReferences } from './prepare/root-absolute.ts'
+export {
+  type EnvValue,
+  findSecretsInBuild,
+  parseEnvFile,
+  readEnvValues,
+  type SecretFound,
+  scanTextForSecrets,
+} from './prepare/secret-scan.ts'
 export { type PublishInput, publishToRuken, rukenCliPath } from './publish/publish-to-ruken.ts'
 export { type TestRemoteInput, testRemote } from './remote/test-remote.ts'

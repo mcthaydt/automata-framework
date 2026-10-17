@@ -1,5 +1,6 @@
 import { dirname, join } from 'node:path'
 import { Files, ProcessRunner, type RunResult } from '@mcthaydt/automata-node'
+import { readEnvValues, scanTextForSecrets } from '@mcthaydt/automata-ship'
 import { Effect } from 'effect'
 import type { CheckFinding } from './check-report.ts'
 import { CheckToolError, CspProbe } from './csp-probe.ts'
@@ -143,6 +144,39 @@ export const noEvalStep = (gameDir: string): StepEffect =>
         (error) => new CheckToolError({ kind: 'failed', tool: 'no-eval', detail: error.message }),
       )
       findings.push(...scanForEval(`dist/${path}`, code))
+    }
+    return findings
+  })
+
+/**
+ * QB-b: the bundle secret scan from `ship` (the one `prepare-ruken` runs), over the `dist/` the no-eval step just
+ * built, with the game folder's `.env*` values. Files are read as UTF-8 text here, so the offset in a message
+ * counts characters; line and column are what an editor needs.
+ */
+export const secretsStep = (gameDir: string): StepEffect =>
+  Effect.gen(function* () {
+    const files = yield* Files
+    const distDir = join(gameDir, 'dist')
+    const toolError = (detail: string) => new CheckToolError({ kind: 'failed', tool: 'secrets', detail })
+    const envValues = yield* Effect.try({
+      try: () => readEnvValues(gameDir),
+      catch: (cause) => toolError(`could not read the .env files: ${String(cause)}`),
+    })
+    const listed = yield* Effect.mapError(files.listFiles(distDir), (error) => toolError(error.message))
+    const findings: CheckFinding[] = []
+    for (const path of listed) {
+      const text = yield* Effect.mapError(files.readText(join(distDir, path)), (error) =>
+        toolError(error.message),
+      )
+      for (const found of scanTextForSecrets(path, text, envValues)) {
+        findings.push({
+          file: `dist/${found.file}`,
+          line: found.line,
+          col: found.col,
+          rule: `secret-${found.rule}`,
+          message: `${found.detail} at character ${found.offset}`,
+        })
+      }
     }
     return findings
   })

@@ -81,6 +81,16 @@ class EntryMissing extends EntryMissingBase {
 }
 ```
 
+### `EnvValue` (interface)
+
+```ts
+interface EnvValue {
+    readonly file: string;
+    readonly name: string;
+    readonly value: string;
+}
+```
+
 ### `FileError` (class)
 
 ```ts
@@ -95,12 +105,24 @@ class FileError extends FileErrorBase {
 function findRootAbsoluteReferences(distDir: string): RootAbsoluteReferenceFound[];
 ```
 
+### `findSecretsInBuild` (function)
+
+```ts
+function findSecretsInBuild(distDir: string, envValues: readonly EnvValue[]): SecretFound[];
+```
+
 ### `ManifestInvalid` (class)
 
 ```ts
 class ManifestInvalid extends ManifestInvalidBase {
     get message(): string;
 }
+```
+
+### `parseEnvFile` (function)
+
+```ts
+function parseEnvFile(file: string, text: string): EnvValue[];
 ```
 
 ### `portsFor` (function)
@@ -127,6 +149,7 @@ interface PrepareInput {
     readonly distDir: string;
     readonly config: ShipConfig;
     readonly tag?: string | undefined;
+    readonly gameDir?: string | undefined;
 }
 ```
 
@@ -200,6 +223,12 @@ class PublishUsage extends PublishUsageBase {
 }
 ```
 
+### `readEnvValues` (function)
+
+```ts
+function readEnvValues(gameDir: string): EnvValue[];
+```
+
 ### `RootAbsoluteReference` (class)
 
 ```ts
@@ -218,6 +247,33 @@ function rukenCliPath(moduleUrl?: string, exists?: (path: string) => boolean): s
 
 ```ts
 function rukenToml(config: ShipConfig): string;
+```
+
+### `scanTextForSecrets` (function)
+
+```ts
+function scanTextForSecrets(file: string, text: string, envValues: readonly EnvValue[]): SecretFound[];
+```
+
+### `SecretFound` (interface)
+
+```ts
+interface SecretFound {
+    readonly file: string;
+    readonly offset: number;
+    readonly line: number;
+    readonly col: number;
+    readonly rule: string;
+    readonly detail: string;
+}
+```
+
+### `SecretInBuild` (class)
+
+```ts
+class SecretInBuild extends SecretInBuildBase {
+    get message(): string;
+}
 ```
 
 ### `SHIP_PACKAGE` (const)
