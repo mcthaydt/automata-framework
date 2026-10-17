@@ -136,19 +136,21 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       liftWhere('key:')
       liftWhere('touch:')
     }
+    // A bare event target (a replay's fake window) has no document, and so no visibility to follow.
+    const page: Document | undefined = (target as Partial<Window>).document
     const onVisibility = (): void => {
-      if (target.document.visibilityState === 'hidden') liftWhere(undefined)
+      if (page?.visibilityState === 'hidden') liftWhere(undefined)
     }
     target.addEventListener('keydown', onKeyDown)
     target.addEventListener('keyup', onKeyUp)
     target.addEventListener('blur', onBlur)
-    target.document.addEventListener('visibilitychange', onVisibility)
+    page?.addEventListener('visibilitychange', onVisibility)
     yield* Effect.addFinalizer(() =>
       Effect.sync(() => {
         target.removeEventListener('keydown', onKeyDown)
         target.removeEventListener('keyup', onKeyUp)
         target.removeEventListener('blur', onBlur)
-        target.document.removeEventListener('visibilitychange', onVisibility)
+        page?.removeEventListener('visibilitychange', onVisibility)
         liftWhere(undefined)
         listeners.clear()
       }),

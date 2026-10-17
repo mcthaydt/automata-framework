@@ -3,8 +3,14 @@
 // `6d8e5c7`): keys by `KeyboardEvent.code`, touch buttons that hold while pressed, everything released when the
 // window loses focus. It sends what is held, never a "pressed" edge: the sim compares this tick's command with
 // the last one's, so a replay stays a pure function of the command stream.
-import { type InputProfile, inputProfileSchema } from '@mcthaydt/automata-runtime'
+import {
+  type InputProfile,
+  inputProfileSchema,
+  makeInput,
+  type PresentationBus,
+} from '@mcthaydt/automata-runtime'
 import type { Command, CommandDef } from '@mcthaydt/automata-sim'
+import { Effect, Exit, Scope } from 'effect'
 import type { z } from 'zod'
 
 /** One on-screen touch button: every key bound to the same payload shares it. */
@@ -63,6 +69,9 @@ const KEY_LABELS: Readonly<Record<string, string>> = {
 
 /** `KeyA` → `A`, `Digit1` → `1`, an arrow → its arrow, anything else as named. */
 const labelFor = (code: string): string => KEY_LABELS[code] ?? code.replace(/^(Key|Digit)/, '')
+
+/** `attach` builds an Input of its own; nothing reads its facts. */
+const SILENT_BUS: PresentationBus = { publish: () => {}, subscribe: () => () => {} }
 
 const asRecord = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {}
@@ -132,87 +141,39 @@ export function keys<Z extends z.ZodType>(
   const asCommands = (payload: unknown, tick: number): readonly Command[] =>
     payload === undefined ? [] : [{ tick, source: 0, seq: tick, type: command.id, payload }]
 
+  // The parsed payload for the last held list, so a tick with nothing new parses nothing.
+  let cachedFor: string | undefined
+  let cached: unknown
+  const toCommand = (held: Iterable<string>, tick: number): readonly Command[] => {
+    const known: string[] = []
+    for (const action of held) if (payloadOf.has(action)) known.push(action)
+    const key = known.join('|')
+    if (key !== cachedFor) {
+      cachedFor = key
+      cached = merge(known.map((action) => payloadOf.get(action)))
+    }
+    return asCommands(cached, tick)
+  }
+
   return {
     command,
     touch,
     touchButtons,
     profile,
-    toCommand(held, tick) {
-      const payloads: unknown[] = []
-      for (const action of held) if (payloadOf.has(action)) payloads.push(payloadOf.get(action))
-      return asCommands(merge(payloads), tick)
-    },
+    toCommand,
     attach(target) {
-      // Every source held right now (`key:<code>`, `touch:<id>`, `pad:<index>`), in the order it was pressed:
-      // merging in this order lets the later press win per field.
-      const held: string[] = []
-      const payloads = new Map<string, unknown>()
-      const down = (source: string, payload: unknown): void => {
-        if (payloads.has(source)) return
-        held.push(source)
-        payloads.set(source, payload)
-      }
-      const up = (source: string): void => {
-        if (!payloads.delete(source)) return
-        held.splice(held.indexOf(source), 1)
-      }
-      const releaseAll = (): void => {
-        held.length = 0
-        payloads.clear()
-      }
-
-      const onKeyDown = (event: KeyboardEvent): void => {
-        const payload = bindings[event.code]
-        if (payload === undefined) return
-        // Keep Space and the arrows from scrolling the page.
-        event.preventDefault()
-        down(`key:${event.code}`, payload)
-      }
-      const onKeyUp = (event: KeyboardEvent): void => up(`key:${event.code}`)
-      target.addEventListener('keydown', onKeyDown)
-      target.addEventListener('keyup', onKeyUp)
-      target.addEventListener('blur', releaseAll)
-
-      const pollPad = (): void => {
-        if (pad.length === 0) return
-        const pads = target.navigator.getGamepads?.() ?? []
-        const standard = [...pads].filter((candidate) => candidate?.mapping === 'standard')
-        for (const { index, payload } of pad) {
-          const pressed = standard.some((candidate) => candidate?.buttons[index]?.pressed === true)
-          if (pressed) down(`pad:${index}`, payload)
-          else up(`pad:${index}`)
-        }
-      }
-
-      // The parsed payload for the current held set, so a tick with nothing new parses nothing.
-      let cachedFor = ''
-      let cached: unknown
-      const payloadNow = (): unknown => {
-        const key = held.join('|')
-        if (key === cachedFor && cached !== undefined) return cached
-        cachedFor = key
-        cached = merge(held.map((source) => payloads.get(source)))
-        return cached
-      }
-
+      // The Input service over `target`, in a scope of its own that `dispose` closes. Nothing here listens to
+      // its facts, so it publishes to a bus no one reads.
+      const scope = Effect.runSync(Scope.make())
+      const input = Effect.runSync(makeInput({ target, profile, bus: SILENT_BUS }).pipe(Scope.extend(scope)))
       return {
         commands(tick) {
-          pollPad()
-          return asCommands(payloadNow(), tick)
+          input.poll()
+          return toCommand(input.held(), tick)
         },
-        hold(buttonId) {
-          const payload = payloadOf.get(buttonId)
-          if (payload !== undefined) down(`touch:${buttonId}`, payload)
-        },
-        release(buttonId) {
-          up(`touch:${buttonId}`)
-        },
-        dispose() {
-          target.removeEventListener('keydown', onKeyDown)
-          target.removeEventListener('keyup', onKeyUp)
-          target.removeEventListener('blur', releaseAll)
-          releaseAll()
-        },
+        hold: (buttonId) => input.hold(buttonId),
+        release: (buttonId) => input.release(buttonId),
+        dispose: () => Effect.runSync(Scope.close(scope, Exit.void)),
       }
     },
   }

@@ -199,6 +199,24 @@ describe('default screens', () => {
     expect(lastX()).toBe(10)
   })
 
+  it('the pad’s Start button pauses play, through the Input service’s pause edge (M4.1)', async () => {
+    const buttons: boolean[] = []
+    Object.defineProperty(window.navigator, 'getGamepads', {
+      configurable: true,
+      value: () => [{ index: 0, mapping: 'standard', buttons: buttons.map((pressed) => ({ pressed })) }],
+    })
+    try {
+      await boot()
+      await toPlay()
+      step()
+      buttons[9] = true
+      step()
+      await until(() => screen('paused') !== null, 'the paused screen')
+    } finally {
+      Reflect.deleteProperty(window.navigator, 'getGamepads')
+    }
+  })
+
   it('shows touch buttons only when the player uses touch', async () => {
     await boot()
     await toPlay()

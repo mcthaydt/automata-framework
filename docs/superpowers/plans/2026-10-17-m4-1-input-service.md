@@ -3,7 +3,7 @@
 - **Task:** M4.1 in [02](../../02-master-delivery-plan.md). M4 spec [§4.1, §4.2, §4.13](../specs/2026-10-16-m4-input-display-design.md), §5 (boot, per fixed step, lifecycle) and §6. Acceptance I-a, I-b, I-g and I-j.
 - **Lane:** runtime, with one change to the game lane (step 3, the change request in spec §2.2). **Depends on:** M4.0 (`8a345a1`), PRODUCT.1 (input profile) and DX.2 (`InputMap`), all merged.
 - **Status:** In progress.
-- **Progress:** 4 of 8 steps.
+- **Progress:** 5 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -186,7 +186,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
      - Deviation: `device` and `profile` are `SubscriptionRef`s, which are Effect's `Subscribable`.
      - `RuntimeFacts` gains `input.device.changed`.
      - The menu table also binds PageUp and PageDown for paging; the triggers 6 and 7 adjust.
-5. [ ] **Play screen and `attach` through `Input`.**
+5. [x] **Play screen and `attach` through `Input`.**
    - **Red:** in `default-screens.test.ts`, the play screen samples one command per step from a key and from a touch button through the service. An Escape press pauses through `onPress('pause')`. Leaving play closes the service, so a key after leaving does nothing.
    - **Green:**
      - The play screen builds `makeInput` in its scope and passes `commands: (tick) => (input.poll(), game.input.toCommand(input.held(), tick))`.
@@ -194,6 +194,12 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
      - The Escape and `KeyP` listener becomes `onPress('pause')` plus `KeyP`, which the game's own profile may bind.
      - `keys().attach` builds the same core in a private scope it closes on `dispose`.
    - **Emberwick check:** Emberwick (`games/emberwick`) still uses `attach`. Its golden (`games/emberwick` golden run) must stay unchanged. Any mismatch is investigated, never rebaselined.
+   - Done, with the red tests changed. A screen test for "hidden page releases the key" already passed before the change: hiding the page pauses play, so it could not discriminate. It was replaced by "the pad's Start pauses play through the pause edge", which went red ("timed out waiting for the paused screen") and then green. In `keys.test.ts`, "releases everything when the page is hidden" went red (the key stayed held), then green, as did "keeps an action held while another key for it is still down".
+     - Games without an input map get an empty profile, so Escape and Start still pause.
+     - `KeyP` stays a default-screens listener.
+     - `toCommand` memoises the parse for an unchanged held list, as `attach` did.
+     - The Input core skips visibility for a target with no `document`, such as Emberwick's golden replay's fake window.
+     - Result: game input and screens, 42 passed. Emberwick unit, 138 passed. Emberwick Node golden, 1 passed, unchanged.
 6. [ ] **Manifest inputs (I-g).**
    - **Red:** `check-inputs.test.ts`:
      - pad buttons without `gamepad` fail, naming the action and `runtime.inputs`;

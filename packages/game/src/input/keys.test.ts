@@ -155,6 +155,22 @@ describe('keys() attached', () => {
     expect(payloadAt(source)).toEqual([{ x: 0, y: 0, jump: false }])
   })
 
+  it('releases everything when the page is hidden (the Input service, M4.1)', () => {
+    press('ArrowLeft')
+    source.hold('move-2')
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' })
+    document.dispatchEvent(new Event('visibilitychange'))
+    Reflect.deleteProperty(document, 'visibilityState')
+    expect(payloadAt(source)).toEqual([{ x: 0, y: 0, jump: false }])
+  })
+
+  it('keeps an action held while another key for it is still down', () => {
+    press('ArrowLeft')
+    press('KeyA')
+    lift('ArrowLeft')
+    expect(payloadAt(source)).toEqual([{ x: -1, y: 0, jump: false }])
+  })
+
   it('holds and releases a touch button', () => {
     source.hold('move-1')
     expect(payloadAt(source)).toEqual([{ x: 1, y: 0, jump: false }])
