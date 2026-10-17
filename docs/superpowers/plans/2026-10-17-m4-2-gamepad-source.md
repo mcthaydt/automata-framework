@@ -3,7 +3,7 @@
 - **Task:** M4.2 in [02](../../02-master-delivery-plan.md). M4 spec [§4.3](../specs/2026-10-16-m4-input-display-design.md), §4.2 (active device, facts), §5 (pad hot-plug), §6 (non-standard pad, pad unplugged mid-play), §9 (unit and SDK-contract layers), M4-D2, M4-D3, M4-D9. Acceptance I-c, I-d, I-e.
 - **Lane:** runtime, with the game lane's `keys()` and default screens (this session owns both). **Depends on:** M4.0 (merged) and M4.1 (stacked: this branch starts from `claude/clever-pasteur-ujmu6e-m4-1`, because the gamepad source feeds M4.1's `Input` rather than a second copy of its bookkeeping).
 - **Status:** In progress.
-- **Progress:** 5 of 9 steps.
+- **Progress:** 6 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -150,12 +150,13 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
    - **Red reason:** no connect listeners; `device` is a bare `InputDevice`.
    - **Also:** M4.1's tests and the game's default-screens test move to the `ActiveDevice` shape.
    - **Done.** Red: 4 failed. The device was still the bare `'keyboard'` string; `input.pads` was undefined (`reading 'ref'`); the glyph family was missing; an unplugged pad still held `left`. Green: 52 passed in `runtime/src/input`; game unit 90 passed; runtime typecheck 0 errors. `RuntimeFacts` gains `input.pad.connected` and `input.pad.disconnected` (`PadInfo`) and `glyphs` on `input.device.changed`. The runtime index exports `ActiveDevice`, `PadInfo` and `GlyphFamily`. The game's default-screens test reads no device, so it needed no change.
-6. [ ] **Reserved button contract (M4-D3, R-3).**
+6. [x] **Reserved button contract (M4-D3, R-3).**
    - **Test:** `packages/runtime/src/input/reserved.contract.test.ts`, using `HostingTest` with an `env` override: injected `getGamepads`, `hasFocus` true, and a manual `requestFrame` and `timers.now`.
    - **Red:**
      - holding standard button 8 for 600 ms of frames makes the fake host receive one `host.summon` whose `button` is in `RESERVED_PAD_BUTTONS`;
      - an `Input` over the same pad holds no action and fires no menu edge for that button.
    - **Red reason:** first written against a deliberately wrong expectation, `button` ∉ `[16]`, to prove the test reads the SDK; then set to the reserved list.
+   - **Done.** The first run failed before the expectation, with no `host.summon`: the poller runs on `timers.setTimeout(tick, 50)`, not on frames. The test now drives that 50 ms tick by hand, and other timers stay real. It then failed for the intended reason, "expected [ 16 ] to include 8". With `RESERVED_PAD_BUTTONS` it passed (1). The test holds each standard button in turn until one summons the host, so it does not assume the index. The Input half (no held action, no menu edge, in play and menu) passed from the start; it is a guard.
 7. [ ] **`keys()` sticks, and the reconnect pause (M4-D9).**
    - **Tests:** `packages/game/src/input/keys.test.ts`, `packages/game/src/screens/default-screens.test.ts`, `packages/runtime/src/time/time.test.ts`.
    - **Red:**
