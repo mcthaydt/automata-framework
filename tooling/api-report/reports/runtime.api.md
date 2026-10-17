@@ -602,6 +602,7 @@ interface ScreenContext {
 interface ScreenDef<R = never> {
     readonly id: string;
     readonly pausesSim?: boolean;
+    readonly kind?: 'menu' | 'gameplay';
     readonly fonts?: readonly string[];
     enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
     openMenu?(): boolean;

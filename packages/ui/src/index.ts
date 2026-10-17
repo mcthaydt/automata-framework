@@ -14,6 +14,14 @@ export { reducedMotion } from './browser/reduced-motion'
 export { type Sleeper, sleepWhenHidden } from './browser/sleep-when-hidden'
 export { suppressPageGestures } from './browser/suppress-page-gestures'
 export { default as Dialog } from './dialog/Dialog.svelte'
+export { interceptBackGesture, sendBack } from './focus/back-gesture'
+export {
+  CURSOR_IDLE_MS,
+  type CursorInput,
+  CursorRunner,
+  cursorHidden,
+  type ScreenKind,
+} from './focus/cursor-policy'
 export {
   arrowKeyNav,
   FocusNavigator,
@@ -23,6 +31,7 @@ export {
   scrollWithin,
   tabbables,
 } from './focus/focus-nav'
+export { isTap, PAGE_SWIPE, releaseStep, WheelPager } from './focus/page-swipe'
 export {
   classifyFormFactor,
   type FormFactor,
