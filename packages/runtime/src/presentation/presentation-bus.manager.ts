@@ -15,6 +15,12 @@ export interface RuntimeFacts {
     readonly device: 'keyboard' | 'gamepad' | 'touch'
     readonly previous: 'keyboard' | 'gamepad' | 'touch'
   }
+  /** The first gesture after `session.ready` built and resumed the audio graph (M5 spec §4.6). */
+  readonly 'audio.unlocked': Readonly<Record<never, never>>
+  /** No audio context could be built or resumed; the game runs silent (M5 spec §6). */
+  readonly 'audio.unavailable': { readonly reason: string }
+  /** A sound or a track could not be loaded or decoded; it is silent and nothing else stops (M5 spec §6). */
+  readonly 'audio.decode.failed': { readonly alias: string; readonly reason: string }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {
