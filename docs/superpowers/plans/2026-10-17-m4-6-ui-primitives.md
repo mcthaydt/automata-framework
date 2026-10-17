@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 6 of 13 steps.
+- **Progress:** 7 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -86,7 +86,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: Button renders `.af-control` with `kind` primary (and `data-kind="primary"`, so the layout check sizes it 48 px), secondary or ghost; `disabled` disables it;
    - Red: IconButton's accessible name is its `label` prop, and the icon is `aria-hidden`;
    - Red: an IconButton with an empty `label` throws while it mounts, so a nameless one cannot ship.
-7. [ ] **Toggle and Slider.** `toggle-slider.test.ts`:
+7. [x] **Toggle and Slider.** Red: `Failed to resolve import "./Slider.svelte"`; green 6 of 6; `svelte-check` clean. Toggle is controlled as OptionGroup is (a refused flip is undone). Slider shows its `valueText` words beside the track as well. `toggle-slider.test.ts`:
    - Red: Toggle is a checkbox with `role="switch"`, and its `onLabel` and `offLabel` text shows the state (not colour alone); a click reports `onchange(checked)`.
    - Red: Slider is a labelled `<input type="range">` with `min`, `max` and `step`; an `input` event reports the value; `valueText` gives the value its words (`aria-valuetext`);
    - its thumb is a 44 px target (checked in the layout contract, step 11).
