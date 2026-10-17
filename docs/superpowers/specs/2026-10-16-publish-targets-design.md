@@ -1,8 +1,8 @@
 # PUB: publish to Ruken or itch.io
 
-- **Status:** drafted 2026-10-16 (PUB.0). **Pending Owner review.** Nothing here is implemented before that review. PUB-D1 to PUB-D4 (§10) run on their recommended defaults until the Owner changes them.
+- **Status:** reviewed. Drafted 2026-10-16 (PUB.0); **approved by the Owner on 2026-10-16** with the recommended defaults PUB-D1 to PUB-D4 (§10), which are now decisions.
 - **Owner direction (2026-10-16):** "loosen the Ruken coupling … make it where you can publish to Ruken or itch.io easily".
-- **Decision record:** [ADR 0005](../../adr/0005-publish-targets.md) (proposed), which refines [ADR 0004](../../adr/0004-ruken-first-host.md).
+- **Decision record:** [ADR 0005](../../adr/0005-publish-targets.md) (accepted 2026-10-16), which refines [ADR 0004](../../adr/0004-ruken-first-host.md).
 
 ## 0. Sources
 
@@ -163,7 +163,7 @@ It needs `BUTLER_API_KEY`, and fails early, with how to get one, when the key or
 2. Standalone saves should report when they fall back to memory, instead of granting `saves` silently.
 3. A `SavesFlushRes.persisted` value for device storage (for example `'device'`). Until then, the web adapter answers `'host-outbox'`, as the SDK's standalone session does.
 
-## 10. Owner decisions (recommended defaults in effect until reviewed)
+## 10. Owner decisions (approved as recommended, 2026-10-16)
 
 | ID | Question | Recommended default | Why |
 |---|---|---|---|

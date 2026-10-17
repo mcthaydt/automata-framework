@@ -30,6 +30,10 @@ jobs:
     name: version packages PR, or publish
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # QB.1: the job waits for the Owner's approval in the `release` environment (Settings -> Environments,
+    # required reviewer: the Owner, deployments from main only) before it can version or publish anything.
+    # Every push to main therefore waits for one approval; rejecting one only skips that run.
+    environment: release
     permissions:
       contents: write
       pull-requests: write

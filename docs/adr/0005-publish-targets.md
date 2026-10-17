@@ -1,6 +1,6 @@
 # ADR 0005: Publish targets (Ruken is the reference, itch.io is a peer)
 
-- Status: Proposed (Owner direction 2026-10-16; written-spec review pending with PUB.0)
+- Status: Accepted (Owner, 2026-10-16, with the PUB.0 spec)
 - Date: 2026-10-16
 - Refines: [ADR 0004](0004-ruken-first-host.md) (Ruken first); law 7 (the host is a port)
 - Spec: [publish targets](../superpowers/specs/2026-10-16-publish-targets-design.md)

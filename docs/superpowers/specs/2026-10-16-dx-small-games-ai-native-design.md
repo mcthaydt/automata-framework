@@ -1,6 +1,6 @@
 # DX: small games, agent-native, claims made true
 
-> **Status:** draft, 2026-10-16. Milestone spec for task **DX.0**; Owner decisions D-DX-1 to D-DX-5 recorded 2026-10-16 (§13); Owner review of the whole spec pending. Nothing in this milestone is implemented until this spec is reviewed (01 Decomposition §5, 04 How we build).
+> **Status:** reviewed. Drafted 2026-10-16; **approved by the Owner on 2026-10-16** with every recommended default (D-DX-1 to D-DX-5, §13). Its contracts are frozen; changes are additive or go through a written change request (04 How we build). Each task still writes its TDD plan before code.
 >
 > **Why now (Owner, 2026-10-16):** the framework is not optimized for what the website sells. Small changes take too much code, and the agent story is weaker than the site's pitch. The website's restoration ledger lists every claim the 14 October redesign cut. This milestone makes the cuttable-but-wanted ones true, then restores them with their proof.
 
@@ -203,6 +203,7 @@ Commands: `automata create-game <dir> [--id <id>] [--title <title>]` from `@mcth
 | `typecheck` | `tsc -p . --noEmit` | Type errors |
 | `test` | `vitest run` | A test or golden fails |
 | `no-eval` (skipped with `--sim-only`) | Builds, then scans `dist/**/*.js` for `eval(`, `new Function(`, `Function(` string-call forms and `setTimeout`/`setInterval` with a string argument | Any match outside an allowlisted, documented vendor location |
+| `secrets` (skipped with `--sim-only`; added by QB.2) | Scans the `dist/` that `no-eval` built with `ship`'s bundle secret scanner, the same one `prepare-ruken` runs: known key formats, the values of the game folder's `.env*` variables and high-entropy strings (QB spec §4.3) | Any match. If the build failed, the step reports that nothing was scanned |
 | `csp` (opt-in `--csp`) | Serves `dist/` with Ruken's `compileHeaders` CSP, then loads it in Playwright Chromium until the game reports ready | A CSP violation report or no ready signal within 20 s |
 
 `--json` prints `{ ok, steps: [{ name, ok, ms, findings: [{ file, line, col, rule, message }] }] }`, the shape the plugin hook (§3.7) feeds back to the agent. Exit codes: 0 pass, 1 findings, 2 tool error.

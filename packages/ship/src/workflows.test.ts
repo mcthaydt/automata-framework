@@ -75,6 +75,19 @@ describe('every workflow', () => {
     },
   )
 
+  it.each(ALL)(
+    "%s trusts a container job's checkout in git's system config, which every HOME reads",
+    (name) => {
+      // The checkout belongs to the runner user, so git run as root needs safe.directory. A --global setting lands
+      // in HOME's .gitconfig, and the parity and evidence steps set HOME to /root for Firefox: there git did not
+      // read it, and `pnpm evidence` failed on main's first push after DX.9 (2026-10-17).
+      for (const job of Object.values(workflow(name).jobs).filter((each) => each.container !== undefined)) {
+        for (const step of (job.steps ?? []).filter((each) => each.run?.includes('safe.directory')))
+          expect(step.run).toContain('git config --system --add safe.directory')
+      }
+    },
+  )
+
   it.each(ALL)('%s reads the repository and nothing more by default', (name) => {
     expect(workflow(name).permissions).toEqual({ contents: 'read' })
   })
@@ -83,7 +96,7 @@ describe('every workflow', () => {
 describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runner on this account)", () => {
   const ci = workflow('ci.yml')
 
-  it.each(['checks', 'parity', 'e2e'])(
+  it.each(['checks', 'parity', 'e2e', 'frame-budget'])(
     'ci.yml %s runs on the AF runner label, switchable by vars.AF_LINUX_RUNNER, never falling back to hosted',
     (name) => {
       const runsOn = ci.jobs[name]?.['runs-on'] ?? ''
@@ -319,6 +332,35 @@ describe('ci.yml (AF)', () => {
     expect(JSON.stringify(e2e?.steps)).toContain('e2e-report')
   })
 
+  // PRODUCT.7 (PRODUCT spec §2 F5): ms/frame on the GPU runner, with the GPU to itself (AGENTS.md), compared
+  // with tooling/frame-budget/budget.json, which fails closed until the first GPU-runner run sets it.
+  it('runs the frame-budget probe nightly on the GPU runner, alone, and checks it against the recorded budget', () => {
+    const job = ci.jobs['frame-budget']
+    expect(job?.if).toContain("github.event_name == 'schedule'")
+    expect(job?.if).toContain('inputs.nightly')
+    expect(job?.if).toContain("inputs.spec == ''")
+    expect(job?.['runs-on']).toBe(ci.jobs.e2e?.['runs-on'])
+    // After the journeys, never beside them, and one probe at a time across runs.
+    expect(job?.needs).toBe('e2e')
+    expect(job?.if).toContain('!cancelled()')
+    const concurrency = (job as { concurrency?: { group: string; 'cancel-in-progress': boolean } })
+      .concurrency
+    expect(concurrency).toEqual({ group: 'af-gpu-probe', 'cancel-in-progress': false })
+    const runs = (job?.steps ?? []).map((step) => step.run ?? '')
+    const probe = runs.indexOf('pnpm test:frame-budget')
+    const check = runs.indexOf('pnpm budget:frame')
+    expect(probe).toBeGreaterThan(-1)
+    expect(check).toBeGreaterThan(probe)
+    // The results are the evidence the budget is set from, so they are kept whatever the check said.
+    const upload = (job?.steps ?? []).find((step) => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(upload?.if).toBe('always()')
+    expect(upload?.with?.name).toBe('frame-budget-results')
+    expect(upload?.with?.path).toBe('frame-budget-results/')
+    const rootPackage = packageJson('.')
+    expect(rootPackage.scripts['test:frame-budget']).toBe('AF_FRAME_BUDGET=1 playwright test')
+    expect(rootPackage.scripts['budget:frame']).toBe('node tooling/frame-budget/src/check-cli.ts')
+  })
+
   it('runs the journeys with Playwright from the root, with the spec passed straight through', () => {
     const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
     expect(rootPackage.scripts['test:e2e']).toBe('playwright test')
@@ -355,6 +397,58 @@ describe('ci.yml (AF)', () => {
       .map((job) => job.with?.['artifact-name'] ?? 'game-dist')
     expect(names.length).toBeGreaterThan(1)
     expect(new Set(names).size).toBe(names.length)
+  })
+})
+
+describe('ci.yml evidence file (DX spec §3.10)', () => {
+  const ci = workflow('ci.yml')
+  const steps = ci.jobs.parity?.steps ?? []
+  const scripts = packageJson('.').scripts as Record<string, string>
+  const GOLDEN_PACKAGES = [
+    'packages/sim',
+    'packages/testing',
+    'packages/physics',
+    'games/emberwick',
+    'examples/physics/bodies-2d',
+  ]
+
+  it('runs every golden package’s test:evidence, then writes evidence.json from their reports', () => {
+    expect(scripts.evidence).toBe(
+      'turbo run test:evidence --concurrency=3 -- --browser.connectTimeout=120000 && node tooling/evidence/src/cli.ts',
+    )
+    for (const path of GOLDEN_PACKAGES)
+      expect(packageJson(path).scripts['test:evidence'], path).toMatch(
+        /^vitest run (--project [\w-]+ )+(\S+\.test\.ts )+--reporter=default --reporter=json --outputFile\.json=\.evidence\/goldens\.json$/,
+      )
+  })
+
+  it('writes the evidence file on pushes to main only, after parity passed, in the parity container', () => {
+    const parity = steps.findIndex((step) => step.run === 'pnpm test:parity')
+    const evidence = steps.findIndex((step) => step.run === 'pnpm evidence')
+    expect(evidence).toBeGreaterThan(parity)
+    expect(steps[evidence]?.if).toBe("github.event_name == 'push'")
+    // Firefox refuses to run as root under Actions' HOME, as in the parity step.
+    expect(steps[evidence]?.env?.HOME).toBe('/root')
+  })
+
+  it('uploads evidence.json and its JSON Schema as the `evidence` artifact, before the work folder is handed back', () => {
+    const upload = steps.findIndex((step) => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(upload).toBeGreaterThan(steps.findIndex((step) => step.run === 'pnpm evidence'))
+    expect(upload).toBeLessThan(steps.length - 1)
+    expect(steps[upload]?.if).toBe("github.event_name == 'push'")
+    expect(steps[upload]?.with?.name).toBe('evidence')
+    expect(steps[upload]?.with?.path).toBe('evidence.json\nevidence.schema.json\n')
+    expect(steps[upload]?.with?.['if-no-files-found']).toBe('error')
+  })
+
+  it('fetches the release tags, so the file can say which package versions were released', () => {
+    const checkout = steps.find((step) => step.uses?.startsWith('actions/checkout@'))
+    expect(checkout?.with?.['fetch-tags'] as unknown).toBe(true)
+  })
+
+  it('runs the evidence step in ci:local too, after parity', () => {
+    const local = (scripts['ci:local'] ?? '').split(' && ')
+    expect(local.indexOf('pnpm evidence')).toBe(local.indexOf('pnpm test:parity') + 1)
   })
 })
 
@@ -397,6 +491,29 @@ describe('ci.yml release checks (M2.4 spec §3.5)', () => {
   })
 })
 
+describe('repo hygiene in ci.yml and ci:local (QB.1)', () => {
+  const steps = workflow('ci.yml').jobs.checks?.steps ?? []
+  const runs = steps.map((step) => step.run ?? '')
+  const local = (
+    JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts['ci:local'] as string
+  ).split(' && ')
+
+  it.each(['pnpm knip', 'pnpm audit:deps', 'pnpm secrets'])('runs %s in CI and in ci:local', (command) => {
+    expect(runs).toContain(command)
+    expect(local).toContain(command)
+  })
+
+  it('runs knip in pnpm check', () => {
+    expect((packageJson('.').scripts.check as string).split(' && ')).toContain('pnpm knip')
+  })
+
+  it('reports new dependencies on pull requests, against the base branch', () => {
+    const report = steps.find((step) => step.run?.includes('pnpm deps:new'))
+    expect(report?.if).toBe("github.event_name == 'pull_request'")
+    expect(report?.run).toContain('--base origin/main')
+  })
+})
+
 describe('release-packages.yml (M2.4 spec §3.5)', () => {
   const release = workflow('release-packages.yml')
   const job = release.jobs.release
@@ -415,6 +532,10 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
   it('stays off the shared self-hosted runners, since it holds a write token', () => {
     expect(job?.['runs-on']).toBe('ubuntu-latest')
     expect((job as { 'timeout-minutes'?: number })['timeout-minutes']).toBe(20)
+  })
+
+  it('waits for the Owner: the job runs in the release environment, which requires the Owner as reviewer (QB.1)', () => {
+    expect((job as { environment?: string }).environment).toBe('release')
   })
 
   it('may write contents, pull requests and packages, nothing else', () => {
