@@ -232,6 +232,24 @@ function hostingOver(session: RukenSession, options: HostingOptions, state: Host
         }),
       ),
     },
+    leaderboards: {
+      submit: (board, score, meta) =>
+        whileOpen(
+          'leaderboard.submit',
+          Effect.tryPromise({
+            try: () => session.leaderboards.submit(board, score, meta),
+            catch: (cause) => toHostError('leaderboard.submit', cause),
+          }),
+        ),
+      get: (board, query) =>
+        whileOpen(
+          'leaderboard.get',
+          Effect.tryPromise({
+            try: () => session.leaderboards.get(board, query),
+            catch: (cause) => toHostError('leaderboard.get', cause),
+          }),
+        ),
+    },
     setFullscreen: (on) =>
       whileOpen(
         'display.fullscreen',
