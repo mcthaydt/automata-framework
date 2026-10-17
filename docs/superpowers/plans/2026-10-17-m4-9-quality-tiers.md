@@ -3,7 +3,7 @@
 - **Task:** M4.9 in [02](../../02-master-delivery-plan.md), M4 spec [§4.11](../specs/2026-10-16-m4-input-display-design.md) (acceptance Q-a, Q-b), §6 (a filter that fails to compile), M4-D6 (`high`, no auto-detect).
 - **Lanes:** render (`render-pixi`) and runtime (the settings field and the fact). **Depends on:** M4.0 (merged) and PRODUCT.1 (merged; the post-filter slot this extends).
 - **Status:** In progress.
-- **Progress:** 7 of 10 steps.
+- **Progress:** 8 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -75,7 +75,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - `filterArea` is pinned to the target;
    - `adopt` moves the world and UI into the target and puts its sprite in the letterbox root;
    - a filtered UI child keeps its own filters.
-8. [ ] **The composite in the renderer.** Test file: `renderer.test.ts`.
+8. [x] **The composite in the renderer.** Test file: `renderer.test.ts`. Red: `expected undefined to be defined` (no `stage.composite`) and `no composite` in the other three cases; green 17 of 17, render-pixi 110 of 110 and game 322 of 322. `draw` renders `composite.stage` into `composite.texture` with `app.renderer.render` before `app.render`. The PRODUCT.1 slot test now passes `composite: false`, so it keeps asserting the scene's filters; the new case asserts the composite's.
    - Red: with `pixelArt` on and a logical size, `stage.composite` is defined, and `draw` renders the composite stage into its texture before `app.render`.
    - Red: a geometry change resizes the composite to the frame's field height.
    - Red: the slot's filters land on the composite stage, not the scene.

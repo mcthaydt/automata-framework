@@ -16,6 +16,7 @@ import {
   type PostFilterTarget,
 } from './filter/post-filter-slot.js'
 import { canvasResolutionFor } from './letterbox/canvas-resolution.js'
+import { CompositeTarget } from './letterbox/composite-target.js'
 import { LetterboxFrame } from './letterbox/letterbox.js'
 
 export type RendererPreference = 'webgl' | 'webgpu'
@@ -40,6 +41,11 @@ export interface PixiRendererOptions {
   readonly barColor?: number | undefined
   /** The graphics quality tier to start at (M4 spec §4.11); `PixiStage.setQuality` changes it. Default `high`. */
   readonly quality?: QualityTier | undefined
+  /**
+   * Draws the world and UI at the logical size and resolution 1, then nearest-upscales them into the letterbox
+   * (`CompositeTarget`). Needs a letterbox. Default: on when `pixelArt` is on.
+   */
+  readonly composite?: boolean | undefined
   /** Optional view factory resolver for entity components. */
   readonly entityViews?: EntityViewResolver | undefined
   /**
@@ -74,6 +80,8 @@ export interface PixiStage {
   readonly backdrop: Container
   /** The delta consumer tracking entity views. */
   readonly consumer: RenderDeltaConsumer
+  /** The fixed-resolution composite the world and UI draw into, when it is on. */
+  readonly composite?: CompositeTarget | undefined
   /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
   filters: Filter[] | null
   /** The post-filter slot over `filters`: each owner keeps its own filters by id and order (PRODUCT spec §2 F1). */
@@ -166,6 +174,7 @@ export function createPixiRenderer(
       let world: Container
       let ui: Container
       let backdrop: Container
+      let composite: CompositeTarget | undefined
 
       if (options.logicalWidth != null && options.logicalHeight != null) {
         frame = new LetterboxFrame({
@@ -179,7 +188,12 @@ export function createPixiRenderer(
         world = frame.world
         ui = frame.ui
         backdrop = frame.backdrop
-        frame.layout(initialGeometry.usable.width, initialGeometry.usable.height)
+        const { fieldHeight } = frame.layout(initialGeometry.usable.width, initialGeometry.usable.height)
+        if ((options.composite ?? true) && options.pixelArt !== false) {
+          composite = new CompositeTarget({ width: options.logicalWidth, height: options.logicalHeight })
+          composite.adopt(frame)
+          composite.resize(fieldHeight)
+        }
       } else {
         backdrop = new Container()
         world = new Container()
@@ -191,13 +205,17 @@ export function createPixiRenderer(
 
       const consumer = new RenderDeltaConsumer(world, options.entityViews)
 
-      // The rendered scene's filters: the letterboxed scene when there is a frame, else the whole stage.
+      // The rendered scene's filters: the composite when it is on, so their cost is bounded by the logical size;
+      // else the letterboxed scene when there is a frame; else the whole stage.
       const sceneFilters: PostFilterTarget = {
         get filters(): Filter[] | null {
+          if (composite) return composite.stage.filters as Filter[] | null
           return (frame ? frame.scene.filters : app.stage.filters) as Filter[] | null
         },
         set filters(val: Filter[] | null) {
-          if (frame) {
+          if (composite) {
+            composite.stage.filters = val
+          } else if (frame) {
             frame.scene.filters = val
           } else {
             app.stage.filters = val
@@ -219,6 +237,7 @@ export function createPixiRenderer(
         ui,
         backdrop,
         consumer,
+        composite,
         get filters(): Filter[] | null {
           return sceneFilters.filters
         },
@@ -240,7 +259,8 @@ export function createPixiRenderer(
 
       const unsubscribe = target.geometry.onChange((g) => {
         app.renderer.resize(g.usable.width, g.usable.height)
-        frame?.layout(g.usable.width, g.usable.height)
+        const layout = frame?.layout(g.usable.width, g.usable.height)
+        if (layout) composite?.resize(layout.fieldHeight)
         formFactor = g.formFactor
         applyResolution()
       })
@@ -249,6 +269,7 @@ export function createPixiRenderer(
         Effect.sync(() => {
           unsubscribe()
           consumer.destroy()
+          composite?.destroy()
           frame?.destroy()
           try {
             app.destroy(true, { children: true })
@@ -269,6 +290,8 @@ export function createPixiRenderer(
         draw(frameInfo: FrameInfo): void {
           consumer.interpolate(frameInfo.alpha)
           hooks.draw?.(frameInfo)
+          if (composite)
+            app.renderer.render({ container: composite.stage, target: composite.texture, clear: true })
           app.render()
         },
         reset(): void {
