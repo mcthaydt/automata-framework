@@ -13,3 +13,4 @@ test-results/
 .ruken/
 packages/*/VENDORED.md
 .svelte-kit/
+frame-budget-results/
