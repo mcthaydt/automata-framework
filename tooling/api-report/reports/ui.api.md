@@ -520,10 +520,18 @@ function measureGeometry(input: GeometryInput): Geometry;
 component from './dialog/Modal.svelte'
 ```
 
-### `ModalProps` (svelte)
+### `ModalProps` (interface)
 
 ```ts
-component from './dialog/Modal.svelte'
+interface ModalProps {
+    title: string;
+    closeLabel: string;
+    onclose: () => void;
+    onbackdrop?: (() => void) | undefined;
+    children?: Snippet | undefined;
+    actions?: Snippet | undefined;
+    testId?: string | undefined;
+}
 ```
 
 ### `NavDirection` (type)
@@ -556,10 +564,22 @@ const padKeyEvents: WeakSet<Event>;
 component from './layout/PagedGrid.svelte'
 ```
 
-### `PagedGridProps` (svelte)
+### `PagedGridProps` (interface)
 
 ```ts
-component from './layout/PagedGrid.svelte'
+interface PagedGridProps<T> {
+    label: string;
+    groups: readonly PageGroup<T>[];
+    most: GridShape;
+    page: number;
+    onpage: (page: number) => void;
+    item: Snippet<[T]>;
+    minTile?: number | undefined;
+    gap?: number | undefined;
+    continued?: ((title: string, part: number) => string) | undefined;
+    dotLabel?: ((position: number, total: number) => string) | undefined;
+    testId?: string | undefined;
+}
 ```
 
 ### `PageGroup` (interface)

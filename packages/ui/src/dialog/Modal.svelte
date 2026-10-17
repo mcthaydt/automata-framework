@@ -11,26 +11,9 @@
 
   `anchor="bottom"` puts it on the bottom edge at every form factor; Sheet is that.
 -->
-<script lang="ts" module>
-import type { Snippet } from 'svelte'
-
-/** The props Modal and Sheet share. */
-export interface ModalProps {
-  title: string
-  /** The Close button's name, in the game's language. */
-  closeLabel: string
-  onclose: () => void
-  /** A tap on the dimmed page around the panel; absent, such a tap does nothing. */
-  onbackdrop?: (() => void) | undefined
-  children?: Snippet | undefined
-  /** The buttons, in reading order. Mark the safe one with `data-initial-focus`. */
-  actions?: Snippet | undefined
-  testId?: string | undefined
-}
-</script>
-
 <script lang="ts">
 import { onMount } from 'svelte'
+import type { ModalProps } from './modal-props.js'
 import { holdModal } from './modal-scope.js'
 
 const {
@@ -50,7 +33,9 @@ const titleId = `${id}-title`
 let scrim = $state<HTMLElement | undefined>(undefined)
 let panel = $state<HTMLElement | undefined>(undefined)
 
-onMount(() => (scrim === undefined || panel === undefined ? undefined : holdModal(scrim, panel, () => onclose())))
+onMount(() =>
+  scrim === undefined || panel === undefined ? undefined : holdModal(scrim, panel, () => onclose()),
+)
 
 function onScrimClick(event: MouseEvent): void {
   if (event.target === scrim) onbackdrop?.()

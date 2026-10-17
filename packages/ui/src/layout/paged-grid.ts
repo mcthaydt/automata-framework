@@ -6,6 +6,8 @@
  * finger can hit. A form factor does not say how tall a screen is (a phone held sideways is both 270 and 430 px).
  */
 
+import type { Snippet } from 'svelte'
+
 /** A titled run of items; each group starts its own page. */
 export interface PageGroup<T> {
   readonly id: string
@@ -31,6 +33,26 @@ export interface GridShape {
 export interface GridBox {
   readonly width: number
   readonly height: number
+}
+
+/** PagedGrid's props: groups of items, the most columns and rows a page has, and the page its owner shows. */
+export interface PagedGridProps<T> {
+  /** The grid's name for assistive technology, also the pager's. */
+  label: string
+  groups: readonly PageGroup<T>[]
+  /** The most columns and rows a page has. */
+  most: GridShape
+  /** The current page, from 0; wrapped into range. */
+  page: number
+  onpage: (page: number) => void
+  item: Snippet<[T]>
+  /** The smallest tile side, in px, before the shape drops a row or column. */
+  minTile?: number | undefined
+  gap?: number | undefined
+  /** How a group's later pages are titled. */
+  continued?: ((title: string, part: number) => string) | undefined
+  dotLabel?: ((position: number, total: number) => string) | undefined
+  testId?: string | undefined
 }
 
 /**

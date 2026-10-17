@@ -18,7 +18,8 @@ export { default as IconButton } from './controls/IconButton.svelte'
 export { default as Slider } from './controls/Slider.svelte'
 export { default as Toggle } from './controls/Toggle.svelte'
 export { default as Dialog } from './dialog/Dialog.svelte'
-export { default as Modal, type ModalProps } from './dialog/Modal.svelte'
+export { default as Modal } from './dialog/Modal.svelte'
+export type { ModalProps } from './dialog/modal-props'
 export { default as Sheet } from './dialog/Sheet.svelte'
 export {
   arrowKeyNav,
@@ -70,7 +71,7 @@ export {
 } from './layout/action-bar'
 export { default as CornerControls } from './layout/CornerControls.svelte'
 export { default as OptionGroup } from './layout/OptionGroup.svelte'
-export { default as PagedGrid, type PagedGridProps } from './layout/PagedGrid.svelte'
+export { default as PagedGrid } from './layout/PagedGrid.svelte'
 export { default as PagerDots } from './layout/PagerDots.svelte'
 export {
   fitColumns,
@@ -78,6 +79,7 @@ export {
   type GridBox,
   type GridPage,
   type GridShape,
+  type PagedGridProps,
   type PageGroup,
   pageOf,
   paginate,

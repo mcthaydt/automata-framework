@@ -8,39 +8,25 @@
   focus navigator steers through the tiles spatially, and paging comes from the owner (a page swipe, a pad's
   shoulder buttons, the dots).
 -->
-<script lang="ts" module>
-import type { Snippet } from 'svelte'
-import type { GridShape, PageGroup } from './paged-grid'
-
-/** PagedGrid's props: groups of items, the most columns and rows a page has, and the page its owner shows. */
-export interface PagedGridProps<T> {
-  /** The grid's name for assistive technology, also the pager's. */
-  label: string
-  groups: readonly PageGroup<T>[]
-  /** The most columns and rows a page has. */
-  most: GridShape
-  /** The current page, from 0; wrapped into range. */
-  page: number
-  onpage: (page: number) => void
-  item: Snippet<[T]>
-  /** The smallest tile side, in px, before the shape drops a row or column. */
-  minTile?: number | undefined
-  gap?: number | undefined
-  /** How a group's later pages are titled. */
-  continued?: ((title: string, part: number) => string) | undefined
-  dotLabel?: ((position: number, total: number) => string) | undefined
-  testId?: string | undefined
-}
-</script>
-
 <script lang="ts" generics="T extends { readonly id: string }">
 import { observeSize } from './observe-size'
-import { fitColumns, fitShape, type GridBox, paginate, wrapPage } from './paged-grid'
 import PagerDots from './PagerDots.svelte'
+import type { PagedGridProps } from './paged-grid'
+import { fitColumns, fitShape, type GridBox, paginate, wrapPage } from './paged-grid'
 
-
-const { label, groups, most, page, onpage, item, minTile = 44, gap = 8, continued, dotLabel, testId }: PagedGridProps<T> =
-  $props()
+const {
+  label,
+  groups,
+  most,
+  page,
+  onpage,
+  item,
+  minTile = 44,
+  gap = 8,
+  continued,
+  dotLabel,
+  testId,
+}: PagedGridProps<T> = $props()
 
 let box = $state<GridBox>({ width: Number.POSITIVE_INFINITY, height: Number.POSITIVE_INFINITY })
 let area = $state<HTMLElement | undefined>(undefined)

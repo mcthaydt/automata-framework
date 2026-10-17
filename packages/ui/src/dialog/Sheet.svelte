@@ -4,7 +4,8 @@
   scroll region, where a thumb reaches the actions. Settings' sub-pages and a "more" menu use it.
 -->
 <script lang="ts">
-import Modal, { type ModalProps } from './Modal.svelte'
+import Modal from './Modal.svelte'
+import type { ModalProps } from './modal-props.js'
 
 const props: ModalProps = $props()
 </script>
