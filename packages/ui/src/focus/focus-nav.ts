@@ -1,9 +1,11 @@
 /**
  * Keyboard and controller focus navigation over the page's own DOM (M1.6 spec §3.5; from
- * FloorFifty `ui/focus-nav.ts` at 122a220, minus steer, page, adjust and the pad guard, which are M4).
+ * FloorFifty `ui/focus-nav.ts` at 122a220, with `steer`, `page` and `adjust` from `ac72660` and the
+ * keyboard repeat guard of M4 spec §4.7).
  *
  * Deliberately DOM order, the same order Tab walks: one order to keep right, so a keyboard player
- * and a controller player never disagree about what comes next. An open modal is the whole world
+ * and a controller player never disagree about what comes next. Only a `[data-focus-grid]` steers
+ * spatially. An open modal is the whole world
  * while it is open. Input sources (M4's gamepad, a game's own bindings) call `move`, `confirm` and
  * `back`; this module never reads a device.
  */

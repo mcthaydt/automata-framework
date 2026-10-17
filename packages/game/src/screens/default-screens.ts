@@ -1,5 +1,6 @@
 import '@mcthaydt/automata-ui/theme.css'
 import './screens.css'
+import { Hosting } from '@mcthaydt/automata-host'
 import {
   AppLoop,
   Flow,
@@ -10,7 +11,7 @@ import {
   Time,
 } from '@mcthaydt/automata-runtime'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { InputMethodTracker } from '@mcthaydt/automata-ui'
+import { InputMethodTracker, interceptBackGesture, sendBack } from '@mcthaydt/automata-ui'
 import { Effect, type Scope, SubscriptionRef } from 'effect'
 import { type Component, flushSync, mount, unmount } from 'svelte'
 import type { InputMap } from '../input/keys.ts'
@@ -83,6 +84,24 @@ function pollMenuPad(target: Window): Effect.Effect<void, never, Scope.Scope> {
   )
 }
 
+/**
+ * The system back gesture (an edge swipe, a mouse's back button) as the screen's Back while it is open (M4 spec §4.7).
+ * Standalone only: hosted, the host owns system back (M4-D10, Ruken request R-2), so nothing is added to history.
+ */
+function backGesture(
+  target: Window,
+  onBack: () => boolean,
+): Effect.Effect<void, never, Scope.Scope | Hosting> {
+  return Effect.gen(function* () {
+    const hosting = yield* Hosting
+    if (hosting.kind !== 'standalone') return
+    yield* Effect.acquireRelease(
+      Effect.sync(() => interceptBackGesture(target, onBack)),
+      (stop) => Effect.sync(stop),
+    )
+  })
+}
+
 const windowOf = (layer: HTMLElement): Window => layer.ownerDocument.defaultView ?? window
 
 /** A plain key press, not one held down repeating, nor one with a modifier the browser may own. */
@@ -126,6 +145,8 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           event.preventDefault()
           play()
         })
+        // Nothing on the title takes Back, so a back step leaves the game.
+        yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* pollMenuPad(target)
       }),
   }
@@ -197,6 +218,10 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           event.preventDefault()
           pause()
         })
+        yield* backGesture(target, () => {
+          pause()
+          return true
+        })
 
         const tracker = new InputMethodTracker()
         const detach = tracker.attach(target)
@@ -239,6 +264,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           event.preventDefault()
           resume()
         })
+        yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* pollMenuPad(target)
       }),
   }

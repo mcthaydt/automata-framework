@@ -3,7 +3,7 @@
 - **Task:** M4.5 in [02](../../02-master-delivery-plan.md). M4 spec [§4.7](../specs/2026-10-16-m4-input-display-design.md), §4.2 (context), §5 (screen change), §7 and §8 (focus rows), M4-D10. Acceptance F-a, F-b, F-c.
 - **Lanes:** ui (`FocusNavigator` and the FloorFifty ports), runtime (`ScreenDef.kind`, Flow's focus step), and the game lane's default screens. This session owns all three. **Depends on:** M4.0 (merged). It is stacked on M4.2 (`claude/clever-pasteur-ujmu6e-m4-2`), because the menus read M4.2's `Input` (nav repeat, the pad's menu edges) rather than a second pad poller.
 - **Status:** In progress.
-- **Progress:** 6 of 10 steps.
+- **Progress:** 7 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -79,7 +79,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: a screen with `[data-autofocus]` on its second button focuses that button on entry.
    - Red: on a fixture flow `pause ⇄ settings`, focusing pause's `settings` button (`data-testid="settings"`), going to settings and back focuses `settings` again, not the primary.
    - Red: `ScreenDef.kind` types as `'menu' | 'gameplay'` (typecheck).
-7. [ ] **Back path (F-c).** Test file: `packages/ui/src/focus/back-gesture.test.ts`, the FloorFifty cases.
+7. [x] **Back path (F-c).** Test file: `packages/ui/src/focus/back-gesture.test.ts`, the FloorFifty cases. Red: `Failed to resolve import "./back-gesture"`; green ui focus 48 of 48. In `default-screens.test.ts`, red: 3 failed (`expected false to be true` on paused, the paused screen timed out on play, `history.back` called 0 times on the title); the hosted case was confirmed red by removing the standalone check (`expected true to be false`). Green: 21 of 21. Play's back step pauses (it calls `pause` itself rather than relying on Escape reaching the Input). Deviation: the test file now disposes each test's sims in `afterEach`, because the default screens keep the sim past a shutdown on play or paused, and the added tests ran past Koota's 16 live worlds (`SimCapacityError`); that leak is 02's existing follow-up "Dispose the default screens' sim on runtime shutdown" (found in DX.2), not this task.
    - Red (`default-screens.test.ts`): standalone, a `popstate` off the guard entry on the paused screen dispatches resume and re-arms. On the title, `onBack` returns false and history steps back.
    - Red: hosted, no guard entry is pushed.
 8. [ ] **Cursor policy.** Test file: `cursor-policy.test.ts`, the FloorFifty cases, keyed by `kind`.

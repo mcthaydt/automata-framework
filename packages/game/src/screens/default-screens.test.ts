@@ -1,3 +1,4 @@
+import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
 import {
   type GameRenderer,
   type RendererFactory,
@@ -13,9 +14,10 @@ import {
   type Sim,
   type StepResult,
 } from '@mcthaydt/automata-sim'
+import { createFakeHost } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { flushSync } from 'svelte'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { type DefinedGame, defineGame, type GameSpec } from '../define-game.ts'
 import { keys } from '../input/keys.ts'
@@ -62,6 +64,9 @@ describe('default screens', () => {
   let resets: { count: number }
   let handle: RuntimeHandle | undefined
   let game: DefinedGame
+  // The default screens keep the sim until the title drops it, and a shutdown on play or paused does not: dispose
+  // each test's sims here, or the file runs past Koota's 16 live worlds.
+  const sims: Sim[] = []
 
   const screen = (id: string) => root.querySelector(`[data-testid="${id}-screen"]`)
   const button = (testId: string) => root.querySelector<HTMLButtonElement>(`[data-testid="${testId}"]`)
@@ -80,7 +85,14 @@ describe('default screens', () => {
       id: 'screens-test',
       title: 'Square',
       size: { width: 320, height: 180 },
-      sim: { plugins: [square], seed: 3, setup: (sim) => void sim.spawn([[Body, { x: 10 }]]) },
+      sim: {
+        plugins: [square],
+        seed: 3,
+        setup: (sim) => {
+          sims.push(sim)
+          sim.spawn([[Body, { x: 10 }]])
+        },
+      },
       root,
       seams: { frames, fetch: fakeFetch({}).fetch },
     }
@@ -107,6 +119,7 @@ describe('default screens', () => {
   afterEach(async () => {
     await handle?.shutdown()
     handle = undefined
+    for (const sim of sims.splice(0)) sim.dispose()
     root.remove()
     document.documentElement.removeAttribute('data-state')
   })
@@ -197,6 +210,73 @@ describe('default screens', () => {
     step()
     expect(results[0]?.tick).toBe(1)
     expect(lastX()).toBe(10)
+  })
+
+  describe('the system back gesture (M4 spec §4.7, F-c)', () => {
+    const guarded = () => (history.state as Record<string, unknown> | null)?.afBackGuard === true
+    // A back step off the game's entry: jsdom's history.back() is asynchronous, so the step is driven directly.
+    const stepBack = () => {
+      history.replaceState(null, '')
+      window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+    }
+    const activate = () => window.dispatchEvent(new PointerEvent('pointerup'))
+    beforeEach(() => history.replaceState(null, ''))
+
+    it('on paused, a back step resumes play and keeps the game’s entry', async () => {
+      await boot()
+      await toPlay()
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+      activate()
+      expect(guarded()).toBe(true)
+      stepBack()
+      await until(() => screen('play') !== null, 'the play screen again')
+      expect(guarded()).toBe(true)
+    })
+
+    it('on play, a back step pauses', async () => {
+      await boot()
+      await toPlay()
+      activate()
+      stepBack()
+      await until(() => screen('paused') !== null, 'the paused screen')
+      expect(guarded()).toBe(true)
+    })
+
+    it('on the title, a back step leaves: history steps back past the game', async () => {
+      const back = vi.spyOn(history, 'back').mockImplementation(() => {})
+      try {
+        await boot()
+        activate()
+        stepBack()
+        expect(back).toHaveBeenCalledOnce()
+        expect(screen('title')).not.toBeNull()
+      } finally {
+        back.mockRestore()
+      }
+    })
+
+    it('hosted, the host owns back: the game adds no history entry (M4-D10)', async () => {
+      await boot({
+        seams: {
+          frames,
+          fetch: fakeFetch({}).fetch,
+          sdkEnv: () => {
+            const host = createFakeHost({
+              gameOrigin: TEST_GAME_ORIGIN,
+              gameId: 'screens-test',
+              clock: realClock,
+            })
+            if (host.gameEnv === undefined || host.gameEnv === null)
+              throw new Error('the fake host has no game environment')
+            return host.gameEnv
+          },
+        },
+      })
+      await toPlay()
+      activate()
+      expect(guarded()).toBe(false)
+    })
   })
 
   it('the pad’s Start button pauses play, through the Input service’s pause edge (M4.1)', async () => {
