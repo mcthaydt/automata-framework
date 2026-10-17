@@ -2,8 +2,8 @@
 
 - **Task:** M4.1 in [02](../../02-master-delivery-plan.md). M4 spec [§4.1, §4.2, §4.13](../specs/2026-10-16-m4-input-display-design.md), §5 (boot, per fixed step, lifecycle) and §6. Acceptance I-a, I-b, I-g and I-j.
 - **Lane:** runtime, with one change to the game lane (step 3, the change request in spec §2.2). **Depends on:** M4.0 (`8a345a1`), PRODUCT.1 (input profile) and DX.2 (`InputMap`), all merged.
-- **Status:** In progress.
-- **Progress:** 7 of 8 steps.
+- **Status:** Implemented and locally verified; CI pending.
+- **Progress:** 8 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -224,11 +224,12 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
    - **Green:** no product change is expected. A mismatch is a defect to find.
    - **Example:** `examples/core/core-input-keys.ts` gains `pad: { 14: { x: -1 }, 15: { x: 1 }, 12: { y: -1 }, 13: { y: 1 } }`. Its header `Shows` names the three devices. The catalog test, `build:examples` and the `core-input-keys` golden replay stay green unchanged.
    - **Done (deviation):** the shared script is `packages/game/src/input/testing/device-run.ts`, and the Node twin is its own file, `keys.devices.test.ts`, beside `keys.parity.test.ts` (one script, two projects). The run uses a copy of `core-input-keys`'s plugin, because a package may not import `examples/`. Red: the Node run's three command streams were already equal, and its hash `df59895cfb81d1a0` failed against the `'pending'` placeholder; pinned as `DEVICE_RUN_HASH`, Node passed (1) and the browsers project matched it bit for bit (3 passed: Chromium, WebKit, Firefox). No product change. The example: the examples-runner suite passed (62 passed, 4 skipped, goldens included), its typecheck and `build:examples` passed.
-8. [ ] **Verify and record.**
+8. [x] **Verify and record.**
    - `pnpm format` and `pnpm check` (`TURBO_FORCE=true`).
    - The CI checks-job extras, including the changeset status, `api-report`, `build`, `test:dist` and `prepare-ruken` for both games.
    - `pnpm test:parity` and `CI=1 pnpm test:e2e`.
    - Tick the M4.1 row in 02, and record the evidence and commits in 02's execution record and in 03.
+   - **Done.** `pnpm format` clean. `pnpm check` attempt 1 failed on the game's typecheck (`deviceMap` needed a type under `isolatedDeclarations`); fixed in `1a550c9`, attempt 2 passed (30 of 30). CI extras attempt 1 failed on `check-changesets` (the ship changeset was minor; before 1.0 every changeset is a patch), fixed in `1a550c9`; attempt 2 failed on a stale `docs/cheatsheet.md` (ship's new exports), regenerated in `6447a5c`; attempt 3 passed. `pnpm test:parity` passed (11 of 11). `CI=1 pnpm test:e2e`: 70 passed, 2 skipped. `prepare-ruken` passed for Emberwick and the placeholder.
 
 ## Acceptance mapping
 
