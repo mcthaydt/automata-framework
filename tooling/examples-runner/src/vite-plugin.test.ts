@@ -1,7 +1,9 @@
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { createServer, resolveConfig, type ViteDevServer } from 'vite'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { examplePage } from './page-template.ts'
+import type { CatalogEntry } from './catalog.ts'
+import { examplePage, indexPage } from './page-template.ts'
 import { examplesRunner } from './vite-plugin.ts'
 
 const root = fileURLToPath(new URL('./fixtures/examples/', import.meta.url))
@@ -21,6 +23,43 @@ describe('examplePage', () => {
     const imports = [...html.matchAll(/^\s*import .*'(.+)'$/gm)].map((match) => match[1])
     expect(imports).toEqual(['@mcthaydt/automata-render-pixi/no-eval', stubStart, '/core/core-stub.ts'])
     expect(html).toContain('startGame(example)')
+  })
+})
+
+describe('indexPage', () => {
+  const shot: CatalogEntry = {
+    file: '/examples/core/core-good.ts',
+    path: 'core/core-good.ts',
+    module: 'core',
+    name: 'good',
+    id: 'core-good',
+    url: '/core/good/',
+    header: {
+      name: 'core-good',
+      title: 'a valid example',
+      shows: 'a fixture.',
+      controls: 'none',
+      packages: ['@mcthaydt/automata-sim'],
+      difficulty: 1,
+      tier: 'core',
+      lines: 7,
+    },
+    screenshot: 'core/core-good.png',
+    codeLines: 2,
+    imports: [],
+    problems: [],
+  }
+
+  it('shows an approved screenshot and links the example to the fake host with its source', () => {
+    const html = indexPage([shot], 'http://127.0.0.1:5132')
+    expect(html).toContain('<img src="./core/core-good.png"')
+    const view = /<a data-view href="([^"]+)"/.exec(html)?.[1]?.replaceAll('&amp;', '&')
+    expect(view).toBeDefined()
+    const url = new URL(view as string)
+    expect(url.origin).toBe('http://127.0.0.1:5132')
+    expect(url.searchParams.get('game')).toBe('./core/good/')
+    expect(url.searchParams.get('source')).toBe('./core/good/source/')
+    expect(url.searchParams.get('id')).toBe('af-examples')
   })
 })
 
@@ -59,10 +98,35 @@ describe('examplesRunner', () => {
     expect(script.indexOf('stub-start-game')).toBeLessThan(script.indexOf('core-stub.ts'))
   })
 
-  it('lists every example on the index, pending ones as pending', async () => {
+  it('lists every example on the index under its module, pending ones as pending', async () => {
     const html = await (await fetch(`${origin}/`)).text()
+    expect(html).toContain('<section data-module="core">')
     expect(html).toContain('href="./core/stub/"')
+    expect(html).toContain('href="./core/stub/source/"')
+    expect(html).toContain('href="./core/later/source/"')
     expect(html).toMatch(/core-later[\s\S]*pending: OPEN\.1/)
+    // Only a runnable example has a View link (the fake host around it, with its source).
+    expect([...html.matchAll(/<a data-view /g)]).toHaveLength(1)
+  })
+
+  it('serves each example’s source, pending ones too, as a page that runs nothing', async () => {
+    for (const [path, file] of [
+      ['/core/stub/source/', 'core/core-stub.ts'],
+      ['/core/later/source/', 'core/core-later.ts'],
+    ] as const) {
+      const response = await fetch(`${origin}${path}`)
+      expect(response.status, path).toBe(200)
+      expect(response.headers.get('content-security-policy'), path).toContain("script-src 'self'")
+      const html = await response.text()
+      expect(html, path).not.toContain('<script')
+      const code = /<pre><code>([\s\S]*)<\/code><\/pre>/.exec(html)?.[1] ?? ''
+      const text = code
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&amp;', '&')
+      expect(text, path).toBe(readFileSync(`${root}${file}`, 'utf8'))
+    }
   })
 
   it('serves a pending example as a page that says so and runs nothing', async () => {
@@ -75,6 +139,6 @@ describe('examplesRunner', () => {
     const config = await resolveConfig({ configFile: false, plugins: [examplesRunner(options)] }, 'build')
     expect(config.preview.headers?.['Content-Security-Policy']).toContain("script-src 'self'")
     const input = config.build.rollupOptions.input as Record<string, string>
-    expect(Object.keys(input).sort()).toEqual(['core-stub', 'index'])
+    expect(Object.keys(input).sort()).toEqual(['core-later-source', 'core-stub', 'core-stub-source', 'index'])
   })
 })
