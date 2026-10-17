@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 8 of 13 steps.
+- **Progress:** 9 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -93,7 +93,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
 8. [x] **Chip.** Red: `Failed to resolve import "./Chip.svelte"`, and the theme's token and contrast cases for the new tokens; green 9 of 9 and theme 21 of 21. Two Endesga tokens were added, as the Files table allows: `--af-success` (#5ac54f) and `--af-danger-edge` (#f5555d), because `--af-danger` is 2.26:1 on the panel, under the 3:1 an edge needs. Each is pinned at 3:1 on the surface and the panel, as is `--af-accent` on the panel. A toned chip without a `toneLabel` throws while it mounts. `chip.test.ts`:
    - Red: `tone` `info`, `success`, `warning` or `danger` is `data-tone`;
    - Red: a non-`info` tone shows a glyph (`aria-hidden`) and its `toneLabel` text for assistive technology. With colour removed, the tone still reads (§4.12).
-9. [ ] **Modal scoping moved, then Modal and Sheet.**
+9. [x] **Modal scoping moved, then Modal and Sheet.** Red: `Failed to resolve import "./modal-scope.js"`, then `"./Modal.svelte"`; green: modal-scope 6 of 6, modal 5 of 5. Dialog moved onto `holdModal`, and its DOM and three-engine layout tests pass unchanged (92 of 92 in `src/dialog`). Sheet is a Modal with `anchor="bottom"`, so it shares the scoping, Close and scroll region.
    - Red (`modal-scope.test.ts`): `inertOutside` marks only what it marked and undoes exactly that; `isTopmost` picks the last non-inert `aria-modal`; `wrapTab` wraps both ways. These are Dialog's current rules, now importable.
    - Dialog moves onto it; `dialog.test.ts` and `dialog.layout.test.ts` pass unchanged.
    - Red (`modal.test.ts`, from FloorFifty's):
