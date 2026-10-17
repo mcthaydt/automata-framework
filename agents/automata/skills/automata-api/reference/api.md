@@ -1503,6 +1503,24 @@ each `.env` value is encoded the same way so it matches its UTF-8 bytes.
 function findSecretsInBuild(distDir: string, envValues: readonly EnvValue[]): SecretFound[];
 ```
 
+#### `inputsProblems` (function)
+
+Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
+
+```ts
+function inputsProblems(inputs: readonly string[], bindings: ShipInputBindings): string[];
+```
+
+#### `ManifestInputsMismatch` (class)
+
+`runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
+
+```ts
+class ManifestInputsMismatch extends ManifestInputsMismatchBase {
+  override get message(): string;
+}
+```
+
 #### `ManifestInvalid` (class)
 
 Ruken's parser refused the generated `ruken.toml`. `problems` are Ruken's own issues, unchanged.
@@ -1566,6 +1584,11 @@ interface PrepareInput {
    * when it is left out, no `.env` file is read and only key formats and high-entropy strings are checked.
    */
   readonly gameDir?: string | undefined;
+  /**
+   * The game's input bindings (its input map's `profile.bindings`), checked against `runtime.inputs` (I-g).
+   * Left out, nothing is checked.
+   */
+  readonly inputBindings?: ShipInputBindings | undefined;
 }
 ```
 
@@ -1764,6 +1787,22 @@ interface ShipConfig {
   readonly analytics?: Manifest["analytics"];
   readonly loading?: NonNullable<Manifest["loading"]>;
   readonly leaderboards?: Manifest["leaderboards"];
+}
+```
+
+#### `ShipInputBindings` (interface)
+
+What ship reads of a game's input profile. ship is published and the profile's owner (`runtime`) is private,
+so this is the read-only subset ship consumes, not a copy of the contract: a profile's `bindings` is
+assignable to it.
+
+```ts
+interface ShipInputBindings {
+  readonly [action: string]: {
+    readonly pad?: readonly number[] | undefined;
+    readonly touch?: boolean | undefined;
+    readonly gesture?: readonly string[] | undefined;
+  };
 }
 ```
 
