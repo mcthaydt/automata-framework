@@ -1,6 +1,7 @@
 // consumer-smoke's types step (M2.4 spec §3.6): the published declarations, read by TypeScript 7.0.2 and by
 // 6.0.3 (ship spec §3.1: TS 6 consumers can read AF's .d.ts). One use of each entry's main types.
 import type { CompiledContent, ContentConfig, Diagnostic } from '@mcthaydt/automata-content'
+import { type ContentText, createContentText } from '@mcthaydt/automata-content/locale'
 import { automataContent } from '@mcthaydt/automata-content/vite'
 import { HostError, type Hosting, HostingLive } from '@mcthaydt/automata-host'
 import { HostingTest } from '@mcthaydt/automata-host/testing'
@@ -26,6 +27,7 @@ export const body = body2d(BodyKind.dynamic)
 export const plugins = [physics2d(), physics3d()]
 export const digest: bigint = xxhash64(new Uint8Array([1, 2, 3]))
 export const wave: number = sin(1)
+export const contentText: ContentText = createContentText({})
 
 export async function run(): Promise<StepResult> {
   const sim: Sim = await createSim({ seed: 1, plugins })

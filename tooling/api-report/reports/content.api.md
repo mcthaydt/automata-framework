@@ -45,6 +45,8 @@ interface CompiledContent {
     readonly sim: SimPartition;
     readonly files: ReadonlyMap<string, string>;
     readonly warnings: readonly Diagnostic[];
+    readonly languages: readonly string[];
+    readonly catalogs: ReadonlyMap<string, MessageCatalog>;
 }
 ```
 
@@ -95,6 +97,7 @@ interface ContentOptions {
     readonly flow?: FlowCapabilities | undefined;
     readonly generators?: readonly ContentGenerator[] | undefined;
     readonly outDir?: string | undefined;
+    readonly paraglide?: ParaglideOptions | undefined;
 }
 ```
 
@@ -291,6 +294,15 @@ interface Palette {
 }
 ```
 
+### `ParaglideOptions` (interface)
+
+```ts
+interface ParaglideOptions {
+    readonly outdir: string;
+    readonly catalogs?: readonly string[] | undefined;
+}
+```
+
 ### `PreloadInput` (interface)
 
 ```ts
@@ -366,6 +378,64 @@ const verifyContent: (options: ContentOptions) => Effect.Effect<void, ContentCom
 
 ```ts
 function withTuningTable(guide: string, meta: TuningMeta): string | undefined;
+```
+
+## `./locale`
+
+### `ALWAYS_CHARACTERS` (const)
+
+```ts
+const ALWAYS_CHARACTERS: readonly string[];
+```
+
+### `catalogCharacters` (function)
+
+```ts
+function catalogCharacters(catalog: MessageCatalog): Set<string>;
+```
+
+### `ContentText` (type)
+
+```ts
+type ContentText = (kind: string, id: string | undefined, path: DataPath, authored: string, inputs?: Readonly<Record<string, unknown>>) => string;
+```
+
+### `ContentTextOptions` (interface)
+
+```ts
+interface ContentTextOptions {
+    readonly onMissing?: ((key: string) => void) | undefined;
+}
+```
+
+### `createContentText` (function)
+
+```ts
+function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
+```
+
+### `localeCharacters` (function)
+
+```ts
+function localeCharacters(catalog: MessageCatalog): Set<string>;
+```
+
+### `MessageCatalog` (type)
+
+```ts
+type MessageCatalog = Readonly<Record<string, string>>;
+```
+
+### `messageKey` (function)
+
+```ts
+function messageKey(kind: string, id: string | undefined, path: DataPath): string;
+```
+
+### `snakeKey` (function)
+
+```ts
+function snakeKey(value: string): string;
 ```
 
 ## `./vite`
