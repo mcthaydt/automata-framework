@@ -1,14 +1,18 @@
 import { expectGolden, replayGolden } from '@mcthaydt/automata-testing/sim'
+import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { expect, it } from 'vitest'
 import { bodiesSimSetup } from './bodies-sim.ts'
 import { GOLDEN_HASH, goldenDrive, runGolden } from './golden.ts'
 
-it('the golden run ends on the recorded hash', async () => {
+it('the golden run ends on the recorded hash', async ({ task }) => {
   const result = await runGolden()
   expect(result.rejected).toBe(0)
   // The bodies did collide: a run where nothing touched would pin nothing about the physics.
   expect(result.collisions).toBeGreaterThan(10)
   expect(result.hash).toBe(GOLDEN_HASH)
+  // The hash this engine computed, for the evidence file (DX.9).
+  const { seed, ticks, hash } = result
+  recordGoldenEvidence(task, { scenario: 'physics-bodies-2d/golden-run', seed, ticks, hash })
 })
 
 it('replays to the same hash twice in one engine', async () => {

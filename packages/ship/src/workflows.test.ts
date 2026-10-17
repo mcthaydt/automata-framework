@@ -83,7 +83,7 @@ describe('every workflow', () => {
 describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runner on this account)", () => {
   const ci = workflow('ci.yml')
 
-  it.each(['checks', 'parity', 'e2e'])(
+  it.each(['checks', 'parity', 'e2e', 'frame-budget'])(
     'ci.yml %s runs on the AF runner label, switchable by vars.AF_LINUX_RUNNER, never falling back to hosted',
     (name) => {
       const runsOn = ci.jobs[name]?.['runs-on'] ?? ''
@@ -319,6 +319,35 @@ describe('ci.yml (AF)', () => {
     expect(JSON.stringify(e2e?.steps)).toContain('e2e-report')
   })
 
+  // PRODUCT.7 (PRODUCT spec §2 F5): ms/frame on the GPU runner, with the GPU to itself (AGENTS.md), compared
+  // with tooling/frame-budget/budget.json, which fails closed until the first GPU-runner run sets it.
+  it('runs the frame-budget probe nightly on the GPU runner, alone, and checks it against the recorded budget', () => {
+    const job = ci.jobs['frame-budget']
+    expect(job?.if).toContain("github.event_name == 'schedule'")
+    expect(job?.if).toContain('inputs.nightly')
+    expect(job?.if).toContain("inputs.spec == ''")
+    expect(job?.['runs-on']).toBe(ci.jobs.e2e?.['runs-on'])
+    // After the journeys, never beside them, and one probe at a time across runs.
+    expect(job?.needs).toBe('e2e')
+    expect(job?.if).toContain('!cancelled()')
+    const concurrency = (job as { concurrency?: { group: string; 'cancel-in-progress': boolean } })
+      .concurrency
+    expect(concurrency).toEqual({ group: 'af-gpu-probe', 'cancel-in-progress': false })
+    const runs = (job?.steps ?? []).map((step) => step.run ?? '')
+    const probe = runs.indexOf('pnpm test:frame-budget')
+    const check = runs.indexOf('pnpm budget:frame')
+    expect(probe).toBeGreaterThan(-1)
+    expect(check).toBeGreaterThan(probe)
+    // The results are the evidence the budget is set from, so they are kept whatever the check said.
+    const upload = (job?.steps ?? []).find((step) => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(upload?.if).toBe('always()')
+    expect(upload?.with?.name).toBe('frame-budget-results')
+    expect(upload?.with?.path).toBe('frame-budget-results/')
+    const rootPackage = packageJson('.')
+    expect(rootPackage.scripts['test:frame-budget']).toBe('AF_FRAME_BUDGET=1 playwright test')
+    expect(rootPackage.scripts['budget:frame']).toBe('node tooling/frame-budget/src/check-cli.ts')
+  })
+
   it('runs the journeys with Playwright from the root, with the spec passed straight through', () => {
     const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
     expect(rootPackage.scripts['test:e2e']).toBe('playwright test')
@@ -355,6 +384,58 @@ describe('ci.yml (AF)', () => {
       .map((job) => job.with?.['artifact-name'] ?? 'game-dist')
     expect(names.length).toBeGreaterThan(1)
     expect(new Set(names).size).toBe(names.length)
+  })
+})
+
+describe('ci.yml evidence file (DX spec §3.10)', () => {
+  const ci = workflow('ci.yml')
+  const steps = ci.jobs.parity?.steps ?? []
+  const scripts = packageJson('.').scripts as Record<string, string>
+  const GOLDEN_PACKAGES = [
+    'packages/sim',
+    'packages/testing',
+    'packages/physics',
+    'games/emberwick',
+    'examples/physics/bodies-2d',
+  ]
+
+  it('runs every golden package’s test:evidence, then writes evidence.json from their reports', () => {
+    expect(scripts.evidence).toBe(
+      'turbo run test:evidence --concurrency=3 -- --browser.connectTimeout=120000 && node tooling/evidence/src/cli.ts',
+    )
+    for (const path of GOLDEN_PACKAGES)
+      expect(packageJson(path).scripts['test:evidence'], path).toMatch(
+        /^vitest run (--project [\w-]+ )+(\S+\.test\.ts )+--reporter=default --reporter=json --outputFile\.json=\.evidence\/goldens\.json$/,
+      )
+  })
+
+  it('writes the evidence file on pushes to main only, after parity passed, in the parity container', () => {
+    const parity = steps.findIndex((step) => step.run === 'pnpm test:parity')
+    const evidence = steps.findIndex((step) => step.run === 'pnpm evidence')
+    expect(evidence).toBeGreaterThan(parity)
+    expect(steps[evidence]?.if).toBe("github.event_name == 'push'")
+    // Firefox refuses to run as root under Actions' HOME, as in the parity step.
+    expect(steps[evidence]?.env?.HOME).toBe('/root')
+  })
+
+  it('uploads evidence.json and its JSON Schema as the `evidence` artifact, before the work folder is handed back', () => {
+    const upload = steps.findIndex((step) => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(upload).toBeGreaterThan(steps.findIndex((step) => step.run === 'pnpm evidence'))
+    expect(upload).toBeLessThan(steps.length - 1)
+    expect(steps[upload]?.if).toBe("github.event_name == 'push'")
+    expect(steps[upload]?.with?.name).toBe('evidence')
+    expect(steps[upload]?.with?.path).toBe('evidence.json\nevidence.schema.json\n')
+    expect(steps[upload]?.with?.['if-no-files-found']).toBe('error')
+  })
+
+  it('fetches the release tags, so the file can say which package versions were released', () => {
+    const checkout = steps.find((step) => step.uses?.startsWith('actions/checkout@'))
+    expect(checkout?.with?.['fetch-tags'] as unknown).toBe(true)
+  })
+
+  it('runs the evidence step in ci:local too, after parity', () => {
+    const local = (scripts['ci:local'] ?? '').split(' && ')
+    expect(local.indexOf('pnpm evidence')).toBe(local.indexOf('pnpm test:parity') + 1)
   })
 })
 
