@@ -1,4 +1,10 @@
 export {
+  type FakeAudioContext,
+  type FakeGainNode,
+  fakeAudioContext,
+  fakeBuffer,
+} from '../audio/testing/fake-audio-context.js'
+export {
   type FakeFetchOptions,
   type FakeFetchResult,
   type FakeRoute,

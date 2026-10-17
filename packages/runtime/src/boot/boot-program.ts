@@ -14,6 +14,9 @@ import {
   suppressPageGestures,
 } from '@mcthaydt/automata-ui'
 import { Context, Duration, Effect, Layer, type Scope, Stream } from 'effect'
+import { Audio, makeAudio } from '../audio/audio.manager.js'
+import { AudioBuses } from '../audio/audio-buses.js'
+import { playEventSounds } from '../audio/event-sounds.js'
 import { resolveExtensions } from '../extension/resolve-extensions.js'
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
@@ -54,7 +57,8 @@ export interface BootProgramOptions {
 }
 
 /**
- * Builds the Context<RuntimeServices> containing all 9 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1).
+ * Builds the Context<RuntimeServices> containing all 11 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1;
+ * `Audio` and `AudioBuses`, one service, from M5.3).
  * Extracted so RuntimeTest reuses the exact service wiring (Task 18).
  */
 export function buildRuntimeServices(services: {
@@ -67,6 +71,7 @@ export function buildRuntimeServices(services: {
   readonly assets: Assets
   readonly renderer: GameRenderer
   readonly locale: Locale
+  readonly audio: Audio & AudioBuses
 }): Context.Context<RuntimeServices> {
   return Context.empty().pipe(
     Context.add(Hosting, services.hosting),
@@ -78,6 +83,8 @@ export function buildRuntimeServices(services: {
     Context.add(Assets, services.assets),
     Context.add(Renderer, services.renderer),
     Context.add(Locale, services.locale),
+    Context.add(Audio, services.audio),
+    Context.add(AudioBuses, services.audio),
   ) as Context.Context<RuntimeServices>
 }
 
@@ -237,6 +244,23 @@ export function bootProgram<S>(
       element: doc.documentElement,
     })
 
+    // Built now and silent until the first gesture after ready (M5 spec §4.6, §5).
+    const audio = yield* makeAudio({
+      hosting,
+      assets,
+      bus,
+      window: win,
+      document: doc,
+      ...(game.seams?.createAudioContext === undefined
+        ? {}
+        : { createContext: game.seams.createAudioContext }),
+      ...(game.seams?.fetch === undefined ? {} : { fetch: game.seams.fetch }),
+    })
+    if (game.sounds !== undefined) {
+      const stopSounds = playEventSounds(bus, audio, game.sounds)
+      yield* Effect.addFinalizer(() => Effect.sync(stopSounds))
+    }
+
     const veil = yield* makeVeil({
       overlay: layers.overlay,
       reducedMotion: () => reducedMotion(win),
@@ -296,6 +320,7 @@ export function bootProgram<S>(
       assets,
       renderer,
       locale,
+      audio,
     })
 
     if (game.extensions && game.extensions.length > 0) {

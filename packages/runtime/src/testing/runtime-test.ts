@@ -4,6 +4,9 @@ import { FakeHostHandle, HostingTest, type HostingTestOptions } from '@mcthaydt/
 import { createGeometryOwner } from '@mcthaydt/automata-ui'
 import type { FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Context, Effect, Layer, Stream } from 'effect'
+import { makeAudio } from '../audio/audio.manager.js'
+import type { AudioContextLike } from '../audio/audio-graph.js'
+import { fakeAudioContext } from '../audio/testing/fake-audio-context.js'
 import type { BootError } from '../boot/boot-error.js'
 import { buildRuntimeServices } from '../boot/boot-program.js'
 import type { CompiledContentData } from '../boot/game-definition.js'
@@ -36,6 +39,8 @@ export interface RuntimeTestOptions {
   readonly locale?: LocaleDef
   /** The browser's languages, best first; default none. */
   readonly languages?: readonly string[]
+  /** Builds the audio context on the first gesture; defaults to `fakeAudioContext()`. */
+  readonly createAudioContext?: () => AudioContextLike
 }
 
 /**
@@ -176,6 +181,16 @@ export function RuntimeTest(
         overlay: layers.overlay,
         reducedMotion: () => false,
       })
+      // A page without a DOM (Node) still gets an Audio: it is never unlocked, so it stays silent.
+      const audio = yield* makeAudio({
+        hosting,
+        assets,
+        bus,
+        window: win ?? new EventTarget(),
+        document: doc ?? Object.assign(new EventTarget(), { visibilityState: 'visible' as const }),
+        createContext: options.createAudioContext ?? (() => fakeAudioContext()),
+        ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
+      })
 
       let runtimeContext: Context.Context<RuntimeServices | FakeHostHandle> =
         Context.empty() as Context.Context<RuntimeServices | FakeHostHandle>
@@ -216,6 +231,7 @@ export function RuntimeTest(
       })
 
       const runtimeServices = buildRuntimeServices({
+        audio,
         hosting,
         bus,
         time,

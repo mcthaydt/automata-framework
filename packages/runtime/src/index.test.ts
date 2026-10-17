@@ -7,7 +7,10 @@ const ROOT_EXPORTS: string[] = [
   'AppLoop',
   'AssetLoadFailed',
   'Assets',
+  'Audio',
   'AudioBuses',
+  'AudioDecodeFailed',
+  'AudioLive',
   'BootDefect',
   'ContentHashMismatch',
   'Flow',
@@ -31,11 +34,13 @@ const ROOT_EXPORTS: string[] = [
   'actionsForPadButton',
   'applyDocumentLocale',
   'audioBusGainsSchema',
+  'audioLayer',
   'createT',
   'formatDuration',
   'formatNumber',
   'formatPercent',
   'inputProfileSchema',
+  'makeAudio',
   'makeInput',
   'matchLocale',
   'negotiateLocale',
@@ -47,7 +52,14 @@ const ROOT_EXPORTS: string[] = [
   'typedBus',
 ]
 const EXTENSION_EXPORTS: string[] = ['ExtensionError', 'defineExtension', 'resolveExtensions']
-const TESTING_EXPORTS: string[] = ['RuntimeTest', 'fakeFetch', 'manualFrames', 'nullRenderer']
+const TESTING_EXPORTS: string[] = [
+  'RuntimeTest',
+  'fakeAudioContext',
+  'fakeBuffer',
+  'fakeFetch',
+  'manualFrames',
+  'nullRenderer',
+]
 
 // 90 s budget: importing the whole entry took 28.5 s on the shared af-linux runner (2026-10-16, run
 // 38862520260), past the old 15 s. The root test:unit default is the same 90 s; packages/ship's workflows test pins both.
