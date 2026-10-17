@@ -3,7 +3,7 @@
 - **Task:** M4.9 in [02](../../02-master-delivery-plan.md), M4 spec [§4.11](../specs/2026-10-16-m4-input-display-design.md) (acceptance Q-a, Q-b), §6 (a filter that fails to compile), M4-D6 (`high`, no auto-detect).
 - **Lanes:** render (`render-pixi`) and runtime (the settings field and the fact). **Depends on:** M4.0 (merged) and PRODUCT.1 (merged; the post-filter slot this extends).
 - **Status:** In progress.
-- **Progress:** 6 of 10 steps.
+- **Progress:** 7 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -69,7 +69,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
 6. [x] **`rebuildOnQuality`.** Test file: `packages/render-pixi/src/quality/rebuild-on-quality.test.ts`, the FloorFifty cases over a runtime `SettingsStore` stub. Red: `Failed to resolve import "./rebuild-on-quality.js"`; green 3 of 3 (an `onBuilt` case added; the build asserts nothing else is alive when it runs).
    - Red: the old build is destroyed before the new one exists, and `dispose` leaves nothing alive.
    - Red: a change to another setting does not rebuild.
-7. [ ] **`CompositeTarget`.** Test file: `composite-target.test.ts`, the FloorFifty cases at the game's logical size:
+7. [x] **`CompositeTarget`.** Test file: `composite-target.test.ts`, the FloorFifty cases at the game's logical size (jsdom; textures need no GPU). Red: `Failed to resolve import "./composite-target.js"`; green 9 of 9. FloorFifty's `setFilters` is not taken: the post-filter slot writes `stage.filters` (step 8).
    - the texture is exactly the logical size, at resolution 1 and nearest scale mode;
    - `resize(height)` grows the texture and marks the sprite's quad to rebuild;
    - `filterArea` is pinned to the target;

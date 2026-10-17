@@ -33,6 +33,7 @@ export {
   MAX_RESOLUTION,
   RESOLUTION_CAPS,
 } from './letterbox/canvas-resolution.js'
+export { CompositeTarget } from './letterbox/composite-target.js'
 export {
   DEFAULT_BAR_COLOR,
   DEFAULT_BAR_FRACTION,
