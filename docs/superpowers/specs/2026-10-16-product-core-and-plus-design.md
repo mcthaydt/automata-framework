@@ -40,6 +40,8 @@ Each property has a check. A property without a passing check is not claimed.
 | F6 | **Contracts are versioned.** A public API report per core package is diffed on each release; a breaking change needs a major changeset and, from M8, a codemod. | A release check fails on an undeclared API break. | PRODUCT.1 |
 | F7 | **Localization is built in, not bolted on** (§4). A new screen that breaks in a long language fails `automata check`. | PRODUCT.L acceptance cases. | PRODUCT.L |
 
+**Where the F1 seams live (PRODUCT.1).** All are exports of a public `exports` entry, listed in `tooling/api-report/src/seams.ts` and checked against the committed reports by `seams.test.ts`. `runtime` `.`: `inputProfileSchema`, `InputProfile`, `actionsForKey`, `actionsForPadButton`; `NetworkPort`, `AuthoritativeSnapshot`; `AudioBuses`, `audioBusGainsSchema`; `settingsStore`/`SettingsDef`; `PresentationBus`, `RuntimeFacts`, `typedBus`; `runtime/extension`: `defineExtension`. `render-pixi` `.`: `PixiStage` (layers `backdrop`, `world`, `ui` and `postFilters`), `createPixiRenderer`, `createPostFilterSlot`, `filterPrograms`. `host` `.`: `Hosting.leaderboards` (`HostingLeaderboards`), relaying Ruken's `LeaderboardsApi` with the SDK's error codes; Ruken lacks nothing for it, so no Ruken request was needed. `runtime` and `render-pixi` are not published yet; publishing them is PRODUCT.1b.
+
 ## 3. FloorFifty on AF: gaps by tier (content excluded)
 
 FloorFifty at `ac72660`:
