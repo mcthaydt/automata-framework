@@ -1,5 +1,12 @@
-import { type InitOptions, type InputModePayload, Ruken, type RukenSession, type SdkEnv } from '@ruken/sdk'
-import { Deferred, Duration, Effect, Layer, Option, Runtime, type Scope } from 'effect'
+import {
+  type InitOptions,
+  type InputModePayload,
+  Ruken,
+  type RukenSession,
+  type SavesChangedPayload,
+  type SdkEnv,
+} from '@ruken/sdk'
+import { Deferred, Duration, Effect, Layer, Option, Runtime, type Scope, Stream } from 'effect'
 import { HostError, HostHandshakeFailed, toHostError } from './errors'
 import { Hosting, type HostingOptions } from './hosting'
 import { makeMenuHandlers } from './menu'
@@ -231,6 +238,27 @@ function hostingOver(session: RukenSession, options: HostingOptions, state: Host
           catch: (cause) => toHostError('saves.flush', cause),
         }),
       ),
+      keys: whileOpen(
+        'saves.keys',
+        Effect.try({
+          try: () => {
+            const keys: string[] = []
+            for (let index = 0; index < storage.length; index++) {
+              const key = storage.key(index)
+              if (key !== null) keys.push(key)
+            }
+            // Code-unit order, so a slot list reads the same on every engine.
+            return keys.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+          },
+          catch: (cause) => toHostError('saves.keys', cause),
+        }),
+      ),
+      changed: Stream.async<SavesChangedPayload>((emit) => {
+        const stop = session.saves.on('changed', (change) => {
+          void emit.single(change)
+        })
+        return Effect.sync(stop)
+      }).pipe(Stream.interruptWhen(state.shutdown)),
     },
     leaderboards: {
       submit: (board, score, meta) =>

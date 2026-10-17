@@ -11,6 +11,7 @@ import { AudioBuses } from '../audio/audio-buses.js'
 import { type FakeAudioContext, fakeAudioContext } from '../audio/testing/fake-audio-context.js'
 import type { ScreenDef } from '../flow/screen.js'
 import { PresentationBus } from '../presentation/presentation-bus.manager.js'
+import type { RenderTarget } from '../render/renderer.js'
 import { fakeFetch } from '../testing/fake-fetch.js'
 import { manualFrames } from '../testing/manual-frames.js'
 import { nullRenderer } from '../testing/null-renderer.js'
@@ -281,6 +282,53 @@ describe('bootProgram', () => {
         (m) => m.dir === 'in' && m.msg.type === 'analytics.track',
       )
       expect(sentAfter.length).toBe(1)
+
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+
+  it("hands the renderer the runtime's presentation bus, so a dropped filter is a fact (M4 spec §6)", () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      const frames = manualFrames()
+      const heard: unknown[] = []
+      let targetBus: RenderTarget['bus']
+      const screens: ScreenDef[] = [
+        {
+          id: 'title',
+          enter: () =>
+            Effect.gen(function* () {
+              const bus = yield* PresentationBus
+              bus.subscribe('render.filter.dropped', (fact) => heard.push(fact))
+            }),
+        },
+      ]
+      const inner = nullRenderer()
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens,
+        renderer: (target) => {
+          targetBus = target.bus
+          return inner(target)
+        },
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          sdkEnv: () =>
+            createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock }).gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+
+      expect(targetBus).toBeDefined()
+      targetBus?.publish('render.filter.dropped', { id: 'bloom', reason: 'compile failed' })
+      expect(heard).toEqual([{ id: 'bloom', reason: 'compile failed' }])
 
       yield* Scope.close(scope, Exit.void)
     }).pipe(Effect.runPromise))

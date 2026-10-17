@@ -4,6 +4,12 @@
 
 ## `.`
 
+### `actionsForGesture` (function)
+
+```ts
+function actionsForGesture(profile: InputProfile, gesture: GestureName): string[];
+```
+
 ### `actionsForKey` (function)
 
 ```ts
@@ -14,6 +20,15 @@ function actionsForKey(profile: InputProfile, code: string): string[];
 
 ```ts
 function actionsForPadButton(profile: InputProfile, index: number): string[];
+```
+
+### `ActiveDevice` (interface)
+
+```ts
+interface ActiveDevice {
+    readonly device: InputDevice;
+    readonly glyphs: GlyphFamily;
+}
 ```
 
 ### `AppLoop` (interface)
@@ -210,6 +225,34 @@ class ContentHashMismatch extends ContentHashMismatchBase {
 function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
 ```
 
+### `DEFAULT_QUALITY` (const)
+
+```ts
+const DEFAULT_QUALITY: QualityTier;
+```
+
+### `defineSave` (function)
+
+```ts
+function defineSave<S>(def: SaveDef<S>): SaveDef<S>;
+```
+
+### `DisplaySettings` (interface)
+
+```ts
+interface DisplaySettings {
+    readonly quality: QualityTier;
+}
+```
+
+### `displaySettingsSchema` (const)
+
+```ts
+const displaySettingsSchema: z.ZodType<DisplaySettings, {
+    quality?: unknown;
+}>;
+```
+
 ### `EventSounds` (type)
 
 ```ts
@@ -304,10 +347,43 @@ interface GameRenderer {
 }
 ```
 
+### `GESTURE_TUNING` (const)
+
+```ts
+const GESTURE_TUNING: GestureTuning;
+```
+
 ### `GestureName` (type)
 
 ```ts
 type GestureName = (typeof GESTURE_NAMES)[number];
+```
+
+### `GestureSink` (interface)
+
+```ts
+interface GestureSink {
+    hold(gesture: GestureName): void;
+    release(gesture: GestureName): void;
+    pulse(gesture: GestureName): void;
+}
+```
+
+### `GestureTuning` (interface)
+
+```ts
+interface GestureTuning {
+    readonly deadZonePx: number;
+    readonly saturationPx: number;
+    readonly flickPx: number;
+    readonly flickMs: number;
+}
+```
+
+### `GlyphFamily` (type)
+
+```ts
+type GlyphFamily = 'xbox' | 'playstation' | 'generic';
 ```
 
 ### `Input` (interface)
@@ -320,12 +396,14 @@ interface Input {
         readonly y: number;
     };
     onPress(action: MenuAction, listener: () => void): () => void;
-    poll(): void;
+    poll(nowMs?: number): void;
     hold(action: string): void;
     release(action: string): void;
+    readonly gesture: GestureSink;
     setContext(context: InputContextNow): void;
-    readonly device: SubscriptionRef.SubscriptionRef<InputDevice>;
+    readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
     readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
+    readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
 }
 const Input: Context.Tag<Input, Input>;
 ```
@@ -402,6 +480,17 @@ interface InputProfileInput {
 
 ```ts
 const inputProfileSchema: z.ZodType<InputProfile, InputProfileInput>;
+```
+
+### `Loaded` (interface)
+
+```ts
+interface Loaded<S> {
+    readonly slot: number;
+    readonly data: S;
+    readonly meta: SlotMeta | undefined;
+    readonly snapshot?: Uint8Array;
+}
 ```
 
 ### `LoadMeter` (interface)
@@ -529,6 +618,16 @@ interface NetworkPort {
 const NetworkPort: Context.Tag<NetworkPort, NetworkPort>;
 ```
 
+### `PadInfo` (interface)
+
+```ts
+interface PadInfo {
+    readonly index: number;
+    readonly id: string;
+    readonly standard: boolean;
+}
+```
+
 ### `ParaglideRuntime` (interface)
 
 ```ts
@@ -543,7 +642,7 @@ interface ParaglideRuntime {
 ### `PauseReason` (type)
 
 ```ts
-type PauseReason = 'lifecycle' | 'menu';
+type PauseReason = 'lifecycle' | 'menu' | 'input';
 ```
 
 ### `pluralCategory` (const)
@@ -560,6 +659,24 @@ interface PresentationBus<Facts = RuntimeFacts> {
     subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void;
 }
 const PresentationBus: Context.Tag<PresentationBus, PresentationBus>;
+```
+
+### `QUALITY_TIERS` (const)
+
+```ts
+const QUALITY_TIERS: readonly ["high", "medium", "low"];
+```
+
+### `QualityTier` (type)
+
+```ts
+type QualityTier = (typeof QUALITY_TIERS)[number];
+```
+
+### `qualityTierSchema` (const)
+
+```ts
+const qualityTierSchema: z.ZodType<QualityTier, unknown>;
 ```
 
 ### `Renderer` (const)
@@ -588,6 +705,7 @@ interface RenderTarget {
     readonly host: HTMLElement;
     readonly geometry: GeometryOwner;
     readonly assets: Pick<Assets, 'get'>;
+    readonly bus?: PresentationBus | undefined;
 }
 ```
 
@@ -626,8 +744,9 @@ interface RuntimeFacts {
         readonly previous: string;
     };
     readonly 'input.device.changed': {
-        readonly device: 'keyboard' | 'gamepad' | 'touch';
-        readonly previous: 'keyboard' | 'gamepad' | 'touch';
+        readonly device: InputDevice;
+        readonly glyphs: GlyphFamily;
+        readonly previous: InputDevice;
     };
     readonly 'audio.unlocked': Readonly<Record<never, never>>;
     readonly 'audio.unavailable': {
@@ -636,6 +755,27 @@ interface RuntimeFacts {
     readonly 'audio.decode.failed': {
         readonly alias: string;
         readonly reason: string;
+    };
+    readonly 'input.pad.connected': PadInfo;
+    readonly 'input.pad.disconnected': PadInfo & {
+        readonly wasActive: boolean;
+    };
+    readonly 'render.filter.dropped': {
+        readonly id: string;
+        readonly reason: string;
+    };
+    readonly 'save.written': {
+        readonly key: string;
+        readonly slot: number;
+    };
+    readonly 'save.failed': {
+        readonly key: string;
+        readonly slot: number;
+        readonly code: ErrorCode;
+    };
+    readonly 'save.loaded': {
+        readonly key: string;
+        readonly slot: number;
     };
 }
 ```
@@ -668,6 +808,126 @@ interface RuntimeSeams {
 type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses;
 ```
 
+### `Save` (interface)
+
+```ts
+interface Save<S> {
+    readonly slots: Subscribable.Subscribable<readonly SlotState[]>;
+    load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
+    write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>;
+    remove(slot: number): Effect.Effect<void, HostError>;
+}
+```
+
+### `SaveDef` (interface)
+
+```ts
+interface SaveDef<S> {
+    readonly key: string;
+    readonly version: number;
+    readonly schema: z.ZodType<S>;
+    readonly empty: () => S;
+    readonly migrations: Readonly<Record<number, SaveMigration>>;
+    readonly slots?: {
+        readonly count: number;
+    };
+}
+```
+
+### `SaveEnvelope` (interface)
+
+```ts
+interface SaveEnvelope {
+    readonly format: 1;
+    readonly version: number;
+    readonly contentHash: string;
+    readonly savedAt: number;
+    readonly label?: string;
+    readonly data: Record<string, unknown>;
+    readonly snapshot?: string;
+}
+```
+
+### `SaveFromNewerBuild` (class)
+
+```ts
+class SaveFromNewerBuild extends SaveFromNewerBuildBase {
+}
+```
+
+### `SaveFromNewerBuildFields` (interface)
+
+```ts
+interface SaveFromNewerBuildFields {
+    readonly key: string;
+    readonly slot: number;
+    readonly version: number;
+}
+```
+
+### `SaveMigration` (type)
+
+```ts
+type SaveMigration = (record: Record<string, unknown>) => Record<string, unknown>;
+```
+
+### `SaveRefused` (class)
+
+```ts
+class SaveRefused extends SaveRefusedBase {
+}
+```
+
+### `SaveRefusedFields` (interface)
+
+```ts
+interface SaveRefusedFields {
+    readonly key: string;
+    readonly slot: number;
+    readonly reason: 'newer';
+}
+```
+
+### `saveService` (function)
+
+```ts
+function saveService<S>(def: SaveDef<S>, options: SaveServiceOptions): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus>;
+```
+
+### `SaveServiceOptions` (interface)
+
+```ts
+interface SaveServiceOptions {
+    readonly contentHash: string;
+}
+```
+
+### `SaveUnreadable` (class)
+
+```ts
+class SaveUnreadable extends SaveUnreadableBase {
+}
+```
+
+### `SaveUnreadableFields` (interface)
+
+```ts
+interface SaveUnreadableFields {
+    readonly key: string;
+    readonly slot: number;
+    readonly reason: string;
+}
+```
+
+### `SaveWriteOptions` (interface)
+
+```ts
+interface SaveWriteOptions {
+    readonly label?: string;
+    readonly snapshot?: Uint8Array;
+}
+```
+
 ### `ScreenContext` (interface)
 
 ```ts
@@ -683,6 +943,7 @@ interface ScreenContext {
 interface ScreenDef<R = never> {
     readonly id: string;
     readonly pausesSim?: boolean;
+    readonly kind?: 'menu' | 'gameplay';
     readonly fonts?: readonly string[];
     enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
     openMenu?(): boolean;
@@ -735,6 +996,43 @@ interface SettingsStore<S> {
 function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>;
 ```
 
+### `SlotMeta` (interface)
+
+```ts
+interface SlotMeta {
+    readonly version: number;
+    readonly contentHash: string;
+    readonly savedAt: number;
+    readonly label?: string;
+    readonly snapshot: boolean;
+}
+```
+
+### `SlotState` (type)
+
+```ts
+type SlotState = {
+    readonly kind: 'empty';
+    readonly slot: number;
+} | {
+    readonly kind: 'ready';
+    readonly slot: number;
+    readonly meta: SlotMeta;
+} | {
+    readonly kind: 'unreadable';
+    readonly slot: number;
+    readonly reason: string;
+} | {
+    readonly kind: 'newer';
+    readonly slot: number;
+    readonly version: number;
+} | {
+    readonly kind: 'other-content';
+    readonly slot: number;
+    readonly meta: SlotMeta;
+};
+```
+
 ### `SLOW_MS` (const)
 
 ```ts
@@ -769,6 +1067,47 @@ const STANDARD_PAD_BUTTON_MAX = 16;
 type StickDirection = (typeof STICK_DIRECTIONS)[number];
 ```
 
+### `SwipeIndicator` (interface)
+
+```ts
+interface SwipeIndicator {
+    readonly anchor: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly thumb: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly steering: boolean;
+}
+```
+
+### `SwipeTracker` (class)
+
+```ts
+class SwipeTracker {
+    private readonly sink;
+    readonly tuning: GestureTuning;
+    private readonly fingers;
+    private steerer;
+    private readonly anchor;
+    private readonly thumb;
+    private readonly direction;
+    constructor(sink: GestureSink, tuning?: Partial<GestureTuning>);
+    get indicator(): SwipeIndicator | undefined;
+    down(id: number, x: number, y: number, t: number, options?: {
+        readonly steers?: boolean;
+    }): void;
+    move(id: number, x: number, y: number, t: number): void;
+    up(id: number, _x: number, _y: number, t: number): void;
+    cancel(): void;
+    private steer;
+    private stopSteering;
+    private setDirection;
+}
+```
+
 ### `textDirection` (function)
 
 ```ts
@@ -785,6 +1124,18 @@ interface Time {
     resume(reason: PauseReason): void;
 }
 const Time: Context.Tag<Time, Time>;
+```
+
+### `TouchMode` (type)
+
+```ts
+type TouchMode = 'buttons' | 'swipe';
+```
+
+### `touchModesFor` (function)
+
+```ts
+function touchModesFor(profile: InputProfile): TouchMode[];
 ```
 
 ### `Translate` (type)

@@ -20,6 +20,10 @@ export type DiagnosticCode =
   | 'invalidPalette'
   | 'invalidGame'
   | 'missingAsset'
+  /** A file an asset build reads is not what it should be: not a PNG, or too large for an atlas page (M5.6). */
+  | 'invalidAsset'
+  /** A drawn pixel of an atlas frame is not a colour of the game's declared palette (M5.6). */
+  | 'offPalette'
   | 'duplicateMessageKey'
   | 'staleTranslation'
   | 'staleArtifact'

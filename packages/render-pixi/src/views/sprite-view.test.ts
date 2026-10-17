@@ -109,4 +109,46 @@ describe('sprite view', () => {
     expect(Assets.load).toHaveBeenCalledTimes(1)
     vi.unstubAllGlobals()
   })
+
+  describe('a frame of a packed atlas (M5.6)', () => {
+    /** Assets.load of an atlas page's JSON yields a Spritesheet; only its `textures` are read. */
+    const sheetOf = (textures: Record<string, Texture>) => ({ textures })
+
+    it("shows the Spritesheet's named frame", async () => {
+      const run = texture(4, 4)
+      vi.spyOn(Assets, 'load').mockImplementation((() =>
+        Promise.resolve(sheetOf({ run, idle: texture(2, 2) }))) as unknown as typeof Assets.load)
+      const shown = spriteOf(sprite('wick-0.json', { frame: 'run' })(row, 'body'))
+
+      expect(shown.texture).toBe(Texture.EMPTY)
+      await vi.waitFor(() => expect(shown.texture).toBe(run))
+    })
+
+    it('uses an atlas already in the asset cache straight away', () => {
+      const run = texture(4, 4)
+      vi.spyOn(Assets.cache, 'has').mockImplementation((key) => key === 'wick-0.json')
+      vi.spyOn(Assets.cache, 'get').mockImplementation((key) =>
+        key === 'wick-0.json' ? sheetOf({ run }) : undefined,
+      )
+      expect(spriteOf(sprite('wick-0.json', { frame: 'run' })(row, 'body')).texture).toBe(run)
+    })
+
+    it('reports an unknown frame name and stays empty', async () => {
+      vi.spyOn(Assets, 'load').mockImplementation((() =>
+        Promise.resolve(sheetOf({ run: texture(4, 4) }))) as unknown as typeof Assets.load)
+      const report = vi.fn()
+      vi.stubGlobal('reportError', report)
+
+      const shown = spriteOf(sprite('wick-0.json', { frame: 'jump' })(row, 'body'))
+
+      await vi.waitFor(() => expect(report).toHaveBeenCalledTimes(1))
+      expect(String(report.mock.calls[0]?.[0])).toContain("'jump'")
+      expect(shown.texture).toBe(Texture.EMPTY)
+      vi.unstubAllGlobals()
+    })
+
+    it('refuses frame and frames together', () => {
+      expect(() => sprite('wick-0.json', { frame: 'run', frames: { width: 4, height: 4 } })).toThrow(/frame/)
+    })
+  })
 })

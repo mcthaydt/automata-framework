@@ -11,10 +11,11 @@ import type {
   LifecyclePayload,
   PauseBehavior,
   RoundOutcome,
+  SavesChangedPayload,
   SavesFlushRes,
   SavesStatus,
 } from '@ruken/sdk'
-import type { Effect, Option, Scope, Subscribable } from 'effect'
+import type { Effect, Option, Scope, Stream, Subscribable } from 'effect'
 import { Context } from 'effect'
 import type { HostError, HostHandshakeFailed } from './errors'
 
@@ -43,6 +44,13 @@ export interface HostingSaves {
   set(key: string, value: string): Effect.Effect<void, HostError>
   remove(key: string): Effect.Effect<void, HostError>
   readonly flush: Effect.Effect<SavesFlushRes, HostError>
+  /** Every key the session holds, sorted by code unit (M5 spec §4.1). Fails `CANCELLED` once Hosting has shut down. */
+  readonly keys: Effect.Effect<readonly string[], HostError>
+  /**
+   * Another device's write, or the host's conflict choice, reached this session (`SavesApi.on('changed')`, M5 spec
+   * §4.1). No current value: only changes. Ends when Hosting shuts down.
+   */
+  readonly changed: Stream.Stream<SavesChangedPayload>
 }
 
 /**

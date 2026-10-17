@@ -47,3 +47,35 @@ describe('createPostFilterSlot', () => {
     expect(names(target.filters)).toEqual(['lcd'])
   })
 })
+
+// Quality tiers (M4 spec §4.11): an owner declares the lowest tier it runs at; a weak device drops optional passes,
+// never the art direction (FloorFifty `quality.ts`: the palette lock stays at every tier).
+describe('createPostFilterSlot at a quality tier', () => {
+  it('leaves out an owner whose minTier is above the tier, and brings it back in its place', () => {
+    const target: { filters: Filter[] | null } = { filters: null }
+    const slot = createPostFilterSlot(target)
+    slot.set('lock', [filter('palette-lock')], 30)
+    slot.set('bloom', [filter('bloom')], 10, { minTier: 'medium' })
+    slot.set('crt', [filter('crt')], 20, { minTier: 'high' })
+    expect(slot.tier).toBe('high')
+    expect(names(target.filters)).toEqual(['bloom', 'crt', 'palette-lock'])
+
+    slot.setTier('medium')
+    expect(names(target.filters)).toEqual(['bloom', 'palette-lock'])
+    slot.setTier('low')
+    expect(names(target.filters)).toEqual(['palette-lock'])
+    expect(slot.ids).toEqual(['lock'])
+    slot.setTier('high')
+    expect(names(target.filters)).toEqual(['bloom', 'crt', 'palette-lock'])
+  })
+
+  it('keeps an owner set while its tier is off until the tier allows it', () => {
+    const target: { filters: Filter[] | null } = { filters: null }
+    const slot = createPostFilterSlot(target)
+    slot.setTier('low')
+    slot.set('bloom', [filter('bloom')], 0, { minTier: 'medium' })
+    expect(target.filters).toBeNull()
+    slot.setTier('medium')
+    expect(names(target.filters)).toEqual(['bloom'])
+  })
+})

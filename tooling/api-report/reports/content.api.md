@@ -183,7 +183,7 @@ interface Diagnostic {
 ### `DiagnosticCode` (type)
 
 ```ts
-type DiagnosticCode = 'invalidToml' | 'invalidType' | 'missingField' | 'unknownField' | 'invalidId' | 'unknownReference' | 'wrongKind' | 'outOfRange' | 'invariantNotAuthorable' | 'invalidFlow' | 'invalidPalette' | 'invalidGame' | 'missingAsset' | 'duplicateMessageKey' | 'staleTranslation' | 'staleArtifact' | 'reservedKey' | 'simReference' | 'skippedFile';
+type DiagnosticCode = 'invalidToml' | 'invalidType' | 'missingField' | 'unknownField' | 'invalidId' | 'unknownReference' | 'wrongKind' | 'outOfRange' | 'invariantNotAuthorable' | 'invalidFlow' | 'invalidPalette' | 'invalidGame' | 'missingAsset' | 'invalidAsset' | 'offPalette' | 'duplicateMessageKey' | 'staleTranslation' | 'staleArtifact' | 'reservedKey' | 'simReference' | 'skippedFile';
 ```
 
 ### `FlowCapabilities` (interface)
@@ -378,6 +378,87 @@ const verifyContent: (options: ContentOptions) => Effect.Effect<void, ContentCom
 
 ```ts
 function withTuningTable(guide: string, meta: TuningMeta): string | undefined;
+```
+
+## `./assets`
+
+### `ATLAS_EXTRUDE` (const)
+
+```ts
+const ATLAS_EXTRUDE = 1;
+```
+
+### `ATLAS_PADDING` (const)
+
+```ts
+const ATLAS_PADDING = 1;
+```
+
+### `ATLAS_PAGE_MAX` (const)
+
+```ts
+const ATLAS_PAGE_MAX = 2048;
+```
+
+### `AtlasFrameTooLarge` (class)
+
+```ts
+class AtlasFrameTooLarge extends Error {
+    readonly frame: FrameSize;
+    constructor(frame: FrameSize);
+}
+```
+
+### `AtlasOutputs` (interface)
+
+```ts
+interface AtlasOutputs {
+    readonly files: ReadonlyMap<string, Uint8Array>;
+}
+```
+
+### `buildAtlases` (const)
+
+```ts
+const buildAtlases: (root: string) => Effect.Effect<AtlasOutputs, ContentCompileFailed>;
+```
+
+### `FrameSize` (interface)
+
+```ts
+interface FrameSize {
+    readonly name: string;
+    readonly width: number;
+    readonly height: number;
+}
+```
+
+### `PackedAtlas` (interface)
+
+```ts
+interface PackedAtlas {
+    readonly pageSizes: readonly number[];
+    readonly placements: readonly Placement[];
+}
+```
+
+### `packFrames` (function)
+
+```ts
+function packFrames(frames: readonly FrameSize[]): PackedAtlas;
+```
+
+### `Placement` (interface)
+
+```ts
+interface Placement {
+    readonly name: string;
+    readonly page: number;
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+}
 ```
 
 ## `./locale`

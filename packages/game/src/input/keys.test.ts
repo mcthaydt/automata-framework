@@ -67,6 +67,19 @@ describe('keys() profile and toCommand (M4 spec §2.2)', () => {
     expect(padded.touchButtons.map((button) => button.id)).toEqual(['move-0', 'move-1'])
   })
 
+  it('binds stick directions as actions, a payload shared with keys or pad buttons joining their action (M4.2)', () => {
+    const sticks = keys(
+      Move,
+      { ArrowLeft: { x: -1 } },
+      { pad: { 14: { x: -1 } }, stick: { 'left-left': { x: -1 }, 'left-up': { y: -1 } } },
+    )
+    expect(sticks.profile.bindings).toEqual({
+      'move-0': { keys: ['ArrowLeft'], pad: [14], stick: ['left-left'], touch: true },
+      'move-1': { keys: [], pad: [], stick: ['left-up'], touch: false },
+    })
+    expect(() => keys(Move, {}, { stick: { 'left-left': { x: 9 } } })).toThrow(/stick left-left/)
+  })
+
   it('binds no touch button when touch is off', () => {
     expect(keys(Move, { Space: { jump: true } }, { touch: false }).profile.bindings['move-0']?.touch).toBe(
       false,
@@ -191,7 +204,16 @@ describe('keys() gamepad (standard mapping)', () => {
     buttons = []
     Object.defineProperty(window.navigator, 'getGamepads', {
       configurable: true,
-      value: () => [{ mapping: 'standard', buttons: buttons.map((pressed) => ({ pressed })) }],
+      value: () => [
+        {
+          id: 'Standard Gamepad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [0, 0, 0, 0],
+          buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+        },
+      ],
     })
   })
   afterEach(() => {
@@ -209,7 +231,75 @@ describe('keys() gamepad (standard mapping)', () => {
     source.dispose()
   })
 
+  it('reads a stick pushed past the deadzone as its direction', () => {
+    Object.defineProperty(window.navigator, 'getGamepads', {
+      configurable: true,
+      value: () => [
+        {
+          id: 'Standard Gamepad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [-0.8, 0, 0, 0],
+          buttons: [],
+        },
+      ],
+    })
+    const source = keys(Move, {}, { stick: { 'left-left': { x: -1 } } }).attach(window)
+    expect(payloadAt(source)).toEqual([{ x: -1, y: 0, jump: false }])
+    source.dispose()
+  })
+
   it('throws on a pad binding the schema refuses', () => {
     expect(() => keys(Move, {}, { pad: { 0: { x: 9 } } })).toThrow(/pad button 0/)
+  })
+})
+
+describe('keys() gestures (M4.3)', () => {
+  const swiped = keys(
+    Move,
+    { ArrowLeft: { x: -1 }, ArrowRight: { x: 1 } },
+    { gestures: { 'swipe-left': { x: -1 }, 'swipe-right': { x: 1 }, 'flick-down': { jump: true } } },
+  )
+
+  it('binds a gesture to the action of an equal key payload, else to an action of its own', () => {
+    expect(swiped.profile.bindings).toEqual({
+      'move-0': { keys: ['ArrowLeft'], pad: [], touch: true, gesture: ['swipe-left'] },
+      'move-1': { keys: ['ArrowRight'], pad: [], touch: true, gesture: ['swipe-right'] },
+      'move-2': { keys: [], pad: [], touch: false, gesture: ['flick-down'] },
+    })
+  })
+
+  it('throws on a gesture payload the schema refuses, naming the gesture', () => {
+    expect(() => keys(Move, {}, { gestures: { tap: { x: 7 } } })).toThrow(/tap.*move/)
+  })
+
+  it('chooses buttons when there are touch buttons, and swipe when there are only gestures', () => {
+    expect(swiped.touchMode).toBe('buttons')
+    expect(keys(Move, {}, { gestures: { tap: { jump: true } } }).touchMode).toBe('swipe')
+    expect(
+      keys(Move, { Space: { jump: true } }, { gestures: { tap: { jump: true } }, touchMode: 'swipe' })
+        .touchMode,
+    ).toBe('swipe')
+    expect(arrows.touchMode).toBe('buttons')
+  })
+
+  it('refuses a touch mode the map cannot offer', () => {
+    expect(() => keys(Move, { Space: { jump: true } }, { touchMode: 'swipe' })).toThrow(/swipe/)
+  })
+
+  it('sends a flick in exactly one tick’s command, and a held swipe until it is released', () => {
+    const source = swiped.attach(window)
+    try {
+      source.gesture.pulse('flick-down')
+      expect(payloadAt(source, 1)).toEqual([{ x: 0, y: 0, jump: true }])
+      expect(payloadAt(source, 2)).toEqual([{ x: 0, y: 0, jump: false }])
+      source.gesture.hold('swipe-right')
+      expect(payloadAt(source, 3)).toEqual([{ x: 1, y: 0, jump: false }])
+      source.gesture.release('swipe-right')
+      expect(payloadAt(source, 4)).toEqual([{ x: 0, y: 0, jump: false }])
+    } finally {
+      source.dispose()
+    }
   })
 })

@@ -6,6 +6,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, 
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { encodePng } from '../assets/atlas-image'
 import { copyFixture } from '../testing/fixture-game'
 import { runCli } from './run-cli'
 
@@ -33,6 +34,17 @@ function project(config = ''): string {
   )
   mkdirSync(join(root, 'docs'))
   writeFileSync(join(root, 'docs/authoring.md'), GUIDE)
+  return root
+}
+
+/** Adds `content/atlases.toml` and one 1 × 1 frame of colour `rgba` to a project. */
+function withAtlas(root: string, rgba: readonly number[]): string {
+  writeFileSync(join(root, 'content/atlases.toml'), '[atlas.wick]\nframes = "art/wick"\n')
+  mkdirSync(join(root, 'art/wick'), { recursive: true })
+  writeFileSync(
+    join(root, 'art/wick/run.png'),
+    encodePng({ width: 1, height: 1, data: new Uint8Array(rgba) }),
+  )
   return root
 }
 
@@ -116,13 +128,32 @@ describe('runCli', () => {
     ])
   }, 90_000)
 
+  it('assets writes the atlases under the output folder', async () => {
+    const root = withAtlas(project(), [255, 0, 64, 255])
+    const result = await cli(root, 'assets')
+    expect(result).toEqual({ code: 0, out: ['atlases 2 files'], err: [] })
+    expect(readFileSync(generated(root, 'atlases/wick-0.png')).subarray(1, 4).toString()).toBe('PNG')
+    expect(JSON.parse(readFileSync(generated(root, 'atlases/wick-0.json'), 'utf8')).meta.image).toBe(
+      'wick-0.png',
+    )
+  }, 90_000)
+
+  it('assets exits 1 on a stray pixel, printing the diagnostic and writing nothing', async () => {
+    const root = withAtlas(project(), [18, 52, 86, 255])
+    writeFileSync(join(root, 'content/palette.toml'), 'name = "two"\ncolors = ["#000000", "#ff0040"]\n')
+    const result = await cli(root, 'assets')
+    expect(result.code).toBe(1)
+    expect(result.err).toEqual(['art/wick/run.png:1:1  offPalette: pixel 0,0 is #123456, not a two colour'])
+    expect(existsSync(generated(root, 'atlases'))).toBe(false)
+  }, 90_000)
+
   it.each([[['watch']], [['build', '--verify-artifact']], [[]]])(
     'exits 2 with usage for %j',
     async (argv) => {
       const result = await cli(project(), ...argv)
       expect(result.code).toBe(2)
       expect(result.err).toEqual([
-        'usage: automata-content <check [--verify-artifact] | build | docs [guide.md]>',
+        'usage: automata-content <check [--verify-artifact] | build | docs [guide.md] | assets>',
       ])
     },
     30_000,

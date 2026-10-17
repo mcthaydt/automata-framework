@@ -1,5 +1,5 @@
 import { settle } from '@ruken/sdk-host/testing'
-import { Effect, Either, Fiber, Stream } from 'effect'
+import { Chunk, Effect, Either, Fiber, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { Hosting } from './hosting'
 import { FakeHostHandle, HostingTest, manualClock, runScoped } from './testing'
@@ -119,6 +119,44 @@ describe('saves (shared contracts §1.5; FloorFifty hosting and settings-hosted)
         yield* settled
         expect(yield* hosting.savesStatus.get).toBe('recovered')
         expect(yield* hosting.saves.get('progress')).toBe('9')
+      }).pipe(Effect.provide(HostingTest({ host: { clock, saves: { progress: '1' } } }))),
+    )
+  })
+
+  it('lists every key the session holds, sorted by code unit, including one written this visit (M5 spec §4.1)', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        expect(yield* hosting.saves.keys).toEqual(['a', 'a.slot.0', 'b'])
+        yield* hosting.saves.set('B', '4')
+        expect(yield* hosting.saves.keys).toEqual(['B', 'a', 'a.slot.0', 'b'])
+        yield* hosting.saves.remove('a')
+        expect(yield* hosting.saves.keys).toEqual(['B', 'a.slot.0', 'b'])
+      }).pipe(Effect.provide(HostingTest({ host: { saves: { b: '1', a: '2', 'a.slot.0': '3' } } }))),
+    )
+  })
+
+  it("streams another device's write once the host's conflict choice reaches this session (M5 spec §4.1)", async () => {
+    const clock = manualClock()
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { host } = yield* FakeHostHandle
+        yield* hosting.ready
+        const changes = yield* Effect.fork(Stream.runCollect(Stream.take(hosting.saves.changed, 1)))
+        yield* settled
+
+        host.fakes.server.remoteWrite('progress', '9', 'Desk PC')
+        yield* hosting.saves.set('progress', '4')
+        yield* settled
+        clock.advance(60_000)
+        yield* settled
+        yield* Effect.promise(() => host.bridge.resolveConflict('progress', 'theirs'))
+        yield* settled
+
+        const [change] = Chunk.toReadonlyArray(yield* Fiber.join(changes))
+        expect(change).toMatchObject({ key: 'progress', value: '9' })
+        expect(typeof change?.revision).toBe('number')
       }).pipe(Effect.provide(HostingTest({ host: { clock, saves: { progress: '1' } } }))),
     )
   })

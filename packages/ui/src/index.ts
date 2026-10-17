@@ -13,7 +13,22 @@ export { lockOverscroll, pastEdge } from './browser/lock-overscroll'
 export { reducedMotion } from './browser/reduced-motion'
 export { type Sleeper, sleepWhenHidden } from './browser/sleep-when-hidden'
 export { suppressPageGestures } from './browser/suppress-page-gestures'
+export { default as Button } from './controls/Button.svelte'
+export { default as IconButton } from './controls/IconButton.svelte'
+export { default as Slider } from './controls/Slider.svelte'
+export { default as Toggle } from './controls/Toggle.svelte'
 export { default as Dialog } from './dialog/Dialog.svelte'
+export { default as Modal } from './dialog/Modal.svelte'
+export type { ModalProps } from './dialog/modal-props'
+export { default as Sheet } from './dialog/Sheet.svelte'
+export { interceptBackGesture, sendBack } from './focus/back-gesture'
+export {
+  CURSOR_IDLE_MS,
+  type CursorInput,
+  CursorRunner,
+  cursorHidden,
+  type ScreenKind,
+} from './focus/cursor-policy'
 export {
   arrowKeyNav,
   FocusNavigator,
@@ -23,6 +38,7 @@ export {
   scrollWithin,
   tabbables,
 } from './focus/focus-nav'
+export { isTap, PAGE_SWIPE, releaseStep, WheelPager } from './focus/page-swipe'
 export {
   classifyFormFactor,
   type FormFactor,
@@ -63,8 +79,28 @@ export {
   collapseLevel,
 } from './layout/action-bar'
 export { default as CornerControls } from './layout/CornerControls.svelte'
+export { default as OptionGroup } from './layout/OptionGroup.svelte'
+export { default as PagedGrid } from './layout/PagedGrid.svelte'
+export { default as PagerDots } from './layout/PagerDots.svelte'
+export {
+  fitColumns,
+  fitShape,
+  type GridBox,
+  type GridPage,
+  type GridShape,
+  type PagedGridProps,
+  type PageGroup,
+  pageOf,
+  paginate,
+  tileSide,
+  trimRows,
+  wrapPage,
+} from './layout/paged-grid'
+export { pagerMode } from './layout/pager'
 export { default as ScreenFrame } from './layout/ScreenFrame.svelte'
 export { default as ScrollList } from './layout/ScrollList.svelte'
+export { default as Split } from './layout/Split.svelte'
+export { splitMode } from './layout/split'
 export { UI_SLOT_NAMES, type UiComponent, type UiSlotName } from './slots/ui-slot'
 export { default as BootFailurePanel } from './status/BootFailurePanel.svelte'
 export {
@@ -78,6 +114,19 @@ export {
   type ErrorCode,
   type HostKind,
 } from './status/boot-failure'
+export { default as Chip } from './status/Chip.svelte'
 export { default as ErrorPanel } from './status/ErrorPanel.svelte'
 export type { ErrorAction } from './status/error-panel'
 export { default as LoaderOverlay } from './status/LoaderOverlay.svelte'
+export { default as Toast } from './status/Toast.svelte'
+export { default as SwipeSurface } from './touch/SwipeSurface.svelte'
+export type { PointerTracker, SwipeIndicatorView, SwipeSurfaceProps } from './touch/swipe-surface'
+export { default as TouchControls } from './touch/TouchControls.svelte'
+export type { TouchButtonSpec, TouchControlsProps } from './touch/touch-button'
+export {
+  nearestTarget,
+  PointerLatch,
+  STICKY_MARGIN_PX,
+  StickyPointers,
+  type TouchTarget,
+} from './touch/touch-controls'
