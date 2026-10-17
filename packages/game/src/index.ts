@@ -1,6 +1,10 @@
 // @mcthaydt/automata-game: one call to start a game (DX spec §3.1). The only package that composes runtime,
 // render-pixi, host, ui and sim; every default it fills in is an existing core contract with its options set.
 export {
+  type Camera2d,
+  type Camera2dOptions,
+  type CameraRect,
+  createCamera2d,
   type RectViewOptions,
   rect,
   type SpriteFrames,

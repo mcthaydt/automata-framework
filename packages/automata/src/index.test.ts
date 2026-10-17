@@ -9,6 +9,7 @@ import * as automata from './index.ts'
 // each the very same value as its owner's. The list is pinned, so a new verb is added on purpose.
 const FROM_GAME = [
   'GameSpecError',
+  'createCamera2d',
   'defaultContent',
   'defaultScreens',
   'defineGame',
