@@ -1,6 +1,8 @@
 import {
+  DEFAULT_QUALITY,
   type FrameInfo,
   type GameRenderer,
+  type QualityTier,
   RendererUnavailable,
   type RenderTarget,
 } from '@mcthaydt/automata-runtime'
@@ -36,6 +38,8 @@ export interface PixiRendererOptions {
   readonly barFraction?: number | undefined
   /** Bar color in hex. Default is 0x2e222f (FloorFifty plum black). */
   readonly barColor?: number | undefined
+  /** The graphics quality tier to start at (M4 spec §4.11); `PixiStage.setQuality` changes it. Default `high`. */
+  readonly quality?: QualityTier | undefined
   /** Optional view factory resolver for entity components. */
   readonly entityViews?: EntityViewResolver | undefined
   /**
@@ -74,6 +78,10 @@ export interface PixiStage {
   filters: Filter[] | null
   /** The post-filter slot over `filters`: each owner keeps its own filters by id and order (PRODUCT spec §2 F1). */
   readonly postFilters: PostFilterSlot
+  /** The graphics quality tier now. */
+  readonly quality: QualityTier
+  /** Changes the tier: re-caps the canvas resolution and leaves out post-filter owners registered for a higher one. */
+  setQuality(tier: QualityTier): void
 }
 
 export interface PixiRenderer extends GameRenderer {
@@ -101,9 +109,10 @@ export function createPixiRenderer(
         TextureSource.defaultOptions.scaleMode = 'nearest'
       }
 
+      let quality: QualityTier = options.quality ?? DEFAULT_QUALITY
+      const devicePixelRatio = (): number => (typeof window !== 'undefined' ? window.devicePixelRatio : 1)
       const initialGeometry = target.geometry.geometry.current
-      const dpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1
-      const initialResolution = canvasResolutionFor(initialGeometry.formFactor, dpr)
+      const initialResolution = canvasResolutionFor(initialGeometry.formFactor, devicePixelRatio(), quality)
 
       const tryInit = async (pref: RendererPreference): Promise<Application | null> => {
         const app = new Application()
@@ -196,6 +205,13 @@ export function createPixiRenderer(
         },
       }
 
+      const postFilters = createPostFilterSlot(sceneFilters)
+      postFilters.setTier(quality)
+      let formFactor = initialGeometry.formFactor
+      const applyResolution = (): void => {
+        app.renderer.resolution = canvasResolutionFor(formFactor, devicePixelRatio(), quality)
+      }
+
       const stage: PixiStage = {
         app,
         frame,
@@ -209,7 +225,15 @@ export function createPixiRenderer(
         set filters(val: Filter[] | null) {
           sceneFilters.filters = val
         },
-        postFilters: createPostFilterSlot(sceneFilters),
+        postFilters,
+        get quality(): QualityTier {
+          return quality
+        },
+        setQuality(tier: QualityTier): void {
+          quality = tier
+          postFilters.setTier(tier)
+          applyResolution()
+        },
       }
 
       const hooks: PixiStageHooks = options.setup?.(stage) ?? {}
@@ -217,8 +241,8 @@ export function createPixiRenderer(
       const unsubscribe = target.geometry.onChange((g) => {
         app.renderer.resize(g.usable.width, g.usable.height)
         frame?.layout(g.usable.width, g.usable.height)
-        const newDpr = typeof window !== 'undefined' ? window.devicePixelRatio : 1
-        app.renderer.resolution = canvasResolutionFor(g.formFactor, newDpr)
+        formFactor = g.formFactor
+        applyResolution()
       })
 
       yield* Effect.addFinalizer(() =>

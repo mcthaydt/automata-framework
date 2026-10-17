@@ -3,7 +3,7 @@
 - **Task:** M4.9 in [02](../../02-master-delivery-plan.md), M4 spec [§4.11](../specs/2026-10-16-m4-input-display-design.md) (acceptance Q-a, Q-b), §6 (a filter that fails to compile), M4-D6 (`high`, no auto-detect).
 - **Lanes:** render (`render-pixi`) and runtime (the settings field and the fact). **Depends on:** M4.0 (merged) and PRODUCT.1 (merged; the post-filter slot this extends).
 - **Status:** In progress.
-- **Progress:** 4 of 10 steps.
+- **Progress:** 5 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -62,7 +62,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: an owner set with `{ minTier: 'medium' }` is in the filter list at `high` and `medium`, and leaves at `setTier('low')`.
    - Red: it comes back at `setTier('high')`, in its old place by order.
    - Red: an owner with no `minTier` stays at every tier, as the FloorFifty palette lock does.
-5. [ ] **Renderer quality (Q-a).** Test file: `renderer.test.ts`, with the mocked `Application`.
+5. [x] **Renderer quality (Q-a).** Test file: `renderer.test.ts`, with the mocked `Application`. Red: `expected "init" to be called with arguments: [ ObjectContaining {"resolution": 1} ]` (both cases); green 12 of 12.
    - Red: `quality: 'low'` at device pixel ratio 2 inits at resolution 1, and a `minTier: 'medium'` owner is absent from `stage.filters`.
    - Red: `setQuality('high')` sets the resolution to 2 and brings the owner back.
    - Red: a geometry change keeps the tier's cap.

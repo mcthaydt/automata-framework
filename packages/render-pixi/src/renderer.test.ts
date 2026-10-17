@@ -359,4 +359,62 @@ describe('createPixiRenderer', () => {
 
     await Effect.runPromise(program)
   })
+
+  describe('at a quality tier (M4 spec §4.11, Q-a)', () => {
+    let dpr: PropertyDescriptor | undefined
+    beforeEach(() => {
+      dpr = Object.getOwnPropertyDescriptor(window, 'devicePixelRatio')
+      Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 2 })
+    })
+    afterEach(() => {
+      if (dpr) Object.defineProperty(window, 'devicePixelRatio', dpr)
+      else Reflect.deleteProperty(window, 'devicePixelRatio')
+    })
+
+    it('at low draws at resolution 1 and leaves out a minTier medium owner; setQuality brings both back', async () => {
+      const target = createFakeTarget()
+      const bloom = { name: 'bloom' } as unknown as Filter
+      const lock = { name: 'lock' } as unknown as Filter
+      const factory = createPixiRenderer({
+        logicalWidth: 960,
+        logicalHeight: 540,
+        quality: 'low',
+        setup(stage) {
+          stage.postFilters.set('bloom', [bloom], 0, { minTier: 'medium' })
+          stage.postFilters.set('lock', [lock], 10)
+        },
+      })
+
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const renderer = yield* factory(target)
+          expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ resolution: 1 }))
+          expect(renderer.stage.quality).toBe('low')
+          expect(renderer.stage.filters).toEqual([lock])
+
+          renderer.stage.setQuality('high')
+          expect(renderer.stage.app.renderer.resolution).toBe(2)
+          expect(renderer.stage.filters).toEqual([bloom, lock])
+
+          renderer.stage.setQuality('medium')
+          target.triggerResize({ width: 1024, height: 768 })
+          expect(renderer.stage.app.renderer.resolution).toBe(1.5)
+        }),
+      )
+
+      await Effect.runPromise(program)
+    })
+
+    it('starts at high', async () => {
+      const target = createFakeTarget()
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const renderer = yield* createPixiRenderer({ logicalWidth: 960, logicalHeight: 540 })(target)
+          expect(renderer.stage.quality).toBe('high')
+          expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ resolution: 2 }))
+        }),
+      )
+      await Effect.runPromise(program)
+    })
+  })
 })
