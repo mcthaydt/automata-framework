@@ -5,6 +5,9 @@ import type {
   EntitlementsPayload,
   FullscreenRes,
   InputModePayload,
+  LeaderboardGetRes,
+  LeaderboardSubmitRes,
+  LeaderboardsApi,
   LifecyclePayload,
   PauseBehavior,
   RoundOutcome,
@@ -43,6 +46,25 @@ export interface HostingSaves {
 }
 
 /**
+ * The host's leaderboards (Ruken's `LeaderboardsApi`, PRODUCT spec §2 F1). Needs the `leaderboards` grant.
+ * Each call relays the SDK's answer or error as a `HostError`: without the grant and standalone it fails
+ * `UNSUPPORTED`, offline it fails with the host's code. None keeps a local board instead.
+ */
+export interface HostingLeaderboards {
+  /** Submits `score` to `board` (a Ruken slug); `meta` is passed to the host as is. */
+  submit(
+    board: string,
+    score: number,
+    meta?: Parameters<LeaderboardsApi['submit']>[2],
+  ): Effect.Effect<LeaderboardSubmitRes, HostError>
+  /** Reads `board`: the top entries or those around the player, as the SDK's options say. */
+  get(
+    board: string,
+    query?: Parameters<LeaderboardsApi['get']>[1],
+  ): Effect.Effect<LeaderboardGetRes, HostError>
+}
+
+/**
  * Everything a game may ask of, or hear from, its host: the `Hosting` contract
  * of the M1 shared contracts spec §1, implemented by the host lane.
  */
@@ -66,6 +88,7 @@ export interface Hosting {
   readonly savesStatus: Subscribable.Subscribable<SavesStatus>
 
   readonly saves: HostingSaves
+  readonly leaderboards: HostingLeaderboards
   /** Ruken's `FullscreenRes`: `support` says what the device allows (for example `ios-home-screen`). */
   setFullscreen(on: boolean): Effect.Effect<FullscreenRes, HostError>
   readonly round: {
