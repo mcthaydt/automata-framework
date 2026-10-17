@@ -3,7 +3,7 @@
 - **Task:** M4.3 in [02](../../02-master-delivery-plan.md). M4 spec [§4.4](../specs/2026-10-16-m4-input-display-design.md), §5 (device change), §6 (`TouchControls`, `SwipeSurface` rows) and §8. Acceptance I-f.
 - **Lane:** runtime and ui, with the game lane's play screen and `keys()` as consumers (this session owns that lane). **Depends on:** M4.1 (`Input`, merged in #74).
 - **Status:** In progress.
-- **Progress:** 6 of 9 steps.
+- **Progress:** 7 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -166,7 +166,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
    - **Red:** `touch-controls-view.test.ts` (jsdom, Testing Library): a press holds and a release lets go; a second finger on a held button reports nothing; a near miss within 24 px presses the nearest (stubbed rects); a slide moves the hold; `data-held` follows the latch; `shown: false` hides without unmounting (same element) and releases what was held; unmount releases; buttons are `tabindex=-1` with their aria labels.
    - **Red:** `touch.layout.test.ts`: in a fixture, every button is at least 48 px and inside the viewport at every reference size and variant (`checkLayout`).
    - **Green:** the component and its CSS.
-7. [ ] **`SwipeSurface.svelte`.**
+7. [x] **`SwipeSurface.svelte`.** Done: red was "Failed to resolve import ./SwipeSurface.svelte"; then 6 passed (29 in `src/touch/`). The line is drawn from the anchor toward the thumb on both axes, rotated, and capped at `saturationPx`. Unmounting cancels every finger.
    - **Red:** `swipe-surface.test.ts`: pointer events reach a stub tracker with `timeStamp`; `steers` decides `options.steers`; a cancel or lost capture lifts only that finger; the indicator draws while steering (`data-steering`) and not after lift.
    - **Green:** the component.
 8. [ ] **Game lane.**
