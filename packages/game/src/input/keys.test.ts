@@ -67,6 +67,19 @@ describe('keys() profile and toCommand (M4 spec §2.2)', () => {
     expect(padded.touchButtons.map((button) => button.id)).toEqual(['move-0', 'move-1'])
   })
 
+  it('binds stick directions as actions, a payload shared with keys or pad buttons joining their action (M4.2)', () => {
+    const sticks = keys(
+      Move,
+      { ArrowLeft: { x: -1 } },
+      { pad: { 14: { x: -1 } }, stick: { 'left-left': { x: -1 }, 'left-up': { y: -1 } } },
+    )
+    expect(sticks.profile.bindings).toEqual({
+      'move-0': { keys: ['ArrowLeft'], pad: [14], stick: ['left-left'], touch: true },
+      'move-1': { keys: [], pad: [], stick: ['left-up'], touch: false },
+    })
+    expect(() => keys(Move, {}, { stick: { 'left-left': { x: 9 } } })).toThrow(/stick left-left/)
+  })
+
   it('binds no touch button when touch is off', () => {
     expect(keys(Move, { Space: { jump: true } }, { touch: false }).profile.bindings['move-0']?.touch).toBe(
       false,
@@ -215,6 +228,25 @@ describe('keys() gamepad (standard mapping)', () => {
     expect(payloadAt(source)).toEqual([{ x: -1, y: 0, jump: true }])
     buttons[14] = false
     expect(payloadAt(source)).toEqual([{ x: 0, y: 0, jump: true }])
+    source.dispose()
+  })
+
+  it('reads a stick pushed past the deadzone as its direction', () => {
+    Object.defineProperty(window.navigator, 'getGamepads', {
+      configurable: true,
+      value: () => [
+        {
+          id: 'Standard Gamepad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [-0.8, 0, 0, 0],
+          buttons: [],
+        },
+      ],
+    })
+    const source = keys(Move, {}, { stick: { 'left-left': { x: -1 } } }).attach(window)
+    expect(payloadAt(source)).toEqual([{ x: -1, y: 0, jump: false }])
     source.dispose()
   })
 

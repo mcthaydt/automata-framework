@@ -3,7 +3,7 @@
 - **Task:** M4.2 in [02](../../02-master-delivery-plan.md). M4 spec [§4.3](../specs/2026-10-16-m4-input-display-design.md), §4.2 (active device, facts), §5 (pad hot-plug), §6 (non-standard pad, pad unplugged mid-play), §9 (unit and SDK-contract layers), M4-D2, M4-D3, M4-D9. Acceptance I-c, I-d, I-e.
 - **Lane:** runtime, with the game lane's `keys()` and default screens (this session owns both). **Depends on:** M4.0 (merged) and M4.1 (stacked: this branch starts from `claude/clever-pasteur-ujmu6e-m4-1`, because the gamepad source feeds M4.1's `Input` rather than a second copy of its bookkeeping).
 - **Status:** In progress.
-- **Progress:** 6 of 9 steps.
+- **Progress:** 7 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -157,7 +157,7 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - an `Input` over the same pad holds no action and fires no menu edge for that button.
    - **Red reason:** first written against a deliberately wrong expectation, `button` ∉ `[16]`, to prove the test reads the SDK; then set to the reserved list.
    - **Done.** The first run failed before the expectation, with no `host.summon`: the poller runs on `timers.setTimeout(tick, 50)`, not on frames. The test now drives that 50 ms tick by hand, and other timers stay real. It then failed for the intended reason, "expected [ 16 ] to include 8". With `RESERVED_PAD_BUTTONS` it passed (1). The test holds each standard button in turn until one summons the host, so it does not assume the index. The Input half (no held action, no menu edge, in play and menu) passed from the start; it is a guard.
-7. [ ] **`keys()` sticks, and the reconnect pause (M4-D9).**
+7. [x] **`keys()` sticks, and the reconnect pause (M4-D9).**
    - **Tests:** `packages/game/src/input/keys.test.ts`, `packages/game/src/screens/default-screens.test.ts`, `packages/runtime/src/time/time.test.ts`.
    - **Red:**
      - `keys(Move, {}, { stick: { 'left-left': { x: -1 } } })` puts `stick: ['left-left']` on the action, and the payload merges as `pad` does;
@@ -166,6 +166,13 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - Resume, by any device, clears the message and the `input` reason, and the sim steps again;
      - a disconnect while the keyboard is active does not pause.
    - **Red reason:** missing option, reason and listener.
+   - **Done.** Red:
+     - the `keys()` profile had no `stick`, and an attached stick sent the idle payload;
+     - the default screens "timed out waiting for the paused screen";
+     - `time.test.ts` passed at runtime (a `Set` takes any string) but failed typecheck: "Argument of type '\"input\"' is not assignable to parameter of type 'PauseReason'" (2 errors);
+     - the unplug test's new `wasActive` expectation failed.
+   - **Green:** game unit 94 passed; runtime `input` and `time` 61 passed; both typechecks 0 errors.
+   - *Deviation:* `input.pad.disconnected` carries `wasActive`, so the play screen pauses only when the pad in use goes, and never for a spare pad. The paused screen shows the message with `role="status"` (new class `af-game-menu__message`). Escape, Resume and Quit all clear the `input` reason.
 8. [ ] **Example.**
    - **File:** `examples/core/core-input-gamepad.ts`. A square moves by the left stick (digital, through the deadzone) or the D-pad. `Shows` names the deadzone, the repeat-free play input and the reconnect pause.
    - **Golden:** the golden is new and recorded once in Node (`AUTOMATA_UPDATE_GOLDENS=1`), then matches in the browsers' parity project. This is a recording, not a rebaseline.

@@ -274,7 +274,8 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       lastRead.delete(pad.index)
       masks.delete(pad.index)
       inUse.delete(pad.index)
-      if (activeIndex === pad.index) {
+      const wasActive = activeIndex === pad.index
+      if (wasActive) {
         activeIndex = undefined
         activeAxes = []
         repeat.clear()
@@ -282,7 +283,7 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       Effect.runSync(
         SubscriptionRef.update(pads, (list) => list.filter((known) => known.index !== pad.index)),
       )
-      bus.publish('input.pad.disconnected', infoOf(pad))
+      bus.publish('input.pad.disconnected', { ...infoOf(pad), wasActive })
     }
     target.addEventListener('gamepadconnected', onConnect)
     target.addEventListener('gamepaddisconnected', onDisconnect)

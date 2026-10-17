@@ -299,7 +299,10 @@ describe('Input hot-plug and the active pad (M4.2, I-e)', () => {
         expect([...input.held()]).toEqual([])
         expect(input.stick('left')).toEqual({ x: 0, y: 0 })
         expect(yield* SubscriptionRef.get(input.pads)).toEqual([])
-        expect(facts).toEqual([{ index: 0, id: XBOX, standard: true }])
+        expect(facts).toEqual([{ index: 0, id: XBOX, standard: true, wasActive: true }])
+        plug('gamepadconnected', fakePad({ id: DUALSENSE, index: 1 }))
+        plug('gamepaddisconnected', fakePad({ id: DUALSENSE, index: 1 }))
+        expect(facts.at(-1)).toEqual({ index: 1, id: DUALSENSE, standard: true, wasActive: false })
       }),
     )
   })

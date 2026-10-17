@@ -20,8 +20,8 @@ export interface RuntimeFacts {
   }
   /** A pad was plugged in (M4 spec §5). `standard: false` means it cannot drive bindings (§6). */
   readonly 'input.pad.connected': PadInfo
-  /** A pad was unplugged; what it held is released (M4 spec §5). */
-  readonly 'input.pad.disconnected': PadInfo
+  /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
+  readonly 'input.pad.disconnected': PadInfo & { readonly wasActive: boolean }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {
