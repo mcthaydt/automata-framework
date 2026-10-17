@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 3 of 13 steps.
+- **Progress:** 4 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -74,7 +74,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: `disabled` disables every option;
    - Red: `ariaLabel` names an option whose face is a symbol.
    - The checked option shows a mark as well as its fill, so the choice is not colour alone.
-4. [ ] **PagerDots.** `pager-dots.test.ts`:
+4. [x] **PagerDots.** Red: `Failed to resolve import "./PagerDots.svelte"`; green 10 of 10. The dot size scales with `--af-scale` when measured, so the dots-or-counter choice holds under Ruken's TV scale. The current dot is larger as well as brighter. `pager-dots.test.ts`:
    - Red: FloorFifty's `pagerMode` cases;
    - Red: one 44 px dot per page, the current one `aria-current`, and a tap reports its index;
    - Red: past `max`, or when the measured width is too narrow, a counter `"3 / 11"` in a polite live region;
