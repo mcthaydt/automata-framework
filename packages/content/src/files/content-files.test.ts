@@ -61,6 +61,12 @@ describe('writeFileAtomically', () => {
     expect(readdirSync(join(dir, 'generated'))).toEqual(['content.json'])
   })
 
+  it('writes bytes as they are', async () => {
+    const dir = scratch()
+    await Effect.runPromise(writeFileAtomically(join(dir, 'page.png'), new Uint8Array([137, 0, 255])))
+    expect([...readFileSync(join(dir, 'page.png'))]).toEqual([137, 0, 255])
+  })
+
   it('fails without a temp file when the target cannot be replaced', async () => {
     const dir = scratch()
     mkdirSync(join(dir, 'content.json'))

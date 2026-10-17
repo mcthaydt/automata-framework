@@ -88,6 +88,11 @@ describe('buildAtlases', () => {
     expect(diagnostics[0]?.message).toContain('#123456')
   })
 
+  it('reports a refused frame alone, even when it is the only one', async () => {
+    const diagnostics = await refused(project(WICK, { 'art/wick/broken.png': 'not a png' }))
+    expect(diagnostics.map((diagnostic) => diagnostic.code)).toEqual(['invalidAsset'])
+  })
+
   it('checks no colours when the game declares no palette', async () => {
     const stray = encodePng({ width: 1, height: 1, data: new Uint8Array([18, 52, 86, 255]) })
     expect([...(await built(project(WICK, { 'art/wick/stray.png': stray }))).keys()]).toEqual([

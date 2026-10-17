@@ -67,8 +67,11 @@ export const buildAtlases = (root: string): Effect.Effect<AtlasOutputs, ContentC
     const names = Object.keys(atlases.value.atlas).sort()
     for (const name of names) {
       const folder = atlases.value.atlas[name]?.frames.replace(/\/+$/, '') ?? ''
+      const reported = diagnostics.length
       const frames = yield* readFrames(root, folder, palette, diagnostics)
-      if (frames === undefined) continue
+      // A refused frame is already reported, and a partial atlas is never packed: only a folder with no PNG
+      // files at all is "no frames".
+      if (frames === undefined || diagnostics.length > reported) continue
       if (frames.size === 0) {
         diagnostics.push(missingFrames(atlases.toml, name, folder))
         continue
