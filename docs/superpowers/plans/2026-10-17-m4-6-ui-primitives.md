@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 1 of 13 steps.
+- **Progress:** 2 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -64,7 +64,7 @@
 Each step starts with a failing test whose failure reason is confirmed and recorded here, then the minimal change.
 
 1. [x] **Plan.** This file, committed first.
-2. [ ] **Split.** `split.test.ts`:
+2. [x] **Split.** Red: `Failed to resolve import "./Split.svelte"`; green 6 of 6. jsdom has no ResizeObserver, so the measured case stubs one. `split.test.ts`:
    - Red: FloorFifty's `splitMode` cases (row when `2 × min + gap` fits, stack otherwise).
    - Red (DOM): stacked until measured; `data-split="row"` once a measured width fits; both panes render.
 3. [ ] **OptionGroup.** `option-group.test.ts`, from FloorFifty's:
