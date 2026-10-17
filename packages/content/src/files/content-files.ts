@@ -30,6 +30,17 @@ export const readTextIfPresent = (path: string): Effect.Effect<string | undefine
     }
   })
 
+/** A file's bytes, or undefined when there is no file at `path`. */
+export const readBytesIfPresent = (path: string): Effect.Effect<Uint8Array | undefined, FileError> =>
+  attempt(path, async () => {
+    try {
+      return new Uint8Array(await readFile(path))
+    } catch (error) {
+      if (isMissing(error)) return undefined
+      throw error
+    }
+  })
+
 /**
  * Every file below `folder`, as `/`-separated paths relative to it, sorted by code unit so the order never
  * depends on the disk or the locale. An absent folder lists nothing: a game that has no songs yet has an

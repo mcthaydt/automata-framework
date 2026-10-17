@@ -3,7 +3,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { listFiles, pathKind, readTextIfPresent, writeFileAtomically } from './content-files'
+import {
+  listFiles,
+  pathKind,
+  readBytesIfPresent,
+  readTextIfPresent,
+  writeFileAtomically,
+} from './content-files'
 
 const scratch = (): string => mkdtempSync(join(tmpdir(), 'content-files-'))
 
@@ -33,6 +39,17 @@ describe('readTextIfPresent', () => {
   it('fails for a path it cannot read', async () => {
     const result = await Effect.runPromise(Effect.either(readTextIfPresent(scratch())))
     expect(Either.isLeft(result)).toBe(true)
+  })
+})
+
+describe('readBytesIfPresent', () => {
+  it('reads bytes, and answers undefined for a missing file', async () => {
+    const dir = scratch()
+    writeFileSync(join(dir, 'a.png'), new Uint8Array([137, 80, 0, 255]))
+    expect(await Effect.runPromise(readBytesIfPresent(join(dir, 'a.png')))).toEqual(
+      new Uint8Array([137, 80, 0, 255]),
+    )
+    expect(await Effect.runPromise(readBytesIfPresent(join(dir, 'b.png')))).toBeUndefined()
   })
 })
 
