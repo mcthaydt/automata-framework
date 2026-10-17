@@ -2,8 +2,8 @@
 
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
-- **Status:** In progress.
-- **Progress:** 12 of 13 steps.
+- **Status:** Implemented and locally verified; CI and review pending.
+- **Progress:** 13 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -118,7 +118,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
     - A ui changeset (minor if the API report counts additions as minor, else as `check-changesets` decides).
     - Doc comments on every export (`pnpm api-index` fails without them).
     - The 02 follow-up row for the moved `ui/ui-*.ts` examples.
-13. [ ] **Verify and record.**
+13. [x] **Verify and record.** Attempt 1 (`TURBO_FORCE=true`, `CI=1`): `pnpm check` failed: base-2d's typecheck reads the ui source with plain `tsc`, where a `.svelte` module has only a default export, so `ModalProps` and `PagedGridProps` could not be re-exported from the components (`TS2614`). They moved to `dialog/modal-props.ts` and `layout/paged-grid.ts` (`939bb48`). The CI extras, parity (ui 1053 of 1053) and E2E (81 passed, 2 skipped) passed in that attempt. Attempt 2: format clean; `pnpm check` 30 of 30; CI extras passed; `pnpm test:parity` 11 of 11; `CI=1 pnpm test:e2e` 81 passed, 2 skipped; `prepare-ruken` passed for Emberwick and the placeholder. 02 and 03 recorded.
     - `pnpm format`; `pnpm check` (`TURBO_FORCE=true`).
     - The CI checks-job extras (`api-report --update`, `pnpm cheatsheet`, `pnpm api-index`, `pnpm agent-skills --write`, `build`, `test:dist`, `check-changesets`).
     - `pnpm test:parity`; `CI=1 pnpm test:e2e`; `prepare-ruken` for both games.

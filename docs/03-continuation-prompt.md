@@ -40,8 +40,9 @@ Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overvi
 
 **Next (af-linux alternates with Ruken, one run per turn; the orchestrator session gives the GO; full local gates before each push):**
 1. Every milestone spec M3.0 to M8.0 is merged and Owner-approved on its recommended defaults. The coord3 docs PR (#72) is merged. M4.8 (`camera2d`, #73) and M4.1 (`Input` service, #74, with M4.8 merged in) are locally green and in CI; merge #73, then #74, then send RELEASE to the orchestrator. M4.2 (gamepad source) is implemented and locally verified on `claude/clever-pasteur-ujmu6e-m4-2`, stacked on M4.1; push it on the next GO after #74 merges. Then the next M4 core tasks in spec order (M4.5, M4.6, M4.9), each with its TDD plan as the first commit. PRODUCT.6 waits on them and on PRODUCT.5.
-2. PRODUCT.5 (the `automata-plus` repo exists): attach `mcthaydt/automata-plus` to the agent session, then write its plan.
-3. Itch (#40, #41, #50, PUB.3) stays parked until the Owner resumes it.
+2. M4.6 (remaining `ui` primitives) is implemented and locally verified on `claude/clever-pasteur-ujmu6e-m4-6`, from `main`, independent of M4.2 and M4.5; its PR body is ready. Push it on a GO, open a draft PR, mark it ready, and merge when green with parity. The Owner reviews the move of the `ui/ui-*.ts` examples to M4.4 and looks at the primitives in `examples/ui/primitives`.
+3. PRODUCT.5 (the `automata-plus` repo exists): attach `mcthaydt/automata-plus` to the agent session, then write its plan.
+4. Itch (#40, #41, #50, PUB.3) stays parked until the Owner resumes it.
 A fresh session resumes by listing open PRs, checking which merged, and continuing this list from the first item not done.
 
 **Earlier history (M1 and the 2026-10-16 drafts):**
