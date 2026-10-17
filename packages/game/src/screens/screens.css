@@ -48,19 +48,18 @@
   min-height: 0;
 }
 
-.af-game-play__touch {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+/* The touch buttons (ui TouchControls, M4.3), centred along the foot as before, one group of them. */
+.af-game-play .af-touch[data-testid] {
   justify-content: center;
 }
 
+.af-game-play .af-touch__side[data-touch-side] {
+  gap: 8px;
+}
+
 /* A thumb's target: at least the primary size, never smaller. */
-.af-game-play__touch-button {
+.af-game-play .af-touch__button[data-action] {
   min-width: calc(var(--af-target-primary) * 1.5);
   min-height: calc(var(--af-target-primary) * 1.5);
   font-size: calc(var(--af-text-body) * 1.5);
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
 }

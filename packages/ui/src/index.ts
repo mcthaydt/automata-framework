@@ -81,3 +81,14 @@ export {
 export { default as ErrorPanel } from './status/ErrorPanel.svelte'
 export type { ErrorAction } from './status/error-panel'
 export { default as LoaderOverlay } from './status/LoaderOverlay.svelte'
+export { default as SwipeSurface } from './touch/SwipeSurface.svelte'
+export type { PointerTracker, SwipeIndicatorView, SwipeSurfaceProps } from './touch/swipe-surface'
+export { default as TouchControls } from './touch/TouchControls.svelte'
+export type { TouchButtonSpec, TouchControlsProps } from './touch/touch-button'
+export {
+  nearestTarget,
+  PointerLatch,
+  STICKY_MARGIN_PX,
+  StickyPointers,
+  type TouchTarget,
+} from './touch/touch-controls'

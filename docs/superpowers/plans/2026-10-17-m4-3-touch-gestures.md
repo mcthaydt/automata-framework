@@ -3,7 +3,7 @@
 - **Task:** M4.3 in [02](../../02-master-delivery-plan.md). M4 spec [§4.4](../specs/2026-10-16-m4-input-display-design.md), §5 (device change), §6 (`TouchControls`, `SwipeSurface` rows) and §8. Acceptance I-f.
 - **Lane:** runtime and ui, with the game lane's play screen and `keys()` as consumers (this session owns that lane). **Depends on:** M4.1 (`Input`, merged in #74).
 - **Status:** In progress.
-- **Progress:** 7 of 9 steps.
+- **Progress:** 8 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -169,7 +169,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
 7. [x] **`SwipeSurface.svelte`.** Done: red was "Failed to resolve import ./SwipeSurface.svelte"; then 6 passed (29 in `src/touch/`). The line is drawn from the anchor toward the thumb on both axes, rotated, and capped at `saturationPx`. Unmounting cancels every finger.
    - **Red:** `swipe-surface.test.ts`: pointer events reach a stub tracker with `timeStamp`; `steers` decides `options.steers`; a cancel or lost capture lifts only that finger; the indicator draws while steering (`data-steering`) and not after lift.
    - **Green:** the component.
-8. [ ] **Game lane.**
+8. [x] **Game lane.** Done: red was 5 failed in `keys.test.ts` (no `gestures`, `touchMode` or `source.gesture`) and "timed out waiting for the swipe surface" in `default-screens.test.ts`; then 45 passed. The swipe case drives the square through pointer events on the surface: a swipe holds, a tap moves it for exactly one tick. `screens.layout.test.ts` and `keys.parity.test.ts` passed 228 of 228 unchanged; the play screen's own CSS keeps its buttons centred and 1.5 × the primary size, as before. `keys()` also refuses a `touchMode` the map cannot offer. The ui index exports (`index.test.ts`) were added with the components and not seen red.
    - **Red:** in `keys.test.ts`: a `gestures` payload joins the profile (`gesture` on an equal key payload's action, else a new action); a refused gesture payload throws; `touchMode` defaults; `source.gesture.pulse('flick-down')` reaches exactly one tick's command. In `default-screens.test.ts`: under touch, a map in `swipe` mode shows the swipe surface and no buttons, and a flick through pointer events on it gives a command; in `buttons` mode, the `TouchControls` buttons hold and release as before.
    - **Green:** the options, `InputSource.gesture`, the play screen on both components. The existing touch-button layout contract (`screens.layout.test.ts`) must stay green unchanged.
    - **Emberwick check:** its golden stays unchanged.

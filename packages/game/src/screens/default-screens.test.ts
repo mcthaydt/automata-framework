@@ -233,6 +233,38 @@ describe('default screens', () => {
     expect(lastX()).toBe(12)
   })
 
+  it('in swipe mode, shows the swipe surface and no buttons, and a swipe and a tap drive the square (M4.3)', async () => {
+    await boot({ input: keys(Move, {}, { gestures: { 'swipe-right': { x: 1 }, tap: { x: -1 } } }) })
+    await toPlay()
+    expect(root.querySelector('[data-testid="swipe-surface"]')).toBeNull()
+    window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
+    await until(() => root.querySelector('[data-testid="swipe-surface"]') !== null, 'the swipe surface')
+    expect(root.querySelector('[data-testid="touch-buttons"]')).toBeNull()
+    const surface = root.querySelector('[data-testid="swipe-surface"]') as HTMLElement
+    const finger = (type: string, clientX: number, timeStamp: number) => {
+      const event = new PointerEvent(type, {
+        pointerId: 1,
+        clientX,
+        clientY: 100,
+        bubbles: true,
+        cancelable: true,
+      })
+      Object.defineProperty(event, 'timeStamp', { value: timeStamp })
+      surface.dispatchEvent(event)
+    }
+    finger('pointerdown', 100, 0)
+    finger('pointermove', 130, 16)
+    step(2)
+    expect(lastX()).toBe(12)
+    finger('pointerup', 130, 32)
+    step()
+    expect(lastX()).toBe(12)
+    finger('pointerdown', 100, 1000)
+    finger('pointerup', 100, 1050)
+    step(3)
+    expect(lastX()).toBe(11)
+  })
+
   it('shows no touch buttons when the input map says touch: false', async () => {
     await boot({ input: keys(Move, { ArrowLeft: { x: -1 } }, { touch: false }) })
     await toPlay()
