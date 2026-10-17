@@ -203,6 +203,7 @@ Commands: `automata create-game <dir> [--id <id>] [--title <title>]` from `@mcth
 | `typecheck` | `tsc -p . --noEmit` | Type errors |
 | `test` | `vitest run` | A test or golden fails |
 | `no-eval` (skipped with `--sim-only`) | Builds, then scans `dist/**/*.js` for `eval(`, `new Function(`, `Function(` string-call forms and `setTimeout`/`setInterval` with a string argument | Any match outside an allowlisted, documented vendor location |
+| `secrets` (skipped with `--sim-only`; added by QB.2) | Scans the `dist/` that `no-eval` built with `ship`'s bundle secret scanner, the same one `prepare-ruken` runs: known key formats, the values of the game folder's `.env*` variables and high-entropy strings (QB spec §4.3) | Any match. If the build failed, the step reports that nothing was scanned |
 | `csp` (opt-in `--csp`) | Serves `dist/` with Ruken's `compileHeaders` CSP, then loads it in Playwright Chromium until the game reports ready | A CSP violation report or no ready signal within 20 s |
 
 `--json` prints `{ ok, steps: [{ name, ok, ms, findings: [{ file, line, col, rule, message }] }] }`, the shape the plugin hook (§3.7) feeds back to the agent. Exit codes: 0 pass, 1 findings, 2 tool error.

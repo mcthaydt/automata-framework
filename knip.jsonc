@@ -5,7 +5,7 @@
   // An export its own file uses is not dead code (constants and types that tests also read).
   "ignoreExportsUsedInFile": true,
   // Fixtures are test inputs read as files, never imported.
-  "ignore": ["**/fixtures/**"],
+  "ignore": ["**/fixtures/**", "**/kit-fixtures/**"],
   // automata-ship is packages/ship's own bin, which game repositories call through the reusable workflows;
   // flock is a system tool that packages/ship's deploy test uses.
   "ignoreBinaries": ["automata-ship", "flock"],
