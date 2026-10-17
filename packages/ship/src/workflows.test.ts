@@ -190,9 +190,11 @@ describe('parity across packages', () => {
     // #14's eight suites at once left Firefox past vitest's 60 s connect timeout (2026-10-11). The longer connect
     // timeout, passed through to every suite's vitest, is a backstop for a busy runner. 120 s was not enough on
     // af-linux: on 2026-10-16 (PR #39, run 38862520260) sim's suite failed to connect to Firefox within it while
-    // every test that ran passed, so it is 240 s.
+    // every test that ran passed, so it is 240 s. Tests get test:unit's 90 s default (below) instead of browser
+    // mode's 15 s: on af-mac's first run (2026-10-17, PR #75, run 39073430409) examples-runner's first golden,
+    // which imports a whole game cold, took 15.9 s in Chromium and 17.0 s in WebKit.
     expect(packageJson('.').scripts['test:parity']).toBe(
-      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000',
+      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000',
     )
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
   })
