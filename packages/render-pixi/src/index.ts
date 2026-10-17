@@ -44,6 +44,7 @@ export {
   portraitFieldHeight,
 } from './letterbox/letterbox.js'
 export { meetsTier } from './quality/meets-tier.js'
+export { type QualityBuild, rebuildOnQuality } from './quality/rebuild-on-quality.js'
 export {
   createPixiRenderer,
   type PixiRenderer,
