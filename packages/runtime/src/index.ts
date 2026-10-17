@@ -30,11 +30,16 @@ export type {
 export {
   actionsForKey,
   actionsForPadButton,
+  type GestureName,
   type InputBinding,
+  type InputContext,
   type InputProfile,
   type InputProfileInput,
   inputProfileSchema,
+  RESERVED_KEYS,
+  RESERVED_PAD_BUTTONS,
   STANDARD_PAD_BUTTON_MAX,
+  type StickDirection,
 } from './input/input-profile.schema.js'
 export { Assets } from './loading/assets.manager.js'
 export {

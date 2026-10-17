@@ -2,8 +2,8 @@
 
 - **Task:** M4.1 in [02](../../02-master-delivery-plan.md). M4 spec [§4.1, §4.2, §4.13](../specs/2026-10-16-m4-input-display-design.md), §5 (boot, per fixed step, lifecycle) and §6. Acceptance I-a, I-b, I-g and I-j.
 - **Lane:** runtime, with one change to the game lane (step 3, the change request in spec §2.2). **Depends on:** M4.0 (`8a345a1`), PRODUCT.1 (input profile) and DX.2 (`InputMap`), all merged.
-- **Status:** Plan.
-- **Progress:** 1 of 8 steps.
+- **Status:** In progress.
+- **Progress:** 2 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -153,10 +153,11 @@ export function inputsProblems(inputs: readonly string[], bindings: ShipInputBin
 The pre-commit hook runs the affected unit tests, so each red test is committed together with the code that turns it green. Each step records the red output it saw.
 
 1. [x] **Plan.** This file, committed first.
-2. [ ] **Bindings (I-j).**
+2. [x] **Bindings (I-j).**
    - **Red:** in `input-profile.test.ts`, the optional fields parse and default; `required` and `context` round-trip; `RESERVED_PAD_BUTTONS` equals `[8, 16]` and `RESERVED_KEYS` equals `['Escape', 'Tab']`; a binding with pad 8, pad 16, `Escape` or `Tab` fails with the action named in the issue path and message.
    - **Run:** `pnpm --filter @mcthaydt/automata-runtime exec vitest run --project unit src/input/input-profile.test.ts`. Expect it to fail on the missing exports and on a parse that should fail.
    - **Green:** extend the schema.
+   - Done: red was 7 failed (the missing `RESERVED_*` exports, `stick`/`gesture`/`required` dropped by the parse, reserved bindings accepted); then 10 passed. `index.test.ts` was red on the two new names, then green. The API report records the new fields and constants.
 3. [ ] **`InputMap.profile` and `toCommand` (the §2.2 change request).**
    - **Red:** in `keys.test.ts`:
      - The profile has one action per distinct payload, with keys, pad buttons and `touch` set.

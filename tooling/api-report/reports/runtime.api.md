@@ -219,6 +219,12 @@ interface GameRenderer {
 }
 ```
 
+### `GestureName` (type)
+
+```ts
+type GestureName = (typeof GESTURE_NAMES)[number];
+```
+
 ### `InputBinding` (interface)
 
 ```ts
@@ -226,7 +232,17 @@ interface InputBinding {
     readonly keys: readonly string[];
     readonly pad: readonly number[];
     readonly touch: boolean;
+    readonly stick?: readonly StickDirection[] | undefined;
+    readonly gesture?: readonly GestureName[] | undefined;
+    readonly required?: boolean | undefined;
+    readonly context?: InputContext | undefined;
 }
+```
+
+### `InputContext` (type)
+
+```ts
+type InputContext = 'play' | 'menu' | 'any';
 ```
 
 ### `InputProfile` (interface)
@@ -247,6 +263,10 @@ interface InputProfileInput {
         readonly keys?: readonly string[] | undefined;
         readonly pad?: readonly number[] | undefined;
         readonly touch?: boolean | undefined;
+        readonly stick?: readonly StickDirection[] | undefined;
+        readonly gesture?: readonly GestureName[] | undefined;
+        readonly required?: boolean | undefined;
+        readonly context?: InputContext | undefined;
     }>>;
 }
 ```
@@ -414,6 +434,18 @@ interface RenderTarget {
 }
 ```
 
+### `RESERVED_KEYS` (const)
+
+```ts
+const RESERVED_KEYS: readonly string[];
+```
+
+### `RESERVED_PAD_BUTTONS` (const)
+
+```ts
+const RESERVED_PAD_BUTTONS: readonly number[];
+```
+
 ### `runGame` (function)
 
 ```ts
@@ -549,6 +581,12 @@ const STALL_MS = 30000;
 
 ```ts
 const STANDARD_PAD_BUTTON_MAX = 16;
+```
+
+### `StickDirection` (type)
+
+```ts
+type StickDirection = (typeof STICK_DIRECTIONS)[number];
 ```
 
 ### `textDirection` (function)

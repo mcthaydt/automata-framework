@@ -17,6 +17,8 @@ const ROOT_EXPORTS: string[] = [
   'MAX_FRAME_MS',
   'NetworkPort',
   'PresentationBus',
+  'RESERVED_KEYS',
+  'RESERVED_PAD_BUTTONS',
   'Renderer',
   'RendererUnavailable',
   'SLOW_MS',
