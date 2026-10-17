@@ -281,6 +281,7 @@ function keys<Z extends z.ZodType>(command: CommandDef<Z>, bindings: KeyBindings
 interface KeysOptions<Z extends z.ZodType> {
     readonly touch?: boolean;
     readonly pad?: Readonly<Record<number, Payload<Z>>>;
+    readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>;
     readonly idle?: z.input<Z>;
 }
 ```
