@@ -75,6 +75,19 @@ describe('every workflow', () => {
     },
   )
 
+  it.each(ALL)(
+    "%s trusts a container job's checkout in git's system config, which every HOME reads",
+    (name) => {
+      // The checkout belongs to the runner user, so git run as root needs safe.directory. A --global setting lands
+      // in HOME's .gitconfig, and the parity and evidence steps set HOME to /root for Firefox: there git did not
+      // read it, and `pnpm evidence` failed on main's first push after DX.9 (2026-10-17).
+      for (const job of Object.values(workflow(name).jobs).filter((each) => each.container !== undefined)) {
+        for (const step of (job.steps ?? []).filter((each) => each.run?.includes('safe.directory')))
+          expect(step.run).toContain('git config --system --add safe.directory')
+      }
+    },
+  )
+
   it.each(ALL)('%s reads the repository and nothing more by default', (name) => {
     expect(workflow(name).permissions).toEqual({ contents: 'read' })
   })
@@ -384,6 +397,58 @@ describe('ci.yml (AF)', () => {
       .map((job) => job.with?.['artifact-name'] ?? 'game-dist')
     expect(names.length).toBeGreaterThan(1)
     expect(new Set(names).size).toBe(names.length)
+  })
+})
+
+describe('ci.yml evidence file (DX spec §3.10)', () => {
+  const ci = workflow('ci.yml')
+  const steps = ci.jobs.parity?.steps ?? []
+  const scripts = packageJson('.').scripts as Record<string, string>
+  const GOLDEN_PACKAGES = [
+    'packages/sim',
+    'packages/testing',
+    'packages/physics',
+    'games/emberwick',
+    'examples/physics/bodies-2d',
+  ]
+
+  it('runs every golden package’s test:evidence, then writes evidence.json from their reports', () => {
+    expect(scripts.evidence).toBe(
+      'turbo run test:evidence --concurrency=3 -- --browser.connectTimeout=120000 && node tooling/evidence/src/cli.ts',
+    )
+    for (const path of GOLDEN_PACKAGES)
+      expect(packageJson(path).scripts['test:evidence'], path).toMatch(
+        /^vitest run (--project [\w-]+ )+(\S+\.test\.ts )+--reporter=default --reporter=json --outputFile\.json=\.evidence\/goldens\.json$/,
+      )
+  })
+
+  it('writes the evidence file on pushes to main only, after parity passed, in the parity container', () => {
+    const parity = steps.findIndex((step) => step.run === 'pnpm test:parity')
+    const evidence = steps.findIndex((step) => step.run === 'pnpm evidence')
+    expect(evidence).toBeGreaterThan(parity)
+    expect(steps[evidence]?.if).toBe("github.event_name == 'push'")
+    // Firefox refuses to run as root under Actions' HOME, as in the parity step.
+    expect(steps[evidence]?.env?.HOME).toBe('/root')
+  })
+
+  it('uploads evidence.json and its JSON Schema as the `evidence` artifact, before the work folder is handed back', () => {
+    const upload = steps.findIndex((step) => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(upload).toBeGreaterThan(steps.findIndex((step) => step.run === 'pnpm evidence'))
+    expect(upload).toBeLessThan(steps.length - 1)
+    expect(steps[upload]?.if).toBe("github.event_name == 'push'")
+    expect(steps[upload]?.with?.name).toBe('evidence')
+    expect(steps[upload]?.with?.path).toBe('evidence.json\nevidence.schema.json\n')
+    expect(steps[upload]?.with?.['if-no-files-found']).toBe('error')
+  })
+
+  it('fetches the release tags, so the file can say which package versions were released', () => {
+    const checkout = steps.find((step) => step.uses?.startsWith('actions/checkout@'))
+    expect(checkout?.with?.['fetch-tags'] as unknown).toBe(true)
+  })
+
+  it('runs the evidence step in ci:local too, after parity', () => {
+    const local = (scripts['ci:local'] ?? '').split(' && ')
+    expect(local.indexOf('pnpm evidence')).toBe(local.indexOf('pnpm test:parity') + 1)
   })
 })
 
