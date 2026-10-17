@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 5 of 13 steps.
+- **Progress:** 6 of 13 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -82,7 +82,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
 5. [x] **PagedGrid.** Red: `Failed to resolve import "./PagedGrid.svelte"`; green 19 of 19. Groups are `{ id, title, items }`, so FloorFifty's `packId` becomes `id`. The continuation title is a prop (`continued`, default "Title (2)"). The props interface lives in the module script, because a generic component needs it exported under `isolatedDeclarations`. `paged-grid.test.ts`:
    - Red: the page arithmetic from `tile-pages.test.ts`, generic over the item type (`paginate`, `fitShape`, `tileSide`, `trimRows`, `fitColumns`, `pageOf`, `wrapPage`). FloorFifty's tile types and `stackedSide` stay in FloorFifty.
    - Red (DOM): it renders one page of `item` snippets in a `[data-focus-grid]`, never scrolls (`overflow: hidden`), shows PagerDots for the pages, and reports `onpage` from the dots. The page is controlled by its owner.
-6. [ ] **Button and IconButton.** `button.test.ts`:
+6. [x] **Button and IconButton.** Red: `Failed to resolve import "./Button.svelte"`; green 7 of 7; `svelte-check` clean. IconButton's mount-time label check is deliberate, so Svelte's `state_referenced_locally` warning is ignored beside it with the reason. `button.test.ts`:
    - Red: Button renders `.af-control` with `kind` primary (and `data-kind="primary"`, so the layout check sizes it 48 px), secondary or ghost; `disabled` disables it;
    - Red: IconButton's accessible name is its `label` prop, and the icon is `aria-hidden`;
    - Red: an IconButton with an empty `label` throws while it mounts, so a nameless one cannot ship.
