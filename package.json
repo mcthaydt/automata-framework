@@ -33,7 +33,8 @@
     "api-index": "node tooling/api-index/src/cli.ts",
     "cheatsheet": "node tooling/api-index/src/cli.ts --write-cheatsheet",
     "test:parity": "turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000",
-    "ci:local": "pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit && pnpm build:examples && pnpm build:demos && pnpm --filter @af-examples/placeholder budget:size && pnpm changeset status --since=origin/main && node tooling/release/src/check-changesets.ts && pnpm api-report && pnpm build && pnpm --filter @mcthaydt/release test:dist && pnpm api-index && pnpm test:parity && pnpm --filter @af-examples/placeholder build && pnpm --filter @af-examples/placeholder prepare-ruken && pnpm --filter @af-examples/base-2d build && pnpm --filter @af-examples/base-2d prepare-ruken"
+    "ci:local": "pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm test:unit && pnpm build:examples && pnpm build:demos && pnpm --filter @af-examples/placeholder budget:size && pnpm changeset status --since=origin/main && node tooling/release/src/check-changesets.ts && pnpm api-report && pnpm build && pnpm --filter @mcthaydt/release test:dist && pnpm api-index && pnpm test:parity && pnpm evidence && pnpm --filter @af-examples/placeholder build && pnpm --filter @af-examples/placeholder prepare-ruken && pnpm --filter @af-examples/base-2d build && pnpm --filter @af-examples/base-2d prepare-ruken",
+    "evidence": "turbo run test:evidence --concurrency=3 -- --browser.connectTimeout=120000 && node tooling/evidence/src/cli.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

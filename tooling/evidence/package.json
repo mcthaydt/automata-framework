@@ -1,0 +1,23 @@
+{
+  "name": "@mcthaydt/evidence",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/evidence.schema.ts",
+    "./golden": "./src/golden-evidence.ts"
+  },
+  "scripts": {
+    "evidence": "node src/cli.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "vitest": "5.0.3"
+  }
+}

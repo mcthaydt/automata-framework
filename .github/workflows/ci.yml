@@ -101,6 +101,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Changesets' release tags (`<package>@<version>`), from which evidence.json says which versions were
+          # released (DX spec §3.10).
+          fetch-tags: true
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -117,6 +120,22 @@ jobs:
       - run: pnpm test:parity
         env:
           HOME: /root # Actions sets HOME to /github/home (not root's); Firefox refuses to run as root there
+      # The evidence file (DX spec §3.10), on every push to main: each golden's hash as Node, Chromium, WebKit and
+      # Firefox computed it, the revision, this run, and the package versions. The website reads the artifact; the
+      # automata check results stay "pending" until create-game (DX.5) and automata check (DX.6) land.
+      - run: pnpm evidence
+        if: github.event_name == 'push'
+        env:
+          HOME: /root # as above, for Firefox
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: github.event_name == 'push'
+        with:
+          name: evidence
+          path: |
+            evidence.json
+            evidence.schema.json
+          if-no-files-found: error
+          retention-days: 90
       # The container runs as root in the runner's shared work folder (/__w is _work, /__t the tool cache). Hand
       # everything back to the runner user, the owner of /__w, or the next job's checkout cannot delete the
       # root-owned node_modules ("Permission denied"). always() runs on failure and on cancel too.
