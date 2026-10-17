@@ -3,6 +3,14 @@
 export const VERSION = '0.0.1'
 
 export {
+  type Camera2d,
+  type Camera2dOptions,
+  type CameraRect,
+  createCamera2d,
+  SHAKE_DECAY,
+  SHAKE_MAX_OFFSET,
+} from './camera/camera-2d.js'
+export {
   type EntityView,
   type EntityViewFactory,
   type EntityViewResolver,

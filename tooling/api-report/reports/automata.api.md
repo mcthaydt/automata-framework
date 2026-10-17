@@ -4,6 +4,53 @@
 
 ## `.`
 
+### `Camera2d` (interface)
+
+```ts
+interface Camera2d {
+    target(x: number, y: number): void;
+    shake(trauma: number): void;
+    update(frameSeconds: number): void;
+    readonly transform: {
+        readonly x: number;
+        readonly y: number;
+        readonly scale: number;
+    };
+}
+```
+
+### `Camera2dOptions` (interface)
+
+```ts
+interface Camera2dOptions {
+    readonly view: {
+        readonly width: number;
+        readonly height: number;
+    };
+    readonly follow?: {
+        readonly rate: number;
+        readonly deadZone?: {
+            readonly width: number;
+            readonly height: number;
+        };
+    };
+    readonly bounds?: CameraRect;
+    readonly zoom?: number;
+    readonly reducedMotion?: () => boolean;
+}
+```
+
+### `CameraRect` (interface)
+
+```ts
+interface CameraRect {
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+}
+```
+
 ### `Command` (interface)
 
 ```ts
@@ -37,6 +84,12 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
     readonly render: boolean;
     readonly trait: Trait;
 }
+```
+
+### `createCamera2d` (function)
+
+```ts
+function createCamera2d(stage: Container, options: Camera2dOptions, seed?: number): Camera2d;
 ```
 
 ### `defaultContent` (function)
