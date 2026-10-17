@@ -1,6 +1,6 @@
 import { Container } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
-import { type Camera2dOptions, createCamera2d, SHAKE_DECAY, SHAKE_MAX_OFFSET } from './camera-2d.ts'
+import { type Camera2dOptions, createCamera2d, SHAKE_DECAY, SHAKE_MAX_OFFSET } from './camera-2d.js'
 
 const VIEW = { width: 320, height: 180 }
 const FRAME = 1 / 60
