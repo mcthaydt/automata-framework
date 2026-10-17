@@ -3,7 +3,7 @@
 - **Task:** M4.2 in [02](../../02-master-delivery-plan.md). M4 spec [§4.3](../specs/2026-10-16-m4-input-display-design.md), §4.2 (active device, facts), §5 (pad hot-plug), §6 (non-standard pad, pad unplugged mid-play), §9 (unit and SDK-contract layers), M4-D2, M4-D3, M4-D9. Acceptance I-c, I-d, I-e.
 - **Lane:** runtime, with the game lane's `keys()` and default screens (this session owns both). **Depends on:** M4.0 (merged) and M4.1 (stacked: this branch starts from `claude/clever-pasteur-ujmu6e-m4-1`, because the gamepad source feeds M4.1's `Input` rather than a second copy of its bookkeeping).
 - **Status:** In progress.
-- **Progress:** 8 of 9 steps.
+- **Progress:** 9 of 9 steps (locally verified 2026-10-17; CI and review pending).
 
 ## Sources, read at these commits
 
@@ -182,7 +182,7 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - Recorded once in Node. The Node project then passed (7 passed, 1 skipped), and the browsers project matched it (21 passed, 3 skipped: Chromium, WebKit, Firefox).
      - The examples-runner suite passed (66 passed, 4 skipped); the examples typecheck and `build:examples` passed.
      - The example also binds the arrow keys, so it plays without a controller.
-9. [ ] **Verify and record.**
+9. [x] **Verify and record.** All gates passed on the first attempt: `pnpm check` 30 of 30, CI extras, parity 11 of 11, e2e 72 passed and 2 skipped, `prepare-ruken` for both games. The agent skill `api.md` came in stale from M4.1 and was refreshed there (`656cf2f`), merged here.
    - `pnpm format`; `pnpm check` (`TURBO_FORCE=true`).
    - The CI checks-job extras, including the changeset status, `check-changesets` (patches only before 1.0), `api-report`, `pnpm cheatsheet` if ship or game exports change, `build`, `test:dist`, and `prepare-ruken` for both games.
    - `pnpm test:parity`; `CI=1 pnpm test:e2e`.
