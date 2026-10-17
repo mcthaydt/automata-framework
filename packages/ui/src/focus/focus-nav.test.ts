@@ -309,3 +309,68 @@ describe("with AF's Dialog", () => {
     expect(onclose).toHaveBeenCalledOnce()
   })
 })
+
+/** Gives `element` a fixed box, as layout would (jsdom lays nothing out). */
+function place(element: HTMLElement, left: number, top: number, size = 40): void {
+  element.getBoundingClientRect = () =>
+    ({
+      left,
+      top,
+      right: left + size,
+      bottom: top + size,
+      width: size,
+      height: size,
+      x: left,
+      y: top,
+    }) as DOMRect
+}
+
+// M4 spec §4.7: steer is spatial inside a focus grid and DOM order elsewhere.
+describe('steer', () => {
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <button id="before">Before</button>
+      <div data-focus-grid>
+        <button id="g0">0</button><button id="g1">1</button><button id="g2">2</button>
+        <button id="g3">3</button><button id="g4">4</button><button id="g5">5</button>
+      </div>
+      <button id="after">After</button>`
+    for (let cell = 0; cell < 6; cell++) place(byId(`g${cell}`), (cell % 3) * 50, Math.floor(cell / 3) * 50)
+  })
+
+  it('moves to the nearest cell that way inside a grid, not the next in DOM order', () => {
+    const nav = new FocusNavigator()
+    byId('g0').focus()
+    expect(nav.steer('down')).toBe(true)
+    expect(document.activeElement?.id).toBe('g3')
+    expect(nav.steer('right')).toBe(true)
+    expect(document.activeElement?.id).toBe('g4')
+    expect(nav.steer('up')).toBe(true)
+    expect(document.activeElement?.id).toBe('g1')
+  })
+
+  it('keeps focus and reports false at a grid edge with nothing that way', () => {
+    const nav = new FocusNavigator()
+    byId('g2').focus()
+    expect(nav.steer('right')).toBe(false)
+    expect(document.activeElement?.id).toBe('g2')
+  })
+
+  it('walks DOM order outside a grid: down and right go next, up and left go previous', () => {
+    const nav = new FocusNavigator()
+    byId('before').focus()
+    expect(nav.steer('right')).toBe(true)
+    expect(document.activeElement?.id).toBe('g0')
+    byId('after').focus()
+    expect(nav.steer('up')).toBe(true)
+    expect(document.activeElement?.id).toBe('g5')
+  })
+
+  it('does nothing while paused', () => {
+    const nav = new FocusNavigator()
+    byId('g0').focus()
+    nav.setPaused(true)
+    expect(nav.steer('down')).toBe(false)
+    expect(document.activeElement?.id).toBe('g0')
+  })
+})

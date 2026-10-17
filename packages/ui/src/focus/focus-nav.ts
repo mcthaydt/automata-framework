@@ -114,6 +114,11 @@ export function arrowKeyNav(event: KeyboardEvent): NavDirection | undefined {
   return nav
 }
 
+function centre(element: HTMLElement): { x: number; y: number } {
+  const box = element.getBoundingClientRect()
+  return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+}
+
 export class FocusNavigator {
   /**
    * Whether the navigator is the one moving focus: set by any navigator action, cleared by a
@@ -177,6 +182,43 @@ export class FocusNavigator {
     const target = items[next] as HTMLElement
     target.focus(PAD_FOCUS)
     scrollWithin(target)
+  }
+
+  /**
+   * One step in `direction` (M4 spec §4.7). Inside a `[data-focus-grid]` the move is spatial: the nearest control
+   * whose centre lies that way, scored by distance along the direction plus twice the sideways offset, so a
+   * straight line wins over a diagonal. Elsewhere it is DOM order: down and right go next, up and left previous.
+   * Returns false when nothing lies that way in the grid, so the caller can page or stay put.
+   */
+  steer(direction: NavDirection): boolean {
+    if (this.paused) return false
+    const focused = document.activeElement
+    const grid = focused instanceof HTMLElement ? focused.closest<HTMLElement>('[data-focus-grid]') : null
+    if (grid === null || !(focused instanceof HTMLElement)) {
+      this.move(direction === 'down' || direction === 'right' ? 'next' : 'previous')
+      return true
+    }
+    this.engaged = true
+    const from = centre(focused)
+    let best: HTMLElement | undefined
+    let bestScore = Number.POSITIVE_INFINITY
+    for (const candidate of tabbables(grid)) {
+      if (candidate === focused) continue
+      const to = centre(candidate)
+      const dx = to.x - from.x
+      const dy = to.y - from.y
+      const along = direction === 'down' ? dy : direction === 'up' ? -dy : direction === 'right' ? dx : -dx
+      if (along <= 0) continue
+      const score = along + 2 * Math.abs(direction === 'up' || direction === 'down' ? dx : dy)
+      if (score < bestScore) {
+        best = candidate
+        bestScore = score
+      }
+    }
+    if (best === undefined) return false
+    best.focus(PAD_FOCUS)
+    scrollWithin(best)
+    return true
   }
 
   confirm(): void {

@@ -3,7 +3,7 @@
 - **Task:** M4.5 in [02](../../02-master-delivery-plan.md). M4 spec [§4.7](../specs/2026-10-16-m4-input-display-design.md), §4.2 (context), §5 (screen change), §7 and §8 (focus rows), M4-D10. Acceptance F-a, F-b, F-c.
 - **Lanes:** ui (`FocusNavigator` and the FloorFifty ports), runtime (`ScreenDef.kind`, Flow's focus step, `Input`'s first poll), and the game lane's default screens. This session owns all three. **Depends on:** M4.0 (merged). It is stacked on M4.2 (`claude/clever-pasteur-ujmu6e-m4-2`), because the menus read M4.2's `Input` (nav repeat, the pad's menu edges) rather than a second pad poller.
 - **Status:** In progress.
-- **Progress:** 1 of 10 steps.
+- **Progress:** 2 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -61,7 +61,7 @@ Consumed: `Input.onPress`, `poll(nowMs)` and the nav repeat (M4.1, M4.2), and `H
 Each step starts with a failing test whose failure reason is confirmed and recorded here, then the minimal change.
 
 1. [x] **Plan.** This file, committed first.
-2. [ ] **`steer`.** Test file: `packages/ui/src/focus/focus-nav.test.ts`.
+2. [x] **`steer`.** Red: 4 failed, `nav.steer is not a function`; green 29 of 29. Test file: `packages/ui/src/focus/focus-nav.test.ts`.
    - Red: in a 3 × 2 `[data-focus-grid]` with stubbed `getBoundingClientRect`, `steer('down')` from the top-left cell focuses the cell below it, not the next in DOM order.
    - Red: outside a grid, `steer('right')` moves to the next control, and `steer('left')` to the previous.
    - Red: an edge cell with nothing that way returns false and keeps focus.
