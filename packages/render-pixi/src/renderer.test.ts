@@ -338,6 +338,7 @@ describe('createPixiRenderer', () => {
     const factory = createPixiRenderer({
       logicalWidth: 960,
       logicalHeight: 540,
+      composite: false,
       setup(stage) {
         stage.ui.addChild(hud)
         stage.postFilters.set('retro', [crt], 10)
@@ -358,5 +359,196 @@ describe('createPixiRenderer', () => {
     )
 
     await Effect.runPromise(program)
+  })
+
+  it('drops a filter that cannot be built: tryFilter returns undefined, warns once, publishes the fact, and the frame draws (Q-b)', async () => {
+    const target = createFakeTarget()
+    const published: unknown[] = []
+    const bus = {
+      publish: (name: string, fact: unknown) => void published.push([name, fact]),
+      subscribe: () => () => {},
+    }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const program = Effect.scoped(
+      Effect.gen(function* () {
+        const renderer = yield* createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })({
+          ...target,
+          bus,
+        })
+        const filter = renderer.stage.tryFilter('bad', () => {
+          throw new Error('no such uniform')
+        })
+        expect(filter).toBeUndefined()
+        renderer.draw({ alpha: 1, frameMs: 16, paused: false })
+        expect(renderer.stage.app.render).toHaveBeenCalled()
+      }),
+    )
+    await Effect.runPromise(program)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(published).toEqual([['render.filter.dropped', { id: 'bad', reason: 'no such uniform' }]])
+    warn.mockRestore()
+  })
+
+  describe('the fixed-resolution composite (M4 spec §4.11)', () => {
+    it('is on for a letterboxed pixel-art stage: draw renders the world and UI into it before app.render', async () => {
+      const target = createFakeTarget()
+      const calls: string[] = []
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const renderer = yield* createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(target)
+          const { composite, app, world, ui, frame } = renderer.stage
+          expect(composite).toBeDefined()
+          if (!composite || !frame) return
+          expect(world.parent).toBe(composite.stage)
+          expect(ui.parent).toBe(composite.stage)
+          expect(composite.sprite.parent).toBe(frame.root)
+          vi.mocked(app.renderer.render).mockImplementation(((options: {
+            container: Container
+            target: unknown
+          }) => {
+            calls.push(
+              options.container === composite.stage && options.target === composite.texture
+                ? 'composite'
+                : 'other',
+            )
+          }) as never)
+          vi.spyOn(app, 'render').mockImplementation(() => void calls.push('app.render'))
+          renderer.draw({ alpha: 1, frameMs: 16, paused: false })
+          return [...calls]
+        }),
+      )
+      expect(await Effect.runPromise(program)).toEqual(['composite', 'app.render'])
+    })
+
+    it("resizes to the frame's field height when the geometry changes", async () => {
+      const target = createFakeTarget()
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const renderer = yield* createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(target)
+          const { composite, frame } = renderer.stage
+          if (!composite || !frame) throw new Error('no composite')
+          vi.spyOn(frame, 'layout').mockReturnValue({ ...frame.layout(800, 600), fieldHeight: 240 })
+          target.triggerResize({ width: 390, height: 844 })
+          return composite.texture.height
+        }),
+      )
+      expect(await Effect.runPromise(program)).toBe(240)
+    })
+
+    it("puts the post-filter slot's filters on the composite stage, not the scene", async () => {
+      const target = createFakeTarget()
+      const crt = { name: 'crt' } as unknown as Filter
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const renderer = yield* createPixiRenderer({
+            logicalWidth: 320,
+            logicalHeight: 180,
+            setup: (stage) => void stage.postFilters.set('retro', [crt]),
+          })(target)
+          expect(renderer.stage.composite?.stage.filters).toEqual([crt])
+          expect(renderer.stage.frame?.scene.filters ?? null).toBeNull()
+          expect(renderer.stage.filters).toEqual([crt])
+        }),
+      )
+      await Effect.runPromise(program)
+    })
+
+    it('is off with composite: false, with pixelArt: false, and without a letterbox', async () => {
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const off = yield* createPixiRenderer({ logicalWidth: 320, logicalHeight: 180, composite: false })(
+            createFakeTarget(),
+          )
+          const smooth = yield* createPixiRenderer({
+            logicalWidth: 320,
+            logicalHeight: 180,
+            pixelArt: false,
+          })(createFakeTarget())
+          const bare = yield* createPixiRenderer()(createFakeTarget())
+          return [off, smooth, bare].map((r) => [
+            r.stage.composite,
+            r.stage.world.parent === r.stage.frame?.root,
+          ])
+        }),
+      )
+      expect(await Effect.runPromise(program)).toEqual([
+        [undefined, true],
+        [undefined, true],
+        [undefined, false],
+      ])
+    })
+
+    it('is destroyed by the finalizer', async () => {
+      const scope = Effect.runSync(Scope.make())
+      const renderer = await Effect.runPromise(
+        Scope.extend(
+          createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(createFakeTarget()),
+          scope,
+        ),
+      )
+      const composite = renderer.stage.composite
+      if (!composite) throw new Error('no composite')
+      const destroy = vi.spyOn(composite, 'destroy')
+      await Effect.runPromise(Scope.close(scope, Exit.void))
+      expect(destroy).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('at a quality tier (M4 spec §4.11, Q-a)', () => {
+    let dpr: PropertyDescriptor | undefined
+    beforeEach(() => {
+      dpr = Object.getOwnPropertyDescriptor(window, 'devicePixelRatio')
+      Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 2 })
+    })
+    afterEach(() => {
+      if (dpr) Object.defineProperty(window, 'devicePixelRatio', dpr)
+      else Reflect.deleteProperty(window, 'devicePixelRatio')
+    })
+
+    it('at low draws at resolution 1 and leaves out a minTier medium owner; setQuality brings both back', async () => {
+      const target = createFakeTarget()
+      const bloom = { name: 'bloom' } as unknown as Filter
+      const lock = { name: 'lock' } as unknown as Filter
+      const factory = createPixiRenderer({
+        logicalWidth: 960,
+        logicalHeight: 540,
+        quality: 'low',
+        setup(stage) {
+          stage.postFilters.set('bloom', [bloom], 0, { minTier: 'medium' })
+          stage.postFilters.set('lock', [lock], 10)
+        },
+      })
+
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const renderer = yield* factory(target)
+          expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ resolution: 1 }))
+          expect(renderer.stage.quality).toBe('low')
+          expect(renderer.stage.filters).toEqual([lock])
+
+          renderer.stage.setQuality('high')
+          expect(renderer.stage.app.renderer.resolution).toBe(2)
+          expect(renderer.stage.filters).toEqual([bloom, lock])
+
+          renderer.stage.setQuality('medium')
+          target.triggerResize({ width: 1024, height: 768 })
+          expect(renderer.stage.app.renderer.resolution).toBe(1.5)
+        }),
+      )
+
+      await Effect.runPromise(program)
+    })
+
+    it('starts at high', async () => {
+      const target = createFakeTarget()
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const renderer = yield* createPixiRenderer({ logicalWidth: 960, logicalHeight: 540 })(target)
+          expect(renderer.stage.quality).toBe('high')
+          expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ resolution: 2 }))
+        }),
+      )
+      await Effect.runPromise(program)
+    })
   })
 })

@@ -60,6 +60,26 @@ interface QueuedTransition {
   readonly force?: boolean | undefined
 }
 
+/** How a focused control is found again after its screen remounts: its `data-testid`, else its `id`. */
+type FocusName = { readonly attribute: 'data-testid' | 'id'; readonly value: string }
+
+/** The name of the focused control under `root`, or undefined when focus is elsewhere or the control is unnamed. */
+function focusName(root: ParentNode): FocusName | undefined {
+  const active = root instanceof Node ? root.ownerDocument?.activeElement : undefined
+  if (!(active instanceof HTMLElement) || !root.contains(active)) return undefined
+  const testId = active.getAttribute('data-testid')
+  if (testId !== null && testId !== '') return { attribute: 'data-testid', value: testId }
+  return active.id === '' ? undefined : { attribute: 'id', value: active.id }
+}
+
+function findByName(root: HTMLElement, name: FocusName): HTMLElement | null {
+  return (
+    [...root.querySelectorAll<HTMLElement>(`[${name.attribute}]`)].find(
+      (element) => element.getAttribute(name.attribute) === name.value,
+    ) ?? null
+  )
+}
+
 /**
  * Creates the Flow service and transition queue manager (spec §3.6).
  * Follows the 9-step transition order, coordinates single-flight screens,
@@ -92,6 +112,9 @@ export function makeFlow<R = never>(
       queue.push({ from, to, style, force })
       Queue.unsafeOffer(trigger, undefined)
     }
+
+    /** Per screen, the name of the control that had focus when the player last left it (F-b). */
+    const lastFocus = new Map<string, FocusName>()
 
     const runTransition = (next: QueuedTransition): Effect.Effect<void> =>
       Effect.gen(function* () {
@@ -157,7 +180,13 @@ export function makeFlow<R = never>(
           }
         }
 
-        // (3) Close the current screen's scope (its finalizers run in reverse order, replacing DisposeBag)
+        // (3) Remember what had focus on the screen being left (M4 spec §4.7, F-b), then close the current screen's
+        // scope (its finalizers run in reverse order, replacing DisposeBag)
+        if (currentScreenId !== undefined) {
+          const name = focusName(options.layers.screens)
+          if (name === undefined) lastFocus.delete(currentScreenId)
+          else lastFocus.set(currentScreenId, name)
+        }
         if (currentScreenScope) {
           yield* Scope.close(currentScreenScope, Exit.void)
           currentScreenScope = null
@@ -243,18 +272,19 @@ export function makeFlow<R = never>(
           options.time.resume('menu')
         }
 
-        // (7) geometry.remeasure(), focus the first [data-kind="primary"] control, else the first tabbable (ui tabbables)
+        // (7) geometry.remeasure(), then focus (M4 spec §4.7): on a return, the control the player left from, matched
+        // by name because the screen remounted; else [data-autofocus], the first [data-kind="primary"] control, or the
+        // first tabbable (ui tabbables)
         options.geometry.remeasure()
         if (typeof section.querySelector === 'function') {
-          const primary = section.querySelector('[data-kind="primary"]') as HTMLElement | null
-          if (primary && typeof primary.focus === 'function') {
-            primary.focus()
-          } else {
-            const tabs = tabbables(section)
-            if (tabs.length > 0 && typeof tabs[0]?.focus === 'function') {
-              tabs[0].focus()
-            }
-          }
+          const remembered = lastFocus.get(targetScreen.id)
+          const target =
+            (remembered === undefined ? null : findByName(section, remembered)) ??
+            section.querySelector<HTMLElement>('[data-autofocus]') ??
+            section.querySelector<HTMLElement>('[data-kind="primary"]') ??
+            tabbables(section)[0] ??
+            null
+          if (target !== null && typeof target.focus === 'function') target.focus()
         }
 
         // (8) Reveal

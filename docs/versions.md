@@ -70,4 +70,4 @@ Run through `pnpm dlx` or `npx -y` at an exact version, so they are in no `packa
 
 | Image | Tag | Date | Why |
 |---|---|---|---|
-| `mcr.microsoft.com/playwright` | v1.63.0-noble | 2026-10-01 | Parity job in CI; its tag follows `playwright` |
+| `mcr.microsoft.com/playwright` | v1.63.0-noble | 2026-10-01 | Parity job in CI on any runner but af-mac (which runs it on the host); its tag follows `playwright` |

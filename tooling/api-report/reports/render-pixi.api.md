@@ -54,7 +54,25 @@ interface CameraRect {
 ### `canvasResolutionFor` (function)
 
 ```ts
-function canvasResolutionFor(formFactor: FormFactor, devicePixelRatio: number): number;
+function canvasResolutionFor(formFactor: FormFactor, devicePixelRatio: number, tier?: QualityTier): number;
+```
+
+### `CompositeTarget` (class)
+
+```ts
+class CompositeTarget {
+    readonly stage: Container;
+    readonly sprite: Sprite;
+    readonly texture: RenderTexture;
+    private readonly width;
+    constructor(size: {
+        readonly width: number;
+        readonly height: number;
+    });
+    adopt(frame: LetterboxFrame): void;
+    resize(height: number): void;
+    destroy(): void;
+}
 ```
 
 ### `createCamera2d` (function)
@@ -224,6 +242,12 @@ interface LetterboxOptions {
 const MAX_RESOLUTION = 2;
 ```
 
+### `meetsTier` (function)
+
+```ts
+function meetsTier(tier: QualityTier, min: QualityTier): boolean;
+```
+
 ### `PixiRenderer` (interface)
 
 ```ts
@@ -243,6 +267,8 @@ interface PixiRendererOptions {
     readonly pixelArt?: boolean | undefined;
     readonly barFraction?: number | undefined;
     readonly barColor?: number | undefined;
+    readonly quality?: QualityTier | undefined;
+    readonly composite?: boolean | undefined;
     readonly entityViews?: EntityViewResolver | undefined;
     readonly setup?: ((stage: PixiStage) => PixiStageHooks | undefined) | ((stage: PixiStage) => void) | undefined;
 }
@@ -258,8 +284,12 @@ interface PixiStage {
     readonly ui: Container;
     readonly backdrop: Container;
     readonly consumer: RenderDeltaConsumer;
+    readonly composite?: CompositeTarget | undefined;
     filters: Filter[] | null;
     readonly postFilters: PostFilterSlot;
+    readonly quality: QualityTier;
+    setQuality(tier: QualityTier): void;
+    tryFilter<F extends Filter>(id: string, make: () => F): F | undefined;
 }
 ```
 
@@ -301,13 +331,23 @@ interface Pose {
 function poseComponent(components: Components, componentId?: string | undefined): Readonly<FieldRecord> | undefined;
 ```
 
+### `PostFilterOptions` (interface)
+
+```ts
+interface PostFilterOptions {
+    readonly minTier?: QualityTier | undefined;
+}
+```
+
 ### `PostFilterSlot` (interface)
 
 ```ts
 interface PostFilterSlot {
-    set(id: string, filters: readonly Filter[], order?: number): () => void;
+    set(id: string, filters: readonly Filter[], order?: number, options?: PostFilterOptions): () => void;
     remove(id: string): void;
     readonly ids: readonly string[];
+    readonly tier: QualityTier;
+    setTier(tier: QualityTier): void;
 }
 ```
 
@@ -317,6 +357,23 @@ interface PostFilterSlot {
 interface PostFilterTarget {
     filters: Filter[] | null;
 }
+```
+
+### `QualityBuild` (interface)
+
+```ts
+interface QualityBuild<T> {
+    current(): T;
+    dispose(): void;
+}
+```
+
+### `rebuildOnQuality` (function)
+
+```ts
+function rebuildOnQuality<S, T extends {
+    destroy(): void;
+}>(settings: SettingsStore<S>, read: (settings: S) => QualityTier, build: (tier: QualityTier) => T, onBuilt?: (built: T) => void): QualityBuild<T>;
 ```
 
 ### `rect` (function)
@@ -358,6 +415,12 @@ class RenderDeltaConsumer {
 
 ```ts
 type RendererPreference = 'webgl' | 'webgpu';
+```
+
+### `RESOLUTION_CAPS` (const)
+
+```ts
+const RESOLUTION_CAPS: Readonly<Record<QualityTier, number>>;
 ```
 
 ### `SHAKE_DECAY` (const)

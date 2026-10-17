@@ -1,3 +1,4 @@
+import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
 import {
   type GameRenderer,
   type RendererFactory,
@@ -13,9 +14,10 @@ import {
   type Sim,
   type StepResult,
 } from '@mcthaydt/automata-sim'
+import { createFakeHost } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { flushSync } from 'svelte'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { type DefinedGame, defineGame, type GameSpec } from '../define-game.ts'
 import { keys } from '../input/keys.ts'
@@ -62,6 +64,9 @@ describe('default screens', () => {
   let resets: { count: number }
   let handle: RuntimeHandle | undefined
   let game: DefinedGame
+  // The default screens keep the sim until the title drops it, and a shutdown on play or paused does not: dispose
+  // each test's sims here, or the file runs past Koota's 16 live worlds.
+  const sims: Sim[] = []
 
   const screen = (id: string) => root.querySelector(`[data-testid="${id}-screen"]`)
   const button = (testId: string) => root.querySelector<HTMLButtonElement>(`[data-testid="${testId}"]`)
@@ -80,7 +85,14 @@ describe('default screens', () => {
       id: 'screens-test',
       title: 'Square',
       size: { width: 320, height: 180 },
-      sim: { plugins: [square], seed: 3, setup: (sim) => void sim.spawn([[Body, { x: 10 }]]) },
+      sim: {
+        plugins: [square],
+        seed: 3,
+        setup: (sim) => {
+          sims.push(sim)
+          sim.spawn([[Body, { x: 10 }]])
+        },
+      },
       root,
       seams: { frames, fetch: fakeFetch({}).fetch },
     }
@@ -107,6 +119,7 @@ describe('default screens', () => {
   afterEach(async () => {
     await handle?.shutdown()
     handle = undefined
+    for (const sim of sims.splice(0)) sim.dispose()
     root.remove()
     document.documentElement.removeAttribute('data-state')
   })
@@ -199,11 +212,115 @@ describe('default screens', () => {
     expect(lastX()).toBe(10)
   })
 
+  describe('the system back gesture (M4 spec §4.7, F-c)', () => {
+    const guarded = () => (history.state as Record<string, unknown> | null)?.afBackGuard === true
+    // A back step off the game's entry: jsdom's history.back() is asynchronous, so the step is driven directly.
+    const stepBack = () => {
+      history.replaceState(null, '')
+      window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+    }
+    const activate = () => window.dispatchEvent(new PointerEvent('pointerup'))
+    beforeEach(() => history.replaceState(null, ''))
+
+    it('on paused, a back step resumes play and keeps the game’s entry', async () => {
+      await boot()
+      await toPlay()
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+      activate()
+      expect(guarded()).toBe(true)
+      stepBack()
+      await until(() => screen('play') !== null, 'the play screen again')
+      expect(guarded()).toBe(true)
+    })
+
+    it('on play, a back step pauses', async () => {
+      await boot()
+      await toPlay()
+      activate()
+      stepBack()
+      await until(() => screen('paused') !== null, 'the paused screen')
+      expect(guarded()).toBe(true)
+    })
+
+    it('on the title, a back step leaves: history steps back past the game', async () => {
+      const back = vi.spyOn(history, 'back').mockImplementation(() => {})
+      try {
+        await boot()
+        activate()
+        stepBack()
+        expect(back).toHaveBeenCalledOnce()
+        expect(screen('title')).not.toBeNull()
+      } finally {
+        back.mockRestore()
+      }
+    })
+
+    it('hosted, the host owns back: the game adds no history entry (M4-D10)', async () => {
+      await boot({
+        seams: {
+          frames,
+          fetch: fakeFetch({}).fetch,
+          sdkEnv: () => {
+            const host = createFakeHost({
+              gameOrigin: TEST_GAME_ORIGIN,
+              gameId: 'screens-test',
+              clock: realClock,
+            })
+            if (host.gameEnv === undefined || host.gameEnv === null)
+              throw new Error('the fake host has no game environment')
+            return host.gameEnv
+          },
+        },
+      })
+      await toPlay()
+      activate()
+      expect(guarded()).toBe(false)
+    })
+  })
+
+  it('hides an idle pointer on play only, never on paused (M4 spec §4.7)', async () => {
+    let now = 0
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now)
+    try {
+      await boot()
+      await toPlay()
+      const playLayer = () => root.querySelector<HTMLElement>('[data-screen="play"]')
+      expect(game.screens.find((candidate) => candidate.id === 'play')?.kind).toBe('gameplay')
+      window.dispatchEvent(new PointerEvent('pointermove'))
+      step()
+      expect(playLayer()?.style.cursor).toBe('')
+      now = 2000
+      step()
+      expect(playLayer()?.style.cursor).toBe('none')
+      window.dispatchEvent(new PointerEvent('pointermove'))
+      step()
+      expect(playLayer()?.style.cursor).toBe('')
+      press('KeyA')
+      step()
+      expect(playLayer()?.style.cursor).toBe('none')
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+      expect(root.querySelector<HTMLElement>('[data-screen="paused"]')?.style.cursor).toBe('')
+    } finally {
+      clock.mockRestore()
+    }
+  })
+
   it('the pad’s Start button pauses play, through the Input service’s pause edge (M4.1)', async () => {
     const buttons: boolean[] = []
     Object.defineProperty(window.navigator, 'getGamepads', {
       configurable: true,
-      value: () => [{ index: 0, mapping: 'standard', buttons: buttons.map((pressed) => ({ pressed })) }],
+      value: () => [
+        {
+          id: 'Standard Gamepad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [0, 0, 0, 0],
+          buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+        },
+      ],
     })
     try {
       await boot()
@@ -215,6 +332,95 @@ describe('default screens', () => {
     } finally {
       Reflect.deleteProperty(window.navigator, 'getGamepads')
     }
+  })
+
+  it('on paused, the pad’s D-pad moves focus and A clicks Quit, through the Input’s menu edges (M4.5)', async () => {
+    const buttons: boolean[] = []
+    Object.defineProperty(window.navigator, 'getGamepads', {
+      configurable: true,
+      value: () => [
+        {
+          id: 'Standard Gamepad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [0, 0, 0, 0],
+          buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+        },
+      ],
+    })
+    try {
+      await boot()
+      await toPlay()
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+      expect(document.activeElement).toBe(button('resume'))
+      await tick()
+      buttons[13] = true
+      await until(() => document.activeElement === button('quit'), 'focus on Quit')
+      buttons[13] = false
+      await tick()
+      buttons[0] = true
+      await until(() => screen('title') !== null, 'the title screen')
+    } finally {
+      Reflect.deleteProperty(window.navigator, 'getGamepads')
+    }
+  })
+
+  describe('a pad unplugged during play (M4-D9)', () => {
+    const buttons: boolean[] = []
+    const pad = () => ({
+      id: 'Standard Gamepad',
+      index: 0,
+      connected: true,
+      mapping: 'standard',
+      axes: [0, 0, 0, 0],
+      buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+    })
+    const unplug = () =>
+      window.dispatchEvent(Object.assign(new Event('gamepaddisconnected'), { gamepad: pad() }))
+    beforeEach(() => {
+      buttons.length = 0
+      Object.defineProperty(window.navigator, 'getGamepads', { configurable: true, value: () => [pad()] })
+    })
+    afterEach(() => {
+      Reflect.deleteProperty(window.navigator, 'getGamepads')
+    })
+
+    it('pauses with "Reconnect your controller" when the active pad goes; Resume by any device plays on', async () => {
+      await boot()
+      await toPlay()
+      buttons[15] = true
+      step(2)
+      buttons[15] = false
+      step()
+      unplug()
+      await until(() => screen('paused') !== null, 'the paused screen')
+      expect(screen('paused')?.textContent).toContain('Reconnect your controller')
+      const applied = results.length
+      step(3)
+      expect(results.length).toBe(applied)
+      button('resume')?.click()
+      await until(() => screen('play') !== null, 'the play screen again')
+      step()
+      expect(results.length).toBe(applied + 1)
+      press('Escape')
+      await until(() => screen('paused') !== null, 'paused again')
+      expect(screen('paused')?.textContent).not.toContain('Reconnect')
+    })
+
+    it('does not pause when the keyboard was the last input', async () => {
+      await boot()
+      await toPlay()
+      buttons[15] = true
+      step()
+      buttons[15] = false
+      press('ArrowRight')
+      step()
+      unplug()
+      await tick()
+      expect(screen('play')).not.toBeNull()
+    })
   })
 
   it('shows touch buttons only when the player uses touch', async () => {
@@ -231,6 +437,38 @@ describe('default screens', () => {
     right.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }))
     step()
     expect(lastX()).toBe(12)
+  })
+
+  it('in swipe mode, shows the swipe surface and no buttons, and a swipe and a tap drive the square (M4.3)', async () => {
+    await boot({ input: keys(Move, {}, { gestures: { 'swipe-right': { x: 1 }, tap: { x: -1 } } }) })
+    await toPlay()
+    expect(root.querySelector('[data-testid="swipe-surface"]')).toBeNull()
+    window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
+    await until(() => root.querySelector('[data-testid="swipe-surface"]') !== null, 'the swipe surface')
+    expect(root.querySelector('[data-testid="touch-buttons"]')).toBeNull()
+    const surface = root.querySelector('[data-testid="swipe-surface"]') as HTMLElement
+    const finger = (type: string, clientX: number, timeStamp: number) => {
+      const event = new PointerEvent(type, {
+        pointerId: 1,
+        clientX,
+        clientY: 100,
+        bubbles: true,
+        cancelable: true,
+      })
+      Object.defineProperty(event, 'timeStamp', { value: timeStamp })
+      surface.dispatchEvent(event)
+    }
+    finger('pointerdown', 100, 0)
+    finger('pointermove', 130, 16)
+    step(2)
+    expect(lastX()).toBe(12)
+    finger('pointerup', 130, 32)
+    step()
+    expect(lastX()).toBe(12)
+    finger('pointerdown', 100, 1000)
+    finger('pointerup', 100, 1050)
+    step(3)
+    expect(lastX()).toBe(11)
   })
 
   it('shows no touch buttons when the input map says touch: false', async () => {

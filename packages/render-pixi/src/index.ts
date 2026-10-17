@@ -24,13 +24,16 @@ export {
 } from './filter/filter-programs.js'
 export {
   createPostFilterSlot,
+  type PostFilterOptions,
   type PostFilterSlot,
   type PostFilterTarget,
 } from './filter/post-filter-slot.js'
 export {
   canvasResolutionFor,
   MAX_RESOLUTION,
+  RESOLUTION_CAPS,
 } from './letterbox/canvas-resolution.js'
+export { CompositeTarget } from './letterbox/composite-target.js'
 export {
   DEFAULT_BAR_COLOR,
   DEFAULT_BAR_FRACTION,
@@ -41,6 +44,8 @@ export {
   PORTRAIT_FIELD_TOP,
   portraitFieldHeight,
 } from './letterbox/letterbox.js'
+export { meetsTier } from './quality/meets-tier.js'
+export { type QualityBuild, rebuildOnQuality } from './quality/rebuild-on-quality.js'
 export {
   createPixiRenderer,
   type PixiRenderer,

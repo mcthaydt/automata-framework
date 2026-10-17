@@ -127,3 +127,20 @@ export function actionsForKey(profile: InputProfile, code: string): string[] {
 export function actionsForPadButton(profile: InputProfile, index: number): string[] {
   return boundActions(profile, (binding) => binding.pad.includes(index))
 }
+
+/** Every action `gesture` drives in `profile` (M4.3); none when it is unbound. */
+export function actionsForGesture(profile: InputProfile, gesture: GestureName): string[] {
+  return boundActions(profile, (binding) => binding.gesture?.includes(gesture) === true)
+}
+
+/** How touch drives play: the on-screen buttons, or swipes and flicks over the whole screen (M4 spec §4.4). */
+export type TouchMode = 'buttons' | 'swipe'
+
+/** The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a gesture. */
+export function touchModesFor(profile: InputProfile): TouchMode[] {
+  const bindings = Object.values(profile.bindings)
+  const modes: TouchMode[] = []
+  if (bindings.some((binding) => binding.touch)) modes.push('buttons')
+  if (bindings.some((binding) => (binding.gesture?.length ?? 0) > 0)) modes.push('swipe')
+  return modes
+}

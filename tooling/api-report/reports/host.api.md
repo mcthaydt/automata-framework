@@ -107,6 +107,8 @@ interface HostingSaves {
     set(key: string, value: string): Effect.Effect<void, HostError>;
     remove(key: string): Effect.Effect<void, HostError>;
     readonly flush: Effect.Effect<SavesFlushRes, HostError>;
+    readonly keys: Effect.Effect<readonly string[], HostError>;
+    readonly changed: Stream.Stream<SavesChangedPayload>;
 }
 ```
 
