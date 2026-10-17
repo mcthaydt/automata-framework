@@ -384,6 +384,8 @@
 - `BootFailureState` (type)
 - `bootFailureView(failure, hostKind)`: Which state a failure draws and which ways forward it offers.
 - `BootFailureViewModel` (interface)
+- `Button` (const): The framework's button (M4 spec §4.12): an `.af-control` of one kind.
+- `Chip` (const): A short status label (M4 spec §4.12).
 - `classifyDevice(input)`
 - `classifyFormFactor(width, height)`
 - `classifyHeightTier(height)`
@@ -392,11 +394,17 @@
 - `COMPACT_MAX_HEIGHT` (const): Below this, compact: what a browser leaves a sideways phone (780 x 270 Chrome on a Galaxy, 667 x 320 Safari on an SE).
 - `CornerControls` (const)
 - `createGeometryOwner(options)`
+- `CURSOR_IDLE_MS` (const): How long the pointer must be still before it hides on a gameplay screen.
+- `cursorHidden(state)`: Whether the pointer is hidden now: on a gameplay screen, not paused, and the pointer unused or idle.
+- `CursorInput` (type): The device the player used last, as the cursor policy sees it.
+- `CursorRunner` (class): Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the element's `cursor` style.
 - `DeviceClass` (type)
 - `Dialog` (const)
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
 - `ErrorCode` (type): Ruken's error code.
 - `ErrorPanel` (const)
+- `fitColumns(shape, groups)`: The shape cut to the columns the largest group fills, at its rows.
+- `fitShape(most, box, minTile, gap)`: The most tiles of `minTile` px the box holds, never more than `most`, never below one by one.
 - `FocusNavigator` (class)
 - `FormFactor` (type): The four form factors (M1.6 spec §3.1; from FloorFifty `ui/form-factor.ts` at 122a220).
 - `FullscreenSupport` (type): Ruken's answer to whether this browser can go fullscreen, and how.
@@ -406,48 +414,90 @@
 - `GeometryOwner` (interface)
 - `GeometryOwnerOptions` (interface)
 - `GeometryState` (interface): The current geometry as rune state: reading `current` in a component or `$derived` tracks it.
+- `GridBox` (interface): The measured box a page is fitted into, in CSS px.
+- `GridPage` (interface): One page: a group's items, padded with `undefined` to the page's capacity.
+- `GridShape` (interface): A page's columns and rows.
 - `HeightTier` (type): The height tiers (M1.6 spec §3.1; from FloorFifty `ui/height-tier.ts` at 122a220).
 - `HiddenBrowserBar` (class)
 - `HostDisplay` (type): What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
 - `HostKind` (type): `Hosting['kind']` (shared contracts §1.1), written out until packages/host lands.
 - `hostReservedInsets(host)`: Ruken reserves a strip on one edge; its width is the rect's, never negative (FloorFifty `reservedOf`).
+- `IconButton` (const): A button whose face is an icon (M4 spec §4.12).
 - `InputMethod` (type): The input method the player last used, app-wide.
 - `InputMethodTracker` (class)
 - `Insets` (interface): CSS px on each side, all >= 0.
 - `installGlobalErrorHandlers(win, onFatal, onRejection?)`: Installs once per window; a second call is a no-op.
+- `interceptBackGesture(win, onBack)`: Holds the game's history entry and turns a back step off it into `onBack`.
 - `isDuckDuckGo(nav)`: DuckDuckGo names itself only in the client-hint brands, not the user agent.
+- `isTap(dx, dy)`: Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
 - `landscapeGate(inputs)`
 - `LandscapeGateState` (type): Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
 - `LoaderOverlay` (const)
 - `lockOverscroll(node)`: A Svelte action: `<div use:lockOverscroll>`.
 - `measureGeometry(input)`
+- `Modal` (const): A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty `ui/components/Modal.svelte` at ac72660).
+- `ModalProps` (interface): The props Modal and Sheet share.
 - `NavDirection` (type)
+- `nearestTarget(x, y, targets, margin?)`: The button a point is on, or else the nearest within the margin, or nothing.
+- `OptionGroup` (const): A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `PAD_FOCUS` (const): How the navigator focuses: with a ring, and without scrolling the page.
 - `padKeyEvents` (const): Keydown events the navigator sent itself.
+- `PAGE_SWIPE` (const): Swipe is the pagination on a paged region, on every form factor: a finger, a mouse drag, a trackpad's two-finger sideways swipe.
+- `PagedGrid` (const): A grid of items in pages that never scrolls (M4 spec §4.8; the page arithmetic of FloorFifty `ui/tile-pages.ts` at `ac72660`).
+- `PagedGridProps` (interface): PagedGrid's props: groups of items, the most columns and rows a page has, and the page its owner shows.
+- `PageGroup` (interface): A titled run of items; each group starts its own page.
+- `pageOf(pages, id)`: The page holding the item with `id`, or -1 when no page does.
+- `PagerDots` (const): Where a paged view is (M4 spec §4.8; from FloorFifty `ui/layout/PagerDots.svelte` at `ac72660`): one row of dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row.
+- `pagerMode(count, max?, available?, dotSize?)`: PagerDots' choice (M4 spec §4.8; from FloorFifty `ui/layout/pager.ts` at `ac72660`): dots while they fit on one row, a counter ("3 / 11") once they would not.
+- `paginate(groups, capacity, continued?)`: One group per page; a group longer than a page continues under `continued(title, part)`, "Title (2)" by default.
 - `pastEdge(scroller, dy)`: Whether a drag of `dy` (positive = finger moving down) would pass an edge.
 - `PHONE_LANDSCAPE_MAX_HEIGHT` (const): A landscape viewport shorter than this is a phone, or a desktop window short enough to need the phone's compact layout.
 - `PHONE_PORTRAIT_MAX_WIDTH` (const): A portrait viewport narrower than this is a phone; at or above it, a tablet.
+- `PointerLatch` (class): Which fingers are down on which action.
+- `PointerTracker` (interface): What a SwipeSurface drives: runtime's `SwipeTracker` satisfies it, so ui need not import runtime.
 - `probeEnvSafeArea(root)`: Reads `env(safe-area-inset-*)` through a hidden probe, since script cannot read `env()` directly.
 - `Rect` (interface)
 - `reducedMotion(win?)`: Whether the player has asked for less movement.
+- `releaseStep(dx, dtMs, pageWidth)`: Pages to turn when a drag of `dx` px over `dtMs` is released: a swipe left is +1 (next).
 - `RETRY_DELAYS_MS` (const): The wait before each retry; when they are spent, the image has failed.
 - `RetryTimers` (type): The timers `watchImage` waits with; tests pass fakes.
 - `retryUrl(src, attempt)`: The URL a retry asks for; attempt 0 is the first request, as given.
 - `ScreenFrame` (const)
+- `ScreenKind` (type): A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
 - `ScrollList` (const)
 - `scrollWithin(element)`: Brings `element` into view by scrolling its nearest scroll box, never the document.
+- `sendBack(doc)`: Sends Back as an Escape to wherever a dialog would hear it, and reports whether anything took it.
 - `SETTLE_DELAYS_MS` (const): When to measure again after a viewport event, in ms.
+- `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `SHORT_MAX_HEIGHT` (const): At or below this many CSS px of layout height, a screen is short.
 - `Sleeper` (type): Puts the game's sound to sleep while nobody can see it.
 - `sleepWhenHidden(doc, sleeper, win?)`
+- `Slider` (const): A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser gives the arrow keys and the focus navigator's `adjust` steps it.
+- `Split` (const): Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty `ui/layout/Split.svelte` at `ac72660`).
+- `splitMode(available, min, gap)`: Split's choice (M4 spec §4.8; from FloorFifty `ui/layout/split.ts` at `ac72660`): side by side when both columns and the gap between them fit at their minimum, stacked otherwise.
+- `STICKY_MARGIN_PX` (const): How far outside a button a thumb still counts for it, in CSS pixels.
+- `StickyPointers` (class): Which button each finger is on, over the latch.
 - `suppressPageGestures(doc)`: Turns off the browser's document gestures over the game.
+- `SwipeIndicatorView` (interface): What a SwipeSurface draws: the thumb, the anchor it trails and whether it is past the dead zone.
+- `SwipeSurface` (const): The whole visible screen as one swipe surface (M4 spec §4.4), from FloorFifty `ui/components/SwipeSurface.svelte` at `ac72660`.
+- `SwipeSurfaceProps` (interface): SwipeSurface's props.
 - `tabbables(root)`: Everything Tab can reach under `root`, in DOM order: not disabled, inert or hidden.
+- `tileSide(shape, box, gap, limits)`: A square tile's side for the space a grid is given: the width shared by the columns and the `peek` (a fraction of a tile) of the next page showing at the edge, and the height only when the box has one.
 - `Timers` (interface): Injected so tests drive the settle delays with fake timers.
+- `Toast` (const): A passing message (M4 spec §4.12): "Pad connected", "Saved", "This controller is not supported".
+- `Toggle` (const): An on/off setting (M4 spec §4.12): a native checkbox with the switch role, so the browser gives Space and the focus navigator's `adjust` flips it.
+- `TouchButtonSpec` (interface): One on-screen touch button (M4 spec §4.4): the action it holds and what it shows.
+- `TouchControls` (const): The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+- `TouchControlsProps` (interface): TouchControls' props.
+- `TouchTarget` (interface): A button's action and where it is drawn, for `nearestTarget`.
+- `trimRows(shape, groups)`: The shape cut to the rows the largest group fills, so no page carries a row of empty slots.
 - `UI_SLOT_NAMES` (const): The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).
 - `UiComponent` (type): What an extension puts in a slot: a Svelte component that takes no props.
 - `UiSlotName` (type)
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata-testing` stands in for it in tests.
 - `watchImage(src, onRetry, timers?)`: Probes `src` and, while it fails, hands `onRetry` each retry's URL to draw instead.
+- `WheelPager` (class): A trackpad's horizontal wheel deltas, one page per gesture; `reset` when the gesture goes quiet.
+- `wrapPage(index, count)`: `index` wrapped into `0..count - 1`, so paging past either end comes round.
 
 ### `import { … } from '@mcthaydt/automata-ui/testing'`
 

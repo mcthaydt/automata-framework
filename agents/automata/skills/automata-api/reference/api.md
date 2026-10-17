@@ -3739,6 +3739,29 @@ interface BootFailureViewModel {
 }
 ```
 
+#### `Button` (const)
+
+The framework's button (M4 spec §4.12): an `.af-control` of one kind. A primary carries
+`data-kind="primary"`, which both sizes it to the 48 px primary target and tells the layout check
+to hold it to that size. The words are the caller's, in the game's language.
+
+```ts
+const Button: import("svelte").Component<Props, {}, "">;
+type Button = ReturnType<typeof Button>;
+```
+
+#### `Chip` (const)
+
+A short status label (M4 spec §4.12). Its tone is `data-tone` and an edge colour, and never only
+that: every tone but `info` also shows a glyph a sighted player reads and says `toneLabel` to
+assistive technology, so the tone survives with every colour removed. A warning or danger chip
+without words throws while it mounts.
+
+```ts
+const Chip: import("svelte").Component<Props, {}, "">;
+type Chip = ReturnType<typeof Chip>;
+```
+
 #### `classifyDevice` (function)
 
 _No doc comment._
@@ -3809,6 +3832,58 @@ _No doc comment._
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 ```
 
+#### `CURSOR_IDLE_MS` (const)
+
+How long the pointer must be still before it hides on a gameplay screen.
+
+```ts
+const CURSOR_IDLE_MS = 2000;
+```
+
+#### `cursorHidden` (function)
+
+Whether the pointer is hidden now: on a gameplay screen, not paused, and the pointer unused or idle.
+
+```ts
+function cursorHidden(state: {
+    kind: ScreenKind | undefined;
+    paused: boolean;
+    lastInput: CursorInput;
+    msSincePointerMove: number;
+}): boolean;
+```
+
+#### `CursorInput` (type)
+
+The device the player used last, as the cursor policy sees it.
+
+```ts
+type CursorInput = 'pointer' | 'keyboard' | 'gamepad' | 'touch';
+```
+
+#### `CursorRunner` (class)
+
+Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the
+element's `cursor` style. Detaching shows the pointer again.
+
+```ts
+class CursorRunner {
+    private readonly target;
+    private readonly options;
+    private lastInput;
+    private movedAt;
+    private readonly now;
+    constructor(target: HTMLElement, options?: {
+        now?: () => number;
+        kind?: () => ScreenKind | undefined;
+        paused?: () => boolean;
+    });
+    noteInput(input: CursorInput): void;
+    attach(events?: EventTarget): () => void;
+    tick(): void;
+}
+```
+
 #### `DeviceClass` (type)
 
 _No doc comment._
@@ -3856,6 +3931,22 @@ const ErrorPanel: import("svelte").Component<Props, {}, "">;
 type ErrorPanel = ReturnType<typeof ErrorPanel>;
 ```
 
+#### `fitColumns` (function)
+
+The shape cut to the columns the largest group fills, at its rows. Run after `trimRows`.
+
+```ts
+function fitColumns<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
+```
+
+#### `fitShape` (function)
+
+The most tiles of `minTile` px the box holds, never more than `most`, never below one by one.
+
+```ts
+function fitShape(most: GridShape, box: GridBox, minTile: number, gap: number): GridShape;
+```
+
 #### `FocusNavigator` (class)
 
 _No doc comment._
@@ -3869,10 +3960,18 @@ class FocusNavigator {
      */
     private engaged;
     private paused;
+    /** Armed by `guard()` on a screen change; a confirm key held from the last screen is cancelled until it comes up. */
+    private guarded;
     private readonly root;
     constructor(root?: () => ParentNode);
     /** Stops `recover` once the player presses anything that is not the navigator. */
     attach(target?: EventTarget): () => void;
+    /**
+     * Arms the pad guard (M4 spec §4.7, F-a): called on a screen change, it cancels repeating Enter and Space
+     * keydowns until the key comes up or is pressed afresh. A pad's own confirm is an edge from `Input`, which
+     * cannot repeat, so only the keyboard needs this; `attach` must be listening.
+     */
+    guard(): void;
     /** Paused while a screen transition covers the screen. */
     setPaused(paused: boolean): void;
     /**
@@ -3882,6 +3981,24 @@ class FocusNavigator {
      */
     recover(): void;
     move(direction: 'next' | 'previous'): void;
+    /**
+     * One step in `direction` (M4 spec §4.7). Inside a `[data-focus-grid]` the move is spatial: the nearest control
+     * whose centre lies that way, scored by distance along the direction plus twice the sideways offset, so a
+     * straight line wins over a diagonal. Elsewhere it is DOM order: down and right go next, up and left previous.
+     * Returns false when nothing lies that way in the grid, so the caller can page or stay put.
+     */
+    steer(direction: NavDirection): boolean;
+    /**
+     * Offers a page turn (PageUp/PageDown, the shoulder buttons, a page swipe) to the focused control. A
+     * `[data-pager]` region above it takes the cancelable `af-page` event; returns whether one did.
+     */
+    page(delta: -1 | 1): boolean;
+    /**
+     * Changes the focused slider or option group by one step without leaving it (from FloorFifty's `adjust`, plus
+     * radio groups for OptionGroup). Fires the event a pointer or arrow key would (`input` on a range, `change` on a
+     * radio). Returns false when nothing adjustable has focus, so the caller steers instead.
+     */
+    adjust(delta: -1 | 1): boolean;
     confirm(): void;
     /** Sends Escape to the focused element, marked as the navigator's, so dialogs close through one path. */
     back(): void;
@@ -4036,6 +4153,41 @@ interface GeometryState {
 }
 ```
 
+#### `GridBox` (interface)
+
+The measured box a page is fitted into, in CSS px.
+
+```ts
+interface GridBox {
+    readonly width: number;
+    readonly height: number;
+}
+```
+
+#### `GridPage` (interface)
+
+One page: a group's items, padded with `undefined` to the page's capacity.
+
+```ts
+interface GridPage<T> {
+    readonly key: string;
+    readonly groupId: string;
+    readonly title: string;
+    readonly slots: readonly (T | undefined)[];
+}
+```
+
+#### `GridShape` (interface)
+
+A page's columns and rows.
+
+```ts
+interface GridShape {
+    readonly columns: number;
+    readonly rows: number;
+}
+```
+
 #### `HeightTier` (type)
 
 The height tiers (M1.6 spec §3.1; from FloorFifty `ui/height-tier.ts` at 122a220).
@@ -4105,6 +4257,17 @@ function hostReservedInsets(host: HostDisplay | undefined): {
 };
 ```
 
+#### `IconButton` (const)
+
+A button whose face is an icon (M4 spec §4.12). Its accessible name is `label`, which it cannot
+do without: an empty label throws while it mounts, so a nameless icon button fails its first test
+instead of reaching a player. The icon is decoration and hidden from assistive technology.
+
+```ts
+const IconButton: import("svelte").Component<Props, {}, "">;
+type IconButton = ReturnType<typeof IconButton>;
+```
+
 #### `InputMethod` (type)
 
 The input method the player last used, app-wide.
@@ -4158,12 +4321,29 @@ function installGlobalErrorHandlers(win: Window, onFatal: (errorClass: string) =
 onRejection?: (errorClass: string) => void): () => void;
 ```
 
+#### `interceptBackGesture` (function)
+
+Holds the game's history entry and turns a back step off it into `onBack`.
+`onBack` answers whether the game went back; `false` lets the step leave.
+
+```ts
+function interceptBackGesture(win: Window, onBack: () => boolean): () => void;
+```
+
 #### `isDuckDuckGo` (function)
 
 DuckDuckGo names itself only in the client-hint brands, not the user agent.
 
 ```ts
 function isDuckDuckGo(nav: object): boolean;
+```
+
+#### `isTap` (function)
+
+Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
+
+```ts
+function isTap(dx: number, dy: number): boolean;
 ```
 
 #### `landscapeGate` (function)
@@ -4209,12 +4389,74 @@ _No doc comment._
 function measureGeometry(input: GeometryInput): Geometry;
 ```
 
+#### `Modal` (const)
+
+A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty
+`ui/components/Modal.svelte` at ac72660). Where Dialog asks a question that needs an answer,
+Modal shows something the player can close at any time: a level list, a credits page.
+
+It holds the page by the rules Dialog uses (`modal-scope.ts`): the page behind is inert, focus
+moves in on open and back to the opener on close, Tab wraps, and Escape (or the pad's Back)
+calls `onclose`. A tap on the dimmed page calls `onbackdrop` only when one is given; absent,
+such a tap does nothing, so a stray tap never loses the player's place.
+
+`anchor="bottom"` puts it on the bottom edge at every form factor; Sheet is that.
+
+```ts
+const Modal: import("svelte").Component<$$ComponentProps, {}, "">;
+type Modal = ReturnType<typeof Modal>;
+```
+
+#### `ModalProps` (interface)
+
+The props Modal and Sheet share.
+
+```ts
+interface ModalProps {
+    title: string;
+    /** The Close button's name, in the game's language. */
+    closeLabel: string;
+    onclose: () => void;
+    /** A tap on the dimmed page around the panel; absent, such a tap does nothing. */
+    onbackdrop?: (() => void) | undefined;
+    children?: Snippet | undefined;
+    /** The buttons, in reading order. Mark the safe one with `data-initial-focus`. */
+    actions?: Snippet | undefined;
+    testId?: string | undefined;
+}
+```
+
 #### `NavDirection` (type)
 
 _No doc comment._
 
 ```ts
 type NavDirection = 'up' | 'down' | 'left' | 'right';
+```
+
+#### `nearestTarget` (function)
+
+The button a point is on, or else the nearest within the margin, or nothing. Distance is to the button's edge,
+so any point inside is 0.
+
+```ts
+function nearestTarget(x: number, y: number, targets: readonly TouchTarget[], margin?: number): string | undefined;
+```
+
+#### `OptionGroup` (const)
+
+A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a
+segmented row whose chosen option is filled and marked, never only underlined or only coloured.
+
+Native radios in a fieldset, where FloorFifty used `<button role="radio">`: the browser gives the arrow keys,
+and the focus navigator's `adjust` cycles a named radio group, so a pad changes it without leaving it.
+
+Controlled: it reports a choice through `onchange` and shows the `value` it is given. A choice the owner does
+not take is undone, so what is checked is always the owner's value.
+
+```ts
+const OptionGroup: import("svelte").Component<Props, {}, "">;
+type OptionGroup = ReturnType<typeof OptionGroup>;
 ```
 
 #### `PAD_FOCUS` (const)
@@ -4236,6 +4478,113 @@ a controller's B would teach keyboard controls to a controller player.
 
 ```ts
 const padKeyEvents: WeakSet<Event>;
+```
+
+#### `PAGE_SWIPE` (const)
+
+Swipe is the pagination on a paged region, on every form factor: a finger, a mouse drag, a trackpad's two-finger
+sideways swipe. From FloorFifty `apps/client/src/ui/page-swipe.ts` at `ac72660`, unchanged but for a doc comment.
+A press that moves less than 8 px is a tap, so swiping never picks by accident; a quick flick turns one page
+whatever the distance; a slow drag snaps to the nearest page.
+
+```ts
+const PAGE_SWIPE: {
+    readonly tapSlopPx: 8;
+    readonly flickPxPerMs: 0.4;
+    readonly wheelStepPx: 40;
+};
+```
+
+#### `PagedGrid` (const)
+
+A grid of items in pages that never scrolls (M4 spec §4.8; the page arithmetic of FloorFifty `ui/tile-pages.ts`
+at `ac72660`). Each group starts its own page; the shape is `most`, cut to what the measured box holds at
+`minTile` and to what the largest group fills. PagerDots show where it is.
+
+The page is controlled: it reports `onpage` and shows the `page` it is given. A `[data-focus-grid]`, so the
+focus navigator steers through the tiles spatially, and paging comes from the owner (a page swipe, a pad's
+shoulder buttons, the dots).
+
+```ts
+const PagedGrid: $$IsomorphicComponent;
+type PagedGrid<T extends {
+    readonly id: string;
+}> = InstanceType<typeof PagedGrid<T>>;
+```
+
+#### `PagedGridProps` (interface)
+
+PagedGrid's props: groups of items, the most columns and rows a page has, and the page its owner shows.
+
+```ts
+interface PagedGridProps<T> {
+    /** The grid's name for assistive technology, also the pager's. */
+    label: string;
+    groups: readonly PageGroup<T>[];
+    /** The most columns and rows a page has. */
+    most: GridShape;
+    /** The current page, from 0; wrapped into range. */
+    page: number;
+    onpage: (page: number) => void;
+    item: Snippet<[T]>;
+    /** The smallest tile side, in px, before the shape drops a row or column. */
+    minTile?: number | undefined;
+    gap?: number | undefined;
+    /** How a group's later pages are titled. */
+    continued?: ((title: string, part: number) => string) | undefined;
+    dotLabel?: ((position: number, total: number) => string) | undefined;
+    testId?: string | undefined;
+}
+```
+
+#### `PageGroup` (interface)
+
+A titled run of items; each group starts its own page.
+
+```ts
+interface PageGroup<T> {
+    readonly id: string;
+    readonly title: string;
+    readonly items: readonly T[];
+}
+```
+
+#### `pageOf` (function)
+
+The page holding the item with `id`, or -1 when no page does.
+
+```ts
+function pageOf<T extends {
+    readonly id: string;
+}>(pages: readonly GridPage<T>[], id: string): number;
+```
+
+#### `PagerDots` (const)
+
+Where a paged view is (M4 spec §4.8; from FloorFifty `ui/layout/PagerDots.svelte` at `ac72660`): one row of
+dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row. It never wraps.
+
+```ts
+const PagerDots: import("svelte").Component<Props, {}, "">;
+type PagerDots = ReturnType<typeof PagerDots>;
+```
+
+#### `pagerMode` (function)
+
+PagerDots' choice (M4 spec §4.8; from FloorFifty `ui/layout/pager.ts` at `ac72660`): dots while they fit on one
+row, a counter ("3 / 11") once they would not. Dots never wrap.
+
+```ts
+function pagerMode(count: number, max?: number, available?: number, dotSize?: number): 'dots' | 'counter';
+```
+
+#### `paginate` (function)
+
+One group per page; a group longer than a page continues under `continued(title, part)`, "Title (2)" by default.
+An empty group has no page.
+
+```ts
+function paginate<T>(groups: readonly PageGroup<T>[], capacity: number, continued?: (title: string, part: number) => string): GridPage<T>[];
 ```
 
 #### `pastEdge` (function)
@@ -4265,6 +4614,45 @@ A portrait viewport narrower than this is a phone; at or above it, a tablet.
 
 ```ts
 const PHONE_PORTRAIT_MAX_WIDTH = 600;
+```
+
+#### `PointerLatch` (class)
+
+Which fingers are down on which action. Reports only real changes: a second finger landing on a button already
+held produces nothing, and lifting it produces nothing either. The action ends when its last finger lifts.
+
+```ts
+class PointerLatch {
+    private readonly onInput;
+    private readonly active;
+    constructor(onInput: (action: string, active: boolean) => void);
+    /** True while any finger holds the action; what the pressed style reads. */
+    isHeld(action: string): boolean;
+    press(action: string, pointerId: number): void;
+    release(action: string, pointerId: number): void;
+    /** Releases everything still held, reporting each action exactly once. */
+    releaseAll(): void;
+}
+```
+
+#### `PointerTracker` (interface)
+
+What a SwipeSurface drives: runtime's `SwipeTracker` satisfies it, so ui need not import runtime. Times are
+`PointerEvent.timeStamp`.
+
+```ts
+interface PointerTracker {
+    readonly tuning: {
+        readonly saturationPx: number;
+    };
+    readonly indicator: SwipeIndicatorView | undefined;
+    down(id: number, x: number, y: number, t: number, options?: {
+        readonly steers?: boolean;
+    }): void;
+    move(id: number, x: number, y: number, t: number): void;
+    up(id: number, x: number, y: number, t: number): void;
+    cancel(): void;
+}
 ```
 
 #### `probeEnvSafeArea` (function)
@@ -4299,6 +4687,14 @@ that moves things itself.
 
 ```ts
 function reducedMotion(win?: Pick<Window, 'matchMedia'>): boolean;
+```
+
+#### `releaseStep` (function)
+
+Pages to turn when a drag of `dx` px over `dtMs` is released: a swipe left is +1 (next).
+
+```ts
+function releaseStep(dx: number, dtMs: number, pageWidth: number): -1 | 0 | 1;
 ```
 
 #### `RETRY_DELAYS_MS` (const)
@@ -4337,6 +4733,14 @@ const ScreenFrame: import("svelte").Component<Props, {}, "">;
 type ScreenFrame = ReturnType<typeof ScreenFrame>;
 ```
 
+#### `ScreenKind` (type)
+
+A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
+
+```ts
+type ScreenKind = 'menu' | 'gameplay';
+```
+
 #### `ScrollList` (const)
 
 _No doc comment._
@@ -4354,6 +4758,17 @@ Brings `element` into view by scrolling its nearest scroll box, never the docume
 function scrollWithin(element: HTMLElement): void;
 ```
 
+#### `sendBack` (function)
+
+Sends Back as an Escape to wherever a dialog would hear it, and reports
+whether anything took it. A tap on a dialog's backdrop leaves focus on the
+body, where the dialog's own Escape listener never hears a key, so an open
+dialog is sent it directly.
+
+```ts
+function sendBack(doc: Document): boolean;
+```
+
 #### `SETTLE_DELAYS_MS` (const)
 
 When to measure again after a viewport event, in ms. A browser's bars and keyboard animate,
@@ -4363,6 +4778,16 @@ further event to correct it (FloorFifty). Each re-measure is only a read and a s
 
 ```ts
 const SETTLE_DELAYS_MS: readonly number[];
+```
+
+#### `Sheet` (const)
+
+A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and
+scroll region, where a thumb reaches the actions. Settings' sub-pages and a "more" menu use it.
+
+```ts
+const Sheet: import("svelte").Component<ModalProps, {}, "">;
+type Sheet = ReturnType<typeof Sheet>;
 ```
 
 #### `SHORT_MAX_HEIGHT` (const)
@@ -4411,6 +4836,64 @@ _No doc comment._
 function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => void;
 ```
 
+#### `Slider` (const)
+
+A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser
+gives the arrow keys and the focus navigator's `adjust` steps it. `valueText` gives the value its
+words for assistive technology (`aria-valuetext`), and the same words show beside the track. The
+thumb is a 44 px target, checked by the layout contract.
+
+```ts
+const Slider: import("svelte").Component<Props, {}, "">;
+type Slider = ReturnType<typeof Slider>;
+```
+
+#### `Split` (const)
+
+Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty
+`ui/layout/Split.svelte` at `ac72660`). Measured, because a container query cannot read a prop; stacked
+until the first measurement, so a pane never starts squeezed.
+
+```ts
+const Split: import("svelte").Component<Props, {}, "">;
+type Split = ReturnType<typeof Split>;
+```
+
+#### `splitMode` (function)
+
+Split's choice (M4 spec §4.8; from FloorFifty `ui/layout/split.ts` at `ac72660`): side by side when both
+columns and the gap between them fit at their minimum, stacked otherwise.
+
+```ts
+function splitMode(available: number, min: number, gap: number): 'row' | 'stack';
+```
+
+#### `STICKY_MARGIN_PX` (const)
+
+How far outside a button a thumb still counts for it, in CSS pixels.
+
+```ts
+const STICKY_MARGIN_PX = 24;
+```
+
+#### `StickyPointers` (class)
+
+Which button each finger is on, over the latch. A finger owns one button at a time: moving onto another releases
+the first and presses the second; moving onto nothing keeps what it owns.
+
+```ts
+class StickyPointers {
+    private readonly latch;
+    private readonly owned;
+    constructor(latch: PointerLatch);
+    /** A finger landed on `action` (or on nothing); true when it pressed a button. */
+    down(pointerId: number, action: string | undefined): boolean;
+    move(pointerId: number, action: string | undefined): void;
+    up(pointerId: number): void;
+    releaseAll(): void;
+}
+```
+
 #### `suppressPageGestures` (function)
 
 Turns off the browser's document gestures over the game.
@@ -4427,12 +4910,73 @@ text can be pasted from a message.
 function suppressPageGestures(doc: Document): () => void;
 ```
 
+#### `SwipeIndicatorView` (interface)
+
+What a SwipeSurface draws: the thumb, the anchor it trails and whether it is past the dead zone.
+
+```ts
+interface SwipeIndicatorView {
+    readonly anchor: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly thumb: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly steering: boolean;
+}
+```
+
+#### `SwipeSurface` (const)
+
+The whole visible screen as one swipe surface (M4 spec §4.4), from FloorFifty `ui/components/SwipeSurface.svelte`
+at `ac72660`.
+
+All bookkeeping is the tracker's (runtime `SwipeTracker`); this forwards pointer events, each with its own
+`timeStamp`, and draws a thin thumb-to-anchor line so the player can see the dead zone. Which fingers may steer
+is the game's rule (`steers`); any finger may flick or tap. Controls a screen draws above this surface keep their
+taps. Pointer only, never in the focus order.
+
+```ts
+const SwipeSurface: import("svelte").Component<SwipeSurfaceProps, {}, "">;
+type SwipeSurface = ReturnType<typeof SwipeSurface>;
+```
+
+#### `SwipeSurfaceProps` (interface)
+
+SwipeSurface's props.
+
+```ts
+interface SwipeSurfaceProps {
+    tracker: PointerTracker;
+    /** Whether a finger landing at (x, y) may steer; any finger may flick or tap. Default: every finger. */
+    steers?: ((x: number, y: number) => boolean) | undefined;
+    testId?: string | undefined;
+}
+```
+
 #### `tabbables` (function)
 
 Everything Tab can reach under `root`, in DOM order: not disabled, inert or hidden.
 
 ```ts
 function tabbables(root: ParentNode): HTMLElement[];
+```
+
+#### `tileSide` (function)
+
+A square tile's side for the space a grid is given: the width shared by the columns and the `peek` (a fraction
+of a tile) of the next page showing at the edge, and the height only when the box has one. A grid laid in a
+content-sized panel passes an infinite height, because a height measured from its own tiles would only ever
+confirm the smallest tile. Clamped to `min`..`max`.
+
+```ts
+function tileSide(shape: GridShape, box: GridBox, gap: number, limits: {
+    readonly peek: number;
+    readonly min: number;
+    readonly max: number;
+}): number;
 ```
 
 #### `Timers` (interface)
@@ -4444,6 +4988,114 @@ interface Timers {
     set(callback: () => void, ms: number): unknown;
     clear(handle: unknown): void;
 }
+```
+
+#### `Toast` (const)
+
+A passing message (M4 spec §4.12): "Pad connected", "Saved", "This controller is not supported".
+The owner shows it and takes it away; Toast neither times itself nor takes focus, so a player
+in the middle of a menu is never moved.
+
+It is a polite live region (`role="status"`), and an error is an alert. Every tone but `info`
+shows a glyph and says `toneLabel` to assistive technology, so the tone survives with every
+colour removed (U-b); a toned toast without words throws while it mounts.
+
+It sits above Ruken's strip, the safe area and the keyboard, through the geometry owner's inset
+variables, and slides in unless the player asked for less movement.
+
+```ts
+const Toast: import("svelte").Component<Props, {}, "">;
+type Toast = ReturnType<typeof Toast>;
+```
+
+#### `Toggle` (const)
+
+An on/off setting (M4 spec §4.12): a native checkbox with the switch role, so the browser gives
+Space and the focus navigator's `adjust` flips it. The state shows in words (`onLabel`,
+`offLabel`) beside the track, never in colour alone.
+
+Controlled, as OptionGroup is: a click reports the new state through `onchange`, and the box
+shows the `checked` it is given.
+
+```ts
+const Toggle: import("svelte").Component<Props, {}, "">;
+type Toggle = ReturnType<typeof Toggle>;
+```
+
+#### `TouchButtonSpec` (interface)
+
+One on-screen touch button (M4 spec §4.4): the action it holds and what it shows.
+
+```ts
+interface TouchButtonSpec {
+    /** The profile's action id; also the button's `data-testid`. */
+    readonly action: string;
+    /** The button's face. */
+    readonly label: string;
+    /** Its name for assistive technology, where the face is a symbol. Default: the label. */
+    readonly ariaLabel?: string | undefined;
+    /** Which lower corner's group it sits in. Default `start`. */
+    readonly side?: 'start' | 'end' | undefined;
+}
+```
+
+#### `TouchControls` (const)
+
+The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+
+This is the element that produces pointer events and nothing more; the multi-touch bookkeeping is
+`touch-controls.ts`. Each side's group takes the pointers, not the buttons, and reaches `STICKY_MARGIN_PX` past
+them with an invisible margin, so a near miss presses the nearest button and a held thumb can slide from one to
+the next. The group captures the pointer, so the release always arrives, however far the thumb wanders.
+
+Pointer only: the buttons are never in the focus order, since a keyboard or pad drives the same actions directly.
+Hidden (not unmounted) while the player uses another device, so the screen never remounts; hiding or coming down
+releases whatever is held.
+
+```ts
+const TouchControls: import("svelte").Component<TouchControlsProps, {}, "">;
+type TouchControls = ReturnType<typeof TouchControls>;
+```
+
+#### `TouchControlsProps` (interface)
+
+TouchControls' props.
+
+```ts
+interface TouchControlsProps {
+    buttons: readonly TouchButtonSpec[];
+    /** An action's first finger landed. */
+    onhold: (action: string) => void;
+    /** An action's last finger lifted, or the controls hid or came down while it was held. */
+    onrelease: (action: string) => void;
+    /** False hides the controls without remounting them (the player put touch down). Default true. */
+    shown?: boolean | undefined;
+    testId?: string | undefined;
+}
+```
+
+#### `TouchTarget` (interface)
+
+A button's action and where it is drawn, for `nearestTarget`.
+
+```ts
+interface TouchTarget {
+    readonly action: string;
+    readonly rect: {
+        readonly left: number;
+        readonly top: number;
+        readonly right: number;
+        readonly bottom: number;
+    };
+}
+```
+
+#### `trimRows` (function)
+
+The shape cut to the rows the largest group fills, so no page carries a row of empty slots.
+
+```ts
+function trimRows<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
 ```
 
 #### `UI_SLOT_NAMES` (const)
@@ -4505,6 +5157,27 @@ instead. Returns the stop.
 
 ```ts
 function watchImage(src: string, onRetry: (url: string) => void, timers?: RetryTimers): () => void;
+```
+
+#### `WheelPager` (class)
+
+A trackpad's horizontal wheel deltas, one page per gesture; `reset` when the gesture goes quiet.
+
+```ts
+class WheelPager {
+    private travel;
+    private spent;
+    push(deltaX: number, deltaY: number): -1 | 0 | 1;
+    reset(): void;
+}
+```
+
+#### `wrapPage` (function)
+
+`index` wrapped into `0..count - 1`, so paging past either end comes round.
+
+```ts
+function wrapPage(index: number, count: number): number;
 ```
 
 ### `import { … } from '@mcthaydt/automata-ui/testing'`

@@ -27,14 +27,25 @@ export type {
   ScreenContext,
   ScreenDef,
 } from './flow/screen.js'
+export type { GlyphFamily } from './input/gamepad/glyph-family.js'
 export {
+  GESTURE_TUNING,
+  type GestureSink,
+  type GestureTuning,
+  type SwipeIndicator,
+  SwipeTracker,
+} from './input/gestures/swipe-tracker.js'
+export {
+  type ActiveDevice,
   Input,
   type InputContextNow,
   type InputDevice,
   type InputOptions,
   makeInput,
+  type PadInfo,
 } from './input/input.manager.js'
 export {
+  actionsForGesture,
   actionsForKey,
   actionsForPadButton,
   type GestureName,
@@ -47,6 +58,8 @@ export {
   RESERVED_PAD_BUTTONS,
   STANDARD_PAD_BUTTON_MAX,
   type StickDirection,
+  type TouchMode,
+  touchModesFor,
 } from './input/input-profile.schema.js'
 export type { MenuAction } from './input/menu-actions.js'
 export { Assets } from './loading/assets.manager.js'
@@ -107,6 +120,14 @@ export {
   SaveUnreadable,
   type SaveUnreadableFields,
 } from './save/save-error.js'
+export {
+  DEFAULT_QUALITY,
+  type DisplaySettings,
+  displaySettingsSchema,
+  QUALITY_TIERS,
+  type QualityTier,
+  qualityTierSchema,
+} from './settings/display-settings.schema.js'
 export {
   Settings,
   type SettingsDef,

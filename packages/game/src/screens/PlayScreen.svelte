@@ -1,10 +1,17 @@
 <!--
-  The default play screen (DX spec §7): the game shows through; the frame holds the corner Pause
-  and, while the player uses touch, the input map's touch buttons along the foot. A touch button
-  holds while pressed (pointerdown to pointerup or cancel), so it reads as a held key.
+  The default play screen (DX spec §7): the game shows through; the frame holds the corner Pause and, while the
+  player uses touch, the input map's touch input. In touch mode `buttons` that is the ui `TouchControls` along the
+  foot (sticky, several thumbs at once, M4.3); in touch mode `swipe` it is a `SwipeSurface` over the whole screen,
+  under Pause, feeding the swipe tracker.
 -->
 <script lang="ts">
-import { type InputMethodTracker, ScreenFrame } from '@mcthaydt/automata-ui'
+import {
+  type InputMethodTracker,
+  type PointerTracker,
+  ScreenFrame,
+  SwipeSurface,
+  TouchControls,
+} from '@mcthaydt/automata-ui'
 import type { TouchButton } from '../input/keys.ts'
 
 interface Props {
@@ -13,24 +20,15 @@ interface Props {
   touchButtons: readonly TouchButton[]
   onHold: (id: string) => void
   onRelease: (id: string) => void
+  /** The swipe tracker, in touch mode `swipe`; none in mode `buttons`. */
+  swipe?: PointerTracker | undefined
 }
 
-const { onPause, tracker, touchButtons, onHold, onRelease }: Props = $props()
+const { onPause, tracker, touchButtons, onHold, onRelease, swipe }: Props = $props()
 
-const showTouch = $derived(tracker.method === 'touch' && touchButtons.length > 0)
-
-function press(event: PointerEvent, id: string): void {
-  event.preventDefault()
-  const button = event.currentTarget as HTMLElement
-  if (event.pointerId !== undefined && typeof button.setPointerCapture === 'function') {
-    try {
-      button.setPointerCapture(event.pointerId)
-    } catch {
-      // A synthetic or already-ended pointer has nothing to capture; the hold still counts.
-    }
-  }
-  onHold(id)
-}
+const touching = $derived(tracker.method === 'touch')
+const showButtons = $derived(touching && swipe === undefined && touchButtons.length > 0)
+const buttons = $derived(touchButtons.map((button) => ({ action: button.id, label: button.label })))
 </script>
 
 {#snippet end()}
@@ -44,22 +42,12 @@ function press(event: PointerEvent, id: string): void {
 {/snippet}
 
 {#snippet actions()}
-  <div class="af-game-play__touch" data-testid="touch-buttons">
-    {#each touchButtons as button (button.id)}
-      <button
-        type="button"
-        class="af-control af-game-play__touch-button"
-        data-testid={button.id}
-        tabindex="-1"
-        onpointerdown={(event) => press(event, button.id)}
-        onpointerup={() => onRelease(button.id)}
-        onpointercancel={() => onRelease(button.id)}
-        oncontextmenu={(event) => event.preventDefault()}
-      >{button.label}</button>
-    {/each}
-  </div>
+  <TouchControls testId="touch-buttons" {buttons} onhold={onHold} onrelease={onRelease} />
 {/snippet}
 
 <div class="af-game-play" data-game-screen="play">
-  <ScreenFrame arrangement="stack" testId="play-screen" {end} {body} actions={showTouch ? actions : undefined} />
+  {#if touching && swipe !== undefined}
+    <SwipeSurface tracker={swipe} />
+  {/if}
+  <ScreenFrame arrangement="stack" testId="play-screen" {end} {body} actions={showButtons ? actions : undefined} />
 </div>

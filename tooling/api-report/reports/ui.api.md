@@ -137,6 +137,18 @@ interface BootFailureViewModel {
 }
 ```
 
+### `Button` (svelte)
+
+```ts
+component from './controls/Button.svelte'
+```
+
+### `Chip` (svelte)
+
+```ts
+component from './status/Chip.svelte'
+```
+
 ### `classifyDevice` (function)
 
 ```ts
@@ -189,6 +201,49 @@ component from './layout/CornerControls.svelte'
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 ```
 
+### `CURSOR_IDLE_MS` (const)
+
+```ts
+const CURSOR_IDLE_MS = 2000;
+```
+
+### `cursorHidden` (function)
+
+```ts
+function cursorHidden(state: {
+    kind: ScreenKind | undefined;
+    paused: boolean;
+    lastInput: CursorInput;
+    msSincePointerMove: number;
+}): boolean;
+```
+
+### `CursorInput` (type)
+
+```ts
+type CursorInput = 'pointer' | 'keyboard' | 'gamepad' | 'touch';
+```
+
+### `CursorRunner` (class)
+
+```ts
+class CursorRunner {
+    private readonly target;
+    private readonly options;
+    private lastInput;
+    private movedAt;
+    private readonly now;
+    constructor(target: HTMLElement, options?: {
+        now?: () => number;
+        kind?: () => ScreenKind | undefined;
+        paused?: () => boolean;
+    });
+    noteInput(input: CursorInput): void;
+    attach(events?: EventTarget): () => void;
+    tick(): void;
+}
+```
+
 ### `DeviceClass` (type)
 
 ```ts
@@ -224,18 +279,35 @@ type ErrorCode = RukenError['code'];
 component from './status/ErrorPanel.svelte'
 ```
 
+### `fitColumns` (function)
+
+```ts
+function fitColumns<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
+```
+
+### `fitShape` (function)
+
+```ts
+function fitShape(most: GridShape, box: GridBox, minTile: number, gap: number): GridShape;
+```
+
 ### `FocusNavigator` (class)
 
 ```ts
 class FocusNavigator {
     private engaged;
     private paused;
+    private guarded;
     private readonly root;
     constructor(root?: () => ParentNode);
     attach(target?: EventTarget): () => void;
+    guard(): void;
     setPaused(paused: boolean): void;
     recover(): void;
     move(direction: 'next' | 'previous'): void;
+    steer(direction: NavDirection): boolean;
+    page(delta: -1 | 1): boolean;
+    adjust(delta: -1 | 1): boolean;
     confirm(): void;
     back(): void;
 }
@@ -343,6 +415,35 @@ interface GeometryState {
 }
 ```
 
+### `GridBox` (interface)
+
+```ts
+interface GridBox {
+    readonly width: number;
+    readonly height: number;
+}
+```
+
+### `GridPage` (interface)
+
+```ts
+interface GridPage<T> {
+    readonly key: string;
+    readonly groupId: string;
+    readonly title: string;
+    readonly slots: readonly (T | undefined)[];
+}
+```
+
+### `GridShape` (interface)
+
+```ts
+interface GridShape {
+    readonly columns: number;
+    readonly rows: number;
+}
+```
+
 ### `HeightTier` (type)
 
 ```ts
@@ -384,6 +485,12 @@ function hostReservedInsets(host: HostDisplay | undefined): {
 };
 ```
 
+### `IconButton` (svelte)
+
+```ts
+component from './controls/IconButton.svelte'
+```
+
 ### `InputMethod` (type)
 
 ```ts
@@ -417,10 +524,22 @@ interface Insets {
 function installGlobalErrorHandlers(win: Window, onFatal: (errorClass: string) => void, onRejection?: (errorClass: string) => void): () => void;
 ```
 
+### `interceptBackGesture` (function)
+
+```ts
+function interceptBackGesture(win: Window, onBack: () => boolean): () => void;
+```
+
 ### `isDuckDuckGo` (function)
 
 ```ts
 function isDuckDuckGo(nav: object): boolean;
+```
+
+### `isTap` (function)
+
+```ts
+function isTap(dx: number, dy: number): boolean;
 ```
 
 ### `landscapeGate` (function)
@@ -455,10 +574,42 @@ function lockOverscroll(node: HTMLElement): {
 function measureGeometry(input: GeometryInput): Geometry;
 ```
 
+### `Modal` (svelte)
+
+```ts
+component from './dialog/Modal.svelte'
+```
+
+### `ModalProps` (interface)
+
+```ts
+interface ModalProps {
+    title: string;
+    closeLabel: string;
+    onclose: () => void;
+    onbackdrop?: (() => void) | undefined;
+    children?: Snippet | undefined;
+    actions?: Snippet | undefined;
+    testId?: string | undefined;
+}
+```
+
 ### `NavDirection` (type)
 
 ```ts
 type NavDirection = 'up' | 'down' | 'left' | 'right';
+```
+
+### `nearestTarget` (function)
+
+```ts
+function nearestTarget(x: number, y: number, targets: readonly TouchTarget[], margin?: number): string | undefined;
+```
+
+### `OptionGroup` (svelte)
+
+```ts
+component from './layout/OptionGroup.svelte'
 ```
 
 ### `PAD_FOCUS` (const)
@@ -471,6 +622,76 @@ const PAD_FOCUS: FocusOptions;
 
 ```ts
 const padKeyEvents: WeakSet<Event>;
+```
+
+### `PAGE_SWIPE` (const)
+
+```ts
+const PAGE_SWIPE: {
+    readonly tapSlopPx: 8;
+    readonly flickPxPerMs: 0.4;
+    readonly wheelStepPx: 40;
+};
+```
+
+### `PagedGrid` (svelte)
+
+```ts
+component from './layout/PagedGrid.svelte'
+```
+
+### `PagedGridProps` (interface)
+
+```ts
+interface PagedGridProps<T> {
+    label: string;
+    groups: readonly PageGroup<T>[];
+    most: GridShape;
+    page: number;
+    onpage: (page: number) => void;
+    item: Snippet<[T]>;
+    minTile?: number | undefined;
+    gap?: number | undefined;
+    continued?: ((title: string, part: number) => string) | undefined;
+    dotLabel?: ((position: number, total: number) => string) | undefined;
+    testId?: string | undefined;
+}
+```
+
+### `PageGroup` (interface)
+
+```ts
+interface PageGroup<T> {
+    readonly id: string;
+    readonly title: string;
+    readonly items: readonly T[];
+}
+```
+
+### `pageOf` (function)
+
+```ts
+function pageOf<T extends {
+    readonly id: string;
+}>(pages: readonly GridPage<T>[], id: string): number;
+```
+
+### `PagerDots` (svelte)
+
+```ts
+component from './layout/PagerDots.svelte'
+```
+
+### `pagerMode` (function)
+
+```ts
+function pagerMode(count: number, max?: number, available?: number, dotSize?: number): 'dots' | 'counter';
+```
+
+### `paginate` (function)
+
+```ts
+function paginate<T>(groups: readonly PageGroup<T>[], capacity: number, continued?: (title: string, part: number) => string): GridPage<T>[];
 ```
 
 ### `pastEdge` (function)
@@ -495,6 +716,37 @@ const PHONE_LANDSCAPE_MAX_HEIGHT = 500;
 const PHONE_PORTRAIT_MAX_WIDTH = 600;
 ```
 
+### `PointerLatch` (class)
+
+```ts
+class PointerLatch {
+    private readonly onInput;
+    private readonly active;
+    constructor(onInput: (action: string, active: boolean) => void);
+    isHeld(action: string): boolean;
+    press(action: string, pointerId: number): void;
+    release(action: string, pointerId: number): void;
+    releaseAll(): void;
+}
+```
+
+### `PointerTracker` (interface)
+
+```ts
+interface PointerTracker {
+    readonly tuning: {
+        readonly saturationPx: number;
+    };
+    readonly indicator: SwipeIndicatorView | undefined;
+    down(id: number, x: number, y: number, t: number, options?: {
+        readonly steers?: boolean;
+    }): void;
+    move(id: number, x: number, y: number, t: number): void;
+    up(id: number, x: number, y: number, t: number): void;
+    cancel(): void;
+}
+```
+
 ### `probeEnvSafeArea` (function)
 
 ```ts
@@ -516,6 +768,12 @@ interface Rect {
 
 ```ts
 function reducedMotion(win?: Pick<Window, 'matchMedia'>): boolean;
+```
+
+### `releaseStep` (function)
+
+```ts
+function releaseStep(dx: number, dtMs: number, pageWidth: number): -1 | 0 | 1;
 ```
 
 ### `RETRY_DELAYS_MS` (const)
@@ -545,6 +803,12 @@ function retryUrl(src: string, attempt: number): string;
 component from './layout/ScreenFrame.svelte'
 ```
 
+### `ScreenKind` (type)
+
+```ts
+type ScreenKind = 'menu' | 'gameplay';
+```
+
 ### `ScrollList` (svelte)
 
 ```ts
@@ -557,10 +821,22 @@ component from './layout/ScrollList.svelte'
 function scrollWithin(element: HTMLElement): void;
 ```
 
+### `sendBack` (function)
+
+```ts
+function sendBack(doc: Document): boolean;
+```
+
 ### `SETTLE_DELAYS_MS` (const)
 
 ```ts
 const SETTLE_DELAYS_MS: readonly number[];
+```
+
+### `Sheet` (svelte)
+
+```ts
+component from './dialog/Sheet.svelte'
 ```
 
 ### `SHORT_MAX_HEIGHT` (const)
@@ -585,16 +861,96 @@ type Sleeper = {
 function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => void;
 ```
 
+### `Slider` (svelte)
+
+```ts
+component from './controls/Slider.svelte'
+```
+
+### `Split` (svelte)
+
+```ts
+component from './layout/Split.svelte'
+```
+
+### `splitMode` (function)
+
+```ts
+function splitMode(available: number, min: number, gap: number): 'row' | 'stack';
+```
+
+### `STICKY_MARGIN_PX` (const)
+
+```ts
+const STICKY_MARGIN_PX = 24;
+```
+
+### `StickyPointers` (class)
+
+```ts
+class StickyPointers {
+    private readonly latch;
+    private readonly owned;
+    constructor(latch: PointerLatch);
+    down(pointerId: number, action: string | undefined): boolean;
+    move(pointerId: number, action: string | undefined): void;
+    up(pointerId: number): void;
+    releaseAll(): void;
+}
+```
+
 ### `suppressPageGestures` (function)
 
 ```ts
 function suppressPageGestures(doc: Document): () => void;
 ```
 
+### `SwipeIndicatorView` (interface)
+
+```ts
+interface SwipeIndicatorView {
+    readonly anchor: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly thumb: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly steering: boolean;
+}
+```
+
+### `SwipeSurface` (svelte)
+
+```ts
+component from './touch/SwipeSurface.svelte'
+```
+
+### `SwipeSurfaceProps` (interface)
+
+```ts
+interface SwipeSurfaceProps {
+    tracker: PointerTracker;
+    steers?: ((x: number, y: number) => boolean) | undefined;
+    testId?: string | undefined;
+}
+```
+
 ### `tabbables` (function)
 
 ```ts
 function tabbables(root: ParentNode): HTMLElement[];
+```
+
+### `tileSide` (function)
+
+```ts
+function tileSide(shape: GridShape, box: GridBox, gap: number, limits: {
+    readonly peek: number;
+    readonly min: number;
+    readonly max: number;
+}): number;
 ```
 
 ### `Timers` (interface)
@@ -604,6 +960,67 @@ interface Timers {
     set(callback: () => void, ms: number): unknown;
     clear(handle: unknown): void;
 }
+```
+
+### `Toast` (svelte)
+
+```ts
+component from './status/Toast.svelte'
+```
+
+### `Toggle` (svelte)
+
+```ts
+component from './controls/Toggle.svelte'
+```
+
+### `TouchButtonSpec` (interface)
+
+```ts
+interface TouchButtonSpec {
+    readonly action: string;
+    readonly label: string;
+    readonly ariaLabel?: string | undefined;
+    readonly side?: 'start' | 'end' | undefined;
+}
+```
+
+### `TouchControls` (svelte)
+
+```ts
+component from './touch/TouchControls.svelte'
+```
+
+### `TouchControlsProps` (interface)
+
+```ts
+interface TouchControlsProps {
+    buttons: readonly TouchButtonSpec[];
+    onhold: (action: string) => void;
+    onrelease: (action: string) => void;
+    shown?: boolean | undefined;
+    testId?: string | undefined;
+}
+```
+
+### `TouchTarget` (interface)
+
+```ts
+interface TouchTarget {
+    readonly action: string;
+    readonly rect: {
+        readonly left: number;
+        readonly top: number;
+        readonly right: number;
+        readonly bottom: number;
+    };
+}
+```
+
+### `trimRows` (function)
+
+```ts
+function trimRows<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
 ```
 
 ### `UI_SLOT_NAMES` (const)
@@ -650,6 +1067,23 @@ interface ViewportWindow {
 
 ```ts
 function watchImage(src: string, onRetry: (url: string) => void, timers?: RetryTimers): () => void;
+```
+
+### `WheelPager` (class)
+
+```ts
+class WheelPager {
+    private travel;
+    private spent;
+    push(deltaX: number, deltaY: number): -1 | 0 | 1;
+    reset(): void;
+}
+```
+
+### `wrapPage` (function)
+
+```ts
+function wrapPage(index: number, count: number): number;
 ```
 
 ## `./testing`
