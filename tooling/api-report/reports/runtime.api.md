@@ -136,6 +136,28 @@ class ContentHashMismatch extends ContentHashMismatchBase {
 function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
 ```
 
+### `DEFAULT_QUALITY` (const)
+
+```ts
+const DEFAULT_QUALITY: QualityTier;
+```
+
+### `DisplaySettings` (interface)
+
+```ts
+interface DisplaySettings {
+    readonly quality: QualityTier;
+}
+```
+
+### `displaySettingsSchema` (const)
+
+```ts
+const displaySettingsSchema: z.ZodType<DisplaySettings, {
+    quality?: unknown;
+}>;
+```
+
 ### `Flow` (interface)
 
 ```ts
@@ -459,6 +481,24 @@ interface PresentationBus<Facts = RuntimeFacts> {
 const PresentationBus: Context.Tag<PresentationBus, PresentationBus>;
 ```
 
+### `QUALITY_TIERS` (const)
+
+```ts
+const QUALITY_TIERS: readonly ["high", "medium", "low"];
+```
+
+### `QualityTier` (type)
+
+```ts
+type QualityTier = (typeof QUALITY_TIERS)[number];
+```
+
+### `qualityTierSchema` (const)
+
+```ts
+const qualityTierSchema: z.ZodType<QualityTier, unknown>;
+```
+
 ### `Renderer` (const)
 
 ```ts
@@ -485,6 +525,7 @@ interface RenderTarget {
     readonly host: HTMLElement;
     readonly geometry: GeometryOwner;
     readonly assets: Pick<Assets, 'get'>;
+    readonly bus?: PresentationBus | undefined;
 }
 ```
 
@@ -525,6 +566,10 @@ interface RuntimeFacts {
     readonly 'input.device.changed': {
         readonly device: 'keyboard' | 'gamepad' | 'touch';
         readonly previous: 'keyboard' | 'gamepad' | 'touch';
+    };
+    readonly 'render.filter.dropped': {
+        readonly id: string;
+        readonly reason: string;
     };
 }
 ```
