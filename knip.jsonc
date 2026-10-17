@@ -12,6 +12,16 @@
   // BootErrorIsDrawable is a compile-time assertion (shared contracts §4); exporting it keeps it checked.
   "ignoreIssues": { "packages/runtime/src/boot/boot-error.ts": ["types"] },
   "workspaces": {
+    // DX.7: the plugin's hooks run agents/automata/scripts/check.mjs by path (hooks.json). The automata-feature skill's
+    // worked example is skill content that tooling/agent-skills tests (its vitest config lists it and aliases the sim).
+    ".": {
+      "entry": ["agents/automata/scripts/check.mjs"],
+      "ignore": ["agents/automata/skills/*/example/**"]
+    },
+    // DX.7: the example imports @mcthaydt/automata-sim, which tooling/agent-skills' vitest config aliases to the source.
+    "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
+    // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
+    "games/emberwick": { "ignoreDependencies": ["@mcthaydt/automata-cli"] },
     // s8/measure.ts builds s8/no-effect.html, whose script is this file.
     "games/placeholder": { "entry": ["s8/no-effect.ts"] },
     // The runner injects `@mcthaydt/automata-render-pixi/no-eval` into every page as a string (vite-plugin.ts),

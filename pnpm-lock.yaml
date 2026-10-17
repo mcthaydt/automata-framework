@@ -385,6 +385,9 @@ importers:
       '@mcthaydt/automata-check-boundaries':
         specifier: workspace:*
         version: link:../../tooling/check-boundaries
+      '@mcthaydt/automata-cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship
@@ -916,6 +919,22 @@ importers:
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.2(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1))
+
+  tooling/agent-skills:
+    dependencies:
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@mcthaydt/automata-sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.2(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
 
   tooling/api-index:
     devDependencies:
