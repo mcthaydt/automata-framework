@@ -45,6 +45,7 @@
         "@ruken/manifest"
       ]
     },
+    "tooling/frame-budget": { "ignoreDependencies": ["@ruken/manifest"] },
     "examples/runtime/boot-and-flow": {
       "ignoreDependencies": [
         "@mcthaydt/automata-content",
