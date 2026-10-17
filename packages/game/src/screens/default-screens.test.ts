@@ -334,6 +334,39 @@ describe('default screens', () => {
     }
   })
 
+  it('on paused, the pad’s D-pad moves focus and A clicks Quit, through the Input’s menu edges (M4.5)', async () => {
+    const buttons: boolean[] = []
+    Object.defineProperty(window.navigator, 'getGamepads', {
+      configurable: true,
+      value: () => [
+        {
+          id: 'Standard Gamepad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [0, 0, 0, 0],
+          buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+        },
+      ],
+    })
+    try {
+      await boot()
+      await toPlay()
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+      expect(document.activeElement).toBe(button('resume'))
+      await tick()
+      buttons[13] = true
+      await until(() => document.activeElement === button('quit'), 'focus on Quit')
+      buttons[13] = false
+      await tick()
+      buttons[0] = true
+      await until(() => screen('title') !== null, 'the title screen')
+    } finally {
+      Reflect.deleteProperty(window.navigator, 'getGamepads')
+    }
+  })
+
   describe('a pad unplugged during play (M4-D9)', () => {
     const buttons: boolean[] = []
     const pad = () => ({

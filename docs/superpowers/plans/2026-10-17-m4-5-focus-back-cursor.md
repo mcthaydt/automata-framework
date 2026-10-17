@@ -3,7 +3,7 @@
 - **Task:** M4.5 in [02](../../02-master-delivery-plan.md). M4 spec [§4.7](../specs/2026-10-16-m4-input-display-design.md), §4.2 (context), §5 (screen change), §7 and §8 (focus rows), M4-D10. Acceptance F-a, F-b, F-c.
 - **Lanes:** ui (`FocusNavigator` and the FloorFifty ports), runtime (`ScreenDef.kind`, Flow's focus step), and the game lane's default screens. This session owns all three. **Depends on:** M4.0 (merged). It is stacked on M4.2 (`claude/clever-pasteur-ujmu6e-m4-2`), because the menus read M4.2's `Input` (nav repeat, the pad's menu edges) rather than a second pad poller.
 - **Status:** In progress.
-- **Progress:** 8 of 10 steps.
+- **Progress:** 9 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -84,7 +84,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: hosted, no guard entry is pushed.
 8. [x] **Cursor policy.** Test file: `cursor-policy.test.ts`, the FloorFifty cases, keyed by `kind`. Red: `Failed to resolve import "./cursor-policy"`; green 8 of 8 (one case added: an unset `kind` is a menu). In `default-screens.test.ts`, red: `expected undefined to be 'gameplay'`; green 22 of 22. The play screen's `CursorRunner` ticks once per fixed step (inside the `commands` callback, so the runtime's frames drive it) over the play section, and the test injects the clock through `performance.now`.
    - Red (`default-screens.test.ts`): on play, after a keydown and with the injected clock past 2000 ms of pointer stillness, the layer's cursor is `none`. On paused it is `''`.
-9. [ ] **Menus through `Input`.** Test file: `packages/game/src/screens/menu-input.test.ts`.
+9. [x] **Menus through `Input`.** Test file: `packages/game/src/screens/menu-input.test.ts`. Red: `Failed to resolve import "./menu-input.ts"`; green 5 of 5, over a real `Input` and a fake standard pad. In `default-screens.test.ts`, red: `timed out waiting for focus on Quit` (paused, D-pad down, then A quits to the title); green 23 of 23. `menu-pad.ts` and its test are deleted, so no screen can import it. Two calls the plan did not spell out: the keyboard's Enter, Space and Escape are left to the browser and the screens' own listeners (the menu driver takes confirm and back from a pad only, read from `Input.device`, or a keyboard Enter would click twice); and the driver arms the navigator's `guard()` on each menu screen's entry, which wires step 5's keyboard half.
    - Red (F-a, pad half): with pad A held when the menu starts, its first poll clicks nothing; a fresh press after release clicks once.
    - Red: an Input stub firing `nav-down` steers or moves focus, `confirm` clicks, and `back` sends Escape.
    - Red: the held-direction repeat from M4.2 moves focus at 0, 400 and 520 ms (I-d's focus half).

@@ -11,11 +11,17 @@ import {
   Time,
 } from '@mcthaydt/automata-runtime'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { CursorRunner, InputMethodTracker, interceptBackGesture, sendBack } from '@mcthaydt/automata-ui'
+import {
+  CursorRunner,
+  FocusNavigator,
+  InputMethodTracker,
+  interceptBackGesture,
+  sendBack,
+} from '@mcthaydt/automata-ui'
 import { Effect, type Scope, SubscriptionRef } from 'effect'
 import { type Component, flushSync, mount, unmount } from 'svelte'
 import type { InputMap } from '../input/keys.ts'
-import { menuPad } from './menu-pad.ts'
+import { menuInput } from './menu-input.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
 import TitleScreen from './TitleScreen.svelte'
@@ -66,22 +72,39 @@ function listen(
   )
 }
 
-/** Polls the pads each animation frame while a menu is open (G-8). */
-function pollMenuPad(target: Window): Effect.Effect<void, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => {
-      if (typeof target.requestAnimationFrame !== 'function') return undefined
-      const pad = menuPad(() => target.navigator.getGamepads?.() ?? [])
-      let frame = 0
-      const poll = (): void => {
-        pad.poll()
-        frame = target.requestAnimationFrame(poll)
-      }
-      frame = target.requestAnimationFrame(poll)
-      return () => target.cancelAnimationFrame(frame)
-    }),
-    (stop) => Effect.sync(() => stop?.()),
-  )
+/**
+ * A menu's controller and arrow keys while it is open (M4 spec §4.7): an Input in the `menu` context, read each
+ * animation frame, steers a `FocusNavigator`. The navigator's guard is armed for the screen change (F-a), so an Enter
+ * held from the last screen does not click this one's focused button.
+ */
+function driveMenu(target: Window): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
+  return Effect.gen(function* () {
+    const bus = yield* PresentationBus
+    const input = yield* makeInput({ target, profile: NO_BINDINGS, bus })
+    input.setContext('menu')
+    const navigator = new FocusNavigator()
+    const menu = menuInput(input, navigator)
+    yield* Effect.acquireRelease(
+      Effect.sync(() => {
+        const detach = navigator.attach(target)
+        navigator.guard()
+        let frame: number | undefined
+        if (typeof target.requestAnimationFrame === 'function') {
+          const poll = (nowMs: number): void => {
+            menu.poll(nowMs)
+            frame = target.requestAnimationFrame(poll)
+          }
+          frame = target.requestAnimationFrame(poll)
+        }
+        return () => {
+          if (frame !== undefined) target.cancelAnimationFrame(frame)
+          menu.stop()
+          detach()
+        }
+      }),
+      (stop) => Effect.sync(stop),
+    )
+  })
 }
 
 /**
@@ -147,7 +170,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         })
         // Nothing on the title takes Back, so a back step leaves the game.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
-        yield* pollMenuPad(target)
+        yield* driveMenu(target)
       }),
   }
 
@@ -271,7 +294,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           resume()
         })
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
-        yield* pollMenuPad(target)
+        yield* driveMenu(target)
       }),
   }
 
