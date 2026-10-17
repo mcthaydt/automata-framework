@@ -4,6 +4,9 @@ import { type Command, canonicalJson, type Sim } from '@mcthaydt/automata-sim'
 import { hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 
 export interface SceneRun {
+  readonly seed: number
+  /** The sim's tick at the end: scenes start from a fresh sim at tick 0, so this is the ticks stepped. */
+  readonly ticks: number
   readonly hash: string
   readonly events: string
   readonly eventCount: number
@@ -26,7 +29,13 @@ export async function runScene(
     }
     for (const e of sim.step(commands(sim.tick)).events) lines.push(canonicalJson(e))
   }
-  const out = { hash: sim.hash(), events: hex64(xxhash64(utf8(lines.join('\n')))), eventCount: lines.length }
+  const out = {
+    seed: sim.seed,
+    ticks: sim.tick,
+    hash: sim.hash(),
+    events: hex64(xxhash64(utf8(lines.join('\n')))),
+    eventCount: lines.length,
+  }
   sim.dispose()
   return out
 }
