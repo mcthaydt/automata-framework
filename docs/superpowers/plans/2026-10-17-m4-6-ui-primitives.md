@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 10 of 13 steps.
+- **Progress:** 11 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -108,7 +108,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
     - Red (U-b): an `error` toast shows a glyph and its `toneLabel` text, and its tone is readable with every colour removed. The test reads the text content and the attributes, not the computed colours.
     - Red: under reduced motion it does not slide (`data-motion="none"`).
     - It sits above `hostReserved` and the keyboard, through the geometry owner's inset variables; the layout contract checks this.
-11. [ ] **Layout contracts (U-a).** `m4-primitives.layout.test.ts` mounts `PrimitivesFixture` for each new primitive at every reference size and variant, in Chromium, WebKit and Firefox, and runs `checkLayout`:
+11. [x] **Layout contracts (U-a).** Red: `Failed to resolve import "./testing/PrimitivesFixture.svelte"`; then 24 real failures in three engines: the toast was measured mid-slide, and with the keyboard up PagedGrid's page area fell under one row, so the pager covered the first tile; at TV scale its tiles were fitted at 44 px but drawn at 59. Fixed in PagedGrid: the tile minimum is scaled by `--af-scale`, as PagerDots' dots are, and the page area's floor is one tile row. The test now waits for animations to finish, guards the grid floor and the slider's height in every variant, and checks the toast is whole and clear of the keyboard and the strip without a hit test (it takes no taps). Inside the frame, a primitive names no essentials with the keyboard up, as `screen-frame.layout.test.ts` does. Green: 750 of 750 (10 primitives × reference sizes × 3 engines) and `paged-grid.test.ts` unchanged. `m4-primitives.layout.test.ts` mounts `PrimitivesFixture` for each new primitive at every reference size and variant, in Chromium, WebKit and Firefox, and runs `checkLayout`:
     - Red before each fixture exists;
     - essentials named per primitive: OptionGroup's options, the dots, the Slider thumb, Modal's Close, Sheet's actions, the Toast;
     - no 44 px target shrinks under `scale`, nothing sits under the keyboard or Ruken's strip, and the document never scrolls.

@@ -42,16 +42,21 @@ const { label, groups, most, page, onpage, item, minTile = 44, gap = 8, continue
 
 let box = $state<GridBox>({ width: Number.POSITIVE_INFINITY, height: Number.POSITIVE_INFINITY })
 let area = $state<HTMLElement | undefined>(undefined)
+// A tile is at least one target, so it grows with the host's scale (Ruken's TV mode), as PagerDots' dots do.
+let scale = $state(1)
 
 $effect(() => {
   if (area === undefined) return
   const measured = area
   return observeSize(measured, () => {
+    const read = Number.parseFloat(getComputedStyle(measured).getPropertyValue('--af-scale'))
+    scale = Number.isFinite(read) && read > 0 ? read : 1
     box = { width: measured.clientWidth, height: measured.clientHeight }
   })
 })
 
-const shape = $derived(fitColumns(fitShape(most, box, minTile, gap), groups))
+const tile = $derived(minTile * scale)
+const shape = $derived(fitColumns(fitShape(most, box, tile, gap), groups))
 const pages = $derived(paginate(groups, shape.columns * shape.rows, continued))
 const current = $derived(pages[wrapPage(page, pages.length)])
 </script>
@@ -60,7 +65,7 @@ const current = $derived(pages[wrapPage(page, pages.length)])
   {#if current !== undefined}
     <h3 class="af-paged__title" data-page-title>{current.title}</h3>
   {/if}
-  <div bind:this={area} class="af-paged__area">
+  <div bind:this={area} class="af-paged__area" style:min-height={`${tile}px`}>
     <div
       class="af-paged__grid"
       data-focus-grid
@@ -100,7 +105,9 @@ const current = $derived(pages[wrapPage(page, pages.length)])
     font: 600 var(--af-text-body) / 1.2 var(--af-font);
   }
 
-  /* The measured box: the page's shape comes from it, and nothing in it scrolls. */
+  /* The measured box: the page's shape comes from it, and nothing in it scrolls. It is never shorter than one row of
+     tiles (its inline min-height), so with too little room the screen frame scrolls rather than the pager covering
+     the tiles. */
   .af-paged__area {
     min-width: 0;
     min-height: 0;
