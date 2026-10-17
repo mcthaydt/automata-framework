@@ -17,6 +17,7 @@ import { AtlasFrameTooLarge, packFrames } from './atlas-pack'
 import { atlasesSchema } from './atlases.schema'
 import { offPalettePixels } from './palette-pixels'
 
+/** What `buildAtlases` produces; the caller writes it. */
 export interface AtlasOutputs {
   /** `<atlas>-<page>.png` and `<atlas>-<page>.json`, sorted by name. */
   readonly files: ReadonlyMap<string, Uint8Array>
@@ -36,6 +37,10 @@ const atFile = (file: string, code: Diagnostic['code'], message: string): Diagno
 
 const reason = (cause: unknown): string => (cause instanceof Error ? cause.message : String(cause))
 
+/**
+ * Builds every atlas `<root>/content/atlases.toml` names, or fails with every problem found. Without the file
+ * there is nothing to build.
+ */
 export const buildAtlases = (root: string): Effect.Effect<AtlasOutputs, ContentCompileFailed> =>
   Effect.gen(function* () {
     const diagnostics: Diagnostic[] = []

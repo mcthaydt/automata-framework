@@ -15,6 +15,7 @@
   ],
   "exports": {
     ".": "./src/index.ts",
+    "./assets": "./src/assets/index.ts",
     "./locale": "./src/locale/index.ts",
     "./vite": "./src/vite/index.ts"
   },
@@ -27,6 +28,10 @@
       ".": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
+      },
+      "./assets": {
+        "types": "./dist/assets.d.ts",
+        "import": "./dist/assets.js"
       },
       "./locale": {
         "types": "./dist/locale.d.ts",

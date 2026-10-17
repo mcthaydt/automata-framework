@@ -6,10 +6,14 @@
 // page edge (the padding), and a shelf is as tall as its tallest cell. The page is the smallest power-of-two square
 // that holds every frame; past 2048 (WebGL2's guaranteed MAX_TEXTURE_SIZE) frames fill further 2048 pages in order.
 
+/** The largest atlas page side, in pixels: WebGL2's guaranteed `MAX_TEXTURE_SIZE`. */
 export const ATLAS_PAGE_MAX = 2048
+/** Transparent pixels between cells, and between a cell and the page edge. */
 export const ATLAS_PADDING = 1
+/** Pixels of each frame's edge repeated around it, so filtering never samples a neighbour. */
 export const ATLAS_EXTRUDE = 1
 
+/** A frame to pack: its name (the PNG's file name without `.png`) and size in pixels. */
 export interface FrameSize {
   readonly name: string
   readonly width: number
@@ -26,6 +30,7 @@ export interface Placement {
   readonly height: number
 }
 
+/** Every frame's placement, and the pages they fill. */
 export interface PackedAtlas {
   /** Each page's side, in pixels. */
   readonly pageSizes: readonly number[]
