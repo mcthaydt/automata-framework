@@ -3,7 +3,7 @@
 - **Task:** M4.9 in [02](../../02-master-delivery-plan.md), M4 spec [§4.11](../specs/2026-10-16-m4-input-display-design.md) (acceptance Q-a, Q-b), §6 (a filter that fails to compile), M4-D6 (`high`, no auto-detect).
 - **Lanes:** render (`render-pixi`) and runtime (the settings field and the fact). **Depends on:** M4.0 (merged) and PRODUCT.1 (merged; the post-filter slot this extends).
 - **Status:** In progress.
-- **Progress:** 2 of 10 steps.
+- **Progress:** 3 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -54,7 +54,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: `displaySettingsSchema.parse({})` is `{ quality: 'high' }`.
    - Red: `'ultra'` reads as `high`.
    - Red: the three tiers round-trip.
-3. [ ] **Resolution caps.** Test file: `packages/render-pixi/src/letterbox/canvas-resolution.test.ts`.
+3. [x] **Resolution caps.** Test file: `packages/render-pixi/src/letterbox/canvas-resolution.test.ts`. Red: `expected undefined to deeply equal { low: 1, medium: 1.5, high: 2 }`; green 4 of 4 (the two existing cases unchanged).
    - Red: at device pixel ratio 3, `low` gives 1, `medium` 1.5 and `high` 2.
    - Red: a portrait tablet gives 1 at every tier.
    - Existing calls without a tier are unchanged.

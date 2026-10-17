@@ -30,6 +30,7 @@ export {
 export {
   canvasResolutionFor,
   MAX_RESOLUTION,
+  RESOLUTION_CAPS,
 } from './letterbox/canvas-resolution.js'
 export {
   DEFAULT_BAR_COLOR,
