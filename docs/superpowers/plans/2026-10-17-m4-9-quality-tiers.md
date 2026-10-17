@@ -2,8 +2,8 @@
 
 - **Task:** M4.9 in [02](../../02-master-delivery-plan.md), M4 spec [§4.11](../specs/2026-10-16-m4-input-display-design.md) (acceptance Q-a, Q-b), §6 (a filter that fails to compile), M4-D6 (`high`, no auto-detect).
 - **Lanes:** render (`render-pixi`) and runtime (the settings field and the fact). **Depends on:** M4.0 (merged) and PRODUCT.1 (merged; the post-filter slot this extends).
-- **Status:** Plan.
-- **Progress:** 1 of 10 steps.
+- **Status:** In progress.
+- **Progress:** 2 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -50,9 +50,9 @@
 Each step starts with a failing test whose failure reason is confirmed and recorded here, then the minimal change.
 
 1. [x] **Plan.** This file, committed first.
-2. [ ] **The tier contract (runtime).** Test file: `packages/runtime/src/settings/display-settings.test.ts`.
+2. [x] **The tier contract (runtime).** Test file: `packages/runtime/src/settings/display-settings.test.ts`. Red: `Failed to resolve import "./display-settings.schema.js"`; green 3 of 3. Deviation: an unknown tier reads as `high` instead of being rejected, because every settings field falls back to its default (`readSettings`, Zod `.catch`), so a bad saved value never fails boot.
    - Red: `displaySettingsSchema.parse({})` is `{ quality: 'high' }`.
-   - Red: `'ultra'` is rejected.
+   - Red: `'ultra'` reads as `high`.
    - Red: the three tiers round-trip.
 3. [ ] **Resolution caps.** Test file: `packages/render-pixi/src/letterbox/canvas-resolution.test.ts`.
    - Red: at device pixel ratio 3, `low` gives 1, `medium` 1.5 and `high` 2.

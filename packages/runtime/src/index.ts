@@ -85,6 +85,14 @@ export {
   type RenderTarget,
 } from './render/renderer.js'
 export {
+  DEFAULT_QUALITY,
+  type DisplaySettings,
+  displaySettingsSchema,
+  QUALITY_TIERS,
+  type QualityTier,
+  qualityTierSchema,
+} from './settings/display-settings.schema.js'
+export {
   Settings,
   type SettingsDef,
   type SettingsStore,
