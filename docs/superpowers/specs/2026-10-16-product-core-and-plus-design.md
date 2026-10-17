@@ -1,6 +1,6 @@
 # PRODUCT: a free core you can scale on, and Automata Plus
 
-> **Status:** draft, 2026-10-16. Milestone spec for task **PRODUCT.0**; Owner decisions PD-1 to PD-5 recorded 2026-10-16 (§11); Owner review of the whole spec pending. Nothing here is implemented until this spec is reviewed (01 Decomposition §5, 04 How we build).
+> **Status:** reviewed. Drafted 2026-10-16; **approved by the Owner on 2026-10-16** with PD-1 to PD-5 (§11). Its contracts are frozen; changes are additive or go through a written change request. Each task still writes its TDD plan before code.
 >
 > **Why (Owner, 2026-10-16):** "I want to be at a point where someone can build FloorFifty using the automata framework with extensions (excluding content)." The framework splits into a free core and a paid plan that works like Tailwind's paid plan. The framework side should be as close to raylib in spirit as possible, the packages AF is built on should be explained, and the product is "a hybrid between those ShipFast website templates and raylib". Then: "let's make that extra stuff be paid; can't recreate FloorFifty without the paid stuff, but you should have a VERY solid foundation to make sure whatever you prompt next will scale well." Localization is part of that foundation. The Owner's biggest pain points building FloorFifty were UI, gamepad, mobile responsiveness, networking, post-processing and screens.
 >

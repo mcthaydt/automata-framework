@@ -1,6 +1,6 @@
 # DX: small games, agent-native, claims made true
 
-> **Status:** draft, 2026-10-16. Milestone spec for task **DX.0**; Owner decisions D-DX-1 to D-DX-5 recorded 2026-10-16 (§13); Owner review of the whole spec pending. Nothing in this milestone is implemented until this spec is reviewed (01 Decomposition §5, 04 How we build).
+> **Status:** reviewed. Drafted 2026-10-16; **approved by the Owner on 2026-10-16** with every recommended default (D-DX-1 to D-DX-5, §13). Its contracts are frozen; changes are additive or go through a written change request (04 How we build). Each task still writes its TDD plan before code.
 >
 > **Why now (Owner, 2026-10-16):** the framework is not optimized for what the website sells. Small changes take too much code, and the agent story is weaker than the site's pitch. The website's restoration ledger lists every claim the 14 October redesign cut. This milestone makes the cuttable-but-wanted ones true, then restores them with their proof.
 
