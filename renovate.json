@@ -1,0 +1,58 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "QB.1 (QB spec §4.1): one monthly batch of upgrade PRs for npm packages and GitHub Actions.",
+    "Each npm PR changes one package, as docs/versions.md asks; tooling/versions fails until the PR also updates that package's row there.",
+    "Actions stay pinned to a commit SHA with the tag in a comment. Ruken-matched pins never move here: they follow Ruken's docs/versions.md (tooling/versions/src/renovate.test.ts holds the list to that file)."
+  ],
+  "extends": [
+    "config:recommended",
+    "schedule:monthly",
+    ":pinAllExceptPeerDependencies",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "timezone": "UTC",
+  "enabledManagers": ["npm", "github-actions"],
+  "ignorePaths": ["**/node_modules/**", "**/fixtures/**", "vendor/**"],
+  "minimumReleaseAge": "14 days",
+  "internalChecksFilter": "strict",
+  "lockFileMaintenance": { "enabled": false },
+  "packageRules": [
+    {
+      "description": "Same as Ruken (docs/versions.md): these move only when Ruken's docs/versions.md moves.",
+      "matchPackageNames": [
+        "@changesets/cli",
+        "@playwright/test",
+        "@types/node",
+        "node",
+        "playwright",
+        "pnpm",
+        "smol-toml",
+        "tsdown",
+        "turbo",
+        "vite",
+        "vitest",
+        "yaml",
+        "yauzl",
+        "yazl",
+        "zod"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "These follow a Ruken-matched pin: the vitest browser provider (same major as vitest), the Playwright image (same tag as playwright) and Ruken's pinned changesets/action.",
+      "matchPackageNames": [
+        "@vitest/browser-playwright",
+        "mcr.microsoft.com/playwright",
+        "changesets/action"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Every GitHub Actions upgrade in one PR, pinned to its commit.",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "pinDigests": true
+    }
+  ]
+}
