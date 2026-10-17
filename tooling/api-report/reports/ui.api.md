@@ -600,6 +600,12 @@ interface ModalProps {
 type NavDirection = 'up' | 'down' | 'left' | 'right';
 ```
 
+### `nearestTarget` (function)
+
+```ts
+function nearestTarget(x: number, y: number, targets: readonly TouchTarget[], margin?: number): string | undefined;
+```
+
 ### `OptionGroup` (svelte)
 
 ```ts
@@ -708,6 +714,37 @@ const PHONE_LANDSCAPE_MAX_HEIGHT = 500;
 
 ```ts
 const PHONE_PORTRAIT_MAX_WIDTH = 600;
+```
+
+### `PointerLatch` (class)
+
+```ts
+class PointerLatch {
+    private readonly onInput;
+    private readonly active;
+    constructor(onInput: (action: string, active: boolean) => void);
+    isHeld(action: string): boolean;
+    press(action: string, pointerId: number): void;
+    release(action: string, pointerId: number): void;
+    releaseAll(): void;
+}
+```
+
+### `PointerTracker` (interface)
+
+```ts
+interface PointerTracker {
+    readonly tuning: {
+        readonly saturationPx: number;
+    };
+    readonly indicator: SwipeIndicatorView | undefined;
+    down(id: number, x: number, y: number, t: number, options?: {
+        readonly steers?: boolean;
+    }): void;
+    move(id: number, x: number, y: number, t: number): void;
+    up(id: number, x: number, y: number, t: number): void;
+    cancel(): void;
+}
 ```
 
 ### `probeEnvSafeArea` (function)
@@ -842,10 +879,62 @@ component from './layout/Split.svelte'
 function splitMode(available: number, min: number, gap: number): 'row' | 'stack';
 ```
 
+### `STICKY_MARGIN_PX` (const)
+
+```ts
+const STICKY_MARGIN_PX = 24;
+```
+
+### `StickyPointers` (class)
+
+```ts
+class StickyPointers {
+    private readonly latch;
+    private readonly owned;
+    constructor(latch: PointerLatch);
+    down(pointerId: number, action: string | undefined): boolean;
+    move(pointerId: number, action: string | undefined): void;
+    up(pointerId: number): void;
+    releaseAll(): void;
+}
+```
+
 ### `suppressPageGestures` (function)
 
 ```ts
 function suppressPageGestures(doc: Document): () => void;
+```
+
+### `SwipeIndicatorView` (interface)
+
+```ts
+interface SwipeIndicatorView {
+    readonly anchor: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly thumb: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly steering: boolean;
+}
+```
+
+### `SwipeSurface` (svelte)
+
+```ts
+component from './touch/SwipeSurface.svelte'
+```
+
+### `SwipeSurfaceProps` (interface)
+
+```ts
+interface SwipeSurfaceProps {
+    tracker: PointerTracker;
+    steers?: ((x: number, y: number) => boolean) | undefined;
+    testId?: string | undefined;
+}
 ```
 
 ### `tabbables` (function)
@@ -883,6 +972,49 @@ component from './status/Toast.svelte'
 
 ```ts
 component from './controls/Toggle.svelte'
+```
+
+### `TouchButtonSpec` (interface)
+
+```ts
+interface TouchButtonSpec {
+    readonly action: string;
+    readonly label: string;
+    readonly ariaLabel?: string | undefined;
+    readonly side?: 'start' | 'end' | undefined;
+}
+```
+
+### `TouchControls` (svelte)
+
+```ts
+component from './touch/TouchControls.svelte'
+```
+
+### `TouchControlsProps` (interface)
+
+```ts
+interface TouchControlsProps {
+    buttons: readonly TouchButtonSpec[];
+    onhold: (action: string) => void;
+    onrelease: (action: string) => void;
+    shown?: boolean | undefined;
+    testId?: string | undefined;
+}
+```
+
+### `TouchTarget` (interface)
+
+```ts
+interface TouchTarget {
+    readonly action: string;
+    readonly rect: {
+        readonly left: number;
+        readonly top: number;
+        readonly right: number;
+        readonly bottom: number;
+    };
+}
 ```
 
 ### `trimRows` (function)

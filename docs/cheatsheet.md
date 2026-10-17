@@ -438,6 +438,7 @@
 - `Modal` (const): A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty `ui/components/Modal.svelte` at ac72660).
 - `ModalProps` (interface): The props Modal and Sheet share.
 - `NavDirection` (type)
+- `nearestTarget(x, y, targets, margin?)`: The button a point is on, or else the nearest within the margin, or nothing.
 - `OptionGroup` (const): A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `PAD_FOCUS` (const): How the navigator focuses: with a ring, and without scrolling the page.
 - `padKeyEvents` (const): Keydown events the navigator sent itself.
@@ -452,6 +453,8 @@
 - `pastEdge(scroller, dy)`: Whether a drag of `dy` (positive = finger moving down) would pass an edge.
 - `PHONE_LANDSCAPE_MAX_HEIGHT` (const): A landscape viewport shorter than this is a phone, or a desktop window short enough to need the phone's compact layout.
 - `PHONE_PORTRAIT_MAX_WIDTH` (const): A portrait viewport narrower than this is a phone; at or above it, a tablet.
+- `PointerLatch` (class): Which fingers are down on which action.
+- `PointerTracker` (interface): What a SwipeSurface drives: runtime's `SwipeTracker` satisfies it, so ui need not import runtime.
 - `probeEnvSafeArea(root)`: Reads `env(safe-area-inset-*)` through a hidden probe, since script cannot read `env()` directly.
 - `Rect` (interface)
 - `reducedMotion(win?)`: Whether the player has asked for less movement.
@@ -472,12 +475,21 @@
 - `Slider` (const): A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser gives the arrow keys and the focus navigator's `adjust` steps it.
 - `Split` (const): Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty `ui/layout/Split.svelte` at `ac72660`).
 - `splitMode(available, min, gap)`: Split's choice (M4 spec §4.8; from FloorFifty `ui/layout/split.ts` at `ac72660`): side by side when both columns and the gap between them fit at their minimum, stacked otherwise.
+- `STICKY_MARGIN_PX` (const): How far outside a button a thumb still counts for it, in CSS pixels.
+- `StickyPointers` (class): Which button each finger is on, over the latch.
 - `suppressPageGestures(doc)`: Turns off the browser's document gestures over the game.
+- `SwipeIndicatorView` (interface): What a SwipeSurface draws: the thumb, the anchor it trails and whether it is past the dead zone.
+- `SwipeSurface` (const): The whole visible screen as one swipe surface (M4 spec §4.4), from FloorFifty `ui/components/SwipeSurface.svelte` at `ac72660`.
+- `SwipeSurfaceProps` (interface): SwipeSurface's props.
 - `tabbables(root)`: Everything Tab can reach under `root`, in DOM order: not disabled, inert or hidden.
 - `tileSide(shape, box, gap, limits)`: A square tile's side for the space a grid is given: the width shared by the columns and the `peek` (a fraction of a tile) of the next page showing at the edge, and the height only when the box has one.
 - `Timers` (interface): Injected so tests drive the settle delays with fake timers.
 - `Toast` (const): A passing message (M4 spec §4.12): "Pad connected", "Saved", "This controller is not supported".
 - `Toggle` (const): An on/off setting (M4 spec §4.12): a native checkbox with the switch role, so the browser gives Space and the focus navigator's `adjust` flips it.
+- `TouchButtonSpec` (interface): One on-screen touch button (M4 spec §4.4): the action it holds and what it shows.
+- `TouchControls` (const): The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+- `TouchControlsProps` (interface): TouchControls' props.
+- `TouchTarget` (interface): A button's action and where it is drawn, for `nearestTarget`.
 - `trimRows(shape, groups)`: The shape cut to the rows the largest group fills, so no page carries a row of empty slots.
 - `UI_SLOT_NAMES` (const): The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).
 - `UiComponent` (type): What an extension puts in a slot: a Svelte component that takes no props.

@@ -14,9 +14,10 @@ import { type InputProfile, inputProfileSchema } from './input-profile.schema.js
 const profile: InputProfile = inputProfileSchema.parse({
   id: 'test',
   bindings: {
-    left: { keys: ['ArrowLeft', 'KeyA'], pad: [14], touch: true },
+    left: { keys: ['ArrowLeft', 'KeyA'], pad: [14], touch: true, gesture: ['swipe-left'] },
+    drop: { gesture: ['flick-down'] },
     jump: { keys: ['Space'], pad: [0], touch: true },
-    inventory: { keys: ['KeyI'], context: 'menu' },
+    inventory: { keys: ['KeyI'], gesture: ['tap'], context: 'menu' },
     map: { keys: ['KeyM'], context: 'any' },
   },
 })
@@ -151,6 +152,80 @@ describe('Input held actions (I-b)', () => {
       buttons[0] = true
       input.poll()
       expect([...input.held()]).toEqual([])
+    }))
+})
+
+describe('Input gestures (M4.3)', () => {
+  /** One fixed step's sample, as the app loop takes it: poll, then read what is held. */
+  const sample = (input: Effect.Effect.Success<ReturnType<typeof makeInput>>): string[] => {
+    input.poll()
+    return [...input.held()]
+  }
+
+  it('holds the actions of a held gesture until it is released, as touch', () =>
+    withInput((input) => {
+      input.gesture.hold('swipe-left')
+      expect(sample(input)).toEqual(['left'])
+      expect(sample(input)).toEqual(['left'])
+      expect(Effect.runSync(SubscriptionRef.get(input.device))).toEqual({
+        device: 'touch',
+        glyphs: 'generic',
+      })
+      input.gesture.release('swipe-left')
+      expect(sample(input)).toEqual([])
+    }))
+
+  it('keeps an action held by a gesture while a key still holds it', () =>
+    withInput((input) => {
+      press('ArrowLeft')
+      input.gesture.hold('swipe-left')
+      input.gesture.release('swipe-left')
+      expect(sample(input)).toEqual(['left'])
+    }))
+
+  it('shows a pulse to exactly one sample', () =>
+    withInput((input) => {
+      input.gesture.pulse('flick-down')
+      expect(sample(input)).toEqual(['drop'])
+      expect(sample(input)).toEqual([])
+    }))
+
+  it('never loses a pulse that lands between two samples', () =>
+    withInput((input) => {
+      expect(sample(input)).toEqual([])
+      input.gesture.pulse('flick-down')
+      expect(sample(input)).toEqual(['drop'])
+      input.gesture.pulse('flick-down')
+      expect(sample(input)).toEqual(['drop'])
+      expect(sample(input)).toEqual([])
+    }))
+
+  it('gives two pulses before one sample that one sample', () =>
+    withInput((input) => {
+      input.gesture.pulse('flick-down')
+      input.gesture.pulse('flick-down')
+      expect(sample(input)).toEqual(['drop'])
+      expect(sample(input)).toEqual([])
+    }))
+
+  it('holds nothing for an unbound gesture', () =>
+    withInput((input) => {
+      input.gesture.hold('swipe-up')
+      input.gesture.pulse('swipe-down')
+      expect(sample(input)).toEqual([])
+    }))
+
+  it('releases a held gesture on blur', () =>
+    withInput((input) => {
+      input.gesture.hold('swipe-left')
+      window.dispatchEvent(new Event('blur'))
+      expect(sample(input)).toEqual([])
+    }))
+
+  it('does not hold a menu action from a gesture in play', () =>
+    withInput((input) => {
+      input.gesture.pulse('tap')
+      expect(sample(input)).toEqual([])
     }))
 })
 

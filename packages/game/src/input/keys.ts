@@ -4,11 +4,15 @@
 // window loses focus. It sends what is held, never a "pressed" edge: the sim compares this tick's command with
 // the last one's, so a replay stays a pure function of the command stream.
 import {
+  type GestureName,
+  type GestureSink,
   type InputProfile,
   inputProfileSchema,
   makeInput,
   type PresentationBus,
   type StickDirection,
+  type TouchMode,
+  touchModesFor,
 } from '@mcthaydt/automata-runtime'
 import type { Command, CommandDef } from '@mcthaydt/automata-sim'
 import { Effect, Exit, Scope } from 'effect'
@@ -28,6 +32,8 @@ export interface InputSource {
   /** A touch button pressed or released (its `TouchButton.id`). */
   hold(buttonId: string): void
   release(buttonId: string): void
+  /** Gestures from a `SwipeTracker` (M4.3): held swipes and one-tick flicks and taps. */
+  readonly gesture: GestureSink
   dispose(): void
 }
 
@@ -37,6 +43,8 @@ export interface InputMap {
   /** Whether the play screen shows touch buttons when the player uses touch. */
   readonly touch: boolean
   readonly touchButtons: readonly TouchButton[]
+  /** How the play screen takes touch: its buttons, or swipes over the whole screen (M4 spec §4.4). */
+  readonly touchMode: TouchMode
   /**
    * The bindings as data (M4 spec §2.2): one action per distinct payload, id `<command id>-<n>`, with its keys, its
    * pad buttons and whether it has a touch button. Rebinding swaps the profile and never the command mapping.
@@ -57,6 +65,10 @@ export interface KeysOptions<Z extends z.ZodType> {
   readonly touch?: boolean
   /** Standard-mapping gamepad button index → payload, polled once per tick. */
   readonly pad?: Readonly<Record<number, Payload<Z>>>
+  /** Touch gesture → payload (M4.3): a swipe holds while the finger steers, a flick or a tap lasts one tick. */
+  readonly gestures?: Readonly<Partial<Record<GestureName, Payload<Z>>>>
+  /** Default `buttons` when the map has touch buttons, else `swipe`. The player's setting is M4.4's. */
+  readonly touchMode?: TouchMode
   /** A stick pushed past the deadzone in a direction (`left-left`, `right-up`, …) → payload (M4.2). */
   readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>
   /** The payload with nothing held. Default: the schema's own defaults (`schema.parse({})`), when it has them. */
@@ -102,24 +114,33 @@ export function keys<Z extends z.ZodType>(
   for (const [code, payload] of Object.entries(bindings)) check(code, payload)
   const pad = Object.entries(options.pad ?? {}).map(([index, payload]) => ({ index: Number(index), payload }))
   for (const { index, payload } of pad) check(`pad button ${index}`, payload)
+  const gestures = Object.entries(options.gestures ?? {}) as [GestureName, Payload<Z>][]
+  for (const [gesture, payload] of gestures) check(`gesture ${gesture}`, payload)
   const stick = Object.entries(options.stick ?? {}) as [StickDirection, Payload<Z>][]
   for (const [direction, payload] of stick) check(`stick ${direction}`, payload)
 
-  // One action per distinct payload: the keys' payloads in binding order, then any pad or stick payload no key
-  // shares.
-  const actions: { id: string; payload: unknown; keys: string[]; pad: number[]; stick: StickDirection[] }[] =
-    []
+  // One action per distinct payload: the keys' payloads in binding order, then any pad, stick or gesture payload
+  // no key shares.
+  const actions: {
+    id: string
+    payload: unknown
+    keys: string[]
+    pad: number[]
+    stick: StickDirection[]
+    gesture: GestureName[]
+  }[] = []
   const actionFor = (payload: unknown): (typeof actions)[number] => {
     const key = JSON.stringify(payload)
     const found = actions.find((action) => JSON.stringify(action.payload) === key)
     if (found !== undefined) return found
-    const made = { id: `${command.id}-${actions.length}`, payload, keys: [], pad: [], stick: [] }
+    const made = { id: `${command.id}-${actions.length}`, payload, keys: [], pad: [], stick: [], gesture: [] }
     actions.push(made)
     return made
   }
   for (const [code, payload] of Object.entries(bindings)) actionFor(payload).keys.push(code)
   for (const { index, payload } of pad) actionFor(payload).pad.push(index)
   for (const [direction, payload] of stick) actionFor(payload).stick.push(direction)
+  for (const [gesture, payload] of gestures) actionFor(payload).gesture.push(gesture)
 
   const touch = options.touch !== false
   const parsedProfile = inputProfileSchema.safeParse({
@@ -132,6 +153,7 @@ export function keys<Z extends z.ZodType>(
           pad: action.pad,
           ...(action.stick.length > 0 ? { stick: action.stick } : {}),
           touch: touch && action.keys.length > 0,
+          ...(action.gesture.length > 0 ? { gesture: action.gesture } : {}),
         },
       ]),
     ),
@@ -140,6 +162,13 @@ export function keys<Z extends z.ZodType>(
   if (!parsedProfile.success)
     throw new Error(`keys(): ${parsedProfile.error.issues.map((issue) => issue.message).join('; ')}`)
   const profile = parsedProfile.data
+  const modes = touchModesFor(profile)
+  if (options.touchMode !== undefined && !modes.includes(options.touchMode))
+    throw new Error(
+      `keys(): touchMode "${options.touchMode}" needs ${options.touchMode === 'swipe' ? 'a gesture' : 'a touch button'}`,
+    )
+  const touchMode: TouchMode =
+    options.touchMode ?? (modes.includes('buttons') || !modes.includes('swipe') ? 'buttons' : 'swipe')
 
   const touchButtons: TouchButton[] = actions
     .filter((action) => action.keys.length > 0)
@@ -172,6 +201,7 @@ export function keys<Z extends z.ZodType>(
     command,
     touch,
     touchButtons,
+    touchMode,
     profile,
     toCommand,
     attach(target) {
@@ -186,6 +216,7 @@ export function keys<Z extends z.ZodType>(
         },
         hold: (buttonId) => input.hold(buttonId),
         release: (buttonId) => input.release(buttonId),
+        gesture: input.gesture,
         dispose: () => Effect.runSync(Scope.close(scope, Exit.void)),
       }
     },

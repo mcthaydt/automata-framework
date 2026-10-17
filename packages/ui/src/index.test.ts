@@ -64,6 +64,13 @@ test.each([
   'watchImage',
   'InputMethodTracker',
   'reducedMotion',
+  // touch (M4.3)
+  'TouchControls',
+  'SwipeSurface',
+  'PointerLatch',
+  'StickyPointers',
+  'nearestTarget',
+  'STICKY_MARGIN_PX',
 ] as const)('exports %s', (name) => {
   expect(ui).toHaveProperty(name)
   expect((ui as Record<string, unknown>)[name]).toBeDefined()

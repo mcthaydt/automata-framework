@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  actionsForGesture,
   actionsForKey,
   actionsForPadButton,
   type InputProfile,
   inputProfileSchema,
   RESERVED_KEYS,
   RESERVED_PAD_BUTTONS,
+  touchModesFor,
 } from './input-profile.schema.js'
 
 // Input profiles (PRODUCT spec §2 F1, §5 "Gamepad and all input"): which keys, standard-mapping pad buttons
@@ -95,5 +97,42 @@ describe('reserved inputs (M4-D3, I-j)', () => {
     expect(issue?.path).toEqual(['bindings', 'jump', field])
     expect(issue?.message).toContain(`"jump"`)
     expect(issue?.message).toContain(value)
+  })
+})
+
+describe('gesture bindings (M4.3)', () => {
+  const swiped: InputProfile = inputProfileSchema.parse({
+    id: 'swiped',
+    bindings: {
+      right: { gesture: ['swipe-right'] },
+      left: { keys: ['ArrowLeft'], gesture: ['swipe-left'] },
+      drop: { gesture: ['flick-down', 'tap'] },
+      slam: { gesture: ['flick-down'] },
+    },
+  })
+
+  it('lists the actions a gesture drives, sorted', () => {
+    expect(actionsForGesture(swiped, 'flick-down')).toEqual(['drop', 'slam'])
+    expect(actionsForGesture(swiped, 'swipe-left')).toEqual(['left'])
+  })
+
+  it('lists none for an unbound gesture', () => {
+    expect(actionsForGesture(swiped, 'swipe-up')).toEqual([])
+    expect(actionsForGesture(platformer, 'tap')).toEqual([])
+  })
+})
+
+describe('touch modes (M4 spec §4.4)', () => {
+  const profileOf = (bindings: Record<string, { touch?: boolean; gesture?: ['tap'] }>): InputProfile =>
+    inputProfileSchema.parse({ id: 'modes', bindings })
+
+  it('offers buttons for a touch binding and swipe for a gesture', () => {
+    expect(touchModesFor(profileOf({ a: {} }))).toEqual([])
+    expect(touchModesFor(profileOf({ a: { touch: true } }))).toEqual(['buttons'])
+    expect(touchModesFor(profileOf({ a: { gesture: ['tap'] } }))).toEqual(['swipe'])
+    expect(touchModesFor(profileOf({ a: { touch: true }, b: { gesture: ['tap'] } }))).toEqual([
+      'buttons',
+      'swipe',
+    ])
   })
 })

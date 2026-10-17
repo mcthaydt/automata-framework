@@ -12,6 +12,7 @@ const ROOT_EXPORTS: string[] = [
   'ContentHashMismatch',
   'DEFAULT_QUALITY',
   'Flow',
+  'GESTURE_TUNING',
   'Input',
   'LOCALE_SAVE_KEY',
   'LoadStalled',
@@ -28,7 +29,9 @@ const ROOT_EXPORTS: string[] = [
   'STALL_MS',
   'STANDARD_PAD_BUTTON_MAX',
   'Settings',
+  'SwipeTracker',
   'Time',
+  'actionsForGesture',
   'actionsForKey',
   'actionsForPadButton',
   'applyDocumentLocale',
@@ -48,6 +51,7 @@ const ROOT_EXPORTS: string[] = [
   'selectPlural',
   'settingsStore',
   'textDirection',
+  'touchModesFor',
   'typedBus',
 ]
 const EXTENSION_EXPORTS: string[] = ['ExtensionError', 'defineExtension', 'resolveExtensions']

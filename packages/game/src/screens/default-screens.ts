@@ -8,6 +8,7 @@ import {
   makeInput,
   PresentationBus,
   type ScreenDef,
+  SwipeTracker,
   Time,
 } from '@mcthaydt/automata-runtime'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
@@ -261,6 +262,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           touchButtons: game.input?.touch === false ? [] : (game.input?.touchButtons ?? []),
           onHold: (id: string) => input.hold(id),
           onRelease: (id: string) => input.release(id),
+          swipe: game.input?.touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
         })
       }),
   }
