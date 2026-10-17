@@ -3,7 +3,7 @@
 - **Task:** M4.5 in [02](../../02-master-delivery-plan.md). M4 spec [§4.7](../specs/2026-10-16-m4-input-display-design.md), §4.2 (context), §5 (screen change), §7 and §8 (focus rows), M4-D10. Acceptance F-a, F-b, F-c.
 - **Lanes:** ui (`FocusNavigator` and the FloorFifty ports), runtime (`ScreenDef.kind`, Flow's focus step, `Input`'s first poll), and the game lane's default screens. This session owns all three. **Depends on:** M4.0 (merged). It is stacked on M4.2 (`claude/clever-pasteur-ujmu6e-m4-2`), because the menus read M4.2's `Input` (nav repeat, the pad's menu edges) rather than a second pad poller.
 - **Status:** In progress.
-- **Progress:** 2 of 10 steps.
+- **Progress:** 4 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -65,10 +65,10 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: in a 3 × 2 `[data-focus-grid]` with stubbed `getBoundingClientRect`, `steer('down')` from the top-left cell focuses the cell below it, not the next in DOM order.
    - Red: outside a grid, `steer('right')` moves to the next control, and `steer('left')` to the previous.
    - Red: an edge cell with nothing that way returns false and keeps focus.
-3. [ ] **`page` and the swipe helpers.**
+3. [x] **`page` and the swipe helpers.** Red: `nav.page is not a function`; `Failed to resolve import "./page-swipe"`. Green 34 of 34.
    - Red: `page(1)` returns true and delivers `{ delta: 1 }` when a `[data-pager]` ancestor cancels `af-page`, and returns false otherwise.
    - Red: the ported page-swipe cases (`page-swipe.test.ts`) fail on the missing module.
-4. [ ] **`adjust`.**
+4. [x] **`adjust`.** Red: 3 failed, `nav.adjust is not a function`. Green 37 of 37.
    - Red: a focused range at 5 (step 1) reads 6 after `adjust(1)` and fires one `input` event.
    - Red: in a focused radio group, `adjust(1)` checks the next radio, fires `change`, and focus stays in the group.
    - Red: on a plain button, `adjust` returns false.

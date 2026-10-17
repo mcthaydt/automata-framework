@@ -374,3 +374,65 @@ describe('steer', () => {
     expect(document.activeElement?.id).toBe('g0')
   })
 })
+
+// M4 spec §4.7: a page turn goes to the focused control's `[data-pager]` region, which takes it by cancelling.
+describe('page', () => {
+  it('offers af-page with the delta to the focused element and reports whether a pager took it', () => {
+    document.body.innerHTML = `<div data-pager id="pager"><button id="in">In</button></div><button id="out">Out</button>`
+    const deltas: number[] = []
+    byId('pager').addEventListener('af-page', (event) => {
+      deltas.push((event as CustomEvent<{ delta: number }>).detail.delta)
+      event.preventDefault()
+    })
+    const nav = new FocusNavigator()
+    byId('in').focus()
+    expect(nav.page(1)).toBe(true)
+    expect(nav.page(-1)).toBe(true)
+    expect(deltas).toEqual([1, -1])
+    byId('out').focus()
+    expect(nav.page(1)).toBe(false)
+    expect(deltas).toEqual([1, -1])
+  })
+})
+
+// M4 spec §4.7: adjust changes a slider or an option group in place; focus never leaves it.
+describe('adjust', () => {
+  it('steps a focused range once and fires one input event', () => {
+    document.body.innerHTML = `<input id="volume" type="range" min="0" max="10" step="1" value="5" />`
+    const volume = byId('volume') as HTMLInputElement
+    let inputs = 0
+    volume.addEventListener('input', () => inputs++)
+    volume.focus()
+    const nav = new FocusNavigator()
+    expect(nav.adjust(1)).toBe(true)
+    expect(volume.value).toBe('6')
+    expect(nav.adjust(-1)).toBe(true)
+    expect(volume.value).toBe('5')
+    expect(inputs).toBe(2)
+  })
+
+  it('checks the next radio in a focused group, fires change, and keeps focus in the group', () => {
+    document.body.innerHTML = `
+      <div role="radiogroup">
+        <input id="low" type="radio" name="quality" value="low" checked />
+        <input id="mid" type="radio" name="quality" value="mid" />
+        <input id="high" type="radio" name="quality" value="high" />
+      </div>`
+    let changes = 0
+    byId('mid').addEventListener('change', () => changes++)
+    byId('low').focus()
+    const nav = new FocusNavigator()
+    expect(nav.adjust(1)).toBe(true)
+    expect((byId('mid') as HTMLInputElement).checked).toBe(true)
+    expect(document.activeElement?.id).toBe('mid')
+    expect(changes).toBe(1)
+    expect(nav.adjust(-1)).toBe(true)
+    expect(document.activeElement?.id).toBe('low')
+  })
+
+  it('reports false on anything else, so the caller steers instead', () => {
+    document.body.innerHTML = `<button id="plain">Plain</button>`
+    byId('plain').focus()
+    expect(new FocusNavigator().adjust(1)).toBe(false)
+  })
+})

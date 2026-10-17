@@ -221,6 +221,46 @@ export class FocusNavigator {
     return true
   }
 
+  /**
+   * Offers a page turn (PageUp/PageDown, the shoulder buttons, a page swipe) to the focused control. A
+   * `[data-pager]` region above it takes the cancelable `af-page` event; returns whether one did.
+   */
+  page(delta: -1 | 1): boolean {
+    if (this.paused) return false
+    const focused = document.activeElement
+    if (!(focused instanceof HTMLElement) || focused === document.body) return false
+    this.engaged = true
+    const event = new CustomEvent('af-page', { detail: { delta }, bubbles: true, cancelable: true })
+    focused.dispatchEvent(event)
+    return event.defaultPrevented
+  }
+
+  /**
+   * Changes the focused slider or option group by one step without leaving it (from FloorFifty's `adjust`, plus
+   * radio groups for OptionGroup). Fires the event a pointer or arrow key would (`input` on a range, `change` on a
+   * radio). Returns false when nothing adjustable has focus, so the caller steers instead.
+   */
+  adjust(delta: -1 | 1): boolean {
+    if (this.paused) return false
+    const focused = document.activeElement
+    if (!(focused instanceof HTMLInputElement)) return false
+    if (focused.type === 'range') {
+      if (delta === 1) focused.stepUp()
+      else focused.stepDown()
+      focused.dispatchEvent(new Event('input', { bubbles: true }))
+      return true
+    }
+    if (focused.type !== 'radio' || focused.name === '') return false
+    const group = [...document.querySelectorAll<HTMLInputElement>('input[type="radio"]')].filter(
+      (radio) => radio.name === focused.name && radio.form === focused.form && !radio.disabled,
+    )
+    const next = group[(group.indexOf(focused) + delta + group.length) % group.length] as HTMLInputElement
+    next.checked = true
+    next.focus(PAD_FOCUS)
+    next.dispatchEvent(new Event('change', { bubbles: true }))
+    return true
+  }
+
   confirm(): void {
     if (this.paused) return
     this.engaged = true
