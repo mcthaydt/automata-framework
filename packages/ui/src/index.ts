@@ -21,6 +21,14 @@ export { default as Dialog } from './dialog/Dialog.svelte'
 export { default as Modal } from './dialog/Modal.svelte'
 export type { ModalProps } from './dialog/modal-props'
 export { default as Sheet } from './dialog/Sheet.svelte'
+export { interceptBackGesture, sendBack } from './focus/back-gesture'
+export {
+  CURSOR_IDLE_MS,
+  type CursorInput,
+  CursorRunner,
+  cursorHidden,
+  type ScreenKind,
+} from './focus/cursor-policy'
 export {
   arrowKeyNav,
   FocusNavigator,
@@ -30,6 +38,7 @@ export {
   scrollWithin,
   tabbables,
 } from './focus/focus-nav'
+export { isTap, PAGE_SWIPE, releaseStep, WheelPager } from './focus/page-swipe'
 export {
   classifyFormFactor,
   type FormFactor,

@@ -309,3 +309,170 @@ describe("with AF's Dialog", () => {
     expect(onclose).toHaveBeenCalledOnce()
   })
 })
+
+/** Gives `element` a fixed box, as layout would (jsdom lays nothing out). */
+function place(element: HTMLElement, left: number, top: number, size = 40): void {
+  element.getBoundingClientRect = () =>
+    ({
+      left,
+      top,
+      right: left + size,
+      bottom: top + size,
+      width: size,
+      height: size,
+      x: left,
+      y: top,
+    }) as DOMRect
+}
+
+// M4 spec §4.7: steer is spatial inside a focus grid and DOM order elsewhere.
+describe('steer', () => {
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <button id="before">Before</button>
+      <div data-focus-grid>
+        <button id="g0">0</button><button id="g1">1</button><button id="g2">2</button>
+        <button id="g3">3</button><button id="g4">4</button><button id="g5">5</button>
+      </div>
+      <button id="after">After</button>`
+    for (let cell = 0; cell < 6; cell++) place(byId(`g${cell}`), (cell % 3) * 50, Math.floor(cell / 3) * 50)
+  })
+
+  it('moves to the nearest cell that way inside a grid, not the next in DOM order', () => {
+    const nav = new FocusNavigator()
+    byId('g0').focus()
+    expect(nav.steer('down')).toBe(true)
+    expect(document.activeElement?.id).toBe('g3')
+    expect(nav.steer('right')).toBe(true)
+    expect(document.activeElement?.id).toBe('g4')
+    expect(nav.steer('up')).toBe(true)
+    expect(document.activeElement?.id).toBe('g1')
+  })
+
+  it('keeps focus and reports false at a grid edge with nothing that way', () => {
+    const nav = new FocusNavigator()
+    byId('g2').focus()
+    expect(nav.steer('right')).toBe(false)
+    expect(document.activeElement?.id).toBe('g2')
+  })
+
+  it('walks DOM order outside a grid: down and right go next, up and left go previous', () => {
+    const nav = new FocusNavigator()
+    byId('before').focus()
+    expect(nav.steer('right')).toBe(true)
+    expect(document.activeElement?.id).toBe('g0')
+    byId('after').focus()
+    expect(nav.steer('up')).toBe(true)
+    expect(document.activeElement?.id).toBe('g5')
+  })
+
+  it('does nothing while paused', () => {
+    const nav = new FocusNavigator()
+    byId('g0').focus()
+    nav.setPaused(true)
+    expect(nav.steer('down')).toBe(false)
+    expect(document.activeElement?.id).toBe('g0')
+  })
+})
+
+// M4 spec §4.7: a page turn goes to the focused control's `[data-pager]` region, which takes it by cancelling.
+describe('page', () => {
+  it('offers af-page with the delta to the focused element and reports whether a pager took it', () => {
+    document.body.innerHTML = `<div data-pager id="pager"><button id="in">In</button></div><button id="out">Out</button>`
+    const deltas: number[] = []
+    byId('pager').addEventListener('af-page', (event) => {
+      deltas.push((event as CustomEvent<{ delta: number }>).detail.delta)
+      event.preventDefault()
+    })
+    const nav = new FocusNavigator()
+    byId('in').focus()
+    expect(nav.page(1)).toBe(true)
+    expect(nav.page(-1)).toBe(true)
+    expect(deltas).toEqual([1, -1])
+    byId('out').focus()
+    expect(nav.page(1)).toBe(false)
+    expect(deltas).toEqual([1, -1])
+  })
+})
+
+// M4 spec §4.7: adjust changes a slider or an option group in place; focus never leaves it.
+describe('adjust', () => {
+  it('steps a focused range once and fires one input event', () => {
+    document.body.innerHTML = `<input id="volume" type="range" min="0" max="10" step="1" value="5" />`
+    const volume = byId('volume') as HTMLInputElement
+    let inputs = 0
+    volume.addEventListener('input', () => inputs++)
+    volume.focus()
+    const nav = new FocusNavigator()
+    expect(nav.adjust(1)).toBe(true)
+    expect(volume.value).toBe('6')
+    expect(nav.adjust(-1)).toBe(true)
+    expect(volume.value).toBe('5')
+    expect(inputs).toBe(2)
+  })
+
+  it('checks the next radio in a focused group, fires change, and keeps focus in the group', () => {
+    document.body.innerHTML = `
+      <div role="radiogroup">
+        <input id="low" type="radio" name="quality" value="low" checked />
+        <input id="mid" type="radio" name="quality" value="mid" />
+        <input id="high" type="radio" name="quality" value="high" />
+      </div>`
+    let changes = 0
+    byId('mid').addEventListener('change', () => changes++)
+    byId('low').focus()
+    const nav = new FocusNavigator()
+    expect(nav.adjust(1)).toBe(true)
+    expect((byId('mid') as HTMLInputElement).checked).toBe(true)
+    expect(document.activeElement?.id).toBe('mid')
+    expect(changes).toBe(1)
+    expect(nav.adjust(-1)).toBe(true)
+    expect(document.activeElement?.id).toBe('low')
+  })
+
+  it('reports false on anything else, so the caller steers instead', () => {
+    document.body.innerHTML = `<button id="plain">Plain</button>`
+    byId('plain').focus()
+    expect(new FocusNavigator().adjust(1)).toBe(false)
+  })
+})
+
+// M4 spec §4.7 (F-a): a confirm still held from the last screen does not press the new screen's first button. A
+// browser clicks a focused button on each repeating Enter or Space keydown, so the guard cancels those until the
+// key comes up.
+describe('guard', () => {
+  const key = (type: 'keydown' | 'keyup', code: string, repeat = false): KeyboardEvent => {
+    const event = new KeyboardEvent(type, {
+      code,
+      key: code === 'Space' ? ' ' : code,
+      repeat,
+      bubbles: true,
+      cancelable: true,
+    })
+    byId('first').dispatchEvent(event)
+    return event
+  }
+
+  it('cancels a repeating Enter or Space after a screen change until that key comes up', () => {
+    document.body.innerHTML = `<button id="first">First</button>`
+    const nav = new FocusNavigator()
+    const detach = nav.attach(window)
+    byId('first').focus()
+    nav.guard()
+    expect(key('keydown', 'Enter', true).defaultPrevented).toBe(true)
+    expect(key('keydown', 'Space', true).defaultPrevented).toBe(true)
+    key('keyup', 'Enter')
+    expect(key('keydown', 'Enter', true).defaultPrevented).toBe(false)
+    detach()
+  })
+
+  it('lets a fresh press through at once', () => {
+    document.body.innerHTML = `<button id="first">First</button>`
+    const nav = new FocusNavigator()
+    const detach = nav.attach(window)
+    byId('first').focus()
+    nav.guard()
+    expect(key('keydown', 'Enter').defaultPrevented).toBe(false)
+    detach()
+  })
+})

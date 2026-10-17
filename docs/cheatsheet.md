@@ -394,6 +394,10 @@
 - `COMPACT_MAX_HEIGHT` (const): Below this, compact: what a browser leaves a sideways phone (780 x 270 Chrome on a Galaxy, 667 x 320 Safari on an SE).
 - `CornerControls` (const)
 - `createGeometryOwner(options)`
+- `CURSOR_IDLE_MS` (const): How long the pointer must be still before it hides on a gameplay screen.
+- `cursorHidden(state)`: Whether the pointer is hidden now: on a gameplay screen, not paused, and the pointer unused or idle.
+- `CursorInput` (type): The device the player used last, as the cursor policy sees it.
+- `CursorRunner` (class): Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the element's `cursor` style.
 - `DeviceClass` (type)
 - `Dialog` (const)
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
@@ -423,7 +427,9 @@
 - `InputMethodTracker` (class)
 - `Insets` (interface): CSS px on each side, all >= 0.
 - `installGlobalErrorHandlers(win, onFatal, onRejection?)`: Installs once per window; a second call is a no-op.
+- `interceptBackGesture(win, onBack)`: Holds the game's history entry and turns a back step off it into `onBack`.
 - `isDuckDuckGo(nav)`: DuckDuckGo names itself only in the client-hint brands, not the user agent.
+- `isTap(dx, dy)`: Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
 - `landscapeGate(inputs)`
 - `LandscapeGateState` (type): Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
 - `LoaderOverlay` (const)
@@ -435,6 +441,7 @@
 - `OptionGroup` (const): A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `PAD_FOCUS` (const): How the navigator focuses: with a ring, and without scrolling the page.
 - `padKeyEvents` (const): Keydown events the navigator sent itself.
+- `PAGE_SWIPE` (const): Swipe is the pagination on a paged region, on every form factor: a finger, a mouse drag, a trackpad's two-finger sideways swipe.
 - `PagedGrid` (const): A grid of items in pages that never scrolls (M4 spec §4.8; the page arithmetic of FloorFifty `ui/tile-pages.ts` at `ac72660`).
 - `PagedGridProps` (interface): PagedGrid's props: groups of items, the most columns and rows a page has, and the page its owner shows.
 - `PageGroup` (interface): A titled run of items; each group starts its own page.
@@ -448,12 +455,15 @@
 - `probeEnvSafeArea(root)`: Reads `env(safe-area-inset-*)` through a hidden probe, since script cannot read `env()` directly.
 - `Rect` (interface)
 - `reducedMotion(win?)`: Whether the player has asked for less movement.
+- `releaseStep(dx, dtMs, pageWidth)`: Pages to turn when a drag of `dx` px over `dtMs` is released: a swipe left is +1 (next).
 - `RETRY_DELAYS_MS` (const): The wait before each retry; when they are spent, the image has failed.
 - `RetryTimers` (type): The timers `watchImage` waits with; tests pass fakes.
 - `retryUrl(src, attempt)`: The URL a retry asks for; attempt 0 is the first request, as given.
 - `ScreenFrame` (const)
+- `ScreenKind` (type): A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
 - `ScrollList` (const)
 - `scrollWithin(element)`: Brings `element` into view by scrolling its nearest scroll box, never the document.
+- `sendBack(doc)`: Sends Back as an Escape to wherever a dialog would hear it, and reports whether anything took it.
 - `SETTLE_DELAYS_MS` (const): When to measure again after a viewport event, in ms.
 - `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `SHORT_MAX_HEIGHT` (const): At or below this many CSS px of layout height, a screen is short.
@@ -474,6 +484,7 @@
 - `UiSlotName` (type)
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata-testing` stands in for it in tests.
 - `watchImage(src, onRetry, timers?)`: Probes `src` and, while it fails, hands `onRetry` each retry's URL to draw instead.
+- `WheelPager` (class): A trackpad's horizontal wheel deltas, one page per gesture; `reset` when the gesture goes quiet.
 - `wrapPage(index, count)`: `index` wrapped into `0..count - 1`, so paging past either end comes round.
 
 ### `import { … } from '@mcthaydt/automata-ui/testing'`

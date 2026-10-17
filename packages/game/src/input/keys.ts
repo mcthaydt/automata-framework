@@ -8,6 +8,7 @@ import {
   inputProfileSchema,
   makeInput,
   type PresentationBus,
+  type StickDirection,
 } from '@mcthaydt/automata-runtime'
 import type { Command, CommandDef } from '@mcthaydt/automata-sim'
 import { Effect, Exit, Scope } from 'effect'
@@ -56,6 +57,8 @@ export interface KeysOptions<Z extends z.ZodType> {
   readonly touch?: boolean
   /** Standard-mapping gamepad button index → payload, polled once per tick. */
   readonly pad?: Readonly<Record<number, Payload<Z>>>
+  /** A stick pushed past the deadzone in a direction (`left-left`, `right-up`, …) → payload (M4.2). */
+  readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>
   /** The payload with nothing held. Default: the schema's own defaults (`schema.parse({})`), when it has them. */
   readonly idle?: z.input<Z>
 }
@@ -99,19 +102,24 @@ export function keys<Z extends z.ZodType>(
   for (const [code, payload] of Object.entries(bindings)) check(code, payload)
   const pad = Object.entries(options.pad ?? {}).map(([index, payload]) => ({ index: Number(index), payload }))
   for (const { index, payload } of pad) check(`pad button ${index}`, payload)
+  const stick = Object.entries(options.stick ?? {}) as [StickDirection, Payload<Z>][]
+  for (const [direction, payload] of stick) check(`stick ${direction}`, payload)
 
-  // One action per distinct payload: the keys' payloads in binding order, then any pad payload no key shares.
-  const actions: { id: string; payload: unknown; keys: string[]; pad: number[] }[] = []
+  // One action per distinct payload: the keys' payloads in binding order, then any pad or stick payload no key
+  // shares.
+  const actions: { id: string; payload: unknown; keys: string[]; pad: number[]; stick: StickDirection[] }[] =
+    []
   const actionFor = (payload: unknown): (typeof actions)[number] => {
     const key = JSON.stringify(payload)
     const found = actions.find((action) => JSON.stringify(action.payload) === key)
     if (found !== undefined) return found
-    const made = { id: `${command.id}-${actions.length}`, payload, keys: [], pad: [] }
+    const made = { id: `${command.id}-${actions.length}`, payload, keys: [], pad: [], stick: [] }
     actions.push(made)
     return made
   }
   for (const [code, payload] of Object.entries(bindings)) actionFor(payload).keys.push(code)
   for (const { index, payload } of pad) actionFor(payload).pad.push(index)
+  for (const [direction, payload] of stick) actionFor(payload).stick.push(direction)
 
   const touch = options.touch !== false
   const parsedProfile = inputProfileSchema.safeParse({
@@ -119,7 +127,12 @@ export function keys<Z extends z.ZodType>(
     bindings: Object.fromEntries(
       actions.map((action) => [
         action.id,
-        { keys: action.keys, pad: action.pad, touch: touch && action.keys.length > 0 },
+        {
+          keys: action.keys,
+          pad: action.pad,
+          ...(action.stick.length > 0 ? { stick: action.stick } : {}),
+          touch: touch && action.keys.length > 0,
+        },
       ]),
     ),
   })

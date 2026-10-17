@@ -8,14 +8,19 @@ import { ActionBar, ScreenFrame } from '@mcthaydt/automata-ui'
 interface Props {
   onResume: () => void
   onQuit: () => void
+  /** Why play paused, when it was not the player: "Reconnect your controller" (M4-D9). */
+  message?: string | undefined
 }
 
-const { onResume, onQuit }: Props = $props()
+const { onResume, onQuit, message }: Props = $props()
 </script>
 
 {#snippet body()}
   <div class="af-game-menu__body">
     <h2 class="af-game-menu__title">Paused</h2>
+    {#if message !== undefined}
+      <p class="af-game-menu__message" role="status">{message}</p>
+    {/if}
   </div>
 {/snippet}
 

@@ -3,7 +3,8 @@ import { Context, Effect, type Scope, Stream } from 'effect'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 
 export type PauseBehavior = HostingOptions['pauseBehavior']
-export type PauseReason = 'lifecycle' | 'menu'
+/** `input`: the active pad was unplugged during play (M4-D9); Resume on the pause screen clears it. */
+export type PauseReason = 'lifecycle' | 'menu' | 'input'
 
 export interface Time {
   readonly paused: boolean

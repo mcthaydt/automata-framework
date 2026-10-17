@@ -27,12 +27,15 @@ export type {
   ScreenContext,
   ScreenDef,
 } from './flow/screen.js'
+export type { GlyphFamily } from './input/gamepad/glyph-family.js'
 export {
+  type ActiveDevice,
   Input,
   type InputContextNow,
   type InputDevice,
   type InputOptions,
   makeInput,
+  type PadInfo,
 } from './input/input.manager.js'
 export {
   actionsForKey,
@@ -84,6 +87,14 @@ export {
   type RendererFactory,
   type RenderTarget,
 } from './render/renderer.js'
+export {
+  DEFAULT_QUALITY,
+  type DisplaySettings,
+  displaySettingsSchema,
+  QUALITY_TIERS,
+  type QualityTier,
+  qualityTierSchema,
+} from './settings/display-settings.schema.js'
 export {
   Settings,
   type SettingsDef,
