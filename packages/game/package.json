@@ -1,0 +1,62 @@
+{
+  "name": "@mcthaydt/automata-game",
+  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "packages/game"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css",
+    "*.svelte",
+    "./src/no-eval.ts"
+  ],
+  "exports": {
+    ".": {
+      "svelte": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./no-eval": "./src/no-eval.ts"
+  },
+  "scripts": {
+    "test": "vitest run --project unit",
+    "test:unit": "vitest run --project unit",
+    "test:parity": "vitest run --project layout",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+  },
+  "dependencies": {
+    "@mcthaydt/automata-host": "workspace:*",
+    "@mcthaydt/automata-render-pixi": "workspace:*",
+    "@mcthaydt/automata-runtime": "workspace:*",
+    "@mcthaydt/automata-sim": "workspace:*",
+    "@mcthaydt/automata-ui": "workspace:*",
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
+    "effect": "3.22.2",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "pixi.js": "8.21.0",
+    "svelte": "5.57.1"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-testing": "workspace:*",
+    "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/svelte": "5.4.2",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "jsdom": "30.1.1",
+    "pixi.js": "8.21.0",
+    "playwright": "1.63.0",
+    "svelte": "5.57.1",
+    "svelte-check": "4.7.6",
+    "typescript": "6.0.3",
+    "vite": "8.3.2",
+    "vitest": "5.0.3"
+  }
+}

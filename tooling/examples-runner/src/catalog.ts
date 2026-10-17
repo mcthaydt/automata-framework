@@ -62,6 +62,11 @@ const ROOT_FILES: ReadonlySet<string> = new Set(['vite.config.ts'])
 const UMBRELLA = '@mcthaydt/automata'
 // Zod is AF's only schema language: every command takes a Zod schema, and no core package re-exports `z`.
 const SCHEMA_LANGUAGE = 'zod'
+/**
+ * The one private package an example may import (DX.2 plan G-1): the game package is every example's entry
+ * point, and stays private until runtime and render-pixi, which it depends on, are published.
+ */
+const PRIVATE_ENTRY_POINT = '@mcthaydt/automata-game'
 const AUTOMATA_PACKAGE = /^(@mcthaydt\/automata-[a-z0-9-]+)(?:\/|$)/
 
 interface PublicEntries {
@@ -85,7 +90,7 @@ function exampleFiles(root: string, dir = root): string[] {
   return files
 }
 
-/** Every specifier a published `@mcthaydt/automata*` package declares in `exports`, plus Zod. */
+/** Every specifier a published `@mcthaydt/automata*` package (or the game package) declares in `exports`, plus Zod. */
 function publicEntries(packagesDir: string): PublicEntries {
   const entries = new Set([UMBRELLA, SCHEMA_LANGUAGE])
   const packages = new Set<string>()
@@ -97,7 +102,8 @@ function publicEntries(packagesDir: string): PublicEntries {
       private?: boolean
       exports?: Record<string, unknown>
     }
-    if (manifest.private === true || !manifest.name.startsWith(UMBRELLA)) continue
+    const published = manifest.private !== true || manifest.name === PRIVATE_ENTRY_POINT
+    if (!published || !manifest.name.startsWith(UMBRELLA)) continue
     packages.add(manifest.name)
     for (const key of Object.keys(manifest.exports ?? {}))
       entries.add(key === '.' ? manifest.name : `${manifest.name}/${key.slice(2)}`)

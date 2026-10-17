@@ -24,6 +24,14 @@ describe('examplePage', () => {
     expect(imports).toEqual(['@mcthaydt/automata-render-pixi/no-eval', stubStart, '/core/core-stub.ts'])
     expect(html).toContain('startGame(example)')
   })
+
+  it('gives the game its root, `#game`, before the script that starts it', () => {
+    const html = examplePage(
+      { path: 'core/core-stub.ts', id: 'core-stub', title: 'a stub' },
+      { start: stubStart, noEval: '@mcthaydt/automata-render-pixi/no-eval' },
+    )
+    expect(html).toMatch(/<main id="game"><\/main>\s*<script type="module">/)
+  })
 })
 
 describe('indexPage', () => {

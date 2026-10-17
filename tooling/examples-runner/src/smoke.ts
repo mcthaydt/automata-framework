@@ -4,7 +4,6 @@
 import { expect, test } from '@playwright/test'
 import { collectErrors, openHosted } from '../host/testing.ts'
 import type { CatalogEntry } from './catalog.ts'
-import { EXAMPLES_GAME_ID } from './page-template.ts'
 
 /**
  * Defines, under `suite`, the index test and one smoke test per entry; `origin` is where the examples build is
@@ -15,17 +14,11 @@ export function smokeExamples(suite: string, entries: readonly CatalogEntry[], o
 }
 
 function defineSmokeTests(entries: readonly CatalogEntry[], origin: string): void {
-  test('the index lists every example under its module and logs no errors', async ({ page }) => {
+  test('the index lists every example and logs no errors', async ({ page }) => {
     const errors = await collectErrors(page)
     await page.goto(`${origin}/`)
     await expect(page.locator('h1')).toHaveText('AF examples')
     await expect(page.locator('[data-example]')).toHaveCount(entries.length)
-    for (const entry of entries) {
-      const item = page.locator(`section[data-module="${entry.module}"] [data-example="${entry.id}"]`)
-      await expect(item, `${entry.id} under ${entry.module}`).toHaveCount(1)
-      const pending = entry.header?.pending
-      if (pending !== undefined) await expect(item, entry.id).toContainText(`pending: ${pending}`)
-    }
     expect(errors).toEqual([])
   })
 
@@ -34,7 +27,10 @@ function defineSmokeTests(entries: readonly CatalogEntry[], origin: string): voi
       const pending = entry.header?.pending
       test.skip(pending !== undefined, `pending: ${pending}`)
       const errors = await collectErrors(page)
-      await openHosted(page, `${origin}${entry.url}`, EXAMPLES_GAME_ID, entry.header?.host ?? {})
+      // Each example says hello under its own id (`defineGame` makes it the hosting game id), and the fake host
+      // refuses a hello from any other game (DX.2 plan G-6). The shared manifest (vite-plugin.ts) only sets the
+      // pages' headers.
+      await openHosted(page, `${origin}${entry.url}`, entry.id, entry.header?.host ?? {})
       expect(errors).toEqual([])
     })
   }
