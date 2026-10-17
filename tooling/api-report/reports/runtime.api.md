@@ -16,6 +16,15 @@ function actionsForKey(profile: InputProfile, code: string): string[];
 function actionsForPadButton(profile: InputProfile, index: number): string[];
 ```
 
+### `ActiveDevice` (interface)
+
+```ts
+interface ActiveDevice {
+    readonly device: InputDevice;
+    readonly glyphs: GlyphFamily;
+}
+```
+
 ### `AppLoop` (interface)
 
 ```ts
@@ -247,6 +256,12 @@ interface GameRenderer {
 type GestureName = (typeof GESTURE_NAMES)[number];
 ```
 
+### `GlyphFamily` (type)
+
+```ts
+type GlyphFamily = 'xbox' | 'playstation' | 'generic';
+```
+
 ### `Input` (interface)
 
 ```ts
@@ -257,12 +272,13 @@ interface Input {
         readonly y: number;
     };
     onPress(action: MenuAction, listener: () => void): () => void;
-    poll(): void;
+    poll(nowMs?: number): void;
     hold(action: string): void;
     release(action: string): void;
     setContext(context: InputContextNow): void;
-    readonly device: SubscriptionRef.SubscriptionRef<InputDevice>;
+    readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
     readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
+    readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
 }
 const Input: Context.Tag<Input, Input>;
 ```
@@ -448,6 +464,16 @@ interface NetworkPort {
 const NetworkPort: Context.Tag<NetworkPort, NetworkPort>;
 ```
 
+### `PadInfo` (interface)
+
+```ts
+interface PadInfo {
+    readonly index: number;
+    readonly id: string;
+    readonly standard: boolean;
+}
+```
+
 ### `ParaglideRuntime` (interface)
 
 ```ts
@@ -462,7 +488,7 @@ interface ParaglideRuntime {
 ### `PauseReason` (type)
 
 ```ts
-type PauseReason = 'lifecycle' | 'menu';
+type PauseReason = 'lifecycle' | 'menu' | 'input';
 ```
 
 ### `pluralCategory` (const)
@@ -564,8 +590,13 @@ interface RuntimeFacts {
         readonly previous: string;
     };
     readonly 'input.device.changed': {
-        readonly device: 'keyboard' | 'gamepad' | 'touch';
-        readonly previous: 'keyboard' | 'gamepad' | 'touch';
+        readonly device: InputDevice;
+        readonly glyphs: GlyphFamily;
+        readonly previous: InputDevice;
+    };
+    readonly 'input.pad.connected': PadInfo;
+    readonly 'input.pad.disconnected': PadInfo & {
+        readonly wasActive: boolean;
     };
     readonly 'render.filter.dropped': {
         readonly id: string;
@@ -616,6 +647,7 @@ interface ScreenContext {
 interface ScreenDef<R = never> {
     readonly id: string;
     readonly pausesSim?: boolean;
+    readonly kind?: 'menu' | 'gameplay';
     readonly fonts?: readonly string[];
     enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
     openMenu?(): boolean;

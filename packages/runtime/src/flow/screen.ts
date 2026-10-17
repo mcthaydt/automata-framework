@@ -29,6 +29,8 @@ export type RuntimeServices =
 export interface ScreenDef<R = never> {
   readonly id: string
   readonly pausesSim?: boolean
+  /** `gameplay` lets the cursor policy hide an idle pointer; a `menu` (the default) never does (M4 spec §4.7). */
+  readonly kind?: 'menu' | 'gameplay'
   readonly fonts?: readonly string[]
   enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>
   openMenu?(): boolean

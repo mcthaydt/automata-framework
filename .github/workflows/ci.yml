@@ -9,7 +9,8 @@ name: ci
 # label af-linux (WSL2 Ubuntu with Docker, like Ruken's ruken-linux; ship spec §3.7). There is deliberately no
 # fallback to ubuntu-latest: with no runner online a job waits in the queue instead of failing at once. The
 # repository variable AF_LINUX_RUNNER switches every job to another label (ubuntu-latest once hosted minutes
-# are back), and AF_GPU_RUNNER moves the browser journeys alone. Until a runner serves AF, a full local run is
+# are back), and AF_GPU_RUNNER moves the browser journeys alone. Parity alone runs on the Owner's Mac (label
+# af-mac, 2026-10-17) and AF_PARITY_RUNNER moves it. Until a runner serves AF, a full local run is
 # the green gate (docs/04-how-we-build.md).
 
 on:
@@ -101,17 +102,21 @@ jobs:
 
   parity:
     name: parity (chromium, webkit, firefox)
-    # af-linux is one shared PC runner, so a draft PR runs parity in a cloud container instead
-    # (docs/cloud-parity.md). Pushes to main have no pull_request and always run it.
+    # A draft PR runs parity in a cloud container instead (docs/cloud-parity.md). Pushes to main have no
+    # pull_request and always run it.
     if: >-
       (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
       github.event.pull_request.draft != true
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    # The Owner's Mac (2026-10-17), so parity no longer queues behind Ruken on the shared af-linux PC.
+    # vars.AF_PARITY_RUNNER moves it to another label.
+    runs-on: ${{ vars.AF_PARITY_RUNNER || 'af-mac' }}
     timeout-minutes: 10
-    # Browsers and their OS deps come preinstalled and pinned; installing them per run blew the 10-minute budget.
-    # Keep the tag in step with the `playwright` devDependency (docs/versions.md, Container images).
+    # macOS runners cannot run containers, so on af-mac the job runs on the host and fetches the browsers into the
+    # runner's cache (the steps below). Any other runner uses the pinned Playwright image, whose browsers and OS
+    # deps come preinstalled; installing them per run there blew the 10-minute budget. An empty image runs the job
+    # on the host. Keep the tag in step with the `playwright` devDependency (docs/versions.md, Container images).
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: ${{ (vars.AF_PARITY_RUNNER || 'af-mac') != 'af-mac' && 'mcr.microsoft.com/playwright:v1.63.0-noble' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -131,18 +136,22 @@ jobs:
       # `prepare` hook install and `pnpm evidence`) refuses the repo as "dubious ownership". The system config,
       # not the global one: the parity and evidence steps set HOME to /root, where a global setting is not read.
       - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
+        if: runner.os == 'Linux'
       - run: pnpm install --frozen-lockfile
+      # On the Mac host: a no-op once the pinned browsers are in the runner's cache.
+      - run: pnpm exec playwright install chromium-headless-shell webkit firefox
+        if: runner.os == 'macOS'
+      # In the container Actions sets HOME to /github/home (not root's), where Firefox refuses to run as root; this
+      # holds for every later step (parity and evidence). On the Mac host the runner's own HOME is right.
+      - run: echo "HOME=/root" >> "$GITHUB_ENV"
+        if: runner.os == 'Linux'
       # Every package with a browsers vitest project (sim, content, physics, ui, ...) runs its parity suite.
       - run: pnpm test:parity
-        env:
-          HOME: /root # Actions sets HOME to /github/home (not root's); Firefox refuses to run as root there
       # The evidence file (DX spec §3.10), on every push to main: each golden's hash as Node, Chromium, WebKit and
       # Firefox computed it, the revision, this run, and the package versions. The website reads the artifact; the
       # automata check results stay "pending" until create-game (DX.5) and automata check (DX.6) land.
       - run: pnpm evidence
         if: github.event_name == 'push'
-        env:
-          HOME: /root # as above, for Firefox
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: github.event_name == 'push'
         with:
@@ -156,7 +165,7 @@ jobs:
       # everything back to the runner user, the owner of /__w, or the next job's checkout cannot delete the
       # root-owned node_modules ("Permission denied"). always() runs on failure and on cancel too.
       - name: Give the work folder back to the runner user
-        if: always()
+        if: always() && runner.os == 'Linux'
         run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
 
   e2e:

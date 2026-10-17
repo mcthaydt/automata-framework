@@ -1,5 +1,7 @@
 import type { SimEvent } from '@mcthaydt/automata-sim'
 import { Context, Effect, type Scope } from 'effect'
+import type { GlyphFamily } from '../input/gamepad/glyph-family.js'
+import type { InputDevice, PadInfo } from '../input/input.manager.js'
 
 export interface RuntimeFacts {
   readonly 'sim.events': readonly SimEvent[]
@@ -12,9 +14,14 @@ export interface RuntimeFacts {
   readonly 'locale.changed': { readonly locale: string; readonly previous: string }
   /** The player's last real input came from another device (M4 spec §4.2). Prompts and touch controls follow it. */
   readonly 'input.device.changed': {
-    readonly device: 'keyboard' | 'gamepad' | 'touch'
-    readonly previous: 'keyboard' | 'gamepad' | 'touch'
+    readonly device: InputDevice
+    readonly glyphs: GlyphFamily
+    readonly previous: InputDevice
   }
+  /** A pad was plugged in (M4 spec §5). `standard: false` means it cannot drive bindings (§6). */
+  readonly 'input.pad.connected': PadInfo
+  /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
+  readonly 'input.pad.disconnected': PadInfo & { readonly wasActive: boolean }
   /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
   readonly 'render.filter.dropped': { readonly id: string; readonly reason: string }
 }

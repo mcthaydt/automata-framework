@@ -1,5 +1,6 @@
 import '@mcthaydt/automata-ui/theme.css'
 import './screens.css'
+import { Hosting } from '@mcthaydt/automata-host'
 import {
   AppLoop,
   Flow,
@@ -7,13 +8,20 @@ import {
   makeInput,
   PresentationBus,
   type ScreenDef,
+  Time,
 } from '@mcthaydt/automata-runtime'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { InputMethodTracker } from '@mcthaydt/automata-ui'
-import { Effect, type Scope } from 'effect'
+import {
+  CursorRunner,
+  FocusNavigator,
+  InputMethodTracker,
+  interceptBackGesture,
+  sendBack,
+} from '@mcthaydt/automata-ui'
+import { Effect, type Scope, SubscriptionRef } from 'effect'
 import { type Component, flushSync, mount, unmount } from 'svelte'
 import type { InputMap } from '../input/keys.ts'
-import { menuPad } from './menu-pad.ts'
+import { menuInput } from './menu-input.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
 import TitleScreen from './TitleScreen.svelte'
@@ -64,22 +72,57 @@ function listen(
   )
 }
 
-/** Polls the pads each animation frame while a menu is open (G-8). */
-function pollMenuPad(target: Window): Effect.Effect<void, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => {
-      if (typeof target.requestAnimationFrame !== 'function') return undefined
-      const pad = menuPad(() => target.navigator.getGamepads?.() ?? [])
-      let frame = 0
-      const poll = (): void => {
-        pad.poll()
-        frame = target.requestAnimationFrame(poll)
-      }
-      frame = target.requestAnimationFrame(poll)
-      return () => target.cancelAnimationFrame(frame)
-    }),
-    (stop) => Effect.sync(() => stop?.()),
-  )
+/**
+ * A menu's controller and arrow keys while it is open (M4 spec §4.7): an Input in the `menu` context, read each
+ * animation frame, steers a `FocusNavigator`. The navigator's guard is armed for the screen change (F-a), so an Enter
+ * held from the last screen does not click this one's focused button.
+ */
+function driveMenu(target: Window): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
+  return Effect.gen(function* () {
+    const bus = yield* PresentationBus
+    const input = yield* makeInput({ target, profile: NO_BINDINGS, bus })
+    input.setContext('menu')
+    const navigator = new FocusNavigator()
+    const menu = menuInput(input, navigator)
+    yield* Effect.acquireRelease(
+      Effect.sync(() => {
+        const detach = navigator.attach(target)
+        navigator.guard()
+        let frame: number | undefined
+        if (typeof target.requestAnimationFrame === 'function') {
+          const poll = (nowMs: number): void => {
+            menu.poll(nowMs)
+            frame = target.requestAnimationFrame(poll)
+          }
+          frame = target.requestAnimationFrame(poll)
+        }
+        return () => {
+          if (frame !== undefined) target.cancelAnimationFrame(frame)
+          menu.stop()
+          detach()
+        }
+      }),
+      (stop) => Effect.sync(stop),
+    )
+  })
+}
+
+/**
+ * The system back gesture (an edge swipe, a mouse's back button) as the screen's Back while it is open (M4 spec §4.7).
+ * Standalone only: hosted, the host owns system back (M4-D10, Ruken request R-2), so nothing is added to history.
+ */
+function backGesture(
+  target: Window,
+  onBack: () => boolean,
+): Effect.Effect<void, never, Scope.Scope | Hosting> {
+  return Effect.gen(function* () {
+    const hosting = yield* Hosting
+    if (hosting.kind !== 'standalone') return
+    yield* Effect.acquireRelease(
+      Effect.sync(() => interceptBackGesture(target, onBack)),
+      (stop) => Effect.sync(stop),
+    )
+  })
 }
 
 const windowOf = (layer: HTMLElement): Window => layer.ownerDocument.defaultView ?? window
@@ -100,6 +143,8 @@ const plain = (event: KeyboardEvent): boolean =>
 export function defaultScreens(game: ScreensGame): ScreenDef[] {
   let sim: Sim | undefined
   let playFlow: Flow | undefined
+  /** Set when play paused because the pad in use was unplugged (M4-D9); Resume or Quit clears it. */
+  let reconnect = false
 
   const dropSim = (): void => {
     game.watchSim?.(undefined)
@@ -123,12 +168,15 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           event.preventDefault()
           play()
         })
-        yield* pollMenuPad(target)
+        // Nothing on the title takes Back, so a back step leaves the game.
+        yield* backGesture(target, () => sendBack(layer.ownerDocument))
+        yield* driveMenu(target)
       }),
   }
 
   const play: ScreenDef = {
     id: 'play',
+    kind: 'gameplay',
     openMenu: () => playFlow?.dispatch('pause') ?? false,
     enter: ({ layer }) =>
       Effect.gen(function* () {
@@ -154,16 +202,18 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
 
         // The Input service for this play session (M4 spec §4.2): sampled once per fixed step, closed with the screen.
         const map = game.input
-        const input = yield* makeInput({
-          target,
-          profile: map?.profile ?? NO_BINDINGS,
-          bus: yield* PresentationBus,
-        })
+        const bus = yield* PresentationBus
+        const input = yield* makeInput({ target, profile: map?.profile ?? NO_BINDINGS, bus })
         const running = current
         game.watchSim?.(running)
+        // An idle pointer hides while playing (M4 spec §4.7); leaving play detaches it and shows the pointer again.
+        const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
+        const detachCursor = cursor.attach(target)
+        yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
         appLoop.run({
           sim: running,
           commands: (tick) => {
+            cursor.tick()
             if (map === undefined) return []
             input.poll()
             return map.toCommand(input.held(), tick)
@@ -172,6 +222,21 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.stop()))
 
         const pause = (): void => void flow.dispatch('pause')
+        // The pad in use unplugged mid-play pauses with a reconnect message (M4-D9), under the `input` reason so
+        // nothing else resumes the sim behind the player's back. Another pad or the keyboard in use: play on.
+        const time = yield* Time
+        yield* Effect.acquireRelease(
+          Effect.sync(() =>
+            bus.subscribe('input.pad.disconnected', (pad) => {
+              if (!pad.wasActive || Effect.runSync(SubscriptionRef.get(input.device)).device !== 'gamepad')
+                return
+              reconnect = true
+              time.pause('input')
+              pause()
+            }),
+          ),
+          (stop) => Effect.sync(stop),
+        )
         // Escape and the pad's Start are the Input's pause edge; KeyP is the default screens' own extra.
         yield* Effect.acquireRelease(
           Effect.sync(() => input.onPress('pause', pause)),
@@ -181,6 +246,10 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           if (!plain(event) || event.code !== 'KeyP') return
           event.preventDefault()
           pause()
+        })
+        yield* backGesture(target, () => {
+          pause()
+          return true
         })
 
         const tracker = new InputMethodTracker()
@@ -202,15 +271,30 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
     enter: ({ layer }) =>
       Effect.gen(function* () {
         const flow = yield* Flow
+        const time = yield* Time
         const target = windowOf(layer)
-        const resume = (): void => void flow.dispatch('resume')
-        yield* show(PausedScreen, layer, { onResume: resume, onQuit: () => void flow.dispatch('quit') })
+        const message = reconnect ? 'Reconnect your controller' : undefined
+        // Any device that reaches Resume or Quit lets the game go on (M4 spec §5, pad hot-plug).
+        const clearReconnect = (): void => {
+          reconnect = false
+          time.resume('input')
+        }
+        const resume = (): void => {
+          clearReconnect()
+          flow.dispatch('resume')
+        }
+        const quit = (): void => {
+          clearReconnect()
+          flow.dispatch('quit')
+        }
+        yield* show(PausedScreen, layer, { onResume: resume, onQuit: quit, message })
         yield* listen(target, 'keydown', (event) => {
           if (event.code !== 'Escape' || event.repeat) return
           event.preventDefault()
           resume()
         })
-        yield* pollMenuPad(target)
+        yield* backGesture(target, () => sendBack(layer.ownerDocument))
+        yield* driveMenu(target)
       }),
   }
 

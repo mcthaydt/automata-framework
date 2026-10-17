@@ -6,6 +6,7 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from 'node:fs'
@@ -53,7 +54,8 @@ interface Project {
 
 /** A temp project; `binAt` is where `node_modules/.bin/automata` goes, relative to `root` (`null` for none). */
 function project(options: { binAt?: string | null; packageJson?: object; dir?: string } = {}): Project {
-  const root = mkdtempSync(join(tmpdir(), 'agent-hook-'))
+  // The real path: on macOS tmpdir() is under /tmp, a symlink to /private/tmp, and the hook reports process.cwd().
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'agent-hook-')))
   temps.push(root)
   const dir = join(root, options.dir ?? '.')
   mkdirSync(join(dir, 'src/sim'), { recursive: true })

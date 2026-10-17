@@ -1,9 +1,11 @@
 /**
  * Keyboard and controller focus navigation over the page's own DOM (M1.6 spec §3.5; from
- * FloorFifty `ui/focus-nav.ts` at 122a220, minus steer, page, adjust and the pad guard, which are M4).
+ * FloorFifty `ui/focus-nav.ts` at 122a220, with `steer`, `page` and `adjust` from `ac72660` and the
+ * keyboard repeat guard of M4 spec §4.7).
  *
  * Deliberately DOM order, the same order Tab walks: one order to keep right, so a keyboard player
- * and a controller player never disagree about what comes next. An open modal is the whole world
+ * and a controller player never disagree about what comes next. Only a `[data-focus-grid]` steers
+ * spatially. An open modal is the whole world
  * while it is open. Input sources (M4's gamepad, a game's own bindings) call `move`, `confirm` and
  * `back`; this module never reads a device.
  */
@@ -83,6 +85,9 @@ const ARROWS: Readonly<Record<string, NavDirection>> = {
   ArrowRight: 'right',
 }
 
+/** The keys that click a focused button. */
+const CONFIRM_KEYS = new Set(['Enter', 'Space'])
+
 /** Inputs that take Left and Right for themselves: a slider's step, a radio group's choice. */
 const SIDEWAYS_INPUTS = new Set(['range', 'radio'])
 
@@ -114,6 +119,11 @@ export function arrowKeyNav(event: KeyboardEvent): NavDirection | undefined {
   return nav
 }
 
+function centre(element: HTMLElement): { x: number; y: number } {
+  const box = element.getBoundingClientRect()
+  return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+}
+
 export class FocusNavigator {
   /**
    * Whether the navigator is the one moving focus: set by any navigator action, cleared by a
@@ -122,6 +132,8 @@ export class FocusNavigator {
    */
   private engaged = false
   private paused = false
+  /** Armed by `guard()` on a screen change; a confirm key held from the last screen is cancelled until it comes up. */
+  private guarded = false
   private readonly root: () => ParentNode
 
   constructor(root: () => ParentNode = modalOrDocument) {
@@ -136,13 +148,31 @@ export class FocusNavigator {
     // The navigator's own Back arrives here as Escape; it is still the navigator.
     const onKey = (event: Event): void => {
       if (!padKeyEvents.has(event)) this.engaged = false
+      if (!this.guarded || !(event instanceof KeyboardEvent) || !CONFIRM_KEYS.has(event.code)) return
+      // A repeat is the key held over from the last screen: the browser would click the new screen's button.
+      if (event.repeat) event.preventDefault()
+      else this.guarded = false
+    }
+    const onKeyUp = (event: Event): void => {
+      if (event instanceof KeyboardEvent && CONFIRM_KEYS.has(event.code)) this.guarded = false
     }
     target.addEventListener('pointerdown', onPointer, { capture: true })
     target.addEventListener('keydown', onKey, { capture: true })
+    target.addEventListener('keyup', onKeyUp, { capture: true })
     return () => {
       target.removeEventListener('pointerdown', onPointer, { capture: true })
       target.removeEventListener('keydown', onKey, { capture: true })
+      target.removeEventListener('keyup', onKeyUp, { capture: true })
     }
+  }
+
+  /**
+   * Arms the pad guard (M4 spec §4.7, F-a): called on a screen change, it cancels repeating Enter and Space
+   * keydowns until the key comes up or is pressed afresh. A pad's own confirm is an edge from `Input`, which
+   * cannot repeat, so only the keyboard needs this; `attach` must be listening.
+   */
+  guard(): void {
+    this.guarded = true
   }
 
   /** Paused while a screen transition covers the screen. */
@@ -177,6 +207,83 @@ export class FocusNavigator {
     const target = items[next] as HTMLElement
     target.focus(PAD_FOCUS)
     scrollWithin(target)
+  }
+
+  /**
+   * One step in `direction` (M4 spec §4.7). Inside a `[data-focus-grid]` the move is spatial: the nearest control
+   * whose centre lies that way, scored by distance along the direction plus twice the sideways offset, so a
+   * straight line wins over a diagonal. Elsewhere it is DOM order: down and right go next, up and left previous.
+   * Returns false when nothing lies that way in the grid, so the caller can page or stay put.
+   */
+  steer(direction: NavDirection): boolean {
+    if (this.paused) return false
+    const focused = document.activeElement
+    const grid = focused instanceof HTMLElement ? focused.closest<HTMLElement>('[data-focus-grid]') : null
+    if (grid === null || !(focused instanceof HTMLElement)) {
+      this.move(direction === 'down' || direction === 'right' ? 'next' : 'previous')
+      return true
+    }
+    this.engaged = true
+    const from = centre(focused)
+    let best: HTMLElement | undefined
+    let bestScore = Number.POSITIVE_INFINITY
+    for (const candidate of tabbables(grid)) {
+      if (candidate === focused) continue
+      const to = centre(candidate)
+      const dx = to.x - from.x
+      const dy = to.y - from.y
+      const along = direction === 'down' ? dy : direction === 'up' ? -dy : direction === 'right' ? dx : -dx
+      if (along <= 0) continue
+      const score = along + 2 * Math.abs(direction === 'up' || direction === 'down' ? dx : dy)
+      if (score < bestScore) {
+        best = candidate
+        bestScore = score
+      }
+    }
+    if (best === undefined) return false
+    best.focus(PAD_FOCUS)
+    scrollWithin(best)
+    return true
+  }
+
+  /**
+   * Offers a page turn (PageUp/PageDown, the shoulder buttons, a page swipe) to the focused control. A
+   * `[data-pager]` region above it takes the cancelable `af-page` event; returns whether one did.
+   */
+  page(delta: -1 | 1): boolean {
+    if (this.paused) return false
+    const focused = document.activeElement
+    if (!(focused instanceof HTMLElement) || focused === document.body) return false
+    this.engaged = true
+    const event = new CustomEvent('af-page', { detail: { delta }, bubbles: true, cancelable: true })
+    focused.dispatchEvent(event)
+    return event.defaultPrevented
+  }
+
+  /**
+   * Changes the focused slider or option group by one step without leaving it (from FloorFifty's `adjust`, plus
+   * radio groups for OptionGroup). Fires the event a pointer or arrow key would (`input` on a range, `change` on a
+   * radio). Returns false when nothing adjustable has focus, so the caller steers instead.
+   */
+  adjust(delta: -1 | 1): boolean {
+    if (this.paused) return false
+    const focused = document.activeElement
+    if (!(focused instanceof HTMLInputElement)) return false
+    if (focused.type === 'range') {
+      if (delta === 1) focused.stepUp()
+      else focused.stepDown()
+      focused.dispatchEvent(new Event('input', { bubbles: true }))
+      return true
+    }
+    if (focused.type !== 'radio' || focused.name === '') return false
+    const group = [...document.querySelectorAll<HTMLInputElement>('input[type="radio"]')].filter(
+      (radio) => radio.name === focused.name && radio.form === focused.form && !radio.disabled,
+    )
+    const next = group[(group.indexOf(focused) + delta + group.length) % group.length] as HTMLInputElement
+    next.checked = true
+    next.focus(PAD_FOCUS)
+    next.dispatchEvent(new Event('change', { bubbles: true }))
+    return true
   }
 
   confirm(): void {

@@ -27,12 +27,15 @@ export type {
   ScreenContext,
   ScreenDef,
 } from './flow/screen.js'
+export type { GlyphFamily } from './input/gamepad/glyph-family.js'
 export {
+  type ActiveDevice,
   Input,
   type InputContextNow,
   type InputDevice,
   type InputOptions,
   makeInput,
+  type PadInfo,
 } from './input/input.manager.js'
 export {
   actionsForKey,
