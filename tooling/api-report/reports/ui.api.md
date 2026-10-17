@@ -137,6 +137,18 @@ interface BootFailureViewModel {
 }
 ```
 
+### `Button` (svelte)
+
+```ts
+component from './controls/Button.svelte'
+```
+
+### `Chip` (svelte)
+
+```ts
+component from './status/Chip.svelte'
+```
+
 ### `classifyDevice` (function)
 
 ```ts
@@ -267,6 +279,18 @@ type ErrorCode = RukenError['code'];
 component from './status/ErrorPanel.svelte'
 ```
 
+### `fitColumns` (function)
+
+```ts
+function fitColumns<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
+```
+
+### `fitShape` (function)
+
+```ts
+function fitShape(most: GridShape, box: GridBox, minTile: number, gap: number): GridShape;
+```
+
 ### `FocusNavigator` (class)
 
 ```ts
@@ -391,6 +415,35 @@ interface GeometryState {
 }
 ```
 
+### `GridBox` (interface)
+
+```ts
+interface GridBox {
+    readonly width: number;
+    readonly height: number;
+}
+```
+
+### `GridPage` (interface)
+
+```ts
+interface GridPage<T> {
+    readonly key: string;
+    readonly groupId: string;
+    readonly title: string;
+    readonly slots: readonly (T | undefined)[];
+}
+```
+
+### `GridShape` (interface)
+
+```ts
+interface GridShape {
+    readonly columns: number;
+    readonly rows: number;
+}
+```
+
 ### `HeightTier` (type)
 
 ```ts
@@ -430,6 +483,12 @@ function hostReservedInsets(host: HostDisplay | undefined): {
     left: number;
     right: number;
 };
+```
+
+### `IconButton` (svelte)
+
+```ts
+component from './controls/IconButton.svelte'
 ```
 
 ### `InputMethod` (type)
@@ -515,10 +574,36 @@ function lockOverscroll(node: HTMLElement): {
 function measureGeometry(input: GeometryInput): Geometry;
 ```
 
+### `Modal` (svelte)
+
+```ts
+component from './dialog/Modal.svelte'
+```
+
+### `ModalProps` (interface)
+
+```ts
+interface ModalProps {
+    title: string;
+    closeLabel: string;
+    onclose: () => void;
+    onbackdrop?: (() => void) | undefined;
+    children?: Snippet | undefined;
+    actions?: Snippet | undefined;
+    testId?: string | undefined;
+}
+```
+
 ### `NavDirection` (type)
 
 ```ts
 type NavDirection = 'up' | 'down' | 'left' | 'right';
+```
+
+### `OptionGroup` (svelte)
+
+```ts
+component from './layout/OptionGroup.svelte'
 ```
 
 ### `PAD_FOCUS` (const)
@@ -541,6 +626,66 @@ const PAGE_SWIPE: {
     readonly flickPxPerMs: 0.4;
     readonly wheelStepPx: 40;
 };
+```
+
+### `PagedGrid` (svelte)
+
+```ts
+component from './layout/PagedGrid.svelte'
+```
+
+### `PagedGridProps` (interface)
+
+```ts
+interface PagedGridProps<T> {
+    label: string;
+    groups: readonly PageGroup<T>[];
+    most: GridShape;
+    page: number;
+    onpage: (page: number) => void;
+    item: Snippet<[T]>;
+    minTile?: number | undefined;
+    gap?: number | undefined;
+    continued?: ((title: string, part: number) => string) | undefined;
+    dotLabel?: ((position: number, total: number) => string) | undefined;
+    testId?: string | undefined;
+}
+```
+
+### `PageGroup` (interface)
+
+```ts
+interface PageGroup<T> {
+    readonly id: string;
+    readonly title: string;
+    readonly items: readonly T[];
+}
+```
+
+### `pageOf` (function)
+
+```ts
+function pageOf<T extends {
+    readonly id: string;
+}>(pages: readonly GridPage<T>[], id: string): number;
+```
+
+### `PagerDots` (svelte)
+
+```ts
+component from './layout/PagerDots.svelte'
+```
+
+### `pagerMode` (function)
+
+```ts
+function pagerMode(count: number, max?: number, available?: number, dotSize?: number): 'dots' | 'counter';
+```
+
+### `paginate` (function)
+
+```ts
+function paginate<T>(groups: readonly PageGroup<T>[], capacity: number, continued?: (title: string, part: number) => string): GridPage<T>[];
 ```
 
 ### `pastEdge` (function)
@@ -651,6 +796,12 @@ function sendBack(doc: Document): boolean;
 const SETTLE_DELAYS_MS: readonly number[];
 ```
 
+### `Sheet` (svelte)
+
+```ts
+component from './dialog/Sheet.svelte'
+```
+
 ### `SHORT_MAX_HEIGHT` (const)
 
 ```ts
@@ -673,6 +824,24 @@ type Sleeper = {
 function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => void;
 ```
 
+### `Slider` (svelte)
+
+```ts
+component from './controls/Slider.svelte'
+```
+
+### `Split` (svelte)
+
+```ts
+component from './layout/Split.svelte'
+```
+
+### `splitMode` (function)
+
+```ts
+function splitMode(available: number, min: number, gap: number): 'row' | 'stack';
+```
+
 ### `suppressPageGestures` (function)
 
 ```ts
@@ -685,6 +854,16 @@ function suppressPageGestures(doc: Document): () => void;
 function tabbables(root: ParentNode): HTMLElement[];
 ```
 
+### `tileSide` (function)
+
+```ts
+function tileSide(shape: GridShape, box: GridBox, gap: number, limits: {
+    readonly peek: number;
+    readonly min: number;
+    readonly max: number;
+}): number;
+```
+
 ### `Timers` (interface)
 
 ```ts
@@ -692,6 +871,24 @@ interface Timers {
     set(callback: () => void, ms: number): unknown;
     clear(handle: unknown): void;
 }
+```
+
+### `Toast` (svelte)
+
+```ts
+component from './status/Toast.svelte'
+```
+
+### `Toggle` (svelte)
+
+```ts
+component from './controls/Toggle.svelte'
+```
+
+### `trimRows` (function)
+
+```ts
+function trimRows<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
 ```
 
 ### `UI_SLOT_NAMES` (const)
@@ -749,6 +946,12 @@ class WheelPager {
     push(deltaX: number, deltaY: number): -1 | 0 | 1;
     reset(): void;
 }
+```
+
+### `wrapPage` (function)
+
+```ts
+function wrapPage(index: number, count: number): number;
 ```
 
 ## `./testing`

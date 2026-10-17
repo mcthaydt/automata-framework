@@ -1,9 +1,11 @@
 /**
- * ui/primitives: every M1.6 primitive at every reference size, with no renderer.
+ * ui/primitives: every ui primitive at every reference size, with no renderer.
  *
  * What it shows:
  * - ScreenFrame with CornerControls, a ScrollList and an ActionBar.
  * - A Dialog, the LoaderOverlay, and the boot failure panel.
+ * - The M4 primitives: Split, OptionGroup, PagerDots, PagedGrid, Button, IconButton, Toggle, Slider, Chip, Modal,
+ *   Sheet and Toast.
  * - Each is laid out by the geometry owner from what the window and a (fake) Ruken host report:
  *   the safe area, Ruken's reserved strip, the keyboard and TV scale.
  *
@@ -30,7 +32,21 @@ import { mount, unmount } from 'svelte'
 import Frame from './src/Frame.svelte'
 import Gallery from './src/Gallery.svelte'
 
-export const PRIMITIVES = ['screen', 'dialog', 'loader', 'error'] as const
+export const PRIMITIVES = [
+  'screen',
+  'dialog',
+  'loader',
+  'error',
+  'split',
+  'options',
+  'pager',
+  'paged-grid',
+  'controls',
+  'chip',
+  'modal',
+  'sheet',
+  'toast',
+] as const
 export type Primitive = (typeof PRIMITIVES)[number]
 
 const isPrimitive = (value: string | null): value is Primitive => PRIMITIVES.some((name) => name === value)
