@@ -1,6 +1,6 @@
 # QB: the quality bar (doesn't look vibecoded)
 
-- **Status:** drafted 2026-10-16 (QB.0). **Pending Owner review.** Nothing here is implemented before that review (AGENTS.md: a draft spec does not authorize implementation). QB-D1 to QB-D4 (§8) run on their recommended defaults until the Owner changes them.
+- **Status:** reviewed. Drafted 2026-10-16 (QB.0); **approved by the Owner on 2026-10-16** with the recommended defaults QB-D1 to QB-D3 (§8), which are now decisions. QB-D4 is an Owner action (accounts to the business, a second maintainer) and stays open.
 - **Source:** the Owner's checklist of 2026-10-16 ("a checklist to make sure it doesn't look vibecoded"), about 300 items in 27 groups.
 - **Evidence for "today":** `mcthaydt/automata_website` at `bfeaf91` (`main`) and this repo at `489f170`. Each claim below names the file or command it came from.
 
@@ -184,7 +184,7 @@ The Owner files these in Ruken; AF records the link here when each is filed. Eac
 | QB.4 | Website deploy hardening | website | DX.12 | All of: <br>• HTTPS with HSTS <br>• headers checked against the deployed origin: CSP without `unsafe-inline` for scripts, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and a frame policy that still lets the demos embed <br>• an external uptime and certificate-expiry check <br>• rollback to the previous build, rehearsed once <br>• a spend alert <br>(QB-d) |
 | QB.5 | Plus store integrity | ship | PRODUCT.5, D-7 | Purchases through a merchant of record (QB-D2). The webhook verifies signatures, rejects replays and is idempotent on the event ID. Each grant and revocation issues or revokes a registry token and is logged with an audit entry. Refunds revoke. No card data or provider token in AF code or games. A Plus licence (EULA) and a refund policy page (QB-e) |
 
-## 8. Owner decisions (recommended defaults in effect until reviewed)
+## 8. Owner decisions (QB-D1 to QB-D3 approved as recommended, 2026-10-16; QB-D4 open)
 
 | ID | Question | Recommended default | Why |
 |---|---|---|---|
