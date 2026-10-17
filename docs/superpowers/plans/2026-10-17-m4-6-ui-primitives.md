@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 9 of 13 steps.
+- **Progress:** 10 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -102,7 +102,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
      - the visible Close button is named by `closeLabel`;
      - a tap on the scrim calls `onbackdrop` only when one is given.
    - Red: Sheet is the same scoping, anchored to the bottom edge at every form factor, with its body a declared scroll region.
-10. [ ] **Toast.** `toast.test.ts`:
+10. [x] **Toast.** Red: `Failed to resolve import "./Toast.svelte"`; green 5 of 5; `svelte-check` clean. The owner shows and removes a toast; Toast has no timer of its own (no wall clock in the primitive). A toned toast without a `toneLabel` throws while it mounts, as Chip does. `toast.test.ts`:
     - Red: a polite live region (`role="status"`); an `error` toast is `role="alert"`;
     - Red: mounting it never moves focus;
     - Red (U-b): an `error` toast shows a glyph and its `toneLabel` text, and its tone is readable with every colour removed. The test reads the text content and the attributes, not the computed colours.
