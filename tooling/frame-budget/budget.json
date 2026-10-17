@@ -1,0 +1,4 @@
+{
+  "status": "unset",
+  "note": "No frame budget yet. PRODUCT.7 (PRODUCT spec §2 F5): the budget is set from the first measured run on the GPU runner and recorded here with its evidence (the run's result artifact, commit, runner, GPU and the headroom the Owner chose). Numbers from a machine without a GPU (SwiftShader, llvmpipe) are never a budget. Until then `pnpm budget:frame` fails closed with UNSET."
+}

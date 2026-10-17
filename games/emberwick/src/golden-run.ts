@@ -33,10 +33,13 @@ export async function runGolden(): Promise<{
   rejected: number
   inputs: MoveInput[]
   commands: Command[]
+  seed: number
+  ticks: number
 }> {
   const { plugins, seed, content, setup } = emberwick.sim
   const sim = await createSim({ plugins: [...plugins], seed, content })
   setup?.(sim)
+  const startTick = sim.tick
   const target = fakeWindow()
   const source = emberwick.input?.attach(target)
   if (source === undefined) throw new Error('emberwick has no input map')
@@ -59,6 +62,7 @@ export async function runGolden(): Promise<{
   }
   source.dispose()
   const hash = sim.hash()
+  const ticks = sim.tick - startTick
   sim.dispose()
-  return { hash, goalTicks, rejected, inputs, commands }
+  return { hash, goalTicks, rejected, inputs, commands, seed: sim.seed, ticks }
 }

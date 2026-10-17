@@ -1,8 +1,8 @@
 # EX: one-file examples TDD plan
 
 - **Spec:** [`docs/superpowers/specs/2026-10-16-examples-one-file-design.md`](../specs/2026-10-16-examples-one-file-design.md)
-- **Status:** drafted 2026-10-16. **Pending EX.0 review.** Do not start before the Owner reviews the spec (AGENTS.md: a draft spec does not authorize implementation).
-- **Progress:** EX.2 and EX.1 implemented and locally verified (draft PRs, Owner review pending); EX.3 committed red (steps 1–5); its step 6 done on DX.2's branch, ticked when that PR merges; EX.4 and EX.5 open.
+- **Status:** drafted 2026-10-16; EX.0 approved by the Owner 2026-10-16, so tasks may start in dependency order.
+- **Progress:** EX.2 merged (#35), EX.1 merged (#43), EX.3 merged with its examples red (#51), and green since DX.2 merged (#62, step 6); EX.4 open; EX.5 implemented and locally verified (PR pending; Owner screenshot approval pending).
 
 ## Global constraints
 
@@ -18,6 +18,7 @@
 ## Task EX.1: runner, single package, catalog, smoke, parity, `--inline`
 
 ### Files (refined at `4d29ab0`, stacked on EX.2)
+
 - **Create** in `tooling/examples-runner/` (package `@mcthaydt/examples-runner`, private):
   - `package.json`, `tsconfig.json`, `vitest.config.ts`;
   - `src/header.ts` + `header.test.ts`, `src/catalog.ts` + `catalog.test.ts`, `src/page-template.ts`, `src/vite-plugin.ts` + `vite-plugin.test.ts`, `src/typecheck.ts` (+ test; pending examples are left out of `tsc`), `src/cli.ts` (`pnpm examples [name]`), `src/smoke.ts` (the parametric Playwright smoke), `src/parity.ts` + `src/examples.parity.test.ts`;
@@ -34,10 +35,12 @@
   - `tooling/release` workspace walk tests if the new top-level `examples` package changes what they list.
 
 ### Interfaces
+
 - **Consumed:** `compileHeaders` (`@ruken/manifest`) through the host's `previewHeaders`, `replayGolden`/`goldenCommands` (`@mcthaydt/automata-testing/sim`), `createSim` and the `define*` verbs (`@mcthaydt/automata-sim`), the host's `openHosted` and `collectErrors`. `startGame` comes from the module the plugin is given (`start`, default `@mcthaydt/automata`, DX.2/PRODUCT.2); until then only the stub fixture runs.
 - **Produced:** `parseHeader(source): Header | HeaderError[]`, `readCatalog(root, options): CatalogEntry[]` (each entry carries its `problems`), `examplesRunner({ root, start?, noEval? })` (Vite plugin), `smokeExamples(entries, baseUrl)` and `goldenExamples(root)`.
 
 ### Deviations recorded here
+
 - **Workspace globs:** the spec replaces `examples/*` and `examples/*/*` with `examples`; the old demos and the gallery are still packages until EX.4/EX.5, so the globs stay and `examples` is added. pnpm accepts a package whose folder holds other packages.
 - **Public imports:** the umbrella `@mcthaydt/automata` does not exist until PRODUCT.2, so the catalog accepts `@mcthaydt/automata` and any entry a `@mcthaydt/automata-*` package declares in `exports` (never `/src`). Narrowing core imports to the umbrella is a PRODUCT.2 follow-up.
 - **Catalog scope:** the catalog skips folders that hold a `package.json` (the old demos and the gallery, until EX.4/EX.5), `node_modules`, `dist`, `e2e`, `resources` and `__goldens__`, and the root `vite.config.ts`. Screenshot approval is recorded in `examples/screenshots-approved.json` (`"<module>/<module>-<name>.png": "<approval record>"`), written only from an Owner decision.
@@ -46,12 +49,14 @@
 - **Stub:** with no `defineGame` yet, the stub example exports a plain object of the shape the runner reads (`id`, `sim.plugins`, `sim.seed`); it never imports or defines anything named like DX.2's API.
 
 ### Steps
+
 - [x] **1. Header parser.** Write `header.test.ts`:
   - a fixture with every field parses;
   - a missing `Shows:` gives a `HeaderError` with its line;
   - `Difficulty: ★★★★★` is rejected.
 
   Run `pnpm --filter @mcthaydt/examples-runner test:unit` and confirm it fails because `parseHeader` does not exist. Implement `header.ts`, then confirm it passes.
+
 - [x] **2. Catalog rules.** Write `catalog.test.ts` over `src/fixtures/`, where each bad fixture fails for its own reason:
   - a file outside `<module>/<module>-<name>.ts`;
   - an unknown module;
@@ -62,6 +67,7 @@
   - a `Pending:` naming a task already ticked in `docs/02-master-delivery-plan.md`.
 
   Confirm it fails, implement `catalog.ts`, confirm it passes.
+
 - [x] **3. `--inline` boundaries.** In `tooling/check-boundaries/src/check.test.ts`:
   - `Date.now()` in a `defineSystem` callback fails with rule and line (spec E-g);
   - `Math.random()` in `definePlugin` `setup` fails;
@@ -69,17 +75,20 @@
   - a clean system body passes.
 
   Confirm they fail on the missing mode. Implement it by reusing the existing visitor scoped to those function bodies, then confirm they pass. Add `--inline examples` to the root `boundaries` script.
+
 - [x] **4. Vite plugin.** Write `vite-plugin.test.ts`:
   - `/core/core-stub/` returns the generated HTML with the `no-eval` import first and the example's module;
   - preview responses carry `compileHeaders`' CSP.
 
   Confirm it fails, implement `vite-plugin.ts` and `page-template.ts`, confirm it passes.
+
 - [x] **5. Single examples package.**
   - Create `examples/package.json` (`@af-examples/examples`), `tsconfig.json` and `vite.config.ts`.
   - Move `examples/demo-host` to `tooling/examples-runner/host` with `git mv`, and update its importers.
   - Update `pnpm-workspace.yaml`.
 
   Verify that `pnpm install`, `pnpm typecheck` and `pnpm examples` serve the index with a stub example.
+
 - [x] **6. Smoke project.** Write `examples/e2e/examples.e2e.ts`, which loops over `readCatalog()`. For each non-pending entry it opens the example hosted, waits for ready, and asserts no errors. Pending entries are reported with `test.skip(true, 'pending: <task>')`.
   - Confirm it fails with no server.
   - Add the `examples` project (Pixel 7 and 780×270) and its `webServer` to `playwright.config.ts`.
@@ -96,6 +105,7 @@
 ## Task EX.2: move Emberwick and the placeholder to `games/`
 
 ### Files
+
 - **Move:**
   - `examples/base-2d` to `games/emberwick`;
   - `examples/placeholder` to `games/placeholder`.
@@ -109,6 +119,7 @@
   - Unchanged: package names, the demos' `@af-examples/base-2d` imports (resolved by name), `build:demos` (`./examples/*/*`).
 
 ### Steps
+
 - [x] **1. Pin the paths.** In `packages/ship/src/workflows.test.ts` and `turbo-inputs.test.ts`, expect `games/emberwick` and `games/placeholder` (and `games/*` in `pnpm-workspace.yaml`); in `tooling/release/src/release-list.test.ts`, expect the workspace walk to find `games/emberwick` and `games/placeholder`. Confirm the tests fail (folders missing, paths still `examples/…`).
 - [x] **2. Move and update.**
   - `git mv` both folders.
@@ -125,6 +136,7 @@
 ## Task EX.3: target examples, written first (EX-D2)
 
 ### Files (refined at `1206310`, stacked on EX.1)
+
 - **Create:**
   - `examples/core/core-basic-window.ts` (40 lines or fewer, DX.2's row in 02)
   - `examples/core/core-input-keys.ts`
@@ -136,10 +148,12 @@
   - `src/parity.ts`, `src/examples.parity.test.ts` and the pending fixture `src/fixtures/examples/core/core-later.ts` (`Golden:`).
 
 ### Interfaces
+
 - **Consumed (target API, not in this tree yet):** `defineGame` and `keys` from `@mcthaydt/automata-game` (DX.2, DX spec §3.1, §3.3); `rect({ w, h, color, anchor? })` and `sprite(url, { frames: { width, height } })` (DX.2b, PR #39, exact names and signatures), imported through `@mcthaydt/automata-game` as the DX spec §3.1 sample does, because `@mcthaydt/automata-render-pixi` is private and the catalog accepts only published packages' entries; `defineSystem(name, run)` and `definePlugin({ name, defs })` from `@mcthaydt/automata-sim` (DX.1, which DX.2 depends on); `z` from `zod` for command schemas.
 - **Produced:** the four examples; a `Pending:` line that may name several open tasks (`Pending: DX.2, DX.2b`); `GoldenEntry.pending`, so parity reports a pending golden example as skipped.
 
 ### Deviations recorded here
+
 - **`Pending:` takes a list.** An example that needs `defineGame` (DX.2) and `rect` or `sprite` (DX.2b) names both. DX.2b can land first (it is parallel to DX.1, which DX.2 waits for); with one ID it would either be unblocked too early or not name DX.2b at all. Each ID must be an open task; when one is ticked the catalog asks to remove that ID. The smoke and parity skip reasons print the list.
 - **`zod` is a public import.** Commands take a Zod schema (`defineCommand(id, z.object(…))`; Zod is AF's only schema language), and no core package re-exports `z`. Once the umbrella exists (PRODUCT.2), EX.6 decides whether it re-exports `z`.
 - **A pending example may import a package that does not exist yet.** `@mcthaydt/automata-game` is DX.2's new package. The catalog accepts an `@mcthaydt/automata-*` import of a package missing from `packages/` only while the example is pending; a non-pending one still fails, and a package that exists must still declare the entry.
@@ -147,6 +161,7 @@
 - **Spec sketch verbs not adopted:** the EX spec §3 sketch writes `u.f32`, `commands(Move)` and a plugin `setup`, which no task defines. The examples use the sim's field types (`'f32'`), `ctx.commands.of(Move)` and `GameSpec.sim.setup` (DX spec §3.1).
 
 ### Steps
+
 - [x] **1. Catalog: a list of pending tasks.** In `catalog.test.ts`, `core/core-both.ts` (`Pending: OPEN.1, OPEN.2`) is accepted; `core/core-both-done.ts` (`Pending: OPEN.1, DONE.1`) fails with `Pending: DONE.1 is ticked in the delivery plan; remove it from the Pending line`. Confirm they fail (`OPEN.1, OPEN.2 is not a task`), implement, confirm green.
 - [x] **2. Catalog: imports a pending example may use.** `core/core-schema.ts` imports `zod` and is accepted; `core/core-future.ts` (pending) imports `@mcthaydt/automata-future` and is accepted; `core/core-future-ready.ts` (not pending) importing it fails with `is not a public entry`. Confirm the first two fail (`not a public entry`), implement, confirm green.
 - [x] **3. Parity lists pending examples.** In `examples.parity.test.ts`, the fixtures' golden entries are `core-stub` and `core-later` (pending `OPEN.1`, given `Golden: 60`), and a pending entry's test is skipped with `pending: <tasks>`. Confirm it fails (`core-later` missing), implement, confirm green in Node.
@@ -155,11 +170,12 @@
   - catalog: `core/core-basic-window.ts: import "@mcthaydt/automata-game" is not a public entry`, and the same for `shapes/shapes-rects.ts`;
   - `pnpm --filter @af-examples/examples typecheck`: `TS2307: Cannot find module '@mcthaydt/automata-game'` in both, `TS2307` for `@mcthaydt/automata-sim` (the examples package does not depend on it yet) and two `TS7006` implicit `any`s that follow from them.
   - The plan expected the missing verb to be named; it can't be, because the package that will export `defineGame`, `rect` and `sprite` does not exist yet, so the missing module is the red.
-- [ ] **6.** In the DX.2 and DX.2b PRs, not here: remove each landed task from `Pending:`, add the examples' dependencies (`@mcthaydt/automata-game`, `@mcthaydt/automata-sim`, `zod`) to `examples/package.json`, record each `Golden:` replay, and get smoke and parity green. This step is ticked when they merge. *Done on DX.2's branch `claude/clever-pasteur-ujmu6e-dx2` (`5a67d48`; DX.2b merged into it). `Pending:` lines are removed. The examples package depends on `@mcthaydt/automata-game`, `@mcthaydt/automata-sim`, `zod`, `pixi.js` and `svelte`. The runner starts pages with `@mcthaydt/automata-game`. Each page has `<main id="game">`. The smoke opens each example under its own id, because the fake host refuses any other game id; the shared `af-examples` manifest only sets headers. The three goldens were recorded once in Node and match in Chromium, WebKit and Firefox. Smoke is green in `examples` and `examples-compact`. Left unticked until that PR merges.*
+- [x] **6.** In the DX.2 and DX.2b PRs, not here: remove each landed task from `Pending:`, add the examples' dependencies (`@mcthaydt/automata-game`, `@mcthaydt/automata-sim`, `zod`) to `examples/package.json`, record each `Golden:` replay, and get smoke and parity green. This step is ticked when they merge. *Done on DX.2's branch `claude/clever-pasteur-ujmu6e-dx2` (`5a67d48`; DX.2b merged into it). `Pending:` lines are removed. The examples package depends on `@mcthaydt/automata-game`, `@mcthaydt/automata-sim`, `zod`, `pixi.js` and `svelte`. The runner starts pages with `@mcthaydt/automata-game`. Each page has `<main id="game">`. The smoke opens each example under its own id, because the fake host refuses any other game id; the shared `af-examples` manifest only sets headers. The three goldens were recorded once in Node and match in Chromium, WebKit and Firefox. Smoke is green in `examples` and `examples-compact`. DX.2 merged as #62 (`6664a6f`, 2026-10-17).*
 
 ## Task EX.4: port the existing demos (after DX.2 and DX.2b)
 
 Do the same three steps for each row of spec §6, one PR per demo, owned by its lane.
+
 - [ ] **runtime/boot-and-flow**
 - [ ] **render-pixi/renderer-2d**
 - [ ] **host/lifecycle-and-saves**
@@ -168,20 +184,54 @@ Do the same three steps for each row of spec §6, one PR per demo, owned by its 
 - [ ] **physics/bodies-2d** (into `automata-plus` with PRODUCT.5)
 
 Per demo:
+
 1. **Move the behavior tests.** Write the listed behavior tests in the owning package. They must pass there; where a test passes on its first run, note it as a regression pin.
 2. **Add the one-file example.** Write it within the 100-line budget. Smoke must be green; if the old demo had a golden, the hash must be identical (`ad621eea6325a8db` for bodies, from `examples/physics/bodies-2d/golden.ts`).
 3. **Delete the old demo.** `git rm` the folder, then run `pnpm check`, `pnpm test:parity` and `pnpm test:e2e`.
 
 ## Task EX.5: index page
 
-- [ ] **1.** Write a Playwright test: the index lists every catalog entry under its module, shows the source beside the running frame, and lists pending examples as pending. Confirm it fails.
-- [ ] **2.** Implement the index in `tooling/examples-runner`, then confirm the test passes at Pixel 7 and 780×270. Screenshots go to `evidence/` for Owner approval and are never auto-promoted.
-- [ ] **3.** Delete `examples/gallery`, whose list and header test are replaced by the catalog.
+### Files (refined at `59aa93d`, stacked on EX.3)
+
+- **Create** in `tooling/examples-runner/`:
+  - `e2e/index.e2e.ts`: the index and the viewer over the runner's fixtures (`core-stub` runs, `core-later` is pending), in the `examples` (Pixel 7) and `examples-compact` (780 × 270) projects; screenshots to `evidence/examples-index/` (git-ignored, never promoted without the Owner);
+  - `src/fixtures/catalog/core/core-good.png` and `src/fixtures/catalog/screenshots-approved.json` (test data approving one fixture shot; not an Owner record).
+- **Modify** in `tooling/examples-runner/`:
+  - `src/catalog.ts` + `catalog.test.ts`: an entry carries `screenshot` when its shot is approved;
+  - `src/page-template.ts`: `indexPage` groups entries in `section[data-module]`, shows the approved screenshot, a **View** link (fake host with source) for each runnable entry, a **Source** link for every entry, and the pending label; `sourcePage` renders one example's source;
+  - `src/vite-plugin.ts` + `vite-plugin.test.ts`: serves and builds `/<module>/<name>/source/` for every entry, pending ones included;
+  - `host/host.ts`, `host/index.html`: a `source=<url>` query parameter adds a second frame with the source beside the game (side by side when the page is wider than tall, stacked otherwise);
+  - `host/ports.ts`: `HostedOptions.source`;
+  - `src/smoke.ts`: the index test checks every entry sits under its module and pending ones say so;
+  - `src/cli.ts`: `pnpm examples` also serves the fake host, so the index's View links work in dev.
+- **Delete:** `examples/gallery/` (`git rm`, then `pnpm install` drops its importer). **Modify** `examples/README.md` and the `pnpm-workspace.yaml` comment.
+
+### Interfaces
+
+- **Consumed:** `readCatalog`, `hostedUrl`, `openHosted`/`collectErrors`, `previewHeaders` (EX.1).
+- **Produced:** `CatalogEntry.screenshot`, `indexPage(entries, hostOrigin)`, `sourcePage(entry, source)`, the host's `source=` parameter (`HostedOptions.source`).
+
+### Deviations recorded here
+
+- **The viewer is the fake host's page.** Example pages carry Ruken's headers: `frame-ancestors <host origin>` (every ancestor must match) and `frame-src 'none'`. A viewer page on the examples origin would put that origin among the game's ancestors, so the game's headers would have to change. Instead the host page, given `source=`, frames the game and the example's source page side by side; both frames keep exactly Ruken's headers.
+- **View links are made absolute in the browser.** The host needs absolute `game` and `source` URLs and a static build does not know its origin, so the index's one module script (served from `'self'`) resolves them against `location`.
+- **Every entry gets a source page, pending ones too.** It is static text and runs nothing, so a reader sees the target API an example waits for.
+- **Gallery coverage.** `gallery.test.ts` checked that each old demo folder was listed and had a header; those folders go in EX.4 and keep their smoke in the `demos` project. The catalog test covers every one-file example.
+
+### Steps
+
+- [x] **1. Red.** Confirmed: the catalog test failed on `expected undefined to be 'core/core-good.png'`; the plugin tests on the missing `<img>` and `data-module`, a 404 for `/core/stub/source/` and the build inputs `[ 'core-stub', 'index' ]`; the e2e tests (both projects) on `section[data-module="core"] [data-example="core-later"]` not found and no View link to click. The pre-commit hook runs the affected unit tests, so the red tests landed with step 2's change.
+  - `catalog.test.ts`: `core/core-good.ts` carries `screenshot: 'core/core-good.png'`; `core/core-shot.ts` carries none. Fails: no `screenshot` field.
+  - `vite-plugin.test.ts`: `/core/stub/source/` and `/core/later/source/` serve the escaped source with Ruken's CSP and no script; the build inputs add `core-stub-source` and `core-later-source`; the index links `core-stub`'s View and both Source pages, and shows an approved screenshot. Fails: 404s and missing links.
+  - `e2e/index.e2e.ts` and the smoke index test: each entry is under `section[data-module=<module>]`; `core-later` says `pending: OPEN.1` and has no View link; `core-stub`'s View opens the fake host with the example ready in one frame and its source (equal to the file) in the other, the two frames not overlapping and inside the viewport (side by side at 780 × 270, stacked at Pixel 7); no console errors. Fails: no `data-module`, no View link.
+- [x] **2. Green.** Implement the files above; the unit tests and both e2e projects pass. Screenshots of the index and the viewer at both sizes go to `evidence/examples-index/` for Owner approval. Done: catalog and plugin tests 27/27; `examples` and `examples-compact` 10 passed, 10 skipped (the pending examples); `pnpm examples` serves the index, the source pages and the fake host (`127.0.0.1:<server port + 500>`).
+- [x] **3. Delete `examples/gallery`.** `git rm`, `pnpm install`, update `examples/README.md` and the workspace comment; `pnpm check`, `pnpm test:parity` and `pnpm test:e2e`.
 
 ## Execution log
 
-| Date | Task | Commits | Notes |
-|---|---|---|---|
-| 2026-10-16 | EX.2 | `d81fa9b` (file list), `6d8e5c7` (move) on `claude/clever-pasteur-ujmu6e-ex2` | Red first: ship's workflow and turbo-input tests and release's workspace walk failed on the missing `games/`. Green after the move. `pnpm check` 26/26 + 22/22 turbo tasks (1,660 unit tests passed, 4 skipped; 35 of 48 tasks replayed from turbo's cache on identical inputs); `pnpm test:parity` 9/9 tasks, none cached (590 tests; Emberwick's golden `31f50888ccb4cf0a` green in Chromium, WebKit and Firefox, and its Node golden test 3/3); `pnpm test:e2e` 46/46 (placeholder 3, base-2d 9, base-2d-compact 9, ui-primitives 5, demos 20; ports 4620/4720); `build` + `prepare-ruken` for both games and the placeholder's `budget:size` (S8 budgets met). `pnpm lint:actions` not run: no Docker daemon in the container. |
-| 2026-10-16 | EX.1 | `cd54e67` (file list), `c32b1cc` (header, catalog), `d4254cf` (`--inline`), `363f787` (plugin, pages, host move), `7c7906e` (examples package), `d37ce3a` (smoke), `533b481` (parity), `d8c8d5a` (CI) on `claude/clever-pasteur-ujmu6e-ex1`, stacked on EX.2 | Red first at each step: `parseHeader`/`readCatalog`/`typecheckConfig`/plugin modules missing; inline tests reported the file-level import and walked `node_modules`; smoke `ERR_CONNECTION_REFUSED` before its servers; parity `core-stub.replay is missing`; ship's workflow test missing `pnpm build:examples` in `ci.yml`. Stub replay recorded once in Node (`AUTOMATA_UPDATE_GOLDENS=1`). Gates in 02's execution record. `pnpm lint:actions` not run: no Docker daemon. |
-| 2026-10-16 | EX.3 | `50b1f47` (file list), `0267857` (`Pending:` list), `7e2f663` (imports), `31f07ac` (parity pending), `9d838bb` (examples), `856ebcf` (red recorded) on `claude/clever-pasteur-ujmu6e-ex3`, stacked on EX.1 | Committed red: the four examples are pending in the catalog, smoke, parity and typecheck. Rulings: `Pending:` takes a list; `zod` is a public import; a pending example may import a package its task adds; `rect`/`sprite` come through `@mcthaydt/automata-game` because `render-pixi` is private. The plan expected the red to name the missing verb; it names the missing module. Gates in 02's execution record. |
+| Date       | Task | Commits                                                                                                                                                                                                                                                      | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-16 | EX.2 | `d81fa9b` (file list), `6d8e5c7` (move) on `claude/clever-pasteur-ujmu6e-ex2`                                                                                                                                                                                | Red first: ship's workflow and turbo-input tests and release's workspace walk failed on the missing `games/`. Green after the move. `pnpm check` 26/26 + 22/22 turbo tasks (1,660 unit tests passed, 4 skipped; 35 of 48 tasks replayed from turbo's cache on identical inputs); `pnpm test:parity` 9/9 tasks, none cached (590 tests; Emberwick's golden `31f50888ccb4cf0a` green in Chromium, WebKit and Firefox, and its Node golden test 3/3); `pnpm test:e2e` 46/46 (placeholder 3, base-2d 9, base-2d-compact 9, ui-primitives 5, demos 20; ports 4620/4720); `build` + `prepare-ruken` for both games and the placeholder's `budget:size` (S8 budgets met). `pnpm lint:actions` not run: no Docker daemon in the container. |
+| 2026-10-16 | EX.1 | `cd54e67` (file list), `c32b1cc` (header, catalog), `d4254cf` (`--inline`), `363f787` (plugin, pages, host move), `7c7906e` (examples package), `d37ce3a` (smoke), `533b481` (parity), `d8c8d5a` (CI) on `claude/clever-pasteur-ujmu6e-ex1`, stacked on EX.2 | Red first at each step: `parseHeader`/`readCatalog`/`typecheckConfig`/plugin modules missing; inline tests reported the file-level import and walked `node_modules`; smoke `ERR_CONNECTION_REFUSED` before its servers; parity `core-stub.replay is missing`; ship's workflow test missing `pnpm build:examples` in `ci.yml`. Stub replay recorded once in Node (`AUTOMATA_UPDATE_GOLDENS=1`). Gates in 02's execution record. `pnpm lint:actions` not run: no Docker daemon.                                                                                                                                                                                                                                                      |
+| 2026-10-16 | EX.3 | `50b1f47` (file list), `0267857` (`Pending:` list), `7e2f663` (imports), `31f07ac` (parity pending), `9d838bb` (examples), `856ebcf` (red recorded) on `claude/clever-pasteur-ujmu6e-ex3`, stacked on EX.1                                                   | Committed red: the four examples are pending in the catalog, smoke, parity and typecheck. Rulings: `Pending:` takes a list; `zod` is a public import; a pending example may import a package its task adds; `rect`/`sprite` come through `@mcthaydt/automata-game` because `render-pixi` is private. The plan expected the red to name the missing verb; it names the missing module. Gates in 02's execution record.                                                                                                                                                                                                                                                                                                              |
+| 2026-10-16 | EX.5 | `f1cde05` (file list), `cc8561b` (index, View, Source, host `source=`), `b02d969` (gallery deleted) on `claude/clever-pasteur-ujmu6e-ex5`, stacked on EX.3 | Red first (catalog, plugin and e2e, step 1). Rulings: the viewer is the fake host's page with a second frame, because example pages carry Ruken's `frame-ancestors <host>` and `frame-src 'none'` and a viewer on the examples origin would change them; View links are made absolute by the index's one module script; every entry, pending included, has a Source page; side by side when wider than tall, stacked otherwise; `pnpm examples` also serves the fake host so View works in dev; the gallery's old-demo header check goes with the demos in EX.4. Screenshots in `evidence/examples-index/`, not promoted. Gates in 02's execution record. |

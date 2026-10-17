@@ -47,6 +47,11 @@ describe('readCatalog', () => {
     })
   })
 
+  it('carries a screenshot only when it is approved', () => {
+    expect(entry('core/core-good.ts').screenshot).toBe('core/core-good.png')
+    expect(entry('core/core-shot.ts').screenshot).toBeUndefined()
+  })
+
   it('accepts a pending example whose task is still open, and marks it pending', () => {
     expect(entry('core/core-waiting.ts')).toMatchObject({ problems: [], header: { pending: 'OPEN.1' } })
   })

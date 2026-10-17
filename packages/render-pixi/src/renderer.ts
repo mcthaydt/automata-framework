@@ -8,6 +8,11 @@ import type { StepResult } from '@mcthaydt/automata-sim'
 import { Effect, type Scope } from 'effect'
 import { Application, Container, type Filter, TextureSource } from 'pixi.js'
 import { type EntityViewResolver, RenderDeltaConsumer } from './delta/render-delta-consumer.js'
+import {
+  createPostFilterSlot,
+  type PostFilterSlot,
+  type PostFilterTarget,
+} from './filter/post-filter-slot.js'
 import { canvasResolutionFor } from './letterbox/canvas-resolution.js'
 import { LetterboxFrame } from './letterbox/letterbox.js'
 
@@ -65,8 +70,10 @@ export interface PixiStage {
   readonly backdrop: Container
   /** The delta consumer tracking entity views. */
   readonly consumer: RenderDeltaConsumer
-  /** Post-processing filters applied to the root rendered scene. */
+  /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
   filters: Filter[] | null
+  /** The post-filter slot over `filters`: each owner keeps its own filters by id and order (PRODUCT spec §2 F1). */
+  readonly postFilters: PostFilterSlot
 }
 
 export interface PixiRenderer extends GameRenderer {
@@ -175,13 +182,8 @@ export function createPixiRenderer(
 
       const consumer = new RenderDeltaConsumer(world, options.entityViews)
 
-      const stage: PixiStage = {
-        app,
-        frame,
-        world,
-        ui,
-        backdrop,
-        consumer,
+      // The rendered scene's filters: the letterboxed scene when there is a frame, else the whole stage.
+      const sceneFilters: PostFilterTarget = {
         get filters(): Filter[] | null {
           return (frame ? frame.scene.filters : app.stage.filters) as Filter[] | null
         },
@@ -192,6 +194,22 @@ export function createPixiRenderer(
             app.stage.filters = val
           }
         },
+      }
+
+      const stage: PixiStage = {
+        app,
+        frame,
+        world,
+        ui,
+        backdrop,
+        consumer,
+        get filters(): Filter[] | null {
+          return sceneFilters.filters
+        },
+        set filters(val: Filter[] | null) {
+          sceneFilters.filters = val
+        },
+        postFilters: createPostFilterSlot(sceneFilters),
       }
 
       const hooks: PixiStageHooks = options.setup?.(stage) ?? {}
