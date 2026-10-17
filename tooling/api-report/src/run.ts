@@ -1,6 +1,6 @@
 // One API report run (PRODUCT spec §2 F6): generate every core package's report from source, then either
 // write them (`update`) or check them: each committed report must equal the generated one, and every break
-// against the base branch's report must be declared by a changeset. The CLI supplies git and the files.
+// against the base branch's report in a published package must be declared by a changeset. The CLI supplies git and the files.
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { apiBreaks, describeBreak, undeclaredBreaks } from './breaks.ts'
@@ -53,7 +53,12 @@ export function runApiReport(options: RunOptions): RunResult {
 
   const breaks = options.baseReport === undefined ? [] : collectBreaks(generated, options.baseReport)
   const versions = Object.fromEntries(packages.map((pkg) => [pkg.name, pkg.version]))
-  const undeclared = undeclaredBreaks(breaks, options.changesets, versions)
+  // A private package is not published and check-changesets rejects a changeset that names it, so its breaks
+  // are listed for review in the report diff but need no declaration until the package publishes.
+  const privateNames = new Set(packages.filter((pkg) => pkg.private).map((pkg) => pkg.name))
+  const privateBreaks = breaks.filter((found) => privateNames.has(found.package))
+  const published = breaks.filter((found) => !privateNames.has(found.package))
+  const undeclared = undeclaredBreaks(published, options.changesets, versions)
 
   const report = [
     `${generated.size} core packages; ${breaks.length} API breaks against the base, ${undeclared.length} undeclared`,
@@ -64,6 +69,7 @@ export function runApiReport(options: RunOptions): RunResult {
       ...stale.sort(),
     )
   }
+  report.push(...privateBreaks.map((found) => `${describeBreak(found)} (private, so no changeset is needed)`))
   if (undeclared.length > 0) {
     report.push(
       'These API breaks are undeclared. Add a changeset for the package: before 1.0 a patch with a `BREAKING:` line, from 1.0 a major:',
