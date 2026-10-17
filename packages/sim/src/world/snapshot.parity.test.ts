@@ -1,8 +1,11 @@
+import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { expect, test } from 'vitest'
 import { Body, fixturePlugin, Tag } from '../testing/fixture-world'
 import { createSim } from './sim'
 
-test('a 300-tick run with churn, every field type and a mid-run restore hashes identically in every engine', async () => {
+test('a 300-tick run with churn, every field type and a mid-run restore hashes identically in every engine', async ({
+  task,
+}) => {
   const run = async (restoreAt?: number) => {
     let sim = await createSim({ seed: 2026, plugins: [fixturePlugin], content: { level: 'parity' } })
     for (let i = 0; i < 8; i++)
@@ -23,7 +26,7 @@ test('a 300-tick run with churn, every field type and a mid-run restore hashes i
           : [],
       )
     }
-    const out = { hash: sim.hash(), live: sim.query(Tag).length }
+    const out = { hash: sim.hash(), live: sim.query(Tag).length, seed: sim.seed, ticks: sim.tick }
     sim.dispose()
     return out
   }
@@ -32,6 +35,9 @@ test('a 300-tick run with churn, every field type and a mid-run restore hashes i
   expect(straight.live).toBeGreaterThan(100) // not vacuous
   expect(restored.hash).toBe(straight.hash)
   expect(straight.hash).toBe(SIM_EXPECTED)
+  // The hash this engine computed, for the evidence file (DX.9).
+  const { seed, ticks, hash } = straight
+  recordGoldenEvidence(task, { scenario: 'sim/snapshot-churn', seed, ticks, hash })
 })
 
 // Was 2dfe1971eaf6af8f until the schema hash covered resource, command and event schemas (M2.1 spec §10.4).

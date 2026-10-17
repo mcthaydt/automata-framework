@@ -1,0 +1,7 @@
+{
+  "name": "knip-fixture",
+  "private": true,
+  "type": "module",
+  "description": "QB.1 knip fixture: src/helpers.ts exports unusedHelper, which nothing imports, so knip must fail here.",
+  "exports": "./src/index.ts"
+}

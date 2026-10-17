@@ -1,0 +1,33 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test:unit": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/agents/**",
+        "$TURBO_ROOT$/.claude-plugin/**",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/.github/workflows/ci.yml",
+        "$TURBO_ROOT$/tooling/check-boundaries/src/**",
+        "$TURBO_ROOT$/packages/cli/src/check/**",
+        "$TURBO_ROOT$/packages/sim/src/**"
+      ]
+    },
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/agents/**",
+        "$TURBO_ROOT$/.claude-plugin/**",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/.github/workflows/ci.yml",
+        "$TURBO_ROOT$/tooling/check-boundaries/src/**",
+        "$TURBO_ROOT$/packages/cli/src/check/**",
+        "$TURBO_ROOT$/packages/sim/src/**"
+      ]
+    },
+    "typecheck": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/agents/**", "$TURBO_ROOT$/packages/sim/src/**"]
+    }
+  }
+}

@@ -53,6 +53,32 @@ describe('prepareBuild', () => {
     expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
   })
 
+  // QB-b: a planted key or an .env value fails prepare with the file and offset, and nothing is written.
+  it('stops on a planted sk_live_ key, naming the file and offset, writing nothing', () => {
+    const dir = dist()
+    const key = ['sk', 'live', '4eC39HqLyjWDarjtT1zdp7dc'].join('_')
+    writeFileSync(join(dir, 'assets/main.js'), `const k="${key}"`)
+    const error = failure(prepare({ distDir: dir, config }))
+    expect(error._tag).toBe('SecretInBuild')
+    const message = (error as unknown as { message: string }).message
+    expect(message).toContain('assets/main.js:1:10 (byte 9): stripe-access-token')
+    expect(message).not.toContain(key)
+    expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
+  })
+
+  it("stops on the value of a game's .env variable copied into the build", () => {
+    const game = mkdtempSync(join(tmpdir(), 'ship-prepare-game-'))
+    writeFileSync(join(game, '.env.local'), 'SERVER_SECRET=do-not-ship-this\n')
+    const dir = dist()
+    writeFileSync(join(dir, 'assets/main.js'), 'fetch("x",{headers:{a:"do-not-ship-this"}})')
+    const error = failure(prepare({ distDir: dir, gameDir: game, config }))
+    expect(error._tag).toBe('SecretInBuild')
+    expect((error as unknown as { message: string }).message).toContain(
+      'assets/main.js:1:24 (byte 23): env-value: the value of SERVER_SECRET from .env.local',
+    )
+    expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
+  })
+
   it('stops on a manifest Ruken refuses, writing nothing', () => {
     const dir = dist()
     const bad = { ...config, content: { ...config.content, languages: ['fr'] } }

@@ -42,7 +42,7 @@ const JSON_FILE = /\.(?:json|webmanifest)$/i
  * Every file under `dir`, in name order, following symlinked folders once each (a link back up would loop
  * forever). A dangling symlink points at nothing a browser could load, so it is skipped.
  */
-function walk(dir: string, seen = new Set<string>()): string[] {
+export function walk(dir: string, seen: Set<string> = new Set<string>()): string[] {
   const real = realpathSync(dir)
   if (seen.has(real)) return []
   seen.add(real)

@@ -1,17 +1,27 @@
 import { defineConfig, devices } from '@playwright/test'
-import * as base2d from './examples/base-2d/e2e/origins.ts'
 import * as contentDemo from './examples/content/hot-reload/e2e/origin.ts'
-import { demoHostOrigin, demoHostPort } from './examples/demo-host/ports.ts'
 import * as hostDemo from './examples/host/lifecycle-and-saves/e2e/origin.ts'
 import * as physicsDemo from './examples/physics/bodies-2d/e2e/origin.ts'
-import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './examples/placeholder/e2e/origins.ts'
 import * as rendererDemo from './examples/render-pixi/renderer-2d/e2e/origin.ts'
 import * as runtimeDemo from './examples/runtime/boot-and-flow/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
+import * as base2d from './games/emberwick/e2e/origins.ts'
+import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './games/placeholder/e2e/origins.ts'
+import {
+  demoHostOrigin,
+  demoHostPort,
+  examplesPort,
+  runnerFixturesPort,
+} from './tooling/examples-runner/host/ports.ts'
+import { selectRun } from './tooling/frame-budget/src/playwright-run.ts'
 
 // Browser journeys for every AF example (ship spec §3.7): `pnpm test:e2e [playwright args]`. CI runs them
 // nightly and on request (`automata-ship test-remote <spec>`). Each example adds a project and the servers it
 // needs. Playwright exits non-zero when no test matches, so a journey run that selects nothing is red.
+//
+// `AF_FRAME_BUDGET=1` (`pnpm test:frame-budget`) swaps every journey for the frame-budget projects alone
+// (tooling/frame-budget, PRODUCT.7): a performance probe needs the GPU to itself, so it never runs inside the
+// default selection and the journeys never run beside it.
 
 const ports = {
   AF_E2E_PREVIEW_PORT: String(gamePort),
@@ -24,7 +34,9 @@ const base2dPorts = {
   AF_E2E_GAME_PATH: base2d.gameBuildPath,
 }
 
-export default defineConfig({
+const EXAMPLES_SMOKE = ['examples/e2e/*.e2e.ts', 'tooling/examples-runner/e2e/*.e2e.ts']
+
+const journeys = defineConfig({
   testMatch: '**/*.e2e.ts',
   forbidOnly: process.env.CI !== undefined,
   retries: 0,
@@ -32,16 +44,25 @@ export default defineConfig({
   use: { trace: 'retain-on-failure' },
   projects: [
     // Phone first (AGENTS.md, Responsive UI).
-    { name: 'placeholder', testDir: 'examples/placeholder/e2e', use: { ...devices['Pixel 7'] } },
-    { name: 'base-2d', testDir: 'examples/base-2d/e2e', use: { ...devices['Pixel 7'] } },
+    { name: 'placeholder', testDir: 'games/placeholder/e2e', use: { ...devices['Pixel 7'] } },
+    { name: 'base-2d', testDir: 'games/emberwick/e2e', use: { ...devices['Pixel 7'] } },
     // A landscape phone at the compact height every layout must hold (780 × 270, AGENTS.md).
     {
       name: 'base-2d-compact',
-      testDir: 'examples/base-2d/e2e',
+      testDir: 'games/emberwick/e2e',
       use: { ...devices['Pixel 7 landscape'], viewport: { width: 780, height: 270 } },
     },
     { name: 'ui-primitives', testDir: 'examples/ui/primitives/e2e', use: { ...devices['Pixel 7'] } },
-    // The feature demos on base-2d, each under the shared fake host (examples/demo-host).
+    // The one-file examples (EX spec §5) and the runner's own stub example, each under the fake host: a phone,
+    // then the compact landscape height.
+    { name: 'examples', testDir: '.', testMatch: EXAMPLES_SMOKE, use: { ...devices['Pixel 7'] } },
+    {
+      name: 'examples-compact',
+      testDir: '.',
+      testMatch: EXAMPLES_SMOKE,
+      use: { ...devices['Pixel 7 landscape'], viewport: { width: 780, height: 270 } },
+    },
+    // The feature demos on base-2d, each under the shared fake host (tooling/examples-runner/host).
     {
       name: 'demos',
       testDir: 'examples',
@@ -86,9 +107,21 @@ export default defineConfig({
       reuseExistingServer: process.env.CI === undefined,
     },
     {
-      command: 'pnpm --filter @af-examples/demo-host e2e:host',
+      command: 'pnpm --filter @mcthaydt/examples-runner e2e:host',
       url: `${demoHostOrigin}/`,
       env: { AF_E2E_DEMO_HOST_PORT: String(demoHostPort) },
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      command: 'pnpm --filter @af-examples/examples e2e:examples',
+      url: `http://localhost:${examplesPort}/`,
+      env: { AF_E2E_EXAMPLES_PORT: String(examplesPort) },
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      command: 'pnpm --filter @mcthaydt/examples-runner e2e:fixtures',
+      url: `http://localhost:${runnerFixturesPort}/`,
+      env: { AF_E2E_EXAMPLES_PORT: String(runnerFixturesPort) },
       reuseExistingServer: process.env.CI === undefined,
     },
     {
@@ -130,3 +163,5 @@ export default defineConfig({
     },
   ],
 })
+
+export default selectRun(process.env, journeys)

@@ -17,6 +17,11 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'jsdom',
+          // Compiles the Paraglide fixture once, in Node (src/locale/testing/global-setup.ts).
+          globalSetup: ['src/locale/testing/global-setup.ts'],
+          // The fixture lives under node_modules/.cache; transform all of it through Vite, so its messages and
+          // its runtime are one module graph and overwriteGetLocale reaches the messages (live bindings).
+          server: { deps: { inline: [/af-paraglide-fixture/] } },
           include: ['src/**/*.test.ts'],
           exclude: ['src/**/*.bench.test.ts'],
         },

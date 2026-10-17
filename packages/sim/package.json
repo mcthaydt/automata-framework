@@ -45,6 +45,7 @@
     "test:unit": "vitest run --project node",
     "typecheck": "tsc -p .",
     "test:parity": "vitest run --project browsers",
+    "test:evidence": "vitest run --project node --project browsers src/world/snapshot.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "build": "tsdown"
   },
   "dependencies": {
@@ -52,6 +53,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@mcthaydt/evidence": "workspace:*",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",
     "vitest": "5.0.3"

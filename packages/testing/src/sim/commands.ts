@@ -34,18 +34,31 @@ async function checkGoldenPath(root: string, path: string): Promise<string | nul
   return real
 }
 
-const readGolden: BrowserCommand<[path: string], Promise<string | null>> = async (ctx, path) => {
-  const file = await checkGoldenPath(ctx.project.config.root, path)
-  if (file === null) return null
-  const { readFile } = await import('node:fs/promises')
-  try {
-    return (await readFile(file)).toString('base64')
-  } catch (err) {
-    if (isMissing(err)) return null
-    throw err
+const readGoldenUnder =
+  (root: string | undefined): BrowserCommand<[path: string], Promise<string | null>> =>
+  async (ctx, path) => {
+    const file = await checkGoldenPath(root ?? ctx.project.config.root, path)
+    if (file === null) return null
+    const { readFile } = await import('node:fs/promises')
+    try {
+      return (await readFile(file)).toString('base64')
+    } catch (err) {
+      if (isMissing(err)) return null
+      throw err
+    }
   }
+
+/** Options for {@link goldenCommands}. */
+export interface GoldenCommandsOptions {
+  /**
+   * The folder golden files must be inside; defaults to the Vitest project's root. A package whose goldens sit
+   * beside it rather than under it names an absolute folder holding both.
+   */
+  readonly root?: string
 }
 
-export function goldenCommands(): Record<string, BrowserCommand<[path: string], Promise<string | null>>> {
-  return { readGolden }
+export function goldenCommands(
+  options: GoldenCommandsOptions = {},
+): Record<string, BrowserCommand<[path: string], Promise<string | null>>> {
+  return { readGolden: readGoldenUnder(options.root) }
 }

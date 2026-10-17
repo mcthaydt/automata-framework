@@ -100,13 +100,38 @@ export interface SystemDef {
   readonly run: (ctx: SimContext) => void
 }
 
-export function defineSystem(spec: {
+/** The object form of `defineSystem`: a name, a phase, the optional `before`/`after` ordering and the run. */
+export interface SystemSpec {
   name: string
   phase: Phase
   before?: readonly string[]
   after?: readonly string[]
   run: (ctx: SimContext) => void
-}): SystemDef {
+}
+
+/**
+ * A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the
+ * object form also takes `before`/`after`. All three build the same SystemDef (DX spec §3.2).
+ */
+export function defineSystem(name: string, run: (ctx: SimContext) => void): SystemDef
+export function defineSystem(name: string, phase: Phase, run: (ctx: SimContext) => void): SystemDef
+export function defineSystem(spec: SystemSpec): SystemDef
+export function defineSystem(
+  nameOrSpec: string | SystemSpec,
+  phaseOrRun?: Phase | ((ctx: SimContext) => void),
+  run?: (ctx: SimContext) => void,
+): SystemDef {
+  if (typeof nameOrSpec !== 'string') return defineSystemFrom(nameOrSpec)
+  if (typeof phaseOrRun === 'function')
+    return defineSystemFrom({ name: nameOrSpec, phase: 'gameplay', run: phaseOrRun })
+  return defineSystemFrom({
+    name: nameOrSpec,
+    phase: phaseOrRun as Phase,
+    run: run as (ctx: SimContext) => void,
+  })
+}
+
+function defineSystemFrom(spec: SystemSpec): SystemDef {
   checkId('system', spec.name)
   if (!PHASES.includes(spec.phase)) throw new Error(`system "${spec.name}" has unknown phase "${spec.phase}"`)
   return {
@@ -168,9 +193,14 @@ export interface PluginDef {
   readonly config: unknown
 }
 
+/** Anything `definePlugin`'s flat `defs` list takes (DX spec §3.2). */
+export type Def = ComponentDef | CommandDef | EventDef | ResourceDef | SystemDef
+
 export function definePlugin(spec: {
   name: string
   dependsOn?: readonly string[]
+  /** One flat list, sorted into the keyed lists by `kind`; each entry follows that list's keyed entries. */
+  defs?: readonly Def[]
   components?: readonly ComponentDef[]
   commands?: readonly CommandDef[]
   events?: readonly EventDef[]
@@ -183,15 +213,33 @@ export function definePlugin(spec: {
   // A canonical, frozen copy: it throws CanonicalJsonError for anything that cannot hash exactly, and nobody
   // can change it after it joins the schema hash.
   const config = spec.config === undefined ? undefined : deepFreeze(JSON.parse(canonicalJson(spec.config)))
+  // Keyed entries first, then `defs` in order, so a plugin written either way registers the same lists in the
+  // same order and gets the same schema hash. Duplicates are left for createSim to reject, as they are today.
+  const components = [...(spec.components ?? [])]
+  const commands = [...(spec.commands ?? [])]
+  const events = [...(spec.events ?? [])]
+  const resources = [...(spec.resources ?? [])]
+  const systems = [...(spec.systems ?? [])]
+  for (const def of spec.defs ?? []) {
+    if (def.kind === 'component') components.push(def)
+    else if (def.kind === 'command') commands.push(def)
+    else if (def.kind === 'event') events.push(def)
+    else if (def.kind === 'resource') resources.push(def)
+    else if (def.kind === 'system') systems.push(def)
+    else
+      throw new Error(
+        `plugin "${spec.name}" defs has an entry of unknown kind "${(def as { kind: unknown }).kind}"`,
+      )
+  }
   return {
     kind: 'plugin',
     name: spec.name,
     dependsOn: spec.dependsOn ?? [],
-    components: spec.components ?? [],
-    commands: spec.commands ?? [],
-    events: spec.events ?? [],
-    resources: spec.resources ?? [],
-    systems: spec.systems ?? [],
+    components,
+    commands,
+    events,
+    resources,
+    systems,
     state: spec.state,
     config,
   }

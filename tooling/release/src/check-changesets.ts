@@ -11,6 +11,29 @@ import { publishablePackages } from './publishable-packages.ts'
 const FRONT_MATTER = /^---\r?\n([\s\S]*?)^---\s*$/m
 const RELEASE_LINE = /^\s*(['"]?)(@?[\w./-]+)\1\s*:\s*(\w+)\s*$/
 
+/** One release line of a changeset's front matter. */
+export interface ChangesetRelease {
+  readonly name: string
+  readonly bump: string
+}
+
+/**
+ * A changeset's release lines and the text after its front matter; undefined without front matter. Lines it
+ * cannot read are skipped here (`changesetProblems` reports them). tooling/api-report reads breaks from it.
+ */
+export function readChangeset(
+  text: string,
+): { readonly releases: ChangesetRelease[]; readonly body: string } | undefined {
+  const match = FRONT_MATTER.exec(text)
+  if (match?.[1] === undefined) return undefined
+  const releases: ChangesetRelease[] = []
+  for (const line of match[1].split(/\r?\n/)) {
+    const release = RELEASE_LINE.exec(line)
+    if (release !== null) releases.push({ name: release[2] ?? '', bump: release[3] ?? '' })
+  }
+  return { releases, body: text.slice(match.index + match[0].length) }
+}
+
 /** Problems in the given changeset files (name to contents), one line each; empty means all is well. */
 export function changesetProblems(
   files: Readonly<Record<string, string>>,
