@@ -87,7 +87,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red (`renderer.test.ts`): `tryFilter('bad', () => { throw … })` returns `undefined`, logs one warning and publishes `render.filter.dropped` with `{ id: 'bad' }` on the target's bus. The frame still draws.
    - Red (`render-quality.parity.test.ts`, the browsers project, WebGL2 in Chromium, WebKit and Firefox): a filter whose GLSL does not compile is dropped by `tryFilter`, and a frame then renders without throwing.
    - The parity test also establishes how Pixi reports a compile failure: as a throw, or as a log with an unusable program. `tryFilter` compiles eagerly by rendering a 1 × 1 probe through the filter inside the try.
-10. [ ] **Example and verification.**
+10. [ ] **Example and verification.** The example is `examples/render/render-quality.ts`; catalog and typecheck pass, 23 of 23. Deviation: it shows the tier through the canvas resolution, read out on its HUD, and does not register a `minTier` filter. A core example may import neither `pixi.js` nor the private `render-pixi`, and building filters belongs to the Plus `post` module. The `minTier` half of Q-a is proved by `post-filter-slot.test.ts` and `renderer.test.ts`. The changeset is empty (`m4-9-quality-tiers.md`), because runtime and render-pixi are private.
     - The example `examples/render/render-quality.ts`, with its header, inside the catalog's budget.
     - Its catalog check and its smoke in the `examples` projects.
     - A changeset: patch, for render-pixi and runtime only if published; `check-changesets` decides.
