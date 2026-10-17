@@ -27,6 +27,18 @@ export type SubBus = Exclude<AudioBusName, 'master'>
 /** How long a level change glides, so a slider never clicks (FloorFifty `model.ts`). */
 export const LEVEL_GLIDE_SECONDS = 0.01
 
+/** How fast a duck goes down (FloorFifty `model.ts`): quick enough to clear room for what ducked it. */
+export const DUCK_ATTACK_SECONDS = 0.012
+
+/** How long a duck takes to come back up (FloorFifty `model.ts`, 260 ms). */
+export const DUCK_RELEASE_SECONDS = 0.26
+
+interface Duck {
+  readonly level: number
+  readonly from: number
+  readonly until: number
+}
+
 const SUB_BUSES = AUDIO_BUS_NAMES.filter((bus): bus is SubBus => bus !== 'master')
 
 const unit = (value: number) => Math.min(1, Math.max(0, value))
@@ -49,6 +61,8 @@ export class AudioGraph {
   private unfocused = false
   /** Whether `sleep` suspended the graph, so `wake` knows it may resume it. */
   private asleep = false
+  /** The ducks in force per bus, on the graph's clock. */
+  private readonly ducks = new Map<SubBus, Duck[]>()
 
   /**
    * Builds the graph, once. Returns whether it built. Safe to call on every gesture: a context already built is
@@ -108,6 +122,47 @@ export class AudioGraph {
     this.applyMaster()
   }
 
+  /**
+   * Takes `bus` down by `amount` (0..1) for `seconds` from now, then back up; `master` ducks every bus. The deepest
+   * duck in force holds, so a short deep duck inside a long shallow one comes back to the shallow one, not to full.
+   */
+  duck(bus: AudioBusName, amount: number, seconds: number): void {
+    const now = this.context?.currentTime
+    if (now === undefined) return
+    const duck = { level: 1 - unit(amount), from: now, until: now + Math.max(0, seconds) }
+    for (const each of bus === 'master' ? SUB_BUSES : [bus]) {
+      const before = levelAt(this.ducks.get(each) ?? [], now)
+      const inForce = (this.ducks.get(each) ?? []).filter((held) => held.until > now)
+      inForce.push(duck)
+      this.ducks.set(each, inForce)
+      this.scheduleDucks(each, before)
+    }
+  }
+
+  /**
+   * Writes the ducks in force onto `bus`'s duck gain, whole from now, starting from `previous`, the level it holds
+   * now (FloorFifty `deck.ts` `scheduleDucks`): each boundary is a glide to the level in force just after it, fast
+   * going down and at the release coming back up.
+   */
+  private scheduleDucks(bus: SubBus, previous: number): void {
+    const param = this.buses.get(bus)?.duck.gain
+    const now = this.context?.currentTime
+    if (param === undefined || now === undefined) return
+    const ducks = this.ducks.get(bus) ?? []
+    param.cancelScheduledValues(now)
+    const boundaries = [...new Set([now, ...ducks.flatMap((held) => [held.from, held.until])])]
+      .filter((time) => time >= now)
+      .sort((a, b) => a - b)
+    let level = previous
+    for (const time of boundaries) {
+      const next = levelAt(ducks, time)
+      if (next === level) continue
+      // A time constant is a third of the way there; a fifth of the release lands within a percent of it.
+      param.setTargetAtTime(next, time, next < level ? DUCK_ATTACK_SECONDS : DUCK_RELEASE_SECONDS / 4.6)
+      level = next
+    }
+  }
+
   /** Resumes the graph unless it is already running. */
   async resumeUnlessRunning(): Promise<void> {
     if (this.context === undefined) return
@@ -159,4 +214,11 @@ export class AudioGraph {
     if (node === undefined || this.context === undefined) return
     node.gain.setTargetAtTime(value, this.context.currentTime, LEVEL_GLIDE_SECONDS)
   }
+}
+
+/** The level the deepest duck in force at `time` holds a bus at; 1 with none. */
+function levelAt(ducks: readonly Duck[], time: number): number {
+  let level = 1
+  for (const held of ducks) if (held.from <= time && time < held.until) level = Math.min(level, held.level)
+  return level
 }

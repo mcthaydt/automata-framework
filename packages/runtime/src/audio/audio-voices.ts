@@ -77,11 +77,18 @@ export class Voices {
 
   private cut(voice: { readonly source: AudioBufferSourceNode; readonly level: GainNode }): void {
     this.voices = this.voices.filter((other) => other !== voice)
-    const at = this.graph.context?.currentTime ?? 0
-    const param = voice.level.gain
-    param.cancelScheduledValues(at)
-    param.setValueAtTime(param.value, at)
-    param.linearRampToValueAtTime(0, at + CUT_SECONDS)
-    voice.source.stop(at + CUT_SECONDS)
+    fadeOut(this.graph.context?.currentTime ?? 0, voice.source, voice.level, CUT_SECONDS)
   }
+}
+
+/**
+ * Ramps `level` to silence over `seconds` from `at`, then stops `source`. The level is pinned where it is before the
+ * ramp, so the fade starts from what is heard; a stop without a fade is a click.
+ */
+export function fadeOut(at: number, source: AudioBufferSourceNode, level: GainNode, seconds: number): void {
+  const param = level.gain
+  param.cancelScheduledValues(at)
+  param.setValueAtTime(param.value, at)
+  param.linearRampToValueAtTime(0, at + seconds)
+  source.stop(at + seconds)
 }
