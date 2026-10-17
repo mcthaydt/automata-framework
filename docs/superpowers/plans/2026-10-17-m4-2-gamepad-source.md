@@ -3,7 +3,7 @@
 - **Task:** M4.2 in [02](../../02-master-delivery-plan.md). M4 spec [§4.3](../specs/2026-10-16-m4-input-display-design.md), §4.2 (active device, facts), §5 (pad hot-plug), §6 (non-standard pad, pad unplugged mid-play), §9 (unit and SDK-contract layers), M4-D2, M4-D3, M4-D9. Acceptance I-c, I-d, I-e.
 - **Lane:** runtime, with the game lane's `keys()` and default screens (this session owns both). **Depends on:** M4.0 (merged) and M4.1 (stacked: this branch starts from `claude/clever-pasteur-ujmu6e-m4-1`, because the gamepad source feeds M4.1's `Input` rather than a second copy of its bookkeeping).
 - **Status:** In progress.
-- **Progress:** 2 of 9 steps.
+- **Progress:** 3 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -117,7 +117,7 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
    - **Done.** Red: "Failed to resolve import ./read-pad.js". Green: 8 passed. *Deviations:*
      - Stick directions are eight-way: past the radial deadzone, an axis counts when it carries at least sin(22.5°) of the push. FloorFifty's per-axis 0.25 threshold would leave (0.2, 0.2) still, against I-c.
      - The first green failed on `quantizeAxis(-0.5)`: `Math.round(-63.5)` is −63. Halves now round away from zero, so equal pushes either way read the same size (−64 and 64), and the test pins the symmetry.
-3. [ ] **`HandoverMask`, `NavRepeat` and `glyphFamily`.**
+3. [x] **`HandoverMask`, `NavRepeat` and `glyphFamily`.**
    - **Files:** `handover-mask.ts`, `nav-repeat.ts`, `glyph-family.ts`, each with its test.
    - **Red:**
      - `NavRepeat` fires a held `down` at 0, 400, 520 and 640 ms, and not at 399 or 519 (the I-d timings);
@@ -125,6 +125,7 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - the mask cases (an A held into the new context is masked until it is released; only what was held is masked; a stick is masked until it is back inside the deadzone);
      - `glyphFamily` for an Xbox, a DualSense and an unknown id.
    - **Red reason:** missing modules.
+   - **Done.** Red: three "Failed to resolve import" errors (`./glyph-family.js`, `./handover-mask.js`, `./nav-repeat.js`). Green: 16 passed in `gamepad/`. *Deviation:* FloorFifty's `apply` forgets the mask when another pad is read; here another pad passes through untouched and the first pad's mask stays, because `Input` reads every pad on each poll.
 4. [ ] **`Input` reads sticks, repeats nav, masks handovers.**
    - **Test:** `input.test.ts` (new describe blocks).
    - **Red:**
