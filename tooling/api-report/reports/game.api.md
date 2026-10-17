@@ -190,6 +190,7 @@ interface InputMap {
     readonly command: CommandDef;
     readonly touch: boolean;
     readonly touchButtons: readonly TouchButton[];
+    readonly touchMode: TouchMode;
     readonly profile: InputProfile;
     toCommand(held: Iterable<string>, tick: number): readonly Command[];
     attach(target: Window): InputSource;
@@ -203,6 +204,7 @@ interface InputSource {
     commands(tick: number): readonly Command[];
     hold(buttonId: string): void;
     release(buttonId: string): void;
+    readonly gesture: GestureSink;
     dispose(): void;
 }
 ```
@@ -225,6 +227,8 @@ function keys<Z extends z.ZodType>(command: CommandDef<Z>, bindings: KeyBindings
 interface KeysOptions<Z extends z.ZodType> {
     readonly touch?: boolean;
     readonly pad?: Readonly<Record<number, Payload<Z>>>;
+    readonly gestures?: Readonly<Partial<Record<GestureName, Payload<Z>>>>;
+    readonly touchMode?: TouchMode;
     readonly idle?: z.input<Z>;
 }
 ```

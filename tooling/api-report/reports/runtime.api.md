@@ -4,6 +4,12 @@
 
 ## `.`
 
+### `actionsForGesture` (function)
+
+```ts
+function actionsForGesture(profile: InputProfile, gesture: GestureName): string[];
+```
+
 ### `actionsForKey` (function)
 
 ```ts
@@ -219,10 +225,37 @@ interface GameRenderer {
 }
 ```
 
+### `GESTURE_TUNING` (const)
+
+```ts
+const GESTURE_TUNING: GestureTuning;
+```
+
 ### `GestureName` (type)
 
 ```ts
 type GestureName = (typeof GESTURE_NAMES)[number];
+```
+
+### `GestureSink` (interface)
+
+```ts
+interface GestureSink {
+    hold(gesture: GestureName): void;
+    release(gesture: GestureName): void;
+    pulse(gesture: GestureName): void;
+}
+```
+
+### `GestureTuning` (interface)
+
+```ts
+interface GestureTuning {
+    readonly deadZonePx: number;
+    readonly saturationPx: number;
+    readonly flickPx: number;
+    readonly flickMs: number;
+}
 ```
 
 ### `Input` (interface)
@@ -238,6 +271,7 @@ interface Input {
     poll(): void;
     hold(action: string): void;
     release(action: string): void;
+    readonly gesture: GestureSink;
     setContext(context: InputContextNow): void;
     readonly device: SubscriptionRef.SubscriptionRef<InputDevice>;
     readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
@@ -647,6 +681,47 @@ const STANDARD_PAD_BUTTON_MAX = 16;
 type StickDirection = (typeof STICK_DIRECTIONS)[number];
 ```
 
+### `SwipeIndicator` (interface)
+
+```ts
+interface SwipeIndicator {
+    readonly anchor: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly thumb: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly steering: boolean;
+}
+```
+
+### `SwipeTracker` (class)
+
+```ts
+class SwipeTracker {
+    private readonly sink;
+    readonly tuning: GestureTuning;
+    private readonly fingers;
+    private steerer;
+    private readonly anchor;
+    private readonly thumb;
+    private readonly direction;
+    constructor(sink: GestureSink, tuning?: Partial<GestureTuning>);
+    get indicator(): SwipeIndicator | undefined;
+    down(id: number, x: number, y: number, t: number, options?: {
+        readonly steers?: boolean;
+    }): void;
+    move(id: number, x: number, y: number, t: number): void;
+    up(id: number, _x: number, _y: number, t: number): void;
+    cancel(): void;
+    private steer;
+    private stopSteering;
+    private setDirection;
+}
+```
+
 ### `textDirection` (function)
 
 ```ts
@@ -663,6 +738,18 @@ interface Time {
     resume(reason: PauseReason): void;
 }
 const Time: Context.Tag<Time, Time>;
+```
+
+### `TouchMode` (type)
+
+```ts
+type TouchMode = 'buttons' | 'swipe';
+```
+
+### `touchModesFor` (function)
+
+```ts
+function touchModesFor(profile: InputProfile): TouchMode[];
 ```
 
 ### `Translate` (type)

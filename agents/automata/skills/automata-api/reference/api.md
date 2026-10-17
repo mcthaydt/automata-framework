@@ -4210,6 +4210,15 @@ _No doc comment._
 type NavDirection = 'up' | 'down' | 'left' | 'right';
 ```
 
+#### `nearestTarget` (function)
+
+The button a point is on, or else the nearest within the margin, or nothing. Distance is to the button's edge,
+so any point inside is 0.
+
+```ts
+function nearestTarget(x: number, y: number, targets: readonly TouchTarget[], margin?: number): string | undefined;
+```
+
 #### `PAD_FOCUS` (const)
 
 How the navigator focuses: with a ring, and without scrolling the page. `focusVisible` because a
@@ -4258,6 +4267,45 @@ A portrait viewport narrower than this is a phone; at or above it, a tablet.
 
 ```ts
 const PHONE_PORTRAIT_MAX_WIDTH = 600;
+```
+
+#### `PointerLatch` (class)
+
+Which fingers are down on which action. Reports only real changes: a second finger landing on a button already
+held produces nothing, and lifting it produces nothing either. The action ends when its last finger lifts.
+
+```ts
+class PointerLatch {
+    private readonly onInput;
+    private readonly active;
+    constructor(onInput: (action: string, active: boolean) => void);
+    /** True while any finger holds the action; what the pressed style reads. */
+    isHeld(action: string): boolean;
+    press(action: string, pointerId: number): void;
+    release(action: string, pointerId: number): void;
+    /** Releases everything still held, reporting each action exactly once. */
+    releaseAll(): void;
+}
+```
+
+#### `PointerTracker` (interface)
+
+What a SwipeSurface drives: runtime's `SwipeTracker` satisfies it, so ui need not import runtime. Times are
+`PointerEvent.timeStamp`.
+
+```ts
+interface PointerTracker {
+    readonly tuning: {
+        readonly saturationPx: number;
+    };
+    readonly indicator: SwipeIndicatorView | undefined;
+    down(id: number, x: number, y: number, t: number, options?: {
+        readonly steers?: boolean;
+    }): void;
+    move(id: number, x: number, y: number, t: number): void;
+    up(id: number, x: number, y: number, t: number): void;
+    cancel(): void;
+}
 ```
 
 #### `probeEnvSafeArea` (function)
@@ -4404,6 +4452,32 @@ _No doc comment._
 function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => void;
 ```
 
+#### `STICKY_MARGIN_PX` (const)
+
+How far outside a button a thumb still counts for it, in CSS pixels.
+
+```ts
+const STICKY_MARGIN_PX = 24;
+```
+
+#### `StickyPointers` (class)
+
+Which button each finger is on, over the latch. A finger owns one button at a time: moving onto another releases
+the first and presses the second; moving onto nothing keeps what it owns.
+
+```ts
+class StickyPointers {
+    private readonly latch;
+    private readonly owned;
+    constructor(latch: PointerLatch);
+    /** A finger landed on `action` (or on nothing); true when it pressed a button. */
+    down(pointerId: number, action: string | undefined): boolean;
+    move(pointerId: number, action: string | undefined): void;
+    up(pointerId: number): void;
+    releaseAll(): void;
+}
+```
+
 #### `suppressPageGestures` (function)
 
 Turns off the browser's document gestures over the game.
@@ -4418,6 +4492,52 @@ text can be pasted from a message.
 
 ```ts
 function suppressPageGestures(doc: Document): () => void;
+```
+
+#### `SwipeIndicatorView` (interface)
+
+What a SwipeSurface draws: the thumb, the anchor it trails and whether it is past the dead zone.
+
+```ts
+interface SwipeIndicatorView {
+    readonly anchor: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly thumb: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly steering: boolean;
+}
+```
+
+#### `SwipeSurface` (const)
+
+The whole visible screen as one swipe surface (M4 spec §4.4), from FloorFifty `ui/components/SwipeSurface.svelte`
+at `ac72660`.
+
+All bookkeeping is the tracker's (runtime `SwipeTracker`); this forwards pointer events, each with its own
+`timeStamp`, and draws a thin thumb-to-anchor line so the player can see the dead zone. Which fingers may steer
+is the game's rule (`steers`); any finger may flick or tap. Controls a screen draws above this surface keep their
+taps. Pointer only, never in the focus order.
+
+```ts
+const SwipeSurface: import("svelte").Component<SwipeSurfaceProps, {}, "">;
+type SwipeSurface = ReturnType<typeof SwipeSurface>;
+```
+
+#### `SwipeSurfaceProps` (interface)
+
+SwipeSurface's props.
+
+```ts
+interface SwipeSurfaceProps {
+    tracker: PointerTracker;
+    /** Whether a finger landing at (x, y) may steer; any finger may flick or tap. Default: every finger. */
+    steers?: ((x: number, y: number) => boolean) | undefined;
+    testId?: string | undefined;
+}
 ```
 
 #### `tabbables` (function)
@@ -4436,6 +4556,74 @@ Injected so tests drive the settle delays with fake timers.
 interface Timers {
     set(callback: () => void, ms: number): unknown;
     clear(handle: unknown): void;
+}
+```
+
+#### `TouchButtonSpec` (interface)
+
+One on-screen touch button (M4 spec §4.4): the action it holds and what it shows.
+
+```ts
+interface TouchButtonSpec {
+    /** The profile's action id; also the button's `data-testid`. */
+    readonly action: string;
+    /** The button's face. */
+    readonly label: string;
+    /** Its name for assistive technology, where the face is a symbol. Default: the label. */
+    readonly ariaLabel?: string | undefined;
+    /** Which lower corner's group it sits in. Default `start`. */
+    readonly side?: 'start' | 'end' | undefined;
+}
+```
+
+#### `TouchControls` (const)
+
+The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+
+This is the element that produces pointer events and nothing more; the multi-touch bookkeeping is
+`touch-controls.ts`. Each side's group takes the pointers, not the buttons, and reaches `STICKY_MARGIN_PX` past
+them with an invisible margin, so a near miss presses the nearest button and a held thumb can slide from one to
+the next. The group captures the pointer, so the release always arrives, however far the thumb wanders.
+
+Pointer only: the buttons are never in the focus order, since a keyboard or pad drives the same actions directly.
+Hidden (not unmounted) while the player uses another device, so the screen never remounts; hiding or coming down
+releases whatever is held.
+
+```ts
+const TouchControls: import("svelte").Component<TouchControlsProps, {}, "">;
+type TouchControls = ReturnType<typeof TouchControls>;
+```
+
+#### `TouchControlsProps` (interface)
+
+TouchControls' props.
+
+```ts
+interface TouchControlsProps {
+    buttons: readonly TouchButtonSpec[];
+    /** An action's first finger landed. */
+    onhold: (action: string) => void;
+    /** An action's last finger lifted, or the controls hid or came down while it was held. */
+    onrelease: (action: string) => void;
+    /** False hides the controls without remounting them (the player put touch down). Default true. */
+    shown?: boolean | undefined;
+    testId?: string | undefined;
+}
+```
+
+#### `TouchTarget` (interface)
+
+A button's action and where it is drawn, for `nearestTarget`.
+
+```ts
+interface TouchTarget {
+    readonly action: string;
+    readonly rect: {
+        readonly left: number;
+        readonly top: number;
+        readonly right: number;
+        readonly bottom: number;
+    };
 }
 ```
 

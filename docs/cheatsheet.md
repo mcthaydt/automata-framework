@@ -422,11 +422,14 @@
 - `lockOverscroll(node)`: A Svelte action: `<div use:lockOverscroll>`.
 - `measureGeometry(input)`
 - `NavDirection` (type)
+- `nearestTarget(x, y, targets, margin?)`: The button a point is on, or else the nearest within the margin, or nothing.
 - `PAD_FOCUS` (const): How the navigator focuses: with a ring, and without scrolling the page.
 - `padKeyEvents` (const): Keydown events the navigator sent itself.
 - `pastEdge(scroller, dy)`: Whether a drag of `dy` (positive = finger moving down) would pass an edge.
 - `PHONE_LANDSCAPE_MAX_HEIGHT` (const): A landscape viewport shorter than this is a phone, or a desktop window short enough to need the phone's compact layout.
 - `PHONE_PORTRAIT_MAX_WIDTH` (const): A portrait viewport narrower than this is a phone; at or above it, a tablet.
+- `PointerLatch` (class): Which fingers are down on which action.
+- `PointerTracker` (interface): What a SwipeSurface drives: runtime's `SwipeTracker` satisfies it, so ui need not import runtime.
 - `probeEnvSafeArea(root)`: Reads `env(safe-area-inset-*)` through a hidden probe, since script cannot read `env()` directly.
 - `Rect` (interface)
 - `reducedMotion(win?)`: Whether the player has asked for less movement.
@@ -440,9 +443,18 @@
 - `SHORT_MAX_HEIGHT` (const): At or below this many CSS px of layout height, a screen is short.
 - `Sleeper` (type): Puts the game's sound to sleep while nobody can see it.
 - `sleepWhenHidden(doc, sleeper, win?)`
+- `STICKY_MARGIN_PX` (const): How far outside a button a thumb still counts for it, in CSS pixels.
+- `StickyPointers` (class): Which button each finger is on, over the latch.
 - `suppressPageGestures(doc)`: Turns off the browser's document gestures over the game.
+- `SwipeIndicatorView` (interface): What a SwipeSurface draws: the thumb, the anchor it trails and whether it is past the dead zone.
+- `SwipeSurface` (const): The whole visible screen as one swipe surface (M4 spec §4.4), from FloorFifty `ui/components/SwipeSurface.svelte` at `ac72660`.
+- `SwipeSurfaceProps` (interface): SwipeSurface's props.
 - `tabbables(root)`: Everything Tab can reach under `root`, in DOM order: not disabled, inert or hidden.
 - `Timers` (interface): Injected so tests drive the settle delays with fake timers.
+- `TouchButtonSpec` (interface): One on-screen touch button (M4 spec §4.4): the action it holds and what it shows.
+- `TouchControls` (const): The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+- `TouchControlsProps` (interface): TouchControls' props.
+- `TouchTarget` (interface): A button's action and where it is drawn, for `nearestTarget`.
 - `UI_SLOT_NAMES` (const): The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).
 - `UiComponent` (type): What an extension puts in a slot: a Svelte component that takes no props.
 - `UiSlotName` (type)

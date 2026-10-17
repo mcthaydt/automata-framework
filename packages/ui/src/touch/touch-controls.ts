@@ -14,6 +14,7 @@
 /** How far outside a button a thumb still counts for it, in CSS pixels. */
 export const STICKY_MARGIN_PX = 24
 
+/** A button's action and where it is drawn, for `nearestTarget`. */
 export interface TouchTarget {
   readonly action: string
   readonly rect: {
