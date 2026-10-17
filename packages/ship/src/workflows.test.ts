@@ -75,6 +75,19 @@ describe('every workflow', () => {
     },
   )
 
+  it.each(ALL)(
+    "%s trusts a container job's checkout in git's system config, which every HOME reads",
+    (name) => {
+      // The checkout belongs to the runner user, so git run as root needs safe.directory. A --global setting lands
+      // in HOME's .gitconfig, and the parity and evidence steps set HOME to /root for Firefox: there git did not
+      // read it, and `pnpm evidence` failed on main's first push after DX.9 (2026-10-17).
+      for (const job of Object.values(workflow(name).jobs).filter((each) => each.container !== undefined)) {
+        for (const step of (job.steps ?? []).filter((each) => each.run?.includes('safe.directory')))
+          expect(step.run).toContain('git config --system --add safe.directory')
+      }
+    },
+  )
+
   it.each(ALL)('%s reads the repository and nothing more by default', (name) => {
     expect(workflow(name).permissions).toEqual({ contents: 'read' })
   })
