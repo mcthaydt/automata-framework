@@ -1,9 +1,10 @@
-import { checkManifest, rukenToml } from '@mcthaydt/automata-ship'
+import { checkManifest, inputsProblems, rukenToml, type ShipInputBindings } from '@mcthaydt/automata-ship'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import packageJson from '../package.json' with { type: 'json' }
 import config from '../ship.config.ts'
 import { GAME_ID } from './boot.ts'
+import { input } from './game.ts'
 
 describe('base-2d ship.config.ts', () => {
   it("is a manifest Ruken's parser accepts, rendered with WebGL2", () => {
@@ -20,5 +21,12 @@ describe('base-2d ship.config.ts', () => {
   it('asks for no network and no eval', () => {
     expect(config.network.connect).toEqual([])
     expect(rukenToml(config)).toContain('allow_eval = false')
+  })
+
+  // M4 spec §4.13 (I-g): the manifest declares every device the input map binds, and touch only with touch buttons.
+  // The assignment also proves an input profile's bindings are what ship reads.
+  it('declares runtime.inputs that agree with the input map', () => {
+    const bindings: ShipInputBindings = input.profile.bindings
+    expect(inputsProblems(config.runtime.inputs, bindings)).toEqual([])
   })
 })

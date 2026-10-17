@@ -95,4 +95,23 @@ describe('prepareBuild', () => {
   it('fails with FileError when the build folder does not exist', () => {
     expect(failure(prepare({ distDir: join(tmpdir(), 'ship-no-such-dist'), config }))._tag).toBe('FileError')
   })
+
+  // M4 spec §4.13 (I-g): the game's bindings must agree with runtime.inputs.
+  it('stops when the bindings use a device runtime.inputs leaves out, naming the action, writing nothing', () => {
+    const dir = dist()
+    const error = failure(
+      prepare({ distDir: dir, config, inputBindings: { jump: { pad: [0], touch: true } } }),
+    )
+    expect(error._tag).toBe('ManifestInputsMismatch')
+    expect((error as unknown as { message: string }).message).toContain(
+      'action "jump" binds pad buttons but runtime.inputs has no "gamepad"',
+    )
+    expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
+  })
+
+  it('writes the manifest when the bindings agree with runtime.inputs', () => {
+    const dir = dist()
+    Effect.runSync(prepare({ distDir: dir, config, inputBindings: { jump: { touch: true } } }))
+    expect(existsSync(join(dir, 'ruken.toml'))).toBe(true)
+  })
 })

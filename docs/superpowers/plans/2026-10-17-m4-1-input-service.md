@@ -3,7 +3,7 @@
 - **Task:** M4.1 in [02](../../02-master-delivery-plan.md). M4 spec [§4.1, §4.2, §4.13](../specs/2026-10-16-m4-input-display-design.md), §5 (boot, per fixed step, lifecycle) and §6. Acceptance I-a, I-b, I-g and I-j.
 - **Lane:** runtime, with one change to the game lane (step 3, the change request in spec §2.2). **Depends on:** M4.0 (`8a345a1`), PRODUCT.1 (input profile) and DX.2 (`InputMap`), all merged.
 - **Status:** In progress.
-- **Progress:** 5 of 8 steps.
+- **Progress:** 6 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -200,7 +200,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
      - `toCommand` memoises the parse for an unchanged held list, as `attach` did.
      - The Input core skips visibility for a target with no `document`, such as Emberwick's golden replay's fake window.
      - Result: game input and screens, 42 passed. Emberwick unit, 138 passed. Emberwick Node golden, 1 passed, unchanged.
-6. [ ] **Manifest inputs (I-g).**
+6. [x] **Manifest inputs (I-g).**
    - **Red:** `check-inputs.test.ts`:
      - pad buttons without `gamepad` fail, naming the action and `runtime.inputs`;
      - `touch` declared with no touch or gesture binding fails;
@@ -210,6 +210,11 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
    - **Red:** the `csp-probe-live` test: `automata check` reports the same problem.
    - **Red:** a type-level test in `game` (`keys.test.ts`): `keys(...).profile.bindings` is assignable to `ShipInputBindings`.
    - **Green:** add the check, the config field, the error, and the wiring. Emberwick's and the placeholder's `ship.config.ts` pass their input map's bindings, and their `prepare-ruken` stays green.
+   - Done, with a deviation from the contract above.
+     - **Why it changed.** `ship prepare` loads `ship.config.ts` under plain Node, and Node cannot load a game's input map: the sim's sources use extensionless imports (`ERR_MODULE_NOT_FOUND: …/packages/sim/src/define/definitions`). Vite's `runnerImport` stops at the game package's Svelte screens (tried in Emberwick: "Failed to parse source for import analysis", `Dialog.svelte`). So `ShipConfig` gains no `input` field; the config stays Ruken's manifest shape.
+     - **What was built.** `prepareBuild` takes `inputBindings?: ShipInputBindings`; with them, it fails with `ManifestInputsMismatch` before writing. A game checks itself in its own `ship-config.test.ts`, where Vite resolves both the input map and `ship.config.ts`. Emberwick does; the placeholder has no input map. That assignment also proves a profile's `bindings` is assignable to `ShipInputBindings`, which replaces the type test planned in `game`. Emberwick's `tsconfig.node.json` gains `vite/client` types for it.
+     - **Not done here.** The prepare CLI and `automata check` passing the bindings are a 02 follow-up.
+     - **Results.** Red: "Cannot find module './check-inputs.ts'", and prepare's mismatch case "expected a failure". Green: 14 passed. The ship `index.test.ts` export test went red, then green. Emberwick `ship-config.test.ts`: 4 passed. Typecheck: 0 errors. Changeset: `ship` minor.
 7. [ ] **I-a parity and the example.**
    - **Red:** in `keys.parity.test.ts` (Chromium, WebKit, Firefox) and its Node twin in `keys.test.ts`, one scripted 120-tick run three times:
      - by keyboard events;
