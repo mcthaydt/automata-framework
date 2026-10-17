@@ -1,7 +1,9 @@
 # Cross-engine parity in a cloud container
 
-`ci.yml` skips the parity job on draft pull requests, so af-linux (one shared PC runner) only takes it when a PR is
-ready for review and on every push to `main`. While a PR is a draft, run the same gate in a cloud container
+`ci.yml` skips the parity job on draft pull requests, so its runner (af-mac, the Owner's Mac, since 2026-10-17;
+`vars.AF_PARITY_RUNNER` moves it) only takes it when a PR is ready for review and on every push to `main`. On af-mac
+the job runs on the host (macOS runners cannot run containers) and fetches the pinned browsers into the runner's
+cache; on any other runner it uses the pinned Playwright container. While a PR is a draft, run the same gate in a cloud container
 (Ubuntu 24.04, root). The steps below were proven in an M2.2 session on 2026-10-11.
 
 1. Install Node 24.21 from nodejs.org (the version in `.nvmrc`) and `corepack enable`.
@@ -26,4 +28,4 @@ ready for review and on every push to `main`. While a PR is a draft, run the sam
    PLAYWRIGHT_BROWSERS_PATH=/tmp/pw pnpm ci:local
    ```
 
-Record the result on the PR. Marking the PR ready for review then runs parity on af-linux as the merge gate.
+Record the result on the PR. Marking the PR ready for review then runs parity on af-mac as the merge gate.
