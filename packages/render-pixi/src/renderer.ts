@@ -15,6 +15,7 @@ import {
   type PostFilterSlot,
   type PostFilterTarget,
 } from './filter/post-filter-slot.js'
+import { tryFilter } from './filter/try-filter.js'
 import { canvasResolutionFor } from './letterbox/canvas-resolution.js'
 import { CompositeTarget } from './letterbox/composite-target.js'
 import { LetterboxFrame } from './letterbox/letterbox.js'
@@ -90,6 +91,11 @@ export interface PixiStage {
   readonly quality: QualityTier
   /** Changes the tier: re-caps the canvas resolution and leaves out post-filter owners registered for a higher one. */
   setQuality(tier: QualityTier): void
+  /**
+   * Builds a filter, or returns `undefined` when it cannot be built or compiled: it then warns and publishes
+   * `render.filter.dropped` on the render target's bus, and the frame draws without it (M4 spec §6).
+   */
+  tryFilter<F extends Filter>(id: string, make: () => F): F | undefined
 }
 
 export interface PixiRenderer extends GameRenderer {
@@ -253,6 +259,11 @@ export function createPixiRenderer(
           postFilters.setTier(tier)
           applyResolution()
         },
+        tryFilter: (id, make) =>
+          tryFilter(app.renderer, id, make, (dropped, reason) => {
+            console.warn(`[automata-render-pixi] filter "${dropped}" dropped: ${reason}`)
+            target.bus?.publish('render.filter.dropped', { id: dropped, reason })
+          }),
       }
 
       const hooks: PixiStageHooks = options.setup?.(stage) ?? {}

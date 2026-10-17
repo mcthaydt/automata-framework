@@ -201,11 +201,13 @@ export function bootProgram<S>(
       yield* assets.load(screenId, (fraction) => loaderHandle.setProgress(fraction))
     }
 
-    // Step 6: renderer factory
+    // Step 6: renderer factory. The bus exists first so the renderer can publish render facts.
+    const bus = yield* makePresentationBus()
     const renderTarget: RenderTarget = {
       host: layers.stage,
       geometry,
       assets,
+      bus,
     }
     const renderer = yield* game.renderer(renderTarget)
 
@@ -225,7 +227,6 @@ export function bootProgram<S>(
     loaderHandle.close()
     layers.setState('ready')
 
-    const bus = yield* makePresentationBus()
     const time = makeTime(bus)
 
     // The locale is negotiated, and <html lang dir> set, before the first screen enters (PRODUCT spec §4, L-b).

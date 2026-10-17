@@ -3,7 +3,7 @@
 - **Task:** M4.9 in [02](../../02-master-delivery-plan.md), M4 spec [§4.11](../specs/2026-10-16-m4-input-display-design.md) (acceptance Q-a, Q-b), §6 (a filter that fails to compile), M4-D6 (`high`, no auto-detect).
 - **Lanes:** render (`render-pixi`) and runtime (the settings field and the fact). **Depends on:** M4.0 (merged) and PRODUCT.1 (merged; the post-filter slot this extends).
 - **Status:** In progress.
-- **Progress:** 8 of 10 steps.
+- **Progress:** 9 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -81,7 +81,9 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: the slot's filters land on the composite stage, not the scene.
    - Red: `composite: false`, or `pixelArt: false`, keeps today's tree.
    - Red: the finalizer destroys the composite.
-9. [ ] **Dropped filters (Q-b).**
+9. [x] **Dropped filters (Q-b).** Red: in `boot-program.test.ts`, `expected undefined to be defined` (the render target had no bus); in `renderer.test.ts`, `renderer.stage.tryFilter is not a function`; in the parity file, `Failed to resolve import "../filter/try-filter.js"` in all three engines. Green: runtime 222 of 222, `renderer.test.ts` 18 of 18, `pnpm --filter render-pixi test:parity` 15 passed and 3 skipped. The bus is now made before the renderer (it was made after), so the target can carry it. Findings and deviations:
+   - **Pixi 8 does not throw on a broken program.** It logs the shader log (`logProgramError`) and renders with an unusable program, as the parity file's first case shows. So `tryFilter` does not use a probe render: under WebGL2 it compiles and links the filter's `glProgram` once on the renderer's own context and reads `LINK_STATUS` (`packages/render-pixi/src/filter/try-filter.ts`). Under WebGPU only a throw while building is caught, because WGSL compile errors arrive asynchronously.
+   - **Headless Firefox here has no WebGL at all,** even with `webgl.force-enabled`, so Pixi falls back to its canvas renderer. The three real-compile cases are `skipIf(!hasWebgl2)` and ran in Chromium and WebKit only. The build-throw case ran in all three engines. Firefox's real-compile evidence is pending a runner with WebGL. The existing `filter.parity.test.ts` already skipped its compile check there through `if (gl)`.
    - Red (`renderer.test.ts`): `tryFilter('bad', () => { throw … })` returns `undefined`, logs one warning and publishes `render.filter.dropped` with `{ id: 'bad' }` on the target's bus. The frame still draws.
    - Red (`render-quality.parity.test.ts`, the browsers project, WebGL2 in Chromium, WebKit and Firefox): a filter whose GLSL does not compile is dropped by `tryFilter`, and a frame then renders without throwing.
    - The parity test also establishes how Pixi reports a compile failure: as a throw, or as a log with an unusable program. `tryFilter` compiles eagerly by rendering a 1 × 1 probe through the filter inside the try.

@@ -15,6 +15,8 @@ export interface RuntimeFacts {
     readonly device: 'keyboard' | 'gamepad' | 'touch'
     readonly previous: 'keyboard' | 'gamepad' | 'touch'
   }
+  /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
+  readonly 'render.filter.dropped': { readonly id: string; readonly reason: string }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {

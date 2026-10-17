@@ -361,6 +361,34 @@ describe('createPixiRenderer', () => {
     await Effect.runPromise(program)
   })
 
+  it('drops a filter that cannot be built: tryFilter returns undefined, warns once, publishes the fact, and the frame draws (Q-b)', async () => {
+    const target = createFakeTarget()
+    const published: unknown[] = []
+    const bus = {
+      publish: (name: string, fact: unknown) => void published.push([name, fact]),
+      subscribe: () => () => {},
+    }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const program = Effect.scoped(
+      Effect.gen(function* () {
+        const renderer = yield* createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })({
+          ...target,
+          bus,
+        })
+        const filter = renderer.stage.tryFilter('bad', () => {
+          throw new Error('no such uniform')
+        })
+        expect(filter).toBeUndefined()
+        renderer.draw({ alpha: 1, frameMs: 16, paused: false })
+        expect(renderer.stage.app.render).toHaveBeenCalled()
+      }),
+    )
+    await Effect.runPromise(program)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(published).toEqual([['render.filter.dropped', { id: 'bad', reason: 'no such uniform' }]])
+    warn.mockRestore()
+  })
+
   describe('the fixed-resolution composite (M4 spec §4.11)', () => {
     it('is on for a letterboxed pixel-art stage: draw renders the world and UI into it before app.render', async () => {
       const target = createFakeTarget()
