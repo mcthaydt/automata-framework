@@ -2,8 +2,8 @@
 
 - **Task:** M4.3 in [02](../../02-master-delivery-plan.md). M4 spec [§4.4](../specs/2026-10-16-m4-input-display-design.md), §5 (device change), §6 (`TouchControls`, `SwipeSurface` rows) and §8. Acceptance I-f.
 - **Lane:** runtime and ui, with the game lane's play screen and `keys()` as consumers (this session owns that lane). **Depends on:** M4.1 (`Input`, merged in #74).
-- **Status:** Planned.
-- **Progress:** 0 of 9 steps.
+- **Status:** In progress.
+- **Progress:** 2 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -148,8 +148,8 @@ export interface PointerTracker { readonly tuning: { readonly saturationPx: numb
 
 The pre-commit hook runs the affected unit tests, so each red test is committed together with the code that turns it green. Each step records the red output it saw.
 
-1. [ ] **Plan.** This file, committed first.
-2. [ ] **`SwipeTracker` (I-f).**
+1. [x] **Plan.** This file, committed first (`b90ad9c`).
+2. [x] **`SwipeTracker` (I-f).** Done: red was "Failed to resolve import ./swipe-tracker.js"; then 22 passed. FloorFifty's "two-finger tap no longer restarts" case is not ported: restart was its race's rule, and here a quick still finger is a `tap`.
    - **Red:** `swipe-tracker.test.ts`, FloorFifty's cases ported (dead zone, trailing anchor, release on lift, flick, slow drag, a non-steering finger flicks but never steers, the second finger steers after the first lifts, `cancel`), plus: I-f's three cases; up/down steering; a tap pulses `tap`; a long touch or one that left the dead zone does not; partial tuning overrides one value.
    - **Run:** `pnpm --filter @mcthaydt/automata-runtime exec vitest run --project unit src/input/gestures/`. Expect "Failed to resolve import ./swipe-tracker.js".
    - **Green:** create the tracker.
