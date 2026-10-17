@@ -1,12 +1,13 @@
 /**
  * Swipe is the pagination on a paged region, on every form factor: a finger, a mouse drag, a trackpad's two-finger
- * sideways swipe. From FloorFifty `apps/client/src/ui/page-swipe.ts` at `ac72660`, unchanged. A press that moves
- * less than 8 px is a tap, so swiping never picks by accident; a quick flick turns one page whatever the distance;
- * a slow drag snaps to the nearest page.
+ * sideways swipe. From FloorFifty `apps/client/src/ui/page-swipe.ts` at `ac72660`, unchanged but for a doc comment.
+ * A press that moves less than 8 px is a tap, so swiping never picks by accident; a quick flick turns one page
+ * whatever the distance; a slow drag snaps to the nearest page.
  */
 
 export const PAGE_SWIPE = { tapSlopPx: 8, flickPxPerMs: 0.4, wheelStepPx: 40 } as const
 
+/** Whether a press that moved `dx`, `dy` px is a tap rather than a swipe. */
 export function isTap(dx: number, dy: number): boolean {
   return Math.abs(dx) < PAGE_SWIPE.tapSlopPx && Math.abs(dy) < PAGE_SWIPE.tapSlopPx
 }

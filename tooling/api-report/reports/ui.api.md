@@ -189,6 +189,49 @@ component from './layout/CornerControls.svelte'
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 ```
 
+### `CURSOR_IDLE_MS` (const)
+
+```ts
+const CURSOR_IDLE_MS = 2000;
+```
+
+### `cursorHidden` (function)
+
+```ts
+function cursorHidden(state: {
+    kind: ScreenKind | undefined;
+    paused: boolean;
+    lastInput: CursorInput;
+    msSincePointerMove: number;
+}): boolean;
+```
+
+### `CursorInput` (type)
+
+```ts
+type CursorInput = 'pointer' | 'keyboard' | 'gamepad' | 'touch';
+```
+
+### `CursorRunner` (class)
+
+```ts
+class CursorRunner {
+    private readonly target;
+    private readonly options;
+    private lastInput;
+    private movedAt;
+    private readonly now;
+    constructor(target: HTMLElement, options?: {
+        now?: () => number;
+        kind?: () => ScreenKind | undefined;
+        paused?: () => boolean;
+    });
+    noteInput(input: CursorInput): void;
+    attach(events?: EventTarget): () => void;
+    tick(): void;
+}
+```
+
 ### `DeviceClass` (type)
 
 ```ts
@@ -230,12 +273,17 @@ component from './status/ErrorPanel.svelte'
 class FocusNavigator {
     private engaged;
     private paused;
+    private guarded;
     private readonly root;
     constructor(root?: () => ParentNode);
     attach(target?: EventTarget): () => void;
+    guard(): void;
     setPaused(paused: boolean): void;
     recover(): void;
     move(direction: 'next' | 'previous'): void;
+    steer(direction: NavDirection): boolean;
+    page(delta: -1 | 1): boolean;
+    adjust(delta: -1 | 1): boolean;
     confirm(): void;
     back(): void;
 }
@@ -417,10 +465,22 @@ interface Insets {
 function installGlobalErrorHandlers(win: Window, onFatal: (errorClass: string) => void, onRejection?: (errorClass: string) => void): () => void;
 ```
 
+### `interceptBackGesture` (function)
+
+```ts
+function interceptBackGesture(win: Window, onBack: () => boolean): () => void;
+```
+
 ### `isDuckDuckGo` (function)
 
 ```ts
 function isDuckDuckGo(nav: object): boolean;
+```
+
+### `isTap` (function)
+
+```ts
+function isTap(dx: number, dy: number): boolean;
 ```
 
 ### `landscapeGate` (function)
@@ -473,6 +533,16 @@ const PAD_FOCUS: FocusOptions;
 const padKeyEvents: WeakSet<Event>;
 ```
 
+### `PAGE_SWIPE` (const)
+
+```ts
+const PAGE_SWIPE: {
+    readonly tapSlopPx: 8;
+    readonly flickPxPerMs: 0.4;
+    readonly wheelStepPx: 40;
+};
+```
+
 ### `pastEdge` (function)
 
 ```ts
@@ -518,6 +588,12 @@ interface Rect {
 function reducedMotion(win?: Pick<Window, 'matchMedia'>): boolean;
 ```
 
+### `releaseStep` (function)
+
+```ts
+function releaseStep(dx: number, dtMs: number, pageWidth: number): -1 | 0 | 1;
+```
+
 ### `RETRY_DELAYS_MS` (const)
 
 ```ts
@@ -545,6 +621,12 @@ function retryUrl(src: string, attempt: number): string;
 component from './layout/ScreenFrame.svelte'
 ```
 
+### `ScreenKind` (type)
+
+```ts
+type ScreenKind = 'menu' | 'gameplay';
+```
+
 ### `ScrollList` (svelte)
 
 ```ts
@@ -555,6 +637,12 @@ component from './layout/ScrollList.svelte'
 
 ```ts
 function scrollWithin(element: HTMLElement): void;
+```
+
+### `sendBack` (function)
+
+```ts
+function sendBack(doc: Document): boolean;
 ```
 
 ### `SETTLE_DELAYS_MS` (const)
@@ -650,6 +738,17 @@ interface ViewportWindow {
 
 ```ts
 function watchImage(src: string, onRetry: (url: string) => void, timers?: RetryTimers): () => void;
+```
+
+### `WheelPager` (class)
+
+```ts
+class WheelPager {
+    private travel;
+    private spent;
+    push(deltaX: number, deltaY: number): -1 | 0 | 1;
+    reset(): void;
+}
 ```
 
 ## `./testing`

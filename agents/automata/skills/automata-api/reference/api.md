@@ -3802,6 +3802,58 @@ _No doc comment._
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 ```
 
+#### `CURSOR_IDLE_MS` (const)
+
+How long the pointer must be still before it hides on a gameplay screen.
+
+```ts
+const CURSOR_IDLE_MS = 2000;
+```
+
+#### `cursorHidden` (function)
+
+Whether the pointer is hidden now: on a gameplay screen, not paused, and the pointer unused or idle.
+
+```ts
+function cursorHidden(state: {
+    kind: ScreenKind | undefined;
+    paused: boolean;
+    lastInput: CursorInput;
+    msSincePointerMove: number;
+}): boolean;
+```
+
+#### `CursorInput` (type)
+
+The device the player used last, as the cursor policy sees it.
+
+```ts
+type CursorInput = 'pointer' | 'keyboard' | 'gamepad' | 'touch';
+```
+
+#### `CursorRunner` (class)
+
+Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the
+element's `cursor` style. Detaching shows the pointer again.
+
+```ts
+class CursorRunner {
+    private readonly target;
+    private readonly options;
+    private lastInput;
+    private movedAt;
+    private readonly now;
+    constructor(target: HTMLElement, options?: {
+        now?: () => number;
+        kind?: () => ScreenKind | undefined;
+        paused?: () => boolean;
+    });
+    noteInput(input: CursorInput): void;
+    attach(events?: EventTarget): () => void;
+    tick(): void;
+}
+```
+
 #### `DeviceClass` (type)
 
 _No doc comment._
@@ -3862,10 +3914,18 @@ class FocusNavigator {
      */
     private engaged;
     private paused;
+    /** Armed by `guard()` on a screen change; a confirm key held from the last screen is cancelled until it comes up. */
+    private guarded;
     private readonly root;
     constructor(root?: () => ParentNode);
     /** Stops `recover` once the player presses anything that is not the navigator. */
     attach(target?: EventTarget): () => void;
+    /**
+     * Arms the pad guard (M4 spec §4.7, F-a): called on a screen change, it cancels repeating Enter and Space
+     * keydowns until the key comes up or is pressed afresh. A pad's own confirm is an edge from `Input`, which
+     * cannot repeat, so only the keyboard needs this; `attach` must be listening.
+     */
+    guard(): void;
     /** Paused while a screen transition covers the screen. */
     setPaused(paused: boolean): void;
     /**
@@ -3875,6 +3935,24 @@ class FocusNavigator {
      */
     recover(): void;
     move(direction: 'next' | 'previous'): void;
+    /**
+     * One step in `direction` (M4 spec §4.7). Inside a `[data-focus-grid]` the move is spatial: the nearest control
+     * whose centre lies that way, scored by distance along the direction plus twice the sideways offset, so a
+     * straight line wins over a diagonal. Elsewhere it is DOM order: down and right go next, up and left previous.
+     * Returns false when nothing lies that way in the grid, so the caller can page or stay put.
+     */
+    steer(direction: NavDirection): boolean;
+    /**
+     * Offers a page turn (PageUp/PageDown, the shoulder buttons, a page swipe) to the focused control. A
+     * `[data-pager]` region above it takes the cancelable `af-page` event; returns whether one did.
+     */
+    page(delta: -1 | 1): boolean;
+    /**
+     * Changes the focused slider or option group by one step without leaving it (from FloorFifty's `adjust`, plus
+     * radio groups for OptionGroup). Fires the event a pointer or arrow key would (`input` on a range, `change` on a
+     * radio). Returns false when nothing adjustable has focus, so the caller steers instead.
+     */
+    adjust(delta: -1 | 1): boolean;
     confirm(): void;
     /** Sends Escape to the focused element, marked as the navigator's, so dialogs close through one path. */
     back(): void;
@@ -4151,12 +4229,29 @@ function installGlobalErrorHandlers(win: Window, onFatal: (errorClass: string) =
 onRejection?: (errorClass: string) => void): () => void;
 ```
 
+#### `interceptBackGesture` (function)
+
+Holds the game's history entry and turns a back step off it into `onBack`.
+`onBack` answers whether the game went back; `false` lets the step leave.
+
+```ts
+function interceptBackGesture(win: Window, onBack: () => boolean): () => void;
+```
+
 #### `isDuckDuckGo` (function)
 
 DuckDuckGo names itself only in the client-hint brands, not the user agent.
 
 ```ts
 function isDuckDuckGo(nav: object): boolean;
+```
+
+#### `isTap` (function)
+
+Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
+
+```ts
+function isTap(dx: number, dy: number): boolean;
 ```
 
 #### `landscapeGate` (function)
@@ -4231,6 +4326,21 @@ a controller's B would teach keyboard controls to a controller player.
 const padKeyEvents: WeakSet<Event>;
 ```
 
+#### `PAGE_SWIPE` (const)
+
+Swipe is the pagination on a paged region, on every form factor: a finger, a mouse drag, a trackpad's two-finger
+sideways swipe. From FloorFifty `apps/client/src/ui/page-swipe.ts` at `ac72660`, unchanged. A press that moves
+less than 8 px is a tap, so swiping never picks by accident; a quick flick turns one page whatever the distance;
+a slow drag snaps to the nearest page.
+
+```ts
+const PAGE_SWIPE: {
+    readonly tapSlopPx: 8;
+    readonly flickPxPerMs: 0.4;
+    readonly wheelStepPx: 40;
+};
+```
+
 #### `pastEdge` (function)
 
 Whether a drag of `dy` (positive = finger moving down) would pass an edge.
@@ -4294,6 +4404,14 @@ that moves things itself.
 function reducedMotion(win?: Pick<Window, 'matchMedia'>): boolean;
 ```
 
+#### `releaseStep` (function)
+
+Pages to turn when a drag of `dx` px over `dtMs` is released: a swipe left is +1 (next).
+
+```ts
+function releaseStep(dx: number, dtMs: number, pageWidth: number): -1 | 0 | 1;
+```
+
 #### `RETRY_DELAYS_MS` (const)
 
 The wait before each retry; when they are spent, the image has failed.
@@ -4330,6 +4448,14 @@ const ScreenFrame: import("svelte").Component<Props, {}, "">;
 type ScreenFrame = ReturnType<typeof ScreenFrame>;
 ```
 
+#### `ScreenKind` (type)
+
+A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
+
+```ts
+type ScreenKind = 'menu' | 'gameplay';
+```
+
 #### `ScrollList` (const)
 
 _No doc comment._
@@ -4345,6 +4471,17 @@ Brings `element` into view by scrolling its nearest scroll box, never the docume
 
 ```ts
 function scrollWithin(element: HTMLElement): void;
+```
+
+#### `sendBack` (function)
+
+Sends Back as an Escape to wherever a dialog would hear it, and reports
+whether anything took it. A tap on a dialog's backdrop leaves focus on the
+body, where the dialog's own Escape listener never hears a key, so an open
+dialog is sent it directly.
+
+```ts
+function sendBack(doc: Document): boolean;
 ```
 
 #### `SETTLE_DELAYS_MS` (const)
@@ -4498,6 +4635,19 @@ instead. Returns the stop.
 
 ```ts
 function watchImage(src: string, onRetry: (url: string) => void, timers?: RetryTimers): () => void;
+```
+
+#### `WheelPager` (class)
+
+A trackpad's horizontal wheel deltas, one page per gesture; `reset` when the gesture goes quiet.
+
+```ts
+class WheelPager {
+    private travel;
+    private spent;
+    push(deltaX: number, deltaY: number): -1 | 0 | 1;
+    reset(): void;
+}
 ```
 
 ### `import { … } from '@mcthaydt/automata-ui/testing'`

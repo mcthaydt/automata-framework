@@ -9,10 +9,14 @@
  * screen test reads a `ScreenDef`'s `kind` instead of FloorFifty's screen id.
  */
 
+/** How long the pointer must be still before it hides on a gameplay screen. */
 export const CURSOR_IDLE_MS = 2000
+/** The device the player used last, as the cursor policy sees it. */
 export type CursorInput = 'pointer' | 'keyboard' | 'gamepad' | 'touch'
+/** A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer. */
 export type ScreenKind = 'menu' | 'gameplay'
 
+/** Whether the pointer is hidden now: on a gameplay screen, not paused, and the pointer unused or idle. */
 export function cursorHidden(state: {
   kind: ScreenKind | undefined
   paused: boolean
@@ -23,6 +27,10 @@ export function cursorHidden(state: {
   return state.lastInput !== 'pointer' || state.msSincePointerMove >= CURSOR_IDLE_MS
 }
 
+/**
+ * Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the
+ * element's `cursor` style. Detaching shows the pointer again.
+ */
 export class CursorRunner {
   private lastInput: CursorInput = 'pointer'
   private movedAt: number
