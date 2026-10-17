@@ -198,7 +198,9 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       },
       poll() {
         for (const source of sampled) if (!pulsed.has(source)) lift(source)
-        ;[sampled, pulsed] = [pulsed, sampled]
+        const seen = sampled
+        sampled = pulsed
+        pulsed = seen
         pulsed.clear()
         const pads = target.navigator.getGamepads?.() ?? []
         for (const pad of pads) {
