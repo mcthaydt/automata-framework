@@ -337,7 +337,7 @@
 - `expectGolden(report)`: Throws with the formatted report unless the golden matched or was just written.
 - `formatGoldenReport(report)`
 - `GOLDEN_MAX_PACKED_BYTES` (const): A golden that passes this cannot be reviewed or loaded cheaply; lower snapshotEvery's cost instead.
-- `goldenCommands()`
+- `goldenCommands(options?)`
 - `GoldenReport` (type)
 - `nodeCompression` (const): Node only. zlib is imported when first used, so importing this module in a browser costs nothing.
 - `replayGolden(options)`
@@ -352,7 +352,8 @@
 
 ### `import { … } from '@mcthaydt/automata-testing/sim/commands'`
 
-- `goldenCommands()`
+- `goldenCommands(options?)`
+- `GoldenCommandsOptions` (interface): Options for {@link goldenCommands}.
 
 ### `import { … } from '@mcthaydt/automata-testing/sim/property'`
 

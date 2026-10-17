@@ -7,7 +7,7 @@ import type { CatalogEntry } from './catalog.ts'
 export const EXAMPLES_GAME_ID = 'af-examples'
 
 export interface PageModules {
-  /** The module that exports `startGame` (DX.2's `@mcthaydt/automata`, or the runner's test stub). */
+  /** The module that exports `startGame` (`@mcthaydt/automata-game`, or the runner's test stub). */
   readonly start: string
   /** Imported before anything else, so PixiJS never reaches for eval under Ruken's CSP (AGENTS.md). */
   readonly noEval: string
@@ -37,14 +37,15 @@ ${body}
 `
 }
 
-/** The page that runs one example: no-eval, then `startGame`, then the example's default export. */
+/** The page that runs one example: its root `#game`, then no-eval, `startGame` and the example's default export. */
 export function examplePage(
   entry: Pick<CatalogEntry, 'path' | 'id'> & { readonly title: string },
   modules: PageModules,
 ): string {
   return page(
     `${entry.id}: ${entry.title}`,
-    `    <script type="module">
+    `    <main id="game"></main>
+    <script type="module">
       import '${modules.noEval}'
       import { startGame } from '${modules.start}'
       import example from '/${entry.path}'

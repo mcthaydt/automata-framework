@@ -3242,7 +3242,7 @@ const GOLDEN_MAX_PACKED_BYTES: number;
 _No doc comment._
 
 ```ts
-function goldenCommands(): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
 ```
 
 #### `GoldenReport` (type)
@@ -3420,7 +3420,21 @@ const streamCompression: ReplayCompression;
 _No doc comment._
 
 ```ts
-function goldenCommands(): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+```
+
+#### `GoldenCommandsOptions` (interface)
+
+Options for {@link goldenCommands}.
+
+```ts
+interface GoldenCommandsOptions {
+  /**
+   * The folder golden files must be inside; defaults to the Vitest project's root. A package whose goldens sit
+   * beside it rather than under it names an absolute folder holding both.
+   */
+  readonly root?: string;
+}
 ```
 
 ### `import { … } from '@mcthaydt/automata-testing/sim/property'`
