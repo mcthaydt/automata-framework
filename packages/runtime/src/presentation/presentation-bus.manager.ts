@@ -22,6 +22,8 @@ export interface RuntimeFacts {
   readonly 'input.pad.connected': PadInfo
   /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
   readonly 'input.pad.disconnected': PadInfo & { readonly wasActive: boolean }
+  /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
+  readonly 'render.filter.dropped': { readonly id: string; readonly reason: string }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {
