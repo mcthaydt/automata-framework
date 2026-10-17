@@ -1,3 +1,4 @@
+import type { ErrorCode } from '@mcthaydt/automata-host'
 import type { SimEvent } from '@mcthaydt/automata-sim'
 import { Context, Effect, type Scope } from 'effect'
 
@@ -15,6 +16,12 @@ export interface RuntimeFacts {
     readonly device: 'keyboard' | 'gamepad' | 'touch'
     readonly previous: 'keyboard' | 'gamepad' | 'touch'
   }
+  /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
+  readonly 'save.written': { readonly key: string; readonly slot: number }
+  /** The host refused a slot's write; the slot keeps its previous value (M5 spec §4.3, §6). */
+  readonly 'save.failed': { readonly key: string; readonly slot: number; readonly code: ErrorCode }
+  /** A slot was loaded for play (M5 spec §5, "Load a slot"). */
+  readonly 'save.loaded': { readonly key: string; readonly slot: number }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {
