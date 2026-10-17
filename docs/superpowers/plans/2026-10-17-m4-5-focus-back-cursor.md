@@ -2,8 +2,8 @@
 
 - **Task:** M4.5 in [02](../../02-master-delivery-plan.md). M4 spec [§4.7](../specs/2026-10-16-m4-input-display-design.md), §4.2 (context), §5 (screen change), §7 and §8 (focus rows), M4-D10. Acceptance F-a, F-b, F-c.
 - **Lanes:** ui (`FocusNavigator` and the FloorFifty ports), runtime (`ScreenDef.kind`, Flow's focus step), and the game lane's default screens. This session owns all three. **Depends on:** M4.0 (merged). It is stacked on M4.2 (`claude/clever-pasteur-ujmu6e-m4-2`), because the menus read M4.2's `Input` (nav repeat, the pad's menu edges) rather than a second pad poller.
-- **Status:** In progress.
-- **Progress:** 9 of 10 steps.
+- **Status:** Implemented and locally verified; CI and review pending.
+- **Progress:** 10 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -89,7 +89,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red: an Input stub firing `nav-down` steers or moves focus, `confirm` clicks, and `back` sends Escape.
    - Red: the held-direction repeat from M4.2 moves focus at 0, 400 and 520 ms (I-d's focus half).
    - Red: the title and paused screens no longer import `menu-pad`.
-10. [ ] **Verify and record.**
+10. [x] **Verify and record.** `pnpm format` left nothing dirty; `pnpm check` (`TURBO_FORCE=true`) 30 of 30 and 34 of 34; CI extras passed once the changeset carried a `BREAKING:` line (the API report counts `FocusNavigator`'s added methods as a changed class) and the agent-skill `api.md` was refreshed (`ecf56f4`, `ba5e962`); `pnpm test:parity` 11 of 11; `CI=1 pnpm test:e2e` 74 passed, 2 skipped; `prepare-ruken` passed for both games. Deviation: the `default-screens` test harness now disposes the sims it starts, because the default screens leak a sim when the runtime shuts down mid-play (Koota's 16-world cap; 02 follow-up row 53).
     - `pnpm format`; `pnpm check` (`TURBO_FORCE=true`).
     - The CI checks-job extras, including `check-changesets` (a ui patch changeset), `api-report --update`, `pnpm cheatsheet`, `pnpm agent-skills --write`, `build` and `test:dist`.
     - `pnpm test:parity`; `CI=1 pnpm test:e2e`; `prepare-ruken` for both games.
