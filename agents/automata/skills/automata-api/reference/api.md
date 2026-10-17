@@ -4329,9 +4329,9 @@ const padKeyEvents: WeakSet<Event>;
 #### `PAGE_SWIPE` (const)
 
 Swipe is the pagination on a paged region, on every form factor: a finger, a mouse drag, a trackpad's two-finger
-sideways swipe. From FloorFifty `apps/client/src/ui/page-swipe.ts` at `ac72660`, unchanged. A press that moves
-less than 8 px is a tap, so swiping never picks by accident; a quick flick turns one page whatever the distance;
-a slow drag snaps to the nearest page.
+sideways swipe. From FloorFifty `apps/client/src/ui/page-swipe.ts` at `ac72660`, unchanged but for a doc comment.
+A press that moves less than 8 px is a tap, so swiping never picks by accident; a quick flick turns one page
+whatever the distance; a slow drag snaps to the nearest page.
 
 ```ts
 const PAGE_SWIPE: {
