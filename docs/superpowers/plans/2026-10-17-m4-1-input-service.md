@@ -146,7 +146,7 @@ export function inputsProblems(inputs: readonly string[], bindings: ShipInputBin
 | `packages/ship/src/manifest/check-inputs.ts`, `check-inputs.test.ts`, `config/ship-config.ts`, `errors.ts`, `prepare/prepare-build.ts`, `prepare/prepare-build.test.ts` | I-g |
 | `packages/cli/src/check/csp-probe-live.ts` and its test | `automata check` runs the inputs check |
 | `examples/core/core-input-keys.ts` | Adds a pad binding, so the example shows one action on three devices (the golden is unchanged: the replay holds commands) |
-| `tooling/api-report/reports/{runtime,game,ship,automata}.api.md`, `.changeset/m4-1-input.md` | Reports; a changeset for `ship` (minor, additive) |
+| `tooling/api-report/reports/{runtime,game,ship,automata}.api.md`, `.changeset/m4-1-input.md` | Reports; a changeset for `ship` (patch: before 1.0 every AF changeset is a patch) |
 
 ## Steps
 
@@ -214,7 +214,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
      - **Why it changed.** `ship prepare` loads `ship.config.ts` under plain Node, and Node cannot load a game's input map: the sim's sources use extensionless imports (`ERR_MODULE_NOT_FOUND: …/packages/sim/src/define/definitions`). Vite's `runnerImport` stops at the game package's Svelte screens (tried in Emberwick: "Failed to parse source for import analysis", `Dialog.svelte`). So `ShipConfig` gains no `input` field; the config stays Ruken's manifest shape.
      - **What was built.** `prepareBuild` takes `inputBindings?: ShipInputBindings`; with them, it fails with `ManifestInputsMismatch` before writing. A game checks itself in its own `ship-config.test.ts`, where Vite resolves both the input map and `ship.config.ts`. Emberwick does; the placeholder has no input map. That assignment also proves a profile's `bindings` is assignable to `ShipInputBindings`, which replaces the type test planned in `game`. Emberwick's `tsconfig.node.json` gains `vite/client` types for it.
      - **Not done here.** The prepare CLI and `automata check` passing the bindings are a 02 follow-up.
-     - **Results.** Red: "Cannot find module './check-inputs.ts'", and prepare's mismatch case "expected a failure". Green: 14 passed. The ship `index.test.ts` export test went red, then green. Emberwick `ship-config.test.ts`: 4 passed. Typecheck: 0 errors. Changeset: `ship` minor.
+     - **Results.** Red: "Cannot find module './check-inputs.ts'", and prepare's mismatch case "expected a failure". Green: 14 passed. The ship `index.test.ts` export test went red, then green. Emberwick `ship-config.test.ts`: 4 passed. Typecheck: 0 errors. Changeset: `ship` patch (first written as minor; `check-changesets` refused it in step 8).
 7. [x] **I-a parity and the example.**
    - **Red:** in `keys.parity.test.ts` (Chromium, WebKit, Firefox) and its Node twin in `keys.test.ts`, one scripted 120-tick run three times:
      - by keyboard events;

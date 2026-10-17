@@ -10,7 +10,7 @@ import {
   defineSystem,
 } from '@mcthaydt/automata-sim'
 import { z } from 'zod'
-import { keys } from '../keys.ts'
+import { type InputMap, keys } from '../keys.ts'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
 const step = z.number().int().min(-1).max(1).default(0)
@@ -25,7 +25,7 @@ const move = defineSystem('move', (ctx) => {
 const square = definePlugin({ name: 'square', defs: [Body, Move, move] })
 
 /** core-input-keys's map: one action per direction, on a key, a D-pad button and a touch button. */
-export const deviceMap = keys(
+export const deviceMap: InputMap = keys(
   Move,
   { ArrowLeft: { x: -1 }, ArrowRight: { x: 1 }, ArrowUp: { y: -1 }, ArrowDown: { y: 1 } },
   { pad: { 14: { x: -1 }, 15: { x: 1 }, 12: { y: -1 }, 13: { y: 1 } } },
