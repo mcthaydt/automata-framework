@@ -55,6 +55,15 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `svelte-check` | 4.7.6 | 2026-10-11 | ui lane: typechecks `.svelte` files |
 | `typescript` | 6.0.3 | 2026-10-11 | ui lane: for `svelte-check`, which does not support TypeScript 7 yet; ship lane: `tooling/api-index` (DX.4) and `tooling/api-report` (PRODUCT.1) use its JS compiler API (`transpileDeclaration`, the checker), since 7.0.2 has only `typescript/unstable/*`. The rest of AF uses 7.0.2 (as Ruken holds 6.0.3 for svelte-check) |
 
+## Tools run without installing
+
+Run through `pnpm dlx` or `npx -y` at an exact version, so they are in no `package.json` (and not in the npm table, which `tooling/versions` matches against the manifests).
+
+| Package | Version | Date | Why |
+|---|---|---|---|
+| `@anthropic-ai/claude-code` | 2.1.301 | 2026-10-16 | integration lane (DX.7): `claude plugin validate --strict` on the agent plugin and marketplace (`pnpm plugin:validate`, through `pnpm dlx`, not a devDependency: it pulls a platform binary), and the Claude Code version the install test ran on. 2.1.301 is what the container had; the claim is "tested on 2.1.301" |
+| `skills` | 1.7.0 | 2026-10-16 | integration lane (DX.7): the Agent Skills installer (`npx skills add`) in the install test, run through `npx -y`; 1.7.0 (2026-09-17), as 1.7.1 and 1.7.2 are under two weeks old |
+
 ## Container images
 
 | Image | Tag | Date | Why |

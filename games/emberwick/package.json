@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-check-boundaries": "workspace:*",
+    "@mcthaydt/automata-cli": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
     "@playwright/test": "1.63.0",
