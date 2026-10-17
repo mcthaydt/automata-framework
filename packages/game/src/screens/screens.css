@@ -28,6 +28,12 @@
   overflow-wrap: anywhere;
 }
 
+/* Why play paused, when the player did not ask (a pad unplugged). */
+.af-game-menu__message {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 /* Paused: the game shows dimmed behind the menu. */
 .af-game-menu--scrim {
   position: fixed;

@@ -60,6 +60,8 @@ describe('theme.css', () => {
       '--af-on-accent',
       '--af-danger',
       '--af-on-danger',
+      '--af-danger-edge',
+      '--af-success',
       '--af-ring',
       '--af-scrim',
       '--af-edge',
@@ -106,6 +108,11 @@ describe('theme.css', () => {
     ['--af-edge', '--af-surface', 3],
     ['--af-edge', '--af-panel', 3],
     ['--af-accent', '--af-surface', 3],
+    ['--af-accent', '--af-panel', 3],
+    ['--af-danger-edge', '--af-surface', 3],
+    ['--af-danger-edge', '--af-panel', 3],
+    ['--af-success', '--af-surface', 3],
+    ['--af-success', '--af-panel', 3],
   ])('%s on %s meets %d:1', (fore, back, minimum) => {
     expect(contrast(colour(fore), colour(back))).toBeGreaterThanOrEqual(minimum)
   })

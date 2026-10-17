@@ -22,6 +22,15 @@ function actionsForKey(profile: InputProfile, code: string): string[];
 function actionsForPadButton(profile: InputProfile, index: number): string[];
 ```
 
+### `ActiveDevice` (interface)
+
+```ts
+interface ActiveDevice {
+    readonly device: InputDevice;
+    readonly glyphs: GlyphFamily;
+}
+```
+
 ### `AppLoop` (interface)
 
 ```ts
@@ -142,6 +151,28 @@ class ContentHashMismatch extends ContentHashMismatchBase {
 function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
 ```
 
+### `DEFAULT_QUALITY` (const)
+
+```ts
+const DEFAULT_QUALITY: QualityTier;
+```
+
+### `DisplaySettings` (interface)
+
+```ts
+interface DisplaySettings {
+    readonly quality: QualityTier;
+}
+```
+
+### `displaySettingsSchema` (const)
+
+```ts
+const displaySettingsSchema: z.ZodType<DisplaySettings, {
+    quality?: unknown;
+}>;
+```
+
 ### `Flow` (interface)
 
 ```ts
@@ -258,6 +289,12 @@ interface GestureTuning {
 }
 ```
 
+### `GlyphFamily` (type)
+
+```ts
+type GlyphFamily = 'xbox' | 'playstation' | 'generic';
+```
+
 ### `Input` (interface)
 
 ```ts
@@ -268,13 +305,14 @@ interface Input {
         readonly y: number;
     };
     onPress(action: MenuAction, listener: () => void): () => void;
-    poll(): void;
+    poll(nowMs?: number): void;
     hold(action: string): void;
     release(action: string): void;
     readonly gesture: GestureSink;
     setContext(context: InputContextNow): void;
-    readonly device: SubscriptionRef.SubscriptionRef<InputDevice>;
+    readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
     readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
+    readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
 }
 const Input: Context.Tag<Input, Input>;
 ```
@@ -460,6 +498,16 @@ interface NetworkPort {
 const NetworkPort: Context.Tag<NetworkPort, NetworkPort>;
 ```
 
+### `PadInfo` (interface)
+
+```ts
+interface PadInfo {
+    readonly index: number;
+    readonly id: string;
+    readonly standard: boolean;
+}
+```
+
 ### `ParaglideRuntime` (interface)
 
 ```ts
@@ -474,7 +522,7 @@ interface ParaglideRuntime {
 ### `PauseReason` (type)
 
 ```ts
-type PauseReason = 'lifecycle' | 'menu';
+type PauseReason = 'lifecycle' | 'menu' | 'input';
 ```
 
 ### `pluralCategory` (const)
@@ -491,6 +539,24 @@ interface PresentationBus<Facts = RuntimeFacts> {
     subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void;
 }
 const PresentationBus: Context.Tag<PresentationBus, PresentationBus>;
+```
+
+### `QUALITY_TIERS` (const)
+
+```ts
+const QUALITY_TIERS: readonly ["high", "medium", "low"];
+```
+
+### `QualityTier` (type)
+
+```ts
+type QualityTier = (typeof QUALITY_TIERS)[number];
+```
+
+### `qualityTierSchema` (const)
+
+```ts
+const qualityTierSchema: z.ZodType<QualityTier, unknown>;
 ```
 
 ### `Renderer` (const)
@@ -519,6 +585,7 @@ interface RenderTarget {
     readonly host: HTMLElement;
     readonly geometry: GeometryOwner;
     readonly assets: Pick<Assets, 'get'>;
+    readonly bus?: PresentationBus | undefined;
 }
 ```
 
@@ -557,8 +624,17 @@ interface RuntimeFacts {
         readonly previous: string;
     };
     readonly 'input.device.changed': {
-        readonly device: 'keyboard' | 'gamepad' | 'touch';
-        readonly previous: 'keyboard' | 'gamepad' | 'touch';
+        readonly device: InputDevice;
+        readonly glyphs: GlyphFamily;
+        readonly previous: InputDevice;
+    };
+    readonly 'input.pad.connected': PadInfo;
+    readonly 'input.pad.disconnected': PadInfo & {
+        readonly wasActive: boolean;
+    };
+    readonly 'render.filter.dropped': {
+        readonly id: string;
+        readonly reason: string;
     };
 }
 ```
@@ -605,6 +681,7 @@ interface ScreenContext {
 interface ScreenDef<R = never> {
     readonly id: string;
     readonly pausesSim?: boolean;
+    readonly kind?: 'menu' | 'gameplay';
     readonly fonts?: readonly string[];
     enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
     openMenu?(): boolean;

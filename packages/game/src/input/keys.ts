@@ -10,6 +10,7 @@ import {
   inputProfileSchema,
   makeInput,
   type PresentationBus,
+  type StickDirection,
   type TouchMode,
   touchModesFor,
 } from '@mcthaydt/automata-runtime'
@@ -68,6 +69,8 @@ export interface KeysOptions<Z extends z.ZodType> {
   readonly gestures?: Readonly<Partial<Record<GestureName, Payload<Z>>>>
   /** Default `buttons` when the map has touch buttons, else `swipe`. The player's setting is M4.4's. */
   readonly touchMode?: TouchMode
+  /** A stick pushed past the deadzone in a direction (`left-left`, `right-up`, …) → payload (M4.2). */
+  readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>
   /** The payload with nothing held. Default: the schema's own defaults (`schema.parse({})`), when it has them. */
   readonly idle?: z.input<Z>
 }
@@ -113,20 +116,30 @@ export function keys<Z extends z.ZodType>(
   for (const { index, payload } of pad) check(`pad button ${index}`, payload)
   const gestures = Object.entries(options.gestures ?? {}) as [GestureName, Payload<Z>][]
   for (const [gesture, payload] of gestures) check(`gesture ${gesture}`, payload)
+  const stick = Object.entries(options.stick ?? {}) as [StickDirection, Payload<Z>][]
+  for (const [direction, payload] of stick) check(`stick ${direction}`, payload)
 
-  // One action per distinct payload: the keys' payloads in binding order, then any pad payload no key shares.
-  const actions: { id: string; payload: unknown; keys: string[]; pad: number[]; gesture: GestureName[] }[] =
-    []
+  // One action per distinct payload: the keys' payloads in binding order, then any pad, stick or gesture payload
+  // no key shares.
+  const actions: {
+    id: string
+    payload: unknown
+    keys: string[]
+    pad: number[]
+    stick: StickDirection[]
+    gesture: GestureName[]
+  }[] = []
   const actionFor = (payload: unknown): (typeof actions)[number] => {
     const key = JSON.stringify(payload)
     const found = actions.find((action) => JSON.stringify(action.payload) === key)
     if (found !== undefined) return found
-    const made = { id: `${command.id}-${actions.length}`, payload, keys: [], pad: [], gesture: [] }
+    const made = { id: `${command.id}-${actions.length}`, payload, keys: [], pad: [], stick: [], gesture: [] }
     actions.push(made)
     return made
   }
   for (const [code, payload] of Object.entries(bindings)) actionFor(payload).keys.push(code)
   for (const { index, payload } of pad) actionFor(payload).pad.push(index)
+  for (const [direction, payload] of stick) actionFor(payload).stick.push(direction)
   for (const [gesture, payload] of gestures) actionFor(payload).gesture.push(gesture)
 
   const touch = options.touch !== false
@@ -138,6 +151,7 @@ export function keys<Z extends z.ZodType>(
         {
           keys: action.keys,
           pad: action.pad,
+          ...(action.stick.length > 0 ? { stick: action.stick } : {}),
           touch: touch && action.keys.length > 0,
           ...(action.gesture.length > 0 ? { gesture: action.gesture } : {}),
         },

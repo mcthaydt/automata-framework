@@ -338,6 +338,7 @@ interface KeysOptions<Z extends z.ZodType> {
     readonly pad?: Readonly<Record<number, Payload<Z>>>;
     readonly gestures?: Readonly<Partial<Record<GestureName, Payload<Z>>>>;
     readonly touchMode?: TouchMode;
+    readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>;
     readonly idle?: z.input<Z>;
 }
 ```

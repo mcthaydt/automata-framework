@@ -41,6 +41,20 @@ describe('Time and watchLifecycle', () => {
     )
   })
 
+  it("holds the 'input' reason for a pad unplugged in play (M4-D9)", async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const time = makeTime(yield* makePresentationBus())
+        time.pause('input')
+        time.pause('menu')
+        time.resume('menu')
+        expect([...time.reasons]).toEqual(['input'])
+        time.resume('input')
+        expect(time.paused).toBe(false)
+      }),
+    )
+  })
+
   it('time.changed is published on the bus each time paused flips, and not when a second reason is added', async () => {
     await runScoped(
       Effect.gen(function* () {
