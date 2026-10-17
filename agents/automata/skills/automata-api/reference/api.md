@@ -1362,6 +1362,19 @@ class EntryMissing extends EntryMissingBase {
 }
 ```
 
+#### `EnvValue` (interface)
+
+One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build.
+
+```ts
+interface EnvValue {
+  /** The `.env*` file the variable came from, relative to the game folder. */
+  readonly file: string;
+  readonly name: string;
+  readonly value: string;
+}
+```
+
 #### `FileError` (class)
 
 Reading, writing, listing or removing a file failed.
@@ -1382,6 +1395,15 @@ _No doc comment._
 function findRootAbsoluteReferences(distDir: string): RootAbsoluteReferenceFound[];
 ```
 
+#### `findSecretsInBuild` (function)
+
+Every secret in a built folder. Files are read as latin1, one character per byte, so offsets are byte offsets;
+each `.env` value is encoded the same way so it matches its UTF-8 bytes.
+
+```ts
+function findSecretsInBuild(distDir: string, envValues: readonly EnvValue[]): SecretFound[];
+```
+
 #### `ManifestInvalid` (class)
 
 Ruken's parser refused the generated `ruken.toml`. `problems` are Ruken's own issues, unchanged.
@@ -1390,6 +1412,14 @@ Ruken's parser refused the generated `ruken.toml`. `problems` are Ruken's own is
 class ManifestInvalid extends ManifestInvalidBase {
   override get message(): string;
 }
+```
+
+#### `parseEnvFile` (function)
+
+The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
+
+```ts
+function parseEnvFile(file: string, text: string): EnvValue[];
 ```
 
 #### `portsFor` (function)
@@ -1411,7 +1441,7 @@ function portsFor(checkoutPath: string, env: Readonly<Record<string, string | un
 #### `prepareBuild` (function)
 
 Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
-entry page and root-absolute paths, then writes `ruken.toml` once Ruken's parser accepts it. Every check
+entry page, root-absolute paths and secrets (QB-b), then writes `ruken.toml` once Ruken's parser accepts it. Every check
 runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
 (archive, size, file types) happen inside `ruken publish`, not here.
 
@@ -1432,6 +1462,11 @@ interface PrepareInput {
   readonly config: ShipConfig;
   /** The release tag being built, when there is one (`v1.2.3`). */
   readonly tag?: string | undefined;
+  /**
+   * The game folder, whose `.env*` values must not appear in the build (QB-b). The CLI passes its working folder;
+   * when it is left out, no `.env` file is read and only key formats and high-entropy strings are checked.
+   */
+  readonly gameDir?: string | undefined;
 }
 ```
 
@@ -1530,6 +1565,14 @@ class PublishUsage extends PublishUsageBase {
 }
 ```
 
+#### `readEnvValues` (function)
+
+The variables of every top-level `.env*` file in the game folder; none when the folder does not exist.
+
+```ts
+function readEnvValues(gameDir: string): EnvValue[];
+```
+
 #### `RootAbsoluteReference` (class)
 
 The build names its own files from the origin's root, which 404s under `/b/<buildId>/`.
@@ -1558,6 +1601,44 @@ _No doc comment._
 
 ```ts
 function rukenToml(config: ShipConfig): string;
+```
+
+#### `scanTextForSecrets` (function)
+
+Every secret in one file's text.
+
+```ts
+function scanTextForSecrets(file: string, text: string, envValues: readonly EnvValue[]): SecretFound[];
+```
+
+#### `SecretFound` (interface)
+
+A secret the bundle scan found in a built file, located without repeating the secret.
+
+```ts
+interface SecretFound {
+  /** Relative to the build, with forward slashes. */
+  readonly file: string;
+  /** Index into the scanned text; a byte offset when the text was read as latin1 (as `findSecretsInBuild` does). */
+  readonly offset: number;
+  /** 1-based. */
+  readonly line: number;
+  readonly col: number;
+  /** A gitleaks rule ID, `env-value` or `high-entropy`. */
+  readonly rule: string;
+  /** What was found, without the secret. */
+  readonly detail: string;
+}
+```
+
+#### `SecretInBuild` (class)
+
+The build holds a key, an `.env` value or a high-entropy string (QB-b). The message never holds the secret.
+
+```ts
+class SecretInBuild extends SecretInBuildBase {
+  override get message(): string;
+}
 ```
 
 #### `SHIP_PACKAGE` (const)
