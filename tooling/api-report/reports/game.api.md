@@ -190,6 +190,8 @@ interface InputMap {
     readonly command: CommandDef;
     readonly touch: boolean;
     readonly touchButtons: readonly TouchButton[];
+    readonly profile: InputProfile;
+    toCommand(held: Iterable<string>, tick: number): readonly Command[];
     attach(target: Window): InputSource;
 }
 ```

@@ -67,6 +67,19 @@ export class SecretInBuild extends SecretInBuildBase {
   }
 }
 
+const ManifestInputsMismatchBase: TaggedErrorClass<
+  'ManifestInputsMismatch',
+  {
+    readonly problems: readonly string[]
+  }
+> = Data.TaggedError('ManifestInputsMismatch')
+/** `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g). */
+export class ManifestInputsMismatch extends ManifestInputsMismatchBase {
+  override get message(): string {
+    return `ruken.toml's runtime.inputs disagrees with the game's input bindings; fix ship.config.ts or the bindings:\n${this.problems.join('\n')}`
+  }
+}
+
 const EntryMissingBase: TaggedErrorClass<
   'EntryMissing',
   {

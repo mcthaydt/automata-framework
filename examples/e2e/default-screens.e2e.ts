@@ -20,7 +20,7 @@ test('core-input-keys walks title, play, paused and back on the default screens'
   await expect(screen('play')).toBeVisible()
   await expect(frame.getByTestId('pause')).toBeVisible()
   // Both projects are phones with a coarse pointer, so the input map's touch buttons show.
-  await expect(frame.getByTestId('touch-0')).toBeVisible()
+  await expect(frame.getByTestId('move-0')).toBeVisible()
 
   await frame.getByTestId('pause').click()
   await expect(screen('paused')).toBeVisible()

@@ -10,6 +10,11 @@ export interface RuntimeFacts {
   readonly 'time.changed': { readonly paused: boolean }
   /** The player's language changed (PRODUCT spec §4 item 2). Screens redraw their text; nothing remounts. */
   readonly 'locale.changed': { readonly locale: string; readonly previous: string }
+  /** The player's last real input came from another device (M4 spec §4.2). Prompts and touch controls follow it. */
+  readonly 'input.device.changed': {
+    readonly device: 'keyboard' | 'gamepad' | 'touch'
+    readonly previous: 'keyboard' | 'gamepad' | 'touch'
+  }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {

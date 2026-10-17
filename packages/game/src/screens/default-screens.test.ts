@@ -199,13 +199,31 @@ describe('default screens', () => {
     expect(lastX()).toBe(10)
   })
 
+  it('the pad’s Start button pauses play, through the Input service’s pause edge (M4.1)', async () => {
+    const buttons: boolean[] = []
+    Object.defineProperty(window.navigator, 'getGamepads', {
+      configurable: true,
+      value: () => [{ index: 0, mapping: 'standard', buttons: buttons.map((pressed) => ({ pressed })) }],
+    })
+    try {
+      await boot()
+      await toPlay()
+      step()
+      buttons[9] = true
+      step()
+      await until(() => screen('paused') !== null, 'the paused screen')
+    } finally {
+      Reflect.deleteProperty(window.navigator, 'getGamepads')
+    }
+  })
+
   it('shows touch buttons only when the player uses touch', async () => {
     await boot()
     await toPlay()
-    expect(root.querySelector('[data-testid="touch-0"]')).toBeNull()
+    expect(root.querySelector('[data-testid="move-0"]')).toBeNull()
     window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
-    await until(() => root.querySelector('[data-testid="touch-0"]') !== null, 'the touch buttons')
-    const right = button('touch-1') as HTMLButtonElement
+    await until(() => root.querySelector('[data-testid="move-0"]') !== null, 'the touch buttons')
+    const right = button('move-1') as HTMLButtonElement
     expect(right.textContent).toBe('→')
     right.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }))
     step(2)
@@ -220,7 +238,7 @@ describe('default screens', () => {
     await toPlay()
     window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
     await tick()
-    expect(root.querySelector('[data-testid="touch-0"]')).toBeNull()
+    expect(root.querySelector('[data-testid="move-0"]')).toBeNull()
   })
 
   it('plays with no input map, sending no commands', async () => {

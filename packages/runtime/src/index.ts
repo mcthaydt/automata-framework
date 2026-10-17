@@ -28,14 +28,27 @@ export type {
   ScreenDef,
 } from './flow/screen.js'
 export {
+  Input,
+  type InputContextNow,
+  type InputDevice,
+  type InputOptions,
+  makeInput,
+} from './input/input.manager.js'
+export {
   actionsForKey,
   actionsForPadButton,
+  type GestureName,
   type InputBinding,
+  type InputContext,
   type InputProfile,
   type InputProfileInput,
   inputProfileSchema,
+  RESERVED_KEYS,
+  RESERVED_PAD_BUTTONS,
   STANDARD_PAD_BUTTON_MAX,
+  type StickDirection,
 } from './input/input-profile.schema.js'
+export type { MenuAction } from './input/menu-actions.js'
 export { Assets } from './loading/assets.manager.js'
 export {
   type LoadMeter,

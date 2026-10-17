@@ -219,6 +219,32 @@ interface GameRenderer {
 }
 ```
 
+### `GestureName` (type)
+
+```ts
+type GestureName = (typeof GESTURE_NAMES)[number];
+```
+
+### `Input` (interface)
+
+```ts
+interface Input {
+    held(): ReadonlySet<string>;
+    stick(side: 'left' | 'right'): {
+        readonly x: number;
+        readonly y: number;
+    };
+    onPress(action: MenuAction, listener: () => void): () => void;
+    poll(): void;
+    hold(action: string): void;
+    release(action: string): void;
+    setContext(context: InputContextNow): void;
+    readonly device: SubscriptionRef.SubscriptionRef<InputDevice>;
+    readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
+}
+const Input: Context.Tag<Input, Input>;
+```
+
 ### `InputBinding` (interface)
 
 ```ts
@@ -226,6 +252,38 @@ interface InputBinding {
     readonly keys: readonly string[];
     readonly pad: readonly number[];
     readonly touch: boolean;
+    readonly stick?: readonly StickDirection[] | undefined;
+    readonly gesture?: readonly GestureName[] | undefined;
+    readonly required?: boolean | undefined;
+    readonly context?: InputContext | undefined;
+}
+```
+
+### `InputContext` (type)
+
+```ts
+type InputContext = 'play' | 'menu' | 'any';
+```
+
+### `InputContextNow` (type)
+
+```ts
+type InputContextNow = 'play' | 'menu';
+```
+
+### `InputDevice` (type)
+
+```ts
+type InputDevice = 'keyboard' | 'gamepad' | 'touch';
+```
+
+### `InputOptions` (interface)
+
+```ts
+interface InputOptions {
+    readonly target: Window;
+    readonly profile: InputProfile;
+    readonly bus: PresentationBus;
 }
 ```
 
@@ -247,6 +305,10 @@ interface InputProfileInput {
         readonly keys?: readonly string[] | undefined;
         readonly pad?: readonly number[] | undefined;
         readonly touch?: boolean | undefined;
+        readonly stick?: readonly StickDirection[] | undefined;
+        readonly gesture?: readonly GestureName[] | undefined;
+        readonly required?: boolean | undefined;
+        readonly context?: InputContext | undefined;
     }>>;
 }
 ```
@@ -316,6 +378,12 @@ interface LocaleDef {
 }
 ```
 
+### `makeInput` (function)
+
+```ts
+function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope>;
+```
+
 ### `matchLocale` (function)
 
 ```ts
@@ -326,6 +394,12 @@ function matchLocale(requested: string, locales: readonly string[]): string | un
 
 ```ts
 const MAX_FRAME_MS = 100;
+```
+
+### `MenuAction` (type)
+
+```ts
+type MenuAction = 'nav-up' | 'nav-down' | 'nav-left' | 'nav-right' | 'confirm' | 'back' | 'page-prev' | 'page-next' | 'adjust-dec' | 'adjust-inc' | 'pause';
 ```
 
 ### `MessageFunction` (type)
@@ -414,6 +488,18 @@ interface RenderTarget {
 }
 ```
 
+### `RESERVED_KEYS` (const)
+
+```ts
+const RESERVED_KEYS: readonly string[];
+```
+
+### `RESERVED_PAD_BUTTONS` (const)
+
+```ts
+const RESERVED_PAD_BUTTONS: readonly number[];
+```
+
 ### `runGame` (function)
 
 ```ts
@@ -435,6 +521,10 @@ interface RuntimeFacts {
     readonly 'locale.changed': {
         readonly locale: string;
         readonly previous: string;
+    };
+    readonly 'input.device.changed': {
+        readonly device: 'keyboard' | 'gamepad' | 'touch';
+        readonly previous: 'keyboard' | 'gamepad' | 'touch';
     };
 }
 ```
@@ -549,6 +639,12 @@ const STALL_MS = 30000;
 
 ```ts
 const STANDARD_PAD_BUTTON_MAX = 16;
+```
+
+### `StickDirection` (type)
+
+```ts
+type StickDirection = (typeof STICK_DIRECTIONS)[number];
 ```
 
 ### `textDirection` (function)

@@ -4,11 +4,13 @@ import { Effect } from 'effect'
 import type { ShipConfig } from '../config/ship-config.ts'
 import {
   EntryMissing,
+  ManifestInputsMismatch,
   type ManifestInvalid,
   RootAbsoluteReference,
   SecretInBuild,
   VersionMismatch,
 } from '../errors.ts'
+import { inputsProblems, type ShipInputBindings } from '../manifest/check-inputs.ts'
 import { checkManifest } from '../manifest/check-manifest.ts'
 import { rukenToml } from '../manifest/ruken-toml.ts'
 import { checkVersion } from './check-version.ts'
@@ -26,6 +28,11 @@ export interface PrepareInput {
    * when it is left out, no `.env` file is read and only key formats and high-entropy strings are checked.
    */
   readonly gameDir?: string | undefined
+  /**
+   * The game's input bindings (its input map's `profile.bindings`), checked against `runtime.inputs` (I-g).
+   * Left out, nothing is checked.
+   */
+  readonly inputBindings?: ShipInputBindings | undefined
 }
 
 export type PrepareError =
@@ -33,6 +40,7 @@ export type PrepareError =
   | RootAbsoluteReference
   | SecretInBuild
   | EntryMissing
+  | ManifestInputsMismatch
   | ManifestInvalid
   | FileError
 
@@ -51,6 +59,11 @@ export function prepareBuild(
     const mismatch = checkVersion(config.game.version, tag)
     if (mismatch !== undefined && tag !== undefined) {
       return yield* new VersionMismatch({ version: config.game.version, tag, message: mismatch })
+    }
+
+    if (input.inputBindings !== undefined) {
+      const problems = inputsProblems(config.runtime.inputs, input.inputBindings)
+      if (problems.length > 0) return yield* new ManifestInputsMismatch({ problems })
     }
 
     const references = yield* Effect.try({

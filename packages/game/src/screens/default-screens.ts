@@ -1,6 +1,13 @@
 import '@mcthaydt/automata-ui/theme.css'
 import './screens.css'
-import { AppLoop, Flow, type ScreenDef } from '@mcthaydt/automata-runtime'
+import {
+  AppLoop,
+  Flow,
+  type InputProfile,
+  makeInput,
+  PresentationBus,
+  type ScreenDef,
+} from '@mcthaydt/automata-runtime'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { InputMethodTracker } from '@mcthaydt/automata-ui'
 import { Effect, type Scope } from 'effect'
@@ -24,6 +31,9 @@ export interface ScreensGame {
   /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it (PRODUCT.2). */
   readonly watchSim?: ((sim: Sim | undefined) => void) | undefined
 }
+
+/** A game without an input map still pauses with Escape and the pad's Start: the menu actions need no profile. */
+const NO_BINDINGS: InputProfile = { id: 'none', bindings: {} }
 
 /** Mounts a screen component into the screen's layer for as long as the screen is open. */
 function show<Props extends Record<string, unknown>>(
@@ -142,16 +152,33 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           current.restore(current.snapshot())
         }
 
-        const input = game.input?.attach(target)
-        yield* Effect.addFinalizer(() => Effect.sync(() => input?.dispose()))
+        // The Input service for this play session (M4 spec §4.2): sampled once per fixed step, closed with the screen.
+        const map = game.input
+        const input = yield* makeInput({
+          target,
+          profile: map?.profile ?? NO_BINDINGS,
+          bus: yield* PresentationBus,
+        })
         const running = current
         game.watchSim?.(running)
-        appLoop.run({ sim: running, commands: (tick) => input?.commands(tick) ?? [] })
+        appLoop.run({
+          sim: running,
+          commands: (tick) => {
+            if (map === undefined) return []
+            input.poll()
+            return map.toCommand(input.held(), tick)
+          },
+        })
         yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.stop()))
 
         const pause = (): void => void flow.dispatch('pause')
+        // Escape and the pad's Start are the Input's pause edge; KeyP is the default screens' own extra.
+        yield* Effect.acquireRelease(
+          Effect.sync(() => input.onPress('pause', pause)),
+          (stop) => Effect.sync(stop),
+        )
         yield* listen(target, 'keydown', (event) => {
-          if (!plain(event) || (event.code !== 'Escape' && event.code !== 'KeyP')) return
+          if (!plain(event) || event.code !== 'KeyP') return
           event.preventDefault()
           pause()
         })
@@ -163,8 +190,8 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           onPause: pause,
           tracker,
           touchButtons: game.input?.touch === false ? [] : (game.input?.touchButtons ?? []),
-          onHold: (id: string) => input?.hold(id),
-          onRelease: (id: string) => input?.release(id),
+          onHold: (id: string) => input.hold(id),
+          onRelease: (id: string) => input.release(id),
         })
       }),
   }

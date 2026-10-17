@@ -111,6 +111,20 @@ function findRootAbsoluteReferences(distDir: string): RootAbsoluteReferenceFound
 function findSecretsInBuild(distDir: string, envValues: readonly EnvValue[]): SecretFound[];
 ```
 
+### `inputsProblems` (function)
+
+```ts
+function inputsProblems(inputs: readonly string[], bindings: ShipInputBindings): string[];
+```
+
+### `ManifestInputsMismatch` (class)
+
+```ts
+class ManifestInputsMismatch extends ManifestInputsMismatchBase {
+    get message(): string;
+}
+```
+
 ### `ManifestInvalid` (class)
 
 ```ts
@@ -150,6 +164,7 @@ interface PrepareInput {
     readonly config: ShipConfig;
     readonly tag?: string | undefined;
     readonly gameDir?: string | undefined;
+    readonly inputBindings?: ShipInputBindings | undefined;
 }
 ```
 
@@ -293,6 +308,18 @@ interface ShipConfig {
     readonly analytics?: Manifest['analytics'];
     readonly loading?: NonNullable<Manifest['loading']>;
     readonly leaderboards?: Manifest['leaderboards'];
+}
+```
+
+### `ShipInputBindings` (interface)
+
+```ts
+interface ShipInputBindings {
+    readonly [action: string]: {
+        readonly pad?: readonly number[] | undefined;
+        readonly touch?: boolean | undefined;
+        readonly gesture?: readonly string[] | undefined;
+    };
 }
 ```
 

@@ -37,12 +37,67 @@ describe('keys() construction', () => {
 
   it('makes one touch button per distinct payload, keys in binding order', () => {
     expect(arrows.touchButtons).toEqual([
-      { id: 'touch-0', label: '←', keys: ['ArrowLeft', 'KeyA'] },
-      { id: 'touch-1', label: '→', keys: ['ArrowRight'] },
-      { id: 'touch-2', label: 'Space', keys: ['Space'] },
+      { id: 'move-0', label: '←', keys: ['ArrowLeft', 'KeyA'] },
+      { id: 'move-1', label: '→', keys: ['ArrowRight'] },
+      { id: 'move-2', label: 'Space', keys: ['Space'] },
     ])
     expect(arrows.touch).toBe(true)
     expect(keys(Move, {}, { touch: false }).touch).toBe(false)
+  })
+})
+
+describe('keys() profile and toCommand (M4 spec §2.2)', () => {
+  const padded = keys(
+    Move,
+    { ArrowLeft: { x: -1 }, KeyA: { x: -1 }, Space: { jump: true } },
+    {
+      pad: { 14: { x: -1 }, 0: { jump: true }, 12: { y: -1 } },
+    },
+  )
+
+  it('makes one action per distinct payload: its keys, its pad buttons and a touch button', () => {
+    expect(padded.profile).toEqual({
+      id: 'move',
+      bindings: {
+        'move-0': { keys: ['ArrowLeft', 'KeyA'], pad: [14], touch: true },
+        'move-1': { keys: ['Space'], pad: [0], touch: true },
+        'move-2': { keys: [], pad: [12], touch: false },
+      },
+    })
+    expect(padded.touchButtons.map((button) => button.id)).toEqual(['move-0', 'move-1'])
+  })
+
+  it('binds no touch button when touch is off', () => {
+    expect(keys(Move, { Space: { jump: true } }, { touch: false }).profile.bindings['move-0']?.touch).toBe(
+      false,
+    )
+  })
+
+  it('refuses a reserved key, as the profile schema does (I-j)', () => {
+    expect(() => keys(Move, { Escape: { jump: true } })).toThrow(/Escape/)
+    expect(() => keys(Move, {}, { pad: { 8: { jump: true } } })).toThrow(/pad button 8/)
+  })
+
+  it('is pure: the held actions make this tick’s one command', () => {
+    expect(padded.toCommand(new Set(['move-1']), 3)).toEqual([
+      { tick: 3, source: 0, seq: 3, type: 'move', payload: { x: 0, y: 0, jump: true } },
+    ])
+    expect(padded.toCommand(new Set(['move-1']), 3)).toEqual(padded.toCommand(['move-1'], 3))
+  })
+
+  it('merges in iteration order, the later action winning per field', () => {
+    const lr = keys(Move, { ArrowLeft: { x: -1 }, ArrowRight: { x: 1 } })
+    expect(lr.toCommand(['move-0', 'move-1'], 0)[0]?.payload).toEqual({ x: 1, y: 0, jump: false })
+    expect(lr.toCommand(['move-1', 'move-0'], 0)[0]?.payload).toEqual({ x: -1, y: 0, jump: false })
+  })
+
+  it('sends the idle payload with nothing held, and nothing without one', () => {
+    expect(padded.toCommand([], 1)[0]?.payload).toEqual({ x: 0, y: 0, jump: false })
+    expect(keys(Strict, {}).toCommand([], 1)).toEqual([])
+  })
+
+  it('ignores an action it does not know', () => {
+    expect(padded.toCommand(['jump'], 1)[0]?.payload).toEqual({ x: 0, y: 0, jump: false })
   })
 })
 
@@ -95,15 +150,31 @@ describe('keys() attached', () => {
 
   it('releases everything when the window loses focus', () => {
     press('ArrowLeft')
-    source.hold('touch-2')
+    source.hold('move-2')
     window.dispatchEvent(new Event('blur'))
     expect(payloadAt(source)).toEqual([{ x: 0, y: 0, jump: false }])
   })
 
+  it('releases everything when the page is hidden (the Input service, M4.1)', () => {
+    press('ArrowLeft')
+    source.hold('move-2')
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' })
+    document.dispatchEvent(new Event('visibilitychange'))
+    Reflect.deleteProperty(document, 'visibilityState')
+    expect(payloadAt(source)).toEqual([{ x: 0, y: 0, jump: false }])
+  })
+
+  it('keeps an action held while another key for it is still down', () => {
+    press('ArrowLeft')
+    press('KeyA')
+    lift('ArrowLeft')
+    expect(payloadAt(source)).toEqual([{ x: -1, y: 0, jump: false }])
+  })
+
   it('holds and releases a touch button', () => {
-    source.hold('touch-1')
+    source.hold('move-1')
     expect(payloadAt(source)).toEqual([{ x: 1, y: 0, jump: false }])
-    source.release('touch-1')
+    source.release('move-1')
     expect(payloadAt(source)).toEqual([{ x: 0, y: 0, jump: false }])
   })
 

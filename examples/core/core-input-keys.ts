@@ -1,7 +1,8 @@
-// core-input-keys: move a square with the keyboard
+// core-input-keys: move a square with the keyboard, a pad or touch
 //
-// Shows: keys() turns held keys into one sim command per tick; rect() draws an entity, interpolated.
-// Controls: arrows or WASD
+// Shows: keys() turns what is held on the keyboard, a standard pad's D-pad or the touch buttons into one sim
+//   command per tick, the same command from each device; rect() draws an entity, interpolated.
+// Controls: arrows or WASD, the D-pad, or the touch buttons
 // Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, zod
 // Difficulty: ★☆☆☆
 // Tier: core
@@ -35,15 +36,19 @@ export default defineGame({
       sim.spawn([[Body, { x: 160, y: 90 }]])
     },
   },
-  input: keys(Move, {
-    ArrowLeft: { x: -1 },
-    KeyA: { x: -1 },
-    ArrowRight: { x: 1 },
-    KeyD: { x: 1 },
-    ArrowUp: { y: -1 },
-    KeyW: { y: -1 },
-    ArrowDown: { y: 1 },
-    KeyS: { y: 1 },
-  }),
+  input: keys(
+    Move,
+    {
+      ArrowLeft: { x: -1 },
+      KeyA: { x: -1 },
+      ArrowRight: { x: 1 },
+      KeyD: { x: 1 },
+      ArrowUp: { y: -1 },
+      KeyW: { y: -1 },
+      ArrowDown: { y: 1 },
+      KeyS: { y: 1 },
+    },
+    { pad: { 14: { x: -1 }, 15: { x: 1 }, 12: { y: -1 }, 13: { y: 1 } } },
+  ),
   views: { [Body.id]: rect({ w: 8, h: 8, color: 0xffc825 }) },
 })

@@ -168,6 +168,8 @@
 - `FileError` (class): Reading, writing, listing or removing a file failed.
 - `findRootAbsoluteReferences(distDir)`
 - `findSecretsInBuild(distDir, envValues)`: Every secret in a built folder.
+- `inputsProblems(inputs, bindings)`: Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
+- `ManifestInputsMismatch` (class): `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
 - `ManifestInvalid` (class): Ruken's parser refused the generated `ruken.toml`.
 - `parseEnvFile(file, text)`: The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
@@ -190,6 +192,7 @@
 - `SecretInBuild` (class): The build holds a key, an `.env` value or a high-entropy string (QB-b).
 - `SHIP_PACKAGE` (const)
 - `ShipConfig` (interface): What a game tells ship about itself, in Ruken's own manifest shape (`@ruken/manifest`'s `Manifest`).
+- `ShipInputBindings` (interface): What ship reads of a game's input profile. ship is published and the profile's owner (`runtime`) is private, so this is the read-only subset ship consumes, not a copy of the contract: a profile's `bindings` is assignable to it.
 - `testRemote(input)`
 - `TestRemoteFailed` (class)
 - `TestRemoteInput` (interface)
