@@ -2,8 +2,8 @@
 
 - **Task:** M4.9 in [02](../../02-master-delivery-plan.md), M4 spec [§4.11](../specs/2026-10-16-m4-input-display-design.md) (acceptance Q-a, Q-b), §6 (a filter that fails to compile), M4-D6 (`high`, no auto-detect).
 - **Lanes:** render (`render-pixi`) and runtime (the settings field and the fact). **Depends on:** M4.0 (merged) and PRODUCT.1 (merged; the post-filter slot this extends).
-- **Status:** In progress.
-- **Progress:** 9 of 10 steps.
+- **Status:** Implemented and locally verified; CI and review pending.
+- **Progress:** 10 of 10 steps.
 
 ## Sources, read at these commits
 
@@ -87,7 +87,7 @@ Each step starts with a failing test whose failure reason is confirmed and recor
    - Red (`renderer.test.ts`): `tryFilter('bad', () => { throw … })` returns `undefined`, logs one warning and publishes `render.filter.dropped` with `{ id: 'bad' }` on the target's bus. The frame still draws.
    - Red (`render-quality.parity.test.ts`, the browsers project, WebGL2 in Chromium, WebKit and Firefox): a filter whose GLSL does not compile is dropped by `tryFilter`, and a frame then renders without throwing.
    - The parity test also establishes how Pixi reports a compile failure: as a throw, or as a log with an unusable program. `tryFilter` compiles eagerly by rendering a 1 × 1 probe through the filter inside the try.
-10. [ ] **Example and verification.** The example is `examples/render/render-quality.ts`; catalog and typecheck pass, 23 of 23. Deviation: it shows the tier through the canvas resolution, read out on its HUD, and does not register a `minTier` filter. A core example may import neither `pixi.js` nor the private `render-pixi`, and building filters belongs to the Plus `post` module. The `minTier` half of Q-a is proved by `post-filter-slot.test.ts` and `renderer.test.ts`. The changeset is empty (`m4-9-quality-tiers.md`), because runtime and render-pixi are private.
+10. [x] **Example and verification.** Gates (`TURBO_FORCE=true`): `pnpm format` left nothing dirty; `pnpm check` 30 of 30 and 34 of 34; CI extras passed (the API reports count the changed interfaces as private, so the empty changeset stands); `pnpm test:parity` 11 of 11; `CI=1 pnpm test:e2e` 74 passed, 2 skipped, including `render-quality` in the `examples` and `examples-compact` projects; `prepare-ruken` passed for both games. The example is `examples/render/render-quality.ts`; catalog and typecheck pass, 23 of 23. Deviation: it shows the tier through the canvas resolution, read out on its HUD, and does not register a `minTier` filter. A core example may import neither `pixi.js` nor the private `render-pixi`, and building filters belongs to the Plus `post` module. The `minTier` half of Q-a is proved by `post-filter-slot.test.ts` and `renderer.test.ts`. The changeset is empty (`m4-9-quality-tiers.md`), because runtime and render-pixi are private.
     - The example `examples/render/render-quality.ts`, with its header, inside the catalog's budget.
     - Its catalog check and its smoke in the `examples` projects.
     - A changeset: patch, for render-pixi and runtime only if published; `check-changesets` decides.
