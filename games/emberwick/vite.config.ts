@@ -1,5 +1,6 @@
 import { checkManifest, rukenToml } from '@mcthaydt/automata-ship'
 import { compileHeaders } from '@ruken/manifest'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { Effect } from 'effect'
 import { defineConfig } from 'vite'
 import config from './ship.config.ts'
@@ -15,6 +16,8 @@ function previewHeaders(): Record<string, string> {
 }
 
 export default defineConfig({
+  // Svelte compiles the ui panels the runtime shows (loader, boot failure) and the game package's screens.
+  plugins: [svelte()],
   // Relative URLs: inside Ruken the game is served from /b/<buildId>/ and on the dev host from
   // /builds/<buildId>/, never from the origin's root (ship prepare refuses root-absolute paths).
   base: './',

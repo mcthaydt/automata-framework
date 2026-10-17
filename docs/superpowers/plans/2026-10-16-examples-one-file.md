@@ -2,7 +2,7 @@
 
 - **Spec:** [`docs/superpowers/specs/2026-10-16-examples-one-file-design.md`](../specs/2026-10-16-examples-one-file-design.md)
 - **Status:** drafted 2026-10-16; EX.0 approved by the Owner 2026-10-16, so tasks may start in dependency order.
-- **Progress:** EX.2 merged (#35), EX.1 merged (#43), EX.3 merged with its examples still red (#51; its step 6 is done on DX.2's branch, ticked when that PR merges); EX.4 open; EX.5 implemented and locally verified (PR pending; Owner screenshot approval pending).
+- **Progress:** EX.2 merged (#35), EX.1 merged (#43), EX.3 merged with its examples red (#51), and green since DX.2 merged (#62, step 6); EX.4 open; EX.5 implemented and locally verified (PR pending; Owner screenshot approval pending).
 
 ## Global constraints
 
@@ -170,7 +170,7 @@
   - catalog: `core/core-basic-window.ts: import "@mcthaydt/automata-game" is not a public entry`, and the same for `shapes/shapes-rects.ts`;
   - `pnpm --filter @af-examples/examples typecheck`: `TS2307: Cannot find module '@mcthaydt/automata-game'` in both, `TS2307` for `@mcthaydt/automata-sim` (the examples package does not depend on it yet) and two `TS7006` implicit `any`s that follow from them.
   - The plan expected the missing verb to be named; it can't be, because the package that will export `defineGame`, `rect` and `sprite` does not exist yet, so the missing module is the red.
-- [ ] **6.** In the DX.2 and DX.2b PRs, not here: remove each landed task from `Pending:`, add the examples' dependencies (`@mcthaydt/automata-game`, `@mcthaydt/automata-sim`, `zod`) to `examples/package.json`, record each `Golden:` replay, and get smoke and parity green. This step is ticked when they merge. *Done on DX.2's branch `claude/clever-pasteur-ujmu6e-dx2` (`5a67d48`; DX.2b merged into it). `Pending:` lines are removed. The examples package depends on `@mcthaydt/automata-game`, `@mcthaydt/automata-sim`, `zod`, `pixi.js` and `svelte`. The runner starts pages with `@mcthaydt/automata-game`. Each page has `<main id="game">`. The smoke opens each example under its own id, because the fake host refuses any other game id; the shared `af-examples` manifest only sets headers. The three goldens were recorded once in Node and match in Chromium, WebKit and Firefox. Smoke is green in `examples` and `examples-compact`. Left unticked until that PR merges.*
+- [x] **6.** In the DX.2 and DX.2b PRs, not here: remove each landed task from `Pending:`, add the examples' dependencies (`@mcthaydt/automata-game`, `@mcthaydt/automata-sim`, `zod`) to `examples/package.json`, record each `Golden:` replay, and get smoke and parity green. This step is ticked when they merge. *Done on DX.2's branch `claude/clever-pasteur-ujmu6e-dx2` (`5a67d48`; DX.2b merged into it). `Pending:` lines are removed. The examples package depends on `@mcthaydt/automata-game`, `@mcthaydt/automata-sim`, `zod`, `pixi.js` and `svelte`. The runner starts pages with `@mcthaydt/automata-game`. Each page has `<main id="game">`. The smoke opens each example under its own id, because the fake host refuses any other game id; the shared `af-examples` manifest only sets headers. The three goldens were recorded once in Node and match in Chromium, WebKit and Firefox. Smoke is green in `examples` and `examples-compact`. DX.2 merged as #62 (`6664a6f`, 2026-10-17).*
 
 ## Task EX.4: port the existing demos (after DX.2 and DX.2b)
 
