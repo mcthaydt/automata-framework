@@ -1,0 +1,72 @@
+// knip (QB spec §4.1, QB.1): unused files, exports, dependencies and binaries, in `pnpm check`.
+// tooling/repo-hygiene/src/knip.test.ts proves it fails on a planted unused export.
+{
+  "$schema": "https://unpkg.com/knip@6.39.0/schema.json",
+  // An export its own file uses is not dead code (constants and types that tests also read).
+  "ignoreExportsUsedInFile": true,
+  // Fixtures are test inputs read as files, never imported.
+  "ignore": ["**/fixtures/**", "**/kit-fixtures/**"],
+  // automata-ship is packages/ship's own bin, which game repositories call through the reusable workflows;
+  // flock is a system tool that packages/ship's deploy test uses.
+  "ignoreBinaries": ["automata-ship", "flock"],
+  // BootErrorIsDrawable is a compile-time assertion (shared contracts §4); exporting it keeps it checked.
+  "ignoreIssues": { "packages/runtime/src/boot/boot-error.ts": ["types"] },
+  "workspaces": {
+    // DX.7: the plugin's hooks run agents/automata/scripts/check.mjs by path (hooks.json). The automata-feature skill's
+    // worked example is skill content that tooling/agent-skills tests (its vitest config lists it and aliases the sim).
+    ".": {
+      "entry": ["agents/automata/scripts/check.mjs"],
+      "ignore": ["agents/automata/skills/*/example/**"]
+    },
+    // DX.7: the example imports @mcthaydt/automata-sim, which tooling/agent-skills' vitest config aliases to the source.
+    "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
+    // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
+    "games/emberwick": { "ignoreDependencies": ["@mcthaydt/automata-cli"] },
+    // s8/measure.ts builds s8/no-effect.html, whose script is this file.
+    "games/placeholder": { "entry": ["s8/no-effect.ts"] },
+    // The runner injects `@mcthaydt/automata-render-pixi/no-eval` into every page as a string (vite-plugin.ts),
+    // which knip cannot follow; the smoke specs run from the root playwright.config.ts.
+    "examples": {
+      "entry": ["e2e/*.e2e.ts"],
+      "ignoreDependencies": [
+        "@mcthaydt/automata-render-pixi",
+        // EX.3's examples are committed red against DX.2's API (`Pending: DX.2`); DX.2 adds the package and
+        // these dependencies. Follow-up in docs/02 (QB.1 knip baseline).
+        "@mcthaydt/automata-game",
+        "zod",
+        // Imported by the runner's smoke helper, not by this package; same follow-up.
+        "@playwright/test"
+      ]
+    },
+    "tooling/examples-runner": { "ignoreDependencies": ["@mcthaydt/automata-render-pixi"] },
+    // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
+    "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
+    "packages/host": { "ignoreDependencies": ["zod"] },
+    // The locale test fixture resolves the inlang plugin by name (createRequire().resolve) for its settings file.
+    "packages/runtime": { "ignoreDependencies": ["@inlang/plugin-message-format"] },
+    // automata check (DX.6) bundles @ruken/manifest, which imports smol-toml at runtime.
+    "packages/cli": { "ignoreDependencies": ["smol-toml"] },
+    // Known unused dependencies on main at QB.1 (2026-10-16), each a follow-up in docs/02 (QB.1 knip
+    // baseline). Remove an entry when its follow-up lands; nothing new may be added here without one.
+    "examples/render-pixi/renderer-2d": {
+      "ignoreDependencies": [
+        "@mcthaydt/automata-host",
+        "@mcthaydt/automata-runtime",
+        "koota",
+        "zod",
+        "@ruken/manifest"
+      ]
+    },
+    "tooling/frame-budget": { "ignoreDependencies": ["@ruken/manifest"] },
+    "examples/runtime/boot-and-flow": {
+      "ignoreDependencies": [
+        "@mcthaydt/automata-content",
+        "@mcthaydt/automata-host",
+        "@mcthaydt/automata-ui",
+        "koota",
+        "@mcthaydt/automata-testing",
+        "@ruken/manifest"
+      ]
+    }
+  }
+}

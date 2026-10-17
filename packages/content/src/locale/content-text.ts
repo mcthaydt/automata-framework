@@ -12,6 +12,7 @@
 import type { DataPath } from '../diagnostics/diagnostic'
 import { messageKey } from './messages'
 
+/** Options for `createContentText`. */
 export interface ContentTextOptions {
   /** Called once per key the messages lack. */
   readonly onMissing?: ((key: string) => void) | undefined

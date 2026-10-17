@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest'
-import { checkFile } from './style'
+import { describe, expect, test } from 'vitest'
+import { checkFile, MAX_SOURCE_LINES } from './style'
 
 const sys =
   "import { defineSystem } from 'x'\nexport const moveSystem = defineSystem({ name: 'move', phase: 'gameplay', run() {} })\n"
@@ -93,4 +93,24 @@ test.each([
   } else {
     expect(findings).toEqual([])
   }
+})
+
+describe('the 600-line ceiling on non-test source (QB spec §4.1)', () => {
+  const lines = (count: number): string =>
+    `${Array.from({ length: count }, (_, index) => `export const value${index} = ${index}`).join('\n')}\n`
+
+  test('a 600-line file is fine', () => {
+    expect(checkFile('/p/src/long-file.ts', lines(MAX_SOURCE_LINES))).toEqual([])
+  })
+
+  test('a 601-line file fails with its length and the ceiling', () => {
+    const findings = checkFile('/p/src/long-file.ts', lines(601))
+    expect(findings.map((f) => f.rule)).toEqual(['file-length'])
+    expect(findings[0]?.message).toContain('601 lines')
+    expect(findings[0]?.message).toContain('600')
+  })
+
+  test('applies to index.ts too, which skips the naming rules', () => {
+    expect(checkFile('/p/src/index.ts', lines(601)).map((f) => f.rule)).toEqual(['file-length'])
+  })
 })

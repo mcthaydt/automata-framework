@@ -20,6 +20,7 @@ import { Effect } from 'effect'
 import { ContentWriteFailed } from '../compile/errors'
 import { type MessageCatalog, renderMessages } from './messages'
 
+/** Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build. */
 export interface ParaglideOptions {
   /** Where the generated `runtime.js` and `messages.js` go, relative to the root. Emptied on each compile. */
   readonly outdir: string

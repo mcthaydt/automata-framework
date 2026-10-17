@@ -15,6 +15,11 @@ export {
   WGSL_FILTER_HEADER,
 } from './filter/filter-programs.js'
 export {
+  createPostFilterSlot,
+  type PostFilterSlot,
+  type PostFilterTarget,
+} from './filter/post-filter-slot.js'
+export {
   canvasResolutionFor,
   MAX_RESOLUTION,
 } from './letterbox/canvas-resolution.js'
@@ -35,3 +40,13 @@ export {
   type PixiStage,
   type RendererPreference,
 } from './renderer.js'
+export { type RectViewOptions, rect } from './views/rect-view.js'
+export { type SpriteFrames, type SpriteViewOptions, sprite } from './views/sprite-view.js'
+export {
+  interpolatePose,
+  lerp,
+  lerpAngle,
+  type Pose,
+  poseComponent,
+  type ViewAnchor,
+} from './views/view-pose.js'

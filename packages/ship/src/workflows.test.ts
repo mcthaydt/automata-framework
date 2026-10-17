@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -74,6 +75,19 @@ describe('every workflow', () => {
     },
   )
 
+  it.each(ALL)(
+    "%s trusts a container job's checkout in git's system config, which every HOME reads",
+    (name) => {
+      // The checkout belongs to the runner user, so git run as root needs safe.directory. A --global setting lands
+      // in HOME's .gitconfig, and the parity and evidence steps set HOME to /root for Firefox: there git did not
+      // read it, and `pnpm evidence` failed on main's first push after DX.9 (2026-10-17).
+      for (const job of Object.values(workflow(name).jobs).filter((each) => each.container !== undefined)) {
+        for (const step of (job.steps ?? []).filter((each) => each.run?.includes('safe.directory')))
+          expect(step.run).toContain('git config --system --add safe.directory')
+      }
+    },
+  )
+
   it.each(ALL)('%s reads the repository and nothing more by default', (name) => {
     expect(workflow(name).permissions).toEqual({ contents: 'read' })
   })
@@ -82,7 +96,7 @@ describe('every workflow', () => {
 describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runner on this account)", () => {
   const ci = workflow('ci.yml')
 
-  it.each(['checks', 'parity', 'e2e'])(
+  it.each(['checks', 'parity', 'e2e', 'frame-budget'])(
     'ci.yml %s runs on the AF runner label, switchable by vars.AF_LINUX_RUNNER, never falling back to hosted',
     (name) => {
       const runsOn = ci.jobs[name]?.['runs-on'] ?? ''
@@ -135,32 +149,73 @@ describe('parity across packages', () => {
       return false
     }
   }
-  // The workspace globs: packages/*, tooling/*, examples/* and examples/*/* (pnpm-workspace.yaml).
+  // The workspace globs: packages/*, tooling/*, games/*, examples/* and examples/*/* (pnpm-workspace.yaml).
   const workspacePackages = [
-    ...['packages', 'tooling', 'examples'].flatMap(foldersIn),
+    ...['packages', 'tooling', 'games', 'examples'].flatMap(foldersIn),
     ...foldersIn('examples').flatMap(foldersIn),
   ].filter(hasPackageJson)
+
+  // EX-D1: games (Emberwick, the placeholder) live apart from the one-file examples.
+  it('lists the games folder in the workspace', () => {
+    const globs = readFileSync(join(root, 'pnpm-workspace.yaml'), 'utf8')
+    expect(globs).toMatch(/^\s*- games\/\*$/m)
+    expect(workspacePackages).toEqual(expect.arrayContaining(['games/emberwick', 'games/placeholder']))
+  })
 
   it("runs every package's parity suite through the root test:parity script", () => {
     // Three suites at a time: each starts Chromium, WebKit and Firefox, and on the shared WSL Docker runner all of
     // #14's eight suites at once left Firefox past vitest's 60 s connect timeout (2026-10-11). The longer connect
-    // timeout, passed through to every suite's vitest, is a backstop for a busy runner.
+    // timeout, passed through to every suite's vitest, is a backstop for a busy runner. 120 s was not enough on
+    // af-linux: on 2026-10-16 (PR #39, run 38862520260) sim's suite failed to connect to Firefox within it while
+    // every test that ran passed, so it is 240 s.
     expect(packageJson('.').scripts['test:parity']).toBe(
-      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=120000',
+      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000',
     )
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
   })
 
   // af-linux is one PC shared with Ruken's GPU runs. Under that load, tests that build worlds or import whole
   // entry modules ran past vitest's 5 s default (main after #16: sim's snapshot test at 5.2 s; #15: base-2d's
-  // exports test). The root script passes a 30 s default to every package's vitest; a test's own timeout still wins.
-  it('gives every unit suite a 30 s default timeout through the root test:unit script', () => {
-    expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=30000')
+  // exports test), and then past 30 s while Ruken's CI ran alongside (2026-10-16: base-2d's exports test at
+  // 30.5 s, physics parity at 32–33 s, content's render-types file at 70.7 s). The root script passes a 90 s
+  // default to every package's vitest, which still catches a hang; a test's own timeout still wins.
+  it('gives every unit suite a 90 s default timeout through the root test:unit script', () => {
+    expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=90000')
     // The flag only means something to vitest, so every package's test:unit must be a vitest run.
     for (const path of workspacePackages) {
       const script = packageJson(path).scripts?.['test:unit']
       if (script !== undefined) expect(script, path).toMatch(/^vitest run( |$)/)
     }
+  })
+
+  // A test's own timeout overrides that 90 s default, so a smaller one still failed on af-linux: on 2026-10-16
+  // (PR #39, run 38862520260) runtime's root-exports test took 28.5 s against its own 15 s. Every per-test or
+  // per-describe budget must be at least the root default. `vi.waitFor(..., { timeout })` is a wait, not a test
+  // budget, so it is left out.
+  it('keeps every explicit per-test and per-describe timeout at 90 s or more', () => {
+    const testFiles = execFileSync(
+      'git',
+      ['ls-files', 'packages/*.test.ts', 'examples/*.test.ts', 'tooling/*.test.ts', 'games/*.test.ts'],
+      { cwd: root, encoding: 'utf8' },
+    )
+      .split('\n')
+      .filter((file) => file !== '')
+    // `}, 15000)` closing a test/describe callback, and `{ timeout: N }` passed on a test/describe line.
+    const trailingBudget = /^\s*\}\s*,\s*([\d_]+)\s*\)/
+    const optionsBudget = /\b(?:it|test|describe)\b[\w.]*\(.*\btimeout:\s*([\d_]+)/
+    const tooShort: string[] = []
+    for (const file of testFiles) {
+      readFileSync(join(root, file), 'utf8')
+        .split('\n')
+        .forEach((line, index) => {
+          if (/\bwaitFor\(/.test(line)) return
+          const budget = trailingBudget.exec(line)?.[1] ?? optionsBudget.exec(line)?.[1]
+          if (budget !== undefined && Number(budget.replaceAll('_', '')) < 90_000) {
+            tooShort.push(`${file}:${index + 1}`)
+          }
+        })
+    }
+    expect(tooShort).toEqual([])
   })
 
   it('gives every package with a browsers vitest project a test:parity script', () => {
@@ -172,6 +227,7 @@ describe('parity across packages', () => {
       }
     })
     expect(withBrowsers).toContain('packages/sim')
+    expect(withBrowsers).toContain('games/emberwick')
     // A package may add more browser projects to the same run (base-2d adds its Chromium renderer tests).
     for (const path of withBrowsers) {
       expect(packageJson(path).scripts['test:parity']).toMatch(
@@ -211,8 +267,14 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     expect(localSteps).toContain('pnpm build:demos')
   })
 
+  it('builds every one-file example (EX spec §5), beside the old demos until EX.4 deletes them', () => {
+    expect(scripts['build:examples']).toBe('pnpm --filter @af-examples/examples build')
+    expect(JSON.stringify(ci.jobs.checks?.steps)).toContain('pnpm build:examples')
+    expect(localSteps).toContain('pnpm build:examples')
+  })
+
   it('builds and prepares base-2d, without repeating its check inside AF', () => {
-    // build:demos only covers `examples/*/*`; base-2d and placeholder are one level deep, so they build here.
+    // build:demos only covers `examples/*/*`; the games (Emberwick, the placeholder) live in `games/`, so they build here.
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d build')
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d prepare-ruken')
     // `pnpm check` already runs base-2d's check (typecheck + test:unit + boundaries).
@@ -270,6 +332,35 @@ describe('ci.yml (AF)', () => {
     expect(JSON.stringify(e2e?.steps)).toContain('e2e-report')
   })
 
+  // PRODUCT.7 (PRODUCT spec §2 F5): ms/frame on the GPU runner, with the GPU to itself (AGENTS.md), compared
+  // with tooling/frame-budget/budget.json, which fails closed until the first GPU-runner run sets it.
+  it('runs the frame-budget probe nightly on the GPU runner, alone, and checks it against the recorded budget', () => {
+    const job = ci.jobs['frame-budget']
+    expect(job?.if).toContain("github.event_name == 'schedule'")
+    expect(job?.if).toContain('inputs.nightly')
+    expect(job?.if).toContain("inputs.spec == ''")
+    expect(job?.['runs-on']).toBe(ci.jobs.e2e?.['runs-on'])
+    // After the journeys, never beside them, and one probe at a time across runs.
+    expect(job?.needs).toBe('e2e')
+    expect(job?.if).toContain('!cancelled()')
+    const concurrency = (job as { concurrency?: { group: string; 'cancel-in-progress': boolean } })
+      .concurrency
+    expect(concurrency).toEqual({ group: 'af-gpu-probe', 'cancel-in-progress': false })
+    const runs = (job?.steps ?? []).map((step) => step.run ?? '')
+    const probe = runs.indexOf('pnpm test:frame-budget')
+    const check = runs.indexOf('pnpm budget:frame')
+    expect(probe).toBeGreaterThan(-1)
+    expect(check).toBeGreaterThan(probe)
+    // The results are the evidence the budget is set from, so they are kept whatever the check said.
+    const upload = (job?.steps ?? []).find((step) => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(upload?.if).toBe('always()')
+    expect(upload?.with?.name).toBe('frame-budget-results')
+    expect(upload?.with?.path).toBe('frame-budget-results/')
+    const rootPackage = packageJson('.')
+    expect(rootPackage.scripts['test:frame-budget']).toBe('AF_FRAME_BUDGET=1 playwright test')
+    expect(rootPackage.scripts['budget:frame']).toBe('node tooling/frame-budget/src/check-cli.ts')
+  })
+
   it('runs the journeys with Playwright from the root, with the spec passed straight through', () => {
     const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
     expect(rootPackage.scripts['test:e2e']).toBe('playwright test')
@@ -282,20 +373,20 @@ describe('ci.yml (AF)', () => {
 
   it('has a journey for the placeholder, so a nightly run cannot pass with nothing to run', () => {
     const config = readFileSync(join(root, 'playwright.config.ts'), 'utf8')
-    expect(config).toContain("testDir: 'examples/placeholder/e2e'")
-    expect(readdirSync(join(root, 'examples/placeholder/e2e')).some((name) => name.endsWith('.e2e.ts'))).toBe(
+    expect(config).toContain("testDir: 'games/placeholder/e2e'")
+    expect(readdirSync(join(root, 'games/placeholder/e2e')).some((name) => name.endsWith('.e2e.ts'))).toBe(
       true,
     )
   })
 
   it('builds the placeholder through the reusable game workflow', () => {
     expect(ci.jobs.placeholder?.uses).toBe('./.github/workflows/game-ci.yml')
-    expect(ci.jobs.placeholder?.with?.['working-directory']).toBe('examples/placeholder')
+    expect(ci.jobs.placeholder?.with?.['working-directory']).toBe('games/placeholder')
   })
 
   it('builds base-2d through the reusable game workflow, with the determinism check on its sim', () => {
     expect(ci.jobs['base-2d']?.uses).toBe('./.github/workflows/game-ci.yml')
-    expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('examples/base-2d')
+    expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('games/emberwick')
     expect(ci.jobs['base-2d']?.with?.['sim-roots']).toBe('src/sim')
     expect(ci.jobs['base-2d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
   })
@@ -306,6 +397,58 @@ describe('ci.yml (AF)', () => {
       .map((job) => job.with?.['artifact-name'] ?? 'game-dist')
     expect(names.length).toBeGreaterThan(1)
     expect(new Set(names).size).toBe(names.length)
+  })
+})
+
+describe('ci.yml evidence file (DX spec §3.10)', () => {
+  const ci = workflow('ci.yml')
+  const steps = ci.jobs.parity?.steps ?? []
+  const scripts = packageJson('.').scripts as Record<string, string>
+  const GOLDEN_PACKAGES = [
+    'packages/sim',
+    'packages/testing',
+    'packages/physics',
+    'games/emberwick',
+    'examples/physics/bodies-2d',
+  ]
+
+  it('runs every golden package’s test:evidence, then writes evidence.json from their reports', () => {
+    expect(scripts.evidence).toBe(
+      'turbo run test:evidence --concurrency=3 -- --browser.connectTimeout=120000 && node tooling/evidence/src/cli.ts',
+    )
+    for (const path of GOLDEN_PACKAGES)
+      expect(packageJson(path).scripts['test:evidence'], path).toMatch(
+        /^vitest run (--project [\w-]+ )+(\S+\.test\.ts )+--reporter=default --reporter=json --outputFile\.json=\.evidence\/goldens\.json$/,
+      )
+  })
+
+  it('writes the evidence file on pushes to main only, after parity passed, in the parity container', () => {
+    const parity = steps.findIndex((step) => step.run === 'pnpm test:parity')
+    const evidence = steps.findIndex((step) => step.run === 'pnpm evidence')
+    expect(evidence).toBeGreaterThan(parity)
+    expect(steps[evidence]?.if).toBe("github.event_name == 'push'")
+    // Firefox refuses to run as root under Actions' HOME, as in the parity step.
+    expect(steps[evidence]?.env?.HOME).toBe('/root')
+  })
+
+  it('uploads evidence.json and its JSON Schema as the `evidence` artifact, before the work folder is handed back', () => {
+    const upload = steps.findIndex((step) => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(upload).toBeGreaterThan(steps.findIndex((step) => step.run === 'pnpm evidence'))
+    expect(upload).toBeLessThan(steps.length - 1)
+    expect(steps[upload]?.if).toBe("github.event_name == 'push'")
+    expect(steps[upload]?.with?.name).toBe('evidence')
+    expect(steps[upload]?.with?.path).toBe('evidence.json\nevidence.schema.json\n')
+    expect(steps[upload]?.with?.['if-no-files-found']).toBe('error')
+  })
+
+  it('fetches the release tags, so the file can say which package versions were released', () => {
+    const checkout = steps.find((step) => step.uses?.startsWith('actions/checkout@'))
+    expect(checkout?.with?.['fetch-tags'] as unknown).toBe(true)
+  })
+
+  it('runs the evidence step in ci:local too, after parity', () => {
+    const local = (scripts['ci:local'] ?? '').split(' && ')
+    expect(local.indexOf('pnpm evidence')).toBe(local.indexOf('pnpm test:parity') + 1)
   })
 })
 
@@ -348,6 +491,29 @@ describe('ci.yml release checks (M2.4 spec §3.5)', () => {
   })
 })
 
+describe('repo hygiene in ci.yml and ci:local (QB.1)', () => {
+  const steps = workflow('ci.yml').jobs.checks?.steps ?? []
+  const runs = steps.map((step) => step.run ?? '')
+  const local = (
+    JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts['ci:local'] as string
+  ).split(' && ')
+
+  it.each(['pnpm knip', 'pnpm audit:deps', 'pnpm secrets'])('runs %s in CI and in ci:local', (command) => {
+    expect(runs).toContain(command)
+    expect(local).toContain(command)
+  })
+
+  it('runs knip in pnpm check', () => {
+    expect((packageJson('.').scripts.check as string).split(' && ')).toContain('pnpm knip')
+  })
+
+  it('reports new dependencies on pull requests, against the base branch', () => {
+    const report = steps.find((step) => step.run?.includes('pnpm deps:new'))
+    expect(report?.if).toBe("github.event_name == 'pull_request'")
+    expect(report?.run).toContain('--base origin/main')
+  })
+})
+
 describe('release-packages.yml (M2.4 spec §3.5)', () => {
   const release = workflow('release-packages.yml')
   const job = release.jobs.release
@@ -366,6 +532,10 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
   it('stays off the shared self-hosted runners, since it holds a write token', () => {
     expect(job?.['runs-on']).toBe('ubuntu-latest')
     expect((job as { 'timeout-minutes'?: number })['timeout-minutes']).toBe(20)
+  })
+
+  it('waits for the Owner: the job runs in the release environment, which requires the Owner as reviewer (QB.1)', () => {
+    expect((job as { environment?: string }).environment).toBe('release')
   })
 
   it('may write contents, pull requests and packages, nothing else', () => {

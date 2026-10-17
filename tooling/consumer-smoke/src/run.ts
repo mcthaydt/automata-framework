@@ -26,6 +26,7 @@ import {
   consumerWorkspace,
   type ToolVersions,
 } from './project.ts'
+import { readmeCommands, readWorkspace, unresolvedCommands } from './readme.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const fixtures = fileURLToPath(new URL('../fixtures/', import.meta.url))
@@ -155,6 +156,16 @@ function steps(project: string): Step[] {
   const bin = (name: string) => join(project, 'node_modules/.bin', name)
   const installed = join(project, 'node_modules/@mcthaydt')
   return [
+    [
+      // QB.1: the root README's clone-to-Emberwick and check commands still name real scripts and files.
+      'readme: every command in the root README resolves',
+      () => {
+        const commands = readmeCommands(readFileSync(join(root, 'README.md'), 'utf8'))
+        const problems = unresolvedCommands(commands, readWorkspace(root))
+        if (problems.length > 0) throw new Error(problems.join('\n'))
+        return `${commands.length} commands resolve`
+      },
+    ],
     ['node: import every entry, run a physics sim', () => sh(project, 'node', ['node-check.mjs']).trim()],
     [
       'content: compile a three-file content folder with the automata-content bin',

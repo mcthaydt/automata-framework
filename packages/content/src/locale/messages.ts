@@ -28,6 +28,7 @@ export function messageKey(kind: string, id: string | undefined, path: DataPath)
   return `content_${parts.map(snakeKey).join('_')}`
 }
 
+/** One locale's messages: message key to translated text. */
 export type MessageCatalog = Readonly<Record<string, string>>
 
 export interface TextsOfItem {
