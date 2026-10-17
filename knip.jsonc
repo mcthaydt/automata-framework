@@ -18,17 +18,8 @@
     // which knip cannot follow; the smoke specs run from the root playwright.config.ts.
     "examples": {
       "entry": ["e2e/*.e2e.ts"],
-      "ignoreDependencies": [
-        "@mcthaydt/automata-render-pixi",
-        // EX.3's examples are committed red against DX.2's API (`Pending: DX.2`); DX.2 adds the package and
-        // these dependencies. Follow-up in docs/02 (QB.1 knip baseline).
-        "@mcthaydt/automata-game",
-        "zod",
-        // Imported by the runner's smoke helper, not by this package; same follow-up.
-        "@playwright/test"
-      ]
+      "ignoreDependencies": ["@mcthaydt/automata-render-pixi"]
     },
-    "tooling/examples-runner": { "ignoreDependencies": ["@mcthaydt/automata-render-pixi"] },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
     "packages/host": { "ignoreDependencies": ["zod"] },
