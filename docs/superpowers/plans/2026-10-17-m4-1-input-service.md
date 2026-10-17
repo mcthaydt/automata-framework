@@ -234,7 +234,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
 
 | Case | Test |
 |---|---|
-| I-a | `keys.parity.test.ts`, and the Node twin in `keys.test.ts` |
+| I-a | `keys.parity.test.ts`, and the Node twin in `keys.devices.test.ts` |
 | I-b | `input.test.ts` |
 | I-g | `check-inputs.test.ts`, `prepare-build.test.ts`, the `csp-probe-live` test |
 | I-j | `input-profile.test.ts` |
