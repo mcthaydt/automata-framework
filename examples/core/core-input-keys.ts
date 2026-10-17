@@ -6,7 +6,6 @@
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 120
-// Pending: DX.2
 import { defineGame, keys, rect } from '@mcthaydt/automata-game'
 import { defineCommand, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 import { z } from 'zod'

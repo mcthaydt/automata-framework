@@ -254,7 +254,7 @@ const GOLDEN_MAX_PACKED_BYTES: number;
 ### `goldenCommands` (function)
 
 ```ts
-function goldenCommands(): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
 ```
 
 ### `GoldenReport` (type)
@@ -393,7 +393,15 @@ const streamCompression: ReplayCompression;
 ### `goldenCommands` (function)
 
 ```ts
-function goldenCommands(): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+```
+
+### `GoldenCommandsOptions` (interface)
+
+```ts
+interface GoldenCommandsOptions {
+    readonly root?: string;
+}
 ```
 
 ## `./sim/property`

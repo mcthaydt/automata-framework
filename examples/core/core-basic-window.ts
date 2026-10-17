@@ -6,7 +6,6 @@
 // Packages: @mcthaydt/automata-game
 // Difficulty: ★☆☆☆
 // Tier: core
-// Pending: DX.2
 import { defineGame } from '@mcthaydt/automata-game'
 
 export default defineGame({

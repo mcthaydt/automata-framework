@@ -46,8 +46,31 @@ body {
   height: 100%;
 }
 
-.stage {
+.stage,
+.af-stage {
   image-rendering: pixelated;
+}
+/* The runtime's layers (the game on startGame): the canvas at the back, each screen's layer over it, the
+   loader and failure panels on top. The demos on playRoom use .stage-box instead. */
+[data-layer] {
+  position: absolute;
+  inset: 0;
+}
+[data-layer="stage"] {
+  display: grid;
+  place-items: center;
+}
+[data-layer="screens"] > section {
+  position: absolute;
+  inset: 0;
+}
+/* The overlay layer sits on top but is empty while the game runs: only what the runtime puts in it (the
+   loader, the failure panel) takes the pointer. */
+[data-layer="overlay"] {
+  pointer-events: none;
+}
+[data-layer="overlay"] > * {
+  pointer-events: auto;
 }
 
 /* Overlays fill the game's container and centre their panel over a dimmed, darker-at-the-edges game. */

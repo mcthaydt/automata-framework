@@ -65,6 +65,13 @@ interface CompiledContent {
   readonly files: ReadonlyMap<string, string>;
   /** Problems that do not stop a compile (`skippedFile`), sorted. They are not part of the hash or the outputs. */
   readonly warnings: readonly Diagnostic[];
+  /** The source language, then each translation's language, sorted. */
+  readonly languages: readonly string[];
+  /**
+   * Each language's checked catalog (without `$schema`), in `languages` order. Derived beside the hashed data,
+   * never inside it, so a translation edit moves neither hash. Paraglide and the glyph sets read these.
+   */
+  readonly catalogs: ReadonlyMap<string, MessageCatalog>;
 }
 ```
 
@@ -132,6 +139,8 @@ interface ContentOptions {
   readonly generators?: readonly ContentGenerator[] | undefined;
   /** Relative to `root`. Default `content/generated`. */
   readonly outDir?: string | undefined;
+  /** Compile the catalogs with Paraglide on each build (PRODUCT.L2). Absent: no Paraglide output. */
+  readonly paraglide?: ParaglideOptions | undefined;
 }
 ```
 
@@ -363,7 +372,7 @@ function localized(): z.ZodType<string, string>;
 
 #### `MessageCatalog` (type)
 
-_No doc comment._
+One locale's messages: message key to translated text.
 
 ```ts
 type MessageCatalog = Readonly<Record<string, string>>;
@@ -386,6 +395,19 @@ interface Palette {
   readonly name: string;
   /** `#rrggbb`, lowercase, in authored order. */
   readonly colors: readonly string[];
+}
+```
+
+#### `ParaglideOptions` (interface)
+
+Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
+
+```ts
+interface ParaglideOptions {
+  /** Where the generated `runtime.js` and `messages.js` go, relative to the root. Emptied on each compile. */
+  readonly outdir: string;
+  /** The game's own catalogs, `{locale}` path patterns relative to the root (`messages/ui/{locale}.json`). */
+  readonly catalogs?: readonly string[] | undefined;
 }
 ```
 
@@ -491,6 +513,83 @@ The guide with its generated section replaced, or undefined when it has no marke
 
 ```ts
 function withTuningTable(guide: string, meta: TuningMeta): string | undefined;
+```
+
+### `import { … } from '@mcthaydt/automata-content/locale'`
+
+#### `ALWAYS_CHARACTERS` (const)
+
+Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.
+
+```ts
+const ALWAYS_CHARACTERS: readonly string[];
+```
+
+#### `catalogCharacters` (function)
+
+Every character the catalog's messages show. `$schema` is the file's format, not text a player reads.
+
+```ts
+function catalogCharacters(catalog: MessageCatalog): Set<string>;
+```
+
+#### `ContentText` (type)
+
+`text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
+
+```ts
+type ContentText = (kind: string, id: string | undefined, path: DataPath, authored: string, inputs?: Readonly<Record<string, unknown>>) => string;
+```
+
+#### `ContentTextOptions` (interface)
+
+Options for `createContentText`.
+
+```ts
+interface ContentTextOptions {
+  /** Called once per key the messages lack. */
+  readonly onMissing?: ((key: string) => void) | undefined;
+}
+```
+
+#### `createContentText` (function)
+
+A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
+
+```ts
+function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
+```
+
+#### `localeCharacters` (function)
+
+What a locale's subset font is cut to: `ALWAYS_CHARACTERS` and the catalog's characters.
+
+```ts
+function localeCharacters(catalog: MessageCatalog): Set<string>;
+```
+
+#### `MessageCatalog` (type)
+
+One locale's messages: message key to translated text.
+
+```ts
+type MessageCatalog = Readonly<Record<string, string>>;
+```
+
+#### `messageKey` (function)
+
+The message key of one text. `id` is absent for a single-document kind.
+
+```ts
+function messageKey(kind: string, id: string | undefined, path: DataPath): string;
+```
+
+#### `snakeKey` (function)
+
+`snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
+
+```ts
+function snakeKey(value: string): string;
 ```
 
 ### `import { … } from '@mcthaydt/automata-content/vite'`
@@ -3143,7 +3242,7 @@ const GOLDEN_MAX_PACKED_BYTES: number;
 _No doc comment._
 
 ```ts
-function goldenCommands(): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
 ```
 
 #### `GoldenReport` (type)
@@ -3321,7 +3420,21 @@ const streamCompression: ReplayCompression;
 _No doc comment._
 
 ```ts
-function goldenCommands(): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
+```
+
+#### `GoldenCommandsOptions` (interface)
+
+Options for {@link goldenCommands}.
+
+```ts
+interface GoldenCommandsOptions {
+  /**
+   * The folder golden files must be inside; defaults to the Vitest project's root. A package whose goldens sit
+   * beside it rather than under it names an absolute folder holding both.
+   */
+  readonly root?: string;
+}
 ```
 
 ### `import { … } from '@mcthaydt/automata-testing/sim/property'`
