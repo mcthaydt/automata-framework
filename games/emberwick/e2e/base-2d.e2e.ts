@@ -67,14 +67,15 @@ test('counts a CSP violation as an error, even one the console never shows', asy
 })
 
 test('a device with no canvas context gets the device message, not a connection one', async ({ page }) => {
-  // No 2D, WebGL or WebGPU context: Pixi cannot start, so the boot ends with RendererFailed (boot-page.ts).
+  // No 2D, WebGL or WebGPU context: Pixi cannot start, so the runtime's boot ends on its failure panel with the
+  // `unsupported` copy (the panel also offers a way out, so the text is contained, not the whole of #game).
   await page.addInitScript(() => {
     HTMLCanvasElement.prototype.getContext = () => null
     Object.defineProperty(navigator, 'gpu', { value: undefined })
   })
   await page.goto(gameUrl)
   await expect(page.locator('html')).toHaveAttribute('data-state', 'failed')
-  await expect(game(page)).toHaveText("This device can't run the game.")
+  await expect(game(page)).toContainText("This device can't run the game.")
 })
 
 test('menu → room → pause → resume → pause → quit, by keyboard and buttons', async ({ page }) => {
@@ -120,6 +121,11 @@ test('the character walks and jumps with the keyboard', async ({ page }) => {
 // step: the test moves the clock one frame at a time, reads the sim tick the page shows, and changes keys right
 // after the frame that ran a segment's last step.
 test('playing the golden route with the keyboard reaches the ember and the end screen', async ({ page }) => {
+  // 342 frames, each drawn by render-pixi at the device's resolution (capped at 2) in the full letterbox. In the
+  // headless software renderer that is ~160 ms a frame on the phone project (measured, DX.3 decision E-7), so
+  // the route needs more than the default 30 s (1.8 min with four workers). The route and its assertions are
+  // unchanged.
+  test.setTimeout(300_000)
   const errors = await collectErrors(page)
   await page.clock.install()
   await page.goto(gameUrl)
@@ -212,7 +218,7 @@ test('every button of the room and the pause screen is on screen and at least 44
   }
   await check('.hud button, .touch button')
   await page.keyboard.press('Escape')
-  await check('[data-for="paused"] button')
+  await check('[data-layer="screens"] [data-screen="paused"] button')
   expect(errors).toEqual([])
 })
 

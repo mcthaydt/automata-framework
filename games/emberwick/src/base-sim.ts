@@ -2,8 +2,9 @@
 // games start from here (`@af-examples/base-2d`), then add their own plugins.
 import { type Command, createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { parseRoom, ROOM, type RoomSource } from './content/room.ts'
-import { base2dPlugin, type MoveInput, Player, PlayerControl } from './sim/index.ts'
-import { HITBOX_H, SUB, TICK_HZ } from './sim/tuning.ts'
+import { base2dPlugin, type MoveInput, Player } from './sim/index.ts'
+import { placeWick } from './sim/place-wick.ts'
+import { TICK_HZ } from './sim/tuning.ts'
 
 export interface BaseSimOptions {
   readonly seed?: number
@@ -20,10 +21,7 @@ export async function createBaseSim(options: BaseSimOptions = {}): Promise<Sim> 
     content: { room },
     plugins: [base2dPlugin, ...(options.plugins ?? [])],
   })
-  // Standing on the tile below P: feet on that tile's top edge.
-  const x = room.start.tx * room.tileSize * SUB
-  const y = ((room.start.ty + 1) * room.tileSize - HITBOX_H) * SUB
-  sim.spawn([[Player, { x, y, facing: 1 }], PlayerControl])
+  placeWick(sim, room)
   return sim
 }
 

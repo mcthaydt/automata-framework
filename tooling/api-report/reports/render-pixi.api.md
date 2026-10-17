@@ -191,7 +191,7 @@ interface PixiRendererOptions {
     readonly barFraction?: number | undefined;
     readonly barColor?: number | undefined;
     readonly entityViews?: EntityViewResolver | undefined;
-    readonly setup?: ((stage: PixiStage) => void) | undefined;
+    readonly setup?: ((stage: PixiStage) => PixiStageHooks | undefined) | ((stage: PixiStage) => void) | undefined;
 }
 ```
 
@@ -207,6 +207,16 @@ interface PixiStage {
     readonly consumer: RenderDeltaConsumer;
     filters: Filter[] | null;
     readonly postFilters: PostFilterSlot;
+}
+```
+
+### `PixiStageHooks` (interface)
+
+```ts
+interface PixiStageHooks {
+    readonly apply?: ((result: StepResult) => void) | undefined;
+    readonly draw?: ((frame: FrameInfo) => void) | undefined;
+    readonly reset?: (() => void) | undefined;
 }
 ```
 

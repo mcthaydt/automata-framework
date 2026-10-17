@@ -1,19 +1,29 @@
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
 // Node runs every unit test; the browsers project runs the sim golden in Chromium, WebKit and Firefox, so the
-// base's sim is held to the same cross-engine rule as automata-sim itself (AGENTS.md, determinism).
+// base's sim is held to the same cross-engine rule as automata-sim itself (AGENTS.md, determinism). Svelte
+// compiles the ui primitives the game package and the runtime import.
 export default defineConfig({
+  plugins: [svelte()],
   optimizeDeps: { include: ['koota', 'zod', 'pixi.js'] },
   test: {
     projects: [
       {
+        extends: true,
         test: {
           name: 'node',
           environment: 'node',
           include: ['src/**/*.test.ts'],
-          exclude: ['src/**/*.browser.test.ts'],
+          exclude: ['src/**/*.browser.test.ts', 'src/**/*.dom.test.ts'],
         },
+      },
+      // The screens on the real runtime, in jsdom (Svelte's client build, so the ui panels mount).
+      {
+        extends: true,
+        resolve: { conditions: ['browser'] },
+        test: { name: 'dom', environment: 'jsdom', include: ['src/**/*.dom.test.ts'] },
       },
       {
         test: {

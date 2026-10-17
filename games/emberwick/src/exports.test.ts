@@ -14,9 +14,16 @@ describe('@af-examples/base-2d entries', { timeout: 90_000 }, () => {
     expect('startGame' in root).toBe(false)
   })
 
-  it('./game has startGame', async () => {
+  it('./game has the game as one definition for `startGame`', async () => {
     const game = await import('@af-examples/base-2d/game')
-    expect(typeof game.startGame).toBe('function')
+    expect(game.emberwick.id).toBe('base-2d')
+    expect(game.emberwick.screens.map((screen) => screen.id)).toEqual([
+      'splash',
+      'menu',
+      'room',
+      'paused',
+      'end',
+    ])
   })
 
   it('./sim has the sim plugin and its definitions, for a demo’s own sim root', async () => {

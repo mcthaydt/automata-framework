@@ -1,36 +1,40 @@
+import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { describe, expect, it } from 'vitest'
-import { type FlowEvent, next, type Screen } from './flow.ts'
+import { EMBERWICK_FLOW } from './flow.ts'
 
-describe('the screen flow', () => {
-  it('goes splash, menu, room, end, and back round', () => {
-    let screen: Screen = 'splash'
-    for (const event of ['continue', 'play', 'goal', 'play', 'goal', 'quit'] as const)
-      screen = next(screen, event)
-    expect(screen).toBe('menu')
+// Emberwick's flow as the runtime reads it (DX.3, decision E-2): the screens and transitions of the base's
+// old table, with background and the host's menu handled by the runtime through the room's `openMenu`.
+const { data, hash } = EMBERWICK_FLOW
+const to = (from: string, event: string) =>
+  data.flow.transitions.find((transition) => transition.from === from && transition.event === event)?.to
+
+describe("Emberwick's flow", () => {
+  it('starts on the splash and has the five screens', () => {
+    expect(data.flow.entry).toBe('splash')
+    expect(data.flow.screens).toEqual(['end', 'menu', 'paused', 'room', 'splash'])
   })
 
   it.each([
+    ['splash', 'continue', 'menu'],
+    ['menu', 'play', 'room'],
     ['room', 'pause', 'paused'],
-    ['room', 'background', 'paused'],
-    ['room', 'menu-request', 'paused'],
+    ['room', 'goal', 'end'],
     ['paused', 'resume', 'room'],
     ['paused', 'quit', 'menu'],
     ['end', 'play', 'room'],
     ['end', 'quit', 'menu'],
-  ] as const)('%s + %s → %s', (from, event, to) => {
-    expect(next(from, event)).toBe(to)
+  ])('%s + %s → %s', (from, event, target) => {
+    expect(to(from, event)).toBe(target)
   })
 
-  it('ignores events that make no sense on a screen', () => {
-    const ignored: Array<[Screen, FlowEvent]> = [
-      ['splash', 'play'],
-      ['menu', 'pause'],
-      ['menu', 'goal'],
-      ['paused', 'goal'],
-      ['paused', 'background'],
-      ['end', 'pause'],
-      ['room', 'continue'],
-    ]
-    for (const [screen, event] of ignored) expect(next(screen, event)).toBe(screen)
+  it('has no other transitions, sorted as the content compiler sorts them', () => {
+    const keys = data.flow.transitions.map(({ from, event, to }) => `${from}.${event}.${to}`)
+    expect(keys).toHaveLength(8)
+    expect([...keys].sort()).toEqual(keys)
+  })
+
+  it("is hashed with the content compiler's formula, so the runtime's boot check passes", () => {
+    expect(hash).toBe(hex64(xxhash64(utf8(canonicalJson(data)))))
+    expect(hash).toMatch(/^[0-9a-f]{16}$/)
   })
 })

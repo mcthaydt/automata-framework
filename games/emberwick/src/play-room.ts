@@ -152,8 +152,7 @@ export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}
     },
     restart(room) {
       // Restarts run one at a time, and one that a newer restart has overtaken is skipped before it makes
-      // anything: so quick saves or clicks never make several sims at once (Koota allows 16 worlds; see
-      // rounds.ts for the same rule in the base's own game).
+      // anything: so quick saves or clicks never make several sims at once (Koota allows 16 worlds).
       const restart = ++latest
       const run = queue.then(async () => {
         if (restart !== latest || destroyed) return
