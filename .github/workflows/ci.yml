@@ -113,8 +113,9 @@ jobs:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       # The container runs as root but the checkout belongs to the runner user; without this, git (and so the
-      # `prepare` hook install) refuses the repo as "dubious ownership".
-      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      # `prepare` hook install and `pnpm evidence`) refuses the repo as "dubious ownership". The system config,
+      # not the global one: the parity and evidence steps set HOME to /root, where a global setting is not read.
+      - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - run: pnpm install --frozen-lockfile
       # Every package with a browsers vitest project (sim, content, physics, ui, ...) runs its parity suite.
       - run: pnpm test:parity
