@@ -38,6 +38,8 @@ export interface CatalogEntry {
   readonly url: string
   /** Absent when the header does not parse (its problems say why). */
   readonly header?: Header
+  /** `<module>/<module>-<name>.png`, when the shot exists and the Owner approved it (screenshots-approved.json). */
+  readonly screenshot?: string
   readonly codeLines: number
   readonly imports: readonly string[]
   /** Every rule the file breaks; empty when it is a valid example. */
@@ -214,7 +216,8 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
       if (problem !== undefined) problems.push(problem)
     }
     const screenshot = path.replace(/\.ts$/, '.png')
-    if (existsSync(join(root, screenshot)) && approved[screenshot] === undefined)
+    const hasShot = existsSync(join(root, screenshot))
+    if (hasShot && approved[screenshot] === undefined)
       problems.push(`${screenshot} is not in screenshots-approved.json`)
 
     return {
@@ -225,6 +228,7 @@ export function readCatalog(root: string, options: CatalogOptions = {}): Catalog
       id,
       url: `/${module}/${name}/`,
       ...(header === undefined ? {} : { header }),
+      ...(hasShot && approved[screenshot] !== undefined ? { screenshot } : {}),
       codeLines,
       imports,
       problems,
