@@ -279,6 +279,34 @@ describe('default screens', () => {
     })
   })
 
+  it('hides an idle pointer on play only, never on paused (M4 spec §4.7)', async () => {
+    let now = 0
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now)
+    try {
+      await boot()
+      await toPlay()
+      const playLayer = () => root.querySelector<HTMLElement>('[data-screen="play"]')
+      expect(game.screens.find((candidate) => candidate.id === 'play')?.kind).toBe('gameplay')
+      window.dispatchEvent(new PointerEvent('pointermove'))
+      step()
+      expect(playLayer()?.style.cursor).toBe('')
+      now = 2000
+      step()
+      expect(playLayer()?.style.cursor).toBe('none')
+      window.dispatchEvent(new PointerEvent('pointermove'))
+      step()
+      expect(playLayer()?.style.cursor).toBe('')
+      press('KeyA')
+      step()
+      expect(playLayer()?.style.cursor).toBe('none')
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+      expect(root.querySelector<HTMLElement>('[data-screen="paused"]')?.style.cursor).toBe('')
+    } finally {
+      clock.mockRestore()
+    }
+  })
+
   it('the pad’s Start button pauses play, through the Input service’s pause edge (M4.1)', async () => {
     const buttons: boolean[] = []
     Object.defineProperty(window.navigator, 'getGamepads', {

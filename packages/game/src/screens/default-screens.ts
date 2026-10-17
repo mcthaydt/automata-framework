@@ -11,7 +11,7 @@ import {
   Time,
 } from '@mcthaydt/automata-runtime'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { InputMethodTracker, interceptBackGesture, sendBack } from '@mcthaydt/automata-ui'
+import { CursorRunner, InputMethodTracker, interceptBackGesture, sendBack } from '@mcthaydt/automata-ui'
 import { Effect, type Scope, SubscriptionRef } from 'effect'
 import { type Component, flushSync, mount, unmount } from 'svelte'
 import type { InputMap } from '../input/keys.ts'
@@ -153,6 +153,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
 
   const play: ScreenDef = {
     id: 'play',
+    kind: 'gameplay',
     openMenu: () => playFlow?.dispatch('pause') ?? false,
     enter: ({ layer }) =>
       Effect.gen(function* () {
@@ -182,9 +183,14 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const input = yield* makeInput({ target, profile: map?.profile ?? NO_BINDINGS, bus })
         const running = current
         game.watchSim?.(running)
+        // An idle pointer hides while playing (M4 spec §4.7); leaving play detaches it and shows the pointer again.
+        const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
+        const detachCursor = cursor.attach(target)
+        yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
         appLoop.run({
           sim: running,
           commands: (tick) => {
+            cursor.tick()
             if (map === undefined) return []
             input.poll()
             return map.toCommand(input.held(), tick)

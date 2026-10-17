@@ -16,6 +16,13 @@ export { suppressPageGestures } from './browser/suppress-page-gestures'
 export { default as Dialog } from './dialog/Dialog.svelte'
 export { interceptBackGesture, sendBack } from './focus/back-gesture'
 export {
+  CURSOR_IDLE_MS,
+  type CursorInput,
+  CursorRunner,
+  cursorHidden,
+  type ScreenKind,
+} from './focus/cursor-policy'
+export {
   arrowKeyNav,
   FocusNavigator,
   type NavDirection,
