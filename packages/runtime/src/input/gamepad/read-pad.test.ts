@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEADZONE, quantizeAxis, readPad } from './read-pad.js'
+import { DEADZONE, quantizeStick, readPad } from './read-pad.js'
 import { fakePad } from './testing/fake-pad.js'
 
 // readPad (M4 spec §4.3), ported from FloorFifty `tests/client/managers/gamepad-source.test.ts` at `ac72660`
@@ -58,12 +58,12 @@ describe('readPad', () => {
   })
 })
 
-describe('quantizeAxis (M4-D2)', () => {
-  it('is 0 inside the deadzone and an integer in −127..127 outside it', () => {
-    expect(quantizeAxis(0.2)).toBe(0)
-    expect(quantizeAxis(-0.5)).toBe(-64)
-    expect(quantizeAxis(0.5)).toBe(64)
-    expect(quantizeAxis(-1)).toBe(-127)
-    expect(quantizeAxis(1.2)).toBe(127)
+describe('quantizeStick (M4-D2)', () => {
+  it('is centred inside the radial deadzone, and integers in −127..127 outside it, the same size either way', () => {
+    expect(quantizeStick(0.15, 0.15)).toEqual({ x: 0, y: 0 })
+    expect(quantizeStick(0.2, 0.2)).toEqual({ x: 25, y: 25 })
+    expect(quantizeStick(-0.5, 0)).toEqual({ x: -64, y: 0 })
+    expect(quantizeStick(0.5, 0)).toEqual({ x: 64, y: 0 })
+    expect(quantizeStick(-1, 1.2)).toEqual({ x: -127, y: 127 })
   })
 })

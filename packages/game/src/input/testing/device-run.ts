@@ -75,7 +75,16 @@ export async function runOn(device: Device, target: Window): Promise<{ commands:
   const hadPads = Object.getOwnPropertyDescriptor(nav, 'getGamepads')
   Object.defineProperty(nav, 'getGamepads', {
     configurable: true,
-    value: () => [{ index: 0, mapping: 'standard', buttons: buttons.map((pressed) => ({ pressed })) }],
+    value: () => [
+      {
+        id: 'Standard Gamepad',
+        index: 0,
+        connected: true,
+        mapping: 'standard',
+        axes: [0, 0, 0, 0],
+        buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+      },
+    ],
   })
   const source = deviceMap.attach(target)
   const sim = await createSim({ plugins: [square], seed: 1 })

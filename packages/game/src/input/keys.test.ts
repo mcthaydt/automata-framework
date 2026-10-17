@@ -191,7 +191,16 @@ describe('keys() gamepad (standard mapping)', () => {
     buttons = []
     Object.defineProperty(window.navigator, 'getGamepads', {
       configurable: true,
-      value: () => [{ mapping: 'standard', buttons: buttons.map((pressed) => ({ pressed })) }],
+      value: () => [
+        {
+          id: 'Standard Gamepad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [0, 0, 0, 0],
+          buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+        },
+      ],
     })
   })
   afterEach(() => {

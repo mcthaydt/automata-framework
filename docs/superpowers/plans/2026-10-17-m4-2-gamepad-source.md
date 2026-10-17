@@ -3,7 +3,7 @@
 - **Task:** M4.2 in [02](../../02-master-delivery-plan.md). M4 spec [§4.3](../specs/2026-10-16-m4-input-display-design.md), §4.2 (active device, facts), §5 (pad hot-plug), §6 (non-standard pad, pad unplugged mid-play), §9 (unit and SDK-contract layers), M4-D2, M4-D3, M4-D9. Acceptance I-c, I-d, I-e.
 - **Lane:** runtime, with the game lane's `keys()` and default screens (this session owns both). **Depends on:** M4.0 (merged) and M4.1 (stacked: this branch starts from `claude/clever-pasteur-ujmu6e-m4-1`, because the gamepad source feeds M4.1's `Input` rather than a second copy of its bookkeeping).
 - **Status:** In progress.
-- **Progress:** 3 of 9 steps.
+- **Progress:** 4 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -72,7 +72,7 @@ export interface PadReading {
   readonly nav: ReadonlySet<PadDirection>          // D-pad, or the left stick along its stronger axis
 }
 export function readPad(pad: PadLike): PadReading
-export function quantizeAxis(value: number): number // 0 inside the deadzone; else Math.round(value * 127), clamped
+export function quantizeStick(x: number, y: number): { x: number; y: number } // centred inside the radial deadzone; else each axis rounded to −127..127, halves away from zero
 // handover-mask.ts: class HandoverMask { capture(pad); clear(); apply(pad): PadLike }   (FloorFifty, unchanged)
 // nav-repeat.ts:    REPEAT_DELAY_MS = 400; REPEAT_EVERY_MS = 120
 //                   class NavRepeat { update(held: ReadonlySet<PadDirection>, nowMs: number): PadDirection[] }
@@ -126,7 +126,7 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - `glyphFamily` for an Xbox, a DualSense and an unknown id.
    - **Red reason:** missing modules.
    - **Done.** Red: three "Failed to resolve import" errors (`./glyph-family.js`, `./handover-mask.js`, `./nav-repeat.js`). Green: 16 passed in `gamepad/`. *Deviation:* FloorFifty's `apply` forgets the mask when another pad is read; here another pad passes through untouched and the first pad's mask stays, because `Input` reads every pad on each poll.
-4. [ ] **`Input` reads sticks, repeats nav, masks handovers.**
+4. [x] **`Input` reads sticks, repeats nav, masks handovers.**
    - **Test:** `input.test.ts` (new describe blocks).
    - **Red:**
      - a profile action bound to `stick: ['left-left']` is held while the left stick is at (−0.5, 0), and released at (−0.1, 0);
@@ -135,6 +135,10 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - in the menu context, a held D-pad down fires `nav-down` at polls 0, 400, 520 and 640 ms, and once only for a press under 400 ms;
      - `setContext('menu')` with pad A held does not fire `confirm` until A is released and pressed again.
    - **Red reason:** stick sources and repeat are missing; `stick()` is centred.
+   - **Done.** Red: 5 of the new `input.test.ts` cases failed for the expected reasons (`[]` not `['left']`; `{0,0}` not `{-64,0}`; only `[0]` fired, not `[0, 400, 520, 640]`; the handover fired `confirm` early). The D-pad-plus-stick case passed before the change, because sticks were not read yet; it stays as a guard. Green: 48 passed in `runtime/src/input`; the game's unit tests 90 passed, the I-a device hash unchanged; both typechecks 0 errors. *Deviations:*
+     - `quantizeAxis` became `quantizeStick(x, y)`, which is radial like the deadzone, so `stick()` and the stick directions agree at (0.2, 0.2). Its tests were rewritten first, and they went red.
+     - Real `Gamepad`s always carry `id`, `connected`, `axes` and `value`, so the test pad stubs (`input.test.ts`, `keys.test.ts`, `default-screens.test.ts`, `device-run.ts`) now do too, and `readPad` stays strict.
+     - Pad menu directions come only through the repeat (D-pad or left stick), not as button edges.
 5. [ ] **Hot-plug and active device (I-e).**
    - **Test:** `input.test.ts`.
    - **Red:**

@@ -5,7 +5,15 @@
 // `onPress` serves menus and the pause screen, and gameplay compares this tick's command with the last one's.
 import { Context, Effect, type Scope, SubscriptionRef } from 'effect'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
-import { actionsForKey, actionsForPadButton, type InputProfile } from './input-profile.schema.js'
+import { HandoverMask } from './gamepad/handover-mask.js'
+import { NavRepeat } from './gamepad/nav-repeat.js'
+import { type PadDirection, type PadLike, quantizeStick, readPad } from './gamepad/read-pad.js'
+import {
+  actionsForKey,
+  actionsForPadButton,
+  type InputProfile,
+  type StickDirection,
+} from './input-profile.schema.js'
 import { isMenuActionLive, MENU_BINDINGS, type MenuAction } from './menu-actions.js'
 
 export type InputDevice = 'keyboard' | 'gamepad' | 'touch'
@@ -14,12 +22,15 @@ export type InputContextNow = 'play' | 'menu'
 export interface Input {
   /** The actions held now, the union over devices, in first-press order. Read once per fixed step; never copied. */
   held(): ReadonlySet<string>
-  /** A stick's quantized vector; centred until M4.2 reads sticks. */
+  /** The active pad's stick, each axis an integer in −127..127, centred inside the deadzone (M4-D2). */
   stick(side: 'left' | 'right'): { readonly x: number; readonly y: number }
   /** Menu and pause edges, never sent to the sim. Returns the unsubscribe. */
   onPress(action: MenuAction, listener: () => void): () => void
-  /** Reads the pads; the loop calls it once per fixed step, before `held()`. */
-  poll(): void
+  /**
+   * Reads the pads; the loop calls it once per fixed step, before `held()`. `nowMs` (the frame or step time)
+   * paces the held-direction repeat in menus.
+   */
+  poll(nowMs?: number): void
   /** A touch button held or let go, by action. */
   hold(action: string): void
   release(action: string): void
@@ -38,6 +49,14 @@ export interface InputOptions {
 }
 
 const CENTRED = { x: 0, y: 0 } as const
+const NO_DIRECTIONS: ReadonlySet<PadDirection> = new Set()
+const NAV: Readonly<Record<PadDirection, MenuAction>> = {
+  up: 'nav-up',
+  down: 'nav-down',
+  left: 'nav-left',
+  right: 'nav-right',
+}
+const isNav = (action: MenuAction): boolean => action.startsWith('nav-')
 
 /** Builds the Input over `target` for the scope's life: closing the scope removes every listener. */
 export function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope> {
@@ -164,31 +183,88 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       ]),
     ].sort((a, b) => a - b)
     const padActions = new Map(watched.map((button) => [button, actionsForPadButton(profile, button)]))
+    // Menu directions from a pad come through the repeat below, from the D-pad and the left stick alike.
     const padMenu = new Map(
-      watched.map((button) => [button, menuActionsFor((binding) => binding.pad.includes(button))]),
+      watched.map((button) => [
+        button,
+        menuActionsFor((binding) => binding.pad.includes(button)).filter((action) => !isNav(action)),
+      ]),
     )
+    const stickActions = new Map<StickDirection, string[]>()
+    for (const [action, binding] of Object.entries(profile.bindings))
+      for (const direction of binding.stick ?? [])
+        stickActions.set(direction, [...(stickActions.get(direction) ?? []), action])
+
+    // Per pad: what it read last (for the handover), its mask, and whether it was in use. The active pad is the
+    // newest to start being used (FloorFifty `activeIndex`); its sticks and menu directions are the ones read.
+    const lastRead = new Map<number, PadLike>()
+    const masks = new Map<number, HandoverMask>()
+    const inUse = new Map<number, boolean>()
+    let activeIndex: number | undefined
+    let activeAxes: readonly number[] = []
+    const repeat = new NavRepeat()
+    const maskFor = (index: number): HandoverMask => {
+      const existing = masks.get(index)
+      if (existing !== undefined) return existing
+      const made = new HandoverMask()
+      masks.set(index, made)
+      return made
+    }
+
+    const readOnePad = (pad: PadLike): ReturnType<typeof readPad> => {
+      lastRead.set(pad.index, pad)
+      const raw = readPad(pad)
+      const busy = raw.buttons.size > 0 || raw.sticks.size > 0
+      if (busy && inUse.get(pad.index) !== true) {
+        activeIndex = pad.index
+        use('gamepad')
+      }
+      inUse.set(pad.index, busy)
+      const seen = maskFor(pad.index).apply(pad)
+      const reading = readPad(seen)
+      for (const button of watched) {
+        const source = `pad:${pad.index}:${button}`
+        if (reading.buttons.has(button))
+          press('gamepad', source, padActions.get(button) ?? [], padMenu.get(button) ?? [])
+        else lift(source)
+      }
+      for (const [direction, actions] of stickActions) {
+        const source = `pad:${pad.index}:stick:${direction}`
+        if (reading.sticks.has(direction)) press('gamepad', source, actions, [])
+        else lift(source)
+      }
+      if (pad.index === activeIndex) activeAxes = seen.axes
+      return reading
+    }
 
     return {
       held: () => held,
-      stick: () => CENTRED,
+      stick(side) {
+        const first = side === 'left' ? 0 : 2
+        const x = activeAxes[first] ?? 0
+        const y = activeAxes[first + 1] ?? 0
+        return x === 0 && y === 0 ? CENTRED : quantizeStick(x, y)
+      },
       onPress(action, listener) {
         const set = listeners.get(action) ?? new Set()
         listeners.set(action, set)
         set.add(listener)
         return () => void set.delete(listener)
       },
-      poll() {
-        const pads = target.navigator.getGamepads?.() ?? []
-        for (const pad of pads) {
-          // Only the standard mapping is bound (DX spec §3.3); another layout is M4.2's to report.
-          if (pad === null || pad.mapping !== 'standard') continue
-          for (const button of watched) {
-            const source = `pad:${pad.index}:${button}`
-            if (pad.buttons[button]?.pressed === true)
-              press('gamepad', source, padActions.get(button) ?? [], padMenu.get(button) ?? [])
-            else lift(source)
+      poll(nowMs = 0) {
+        let nav = NO_DIRECTIONS
+        let activeSeen = false
+        for (const pad of target.navigator.getGamepads?.() ?? []) {
+          // Only the standard mapping is bound (DX spec §3.3).
+          if (pad === null || !pad.connected || pad.mapping !== 'standard') continue
+          const reading = readOnePad(pad)
+          if (pad.index === activeIndex) {
+            nav = reading.nav
+            activeSeen = true
           }
         }
+        if (!activeSeen) activeAxes = []
+        fire(repeat.update(nav, nowMs).map((direction) => NAV[direction]))
       },
       hold(action) {
         press('touch', `touch:${action}`, profile.bindings[action] === undefined ? [] : [action], [])
@@ -200,6 +276,9 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
         if (next === context) return
         context = next
         liftWhere(undefined)
+        // What a pad holds as the context changes stays masked on the new side until let go (the handover).
+        for (const [index, pad] of lastRead) maskFor(index).capture(pad)
+        repeat.clear()
       },
       device,
       profile: profileRef,

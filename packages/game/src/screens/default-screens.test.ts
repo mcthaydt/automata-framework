@@ -203,7 +203,16 @@ describe('default screens', () => {
     const buttons: boolean[] = []
     Object.defineProperty(window.navigator, 'getGamepads', {
       configurable: true,
-      value: () => [{ index: 0, mapping: 'standard', buttons: buttons.map((pressed) => ({ pressed })) }],
+      value: () => [
+        {
+          id: 'Standard Gamepad',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [0, 0, 0, 0],
+          buttons: buttons.map((pressed) => ({ pressed, value: pressed ? 1 : 0 })),
+        },
+      ],
     })
     try {
       await boot()

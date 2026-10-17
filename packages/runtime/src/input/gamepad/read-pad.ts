@@ -79,11 +79,16 @@ export function readPad(pad: PadLike): PadReading {
 }
 
 /**
- * One axis as an integer in −127..127 (M4-D2): small and exact in every engine; 0 inside the deadzone. Halves
- * round away from zero, so a push left reads as the same size as the same push right.
+ * A stick as integers in −127..127 per axis (M4-D2): small and exact in every engine, centred inside the radial
+ * deadzone. Halves round away from zero, so a push left reads as the same size as the same push right.
  */
-export function quantizeAxis(value: number): number {
-  const size = Math.abs(value)
-  if (size < DEADZONE) return 0
-  return Math.sign(value) * Math.min(127, Math.round(size * 127))
+export function quantizeStick(x: number, y: number): { readonly x: number; readonly y: number } {
+  if (Math.hypot(x, y) < DEADZONE) return CENTRED
+  return { x: quantize(x), y: quantize(y) }
+}
+
+const CENTRED = { x: 0, y: 0 } as const
+const quantize = (value: number): number => {
+  const size = Math.round(Math.min(1, Math.abs(value)) * 127)
+  return size === 0 ? 0 : Math.sign(value) * size
 }
