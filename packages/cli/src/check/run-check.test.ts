@@ -88,10 +88,10 @@ async function check(game: FakeGame, extra: Partial<typeof options> = {}) {
 }
 
 describe('runCheck', () => {
-  it('runs boundaries, typecheck, test and no-eval in order, and passes a clean game', async () => {
+  it('runs boundaries, typecheck, test, no-eval and secrets in order, and passes a clean game', async () => {
     const game = fakeGame()
     const { report, names, code } = await check(game)
-    expect(names).toEqual(['boundaries', 'typecheck', 'test', 'no-eval'])
+    expect(names).toEqual(['boundaries', 'typecheck', 'test', 'no-eval', 'secrets'])
     expect(report.ok).toBe(true)
     expect(code).toBe(0)
     expect(game.ran).toEqual([
@@ -114,6 +114,7 @@ describe('runCheck', () => {
       'typecheck',
       'test',
       'no-eval',
+      'secrets',
       'csp',
     ])
   })
@@ -127,7 +128,7 @@ describe('runCheck', () => {
       }),
     }
     const all = await check(fakeGame({ tools }))
-    expect(all.names).toEqual(['boundaries', 'typecheck', 'test', 'no-eval'])
+    expect(all.names).toEqual(['boundaries', 'typecheck', 'test', 'no-eval', 'secrets'])
     expect(all.report.steps[0]?.findings).toEqual([
       {
         file: 'src/sim/a.ts',
@@ -229,12 +230,44 @@ describe('runCheck', () => {
     expect(evalCheck.code).toBe(1)
   })
 
+  // QB-b in `automata check`: the same scanner as `prepare-ruken`, over the dist/ the no-eval step built.
+  it('a planted key in the bundle is a secrets finding with file, line and column, never the key', async () => {
+    const key = ['sk', 'live', '4eC39HqLyjWDarjtT1zdp7dc'].join('_')
+    const planted = fakeGame({
+      files: new Map([[`${GAME}/dist/assets/index.js`, `export const a = 1\nconst k = "${key}"`]]),
+    })
+    const { report, code } = await check(planted)
+    const secrets = report.steps.find((step) => step.name === 'secrets')
+    expect(secrets?.ok).toBe(false)
+    expect(secrets?.findings).toEqual([
+      {
+        file: 'dist/assets/index.js',
+        line: 2,
+        col: 12,
+        rule: 'secret-stripe-access-token',
+        message: 'a Stripe key (sk_l…, 32 characters) at character 30',
+      },
+    ])
+    expect(JSON.stringify(report)).not.toContain(key)
+    expect(code).toBe(1)
+  })
+
+  it('secrets does not scan a dist/ whose build failed: it says so instead of passing', async () => {
+    const broken = { vite: () => ({ exitCode: 1, stdout: '', stderr: 'Could not resolve "./x"' }) }
+    const { report } = await check(fakeGame({ tools: broken }))
+    expect(report.steps[4]).toMatchObject({
+      name: 'secrets',
+      ok: false,
+      findings: [{ rule: 'build', message: 'not scanned: the build failed (see no-eval)' }],
+    })
+  })
+
   it('a CSP violation or no ready signal fails csp; a missing Playwright is exit 2', async () => {
     const violation = await check(
       fakeGame({ csp: { ready: true, state: 'ready', violations: ['script-src blocked eval'] } }),
       { csp: true },
     )
-    expect(violation.report.steps[4]?.findings).toEqual([
+    expect(violation.report.steps[5]?.findings).toEqual([
       { file: '', line: 0, col: 0, rule: 'csp-violation', message: 'script-src blocked eval' },
     ])
     expect(violation.code).toBe(1)
@@ -242,13 +275,13 @@ describe('runCheck', () => {
     const notReady = await check(fakeGame({ csp: { ready: false, state: 'loading', violations: [] } }), {
       csp: true,
     })
-    expect(notReady.report.steps[4]?.findings[0]).toMatchObject({ rule: 'not-ready' })
-    expect(notReady.report.steps[4]?.findings[0]?.message).toContain('20 s')
+    expect(notReady.report.steps[5]?.findings[0]).toMatchObject({ rule: 'not-ready' })
+    expect(notReady.report.steps[5]?.findings[0]?.message).toContain('20 s')
 
     const failed = await check(fakeGame({ csp: { ready: false, state: 'failed', violations: [] } }), {
       csp: true,
     })
-    expect(failed.report.steps[4]?.findings[0]).toMatchObject({ rule: 'boot-failed' })
+    expect(failed.report.steps[5]?.findings[0]).toMatchObject({ rule: 'boot-failed' })
 
     const missing = new CheckToolError({
       kind: 'missing',
@@ -256,8 +289,8 @@ describe('runCheck', () => {
       detail: 'install it: npm install --save-dev playwright && npx playwright install chromium',
     })
     const noPlaywright = await check(fakeGame({ csp: missing }), { csp: true })
-    expect(noPlaywright.report.steps[4]).toMatchObject({ ok: false, toolError: true })
-    expect(noPlaywright.report.steps[4]?.findings[0]?.rule).toBe('tool-missing')
+    expect(noPlaywright.report.steps[5]).toMatchObject({ ok: false, toolError: true })
+    expect(noPlaywright.report.steps[5]?.findings[0]?.rule).toBe('tool-missing')
     expect(noPlaywright.code).toBe(2)
   })
 })

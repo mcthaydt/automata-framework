@@ -12,12 +12,16 @@ export type StyleRule =
   | 'role-mismatch'
   | 'role-missing'
   | 'parse-error'
+  | 'no-html'
+  | 'platform-chrome'
   | 'file-length'
 
 export interface StyleFinding {
   readonly file: string
   readonly rule: StyleRule
   readonly message: string
+  /** 1-based, for rules that point into the file (the Svelte rules); 0 when unknown. */
+  readonly line?: number
 }
 
 /**

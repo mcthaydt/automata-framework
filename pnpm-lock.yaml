@@ -865,6 +865,9 @@ importers:
       oxc-parser:
         specifier: 0.152.0
         version: 0.152.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
     devDependencies:
       '@types/node':
         specifier: 24.19.1
