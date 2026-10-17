@@ -10,6 +10,7 @@ import {
   defineComponent,
   definePlugin,
   defineSystem,
+  type Sim,
   type StepResult,
 } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
@@ -18,6 +19,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { type DefinedGame, defineGame, type GameSpec } from '../define-game.ts'
 import { keys } from '../input/keys.ts'
+import { defaultScreens } from './default-screens.ts'
 
 // The default title, play and paused screens (DX spec §7), booted by the real runtime in jsdom: standalone
 // hosting, manual frames and a renderer that records what it is given (Pixi needs WebGL, which jsdom lacks).
@@ -227,5 +229,28 @@ describe('default screens', () => {
     step(2)
     expect(results.flatMap((result) => result.rejected)).toEqual([])
     expect(lastX()).toBe(10)
+  })
+
+  it('hands the play screen’s sim to watchSim, and undefined when the title drops it (the draw layer)', async () => {
+    const watched: (Sim | undefined)[] = []
+    const sim = { plugins: [square], seed: 3, setup: (live: Sim) => void live.spawn([[Body, { x: 10 }]]) }
+    await boot(
+      { screens: defaultScreens({ title: 'Square', sim, watchSim: (live) => watched.push(live) }) },
+      false,
+    )
+    expect(watched).toEqual([undefined])
+    await toPlay()
+    expect(watched.at(-1)?.tick).toBe(0)
+    const live = watched.at(-1)
+    press('Escape')
+    await until(() => screen('paused') !== null, 'the paused screen')
+    button('resume')?.click()
+    await until(() => screen('play') !== null, 'the play screen again')
+    expect(watched.at(-1)).toBe(live)
+    press('Escape')
+    await until(() => screen('paused') !== null, 'paused again')
+    button('quit')?.click()
+    await until(() => screen('title') !== null, 'the title screen')
+    expect(watched.at(-1)).toBeUndefined()
   })
 })
