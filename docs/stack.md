@@ -13,7 +13,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 | [Effect](#effect) | Core | `effect` 3.22.2 | MIT |
 | [Zod](#zod) | Core | `zod` 4.6.5 | MIT |
 | [Svelte 5](#svelte-5) | Core | `svelte` 5.57.1 | MIT |
-| [Paraglide](#paraglide) | Core | not yet installed; planned for PRODUCT.L (core localization) | none yet |
+| [Paraglide](#paraglide) | Core | `@inlang/paraglide-js` 2.25.4 | MIT |
 | [smol-toml](#smol-toml) | Core | `smol-toml` 1.9.0 | BSD-3-Clause |
 | [Ruken SDK](#ruken-sdk) | Core | `@ruken/sdk` 0.0.0; `@ruken/sdk-host` 0.0.0; `@ruken/manifest` 0.0.0; `@ruken/cli` 0.0.0 | not declared in the installed package |
 | [Vite, Vitest, Playwright](#vite-vitest-playwright) | Core | `vite` 8.3.2; `vitest` 5.0.3; `@playwright/test` 1.63.0 | MIT; Apache-2.0 |
@@ -77,12 +77,14 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 ## Paraglide
 
-Not yet installed; planned for PRODUCT.L (core localization). Package: `@inlang/paraglide-js`.
+| Package | Version | License |
+|---|---|---|
+| `@inlang/paraglide-js` | 2.25.4 | MIT |
 
 - **Tier:** Core
 - **What it does in AF:** Compiles the content compiler's locale keys into typed `t()` message functions (PRODUCT spec §4).
 - **Why it was chosen:** FloorFifty already ships its localization on Paraglide, and Ruken asks every game to localize from `session.locale` (PRODUCT spec §4).
-- **What AF adds on top:** Planned in PRODUCT.L: language negotiation from Ruken's `session.locale`, `Intl` formatting, `<html lang dir>`, per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract and a language picker.
+- **What AF adds on top:** `@mcthaydt/automata-runtime` (PRODUCT.L1): language negotiation (the player's saved choice, then Ruken's `session.locale`, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`. Planned in PRODUCT.L2 to L4: per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract and a language picker.
 
 ## smol-toml
 

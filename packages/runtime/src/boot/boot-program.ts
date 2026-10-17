@@ -20,6 +20,7 @@ import type { RuntimeServices } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
 import { Assets, makeAssets } from '../loading/assets.manager.js'
 import { makeLoadMeter, SLOW_MS } from '../loading/load-meter.js'
+import { browserLanguages, Locale, makeLocale, singleLocale } from '../locale/locale.manager.js'
 import { AppLoop, makeAppLoop } from '../loop/app-loop.manager.js'
 import { liveFrames } from '../loop/frames.js'
 import { makePresentationBus, PresentationBus } from '../presentation/presentation-bus.manager.js'
@@ -53,7 +54,7 @@ export interface BootProgramOptions {
 }
 
 /**
- * Builds the Context<RuntimeServices> containing all 8 runtime tags (spec §3.1, §4).
+ * Builds the Context<RuntimeServices> containing all 9 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1).
  * Extracted so RuntimeTest reuses the exact service wiring (Task 18).
  */
 export function buildRuntimeServices(services: {
@@ -65,6 +66,7 @@ export function buildRuntimeServices(services: {
   readonly appLoop: AppLoop
   readonly assets: Assets
   readonly renderer: GameRenderer
+  readonly locale: Locale
 }): Context.Context<RuntimeServices> {
   return Context.empty().pipe(
     Context.add(Hosting, services.hosting),
@@ -75,6 +77,7 @@ export function buildRuntimeServices(services: {
     Context.add(AppLoop, services.appLoop),
     Context.add(Assets, services.assets),
     Context.add(Renderer, services.renderer),
+    Context.add(Locale, services.locale),
   ) as Context.Context<RuntimeServices>
 }
 
@@ -224,6 +227,16 @@ export function bootProgram<S>(
 
     const bus = yield* makePresentationBus()
     const time = makeTime(bus)
+
+    // The locale is negotiated, and <html lang dir> set, before the first screen enters (PRODUCT spec §4, L-b).
+    const locale = yield* makeLocale({
+      def: game.locale ?? singleLocale(game.content.data.game?.source_language ?? 'en'),
+      hosting,
+      browser: game.seams?.languages ?? browserLanguages(win.navigator),
+      bus,
+      element: doc.documentElement,
+    })
+
     const veil = yield* makeVeil({
       overlay: layers.overlay,
       reducedMotion: () => reducedMotion(win),
@@ -282,6 +295,7 @@ export function bootProgram<S>(
       appLoop,
       assets,
       renderer,
+      locale,
     })
 
     if (game.extensions && game.extensions.length > 0) {

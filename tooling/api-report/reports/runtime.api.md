@@ -30,6 +30,12 @@ interface AppLoop {
 const AppLoop: Context.Tag<AppLoop, AppLoop>;
 ```
 
+### `applyDocumentLocale` (function)
+
+```ts
+function applyDocumentLocale(element: HTMLElement, locale: string): void;
+```
+
 ### `AssetLoadFailed` (class)
 
 ```ts
@@ -124,6 +130,12 @@ class ContentHashMismatch extends ContentHashMismatchBase {
 }
 ```
 
+### `createT` (function)
+
+```ts
+function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
+```
+
 ### `Flow` (interface)
 
 ```ts
@@ -144,6 +156,24 @@ type FlowFailure = AssetLoadFailed | LoadStalled | {
     readonly screen: string;
     readonly cause: unknown;
 };
+```
+
+### `formatDuration` (function)
+
+```ts
+function formatDuration(locale: string, milliseconds: number): string;
+```
+
+### `formatNumber` (const)
+
+```ts
+const formatNumber: (locale: string, value: number, options?: Intl.NumberFormatOptions) => string;
+```
+
+### `formatPercent` (const)
+
+```ts
+const formatPercent: (locale: string, fraction: number) => string;
 ```
 
 ### `FrameInfo` (interface)
@@ -169,6 +199,7 @@ interface GameDefinition<S = never> {
     readonly screens: readonly ScreenDef[];
     readonly renderer: RendererFactory;
     readonly settings?: SettingsDef<S> | undefined;
+    readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
     readonly copy?: Partial<BootFailureCopy> & {
         readonly loading?: string;
@@ -242,10 +273,71 @@ class LoadStalled extends LoadStalledBase {
 }
 ```
 
+### `Locale` (interface)
+
+```ts
+interface Locale {
+    readonly locales: readonly string[];
+    readonly baseLocale: string;
+    readonly current: string;
+    readonly direction: 'ltr' | 'rtl';
+    subscribe(listener: (locale: string) => void): () => void;
+    set(choice: string | null): void;
+}
+const Locale: Context.Tag<Locale, Locale>;
+```
+
+### `LOCALE_SAVE_KEY` (const)
+
+```ts
+const LOCALE_SAVE_KEY = "automata.locale";
+```
+
+### `LocaleCandidates` (interface)
+
+```ts
+interface LocaleCandidates {
+    readonly hosted: string | undefined;
+    readonly saved: string | undefined;
+    readonly browser: readonly string[];
+    readonly locales: readonly string[];
+    readonly baseLocale: string;
+}
+```
+
+### `LocaleDef` (interface)
+
+```ts
+interface LocaleDef {
+    readonly locales: readonly string[];
+    readonly baseLocale: string;
+    overwriteGetLocale?(fn: () => string): void;
+    overwriteSetLocale?(fn: (locale: string) => void): void;
+}
+```
+
+### `matchLocale` (function)
+
+```ts
+function matchLocale(requested: string, locales: readonly string[]): string | undefined;
+```
+
 ### `MAX_FRAME_MS` (const)
 
 ```ts
 const MAX_FRAME_MS = 100;
+```
+
+### `MessageFunction` (type)
+
+```ts
+type MessageFunction = (inputs?: any) => string;
+```
+
+### `negotiateLocale` (function)
+
+```ts
+function negotiateLocale(candidates: LocaleCandidates): string;
 ```
 
 ### `NetworkPort` (interface)
@@ -260,10 +352,27 @@ interface NetworkPort {
 const NetworkPort: Context.Tag<NetworkPort, NetworkPort>;
 ```
 
+### `ParaglideRuntime` (interface)
+
+```ts
+interface ParaglideRuntime {
+    readonly locales: readonly string[];
+    readonly baseLocale: string;
+    overwriteGetLocale(fn: () => string): void;
+    overwriteSetLocale(fn: (locale: string) => void): void;
+}
+```
+
 ### `PauseReason` (type)
 
 ```ts
 type PauseReason = 'lifecycle' | 'menu';
+```
+
+### `pluralCategory` (const)
+
+```ts
+const pluralCategory: (locale: string, count: number, type?: Intl.PluralRuleType) => Intl.LDMLPluralRule;
 ```
 
 ### `PresentationBus` (interface)
@@ -323,6 +432,10 @@ interface RuntimeFacts {
     readonly 'time.changed': {
         readonly paused: boolean;
     };
+    readonly 'locale.changed': {
+        readonly locale: string;
+        readonly previous: string;
+    };
 }
 ```
 
@@ -343,13 +456,14 @@ interface RuntimeSeams {
     readonly fonts?: Pick<FontFaceSet, 'load'>;
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
     readonly document?: Document;
+    readonly languages?: readonly string[];
 }
 ```
 
 ### `RuntimeServices` (type)
 
 ```ts
-type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer;
+type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale;
 ```
 
 ### `ScreenContext` (interface)
@@ -371,6 +485,14 @@ interface ScreenDef<R = never> {
     enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
     openMenu?(): boolean;
 }
+```
+
+### `selectPlural` (function)
+
+```ts
+function selectPlural(locale: string, count: number, forms: Partial<Record<Intl.LDMLPluralRule, string>> & {
+    readonly other: string;
+}): string;
 ```
 
 ### `Settings` (interface)
@@ -429,6 +551,12 @@ const STALL_MS = 30000;
 const STANDARD_PAD_BUTTON_MAX = 16;
 ```
 
+### `textDirection` (function)
+
+```ts
+function textDirection(locale: string): 'ltr' | 'rtl';
+```
+
 ### `Time` (interface)
 
 ```ts
@@ -439,6 +567,12 @@ interface Time {
     resume(reason: PauseReason): void;
 }
 const Time: Context.Tag<Time, Time>;
+```
+
+### `Translate` (type)
+
+```ts
+type Translate<Messages> = <K extends keyof Messages & string>(key: K, ...inputs: InputsOf<Messages[K]>) => string;
 ```
 
 ### `typedBus` (function)
@@ -615,5 +749,7 @@ interface RuntimeTestOptions {
     readonly frames?: ManualFrames | FrameSource;
     readonly renderer?: GameRenderer | RendererFactory;
     readonly fetch?: typeof fetch;
+    readonly locale?: LocaleDef;
+    readonly languages?: readonly string[];
 }
 ```
