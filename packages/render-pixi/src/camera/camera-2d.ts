@@ -2,7 +2,13 @@
 // and never a coordinate the sim produced: children keep their own positions, so what a player sees and what
 // the sim resolves never disagree. The follow's approach (`damp`) comes from FloorFifty
 // `apps/client/src/systems/gameplay/camera.ts` at `ac72660`; FloorFifty's race-specific zoom stays in the game.
+import { reducedMotion } from '@mcthaydt/automata-ui'
 import type { Container } from 'pixi.js'
+
+/** Trauma lost per second: a full shake (1) is gone in 2/3 s. */
+export const SHAKE_DECAY = 1.5
+/** The largest shake offset per axis, in logical px, at trauma 1. */
+export const SHAKE_MAX_OFFSET = 8
 
 export interface CameraRect {
   readonly x: number
@@ -50,12 +56,23 @@ function intoZone(centre: number, target: number, half: number): number {
 }
 
 /** The centre on one axis that keeps a view `size` wide inside [min, min + extent]; centred when it cannot fit. */
+/** mulberry32: a small seeded generator, so a shake looks the same in every run and in visual tests. */
+function mulberry32(seed: number): () => number {
+  let state = seed >>> 0
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0
+    let mixed = Math.imul(state ^ (state >>> 15), state | 1)
+    mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61)
+    return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296
+  }
+}
+
 function clampAxis(centre: number, size: number, min: number, extent: number): number {
   if (extent <= size) return min + extent / 2
   return Math.min(Math.max(centre, min + size / 2), min + extent - size / 2)
 }
 
-export function createCamera2d(stage: Container, options: Camera2dOptions, _seed = 1): Camera2d {
+export function createCamera2d(stage: Container, options: Camera2dOptions, seed = 1): Camera2d {
   const zoom = options.zoom ?? 1
   // The world-space size the view shows.
   const visibleWidth = options.view.width / zoom
@@ -66,6 +83,9 @@ export function createCamera2d(stage: Container, options: Camera2dOptions, _seed
   let centreX = 0
   let centreY = 0
   let hasTarget = false
+  let trauma = 0
+  const noise = mulberry32(seed)
+  const isReduced = options.reducedMotion ?? (() => reducedMotion())
   const transform = { x: 0, y: 0, scale: zoom }
 
   const clamp = (x: number, y: number): { x: number; y: number } => {
@@ -87,7 +107,9 @@ export function createCamera2d(stage: Container, options: Camera2dOptions, _seed
         centreY = y
       }
     },
-    shake() {},
+    shake(amount) {
+      trauma = Math.min(1, trauma + amount)
+    },
     update(frameSeconds) {
       const follow = options.follow
       if (follow === undefined) {
@@ -105,8 +127,16 @@ export function createCamera2d(stage: Container, options: Camera2dOptions, _seed
       centreX = clamped.x
       centreY = clamped.y
 
-      transform.x = options.view.width / 2 - centreX * zoom
-      transform.y = options.view.height / 2 - centreY * zoom
+      // The shake is added to what is drawn, never to the stored centre, so the follow does not drift with it.
+      // Noise is drawn every frame, even under reduced motion, so the sequence does not depend on the setting.
+      trauma = Math.max(0, trauma - SHAKE_DECAY * frameSeconds)
+      const strength = isReduced() ? 0 : SHAKE_MAX_OFFSET * trauma * trauma
+      const noiseX = noise() * 2 - 1
+      const noiseY = noise() * 2 - 1
+      const shown = clamp(centreX + strength * noiseX, centreY + strength * noiseY)
+
+      transform.x = options.view.width / 2 - shown.x * zoom
+      transform.y = options.view.height / 2 - shown.y * zoom
       stage.position.set(transform.x, transform.y)
       stage.scale.set(zoom)
     },

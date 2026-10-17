@@ -1,6 +1,6 @@
 import { Container } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
-import { type Camera2dOptions, createCamera2d } from './camera-2d.ts'
+import { type Camera2dOptions, createCamera2d, SHAKE_DECAY, SHAKE_MAX_OFFSET } from './camera-2d.ts'
 
 const VIEW = { width: 320, height: 180 }
 const FRAME = 1 / 60
@@ -126,5 +126,58 @@ describe('camera2d transform', () => {
     ])
     // Presentation only: a child keeps the coordinates the sim gave it (FloorFifty worldToLogical).
     expect([child.position.x, child.position.y]).toEqual([42, 7])
+  })
+})
+
+describe('camera2d shake (C-b)', () => {
+  /** The shake offset from the camera's resting centre, per frame, for `frames` frames after `shake(trauma)`. */
+  function offsets(options: Partial<Camera2dOptions>, trauma: number, frames: number, seed?: number) {
+    const cam = createCamera2d(new Container(), { view: VIEW, reducedMotion: still, ...options }, seed)
+    cam.target(480, 270)
+    cam.update(FRAME)
+    cam.shake(trauma)
+    const out: { x: number; y: number }[] = []
+    for (let frame = 0; frame < frames; frame += 1) {
+      cam.update(FRAME)
+      const centre = centreOf(cam.transform)
+      out.push({ x: centre.x - 480, y: centre.y - 270 })
+    }
+    return out
+  }
+
+  it('moves the view, the same way every run for the same seed', () => {
+    const first = offsets({}, 1, 10, 7)
+    expect(first.some(({ x, y }) => x !== 0 || y !== 0)).toBe(true)
+    expect(offsets({}, 1, 10, 7)).toEqual(first)
+    expect(offsets({}, 1, 10, 8)).not.toEqual(first)
+  })
+
+  it('stays within SHAKE_MAX_OFFSET × trauma² and is still after the trauma decays (1 / SHAKE_DECAY s)', () => {
+    const frames = offsets({}, 0.5, 90)
+    for (const { x, y } of frames) {
+      expect(Math.abs(x)).toBeLessThanOrEqual(SHAKE_MAX_OFFSET * 0.25)
+      expect(Math.abs(y)).toBeLessThanOrEqual(SHAKE_MAX_OFFSET * 0.25)
+    }
+    // 0.5 trauma decays at SHAKE_DECAY per second: gone after 0.5 / 1.5 s, 20 frames.
+    expect(Math.ceil((0.5 / SHAKE_DECAY) * 60)).toBe(20)
+    for (const { x, y } of frames.slice(21)) expect([x, y]).toEqual([0, 0])
+  })
+
+  it('moves nothing under reduced motion', () => {
+    for (const { x, y } of offsets({ reducedMotion: () => true }, 1, 30)) expect([x, y]).toEqual([0, 0])
+  })
+
+  it('never shakes the view outside the bounds', () => {
+    const bounds = { x: 0, y: 0, width: 960, height: 540 }
+    const cam = createCamera2d(new Container(), { view: VIEW, reducedMotion: still, bounds }, 3)
+    cam.target(0, 0)
+    cam.update(FRAME)
+    for (let frame = 0; frame < 30; frame += 1) {
+      cam.shake(1)
+      cam.update(FRAME)
+      const { x, y } = centreOf(cam.transform)
+      expect(x - VIEW.width / 2).toBeGreaterThanOrEqual(0)
+      expect(y - VIEW.height / 2).toBeGreaterThanOrEqual(0)
+    }
   })
 })
