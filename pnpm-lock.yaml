@@ -907,6 +907,64 @@ importers:
         specifier: 4.6.5
         version: 4.6.5
 
+  tooling/frame-budget:
+    dependencies:
+      '@mcthaydt/automata-render-pixi':
+        specifier: workspace:*
+        version: link:../../packages/render-pixi
+      '@mcthaydt/automata-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
+      '@mcthaydt/automata-sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
+      '@mcthaydt/automata-ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+      pixi.js:
+        specifier: 8.21.0
+        version: 8.21.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@mcthaydt/automata-ship':
+        specifier: workspace:*
+        version: link:../../packages/ship
+      '@mcthaydt/examples-runner':
+        specifier: workspace:*
+        version: link:../examples-runner
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
+      '@ruken/manifest':
+        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
+        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@24.19.1)(yaml@2.9.1))
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      jsdom:
+        specifier: 30.1.1
+        version: 30.1.1
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.3.2
+        version: 8.3.2(@types/node@24.19.1)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.2(@types/node@24.19.1)(yaml@2.9.1))
+
   tooling/release:
     devDependencies:
       '@types/node':
