@@ -3,7 +3,7 @@
 - **Task:** M4.3 in [02](../../02-master-delivery-plan.md). M4 spec [§4.4](../specs/2026-10-16-m4-input-display-design.md), §5 (device change), §6 (`TouchControls`, `SwipeSurface` rows) and §8. Acceptance I-f.
 - **Lane:** runtime and ui, with the game lane's play screen and `keys()` as consumers (this session owns that lane). **Depends on:** M4.1 (`Input`, merged in #74).
 - **Status:** In progress.
-- **Progress:** 2 of 9 steps.
+- **Progress:** 3 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -153,7 +153,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
    - **Red:** `swipe-tracker.test.ts`, FloorFifty's cases ported (dead zone, trailing anchor, release on lift, flick, slow drag, a non-steering finger flicks but never steers, the second finger steers after the first lifts, `cancel`), plus: I-f's three cases; up/down steering; a tap pulses `tap`; a long touch or one that left the dead zone does not; partial tuning overrides one value.
    - **Run:** `pnpm --filter @mcthaydt/automata-runtime exec vitest run --project unit src/input/gestures/`. Expect "Failed to resolve import ./swipe-tracker.js".
    - **Green:** create the tracker.
-3. [ ] **Gesture bindings.**
+3. [x] **Gesture bindings.** Done: red was "actionsForGesture is not a function" (3 failed); then 13 passed.
    - **Red:** in `input-profile.test.ts`: `actionsForGesture` lists the bound actions sorted, none for an unbound gesture; `touchModesFor` gives `[]`, `['buttons']`, `['swipe']` and `['buttons', 'swipe']`.
    - **Green:** add both functions.
 4. [ ] **`Input.gesture`.**
