@@ -34,6 +34,7 @@
     "bench": "vitest run --project bench",
     "test:unit": "vitest run --project node",
     "test:parity": "vitest run --project browsers",
+    "test:evidence": "vitest run --project node --project browsers src/physics-2d.parity.test.ts src/physics-3d.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p .",
     "build": "tsdown"
   },
@@ -45,6 +46,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
+    "@mcthaydt/evidence": "workspace:*",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",
     "vitest": "5.0.3"
