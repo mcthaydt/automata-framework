@@ -3,7 +3,7 @@
 - **Task:** M4.6 in [02](../../02-master-delivery-plan.md); M4 spec [§4.8](../specs/2026-10-16-m4-input-display-design.md) (the primitives), §4.12 (colour and accessibility), §7 (states); acceptance U-a and U-b.
 - **Lane:** ui. **Depends on:** M4.0 (merged). It does not need M4.5: see "Pad adjust" below.
 - **Status:** In progress.
-- **Progress:** 6 of 13 of 13 steps.
+- **Progress:** 6 of 13 steps.
 
 ## Sources, read at these commits
 
