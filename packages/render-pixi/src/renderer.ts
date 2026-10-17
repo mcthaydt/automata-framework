@@ -8,6 +8,11 @@ import type { StepResult } from '@mcthaydt/automata-sim'
 import { Effect, type Scope } from 'effect'
 import { Application, Container, type Filter, TextureSource } from 'pixi.js'
 import { type EntityViewResolver, RenderDeltaConsumer } from './delta/render-delta-consumer.js'
+import {
+  createPostFilterSlot,
+  type PostFilterSlot,
+  type PostFilterTarget,
+} from './filter/post-filter-slot.js'
 import { canvasResolutionFor } from './letterbox/canvas-resolution.js'
 import { LetterboxFrame } from './letterbox/letterbox.js'
 
@@ -33,8 +38,25 @@ export interface PixiRendererOptions {
   readonly barColor?: number | undefined
   /** Optional view factory resolver for entity components. */
   readonly entityViews?: EntityViewResolver | undefined
-  /** Optional setup hook called before the first frame to add layers/filters. */
-  readonly setup?: ((stage: PixiStage) => void) | undefined
+  /**
+   * Optional setup hook called before the first frame to add layers/filters. It may return hooks for a game
+   * that draws its own scene: they run after the entity views each step, before Pixi renders each frame, and
+   * after the views reset.
+   */
+  readonly setup?:
+    | ((stage: PixiStage) => PixiStageHooks | undefined)
+    | ((stage: PixiStage) => void)
+    | undefined
+}
+
+/** What a `setup` may return to hear every step, frame and reset (DX spec §3.4, DX.3 decision E-1). */
+export interface PixiStageHooks {
+  /** After the entity views took the step's render delta. */
+  readonly apply?: ((result: StepResult) => void) | undefined
+  /** Each display frame, after the views interpolated and before Pixi renders. */
+  readonly draw?: ((frame: FrameInfo) => void) | undefined
+  /** After the views reset (a new sim or a resync). */
+  readonly reset?: (() => void) | undefined
 }
 
 export interface PixiStage {
@@ -48,8 +70,10 @@ export interface PixiStage {
   readonly backdrop: Container
   /** The delta consumer tracking entity views. */
   readonly consumer: RenderDeltaConsumer
-  /** Post-processing filters applied to the root rendered scene. */
+  /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
   filters: Filter[] | null
+  /** The post-filter slot over `filters`: each owner keeps its own filters by id and order (PRODUCT spec §2 F1). */
+  readonly postFilters: PostFilterSlot
 }
 
 export interface PixiRenderer extends GameRenderer {
@@ -125,8 +149,9 @@ export function createPixiRenderer(
 
       const rendererName = app.renderer.name === 'webgpu' ? 'webgpu' : 'webgl'
       app.canvas.dataset.renderer = rendererName
-      app.canvas.classList.add('af-stage')
-      target.host.appendChild(app.canvas)
+      const canvas = app.canvas
+      canvas.classList.add('af-stage')
+      target.host.appendChild(canvas)
 
       let frame: LetterboxFrame | undefined
       let world: Container
@@ -157,13 +182,8 @@ export function createPixiRenderer(
 
       const consumer = new RenderDeltaConsumer(world, options.entityViews)
 
-      const stage: PixiStage = {
-        app,
-        frame,
-        world,
-        ui,
-        backdrop,
-        consumer,
+      // The rendered scene's filters: the letterboxed scene when there is a frame, else the whole stage.
+      const sceneFilters: PostFilterTarget = {
         get filters(): Filter[] | null {
           return (frame ? frame.scene.filters : app.stage.filters) as Filter[] | null
         },
@@ -176,7 +196,23 @@ export function createPixiRenderer(
         },
       }
 
-      options.setup?.(stage)
+      const stage: PixiStage = {
+        app,
+        frame,
+        world,
+        ui,
+        backdrop,
+        consumer,
+        get filters(): Filter[] | null {
+          return sceneFilters.filters
+        },
+        set filters(val: Filter[] | null) {
+          sceneFilters.filters = val
+        },
+        postFilters: createPostFilterSlot(sceneFilters),
+      }
+
+      const hooks: PixiStageHooks = options.setup?.(stage) ?? {}
 
       const unsubscribe = target.geometry.onChange((g) => {
         app.renderer.resize(g.usable.width, g.usable.height)
@@ -195,9 +231,8 @@ export function createPixiRenderer(
           } catch {
             // ignore error
           }
-          if (app.canvas.parentNode) {
-            app.canvas.parentNode.removeChild(app.canvas)
-          }
+          // The canvas held from creation: once destroyed, the app has no renderer and its `canvas` getter throws.
+          canvas.remove()
         }),
       )
 
@@ -205,13 +240,16 @@ export function createPixiRenderer(
         stage,
         apply(result: StepResult): void {
           consumer.apply(result.render)
+          hooks.apply?.(result)
         },
         draw(frameInfo: FrameInfo): void {
           consumer.interpolate(frameInfo.alpha)
+          hooks.draw?.(frameInfo)
           app.render()
         },
         reset(): void {
           consumer.reset()
+          hooks.reset?.()
         },
       }
 

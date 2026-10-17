@@ -1,4 +1,4 @@
-import { demoPort } from '@af-examples/demo-host/ports'
+import { demoPort } from '@mcthaydt/examples-runner/host/ports'
 
 export const port: number = demoPort(5)
 export const url = `http://localhost:${port}/`

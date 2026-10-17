@@ -2,6 +2,7 @@ import type { Hosting } from '@mcthaydt/automata-host'
 import type { Effect, Scope } from 'effect'
 import type { AssetLoadFailed, LoadStalled } from '../boot/boot-error.js'
 import type { Assets } from '../loading/assets.manager.js'
+import type { Locale } from '../locale/locale.manager.js'
 import type { AppLoop } from '../loop/app-loop.manager.js'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { GameRenderer } from '../render/renderer.js'
@@ -23,6 +24,7 @@ export type RuntimeServices =
   | AppLoop
   | Assets
   | GameRenderer
+  | Locale
 
 export interface ScreenDef<R = never> {
   readonly id: string

@@ -2,7 +2,7 @@ import type { FrameInfo, RendererUnavailable } from '@mcthaydt/automata-runtime'
 import type { StepResult } from '@mcthaydt/automata-sim'
 import type { Geometry } from '@mcthaydt/automata-ui'
 import { Effect, Exit, Scope } from 'effect'
-import { Application, type ApplicationOptions, Container } from 'pixi.js'
+import { Application, type ApplicationOptions, Container, type Filter } from 'pixi.js'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { createPixiRenderer } from './renderer.js'
 
@@ -230,6 +230,22 @@ describe('createPixiRenderer', () => {
     expect(target.host.children.length).toBe(0)
   })
 
+  it('closes cleanly after a real destroy, which leaves the app without a renderer (and so without a canvas)', async () => {
+    const target = createFakeTarget()
+    const scope = Effect.runSync(Scope.make())
+    const renderer = await Effect.runPromise(Scope.extend(createPixiRenderer()(target), scope))
+    const app = renderer.stage.app as unknown as { renderer: unknown; destroy: () => void }
+    // Pixi's Application.destroy drops its renderer; its `canvas` getter then throws.
+    vi.spyOn(renderer.stage.app, 'destroy').mockImplementation(() => {
+      app.renderer = null
+    })
+
+    const exit = await Effect.runPromiseExit(Scope.close(scope, Exit.void))
+
+    expect(Exit.isSuccess(exit)).toBe(true)
+    expect(target.host.children.length).toBe(0)
+  })
+
   it('forwards delta in apply and executes synchronous draw without Effect allocation', async () => {
     const target = createFakeTarget()
     const factory = createPixiRenderer()
@@ -264,6 +280,80 @@ describe('createPixiRenderer', () => {
         renderer.draw(frameInfo)
         expect(interpolateSpy).toHaveBeenCalledWith(0.75)
         expect(renderSpy).toHaveBeenCalled()
+      }),
+    )
+
+    await Effect.runPromise(program)
+  })
+  it('runs the hooks a setup returns: apply after the consumer, draw before app.render, reset after the consumer', async () => {
+    const target = createFakeTarget()
+    const calls: string[] = []
+    const factory = createPixiRenderer({
+      setup: () => ({
+        apply: (result) => calls.push(`hook.apply:${result.tick}`),
+        draw: (frame) => calls.push(`hook.draw:${frame.alpha}`),
+        reset: () => calls.push('hook.reset'),
+      }),
+    })
+
+    const program = Effect.scoped(
+      Effect.gen(function* () {
+        const renderer = yield* factory(target)
+        const { consumer, app } = renderer.stage
+        const applyConsumer = consumer.apply.bind(consumer)
+        vi.spyOn(consumer, 'apply').mockImplementation((delta) => {
+          calls.push('consumer.apply')
+          applyConsumer(delta)
+        })
+        vi.spyOn(consumer, 'reset').mockImplementation(() => void calls.push('consumer.reset'))
+        vi.spyOn(app, 'render').mockImplementation(() => void calls.push('app.render'))
+
+        renderer.apply({
+          tick: 7,
+          render: { resync: false, added: [], changed: [], removed: [] },
+          events: [],
+          rejected: [],
+        })
+        renderer.draw({ alpha: 0.5, frameMs: 16, paused: false })
+        renderer.reset()
+        // Read before the scope closes: closing destroys the consumer, which resets it once more.
+        return [...calls]
+      }),
+    )
+
+    expect(await Effect.runPromise(program)).toEqual([
+      'consumer.apply',
+      'hook.apply:7',
+      'hook.draw:0.5',
+      'app.render',
+      'consumer.reset',
+      'hook.reset',
+    ])
+  })
+  it("gives setup code the stage's layers and a post-filter slot that writes the scene's filters", async () => {
+    const target = createFakeTarget()
+    const hud = new Container()
+    const flash = { name: 'flash' } as unknown as Filter
+    const crt = { name: 'crt' } as unknown as Filter
+    const factory = createPixiRenderer({
+      logicalWidth: 960,
+      logicalHeight: 540,
+      setup(stage) {
+        stage.ui.addChild(hud)
+        stage.postFilters.set('retro', [crt], 10)
+        stage.postFilters.set('game', [flash])
+      },
+    })
+
+    const program = Effect.scoped(
+      Effect.gen(function* () {
+        const renderer = yield* factory(target)
+        expect(hud.parent).toBe(renderer.stage.ui)
+        expect(renderer.stage.frame?.scene.filters).toEqual([flash, crt])
+        expect(renderer.stage.filters).toEqual([flash, crt])
+        renderer.stage.postFilters.remove('retro')
+        renderer.stage.postFilters.remove('game')
+        expect(renderer.stage.filters).toBeNull()
       }),
     )
 

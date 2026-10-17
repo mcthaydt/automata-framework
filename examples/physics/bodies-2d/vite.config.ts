@@ -1,4 +1,4 @@
-import { previewHeaders } from '@af-examples/demo-host/preview-headers'
+import { previewHeaders } from '@mcthaydt/examples-runner/host/preview-headers'
 import { defineConfig } from 'vite'
 import config from './ship.config.ts'
 

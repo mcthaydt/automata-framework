@@ -26,6 +26,12 @@ describe('collectMessages', () => {
       content_character_ninja_display_name: 'Ninja',
       content_character_ninja_x_bio: 'A',
     })
+    // Where each key's text is, so a translation missing that key can be reported at the text.
+    expect(result.origins.get('content_character_ninja_x_bio')).toEqual({ index: 1, path: ['bio'] })
+    expect([...result.origins.keys()]).toEqual([
+      'content_character_ninja_display_name',
+      'content_character_ninja_x_bio',
+    ])
     expect(result.collisions).toEqual([
       {
         index: 2,

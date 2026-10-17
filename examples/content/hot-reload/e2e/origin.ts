@@ -1,8 +1,8 @@
 import { fileURLToPath } from 'node:url'
-import { demoPort } from '@af-examples/demo-host/ports'
+import { demoPort } from '@mcthaydt/examples-runner/host/ports'
 
 // This demo's servers: its production build in slot 1 and its dev server in slot 2 of the feature demos
-// (examples/demo-host/ports.ts). The dev server compiles a copy of content/ in `.e2e/` (package.json `e2e:dev`)
+// (tooling/examples-runner/host/ports.ts). The dev server compiles a copy of content/ in `.e2e/` (package.json `e2e:dev`)
 // that the hot-reload check edits, so the committed room is never touched.
 export const port: number = demoPort(1)
 export const url = `http://localhost:${port}/`
