@@ -21,10 +21,13 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `@changesets/cli` | 3.0.3 | 2026-10-11 | Same as Ruken: one shared `0.0.x` version for every published package and the "Version packages" release PR (M2.4 spec §3.5) |
 | `@dimforge/rapier2d-deterministic-compat` | 0.21.0 | 2026-10-11 | 2D physics in `packages/physics` (M2.1). The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox; `-compat` inlines the wasm, so no loader setup |
 | `@dimforge/rapier3d-deterministic-compat` | 0.21.0 | 2026-10-11 | 3D physics in `packages/physics` (M2.1), and the same release as The Last Light; same reasons as the 2D row |
+| `@inlang/paraglide-js` | 2.25.4 | 2026-10-16 | runtime lane (PRODUCT.L1): compiles message catalogs into typed message functions (PRODUCT spec §4). FloorFifty's version (`ac72660`); released 2026-09-17, so older than 14 days. In PRODUCT.L1 only a devDependency of `packages/runtime`, whose tests compile a fixture; the runtime binds a game's generated `runtime.js` structurally |
+| `@inlang/plugin-message-format` | 4.4.4 | 2026-10-16 | runtime lane (PRODUCT.L1): the inlang plugin that reads the `messages/<locale>.json` catalogs the content compiler writes. FloorFifty's version (`ac72660`); released 2026-08-31 |
 | `@types/node` | 24.19.1 | 2026-10-11 | Same as Ruken: Node 24 typings for tooling |
 | `@playwright/test` | 1.63.0 | 2026-10-11 | Same as Ruken: browser journeys (`pnpm test:e2e`, root `playwright.config.ts`) |
 | `@vitest/browser-playwright` | 5.0.3 | 2026-10-01 | Cross-engine parity runs (A0); same major as `vitest` |
 | `effect` | 3.22.2 | 2026-10-11 | Everything outside the sim (ADR 0003). Effect 3, not 4.0: 4.0 is ten days old and renames the Context API (coordinator decision 2026-10-11). `ship` uses it without `@effect/platform-node`, whose 0.108 line requires `@effect/cluster`, `rpc`, `sql` and `workflow` as peers (ship spec §3) |
+| `knip` | 6.39.0 | 2026-10-16 | ship lane, QB.1: unused files, exports and dependencies in `pnpm check` (`knip.jsonc`); a 2-week-old release when added |
 | `koota` | 0.6.6 | 2026-10-01 | ECS inside the sim (ADR 0001) |
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |

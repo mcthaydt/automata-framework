@@ -62,4 +62,15 @@ describe('runApiReport', () => {
     const changesets = { 'beta.md': "---\n'@fx/beta': major\n---\n\nRemoves volume.\n" }
     expect(run(dir, { baseReport, changesets }).exitCode).toBe(0)
   })
+
+  it('reports a break in a private package without asking for a changeset, which could not name it', () => {
+    const dir = reportsDir()
+    run(dir, { update: true })
+    // alpha is private: check-changesets rejects a changeset naming it, so its breaks are shown, not gated.
+    const base = `${readFileSync(join(dir, 'alpha.api.md'), 'utf8')}\n### \`volume\` (function)\n\n\`\`\`ts\nfunction volume(): number;\n\`\`\`\n`
+    const result = run(dir, { baseReport: (file) => (file === 'alpha.api.md' ? base : undefined) })
+    expect(result.exitCode).toBe(0)
+    expect(result.report[0]).toBe('2 core packages; 1 API breaks against the base, 0 undeclared')
+    expect(result.report).toContain('@fx/alpha ./sub volume: removed (private, so no changeset is needed)')
+  })
 })
