@@ -32,7 +32,7 @@ export function nearestTarget(
   x: number,
   y: number,
   targets: readonly TouchTarget[],
-  margin = STICKY_MARGIN_PX,
+  margin: number = STICKY_MARGIN_PX,
 ): string | undefined {
   let best: string | undefined
   let bestDistance = margin

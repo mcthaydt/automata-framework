@@ -3,7 +3,7 @@
 - **Task:** M4.3 in [02](../../02-master-delivery-plan.md). M4 spec [§4.4](../specs/2026-10-16-m4-input-display-design.md), §5 (device change), §6 (`TouchControls`, `SwipeSurface` rows) and §8. Acceptance I-f.
 - **Lane:** runtime and ui, with the game lane's play screen and `keys()` as consumers (this session owns that lane). **Depends on:** M4.1 (`Input`, merged in #74).
 - **Status:** In progress.
-- **Progress:** 5 of 9 steps.
+- **Progress:** 6 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -162,7 +162,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
 5. [x] **`touch-controls.ts`.** Done: red was "Failed to resolve import ./touch-controls"; then 14 passed. FloorFifty's DOM cases (capture, page-gesture cancel, the margin in the DOM) move to step 6, its device-selection case is `Input.device` (M4.1), and its material cases are FloorFifty's look.
    - **Red:** FloorFifty's `touch-controls.test.ts` cases for `nearestTarget`, `StickyPointers` and `PointerLatch`, over string actions. Expect the missing module.
    - **Green:** port them (the `TouchControls` class stays in FloorFifty; Svelte owns mounting here).
-6. [ ] **`TouchControls.svelte`.**
+6. [x] **`TouchControls.svelte`.** Done: red was "Failed to resolve import ./TouchControls.svelte"; then 23 passed in `src/touch/` (9 view cases). The layout contract (`TouchFixture.svelte`, buttons in a ScreenFrame's actions row) passed 75 of 75 in Chromium, WebKit and Firefox on its first run, so it was never seen red: it was written after the component. The buttons are not `data-kind="primary"` (that would fill them with the accent), so the test checks the 48 px floor itself.
    - **Red:** `touch-controls-view.test.ts` (jsdom, Testing Library): a press holds and a release lets go; a second finger on a held button reports nothing; a near miss within 24 px presses the nearest (stubbed rects); a slide moves the hold; `data-held` follows the latch; `shown: false` hides without unmounting (same element) and releases what was held; unmount releases; buttons are `tabindex=-1` with their aria labels.
    - **Red:** `touch.layout.test.ts`: in a fixture, every button is at least 48 px and inside the viewport at every reference size and variant (`checkLayout`).
    - **Green:** the component and its CSS.
