@@ -59,7 +59,7 @@
 - `catalogCharacters(catalog)`: Every character the catalog's messages show.
 - `ContentText` (type): `text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
 - `ContentTextOptions` (interface): Options for `createContentText`.
-- `createContentText(messages, options?)`: A lookup over a compiled messages module (`import * as m from './paraglide/messages.js'`).
+- `createContentText(messages, options?)`: A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
 - `localeCharacters(catalog)`: What a locale's subset font is cut to: `ALWAYS_CHARACTERS` and the catalog's characters.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
 - `messageKey(kind, id, path)`: The message key of one text.

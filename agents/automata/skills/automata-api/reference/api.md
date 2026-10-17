@@ -554,7 +554,7 @@ interface ContentTextOptions {
 
 #### `createContentText` (function)
 
-A lookup over a compiled messages module (`import * as m from './paraglide/messages.js'`).
+A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
 
 ```ts
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
