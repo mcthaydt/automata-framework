@@ -1,4 +1,4 @@
-// The evidence file (DX spec §3.10): what one af-linux parity run on `main` proved, for the website to render
+// The evidence file (DX spec §3.10): what one parity run on `main` proved, for the website to render
 // instead of hard-coded claims. Every value is read from a run or an artifact by cli.ts; nothing here is typed by
 // hand. The website validates the file with this schema (cli.ts also writes it out as JSON Schema).
 import { z } from 'zod'

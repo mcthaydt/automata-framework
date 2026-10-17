@@ -66,8 +66,9 @@ describe('every workflow', () => {
       // A container job runs as root in the runner's shared work folder; root-owned node_modules then break the
       // next job's checkout (PR #6 on af-linux, 2026-10-11). always() also runs when the job is cancelled.
       for (const job of Object.values(workflow(name).jobs).filter((each) => each.container !== undefined)) {
+        // Only a Linux runner has /__w; on af-mac the job runs on the host with no container (below).
         const last = job.steps?.at(-1)
-        expect(last?.if).toBe('always()')
+        expect(last?.if).toBe("always() && runner.os == 'Linux'")
         expect(last?.run).toContain('chown -R')
         expect(last?.run).toContain('/__w')
         expect(last?.run).toContain('/__t')
@@ -96,7 +97,7 @@ describe('every workflow', () => {
 describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runner on this account)", () => {
   const ci = workflow('ci.yml')
 
-  it.each(['checks', 'parity', 'e2e', 'frame-budget'])(
+  it.each(['checks', 'e2e', 'frame-budget'])(
     'ci.yml %s runs on the AF runner label, switchable by vars.AF_LINUX_RUNNER, never falling back to hosted',
     (name) => {
       const runsOn = ci.jobs[name]?.['runs-on'] ?? ''
@@ -105,6 +106,28 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
       expect(runsOn).not.toContain('ubuntu-latest')
     },
   )
+
+  // Parity moved to the Owner's Mac (2026-10-17), so it no longer queues behind Ruken on the shared af-linux PC.
+  // vars.AF_PARITY_RUNNER moves it elsewhere; any runner but af-mac runs it in the pinned Playwright container.
+  it('ci.yml parity runs on af-mac by default, switchable by vars.AF_PARITY_RUNNER, never falling back to hosted', () => {
+    const parity = ci.jobs.parity
+    expect(parity?.['runs-on']).toBe("${{ vars.AF_PARITY_RUNNER || 'af-mac' }}")
+    expect(parity?.container?.image).toContain("(vars.AF_PARITY_RUNNER || 'af-mac') != 'af-mac'")
+  })
+
+  it('installs the browsers on the host only on macOS, where there is no container, and sets HOME only in it', () => {
+    const steps = ci.jobs.parity?.steps ?? []
+    const install = steps.find((step) => step.run?.includes('playwright install'))
+    expect(install?.if).toBe("runner.os == 'macOS'")
+    expect(install?.run).toBe('pnpm exec playwright install chromium-headless-shell webkit firefox')
+    expect(steps.find((step) => step.run?.includes('safe.directory'))?.if).toBe("runner.os == 'Linux'")
+    // Firefox refuses to run as root under Actions' HOME in the container; on the Mac the runner's own HOME is
+    // right, so root's HOME is set for the later steps on Linux only, before parity and evidence.
+    const home = steps.findIndex((step) => step.run === 'echo "HOME=/root" >> "$GITHUB_ENV"')
+    expect(steps[home]?.if).toBe("runner.os == 'Linux'")
+    expect(home).toBeLessThan(steps.findIndex((step) => step.run === 'pnpm test:parity'))
+    for (const step of steps) expect(step.env?.HOME).toBeUndefined()
+  })
 
   it('passes the same runner to the placeholder through game-ci', () => {
     expect(ci.jobs.placeholder?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
@@ -248,6 +271,8 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
   it('runs every pnpm step of the checks and parity jobs, in order, from a frozen install', () => {
     const ciSteps = ['checks', 'parity'].flatMap((name) =>
       (ci.jobs[name]?.steps ?? [])
+        // The Mac host's browser download is runner setup, not a check (a local run has its browsers).
+        .filter((step) => step.if !== "runner.os == 'macOS'")
         .map((step) => step.run ?? '')
         .filter((script) => script.startsWith('pnpm ')),
     )
@@ -311,8 +336,8 @@ describe('ci.yml (AF)', () => {
 
   it('keeps the parity container on the pinned Playwright version', () => {
     const sim = JSON.parse(readFileSync(join(root, 'packages/sim/package.json'), 'utf8'))
-    expect(ci.jobs.parity?.container?.image).toBe(
-      `mcr.microsoft.com/playwright:v${sim.devDependencies.playwright}-noble`,
+    expect(ci.jobs.parity?.container?.image).toContain(
+      `'mcr.microsoft.com/playwright:v${sim.devDependencies.playwright}-noble'`,
     )
   })
 
@@ -422,13 +447,11 @@ describe('ci.yml evidence file (DX spec §3.10)', () => {
       )
   })
 
-  it('writes the evidence file on pushes to main only, after parity passed, in the parity container', () => {
+  it('writes the evidence file on pushes to main only, after parity passed, in the parity job', () => {
     const parity = steps.findIndex((step) => step.run === 'pnpm test:parity')
     const evidence = steps.findIndex((step) => step.run === 'pnpm evidence')
     expect(evidence).toBeGreaterThan(parity)
     expect(steps[evidence]?.if).toBe("github.event_name == 'push'")
-    // Firefox refuses to run as root under Actions' HOME, as in the parity step.
-    expect(steps[evidence]?.env?.HOME).toBe('/root')
   })
 
   it('uploads evidence.json and its JSON Schema as the `evidence` artifact, before the work folder is handed back', () => {
