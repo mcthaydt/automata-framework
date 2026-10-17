@@ -1,6 +1,6 @@
 # EX: one file per example, like raylib
 
-> **Status:** draft, 2026-10-16. Milestone spec for task **EX.0**; Owner decisions EX-D1 and EX-D2 recorded 2026-10-16 (§9); Owner review pending. The TDD plan is [`2026-10-16-examples-one-file.md`](../plans/2026-10-16-examples-one-file.md); nothing is implemented before this spec is reviewed.
+> **Status:** reviewed. Drafted 2026-10-16; **approved by the Owner on 2026-10-16** with EX-D1 and EX-D2 (§9). The TDD plan is [`2026-10-16-examples-one-file.md`](../plans/2026-10-16-examples-one-file.md).
 >
 > **Why (Owner, 2026-10-16):** "the examples: they're kinda shit, how can we get it where each example is just one file like raylib?"
 

@@ -3,6 +3,7 @@ import type { HostingOptions, HostingSeams } from '@mcthaydt/automata-host'
 import type { BootFailureCopy } from '@mcthaydt/automata-ui'
 import type { ExtensionDef } from '../extension/define-extension.js'
 import type { ScreenDef } from '../flow/screen.js'
+import type { LocaleDef } from '../locale/locale.manager.js'
 import type { FrameSource } from '../loop/frames.js'
 import type { RendererFactory } from '../render/renderer.js'
 import type { SettingsDef } from '../settings/settings.manager.js'
@@ -22,6 +23,8 @@ export interface RuntimeSeams {
   readonly fonts?: Pick<FontFaceSet, 'load'>
   readonly sdkEnv?: () => NonNullable<HostingSeams['env']>
   readonly document?: Document
+  /** The browser's languages, best first; defaults to `navigator.languages`. */
+  readonly languages?: readonly string[]
 }
 
 /** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */
@@ -37,6 +40,11 @@ export interface GameDefinition<S = never> {
   readonly screens: readonly ScreenDef[]
   readonly renderer: RendererFactory
   readonly settings?: SettingsDef<S> | undefined
+  /**
+   * The game's languages: pass its Paraglide `runtime.js` (`import * as runtime from './paraglide/runtime.js'`).
+   * Absent, the game has one locale, the content's `source_language` (PRODUCT spec §4).
+   */
+  readonly locale?: LocaleDef | undefined
   readonly extensions?: readonly ExtensionDef[] | undefined
   readonly copy?: Partial<BootFailureCopy> & {
     readonly loading?: string

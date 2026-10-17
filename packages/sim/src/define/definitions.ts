@@ -100,6 +100,7 @@ export interface SystemDef {
   readonly run: (ctx: SimContext) => void
 }
 
+/** The object form of `defineSystem`: a name, a phase, the optional `before`/`after` ordering and the run. */
 export interface SystemSpec {
   name: string
   phase: Phase

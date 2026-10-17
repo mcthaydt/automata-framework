@@ -2,7 +2,7 @@ import type { FrameInfo, RendererUnavailable } from '@mcthaydt/automata-runtime'
 import type { StepResult } from '@mcthaydt/automata-sim'
 import type { Geometry } from '@mcthaydt/automata-ui'
 import { Effect, Exit, Scope } from 'effect'
-import { Application, type ApplicationOptions, Container } from 'pixi.js'
+import { Application, type ApplicationOptions, Container, type Filter } from 'pixi.js'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { createPixiRenderer } from './renderer.js'
 
@@ -329,5 +329,34 @@ describe('createPixiRenderer', () => {
       'consumer.reset',
       'hook.reset',
     ])
+  })
+  it("gives setup code the stage's layers and a post-filter slot that writes the scene's filters", async () => {
+    const target = createFakeTarget()
+    const hud = new Container()
+    const flash = { name: 'flash' } as unknown as Filter
+    const crt = { name: 'crt' } as unknown as Filter
+    const factory = createPixiRenderer({
+      logicalWidth: 960,
+      logicalHeight: 540,
+      setup(stage) {
+        stage.ui.addChild(hud)
+        stage.postFilters.set('retro', [crt], 10)
+        stage.postFilters.set('game', [flash])
+      },
+    })
+
+    const program = Effect.scoped(
+      Effect.gen(function* () {
+        const renderer = yield* factory(target)
+        expect(hud.parent).toBe(renderer.stage.ui)
+        expect(renderer.stage.frame?.scene.filters).toEqual([flash, crt])
+        expect(renderer.stage.filters).toEqual([flash, crt])
+        renderer.stage.postFilters.remove('retro')
+        renderer.stage.postFilters.remove('game')
+        expect(renderer.stage.filters).toBeNull()
+      }),
+    )
+
+    await Effect.runPromise(program)
   })
 })

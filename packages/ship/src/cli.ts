@@ -56,7 +56,7 @@ async function program(
 
   const config = await loadConfig()
   const distDir = resolve(cwd, command.dist)
-  const prepare = prepareBuild({ distDir, config, tag: command.tag })
+  const prepare = prepareBuild({ distDir, gameDir: cwd, config, tag: command.tag })
   if (command.command === 'prepare') {
     return Effect.provide(
       Effect.map(prepare, (result) => `wrote ${result.manifestPath}`),

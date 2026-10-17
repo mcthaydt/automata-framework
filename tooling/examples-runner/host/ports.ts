@@ -25,15 +25,23 @@ export interface HostedOptions {
   readonly offline?: boolean
   /** When 'never', the fake host never says ready (autoReady: false) */
   readonly ready?: 'never'
+  /** A page showing the game's source, framed beside the game (the examples index's View, EX.5). */
+  readonly source?: string
 }
 
 export function hostedUrl(gameUrl: string, gameId: string, options: HostedOptions = {}): string {
+  return `${demoHostOrigin}/?${hostedQuery(gameUrl, gameId, options)}`
+}
+
+/** The fake host's query string for the game at `gameUrl` (see host.ts). */
+export function hostedQuery(gameUrl: string, gameId: string, options: HostedOptions = {}): URLSearchParams {
   const query = new URLSearchParams({ game: gameUrl, id: gameId })
   if (options.saves !== undefined) query.set('saves', JSON.stringify(options.saves))
   if (options.grant !== undefined) query.set('grant', options.grant.join(','))
   if (options.offline === true) query.set('offline', '1')
   if (options.ready === 'never') query.set('ready', 'never')
-  return `${demoHostOrigin}/?${query}`
+  if (options.source !== undefined) query.set('source', options.source)
+  return query
 }
 
 /** The examples package's preview build (EX spec §5), in the slot after the six feature demos. */
