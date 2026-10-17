@@ -3,7 +3,7 @@
 - **Task:** M4.3 in [02](../../02-master-delivery-plan.md). M4 spec [§4.4](../specs/2026-10-16-m4-input-display-design.md), §5 (device change), §6 (`TouchControls`, `SwipeSurface` rows) and §8. Acceptance I-f.
 - **Lane:** runtime and ui, with the game lane's play screen and `keys()` as consumers (this session owns that lane). **Depends on:** M4.1 (`Input`, merged in #74).
 - **Status:** In progress.
-- **Progress:** 4 of 9 steps.
+- **Progress:** 5 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -159,7 +159,7 @@ The pre-commit hook runs the affected unit tests, so each red test is committed 
 4. [x] **`Input.gesture`.** Done: red was 8 failed ("Cannot read properties of undefined (reading 'hold')" and "('pulse')"); then 60 passed in `src/input/`. `index.test.ts` was red on the five new names, then green (6 passed with `public-seams`). The latch is two sets swapped on each poll; nothing is allocated per step.
    - **Red:** in `input.test.ts`: a held gesture holds its action until released, and switches the device to `touch`; a pulse is in exactly one sample (`poll()` then `held()`) and gone by the next; a pulse between two polls is not lost; two pulses before a poll give one sample; an unbound gesture holds nothing; blur releases a held gesture; a `menu`-context action is not held by a gesture in `play`.
    - **Green:** the gesture sources and the latch. Export from `index.ts` (with `index.test.ts` red first).
-5. [ ] **`touch-controls.ts`.**
+5. [x] **`touch-controls.ts`.** Done: red was "Failed to resolve import ./touch-controls"; then 14 passed. FloorFifty's DOM cases (capture, page-gesture cancel, the margin in the DOM) move to step 6, its device-selection case is `Input.device` (M4.1), and its material cases are FloorFifty's look.
    - **Red:** FloorFifty's `touch-controls.test.ts` cases for `nearestTarget`, `StickyPointers` and `PointerLatch`, over string actions. Expect the missing module.
    - **Green:** port them (the `TouchControls` class stays in FloorFifty; Svelte owns mounting here).
 6. [ ] **`TouchControls.svelte`.**
