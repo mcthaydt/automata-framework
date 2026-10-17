@@ -3,7 +3,7 @@
 - **Task:** M4.2 in [02](../../02-master-delivery-plan.md). M4 spec [§4.3](../specs/2026-10-16-m4-input-display-design.md), §4.2 (active device, facts), §5 (pad hot-plug), §6 (non-standard pad, pad unplugged mid-play), §9 (unit and SDK-contract layers), M4-D2, M4-D3, M4-D9. Acceptance I-c, I-d, I-e.
 - **Lane:** runtime, with the game lane's `keys()` and default screens (this session owns both). **Depends on:** M4.0 (merged) and M4.1 (stacked: this branch starts from `claude/clever-pasteur-ujmu6e-m4-1`, because the gamepad source feeds M4.1's `Input` rather than a second copy of its bookkeeping).
 - **Status:** In progress.
-- **Progress:** 7 of 9 steps.
+- **Progress:** 8 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -173,10 +173,15 @@ Every source still goes through M4.1's per-device counting, so a stick and the D
      - the unplug test's new `wasActive` expectation failed.
    - **Green:** game unit 94 passed; runtime `input` and `time` 61 passed; both typechecks 0 errors.
    - *Deviation:* `input.pad.disconnected` carries `wasActive`, so the play screen pauses only when the pad in use goes, and never for a spare pad. The paused screen shows the message with `role="status"` (new class `af-game-menu__message`). Escape, Resume and Quit all clear the `input` reason.
-8. [ ] **Example.**
+8. [x] **Example.**
    - **File:** `examples/core/core-input-gamepad.ts`. A square moves by the left stick (digital, through the deadzone) or the D-pad. `Shows` names the deadzone, the repeat-free play input and the reconnect pause.
    - **Golden:** the golden is new and recorded once in Node (`AUTOMATA_UPDATE_GOLDENS=1`), then matches in the browsers' parity project. This is a recording, not a rebaseline.
    - **Checks:** the catalog test, the examples typecheck and `build:examples`.
+   - **Done.**
+     - Red: "core-input-gamepad.replay is missing … record it in Node with AUTOMATA_UPDATE_GOLDENS=1".
+     - Recorded once in Node. The Node project then passed (7 passed, 1 skipped), and the browsers project matched it (21 passed, 3 skipped: Chromium, WebKit, Firefox).
+     - The examples-runner suite passed (66 passed, 4 skipped); the examples typecheck and `build:examples` passed.
+     - The example also binds the arrow keys, so it plays without a controller.
 9. [ ] **Verify and record.**
    - `pnpm format`; `pnpm check` (`TURBO_FORCE=true`).
    - The CI checks-job extras, including the changeset status, `check-changesets` (patches only before 1.0), `api-report`, `pnpm cheatsheet` if ship or game exports change, `build`, `test:dist`, and `prepare-ruken` for both games.
