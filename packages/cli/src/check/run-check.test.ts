@@ -91,7 +91,7 @@ describe('runCheck', () => {
   it('runs boundaries, typecheck, test, no-eval and secrets in order, and passes a clean game', async () => {
     const game = fakeGame()
     const { report, names, code } = await check(game)
-    expect(names).toEqual(['boundaries', 'typecheck', 'test', 'no-eval', 'secrets'])
+    expect(names).toEqual(['boundaries', 'typecheck', 'test', 'boards', 'no-eval', 'secrets'])
     expect(report.ok).toBe(true)
     expect(code).toBe(0)
     expect(game.ran).toEqual([
@@ -113,6 +113,7 @@ describe('runCheck', () => {
       'boundaries',
       'typecheck',
       'test',
+      'boards',
       'no-eval',
       'secrets',
       'csp',
@@ -128,7 +129,7 @@ describe('runCheck', () => {
       }),
     }
     const all = await check(fakeGame({ tools }))
-    expect(all.names).toEqual(['boundaries', 'typecheck', 'test', 'no-eval', 'secrets'])
+    expect(all.names).toEqual(['boundaries', 'typecheck', 'test', 'boards', 'no-eval', 'secrets'])
     expect(all.report.steps[0]?.findings).toEqual([
       {
         file: 'src/sim/a.ts',
@@ -215,7 +216,7 @@ describe('runCheck', () => {
   it('a failed build is a build finding; eval in the bundle is a no-eval finding', async () => {
     const broken = { vite: () => ({ exitCode: 1, stdout: '', stderr: 'Could not resolve "./x"' }) }
     const failedBuild = await check(fakeGame({ tools: broken }))
-    expect(failedBuild.report.steps[3]?.findings).toEqual([
+    expect(failedBuild.report.steps[4]?.findings).toEqual([
       { file: '', line: 0, col: 0, rule: 'build', message: 'vite build failed: Could not resolve "./x"' },
     ])
     expect(failedBuild.code).toBe(1)
@@ -224,10 +225,40 @@ describe('runCheck', () => {
       files: new Map([[`${GAME}/dist/assets/index.js`, 'export const run = (s) => eval(s)']]),
     })
     const evalCheck = await check(withEval)
-    expect(evalCheck.report.steps[3]?.findings).toMatchObject([
+    expect(evalCheck.report.steps[4]?.findings).toMatchObject([
       { file: 'dist/assets/index.js', line: 1, rule: 'eval' },
     ])
     expect(evalCheck.code).toBe(1)
+  })
+
+  // M5 spec §4.8, L-b: the same board scan as `prepare-ruken`, over the game's sources, against the boards its
+  // ship.config.ts declares under `leaderboards`.
+  it('a board the sources name that ship.config.ts does not declare is a boards finding at its call site', async () => {
+    const game = fakeGame({
+      files: new Map([
+        [
+          `${GAME}/ship.config.ts`,
+          "export default defineShipConfig({ leaderboards: { best: { order: 'desc', min: 0, max: 99 } } })\n",
+        ],
+        [
+          `${GAME}/src/results.ts`,
+          "export const go = (lb) => [lb.submitScore('best', 1), lb.readBoard('weekly')]\n",
+        ],
+      ]),
+    })
+    const { report, code } = await check(game)
+    const boards = report.steps.find((step) => step.name === 'boards')
+    expect(boards?.ok).toBe(false)
+    expect(boards?.findings).toEqual([
+      {
+        file: 'src/results.ts',
+        line: 1,
+        col: 68,
+        rule: 'undeclared-board',
+        message: 'board "weekly" is not declared in ship.config.ts leaderboards',
+      },
+    ])
+    expect(code).toBe(1)
   })
 
   // QB-b in `automata check`: the same scanner as `prepare-ruken`, over the dist/ the no-eval step built.
@@ -255,7 +286,7 @@ describe('runCheck', () => {
   it('secrets does not scan a dist/ whose build failed: it says so instead of passing', async () => {
     const broken = { vite: () => ({ exitCode: 1, stdout: '', stderr: 'Could not resolve "./x"' }) }
     const { report } = await check(fakeGame({ tools: broken }))
-    expect(report.steps[4]).toMatchObject({
+    expect(report.steps[5]).toMatchObject({
       name: 'secrets',
       ok: false,
       findings: [{ rule: 'build', message: 'not scanned: the build failed (see no-eval)' }],
@@ -267,7 +298,7 @@ describe('runCheck', () => {
       fakeGame({ csp: { ready: true, state: 'ready', violations: ['script-src blocked eval'] } }),
       { csp: true },
     )
-    expect(violation.report.steps[5]?.findings).toEqual([
+    expect(violation.report.steps[6]?.findings).toEqual([
       { file: '', line: 0, col: 0, rule: 'csp-violation', message: 'script-src blocked eval' },
     ])
     expect(violation.code).toBe(1)
@@ -275,13 +306,13 @@ describe('runCheck', () => {
     const notReady = await check(fakeGame({ csp: { ready: false, state: 'loading', violations: [] } }), {
       csp: true,
     })
-    expect(notReady.report.steps[5]?.findings[0]).toMatchObject({ rule: 'not-ready' })
-    expect(notReady.report.steps[5]?.findings[0]?.message).toContain('20 s')
+    expect(notReady.report.steps[6]?.findings[0]).toMatchObject({ rule: 'not-ready' })
+    expect(notReady.report.steps[6]?.findings[0]?.message).toContain('20 s')
 
     const failed = await check(fakeGame({ csp: { ready: false, state: 'failed', violations: [] } }), {
       csp: true,
     })
-    expect(failed.report.steps[5]?.findings[0]).toMatchObject({ rule: 'boot-failed' })
+    expect(failed.report.steps[6]?.findings[0]).toMatchObject({ rule: 'boot-failed' })
 
     const missing = new CheckToolError({
       kind: 'missing',
@@ -289,8 +320,8 @@ describe('runCheck', () => {
       detail: 'install it: npm install --save-dev playwright && npx playwright install chromium',
     })
     const noPlaywright = await check(fakeGame({ csp: missing }), { csp: true })
-    expect(noPlaywright.report.steps[5]).toMatchObject({ ok: false, toolError: true })
-    expect(noPlaywright.report.steps[5]?.findings[0]?.rule).toBe('tool-missing')
+    expect(noPlaywright.report.steps[6]).toMatchObject({ ok: false, toolError: true })
+    expect(noPlaywright.report.steps[6]?.findings[0]?.rule).toBe('tool-missing')
     expect(noPlaywright.code).toBe(2)
   })
 })

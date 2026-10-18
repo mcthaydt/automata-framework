@@ -3,6 +3,7 @@ import type { SimEvent } from '@mcthaydt/automata-sim'
 import { Context, Effect, type Scope } from 'effect'
 import type { GlyphFamily } from '../input/gamepad/glyph-family.js'
 import type { InputDevice, PadInfo } from '../input/input.manager.js'
+import type { BoardState } from '../leaderboards/board-state.js'
 
 export interface RuntimeFacts {
   readonly 'sim.events': readonly SimEvent[]
@@ -37,6 +38,8 @@ export interface RuntimeFacts {
   readonly 'save.failed': { readonly key: string; readonly slot: number; readonly code: ErrorCode }
   /** A slot was loaded for play (M5 spec §5, "Load a slot"). */
   readonly 'save.loaded': { readonly key: string; readonly slot: number }
+  /** A submit to `board` changed state: `submitting`, then how the host answered (M5 spec §4.8). */
+  readonly 'leaderboard.submitted': { readonly board: string; readonly state: BoardState }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {

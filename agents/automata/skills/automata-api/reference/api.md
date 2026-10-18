@@ -1545,6 +1545,28 @@ const Transform3D: ComponentDef<typeof transformFields>;
 
 ### `import { … } from '@mcthaydt/automata-ship'`
 
+#### `BoardName` (interface)
+
+A board a source file names, by its name and position (1-based, at the opening quote).
+
+```ts
+interface BoardName {
+  readonly board: string;
+  readonly line: number;
+  readonly col: number;
+}
+```
+
+#### `boardNamesIn` (function)
+
+The boards one source file names, in source order; `undefined` when it does not parse (its typecheck already
+fails, and a half-read tree could report a board that is not there). `automata check` reads files through its
+own `Files` and calls this; `findUndeclaredBoards` walks the disk.
+
+```ts
+function boardNamesIn(file: string, code: string): BoardName[] | undefined;
+```
+
 #### `BUILD_ID_PATTERN` (const)
 
 A build's ID on the dev host: the commit's UTC time to the minute, then its short sha, for example
@@ -1581,6 +1603,16 @@ A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`):
 
 ```ts
 function checkVersion(version: string, tag: string | undefined): string | undefined;
+```
+
+#### `declaredBoardsIn` (function)
+
+The board ids a `ship.config.ts` declares: the keys of its `leaderboards` object, read from the source as written
+(`automata check` reads files, it does not run them). `undefined` when the file does not parse, or `leaderboards`
+is not written as an object (a spread or a variable), so the check says it could not read the boards.
+
+```ts
+function declaredBoardsIn(code: string): string[] | undefined;
 ```
 
 #### `defineShipConfig` (function)
@@ -1691,12 +1723,28 @@ each `.env` value is encoded the same way so it matches its UTF-8 bytes.
 function findSecretsInBuild(distDir: string, envValues: readonly EnvValue[]): SecretFound[];
 ```
 
+#### `findUndeclaredBoards` (function)
+
+Every board a game's sources name that `declared` (its ship config's `leaderboards` keys) lacks.
+
+```ts
+function findUndeclaredBoards(gameDir: string, declared: readonly string[]): UndeclaredBoardFound[];
+```
+
 #### `inputsProblems` (function)
 
 Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
 
 ```ts
 function inputsProblems(inputs: readonly string[], bindings: ShipInputBindings): string[];
+```
+
+#### `isBoardSource` (const)
+
+Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`, `.mts`, `.js`, `.mjs`).
+
+```ts
+const isBoardSource: (file: string) => boolean;
 ```
 
 #### `ManifestInputsMismatch` (class)
@@ -1746,7 +1794,7 @@ function portsFor(checkoutPath: string, env: Readonly<Record<string, string | un
 #### `prepareBuild` (function)
 
 Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
-entry page, root-absolute paths and secrets (QB-b), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
 runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
 (archive, size, file types) happen inside `ruken publish`, not here.
 
@@ -2043,6 +2091,31 @@ Why `test-remote` stopped without a green run.
 
 ```ts
 type TestRemoteReason = "usage" | "detached" | "uncommitted" | "push" | "dispatch" | "no-run" | "no-runner" | "timeout" | "gh-unavailable" | "red";
+```
+
+#### `UndeclaredBoard` (class)
+
+The game names a leaderboard its ship config's `leaderboards` does not declare (M5 spec §4.8, L-b).
+
+```ts
+class UndeclaredBoard extends UndeclaredBoardBase {
+  override get message(): string;
+}
+```
+
+#### `UndeclaredBoardFound` (interface)
+
+A board the game's sources name that its ship config does not declare, at the call site.
+
+```ts
+interface UndeclaredBoardFound {
+  readonly board: string;
+  /** Relative to the game folder, with forward slashes. */
+  readonly file: string;
+  /** 1-based, at the board name's opening quote. */
+  readonly line: number;
+  readonly col: number;
+}
 ```
 
 #### `VersionMismatch` (class)
@@ -4541,6 +4614,72 @@ Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
 
 ```ts
 type LandscapeGateState = 'none' | 'fullscreen' | 'rotate-or-install';
+```
+
+#### `LeaderboardCopy` (interface)
+
+Every word the panel shows, in the game's language.
+
+```ts
+interface LeaderboardCopy {
+    readonly title: string;
+    readonly loading: string;
+    readonly empty: string;
+    /** `UNSUPPORTED`: no grant, or standalone ("Scores aren't available here"). */
+    readonly unavailable: string;
+    /** `OFFLINE` ("You're offline"). */
+    readonly offline: string;
+    /** Said beside the player's own row. */
+    readonly you: string;
+    /** "+N more", for the rows below the fold. */
+    readonly more: (count: number) => string;
+}
+```
+
+#### `LeaderboardEntryView` (interface)
+
+One row of a board, as the host gives it; `isMe` marks the player.
+
+```ts
+interface LeaderboardEntryView {
+    readonly rank: number;
+    readonly displayName: string;
+    readonly score: number;
+    readonly isMe: boolean;
+}
+```
+
+#### `LeaderboardPanel` (const)
+
+A board's rows, or why there are none (M5 spec §7): loading, entries (the player's row marked "you"
+in words, not only by colour), empty, unavailable and offline. The rows are read, not chosen, so
+they are out of the focus order; only the action row (Back, Play again) takes focus. Unavailable
+and offline are what the host said: the panel never shows a board kept on the device instead.
+The rows sit in a ScrollList, a declared scroll region, so on a short screen they scroll and the
+action row stays.
+
+```ts
+const LeaderboardPanel: import("svelte").Component<Props, {}, "">;
+type LeaderboardPanel = ReturnType<typeof LeaderboardPanel>;
+```
+
+#### `LeaderboardView` (type)
+
+What the panel shows: the rows, or why there are none.
+
+```ts
+type LeaderboardView = {
+    readonly state: 'loading';
+} | {
+    readonly state: 'entries';
+    readonly entries: readonly LeaderboardEntryView[];
+} | {
+    readonly state: 'empty';
+} | {
+    readonly state: 'unavailable';
+} | {
+    readonly state: 'offline';
+};
 ```
 
 #### `LoaderOverlay` (const)

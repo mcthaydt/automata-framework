@@ -5,6 +5,7 @@ import type { AudioContextLike } from '../audio/audio-graph.js'
 import type { EventSounds } from '../audio/event-sounds.js'
 import type { ExtensionDef } from '../extension/define-extension.js'
 import type { ScreenDef } from '../flow/screen.js'
+import type { EventScores } from '../leaderboards/event-scores.js'
 import type { LocaleDef } from '../locale/locale.manager.js'
 import type { FrameSource } from '../loop/frames.js'
 import type { RendererFactory } from '../render/renderer.js'
@@ -52,6 +53,8 @@ export interface GameDefinition<S = never> {
   readonly extensions?: readonly ExtensionDef[] | undefined
   /** The sound each sim event plays, by the event's type (M5.3). */
   readonly sounds?: EventSounds | undefined
+  /** The board and score each sim event submits, by the event's type (M5.7). Needs the `leaderboards` grant. */
+  readonly scores?: EventScores | undefined
   readonly copy?: Partial<BootFailureCopy> & {
     readonly loading?: string
     readonly slow?: string

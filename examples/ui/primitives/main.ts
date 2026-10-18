@@ -46,6 +46,7 @@ export const PRIMITIVES = [
   'modal',
   'sheet',
   'toast',
+  'leaderboard',
 ] as const
 export type Primitive = (typeof PRIMITIVES)[number]
 

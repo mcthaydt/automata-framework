@@ -5,6 +5,7 @@ import {
   AppLoop,
   Flow,
   type InputProfile,
+  Leaderboards,
   makeInput,
   PresentationBus,
   type ScreenDef,
@@ -17,6 +18,7 @@ import {
   FocusNavigator,
   InputMethodTracker,
   interceptBackGesture,
+  type LeaderboardCopy,
   sendBack,
 } from '@mcthaydt/automata-ui'
 import { Effect, type Scope, SubscriptionRef } from 'effect'
@@ -39,6 +41,19 @@ export interface ScreensGame {
   readonly input?: InputMap | undefined
   /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it (PRODUCT.2). */
   readonly watchSim?: ((sim: Sim | undefined) => void) | undefined
+  /** The board paused shows: the game's first scored board (M5.7). None: paused shows no board. */
+  readonly board?: string | undefined
+}
+
+/** The board's words on the default paused screen. English, like the other default screens' words (02 follow-up). */
+const BOARD_COPY: LeaderboardCopy = {
+  title: 'Scores',
+  loading: 'Loading scores…',
+  empty: 'No scores yet',
+  unavailable: "Scores aren't available here",
+  offline: "You're offline",
+  you: 'You',
+  more: (count) => `+${count} more`,
 }
 
 /** A game without an input map still pauses with Escape and the pad's Start: the menu actions need no profile. */
@@ -289,7 +304,13 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           clearReconnect()
           flow.dispatch('quit')
         }
-        yield* show(PausedScreen, layer, { onResume: resume, onQuit: quit, message })
+        const boards = yield* Leaderboards
+        // Read from the host each time paused opens: what the host says, never a copy kept here (M5 spec §4.8).
+        const board =
+          game.board === undefined
+            ? undefined
+            : { copy: BOARD_COPY, load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
+        yield* show(PausedScreen, layer, { onResume: resume, onQuit: quit, message, board })
         yield* listen(target, 'keydown', (event) => {
           if (event.code !== 'Escape' || event.repeat) return
           event.preventDefault()

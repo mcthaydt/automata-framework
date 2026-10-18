@@ -1,7 +1,15 @@
 import type { Files, ProcessRunner } from '@mcthaydt/automata-node'
 import { Clock, Effect } from 'effect'
 import { type CheckReport, reportOf, type StepName, type StepResult } from './check-report.ts'
-import { boundariesStep, cspStep, noEvalStep, secretsStep, testStep, typecheckStep } from './check-steps.ts'
+import {
+  boardsStep,
+  boundariesStep,
+  cspStep,
+  noEvalStep,
+  secretsStep,
+  testStep,
+  typecheckStep,
+} from './check-steps.ts'
 import type { CspProbe } from './csp-probe.ts'
 
 // `automata check` (DX spec §3.6): the steps in order, each timed with Effect's Clock. Without --fail-fast every
@@ -23,8 +31,8 @@ function stepsFor(options: RunCheckOptions): readonly Step[] {
     ['typecheck', typecheckStep],
     ['test', testStep],
   ]
-  // --sim-only skips the build, and the secrets and csp steps read that build.
-  if (!options.simOnly) steps.push(['no-eval', noEvalStep], ['secrets', secretsStep])
+  // --sim-only checks a sim edit: it skips the board scan, the build, and the secrets and csp steps that read it.
+  if (!options.simOnly) steps.push(['boards', boardsStep], ['no-eval', noEvalStep], ['secrets', secretsStep])
   if (!options.simOnly && options.csp) steps.push(['csp', cspStep])
   return steps
 }

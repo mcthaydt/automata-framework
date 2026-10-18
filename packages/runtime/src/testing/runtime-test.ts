@@ -14,12 +14,13 @@ import { createPageLayers, type PageLayers } from '../boot/page-layers.svelte.js
 import { makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices, ScreenDef } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
+import { makeLeaderboards } from '../leaderboards/leaderboards.manager.js'
 import { makeAssets } from '../loading/assets.manager.js'
 import { makeLoadMeter } from '../loading/load-meter.js'
 import { type LocaleDef, makeLocale, singleLocale } from '../locale/locale.manager.js'
 import { makeAppLoop } from '../loop/app-loop.manager.js'
 import type { FrameSource } from '../loop/frames.js'
-import { makePresentationBus } from '../presentation/presentation-bus.manager.js'
+import { makePresentationBus, PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { GameRenderer, RendererFactory, RenderTarget } from '../render/renderer.js'
 import { makeSettings, type SettingsDef } from '../settings/settings.manager.js'
 import { makeTime, watchLifecycle } from '../time/time.manager.js'
@@ -241,6 +242,10 @@ export function RuntimeTest(
         assets,
         renderer,
         locale,
+        leaderboards: yield* makeLeaderboards.pipe(
+          Effect.provideService(Hosting, hosting),
+          Effect.provideService(PresentationBus, bus),
+        ),
       })
 
       runtimeContext = Context.merge(runtimeServices, Context.make(FakeHostHandle, fakeHostHandle))

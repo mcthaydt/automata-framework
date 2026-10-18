@@ -79,6 +79,22 @@ describe('prepareBuild', () => {
     expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
   })
 
+  // M5 spec §4.8, L-b: a board the game names must be declared, or Ruken has nowhere to put the score.
+  it('stops on a board the game names that its config does not declare, naming the call site, writing nothing', () => {
+    const game = mkdtempSync(join(tmpdir(), 'ship-prepare-game-'))
+    mkdirSync(join(game, 'src'))
+    writeFileSync(join(game, 'src/game.ts'), "export const done = (lb) => lb.submitScore('weekly', 3)\n")
+    const dir = dist()
+    const error = failure(prepare({ distDir: dir, gameDir: game, config }))
+    expect(error._tag).toBe('UndeclaredBoard')
+    expect((error as unknown as { message: string }).message).toContain('src/game.ts:1:44: "weekly"')
+    expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
+
+    const declared = { ...config, leaderboards: { weekly: { order: 'desc' as const, min: 0, max: 100 } } }
+    const passed = Effect.runSync(Effect.either(prepare({ distDir: dir, gameDir: game, config: declared })))
+    expect(Either.isRight(passed)).toBe(true)
+  })
+
   it('stops on a manifest Ruken refuses, writing nothing', () => {
     const dir = dist()
     const bad = { ...config, content: { ...config.content, languages: ['fr'] } }

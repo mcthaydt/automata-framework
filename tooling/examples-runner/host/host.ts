@@ -1,9 +1,10 @@
 // The fake Ruken host every feature demo's smoke test boots under: Ruken's own fake host
 // (`@ruken/sdk-host/testing`, real-iframe mode) around the demo named in the query string, served from another
 // origin. `?game=<url>&id=<game id>[&saves=<json>][&grant=<a,b>][&offline=1][&source=<url>]`: `saves` seeds the
-// player's server saves, `grant` grants exactly those capabilities (empty denies all), `offline` makes the saves
-// server unreachable, `source` frames that page beside the game (the examples index's View). `hostedUrl` in
-// ports.ts builds the query. Test and examples only; never part of a game build that ships.
+// player's server saves, `grant` grants exactly those capabilities (empty denies all), `offline` takes the network
+// down (the saves server and, since M5.7, the leaderboards are unreachable), `source` frames that page beside the
+// game (the examples index's View). `hostedUrl` in ports.ts builds the query. Test and examples only; never part of
+// a game build that ships.
 import { createFakeHost } from '@ruken/sdk-host/testing'
 
 type Capability = NonNullable<Parameters<typeof createFakeHost>[0]['grant']>[number]
@@ -40,7 +41,9 @@ const host = createFakeHost({
   grant,
   autoReady,
 })
-host.fakes.saves.offline = query.get('offline') === '1'
+const offline = query.get('offline') === '1'
+host.fakes.saves.offline = offline
+host.fakes.leaderboards.offline = offline
 iframe.src = game
 
 // `source=<url>` (the examples index's View, EX.5): the example's source page in a second frame beside the game.

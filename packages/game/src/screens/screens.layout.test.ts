@@ -26,9 +26,33 @@ const touchButtons: TouchButton[] = [
   { id: 'touch-2', label: 'Space', keys: ['Space'] },
 ]
 
-function mountScreen(id: 'title' | 'play' | 'paused') {
+/** Paused with a board of twelve rows (M5.7): the rows scroll, and Resume and Quit stay reachable. */
+const board = {
+  copy: {
+    title: 'Scores',
+    loading: 'Loading scores…',
+    empty: 'No scores yet',
+    unavailable: "Scores aren't available here",
+    offline: "You're offline",
+    you: 'You',
+    more: (count: number) => `+${count} more`,
+  },
+  load: () =>
+    Promise.resolve({
+      state: 'entries' as const,
+      entries: Array.from({ length: 12 }, (_, i) => ({
+        rank: i + 1,
+        displayName: `Player ${i + 1}`,
+        score: 900 - i * 40,
+        isMe: i === 3,
+      })),
+    }),
+}
+
+function mountScreen(id: 'title' | 'play' | 'paused' | 'paused-board') {
   if (id === 'title') return mountFixture(TitleScreen, { title: 'A game with a long title', onPlay: nothing })
   if (id === 'paused') return mountFixture(PausedScreen, { onResume: nothing, onQuit: nothing })
+  if (id === 'paused-board') return mountFixture(PausedScreen, { onResume: nothing, onQuit: nothing, board })
   const tracker = new InputMethodTracker()
   tracker.note('touch')
   return mountFixture(PlayScreen, {
@@ -44,9 +68,10 @@ const ESSENTIALS = {
   title: ['play'],
   play: ['pause', 'touch-0', 'touch-1', 'touch-2'],
   paused: ['resume', 'quit'],
+  'paused-board': ['resume', 'quit'],
 } as const
 
-describe.each(['title', 'play', 'paused'] as const)('%s screen layout contract', (screen) => {
+describe.each(['title', 'play', 'paused', 'paused-board'] as const)('%s screen layout contract', (screen) => {
   test.each(REFERENCE_SIZES)('$name ($width x $height)', async (size: ReferenceSize) => {
     await page.viewport(size.width, size.height)
     const problems: string[] = []
@@ -54,6 +79,9 @@ describe.each(['title', 'play', 'paused'] as const)('%s screen layout contract',
       const conditions = publishConditions(document.documentElement, size, variant)
       const fixture = mountScreen(screen)
       await settleLayout()
+      // The board loads asynchronously: the contract must see its rows, not the loading line.
+      if (screen === 'paused-board')
+        expect(document.querySelector('[data-leaderboard]')?.getAttribute('data-state')).toBe('entries')
       // With the keyboard open the frame scrolls what does not fit (ui spec §3.4); nothing may sit under
       // the keyboard, which `checkLayout` checks, but reaching an action may take a scroll.
       const essentials = variant.keyboard === undefined ? ESSENTIALS[screen].map(byTestId) : []

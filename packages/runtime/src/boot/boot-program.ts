@@ -21,6 +21,8 @@ import { resolveExtensions } from '../extension/resolve-extensions.js'
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
+import { submitEventScores } from '../leaderboards/event-scores.js'
+import { Leaderboards, makeLeaderboards } from '../leaderboards/leaderboards.manager.js'
 import { Assets, makeAssets } from '../loading/assets.manager.js'
 import { makeLoadMeter, SLOW_MS } from '../loading/load-meter.js'
 import { browserLanguages, Locale, makeLocale, singleLocale } from '../locale/locale.manager.js'
@@ -57,8 +59,8 @@ export interface BootProgramOptions {
 }
 
 /**
- * Builds the Context<RuntimeServices> containing all 11 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1;
- * `Audio` and `AudioBuses`, one service, from M5.3).
+ * Builds the Context<RuntimeServices> containing all 12 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1;
+ * `Audio` and `AudioBuses`, one service, from M5.3; `Leaderboards` from M5.7).
  * Extracted so RuntimeTest reuses the exact service wiring (Task 18).
  */
 export function buildRuntimeServices(services: {
@@ -72,6 +74,7 @@ export function buildRuntimeServices(services: {
   readonly renderer: GameRenderer
   readonly locale: Locale
   readonly audio: Audio & AudioBuses
+  readonly leaderboards: Leaderboards
 }): Context.Context<RuntimeServices> {
   return Context.empty().pipe(
     Context.add(Hosting, services.hosting),
@@ -85,6 +88,7 @@ export function buildRuntimeServices(services: {
     Context.add(Locale, services.locale),
     Context.add(Audio, services.audio),
     Context.add(AudioBuses, services.audio),
+    Context.add(Leaderboards, services.leaderboards),
   ) as Context.Context<RuntimeServices>
 }
 
@@ -261,6 +265,14 @@ export function bootProgram<S>(
       const stopSounds = playEventSounds(bus, audio, game.sounds)
       yield* Effect.addFinalizer(() => Effect.sync(stopSounds))
     }
+    const leaderboards = yield* makeLeaderboards.pipe(
+      Effect.provideService(Hosting, hosting),
+      Effect.provideService(PresentationBus, bus),
+    )
+    if (game.scores !== undefined) {
+      const stopScores = submitEventScores(bus, leaderboards, game.scores)
+      yield* Effect.addFinalizer(() => Effect.sync(stopScores))
+    }
 
     const veil = yield* makeVeil({
       overlay: layers.overlay,
@@ -322,6 +334,7 @@ export function bootProgram<S>(
       renderer,
       locale,
       audio,
+      leaderboards,
     })
 
     if (game.extensions && game.extensions.length > 0) {

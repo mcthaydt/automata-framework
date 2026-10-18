@@ -554,6 +554,54 @@ function landscapeGate(inputs: GateInputs): LandscapeGateState;
 type LandscapeGateState = 'none' | 'fullscreen' | 'rotate-or-install';
 ```
 
+### `LeaderboardCopy` (interface)
+
+```ts
+interface LeaderboardCopy {
+    readonly title: string;
+    readonly loading: string;
+    readonly empty: string;
+    readonly unavailable: string;
+    readonly offline: string;
+    readonly you: string;
+    readonly more: (count: number) => string;
+}
+```
+
+### `LeaderboardEntryView` (interface)
+
+```ts
+interface LeaderboardEntryView {
+    readonly rank: number;
+    readonly displayName: string;
+    readonly score: number;
+    readonly isMe: boolean;
+}
+```
+
+### `LeaderboardPanel` (svelte)
+
+```ts
+component from './status/LeaderboardPanel.svelte'
+```
+
+### `LeaderboardView` (type)
+
+```ts
+type LeaderboardView = {
+    readonly state: 'loading';
+} | {
+    readonly state: 'entries';
+    readonly entries: readonly LeaderboardEntryView[];
+} | {
+    readonly state: 'empty';
+} | {
+    readonly state: 'unavailable';
+} | {
+    readonly state: 'offline';
+};
+```
+
 ### `LoaderOverlay` (svelte)
 
 ```ts

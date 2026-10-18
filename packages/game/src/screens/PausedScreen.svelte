@@ -3,16 +3,36 @@
   over a scrim so the paused game shows through.
 -->
 <script lang="ts">
-import { ActionBar, ScreenFrame } from '@mcthaydt/automata-ui'
+import {
+  ActionBar,
+  type LeaderboardCopy,
+  LeaderboardPanel,
+  type LeaderboardView,
+  ScreenFrame,
+} from '@mcthaydt/automata-ui'
 
 interface Props {
   onResume: () => void
   onQuit: () => void
   /** Why play paused, when it was not the player: "Reconnect your controller" (M4-D9). */
   message?: string | undefined
+  /** The game's scored board (M5.7): read from the host when paused opens. */
+  board?: { copy: LeaderboardCopy; load: () => Promise<LeaderboardView> } | undefined
 }
 
-const { onResume, onQuit, message }: Props = $props()
+const { onResume, onQuit, message, board }: Props = $props()
+
+let view = $state<LeaderboardView>({ state: 'loading' })
+$effect(() => {
+  if (board === undefined) return
+  let open = true
+  void board.load().then((loaded) => {
+    if (open) view = loaded
+  })
+  return () => {
+    open = false
+  }
+})
 </script>
 
 {#snippet body()}
@@ -20,6 +40,9 @@ const { onResume, onQuit, message }: Props = $props()
     <h2 class="af-game-menu__title">Paused</h2>
     {#if message !== undefined}
       <p class="af-game-menu__message" role="status">{message}</p>
+    {/if}
+    {#if board !== undefined}
+      <LeaderboardPanel {view} copy={board.copy} />
     {/if}
   </div>
 {/snippet}
