@@ -6,8 +6,9 @@
 // FloorFifty's `watch` is the Vite plugin's job here. Exit codes: 0 clean, 1 content problems (every one
 // printed), 2 a usage, config or write error.
 //
-// `assets` (M5.6) builds the atlases named in `content/atlases.toml` into `<outDir>/atlases/`. It is its own
-// command because it reads image folders the content compile never touches, and its outputs are binary.
+// `assets` (M5.6, M5.5) builds the atlases named in `content/atlases.toml` into `<outDir>/atlases/` and the font
+// subsets named in `content/fonts.toml` into `<outDir>/fonts/`. It is its own command because it reads image and
+// font files the content compile never touches, and its outputs are binary.
 //
 // Options come from `automata.content.ts` in the working directory (its default export, `ContentConfig`)
 // until M1.8's `automata.config.ts` replaces it. It is loaded through Vite's module runner, so it can be
@@ -17,6 +18,7 @@ import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { normalizePath, runnerImport } from 'vite'
 import { buildAtlases } from '../assets/build-atlases'
+import { buildFonts } from '../assets/build-fonts'
 import {
   type CompiledContent,
   type ContentOptions,
@@ -132,19 +134,30 @@ async function verifyGuide(cwd: string, guide: string, meta: TuningMeta): Promis
   return []
 }
 
-/** Builds the atlases and writes each output file whole; nothing is written when any atlas has a problem. */
-async function writeAtlases(cwd: string, folder: string, io: CliIo): Promise<number> {
-  const built = await Effect.runPromise(Effect.either(buildAtlases(cwd)))
-  if (Either.isLeft(built)) return reportFailure(built.left, io)
-  for (const [file, bytes] of built.right.files) {
-    const path = join(folder, file)
-    const written = await Effect.runPromise(Effect.either(writeFileAtomically(join(cwd, path), bytes)))
+/**
+ * Builds the atlases and the font subsets, then writes each output file whole, atlases to `<outDir>/atlases`
+ * and fonts to `<outDir>/fonts`. Nothing is written when either build has a problem.
+ */
+async function writeAssets(options: ContentOptions, io: CliIo): Promise<number> {
+  const atlases = await Effect.runPromise(Effect.either(buildAtlases(options.root)))
+  if (Either.isLeft(atlases)) return reportFailure(atlases.left, io)
+  const fonts = await Effect.runPromise(Effect.either(buildFonts(options)))
+  if (Either.isLeft(fonts)) return reportFailure(fonts.left, io)
+  const outDir = outDirOf(options)
+  const outputs = [
+    ...[...atlases.right.files].map(([file, bytes]) => [join(outDir, 'atlases', file), bytes] as const),
+    ...[...fonts.right.files].map(([file, bytes]) => [join(outDir, 'fonts', file), bytes] as const),
+  ]
+  for (const [path, bytes] of outputs) {
+    const written = await Effect.runPromise(
+      Effect.either(writeFileAtomically(join(options.root, path), bytes)),
+    )
     if (Either.isLeft(written)) {
       io.err(`could not write ${path}: ${String(written.left.cause)}`)
       return 2
     }
   }
-  io.out(`atlases ${built.right.files.size} files`)
+  io.out(`atlases ${atlases.right.files.size} files, fonts ${fonts.right.files.size} files`)
   return 0
 }
 
@@ -163,7 +176,7 @@ export async function runCli(argv: readonly string[], cwd: string, io: CliIo = c
   const { guide: configGuide, ...rest } = loaded.config
   const options: ContentOptions = { ...rest, root: cwd }
 
-  if (command.name === 'assets') return writeAtlases(cwd, join(outDirOf(options), 'atlases'), io)
+  if (command.name === 'assets') return writeAssets(options, io)
 
   const program = command.name === 'build' ? buildContent(options) : compileContent(options)
   const compiled = await Effect.runPromise(Effect.either(program))

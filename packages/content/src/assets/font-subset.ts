@@ -1,3 +1,4 @@
+/// <reference path="./subset-font.d.ts" />
 // Font subsetting and coverage (M5 spec §4.7 Fonts, M5-D7). Extracted from FloorFifty
 // packages/asset-contract/tools/subset-fonts.ts (`subset-font` to woff2) and tests/client/i18n/fonts.test.ts
 // (`fontkit` reading the subset back), at ac72660.
@@ -5,6 +6,8 @@
 // Changed from FloorFifty: the characters are sorted by code point before they are joined, so the order a set
 // was built in never reaches the subsetter, and the bytes depend only on the source and the characters (G-a).
 
+// The reference above brings `subset-font`'s type into any program that compiles this file, not only this
+// package's own (the consumer typecheck tests compile `src/` from outside it).
 import { create, type Font } from 'fontkit'
 import subsetFont from 'subset-font'
 
