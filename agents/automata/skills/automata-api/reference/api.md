@@ -3487,6 +3487,236 @@ Controls a player could see and reach: laid out, not hidden, not in an inert sub
 function visibleControls(root: ParentNode): HTMLElement[];
 ```
 
+### `import { … } from '@mcthaydt/automata-testing/e2e'`
+
+#### `Direction` (type)
+
+A direction on the D-pad or the stick.
+
+```ts
+type Direction = "up" | "down" | "left" | "right";
+```
+
+#### `Engine` (type)
+
+The browser engine a matrix cell runs in.
+
+```ts
+type Engine = "chromium" | "webkit" | "firefox";
+```
+
+#### `FakePad` (class)
+
+One standard controller in a real browser, driven through the Gamepad API the game itself reads.
+
+```ts
+class FakePad {
+  private target;
+  private constructor();
+  /** Installs the fake before any game script runs, in every frame; call before `goto`. The pad starts unplugged. */
+  static install(page: Page, options?: FakePadOptions): Promise<FakePad>;
+  /** Drives the pad of `frame` from here on: the game's frame under the fake host. */
+  in(frame: Page | Frame): this;
+  connect(): Promise<void>;
+  unplug(): Promise<void>;
+  press(button: PadButton, frames?: number): Promise<void>;
+  release(button: PadButton): Promise<void>;
+  /** Press and release, held for one polled frame. */
+  tap(button: PadButton): Promise<void>;
+  stick(x: number, y: number, frames?: number): Promise<void>;
+  /** Holds a direction on the D-pad or the stick. */
+  hold(direction: Direction, mode: PadMode, frames?: number): Promise<void>;
+  letGo(direction: Direction, mode: PadMode): Promise<void>;
+  /** One step of a direction: held for one polled frame, then let go. */
+  step(direction: Direction, mode: PadMode): Promise<void>;
+  /** Waits `count` animation frames in the pad's frame, so the game's per-frame poll has run. */
+  frames(count?: number): Promise<void>;
+  private write;
+}
+```
+
+#### `FakePadOptions` (interface)
+
+How the fake pad reports itself: its mapping and its id (the id picks the prompts' glyphs).
+
+```ts
+interface FakePadOptions {
+  /** `''` for a pad the browser does not map to the standard layout. Default `standard`. */
+  readonly mapping?: "" | "standard";
+  readonly id?: string;
+}
+```
+
+#### `flick` (function)
+
+A quick vertical swipe of `dy` pixels within `ms` milliseconds from `from` (M4 spec I-f: 40 px in 180 ms).
+
+```ts
+function flick(scope: Page | Frame, from: Point, dy: number, ms: number): Promise<void>;
+```
+
+#### `hold` (function)
+
+A finger down on `target`'s centre until `until` resolves true (checked once a frame), then up.
+
+```ts
+function hold(target: Locator, until: () => Promise<boolean>): Promise<void>;
+```
+
+#### `INPUT_MATRIX` (const)
+
+M4 spec §9.1's cells, in table order: 17 cells, 22 journeys (the desktop cells run under both hosts).
+
+```ts
+const INPUT_MATRIX: readonly MatrixCell[];
+```
+
+#### `InputDevice` (type)
+
+The device a matrix cell plays with.
+
+```ts
+type InputDevice = "keyboard" | "gamepad" | "touch";
+```
+
+#### `MatrixCell` (interface)
+
+One cell of the input × form-factor matrix: a form factor, a device and an engine, and the hosts it runs under.
+
+```ts
+interface MatrixCell {
+  /** `<form factor>-<device>-<engine>`, for example `phone-portrait-touch-webkit`. */
+  readonly id: string;
+  readonly formFactor: MatrixFormFactor;
+  readonly viewport: {
+    readonly width: number;
+    readonly height: number;
+  };
+  readonly device: InputDevice;
+  readonly engine: Engine;
+  readonly hosts: readonly MatrixHost[];
+  /** M4-D11: the cells that run locally and in hosted CI; the rest belong to the GPU runner's nightly. */
+  readonly local: boolean;
+}
+```
+
+#### `MatrixFormFactor` (type)
+
+A matrix cell's form factor, each with one viewport (M4 spec §9.1).
+
+```ts
+type MatrixFormFactor = "phone-portrait" | "phone-landscape" | "compact" | "tablet-portrait" | "desktop";
+```
+
+#### `MatrixHost` (type)
+
+Where a journey runs: under the fake Ruken host, or standalone.
+
+```ts
+type MatrixHost = "fake-ruken" | "standalone";
+```
+
+#### `PAD_BUTTONS` (const)
+
+The standard mapping's buttons by name: south (A on an Xbox pad) is 0, Start is 9, the D-pad 12 to 15.
+
+```ts
+const PAD_BUTTONS: {
+  readonly south: 0;
+  readonly east: 1;
+  readonly west: 2;
+  readonly north: 3;
+  readonly lb: 4;
+  readonly rb: 5;
+  readonly lt: 6;
+  readonly rt: 7;
+  readonly select: 8;
+  readonly start: 9;
+  readonly ls: 10;
+  readonly rs: 11;
+  readonly dpadUp: 12;
+  readonly dpadDown: 13;
+  readonly dpadLeft: 14;
+  readonly dpadRight: 15;
+  readonly home: 16;
+};
+```
+
+#### `PadButton` (type)
+
+A standard-mapping button by name.
+
+```ts
+type PadButton = keyof typeof PAD_BUTTONS;
+```
+
+#### `PadMode` (type)
+
+Whether a direction is held on the D-pad or the left stick.
+
+```ts
+type PadMode = "dpad" | "stick";
+```
+
+#### `Point` (interface)
+
+A point in the target frame's own CSS pixels.
+
+```ts
+interface Point {
+  readonly x: number;
+  readonly y: number;
+}
+```
+
+#### `swipe` (function)
+
+A finger from `from` to `to` over `ms` milliseconds, one move a frame, on whatever is under it.
+
+```ts
+function swipe(scope: Page | Frame, from: Point, to: Point, ms: number): Promise<void>;
+```
+
+#### `tap` (function)
+
+A finger down on `target`'s centre and straight up again.
+
+```ts
+function tap(target: Locator): Promise<void>;
+```
+
+### `import { … } from '@mcthaydt/automata-testing/input'`
+
+#### `fakeGamepads` (function)
+
+`target` hears `gamepadconnected` and `gamepaddisconnected`, as `window` does in a browser.
+
+```ts
+function fakeGamepads(options?: {
+  readonly target?: EventTarget;
+}): FakeGamepads;
+```
+
+#### `FakeGamepads` (interface)
+
+Four gamepad slots a unit test plugs pads into and presses; `getGamepads` reads them as the browser's would.
+
+```ts
+interface FakeGamepads {
+  readonly getGamepads: () => (Gamepad | null)[];
+  /** Puts a pad at rest in `index` (0 by default): standard, unless `mapping` says otherwise. */
+  connect(index?: number, options?: {
+    readonly mapping?: "" | "standard";
+    readonly id?: string;
+  }): void;
+  unplug(index?: number): void;
+  press(button: number, value?: number, index?: number): void;
+  release(button: number, index?: number): void;
+  /** The left stick. */
+  stick(x: number, y: number, index?: number): void;
+}
+```
+
 ### `import { … } from '@mcthaydt/automata-testing/sim'`
 
 #### `Difference` (interface)

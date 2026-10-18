@@ -188,11 +188,11 @@ jobs:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium webkit firefox
         if: runner.environment == 'github-hosted'
       # A self-hosted runner has the system libraries installed once and no sudo; the browser itself is fetched
       # into its cache here (a no-op when it is already there).
-      - run: pnpm exec playwright install chromium
+      - run: pnpm exec playwright install chromium webkit firefox
         if: runner.environment == 'self-hosted'
       - name: Browser journeys
         env:

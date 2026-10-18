@@ -21,7 +21,17 @@ import { Effect, SubscriptionRef } from 'effect'
 import type { InputMap } from '../input/keys.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
-import { backGesture, driveMenu, listen, NO_BINDINGS, plain, show, windowOf } from './screen-kit.ts'
+import {
+  backGesture,
+  driveMenu,
+  hostInput,
+  listen,
+  NO_BINDINGS,
+  noticeUnsupportedPads,
+  plain,
+  show,
+  windowOf,
+} from './screen-kit.ts'
 import { settingsScreen } from './settings-screen.svelte.ts'
 import TitleScreen from './TitleScreen.svelte'
 
@@ -69,6 +79,8 @@ const asRecord = (value: unknown): Record<string, unknown> =>
  * play restores the sim's own snapshot, which makes the next step a resync.
  */
 export function defaultScreens(game: ScreensGame): ScreenDef[] {
+  // The pads already told they are not supported (M4 spec §6), for the whole session.
+  const toldPads = new Set<string>()
   let sim: Sim | undefined
   let playFlow: Flow | undefined
   /** Set when play paused because the pad in use was unplugged (M4-D9); Resume or Quit clears it. */
@@ -107,6 +119,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         // Nothing on the title takes Back, so a back step leaves the game.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
+        yield* noticeUnsupportedPads(layer, toldPads)
       }),
   }
 
@@ -141,7 +154,13 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const bus = yield* PresentationBus
         // The player's bindings and touch mode, from the settings (M4.4).
         const { store } = yield* Settings
-        const input = yield* makeInput({ target, profile: map?.profile ?? NO_BINDINGS, bus, settings: store })
+        const input = yield* makeInput({
+          target,
+          profile: map?.profile ?? NO_BINDINGS,
+          bus,
+          settings: store,
+          hostInput: yield* hostInput,
+        })
         const touchMode = inputSettingsSchema.parse(asRecord(store?.get()).input).touchMode ?? map?.touchMode
         const running = current
         game.watchSim?.(running)
@@ -149,6 +168,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
         const detachCursor = cursor.attach(target)
         yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
+        yield* noticeUnsupportedPads(layer, toldPads)
         appLoop.run({
           sim: running,
           commands: (tick) => {
@@ -245,8 +265,9 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         // Escape is the dialog's (Modal): it steps back from the Quit confirm, and from the menu it resumes.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
+        yield* noticeUnsupportedPads(layer, toldPads)
       }),
   }
 
-  return [title, play, paused, settingsScreen(game)]
+  return [title, play, paused, settingsScreen(game, toldPads)]
 }

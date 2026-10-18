@@ -7,6 +7,7 @@ import * as runtimeDemo from './examples/runtime/boot-and-flow/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
 import * as base2d from './games/emberwick/e2e/origins.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './games/placeholder/e2e/origins.ts'
+import { INPUT_MATRIX } from './packages/testing/src/e2e/input-matrix.ts'
 import {
   demoHostOrigin,
   demoHostPort,
@@ -35,6 +36,21 @@ const base2dPorts = {
 }
 
 const EXAMPLES_SMOKE = ['examples/e2e/*.e2e.ts', 'tooling/examples-runner/e2e/*.e2e.ts']
+const MATRIX_SPEC = 'examples/e2e/input-matrix.e2e.ts'
+
+// The input × form-factor matrix (M4.10, M4 spec §9.1): a project per cell, in the cell's engine and viewport, with a
+// touch screen for the touch cells. The spec reads its cell from the project's metadata.
+const matrixProjects = INPUT_MATRIX.map((cell) => ({
+  name: `matrix-${cell.id}`,
+  testDir: '.',
+  testMatch: MATRIX_SPEC,
+  metadata: { cell },
+  use: {
+    browserName: cell.engine,
+    viewport: cell.viewport,
+    ...(cell.device === 'touch' ? { hasTouch: true, isMobile: cell.engine !== 'firefox' } : {}),
+  },
+}))
 
 const journeys = defineConfig({
   testMatch: '**/*.e2e.ts',
@@ -55,11 +71,18 @@ const journeys = defineConfig({
     { name: 'ui-primitives', testDir: 'examples/ui/primitives/e2e', use: { ...devices['Pixel 7'] } },
     // The one-file examples (EX spec §5) and the runner's own stub example, each under the fake host: a phone,
     // then the compact landscape height.
-    { name: 'examples', testDir: '.', testMatch: EXAMPLES_SMOKE, use: { ...devices['Pixel 7'] } },
+    {
+      name: 'examples',
+      testDir: '.',
+      testMatch: EXAMPLES_SMOKE,
+      testIgnore: MATRIX_SPEC,
+      use: { ...devices['Pixel 7'] },
+    },
     {
       name: 'examples-compact',
       testDir: '.',
       testMatch: EXAMPLES_SMOKE,
+      testIgnore: MATRIX_SPEC,
       use: { ...devices['Pixel 7 landscape'], viewport: { width: 780, height: 270 } },
     },
     // The feature demos on base-2d, each under the shared fake host (tooling/examples-runner/host).
@@ -75,6 +98,7 @@ const journeys = defineConfig({
       ],
       use: { ...devices['Pixel 7'] },
     },
+    ...matrixProjects,
   ],
   webServer: [
     {

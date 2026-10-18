@@ -447,3 +447,184 @@ function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
     readonly failures: readonly RoundTripFailure[];
 }>;
 ```
+
+## `./input`
+
+### `FakeGamepads` (interface)
+
+```ts
+interface FakeGamepads {
+    readonly getGamepads: () => (Gamepad | null)[];
+    connect(index?: number, options?: {
+        readonly mapping?: '' | 'standard';
+        readonly id?: string;
+    }): void;
+    unplug(index?: number): void;
+    press(button: number, value?: number, index?: number): void;
+    release(button: number, index?: number): void;
+    stick(x: number, y: number, index?: number): void;
+}
+```
+
+### `fakeGamepads` (function)
+
+```ts
+function fakeGamepads(options?: {
+    readonly target?: EventTarget;
+}): FakeGamepads;
+```
+
+## `./e2e`
+
+### `Direction` (type)
+
+```ts
+type Direction = 'up' | 'down' | 'left' | 'right';
+```
+
+### `Engine` (type)
+
+```ts
+type Engine = 'chromium' | 'webkit' | 'firefox';
+```
+
+### `FakePad` (class)
+
+```ts
+class FakePad {
+    private target;
+    private constructor();
+    static install(page: Page, options?: FakePadOptions): Promise<FakePad>;
+    in(frame: Page | Frame): this;
+    connect(): Promise<void>;
+    unplug(): Promise<void>;
+    press(button: PadButton, frames?: number): Promise<void>;
+    release(button: PadButton): Promise<void>;
+    tap(button: PadButton): Promise<void>;
+    stick(x: number, y: number, frames?: number): Promise<void>;
+    hold(direction: Direction, mode: PadMode, frames?: number): Promise<void>;
+    letGo(direction: Direction, mode: PadMode): Promise<void>;
+    step(direction: Direction, mode: PadMode): Promise<void>;
+    frames(count?: number): Promise<void>;
+    private write;
+}
+```
+
+### `FakePadOptions` (interface)
+
+```ts
+interface FakePadOptions {
+    readonly mapping?: '' | 'standard';
+    readonly id?: string;
+}
+```
+
+### `flick` (function)
+
+```ts
+function flick(scope: Page | Frame, from: Point, dy: number, ms: number): Promise<void>;
+```
+
+### `hold` (function)
+
+```ts
+function hold(target: Locator, until: () => Promise<boolean>): Promise<void>;
+```
+
+### `INPUT_MATRIX` (const)
+
+```ts
+const INPUT_MATRIX: readonly MatrixCell[];
+```
+
+### `InputDevice` (type)
+
+```ts
+type InputDevice = 'keyboard' | 'gamepad' | 'touch';
+```
+
+### `MatrixCell` (interface)
+
+```ts
+interface MatrixCell {
+    readonly id: string;
+    readonly formFactor: MatrixFormFactor;
+    readonly viewport: {
+        readonly width: number;
+        readonly height: number;
+    };
+    readonly device: InputDevice;
+    readonly engine: Engine;
+    readonly hosts: readonly MatrixHost[];
+    readonly local: boolean;
+}
+```
+
+### `MatrixFormFactor` (type)
+
+```ts
+type MatrixFormFactor = 'phone-portrait' | 'phone-landscape' | 'compact' | 'tablet-portrait' | 'desktop';
+```
+
+### `MatrixHost` (type)
+
+```ts
+type MatrixHost = 'fake-ruken' | 'standalone';
+```
+
+### `PAD_BUTTONS` (const)
+
+```ts
+const PAD_BUTTONS: {
+    readonly south: 0;
+    readonly east: 1;
+    readonly west: 2;
+    readonly north: 3;
+    readonly lb: 4;
+    readonly rb: 5;
+    readonly lt: 6;
+    readonly rt: 7;
+    readonly select: 8;
+    readonly start: 9;
+    readonly ls: 10;
+    readonly rs: 11;
+    readonly dpadUp: 12;
+    readonly dpadDown: 13;
+    readonly dpadLeft: 14;
+    readonly dpadRight: 15;
+    readonly home: 16;
+};
+```
+
+### `PadButton` (type)
+
+```ts
+type PadButton = keyof typeof PAD_BUTTONS;
+```
+
+### `PadMode` (type)
+
+```ts
+type PadMode = 'dpad' | 'stick';
+```
+
+### `Point` (interface)
+
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
+}
+```
+
+### `swipe` (function)
+
+```ts
+function swipe(scope: Page | Frame, from: Point, to: Point, ms: number): Promise<void>;
+```
+
+### `tap` (function)
+
+```ts
+function tap(target: Locator): Promise<void>;
+```

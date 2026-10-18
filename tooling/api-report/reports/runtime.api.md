@@ -573,6 +573,7 @@ interface InputOptions {
     readonly profile: InputProfile;
     readonly bus: PresentationBus;
     readonly settings?: SettingsStore<unknown> | undefined;
+    readonly hostInput?: Hosting['input'] | undefined;
 }
 ```
 

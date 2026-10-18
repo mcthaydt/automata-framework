@@ -16,6 +16,7 @@ import {
   type Sim,
   type StepResult,
 } from '@mcthaydt/automata-sim'
+import { fakeGamepads } from '@mcthaydt/automata-testing/input'
 import { createFakeHost } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { flushSync } from 'svelte'
@@ -299,8 +300,11 @@ describe('default screens', () => {
     const saved = () => JSON.parse(localStorage.getItem('ruken:screens-test:settings') ?? 'null')
     const settingsScreen = () => screen('settings')
     const row = (action: string) => root.querySelector<HTMLElement>(`[data-control-row="${action}"]`)
+    // Each device has its section, so an action has a row in each: the keyboard's rebind button is in the keyboard's.
     const rebind = (action: string) =>
-      row(action)?.querySelector<HTMLButtonElement>('[data-rebind="keyboard"]')
+      root.querySelector<HTMLButtonElement>(
+        `[data-controls-device="keyboard"] [data-control-row="${action}"] [data-rebind="keyboard"]`,
+      )
     const controlsState = () =>
       root.querySelector<HTMLElement>('[data-settings-section="controls"]')?.dataset.state
     beforeEach(() => localStorage.clear())
@@ -326,11 +330,58 @@ describe('default screens', () => {
       await until(() => row('move-0') !== null, 'the controls tab')
     }
 
+    it('under a host that reports an Xbox-layout pad, the controller prompts become Xbox’s (M4 spec §4.2)', async () => {
+      const pads = fakeGamepads()
+      pads.connect(0, { id: 'USB Gamepad (STANDARD GAMEPAD)' })
+      Object.defineProperty(navigator, 'getGamepads', { configurable: true, value: pads.getGamepads })
+      let host: ReturnType<typeof createFakeHost> | undefined
+      try {
+        await toSettings({
+          input: keys(Move, { ArrowRight: { x: 1 } }, { pad: { 0: { x: 1 } } }),
+          seams: {
+            frames,
+            fetch: fakeFetch({}).fetch,
+            sdkEnv: () => {
+              host = createFakeHost({
+                gameOrigin: TEST_GAME_ORIGIN,
+                gameId: 'screens-test',
+                clock: realClock,
+              })
+              if (host.gameEnv === undefined || host.gameEnv === null)
+                throw new Error('the fake host has no game environment')
+              return host.gameEnv
+            },
+          },
+        })
+        const padPrompt = () =>
+          root
+            .querySelector(
+              '[data-controls-device="gamepad"] [data-control-row="move-0"] [data-rebind="gamepad"]',
+            )
+            ?.textContent?.trim() ?? 'no controller column'
+        await until(() => padPrompt() !== 'no controller column', 'the controller column')
+        expect(padPrompt()).not.toBe('A')
+        host?.bridge.setInputMode({ mode: 'gamepad', gamepad: { layout: 'xbox', connected: true } })
+        await until(() => padPrompt() === 'A', 'the Xbox prompt')
+      } finally {
+        Reflect.deleteProperty(navigator, 'getGamepads')
+      }
+    })
+
     it('opens from paused; Back returns to paused with focus on Settings (F-b)', async () => {
       await toSettings()
       button('settings-back')?.click()
       await until(() => screen('paused') !== null, 'paused again')
       await until(() => document.activeElement === button('settings'), 'focus on Settings')
+    })
+
+    it('steps back one level on Escape: to paused, and no further', async () => {
+      await toSettings()
+      press('Escape')
+      await until(() => screen('paused') !== null, 'paused again')
+      for (let wait = 0; wait < 5; wait += 1) await tick()
+      expect(screen('paused')).not.toBeNull()
+      expect(screen('play')).toBeNull()
     })
 
     it('lists the input map’s actions with their keyboard prompts', async () => {
@@ -633,6 +684,25 @@ describe('default screens', () => {
     } finally {
       Reflect.deleteProperty(window.navigator, 'getGamepads')
     }
+  })
+
+  describe('a pad without the standard mapping (M4 spec §6)', () => {
+    afterEach(() => Reflect.deleteProperty(window.navigator, 'getGamepads'))
+    const toasts = () => [...root.querySelectorAll('[data-testid="pad-unsupported"]')]
+
+    it('says once, on any screen, that the controller is not supported yet', async () => {
+      const pads = fakeGamepads({ target: window })
+      Object.defineProperty(window.navigator, 'getGamepads', { configurable: true, value: pads.getGamepads })
+      await boot()
+      pads.connect(0, { mapping: '', id: 'Odd Pad' })
+      await until(() => toasts().length === 1, 'the toast on the title')
+      expect(toasts()[0]?.textContent).toContain('This controller isn’t supported yet')
+      await toPlay()
+      pads.unplug(0)
+      pads.connect(0, { mapping: '', id: 'Odd Pad' })
+      await tick()
+      expect(toasts()).toHaveLength(0)
+    })
   })
 
   describe('a pad unplugged during play (M4-D9)', () => {

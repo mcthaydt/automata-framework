@@ -2,8 +2,8 @@
 // listener, the menu's controller and arrow keys, and the system back gesture.
 import { Hosting } from '@mcthaydt/automata-host'
 import { type Input, type InputProfile, makeInput, PresentationBus } from '@mcthaydt/automata-runtime'
-import { FocusNavigator, interceptBackGesture } from '@mcthaydt/automata-ui'
-import { Effect, type Scope } from 'effect'
+import { FocusNavigator, interceptBackGesture, Toast } from '@mcthaydt/automata-ui'
+import { Duration, Effect, Runtime, type Scope } from 'effect'
 import { type Component, flushSync, mount, unmount } from 'svelte'
 import { menuInput } from './menu-input.ts'
 
@@ -101,3 +101,48 @@ export const windowOf = (layer: HTMLElement): Window => layer.ownerDocument.defa
 /** A plain key press, not one held down repeating, nor one with a modifier the browser may own. */
 export const plain = (event: KeyboardEvent): boolean =>
   !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey
+
+/** The host's input mode for the screens' Input (M4 spec §4.2): under Ruken only; standalone the page decides. */
+export const hostInput: Effect.Effect<Hosting['input'] | undefined, never, Hosting> = Effect.map(
+  Hosting,
+  (hosting) => (hosting.kind === 'standalone' ? undefined : hosting.input),
+)
+
+/** What a pad without the standard mapping is told (M4 spec §6), and for how long. */
+export const PAD_UNSUPPORTED = 'This controller isn’t supported yet'
+const PAD_UNSUPPORTED_FOR = Duration.seconds(4)
+
+/**
+ * A pad without the standard mapping cannot drive bindings (M4 spec §6): while this screen is open, the first time
+ * such a pad connects the player is told so, in a Toast on the screen for four seconds. `told` is the game's, shared
+ * by every screen, so each pad is told once a session (by id and index).
+ */
+export function noticeUnsupportedPads(
+  layer: HTMLElement,
+  told: Set<string>,
+): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
+  return Effect.gen(function* () {
+    const bus = yield* PresentationBus
+    const runtime = yield* Effect.runtime<never>()
+    const tell = Effect.acquireUseRelease(
+      Effect.sync(() =>
+        mount(Toast, { target: layer, props: { text: PAD_UNSUPPORTED, testId: 'pad-unsupported' } }),
+      ),
+      () => Effect.sleep(PAD_UNSUPPORTED_FOR),
+      (toast) => Effect.promise(() => unmount(toast)),
+    )
+    const scope = yield* Effect.scope
+    yield* Effect.acquireRelease(
+      Effect.sync(() =>
+        bus.subscribe('input.pad.connected', (pad) => {
+          const key = `${pad.index} ${pad.id}`
+          if (pad.standard || told.has(key)) return
+          told.add(key)
+          // In the screen's scope: leaving the screen takes the toast away with it.
+          Runtime.runFork(runtime)(Effect.forkIn(tell, scope))
+        }),
+      ),
+      (stop) => Effect.sync(stop),
+    )
+  })
+}
