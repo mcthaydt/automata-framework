@@ -7,7 +7,7 @@
   - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
 - **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 7 of 8 steps.
+- **Progress:** 7 of 14 steps.
 
 ## Sources, read at these commits
 
@@ -107,6 +107,28 @@ Each step starts with its test, run red, with the failure reason recorded. Layou
   - Side-by-side captures, AF beside FloorFifty, of Paused, Settings (both tabs) and the covers, at each size, sent to the Desk.
   - Gates: `pnpm format`, `pnpm check`, CI extras, `pnpm test:parity`, `CI=1 pnpm test:e2e`, prepare-ruken.
   - Records: 02, 03, this plan.
+
+## Owner rulings and Desk review, 2026-10-18 (steps 9 to 14)
+
+The Desk reviewed the side-by-sides: Pause is good; Settings is not ready. The Owner then ruled:
+- **Language, Audio and Vibration are required framework Settings groups**, beside Display, matching FloorFifty's layout and function (lifted from FloorFifty `SettingsPanel.svelte`, `LanguagePicker.svelte`, `i18n/locales.ts`, `managers/audio`, `systems/haptics.ts`, generalised).
+- **The orientation hint is configurable:** `rotateHint: 'block' | 'toast'`, `'block'` by default (M4 spec §4.9 as it stands), `'toast'` FloorFifty's dismissible message.
+- The Desk: Settings fills the phone's height as FloorFifty's does, with the list, its "+N more" and Back at the bottom; the evidence is shot over a real-looking game frame.
+
+M5.4 (#92) is folded into this branch (the Audio group, Pause's Mute; its plan holds its record).
+
+- [ ] **9. Language group.** *Red:*
+  - `Locale` says the player's choice (`choice`: a locale, or null for Automatic);
+  - ui `LanguageSection`: Automatic, then each of the game's locales by its endonym (its own name in its own language, from `Intl.DisplayNames`, a game's own name winning), each in its own `lang`; a pick calls `Locale.set`;
+  - the game's Settings tab: Language first, as FloorFifty's.
+- [ ] **10. Vibration group.** *Red:*
+  - runtime `Haptics`: `pulse` rumbles the first pad with an actuator, else buzzes a touch phone (`navigator.vibrate`), else nothing; never throws; off while the setting is off; `supported` says whether this device can do either (FloorFifty `systems/haptics.ts` and its tests);
+  - the core settings keep `haptics.enabled`;
+  - ui `VibrationSection`: one toggle; the game's Settings tab shows it only where `supported`.
+- [ ] **11. A sample sound on a volume's release.** *Red:* releasing a bus's slider plays a short sample on that bus (FloorFifty `requestUiSound`), a tone the graph makes, so no game asset is needed.
+- [ ] **12. Settings fills a phone's height.** *Red:* on a phone (`phone-portrait`, `phone-landscape`), Settings' dialog fills the visible band's height, the list taking the rest, Back at the bottom (FloorFifty `Modal.svelte`'s body that scrolls in its own list).
+- [ ] **13. `rotateHint: 'block' | 'toast'`.** *Red:* a game's `rotateHint: 'toast'` shows a dismissible message (FloorFifty `RotateHint.svelte`: "Turn your phone for a bigger view", OK, remembered) and does not pause; the default stays the blocking cover. M4 spec §4.9 records the amendment.
+- [ ] **14. Gates and evidence.** Gates as step 8; side-by-sides over a real-looking game frame, sent to the Desk; not merged until the Owner has reviewed it.
 
 ## Verification
 
