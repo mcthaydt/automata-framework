@@ -27,6 +27,7 @@ import { type ParaglideOptions, paraglideProblems } from '../locale/compile-mess
 import { checkTranslation, collectMessages, type MessageCatalog } from '../locale/messages'
 import { checkPalette, paletteSchema } from '../palette/palette'
 import { locateJsonKeys } from '../parse/locate-json-keys'
+import { positionOf } from '../parse/locate-keys'
 import {
   diagnosticAt,
   type ParsedToml,
@@ -76,6 +77,18 @@ export interface CompiledContent {
    * never inside it, so a translation edit moves neither hash. Paraglide and the glyph sets read these.
    */
   readonly catalogs: ReadonlyMap<string, MessageCatalog>
+  /**
+   * Where each language's messages are written, in `languages` order: a source message at its text in the
+   * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these (M5.5).
+   */
+  readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>
+}
+
+/** A message's place in its file, 1-based. */
+export interface MessageLocation {
+  readonly file: string
+  readonly line: number
+  readonly column: number
 }
 
 export const DEFAULT_OUT_DIR = 'content/generated'
@@ -283,6 +296,7 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
 
   // 5. Translations must have exactly the source keys.
   const translated = new Map<string, MessageCatalog>()
+  const translatedAt = new Map<string, Map<string, MessageLocation>>()
   for (const { language, source } of everySourceParsed ? tree.translations : []) {
     let parsed: unknown
     try {
@@ -311,6 +325,10 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
     // Only read once the whole compile passed, when every value is known to be text.
     const { $schema: _schema, ...catalog } = parsed as Record<string, string>
     translated.set(language, catalog)
+    translatedAt.set(
+      language,
+      new Map(Object.keys(catalog).map((key) => [key, { file: source.file, ...positionOf(keys, [key]) }])),
+    )
   }
 
   if (codeProblems.length > 0) {
@@ -356,6 +374,19 @@ function compileTree(tree: SourceTree, options: ContentOptions): CompileOutcome 
         languages.map((language, index) => [
           language,
           index === 0 ? messages : (translated.get(language) as MessageCatalog),
+        ]),
+      ),
+      messageLocations: new Map(
+        languages.map((language, index) => [
+          language,
+          index === 0
+            ? new Map(
+                [...origins].map(([key, origin]) => {
+                  const { toml } = items[origin.index] as ParsedItem
+                  return [key, { file: toml.file, ...positionOf(toml.keys, origin.path) }]
+                }),
+              )
+            : (translatedAt.get(language) as ReadonlyMap<string, MessageLocation>),
         ]),
       ),
     },

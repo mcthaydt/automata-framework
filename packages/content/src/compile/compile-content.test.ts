@@ -126,6 +126,21 @@ describe('the fixture game', () => {
     expect(after.sim.hash).toBe(before.sim.hash)
   })
 
+  it('says where each language’s message is written, for the glyph gate (M5.5)', async () => {
+    const { messageLocations } = await compiled(fixtureOptions(copyFixture('valid')))
+    expect([...messageLocations.keys()]).toEqual(['en', 'fr'])
+    expect(messageLocations.get('en')?.get('content_stage_dawn_display_name')).toEqual({
+      file: 'content/stages/dawn.toml',
+      line: 2,
+      column: 1,
+    })
+    expect(messageLocations.get('fr')?.get('content_stage_dawn_display_name')).toEqual({
+      file: 'content/messages/fr.json',
+      line: 10,
+      column: 3,
+    })
+  })
+
   it('gives nested files path IDs', async () => {
     const root = copyFixture('valid')
     mkdirSync(join(root, 'content/songs/night'))

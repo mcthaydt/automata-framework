@@ -7,6 +7,7 @@ export {
   type ContentOptions,
   compileContent,
   DEFAULT_OUT_DIR,
+  type MessageLocation,
 } from './compile/compile-content'
 export { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from './compile/errors'
 export type { SimPartition } from './compile/sim-partition'
