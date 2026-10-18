@@ -98,6 +98,29 @@ export {
   type RenderTarget,
 } from './render/renderer.js'
 export {
+  type Loaded,
+  type Save,
+  type SaveServiceOptions,
+  type SaveWriteOptions,
+  saveService,
+} from './save/save.manager.js'
+export {
+  defineSave,
+  type SaveDef,
+  type SaveEnvelope,
+  type SaveMigration,
+  type SlotMeta,
+  type SlotState,
+} from './save/save.schema.js'
+export {
+  SaveFromNewerBuild,
+  type SaveFromNewerBuildFields,
+  SaveRefused,
+  type SaveRefusedFields,
+  SaveUnreadable,
+  type SaveUnreadableFields,
+} from './save/save-error.js'
+export {
   DEFAULT_QUALITY,
   type DisplaySettings,
   displaySettingsSchema,

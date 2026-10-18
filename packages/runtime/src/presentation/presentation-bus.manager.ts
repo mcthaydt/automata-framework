@@ -1,3 +1,4 @@
+import type { ErrorCode } from '@mcthaydt/automata-host'
 import type { SimEvent } from '@mcthaydt/automata-sim'
 import { Context, Effect, type Scope } from 'effect'
 import type { GlyphFamily } from '../input/gamepad/glyph-family.js'
@@ -24,6 +25,12 @@ export interface RuntimeFacts {
   readonly 'input.pad.disconnected': PadInfo & { readonly wasActive: boolean }
   /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
   readonly 'render.filter.dropped': { readonly id: string; readonly reason: string }
+  /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
+  readonly 'save.written': { readonly key: string; readonly slot: number }
+  /** The host refused a slot's write; the slot keeps its previous value (M5 spec §4.3, §6). */
+  readonly 'save.failed': { readonly key: string; readonly slot: number; readonly code: ErrorCode }
+  /** A slot was loaded for play (M5 spec §5, "Load a slot"). */
+  readonly 'save.loaded': { readonly key: string; readonly slot: number }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {

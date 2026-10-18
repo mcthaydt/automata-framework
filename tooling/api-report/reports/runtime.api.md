@@ -157,6 +157,12 @@ function createT<Messages extends Record<string, unknown>>(messages: Messages): 
 const DEFAULT_QUALITY: QualityTier;
 ```
 
+### `defineSave` (function)
+
+```ts
+function defineSave<S>(def: SaveDef<S>): SaveDef<S>;
+```
+
 ### `DisplaySettings` (interface)
 
 ```ts
@@ -389,6 +395,17 @@ interface InputProfileInput {
 
 ```ts
 const inputProfileSchema: z.ZodType<InputProfile, InputProfileInput>;
+```
+
+### `Loaded` (interface)
+
+```ts
+interface Loaded<S> {
+    readonly slot: number;
+    readonly data: S;
+    readonly meta: SlotMeta | undefined;
+    readonly snapshot?: Uint8Array;
+}
 ```
 
 ### `LoadMeter` (interface)
@@ -636,6 +653,19 @@ interface RuntimeFacts {
         readonly id: string;
         readonly reason: string;
     };
+    readonly 'save.written': {
+        readonly key: string;
+        readonly slot: number;
+    };
+    readonly 'save.failed': {
+        readonly key: string;
+        readonly slot: number;
+        readonly code: ErrorCode;
+    };
+    readonly 'save.loaded': {
+        readonly key: string;
+        readonly slot: number;
+    };
 }
 ```
 
@@ -664,6 +694,126 @@ interface RuntimeSeams {
 
 ```ts
 type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale;
+```
+
+### `Save` (interface)
+
+```ts
+interface Save<S> {
+    readonly slots: Subscribable.Subscribable<readonly SlotState[]>;
+    load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
+    write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>;
+    remove(slot: number): Effect.Effect<void, HostError>;
+}
+```
+
+### `SaveDef` (interface)
+
+```ts
+interface SaveDef<S> {
+    readonly key: string;
+    readonly version: number;
+    readonly schema: z.ZodType<S>;
+    readonly empty: () => S;
+    readonly migrations: Readonly<Record<number, SaveMigration>>;
+    readonly slots?: {
+        readonly count: number;
+    };
+}
+```
+
+### `SaveEnvelope` (interface)
+
+```ts
+interface SaveEnvelope {
+    readonly format: 1;
+    readonly version: number;
+    readonly contentHash: string;
+    readonly savedAt: number;
+    readonly label?: string;
+    readonly data: Record<string, unknown>;
+    readonly snapshot?: string;
+}
+```
+
+### `SaveFromNewerBuild` (class)
+
+```ts
+class SaveFromNewerBuild extends SaveFromNewerBuildBase {
+}
+```
+
+### `SaveFromNewerBuildFields` (interface)
+
+```ts
+interface SaveFromNewerBuildFields {
+    readonly key: string;
+    readonly slot: number;
+    readonly version: number;
+}
+```
+
+### `SaveMigration` (type)
+
+```ts
+type SaveMigration = (record: Record<string, unknown>) => Record<string, unknown>;
+```
+
+### `SaveRefused` (class)
+
+```ts
+class SaveRefused extends SaveRefusedBase {
+}
+```
+
+### `SaveRefusedFields` (interface)
+
+```ts
+interface SaveRefusedFields {
+    readonly key: string;
+    readonly slot: number;
+    readonly reason: 'newer';
+}
+```
+
+### `saveService` (function)
+
+```ts
+function saveService<S>(def: SaveDef<S>, options: SaveServiceOptions): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus>;
+```
+
+### `SaveServiceOptions` (interface)
+
+```ts
+interface SaveServiceOptions {
+    readonly contentHash: string;
+}
+```
+
+### `SaveUnreadable` (class)
+
+```ts
+class SaveUnreadable extends SaveUnreadableBase {
+}
+```
+
+### `SaveUnreadableFields` (interface)
+
+```ts
+interface SaveUnreadableFields {
+    readonly key: string;
+    readonly slot: number;
+    readonly reason: string;
+}
+```
+
+### `SaveWriteOptions` (interface)
+
+```ts
+interface SaveWriteOptions {
+    readonly label?: string;
+    readonly snapshot?: Uint8Array;
+}
 ```
 
 ### `ScreenContext` (interface)
@@ -732,6 +882,43 @@ interface SettingsStore<S> {
 
 ```ts
 function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>;
+```
+
+### `SlotMeta` (interface)
+
+```ts
+interface SlotMeta {
+    readonly version: number;
+    readonly contentHash: string;
+    readonly savedAt: number;
+    readonly label?: string;
+    readonly snapshot: boolean;
+}
+```
+
+### `SlotState` (type)
+
+```ts
+type SlotState = {
+    readonly kind: 'empty';
+    readonly slot: number;
+} | {
+    readonly kind: 'ready';
+    readonly slot: number;
+    readonly meta: SlotMeta;
+} | {
+    readonly kind: 'unreadable';
+    readonly slot: number;
+    readonly reason: string;
+} | {
+    readonly kind: 'newer';
+    readonly slot: number;
+    readonly version: number;
+} | {
+    readonly kind: 'other-content';
+    readonly slot: number;
+    readonly meta: SlotMeta;
+};
 ```
 
 ### `SLOW_MS` (const)

@@ -52,6 +52,19 @@ describe('shutting Hosting down (audit of PR #5)', () => {
     )
   })
 
+  it('ends the saves changed stream when Hosting shuts down (M5 spec §4.1)', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const { hosting, scope } = yield* openHosting()
+        const reader = yield* Effect.fork(Stream.runCollect(hosting.saves.changed))
+        yield* settled
+        yield* Scope.close(scope, Exit.void)
+        // No other device wrote: the stream ends empty.
+        expect(Chunk.size(yield* Fiber.join(reader))).toBe(0)
+      }),
+    )
+  })
+
   it('fails saves and requests on a shut-down Hosting with a typed HostError instead of dropping them', async () => {
     await runScoped(
       Effect.gen(function* () {
@@ -62,6 +75,7 @@ describe('shutting Hosting down (audit of PR #5)', () => {
           hosting.saves.get('progress'),
           hosting.saves.remove('progress'),
           hosting.saves.flush,
+          hosting.saves.keys,
           hosting.setFullscreen(true),
           hosting.exit(),
         ] as Effect.Effect<unknown, unknown>[]) {
