@@ -5,7 +5,7 @@
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 1 of 11 steps.
+- **Progress:** 2 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -134,11 +134,12 @@ The default play screen renders the extensions' `hud.overlay` components in its 
 Each step starts with its test, run red, with the failure reason recorded. The pre-commit hook runs the affected tests, so each red test is committed with its fix.
 
 - [x] **1. This plan,** plus the 02 follow-up row (orientation consistency). *Verify:* `pnpm format`.
-- [ ] **2. Standalone fullscreen** (`ui/src/browser/fullscreen.test.ts`).
+- [x] **2. Standalone fullscreen** (`ui/src/browser/fullscreen.test.ts`).
   - *Red:*
     - support is `element` with `requestFullscreen`, `ios-home-screen` on an iPhone in Safari, and `none` from the Home Screen or without the API;
     - `isFullscreen` and `onFullscreenChange` follow the document;
     - `enterFullscreen` requests it and a landscape lock, and swallows a refusal of either.
+  - *Done: red `Failed to resolve import "./fullscreen"`, then 6 of 6 green. `enterFullscreen` takes the `Screen` as a parameter, so the lock is testable.*
 - [ ] **3. `LandscapeGate`** (`ui/src/display/landscape-gate.svelte.test.ts`).
   - *Red:*
     - nothing at `none`;
