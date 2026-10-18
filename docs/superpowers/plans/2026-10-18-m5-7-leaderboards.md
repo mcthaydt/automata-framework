@@ -3,7 +3,7 @@
 - **Task:** M5.7 in [02](../../02-master-delivery-plan.md). M5 spec [§4.8](../specs/2026-10-16-m5-saves-audio-design.md), §6 (the leaderboard rows), §7 (`LeaderboardPanel`), §8, §9. Acceptance L-a, L-b.
 - **Lane:** runtime and ui, with the game lane as the consumer and ship and cli for the board check. **Depends on:** M5.0 (Owner-approved 2026-10-16) and PRODUCT.1 (merged: `Hosting.leaderboards`).
 - **Status:** Planned 2026-10-18.
-- **Progress:** 2 of 9 steps.
+- **Progress:** 3 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -46,7 +46,8 @@
   - *Plan written from the M5 spec, FloorFifty ac72660 (score-boards.ts, scores.ts, scores-hosted.test.ts) and the vendored SDK; 02 row linked; 03 updated.*
 - [x] **2. Board states from host answers.** `packages/runtime/src/leaderboards/board-state.ts`: map `LeaderboardSubmitRes` and `HostError` codes to `BoardState`. Unit tests cover every row of the contract.
   - *Red: the test failed to resolve ./board-state.js (no module). Green: board-state.ts; 12 unit tests (accepted with and without rank, refused, every Ruken error code); runtime tsc clean. The submit answer type comes from Hosting.leaderboards, so runtime takes no @ruken/sdk dependency.*
-- [ ] **3. The `Leaderboards` service under the fake host.** `leaderboards.manager.ts` over `Hosting` with `@ruken/sdk-host/testing`:
+- [x] **3. The `Leaderboards` service under the fake host.** `leaderboards.manager.ts` over `Hosting` with `@ruken/sdk-host/testing`:
+  - *Red: leaderboards.test.ts failed to resolve ./leaderboards.manager.js. Green: makeLeaderboards over Hosting.leaderboards, the leaderboard.submitted fact; under the fake host: accepted with personalBest and rank (L-a), offline keeps nothing and reads offline (L-b, runtime half), no grant is unavailable and sends nothing, 1.5/NaN/Infinity refused before the host; 18 tests, runtime tsc clean.*
   - L-a: a declared board returns `accepted` with `personalBest`;
   - offline is `offline` and keeps no local score (a later `readBoard` while offline is `offline`, not a cached entry);
   - no grant is `unavailable` and sends nothing;
