@@ -189,6 +189,80 @@ function collapseLevel(available: number, widths: readonly [number, number, numb
 const COMPACT_MAX_HEIGHT = 340;
 ```
 
+### `ControlsCopy` (interface)
+
+```ts
+interface ControlsCopy {
+    readonly title: string;
+    readonly keyboard: string;
+    readonly gamepad: string;
+    readonly reset: string;
+    readonly press: string;
+    readonly touchMode: string;
+    readonly touchModes: Readonly<Record<ControlsTouchMode, string>>;
+    rebind(action: string, device: string): string;
+    capturing(action: string, device: string, secondsLeft: number): string;
+    conflict(action: string, other: string): string;
+    reserved(action: string): string;
+    timedOut(action: string): string;
+    saved(action: string): string;
+}
+```
+
+### `controlsMessage` (function)
+
+```ts
+function controlsMessage(state: ControlsState, copy: ControlsCopy, labelOf: (action: string) => string): string;
+```
+
+### `ControlsRow` (interface)
+
+```ts
+interface ControlsRow {
+    readonly id: string;
+    readonly label: string;
+    readonly binding: PromptBinding;
+}
+```
+
+### `ControlsSection` (svelte)
+
+```ts
+component from './settings/ControlsSection.svelte'
+```
+
+### `ControlsState` (type)
+
+```ts
+type ControlsState = {
+    readonly kind: 'list';
+} | {
+    readonly kind: 'capturing';
+    readonly action: string;
+    readonly device: RebindDevice;
+    readonly secondsLeft: number;
+} | {
+    readonly kind: 'conflict';
+    readonly action: string;
+    readonly with: string;
+} | {
+    readonly kind: 'reserved';
+    readonly action: string;
+} | {
+    readonly kind: 'timed-out';
+    readonly action: string;
+} | {
+    readonly kind: 'saved';
+    readonly action: string;
+};
+```
+
+### `ControlsTouchMode` (type)
+
+```ts
+type ControlsTouchMode = 'buttons' | 'swipe';
+```
+
 ### `CornerControls` (svelte)
 
 ```ts
@@ -254,6 +328,35 @@ type DeviceClass = 'phone' | 'tablet' | 'desktop';
 
 ```ts
 component from './dialog/Dialog.svelte'
+```
+
+### `DISPLAY_QUALITIES` (const)
+
+```ts
+const DISPLAY_QUALITIES: readonly DisplayQuality[];
+```
+
+### `DisplayCopy` (interface)
+
+```ts
+interface DisplayCopy {
+    readonly title: string;
+    readonly quality: string;
+    readonly qualities: Readonly<Record<DisplayQuality, string>>;
+    reducedMotion(reduced: boolean): string;
+}
+```
+
+### `DisplayQuality` (type)
+
+```ts
+type DisplayQuality = 'high' | 'medium' | 'low';
+```
+
+### `DisplaySection` (svelte)
+
+```ts
+component from './settings/DisplaySection.svelte'
 ```
 
 ### `ErrorAction` (interface)
@@ -542,6 +645,12 @@ function isDuckDuckGo(nav: object): boolean;
 function isTap(dx: number, dy: number): boolean;
 ```
 
+### `keyLabel` (function)
+
+```ts
+function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
+```
+
 ### `landscapeGate` (function)
 
 ```ts
@@ -670,6 +779,18 @@ const PAD_FOCUS: FocusOptions;
 
 ```ts
 const padKeyEvents: WeakSet<Event>;
+```
+
+### `padLabel` (function)
+
+```ts
+function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): string;
+```
+
+### `PadWord` (type)
+
+```ts
+type PadWord = 'bottom' | 'right' | 'left' | 'top' | 'leftBumper' | 'rightBumper' | 'leftTrigger' | 'rightTrigger' | 'select' | 'start' | 'leftStick' | 'rightStick' | 'home';
 ```
 
 ### `PAGE_SWIPE` (const)
@@ -801,6 +922,71 @@ interface PointerTracker {
 function probeEnvSafeArea(root: HTMLElement): Insets;
 ```
 
+### `Prompt` (svelte)
+
+```ts
+component from './prompts/Prompt.svelte'
+```
+
+### `PromptBinding` (interface)
+
+```ts
+interface PromptBinding {
+    readonly keys: readonly string[];
+    readonly pad: readonly number[];
+    readonly touch: boolean;
+}
+```
+
+### `PromptCopy` (interface)
+
+```ts
+interface PromptCopy {
+    readonly unbound: string;
+    readonly touch: string;
+    readonly pad: Readonly<Record<PadWord, string>>;
+}
+```
+
+### `PromptDevice` (type)
+
+```ts
+type PromptDevice = 'keyboard' | 'gamepad' | 'touch';
+```
+
+### `PromptGlyphs` (type)
+
+```ts
+type PromptGlyphs = 'xbox' | 'playstation' | 'generic';
+```
+
+### `PromptView` (type)
+
+```ts
+type PromptView = {
+    readonly kind: 'key' | 'pad' | 'touch' | 'unbound';
+    readonly label: string;
+};
+```
+
+### `promptView` (function)
+
+```ts
+function promptView(binding: PromptBinding, device: PromptDevice, glyphs: PromptGlyphs, copy: PromptCopy, layout?: ReadonlyMap<string, string>): PromptView;
+```
+
+### `readKeyboardLayout` (function)
+
+```ts
+function readKeyboardLayout(nav: Navigator): Promise<ReadonlyMap<string, string> | undefined>;
+```
+
+### `RebindDevice` (type)
+
+```ts
+type RebindDevice = 'keyboard' | 'gamepad';
+```
+
 ### `Rect` (interface)
 
 ```ts
@@ -873,6 +1059,22 @@ function scrollWithin(element: HTMLElement): void;
 
 ```ts
 function sendBack(doc: Document): boolean;
+```
+
+### `SettingsScreen` (svelte)
+
+```ts
+component from './settings/SettingsScreen.svelte'
+```
+
+### `SettingsSection` (type)
+
+```ts
+type SettingsSection = {
+    readonly snippet: Snippet;
+} | {
+    readonly component: UiComponent;
+};
 ```
 
 ### `SETTLE_DELAYS_MS` (const)

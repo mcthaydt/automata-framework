@@ -1,32 +1,28 @@
 import '@mcthaydt/automata-ui/theme.css'
 import './screens.css'
-import { Hosting } from '@mcthaydt/automata-host'
 import {
   AppLoop,
+  displaySettingsSchema,
   Flow,
-  type InputProfile,
+  inputSettingsSchema,
   Leaderboards,
   makeInput,
   PresentationBus,
+  type QualityTier,
   type ScreenDef,
+  Settings,
   SwipeTracker,
   Time,
 } from '@mcthaydt/automata-runtime'
+import type { ExtensionDef } from '@mcthaydt/automata-runtime/extension'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import {
-  CursorRunner,
-  FocusNavigator,
-  InputMethodTracker,
-  interceptBackGesture,
-  type LeaderboardCopy,
-  sendBack,
-} from '@mcthaydt/automata-ui'
-import { Effect, type Scope, SubscriptionRef } from 'effect'
-import { type Component, flushSync, mount, unmount } from 'svelte'
+import { CursorRunner, InputMethodTracker, type LeaderboardCopy, sendBack } from '@mcthaydt/automata-ui'
+import { Effect, SubscriptionRef } from 'effect'
 import type { InputMap } from '../input/keys.ts'
-import { menuInput } from './menu-input.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
+import { backGesture, driveMenu, listen, NO_BINDINGS, plain, show, windowOf } from './screen-kit.ts'
+import { settingsScreen } from './settings-screen.svelte.ts'
 import TitleScreen from './TitleScreen.svelte'
 
 /** What the default screens need from the game. */
@@ -43,6 +39,10 @@ export interface ScreensGame {
   readonly watchSim?: ((sim: Sim | undefined) => void) | undefined
   /** The board paused shows: the game's first scored board (M5.7). None: paused shows no board. */
   readonly board?: string | undefined
+  /** Applies the player's graphics quality to the stage (M4.4): the saved one at the title, then each choice. */
+  readonly setQuality?: ((tier: QualityTier) => void) | undefined
+  /** The game's extensions, whose `settings.sections` slot the Settings screen shows. */
+  readonly extensions?: readonly ExtensionDef[] | undefined
 }
 
 /** The board's words on the default paused screen. English, like the other default screens' words (02 follow-up). */
@@ -56,100 +56,12 @@ const BOARD_COPY: LeaderboardCopy = {
   more: (count) => `+${count} more`,
 }
 
-/** A game without an input map still pauses with Escape and the pad's Start: the menu actions need no profile. */
-const NO_BINDINGS: InputProfile = { id: 'none', bindings: {} }
-
-/** Mounts a screen component into the screen's layer for as long as the screen is open. */
-function show<Props extends Record<string, unknown>>(
-  component: Component<Props>,
-  target: HTMLElement,
-  props: Props,
-): Effect.Effect<void, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => {
-      const instance = mount(component, { target, props })
-      // Rendered now, so the flow's focus step (runtime flow step 7) finds the primary action.
-      flushSync()
-      return instance
-    }),
-    (instance) => Effect.promise(() => unmount(instance)),
-  ).pipe(Effect.asVoid)
-}
-
-/** A window listener for as long as the screen is open. */
-function listen(
-  target: Window,
-  type: 'keydown',
-  listener: (event: KeyboardEvent) => void,
-): Effect.Effect<void, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => target.addEventListener(type, listener)),
-    () => Effect.sync(() => target.removeEventListener(type, listener)),
-  )
-}
+const asRecord = (value: unknown): Record<string, unknown> =>
+  value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {}
 
 /**
- * A menu's controller and arrow keys while it is open (M4 spec §4.7): an Input in the `menu` context, read each
- * animation frame, steers a `FocusNavigator`. The navigator's guard is armed for the screen change (F-a), so an Enter
- * held from the last screen does not click this one's focused button.
- */
-function driveMenu(target: Window): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
-  return Effect.gen(function* () {
-    const bus = yield* PresentationBus
-    const input = yield* makeInput({ target, profile: NO_BINDINGS, bus })
-    input.setContext('menu')
-    const navigator = new FocusNavigator()
-    const menu = menuInput(input, navigator)
-    yield* Effect.acquireRelease(
-      Effect.sync(() => {
-        const detach = navigator.attach(target)
-        navigator.guard()
-        let frame: number | undefined
-        if (typeof target.requestAnimationFrame === 'function') {
-          const poll = (nowMs: number): void => {
-            menu.poll(nowMs)
-            frame = target.requestAnimationFrame(poll)
-          }
-          frame = target.requestAnimationFrame(poll)
-        }
-        return () => {
-          if (frame !== undefined) target.cancelAnimationFrame(frame)
-          menu.stop()
-          detach()
-        }
-      }),
-      (stop) => Effect.sync(stop),
-    )
-  })
-}
-
-/**
- * The system back gesture (an edge swipe, a mouse's back button) as the screen's Back while it is open (M4 spec §4.7).
- * Standalone only: hosted, the host owns system back (M4-D10, Ruken request R-2), so nothing is added to history.
- */
-function backGesture(
-  target: Window,
-  onBack: () => boolean,
-): Effect.Effect<void, never, Scope.Scope | Hosting> {
-  return Effect.gen(function* () {
-    const hosting = yield* Hosting
-    if (hosting.kind !== 'standalone') return
-    yield* Effect.acquireRelease(
-      Effect.sync(() => interceptBackGesture(target, onBack)),
-      (stop) => Effect.sync(stop),
-    )
-  })
-}
-
-const windowOf = (layer: HTMLElement): Window => layer.ownerDocument.defaultView ?? window
-
-/** A plain key press, not one held down repeating, nor one with a modifier the browser may own. */
-const plain = (event: KeyboardEvent): boolean =>
-  !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey
-
-/**
- * The title, play and paused screens (DX spec §7) over the default content's flow
- * (`title → play ⇄ paused → title`).
+ * The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow
+ * (`title → play ⇄ paused → title`, `paused ⇄ settings`).
  *
  * The screens share one sim: play creates it on first entry (seed, plugins, content, then `setup`),
  * paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. Returning
@@ -174,6 +86,14 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
       Effect.gen(function* () {
         dropSim()
         const flow = yield* Flow
+        // The player's saved quality reaches the stage before play draws anything (M4.4).
+        const { store } = yield* Settings
+        if (game.setQuality !== undefined && store !== undefined)
+          game.setQuality(
+            displaySettingsSchema
+              .catch(() => ({ quality: 'high' as const }))
+              .parse(asRecord(store.get()).display).quality,
+          )
         const target = windowOf(layer)
         const play = (): void => void flow.dispatch('play')
         yield* show(TitleScreen, layer, { title: game.title, onPlay: play })
@@ -219,7 +139,10 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         // The Input service for this play session (M4 spec §4.2): sampled once per fixed step, closed with the screen.
         const map = game.input
         const bus = yield* PresentationBus
-        const input = yield* makeInput({ target, profile: map?.profile ?? NO_BINDINGS, bus })
+        // The player's bindings and touch mode, from the settings (M4.4).
+        const { store } = yield* Settings
+        const input = yield* makeInput({ target, profile: map?.profile ?? NO_BINDINGS, bus, settings: store })
+        const touchMode = inputSettingsSchema.parse(asRecord(store?.get()).input).touchMode ?? map?.touchMode
         const running = current
         game.watchSim?.(running)
         // An idle pointer hides while playing (M4 spec §4.7); leaving play detaches it and shows the pointer again.
@@ -277,7 +200,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           touchButtons: game.input?.touch === false ? [] : (game.input?.touchButtons ?? []),
           onHold: (id: string) => input.hold(id),
           onRelease: (id: string) => input.release(id),
-          swipe: game.input?.touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
+          swipe: touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
         })
       }),
   }
@@ -310,7 +233,14 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           game.board === undefined
             ? undefined
             : { copy: BOARD_COPY, load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
-        yield* show(PausedScreen, layer, { onResume: resume, onQuit: quit, message, board })
+        const settings = (): void => void flow.dispatch('settings')
+        yield* show(PausedScreen, layer, {
+          onResume: resume,
+          onQuit: quit,
+          onSettings: settings,
+          message,
+          board,
+        })
         yield* listen(target, 'keydown', (event) => {
           if (event.code !== 'Escape' || event.repeat) return
           event.preventDefault()
@@ -321,5 +251,5 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
       }),
   }
 
-  return [title, play, paused]
+  return [title, play, paused, settingsScreen(game)]
 }

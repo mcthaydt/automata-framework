@@ -419,6 +419,12 @@
 - `CollapseLevel` (type)
 - `collapseLevel(available, widths)`: The first level whose one-row width fits.
 - `COMPACT_MAX_HEIGHT` (const): Below this, compact: what a browser leaves a sideways phone (780 x 270 Chrome on a Galaxy, 667 x 320 Safari on an SE).
+- `ControlsCopy` (interface): Every word the Controls section shows, in the game's language.
+- `controlsMessage(state, copy, labelOf)`: The section's status line for `state`, with actions by their labels; empty in the list.
+- `ControlsRow` (interface): One game action in the Controls section: its id, its name and its bindings now.
+- `ControlsSection` (const): The Controls section of Settings (M4 spec §4.5, §7): a row per game action, its label and a rebind button for each device the player can use, the button showing that device's prompt.
+- `ControlsState` (type): Where a rebind is: the list; waiting for a press (with the seconds left); refused because it would leave `with` unbound; refused as reserved; timed out; or saved.
+- `ControlsTouchMode` (type): How touch drives play (runtime's `TouchMode`).
 - `CornerControls` (const)
 - `createGeometryOwner(options)`
 - `CURSOR_IDLE_MS` (const): How long the pointer must be still before it hides on a gameplay screen.
@@ -427,6 +433,10 @@
 - `CursorRunner` (class): Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the element's `cursor` style.
 - `DeviceClass` (type)
 - `Dialog` (const)
+- `DISPLAY_QUALITIES` (const): The tiers the Display section offers, best first.
+- `DisplayCopy` (interface): Every word the Display section shows, in the game's language.
+- `DisplayQuality` (type): A graphics quality tier (runtime's `QualityTier`).
+- `DisplaySection` (const): The Display section of Settings (M4 spec §4.8, §7): the graphics quality tier as an option group (a pad's `adjust` cycles it), and reduced motion as the browser reports it.
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
 - `ErrorCode` (type): Ruken's error code.
 - `ErrorPanel` (const)
@@ -457,6 +467,7 @@
 - `interceptBackGesture(win, onBack)`: Holds the game's history entry and turns a back step off it into `onBack`.
 - `isDuckDuckGo(nav)`: DuckDuckGo names itself only in the client-hint brands, not the user agent.
 - `isTap(dx, dy)`: Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
+- `keyLabel(code, layout?)`: A key's label: the keyboard layout's own (`navigator.keyboard.getLayoutMap()`, a letter in capitals) when there is one, else its `code` without the `Key` and `Digit` prefixes, an arrow as its arrow.
 - `landscapeGate(inputs)`
 - `LandscapeGateState` (type): Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
 - `LeaderboardCopy` (interface): Every word the panel shows, in the game's language.
@@ -473,6 +484,8 @@
 - `OptionGroup` (const): A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `PAD_FOCUS` (const): How the navigator focuses: with a ring, and without scrolling the page.
 - `padKeyEvents` (const): Keydown events the navigator sent itself.
+- `padLabel(button, glyphs, copy)`: A standard-mapping pad button's label on a pad of `glyphs`.
+- `PadWord` (type): The pad buttons known by a word, for a pad whose labels are not known.
 - `PAGE_SWIPE` (const): Swipe is the pagination on a paged region, on every form factor: a finger, a mouse drag, a trackpad's two-finger sideways swipe.
 - `PagedGrid` (const): A grid of items in pages that never scrolls (M4 spec §4.8; the page arithmetic of FloorFifty `ui/tile-pages.ts` at `ac72660`).
 - `PagedGridProps` (interface): PagedGrid's props: groups of items, the most columns and rows a page has, and the page its owner shows.
@@ -487,6 +500,15 @@
 - `PointerLatch` (class): Which fingers are down on which action.
 - `PointerTracker` (interface): What a SwipeSurface drives: runtime's `SwipeTracker` satisfies it, so ui need not import runtime.
 - `probeEnvSafeArea(root)`: Reads `env(safe-area-inset-*)` through a hidden probe, since script cannot read `env()` directly.
+- `Prompt` (const): A device prompt (M4 spec §4.6): the label of an action's input on the device in the player's hand, a key, a pad button or the touch label, or "Unbound".
+- `PromptBinding` (interface): What drives one action (runtime's `InputBinding`, the fields a prompt reads).
+- `PromptCopy` (interface): Every word a prompt shows, in the game's language.
+- `PromptDevice` (type): The device a prompt is for (runtime's `InputDevice`).
+- `PromptGlyphs` (type): The labels a pad's buttons carry (runtime's `GlyphFamily`).
+- `PromptView` (type): What a prompt shows: its kind (`data-prompt`) and its label.
+- `promptView(binding, device, glyphs, copy, layout?)`: What a prompt shows for `binding` on `device`: its first input there, or Unbound.
+- `readKeyboardLayout(nav)`: The keyboard's layout map where the browser has one (`navigator.keyboard`, Chromium), or undefined: where the browser has none or refuses (a cross-origin frame may), prompts name keys by their `code` (M4 spec §6).
+- `RebindDevice` (type): A device a player can rebind (touch buttons and gestures are the game's).
 - `Rect` (interface)
 - `reducedMotion(win?)`: Whether the player has asked for less movement.
 - `releaseStep(dx, dtMs, pageWidth)`: Pages to turn when a drag of `dx` px over `dtMs` is released: a swipe left is +1 (next).
@@ -498,6 +520,8 @@
 - `ScrollList` (const)
 - `scrollWithin(element)`: Brings `element` into view by scrolling its nearest scroll box, never the document.
 - `sendBack(doc)`: Sends Back as an Escape to wherever a dialog would hear it, and reports whether anything took it.
+- `SettingsScreen` (const): The core Settings screen (M4 spec §4.8, M4-D8): the screen frame with Back in its corner row, the title, and the sections as rows of one scroll list, so on a short screen the list scrolls and Back stays put.
+- `SettingsSection` (type): A section of the Settings screen: the screen's own snippet, or an extension's slot component.
 - `SETTLE_DELAYS_MS` (const): When to measure again after a viewport event, in ms.
 - `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `SHORT_MAX_HEIGHT` (const): At or below this many CSS px of layout height, a screen is short.

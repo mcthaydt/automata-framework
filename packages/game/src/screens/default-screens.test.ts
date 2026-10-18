@@ -5,6 +5,7 @@ import {
   type RuntimeHandle,
   runGame,
 } from '@mcthaydt/automata-runtime'
+import { defineExtension } from '@mcthaydt/automata-runtime/extension'
 import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
 import {
   defineCommand,
@@ -23,6 +24,7 @@ import { z } from 'zod'
 import { type DefinedGame, defineGame, type GameSpec } from '../define-game.ts'
 import { keys } from '../input/keys.ts'
 import { defaultScreens } from './default-screens.ts'
+import SettingsExtension from './SettingsExtension.test.svelte'
 
 // The default title, play and paused screens (DX spec §7), booted by the real runtime in jsdom: standalone
 // hosting, manual frames and a renderer that records what it is given (Pixi needs WebGL, which jsdom lacks).
@@ -238,6 +240,121 @@ describe('default screens', () => {
     step()
     expect(results[0]?.tick).toBe(1)
     expect(lastX()).toBe(10)
+  })
+
+  describe('the Settings screen (M4 spec §4.5, §4.8, M4.4)', () => {
+    // Standalone, the SDK keeps saves in localStorage under `ruken:<game id>:`.
+    const saved = () => JSON.parse(localStorage.getItem('ruken:screens-test:settings') ?? 'null')
+    const settingsScreen = () => screen('settings')
+    const row = (action: string) => root.querySelector<HTMLElement>(`[data-control-row="${action}"]`)
+    const rebind = (action: string) =>
+      row(action)?.querySelector<HTMLButtonElement>('[data-rebind="keyboard"]')
+    const controlsState = () =>
+      root.querySelector<HTMLElement>('[data-settings-section="controls"]')?.dataset.state
+    beforeEach(() => localStorage.clear())
+
+    async function toSettings(spec: Partial<GameSpec> = {}, withInput = true): Promise<void> {
+      await boot(spec, withInput)
+      await toPlay()
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+      // Focus first, as a real click or key press does (jsdom's click() does not): the flow remembers it (F-b).
+      button('settings')?.focus()
+      button('settings')?.click()
+      await until(() => settingsScreen() !== null, 'the settings screen')
+    }
+
+    it('opens from paused; Back returns to paused with focus on Settings (F-b)', async () => {
+      await toSettings()
+      button('corner-back')?.click()
+      await until(() => screen('paused') !== null, 'paused again')
+      await until(() => document.activeElement === button('settings'), 'focus on Settings')
+    })
+
+    it('lists the input map’s actions with their keyboard prompts', async () => {
+      await toSettings()
+      expect(row('move-0')?.textContent).toContain('move x -1')
+      expect(rebind('move-0')?.textContent?.trim()).toBe('←')
+      expect(rebind('move-1')?.textContent?.trim()).toBe('→')
+    })
+
+    it('rebinds a key: saved through the host, shown at once, and driving the next play (I-h)', async () => {
+      await toSettings()
+      rebind('move-1')?.click()
+      await until(() => controlsState() === 'capturing', 'the capture')
+      press('KeyD')
+      await until(() => controlsState() === 'saved', 'the saved rebind')
+      expect(rebind('move-1')?.textContent?.trim()).toBe('D')
+      expect(saved()).toMatchObject({
+        input: { profile: 'move', overrides: { 'move-1': { keys: ['KeyD'] } } },
+      })
+      press('Escape')
+      await until(() => screen('paused') !== null, 'paused again')
+      button('resume')?.click()
+      await until(() => screen('play') !== null, 'play again')
+      step()
+      const before = lastX() ?? 0
+      press('KeyD')
+      step(2)
+      expect(lastX()).toBe(before + 2)
+    })
+
+    it('cancels a capture on Escape and stays on Settings (I-k)', async () => {
+      await toSettings()
+      rebind('move-0')?.click()
+      await until(() => controlsState() === 'capturing', 'the capture')
+      press('Escape')
+      await until(() => controlsState() === 'list', 'the list')
+      expect(settingsScreen()).not.toBeNull()
+      expect(saved()?.input?.overrides ?? {}).toEqual({})
+    })
+
+    it('refuses a reserved key and says so', async () => {
+      await toSettings()
+      rebind('move-0')?.click()
+      await until(() => controlsState() === 'capturing', 'the capture')
+      press('Tab')
+      await until(() => controlsState() === 'reserved', 'the refusal')
+      expect(rebind('move-0')?.textContent?.trim()).toBe('←')
+    })
+
+    it('saves the quality and gives it to the stage', async () => {
+      const setQuality = vi.fn()
+      const sim = {
+        plugins: [square],
+        seed: 3,
+        setup: (made: Sim) => {
+          sims.push(made)
+          made.spawn([[Body, { x: 10 }]])
+        },
+      }
+      await toSettings({
+        screens: defaultScreens({
+          title: 'Square',
+          sim,
+          input: keys(Move, { ArrowLeft: { x: -1 } }),
+          setQuality,
+        }),
+      })
+      root.querySelector<HTMLInputElement>('[data-testid="quality-low"] input, input[value="low"]')?.click()
+      await until(() => saved()?.display?.quality === 'low', 'the saved quality')
+      expect(setQuality).toHaveBeenLastCalledWith('low')
+    })
+
+    it('shows an extension’s settings.sections component', async () => {
+      await toSettings({
+        extensions: [
+          defineExtension({ name: 'test-extra', ui: { slots: { 'settings.sections': SettingsExtension } } }),
+        ],
+      })
+      expect(root.querySelector('[data-settings-section="extension-test"]')).not.toBeNull()
+    })
+
+    it('has no Controls section for a game without an input map, and still its Display', async () => {
+      await toSettings({}, false)
+      expect(root.querySelector('[data-settings-section="controls"]')).toBeNull()
+      expect(root.querySelector('[data-settings-section="display"]')).not.toBeNull()
+    })
   })
 
   describe('the system back gesture (M4 spec §4.7, F-c)', () => {

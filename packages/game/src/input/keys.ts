@@ -50,6 +50,8 @@ export interface InputMap {
    * pad buttons and whether it has a touch button. Rebinding swaps the profile and never the command mapping.
    */
   readonly profile: InputProfile
+  /** Each action's name, as the Settings screen's Controls section lists it (M4.4). */
+  readonly labels: Readonly<Record<string, string>>
   /** Pure: the one command for the held actions, merged in iteration order (a later action wins per field). */
   toCommand(held: Iterable<string>, tick: number): readonly Command[]
   attach(target: Window): InputSource
@@ -73,6 +75,11 @@ export interface KeysOptions<Z extends z.ZodType> {
   readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>
   /** The payload with nothing held. Default: the schema's own defaults (`schema.parse({})`), when it has them. */
   readonly idle?: z.input<Z>
+  /**
+   * Action names for the Controls section, by any of the action's default keys: `{ Space: 'Jump' }`. Default: the
+   * command and payload (`move x -1`).
+   */
+  readonly labels?: Readonly<Record<string, string>>
 }
 
 const KEY_LABELS: Readonly<Record<string, string>> = {
@@ -174,6 +181,15 @@ export function keys<Z extends z.ZodType>(
     .filter((action) => action.keys.length > 0)
     .map((action) => ({ id: action.id, label: labelFor(action.keys[0] as string), keys: action.keys }))
   const payloadOf = new Map(actions.map((action) => [action.id, action.payload]))
+  const labels = Object.fromEntries(
+    actions.map((action) => {
+      const named = action.keys.map((code) => options.labels?.[code]).find((label) => label !== undefined)
+      const fields = Object.entries(asRecord(action.payload)).map(
+        ([field, value]) => `${field} ${String(value)}`,
+      )
+      return [action.id, named ?? [command.id, ...fields].join(' ')]
+    }),
+  )
 
   /** The parsed payload for payloads merged in order over the idle payload; undefined when the schema refuses it. */
   const merge = (payloads: readonly unknown[]): unknown => {
@@ -203,6 +219,7 @@ export function keys<Z extends z.ZodType>(
     touchButtons,
     touchMode,
     profile,
+    labels,
     toCommand,
     attach(target) {
       // The Input service over `target`, in a scope of its own that `dispose` closes. Nothing here listens to

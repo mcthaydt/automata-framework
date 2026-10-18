@@ -1,4 +1,4 @@
-import { BootDefect, type ScreenDef } from '@mcthaydt/automata-runtime'
+import { BootDefect, CORE_SETTINGS, type ScreenDef, type SettingsDef } from '@mcthaydt/automata-runtime'
 import { defineComponent, defineEvent, definePlugin } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
 import { Container } from 'pixi.js'
@@ -32,13 +32,27 @@ describe('defineGame defaults (DX spec §3.1)', () => {
     document.body.replaceChildren()
   })
 
-  it('hosts under the game id, asks for nothing and pauses with the host', () => {
-    expect(defineGame(spec).hosting).toEqual({ gameId: 'my-game', wants: [], pauseBehavior: 'pause' })
+  it('hosts under the game id, asks for saves (its settings) and pauses with the host', () => {
+    expect(defineGame(spec).hosting).toEqual({ gameId: 'my-game', wants: ['saves'], pauseBehavior: 'pause' })
   })
 
   it('merges the spec’s hosting over the defaults, but never its game id', () => {
     const game = defineGame({ ...spec, hosting: { wants: ['saves'], pauseBehavior: 'continue' } })
     expect(game.hosting).toEqual({ gameId: 'my-game', wants: ['saves'], pauseBehavior: 'continue' })
+  })
+
+  it('keeps the player’s bindings and quality in the core settings, unless the game declares its own (M4.4)', () => {
+    expect(defineGame(spec).settings).toBe(CORE_SETTINGS)
+    const own: SettingsDef<{ volume: number }> = {
+      key: 'mine',
+      version: 1,
+      schema: z.object({ volume: z.number() }),
+      defaults: { volume: 1 },
+    }
+    const game = defineGame({ ...spec, settings: own })
+    expect(game.settings).toBe(own)
+    // A game with settings of its own asks for what it chose.
+    expect(game.hosting.wants).toEqual([])
   })
 
   it('uses the default content, or the game’s own', () => {
@@ -58,8 +72,13 @@ describe('defineGame defaults (DX spec §3.1)', () => {
     expect(game.size).toEqual({ width: 320, height: 180 })
   })
 
-  it('adds the title, play and paused screens unless the game brings its own', () => {
-    expect(defineGame(spec).screens.map((screen) => screen.id)).toEqual(['title', 'play', 'paused'])
+  it('adds the title, play, paused and settings screens unless the game brings its own', () => {
+    expect(defineGame(spec).screens.map((screen) => screen.id)).toEqual([
+      'title',
+      'play',
+      'paused',
+      'settings',
+    ])
     const own: ScreenDef[] = [{ id: 'title', enter: () => Effect.void }]
     expect(defineGame({ ...spec, screens: own }).screens).toBe(own)
   })
@@ -120,8 +139,8 @@ describe('defineGame validation (DX spec §5 step 1, §6)', () => {
     const game = defineGame({ ...spec, scores, hosting: { wants: ['saves', 'leaderboards'] } })
     expect(game.scores).toEqual(scores)
     expect(game.hosting.wants).toEqual(['saves', 'leaderboards'])
-    expect(defineGame({ ...spec, scores }).hosting.wants).toEqual(['leaderboards'])
-    expect(defineGame(spec).hosting.wants).toEqual([])
+    expect(defineGame({ ...spec, scores }).hosting.wants).toEqual(['saves', 'leaderboards'])
+    expect(defineGame(spec).hosting.wants).toEqual(['saves'])
   })
 
   it('accepts a view for a drawn component', () => {

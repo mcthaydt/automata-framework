@@ -30,6 +30,8 @@ export interface RuntimeFacts {
   readonly 'input.pad.connected': PadInfo
   /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
   readonly 'input.pad.disconnected': PadInfo & { readonly wasActive: boolean }
+  /** The player's bindings changed (M4 spec §4.5): `action` when one was rebound, none on a reset or a follow. */
+  readonly 'input.bindings.changed': { readonly action?: string }
   /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
   readonly 'render.filter.dropped': { readonly id: string; readonly reason: string }
   /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */

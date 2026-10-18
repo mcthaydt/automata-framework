@@ -4069,6 +4069,102 @@ Below this, compact: what a browser leaves a sideways phone (780 x 270 Chrome on
 const COMPACT_MAX_HEIGHT = 340;
 ```
 
+#### `ControlsCopy` (interface)
+
+Every word the Controls section shows, in the game's language.
+
+```ts
+interface ControlsCopy {
+    readonly title: string;
+    readonly keyboard: string;
+    readonly gamepad: string;
+    readonly reset: string;
+    /** On the button that waits for a press. */
+    readonly press: string;
+    /** The touch mode choice's name, and each mode's. */
+    readonly touchMode: string;
+    readonly touchModes: Readonly<Record<ControlsTouchMode, string>>;
+    /** A rebind button's name for assistive technology: "Change Jump on Keyboard". */
+    rebind(action: string, device: string): string;
+    capturing(action: string, device: string, secondsLeft: number): string;
+    conflict(action: string, other: string): string;
+    reserved(action: string): string;
+    timedOut(action: string): string;
+    saved(action: string): string;
+}
+```
+
+#### `controlsMessage` (function)
+
+The section's status line for `state`, with actions by their labels; empty in the list.
+
+```ts
+function controlsMessage(state: ControlsState, copy: ControlsCopy, labelOf: (action: string) => string): string;
+```
+
+#### `ControlsRow` (interface)
+
+One game action in the Controls section: its id, its name and its bindings now.
+
+```ts
+interface ControlsRow {
+    /** The action's id, as `onrebind` reports it. */
+    readonly id: string;
+    readonly label: string;
+    readonly binding: PromptBinding;
+}
+```
+
+#### `ControlsSection` (const)
+
+The Controls section of Settings (M4 spec §4.5, §7): a row per game action, its label and a rebind button for each
+device the player can use, the button showing that device's prompt. Controller buttons appear once a pad has
+connected (`devices`). A status line says each step of a rebind (`state`), the touch mode is offered only when the
+game binds both buttons and swipes, and Reset puts every binding back. Every row is a 44 px target; long labels
+wrap, and the targets never shrink.
+
+```ts
+const ControlsSection: import("svelte").Component<Props, {}, "">;
+type ControlsSection = ReturnType<typeof ControlsSection>;
+```
+
+#### `ControlsState` (type)
+
+Where a rebind is: the list; waiting for a press (with the seconds left); refused because it would leave `with`
+unbound; refused as reserved; timed out; or saved.
+
+```ts
+type ControlsState = {
+    readonly kind: 'list';
+} | {
+    readonly kind: 'capturing';
+    readonly action: string;
+    readonly device: RebindDevice;
+    readonly secondsLeft: number;
+} | {
+    readonly kind: 'conflict';
+    readonly action: string;
+    readonly with: string;
+} | {
+    readonly kind: 'reserved';
+    readonly action: string;
+} | {
+    readonly kind: 'timed-out';
+    readonly action: string;
+} | {
+    readonly kind: 'saved';
+    readonly action: string;
+};
+```
+
+#### `ControlsTouchMode` (type)
+
+How touch drives play (runtime's `TouchMode`).
+
+```ts
+type ControlsTouchMode = 'buttons' | 'swipe';
+```
+
 #### `CornerControls` (const)
 
 _No doc comment._
@@ -4153,6 +4249,48 @@ _No doc comment._
 ```ts
 const Dialog: import("svelte").Component<Props, {}, "">;
 type Dialog = ReturnType<typeof Dialog>;
+```
+
+#### `DISPLAY_QUALITIES` (const)
+
+The tiers the Display section offers, best first.
+
+```ts
+const DISPLAY_QUALITIES: readonly DisplayQuality[];
+```
+
+#### `DisplayCopy` (interface)
+
+Every word the Display section shows, in the game's language.
+
+```ts
+interface DisplayCopy {
+    readonly title: string;
+    /** The quality choice's name. */
+    readonly quality: string;
+    readonly qualities: Readonly<Record<DisplayQuality, string>>;
+    /** Reduced motion as the browser reports it: "Reduced motion: on (from your device)". */
+    reducedMotion(reduced: boolean): string;
+}
+```
+
+#### `DisplayQuality` (type)
+
+A graphics quality tier (runtime's `QualityTier`).
+
+```ts
+type DisplayQuality = 'high' | 'medium' | 'low';
+```
+
+#### `DisplaySection` (const)
+
+The Display section of Settings (M4 spec §4.8, §7): the graphics quality tier as an option group (a pad's `adjust`
+cycles it), and reduced motion as the browser reports it. Reduced motion is the player's system setting, so it is
+shown and never changed here.
+
+```ts
+const DisplaySection: import("svelte").Component<Props, {}, "">;
+type DisplaySection = ReturnType<typeof DisplaySection>;
 ```
 
 #### `ErrorAction` (interface)
@@ -4600,6 +4738,15 @@ Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
 function isTap(dx: number, dy: number): boolean;
 ```
 
+#### `keyLabel` (function)
+
+A key's label: the keyboard layout's own (`navigator.keyboard.getLayoutMap()`, a letter in capitals) when there
+is one, else its `code` without the `Key` and `Digit` prefixes, an arrow as its arrow.
+
+```ts
+function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
+```
+
 #### `landscapeGate` (function)
 
 _No doc comment._
@@ -4800,6 +4947,22 @@ a controller's B would teach keyboard controls to a controller player.
 const padKeyEvents: WeakSet<Event>;
 ```
 
+#### `padLabel` (function)
+
+A standard-mapping pad button's label on a pad of `glyphs`.
+
+```ts
+function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): string;
+```
+
+#### `PadWord` (type)
+
+The pad buttons known by a word, for a pad whose labels are not known.
+
+```ts
+type PadWord = 'bottom' | 'right' | 'left' | 'top' | 'leftBumper' | 'rightBumper' | 'leftTrigger' | 'rightTrigger' | 'select' | 'start' | 'leftStick' | 'rightStick' | 'home';
+```
+
 #### `PAGE_SWIPE` (const)
 
 Swipe is the pagination on a paged region, on every form factor: a finger, a mouse drag, a trackpad's two-finger
@@ -4984,6 +5147,95 @@ An engine that does not compute `env()` (jsdom) yields 0 on every side.
 function probeEnvSafeArea(root: HTMLElement): Insets;
 ```
 
+#### `Prompt` (const)
+
+A device prompt (M4 spec §4.6): the label of an action's input on the device in the player's hand, a key, a pad
+button or the touch label, or "Unbound". It follows its props in place, so a rebind or a device switch never
+remounts it, and it is never in the focus order. `data-prompt` is the kind.
+
+```ts
+const Prompt: import("svelte").Component<Props, {}, "">;
+type Prompt = ReturnType<typeof Prompt>;
+```
+
+#### `PromptBinding` (interface)
+
+What drives one action (runtime's `InputBinding`, the fields a prompt reads).
+
+```ts
+interface PromptBinding {
+    readonly keys: readonly string[];
+    readonly pad: readonly number[];
+    readonly touch: boolean;
+}
+```
+
+#### `PromptCopy` (interface)
+
+Every word a prompt shows, in the game's language.
+
+```ts
+interface PromptCopy {
+    /** An action with nothing on the active device. */
+    readonly unbound: string;
+    /** An action with an on-screen button, on touch. */
+    readonly touch: string;
+    readonly pad: Readonly<Record<PadWord, string>>;
+}
+```
+
+#### `PromptDevice` (type)
+
+The device a prompt is for (runtime's `InputDevice`).
+
+```ts
+type PromptDevice = 'keyboard' | 'gamepad' | 'touch';
+```
+
+#### `PromptGlyphs` (type)
+
+The labels a pad's buttons carry (runtime's `GlyphFamily`).
+
+```ts
+type PromptGlyphs = 'xbox' | 'playstation' | 'generic';
+```
+
+#### `PromptView` (type)
+
+What a prompt shows: its kind (`data-prompt`) and its label.
+
+```ts
+type PromptView = {
+    readonly kind: 'key' | 'pad' | 'touch' | 'unbound';
+    readonly label: string;
+};
+```
+
+#### `promptView` (function)
+
+What a prompt shows for `binding` on `device`: its first input there, or Unbound.
+
+```ts
+function promptView(binding: PromptBinding, device: PromptDevice, glyphs: PromptGlyphs, copy: PromptCopy, layout?: ReadonlyMap<string, string>): PromptView;
+```
+
+#### `readKeyboardLayout` (function)
+
+The keyboard's layout map where the browser has one (`navigator.keyboard`, Chromium), or undefined: where the
+browser has none or refuses (a cross-origin frame may), prompts name keys by their `code` (M4 spec §6).
+
+```ts
+function readKeyboardLayout(nav: Navigator): Promise<ReadonlyMap<string, string> | undefined>;
+```
+
+#### `RebindDevice` (type)
+
+A device a player can rebind (touch buttons and gestures are the game's).
+
+```ts
+type RebindDevice = 'keyboard' | 'gamepad';
+```
+
 #### `Rect` (interface)
 
 _No doc comment._
@@ -5087,6 +5339,30 @@ dialog is sent it directly.
 
 ```ts
 function sendBack(doc: Document): boolean;
+```
+
+#### `SettingsScreen` (const)
+
+The core Settings screen (M4 spec §4.8, M4-D8): the screen frame with Back in its corner row, the title, and the
+sections as rows of one scroll list, so on a short screen the list scrolls and Back stays put. The default screens
+give it Controls and Display; extensions add theirs through the `settings.sections` slot. A kit's styled screen
+replaces it by flow (PRODUCT.6).
+
+```ts
+const SettingsScreen: import("svelte").Component<Props, {}, "">;
+type SettingsScreen = ReturnType<typeof SettingsScreen>;
+```
+
+#### `SettingsSection` (type)
+
+A section of the Settings screen: the screen's own snippet, or an extension's slot component.
+
+```ts
+type SettingsSection = {
+    readonly snippet: Snippet;
+} | {
+    readonly component: UiComponent;
+};
 ```
 
 #### `SETTLE_DELAYS_MS` (const)

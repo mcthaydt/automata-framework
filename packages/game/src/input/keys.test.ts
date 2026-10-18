@@ -114,6 +114,24 @@ describe('keys() profile and toCommand (M4 spec §2.2)', () => {
   })
 })
 
+describe('keys() labels (M4.4)', () => {
+  it('names an action for the Controls section from any of its default keys', () => {
+    const map = keys(
+      Move,
+      { ArrowLeft: { x: -1 }, KeyA: { x: -1 }, Space: { jump: true } },
+      {
+        labels: { KeyA: 'Move left', Space: 'Jump' },
+      },
+    )
+    expect(map.labels).toEqual({ 'move-0': 'Move left', 'move-1': 'Jump' })
+  })
+
+  it('names an unlabelled action by its command and payload', () => {
+    const map = keys(Move, { ArrowLeft: { x: -1 } }, { pad: { 0: { jump: true } } })
+    expect(map.labels).toEqual({ 'move-0': 'move x -1', 'move-1': 'move jump true' })
+  })
+})
+
 describe('keys() attached', () => {
   let source: ReturnType<typeof arrows.attach>
   beforeEach(() => {
