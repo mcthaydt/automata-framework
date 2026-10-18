@@ -1,7 +1,7 @@
 #!/bin/bash
 # usage: gates.sh <worktree> <name> <serverport> <previewport> <gates...>
 W=$1; N=$2; export AF_E2E_SERVER_PORT=$3 AF_E2E_PREVIEW_PORT=$4; shift 4
-L=/tmp/claude-0/-home-user/b319e7ac-e5eb-5240-8858-357a923ba393/scratchpad
+L=/tmp/claude-0/-home-user-automata-framework/511d091e-993a-5f36-a48a-a4f19f357ada/scratchpad
 export PATH=/opt/nvm/versions/node/v24.21.0/bin:$PATH PLAYWRIGHT_BROWSERS_PATH=/home/user/pw CI=1 TURBO_FORCE=true
 cd $W || exit 1
 pnpm install --frozen-lockfile > $L/logs/$N-install.txt 2>&1

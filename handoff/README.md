@@ -1,4 +1,8 @@
-# AF session handoff (2026-10-17): not for merge
+# AF session handoff: not for merge
+
+The latest note is [HANDOFF-2026-10-18.md](HANDOFF-2026-10-18.md) (2026-10-18). What follows is the 2026-10-17 note.
+
+## 2026-10-17
 
 This branch holds no product change. It carries what lived only in the previous agent session's scratchpad:
 
