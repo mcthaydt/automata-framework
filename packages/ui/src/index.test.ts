@@ -41,6 +41,13 @@ test.each([
   'Modal',
   'Sheet',
   'Toast',
+  // display policy (M4 spec §4.9, M4.7)
+  'LandscapeGate',
+  'RotateHint',
+  'enterFullscreen',
+  'fullscreenSupport',
+  'isFullscreen',
+  'onFullscreenChange',
   // device prompts (M4 spec §4.6, M4.4)
   'Prompt',
   'keyLabel',

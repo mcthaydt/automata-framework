@@ -74,6 +74,18 @@ export function focusInitial(panel: HTMLElement): void {
 }
 
 /**
+ * Where focus goes when a modal closes and its opener is gone: where a screen puts it on entry
+ * (runtime's flow, M4 spec §4.7), the `data-autofocus` control, else the first primary one. A cover
+ * held from boot needs this: the screen behind it mounted inert, so its own focus call did nothing.
+ */
+function focusPageDefault(): void {
+  const target =
+    document.querySelector<HTMLElement>('[data-autofocus]') ??
+    document.querySelector<HTMLElement>('[data-kind="primary"]')
+  target?.focus()
+}
+
+/**
  * Holds the page for a modal whose scrim is `scrim` and whose `aria-modal` element is `panel`,
  * from now until the returned release is called (a component calls it from `onMount`'s cleanup).
  * Escape calls `onclose`; the focus navigator's Back arrives as Escape, so a controller closes it
@@ -109,6 +121,7 @@ export function holdModal(scrim: HTMLElement, panel: HTMLElement, onclose: () =>
     window.removeEventListener('keydown', onKeydown)
     window.removeEventListener('focusin', onFocusIn)
     release()
-    if (opener instanceof HTMLElement && opener.isConnected) opener.focus()
+    if (opener instanceof HTMLElement && opener.isConnected && opener !== document.body) opener.focus()
+    else focusPageDefault()
   }
 }

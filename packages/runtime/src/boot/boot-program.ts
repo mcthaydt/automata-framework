@@ -17,6 +17,7 @@ import { Context, Duration, Effect, Layer, type Scope, Stream } from 'effect'
 import { Audio, makeAudio } from '../audio/audio.manager.js'
 import { AudioBuses } from '../audio/audio-buses.js'
 import { playEventSounds } from '../audio/event-sounds.js'
+import { displayPolicy } from '../display/display-policy.svelte.js'
 import { resolveExtensions } from '../extension/resolve-extensions.js'
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
@@ -343,6 +344,16 @@ export function bootProgram<S>(
     }
 
     yield* flowHandle.start()
+
+    // The landscape gate (standalone) and the rotate hint, over every screen for the session (M4 spec §4.9).
+    yield* displayPolicy({
+      orientation: game.orientation ?? 'any',
+      hosted: hosting.kind !== 'standalone',
+      win,
+      geometry,
+      layer: layers.overlay,
+      time,
+    })
   })
 
   return program.pipe(

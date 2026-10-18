@@ -181,9 +181,29 @@ function findCoveredCorners(root: ParentNode): string[] {
 }
 
 /**
+ * No control of the screen under a touch button (M4 spec §4.9): the overlay is an intruder like the keyboard or
+ * Ruken's strip, so a thumb never presses a control it cannot see, and no control hides a button.
+ */
+function findTouchIntrusions(root: ParentNode): string[] {
+  const buttons = [...root.querySelectorAll<HTMLElement>('[data-touch-overlay] [data-action]')]
+    .map((button) => button.getBoundingClientRect())
+    .filter((box) => box.width > 0 && box.height > 0)
+  if (buttons.length === 0) return []
+  const overlaps = (a: DOMRect, b: DOMRect): boolean =>
+    a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+  return visibleControls(root)
+    .filter((control) => control.closest('[data-touch-overlay]') === null)
+    .filter((control) => buttons.some((box) => overlaps(control.getBoundingClientRect(), box)))
+    .map(
+      (control) =>
+        `${control.getAttribute('data-testid') ?? control.tagName.toLowerCase()} is under a touch button`,
+    )
+}
+
+/**
  * The checks every screen shares: the document never scrolls; every control is at least the target
  * (primaries the primary target) at this scale, on screen unless in a declared scroll region,
- * never under a reserved area and never over the corner row; the corner row's controls and any
+ * never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
  * `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
  * ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials`
  * is reachable without scrolling.
@@ -195,6 +215,7 @@ export function checkLayout(conditions: Conditions, essentials: readonly Element
     ...findSmallTargets(document.body, 44 * scale, 48 * scale),
     ...findOffscreenControls(document.body),
     ...findIntrusions(document.body, conditions.reserved),
+    ...findTouchIntrusions(document.body),
     ...findCornerOverlaps(document.body),
     ...findCoveredCorners(document.body),
     ...findWrappedBars(document.body),

@@ -327,6 +327,15 @@ const DEFAULT_QUALITY: QualityTier;
 function defineSave<S>(def: SaveDef<S>): SaveDef<S>;
 ```
 
+### `DisplayCopy` (interface)
+
+```ts
+interface DisplayCopy {
+    readonly gate: LandscapeGateCopy;
+    readonly rotate: Readonly<Record<'portrait' | 'landscape', RotateHintCopy>>;
+}
+```
+
 ### `DisplaySettings` (interface)
 
 ```ts
@@ -425,6 +434,7 @@ interface GameDefinition<S = never> {
     readonly screens: readonly ScreenDef[];
     readonly renderer: RendererFactory;
     readonly settings?: SettingsDef<S> | undefined;
+    readonly orientation?: GameOrientation | undefined;
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
     readonly sounds?: EventSounds | undefined;
@@ -435,6 +445,12 @@ interface GameDefinition<S = never> {
     };
     readonly seams?: RuntimeSeams;
 }
+```
+
+### `GameOrientation` (type)
+
+```ts
+type GameOrientation = 'portrait' | 'landscape' | 'any';
 ```
 
 ### `GameRenderer` (interface)
@@ -785,7 +801,7 @@ interface ParaglideRuntime {
 ### `PauseReason` (type)
 
 ```ts
-type PauseReason = 'lifecycle' | 'menu' | 'input';
+type PauseReason = 'lifecycle' | 'menu' | 'input' | 'display';
 ```
 
 ### `pluralCategory` (const)

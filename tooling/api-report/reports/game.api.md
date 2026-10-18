@@ -155,6 +155,7 @@ interface GameSpec<S = never> {
         readonly seed?: number;
         readonly setup?: (sim: Sim) => void;
     };
+    readonly orientation?: GameOrientation;
     readonly input?: InputMap;
     readonly views?: Readonly<Record<string, EntityViewFactory>>;
     readonly sounds?: EventSounds;
@@ -234,6 +235,7 @@ interface KeysOptions<Z extends z.ZodType> {
     readonly touchMode?: TouchMode;
     readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>;
     readonly idle?: z.input<Z>;
+    readonly required?: readonly string[];
     readonly labels?: Readonly<Record<string, string>>;
 }
 ```
@@ -313,6 +315,7 @@ interface TouchButton {
     readonly id: string;
     readonly label: string;
     readonly keys: readonly string[];
+    readonly required?: boolean | undefined;
 }
 ```
 

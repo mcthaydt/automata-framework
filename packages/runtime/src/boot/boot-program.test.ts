@@ -16,6 +16,7 @@ import type { RenderTarget } from '../render/renderer.js'
 import { fakeFetch } from '../testing/fake-fetch.js'
 import { manualFrames } from '../testing/manual-frames.js'
 import { nullRenderer } from '../testing/null-renderer.js'
+import { Time } from '../time/time.manager.js'
 import {
   AssetLoadFailed,
   BootDefect,
@@ -970,6 +971,68 @@ describe('bootProgram', () => {
       yield* Effect.promise(() => settle(4))
       expect(fakeHost!.fakes.leaderboards.submits).toEqual([{ board: 'best', score: 300 }])
       expect(seen.boards!.state('best')).toEqual({ state: 'accepted', personalBest: 300, rank: 1 })
+
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+
+  it('keeps the rotate hint over a portrait game on a phone held sideways, paused for display (M4.7)', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      const size = { width: window.innerWidth, height: window.innerHeight }
+      const resize = (width: number, height: number) => {
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: width })
+        Object.defineProperty(window, 'innerHeight', { configurable: true, value: height })
+      }
+      resize(844, 390)
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        value: (media: string) => ({
+          matches: media.includes('pointer: coarse'),
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }),
+      })
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => {
+          root.remove()
+          resize(size.width, size.height)
+          Reflect.deleteProperty(window, 'matchMedia')
+        }),
+      )
+      const frames = manualFrames()
+      const seen: { time?: Time } = {}
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            seen.time = yield* Time
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        orientation: 'portrait',
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          createAudioContext: () => fakeAudioContext(),
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      yield* Effect.promise(() => settle(2))
+      expect(root.querySelector('[data-testid="rotate-hint"]')).not.toBeNull()
+      expect([...(seen.time?.reasons ?? [])]).toContain('display')
 
       yield* Scope.close(scope, Exit.void)
     }).pipe(Effect.runPromise))

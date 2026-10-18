@@ -109,4 +109,22 @@ describe('holdModal', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     expect(onclose).toHaveBeenCalledOnce()
   })
+
+  it('with no opener left, gives focus where a screen puts it on entry: the autofocus control, else the primary one', () => {
+    // A cover held from boot (the landscape gate): the menu mounts behind it, inert, so the menu's own focus call
+    // did nothing, and nothing was focused when the cover opened.
+    page(
+      '<section><button id="other"></button><button id="play" data-kind="primary"></button></section><div id="scrim"><div id="panel" aria-modal="true" tabindex="-1"><button id="go"></button></div></div>',
+    )
+    const release = holdModal(byId('scrim'), byId('panel'), () => undefined)
+    expect(document.activeElement?.id).toBe('go')
+    release()
+    expect(document.activeElement?.id).toBe('play')
+
+    page(
+      '<section><button id="play" data-kind="primary"></button><button id="named" data-autofocus></button></section><div id="scrim"><div id="panel" aria-modal="true" tabindex="-1"><button id="go"></button></div></div>',
+    )
+    holdModal(byId('scrim'), byId('panel'), () => undefined)()
+    expect(document.activeElement?.id).toBe('named')
+  })
 })

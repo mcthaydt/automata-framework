@@ -437,6 +437,7 @@
 - `DisplayCopy` (interface): Every word the Display section shows, in the game's language.
 - `DisplayQuality` (type): A graphics quality tier (runtime's `QualityTier`).
 - `DisplaySection` (const): The Display section of Settings (M4 spec §4.8, §7): the graphics quality tier as an option group (a pad's `adjust` cycles it), and reduced motion as the browser reports it.
+- `enterFullscreen(doc, screen?)`: Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app.
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
 - `ErrorCode` (type): Ruken's error code.
 - `ErrorPanel` (const)
@@ -444,6 +445,7 @@
 - `fitShape(most, box, minTile, gap)`: The most tiles of `minTile` px the box holds, never more than `most`, never below one by one.
 - `FocusNavigator` (class)
 - `FormFactor` (type): The four form factors (M1.6 spec §3.1; from FloorFifty `ui/form-factor.ts` at 122a220).
+- `fullscreenSupport(doc, nav)`: Which fullscreen, if any, this browser can give a standalone page.
 - `FullscreenSupport` (type): Ruken's answer to whether this browser can go fullscreen, and how.
 - `GateInputs` (type)
 - `Geometry` (interface)
@@ -466,9 +468,12 @@
 - `installGlobalErrorHandlers(win, onFatal, onRejection?)`: Installs once per window; a second call is a no-op.
 - `interceptBackGesture(win, onBack)`: Holds the game's history entry and turns a back step off it into `onBack`.
 - `isDuckDuckGo(nav)`: DuckDuckGo names itself only in the client-hint brands, not the user agent.
+- `isFullscreen(doc)`: Whether the page is fullscreen now.
 - `isTap(dx, dy)`: Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
 - `keyLabel(code, layout?)`: A key's label: the keyboard layout's own (`navigator.keyboard.getLayoutMap()`, a letter in capitals) when there is one, else its `code` without the `Key` and `Digit` prefixes, an arrow as its arrow.
 - `landscapeGate(inputs)`
+- `LandscapeGate` (const): The landscape gate's cover (M4 spec §4.9, §7; FloorFifty `ui/components/LandscapeGate.svelte` at `ac72660`): over every screen and every dialog, empty whenever the gate is open (`state` none).
+- `LandscapeGateCopy` (interface): The landscape gate's words: one tap to fullscreen, or how to play where a browser cannot hide its bar.
 - `LandscapeGateState` (type): Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
 - `LeaderboardCopy` (interface): Every word the panel shows, in the game's language.
 - `LeaderboardEntryView` (interface): One row of a board, as the host gives it; `isMe` marks the player.
@@ -481,6 +486,7 @@
 - `ModalProps` (interface): The props Modal and Sheet share.
 - `NavDirection` (type)
 - `nearestTarget(x, y, targets, margin?)`: The button a point is on, or else the nearest within the margin, or nothing.
+- `onFullscreenChange(doc, listener)`: Hears fullscreen being entered or left, by the page or the player.
 - `OptionGroup` (const): A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `PAD_FOCUS` (const): How the navigator focuses: with a ring, and without scrolling the page.
 - `padKeyEvents` (const): Keydown events the navigator sent itself.
@@ -515,6 +521,8 @@
 - `RETRY_DELAYS_MS` (const): The wait before each retry; when they are spent, the image has failed.
 - `RetryTimers` (type): The timers `watchImage` waits with; tests pass fakes.
 - `retryUrl(src, attempt)`: The URL a retry asks for; attempt 0 is the first request, as given.
+- `RotateHint` (const): The rotate hint (M4 spec §4.9, §7): over a game locked to one orientation (`GameSpec.orientation`) on a phone held the other way.
+- `RotateHintCopy` (interface): The rotate hint's words.
 - `ScreenFrame` (const)
 - `ScreenKind` (type): A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
 - `ScrollList` (const)
@@ -557,7 +565,7 @@
 ### `import { … } from '@mcthaydt/automata-ui/testing'`
 
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
-- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials` is reachable without scrolling.
+- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface)
 - `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7).
 - `publishConditions(root, size, variant)`: Measures and publishes the geometry for `size` under `variant`, as the owner would.

@@ -8,6 +8,8 @@ export interface TouchButtonSpec {
   readonly ariaLabel?: string | undefined
   /** Which lower corner's group it sits in. Default `start`. */
   readonly side?: 'start' | 'end' | undefined
+  /** The game cannot be played without it: where the buttons do not all fit, only these show (M4.7). */
+  readonly required?: boolean | undefined
 }
 
 /** TouchControls' props. */

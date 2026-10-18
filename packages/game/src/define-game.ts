@@ -14,6 +14,7 @@ import {
   type EventScores,
   type EventSounds,
   type GameDefinition,
+  type GameOrientation,
   type RuntimeSeams,
   type ScreenDef,
   type SettingsDef,
@@ -40,6 +41,11 @@ export interface GameSpec<S = never> {
     /** Spawns the starting entities before tick 0. */
     readonly setup?: (sim: Sim) => void
   }
+  /**
+   * The orientation the game plays in, the same as the ship config's `runtime.orientation` (M4.7). On a phone held
+   * the other way a `portrait` or `landscape` game pauses behind the rotate hint. Default `any`.
+   */
+  readonly orientation?: GameOrientation
   /** Default: no commands. */
   readonly input?: InputMap
   /** Component id → view (`rect`, `sprite`). */
@@ -213,6 +219,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     id: spec.id,
     title,
     size: spec.size,
+    orientation: spec.orientation ?? 'any',
     sim,
     ...(spec.input === undefined ? {} : { input: spec.input }),
     get root() {

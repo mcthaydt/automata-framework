@@ -14,7 +14,7 @@ import {
   SwipeTracker,
   Time,
 } from '@mcthaydt/automata-runtime'
-import type { ExtensionDef } from '@mcthaydt/automata-runtime/extension'
+import { type ExtensionDef, resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { CursorRunner, InputMethodTracker, type LeaderboardCopy, sendBack } from '@mcthaydt/automata-ui'
 import { Effect, SubscriptionRef } from 'effect'
@@ -41,7 +41,7 @@ export interface ScreensGame {
   readonly board?: string | undefined
   /** Applies the player's graphics quality to the stage (M4.4): the saved one at the title, then each choice. */
   readonly setQuality?: ((tier: QualityTier) => void) | undefined
-  /** The game's extensions, whose `settings.sections` slot the Settings screen shows. */
+  /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
   readonly extensions?: readonly ExtensionDef[] | undefined
 }
 
@@ -201,6 +201,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           onHold: (id: string) => input.hold(id),
           onRelease: (id: string) => input.release(id),
           swipe: touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
+          hud: resolveExtensions(game.extensions ?? []).slots('hud.overlay'),
         })
       }),
   }

@@ -55,6 +55,20 @@ describe('Time and watchLifecycle', () => {
     )
   })
 
+  it("holds the 'display' reason for a phone held the wrong way (M4.7)", async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const time = makeTime(yield* makePresentationBus())
+        time.pause('display')
+        time.pause('menu')
+        time.resume('menu')
+        expect([...time.reasons]).toEqual(['display'])
+        time.resume('display')
+        expect(time.paused).toBe(false)
+      }),
+    )
+  })
+
   it('time.changed is published on the bus each time paused flips, and not when a second reason is added', async () => {
     await runScoped(
       Effect.gen(function* () {
