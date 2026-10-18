@@ -1,6 +1,6 @@
 <!--
   The core Settings screen for the layout contracts (M4 spec §4.8, M4.4), in FloorFifty's two tabs: `settings` shows
-  the Settings tab (Display, Touch controls); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
+  the Settings tab (Display, Audio, Touch controls); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
   shows its first row waiting for a press. Words are English stand-ins of a typical length.
 -->
 <script lang="ts" module>
@@ -12,6 +12,7 @@ export type SettingsShow = (typeof SETTINGS_SHOWS)[number]
 import type { PromptCopy } from '../prompts/prompt-label'
 import ControlsSection from '../settings/ControlsSection.svelte'
 import type { ControlsCopy, ControlsRow } from '../settings/controls-section'
+import AudioSection from '../settings/AudioSection.svelte'
 import DisplaySection from '../settings/DisplaySection.svelte'
 import TouchSection from '../settings/TouchSection.svelte'
 import type { DisplayCopy } from '../settings/display-section'
@@ -94,6 +95,26 @@ const ROWS: ControlsRow[] = [
   />
 {/snippet}
 
+{#snippet audio()}
+  <AudioSection
+    copy={{
+      title: 'Audio',
+      mute: 'Mute',
+      muteUnfocused: 'Mute in the background',
+      on: 'On',
+      off: 'Off',
+      buses: { master: 'Master', music: 'Music', sfx: 'Effects', ui: 'Menus', voice: 'Voices' },
+      percent: (value) => `${Math.round(value * 100)}%`,
+      unavailable: 'Sound could not start on this device.',
+      hostVolume: 'The host’s volume also applies.',
+    }}
+    value={{ muted: false, muteUnfocused: false, gains: { master: 1, music: 0.8, sfx: 1, ui: 0.6, voice: 1 } }}
+    available
+    hostBelowFull={false}
+    onchange={none}
+  />
+{/snippet}
+
 {#snippet display()}
   <DisplaySection copy={DISPLAY_COPY} quality="high" onquality={none} reducedMotion={false} />
 {/snippet}
@@ -103,7 +124,7 @@ const ROWS: ControlsRow[] = [
   backLabel="Back"
   onback={none}
   tabs={[
-    { id: 'settings', label: 'Settings', sections: [{ snippet: display }, { snippet: touch }] },
+    { id: 'settings', label: 'Settings', sections: [{ snippet: display }, { snippet: audio }, { snippet: touch }] },
     { id: 'controls', label: 'Controls', sections: [{ snippet: controls }] },
   ]}
   tabsLabel="Settings sections"

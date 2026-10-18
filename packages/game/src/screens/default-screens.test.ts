@@ -6,7 +6,14 @@ import {
   runGame,
 } from '@mcthaydt/automata-runtime'
 import { defineExtension } from '@mcthaydt/automata-runtime/extension'
-import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
+import {
+  type FakeAudioContext,
+  type FakeGainNode,
+  fakeAudioContext,
+  fakeFetch,
+  type ManualFrames,
+  manualFrames,
+} from '@mcthaydt/automata-runtime/testing'
 import {
   defineCommand,
   defineComponent,
@@ -242,7 +249,7 @@ describe('default screens', () => {
     await until(() => screen('play') !== null, 'play after Escape')
   })
 
-  it('pauses into a dialog over the dimmed game: Resume, Settings, Quit to title; Quit asks first (FloorFifty)', async () => {
+  it('pauses into a dialog over the dimmed game: Resume, Mute, Settings, Quit to title; Quit asks first (FloorFifty)', async () => {
     await boot()
     await toPlay()
     press('Escape')
@@ -256,7 +263,7 @@ describe('default screens', () => {
       [...(dialog?.querySelectorAll<HTMLElement>('[data-pause-menu] button') ?? [])].map(
         (b) => b.dataset.testid,
       ),
-    ).toEqual(['resume', 'settings', 'quit'])
+    ).toEqual(['resume', 'pause-mute', 'settings', 'quit'])
     expect(document.activeElement).toBe(button('resume'))
 
     button('quit')?.click()
@@ -515,6 +522,85 @@ describe('default screens', () => {
       } finally {
         window.matchMedia = fine
       }
+    })
+
+    // M5.4: the Audio group (M5 spec §7), FloorFifty's, beside Display; and Pause's Mute.
+    describe('the Audio group (M5.4)', () => {
+      let context: FakeAudioContext | undefined
+      const withSound = (): Partial<GameSpec> => ({
+        seams: {
+          frames,
+          fetch: fakeFetch({}).fetch,
+          createAudioContext: () => {
+            context = fakeAudioContext()
+            return context
+          },
+        },
+      })
+      /** Where a gain was last sent: the graph glides to it. */
+      const target = (node: FakeGainNode | undefined) => node?.automation.at(-1)?.value ?? node?.gain.value
+      // The graph's nodes in the order it builds them: master, then a level and a duck per bus (music first).
+      const master = () => target(context?.gains[0])
+      const music = () => target(context?.gains[1])
+      beforeEach(() => {
+        context = undefined
+      })
+
+      it('moves a bus with its slider and saves it', async () => {
+        await toSettings(withSound(), true, 'settings')
+        const slider = root.querySelector<HTMLInputElement>(
+          '[data-audio-bus="music"] input',
+        ) as HTMLInputElement
+        slider.value = '0.5'
+        slider.dispatchEvent(new Event('input', { bubbles: true }))
+        await until(() => saved()?.audio?.gains?.music === 0.5, 'the saved music gain')
+        expect(music()).toBe(0.5)
+      })
+
+      it('mutes from the Audio group and from Pause’s Mute, one setting, saved', async () => {
+        await toSettings(withSound(), true, 'settings')
+        root.querySelector<HTMLInputElement>('[data-testid="audio-muted"] input')?.click()
+        await until(() => saved()?.audio?.muted === true, 'the saved mute')
+        expect(master()).toBe(0)
+        button('settings-back')?.click()
+        await until(() => screen('paused') !== null, 'paused again')
+        expect(button('pause-mute')?.getAttribute('aria-pressed')).toBe('true')
+        button('pause-mute')?.click()
+        await until(() => saved()?.audio?.muted === false, 'unmuted from Pause')
+        expect(button('pause-mute')?.getAttribute('aria-pressed')).toBe('false')
+        expect(master()).toBe(1)
+      })
+
+      it('says sound is unavailable when it could not start, with its controls disabled (A-e)', async () => {
+        await toSettings(
+          {
+            seams: {
+              frames,
+              fetch: fakeFetch({}).fetch,
+              createAudioContext: () => {
+                throw new Error('no Web Audio here')
+              },
+            },
+          },
+          true,
+          'settings',
+        )
+        expect(root.querySelector('[data-audio-unavailable]')).not.toBeNull()
+        expect(root.querySelector<HTMLInputElement>('[data-audio-bus="music"] input')?.disabled).toBe(true)
+      })
+
+      it('applies the saved audio settings at boot', async () => {
+        localStorage.setItem(
+          'ruken:screens-test:settings',
+          JSON.stringify({ version: 1, audio: { muted: false, gains: { music: 0.25 } } }),
+        )
+        await boot(withSound())
+        await toPlay()
+        // Audio unlocks on the first gesture after the session is ready.
+        press('ShiftLeft')
+        await until(() => context !== undefined, 'the audio unlock')
+        expect(music()).toBe(0.25)
+      })
     })
 
     it('has no Controls tab for a game without an input map, and still its Display', async () => {

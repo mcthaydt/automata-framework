@@ -8,22 +8,30 @@ import {
   type InputSettings,
   inputSettingsSchema,
 } from '../input/bindings/input-settings.schema.js'
+import { AUDIO_SETTINGS_DEFAULT, type AudioSettings, audioSettingsSchema } from './audio-settings.schema.js'
 import { DEFAULT_QUALITY, type DisplaySettings, displaySettingsSchema } from './display-settings.schema.js'
 import type { SettingsDef } from './migrate-settings.js'
 
 export interface CoreSettings {
   readonly input: InputSettings
   readonly display: DisplaySettings
+  /** The Audio group's choices (M5.4); a record saved before it reads them as the defaults. */
+  readonly audio: AudioSettings
 }
 
-const DEFAULTS: CoreSettings = { input: INPUT_SETTINGS_DEFAULT, display: { quality: DEFAULT_QUALITY } }
+const DEFAULTS: CoreSettings = {
+  input: INPUT_SETTINGS_DEFAULT,
+  display: { quality: DEFAULT_QUALITY },
+  audio: AUDIO_SETTINGS_DEFAULT,
+}
 
 const coreSettingsSchema: z.ZodType<CoreSettings> = z.object({
   input: inputSettingsSchema,
   display: displaySettingsSchema.catch(() => ({ quality: DEFAULT_QUALITY })),
+  audio: audioSettingsSchema.default(AUDIO_SETTINGS_DEFAULT),
 })
 
-/** The `settings` save, version 1: the player's bindings (`input`) and graphics quality (`display`). */
+/** The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`) and audio (`audio`). */
 export const CORE_SETTINGS: SettingsDef<CoreSettings> = {
   key: 'settings',
   version: 1,

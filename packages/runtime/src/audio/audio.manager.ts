@@ -25,6 +25,8 @@ export interface SoundOptions {
 export interface Audio {
   /** False until the first gesture after `session.ready` builds and resumes the graph. */
   readonly unlocked: Subscribable.Subscribable<boolean>
+  /** False once a context could not be built (`audio.unavailable`): the game runs silent, and Settings says so. */
+  readonly available: Subscribable.Subscribable<boolean>
   /** Plays the asset at `alias` once. Fire and forget: silent before the unlock, while asleep, or if it fails. */
   sound(alias: string, options?: SoundOptions): void
   /** Loops the asset at `alias` on the music bus. Asked for before the unlock, it starts on the unlock. */
@@ -35,6 +37,8 @@ export interface Audio {
   duck(bus: AudioBusName, amount: number, seconds: number): void
   /** The player's mute: the master only, so unmuting restores the mix as it was. */
   setMuted(muted: boolean): void
+  /** The player's "mute when in the background": silences the master while another window has focus. */
+  setMuteUnfocused(muteUnfocused: boolean): void
 }
 
 export const Audio: Context.Tag<Audio, Audio> = Context.GenericTag<Audio>('@mcthaydt/automata-runtime/Audio')
@@ -84,6 +88,7 @@ export const makeAudio = (
     const voices = new Voices(graph)
     const music = new MusicSlot(graph)
     const unlocked = yield* SubscriptionRef.make(false)
+    const available = yield* SubscriptionRef.make(true)
     const decoded = new Map<string, Promise<AudioBuffer>>()
     let ready = false
     let unavailable = false
@@ -93,6 +98,7 @@ export const makeAudio = (
 
     const giveUp = (cause: unknown) => {
       unavailable = true
+      Effect.runSync(SubscriptionRef.set(available, false))
       bus.publish('audio.unavailable', { reason: reason(cause) })
     }
 
@@ -170,15 +176,22 @@ export const makeAudio = (
     }
     const wake = () => void graph.wake().catch(() => undefined)
     const onVisibility = () => (page.visibilityState === 'hidden' ? sleep() : wake())
-    const onBlur = () => graph.setUnfocused(true)
-    const onFocus = () => graph.setUnfocused(false)
+    // The window's focus is always followed; the master goes silent on a blur only while the setting is on.
+    let muteUnfocused = options.muteUnfocused === true
+    let blurred = false
+    const onBlur = () => {
+      blurred = true
+      graph.setUnfocused(muteUnfocused)
+    }
+    const onFocus = () => {
+      blurred = false
+      graph.setUnfocused(false)
+    }
 
     for (const type of GESTURES) target.addEventListener(type, onGesture, { capture: true, passive: true })
     page.addEventListener('visibilitychange', onVisibility)
-    if (options.muteUnfocused === true) {
-      target.addEventListener('blur', onBlur)
-      target.addEventListener('focus', onFocus)
-    }
+    target.addEventListener('blur', onBlur)
+    target.addEventListener('focus', onFocus)
 
     yield* Effect.forkScoped(
       hosting.ready.pipe(
@@ -216,6 +229,7 @@ export const makeAudio = (
 
     const audio: Audio & AudioBuses = {
       unlocked,
+      available,
       sound(alias, soundOptions = {}) {
         if (unavailable || graph.context === undefined) return
         void voices.play(() => decode(alias).catch(() => undefined), {
@@ -239,6 +253,10 @@ export const makeAudio = (
       },
       duck: (duckBus, amount, seconds) => graph.duck(duckBus, amount, seconds),
       setMuted: (muted) => graph.setMuted(muted),
+      setMuteUnfocused: (next) => {
+        muteUnfocused = next
+        graph.setUnfocused(next && blurred)
+      },
       input(inputBus) {
         const node = graph.input(inputBus)
         if (node === undefined)

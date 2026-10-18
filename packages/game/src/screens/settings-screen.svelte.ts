@@ -2,7 +2,10 @@
 // game's bindings and its settings, so a rebind saves through the settings store (memory first, then
 // `Hosting.saves`) and the next play session's Input reads it. The view's state is a `$state` object the screen
 // changes in place: a rebind, a pad connecting, a device switch or a capture's countdown never remount it.
+import { Hosting } from '@mcthaydt/automata-host'
 import {
+  Audio,
+  AudioBuses,
   displaySettingsSchema,
   Flow,
   type InputProfile,
@@ -17,6 +20,7 @@ import {
 } from '@mcthaydt/automata-runtime'
 import { resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import {
+  type AudioSectionChange,
   type ControlsRow,
   type ControlsState,
   type DisplayQuality,
@@ -26,7 +30,8 @@ import {
   reducedMotion,
   sendBack,
 } from '@mcthaydt/automata-ui'
-import { Effect, Either, Fiber, Runtime, Schedule, SubscriptionRef } from 'effect'
+import { Effect, Either, Fiber, Runtime, Schedule, Stream, SubscriptionRef } from 'effect'
+import { changeAudio, savedAudio } from './audio-settings.ts'
 import type { ScreensGame } from './default-screens.ts'
 import SettingsView from './SettingsView.svelte'
 import {
@@ -68,6 +73,9 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         const flow = yield* Flow
         const bus = yield* PresentationBus
         const { store } = yield* Settings
+        const audio = yield* Audio
+        const buses = yield* AudioBuses
+        const hosting = yield* Hosting
         const runtime = yield* Effect.runtime<never>()
         const target = windowOf(layer)
         const map = game.input
@@ -99,6 +107,9 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
           touchModes: map === undefined ? [] : touchModesFor(map.profile),
           touchMode: savedInput().touchMode ?? map?.touchMode ?? 'buttons',
           quality: savedQuality(),
+          audio: savedAudio(store),
+          audioAvailable: yield* audio.available.get,
+          hostVolumeBelowFull: (yield* hosting.audio.get).master.volume < 1,
           reducedMotion: reducedMotion(target),
         })
         // The device in the player's hand leads the Controls tab: a key or a finger as play's touch buttons see it
@@ -127,6 +138,30 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
             for (const stop of stops) stop()
           }),
         )
+
+        // Sound that fails to start, and the host's volume, change the Audio group in place (M5.4).
+        yield* Effect.forkScoped(
+          Stream.runForEach(audio.available.changes, (available) =>
+            Effect.sync(() => {
+              view.audioAvailable = available
+            }),
+          ),
+        )
+        yield* Effect.forkScoped(
+          Stream.runForEach(hosting.audio.changes, (change) =>
+            Effect.sync(() => {
+              view.hostVolumeBelowFull = change.master.volume < 1
+            }),
+          ),
+        )
+        const onaudio = (change: AudioSectionChange): void => {
+          const now = view.audio
+          view.audio =
+            change.kind === 'gain'
+              ? { ...now, gains: { ...now.gains, [change.bus]: change.value } }
+              : { ...now, [change.kind]: change.value }
+          changeAudio({ audio, buses }, store, view.audio)
+        }
 
         // One rebind at a time: capture, then rebind, the countdown ticking on Effect's clock meanwhile.
         let running: Fiber.RuntimeFiber<void> | undefined
@@ -189,6 +224,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
               input: { ...savedInput(), touchMode: mode },
             }))
           },
+          onaudio,
           onquality: (quality: DisplayQuality) => {
             view.quality = quality
             store?.update((value) => ({

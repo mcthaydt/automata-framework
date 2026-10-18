@@ -4071,6 +4071,88 @@ text field until its caret meets the end the arrow points at. Multi-line text ke
 function arrowKeyNav(event: KeyboardEvent): NavDirection | undefined;
 ```
 
+#### `AUDIO_BUSES` (const)
+
+The buses the Audio group offers, in the order it shows them.
+
+```ts
+const AUDIO_BUSES: readonly AudioBus[];
+```
+
+#### `AudioBus` (type)
+
+An audio bus (runtime's `AudioBusName`).
+
+```ts
+type AudioBus = 'master' | 'music' | 'sfx' | 'ui' | 'voice';
+```
+
+#### `AudioCopy` (interface)
+
+Every word the Audio group shows, in the game's language.
+
+```ts
+interface AudioCopy {
+    readonly title: string;
+    readonly mute: string;
+    /** FloorFifty's "Mute in background": silent while another window has focus. */
+    readonly muteUnfocused: string;
+    /** A toggle's state words. */
+    readonly on: string;
+    readonly off: string;
+    readonly buses: Readonly<Record<AudioBus, string>>;
+    /** A gain as the player reads it: "50%". */
+    percent(value: number): string;
+    /** When sound could not start (A-e). */
+    readonly unavailable: string;
+    /** While the host's own volume is below full. */
+    readonly hostVolume: string;
+}
+```
+
+#### `AudioSection` (const)
+
+The Audio group of the Settings tab (M5 spec §7, M5.4), laid out as FloorFifty's (`SettingsPanel.svelte` at
+a28dc44): Mute, Mute in the background, then a slider per bus with its percentage. Every change is reported at
+once (`onchange`); the game applies and saves it, so there is no Apply. When sound could not start
+(`available` false, A-e) the group says so and its controls stay shown but disabled. While the host's own volume is
+below full, a note says it also applies, so a quiet game is not taken for a broken slider.
+
+```ts
+const AudioSection: import("svelte").Component<Props, {}, "">;
+type AudioSection = ReturnType<typeof AudioSection>;
+```
+
+#### `AudioSectionChange` (type)
+
+One change in the Audio group: a toggle's new state, or a bus's new gain.
+
+```ts
+type AudioSectionChange = {
+    readonly kind: 'muted';
+    readonly value: boolean;
+} | {
+    readonly kind: 'muteUnfocused';
+    readonly value: boolean;
+} | {
+    readonly kind: 'gain';
+    readonly bus: AudioBus;
+    readonly value: number;
+};
+```
+
+#### `AudioValue` (interface)
+
+The player's audio choices (runtime's `AudioSettings`): the mutes, and a gain per bus from 0 to 1.
+
+```ts
+interface AudioValue {
+    readonly muted: boolean;
+    readonly muteUnfocused: boolean;
+    readonly gains: Readonly<Record<AudioBus, number>>;
+}
+```
+
 #### `BarAction` (interface)
 
 _No doc comment._

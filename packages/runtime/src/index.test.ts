@@ -4,6 +4,7 @@ import { expect, test } from 'vitest'
 // Each later task adds its names here when it adds the export.
 const ROOT_EXPORTS: string[] = [
   'AUDIO_BUS_NAMES',
+  'AUDIO_SETTINGS_DEFAULT',
   'AppLoop',
   'AssetLoadFailed',
   'Assets',
@@ -53,6 +54,7 @@ const ROOT_EXPORTS: string[] = [
   'applyOverrides',
   'audioBusGainsSchema',
   'audioLayer',
+  'audioSettingsSchema',
   'createT',
   'defineSave',
   'displaySettingsSchema',

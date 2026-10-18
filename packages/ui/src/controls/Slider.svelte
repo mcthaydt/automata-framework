@@ -17,15 +17,29 @@ interface Props {
   onchange: (value: number) => void
   disabled?: boolean | undefined
   testId?: string | undefined
+  /** `stacked` (the default): the label above the track. `row`: the label, the track and the value on one row, as
+   * FloorFifty's volume rows. */
+  layout?: 'stacked' | 'row' | undefined
 }
 
-const { label, value, min, max, step = 1, valueText, onchange, disabled = false, testId }: Props = $props()
+const {
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  valueText,
+  onchange,
+  disabled = false,
+  testId,
+  layout = 'stacked',
+}: Props = $props()
 
 const id = $props.id()
 const words = $derived(valueText(value))
 </script>
 
-<div class="af-slider" data-testid={testId}>
+<div class="af-slider" data-testid={testId} data-layout={layout}>
   <label class="af-slider__label" for={id}>{label}</label>
   <input
     {id}
@@ -61,6 +75,20 @@ const words = $derived(valueText(value))
     -webkit-appearance: none;
     cursor: pointer;
     touch-action: manipulation;
+  }
+
+  /* One row: the name, the track taking the rest, the value in a column of its own so the tracks line up. */
+  .af-slider[data-layout='row'] {
+    grid-template-columns: minmax(5em, auto) minmax(0, 1fr) 4ch;
+  }
+
+  .af-slider[data-layout='row'] .af-slider__input {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .af-slider[data-layout='row'] .af-slider__value {
+    text-align: end;
   }
 
   .af-slider__value {

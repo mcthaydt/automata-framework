@@ -425,6 +425,12 @@
 - `ActionKind` (type): The action bar's model (M1.6 spec §3.4; from FloorFifty `ui/layout/action-bar.ts` at 122a220).
 - `applyGeometry(root, geometry)`: Writes the geometry where CSS reads it (spec §3.2).
 - `arrowKeyNav(event)`: The menu direction an arrow key walks, as a d-pad would, or undefined when the key is not a bare arrow or its target keeps that arrow.
+- `AUDIO_BUSES` (const): The buses the Audio group offers, in the order it shows them.
+- `AudioBus` (type): An audio bus (runtime's `AudioBusName`).
+- `AudioCopy` (interface): Every word the Audio group shows, in the game's language.
+- `AudioSection` (const): The Audio group of the Settings tab (M5 spec §7, M5.4), laid out as FloorFifty's (`SettingsPanel.svelte` at a28dc44): Mute, Mute in the background, then a slider per bus with its percentage.
+- `AudioSectionChange` (type): One change in the Audio group: a toggle's new state, or a bus's new gain.
+- `AudioValue` (interface): The player's audio choices (runtime's `AudioSettings`): the mutes, and a gain per bus from 0 to 1.
 - `BarAction` (interface)
 - `BarSample` (type): One reading of the viewport, as `HiddenBrowserBar.measure` needs it.
 - `BOOT_FAILURE_COPY_EN` (const): English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5.
