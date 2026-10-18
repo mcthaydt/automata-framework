@@ -3,11 +3,18 @@
 // set let a keyup on the keyboard release a direction the controller still held, so each device keeps its own
 // sources and an action is held while any source on any device drives it. Edges ("pressed") never reach the sim:
 // `onPress` serves menus and the pause screen, and gameplay compares this tick's command with the last one's.
-import { Context, Effect, Either, type Scope, SubscriptionRef } from 'effect'
+import { Context, Duration, Effect, Either, type Scope, SubscriptionRef } from 'effect'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { SettingsStore } from '../settings/settings.manager.js'
 import { type InputSettings, inputSettingsSchema } from './bindings/input-settings.schema.js'
-import { applyOverrides, type Capture, type RebindError, rebindProfile } from './bindings/rebind.js'
+import {
+  applyOverrides,
+  type Capture,
+  RebindCancelled,
+  type RebindError,
+  RebindTimedOut,
+  rebindProfile,
+} from './bindings/rebind.js'
 import { type GlyphFamily, glyphFamily } from './gamepad/glyph-family.js'
 import { HandoverMask } from './gamepad/handover-mask.js'
 import { NavRepeat } from './gamepad/nav-repeat.js'
@@ -70,7 +77,18 @@ export interface Input {
   rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Effect.Effect<void, RebindError>
   /** Every binding back to the game's profile. */
   readonly resetBindings: Effect.Effect<void>
+  /**
+   * The next key (`keyboard`) or pad button (`gamepad`) pressed, for `rebind`. Escape or pad B cancels; nothing
+   * for `REBIND_TIMEOUT_MS` on Effect's Clock times out. While it waits, every key it sees goes no further, and the
+   * pads drive nothing else.
+   */
+  capture(device: 'keyboard' | 'gamepad'): Effect.Effect<Capture, RebindCancelled | RebindTimedOut>
 }
+
+/** How long `capture` waits for a press (M4 spec §4.2, §6). */
+export const REBIND_TIMEOUT_MS = 10_000
+/** Pad B, which backs out of a menu, cancels a capture. */
+const CANCEL_BUTTON = 1
 
 export const Input: Context.Tag<Input, Input> = Context.GenericTag<Input>('@mcthaydt/automata-runtime/Input')
 
@@ -339,6 +357,52 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       }),
     )
 
+    // A capture in progress: per pad, the buttons already down when it started (a confirm still held from opening
+    // it), which never count until let go.
+    let capturing:
+      | {
+          readonly device: 'keyboard' | 'gamepad'
+          readonly downBefore: Map<number, Set<number>>
+          finish(result: Capture | undefined): void
+        }
+      | undefined
+    const pressedOn = (pad: PadLike): Set<number> => {
+      const down = new Set<number>()
+      pad.buttons.forEach((button, index) => {
+        if (button.pressed) down.add(index)
+      })
+      return down
+    }
+    /** The pads during a capture: the first new press is the capture, or B cancels it. Nothing else is driven. */
+    const pollCapture = (pads: readonly (PadLike | null)[]): void => {
+      if (capturing === undefined) return
+      for (const pad of pads) {
+        if (pad === null || !pad.connected || pad.mapping !== 'standard') continue
+        const down = pressedOn(pad)
+        const before = capturing.downBefore.get(pad.index) ?? new Set(down)
+        for (const button of before) if (!down.has(button)) before.delete(button)
+        capturing.downBefore.set(pad.index, before)
+        const fresh = [...down].filter((button) => !before.has(button))
+        if (fresh.length === 0) continue
+        if (fresh.includes(CANCEL_BUTTON)) {
+          capturing.finish(undefined)
+          return
+        }
+        if (capturing.device === 'gamepad') {
+          capturing.finish({ button: fresh[0] as number })
+          return
+        }
+      }
+    }
+    const onCaptureKey = (event: KeyboardEvent): void => {
+      if (capturing === undefined) return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      if (event.repeat) return
+      if (event.code === 'Escape') capturing.finish(undefined)
+      else if (capturing.device === 'keyboard') capturing.finish({ code: event.code })
+    }
+
     /** New bindings: what is held is let go, so nothing stays held by an input that no longer drives it. */
     const setProfile = (next: InputProfile, action?: string): void => {
       profile = next
@@ -387,6 +451,10 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
         return () => void set.delete(listener)
       },
       poll(nowMs = 0) {
+        if (capturing !== undefined) {
+          pollCapture(target.navigator.getGamepads?.() ?? [])
+          return
+        }
         for (const source of sampled) if (!pulsed.has(source)) lift(source)
         const seen = sampled
         sampled = pulsed
@@ -440,6 +508,41 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
           return Effect.void
         }),
       resetBindings: Effect.sync(() => commit({ ...saved, profile: defaults.id, overrides: {} })),
+      capture: (wanted) =>
+        Effect.async<Capture, RebindCancelled>((resume) => {
+          capturing?.finish(undefined)
+          const downBefore = new Map<number, Set<number>>()
+          for (const [index, pad] of lastRead) downBefore.set(index, pressedOn(pad))
+          const stop = (): void => {
+            capturing = undefined
+            target.removeEventListener('keydown', onCaptureKey, { capture: true })
+            // What a pad holds now stays masked until let go, so the captured press does not also confirm.
+            for (const pad of target.navigator.getGamepads?.() ?? [])
+              if (pad?.connected) {
+                lastRead.set(pad.index, pad)
+                maskFor(pad.index).capture(pad)
+              }
+          }
+          capturing = {
+            device: wanted,
+            downBefore,
+            finish(result) {
+              stop()
+              resume(
+                result === undefined
+                  ? Effect.fail(new RebindCancelled({ device: wanted }))
+                  : Effect.succeed(result),
+              )
+            },
+          }
+          target.addEventListener('keydown', onCaptureKey, { capture: true })
+          return Effect.sync(stop)
+        }).pipe(
+          Effect.timeoutFail({
+            duration: Duration.millis(REBIND_TIMEOUT_MS),
+            onTimeout: () => new RebindTimedOut({ device: wanted }),
+          }),
+        ),
     }
   })
 }

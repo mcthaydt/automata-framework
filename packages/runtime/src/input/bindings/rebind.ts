@@ -87,6 +87,19 @@ export class RebindReserved extends RebindReservedBase {}
 export class RebindUnknown extends RebindUnknownBase {}
 export type RebindError = RebindConflict | RebindReserved | RebindUnknown
 
+interface CaptureFields {
+  /** What the capture was waiting for. */
+  readonly device: 'keyboard' | 'gamepad'
+}
+const RebindCancelledBase: TaggedErrorClass<'RebindCancelled', CaptureFields> =
+  Data.TaggedError('RebindCancelled')
+const RebindTimedOutBase: TaggedErrorClass<'RebindTimedOut', CaptureFields> =
+  Data.TaggedError('RebindTimedOut')
+/** The player pressed Escape or pad B while a capture waited: nothing changes. */
+export class RebindCancelled extends RebindCancelledBase {}
+/** Nothing was pressed for `REBIND_TIMEOUT_MS`: nothing changes. */
+export class RebindTimedOut extends RebindTimedOutBase {}
+
 const contextOf = (binding: InputBinding): InputContext => binding.context ?? 'play'
 /** Two actions compete for an input when they can be live at once. */
 const overlaps = (a: InputContext, b: InputContext): boolean => a === b || a === 'any' || b === 'any'

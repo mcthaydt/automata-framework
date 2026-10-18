@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 4 of 13 steps.
+- **Progress:** 5 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -199,7 +199,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - a rebind releases what was held;
     - without a store, a rebind lasts for that Input.
   - *Done: 7 red in `input-rebind.test.ts` (`rebind` missing, the store ignored), then green; `src/input` 108 of 108. The key, pad and stick tables are rebuilt by `tablesFor` on each change. A saved override that is dropped logs a warning when the Input starts. A refused rebind (I-l) also fails the Effect and writes nothing.*
-- [ ] **5. `capture`** (`input-capture.test.ts`, with `TestClock`).
+- [x] **5. `capture`** (`input-capture.test.ts`, with `TestClock`).
   - *Red:*
     - the next keydown is the capture, and it reaches no other listener;
     - **I-k:**
@@ -208,6 +208,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
       - 10 s of nothing is `RebindTimedOut`, and the profile is unchanged;
     - a pad button held from before the capture is not captured;
     - its next press is.
+  - *Done: 5 red (`capture` missing), then 4 hung and the timeout case failed. The forked capture had not started when the test pressed a key, because one `yieldNow` is not enough with `timeoutFail`'s race. The hung tests also left their capture listener on `window`, which swallowed the later test's key. The tests now wait with `TestClock.adjust(0)`, which runs every fiber until it suspends. The pad B case polls once before the capture, as the menu does every frame: a pad first seen during a capture counts as already held. `RebindCancelled` and `RebindTimedOut` carry the `device` they waited for. `src/input` 113 of 113.*
 - [ ] **6. Core settings** (`settings/core-settings.test.ts`; `define-game.test.ts`).
   - *Red:*
     - `CORE_SETTINGS` reads its defaults from nothing and keeps a saved `input` and `display`;
