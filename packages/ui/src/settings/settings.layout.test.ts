@@ -57,3 +57,22 @@ describe('Settings screen layout contract', () => {
     })
   }
 })
+
+describe('Settings screen tabs', () => {
+  // Two sections across is for a tab with several groups (FloorFifty: Language beside Audio); a tab of one section,
+  // Controls, takes the dialog's width, its device sections one under another as FloorFifty's Controls tab.
+  test('a tab with one section spans the dialog on a short, wide band', async () => {
+    const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'iphone-14-landscape')
+    if (size === undefined) throw new Error('no iphone-14-landscape')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
+    const fixture = mountFixture(SettingsFixture, { show: 'controls' })
+    await settleLayout()
+    byTestId('settings-tab-controls').click()
+    await settleLayout()
+    const sections = document.querySelector('.af-settings__sections')?.getBoundingClientRect()
+    const controls = document.querySelector('[data-settings-section="controls"]')?.getBoundingClientRect()
+    await fixture.unmount()
+    expect(Math.round(controls?.width ?? 0)).toBe(Math.round(sections?.width ?? -1))
+  })
+})

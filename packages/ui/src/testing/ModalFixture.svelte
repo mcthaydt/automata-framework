@@ -3,6 +3,7 @@
 <script lang="ts">
 import Modal from '../dialog/Modal.svelte'
 
+const { wide = true }: { wide?: boolean } = $props()
 const none = (): void => undefined
 </script>
 
@@ -13,8 +14,9 @@ const none = (): void => undefined
   </div>
 {/snippet}
 
-<Modal title="Settings" closeLabel="Close" onclose={none} testId="modal-panel" {head}>
+<Modal title="Settings" closeLabel="Close" onclose={none} testId="modal-panel" {head} {wide}>
   <div data-testid="modal-probe" class="af-modal-probe">Language, Audio, Display</div>
+  <button type="button" class="af-control" data-testid="modal-ringed">Resume</button>
 </Modal>
 
 <style>

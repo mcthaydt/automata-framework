@@ -48,7 +48,7 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
   </div>
 {/snippet}
 
-<Modal {title} closeLabel={backLabel} onclose={onback} testId="settings-screen" head={tabs.length > 1 ? head : undefined}>
+<Modal {title} closeLabel={backLabel} onclose={onback} testId="settings-screen" wide head={tabs.length > 1 ? head : undefined}>
   <div class="af-settings">
     {#if current !== undefined}
       {#key current.id}
@@ -134,6 +134,10 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-items: start;
       column-gap: 24px;
+    }
+    /* A tab of one section (Controls) takes the width: FloorFifty's Controls tab is one column. */
+    .af-settings__section:only-child {
+      grid-column: 1 / -1;
     }
   }
 

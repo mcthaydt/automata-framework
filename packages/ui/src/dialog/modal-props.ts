@@ -11,6 +11,8 @@ export interface ModalProps {
   children?: Snippet | undefined
   /** What sits with the title (Settings' tabs): beside it where the dialog is 480 px wide, under it where not. */
   head?: Snippet | undefined
+  /** A long body (Settings) that widens on a short, wide band to set its groups two across; others keep their width. */
+  wide?: boolean | undefined
   /** The buttons, in reading order. Mark the safe one with `data-initial-focus`. */
   actions?: Snippet | undefined
   testId?: string | undefined

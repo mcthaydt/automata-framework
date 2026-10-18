@@ -165,14 +165,14 @@ $effect(() => {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
     gap: 6px 12px;
     min-width: 0;
     min-height: var(--af-target);
   }
 
+  /* The action beside its input, as FloorFifty's rows: a label column, not the row's whole width. */
   .af-controls__label {
-    flex: 1 1 8em;
+    flex: 0 1 12em;
     overflow-wrap: anywhere;
   }
 

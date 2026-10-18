@@ -7,7 +7,7 @@
   - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
 - **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 5 of 8 steps.
+- **Progress:** 7 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -65,7 +65,12 @@ Each step starts with its test, run red, with the failure reason recorded. Layou
 
 - [x] **1. This plan,** and the 02 row. _Verify:_ `pnpm format`.
   - _Done: a5f9427._
-- [ ] **2. FloorFifty reference captures.** FloorFifty's pause and settings (both tabs) at 390×844, 844×390, 780×270, 820×1180 and 1280×720, built from `a28dc44`, kept with the evidence (`docs/evidence/owner-visual/…/floorfifty/`). No code.
+- [x] **2. FloorFifty reference captures.** FloorFifty's pause and settings (both tabs) at 390×844, 844×390, 780×270, 820×1180 and 1280×720, built from `a28dc44`, kept with the evidence (`docs/evidence/owner-visual/…/floorfifty/`). No code.
+  - *Done: `docs/evidence/owner-visual/2026-10-18-redo/` (README pairs every AF capture with FloorFifty's). FloorFifty's `PauseOverlay`, `LandscapeGate` and `RotateHint` mounted alone in its client (uncommitted harness, removed), 820x1180 and 1280x720 in place of the other two sizes named above as the Desk's reference set. Set beside AF's, three gaps found and fixed test-first:*
+    - *Pause widened to 704 px on a short band (FloorFifty widens only Settings): `Modal` takes `wide`, Settings passes it (red: 704 > 512);*
+    - *Resume's focus ring was cut by the dialog's scroll body: the body keeps the ring's room (red: clipped);*
+    - *Controls, Settings' only section, was held to half the dialog by the two-across grid, its inputs far from their actions: a lone section spans, and the label is a column (red: 318 of 660 px).*
+  - *ui layout 608 of 608 and game layout 100 of 100 in Chromium after the fixes.*
 - [x] **3. `PauseDialog` frame** (`packages/ui/src/dialog/PauseDialog.svelte`, DOM test then layout test). _Red:_ the frame dims the page behind (a scrim with the theme's dim token), centres a dialog within the visible band, the safe area and the host's strip, holds the page like `Modal` (inert behind, focus in, Escape calls `onback`), widens on a short wide band (the container query FloorFifty uses), and keeps a 44 px Close.
   - _Done as an extension of ui's Modal rather than a new frame (AF's Modal is FloorFifty's, with the page held, focus in and out, Escape, a 44 px Close and the dim). Added: the panel is container af-dialog, so content lays out by the dialog's width; on a short or compact band it widens to 44rem. Red: 512 px at 844x390 (expected at least 560), then green; dialog layout 27 of 27 in Chromium (all engines in step 8's gates). Step 2 (FloorFifty captures) waits for the machine to be free of M4.10's gates._
 - [x] **4. Paused** (`PausedScreen.svelte`, `default-screens.test.ts`, `screens.layout.test.ts`). _Red:_
@@ -95,7 +100,8 @@ Each step starts with its test, run red, with the failure reason recorded. Layou
     - _The device in use comes from ui's `InputMethodTracker` (a key or a finger, as play's touch buttons) and the Input's device (a pad press): raw touches do not change the Input's device._
     - _The section's own "Controls" heading went (the tab names it); its name is the section's `aria-label`._
     - _`ControlsCopy` gained `touch` and `inUse` and lost `touchMode` and `touchModes`, which are `TouchSection`'s `TouchCopy`; `ControlsSection` lost its `touch` modes prop, and its `touch` now says whether to draw the Touch section. ui is pre-1.0: a patch._
-- [ ] **7. M4.7 against FloorFifty.** The gate and the hint at each size beside FloorFifty's `LandscapeGate` and `RotateHint`. Gaps found are fixed test-first; none found is recorded with the images.
+- [x] **7. M4.7 against FloorFifty.** The gate and the hint at each size beside FloorFifty's `LandscapeGate` and `RotateHint`. Gaps found are fixed test-first; none found is recorded with the images.
+  - *Done. The gate matches FloorFifty's (structure, words, one primary action). The rotate hint differs in function: FloorFifty's is a dismissible toast for a game that plays both ways; AF's is M4 spec §4.9's blocking cover over a game locked to one orientation. Matching it would change the approved spec, so it goes to the Desk (README), unchanged here.*
 - [ ] **8. E2E, evidence and gates.**
   - The matrix and rebind journeys follow the new test ids.
   - Side-by-side captures, AF beside FloorFifty, of Paused, Settings (both tabs) and the covers, at each size, sent to the Desk.

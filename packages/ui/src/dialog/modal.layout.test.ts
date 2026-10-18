@@ -15,19 +15,30 @@ const sizeNamed = (name: string) => {
   return size
 }
 
-async function measure(name: string): Promise<{ width: number; columns: string; headBesideTitle: boolean }> {
+async function measure(
+  name: string,
+  wide = true,
+): Promise<{ width: number; columns: string; headBesideTitle: boolean; ringClipped: boolean }> {
   const size = sizeNamed(name)
   await page.viewport(size.width, size.height)
   publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
-  const fixture = mountFixture(ModalFixture, {})
+  const fixture = mountFixture(ModalFixture, { wide })
   await settleLayout()
+  // A focused control's ring (outside its box by the ring's room) stays inside the body that scrolls it.
+  const ringed = byTestId('modal-ringed').getBoundingClientRect()
+  const body = (
+    byTestId('modal-panel').querySelector('.af-modal__body') as HTMLElement
+  ).getBoundingClientRect()
+  const room = 4
+  const ringClipped =
+    ringed.left - room < body.left || ringed.right + room > body.right || ringed.bottom + room > body.bottom
   const width = byTestId('modal-panel').getBoundingClientRect().width
   const columns = getComputedStyle(byTestId('modal-probe')).columnCount
   const title = byTestId('modal-panel').querySelector('h2')?.getBoundingClientRect()
   const head = byTestId('modal-head-probe').getBoundingClientRect()
   const headBesideTitle = title !== undefined && head.top < title.bottom && head.left >= title.right
   await fixture.unmount()
-  return { width, columns, headBesideTitle }
+  return { width, columns, headBesideTitle, ringClipped }
 }
 
 describe('Modal frame', () => {
@@ -42,6 +53,16 @@ describe('Modal frame', () => {
   test('sets its head (the tabs) beside the title on a wide dialog, and under it on a narrow one', async () => {
     expect((await measure('iphone-14-landscape')).headBesideTitle).toBe(true)
     expect((await measure('iphone-14')).headBesideTitle).toBe(false)
+  })
+
+  // FloorFifty widens only the dialog whose body sets its groups two across (Settings); its Pause stays compact.
+  test('widens only when asked: a dialog that is not wide keeps its width on a short band', async () => {
+    expect((await measure('iphone-14-landscape', false)).width).toBeLessThanOrEqual(512)
+  })
+
+  test('keeps room for a focused control’s ring inside its body', async () => {
+    expect((await measure('iphone-14-landscape')).ringClipped).toBe(false)
+    expect((await measure('iphone-14')).ringClipped).toBe(false)
   })
 
   test('stays one column on a phone held upright', async () => {

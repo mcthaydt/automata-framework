@@ -23,6 +23,7 @@ const {
   onbackdrop,
   children,
   head,
+  wide = false,
   actions,
   testId,
   anchor = 'center',
@@ -54,6 +55,7 @@ function onScrimClick(event: MouseEvent): void {
     aria-labelledby={titleId}
     tabindex="-1"
     data-testid={testId}
+    data-wide={wide ? '' : undefined}
   >
     <div class="af-modal__head">
       <h2 id={titleId} class="af-modal__title">{title}</h2>
@@ -135,9 +137,10 @@ function onScrimClick(event: MouseEvent): void {
     gap: 8px;
   }
 
-  /* A long body on a short band (a phone held sideways, a 900 x 600 window) widens rather than shows one group
-     above a "+N more" (FloorFifty's visual audit, 2026-10-05). A sheet keeps its own width. */
-  :global(:is([data-height="short"], [data-height="compact"])) .af-modal-scrim:not([data-anchor="bottom"]) .af-modal {
+  /* A long body (`wide`: Settings) on a short band (a phone held sideways, a 900 x 600 window) widens rather than
+     shows one group above a "+N more" (FloorFifty's visual audit, 2026-10-05). Others, Pause among them, keep their
+     width, as FloorFifty's do; a sheet keeps its own. */
+  :global(:is([data-height="short"], [data-height="compact"])) .af-modal-scrim:not([data-anchor="bottom"]) .af-modal[data-wide] {
     max-width: 44rem;
   }
 
@@ -175,7 +178,11 @@ function onScrimClick(event: MouseEvent): void {
     padding: 0;
   }
 
+  /* The ring's room inside the body that scrolls, so a focused control's ring is never cut by its edge; the negative
+     margin keeps the content aligned with the head. */
   .af-modal__body {
+    margin: calc(var(--af-ring-room) * -1);
+    padding: var(--af-ring-room);
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
