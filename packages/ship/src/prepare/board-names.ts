@@ -10,6 +10,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { parseSync } from 'oxc-parser'
 
+/** A board the game's sources name that its ship config does not declare, at the call site. */
 export interface UndeclaredBoardFound {
   readonly board: string
   /** Relative to the game folder, with forward slashes. */

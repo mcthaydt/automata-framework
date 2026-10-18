@@ -168,10 +168,13 @@
 
 ### `import { … } from '@mcthaydt/automata-ship'`
 
+- `BoardName` (interface): A board a source file names, by its name and position (1-based, at the opening quote).
+- `boardNamesIn(file, code)`: The boards one source file names, in source order; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could report a board that is not there).
 - `BUILD_ID_PATTERN` (const): A build's ID on the dev host: the commit's UTC time to the minute, then its short sha, for example `202610111205-abcdef0` (FloorFifty `deploy/bin/build-tag`).
 - `buildIdFor(commit)`
 - `checkManifest(toml)`: Checks `ruken.toml` text with Ruken's own parser, so AF accepts exactly what Ruken accepts.
 - `checkVersion(version, tag)`: A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`): the build Ruken shows as 0.10.2 is the one tagged v0.10.2.
+- `declaredBoardsIn(code)`: The board ids a `ship.config.ts` declares: the keys of its `leaderboards` object, read from the source as written (`automata check` reads files, it does not run them).
 - `defineShipConfig(config)`: Identity function that gives a game's `ship.config.ts` type checking and editor completion.
 - `deployDev(input)`
 - `DeployDevInput` (interface)
@@ -181,12 +184,14 @@
 - `FileError` (class): Reading, writing, listing or removing a file failed.
 - `findRootAbsoluteReferences(distDir)`
 - `findSecretsInBuild(distDir, envValues)`: Every secret in a built folder.
+- `findUndeclaredBoards(gameDir, declared)`: Every board a game's sources name that `declared` (its ship config's `leaderboards` keys) lacks.
 - `inputsProblems(inputs, bindings)`: Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
+- `isBoardSource` (const): Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`, `.mts`, `.js`, `.mjs`).
 - `ManifestInputsMismatch` (class): `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
 - `ManifestInvalid` (class): Ruken's parser refused the generated `ruken.toml`.
 - `parseEnvFile(file, text)`: The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
-- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths and secrets (QB-b), then writes `ruken.toml` once Ruken's parser accepts it.
+- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface)
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
@@ -210,6 +215,8 @@
 - `TestRemoteFailed` (class)
 - `TestRemoteInput` (interface)
 - `TestRemoteReason` (type): Why `test-remote` stopped without a green run.
+- `UndeclaredBoard` (class): The game names a leaderboard its ship config's `leaderboards` does not declare (M5 spec §4.8, L-b).
+- `UndeclaredBoardFound` (interface): A board the game's sources name that its ship config does not declare, at the call site.
 - `VersionMismatch` (class): A release tag that is not `v<version>`.
 
 ## `@mcthaydt/automata-sim`
@@ -445,6 +452,10 @@
 - `isTap(dx, dy)`: Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
 - `landscapeGate(inputs)`
 - `LandscapeGateState` (type): Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
+- `LeaderboardCopy` (interface): Every word the panel shows, in the game's language.
+- `LeaderboardEntryView` (interface): One row of a board, as the host gives it; `isMe` marks the player.
+- `LeaderboardPanel` (const): A board's rows, or why there are none (M5 spec §7): loading, entries (the player's row marked "you" in words, not only by colour), empty, unavailable and offline.
+- `LeaderboardView` (type): What the panel shows: the rows, or why there are none.
 - `LoaderOverlay` (const)
 - `lockOverscroll(node)`: A Svelte action: `<div use:lockOverscroll>`.
 - `measureGeometry(input)`
