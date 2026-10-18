@@ -41,6 +41,13 @@ test.each([
   'Modal',
   'Sheet',
   'Toast',
+  // display policy (M4 spec §4.9, M4.7)
+  'LandscapeGate',
+  'RotateHint',
+  'enterFullscreen',
+  'fullscreenSupport',
+  'isFullscreen',
+  'onFullscreenChange',
   // boot failures and slots (§3.6, §3.7)
   'bootFailureView',
   'BOOT_FAILURE_COPY_EN',

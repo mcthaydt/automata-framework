@@ -5,7 +5,7 @@
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 2 of 11 steps.
+- **Progress:** 4 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -140,14 +140,22 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - `isFullscreen` and `onFullscreenChange` follow the document;
     - `enterFullscreen` requests it and a landscape lock, and swallows a refusal of either.
   - *Done: red `Failed to resolve import "./fullscreen"`, then 6 of 6 green. `enterFullscreen` takes the `Screen` as a parameter, so the lock is testable.*
-- [ ] **3. `LandscapeGate`** (`ui/src/display/landscape-gate.svelte.test.ts`).
+- [x] **3. `LandscapeGate`** (`ui/src/display/landscape-gate.svelte.test.ts`).
   - *Red:*
     - nothing at `none`;
     - at `fullscreen`, a modal dialog with its title, and the primary button focused, which calls `onfullscreen`;
     - at `rotate-or-install`, words and no button.
-- [ ] **4. `RotateHint`** (`ui/src/display/rotate-hint.svelte.test.ts`).
+- [x] **4. `RotateHint`** (`ui/src/display/rotate-hint.svelte.test.ts`).
   - *Red:* hidden or shown by `shown`, with its words, and nothing focusable.
   - *Layout:* both covers (`DisplayFixture.svelte`, `display.layout.test.ts`) at every reference size and variant. The gate's button is reachable and whole.
+  - *Done (steps 3 and 4):*
+    - Red `Failed to resolve import` for both components, then 5 of 5 DOM cases.
+    - Layout: 225 of 225, three shows at 25 sizes in three engines.
+    - Three reds before that, all fixed:
+      - The cover hid the screen's Back while leaving it reachable. The gate now holds the page as a modal does (`holdModal`): the page behind is inert, and focus starts on its button. The hint inerts the page behind it (`inertOutside`).
+      - With the keyboard up, the covers reached under it. They now end above it (`--af-visual-inset-bottom`), and the gate's panel is a declared scroll region. As in every other contract, nothing is essential with the keyboard up.
+      - `bind:this` sets null, not undefined, when a cover goes. The effects check for both.
+    - Exported from the ui root.
 - [ ] **5. `PauseReason` `display`** (`time.test.ts`).
   - *Red:* pausing and resuming for `display` alone, beside `menu`.
 - [ ] **6. The display policy** (`runtime/src/display/display-policy.test.ts`, jsdom, with a fake geometry owner and `matchMedia`).

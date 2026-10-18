@@ -1,4 +1,5 @@
 export { bootDeviceClass, classifyDevice, type DeviceClass } from './browser/device-class'
+export { enterFullscreen, fullscreenSupport, isFullscreen, onFullscreenChange } from './browser/fullscreen'
 export { installGlobalErrorHandlers } from './browser/global-errors'
 export { type BarSample, HiddenBrowserBar, isDuckDuckGo } from './browser/hidden-browser-bar'
 export { RETRY_DELAYS_MS, type RetryTimers, retryUrl, watchImage } from './browser/image-retry'
@@ -21,6 +22,9 @@ export { default as Dialog } from './dialog/Dialog.svelte'
 export { default as Modal } from './dialog/Modal.svelte'
 export type { ModalProps } from './dialog/modal-props'
 export { default as Sheet } from './dialog/Sheet.svelte'
+export type { LandscapeGateCopy, RotateHintCopy } from './display/display-copy'
+export { default as LandscapeGate } from './display/LandscapeGate.svelte'
+export { default as RotateHint } from './display/RotateHint.svelte'
 export { interceptBackGesture, sendBack } from './focus/back-gesture'
 export {
   CURSOR_IDLE_MS,
