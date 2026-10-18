@@ -4,7 +4,7 @@
   - M4 spec [§4.9](../specs/2026-10-16-m4-input-display-design.md), with §5 (host display change), §6 (fullscreen failure, overlay that cannot fit), §7 (`RotateHint`, `LandscapeGate`, `TouchControls` reduced), §8, and decision M4-D5.
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
-- **Status:** Drafted 2026-10-18.
+- **Status:** Implemented 2026-10-18; local gates not yet green (step 11, below). Handed off at a session refresh.
 - **Progress:** 10 of 11 steps.
 
 ## Sources, read at these commits
@@ -208,6 +208,13 @@ Each step starts with its test, run red, with the failure reason recorded. The p
   - *Changeset.*
   - *Gates:* `pnpm format`, `pnpm check`, CI extras, `pnpm test:parity`, `CI=1 pnpm test:e2e`, prepare-ruken.
   - *Records:* tick 02, add an execution row, update 03.
+  - *State at handoff (2026-10-18, not ticked):*
+    - **Gates on `chore: M4.7 doc comments` (first attempts):**
+      - `pnpm check` was red on a typecheck error in my own test (a hand-built `ReferenceSize`). Fixed in `4e19c87`; `pnpm check` has not been re-run since.
+      - CI extras passed.
+      - `pnpm test:parity` passed, 12 of 12.
+      - `CI=1 pnpm test:e2e` had 99 passed, 2 skipped and **6 failed**. All six are Emberwick in `base-2d-compact` (standalone, Pixel 7 landscape, 780×270): the landscape gate now covers the game there, as M4-D5 says it should standalone, and the journeys do not pass through it.
+    - **Next:** Emberwick's e2e taps `landscape-gate-fullscreen` when the gate shows, then goes on. Headless Chromium grants element fullscreen. Then re-run every gate.
 
 ## Verification
 
