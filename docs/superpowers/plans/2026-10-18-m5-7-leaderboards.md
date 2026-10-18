@@ -3,7 +3,7 @@
 - **Task:** M5.7 in [02](../../02-master-delivery-plan.md). M5 spec [§4.8](../specs/2026-10-16-m5-saves-audio-design.md), §6 (the leaderboard rows), §7 (`LeaderboardPanel`), §8, §9. Acceptance L-a, L-b.
 - **Lane:** runtime and ui, with the game lane as the consumer and ship and cli for the board check. **Depends on:** M5.0 (Owner-approved 2026-10-16) and PRODUCT.1 (merged: `Hosting.leaderboards`).
 - **Status:** Planned 2026-10-18.
-- **Progress:** 1 of 9 steps.
+- **Progress:** 2 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -31,8 +31,8 @@
 - `BoardState` = `idle` | `submitting` | `accepted { personalBest, rank? }` | `refused` | `unavailable` | `offline`:
   - `refused`: the host answered `accepted: false`, or rejected the score (`INVALID_PAYLOAD`, for example a non-integer).
   - `unavailable`: `UNSUPPORTED` (no grant, or standalone).
-  - `offline`: `OFFLINE`, `TIMEOUT` or `NETWORK`.
-  - Every other host error is `unavailable`, so a screen always has a named state.
+  - `offline`: `OFFLINE` or `TIMEOUT` (Ruken has no separate network code).
+  - Every other host error (`DENIED`, `NOT_READY`, `RATE_LIMITED`, `QUOTA_EXCEEDED`, `CANCELLED`, `INTERNAL`) is `unavailable`, so a screen always has a named state.
 - `makeLeaderboards({ hosting, bus })` → `Leaderboards`:
   - `submitScore(board, score)`: an `Effect` that never fails. It publishes `leaderboard.submitted { board, state }` and returns the state.
   - `readBoard(board, query?)` returns `{ state: 'entries', entries }` | `{ state: 'empty' }` | `{ state: 'unavailable' }` | `{ state: 'offline' }`, from `Hosting.leaderboards.get`.
@@ -44,7 +44,8 @@
 
 - [x] **1. Plan.** This file, the 02 row's link, 03.
   - *Plan written from the M5 spec, FloorFifty ac72660 (score-boards.ts, scores.ts, scores-hosted.test.ts) and the vendored SDK; 02 row linked; 03 updated.*
-- [ ] **2. Board states from host answers.** `packages/runtime/src/leaderboards/board-state.ts`: map `LeaderboardSubmitRes` and `HostError` codes to `BoardState`. Unit tests cover every row of the contract.
+- [x] **2. Board states from host answers.** `packages/runtime/src/leaderboards/board-state.ts`: map `LeaderboardSubmitRes` and `HostError` codes to `BoardState`. Unit tests cover every row of the contract.
+  - *Red: the test failed to resolve ./board-state.js (no module). Green: board-state.ts; 12 unit tests (accepted with and without rank, refused, every Ruken error code); runtime tsc clean. The submit answer type comes from Hosting.leaderboards, so runtime takes no @ruken/sdk dependency.*
 - [ ] **3. The `Leaderboards` service under the fake host.** `leaderboards.manager.ts` over `Hosting` with `@ruken/sdk-host/testing`:
   - L-a: a declared board returns `accepted` with `personalBest`;
   - offline is `offline` and keeps no local score (a later `readBoard` while offline is `offline`, not a cached entry);
