@@ -74,8 +74,13 @@ export function displayPolicy(options: DisplayPolicyOptions): Effect.Effect<void
     const { orientation, hosted, win, geometry, layer, time } = options
     const copy = options.copy ?? DISPLAY_COPY_EN
     const doc = win.document
-    const coarse = win.matchMedia('(pointer: coarse)')
-    const installed = win.matchMedia('(display-mode: standalone), (display-mode: fullscreen)')
+    // A window without `matchMedia` (a test's, a replay's) is a fine pointer, not installed.
+    const query = (
+      media: string,
+    ): Pick<MediaQueryList, 'matches' | 'addEventListener' | 'removeEventListener'> =>
+      win.matchMedia?.(media) ?? { matches: false, addEventListener: () => {}, removeEventListener: () => {} }
+    const coarse = query('(pointer: coarse)')
+    const installed = query('(display-mode: standalone), (display-mode: fullscreen)')
 
     const gateProps: { state: LandscapeGateState; copy: LandscapeGateCopy; onfullscreen: () => void } =
       $state({

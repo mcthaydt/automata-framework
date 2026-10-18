@@ -5,7 +5,7 @@
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 6 of 11 steps.
+- **Progress:** 7 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -175,10 +175,14 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - Two additions to the plan:
       - The rotate hint, like the gate, needs a coarse pointer: a short desktop window is `phone-landscape` too, and has nothing to turn.
       - English words are `DISPLAY_COPY_EN`.
-- [ ] **7. Boot runs it** (`boot.test.ts`; `game-definition.ts`, `boot-program.ts`; `define-game.ts`).
+- [x] **7. Boot runs it** (`boot.test.ts`; `game-definition.ts`, `boot-program.ts`; `define-game.ts`).
   - *Red:*
     - a `portrait` game booted at a landscape phone size shows the hint;
     - `defineGame` passes `orientation` through, default `any`.
+  - *Done:*
+    - Red on both (no hint, then `orientation` undefined), then green: boot 17 of 17, `define-game.test.ts` 25 of 25.
+    - jsdom has no `matchMedia`, so the policy treats a window without it as a fine pointer, not installed, as `Input` does.
+    - The runtime's root exports the `GameOrientation` and `DisplayCopy` types.
 - [ ] **8. The reduced touch set** (`touch-controls-view.svelte.test.ts`, `touch.layout.test.ts`; `keys.test.ts`).
   - *Red:*
     - with too little room, only the required buttons show, still at the primary size, with `data-reduced`;

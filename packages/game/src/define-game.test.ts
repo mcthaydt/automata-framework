@@ -64,6 +64,11 @@ describe('defineGame defaults (DX spec §3.1)', () => {
     expect(defineGame({ ...spec, screens: own }).screens).toBe(own)
   })
 
+  it('passes the orientation through to the runtime, any by default (M4.7)', () => {
+    expect(defineGame(spec).orientation).toBe('any')
+    expect(defineGame({ ...spec, orientation: 'portrait' }).orientation).toBe('portrait')
+  })
+
   it('makes a renderer factory', () => {
     expect(typeof defineGame(spec).renderer).toBe('function')
   })

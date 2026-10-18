@@ -3,6 +3,7 @@ import type { HostingOptions, HostingSeams } from '@mcthaydt/automata-host'
 import type { BootFailureCopy } from '@mcthaydt/automata-ui'
 import type { AudioContextLike } from '../audio/audio-graph.js'
 import type { EventSounds } from '../audio/event-sounds.js'
+import type { GameOrientation } from '../display/display-policy.svelte.js'
 import type { ExtensionDef } from '../extension/define-extension.js'
 import type { ScreenDef } from '../flow/screen.js'
 import type { EventScores } from '../leaderboards/event-scores.js'
@@ -45,6 +46,11 @@ export interface GameDefinition<S = never> {
   readonly screens: readonly ScreenDef[]
   readonly renderer: RendererFactory
   readonly settings?: SettingsDef<S> | undefined
+  /**
+   * The orientation the game plays in, as the ship config's `runtime.orientation` says (M4.7). A `portrait` or
+   * `landscape` game on a phone held the other way pauses behind the rotate hint. Default `any`.
+   */
+  readonly orientation?: GameOrientation | undefined
   /**
    * The game's languages: pass its Paraglide `runtime.js` (`import * as runtime from './paraglide/runtime.js'`).
    * Absent, the game has one locale, the content's `source_language` (PRODUCT spec §4).
