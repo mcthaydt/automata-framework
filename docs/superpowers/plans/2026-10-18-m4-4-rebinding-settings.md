@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 2 of 13 steps.
+- **Progress:** 3 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -180,7 +180,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - an override for an unknown action, a reserved key (Escape), pad 8 or pad 17 is dropped and named, and the rest apply;
     - overrides saved against another profile id are all dropped.
   - *Done: red `Failed to resolve import "./input-settings.schema.js"`, then 7 of 7 green. The schema's fallback is a fresh default object, which Zod's readonly typing needs.*
-- [ ] **3. `rebindProfile`** (`bindings/rebind.test.ts`).
+- [x] **3. `rebindProfile`** (`bindings/rebind.test.ts`).
   - *Red:*
     - jump to `KeyK` replaces jump's keys and keeps its pad;
     - **I-i:** `KeyK`, already fire's, moves to jump, and fire is left with no keys;
@@ -189,6 +189,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - Tab and pad 16 are `RebindReserved`;
     - an unknown action is `RebindUnknown`;
     - overrides hold only what differs, and binding the default again leaves none.
+  - *Done: 8 red (`rebindProfile is not a function`), then green, 15 of 15 in `bindings/`. The errors are `Data.TaggedError` classes through `boot-error.ts`'s `TaggedErrorClass`, as isolated declarations need.*
 - [ ] **4. The Input's live profile, `rebind` and `resetBindings`** (`input.test.ts`).
   - *Red:*
     - with a store holding an override, `KeyK` holds jump;
