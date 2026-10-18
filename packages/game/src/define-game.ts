@@ -15,6 +15,7 @@ import {
   type EventSounds,
   type GameDefinition,
   type GameOrientation,
+  type RotateHintMode,
   type RuntimeSeams,
   type ScreenDef,
   type SettingsDef,
@@ -46,6 +47,8 @@ export interface GameSpec<S = never> {
    * the other way a `portrait` or `landscape` game pauses behind the rotate hint. Default `any`.
    */
   readonly orientation?: GameOrientation
+  /** On a phone held the other way: `'block'` (the default) covers and pauses; `'toast'` says so and plays on. */
+  readonly rotateHint?: RotateHintMode
   /** Default: no commands. */
   readonly input?: InputMap
   /** Component id → view (`rect`, `sprite`). */
@@ -222,6 +225,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     title,
     size: spec.size,
     orientation: spec.orientation ?? 'any',
+    rotateHint: spec.rotateHint ?? 'block',
     sim,
     ...(spec.input === undefined ? {} : { input: spec.input }),
     get root() {

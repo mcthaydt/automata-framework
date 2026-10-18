@@ -7,7 +7,7 @@
   - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
 - **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 11 of 14 steps.
+- **Progress:** 12 of 14 steps.
 
 ## Sources, read at these commits
 
@@ -136,7 +136,9 @@ M5.4 (#92) is folded into this branch (the Audio group, Pause's Mute; its plan h
   - *Done. Red: `audio.sample is not a function`; no sample on a slider's `change` (ui); the game's released slider played nothing. Green: audio 50, ui settings and controls 36, game 145. The tone is a 120 ms 660 Hz sine falling to silence, made once in the graph's context (`createBuffer`, `sampleRate` join `AudioContextLike` and its fake) and played as a voice on the bus. `Slider` gains `onrelease`.*
 - [x] **12. Settings fills a phone's height.** *Red:* on a phone (`phone-portrait`, `phone-landscape`), Settings' dialog fills the visible band's height, the list taking the rest, Back at the bottom (FloorFifty `Modal.svelte`'s body that scrolls in its own list).
   - *Done. Red: with a short tab (`settings-short`, Display alone) the dialog took 40% of an iPhone 14's band. `Modal` gains `fill`: on a phone (`data-form-factor` phone-portrait or phone-landscape) the dialog is the band's height, the body taking the rest and the actions at the bottom; Settings passes it. A desktop keeps to its content. Green: Settings and dialog layouts 134 of 134 in Chromium (the contract now covers `settings-short` at every size and variant).*
-- [ ] **13. `rotateHint: 'block' | 'toast'`.** *Red:* a game's `rotateHint: 'toast'` shows a dismissible message (FloorFifty `RotateHint.svelte`: "Turn your phone for a bigger view", OK, remembered) and does not pause; the default stays the blocking cover. M4 spec §4.9 records the amendment.
+- [x] **13. `rotateHint: 'block' | 'toast'`.** *Red:* a game's `rotateHint: 'toast'` shows a dismissible message (FloorFifty `RotateHint.svelte`: "Turn your phone for a bigger view", OK, remembered) and does not pause; the default stays the blocking cover. M4 spec §4.9 records the amendment.
+  - *Done. Red: with `rotateHint: 'toast'` the policy still showed the cover and paused. Green: display policy 13 of 13 (the toast shows without pausing, goes when dismissed or turned; the default still blocks), runtime 447, game 145. ui `RotateToast`; `rotateHint` on `GameDefinition` and `GameSpec`, passed by boot.*
+    - *Deviations from FloorFifty's toast: dismissal lasts the session (FloorFifty saves it on the device; AF would need device storage outside `Hosting`, which its rules refuse; M5.2's per-device settings can carry it), and it does not retire itself after 6 s (no timer outside `Time`). The plumbing from `GameSpec` to the policy is typechecked, not tested end to end; the toast's layout contract is in step 14's evidence.*
 - [ ] **14. Gates and evidence.** Gates as step 8; side-by-sides over a real-looking game frame, sent to the Desk; not merged until the Owner has reviewed it.
 
 ## Verification

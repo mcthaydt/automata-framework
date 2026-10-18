@@ -22,9 +22,10 @@ export { default as Dialog } from './dialog/Dialog.svelte'
 export { default as Modal } from './dialog/Modal.svelte'
 export type { ModalProps } from './dialog/modal-props'
 export { default as Sheet } from './dialog/Sheet.svelte'
-export type { LandscapeGateCopy, RotateHintCopy } from './display/display-copy'
+export type { LandscapeGateCopy, RotateHintCopy, RotateToastCopy } from './display/display-copy'
 export { default as LandscapeGate } from './display/LandscapeGate.svelte'
 export { default as RotateHint } from './display/RotateHint.svelte'
+export { default as RotateToast } from './display/RotateToast.svelte'
 export { interceptBackGesture, sendBack } from './focus/back-gesture'
 export {
   CURSOR_IDLE_MS,

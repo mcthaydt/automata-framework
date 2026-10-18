@@ -33,7 +33,7 @@ export type {
   RuntimeSeams,
 } from './boot/game-definition.js'
 export { runGame } from './boot/run-game.js'
-export type { DisplayCopy, GameOrientation } from './display/display-policy.svelte.js'
+export type { DisplayCopy, GameOrientation, RotateHintMode } from './display/display-policy.svelte.js'
 export { Flow } from './flow/flow.manager.js'
 export type {
   FlowFailure,

@@ -352,6 +352,7 @@ export function bootProgram<S>(
     // The landscape gate (standalone) and the rotate hint, over every screen for the session (M4 spec §4.9).
     yield* displayPolicy({
       orientation: game.orientation ?? 'any',
+      rotateHint: game.rotateHint ?? 'block',
       hosted: hosting.kind !== 'standalone',
       win,
       geometry,
