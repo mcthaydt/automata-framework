@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 1 of 13 steps.
+- **Progress:** 2 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -173,12 +173,13 @@ export function readKeyboardLayout(nav: Navigator): Promise<ReadonlyMap<string, 
 Each step starts with its test, run red, with the failure reason recorded. The pre-commit hook runs the affected tests, so each red test is committed with its fix.
 
 - [x] **1. This plan,** plus the 02 follow-up rows: `pause` rebinding and the Controls section's save-refused state. *Verify:* `pnpm format`.
-- [ ] **2. Saved input settings and `applyOverrides`** (`bindings/input-settings.test.ts`; `input-settings.schema.ts`, `rebind.ts`).
+- [x] **2. Saved input settings and `applyOverrides`** (`bindings/input-settings.test.ts`; `input-settings.schema.ts`, `rebind.ts`).
   - *Red:*
     - a valid record parses;
     - a malformed one reads as the default;
     - an override for an unknown action, a reserved key (Escape), pad 8 or pad 17 is dropped and named, and the rest apply;
     - overrides saved against another profile id are all dropped.
+  - *Done: red `Failed to resolve import "./input-settings.schema.js"`, then 7 of 7 green. The schema's fallback is a fresh default object, which Zod's readonly typing needs.*
 - [ ] **3. `rebindProfile`** (`bindings/rebind.test.ts`).
   - *Red:*
     - jump to `KeyK` replaces jump's keys and keeps its pad;
