@@ -25,7 +25,7 @@ export interface HostedOptions {
   readonly saves?: Record<string, string>
   /** Grant exactly these capabilities (`[]` denies all), instead of what the demo asks for. */
   readonly grant?: readonly string[]
-  /** The saves server is unreachable: writes queue on the host until it comes back. */
+  /** The network is down: the saves server (writes queue on the host until it comes back) and the leaderboards. */
   readonly offline?: boolean
   /** When 'never', the fake host never says ready (autoReady: false) */
   readonly ready?: 'never'
