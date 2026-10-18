@@ -5,9 +5,11 @@ import {
   createPixiRenderer,
   type EntityViewFactory,
   type PixiRendererOptions,
+  type PixiStage,
 } from '@mcthaydt/automata-render-pixi'
 import {
   BootDefect,
+  CORE_SETTINGS,
   type CompiledContentData,
   type EventScores,
   type EventSounds,
@@ -66,6 +68,11 @@ export interface GameSpec<S = never> {
   /** Default: `#game`. */
   readonly root?: HTMLElement
   readonly hosting?: Partial<Omit<HostingOptions, 'gameId' | 'disclosedEvents'>>
+  /**
+   * Default: the core settings (`CORE_SETTINGS`, the save `settings`), with the player's bindings and graphics
+   * quality. A game's own settings keep those only when its schema has `input: inputSettingsSchema` and
+   * `display: displaySettingsSchema`.
+   */
   readonly settings?: SettingsDef<S>
   readonly extensions?: readonly ExtensionDef[]
   /**
@@ -131,10 +138,15 @@ function problemsOf<S>(spec: GameSpec<S>): string[] {
   return problems
 }
 
-/** The capabilities the game asks for: the spec's, plus `leaderboards` when it has scores (once). */
+/**
+ * The capabilities the game asks for: the spec's, plus `saves` for the core settings when the game declares none
+ * (M4.4), and `leaderboards` when it has scores, each once.
+ */
 function wantsOf<S>(spec: GameSpec<S>): NonNullable<HostingOptions['wants']> {
-  const wants = spec.hosting?.wants ?? []
-  return spec.scores === undefined || wants.includes('leaderboards') ? wants : [...wants, 'leaderboards']
+  const wants = [...(spec.hosting?.wants ?? [])]
+  if (spec.settings === undefined && !wants.includes('saves')) wants.push('saves')
+  if (spec.scores !== undefined && !wants.includes('leaderboards')) wants.push('leaderboards')
+  return wants
 }
 
 /** `spec.root`, else `#game`; a BootDefect when there is neither (DX spec §6). */
@@ -156,9 +168,13 @@ export function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is 
 /**
  * The Pixi renderer's options: the logical size, pixel art and the views, under the game's own `renderer`
  * options. With a draw layer, the game's own `setup` runs first and the layer mounts over it; their frame
- * hooks run in that order.
+ * hooks run in that order. `onStage` is told the stage once it exists (the Settings screen sets its quality).
  */
-export function pixiOptions<S>(spec: GameSpec<S>, layer: DrawLayer | undefined): PixiRendererOptions {
+export function pixiOptions<S>(
+  spec: GameSpec<S>,
+  layer: DrawLayer | undefined,
+  onStage?: (stage: PixiStage) => void,
+): PixiRendererOptions {
   const options: PixiRendererOptions = {
     logicalWidth: spec.size.width,
     logicalHeight: spec.size.height,
@@ -166,11 +182,14 @@ export function pixiOptions<S>(spec: GameSpec<S>, layer: DrawLayer | undefined):
     ...(spec.views === undefined ? {} : { entityViews: spec.views }),
     ...spec.renderer,
   }
-  if (layer === undefined) return options
+  if (layer === undefined && onStage === undefined) return options
   const ownSetup = spec.renderer?.setup
   return {
     ...options,
-    setup: (stage) => mergeStageHooks(ownSetup?.(stage) ?? undefined, layer.setup(stage)),
+    setup: (stage) => {
+      onStage?.(stage)
+      return mergeStageHooks(ownSetup?.(stage) ?? undefined, layer?.setup(stage))
+    },
   }
 }
 
@@ -188,7 +207,13 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
   const content =
     spec.content === undefined ? defaultContent() : { data: spec.content.data, hash: spec.content.hash }
   const layer = spec.draw === undefined ? undefined : createDrawLayer(spec.draw, spec.size)
-  const renderer = createPixiRenderer(pixiOptions(spec, layer))
+  // The stage, once the renderer has made it: the default screens give it the player's quality (M4.4).
+  let stage: PixiStage | undefined
+  const renderer = createPixiRenderer(
+    pixiOptions(spec, layer, (made) => {
+      stage = made
+    }),
+  )
 
   const game: DefinedGame<S> = {
     id: spec.id,
@@ -210,10 +235,13 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
         input: spec.input,
         ...(layer === undefined ? {} : { watchSim: layer.watch }),
         ...(spec.scores === undefined ? {} : { board: Object.values(spec.scores)[0]?.board }),
+        setQuality: (tier) => stage?.setQuality(tier),
         ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
       }),
     renderer,
-    ...(spec.settings === undefined ? {} : { settings: spec.settings }),
+    // Without settings of its own, the game keeps the player's bindings and quality in the core settings (M4.4).
+    // They are not the game's `S`: only the default screens read them, through `Settings`.
+    settings: spec.settings ?? (CORE_SETTINGS as unknown as SettingsDef<S>),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),

@@ -304,6 +304,7 @@ interface InputMap {
     readonly touchButtons: readonly TouchButton[];
     readonly touchMode: TouchMode;
     readonly profile: InputProfile;
+    readonly labels: Readonly<Record<string, string>>;
     toCommand(held: Iterable<string>, tick: number): readonly Command[];
     attach(target: Window): InputSource;
 }
@@ -344,6 +345,7 @@ interface KeysOptions<Z extends z.ZodType> {
     readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>;
     readonly idle?: z.input<Z>;
     readonly required?: readonly string[];
+    readonly labels?: Readonly<Record<string, string>>;
 }
 ```
 
@@ -406,6 +408,7 @@ interface ScreensGame {
     readonly input?: InputMap | undefined;
     readonly watchSim?: ((sim: Sim | undefined) => void) | undefined;
     readonly board?: string | undefined;
+    readonly setQuality?: ((tier: QualityTier) => void) | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
 }
 ```

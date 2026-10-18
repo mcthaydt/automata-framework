@@ -51,6 +51,15 @@ const AppLoop: Context.Tag<AppLoop, AppLoop>;
 function applyDocumentLocale(element: HTMLElement, locale: string): void;
 ```
 
+### `applyOverrides` (function)
+
+```ts
+function applyOverrides(defaults: InputProfile, saved: InputSettings): {
+    readonly profile: InputProfile;
+    readonly dropped: readonly string[];
+};
+```
+
 ### `AssetLoadFailed` (class)
 
 ```ts
@@ -188,6 +197,15 @@ interface AuthoritativeSnapshot {
 }
 ```
 
+### `BindingOverride` (interface)
+
+```ts
+interface BindingOverride {
+    readonly keys?: readonly string[] | undefined;
+    readonly pad?: readonly number[] | undefined;
+}
+```
+
 ### `BoardEntry` (type)
 
 ```ts
@@ -248,6 +266,16 @@ class BootDefect extends BootDefectBase {
 type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect;
 ```
 
+### `Capture` (type)
+
+```ts
+type Capture = {
+    readonly code: string;
+} | {
+    readonly button: number;
+};
+```
+
 ### `CompiledContentData` (interface)
 
 ```ts
@@ -263,6 +291,21 @@ interface CompiledContentData {
 
 ```ts
 class ContentHashMismatch extends ContentHashMismatchBase {
+}
+```
+
+### `CORE_SETTINGS` (const)
+
+```ts
+const CORE_SETTINGS: SettingsDef<CoreSettings>;
+```
+
+### `CoreSettings` (interface)
+
+```ts
+interface CoreSettings {
+    readonly input: InputSettings;
+    readonly display: DisplaySettings;
 }
 ```
 
@@ -477,8 +520,17 @@ interface Input {
     readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
     readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
     readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
+    rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Effect.Effect<void, RebindError>;
+    readonly resetBindings: Effect.Effect<void>;
+    capture(device: 'keyboard' | 'gamepad'): Effect.Effect<Capture, RebindCancelled | RebindTimedOut>;
 }
 const Input: Context.Tag<Input, Input>;
+```
+
+### `INPUT_SETTINGS_DEFAULT` (const)
+
+```ts
+const INPUT_SETTINGS_DEFAULT: InputSettings;
 ```
 
 ### `InputBinding` (interface)
@@ -520,6 +572,7 @@ interface InputOptions {
     readonly target: Window;
     readonly profile: InputProfile;
     readonly bus: PresentationBus;
+    readonly settings?: SettingsStore<unknown> | undefined;
 }
 ```
 
@@ -553,6 +606,22 @@ interface InputProfileInput {
 
 ```ts
 const inputProfileSchema: z.ZodType<InputProfile, InputProfileInput>;
+```
+
+### `InputSettings` (interface)
+
+```ts
+interface InputSettings {
+    readonly profile: string;
+    readonly overrides: Readonly<Record<string, BindingOverride>>;
+    readonly touchMode?: TouchMode | undefined;
+}
+```
+
+### `inputSettingsSchema` (const)
+
+```ts
+const inputSettingsSchema: z.ZodType<InputSettings, unknown>;
 ```
 
 ### `Leaderboards` (interface)
@@ -769,6 +838,59 @@ type QualityTier = (typeof QUALITY_TIERS)[number];
 const qualityTierSchema: z.ZodType<QualityTier, unknown>;
 ```
 
+### `REBIND_TIMEOUT_MS` (const)
+
+```ts
+const REBIND_TIMEOUT_MS = 10000;
+```
+
+### `RebindCancelled` (class)
+
+```ts
+class RebindCancelled extends RebindCancelledBase {
+}
+```
+
+### `RebindConflict` (class)
+
+```ts
+class RebindConflict extends RebindConflictBase {
+}
+```
+
+### `RebindError` (type)
+
+```ts
+type RebindError = RebindConflict | RebindReserved | RebindUnknown;
+```
+
+### `rebindProfile` (function)
+
+```ts
+function rebindProfile(defaults: InputProfile, current: InputProfile, action: string, device: 'keyboard' | 'gamepad', capture: Capture): Either.Either<Record<string, BindingOverride>, RebindError>;
+```
+
+### `RebindReserved` (class)
+
+```ts
+class RebindReserved extends RebindReservedBase {
+}
+```
+
+### `RebindTimedOut` (class)
+
+```ts
+class RebindTimedOut extends RebindTimedOutBase {
+}
+```
+
+### `RebindUnknown` (class)
+
+```ts
+class RebindUnknown extends RebindUnknownBase {
+}
+```
+
 ### `Renderer` (const)
 
 ```ts
@@ -849,6 +971,9 @@ interface RuntimeFacts {
     readonly 'input.pad.connected': PadInfo;
     readonly 'input.pad.disconnected': PadInfo & {
         readonly wasActive: boolean;
+    };
+    readonly 'input.bindings.changed': {
+        readonly action?: string;
     };
     readonly 'render.filter.dropped': {
         readonly id: string;

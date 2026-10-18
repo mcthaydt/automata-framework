@@ -41,6 +41,23 @@ export type {
   ScreenContext,
   ScreenDef,
 } from './flow/screen.js'
+export {
+  type BindingOverride,
+  INPUT_SETTINGS_DEFAULT,
+  type InputSettings,
+  inputSettingsSchema,
+} from './input/bindings/input-settings.schema.js'
+export {
+  applyOverrides,
+  type Capture,
+  RebindCancelled,
+  RebindConflict,
+  type RebindError,
+  RebindReserved,
+  RebindTimedOut,
+  RebindUnknown,
+  rebindProfile,
+} from './input/bindings/rebind.js'
 export type { GlyphFamily } from './input/gamepad/glyph-family.js'
 export {
   GESTURE_TUNING,
@@ -57,6 +74,7 @@ export {
   type InputOptions,
   makeInput,
   type PadInfo,
+  REBIND_TIMEOUT_MS,
 } from './input/input.manager.js'
 export {
   actionsForGesture,
@@ -143,6 +161,7 @@ export {
   SaveUnreadable,
   type SaveUnreadableFields,
 } from './save/save-error.js'
+export { CORE_SETTINGS, type CoreSettings } from './settings/core-settings.js'
 export {
   DEFAULT_QUALITY,
   type DisplaySettings,
