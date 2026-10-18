@@ -40,4 +40,9 @@ describe('fontCoverage', () => {
     expect(has('H')).toBe(true)
     expect(has('Q')).toBe(false)
   })
+  it('covers nothing in a subset that holds no character (an empty cmap fontkit cannot read)', async () => {
+    const has = fontCoverage(await subsetWoff2(source, new Set('日')))
+    expect(has('日')).toBe(false)
+    expect(has('A')).toBe(false)
+  })
 })

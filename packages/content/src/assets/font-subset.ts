@@ -1,6 +1,6 @@
 // Font subsetting and coverage (M5 spec §4.7 Fonts, M5-D7). Extracted from FloorFifty
 // packages/asset-contract/tools/subset-fonts.ts (`subset-font` to woff2) and tests/client/i18n/fonts.test.ts
-// (`fontkit`'s `hasGlyphForCodePoint` on the subset), at ac72660.
+// (`fontkit` reading the subset back), at ac72660.
 //
 // Changed from FloorFifty: the characters are sorted by code point before they are joined, so the order a set
 // was built in never reaches the subsetter, and the bytes depend only on the source and the characters (G-a).
@@ -21,5 +21,19 @@ export async function subsetWoff2(source: Uint8Array, characters: ReadonlySet<st
 export function fontCoverage(font: Uint8Array): (character: string) => boolean {
   // A font file holds one font; only a collection (`.ttc`) holds several, and the asset build never cuts one.
   const opened = create(Buffer.from(font)) as Font
-  return (character) => opened.hasGlyphForCodePoint(character.codePointAt(0) ?? 0)
+  const held = new Set(characterSet(opened))
+  return (character) => held.has(character.codePointAt(0) ?? 0)
+}
+
+/**
+ * The code points the font maps. A subset cut to characters its source has none of keeps an empty `cmap`
+ * table, which fontkit cannot read: that subset holds nothing. Any other failure is a broken file, and throws.
+ */
+function characterSet(font: Font): readonly number[] {
+  try {
+    return font.characterSet
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Could not find a supported cmap table') return []
+    throw error
+  }
 }
