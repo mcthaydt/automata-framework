@@ -16,7 +16,9 @@
     ".": "./src/index.ts",
     "./sim": "./src/sim/index.ts",
     "./sim/commands": "./src/sim/commands.ts",
-    "./sim/property": "./src/sim/property.ts"
+    "./sim/property": "./src/sim/property.ts",
+    "./input": "./src/input/fake-gamepads.ts",
+    "./e2e": "./src/e2e/index.ts"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
@@ -36,6 +38,14 @@
       "./sim/property": {
         "types": "./dist/sim/property.d.ts",
         "import": "./dist/sim/property.js"
+      },
+      "./input": {
+        "types": "./dist/input/fake-gamepads.d.ts",
+        "import": "./dist/input/fake-gamepads.js"
+      },
+      "./e2e": {
+        "types": "./dist/e2e/index.d.ts",
+        "import": "./dist/e2e/index.js"
       }
     }
   },
@@ -53,11 +63,13 @@
     "zod": "4.6.5"
   },
   "peerDependencies": {
+    "@playwright/test": "^1.63.0",
     "svelte": "^5.57.1",
     "vitest": "^5.0.3"
   },
   "devDependencies": {
     "@mcthaydt/evidence": "workspace:*",
+    "@playwright/test": "1.63.0",
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
@@ -67,5 +79,10 @@
     "svelte": "5.57.1",
     "vite": "8.3.2",
     "vitest": "5.0.3"
+  },
+  "peerDependenciesMeta": {
+    "@playwright/test": {
+      "optional": true
+    }
   }
 }

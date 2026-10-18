@@ -360,6 +360,31 @@
 - `VARIANTS` (const)
 - `visibleControls(root)`: Controls a player could see and reach: laid out, not hidden, not in an inert subtree.
 
+### `import { … } from '@mcthaydt/automata-testing/e2e'`
+
+- `Direction` (type): A direction on the D-pad or the stick.
+- `Engine` (type): The browser engine a matrix cell runs in.
+- `FakePad` (class): One standard controller in a real browser, driven through the Gamepad API the game itself reads.
+- `FakePadOptions` (interface): How the fake pad reports itself: its mapping and its id (the id picks the prompts' glyphs).
+- `flick(scope, from, dy, ms)`: A quick vertical swipe of `dy` pixels within `ms` milliseconds from `from` (M4 spec I-f: 40 px in 180 ms).
+- `hold(target, until)`: A finger down on `target`'s centre until `until` resolves true (checked once a frame), then up.
+- `INPUT_MATRIX` (const): M4 spec §9.1's cells, in table order: 17 cells, 22 journeys (the desktop cells run under both hosts).
+- `InputDevice` (type): The device a matrix cell plays with.
+- `MatrixCell` (interface): One cell of the input × form-factor matrix: a form factor, a device and an engine, and the hosts it runs under.
+- `MatrixFormFactor` (type): A matrix cell's form factor, each with one viewport (M4 spec §9.1).
+- `MatrixHost` (type): Where a journey runs: under the fake Ruken host, or standalone.
+- `PAD_BUTTONS` (const): The standard mapping's buttons by name: south (A on an Xbox pad) is 0, Start is 9, the D-pad 12 to 15.
+- `PadButton` (type): A standard-mapping button by name.
+- `PadMode` (type): Whether a direction is held on the D-pad or the left stick.
+- `Point` (interface): A point in the target frame's own CSS pixels.
+- `swipe(scope, from, to, ms)`: A finger from `from` to `to` over `ms` milliseconds, one move a frame, on whatever is under it.
+- `tap(target)`: A finger down on `target`'s centre and straight up again.
+
+### `import { … } from '@mcthaydt/automata-testing/input'`
+
+- `fakeGamepads(options?)`: `target` hears `gamepadconnected` and `gamepaddisconnected`, as `window` does in a browser.
+- `FakeGamepads` (interface): Four gamepad slots a unit test plugs pads into and presses; `getGamepads` reads them as the browser's would.
+
 ### `import { … } from '@mcthaydt/automata-testing/sim'`
 
 - `Difference` (interface)

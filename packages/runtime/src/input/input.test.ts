@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { makePresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { PadLike } from './gamepad/read-pad.js'
 import { fakePad } from './gamepad/testing/fake-pad.js'
-import { makeInput } from './input.manager.js'
+import { type HostInputMode, makeInput } from './input.manager.js'
 import { type InputProfile, inputProfileSchema } from './input-profile.schema.js'
 
 // The Input service (M4 spec §4.2): per-device held sets whose union is sampled once per fixed step. The
@@ -306,6 +306,51 @@ describe('Input active device and profile', () => {
           { device: 'keyboard', glyphs: 'generic', previous: 'touch' },
         ])
         expect(yield* SubscriptionRef.get(input.profile)).toBe(profile)
+      }),
+    )
+  })
+})
+
+/** Lets forked fibers (the host-mode watcher) run. */
+const turns = Effect.forEach(Array.from({ length: 10 }), () => Effect.yieldNow(), { discard: true })
+
+describe('Input under a host (M4 spec §4.2, §5 step 3)', () => {
+  it('starts from the host’s input mode and follows it when it reports a pad, with the pad layout’s glyphs', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const bus = yield* makePresentationBus()
+        const hostInput = yield* SubscriptionRef.make<HostInputMode>({ mode: 'touch' })
+        const input = yield* makeInput({ target: window, profile, bus, hostInput })
+        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'touch', glyphs: 'generic' })
+
+        yield* SubscriptionRef.set(hostInput, {
+          mode: 'gamepad',
+          gamepad: { layout: 'xbox', connected: true },
+        })
+        yield* turns
+        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'xbox' })
+
+        yield* SubscriptionRef.set(hostInput, {
+          mode: 'gamepad',
+          gamepad: { layout: 'other', connected: true },
+        })
+        yield* turns
+        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'generic' })
+
+        // The last real input still wins.
+        press('Space')
+        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'keyboard', glyphs: 'generic' })
+      }),
+    )
+  })
+
+  it('starts on the keyboard when the host says keyboard and mouse', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const bus = yield* makePresentationBus()
+        const hostInput = yield* SubscriptionRef.make<HostInputMode>({ mode: 'keyboard-mouse' })
+        const input = yield* makeInput({ target: window, profile, bus, hostInput })
+        expect((yield* SubscriptionRef.get(input.device)).device).toBe('keyboard')
       }),
     )
   })

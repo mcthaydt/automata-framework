@@ -1,3 +1,4 @@
+import { fakeGamepads } from '@mcthaydt/automata-testing/input'
 import { describe, expect, it } from 'vitest'
 import { DEADZONE, quantizeStick, readPad } from './read-pad.js'
 import { fakePad } from './testing/fake-pad.js'
@@ -65,5 +66,17 @@ describe('quantizeStick (M4-D2)', () => {
     expect(quantizeStick(-0.5, 0)).toEqual({ x: -64, y: 0 })
     expect(quantizeStick(0.5, 0)).toEqual({ x: 64, y: 0 })
     expect(quantizeStick(-1, 1.2)).toEqual({ x: -127, y: 127 })
+  })
+
+  it('reads the testing package’s fake gamepad as it reads a browser’s pad (M4.10)', () => {
+    const pads = fakeGamepads()
+    pads.connect()
+    pads.press(0)
+    pads.stick(0.9, 0)
+    const pad = pads.getGamepads()[0]
+    if (pad == null) throw new Error('no pad')
+    const reading = readPad(pad)
+    expect([...reading.buttons]).toEqual([0])
+    expect([...reading.nav]).toEqual(['right'])
   })
 })
