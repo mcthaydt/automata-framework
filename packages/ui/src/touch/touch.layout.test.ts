@@ -64,8 +64,16 @@ describe('touch controls under an ActionBar layout contract (D-a)', () => {
 
   // At 780 x 270 one row holds all four; a 360 px phone does not, so there only the required three show.
   test('drops to the required buttons where one row cannot hold them all, and shows all four where it can', async () => {
-    await page.viewport(360, 640)
-    publishConditions(document.documentElement, { name: 'phone-small', width: 360, height: 640 }, VARIANTS[0])
+    const sized = (name: string) => {
+      const found = REFERENCE_SIZES.find((size) => size.name === name)
+      if (found === undefined) throw new Error(`no reference size ${name}`)
+      return found
+    }
+    const [rest] = VARIANTS
+    if (rest === undefined) throw new Error('no rest variant')
+    const narrowSize = sized('phone-small')
+    await page.viewport(narrowSize.width, narrowSize.height)
+    publishConditions(document.documentElement, narrowSize, rest)
     let fixture = mountFixture(TouchFixture, { show: 'with-bar' })
     await settleLayout()
     const shown = () =>
@@ -74,8 +82,9 @@ describe('touch controls under an ActionBar layout contract (D-a)', () => {
       )
     const narrow = shown()
     await fixture.unmount()
-    await page.viewport(1280, 720)
-    publishConditions(document.documentElement, { name: 'desktop', width: 1280, height: 720 }, VARIANTS[0])
+    const wideSize = sized('desktop-720p')
+    await page.viewport(wideSize.width, wideSize.height)
+    publishConditions(document.documentElement, wideSize, rest)
     fixture = mountFixture(TouchFixture, { show: 'with-bar' })
     await settleLayout()
     expect(shown()).toEqual(['touch-left', 'touch-right', 'touch-emote', 'touch-drop'])
