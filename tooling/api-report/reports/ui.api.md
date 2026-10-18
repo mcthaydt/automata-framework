@@ -28,6 +28,66 @@ function applyGeometry(root: HTMLElement, geometry: Geometry): void;
 function arrowKeyNav(event: KeyboardEvent): NavDirection | undefined;
 ```
 
+### `AUDIO_BUSES` (const)
+
+```ts
+const AUDIO_BUSES: readonly AudioBus[];
+```
+
+### `AudioBus` (type)
+
+```ts
+type AudioBus = 'master' | 'music' | 'sfx' | 'ui' | 'voice';
+```
+
+### `AudioCopy` (interface)
+
+```ts
+interface AudioCopy {
+    readonly title: string;
+    readonly mute: string;
+    readonly muteUnfocused: string;
+    readonly on: string;
+    readonly off: string;
+    readonly buses: Readonly<Record<AudioBus, string>>;
+    percent(value: number): string;
+    readonly unavailable: string;
+    readonly hostVolume: string;
+}
+```
+
+### `AudioSection` (svelte)
+
+```ts
+component from './settings/AudioSection.svelte'
+```
+
+### `AudioSectionChange` (type)
+
+```ts
+type AudioSectionChange = {
+    readonly kind: 'muted';
+    readonly value: boolean;
+} | {
+    readonly kind: 'muteUnfocused';
+    readonly value: boolean;
+} | {
+    readonly kind: 'gain';
+    readonly bus: AudioBus;
+    readonly value: number;
+};
+```
+
+### `AudioValue` (interface)
+
+```ts
+interface AudioValue {
+    readonly muted: boolean;
+    readonly muteUnfocused: boolean;
+    readonly gains: Readonly<Record<AudioBus, number>>;
+}
+```
+
 ### `BarAction` (interface)
 
 ```ts

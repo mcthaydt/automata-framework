@@ -83,11 +83,13 @@ const Assets: Context.Tag<Assets, Assets>;
 ```ts
 interface Audio {
     readonly unlocked: Subscribable.Subscribable<boolean>;
+    readonly available: Subscribable.Subscribable<boolean>;
     sound(alias: string, options?: SoundOptions): void;
     music(alias: string, options?: MusicOptions): Effect.Effect<void, AudioDecodeFailed | AssetLoadFailed>;
     stopMusic(fadeSeconds?: number): void;
     duck(bus: AudioBusName, amount: number, seconds: number): void;
     setMuted(muted: boolean): void;
+    setMuteUnfocused(muteUnfocused: boolean): void;
 }
 const Audio: Context.Tag<Audio, Audio>;
 ```
@@ -96,6 +98,12 @@ const Audio: Context.Tag<Audio, Audio>;
 
 ```ts
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
+```
+
+### `AUDIO_SETTINGS_DEFAULT` (const)
+
+```ts
+const AUDIO_SETTINGS_DEFAULT: AudioSettings;
 ```
 
 ### `AudioBuses` (interface)
@@ -185,6 +193,22 @@ interface AudioServices {
     readonly assets: Pick<Assets, 'get'>;
     readonly bus: PresentationBus;
 }
+```
+
+### `AudioSettings` (interface)
+
+```ts
+interface AudioSettings {
+    readonly muted: boolean;
+    readonly muteUnfocused: boolean;
+    readonly gains: AudioBusGains;
+}
+```
+
+### `audioSettingsSchema` (const)
+
+```ts
+const audioSettingsSchema: z.ZodType<AudioSettings, unknown>;
 ```
 
 ### `AuthoritativeSnapshot` (interface)
@@ -306,6 +330,7 @@ const CORE_SETTINGS: SettingsDef<CoreSettings>;
 interface CoreSettings {
     readonly input: InputSettings;
     readonly display: DisplaySettings;
+    readonly audio: AudioSettings;
 }
 ```
 
