@@ -1,5 +1,6 @@
 // The default Settings screen's live state (`settings-screen.svelte.ts` keeps it in a `$state` object).
 import type {
+  AudioValue,
   ControlsRow,
   ControlsState,
   ControlsTouchMode,
@@ -21,5 +22,9 @@ export interface SettingsViewState {
   touchModes: readonly ControlsTouchMode[]
   touchMode: ControlsTouchMode
   quality: DisplayQuality
+  /** The Audio group (M5.4): the player's choices, whether sound could start, and whether the host's volume is down. */
+  audio: AudioValue
+  audioAvailable: boolean
+  hostVolumeBelowFull: boolean
   reducedMotion: boolean
 }

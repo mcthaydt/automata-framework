@@ -25,6 +25,8 @@ export interface SoundOptions {
 export interface Audio {
   /** False until the first gesture after `session.ready` builds and resumes the graph. */
   readonly unlocked: Subscribable.Subscribable<boolean>
+  /** False once a context could not be built (`audio.unavailable`): the game runs silent, and Settings says so. */
+  readonly available: Subscribable.Subscribable<boolean>
   /** Plays the asset at `alias` once. Fire and forget: silent before the unlock, while asleep, or if it fails. */
   sound(alias: string, options?: SoundOptions): void
   /** Loops the asset at `alias` on the music bus. Asked for before the unlock, it starts on the unlock. */
@@ -86,6 +88,7 @@ export const makeAudio = (
     const voices = new Voices(graph)
     const music = new MusicSlot(graph)
     const unlocked = yield* SubscriptionRef.make(false)
+    const available = yield* SubscriptionRef.make(true)
     const decoded = new Map<string, Promise<AudioBuffer>>()
     let ready = false
     let unavailable = false
@@ -95,6 +98,7 @@ export const makeAudio = (
 
     const giveUp = (cause: unknown) => {
       unavailable = true
+      Effect.runSync(SubscriptionRef.set(available, false))
       bus.publish('audio.unavailable', { reason: reason(cause) })
     }
 
@@ -225,6 +229,7 @@ export const makeAudio = (
 
     const audio: Audio & AudioBuses = {
       unlocked,
+      available,
       sound(alias, soundOptions = {}) {
         if (unavailable || graph.context === undefined) return
         void voices.play(() => decode(alias).catch(() => undefined), {

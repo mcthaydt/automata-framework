@@ -283,6 +283,18 @@ describe('Audio: mute when unfocused', () => {
     ))
 })
 
+describe('Audio: available (M5.4)', () => {
+  it('is available until a context fails to build, and stays so once one runs', () =>
+    withAudio((audio, { page }) =>
+      Effect.gen(function* () {
+        expect(yield* audio.available.get).toBe(true)
+        page.gesture()
+        yield* flush()
+        expect(yield* audio.available.get).toBe(true)
+      }),
+    ))
+})
+
 describe('Audio: mute when unfocused, as a live setting (M5.4)', () => {
   it('follows setMuteUnfocused: on, a blur silences the master and focus restores it; off, a blur does nothing', () =>
     withAudio((audio, { page }) =>
@@ -398,6 +410,8 @@ describe('Audio: failure and disposal', () => {
           page.gesture()
           yield* flush()
           expect(facts).toEqual([{ name: 'audio.unavailable', fact: { reason: 'no Web Audio here' } }])
+          // Kept as state too, so a Settings screen opened later still shows sound as unavailable (A-e, M5.4).
+          expect(yield* audio.available.get).toBe(false)
           audio.sound('chime.wav')
           yield* audio.music('menu.ogg')
           page.gesture()

@@ -1,7 +1,7 @@
 <!--
   The default paused screen (DX spec §7), laid out and behaving as FloorFifty's pause overlay
   (`ui/components/PauseOverlay.svelte` at a28dc44, Owner 2026-10-18: "match the layout and function, not the style"):
-  a dialog over the dimmed game, titled Paused, with Resume (primary, focused), Settings and Quit to title, two
+  a dialog over the dimmed game, titled Paused, with Resume (primary, focused), Mute, Settings and Quit to title, two
   across once the dialog is 340 px wide. Quit asks first, because the run is lost. Escape (the pad's B, the system
   back) steps back one level: from the confirm to the menu, on Quit; from the menu it resumes.
 -->
@@ -14,13 +14,25 @@ interface Props {
   onQuit: () => void
   /** Opens Settings (M4.4), where the player rebinds controls and picks the quality. */
   onSettings: () => void
+  /** Whether sound is muted when paused opens: the Audio group's Mute (M5.4). */
+  muted: boolean
+  /** Mute was pressed: the new state, applied and saved by the caller. */
+  onMute: (muted: boolean) => void
   /** Why play paused, when it was not the player: "Reconnect your controller" (M4-D9). */
   message?: string | undefined
   /** The game's scored board (M5.7): read from the host when paused opens. */
   board?: { copy: LeaderboardCopy; load: () => Promise<LeaderboardView> } | undefined
 }
 
-const { onResume, onQuit, onSettings, message, board }: Props = $props()
+const { onResume, onQuit, onSettings, muted: mutedAtOpen, onMute, message, board }: Props = $props()
+
+// The button's own state from here on; the caller applies and saves each change.
+// svelte-ignore state_referenced_locally
+let muted = $state(mutedAtOpen)
+function toggleMute(): void {
+  muted = !muted
+  onMute(muted)
+}
 
 let view = $state<'menu' | 'confirm'>('menu')
 let body = $state<HTMLElement | undefined>(undefined)
@@ -62,6 +74,9 @@ $effect(() => {
             data-testid="resume"
             data-initial-focus
             onclick={onResume}>Resume</button
+          >
+          <button type="button" class="af-control" data-testid="pause-mute" aria-pressed={muted} onclick={toggleMute}
+            >{muted ? 'Unmute' : 'Mute'}</button
           >
           <button type="button" class="af-control" data-testid="settings" onclick={onSettings}>Settings</button>
           <button type="button" class="af-control" data-testid="quit" onclick={() => void show('confirm', 'quit-confirm')}

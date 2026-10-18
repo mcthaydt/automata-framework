@@ -1,12 +1,14 @@
 <!--
   The default Settings screen (M4 spec §4.8, M4-D8), in FloorFifty's two tabs (`SettingsPanel.svelte` at a28dc44):
-  Settings holds Display, Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
+  Settings holds Display, Audio (M5.4), Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
   component the extensions put in the `settings.sections` slot; Controls holds the controls by device, when the game
   has an input map. `view` is the screen's live state
   (`settings-screen.svelte.ts`), so a rebind, a device switch or a capture's countdown updates in place.
 -->
 <script lang="ts">
 import {
+  AudioSection,
+  type AudioSectionChange,
   ControlsSection,
   type ControlsTouchMode,
   type DisplayQuality,
@@ -19,7 +21,14 @@ import {
   TouchSection,
   type UiComponent,
 } from '@mcthaydt/automata-ui'
-import { CONTROLS_COPY, DISPLAY_COPY, PROMPT_COPY, SETTINGS_COPY, TOUCH_COPY } from './settings-copy.ts'
+import {
+  AUDIO_COPY,
+  CONTROLS_COPY,
+  DISPLAY_COPY,
+  PROMPT_COPY,
+  SETTINGS_COPY,
+  TOUCH_COPY,
+} from './settings-copy.ts'
 import type { SettingsViewState } from './settings-view.ts'
 
 interface Props {
@@ -31,10 +40,13 @@ interface Props {
   onreset: () => void
   ontouchmode: (mode: ControlsTouchMode) => void
   onquality: (quality: DisplayQuality) => void
+  /** A change in the Audio group (M5.4), applied and saved by the screen. */
+  onaudio: (change: AudioSectionChange) => void
   onback: () => void
 }
 
-const { view, tracker, extensions, onrebind, onreset, ontouchmode, onquality, onback }: Props = $props()
+const { view, tracker, extensions, onrebind, onreset, ontouchmode, onquality, onaudio, onback }: Props =
+  $props()
 
 const tabs = $derived<SettingsTab[]>([
   {
@@ -42,6 +54,7 @@ const tabs = $derived<SettingsTab[]>([
     label: SETTINGS_COPY.settingsTab,
     sections: [
       { snippet: display },
+      { snippet: audio },
       ...(view.coarse && view.touchModes.length > 1 ? [{ snippet: touch }] : []),
       ...extensions.map((component): SettingsSection => ({ component })),
     ],
@@ -70,6 +83,16 @@ const tabs = $derived<SettingsTab[]>([
 
 {#snippet touch()}
   <TouchSection copy={TOUCH_COPY} modes={view.touchModes} value={view.touchMode} onchange={ontouchmode} />
+{/snippet}
+
+{#snippet audio()}
+  <AudioSection
+    copy={AUDIO_COPY}
+    value={view.audio}
+    available={view.audioAvailable}
+    hostBelowFull={view.hostVolumeBelowFull}
+    onchange={onaudio}
+  />
 {/snippet}
 
 {#snippet display()}
