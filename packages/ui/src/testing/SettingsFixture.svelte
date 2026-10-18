@@ -1,6 +1,6 @@
 <!--
   The core Settings screen for the layout contracts (M4 spec §4.8, M4.4), in FloorFifty's two tabs: `settings` shows
-  the Settings tab (Display, Audio, Touch controls); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
+  the Settings tab (Language, Audio, Display, Touch controls, in FloorFifty's order); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
   shows its first row waiting for a press. Words are English stand-ins of a typical length.
 -->
 <script lang="ts" module>
@@ -14,6 +14,7 @@ import ControlsSection from '../settings/ControlsSection.svelte'
 import type { ControlsCopy, ControlsRow } from '../settings/controls-section'
 import AudioSection from '../settings/AudioSection.svelte'
 import DisplaySection from '../settings/DisplaySection.svelte'
+import LanguageSection from '../settings/LanguageSection.svelte'
 import TouchSection from '../settings/TouchSection.svelte'
 import type { DisplayCopy } from '../settings/display-section'
 import SettingsScreen from '../settings/SettingsScreen.svelte'
@@ -95,6 +96,15 @@ const ROWS: ControlsRow[] = [
   />
 {/snippet}
 
+{#snippet language()}
+  <LanguageSection
+    copy={{ title: 'Language', automatic: 'Automatic' }}
+    locales={['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans']}
+    choice={null}
+    onchange={none}
+  />
+{/snippet}
+
 {#snippet audio()}
   <AudioSection
     copy={{
@@ -124,7 +134,11 @@ const ROWS: ControlsRow[] = [
   backLabel="Back"
   onback={none}
   tabs={[
-    { id: 'settings', label: 'Settings', sections: [{ snippet: display }, { snippet: audio }, { snippet: touch }] },
+    {
+      id: 'settings',
+      label: 'Settings',
+      sections: [{ snippet: language }, { snippet: audio }, { snippet: display }, { snippet: touch }],
+    },
     { id: 'controls', label: 'Controls', sections: [{ snippet: controls }] },
   ]}
   tabsLabel="Settings sections"

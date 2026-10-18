@@ -137,6 +137,8 @@ export {
 } from './settings/controls-section'
 export { default as DisplaySection } from './settings/DisplaySection.svelte'
 export { DISPLAY_QUALITIES, type DisplayCopy, type DisplayQuality } from './settings/display-section'
+export { default as LanguageSection } from './settings/LanguageSection.svelte'
+export { endonymOf, type LanguageCopy } from './settings/language-section'
 export { default as SettingsScreen } from './settings/SettingsScreen.svelte'
 export type { SettingsSection, SettingsTab } from './settings/settings-screen'
 export { default as TouchSection } from './settings/TouchSection.svelte'

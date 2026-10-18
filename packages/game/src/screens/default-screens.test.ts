@@ -524,6 +524,19 @@ describe('default screens', () => {
       }
     })
 
+    // Redo step 9 (Owner, 2026-10-18): the Language group, first on the Settings tab as FloorFifty's.
+    it('leads the Settings tab with Language; a pick switches the game’s language, and Automatic goes back', async () => {
+      await toSettings({ locale: { locales: ['en', 'ja'], baseLocale: 'en' } }, true, 'settings')
+      const first = root.querySelector<HTMLElement>('[data-settings-section]')
+      expect(first?.dataset.settingsSection).toBe('language')
+      expect(root.querySelector<HTMLInputElement>('[data-testid="language-auto"] input')?.checked).toBe(true)
+      root.querySelector<HTMLInputElement>('[data-testid="language-ja"] input')?.click()
+      await until(() => document.documentElement.lang === 'ja', 'the game in Japanese')
+      expect(root.querySelector<HTMLInputElement>('[data-testid="language-ja"] input')?.checked).toBe(true)
+      root.querySelector<HTMLInputElement>('[data-testid="language-auto"] input')?.click()
+      await until(() => document.documentElement.lang === 'en', 'Automatic again')
+    })
+
     // M5.4: the Audio group (M5 spec §7), FloorFifty's, beside Display; and Pause's Mute.
     describe('the Audio group (M5.4)', () => {
       let context: FakeAudioContext | undefined
@@ -754,10 +767,18 @@ describe('default screens', () => {
       press('Escape')
       await until(() => screen('paused') !== null, 'the paused screen')
       expect(document.activeElement).toBe(button('resume'))
-      await tick()
-      buttons[13] = true
-      await until(() => document.activeElement === button('quit'), 'focus on Quit')
-      buttons[13] = false
+      // One tap of the D-pad's down a step, each moving focus on, until Quit: holding it would walk by the menu's
+      // repeat, on the wall clock, and the menu has Mute and Settings before Quit (FloorFifty's pause).
+      for (let step = 0; step < 4 && document.activeElement !== button('quit'); step++) {
+        const before = document.activeElement
+        await tick()
+        buttons[13] = true
+        await until(() => document.activeElement !== before, 'focus to move on')
+        buttons[13] = false
+        // The menu poll sees the release before the next tap, so each tap is one press, never a repeat.
+        for (let settle = 0; settle < 5; settle++) await tick()
+      }
+      expect(document.activeElement).toBe(button('quit'))
       await tick()
       buttons[0] = true
       await until(() => button('quit-confirm') !== null, 'the confirm')

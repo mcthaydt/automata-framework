@@ -12,8 +12,8 @@ import { settleLayout } from '../testing/settle'
 
 /**
  * What a player must reach without scrolling: the dialog's Close (named Back), Back under the dialog where the band is
- * tall enough to draw it, the tabs, and the tab's first row: on Settings the quality's
- * choices, on Controls the first row's rebind button in the section of the device in use; while a capture waits, the button that waits (the section
+ * tall enough to draw it, the tabs, and the tab's first row: on Settings the first group's
+ * first choice (Language's Automatic), on Controls the first row's rebind button in the section of the device in use; while a capture waits, the button that waits (the section
  * keeps it in view), as the row's other buttons may wrap below it on a short screen.
  */
 function essentials(show: SettingsShow, keyboard: boolean): HTMLElement[] {
@@ -21,7 +21,7 @@ function essentials(show: SettingsShow, keyboard: boolean): HTMLElement[] {
   if (keyboard) return []
   const first =
     show === 'settings'
-      ? [...document.querySelectorAll<HTMLElement>('[data-settings-section="display"] label.af-option')]
+      ? [document.querySelector<HTMLElement>('[data-settings-section] label.af-option') as HTMLElement]
       : show === 'controls-capturing'
         ? [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-capturing]')]
         : [...document.querySelectorAll<HTMLElement>('[data-in-use] [data-control-row="left"] [data-rebind]')]
@@ -76,8 +76,8 @@ describe('Settings screen tabs', () => {
     expect(Math.round(controls?.width ?? 0)).toBe(Math.round(sections?.width ?? -1))
   })
 
-  // M5.4: Display and Audio, two groups across where the dialog is 560 px wide, as FloorFifty's Language and Audio.
-  test('sets Display beside Audio on a short, wide band, and Audio under Display on an upright phone', async () => {
+  // Two groups across where the dialog is 560 px wide: Language beside Audio, as FloorFifty's.
+  test('sets Language beside Audio on a short, wide band, and Audio under Language on an upright phone', async () => {
     const place = async (name: string) => {
       const size = REFERENCE_SIZES.find((candidate) => candidate.name === name)
       if (size === undefined) throw new Error(`no ${name}`)
@@ -85,10 +85,10 @@ describe('Settings screen tabs', () => {
       publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
       const fixture = mountFixture(SettingsFixture, { show: 'settings' })
       await settleLayout()
-      const display = document.querySelector('[data-settings-section="display"]')?.getBoundingClientRect()
+      const display = document.querySelector('[data-settings-section="language"]')?.getBoundingClientRect()
       const audio = document.querySelector('[data-settings-section="audio"]')?.getBoundingClientRect()
       await fixture.unmount()
-      if (display === undefined || audio === undefined) throw new Error('no Display or Audio group')
+      if (display === undefined || audio === undefined) throw new Error('no Language or Audio group')
       return {
         beside: audio.left >= display.right && Math.abs(audio.top - display.top) < 1,
         under: audio.top >= display.bottom,

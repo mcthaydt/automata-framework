@@ -10,6 +10,7 @@ import {
   Flow,
   type InputProfile,
   inputSettingsSchema,
+  Locale,
   makeInput,
   PresentationBus,
   REBIND_TIMEOUT_MS,
@@ -76,6 +77,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         const audio = yield* Audio
         const buses = yield* AudioBuses
         const hosting = yield* Hosting
+        const locale = yield* Locale
         const runtime = yield* Effect.runtime<never>()
         const target = windowOf(layer)
         const map = game.input
@@ -108,6 +110,8 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
           touchMode: savedInput().touchMode ?? map?.touchMode ?? 'buttons',
           quality: savedQuality(),
           audio: savedAudio(store),
+          locales: locale.locales,
+          localeChoice: locale.choice,
           audioAvailable: yield* audio.available.get,
           hostVolumeBelowFull: (yield* hosting.audio.get).master.volume < 1,
           reducedMotion: reducedMotion(target),
@@ -225,6 +229,10 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
             }))
           },
           onaudio,
+          onlocale: (choice: string | null) => {
+            locale.set(choice)
+            view.localeChoice = locale.choice
+          },
           onquality: (quality: DisplayQuality) => {
             view.quality = quality
             store?.update((value) => ({

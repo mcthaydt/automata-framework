@@ -7,7 +7,7 @@
   - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
 - **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 7 of 14 steps.
+- **Progress:** 8 of 14 steps.
 
 ## Sources, read at these commits
 
@@ -117,10 +117,15 @@ The Desk reviewed the side-by-sides: Pause is good; Settings is not ready. The O
 
 M5.4 (#92) is folded into this branch (the Audio group, Pause's Mute; its plan holds its record).
 
-- [ ] **9. Language group.** *Red:*
+- [x] **9. Language group.** *Red:*
   - `Locale` says the player's choice (`choice`: a locale, or null for Automatic);
   - ui `LanguageSection`: Automatic, then each of the game's locales by its endonym (its own name in its own language, from `Intl.DisplayNames`, a game's own name winning), each in its own `lang`; a pick calls `Locale.set`;
   - the game's Settings tab: Language first, as FloorFifty's.
+  - *Done. Red: `locale.choice` undefined; `LanguageSection.svelte` unresolved; the game's first group was Display. Green: runtime locale 31 of 31, ui 532, game 141; Settings, layout and dialog layouts 134 of 134 in Chromium.*
+    - *The groups follow FloorFifty's order: Language, Audio, Display, then Touch controls and extensions; on a wide dialog Language sits beside Audio.*
+    - *`GameSpec` gains `locale` (passed to the runtime): a `defineGame` game could not declare its languages before.*
+    - *`OptionGroup` gains an option's `lang` and `legendHidden`.*
+    - *M5.4's D-pad test walked Pause by the menu's repeat on the wall clock, which Mute's extra step outran (it failed on M5.4's own head too); it now taps once a step and checks each tap moves focus.*
 - [ ] **10. Vibration group.** *Red:*
   - runtime `Haptics`: `pulse` rumbles the first pad with an actuator, else buzzes a touch phone (`navigator.vibrate`), else nothing; never throws; off while the setting is off; `supported` says whether this device can do either (FloorFifty `systems/haptics.ts` and its tests);
   - the core settings keep `haptics.enabled`;

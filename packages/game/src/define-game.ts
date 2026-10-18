@@ -83,6 +83,8 @@ export interface GameSpec<S = never> {
   /** Merged over the defaults (`pixelArt`, the logical size and the views). */
   readonly renderer?: PixiRendererOptions
   readonly copy?: GameDefinition['copy']
+  /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
+  readonly locale?: GameDefinition['locale']
   /** Tests only. */
   readonly seams?: RuntimeSeams
 }
@@ -246,6 +248,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.copy === undefined ? {} : { copy: spec.copy }),
+    ...(spec.locale === undefined ? {} : { locale: spec.locale }),
     ...(spec.seams === undefined ? {} : { seams: spec.seams }),
   }
   definedGames.add(game)

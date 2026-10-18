@@ -1,6 +1,6 @@
 <!--
   The default Settings screen (M4 spec §4.8, M4-D8), in FloorFifty's two tabs (`SettingsPanel.svelte` at a28dc44):
-  Settings holds Display, Audio (M5.4), Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
+  Settings holds Language, Audio (M5.4), Display, Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
   component the extensions put in the `settings.sections` slot; Controls holds the controls by device, when the game
   has an input map. `view` is the screen's live state
   (`settings-screen.svelte.ts`), so a rebind, a device switch or a capture's countdown updates in place.
@@ -14,6 +14,7 @@ import {
   type DisplayQuality,
   DisplaySection,
   type InputMethodTracker,
+  LanguageSection,
   type RebindDevice,
   SettingsScreen,
   type SettingsSection,
@@ -25,6 +26,7 @@ import {
   AUDIO_COPY,
   CONTROLS_COPY,
   DISPLAY_COPY,
+  LANGUAGE_COPY,
   PROMPT_COPY,
   SETTINGS_COPY,
   TOUCH_COPY,
@@ -42,19 +44,32 @@ interface Props {
   onquality: (quality: DisplayQuality) => void
   /** A change in the Audio group (M5.4), applied and saved by the screen. */
   onaudio: (change: AudioSectionChange) => void
+  /** A pick in the Language group: a locale, or null for Automatic (`Locale.set`). */
+  onlocale: (choice: string | null) => void
   onback: () => void
 }
 
-const { view, tracker, extensions, onrebind, onreset, ontouchmode, onquality, onaudio, onback }: Props =
-  $props()
+const {
+  view,
+  tracker,
+  extensions,
+  onrebind,
+  onreset,
+  ontouchmode,
+  onquality,
+  onaudio,
+  onlocale,
+  onback,
+}: Props = $props()
 
 const tabs = $derived<SettingsTab[]>([
   {
     id: 'settings',
     label: SETTINGS_COPY.settingsTab,
     sections: [
-      { snippet: display },
+      { snippet: language },
       { snippet: audio },
+      { snippet: display },
       ...(view.coarse && view.touchModes.length > 1 ? [{ snippet: touch }] : []),
       ...extensions.map((component): SettingsSection => ({ component })),
     ],
@@ -83,6 +98,10 @@ const tabs = $derived<SettingsTab[]>([
 
 {#snippet touch()}
   <TouchSection copy={TOUCH_COPY} modes={view.touchModes} value={view.touchMode} onchange={ontouchmode} />
+{/snippet}
+
+{#snippet language()}
+  <LanguageSection copy={LANGUAGE_COPY} locales={view.locales} choice={view.localeChoice} onchange={onlocale} />
 {/snippet}
 
 {#snippet audio()}

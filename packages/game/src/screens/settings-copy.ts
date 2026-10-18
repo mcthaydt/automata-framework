@@ -1,6 +1,13 @@
 // The default Settings screen's words (M4 spec §4.8). English, like the other default screens' words; PRODUCT.L
 // localizes them (02 follow-up).
-import type { AudioCopy, ControlsCopy, DisplayCopy, PromptCopy, TouchCopy } from '@mcthaydt/automata-ui'
+import type {
+  AudioCopy,
+  ControlsCopy,
+  DisplayCopy,
+  LanguageCopy,
+  PromptCopy,
+  TouchCopy,
+} from '@mcthaydt/automata-ui'
 
 export const PROMPT_COPY: PromptCopy = {
   unbound: 'Unbound',
@@ -38,6 +45,8 @@ export const CONTROLS_COPY: ControlsCopy = {
   timedOut: (action) => `Nothing was pressed. ${action} is unchanged.`,
   saved: (action) => `${action} saved`,
 }
+
+export const LANGUAGE_COPY: LanguageCopy = { title: 'Language', automatic: 'Automatic' }
 
 export const AUDIO_COPY: AudioCopy = {
   title: 'Audio',
