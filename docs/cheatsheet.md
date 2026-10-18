@@ -53,6 +53,19 @@
 - `verifyContent` (const): Fails with `staleArtifact` for each committed output that differs from a fresh compile.
 - `withTuningTable(guide, meta)`: The guide with its generated section replaced, or undefined when it has no markers.
 
+### `import { … } from '@mcthaydt/automata-content/assets'`
+
+- `ATLAS_EXTRUDE` (const): Pixels of each frame's edge repeated around it, so filtering never samples a neighbour.
+- `ATLAS_PADDING` (const): Transparent pixels between cells, and between a cell and the page edge.
+- `ATLAS_PAGE_MAX` (const): The largest atlas page side, in pixels: WebGL2's guaranteed `MAX_TEXTURE_SIZE`.
+- `AtlasFrameTooLarge` (class): A frame that cannot fit a page even alone.
+- `AtlasOutputs` (interface): What `buildAtlases` produces; the caller writes it.
+- `buildAtlases` (const): Builds every atlas `<root>/content/atlases.toml` names, or fails with every problem found.
+- `FrameSize` (interface): A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
+- `PackedAtlas` (interface): Every frame's placement, and the pages they fill.
+- `packFrames(frames)`: Packs `frames` into atlas pages.
+- `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
+
 ### `import { … } from '@mcthaydt/automata-content/locale'`
 
 - `ALWAYS_CHARACTERS` (const): Printable ASCII, CJK symbols and punctuation, half- and full-width forms, and the symbols the UI draws.

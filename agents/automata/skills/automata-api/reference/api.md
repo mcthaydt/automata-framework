@@ -253,7 +253,7 @@ interface Diagnostic {
 Stable codes. Tests and tools match on these, so a code is never renamed, only added.
 
 ```ts
-type DiagnosticCode = "invalidToml" | "invalidType" | "missingField" | "unknownField" | "invalidId" | "unknownReference" | "wrongKind" | "outOfRange" | "invariantNotAuthorable" | "invalidFlow" | "invalidPalette" | "invalidGame" | "missingAsset" | "duplicateMessageKey" | "staleTranslation" | "staleArtifact" | "reservedKey" | "simReference" | "skippedFile";
+type DiagnosticCode = "invalidToml" | "invalidType" | "missingField" | "unknownField" | "invalidId" | "unknownReference" | "wrongKind" | "outOfRange" | "invariantNotAuthorable" | "invalidFlow" | "invalidPalette" | "invalidGame" | "missingAsset" | "invalidAsset" | "offPalette" | "duplicateMessageKey" | "staleTranslation" | "staleArtifact" | "reservedKey" | "simReference" | "skippedFile";
 ```
 
 #### `FlowCapabilities` (interface)
@@ -513,6 +513,111 @@ The guide with its generated section replaced, or undefined when it has no marke
 
 ```ts
 function withTuningTable(guide: string, meta: TuningMeta): string | undefined;
+```
+
+### `import { … } from '@mcthaydt/automata-content/assets'`
+
+#### `ATLAS_EXTRUDE` (const)
+
+Pixels of each frame's edge repeated around it, so filtering never samples a neighbour.
+
+```ts
+const ATLAS_EXTRUDE = 1;
+```
+
+#### `ATLAS_PADDING` (const)
+
+Transparent pixels between cells, and between a cell and the page edge.
+
+```ts
+const ATLAS_PADDING = 1;
+```
+
+#### `ATLAS_PAGE_MAX` (const)
+
+The largest atlas page side, in pixels: WebGL2's guaranteed `MAX_TEXTURE_SIZE`.
+
+```ts
+const ATLAS_PAGE_MAX = 2048;
+```
+
+#### `AtlasFrameTooLarge` (class)
+
+A frame that cannot fit a page even alone.
+
+```ts
+class AtlasFrameTooLarge extends Error {
+  readonly frame: FrameSize;
+  constructor(frame: FrameSize);
+}
+```
+
+#### `AtlasOutputs` (interface)
+
+What `buildAtlases` produces; the caller writes it.
+
+```ts
+interface AtlasOutputs {
+  /** `<atlas>-<page>.png` and `<atlas>-<page>.json`, sorted by name. */
+  readonly files: ReadonlyMap<string, Uint8Array>;
+}
+```
+
+#### `buildAtlases` (const)
+
+Builds every atlas `<root>/content/atlases.toml` names, or fails with every problem found. Without the file
+there is nothing to build.
+
+```ts
+const buildAtlases: (root: string) => Effect.Effect<AtlasOutputs, ContentCompileFailed>;
+```
+
+#### `FrameSize` (interface)
+
+A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
+
+```ts
+interface FrameSize {
+  readonly name: string;
+  readonly width: number;
+  readonly height: number;
+}
+```
+
+#### `PackedAtlas` (interface)
+
+Every frame's placement, and the pages they fill.
+
+```ts
+interface PackedAtlas {
+  /** Each page's side, in pixels. */
+  readonly pageSizes: readonly number[];
+  /** In code-unit order of the frame names. */
+  readonly placements: readonly Placement[];
+}
+```
+
+#### `packFrames` (function)
+
+Packs `frames` into atlas pages. Throws `AtlasFrameTooLarge` for a frame no page can hold.
+
+```ts
+function packFrames(frames: readonly FrameSize[]): PackedAtlas;
+```
+
+#### `Placement` (interface)
+
+Where a frame's own pixels are: inside its extrusion, on page `page`.
+
+```ts
+interface Placement {
+  readonly name: string;
+  readonly page: number;
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
 ```
 
 ### `import { … } from '@mcthaydt/automata-content/locale'`

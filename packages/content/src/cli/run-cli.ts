@@ -6,6 +6,9 @@
 // FloorFifty's `watch` is the Vite plugin's job here. Exit codes: 0 clean, 1 content problems (every one
 // printed), 2 a usage, config or write error.
 //
+// `assets` (M5.6) builds the atlases named in `content/atlases.toml` into `<outDir>/atlases/`. It is its own
+// command because it reads image folders the content compile never touches, and its outputs are binary.
+//
 // Options come from `automata.content.ts` in the working directory (its default export, `ContentConfig`)
 // until M1.8's `automata.config.ts` replaces it. It is loaded through Vite's module runner, so it can be
 // TypeScript and import the game's schemas the way the game's own code does.
@@ -13,7 +16,13 @@
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { normalizePath, runnerImport } from 'vite'
-import { type CompiledContent, type ContentOptions, compileContent } from '../compile/compile-content'
+import { buildAtlases } from '../assets/build-atlases'
+import {
+  type CompiledContent,
+  type ContentOptions,
+  compileContent,
+  outDirOf,
+} from '../compile/compile-content'
 import type { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from '../compile/errors'
 import { buildContent, verifyContent } from '../compile/write-outputs'
 import { type Diagnostic, formatDiagnostic } from '../diagnostics/diagnostic'
@@ -33,7 +42,7 @@ export interface CliIo {
 }
 
 export const CONFIG_FILE = 'automata.content.ts'
-const USAGE = 'usage: automata-content <check [--verify-artifact] | build | docs [guide.md]>'
+const USAGE = 'usage: automata-content <check [--verify-artifact] | build | docs [guide.md] | assets>'
 const VERIFY_FLAG = '--verify-artifact'
 
 const consoleIo: CliIo = {
@@ -45,13 +54,14 @@ type Command =
   | { readonly name: 'check'; readonly verify: boolean }
   | { readonly name: 'build' }
   | { readonly name: 'docs'; readonly guide: string | undefined }
+  | { readonly name: 'assets' }
 
 function parseArgs(argv: readonly string[]): Command | undefined {
   const [name, ...rest] = argv
   if (name === 'check' && rest.every((arg) => arg === VERIFY_FLAG) && rest.length <= 1) {
     return { name, verify: rest.length === 1 }
   }
-  if (name === 'build' && rest.length === 0) return { name }
+  if ((name === 'build' || name === 'assets') && rest.length === 0) return { name }
   if (name === 'docs' && rest.length <= 1 && !rest.some((arg) => arg.startsWith('--'))) {
     return { name, guide: rest[0] }
   }
@@ -122,6 +132,22 @@ async function verifyGuide(cwd: string, guide: string, meta: TuningMeta): Promis
   return []
 }
 
+/** Builds the atlases and writes each output file whole; nothing is written when any atlas has a problem. */
+async function writeAtlases(cwd: string, folder: string, io: CliIo): Promise<number> {
+  const built = await Effect.runPromise(Effect.either(buildAtlases(cwd)))
+  if (Either.isLeft(built)) return reportFailure(built.left, io)
+  for (const [file, bytes] of built.right.files) {
+    const path = join(folder, file)
+    const written = await Effect.runPromise(Effect.either(writeFileAtomically(join(cwd, path), bytes)))
+    if (Either.isLeft(written)) {
+      io.err(`could not write ${path}: ${String(written.left.cause)}`)
+      return 2
+    }
+  }
+  io.out(`atlases ${built.right.files.size} files`)
+  return 0
+}
+
 /** Runs one command in `cwd` and gives its exit code. */
 export async function runCli(argv: readonly string[], cwd: string, io: CliIo = consoleIo): Promise<number> {
   const command = parseArgs(argv)
@@ -136,6 +162,8 @@ export async function runCli(argv: readonly string[], cwd: string, io: CliIo = c
   }
   const { guide: configGuide, ...rest } = loaded.config
   const options: ContentOptions = { ...rest, root: cwd }
+
+  if (command.name === 'assets') return writeAtlases(cwd, join(outDirOf(options), 'atlases'), io)
 
   const program = command.name === 'build' ? buildContent(options) : compileContent(options)
   const compiled = await Effect.runPromise(Effect.either(program))

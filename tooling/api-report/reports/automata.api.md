@@ -468,6 +468,7 @@ interface SpriteFrames {
 interface SpriteViewOptions {
     readonly anchor?: ViewAnchor | undefined;
     readonly frames?: SpriteFrames | undefined;
+    readonly frame?: string | undefined;
 }
 ```
 
