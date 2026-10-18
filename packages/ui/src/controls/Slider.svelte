@@ -40,6 +40,8 @@ const {
 
 const id = $props.id()
 const words = $derived(valueText(value))
+// How far along its range the value is: the track fills with the accent up to it, as FloorFifty's.
+const fill = $derived(`${max === min ? 0 : Math.round(((value - min) / (max - min)) * 100)}%`)
 </script>
 
 <div class="af-slider" data-testid={testId} data-layout={layout}>
@@ -54,6 +56,7 @@ const words = $derived(valueText(value))
     {value}
     {disabled}
     aria-valuetext={words}
+    style:--af-slider-fill={fill}
     oninput={(event) => onchange(Number(event.currentTarget.value))}
     onchange={(event) => onrelease?.(Number(event.currentTarget.value))}
   />
@@ -62,6 +65,8 @@ const words = $derived(valueText(value))
 
 <style>
   .af-slider {
+    /* The drawn thumb: 20 px, scaled with TV mode as the targets are. */
+    --af-slider-thumb: calc(20px * var(--af-scale, 1));
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -100,11 +105,17 @@ const words = $derived(valueText(value))
     font-size: var(--af-text-small);
   }
 
-  /* The track is drawn thin; the thumb is a whole target. Each engine needs its own selector. */
+  /* The track is drawn thin and fills with the accent up to the value; the thumb is drawn small (FloorFifty's size),
+     and the input itself, the whole 44 px row, is what a finger hits: a press anywhere on it moves the value there.
+     Each engine needs its own selector. */
   .af-slider__input::-webkit-slider-runnable-track {
     height: 6px;
     border-radius: 3px;
-    background: var(--af-edge);
+    background: linear-gradient(
+      to right,
+      var(--af-accent) var(--af-slider-fill, 0%),
+      var(--af-edge) var(--af-slider-fill, 0%)
+    );
   }
 
   .af-slider__input::-moz-range-track {
@@ -113,11 +124,17 @@ const words = $derived(valueText(value))
     background: var(--af-edge);
   }
 
+  .af-slider__input::-moz-range-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--af-accent);
+  }
+
   .af-slider__input::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: var(--af-target);
-    height: var(--af-target);
-    margin-top: calc((6px - var(--af-target)) / 2);
+    width: var(--af-slider-thumb);
+    height: var(--af-slider-thumb);
+    margin-top: calc((6px - var(--af-slider-thumb)) / 2);
     border: var(--af-edge-width) solid var(--af-on-accent);
     border-radius: 50%;
     background: var(--af-accent);
@@ -125,8 +142,8 @@ const words = $derived(valueText(value))
 
   .af-slider__input::-moz-range-thumb {
     box-sizing: border-box;
-    width: var(--af-target);
-    height: var(--af-target);
+    width: var(--af-slider-thumb);
+    height: var(--af-slider-thumb);
     border: var(--af-edge-width) solid var(--af-on-accent);
     border-radius: 50%;
     background: var(--af-accent);

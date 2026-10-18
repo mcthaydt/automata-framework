@@ -139,4 +139,23 @@ describe('Settings screen tabs', () => {
     expect(await measure('iphone-14-landscape')).toBeGreaterThan(0.99)
     expect(await measure('desktop-laptop')).toBeLessThan(0.99)
   })
+
+  // The Desk, 2026-10-18: on a desktop Settings is not a narrow column with "+1 more"; it sets its groups two across,
+  // Language beside Audio, and the groups a desktop shows fit without scrolling. (Touch controls, last in the fixture,
+  // shows only on a coarse pointer, so a desktop never has it.)
+  test('sets its groups two across on a desktop, and its desktop groups fit without scrolling', async () => {
+    const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'desktop-720p')
+    if (size === undefined) throw new Error('no desktop-720p')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
+    const fixture = mountFixture(SettingsFixture, { show: 'settings' })
+    await settleLayout()
+    const language = document.querySelector('[data-settings-section="language"]')?.getBoundingClientRect()
+    const audio = document.querySelector('[data-settings-section="audio"]')?.getBoundingClientRect()
+    const list = document.querySelector('[data-settings-tab] [data-scroll-region]')?.getBoundingClientRect()
+    const display = document.querySelector('[data-settings-section="display"]')?.getBoundingClientRect()
+    await fixture.unmount()
+    expect(audio !== undefined && language !== undefined && audio.left >= language.right).toBe(true)
+    expect(display !== undefined && list !== undefined && display.bottom <= list.bottom + 1).toBe(true)
+  })
 })

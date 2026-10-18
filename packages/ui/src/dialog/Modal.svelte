@@ -145,10 +145,11 @@ function onScrimClick(event: MouseEvent): void {
     gap: 8px;
   }
 
-  /* A long body (`wide`: Settings) on a short band (a phone held sideways, a 900 x 600 window) widens rather than
-     shows one group above a "+N more" (FloorFifty's visual audit, 2026-10-05). Others, Pause among them, keep their
-     width, as FloorFifty's do; a sheet keeps its own. */
-  :global(:is([data-height="short"], [data-height="compact"])) .af-modal-scrim:not([data-anchor="bottom"]) .af-modal[data-wide] {
+  /* A long body (`wide`: Settings) widens wherever there is room, so its groups go two across: on a short band (a phone
+     held sideways, a 900 x 600 window) rather than one group above a "+N more" (FloorFifty's visual audit,
+     2026-10-05), and on a desktop rather than a narrow column (the Desk, 2026-10-18). Others, Pause among them, keep
+     their width, as FloorFifty's do; a sheet keeps its own. */
+  .af-modal-scrim:not([data-anchor="bottom"]) .af-modal[data-wide] {
     max-width: 44rem;
   }
 
