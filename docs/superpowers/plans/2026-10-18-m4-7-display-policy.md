@@ -5,7 +5,7 @@
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 5 of 11 steps.
+- **Progress:** 6 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -159,7 +159,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
 - [x] **5. `PauseReason` `display`** (`time.test.ts`).
   - *Red:* pausing and resuming for `display` alone, beside `menu`.
   - *Done: red in typecheck (TS2345, `"display"` is not a `PauseReason`), then green; `src/time` 9 of 9.*
-- [ ] **6. The display policy** (`runtime/src/display/display-policy.test.ts`, jsdom, with a fake geometry owner and `matchMedia`).
+- [x] **6. The display policy** (`runtime/src/display/display-policy.test.ts`, jsdom, with a fake geometry owner and `matchMedia`).
   - *Red, by case:*
     - **D-d:**
       - hosted, the gate never shows, whatever the inputs;
@@ -169,6 +169,12 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - a `portrait` game at `phone-landscape` shows the hint and pauses for `display`; back to `phone-portrait`, it hides and resumes;
     - an `any` game never shows the hint;
     - closing the scope unmounts both and removes the listeners.
+  - *Done:*
+    - Red `Failed to resolve import "./display-policy.svelte.js"`, then 9 of 10. The tenth was a test bug: its presentation bus needs a scope. Then 10 of 10, and typecheck clean.
+    - The file is `display-policy.svelte.ts`, so the covers' props can be `$state`.
+    - Two additions to the plan:
+      - The rotate hint, like the gate, needs a coarse pointer: a short desktop window is `phone-landscape` too, and has nothing to turn.
+      - English words are `DISPLAY_COPY_EN`.
 - [ ] **7. Boot runs it** (`boot.test.ts`; `game-definition.ts`, `boot-program.ts`; `define-game.ts`).
   - *Red:*
     - a `portrait` game booted at a landscape phone size shows the hint;
