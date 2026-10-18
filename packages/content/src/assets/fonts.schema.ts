@@ -9,6 +9,7 @@
 //   locales = ["en", "fr"]
 import { z } from 'zod'
 
+/** One source font: its committed file, the sha256 of its bytes, its licence and the languages it serves. */
 export interface FontSource {
   readonly file: string
   readonly sha256: string
@@ -16,6 +17,7 @@ export interface FontSource {
   readonly locales: readonly string[]
 }
 
+/** `content/fonts.toml`: each source font by name. */
 export interface FontsFile {
   readonly font: Readonly<Record<string, FontSource>>
 }
