@@ -1,6 +1,7 @@
 <!--
-  The default Settings screen (M4 spec §4.8, M4-D8): Controls when the game has an input map, Display, and every
-  component the extensions put in the `settings.sections` slot. `view` is the screen's live state
+  The default Settings screen (M4 spec §4.8, M4-D8), in FloorFifty's two tabs (`SettingsPanel.svelte` at a28dc44):
+  Settings holds Display, then every component the extensions put in the `settings.sections` slot; Controls holds
+  the controls, when the game has an input map. `view` is the screen's live state
   (`settings-screen.svelte.ts`), so a rebind, a device switch or a capture's countdown updates in place.
 -->
 <script lang="ts">
@@ -12,6 +13,7 @@ import {
   type RebindDevice,
   SettingsScreen,
   type SettingsSection,
+  type SettingsTab,
   type UiComponent,
 } from '@mcthaydt/automata-ui'
 import { CONTROLS_COPY, DISPLAY_COPY, PROMPT_COPY, SETTINGS_COPY } from './settings-copy.ts'
@@ -28,6 +30,17 @@ interface Props {
 }
 
 const { view, extensions, onrebind, onreset, ontouchmode, onquality, onback }: Props = $props()
+
+const tabs = $derived<SettingsTab[]>([
+  {
+    id: 'settings',
+    label: SETTINGS_COPY.settingsTab,
+    sections: [{ snippet: display }, ...extensions.map((component): SettingsSection => ({ component }))],
+  },
+  ...(view.rows === undefined
+    ? []
+    : [{ id: 'controls', label: SETTINGS_COPY.controlsTab, sections: [{ snippet: controls }] }]),
+])
 </script>
 
 {#snippet controls()}
@@ -54,12 +67,8 @@ const { view, extensions, onrebind, onreset, ontouchmode, onquality, onback }: P
     title={SETTINGS_COPY.title}
     backLabel={SETTINGS_COPY.back}
     {onback}
-    sections={[
-      ...(view.rows === undefined ? [] : [{ snippet: controls }]),
-      { snippet: display },
-      ...extensions.map((component): SettingsSection => ({ component })),
-    ]}
-    listLabel={SETTINGS_COPY.list}
+    {tabs}
+    tabsLabel={SETTINGS_COPY.tabs}
     moreLabel={SETTINGS_COPY.more}
   />
 </div>

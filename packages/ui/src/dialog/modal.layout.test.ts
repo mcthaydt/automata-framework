@@ -15,7 +15,7 @@ const sizeNamed = (name: string) => {
   return size
 }
 
-async function measure(name: string): Promise<{ width: number; columns: string }> {
+async function measure(name: string): Promise<{ width: number; columns: string; headBesideTitle: boolean }> {
   const size = sizeNamed(name)
   await page.viewport(size.width, size.height)
   publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
@@ -23,8 +23,11 @@ async function measure(name: string): Promise<{ width: number; columns: string }
   await settleLayout()
   const width = byTestId('modal-panel').getBoundingClientRect().width
   const columns = getComputedStyle(byTestId('modal-probe')).columnCount
+  const title = byTestId('modal-panel').querySelector('h2')?.getBoundingClientRect()
+  const head = byTestId('modal-head-probe').getBoundingClientRect()
+  const headBesideTitle = title !== undefined && head.top < title.bottom && head.left >= title.right
   await fixture.unmount()
-  return { width, columns }
+  return { width, columns, headBesideTitle }
 }
 
 describe('Modal frame', () => {
@@ -32,6 +35,13 @@ describe('Modal frame', () => {
     const wide = await measure('iphone-14-landscape')
     expect(wide.width).toBeGreaterThanOrEqual(560)
     expect(wide.columns).toBe('2')
+  })
+
+  // FloorFifty's tabs sit under its title; on a short band that costs the list a row, so where the dialog has the
+  // width they move up beside the title (a 270 px band keeps the first row of the list in view).
+  test('sets its head (the tabs) beside the title on a wide dialog, and under it on a narrow one', async () => {
+    expect((await measure('iphone-14-landscape')).headBesideTitle).toBe(true)
+    expect((await measure('iphone-14')).headBesideTitle).toBe(false)
   })
 
   test('stays one column on a phone held upright', async () => {

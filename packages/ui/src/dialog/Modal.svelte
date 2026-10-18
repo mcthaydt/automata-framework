@@ -22,6 +22,7 @@ const {
   onclose,
   onbackdrop,
   children,
+  head,
   actions,
   testId,
   anchor = 'center',
@@ -56,6 +57,9 @@ function onScrimClick(event: MouseEvent): void {
   >
     <div class="af-modal__head">
       <h2 id={titleId} class="af-modal__title">{title}</h2>
+      {#if head}
+        <div class="af-modal__head-extra">{@render head()}</div>
+      {/if}
       <button
         type="button"
         class="af-control af-control--ghost af-modal__close"
@@ -139,8 +143,24 @@ function onScrimClick(event: MouseEvent): void {
 
   .af-modal__head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+  }
+
+  /* Under the title and Close on a narrow dialog; between them where the dialog has the width, so a short band
+     keeps a row of its list rather than a row of tabs. */
+  .af-modal__head-extra {
+    order: 1;
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+
+  @container af-dialog (min-width: 480px) {
+    .af-modal__head-extra {
+      order: 0;
+      flex: 0 1 auto;
+    }
   }
 
   .af-modal__title {

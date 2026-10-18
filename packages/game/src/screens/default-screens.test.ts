@@ -305,7 +305,12 @@ describe('default screens', () => {
       root.querySelector<HTMLElement>('[data-settings-section="controls"]')?.dataset.state
     beforeEach(() => localStorage.clear())
 
-    async function toSettings(spec: Partial<GameSpec> = {}, withInput = true): Promise<void> {
+    /** Opens Settings on the tab named: Settings opens on its first tab, the controls are on its second. */
+    async function toSettings(
+      spec: Partial<GameSpec> = {},
+      withInput = true,
+      tab: 'settings' | 'controls' = 'controls',
+    ): Promise<void> {
       await boot(spec, withInput)
       await toPlay()
       press('Escape')
@@ -314,11 +319,16 @@ describe('default screens', () => {
       button('settings')?.focus()
       button('settings')?.click()
       await until(() => settingsScreen() !== null, 'the settings screen')
+      // With one tab (no input map, so no Controls) there is no tab list to choose from.
+      if (withInput) expect(button('settings-tab-settings')?.getAttribute('aria-selected')).toBe('true')
+      if (tab === 'settings') return
+      button('settings-tab-controls')?.click()
+      await until(() => row('move-0') !== null, 'the controls tab')
     }
 
     it('opens from paused; Back returns to paused with focus on Settings (F-b)', async () => {
       await toSettings()
-      button('corner-back')?.click()
+      button('settings-back')?.click()
       await until(() => screen('paused') !== null, 'paused again')
       await until(() => document.activeElement === button('settings'), 'focus on Settings')
     })
@@ -380,30 +390,42 @@ describe('default screens', () => {
           made.spawn([[Body, { x: 10 }]])
         },
       }
-      await toSettings({
-        screens: defaultScreens({
-          title: 'Square',
-          sim,
-          input: keys(Move, { ArrowLeft: { x: -1 } }),
-          setQuality,
-        }),
-      })
+      await toSettings(
+        {
+          screens: defaultScreens({
+            title: 'Square',
+            sim,
+            input: keys(Move, { ArrowLeft: { x: -1 } }),
+            setQuality,
+          }),
+        },
+        true,
+        'settings',
+      )
       root.querySelector<HTMLInputElement>('[data-testid="quality-low"] input, input[value="low"]')?.click()
       await until(() => saved()?.display?.quality === 'low', 'the saved quality')
       expect(setQuality).toHaveBeenLastCalledWith('low')
     })
 
     it('shows an extension’s settings.sections component', async () => {
-      await toSettings({
-        extensions: [
-          defineExtension({ name: 'test-extra', ui: { slots: { 'settings.sections': SettingsExtension } } }),
-        ],
-      })
+      await toSettings(
+        {
+          extensions: [
+            defineExtension({
+              name: 'test-extra',
+              ui: { slots: { 'settings.sections': SettingsExtension } },
+            }),
+          ],
+        },
+        true,
+        'settings',
+      )
       expect(root.querySelector('[data-settings-section="extension-test"]')).not.toBeNull()
     })
 
-    it('has no Controls section for a game without an input map, and still its Display', async () => {
-      await toSettings({}, false)
+    it('has no Controls tab for a game without an input map, and still its Display', async () => {
+      await toSettings({}, false, 'settings')
+      expect(root.querySelector('[role="tablist"]')).toBeNull()
       expect(root.querySelector('[data-settings-section="controls"]')).toBeNull()
       expect(root.querySelector('[data-settings-section="display"]')).not.toBeNull()
     })

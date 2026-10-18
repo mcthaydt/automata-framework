@@ -49,6 +49,8 @@ export const DISPLAY_COPY: DisplayCopy = {
 export const SETTINGS_COPY = {
   title: 'Settings',
   back: 'Back',
-  list: 'Settings sections',
+  tabs: 'Settings sections',
+  settingsTab: 'Settings',
+  controlsTab: 'Controls',
   more: (count: number): string => `+${count} more`,
 } as const

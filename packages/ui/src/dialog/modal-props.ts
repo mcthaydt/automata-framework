@@ -9,6 +9,8 @@ export interface ModalProps {
   /** A tap on the dimmed page around the panel; absent, such a tap does nothing. */
   onbackdrop?: (() => void) | undefined
   children?: Snippet | undefined
+  /** What sits with the title (Settings' tabs): beside it where the dialog is 480 px wide, under it where not. */
+  head?: Snippet | undefined
   /** The buttons, in reading order. Mark the safe one with `data-initial-focus`. */
   actions?: Snippet | undefined
   testId?: string | undefined

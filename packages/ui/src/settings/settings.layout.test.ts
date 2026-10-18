@@ -11,17 +11,29 @@ import { settleLayout } from '../testing/settle'
 // target; the sections scroll inside their list, so Back and the first row stay reachable on a short screen.
 
 /**
- * What a player must reach without scrolling: Back, and the first row's rebind buttons; while a capture waits, the
- * button that waits (the section keeps it in view), as the row's other buttons may wrap below it on a short screen.
+ * What a player must reach without scrolling: the dialog's Close (named Back), Back under the dialog where the band is
+ * tall enough to draw it, the tabs, and the tab's first row: on Settings the quality's
+ * choices, on Controls the first row's rebind buttons; while a capture waits, the button that waits (the section
+ * keeps it in view), as the row's other buttons may wrap below it on a short screen.
  */
 function essentials(show: SettingsShow, keyboard: boolean): HTMLElement[] {
   // With the keyboard up the frame scrolls what does not fit (screen-frame.layout.test.ts holds that).
   if (keyboard) return []
   const first =
-    show === 'settings-capturing'
-      ? [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-capturing]')]
-      : [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-rebind]')]
-  return [byTestId('corner-back'), ...first]
+    show === 'settings'
+      ? [...document.querySelectorAll<HTMLElement>('[data-settings-section="display"] label.af-option')]
+      : show === 'controls-capturing'
+        ? [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-capturing]')]
+        : [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-rebind]')]
+  const close = document.querySelector<HTMLElement>('[data-testid="settings-screen"] [data-modal-close]')
+  const back = document.documentElement.dataset.height === undefined ? [byTestId('settings-back')] : []
+  return [
+    ...(close === null ? [] : [close]),
+    ...back,
+    byTestId('settings-tab-settings'),
+    byTestId('settings-tab-controls'),
+    ...first,
+  ]
 }
 
 describe('Settings screen layout contract', () => {
@@ -33,6 +45,10 @@ describe('Settings screen layout contract', () => {
         const conditions = publishConditions(document.documentElement, size, variant)
         const fixture = mountFixture(SettingsFixture, { show })
         await settleLayout()
+        if (show !== 'settings') {
+          byTestId('settings-tab-controls').click()
+          await settleLayout()
+        }
         for (const problem of checkLayout(conditions, essentials(show, variant.keyboard !== undefined)))
           problems.push(`${variant.name}: ${problem}`)
         await fixture.unmount()

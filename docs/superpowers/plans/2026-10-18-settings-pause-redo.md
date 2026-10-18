@@ -7,7 +7,7 @@
   - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
 - **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 2 of 8 steps.
+- **Progress:** 4 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -15,7 +15,7 @@
   - `apps/client/src/ui/components/PauseOverlay.svelte` (182 lines):
     - a `Modal` that fades in over the game, titled "Paused", with a status line;
     - a menu of Resume (primary), Mute, Settings and Leave, one column, two across once the dialog is 340 px wide;
-    - Settings opens *inside the same dialog*, with a "← Back" under it;
+    - Settings opens _inside the same dialog_, with a "← Back" under it;
     - Leave asks first (a confirm view with the destructive action primary and Cancel);
     - Escape steps back one level: from Settings or Leave to the menu, and from the menu it resumes. Focus lands on the button the view was opened from.
   - `SettingsPanel.svelte` (381):
@@ -40,6 +40,7 @@
 ## Scope
 
 **In:**
+
 - **Paused**, as FloorFifty's: a dialog over the dimmed game, titled "Paused"; a menu of Resume (primary), Settings, and Quit to title, two across from 340 px; Quit to title asks first (confirm view: "Quit to title? This run is lost." with Quit primary and Cancel); Escape steps back one level; the pad's B does the same.
 - **Settings**, as FloorFifty's, in the same dialog frame and size over the same dim, with "← Back" under it:
   - tabs **Settings** and **Controls**, the section scrolling under them in one `ScrollList`;
@@ -52,33 +53,39 @@
 
 **Out:**
 
-| What | Where |
-|---|---|
+| What                                                               | Where                                                          |
+| ------------------------------------------------------------------ | -------------------------------------------------------------- |
 | Audio group (mute, volumes, mute when unfocused) and Mute in Pause | M5.4 (next in the queue), into the group structure this builds |
-| Language picker | PRODUCT.L / the endonyms follow-up |
-| FloorFifty's look (colours, fonts, art) | Not copied (Owner): AF's own theme tokens |
+| Language picker                                                    | PRODUCT.L / the endonyms follow-up                             |
+| FloorFifty's look (colours, fonts, art)                            | Not copied (Owner): AF's own theme tokens                      |
 
 ## Steps
 
 Each step starts with its test, run red, with the failure reason recorded. Layout steps run the `layout` project at every reference size and variant in three engines.
 
-- [x] **1. This plan,** and the 02 row. *Verify:* `pnpm format`.
-  - *Done: a5f9427.*
+- [x] **1. This plan,** and the 02 row. _Verify:_ `pnpm format`.
+  - _Done: a5f9427._
 - [ ] **2. FloorFifty reference captures.** FloorFifty's pause and settings (both tabs) at 390×844, 844×390, 780×270, 820×1180 and 1280×720, built from `a28dc44`, kept with the evidence (`docs/evidence/owner-visual/…/floorfifty/`). No code.
-- [x] **3. `PauseDialog` frame** (`packages/ui/src/dialog/PauseDialog.svelte`, DOM test then layout test). *Red:* the frame dims the page behind (a scrim with the theme's dim token), centres a dialog within the visible band, the safe area and the host's strip, holds the page like `Modal` (inert behind, focus in, Escape calls `onback`), widens on a short wide band (the container query FloorFifty uses), and keeps a 44 px Close.
-  - *Done as an extension of ui's Modal rather than a new frame (AF's Modal is FloorFifty's, with the page held, focus in and out, Escape, a 44 px Close and the dim). Added: the panel is container af-dialog, so content lays out by the dialog's width; on a short or compact band it widens to 44rem. Red: 512 px at 844x390 (expected at least 560), then green; dialog layout 27 of 27 in Chromium (all engines in step 8's gates). Step 2 (FloorFifty captures) waits for the machine to be free of M4.10's gates.*
-- [ ] **4. Paused** (`PausedScreen.svelte`, `default-screens.test.ts`, `screens.layout.test.ts`). *Red:*
+- [x] **3. `PauseDialog` frame** (`packages/ui/src/dialog/PauseDialog.svelte`, DOM test then layout test). _Red:_ the frame dims the page behind (a scrim with the theme's dim token), centres a dialog within the visible band, the safe area and the host's strip, holds the page like `Modal` (inert behind, focus in, Escape calls `onback`), widens on a short wide band (the container query FloorFifty uses), and keeps a 44 px Close.
+  - _Done as an extension of ui's Modal rather than a new frame (AF's Modal is FloorFifty's, with the page held, focus in and out, Escape, a 44 px Close and the dim). Added: the panel is container af-dialog, so content lays out by the dialog's width; on a short or compact band it widens to 44rem. Red: 512 px at 844x390 (expected at least 560), then green; dialog layout 27 of 27 in Chromium (all engines in step 8's gates). Step 2 (FloorFifty captures) waits for the machine to be free of M4.10's gates._
+- [x] **4. Paused** (`PausedScreen.svelte`, `default-screens.test.ts`, `screens.layout.test.ts`). _Red:_
   - the menu: Resume primary and focused, Settings, Quit to title;
   - two across at a 340 px dialog;
   - Quit asks first; Cancel returns to the menu with focus on Quit;
   - Escape resumes from the menu and steps back from the confirm.
-- [ ] **5. Settings tabs and groups** (`ui/src/settings/`, `SettingsView.svelte`). *Red:*
+  - _Done: d0a784f. On Modal; game screens 41 of 41._
+- [x] **5. Settings tabs and groups** (`ui/src/settings/`, `SettingsView.svelte`). _Red:_
   - two tabs with Settings first;
   - the Settings tab's fieldsets with legends, Touch controls only on a coarse pointer with both modes;
   - extension sections after the core groups;
   - two across from 560 px;
   - one `ScrollList` under the tabs that counts what is below.
-- [ ] **6. Controls by device** (`ControlsSection.svelte`). *Red:*
+  - _Done. `SettingsScreen` takes `tabs` (`SettingsTab`); one tab draws no tab list. Two findings at the layout contract, fixed test-first:_
+    - _on a short band the tab row cost the list its first row (780x270: the quality choices clipped). Modal gained a `head` slot, beside the title from a 480 px dialog and under it below that (red: no head; then green, dialog layout 3 of 3);_
+    - _under TV scale (1.333) on 667x375 and 780x270 the full-width Back row still clipped them. On short and compact bands Back under the dialog is not drawn; the dialog's Close, named Back, does the same, as FloorFifty's Settings from its title has only its Close. Tall bands draw both, as FloorFifty's pause. The contract's essentials are the Close, Back where drawn, the tabs and the tab's first row._
+  - _Touch controls stay in ControlsSection until step 6 moves them to the Settings tab._
+  - _Settings layout 102 of 103 in Chromium: the one red, Controls under TV scale at 780x270 (each row stacks its rebind buttons), is step 6's first red._
+- [ ] **6. Controls by device** (`ControlsSection.svelte`). _Red:_
   - a section per device, the one in use first and marked;
   - the controller section only after a pad connects;
   - the touch section describes the buttons;

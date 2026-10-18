@@ -130,7 +130,7 @@ export {
 export { default as DisplaySection } from './settings/DisplaySection.svelte'
 export { DISPLAY_QUALITIES, type DisplayCopy, type DisplayQuality } from './settings/display-section'
 export { default as SettingsScreen } from './settings/SettingsScreen.svelte'
-export type { SettingsSection } from './settings/settings-screen'
+export type { SettingsSection, SettingsTab } from './settings/settings-screen'
 export { UI_SLOT_NAMES, type UiComponent, type UiSlotName } from './slots/ui-slot'
 export { default as BootFailurePanel } from './status/BootFailurePanel.svelte'
 export {

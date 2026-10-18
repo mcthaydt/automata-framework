@@ -1,10 +1,10 @@
 <!--
-  The core Settings screen for the layout contracts (M4 spec §4.8, M4.4): Controls with four actions and both
-  devices, then Display, as the default screens draw them. `capturing` shows the first row waiting for a press.
-  Words are English stand-ins of a typical length.
+  The core Settings screen for the layout contracts (M4 spec §4.8, M4.4), in FloorFifty's two tabs: `settings` shows
+  the Settings tab (Display); `controls` the Controls tab with four actions and both devices; `controls-capturing`
+  shows its first row waiting for a press. Words are English stand-ins of a typical length.
 -->
 <script lang="ts" module>
-export const SETTINGS_SHOWS = ['settings', 'settings-capturing'] as const
+export const SETTINGS_SHOWS = ['settings', 'controls', 'controls-capturing'] as const
 export type SettingsShow = (typeof SETTINGS_SHOWS)[number]
 </script>
 
@@ -74,7 +74,7 @@ const ROWS: ControlsRow[] = [
     glyphs="xbox"
     promptCopy={PROMPT_COPY}
     copy={CONTROLS_COPY}
-    state={show === 'settings-capturing'
+    state={show === 'controls-capturing'
       ? { kind: 'capturing', action: 'left', device: 'keyboard', secondsLeft: 9 }
       : { kind: 'list' }}
     onrebind={none}
@@ -90,7 +90,10 @@ const ROWS: ControlsRow[] = [
   title="Settings"
   backLabel="Back"
   onback={none}
-  sections={[{ snippet: controls }, { snippet: display }]}
-  listLabel="Settings sections"
+  tabs={[
+    { id: 'settings', label: 'Settings', sections: [{ snippet: display }] },
+    { id: 'controls', label: 'Controls', sections: [{ snippet: controls }] },
+  ]}
+  tabsLabel="Settings sections"
   moreLabel={(count) => `+${count} more`}
 />
