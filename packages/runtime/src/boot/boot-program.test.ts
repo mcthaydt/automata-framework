@@ -6,6 +6,9 @@ import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
 import { Effect, Exit, Fiber, Scope, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
+import { Audio } from '../audio/audio.manager.js'
+import { AudioBuses } from '../audio/audio-buses.js'
+import { type FakeAudioContext, fakeAudioContext } from '../audio/testing/fake-audio-context.js'
 import type { ScreenDef } from '../flow/screen.js'
 import { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { RenderTarget } from '../render/renderer.js'
@@ -846,5 +849,70 @@ describe('bootProgram', () => {
       expect(menuCalls).toEqual(['title'])
 
       yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+
+  it('provides Audio and AudioBuses to screens, builds the seam context on a gesture, and plays the game sounds (M5.3)', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      const contexts: FakeAudioContext[] = []
+      const seen: { audio?: Audio; buses?: AudioBuses; bus?: PresentationBus } = {}
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            seen.audio = yield* Audio
+            seen.buses = yield* AudioBuses
+            seen.bus = yield* PresentationBus
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        sounds: { chime: 'chime.wav' },
+        seams: {
+          fetch: fakeFetch({
+            '/assets/title.png': { chunks: [new Uint8Array([1])] },
+            'chime.wav': { chunks: [new TextEncoder().encode('chime.wav')] },
+          }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          createAudioContext: () => {
+            const context = fakeAudioContext()
+            contexts.push(context)
+            return context
+          },
+          sdkEnv: () =>
+            createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock }).gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      expect(seen.audio).toBeDefined()
+      expect(seen.buses).toBe(seen.audio)
+
+      window.dispatchEvent(new Event('pointerdown'))
+      yield* Effect.promise(() => settle(2))
+      expect(contexts).toHaveLength(1)
+      expect(yield* seen.audio!.unlocked.get).toBe(true)
+
+      seen.bus!.publish('sim.events', [{ type: 'chime', payload: {} }])
+      yield* Effect.promise(() => settle(2))
+      expect(contexts[0]?.started.map((started) => started.alias)).toEqual(['chime.wav'])
+
+      yield* Scope.close(scope, Exit.void)
+      expect(contexts[0]?.closed).toBe(true)
     }).pipe(Effect.runPromise))
 })

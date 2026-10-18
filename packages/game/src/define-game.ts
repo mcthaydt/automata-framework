@@ -9,6 +9,7 @@ import {
 import {
   BootDefect,
   type CompiledContentData,
+  type EventSounds,
   type GameDefinition,
   type RuntimeSeams,
   type ScreenDef,
@@ -40,6 +41,11 @@ export interface GameSpec<S = never> {
   readonly input?: InputMap
   /** Component id → view (`rect`, `sprite`). */
   readonly views?: Readonly<Record<string, EntityViewFactory>>
+  /**
+   * The sound each sim event plays, by the event's id: `{ [Chime.id]: 'chime.wav' }`, or `{ alias, bus, gain }`.
+   * Silent until the player's first gesture (browsers allow no sound before it).
+   */
+  readonly sounds?: EventSounds
   /** A game with `content/` passes the compiler's output; `sim` is the sim's partition of it. */
   readonly content?: { readonly data: CompiledContentData; readonly hash: string; readonly sim?: unknown }
   /** Default: title, play and paused (DX spec §7). */
@@ -99,6 +105,9 @@ function problemsOf<S>(spec: GameSpec<S>): string[] {
   )
   for (const key of Object.keys(spec.views ?? {}))
     if (!drawn.has(key)) problems.push(`views.${key}: no plugin has a drawn component "${key}"`)
+  const events = new Set(spec.sim.plugins.flatMap((plugin) => plugin.events.map((event) => event.id)))
+  for (const key of Object.keys(spec.sounds ?? {}))
+    if (!events.has(key)) problems.push(`sounds.${key}: no plugin defines an event "${key}"`)
   if (spec.draw !== undefined && typeof spec.draw !== 'function') problems.push('draw: is not a function')
   else if (spec.draw !== undefined && spec.screens !== undefined)
     problems.push('draw: needs the default screens (custom screens do not hand their sim to the draw layer)')
@@ -182,6 +191,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     renderer,
     ...(spec.settings === undefined ? {} : { settings: spec.settings }),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
+    ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.copy === undefined ? {} : { copy: spec.copy }),
     ...(spec.seams === undefined ? {} : { seams: spec.seams }),
   }

@@ -1,3 +1,12 @@
+export {
+  Audio,
+  AudioLive,
+  type AudioOptions,
+  type AudioServices,
+  audioLayer,
+  makeAudio,
+  type SoundOptions,
+} from './audio/audio.manager.js'
 export { AudioBuses } from './audio/audio-buses.js'
 export {
   AUDIO_BUS_NAMES,
@@ -5,6 +14,10 @@ export {
   type AudioBusName,
   audioBusGainsSchema,
 } from './audio/audio-buses.schema.js'
+export { AudioDecodeFailed, type AudioDecodeFailedFields } from './audio/audio-error.js'
+export type { AudioContextLike } from './audio/audio-graph.js'
+export type { MusicOptions } from './audio/audio-music.js'
+export type { EventSounds } from './audio/event-sounds.js'
 export {
   AssetLoadFailed,
   BootDefect,

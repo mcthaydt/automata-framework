@@ -1,8 +1,9 @@
 import { BootDefect, type ScreenDef } from '@mcthaydt/automata-runtime'
-import { defineComponent, definePlugin } from '@mcthaydt/automata-sim'
+import { defineComponent, defineEvent, definePlugin } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
 import { Container } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { z } from 'zod'
 import { defaultContent } from './default-content.ts'
 import { defineGame, type GameSpec, pixiOptions } from './define-game.ts'
 import { createDrawLayer } from './draw/draw-layer.ts'
@@ -10,7 +11,8 @@ import { rect } from './index.ts'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
 const Hidden = defineComponent('hidden', { n: 'i32' }, { render: false })
-const square = definePlugin({ name: 'square', defs: [Body, Hidden] })
+const Chime = defineEvent('chime', z.object({}))
+const square = definePlugin({ name: 'square', defs: [Body, Hidden, Chime] })
 
 const spec: GameSpec = { id: 'my-game', size: { width: 320, height: 180 }, sim: { plugins: [square] } }
 
@@ -96,6 +98,15 @@ describe('defineGame validation (DX spec §5 step 1, §6)', () => {
     const problems = problemsOf({ ...spec, views })
     expect(problems).toContain('views.ghost:')
     expect(problems).toContain('views.hidden:')
+  })
+
+  it('refuses a sound for an event no plugin defines (M5.3)', () => {
+    expect(problemsOf({ ...spec, sounds: { ghost: 'ghost.wav' } })).toContain('sounds.ghost:')
+  })
+
+  it('hands the sounds to the runtime, which plays them on sim events (M5.3)', () => {
+    const sounds = { [Chime.id]: 'chime.wav' }
+    expect(defineGame({ ...spec, sounds }).sounds).toEqual(sounds)
   })
 
   it('accepts a view for a drawn component', () => {

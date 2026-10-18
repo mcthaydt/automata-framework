@@ -8,13 +8,19 @@ import { AUDIO_BUS_NAMES, type AudioBusGains, audioBusGainsSchema } from './audi
 // bus through the tag, and a settings screen stores the gains.
 
 describe('audio bus gains', () => {
-  it('names master and the buses under it', () => {
-    expect(AUDIO_BUS_NAMES).toEqual(['master', 'music', 'sfx', 'ui'])
+  it('names master and the buses under it, with voice (M5-D3)', () => {
+    expect(AUDIO_BUS_NAMES).toEqual(['master', 'music', 'sfx', 'ui', 'voice'])
   })
 
   it('defaults every gain to full and keeps a saved gain', () => {
-    expect(audioBusGainsSchema.parse({})).toEqual({ master: 1, music: 1, sfx: 1, ui: 1 })
-    expect(audioBusGainsSchema.parse({ music: 0.25 })).toEqual({ master: 1, music: 0.25, sfx: 1, ui: 1 })
+    expect(audioBusGainsSchema.parse({})).toEqual({ master: 1, music: 1, sfx: 1, ui: 1, voice: 1 })
+    expect(audioBusGainsSchema.parse({ music: 0.25 })).toEqual({
+      master: 1,
+      music: 0.25,
+      sfx: 1,
+      ui: 1,
+      voice: 1,
+    })
   })
 
   it('rejects a gain outside 0..1 instead of clamping it silently', () => {

@@ -2,10 +2,11 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
-// Three projects (M1.5 spec §7, §9):
+// Four projects (M1.5 spec §7, §9; M5.3):
 // - unit: every behavior test, in jsdom because boot and the page layers mount ui's Svelte components.
 // - bench: the frame-loop overhead check in Node, kept out of the gate (it is a measurement, not a test).
 // - bench-chromium: the same check in real Chromium, where requestAnimationFrame and the JIT are the shipped ones.
+// - browsers: the Audio service on real Web Audio in Chromium, WebKit and Firefox (M5.3), in `pnpm test:parity`.
 export default defineConfig({
   plugins: [svelte()],
   test: {
@@ -23,7 +24,7 @@ export default defineConfig({
           // its runtime are one module graph and overwriteGetLocale reaches the messages (live bindings).
           server: { deps: { inline: [/af-paraglide-fixture/] } },
           include: ['src/**/*.test.ts'],
-          exclude: ['src/**/*.bench.test.ts'],
+          exclude: ['src/**/*.bench.test.ts', 'src/**/*.browser.test.ts'],
         },
       },
       {
@@ -32,6 +33,19 @@ export default defineConfig({
           name: 'bench',
           environment: 'node',
           include: ['src/**/*.bench.test.ts'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'browsers',
+          include: ['src/**/*.browser.test.ts'],
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            instances: [{ browser: 'chromium' }, { browser: 'webkit' }, { browser: 'firefox' }],
+          },
         },
       },
       {

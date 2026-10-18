@@ -69,10 +69,24 @@ interface Assets {
 const Assets: Context.Tag<Assets, Assets>;
 ```
 
+### `Audio` (interface)
+
+```ts
+interface Audio {
+    readonly unlocked: Subscribable.Subscribable<boolean>;
+    sound(alias: string, options?: SoundOptions): void;
+    music(alias: string, options?: MusicOptions): Effect.Effect<void, AudioDecodeFailed | AssetLoadFailed>;
+    stopMusic(fadeSeconds?: number): void;
+    duck(bus: AudioBusName, amount: number, seconds: number): void;
+    setMuted(muted: boolean): void;
+}
+const Audio: Context.Tag<Audio, Audio>;
+```
+
 ### `AUDIO_BUS_NAMES` (const)
 
 ```ts
-const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui'];
+const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ```
 
 ### `AudioBuses` (interface)
@@ -102,6 +116,66 @@ const audioBusGainsSchema: z.ZodType<AudioBusGains, Partial<Record<AudioBusName,
 
 ```ts
 type AudioBusName = (typeof AUDIO_BUS_NAMES)[number];
+```
+
+### `AudioContextLike` (type)
+
+```ts
+type AudioContextLike = Pick<AudioContext, 'currentTime' | 'destination' | 'createGain' | 'createBufferSource' | 'decodeAudioData' | 'resume' | 'suspend' | 'close'> & {
+    readonly state: AudioContextState | 'interrupted';
+};
+```
+
+### `AudioDecodeFailed` (class)
+
+```ts
+class AudioDecodeFailed extends AudioDecodeFailedBase {
+}
+```
+
+### `AudioDecodeFailedFields` (interface)
+
+```ts
+interface AudioDecodeFailedFields {
+    readonly alias: string;
+    readonly cause: unknown;
+}
+```
+
+### `audioLayer` (const)
+
+```ts
+const audioLayer: (options?: AudioOptions) => Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus>;
+```
+
+### `AudioLive` (const)
+
+```ts
+const AudioLive: Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus>;
+```
+
+### `AudioOptions` (interface)
+
+```ts
+interface AudioOptions {
+    readonly createContext?: () => AudioContextLike;
+    readonly window?: Pick<EventTarget, 'addEventListener' | 'removeEventListener'>;
+    readonly document?: Pick<EventTarget, 'addEventListener' | 'removeEventListener'> & {
+        readonly visibilityState: DocumentVisibilityState;
+    };
+    readonly muteUnfocused?: boolean;
+    readonly fetch?: typeof fetch;
+}
+```
+
+### `AudioServices` (interface)
+
+```ts
+interface AudioServices {
+    readonly hosting: Pick<Hosting, 'ready' | 'lifecycle' | 'audio'>;
+    readonly assets: Pick<Assets, 'get'>;
+    readonly bus: PresentationBus;
+}
 ```
 
 ### `AuthoritativeSnapshot` (interface)
@@ -179,6 +253,16 @@ const displaySettingsSchema: z.ZodType<DisplaySettings, {
 }>;
 ```
 
+### `EventSounds` (type)
+
+```ts
+type EventSounds = Readonly<Record<string, string | {
+    readonly alias: string;
+    readonly bus?: AudioBusName;
+    readonly gain?: number;
+}>>;
+```
+
 ### `Flow` (interface)
 
 ```ts
@@ -244,6 +328,7 @@ interface GameDefinition<S = never> {
     readonly settings?: SettingsDef<S> | undefined;
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
+    readonly sounds?: EventSounds | undefined;
     readonly copy?: Partial<BootFailureCopy> & {
         readonly loading?: string;
         readonly slow?: string;
@@ -467,6 +552,12 @@ interface LocaleDef {
 }
 ```
 
+### `makeAudio` (const)
+
+```ts
+const makeAudio: (options: AudioServices & AudioOptions) => Effect.Effect<Audio & AudioBuses, never, Scope.Scope>;
+```
+
 ### `makeInput` (function)
 
 ```ts
@@ -495,6 +586,18 @@ type MenuAction = 'nav-up' | 'nav-down' | 'nav-left' | 'nav-right' | 'confirm' |
 
 ```ts
 type MessageFunction = (inputs?: any) => string;
+```
+
+### `MusicOptions` (interface)
+
+```ts
+interface MusicOptions {
+    readonly fromSeconds?: number;
+    readonly loop?: {
+        readonly start: number;
+        readonly end: number;
+    };
+}
 ```
 
 ### `negotiateLocale` (function)
@@ -645,6 +748,14 @@ interface RuntimeFacts {
         readonly glyphs: GlyphFamily;
         readonly previous: InputDevice;
     };
+    readonly 'audio.unlocked': Readonly<Record<never, never>>;
+    readonly 'audio.unavailable': {
+        readonly reason: string;
+    };
+    readonly 'audio.decode.failed': {
+        readonly alias: string;
+        readonly reason: string;
+    };
     readonly 'input.pad.connected': PadInfo;
     readonly 'input.pad.disconnected': PadInfo & {
         readonly wasActive: boolean;
@@ -687,13 +798,14 @@ interface RuntimeSeams {
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
     readonly document?: Document;
     readonly languages?: readonly string[];
+    readonly createAudioContext?: () => AudioContextLike;
 }
 ```
 
 ### `RuntimeServices` (type)
 
 ```ts
-type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale;
+type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses;
 ```
 
 ### `Save` (interface)
@@ -927,6 +1039,16 @@ type SlotState = {
 const SLOW_MS = 8000;
 ```
 
+### `SoundOptions` (interface)
+
+```ts
+interface SoundOptions {
+    readonly bus?: AudioBusName;
+    readonly gain?: number;
+    readonly rate?: number;
+}
+```
+
 ### `STALL_MS` (const)
 
 ```ts
@@ -1097,6 +1219,38 @@ type RukenManifestContribution = {
 
 ## `./testing`
 
+### `FakeAudioContext` (interface)
+
+```ts
+interface FakeAudioContext extends AudioContextLike {
+    state: AudioContextLike['state'];
+    currentTime: number;
+    readonly gains: FakeGainNode[];
+    readonly started: Started[];
+    readonly stopped: Array<{
+        readonly alias: string;
+        readonly when: number;
+    }>;
+    readonly resumed: number;
+    readonly closed: boolean;
+    advance(seconds: number): void;
+    interrupt(): void;
+    end(alias: string): void;
+}
+```
+
+### `fakeAudioContext` (function)
+
+```ts
+function fakeAudioContext(decode?: (bytes: ArrayBuffer) => AudioBuffer): FakeAudioContext;
+```
+
+### `fakeBuffer` (const)
+
+```ts
+const fakeBuffer: (alias: string, duration?: number) => AudioBuffer;
+```
+
 ### `fakeFetch` (function)
 
 ```ts
@@ -1118,6 +1272,22 @@ interface FakeFetchResult {
     readonly fetch: typeof fetch;
     readonly requests: string[];
     readonly aborted: string[];
+}
+```
+
+### `FakeGainNode` (interface)
+
+```ts
+interface FakeGainNode {
+    readonly targets: unknown[];
+    readonly automation: Array<{
+        readonly method: string;
+        readonly value?: number;
+        readonly at: number;
+    }>;
+    readonly gain: {
+        value: number;
+    };
 }
 ```
 
@@ -1198,5 +1368,6 @@ interface RuntimeTestOptions {
     readonly fetch?: typeof fetch;
     readonly locale?: LocaleDef;
     readonly languages?: readonly string[];
+    readonly createAudioContext?: () => AudioContextLike;
 }
 ```
