@@ -5,6 +5,7 @@ import {
   type RuntimeHandle,
   runGame,
 } from '@mcthaydt/automata-runtime'
+import { defineExtension } from '@mcthaydt/automata-runtime/extension'
 import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
 import {
   defineCommand,
@@ -23,6 +24,7 @@ import { z } from 'zod'
 import { type DefinedGame, defineGame, type GameSpec } from '../define-game.ts'
 import { keys } from '../input/keys.ts'
 import { defaultScreens } from './default-screens.ts'
+import HudExtension from './HudExtension.test.svelte'
 
 // The default title, play and paused screens (DX spec §7), booted by the real runtime in jsdom: standalone
 // hosting, manual frames and a renderer that records what it is given (Pixi needs WebGL, which jsdom lacks).
@@ -159,6 +161,19 @@ describe('default screens', () => {
     const applied = results.length
     step(5)
     expect(results.length).toBe(applied)
+  })
+
+  it('draws an extension’s hud.overlay on play, inside the frame, and not on paused (M4.7)', async () => {
+    await boot({
+      extensions: [defineExtension({ name: 'test-hud', ui: { slots: { 'hud.overlay': HudExtension } } })],
+    })
+    await toPlay()
+    const hud = () => root.querySelector('[data-testid="hud-extension"]')
+    expect(hud()).not.toBeNull()
+    expect(hud()?.closest('[data-testid="play-screen"]')).not.toBeNull()
+    press('Escape')
+    await until(() => screen('paused') !== null, 'the paused screen')
+    expect(hud()).toBeNull()
   })
 
   it('the corner Pause button pauses too', async () => {

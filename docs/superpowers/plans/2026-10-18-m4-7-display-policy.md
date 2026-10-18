@@ -5,7 +5,7 @@
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 9 of 11 steps.
+- **Progress:** 10 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -196,8 +196,9 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - The play screen passes `required` from the input map. `TouchButton.required` is optional, set only when true, so the existing shapes stay.
 - [x] **9. The overlay as an intruder** (`layout-contract.layout.test.ts`).
   - *Done: red (the planted control under a touch button not reported), then green. The whole ui layout project passed, 1584 of 1584, with the check in `checkLayout`. It is `findTouchIntrusions` in `layout-contract.ts`, not a change to the shared `findIntrusions`: the overlay's boxes are the intruders, and the touch buttons are exempt from their own check.*
-- [ ] **10. The HUD layer** (`default-screens.test.ts`).
+- [x] **10. The HUD layer** (`default-screens.test.ts`).
   - *Red:* an extension's `hud.overlay` component renders on play, inside the frame, and is gone on paused.
+  - *Done: the first version of the test passed with no code, because `hud()?.closest(…)` is undefined and passes `not.toBeNull()`. The test now asserts the component exists first, and was red (null), then green; game unit 118 of 118. `ScreensGame.extensions` is added here too, the same field M4.4's branch adds (#87); whichever merges second resolves the one-line conflict.*
 - [ ] **11. E2E, exports, reports, gates and records.**
   - *E2E (fake host, `core-input-touch`), new `examples/e2e/display-policy.e2e.ts`:*
     - **D-b:** the host moves `hostReserved` from right to left mid-play. The touch buttons move with it, and the screen instance is the same (a marker set on it survives).

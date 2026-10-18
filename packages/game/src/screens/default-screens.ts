@@ -12,6 +12,7 @@ import {
   SwipeTracker,
   Time,
 } from '@mcthaydt/automata-runtime'
+import { type ExtensionDef, resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import {
   CursorRunner,
@@ -43,6 +44,8 @@ export interface ScreensGame {
   readonly watchSim?: ((sim: Sim | undefined) => void) | undefined
   /** The board paused shows: the game's first scored board (M5.7). None: paused shows no board. */
   readonly board?: string | undefined
+  /** The game's extensions: play draws their `hud.overlay` components (M4.7). */
+  readonly extensions?: readonly ExtensionDef[] | undefined
 }
 
 /** The board's words on the default paused screen. English, like the other default screens' words (02 follow-up). */
@@ -278,6 +281,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           onHold: (id: string) => input.hold(id),
           onRelease: (id: string) => input.release(id),
           swipe: game.input?.touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
+          hud: resolveExtensions(game.extensions ?? []).slots('hud.overlay'),
         })
       }),
   }

@@ -11,6 +11,7 @@ import {
   ScreenFrame,
   SwipeSurface,
   TouchControls,
+  type UiComponent,
 } from '@mcthaydt/automata-ui'
 import type { TouchButton } from '../input/keys.ts'
 
@@ -22,9 +23,11 @@ interface Props {
   onRelease: (id: string) => void
   /** The swipe tracker, in touch mode `swipe`; none in mode `buttons`. */
   swipe?: PointerTracker | undefined
+  /** The extensions' `hud.overlay` components, drawn over the game inside the visible region (M4.7). */
+  hud?: readonly UiComponent[] | undefined
 }
 
-const { onPause, tracker, touchButtons, onHold, onRelease, swipe }: Props = $props()
+const { onPause, tracker, touchButtons, onHold, onRelease, swipe, hud = [] }: Props = $props()
 
 const touching = $derived(tracker.method === 'touch')
 const showButtons = $derived(touching && swipe === undefined && touchButtons.length > 0)
@@ -40,7 +43,11 @@ const buttons = $derived(
 {/snippet}
 
 {#snippet body()}
-  <div class="af-game-play__field"></div>
+  <div class="af-game-play__field">
+    {#each hud as Hud, index (index)}
+      <Hud />
+    {/each}
+  </div>
 {/snippet}
 
 {#snippet actions()}
