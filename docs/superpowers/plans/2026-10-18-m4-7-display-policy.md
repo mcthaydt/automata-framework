@@ -215,6 +215,11 @@ Each step starts with its test, run red, with the failure reason recorded. The p
       - `pnpm test:parity` passed, 12 of 12.
       - `CI=1 pnpm test:e2e` had 99 passed, 2 skipped and **6 failed**. All six are Emberwick in `base-2d-compact` (standalone, Pixel 7 landscape, 780×270): the landscape gate now covers the game there, as M4-D5 says it should standalone, and the journeys do not pass through it.
     - **Next:** Emberwick's e2e taps `landscape-gate-fullscreen` when the gate shows, then goes on. Headless Chromium grants element fullscreen. Then re-run every gate.
+    - **Emberwick through the gate (2026-10-18, successor session):**
+      - The journeys now pass the gate (`passLandscapeGate` in `games/emberwick/e2e/base-2d.e2e.ts`): on a coarse pointer held sideways it taps `landscape-gate-fullscreen` and waits for the cover to go; elsewhere it asserts the gate never shows.
+      - First run: 13 passed, **5 failed**, all `base-2d-compact`. The gate opened, but the menu's Play was not focused afterwards, so `Enter` did nothing. **Cause (a product bug, not the test):** the gate holds the page from boot, the menu mounts behind it inert, so the flow's focus call does nothing; on release `holdModal` gave focus back to an opener that was the body.
+      - **Fix, test first** (`modal-scope.test.ts`): red (focus stayed on the body), then green. With no opener left, `holdModal`'s release focuses where a screen puts it on entry: `[data-autofocus]`, else the first `[data-kind="primary"]`. ui `dialog/` and `display/` 328 of 328.
+      - Second run: `base-2d` and `base-2d-compact` 18 of 18.
 
 ## Verification
 

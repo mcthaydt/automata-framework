@@ -27,9 +27,26 @@ async function collectErrors(page: Page): Promise<string[]> {
 
 const game = (page: Page) => page.locator('#game')
 
+/**
+ * A phone held sideways and standalone (the compact project) plays fullscreen or not at all (M4.7): the landscape
+ * gate covers the game until the player taps its fullscreen button. Elsewhere the gate never shows.
+ */
+async function passLandscapeGate(page: Page) {
+  const viewport = page.viewportSize()
+  const coarse = await page.evaluate(() => matchMedia('(pointer: coarse)').matches)
+  const gate = page.getByTestId('landscape-gate-fullscreen')
+  if (!coarse || viewport === null || viewport.width <= viewport.height) {
+    await expect(gate).toHaveCount(0)
+    return
+  }
+  await gate.tap()
+  await expect(page.getByTestId('landscape-gate')).toHaveCount(0)
+}
+
 async function openMenu(page: Page) {
   await page.goto(gameUrl)
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+  await passLandscapeGate(page)
   const current = await game(page).getAttribute('data-screen')
   if (current === 'splash') {
     await page.keyboard.press('KeyX')
@@ -42,6 +59,7 @@ test('boots standalone under Ruken’s headers and shows the splash, then the me
   const response = await page.goto(gameUrl)
   expect(response?.headers()['content-security-policy']).toContain("script-src 'self'")
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+  await passLandscapeGate(page)
   await expect(page.locator('canvas')).toBeVisible()
   const initial = await game(page).getAttribute('data-screen')
   if (initial === 'splash') {
@@ -130,6 +148,7 @@ test('playing the golden route with the keyboard reaches the ember and the end s
   await page.clock.install()
   await page.goto(gameUrl)
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+  await passLandscapeGate(page)
   await page.keyboard.press('KeyX')
   await expect(game(page)).toHaveAttribute('data-screen', 'menu')
   // Installed, the clock still runs at wall speed; from here on it moves only when the test moves it.
