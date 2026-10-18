@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 6 of 13 steps.
+- **Progress:** 7 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -218,7 +218,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - **Deviation:** `defineGame` also asks the host for `saves` when it supplies the core settings, as it asks for `leaderboards` with scores. The SDK writes saves through to the host only with that grant; without it, a rebind would not survive a reload. The test of the default `wants` changed from `[]` to `['saves']`.
     - Checked in the vendored SDK: `saves.get` reads the SDK's local copy, so the extra boot read cannot fail offline.
     - The runtime's root entry exports the binding and settings names.
-- [ ] **7. Prompts** (`packages/ui/src/prompts/prompt-label.test.ts`, `prompt.test.ts`).
+- [x] **7. Prompts** (`packages/ui/src/prompts/prompt-label.test.ts`, `prompt.test.ts`).
   - *Red:*
     - `KeyK` is `K`, `Digit1` is `1`, and `ArrowLeft` is `←`;
     - a layout map's label wins;
@@ -226,6 +226,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - the touch device shows the touch label;
     - no input on the active device is `unbound`;
     - the component follows new props without remounting, and is not in the focus order.
+  - *Done: red `Failed to resolve import "./prompt-label"` and `"./Prompt.svelte"`, then 11 of 11 green; svelte-check clean. The test file is `prompt.svelte.test.ts`, so its props can be `$state`. The 16 standard buttons' printed labels per family are AF's, extended from FloorFifty's six actions; Select, Start and Home are words on every family. Exported from the ui root.*
 - [ ] **8. `ControlsSection`** (`settings/controls-section.test.ts`; a layout contract in `settings.layout.test.ts`).
   - *Red:*
     - one row per action, with a button per device and the prompt;

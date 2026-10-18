@@ -101,6 +101,19 @@ export { default as ScreenFrame } from './layout/ScreenFrame.svelte'
 export { default as ScrollList } from './layout/ScrollList.svelte'
 export { default as Split } from './layout/Split.svelte'
 export { splitMode } from './layout/split'
+export { default as Prompt } from './prompts/Prompt.svelte'
+export {
+  keyLabel,
+  type PadWord,
+  type PromptBinding,
+  type PromptCopy,
+  type PromptDevice,
+  type PromptGlyphs,
+  type PromptView,
+  padLabel,
+  promptView,
+  readKeyboardLayout,
+} from './prompts/prompt-label'
 export { UI_SLOT_NAMES, type UiComponent, type UiSlotName } from './slots/ui-slot'
 export { default as BootFailurePanel } from './status/BootFailurePanel.svelte'
 export {
