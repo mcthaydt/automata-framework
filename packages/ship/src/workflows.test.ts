@@ -398,6 +398,14 @@ describe('ci.yml (AF)', () => {
     expect(scripts).toContain('pnpm test:e2e $SPEC')
   })
 
+  it('installs all three engines for the journeys: the input matrix runs cells in WebKit and Firefox (M4.10)', () => {
+    const installs = (ci.jobs.e2e?.steps ?? [])
+      .map((step) => step.run ?? '')
+      .filter((run) => run.includes('playwright install'))
+    expect(installs.length).toBeGreaterThan(0)
+    for (const install of installs) expect(install).toMatch(/chromium webkit firefox$/)
+  })
+
   it('has a journey for the placeholder, so a nightly run cannot pass with nothing to run', () => {
     const config = readFileSync(join(root, 'playwright.config.ts'), 'utf8')
     expect(config).toContain("testDir: 'games/placeholder/e2e'")

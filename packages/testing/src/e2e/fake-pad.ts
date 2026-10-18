@@ -12,6 +12,7 @@
 // `in(frame)` points the helpers there; the page's own frame is the default.
 import type { Frame, Page } from '@playwright/test'
 
+/** The standard mapping's buttons by name: south (A on an Xbox pad) is 0, Start is 9, the D-pad 12 to 15. */
 export const PAD_BUTTONS = {
   south: 0,
   east: 1,
@@ -31,8 +32,11 @@ export const PAD_BUTTONS = {
   dpadRight: 15,
   home: 16,
 } as const
+/** A standard-mapping button by name. */
 export type PadButton = keyof typeof PAD_BUTTONS
+/** Whether a direction is held on the D-pad or the left stick. */
 export type PadMode = 'dpad' | 'stick'
+/** A direction on the D-pad or the stick. */
 export type Direction = 'up' | 'down' | 'left' | 'right'
 
 type PadState = { buttons: number[]; axes: number[]; connected: boolean; timestamp: number; mapping: string }
@@ -54,12 +58,14 @@ const STICK: Record<Direction, [number, number]> = {
   right: [0.9, 0],
 }
 
+/** How the fake pad reports itself: its mapping and its id (the id picks the prompts' glyphs). */
 export interface FakePadOptions {
   /** `''` for a pad the browser does not map to the standard layout. Default `standard`. */
   readonly mapping?: '' | 'standard'
   readonly id?: string
 }
 
+/** One standard controller in a real browser, driven through the Gamepad API the game itself reads. */
 export class FakePad {
   private constructor(private target: Page | Frame) {}
 

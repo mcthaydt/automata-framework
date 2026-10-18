@@ -14,6 +14,7 @@ interface PadState {
   axes: number[]
 }
 
+/** Four gamepad slots a unit test plugs pads into and presses; `getGamepads` reads them as the browser's would. */
 export interface FakeGamepads {
   readonly getGamepads: () => (Gamepad | null)[]
   /** Puts a pad at rest in `index` (0 by default): standard, unless `mapping` says otherwise. */

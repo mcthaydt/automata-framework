@@ -5,6 +5,7 @@
 // Every helper waits on animation frames or the caller's condition, never a sleep.
 import type { Frame, Locator, Page } from '@playwright/test'
 
+/** A point in the target frame's own CSS pixels. */
 export interface Point {
   readonly x: number
   readonly y: number
