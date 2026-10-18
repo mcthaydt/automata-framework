@@ -3,7 +3,7 @@
 - **Task:** M5.4 in [02](../../02-master-delivery-plan.md). M5 spec [§7](../specs/2026-10-16-m5-saves-audio-design.md) (UI inventory: the Audio settings section) and §4.6 (core audio), acceptance A-e.
 - **Lanes:** ui, with runtime and game for the wiring. **Depends on:** M5.3 (core audio, merged), M4.4 and M4.6 (merged), and the Settings and Pause redo (#91), whose Settings tab groups this joins.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 3 of 7 steps.
+- **Progress:** 4 of 7 steps.
 
 ## Sources, read at these commits
 
@@ -51,11 +51,12 @@ Each step starts with its test, run red, with the failure reason recorded.
   - *Deviation: no version 2 and no migration. `audio` falls back field by field as `display` already does (`.catch`), so a version-1 record reads with audio at its defaults and a migration would only repeat that.*
 - [x] **3. Live mute when unfocused** (`runtime/src/audio/audio.manager.ts`, `audio.test.ts`). *Red:* `setMuteUnfocused(true)` silences the master on `blur` and restores it on `focus`; `false` leaves it alone; the construction option still works.
   - *Done. Red: `audio.setMuteUnfocused is not a function`. Green: audio 48 of 48, runtime typecheck clean. The window's focus is always followed; the setting decides whether a blur silences the master, and turning it off while blurred restores the master at once.*
-- [ ] **4. `AudioSection`** (`ui/src/settings/AudioSection.svelte`, `audio-section.ts`, DOM test). *Red:*
+- [x] **4. `AudioSection`** (`ui/src/settings/AudioSection.svelte`, `audio-section.ts`, DOM test). *Red:*
   - two toggles and five sliders in FloorFifty's order, each named, each slider showing its percentage;
   - a change reports its field and value;
   - unavailable: the message shows and the controls are disabled;
   - the host's note shows only when its volume is below 1.
+  - *Done. Red: `AudioSection.svelte` unresolved. Green: 4 of 4; ui 528 of 528, typecheck clean. ui repeats the bus names (`AudioBus`, `AUDIO_BUSES`) because it does not import runtime, as `DisplayQuality` does. Sliders run 0 to 1 in steps of 0.05.*
 - [ ] **5. Layout** (`ui/src/testing/SettingsFixture.svelte`, `settings.layout.test.ts`). *Red:* the Settings tab with Display and Audio at every reference size and variant: every toggle and slider thumb a whole 44 px target; Display beside Audio from a 560 px dialog; the first row in view.
 - [ ] **6. Wiring and Pause's Mute** (`game/src/screens/{SettingsView.svelte,settings-screen.svelte.ts,PausedScreen.svelte,default-screens.ts}`, `default-screens.test.ts`). *Red:*
   - a slider moves its bus's gain and saves it;

@@ -118,6 +118,14 @@ export {
   promptView,
   readKeyboardLayout,
 } from './prompts/prompt-label'
+export { default as AudioSection } from './settings/AudioSection.svelte'
+export {
+  AUDIO_BUSES,
+  type AudioBus,
+  type AudioCopy,
+  type AudioSectionChange,
+  type AudioValue,
+} from './settings/audio-section'
 export { default as ControlsSection } from './settings/ControlsSection.svelte'
 export {
   type ControlsCopy,
