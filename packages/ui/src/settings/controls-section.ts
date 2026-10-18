@@ -8,6 +8,7 @@ export type RebindDevice = 'keyboard' | 'gamepad'
 /** How touch drives play (runtime's `TouchMode`). */
 export type ControlsTouchMode = 'buttons' | 'swipe'
 
+/** One game action in the Controls section: its id, its name and its bindings now. */
 export interface ControlsRow {
   /** The action's id, as `onrebind` reports it. */
   readonly id: string
@@ -32,6 +33,7 @@ export type ControlsState =
   | { readonly kind: 'timed-out'; readonly action: string }
   | { readonly kind: 'saved'; readonly action: string }
 
+/** Every word the Controls section shows, in the game's language. */
 export interface ControlsCopy {
   readonly title: string
   readonly keyboard: string

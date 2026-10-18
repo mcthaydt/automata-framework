@@ -10,6 +10,7 @@ export interface PromptBinding {
   readonly pad: readonly number[]
   readonly touch: boolean
 }
+/** The device a prompt is for (runtime's `InputDevice`). */
 export type PromptDevice = 'keyboard' | 'gamepad' | 'touch'
 /** The labels a pad's buttons carry (runtime's `GlyphFamily`). */
 export type PromptGlyphs = 'xbox' | 'playstation' | 'generic'
@@ -39,6 +40,7 @@ export interface PromptCopy {
   readonly pad: Readonly<Record<PadWord, string>>
 }
 
+/** What a prompt shows: its kind (`data-prompt`) and its label. */
 export type PromptView = { readonly kind: 'key' | 'pad' | 'touch' | 'unbound'; readonly label: string }
 
 const ARROWS: Readonly<Record<string, string>> = {

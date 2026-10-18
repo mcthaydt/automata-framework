@@ -3,4 +3,5 @@
 import type { Snippet } from 'svelte'
 import type { UiComponent } from '../slots/ui-slot'
 
+/** A section of the Settings screen: the screen's own snippet, or an extension's slot component. */
 export type SettingsSection = { readonly snippet: Snippet } | { readonly component: UiComponent }
