@@ -468,6 +468,7 @@
 - `DisplayCopy` (interface): Every word the Display section shows, in the game's language.
 - `DisplayQuality` (type): A graphics quality tier (runtime's `QualityTier`).
 - `DisplaySection` (const): The Display section of Settings (M4 spec §4.8, §7): the graphics quality tier as an option group (a pad's `adjust` cycles it), and reduced motion as the browser reports it.
+- `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
 - `enterFullscreen(doc, screen?)`: Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app.
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
 - `ErrorCode` (type): Ruken's error code.
@@ -506,6 +507,8 @@
 - `LandscapeGate` (const): The landscape gate's cover (M4 spec §4.9, §7; FloorFifty `ui/components/LandscapeGate.svelte` at `ac72660`): over every screen and every dialog, empty whenever the gate is open (`state` none).
 - `LandscapeGateCopy` (interface): The landscape gate's words: one tap to fullscreen, or how to play where a browser cannot hide its bar.
 - `LandscapeGateState` (type): Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
+- `LanguageCopy` (interface): Every word the Language group shows besides the languages' own names, in the game's language.
+- `LanguageSection` (const): The Language group of the Settings tab (Owner, 2026-10-18), laid out as FloorFifty's (`LanguagePicker.svelte` at a28dc44): Automatic, then each of the game's languages by its endonym, each in its own `lang` so a screen reader says it in that language.
 - `LeaderboardCopy` (interface): Every word the panel shows, in the game's language.
 - `LeaderboardEntryView` (interface): One row of a board, as the host gives it; `isMe` marks the player.
 - `LeaderboardPanel` (const): A board's rows, or why there are none (M5 spec §7): loading, entries (the player's row marked "you" in words, not only by colour), empty, unavailable and offline.
@@ -554,6 +557,8 @@
 - `retryUrl(src, attempt)`: The URL a retry asks for; attempt 0 is the first request, as given.
 - `RotateHint` (const): The rotate hint (M4 spec §4.9, §7): over a game locked to one orientation (`GameSpec.orientation`) on a phone held the other way.
 - `RotateHintCopy` (interface): The rotate hint's words.
+- `RotateToast` (const): The rotate toast (Owner amendment to M4 spec §4.9, 2026-10-18; FloorFifty `RotateHint.svelte` at a28dc44): for a game with `rotateHint: 'toast'`, a small message at the top on a phone held the other way, "Turn your phone for a bigger view", with an OK.
+- `RotateToastCopy` (interface): The rotate toast's words (`rotateHint: 'toast'`, FloorFifty's): the advice, and its OK.
 - `ScreenFrame` (const)
 - `ScreenKind` (type): A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
 - `ScrollList` (const)
@@ -591,6 +596,8 @@
 - `UI_SLOT_NAMES` (const): The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).
 - `UiComponent` (type): What an extension puts in a slot: a Svelte component that takes no props.
 - `UiSlotName` (type)
+- `VibrationCopy` (interface): Every word the Vibration group shows, in the game's language.
+- `VibrationSection` (const): The Vibration group of the Settings tab (Owner, 2026-10-18; FloorFifty's rumble row in `SettingsPanel.svelte` at a28dc44): one toggle for a pad's rumble and a phone's buzz (`Haptics`).
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata-testing` stands in for it in tests.
 - `watchImage(src, onRetry, timers?)`: Probes `src` and, while it fails, hands `onRetry` each retry's URL to draw instead.
 - `WheelPager` (class): A trackpad's horizontal wheel deltas, one page per gesture; `reset` when the gesture goes quiet.

@@ -419,6 +419,12 @@ type DisplayQuality = 'high' | 'medium' | 'low';
 component from './settings/DisplaySection.svelte'
 ```
 
+### `endonymOf` (function)
+
+```ts
+function endonymOf(tag: string): string;
+```
+
 ### `enterFullscreen` (function)
 
 ```ts
@@ -759,6 +765,21 @@ interface LandscapeGateCopy {
 type LandscapeGateState = 'none' | 'fullscreen' | 'rotate-or-install';
 ```
 
+### `LanguageCopy` (interface)
+
+```ts
+interface LanguageCopy {
+    readonly title: string;
+    readonly automatic: string;
+}
+```
+
+### `LanguageSection` (svelte)
+
+```ts
+component from './settings/LanguageSection.svelte'
+```
+
 ### `LeaderboardCopy` (interface)
 
 ```ts
@@ -844,6 +865,7 @@ interface ModalProps {
     children?: Snippet | undefined;
     head?: Snippet | undefined;
     wide?: boolean | undefined;
+    fill?: boolean | undefined;
     actions?: Snippet | undefined;
     testId?: string | undefined;
 }
@@ -1150,6 +1172,22 @@ interface RotateHintCopy {
 }
 ```
 
+### `RotateToast` (svelte)
+
+```ts
+component from './display/RotateToast.svelte'
+```
+
+### `RotateToastCopy` (interface)
+
+```ts
+interface RotateToastCopy {
+    readonly text: string;
+    readonly ok: string;
+    readonly dismiss: string;
+}
+```
+
 ### `ScreenFrame` (svelte)
 
 ```ts
@@ -1435,6 +1473,23 @@ type UiComponent = Component<Record<string, never>>;
 
 ```ts
 type UiSlotName = (typeof UI_SLOT_NAMES)[number];
+```
+
+### `VibrationCopy` (interface)
+
+```ts
+interface VibrationCopy {
+    readonly title: string;
+    readonly toggle: string;
+    readonly on: string;
+    readonly off: string;
+}
+```
+
+### `VibrationSection` (svelte)
+
+```ts
+component from './settings/VibrationSection.svelte'
 ```
 
 ### `ViewportWindow` (interface)

@@ -4607,6 +4607,15 @@ const DisplaySection: import("svelte").Component<Props, {}, "">;
 type DisplaySection = ReturnType<typeof DisplaySection>;
 ```
 
+#### `endonymOf` (function)
+
+A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`. An engine without
+it, or a tag it cannot name, gives the tag back, so the picker never shows nothing.
+
+```ts
+function endonymOf(tag: string): string;
+```
+
 #### `enterFullscreen` (function)
 
 Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app. A
@@ -5129,6 +5138,30 @@ Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
 type LandscapeGateState = 'none' | 'fullscreen' | 'rotate-or-install';
 ```
 
+#### `LanguageCopy` (interface)
+
+Every word the Language group shows besides the languages' own names, in the game's language.
+
+```ts
+interface LanguageCopy {
+    readonly title: string;
+    /** The choice that follows the host and the browser (`Locale.set(null)`). */
+    readonly automatic: string;
+}
+```
+
+#### `LanguageSection` (const)
+
+The Language group of the Settings tab (Owner, 2026-10-18), laid out as FloorFifty's (`LanguagePicker.svelte` at
+a28dc44): Automatic, then each of the game's languages by its endonym, each in its own `lang` so a screen reader
+says it in that language. A pick is reported at once (`Locale.set`); nothing remounts, so focus stays on it.
+FloorFifty's flags are its own art; a game names its languages here, and may give its own names (`names`).
+
+```ts
+const LanguageSection: import("svelte").Component<Props, {}, "">;
+type LanguageSection = ReturnType<typeof LanguageSection>;
+```
+
 #### `LeaderboardCopy` (interface)
 
 Every word the panel shows, in the game's language.
@@ -5257,6 +5290,8 @@ interface ModalProps {
     head?: Snippet | undefined;
     /** A long body (Settings) that widens on a short, wide band to set its groups two across; others keep their width. */
     wide?: boolean | undefined;
+    /** A dialog that fills a phone's band, its body taking the rest and its actions at the bottom (Settings). */
+    fill?: boolean | undefined;
     /** The buttons, in reading order. Mark the safe one with `data-initial-focus`. */
     actions?: Snippet | undefined;
     testId?: string | undefined;
@@ -5694,6 +5729,30 @@ The rotate hint's words.
 interface RotateHintCopy {
     readonly title: string;
     readonly body: string;
+}
+```
+
+#### `RotateToast` (const)
+
+The rotate toast (Owner amendment to M4 spec §4.9, 2026-10-18; FloorFifty `RotateHint.svelte` at a28dc44): for a
+game with `rotateHint: 'toast'`, a small message at the top on a phone held the other way, "Turn your phone for a
+bigger view", with an OK. It covers nothing and pauses nothing; the only part a thumb can hit is the OK, at 44 px.
+
+```ts
+const RotateToast: import("svelte").Component<Props, {}, "">;
+type RotateToast = ReturnType<typeof RotateToast>;
+```
+
+#### `RotateToastCopy` (interface)
+
+The rotate toast's words (`rotateHint: 'toast'`, FloorFifty's): the advice, and its OK.
+
+```ts
+interface RotateToastCopy {
+    readonly text: string;
+    readonly ok: string;
+    /** The OK's name for assistive technology: what it dismisses. */
+    readonly dismiss: string;
 }
 ```
 
@@ -6161,6 +6220,31 @@ _No doc comment._
 
 ```ts
 type UiSlotName = (typeof UI_SLOT_NAMES)[number];
+```
+
+#### `VibrationCopy` (interface)
+
+Every word the Vibration group shows, in the game's language.
+
+```ts
+interface VibrationCopy {
+    readonly title: string;
+    /** The toggle's name: a pad's rumble and a phone's buzz together. */
+    readonly toggle: string;
+    readonly on: string;
+    readonly off: string;
+}
+```
+
+#### `VibrationSection` (const)
+
+The Vibration group of the Settings tab (Owner, 2026-10-18; FloorFifty's rumble row in `SettingsPanel.svelte` at
+a28dc44): one toggle for a pad's rumble and a phone's buzz (`Haptics`). The game shows it only where the device can
+do either (`Haptics.supported`), so it never offers a switch that does nothing.
+
+```ts
+const VibrationSection: import("svelte").Component<Props, {}, "">;
+type VibrationSection = ReturnType<typeof VibrationSection>;
 ```
 
 #### `ViewportWindow` (interface)
