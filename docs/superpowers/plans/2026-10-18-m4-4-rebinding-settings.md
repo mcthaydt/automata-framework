@@ -6,8 +6,8 @@
   - Acceptance I-h, I-i, I-k and I-l.
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
-- **Status:** Drafted 2026-10-18.
-- **Progress:** 12 of 13 steps.
+- **Status:** Implemented and locally verified 2026-10-18; CI and review pending.
+- **Progress:** 13 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -286,11 +286,12 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - **I-h:** pause, Settings, jump's keyboard button, press `K`; the saved state shows. Reload the game frame, and the row's prompt shows `K` with `K` jumping in play.
     - **I-i:** rebinding fire's key to jump's key leaves fire "Unbound".
   - *Done: the golden red as missing, recorded in Node with `AUTOMATA_UPDATE_GOLDENS=1` (a new file; no existing golden changed), and the node replay 11 of 11. `core-input-rebind.e2e.ts` passed 4 of 4 (`examples` and `examples-compact`) on its first run, Escape cancelling a capture (I-k) included. The reload is the game frame's own (`location.reload()`), and the fake host keeps the saves. Play's use of the new key is covered by the game unit test (I-h), not the E2E.*
-- [ ] **13. Exports, reports, gates and records.**
+- [x] **13. Exports, reports, gates and records.**
   - *Regenerate,* in order: `pnpm build`, `pnpm api-report --update`, `pnpm cheatsheet`, `pnpm api-index`, `pnpm agent-skills --write`.
   - *Changeset:* runtime, ui and game patches.
   - *Gates:* `pnpm format`, `pnpm check`, CI extras, `pnpm test:parity`, `CI=1 pnpm test:e2e`, prepare-ruken.
   - *Records:* tick 02, add an execution row, update 03.
+  - *Done:* the first regenerate failed in `api-index` (8 new ui exports had no doc comments), then passed. Gates, `TURBO_FORCE=true`, first attempts: check 30 of 30, CI extras passed, parity 12 of 12, e2e 105 passed and 2 skipped, prepare-ruken passed.
 
 ## Verification
 
