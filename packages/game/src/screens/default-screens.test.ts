@@ -241,6 +241,42 @@ describe('default screens', () => {
     await until(() => screen('play') !== null, 'play after Escape')
   })
 
+  it('pauses into a dialog over the dimmed game: Resume, Settings, Quit to title; Quit asks first (FloorFifty)', async () => {
+    await boot()
+    await toPlay()
+    press('Escape')
+    await until(() => screen('paused') !== null, 'the paused screen')
+    const dialog = screen('paused')
+    expect(dialog?.getAttribute('role')).toBe('dialog')
+    expect(dialog?.getAttribute('aria-modal')).toBe('true')
+    expect(dialog?.textContent).toContain('Paused')
+    expect(dialog?.closest('[data-modal-scrim]')).not.toBeNull()
+    expect(
+      [...(dialog?.querySelectorAll<HTMLElement>('[data-pause-menu] button') ?? [])].map(
+        (b) => b.dataset.testid,
+      ),
+    ).toEqual(['resume', 'settings', 'quit'])
+    expect(document.activeElement).toBe(button('resume'))
+
+    button('quit')?.click()
+    await until(() => button('quit-confirm') !== null, 'the confirm')
+    expect(screen('paused')?.textContent).toContain('Quit to title?')
+    expect(screen('title')).toBeNull()
+    // Escape steps back one level: from the confirm to the menu, on Quit.
+    press('Escape')
+    await until(() => button('quit') !== null, 'the menu again')
+    expect(document.activeElement).toBe(button('quit'))
+    expect(screen('paused')).not.toBeNull()
+    button('quit')?.click()
+    await until(() => button('quit-cancel') !== null, 'the confirm again')
+    button('quit-cancel')?.click()
+    await until(() => button('quit') !== null, 'the menu after Cancel')
+    expect(document.activeElement).toBe(button('quit'))
+    // From the menu, Escape resumes.
+    press('Escape')
+    await until(() => screen('play') !== null, 'play after Escape')
+  })
+
   it('Quit to title drops the sim: the next Play starts again at tick 0', async () => {
     await boot()
     await toPlay()
@@ -248,6 +284,8 @@ describe('default screens', () => {
     press('Escape')
     await until(() => screen('paused') !== null, 'the paused screen')
     button('quit')?.click()
+    await until(() => button('quit-confirm') !== null, 'the confirm')
+    button('quit-confirm')?.click()
     await until(() => screen('title') !== null, 'the title screen')
     results.length = 0
     await toPlay()
@@ -520,6 +558,12 @@ describe('default screens', () => {
       buttons[13] = false
       await tick()
       buttons[0] = true
+      await until(() => button('quit-confirm') !== null, 'the confirm')
+      // The confirm's first control, Quit to title, has focus: A again leaves, once the menu poll has seen it let go.
+      expect(document.activeElement).toBe(button('quit-confirm'))
+      buttons[0] = false
+      for (let frame = 0; frame < 2; frame++) await new Promise((resolve) => requestAnimationFrame(resolve))
+      buttons[0] = true
       await until(() => screen('title') !== null, 'the title screen')
     } finally {
       Reflect.deleteProperty(window.navigator, 'getGamepads')
@@ -665,6 +709,8 @@ describe('default screens', () => {
     press('Escape')
     await until(() => screen('paused') !== null, 'paused again')
     button('quit')?.click()
+    await until(() => button('quit-confirm') !== null, 'the confirm')
+    button('quit-confirm')?.click()
     await until(() => screen('title') !== null, 'the title screen')
     expect(watched.at(-1)).toBeUndefined()
   })

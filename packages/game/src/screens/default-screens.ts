@@ -242,11 +242,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           message,
           board,
         })
-        yield* listen(target, 'keydown', (event) => {
-          if (event.code !== 'Escape' || event.repeat) return
-          event.preventDefault()
-          resume()
-        })
+        // Escape is the dialog's (Modal): it steps back from the Quit confirm, and from the menu it resumes.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
       }),
