@@ -7,7 +7,7 @@
   - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
 - **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 0 of 8 steps.
+- **Progress:** 2 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -62,9 +62,11 @@
 
 Each step starts with its test, run red, with the failure reason recorded. Layout steps run the `layout` project at every reference size and variant in three engines.
 
-- [ ] **1. This plan,** and the 02 row. *Verify:* `pnpm format`.
+- [x] **1. This plan,** and the 02 row. *Verify:* `pnpm format`.
+  - *Done: a5f9427.*
 - [ ] **2. FloorFifty reference captures.** FloorFifty's pause and settings (both tabs) at 390×844, 844×390, 780×270, 820×1180 and 1280×720, built from `a28dc44`, kept with the evidence (`docs/evidence/owner-visual/…/floorfifty/`). No code.
-- [ ] **3. `PauseDialog` frame** (`packages/ui/src/dialog/PauseDialog.svelte`, DOM test then layout test). *Red:* the frame dims the page behind (a scrim with the theme's dim token), centres a dialog within the visible band, the safe area and the host's strip, holds the page like `Modal` (inert behind, focus in, Escape calls `onback`), widens on a short wide band (the container query FloorFifty uses), and keeps a 44 px Close.
+- [x] **3. `PauseDialog` frame** (`packages/ui/src/dialog/PauseDialog.svelte`, DOM test then layout test). *Red:* the frame dims the page behind (a scrim with the theme's dim token), centres a dialog within the visible band, the safe area and the host's strip, holds the page like `Modal` (inert behind, focus in, Escape calls `onback`), widens on a short wide band (the container query FloorFifty uses), and keeps a 44 px Close.
+  - *Done as an extension of ui's Modal rather than a new frame (AF's Modal is FloorFifty's, with the page held, focus in and out, Escape, a 44 px Close and the dim). Added: the panel is container af-dialog, so content lays out by the dialog's width; on a short or compact band it widens to 44rem. Red: 512 px at 844x390 (expected at least 560), then green; dialog layout 27 of 27 in Chromium (all engines in step 8's gates). Step 2 (FloorFifty captures) waits for the machine to be free of M4.10's gates.*
 - [ ] **4. Paused** (`PausedScreen.svelte`, `default-screens.test.ts`, `screens.layout.test.ts`). *Red:*
   - the menu: Resume primary and focused, Settings, Quit to title;
   - two across at a 340 px dialog;

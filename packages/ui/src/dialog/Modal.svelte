@@ -91,7 +91,10 @@ function onScrimClick(event: MouseEvent): void {
     background: var(--af-scrim);
   }
 
+  /* Its content lays out by the dialog's width (`@container af-dialog`), not the window's: Settings sets its
+     groups two across from 560 px (FloorFifty `Modal.svelte`). */
   .af-modal {
+    container: af-dialog / inline-size;
     box-sizing: border-box;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
@@ -126,6 +129,12 @@ function onScrimClick(event: MouseEvent): void {
   :global([data-height="compact"]) .af-modal {
     padding: 8px 16px 12px;
     gap: 8px;
+  }
+
+  /* A long body on a short band (a phone held sideways, a 900 x 600 window) widens rather than shows one group
+     above a "+N more" (FloorFifty's visual audit, 2026-10-05). A sheet keeps its own width. */
+  :global(:is([data-height="short"], [data-height="compact"])) .af-modal-scrim:not([data-anchor="bottom"]) .af-modal {
+    max-width: 44rem;
   }
 
   .af-modal__head {
