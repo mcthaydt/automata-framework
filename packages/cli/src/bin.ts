@@ -58,7 +58,7 @@ const USAGE = `Usage: automata create-game <target-dir> [--id <id>] [--title <ti
        automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast]
 
 create-game scaffolds a new Automata Framework game project.
-check runs boundaries, typecheck, tests and the no-eval build scan in a game folder
+check runs boundaries, typecheck, tests, the board names and the no-eval build scan in a game folder
 (exit 0 pass, 1 findings, 2 a tool could not run).
 
 Options:

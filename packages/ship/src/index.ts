@@ -9,6 +9,14 @@ export { inputsProblems, type ShipInputBindings } from './manifest/check-inputs.
 export { checkManifest } from './manifest/check-manifest.ts'
 export { rukenToml } from './manifest/ruken-toml.ts'
 export { portsFor } from './ports/ports-for.ts'
+export {
+  type BoardName,
+  boardNamesIn,
+  declaredBoardsIn,
+  findUndeclaredBoards,
+  isBoardSource,
+  type UndeclaredBoardFound,
+} from './prepare/board-names.ts'
 export { checkVersion } from './prepare/check-version.ts'
 export { type PrepareInput, prepareBuild } from './prepare/prepare-build.ts'
 export { findRootAbsoluteReferences } from './prepare/root-absolute.ts'

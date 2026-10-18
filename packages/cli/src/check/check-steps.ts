@@ -1,6 +1,12 @@
 import { dirname, join } from 'node:path'
 import { Files, ProcessRunner, type RunResult } from '@mcthaydt/automata-node'
-import { readEnvValues, scanTextForSecrets } from '@mcthaydt/automata-ship'
+import {
+  boardNamesIn,
+  declaredBoardsIn,
+  isBoardSource,
+  readEnvValues,
+  scanTextForSecrets,
+} from '@mcthaydt/automata-ship'
 import { Effect } from 'effect'
 import type { CheckFinding } from './check-report.ts'
 import { CheckToolError, CspProbe } from './csp-probe.ts'
@@ -175,6 +181,45 @@ export const secretsStep = (gameDir: string): StepEffect =>
           col: found.col,
           rule: `secret-${found.rule}`,
           message: `${found.detail} at character ${found.offset}`,
+        })
+      }
+    }
+    return findings
+  })
+
+/**
+ * M5 spec §4.8, L-b: the board scan `prepare-ruken` runs, over the game's sources, against the boards its
+ * `ship.config.ts` declares under `leaderboards` (read as written). No `ship.config.ts` declares no boards.
+ */
+export const boardsStep = (gameDir: string): StepEffect =>
+  Effect.gen(function* () {
+    const files = yield* Files
+    const toolError = (detail: string) => new CheckToolError({ kind: 'failed', tool: 'boards', detail })
+    const configPath = join(gameDir, 'ship.config.ts')
+    const declared = (yield* files.exists(configPath))
+      ? declaredBoardsIn(
+          yield* Effect.mapError(files.readText(configPath), (error) => toolError(error.message)),
+        )
+      : []
+    if (declared === undefined)
+      return yield* toolError(
+        'cannot read the leaderboards in ship.config.ts: write them as an object literal',
+      )
+    const known = new Set(declared)
+    const listed = yield* Effect.mapError(files.listFiles(gameDir), (error) => toolError(error.message))
+    const findings: CheckFinding[] = []
+    for (const file of listed.filter(isBoardSource).sort()) {
+      const code = yield* Effect.mapError(files.readText(join(gameDir, file)), (error) =>
+        toolError(error.message),
+      )
+      for (const name of boardNamesIn(file, code) ?? []) {
+        if (known.has(name.board)) continue
+        findings.push({
+          file,
+          line: name.line,
+          col: name.col,
+          rule: 'undeclared-board',
+          message: `board "${name.board}" is not declared in ship.config.ts leaderboards`,
         })
       }
     }

@@ -1,6 +1,7 @@
 import type { TaggedErrorClass } from '@mcthaydt/automata-node'
 import type { ManifestError } from '@ruken/manifest'
 import { Data } from 'effect'
+import type { UndeclaredBoardFound } from './prepare/board-names.ts'
 import type { SecretFound } from './prepare/secret-scan.ts'
 
 export { FileError, ProcessError } from '@mcthaydt/automata-node'
@@ -64,6 +65,22 @@ export class SecretInBuild extends SecretInBuildBase {
       )
       .join('\n')
     return `the build holds what looks like a secret, and everything in a build is public. Remove it from the game's code (keep secrets on a server), then build again:\n${listed}`
+  }
+}
+
+const UndeclaredBoardBase: TaggedErrorClass<
+  'UndeclaredBoard',
+  {
+    readonly found: readonly UndeclaredBoardFound[]
+  }
+> = Data.TaggedError('UndeclaredBoard')
+/** The game names a leaderboard its ship config's `leaderboards` does not declare (M5 spec §4.8, L-b). */
+export class UndeclaredBoard extends UndeclaredBoardBase {
+  override get message(): string {
+    const listed = this.found
+      .map((found) => `${found.file}:${found.line}:${found.col}: "${found.board}"`)
+      .join('\n')
+    return `the game names leaderboards its ship config does not declare, so Ruken has nowhere to put their scores. Declare each in ship.config.ts under leaderboards, or fix the name:\n${listed}`
   }
 }
 

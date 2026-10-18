@@ -3,7 +3,7 @@
 - **Task:** M5.7 in [02](../../02-master-delivery-plan.md). M5 spec [§4.8](../specs/2026-10-16-m5-saves-audio-design.md), §6 (the leaderboard rows), §7 (`LeaderboardPanel`), §8, §9. Acceptance L-a, L-b.
 - **Lane:** runtime and ui, with the game lane as the consumer and ship and cli for the board check. **Depends on:** M5.0 (Owner-approved 2026-10-16) and PRODUCT.1 (merged: `Hosting.leaderboards`).
 - **Status:** Planned 2026-10-18.
-- **Progress:** 7 of 9 steps.
+- **Progress:** 8 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -63,7 +63,8 @@
   - DOM tests, a renderer-free fixture in `examples/ui/primitives`, and its layout contract at every reference size (parity).
 - [x] **7. The default paused screen shows the panel** for the game's first scored board, when the game has `scores`.
   - *Red: the default-screens test timed out waiting for the board on paused. Green: defineGame hands the first scored board to the default screens; paused reads it from the host each time it opens (Leaderboards.readBoard) and shows LeaderboardPanel (standalone: 'Scores aren't available here'); a game without scores shows none; default-screens 26 of 26. Layout: a new paused-board case (twelve rows, the loaded state asserted first) passes at every reference size and variant in Chromium, WebKit and Firefox; screens layout 300 of 300; game svelte-check 0 errors.*
-- [ ] **8. The board check.** `packages/ship/src/prepare/board-names.ts` (scan, with fixture games: a declared board passes; an undeclared one in `scores`, in `submitScore` and in `readBoard` each fail with file and line). `prepare-build` fails with `UndeclaredBoard` (L-b, first half); an `automata check` step does the same.
+- [x] **8. The board check.** `packages/ship/src/prepare/board-names.ts` (scan, with fixture games: a declared board passes; an undeclared one in `scores`, in `submitScore` and in `readBoard` each fail with file and line). `prepare-build` fails with `UndeclaredBoard` (L-b, first half); an `automata check` step does the same.
+  - *Red: board-names.test.ts could not import ./board-names.ts; the prepare test had no UndeclaredBoard; run-check had no boards step (4 failures). Green: findUndeclaredBoards and boardNamesIn (oxc AST: scores.<event>.board literals, submitScore/readBoard first-argument literals; node_modules, dist and dot folders skipped), UndeclaredBoard in prepareBuild (L-b, first half: 'src/game.ts:1:44: "weekly"', no ruken.toml written; passes once declared), and an automata check 'boards' step (rule undeclared-board) after test, skipped by --sim-only, reading ship.config.ts's leaderboards keys as written (declaredBoardsIn); the usage text and the automata-verify skill name it (the skill-content test required the new rule). ship prepare 64, cli 52, agent-skills 77. Deviations: declaredBoardsIn was written just before its tests (they passed on the first run); two expected columns in the new tests were miscounted by hand (43 and 67), and the code's 1-based columns (44, 68) were checked with a script and kept. Earlier run-check tests that index steps by position were moved by one.*
 - [ ] **9. Example, exports and gates.**
   - `examples/core/core-leaderboard.ts` (a run that ends every 300 ticks with its score), its golden, and `examples/e2e/core-leaderboard.e2e.ts`:
     - accepted, then the paused panel lists "You";

@@ -1,6 +1,6 @@
 ---
 name: automata-verify
-description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, no-eval, CSP). Use when automata check or the Automata hook reports findings.
+description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, boards, no-eval, CSP). Use when automata check or the Automata hook reports findings.
 ---
 
 # Running and reading `automata check`
@@ -13,6 +13,7 @@ folder (or pass the folder): `automata check [dir] [--json] [--sim-only] [--csp]
 | `boundaries` | `automata-check-boundaries src/sim` | never |
 | `typecheck` | `tsc -p . --noEmit` | never |
 | `test` | `vitest run` | never |
+| `boards` | the leaderboards the sources name, against `ship.config.ts`'s `leaderboards` | `--sim-only` |
 | `no-eval` | `vite build`, then a scan of `dist/**/*.js` | `--sim-only` |
 | `csp` | serves `dist/` with Ruken's Content-Security-Policy and loads it in Chromium until the game is ready | unless `--csp` |
 
@@ -62,6 +63,12 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 |---|---|---|
 | `test` | A test failed; the message is the test name and the first line of its failure | Fix the code under test. If a golden hash changed, find which behavior changed it |
 | `test-file` | A test file failed outside any test (often an import error) | Fix the import or the setup code the message names |
+
+### `boards` (every leaderboard named must be declared)
+
+| Rule | Means | Fix |
+|---|---|---|
+| `undeclared-board` | A `scores` entry, `submitScore` or `readBoard` names a board `ship.config.ts` does not declare under `leaderboards` | Declare the board (`order`, `min`, `max`), or fix the name's spelling |
 
 ### `no-eval` (Ruken's CSP has no `unsafe-eval`)
 

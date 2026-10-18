@@ -8,11 +8,13 @@ import {
   type ManifestInvalid,
   RootAbsoluteReference,
   SecretInBuild,
+  UndeclaredBoard,
   VersionMismatch,
 } from '../errors.ts'
 import { inputsProblems, type ShipInputBindings } from '../manifest/check-inputs.ts'
 import { checkManifest } from '../manifest/check-manifest.ts'
 import { rukenToml } from '../manifest/ruken-toml.ts'
+import { findUndeclaredBoards } from './board-names.ts'
 import { checkVersion } from './check-version.ts'
 import { findRootAbsoluteReferences } from './root-absolute.ts'
 import { findSecretsInBuild, readEnvValues } from './secret-scan.ts'
@@ -39,6 +41,7 @@ export type PrepareError =
   | VersionMismatch
   | RootAbsoluteReference
   | SecretInBuild
+  | UndeclaredBoard
   | EntryMissing
   | ManifestInputsMismatch
   | ManifestInvalid
@@ -46,7 +49,7 @@ export type PrepareError =
 
 /**
  * Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
- * entry page, root-absolute paths and secrets (QB-b), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+ * entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
  * runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
  * (archive, size, file types) happen inside `ruken publish`, not here.
  */
@@ -77,6 +80,15 @@ export function prepareBuild(
       catch: (cause) => new FileError({ path: distDir, cause }),
     })
     if (secrets.length > 0) return yield* new SecretInBuild({ found: secrets })
+
+    if (input.gameDir !== undefined) {
+      const gameDir = input.gameDir
+      const boards = yield* Effect.try({
+        try: () => findUndeclaredBoards(gameDir, Object.keys(config.leaderboards ?? {})),
+        catch: (cause) => new FileError({ path: gameDir, cause }),
+      })
+      if (boards.length > 0) return yield* new UndeclaredBoard({ found: boards })
+    }
 
     if (!(yield* files.exists(join(distDir, config.game.entry)))) {
       return yield* new EntryMissing({ entry: config.game.entry, distDir })
