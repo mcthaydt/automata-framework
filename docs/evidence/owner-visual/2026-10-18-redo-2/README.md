@@ -1,6 +1,8 @@
 # Settings and Pause redo, second round: AF beside FloorFifty, over a game frame
 
-For the Desk first (Owner standing rule, 2026-10-18). This round folds in the Desk's review and the Owner's rulings:
+For the Desk first (Owner standing rule, 2026-10-18).
+
+**Owner visual approval, 2026-10-18** (relayed by the Desk): "Finish the settings redo", after seeing the round-3 screens on the approval page; the Desk records it as visual approval of M4.4 Settings, Controls and Pause (#91). This round folds in the Desk's review and the Owner's rulings:
 - the Language, Audio and Vibration groups;
 - a phone-height sheet;
 - shots taken over a real-looking game frame.

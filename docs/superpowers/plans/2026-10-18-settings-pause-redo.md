@@ -6,8 +6,8 @@
   - "Match the layout and function, not the style": FloorFifty's Settings and Pause are the reference for structure, grouping, order, what is on each screen, how rebinding, reset and quality work, scrolling, the dimmed backdrop, tap targets and behaviour at each size. AF keeps its own look, finished and polished;
   - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
 - **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
-- **Status:** Plan drafted 2026-10-18.
-- **Progress:** 12 of 14 steps.
+- **Status:** Implemented and locally verified 2026-10-18. **Owner visual approval, 2026-10-18** (relayed by the Desk): "Finish the settings redo", after seeing the round-3 screens on the approval page; the Desk records it as visual approval of M4.4 Settings, Controls and Pause (#91).
+- **Progress:** 14 of 14 steps.
 
 ## Sources, read at these commits
 
@@ -102,7 +102,7 @@ Each step starts with its test, run red, with the failure reason recorded. Layou
     - _`ControlsCopy` gained `touch` and `inUse` and lost `touchMode` and `touchModes`, which are `TouchSection`'s `TouchCopy`; `ControlsSection` lost its `touch` modes prop, and its `touch` now says whether to draw the Touch section. ui is pre-1.0: a patch._
 - [x] **7. M4.7 against FloorFifty.** The gate and the hint at each size beside FloorFifty's `LandscapeGate` and `RotateHint`. Gaps found are fixed test-first; none found is recorded with the images.
   - *Done. The gate matches FloorFifty's (structure, words, one primary action). The rotate hint differs in function: FloorFifty's is a dismissible toast for a game that plays both ways; AF's is M4 spec §4.9's blocking cover over a game locked to one orientation. Matching it would change the approved spec, so it goes to the Desk (README), unchanged here.*
-- [ ] **8. E2E, evidence and gates.**
+- [x] **8. E2E, evidence and gates.** *Done with step 14.*
   - The matrix and rebind journeys follow the new test ids.
   - Side-by-side captures, AF beside FloorFifty, of Paused, Settings (both tabs) and the covers, at each size, sent to the Desk.
   - Gates: `pnpm format`, `pnpm check`, CI extras, `pnpm test:parity`, `CI=1 pnpm test:e2e`, prepare-ruken.
@@ -139,7 +139,9 @@ M5.4 (#92) is folded into this branch (the Audio group, Pause's Mute; its plan h
 - [x] **13. `rotateHint: 'block' | 'toast'`.** *Red:* a game's `rotateHint: 'toast'` shows a dismissible message (FloorFifty `RotateHint.svelte`: "Turn your phone for a bigger view", OK, remembered) and does not pause; the default stays the blocking cover. M4 spec §4.9 records the amendment.
   - *Done. Red: with `rotateHint: 'toast'` the policy still showed the cover and paused. Green: display policy 13 of 13 (the toast shows without pausing, goes when dismissed or turned; the default still blocks), runtime 447, game 145. ui `RotateToast`; `rotateHint` on `GameDefinition` and `GameSpec`, passed by boot.*
     - *Deviations from FloorFifty's toast: dismissal lasts the session (FloorFifty saves it on the device; AF would need device storage outside `Hosting`, which its rules refuse; M5.2's per-device settings can carry it), and it does not retire itself after 6 s (no timer outside `Time`). The plumbing from `GameSpec` to the policy is typechecked, not tested end to end; the toast's layout contract is in step 14's evidence.*
-- [ ] **14. Gates and evidence.**
+- [x] **14. Gates and evidence.**
+  - *Gates, first attempts on `fbfc62b`, `TURBO_FORCE=true`: `pnpm check` 34 of 34; CI extras passed; `pnpm test:parity` 12 of 12; `CI=1 pnpm test:e2e` 146 passed, 137 skipped (cells a project does not run), none failed; prepare-ruken passed for placeholder and base-2d. Hosted CI on `fbfc62b`: lint, typecheck, boundaries, style, unit and both game-ci jobs green.*
+  - ***Owner visual approval, 2026-10-18** (relayed by the Desk): "Finish the settings redo", after seeing the round-3 screens on the approval page; the Desk records it as visual approval of M4.4 Settings, Controls and Pause (#91).*
   - *The Desk's round-2 polish, test-first: (1) sliders draw a 20 px thumb (scaled with TV mode) on the 44 px input, which stays the target, and the track fills with the accent up to the value (`--af-slider-fill`; red: no fill property); (2) a `wide` dialog widens wherever there is room, so on a 1280x720 desktop Settings sets its groups two across and the groups a desktop shows fit without scrolling (red: Language over Audio in one column). Settings, controls and dialog layouts 135 of 135 in Chromium.* Gates as step 8; side-by-sides over a real-looking game frame, sent to the Desk; not merged until the Owner has reviewed it.
 
 ## Verification
