@@ -9,6 +9,7 @@ import {
 import {
   BootDefect,
   type CompiledContentData,
+  type EventScores,
   type EventSounds,
   type GameDefinition,
   type RuntimeSeams,
@@ -46,6 +47,12 @@ export interface GameSpec<S = never> {
    * Silent until the player's first gesture (browsers allow no sound before it).
    */
   readonly sounds?: EventSounds
+  /**
+   * The board and score each sim event submits, by the event's id (M5.7):
+   * `{ [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } }`. The board is a key
+   * of the ship config's `leaderboards`; the game then asks the host for `leaderboards`.
+   */
+  readonly scores?: EventScores
   /** A game with `content/` passes the compiler's output; `sim` is the sim's partition of it. */
   readonly content?: { readonly data: CompiledContentData; readonly hash: string; readonly sim?: unknown }
   /** Default: title, play and paused (DX spec §7). */
@@ -108,12 +115,20 @@ function problemsOf<S>(spec: GameSpec<S>): string[] {
   const events = new Set(spec.sim.plugins.flatMap((plugin) => plugin.events.map((event) => event.id)))
   for (const key of Object.keys(spec.sounds ?? {}))
     if (!events.has(key)) problems.push(`sounds.${key}: no plugin defines an event "${key}"`)
+  for (const key of Object.keys(spec.scores ?? {}))
+    if (!events.has(key)) problems.push(`scores.${key}: no plugin defines an event "${key}"`)
   if (spec.draw !== undefined && typeof spec.draw !== 'function') problems.push('draw: is not a function')
   else if (spec.draw !== undefined && spec.screens !== undefined)
     problems.push('draw: needs the default screens (custom screens do not hand their sim to the draw layer)')
   if (spec.content !== undefined && !HASH.test(spec.content.hash))
     problems.push(`content.hash: "${spec.content.hash}" is not 16 hex digits`)
   return problems
+}
+
+/** The capabilities the game asks for: the spec's, plus `leaderboards` when it has scores (once). */
+function wantsOf<S>(spec: GameSpec<S>): NonNullable<HostingOptions['wants']> {
+  const wants = spec.hosting?.wants ?? []
+  return spec.scores === undefined || wants.includes('leaderboards') ? wants : [...wants, 'leaderboards']
 }
 
 /** `spec.root`, else `#game`; a BootDefect when there is neither (DX spec §6). */
@@ -178,7 +193,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     get root() {
       return rootOf(spec)
     },
-    hosting: { wants: [], pauseBehavior: 'pause', ...spec.hosting, gameId: spec.id },
+    hosting: { pauseBehavior: 'pause', ...spec.hosting, wants: wantsOf(spec), gameId: spec.id },
     content,
     screens:
       spec.screens ??
@@ -192,6 +207,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     ...(spec.settings === undefined ? {} : { settings: spec.settings }),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
+    ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.copy === undefined ? {} : { copy: spec.copy }),
     ...(spec.seams === undefined ? {} : { seams: spec.seams }),
   }

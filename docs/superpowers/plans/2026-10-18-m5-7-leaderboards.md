@@ -3,7 +3,7 @@
 - **Task:** M5.7 in [02](../../02-master-delivery-plan.md). M5 spec [§4.8](../specs/2026-10-16-m5-saves-audio-design.md), §6 (the leaderboard rows), §7 (`LeaderboardPanel`), §8, §9. Acceptance L-a, L-b.
 - **Lane:** runtime and ui, with the game lane as the consumer and ship and cli for the board check. **Depends on:** M5.0 (Owner-approved 2026-10-16) and PRODUCT.1 (merged: `Hosting.leaderboards`).
 - **Status:** Planned 2026-10-18.
-- **Progress:** 4 of 9 steps.
+- **Progress:** 5 of 9 steps.
 
 ## Sources, read at these commits
 
@@ -54,7 +54,8 @@
   - a non-integer score is refused before it reaches the host.
 - [x] **4. `readBoard`:** entries with `isMe`, empty, unavailable, offline.
   - *Deviation: readBoard was written in step 3, because the offline test needed it, so these tests passed on their first run. Mutation check instead: with readBoard forced to answer empty, the entries test failed (1 of 21); restored, 21 of 21 pass (entries with isMe, empty, unavailable without the grant, offline even after the host stored a score).*
-- [ ] **5. Scores from sim events.** `event-scores.ts` on the presentation bus; boot wiring; the `leaderboard.submitted` fact. Game lane: `defineGame({ scores })` validated against the plugins' events (as `sounds` is), and `leaderboards` added to `hosting.wants` when `scores` is set.
+- [x] **5. Scores from sim events.** `event-scores.ts` on the presentation bus; boot wiring; the `leaderboard.submitted` fact. Game lane: `defineGame({ scores })` validated against the plugins' events (as `sounds` is), and `leaderboards` added to `hosting.wants` when `scores` is set.
+  - *Red: event-scores.test.ts could not resolve ./event-scores.js; the boot test saw no Leaderboards service; the two defineGame tests failed (no scores check, no wants). Green: submitEventScores on the presentation bus; Leaderboards in RuntimeServices, buildRuntimeServices, the boot program and RuntimeTest; GameDefinition.scores submitted at boot (a scored sim event reached the fake host: submits [{best, 300}], state accepted); defineGame scores validated against the plugins' events and leaderboards added to hosting.wants once; runtime root exports Leaderboards, makeLeaderboards and the board types (index test updated). runtime and game tsc clean.*
 - [ ] **6. ui `LeaderboardPanel`.**
   - States: loading, entries (with "you"), empty, unavailable ("Scores aren't available here"), offline ("You're offline").
   - A ScrollList whose entries are not focusable; only the action row is. Copy keys.

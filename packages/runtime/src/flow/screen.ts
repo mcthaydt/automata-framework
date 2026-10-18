@@ -3,6 +3,7 @@ import type { Effect, Scope } from 'effect'
 import type { Audio } from '../audio/audio.manager.js'
 import type { AudioBuses } from '../audio/audio-buses.js'
 import type { AssetLoadFailed, LoadStalled } from '../boot/boot-error.js'
+import type { Leaderboards } from '../leaderboards/leaderboards.manager.js'
 import type { Assets } from '../loading/assets.manager.js'
 import type { Locale } from '../locale/locale.manager.js'
 import type { AppLoop } from '../loop/app-loop.manager.js'
@@ -29,6 +30,7 @@ export type RuntimeServices =
   | Locale
   | Audio
   | AudioBuses
+  | Leaderboards
 
 export interface ScreenDef<R = never> {
   readonly id: string
