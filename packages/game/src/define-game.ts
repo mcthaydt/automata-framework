@@ -8,6 +8,7 @@ import {
 } from '@mcthaydt/automata-render-pixi'
 import {
   BootDefect,
+  CORE_SETTINGS,
   type CompiledContentData,
   type EventScores,
   type EventSounds,
@@ -60,6 +61,11 @@ export interface GameSpec<S = never> {
   /** Default: `#game`. */
   readonly root?: HTMLElement
   readonly hosting?: Partial<Omit<HostingOptions, 'gameId' | 'disclosedEvents'>>
+  /**
+   * Default: the core settings (`CORE_SETTINGS`, the save `settings`), with the player's bindings and graphics
+   * quality. A game's own settings keep those only when its schema has `input: inputSettingsSchema` and
+   * `display: displaySettingsSchema`.
+   */
   readonly settings?: SettingsDef<S>
   readonly extensions?: readonly ExtensionDef[]
   /**
@@ -125,10 +131,15 @@ function problemsOf<S>(spec: GameSpec<S>): string[] {
   return problems
 }
 
-/** The capabilities the game asks for: the spec's, plus `leaderboards` when it has scores (once). */
+/**
+ * The capabilities the game asks for: the spec's, plus `saves` for the core settings when the game declares none
+ * (M4.4), and `leaderboards` when it has scores, each once.
+ */
 function wantsOf<S>(spec: GameSpec<S>): NonNullable<HostingOptions['wants']> {
-  const wants = spec.hosting?.wants ?? []
-  return spec.scores === undefined || wants.includes('leaderboards') ? wants : [...wants, 'leaderboards']
+  const wants = [...(spec.hosting?.wants ?? [])]
+  if (spec.settings === undefined && !wants.includes('saves')) wants.push('saves')
+  if (spec.scores !== undefined && !wants.includes('leaderboards')) wants.push('leaderboards')
+  return wants
 }
 
 /** `spec.root`, else `#game`; a BootDefect when there is neither (DX spec §6). */
@@ -205,7 +216,9 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
         ...(spec.scores === undefined ? {} : { board: Object.values(spec.scores)[0]?.board }),
       }),
     renderer,
-    ...(spec.settings === undefined ? {} : { settings: spec.settings }),
+    // Without settings of its own, the game keeps the player's bindings and quality in the core settings (M4.4).
+    // They are not the game's `S`: only the default screens read them, through `Settings`.
+    settings: spec.settings ?? (CORE_SETTINGS as unknown as SettingsDef<S>),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),

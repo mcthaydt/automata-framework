@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 5 of 13 steps.
+- **Progress:** 6 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -209,10 +209,15 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - a pad button held from before the capture is not captured;
     - its next press is.
   - *Done: 5 red (`capture` missing), then 4 hung and the timeout case failed. The forked capture had not started when the test pressed a key, because one `yieldNow` is not enough with `timeoutFail`'s race. The hung tests also left their capture listener on `window`, which swallowed the later test's key. The tests now wait with `TestClock.adjust(0)`, which runs every fiber until it suspends. The pad B case polls once before the capture, as the menu does every frame: a pad first seen during a capture counts as already held. `RebindCancelled` and `RebindTimedOut` carry the `device` they waited for. `src/input` 113 of 113.*
-- [ ] **6. Core settings** (`settings/core-settings.test.ts`; `define-game.test.ts`).
+- [x] **6. Core settings** (`settings/core-settings.test.ts`; `define-game.test.ts`).
   - *Red:*
     - `CORE_SETTINGS` reads its defaults from nothing and keeps a saved `input` and `display`;
     - `defineGame` without `settings` has `CORE_SETTINGS`, and with them keeps the game's.
+  - *Done:*
+    - Red `Failed to resolve import "./core-settings.js"` and two `defineGame` cases, then green: core settings 3 of 3, `define-game.test.ts` 25 of 25, game unit 115 of 115.
+    - **Deviation:** `defineGame` also asks the host for `saves` when it supplies the core settings, as it asks for `leaderboards` with scores. The SDK writes saves through to the host only with that grant; without it, a rebind would not survive a reload. The test of the default `wants` changed from `[]` to `['saves']`.
+    - Checked in the vendored SDK: `saves.get` reads the SDK's local copy, so the extra boot read cannot fail offline.
+    - The runtime's root entry exports the binding and settings names.
 - [ ] **7. Prompts** (`packages/ui/src/prompts/prompt-label.test.ts`, `prompt.test.ts`).
   - *Red:*
     - `KeyK` is `K`, `Digit1` is `1`, and `ArrowLeft` is `←`;
