@@ -43,8 +43,26 @@ const frames = (frame: Frame, count: number) =>
     count,
   )
 
-/** The stage as pixels: the only view the test has of the sim, so "moved" means the picture changed. */
-const shot = (frame: Frame) => frame.locator('[data-layer="stage"] canvas').screenshot()
+/**
+ * The stage as pixels: the only view the test has of the sim, so "moved" means the picture changed. A capture of the
+ * canvas takes whatever is drawn over it (a focus ring, a touch button over the runner), so the screens and overlay
+ * layers are hidden for the capture and shown again straight after.
+ */
+async function shot(frame: Frame): Promise<Buffer> {
+  const cover = (hidden: boolean) =>
+    frame.evaluate((hide) => {
+      for (const layer of document.querySelectorAll<HTMLElement>(
+        '[data-layer="screens"], [data-layer="overlay"]',
+      ))
+        layer.style.visibility = hide ? 'hidden' : ''
+    }, hidden)
+  await cover(true)
+  try {
+    return await frame.locator('[data-layer="stage"] canvas').screenshot()
+  } finally {
+    await cover(false)
+  }
+}
 
 /** The stage once nothing moves: two captures six frames apart agree (the runner has landed). */
 async function settled(frame: Frame): Promise<Buffer> {
@@ -235,11 +253,13 @@ async function journey(page: Page, cell: MatrixCell, host: MatrixHost): Promise<
   await expect(screen('play')).toBeVisible()
   await expectLayout(frame, 'play')
 
-  // Move: a tap of right moves the runner for good. Jump: the picture taken while it is held differs from the
-  // landed one (a jump tops out at y 30, on the stage). The sim steps by the wall clock and a software renderer's
-  // frames are slow, so any longer hold of right can walk the runner off the stage before the capture.
+  // Move: right held for 100 ms of the game's clock (six ticks, 12 px) moves the runner for good. Jump: the picture
+  // taken while it is held differs from the landed one (a jump tops out at y 30, on the stage). The sim steps by the
+  // wall clock, so the hold is measured in it: counted in frames, it is under a tick in a fast engine (never sampled)
+  // and seconds in a slow software renderer (the runner walks off the stage).
   const start = await settled(frame)
-  await driver.holdAction('right', async () => true)
+  const since = await frame.evaluate(() => performance.now())
+  await driver.holdAction('right', async () => (await frame.evaluate(() => performance.now())) - since >= 100)
   expect((await settled(frame)).equals(start), 'holding right did not move the runner').toBe(false)
   expect(await heldShot(driver, frame, 'jump')).not.toEqual(await settled(frame))
 
@@ -257,11 +277,7 @@ async function journey(page: Page, cell: MatrixCell, host: MatrixHost): Promise<
   await driver.choose('[data-testid="resume"]')
   await expect(screen('play')).toBeVisible()
 
-  // The old binding no longer jumps; the new one does. A capture of the canvas takes whatever is drawn over it, so
-  // the focus ring comes off first (the keyboard driver clears focus before each held key).
-  await frame.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
-  // A touch cell checks with the keyboard, and the first key hides the touch buttons: switch before the capture.
-  if (cell.device === 'touch') await frame.locator('body').press('Shift')
+  // The old binding no longer jumps; the new one does.
   const landed = await settled(frame)
   expect((await heldShot(driver, frame, 'old-jump')).equals(landed), 'the old binding still jumps').toBe(true)
   await expect(screen('play')).toBeVisible()
