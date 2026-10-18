@@ -5,7 +5,7 @@
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 4 of 11 steps.
+- **Progress:** 5 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -156,8 +156,9 @@ Each step starts with its test, run red, with the failure reason recorded. The p
       - With the keyboard up, the covers reached under it. They now end above it (`--af-visual-inset-bottom`), and the gate's panel is a declared scroll region. As in every other contract, nothing is essential with the keyboard up.
       - `bind:this` sets null, not undefined, when a cover goes. The effects check for both.
     - Exported from the ui root.
-- [ ] **5. `PauseReason` `display`** (`time.test.ts`).
+- [x] **5. `PauseReason` `display`** (`time.test.ts`).
   - *Red:* pausing and resuming for `display` alone, beside `menu`.
+  - *Done: red in typecheck (TS2345, `"display"` is not a `PauseReason`), then green; `src/time` 9 of 9.*
 - [ ] **6. The display policy** (`runtime/src/display/display-policy.test.ts`, jsdom, with a fake geometry owner and `matchMedia`).
   - *Red, by case:*
     - **D-d:**
