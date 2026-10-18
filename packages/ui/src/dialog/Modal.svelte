@@ -24,6 +24,7 @@ const {
   children,
   head,
   wide = false,
+  fill = false,
   actions,
   testId,
   anchor = 'center',
@@ -56,6 +57,7 @@ function onScrimClick(event: MouseEvent): void {
     tabindex="-1"
     data-testid={testId}
     data-wide={wide ? '' : undefined}
+    data-fill={fill ? '' : undefined}
   >
     <div class="af-modal__head">
       <h2 id={titleId} class="af-modal__title">{title}</h2>
@@ -114,6 +116,12 @@ function onScrimClick(event: MouseEvent): void {
     background: var(--af-panel);
     color: var(--af-ink);
     font: var(--af-text-body) / 1.4 var(--af-font);
+  }
+
+  /* On a phone a long body (Settings) is a sheet the band's height, as FloorFifty's: the list takes the rest and the
+     actions sit at the bottom, rather than a small card that grows and shrinks with the tab. */
+  :global(:is([data-form-factor="phone-portrait"], [data-form-factor="phone-landscape"])) .af-modal[data-fill] {
+    height: 100%;
   }
 
   .af-modal:focus {

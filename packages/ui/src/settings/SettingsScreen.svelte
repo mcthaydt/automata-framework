@@ -48,7 +48,7 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
   </div>
 {/snippet}
 
-<Modal {title} closeLabel={backLabel} onclose={onback} testId="settings-screen" wide head={tabs.length > 1 ? head : undefined}>
+<Modal {title} closeLabel={backLabel} onclose={onback} testId="settings-screen" wide fill head={tabs.length > 1 ? head : undefined}>
   <div class="af-settings">
     {#if current !== undefined}
       {#key current.id}

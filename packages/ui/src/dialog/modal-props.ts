@@ -13,6 +13,8 @@ export interface ModalProps {
   head?: Snippet | undefined
   /** A long body (Settings) that widens on a short, wide band to set its groups two across; others keep their width. */
   wide?: boolean | undefined
+  /** A dialog that fills a phone's band, its body taking the rest and its actions at the bottom (Settings). */
+  fill?: boolean | undefined
   /** The buttons, in reading order. Mark the safe one with `data-initial-focus`. */
   actions?: Snippet | undefined
   testId?: string | undefined

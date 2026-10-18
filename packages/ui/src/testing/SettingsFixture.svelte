@@ -1,10 +1,10 @@
 <!--
   The core Settings screen for the layout contracts (M4 spec §4.8, M4.4), in FloorFifty's two tabs: `settings` shows
   the Settings tab (Language, Audio, Vibration, Display, Touch controls, in FloorFifty's order); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
-  shows its first row waiting for a press. Words are English stand-ins of a typical length.
+  shows its first row waiting for a press; `settings-short` the Settings tab with Display alone, for the sheet's height. Words are English stand-ins of a typical length.
 -->
 <script lang="ts" module>
-export const SETTINGS_SHOWS = ['settings', 'controls', 'controls-capturing'] as const
+export const SETTINGS_SHOWS = ['settings', 'settings-short', 'controls', 'controls-capturing'] as const
 export type SettingsShow = (typeof SETTINGS_SHOWS)[number]
 </script>
 
@@ -146,7 +146,7 @@ const ROWS: ControlsRow[] = [
     {
       id: 'settings',
       label: 'Settings',
-      sections: [
+      sections: show === 'settings-short' ? [{ snippet: display }] : [
         { snippet: language },
         { snippet: audio },
         { snippet: vibration },

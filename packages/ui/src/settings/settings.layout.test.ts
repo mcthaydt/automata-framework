@@ -20,7 +20,7 @@ function essentials(show: SettingsShow, keyboard: boolean): HTMLElement[] {
   // With the keyboard up the frame scrolls what does not fit (screen-frame.layout.test.ts holds that).
   if (keyboard) return []
   const first =
-    show === 'settings'
+    show === 'settings' || show === 'settings-short'
       ? [document.querySelector<HTMLElement>('[data-settings-section] label.af-option') as HTMLElement]
       : show === 'controls-capturing'
         ? [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-capturing]')]
@@ -45,7 +45,7 @@ describe('Settings screen layout contract', () => {
         const conditions = publishConditions(document.documentElement, size, variant)
         const fixture = mountFixture(SettingsFixture, { show })
         await settleLayout()
-        if (show !== 'settings') {
+        if (show.startsWith('controls')) {
           byTestId('settings-tab-controls').click()
           await settleLayout()
         }
@@ -115,5 +115,28 @@ describe('Settings screen tabs', () => {
       await fixture.unmount()
       expect(Math.max(...middles) - Math.min(...middles), `${name}: one row`).toBeLessThan(4)
     }
+  })
+
+  // The Desk, 2026-10-18: on a phone Settings fills the band's height as FloorFifty's does, the list taking the rest
+  // and Back at the bottom, rather than a small card in the middle of the screen.
+  test('fills the band’s height on a phone, upright and sideways; keeps to its content on a desktop', async () => {
+    const measure = async (name: string) => {
+      const size = REFERENCE_SIZES.find((candidate) => candidate.name === name)
+      if (size === undefined) throw new Error(`no ${name}`)
+      await page.viewport(size.width, size.height)
+      publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
+      const fixture = mountFixture(SettingsFixture, { show: 'settings-short' })
+      await settleLayout()
+      const scrim = document.querySelector('[data-modal-scrim]') as HTMLElement
+      const dialog = byTestId('settings-screen').getBoundingClientRect()
+      const style = getComputedStyle(scrim)
+      const room =
+        scrim.getBoundingClientRect().height - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+      await fixture.unmount()
+      return dialog.height / room
+    }
+    expect(await measure('iphone-14')).toBeGreaterThan(0.99)
+    expect(await measure('iphone-14-landscape')).toBeGreaterThan(0.99)
+    expect(await measure('desktop-laptop')).toBeLessThan(0.99)
   })
 })
