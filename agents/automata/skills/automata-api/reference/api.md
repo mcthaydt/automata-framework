@@ -4155,6 +4155,15 @@ const Dialog: import("svelte").Component<Props, {}, "">;
 type Dialog = ReturnType<typeof Dialog>;
 ```
 
+#### `enterFullscreen` (function)
+
+Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app. A
+refusal of either changes nothing: the game plays in the window (M4 spec §6).
+
+```ts
+function enterFullscreen(doc: Document, screen?: Screen): Promise<void>;
+```
+
 #### `ErrorAction` (interface)
 
 One way forward from a failure (M1.6 spec §3.4).
@@ -4272,6 +4281,14 @@ the geometry owner, and neither re-derives it.
 
 ```ts
 type FormFactor = 'phone-portrait' | 'phone-landscape' | 'tablet-portrait' | 'desktop';
+```
+
+#### `fullscreenSupport` (function)
+
+Which fullscreen, if any, this browser can give a standalone page.
+
+```ts
+function fullscreenSupport(doc: Document, nav: Navigator): FullscreenSupport;
 ```
 
 #### `FullscreenSupport` (type)
@@ -4592,6 +4609,14 @@ DuckDuckGo names itself only in the client-hint brands, not the user agent.
 function isDuckDuckGo(nav: object): boolean;
 ```
 
+#### `isFullscreen` (function)
+
+Whether the page is fullscreen now.
+
+```ts
+function isFullscreen(doc: Document): boolean;
+```
+
 #### `isTap` (function)
 
 Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
@@ -4606,6 +4631,33 @@ _No doc comment._
 
 ```ts
 function landscapeGate(inputs: GateInputs): LandscapeGateState;
+```
+
+#### `LandscapeGate` (const)
+
+The landscape gate's cover (M4 spec §4.9, §7; FloorFifty `ui/components/LandscapeGate.svelte` at `ac72660`): over
+every screen and every dialog, empty whenever the gate is open (`state` none). Where the browser can hide its bar,
+one tap on the focused button does it; where it cannot, the cover says how to play. The runtime decides the state
+(`landscapeGate`) and only standalone (M4-D5): under Ruken the host frames the game.
+
+```ts
+const LandscapeGate: import("svelte").Component<Props, {}, "">;
+type LandscapeGate = ReturnType<typeof LandscapeGate>;
+```
+
+#### `LandscapeGateCopy` (interface)
+
+The landscape gate's words: one tap to fullscreen, or how to play where a browser cannot hide its bar.
+
+```ts
+interface LandscapeGateCopy {
+    readonly title: string;
+    readonly body: string;
+    /** The button that goes fullscreen. */
+    readonly go: string;
+    readonly uprightTitle: string;
+    readonly uprightBody: string;
+}
 ```
 
 #### `LandscapeGateState` (type)
@@ -4761,6 +4813,14 @@ so any point inside is 0.
 
 ```ts
 function nearestTarget(x: number, y: number, targets: readonly TouchTarget[], margin?: number): string | undefined;
+```
+
+#### `onFullscreenChange` (function)
+
+Hears fullscreen being entered or left, by the page or the player. Returns the unsubscribe.
+
+```ts
+function onFullscreenChange(doc: Document, listener: () => void): () => void;
 ```
 
 #### `OptionGroup` (const)
@@ -5042,6 +5102,29 @@ The URL a retry asks for; attempt 0 is the first request, as given.
 
 ```ts
 function retryUrl(src: string, attempt: number): string;
+```
+
+#### `RotateHint` (const)
+
+The rotate hint (M4 spec §4.9, §7): over a game locked to one orientation (`GameSpec.orientation`) on a phone held
+the other way. The runtime pauses the game while it shows (`Time.pause('display')`). Not interactive: turning the
+phone is the only way past it, so nothing in it takes focus. The words follow FloorFifty `RotateHint.svelte` at
+`ac72660`, which offers the same advice as a toast.
+
+```ts
+const RotateHint: import("svelte").Component<Props, {}, "">;
+type RotateHint = ReturnType<typeof RotateHint>;
+```
+
+#### `RotateHintCopy` (interface)
+
+The rotate hint's words.
+
+```ts
+interface RotateHintCopy {
+    readonly title: string;
+    readonly body: string;
+}
 ```
 
 #### `ScreenFrame` (const)
@@ -5356,6 +5439,8 @@ interface TouchButtonSpec {
     readonly ariaLabel?: string | undefined;
     /** Which lower corner's group it sits in. Default `start`. */
     readonly side?: 'start' | 'end' | undefined;
+    /** The game cannot be played without it: where the buttons do not all fit, only these show (M4.7). */
+    readonly required?: boolean | undefined;
 }
 ```
 
@@ -5514,7 +5599,7 @@ function byTestId(id: string): HTMLElement;
 
 The checks every screen shares: the document never scrolls; every control is at least the target
 (primaries the primary target) at this scale, on screen unless in a declared scroll region,
-never under a reserved area and never over the corner row; the corner row's controls and any
+never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
 `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
 ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials`
 is reachable without scrolling.

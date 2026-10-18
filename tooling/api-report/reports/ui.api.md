@@ -256,6 +256,12 @@ type DeviceClass = 'phone' | 'tablet' | 'desktop';
 component from './dialog/Dialog.svelte'
 ```
 
+### `enterFullscreen` (function)
+
+```ts
+function enterFullscreen(doc: Document, screen?: Screen): Promise<void>;
+```
+
 ### `ErrorAction` (interface)
 
 ```ts
@@ -323,6 +329,12 @@ type FormFactor = 'phone-portrait' | 'phone-landscape' | 'tablet-portrait' | 'de
 
 ```ts
 type FullscreenSupport = FullscreenRes['support'];
+```
+
+### `fullscreenSupport` (function)
+
+```ts
+function fullscreenSupport(doc: Document, nav: Navigator): FullscreenSupport;
 ```
 
 ### `GateInputs` (type)
@@ -536,16 +548,40 @@ function interceptBackGesture(win: Window, onBack: () => boolean): () => void;
 function isDuckDuckGo(nav: object): boolean;
 ```
 
+### `isFullscreen` (function)
+
+```ts
+function isFullscreen(doc: Document): boolean;
+```
+
 ### `isTap` (function)
 
 ```ts
 function isTap(dx: number, dy: number): boolean;
 ```
 
+### `LandscapeGate` (svelte)
+
+```ts
+component from './display/LandscapeGate.svelte'
+```
+
 ### `landscapeGate` (function)
 
 ```ts
 function landscapeGate(inputs: GateInputs): LandscapeGateState;
+```
+
+### `LandscapeGateCopy` (interface)
+
+```ts
+interface LandscapeGateCopy {
+    readonly title: string;
+    readonly body: string;
+    readonly go: string;
+    readonly uprightTitle: string;
+    readonly uprightBody: string;
+}
 ```
 
 ### `LandscapeGateState` (type)
@@ -652,6 +688,12 @@ type NavDirection = 'up' | 'down' | 'left' | 'right';
 
 ```ts
 function nearestTarget(x: number, y: number, targets: readonly TouchTarget[], margin?: number): string | undefined;
+```
+
+### `onFullscreenChange` (function)
+
+```ts
+function onFullscreenChange(doc: Document, listener: () => void): () => void;
 ```
 
 ### `OptionGroup` (svelte)
@@ -845,6 +887,21 @@ type RetryTimers = {
 function retryUrl(src: string, attempt: number): string;
 ```
 
+### `RotateHint` (svelte)
+
+```ts
+component from './display/RotateHint.svelte'
+```
+
+### `RotateHintCopy` (interface)
+
+```ts
+interface RotateHintCopy {
+    readonly title: string;
+    readonly body: string;
+}
+```
+
 ### `ScreenFrame` (svelte)
 
 ```ts
@@ -1030,6 +1087,7 @@ interface TouchButtonSpec {
     readonly label: string;
     readonly ariaLabel?: string | undefined;
     readonly side?: 'start' | 'end' | undefined;
+    readonly required?: boolean | undefined;
 }
 ```
 

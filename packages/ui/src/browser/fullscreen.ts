@@ -21,6 +21,7 @@ export function fullscreenSupport(doc: Document, nav: Navigator): FullscreenSupp
   return 'none'
 }
 
+/** Whether the page is fullscreen now. */
 export function isFullscreen(doc: Document): boolean {
   return doc.fullscreenElement != null
 }
