@@ -1,7 +1,8 @@
 <!--
   The default Settings screen (M4 spec §4.8, M4-D8), in FloorFifty's two tabs (`SettingsPanel.svelte` at a28dc44):
-  Settings holds Display, then every component the extensions put in the `settings.sections` slot; Controls holds
-  the controls, when the game has an input map. `view` is the screen's live state
+  Settings holds Display, Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
+  component the extensions put in the `settings.sections` slot; Controls holds the controls by device, when the game
+  has an input map. `view` is the screen's live state
   (`settings-screen.svelte.ts`), so a rebind, a device switch or a capture's countdown updates in place.
 -->
 <script lang="ts">
@@ -10,17 +11,21 @@ import {
   type ControlsTouchMode,
   type DisplayQuality,
   DisplaySection,
+  type InputMethodTracker,
   type RebindDevice,
   SettingsScreen,
   type SettingsSection,
   type SettingsTab,
+  TouchSection,
   type UiComponent,
 } from '@mcthaydt/automata-ui'
-import { CONTROLS_COPY, DISPLAY_COPY, PROMPT_COPY, SETTINGS_COPY } from './settings-copy.ts'
+import { CONTROLS_COPY, DISPLAY_COPY, PROMPT_COPY, SETTINGS_COPY, TOUCH_COPY } from './settings-copy.ts'
 import type { SettingsViewState } from './settings-view.ts'
 
 interface Props {
   view: SettingsViewState
+  /** The device in the player's hand, whose section leads the Controls tab. */
+  tracker: InputMethodTracker
   extensions: readonly UiComponent[]
   onrebind: (action: string, device: RebindDevice) => void
   onreset: () => void
@@ -29,13 +34,17 @@ interface Props {
   onback: () => void
 }
 
-const { view, extensions, onrebind, onreset, ontouchmode, onquality, onback }: Props = $props()
+const { view, tracker, extensions, onrebind, onreset, ontouchmode, onquality, onback }: Props = $props()
 
 const tabs = $derived<SettingsTab[]>([
   {
     id: 'settings',
     label: SETTINGS_COPY.settingsTab,
-    sections: [{ snippet: display }, ...extensions.map((component): SettingsSection => ({ component }))],
+    sections: [
+      { snippet: display },
+      ...(view.coarse && view.touchModes.length > 1 ? [{ snippet: touch }] : []),
+      ...extensions.map((component): SettingsSection => ({ component })),
+    ],
   },
   ...(view.rows === undefined
     ? []
@@ -47,15 +56,20 @@ const tabs = $derived<SettingsTab[]>([
   <ControlsSection
     rows={view.rows ?? []}
     devices={view.devices}
+    touch={view.coarse || tracker.method === 'touch' ? (view.rows ?? []).some((row) => row.binding.touch) : false}
+    inUse={tracker.method}
     glyphs={view.glyphs}
     promptCopy={PROMPT_COPY}
     layout={view.layout}
     copy={CONTROLS_COPY}
     state={view.controls}
-    touch={{ modes: view.touchModes, value: view.touchMode, onchange: ontouchmode }}
     {onrebind}
     {onreset}
   />
+{/snippet}
+
+{#snippet touch()}
+  <TouchSection copy={TOUCH_COPY} modes={view.touchModes} value={view.touchMode} onchange={ontouchmode} />
 {/snippet}
 
 {#snippet display()}

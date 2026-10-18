@@ -1,6 +1,6 @@
 <!--
   The core Settings screen for the layout contracts (M4 spec §4.8, M4.4), in FloorFifty's two tabs: `settings` shows
-  the Settings tab (Display); `controls` the Controls tab with four actions and both devices; `controls-capturing`
+  the Settings tab (Display, Touch controls); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
   shows its first row waiting for a press. Words are English stand-ins of a typical length.
 -->
 <script lang="ts" module>
@@ -13,6 +13,7 @@ import type { PromptCopy } from '../prompts/prompt-label'
 import ControlsSection from '../settings/ControlsSection.svelte'
 import type { ControlsCopy, ControlsRow } from '../settings/controls-section'
 import DisplaySection from '../settings/DisplaySection.svelte'
+import TouchSection from '../settings/TouchSection.svelte'
 import type { DisplayCopy } from '../settings/display-section'
 import SettingsScreen from '../settings/SettingsScreen.svelte'
 
@@ -42,10 +43,10 @@ const CONTROLS_COPY: ControlsCopy = {
   title: 'Controls',
   keyboard: 'Keyboard',
   gamepad: 'Controller',
+  touch: 'Touch',
+  inUse: 'In use',
   reset: 'Reset controls',
   press: 'Press…',
-  touchMode: 'Touch controls',
-  touchModes: { buttons: 'Buttons', swipe: 'Swipe' },
   rebind: (action, device) => `Change ${action} on ${device}`,
   capturing: (action, device, seconds) => `Press a ${device} input for ${action} (${seconds} s)`,
   conflict: (action, other) => `${action} can't take that: ${other} would have nothing`,
@@ -71,6 +72,8 @@ const ROWS: ControlsRow[] = [
   <ControlsSection
     rows={ROWS}
     devices={['keyboard', 'gamepad']}
+    touch
+    inUse="keyboard"
     glyphs="xbox"
     promptCopy={PROMPT_COPY}
     copy={CONTROLS_COPY}
@@ -79,6 +82,15 @@ const ROWS: ControlsRow[] = [
       : { kind: 'list' }}
     onrebind={none}
     onreset={none}
+  />
+{/snippet}
+
+{#snippet touch()}
+  <TouchSection
+    copy={{ title: 'Touch controls', mode: 'Play with', modes: { buttons: 'Buttons', swipe: 'Swipe' } }}
+    modes={['buttons', 'swipe']}
+    value="buttons"
+    onchange={none}
   />
 {/snippet}
 
@@ -91,7 +103,7 @@ const ROWS: ControlsRow[] = [
   backLabel="Back"
   onback={none}
   tabs={[
-    { id: 'settings', label: 'Settings', sections: [{ snippet: display }] },
+    { id: 'settings', label: 'Settings', sections: [{ snippet: display }, { snippet: touch }] },
     { id: 'controls', label: 'Controls', sections: [{ snippet: controls }] },
   ]}
   tabsLabel="Settings sections"

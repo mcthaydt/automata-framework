@@ -1,18 +1,13 @@
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { PromptCopy } from '../prompts/prompt-label'
+import type { PromptCopy, PromptDevice } from '../prompts/prompt-label'
 import ControlsSection from './ControlsSection.svelte'
-import type {
-  ControlsCopy,
-  ControlsRow,
-  ControlsState,
-  ControlsTouchMode,
-  RebindDevice,
-} from './controls-section'
+import type { ControlsCopy, ControlsRow, ControlsState, RebindDevice } from './controls-section'
 
-// The Controls section (M4 spec §4.5, §7): a row per action with a rebind button per device showing its prompt,
-// pad buttons only once a pad has connected, a status line for each step of a rebind, Reset, and the touch mode
-// only when the game offers both.
+// The Controls tab's section (M4 spec §4.5, §7), laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at
+// a28dc44): one section per device the player can use, the one in use first and marked; Keyboard and Controller list
+// each action with its rebind button showing its prompt, the Controller only once a pad has connected; Touch says
+// what the on-screen buttons do. A status line says each step of a rebind, and Reset ends the tab.
 
 const promptCopy: PromptCopy = {
   unbound: 'Unbound',
@@ -37,10 +32,10 @@ const copy: ControlsCopy = {
   title: 'Controls',
   keyboard: 'Keyboard',
   gamepad: 'Controller',
+  touch: 'Touch',
+  inUse: 'In use',
   reset: 'Reset controls',
   press: 'Press…',
-  touchMode: 'Touch controls',
-  touchModes: { buttons: 'Buttons', swipe: 'Swipe' },
   rebind: (action, device) => `Change ${action} on ${device}`,
   capturing: (action, device, seconds) => `Press a ${device} input for ${action} (${seconds} s)`,
   conflict: (action, other) => `${action} can't take that: ${other} would have nothing`,
@@ -62,19 +57,19 @@ afterEach(() => {
 
 function open(
   devices: RebindDevice[] = ['keyboard', 'gamepad'],
-  touchModes: ControlsTouchMode[] = ['buttons'],
+  { inUse = 'keyboard', touch = false }: { inUse?: PromptDevice; touch?: boolean } = {},
 ) {
   const onrebind = vi.fn()
   const onreset = vi.fn()
-  const ontouchmode = vi.fn()
   const props = $state({
     rows: ROWS,
     devices,
+    touch,
+    inUse,
     glyphs: 'xbox' as const,
     promptCopy,
     copy,
     state: { kind: 'list' } as ControlsState,
-    touch: { modes: touchModes, value: 'buttons' as ControlsTouchMode, onchange: ontouchmode },
     onrebind,
     onreset,
   })
@@ -84,28 +79,70 @@ function open(
   flushSync()
   const section = host.querySelector<HTMLElement>('[data-settings-section="controls"]') as HTMLElement
   const button = (action: string, device: RebindDevice) =>
-    section.querySelector<HTMLButtonElement>(`[data-control-row="${action}"] [data-rebind="${device}"]`)
+    section.querySelector<HTMLButtonElement>(
+      `[data-controls-device="${device}"] [data-control-row="${action}"] [data-rebind="${device}"]`,
+    )
   const message = () => section.querySelector<HTMLElement>('[data-controls-message]') as HTMLElement
-  return { props, section, button, message, onrebind, onreset, ontouchmode }
+  /** The device sections in order, each with its heading and whether it is marked in use. */
+  const devicesShown = () =>
+    [...section.querySelectorAll<HTMLElement>('[data-controls-device]')].map((one) => [
+      one.dataset.controlsDevice,
+      one.querySelector('h3')?.textContent?.replace(/\s+/g, ' ').trim(),
+    ])
+  return { props, section, button, message, devicesShown, onrebind, onreset }
 }
 
 describe('ControlsSection', () => {
-  it('lists each action with a rebind button per device, each showing its prompt and named for its action', () => {
+  it('has a section per device, the one in use first and marked', () => {
+    expect(open().devicesShown()).toEqual([
+      ['keyboard', 'Keyboard In use'],
+      ['gamepad', 'Controller'],
+    ])
+    unmount(component as ReturnType<typeof mount>)
+    const { devicesShown, props } = open(['keyboard', 'gamepad'], { inUse: 'gamepad', touch: true })
+    expect(devicesShown()).toEqual([
+      ['gamepad', 'Controller In use'],
+      ['keyboard', 'Keyboard'],
+      ['touch', 'Touch'],
+    ])
+    props.inUse = 'touch'
+    flushSync()
+    expect(devicesShown().map(([device]) => device)).toEqual(['touch', 'keyboard', 'gamepad'])
+  })
+
+  it('lists each action in a device’s section with one rebind button, showing its prompt, named for its action', () => {
     const { section, button } = open()
-    expect(
-      [...section.querySelectorAll<HTMLElement>('[data-control-row]')].map((row) => row.dataset.controlRow),
-    ).toEqual(['jump-0', 'fire-0'])
+    const rows = (device: string) =>
+      [...section.querySelectorAll<HTMLElement>(`[data-controls-device="${device}"] [data-control-row]`)].map(
+        (row) => [row.dataset.controlRow, row.querySelectorAll('button').length],
+      )
+    expect(rows('keyboard')).toEqual([
+      ['jump-0', 1],
+      ['fire-0', 1],
+    ])
+    expect(rows('gamepad')).toEqual(rows('keyboard'))
     expect(button('jump-0', 'keyboard')?.textContent?.trim()).toBe('Space')
     expect(button('jump-0', 'gamepad')?.textContent?.trim()).toBe('A')
     expect(button('fire-0', 'keyboard')?.textContent?.trim()).toBe('Unbound')
     expect(button('jump-0', 'keyboard')?.getAttribute('aria-label')).toBe('Change Jump on Keyboard')
-    expect(section.querySelector('h3')?.textContent).toBe('Controls')
+    expect(section.getAttribute('aria-label')).toBe('Controls')
   })
 
-  it('shows no controller buttons until a pad has connected', () => {
-    const { button } = open(['keyboard'])
+  it('shows no controller section until a pad has connected', () => {
+    const { section, button } = open(['keyboard'])
     expect(button('jump-0', 'keyboard')).not.toBeNull()
-    expect(button('jump-0', 'gamepad')).toBeNull()
+    expect(section.querySelector('[data-controls-device="gamepad"]')).toBeNull()
+  })
+
+  it('says what the on-screen buttons do in the touch section, with nothing to rebind', () => {
+    const { section } = open(['keyboard'], { touch: true })
+    const touch = section.querySelector<HTMLElement>('[data-controls-device="touch"]') as HTMLElement
+    expect(
+      [...touch.querySelectorAll<HTMLElement>('[data-control-row]')].map((row) =>
+        row.textContent?.replace(/\s+/g, ' ').trim(),
+      ),
+    ).toEqual(['Jump Tap'])
+    expect(touch.querySelector('button')).toBeNull()
   })
 
   it('reports a rebind button by its action and device', () => {
@@ -113,7 +150,6 @@ describe('ControlsSection', () => {
     button('fire-0', 'gamepad')?.click()
     expect(onrebind).toHaveBeenCalledWith('fire-0', 'gamepad')
   })
-
   it('says each step of a rebind in a polite status line, naming actions by their labels', () => {
     const { props, message, button } = open()
     expect(message().getAttribute('role')).toBe('status')
@@ -138,19 +174,14 @@ describe('ControlsSection', () => {
     expect((message().closest('[data-settings-section]') as HTMLElement).dataset.state).toBe('saved')
   })
 
-  it('resets every binding', () => {
-    const { section, onreset } = open()
-    section.querySelector<HTMLButtonElement>('[data-testid="controls-reset"]')?.click()
+  it('ends with Reset, after every device', () => {
+    const { section, onreset } = open(['keyboard', 'gamepad'], { touch: true })
+    const reset = section.querySelector<HTMLButtonElement>(
+      '[data-testid="controls-reset"]',
+    ) as HTMLButtonElement
+    const last = [...section.querySelectorAll('[data-controls-device]')].at(-1) as Element
+    expect(last.compareDocumentPosition(reset) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    reset.click()
     expect(onreset).toHaveBeenCalledOnce()
-  })
-
-  it('offers the touch mode only when the game has both', () => {
-    expect(open().section.querySelector('[data-controls-touch-mode]')).toBeNull()
-    unmount(component as ReturnType<typeof mount>)
-    component = undefined
-    const { section, ontouchmode } = open(['keyboard'], ['buttons', 'swipe'])
-    const swipe = section.querySelector<HTMLInputElement>('[data-controls-touch-mode] input[value="swipe"]')
-    swipe?.click()
-    expect(ontouchmode).toHaveBeenCalledWith('swipe')
   })
 })

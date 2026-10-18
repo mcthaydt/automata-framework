@@ -12,6 +12,9 @@ export interface SettingsViewState {
   /** The game's actions; undefined without an input map, and then there is no Controls section. */
   rows: readonly ControlsRow[] | undefined
   devices: readonly RebindDevice[]
+  /** `(pointer: coarse)`: the player can touch, so the Controls tab says what the on-screen buttons do and the
+   * Settings tab offers the touch mode. */
+  coarse: boolean
   glyphs: PromptGlyphs
   controls: ControlsState
   layout: ReadonlyMap<string, string> | undefined

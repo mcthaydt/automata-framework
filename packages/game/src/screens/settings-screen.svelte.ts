@@ -20,6 +20,7 @@ import {
   type ControlsRow,
   type ControlsState,
   type DisplayQuality,
+  InputMethodTracker,
   type RebindDevice,
   readKeyboardLayout,
   reducedMotion,
@@ -76,6 +77,7 @@ export function settingsScreen(game: ScreensGame): ScreenDef {
               ? undefined
               : rowsOf(Effect.runSync(SubscriptionRef.get(input.profile)), map.labels),
           devices: padConnected(target) ? ['keyboard', 'gamepad'] : ['keyboard'],
+          coarse: target.matchMedia?.('(pointer: coarse)').matches === true,
           glyphs: Effect.runSync(SubscriptionRef.get(input.device)).glyphs,
           controls: { kind: 'list' },
           layout: undefined,
@@ -84,6 +86,11 @@ export function settingsScreen(game: ScreensGame): ScreenDef {
           quality: savedQuality(),
           reducedMotion: reducedMotion(target),
         })
+        // The device in the player's hand leads the Controls tab: a key or a finger as play's touch buttons see it
+        // (InputMethodTracker), a pad press through the Input's device.
+        const tracker = new InputMethodTracker()
+        const detach = tracker.attach(target)
+        yield* Effect.addFinalizer(() => Effect.sync(detach))
         void readKeyboardLayout(target.navigator).then((layout) => {
           view.layout = layout
         })
@@ -95,7 +102,8 @@ export function settingsScreen(game: ScreensGame): ScreenDef {
           bus.subscribe('input.pad.connected', (pad) => {
             if (pad.standard && !view.devices.includes('gamepad')) view.devices = ['keyboard', 'gamepad']
           }),
-          bus.subscribe('input.device.changed', ({ glyphs }) => {
+          bus.subscribe('input.device.changed', ({ device, glyphs }) => {
+            tracker.note(device)
             view.glyphs = glyphs
           }),
         ]
@@ -152,6 +160,7 @@ export function settingsScreen(game: ScreensGame): ScreenDef {
         const back = (): void => void flow.dispatch('back')
         yield* show(SettingsView, layer, {
           view,
+          tracker,
           extensions: resolveExtensions(game.extensions ?? []).slots('settings.sections'),
           onrebind,
           onreset: () => {

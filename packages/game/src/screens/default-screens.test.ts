@@ -423,6 +423,49 @@ describe('default screens', () => {
       expect(root.querySelector('[data-settings-section="extension-test"]')).not.toBeNull()
     })
 
+    const devicesShown = () =>
+      [...root.querySelectorAll<HTMLElement>('[data-controls-device]')].map((one) => [
+        one.dataset.controlsDevice,
+        one.dataset.inUse === '',
+      ])
+
+    it('puts the device in use first on the Controls tab, and a touch moves Touch first', async () => {
+      await toSettings()
+      expect(devicesShown()).toEqual([['keyboard', true]])
+      window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
+      await until(() => devicesShown()[0]?.[0] === 'touch', 'the touch section first')
+      expect(devicesShown()).toEqual([
+        ['touch', true],
+        ['keyboard', false],
+      ])
+    })
+
+    const swipes = keys(Move, { ArrowLeft: { x: -1 } }, { gestures: { 'swipe-right': { x: 1 } } })
+
+    it('offers no touch mode on a fine pointer, even when the game has both modes', async () => {
+      await toSettings({ input: swipes }, true, 'settings')
+      expect(root.querySelector('[data-settings-section="touch"]')).toBeNull()
+    })
+
+    it('offers the touch mode on the Settings tab on a coarse pointer, when the game has both modes', async () => {
+      const fine = window.matchMedia
+      window.matchMedia = ((query: string) => ({
+        matches: query === '(pointer: coarse)',
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+      })) as unknown as typeof window.matchMedia
+      try {
+        await toSettings({ input: swipes }, true, 'settings')
+        root.querySelector<HTMLInputElement>('[data-settings-section="touch"] input[value="swipe"]')?.click()
+        await until(() => saved()?.input?.touchMode === 'swipe', 'the saved touch mode')
+      } finally {
+        window.matchMedia = fine
+      }
+    })
+
     it('has no Controls tab for a game without an input map, and still its Display', async () => {
       await toSettings({}, false, 'settings')
       expect(root.querySelector('[role="tablist"]')).toBeNull()

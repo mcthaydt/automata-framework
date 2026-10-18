@@ -7,7 +7,7 @@
   - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
 - **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 4 of 8 steps.
+- **Progress:** 5 of 8 steps.
 
 ## Sources, read at these commits
 
@@ -85,12 +85,16 @@ Each step starts with its test, run red, with the failure reason recorded. Layou
     - _under TV scale (1.333) on 667x375 and 780x270 the full-width Back row still clipped them. On short and compact bands Back under the dialog is not drawn; the dialog's Close, named Back, does the same, as FloorFifty's Settings from its title has only its Close. Tall bands draw both, as FloorFifty's pause. The contract's essentials are the Close, Back where drawn, the tabs and the tab's first row._
   - _Touch controls stay in ControlsSection until step 6 moves them to the Settings tab._
   - _Settings layout 102 of 103 in Chromium: the one red, Controls under TV scale at 780x270 (each row stacks its rebind buttons), is step 6's first red._
-- [ ] **6. Controls by device** (`ControlsSection.svelte`). _Red:_
+- [x] **6. Controls by device** (`ControlsSection.svelte`). _Red:_
   - a section per device, the one in use first and marked;
   - the controller section only after a pad connects;
   - the touch section describes the buttons;
   - rebind, capture, conflict, reserved, cancel and reset keep M4.4's behaviour and tests;
   - Reset at the end of the tab.
+  - _Done. Red: 7 of 7 ControlsSection tests (no device sections), TouchSection unresolved, and two game tests (the device order; the touch mode on a coarse pointer). Then green: ui 524 of 524, game 133 of 133; Settings and dialog layouts 103 of 103 in Chromium (step 5's one red, Controls under TV scale at 780x270, now passes with one rebind button a row)._
+    - _The device in use comes from ui's `InputMethodTracker` (a key or a finger, as play's touch buttons) and the Input's device (a pad press): raw touches do not change the Input's device._
+    - _The section's own "Controls" heading went (the tab names it); its name is the section's `aria-label`._
+    - _`ControlsCopy` gained `touch` and `inUse` and lost `touchMode` and `touchModes`, which are `TouchSection`'s `TouchCopy`; `ControlsSection` lost its `touch` modes prop, and its `touch` now says whether to draw the Touch section. ui is pre-1.0: a patch._
 - [ ] **7. M4.7 against FloorFifty.** The gate and the hint at each size beside FloorFifty's `LandscapeGate` and `RotateHint`. Gaps found are fixed test-first; none found is recorded with the images.
 - [ ] **8. E2E, evidence and gates.**
   - The matrix and rebind journeys follow the new test ids.

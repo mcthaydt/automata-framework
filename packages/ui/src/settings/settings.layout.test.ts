@@ -13,7 +13,7 @@ import { settleLayout } from '../testing/settle'
 /**
  * What a player must reach without scrolling: the dialog's Close (named Back), Back under the dialog where the band is
  * tall enough to draw it, the tabs, and the tab's first row: on Settings the quality's
- * choices, on Controls the first row's rebind buttons; while a capture waits, the button that waits (the section
+ * choices, on Controls the first row's rebind button in the section of the device in use; while a capture waits, the button that waits (the section
  * keeps it in view), as the row's other buttons may wrap below it on a short screen.
  */
 function essentials(show: SettingsShow, keyboard: boolean): HTMLElement[] {
@@ -24,7 +24,7 @@ function essentials(show: SettingsShow, keyboard: boolean): HTMLElement[] {
       ? [...document.querySelectorAll<HTMLElement>('[data-settings-section="display"] label.af-option')]
       : show === 'controls-capturing'
         ? [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-capturing]')]
-        : [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-rebind]')]
+        : [...document.querySelectorAll<HTMLElement>('[data-in-use] [data-control-row="left"] [data-rebind]')]
   const close = document.querySelector<HTMLElement>('[data-testid="settings-screen"] [data-modal-close]')
   const back = document.documentElement.dataset.height === undefined ? [byTestId('settings-back')] : []
   return [
