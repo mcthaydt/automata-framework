@@ -1,0 +1,94 @@
+# Settings and Pause redo, to FloorFifty's layout and function: TDD plan
+
+- **Task:** the follow-up row "Settings and Pause redo (Owner rejection)" in [02](../../02-master-delivery-plan.md), after M4.4 (#87) and M4.7 (#88).
+- **Owner, 2026-10-18 (via the Desk):**
+  - the M4.4 Settings screen is rejected;
+  - "Match the layout and function, not the style": FloorFifty's Settings and Pause are the reference for structure, grouping, order, what is on each screen, how rebinding, reset and quality work, scrolling, the dimmed backdrop, tap targets and behaviour at each size. AF keeps its own look, finished and polished;
+  - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
+- **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
+- **Status:** Plan drafted 2026-10-18.
+- **Progress:** 0 of 8 steps.
+
+## Sources, read at these commits
+
+- **FloorFifty at `a28dc44`** (`/home/user/floorfifty`):
+  - `apps/client/src/ui/components/PauseOverlay.svelte` (182 lines):
+    - a `Modal` that fades in over the game, titled "Paused", with a status line;
+    - a menu of Resume (primary), Mute, Settings and Leave, one column, two across once the dialog is 340 px wide;
+    - Settings opens *inside the same dialog*, with a "← Back" under it;
+    - Leave asks first (a confirm view with the destructive action primary and Cancel);
+    - Escape steps back one level: from Settings or Leave to the menu, and from the menu it resumes. Focus lands on the button the view was opened from.
+  - `SettingsPanel.svelte` (381):
+    - two tabs, Settings and Controls; the section scrolls under the tabs in one `ScrollList` that fades and counts what is below;
+    - grouped fieldsets with legends: Language; Audio (mute, mute when unfocused, three volume sliders with their percentages, rumble); Display (toggles, then Graphics quality: the name on its row and the three choices together under it); Touch controls (coarse pointer only);
+    - groups two across when the dialog is at least 560 px wide;
+    - every row a 44 px target;
+    - settings apply and save live; there is no Apply button;
+    - Controls: one section per input method, the one in the player's hand first and marked "current", each a list of keys or buttons and what they do.
+  - `Modal.svelte`:
+    - dims the page (ink at 45%) rather than blurring it;
+    - the dialog stays inside the visible band and the safe area, and clear of the host's strip;
+    - it widens on a short, wide band so the settings' groups go two across;
+    - a visible Close; Escape and Tab handled; focus in on open and back to the opener.
+  - `LandscapeGate.svelte`, `RotateHint.svelte`, `FullscreenPicker.svelte`: M4.7's sources; checked again in step 7.
+- **AF on `main` (`7a37588`):**
+  - `packages/game/src/screens/PausedScreen.svelte`: a full `ScreenFrame` with "Paused", Resume and Quit to title at the bottom, and a gear in the corner. No dim, and no confirm on Quit.
+  - `packages/game/src/screens/SettingsView.svelte` and `settings-screen.svelte.ts`, `packages/ui/src/settings/{SettingsScreen,ControlsSection,DisplaySection}.svelte`: a full-screen frame with Back, Controls (a row per action with a rebind button per device), Reset and Display (quality, reduced motion). No tabs, groups or dim; the stage shows through undimmed.
+  - `packages/ui`: `Modal`, `ScrollList` (FloorFifty's), `OptionGroup`, `Button`, `IconButton`, `Toggle`, `Slider`.
+  - Flow: `paused ⇄ settings` are two screens (M4.4); the tests rely on focus coming back to Settings from Settings' Back (F-b), the back gesture (F-c), and the `settings.sections` slot.
+
+## Scope
+
+**In:**
+- **Paused**, as FloorFifty's: a dialog over the dimmed game, titled "Paused"; a menu of Resume (primary), Settings, and Quit to title, two across from 340 px; Quit to title asks first (confirm view: "Quit to title? This run is lost." with Quit primary and Cancel); Escape steps back one level; the pad's B does the same.
+- **Settings**, as FloorFifty's, in the same dialog frame and size over the same dim, with "← Back" under it:
+  - tabs **Settings** and **Controls**, the section scrolling under them in one `ScrollList`;
+  - **Settings** tab: grouped fieldsets: Display (Graphics quality as the name on its row and the three choices under it; Reduced motion, read from the device), Touch controls (button or swipe mode, coarse pointer only, when the game offers both), then each extension's `settings.sections`; two groups across from a 560 px dialog;
+  - **Controls** tab: one section per device the player can use, the current one first and marked "In use": Keyboard (each action's row: its name, its key as a rebind button), Controller (once a pad has connected: the same with pad buttons), Touch (what the on-screen buttons do; no rebinding, §4.5), then **Reset controls**; the capture status line above the rows, as M4.4's;
+  - live apply and save, as now.
+- Flow and focus as now: `paused ⇄ settings` stay two flow screens, so F-b, F-c, the back gesture, the host's back and the `settings.sections` slot keep working. The two screens share one dialog frame, so going between them reads as one dialog changing its view, as FloorFifty's does.
+- **M4.7 check** (step 7): the gate and the rotate hint side by side with FloorFifty's at each size, gaps fixed.
+- Side-by-side screenshots (AF and FloorFifty, same sizes) to the Desk, never straight to the Owner.
+
+**Out:**
+
+| What | Where |
+|---|---|
+| Audio group (mute, volumes, mute when unfocused) and Mute in Pause | M5.4 (next in the queue), into the group structure this builds |
+| Language picker | PRODUCT.L / the endonyms follow-up |
+| FloorFifty's look (colours, fonts, art) | Not copied (Owner): AF's own theme tokens |
+
+## Steps
+
+Each step starts with its test, run red, with the failure reason recorded. Layout steps run the `layout` project at every reference size and variant in three engines.
+
+- [ ] **1. This plan,** and the 02 row. *Verify:* `pnpm format`.
+- [ ] **2. FloorFifty reference captures.** FloorFifty's pause and settings (both tabs) at 390×844, 844×390, 780×270, 820×1180 and 1280×720, built from `a28dc44`, kept with the evidence (`docs/evidence/owner-visual/…/floorfifty/`). No code.
+- [ ] **3. `PauseDialog` frame** (`packages/ui/src/dialog/PauseDialog.svelte`, DOM test then layout test). *Red:* the frame dims the page behind (a scrim with the theme's dim token), centres a dialog within the visible band, the safe area and the host's strip, holds the page like `Modal` (inert behind, focus in, Escape calls `onback`), widens on a short wide band (the container query FloorFifty uses), and keeps a 44 px Close.
+- [ ] **4. Paused** (`PausedScreen.svelte`, `default-screens.test.ts`, `screens.layout.test.ts`). *Red:*
+  - the menu: Resume primary and focused, Settings, Quit to title;
+  - two across at a 340 px dialog;
+  - Quit asks first; Cancel returns to the menu with focus on Quit;
+  - Escape resumes from the menu and steps back from the confirm.
+- [ ] **5. Settings tabs and groups** (`ui/src/settings/`, `SettingsView.svelte`). *Red:*
+  - two tabs with Settings first;
+  - the Settings tab's fieldsets with legends, Touch controls only on a coarse pointer with both modes;
+  - extension sections after the core groups;
+  - two across from 560 px;
+  - one `ScrollList` under the tabs that counts what is below.
+- [ ] **6. Controls by device** (`ControlsSection.svelte`). *Red:*
+  - a section per device, the one in use first and marked;
+  - the controller section only after a pad connects;
+  - the touch section describes the buttons;
+  - rebind, capture, conflict, reserved, cancel and reset keep M4.4's behaviour and tests;
+  - Reset at the end of the tab.
+- [ ] **7. M4.7 against FloorFifty.** The gate and the hint at each size beside FloorFifty's `LandscapeGate` and `RotateHint`. Gaps found are fixed test-first; none found is recorded with the images.
+- [ ] **8. E2E, evidence and gates.**
+  - The matrix and rebind journeys follow the new test ids.
+  - Side-by-side captures, AF beside FloorFifty, of Paused, Settings (both tabs) and the covers, at each size, sent to the Desk.
+  - Gates: `pnpm format`, `pnpm check`, CI extras, `pnpm test:parity`, `CI=1 pnpm test:e2e`, prepare-ruken.
+  - Records: 02, 03, this plan.
+
+## Verification
+
+Layout and function match FloorFifty at every reference size (the Desk checks the side-by-sides first). Owner visual acceptance stays open until the Owner gives it.
