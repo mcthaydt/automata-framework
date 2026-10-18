@@ -3,8 +3,11 @@
 // set let a keyup on the keyboard release a direction the controller still held, so each device keeps its own
 // sources and an action is held while any source on any device drives it. Edges ("pressed") never reach the sim:
 // `onPress` serves menus and the pause screen, and gameplay compares this tick's command with the last one's.
-import { Context, Effect, type Scope, SubscriptionRef } from 'effect'
+import { Context, Effect, Either, type Scope, SubscriptionRef } from 'effect'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
+import type { SettingsStore } from '../settings/settings.manager.js'
+import { type InputSettings, inputSettingsSchema } from './bindings/input-settings.schema.js'
+import { applyOverrides, type Capture, type RebindError, rebindProfile } from './bindings/rebind.js'
 import { type GlyphFamily, glyphFamily } from './gamepad/glyph-family.js'
 import { HandoverMask } from './gamepad/handover-mask.js'
 import { NavRepeat } from './gamepad/nav-repeat.js'
@@ -60,14 +63,27 @@ export interface Input {
   readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>
   /** The pads connected since this Input started, in connection order. */
   readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>
+  /**
+   * Binds the captured key or pad button to `action` on `device` (M4 spec §4.5, M4-D4), saved in the settings'
+   * `input` when the Input has settings; refused, with nothing changed, by `RebindError`.
+   */
+  rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Effect.Effect<void, RebindError>
+  /** Every binding back to the game's profile. */
+  readonly resetBindings: Effect.Effect<void>
 }
 
 export const Input: Context.Tag<Input, Input> = Context.GenericTag<Input>('@mcthaydt/automata-runtime/Input')
 
 export interface InputOptions {
   readonly target: Window
+  /** The game's bindings, before the player's overrides. */
   readonly profile: InputProfile
   readonly bus: PresentationBus
+  /**
+   * The game's settings, whose `input` field (`inputSettingsSchema`) holds the player's overrides: they apply at
+   * once and on every change, and `rebind` writes them. Without settings a rebind lasts for this Input only.
+   */
+  readonly settings?: SettingsStore<unknown> | undefined
 }
 
 const CENTRED = { x: 0, y: 0 } as const
@@ -83,7 +99,16 @@ const isNav = (action: MenuAction): boolean => action.startsWith('nav-')
 /** Builds the Input over `target` for the scope's life: closing the scope removes every listener. */
 export function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope> {
   return Effect.gen(function* () {
-    const { target, profile, bus } = options
+    const { target, profile: defaults, bus, settings } = options
+    const savedIn = (value: unknown): InputSettings =>
+      inputSettingsSchema.parse(
+        value !== null && typeof value === 'object' ? (value as Record<string, unknown>).input : undefined,
+      )
+    let saved = settings === undefined ? inputSettingsSchema.parse(undefined) : savedIn(settings.get())
+    const first = applyOverrides(defaults, saved)
+    if (first.dropped.length > 0)
+      yield* Effect.logWarning(`input: saved bindings for ${first.dropped.join(', ')} were dropped`)
+    let profile = first.profile
     const device = yield* SubscriptionRef.make<ActiveDevice>({
       device: target.matchMedia?.('(pointer: coarse)').matches === true ? 'touch' : 'keyboard',
       glyphs: 'generic',
@@ -207,25 +232,30 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       }),
     )
 
-    // The buttons worth reading, fixed for the profile: the game's and the menu's.
-    const watched = [
-      ...new Set([
-        ...Object.values(profile.bindings).flatMap((binding) => binding.pad),
-        ...Object.values(MENU_BINDINGS).flatMap((binding) => binding.pad),
-      ]),
-    ].sort((a, b) => a - b)
-    const padActions = new Map(watched.map((button) => [button, actionsForPadButton(profile, button)]))
-    // Menu directions from a pad come through the repeat below, from the D-pad and the left stick alike.
-    const padMenu = new Map(
-      watched.map((button) => [
-        button,
-        menuActionsFor((binding) => binding.pad.includes(button)).filter((action) => !isNav(action)),
-      ]),
-    )
-    const stickActions = new Map<StickDirection, string[]>()
-    for (const [action, binding] of Object.entries(profile.bindings))
-      for (const direction of binding.stick ?? [])
-        stickActions.set(direction, [...(stickActions.get(direction) ?? []), action])
+    // The buttons worth reading for the profile, the game's and the menu's, and what each drives. Rebuilt when the
+    // bindings change (`setProfile`).
+    const tablesFor = (bound: InputProfile) => {
+      const watched = [
+        ...new Set([
+          ...Object.values(bound.bindings).flatMap((binding) => binding.pad),
+          ...Object.values(MENU_BINDINGS).flatMap((binding) => binding.pad),
+        ]),
+      ].sort((a, b) => a - b)
+      const padActions = new Map(watched.map((button) => [button, actionsForPadButton(bound, button)]))
+      // Menu directions from a pad come through the repeat below, from the D-pad and the left stick alike.
+      const padMenu = new Map(
+        watched.map((button) => [
+          button,
+          menuActionsFor((binding) => binding.pad.includes(button)).filter((action) => !isNav(action)),
+        ]),
+      )
+      const stickActions = new Map<StickDirection, string[]>()
+      for (const [action, binding] of Object.entries(bound.bindings))
+        for (const direction of binding.stick ?? [])
+          stickActions.set(direction, [...(stickActions.get(direction) ?? []), action])
+      return { watched, padActions, padMenu, stickActions }
+    }
+    let tables = tablesFor(profile)
 
     // Per pad: what it read last (for the handover), its mask, and whether it was in use. The active pad is the
     // newest to start being used (FloorFifty `activeIndex`); its sticks and menu directions are the ones read.
@@ -254,13 +284,13 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       inUse.set(pad.index, busy)
       const seen = maskFor(pad.index).apply(pad)
       const reading = readPad(seen)
-      for (const button of watched) {
+      for (const button of tables.watched) {
         const source = `pad:${pad.index}:${button}`
         if (reading.buttons.has(button))
-          press('gamepad', source, padActions.get(button) ?? [], padMenu.get(button) ?? [])
+          press('gamepad', source, tables.padActions.get(button) ?? [], tables.padMenu.get(button) ?? [])
         else lift(source)
       }
-      for (const [direction, actions] of stickActions) {
+      for (const [direction, actions] of tables.stickActions) {
         const source = `pad:${pad.index}:stick:${direction}`
         if (reading.sticks.has(direction)) press('gamepad', source, actions, [])
         else lift(source)
@@ -308,6 +338,39 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
         target.removeEventListener('gamepaddisconnected', onDisconnect)
       }),
     )
+
+    /** New bindings: what is held is let go, so nothing stays held by an input that no longer drives it. */
+    const setProfile = (next: InputProfile, action?: string): void => {
+      profile = next
+      tables = tablesFor(next)
+      liftWhere(undefined)
+      Effect.runSync(SubscriptionRef.set(profileRef, next))
+      bus.publish('input.bindings.changed', action === undefined ? {} : { action })
+    }
+    // Another Input on the same settings rebound (the Settings screen's, while play's waits): follow it.
+    const savedKey = (value: InputSettings): string => JSON.stringify(value)
+    let appliedKey = savedKey(saved)
+    if (settings !== undefined) {
+      const stop = settings.subscribe((value) => {
+        const next = savedIn(value)
+        const key = savedKey(next)
+        if (key === appliedKey) return
+        appliedKey = key
+        saved = next
+        setProfile(applyOverrides(defaults, next).profile)
+      })
+      yield* Effect.addFinalizer(() => Effect.sync(stop))
+    }
+    /** Saves `next` (memory first, then the host, as the settings store does) and applies it here at once. */
+    const commit = (next: InputSettings, action?: string): void => {
+      saved = next
+      appliedKey = savedKey(next)
+      setProfile(applyOverrides(defaults, next).profile, action)
+      settings?.update((value) => ({
+        ...(value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {}),
+        input: next,
+      }))
+    }
 
     return {
       held: () => held,
@@ -369,6 +432,14 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       device,
       profile: profileRef,
       pads,
+      rebind: (action, rebound, capture) =>
+        Effect.suspend(() => {
+          const result = rebindProfile(defaults, profile, action, rebound, capture)
+          if (Either.isLeft(result)) return Effect.fail(result.left)
+          commit({ ...saved, profile: defaults.id, overrides: result.right }, action)
+          return Effect.void
+        }),
+      resetBindings: Effect.sync(() => commit({ ...saved, profile: defaults.id, overrides: {} })),
     }
   })
 }

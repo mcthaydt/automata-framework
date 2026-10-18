@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 3 of 13 steps.
+- **Progress:** 4 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -190,7 +190,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - an unknown action is `RebindUnknown`;
     - overrides hold only what differs, and binding the default again leaves none.
   - *Done: 8 red (`rebindProfile is not a function`), then green, 15 of 15 in `bindings/`. The errors are `Data.TaggedError` classes through `boot-error.ts`'s `TaggedErrorClass`, as isolated declarations need.*
-- [ ] **4. The Input's live profile, `rebind` and `resetBindings`** (`input.test.ts`).
+- [x] **4. The Input's live profile, `rebind` and `resetBindings`** (`input.test.ts`).
   - *Red:*
     - with a store holding an override, `KeyK` holds jump;
     - `rebind` writes the store's `input`, publishes `input.bindings.changed` and updates `profile`;
@@ -198,6 +198,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - `resetBindings` empties the overrides;
     - a rebind releases what was held;
     - without a store, a rebind lasts for that Input.
+  - *Done: 7 red in `input-rebind.test.ts` (`rebind` missing, the store ignored), then green; `src/input` 108 of 108. The key, pad and stick tables are rebuilt by `tablesFor` on each change. A saved override that is dropped logs a warning when the Input starts. A refused rebind (I-l) also fails the Effect and writes nothing.*
 - [ ] **5. `capture`** (`input-capture.test.ts`, with `TestClock`).
   - *Red:*
     - the next keydown is the capture, and it reaches no other listener;
