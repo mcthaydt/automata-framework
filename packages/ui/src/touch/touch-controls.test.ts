@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nearestTarget, PointerLatch, STICKY_MARGIN_PX, StickyPointers } from './touch-controls'
+import { nearestTarget, PointerLatch, STICKY_MARGIN_PX, StickyPointers, shownButtons } from './touch-controls'
 
 // The touch buttons' bookkeeping (M4 spec §4.4). FloorFifty `tests/client/systems/gameplay/touch-controls.test.ts`
 // at `ac72660`, as behavior over string actions: its "multi-touch" cases drove the latch through its mounted
@@ -137,5 +137,28 @@ describe('sticky buttons', () => {
     expect(held.size).toBe(0)
     pointers.up(1)
     expect(held.size).toBe(0)
+  })
+})
+
+// The reduced set (M4 spec §4.9, §6): where one row cannot hold every button at the primary size, only the required
+// ones show; a target is never shrunk. A game that marks none required keeps all of them, wrapping as before.
+describe('shownButtons', () => {
+  const buttons = [
+    { action: 'left', required: true },
+    { action: 'right', required: true },
+    { action: 'emote' },
+  ]
+
+  it('shows every button while one row holds them', () => {
+    expect(shownButtons(buttons, true).map((button) => button.action)).toEqual(['left', 'right', 'emote'])
+  })
+
+  it('shows only the required ones when it does not', () => {
+    expect(shownButtons(buttons, false).map((button) => button.action)).toEqual(['left', 'right'])
+  })
+
+  it('keeps every button when none is required', () => {
+    const none = [{ action: 'left' }, { action: 'right' }]
+    expect(shownButtons(none, false)).toEqual(none)
   })
 })

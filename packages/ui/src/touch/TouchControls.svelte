@@ -13,10 +13,18 @@
 -->
 <script lang="ts">
 import { onDestroy } from 'svelte'
+import { observeWidth } from '../layout/observe-size'
 import type { TouchControlsProps } from './touch-button'
-import { nearestTarget, PointerLatch, STICKY_MARGIN_PX, StickyPointers } from './touch-controls'
+import { nearestTarget, PointerLatch, STICKY_MARGIN_PX, StickyPointers, shownButtons } from './touch-controls'
 
-const { buttons, onhold, onrelease, shown = true, testId = 'touch-controls' }: TouchControlsProps = $props()
+// `shown` is the prop's name (the player uses touch); inside it is `visible`.
+const {
+  buttons,
+  onhold,
+  onrelease,
+  shown: visible = true,
+  testId = 'touch-controls',
+}: TouchControlsProps = $props()
 
 const latch = new PointerLatch((action, active) => (active ? onhold(action) : onrelease(action)))
 const pointers = new StickyPointers(latch)
@@ -28,9 +36,30 @@ const sync = (): void => {
 }
 
 let root = $state<HTMLElement | undefined>(undefined)
+
+// The reduced set (M4 spec §4.9): `needed` is one row's width with every button, measured while they all show;
+// where the controls are narrower than that, only the required buttons show. Widening past it shows them all again.
+let reduced = $state(false)
+let needed = 0
+const showing = $derived(shownButtons(buttons, !reduced))
+function fit(width: number): void {
+  if (root === undefined) return
+  if (!reduced) {
+    const groups = [...root.querySelectorAll<HTMLElement>('.af-touch__side')]
+    const gap = Number.parseFloat(getComputedStyle(root).columnGap) || 0
+    needed = groups.reduce((sum, group) => sum + group.scrollWidth, 0) + gap * Math.max(0, groups.length - 1)
+  }
+  reduced = buttons.some((button) => button.required === true) && needed > width + 0.5
+}
+$effect(() => {
+  void showing
+  if (root !== undefined) fit(root.clientWidth)
+})
+$effect(() => (root === undefined ? undefined : observeWidth(root, fit)))
+
 const sides = $derived(
   (['start', 'end'] as const)
-    .map((side) => ({ side, buttons: buttons.filter((button) => (button.side ?? 'start') === side) }))
+    .map((side) => ({ side, buttons: showing.filter((button) => (button.side ?? 'start') === side) }))
     .filter((group) => group.buttons.length > 0),
 )
 
@@ -71,7 +100,7 @@ function lift(event: PointerEvent): void {
 }
 
 $effect(() => {
-  if (shown) return
+  if (visible) return
   pointers.releaseAll()
   sync()
 })
@@ -100,7 +129,9 @@ function blockPageGestures(node: HTMLElement): () => void {
   bind:this={root}
   class="af-touch"
   data-testid={testId}
-  hidden={!shown}
+  data-touch-overlay
+  data-reduced={reduced ? '' : undefined}
+  hidden={!visible}
   style:--af-sticky-margin={`${STICKY_MARGIN_PX}px`}
   {@attach blockPageGestures}
 >
@@ -148,7 +179,9 @@ function blockPageGestures(node: HTMLElement): () => void {
   }
 
   /* The sticky margin: an invisible box past the buttons that belongs to the group, so a near miss lands on the
-     group and is resolved to the nearest button. Painted under the buttons, and changing no layout. */
+     group and is resolved to the nearest button. Painted under the buttons, and changing no layout. It reaches
+     sideways and down, never up: what sits above the buttons (an ActionBar, a screen's controls) keeps its taps
+     (M4 spec §4.9, D-a). */
   .af-touch__side {
     position: relative;
     z-index: 0;
@@ -159,7 +192,7 @@ function blockPageGestures(node: HTMLElement): () => void {
   .af-touch__side::before {
     content: '';
     position: absolute;
-    inset: calc(-1 * var(--af-sticky-margin));
+    inset: 0 calc(-1 * var(--af-sticky-margin)) calc(-1 * var(--af-sticky-margin));
     z-index: -1;
   }
 

@@ -5,7 +5,7 @@
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 7 of 11 steps.
+- **Progress:** 8 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -183,12 +183,17 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - Red on both (no hint, then `orientation` undefined), then green: boot 17 of 17, `define-game.test.ts` 25 of 25.
     - jsdom has no `matchMedia`, so the policy treats a window without it as a fine pointer, not installed, as `Input` does.
     - The runtime's root exports the `GameOrientation` and `DisplayCopy` types.
-- [ ] **8. The reduced touch set** (`touch-controls-view.svelte.test.ts`, `touch.layout.test.ts`; `keys.test.ts`).
+- [x] **8. The reduced touch set** (`touch-controls-view.svelte.test.ts`, `touch.layout.test.ts`; `keys.test.ts`).
   - *Red:*
     - with too little room, only the required buttons show, still at the primary size, with `data-reduced`;
     - with room, all show;
     - `keys(…, { required: ['Space'] })` marks Space's action required in the profile and in `touchButtons`.
   - *Layout (D-a):* at 780×270, a fixture with an ActionBar above the touch controls. Every touch button is at least 48 px, and none covers an ActionBar control.
+  - *Done:*
+    - Red: `shownButtons` missing (3 cases), and `keys()`'s two new cases. Then green: ui touch unit 32 of 32, ui touch layout 153 of 153, game unit 117 of 117, game layout 300 of 300.
+    - **Finding (D-a red in every engine and size):** the touch group's invisible sticky margin (24 px, FloorFifty's) reached above the buttons, over the ActionBar, so the bar's lower edge hit-tested as the touch group. The margin now reaches sideways and down, never up.
+    - **Measured:** at 780×270 one row holds all four fixture buttons, so nothing is dropped there and D-a holds with all four. The reduction is tested at 360×640, where only the three required show, at the primary size.
+    - The play screen passes `required` from the input map. `TouchButton.required` is optional, set only when true, so the existing shapes stay.
 - [ ] **9. The overlay as an intruder** (`layout-contract.layout.test.ts`).
   - *Red:* a control placed under a touch button is reported, and the touch fixture still passes.
 - [ ] **10. The HUD layer** (`default-screens.test.ts`).

@@ -23,6 +23,8 @@ export interface TouchButton {
   readonly id: string
   readonly label: string
   readonly keys: readonly string[]
+  /** The game cannot be played without it: where the touch buttons do not all fit, only these show (M4.7). */
+  readonly required?: boolean | undefined
 }
 
 /** The input map attached to a window for one play session. */
@@ -73,6 +75,11 @@ export interface KeysOptions<Z extends z.ZodType> {
   readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>
   /** The payload with nothing held. Default: the schema's own defaults (`schema.parse({})`), when it has them. */
   readonly idle?: z.input<Z>
+  /**
+   * Keys whose actions the game cannot be played without (M4.7): rebinding never leaves them unbound on a device
+   * (M4-D4), and where the touch buttons do not all fit, theirs are the ones that show.
+   */
+  readonly required?: readonly string[]
 }
 
 const KEY_LABELS: Readonly<Record<string, string>> = {
@@ -112,6 +119,8 @@ export function keys<Z extends z.ZodType>(
     }
   }
   for (const [code, payload] of Object.entries(bindings)) check(code, payload)
+  for (const code of options.required ?? [])
+    if (!Object.hasOwn(bindings, code)) throw new Error(`keys(): required key ${code} is not bound`)
   const pad = Object.entries(options.pad ?? {}).map(([index, payload]) => ({ index: Number(index), payload }))
   for (const { index, payload } of pad) check(`pad button ${index}`, payload)
   const gestures = Object.entries(options.gestures ?? {}) as [GestureName, Payload<Z>][]
@@ -143,6 +152,9 @@ export function keys<Z extends z.ZodType>(
   for (const [gesture, payload] of gestures) actionFor(payload).gesture.push(gesture)
 
   const touch = options.touch !== false
+  const requiredKeys = new Set(options.required ?? [])
+  const isRequired = (action: (typeof actions)[number]): boolean =>
+    action.keys.some((code) => requiredKeys.has(code))
   const parsedProfile = inputProfileSchema.safeParse({
     id: command.id,
     bindings: Object.fromEntries(
@@ -154,6 +166,7 @@ export function keys<Z extends z.ZodType>(
           ...(action.stick.length > 0 ? { stick: action.stick } : {}),
           touch: touch && action.keys.length > 0,
           ...(action.gesture.length > 0 ? { gesture: action.gesture } : {}),
+          ...(isRequired(action) ? { required: true } : {}),
         },
       ]),
     ),
@@ -172,7 +185,12 @@ export function keys<Z extends z.ZodType>(
 
   const touchButtons: TouchButton[] = actions
     .filter((action) => action.keys.length > 0)
-    .map((action) => ({ id: action.id, label: labelFor(action.keys[0] as string), keys: action.keys }))
+    .map((action) => ({
+      id: action.id,
+      label: labelFor(action.keys[0] as string),
+      keys: action.keys,
+      ...(isRequired(action) ? { required: true } : {}),
+    }))
   const payloadOf = new Map(actions.map((action) => [action.id, action.payload]))
 
   /** The parsed payload for payloads merged in order over the idle payload; undefined when the schema refuses it. */

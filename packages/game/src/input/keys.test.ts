@@ -114,6 +114,26 @@ describe('keys() profile and toCommand (M4 spec §2.2)', () => {
   })
 })
 
+describe('keys() required actions (M4.7)', () => {
+  it('marks the actions of the required keys required, in the profile and on their touch buttons', () => {
+    const map = keys(
+      Move,
+      { ArrowLeft: { x: -1 }, KeyA: { x: -1 }, Space: { jump: true } },
+      { required: ['KeyA'] },
+    )
+    expect(map.profile.bindings['move-0']?.required).toBe(true)
+    expect(map.profile.bindings['move-1']?.required).toBeUndefined()
+    expect(map.touchButtons.map((button) => [button.id, button.required])).toEqual([
+      ['move-0', true],
+      ['move-1', undefined],
+    ])
+  })
+
+  it('throws on a required key that is not bound', () => {
+    expect(() => keys(Move, { ArrowLeft: { x: -1 } }, { required: ['KeyQ'] })).toThrow(/KeyQ/)
+  })
+})
+
 describe('keys() attached', () => {
   let source: ReturnType<typeof arrows.attach>
   beforeEach(() => {

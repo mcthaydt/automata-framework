@@ -28,7 +28,9 @@ const { onPause, tracker, touchButtons, onHold, onRelease, swipe }: Props = $pro
 
 const touching = $derived(tracker.method === 'touch')
 const showButtons = $derived(touching && swipe === undefined && touchButtons.length > 0)
-const buttons = $derived(touchButtons.map((button) => ({ action: button.id, label: button.label })))
+const buttons = $derived(
+  touchButtons.map((button) => ({ action: button.id, label: button.label, required: button.required })),
+)
 </script>
 
 {#snippet end()}

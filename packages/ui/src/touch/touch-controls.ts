@@ -124,3 +124,16 @@ export class StickyPointers {
     this.latch.releaseAll()
   }
 }
+
+/**
+ * The buttons to show (M4 spec §4.9, §6): every one while one row holds them at the primary size, else only the
+ * `required` ones, so a target is never shrunk and the actions a game cannot be played without stay. A set with
+ * nothing required is shown whole, wrapping onto a second row as it did before the reduced set.
+ */
+export function shownButtons<T extends { readonly action: string; readonly required?: boolean | undefined }>(
+  buttons: readonly T[],
+  roomForAll: boolean,
+): readonly T[] {
+  if (roomForAll || !buttons.some((button) => button.required === true)) return buttons
+  return buttons.filter((button) => button.required === true)
+}
