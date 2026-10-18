@@ -47,6 +47,7 @@ interface CompiledContent {
     readonly warnings: readonly Diagnostic[];
     readonly languages: readonly string[];
     readonly catalogs: ReadonlyMap<string, MessageCatalog>;
+    readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
 }
 ```
 
@@ -183,7 +184,7 @@ interface Diagnostic {
 ### `DiagnosticCode` (type)
 
 ```ts
-type DiagnosticCode = 'invalidToml' | 'invalidType' | 'missingField' | 'unknownField' | 'invalidId' | 'unknownReference' | 'wrongKind' | 'outOfRange' | 'invariantNotAuthorable' | 'invalidFlow' | 'invalidPalette' | 'invalidGame' | 'missingAsset' | 'invalidAsset' | 'offPalette' | 'duplicateMessageKey' | 'staleTranslation' | 'staleArtifact' | 'reservedKey' | 'simReference' | 'skippedFile';
+type DiagnosticCode = 'invalidToml' | 'invalidType' | 'missingField' | 'unknownField' | 'invalidId' | 'unknownReference' | 'wrongKind' | 'outOfRange' | 'invariantNotAuthorable' | 'invalidFlow' | 'invalidPalette' | 'invalidGame' | 'missingAsset' | 'invalidAsset' | 'offPalette' | 'missingGlyph' | 'duplicateMessageKey' | 'staleTranslation' | 'staleArtifact' | 'reservedKey' | 'simReference' | 'skippedFile';
 ```
 
 ### `FlowCapabilities` (interface)
@@ -283,6 +284,16 @@ type MessageCatalog = Readonly<Record<string, string>>;
 
 ```ts
 function messageKey(kind: string, id: string | undefined, path: DataPath): string;
+```
+
+### `MessageLocation` (interface)
+
+```ts
+interface MessageLocation {
+    readonly file: string;
+    readonly line: number;
+    readonly column: number;
+}
 ```
 
 ### `Palette` (interface)
@@ -423,6 +434,45 @@ interface AtlasOutputs {
 const buildAtlases: (root: string) => Effect.Effect<AtlasOutputs, ContentCompileFailed>;
 ```
 
+### `buildFonts` (const)
+
+```ts
+const buildFonts: (options: ContentOptions) => Effect.Effect<FontOutputs, ContentCompileFailed | InvalidContentConfig>;
+```
+
+### `fontCoverage` (function)
+
+```ts
+function fontCoverage(font: Uint8Array): (character: string) => boolean;
+```
+
+### `FontOutputs` (interface)
+
+```ts
+interface FontOutputs {
+    readonly files: ReadonlyMap<string, Uint8Array>;
+}
+```
+
+### `FontsFile` (interface)
+
+```ts
+interface FontsFile {
+    readonly font: Readonly<Record<string, FontSource>>;
+}
+```
+
+### `FontSource` (interface)
+
+```ts
+interface FontSource {
+    readonly file: string;
+    readonly sha256: string;
+    readonly license: string;
+    readonly locales: readonly string[];
+}
+```
+
 ### `FrameSize` (interface)
 
 ```ts
@@ -459,6 +509,12 @@ interface Placement {
     readonly width: number;
     readonly height: number;
 }
+```
+
+### `subsetWoff2` (function)
+
+```ts
+function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
 ```
 
 ## `./locale`

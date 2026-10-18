@@ -72,6 +72,11 @@ interface CompiledContent {
    * never inside it, so a translation edit moves neither hash. Paraglide and the glyph sets read these.
    */
   readonly catalogs: ReadonlyMap<string, MessageCatalog>;
+  /**
+   * Where each language's messages are written, in `languages` order: a source message at its text in the
+   * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these (M5.5).
+   */
+  readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>;
 }
 ```
 
@@ -253,7 +258,7 @@ interface Diagnostic {
 Stable codes. Tests and tools match on these, so a code is never renamed, only added.
 
 ```ts
-type DiagnosticCode = "invalidToml" | "invalidType" | "missingField" | "unknownField" | "invalidId" | "unknownReference" | "wrongKind" | "outOfRange" | "invariantNotAuthorable" | "invalidFlow" | "invalidPalette" | "invalidGame" | "missingAsset" | "invalidAsset" | "offPalette" | "duplicateMessageKey" | "staleTranslation" | "staleArtifact" | "reservedKey" | "simReference" | "skippedFile";
+type DiagnosticCode = "invalidToml" | "invalidType" | "missingField" | "unknownField" | "invalidId" | "unknownReference" | "wrongKind" | "outOfRange" | "invariantNotAuthorable" | "invalidFlow" | "invalidPalette" | "invalidGame" | "missingAsset" | "invalidAsset" | "offPalette" | "missingGlyph" | "duplicateMessageKey" | "staleTranslation" | "staleArtifact" | "reservedKey" | "simReference" | "skippedFile";
 ```
 
 #### `FlowCapabilities` (interface)
@@ -384,6 +389,18 @@ The message key of one text. `id` is absent for a single-document kind.
 
 ```ts
 function messageKey(kind: string, id: string | undefined, path: DataPath): string;
+```
+
+#### `MessageLocation` (interface)
+
+A message's place in its file, 1-based.
+
+```ts
+interface MessageLocation {
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+}
 ```
 
 #### `Palette` (interface)
@@ -572,6 +589,57 @@ there is nothing to build.
 const buildAtlases: (root: string) => Effect.Effect<AtlasOutputs, ContentCompileFailed>;
 ```
 
+#### `buildFonts` (const)
+
+Builds every subset `<root>/content/fonts.toml` names, or fails with every problem found. Without the file
+there is nothing to build, and the content is not compiled.
+
+```ts
+const buildFonts: (options: ContentOptions) => Effect.Effect<FontOutputs, ContentCompileFailed | InvalidContentConfig>;
+```
+
+#### `fontCoverage` (function)
+
+Whether a font file (TrueType, OpenType, woff or woff2) has a glyph for each character.
+
+```ts
+function fontCoverage(font: Uint8Array): (character: string) => boolean;
+```
+
+#### `FontOutputs` (interface)
+
+What `buildFonts` produces; the caller writes it.
+
+```ts
+interface FontOutputs {
+  /** `<font>-<locale>-<hash8>.woff2` and `fonts.json` (`{ font: { locale: file } }`), sorted by name. */
+  readonly files: ReadonlyMap<string, Uint8Array>;
+}
+```
+
+#### `FontsFile` (interface)
+
+`content/fonts.toml`: each source font by name.
+
+```ts
+interface FontsFile {
+  readonly font: Readonly<Record<string, FontSource>>;
+}
+```
+
+#### `FontSource` (interface)
+
+One source font: its committed file, the sha256 of its bytes, its licence and the languages it serves.
+
+```ts
+interface FontSource {
+  readonly file: string;
+  readonly sha256: string;
+  readonly license: string;
+  readonly locales: readonly string[];
+}
+```
+
 #### `FrameSize` (interface)
 
 A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
@@ -618,6 +686,14 @@ interface Placement {
   readonly width: number;
   readonly height: number;
 }
+```
+
+#### `subsetWoff2` (function)
+
+The font cut to `characters`, as woff2. A character the font lacks is simply not in the subset.
+
+```ts
+function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
 ```
 
 ### `import { … } from '@mcthaydt/automata-content/locale'`

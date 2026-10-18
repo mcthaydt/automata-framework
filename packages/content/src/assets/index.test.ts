@@ -3,17 +3,20 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import * as assets from './index'
 
-// `@mcthaydt/automata-content/assets` (M5.6): the atlas build, on its own entry so `pngjs` stays out of any
-// browser graph that imports the content package's root.
+// `@mcthaydt/automata-content/assets` (M5.6, M5.5): the atlas and font builds, on their own entry so `pngjs`,
+// `subset-font` and `fontkit` stay out of any browser graph that imports the content package's root.
 describe('the assets entry', () => {
-  it('exports the atlas build and the packer', () => {
+  it('exports the atlas build, the packer, the font build and its subset and coverage functions', () => {
     expect(Object.keys(assets).sort()).toEqual([
       'ATLAS_EXTRUDE',
       'ATLAS_PADDING',
       'ATLAS_PAGE_MAX',
       'AtlasFrameTooLarge',
       'buildAtlases',
+      'buildFonts',
+      'fontCoverage',
       'packFrames',
+      'subsetWoff2',
     ])
   })
 

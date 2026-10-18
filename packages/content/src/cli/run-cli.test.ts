@@ -48,6 +48,20 @@ function withAtlas(root: string, rgba: readonly number[]): string {
   return root
 }
 
+const FONT = join(import.meta.dirname, '../assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2')
+const FONT_SHA256 = 'd830612ac9131788ebae754b9268f83f7c1d3ffa9bc0f9a5514207a8283fe71e'
+
+/** Adds `content/fonts.toml` and the Latin fixture font, serving both content languages, to a project. */
+function withFont(root: string): string {
+  mkdirSync(join(root, 'fonts'))
+  cpSync(FONT, join(root, 'fonts/pixel.woff2'))
+  writeFileSync(
+    join(root, 'content/fonts.toml'),
+    `[font.pixel]\nfile = "fonts/pixel.woff2"\nsha256 = "${FONT_SHA256}"\nlicense = "OFL-1.1"\nlocales = ["en", "fr"]\n`,
+  )
+  return root
+}
+
 async function cli(root: string, ...argv: string[]): Promise<{ code: number; out: string[]; err: string[] }> {
   const out: string[] = []
   const err: string[] = []
@@ -131,7 +145,7 @@ describe('runCli', () => {
   it('assets writes the atlases under the output folder', async () => {
     const root = withAtlas(project(), [255, 0, 64, 255])
     const result = await cli(root, 'assets')
-    expect(result).toEqual({ code: 0, out: ['atlases 2 files'], err: [] })
+    expect(result).toEqual({ code: 0, out: ['atlases 2 files, fonts 0 files'], err: [] })
     expect(readFileSync(generated(root, 'atlases/wick-0.png')).subarray(1, 4).toString()).toBe('PNG')
     expect(JSON.parse(readFileSync(generated(root, 'atlases/wick-0.json'), 'utf8')).meta.image).toBe(
       'wick-0.png',
@@ -145,6 +159,32 @@ describe('runCli', () => {
     expect(result.code).toBe(1)
     expect(result.err).toEqual(['art/wick/run.png:1:1  offPalette: pixel 0,0 is #123456, not a two colour'])
     expect(existsSync(generated(root, 'atlases'))).toBe(false)
+  }, 90_000)
+
+  it('assets writes each font subset and fonts.json under the output folder', async () => {
+    const root = withFont(project())
+    const result = await cli(root, 'assets')
+    expect(result).toEqual({ code: 0, out: ['atlases 0 files, fonts 3 files'], err: [] })
+    const fonts = JSON.parse(readFileSync(generated(root, 'fonts/fonts.json'), 'utf8'))
+    expect(Object.keys(fonts.pixel)).toEqual(['en', 'fr'])
+    expect(
+      readFileSync(generated(root, `fonts/${fonts.pixel.fr}`))
+        .subarray(0, 4)
+        .toString(),
+    ).toBe('wOF2')
+  }, 90_000)
+
+  it('assets exits 1 on a missing glyph, printing the diagnostic and writing no atlas or font', async () => {
+    const root = withFont(withAtlas(project(), [255, 0, 64, 255]))
+    const fr = join(root, 'content/messages/fr.json')
+    writeFileSync(fr, readFileSync(fr, 'utf8').replace('"Aube"', '"Aube 日"'))
+    const result = await cli(root, 'assets')
+    expect(result.code).toBe(1)
+    expect(result.err).toEqual([
+      'content/messages/fr.json:10:3  content_stage_dawn_display_name  missingGlyph: U+65E5 "日" is not in the fr subset of pixel',
+    ])
+    expect(existsSync(generated(root, 'atlases'))).toBe(false)
+    expect(existsSync(generated(root, 'fonts'))).toBe(false)
   }, 90_000)
 
   it.each([[['watch']], [['build', '--verify-artifact']], [[]]])(

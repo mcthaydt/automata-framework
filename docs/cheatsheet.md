@@ -39,6 +39,7 @@
 - `localized()`: Text a player reads, written in the source language.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
 - `messageKey(kind, id, path)`: The message key of one text.
+- `MessageLocation` (interface): A message's place in its file, 1-based.
 - `Palette` (interface)
 - `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
 - `PreloadInput` (interface)
@@ -61,10 +62,16 @@
 - `AtlasFrameTooLarge` (class): A frame that cannot fit a page even alone.
 - `AtlasOutputs` (interface): What `buildAtlases` produces; the caller writes it.
 - `buildAtlases` (const): Builds every atlas `<root>/content/atlases.toml` names, or fails with every problem found.
+- `buildFonts` (const): Builds every subset `<root>/content/fonts.toml` names, or fails with every problem found.
+- `fontCoverage(font)`: Whether a font file (TrueType, OpenType, woff or woff2) has a glyph for each character.
+- `FontOutputs` (interface): What `buildFonts` produces; the caller writes it.
+- `FontsFile` (interface): `content/fonts.toml`: each source font by name.
+- `FontSource` (interface): One source font: its committed file, the sha256 of its bytes, its licence and the languages it serves.
 - `FrameSize` (interface): A frame to pack: its name (the PNG's file name without `.png`) and size in pixels.
 - `PackedAtlas` (interface): Every frame's placement, and the pages they fill.
 - `packFrames(frames)`: Packs `frames` into atlas pages.
 - `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
+- `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
 
 ### `import { … } from '@mcthaydt/automata-content/locale'`
 

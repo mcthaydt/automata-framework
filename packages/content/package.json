@@ -58,8 +58,10 @@
     "@inlang/plugin-message-format": "4.4.4",
     "@mcthaydt/automata-sim": "workspace:*",
     "effect": "3.22.2",
+    "fontkit": "2.0.4",
     "pngjs": "7.0.0",
     "smol-toml": "1.9.0",
+    "subset-font": "2.9.0",
     "zod": "4.6.5"
   },
   "peerDependencies": {
@@ -67,6 +69,7 @@
   },
   "devDependencies": {
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
+    "@types/fontkit": "2.0.9",
     "@types/node": "24.19.1",
     "@types/pngjs": "6.0.5",
     "@vitest/browser-playwright": "5.0.3",
