@@ -15,6 +15,8 @@ export const PRIMITIVE_SHOWS = [
   'modal',
   'sheet',
   'toast',
+  'leaderboard',
+  'leaderboard-offline',
 ] as const
 export type PrimitiveShow = (typeof PRIMITIVE_SHOWS)[number]
 </script>
@@ -32,6 +34,8 @@ import PagerDots from '../layout/PagerDots.svelte'
 import ScreenFrame from '../layout/ScreenFrame.svelte'
 import Split from '../layout/Split.svelte'
 import Chip from '../status/Chip.svelte'
+import LeaderboardPanel from '../status/LeaderboardPanel.svelte'
+import type { LeaderboardCopy } from '../status/leaderboard-panel'
 import Toast from '../status/Toast.svelte'
 
 const { show }: { show: PrimitiveShow } = $props()
@@ -43,6 +47,21 @@ const OPTIONS = ['low', 'medium', 'high'].map((value) => ({
 }))
 const tiles = (from: number, count: number) =>
   Array.from({ length: count }, (_, i) => ({ id: String(from + i), name: `Level ${from + i + 1}` }))
+const BOARD_COPY: LeaderboardCopy = {
+  title: 'Best runs',
+  loading: 'Loading scores…',
+  empty: 'No scores yet',
+  unavailable: "Scores aren't available here",
+  offline: "You're offline",
+  you: 'You',
+  more: (count) => `+${count} more`,
+}
+const BOARD = Array.from({ length: 12 }, (_, i) => ({
+  rank: i + 1,
+  displayName: ['Kite', 'Ash', 'Moss', 'Wren'][i % 4] ?? 'Kite',
+  score: 1000 - i * 37,
+  isMe: i === 4,
+}))
 const GROUPS = [
   { id: 'forest', title: 'Forest', items: tiles(0, 18) },
   { id: 'caves', title: 'Caves', items: tiles(18, 12) },
@@ -98,6 +117,16 @@ const GROUPS = [
         <Chip text="Saved" tone="success" toneLabel="Done" />
         <Chip text="Offline" tone="danger" toneLabel="Problem" testId="chip-danger" />
       </div>
+    {:else if show === 'leaderboard' || show === 'leaderboard-offline'}
+      <LeaderboardPanel
+        view={show === 'leaderboard' ? { state: 'entries', entries: BOARD } : { state: 'offline' }}
+        copy={BOARD_COPY}
+        testId={show}
+      >
+        {#snippet actions()}
+          <Button kind="primary" testId={`${show}-back`}>{#snippet children()}Back{/snippet}</Button>
+        {/snippet}
+      </LeaderboardPanel>
     {:else}
       <p style="margin: 0">Choose a level</p>
     {/if}

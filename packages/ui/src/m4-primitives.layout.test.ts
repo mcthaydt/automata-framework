@@ -57,6 +57,9 @@ function essentials(show: PrimitiveShow, keyboard: boolean): HTMLElement[] {
       ]
     case 'toast':
       return []
+    case 'leaderboard':
+    case 'leaderboard-offline':
+      return [byTestId(`${show}-back`)]
   }
 }
 
