@@ -5,7 +5,7 @@
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
 - **Status:** Implemented 2026-10-18; local gates not yet green (step 11, below). Handed off at a session refresh.
-- **Progress:** 10 of 11 steps.
+- **Progress:** 11 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -199,7 +199,8 @@ Each step starts with its test, run red, with the failure reason recorded. The p
 - [x] **10. The HUD layer** (`default-screens.test.ts`).
   - *Red:* an extension's `hud.overlay` component renders on play, inside the frame, and is gone on paused.
   - *Done: the first version of the test passed with no code, because `hud()?.closest(…)` is undefined and passes `not.toBeNull()`. The test now asserts the component exists first, and was red (null), then green; game unit 118 of 118. `ScreensGame.extensions` is added here too, the same field M4.4's branch adds (#87); whichever merges second resolves the one-line conflict.*
-- [ ] **11. E2E, exports, reports, gates and records.**
+- [x] **11. E2E, exports, reports, gates and records.**
+  - *Done 2026-10-18 after merging main (M4.4, f62d0c0): pnpm check 30 of 30, CI extras, pnpm test:parity 12 of 12, CI=1 pnpm test:e2e 111 passed and 2 skipped, prepare-ruken for placeholder and base-2d, all green. Also fixed while taking the Owner's screenshots: the rotate hint sets its words on a panel (92fc4f9; red, then green). Screenshots in docs/evidence/owner-visual/2026-10-18/.*
   - *E2E (fake host, `core-input-touch`), new `examples/e2e/display-policy.e2e.ts`:*
     - **D-b:** the host moves `hostReserved` from right to left mid-play. The touch buttons move with it, and the screen instance is the same (a marker set on it survives).
     - **D-c:** a simulated visual-viewport inset keeps `data-form-factor` and the screen instance.
