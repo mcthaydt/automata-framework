@@ -13,6 +13,7 @@ import {
   Dialog,
   type GeometryState,
   IconButton,
+  LeaderboardPanel,
   LoaderOverlay,
   Modal,
   OptionGroup,
@@ -40,10 +41,36 @@ const { primitive, geometry, strip, keyboard }: Props = $props()
 const arrangement = $derived(geometry.current.formFactor.endsWith('portrait') ? 'stack' : 'split')
 const keyboardHeight = $derived(geometry.current.visualInsetBottom > 0 ? keyboard() : 0)
 
+// A board as the host returns it: the player is fifth, so the panel's "you" row sits mid-list.
+const BOARD = ['Kite', 'Ash', 'Moss', 'Wren', 'You', 'Fern', 'Pip', 'Juno', 'Rook', 'Sol'].map(
+  (displayName, i) => ({
+    rank: i + 1,
+    displayName,
+    score: 9_400 - i * 610,
+    isMe: i === 4,
+  }),
+)
+const BOARD_COPY = {
+  title: 'Best runs',
+  loading: 'Loading scores…',
+  empty: 'No scores yet',
+  unavailable: "Scores aren't available here",
+  offline: "You're offline",
+  you: 'You',
+  more: (count: number) => `+${count} more`,
+}
 const LEVELS = ['Mossy Steps', 'Bubble Cave', 'Summit Wind', 'Lantern Lake', 'Old Tower', 'Star Garden']
 const none = (): void => undefined
 const OVERLAID: readonly Primitive[] = ['modal', 'sheet', 'toast']
-const IN_FRAME: readonly Primitive[] = ['split', 'options', 'pager', 'paged-grid', 'controls', 'chip']
+const IN_FRAME: readonly Primitive[] = [
+  'split',
+  'options',
+  'pager',
+  'paged-grid',
+  'controls',
+  'chip',
+  'leaderboard',
+]
 
 // The demo owns the state a game's screen would, so the controls answer a player.
 let quality = $state<string | undefined>('medium')
@@ -132,6 +159,10 @@ const barActions: BarAction[] = [
             <Chip text="Low battery" tone="warning" toneLabel="Warning" />
             <Chip text="Offline" tone="danger" toneLabel="Problem" />
           </div>
+        {:else if primitive === 'leaderboard'}
+          <LeaderboardPanel view={{ state: 'entries', entries: BOARD }} copy={BOARD_COPY}>
+            {#snippet actions()}<Button kind="primary">{#snippet children()}Play again{/snippet}</Button>{/snippet}
+          </LeaderboardPanel>
         {:else}
           <p>Choose a level</p>
         {/if}

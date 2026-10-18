@@ -15,6 +15,7 @@ test.each([
   'ActionBar',
   'ScrollList',
   'Dialog',
+  'LeaderboardPanel',
   'LoaderOverlay',
   'ErrorPanel',
   'BootFailurePanel',

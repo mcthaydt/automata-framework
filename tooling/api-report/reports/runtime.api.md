@@ -188,6 +188,53 @@ interface AuthoritativeSnapshot {
 }
 ```
 
+### `BoardEntry` (type)
+
+```ts
+type BoardEntry = Effect.Effect.Success<ReturnType<HostingLeaderboards['get']>>['entries'][number];
+```
+
+### `BoardQuery` (type)
+
+```ts
+type BoardQuery = NonNullable<Parameters<HostingLeaderboards['get']>[1]>;
+```
+
+### `BoardState` (type)
+
+```ts
+type BoardState = {
+    readonly state: 'idle';
+} | {
+    readonly state: 'submitting';
+} | {
+    readonly state: 'accepted';
+    readonly personalBest: number;
+    readonly rank?: number;
+} | {
+    readonly state: 'refused';
+} | {
+    readonly state: 'unavailable';
+} | {
+    readonly state: 'offline';
+};
+```
+
+### `BoardView` (type)
+
+```ts
+type BoardView = {
+    readonly state: 'entries';
+    readonly entries: readonly BoardEntry[];
+} | {
+    readonly state: 'empty';
+} | {
+    readonly state: 'unavailable';
+} | {
+    readonly state: 'offline';
+};
+```
+
 ### `BootDefect` (class)
 
 ```ts
@@ -251,6 +298,15 @@ interface DisplaySettings {
 const displaySettingsSchema: z.ZodType<DisplaySettings, {
     quality?: unknown;
 }>;
+```
+
+### `EventScores` (type)
+
+```ts
+type EventScores = Readonly<Record<string, {
+    readonly board: string;
+    readonly score: (payload: unknown) => number;
+}>>;
 ```
 
 ### `EventSounds` (type)
@@ -329,6 +385,7 @@ interface GameDefinition<S = never> {
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
     readonly sounds?: EventSounds | undefined;
+    readonly scores?: EventScores | undefined;
     readonly copy?: Partial<BootFailureCopy> & {
         readonly loading?: string;
         readonly slow?: string;
@@ -482,6 +539,17 @@ interface InputProfileInput {
 const inputProfileSchema: z.ZodType<InputProfile, InputProfileInput>;
 ```
 
+### `Leaderboards` (interface)
+
+```ts
+interface Leaderboards<Board extends string = string> {
+    submitScore(board: Board, score: number): Effect.Effect<BoardState>;
+    readBoard(board: Board, query?: BoardQuery): Effect.Effect<BoardView>;
+    state(board: Board): BoardState;
+}
+const Leaderboards: Context.Tag<Leaderboards, Leaderboards>;
+```
+
 ### `Loaded` (interface)
 
 ```ts
@@ -562,6 +630,12 @@ const makeAudio: (options: AudioServices & AudioOptions) => Effect.Effect<Audio 
 
 ```ts
 function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope>;
+```
+
+### `makeLeaderboards` (const)
+
+```ts
+const makeLeaderboards: Effect.Effect<Leaderboards, never, Hosting | PresentationBus>;
 ```
 
 ### `matchLocale` (function)
@@ -777,6 +851,10 @@ interface RuntimeFacts {
         readonly key: string;
         readonly slot: number;
     };
+    readonly 'leaderboard.submitted': {
+        readonly board: string;
+        readonly state: BoardState;
+    };
 }
 ```
 
@@ -805,7 +883,7 @@ interface RuntimeSeams {
 ### `RuntimeServices` (type)
 
 ```ts
-type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses;
+type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses | Leaderboards;
 ```
 
 ### `Save` (interface)

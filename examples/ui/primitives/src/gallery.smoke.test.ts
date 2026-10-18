@@ -54,6 +54,7 @@ describe('ui/primitives demo', () => {
     ['modal', '[data-modal-close]'],
     ['sheet', '[data-modal-scrim][data-anchor="bottom"]'],
     ['toast', '[data-toast]'],
+    ['leaderboard', '[data-leaderboard] [data-entry][data-me]'],
   ] as const)('draws the M4.6 primitive %s', async (primitive, part) => {
     expect(PRIMITIVES).toContain(primitive)
     const problems = consoleProblems()

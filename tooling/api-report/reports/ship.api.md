@@ -4,6 +4,22 @@
 
 ## `.`
 
+### `BoardName` (interface)
+
+```ts
+interface BoardName {
+    readonly board: string;
+    readonly line: number;
+    readonly col: number;
+}
+```
+
+### `boardNamesIn` (function)
+
+```ts
+function boardNamesIn(file: string, code: string): BoardName[] | undefined;
+```
+
 ### `BUILD_ID_PATTERN` (const)
 
 ```ts
@@ -29,6 +45,12 @@ function checkManifest(toml: string): Effect.Effect<Manifest, ManifestInvalid>;
 
 ```ts
 function checkVersion(version: string, tag: string | undefined): string | undefined;
+```
+
+### `declaredBoardsIn` (function)
+
+```ts
+function declaredBoardsIn(code: string): string[] | undefined;
 ```
 
 ### `defineShipConfig` (function)
@@ -111,10 +133,22 @@ function findRootAbsoluteReferences(distDir: string): RootAbsoluteReferenceFound
 function findSecretsInBuild(distDir: string, envValues: readonly EnvValue[]): SecretFound[];
 ```
 
+### `findUndeclaredBoards` (function)
+
+```ts
+function findUndeclaredBoards(gameDir: string, declared: readonly string[]): UndeclaredBoardFound[];
+```
+
 ### `inputsProblems` (function)
 
 ```ts
 function inputsProblems(inputs: readonly string[], bindings: ShipInputBindings): string[];
+```
+
+### `isBoardSource` (const)
+
+```ts
+const isBoardSource: (file: string) => boolean;
 ```
 
 ### `ManifestInputsMismatch` (class)
@@ -358,6 +392,25 @@ interface TestRemoteInput {
 
 ```ts
 type TestRemoteReason = 'usage' | 'detached' | 'uncommitted' | 'push' | 'dispatch' | 'no-run' | 'no-runner' | 'timeout' | 'gh-unavailable' | 'red';
+```
+
+### `UndeclaredBoard` (class)
+
+```ts
+class UndeclaredBoard extends UndeclaredBoardBase {
+    get message(): string;
+}
+```
+
+### `UndeclaredBoardFound` (interface)
+
+```ts
+interface UndeclaredBoardFound {
+    readonly board: string;
+    readonly file: string;
+    readonly line: number;
+    readonly col: number;
+}
 ```
 
 ### `VersionMismatch` (class)

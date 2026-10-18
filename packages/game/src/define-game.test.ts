@@ -109,6 +109,21 @@ describe('defineGame validation (DX spec §5 step 1, §6)', () => {
     expect(defineGame({ ...spec, sounds }).sounds).toEqual(sounds)
   })
 
+  it('refuses a score for an event no plugin defines (M5.7)', () => {
+    expect(problemsOf({ ...spec, scores: { ghost: { board: 'best', score: () => 1 } } })).toContain(
+      'scores.ghost:',
+    )
+  })
+
+  it('hands the scores to the runtime and asks the host for leaderboards, once (M5.7)', () => {
+    const scores = { [Chime.id]: { board: 'best', score: () => 1 } }
+    const game = defineGame({ ...spec, scores, hosting: { wants: ['saves', 'leaderboards'] } })
+    expect(game.scores).toEqual(scores)
+    expect(game.hosting.wants).toEqual(['saves', 'leaderboards'])
+    expect(defineGame({ ...spec, scores }).hosting.wants).toEqual(['leaderboards'])
+    expect(defineGame(spec).hosting.wants).toEqual([])
+  })
+
   it('accepts a view for a drawn component', () => {
     expect(() => defineGame({ ...spec, views: { [Body.id]: rect({ w: 1, h: 1, color: 0 }) } })).not.toThrow()
   })

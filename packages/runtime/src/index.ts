@@ -75,6 +75,15 @@ export {
   touchModesFor,
 } from './input/input-profile.schema.js'
 export type { MenuAction } from './input/menu-actions.js'
+export type { BoardState } from './leaderboards/board-state.js'
+export type { EventScores } from './leaderboards/event-scores.js'
+export {
+  type BoardEntry,
+  type BoardQuery,
+  type BoardView,
+  Leaderboards,
+  makeLeaderboards,
+} from './leaderboards/leaderboards.manager.js'
 export { Assets } from './loading/assets.manager.js'
 export {
   type LoadMeter,

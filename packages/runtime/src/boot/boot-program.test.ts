@@ -10,6 +10,7 @@ import { Audio } from '../audio/audio.manager.js'
 import { AudioBuses } from '../audio/audio-buses.js'
 import { type FakeAudioContext, fakeAudioContext } from '../audio/testing/fake-audio-context.js'
 import type { ScreenDef } from '../flow/screen.js'
+import { Leaderboards } from '../leaderboards/leaderboards.manager.js'
 import { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { RenderTarget } from '../render/renderer.js'
 import { fakeFetch } from '../testing/fake-fetch.js'
@@ -914,5 +915,62 @@ describe('bootProgram', () => {
 
       yield* Scope.close(scope, Exit.void)
       expect(contexts[0]?.closed).toBe(true)
+    }).pipe(Effect.runPromise))
+  it('provides Leaderboards to screens and submits the game scores for sim events (M5.7)', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      let fakeHost: FakeHost | undefined
+      const seen: { boards?: Leaderboards; bus?: PresentationBus } = {}
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            seen.boards = yield* Leaderboards
+            seen.bus = yield* PresentationBus
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: ['leaderboards'], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        scores: { finished: { board: 'best', score: (payload) => (payload as { ticks: number }).ticks } },
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          createAudioContext: () => fakeAudioContext(),
+          sdkEnv: () => {
+            fakeHost = createFakeHost({
+              gameOrigin: TEST_GAME_ORIGIN,
+              gameId: 'test-game',
+              clock: realClock,
+              grant: ['leaderboards'],
+            })
+            return fakeHost.gameEnv!
+          },
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      expect(seen.boards).toBeDefined()
+
+      seen.bus!.publish('sim.events', [{ type: 'finished', payload: { ticks: 300 } }])
+      yield* Effect.promise(() => settle(4))
+      expect(fakeHost!.fakes.leaderboards.submits).toEqual([{ board: 'best', score: 300 }])
+      expect(seen.boards!.state('best')).toEqual({ state: 'accepted', personalBest: 300, rank: 1 })
+
+      yield* Scope.close(scope, Exit.void)
     }).pipe(Effect.runPromise))
 })

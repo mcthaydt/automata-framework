@@ -267,6 +267,7 @@ interface GameSpec<S = never> {
     readonly input?: InputMap;
     readonly views?: Readonly<Record<string, EntityViewFactory>>;
     readonly sounds?: EventSounds;
+    readonly scores?: EventScores;
     readonly content?: {
         readonly data: CompiledContentData;
         readonly hash: string;
@@ -402,6 +403,7 @@ interface ScreensGame {
     };
     readonly input?: InputMap | undefined;
     readonly watchSim?: ((sim: Sim | undefined) => void) | undefined;
+    readonly board?: string | undefined;
 }
 ```
 

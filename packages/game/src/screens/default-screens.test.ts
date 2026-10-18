@@ -9,6 +9,7 @@ import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-r
 import {
   defineCommand,
   defineComponent,
+  defineEvent,
   definePlugin,
   defineSystem,
   type Sim,
@@ -165,6 +166,33 @@ describe('default screens', () => {
     await toPlay()
     button('pause')?.click()
     await until(() => screen('paused') !== null, 'the paused screen')
+  })
+
+  // M5.7: a game with scores shows its first board on paused. Standalone there is no host board, so the panel says
+  // so in words, and never shows a board kept here.
+  it('shows the first scored board on paused when the game has scores, and none without (M5.7)', async () => {
+    const Done = defineEvent('done', z.object({ score: z.number() }))
+    const scoring = definePlugin({ name: 'scoring', defs: [Done] })
+    await boot({
+      sim: { plugins: [square, scoring], seed: 3, setup: (sim) => sims.push(sim) },
+      scores: { [Done.id]: { board: 'best', score: (payload) => Done.schema.parse(payload).score } },
+    })
+    await toPlay()
+    press('Escape')
+    await until(() => screen('paused') !== null, 'the paused screen')
+    await until(
+      () => root.querySelector('[data-leaderboard]')?.getAttribute('data-state') === 'unavailable',
+      'the unavailable board',
+    )
+    expect(root.querySelector('[data-leaderboard]')?.textContent).toContain("Scores aren't available here")
+  })
+
+  it('shows no board on paused for a game without scores', async () => {
+    await boot()
+    await toPlay()
+    press('Escape')
+    await until(() => screen('paused') !== null, 'the paused screen')
+    expect(root.querySelector('[data-leaderboard]')).toBeNull()
   })
 
   it('the host’s menu request opens paused', async () => {
