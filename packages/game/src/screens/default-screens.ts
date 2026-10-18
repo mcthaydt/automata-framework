@@ -21,7 +21,16 @@ import { Effect, SubscriptionRef } from 'effect'
 import type { InputMap } from '../input/keys.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
-import { backGesture, driveMenu, listen, NO_BINDINGS, plain, show, windowOf } from './screen-kit.ts'
+import {
+  backGesture,
+  driveMenu,
+  hostInput,
+  listen,
+  NO_BINDINGS,
+  plain,
+  show,
+  windowOf,
+} from './screen-kit.ts'
 import { settingsScreen } from './settings-screen.svelte.ts'
 import TitleScreen from './TitleScreen.svelte'
 
@@ -141,7 +150,13 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const bus = yield* PresentationBus
         // The player's bindings and touch mode, from the settings (M4.4).
         const { store } = yield* Settings
-        const input = yield* makeInput({ target, profile: map?.profile ?? NO_BINDINGS, bus, settings: store })
+        const input = yield* makeInput({
+          target,
+          profile: map?.profile ?? NO_BINDINGS,
+          bus,
+          settings: store,
+          hostInput: yield* hostInput,
+        })
         const touchMode = inputSettingsSchema.parse(asRecord(store?.get()).input).touchMode ?? map?.touchMode
         const running = current
         game.watchSim?.(running)

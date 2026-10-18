@@ -101,3 +101,9 @@ export const windowOf = (layer: HTMLElement): Window => layer.ownerDocument.defa
 /** A plain key press, not one held down repeating, nor one with a modifier the browser may own. */
 export const plain = (event: KeyboardEvent): boolean =>
   !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey
+
+/** The host's input mode for the screens' Input (M4 spec §4.2): under Ruken only; standalone the page decides. */
+export const hostInput: Effect.Effect<Hosting['input'] | undefined, never, Hosting> = Effect.map(
+  Hosting,
+  (hosting) => (hosting.kind === 'standalone' ? undefined : hosting.input),
+)

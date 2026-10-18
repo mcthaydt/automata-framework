@@ -28,7 +28,7 @@ import {
 import { Effect, Either, Fiber, Runtime, Schedule, SubscriptionRef } from 'effect'
 import type { ScreensGame } from './default-screens.ts'
 import SettingsView from './SettingsView.svelte'
-import { backGesture, driveMenu, listen, NO_BINDINGS, show, windowOf } from './screen-kit.ts'
+import { backGesture, driveMenu, hostInput, listen, NO_BINDINGS, show, windowOf } from './screen-kit.ts'
 import type { SettingsViewState } from './settings-view.ts'
 
 const asRecord = (value: unknown): Record<string, unknown> =>
@@ -62,7 +62,13 @@ export function settingsScreen(game: ScreensGame): ScreenDef {
         const target = windowOf(layer)
         const map = game.input
 
-        const input = yield* makeInput({ target, profile: map?.profile ?? NO_BINDINGS, bus, settings: store })
+        const input = yield* makeInput({
+          target,
+          profile: map?.profile ?? NO_BINDINGS,
+          bus,
+          settings: store,
+          hostInput: yield* hostInput,
+        })
         input.setContext('menu')
         const savedInput = () => inputSettingsSchema.parse(asRecord(store?.get()).input)
         const savedQuality = (): DisplayQuality =>

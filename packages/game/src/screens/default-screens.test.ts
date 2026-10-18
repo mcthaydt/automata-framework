@@ -16,6 +16,7 @@ import {
   type Sim,
   type StepResult,
 } from '@mcthaydt/automata-sim'
+import { fakeGamepads } from '@mcthaydt/automata-testing/input'
 import { createFakeHost } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { flushSync } from 'svelte'
@@ -277,6 +278,41 @@ describe('default screens', () => {
       button('settings')?.click()
       await until(() => settingsScreen() !== null, 'the settings screen')
     }
+
+    it('under a host that reports an Xbox-layout pad, the controller prompts become Xbox’s (M4 spec §4.2)', async () => {
+      const pads = fakeGamepads()
+      pads.connect(0, { id: 'USB Gamepad (STANDARD GAMEPAD)' })
+      Object.defineProperty(navigator, 'getGamepads', { configurable: true, value: pads.getGamepads })
+      let host: ReturnType<typeof createFakeHost> | undefined
+      try {
+        await toSettings({
+          input: keys(Move, { ArrowRight: { x: 1 } }, { pad: { 0: { x: 1 } } }),
+          seams: {
+            frames,
+            fetch: fakeFetch({}).fetch,
+            sdkEnv: () => {
+              host = createFakeHost({
+                gameOrigin: TEST_GAME_ORIGIN,
+                gameId: 'screens-test',
+                clock: realClock,
+              })
+              if (host.gameEnv === undefined || host.gameEnv === null)
+                throw new Error('the fake host has no game environment')
+              return host.gameEnv
+            },
+          },
+        })
+        const padPrompt = () =>
+          row('move-0')?.querySelector('[data-rebind="gamepad"]')?.textContent?.trim() ??
+          'no controller column'
+        await until(() => padPrompt() !== 'no controller column', 'the controller column')
+        expect(padPrompt()).not.toBe('A')
+        host?.bridge.setInputMode({ mode: 'gamepad', gamepad: { layout: 'xbox', connected: true } })
+        await until(() => padPrompt() === 'A', 'the Xbox prompt')
+      } finally {
+        Reflect.deleteProperty(navigator, 'getGamepads')
+      }
+    })
 
     it('opens from paused; Back returns to paused with focus on Settings (F-b)', async () => {
       await toSettings()

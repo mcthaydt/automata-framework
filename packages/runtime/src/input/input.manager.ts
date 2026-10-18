@@ -3,7 +3,8 @@
 // set let a keyup on the keyboard release a direction the controller still held, so each device keeps its own
 // sources and an action is held while any source on any device drives it. Edges ("pressed") never reach the sim:
 // `onPress` serves menus and the pause screen, and gameplay compares this tick's command with the last one's.
-import { Context, Duration, Effect, Either, type Scope, SubscriptionRef } from 'effect'
+import type { Hosting } from '@mcthaydt/automata-host'
+import { Context, Duration, Effect, Either, type Scope, Stream, SubscriptionRef } from 'effect'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { SettingsStore } from '../settings/settings.manager.js'
 import { type InputSettings, inputSettingsSchema } from './bindings/input-settings.schema.js'
@@ -102,7 +103,12 @@ export interface InputOptions {
    * once and on every change, and `rebind` writes them. Without settings a rebind lasts for this Input only.
    */
   readonly settings?: SettingsStore<unknown> | undefined
+  /** Under a host, its input mode (`Hosting.input`): where the active device starts, and a pad it reports. */
+  readonly hostInput?: Hosting['input'] | undefined
 }
+
+/** What the host says the player is using (Ruken's `InputModePayload`, through `Hosting.input`). */
+export type HostInputMode = Effect.Effect.Success<Hosting['input']['get']>
 
 const CENTRED = { x: 0, y: 0 } as const
 const NO_DIRECTIONS: ReadonlySet<PadDirection> = new Set()
@@ -166,6 +172,28 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       bus.publish('input.device.changed', { device: next, glyphs, previous })
     }
     const use = (next: InputDevice): void => become(next)
+
+    // The host's input mode is a source of the active device too (M4 spec §4.2, §5 step 3): it sets the device the
+    // session starts on, and a pad it reports later becomes active, with the layout's glyphs (Ruken names only
+    // `xbox` and `other`, R-1). The last real input still wins.
+    const HOST_DEVICE = { touch: 'touch', 'keyboard-mouse': 'keyboard', gamepad: 'gamepad' } as const
+    const followHost = (payload: HostInputMode): void => {
+      const layout = payload.gamepad?.layout
+      become(
+        HOST_DEVICE[payload.mode],
+        layout === undefined ? current.glyphs : layout === 'xbox' ? 'xbox' : 'generic',
+      )
+    }
+    if (options.hostInput !== undefined) {
+      followHost(yield* options.hostInput.get)
+      // `changes` starts with the value at subscription, so a change made before the fiber subscribes is not lost;
+      // following the same value twice changes nothing.
+      yield* Stream.runForEach(options.hostInput.changes, (payload) =>
+        Effect.sync(() => {
+          if (payload.mode === 'gamepad') followHost(payload)
+        }),
+      ).pipe(Effect.forkScoped)
+    }
 
     const fire = (menu: readonly MenuAction[]): void => {
       for (const action of menu) {
