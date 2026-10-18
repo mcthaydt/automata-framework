@@ -305,3 +305,241 @@ for (const host of ['fake-ruken', 'standalone'] as const) {
     await journey(page, cell, host)
   })
 }
+
+// Host events (§9.1: desktop and phone portrait, Chromium, under the fake host). They run in the desktop keyboard and
+// phone-portrait touch cells, once each.
+const HOST_EVENT_CELLS = ['desktop-keyboard-chromium', 'phone-portrait-touch-chromium']
+const onlyIn = (info: TestInfo, ids: readonly string[]) =>
+  test.skip(!ids.includes(cellOf(info).id), `runs in ${ids.join(' and ')}`)
+
+/** Plays from the title by the cell's own device: a tap on a touch cell, Enter otherwise. */
+async function playFrom(frame: Frame, cell: MatrixCell): Promise<void> {
+  if (cell.device === 'touch') await frame.getByTestId('play').tap()
+  else await frame.locator('body').press('Enter')
+  await expect(frame.getByTestId('play-screen')).toBeVisible()
+  // A marker on the screen's element tells a remount: a new element would not carry it.
+  await frame.evaluate(() => {
+    ;(document.querySelector('[data-testid="play-screen"]') as HTMLElement).dataset.marker = 'first'
+  })
+}
+const marker = (frame: Frame) =>
+  frame.evaluate(
+    () => (document.querySelector('[data-testid="play-screen"]') as HTMLElement | null)?.dataset.marker,
+  )
+const bridge = (page: Page, call: 'setMetrics' | 'setInputMode', payload: unknown) =>
+  page.evaluate(
+    ({ call, payload }) =>
+      (window as unknown as { hostBridge: Record<string, (value: unknown) => void> }).hostBridge[call]?.(
+        payload,
+      ),
+    { call, payload },
+  )
+
+test.describe('host events', () => {
+  // Captures and settles in a software renderer, as the journeys.
+  test.beforeEach(() => test.setTimeout(240_000))
+  test('display.metrics moves the host’s strip from right to left mid-play; nothing remounts', async ({
+    page,
+  }, info) => {
+    onlyIn(info, HOST_EVENT_CELLS)
+    const cell = cellOf(info)
+    const errors = await collectErrors(page)
+    const frame = await open(page, 'fake-ruken', undefined)
+    await playFrom(frame, cell)
+    const { width, height } = cell.viewport
+    const strip = (edge: 'left' | 'right') => ({
+      safeArea: { top: 0, right: 0, bottom: 0, left: 0 },
+      hostReserved: { edge, rect: { x: edge === 'left' ? 0 : width - 72, y: 0, w: 72, h: height } },
+      orientation: width > height ? 'landscape' : 'portrait',
+      fullscreen: false,
+      scale: 1,
+    })
+    const pauseBox = () => frame.getByTestId('pause').boundingBox()
+    await bridge(page, 'setMetrics', strip('right'))
+    await expect.poll(async () => (await pauseBox())?.x ?? width).toBeLessThanOrEqual(width - 72 - 44)
+    await bridge(page, 'setMetrics', strip('left'))
+    await expect.poll(async () => (await pauseBox())?.x ?? 0).toBeGreaterThan(width - 72 - 44)
+    if (cell.device === 'touch') {
+      const buttons = await frame.getByTestId('touch-buttons').boundingBox()
+      expect(buttons?.x ?? 0).toBeGreaterThanOrEqual(72 - 0.5)
+    }
+    expect(await marker(frame)).toBe('first')
+    expect(errors).toEqual([])
+  })
+
+  test('input.mode reporting an Xbox-layout pad turns the controller prompts to Xbox’s', async ({
+    page,
+  }, info) => {
+    onlyIn(info, HOST_EVENT_CELLS)
+    const cell = cellOf(info)
+    const errors = await collectErrors(page)
+    // A pad whose id names no family: its prompts are the generic words until the host says otherwise.
+    const pad = await FakePad.install(page, { id: 'USB Gamepad (STANDARD GAMEPAD Vendor: 0079)' })
+    const frame = await open(page, 'fake-ruken', pad)
+    await playFrom(frame, cell)
+    if (cell.device === 'touch') await frame.getByTestId('pause').tap()
+    else await frame.locator('body').press('Escape')
+    await expect(frame.getByTestId('paused-screen')).toBeVisible()
+    await frame.getByTestId('settings').click()
+    const jumpOnPad = frame.locator(`[data-control-row="${JUMP}"] [data-rebind="gamepad"]`)
+    await expect(jumpOnPad).toBeVisible()
+    await expect(jumpOnPad).not.toHaveText('A')
+    await bridge(page, 'setInputMode', { mode: 'gamepad', gamepad: { layout: 'xbox', connected: true } })
+    await expect(jumpOnPad).toHaveText('A')
+    expect(errors).toEqual([])
+  })
+
+  test('going to the background releases a held key', async ({ page }, info) => {
+    onlyIn(info, HOST_EVENT_CELLS)
+    const errors = await collectErrors(page)
+    const frame = await open(page, 'fake-ruken', undefined)
+    await playFrom(frame, cellOf(info))
+    await frame.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+    // Right goes down and stays down (no keyup), and in the same task the page goes to the background and comes
+    // back, so no tick runs between: a slow renderer's gap would otherwise walk the runner off the stage.
+    await frame.evaluate(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowRight', key: 'ArrowRight' }))
+      for (const state of ['hidden', 'visible']) {
+        Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state })
+        document.dispatchEvent(new Event('visibilitychange'))
+      }
+    })
+    try {
+      // The background opens the pause menu (runtime lifecycle); back in play, the runner stays still although the
+      // key is still down, and it is still on the stage: a jump shows.
+      await expect(frame.getByTestId('paused-screen')).toBeVisible()
+      await frame.getByTestId('resume').click()
+      await expect(frame.getByTestId('play-screen')).toBeVisible()
+      await frame.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+      const stopped = await settled(frame)
+      await page.keyboard.down('Space')
+      await expect.poll(async () => (await shot(frame)).equals(stopped), { timeout: 60_000 }).toBe(false)
+      await page.keyboard.up('Space')
+    } finally {
+      await frame.evaluate(() => window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowRight' })))
+    }
+    expect(errors).toEqual([])
+  })
+
+  test('button 8 held reaches the host as a summon, and the game sees no action', async ({ page }, info) => {
+    onlyIn(info, HOST_EVENT_CELLS)
+    const errors = await collectErrors(page)
+    const pad = await FakePad.install(page)
+    const frame = await open(page, 'fake-ruken', pad)
+    await playFrom(frame, cellOf(info))
+    const before = await settled(frame)
+    const summons = () =>
+      page.evaluate(() =>
+        (window as unknown as { hostTrace: () => string[] })
+          .hostTrace()
+          .filter((type) => type === 'host.summon'),
+      )
+    await pad.press('select')
+    // Ruken's SDK polls every 50 ms and summons after 600 ms held.
+    await expect.poll(async () => (await summons()).length, { timeout: 10_000 }).toBe(1)
+    await pad.release('select')
+    await expect(frame.getByTestId('play-screen')).toBeVisible()
+    expect((await settled(frame)).equals(before)).toBe(true)
+    expect(errors).toEqual([])
+  })
+
+  test('a focused text field with the keyboard up keeps the form factor and the screen', async ({
+    page,
+  }, info) => {
+    onlyIn(info, HOST_EVENT_CELLS)
+    const errors = await collectErrors(page)
+    const frame = await open(page, 'fake-ruken', undefined)
+    await playFrom(frame, cellOf(info))
+    const formFactor = () => frame.evaluate(() => document.documentElement.dataset.formFactor)
+    const before = await formFactor()
+    // A game's own text field (a name entry), focused, and the keyboard over the lower part of the page.
+    await frame.evaluate(() => {
+      const field = document.createElement('input')
+      field.type = 'text'
+      field.setAttribute('aria-label', 'Name')
+      document.querySelector('[data-testid="play-screen"]')?.append(field)
+      field.focus()
+      Object.defineProperty(window, 'visualViewport', {
+        configurable: true,
+        get: () => ({
+          width: innerWidth,
+          height: innerHeight - 300,
+          offsetTop: 0,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }),
+      })
+      window.dispatchEvent(new Event('resize'))
+    })
+    await expect
+      .poll(() => frame.evaluate(() => document.documentElement.hasAttribute('data-visual-inset')))
+      .toBe(true)
+    expect(await formFactor()).toBe(before)
+    expect(await marker(frame)).toBe('first')
+    expect(errors).toEqual([])
+  })
+})
+
+// Failure cells (§9.1), in the desktop gamepad Chromium cell under the fake host.
+const FAILURE_CELL = ['desktop-gamepad-chromium']
+
+test.describe('failures', () => {
+  test.beforeEach(() => test.setTimeout(240_000))
+  test('the pad in use unplugged mid-play pauses with the reconnect message (M-b)', async ({
+    page,
+  }, info) => {
+    onlyIn(info, FAILURE_CELL)
+    const errors = await collectErrors(page)
+    const pad = await FakePad.install(page)
+    const frame = await open(page, 'fake-ruken', pad)
+    await pad.tap('south')
+    await expect(frame.getByTestId('play-screen')).toBeVisible()
+    // The pad is the device in use.
+    await pad.tap('dpadRight')
+    await pad.unplug()
+    await expect(frame.getByTestId('paused-screen')).toBeVisible()
+    await expect(frame.getByTestId('paused-screen')).toContainText('Reconnect your controller')
+    expect(errors).toEqual([])
+  })
+
+  test('a pad without the standard mapping is told once that it is not supported', async ({ page }, info) => {
+    onlyIn(info, FAILURE_CELL)
+    const errors = await collectErrors(page)
+    const pad = await FakePad.install(page, { mapping: '', id: 'Odd Pad' })
+    const frame = await open(page, 'fake-ruken', pad)
+    const toast = frame.getByTestId('pad-unsupported')
+    await expect(toast).toHaveText(/This controller isn’t supported yet/)
+    // It goes after a few seconds, and the same pad plugged in again is not told twice.
+    await expect(toast).toHaveCount(0, { timeout: 10_000 })
+    await pad.unplug()
+    await pad.connect()
+    await pad.frames(10)
+    await expect(toast).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('with saves refused, a rebind holds for the session', async ({ page }, info) => {
+    onlyIn(info, FAILURE_CELL)
+    const errors = await collectErrors(page)
+    // No capability granted: the host refuses the settings write.
+    const frame = await openHosted(page, URL, 'core-input-rebind', { grant: [] })
+    await frame.locator('body').press('Enter')
+    await expect(frame.getByTestId('play-screen')).toBeVisible()
+    await frame.locator('body').press('Escape')
+    await frame.getByTestId('settings').click()
+    await frame.locator(`[data-control-row="${JUMP}"] [data-rebind="keyboard"]`).click()
+    await frame.locator('body').press('KeyK')
+    await expect(frame.locator(`[data-control-row="${JUMP}"] [data-rebind="keyboard"]`)).toHaveText('K')
+    await frame.getByTestId('corner-back').click()
+    await frame.getByTestId('resume').click()
+    await expect(frame.getByTestId('play-screen')).toBeVisible()
+    await frame.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+    const landed = await settled(frame)
+    await page.keyboard.down('KeyK')
+    await expect.poll(async () => (await shot(frame)).equals(landed), { timeout: 60_000 }).toBe(false)
+    await page.keyboard.up('KeyK')
+    // What M4.4 left open (02 follow-up, "the Controls section's save-refused state"): the section cannot say the
+    // save was refused. Only the warning in the console says so; it is not an error.
+    expect(errors).toEqual([])
+  })
+})
