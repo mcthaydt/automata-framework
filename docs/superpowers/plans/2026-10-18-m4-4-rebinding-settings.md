@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 11 of 13 steps.
+- **Progress:** 12 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -280,11 +280,12 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - `SettingsScreen.sections` takes `{ snippet }` or `{ component }` (`SettingsSection`), so an extension's slot component renders as a section. A snippet array cannot hold a component.
     - The test focuses Settings before clicking it, as a real click or key press does (jsdom's `click()` does not); the flow remembers focus by `data-testid` (F-b).
     - No conflict case here: `keys()` cannot mark an action `required`. The runtime (`input-rebind.test.ts`) and the section (`controls-section.svelte.test.ts`) cover I-l.
-- [ ] **12. The example** (`examples/core/core-input-rebind.ts`, its golden, `examples/e2e/core-input-rebind.e2e.ts`).
+- [x] **12. The example** (`examples/core/core-input-rebind.ts`, its golden, `examples/e2e/core-input-rebind.e2e.ts`).
   - *Red:* the golden is missing. Record it in Node with `AUTOMATA_UPDATE_GOLDENS=1`, as a new file.
   - *E2E, fake host:*
     - **I-h:** pause, Settings, jump's keyboard button, press `K`; the saved state shows. Reload the game frame, and the row's prompt shows `K` with `K` jumping in play.
     - **I-i:** rebinding fire's key to jump's key leaves fire "Unbound".
+  - *Done: the golden red as missing, recorded in Node with `AUTOMATA_UPDATE_GOLDENS=1` (a new file; no existing golden changed), and the node replay 11 of 11. `core-input-rebind.e2e.ts` passed 4 of 4 (`examples` and `examples-compact`) on its first run, Escape cancelling a capture (I-k) included. The reload is the game frame's own (`location.reload()`), and the fake host keeps the saves. Play's use of the new key is covered by the game unit test (I-h), not the E2E.*
 - [ ] **13. Exports, reports, gates and records.**
   - *Regenerate,* in order: `pnpm build`, `pnpm api-report --update`, `pnpm cheatsheet`, `pnpm api-index`, `pnpm agent-skills --write`.
   - *Changeset:* runtime, ui and game patches.
