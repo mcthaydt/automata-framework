@@ -293,6 +293,14 @@ Each step starts with its test, run red, with the failure reason recorded. The p
   - *Records:* tick 02, add an execution row, update 03.
   - *Done:* the first regenerate failed in `api-index` (8 new ui exports had no doc comments), then passed. Gates, `TURBO_FORCE=true`, first attempts: check 30 of 30, CI extras passed, parity 12 of 12, e2e 105 passed and 2 skipped, prepare-ruken passed.
 
+## Hosted CI
+
+- **#87, first run on af-mac** (`4607ec3`): parity red in one case, WebKit (macOS) `settings-capturing` at 780×270, TV scale. The row's last rebind button ("←", the pad column) ran past the scroll list's right edge. Linux WebKit had passed the same case locally, so it could not be reproduced here.
+- **Fix:**
+  - The rebind buttons now wrap inside the row and never past it (`min-width: 0`, `max-width: 100%`, words that wrap).
+  - While a capture waits, the case holds Back and the waiting button reachable (the section keeps that button in view). The row's other buttons may wrap below it, inside the scroll list.
+  - Local layout: 150 of 150 in Chromium, WebKit and Firefox.
+
 ## Verification
 
 Run the full local gates before the PR is opened. No existing golden may change: no sim code changes, and the new example's golden is a new file.

@@ -139,6 +139,7 @@ $effect(() => {
     align-items: center;
     justify-content: space-between;
     gap: 6px 12px;
+    min-width: 0;
     min-height: var(--af-target);
   }
 
@@ -147,13 +148,20 @@ $effect(() => {
     overflow-wrap: anywhere;
   }
 
+  /* The buttons wrap inside the row, never past it: where a font sets "Press…" wider (WebKit on macOS at TV scale,
+     780 x 270), a button moves to the next line or wraps its words, and stays whole inside the scroll list. */
   .af-controls__binds {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .af-controls__bind {
-    min-width: calc(var(--af-target) * 2);
+    min-width: min(calc(var(--af-target) * 2), 100%);
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 </style>

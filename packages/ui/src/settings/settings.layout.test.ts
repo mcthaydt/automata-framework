@@ -10,12 +10,17 @@ import { settleLayout } from '../testing/settle'
 // TV scale included, with production CSS, in Chromium, WebKit and Firefox. Every rebind button and option is a whole
 // target; the sections scroll inside their list, so Back and the first row stay reachable on a short screen.
 
-/** What a player must reach without scrolling: Back, and the first row's rebind buttons (the one waiting, too). */
+/**
+ * What a player must reach without scrolling: Back, and the first row's rebind buttons; while a capture waits, the
+ * button that waits (the section keeps it in view), as the row's other buttons may wrap below it on a short screen.
+ */
 function essentials(show: SettingsShow, keyboard: boolean): HTMLElement[] {
   // With the keyboard up the frame scrolls what does not fit (screen-frame.layout.test.ts holds that).
   if (keyboard) return []
-  const first = [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-rebind]')]
-  void show
+  const first =
+    show === 'settings-capturing'
+      ? [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-capturing]')]
+      : [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-rebind]')]
   return [byTestId('corner-back'), ...first]
 }
 
