@@ -7,7 +7,7 @@
   - a standing rule: nothing visual goes to the Owner before it is compared side by side with the matching FloorFifty screen and the gaps are fixed. M4.7's gate and rotate hint get the same check.
 - **Lanes:** ui, game. **Depends on:** M4.4 and M4.7, merged.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 8 of 14 steps.
+- **Progress:** 9 of 14 steps.
 
 ## Sources, read at these commits
 
@@ -126,10 +126,12 @@ M5.4 (#92) is folded into this branch (the Audio group, Pause's Mute; its plan h
     - *`GameSpec` gains `locale` (passed to the runtime): a `defineGame` game could not declare its languages before.*
     - *`OptionGroup` gains an option's `lang` and `legendHidden`.*
     - *M5.4's D-pad test walked Pause by the menu's repeat on the wall clock, which Mute's extra step outran (it failed on M5.4's own head too); it now taps once a step and checks each tap moves focus.*
-- [ ] **10. Vibration group.** *Red:*
+- [x] **10. Vibration group.** *Red:*
   - runtime `Haptics`: `pulse` rumbles the first pad with an actuator, else buzzes a touch phone (`navigator.vibrate`), else nothing; never throws; off while the setting is off; `supported` says whether this device can do either (FloorFifty `systems/haptics.ts` and its tests);
   - the core settings keep `haptics.enabled`;
   - ui `VibrationSection`: one toggle; the game's Settings tab shows it only where `supported`.
+  - *Done. Red: `haptics.manager.js` unresolved (FloorFifty's routing tests, generalised to a game's `HapticPulse`); the core settings lacked `haptics`; screens got no `Haptics`; the game's Vibration group absent and the saved setting not applied. Green: runtime haptics 6, settings 20, boot 1 new; game 144; settings layouts 78 of 78 in Chromium. `VibrationSection`'s one DOM test was written beside it (red only as an unresolved import).*
+    - *`Haptics` is a runtime service (the 13th), the browser's by default (`browserHaptics`: pads, `navigator.vibrate`, a coarse pointer), a seam in tests. The group sits after Audio, where FloorFifty keeps its rumble row.*
 - [ ] **11. A sample sound on a volume's release.** *Red:* releasing a bus's slider plays a short sample on that bus (FloorFifty `requestUiSound`), a tone the graph makes, so no game asset is needed.
 - [ ] **12. Settings fills a phone's height.** *Red:* on a phone (`phone-portrait`, `phone-landscape`), Settings' dialog fills the visible band's height, the list taking the rest, Back at the bottom (FloorFifty `Modal.svelte`'s body that scrolls in its own list).
 - [ ] **13. `rotateHint: 'block' | 'toast'`.** *Red:* a game's `rotateHint: 'toast'` shows a dismissible message (FloorFifty `RotateHint.svelte`: "Turn your phone for a bigger view", OK, remembered) and does not pause; the default stays the blocking cover. M4 spec §4.9 records the amendment.

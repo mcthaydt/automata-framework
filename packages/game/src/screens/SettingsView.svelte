@@ -1,6 +1,6 @@
 <!--
   The default Settings screen (M4 spec §4.8, M4-D8), in FloorFifty's two tabs (`SettingsPanel.svelte` at a28dc44):
-  Settings holds Language, Audio (M5.4), Display, Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
+  Settings holds Language, Audio (M5.4), Vibration (where the device can), Display, Touch controls (on a coarse pointer, when the game offers buttons and swipes), then every
   component the extensions put in the `settings.sections` slot; Controls holds the controls by device, when the game
   has an input map. `view` is the screen's live state
   (`settings-screen.svelte.ts`), so a rebind, a device switch or a capture's countdown updates in place.
@@ -21,6 +21,7 @@ import {
   type SettingsTab,
   TouchSection,
   type UiComponent,
+  VibrationSection,
 } from '@mcthaydt/automata-ui'
 import {
   AUDIO_COPY,
@@ -30,6 +31,7 @@ import {
   PROMPT_COPY,
   SETTINGS_COPY,
   TOUCH_COPY,
+  VIBRATION_COPY,
 } from './settings-copy.ts'
 import type { SettingsViewState } from './settings-view.ts'
 
@@ -46,6 +48,8 @@ interface Props {
   onaudio: (change: AudioSectionChange) => void
   /** A pick in the Language group: a locale, or null for Automatic (`Locale.set`). */
   onlocale: (choice: string | null) => void
+  /** The Vibration toggle (`Haptics.setEnabled`), applied and saved by the screen. */
+  onhaptics: (enabled: boolean) => void
   onback: () => void
 }
 
@@ -59,6 +63,7 @@ const {
   onquality,
   onaudio,
   onlocale,
+  onhaptics,
   onback,
 }: Props = $props()
 
@@ -69,6 +74,7 @@ const tabs = $derived<SettingsTab[]>([
     sections: [
       { snippet: language },
       { snippet: audio },
+      ...(view.hapticsSupported ? [{ snippet: vibration }] : []),
       { snippet: display },
       ...(view.coarse && view.touchModes.length > 1 ? [{ snippet: touch }] : []),
       ...extensions.map((component): SettingsSection => ({ component })),
@@ -102,6 +108,10 @@ const tabs = $derived<SettingsTab[]>([
 
 {#snippet language()}
   <LanguageSection copy={LANGUAGE_COPY} locales={view.locales} choice={view.localeChoice} onchange={onlocale} />
+{/snippet}
+
+{#snippet vibration()}
+  <VibrationSection copy={VIBRATION_COPY} enabled={view.hapticsEnabled} onchange={onhaptics} />
 {/snippet}
 
 {#snippet audio()}

@@ -1,6 +1,6 @@
 <!--
   The core Settings screen for the layout contracts (M4 spec §4.8, M4.4), in FloorFifty's two tabs: `settings` shows
-  the Settings tab (Language, Audio, Display, Touch controls, in FloorFifty's order); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
+  the Settings tab (Language, Audio, Vibration, Display, Touch controls, in FloorFifty's order); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
   shows its first row waiting for a press. Words are English stand-ins of a typical length.
 -->
 <script lang="ts" module>
@@ -15,6 +15,7 @@ import type { ControlsCopy, ControlsRow } from '../settings/controls-section'
 import AudioSection from '../settings/AudioSection.svelte'
 import DisplaySection from '../settings/DisplaySection.svelte'
 import LanguageSection from '../settings/LanguageSection.svelte'
+import VibrationSection from '../settings/VibrationSection.svelte'
 import TouchSection from '../settings/TouchSection.svelte'
 import type { DisplayCopy } from '../settings/display-section'
 import SettingsScreen from '../settings/SettingsScreen.svelte'
@@ -105,6 +106,14 @@ const ROWS: ControlsRow[] = [
   />
 {/snippet}
 
+{#snippet vibration()}
+  <VibrationSection
+    copy={{ title: 'Vibration', toggle: 'Rumble and vibration', on: 'On', off: 'Off' }}
+    enabled
+    onchange={none}
+  />
+{/snippet}
+
 {#snippet audio()}
   <AudioSection
     copy={{
@@ -137,7 +146,13 @@ const ROWS: ControlsRow[] = [
     {
       id: 'settings',
       label: 'Settings',
-      sections: [{ snippet: language }, { snippet: audio }, { snippet: display }, { snippet: touch }],
+      sections: [
+        { snippet: language },
+        { snippet: audio },
+        { snippet: vibration },
+        { snippet: display },
+        { snippet: touch },
+      ],
     },
     { id: 'controls', label: 'Controls', sections: [{ snippet: controls }] },
   ]}

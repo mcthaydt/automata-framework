@@ -1,5 +1,6 @@
 import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
 import {
+  createHaptics,
   type GameRenderer,
   type RendererFactory,
   type RuntimeHandle,
@@ -535,6 +536,45 @@ describe('default screens', () => {
       expect(root.querySelector<HTMLInputElement>('[data-testid="language-ja"] input')?.checked).toBe(true)
       root.querySelector<HTMLInputElement>('[data-testid="language-auto"] input')?.click()
       await until(() => document.documentElement.lang === 'en', 'Automatic again')
+    })
+
+    // Redo step 10 (Owner, 2026-10-18): the Vibration group, only where the device can rumble or buzz.
+    describe('the Vibration group', () => {
+      const phone = () => {
+        const vibrate = vi.fn(() => true)
+        return { vibrate, haptics: createHaptics({ vibrate, touch: () => true }) }
+      }
+      const withHaptics = (haptics: ReturnType<typeof createHaptics>): Partial<GameSpec> => ({
+        seams: { frames, fetch: fakeFetch({}).fetch, haptics },
+      })
+      const slam = { duration: 90, strong: 0.6, weak: 0.4, phone: 18 }
+
+      it('shows on a device that can vibrate; turning it off saves it and stills the device', async () => {
+        const { vibrate, haptics } = phone()
+        await toSettings(withHaptics(haptics), true, 'settings')
+        const toggle = root.querySelector<HTMLInputElement>('[data-testid="vibration-enabled"] input')
+        expect(toggle?.checked).toBe(true)
+        toggle?.click()
+        await until(() => saved()?.haptics?.enabled === false, 'the saved setting')
+        haptics.pulse(slam)
+        expect(vibrate).not.toHaveBeenCalled()
+      })
+
+      it('is not offered where the device can neither rumble nor buzz', async () => {
+        await toSettings(withHaptics(createHaptics({ touch: () => false })), true, 'settings')
+        expect(root.querySelector('[data-settings-section="vibration"]')).toBeNull()
+      })
+
+      it('applies the saved setting at boot', async () => {
+        localStorage.setItem(
+          'ruken:screens-test:settings',
+          JSON.stringify({ version: 1, haptics: { enabled: false } }),
+        )
+        const { vibrate, haptics } = phone()
+        await boot(withHaptics(haptics))
+        haptics.pulse(slam)
+        expect(vibrate).not.toHaveBeenCalled()
+      })
     })
 
     // M5.4: the Audio group (M5 spec §7), FloorFifty's, beside Display; and Pause's Mute.

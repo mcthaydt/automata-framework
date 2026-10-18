@@ -7,6 +7,7 @@ import type {
   LanguageCopy,
   PromptCopy,
   TouchCopy,
+  VibrationCopy,
 } from '@mcthaydt/automata-ui'
 
 export const PROMPT_COPY: PromptCopy = {
@@ -47,6 +48,13 @@ export const CONTROLS_COPY: ControlsCopy = {
 }
 
 export const LANGUAGE_COPY: LanguageCopy = { title: 'Language', automatic: 'Automatic' }
+
+export const VIBRATION_COPY: VibrationCopy = {
+  title: 'Vibration',
+  toggle: 'Rumble and vibration',
+  on: 'On',
+  off: 'Off',
+}
 
 export const AUDIO_COPY: AudioCopy = {
   title: 'Audio',

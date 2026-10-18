@@ -143,6 +143,8 @@ export { default as SettingsScreen } from './settings/SettingsScreen.svelte'
 export type { SettingsSection, SettingsTab } from './settings/settings-screen'
 export { default as TouchSection } from './settings/TouchSection.svelte'
 export type { TouchCopy } from './settings/touch-section'
+export { default as VibrationSection } from './settings/VibrationSection.svelte'
+export type { VibrationCopy } from './settings/vibration-section'
 export { UI_SLOT_NAMES, type UiComponent, type UiSlotName } from './slots/ui-slot'
 export { default as BootFailurePanel } from './status/BootFailurePanel.svelte'
 export {

@@ -26,6 +26,9 @@ export interface SettingsViewState {
   audio: AudioValue
   /** The Language group (redo step 9): the game's locales and the player's pick, null for Automatic. */
   locales: readonly string[]
+  /** The Vibration group (redo step 10): shown only where the device can rumble or buzz. */
+  hapticsSupported: boolean
+  hapticsEnabled: boolean
   localeChoice: string | null
   audioAvailable: boolean
   hostVolumeBelowFull: boolean

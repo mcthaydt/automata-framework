@@ -6,6 +6,7 @@ import type { EventSounds } from '../audio/event-sounds.js'
 import type { GameOrientation } from '../display/display-policy.svelte.js'
 import type { ExtensionDef } from '../extension/define-extension.js'
 import type { ScreenDef } from '../flow/screen.js'
+import type { Haptics } from '../haptics/haptics.manager.js'
 import type { EventScores } from '../leaderboards/event-scores.js'
 import type { LocaleDef } from '../locale/locale.manager.js'
 import type { FrameSource } from '../loop/frames.js'
@@ -31,6 +32,8 @@ export interface RuntimeSeams {
   readonly languages?: readonly string[]
   /** Builds the audio context on the unlock; defaults to `new AudioContext()`. */
   readonly createAudioContext?: () => AudioContextLike
+  /** The device's haptics, in place of the browser's (pads, `navigator.vibrate`, a coarse pointer). */
+  readonly haptics?: Haptics
 }
 
 /** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */

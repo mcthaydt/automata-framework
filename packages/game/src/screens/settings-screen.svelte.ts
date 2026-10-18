@@ -8,6 +8,7 @@ import {
   AudioBuses,
   displaySettingsSchema,
   Flow,
+  Haptics,
   type InputProfile,
   inputSettingsSchema,
   Locale,
@@ -34,6 +35,7 @@ import {
 import { Effect, Either, Fiber, Runtime, Schedule, Stream, SubscriptionRef } from 'effect'
 import { changeAudio, savedAudio } from './audio-settings.ts'
 import type { ScreensGame } from './default-screens.ts'
+import { changeHaptics, savedHaptics } from './haptics-settings.ts'
 import SettingsView from './SettingsView.svelte'
 import {
   backGesture,
@@ -78,6 +80,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         const buses = yield* AudioBuses
         const hosting = yield* Hosting
         const locale = yield* Locale
+        const haptics = yield* Haptics
         const runtime = yield* Effect.runtime<never>()
         const target = windowOf(layer)
         const map = game.input
@@ -111,6 +114,8 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
           quality: savedQuality(),
           audio: savedAudio(store),
           locales: locale.locales,
+          hapticsSupported: haptics.supported,
+          hapticsEnabled: savedHaptics(store),
           localeChoice: locale.choice,
           audioAvailable: yield* audio.available.get,
           hostVolumeBelowFull: (yield* hosting.audio.get).master.volume < 1,
@@ -229,6 +234,10 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
             }))
           },
           onaudio,
+          onhaptics: (enabled: boolean) => {
+            view.hapticsEnabled = enabled
+            changeHaptics(haptics, store, enabled)
+          },
           onlocale: (choice: string | null) => {
             locale.set(choice)
             view.localeChoice = locale.choice

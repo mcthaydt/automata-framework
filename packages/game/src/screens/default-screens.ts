@@ -6,6 +6,7 @@ import {
   AudioBuses,
   displaySettingsSchema,
   Flow,
+  Haptics,
   inputSettingsSchema,
   Leaderboards,
   makeInput,
@@ -22,6 +23,7 @@ import { CursorRunner, InputMethodTracker, type LeaderboardCopy, sendBack } from
 import { Effect, SubscriptionRef } from 'effect'
 import type { InputMap } from '../input/keys.ts'
 import { applyAudio, changeAudio, savedAudio } from './audio-settings.ts'
+import { savedHaptics } from './haptics-settings.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
 import {
@@ -105,6 +107,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const { store } = yield* Settings
         // And the saved mix reaches the audio, so the first sound is at the player's levels (M5.4).
         applyAudio({ audio: yield* Audio, buses: yield* AudioBuses }, savedAudio(store))
+        ;(yield* Haptics).setEnabled(savedHaptics(store))
         if (game.setQuality !== undefined && store !== undefined)
           game.setQuality(
             displaySettingsSchema

@@ -17,21 +17,36 @@ export interface CoreSettings {
   readonly display: DisplaySettings
   /** The Audio group's choices (M5.4); a record saved before it reads them as the defaults. */
   readonly audio: AudioSettings
+  /** The Vibration group's toggle (Owner, 2026-10-18); a record saved before it reads it as on. */
+  readonly haptics: HapticsSettings
 }
+
+/** The player's Vibration setting: whether `Haptics` pulses at all. */
+export interface HapticsSettings {
+  readonly enabled: boolean
+}
+
+const HAPTICS_DEFAULT: HapticsSettings = { enabled: true }
+/** On unless saved off; a bad record reads as on, as every settings field falls back. */
+export const hapticsSettingsSchema: z.ZodType<HapticsSettings, unknown> = z
+  .object({ enabled: z.boolean().default(true) })
+  .catch(HAPTICS_DEFAULT)
 
 const DEFAULTS: CoreSettings = {
   input: INPUT_SETTINGS_DEFAULT,
   display: { quality: DEFAULT_QUALITY },
   audio: AUDIO_SETTINGS_DEFAULT,
+  haptics: HAPTICS_DEFAULT,
 }
 
 const coreSettingsSchema: z.ZodType<CoreSettings> = z.object({
   input: inputSettingsSchema,
   display: displaySettingsSchema.catch(() => ({ quality: DEFAULT_QUALITY })),
   audio: audioSettingsSchema.default(AUDIO_SETTINGS_DEFAULT),
+  haptics: hapticsSettingsSchema.default(HAPTICS_DEFAULT),
 })
 
-/** The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`) and audio (`audio`). */
+/** The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`) and vibration (`haptics`). */
 export const CORE_SETTINGS: SettingsDef<CoreSettings> = {
   key: 'settings',
   version: 1,

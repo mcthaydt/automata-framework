@@ -42,6 +42,13 @@ export type {
   ScreenDef,
 } from './flow/screen.js'
 export {
+  browserHaptics,
+  createHaptics,
+  type HapticPulse,
+  Haptics,
+  type HapticsOptions,
+} from './haptics/haptics.manager.js'
+export {
   type BindingOverride,
   INPUT_SETTINGS_DEFAULT,
   type InputSettings,
@@ -166,7 +173,12 @@ export {
   type AudioSettings,
   audioSettingsSchema,
 } from './settings/audio-settings.schema.js'
-export { CORE_SETTINGS, type CoreSettings } from './settings/core-settings.js'
+export {
+  CORE_SETTINGS,
+  type CoreSettings,
+  type HapticsSettings,
+  hapticsSettingsSchema,
+} from './settings/core-settings.js'
 export {
   DEFAULT_QUALITY,
   type DisplaySettings,

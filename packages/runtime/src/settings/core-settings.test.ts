@@ -17,6 +17,7 @@ describe('CORE_SETTINGS', () => {
       input: { profile: '', overrides: {} },
       display: { quality: 'high' },
       audio: AUDIO_SETTINGS_DEFAULT,
+      haptics: { enabled: true },
     }
     expect(CORE_SETTINGS.defaults).toEqual(defaults)
     expect(readSettings(CORE_SETTINGS, null)).toEqual(defaults)
@@ -28,6 +29,7 @@ describe('CORE_SETTINGS', () => {
       input: { profile: 'jumper', overrides: { 'jump-0': { keys: ['KeyK'] } } },
       display: { quality: 'low' as const },
       audio: AUDIO_SETTINGS_DEFAULT,
+      haptics: { enabled: false },
     }
     expect(readSettings(CORE_SETTINGS, writeSettings(CORE_SETTINGS, saved))).toEqual(saved)
   })
@@ -49,7 +51,12 @@ describe('CORE_SETTINGS', () => {
       muteUnfocused: true,
       gains: { master: 0.5, music: 0, sfx: 1, ui: 0.25, voice: 1 },
     }
-    const saved = { input: { profile: '', overrides: {} }, display: { quality: 'high' as const }, audio }
+    const saved = {
+      input: { profile: '', overrides: {} },
+      display: { quality: 'high' as const },
+      audio,
+      haptics: { enabled: true },
+    }
     expect(readSettings(CORE_SETTINGS, writeSettings(CORE_SETTINGS, saved)).audio).toEqual(audio)
     const bad =
       '{"version":1,"input":{"profile":"","overrides":{}},"display":{"quality":"low"},"audio":{"gains":{"music":7}}}'
@@ -61,5 +68,16 @@ describe('CORE_SETTINGS', () => {
 
   it('fills a partial audio record field by field', () => {
     expect(audioSettingsSchema.parse({ muted: true })).toEqual({ ...AUDIO_SETTINGS_DEFAULT, muted: true })
+  })
+
+  // Redo step 10 (Owner, 2026-10-18): the Vibration group's toggle, on until the player turns it off.
+  it('keeps the Vibration setting, on by default and for a record saved before it or a bad one', () => {
+    expect(readSettings(CORE_SETTINGS, '{"version":1}').haptics).toEqual({ enabled: true })
+    expect(readSettings(CORE_SETTINGS, '{"version":1,"haptics":{"enabled":"no"}}').haptics).toEqual({
+      enabled: true,
+    })
+    expect(readSettings(CORE_SETTINGS, '{"version":1,"haptics":{"enabled":false}}').haptics).toEqual({
+      enabled: false,
+    })
   })
 })

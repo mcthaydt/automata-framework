@@ -22,6 +22,7 @@ import { resolveExtensions } from '../extension/resolve-extensions.js'
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
+import { browserHaptics, Haptics } from '../haptics/haptics.manager.js'
 import { submitEventScores } from '../leaderboards/event-scores.js'
 import { Leaderboards, makeLeaderboards } from '../leaderboards/leaderboards.manager.js'
 import { Assets, makeAssets } from '../loading/assets.manager.js'
@@ -60,8 +61,8 @@ export interface BootProgramOptions {
 }
 
 /**
- * Builds the Context<RuntimeServices> containing all 12 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1;
- * `Audio` and `AudioBuses`, one service, from M5.3; `Leaderboards` from M5.7).
+ * Builds the Context<RuntimeServices> containing all 13 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1;
+ * `Audio` and `AudioBuses`, one service, from M5.3; `Leaderboards` from M5.7; `Haptics` from the Settings redo).
  * Extracted so RuntimeTest reuses the exact service wiring (Task 18).
  */
 export function buildRuntimeServices(services: {
@@ -76,6 +77,7 @@ export function buildRuntimeServices(services: {
   readonly locale: Locale
   readonly audio: Audio & AudioBuses
   readonly leaderboards: Leaderboards
+  readonly haptics: Haptics
 }): Context.Context<RuntimeServices> {
   return Context.empty().pipe(
     Context.add(Hosting, services.hosting),
@@ -90,6 +92,7 @@ export function buildRuntimeServices(services: {
     Context.add(Audio, services.audio),
     Context.add(AudioBuses, services.audio),
     Context.add(Leaderboards, services.leaderboards),
+    Context.add(Haptics, services.haptics),
   ) as Context.Context<RuntimeServices>
 }
 
@@ -336,6 +339,7 @@ export function bootProgram<S>(
       locale,
       audio,
       leaderboards,
+      haptics: game.seams?.haptics ?? browserHaptics(win),
     })
 
     if (game.extensions && game.extensions.length > 0) {
