@@ -35,6 +35,8 @@ export interface Audio {
   duck(bus: AudioBusName, amount: number, seconds: number): void
   /** The player's mute: the master only, so unmuting restores the mix as it was. */
   setMuted(muted: boolean): void
+  /** The player's "mute when in the background": silences the master while another window has focus. */
+  setMuteUnfocused(muteUnfocused: boolean): void
 }
 
 export const Audio: Context.Tag<Audio, Audio> = Context.GenericTag<Audio>('@mcthaydt/automata-runtime/Audio')
@@ -170,15 +172,22 @@ export const makeAudio = (
     }
     const wake = () => void graph.wake().catch(() => undefined)
     const onVisibility = () => (page.visibilityState === 'hidden' ? sleep() : wake())
-    const onBlur = () => graph.setUnfocused(true)
-    const onFocus = () => graph.setUnfocused(false)
+    // The window's focus is always followed; the master goes silent on a blur only while the setting is on.
+    let muteUnfocused = options.muteUnfocused === true
+    let blurred = false
+    const onBlur = () => {
+      blurred = true
+      graph.setUnfocused(muteUnfocused)
+    }
+    const onFocus = () => {
+      blurred = false
+      graph.setUnfocused(false)
+    }
 
     for (const type of GESTURES) target.addEventListener(type, onGesture, { capture: true, passive: true })
     page.addEventListener('visibilitychange', onVisibility)
-    if (options.muteUnfocused === true) {
-      target.addEventListener('blur', onBlur)
-      target.addEventListener('focus', onFocus)
-    }
+    target.addEventListener('blur', onBlur)
+    target.addEventListener('focus', onFocus)
 
     yield* Effect.forkScoped(
       hosting.ready.pipe(
@@ -239,6 +248,10 @@ export const makeAudio = (
       },
       duck: (duckBus, amount, seconds) => graph.duck(duckBus, amount, seconds),
       setMuted: (muted) => graph.setMuted(muted),
+      setMuteUnfocused: (next) => {
+        muteUnfocused = next
+        graph.setUnfocused(next && blurred)
+      },
       input(inputBus) {
         const node = graph.input(inputBus)
         if (node === undefined)

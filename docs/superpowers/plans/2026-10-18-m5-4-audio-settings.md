@@ -3,7 +3,7 @@
 - **Task:** M5.4 in [02](../../02-master-delivery-plan.md). M5 spec [§7](../specs/2026-10-16-m5-saves-audio-design.md) (UI inventory: the Audio settings section) and §4.6 (core audio), acceptance A-e.
 - **Lanes:** ui, with runtime and game for the wiring. **Depends on:** M5.3 (core audio, merged), M4.4 and M4.6 (merged), and the Settings and Pause redo (#91), whose Settings tab groups this joins.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 2 of 7 steps.
+- **Progress:** 3 of 7 steps.
 
 ## Sources, read at these commits
 
@@ -49,7 +49,8 @@ Each step starts with its test, run red, with the failure reason recorded.
 - [x] **2. Settings with audio** (`runtime/src/settings/core-settings.ts`, `audio-settings.schema.ts`, tests). *Red:* a record saved before audio reads with audio's defaults; a bad audio record falls back to the defaults; the saved shape round-trips.
   - *Done. Red: `audio-settings.schema.js` unresolved. Green: settings 18 of 18, runtime 432 of 432 (the root exports list gains `AUDIO_SETTINGS_DEFAULT` and `audioSettingsSchema`), game 136 of 136.*
   - *Deviation: no version 2 and no migration. `audio` falls back field by field as `display` already does (`.catch`), so a version-1 record reads with audio at its defaults and a migration would only repeat that.*
-- [ ] **3. Live mute when unfocused** (`runtime/src/audio/audio.manager.ts`, `audio.test.ts`). *Red:* `setMuteUnfocused(true)` silences the master on `blur` and restores it on `focus`; `false` leaves it alone; the construction option still works.
+- [x] **3. Live mute when unfocused** (`runtime/src/audio/audio.manager.ts`, `audio.test.ts`). *Red:* `setMuteUnfocused(true)` silences the master on `blur` and restores it on `focus`; `false` leaves it alone; the construction option still works.
+  - *Done. Red: `audio.setMuteUnfocused is not a function`. Green: audio 48 of 48, runtime typecheck clean. The window's focus is always followed; the setting decides whether a blur silences the master, and turning it off while blurred restores the master at once.*
 - [ ] **4. `AudioSection`** (`ui/src/settings/AudioSection.svelte`, `audio-section.ts`, DOM test). *Red:*
   - two toggles and five sliders in FloorFifty's order, each named, each slider showing its percentage;
   - a change reports its field and value;

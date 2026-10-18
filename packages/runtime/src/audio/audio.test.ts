@@ -283,6 +283,26 @@ describe('Audio: mute when unfocused', () => {
     ))
 })
 
+describe('Audio: mute when unfocused, as a live setting (M5.4)', () => {
+  it('follows setMuteUnfocused: on, a blur silences the master and focus restores it; off, a blur does nothing', () =>
+    withAudio((audio, { page }) =>
+      Effect.gen(function* () {
+        page.gesture()
+        yield* flush()
+        audio.setMuteUnfocused(true)
+        page.window.dispatchEvent(new Event('blur'))
+        expect(masterOf(audio)).toBe(0)
+        page.window.dispatchEvent(new Event('focus'))
+        expect(masterOf(audio)).toBe(1)
+        page.window.dispatchEvent(new Event('blur'))
+        audio.setMuteUnfocused(false)
+        expect(masterOf(audio)).toBe(1)
+        page.window.dispatchEvent(new Event('blur'))
+        expect(masterOf(audio)).toBe(1)
+      }),
+    ))
+})
+
 describe('Audio: sounds, music and decoding', () => {
   it('plays a preloaded sound on sfx by default, decoding each alias once', () =>
     withAudio((audio, { contexts, page }) =>
