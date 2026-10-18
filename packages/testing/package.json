@@ -16,7 +16,8 @@
     ".": "./src/index.ts",
     "./sim": "./src/sim/index.ts",
     "./sim/commands": "./src/sim/commands.ts",
-    "./sim/property": "./src/sim/property.ts"
+    "./sim/property": "./src/sim/property.ts",
+    "./input": "./src/input/fake-gamepads.ts"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
@@ -36,6 +37,10 @@
       "./sim/property": {
         "types": "./dist/sim/property.d.ts",
         "import": "./dist/sim/property.js"
+      },
+      "./input": {
+        "types": "./dist/input/fake-gamepads.d.ts",
+        "import": "./dist/input/fake-gamepads.js"
       }
     }
   },
