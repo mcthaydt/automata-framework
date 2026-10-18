@@ -3,7 +3,7 @@
 - **Task:** M5.4 in [02](../../02-master-delivery-plan.md). M5 spec [§7](../specs/2026-10-16-m5-saves-audio-design.md) (UI inventory: the Audio settings section) and §4.6 (core audio), acceptance A-e.
 - **Lanes:** ui, with runtime and game for the wiring. **Depends on:** M5.3 (core audio, merged), M4.4 and M4.6 (merged), and the Settings and Pause redo (#91), whose Settings tab groups this joins.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 4 of 7 steps.
+- **Progress:** 5 of 7 steps.
 
 ## Sources, read at these commits
 
@@ -57,7 +57,8 @@ Each step starts with its test, run red, with the failure reason recorded.
   - unavailable: the message shows and the controls are disabled;
   - the host's note shows only when its volume is below 1.
   - *Done. Red: `AudioSection.svelte` unresolved. Green: 4 of 4; ui 528 of 528, typecheck clean. ui repeats the bus names (`AudioBus`, `AUDIO_BUSES`) because it does not import runtime, as `DisplayQuality` does. Sliders run 0 to 1 in steps of 0.05.*
-- [ ] **5. Layout** (`ui/src/testing/SettingsFixture.svelte`, `settings.layout.test.ts`). *Red:* the Settings tab with Display and Audio at every reference size and variant: every toggle and slider thumb a whole 44 px target; Display beside Audio from a 560 px dialog; the first row in view.
+- [x] **5. Layout** (`ui/src/testing/SettingsFixture.svelte`, `settings.layout.test.ts`). *Red:* the Settings tab with Display and Audio at every reference size and variant: every toggle and slider thumb a whole 44 px target; Display beside Audio from a 560 px dialog; the first row in view.
+  - *Done. Red: no Audio group in the fixture. Green: settings layouts 77 of 77 in Chromium (every reference size and variant, TV scale and Ruken's strip included); WebKit and Firefox in step 7's parity gate.*
 - [ ] **6. Wiring and Pause's Mute** (`game/src/screens/{SettingsView.svelte,settings-screen.svelte.ts,PausedScreen.svelte,default-screens.ts}`, `default-screens.test.ts`). *Red:*
   - a slider moves its bus's gain and saves it;
   - Mute mutes and saves it, and Pause's Mute shows and toggles the same setting;
