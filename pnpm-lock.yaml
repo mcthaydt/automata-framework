@@ -60,6 +60,9 @@ importers:
         specifier: 4.6.5
         version: 4.6.5
     devDependencies:
+      '@mcthaydt/automata-testing':
+        specifier: workspace:*
+        version: link:../packages/testing
       '@mcthaydt/examples-runner':
         specifier: workspace:*
         version: link:../tooling/examples-runner
@@ -926,6 +929,9 @@ importers:
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
       '@ruken/sdk':
         specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
