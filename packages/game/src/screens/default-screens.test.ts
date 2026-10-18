@@ -610,6 +610,17 @@ describe('default screens', () => {
         expect(music()).toBe(0.5)
       })
 
+      it('plays a sample on the bus when its slider is let go (redo step 11)', async () => {
+        await toSettings(withSound(), true, 'settings')
+        const slider = root.querySelector<HTMLInputElement>(
+          '[data-audio-bus="music"] input',
+        ) as HTMLInputElement
+        slider.value = '0.5'
+        slider.dispatchEvent(new Event('input', { bubbles: true }))
+        slider.dispatchEvent(new Event('change', { bubbles: true }))
+        await until(() => context?.started.at(-1)?.alias === 'tone', 'the sample')
+      })
+
       it('mutes from the Audio group and from Pause’s Mute, one setting, saved', async () => {
         await toSettings(withSound(), true, 'settings')
         root.querySelector<HTMLInputElement>('[data-testid="audio-muted"] input')?.click()

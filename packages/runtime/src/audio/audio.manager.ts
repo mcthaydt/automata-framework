@@ -37,6 +37,11 @@ export interface Audio {
   duck(bus: AudioBusName, amount: number, seconds: number): void
   /** The player's mute: the master only, so unmuting restores the mix as it was. */
   setMuted(muted: boolean): void
+  /**
+   * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
+   * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
+   */
+  sample(bus: AudioBusName): void
   /** The player's "mute when in the background": silences the master while another window has focus. */
   setMuteUnfocused(muteUnfocused: boolean): void
 }
@@ -63,6 +68,25 @@ export interface AudioServices {
   readonly hosting: Pick<Hosting, 'ready' | 'lifecycle' | 'audio'>
   readonly assets: Pick<Assets, 'get'>
   readonly bus: PresentationBus
+}
+
+/** How long the volume sample sounds, and its pitch: short and mid, heard on every bus without being a sound effect. */
+const TONE_SECONDS = 0.12
+const TONE_HERTZ = 660
+
+/**
+ * The volume sample (FloorFifty plays one on a slider's release): a sine that falls away to silence, so it ends without
+ * a click. Made in the graph's own context, so it needs no asset and no decode.
+ */
+function makeTone(context: Pick<AudioContextLike, 'createBuffer' | 'sampleRate'>): AudioBuffer {
+  const length = Math.round(context.sampleRate * TONE_SECONDS)
+  const buffer = context.createBuffer(1, length, context.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let index = 0; index < length; index += 1) {
+    const fade = 1 - index / length
+    data[index] = 0.4 * fade * fade * Math.sin((2 * Math.PI * TONE_HERTZ * index) / context.sampleRate)
+  }
+  return buffer
 }
 
 /** The gestures that may unlock audio, in the capture phase so a handler that stops propagation cannot hide one. */
@@ -227,6 +251,9 @@ export const makeAudio = (
       }),
     )
 
+    /** The volume sample's tone, made once on its first use and kept with the context. */
+    let tone: AudioBuffer | undefined
+
     const audio: Audio & AudioBuses = {
       unlocked,
       available,
@@ -237,6 +264,13 @@ export const makeAudio = (
           ...(soundOptions.gain === undefined ? {} : { gain: soundOptions.gain }),
           ...(soundOptions.rate === undefined ? {} : { rate: soundOptions.rate }),
         })
+      },
+      sample(bus) {
+        const context = graph.context
+        if (unavailable || context === undefined) return
+        tone ??= makeTone(context)
+        const made = tone
+        void voices.play(async () => made, { bus })
       },
       music(alias, musicOptions = {}) {
         if (unavailable) return Effect.void

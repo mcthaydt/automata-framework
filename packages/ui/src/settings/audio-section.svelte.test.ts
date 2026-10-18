@@ -33,13 +33,22 @@ afterEach(() => {
 
 function open(overrides: { available?: boolean; hostBelowFull?: boolean } = {}) {
   const onchange = vi.fn()
-  const props = $state({ copy, value: VALUE, available: true, hostBelowFull: false, onchange, ...overrides })
+  const onsample = vi.fn()
+  const props = $state({
+    copy,
+    value: VALUE,
+    available: true,
+    hostBelowFull: false,
+    onchange,
+    onsample,
+    ...overrides,
+  })
   const host = document.createElement('div')
   document.body.append(host)
   component = mount(AudioSection, { target: host, props })
   flushSync()
   const section = host.querySelector<HTMLElement>('[data-settings-section="audio"]') as HTMLElement
-  return { props, section, onchange }
+  return { props, section, onchange, onsample }
 }
 
 describe('AudioSection', () => {
@@ -98,5 +107,18 @@ describe('AudioSection', () => {
     expect(section.querySelector('[data-audio-host-volume]')?.textContent).toBe(
       'The host’s volume also applies.',
     )
+  })
+
+  // FloorFifty plays a sample when a volume is let go, so the player hears the level they set (redo step 11).
+  it('asks for a sample on the bus when its slider is let go, and not while it moves', () => {
+    const { section, onsample } = open()
+    const voice = section.querySelector<HTMLInputElement>(
+      '[data-audio-bus="voice"] input',
+    ) as HTMLInputElement
+    voice.value = '0.5'
+    voice.dispatchEvent(new Event('input', { bubbles: true }))
+    expect(onsample).not.toHaveBeenCalled()
+    voice.dispatchEvent(new Event('change', { bubbles: true }))
+    expect(onsample).toHaveBeenCalledWith('voice')
   })
 })

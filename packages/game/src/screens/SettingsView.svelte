@@ -7,6 +7,7 @@
 -->
 <script lang="ts">
 import {
+  type AudioBus,
   AudioSection,
   type AudioSectionChange,
   ControlsSection,
@@ -46,6 +47,8 @@ interface Props {
   onquality: (quality: DisplayQuality) => void
   /** A change in the Audio group (M5.4), applied and saved by the screen. */
   onaudio: (change: AudioSectionChange) => void
+  /** A volume let go: its sample (`Audio.sample`). */
+  onsample: (bus: AudioBus) => void
   /** A pick in the Language group: a locale, or null for Automatic (`Locale.set`). */
   onlocale: (choice: string | null) => void
   /** The Vibration toggle (`Haptics.setEnabled`), applied and saved by the screen. */
@@ -64,6 +67,7 @@ const {
   onaudio,
   onlocale,
   onhaptics,
+  onsample,
   onback,
 }: Props = $props()
 
@@ -121,6 +125,7 @@ const tabs = $derived<SettingsTab[]>([
     available={view.audioAvailable}
     hostBelowFull={view.hostVolumeBelowFull}
     onchange={onaudio}
+    {onsample}
   />
 {/snippet}
 

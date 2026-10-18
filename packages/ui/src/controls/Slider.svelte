@@ -20,6 +20,8 @@ interface Props {
   /** `stacked` (the default): the label above the track. `row`: the label, the track and the value on one row, as
    * FloorFifty's volume rows. */
   layout?: 'stacked' | 'row' | undefined
+  /** The thumb let go (the input's `change`): a volume plays its sample then (FloorFifty). */
+  onrelease?: ((value: number) => void) | undefined
 }
 
 const {
@@ -33,6 +35,7 @@ const {
   disabled = false,
   testId,
   layout = 'stacked',
+  onrelease,
 }: Props = $props()
 
 const id = $props.id()
@@ -52,6 +55,7 @@ const words = $derived(valueText(value))
     {disabled}
     aria-valuetext={words}
     oninput={(event) => onchange(Number(event.currentTarget.value))}
+    onchange={(event) => onrelease?.(Number(event.currentTarget.value))}
   />
   <span class="af-slider__value" aria-hidden="true">{words}</span>
 </div>

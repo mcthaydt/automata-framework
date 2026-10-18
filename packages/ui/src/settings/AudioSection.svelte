@@ -9,7 +9,13 @@
 <script lang="ts">
 import Slider from '../controls/Slider.svelte'
 import Toggle from '../controls/Toggle.svelte'
-import { AUDIO_BUSES, type AudioCopy, type AudioSectionChange, type AudioValue } from './audio-section'
+import {
+  AUDIO_BUSES,
+  type AudioBus,
+  type AudioCopy,
+  type AudioSectionChange,
+  type AudioValue,
+} from './audio-section'
 
 interface Props {
   copy: AudioCopy
@@ -19,9 +25,11 @@ interface Props {
   /** The host's volume is below full (`Hosting.audio`). */
   hostBelowFull: boolean
   onchange: (change: AudioSectionChange) => void
+  /** A bus's slider let go: play its sample (`Audio.sample`), so the player hears the level set. */
+  onsample?: ((bus: AudioBus) => void) | undefined
 }
 
-const { copy, value, available, hostBelowFull, onchange }: Props = $props()
+const { copy, value, available, hostBelowFull, onchange, onsample }: Props = $props()
 </script>
 
 <section class="af-audio" data-settings-section="audio">
@@ -59,6 +67,7 @@ const { copy, value, available, hostBelowFull, onchange }: Props = $props()
         disabled={!available}
         layout="row"
         onchange={(gain) => onchange({ kind: 'gain', bus, value: gain })}
+        onrelease={() => onsample?.(bus)}
       />
     </div>
   {/each}

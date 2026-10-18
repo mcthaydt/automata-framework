@@ -283,6 +283,24 @@ describe('Audio: mute when unfocused', () => {
     ))
 })
 
+describe('Audio: a sample on a volume’s release (redo step 11)', () => {
+  it('plays a short tone the graph makes, on the bus asked for, once unlocked', () =>
+    withAudio((audio, { contexts, page }) =>
+      Effect.gen(function* () {
+        audio.sample('music')
+        expect(contexts).toHaveLength(0)
+        page.gesture()
+        yield* flush()
+        audio.sample('music')
+        yield* flush()
+        const started = contexts[0]?.started.at(-1)
+        expect(started?.alias).toBe('tone')
+        const level = started?.target as { targets: unknown[] } | undefined
+        expect(level?.targets).toEqual([audio.input('music')])
+      }),
+    ))
+})
+
 describe('Audio: available (M5.4)', () => {
   it('is available until a context fails to build, and stays so once one runs', () =>
     withAudio((audio, { page }) =>

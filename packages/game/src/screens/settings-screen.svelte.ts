@@ -22,6 +22,7 @@ import {
 } from '@mcthaydt/automata-runtime'
 import { resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import {
+  type AudioBus,
   type AudioSectionChange,
   type ControlsRow,
   type ControlsState,
@@ -234,6 +235,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
             }))
           },
           onaudio,
+          onsample: (bus: AudioBus) => audio.sample(bus),
           onhaptics: (enabled: boolean) => {
             view.hapticsEnabled = enabled
             changeHaptics(haptics, store, enabled)
