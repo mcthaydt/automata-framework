@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 9 of 13 steps.
+- **Progress:** 10 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -250,11 +250,12 @@ Each step starts with its test, run red, with the failure reason recorded. The p
       - The capture message pushed the waiting button below the fold at 780×270 at TV scale. The section now scrolls that button into view while a capture waits.
       - Svelte refused the Controls section's `state` prop next to the `$state` rune (`store_rune_conflict`). It is read as `current` inside.
     - The sections are rows of one `ScrollList` (`minRows` 1).
-- [ ] **10. `keys()` labels** (`keys.test.ts`).
+- [x] **10. `keys()` labels** (`keys.test.ts`).
   - *Red:*
     - `labels: { Space: 'Jump' }` names the action;
     - an unlabelled action is named by its command and payload;
     - `InputMap` gains `labels`.
+  - *Done: 2 red (`labels` undefined), then green, 32 of 32 in `keys.test.ts`.*
 - [ ] **11. The default Settings screen** (`default-screens.test.ts`, `default-content.test.ts`, `screens.layout.test.ts`).
   - *Red:*
     - the default flow has `settings`;
