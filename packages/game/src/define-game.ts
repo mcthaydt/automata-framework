@@ -202,6 +202,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
         sim,
         input: spec.input,
         ...(layer === undefined ? {} : { watchSim: layer.watch }),
+        ...(spec.scores === undefined ? {} : { board: Object.values(spec.scores)[0]?.board }),
       }),
     renderer,
     ...(spec.settings === undefined ? {} : { settings: spec.settings }),
