@@ -5,6 +5,7 @@ import {
   createPixiRenderer,
   type EntityViewFactory,
   type PixiRendererOptions,
+  type PixiStage,
 } from '@mcthaydt/automata-render-pixi'
 import {
   BootDefect,
@@ -161,9 +162,13 @@ export function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is 
 /**
  * The Pixi renderer's options: the logical size, pixel art and the views, under the game's own `renderer`
  * options. With a draw layer, the game's own `setup` runs first and the layer mounts over it; their frame
- * hooks run in that order.
+ * hooks run in that order. `onStage` is told the stage once it exists (the Settings screen sets its quality).
  */
-export function pixiOptions<S>(spec: GameSpec<S>, layer: DrawLayer | undefined): PixiRendererOptions {
+export function pixiOptions<S>(
+  spec: GameSpec<S>,
+  layer: DrawLayer | undefined,
+  onStage?: (stage: PixiStage) => void,
+): PixiRendererOptions {
   const options: PixiRendererOptions = {
     logicalWidth: spec.size.width,
     logicalHeight: spec.size.height,
@@ -171,11 +176,14 @@ export function pixiOptions<S>(spec: GameSpec<S>, layer: DrawLayer | undefined):
     ...(spec.views === undefined ? {} : { entityViews: spec.views }),
     ...spec.renderer,
   }
-  if (layer === undefined) return options
+  if (layer === undefined && onStage === undefined) return options
   const ownSetup = spec.renderer?.setup
   return {
     ...options,
-    setup: (stage) => mergeStageHooks(ownSetup?.(stage) ?? undefined, layer.setup(stage)),
+    setup: (stage) => {
+      onStage?.(stage)
+      return mergeStageHooks(ownSetup?.(stage) ?? undefined, layer?.setup(stage))
+    },
   }
 }
 
@@ -193,7 +201,13 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
   const content =
     spec.content === undefined ? defaultContent() : { data: spec.content.data, hash: spec.content.hash }
   const layer = spec.draw === undefined ? undefined : createDrawLayer(spec.draw, spec.size)
-  const renderer = createPixiRenderer(pixiOptions(spec, layer))
+  // The stage, once the renderer has made it: the default screens give it the player's quality (M4.4).
+  let stage: PixiStage | undefined
+  const renderer = createPixiRenderer(
+    pixiOptions(spec, layer, (made) => {
+      stage = made
+    }),
+  )
 
   const game: DefinedGame<S> = {
     id: spec.id,
@@ -214,6 +228,8 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
         input: spec.input,
         ...(layer === undefined ? {} : { watchSim: layer.watch }),
         ...(spec.scores === undefined ? {} : { board: Object.values(spec.scores)[0]?.board }),
+        setQuality: (tier) => stage?.setQuality(tier),
+        ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
       }),
     renderer,
     // Without settings of its own, the game keeps the player's bindings and quality in the core settings (M4.4).

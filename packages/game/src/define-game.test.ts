@@ -72,8 +72,13 @@ describe('defineGame defaults (DX spec §3.1)', () => {
     expect(game.size).toEqual({ width: 320, height: 180 })
   })
 
-  it('adds the title, play and paused screens unless the game brings its own', () => {
-    expect(defineGame(spec).screens.map((screen) => screen.id)).toEqual(['title', 'play', 'paused'])
+  it('adds the title, play, paused and settings screens unless the game brings its own', () => {
+    expect(defineGame(spec).screens.map((screen) => screen.id)).toEqual([
+      'title',
+      'play',
+      'paused',
+      'settings',
+    ])
     const own: ScreenDef[] = [{ id: 'title', enter: () => Effect.void }]
     expect(defineGame({ ...spec, screens: own }).screens).toBe(own)
   })

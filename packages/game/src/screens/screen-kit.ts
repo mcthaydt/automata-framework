@@ -1,0 +1,103 @@
+// What the default screens share (DX spec §7, M4 spec §4.7): mounting a component for the screen's life, a window
+// listener, the menu's controller and arrow keys, and the system back gesture.
+import { Hosting } from '@mcthaydt/automata-host'
+import { type Input, type InputProfile, makeInput, PresentationBus } from '@mcthaydt/automata-runtime'
+import { FocusNavigator, interceptBackGesture } from '@mcthaydt/automata-ui'
+import { Effect, type Scope } from 'effect'
+import { type Component, flushSync, mount, unmount } from 'svelte'
+import { menuInput } from './menu-input.ts'
+
+/** A game without an input map still pauses with Escape and the pad's Start: the menu actions need no profile. */
+export const NO_BINDINGS: InputProfile = { id: 'none', bindings: {} }
+
+/** Mounts a screen component into the screen's layer for as long as the screen is open. */
+export function show<Props extends Record<string, unknown>>(
+  component: Component<Props>,
+  target: HTMLElement,
+  props: Props,
+): Effect.Effect<void, never, Scope.Scope> {
+  return Effect.acquireRelease(
+    Effect.sync(() => {
+      const instance = mount(component, { target, props })
+      // Rendered now, so the flow's focus step (runtime flow step 7) finds the primary action.
+      flushSync()
+      return instance
+    }),
+    (instance) => Effect.promise(() => unmount(instance)),
+  ).pipe(Effect.asVoid)
+}
+
+/** A window listener for as long as the screen is open. */
+export function listen(
+  target: Window,
+  type: 'keydown',
+  listener: (event: KeyboardEvent) => void,
+): Effect.Effect<void, never, Scope.Scope> {
+  return Effect.acquireRelease(
+    Effect.sync(() => target.addEventListener(type, listener)),
+    () => Effect.sync(() => target.removeEventListener(type, listener)),
+  )
+}
+
+/**
+ * A menu's controller and arrow keys while it is open (M4 spec §4.7): an Input in the `menu` context, read each
+ * animation frame, steers a `FocusNavigator`. The navigator's guard is armed for the screen change (F-a), so an Enter
+ * held from the last screen does not click this one's focused button. `own` is a menu Input the screen made itself
+ * (Settings', with the game's bindings); without one it makes one with none.
+ */
+export function driveMenu(
+  target: Window,
+  own?: Input,
+): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
+  return Effect.gen(function* () {
+    const bus = yield* PresentationBus
+    const input = own ?? (yield* makeInput({ target, profile: NO_BINDINGS, bus }))
+    input.setContext('menu')
+    const navigator = new FocusNavigator()
+    const menu = menuInput(input, navigator)
+    yield* Effect.acquireRelease(
+      Effect.sync(() => {
+        const detach = navigator.attach(target)
+        navigator.guard()
+        let frame: number | undefined
+        if (typeof target.requestAnimationFrame === 'function') {
+          const poll = (nowMs: number): void => {
+            menu.poll(nowMs)
+            frame = target.requestAnimationFrame(poll)
+          }
+          frame = target.requestAnimationFrame(poll)
+        }
+        return () => {
+          if (frame !== undefined) target.cancelAnimationFrame(frame)
+          menu.stop()
+          detach()
+        }
+      }),
+      (stop) => Effect.sync(stop),
+    )
+  })
+}
+
+/**
+ * The system back gesture (an edge swipe, a mouse's back button) as the screen's Back while it is open (M4 spec §4.7).
+ * Standalone only: hosted, the host owns system back (M4-D10, Ruken request R-2), so nothing is added to history.
+ */
+export function backGesture(
+  target: Window,
+  onBack: () => boolean,
+): Effect.Effect<void, never, Scope.Scope | Hosting> {
+  return Effect.gen(function* () {
+    const hosting = yield* Hosting
+    if (hosting.kind !== 'standalone') return
+    yield* Effect.acquireRelease(
+      Effect.sync(() => interceptBackGesture(target, onBack)),
+      (stop) => Effect.sync(stop),
+    )
+  })
+}
+
+export const windowOf = (layer: HTMLElement): Window => layer.ownerDocument.defaultView ?? window
+
+/** A plain key press, not one held down repeating, nor one with a modifier the browser may own. */
+export const plain = (event: KeyboardEvent): boolean =>
+  !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey

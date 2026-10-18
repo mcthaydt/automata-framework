@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 10 of 13 steps.
+- **Progress:** 11 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -256,7 +256,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - an unlabelled action is named by its command and payload;
     - `InputMap` gains `labels`.
   - *Done: 2 red (`labels` undefined), then green, 32 of 32 in `keys.test.ts`.*
-- [ ] **11. The default Settings screen** (`default-screens.test.ts`, `default-content.test.ts`, `screens.layout.test.ts`).
+- [x] **11. The default Settings screen** (`default-screens.test.ts`, `default-content.test.ts`, `screens.layout.test.ts`).
   - *Red:*
     - the default flow has `settings`;
     - paused's Settings opens it;
@@ -268,6 +268,18 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - Display's choice calls the stage's `setQuality` and is saved;
     - a `settings.sections` slot component renders;
     - without an input map, there is no Controls section.
+  - *Done:*
+    - 8 red (no Settings screen), then green: game unit 125 of 125, layout 300 of 300 (paused's essentials now include Settings), browsers 6 of 6.
+    - `screen-kit.ts` holds the helpers the default screens share, moved out of `default-screens.ts`. `driveMenu` takes the screen's own Input.
+    - The screen's logic is `settings-screen.svelte.ts`, so its view state can be `$state`. The rebind countdown ticks on Effect's clock.
+    - Play's Input now takes the settings store, and play reads the saved touch mode. The title applies the saved quality.
+    - The default content's pinned hash moved, by design, from `9836a6c32ad89a1a` to `083dacc3c34d55d9`. No golden holds it.
+    - The M4.5 test that steps the pad from Resume to Quit is unchanged.
+  - *Deviations:*
+    - Settings is a gear `IconButton` (named "Settings") at the end of paused's corner row, not a third action. With three actions, the bar ran Quit off the edge at 360–390 px wide, under Ruken's strip, and at TV scale.
+    - `SettingsScreen.sections` takes `{ snippet }` or `{ component }` (`SettingsSection`), so an extension's slot component renders as a section. A snippet array cannot hold a component.
+    - The test focuses Settings before clicking it, as a real click or key press does (jsdom's `click()` does not); the flow remembers focus by `data-testid` (F-b).
+    - No conflict case here: `keys()` cannot mark an action `required`. The runtime (`input-rebind.test.ts`) and the section (`controls-section.svelte.test.ts`) cover I-l.
 - [ ] **12. The example** (`examples/core/core-input-rebind.ts`, its golden, `examples/e2e/core-input-rebind.e2e.ts`).
   - *Red:* the golden is missing. Record it in Node with `AUTOMATA_UPDATE_GOLDENS=1`, as a new file.
   - *E2E, fake host:*

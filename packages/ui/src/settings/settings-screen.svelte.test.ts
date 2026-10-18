@@ -1,5 +1,6 @@
 import { createRawSnippet, flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import Extension from './SettingsExtension.test.svelte'
 import SettingsScreen from './SettingsScreen.svelte'
 
 // The core Settings screen (M4 spec §4.8, M4-D8): the sections in a scroll list that keeps them reachable, the
@@ -27,7 +28,7 @@ function open() {
       title: 'Settings',
       backLabel: 'Back',
       onback,
-      sections: [section('controls'), section('display'), section('extension')],
+      sections: [{ snippet: section('controls') }, { snippet: section('display') }, { component: Extension }],
       listLabel: 'Settings sections',
       moreLabel: (count: number) => `+${count} more`,
     },

@@ -6,15 +6,16 @@
   replaces it by flow (PRODUCT.6).
 -->
 <script lang="ts">
-import type { Snippet } from 'svelte'
 import ScreenFrame from '../layout/ScreenFrame.svelte'
 import ScrollList from '../layout/ScrollList.svelte'
+import type { SettingsSection } from './settings-screen'
 
 interface Props {
   title: string
   backLabel: string
   onback: () => void
-  sections: readonly Snippet[]
+  /** The sections, in order: the screen's own as snippets, an extension's `settings.sections` slot as its component. */
+  sections: readonly SettingsSection[]
   /** The list's accessible name. */
   listLabel: string
   /** "+N more", in the game's language. */
@@ -32,7 +33,13 @@ const { title, backLabel, onback, sections, listLabel, moreLabel }: Props = $pro
         {#snippet children()}
           <div class="af-settings__sections">
             {#each sections as section, index (index)}
-              <div class="af-settings__section" data-row>{@render section()}</div>
+              <div class="af-settings__section" data-row>
+                {#if 'snippet' in section}
+                  {@render section.snippet()}
+                {:else}
+                  <section.component />
+                {/if}
+              </div>
             {/each}
           </div>
         {/snippet}

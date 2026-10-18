@@ -90,7 +90,7 @@ const ROWS: ControlsRow[] = [
   title="Settings"
   backLabel="Back"
   onback={none}
-  sections={[controls, display]}
+  sections={[{ snippet: controls }, { snippet: display }]}
   listLabel="Settings sections"
   moreLabel={(count) => `+${count} more`}
 />
