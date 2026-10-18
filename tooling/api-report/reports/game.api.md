@@ -157,6 +157,7 @@ interface GameSpec<S = never> {
     };
     readonly input?: InputMap;
     readonly views?: Readonly<Record<string, EntityViewFactory>>;
+    readonly sounds?: EventSounds;
     readonly content?: {
         readonly data: CompiledContentData;
         readonly hash: string;

@@ -1,10 +1,16 @@
 import { z } from 'zod'
 
 /**
- * The core audio buses (PRODUCT spec §2 F1): `master` carries the other three. M5's audio spec settles the final
- * set; every change to it is an API change (PRODUCT spec §2 F6).
+ * The core audio buses (PRODUCT spec §2 F1): `master` carries the other four; M5-D3 added `voice` (announcers,
+ * dialogue). Every change to the set is an API change (PRODUCT spec §2 F6).
  */
-export const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui'] = ['master', 'music', 'sfx', 'ui']
+export const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'] = [
+  'master',
+  'music',
+  'sfx',
+  'ui',
+  'voice',
+]
 
 /** One of `AUDIO_BUS_NAMES`. */
 export type AudioBusName = (typeof AUDIO_BUS_NAMES)[number]
@@ -21,4 +27,4 @@ const gain = z.number().min(0).max(1).default(1)
 export const audioBusGainsSchema: z.ZodType<
   AudioBusGains,
   Partial<Record<AudioBusName, number | undefined>>
-> = z.object({ master: gain, music: gain, sfx: gain, ui: gain })
+> = z.object({ master: gain, music: gain, sfx: gain, ui: gain, voice: gain })

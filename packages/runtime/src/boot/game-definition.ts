@@ -1,6 +1,8 @@
 import type { AssetsSource, FlowGraph, GameSource } from '@mcthaydt/automata-content'
 import type { HostingOptions, HostingSeams } from '@mcthaydt/automata-host'
 import type { BootFailureCopy } from '@mcthaydt/automata-ui'
+import type { AudioContextLike } from '../audio/audio-graph.js'
+import type { EventSounds } from '../audio/event-sounds.js'
 import type { ExtensionDef } from '../extension/define-extension.js'
 import type { ScreenDef } from '../flow/screen.js'
 import type { LocaleDef } from '../locale/locale.manager.js'
@@ -25,6 +27,8 @@ export interface RuntimeSeams {
   readonly document?: Document
   /** The browser's languages, best first; defaults to `navigator.languages`. */
   readonly languages?: readonly string[]
+  /** Builds the audio context on the unlock; defaults to `new AudioContext()`. */
+  readonly createAudioContext?: () => AudioContextLike
 }
 
 /** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */
@@ -46,6 +50,8 @@ export interface GameDefinition<S = never> {
    */
   readonly locale?: LocaleDef | undefined
   readonly extensions?: readonly ExtensionDef[] | undefined
+  /** The sound each sim event plays, by the event's type (M5.3). */
+  readonly sounds?: EventSounds | undefined
   readonly copy?: Partial<BootFailureCopy> & {
     readonly loading?: string
     readonly slow?: string

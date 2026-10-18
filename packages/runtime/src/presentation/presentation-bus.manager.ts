@@ -19,6 +19,12 @@ export interface RuntimeFacts {
     readonly glyphs: GlyphFamily
     readonly previous: InputDevice
   }
+  /** The first gesture after `session.ready` built and resumed the audio graph (M5 spec §4.6). */
+  readonly 'audio.unlocked': Readonly<Record<never, never>>
+  /** No audio context could be built or resumed; the game runs silent (M5 spec §6). */
+  readonly 'audio.unavailable': { readonly reason: string }
+  /** A sound or a track could not be loaded or decoded; it is silent and nothing else stops (M5 spec §6). */
+  readonly 'audio.decode.failed': { readonly alias: string; readonly reason: string }
   /** A pad was plugged in (M4 spec §5). `standard: false` means it cannot drive bindings (§6). */
   readonly 'input.pad.connected': PadInfo
   /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
