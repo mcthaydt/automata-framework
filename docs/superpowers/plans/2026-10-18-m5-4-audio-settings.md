@@ -69,6 +69,7 @@ Each step starts with its test, run red, with the failure reason recorded.
     - *`game/src/screens/audio-settings.ts` reads, applies and saves the settings in one place: the title applies them (as it applies the quality), Paused's Mute and the Audio group change them.*
     - *The host's note shows while `Hosting.audio`'s `master.volume` is below 1.*
 - [ ] **7. E2E, side-by-side and gates.**
+  - *Side-by-side done: `docs/evidence/owner-visual/2026-10-18-m5-4/`. One gap found and fixed test-first: each volume took two rows, label above track; FloorFifty's is one row. `Slider` gains `layout: 'row'` (red: 37 px between the parts' middles at 390x844; green: settings and controls layouts 78 of 78 in Chromium).*
   - The rebind and matrix journeys still pass.
   - Side-by-side captures beside FloorFifty's Audio group, sent to the Desk first.
   - Gates: `pnpm format`, `pnpm check`, CI extras, `pnpm test:parity`, `CI=1 pnpm test:e2e`, prepare-ruken.

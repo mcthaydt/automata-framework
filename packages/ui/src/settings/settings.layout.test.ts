@@ -97,4 +97,23 @@ describe('Settings screen tabs', () => {
     expect((await place('iphone-14-landscape')).beside).toBe(true)
     expect((await place('iphone-14')).under).toBe(true)
   })
+
+  // FloorFifty's volume rows: the bus's name, its slider and its percentage on one 44 px row, not a label above a track.
+  test('sets each audio slider on one row: name, track and percentage', async () => {
+    for (const name of ['iphone-14', 'iphone-14-landscape']) {
+      const size = REFERENCE_SIZES.find((candidate) => candidate.name === name)
+      if (size === undefined) throw new Error(`no ${name}`)
+      await page.viewport(size.width, size.height)
+      publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
+      const fixture = mountFixture(SettingsFixture, { show: 'settings' })
+      await settleLayout()
+      const music = document.querySelector('[data-audio-bus="music"]') as HTMLElement
+      const parts = ['label', 'input', '.af-slider__value'].map((selector) =>
+        (music.querySelector(selector) as HTMLElement).getBoundingClientRect(),
+      )
+      const middles = parts.map((box) => box.top + box.height / 2)
+      await fixture.unmount()
+      expect(Math.max(...middles) - Math.min(...middles), `${name}: one row`).toBeLessThan(4)
+    }
+  })
 })

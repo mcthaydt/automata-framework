@@ -57,6 +57,7 @@ const { copy, value, available, hostBelowFull, onchange }: Props = $props()
         step={0.05}
         valueText={copy.percent}
         disabled={!available}
+        layout="row"
         onchange={(gain) => onchange({ kind: 'gain', bus, value: gain })}
       />
     </div>
