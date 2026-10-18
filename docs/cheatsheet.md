@@ -422,7 +422,7 @@
 - `ControlsCopy` (interface): Every word the Controls section shows, in the game's language.
 - `controlsMessage(state, copy, labelOf)`: The section's status line for `state`, with actions by their labels; empty in the list.
 - `ControlsRow` (interface): One game action in the Controls section: its id, its name and its bindings now.
-- `ControlsSection` (const): The Controls section of Settings (M4 spec §4.5, §7): a row per game action, its label and a rebind button for each device the player can use, the button showing that device's prompt.
+- `ControlsSection` (const): The Controls tab's section (M4 spec §4.5, §7), laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at a28dc44): one section per device the player can use, the one in their hand first and marked.
 - `ControlsState` (type): Where a rebind is: the list; waiting for a press (with the seconds left); refused because it would leave `with` unbound; refused as reserved; timed out; or saved.
 - `ControlsTouchMode` (type): How touch drives play (runtime's `TouchMode`).
 - `CornerControls` (const)
@@ -528,8 +528,9 @@
 - `ScrollList` (const)
 - `scrollWithin(element)`: Brings `element` into view by scrolling its nearest scroll box, never the document.
 - `sendBack(doc)`: Sends Back as an Escape to wherever a dialog would hear it, and reports whether anything took it.
-- `SettingsScreen` (const): The core Settings screen (M4 spec §4.8, M4-D8): the screen frame with Back in its corner row, the title, and the sections as rows of one scroll list, so on a short screen the list scrolls and Back stays put.
+- `SettingsScreen` (const): The core Settings screen (M4 spec §4.8, M4-D8), laid out and behaving as FloorFifty's settings (`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as one dialog changing its view.
 - `SettingsSection` (type): A section of the Settings screen: the screen's own snippet, or an extension's slot component.
+- `SettingsTab` (interface): A tab of the Settings screen (FloorFifty's Settings and Controls): its label and its sections, in order.
 - `SETTLE_DELAYS_MS` (const): When to measure again after a viewport event, in ms.
 - `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `SHORT_MAX_HEIGHT` (const): At or below this many CSS px of layout height, a screen is short.
@@ -552,6 +553,8 @@
 - `TouchButtonSpec` (interface): One on-screen touch button (M4 spec §4.4): the action it holds and what it shows.
 - `TouchControls` (const): The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
 - `TouchControlsProps` (interface): TouchControls' props.
+- `TouchCopy` (interface): Every word the Touch controls group shows, in the game's language.
+- `TouchSection` (const): The Touch controls group of the Settings tab (FloorFifty `SettingsPanel.svelte` at a28dc44): how touch drives play, on-screen buttons or swipes, as an option group.
 - `TouchTarget` (interface): A button's action and where it is drawn, for `nearestTarget`.
 - `trimRows(shape, groups)`: The shape cut to the rows the largest group fills, so no page carries a row of empty slots.
 - `UI_SLOT_NAMES` (const): The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).

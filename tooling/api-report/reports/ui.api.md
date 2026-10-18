@@ -196,10 +196,10 @@ interface ControlsCopy {
     readonly title: string;
     readonly keyboard: string;
     readonly gamepad: string;
+    readonly touch: string;
+    readonly inUse: string;
     readonly reset: string;
     readonly press: string;
-    readonly touchMode: string;
-    readonly touchModes: Readonly<Record<ControlsTouchMode, string>>;
     rebind(action: string, device: string): string;
     capturing(action: string, device: string, secondsLeft: number): string;
     conflict(action: string, other: string): string;
@@ -782,6 +782,8 @@ interface ModalProps {
     onclose: () => void;
     onbackdrop?: (() => void) | undefined;
     children?: Snippet | undefined;
+    head?: Snippet | undefined;
+    wide?: boolean | undefined;
     actions?: Snippet | undefined;
     testId?: string | undefined;
 }
@@ -1134,6 +1136,16 @@ type SettingsSection = {
 };
 ```
 
+### `SettingsTab` (interface)
+
+```ts
+interface SettingsTab {
+    readonly id: string;
+    readonly label: string;
+    readonly sections: readonly SettingsSection[];
+}
+```
+
 ### `SETTLE_DELAYS_MS` (const)
 
 ```ts
@@ -1309,6 +1321,22 @@ interface TouchControlsProps {
     shown?: boolean | undefined;
     testId?: string | undefined;
 }
+```
+
+### `TouchCopy` (interface)
+
+```ts
+interface TouchCopy {
+    readonly title: string;
+    readonly mode: string;
+    readonly modes: Readonly<Record<ControlsTouchMode, string>>;
+}
+```
+
+### `TouchSection` (svelte)
+
+```ts
+component from './settings/TouchSection.svelte'
 ```
 
 ### `TouchTarget` (interface)

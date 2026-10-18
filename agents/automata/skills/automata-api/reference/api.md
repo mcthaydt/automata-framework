@@ -4076,14 +4076,15 @@ Every word the Controls section shows, in the game's language.
 ```ts
 interface ControlsCopy {
     readonly title: string;
+    /** Each device section's heading. */
     readonly keyboard: string;
     readonly gamepad: string;
+    readonly touch: string;
+    /** The mark on the section of the device in the player's hand. */
+    readonly inUse: string;
     readonly reset: string;
     /** On the button that waits for a press. */
     readonly press: string;
-    /** The touch mode choice's name, and each mode's. */
-    readonly touchMode: string;
-    readonly touchModes: Readonly<Record<ControlsTouchMode, string>>;
     /** A rebind button's name for assistive technology: "Change Jump on Keyboard". */
     rebind(action: string, device: string): string;
     capturing(action: string, device: string, secondsLeft: number): string;
@@ -4117,11 +4118,12 @@ interface ControlsRow {
 
 #### `ControlsSection` (const)
 
-The Controls section of Settings (M4 spec §4.5, §7): a row per game action, its label and a rebind button for each
-device the player can use, the button showing that device's prompt. Controller buttons appear once a pad has
-connected (`devices`). A status line says each step of a rebind (`state`), the touch mode is offered only when the
-game binds both buttons and swipes, and Reset puts every binding back. Every row is a 44 px target; long labels
-wrap, and the targets never shrink.
+The Controls tab's section (M4 spec §4.5, §7), laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at
+a28dc44): one section per device the player can use, the one in their hand first and marked. Keyboard and
+Controller list each action with one rebind button showing that device's prompt; the Controller appears once a pad
+has connected (`devices`). Touch, when shown, says what the on-screen buttons do; they are the game's, so there is
+nothing to rebind (§4.5). A status line says each step of a rebind (`state`), and Reset puts every binding back.
+Every row is a 44 px target; long labels wrap, and the targets never shrink.
 
 ```ts
 const ControlsSection: import("svelte").Component<Props, {}, "">;
@@ -4939,6 +4941,10 @@ interface ModalProps {
     /** A tap on the dimmed page around the panel; absent, such a tap does nothing. */
     onbackdrop?: (() => void) | undefined;
     children?: Snippet | undefined;
+    /** What sits with the title (Settings' tabs): beside it where the dialog is 480 px wide, under it where not. */
+    head?: Snippet | undefined;
+    /** A long body (Settings) that widens on a short, wide band to set its groups two across; others keep their width. */
+    wide?: boolean | undefined;
     /** The buttons, in reading order. Mark the safe one with `data-initial-focus`. */
     actions?: Snippet | undefined;
     testId?: string | undefined;
@@ -5426,10 +5432,14 @@ function sendBack(doc: Document): boolean;
 
 #### `SettingsScreen` (const)
 
-The core Settings screen (M4 spec §4.8, M4-D8): the screen frame with Back in its corner row, the title, and the
-sections as rows of one scroll list, so on a short screen the list scrolls and Back stays put. The default screens
-give it Controls and Display; extensions add theirs through the `settings.sections` slot. A kit's styled screen
-replaces it by flow (PRODUCT.6).
+The core Settings screen (M4 spec §4.8, M4-D8), laid out and behaving as FloorFifty's settings
+(`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and
+function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as
+one dialog changing its view. Tabs stay put and the chosen tab's sections scroll under them in one list that counts
+what is below; Back sits under the dialog, and Escape and the dialog's Close go back too. Where the dialog is 560 px
+wide (it widens on a short band) the sections go two across. The default screens give it Display and Controls;
+extensions add theirs to the Settings tab through the `settings.sections` slot. A kit's styled screen replaces it
+by flow (PRODUCT.6).
 
 ```ts
 const SettingsScreen: import("svelte").Component<Props, {}, "">;
@@ -5446,6 +5456,18 @@ type SettingsSection = {
 } | {
     readonly component: UiComponent;
 };
+```
+
+#### `SettingsTab` (interface)
+
+A tab of the Settings screen (FloorFifty's Settings and Controls): its label and its sections, in order.
+
+```ts
+interface SettingsTab {
+    readonly id: string;
+    readonly label: string;
+    readonly sections: readonly SettingsSection[];
+}
 ```
 
 #### `SETTLE_DELAYS_MS` (const)
@@ -5753,6 +5775,29 @@ interface TouchControlsProps {
     shown?: boolean | undefined;
     testId?: string | undefined;
 }
+```
+
+#### `TouchCopy` (interface)
+
+Every word the Touch controls group shows, in the game's language.
+
+```ts
+interface TouchCopy {
+    readonly title: string;
+    /** The mode choice's name. */
+    readonly mode: string;
+    readonly modes: Readonly<Record<ControlsTouchMode, string>>;
+}
+```
+
+#### `TouchSection` (const)
+
+The Touch controls group of the Settings tab (FloorFifty `SettingsPanel.svelte` at a28dc44): how touch drives play,
+on-screen buttons or swipes, as an option group. The game shows it on a coarse pointer when it offers both modes.
+
+```ts
+const TouchSection: import("svelte").Component<Props, {}, "">;
+type TouchSection = ReturnType<typeof TouchSection>;
 ```
 
 #### `TouchTarget` (interface)
