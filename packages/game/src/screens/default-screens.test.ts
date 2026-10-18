@@ -562,6 +562,25 @@ describe('default screens', () => {
     }
   })
 
+  describe('a pad without the standard mapping (M4 spec §6)', () => {
+    afterEach(() => Reflect.deleteProperty(window.navigator, 'getGamepads'))
+    const toasts = () => [...root.querySelectorAll('[data-testid="pad-unsupported"]')]
+
+    it('says once, on any screen, that the controller is not supported yet', async () => {
+      const pads = fakeGamepads({ target: window })
+      Object.defineProperty(window.navigator, 'getGamepads', { configurable: true, value: pads.getGamepads })
+      await boot()
+      pads.connect(0, { mapping: '', id: 'Odd Pad' })
+      await until(() => toasts().length === 1, 'the toast on the title')
+      expect(toasts()[0]?.textContent).toContain('This controller isn’t supported yet')
+      await toPlay()
+      pads.unplug(0)
+      pads.connect(0, { mapping: '', id: 'Odd Pad' })
+      await tick()
+      expect(toasts()).toHaveLength(0)
+    })
+  })
+
   describe('a pad unplugged during play (M4-D9)', () => {
     const buttons: boolean[] = []
     const pad = () => ({

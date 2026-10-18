@@ -27,6 +27,7 @@ import {
   hostInput,
   listen,
   NO_BINDINGS,
+  noticeUnsupportedPads,
   plain,
   show,
   windowOf,
@@ -78,6 +79,8 @@ const asRecord = (value: unknown): Record<string, unknown> =>
  * play restores the sim's own snapshot, which makes the next step a resync.
  */
 export function defaultScreens(game: ScreensGame): ScreenDef[] {
+  // The pads already told they are not supported (M4 spec §6), for the whole session.
+  const toldPads = new Set<string>()
   let sim: Sim | undefined
   let playFlow: Flow | undefined
   /** Set when play paused because the pad in use was unplugged (M4-D9); Resume or Quit clears it. */
@@ -116,6 +119,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         // Nothing on the title takes Back, so a back step leaves the game.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
+        yield* noticeUnsupportedPads(layer, toldPads)
       }),
   }
 
@@ -164,6 +168,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
         const detachCursor = cursor.attach(target)
         yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
+        yield* noticeUnsupportedPads(layer, toldPads)
         appLoop.run({
           sim: running,
           commands: (tick) => {
@@ -264,8 +269,9 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         })
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
+        yield* noticeUnsupportedPads(layer, toldPads)
       }),
   }
 
-  return [title, play, paused, settingsScreen(game)]
+  return [title, play, paused, settingsScreen(game, toldPads)]
 }
