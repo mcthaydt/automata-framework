@@ -3,7 +3,7 @@
 - **Task:** M5.4 in [02](../../02-master-delivery-plan.md). M5 spec [§7](../specs/2026-10-16-m5-saves-audio-design.md) (UI inventory: the Audio settings section) and §4.6 (core audio), acceptance A-e.
 - **Lanes:** ui, with runtime and game for the wiring. **Depends on:** M5.3 (core audio, merged), M4.4 and M4.6 (merged), and the Settings and Pause redo (#91), whose Settings tab groups this joins.
 - **Status:** Plan drafted 2026-10-18.
-- **Progress:** 1 of 7 steps.
+- **Progress:** 2 of 7 steps.
 
 ## Sources, read at these commits
 
@@ -28,7 +28,7 @@
   - one slider per bus, in the order master, music, sfx, ui, voice, each with its name and its percentage;
   - states: ready and unavailable. Unavailable means audio could not start: the section says so, and its controls are disabled but still shown;
   - "The host's volume also applies" when the host's volume is below 1.
-- Core settings v2 gain `audio: { muted, muteUnfocused, gains }`, with a migration from v1 that fills the defaults (not muted, full gains).
+- Core settings gain `audio: { muted, muteUnfocused, gains }`; a record saved before reads it as the defaults (not muted, full gains).
 - `Audio` takes the mute-when-unfocused setting live (`setMuteUnfocused`), as it takes `setMuted`.
 - The default Settings screen's Settings tab: Display, Audio, Touch controls, then extensions; the two-across grid sets Display beside Audio. A change applies at once (`setMuted`, `setGain`, `setMuteUnfocused`) and saves through the settings store.
 - Pause gains Mute as its second button, as FloorFifty's; it toggles the same setting.
@@ -46,7 +46,9 @@
 Each step starts with its test, run red, with the failure reason recorded.
 
 - [x] **1. This plan,** and the 02 row. *Verify:* `pnpm format`.
-- [ ] **2. Settings v2** (`runtime/src/settings/core-settings.ts`, `audio-settings.schema.ts`, tests). *Red:* a v1 record reads as v2 with audio defaults; a bad audio record falls back to the defaults; the saved shape round-trips.
+- [x] **2. Settings with audio** (`runtime/src/settings/core-settings.ts`, `audio-settings.schema.ts`, tests). *Red:* a record saved before audio reads with audio's defaults; a bad audio record falls back to the defaults; the saved shape round-trips.
+  - *Done. Red: `audio-settings.schema.js` unresolved. Green: settings 18 of 18, runtime 432 of 432 (the root exports list gains `AUDIO_SETTINGS_DEFAULT` and `audioSettingsSchema`), game 136 of 136.*
+  - *Deviation: no version 2 and no migration. `audio` falls back field by field as `display` already does (`.catch`), so a version-1 record reads with audio at its defaults and a migration would only repeat that.*
 - [ ] **3. Live mute when unfocused** (`runtime/src/audio/audio.manager.ts`, `audio.test.ts`). *Red:* `setMuteUnfocused(true)` silences the master on `blur` and restores it on `focus`; `false` leaves it alone; the construction option still works.
 - [ ] **4. `AudioSection`** (`ui/src/settings/AudioSection.svelte`, `audio-section.ts`, DOM test). *Red:*
   - two toggles and five sliders in FloorFifty's order, each named, each slider showing its percentage;

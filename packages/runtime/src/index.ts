@@ -161,6 +161,11 @@ export {
   SaveUnreadable,
   type SaveUnreadableFields,
 } from './save/save-error.js'
+export {
+  AUDIO_SETTINGS_DEFAULT,
+  type AudioSettings,
+  audioSettingsSchema,
+} from './settings/audio-settings.schema.js'
 export { CORE_SETTINGS, type CoreSettings } from './settings/core-settings.js'
 export {
   DEFAULT_QUALITY,
