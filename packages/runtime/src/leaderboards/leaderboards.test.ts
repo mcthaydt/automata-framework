@@ -98,3 +98,44 @@ describe('submitScore', () => {
     },
   )
 })
+
+describe('readBoard', () => {
+  it("lists the host's entries, the player's marked isMe", async () => {
+    await withBoards((boards) =>
+      Effect.gen(function* () {
+        yield* boards.submitScore('best', 42)
+        expect(yield* boards.readBoard('best', { scope: 'around-me', limit: 5 })).toEqual({
+          state: 'entries',
+          entries: [{ rank: 1, displayName: 'You', score: 42, isMe: true }],
+        })
+      }),
+    )
+  })
+
+  it('is empty when the host has no entries for the board', async () => {
+    await withBoards((boards) =>
+      Effect.gen(function* () {
+        expect(yield* boards.readBoard('best')).toEqual({ state: 'empty' })
+      }),
+    )
+  })
+
+  it('is unavailable without the grant, and offline when the host is', async () => {
+    await withBoards(
+      (boards) =>
+        Effect.gen(function* () {
+          expect(yield* boards.readBoard('best')).toEqual({ state: 'unavailable' })
+        }),
+      { hosting: { wants: ['leaderboards'] }, host: { grant: ['saves'] } },
+    )
+    await withBoards((boards) =>
+      Effect.gen(function* () {
+        const { host } = yield* FakeHostHandle
+        yield* boards.submitScore('best', 42)
+        host.fakes.leaderboards.offline = true
+        // The 42 the host stored a moment ago is not shown: nothing here keeps a copy of the board.
+        expect(yield* boards.readBoard('best')).toEqual({ state: 'offline' })
+      }),
+    )
+  })
+})
