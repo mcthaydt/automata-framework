@@ -38,4 +38,11 @@ describe('RotateHint', () => {
     const { hint } = open(true)
     expect(hint()?.querySelector('button, a[href], input, [tabindex]')).toBeNull()
   })
+
+  it('sets its words on a panel, as the landscape gate does, so the screen under the scrim never shows through them', () => {
+    const { hint } = open(true)
+    const panel = hint()?.querySelector('.af-rotate-hint__panel')
+    expect(panel?.textContent).toContain('Turn your phone')
+    expect(panel?.textContent).toContain('This game plays in landscape.')
+  })
 })

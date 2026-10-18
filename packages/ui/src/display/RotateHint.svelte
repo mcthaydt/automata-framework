@@ -24,9 +24,12 @@ $effect(() => (root == null ? undefined : inertOutside(root)))
 
 {#if shown}
   <div bind:this={root} class="af-rotate-hint" data-testid="rotate-hint" role="status">
-    <span class="af-rotate-hint__icon" aria-hidden="true">⟳</span>
-    <p class="af-rotate-hint__title">{copy.title}</p>
-    <p class="af-rotate-hint__body">{copy.body}</p>
+    <!-- On a panel, as the landscape gate's: the scrim alone lets the paused screen's words show through. -->
+    <div class="af-rotate-hint__panel">
+      <span class="af-rotate-hint__icon" aria-hidden="true">⟳</span>
+      <p class="af-rotate-hint__title">{copy.title}</p>
+      <p class="af-rotate-hint__body">{copy.body}</p>
+    </div>
   </div>
 {/if}
 
@@ -36,14 +39,25 @@ $effect(() => (root == null ? undefined : inertOutside(root)))
     inset: 0 0 var(--af-visual-inset-bottom, 0px);
     z-index: 190;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    display: grid;
+    place-items: center;
     padding: max(var(--af-gutter), var(--af-inset-top, 0px)) max(var(--af-gutter), var(--af-inset-right, 0px))
       max(var(--af-gutter), var(--af-inset-bottom, 0px)) max(var(--af-gutter), var(--af-inset-left, 0px));
     background: var(--af-scrim);
+  }
+
+  .af-rotate-hint__panel {
+    box-sizing: border-box;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    max-width: 26rem;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 20px;
+    border: var(--af-edge-width) solid var(--af-edge);
+    border-radius: var(--af-radius);
+    background: var(--af-panel);
     color: var(--af-ink);
     text-align: center;
     font: var(--af-text-body) / 1.4 var(--af-font);
