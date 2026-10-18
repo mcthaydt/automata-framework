@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 8 of 13 steps.
+- **Progress:** 9 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -237,12 +237,19 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - touch mode shows only with both modes.
   - *Layout:* rows and buttons at least 44 px at every reference size and variant.
   - *Done: red `Failed to resolve import "./ControlsSection.svelte"`, then one case red (the Reset hook sat on a wrapper, not the button; it now uses the Button's `testId`); 6 of 6 green, svelte-check clean. **Deviation:** the layout contract runs in step 9, over the Settings screen fixture that holds both sections, rather than a second fixture.*
-- [ ] **9. `DisplaySection` and `SettingsScreen`** (`display-section.test.ts`, `settings-screen.test.ts`; the layout contract).
+- [x] **9. `DisplaySection` and `SettingsScreen`** (`display-section.test.ts`, `settings-screen.test.ts`; the layout contract).
   - *Red:*
     - the quality options, and `onQuality` when one is chosen;
     - reduced motion is shown, read-only;
     - the screen shows its sections in a scroll list, its title and a Back control that calls `onBack`.
   - *Layout:* no essential below the fold at 780×270, and Back reachable.
+  - *Done:*
+    - Red `Failed to resolve import` for both components, then 10 of 10 DOM cases green in `src/settings`.
+    - Layout (`settings.layout.test.ts`, `SettingsFixture.svelte`, the Controls section included): 150 of 150, two shows at 25 sizes in Chromium, WebKit and Firefox.
+    - Two reds before that:
+      - The capture message pushed the waiting button below the fold at 780×270 at TV scale. The section now scrolls that button into view while a capture waits.
+      - Svelte refused the Controls section's `state` prop next to the `$state` rune (`store_rune_conflict`). It is read as `current` inside.
+    - The sections are rows of one `ScrollList` (`minRows` 1).
 - [ ] **10. `keys()` labels** (`keys.test.ts`).
   - *Red:*
     - `labels: { Space: 'Jump' }` names the action;

@@ -42,15 +42,35 @@ interface Props {
   onreset: () => void
 }
 
-const { rows, devices, glyphs, promptCopy, layout, copy, state, touch, onrebind, onreset }: Props = $props()
+// `state` is the prop's name; inside, it is `current`, as `$state` is the rune's.
+const {
+  rows,
+  devices,
+  glyphs,
+  promptCopy,
+  layout,
+  copy,
+  state: current,
+  touch,
+  onrebind,
+  onreset,
+}: Props = $props()
 
 const labelOf = (action: string): string => rows.find((row) => row.id === action)?.label ?? action
-const message = $derived(controlsMessage(state, copy, labelOf))
+const message = $derived(controlsMessage(current, copy, labelOf))
 const waitingOn = (action: string, device: RebindDevice): boolean =>
-  state.kind === 'capturing' && state.action === action && state.device === device
+  current.kind === 'capturing' && current.action === action && current.device === device
+
+// The status line appears above the rows as a capture starts, and can push the button that started it out of the
+// list's view on a short screen: keep that button, the one the player is reading, in view.
+let root = $state<HTMLElement | undefined>(undefined)
+$effect(() => {
+  if (current.kind !== 'capturing') return
+  root?.querySelector<HTMLElement>('[data-capturing]')?.scrollIntoView?.({ block: 'nearest' })
+})
 </script>
 
-<section class="af-controls" data-settings-section="controls" data-state={state.kind}>
+<section bind:this={root} class="af-controls" data-settings-section="controls" data-state={current.kind}>
   <h3 class="af-settings__heading">{copy.title}</h3>
   <p class="af-controls__message" role="status" data-controls-message>{message}</p>
   <ul class="af-controls__rows">

@@ -47,6 +47,12 @@ test.each([
   'padLabel',
   'promptView',
   'readKeyboardLayout',
+  // the Settings screen and its sections (M4 spec §4.8, M4.4)
+  'SettingsScreen',
+  'ControlsSection',
+  'controlsMessage',
+  'DisplaySection',
+  'DISPLAY_QUALITIES',
   // boot failures and slots (§3.6, §3.7)
   'bootFailureView',
   'BOOT_FAILURE_COPY_EN',
