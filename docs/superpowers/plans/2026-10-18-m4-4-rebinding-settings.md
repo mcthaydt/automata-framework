@@ -7,7 +7,7 @@
   - Example: `core/core-input-rebind.ts`.
 - **Lanes:** runtime, ui and game. **Depends on:** M4.1 (#74), M4.6 (#79) and M4.5 (#77), all merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 7 of 13 steps.
+- **Progress:** 8 of 13 steps.
 
 ## Sources, read at these commits
 
@@ -227,7 +227,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - no input on the active device is `unbound`;
     - the component follows new props without remounting, and is not in the focus order.
   - *Done: red `Failed to resolve import "./prompt-label"` and `"./Prompt.svelte"`, then 11 of 11 green; svelte-check clean. The test file is `prompt.svelte.test.ts`, so its props can be `$state`. The 16 standard buttons' printed labels per family are AF's, extended from FloorFifty's six actions; Select, Start and Home are words on every family. Exported from the ui root.*
-- [ ] **8. `ControlsSection`** (`settings/controls-section.test.ts`; a layout contract in `settings.layout.test.ts`).
+- [x] **8. `ControlsSection`** (`settings/controls-section.test.ts`; a layout contract in `settings.layout.test.ts`).
   - *Red:*
     - one row per action, with a button per device and the prompt;
     - no pad buttons without `gamepad`;
@@ -236,6 +236,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - Reset calls `onReset`;
     - touch mode shows only with both modes.
   - *Layout:* rows and buttons at least 44 px at every reference size and variant.
+  - *Done: red `Failed to resolve import "./ControlsSection.svelte"`, then one case red (the Reset hook sat on a wrapper, not the button; it now uses the Button's `testId`); 6 of 6 green, svelte-check clean. **Deviation:** the layout contract runs in step 9, over the Settings screen fixture that holds both sections, rather than a second fixture.*
 - [ ] **9. `DisplaySection` and `SettingsScreen`** (`display-section.test.ts`, `settings-screen.test.ts`; the layout contract).
   - *Red:*
     - the quality options, and `onQuality` when one is chosen;
