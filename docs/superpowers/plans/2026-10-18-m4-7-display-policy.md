@@ -5,7 +5,7 @@
   - Acceptance D-a to D-d.
 - **Lanes:** runtime, ui, game. **Depends on:** M4.3 (#80) and M4.6 (#79), both merged.
 - **Status:** Drafted 2026-10-18.
-- **Progress:** 8 of 11 steps.
+- **Progress:** 9 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -194,8 +194,8 @@ Each step starts with its test, run red, with the failure reason recorded. The p
     - **Finding (D-a red in every engine and size):** the touch group's invisible sticky margin (24 px, FloorFifty's) reached above the buttons, over the ActionBar, so the bar's lower edge hit-tested as the touch group. The margin now reaches sideways and down, never up.
     - **Measured:** at 780×270 one row holds all four fixture buttons, so nothing is dropped there and D-a holds with all four. The reduction is tested at 360×640, where only the three required show, at the primary size.
     - The play screen passes `required` from the input map. `TouchButton.required` is optional, set only when true, so the existing shapes stay.
-- [ ] **9. The overlay as an intruder** (`layout-contract.layout.test.ts`).
-  - *Red:* a control placed under a touch button is reported, and the touch fixture still passes.
+- [x] **9. The overlay as an intruder** (`layout-contract.layout.test.ts`).
+  - *Done: red (the planted control under a touch button not reported), then green. The whole ui layout project passed, 1584 of 1584, with the check in `checkLayout`. It is `findTouchIntrusions` in `layout-contract.ts`, not a change to the shared `findIntrusions`: the overlay's boxes are the intruders, and the touch buttons are exempt from their own check.*
 - [ ] **10. The HUD layer** (`default-screens.test.ts`).
   - *Red:* an extension's `hud.overlay` component renders on play, inside the frame, and is gone on paused.
 - [ ] **11. E2E, exports, reports, gates and records.**
