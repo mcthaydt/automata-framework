@@ -3,7 +3,7 @@
 - **Task:** EDFF.1a, the first slice of EDFF.1 in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §10.1 (FF-D1 to FF-D3), §10.2 (the stage files), §10.3 (document and codec); acceptance FF-o (the byte-for-byte parts) and G-c (a parse error never replaces the file).
 - **Lane:** FloorFifty profile, parallel to the 2D editor lane. **Depends on:** ED2D.1 (the `Profile` interface, `Result`, `ParseError`), EDK.2. Stacks on #128. **Unblocks:** EDFF.1b (checks), EDFF.1c (composition and course), EDFF.1d (commands and the profile object), EDFF.2 (the Compose view).
 - **Status:** Planned 2026-10-23 on `claude/project-thread-73sp69-edff1`. The 2D spec is drafted, not reviewed.
-- **Progress:** 0 of 8 steps.
+- **Progress:** 1 of 8 steps.
 
 ## Why the codec is more than `toml-patch`
 
@@ -77,7 +77,7 @@ export function printStage(base: string, document: StageDocument): string
 
 Each step starts with a failing test and the reason it fails. After each: the package's `typecheck` and `test:unit`, then a hand mutation pass on the new file (one condition or constant at a time; every survivor gets a test or a reason it is equivalent).
 
-- [ ] **1. Schema.** Fails: the module does not exist. All four shipped stages (as parsed TOML) pass; each rule of spec §10.2 fails with the right path and message for its offending value: `id` pattern, `displayName` over 48, phrases not `teach, combine, recover, finish` once each in order, `toFloor` below `fromFloor`, `depth`/`sink`/`haze`/`arc`/`drift` ranges, `extend = "plate"` on a city layer, `arc` on a sky layer, `drift` on a plate, a plate that is not the first sky layer, a duplicate alias, a layer nearer than the one after it in its plate, no layers, every set-piece kind's bounds and required fields, more than 16 pieces, an unknown key anywhere (strict).
+- [x] **1. Schema.** Fails: the module does not exist. All four shipped stages (as parsed TOML) pass; each rule of spec §10.2 fails with the right path and message for its offending value: `id` pattern, `displayName` over 48, phrases not `teach, combine, recover, finish` once each in order, `toFloor` below `fromFloor`, `depth`/`sink`/`haze`/`arc`/`drift` ranges, `extend = "plate"` on a city layer, `arc` on a sky layer, `drift` on a plate, a plate that is not the first sky layer, a duplicate alias, a layer nearer than the one after it in its plate, no layers, every set-piece kind's bounds and required fields, more than 16 pieces, an unknown key anywhere (strict).
 - [ ] **2. Parse with positions.** Fails: no `parseStage`. A shipped stage opens as a document whose ids are `b0…` per list; a TOML syntax error reports the line and column; a schema issue reports its path and the line of its key (the table header for a missing key); several issues are all reported; the document of an empty text reports the missing keys.
 - [ ] **3. Block scan.** Fails: no `toml-blocks`. For each shipped stage the scan finds the tables the file has (counts per name), each table's header line, its leading comment lines (contiguous `#` directly above) and its last content line; floating comment blocks are in no table's range; `\r\n` text scans the same; a header inside a comment or a string is not a header.
 - [ ] **4. Identity print.** Fails: no `printStage`. `printStage(text, parseStage(text))` equals `text` for the four stages and for a `\r\n` variant and a variant with no final newline.
@@ -91,5 +91,4 @@ Each step starts with a failing test and the reason it fails. After each: the pa
 `pnpm --filter @mcthaydt/automata-editor-2d typecheck` and `test:unit`; repo-level `pnpm lint`, `style`, `knip`, `boundaries`, `pnpm api-report`, and the versions test of `tooling/versions`. Not run here: CI, WebKit and Firefox parity (the codec is pure text work with no engine-specific behavior), the full-repo `test:unit` (once before the PR leaves draft), `pnpm deps:new` (the registry's API host is unreachable from the sandbox), and any visual check (no screens).
 
 ## Execution record
-
-(Filled in as steps pass.)
+- **Step 1** (2026-10-23): the vendored schema. 70 tests: the four shipped stages pass, every rule of spec §10.2 fails with its path and message, and every numeric range accepts both ends and refuses what lies beyond. Deviation from the plan as written: the types of `StageValue` and its parts are written out by hand (with `| undefined` on optional keys) and `stageSchema` is annotated `z.ZodType<StageValue>`, because the repo's `isolatedDeclarations` cannot infer an exported Zod schema; `ED2D.1`'s `project.schema.ts` does the same. Hand mutation pass: 110 numeric mutants of the bounds and 20 of the refinement rules; the only survivors are `toFloor` minimum 1 on a phrase and on an extension, which the "must not be below fromFloor" rule refuses anyway (equivalent in effect: the same values are refused, only the message differs).
