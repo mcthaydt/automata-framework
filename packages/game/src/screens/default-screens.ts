@@ -28,13 +28,17 @@ import { applyAudio, changeAudio, savedAudio } from './audio-settings.ts'
 import { savedHaptics } from './haptics-settings.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
-import { type SavesStart, titleSaves } from './saves-title.ts'
+import { CHANGED_ELSEWHERE_TOAST } from './saves-copy.ts'
+import { pausedSaves } from './saves-paused.ts'
+import type { SavesStart } from './saves-start.ts'
+import { titleSaves } from './saves-title.ts'
 import {
   backGesture,
   driveMenu,
   hostInput,
   listen,
   NO_BINDINGS,
+  noticeChangedElsewhere,
   noticeUnsupportedPads,
   plain,
   show,
@@ -206,6 +210,8 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const detachCursor = cursor.attach(target)
         yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
         yield* noticeUnsupportedPads(layer, toldPads)
+        if (game.saves !== undefined)
+          yield* noticeChangedElsewhere(layer, game.saves.def.key, CHANGED_ELSEWHERE_TOAST)
         appLoop.run({
           sim: running,
           commands: (tick) => {
@@ -293,6 +299,18 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
             ? undefined
             : { copy: BOARD_COPY, load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
         const settings = (): void => void flow.dispatch('settings')
+        // Load newer replaces the sim with the other device's progress and plays on from it.
+        const saves =
+          game.saves === undefined
+            ? undefined
+            : yield* pausedSaves(game.saves, {
+                fresh: freshSim,
+                play: (next) => {
+                  dropSim()
+                  sim = next
+                  resume()
+                },
+              } satisfies SavesStart)
         // Mute is the Audio group's setting (M5.4), as FloorFifty's pause has it.
         const { store } = yield* Settings
         const targets = { audio: yield* Audio, buses: yield* AudioBuses }
@@ -304,6 +322,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           onMute: (muted: boolean) => changeAudio(targets, store, { ...savedAudio(store), muted }),
           message,
           board,
+          saves,
         })
         // Escape is the dialog's (Modal): it steps back from the Quit confirm, and from the menu it resumes.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))

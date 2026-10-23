@@ -1,4 +1,4 @@
-import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
+import { manualClock, realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
 import {
   defineSave,
   type GameRenderer,
@@ -15,7 +15,7 @@ import {
   type Sim,
   type StepResult,
 } from '@mcthaydt/automata-sim'
-import { createFakeHost, settle } from '@ruken/sdk-host/testing'
+import { createFakeHost, type FakeHostOptions, settle } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { flushSync } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -101,6 +101,7 @@ describe('default screens with a save (M5.2)', () => {
     spec: Partial<GameSpec> = {},
     seed: Record<string, string> = {},
     withSaves = true,
+    hostOptions: Partial<FakeHostOptions> | 'standalone' = {},
   ): Promise<DefinedGame> {
     frames = manualFrames()
     results = []
@@ -122,17 +123,23 @@ describe('default screens with a save (M5.2)', () => {
       seams: {
         frames,
         fetch: fakeFetch({}).fetch,
-        sdkEnv: () => {
-          host = createFakeHost({
-            gameOrigin: TEST_GAME_ORIGIN,
-            gameId: 'saves-screens',
-            clock: realClock,
-            saves: seed,
-          })
-          if (host.gameEnv === undefined || host.gameEnv === null)
-            throw new Error('the fake host has no game environment')
-          return host.gameEnv
-        },
+        // Standalone: no host frame, so the SDK runs by itself and there is nothing to sync.
+        ...(hostOptions === 'standalone'
+          ? {}
+          : {
+              sdkEnv: () => {
+                host = createFakeHost({
+                  gameOrigin: TEST_GAME_ORIGIN,
+                  gameId: 'saves-screens',
+                  clock: realClock,
+                  saves: seed,
+                  ...hostOptions,
+                })
+                if (host.gameEnv === undefined || host.gameEnv === null)
+                  throw new Error('the fake host has no game environment')
+                return host.gameEnv
+              },
+            }),
       },
       ...spec,
     })
@@ -296,5 +303,161 @@ describe('default screens with a save (M5.2)', () => {
     await close()
     expect(stored(host!.fakes.server, 2)?.data.x).toBe(12)
     expect(stored(host!.fakes.server, 0)?.data.x).toBe(10)
+  })
+  describe('paused (M5.2)', () => {
+    const line = () => root.querySelector<HTMLElement>('[data-save-status]')
+    /** New game in slot 1, then pause. */
+    async function pauseInNewGame(): Promise<void> {
+      button('save-slots-new')?.click()
+      await until(() => screen('play') !== null, 'the play screen')
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+    }
+
+    it('says in words what the host has done with the progress, following it as it changes', async () => {
+      await boot()
+      await pauseInNewGame()
+      await until(() => line()?.dataset.state === 'saved', 'the host to have saved')
+      expect(line()?.textContent).toContain('Progress saved')
+      expect(line()?.getAttribute('role')).toBe('status')
+    })
+
+    it('shows no status on a game without a save', async () => {
+      await boot({}, {}, false)
+      button('play')?.click()
+      await until(() => screen('play') !== null, 'the play screen')
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+      expect(line()).toBeNull()
+    })
+
+    it('shows no status standalone, where nothing syncs', async () => {
+      await boot({}, {}, true, 'standalone')
+      await pauseInNewGame()
+      expect(line()).toBeNull()
+    })
+
+    it("says Progress won't be kept under a host that did not grant saves", async () => {
+      await boot({}, {}, true, { grant: [] })
+      await pauseInNewGame()
+      await until(() => line()?.dataset.state === 'no-grant', 'the no-grant line')
+      expect(line()?.textContent).toContain("Progress won't be kept")
+    })
+    // The fake host pushes `saves.changed` only when a conflict is answered (Ruken request R-7), so another device's
+    // write arrives the way it does for a player: a write of this game's loses to it, and the player answers "theirs".
+    describe('another device changes the slot being played (M5-D6)', () => {
+      const hostClock = manualClock()
+
+      /** Session A ends with slot 1 saved; session B continues it, and then a second device writes the slot. */
+      async function playWhileOtherDeviceWrites(): Promise<void> {
+        await boot()
+        await pauseInNewGame()
+        await close()
+        const server = host!.fakes.server
+        const seed = Object.fromEntries([...server.slots].map(([key, slot]) => [key, slot.value]))
+        await boot({}, seed, true, { clock: hostClock })
+        button('save-slots-load')?.click()
+        await until(() => screen('play') !== null, 'the play screen')
+        const mine = host!.fakes.server.slots.get('run.slot.0')?.value ?? ''
+        const envelope = JSON.parse(mine) as { data: { x: number }; label?: string; savedAt: number }
+        host!.fakes.server.remoteWrite(
+          'run.slot.0',
+          JSON.stringify({ ...envelope, data: { x: 99 }, label: 'Desk PC', savedAt: envelope.savedAt + 1 }),
+          'Desk PC',
+        )
+        // This game's progress moves, and pausing writes it: the write loses to the other device's.
+        press('ArrowRight')
+        step(3)
+        window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowRight' }))
+        press('Escape')
+        await until(() => screen('paused') !== null, 'the paused screen')
+        await settle(4)
+        hostClock.advance(60_000)
+        await settle(4)
+        button('resume')?.click()
+        await until(() => screen('play') !== null, 'the play screen again')
+        await Promise.resolve(host!.bridge.resolveConflict('run.slot.0', 'theirs'))
+        await settle(4)
+      }
+
+      it('tells play in a Toast, and changes nothing under the player', async () => {
+        await playWhileOtherDeviceWrites()
+        await until(() => root.querySelector('[data-testid="changed-elsewhere"]') !== null, 'the toast')
+        expect(root.querySelector('[data-testid="changed-elsewhere"]')?.textContent).toContain(
+          'Your progress changed on another device',
+        )
+        expect(screen('play')).not.toBeNull()
+      })
+
+      it('offers Load newer and Keep playing at the next pause; Keep playing lowers the choice', async () => {
+        await playWhileOtherDeviceWrites()
+        press('Escape')
+        await until(() => screen('paused') !== null, 'the paused screen')
+        await until(() => root.querySelector('[data-changed-elsewhere]') !== null, 'the choice')
+        expect(button('load-newer')).not.toBeNull()
+        button('keep-playing')?.click()
+        await until(() => root.querySelector('[data-changed-elsewhere]') === null, 'the choice gone')
+        expect(screen('paused')).not.toBeNull()
+      })
+
+      it('Load newer that cannot be applied says so, and the game goes on as it was', async () => {
+        const refusing: GameSaves<{ x: number }> = {
+          ...saves,
+          apply: (sim, data) => {
+            if (data.x === 99) throw new Error('the newer progress does not fit this sim')
+            saves.apply(sim, data)
+          },
+        }
+        await boot()
+        await pauseInNewGame()
+        await close()
+        const seed = Object.fromEntries([...host!.fakes.server.slots].map(([key, slot]) => [key, slot.value]))
+        await boot({ saves: refusing }, seed, true, { clock: hostClock })
+        button('save-slots-load')?.click()
+        await until(() => screen('play') !== null, 'the play screen')
+        const envelope = JSON.parse(host!.fakes.server.slots.get('run.slot.0')?.value ?? '') as {
+          data: { x: number }
+          savedAt: number
+        }
+        host!.fakes.server.remoteWrite(
+          'run.slot.0',
+          JSON.stringify({ ...envelope, data: { x: 99 }, savedAt: envelope.savedAt + 1 }),
+          'Desk PC',
+        )
+        press('ArrowRight')
+        step(3)
+        window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowRight' }))
+        press('Escape')
+        await until(() => screen('paused') !== null, 'the paused screen')
+        await settle(4)
+        hostClock.advance(60_000)
+        await settle(4)
+        button('resume')?.click()
+        await until(() => screen('play') !== null, 'the play screen again')
+        await Promise.resolve(host!.bridge.resolveConflict('run.slot.0', 'theirs'))
+        await settle(4)
+        press('Escape')
+        await until(() => button('load-newer') !== null, 'the choice')
+        button('load-newer')?.click()
+        await until(() => root.querySelector('[data-load-failed]') !== null, 'the failure line')
+        // The game goes on as it was: still paused, and Resume plays the sim it had.
+        expect(screen('paused')).not.toBeNull()
+        button('resume')?.click()
+        await until(() => screen('play') !== null, 'the play screen again')
+        step()
+        expect(lastX()).toBe(13)
+      })
+
+      it('Load newer plays what the other device wrote', async () => {
+        await playWhileOtherDeviceWrites()
+        press('Escape')
+        await until(() => screen('paused') !== null, 'the paused screen')
+        await until(() => button('load-newer') !== null, 'the choice')
+        button('load-newer')?.click()
+        await until(() => screen('play') !== null, 'play again, on the newer progress')
+        step()
+        expect(lastX()).toBe(99)
+      })
+    })
   })
 })

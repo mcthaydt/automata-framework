@@ -2,7 +2,7 @@
 // with the activity only this screen knows. The model is a `$state` object the screen changes in place, so a slot
 // changing on the host never remounts the list.
 import type { SlotState } from '@mcthaydt/automata-runtime'
-import type { SaveSlotActivity, SaveSlotsView, SaveSlotView } from '@mcthaydt/automata-ui'
+import type { SaveSlotActivity, SaveSlotsView, SaveSlotView, SaveStatusState } from '@mcthaydt/automata-ui'
 
 /** One slot as the list shows it, from what the runtime says it holds. */
 export function slotViewOf(state: SlotState, activity?: SaveSlotActivity): SaveSlotView {
@@ -56,4 +56,19 @@ export function createSlotsModel(): SlotsModel {
       model.marks = activity === undefined ? rest : { ...rest, [slot]: activity }
     },
   }
+}
+
+/** What the paused screen says about the save, changed in place so the host changing its mind never remounts it. */
+export interface PausedSavesView {
+  /** The host's state, or undefined where there is nothing to say (standalone). */
+  status: SaveStatusState | undefined
+  /** Another device changed the slot being played (M5-D6): the choice is on offer. */
+  changedElsewhere: boolean
+  /** Load newer was chosen and the other device's progress could not be used. */
+  loadFailed: boolean
+}
+
+export function createPausedSavesView(): PausedSavesView {
+  const view = $state<PausedSavesView>({ status: undefined, changedElsewhere: false, loadFailed: false })
+  return view
 }

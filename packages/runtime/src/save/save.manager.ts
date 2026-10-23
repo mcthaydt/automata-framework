@@ -44,6 +44,10 @@ export interface Save<S> {
   readonly slots: Subscribable.Subscribable<readonly SlotState[]>
   /** The slot being played: the last one `load` returned. Undefined before the first load. */
   readonly loaded: Subscribable.Subscribable<number | undefined>
+  /**
+   * Reads a slot and makes it the one being played. Progress `touch`ed before is dropped: it came from the game this
+   * load replaces, and must not be written over what was just read.
+   */
   load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>
   write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>
   remove(slot: number): Effect.Effect<void, HostError>
@@ -135,6 +139,9 @@ export function saveService<S>(
     const setLoaded = (slot: number) =>
       Effect.suspend(() => {
         loadedSlot = slot
+        // A load is the slot's newest word: progress touched before it came from a game that is being replaced
+        // (Load newer, or Continue), and must not be written over what was just read.
+        pending.delete(slot)
         // A fresh load is the newest there is: whatever another device wrote is what was just read.
         return SubscriptionRef.set(changedElsewhereRef, false).pipe(
           Effect.zipRight(SubscriptionRef.set(loadedRef, slot)),

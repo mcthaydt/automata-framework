@@ -14,9 +14,10 @@ import { page } from 'vitest/browser'
 import type { TouchButton } from '../input/keys.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
-import { SAVE_SLOTS_COPY } from './saves-copy.ts'
+import { CHANGED_ELSEWHERE_COPY, SAVE_SLOTS_COPY, SAVE_STATUS_COPY } from './saves-copy.ts'
+import type { PausedSaves } from './saves-paused.ts'
 import type { TitleSaves } from './saves-title.ts'
-import { createSlotsModel } from './saves-view.svelte.ts'
+import { createPausedSavesView, createSlotsModel } from './saves-view.svelte.ts'
 import TitleScreen from './TitleScreen.svelte'
 
 // The default screens' layout contract (M1.6 spec §7) with production CSS, at every reference size and
@@ -74,7 +75,34 @@ function titleSaves(): TitleSaves {
   }
 }
 
-function mountScreen(id: 'title' | 'title-saves' | 'play' | 'paused' | 'paused-board') {
+/**
+ * Paused for a game with a save (M5.2): the longest status line over the menu, or, once another device has changed
+ * the slot being played, the choice; the line that says a Load newer failed is up in both.
+ */
+function pausedSaves(changedElsewhere: boolean): PausedSaves {
+  const view = createPausedSavesView()
+  view.status = 'offline-queued'
+  view.changedElsewhere = changedElsewhere
+  view.loadFailed = true
+  return {
+    view,
+    statusCopy: SAVE_STATUS_COPY,
+    choiceCopy: CHANGED_ELSEWHERE_COPY,
+    onLoadNewer: nothing,
+    onKeepPlaying: nothing,
+  }
+}
+
+type ScreenId =
+  | 'title'
+  | 'title-saves'
+  | 'play'
+  | 'paused'
+  | 'paused-board'
+  | 'paused-saves'
+  | 'paused-elsewhere'
+
+function mountScreen(id: ScreenId) {
   if (id === 'title') return mountFixture(TitleScreen, { title: 'A game with a long title', onPlay: nothing })
   if (id === 'title-saves')
     return mountFixture(TitleScreen, {
@@ -89,6 +117,16 @@ function mountScreen(id: 'title' | 'title-saves' | 'play' | 'paused' | 'paused-b
       onSettings: nothing,
       muted: false,
       onMute: nothing,
+    })
+  if (id === 'paused-saves' || id === 'paused-elsewhere')
+    return mountFixture(PausedScreen, {
+      onResume: nothing,
+      onQuit: nothing,
+      onSettings: nothing,
+      muted: false,
+      onMute: nothing,
+      ...(id === 'paused-saves' ? { board } : {}),
+      saves: pausedSaves(id === 'paused-elsewhere'),
     })
   if (id === 'paused-board')
     return mountFixture(PausedScreen, {
@@ -117,29 +155,35 @@ const ESSENTIALS = {
   play: ['pause', 'touch-0', 'touch-1', 'touch-2'],
   paused: ['resume', 'pause-mute', 'quit', 'settings'],
   'paused-board': ['resume', 'pause-mute', 'quit', 'settings'],
+  'paused-saves': ['resume', 'pause-mute', 'quit', 'settings'],
+  'paused-elsewhere': ['load-newer', 'keep-playing'],
 } as const
 
-describe.each(['title', 'title-saves', 'play', 'paused', 'paused-board'] as const)(
-  '%s screen layout contract',
-  (screen) => {
-    test.each(REFERENCE_SIZES)('$name ($width x $height)', async (size: ReferenceSize) => {
-      await page.viewport(size.width, size.height)
-      const problems: string[] = []
-      for (const variant of VARIANTS as readonly Variant[]) {
-        const conditions = publishConditions(document.documentElement, size, variant)
-        const fixture = mountScreen(screen)
-        await settleLayout()
-        // The board loads asynchronously: the contract must see its rows, not the loading line.
-        if (screen === 'paused-board')
-          expect(document.querySelector('[data-leaderboard]')?.getAttribute('data-state')).toBe('entries')
-        // With the keyboard open the frame scrolls what does not fit (ui spec §3.4); nothing may sit under
-        // the keyboard, which `checkLayout` checks, but reaching an action may take a scroll.
-        const essentials = variant.keyboard === undefined ? ESSENTIALS[screen].map(byTestId) : []
-        for (const problem of checkLayout(conditions, essentials))
-          problems.push(`${variant.name}: ${problem}`)
-        await fixture.unmount()
-      }
-      expect(problems).toEqual([])
-    })
-  },
-)
+describe.each([
+  'title',
+  'title-saves',
+  'play',
+  'paused',
+  'paused-board',
+  'paused-saves',
+  'paused-elsewhere',
+] as const)('%s screen layout contract', (screen) => {
+  test.each(REFERENCE_SIZES)('$name ($width x $height)', async (size: ReferenceSize) => {
+    await page.viewport(size.width, size.height)
+    const problems: string[] = []
+    for (const variant of VARIANTS as readonly Variant[]) {
+      const conditions = publishConditions(document.documentElement, size, variant)
+      const fixture = mountScreen(screen)
+      await settleLayout()
+      // The board loads asynchronously: the contract must see its rows, not the loading line.
+      if (screen === 'paused-board')
+        expect(document.querySelector('[data-leaderboard]')?.getAttribute('data-state')).toBe('entries')
+      // With the keyboard open the frame scrolls what does not fit (ui spec §3.4); nothing may sit under
+      // the keyboard, which `checkLayout` checks, but reaching an action may take a scroll.
+      const essentials = variant.keyboard === undefined ? ESSENTIALS[screen].map(byTestId) : []
+      for (const problem of checkLayout(conditions, essentials)) problems.push(`${variant.name}: ${problem}`)
+      await fixture.unmount()
+    }
+    expect(problems).toEqual([])
+  })
+})

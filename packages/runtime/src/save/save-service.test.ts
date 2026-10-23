@@ -809,6 +809,22 @@ describe('a change on another device while a slot is loaded (M5 spec §5, M5-D6)
     )
   })
 
+  it("Load newer drops the progress the old game had touched, so no flush writes it over the other device's", async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, _facts, elsewhere) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(1)
+        save.touch(() => kite)
+        yield* elsewhere('run.slot.1', theirs)
+        const before = sentByGame('saves.set').length
+        yield* save.loadNewer()
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(before)
+      }),
+    )
+  })
+
   it('only refreshes the list for a slot that is not the one being played, or for a key that is not a slot', async () => {
     await withRemote({ 'run.slot.0': stored() }, (save, facts, elsewhere) =>
       Effect.gen(function* () {

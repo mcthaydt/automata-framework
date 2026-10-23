@@ -7,6 +7,7 @@ import type { SaveSlotsCopy } from '@mcthaydt/automata-ui'
 import { Effect, Runtime, type Scope, Stream } from 'effect'
 import type { GameSaves } from '../define-game.ts'
 import { SAVE_SLOTS_COPY } from './saves-copy.ts'
+import { orDispose, type SavesStart } from './saves-start.ts'
 import { createSlotsModel, type SlotsModel } from './saves-view.svelte.ts'
 
 /** What the title needs to list a game's slots. */
@@ -19,24 +20,6 @@ export interface TitleSaves {
   readonly onLoad: (slot: number) => void
   readonly onNew: (slot: number) => void
   readonly onDelete: (slot: number) => void
-}
-
-/** What starting play from a slot needs from the screens. */
-export interface SavesStart {
-  /** A sim set up from the game's seed, plugins, content and `setup`, at tick 0. The caller owns it until `play`. */
-  fresh(): Promise<Sim>
-  /** Hands the started sim to play, and plays. */
-  play(sim: Sim): void
-}
-
-/** Runs `work`, and gives the sim back to nobody if it throws: the caller's `sim.dispose()` is not left to a catch. */
-async function orDispose<T>(sim: Sim, work: () => T | Promise<T>): Promise<T> {
-  try {
-    return await work()
-  } catch (error) {
-    sim.dispose()
-    throw error
-  }
 }
 
 /**

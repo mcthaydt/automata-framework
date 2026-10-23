@@ -4,10 +4,20 @@
   a dialog over the dimmed game, titled Paused, with Resume (primary, focused), Mute, Settings and Quit to title, two
   across once the dialog is 340 px wide. Quit asks first, because the run is lost. Escape (the pad's B, the system
   back) steps back one level: from the confirm to the menu, on Quit; from the menu it resumes.
+  A game with a save (M5.2) adds the host's word on the progress under the menu, and, once another device has changed
+  the slot being played, a step of its own before the menu: Load newer or Keep playing (M5-D6). It is a step and not
+  more lines in the menu so the menu's actions never move off a short screen.
 -->
 <script lang="ts">
-import { type LeaderboardCopy, LeaderboardPanel, type LeaderboardView, Modal } from '@mcthaydt/automata-ui'
+import {
+  type LeaderboardCopy,
+  LeaderboardPanel,
+  type LeaderboardView,
+  Modal,
+  SaveStatus,
+} from '@mcthaydt/automata-ui'
 import { tick } from 'svelte'
+import type { PausedSaves } from './saves-paused.ts'
 
 interface Props {
   onResume: () => void
@@ -22,9 +32,11 @@ interface Props {
   message?: string | undefined
   /** The game's scored board (M5.7): read from the host when paused opens. */
   board?: { copy: LeaderboardCopy; load: () => Promise<LeaderboardView> } | undefined
+  /** The game's save (M5.2): the host's word on the progress, and the choice once another device changed it. */
+  saves?: PausedSaves | undefined
 }
 
-const { onResume, onQuit, onSettings, muted: mutedAtOpen, onMute, message, board }: Props = $props()
+const { onResume, onQuit, onSettings, muted: mutedAtOpen, onMute, message, board, saves }: Props = $props()
 
 // The button's own state from here on; the caller applies and saves each change.
 // svelte-ignore state_referenced_locally
@@ -34,17 +46,36 @@ function toggleMute(): void {
   onMute(muted)
 }
 
-let view = $state<'menu' | 'confirm'>('menu')
+// The choice comes first when another device has already changed the slot as paused opens.
+// svelte-ignore state_referenced_locally
+let view = $state<'menu' | 'confirm' | 'elsewhere'>(
+  saves?.view.changedElsewhere === true ? 'elsewhere' : 'menu',
+)
 let body = $state<HTMLElement | undefined>(undefined)
+/** Back from the choice leaves it for the menu, with the flag still up: it is not offered again until play resumes. */
+let declined = $state(false)
 
 /** Shows a view and puts focus on the button named: the one it was opened from, or the confirm's first. */
-async function show(next: 'menu' | 'confirm', focus: string): Promise<void> {
+async function show(next: 'menu' | 'confirm' | 'elsewhere', focus: string): Promise<void> {
   view = next
   await tick()
   body?.querySelector<HTMLElement>(`[data-testid="${focus}"]`)?.focus()
 }
 
-const back = (): void => (view === 'menu' ? onResume() : void show('menu', 'quit'))
+const back = (): void => {
+  if (view === 'menu') onResume()
+  else if (view === 'elsewhere') {
+    declined = true
+    void show('menu', 'resume')
+  } else void show('menu', 'quit')
+}
+
+// The flag rising while paused is open brings the choice; it lowering (Keep playing) takes it away.
+$effect(() => {
+  const changed = saves?.view.changedElsewhere === true
+  if (changed && view === 'menu' && !declined) void show('elsewhere', 'load-newer')
+  else if (!changed && view === 'elsewhere') void show('menu', 'resume')
+})
 
 let scores = $state<LeaderboardView>({ state: 'loading' })
 $effect(() => {
@@ -83,9 +114,34 @@ $effect(() => {
             >Quit to title</button
           >
         </div>
+        <!-- Under the menu, so on a screen too short for both the actions stay on screen and the lines scroll. -->
+        {#if saves !== undefined}
+          {#if saves.view.loadFailed}
+            <p class="af-pause__message" role="alert" data-load-failed>{saves.choiceCopy.failed}</p>
+          {/if}
+          <SaveStatus status={saves.view.status} copy={saves.statusCopy} />
+        {/if}
         {#if board !== undefined}
           <LeaderboardPanel view={scores} copy={board.copy} />
         {/if}
+      {:else if view === 'elsewhere' && saves !== undefined}
+        <p class="af-pause__message">{saves.choiceCopy.message}</p>
+        {#if saves.view.loadFailed}
+          <p class="af-pause__message" role="alert" data-load-failed>{saves.choiceCopy.failed}</p>
+        {/if}
+        <div class="af-pause__menu" data-changed-elsewhere>
+          <button
+            type="button"
+            class="af-control af-control--primary"
+            data-kind="primary"
+            data-testid="load-newer"
+            data-initial-focus
+            onclick={saves.onLoadNewer}>{saves.choiceCopy.loadNewer}</button
+          >
+          <button type="button" class="af-control" data-testid="keep-playing" onclick={saves.onKeepPlaying}
+            >{saves.choiceCopy.keepPlaying}</button
+          >
+        </div>
       {:else}
         <p class="af-pause__message">Quit to title? This run is lost.</p>
         <div class="af-pause__menu">
