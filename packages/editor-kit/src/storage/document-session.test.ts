@@ -309,6 +309,18 @@ describe('document session: saving', () => {
       expect(problems).toHaveLength(1)
     })
 
+    test('when a save and an autosave have both failed, the save problem is the one shown', async () => {
+      const { session, edit, clock, journal, control } = await setup()
+      journal.write = async () => ({ ok: false, reason: 'io', message: 'Journal failed.' })
+      edit(1)
+      clock.advance(800)
+      await settle()
+      expect(session.problem?.source).toBe('autosave')
+      control.failNext({ ok: false, reason: 'quota', message: 'Disk full.' })
+      await session.save()
+      expect(session.problem).toEqual({ source: 'save', reason: 'quota', message: 'Disk full.', paused: false })
+    })
+
     test('saving the document makes a paused autosave moot: the error clears and autosave starts again', async () => {
       const { session, edit, clock, journal } = await setup()
       const write = journal.write.bind(journal)
@@ -408,5 +420,40 @@ describe('document session: listening', () => {
     await settle()
     expect(await journal.list()).toEqual([])
     expect(statuses).toEqual([])
+  })
+
+  test('after dispose a subscriber that arrives late is not told either', async () => {
+    const { session, edit } = await setup()
+    session.dispose()
+    const heard = vi.fn()
+    session.subscribe(heard)
+    edit(1)
+    expect(heard).not.toHaveBeenCalled()
+  })
+
+  test('a save that finishes after dispose tells nobody', async () => {
+    const { session, edit, control, statuses } = await setup()
+    edit(1)
+    const release = control.hold()
+    const saving = session.save()
+    await settle()
+    session.dispose()
+    const heardBefore = statuses.length
+    release()
+    await saving
+    expect(statuses).toHaveLength(heardBefore)
+  })
+
+  test('the subscriber hears saving as soon as a write begins, whatever the save turns into', async () => {
+    const { session, edit, control, statuses } = await setup()
+    edit(1)
+    const release = control.hold()
+    const saving = session.save()
+    await settle()
+    expect(statuses).toEqual(['dirty', 'saving'])
+    control.failNext({ ok: false, reason: 'io', message: 'Nope.' })
+    release()
+    await saving
+    expect(statuses).toEqual(['dirty', 'saving', 'error'])
   })
 })
