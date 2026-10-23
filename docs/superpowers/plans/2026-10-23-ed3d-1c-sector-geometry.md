@@ -2,8 +2,8 @@
 
 - **Task:** ED3D.1c, added by this plan between ED3D.1 and ED3D.2 (the row lands with the ED3D follow-up to the master plan). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.3 (the geometry owner), §7 (the checks read it), D15 (geometry reaches the views only as a list of layers). Acceptance: the geometry halves of ED3-c, ED3-d, ED3-e and ED3-l (§13), proved here by queries and goldens; the rest need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.1 (`expand` and its output types; branch `claude/project-thread-ljshus-ed3d-1`, PR #107). No editor-kit code, no Svelte, no DOM.
-- **Status:** Drafted 2026-10-23. Not reviewed. Written and built on the Orchestrator's go-ahead of 02:20 UTC (bus), like ED3D.1; spec review (ED3D.0) is still open.
-- **Progress:** 4 of 5 steps.
+- **Status:** Drafted, implemented and locally checked 2026-10-23 (`pnpm check` passes, 296 tests in the package, 101 of them geometry). Not reviewed, not CI verified, not deployed, not Owner accepted. Written and built on the Orchestrator's go-ahead of 02:20 UTC (bus), like ED3D.1; spec review (ED3D.0) is still open.
+- **Progress:** 5 of 5 steps.
 
 ## Why this task exists
 
@@ -87,9 +87,10 @@ Each step starts with its test, run red, with the failure reason recorded; the r
   - *Red, by case:* `segmentHitsBox` for a hit, a miss, a graze with and without margin, a segment parallel to a face and inside it; `clear` is false through a wall, through a shut door box and through furniture, true with the door open, true when an end is inside the obstacle (a hotspot on a desk); `wallsOnly` ignores furniture; a raised solid's sides are ignored from its top, a dock's are not; `nearestNode` picks the nearest clear node and returns null when none is clear; all four blockouts equal the golden's nav answers; the source tests: every nav node stands inside a sector, every nav edge is clear with the doors open at margin 0.3, every hotspot can be reached from the spawn within its reach, on each blockout.
   - *Expected failure:* module missing.
   - *Done: red `Cannot find module './nav'`. `nav.ts` has `NavState`, `NavLevel`, `NavWorld`, `navWorld(map, level)` (the walk edges, sight edges and raised solids built once), `segmentHitsBox`, `clear`, `nearestNode`, `nearAWall`, `throughWall`; each takes the world first where Last Light's read module state. 35 tests: the toy cases from running Last Light's nav code (the 0.30/margin/graze/parallel cases for the box clip; wall, furniture, door, exit and obstacle-under-the-end cases for `clear`; a counter against a dock and its stair; `nearestNode` with default margin, ties and none), and on each blockout the golden's nav answers (every node pair open, shut and walls only, `throughWall`, `nearAWall`, `nearestNode` for the spawn and every hotspot) plus the three nav source tests. Eight mutations of the port were tried (a boundary, the exit rule, the door rule, the tie, the solid test and others) and each fails a test; three first survived and got a case each (exactly the margin from a wall, past an exit, two equidistant nodes). One toy case of mine was wrong, not the port: a segment meant to cross an exit ended on the wall and failed for that reason, which the mutation run showed.*
-- [ ] **5. Gates and records.**
+- [x] **5. Gates and records.**
   - *Run in order:* `pnpm format`, `pnpm docs:stack` (commit if it changes), `pnpm check`; the purity test already covers `src/geometry` once it is added to its layer list.
   - *Records:* as in ED3D.1: master plan (02) and continuation prompt (03) in the docs follow-up after #93; nothing ticked in 02 from this PR.
+  - *Done: `src/geometry` joins the purity layer list (it imports `format` only, no clock, no DOM) and the public entry exports `sectors` and `nav` (`src/index.test.ts` checks four names in and the test helpers out). `pnpm format` changed nothing in the package, `pnpm docs:stack` wrote the same `docs/stack.md`, and `pnpm check` exits 0 on Node 24 (31 tasks: lint, typecheck, boundaries, style, unit tests, api-report seams). Selected: package unit tests and `pnpm check`. Omitted: parity, GPU, visual and e2e, since the package has none and touches no sim code. Pending: hosted CI and the queue's own run. Master plan and continuation records wait for the docs follow-up after #93.*
 
 ## Verification
 
