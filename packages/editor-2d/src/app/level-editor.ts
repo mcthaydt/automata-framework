@@ -1,8 +1,11 @@
-import { packTile } from '../model/cells-codec'
+import { packTile, unpackTile } from '../model/cells-codec'
 import { cellWord, fillLayer, paintLayerCells, paintLayerRect } from '../model/commands/cell-edits'
+import { deleteEntity, moveEntity, placeEntity } from '../model/commands/entity-edits'
+import { entityAt } from '../model/commands/entity-geometry'
 import type { LayerTarget } from '../model/commands/layer-target'
+import { placeObject } from '../model/commands/object-edits'
 import type { IdSource } from '../model/ids'
-import type { LayerDef, Project } from '../model/project-types'
+import type { EntitiesLayerDef, LayerDef, ObjectsLayerDef, Project } from '../model/project-types'
 import { brushCells, lineCells, type Point } from '../tiles/footprint'
 
 // The Level view's logic (2D editor spec §5.9, §8): what the toolbar and the palette have chosen, and what a pointer
@@ -10,7 +13,7 @@ import { brushCells, lineCells, type Point } from '../tiles/footprint'
 // view reads `view`, calls the setters and forwards pointer events in level pixels. The project itself stays in the
 // history, which the controller reads at every event, so undo and redo need nothing from it.
 
-export type Tool = 'select' | 'brush' | 'rectangle' | 'fill' | 'eraser' | 'picker'
+export type LevelTool = 'select' | 'brush' | 'rectangle' | 'fill' | 'eraser' | 'picker'
 
 /** What the controller needs of the kit's `History<Project>`, which satisfies it. */
 export interface EditHistory {
@@ -27,7 +30,7 @@ export interface LevelEditorView {
   readonly level: string
   /** The active layer's definition id. */
   readonly layer: string
-  readonly tool: Tool
+  readonly tool: LevelTool
   /** 1 to 8 cells. */
   readonly brushSize: number
   /** The palette's choice: an IntGrid value or a packed tile; 0 erases. */
@@ -51,7 +54,7 @@ export interface LevelEditor {
   subscribe(run: () => void): () => void
   setLevel(id: string): void
   setLayer(def: string): void
-  setTool(tool: Tool): void
+  setTool(tool: LevelTool): void
   setBrushSize(size: number): void
   setWord(word: number): void
   setEntityDef(def: string): void
@@ -110,6 +113,17 @@ type Gesture =
       readonly word: number
       readonly anchor: Point
     }
+  | {
+      readonly kind: 'move'
+      readonly tx: Transaction
+      /** The project as it was at pointer down: every move is computed from it, so dragging back to the start is no edit. */
+      readonly base: Project
+      readonly target: LayerTarget
+      readonly id: string
+      readonly grab: Point
+      readonly origin: Point
+      readonly step: number
+    }
 
 const sameList = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((item, i) => item === b[i])
@@ -117,7 +131,7 @@ const samePoint = (a: Point | undefined, b: Point | undefined): boolean =>
   a === b || (a !== undefined && b !== undefined && a.x === b.x && a.y === b.y)
 
 export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
-  const { history } = options
+  const { history, ids } = options
   const project = (): Project => history.state
   const listeners = new Set<() => void>()
   /** Each layer remembers the palette word chosen on it: an IntGrid value and a packed tile share no meaning. */
@@ -233,6 +247,87 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
     live(drag.tx, () => paintLayerRect(drag.base, drag.target, drag.anchor, cell, drag.word))
   }
 
+  /** The id of the instance of a `single` definition the level already has, wherever it is: `placeEntity` moves that one. */
+  function existingSingle(defId: string): string | undefined {
+    const definition = project().defs.entities.find((candidate) => candidate.id === defId)
+    if (definition?.single !== true) return undefined
+    const level = project().levels.find((candidate) => candidate.id === view.level)
+    for (const layer of level?.layers ?? [])
+      if (layer.kind === 'entities') {
+        const found = layer.items.find((item) => item.def === defId)
+        if (found !== undefined) return found.id
+      }
+    return undefined
+  }
+
+  /** A pointer coordinate moved to the layer's grid when it snaps, otherwise to a whole pixel. */
+  const snapped = (value: number, step: number): number => Math.round(value / step) * step
+
+  function downOnEntities(def: EntitiesLayerDef, at: Point): void {
+    const where = target()
+    const step = def.snap ? def.grid : 1
+    if (view.tool === 'brush') {
+      const defId = view.entityDef
+      if (defId === undefined) return
+      const x = snapped(at.x, step)
+      const y = snapped(at.y, step)
+      const id = existingSingle(defId) ?? ids.next()
+      history.apply('Place entity', (p) => placeEntity(p, where, { id, def: defId, x, y }))
+      update({ selected: [id] })
+      return
+    }
+    const hit = entityAt(project(), where, at)
+    if (view.tool === 'select') {
+      if (hit === undefined) {
+        update({ selected: [] })
+        return
+      }
+      const tx = history.begin('Move entity')
+      gesture = {
+        kind: 'move',
+        tx,
+        base: project(),
+        target: where,
+        id: hit.id,
+        grab: at,
+        origin: { x: hit.x, y: hit.y },
+        step,
+      }
+      update({ selected: [hit.id], gesture: 'move' })
+    } else if (hit === undefined) {
+      return
+    } else if (view.tool === 'eraser') {
+      history.apply('Delete entity', (p) => deleteEntity(p, where, hit.id))
+      update({ selected: view.selected.filter((id) => id !== hit.id) })
+    } else if (view.tool === 'picker') {
+      update({ selected: [hit.id], entityDef: hit.def })
+    }
+  }
+
+  /** Only the brush works on an objects layer so far: picking an object needs a hit test, which comes with ED2D.4d. */
+  function downOnObjects(def: ObjectsLayerDef, at: Point): void {
+    if (view.tool !== 'brush') return
+    const tile = unpackTile(view.word)
+    if (tile === undefined) return
+    const step = Math.max(def.snap, 1)
+    const where = target()
+    const input = {
+      id: ids.next(),
+      tile: tile.tile,
+      x: snapped(at.x, step),
+      y: snapped(at.y, step),
+      flipX: tile.flipX,
+      flipY: tile.flipY,
+    }
+    history.apply('Place object', (p) => placeObject(p, where, input))
+  }
+
+  function dragEntity(drag: Extract<Gesture, { kind: 'move' }>, at: Point): void {
+    const x = drag.origin.x + snapped(at.x - drag.grab.x, drag.step)
+    const y = drag.origin.y + snapped(at.y - drag.grab.y, drag.step)
+    live(drag.tx, () => moveEntity(drag.base, drag.target, drag.id, x, y))
+  }
+
   const editor: LevelEditor = {
     get view() {
       return view
@@ -283,12 +378,15 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
       update({ hover: cell })
       if (gesture?.kind === 'stroke') strokeTo(gesture, cell)
       else if (gesture?.kind === 'rectangle') dragRectangle(gesture, cell)
+      else if (gesture?.kind === 'move') dragEntity(gesture, at)
     },
     pointerDown(at) {
       endGesture(false)
       const def = layerDef(project(), view.layer)
       if (view.locked.has(def.id) || view.hidden.has(def.id)) return
       if (def.kind === 'tiles' || def.kind === 'intgrid' || def.kind === 'auto') downOnCells(cellAt(def, at))
+      else if (def.kind === 'entities') downOnEntities(def, at)
+      else downOnObjects(def, at)
     },
     pointerUp() {
       endGesture(true)
@@ -299,7 +397,15 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
     pointerLeave() {
       update({ hover: undefined })
     },
-    refresh() {},
+    refresh() {
+      const level = project().levels.find((candidate) => candidate.id === view.level)
+      const alive = new Set(
+        level?.layers.flatMap((layer) =>
+          layer.kind === 'entities' ? layer.items.map((item) => item.id) : [],
+        ),
+      )
+      update({ selected: view.selected.filter((id) => alive.has(id)) })
+    },
   }
   return editor
 }

@@ -89,6 +89,17 @@ interface Background {
 type BackgroundMode = 'fit' | 'cover' | 'repeat' | 'repeat-x';
 ```
 
+### `Bounds` (interface)
+
+```ts
+interface Bounds {
+    readonly x: number;
+    readonly y: number;
+    readonly w: number;
+    readonly h: number;
+}
+```
+
 ### `brushCells` (function)
 
 ```ts
@@ -109,6 +120,12 @@ interface CellProblem {
     readonly token?: number;
     readonly message: string;
 }
+```
+
+### `cellWord` (function)
+
+```ts
+function cellWord(project: Project, target: LayerTarget, cell: Point): number;
 ```
 
 ### `CHUNK` (const)
@@ -142,6 +159,12 @@ function copyStamp(grid: Grid, x: number, y: number, w: number, h: number): Stam
 
 ```ts
 function counterIds(start?: number): IdSource;
+```
+
+### `createLevelEditor` (function)
+
+```ts
+function createLevelEditor(options: LevelEditorOptions): LevelEditor;
 ```
 
 ### `createProfileRegistry` (function)
@@ -191,6 +214,18 @@ interface Definitions {
 }
 ```
 
+### `deleteEntity` (function)
+
+```ts
+function deleteEntity(project: Project, target: LayerTarget, id: string): Project;
+```
+
+### `deleteObject` (function)
+
+```ts
+function deleteObject(project: Project, target: LayerTarget, id: string): Project;
+```
+
 ### `Diagnostic` (interface)
 
 ```ts
@@ -200,6 +235,26 @@ interface Diagnostic {
     readonly path: string;
     readonly message: string;
     readonly fix?: string | undefined;
+}
+```
+
+### `duplicateEntity` (function)
+
+```ts
+function duplicateEntity(project: Project, target: LayerTarget, id: string, copyId: string, offset: Point): Project;
+```
+
+### `EditHistory` (interface)
+
+```ts
+interface EditHistory {
+    readonly state: Project;
+    apply(label: string, update: (project: Project) => Project): void;
+    begin(label: string): {
+        update(fn: (project: Project) => Project): void;
+        commit(): void;
+        cancel(): void;
+    };
 }
 ```
 
@@ -241,6 +296,18 @@ interface EntitiesLayerInstance {
     readonly kind: 'entities';
     readonly items: readonly EntityInstance[];
 }
+```
+
+### `entityAt` (function)
+
+```ts
+function entityAt(project: Project, target: LayerTarget, at: Point): EntityInstance | undefined;
+```
+
+### `entityBounds` (function)
+
+```ts
+function entityBounds(def: EntityDef2D, instance: EntityInstance): Bounds;
 ```
 
 ### `EntityDef2D` (type)
@@ -292,6 +359,12 @@ type EntityResize = 'none' | 'x' | 'y' | 'xy';
 type EntityShape = 'rect' | 'ellipse' | 'point' | 'tile';
 ```
 
+### `eraseLayerCells` (function)
+
+```ts
+function eraseLayerCells(project: Project, target: LayerTarget, cells: Iterable<Point>): Project;
+```
+
 ### `evaluateCell` (function)
 
 ```ts
@@ -317,10 +390,33 @@ interface ExportTarget<V> {
 const FILE_VERSION = 1;
 ```
 
+### `fillLayer` (function)
+
+```ts
+function fillLayer(project: Project, target: LayerTarget, at: Point, word: number): Project;
+```
+
+### `findLayer` (function)
+
+```ts
+function findLayer(project: Project, target: LayerTarget): {
+    readonly level: Level;
+    readonly index: number;
+    readonly layer: LayerInstance;
+    readonly def: LayerDef;
+};
+```
+
 ### `flipCell` (function)
 
 ```ts
 function flipCell(cell: number, axis: 'x' | 'y'): number;
+```
+
+### `flipObject` (function)
+
+```ts
+function flipObject(project: Project, target: LayerTarget, id: string, axis: 'x' | 'y'): Project;
 ```
 
 ### `flipStamp` (function)
@@ -455,6 +551,15 @@ type LayerInstance = TilesLayerInstance | IntGridLayerInstance | AutoLayerInstan
 type LayerInstanceFile = TilesLayerFile | IntGridLayerFile | AutoLayerFile | EntitiesLayerInstance | ObjectsLayerInstance;
 ```
 
+### `LayerTarget` (interface)
+
+```ts
+interface LayerTarget {
+    readonly level: string;
+    readonly layer: string;
+}
+```
+
 ### `Level` (interface)
 
 ```ts
@@ -466,6 +571,68 @@ interface Level<Layer = LayerInstance> {
     readonly fields: FieldValues;
     readonly layers: readonly Layer[];
 }
+```
+
+### `LevelEditor` (interface)
+
+```ts
+interface LevelEditor {
+    readonly view: LevelEditorView;
+    subscribe(run: () => void): () => void;
+    setLevel(id: string): void;
+    setLayer(def: string): void;
+    setTool(tool: LevelTool): void;
+    setBrushSize(size: number): void;
+    setWord(word: number): void;
+    setEntityDef(def: string): void;
+    setLocked(layer: string, locked: boolean): void;
+    setHidden(layer: string, hidden: boolean): void;
+    pointerMove(at: Point): void;
+    pointerDown(at: Point): void;
+    pointerUp(): void;
+    cancel(): void;
+    pointerLeave(): void;
+    refresh(): void;
+}
+```
+
+### `LevelEditorOptions` (interface)
+
+```ts
+interface LevelEditorOptions {
+    readonly history: EditHistory;
+    readonly ids: IdSource;
+    readonly level: string;
+    readonly layer?: string;
+}
+```
+
+### `LevelEditorView` (interface)
+
+```ts
+interface LevelEditorView {
+    readonly level: string;
+    readonly layer: string;
+    readonly tool: LevelTool;
+    readonly brushSize: number;
+    readonly word: number;
+    readonly entityDef: string | undefined;
+    readonly selected: readonly string[];
+    readonly hover: Point | undefined;
+    readonly locked: ReadonlySet<string>;
+    readonly hidden: ReadonlySet<string>;
+    readonly gesture: 'idle' | 'stroke' | 'rectangle' | 'move';
+    readonly rectangle: {
+        readonly from: Point;
+        readonly to: Point;
+    } | undefined;
+}
+```
+
+### `LevelTool` (type)
+
+```ts
+type LevelTool = 'select' | 'brush' | 'rectangle' | 'fill' | 'eraser' | 'picker';
 ```
 
 ### `lineCells` (function)
@@ -488,6 +655,18 @@ interface Migration {
     readonly to: number;
     readonly run: (raw: RawFile) => RawFile;
 }
+```
+
+### `moveEntity` (function)
+
+```ts
+function moveEntity(project: Project, target: LayerTarget, id: string, x: number, y: number): Project;
+```
+
+### `moveObject` (function)
+
+```ts
+function moveObject(project: Project, target: LayerTarget, id: string, x: number, y: number): Project;
 ```
 
 ### `ObjectInstance` (interface)
@@ -576,6 +755,24 @@ function packTile(tile: number, flipX: boolean, flipY: boolean): number;
 function paintCells(grid: Grid, cells: Iterable<Point>, word: number): Grid;
 ```
 
+### `paintLayerCells` (function)
+
+```ts
+function paintLayerCells(project: Project, target: LayerTarget, cells: Iterable<Point>, word: number): Project;
+```
+
+### `paintLayerRandom` (function)
+
+```ts
+function paintLayerRandom(project: Project, target: LayerTarget, cells: Iterable<Point>, candidates: readonly number[], seed: number): Project;
+```
+
+### `paintLayerRect` (function)
+
+```ts
+function paintLayerRect(project: Project, target: LayerTarget, a: Point, b: Point, word: number): Project;
+```
+
 ### `paintRandom` (function)
 
 ```ts
@@ -598,6 +795,14 @@ interface ParseError {
     readonly line?: number | undefined;
     readonly column?: number | undefined;
 }
+```
+
+### `pasteLayerStamp` (function)
+
+```ts
+function pasteLayerStamp(project: Project, target: LayerTarget, stamp: Stamp, at: Point, options?: {
+    readonly clear?: boolean;
+}): Project;
 ```
 
 ### `pasteStamp` (function)
@@ -636,6 +841,17 @@ const patternCellSchema: z.ZodType<PatternCell>;
 function pickTile(grid: Grid, x: number, y: number): UnpackedTile | undefined;
 ```
 
+### `placeEntity` (function)
+
+```ts
+function placeEntity(project: Project, target: LayerTarget, input: {
+    readonly id: string;
+    readonly def: string;
+    readonly x: number;
+    readonly y: number;
+}): Project;
+```
+
 ### `Placement` (interface)
 
 ```ts
@@ -645,6 +861,19 @@ interface Placement {
     readonly y: number;
     readonly depth: number;
 }
+```
+
+### `placeObject` (function)
+
+```ts
+function placeObject(project: Project, target: LayerTarget, input: {
+    readonly id: string;
+    readonly tile: number;
+    readonly x: number;
+    readonly y: number;
+    readonly flipX?: boolean;
+    readonly flipY?: boolean;
+}): Project;
 ```
 
 ### `Point` (interface)
@@ -739,6 +968,12 @@ function randomIds(fill: (bytes: Uint8Array) => void): IdSource;
 type RawFile = Readonly<Record<string, unknown>>;
 ```
 
+### `resizeEntity` (function)
+
+```ts
+function resizeEntity(project: Project, target: LayerTarget, id: string, w: number, h: number): Project;
+```
+
 ### `Result` (type)
 
 ```ts
@@ -822,6 +1057,12 @@ function ruleIssues(groups: readonly RuleGroup[], context: RuleContext): RuleIss
 
 ```ts
 const ruleSchema: z.ZodType<Rule>;
+```
+
+### `setEntityField` (function)
+
+```ts
+function setEntityField(project: Project, target: LayerTarget, id: string, field: string, value: FieldValue): Project;
 ```
 
 ### `Severity` (type)
@@ -924,6 +1165,12 @@ interface TilesLayerInstance {
 
 ```ts
 function unpackTile(cell: number): UnpackedTile | undefined;
+```
+
+### `updateLayer` (function)
+
+```ts
+function updateLayer(project: Project, target: LayerTarget, edit: (layer: LayerInstance, def: LayerDef) => LayerInstance): Project;
 ```
 
 ### `ViewDef` (interface)

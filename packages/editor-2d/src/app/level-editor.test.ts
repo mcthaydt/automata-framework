@@ -5,7 +5,9 @@ import { counterIds } from '../model/ids'
 import { emptyLayers } from '../model/level-layers'
 import type { Project } from '../model/project-types'
 import { platformerTemplate } from '../profiles/level-project/templates/platformer'
+import { topdownRpgTemplate } from '../profiles/level-project/templates/topdown-rpg'
 import { createFakeHistory } from '../testing/fake-history'
+import { entity, withEntities } from '../testing/project-edit'
 import type { Point } from '../tiles/footprint'
 import { lineCells } from '../tiles/footprint'
 import { createLevelEditor } from './level-editor'
@@ -540,5 +542,419 @@ describe('level editor: strokes on cell layers', () => {
     editor.pointerDown(at(2, 2))
     editor.setLevel('level-1')
     expect(history.state).toBe(before)
+  })
+})
+
+// Entities: the platformer level has a `player-start` (single) at (48, 256), 16 × 24 on its pivot (0.5, 1), so it covers
+// x 40 to 56 and y 232 to 256. `slime` is 16 × 12 on the same pivot; `coin` is 8 × 8 on its centre.
+
+const items = (project: Project, layer = 'entities') => {
+  const found = project.levels[0]?.layers.find((candidate) => candidate.def === layer)
+  if (found?.kind !== 'entities') throw new Error(`no entities layer "${layer}"`)
+  return found.items
+}
+const PLAYER = '00000001'
+
+/** The platformer with its entities layer snapping or not, and `extra` entities added to the level. */
+function entitySetup(options: { snap?: boolean; extra?: Parameters<typeof withEntities>[2] } = {}) {
+  let project = platformerTemplate.create(counterIds())
+  if (options.snap === false) {
+    const layers = project.defs.layers.map((def) => (def.kind === 'entities' ? { ...def, snap: false } : def))
+    project = { ...project, defs: { ...project.defs, layers } }
+  }
+  if (options.extra !== undefined) project = withEntities(project, 'level-1', options.extra)
+  const history = createFakeHistory(project)
+  const editor = createLevelEditor({ history, ids: counterIds(100), level: 'level-1', layer: 'entities' })
+  return { history, editor }
+}
+
+describe('level editor: entities', () => {
+  it('places the chosen definition at the pointer, snapped to the grid, and selects it', () => {
+    const { editor, history } = entitySetup()
+    editor.setEntityDef('slime')
+    editor.pointerDown({ x: 100, y: 130 })
+    const placed = items(history.state).at(-1)
+    expect(placed).toMatchObject({ def: 'slime', x: 96, y: 128 })
+    expect(editor.view.selected).toEqual([placed?.id])
+    expect(history.steps.map((step) => step.label)).toEqual(['Place entity'])
+    expect(history.begun).toBe(0)
+    expect(editor.view.gesture).toBe('idle')
+  })
+
+  it('places at whole pixels when the layer does not snap', () => {
+    const { editor, history } = entitySetup({ snap: false })
+    editor.setEntityDef('slime')
+    editor.pointerDown({ x: 100.4, y: 130.6 })
+    expect(items(history.state).at(-1)).toMatchObject({ def: 'slime', x: 100, y: 131 })
+  })
+
+  it('moves the one instance of a single definition and selects it', () => {
+    const { editor, history } = entitySetup()
+    editor.setEntityDef('player-start')
+    editor.pointerDown({ x: 200, y: 96 })
+    expect(items(history.state)).toHaveLength(1)
+    expect(items(history.state)[0]).toMatchObject({ id: PLAYER, x: 208, y: 96 })
+    expect(editor.view.selected).toEqual([PLAYER])
+    expect(history.steps.map((step) => step.label)).toEqual(['Place entity'])
+  })
+
+  it('finds the single instance in the level being edited', () => {
+    const base = extraLevel(platformerTemplate.create(counterIds()))
+    const project: Project = {
+      ...base,
+      levels: base.levels.map((level) =>
+        level.id === 'level-2'
+          ? {
+              ...level,
+              layers: level.layers.map((layer) =>
+                layer.kind === 'entities'
+                  ? { ...layer, items: [entity('player-two', 'player-start', 16, 16)] }
+                  : layer,
+              ),
+            }
+          : level,
+      ),
+    }
+    const history = createFakeHistory(project)
+    const editor = createLevelEditor({ history, ids: counterIds(100), level: 'level-2', layer: 'entities' })
+    editor.setEntityDef('player-start')
+    editor.pointerDown({ x: 200, y: 96 })
+    expect(editor.view.selected).toEqual(['player-two'])
+  })
+
+  it('places a new instance of a definition that is not single, even when the level has one', () => {
+    const { editor, history } = entitySetup({ extra: [entity('s1', 'slime', 120, 150)] })
+    editor.setEntityDef('slime')
+    editor.pointerDown({ x: 300, y: 100 })
+    expect(items(history.state).filter((item) => item.def === 'slime')).toHaveLength(2)
+    expect(editor.view.selected).not.toContain('s1')
+    expect(editor.view.selected).toEqual([items(history.state).at(-1)?.id])
+  })
+
+  it('places nothing when the project defines no entities', () => {
+    const base = platformerTemplate.create(counterIds())
+    const history = createFakeHistory({ ...base, defs: { ...base.defs, entities: [] } })
+    const editor = createLevelEditor({ history, ids: counterIds(100), level: 'level-1', layer: 'entities' })
+    expect(editor.view.entityDef).toBeUndefined()
+    editor.pointerDown({ x: 100, y: 100 })
+    expect(history.steps).toEqual([])
+    expect(history.begun).toBe(0)
+  })
+
+  it('selects the instance under the pointer with the select tool, and clears on empty ground', () => {
+    const { editor, history } = entitySetup()
+    editor.setTool('select')
+    editor.pointerDown({ x: 48, y: 240 })
+    editor.pointerUp()
+    expect(editor.view.selected).toEqual([PLAYER])
+    editor.pointerDown({ x: 300, y: 40 })
+    expect(editor.view.selected).toEqual([])
+    expect(editor.view.gesture).toBe('idle')
+    expect(history.steps).toEqual([])
+  })
+
+  it('tells subscribers nothing when the select tool clears a selection that is already empty', () => {
+    const { editor } = entitySetup()
+    editor.setTool('select')
+    const heard = vi.fn()
+    editor.subscribe(heard)
+    editor.pointerDown({ x: 300, y: 40 })
+    editor.pointerDown({ x: 300, y: 40 })
+    expect(heard).not.toHaveBeenCalled()
+    editor.pointerDown({ x: 48, y: 240 })
+    editor.pointerUp()
+    editor.pointerDown({ x: 300, y: 40 })
+    editor.pointerDown({ x: 300, y: 40 })
+    expect(heard).toHaveBeenCalledTimes(3)
+  })
+
+  it('drags the picked instance by the pointer’s offset, snapped, live, and commits one Move entity', () => {
+    const { editor, history } = entitySetup()
+    editor.setTool('select')
+    editor.pointerDown({ x: 50, y: 240 })
+    expect(editor.view.gesture).toBe('move')
+    editor.pointerMove({ x: 50 + 40, y: 240 + 7 })
+    expect(items(history.state)[0]).toMatchObject({ x: 48 + 48, y: 256 })
+    expect(history.steps).toEqual([])
+    editor.pointerMove({ x: 50 + 40, y: 240 - 48 })
+    editor.pointerUp()
+    expect(items(history.state)[0]).toMatchObject({ x: 96, y: 208 })
+    expect(history.steps.map((step) => step.label)).toEqual(['Move entity'])
+    expect(editor.view.gesture).toBe('idle')
+    expect(editor.view.selected).toEqual([PLAYER])
+  })
+
+  it('does not jump to the pointer: an off-grid instance keeps its offset from the grid', () => {
+    const { editor, history } = entitySetup({ extra: [entity('coin-a', 'coin', 148, 222)] })
+    editor.setTool('select')
+    editor.pointerDown({ x: 150, y: 223 })
+    expect(editor.view.selected).toEqual(['coin-a'])
+    editor.pointerMove({ x: 150 + 33, y: 223 })
+    editor.pointerUp()
+    expect(items(history.state).find((item) => item.id === 'coin-a')).toMatchObject({ x: 148 + 32, y: 222 })
+  })
+
+  it('drags in whole pixels when the layer does not snap', () => {
+    const { editor, history } = entitySetup({ snap: false })
+    editor.setTool('select')
+    editor.pointerDown({ x: 50, y: 240 })
+    editor.pointerMove({ x: 50 + 5.4, y: 240 - 2.6 })
+    editor.pointerUp()
+    expect(items(history.state)[0]).toMatchObject({ x: 53, y: 253 })
+  })
+
+  it('records no step for a drag that ends where it began', () => {
+    const { editor, history } = entitySetup()
+    editor.setTool('select')
+    editor.pointerDown({ x: 50, y: 240 })
+    editor.pointerMove({ x: 50 + 64, y: 240 })
+    editor.pointerMove({ x: 50 + 3, y: 240 })
+    editor.pointerUp()
+    expect(history.steps).toEqual([])
+    expect(history.begun).toBe(1)
+  })
+
+  it('cancel puts a dragged instance back', () => {
+    const { editor, history } = entitySetup()
+    const before = history.state
+    editor.setTool('select')
+    editor.pointerDown({ x: 50, y: 240 })
+    editor.pointerMove({ x: 150, y: 140 })
+    editor.cancel()
+    expect(history.state).toBe(before)
+    expect(history.steps).toEqual([])
+    expect(editor.view.selected).toEqual([PLAYER])
+  })
+
+  it('hits the topmost of two overlapping instances', () => {
+    const { editor } = entitySetup({
+      extra: [entity('coin-a', 'coin', 300, 100), entity('coin-b', 'coin', 302, 100)],
+    })
+    editor.setTool('select')
+    editor.pointerDown({ x: 301, y: 100 })
+    expect(editor.view.selected).toEqual(['coin-b'])
+  })
+
+  it('erases the instance under the pointer as Delete entity, and drops it from the selection', () => {
+    const { editor, history } = entitySetup()
+    editor.setTool('select')
+    editor.pointerDown({ x: 50, y: 240 })
+    editor.pointerUp()
+    const begun = history.begun
+    editor.setTool('eraser')
+    editor.pointerDown({ x: 50, y: 240 })
+    expect(items(history.state)).toEqual([])
+    expect(editor.view.selected).toEqual([])
+    expect(history.steps.map((step) => step.label)).toEqual(['Delete entity'])
+    expect(history.begun).toBe(begun)
+  })
+
+  it('erasing one instance keeps the selection of another', () => {
+    const { editor, history } = entitySetup({ extra: [entity('s1', 'slime', 120, 150)] })
+    editor.setTool('select')
+    editor.pointerDown({ x: 120, y: 146 })
+    editor.pointerUp()
+    editor.setTool('eraser')
+    editor.pointerDown({ x: 50, y: 240 })
+    expect(items(history.state).map((item) => item.id)).toEqual(['s1'])
+    expect(editor.view.selected).toEqual(['s1'])
+  })
+
+  it('erasing empty ground records nothing and leaves the selection', () => {
+    const { editor, history } = entitySetup()
+    editor.setTool('select')
+    editor.pointerDown({ x: 50, y: 240 })
+    editor.pointerUp()
+    editor.setTool('eraser')
+    editor.pointerDown({ x: 300, y: 40 })
+    expect(history.steps).toEqual([])
+    expect(editor.view.selected).toEqual([PLAYER])
+  })
+
+  it('picks an instance with the picker: selects it and takes its definition', () => {
+    const { editor, history } = entitySetup({ extra: [entity('s1', 'slime', 120, 150)] })
+    editor.setTool('picker')
+    editor.pointerDown({ x: 120, y: 146 })
+    expect(editor.view.selected).toEqual(['s1'])
+    expect(editor.view.entityDef).toBe('slime')
+    editor.pointerDown({ x: 300, y: 40 })
+    expect(editor.view.selected).toEqual(['s1'])
+    expect(editor.view.entityDef).toBe('slime')
+    expect(history.steps).toEqual([])
+    expect(history.begun).toBe(0)
+  })
+
+  it('ignores a locked or hidden entities layer', () => {
+    const { editor, history } = entitySetup()
+    editor.setLocked('entities', true)
+    editor.pointerDown({ x: 100, y: 100 })
+    editor.setTool('select')
+    editor.pointerDown({ x: 50, y: 240 })
+    editor.setLocked('entities', false)
+    editor.setHidden('entities', true)
+    editor.pointerDown({ x: 50, y: 240 })
+    expect(history.steps).toEqual([])
+    expect(editor.view.selected).toEqual([])
+  })
+
+  it('rectangle, fill and brush drags do nothing more on an entities layer', () => {
+    const { editor, history } = entitySetup()
+    for (const tool of ['rectangle', 'fill'] as const) {
+      editor.setTool(tool)
+      editor.pointerDown({ x: 100, y: 100 })
+      editor.pointerMove({ x: 140, y: 140 })
+      editor.pointerUp()
+    }
+    expect(history.steps).toEqual([])
+    expect(history.begun).toBe(0)
+    editor.setTool('brush')
+    editor.pointerDown({ x: 100, y: 100 })
+    editor.pointerMove({ x: 200, y: 200 })
+    editor.pointerUp()
+    expect(history.steps).toHaveLength(1)
+  })
+
+  it('refresh drops the selected ids the project no longer has, and says nothing when none went', () => {
+    const { editor, history } = entitySetup({ extra: [entity('s1', 'slime', 120, 150)] })
+    editor.setTool('picker')
+    editor.pointerDown({ x: 120, y: 146 })
+    const heard = vi.fn()
+    editor.subscribe(heard)
+    editor.refresh()
+    expect(heard).not.toHaveBeenCalled()
+    history.apply('Delete entity', (project) => withoutItem(project, 's1'))
+    editor.refresh()
+    expect(editor.view.selected).toEqual([])
+    expect(heard).toHaveBeenCalledTimes(1)
+  })
+
+  it('refresh looks at the level being edited', () => {
+    const base = extraLevel(platformerTemplate.create(counterIds()))
+    const project = withEntities(base, 'level-2', [entity('only-in-two', 'coin', 100, 100)])
+    const history = createFakeHistory(project)
+    const editor = createLevelEditor({ history, ids: counterIds(100), level: 'level-2', layer: 'entities' })
+    editor.setTool('picker')
+    editor.pointerDown({ x: 100, y: 100 })
+    expect(editor.view.selected).toEqual(['only-in-two'])
+    editor.refresh()
+    expect(editor.view.selected).toEqual(['only-in-two'])
+  })
+
+  it('switching layer or level clears the selection', () => {
+    const history = createFakeHistory(extraLevel(platformerTemplate.create(counterIds())))
+    const editor = createLevelEditor({ history, ids: counterIds(100), level: 'level-1', layer: 'entities' })
+    editor.setTool('select')
+    editor.pointerDown({ x: 48, y: 240 })
+    editor.pointerUp()
+    expect(editor.view.selected).toEqual([PLAYER])
+    editor.setLayer('collision')
+    expect(editor.view.selected).toEqual([])
+    editor.setLayer('entities')
+    editor.pointerDown({ x: 48, y: 240 })
+    editor.pointerUp()
+    editor.setLevel('level-2')
+    expect(editor.view.selected).toEqual([])
+  })
+})
+
+function withoutItem(project: Project, id: string): Project {
+  return {
+    ...project,
+    levels: project.levels.map((level) => ({
+      ...level,
+      layers: level.layers.map((layer) =>
+        layer.kind === 'entities' ? { ...layer, items: layer.items.filter((item) => item.id !== id) } : layer,
+      ),
+    })),
+  }
+}
+
+// Objects: the top-down template's level `map-1` has a `props` objects layer on the `overworld` tileset, free-placed.
+
+const objectItems = (project: Project) => {
+  const found = project.levels[0]?.layers.find((candidate) => candidate.def === 'props')
+  if (found?.kind !== 'objects') throw new Error('no props layer')
+  return found.items
+}
+
+function objectSetup(snap = 0) {
+  const base = topdownRpgTemplate.create(counterIds())
+  const layers = base.defs.layers.map((def) => (def.kind === 'objects' ? { ...def, snap } : def))
+  const history = createFakeHistory({ ...base, defs: { ...base.defs, layers } })
+  const editor = createLevelEditor({ history, ids: counterIds(100), level: 'map-1', layer: 'props' })
+  return { history, editor }
+}
+
+describe('level editor: objects', () => {
+  it('places an object of the palette tile at the pointer in whole pixels, as one Place object step', () => {
+    const { editor, history } = objectSetup()
+    editor.setWord(packTile(26, false, false))
+    editor.pointerDown({ x: 100.4, y: 50.6 })
+    expect(objectItems(history.state)).toEqual([
+      { id: '0000002s', tile: 26, x: 100, y: 51, flipX: false, flipY: false },
+    ])
+    expect(history.steps.map((step) => step.label)).toEqual(['Place object'])
+    expect(history.begun).toBe(0)
+    expect(editor.view.gesture).toBe('idle')
+    expect(editor.view.selected).toEqual([])
+  })
+
+  it('takes the flips from the palette word', () => {
+    const { editor, history } = objectSetup()
+    editor.setWord(packTile(3, true, true))
+    editor.pointerDown({ x: 10, y: 20 })
+    expect(objectItems(history.state)[0]).toMatchObject({ tile: 3, flipX: true, flipY: true })
+    editor.setWord(packTile(3, true, false))
+    editor.pointerDown({ x: 30, y: 20 })
+    expect(objectItems(history.state)[1]).toMatchObject({ flipX: true, flipY: false })
+  })
+
+  it('places the first tile of the set from the start', () => {
+    const { editor, history } = objectSetup()
+    editor.pointerDown({ x: 10, y: 20 })
+    expect(objectItems(history.state)[0]).toMatchObject({ tile: 0 })
+  })
+
+  it('snaps to the layer’s snap size when it has one', () => {
+    const { editor, history } = objectSetup(8)
+    editor.pointerDown({ x: 29, y: 13 })
+    expect(objectItems(history.state)[0]).toMatchObject({ x: 32, y: 16 })
+  })
+
+  it('places nothing for the empty word', () => {
+    const { editor, history } = objectSetup()
+    editor.setWord(0)
+    editor.pointerDown({ x: 10, y: 20 })
+    expect(history.steps).toEqual([])
+  })
+
+  it('lets the error out when the tile is beyond the tileset, and records nothing', () => {
+    const { editor, history } = objectSetup()
+    editor.setWord(packTile(9999, false, false))
+    expect(() => editor.pointerDown({ x: 10, y: 20 })).toThrow(RangeError)
+    expect(history.steps).toEqual([])
+    expect(history.open).toBe(false)
+  })
+
+  it('leaves selecting, erasing and the cell tools to a later slice', () => {
+    const { editor, history } = objectSetup()
+    editor.pointerDown({ x: 10, y: 20 })
+    const placed = history.steps.length
+    for (const tool of ['select', 'eraser', 'picker', 'rectangle', 'fill'] as const) {
+      editor.setTool(tool)
+      editor.pointerDown({ x: 10, y: 20 })
+      editor.pointerMove({ x: 60, y: 60 })
+      editor.pointerUp()
+    }
+    expect(history.steps).toHaveLength(placed)
+    expect(history.begun).toBe(0)
+    expect(objectItems(history.state)).toHaveLength(1)
+  })
+
+  it('ignores a locked objects layer', () => {
+    const { editor, history } = objectSetup()
+    editor.setLocked('props', true)
+    editor.pointerDown({ x: 10, y: 20 })
+    expect(history.steps).toEqual([])
   })
 })

@@ -90,7 +90,7 @@ describe('editor-2d entry', () => {
     if (result.status === 'opened') expect(JSON.parse(editor2d.printProject(result.project))).toEqual(file)
   })
 
-  it('exports the level edit commands and the entity geometry', () => {
+  it('exports the level edit commands, the entity geometry and the Level view controller', () => {
     const functions = [
       editor2d.updateLayer,
       editor2d.findLayer,
@@ -112,6 +112,7 @@ describe('editor-2d entry', () => {
       editor2d.moveObject,
       editor2d.flipObject,
       editor2d.deleteObject,
+      editor2d.createLevelEditor,
     ]
     for (const member of functions) expect(member).toBeTypeOf('function')
   })
