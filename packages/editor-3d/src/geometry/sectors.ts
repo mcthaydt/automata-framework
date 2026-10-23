@@ -241,3 +241,76 @@ export const polygonArea = (points: readonly Point[]): number =>
     const q = wrapped(points, i + 1)
     return sum + p.x * q.z - q.x * p.z
   }, 0) / 2
+
+// ─── Wall pieces: what each edge actually builds ─────────────────────────
+
+/** A vertical span of wall along an edge. A portal leaves only the strips its neighbour does not open. */
+export interface Piece {
+  readonly edge: Edge
+  readonly y0: number
+  readonly y1: number
+  readonly kind: 'wall' | 'lower' | 'upper'
+}
+
+/** An edge that is a portal into another sector. */
+export type PortalEdge = Edge & { readonly next: Sector }
+
+/** A span of wall the capsule cannot pass. */
+export interface Collider {
+  readonly edge: Edge
+  readonly y0: number
+  readonly y1: number
+}
+
+export function pieces(edge: Edge): Piece[] {
+  const { sector: s, next } = edge
+  if (!next) return [{ edge, y0: s.floor, y1: s.ceiling, kind: 'wall' }]
+  const out: Piece[] = []
+  if (next.floor > s.floor)
+    out.push({ edge, y0: s.floor, y1: Math.min(next.floor, s.ceiling), kind: 'lower' })
+  if (next.ceiling < s.ceiling)
+    out.push({ edge, y0: Math.max(next.ceiling, s.floor), y1: s.ceiling, kind: 'upper' })
+  return out
+}
+
+/** The opening a portal leaves, between the higher floor and the lower ceiling. */
+export const opening = (edge: PortalEdge): { y0: number; y1: number } => ({
+  y0: Math.max(edge.sector.floor, edge.next.floor),
+  y1: Math.min(edge.sector.ceiling, edge.next.ceiling),
+})
+
+/** Walls the capsule cannot pass: solid walls and steps too tall to climb (blocking masked walls are colliders of their own). */
+export const walkBlocker = (piece: Piece): boolean =>
+  piece.kind === 'wall' || (piece.kind === 'lower' && piece.y1 - piece.y0 > STEP)
+
+/** Whether the edge is a portal, which narrows it to one `opening` can measure. */
+export const isPortal = (edge: Edge): edge is PortalEdge => edge.next !== undefined
+
+/** The eye height of a standing figure: a wall that reaches it blocks the line of sight. */
+const EYE_HEIGHT = 1.5
+
+/** Everything resolved from a level's sectors: the lists the views and checks read, built once. */
+export interface ResolvedMap extends Resolved {
+  readonly edges: readonly Edge[]
+  readonly pieces: readonly Piece[]
+  /** Collision spans: every piece the capsule cannot pass, and blocking portals across their opening. */
+  readonly colliders: readonly Collider[]
+  /** Walls that block a standing figure's line of sight. Glass does not. */
+  readonly sightWalls: readonly Edge[]
+}
+
+/** Last Light's `useMap`, returned as a value instead of bound to module state. */
+export function resolveMap(defs: readonly SectorDef[], massDefs: readonly MassDef[] = []): ResolvedMap {
+  const resolved = resolveSectors(defs, massDefs)
+  const all = edges(resolved.sectors)
+  const list = all.flatMap(pieces)
+  const colliders: Collider[] = [
+    ...list.filter(walkBlocker).map((p) => ({ edge: p.edge, y0: p.y0, y1: p.y1 })),
+    ...all
+      .filter(isPortal)
+      .filter((e) => e.wall.block)
+      .map((e) => ({ edge: e, ...opening(e) })),
+  ]
+  const sightWalls = list.filter((p) => p.y0 <= EYE_HEIGHT && p.y1 >= EYE_HEIGHT).map((p) => p.edge)
+  return { ...resolved, edges: all, pieces: list, colliders, sightWalls }
+}

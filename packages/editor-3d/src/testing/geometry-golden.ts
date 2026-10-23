@@ -1,7 +1,7 @@
 // What `geometry.golden.json` holds and how to put ported geometry in the same shape, so a test can compare the two.
 import type { Blockout } from '../format/blockout.schema'
 import { type Expanded, expand } from '../format/expand'
-import type { Edge, Resolved } from '../geometry/sectors'
+import type { Edge, Resolved, ResolvedMap } from '../geometry/sectors'
 import { loadFixture, loadGolden } from './fixtures'
 
 /** The four shipped blockouts, each of which the golden holds the geometry of. */
@@ -79,4 +79,15 @@ export function sectorsShape(resolved: Resolved): unknown {
       })),
     ),
   )
+}
+
+const asJson = (value: unknown): unknown => JSON.parse(JSON.stringify(value))
+
+/** The wall pieces, colliders and sight walls as the golden writes them: each edge by where it lives. */
+export function piecesShape(map: ResolvedMap): { pieces: unknown; colliders: unknown; sightWalls: unknown } {
+  return {
+    pieces: asJson(map.pieces.map((p) => ({ ...edgeRef(p.edge), y0: p.y0, y1: p.y1, kind: p.kind }))),
+    colliders: asJson(map.colliders.map((c) => ({ ...edgeRef(c.edge), y0: c.y0, y1: c.y1 }))),
+    sightWalls: asJson(map.sightWalls.map(edgeRef)),
+  }
 }
