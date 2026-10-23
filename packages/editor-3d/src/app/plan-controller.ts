@@ -3,7 +3,7 @@
 // kit's gesture recogniser says (canvas pixels, the pointer kind and the modifier keys), reads `view` and paints what it
 // says. The level stays in the editor's history, the selection in its selection and the camera in its view store, so the
 // controller keeps only what a pointer is in the middle of; undo, redo and a change of layers need nothing from the view.
-import type { PointerKind, Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
+import type { PointerKind, Point as ScreenPoint, Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
 import { sectorSelection } from '../checks/check'
 import type { Point } from '../format/sector.schema'
 import { moveCorner, moveSector } from '../model/corner-edits'
@@ -20,7 +20,15 @@ import {
   pickPlan,
 } from '../view/plan/plan-pick'
 import { type SnapResult, snapPlan, stepOf } from '../view/plan/plan-snap'
-import { planViewport, snapValue, toWorld } from '../view/plan/plan-viewport'
+import {
+  cameraOf,
+  fitPlan,
+  levelBounds,
+  planViewport,
+  snapValue,
+  toScreen,
+  toWorld,
+} from '../view/plan/plan-viewport'
 import { type SelectionOf, selectionOf } from '../view/selection-of'
 
 /** A pointer on the canvas, in pixels from its top left. */
@@ -62,6 +70,14 @@ export interface PlanController {
   drag(at: PlanPointer): void
   /** `cancelled` is a cancelled pointer: nothing is kept. */
   dragEnd(at: PlanPointer, cancelled: boolean): void
+  /** Slides the plan by a screen offset, so it follows the pointer (a wheel, two fingers). */
+  panBy(dx: number, dy: number): void
+  /** Multiplies the zoom by `factor` about a canvas point, which stays where it is; the zoom is held to the plan's limits. */
+  zoomAt(at: ScreenPoint, factor: number): void
+  /** Shows every sector, centred, inside a margin. */
+  fit(): void
+  /** The canvas has a new size: the camera keeps its centre. */
+  resize(size: Size): void
   /** Stops following the editor. */
   dispose(): void
 }
@@ -104,11 +120,14 @@ interface SectorDrag<D> extends Drag<D> {
   applied: Point
 }
 
-export function createPlanController<D>(editor: LevelEditor<D>, size: Size): PlanController {
+export function createPlanController<D>(editor: LevelEditor<D>, canvas: Size): PlanController {
   const listeners = new Set<() => void>()
+  let size = canvas
   let view: PlanView = IDLE
   let pointer: PlanPointer | undefined
   let gesture: CornerDrag<D> | SectorDrag<D> | undefined
+  /** The point of the plan a pan holds under the pointer. A pan has no session: the camera is not an undo step. */
+  let pan: Point | undefined
 
   /**
    * The geometry and the selection ids of the level last seen, by identity: a hover costs picks and not a rebuild. A level
@@ -159,6 +178,7 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
 
   const endDrag = (): void => {
     gesture = undefined
+    pan = undefined
     setView({ ...view, gesture: 'idle', snap: undefined, refusal: undefined })
   }
 
@@ -217,6 +237,15 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
     setView({ ...view, refusal: result.ok ? undefined : result.reason })
   }
 
+  const showCamera = (viewport: Viewport2D): void => editor.view.set({ camera: cameraOf(viewport) })
+
+  /** Slides the plan so that `held` is under `at`. The camera is the view store's, which tells `refresh`. */
+  const panTo = (held: Point, at: PlanPointer): void => {
+    const viewport = currentViewport()
+    const there = toScreen(viewport, held)
+    showCamera(viewport.panBy(at.x - there.x, at.y - there.y))
+  }
+
   const moveGrabbed = (grabbed: CornerDrag<D> | SectorDrag<D>, at: PlanPointer): void =>
     grabbed.kind === 'corner' ? moveGrabbedCorner(grabbed, at) : moveGrabbedSector(grabbed, at)
 
@@ -268,6 +297,8 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
     },
     dragStart(press, at) {
       if (gesture !== undefined) finish(gesture, false)
+      // A pan that was never ended is over, and so is its gesture.
+      endDrag()
       const { layers, select } = geometry()
       const handle = pickCorner(layers, handlesOf(select), currentViewport(), press, pickOptions(press))
       if (handle !== undefined) {
@@ -302,17 +333,29 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
             applied: { x: 0, z: 0 },
           }
           setView({ ...view, gesture: 'sector' })
+        } else if (press.kind !== 'pen') {
+          // A Pencil draws and never pans; a finger or a mouse on nothing, or on what it may not move, slides the plan.
+          pan = toWorld(currentViewport(), press)
+          setView({ ...view, gesture: 'pan' })
         }
       }
       this.drag(at)
     },
     drag(at) {
       pointer = at
-      if (gesture?.session.open) moveGrabbed(gesture, at)
+      if (pan !== undefined) panTo(pan, at)
+      else if (gesture?.session.open) moveGrabbed(gesture, at)
       else refresh()
     },
     dragEnd(at, cancelled) {
       pointer = at
+      if (pan !== undefined) {
+        // A cancelled pointer does not follow its last position; the camera stays where the last move left it.
+        if (!cancelled) panTo(pan, at)
+        endDrag()
+        refresh()
+        return
+      }
       if (gesture === undefined) {
         refresh()
         return
@@ -320,6 +363,20 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
       if (!cancelled && gesture.session.open) moveGrabbed(gesture, at)
       // The run may have ended the drag itself (an undo); a drag that is gone has nothing to keep.
       if (gesture !== undefined) finish(gesture, !cancelled)
+    },
+    panBy(dx, dy) {
+      showCamera(currentViewport().panBy(dx, dy))
+    },
+    zoomAt(at, factor) {
+      showCamera(currentViewport().zoomAt(at, factor))
+    },
+    fit() {
+      editor.view.set({ camera: fitPlan(levelBounds(geometry().layers), size) })
+    },
+    resize(next) {
+      size = next
+      // The camera is the centre and the zoom, so it does not change; what the pointer is over does.
+      refresh()
     },
     dispose() {
       for (const stop of stops) stop()

@@ -5,13 +5,13 @@
 import type { PointerKind } from '@mcthaydt/automata-editor-kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { AfSector } from '../format/af-sector.schema'
-import { moveCorner } from '../model/corner-edits'
+import { moveCorner, moveSector } from '../model/corner-edits'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { SectorAccessError } from '../profile/sector-access'
 import { loadAuthored } from '../testing/fixtures'
-import { planViewport, toScreen } from '../view/plan/plan-viewport'
+import { planViewport, toScreen, toWorld } from '../view/plan/plan-viewport'
 import { createPlanController, type PlanPointer } from './plan-controller'
 
 const depot: AfSector = (() => {
@@ -691,13 +691,14 @@ describe('a sector drag', () => {
     expect(outline(editor, 'hall')?.[0]).toEqual([0, 0])
   })
 
-  it('is not done by a finger on a sector that is not selected', () => {
+  it('is not done by a finger on a sector that is not selected: the plan pans', () => {
     const { editor, controller, at } = setup()
     controller.dragStart(at(4, 3, 'touch'), at(4, 3, 'touch'))
-    expect(controller.view.gesture).not.toBe('sector')
-    controller.dragEnd(at(5.2, 3.3, 'touch'), false)
+    expect(controller.view.gesture).toBe('pan')
+    controller.dragEnd({ ...at(4, 3, 'touch'), x: at(4, 3).x + 32 }, false)
     expect(editor.level).toBe(depot)
     expect(editor.selection.ids).toEqual([])
+    expect(editor.view.state.camera).toEqual({ x: 6, z: 3, zoom: 1 })
   })
 
   it('is done by a finger on a sector that is selected, or on one of its walls', () => {
@@ -712,24 +713,26 @@ describe('a sector drag', () => {
     expect(outline(editor, 'hall')?.[0]).toEqual([1, 1])
   })
 
-  it('is not done by a finger on another sector while one is selected', () => {
+  it('is not done by a finger on another sector while one is selected: the plan pans', () => {
     const { editor, controller, at } = setup()
     editor.selection.set(['sector:hall'])
     controller.dragStart(at(11, 3, 'touch'), at(11, 3, 'touch'))
+    expect(controller.view.gesture).toBe('pan')
     controller.dragEnd(at(11, 4, 'touch'), false)
     expect(editor.level).toBe(depot)
     expect(editor.selection.ids).toEqual(['sector:hall'])
+    expect(editor.view.state.camera.z).toBe(2)
   })
 
-  it('does not move a sector of a layer that is locked or hidden, nor by its walls', () => {
+  it('does not move a sector of a layer that is locked or hidden, nor by its walls: the plan pans', () => {
     const { editor, controller, at } = setup()
     for (const change of [{ locked: ['sectors'] }, { hidden: ['sectors'] }]) {
       editor.view.set({ locked: [], hidden: [], ...change })
       controller.dragStart(at(4, 3), at(4, 3))
-      expect(controller.view.gesture).not.toBe('sector')
+      expect(controller.view.gesture).toBe('pan')
       controller.dragEnd(at(5, 3), false)
       controller.dragStart(at(4, 0.1), at(4, 0.1))
-      expect(controller.view.gesture).not.toBe('sector')
+      expect(controller.view.gesture).toBe('pan')
       controller.dragEnd(at(5, 1), false)
     }
     expect(editor.level).toBe(depot)
@@ -805,5 +808,192 @@ describe('a sector drag', () => {
     controller.dragStart(at(0, 0), at(0, 0))
     expect(controller.view.gesture).toBe('corner')
     controller.dragEnd(at(0, 0), true)
+  })
+})
+
+/** The pointer `dx` and `dy` pixels from where `from` is. */
+const moved = (from: PlanPointer, dx: number, dy: number): PlanPointer => ({
+  ...from,
+  x: from.x + dx,
+  y: from.y + dy,
+})
+
+describe('a pan', () => {
+  it('slides the plan with a mouse or a finger on nothing, so the point that was pressed stays under the pointer', () => {
+    for (const kind of ['mouse', 'touch'] as const) {
+      const { editor, controller, at } = setup()
+      const press = at(-3, 3, kind)
+      controller.dragStart(press, press)
+      expect(controller.view.gesture).toBe('pan')
+      controller.drag(moved(press, 64, 32))
+      expect(editor.view.state.camera).toEqual({ x: 5, z: 2, zoom: 1 })
+      controller.drag(moved(press, 32, 0))
+      expect(editor.view.state.camera).toEqual({ x: 6, z: 3, zoom: 1 })
+      controller.dragEnd(moved(press, 96, 0), false)
+      expect(controller.view.gesture).toBe('idle')
+      expect(editor.view.state.camera).toEqual({ x: 4, z: 3, zoom: 1 })
+      expect(editor.level).toBe(depot)
+      expect(editor.history.canUndo).toBe(false)
+    }
+  })
+
+  it('does not follow a pointer that was cancelled past where the last move left it', () => {
+    const { editor, controller, at } = setup()
+    const press = at(-3, 3)
+    controller.dragStart(press, press)
+    controller.drag(moved(press, 32, 0))
+    controller.dragEnd(at(4, 3), true)
+    expect(controller.view.gesture).toBe('idle')
+    expect(editor.view.state.camera).toEqual({ x: 6, z: 3, zoom: 1 })
+    // The pointer ended over the hall, as the camera now shows it.
+    expect(controller.view.hover).toMatchObject({ selection: 'sector:hall' })
+  })
+
+  it('is not done by a Pencil: a drag on nothing does nothing', () => {
+    const { editor, controller, at } = setup()
+    const press = at(-3, 3, 'pen')
+    controller.dragStart(press, press)
+    expect(controller.view.gesture).toBe('idle')
+    controller.drag(moved(press, 64, 32))
+    controller.dragEnd(moved(press, 64, 32), false)
+    expect(editor.view.state.camera).toEqual(CAMERA)
+    expect(editor.level).toBe(depot)
+  })
+
+  it('keeps the pressed point under the pointer when something else moves the camera during the drag', () => {
+    const { editor, controller, at } = setup()
+    const press = at(-3, 3)
+    const held = toWorld(planViewport(editor.view.state.camera, SIZE), press)
+    controller.dragStart(press, press)
+    controller.drag(moved(press, 32, 0))
+    controller.zoomAt({ x: 700, y: 50 }, 2)
+    controller.panBy(0, 32)
+    const there = moved(press, 64, 0)
+    controller.drag(there)
+    const under = toWorld(planViewport(editor.view.state.camera, SIZE), there)
+    expect(under.x).toBeCloseTo(held.x, 9)
+    expect(under.z).toBeCloseTo(held.z, 9)
+    expect(editor.view.state.camera.zoom).toBe(2)
+    controller.dragEnd(there, false)
+  })
+
+  it('is over when the next press grabs nothing', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(-3, 3), at(-3, 3))
+    expect(controller.view.gesture).toBe('pan')
+    controller.dragStart(at(-3, 3, 'pen'), at(-3, 3, 'pen'))
+    expect(controller.view.gesture).toBe('idle')
+    controller.drag(moved(at(-3, 3, 'pen'), 64, 0))
+    expect(editor.view.state.camera).toEqual(CAMERA)
+  })
+
+  it('holds the point that was pressed, not the one the pointer had reached when the drag began', () => {
+    const { editor, controller, at } = setup()
+    const press = at(-3, 3)
+    controller.dragStart(press, moved(press, 8, 0))
+    expect(editor.view.state.camera).toEqual({ x: 6.75, z: 3, zoom: 1 })
+    controller.dragEnd(moved(press, 8, 0), false)
+  })
+
+  it('keeps the pressed point under the pointer, so the hall does not come under it as the plan slides', () => {
+    const { controller, at } = setup()
+    const press = at(-3, 3)
+    controller.dragStart(press, press)
+    // Six metres of the plan go by under the pointer, and it is over the nothing it pressed.
+    controller.drag(moved(press, 192, 0))
+    expect(controller.view.hover).toBeUndefined()
+    controller.dragEnd(moved(press, 192, 0), false)
+    expect(controller.view.hover).toBeUndefined()
+  })
+})
+
+describe('the camera', () => {
+  it('slides by a screen offset, as no undo step, and tells the subscribers once', () => {
+    const { editor, controller } = setup()
+    const run = vi.fn()
+    controller.subscribe(run)
+    controller.hover({ x: 400, y: 200, kind: 'mouse' })
+    run.mockClear()
+    controller.panBy(-128, 0)
+    expect(editor.view.state.camera).toEqual({ x: 11, z: 3, zoom: 1 })
+    controller.panBy(0, 32)
+    expect(editor.view.state.camera).toEqual({ x: 11, z: 2, zoom: 1 })
+    controller.panBy(0, -32)
+    expect(editor.history.canUndo).toBe(false)
+    // The pointer has not moved and the plan under it has: the dock is where the hall was.
+    expect(controller.view.hover).toMatchObject({ selection: 'sector:dock' })
+    expect(run).toHaveBeenCalledTimes(1)
+  })
+
+  it('zooms about a point of the canvas, and holds the zoom to the limits of the plan', () => {
+    const { editor, controller, at } = setup()
+    const there = at(11, 2)
+    const world = toWorld(planViewport(editor.view.state.camera, SIZE), there)
+    controller.zoomAt(there, 2)
+    const { camera } = editor.view.state
+    expect(camera.zoom).toBe(2)
+    const after = toWorld(planViewport(camera, SIZE), there)
+    expect(after.x).toBeCloseTo(world.x, 9)
+    expect(after.z).toBeCloseTo(world.z, 9)
+    expect(editor.history.canUndo).toBe(false)
+    controller.zoomAt(there, 1000)
+    expect(editor.view.state.camera.zoom).toBe(12.5)
+    controller.zoomAt(there, 1 / 1000)
+    expect(editor.view.state.camera.zoom).toBe(0.125)
+  })
+
+  it('fits what the level has: its bounds, centred, inside the padding', () => {
+    const { editor, controller } = setup()
+    controller.fit()
+    const { camera } = editor.view.state
+    expect(camera.x).toBeCloseTo(7, 9)
+    expect(camera.z).toBeCloseTo(3, 9)
+    // 14 m by 6 m in 800 by 400 px with 24 px to spare on each side: the width is what limits.
+    expect(camera.zoom).toBeCloseTo(752 / 14 / 32, 9)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('fits the level as it is now', () => {
+    const { editor, controller } = setup()
+    editor.run(moveSector({ id: 'dock', dx: 6, dz: 0 }))
+    controller.fit()
+    expect(editor.view.state.camera.x).toBeCloseTo(10, 9)
+    expect(editor.view.state.camera.zoom).toBeCloseTo(752 / 20 / 32, 9)
+  })
+
+  it('fits a 10 m box round the origin when the level has no sector', () => {
+    const { editor, controller } = setup({ ...depot, sectors: [], entities: [] })
+    controller.fit()
+    expect(editor.view.state.camera.x).toBeCloseTo(0, 9)
+    expect(editor.view.state.camera.z).toBeCloseTo(0, 9)
+    expect(editor.view.state.camera.zoom).toBeCloseTo(352 / 10 / 32, 9)
+  })
+
+  it('keeps its centre when the canvas changes size, and picks by the new size', () => {
+    const { editor, controller } = setup()
+    const middle = { x: 400, y: 160, kind: 'mouse' } as const
+    controller.hover(middle)
+    expect(controller.view.hover).toMatchObject({ selection: 'sector:hall' })
+    controller.resize({ w: 400, h: 200 })
+    expect(editor.view.state.camera).toEqual(CAMERA)
+    // The same pixel is no longer near the middle: it is 200 px and 60 px past it.
+    expect(controller.view.hover).toMatchObject({ selection: 'sector:dock' })
+    controller.leave()
+    controller.hover({ x: 200, y: 80, kind: 'mouse' })
+    expect(controller.view.hover).toMatchObject({ selection: 'sector:hall' })
+    // A fit is of the canvas as it is now: 14 m in 400 px less 24 px to spare on each side.
+    controller.fit()
+    expect(editor.view.state.camera.zoom).toBeCloseTo(352 / 14 / 32, 9)
+  })
+
+  it('grabs by the new size too', () => {
+    const { editor, controller } = setup()
+    controller.resize({ w: 400, h: 200 })
+    const press = { x: 400, y: 160, kind: 'mouse' } as const
+    controller.dragStart(press, press)
+    expect(controller.view.gesture).toBe('sector')
+    controller.dragEnd(moved(press, 0, 32), false)
+    expect(editor.selection.ids).toEqual(['sector:dock'])
+    expect(editor.history.undoLabel).toBe('Move sector dock')
   })
 })
