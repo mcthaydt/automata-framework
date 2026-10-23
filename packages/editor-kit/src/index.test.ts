@@ -8,4 +8,14 @@ describe('editor-kit entry', () => {
     expect(kit.reconcileOpen).toBeTypeOf('function')
     expect(kit.tokensToCss).toBeTypeOf('function')
   })
+
+  test('exports history, selection, commands and the keymap', () => {
+    expect(kit.createHistory).toBeTypeOf('function')
+    expect(kit.HistoryError).toBeTypeOf('function')
+    expect(kit.createSelection).toBeTypeOf('function')
+    expect(kit.defineCommand).toBeTypeOf('function')
+    expect(kit.createCommandRegistry).toBeTypeOf('function')
+    expect(kit.createKeymap).toBeTypeOf('function')
+    expect(kit.parseShortcut).toBeTypeOf('function')
+  })
 })

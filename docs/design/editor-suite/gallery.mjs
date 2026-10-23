@@ -2,6 +2,7 @@
 // width, with a full-size view. Written for the Artifact tool, which wraps the file in its own document skeleton, so it
 // has no <html> or <head>.
 
+import { APPROVED_AT, CHANGES, LATEST, SINCE_AT } from './changes.mjs'
 import { INVENTORY, NO_EDITOR_YET, VERDICTS } from './inventory.mjs'
 
 const GROUPS = [
@@ -13,7 +14,17 @@ const GROUPS = [
       ['suite-home', 'Home', 'wide'],
       ['ask-diff', 'Ask', 'wide'],
       ['ship-dialog', 'Ship', 'half'],
-      ['interchange', 'Export and import', 'half'],
+      ['interchange', 'Import', 'half'],
+      ['interchange-export', 'Export', 'half'],
+    ],
+  },
+  {
+    id: 'states',
+    title: 'States',
+    lead: 'The panels when something is off or still running: the Code pane, a failing check, checks in progress, the game not connected, Ask saying no or at its cap, and an empty editor.',
+    screens: [
+      ['states-code-checks', 'Code pane and checks', 'wide'],
+      ['states-offline', 'Offline, refused and empty', 'wide'],
     ],
   },
   {
@@ -31,10 +42,11 @@ const GROUPS = [
   {
     id: 'tuner',
     title: 'Tuner',
-    lead: 'Bounded sliders for a scene’s tunables, and a fairness measure that runs before and after a change.',
+    lead: 'Bounded sliders for a game’s tunables in its content/tuning.toml, and a fairness measure that runs before and after a change. The last screen is the same editor on FloorFifty, which lists no gates.',
     screens: [
       ['tuner-sliders', 'Sliders', 'wide'],
       ['tuner-fairness', 'Fairness', 'wide'],
+      ['ff-tuner', 'Second game: FloorFifty', 'wide'],
     ],
   },
   {
@@ -49,11 +61,14 @@ const GROUPS = [
   {
     id: 'studio',
     title: 'Studio',
-    lead: 'A character’s turnaround, outfits and poses, with the pipeline and its owner gates.',
+    lead: 'The character on a stage you touch: tap a part to edit it, drag to turn, outfits and poses under the stage, pose by hand through an IK rig, animate on a timeline, the pipeline as a drawer.',
     screens: [
-      ['studio-turnaround', 'Turnaround', 'wide'],
-      ['studio-outfits', 'Outfits', 'wide'],
-      ['studio-poses', 'Poses', 'wide'],
+      ['studio-look', 'Look', 'wide'],
+      ['studio-pose', 'Pose', 'wide'],
+      ['studio-ik', 'Pose by hand', 'wide'],
+      ['studio-animate', 'Animate', 'wide'],
+      ['studio-pipeline', 'Pipeline open', 'wide'],
+      ['studio-first-run', 'First run', 'wide'],
     ],
   },
   {
@@ -86,6 +101,9 @@ const GROUPS = [
       ['tuner-portrait', 'Tuner', 'third'],
       ['writer-portrait', 'Writer', 'third'],
       ['studio-portrait', 'Studio', 'third'],
+      ['schematic-portrait', 'Schematic', 'third'],
+      ['audio-portrait', 'Audio', 'third'],
+      ['feel-portrait', 'Feel', 'third'],
       ['review-portrait', 'Review desk', 'third'],
     ],
   },
@@ -152,7 +170,47 @@ ${NO_EDITOR_YET.map(([name, why]) => `      <li><strong>${esc(name)}.</strong> $
   </div>
 </section>`
 
-  const nav = [['inventory', 'Inventory'], ...GROUPS.map((g) => [g.id, g.title])]
+  // Before and after for each changed screen, when the build was given the approved checkout (`--before <dir>`).
+  const before = options.before
+  const since = options.since
+  const side = (label, s) =>
+    s
+      ? `<div class="side"><span class="eyebrow">${label}</span><div class="frame" style="--w:${s.w};--h:${s.h};max-width:${s.w}px"><div class="stage" style="width:${s.w}px;height:${s.h}px">${s.html}</div></div></div>`
+      : `<div class="side"><span class="eyebrow">${label}</span><div class="frame none" style="--w:1194;--h:834"><p>New screen</p></div></div>`
+  const pair =
+    (old) =>
+    ([id, was, title, why]) => {
+      if (!byId[id]) throw new Error(`changes list unknown screen "${id}"`)
+      const now = byId[id]
+      return `<article class="pair">
+  <div class="cap"><h3>${esc(title)}</h3><a href="#${id}">See it below</a></div>
+  <p>${esc(why)}</p>
+  <div class="two">${side('Before', was && old[was])}${side('After', { w: now.w, h: now.h, html: htmlOf(now) })}</div>
+</article>`
+    }
+  const changed = before
+    ? `<section id="changed" class="group">
+  <header class="ghead"><h2>What changed since you approved</h2><p>You approved every editor except the character editor on 23 October. Those screens keep the layout you approved; only their data and file targets changed, to AF content files and the gates each file reopens. The Studio is redesigned, and one second-game screen is added. Before is the version you approved (${APPROVED_AT}).</p></header>
+  <div class="pairs">
+${CHANGES.map(pair(before)).join('\n')}
+  </div>
+</section>`
+    : ''
+  const latest = since
+    ? `<section id="latest" class="group">
+  <header class="ghead"><h2>New since you accepted the Studio look</h2><p>You said the character editor is glorious and asked for an IK rig to pose by hand, and whether animation was missing. It was: Pose by hand and Animate are new Studio screens. Then the nine look fixes from the audit, each the smallest change that meets the standard: every chip and toggle is now 44 px to touch, Audio has its own colour, and the rest are below. Before is the version you accepted (${SINCE_AT}).</p></header>
+  <div class="pairs">
+${LATEST.map(pair(since)).join('\n')}
+  </div>
+</section>`
+    : ''
+
+  const nav = [
+    ...(since ? [['latest', 'New']] : []),
+    ...(before ? [['changed', 'What changed']] : []),
+    ['inventory', 'Inventory'],
+    ...GROUPS.map((g) => [g.id, g.title]),
+  ]
     .map(([id, title]) => `<a href="#${id}">${esc(title)}</a>`)
     .join('')
 
@@ -274,9 +332,18 @@ table.inv td:nth-child(3) { min-width: 200px; color: var(--dim); }
 ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; max-width: 70ch; }
 ul.plain strong { color: var(--fg); font-weight: 600; }
 .last { max-width: 760px; }
+.pairs { display: grid; gap: 40px; }
+.pair { display: grid; gap: 8px; min-width: 0; }
+.pair .cap a { font: 500 13px/1 var(--mono); display: inline-flex; align-items: center; min-height: 44px; }
+.pair > p { margin: 0; color: var(--dim); max-width: 75ch; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.side { display: grid; gap: 6px; min-width: 0; }
+.frame.none { display: grid; place-items: center; color: var(--dim); background: var(--surface); }
+.frame.none p { margin: 0; font: 500 13px/1 var(--mono); }
 @media (max-width: 860px) {
   .fig, .fig.third { grid-column: 1 / -1; }
   .grid { gap: 32px 0; }
+  .two { grid-template-columns: minmax(0, 1fr); }
   table.inv, table.inv tbody, table.inv tr, table.inv th, table.inv td { display: block; }
   table.inv thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   table.inv tr { padding: 12px 14px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
@@ -316,6 +383,8 @@ ul.plain strong { color: var(--fg); font-weight: 600; }
     </div>
     <nav class="toc" aria-label="Sections">${nav}</nav>
   </header>
+${latest}
+${changed}
 ${inventory}
 ${sections}
   <section class="notes last" aria-labelledby="real">
@@ -331,7 +400,7 @@ ${sections}
 </div>
 <script>
 (function () {
-  var frames = Array.prototype.slice.call(document.querySelectorAll('.frame'));
+  var frames = Array.prototype.slice.call(document.querySelectorAll('.frame:not(.none)'));
   function fit(frame) {
     var stage = frame.firstElementChild;
     var w = parseFloat(stage.style.width);

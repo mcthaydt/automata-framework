@@ -209,6 +209,46 @@ describe('resolveSectors: pilasters', () => {
     expect(turned.masses).toEqual(end.masses)
   })
 
+  it("marks the walls round a pilaster's masonry as notch walls, and no other, whichever way the loop turns", () => {
+    const flags = (corners: Corner[]) =>
+      loopOf(only(resolveSectors([room('a', corners)]))).map((edge) => edge.notch)
+    expect(flags(south({ start: [0.5, 0.25], end: [0.5, 0.25] }))).toEqual([
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+    ])
+    expect(flags(south({}))).toEqual([false, false, false, false])
+    const clockwise: Corner[] = [
+      [0, 0],
+      [0, 4],
+      [4, 4],
+      [4, 0, { cut: 'south', pilaster: { start: [0.5, 0.25] } }],
+    ]
+    expect(flags(clockwise)).toEqual(flags(south({ end: [0.5, 0.25] })))
+    expect(flags(clockwise)).toEqual([false, true, true, true, false, false, false])
+  })
+
+  it('has no notch walls in a hole, which a pilaster may also have', () => {
+    const hole: Corner[] = [
+      [1, 1],
+      [3, 1],
+      [3, 3],
+      [1, 3, { pilaster: { start: [0.5, 0.25] } }],
+    ]
+    const sector = only(resolveSectors([room('a', south({}), { holes: [hole] })]))
+    expect(sector.loops.map((loop) => loop.map((edge) => edge.notch))).toEqual([
+      [false, false, false, false],
+      [false, true, true, true, false, false, false],
+    ])
+  })
+
   it('keeps the masses it is given, adds the pilasters after them, and changes neither its input nor the list', () => {
     const given = [{ points: [p(9, 9), p(10, 9), p(10, 10)], top: 2 }]
     const defs = [room('a', south({ start: [0.5, 0.25] }))]

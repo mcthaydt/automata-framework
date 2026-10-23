@@ -1,6 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
 import * as contentDemo from './examples/content/hot-reload/e2e/origin.ts'
-import * as hostDemo from './examples/host/lifecycle-and-saves/e2e/origin.ts'
 import * as physicsDemo from './examples/physics/bodies-2d/e2e/origin.ts'
 import * as runtimeDemo from './examples/runtime/boot-and-flow/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
@@ -88,12 +87,7 @@ const journeys = defineConfig({
     {
       name: 'demos',
       testDir: 'examples',
-      testMatch: [
-        'host/*/e2e/*.e2e.ts',
-        'content/*/e2e/*.e2e.ts',
-        'physics/*/e2e/*.e2e.ts',
-        'runtime/*/e2e/*.e2e.ts',
-      ],
+      testMatch: ['content/*/e2e/*.e2e.ts', 'physics/*/e2e/*.e2e.ts', 'runtime/*/e2e/*.e2e.ts'],
       use: { ...devices['Pixel 7'] },
     },
     ...matrixProjects,
@@ -144,12 +138,6 @@ const journeys = defineConfig({
       command: 'pnpm --filter @mcthaydt/examples-runner e2e:fixtures',
       url: `http://localhost:${runnerFixturesPort}/`,
       env: { AF_E2E_EXAMPLES_PORT: String(runnerFixturesPort) },
-      reuseExistingServer: process.env.CI === undefined,
-    },
-    {
-      command: 'pnpm --filter @af-examples/host-lifecycle-and-saves e2e:demo',
-      url: hostDemo.url,
-      env: { AF_E2E_DEMO_PORT: String(hostDemo.port) },
       reuseExistingServer: process.env.CI === undefined,
     },
     {

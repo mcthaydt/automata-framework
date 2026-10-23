@@ -17,7 +17,7 @@ export function loadFixture(name: FixtureName): string {
 }
 
 /** Files recorded once from Last Light's own code (SOURCE.json says how), to compare ported code against. */
-export const GOLDEN_NAMES = ['expand', 'literals', 'geometry'] as const
+export const GOLDEN_NAMES = ['expand', 'literals', 'geometry', 'checks'] as const
 
 export type GoldenName = (typeof GOLDEN_NAMES)[number]
 
