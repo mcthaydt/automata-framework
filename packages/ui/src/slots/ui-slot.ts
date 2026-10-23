@@ -19,6 +19,7 @@ export const UI_SLOT_NAMES = [
   'debug.panels',
 ] as const
 
+/** The name of a place an extension may add UI: one of `UI_SLOT_NAMES`. */
 export type UiSlotName = (typeof UI_SLOT_NAMES)[number]
 
 /** What an extension puts in a slot: a Svelte component that takes no props. */

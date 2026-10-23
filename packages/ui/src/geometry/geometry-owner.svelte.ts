@@ -40,6 +40,10 @@ export interface Timers {
   clear(handle: unknown): void
 }
 
+/**
+ * What `createGeometryOwner` needs: the window to read and the root to publish on, and optionally the host's
+ * display, timers and a safe-area reader.
+ */
 export interface GeometryOwnerOptions {
   readonly window: ViewportWindow
   /** Where the geometry is published: normally `document.documentElement`. */
@@ -54,6 +58,10 @@ export interface GeometryState {
   readonly current: Geometry
 }
 
+/**
+ * The one geometry owner of a document: `geometry.current` for components, `onChange` for script,
+ * `setHostDisplay`, `remeasure` and `dispose`.
+ */
 export interface GeometryOwner {
   readonly geometry: GeometryState
   /** Hears every measure; returns the unsubscribe. For consumers outside Svelte. */
@@ -121,6 +129,11 @@ class GeometryRune implements GeometryState {
   }
 }
 
+/**
+ * Creates the geometry owner of a document, the only writer of its geometry: make one per document. It measures
+ * at once, on every resize of the window or the visual viewport, and again at 100, 400 and 1000 ms as bars and
+ * the keyboard settle, and publishes each measure on the root.
+ */
 export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner {
   const { window: win, root } = options
   const timers = options.timers ?? defaultTimers

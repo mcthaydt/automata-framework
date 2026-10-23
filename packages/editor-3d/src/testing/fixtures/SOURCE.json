@@ -49,5 +49,12 @@
       "sha256": "7dbc406de4ae17baf9ba860f0d6f6caf4beaadf5ab8d5e07dca057f335a8cc97",
       "recordedBy": "node --experimental-strip-types src/testing/fixtures/record-checks.mjs <Last Light checkout at 92e6704> src/testing/fixtures/check-cases.json src/testing/fixtures src/testing/fixtures/checks.golden.json"
     }
+  },
+  "authored": {
+    "depot.af-sector.json": {
+      "bytes": 1364,
+      "sha256": "60ed197dba6b001fcae9b89715eea8697d14f4c07862f3f8f176066a5faa9305",
+      "purpose": "authored for ED3D.1b, not from Last Light: the shipped af-sector/1 sample (two sectors one step apart joined by a portal pair, a door, a window, two entity definitions and their instances), hand-formatted so the codec tests run against a layout it did not write"
+    }
   }
 }
