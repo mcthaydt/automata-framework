@@ -27,6 +27,12 @@ export function sources(dir: string): string[] {
 export const isGameSource = (file: string): boolean =>
   SOURCE.test(file) && !file.split('/').some((part) => SKIPPED.has(part) || part.startsWith('.'))
 
+const TESTS = /\.(?:test|spec)\./
+
+/** Whether `file` is one of the game's shipped sources: a source, and not a test, whose fixture games are not shipped. */
+export const isShippedSource = (file: string): boolean =>
+  isGameSource(file) && !TESTS.test(file.slice(file.lastIndexOf('/') + 1))
+
 export type Node = Record<string, unknown>
 export const isNode = (value: unknown): value is Node => value !== null && typeof value === 'object'
 export const stringLiteral = (value: unknown): value is Node & { value: string; start: number } =>

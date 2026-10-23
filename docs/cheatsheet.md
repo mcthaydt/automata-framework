@@ -182,6 +182,8 @@
 - `checkManifest(toml)`: Checks `ruken.toml` text with Ruken's own parser, so AF accepts exactly what Ruken accepts.
 - `checkVersion(version, tag)`: A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`): the build Ruken shows as 0.10.2 is the one tagged v0.10.2.
 - `declaredBoardsIn(code)`: The board ids a `ship.config.ts` declares: the keys of its `leaderboards` object, read from the source as written (`automata check` reads files, it does not run them).
+- `DeclaredInputs` (interface): The `runtime.inputs` a `ship.config.ts` declares, with the position of its opening bracket.
+- `declaredInputsIn(code)`: The `runtime.inputs` a `ship.config.ts` declares, read from the source as written (`automata check` reads files, it does not run them).
 - `declaredOrientationIn(code)`: The `runtime.orientation` a `ship.config.ts` declares, read from the source as written (`automata check` reads files, it does not run them).
 - `defineShipConfig(config)`: Identity function that gives a game's `ship.config.ts` type checking and editor completion.
 - `deployDev(input)`: Sends a prepared build to the dev host and returns its build ID and the URL it is served at.
@@ -190,6 +192,7 @@
 - `EntryMissing` (class): `[game] entry` names a file the build does not have.
 - `EnvValue` (interface): One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build.
 - `FileError` (class): Reading, writing, listing or removing a file failed.
+- `findInputsProblems(gameDir, inputs)`: Each disagreement between `inputs` (a config's `runtime.inputs`) and what the `keys()` calls in a game's sources bind, in `inputsProblems`' words; empty when they agree or the game has no `keys()` call to compare.
 - `findOrientationMismatches(gameDir, declared)`: Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
 - `findRootAbsoluteReferences(distDir)`: Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
 - `findSecretsInBuild(distDir, envValues)`: Every secret in a built folder.
@@ -197,7 +200,9 @@
 - `gameOrientationsIn(file, code)`: The orientations the `defineGame` calls in one source file play in, in source order; `undefined` when the file does not parse (its typecheck already fails, and a half-read tree could name an orientation that is not there).
 - `inputsProblems(inputs, bindings)`: Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
 - `isBoardSource` (const): Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`, `.mts`, `.js`, `.mjs`).
+- `isInputsSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
 - `isOrientationSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+- `keysBindingsIn(file, code)`: What the `keys()` calls in one source file bind, one `<file>:<line>:<col> keys` entry per call (and `pad` and `gestures` entries where it binds them); empty when the file has no call; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could name a device that is not there).
 - `ManifestInputsMismatch` (class): `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
 - `ManifestInvalid` (class): Ruken's parser refused the generated `ruken.toml`.
 - `OrientationMismatch` (class): The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up).
@@ -205,7 +210,7 @@
 - `parseEnvFile(file, text)`: The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
 - `PlayedOrientation` (interface): An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
-- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7), then writes `ruken.toml` once Ruken's parser accepts it.
+- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
