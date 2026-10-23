@@ -13,6 +13,13 @@ export {
   type SectorToolView,
 } from './app/sector-tool-controller'
 export {
+  createVertexTool,
+  type VertexEffect,
+  type VertexTarget,
+  type VertexTool,
+  type VertexToolView,
+} from './app/vertex-tool-controller'
+export {
   createWallTool,
   type WallEffect,
   type WallPlace,
@@ -66,6 +73,12 @@ export {
   setView,
 } from './model/sector-edits'
 export { parseSelection, type SelectionRef } from './model/selection-ref'
+export {
+  type InsertCornerArgs,
+  insertCorner,
+  type RemoveCornerArgs,
+  removeCorner,
+} from './model/vertex-edits'
 export {
   createViewStore,
   initialView,
