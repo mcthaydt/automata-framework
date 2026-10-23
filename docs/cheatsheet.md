@@ -233,57 +233,57 @@
 - `canonicalJson(value)`: Canonical JSON: object keys sorted at every depth, no whitespace.
 - `CanonicalJsonError` (class): A value canonical JSON cannot represent exactly; hashing it anyway would let different values collide.
 - `Command` (interface): Input to the sim (spec §4.4 rule 4).
-- `CommandDef` (interface)
-- `CommandRecord` (interface)
-- `ComponentDef` (interface)
-- `createRng(seed)`
-- `createSim(opts)`
+- `CommandDef` (interface): A command the sim accepts as input: an id and the Zod schema its payload must match.
+- `CommandRecord` (interface): A command as a system reads it this tick: the player slot that sent it (`source`), its per-source `seq` and its parsed `payload`.
+- `ComponentDef` (interface): A component: a stable id and a flat record of typed fields.
+- `createRng(seed)`: A generator seeded from `seed` (through splitmix32): the same seed gives the same sequence in every engine.
+- `createSim(opts)`: Creates a sim from its plugins, seed and content; async, because a plugin may create engine state (a Rapier world).
 - `Def` (type): Anything `definePlugin`'s flat `defs` list takes (DX spec §3.2).
-- `defineCommand(id, schema)`
-- `defineComponent(id, fields, opts?)`
-- `defineEvent(id, schema)`
-- `definePlugin(spec)`
-- `defineResource(id, schema, init)`
+- `defineCommand(id, schema)`: Defines a command by id and payload schema.
+- `defineComponent(id, fields, opts?)`: Defines a component from an id (lower-case words separated by dots or dashes) and its fields by name and type.
+- `defineEvent(id, schema)`: Defines an event by id and payload schema, to emit from a system with `ctx.emit`.
+- `definePlugin(spec)`: Defines a plugin from a name, its dependencies and its definitions, given in the keyed lists or in one flat `defs` list sorted by kind.
+- `defineResource(id, schema, init)`: Defines a resource by id, schema and starting value.
 - `defineSystem(name, run)`, `defineSystem(name, phase, run)`, `defineSystem(spec)`: A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the object form also takes `before`/`after`.
 - `deriveSeed(rootSeed, name)`: Seed for a named substream: FNV-1a over the name's UTF-16 code units, mixed with the root seed.
 - `EntityRef` (interface): A live entity, addressed by its StableId.
-- `EventDef` (interface)
-- `FieldRecord` (type)
-- `FieldSchema` (type)
-- `FieldType` (type)
-- `FieldValue` (type)
-- `FieldValues` (type)
+- `EventDef` (interface): An event a system emits: an id and the Zod schema its payload must match.
+- `FieldRecord` (type): One component's field values on an entity, by field name.
+- `FieldSchema` (type): A component's fields, by name.
+- `FieldType` (type): A component field's type: `f32`, `f64`, `i32`, `u32`, `bool`, `entity` (a StableId, stored as a `u32`) or `string`.
+- `FieldValue` (type): The JavaScript type a field holds: `boolean` for `bool`, `string` for `string`, `number` for every other type.
+- `FieldValues` (type): The writable record of values a `FieldSchema` describes.
 - `hex64(value)`: 16 lowercase hex digits.
-- `Phase` (type)
+- `Phase` (type): One of the six phases a tick runs through, in `PHASES` order.
 - `PHASES` (const): Fixed phase order (spec §4.3).
-- `PluginDef` (interface)
+- `PluginDef` (interface): A bundle of definitions the sim registers together: components, commands, events, resources and systems, the plugins it depends on, and optionally per-sim engine state and `config`.
 - `PluginState` (interface): Engine state a plugin keeps outside the ECS, such as a Rapier world (M2.1 spec §3.1).
 - `PluginStateSetup` (interface): What a plugin's state may know when it is created.
 - `PreparedRestore` (interface): A plugin's parsed restore, held until the sim knows whether the whole snapshot is valid.
-- `RejectedCommand` (interface)
-- `RejectReason` (type)
+- `RejectedCommand` (interface): A command `step` dropped, with the reason.
+- `RejectReason` (type): Why `step` dropped a command: `bad-header` (a field is missing or out of range), `unknown-command` (no plugin defines its type), `wrong-tick` (not the sim's current tick), `duplicate-seq` (the same source and seq twice in one step) or `invalid-payload` (it fails the command's schema).
 - `RenderDelta` (interface): What changed for the renderer since the last delta (spec §4.7).
 - `RenderRow` (interface): One entity's render-flagged components (component id -> field values).
-- `ResourceDef` (interface)
-- `Rng` (interface)
-- `RngState` (type)
-- `Sim` (interface)
+- `ResourceDef` (interface): A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting value.
+- `Rng` (interface): A deterministic generator (xoshiro128**, 32-bit integer math only, so it is bit-exact in every engine).
+- `RngState` (type): The four 32-bit words of a generator's state, as `Rng.state()` copies them and snapshots store them.
+- `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
 - `SIM_VERSION` (const): The sim package's version, written into replay headers for information only (M2.3 spec §3.2).
 - `SimCapacityError` (class): More sims are alive than Koota allows worlds (16 per process).
 - `SimContext` (interface): What a system's `run` receives each tick (spec §4.1).
 - `SimDisposedError` (class): The sim was disposed; it holds no world any more, so every call that reads or changes state refuses.
-- `SimEvent` (interface)
+- `SimEvent` (interface): An event a system emitted during a step: the event's id as `type`, and its parsed `payload`.
 - `SimFaultedError` (class): A system threw during `step`.
-- `SimOptions` (interface)
-- `SNAPSHOT_VERSION` (const)
-- `SnapshotFormatError` (class)
-- `SnapshotMismatchError` (class)
+- `SimOptions` (interface): What `createSim` takes: the root `seed`, the `plugins`, `tickHz` (an integer from 1 to 1000, default 60) and the `content` the systems read as `ctx.content` (default `{}`).
+- `SNAPSHOT_VERSION` (const): The snapshot format version this build reads and writes; a snapshot of another version fails with `SnapshotFormatError`.
+- `SnapshotFormatError` (class): Snapshot bytes that are not a valid snapshot of this format version: bad magic, an unsupported version, truncated or malformed sections.
+- `SnapshotMismatchError` (class): A valid snapshot that belongs to another sim: `field` names the header value that differs (`schemaHash`, `contentHash` or `tickHz`), with this sim's `expected` value and the snapshot's `actual` one.
 - `SnapshotView` (interface): A readable copy of a snapshot, for diffs and reports (M2.3 spec §3.1).
 - `sortedEntries(obj)`: Own enumerable [key, value] pairs, sorted by key.
 - `sortedKeys(obj)`: Own enumerable string keys, sorted by UTF-16 code unit.
 - `SpawnPart` (type): A component to spawn with: the definition alone (defaults) or [definition, initial values].
-- `StepResult` (interface)
-- `SystemDef` (interface)
+- `StepResult` (interface): What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were rejected.
+- `SystemDef` (interface): A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and its `run`, called once per tick.
 - `SystemSpec` (interface): The object form of `defineSystem`: a name, a phase, the optional `before`/`after` ordering and the run.
 - `xxhash64(data, seed?)`: XXH64 of `data` with an unsigned 64-bit `seed`.
 
@@ -296,39 +296,39 @@
 
 ### `import { … } from '@mcthaydt/automata-sim/math'`
 
-- `atan(x0)`
+- `atan(x0)`: Deterministic arctangent.
 - `atan2(y, x)`: Finite inputs only (sim values are finite).
-- `cos(x)`
-- `exp(x)`
+- `cos(x)`: Deterministic cosine, in radians.
+- `exp(x)`: Deterministic `e` to the power `x`.
 - `hypot(x, y)`: No overflow scaling: inputs must satisfy x*x + y*y < 1.7e308.
-- `log(x0)`
-- `pow(x, y)`
-- `sin(x)`
-- `tan(x)`
+- `log(x0)`: Deterministic natural logarithm.
+- `pow(x, y)`: Deterministic `x` to the power `y`.
+- `sin(x)`: Deterministic sine, in radians.
+- `tan(x)`: Deterministic tangent, in radians, as `sin(x) / cos(x)`.
 
 ### `import { … } from '@mcthaydt/automata-sim/replay'`
 
-- `createRecorder(sim, options?)`
-- `createReplayStepper(replay, setup)`
-- `decodeReplay(bytes)`
-- `DEFAULT_CHECK_EVERY` (const)
-- `encodeReplay(replay)`
-- `packReplay(replay, compression)`
-- `Recorder` (interface)
-- `RecorderOptions` (interface)
-- `Replay` (interface)
-- `REPLAY_FORMAT` (const)
+- `createRecorder(sim, options?)`: Starts recording `sim` from its current state, for the recorder's `step` to extend.
+- `createReplayStepper(replay, setup)`: Creates a stepper over `replay`: a fresh sim built from the replay's seed and tick rate, restored from its start snapshot.
+- `decodeReplay(bytes)`: Decodes `.replay` bytes (already inflated) into a `Replay`.
+- `DEFAULT_CHECK_EVERY` (const): How often, in ticks, a recording stores a check hash when `RecorderOptions.checkEvery` is not given.
+- `encodeReplay(replay)`: Encodes a replay as `.replay` bytes before deflate.
+- `packReplay(replay, compression)`: Encodes a replay and deflates it into `.replay` file bytes.
+- `Recorder` (interface): Steps a sim and records the run as a `Replay`.
+- `RecorderOptions` (interface): What a recording takes: how often to store a check hash, whether to keep a reference hash and snapshots (goldens), and free-form `meta`.
+- `Replay` (interface): A recorded run: its header, the start snapshot, the accepted commands by tick, check hashes along the way and the final tick and hash.
+- `REPLAY_FORMAT` (const): The `.replay` format version this build reads and writes.
 - `REPLAY_INFLATE_MAX_BYTES` (const): Larger than FloorFifty's 1 MiB because goldens carry reference snapshots; player replays may pass less.
 - `REPLAY_MAX_TICKS` (const): The longest run a replay may hold: 2^24 ticks, over 77 hours at 60 Hz.
-- `ReplayCheck` (interface)
-- `ReplayCommand` (interface)
-- `ReplayCompression` (interface)
+- `ReplayCheck` (interface): A hash check at a tick: the hash the replay recorded (`expected`) and the hash the re-simulated sim has (`actual`).
+- `ReplayCommand` (interface): A command as a replay stores it: the sim's `Command` without its tick, which the replay's `ticks` entry carries.
+- `ReplayCompression` (interface): The deflate and inflate a `.replay` file needs.
 - `ReplayFormatError` (class): Bytes that are not a valid `.replay` (M2.3 spec §5).
-- `ReplayHeader` (interface)
+- `ReplayHeader` (interface): The facts a replay needs before it plays: tick rate, seed, the schema and content hashes it was recorded against, where it starts and how often it checks.
 - `ReplayRecordError` (class): A recording that cannot be exact: the sim stepped outside the recorder, a payload that is not JSON, and so on.
-- `ReplayStepper` (interface)
-- `ReplayStepSetup` (interface)
-- `unpackReplay(bytes, compression, options?)`
+- `ReplayStepper` (interface): A replay playing back one tick at a time on its own sim.
+- `ReplayStepSetup` (interface): What a stepper needs to rebuild the recorded sim: the same `plugins` and `content` the recording sim had.
+- `unpackReplay(bytes, compression, options?)`: Inflates `.replay` file bytes and decodes them.
 
 ## `@mcthaydt/automata-testing`
 
