@@ -42,7 +42,7 @@ raylib's equivalent is one file of 50–150 lines that reads top to bottom.
 - **One code file:** it ends in `export default defineGame({...})`.
   - The runner calls `startGame` on it; a reader copies it into a game and calls `startGame(example)`.
   - Sim definitions (`defineComponent`, `defineCommand`, `defineSystem`, `definePlugin`) sit in the same file, unexported. The role-suffix rule in `tooling/check-style/src/style.ts` covers exported `define*` results only, so it doesn't fire.
-- **Public imports only:** `@mcthaydt/automata` (the core umbrella, PRODUCT.2) or an extension's published entry. Never a relative import, another example, or a game.
+- **Public imports only:** `@mcthaydt/automata` (the core umbrella, PRODUCT.2), `zod` or an extension's published entry. Never a relative import, another example, a game, or a core package's own entry (`@mcthaydt/automata-game`, `-sim` and the rest are reached through the umbrella; EX.6). `zod` stays a public import because every command takes a Zod schema and a game writes the same import; the umbrella does not re-export `z`, which would tie an example's schema library to the umbrella's pinned copy. A verb the umbrella lacks makes the example `Pending:` on the task that adds it.
 - **Data lives in `examples/resources/`,** as in raylib:
   - shared art (Endesga 64 sprites with `PROVENANCE.md`);
   - TOML content (for example `resources/content/hot-reload/room.toml`);
@@ -102,6 +102,8 @@ export default defineGame({
   views: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) },
 })
 ```
+
+**As built (2026-10-23).** The shipped [`core-input-keys`](../../../examples/core/core-input-keys.ts) is the reference, not this sketch. The sketch's verbs differ from what DX.1 to DX.2b settled: `definePlugin({ name, defs })` (the `name` is hashed, so it stays required), `defineComponent('body', { x: 'f32' })` and `defineCommand('move', zodSchema)` instead of `u` field types, `ctx.commands.of(Move)` and `body.get`/`body.set` instead of `commands(Move)` and `body.x`, and the spawn in `defineGame({ sim: { setup } })` instead of the plugin. None of them became sim API (docs/02, "DX.1 follow-up — EX example API gaps").
 
 ## 4. The sim inside one file, still deterministic
 

@@ -17,6 +17,10 @@ import type { FlowGraph } from '../flow/check-flow'
 import type { AssetsSource, GameSource } from '../game/game-facts'
 import { locateKeys, positionOf } from '../parse/locate-keys'
 
+/**
+ * What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`) and the built game
+ * folder.
+ */
 export interface PreloadInput {
   readonly options: ContentOptions
   /** The built game folder (Vite's `dist/`). */
@@ -47,6 +51,12 @@ function preloadEntries(
   return entries
 }
 
+/**
+ * The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens`
+ * screen's files from `assets.toml` (the flow's entry when none is named), without repeats. Empty without a
+ * `game.toml`. Fails with `ContentCompileFailed` carrying a `missingAsset` diagnostic for every file the
+ * build lacks, all at once, or with `InvalidContentConfig`.
+ */
 export const preloadList = (
   input: PreloadInput,
 ): Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig> =>

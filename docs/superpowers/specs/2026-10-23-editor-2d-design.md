@@ -373,7 +373,7 @@ This profile makes the editor author **the game's own stage files**. FloorFifty 
 | ID | Decision | Default and why |
 |---|---|---|
 | FF-D1 | The profile edits **the game's own TOML**, not an editor project format | The stage TOML is the contract; a second format would drift. |
-| FF-D2 | Comment- and format-preserving TOML via `@decimalturn/toml-patch` (MIT) on `smol-toml` (already in the stack) | Measured 2026-10-23: identity patch is byte-equal on all four shipped stages, and a one-value edit changes exactly the lines that hold it. Structural edits keep every other comment. New dependency: needs the `deps:new` review in the PR that adds it. |
+| FF-D2 | Comment- and format-preserving TOML via `@decimalturn/toml-patch` (MIT) on `smol-toml` (already in the stack) | Measured 2026-10-23: identity patch is byte-equal on all four shipped stages, and a one-value edit changes exactly the lines that hold it. Whole-table edits (add, remove, reorder) are not safe with comments, so the codec does those itself (§10.3). New dependency: needs the `deps:new` review in the PR that adds it. |
 | FF-D3 | The stage schema is **vendored** with a recorded source commit, not imported | FloorFifty's `content` package is not in AF (stages are game content, extraction map §4). A refresh script diffs against FloorFifty at a pinned commit; the profile registry lets another game supply its own. |
 | FF-D4 | Composition math is a pure function ported from `StageLayers`, tested against numbers from FloorFifty's own tests | "WYSIWYG" is a claim about numbers; the Pixi scene only applies them. |
 
@@ -407,21 +407,28 @@ The files are written by people for people: `rooftops.toml` is 30% comments, wit
 ### 10.3 Document and codec
 
 ```ts
+// What the profile edits (`Profile<StageDocument>`); the open file's path, `base` text and drafts belong to the app (ED2D.5).
 interface StageDocument {
-  readonly path: string                 // content/stages/rooftops.toml
-  readonly base: string                 // the text as loaded (comments, layout)
   readonly value: StageValue            // parsed, validated shape (schema output)
-  readonly draft: DraftState            // fields mid-edit that are not yet valid (e.g. empty alias)
+  readonly ids: ListIds                 // one id per element of course.extension, theme.layers and theme.setPieces
 }
+interface ListIds { readonly extension: readonly string[]; readonly layers: readonly string[]; readonly setPieces: readonly string[] }
+
+parseStage(text): Result<StageDocument, readonly ParseError[]>   // ids are b0, b1, ... per list
+printStage(base, document): string                                // base = the text the document was read from
 ```
 
-`print(base, value)` is the profile's `print` (§7). Codec rules:
+The three lists have no key a table can be told apart by, so every element carries an id the codec follows through an edit: it tells "moved" from "removed, and a new one added", and a moved element keeps its comments. A parsed document numbers its elements `b0`, `b1`, … per list; commands give new elements a fresh id from the injected `IdSource` and keep ids when they move or duplicate (a duplicate gets a fresh one). The ids of a list must be as many as its elements and distinct; `printStage` throws when they are not. **`base` stays the text as loaded for the whole session** (the app never replaces it by what it saved), because the `b` ids refer to its elements; saving again from the same base is idempotent, and a reload re-reads both.
 
-1. Opening and exporting with no change returns the original text byte for byte (tested on all four stages).
-2. A changed scalar changes only its own line. A new table or array element is inserted after its siblings with the file's existing style (blank line between tables, key order as the schema lists them). A removed element removes the comment block directly above it, nothing else.
-3. Reordering layers moves each table with its leading comment block.
-4. Output must re-parse to exactly `value` (tested as a property over generated edits).
-5. Parse errors report line and column; the editor shows them and never replaces the file.
+`print(base, value)` is the profile's `print` (§7). The codec is two layers: a **block engine** that adds, removes and rearranges whole tables (`course` with its phrases and extension, `theme.presentation`, `theme.presentation.citySink`, and the elements of the three lists), and `@decimalturn/toml-patch`, which carries every change inside a table. The engine exists because the library, measured on the shipped stages, drops the comment block that follows a removed table, leaves a removed element's own comment behind on its neighbour, does not move comments with a swapped element, and writes `citySink = { … }` or `phrases = [ { … } ]` inline for a new table. Codec rules:
+
+1. Opening and exporting with no change returns the original text byte for byte (tested on all four stages, with `\r\n` line endings and without a final newline). Line endings and the final newline are the base's.
+2. A changed scalar changes only its own line, and a comment at the end of that line stays. An optional key added or removed adds or removes only its line, and a comment directly above a removed key goes with it. A new table or array element follows the file's style: a blank line between tables, the keys in the order the shipped files write them (layers `alias, plate, depth, sink, haze, extend, arc, drift`; set pieces `floor, kind, holdMs`, then the kind's keys), string lists as `["a", "b"]`, and it is placed after its siblings, or after the last table that comes before it in file order (`courseTuning`, `course`, `course.phrases`, `course.extension`, `theme`, `theme.layers`, `theme.presentation`, `theme.presentation.citySink`, `theme.setPieces`). A removed table removes the comment lines directly above it and the blank line after it, and nothing else: a comment block that a blank line separates from the next header belongs to no table and stays.
+3. Reordering elements moves each table with its leading comment block into the place of the table that held the element now there, so the text between tables stays where it was.
+4. Output must re-parse to exactly `value` (tested as a property over generated edits: 200 seeded sequences of 1 to 8 edits for each shipped stage, which also checks that every comment of a table or key that stays is in the output once and that none appears from nowhere).
+5. Parse errors report line and column; the editor shows them and never replaces the file. A schema issue reports its path (`theme.layers[2].depth`) and the line of its key (the table header for a missing key; one error for each unknown key).
+
+Known limits: a list the text writes as an inline array is edited by the library, with its layout, not by the engine; removing a commented key between two blank lines leaves both blank lines; a float written `1.0` is printed `1`.
 
 ### 10.4 Composition (WYSIWYG)
 
@@ -452,14 +459,25 @@ Flows: **New stage** (Home → New → template Empty, Simple city, Sky only, Co
 
 ### 10.7 Checks
 
+`checkStage(document, context): Diagnostic[]` runs on the document's **value**, not on the schema's verdict: a command can leave a value the schema would refuse (a duplicated layer has its alias twice, a dragged sink leaves its range, a layer moved past a nearer one breaks the depth order), and the editor keeps that document open, says what is wrong and where, and offers the repair. A test makes the vendored schema the oracle for the rules the checks restate: 49 edits within the types a command can produce, applied to the minimal and the four shipped stages, singly and as 600 seeded sequences; the checks report an error at a schema issue's path exactly when the schema refuses the value.
+
+A finding's `path` is the parse error's path with each list index replaced by the element's id (`theme.layers[b2].depth`, `theme.setPieces[b0].layers[1]`, `course.extension[b1]`), so a reorder does not change it; the four phrases keep their index (`course.phrases[2].toFloor`), and `courseTuning.GRAVITY` names a tunable. Messages name the layer, phrase or piece, the value and the limit, in words; a run of floors is one finding (`floors 5–10`), never a sentence a floor. Findings come errors first, then warnings, then info.
+
+`StageCheckContext` is `{ aliases?, tunables?, baseTuning?, tallestFloor? }`; each missing member means the bundled one: no manifest, FloorFifty's tunable declarations (`tunables.ts`, vendored at `ee5d44e`), the declared defaults, and the tallest finite course of 49.
+
 | Source | Codes (errors unless noted) |
 |---|---|
-| Schema (vendored Zod, messages rewritten for people) | `id`, `displayName`, `phraseOrder`, `phraseRange`, `layerRange`, `plateOnlySky`, `arcOnlyCity`, `driftOnPlate`, `plateFirst`, `duplicateAlias`, `layerOrder` (with fix: reorder), `setPieceRange`, `tooManyPieces` |
-| Course (`validate/course.ts`) | `phraseOverlap`, `phrasePastTop`, `floorsUnaccounted` (fix: fit), `extensionOverlap`, `extensionPastTallest`, `extensionUnaccounted` |
-| Aliases (`validate/aliases.ts`) | `unknownAssetAlias` (error when a manifest is loaded, info "unchecked" otherwise; fix: suggestions by edit distance) |
-| Set pieces (`validate/set-pieces.ts`) | `unknownReference` for layers not drawn (fix: remove name) |
-| Tuning (`validate/bounds.ts`) | `unknownTunable`, `tunableRange` (against loaded or bundled declarations) |
-| Editor-only | `flashRate` (warning: more than 3 flashes per second across overlapping pieces), `emptyPurpose`, `unusedLayer` (info) |
+| Stage identity and aliases | `id` (the id and the unlock), `displayName`, `emptyAlias` (also a layer's alias and a name in a set piece's list), `presentationRange`, `seedInvalid` |
+| Course shape | `phraseOrder`, `phraseRange` (a floor that is not a whole number from 1, or a phrase or entry that ends before it starts), `emptyPurpose`, `purposeTooLong` |
+| Layers | `noLayers`, `layerRange`, `plateOnlySky`, `arcOnlyCity`, `driftOnPlate`, `plateFirst`, `duplicateAlias`, `layerOrder` (fix `reorder-layers`: "cityMid has depth 0.2, further than cityNear (0.5) before it") |
+| Set pieces | `setPieceRange` (floor, hold, flashes, kick, density, speed, and how many layers a piece names), `tooManyPieces` |
+| Course against the climb (`validate/course.ts`) | `phraseOverlap`, `phrasePastTop`, `floorsUnaccounted` (fix `fit-phrases`), `extensionOverlap`, `extensionPastTallest`, `extensionUnaccounted`. The top floor is `COURSE_FLOOR_COUNT - 1` of the base tuning with the stage's `courseTuning` on top; when that count is out of range the course checks stay quiet and `tunableRange` reports it. Floors are handled as runs, so a phrase that ends at floor 1e15 is a finding, not a loop |
+| Aliases (`validate/aliases.ts`) | `unknownAssetAlias` for the five stage aliases and every layer, when a manifest is loaded, with the nearest names by edit distance in the message (a swap of neighbours is one edit; names within a sixth of the alias's length); `aliasesUnchecked` (info, one for the stage) when none is loaded |
+| Set pieces (`validate/set-pieces.ts`) | `unknownReference` for a name in a piece's `layers` that the stage does not draw (fix `remove-name`) |
+| Tuning (`validate/bounds.ts`) | `unknownTunable` (with the nearest name), `codeOnlyTunable` (an invariant such as `TICK_HZ`), `tunableRange` (range, and a whole number for an `int` tunable) |
+| Editor-only | `flashRate` (warning): the sky flashes on one floor start together, flash `i` of a piece `i × max(334, hold ÷ flashes)` ms after it (the director's own schedule), and more than three starting inside one second breaks WCAG 2.3.1. Pieces on different floors start when the climber reaches them, which no check can know |
+
+Differences from the first draft of this section: `unusedLayer` is cut (no rule that needs only the document and a list of aliases says a layer is unused; it returns when the Compose view defines what unused means); `emptyPurpose` is an error, not editor-only, because the schema refuses an empty purpose; one info finding `aliasesUnchecked` replaces one per alias; and the codes `emptyAlias`, `noLayers`, `presentationRange`, `seedInvalid`, `purposeTooLong` and `codeOnlyTunable` name schema and bounds rules the first list left out. Enum values (a mood, a particle, a plate) are not checked: the types keep a command from producing a wrong one.
 
 ## 11. Persistence
 

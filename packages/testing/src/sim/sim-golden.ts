@@ -15,6 +15,10 @@ import { z } from 'zod'
 import { fileName, readGoldenFile, resolveGoldenPath, updatingGoldens, writeGoldenFile } from './golden-files'
 import type { GoldenReport } from './report'
 
+/**
+ * What `simGolden` runs: the plugins, content, seed and scripted commands to play for `ticks` ticks, where
+ * the golden JSON lives, and how often to record a hash.
+ */
 export interface SimGoldenOptions {
   readonly name: string
   /** The golden is <dir>/__goldens__/<name>.golden.json; a relative dir is taken from the test file's folder. */
@@ -123,6 +127,11 @@ async function record(
   }
 }
 
+/**
+ * Plays a scripted run and compares the sim's hash every `every` ticks with the golden JSON file, reporting
+ * the first recorded tick that differs. With `AUTOMATA_UPDATE_GOLDENS=1` in Node it records the file. Throws
+ * for an `every` that is not an integer of 1 or more; a mismatch is a report, not a throw.
+ */
 export async function simGolden(options: SimGoldenOptions): Promise<GoldenReport> {
   const every = options.every ?? 1
   if (!Number.isInteger(every) || every < 1) throw new Error(`simGolden: every must be an integer >= 1`)
