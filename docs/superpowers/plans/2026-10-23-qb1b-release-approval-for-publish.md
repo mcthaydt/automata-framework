@@ -3,7 +3,7 @@
 - **Spec:** [QB spec](../specs/2026-10-16-quality-bar-design.md) §4.1 (a `release` environment that needs Owner approval; agents never publish); [M2 build and publish spec](../specs/2026-10-11-m2-build-and-publish-design.md) §3.5 (the release workflow).
 - **Task:** `QB.1b — Release approval only for publishes` (02). Lane ship.
 - **Status:** drafted 2026-10-23, based on `main`. No PR is opened until the shared runner's queue drains.
-- **Progress:** 0 of 4 steps.
+- **Progress:** 4 of 4 steps.
 
 ## What is wrong
 
@@ -33,10 +33,10 @@
 
 ## Steps
 
-- [ ] **1. The shape, red first.** Rewrite the `release-packages.yml` describe in `workflows.test.ts`: `plan` has no environment and outputs whether changesets are pending; `version` needs `plan`, runs when pending, has no environment, may write contents and pull requests only, and its `changesets/action` has no `publish-script`; `publish` needs `plan`, runs when nothing is pending, is the only job in the `release` environment, may write contents and packages only, and holds the `publish-script`, the verification and the consumer smoke; both jobs check out full history without keeping the token, run `pnpm check` before the action, run on `ubuntu-latest` with the 20-minute timeout. Run `pnpm --filter @mcthaydt/automata-ship test:unit`; the new cases fail on the single-job workflow.
-- [ ] **2. The workflow.** Split `release-packages.yml` accordingly; the cases pass.
-- [ ] **3. Prove the plan's rule.** Run the `plan` shell snippet against this checkout (no changesets pending on a clean tree, pending after adding a file) and record both outputs.
-- [ ] **4. Gates and docs.** `pnpm format`, `pnpm check`, the changeset check (`pnpm changeset status --since=origin/main` exits 0 with no changeset needed); `.changeset/README.md`; the 02 row with the docs sync PR.
+- [x] **1. The shape, red first.** Rewrite the `release-packages.yml` describe in `workflows.test.ts`: `plan` has no environment and outputs whether changesets are pending; `version` needs `plan`, runs when pending, has no environment, may write contents and pull requests only, and its `changesets/action` has no `publish-script`; `publish` needs `plan`, runs when nothing is pending, is the only job in the `release` environment, may write contents and packages only, and holds the `publish-script`, the verification and the consumer smoke; both jobs check out full history without keeping the token, run `pnpm check` before the action, run on `ubuntu-latest` with the 20-minute timeout. Run `pnpm --filter @mcthaydt/automata-ship test:unit`; the new cases fail on the single-job workflow.
+- [x] **2. The workflow.** Split `release-packages.yml` accordingly; the cases pass.
+- [x] **3. Prove the plan's rule.** Run the `plan` shell snippet against this checkout (no changesets pending on a clean tree, pending after adding a file) and record both outputs.
+- [x] **4. Gates and docs.** `pnpm format`, `pnpm check`, the changeset check (`pnpm changeset status --since=origin/main` exits 0 with no changeset needed); `.changeset/README.md`; the 02 row with the docs sync PR.
 
 ## Gates
 
@@ -48,4 +48,8 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-23 | Plan | | |
+| 2026-10-23 | Plan | `9c71ad1` | |
+| 2026-10-23 | 1 | | The `release-packages.yml` describe rewritten (13 cases; the `Step` and `Job` test types gained the fields they read). Red: `pnpm --filter @mcthaydt/automata-ship test:unit` 11 failed, 256 passed; every new case failed on the single-job workflow. |
+| 2026-10-23 | 2 | | Workflow split into `plan`, `version` and `publish`; ship unit tests 267 passed. |
+| 2026-10-23 | 3 | | The plan job's `find` rule run by hand: this checkout (38 changesets pending on `main`) gives `pending=true`; a folder with only `README.md` and `config.json` gives `pending=false`; adding one changeset gives `pending=true`. No Actions run is possible here. |
+| 2026-10-23 | 4 | | `.changeset/README.md` says which job waits. `pnpm format`, `pnpm check` and the changeset check below. 02's row and 03 come with the docs sync PR. |

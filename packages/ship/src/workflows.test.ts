@@ -12,6 +12,7 @@ const root = fileURLToPath(new URL('../../..', import.meta.url))
 const workflowText = (name: string): string => readFileSync(join(root, '.github/workflows', name), 'utf8')
 
 interface Step {
+  readonly id?: string
   readonly uses?: string
   readonly run?: string
   readonly name?: string
@@ -21,6 +22,10 @@ interface Step {
 }
 interface Job {
   readonly 'runs-on'?: string
+  readonly 'timeout-minutes'?: number
+  readonly environment?: string
+  readonly permissions?: Record<string, string>
+  readonly outputs?: Record<string, string>
   readonly if?: string
   readonly needs?: string | string[]
   readonly uses?: string
@@ -547,13 +552,18 @@ describe('repo hygiene in ci.yml and ci:local (QB.1)', () => {
   })
 })
 
-describe('release-packages.yml (M2.4 spec §3.5)', () => {
+describe('release-packages.yml (M2.4 spec §3.5, QB.1b)', () => {
   const release = workflow('release-packages.yml')
-  const job = release.jobs.release
-  const steps = job?.steps ?? []
-  const step = (prefix: string) => steps.find((each) => each.uses?.startsWith(prefix))
-  const changesets = step('changesets/action@')
+  const { plan, version, publish } = release.jobs
+  const stepsOf = (job: Job | undefined) => job?.steps ?? []
+  const stepIn = (job: Job | undefined, prefix: string) =>
+    stepsOf(job).find((each) => each.uses?.startsWith(prefix))
+  const changesetsIn = (job: Job | undefined) => stepIn(job, 'changesets/action@')
   const PUBLISHED = "steps.changesets.outputs.published == 'true'"
+
+  it('has exactly three jobs: plan, version and publish', () => {
+    expect(Object.keys(release.jobs)).toEqual(['plan', 'version', 'publish'])
+  })
 
   it('runs on pushes to main only, one release at a time', () => {
     expect(Object.keys(release.on)).toEqual(['push'])
@@ -562,68 +572,97 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
     expect(parsed.concurrency?.group).toBe('release')
   })
 
-  it('stays off the shared self-hosted runners, since it holds a write token', () => {
-    expect(job?.['runs-on']).toBe('ubuntu-latest')
-    expect((job as { 'timeout-minutes'?: number })['timeout-minutes']).toBe(20)
+  it('stays off the shared self-hosted runners, since the jobs hold write tokens', () => {
+    for (const job of [plan, version, publish]) {
+      expect(job?.['runs-on']).toBe('ubuntu-latest')
+      expect(job?.['timeout-minutes']).toBe(20)
+    }
   })
 
-  it('waits for the Owner: the job runs in the release environment, which requires the Owner as reviewer (QB.1)', () => {
-    expect((job as { environment?: string }).environment).toBe('release')
+  it('asks whether the commit carries changesets, the question changesets/action asks, with no token and no environment', () => {
+    expect(plan?.environment).toBeUndefined()
+    expect(plan?.permissions).toEqual({ contents: 'read' })
+    expect(plan?.outputs).toEqual({ pending: '${{ steps.scan.outputs.pending }}' })
+    const check = stepsOf(plan).find((each) => each.id === 'scan')
+    expect(check?.run).toContain("find .changeset -maxdepth 1 -name '*.md' ! -name README.md")
+    expect(check?.run).toContain('pending=')
   })
 
-  it('may write contents, pull requests and packages, nothing else', () => {
-    expect((job as { permissions?: Record<string, string> }).permissions).toEqual({
-      contents: 'write',
-      'pull-requests': 'write',
-      packages: 'write',
-    })
+  it('opens or updates the Version packages PR when changesets are pending, with no approval and no way to publish', () => {
+    expect(version?.needs).toBe('plan')
+    expect(version?.if).toBe("needs.plan.outputs.pending == 'true'")
+    expect(version?.environment).toBeUndefined()
+    expect(version?.permissions).toEqual({ contents: 'write', 'pull-requests': 'write' })
+    const changesets = changesetsIn(version)
+    expect(changesets?.uses).toBe('changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51')
+    // v2 renamed its inputs and fails on the old names (version, publish, commit, title).
+    expect(Object.keys(changesets?.with ?? {}).sort()).toEqual([
+      'commit-message',
+      'pr-title',
+      'version-script',
+    ])
+    expect(changesets?.with?.['version-script']).toBe('pnpm release:version')
+    // `[skip ci]`: a push to the Version packages branch starts no ci, parity, game-ci or consumer-smoke run;
+    // the release workflow itself checks the commit it releases, so nothing needs the branch's own runs.
+    expect(changesets?.with?.['commit-message']).toBe('chore: version packages [skip ci]')
+    expect(changesets?.with?.['pr-title']).toBe('Version packages')
+    expect(changesets?.env?.GITHUB_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
+    expect(JSON.stringify(version)).not.toContain('NODE_AUTH_TOKEN')
+  })
+
+  it('waits for the Owner only to publish: the publish job alone runs in the release environment (QB.1, QB.1b)', () => {
+    expect(publish?.needs).toBe('plan')
+    expect(publish?.if).toBe("needs.plan.outputs.pending == 'false'")
+    expect(publish?.environment).toBe('release')
+    expect(version?.environment).toBeUndefined()
+    expect(plan?.environment).toBeUndefined()
+  })
+
+  it('lets the publish job write contents and packages, and the version job contents and pull requests, nothing else', () => {
+    expect(publish?.permissions).toEqual({ contents: 'write', packages: 'write' })
+    expect(version?.permissions).toEqual({ contents: 'write', 'pull-requests': 'write' })
+  })
+
+  it('publishes with the workflow token when nothing is pending, and never versions', () => {
+    const changesets = changesetsIn(publish)
+    expect(changesets?.uses).toBe('changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51')
+    expect((changesets as { id?: string }).id).toBe('changesets')
+    expect(Object.keys(changesets?.with ?? {}).sort()).toEqual(['publish-script'])
+    expect(changesets?.with?.['publish-script']).toBe('pnpm release')
+    expect(changesets?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
+    expect(changesets?.env?.GITHUB_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
   })
 
   it('checks out full history without keeping the write token in .git/config, and points npm at GitHub Packages', () => {
-    expect(step('actions/checkout@')?.with?.['fetch-depth']).toBe(0)
-    // changesets/action pushes through the GitHub API with its own token input, so git never needs it.
-    expect(step('actions/checkout@')?.with?.['persist-credentials']).toBe(false)
-    const node = step('actions/setup-node@')
+    for (const job of [plan, version, publish]) {
+      // changesets/action pushes through the GitHub API with its own token input, so git never needs it.
+      expect(stepIn(job, 'actions/checkout@')?.with?.['persist-credentials']).toBe(false)
+    }
+    for (const job of [version, publish])
+      expect(stepIn(job, 'actions/checkout@')?.with?.['fetch-depth']).toBe(0)
+    const node = stepIn(publish, 'actions/setup-node@')
     expect(node?.with?.['registry-url']).toBe('https://npm.pkg.github.com')
     expect(node?.with?.scope).toBe('@mcthaydt')
     expect(node?.with?.['node-version-file']).toBe('.nvmrc')
   })
 
-  it("opens the Version packages PR or publishes, with Ruken's pinned changesets/action and the workflow token", () => {
-    expect(changesets?.uses).toBe('changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51')
-    expect((changesets as { id?: string }).id).toBe('changesets')
-    // v2 renamed its inputs and fails on the old names (version, publish, commit, title).
-    expect(Object.keys(changesets?.with ?? {}).sort()).toEqual([
-      'commit-message',
-      'pr-title',
-      'publish-script',
-      'version-script',
-    ])
-    expect(changesets?.with?.['version-script']).toBe('pnpm release:version')
-    expect(changesets?.with?.['publish-script']).toBe('pnpm release')
-    // `[skip ci]`: a push to the Version packages branch starts no ci, parity, game-ci or consumer-smoke run;
-    // the release job itself checks the commit it releases, so nothing needs the branch's own runs.
-    expect(changesets?.with?.['commit-message']).toBe('chore: version packages [skip ci]')
-    expect(changesets?.with?.['pr-title']).toBe('Version packages')
-    expect(changesets?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
-    expect(changesets?.env?.GITHUB_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
-  })
-
   it('after a publish only: verifies every package is on the registry, then installs them from outside', () => {
-    const after = steps.slice(steps.indexOf(changesets as Step) + 1)
-    const version = after.find((each) => each.run?.includes('released-version.ts'))
+    const steps = stepsOf(publish)
+    const after = steps.slice(steps.indexOf(changesetsIn(publish) as Step) + 1)
+    const released = after.find((each) => each.run?.includes('released-version.ts'))
     const verify = after.find((each) => each.run?.includes('verify-published.ts'))
     const smoke = after.find((each) => each.run?.includes('consumer-smoke/src/run.ts'))
-    for (const each of [version, verify, smoke]) expect(each?.if).toBe(PUBLISHED)
-    expect(version?.env?.PUBLISHED).toBe("${{ steps.changesets.outputs['published-packages'] }}")
+    for (const each of [released, verify, smoke]) expect(each?.if).toBe(PUBLISHED)
+    expect(released?.env?.PUBLISHED).toBe("${{ steps.changesets.outputs['published-packages'] }}")
     expect(verify?.run).toContain('--version "$VERSION"')
     expect(smoke?.run).toContain('--from registry --version "$VERSION"')
     expect(after.indexOf(verify as Step)).toBeLessThan(after.indexOf(smoke as Step))
     for (const each of [verify, smoke]) expect(each?.env?.NODE_AUTH_TOKEN).toBe('${{ secrets.GITHUB_TOKEN }}')
+    expect(JSON.stringify(stepsOf(version))).not.toContain('verify-published')
   })
 
   it('publishes without --provenance (GitHub Packages does not document it; spec §8)', () => {
-    expect(JSON.stringify(steps)).not.toMatch(/provenance/i)
+    expect(JSON.stringify(release.jobs)).not.toMatch(/provenance/i)
     expect(packageJson('.').scripts.release).not.toMatch(/provenance/i)
   })
 
@@ -631,11 +670,18 @@ describe('release-packages.yml (M2.4 spec §3.5)', () => {
     expect(packageJson('.').scripts.release).toBe('pnpm build && changeset publish')
   })
 
-  it('runs the unit gate on the commit it releases, since nothing else checks the version commit first', () => {
-    const check = steps.findIndex((each) => each.run === 'pnpm check')
-    expect(check).toBeGreaterThan(-1)
-    expect(check).toBeLessThan(steps.indexOf(changesets as Step))
-  })
+  it.each([
+    ['version', version],
+    ['publish', publish],
+  ] as const)(
+    'runs the unit gate on the commit it acts on in the %s job, before the action',
+    (_name, job) => {
+      const steps = stepsOf(job)
+      const check = steps.findIndex((each) => each.run === 'pnpm check')
+      expect(check).toBeGreaterThan(-1)
+      expect(check).toBeLessThan(steps.indexOf(changesetsIn(job) as Step))
+    },
+  )
 })
 
 describe('consumer smoke (M2.4 spec §3.6, §4)', () => {
