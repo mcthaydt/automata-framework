@@ -120,8 +120,8 @@ export function checkFieldDef(def: FieldDef): readonly FieldProblem<FieldDefCode
 }
 
 /**
- * Problems with an entity definition: its id and color, then each field's problems tagged with the field id,
- * with a repeated field id reported at its later occurrence.
+ * Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and
+ * index, with a repeated field id reported at its later occurrence.
  */
 export function checkEntityDef(def: EntityDef): readonly EntityDefProblem[] {
   const problems: EntityDefProblem[] = []
@@ -131,16 +131,18 @@ export function checkEntityDef(def: EntityDef): readonly EntityDefProblem[] {
     problems.push({ code: 'badEntityColor', message: `"${def.color}" is neither #rrggbb nor a token name` })
   }
   const seen = new Set<string>()
-  for (const field of def.fields) {
+  def.fields.forEach((field, fieldIndex) => {
     if (seen.has(field.id)) {
       problems.push({
         code: 'duplicateFieldId',
         message: `field id "${field.id}" is used twice`,
         fieldId: field.id,
+        fieldIndex,
       })
     }
     seen.add(field.id)
-    for (const fieldProblem of checkFieldDef(field)) problems.push({ ...fieldProblem, fieldId: field.id })
-  }
+    for (const fieldProblem of checkFieldDef(field))
+      problems.push({ ...fieldProblem, fieldId: field.id, fieldIndex })
+  })
   return problems
 }

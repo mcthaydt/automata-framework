@@ -155,11 +155,13 @@ describe('checkEntityDef', () => {
       ...npc,
       fields: [{ id: 'hp', type: 'int', min: 9, max: 0 }, ...npc.fields],
     })
-    expect(problems).toEqual([expect.objectContaining({ code: 'badBounds', fieldId: 'hp' })])
+    expect(problems).toEqual([expect.objectContaining({ code: 'badBounds', fieldId: 'hp', fieldIndex: 0 })])
   })
 
   test('a repeated field id is reported at its later occurrence', () => {
     const problems = checkEntityDef({ ...npc, fields: [...npc.fields, { id: 'name', type: 'text' }] })
-    expect(problems).toEqual([expect.objectContaining({ code: 'duplicateFieldId', fieldId: 'name' })])
+    expect(problems).toEqual([
+      expect.objectContaining({ code: 'duplicateFieldId', fieldId: 'name', fieldIndex: 2 }),
+    ])
   })
 })

@@ -614,6 +614,9 @@ importers:
       '@mcthaydt/automata-ui':
         specifier: workspace:*
         version: link:../ui
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
     devDependencies:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
