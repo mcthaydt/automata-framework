@@ -153,6 +153,8 @@ export {
   saveService,
 } from './save/save.manager.js'
 export {
+  type AutosavePolicy,
+  type AutosaveTrigger,
   defineSave,
   type SaveDef,
   type SaveEnvelope,
@@ -168,6 +170,7 @@ export {
   SaveUnreadable,
   type SaveUnreadableFields,
 } from './save/save-error.js'
+export { makeSaves, Saves, saveOf } from './save/saves.manager.js'
 export {
   AUDIO_SETTINGS_DEFAULT,
   type AudioSettings,
@@ -179,6 +182,7 @@ export {
   type HapticsSettings,
   hapticsSettingsSchema,
 } from './settings/core-settings.js'
+export { type DeviceStorage, liveDeviceStorage } from './settings/device-storage.js'
 export {
   DEFAULT_QUALITY,
   type DisplaySettings,
