@@ -60,6 +60,9 @@ function essentials(show: PrimitiveShow, keyboard: boolean): HTMLElement[] {
     case 'leaderboard':
     case 'leaderboard-offline':
       return [byTestId(`${show}-back`)]
+    case 'save-status':
+    case 'save-status-long':
+      return []
   }
 }
 
@@ -109,6 +112,31 @@ function toastProblems(show: PrimitiveShow, conditions: Conditions): string[] {
   return problems
 }
 
+/**
+ * The save status is read, not pressed, so it names no control; it must be whole inside the screen, wrap in its own
+ * width instead of running past it, and keep clear of the keyboard and Ruken's strip.
+ */
+function saveStatusProblems(show: PrimitiveShow, conditions: Conditions): string[] {
+  if (show !== 'save-status' && show !== 'save-status-long') return []
+  const line = byTestId(show)
+  const box = line.getBoundingClientRect()
+  const problems: string[] = []
+  if (box.left < -0.5 || box.right > innerWidth + 0.5) problems.push('the status runs past the screen')
+  if (line.scrollWidth > line.clientWidth + 0.5) problems.push('the status is wider than its own box')
+  const parent = line.parentElement
+  if (parent !== null && box.right > parent.getBoundingClientRect().right + 0.5)
+    problems.push('the status runs past its parent')
+  for (const area of conditions.reserved) {
+    const overlaps =
+      box.left < area.x + area.width &&
+      box.right > area.x &&
+      box.top < area.y + area.height &&
+      box.bottom > area.y
+    if (overlaps) problems.push('the status is under a reserved area')
+  }
+  return problems
+}
+
 describe('M4.6 primitives layout contract', () => {
   for (const show of PRIMITIVE_SHOWS) {
     test.each(REFERENCE_SIZES)(`${show} at $name ($width x $height)`, async (size) => {
@@ -125,6 +153,7 @@ describe('M4.6 primitives layout contract', () => {
           ...gridProblems(show, conditions),
           ...sliderProblems(show, conditions),
           ...toastProblems(show, conditions),
+          ...saveStatusProblems(show, conditions),
         ]
         for (const problem of found) problems.push(`${variant.name}: ${problem}`)
         await fixture.unmount()
