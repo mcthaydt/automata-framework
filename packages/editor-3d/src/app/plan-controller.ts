@@ -4,7 +4,8 @@
 // says. The level stays in the editor's history, the selection in its selection and the camera in its view store, so the
 // controller keeps only what a pointer is in the middle of; undo, redo and a change of layers need nothing from the view.
 import type { PointerKind, Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
-import type { LevelEditor } from '../model/level-editor'
+import { moveCorner } from '../model/corner-edits'
+import type { EditSession, LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'
 import { GeometryError, type GeometryLayer } from '../profile/level-profile'
 import {
@@ -15,7 +16,7 @@ import {
   pickCorner,
   pickPlan,
 } from '../view/plan/plan-pick'
-import type { SnapResult } from '../view/plan/plan-snap'
+import { type SnapResult, snapPlan } from '../view/plan/plan-snap'
 import { planViewport } from '../view/plan/plan-viewport'
 import { type SelectionOf, selectionOf } from '../view/selection-of'
 
@@ -53,6 +54,11 @@ export interface PlanController {
   leave(): void
   /** Selects what the pointer touches: a wall, else a sector; with `additive` it adds or takes off, and nothing leaves it. */
   tap(at: PlanPointer): void
+  /** A press that has moved past the slop. What it grabs is what is under `press`; `at` is where the drag has got to. */
+  dragStart(press: PlanPointer, at: PlanPointer): void
+  drag(at: PlanPointer): void
+  /** `cancelled` is a cancelled pointer: nothing is kept. */
+  dragEnd(at: PlanPointer, cancelled: boolean): void
   /** Stops following the editor. */
   dispose(): void
 }
@@ -74,10 +80,20 @@ interface Geometry<D> {
   readonly select: SelectionOf
 }
 
+/** What a drag is in the middle of. The session shows its runs live and is one undo step when it commits. */
+interface CornerDrag<D> {
+  readonly session: EditSession<D>
+  /** The level as the drag found it: the snap targets, and what the drag is compared with when it ends. */
+  readonly base: Geometry<D>
+  readonly sector: string
+  readonly corner: number
+}
+
 export function createPlanController<D>(editor: LevelEditor<D>, size: Size): PlanController {
   const listeners = new Set<() => void>()
   let view: PlanView = IDLE
   let pointer: PlanPointer | undefined
+  let gesture: CornerDrag<D> | undefined
 
   /**
    * The geometry and the selection ids of the level last seen, by identity: a hover costs picks and not a rebuild. A level
@@ -120,8 +136,21 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
     return { radius: PICK_RADIUS[at.kind], hidden, locked }
   }
 
+  /** The corner handles that can be grabbed: those of the selected sectors, which `pickCorner` reads from `corners`. */
+  const handlesOf = (select: SelectionOf): SelectionOf => {
+    const selected = selectedSectors()
+    return { ...select, corners: (id) => (selected.has(id) ? select.corners(id) : []) }
+  }
+
+  const endDrag = (): void => {
+    gesture = undefined
+    setView({ ...view, gesture: 'idle', snap: undefined, refusal: undefined })
+  }
+
   /** What the pointer is over now, from the level, the selection, the layers and the camera as they are. */
   const refresh = (): void => {
+    // An undo has closed the drag's session: nothing of it is left to follow.
+    if (gesture?.session.open === false) endDrag()
     if (pointer === undefined) {
       setView({ ...view, hover: undefined, corner: undefined })
       return
@@ -129,14 +158,36 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
     const { layers, select } = geometry()
     const viewport = currentViewport()
     const options = pickOptions(pointer)
-    // Only the corners of a selected sector have handles: `pickCorner` reads them from `corners`.
-    const selected = selectedSectors()
-    const handles: SelectionOf = { ...select, corners: (id) => (selected.has(id) ? select.corners(id) : []) }
     setView({
       ...view,
       hover: pickPlan(layers, select, viewport, pointer, options),
-      corner: pickCorner(layers, handles, viewport, pointer, options),
+      corner: pickCorner(layers, handlesOf(select), viewport, pointer, options),
     })
+  }
+
+  /** Runs the corner at the snapped point of the pointer. A refusal keeps what the last accepted run made. */
+  const moveGrabbedCorner = (grabbed: CornerDrag<D>, at: PlanPointer): void => {
+    const snap = snapPlan(grabbed.base.layers, grabbed.base.select, currentViewport(), at, {
+      ...pickOptions(at),
+      grid: editor.view.state.grid,
+      shiftKey: at.shift,
+      altKey: at.alt,
+    })
+    const result = grabbed.session.run(
+      moveCorner({ sector: grabbed.sector, corner: grabbed.corner, x: snap.x, z: snap.z }),
+    )
+    setView({ ...view, snap, refusal: result.ok ? undefined : result.reason })
+  }
+
+  /**
+   * Ends the drag: its step is kept unless it was cancelled, or ended with the level as it began. The drag is over before
+   * the history hears of the commit or the cancel, so what that tells `refresh` is only about the level.
+   */
+  const finish = (grabbed: CornerDrag<D>, keep: boolean): void => {
+    endDrag()
+    // A session that is already closed (an undo ended it) ignores both.
+    if (keep && !same(editor.level, grabbed.base.level)) grabbed.session.commit()
+    else grabbed.session.cancel()
   }
 
   const stops = [
@@ -173,6 +224,38 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
       else editor.selection.set([hit.selection])
       // The handles and the hover of the new selection are under the pointer already.
       refresh()
+    },
+    dragStart(press, at) {
+      if (gesture !== undefined) finish(gesture, false)
+      const { layers, select } = geometry()
+      const handle = pickCorner(layers, handlesOf(select), currentViewport(), press, pickOptions(press))
+      if (handle !== undefined) {
+        const session = editor.begin(`Move corner ${handle.corner} of ${handle.sector}`)
+        if (!session.open) return
+        gesture = {
+          session,
+          base: geometry(),
+          sector: handle.sector,
+          corner: handle.corner,
+        }
+        setView({ ...view, gesture: 'corner', snap: undefined, refusal: undefined })
+      }
+      this.drag(at)
+    },
+    drag(at) {
+      pointer = at
+      if (gesture?.session.open) moveGrabbedCorner(gesture, at)
+      else refresh()
+    },
+    dragEnd(at, cancelled) {
+      pointer = at
+      if (gesture === undefined) {
+        refresh()
+        return
+      }
+      if (!cancelled && gesture.session.open) moveGrabbedCorner(gesture, at)
+      // The run may have ended the drag itself (an undo); a drag that is gone has nothing to keep.
+      if (gesture !== undefined) finish(gesture, !cancelled)
     },
     dispose() {
       for (const stop of stops) stop()

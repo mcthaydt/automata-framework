@@ -335,3 +335,248 @@ describe('tap', () => {
     expect(controller.view.corner).toMatchObject({ sector: 'hall', corner: 0 })
   })
 })
+
+/** A sector's outline as `[x, z]` pairs, from the live level. */
+const outline = (editor: ReturnType<typeof setup>['editor'], id: string) =>
+  afSectorProfile.sectors
+    .list(editor.level)
+    .find((sector) => sector.id === id)
+    ?.corners.map(([x, z]) => [x, z])
+
+/** The hall selected, and a drag begun on its corner 2 at (8, 6), which the dock's corner 3 shares. */
+function grabbed() {
+  const s = setup()
+  s.editor.selection.set(['sector:hall'])
+  s.controller.dragStart(s.at(8, 6), s.at(8, 6))
+  return s
+}
+
+describe('a corner drag', () => {
+  it('moves the corner, and the corner the portal joins to it, as one undo step named for the edit', () => {
+    const { editor, controller, at } = grabbed()
+    expect(controller.view.gesture).toBe('corner')
+    controller.drag(at(9.2, 5.2))
+    // Live: the level shows the corner at the grid point before the drag is over, and there is no step yet to keep.
+    expect(outline(editor, 'hall')).toEqual([
+      [0, 0],
+      [8, 0],
+      [9, 5],
+      [0, 6],
+    ])
+    expect(outline(editor, 'dock')?.[3]).toEqual([9, 5])
+    controller.dragEnd(at(9.2, 5.2), false)
+    expect(controller.view.gesture).toBe('idle')
+    expect(editor.history.undoLabel).toBe('Move corner 2 of hall')
+    editor.history.undo()
+    expect(outline(editor, 'hall')?.[2]).toEqual([8, 6])
+    expect(outline(editor, 'dock')?.[3]).toEqual([8, 6])
+    // One step: nothing is left to undo.
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('grabs what the press was on, not what the first move is over', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    controller.dragStart(at(8, 6), at(8.5, 5.2))
+    expect(controller.view.gesture).toBe('corner')
+    controller.dragEnd(at(8.5, 5.2), false)
+    expect(outline(editor, 'hall')?.[2]).toEqual([8.5, 5])
+  })
+
+  it('is not a corner drag when no selected sector has a handle under the press', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(8, 6), at(9, 5))
+    expect(controller.view.gesture).not.toBe('corner')
+    controller.dragEnd(at(9, 5), false)
+    expect(outline(editor, 'hall')?.[2]).toEqual([8, 6])
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('snaps to the grid, and says so', () => {
+    const { controller, at } = grabbed()
+    controller.drag(at(9.2, 5.2))
+    expect(controller.view.snap).toMatchObject({ x: 9, z: 5, kind: 'grid' })
+  })
+
+  it('snaps to a wall line of the level as the drag found it, and names the wall', () => {
+    const { editor, controller, at } = grabbed()
+    controller.drag(at(10, 5.95))
+    expect(controller.view.snap).toMatchObject({ x: 10, z: 6, kind: 'wall', target: 'wall:dock/2' })
+    controller.dragEnd(at(10, 5.95), false)
+    expect(outline(editor, 'hall')?.[2]).toEqual([10, 6])
+  })
+
+  it('snaps to a vertex, and names the wall that starts there', () => {
+    const { controller, at } = grabbed()
+    controller.drag(at(13.9, 0.1))
+    expect(controller.view.snap).toMatchObject({ x: 14, z: 0, kind: 'vertex', target: 'wall:dock/1' })
+  })
+
+  it('does not snap to itself: the targets are the level at the press, so a drag back to the start snaps to the start', () => {
+    const { editor, controller, at } = grabbed()
+    controller.drag(at(9.2, 5.2))
+    // The corner is at (9, 5) now; the pointer comes back near where it began.
+    controller.drag(at(8.05, 5.95))
+    expect(controller.view.snap).toMatchObject({ x: 8, z: 6, kind: 'vertex' })
+    expect(outline(editor, 'hall')?.[2]).toEqual([8, 6])
+  })
+
+  it('leaves no step when the corner ends where it began', () => {
+    const { editor, controller, at } = grabbed()
+    controller.drag(at(9.2, 5.2))
+    controller.drag(at(8.05, 5.95))
+    controller.dragEnd(at(8.05, 5.95), false)
+    expect(editor.history.canUndo).toBe(false)
+    expect(editor.level).toBe(depot)
+  })
+
+  it("snaps to the view's grid, at its step, or to the data step when the grid is off", () => {
+    const { editor, controller, at } = grabbed()
+    editor.view.set({ grid: { step: 1, snap: true } })
+    controller.drag(at(9.4, 5.2))
+    expect(controller.view.snap).toMatchObject({ x: 9, z: 5, kind: 'grid' })
+    editor.view.set({ grid: { step: 1, snap: false } })
+    controller.drag(at(9.43, 5.21))
+    expect(controller.view.snap).toMatchObject({ x: 9.45, z: 5.2, kind: 'data' })
+  })
+
+  it('takes the pointer as it is with Alt, and the fine step with Shift', () => {
+    const { controller, at } = grabbed()
+    controller.drag({ ...at(9.23, 5.2), alt: true })
+    expect(controller.view.snap).toMatchObject({ x: 9.23, z: 5.2, kind: 'free' })
+    controller.drag({ ...at(9.237, 5.2), shift: true })
+    expect(controller.view.snap).toMatchObject({ x: 9.24, z: 5.2, kind: 'data' })
+  })
+
+  it('keeps the last accepted position and shows the sentence when the edit refuses a move', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    controller.dragStart(at(0, 0), at(0, 0))
+    controller.drag(at(-1, 0))
+    expect(outline(editor, 'hall')?.[0]).toEqual([-1, 0])
+    expect(controller.view.refusal).toBeUndefined()
+    // Across the hall's own east wall the outline would cross itself.
+    controller.drag(at(9, 3))
+    expect(controller.view.refusal).toEqual(expect.any(String))
+    expect(controller.view.refusal).not.toBe('')
+    expect(outline(editor, 'hall')?.[0]).toEqual([-1, 0])
+    // The next accepted run clears it.
+    controller.drag(at(-1.5, 0))
+    expect(controller.view.refusal).toBeUndefined()
+    expect(outline(editor, 'hall')?.[0]).toEqual([-1.5, 0])
+    controller.dragEnd(at(-1.5, 0), false)
+    expect(outline(editor, 'hall')?.[0]).toEqual([-1.5, 0])
+  })
+
+  it('records no step when every move was refused, and drops the sentence with the drag', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    controller.dragStart(at(0, 0), at(9, 3))
+    expect(controller.view.refusal).toEqual(expect.any(String))
+    controller.dragEnd(at(9, 3), false)
+    expect(controller.view.refusal).toBeUndefined()
+    expect(controller.view.snap).toBeUndefined()
+    expect(editor.history.canUndo).toBe(false)
+    expect(editor.level).toBe(depot)
+  })
+
+  it('leaves the level as it was when the drag is cancelled', () => {
+    const { editor, controller, at } = grabbed()
+    controller.drag(at(9.2, 5.2))
+    controller.dragEnd(at(9.2, 5.2), true)
+    expect(controller.view.gesture).toBe('idle')
+    expect(editor.level).toBe(depot)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('drops the sentence of a refused move when an undo ends the drag', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    controller.dragStart(at(0, 0), at(-1, 0))
+    controller.drag(at(9, 3))
+    expect(controller.view.refusal).toEqual(expect.any(String))
+    editor.history.undo()
+    expect(controller.view.gesture).toBe('idle')
+    expect(controller.view.refusal).toBeUndefined()
+  })
+
+  it('is never told a drag began when another edit session is open', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    const seen: string[] = []
+    controller.subscribe(() => seen.push(controller.view.gesture))
+    const other = editor.begin('another')
+    controller.dragStart(at(8, 6), at(9, 5))
+    other.cancel()
+    expect(seen).not.toContain('corner')
+  })
+
+  it('ends when an undo cancels it, and the next move does not crash or write', () => {
+    const { editor, controller, at } = grabbed()
+    controller.drag(at(9.2, 5.2))
+    expect(controller.view.snap).toBeDefined()
+    editor.history.undo()
+    expect(controller.view.gesture).toBe('idle')
+    expect(controller.view.snap).toBeUndefined()
+    expect(controller.view.refusal).toBeUndefined()
+    controller.drag(at(9.7, 5.2))
+    controller.dragEnd(at(9.7, 5.2), false)
+    expect(editor.level).toBe(depot)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('cancels a drag that was never ended when the next one begins', () => {
+    const { editor, controller, at } = grabbed()
+    controller.drag(at(9.2, 5.2))
+    controller.dragStart(at(0, 6), at(0, 6))
+    expect(controller.view.gesture).toBe('corner')
+    expect(editor.level).toBe(depot)
+    controller.drag(at(-1, 6))
+    controller.dragEnd(at(-1, 6), false)
+    expect(editor.history.undoLabel).toBe('Move corner 3 of hall')
+    expect(outline(editor, 'hall')?.[2]).toEqual([8, 6])
+    expect(outline(editor, 'hall')?.[3]).toEqual([-1, 6])
+    editor.history.undo()
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('follows the pointer with the hover when no corner is grabbed', () => {
+    const { controller, at } = setup()
+    controller.dragStart(at(8, 6), at(9, 5))
+    controller.drag(at(4, 3))
+    expect(controller.view.hover).toMatchObject({ selection: 'sector:hall' })
+    controller.dragEnd(at(-3, 3), false)
+    expect(controller.view.hover).toBeUndefined()
+  })
+
+  it('starts clean for the next drag', () => {
+    const { editor, controller, at } = grabbed()
+    controller.drag(at(9.2, 5.2))
+    controller.dragEnd(at(9.2, 5.2), false)
+    controller.dragStart(at(9, 5), at(9, 5))
+    expect(controller.view.gesture).toBe('corner')
+    controller.drag(at(9.5, 4))
+    controller.dragEnd(at(9.5, 4), false)
+    expect(outline(editor, 'hall')?.[2]).toEqual([9.5, 4])
+    editor.history.undo()
+    expect(outline(editor, 'hall')?.[2]).toEqual([9, 5])
+    editor.history.undo()
+    expect(outline(editor, 'hall')?.[2]).toEqual([8, 6])
+  })
+
+  it('applies the final position when the drag ends there', () => {
+    const { editor, controller, at } = grabbed()
+    controller.drag(at(9.2, 5.2))
+    controller.dragEnd(at(10.2, 5.2), false)
+    expect(outline(editor, 'hall')?.[2]).toEqual([10, 5])
+  })
+
+  it('does not start while another edit session is open', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    const other = editor.begin('another')
+    controller.dragStart(at(8, 6), at(9, 5))
+    expect(controller.view.gesture).not.toBe('corner')
+    other.cancel()
+  })
+})
