@@ -2,7 +2,7 @@
 
 - **Spec:** [EX spec](../specs/2026-10-16-examples-one-file-design.md) §5 (the runner serves every example under Ruken's headers) and §7 (every example boots under the fake host with no console error or CSP violation); AGENTS.md "Honor host authority" (Ruken's CSP has no `eval` and its `connect-src` is `'self'`).
 - **Task:** `Follow-up (found 2026-10-23) — Small example assets are inlined as data: URLs, which Ruken's CSP blocks` (02). Lane examples.
-- **Status:** drafted and implemented 2026-10-23, locally checked; draft PR open, CI pending.
+- **Status:** drafted and implemented 2026-10-23, locally checked; draft PR #142 open, its checks job green; the shared runner's `examples` projects and parity pending.
 - **Progress:** 4 of 4 steps.
 
 ## What is wrong
@@ -50,3 +50,4 @@ The same trap waits for any game whose small asset goes through `new URL(..., im
 | 2026-10-23 | 2 | | Red, first attempt, Chromium headless shell (what CI uses) against this checkout's unfixed build and fake host, the repo's `examples` and `examples-compact` projects through a temporary config: 28 passed, 2 failed (`textures-sprite` at both sizes) with `Refused to connect to 'data:image/png;base64,...'`, `[Loader.load] Failed to load`, `CSP violation: connect-src blocked data`. A first run with the full Chromium binary failed all 30 on a favicon 404 the headless shell never requests; it was a runner difference, not a product failure. |
 | 2026-10-23 | 3 | | `assetsInlineLimit: 0` in the plugin's `config()`. `vite-plugin.test.ts` 9 of 9; the rebuilt examples emit `wick-run-DlBT5u2n.png` as a file; the same smoke run passes 30 of 30. Before and after screenshots of `textures-sprite`: black but for the Pause button, then Wick running across the room. All 14 examples captured at Pixel 7 and 780 × 270 with no console error. (The one remaining `data:image/png` in the build is Pixi's own 1 × 1 white texture, loaded as an image, which `img-src` allows.) |
 | 2026-10-23 | 4 | | `pnpm format` (no fixes); `TURBO_FORCE=true pnpm check` 32 of 32 tasks, exit 0; `changeset status --since=origin/main` exit 0 (no published package changes). 02 gained two follow-up rows: this fix, and the same default for games (`create-game`, Emberwick, the placeholder, the content plugin). Not run here: the shared runner's `examples` projects and parity. |
+| 2026-10-23 | Merge | | `origin/main` merged in (no conflicts); it added `core/core-host-lifecycle.ts` (#110). The same smoke run, headless shell through a temporary config: 32 of 32 passed (15 examples plus the index, at Pixel 7 and 780 × 270), so the new example boots and plays with no console or CSP error. |
