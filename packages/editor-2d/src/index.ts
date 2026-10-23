@@ -70,6 +70,14 @@ export {
   type ViewDef,
 } from './profiles/profile'
 export {
+  type AutoTiles,
+  applyOverrides,
+  autoTiles,
+  patchAutoTiles,
+  windowAround,
+} from './tiles/autotile/auto-tiles'
+export { type AutoTile, type CompiledRules, compileRules, evaluateCell } from './tiles/autotile/match'
+export {
   type PatternCell,
   patternCellSchema,
   type Rule,
@@ -77,3 +85,9 @@ export {
   ruleGroupSchema,
   ruleSchema,
 } from './tiles/autotile/rule.schema'
+export { type RuleContext, type RuleIssue, ruleIssues } from './tiles/autotile/rule-issues'
+export { floodFill } from './tiles/flood-fill'
+export { brushCells, lineCells, type Point } from './tiles/footprint'
+export { paintCells, paintRandom, paintRect } from './tiles/paint'
+export { copyStamp, flipStamp, pasteStamp, type Stamp } from './tiles/stamp'
+export { flipCell, pickTile } from './tiles/tile-cell'
