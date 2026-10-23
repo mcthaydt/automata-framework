@@ -1,4 +1,6 @@
-// Parts for the 2D editor mockups: the Rooftops data, components and illustrative art, built from the scene kit `S`.
+// Parts for the 2D editor mockups: components shared by every screen, the general editor's art and sample data
+// (Mossgate, a platformer; Hollowmere, a top-down RPG), and the FloorFifty profile's Rooftops data and art,
+// built from the scene kit `S`.
 //
 // `parts` is self-contained on purpose (no imports, no outer variables): build.mjs stringifies it so the same
 // source runs inside `use_figma`. The art is illustrative: shapes stand in for the production plates, and the
@@ -385,7 +387,7 @@ export function parts(S) {
       ib('undo'),
       ib('redo', { disabled: o.noRedo !== false }),
       checksPill(o.checks || '2 info', o.tone || 'text/dim'),
-      btn('Preview', { icon: 'play' }),
+      o.preview === false ? null : btn('Preview', { icon: 'play' }),
       btn('Export', { kind: 'primary', h: 48, icon: 'download' }),
     )
 
@@ -836,6 +838,740 @@ export function parts(S) {
     )
   }
 
+  // ══ The general editor: data, shell pieces and illustrative art for the Level, World, Tilesets and Entities screens ══
+  // Two reference projects, both illustrative: Mossgate (a platformer) and Hollowmere (a top-down RPG). The same
+  // panel, toolbar, palette and inspector build both, which is the point of the screens that use these parts.
+  const G = {
+    projects: [
+      {
+        id: 'mossgate',
+        name: 'Mossgate',
+        kind: 'Platformer',
+        file: 'mossgate.af2d.json',
+        levels: ['Old Gate', 'Moss Steps', 'Waterwheel', 'Cistern', 'Bell Tower'],
+        stats: '5 levels · 4 layers · 6 entities',
+        state: 'ok',
+        when: '2 min ago',
+      },
+      {
+        id: 'hollowmere',
+        name: 'Hollowmere',
+        kind: 'Top-down RPG',
+        file: 'hollowmere.af2d.json',
+        levels: ['Village', 'Inn', 'Cellar', 'Forest path', 'Shrine'],
+        stats: '5 maps · 5 layers · 8 entities',
+        state: 'warn',
+        when: 'yesterday',
+      },
+      {
+        id: 'tile-sketch',
+        name: 'Tile sketch',
+        kind: 'Blank',
+        file: 'tile-sketch.af2d.json',
+        levels: ['Room'],
+        stats: '1 level · 2 layers · 0 entities',
+        state: 'ok',
+        when: '3 days ago',
+      },
+      {
+        id: 'rooftops',
+        name: 'Rooftops',
+        kind: 'FloorFifty stage',
+        file: 'rooftops.toml',
+        levels: [],
+        stats: '12 layers · 6 set pieces · seed 35229',
+        state: 'ok',
+        when: '4 days ago',
+      },
+    ],
+  }
+  const NAV = [
+    ['layers', 'Level'],
+    ['world', 'World'],
+    ['tile', 'Tilesets'],
+    ['box', 'Entities'],
+    ['check', 'Checks'],
+  ]
+  const TOOLS = [
+    ['cursor', 'Select'],
+    ['brush', 'Brush'],
+    ['rect', 'Rectangle'],
+    ['bucket', 'Fill'],
+    ['eraser', 'Eraser'],
+    ['pick', 'Picker'],
+    ['stamp', 'Stamp'],
+    ['dice', 'Random'],
+  ]
+  S.defineIcons({
+    chat: '<path d="M4 5h16v11H9l-5 4z"/>',
+    route:
+      '<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>',
+    spike: '<path d="M3 20l3-10 3 10zM9 20l3-10 3 10zM15 20l3-10 3 10z"/>',
+    heart: '<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.5-7 10-7 10z"/>',
+    coin: '<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3"/>',
+    chest: '<rect x="4" y="9" width="16" height="10" rx="1"/><path d="M4 9a8 5 0 0 1 16 0M12 13v2"/>',
+    person: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/>',
+    sign: '<path d="M4 5h16v8H4zM12 13v7"/>',
+    text: '<path d="M5 6h14M12 6v13M9 19h6"/>',
+    hash: '<path d="M9 4l-2 16M17 4l-2 16M4 9h16M3 15h16"/>',
+    angle: '<path d="M4 19h16M4 19L16 7M9 19a5 5 0 0 0-2.5-4.3"/>',
+    wave: '<path d="M3 9c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/>',
+    bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
+  })
+
+  // ── Shell pieces shared by the general screens ──
+  const toolbar = (w, active, o = {}) =>
+    region(
+      'toolbar',
+      0,
+      0,
+      w,
+      52,
+      { lay: 'row', ay: 'center', pad: [0, 8], gap: 2, fill: 'bg/surface' },
+      TOOLS.map(([ic], i) => ib(ic, { on: i === active })),
+      F({ name: 'divider', w: 1, h: 24, fill: 'border/default' }),
+      R(
+        {
+          name: 'brush size',
+          h: 36,
+          pad: [0, 12],
+          gap: 8,
+          r: 18,
+          fill: 'bg/field',
+          stroke: 'border/default',
+        },
+        T('Size', { style: 'Label/12', color: 'text/dim' }),
+        T(o.size || '2', { style: 'Mono/12' }),
+      ),
+      spacer(),
+      o.right,
+    )
+  const layerRowG = (icon, name, sub, color, o = {}) =>
+    R(
+      {
+        name: `layer/${name}`,
+        w: 'fill',
+        h: 48,
+        pad: [0, 8],
+        gap: 8,
+        r: 'radius/md',
+        fill: o.sel ? alpha('accent/default', 0.12) : null,
+        stroke: o.sel ? alpha('accent/default', 0.6) : null,
+        op: o.hidden ? 0.5 : undefined,
+      },
+      I(o.hidden ? 'eye-off' : 'eye', { size: 16, color: 'text/dim' }),
+      R({ w: 28, h: 28, ax: 'center', r: 6, fill: alpha(color, 0.2) }, I(icon, { size: 16, color })),
+      C(
+        { w: 'fill', gap: 0 },
+        T(name, { style: 'Body/13 Medium' }),
+        T(sub, { style: 'Mono/11', color: 'text/dim', w: 'fill', trunc: true }),
+      ),
+      I('lock', { size: 14, color: o.locked ? 'accent/default' : 'text/faint' }),
+    )
+  const valueRow = (v, o = {}) =>
+    R(
+      {
+        name: `value/${v.id}`,
+        w: 'fill',
+        h: 44,
+        pad: [0, 8],
+        gap: 10,
+        r: 'radius/md',
+        fill: o.sel ? alpha('accent/default', 0.12) : null,
+        stroke: o.sel ? alpha('accent/default', 0.6) : null,
+      },
+      F({ name: 'swatch', w: 24, h: 24, r: 6, fill: alpha(v.color, 0.5), stroke: v.color }),
+      C(
+        { w: 'fill', gap: 0 },
+        T(v.id, { style: 'Body/13 Medium' }),
+        T(v.sub, { style: 'Mono/11', color: 'text/dim', w: 'fill', trunc: true }),
+      ),
+      T(String(v.value), { style: 'Mono/12', color: 'text/dim' }),
+    )
+  const defChip = (d, o = {}) =>
+    R(
+      {
+        name: `def/${d.id}`,
+        w: 'fill',
+        h: 44,
+        pad: [0, 8],
+        gap: 8,
+        r: 'radius/md',
+        fill: o.sel ? alpha('accent/default', 0.12) : 'bg/field',
+        stroke: o.sel ? alpha('accent/default', 0.6) : 'border/default',
+      },
+      R(
+        { w: 26, h: 26, ax: 'center', r: 7, fill: alpha(d.color, 0.22) },
+        I(d.icon, { size: 15, color: d.color }),
+      ),
+      T(d.id, {
+        style: 'Label/12',
+        color: o.sel ? 'accent/default' : 'text/primary',
+        w: 'fill',
+        trunc: true,
+      }),
+    )
+  const pairs = (list, f) => {
+    const out = []
+    for (let i = 0; i < list.length; i += 2)
+      out.push(R({ w: 'fill', gap: 6 }, f(list[i]), list[i + 1] ? f(list[i + 1]) : F({ w: 'fill', h: 44 })))
+    return out
+  }
+  const fieldRow = (name, node, o = {}) =>
+    R(
+      { name: `field/${name}`, w: 'fill', h: o.h || 44, gap: 8, ay: o.top ? 'start' : 'center' },
+      T(name, { style: 'Label/12', color: o.bad ? 'state/bad' : 'text/dim', w: 84 }),
+      node,
+    )
+  const colorBox = (hex) =>
+    R(
+      { w: 'fill', h: 44, pad: [0, 12], gap: 10, r: 'radius/md', fill: 'bg/field', stroke: 'border/default' },
+      F({ w: 20, h: 20, r: 5, fill: hex }),
+      T(hex, { style: 'Mono/12' }),
+    )
+  const textBox = (text, lines, o = {}) =>
+    C(
+      {
+        w: 'fill',
+        h: 14 + lines * 18,
+        pad: [8, 12],
+        r: 'radius/md',
+        fill: 'bg/field',
+        stroke: o.bad ? 'state/bad' : 'border/default',
+      },
+      T(text, { style: 'Body/13', w: 'fill', lh: 18 }),
+    )
+  // an ordered list of points (a patrol path or a route): numbered rows with a grip
+  const pointList = (pts, o = {}) =>
+    C(
+      { name: 'points', w: 'fill', gap: 4 },
+      pts.map((p, i) =>
+        R(
+          {
+            name: `point ${i + 1}`,
+            w: 'fill',
+            h: 36,
+            pad: [0, 8],
+            gap: 8,
+            r: 'radius/md',
+            fill: 'bg/field',
+            stroke: o.sel === i ? alpha('accent/default', 0.7) : 'border/default',
+          },
+          R(
+            { w: 22, h: 22, ax: 'center', r: 11, fill: alpha('accent/default', 0.2) },
+            T(String(i + 1), { style: 'Mono/11', color: 'accent/default' }),
+          ),
+          T(`${p[0]}, ${p[1]}`, { style: 'Mono/12', w: 'fill' }),
+          I('grip', { size: 14, color: 'text/faint' }),
+        ),
+      ),
+      btn('Add point', { kind: 'ghost', icon: 'plus', h: 36 }),
+    )
+  const entityHead = (icon, name, color, id, layer) =>
+    R(
+      { name: 'entity head', w: 'fill', h: 40, gap: 8 },
+      R({ w: 32, h: 32, ax: 'center', r: 9, fill: alpha(color, 0.22) }, I(icon, { size: 18, color })),
+      C({ gap: 0 }, T(name, { style: 'Title/15' }), T(id, { style: 'Mono/11', color: 'text/faint' })),
+      spacer(),
+      pill(layer, { color: 'layer/entities' }),
+    )
+  // the world's levels as cards under the canvas
+  const levelDock = (title, sub, names, sel, miniOf, sizes) =>
+    region(
+      'dock',
+      56,
+      686,
+      1138,
+      148,
+      { fill: 'bg/surface' },
+      line(0, 0, 1138, 1),
+      R(
+        { x: 0, y: 2, w: 1138, h: 48, pad: [0, 16], gap: 10 },
+        eyebrow(title),
+        T(sub, { style: 'Mono/11', color: 'text/dim' }),
+        spacer(),
+        btn('World map', { icon: 'world' }),
+      ),
+      names.map((n, i) =>
+        C(
+          {
+            name: `level/${n}`,
+            x: 16 + i * 176,
+            y: 52,
+            w: 164,
+            h: 88,
+            gap: 0,
+            r: 'radius/md',
+            fill: 'bg/field',
+            stroke: i === sel ? 'accent/default' : 'border/default',
+            sw: i === sel ? 2 : 1,
+            clip: true,
+          },
+          F({ w: 'fill', h: 56, fill: 'bg/canvas', clip: true }, miniOf(i)),
+          R(
+            { w: 'fill', h: 32, pad: [0, 10], gap: 6 },
+            T(n, { style: 'Label/12' }),
+            spacer(),
+            T(sizes[i], { style: 'Mono/11', color: 'text/faint' }),
+          ),
+        ),
+      ),
+      R(
+        {
+          name: 'new level',
+          x: 16 + names.length * 176,
+          y: 52,
+          w: 160,
+          h: 88,
+          ax: 'center',
+          gap: 6,
+          r: 'radius/md',
+          stroke: 'border/strong',
+          dash: [4, 4],
+        },
+        I('plus', { size: 18, color: 'accent/default' }),
+        T('New level', { style: 'Label/12', color: 'accent/default' }),
+      ),
+    )
+  // thumbnails for the cards: a platformer step and a top-down map, in a few variants
+  const miniPlatform = (i) => [
+    F({ x: 0, y: 40, w: 164, h: 16, fill: '#5a4636' }),
+    F({ x: 0, y: 38, w: 164, h: 4, fill: '#6fae5b' }),
+    F({ x: 20 + i * 9, y: 26, w: 40, h: 6, fill: '#5a4636' }),
+    F({ x: 20 + i * 9, y: 24, w: 40, h: 3, fill: '#6fae5b' }),
+    F({ x: 94, y: 14 + (i % 2) * 6, w: 36, h: 6, fill: '#5a4636' }),
+    F({ x: 94, y: 12 + (i % 2) * 6, w: 36, h: 3, fill: '#6fae5b' }),
+  ]
+  const miniMap = (i) => [
+    F({ w: 164, h: 56, fill: '#4f8a47' }),
+    F({ x: 70, y: 22, w: 24, h: 34, fill: '#cfae74' }),
+    F({ x: 14 + i * 14, y: 8, w: 48, h: 22, fill: '#b5533c' }),
+    F({ x: 14 + i * 14, y: 24, w: 48, h: 8, fill: '#e0d2ae' }),
+    F({ x: 120, y: 34, w: 32, h: 16, r: 6, fill: '#3b82c4' }),
+  ]
+
+  // ── Platformer art: Moss Steps, 24 x 22 cells at 24 px (drawn at the editor's 150% zoom of 16 px tiles) ──
+  const PLAT = { cols: 24, rows: 22, s: 24 }
+  const platformerGrid = () => {
+    const g = Array.from({ length: PLAT.rows }, () => Array(PLAT.cols).fill(' '))
+    const set = (r, c0, c1, ch) => {
+      for (let c = c0; c <= c1; c++) g[r][c] = ch
+    }
+    for (let r = 19; r < PLAT.rows; r++) set(r, 0, PLAT.cols - 1, '#')
+    for (let r = 19; r < PLAT.rows; r++) set(r, 9, 12, ' ')
+    set(21, 9, 12, '^')
+    for (let r = 2; r < 19; r++) set(r, 0, 1, 'S')
+    for (const [r, a, b] of [
+      [15, 3, 8],
+      [16, 3, 8],
+      [12, 11, 16],
+      [13, 11, 16],
+      [6, 5, 10],
+      [7, 5, 10],
+    ])
+      set(r, a, b, '#')
+    set(9, 18, 22, '=')
+    set(17, 17, 22, '~')
+    set(18, 17, 22, '~')
+    return g
+  }
+  const earth = {
+    dirt: '#5a4636',
+    dirtDark: '#3d2f25',
+    stone: '#697386',
+    stoneDark: '#4d5666',
+    moss: '#6fae5b',
+    mossDark: '#4f8a43',
+  }
+  // one terrain cell at (x, y) of size s; e says which sides are open (the neighbour is not terrain)
+  const terrainCell = (x, y, s, e, seed, kind) => {
+    const stone = kind === 'stone'
+    const k = s / 24
+    const r = rng(seed)
+    let o = `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${stone ? earth.stone : earth.dirt}"/>`
+    for (let i = 0; i < 2; i++)
+      o += `<rect x="${fx(x + (3 + r() * 14) * k)}" y="${fx(y + (7 + r() * 11) * k)}" width="${fx(4 * k)}" height="${fx(2.5 * k)}" rx="1" fill="${stone ? earth.stoneDark : earth.dirtDark}" fill-opacity=".6"/>`
+    const dk = stone ? earth.stoneDark : earth.dirtDark
+    if (e.d) o += `<rect x="${x}" y="${fx(y + s - 4 * k)}" width="${s}" height="${fx(4 * k)}" fill="${dk}"/>`
+    if (e.l) o += `<rect x="${x}" y="${y}" width="${fx(3 * k)}" height="${s}" fill="${dk}"/>`
+    if (e.r) o += `<rect x="${fx(x + s - 3 * k)}" y="${y}" width="${fx(3 * k)}" height="${s}" fill="${dk}"/>`
+    if (e.u && !stone)
+      o += `<rect x="${x}" y="${y}" width="${s}" height="${fx(7 * k)}" fill="${earth.moss}"/><path d="M${fx(x + 3 * k)} ${fx(y + 7 * k)}v${fx(4 * k)}h${fx(4 * k)}v${fx(-4 * k)}M${fx(x + 14 * k)} ${fx(y + 7 * k)}v${fx(3 * k)}h${fx(5 * k)}v${fx(-3 * k)}" fill="${earth.moss}"/><rect x="${x}" y="${fx(y + 5 * k)}" width="${s}" height="${fx(2 * k)}" fill="${earth.mossDark}"/>`
+    if (e.u && stone) o += `<rect x="${x}" y="${y}" width="${s}" height="${fx(4 * k)}" fill="#8791a5"/>`
+    return o
+  }
+  // o.intgrid: draw the Collision IntGrid over the tiles, as the editor does while that layer is selected
+  const platformerArt = (o = {}) => {
+    const { cols, rows, s } = PLAT
+    const g = platformerGrid()
+    const solid = (c, r) =>
+      c < 0 || c >= cols || r >= rows ? true : r < 0 ? false : g[r][c] === '#' || g[r][c] === 'S'
+    const W = cols * s
+    const H = rows * s
+    let p =
+      '<defs><linearGradient id="bgm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2f33"/><stop offset="1" stop-color="#12201f"/></linearGradient></defs>'
+    p += `<rect width="${W}" height="${H}" fill="url(#bgm)"/>`
+    p +=
+      '<g fill="#1f3a3c" fill-opacity=".8"><ellipse cx="150" cy="430" rx="190" ry="120"/><ellipse cx="430" cy="470" rx="170" ry="110"/></g>'
+    p +=
+      '<g fill="#244648" fill-opacity=".7"><rect x="260" y="40" width="10" height="260"/><rect x="480" y="80" width="14" height="300"/><ellipse cx="265" cy="60" rx="42" ry="22"/><ellipse cx="487" cy="100" rx="52" ry="26"/></g>'
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const ch = g[r][c]
+        const x = c * s
+        const y = r * s
+        if (ch === '#' || ch === 'S')
+          p += terrainCell(
+            x,
+            y,
+            s,
+            { u: !solid(c, r - 1), d: !solid(c, r + 1), l: !solid(c - 1, r), r: !solid(c + 1, r) },
+            r * 131 + c * 17,
+            ch === 'S' ? 'stone' : 'dirt',
+          )
+        else if (ch === '=')
+          p += `<rect x="${x}" y="${y + 2}" width="${s}" height="8" rx="2" fill="#b98b54"/><rect x="${x}" y="${y + 8}" width="${s}" height="2" fill="#8a6234"/><circle cx="${x + 5}" cy="${y + 6}" r="1.2" fill="#6b4a24"/><circle cx="${x + s - 5}" cy="${y + 6}" r="1.2" fill="#6b4a24"/>`
+        else if (ch === '^')
+          p += `<path d="M${x + 1} ${y + s}l5.500 -13l5.500 13zM${x + 12} ${y + s}l5.500 -13l5.500 13z" fill="#d9645a"/><path d="M${x + 6.5} ${y + s - 13}l-1.500 3M${x + 18} ${y + s - 13}l-1.500 3" stroke="#f3a39b" stroke-width="1.200"/>`
+        else if (ch === '~')
+          p +=
+            `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#3b82c4" fill-opacity=".55"/>` +
+            (g[r - 1] && g[r - 1][c] === '~'
+              ? ''
+              : `<path d="M${x} ${y + 4}q6 -4 12 0t12 0" fill="none" stroke="#a9d3f5" stroke-width="1.600"/>`)
+      }
+    if (o.intgrid) {
+      const tint = { '#': '#e0645a', S: '#e0645a', '=': '#e0a54a', '^': '#c04a8a', '~': '#4a9ae0' }
+      for (let r = 0; r < rows; r++)
+        for (let c = 0; c < cols; c++) {
+          const ch = g[r][c]
+          if (!tint[ch]) continue
+          const h = ch === '=' ? 10 : s
+          p += `<rect x="${c * s + 1}" y="${r * s + (ch === '=' ? 1 : 1)}" width="${s - 2}" height="${h - 2}" fill="${tint[ch]}" fill-opacity="${ch === '^' ? 0.5 : 0.32}" stroke="${tint[ch]}" stroke-opacity=".75"/>`
+        }
+    }
+    let gl = ''
+    for (let i = 0; i <= cols; i++) gl += `M${i * s} 0V${H}`
+    for (let i = 0; i <= rows; i++) gl += `M0 ${i * s}H${W}`
+    p += `<path d="${gl}" stroke="#ffffff" stroke-opacity=".06" fill="none"/>`
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${p}</svg>`
+  }
+
+  // ── Top-down art: Village, 23 x 22 cells at 24 px ──
+  const RPG = { cols: 23, rows: 22, s: 24 }
+  const rpgGrid = () => {
+    const g = Array.from({ length: RPG.rows }, () => Array(RPG.cols).fill('g'))
+    const rect = (c0, r0, c1, r1, ch) => {
+      for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) g[r][c] = ch
+    }
+    rect(2, 2, 6, 5, 'w')
+    rect(6, 9, 16, 13, 'p')
+    rect(10, 14, 12, 21, 'p')
+    rect(17, 7, 17, 8, 'p')
+    rect(4, 18, 4, 19, 'p')
+    rect(4, 19, 10, 19, 'p')
+    rect(14, 2, 20, 4, 'R')
+    rect(14, 5, 20, 6, 'W')
+    rect(2, 14, 6, 15, 'R')
+    rect(2, 16, 6, 17, 'W')
+    return g
+  }
+  const tree = (cx, cy) =>
+    `<ellipse cx="${cx}" cy="${cy + 2}" rx="12" ry="5" fill="#000" fill-opacity=".25"/><rect x="${cx - 3}" y="${cy - 8}" width="6" height="11" fill="#6b4a2c"/><circle cx="${cx}" cy="${cy - 16}" r="14" fill="#2f6b3a"/><circle cx="${cx - 4}" cy="${cy - 20}" r="8" fill="#3f8a4a"/>`
+  const RPG_TREES = [
+    [30, 200],
+    [26, 300],
+    [196, 76],
+    [270, 170],
+    [464, 300],
+    [500, 380],
+    [440, 440],
+    [352, 480],
+    [28, 470],
+    [100, 500],
+  ]
+  const rpgArt = (o = {}) => {
+    const { cols, rows, s } = RPG
+    const g = rpgGrid()
+    const at = (c, r) => (c < 0 || c >= cols || r < 0 || r >= rows ? 'g' : g[r][c])
+    const W = cols * s
+    const H = rows * s
+    const rr = rng(77)
+    let p = ''
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const ch = g[r][c]
+        const x = c * s
+        const y = r * s
+        if (ch === 'g' || ch === 'p' || ch === 'w') {
+          const base = ch === 'g' ? ((c + r) % 2 ? '#4f8a47' : '#55904c') : ch === 'p' ? '#cfae74' : '#3b82c4'
+          p += `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${base}"/>`
+        }
+        if (ch === 'g' && rr() < 0.3)
+          p += `<path d="M${x + 6 + rr() * 10} ${y + 16}l-2 -5M${x + 9 + rr() * 8} ${y + 16}l1 -6" stroke="#3a7038" stroke-width="1.400" fill="none"/>`
+        if (ch === 'p') {
+          if (at(c, r - 1) === 'g') p += `<rect x="${x}" y="${y}" width="${s}" height="3" fill="#a8864f"/>`
+          if (at(c, r + 1) === 'g')
+            p += `<rect x="${x}" y="${y + s - 3}" width="${s}" height="3" fill="#a8864f"/>`
+          if (at(c - 1, r) === 'g') p += `<rect x="${x}" y="${y}" width="3" height="${s}" fill="#a8864f"/>`
+          if (at(c + 1, r) === 'g')
+            p += `<rect x="${x + s - 3}" y="${y}" width="3" height="${s}" fill="#a8864f"/>`
+          if (rr() < 0.25)
+            p += `<rect x="${x + 5 + rr() * 10}" y="${y + 6 + rr() * 10}" width="3" height="2" fill="#b8955a"/>`
+        }
+        if (ch === 'w') {
+          if (at(c, r - 1) !== 'w') p += `<rect x="${x}" y="${y}" width="${s}" height="3" fill="#8fc3ee"/>`
+          if (at(c - 1, r) !== 'w') p += `<rect x="${x}" y="${y}" width="3" height="${s}" fill="#8fc3ee"/>`
+          p += `<path d="M${x + 3} ${y + 9}q4 -3 8 0t8 0" fill="none" stroke="#a9d3f5" stroke-width="1.400"/>`
+        }
+        if (ch === 'R') {
+          p += `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#b5533c"/><path d="M${x} ${y + 8}H${x + s}M${x} ${y + 16}H${x + s}" stroke="#8f3f2c" stroke-width="1.600"/>`
+          if (at(c, r - 1) !== 'R') p += `<rect x="${x}" y="${y}" width="${s}" height="4" fill="#cf6a50"/>`
+        }
+        if (ch === 'W') {
+          p += `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#e0d2ae"/>`
+          if (at(c, r + 1) !== 'W')
+            p += `<rect x="${x}" y="${y + s - 4}" width="${s}" height="4" fill="#b9a97f"/>`
+        }
+      }
+    // windows and the inn door
+    for (const [c, r] of [
+      [15, 5],
+      [19, 5],
+      [3, 16],
+      [5, 16],
+    ])
+      p += `<rect x="${c * s + 6}" y="${r * s + 5}" width="12" height="11" rx="1" fill="#2c3b57"/><path d="M${c * s + 12} ${r * s + 5}v11M${c * s + 6} ${r * s + 10.5}h12" stroke="#e0d2ae" stroke-width="1.400"/>`
+    p += `<path d="M${17 * s + 3} ${6 * s + s}V${6 * s + 8}a9 9 0 0 1 18 0V${6 * s + s}z" fill="#7a4a2e"/><circle cx="${17 * s + 16}" cy="${6 * s + 16}" r="1.300" fill="#e0a54a"/>`
+    // objects layer: trees, free-placed off the grid
+    if (!o.hideObjects) for (const [tx, ty] of RPG_TREES) p += tree(tx, ty)
+    let gl = ''
+    for (let i = 0; i <= cols; i++) gl += `M${i * s} 0V${H}`
+    for (let i = 0; i <= rows; i++) gl += `M0 ${i * s}H${W}`
+    p += `<path d="${gl}" stroke="#ffffff" stroke-opacity=".07" fill="none"/>`
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${p}</svg>`
+  }
+
+  // ── Entity sprites (frames, so they stay editable in Figma) ──
+  const sprite = {
+    slime: (x, y) =>
+      F(
+        { name: 'Slime', x, y: y - 17, w: 22, h: 17, r: 9, fill: '#d9645a', stroke: '#8f3a34' },
+        F({ x: 5, y: 5, w: 4, h: 4, r: 2, fill: '#fff' }),
+        F({ x: 13, y: 5, w: 4, h: 4, r: 2, fill: '#fff' }),
+      ),
+    player: (x, y) =>
+      F(
+        { name: 'Player start', x, y: y - 24, w: 16, h: 24, r: 6, fill: '#5fbf7a', stroke: '#2d7a47' },
+        F({ x: 9, y: 6, w: 4, h: 4, r: 2, fill: '#fff' }),
+      ),
+    coin: (x, y) => F({ name: 'Coin', x, y, w: 12, h: 12, r: 6, fill: '#e0a54a', stroke: '#8a5a14' }),
+    door: (x, y, h = 44) =>
+      F(
+        {
+          name: 'Door',
+          x,
+          y: y - h,
+          w: 28,
+          h,
+          r: 4,
+          fill: alpha('accent/default', 0.25),
+          stroke: 'accent/default',
+          sw: 1.5,
+        },
+        I('door', { size: 14, color: 'accent/default', x: 7, y: h / 2 - 7 }),
+      ),
+    flag: (x, y) =>
+      F(
+        { name: 'Checkpoint', x, y: y - 34, w: 22, h: 34 },
+        F({ x: 2, y: 0, w: 2, h: 34, fill: '#c9d3e8' }),
+        F({ x: 4, y: 2, w: 16, h: 12, r: 2, fill: '#5fbf7a' }),
+      ),
+    npc: (x, y, c) =>
+      F(
+        { name: 'NPC', x, y: y - 24, w: 20, h: 24 },
+        F({ x: 2, y: 9, w: 16, h: 15, r: 7, fill: c || '#e0a54a', stroke: '#8a5a14' }),
+        F({ x: 4, y: 0, w: 12, h: 12, r: 6, fill: '#f1d2a8', stroke: '#8a5a14' }),
+      ),
+    sign: (x, y) =>
+      F(
+        { name: 'Sign', x, y: y - 20, w: 22, h: 20 },
+        F({ x: 10, y: 8, w: 3, h: 12, fill: '#6b4a2c' }),
+        F({ x: 0, y: 0, w: 22, h: 11, r: 2, fill: '#b98b54', stroke: '#6b4a24' }),
+      ),
+    chest: (x, y) =>
+      F(
+        { name: 'Chest', x, y: y - 16, w: 24, h: 16, r: 3, fill: '#a8742f', stroke: '#5a3a14' },
+        F({ x: 0, y: 6, w: 24, h: 3, fill: '#e0a54a' }),
+      ),
+  }
+  // numbered handles on a dashed path through the given canvas points
+  const pathOver = (pts, w, h, color) => [
+    V(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="M${pts.map((p) => p.join(' ')).join('L')}" fill="none" stroke="${color}" stroke-width="1.600" stroke-dasharray="5 4" stroke-linejoin="round"/></svg>`,
+      { name: 'path', x: 0, y: 0, w, h },
+    ),
+    ...pts.map(([x, y], i) =>
+      F(
+        {
+          name: `path point ${i + 1}`,
+          x: x - 9,
+          y: y - 9,
+          w: 18,
+          h: 18,
+          r: 9,
+          fill: color,
+          stroke: 'bg/canvas',
+          sw: 2,
+          ax: 'center',
+          ay: 'center',
+          lay: 'row',
+        },
+        T(String(i + 1), { style: 'Mono/11', color: 'accent/ink', wt: 700 }),
+      ),
+    ),
+  ]
+  // a selection box with four corner handles
+  const selection = (x, y, w, h) => [
+    F({ name: 'selection', x, y, w, h, stroke: 'accent/default', sw: 1.5, dash: [4, 3] }),
+    ...[
+      [-4, -4],
+      [w - 4, -4],
+      [-4, h - 4],
+      [w - 4, h - 4],
+    ].map(([a, b]) =>
+      F({
+        name: 'handle',
+        x: x + a,
+        y: y + b,
+        w: 8,
+        h: 8,
+        fill: 'accent/default',
+        stroke: 'bg/canvas',
+        sw: 1,
+      }),
+    ),
+  ]
+  const chip = (x, y, icon, text, o = {}) =>
+    R(
+      {
+        name: o.name || 'chip',
+        x,
+        y,
+        h: 28,
+        pad: [0, 10],
+        gap: 8,
+        r: 14,
+        fill: 'bg/surface',
+        stroke: o.accent ? alpha('accent/default', 0.6) : 'border/default',
+      },
+      I(icon, { size: 14, color: o.accent ? 'accent/default' : 'text/dim' }),
+      T(text, { style: 'Mono/11', color: o.accent ? 'accent/default' : 'text/dim' }),
+    )
+
+  // ── Tileset art: the placeholder terrain set, 10 x 4 tiles ──
+  const TILESET = { cols: 10, rows: 4 }
+  const tilesetArt = (s, o = {}) => {
+    let p = `<rect width="${TILESET.cols * s}" height="${TILESET.rows * s}" fill="#14161c"/>`
+    const tileAt = (i) => [(i % TILESET.cols) * s, Math.floor(i / TILESET.cols) * s]
+    for (let i = 0; i < 16; i++) {
+      const [x, y] = tileAt(i)
+      p += terrainCell(x, y, s, { u: !(i & 1), d: !(i & 2), l: !(i & 4), r: !(i & 8) }, 40 + i, 'dirt')
+    }
+    for (let i = 0; i < 8; i++) {
+      const [x, y] = tileAt(20 + i)
+      p += terrainCell(
+        x,
+        y,
+        s,
+        { u: !(i & 1), d: !(i & 2), l: !(i & 4), r: !(i & 4 && i & 1) },
+        90 + i,
+        'stone',
+      )
+    }
+    const k = s / 24
+    const extra = [
+      (x, y) =>
+        `<rect x="${x}" y="${y + 2 * k}" width="${s}" height="${8 * k}" rx="2" fill="#b98b54"/><rect x="${x}" y="${y + 8 * k}" width="${s}" height="${2 * k}" fill="#8a6234"/>`,
+      (x, y) =>
+        `<rect x="${x + 4 * k}" y="${y + 2 * k}" width="${s - 4 * k}" height="${8 * k}" rx="2" fill="#b98b54"/><rect x="${x + 4 * k}" y="${y + 8 * k}" width="${s - 4 * k}" height="${2 * k}" fill="#8a6234"/>`,
+      (x, y) =>
+        `<path d="M${x + 2 * k} ${y + s}l${5.5 * k} ${-13 * k}l${5.5 * k} ${13 * k}zM${x + 12 * k} ${y + s}l${5.5 * k} ${-13 * k}l${5.5 * k} ${13 * k}z" fill="#d9645a"/>`,
+      (x, y) =>
+        `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#3b82c4" fill-opacity=".55"/><path d="M${x} ${y + 5 * k}q${6 * k} ${-4 * k} ${12 * k} 0t${12 * k} 0" fill="none" stroke="#a9d3f5" stroke-width="1.600"/>`,
+      (x, y) => `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#3b82c4" fill-opacity=".55"/>`,
+      (x, y) => `<circle cx="${x + s / 2}" cy="${y + s / 2}" r="${7 * k}" fill="#e0a54a" stroke="#8a5a14"/>`,
+      (x, y) =>
+        `<path d="M${x + 7 * k} ${y}v${s}M${x + s - 7 * k} ${y}v${s}M${x + 7 * k} ${y + 5 * k}h${s - 14 * k}M${x + 7 * k} ${y + 12 * k}h${s - 14 * k}M${x + 7 * k} ${y + 19 * k}h${s - 14 * k}" stroke="#a8742f" stroke-width="${2 * k}" fill="none"/>`,
+      (x, y) =>
+        `<rect x="${x + 4 * k}" y="${y + 2 * k}" width="${2 * k}" height="${s - 4 * k}" fill="#c9d3e8"/><rect x="${x + 6 * k}" y="${y + 3 * k}" width="${14 * k}" height="${10 * k}" rx="2" fill="#5fbf7a"/>`,
+      (x, y) =>
+        `<path d="M${x + s / 2} ${y + 3 * k}l${7 * k} ${8 * k}l${-7 * k} ${10 * k}l${-7 * k} ${-10 * k}z" fill="#8f6be0" stroke="#4d3a8a"/>`,
+      (x, y) =>
+        `<rect x="${x + 3 * k}" y="${y + 3 * k}" width="${s - 6 * k}" height="${s - 6 * k}" rx="4" fill="#2f6b3a"/>`,
+    ]
+    extra.forEach((f, j) => {
+      const [x, y] = tileAt(30 + j)
+      p += f(x, y)
+    })
+    let gl = ''
+    for (let i = 0; i <= TILESET.cols; i++) gl += `M${i * s} 0V${TILESET.rows * s}`
+    for (let i = 0; i <= TILESET.rows; i++) gl += `M0 ${i * s}H${TILESET.cols * s}`
+    p += `<path d="${gl}" stroke="#ffffff" stroke-opacity=".12" fill="none"/>`
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${TILESET.cols * s}" height="${TILESET.rows * s}" viewBox="0 0 ${TILESET.cols * s} ${TILESET.rows * s}">${p}</svg>`
+  }
+  // an auto-tile preview: a blob of IntGrid cells drawn as the terrain the rules produce, or as the raw IntGrid
+  const BLOB = ['.........', '..####...', '.######..', '.######..', '..####.#.', '#########']
+  const blobSvg = (s, raw) => {
+    const rows = BLOB.length
+    const cols = BLOB[0].length
+    const solid = (c, r) => (c < 0 || c >= cols || r >= rows ? true : r < 0 ? false : BLOB[r][c] === '#')
+    let p = `<rect width="${cols * s}" height="${rows * s}" fill="#14161c"/>`
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        if (!solid(c, r) || BLOB[r][c] !== '#') continue
+        if (raw)
+          p += `<rect x="${c * s + 1}" y="${r * s + 1}" width="${s - 2}" height="${s - 2}" fill="#e0645a" fill-opacity=".34" stroke="#e0645a" stroke-opacity=".8"/>`
+        else
+          p += terrainCell(
+            c * s,
+            r * s,
+            s,
+            { u: !solid(c, r - 1), d: !solid(c, r + 1), l: !solid(c - 1, r), r: !solid(c + 1, r) },
+            r * 131 + c * 17,
+            'dirt',
+          )
+      }
+    let gl = ''
+    for (let i = 0; i <= cols; i++) gl += `M${i * s} 0V${rows * s}`
+    for (let i = 0; i <= rows; i++) gl += `M0 ${i * s}H${cols * s}`
+    p += `<path d="${gl}" stroke="#ffffff" stroke-opacity=".08" fill="none"/>`
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${cols * s}" height="${rows * s}" viewBox="0 0 ${cols * s} ${rows * s}">${p}</svg>`
+  }
+  // a rule's pattern drawn small: cells are 'any' | 'empty' | 'filled' | 'is' | 'not' (the centre is index 4 of 9)
+  const patternSvg = (cells, s, plain) => {
+    const n = Math.round(Math.sqrt(cells.length))
+    let p = ''
+    cells.forEach((c, i) => {
+      const x = (i % n) * s
+      const y = Math.floor(i / n) * s
+      const centre = !plain && i === (cells.length - 1) / 2
+      if (c === 'filled')
+        p += `<rect x="${x + 1}" y="${y + 1}" width="${s - 2}" height="${s - 2}" rx="2" fill="#e0645a" fill-opacity=".45" stroke="#e0645a"/>`
+      else if (c === 'empty')
+        p += `<rect x="${x + 1}" y="${y + 1}" width="${s - 2}" height="${s - 2}" rx="2" fill="none" stroke="#8e8c85" stroke-dasharray="3 3"/>`
+      else if (c === 'not')
+        p += `<rect x="${x + 1}" y="${y + 1}" width="${s - 2}" height="${s - 2}" rx="2" fill="#e0645a" fill-opacity=".16" stroke="#e0645a" stroke-opacity=".7"/><path d="M${x + 4} ${y + s - 4}L${x + s - 4} ${y + 4}" stroke="#e8e6e1" stroke-width="2"/>`
+      else if (c === 'is')
+        p += `<rect x="${x + 1}" y="${y + 1}" width="${s - 2}" height="${s - 2}" rx="2" fill="#4a9ae0" fill-opacity=".45" stroke="#4a9ae0"/>`
+      else
+        p += `<circle cx="${x + s / 2}" cy="${y + s / 2}" r="${Math.max(1.5, s / 14)}" fill="#8e8c85" fill-opacity=".7"/>`
+      if (centre)
+        p += `<rect x="${x + 0.5}" y="${y + 0.5}" width="${s - 1}" height="${s - 1}" rx="3" fill="none" stroke="#e0a54a" stroke-width="${s > 30 ? 2 : 1.4}"/>`
+    })
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${n * s}" height="${n * s}" viewBox="0 0 ${n * s} ${n * s}">${p}</svg>`
+  }
+
   return {
     dialog,
     modalFrame,
@@ -881,5 +1617,35 @@ export function parts(S) {
     fx,
     phaseColor,
     RAIL,
+    G,
+    NAV,
+    TOOLS,
+    toolbar,
+    layerRowG,
+    valueRow,
+    defChip,
+    pairs,
+    fieldRow,
+    colorBox,
+    textBox,
+    pointList,
+    entityHead,
+    levelDock,
+    miniPlatform,
+    miniMap,
+    PLAT,
+    RPG,
+    RPG_TREES,
+    TILESET,
+    platformerArt,
+    rpgArt,
+    sprite,
+    pathOver,
+    selection,
+    chip,
+    tilesetArt,
+    blobSvg,
+    patternSvg,
+    terrainCell,
   }
 }

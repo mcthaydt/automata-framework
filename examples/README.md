@@ -38,11 +38,9 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 
 | Demo | Owner | Base | Status |
 |---|---|---|---|
-| `host/lifecycle-and-saves` | host lane | `base-2d` | Built (feature-demos PR, #14) |
 | `content/hot-reload` | content lane | `base-2d` | Built (feature-demos PR, #14) |
 | `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR (#7); needs no base |
 | `runtime/boot-and-flow` (boot program, veil overlay, error panels, Flow transitions) | runtime lane | none | Built (M1.5 runtime) |
-| `render-pixi/renderer-2d` (2D Pixi renderer, sub-tick interpolation, screen-space filter shader) | runtime lane | none | Built (M1.7 render-pixi) |
 | `physics/bodies-2d` (Rapier crates and balls in the room, pushed by the character; [spec](../docs/superpowers/specs/2026-10-11-m2-physics-demo-design.md)) | sim lane, M2.1b | `base-2d` | Built on `playRoom` (#14, finished in #17; spec §11 lists the deviations); waits on the Owner's look at the screenshots |
 | `physics/bodies-3d` | sim lane | `base-3d` | Waits on `base-3d` (M3) |
 | `sim/content-restore` (a snapshot is gated by gameplay content, not by store metadata; [spec](../docs/superpowers/specs/2026-10-11-m2-content-in-sim-design.md#8-demo-examplessimcontent-restore)) | content lane, M2.2 | `base-2d` | Package work in the M2.2 PR; the demo waits on base-2d content swap (room in `content/rooms/*.toml`, `createBaseSim({ content })`) |
