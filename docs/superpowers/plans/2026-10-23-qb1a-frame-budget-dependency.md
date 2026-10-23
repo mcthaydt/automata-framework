@@ -3,7 +3,7 @@
 - **Spec:** [QB spec](../specs/2026-10-16-quality-bar-design.md) §4.1 (knip in `pnpm check`).
 - **Task:** `QB.1a — knip baseline` (02), the `tooling/frame-budget` part. The row's other parts are already gone: the `examples/render-pixi/renderer-2d` ignore left with that demo (EX.4, #108), the `examples` workspace's `@mcthaydt/automata-game`, `zod` and `@playwright/test` entries no longer exist on `main`, and `examples/runtime/boot-and-flow` leaves with its EX.4 port.
 - **Status:** drafted 2026-10-23, based on `main`. No PR is opened until the shared runner's queue drains.
-- **Progress:** 0 of 3 steps.
+- **Progress:** 3 of 3 steps.
 
 ## What is wrong
 
@@ -21,9 +21,9 @@
 
 ## Steps
 
-- [ ] **1. Red.** Remove the `tooling/frame-budget` ignore in `knip.jsonc` and leave the dependency; `pnpm knip` fails naming `@ruken/manifest` in `tooling/frame-budget/package.json`.
-- [ ] **2. Green.** Remove the dependency and run `pnpm install`; `pnpm knip` is clean.
-- [ ] **3. Gates.** `pnpm check`; `pnpm --filter @af-examples/frame-budget` typecheck and tests (the package's own scripts) still pass.
+- [x] **1. Red.** Remove the `tooling/frame-budget` ignore in `knip.jsonc` and leave the dependency; `pnpm knip` fails naming `@ruken/manifest` in `tooling/frame-budget/package.json`.
+- [x] **2. Green.** Remove the dependency and run `pnpm install`; `pnpm knip` is clean.
+- [x] **3. Gates.** `pnpm check`; `pnpm --filter @mcthaydt/frame-budget typecheck` and its unit tests still pass.
 
 ## Gates
 
@@ -35,4 +35,7 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-23 | Plan | | |
+| 2026-10-23 | Plan | `4eccb20` | |
+| 2026-10-23 | 1 | | Red: with the `tooling/frame-budget` ignore removed and the dependency still listed, `pnpm knip` failed with `Unused devDependencies (1): @ruken/manifest tooling/frame-budget/package.json:28:6`. |
+| 2026-10-23 | 2 | | Dependency removed, `pnpm install --offline` (lockfile updated), `pnpm knip` clean. |
+| 2026-10-23 | 3 | | `pnpm check` 30 of 30 tasks, exit 0; `@mcthaydt/frame-budget` typecheck clean and 35 unit tests passed. 02's QB.1a row and 03 come with the docs sync PR. |
