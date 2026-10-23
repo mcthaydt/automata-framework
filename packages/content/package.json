@@ -65,7 +65,7 @@
     "zod": "4.6.5"
   },
   "peerDependencies": {
-    "vite": "^8.3.2"
+    "vite": "^8.3.3"
   },
   "devDependencies": {
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
@@ -74,7 +74,7 @@
     "@types/pngjs": "6.0.5",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",
-    "vite": "8.3.2",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }

@@ -16,7 +16,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 | [Paraglide](#paraglide) | Core | `@inlang/paraglide-js` 2.25.4 | MIT |
 | [smol-toml](#smol-toml) | Core | `smol-toml` 1.9.0 | BSD-3-Clause |
 | [Ruken SDK](#ruken-sdk) | Core | `@ruken/sdk` 0.0.0; `@ruken/sdk-host` 0.0.0; `@ruken/manifest` 0.0.0; `@ruken/cli` 0.0.0 | not declared in the installed package |
-| [Vite, Vitest, Playwright](#vite-vitest-playwright) | Core | `vite` 8.3.2; `vitest` 5.0.3; `@playwright/test` 1.63.0 | MIT; Apache-2.0 |
+| [Vite, Vitest, Playwright](#vite-vitest-playwright) | Core | `vite` 8.3.3; `vitest` 5.0.3; `@playwright/test` 1.63.0 | MIT; Apache-2.0 |
 | [Rapier (deterministic-compat)](#rapier-deterministic-compat) | Plus | `@dimforge/rapier2d-deterministic-compat` 0.21.0; `@dimforge/rapier3d-deterministic-compat` 0.21.0 | Apache-2.0 |
 | [Colyseus](#colyseus) | Plus | not yet installed; planned for M7 (`net` and `server`) | none yet |
 
@@ -115,7 +115,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 | Package | Version | License |
 |---|---|---|
-| `vite` | 8.3.2 | MIT |
+| `vite` | 8.3.3 | MIT |
 | `vitest` | 5.0.3 | MIT |
 | `@playwright/test` | 1.63.0 | Apache-2.0 |
 
