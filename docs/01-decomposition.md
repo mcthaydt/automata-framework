@@ -54,7 +54,7 @@ M0 ─► M1 ─┬─► M2 ─┬─► M3 ─► M6
           │       ├─► M5 ─┐
           └─► M4 ─┘       ├─► M7 ─► M8
                     M2 ───┘
-M3 ─► GAME-3D (the base 3D game, inside AF 1.0) ─► M9 (3D systems into packages) ─► the AF 1.0 launch (M8.9 and Plus's first release wait for both)
+M3 ─► GAME-3D (the base 3D game, inside AF 1.0) ─► M9 (3D systems into packages) ─► the AF 1.0 launch (M8.9, which includes the free 3D runtime, waits for both)
 ED (editors, Owner 2026-10-23): parallel to M1–M8, not a gate; EDK (kit) ─► ED2D (genre-general 2D editor; FloorFifty stages are the EDFF profile lane), ED3D; both finish before GAME-3D starts
 External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [store] ─► M7 store
 ```
