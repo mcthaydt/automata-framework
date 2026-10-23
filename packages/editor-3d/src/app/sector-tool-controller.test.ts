@@ -9,6 +9,8 @@ import { moveSector } from '../model/corner-edits'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import { lastLightProfile } from '../profile/last-light-profile'
+import type { LevelProfile } from '../profile/level-profile'
+import { SectorAccessError } from '../profile/sector-access'
 import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
 import { toyBlockout } from '../testing/toy-blockout'
@@ -25,8 +27,12 @@ const depot: AfSector = (() => {
 const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
-function setup(level: AfSector = depot, options?: SectorToolOptions) {
-  const editor = createLevelEditor({ profile: afSectorProfile, level })
+function setup(
+  level: AfSector = depot,
+  options?: SectorToolOptions,
+  profile: LevelProfile<AfSector> = afSectorProfile,
+) {
+  const editor = createLevelEditor({ profile, level })
   editor.view.set({ camera: CAMERA })
   const tool = createSectorTool(editor, SIZE, options)
   /** The pointer at a point of the plan, as the camera now shows it. */
@@ -573,5 +579,266 @@ describe('closing the outline', () => {
     tool.close()
     expect(lastLightProfile.sectors.list(editor.level).map((room) => room.id)).toContain('sector-1')
     expect(editor.history.undoLabel).toBe('Draw sector sector-1')
+  })
+})
+
+describe('the portal offers', () => {
+  type Made = ReturnType<typeof setup>
+  /** A sector west of the hall: its east wall is over the hall's west wall (the hall's wall 3, which has a door). */
+  const drawAnnex = ({ tool, at }: Made): void => {
+    for (const [x, z] of [
+      [-6, 0],
+      [0, 0],
+      [0, 6],
+      [-6, 6],
+    ] as const)
+      tool.tap(at(x, z))
+    tool.close()
+  }
+  /** A sector south of both rooms, with one wall over each of their south walls. */
+  const drawSouth = ({ tool, at }: Made): void => {
+    for (const [x, z] of [
+      [0, 6],
+      [8, 6],
+      [14, 6],
+      [14, 10],
+      [0, 10],
+    ] as const)
+      tool.tap(at(x, z))
+    tool.close()
+  }
+  const wall = (made: Made, sector: string, corner: number) =>
+    afSectorProfile.sectors.list(made.editor.level as AfSector).find((each) => each.id === sector)?.corners[
+      corner
+    ]?.[2]
+  /** Whether a step is open: a session begun now comes back closed. A probe that did open is cancelled, so it leaves nothing. */
+  const stepOpen = (made: Made): boolean => {
+    const probe = made.editor.begin('probe')
+    const open = !probe.open
+    probe.cancel()
+    return open
+  }
+
+  it('puts the sector in the level and leaves the step open with the offers, when a wall is over a neighbour wall', () => {
+    const made = setup()
+    drawAnnex(made)
+    expect(made.tool.view.offers).toEqual([
+      { sector: 'sector-1', corner: 1, to: 'hall', toCorner: 3, length: 6 },
+    ])
+    expect(wall(made, 'sector-1', 1)).toBeUndefined()
+    expect(stepOpen(made)).toBe(true)
+    expect(made.tool.view.corners).toEqual([])
+    expect(made.editor.selection.ids).toEqual(['sector:sector-1'])
+  })
+
+  it('makes both sides portals when an offer is accepted, and ends the step with the last offer as one undo step', () => {
+    const made = setup()
+    drawAnnex(made)
+    made.tool.acceptOffer(0)
+    expect(wall(made, 'sector-1', 1)).toEqual({ next: 'hall' })
+    // The hall's wall had a door, which a portal takes off.
+    expect(wall(made, 'hall', 3)).toEqual({ next: 'sector-1' })
+    expect(made.tool.view.offers).toEqual([])
+    expect(stepOpen(made)).toBe(false)
+    expect(made.editor.history.undoLabel).toBe('Draw sector sector-1')
+    made.editor.history.undo()
+    expect(made.editor.level).toEqual(depot)
+    expect(made.editor.history.canUndo).toBe(false)
+  })
+
+  it('leaves the wall solid when an offer is declined, and ends the step with the last offer', () => {
+    const made = setup()
+    drawAnnex(made)
+    made.tool.declineOffer(0)
+    expect(wall(made, 'sector-1', 1)).toBeUndefined()
+    expect(wall(made, 'hall', 3)).toEqual({ door: { at: 3, width: 1.2, height: 2.2 } })
+    expect(stepOpen(made)).toBe(false)
+    expect(made.editor.history.undoLabel).toBe('Draw sector sector-1')
+  })
+
+  it('answers offers one at a time, in any order, and ends the step with the last', () => {
+    const made = setup()
+    drawSouth(made)
+    expect(made.tool.view.offers.map((offer) => offer.to)).toEqual(['hall', 'dock'])
+    made.tool.acceptOffer(1)
+    expect(made.tool.view.offers.map((offer) => offer.to)).toEqual(['hall'])
+    expect(stepOpen(made)).toBe(true)
+    expect(wall(made, 'sector-1', 1)).toEqual({ next: 'dock' })
+    expect(wall(made, 'sector-1', 0)).toBeUndefined()
+    made.tool.declineOffer(0)
+    expect(stepOpen(made)).toBe(false)
+    made.editor.history.undo()
+    expect(made.editor.level).toEqual(depot)
+  })
+
+  it('accepts every offer in order with acceptAll, as one step', () => {
+    const made = setup()
+    drawSouth(made)
+    made.tool.acceptAll()
+    expect(wall(made, 'sector-1', 0)).toEqual({ next: 'hall' })
+    expect(wall(made, 'sector-1', 1)).toEqual({ next: 'dock' })
+    expect(wall(made, 'hall', 2)).toEqual({ next: 'sector-1' })
+    expect(wall(made, 'dock', 2)).toEqual({ next: 'sector-1' })
+    expect(made.tool.view.offers).toEqual([])
+    expect(stepOpen(made)).toBe(false)
+    made.editor.history.undo()
+    expect(made.editor.level).toEqual(depot)
+    expect(made.editor.history.canUndo).toBe(false)
+  })
+
+  it('declines what is left and ends the step on finish', () => {
+    const made = setup()
+    drawSouth(made)
+    made.tool.acceptOffer(0)
+    made.tool.finish()
+    expect(wall(made, 'sector-1', 0)).toEqual({ next: 'hall' })
+    expect(wall(made, 'sector-1', 1)).toBeUndefined()
+    expect(made.tool.view.offers).toEqual([])
+    expect(stepOpen(made)).toBe(false)
+    expect(made.editor.history.undoLabel).toBe('Draw sector sector-1')
+  })
+
+  it('takes the sector away with cancel, and leaves nothing to undo', () => {
+    const made = setup()
+    drawSouth(made)
+    made.tool.acceptOffer(0)
+    made.tool.cancel()
+    expect(made.editor.level).toEqual(depot)
+    expect(made.tool.view.offers).toEqual([])
+    expect(stepOpen(made)).toBe(false)
+    expect(made.editor.history.canUndo).toBe(false)
+  })
+
+  it('ends the drawing when an undo ends the step, and can draw again', () => {
+    const made = setup()
+    drawAnnex(made)
+    made.editor.history.undo()
+    expect(made.editor.level).toEqual(depot)
+    expect(made.tool.view.offers).toEqual([])
+    drawAnnex(made)
+    expect(made.tool.view.offers).toHaveLength(1)
+  })
+
+  it('keeps an offer that is refused, with the sentence, and lets the rest go on', () => {
+    // The profile refuses the second write of sectors, which is the portal of the first offer.
+    let writes = 0
+    const profile: LevelProfile<AfSector> = {
+      ...afSectorProfile,
+      sectors: {
+        ...afSectorProfile.sectors,
+        withSectors(level, sectors) {
+          writes++
+          if (writes > 1) throw new SectorAccessError('the profile will not write it')
+          return afSectorProfile.sectors.withSectors(level, sectors)
+        },
+      },
+    }
+    const made = setup(depot, undefined, profile)
+    drawAnnex(made)
+    made.tool.acceptOffer(0)
+    expect(made.tool.view.refusal).toBe('the profile will not write it')
+    expect(made.tool.view.offers).toHaveLength(1)
+    expect(stepOpen(made)).toBe(true)
+    made.tool.finish()
+    expect(wall(made, 'sector-1', 1)).toBeUndefined()
+    expect(made.tool.view.refusal).toBeUndefined()
+    expect(stepOpen(made)).toBe(false)
+  })
+
+  it('forgets the sentence of a refused offer when the next offer is answered', () => {
+    let writes = 0
+    const profile: LevelProfile<AfSector> = {
+      ...afSectorProfile,
+      sectors: {
+        ...afSectorProfile.sectors,
+        withSectors(level, sectors) {
+          writes++
+          if (writes > 1) throw new SectorAccessError('the profile will not write it')
+          return afSectorProfile.sectors.withSectors(level, sectors)
+        },
+      },
+    }
+    const made = setup(depot, undefined, profile)
+    drawSouth(made)
+    made.tool.acceptOffer(0)
+    expect(made.tool.view.refusal).toBe('the profile will not write it')
+    made.tool.declineOffer(1)
+    expect(made.tool.view.refusal).toBeUndefined()
+    expect(made.tool.view.offers.map((offer) => offer.to)).toEqual(['hall'])
+  })
+
+  it('stops acceptAll at the first refusal', () => {
+    let writes = 0
+    const profile: LevelProfile<AfSector> = {
+      ...afSectorProfile,
+      sectors: {
+        ...afSectorProfile.sectors,
+        withSectors(level, sectors) {
+          writes++
+          if (writes > 2) throw new SectorAccessError('no more')
+          return afSectorProfile.sectors.withSectors(level, sectors)
+        },
+      },
+    }
+    const made = setup(depot, undefined, profile)
+    drawSouth(made)
+    made.tool.acceptAll()
+    expect(made.tool.view.refusal).toBe('no more')
+    expect(made.tool.view.offers.map((offer) => offer.to)).toEqual(['dock'])
+    expect(wall(made, 'sector-1', 0)).toEqual({ next: 'hall' })
+  })
+
+  it('ignores a tap, a nudge, a close and a corner taken back while offering, and says why', () => {
+    const made = setup()
+    drawAnnex(made)
+    for (const act of [
+      () => made.tool.tap(made.at(-3, 9.5)),
+      () => made.tool.nudge(1, 0),
+      () => made.tool.close(),
+      () => made.tool.undoCorner(),
+    ]) {
+      act()
+      expect(made.tool.view.refusal).toBe('answer the portal offers first')
+      expect(made.tool.view.corners).toEqual([])
+      expect(made.tool.view.offers).toHaveLength(1)
+    }
+    // A hover still follows the pointer.
+    made.tool.hover(made.at(-3, 9.5))
+    expect(made.tool.view.snap).toBeDefined()
+  })
+
+  it('answers nothing for an offer that is not there, or when there are none', () => {
+    const made = setup()
+    made.tool.acceptOffer(0)
+    made.tool.declineOffer(0)
+    made.tool.acceptAll()
+    made.tool.finish()
+    expect(made.tool.view.refusal).toBeUndefined()
+    drawAnnex(made)
+    made.tool.acceptOffer(3)
+    made.tool.declineOffer(-1)
+    expect(made.tool.view.offers).toHaveLength(1)
+    expect(made.tool.view.refusal).toBeUndefined()
+  })
+
+  it('ends an open offering with its sector kept when the tool is disposed', () => {
+    const made = setup()
+    drawAnnex(made)
+    made.tool.dispose()
+    expect(stepOpen(made)).toBe(false)
+    expect(made.editor.history.undoLabel).toBe('Draw sector sector-1')
+  })
+
+  it('commits at once when a sector has no neighbour wall to offer a portal for', () => {
+    const made = setup()
+    for (const [x, z] of [
+      [-3, 9.5],
+      [0, 9.5],
+      [0, 13.5],
+    ] as const)
+      made.tool.tap(made.at(x, z))
+    made.tool.close()
+    expect(made.tool.view.offers).toEqual([])
+    expect(stepOpen(made)).toBe(false)
   })
 })

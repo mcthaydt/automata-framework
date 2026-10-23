@@ -3,11 +3,17 @@
 // pixels, the pointer kind and the modifier keys, as for the Select tool), reads `view` and paints the corners, the rubber
 // edge with its length, the snap target and the loupe. The level, the selection and the camera stay in the editor; the
 // tool keeps only the corners of the drawing, which are not in the document until it is closed.
+//
+// Closing a sector whose walls lie on a neighbour's wall does not end the step: the sector is in the level, the step is
+// still open and `view.offers` lists the portals it could have. Each offer is accepted or declined, and the step ends
+// with the last answer (or `finish`), so the sector and the portals it was given are one undo step.
 import type { Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
 import type { Point } from '../format/sector.schema'
-import type { LevelEditor } from '../model/level-editor'
+import type { EditSession, LevelEditor } from '../model/level-editor'
+import { type PortalOffer, portalOffers } from '../model/portal-offers'
 import { addSector } from '../model/sector-edits'
 import { parseSelection } from '../model/selection-ref'
+import { setWallKind } from '../model/wall-edits'
 import { GeometryError, type GeometryLayer } from '../profile/level-profile'
 import { PICK_RADIUS } from '../view/plan/plan-pick'
 import { type SnapResult, snapPlan } from '../view/plan/plan-snap'
@@ -36,6 +42,8 @@ export interface SectorToolView {
   readonly loupe: Point | undefined
   /** The sentence the last refused action gave, until the next change of the drawing. */
   readonly refusal: string | undefined
+  /** The portals the closed sector's walls could have, until each is accepted or declined; the step is open while there are any. */
+  readonly offers: readonly PortalOffer[]
 }
 
 export interface SectorTool {
@@ -53,7 +61,15 @@ export interface SectorTool {
   undoCorner(): void
   /** Adds the drawn outline as a sector, one undo step; what refuses it (the model's sentence) leaves the corners as they are. */
   close(): void
-  /** Drops the drawing. */
+  /** Makes the wall of offer `index` a portal, on both sides; what refuses it (the model's sentence) leaves the offer. */
+  acceptOffer(index: number): void
+  /** Leaves the wall of offer `index` solid. */
+  declineOffer(index: number): void
+  /** Accepts the offers in order, up to the first that is refused. */
+  acceptAll(): void
+  /** Declines the offers that are left and ends the step. */
+  finish(): void
+  /** Drops the drawing, or the sector just closed when its portals are still offered. */
   cancel(): void
   /** The canvas has a new size: the camera keeps its centre. */
   resize(size: Size): void
@@ -68,6 +84,7 @@ const IDLE: SectorToolView = {
   closing: false,
   loupe: undefined,
   refusal: undefined,
+  offers: [],
 }
 
 /** Equal as data: a view is a few points and a few names. */
@@ -76,6 +93,7 @@ const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.str
 const samePoint = (a: Point, b: Point): boolean => a.x === b.x && a.z === b.z
 
 const ALREADY_A_CORNER = 'that point is already a corner'
+const ANSWER_THE_OFFERS = 'answer the portal offers first'
 
 interface Geometry<D> {
   readonly level: D
@@ -106,6 +124,8 @@ export function createSectorTool<D>(
   let refusal: string | undefined
   /** Whether the last thing was a nudge, which puts the loupe on the last corner. */
   let nudged = false
+  /** The open step of a sector just closed, and the portals still to answer. */
+  let offering: { readonly session: EditSession<D>; readonly offers: readonly PortalOffer[] } | undefined
 
   /** The geometry and the selection ids of the level last seen, by identity: a hover costs a snap and not a rebuild. */
   let cache: Geometry<D> | undefined
@@ -150,7 +170,7 @@ export function createSectorTool<D>(
     let loupe: Point | undefined
     if (nudged) loupe = last
     else if (pointer?.kind === 'pen' && snap !== undefined) loupe = { x: snap.x, z: snap.z }
-    return { corners, snap, edges, closing, loupe, refusal }
+    return { corners, snap, edges, closing, loupe, refusal, offers: offering?.offers ?? [] }
   }
 
   const publish = (): void => {
@@ -186,7 +206,8 @@ export function createSectorTool<D>(
     return named.size === 1 ? [...named][0] : undefined
   }
 
-  const close = (): void => {
+  /** Adds the outline as a sector. The step ends here, or stays open for the portals the new walls could have. */
+  const closeOutline = (): void => {
     const id = (options.id ?? lowestFree)(editor.profile.sectors.takenIds(editor.level))
     const session = editor.begin(`Draw sector ${id}`)
     const result = session.run(
@@ -201,11 +222,60 @@ export function createSectorTool<D>(
       session.cancel()
       refusal = result.reason
     } else {
-      session.commit()
+      const offers = portalOffers(editor.profile, editor.level, id)
+      if (offers.length === 0) session.commit()
+      else offering = { session, offers }
       corners = []
       nudged = false
       refusal = undefined
     }
+    publish()
+  }
+
+  /** Whether the offers are unanswered, which holds the drawing still: says why when they are. */
+  const held = (): boolean => {
+    if (offering === undefined) return false
+    refusal = ANSWER_THE_OFFERS
+    publish()
+    return true
+  }
+
+  const remaining = (): number => offering?.offers.length ?? 0
+
+  /** Accepts or declines offer `index`. A refused acceptance keeps the offer; the last answer ends the step. */
+  const answer = (index: number, accept: boolean): void => {
+    const current = offering
+    const offer = current?.offers[index]
+    if (current === undefined || offer === undefined) return
+    if (accept) {
+      const result = current.session.run(
+        setWallKind({ sector: offer.sector, corner: offer.corner, kind: 'portal', to: offer.to }),
+      )
+      if (!result.ok) {
+        refusal = result.reason
+        publish()
+        return
+      }
+    }
+    refusal = undefined
+    offering = { session: current.session, offers: current.offers.filter((_, i) => i !== index) }
+    if (remaining() === 0) finish()
+    else publish()
+  }
+
+  /** Keeps the sector with the portals accepted so far, as one undo step. */
+  const finish = (): void => {
+    if (offering === undefined) return
+    const { session } = offering
+    offering = undefined
+    refusal = undefined
+    session.commit()
+    publish()
+  }
+
+  /** An undo ends the step the offers belong to, and takes the sector with it. */
+  const refresh = (): void => {
+    if (offering !== undefined && !offering.session.open) offering = undefined
     publish()
   }
 
@@ -219,7 +289,7 @@ export function createSectorTool<D>(
     refusal = undefined
   }
 
-  const stops = [editor.history.subscribe(publish), editor.view.subscribe(publish)]
+  const stops = [editor.history.subscribe(refresh), editor.view.subscribe(publish)]
 
   return {
     get view() {
@@ -244,8 +314,9 @@ export function createSectorTool<D>(
     tap(at) {
       pointer = at
       nudged = false
+      if (held()) return
       if (reachesFirst(at)) {
-        close()
+        closeOutline()
         return
       }
       const snap = snapOf(at)
@@ -253,6 +324,7 @@ export function createSectorTool<D>(
       publish()
     },
     nudge(dx, dz) {
+      if (held()) return
       const last = corners.at(-1)
       if (last === undefined) {
         refusal = 'place a corner first'
@@ -268,14 +340,34 @@ export function createSectorTool<D>(
       }
       publish()
     },
-    close,
+    close() {
+      if (!held()) closeOutline()
+    },
     undoCorner() {
+      if (held()) return
       corners = corners.slice(0, -1)
       nudged = false
       refusal = undefined
       publish()
     },
+    acceptOffer(index) {
+      answer(index, true)
+    },
+    declineOffer(index) {
+      answer(index, false)
+    },
+    acceptAll() {
+      while (remaining() > 0) {
+        const before = remaining()
+        answer(0, true)
+        if (remaining() === before) return
+      }
+    },
+    finish,
     cancel() {
+      const open = offering
+      offering = undefined
+      open?.session.cancel()
       corners = []
       nudged = false
       refusal = undefined
@@ -286,6 +378,7 @@ export function createSectorTool<D>(
       publish()
     },
     dispose() {
+      finish()
       for (const stop of stops) stop()
       listeners.clear()
     },
