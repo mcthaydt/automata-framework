@@ -101,3 +101,19 @@ export function edgeRules(options: TerrainRuleOptions): Rule[] {
   }
   return rules
 }
+
+/** A size-1 rule: every cell holding IntGrid `value` draws `tile`, and nothing else is read. */
+export function valueRule(id: string, value: number, tile: number): Rule {
+  return {
+    id,
+    active: true,
+    size: 1,
+    pattern: [{ is: value }],
+    tiles: [tile],
+    chance: 1,
+    flipX: false,
+    flipY: false,
+    breakOnMatch: false,
+    outside: 0,
+  }
+}
