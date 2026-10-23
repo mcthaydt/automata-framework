@@ -974,6 +974,12 @@ function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
 function createSelection<Id extends SelectionId>(): Selection<Id>;
 ```
 
+### `createViewport` (function)
+
+```ts
+function createViewport(init: ViewportInit): Viewport2D;
+```
+
 ### `defineCommand` (function)
 
 ```ts
@@ -1067,6 +1073,32 @@ function parseShortcut(text: string): Shortcut;
 type Platform = 'apple' | 'other';
 ```
 
+### `Point` (interface)
+
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
+}
+```
+
+### `PointerKind` (type)
+
+```ts
+type PointerKind = 'touch' | 'pen' | 'mouse';
+```
+
+### `Rect` (interface)
+
+```ts
+interface Rect {
+    readonly x: number;
+    readonly y: number;
+    readonly w: number;
+    readonly h: number;
+}
+```
+
 ### `Selection` (interface)
 
 ```ts
@@ -1103,6 +1135,15 @@ interface Shortcut {
 }
 ```
 
+### `Size` (interface)
+
+```ts
+interface Size {
+    readonly w: number;
+    readonly h: number;
+}
+```
+
 ### `Transaction` (interface)
 
 ```ts
@@ -1111,6 +1152,46 @@ interface Transaction<S> {
     update(fn: (state: S) => S): void;
     commit(): void;
     cancel(): void;
+}
+```
+
+### `Viewport2D` (interface)
+
+```ts
+interface Viewport2D {
+    readonly size: Size;
+    readonly pan: Point;
+    readonly zoom: number;
+    readonly limits: ViewportLimits;
+    screenToWorld(point: Point): Point;
+    worldToScreen(point: Point): Point;
+    panBy(dx: number, dy: number): Viewport2D;
+    zoomAt(point: Point, factor: number): Viewport2D;
+    snapZoom(point: Point): Viewport2D;
+    fit(rect: Rect, padding?: number): Viewport2D;
+    resize(size: Size): Viewport2D;
+}
+```
+
+### `ViewportInit` (interface)
+
+```ts
+interface ViewportInit {
+    readonly size: Size;
+    readonly pan?: Point;
+    readonly zoom?: number;
+    readonly limits?: Partial<ViewportLimits>;
+}
+```
+
+### `ViewportLimits` (interface)
+
+```ts
+interface ViewportLimits {
+    readonly minZoom: number;
+    readonly maxZoom: number;
+    readonly bounds?: Rect | undefined;
+    readonly keep: number;
 }
 ```
 
