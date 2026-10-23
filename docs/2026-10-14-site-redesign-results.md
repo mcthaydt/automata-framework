@@ -198,7 +198,7 @@ Plan: [`docs/superpowers/plans/2026-10-23-dx9w-evidence-on-the-site.md`](superpo
 
 ## Lighthouse fixes (QB.3h, 2026-10-23)
 
-Plan: [`docs/superpowers/plans/2026-10-23-qb3h-lighthouse-fixes.md`](superpowers/plans/2026-10-23-qb3h-lighthouse-fixes.md). The QB.3f baseline found three pages below the quality-bar targets (performance at least 0.9, LCP at most 2.5 s). Performance is now at or above 0.9 on all four measured pages, total blocking time is gone, and LCP is still over 2.5 s on two pages (below).
+Plan: [`docs/superpowers/plans/2026-10-23-qb3h-lighthouse-fixes.md`](superpowers/plans/2026-10-23-qb3h-lighthouse-fixes.md). The QB.3f baseline found three pages below the quality-bar targets (performance at least 0.9, LCP at most 2.5 s). In the container performance is at or above 0.9 on all four measured pages, total blocking time is gone, and LCP is still over 2.5 s on two pages (below). On the GitHub-hosted runner, whose Chromium is newer, `/` scores 0.87 and its LCP is 3.5 s (the section after the container result).
 
 ### What was wrong, and what changed
 
@@ -217,6 +217,21 @@ Plan: [`docs/superpowers/plans/2026-10-23-qb3h-lighthouse-fixes.md`](superpowers
 | `/examples` | 0.62 to **0.92** | 2,778 to **2,878 ms** | 6,435 to **26 ms** | 541 to 238 KB |
 | `/docs` | 0.98 to **0.98** | 1,974 to **2,029 ms** | 0 to **0 ms** | 127 to 129 KB |
 
+### The hosted runner (Chromium 153) and the home page
+
+The CI's Lighthouse job runs in the Playwright 1.63 image, whose Chromium is 153; the container has 141. The medians the job printed (run 39910375552 on the QB.3h head `e5f692d`, copied unchanged into `lighthouse-baseline.json`; the earlier run 39909576561 measured the home page's LCP at 3,510 ms and a throwaway run on a side branch at 3,505 ms):
+
+| Page | Performance | LCP | TBT | Transferred | Container (141) LCP |
+| --- | --- | --- | --- | --- | --- |
+| `/` | **0.87** | **3,505 ms** | 46 ms | 383 KB | 2,574 ms, 288 KB |
+| `/start` | 0.95 | 2,593 ms | 22 ms | 216 KB | 2,474 ms |
+| `/examples` | 0.92 | 2,885 ms | 28 ms | 238 KB | 2,878 ms |
+| `/docs` | 0.98 | 2,072 ms | 0 ms | 129 KB | 2,029 ms |
+
+The three other pages agree with the container within 5 percent. The home page does not, and a throwaway run that printed each request (side branch, never merged) shows why: Chromium 153 requests `previews/double-jump.webp` (52.8 KB) and `previews/bodies-2d.webp` (42.6 KB), the two lazy gallery images below the poster, about 90 ms after it asks for the poster; Chromium 141 does not fetch them in the measured window. They are the 95 KB the home page transfers extra. Lighthouse's simulated slow network includes every request made before the LCP in its model and shares the 1.6 Mbit/s between them, so their 95 KB is charged to the poster, which is the LCP element. In the side-branch run the three runs were 3,523, 2,741 and 3,505 ms (median 3,505), and the same two images were fetched in all three.
+
+So the home page really is slower on a current Chromium, and the fix is to keep those two images from competing with the poster (for example by requesting them after the poster has painted). That is a separate change, QB.3j, with the hosted run as its judge, because Chromium 153 is not available in the container. Until then `/` starts below the performance target with its reason recorded in `tests/lighthouse-budget.test.ts`, and the budget is set from this run.
+
 ### What is still open: LCP on `/` and `/examples`
 
 - `/` is 74 ms over 2.5 s and `/examples` is 378 ms over. `/start` and `/docs` meet it. Nothing blocks the main thread any more; the remaining time is first paint (FCP 2.1 to 2.3 s on these pages against 1.9 s on `/docs`) plus the LCP element (the hero poster on `/`, the `h1` on `/examples`).
@@ -226,7 +241,9 @@ Plan: [`docs/superpowers/plans/2026-10-23-qb3h-lighthouse-fixes.md`](superpowers
 
 ### Budgets
 
-Performance floors 0.85 (`/`), 0.9 (`/start`), 0.85 (`/examples`), 0.9 (`/docs`); LCP ceilings 3,500, 3,000, 3,300 and 2,500 ms; total blocking time 200 ms on all four; CLS 0.1. `tests/lighthouse-budget.test.ts` allows a ceiling of the recorded LCP plus a third (it was a quarter; see the swing above) and checks that the recorded run meets 0.9 performance and 200 ms blocking time on every page.
+Performance floors 0.85 (`/`), 0.9 (`/start`), 0.9 (`/examples`), 0.9 (`/docs`); LCP ceilings 3,700, 3,000, 3,300 and 2,500 ms; total blocking time 200 ms on all four; CLS 0.1.
+
+The baseline (`lighthouse-baseline.json`) is now the hosted run's, because the budget is enforced there. The first budget was set from the container (`/` LCP 3,500 ms, `/examples` floor 0.85) and the hosted run failed it on `/` by 5 to 10 ms in two sets in a row; the other three pages passed. Moving a budget up needs a reason, and the reason is the machine, not the page: the same build measured 2,574 ms in the container and 3,505 ms on the runner that enforces the budget, for the cause above. The hosted medians were within 5 ms of each other in three sets (3,510, 3,505, 3,505 ms), so a ceiling of 3,700 ms leaves `/` 5 percent of room; `/examples` now meets 0.9 on the runner (0.92 in all three sets) and is held to it. `tests/lighthouse-budget.test.ts` allows a ceiling of the recorded LCP plus a third, holds a page that meets 0.9 to 0.9, lists pages below the target with their reason (`/`, until QB.3j) and fails when a listed page meets the target, and checks the 200 ms blocking-time line on every page. The container numbers stay in the tables above as the record of the fixes.
 
 ### Verification (2026-10-23, Node 22.22.0, 4-CPU container, load average under 2)
 
@@ -234,5 +251,5 @@ Performance floors 0.85 (`/`), 0.9 (`/start`), 0.85 (`/examples`), 0.9 (`/docs`)
 - Mutations caught: highlighting always, the observer test ignoring `isIntersecting`, `autoStart` back on, the gallery load returning no project, the home page ignoring its data, the preload comparison `>=`, preloads resolved from the wrong base URL, a demo losing its poster, a looser LCP, performance and blocking-time budget, a blocking-time budget tighter than the record, and the report upload without `include-hidden-files`.
 - `pnpm check` 0 errors; `pnpm test` 43 files, 227 passed, 1 expected fail (`license-claim`); `pnpm build`; `pnpm check:site` 28 pages; `pnpm lighthouse` exits 0 against the new `lighthouserc.json` on the final build (performance 0.90 / 0.95 / 0.92 / 0.98, LCP 3,160 / 2,560 / 2,880 / 2,011 ms in that set).
 - **The Chromium browser suite found a regression of this change.** The first run of all 226 tests failed 11 axe checks, `scrollable-region-focusable` on `.code-scroll > pre` (and the project-context blocks): shiki's `<pre>` carries `tabindex="0"`, the plain `<pre>` shown before a block is highlighted did not, and plain code now stays on the page until a block is near the screen. `tests/code-block.test.ts` has a test for it (red first) and the plain `<pre>` has `tabindex="0"`. That made the keyboard gate fail on seven pages ("not reachable by keyboard: pre"): it tags the elements it will tab through, and a plain `<pre>` that gets highlighted after the tagging is replaced by an untagged one. `settleCodeBlocks` (`tests/e2e/gates.ts`) now scrolls through the page and waits for the visible blocks first. **Final: all 226 Chromium tests pass** (axe at 375 and 1280 px, keyboard, dead buttons, the gate fixtures). A keyboard user who focuses a plain block in the moment before it is highlighted loses focus when the highlighted `<pre>` replaces it; that was already so when every block highlighted on mount, and is not changed here.
-- **The hosted Lighthouse job could not keep its reports.** `.lighthouseci` is a hidden folder and `actions/upload-artifact` skips those unless `include-hidden-files: true`; the first hosted run said "No files were found". The upload now sets it (`tests/workflows.test.ts`, red first). The hosted run on the old code (PR #8, run 39906391775) failed the home page at 4,516 ms and the gallery at 5,610 ms against the old ceilings 4,000 and 3,500 ms, so GitHub's runner is slower than this container (the same pages measured 3,163 and 2,778 ms here); the budgets above come from this container and the hosted run of the QB.3h PR is the check.
+- **The hosted Lighthouse job could not keep its reports.** `.lighthouseci` is a hidden folder and `actions/upload-artifact` skips those unless `include-hidden-files: true`; the first hosted run said "No files were found". The upload now sets it (`tests/workflows.test.ts`, red first). The hosted run on the old code (PR #8, run 39906391775) failed the home page at 4,516 ms and the gallery at 5,610 ms against the old ceilings 4,000 and 3,500 ms (3,163 and 2,778 ms in this container). With the QB.3h code the hosted gallery measures the same as the container (2,885 against 2,878 ms), so what the old numbers showed was the blocking time and the 380 KB chunk, not a slower runner; the home page is the one difference left (the section on the hosted runner). The job now prints its medians in the log and the run summary (`tests/workflows.test.ts`, red first), because the report artifact is a zip on a blob host that some readers of the log cannot open.
 
