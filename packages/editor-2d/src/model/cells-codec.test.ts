@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { decodeRows, encodeRows, packTile, unpackTile } from './cells.codec'
+import { decodeRows, encodeRows, packTile, unpackTile } from './cells-codec'
 import { Grid } from './grid'
 
 const decodeOk = (rows: string[], kind: 'tile' | 'int', cols: number): Grid => {

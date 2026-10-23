@@ -1,47 +1,4 @@
-export {
-  checkEntityDef,
-  checkFieldDef,
-  defaultFieldValue,
-} from './fields/check-field-def'
-export { checkFieldValue } from './fields/check-field-value'
-export {
-  type EntityDefIssue,
-  entityDefIssues,
-  entityDefSchema,
-  entityDefShape,
-  fieldDefSchema,
-  fieldValueSchema,
-  fieldValuesSchema,
-} from './fields/field.schema'
-export {
-  ENTITY_ID,
-  type EntityDef,
-  type EntityDefCode,
-  type EntityDefProblem,
-  FIELD_ID,
-  FIELD_TYPES,
-  type FieldDef,
-  type FieldDefCode,
-  type FieldProblem,
-  type FieldType,
-  type FieldValue,
-  type FieldValueCode,
-  type FieldValueProblem,
-  type FieldValues,
-  HEX_COLOR,
-  type InstanceCode,
-  type InstanceProblem,
-  type Point,
-  type RefValue,
-} from './fields/field-types'
-export { checkValues, renameFieldValues, valuesWithDefaults } from './fields/field-values'
-export {
-  checkRetype,
-  type FieldInstance,
-  type RenameResult,
-  type RetypeBreakage,
-  renameField,
-} from './fields/retype'
+export * from './fields/index'
 export { default as EditorShell } from './shell/EditorShell.svelte'
 export {
   DETENTS,

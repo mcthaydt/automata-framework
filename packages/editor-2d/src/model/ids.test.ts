@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { counterIds, randomIds } from './ids'
+import { counterIds, DEF_ID, ITEM_ID, randomIds } from './ids'
 
 describe('counterIds', () => {
   test('gives 8-character base36 ids in order, zero padded', () => {
@@ -47,5 +47,18 @@ describe('randomIds', () => {
   test('every byte value lands on a base36 character', () => {
     const ids = randomIds((bytes) => bytes.fill(255))
     expect(ids.next()).toMatch(/^[0-9a-z]{8}$/)
+  })
+})
+
+describe('id shapes', () => {
+  test('a definition id is kebab-case and starts with a letter', () => {
+    for (const id of ['player-start', 'moss-steps', 'a', 'tiles2']) expect(DEF_ID.test(id)).toBe(true)
+    for (const id of ['', 'Door', '1door', '-door', 'door_2', 'door ']) expect(DEF_ID.test(id)).toBe(false)
+  })
+
+  test('an item id is lower case and digits with hyphens, so a generated id and a hand-written one both fit', () => {
+    const ids = counterIds()
+    for (const id of [ids.next(), '9z', 'solid-top', 'a']) expect(ITEM_ID.test(id)).toBe(true)
+    for (const id of ['', 'Item', '-item', 'it em', 'it_em']) expect(ITEM_ID.test(id)).toBe(false)
   })
 })

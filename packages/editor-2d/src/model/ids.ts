@@ -5,6 +5,11 @@ export interface IdSource {
   next(): string
 }
 
+/** The id of a definition or a level, which a person types: kebab-case, starting with a letter (`moss-steps`). */
+export const DEF_ID: RegExp = /^[a-z][a-z0-9-]*$/
+/** The id of something inside a project that a generator mints (an instance, a rule): lower case, digits, hyphens. */
+export const ITEM_ID: RegExp = /^[a-z0-9][a-z0-9-]*$/
+
 const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz'
 const ID_LENGTH = 8
 
