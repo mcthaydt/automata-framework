@@ -1,6 +1,6 @@
 # M3: 3D characters, procedural with an IK rig (milestone spec, revised twice)
 
-- **Status:** Drafted 2026-10-18; **revised 2026-10-23** for the Owner's direction below (no rigged glTF characters, an IK rig with authored poses and clips, an angled 24 mm camera, the action-adventure the characters are for). **Awaiting Owner review.** It replaces the 2.5D scope of the [2026-10-16 M3 spec](./2026-10-16-m3-25d-pipelines-design.md) (approved 2026-10-16), whose amendment at the top says what is dropped and what carries over. Task **M3.0** (revised) in [02 Master delivery plan](../../02-master-delivery-plan.md). Nothing here is implemented before that review (01 Decomposition §5, [04 How we build](../../04-how-we-build.md)), except spike S7 (M3.1), which is exempt from TDD (A0+A1 spec §2). Open decisions M3R-D1 to M3R-D15 (§15) carry recommended defaults; they are in effect only once the Owner approves them, except the ones marked **Owner** in §15, which are the Owner's words.
+- **Status:** Drafted 2026-10-18; **revised 2026-10-23** for the Owner's direction below (rigged glTF characters deferred "for now", an IK rig with authored poses and clips, an angled 24 mm camera, the action-adventure the characters are for). **Awaiting Owner review.** It replaces the 2.5D scope of the [2026-10-16 M3 spec](./2026-10-16-m3-25d-pipelines-design.md) (approved 2026-10-16), whose amendment at the top says what is dropped and what carries over. Task **M3.0** (revised) in [02 Master delivery plan](../../02-master-delivery-plan.md). Nothing here is implemented before that review (01 Decomposition §5, [04 How we build](../../04-how-we-build.md)), except spike S7 (M3.1), which is exempt from TDD (A0+A1 spec §2). Open decisions M3R-D1 to M3R-D17 (§15) carry recommended defaults; they are in effect only once the Owner approves them. In §15 a row's **Owner's words** part restates what the Owner said and is in effect; its **agent default** part is a reading of those words and waits for review like any other default. Two readings are **pending Owner answers** on the Orchestrator bus and keep their best-guess default until answered: the camera's rotation (M3R-D9, §4.2) and the visual target (M3R-D17).
 - **Depends on:** M2 (merged). PRODUCT.5 (the `mcthaydt/automata-plus` workspace) before any M3 package task, because every M3 package is Plus. PRODUCT.1's post-filter slot before `post-retro`. Not on M4 or M5, except that the base game uses M4's input when it lands.
 
 ## Owner direction
@@ -8,11 +8,11 @@
 | When (UTC) | Where | The Owner's words | What it did here |
 |---|---|---|---|
 | 2026-10-18 | The Desk's relay | "drop 2.5D; M3 becomes procedural-character 3D plus rigged-character 3D." | 2.5D dropped. The "rigged" half is superseded by the next row. |
-| 2026-10-23 08:45:45 | Project thread, message `cmsg_01VQPgZzjNxjPkiB5eeQRiaYBZMPTigDhn8zdJ52vrPKZ9` | "Cut the rigged gltf, procedural only for now, make the character action adventure like ocarina of time switch 2 remake, but use an angle like crow country for the 3D" | Rigged glTF characters, skinned-mesh work, clip crossfade and the rigged pipeline path are cut (M3R-D1, D6, D8). The game the characters are for is an Ocarina-style action-adventure (§17). The camera is Crow Country's angled, high three-quarter view, not a free orbit (M3R-D9). |
-| 2026-10-23 08:46:27 | Project thread, message `cmsg_01VQPgZzjNxjPkiB5eeQRiaY7dESwAMgKa1wKZ815qSyW1` | "Character editor is glorious, but let's add like IK rig so we can manually pose, I think that's also necessary for animation which we may have missed?" | New: an IK rig, authored poses and keyframed clips for procedural figures (§4.4.2 to §4.4.6, task M3.6, decisions M3R-D6, D12, D13). The Owner's "missed" is right (§2.3). |
+| 2026-10-23 08:45:45 | Project thread, message `cmsg_01VQPgZzjNxjPkiB5eeQRiaYBZMPTigDhn8zdJ52vrPKZ9` | "Cut the rigged gltf, procedural only for now, make the character action adventure like ocarina of time switch 2 remake, but use an angle like crow country for the 3D" | Rigged glTF characters are out "for now" (the Owner's words): deferred, not removed from AF for good (M3R-D1). Agent readings, awaiting review: the skinned-mesh work and the rigged pipeline path leave M3 with them (M3R-D6, D8); the game is an Ocarina-style action-adventure with lock-on, dungeons, items and puzzles (§17); the camera follows the player at Crow Country's high three-quarter angle, with player rotation in 45° steps (M3R-D9, **pending an Owner answer**); "switch 2 remake" is read as game design, keeping the current look (M3R-D17, **pending an Owner answer**). |
+| 2026-10-23 08:46:27 | Project chat, passed on by the coordinator, message `cmsg_01VQPgZzjNxjPkiB5eeQRiaY7dESwAMgKa1wKZ815qSyW1` | "Character editor is glorious, but let's add like IK rig so we can manually pose, I think that's also necessary for animation which we may have missed?" | New: an IK rig, authored poses and keyframed clips for procedural figures (§4.4.2 to §4.4.6, task M3.6; the rig's scope, M3R-D6, D12, D13 and D16, is the agent's reading). The Owner's "missed" is right (§2.3). |
 | 2026-10-23 08:48:00 | Project thread, message `cmsg_01VQPgZzjNxjPkiB5eeQRiaYDbjPknERexJTta3asGxbSo` | "Go with 24mm focal length for camera" | The camera's lens is 24 mm (§4.2, M3R-D9). |
 
-Earlier direction still in force: 2026-10-11 (2D, then 3D; Ruken first; PixiJS for 2D and 3D); 2026-10-16 PD-1 (every extension is Automata Plus) and PD-3 (`post-retro`'s 2D part runs on the FloorFifty path); 2026-10-17 (the 3D camera uses pmndrs/klipp, evaluated and pinned in M9.0; §16 says how it meets the angled views). **Not answered:** whether 3D belongs in AF 1.0 or stays in Plus (M3R-D10). It keeps its default (1.0 is 2D, 3D is Plus) and is open on the Orchestrator bus.
+Earlier direction still in force: 2026-10-11 (2D, then 3D; Ruken first; PixiJS for 2D and 3D); 2026-10-16 PD-1 (every extension is Automata Plus) and PD-3 (`post-retro`'s 2D part runs on the FloorFifty path); 2026-10-17 (the 3D camera uses pmndrs/klipp, evaluated and pinned in M9.0; §16 says how it meets the angled follow camera). **Not answered:** whether 3D belongs in AF 1.0 or stays in Plus (M3R-D10). It keeps its default (1.0 is 2D, 3D is Plus) and is open on the Orchestrator bus. **Pending Owner answers (2026-10-23 audit):** the camera's rotation (M3R-D9) and the look (M3R-D17); each keeps its best-guess default until answered.
 
 ## 0. Sources
 
@@ -27,7 +27,7 @@ Earlier direction still in force: 2026-10-11 (2D, then 3D; Ruken first; PixiJS f
 
 ## 1. Goal and boundaries
 
-**Goal.** A game on AF can put characters in a 3D room, move them, pose them and animate them: **procedural characters** built from data (sliders, a shared skeleton, garments, hair, headwear and held items), a **procedural gait**, and an **IK rig** with authored poses and keyframed clips, all drawn as real 3D meshes by `render-pixi3d` on WebGL2 (WebGPU when opted in), under Ruken's CSP, at 30 FPS or better on the phone profiles, in a private build, seen through an **angled, high three-quarter camera on a 24 mm lens**. A character's look and motion are presentation: the sim says where it is, where it faces, whether it moves, which clip plays, what it aims at, and never reads a joint.
+**Goal.** A game on AF can put characters in a 3D room, move them, pose them and animate them: **procedural characters** built from data (sliders, a shared skeleton, garments, hair, headwear and held items), a **procedural gait**, and an **IK rig** with authored poses and keyframed clips, all drawn as real 3D meshes by `render-pixi3d` on WebGL2 (WebGPU when opted in), under Ruken's CSP, at 30 FPS or better on the phone profiles, in a private build, seen through an **angled, high three-quarter follow camera on a 24 mm lens**. A character's look and motion are presentation: the sim says where it is, where it faces, whether it moves, which clip plays, what it aims at, and never reads a joint.
 
 **What this is for.** The characters and the camera are shaped by the game AF builds next, GAME-3D: a third-person action-adventure in the spirit of Ocarina of Time, with lock-on combat, dungeons, items and puzzles (§17). M3 does not build that game. It builds the character, rig and camera pieces that game needs and proves them in one small base game.
 
@@ -35,12 +35,12 @@ Earlier direction still in force: 2026-10-11 (2D, then 3D; Ruken first; PixiJS f
 
 | Was | Now |
 |---|---|
-| Rigged glTF characters with named clips, crossfade, sockets (`rigged` view, §4.5) | **Cut.** Procedural figures only. No skinned glTF, no glTF animation, no crossfade between clips (M3R-D6) |
-| Meshy `model`, `rig`, `animate` stages in the character pipeline | **Cut.** The character pipeline is the free procedural path; paid stages stay only in the props pipeline |
+| Rigged glTF characters with named clips, crossfade, sockets (`rigged` view, §4.5) | **Deferred** (Owner: "procedural only for now"). Procedural figures only in M3 and GAME-3D. No skinned glTF and no glTF animation until the Owner reopens it (M3R-D1, D6) |
+| Meshy `model`, `rig`, `animate` stages in the character pipeline | **Not in M3** (they serve the deferred rigged path). The character pipeline is the free procedural path; paid stages stay only in the props pipeline |
 | Motion = the figure's gait plus eleven actions written in code | Gait stays code. Everything else is **data**: an IK rig, authored poses (`figure-pose`) and keyframed clips (`figure-clip`) |
-| A follow camera with 45° orbit steps | An **angled camera**: fixed yaw and tilt per authored view, a following focus, **24 mm lens**, no player orbit (M3R-D9, D11) |
+| A follow camera with 45° orbit steps | An **angled follow camera on a 24 mm lens** at a fixed tilt per view; the player rotates it in 45° steps and rooms may set its home heading (M3R-D9, **pending an Owner answer**: the other options are free rotation, or fixed per-room angles with no rotation; one setting switches between them, §4.2) |
 | S7-Q8 (skinning on both backends) | Gone with the skins. S7-Q8 now measures the rig solve; S7-Q10 checks the angled view reads on phones |
-| One base game with a procedural and a rigged character | `games/base-3d`: procedural figures only, two authored views, a lock-on aim demo |
+| One base game with a procedural and a rigged character | `games/base-3d`: procedural figures only, two rooms with their own home headings, player rotation, a lock-on aim demo |
 
 **Plus (paid, PD-1), in `mcthaydt/automata-plus`:**
 1. `render-pixi3d`: the 3D renderer on `@pixi/3d`: static meshes, props, lights, fog, the angled camera and the figure view. Private, unpublished, never in a public build (D-1, unchanged).
@@ -52,7 +52,8 @@ Earlier direction still in force: 2026-10-11 (2D, then 3D; Ruken first; PixiJS f
 **Core (free):** only the `pixi.js` 8.22 bump (M3.2), as before. No other core change; a missing public seam becomes a change request to its owning lane.
 
 **Exclusions:**
-- Rigged or skinned glTF characters, glTF animation clips, clip crossfade and blend trees, animation retargeting between skeletons, root motion, facial animation and lip sync, cloth simulation: **not built** (M3R-D6). Cut by the Owner on 2026-10-23, not deferred to a milestone; a new Owner decision would reopen them. Static GLB props stay.
+- Rigged or skinned glTF characters and glTF animation clips: **deferred by the Owner** on 2026-10-23 ("procedural only for now"). They are out of M3 and GAME-3D until the Owner reopens them; §14 keeps the seam a later skinned view would use. Static GLB props stay.
+- Blend trees, animation state machines, retargeting between skeletons, root motion, facial animation and lip sync, cloth simulation: **not in M3**. This is the agent's scope call (M3R-D6), awaiting review, not the Owner's cut. A short pose-space transition between action clips is in (M3R-D16, §4.4.5).
 - The third-person controller, lock-on targeting, combat, items, ground-contact IK on stairs and slopes, brush-based environments, physics-driven character motion and ragdolls: M9 (from GAME-3D). M3 provides the camera views, the rig's pin and aim API and a small lock-on demo; GAME-3D proves the rest (§17).
 - The figure painter (The Last Light's CPU raster to a sprite cell: `raster.ts`, `paint.ts`, `ramp-light.ts`): it is the 2.5D look and is dropped with it (M3R-D2).
 - The character editor's interface (the Studio): it is the editor suite's work, not M3's (§4.4.6 says what it needs from `figures`).
@@ -116,41 +117,48 @@ export const render3dExtension: ExtensionDef<'render-pixi3d'>
 
 - Mounting, interpolation, assets (`.glb`, `.bin`; byte progress; 30 s stall), init order and the manifest are as 2026-10-16 §4.1.
 - Entity views: `mesh(model)` (a static GLB or a packed `.bin`), `box(size, material)` and `figure(def, options)` (§4.4). `billboard` and `rigged` do not exist.
-- `parseGlb` and `parsePack` from The Last Light keep the static path only. A `.glb` with a skin is `ModelInvalid` (§6): AF draws no skinned glTF.
+- `parseGlb` and `parsePack` from The Last Light keep the static path only. A `.glb` with a skin is `ModelInvalid` (§6): skinned glTF is not supported yet (deferred, M3R-D1).
 
 ### 4.2 The angled camera (`render-pixi3d` `camera/`, M3.4)
 
-The Owner's reference is Crow Country's angled, high three-quarter view; the lens is 24 mm.
+The Owner's reference is Crow Country's angle; the lens is 24 mm. Crow Country's camera follows the player at a high three-quarter angle and the player can rotate it (Nintendo Life's review: it "can be rotated at will"). **How the camera rotates is pending an Owner answer** (bus question `automata/outbox/2026-10-23-1006-3d-audit-camera-question.md`). The contract below carries all three answers behind one setting, `rotation`, and its best-guess default is **`steps45`**: the player turns the camera in 45° steps around the focus, and a room may set its own home heading. `'free'` is free rotation; `'off'` is fixed authored angles per room with no player rotation (what the first draft of this revision had). Nothing else in the spec changes with the answer except the rows that name `rotation`.
 
 ```ts
 // content (schema `camera-view`), compiled and hashed like all content
 export interface CameraView {
   readonly id: string
-  readonly yawDeg: number                // the fixed heading the view looks along (0 looks toward +z)
+  readonly yawDeg: number                // the home heading the view looks along (0 looks toward +z)
   readonly tiltDeg: number               // downward angle; 45 by default, authored within 30 to 60 (M3R-D11)
   readonly distance: number              // metres from the focus point back along the view axis; 9 by default, 6 to 12
   readonly focusHeight: number           // metres above the followed position the focus sits; 1.0 by default
   readonly bounds?: Box3                 // the focus point is clamped inside this box, so walls and doorways stay framed
   readonly lag?: number                  // seconds of easing on the follow; 0.18 by default
+  readonly rotate?: boolean              // whether the player may rotate in this view; true by default (ignored when rotation is 'off')
 }
+export type CameraRotation = 'steps45' | 'free' | 'off'  // pending the Owner (M3R-D9); 'steps45' until answered
 export interface CameraRig {
   readonly lensMm: number                // 24 (Owner, 2026-10-23); the guard holds it (§6)
+  readonly rotation: CameraRotation
   setViews(views: readonly CameraView[]): void
-  activate(id: string, how: 'cut' | 'ease'): void   // 'ease' is 400 ms, a 'cut' under reduced motion
-  follow(x: number, y: number, z: number): void      // the followed view's interpolated position
+  activate(id: string, how: 'cut' | 'ease'): void    // 'ease' is 400 ms, a 'cut' under reduced motion
+  heading(yawDeg: number): void                       // the sim's current heading (home yaw plus the player's turn), eased over 250 ms
+  follow(x: number, y: number, z: number): void       // the followed view's interpolated position
   frame(lock?: { x: number; y: number; z: number }): void // lock-on: bias the focus toward the target, clamped by bounds
   update(frameSeconds: number): void
 }
 export const fovOf: (lensMm: number) => number        // 2 * atan(12 / mm), degrees: the vertical field of view
-export function angledCamera(options: { readonly views: readonly CameraView[]; readonly initial: string }): CameraRig
+export function angledCamera(options: { readonly views: readonly CameraView[]; readonly initial: string; readonly rotation?: CameraRotation }): CameraRig
 ```
 
-- **The lens.** `fovOf` is The Last Light's convention (`2 * atan(12 / mm)`: a 24 mm tall film gate). At **24 mm** the vertical field of view is **53.13°** and the visible height at distance *d* is exactly *d*. The horizontal field follows the aspect ratio: 67.4° at 4:3, 83.3° at 16:9, 94.6° at 19.5:9, 98.8° at 21:9. A wide lens close to the action gives the framing the Owner pointed at and makes the room's depth read; it also stretches objects near the frame's edge, which is why an authored view keeps the player near the middle (the focus follows) and S7-Q10 looks at it.
-- **The default view.** Tilt 45°, distance 9 m, focus height 1.0 m. A 1.62 m figure at the focus then fills 12.7% of the frame's height (its extent across the view is 1.62 × cos 45° = 1.15 m of the 9 m visible; the reference board's room, where the figure walks off-centre, measures 12 to 13%). The Last Light's 2.5D camera was 50 mm at 30° and stays in the old spec; AF's `pipeline.toml` `[locked]` holds `lensMm = 24` and `tiltDeg = 45` (the guard of 2026-10-16 §4.8), changed only by a recorded decision. This spec's Owner direction table is the record for the lens.
-- **Per-room views, not an orbit.** A view is a fixed yaw and tilt that follows the player's position with eased lag inside its bounds. There is no player-controlled orbit and no `camera-left` or `camera-right` action. A level has several views (a room, a corridor, a boss arena) and a single view is the whole camera for a game that wants one global angle. The 2.5D camera zones, octants and hysteresis stay dropped; a view is a named camera, and **which view is active is sim state** (below).
-- **The active view is sim state.** Stick input maps to a world direction through the active view's `yawDeg` (a stick pushed up moves the character away from the camera). That mapping affects gameplay, so the sim owns it: a `view` id on the player (set by the room or sector the player is in, or by a view volume) is a component, the compiled `camera-view` content gives its yaw, and the input mapper reads that, never the eased camera. The renderer reads the id from the render rows and calls `activate`. On a change the mapping **latches** to the old yaw until the stick is released or turns by more than 90° (the classic fixed-camera rule, M3R-D15), so crossing a doorway does not reverse the character mid-stride.
+- **The lens.** `fovOf` is The Last Light's convention (`2 * atan(12 / mm)`: a 24 mm tall film gate). At **24 mm** the vertical field of view is **53.13°** and the visible height at distance *d* is exactly *d*. The horizontal field follows the aspect ratio: 67.4° at 4:3, 83.3° at 16:9, 94.6° at 19.5:9, 98.8° at 21:9. A wide lens close to the action gives the framing the Owner pointed at and makes the room's depth read; it also stretches objects near the frame's edge, which is why the focus follows the player and keeps them near the middle, and S7-Q10 looks at it.
+- **The default view.** Tilt 45°, distance 9 m, focus height 1.0 m (agent defaults; the Owner gave only the lens). A 1.62 m figure at the focus then fills 12.7% of the frame's height (its extent across the view is 1.62 × cos 45° = 1.15 m of the 9 m visible; the reference board's room, where the figure walks off-centre, measures 12 to 13%). The Last Light's 2.5D camera was 50 mm at 30° and stays in the old spec. AF's `pipeline.toml` `[locked]` holds **only the lens**, `lensMm = 24` (the guard of 2026-10-16 §4.8), changed only by a recorded decision; this spec's Owner direction table is the record. Tilt and distance are authored per view and the guard checks them by range (30° to 60°, 6 to 12 m), not by a locked value (M3R-D11).
+- **A follow camera with a home heading per room.** The camera always follows the player's position with eased lag inside the active view's bounds. A view is a named home heading, tilt, distance and bounds. A game that wants one global angle has one view; a level can give a room, a corridor or a boss arena its own view. The 2.5D camera zones, octants and hysteresis stay dropped.
+- **Player rotation** (`rotation: 'steps45'`, the pending default). The `camera-left` and `camera-right` actions (M4 profile entries; two 44 px CornerControls buttons on touch, never under `hostReserved`) turn the heading by 45° around the focus, eased over 250 ms (instant under reduced motion). Entering a view resets the turn to that view's home heading when the view says `rotate: false` (a boss arena framed one way) and keeps the player's turn otherwise. With `'free'` the right stick or a drag turns the heading continuously; with `'off'` the actions do not exist and the heading is always the view's home yaw.
+- **The heading is sim state.** Stick input maps to a world direction through the current heading (a stick pushed up moves the character away from the camera). That mapping affects gameplay, so the sim owns it: the player carries a `view` id (set by the room or sector the player is in, or by a view volume) and a `turn` (an integer count of 45° steps, 0 to 7; a fixed-point angle under `'free'`), the compiled `camera-view` content gives the home yaw, and the input mapper reads those, never the eased camera. The renderer reads both from the render rows and calls `activate` and `heading`. On a **view** change the mapping **latches** to the old heading until the stick is released or turns by more than 90° (the classic fixed-camera rule, M3R-D15), so crossing a doorway does not reverse the character mid-stride. A player's own rotation step does not latch: the player asked for the new heading.
+- **Deterministic trig for the mapping.** The sim may not call `Math.sin` or `Math.cos` (`pnpm boundaries`). The content compiler, which runs outside the sim, writes into each compiled `camera-view` the sine and cosine of its eight headings (home yaw plus *k* × 45°, *k* = 0 to 7) as Q16.16 fixed-point integers, and the sim's mapper indexes that table by `turn`; it never computes an angle. Under `'free'` the mapper uses `sin` and `cos` from `@mcthaydt/automata-sim/math` (the parity-tested `dmath`) on the fixed-point heading. Either way the mapping is in the golden replay, so B-a covers it in four engines, and D3-i pins the table.
+- **Occluders: walls and ceilings never hide the player.** A camera 45° down and 9 m back sits outside the room, so the near walls and the ceiling would cover the action. Each frame, for the active heading: (1) a room wall whose inside face points away from the camera (the camera is on its outer side) is cut away, drawn only as a floor-level trim so the room's outline still reads, as the reference board's camera lab does; (2) ceilings and overhead beams are not drawn in an angled view; (3) any other static mesh tagged `occlude: 'fade'` whose bounds cross the segment from the camera to the player's head or feet fades to 25% opacity over 150 ms (instant under reduced motion) and back when clear. The content shape is an `occlude?: 'cut' | 'fade' | 'never'` field on a static mesh or sector wall (`'cut'` by default for walls, `'never'` for floors, `'fade'` by default for props taller than 1.5 m). Presentation only; the sim never reads it. D3-h proves it.
 - **Lock-on framing.** `frame(lock)` moves the focus up to 35% of the way toward the lock target, never past the view's bounds and never so far that the player leaves the middle third of the frame. Presentation only.
-- **Presentation only** apart from the view id: the rig reads interpolated positions and writes only the `View3D` camera (law 1). The 3D level editor's walk camera (ED3D-D8, 69°) is a different camera and unrelated.
+- **Presentation only** apart from the view id and the turn: the rig reads interpolated positions and the sim's heading and writes only the `View3D` camera (law 1). The 3D level editor's walk camera (ED3D-D8, 69°) is a different camera and unrelated.
 
 ### 4.3 Lighting and fog (M3.4)
 
@@ -284,10 +292,12 @@ export function markerTime(clip: FigureClipDef, name: string): number
 ```
 
 - **Keys hold handles, not joint angles.** Sampling interpolates effector targets (positions lerp, rotations slerp) and runs the solver on the result, so a hand keeps its path through a contact and a clip survives a proportions change. `fk` channels interpolate by slerp.
+- **Paths are straight between keys.** A position lerps in a straight line, so a hand going from a wind-up behind the head to a low slash in front passes close to the head. An arc takes extra keys along it (the Studio's onion skin shows the path); M3 has no arc or spline option, and adding one later is an additive `ClipKey` field. 
+- **Keys in different spaces.** When a channel's `space` differs between two keys (`root` at one, `chest` at the next), both targets are converted to `root` space using the chest frame of the pose evaluated so far (§4.4.5 steps 1 and 2, before this clip), interpolated there, and solved in `root` space. The content compile warns on such a pair, because the result depends on what the torso does underneath.
 - **Stepped by default.** The clip is sampled at its `rate` (12 a second), so the hand-animated read the Owner approved in The Last Light survives (M3R-D3). `ease: 'step'` holds a key until the next; `rate` per clip can be raised, or the figure can be told to sample every frame.
 - **Masks** say what the clip owns. A clip with `mask: ['armR', 'torso']` changes nothing below the pelvis and nothing in the left arm, so a sword slash plays over the walk (I-h). Two clips with overlapping masks resolve by layer order (§4.4.5).
-- **Blend** is a weight ramp for **one** clip as it starts and ends (a shield coming up over 120 ms), applied to the clip's channels against the layers below. It is not a crossfade between two animations, and there is no state machine or blend tree (M3R-D6).
-- **Markers, cues and the sim.** Combat needs the picture to hit when the sim's hit window opens. The sim declares an action's length in ticks (`FigureState.action.length`, seconds) and names a marker (`contact`); the view retimes the clip evenly to that length, so the marker lands on the sim's tick to within one pose step. The game's content compile checks that every sim action naming a clip and marker finds it, and that the stretch is between 0.5× and 2× (a warning past that). **Cues** are presentation hooks the view emits once as the clip's time crosses them (a footfall, a swing sound); audio and particles listen; the sim does not.
+- **Blend** is a weight ramp for **one** clip as it starts and ends (a shield coming up over 120 ms), applied to the clip's channels against the layers below. When one action clip replaces another mid-play, a short **pose-space transition** carries the outgoing clip into the new one (§4.4.5 step 3, M3R-D16). There is no state machine or blend tree (M3R-D6, agent default).
+- **Markers, cues and the sim.** Combat needs the picture to hit when the sim's hit window opens. The sim declares an action's length in ticks (`FigureState.action.length`, seconds) and names a marker (`contact`); the view retimes the clip evenly to that length. **Stepped sampling snaps to markers:** the pose step that contains a marker is sampled at the marker's time exactly, so the `contact` frame shows on the first render frame at or after the sim's hit tick (within one render frame, about 17 ms at 60 FPS, not one pose step of 83 ms). The game's content compile checks that every sim action naming a clip and marker finds it, and that the stretch is between 0.5× and 2× (a warning past that). **Cues** are presentation hooks the view emits once as the clip's time crosses them (a footfall, a swing sound); audio and particles listen; the sim does not.
 - **Ported from the source** as fixture clips, to prove the data model against known motion: `reach`, `look` and `flinch` (the generic three). Their end poses must match the source's within 1e-3 figure units (F-g). The other eight (`thrust`, `cup`, `recoil`, `read`, `sit`, `sleep`, `radio`, `push`) are The Last Light's story poses and stay in that game; each is a handful of keys and shows what the data model replaces.
 
 #### 4.4.5 Evaluation order and what the sim says (M3.6)
@@ -311,7 +321,7 @@ Evaluation, in this order, for one figure:
 
 1. **Locomotion** (code): pelvis and torso, head, arm swing, and the feet's paths as foot targets (the source's `base()` without its action branches), at the walk or idle pose rate.
 2. **Stance clips** (`stances`), in the order the sim lists them, each with its mask and its blend ramp.
-3. **The action clip** (`action`), one at a time: a new action replaces the old one, with its own blend ramp. Its time is `(now − startedAt) / length × clip.length` when `length` is given, else real time.
+3. **The action clip** (`action`), one at a time. Its time is `(now − startedAt) / length × clip.length` when `length` is given, else real time. **A new action replacing a running one** (a slash into a second slash, a roll into guard, a hurt during a swing) does not pop: the view keeps the outgoing clip's last sampled handles for the channels it owned and blends them into the new clip with `blend(outgoing, incoming, u)` over the new clip's `blend.inMs` (80 ms when the clip gives none; 0 makes it a cut). A channel only one of the two clips owns blends against the layers below, as a lone ramp does. This is one pose blend per figure per transition, not a crossfade of two playing animations (M3R-D16, agent default).
 4. **Aim** (`aim`): the head, chest or a hand turns toward the point, over whatever the clips set, unless a clip declares the part locked.
 5. **Solve:** `solve()` turns every handle into joint rotations: limbs, hips, torso, head, then limits.
 6. **Holds:** an item's grip is applied to an arm **no active clip owns** (a clip owns an arm through its mask). A slash that owns `armR` carries the sword; a walk with a lantern keeps the lantern's hold.
@@ -340,7 +350,7 @@ The Studio's own screens, input (tablet-first: drag a handle with a finger, pinc
 
 ### 4.5 Reserved
 
-(The first revision's §4.5, rigged characters, is cut; the number is kept so references to §4.6 to §4.8 stay valid.)
+(The first revision's §4.5, rigged characters, is deferred with them (M3R-D1); the number is kept so references to §4.6 to §4.8 stay valid.)
 
 ### 4.6 `pipelines` (`automata-plus/tooling/pipelines`, M3.8, M3.9)
 
@@ -352,7 +362,7 @@ The Studio's own screens, input (tablet-first: drag a handle with a finger, pinc
 
 ### 4.7 Base game and examples (M3.7)
 
-- **`games/base-3d`** (in `automata-plus`): one room with a doorway to a second (boxes, three GLB props, fog), two `camera-view`s (one per room, a cut at the doorway, the stick mapping latching across it), the player as a procedural figure (Wick as `figure` content) with the pose library and four clips (a sword slash that plays over the walk, a raised guard held as a stance, a point, a pickup), a second figure standing in for a target, and a minimal lock-on: a held action sets `lockTarget`, the player strafes (`moveDir`), the head and chest aim at the target and the camera frames both. Splash → menu → room → pause → end on core `runtime`, `host`, `ui`, `content`, with the `post-retro` chain. Its sim is a small plugin (position `x`, `z` in fixed-point metres, facing, moving, view id, lock target, wall boxes), with no physics, so its golden replay runs in Node, Chromium, WebKit and Firefox. `runtime.orientation = "landscape"`; portrait shows M4's rotate hint.
+- **`games/base-3d`** (in `automata-plus`): one room with a doorway to a second (boxes, three GLB props, fog), two `camera-view`s (one per room with its own home heading, a cut at the doorway, the stick mapping latching across it), player rotation in 45° steps (the pending default, §4.2), cut-away walls and one fading pillar, the player as a procedural figure (Wick as `figure` content) with the pose library and four clips (a sword slash that plays over the walk, a raised guard held as a stance, a point, a pickup), a second figure standing in for a target, and a minimal lock-on: a held action sets `lockTarget`, the player strafes (`moveDir`), the head and chest aim at the target and the camera frames both. Splash → menu → room → pause → end on core `runtime`, `host`, `ui`, `content`, with the `post-retro` chain. Its sim is a small plugin (position `x`, `z` in fixed-point metres, facing, moving, view id, turn, lock target, wall boxes), with no physics, so its golden replay runs in Node, Chromium, WebKit and Firefox. `runtime.orientation = "landscape"`; portrait shows M4's rotate hint.
 - **One-file examples** (EX rules, `Tier: plus`): module `render3d`: `render3d-meshes.ts`, `render3d-angled-camera.ts`, `render3d-lighting-fog.ts`; module `figures`: `figures-walk.ts`, `figures-outfits-items.ts`, `figures-poses.ts`, `figures-clips.ts`, `figures-aim.ts`; module `post`: `post-retro-chain.ts`; module `physics`: `physics-bodies-3d.ts` on `base-3d`'s room. Each 100 code lines or fewer.
 
 ### 4.8 Packaging
@@ -363,11 +373,13 @@ Unchanged from 2026-10-16 §4.7: `render-pixi3d`, `figures` (because its only re
 
 **Boot:** as 2026-10-16 §5, with figures, poses, clips, camera views, lamps, props and the post chain arriving as compiled content; the renderer builds `View3D`, bakes static vertex light, then builds each figure's parts.
 
-**Per fixed step:** the sim steps; `apply(result)` feeds the consumers. Characters' sim fields (position, facing, moving, speed, move direction, action, stances, aim target, view id) arrive in render rows.
+**Per fixed step:** the sim steps; `apply(result)` feeds the consumers. Characters' sim fields (position, facing, moving, speed, move direction, action, stances, aim target, view id, turn) arrive in render rows.
 
-**Per frame:** views interpolate positions; each figure evaluates its motion at the presentation time (§4.4.5): on a pose step it samples locomotion and clips, every frame it re-solves pins and aim, and it updates joint transforms (and re-skins skinned garment parts); characters relight from the lamps in range; the camera follows and eases toward the active view; the post slot runs.
+**Per frame:** views interpolate positions; each figure evaluates its motion at the presentation time (§4.4.5): on a pose step it samples locomotion and clips, every frame it re-solves pins and aim, and it updates joint transforms (and re-skins skinned garment parts); characters relight from the lamps in range; the camera follows and eases toward the active view and heading; the occluder rule cuts and fades (§4.2); the post slot runs.
 
 **View change:** the sim sets the player's view id (a room or sector change); the renderer calls `activate(id, how)`; the stick mapping latches (§4.2). A view change is a camera cut or a 400 ms ease (a cut under reduced motion); no remount, no sim effect beyond the id.
+
+**Rotation** (the pending default, §4.2): `camera-left` or `camera-right` changes the player's `turn` in the sim; the stick mapping uses the new heading from the next tick (no latch); the renderer calls `heading` and eases 250 ms.
 
 **Outfit or item change** (a sim event or a render-row field): the figure rebuilds its part list once.
 
@@ -385,7 +397,7 @@ The 2026-10-16 §6 rows for S7-Q1, S7-Q3, WebGPU fallback, malformed `.glb`/`.bi
 
 | Case | Result |
 |---|---|
-| A `.glb` carries a skin | `ModelInvalid { file, reason: 'skinned' }`; boot shows the asset error panel with Try again. AF draws no skinned glTF |
+| A `.glb` carries a skin | `ModelInvalid { file, reason: 'skinned' }`; boot shows the asset error panel with Try again. Skinned glTF is not supported yet (deferred, M3R-D1) |
 | A figure names a swatch, gait, hair style, headwear, item, rig-limits id, pose or clip that no library has | Content compile error with `file:line:col` and the missing id |
 | A figure's sliders give an impossible skeleton (a negative bone length) | Content compile error naming the slider; the generator never runs on it at boot |
 | A pose names a handle or joint that does not exist, a non-finite number, or a position more than twice the figure's reach from the root | Content compile error naming the pose, the field and the value |
@@ -396,7 +408,7 @@ The 2026-10-16 §6 rows for S7-Q1, S7-Q3, WebGPU fallback, malformed `.glb`/`.bi
 | A pole is parallel to its limb's axis, or a target lies on the limb's root | The source's fallback axis; no NaN; a unit test pins it (I-a) |
 | An aim target lies behind the figure beyond the neck's range | The head clamps at its limit; the chest takes its share; the face never turns past it |
 | A figure build passes S7-Q9's build budget | A logged warning with the figure id and the time; it still renders |
-| A `camera-view` has a lens other than the locked `lensMm`, or a tilt outside 30° to 60° | `automata pipe guard check` fails naming the file and value; changed only by a recorded decision |
+| `pipeline.toml` `[locked]` `lensMm` is not 24, or a `camera-view` has a tilt outside 30° to 60° or a distance outside 6 to 12 m | `automata pipe guard check` fails naming the file and value; the lens changes only by a recorded decision, the ranges by a spec change |
 | The active view id names no view | Content compile error when the content names it; at run time the camera keeps its last view and logs once |
 
 ## 7. UI inventory and states
@@ -406,20 +418,22 @@ The 2026-10-16 §6 rows for S7-Q1, S7-Q3, WebGPU fallback, malformed `.glb`/`.bi
 | Asset error panel (existing `ErrorPanel`) | `ModelInvalid` (static or skinned), context lost; Try again | Try again focused | — |
 | Pipeline review (MCP elicitation, outside the game) | asked, approved, rejected, cancelled, timed out | The person answers in their MCP client | — |
 
-The first revision's camera orbit buttons are gone: the camera has no player input. The in-game controls GAME-3D needs (a lock-on button, an action button, an item button, the stick) are M4's touch overlay and GAME-3D's design (§17), not M3's. The character editor's screens are the editor suite's.
+| Camera rotate buttons (two CornerControls, only when `rotation` is `'steps45'`, pending the Owner) | shown on touch, hidden otherwise; pressed; hidden in a view with `rotate: false` | 44 px targets; keyboard and pad use `camera-left` and `camera-right` | Never under `hostReserved` |
+
+The rotate buttons are the pending default (§4.2); with `rotation: 'off'` they do not exist. The in-game controls GAME-3D needs (a lock-on button, an action button, an item button, the stick) are M4's touch overlay and GAME-3D's design (§17), not M3's. The character editor's screens are the editor suite's.
 
 ## 8. Responsive behavior
 
-As 2026-10-16 §8, with "the 3D view fills the field" for every size and the zone/billboard rows removed. The lens fixes the **vertical** field of view at 53.13°, so a wider screen shows more to the sides and never more up or down (the runtime is landscape-only). Authored views keep the focus point and the walls they frame inside the frame at **4:3 and 21:9** (D3-g). The default view puts a 1.62 m figure at 12.7% of the frame's height on every size, about 50 px on 844×390 and 34 px on 780×270 (S7-Q10 records the compact case for the Owner's look). Reduced motion makes view eases and lag instant and keeps gait and clips (they are the character's motion, not camera motion). Landscape phone and compact: the logical field is letterboxed by core as before.
+As 2026-10-16 §8, with "the 3D view fills the field" for every size and the zone/billboard rows removed. The lens fixes the **vertical** field of view at 53.13°, so a wider screen shows more to the sides and never more up or down (the runtime is landscape-only). Authored views keep the focus point and the walls they frame inside the frame at **4:3 and 21:9** (D3-g). The default view puts a 1.62 m figure at 12.7% of the frame's height on every size, about 50 px on 844×390 and 34 px on 780×270 (S7-Q10 records the compact case for the Owner's look). Reduced motion makes view eases, rotation eases, occluder fades and lag instant and keeps gait and clips (they are the character's motion, not camera motion). Landscape phone and compact: the logical field is letterboxed by core as before.
 
 ## 9. Test allocation
 
 | Layer | Where | What it proves |
 |---|---|---|
-| Unit (Node) | `figures` (sliders → skeleton, FK, two-bone IK, effectors, poles, aim, pins, limits, mirror, blend, clip sampling, easing, masks, layers, retime, markers, gait incl. `moveDir`, idle, turn, holds, garments, libraries, content schemas); `render-pixi3d` (angled camera, view activation and mapping latch, static `parseGlb`, character light, cue emission); `post-retro`; `pipelines` | Ported: `procedural-figure.test.ts`'s rig, hold and library tests (the raster, painter and cell-cache tests are not ported). New: I-a to I-j, F-g, F-h, D3-a, D3-g |
-| Parity (sim) | `games/base-3d` | Golden replay hash identical in Node, Chromium, WebKit and Firefox (includes the view id, lock target and stick mapping) |
+| Unit (Node) | `figures` (sliders → skeleton, FK, two-bone IK, effectors, poles, aim, pins, limits, mirror, blend, clip sampling, easing, masks, layers, retime, markers, gait incl. `moveDir`, idle, turn, holds, garments, libraries, content schemas); `render-pixi3d` (angled camera, view activation, rotation steps, mapping latch, the heading table, occluder cut-away and fade, static `parseGlb`, character light, cue emission); `post-retro`; `pipelines` | Ported: `procedural-figure.test.ts`'s rig, hold and library tests (the raster, painter and cell-cache tests are not ported). New: I-a to I-k, F-g, F-h, D3-a, D3-g, D3-h, D3-i |
+| Parity (sim) | `games/base-3d` | Golden replay hash identical in Node, Chromium, WebKit and Firefox (includes the view id, the turn, the lock target and the stick mapping) |
 | Parity (render) | GPU runner | WebGL2 and WebGPU captures of the S7 scene, each `post-retro` pass and `base-3d`'s rooms within M3-D5's tolerance |
-| Fake-host E2E | each example and `base-3d` under `@ruken/sdk-host`, served with `compileHeaders` | Boots, nothing before ready, zero console errors and CSP violations, no `generateSpawnBurst`; `ModelInvalid` shows the panel; context loss recovers; the doorway cut keeps the character moving the same way |
+| Fake-host E2E | each example and `base-3d` under `@ruken/sdk-host`, served with `compileHeaders` | Boots, nothing before ready, zero console errors and CSP violations, no `generateSpawnBurst`; `ModelInvalid` shows the panel; context loss recovers; the doorway cut keeps the character moving the same way; a rotation step re-maps the stick |
 | Frame budget | GPU runner, PRODUCT.7's probe | p95 ≤ 33.3 ms on both phone profiles for `base-3d` and the S7 scene |
 | Pipelines integration | fake Meshy and OpenAI servers on recorded fixtures | The procedural run (spec → sheet → install) and the props run: stages, cache skips, gates, install output; no paid call in CI |
 | Owner | real phones, the look of the angled view, real paid props runs | §13 |
@@ -436,13 +450,13 @@ As 2026-10-16 §11 (CSP, renderer `webgl2`, build file types: `.glb`, `.bin`), a
 
 | ID | Task | Lane | Depends on | Deliverable and acceptance |
 |---|---|---|---|---|
-| M3.0 | This revised spec, reviewed | integration | — | Owner review; M3R-D1 to M3R-D15 confirmed or changed |
+| M3.0 | This revised spec, reviewed | integration | — | Owner review; M3R-D1 to M3R-D17 confirmed or changed, including the two pending answers (D9's rotation, D17's look) |
 | M3.1 | Spike S7 (revised) | render3d | M3.0 | §3; `docs/spikes/s7-pixi3d.md` and verdict; S7-a to S7-f |
 | M3.2 | `pixi.js` 8.22 in core | ship, runtime | M3.1 verdict | Unchanged; V-a |
 | M3.3 | `post-retro` | render3d | PRODUCT.1, PRODUCT.5 | Unchanged (2026-10-16 §4.5); PF-a to PF-c |
-| M3.4 | `render-pixi3d`: renderer, meshes and props, the angled camera, lighting, fog | render3d | M3.2, PRODUCT.5 | §4.1–§4.3, §4.8; examples `render3d-*`; D3-a, D3-c, D3-d, D3-f, D3-g |
+| M3.4 | `render-pixi3d`: renderer, meshes and props, the angled camera, lighting, fog | render3d | M3.2, PRODUCT.5 | §4.1–§4.3, §4.8; examples `render3d-*`; D3-a, D3-c, D3-d, D3-f, D3-g, D3-h, D3-i |
 | M3.5 | `figures`: definition, skeleton, locomotion, holds and the figure view | figures (new) | M3.4 | §4.4.1; examples `figures-walk`, `figures-outfits-items`; F-a to F-e, F-h |
-| M3.6 | `figures`: the IK rig, poses and clips | figures | M3.5 | §4.4.2 to §4.4.6; examples `figures-poses`, `figures-clips`, `figures-aim`; I-a to I-j, F-g |
+| M3.6 | `figures`: the IK rig, poses and clips | figures | M3.5 | §4.4.2 to §4.4.6; examples `figures-poses`, `figures-clips`, `figures-aim`; I-a to I-k, F-g |
 | M3.7 | `games/base-3d` and `physics-bodies-3d` | integration, sim | M3.3, M3.5, M3.6 | §4.7; B-a to B-c |
 | M3.8 | `pipelines` platform | pipelines | M3.0, PRODUCT.5 | Unchanged; PL-a to PL-e |
 | M3.9 | Character (procedural) and props pipelines | pipelines | M3.8, M3.6 (the sheet draws poses and clips) | §4.6; PL-g, PL-h |
@@ -463,11 +477,13 @@ As 2026-10-16 §11 (CSP, renderer `webgl2`, build file types: `.glb`, `.bin`), a
 - **S7-f.** The report gives a figure's per-frame and per-build cost on the phone profile (S7-Q9) and the legibility numbers and capture of S7-Q10.
 - **V-a.** After the 8.22 bump, every existing golden hash, layout contract and E2E journey is unchanged.
 - **PF-a, PF-b.** As 2026-10-16 §13.
-- **D3-a.** Activating a view with `ease` moves the camera to the view's yaw, tilt and distance over 400 ms and instantly under reduced motion; the camera's lens is 24 mm (53.13° vertical) in every view.
+- **D3-a.** Activating a view with `ease` moves the camera to the view's heading, tilt and distance over 400 ms and instantly under reduced motion; a rotation step turns the heading by 45° over 250 ms (instantly under reduced motion); the camera's lens is 24 mm (53.13° vertical) in every view.
 - **D3-c.** A `.bin` prop and the same prop as `.glb` produce identical vertex buffers.
 - **D3-d.** Interpolated character positions at `alpha` 0.5 lie halfway between the last two ticks.
 - **D3-e.** A lamp switched off by a sim event darkens the static meshes and the characters in its range, and only those.
-- **D3-g.** For each authored view of `base-3d`, the focus point and the room's walls it frames are inside the frame at 4:3 and 21:9.
+- **D3-g.** For each authored view of `base-3d`, at every one of its eight headings, the focus point and the room's floor outline are inside the frame at 4:3 and 21:9.
+- **D3-h.** For each view and heading of `base-3d`, with the player at each of the room's corners and its centre, a ray from the camera to the player's head and to its feet hits no drawn opaque mesh after the occluder rule; the cut-away walls are exactly those whose inside face points away from the camera, and a `fade` prop on the line is at 25% opacity.
+- **D3-i.** The compiled heading table of a view matches the sine and cosine of its eight headings within one Q16.16 unit; the sim's mapper maps "stick up" to the direction away from the camera at every turn, from the table alone (no `Math` trig in the sim, checked by `pnpm boundaries`); a view change latches the mapping and a rotation step does not.
 - **F-a.** Two fixture figures with different sliders build skeletons whose bone lengths follow the sliders, from one generator.
 - **F-b.** Holding an item changes only the holding arm's joints: every other joint's world matrix is equal (1e-9) with and without it, across walk, idle and turn.
 - **F-c.** The walk repeats exactly after one cycle at the gait's pose rate.
@@ -483,7 +499,8 @@ As 2026-10-16 §11 (CSP, renderer `webgl2`, build file types: `.glb`, `.bin`), a
 - **I-f.** `mirror(mirror(p))` equals `p` for every fixture pose; a pose written to content and read back is equal (canonical spelling); `blend(a, b, 0)` equals `a` and `blend(a, b, 1)` equals `b`.
 - **I-g.** `evaluate` is deterministic: the same definition, state, time and library give equal matrices, across 1,000 random-but-seeded times; a `loop` clip's value at 0 equals its value at `length`.
 - **I-h.** A clip with `mask: ['armR', 'torso']` changes no joint of the legs or the left arm: their world matrices equal the same evaluation without the clip (1e-9); a held item on the left arm still holds.
-- **I-i.** `retime(clip, L)` scales key times, markers and cues evenly; a clip played with `action.length = L` reaches its `contact` marker at `startedAt + markerTime × L / length`, within one pose step.
+- **I-i.** `retime(clip, L)` scales key times, markers and cues evenly; a clip played with `action.length = L` shows its `contact` pose on the first render frame at or after `startedAt + markerTime × L / length`, in stepped and smooth sampling alike.
+- **I-k.** A slash replaced by a second slash at mid-swing (and a roll replaced by a guard): at the replacement the evaluated hand position equals the outgoing pose (1e-6), after `blend.inMs` it equals the new clip's sample (1e-6), and in between no effector moves more than the larger of the two clips' own largest per-step move.
 - **B-a.** `base-3d`'s golden replay matches in Node, Chromium, WebKit and Firefox.
 - **B-b.** `base-3d` boots under the fake host and under Ruken's local stack, nothing renders before ready, zero CSP violations.
 - **B-c.** `physics-bodies-3d` keeps a golden hash identical in four engines.
@@ -517,30 +534,32 @@ As 2026-10-16 §11 (CSP, renderer `webgl2`, build file types: `.glb`, `.bin`), a
 | Stepped poses look jittery where the eye wants contact | Pins and aim solve every frame (M3R-D13); the clip's `rate` and a smooth option are per clip and per figure |
 | Joint-limit values are wrong for the art | Starting values only; tuned in M3.6 in the Studio; limits are content in `rig.json`, not code |
 | The Studio's needs outgrow `figures`' API | §4.4.6 lists the pure functions the Studio needs and the editor-suite spec cites them; additions are additive |
-| Cutting rigged characters drops the Meshy character path | It is cut for now by the Owner's word; the props pipeline keeps Meshy for static props; nothing here prevents a later skinned view |
+| Deferring rigged characters drops the Meshy character path | Deferred "for now" by the Owner; the props pipeline keeps Meshy for static props; nothing here prevents a later skinned view (a second view type beside `figure`, and the `ModelInvalid` skinned row becomes a supported path) |
 | The Last Light keeps moving | Each task's plan re-reads its files at the current commit and records it |
 
 ## 15. Open decisions (recommended defaults; in effect once approved)
 
-"Owner" in the first column marks the Owner's own words from the direction table; the rest are recommended defaults.
+A row may have two parts. **Owner's words** restates the Owner's own words from the direction table and is in effect. **Agent default** is a reading of them, or a call the Owner never made, and waits for review like every other default. **Pending** marks a reading whose question is on the Orchestrator bus; it keeps the default shown until the Owner answers.
 
 | ID | Question | Recommended default | Why |
 |---|---|---|---|
-| M3R-D1 (Owner, 2026-10-18 and 2026-10-23) | What does M3 deliver? | **3D characters: procedural figures with an IK rig, authored poses and clips, in a 3D room, one base game.** No 2.5D and no rigged glTF anywhere in AF | "drop 2.5D" and "Cut the rigged gltf, procedural only for now" |
+| M3R-D1 | What does M3 deliver? | **Owner's words:** "drop 2.5D" (2026-10-18); "Cut the rigged gltf, procedural only for now" (2026-10-23). **Agent default:** 3D characters as procedural figures with an IK rig, authored poses and clips, in a 3D room, one base game. Rigged glTF is **deferred**: out of M3 and GAME-3D until the Owner reopens it, not removed from AF for good | "for now" makes it a deferral; §14 keeps the seam |
 | M3R-D2 | The figure painter (sprite-cell look) | **Not extracted.** It stays in The Last Light; figures render as meshes | It is the 2.5D look; extracting it would keep 2.5D alive in another form |
 | M3R-D3 | Pose stepping in 3D | **Authored channels step at the pose rate** (default 12 per second), with an option for every frame, per clip and per figure | The hand-animated read is what the Owner approved in The Last Light; smooth is one flag away |
 | M3R-D4 | Lighting moving characters | **Per character per frame (ambient plus lamps in range), as a tint**; static meshes keep the baked vertex light | Baking cannot follow a moving, deforming mesh; per-character is one small sum |
 | M3R-D5 | Where `figures` lives | **Its own Plus package, renderer-free**; the 3D view in `render-pixi3d` | The data, rig and motion are testable in Node and outlive any one renderer |
-| M3R-D6 (Owner, 2026-10-23) | Animation scope in M3 | **Procedural gait, the IK rig, authored poses and clips with masks, a per-clip weight ramp, markers and cues.** No glTF skins or clips, no crossfade between animations, no blend trees, retargeting, root motion or state machines | "Cut the rigged gltf, procedural only for now"; the rig adds what the Owner asked for |
+| M3R-D6 | Animation scope in M3 | **Owner's words:** "procedural only for now"; "add like IK rig so we can manually pose, I think that's also necessary for animation". **Agent default:** procedural gait, the IK rig, authored poses and clips with masks, a per-clip weight ramp, a pose-space transition between action clips (D16), markers and cues. No glTF skins or clips (they go with the deferred rigged path). No blend trees, retargeting, root motion or state machines in M3: the agent's scope call, not the Owner's | The rig adds what the Owner asked for; the rest is left out to keep M3 small, and can be added without breaking the clip data |
 | M3R-D7 | Publishing `figures` | **Private while D-1 stands**, because its only renderer is private; revisit if D-1 changes | No public package that cannot be drawn |
-| M3R-D8 | `base-25d` and the rigged character | **Dropped.** `base-3d` is the only M3 base and shows procedural figures | One base per dimension; 2.5D is not a dimension AF ships; rigged glTF is cut |
-| M3R-D9 (Owner, 2026-10-23) | The camera | **An angled, high three-quarter camera on a 24 mm lens** (53.13° vertical), a fixed yaw and tilt per authored view, a following focus, no player orbit. Reading the Owner's Crow Country reference as per-room authored views; one view for the whole level is the same contract | "use an angle like crow country" and "Go with 24mm focal length for camera"; klipp (M9.0) is checked against authored views |
+| M3R-D8 | `base-25d` and the rigged character | **Dropped.** `base-3d` is the only M3 base and shows procedural figures | One base per dimension; 2.5D is not a dimension AF ships; rigged glTF is deferred (M3R-D1) |
+| M3R-D9 | The camera | **Owner's words:** "use an angle like crow country"; "Go with 24mm focal length for camera". In effect: the 24 mm lens (53.13° vertical) and a high three-quarter angle. **Agent default, pending an Owner answer** (bus `2026-10-23-1006-3d-audit-camera-question`): a follow camera with player rotation in 45° steps (`rotation: 'steps45'`) and an optional home heading per room. The other answers are free rotation (`'free'`) or fixed per-room angles with no rotation (`'off'`); the contract carries all three (§4.2) | Crow Country's camera follows the player and rotates; 45° steps keep the stick mapping a table lookup in the sim; klipp (M9.0) is checked against whichever answer stands |
 | M3R-D10 | AF 1.0's scope | **2D, with 3D characters as a private Plus extension** (1.0 no longer claims 2.5D). **Open: the Owner has not answered whether 3D belongs in 1.0** (bus question) | Follows from M3R-D1 and D-1 |
-| M3R-D11 | The view's tilt, distance and focus | **Tilt 45° (authored 30° to 60°), distance 9 m (6 to 12), focus 1.0 m above the followed position**, locked in `pipeline.toml` `[locked]` for tilt and lens | A 1.62 m figure fills 12.7% of the frame's height; tuned on S7-Q10's captures; the Owner did not give a tilt |
+| M3R-D11 | The view's tilt, distance and focus | **Tilt 45° (authored 30° to 60°), distance 9 m (6 to 12), focus 1.0 m above the followed position.** `pipeline.toml` `[locked]` holds the lens only; the guard checks tilt and distance by range | A 1.62 m figure fills 12.7% of the frame's height; tuned on S7-Q10's captures; the Owner did not give a tilt, and views need different tilts |
 | M3R-D12 | Rig scope | **Four two-bone limbs with poles, hips, chest, head, a look-at/aim that spreads over spine, neck and head, pins, and limits.** No general chain solver (FABRIK/CCD), no physics, no ground-contact IK in M3 | What manual posing and the action-adventure's combat clips need; stairs and slopes come from GAME-3D (M9) |
 | M3R-D13 | Stepped channels, per-frame contact | **Poses and clips step; pins and aim re-solve every frame** | Contact and eye line read wrong when stepped; the cost is a few two-bone solves a frame (S7-Q8) |
 | M3R-D14 | Sim and clip timing | **Clips declare markers; the sim declares an action's length; the view retimes evenly** and a content check ties the sim's contact tick to the marker | Combat needs the picture to hit when the sim's window opens, without the sim reading a joint |
-| M3R-D15 | The stick across a view change | **The mapping latches to the old view until the stick is released or turns by more than 90°** | The classic fixed-camera rule; GAME-3D.0 tunes it |
+| M3R-D15 | The stick across a view change | **The mapping latches to the old heading until the stick is released or turns by more than 90°**; a player's own rotation step does not latch | The classic fixed-camera rule; GAME-3D.0 tunes it |
+| M3R-D16 | One action clip replacing another | **A pose-space transition:** the outgoing clip's last handles blend into the new clip over its `blend.inMs` (80 ms by default) | A combo, a roll into guard or a hurt mid-swing must not pop in a lock-on action game; it costs one `blend` per transition |
+| M3R-D17 | The visual target ("like ocarina of time switch 2 remake") | **Agent default, pending an Owner answer** (bus `2026-10-23-1006-3d-audit-look-question`): read as Ocarina's game design; the look stays the current one (low-poly procedural figures, the `post-retro` chain, Crow Country's feel). The other answer is a modern remake-style look, which would change §4.3's lighting and `post-retro`'s role, not the rig or the camera | The Crow Country reference points to the current look; "Switch 2 remake" may point at a modern one |
 
 M3-D3 (`pixi.js` 8.22), M3-D4 (WebGL2 default), M3-D5 (tolerance), M3-D6 (phone profiles), M3-D7 (Python image stages), M3-D8 (`.bin`), M3-D9 (no paid calls in CI) and M3-D12 (the guard hook) carry over unchanged. M3-D10 (which pipelines move) becomes "platform, character (procedural) and props". M3-D11 (`base-3d`'s static mesh character) is replaced by M3R-D6 and M3R-D8.
 
@@ -548,22 +567,22 @@ M3-D3 (`pixi.js` 8.22), M3-D4 (WebGL2 default), M3-D5 (tolerance), M3-D6 (phone 
 
 - **D-1** (`render-pixi3d` unpublished): unchanged, and now also covers `figures` (M3R-D7). The 3D work it gates is larger (all of M3), so S7's verdict matters more: a D-1 change opens all of M3 to public builds at once.
 - **GAME-3D (02, 03):** its two rows now carry the Owner's direction (§17). GAME-3D.0 cites this spec for the camera, the rig and the clip data.
-- **M9 (3D merge):** it planned the rigged character and animation pipeline, and the first revision moved them into M3. They are now **cut** by the Owner, not moved. M9's selection becomes: the third-person controller on the angled views (pmndrs/klipp, checked in M9.0 against authored per-room views: if its rails and cuts do not fit, M9.0 records that and keeps M3's `CameraRig`), lock-on targeting, combat and hit/hurt clips on M3's rig, items and inventory, the dungeon pieces (keys, doors, switches, pushable blocks), ground-contact IK for stairs and slopes (a presentation-only probe against the baked static geometry, using M3's pin API), brush-based environments, and whatever else GAME-3D proves. The M9.0 row in 02 is updated to say so.
-- **M6:** its 2.5D-dependent parts need a look when M6's tasks are planned: sector-derived occlusion (2026-10-16 §4.4 said "arrives with `sectors` in M6") now feeds M3.4's static vertex light; a sector can carry the `view` id of §4.2; cutscene cameras are free shots (not an orbit around a billboard) and the clip data is the cutscene acting layer. No M6 row changes in this PR; the M6 plans re-read this spec.
-- **The 3D level editor (ED3D):** two requests, not edits: a sector (or a view volume) may reference a `camera-view` id, and the editor offers a preview of the authored view at 24 mm and its tilt so authors see the framing. The editor's own walk camera (ED3D-D8, 69°) is unrelated. The ED3D lane decides how; this spec only fixes the content shape (§4.2).
+- **M9 (3D merge):** it planned the rigged character and animation pipeline, and the first revision moved them into M3. They are now **deferred** by the Owner ("procedural only for now"): M9 does not plan them, and only an Owner decision brings them back. M9's selection becomes: the third-person controller on the angled follow camera (pmndrs/klipp, checked in M9.0 against M3's `CameraRig` and whichever rotation the Owner chose: if it does not fit, M9.0 records that and keeps M3's `CameraRig`), lock-on targeting, combat and hit/hurt clips on M3's rig, items and inventory, the dungeon pieces (keys, doors, switches, pushable blocks), ground-contact IK for stairs and slopes (a presentation-only probe against the baked static geometry, using M3's pin API), brush-based environments, and whatever else GAME-3D proves. The M9.0 row in 02 is updated to say so.
+- **M6:** its 2.5D-dependent parts need a look when M6's tasks are planned: sector-derived occlusion (2026-10-16 §4.4 said "arrives with `sectors` in M6") now feeds M3.4's static vertex light; a sector can carry the `view` id of §4.2, and sector walls the `occlude` field; cutscene cameras are free shots (not an orbit around a billboard) and the clip data is the cutscene acting layer. No M6 row changes in this PR; the M6 plans re-read this spec.
+- **The 3D level editor (ED3D):** two requests, not edits: a sector (or a view volume) may reference a `camera-view` id and tag walls with `occlude`, and the editor offers a preview of the view at 24 mm, its tilt and (while the rotation answer is pending) its eight headings, with the cut-away applied, so authors see the framing. The editor's own walk camera (ED3D-D8, 69°) is unrelated. The ED3D lane decides how; this spec only fixes the content shape (§4.2).
 - **The editor suite's Studio:** the character editor edits `figure`, `figure-pose` and `figure-clip` content through §4.4.6. The mockups for that are in progress in the editor-suite thread (docs PR #138).
 - **M8:** "AF finished for 2D and 2.5D" becomes "2D, with 3D characters in Plus" (M3R-D10, still open). The Last Light slice (puzzle and sectors on Plus) is sim-side and unaffected.
 - **01, 00 and AGENTS.md:** their M3 rows and "2D and 2.5D" wording point to this spec.
 
 ## 17. The game the characters are for (direction brief for GAME-3D.0)
 
-**Owner direction, 2026-10-23 08:45:45 UTC** (`cmsg_01VQPgZzjNxjPkiB5eeQRiaYBZMPTigDhn8zdJ52vrPKZ9`): the 3D game is an action-adventure in the spirit of Ocarina of Time (the Owner's words: "like ocarina of time switch 2 remake"), its characters procedural, its camera Crow Country's angle. The coordinator's reading, kept here for GAME-3D.0 to confirm or change: a third-person action-adventure with **lock-on combat, dungeons, items and puzzles**.
+**Owner direction, 2026-10-23 08:45:45 UTC** (`cmsg_01VQPgZzjNxjPkiB5eeQRiaYBZMPTigDhn8zdJ52vrPKZ9`): the Owner's words are "make the character action adventure like ocarina of time switch 2 remake, but use an angle like crow country for the 3D", with characters "procedural only for now". Everything else here is the agent's reading, for GAME-3D.0 to confirm or change: a third-person action-adventure with **lock-on combat, dungeons, items and puzzles**. Two readings are pending Owner answers: the camera's rotation (M3R-D9, default 45° steps) and the look (M3R-D17, default the current look).
 
 GAME-3D.0 designs the game, in its own repo, with its own review. This section records what that direction asks of AF, so M3 does not build the wrong things and M9 knows what to expect.
 
 | The game needs | Where it comes from |
 |---|---|
-| A character seen from a high three-quarter angle through authored per-room views, with doorway cuts | M3.4 (`angledCamera`, `camera-view`), the view id as sim state (§4.2) |
+| A character seen from a high three-quarter follow camera, rotatable in 45° steps (pending), with per-room home headings and doorway cuts, never hidden by walls | M3.4 (`angledCamera`, `camera-view`, the occluder rule), the view id and turn as sim state (§4.2) |
 | A hero, enemies and townsfolk as procedural figures: different builds, garments, held items | M3.5 (`figures`) |
 | Hero moves: a sword slash and combo, a raised shield, a roll, a jump or climb, aiming and firing a ranged item, a pickup, a push, a hurt and a fall | Authored as `figure-pose` and `figure-clip` data with the rig (M3.6), in the Studio; markers tie them to sim hit windows (M3R-D14) |
 | Lock-on: a target selected in view, the camera framing hero and target, strafing around it, the head and weapon aimed | Sim-side targeting system (GAME-3D, then M9); M3 provides `moveDir`, `aim`, `frame(lock)` and a demo in `base-3d` |
@@ -571,7 +590,8 @@ GAME-3D.0 designs the game, in its own repo, with its own review. This section r
 | Items: a sword, a shield, a ranged item, a utility item, collectables, an inventory and a map | Sim and UI in the game; held items are `items.json` entries with holds (M3.5) |
 | Enemies with simple readable behaviors and clips | Sim AI in the game; clips as above |
 | Touch controls for a lock-on action game | M4's touch overlay and gestures; GAME-3D.0 designs the layout |
+| Aiming a ranged item | **Open for GAME-3D.0.** Ocarina aims in first person; under a high three-quarter camera the choices are a first-person aim view (a second camera, outside `CameraRig`'s angled views), an over-the-shoulder aim, or aiming on the ground plane with lock-on assist. M3 supplies the hand aim (`AimTarget` with `part: 'handR'`) for any of them |
 
 **Suggested scope for GAME-3D.0 to confirm** (not decided): one hub area, one dungeon of six to eight rooms, a boss, three items, and one save slot; the hub and the dungeon built in the 3D editor.
 
-**Not asked for:** an open overworld, terrain and streaming (TERRAIN.0, after launch), rigged or skinned characters, a free camera, online play.
+**Not asked for:** an open overworld, terrain and streaming (TERRAIN.0, after launch), online play. Rigged or skinned characters are deferred by the Owner ("for now"), not part of GAME-3D unless reopened. Free camera rotation is one of the pending camera answers (M3R-D9).
