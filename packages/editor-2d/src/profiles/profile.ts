@@ -57,8 +57,18 @@ export interface ExportTarget<V> {
 export interface TemplateDef<V> {
   readonly id: string
   readonly label: string
+  /** A few words under the label on the template's card ("side view"). */
+  readonly hint?: string | undefined
   /** Ids of everything the template places come from `ids`, so tests are exact. */
   create(ids: IdSource): V
+}
+
+/** What Home shows about a document that opens: its own name and a few facts about it, already worded. */
+export interface ProfileSummary {
+  /** The document's own name (the project's `name`), not its file name. */
+  readonly title: string
+  /** In the order they are shown: `Levels 5`, `Layers 4`. */
+  readonly facts: readonly { readonly label: string; readonly value: string }[]
 }
 
 export interface Profile<V> {
@@ -72,6 +82,8 @@ export interface Profile<V> {
   /** `base` is the text as loaded, which a codec may patch instead of reprinting. */
   print(base: string, value: V): string
   check(value: V, context: ProjectContext): readonly Diagnostic[]
+  /** Optional: a profile without it lists on Home by file name, with its check counts. */
+  summary?(value: V): ProfileSummary
   readonly templates: readonly TemplateDef<V>[]
   readonly views: readonly ViewDef[]
   readonly exports: readonly ExportTarget<V>[]

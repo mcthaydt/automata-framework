@@ -9,6 +9,7 @@ import { starterProject } from './starter'
 export const blankTemplate: TemplateDef<Project> = {
   id: 'blank',
   label: 'Blank',
+  hint: 'own layers',
   create: () =>
     starterProject(
       'Untitled project',
