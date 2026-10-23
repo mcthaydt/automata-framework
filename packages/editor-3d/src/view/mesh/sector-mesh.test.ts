@@ -740,6 +740,79 @@ describe('buildSectorMesh bounds', () => {
   })
 })
 
+describe('buildSectorMesh occlusion (ED3D.4b)', () => {
+  const occludeOfWall = (mesh: SectorMesh, selection: string): string[] =>
+    mesh.surfaces.filter((surface) => surface.selection === selection).map((surface) => surface.occlude)
+
+  it('says cut for a wall that says nothing, and what a wall says for a wall that does', () => {
+    const mesh = meshOf(room({ 0: { occlude: 'never' }, 1: { occlude: 'fade' }, 2: { occlude: 'cut' } }))
+    expect(occludeOfWall(mesh, 'wall:room/0')).toEqual(['never'])
+    expect(occludeOfWall(mesh, 'wall:room/1')).toEqual(['fade'])
+    expect(occludeOfWall(mesh, 'wall:room/2')).toEqual(['cut'])
+    expect(occludeOfWall(mesh, 'wall:room/3')).toEqual(['cut'])
+  })
+
+  it('gives a floor never and a ceiling cut, whatever the walls say', () => {
+    const mesh = meshOf(room({ 0: { occlude: 'never' }, 1: { occlude: 'fade' } }))
+    expect(only(mesh, 'floor').map((surface) => surface.occlude)).toEqual(['never'])
+    expect(only(mesh, 'ceiling').map((surface) => surface.occlude)).toEqual(['cut'])
+  })
+
+  it('gives every surface a wall makes the wall’s occlusion: its strips, its header and its door', () => {
+    const door = { at: 4, width: 1.2, height: 2.1 }
+    const mesh = meshOf(room({ 0: { door, occlude: 'fade' } }))
+    const north = mesh.surfaces.filter((surface) => surface.selection === 'wall:room/0')
+    expect(north.map((surface) => surface.role)).toEqual(['wall', 'door'])
+    expect(north.map((surface) => surface.occlude)).toEqual(['fade', 'fade'])
+  })
+
+  it('gives the strips of a portal wall the occlusion of the wall they belong to, each side its own', () => {
+    const level = toyAfSector({
+      sectors: [
+        {
+          ...toyHall,
+          corners: [
+            [0, 0],
+            [8, 0, { next: 'dock', occlude: 'fade' }],
+            [8, 6],
+            [0, 6],
+          ],
+        },
+        {
+          ...toyDock,
+          ceiling: 3,
+          corners: [
+            [8, 0],
+            [14, 0],
+            [14, 6],
+            [8, 6, { next: 'hall', occlude: 'never' }],
+          ],
+        },
+      ],
+    })
+    const mesh = meshOf(level)
+    expect(only(mesh, 'upper', 'hall').map((surface) => surface.occlude)).toEqual(['fade'])
+    expect(only(mesh, 'lower', 'dock').map((surface) => surface.occlude)).toEqual(['never'])
+  })
+
+  it('reads a value the format does not know as cut', () => {
+    const odd = { occlude: 'sideways' } as unknown as AfWall
+    const mesh = meshOf(room({ 0: odd }))
+    expect(occludeOfWall(mesh, 'wall:room/0')).toEqual(['cut'])
+  })
+
+  it('is cut for every wall of a Last Light level and never for its floors', () => {
+    const parsed = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
+    if (!parsed.ok) throw new Error('clinic-dawn does not parse')
+    const mesh = buildSectorMesh(
+      lastLightProfile.geometry(parsed.value).layers,
+      selectionOf(lastLightProfile, parsed.value),
+    )
+    for (const surface of mesh.surfaces)
+      expect(surface.occlude).toBe(surface.role === 'floor' ? 'never' : 'cut')
+  })
+})
+
 describe('buildSectorMesh on a Last Light level', () => {
   const parsed = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
   if (!parsed.ok) throw new Error('clinic-dawn does not parse')
