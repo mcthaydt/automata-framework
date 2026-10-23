@@ -1,6 +1,6 @@
 # ED3D: the 3D level editor (LDtk meets the Build editor; genre-general, first profile extracted from The Last Light)
 
-> **Status:** drafted 2026-10-23 (lane **editor-3d**, thread "3D level editor"), amended the same day for three Owner decisions (below). Spec review pending. ED3D.1 (the Last Light format and codec, PR #107) and ED3D.1c (sector geometry and nav queries, PR #113) are built on the Orchestrator's go-ahead and locally checked; nothing else is implemented. Task rows: ED3D.0 to ED3D.13 (with ED3D.1b and ED3D.1c) in the [master plan](../../02-master-delivery-plan.md#ed-editors-owner-amendment-2026-10-23). Shared pieces are in the [editor kit spec](./2026-10-23-editor-kit-design.md); the sibling editor is in the [2D editor spec](./2026-10-23-editor-2d-design.md).
+> **Status:** drafted 2026-10-23 (lane **editor-3d**, thread "3D level editor"), amended the same day for three Owner decisions (below). Spec review pending. ED3D.1 (the Last Light format and codec, PR #107, merged), ED3D.1c (sector geometry and nav queries, PR #113), ED3D.2 (the Last Light and generic checks, PR #127) and ED3D.1b (the `af-sector/1` format, the profile shape and the registry, PR #129) are built on the Orchestrator's go-ahead and locally checked; nothing else is implemented. Task rows: ED3D.0 to ED3D.13 (with ED3D.1b, ED3D.1b2, ED3D.1c and ED3D.2b) in the [master plan](../../02-master-delivery-plan.md#ed-editors-owner-amendment-2026-10-23). Shared pieces are in the [editor kit spec](./2026-10-23-editor-kit-design.md); the sibling editor is in the [2D editor spec](./2026-10-23-editor-2d-design.md).
 >
 > **Why (Owner via the Orchestrator, 2026-10-23):** extract the editor suite built for The Last Light and make it good; "the 3D level editor is LDtk meets the 90s Build Editor". Design first, tablet first, web based. Mockups: [review gallery](https://claude.ai/artifact/GAxW7Fx8ZnaQmZtyqiLQhm) and the Figma file [Automata Editors](https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d), pages `3D · Screens` and the variable collections `Editor Kit` and `Editor 3D`. Source of the mockup tooling: `docs/design/editor-3d/`.
 >
@@ -112,7 +112,7 @@ interface LevelProfile<D> {
 }
 ```
 
-`id`, `schema`, `parse` and `patch` are the file codec, delivered by ED3D.1 as `FileCodec<D>`; `LevelProfile<D>` extends it with `geometry`, `entities`, `checks`, `materials` and `hints` as their rows land (ED3D.1b, ED3D.2, ED3D.8). The profile registry picks a profile from the file (`format` member for `af-sector`, shape for the Last Light files) and lists the ones installed. `facility.json` has a `FileCodec` of its own and no profile. The editor core, the views and the commands import `LevelProfile`, never a profile.
+`id`, `schema`, `parse` and `patch` are the file codec, delivered by ED3D.1 as `FileCodec<D>`; `LevelProfile<D>` extends it with `geometry` and `checks` (delivered by ED3D.1b), `entities` (ED3D.1b2), `materials` and `hints` (ED3D.8) as their rows land. The profile registry picks a profile from the file (`format` member for `af-sector`, shape for the Last Light files) and lists the ones installed. `facility.json` has a `FileCodec` of its own and no profile. The editor core, the views and the commands import `LevelProfile`, never a profile.
 
 ### 4.2 Document and selection
 
@@ -359,9 +359,11 @@ Order and dependencies are in the [master plan](../../02-master-delivery-plan.md
 |---|---|---|
 | ED3D.0 | This spec, reviewed | ED.0 (mockups) |
 | ED3D.1 | Last Light format and codec: Zod schemas, `expand`, byte-preserving patch (shared by every profile), the four fixtures, source tests | ED3D.0 |
-| ED3D.1b | AF sector profile: `af-sector/1` schema and `build`, entity-definition model, registry, the depot sample, its codec round trips (ED3-q) | ED3D.1, EDK §4.8 shapes |
+| ED3D.1b | AF sector profile: `af-sector/1` schema and `build`, codec, checks, the `LevelProfile` shape, the Last Light and AF profiles, the registry, the depot sample, its codec round trips (ED3-q) | ED3D.1, ED3D.1c, ED3D.2 |
+| ED3D.1b2 | Typed entity definitions: the entity model both profiles share, over the kit's `FieldDef` and `EntityDef` shapes (EDK §4.8) | ED3D.1b, EDK.7 |
 | ED3D.1c | Sector geometry and nav queries: Last Light's `sectors.ts` and `nav.ts` as pure functions (`resolveMap`, pieces, colliders, sight walls, `sectorAt`, `clear`, `nearestNode`, `throughWall`), a golden from its own code, its geometry source tests | ED3D.1 |
-| ED3D.2 | Checks: the generic and Last Light rules in §7 with locators and seeded violations | ED3D.1, ED3D.1b, ED3D.1c |
+| ED3D.2 | Checks: the generic and Last Light rules in §7 that need only the format and the geometry, with locators and seeded violations | ED3D.1, ED3D.1c |
+| ED3D.2b | Checks that need definitions: entities, materials, lamps, policy (§7) with locators and seeded violations | ED3D.1b2 |
 | ED3D.3 | Model and commands on `History` and `Selection` | ED3D.1, EDK.2 |
 | ED3D.4 | Views core: plan drawing, projection and picking, dollhouse and walk meshes | ED3D.3, EDK.3 |
 | ED3D.5 | App shell, Plan and Split, layers, inspector cards (adopts the kit geometry, ED3D-D12) | ED3D.4, EDK.1, EDK.4 |
