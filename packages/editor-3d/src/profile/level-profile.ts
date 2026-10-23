@@ -8,6 +8,7 @@ import type { MassDef } from '../format/sector.schema'
 import type { NavWorld } from '../geometry/nav'
 import { type ResolvedMap, resolveMap } from '../geometry/sectors'
 import type { FileCodec } from './file-codec'
+import type { SectorAccess } from './sector-access'
 
 /**
  * One layer of what a level draws. Sectors are the only kind there is; terrain and open worlds are post-launch
@@ -40,6 +41,8 @@ export interface LevelProfile<D> extends FileCodec<D> {
   geometry(doc: D): Geometry
   /** Never throws for a level the schema accepted: a level that cannot be built is the answer, as a result. */
   checks(doc: D, context?: ProfileContext): CheckResult[]
+  /** How the editor's edits read and write the level's sectors (ED3D.3). */
+  readonly sectors: SectorAccess<D>
 }
 
 /** The resolved sectors, or the engine's sentence as a `GeometryError`. */
