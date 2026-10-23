@@ -1,6 +1,6 @@
 # ED3D: the 3D level editor (LDtk meets the Build editor; genre-general, first profile extracted from The Last Light)
 
-> **Status:** drafted 2026-10-23 (lane **editor-3d**, thread "3D level editor"), amended the same day for three Owner decisions (below). Spec review pending. ED3D.1 (the Last Light format and codec) is being built on the Orchestrator's go-ahead; nothing else is implemented. Task rows: ED3D.0 to ED3D.13 (with ED3D.1b) in the [master plan](../../02-master-delivery-plan.md#ed-editors-owner-amendment-2026-10-23) (added by the follow-up that lands after the ED section merges). Shared pieces are in the [editor kit spec](./2026-10-23-editor-kit-design.md); the sibling editor is in the [2D editor spec](./2026-10-23-editor-2d-design.md).
+> **Status:** drafted 2026-10-23 (lane **editor-3d**, thread "3D level editor"), amended the same day for three Owner decisions (below). Spec review pending. ED3D.1 (the Last Light format and codec, PR #107, merged), ED3D.1c (sector geometry and nav queries, PR #113), ED3D.2 (the Last Light and generic checks, PR #127) and ED3D.1b (the `af-sector/1` format, the profile shape and the registry, PR #129) are built on the Orchestrator's go-ahead and locally checked; nothing else is implemented. Task rows: ED3D.0 to ED3D.13 (with ED3D.1b, ED3D.1b2, ED3D.1c and ED3D.2b) in the [master plan](../../02-master-delivery-plan.md#ed-editors-owner-amendment-2026-10-23). Shared pieces are in the [editor kit spec](./2026-10-23-editor-kit-design.md); the sibling editor is in the [2D editor spec](./2026-10-23-editor-2d-design.md).
 >
 > **Why (Owner via the Orchestrator, 2026-10-23):** extract the editor suite built for The Last Light and make it good; "the 3D level editor is LDtk meets the 90s Build Editor". Design first, tablet first, web based. Mockups: [review gallery](https://claude.ai/artifact/GAxW7Fx8ZnaQmZtyqiLQhm) and the Figma file [Automata Editors](https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d), pages `3D · Screens` and the variable collections `Editor Kit` and `Editor 3D`. Source of the mockup tooling: `docs/design/editor-3d/`.
 >
@@ -112,7 +112,7 @@ interface LevelProfile<D> {
 }
 ```
 
-`id`, `schema`, `parse` and `patch` are the file codec, delivered by ED3D.1 as `FileCodec<D>`; `LevelProfile<D>` extends it with `geometry`, `entities`, `checks`, `materials` and `hints` as their rows land (ED3D.1b, ED3D.2, ED3D.8). The profile registry picks a profile from the file (`format` member for `af-sector`, shape for the Last Light files) and lists the ones installed. `facility.json` has a `FileCodec` of its own and no profile. The editor core, the views and the commands import `LevelProfile`, never a profile.
+`id`, `schema`, `parse` and `patch` are the file codec, delivered by ED3D.1 as `FileCodec<D>`; `LevelProfile<D>` extends it with `geometry` and `checks` (delivered by ED3D.1b), `entities` (ED3D.1b2), `materials` and `hints` (ED3D.8) as their rows land. The profile registry picks a profile from the file (`format` member for `af-sector`, shape for the Last Light files) and lists the ones installed. `facility.json` has a `FileCodec` of its own and no profile. The editor core, the views and the commands import `LevelProfile`, never a profile.
 
 ### 4.2 Document and selection
 
@@ -120,7 +120,7 @@ The `History` state is `{ level: D, facility?: Facility, view: ViewState }`. `vi
 
 ### 4.3 Geometry owner
 
-A profile's `geometry(doc)` is the single source of walls, edges and sector queries (point in sector, wall normals, shared-wall overlap) and the only way geometry reaches the editor. It returns a list of **geometry layers**; v1 has one kind, `sectors` (for Last Light, `expand`'s output; for `af-sector`, the output of `build`). The plan, the 3D meshes, hit testing and the checks all read it and draw every layer in the list; no view re-derives geometry. A change to `expand` or `build` is a format change with its tests. That list-of-layers shape is the whole terrain seam (D15): a second kind next to `sectors` is added by a new layer type, with no change to the views' contract.
+A profile's `geometry(doc)` is the single source of walls, edges and sector queries (point in sector, wall normals, shared-wall overlap) and the only way geometry reaches the editor. It returns a list of **geometry layers**; v1 has one kind, `sectors` (for Last Light, `expand`'s output; for `af-sector`, the output of `build`). The plan, the 3D meshes, hit testing and the checks all read it and draw every layer in the list; no view re-derives geometry. A change to `expand` or `build` is a format change with its tests. For the Last Light profile the owner is `expand` plus the game's own sector resolution and nav clearance (`src/game/sectors.ts`, `nav.ts`), ported in ED3D.1c: a `ResolvedMap` is the `sectors` layer's payload and a `NavWorld` answers the clearance queries. That list-of-layers shape is the whole terrain seam (D15): a second kind next to `sectors` is added by a new layer type, with no change to the views' contract.
 
 ### 4.4 Ports
 
@@ -330,7 +330,7 @@ Fixtures: the four shipped blockouts and `facility.json` copied with their sourc
 | ID | Case | Pass |
 |---|---|---|
 | ED3-a | Open each of the four shipped blockouts, change nothing, Save | Output is byte-identical to the input |
-| ED3-b | Set the hall's ceiling from 4.90 to 5.10 and Save | The diff is exactly that number's span; undo restores the text |
+| ED3-b | Set the hall's ceiling from 4.9 to 5.1 and Save | The diff is exactly that number's span; undo restores the text. Exactly, for a number the file spells the way the codec prints it (`4.9`); a number spelled `1.0`, or with more than four decimals (`spawn.facing` is pi), reads back as `1` or rounded to four decimals when it is the number that changes |
 | ED3-c | Draw a rectangle against the ward's top wall | A portal is offered; Accept adds both portals; all checks pass |
 | ED3-d | Close a polygon that overlaps the hall | Refused with the sector it overlaps named; nothing added |
 | ED3-e | Change one side of a portal to solid | `openings` fails; Locate selects and frames that segment; undo clears it |
@@ -359,8 +359,11 @@ Order and dependencies are in the [master plan](../../02-master-delivery-plan.md
 |---|---|---|
 | ED3D.0 | This spec, reviewed | ED.0 (mockups) |
 | ED3D.1 | Last Light format and codec: Zod schemas, `expand`, byte-preserving patch (shared by every profile), the four fixtures, source tests | ED3D.0 |
-| ED3D.1b | AF sector profile: `af-sector/1` schema and `build`, entity-definition model, registry, the depot sample, its codec round trips (ED3-q) | ED3D.1, EDK §4.8 shapes |
-| ED3D.2 | Checks: the generic and Last Light rules in §7 with locators and seeded violations | ED3D.1, ED3D.1b |
+| ED3D.1b | AF sector profile: `af-sector/1` schema and `build`, codec, checks, the `LevelProfile` shape, the Last Light and AF profiles, the registry, the depot sample, its codec round trips (ED3-q) | ED3D.1, ED3D.1c, ED3D.2 |
+| ED3D.1b2 | Typed entity definitions: the entity model both profiles share, over the kit's `FieldDef` and `EntityDef` shapes (EDK §4.8) | ED3D.1b, EDK.7 |
+| ED3D.1c | Sector geometry and nav queries: Last Light's `sectors.ts` and `nav.ts` as pure functions (`resolveMap`, pieces, colliders, sight walls, `sectorAt`, `clear`, `nearestNode`, `throughWall`), a golden from its own code, its geometry source tests | ED3D.1 |
+| ED3D.2 | Checks: the generic and Last Light rules in §7 that need only the format and the geometry, with locators and seeded violations | ED3D.1, ED3D.1c |
+| ED3D.2b | Checks that need definitions: entities, materials, lamps, policy (§7) with locators and seeded violations | ED3D.1b2 |
 | ED3D.3 | Model and commands on `History` and `Selection` | ED3D.1, EDK.2 |
 | ED3D.4 | Views core: plan drawing, projection and picking, dollhouse and walk meshes | ED3D.3, EDK.3 |
 | ED3D.5 | App shell, Plan and Split, layers, inspector cards (adopts the kit geometry, ED3D-D12) | ED3D.4, EDK.1, EDK.4 |

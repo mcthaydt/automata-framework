@@ -43,6 +43,10 @@ import { ContentCompileFailed, InvalidContentConfig } from './errors'
 import { readSources, type SourceTree } from './read-sources'
 import { type SimPartition, simKindsOf, simPartition, simReferenceProblems } from './sim-partition'
 
+/**
+ * What the content compiler is given: the project root, the registered kinds, and optionally tunables,
+ * invariants, flow capabilities, generators, an output folder and Paraglide.
+ */
 export interface ContentOptions {
   /** The project root; content is read from `<root>/content`. */
   readonly root: string
@@ -60,6 +64,10 @@ export interface ContentOptions {
   readonly paraglide?: ParaglideOptions | undefined
 }
 
+/**
+ * The result of a compile: the content and its hash, the sim partition, every output file's text, warnings,
+ * the languages and each language's message catalog.
+ */
 export interface CompiledContent {
   readonly data: ContentData
   /** Over all of `data`: the boot check and evidence identity. Never compared with `sim.hash`. */
@@ -91,6 +99,7 @@ export interface MessageLocation {
   readonly column: number
 }
 
+/** Where outputs go when `outDir` is not set: `content/generated`, relative to the project root. */
 export const DEFAULT_OUT_DIR = 'content/generated'
 
 export const outDirOf = (options: Pick<ContentOptions, 'outDir'>): string => options.outDir ?? DEFAULT_OUT_DIR

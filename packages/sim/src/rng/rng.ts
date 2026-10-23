@@ -1,8 +1,13 @@
 // xoshiro128** (Blackman & Vigna), 32-bit integer ops only, so it is bit-exact in every engine.
 // Seeded through splitmix32; each system gets its own substream (spec §4.4 rule 2).
 
+/** The four 32-bit words of a generator's state, as `Rng.state()` copies them and snapshots store them. */
 export type RngState = [number, number, number, number]
 
+/**
+ * A deterministic generator (xoshiro128**, 32-bit integer math only, so it is bit-exact in every engine).
+ * Each system gets its own, seeded from the sim's seed and the system's name.
+ */
 export interface Rng {
   /** Next raw 32-bit unsigned output. */
   nextU32(): number
@@ -52,6 +57,9 @@ export function rngFromState(initial: RngState): Rng {
   }
 }
 
+/**
+ * A generator seeded from `seed` (through splitmix32): the same seed gives the same sequence in every engine.
+ */
 export function createRng(seed: number): Rng {
   const sm = splitmix32(seed)
   return rngFromState([sm(), sm(), sm(), sm()])

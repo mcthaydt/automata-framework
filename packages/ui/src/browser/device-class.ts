@@ -7,8 +7,13 @@
  */
 import { PHONE_PORTRAIT_MAX_WIDTH } from '../geometry/form-factor'
 
+/** The kind of device the player holds: `phone`, `tablet` or `desktop`, decided once at boot. */
 export type DeviceClass = 'phone' | 'tablet' | 'desktop'
 
+/**
+ * A fine primary pointer is a `desktop`; a coarse one is a `phone` when the screen's shorter side is under
+ * 600 px, otherwise a `tablet`.
+ */
 export function classifyDevice(input: {
   coarse: boolean
   screenWidth: number
@@ -18,6 +23,10 @@ export function classifyDevice(input: {
   return Math.min(input.screenWidth, input.screenHeight) < PHONE_PORTRAIT_MAX_WIDTH ? 'phone' : 'tablet'
 }
 
+/**
+ * The device class at boot, read from the window's pointer and screen; `desktop` when the window cannot
+ * answer.
+ */
 export function bootDeviceClass(win: Window = window): DeviceClass {
   try {
     return classifyDevice({
