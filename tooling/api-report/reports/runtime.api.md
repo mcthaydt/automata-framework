@@ -458,6 +458,12 @@ type FlowFailure = AssetLoadFailed | LoadStalled | {
 };
 ```
 
+### `formatDateTime` (const)
+
+```ts
+const formatDateTime: (locale: string, epochMs: number, options?: Intl.DateTimeFormatOptions) => string;
+```
+
 ### `formatDuration` (function)
 
 ```ts
