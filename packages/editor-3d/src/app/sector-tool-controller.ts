@@ -29,7 +29,11 @@ export interface DrawEdge {
   readonly pending: boolean
 }
 
+/** What the taps draw: any number of corners closed by a tap on the first, or two opposite corners of an axis-aligned room. */
+export type SectorShape = 'polygon' | 'rectangle'
+
 export interface SectorToolView {
+  readonly shape: SectorShape
   readonly corners: readonly Point[]
   /** Where the pointer would place the next corner, and what it snapped to. */
   readonly snap: SnapResult | undefined
@@ -68,6 +72,8 @@ export interface SectorTool {
   acceptAll(): void
   /** Declines the offers that are left and ends the step. */
   finish(): void
+  /** Switches the shape of the next outline; refused while corners are placed, held while portals are offered. */
+  setShape(shape: SectorShape): void
   /** Drops the drawing, or the sector just closed when its portals are still offered. */
   cancel(): void
   /** The canvas has a new size: the camera keeps its centre. */
@@ -77,6 +83,7 @@ export interface SectorTool {
 }
 
 const IDLE: SectorToolView = {
+  shape: 'polygon',
   corners: [],
   snap: undefined,
   edges: [],
@@ -93,8 +100,11 @@ const samePoint = (a: Point, b: Point): boolean => a.x === b.x && a.z === b.z
 
 const ALREADY_A_CORNER = 'that point is already a corner'
 const ANSWER_THE_OFFERS = 'answer the portal offers first'
+const FINISH_THE_OUTLINE = 'finish or cancel the outline before changing the shape'
 
 export interface SectorToolOptions {
+  /** What the taps draw; a polygon when not given. */
+  readonly shape?: SectorShape | undefined
   /** The id of the sector being added, from the ids the level has taken: `sector-N`, the lowest N that is free, when not given. */
   readonly id?: ((taken: readonly string[]) => string) | undefined
 }
@@ -110,7 +120,8 @@ export function createSectorTool<D>(
 ): SectorTool {
   const listeners = new Set<() => void>()
   let size = canvas
-  let view: SectorToolView = IDLE
+  let shape: SectorShape = options.shape ?? 'polygon'
+  let view: SectorToolView = { ...IDLE, shape }
   let pointer: PlanPointer | undefined
   let corners: readonly Point[] = []
   /** The sentence of the last refused action, kept until the drawing changes. */
@@ -150,7 +161,7 @@ export function createSectorTool<D>(
     let loupe: Point | undefined
     if (nudged) loupe = last
     else if (pointer?.kind === 'pen' && snap !== undefined) loupe = { x: snap.x, z: snap.z }
-    return { corners, snap, edges, closing, loupe, refusal, offers: offering?.offers ?? [] }
+    return { shape, corners, snap, edges, closing, loupe, refusal, offers: offering?.offers ?? [] }
   }
 
   const publish = (): void => {
@@ -344,6 +355,15 @@ export function createSectorTool<D>(
       }
     },
     finish,
+    setShape(next) {
+      if (next === shape || held()) return
+      if (corners.length > 0) refusal = FINISH_THE_OUTLINE
+      else {
+        shape = next
+        refusal = undefined
+      }
+      publish()
+    },
     cancel() {
       const open = offering
       offering = undefined

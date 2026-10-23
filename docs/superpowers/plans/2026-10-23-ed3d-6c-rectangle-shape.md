@@ -3,7 +3,7 @@
 - **Task:** ED3D.6c, the third part of ED3D.6 (sector tools). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.3 flow 2 (draw a sector), §6 (the Sector toolbar: Polygon, Rectangle, Split, Merge) and acceptance cases ED3-c and ED3-s (draw a rectangle against a wall, accept the portal). The Rectangle shape of the Sector tool as plain TypeScript: two taps span an axis-aligned room, and the rest (heights, portal offers, one undo step) is the Polygon shape's path. No Svelte, DOM, Pixi or clock.
 - **Lane:** editor-3d. **Depends on:** ED3D.6a (PR #155: `createSectorTool` and its offers flow). Branch `claude/project-thread-ljshus-ed3d-6c` is stacked on ED3D.6b's branch (PR #158), only because the viewer carries both; the code touches ED3D.6a's file alone.
 - **Status:** Drafted 2026-10-23 on the hub's instruction (bus 1242: ED3D.6 sector tools as plain-TypeScript controllers, keep going while the stack waits). Not reviewed; spec review (ED3D.0) is still open. Steps below are ticked only when their checks pass.
-- **Progress:** 0 of 4 steps.
+- **Progress:** 1 of 4 steps.
 
 ## Why this task exists
 
@@ -56,9 +56,10 @@ export type SectorShape = 'polygon' | 'rectangle'
 
 Tests use the depot (the hall from (0, 0) to (8, 6), the dock from (8, 0) to (14, 6)) and the Last Light toy level, on the 800 by 400 px canvas the other tool tests use; pixel positions are made with `toScreen`.
 
-- [ ] **1. The shape.** (`app/sector-tool-rectangle.test.ts`; `app/sector-tool-controller.ts`).
+- [x] **1. The shape.** (`app/sector-tool-rectangle.test.ts`; `app/sector-tool-controller.ts`).
   - *Red, by case:* `view.shape` is `polygon` by default and `rectangle` when the option says so; `setShape('rectangle')` with nothing placed switches and notifies; with corners placed it is refused with the sentence and the shape and corners stay; after `cancel` it switches; while portal offers are open it is held with `answer the portal offers first`; the same shape again does not notify; a polygon is still drawn as before after switching back (three taps and a tap on the first corner add a sector).
   - *Expected failure:* `view.shape` is undefined and `setShape` is not a function.
+  - *Done 2026-10-23:* red (all 8 failing: `view.shape` undefined, `setShape` not a function), then green (9 tests in the new file with the sentence-clearing case; the Sector tool's 57 unchanged; `tsc` and biome clean). `setShape` is nothing for the shape it has, held while offers are open, refused with the sentence while corners are placed, else switches and clears the last sentence. Hand mutation (9 mutants over the same-shape and held guards, the corner-count guard, the refusal, the switch, the default, the initial view and the view field): all killed. Deviation: none.
 - [ ] **2. Two corners and what the view says.** (same files).
   - *Red, by case:* the first tap places A and the view has one corner and no edges; a hover with a point that has a width and a depth gives four pending edges whose lengths are the sides, from A; a hover on A's own vertical or horizontal line (and on A) gives none; the second tap places C (corners `[A, C]`) and the four edges are placed, not pending; `closing` is false before C and true with the pointer within reach of C (a finger 22 px, a mouse 8, not a hair past it); a tap away from C moves it (corners `[A, C']`, still not a sector); a tap on A's line is refused with the sentence, C stays and no sector is added; the axis snap is off (a pointer 1.6 px off the horizontal through A snaps to the grid, not the axis); nudge moves C by a grid step, a nudge onto A's line puts it back; undo-corner takes C and then A; `close` with no or one corner says `tap the opposite corner of the rectangle`.
   - *Expected failure:* a second tap places a third corner and no rectangle edges are given.
