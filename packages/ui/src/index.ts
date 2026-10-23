@@ -165,6 +165,13 @@ export type { ErrorAction } from './status/error-panel'
 export { default as LeaderboardPanel } from './status/LeaderboardPanel.svelte'
 export { default as LoaderOverlay } from './status/LoaderOverlay.svelte'
 export type { LeaderboardCopy, LeaderboardEntryView, LeaderboardView } from './status/leaderboard-panel'
+export { default as SaveStatus } from './status/SaveStatus.svelte'
+export {
+  SAVE_STATUS_TONES,
+  type SaveStatusCopy,
+  type SaveStatusState,
+  type SaveStatusTone,
+} from './status/save-status'
 export { default as Toast } from './status/Toast.svelte'
 export { default as SwipeSurface } from './touch/SwipeSurface.svelte'
 export type { PointerTracker, SwipeIndicatorView, SwipeSurfaceProps } from './touch/swipe-surface'

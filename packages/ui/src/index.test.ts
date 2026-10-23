@@ -16,6 +16,8 @@ test.each([
   'ScrollList',
   'Dialog',
   'LeaderboardPanel',
+  'SaveStatus',
+  'SAVE_STATUS_TONES',
   'LoaderOverlay',
   'ErrorPanel',
   'BootFailurePanel',
