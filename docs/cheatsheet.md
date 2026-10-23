@@ -141,34 +141,34 @@
 
 ### `import { … } from '@mcthaydt/automata-physics/2d'`
 
-- `body2d(kind, opts?)`
-- `BodyKind` (const)
+- `body2d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
+- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
 - `Collider2D` (const): One collider.
-- `collider2d` (const)
+- `collider2d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy)` with half extents, and `capsule(halfHeight, radius)`.
 - `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded2D` (const)
-- `CollisionStarted2D` (const)
+- `CollisionEnded2D` (const): Two colliders stopped touching, or one was removed.
+- `CollisionStarted2D` (const): Two colliders began touching (or, with a sensor, overlapping).
 - `physics2d(options?)`: The 2D physics plugin (M2.1 spec §3.5).
-- `Physics2DOptions` (interface)
+- `Physics2DOptions` (interface): The options of `physics2d`.
 - `RigidBody2D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const)
-- `transform2d(at?)`
+- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
+- `transform2d(at?)`: The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
 - `Transform2D` (const): Position in metres and rotation in radians.
 
 ### `import { … } from '@mcthaydt/automata-physics/3d'`
 
-- `body3d(kind, opts?)`
-- `BodyKind` (const)
+- `body3d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
+- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
 - `Collider3D` (const): One collider.
-- `collider3d` (const)
+- `collider3d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy, hz)` with half extents, and `capsule(halfHeight, radius)`.
 - `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded3D` (const)
-- `CollisionStarted3D` (const)
+- `CollisionEnded3D` (const): Two colliders stopped touching, or one was removed.
+- `CollisionStarted3D` (const): Two colliders began touching (or, with a sensor, overlapping).
 - `physics3d(options?)`: The 3D physics plugin (M2.1 spec §3.5).
-- `Physics3DOptions` (interface)
+- `Physics3DOptions` (interface): The options of `physics3d`.
 - `RigidBody3D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const)
-- `transform3d(at?)`
+- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
+- `transform3d(at?)`: The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`, `qz`, `qw`).
 - `Transform3D` (const): Position in metres and rotation as a unit quaternion.
 
 ## `@mcthaydt/automata-ship`
@@ -335,10 +335,10 @@
 ### `import { … } from '@mcthaydt/automata-testing'`
 
 - `documentScrolls(doc)`: The document itself never scrolls; screens scroll inside declared regions.
-- `FakeResizeObserver` (interface)
-- `fakeViewportWindow(size)`
-- `FakeViewportWindow` (interface)
-- `FakeVisualViewport` (interface)
+- `FakeResizeObserver` (interface): Controls the fake `ResizeObserver` `installFakeResizeObserver` put in place: report a width to every observer, then restore the original.
+- `fakeViewportWindow(size)`: A fake window of the given size.
+- `FakeViewportWindow` (interface): A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
+- `FakeVisualViewport` (interface): The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and listeners for `resize`.
 - `findClipped(root, selector)`: Each element `selector` names is tall enough for what it holds (a crushed row clips its content).
 - `findIntrusions(root, rects)`: No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its whole box.
 - `findOffscreenControls(root)`: Every visible control is on screen, unless a declared scroll region (`[data-scroll-region]`) clips it (see `clippedBy`): a fixed control, or one positioned outside the region, is judged where it is drawn, since scrolling the region would never bring it into view.
@@ -346,18 +346,18 @@
 - `findSmallTargets(root, min, minPrimary)`: Every visible control is at least `min` square, and a primary (`data-kind="primary"`) at least `minPrimary` tall.
 - `findUnreachable(elements)`: Each element is fully inside the viewport, and the whole of it is in view: a tap at its centre and at the middle of each edge lands on it or inside it, so nothing covers or clips any part.
 - `hostDisplay(options?)`: Ruken's display metrics for a hosted game.
-- `installFakeResizeObserver()`
+- `installFakeResizeObserver()`: Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components measured under jsdom, which has no layout.
 - `LayoutRect` (interface): Layout assertions as plain DOM functions (M1.6 spec §3.10), from FloorFifty's `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
-- `MountedFixture` (interface)
-- `mountFixture(component, props, target?)`
-- `REFERENCE_SIZES` (const)
+- `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
+- `mountFixture(component, props, target?)`: Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first render is finished.
+- `REFERENCE_SIZES` (const): The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every breakpoint and the tightest sizes, each with the classification it should get.
 - `ReferenceFormFactor` (type): `@mcthaydt/automata-ui`'s `FormFactor`.
 - `ReferenceHeightTier` (type): `@mcthaydt/automata-ui`'s `HeightTier`.
-- `ReferenceSize` (interface)
+- `ReferenceSize` (interface): One viewport every primitive and screen is checked at: a name, its size, and the form factor and height tier it must classify as.
 - `textSnippet(text, tag?, trusted?)`: A Svelte 5 snippet rendering `<tag>text</tag>`, so a test can pass `children`, `body` or an icon to a component without writing a wrapper component (Ruken `packages/ui/src/test-snippets.ts`).
 - `TIGHT_SIZES` (const): Sideways phones shorter than 780x270, where an open keyboard leaves the least room (framework audit of #7, 2026-10-11).
 - `Variant` (interface): A condition layered over a reference size.
-- `VARIANTS` (const)
+- `VARIANTS` (const): The conditions each size is also checked under: at rest, with the on-screen keyboard open, with Ruken's reserved strip on the right or the left, and at its TV scale.
 - `visibleControls(root)`: Controls a player could see and reach: laid out, not hidden, not in an inert subtree.
 
 ### `import { … } from '@mcthaydt/automata-testing/e2e'`
@@ -387,35 +387,35 @@
 
 ### `import { … } from '@mcthaydt/automata-testing/sim'`
 
-- `Difference` (interface)
-- `diffSnapshotViews(expected, actual)`
+- `Difference` (interface): One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's sid when it is an entity, and both values as printed.
+- `diffSnapshotViews(expected, actual)`: Every difference between an expected and an actual snapshot view, field by field, in a fixed order (header, rng, resources, next id, entities, plugin bytes) so a report reads the same in every engine.
 - `expectGolden(report)`: Throws with the formatted report unless the golden matched or was just written.
-- `formatGoldenReport(report)`
+- `formatGoldenReport(report)`: One report as text: a line for most outcomes, and for a divergence the tick and up to 20 differences.
 - `GOLDEN_MAX_PACKED_BYTES` (const): A golden that passes this cannot be reviewed or loaded cheaply; lower snapshotEvery's cost instead.
-- `goldenCommands(options?)`
-- `GoldenReport` (type)
+- `goldenCommands(options?)`: The Vitest browser commands that let golden tests read golden files in a browser: register them with `browser: { commands: goldenCommands() }`.
+- `GoldenReport` (type): What a golden check found: `pass`, `written`, `missing`, `schema-changed`, `content-changed`, `setup-changed` or `diverged` (with the first differing tick and the fields that differ).
 - `nodeCompression` (const): Node only. zlib is imported when first used, so importing this module in a browser costs nothing.
-- `replayGolden(options)`
-- `ReplayGoldenOptions` (interface)
-- `RoundTripFailure` (interface)
-- `RoundTripOptions` (interface)
-- `RoundTripVariant` (type)
-- `simGolden(options)`
-- `SimGoldenOptions` (interface)
-- `snapshotRoundTripProperty(options)`
+- `replayGolden(options)`: Replays a golden `.replay` against the current sim and reports whether it still matches.
+- `ReplayGoldenOptions` (interface): What `replayGolden` checks: the `.replay` file, the plugins and content to replay it with, and how to record it when updating goldens.
+- `RoundTripFailure` (interface): One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore tick, variant and a report of what differed.
+- `RoundTripOptions` (interface): What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of what length to try.
+- `RoundTripVariant` (type): How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
+- `simGolden(options)`: Plays a scripted run and compares the sim's hash every `every` ticks with the golden JSON file, reporting the first recorded tick that differs.
+- `SimGoldenOptions` (interface): What `simGolden` runs: the plugins, content, seed and scripted commands to play for `ticks` ticks, where the golden JSON lives, and how often to record a hash.
+- `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 - `streamCompression` (const): Browsers and Node: CompressionStream / DecompressionStream('deflate-raw').
 
 ### `import { … } from '@mcthaydt/automata-testing/sim/commands'`
 
-- `goldenCommands(options?)`
+- `goldenCommands(options?)`: The Vitest browser commands that let golden tests read golden files in a browser: register them with `browser: { commands: goldenCommands() }`.
 - `GoldenCommandsOptions` (interface): Options for {@link goldenCommands}.
 
 ### `import { … } from '@mcthaydt/automata-testing/sim/property'`
 
-- `RoundTripFailure` (interface)
-- `RoundTripOptions` (interface)
-- `RoundTripVariant` (type)
-- `snapshotRoundTripProperty(options)`
+- `RoundTripFailure` (interface): One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore tick, variant and a report of what differed.
+- `RoundTripOptions` (interface): What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of what length to try.
+- `RoundTripVariant` (type): How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
+- `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 
 ## `@mcthaydt/automata-ui`
 
