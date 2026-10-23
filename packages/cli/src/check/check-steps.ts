@@ -3,8 +3,16 @@ import { Files, ProcessRunner, type RunResult } from '@mcthaydt/automata-node'
 import {
   boardNamesIn,
   declaredBoardsIn,
+  declaredInputsIn,
+  declaredOrientationIn,
+  gameOrientationsIn,
+  inputsProblems,
   isBoardSource,
+  isInputsSource,
+  isOrientationSource,
+  keysBindingsIn,
   readEnvValues,
+  type ShipInputBindings,
   scanTextForSecrets,
 } from '@mcthaydt/automata-ship'
 import { Effect } from 'effect'
@@ -224,6 +232,82 @@ export const boardsStep = (gameDir: string): StepEffect =>
       }
     }
     return findings
+  })
+
+/**
+ * M4.7 follow-up: the scan `prepare-ruken` runs over the game's sources for the orientation each `defineGame`
+ * plays in, against the `runtime.orientation` its `ship.config.ts` sends Ruken (read as written). A game with no
+ * `ship.config.ts`, or with no `defineGame` to compare, finds nothing; a config whose orientation is not a
+ * literal, with a `defineGame` to compare against it, is a tool error, never a pass.
+ */
+export const orientationStep = (gameDir: string): StepEffect =>
+  Effect.gen(function* () {
+    const files = yield* Files
+    const toolError = (detail: string) => new CheckToolError({ kind: 'failed', tool: 'orientation', detail })
+    const configPath = join(gameDir, 'ship.config.ts')
+    if (!(yield* files.exists(configPath))) return []
+    const listed = yield* Effect.mapError(files.listFiles(gameDir), (error) => toolError(error.message))
+    const played: { file: string; line: number; col: number; orientation: string }[] = []
+    for (const file of listed.filter(isOrientationSource).sort()) {
+      const code = yield* Effect.mapError(files.readText(join(gameDir, file)), (error) =>
+        toolError(error.message),
+      )
+      for (const found of gameOrientationsIn(file, code) ?? []) played.push({ file, ...found })
+    }
+    if (played.length === 0) return []
+    const declared = declaredOrientationIn(
+      yield* Effect.mapError(files.readText(configPath), (error) => toolError(error.message)),
+    )
+    if (declared === undefined)
+      return yield* toolError(
+        'cannot read runtime.orientation in ship.config.ts: write it as a string literal',
+      )
+    return played
+      .filter((found) => found.orientation !== declared)
+      .map((found) => ({
+        file: found.file,
+        line: found.line,
+        col: found.col,
+        rule: 'orientation-mismatch',
+        message: `defineGame plays "${found.orientation}", but ship.config.ts runtime.orientation is "${declared}"`,
+      }))
+  })
+
+/**
+ * M4.1 follow-up: the scan `prepare-ruken` runs over the game's sources for what its `keys()` calls bind, against
+ * the `runtime.inputs` its `ship.config.ts` sends Ruken (read as written), with `inputsProblems`' own rule. A game
+ * with no `ship.config.ts`, or with no `keys()` call to compare, finds nothing; a config whose inputs are not
+ * string literals, with a `keys()` call to compare against them, is a tool error, never a pass.
+ */
+export const inputsStep = (gameDir: string): StepEffect =>
+  Effect.gen(function* () {
+    const files = yield* Files
+    const toolError = (detail: string) => new CheckToolError({ kind: 'failed', tool: 'inputs', detail })
+    const configPath = join(gameDir, 'ship.config.ts')
+    if (!(yield* files.exists(configPath))) return []
+    const listed = yield* Effect.mapError(files.listFiles(gameDir), (error) => toolError(error.message))
+    const bound: { [action: string]: ShipInputBindings[string] } = {}
+    for (const file of listed.filter(isInputsSource).sort()) {
+      const code = yield* Effect.mapError(files.readText(join(gameDir, file)), (error) =>
+        toolError(error.message),
+      )
+      Object.assign(bound, keysBindingsIn(file, code))
+    }
+    if (Object.keys(bound).length === 0) return []
+    const declared = declaredInputsIn(
+      yield* Effect.mapError(files.readText(configPath), (error) => toolError(error.message)),
+    )
+    if (declared === undefined)
+      return yield* toolError(
+        'cannot read runtime.inputs in ship.config.ts: write it as an array of string literals',
+      )
+    return inputsProblems(declared.inputs, bound).map((message) => ({
+      file: 'ship.config.ts',
+      line: declared.line,
+      col: declared.col,
+      rule: 'inputs-mismatch',
+      message,
+    }))
   })
 
 export const cspStep = (gameDir: string): StepEffect =>

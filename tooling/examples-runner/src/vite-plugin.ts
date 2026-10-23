@@ -81,7 +81,9 @@ export function examplesRunner(options: ExamplesRunnerOptions): Plugin {
         base: './',
         appType: 'mpa',
         resolve: { conditions: ['browser'] },
-        build: { outDir: 'dist', emptyOutDir: true, rollupOptions: { input } },
+        // `assetsInlineLimit: 0`: Vite would inline an asset under 4 kB as a `data:` URL, which Pixi's loader fetches
+        // and Ruken's CSP (`connect-src 'self'`) refuses; a same-origin file is what the CSP allows.
+        build: { outDir: 'dist', emptyOutDir: true, assetsInlineLimit: 0, rollupOptions: { input } },
         preview: { headers },
       }
     },
