@@ -76,6 +76,7 @@ const withPolicy = (
     formFactor?: FormFactor
     coarse?: boolean
     grant?: boolean
+    rotateHint?: 'block' | 'toast'
   },
   body: (parts: {
     root: HTMLElement
@@ -97,6 +98,7 @@ const withPolicy = (
         geometry: geometry.owner,
         layer: root,
         time,
+        ...(options.rotateHint === undefined ? {} : { rotateHint: options.rotateHint }),
       })
       flushSync()
       yield* Effect.promise(() => body({ root, time, geometry, window }))
@@ -169,6 +171,43 @@ describe('the rotate hint', () => {
     withPolicy({ orientation: 'portrait', hosted: true, coarse: false }, async ({ root, time }) => {
       expect(hint(root)).toBeNull()
       expect(time.paused).toBe(false)
+    }))
+})
+
+// Owner amendment, 2026-10-18 (M4 spec §4.9): `rotateHint: 'toast'` gives FloorFifty's dismissible message instead.
+describe('the rotate hint as a toast', () => {
+  const toast = (root: HTMLElement) => root.querySelector<HTMLElement>('[data-testid="rotate-toast"]')
+
+  it('says to turn the phone, without covering or pausing the game, and goes once dismissed', () =>
+    withPolicy(
+      { orientation: 'portrait', hosted: true, rotateHint: 'toast' },
+      async ({ root, time, geometry }) => {
+        expect(hint(root)).toBeNull()
+        expect(toast(root)?.textContent).toContain('Turn your phone for a bigger view')
+        expect(time.paused).toBe(false)
+        toast(root)?.querySelector<HTMLButtonElement>('button')?.click()
+        flushSync()
+        expect(toast(root)).toBeNull()
+        // Dismissed for the session: turning the phone back and forth does not bring it back.
+        geometry.become('phone-portrait')
+        geometry.become('phone-landscape')
+        flushSync()
+        expect(toast(root)).toBeNull()
+      },
+    ))
+
+  it('goes by itself once the phone is turned the right way', () =>
+    withPolicy({ orientation: 'portrait', hosted: true, rotateHint: 'toast' }, async ({ root, geometry }) => {
+      geometry.become('phone-portrait')
+      flushSync()
+      expect(toast(root)).toBeNull()
+    }))
+
+  it('blocks by default, as before', () =>
+    withPolicy({ orientation: 'portrait', hosted: true }, async ({ root, time }) => {
+      expect(toast(root)).toBeNull()
+      expect(hint(root)).not.toBeNull()
+      expect(time.paused).toBe(true)
     }))
 })
 

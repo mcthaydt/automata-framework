@@ -52,9 +52,22 @@ const board = {
 function mountScreen(id: 'title' | 'play' | 'paused' | 'paused-board') {
   if (id === 'title') return mountFixture(TitleScreen, { title: 'A game with a long title', onPlay: nothing })
   if (id === 'paused')
-    return mountFixture(PausedScreen, { onResume: nothing, onQuit: nothing, onSettings: nothing })
+    return mountFixture(PausedScreen, {
+      onResume: nothing,
+      onQuit: nothing,
+      onSettings: nothing,
+      muted: false,
+      onMute: nothing,
+    })
   if (id === 'paused-board')
-    return mountFixture(PausedScreen, { onResume: nothing, onQuit: nothing, onSettings: nothing, board })
+    return mountFixture(PausedScreen, {
+      onResume: nothing,
+      onQuit: nothing,
+      onSettings: nothing,
+      muted: false,
+      onMute: nothing,
+      board,
+    })
   const tracker = new InputMethodTracker()
   tracker.note('touch')
   return mountFixture(PlayScreen, {
@@ -69,8 +82,8 @@ function mountScreen(id: 'title' | 'play' | 'paused' | 'paused-board') {
 const ESSENTIALS = {
   title: ['play'],
   play: ['pause', 'touch-0', 'touch-1', 'touch-2'],
-  paused: ['resume', 'quit', 'settings'],
-  'paused-board': ['resume', 'quit', 'settings'],
+  paused: ['resume', 'pause-mute', 'quit', 'settings'],
+  'paused-board': ['resume', 'pause-mute', 'quit', 'settings'],
 } as const
 
 describe.each(['title', 'play', 'paused', 'paused-board'] as const)('%s screen layout contract', (screen) => {

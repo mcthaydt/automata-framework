@@ -184,7 +184,8 @@ function touchDriver(page: Page, frame: Frame): Driver {
   return {
     choose: (selector) => frame.locator(selector).tap(),
     pause: () => frame.getByTestId('pause').tap(),
-    back: () => frame.getByTestId('corner-back').tap(),
+    // The dialog's Close, named Back: drawn at every size (Back under Settings is only on tall bands).
+    back: () => frame.locator('[data-testid="settings-screen"] [data-modal-close]').tap(),
     holdAction: (action, until) =>
       action === 'right' || action === 'jump'
         ? hold(frame.getByTestId(buttonFor[action]), until)
@@ -269,6 +270,9 @@ async function journey(page: Page, cell: MatrixCell, host: MatrixHost): Promise<
   await driver.choose('[data-testid="settings"]')
   await expect(screen('settings')).toBeVisible()
   await expectLayout(frame, 'settings')
+  // The controls are on Settings' second tab (FloorFifty's Settings and Controls).
+  await driver.choose('[data-testid="settings-tab-controls"]')
+  await expect(frame.locator('[data-settings-section="controls"]')).toBeVisible()
   await driver.rebindJump()
   await expect(frame.locator('[data-settings-section="controls"]')).toHaveAttribute('data-state', 'saved')
 
@@ -289,6 +293,8 @@ async function journey(page: Page, cell: MatrixCell, host: MatrixHost): Promise<
   await driver.pause()
   await expect(screen('paused')).toBeVisible()
   await driver.choose('[data-testid="quit"]')
+  // Quit asks first: the run is lost.
+  await driver.choose('[data-testid="quit-confirm"]')
   await expect(screen('title')).toBeVisible()
   expect(errors).toEqual([])
 }
@@ -381,6 +387,7 @@ test.describe('host events', () => {
     else await frame.locator('body').press('Escape')
     await expect(frame.getByTestId('paused-screen')).toBeVisible()
     await frame.getByTestId('settings').click()
+    await frame.getByTestId('settings-tab-controls').click()
     const jumpOnPad = frame.locator(`[data-control-row="${JUMP}"] [data-rebind="gamepad"]`)
     await expect(jumpOnPad).toBeVisible()
     await expect(jumpOnPad).not.toHaveText('A')
@@ -527,10 +534,11 @@ test.describe('failures', () => {
     await expect(frame.getByTestId('play-screen')).toBeVisible()
     await frame.locator('body').press('Escape')
     await frame.getByTestId('settings').click()
+    await frame.getByTestId('settings-tab-controls').click()
     await frame.locator(`[data-control-row="${JUMP}"] [data-rebind="keyboard"]`).click()
     await frame.locator('body').press('KeyK')
     await expect(frame.locator(`[data-control-row="${JUMP}"] [data-rebind="keyboard"]`)).toHaveText('K')
-    await frame.getByTestId('corner-back').click()
+    await frame.locator('[data-testid="settings-screen"] [data-modal-close]').click()
     await frame.getByTestId('resume').click()
     await expect(frame.getByTestId('play-screen')).toBeVisible()
     await frame.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())

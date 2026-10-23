@@ -10,6 +10,7 @@ import { Audio } from '../audio/audio.manager.js'
 import { AudioBuses } from '../audio/audio-buses.js'
 import { type FakeAudioContext, fakeAudioContext } from '../audio/testing/fake-audio-context.js'
 import type { ScreenDef } from '../flow/screen.js'
+import { createHaptics, Haptics } from '../haptics/haptics.manager.js'
 import { Leaderboards } from '../leaderboards/leaderboards.manager.js'
 import { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { RenderTarget } from '../render/renderer.js'
@@ -917,6 +918,46 @@ describe('bootProgram', () => {
       yield* Scope.close(scope, Exit.void)
       expect(contexts[0]?.closed).toBe(true)
     }).pipe(Effect.runPromise))
+  it('provides Haptics to screens: the game’s seam here, the browser’s otherwise (redo step 10)', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      const haptics = createHaptics({ touch: () => false })
+      const seen: { haptics?: Haptics } = {}
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            seen.haptics = yield* Haptics
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          haptics,
+        },
+      }
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      expect(seen.haptics).toBe(haptics)
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+
   it('provides Leaderboards to screens and submits the game scores for sim events (M5.7)', () =>
     Effect.gen(function* () {
       const scope = yield* Scope.make()

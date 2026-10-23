@@ -28,6 +28,66 @@ function applyGeometry(root: HTMLElement, geometry: Geometry): void;
 function arrowKeyNav(event: KeyboardEvent): NavDirection | undefined;
 ```
 
+### `AUDIO_BUSES` (const)
+
+```ts
+const AUDIO_BUSES: readonly AudioBus[];
+```
+
+### `AudioBus` (type)
+
+```ts
+type AudioBus = 'master' | 'music' | 'sfx' | 'ui' | 'voice';
+```
+
+### `AudioCopy` (interface)
+
+```ts
+interface AudioCopy {
+    readonly title: string;
+    readonly mute: string;
+    readonly muteUnfocused: string;
+    readonly on: string;
+    readonly off: string;
+    readonly buses: Readonly<Record<AudioBus, string>>;
+    percent(value: number): string;
+    readonly unavailable: string;
+    readonly hostVolume: string;
+}
+```
+
+### `AudioSection` (svelte)
+
+```ts
+component from './settings/AudioSection.svelte'
+```
+
+### `AudioSectionChange` (type)
+
+```ts
+type AudioSectionChange = {
+    readonly kind: 'muted';
+    readonly value: boolean;
+} | {
+    readonly kind: 'muteUnfocused';
+    readonly value: boolean;
+} | {
+    readonly kind: 'gain';
+    readonly bus: AudioBus;
+    readonly value: number;
+};
+```
+
+### `AudioValue` (interface)
+
+```ts
+interface AudioValue {
+    readonly muted: boolean;
+    readonly muteUnfocused: boolean;
+    readonly gains: Readonly<Record<AudioBus, number>>;
+}
+```
+
 ### `BarAction` (interface)
 
 ```ts
@@ -196,10 +256,10 @@ interface ControlsCopy {
     readonly title: string;
     readonly keyboard: string;
     readonly gamepad: string;
+    readonly touch: string;
+    readonly inUse: string;
     readonly reset: string;
     readonly press: string;
-    readonly touchMode: string;
-    readonly touchModes: Readonly<Record<ControlsTouchMode, string>>;
     rebind(action: string, device: string): string;
     capturing(action: string, device: string, secondsLeft: number): string;
     conflict(action: string, other: string): string;
@@ -357,6 +417,12 @@ type DisplayQuality = 'high' | 'medium' | 'low';
 
 ```ts
 component from './settings/DisplaySection.svelte'
+```
+
+### `endonymOf` (function)
+
+```ts
+function endonymOf(tag: string): string;
 ```
 
 ### `enterFullscreen` (function)
@@ -699,6 +765,21 @@ interface LandscapeGateCopy {
 type LandscapeGateState = 'none' | 'fullscreen' | 'rotate-or-install';
 ```
 
+### `LanguageCopy` (interface)
+
+```ts
+interface LanguageCopy {
+    readonly title: string;
+    readonly automatic: string;
+}
+```
+
+### `LanguageSection` (svelte)
+
+```ts
+component from './settings/LanguageSection.svelte'
+```
+
 ### `LeaderboardCopy` (interface)
 
 ```ts
@@ -782,6 +863,9 @@ interface ModalProps {
     onclose: () => void;
     onbackdrop?: (() => void) | undefined;
     children?: Snippet | undefined;
+    head?: Snippet | undefined;
+    wide?: boolean | undefined;
+    fill?: boolean | undefined;
     actions?: Snippet | undefined;
     testId?: string | undefined;
 }
@@ -1088,6 +1172,22 @@ interface RotateHintCopy {
 }
 ```
 
+### `RotateToast` (svelte)
+
+```ts
+component from './display/RotateToast.svelte'
+```
+
+### `RotateToastCopy` (interface)
+
+```ts
+interface RotateToastCopy {
+    readonly text: string;
+    readonly ok: string;
+    readonly dismiss: string;
+}
+```
+
 ### `ScreenFrame` (svelte)
 
 ```ts
@@ -1132,6 +1232,16 @@ type SettingsSection = {
 } | {
     readonly component: UiComponent;
 };
+```
+
+### `SettingsTab` (interface)
+
+```ts
+interface SettingsTab {
+    readonly id: string;
+    readonly label: string;
+    readonly sections: readonly SettingsSection[];
+}
 ```
 
 ### `SETTLE_DELAYS_MS` (const)
@@ -1311,6 +1421,22 @@ interface TouchControlsProps {
 }
 ```
 
+### `TouchCopy` (interface)
+
+```ts
+interface TouchCopy {
+    readonly title: string;
+    readonly mode: string;
+    readonly modes: Readonly<Record<ControlsTouchMode, string>>;
+}
+```
+
+### `TouchSection` (svelte)
+
+```ts
+component from './settings/TouchSection.svelte'
+```
+
 ### `TouchTarget` (interface)
 
 ```ts
@@ -1347,6 +1473,23 @@ type UiComponent = Component<Record<string, never>>;
 
 ```ts
 type UiSlotName = (typeof UI_SLOT_NAMES)[number];
+```
+
+### `VibrationCopy` (interface)
+
+```ts
+interface VibrationCopy {
+    readonly title: string;
+    readonly toggle: string;
+    readonly on: string;
+    readonly off: string;
+}
+```
+
+### `VibrationSection` (svelte)
+
+```ts
+component from './settings/VibrationSection.svelte'
 ```
 
 ### `ViewportWindow` (interface)
