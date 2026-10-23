@@ -1,7 +1,7 @@
 import { Hosting } from '@mcthaydt/automata-host'
 import { FakeHostHandle, HostingTest, runScoped } from '@mcthaydt/automata-host/testing'
 import { settle } from '@ruken/sdk-host/testing'
-import { Effect, Either, type Scope, TestClock, TestContext } from 'effect'
+import { Effect, Either, Fiber, type Scope, Stream, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
@@ -275,6 +275,48 @@ describe('a refused write', () => {
         })
         expect(facts).toEqual([['save.failed', { key: 'run', slot: 0, code: 'QUOTA_EXCEEDED' }]])
         expect((yield* save.slots.get)[0]).toEqual({ kind: 'empty', slot: 0 })
+      }),
+    )
+  })
+})
+
+describe('the loaded slot and touch (M5 spec §4.3, §4.4)', () => {
+  it('is no slot until one loads, then the slot the last successful load returned', async () => {
+    await withSave({ 'run.slot.0': stored(), 'run.slot.2': stored({ version: 4 }) }, (save) =>
+      Effect.gen(function* () {
+        expect(yield* save.loaded.get).toBeUndefined()
+        yield* save.load(1)
+        expect(yield* save.loaded.get).toBe(1)
+        yield* save.load(0)
+        expect(yield* save.loaded.get).toBe(0)
+        // A load that fails leaves the slot being played as it was.
+        expect(Either.isLeft(yield* Effect.either(save.load(2)))).toBe(true)
+        expect(yield* save.loaded.get).toBe(0)
+      }),
+    )
+  })
+
+  it('tells a subscriber each time the loaded slot changes', async () => {
+    await withSave({}, (save) =>
+      Effect.gen(function* () {
+        const seen: (number | undefined)[] = []
+        const reader = yield* Stream.runForEach(save.loaded.changes, (slot) =>
+          Effect.sync(() => seen.push(slot)),
+        ).pipe(Effect.fork)
+        yield* settled
+        yield* save.load(2)
+        yield* save.load(1)
+        yield* settled
+        yield* Fiber.interrupt(reader)
+        expect(seen).toEqual([undefined, 2, 1])
+      }),
+    )
+  })
+
+  it('takes a touch before any load as nothing: it does not throw, and keeps nothing', async () => {
+    await withSave({}, (save) =>
+      Effect.sync(() => {
+        expect(() => save.touch(() => ({ name: 'Early', bestTime: 1, coins: 1 }))).not.toThrow()
       }),
     )
   })

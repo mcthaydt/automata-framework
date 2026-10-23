@@ -40,9 +40,16 @@ export interface SaveWriteOptions {
 export interface Save<S> {
   /** Every slot's state, in slot order. */
   readonly slots: Subscribable.Subscribable<readonly SlotState[]>
+  /** The slot being played: the last one `load` returned. Undefined before the first load. */
+  readonly loaded: Subscribable.Subscribable<number | undefined>
   load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>
   write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>
   remove(slot: number): Effect.Effect<void, HostError>
+  /**
+   * Says the loaded slot's progress changed and what it is now. A plain function, safe to call every tick: it only
+   * keeps `data`, and the next autosave trigger writes it. With no slot loaded it keeps nothing.
+   */
+  touch(data: () => S): void
 }
 
 export interface SaveServiceOptions {
@@ -95,6 +102,16 @@ export function saveService<S>(
     }
     const ref = yield* SubscriptionRef.make<readonly SlotState[]>(states)
 
+    // The slot being played, and per slot the latest progress `touch` has not yet seen written.
+    const loadedRef = yield* SubscriptionRef.make<number | undefined>(undefined)
+    let loadedSlot: number | undefined
+    const pending = new Map<number, () => S>()
+    const setLoaded = (slot: number) =>
+      Effect.suspend(() => {
+        loadedSlot = slot
+        return SubscriptionRef.set(loadedRef, slot)
+      })
+
     const stateOf = (slot: number) => Effect.map(SubscriptionRef.get(ref), (all) => all[slot])
     const setState = (slot: number, state: SlotState) =>
       SubscriptionRef.update(ref, (all) => all.map((current, index) => (index === slot ? state : current)))
@@ -113,6 +130,7 @@ export function saveService<S>(
           yield* setState(slot, state)
           remember(slot, raw)
           bus.publish('save.loaded', { key: def.key, slot })
+          yield* setLoaded(slot)
           return { slot, data: def.empty(), meta: undefined }
         }
         const read = readSave(def, raw)
@@ -128,6 +146,7 @@ export function saveService<S>(
         yield* setState(slot, state)
         remember(slot, raw)
         bus.publish('save.loaded', { key: def.key, slot })
+        yield* setLoaded(slot)
         const { envelope } = read
         const loaded = { slot, data: read.data, meta: metaOf(envelope) }
         // A snapshot taken with other content is dropped (M5-D5): only the data loads.
@@ -176,11 +195,17 @@ export function saveService<S>(
         yield* setState(slot, { kind: 'empty', slot })
       })
 
+    const touch = (data: () => S): void => {
+      if (loadedSlot !== undefined) pending.set(loadedSlot, data)
+    }
+
     return {
       slots: Subscribable.make({ get: SubscriptionRef.get(ref), changes: ref.changes }),
+      loaded: Subscribable.make({ get: SubscriptionRef.get(loadedRef), changes: loadedRef.changes }),
       load,
       write,
       remove,
+      touch,
     }
   })
 }
