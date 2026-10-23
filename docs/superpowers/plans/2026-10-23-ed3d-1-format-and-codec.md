@@ -3,7 +3,7 @@
 - **Task:** ED3D.1 in [02](../../02-master-delivery-plan.md) (row lands with the ED3D follow-up). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §2 (Format, Codec), §4.1, §4.5, decisions ED3D-D2, D3, D4. Acceptance: the patch halves of ED3-b and ED3-o (§13); the rest of those cases need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.0 (the spec, review pending). It needs no editor-kit code, no Svelte and no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed, not implemented. Nothing below starts until ED3D.0 is reviewed.
-- **Progress:** 8 of 11 steps.
+- **Progress:** 9 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -188,7 +188,7 @@ Each step starts with its test, run red, with the failure reason recorded; the r
     - an unknown member of a changed room is still there afterwards, byte for byte.
   - *Expected failure:* module missing.
   - *Done: red `Cannot find module './patch'`; then 25 of 27 green on the first run. The two failures were a gap in step 7, not in the diff: `structure.ts` compared what it wrote with the value it was given, so a float-noise number such as `0.1 + 0.2` (written as `0.3`) was refused as "does not read as intended". The structure edits now compare with the value as written (numbers rounded the way `print.ts` writes them, `asWritten`), with a new test in `structure.test.ts`; removals still compare with the file's own values, which may carry more than 4 decimals. Two extra cases beyond the list: a mixed patch (remove at the front, edit in the middle, insert at the end and in a gap) and a number the file already has, which is not rewritten when the new value is it or rounds to exactly it (a file keeps `4.90`). `print.ts` now exports `roundJsonNumber`. 147 of 147; tsc, biome clean.*
-- [ ] **9. Refusals and verification** (`patch.refusal.test.ts`; `patch.ts`, which exports `verifyPatched(text, after)` for the test and not from the public entry).
+- [x] **9. Refusals and verification** (`patch.refusal.test.ts`; `patch.ts`, which exports `verifyPatched(text, after)` for the test and not from the public entry).
   - *Red, by case (**ED3-o**):*
     - `unwritable-value`: `NaN`, `Infinity` and `1e22` in `after` refuse with the path of the value, and nothing is returned to write; `0.12345` is written as `0.1235` and `0.1 + 0.2` as `0.3`, and the check compares the re-parse with `after` rounded the same way;
     - `invalid-text`: a text with a trailing comma refuses, with the scanner's offset in `detail`;
@@ -196,6 +196,7 @@ Each step starts with its test, run red, with the failure reason recorded; the r
     - `verify-failed`: `verifyPatched` on a text that does not parse to `after` (a wrong edit set built in the test) refuses at the first differing path; this is the guard against a codec bug, so the test builds the bug;
     - a refused patch carries no text, so a caller cannot save a half result.
   - *Expected failure:* the step 8 `patchJson` writes `NaN` as text and returns `ok: true` for the other cases, and `verifyPatched` does not exist.
+  - *Done: red `verifyPatched is not a function` for the `verify-failed` cases and `ok: true` where a refusal was due (16 failures, plus the codec-bug test below); green after one implementation, 165 of 165. Beyond the list: a duplicate key refuses as `invalid-text`; `before-mismatch` also catches a member present on one side only and a different array length, and the stale-model case (file edited on disk since the model was read); an unserialisable value (`undefined` in an array) refuses as `unwritable-value`; and `patch.codec-bug.test.ts` mocks `structure.ts` so a structure edit refuses its own result, which proves a codec bug becomes a `verify-failed` refusal at that path with no text instead of an exception in the editor. A `JsonWriteError` branch around the steps was dropped as unreachable (every number is checked up front by the same `formatJsonNumber`).*
 - [ ] **10. File codecs and the round trip** (`last-light.codec.test.ts`, `roundtrip.test.ts`; `file-codec.ts`, `last-light.codec.ts`, `src/index.ts`).
   - *Red, by case:*
     - `parse` returns the value for each fixture and issues with paths for a bad file; invalid JSON is one issue at `[]`;

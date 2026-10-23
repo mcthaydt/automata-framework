@@ -3,11 +3,12 @@
 // Last Light has no equivalent: its editor edits spans live, one command at a time, while this one diffs whole models
 // because the kit's History keeps snapshots (ED3D-D4). The layout rules for what an insert looks like are Last
 // Light's (structure.ts).
-import type { JsonPath } from './locate'
-import { roundJsonNumber } from './print'
+import { type JsonPath, JsonScanError, scan } from './locate'
+import { formatJsonNumber, JsonWriteError, roundJsonNumber } from './print'
 import {
   insertElement,
   insertMember,
+  JsonShapeError,
   type JsonValue,
   removeElement,
   removeMember,
@@ -219,15 +220,133 @@ function apply(text: string, step: Step): string {
   }
 }
 
+const refuse = (path: JsonPath, reason: PatchRefusalReason, detail: string): PatchResult => ({
+  ok: false,
+  path,
+  reason,
+  detail,
+})
+
+/**
+ * The first path, in document order, where `actual` and `expected` differ, or undefined when they are the same value
+ * (key order aside). With `rounded`, a number matches when it is the expected one or the expected one as the file
+ * writes it.
+ */
+function firstDifference(
+  actual: Json,
+  expected: Json,
+  rounded: boolean,
+  path: JsonPath = [],
+): JsonPath | undefined {
+  if (typeof actual === 'number' && typeof expected === 'number') {
+    return actual === expected || (rounded && actual === roundJsonNumber(expected)) ? undefined : path
+  }
+  if (Array.isArray(actual) && Array.isArray(expected)) {
+    if (actual.length !== expected.length) return path
+    for (const [i, item] of actual.entries()) {
+      const found = firstDifference(item, expected[i], rounded, [...path, i])
+      if (found) return found
+    }
+    return undefined
+  }
+  if (isObject(actual) && isObject(expected)) {
+    const keys = keysOf(actual)
+    const stray = [...keys, ...keysOf(expected)].find(
+      (key) => (actual[key] === undefined) !== (expected[key] === undefined),
+    )
+    if (stray !== undefined) return [...path, stray]
+    for (const key of keys) {
+      const found = firstDifference(actual[key], expected[key], rounded, [...path, key])
+      if (found) return found
+    }
+    return undefined
+  }
+  return actual === expected ? undefined : path
+}
+
+/** The first value in `after` that cannot be written as JSON the way these files write it, with why. */
+function firstUnwritable(value: Json, path: JsonPath = []): { path: JsonPath; detail: string } | undefined {
+  if (typeof value === 'number') {
+    try {
+      formatJsonNumber(value)
+    } catch (error) {
+      if (error instanceof JsonWriteError) return { path, detail: error.message }
+      throw error
+    }
+    return undefined
+  }
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return undefined
+  if (Array.isArray(value)) {
+    for (const [i, item] of value.entries()) {
+      const found = firstUnwritable(item, [...path, i])
+      if (found) return found
+    }
+    return undefined
+  }
+  if (isObject(value)) {
+    for (const key of keysOf(value)) {
+      const found = firstUnwritable(value[key], [...path, key])
+      if (found) return found
+    }
+    return undefined
+  }
+  return { path, detail: `${typeof value} is not a JSON value` }
+}
+
+/**
+ * Checks that `text` reads as `after` (numbers as the file writes them). This is the guard against a bug in the diff:
+ * `patchJson` runs it on every result, and a result that fails it is never returned.
+ */
+export function verifyPatched(text: string, after: unknown): PatchResult {
+  let parsed: Json
+  try {
+    parsed = JSON.parse(text) as Json
+  } catch (error) {
+    return refuse([], 'verify-failed', `the patched text is not JSON: ${(error as Error).message}`)
+  }
+  const path = firstDifference(parsed, after as Json, true)
+  return path
+    ? refuse(
+        path,
+        'verify-failed',
+        `the patched text does not read as the new model at ${JSON.stringify(path)}`,
+      )
+    : { ok: true, text }
+}
+
 /**
  * Turns `text` into the text of `after`, given `before`, the model `text` parses to. Only what differs between the two
  * models is written; every other byte of the file stays. Numbers print with at most 4 decimals (`print.ts`), so the
- * saved file can differ from `after` by less than 0.00005.
+ * saved file can differ from `after` by less than 0.00005. A refusal carries a path and a reason and no text; what
+ * each reason means is in spec §4.5.
  */
 export function patchJson(text: string, before: unknown, after: unknown, rules: PatchRules): PatchResult {
+  try {
+    scan(text)
+  } catch (error) {
+    if (error instanceof JsonScanError) return refuse([], 'invalid-text', error.message)
+    throw error
+  }
+  const mismatch = firstDifference(JSON.parse(text) as Json, before as Json, false)
+  if (mismatch) {
+    return refuse(
+      mismatch,
+      'before-mismatch',
+      `the model the patch starts from differs from the text at ${JSON.stringify(mismatch)}`,
+    )
+  }
+  const unwritable = firstUnwritable(after as Json)
+  if (unwritable) return refuse(unwritable.path, 'unwritable-value', unwritable.detail)
+
   const steps: Step[] = []
   diff([], before as Json, after as Json, steps, rules)
   let out = text
-  for (const step of steps) out = apply(out, step)
-  return { ok: true, text: out }
+  try {
+    for (const step of steps) out = apply(out, step)
+  } catch (error) {
+    // A structure edit checks its own result, so reaching here means the diff asked for something it cannot do.
+    if (error instanceof JsonShapeError) return refuse(error.path, 'verify-failed', error.message)
+    throw error
+  }
+  return verifyPatched(out, after)
 }
