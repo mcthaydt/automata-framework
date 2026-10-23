@@ -29,6 +29,35 @@ export class StorageError extends Error {
   }
 }
 
+// Duck-typed, not `instanceof Error`: a DOMException from another realm (an iframe, jsdom) is not one of ours.
+function errorName(error: unknown): string | undefined {
+  return typeof error === 'object' && error !== null && 'name' in error && typeof error.name === 'string'
+    ? error.name
+    : undefined
+}
+
+function errorMessage(error: unknown): string {
+  return typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof error.message === 'string'
+    ? error.message
+    : String(error)
+}
+
+/**
+ * Sorts what the platform threw into the three reasons the editor can act on: a full disk (`quota`: export instead),
+ * a refusal (`denied`: ask again or switch store) and everything else (`io`), keeping the browser's own message.
+ */
+export function classifyStorageError(error: unknown): { reason: StorageFailure; message: string } {
+  const message = errorMessage(error)
+  if (error instanceof StorageError) return { reason: error.reason, message }
+  const name = errorName(error)
+  if (name === 'QuotaExceededError') return { reason: 'quota', message }
+  if (name === 'NotAllowedError' || name === 'SecurityError') return { reason: 'denied', message }
+  return { reason: 'io', message }
+}
+
 export interface ProjectStore {
   readonly kind: 'memory' | 'opfs' | 'folder' | 'download'
   /** Files whose whole path starts with `prefix` (plain string prefix), sorted by path in code-unit order. */
@@ -54,6 +83,6 @@ export async function statPath(store: ProjectStore, path: string): Promise<Store
 const encoder = new TextEncoder()
 
 /** A copy of what a caller wrote, as bytes, so later changes to the caller's array never reach the store. */
-export function toBytes(data: Uint8Array | string): Uint8Array {
+export function toBytes(data: Uint8Array | string): Uint8Array<ArrayBuffer> {
   return typeof data === 'string' ? encoder.encode(data) : data.slice()
 }
