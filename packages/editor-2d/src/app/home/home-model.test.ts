@@ -11,10 +11,12 @@ import {
   entryBadge,
   filterProjects,
   importMessage,
+  importNotices,
   kindTone,
   modifiedLabel,
   openProblem,
   reconcileSelection,
+  removeMessage,
   stepSelection,
   storageNotes,
   templateCards,
@@ -381,5 +383,33 @@ describe('duplicateMessage and importMessage', () => {
       kind: 'error',
       text: 'Could not import a.note: Disk full.',
     })
+  })
+})
+
+describe('removeMessage and importNotices', () => {
+  it('says which file was deleted, by its last path segment', () => {
+    expect(removeMessage('dir/old.note')).toEqual({ kind: 'info', text: 'Deleted old.note.' })
+  })
+
+  it('reports one imported file as itself and several as a count', () => {
+    const one: ImportOutcome = { status: 'imported', name: 'a.note', path: 'a.note' }
+    expect(importNotices([one])).toEqual([{ kind: 'ok', text: 'Imported a.note.' }])
+    const two: ImportOutcome = { status: 'imported', name: 'b.note', path: 'b.note' }
+    expect(importNotices([one, two])).toEqual([{ kind: 'ok', text: 'Imported 2 files.' }])
+  })
+
+  it('gives every refused or failed file its own notice, after the imported ones', () => {
+    const imported: ImportOutcome = { status: 'imported', name: 'a.note', path: 'a.note' }
+    const refused: ImportOutcome = { status: 'refused', name: 'r.txt', reason: 'unrecognised' }
+    const failed: ImportOutcome = { status: 'failed', name: 'f.note', reason: 'quota', message: 'Disk full.' }
+    expect(importNotices([refused, imported, failed])).toEqual([
+      { kind: 'ok', text: 'Imported a.note.' },
+      { kind: 'error', text: 'r.txt is not a project this editor opens.' },
+      { kind: 'error', text: 'Could not import f.note: Disk full.' },
+    ])
+  })
+
+  it('says nothing for no files', () => {
+    expect(importNotices([])).toEqual([])
   })
 })

@@ -1,5 +1,4 @@
-import type { ToastKind } from '@mcthaydt/automata-editor-kit'
-import type { Workspace } from '@mcthaydt/automata-editor-kit/core'
+import type { ToastKind, Workspace } from '@mcthaydt/automata-editor-kit/core'
 import type { ProfileRegistry } from '../../profiles/profile'
 import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../editor-app'
 import type { ProjectEntry } from '../project-list'
@@ -258,4 +257,22 @@ function refusal(name: string, reason: 'unrecognised' | 'notText' | 'tooLarge'):
     case 'tooLarge':
       return `${name} is over the 16 MB limit.`
   }
+}
+
+export function removeMessage(path: string): Notice {
+  return { kind: 'info', text: `Deleted ${baseName(path)}.` }
+}
+
+/** The toasts for a batch of imports: the files kept as one line (named when it is one), then a line for each that was not. */
+export function importNotices(outcomes: readonly ImportOutcome[]): readonly Notice[] {
+  const kept = outcomes.filter((outcome) => outcome.status === 'imported')
+  const problems = outcomes.filter((outcome) => outcome.status !== 'imported').map(importMessage)
+  const [only] = kept
+  const summary: Notice[] =
+    kept.length === 0
+      ? []
+      : only !== undefined && kept.length === 1
+        ? [importMessage(only)]
+        : [{ kind: 'ok', text: `Imported ${kept.length} files.` }]
+  return [...summary, ...problems]
 }
