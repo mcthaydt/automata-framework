@@ -4,6 +4,21 @@
 
 ## `.`
 
+### `attachGestures` (function)
+
+```ts
+function attachGestures(element: HTMLElement, handlers: GestureHandlers, options?: AttachOptions): () => void;
+```
+
+### `AttachOptions` (interface)
+
+```ts
+interface AttachOptions extends GestureOptions {
+    readonly clock?: GestureClock;
+    readonly preventContextMenu?: boolean;
+}
+```
+
 ### `checkEntityDef` (function)
 
 ```ts
@@ -34,6 +49,66 @@ function checkRetype(oldDef: FieldDef, newDef: FieldDef, instances: readonly Fie
 function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly InstanceProblem[];
 ```
 
+### `Command` (interface)
+
+```ts
+interface Command {
+    readonly id: string;
+    readonly title: string;
+    run(): void;
+    enabled?(): boolean;
+    readonly shortcut?: string;
+    readonly allowInText?: boolean;
+}
+```
+
+### `CommandRegistry` (interface)
+
+```ts
+interface CommandRegistry {
+    register(command: Command): () => void;
+    get(id: string): Command | undefined;
+    list(): readonly Command[];
+    run(id: string): boolean;
+}
+```
+
+### `createCommandRegistry` (function)
+
+```ts
+function createCommandRegistry(): CommandRegistry;
+```
+
+### `createHistory` (function)
+
+```ts
+function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
+```
+
+### `createKeymap` (function)
+
+```ts
+function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
+```
+
+### `createRecognizer` (function)
+
+```ts
+function createRecognizer(handlers: GestureHandlers, options?: GestureOptions, clock?: GestureClock): Recognizer;
+```
+
+### `createSelection` (function)
+
+```ts
+function createSelection<Id extends SelectionId>(): Selection<Id>;
+```
+
+### `createViewport` (function)
+
+```ts
+function createViewport(init: ViewportInit): Viewport2D;
+```
+
 ### `defaultDockOpen` (function)
 
 ```ts
@@ -44,6 +119,12 @@ function defaultDockOpen(mode: ShellMode, tier: HeightTier): boolean;
 
 ```ts
 function defaultFieldValue(def: FieldDef): FieldValue | undefined;
+```
+
+### `defineCommand` (function)
+
+```ts
+function defineCommand(command: Command): Command;
 ```
 
 ### `Detent` (type)
@@ -74,6 +155,41 @@ type DockPlacement = 'inline' | 'sheet';
 
 ```ts
 function dockPlacementOf(mode: ShellMode, tier: HeightTier): DockPlacement;
+```
+
+### `DragEndGesture` (interface)
+
+```ts
+interface DragEndGesture extends DragGesture {
+    readonly cancelled: boolean;
+}
+```
+
+### `DragGesture` (interface)
+
+```ts
+interface DragGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly startX: number;
+    readonly startY: number;
+    readonly dx: number;
+    readonly dy: number;
+    readonly pressure: number;
+    readonly tiltX: number;
+    readonly tiltY: number;
+    readonly pointerType: PointerKind;
+    readonly button: number;
+    readonly modifiers: Modifiers;
+}
+```
+
+### `DragStartGesture` (interface)
+
+```ts
+interface DragStartGesture extends DragGesture {
+    readonly afterLongPress: boolean;
+}
 ```
 
 ### `EditorShell` (svelte)
@@ -270,10 +386,112 @@ const fieldValueSchema: z.ZodType<FieldValue>;
 const fieldValuesSchema: z.ZodType<FieldValues>;
 ```
 
+### `GestureClock` (interface)
+
+```ts
+interface GestureClock {
+    now(): number;
+    setTimer(ms: number, run: () => void): unknown;
+    clearTimer(handle: unknown): void;
+}
+```
+
+### `GestureHandlers` (interface)
+
+```ts
+interface GestureHandlers {
+    tap?(event: TapGesture): void;
+    doubleTap?(event: TapGesture): void;
+    longPress?(event: LongPressGesture): void;
+    dragStart?(event: DragStartGesture): void;
+    drag?(event: DragGesture): void;
+    dragEnd?(event: DragEndGesture): void;
+    pan?(event: PanGesture): void;
+    pinch?(event: PinchGesture): void;
+    multiTap?(event: MultiTapGesture): void;
+    hover?(event: HoverGesture): void;
+    wheel?(event: WheelGesture): void;
+}
+```
+
+### `GestureOptions` (interface)
+
+```ts
+interface GestureOptions {
+    readonly slop?: Partial<Record<PointerKind, number>>;
+    readonly tapMs?: number;
+    readonly longPressMs?: number;
+    readonly doubleTapMs?: number;
+    readonly penHoldMs?: number;
+    readonly rotate?: boolean;
+}
+```
+
 ### `HEX_COLOR` (const)
 
 ```ts
 const HEX_COLOR: RegExp;
+```
+
+### `History` (interface)
+
+```ts
+interface History<S> {
+    readonly state: S;
+    readonly revision: number;
+    readonly cleanRevision: number;
+    readonly canUndo: boolean;
+    readonly canRedo: boolean;
+    readonly undoLabel: string | undefined;
+    readonly redoLabel: string | undefined;
+    apply(label: string, update: (state: S) => S, options?: {
+        coalesce?: string;
+    }): void;
+    begin(label: string): Transaction<S>;
+    undo(): void;
+    redo(): void;
+    markClean(): void;
+    subscribe(listener: (history: History<S>) => void): () => void;
+}
+```
+
+### `HistoryError` (class)
+
+```ts
+class HistoryError extends Error {
+    readonly code: HistoryErrorCode;
+    constructor(code: HistoryErrorCode, message: string);
+}
+```
+
+### `HistoryErrorCode` (type)
+
+```ts
+type HistoryErrorCode = 'transaction-open';
+```
+
+### `HistoryOptions` (interface)
+
+```ts
+interface HistoryOptions {
+    readonly limit?: number;
+    readonly now?: () => number;
+    readonly coalesceWindowMs?: number;
+}
+```
+
+### `HoverGesture` (interface)
+
+```ts
+interface HoverGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly pointerType: PointerKind;
+    readonly pressure: number;
+    readonly tiltX: number;
+    readonly tiltY: number;
+    readonly modifiers: Modifiers;
+}
 ```
 
 ### `InstanceCode` (type)
@@ -292,10 +510,76 @@ interface InstanceProblem extends FieldProblem<InstanceCode> {
 }
 ```
 
+### `KeyInput` (interface)
+
+```ts
+interface KeyInput {
+    readonly key: string;
+    readonly metaKey: boolean;
+    readonly ctrlKey: boolean;
+    readonly shiftKey: boolean;
+    readonly altKey: boolean;
+    readonly inText: boolean;
+}
+```
+
+### `Keymap` (interface)
+
+```ts
+interface Keymap {
+    resolve(input: KeyInput): Command | undefined;
+    handle(input: KeyInput): boolean;
+}
+```
+
+### `LongPressGesture` (interface)
+
+```ts
+interface LongPressGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly pointerType: PointerKind;
+    readonly modifiers: Modifiers;
+}
+```
+
+### `Modifiers` (interface)
+
+```ts
+interface Modifiers {
+    readonly shift: boolean;
+    readonly ctrl: boolean;
+    readonly alt: boolean;
+    readonly meta: boolean;
+}
+```
+
+### `MultiTapGesture` (interface)
+
+```ts
+interface MultiTapGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly fingers: number;
+}
+```
+
 ### `nextDetent` (function)
 
 ```ts
 function nextDetent(detent: Detent): Detent;
+```
+
+### `NO_MODIFIERS` (const)
+
+```ts
+const NO_MODIFIERS: Modifiers;
+```
+
+### `normalizeShortcut` (function)
+
+```ts
+function normalizeShortcut(text: string): string;
 ```
 
 ### `OpenState` (interface)
@@ -308,12 +592,74 @@ interface OpenState {
 }
 ```
 
+### `PanGesture` (interface)
+
+```ts
+interface PanGesture {
+    readonly phase: TransformPhase;
+    readonly x: number;
+    readonly y: number;
+    readonly dx: number;
+    readonly dy: number;
+    readonly cancelled: boolean;
+}
+```
+
+### `parseShortcut` (function)
+
+```ts
+function parseShortcut(text: string): Shortcut;
+```
+
+### `PinchGesture` (interface)
+
+```ts
+interface PinchGesture {
+    readonly phase: TransformPhase;
+    readonly x: number;
+    readonly y: number;
+    readonly scale: number;
+    readonly totalScale: number;
+    readonly rotation: number;
+    readonly totalRotation: number;
+    readonly cancelled: boolean;
+}
+```
+
+### `Platform` (type)
+
+```ts
+type Platform = 'apple' | 'other';
+```
+
 ### `Point` (interface)
 
 ```ts
 interface Point {
     readonly x: number;
     readonly y: number;
+}
+```
+
+### `PointerKind` (type)
+
+```ts
+type PointerKind = 'touch' | 'pen' | 'mouse';
+```
+
+### `PointerSample` (interface)
+
+```ts
+interface PointerSample {
+    readonly id: number;
+    readonly kind: PointerKind;
+    readonly x: number;
+    readonly y: number;
+    readonly pressure: number;
+    readonly tiltX: number;
+    readonly tiltY: number;
+    readonly button: number;
+    readonly modifiers: Modifiers;
 }
 ```
 
@@ -329,10 +675,41 @@ interface RampEntry {
 }
 ```
 
+### `realClock` (const)
+
+```ts
+const realClock: GestureClock;
+```
+
+### `Recognizer` (interface)
+
+```ts
+interface Recognizer {
+    down(sample: PointerSample): void;
+    move(sample: PointerSample): void;
+    up(sample: PointerSample): void;
+    hover(sample: PointerSample): void;
+    wheel(input: WheelInput): void;
+    cancel(id: number): void;
+    dispose(): void;
+}
+```
+
 ### `reconcileOpen` (function)
 
 ```ts
 function reconcileOpen(mode: ShellMode, previous: OpenState, next: OpenState): OpenState;
+```
+
+### `Rect` (interface)
+
+```ts
+interface Rect {
+    readonly x: number;
+    readonly y: number;
+    readonly w: number;
+    readonly h: number;
+}
 ```
 
 ### `RefValue` (interface)
@@ -377,6 +754,29 @@ interface RetypeBreakage {
 }
 ```
 
+### `Selection` (interface)
+
+```ts
+interface Selection<Id extends SelectionId> {
+    readonly ids: readonly Id[];
+    readonly size: number;
+    readonly primary: Id | undefined;
+    has(id: Id): boolean;
+    set(ids: Iterable<Id>): void;
+    add(id: Id): void;
+    toggle(id: Id): void;
+    clear(): void;
+    range(from: Id, to: Id, order: readonly Id[]): void;
+    subscribe(listener: (selection: Selection<Id>) => void): () => void;
+}
+```
+
+### `SelectionId` (type)
+
+```ts
+type SelectionId = string | number;
+```
+
 ### `ShellMode` (type)
 
 ```ts
@@ -395,16 +795,404 @@ function shellModeOf(formFactor: FormFactor): ShellMode;
 type ShellRegion = 'panel' | 'inspector' | 'dock';
 ```
 
+### `Shortcut` (interface)
+
+```ts
+interface Shortcut {
+    readonly key: string;
+    readonly mod: boolean;
+    readonly ctrl: boolean;
+    readonly meta: boolean;
+    readonly shift: boolean;
+    readonly alt: boolean;
+}
+```
+
+### `Size` (interface)
+
+```ts
+interface Size {
+    readonly w: number;
+    readonly h: number;
+}
+```
+
+### `TapGesture` (interface)
+
+```ts
+interface TapGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly count: number;
+    readonly pointerType: PointerKind;
+    readonly modifiers: Modifiers;
+}
+```
+
 ### `tokensToCss` (function)
 
 ```ts
 function tokensToCss(tokens: EditorTokens): string;
 ```
 
+### `Transaction` (interface)
+
+```ts
+interface Transaction<S> {
+    readonly open: boolean;
+    update(fn: (state: S) => S): void;
+    commit(): void;
+    cancel(): void;
+}
+```
+
+### `TransformPhase` (type)
+
+```ts
+type TransformPhase = 'start' | 'change' | 'end';
+```
+
 ### `valuesWithDefaults` (function)
 
 ```ts
 function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
+```
+
+### `Viewport2D` (interface)
+
+```ts
+interface Viewport2D {
+    readonly size: Size;
+    readonly pan: Point;
+    readonly zoom: number;
+    readonly limits: ViewportLimits;
+    screenToWorld(point: Point): Point;
+    worldToScreen(point: Point): Point;
+    panBy(dx: number, dy: number): Viewport2D;
+    zoomAt(point: Point, factor: number): Viewport2D;
+    snapZoom(point: Point): Viewport2D;
+    fit(rect: Rect, padding?: number): Viewport2D;
+    resize(size: Size): Viewport2D;
+}
+```
+
+### `ViewportInit` (interface)
+
+```ts
+interface ViewportInit {
+    readonly size: Size;
+    readonly pan?: Point;
+    readonly zoom?: number;
+    readonly limits?: Partial<ViewportLimits>;
+}
+```
+
+### `ViewportLimits` (interface)
+
+```ts
+interface ViewportLimits {
+    readonly minZoom: number;
+    readonly maxZoom: number;
+    readonly bounds?: Rect | undefined;
+    readonly keep: number;
+}
+```
+
+### `WheelGesture` (interface)
+
+```ts
+interface WheelGesture {
+    readonly mode: 'zoom' | 'pan';
+    readonly x: number;
+    readonly y: number;
+    readonly dx: number;
+    readonly dy: number;
+    readonly scale: number;
+    readonly modifiers: Modifiers;
+}
+```
+
+### `WheelInput` (interface)
+
+```ts
+interface WheelInput {
+    readonly x: number;
+    readonly y: number;
+    readonly deltaX: number;
+    readonly deltaY: number;
+    readonly modifiers: Modifiers;
+}
+```
+
+## `./core`
+
+### `Command` (interface)
+
+```ts
+interface Command {
+    readonly id: string;
+    readonly title: string;
+    run(): void;
+    enabled?(): boolean;
+    readonly shortcut?: string;
+    readonly allowInText?: boolean;
+}
+```
+
+### `CommandRegistry` (interface)
+
+```ts
+interface CommandRegistry {
+    register(command: Command): () => void;
+    get(id: string): Command | undefined;
+    list(): readonly Command[];
+    run(id: string): boolean;
+}
+```
+
+### `createCommandRegistry` (function)
+
+```ts
+function createCommandRegistry(): CommandRegistry;
+```
+
+### `createHistory` (function)
+
+```ts
+function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
+```
+
+### `createKeymap` (function)
+
+```ts
+function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
+```
+
+### `createSelection` (function)
+
+```ts
+function createSelection<Id extends SelectionId>(): Selection<Id>;
+```
+
+### `createViewport` (function)
+
+```ts
+function createViewport(init: ViewportInit): Viewport2D;
+```
+
+### `defineCommand` (function)
+
+```ts
+function defineCommand(command: Command): Command;
+```
+
+### `History` (interface)
+
+```ts
+interface History<S> {
+    readonly state: S;
+    readonly revision: number;
+    readonly cleanRevision: number;
+    readonly canUndo: boolean;
+    readonly canRedo: boolean;
+    readonly undoLabel: string | undefined;
+    readonly redoLabel: string | undefined;
+    apply(label: string, update: (state: S) => S, options?: {
+        coalesce?: string;
+    }): void;
+    begin(label: string): Transaction<S>;
+    undo(): void;
+    redo(): void;
+    markClean(): void;
+    subscribe(listener: (history: History<S>) => void): () => void;
+}
+```
+
+### `HistoryError` (class)
+
+```ts
+class HistoryError extends Error {
+    readonly code: HistoryErrorCode;
+    constructor(code: HistoryErrorCode, message: string);
+}
+```
+
+### `HistoryErrorCode` (type)
+
+```ts
+type HistoryErrorCode = 'transaction-open';
+```
+
+### `HistoryOptions` (interface)
+
+```ts
+interface HistoryOptions {
+    readonly limit?: number;
+    readonly now?: () => number;
+    readonly coalesceWindowMs?: number;
+}
+```
+
+### `KeyInput` (interface)
+
+```ts
+interface KeyInput {
+    readonly key: string;
+    readonly metaKey: boolean;
+    readonly ctrlKey: boolean;
+    readonly shiftKey: boolean;
+    readonly altKey: boolean;
+    readonly inText: boolean;
+}
+```
+
+### `Keymap` (interface)
+
+```ts
+interface Keymap {
+    resolve(input: KeyInput): Command | undefined;
+    handle(input: KeyInput): boolean;
+}
+```
+
+### `normalizeShortcut` (function)
+
+```ts
+function normalizeShortcut(text: string): string;
+```
+
+### `parseShortcut` (function)
+
+```ts
+function parseShortcut(text: string): Shortcut;
+```
+
+### `Platform` (type)
+
+```ts
+type Platform = 'apple' | 'other';
+```
+
+### `Point` (interface)
+
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
+}
+```
+
+### `PointerKind` (type)
+
+```ts
+type PointerKind = 'touch' | 'pen' | 'mouse';
+```
+
+### `Rect` (interface)
+
+```ts
+interface Rect {
+    readonly x: number;
+    readonly y: number;
+    readonly w: number;
+    readonly h: number;
+}
+```
+
+### `Selection` (interface)
+
+```ts
+interface Selection<Id extends SelectionId> {
+    readonly ids: readonly Id[];
+    readonly size: number;
+    readonly primary: Id | undefined;
+    has(id: Id): boolean;
+    set(ids: Iterable<Id>): void;
+    add(id: Id): void;
+    toggle(id: Id): void;
+    clear(): void;
+    range(from: Id, to: Id, order: readonly Id[]): void;
+    subscribe(listener: (selection: Selection<Id>) => void): () => void;
+}
+```
+
+### `SelectionId` (type)
+
+```ts
+type SelectionId = string | number;
+```
+
+### `Shortcut` (interface)
+
+```ts
+interface Shortcut {
+    readonly key: string;
+    readonly mod: boolean;
+    readonly ctrl: boolean;
+    readonly meta: boolean;
+    readonly shift: boolean;
+    readonly alt: boolean;
+}
+```
+
+### `Size` (interface)
+
+```ts
+interface Size {
+    readonly w: number;
+    readonly h: number;
+}
+```
+
+### `Transaction` (interface)
+
+```ts
+interface Transaction<S> {
+    readonly open: boolean;
+    update(fn: (state: S) => S): void;
+    commit(): void;
+    cancel(): void;
+}
+```
+
+### `Viewport2D` (interface)
+
+```ts
+interface Viewport2D {
+    readonly size: Size;
+    readonly pan: Point;
+    readonly zoom: number;
+    readonly limits: ViewportLimits;
+    screenToWorld(point: Point): Point;
+    worldToScreen(point: Point): Point;
+    panBy(dx: number, dy: number): Viewport2D;
+    zoomAt(point: Point, factor: number): Viewport2D;
+    snapZoom(point: Point): Viewport2D;
+    fit(rect: Rect, padding?: number): Viewport2D;
+    resize(size: Size): Viewport2D;
+}
+```
+
+### `ViewportInit` (interface)
+
+```ts
+interface ViewportInit {
+    readonly size: Size;
+    readonly pan?: Point;
+    readonly zoom?: number;
+    readonly limits?: Partial<ViewportLimits>;
+}
+```
+
+### `ViewportLimits` (interface)
+
+```ts
+interface ViewportLimits {
+    readonly minZoom: number;
+    readonly maxZoom: number;
+    readonly bounds?: Rect | undefined;
+    readonly keep: number;
+}
 ```
 
 ## `./fields`

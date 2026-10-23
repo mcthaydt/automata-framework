@@ -76,6 +76,7 @@ export function scrollWithin(element: HTMLElement): void {
   }
 }
 
+/** A direction a d-pad or an arrow key walks a menu. */
 export type NavDirection = 'up' | 'down' | 'left' | 'right'
 
 const ARROWS: Readonly<Record<string, NavDirection>> = {
@@ -124,6 +125,11 @@ function centre(element: HTMLElement): { x: number; y: number } {
   return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
 }
 
+/**
+ * Moves focus the way a d-pad would: `move` walks Tab order, `steer` walks a `[data-focus-grid]` spatially,
+ * `page` offers a page turn, and `recover` puts focus back on the first control when a screen change dropped
+ * it. `attach` listens for the player's own pointer and keys, so the navigator steps back from them.
+ */
 export class FocusNavigator {
   /**
    * Whether the navigator is the one moving focus: set by any navigator action, cleared by a

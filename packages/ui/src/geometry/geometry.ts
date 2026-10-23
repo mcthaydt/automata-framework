@@ -19,6 +19,7 @@ export interface Insets {
   readonly left: number
 }
 
+/** A rectangle in CSS px: its top-left corner and its size. */
 export interface Rect {
   readonly x: number
   readonly y: number
@@ -33,6 +34,10 @@ export interface Rect {
  */
 export type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'scale'>
 
+/**
+ * What `measureGeometry` reads: the layout viewport, the visual viewport, the safe-area insets, the host's
+ * display metrics, a hidden bar's height and the layout before a keyboard shrank it.
+ */
 export interface GeometryInput {
   /** The layout viewport, `innerWidth x innerHeight`. Form factor and tier come from this alone. */
   readonly layout: { readonly width: number; readonly height: number }
@@ -53,6 +58,10 @@ export interface GeometryInput {
   readonly restingLayout?: { readonly width: number; readonly height: number } | undefined
 }
 
+/**
+ * The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the
+ * usable and visible regions, what covers the page's foot, and the host's scale hint.
+ */
 export interface Geometry {
   readonly layout: { readonly width: number; readonly height: number }
   readonly formFactor: FormFactor
@@ -82,6 +91,11 @@ export function hostReservedInsets(host: HostDisplay | undefined): { left: numbe
   return host.hostReserved.edge === 'left' ? { left: width, right: 0 } : { left: 0, right: width }
 }
 
+/**
+ * Turns what the browser and the host report into one `Geometry`. Pure. Each inset is the largest of the
+ * browser's safe area, the host's and (at the sides) the host's reserved strip; the visible region is the
+ * usable one less whatever covers the page's foot.
+ */
 export function measureGeometry(input: GeometryInput): Geometry {
   const { layout, visual, envSafeArea, host } = input
   const safe = host?.safeArea ?? NO_INSETS
