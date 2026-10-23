@@ -135,6 +135,10 @@ describe('public entry', () => {
     expect(editor3d).toHaveProperty('createPlanController')
   })
 
+  it('exports the sector tool and the portal offers it makes', () => {
+    for (const name of ['createSectorTool', 'portalOffers']) expect(editor3d, name).toHaveProperty(name)
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',
