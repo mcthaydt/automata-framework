@@ -118,6 +118,7 @@ export {
 } from './loading/load-meter.js'
 export { applyDocumentLocale, textDirection } from './locale/document-locale.js'
 export {
+  formatDateTime,
   formatDuration,
   formatNumber,
   formatPercent,

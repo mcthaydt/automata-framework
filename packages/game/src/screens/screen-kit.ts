@@ -108,9 +108,19 @@ export const hostInput: Effect.Effect<Hosting['input'] | undefined, never, Hosti
   (hosting) => (hosting.kind === 'standalone' ? undefined : hosting.input),
 )
 
-/** What a pad without the standard mapping is told (M4 spec §6), and for how long. */
+/** How long a passing message stays on a screen. */
+const TOAST_FOR = Duration.seconds(4)
+
+/** What a pad without the standard mapping is told (M4 spec §6). */
 export const PAD_UNSUPPORTED = 'This controller isn’t supported yet'
-const PAD_UNSUPPORTED_FOR = Duration.seconds(4)
+
+/** A Toast on the layer for four seconds, taken away with it. */
+const tell = (layer: HTMLElement, text: string, testId: string): Effect.Effect<void> =>
+  Effect.acquireUseRelease(
+    Effect.sync(() => mount(Toast, { target: layer, props: { text, testId } })),
+    () => Effect.sleep(TOAST_FOR),
+    (toast) => Effect.promise(() => unmount(toast)),
+  )
 
 /**
  * A pad without the standard mapping cannot drive bindings (M4 spec §6): while this screen is open, the first time
@@ -124,13 +134,6 @@ export function noticeUnsupportedPads(
   return Effect.gen(function* () {
     const bus = yield* PresentationBus
     const runtime = yield* Effect.runtime<never>()
-    const tell = Effect.acquireUseRelease(
-      Effect.sync(() =>
-        mount(Toast, { target: layer, props: { text: PAD_UNSUPPORTED, testId: 'pad-unsupported' } }),
-      ),
-      () => Effect.sleep(PAD_UNSUPPORTED_FOR),
-      (toast) => Effect.promise(() => unmount(toast)),
-    )
     const scope = yield* Effect.scope
     yield* Effect.acquireRelease(
       Effect.sync(() =>
@@ -139,7 +142,32 @@ export function noticeUnsupportedPads(
           if (pad.standard || told.has(key)) return
           told.add(key)
           // In the screen's scope: leaving the screen takes the toast away with it.
-          Runtime.runFork(runtime)(Effect.forkIn(tell, scope))
+          Runtime.runFork(runtime)(Effect.forkIn(tell(layer, PAD_UNSUPPORTED, 'pad-unsupported'), scope))
+        }),
+      ),
+      (stop) => Effect.sync(stop),
+    )
+  })
+}
+
+/**
+ * While this screen is open, a change to the save `key` that another device made is told in a Toast for four seconds
+ * (M5-D6). Nothing is reloaded: the paused screen offers the choice.
+ */
+export function noticeChangedElsewhere(
+  layer: HTMLElement,
+  key: string,
+  text: string,
+): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
+  return Effect.gen(function* () {
+    const bus = yield* PresentationBus
+    const runtime = yield* Effect.runtime<never>()
+    const scope = yield* Effect.scope
+    yield* Effect.acquireRelease(
+      Effect.sync(() =>
+        bus.subscribe('save.changedElsewhere', (fact) => {
+          if (fact.key === key)
+            Runtime.runFork(runtime)(Effect.forkIn(tell(layer, text, 'changed-elsewhere'), scope))
         }),
       ),
       (stop) => Effect.sync(stop),
