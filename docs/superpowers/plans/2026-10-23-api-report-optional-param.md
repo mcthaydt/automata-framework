@@ -3,7 +3,7 @@
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §2 F6 (the API break check; "additions are not breaks"); `tooling/api-report/src/breaks.ts` header.
 - **Task:** `Follow-up (found in DX.2) — API report counts an added optional parameter as a break` (02). Lane ship, PRODUCT.1.
 - **Status:** drafted 2026-10-23, based on `main`. No PR is opened until the shared runner's queue drains (the merge thread asked for that); the branch is pushed so the work is not lost.
-- **Progress:** 0 of 4 steps.
+- **Progress:** 4 of 4 steps.
 
 ## What is wrong
 
@@ -28,10 +28,10 @@
 
 ## Steps
 
-- [ ] **1. The cases, red first.** In `breaks.test.ts`, planted reports for: an optional parameter appended (no break), two appended (no break), a required parameter appended (`changed`), an optional parameter inserted before an existing one (`changed`), an existing parameter's type changed (`changed`), a return type changed while one is appended (`changed`), a rest parameter appended (`changed`), an overloaded declaration with one appended (`changed`), and a non-function export (an interface with an added optional member stays `changed`). Run `pnpm --filter @mcthaydt/api-report test:unit`; only the first two fail, on the current text comparison.
-- [ ] **2. The check.** Implement it in `breaks.ts`; all cases pass.
-- [ ] **3. Against the real reports.** `pnpm api-report` against `origin/main` still passes and the committed reports are unchanged (`pnpm api-report --update` writes nothing).
-- [ ] **4. Gates and docs.** `pnpm format`, `pnpm check`; update 02's row.
+- [x] **1. The cases, red first.** In `breaks.test.ts`, planted reports for: an optional parameter appended (no break), two appended (no break), a required parameter appended (`changed`), an optional parameter inserted before an existing one (`changed`), an existing parameter's type changed (`changed`), a return type changed while one is appended (`changed`), a rest parameter appended (`changed`), an overloaded declaration with one appended (`changed`), and a non-function export (an interface with an added optional member stays `changed`). Run `pnpm --filter @mcthaydt/api-report test:unit`; only the first two fail, on the current text comparison.
+- [x] **2. The check.** Implement it in `breaks.ts`; all cases pass.
+- [x] **3. Against the real reports.** `pnpm api-report` against `origin/main` still passes and the committed reports are unchanged (`pnpm api-report --update` writes nothing).
+- [x] **4. Gates and docs.** `pnpm format`, `pnpm check`; update 02's row.
 
 ## Gates
 
@@ -43,4 +43,8 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-23 | Plan | | |
+| 2026-10-23 | Plan | `184e71b` | |
+| 2026-10-23 | 1 | | Nine planted cases added to `breaks.test.ts`. Red: `pnpm --filter @mcthaydt/api-report test:unit` 2 failed, 61 passed; the two failures were exactly the additive cases (one and two optional parameters appended, each reported as `changed` by the text comparison), and the seven break cases already passed, so they pin the conservative side. |
+| 2026-10-23 | 2 | | `onlyAppendsOptionalParameters` in `breaks.ts`, parsing both declarations with the TypeScript parser `extract.ts` uses. 63 passed; `pnpm --filter @mcthaydt/api-report typecheck` clean. |
+| 2026-10-23 | 3 | | `pnpm api-report` against `origin/main`: 12 core packages, 0 breaks, 0 undeclared; `pnpm api-report --update` rewrote the reports byte for byte (`git status` shows only the two source files). |
+| 2026-10-23 | 4 | | `pnpm format` (no fixes) and `pnpm check` 30 of 30 tasks, exit 0. 02's row updated; its execution record and 03 come with the docs sync PR. |
