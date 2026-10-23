@@ -596,6 +596,9 @@ importers:
 
   packages/editor-3d:
     dependencies:
+      '@mcthaydt/automata-editor-kit':
+        specifier: workspace:*
+        version: link:../editor-kit
       zod:
         specifier: 4.6.5
         version: 4.6.5

@@ -3,7 +3,7 @@
 - **Task:** ED3D.3. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.2 (document and selection), §5.3 flows 2, 3 and 5 (draw a sector, edit a sector or wall, retexture), §5.4 (commands), §12 (the unit layer) and the model half of acceptance cases ED3-b, ED3-c, ED3-d, ED3-e, ED3-m. The level model, the selection ids, the view state and the sector, corner and wall edits, each one undo step on the kit's `History` and `Selection`, with no DOM and no Svelte.
 - **Lane:** editor-3d. **Depends on:** ED3D.1 (merged), ED3D.1b (PR #129: `LevelProfile`, both profiles, the registry) and EDK.2 (PR #109: `History`, `Selection`, the command registry and the keymap). Branch `claude/project-thread-ljshus-ed3d-3` is stacked on #129's branch with the kit's EDK.2 branch merged in (`main` merged through #127's head). Nothing here needs EDK.3 (gestures) or EDK.4 (widgets); the views and tools that call these edits are ED3D.4 to ED3D.6.
 - **Status:** Drafted 2026-10-23, built on the Orchestrator's go-ahead of 02:20 UTC (bus) and the coordinator's instruction of 07:47 UTC to keep going while #127 and #129 wait in the merge queue. Not reviewed; spec review (ED3D.0) is still open. Steps below are ticked only when their checks pass.
-- **Progress:** 0 of 9 steps.
+- **Progress:** 1 of 9 steps.
 
 ## Why this task exists
 
@@ -114,9 +114,11 @@ The edits (each `(args) => Edit<D>`): `addSector({ id, corners, like?, floor?, c
 
 ## Steps (strict TDD: failing test first, then the minimal change; tick a step when its checks pass)
 
-- [ ] **1. The kit's shell-free `./core` entry, and the package's dependency on it** (`packages/editor-kit/src/core/core.test.ts`; `src/core/index.ts`, `package.json`; `packages/editor-3d/package.json`, `src/purity.test.ts`).
-  - *Red, by case:* `import * as core from './index'` exposes exactly `createHistory`, `createSelection`, `createCommandRegistry`, `defineCommand`, `createKeymap`, `normalizeShortcut`, `parseShortcut` and no `EditorShell` (a source scan of `src/core` finds no `svelte` import and no `.svelte` path); editor-3d resolves `@mcthaydt/automata-editor-kit/core` under Node (a `model` test that creates a `History` and a `Selection` from it); `src/model` joins the purity layers and is found impure when it names a clock.
+- [x] **1. The kit's shell-free `./core` entry, and the package's dependency on it** (`packages/editor-kit/src/core/core.test.ts`, `packages/editor-3d/src/model/kit-entry.test.ts`; `src/core/index.ts`, both `package.json` files).
+  - *Red, by case:* `import * as core from './index'` exposes exactly `createHistory`, `HistoryError`, `createSelection`, `createCommandRegistry`, `defineCommand`, `createKeymap`, `normalizeShortcut`, `parseShortcut` and no `EditorShell`; every file the entry reaches through relative imports is a `.ts` file with no `svelte` import; editor-3d loads `@mcthaydt/automata-editor-kit/core` under Node and a history and a selection from it do their job.
   - *Expected failure:* the entry and the dependency are missing.
+  - *Done 2026-10-23:* red for the missing entry (the kit test could not load `./index`), then green (kit: 5 tests in the touched files; editor-3d: 2 tests, `tsc` and biome clean). `src/core/index.ts` re-exports the same modules the root entry does, so nothing is duplicated; the root entry is unchanged. The kit's `package.json` gains `"./core"`, editor-3d gains the workspace dependency (one lockfile entry).
+  - *Deviations:* the `src/model` purity layer is added with the first model source file (step 2), because the purity test refuses an empty layer.
 - [ ] **2. Selection references, level state, view store** (`selection-ref.test.ts`, `view-store.test.ts`; `selection-ref.ts`, `level-state.ts`, `view-store.ts`).
   - *Red, by case:* `parseSelection` reads `sector:hall`, `wall:hall/4`, `entity:crate/crate1` back into references, and `undefined` for `wall:hall`, `wall:hall/x`, `wall:hall/-1`, `wall:hall/1.5`, `entity:crate`, `sector:`, a kind it does not know, text with extra parts; for each of the three writers in `checks/check.ts`, `parseSelection(writer(...))` returns what was written; the initial view is Plan, layer `sectors`, nothing hidden or locked, grid 0.5 m with snap; `set` changes the members it names and tells the subscribers once, a `set` that changes nothing tells nobody; `toggle('hidden', 'walls')` adds, then removes; hiding and locking are separate lists; an unsubscribed listener hears nothing.
   - *Expected failure:* the modules are missing.
