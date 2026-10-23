@@ -431,14 +431,25 @@ Flows: **New stage** (Home → New → template Empty, Simple city, Sky only, Co
 
 ### 10.7 Checks
 
+`checkStage(document, context): Diagnostic[]` runs on the document's **value**, not on the schema's verdict: a command can leave a value the schema would refuse (a duplicated layer has its alias twice, a dragged sink leaves its range, a layer moved past a nearer one breaks the depth order), and the editor keeps that document open, says what is wrong and where, and offers the repair. A test makes the vendored schema the oracle for the rules the checks restate: 49 edits within the types a command can produce, applied to the minimal and the four shipped stages, singly and as 600 seeded sequences; the checks report an error at a schema issue's path exactly when the schema refuses the value.
+
+A finding's `path` is the parse error's path with each list index replaced by the element's id (`theme.layers[b2].depth`, `theme.setPieces[b0].layers[1]`, `course.extension[b1]`), so a reorder does not change it; the four phrases keep their index (`course.phrases[2].toFloor`), and `courseTuning.GRAVITY` names a tunable. Messages name the layer, phrase or piece, the value and the limit, in words; a run of floors is one finding (`floors 5–10`), never a sentence a floor. Findings come errors first, then warnings, then info.
+
+`StageCheckContext` is `{ aliases?, tunables?, baseTuning?, tallestFloor? }`; each missing member means the bundled one: no manifest, FloorFifty's tunable declarations (`tunables.ts`, vendored at `ee5d44e`), the declared defaults, and the tallest finite course of 49.
+
 | Source | Codes (errors unless noted) |
 |---|---|
-| Schema (vendored Zod, messages rewritten for people) | `id`, `displayName`, `phraseOrder`, `phraseRange`, `layerRange`, `plateOnlySky`, `arcOnlyCity`, `driftOnPlate`, `plateFirst`, `duplicateAlias`, `layerOrder` (with fix: reorder), `setPieceRange`, `tooManyPieces` |
-| Course (`validate/course.ts`) | `phraseOverlap`, `phrasePastTop`, `floorsUnaccounted` (fix: fit), `extensionOverlap`, `extensionPastTallest`, `extensionUnaccounted` |
-| Aliases (`validate/aliases.ts`) | `unknownAssetAlias` (error when a manifest is loaded, info "unchecked" otherwise; fix: suggestions by edit distance) |
-| Set pieces (`validate/set-pieces.ts`) | `unknownReference` for layers not drawn (fix: remove name) |
-| Tuning (`validate/bounds.ts`) | `unknownTunable`, `tunableRange` (against loaded or bundled declarations) |
-| Editor-only | `flashRate` (warning: more than 3 flashes per second across overlapping pieces), `emptyPurpose`, `unusedLayer` (info) |
+| Stage identity and aliases | `id` (the id and the unlock), `displayName`, `emptyAlias` (also a layer's alias and a name in a set piece's list), `presentationRange`, `seedInvalid` |
+| Course shape | `phraseOrder`, `phraseRange` (a floor that is not a whole number from 1, or a phrase or entry that ends before it starts), `emptyPurpose`, `purposeTooLong` |
+| Layers | `noLayers`, `layerRange`, `plateOnlySky`, `arcOnlyCity`, `driftOnPlate`, `plateFirst`, `duplicateAlias`, `layerOrder` (fix `reorder-layers`: "cityMid has depth 0.2, further than cityNear (0.5) before it") |
+| Set pieces | `setPieceRange` (floor, hold, flashes, kick, density, speed, and how many layers a piece names), `tooManyPieces` |
+| Course against the climb (`validate/course.ts`) | `phraseOverlap`, `phrasePastTop`, `floorsUnaccounted` (fix `fit-phrases`), `extensionOverlap`, `extensionPastTallest`, `extensionUnaccounted`. The top floor is `COURSE_FLOOR_COUNT - 1` of the base tuning with the stage's `courseTuning` on top; when that count is out of range the course checks stay quiet and `tunableRange` reports it. Floors are handled as runs, so a phrase that ends at floor 1e15 is a finding, not a loop |
+| Aliases (`validate/aliases.ts`) | `unknownAssetAlias` for the five stage aliases and every layer, when a manifest is loaded, with the nearest names by edit distance in the message (a swap of neighbours is one edit; names within a sixth of the alias's length); `aliasesUnchecked` (info, one for the stage) when none is loaded |
+| Set pieces (`validate/set-pieces.ts`) | `unknownReference` for a name in a piece's `layers` that the stage does not draw (fix `remove-name`) |
+| Tuning (`validate/bounds.ts`) | `unknownTunable` (with the nearest name), `codeOnlyTunable` (an invariant such as `TICK_HZ`), `tunableRange` (range, and a whole number for an `int` tunable) |
+| Editor-only | `flashRate` (warning): the sky flashes on one floor start together, flash `i` of a piece `i × max(334, hold ÷ flashes)` ms after it (the director's own schedule), and more than three starting inside one second breaks WCAG 2.3.1. Pieces on different floors start when the climber reaches them, which no check can know |
+
+Differences from the first draft of this section: `unusedLayer` is cut (no rule that needs only the document and a list of aliases says a layer is unused; it returns when the Compose view defines what unused means); `emptyPurpose` is an error, not editor-only, because the schema refuses an empty purpose; one info finding `aliasesUnchecked` replaces one per alias; and the codes `emptyAlias`, `noLayers`, `presentationRange`, `seedInvalid`, `purposeTooLong` and `codeOnlyTunable` name schema and bounds rules the first list left out. Enum values (a mood, a particle, a plate) are not checked: the types keep a command from producing a wrong one.
 
 ## 11. Persistence
 
