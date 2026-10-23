@@ -6,6 +6,8 @@
 import type { Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
 import type { Point } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'
+import { addSector } from '../model/sector-edits'
+import { parseSelection } from '../model/selection-ref'
 import { GeometryError, type GeometryLayer } from '../profile/level-profile'
 import { PICK_RADIUS } from '../view/plan/plan-pick'
 import { type SnapResult, snapPlan } from '../view/plan/plan-snap'
@@ -49,6 +51,8 @@ export interface SectorTool {
   nudge(dx: number, dz: number): void
   /** Takes the last corner back. */
   undoCorner(): void
+  /** Adds the drawn outline as a sector, one undo step; what refuses it (the model's sentence) leaves the corners as they are. */
+  close(): void
   /** Drops the drawing. */
   cancel(): void
   /** The canvas has a new size: the camera keeps its centre. */
@@ -79,7 +83,20 @@ interface Geometry<D> {
   readonly select: SelectionOf
 }
 
-export function createSectorTool<D>(editor: LevelEditor<D>, canvas: Size): SectorTool {
+export interface SectorToolOptions {
+  /** The id of the sector being added, from the ids the level has taken: `sector-N`, the lowest N that is free, when not given. */
+  readonly id?: ((taken: readonly string[]) => string) | undefined
+}
+
+const lowestFree = (taken: readonly string[]): string => {
+  for (let n = 1; ; n++) if (!taken.includes(`sector-${n}`)) return `sector-${n}`
+}
+
+export function createSectorTool<D>(
+  editor: LevelEditor<D>,
+  canvas: Size,
+  options: SectorToolOptions = {},
+): SectorTool {
   const listeners = new Set<() => void>()
   let size = canvas
   let view: SectorToolView = IDLE
@@ -129,12 +146,7 @@ export function createSectorTool<D>(editor: LevelEditor<D>, canvas: Size): Secto
     const edges: DrawEdge[] = corners.slice(1).map((b, i) => edge(corners[i] as Point, b, false))
     if (last !== undefined && snap !== undefined && !samePoint(last, snap))
       edges.push(edge(last, { x: snap.x, z: snap.z }, true))
-    const first = corners[0]
-    let closing = false
-    if (pointer !== undefined && first !== undefined && corners.length >= 3) {
-      const [there, here] = [toScreen(currentViewport(), first), pointer]
-      closing = Math.hypot(here.x - there.x, here.y - there.y) <= PICK_RADIUS[pointer.kind]
-    }
+    const closing = pointer !== undefined && reachesFirst(pointer)
     let loupe: Point | undefined
     if (nudged) loupe = last
     else if (pointer?.kind === 'pen' && snap !== undefined) loupe = { x: snap.x, z: snap.z }
@@ -154,6 +166,48 @@ export function createSectorTool<D>(editor: LevelEditor<D>, canvas: Size): Secto
     length: snapValue(Math.hypot(b.x - a.x, b.z - a.z), 0),
     pending,
   })
+
+  /** Whether a pointer is within its kind's reach of the first corner, which closes an outline of three or more. */
+  const reachesFirst = (at: PlanPointer): boolean => {
+    const first = corners[0]
+    if (first === undefined || corners.length < 3) return false
+    const there = toScreen(currentViewport(), first)
+    return Math.hypot(at.x - there.x, at.y - there.y) <= PICK_RADIUS[at.kind]
+  }
+
+  /** The one sector the selection names, as a selected sector or the sector of a selected wall: the heights are taken from it. */
+  const likeSelected = (): string | undefined => {
+    const named = new Set(
+      editor.selection.ids.flatMap((id) => {
+        const ref = parseSelection(id)
+        return ref?.kind === 'sector' || ref?.kind === 'wall' ? [ref.sector] : []
+      }),
+    )
+    return named.size === 1 ? [...named][0] : undefined
+  }
+
+  const close = (): void => {
+    const id = (options.id ?? lowestFree)(editor.profile.sectors.takenIds(editor.level))
+    const session = editor.begin(`Draw sector ${id}`)
+    const result = session.run(
+      addSector({
+        id,
+        corners: corners.map((corner) => [corner.x, corner.z] as const),
+        like: likeSelected(),
+      }),
+    )
+    if (!result.ok) {
+      // A session that is closed already (another step is open) ignores the cancel.
+      session.cancel()
+      refusal = result.reason
+    } else {
+      session.commit()
+      corners = []
+      nudged = false
+      refusal = undefined
+    }
+    publish()
+  }
 
   /** Adds a corner unless the point is one already. */
   const place = (point: Point): void => {
@@ -190,6 +244,10 @@ export function createSectorTool<D>(editor: LevelEditor<D>, canvas: Size): Secto
     tap(at) {
       pointer = at
       nudged = false
+      if (reachesFirst(at)) {
+        close()
+        return
+      }
       const snap = snapOf(at)
       place({ x: snap.x, z: snap.z })
       publish()
@@ -210,6 +268,7 @@ export function createSectorTool<D>(editor: LevelEditor<D>, canvas: Size): Secto
       }
       publish()
     },
+    close,
     undoCorner() {
       corners = corners.slice(0, -1)
       nudged = false

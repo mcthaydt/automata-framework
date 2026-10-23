@@ -8,10 +8,13 @@ import type { AfSector } from '../format/af-sector.schema'
 import { moveSector } from '../model/corner-edits'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
+import { lastLightProfile } from '../profile/last-light-profile'
 import { loadAuthored } from '../testing/fixtures'
+import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
+import { toyBlockout } from '../testing/toy-blockout'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import type { PlanPointer } from './plan-controller'
-import { createSectorTool } from './sector-tool-controller'
+import { createSectorTool, type SectorToolOptions } from './sector-tool-controller'
 
 const depot: AfSector = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
@@ -22,10 +25,10 @@ const depot: AfSector = (() => {
 const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
-function setup(level: AfSector = depot) {
+function setup(level: AfSector = depot, options?: SectorToolOptions) {
   const editor = createLevelEditor({ profile: afSectorProfile, level })
   editor.view.set({ camera: CAMERA })
-  const tool = createSectorTool(editor, SIZE)
+  const tool = createSectorTool(editor, SIZE, options)
   /** The pointer at a point of the plan, as the camera now shows it. */
   const at = (
     x: number,
@@ -400,5 +403,175 @@ describe('taking a corner back and starting again', () => {
     tool.resize({ w: 400, h: 200 })
     // The camera keeps its centre, so the same pixel is a different point on a smaller canvas.
     expect(tool.view.snap).not.toMatchObject({ x: -3, z: 9.5 })
+  })
+})
+
+describe('closing the outline', () => {
+  /** A triangle south of the depot, which touches nothing. */
+  const draw = (tool: ReturnType<typeof setup>['tool'], at: ReturnType<typeof setup>['at']): void => {
+    tool.tap(at(-3, 9.5))
+    tool.tap(at(0, 9.5))
+    tool.tap(at(0, 13.5))
+  }
+  const sectorOf = (editor: ReturnType<typeof setup>['editor'], id: string) =>
+    afSectorProfile.sectors.list(editor.level as AfSector).find((each) => each.id === id)
+
+  it('adds the sector as one undo step, selects it and clears the drawing', () => {
+    const { editor, tool, at } = setup()
+    draw(tool, at)
+    tool.close()
+    expect(sectorOf(editor, 'sector-1')?.corners).toEqual([
+      [-3, 9.5],
+      [0, 9.5],
+      [0, 13.5],
+    ])
+    expect(editor.history.undoLabel).toBe('Draw sector sector-1')
+    expect(editor.selection.ids).toEqual(['sector:sector-1'])
+    expect(tool.view).toMatchObject({ corners: [], edges: [], refusal: undefined, closing: false })
+    editor.history.undo()
+    expect(editor.level).toEqual(depot)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('closes with a tap on the first corner too, and that tap places no corner', () => {
+    const { editor, tool, at } = setup()
+    draw(tool, at)
+    tool.hover(at(-3, 9.5))
+    expect(tool.view.closing).toBe(true)
+    tool.tap(at(-3, 9.5))
+    expect(sectorOf(editor, 'sector-1')?.corners).toHaveLength(3)
+    expect(tool.view.corners).toEqual([])
+  })
+
+  it('names the sector the lowest free sector-N, or what the options say', () => {
+    const { editor, tool, at } = setup(
+      toyAfSector({
+        sectors: [
+          toyHall,
+          toyDock,
+          {
+            ...toyDock,
+            id: 'sector-2',
+            corners: [
+              [20, 0],
+              [24, 0],
+              [24, 4],
+              [20, 4],
+            ],
+          },
+        ],
+      }),
+    )
+    draw(tool, at)
+    tool.close()
+    expect(sectorOf(editor, 'sector-1')).toBeDefined()
+    tool.tap(at(8, 14))
+    tool.tap(at(11, 14))
+    tool.tap(at(11, 18))
+    tool.close()
+    expect(sectorOf(editor, 'sector-3')).toBeDefined()
+    const named = setup(depot, { id: (taken) => `annex-${taken.length}` })
+    draw(named.tool, named.at)
+    named.tool.close()
+    expect(sectorOf(named.editor, 'annex-2')).toBeDefined()
+    expect(named.editor.history.undoLabel).toBe('Draw sector annex-2')
+  })
+
+  it('takes the heights and the light of the sector the selection names, else the last sector', () => {
+    const fresh = () => {
+      const made = setup()
+      draw(made.tool, made.at)
+      return made
+    }
+    const plain = fresh()
+    plain.tool.close()
+    // The depot's last sector is the dock: half a metre down, light 0.7.
+    expect(sectorOf(plain.editor, 'sector-1')).toMatchObject({ floor: -0.5, ceiling: 4, light: 0.7 })
+    const bySector = fresh()
+    bySector.editor.selection.set(['sector:hall'])
+    bySector.tool.close()
+    expect(sectorOf(bySector.editor, 'sector-1')).toMatchObject({ floor: 0, light: 1 })
+    const byWall = fresh()
+    byWall.editor.selection.set(['wall:hall/2'])
+    byWall.tool.close()
+    expect(sectorOf(byWall.editor, 'sector-1')).toMatchObject({ floor: 0, light: 1 })
+    const several = fresh()
+    several.editor.selection.set(['sector:hall', 'sector:dock'])
+    several.tool.close()
+    expect(sectorOf(several.editor, 'sector-1')).toMatchObject({ floor: -0.5, light: 0.7 })
+  })
+
+  it('refuses fewer than three corners, and keeps them', () => {
+    const { editor, tool, at } = setup()
+    tool.tap(at(-3, 9.5))
+    tool.tap(at(0, 9.5))
+    tool.close()
+    expect(tool.view.refusal).toBe('a sector needs at least three corners')
+    expect(tool.view.corners).toHaveLength(2)
+    expect(editor.level).toBe(depot)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('refuses an outline that crosses itself, and one that overlaps a sector, with the model sentences', () => {
+    const crossing = setup()
+    crossing.tool.tap(crossing.at(-3, 9.5))
+    crossing.tool.tap(crossing.at(0, 13.5))
+    crossing.tool.tap(crossing.at(0, 9.5))
+    crossing.tool.tap(crossing.at(-3, 13.5))
+    crossing.tool.close()
+    expect(crossing.tool.view.refusal).toBe('the outline crosses itself')
+    const over = setup()
+    over.tool.tap(over.at(2, 2))
+    over.tool.tap(over.at(4, 2))
+    over.tool.tap(over.at(3, 4))
+    over.tool.close()
+    expect(over.tool.view.refusal).toBe('the new sector overlaps hall')
+    for (const made of [crossing, over]) {
+      expect(made.tool.view.corners.length).toBeGreaterThan(2)
+      expect(made.editor.level).toBe(depot)
+      expect(made.editor.history.canUndo).toBe(false)
+      expect(made.editor.history.undoLabel).toBeUndefined()
+    }
+  })
+
+  it('has a refusal go with the next change of the drawing, and lets a second close succeed', () => {
+    const { editor, tool, at } = setup()
+    tool.tap(at(-3, 9.5))
+    tool.tap(at(0, 9.5))
+    tool.close()
+    expect(tool.view.refusal).toBeDefined()
+    tool.tap(at(0, 13.5))
+    expect(tool.view.refusal).toBeUndefined()
+    tool.close()
+    expect(sectorOf(editor, 'sector-1')).toBeDefined()
+  })
+
+  it('refuses while another step is open, keeps the corners, and closes once it is over', () => {
+    const { editor, tool, at } = setup()
+    draw(tool, at)
+    const other = editor.begin('Something else')
+    tool.close()
+    expect(tool.view.refusal).toBeDefined()
+    expect(tool.view.corners).toHaveLength(3)
+    other.cancel()
+    tool.close()
+    expect(sectorOf(editor, 'sector-1')).toBeDefined()
+    expect(tool.view.refusal).toBeUndefined()
+  })
+
+  it('adds a room to a Last Light level', () => {
+    const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
+    editor.view.set({ camera: { x: 0, z: 0, zoom: 1 } })
+    const tool = createSectorTool(editor, SIZE)
+    const at = (x: number, z: number): PlanPointer => ({
+      ...toScreen(planViewport(editor.view.state.camera, SIZE), { x, z }),
+      kind: 'mouse',
+    })
+    tool.tap(at(-8, 8))
+    tool.tap(at(-5, 8))
+    tool.tap(at(-5, 11))
+    tool.close()
+    expect(lastLightProfile.sectors.list(editor.level).map((room) => room.id)).toContain('sector-1')
+    expect(editor.history.undoLabel).toBe('Draw sector sector-1')
   })
 })
