@@ -216,6 +216,19 @@ input::placeholder { color: var(--muted); }
 .footer-bottom nav a:hover { color: var(--stage-ink); }
 .legal-page > section { max-width: 68ch; }
 .legal-page > section > h2 { margin-bottom: .75rem; }
+.proof-page > section { max-width: 68ch; }
+.proof-page > section > h2 { margin-bottom: .75rem; }
+.proof-page .proof-goldens { display: grid; gap: 1.25rem; margin-top: 1.5rem; }
+.proof-page .proof-golden { padding: 1.25rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); }
+.proof-page .proof-golden h3 { font-family: var(--font-mono); font-size: var(--step-body); overflow-wrap: anywhere; }
+.proof-page .proof-meta, .proof-page .proof-sources { color: var(--muted); font-size: var(--step-small); }
+.proof-page .proof-golden table { margin-block: .75rem; }
+.proof-page th, .proof-page td { padding: .5rem .5rem .5rem 0; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.proof-page .proof-version { display: block; font-weight: 400; font-size: var(--step-micro); color: var(--muted); overflow-wrap: anywhere; }
+.proof-page code.hash { font-size: var(--step-small); overflow-wrap: anywhere; }
+.proof-page .proof-verdict { font-weight: 600; color: var(--teal); }
+.proof-page .proof-verdict-bad { color: #8a1c1c; }
+.proof-page .proof-sources code { overflow-wrap: anywhere; }
 .inside-page > section > p, .inside-page > section > ul { max-width: 68ch; }
 .inside-page > h1 { max-width: none; }
 .inside-page > .inside-intro { margin-top: 2.5rem; }

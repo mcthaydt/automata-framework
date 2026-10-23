@@ -4,6 +4,8 @@ import TerminalBox from '../src/lib/components/TerminalBox.svelte'
 import Header from '../src/lib/components/Header.svelte'
 import CommandMenu from '../src/lib/components/CommandMenu.svelte'
 import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
+import { resolve } from 'node:path'
+import { findHardCodedHashes, siteSourceFiles } from './helpers/hard-coded-hashes'
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
@@ -41,3 +43,27 @@ describe('Audit regressions', () => {
     expect(document.activeElement?.tagName).toBe('A')
   })
 })
+
+describe('Evidence, not typed numbers (DX.9w)', () => {
+  it('hard-codes no simulation hash anywhere in the site’s sources', () => {
+    expect(findHardCodedHashes(siteSourceFiles(resolve(import.meta.dirname, '..')))).toEqual([])
+  })
+
+  it('catches a hash typed into a page, a data file or a component', () => {
+    const planted = [
+      { path: 'src/routes/page.svelte', text: '<p>Hash: 31f50888ccb4cf0a</p>' },
+      { path: 'src/data/claims.ts', text: "export const GOLDEN = '021df7c6554d00c6'" },
+    ]
+    expect(findHardCodedHashes(planted)).toEqual(['src/routes/page.svelte: 31f50888ccb4cf0a', 'src/data/claims.ts: 021df7c6554d00c6'])
+  })
+
+  it('lets the evidence file and the framework source snapshots carry hashes, and ignores long numbers', () => {
+    const allowed = [
+      { path: 'src/data/evidence.json', text: '"hash": "31f50888ccb4cf0a"' },
+      { path: 'src/data/projects.json', text: "const GOLDEN_HASH = '31f50888ccb4cf0a'" },
+      { path: 'src/data/limits.ts', text: 'export const MAX = 9007199254740992' },
+    ]
+    expect(findHardCodedHashes(allowed)).toEqual([])
+  })
+})
+
