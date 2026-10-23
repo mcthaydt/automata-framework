@@ -124,6 +124,10 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the plan controller', () => {
+    expect(editor3d).toHaveProperty('createPlanController')
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',
@@ -158,6 +162,7 @@ describe('public entry', () => {
       'unit',
       'wallNear',
       'isLayerOff',
+      'stepOf',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }
