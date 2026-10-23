@@ -31,10 +31,15 @@ export class GeometryError extends Error {
   override readonly name = 'GeometryError'
 }
 
-/** What a profile's checks may be told about the game that holds the level. */
+/**
+ * What a profile's checks may be told about the game that holds the level: lists the level file does not carry. A check
+ * whose list is absent (or `null`) is skipped and says so; the host reads each list from the game.
+ */
 export interface ProfileContext {
   /** Last Light: the hotspot ids the level's puzzle acts on; `null`, or absent, is a level with no puzzle. */
   readonly puzzleHotspots?: readonly string[] | null | undefined
+  /** Last Light: the material ids the game's renderer has, for the `materials` check; `null`, or absent, is no list. */
+  readonly materials?: readonly string[] | null | undefined
 }
 
 export interface LevelProfile<D> extends FileCodec<D> {

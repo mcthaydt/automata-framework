@@ -4,15 +4,16 @@ import { describe, expect, it } from 'vitest'
 import type { Blockout } from '../../format/blockout.schema'
 import { caseDocument, loadCheckCases, loadChecksGolden } from '../../testing/check-cases'
 import { loadFixture } from '../../testing/fixtures'
+import { loadGameFacts } from '../../testing/game-facts'
 import { BLOCKOUT_NAMES } from '../../testing/geometry-golden'
 import { must, toyBlockout, toyOpening, toyRoom } from '../../testing/toy-blockout'
 import { lastLightChecks } from './last-light-checks'
 
-/** The results this runner has that Last Light has too (its `overlap`, `heights` and `entities` are new here). */
+/** The results this runner has that Last Light has too (its `overlap`, `heights`, `entities` and `materials` are new here). */
 const SHARED = new Set(['expand', 'ids', 'rooms', 'shared-walls', 'openings', 'puzzle-hotspots', 'nav'])
 
 describe('lastLightChecks: what runs', () => {
-  it('runs ids, shared walls, openings, overlap, heights, puzzle hotspots, nav and entities on a document that expands and resolves', () => {
+  it('runs ids, shared walls, openings, overlap, heights, puzzle hotspots, nav, entities and materials on a document that expands and resolves', () => {
     const results = lastLightChecks(toyBlockout())
     expect(results.map((result) => [result.id, result.ok])).toEqual([
       ['ids', true],
@@ -23,6 +24,7 @@ describe('lastLightChecks: what runs', () => {
       ['puzzle-hotspots', true],
       ['nav', true],
       ['entities', true],
+      ['materials', true],
     ])
   })
 
@@ -91,6 +93,55 @@ describe('lastLightChecks: what runs', () => {
     expect(entities?.problems[0]?.locator).toEqual({ selection: 'entity:box/stray', at: { x: 90, z: 90 } })
   })
 
+  describe('materials', () => {
+    const list = ['plaster', 'tile']
+    const materials = (
+      blockout: Blockout,
+      options: Parameters<typeof lastLightChecks>[1] = { materials: list },
+    ) => lastLightChecks(blockout, options).find((result) => result.id === 'materials')
+    const withRoomA = (more: Partial<ReturnType<typeof toyRoom>>) =>
+      toyBlockout({ rooms: [{ ...toyRoom('a'), ...more }, toyRoom('b')] })
+
+    it('is skipped, and says so, when no list is given: absent or null', () => {
+      const named = withRoomA({ floorTexture: 'anything' })
+      expect(materials(named, {})).toMatchObject({ ok: true, detail: 'no material list' })
+      expect(materials(named, { materials: null })).toMatchObject({ ok: true, detail: 'no material list' })
+    })
+
+    it('counts the list when every texture is in it', () => {
+      expect(materials(withRoomA({ floorTexture: 'tile' }))).toMatchObject({
+        ok: true,
+        detail: 'within the list of 2 materials',
+      })
+    })
+
+    it('says a texture the list lacks, at the room that names it', () => {
+      const found = materials(withRoomA({ floorTexture: 'carpet' }))
+      expect(found).toMatchObject({ ok: false, detail: 'a: floorTexture carpet is not a material' })
+      expect(found?.problems[0]?.locator).toMatchObject({ selection: 'sector:a' })
+    })
+
+    it('says a wall that an opening cuts in two once, at the wall of the file', () => {
+      const room = toyRoom('a')
+      const corners = room.corners.map((corner, i) =>
+        i === 1 ? [corner[0], corner[1], { texture: 'ghost' }] : corner,
+      )
+      const found = materials(withRoomA({ corners: corners as never }))
+      expect(found?.problems.map((problem) => [problem.message, problem.locator?.selection])).toEqual([
+        ['a: wall texture ghost is not a material', 'wall:a/1'],
+      ])
+    })
+
+    it.each(BLOCKOUT_NAMES)('passes %s with the game’s own list', (name) => {
+      const parsed = JSON.parse(loadFixture(name)) as Blockout
+      const options = { materials: loadGameFacts().options.materials }
+      expect(materials(parsed, options)).toMatchObject({
+        ok: true,
+        detail: 'within the list of 21 materials',
+      })
+    })
+  })
+
   it("answers with `expand` alone when the document does not expand, with the error's sentence and no place", () => {
     const results = lastLightChecks(toyBlockout({ openings: [{ ...toyOpening, to: 'nowhere' }] }))
     expect(results).toEqual([
@@ -143,6 +194,7 @@ describe('lastLightChecks: what runs', () => {
       ['puzzle-hotspots', true],
       ['nav', true],
       ['entities', true],
+      ['materials', true],
     ])
   })
 
@@ -196,7 +248,7 @@ describe('lastLightChecks: the shipped blockouts', () => {
 
 describe('lastLightChecks: against Last Light on the corpus', () => {
   const golden = loadChecksGolden()
-  const NEW_HERE = new Set(['overlap', 'heights', 'entities'])
+  const NEW_HERE = new Set(['overlap', 'heights', 'entities', 'materials'])
 
   for (const spec of loadCheckCases()) {
     const recorded = golden.cases[spec.id]
