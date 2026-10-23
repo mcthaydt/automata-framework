@@ -3,8 +3,10 @@
 //   node build.mjs list
 //   node build.mjs screen <id> <out.html> [--local-fonts <dir>]   one screen at 1:1, for screenshots
 //   node build.mjs html <out.html> [--local-fonts <dir>]          every screen at 1:1 in one long page
-//   node build.mjs gallery <out.html> [--pr <url>] [--before <dir>] the review gallery published as an artifact; --before
-//                                                                 names the approved checkout's editor-suite dir
+//   node build.mjs gallery <out.html> [--pr <url>] [--before <dir>] [--since <dir>]
+//                                                                 the review gallery published as an artifact; --before
+//                                                                 names the approved checkout's editor-suite dir, --since
+//                                                                 the one the latest changes are measured from
 //   node build.mjs figma-parts [n]                                `use_figma` code that stores chunk n of the suite parts on page _kit
 //   node build.mjs figma-parts count                              how many chunks there are
 //   node build.mjs figma-collection                               `use_figma` code that adds the "Editor Suite" colour variables
@@ -139,7 +141,11 @@ if (cmd === 'list') {
 } else if (cmd === 'gallery') {
   writeFileSync(
     rest[0],
-    gallery(screens, html, S, { pr: arg('--pr'), before: await beforeScreens(arg('--before')) }),
+    gallery(screens, html, S, {
+      pr: arg('--pr'),
+      before: await beforeScreens(arg('--before')),
+      since: await beforeScreens(arg('--since')),
+    }),
   )
 } else if (cmd === 'figma-parts') {
   const all = chunks()
@@ -156,15 +162,15 @@ if (cmd === 'list') {
   // The suite adds one colour per editor and the graph edge colour beside the Editor Kit variables.
   console.log(`const existing = (await figma.variables.getLocalVariableCollectionsAsync()).find((c) => c.name === 'Editor Suite')
 const collection = existing || figma.variables.createVariableCollection('Editor Suite')
-const have = collection.variableIds.map((id) => figma.variables.getVariableById(id).name)
 const made = []
 for (const [name, hex] of ${JSON.stringify(SUITE_TOKENS.map((t) => [`color/${t}`, S.tokens[t]]))}) {
-  if (have.includes(name)) continue
-  const v = figma.variables.createVariable(name, collection, 'COLOR')
-  v.scopes = ['ALL_FILLS', 'STROKE_COLOR']
+  // Creates a missing variable and resets an existing one's value, so a changed hue (ed/audio) reaches Figma.
+  const old = collection.variableIds.map((id) => figma.variables.getVariableById(id)).find((v) => v.name === name)
+  const v = old || figma.variables.createVariable(name, collection, 'COLOR')
+  if (!old) v.scopes = ['ALL_FILLS', 'STROKE_COLOR']
   const h = hex.replace('#', '')
   v.setValueForMode(collection.defaultModeId, { r: parseInt(h.slice(0, 2), 16) / 255, g: parseInt(h.slice(2, 4), 16) / 255, b: parseInt(h.slice(4, 6), 16) / 255, a: 1 })
-  made.push(name)
+  made.push(old ? name + ' (updated)' : name)
 }
 return { collection: collection.id, made }`)
 } else if (cmd === 'figma') {

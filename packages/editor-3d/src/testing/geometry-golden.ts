@@ -2,7 +2,7 @@
 import type { Blockout } from '../format/blockout.schema'
 import { type Expanded, expand } from '../format/expand'
 import type { Point } from '../format/sector.schema'
-import { clear, type NavWorld, nearAWall, nearestNode, throughWall } from '../geometry/nav'
+import { clear, type NavWorld, nearAWall, nearestNode, openDoors, throughWall } from '../geometry/nav'
 import type { Edge, Resolved, ResolvedMap } from '../geometry/sectors'
 import { loadFixture, loadGolden } from './fixtures'
 
@@ -103,15 +103,6 @@ export function piecesShape(map: ResolvedMap): { pieces: unknown; colliders: unk
     colliders: asJson(map.colliders.map((c) => ({ ...edgeRef(c.edge), y0: c.y0, y1: c.y1 }))),
     sightWalls: asJson(map.sightWalls.map(edgeRef)),
   }
-}
-
-/** Every door open: each door box, and each door a nav edge names. */
-export function openDoors(expanded: Expanded): Record<string, boolean> {
-  const doors = [
-    ...expanded.boxes.filter((b) => b.kind === 'door').map((b) => b.id),
-    ...expanded.edges.flatMap((e) => (e[2] ? [e[2]] : [])),
-  ]
-  return Object.fromEntries(doors.map((door) => [door, true]))
 }
 
 /** The golden's nav answers, asked of the ported code (the same questions the recorder asked of Last Light's). */

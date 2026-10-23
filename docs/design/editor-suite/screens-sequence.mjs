@@ -14,26 +14,7 @@ sequenceScreens.push({
   h: 834,
   note: 'Cutscenes on the left, the camera preview with a filmstrip of the four shots in the middle, the selected shot on the right and the timeline along the bottom. Times, lenses and eases edit in place in cutscenes.toml; the camera’s place comes from the level, so moving it goes through Ask.',
   build: (_S, P, Q, A) => {
-    const {
-      F,
-      R,
-      C,
-      T,
-      I,
-      V,
-      alpha,
-      spacer,
-      region,
-      line,
-      eyebrow,
-      pill,
-      btn,
-      ib,
-      seg,
-      tabs,
-      panelHead,
-      inputBox,
-    } = P
+    const { F, R, C, T, I, V, alpha, spacer, region, line, eyebrow, pill, btn, ib, seg, tabs, inputBox } = P
     const { D, top, rail, listRow, stepperV, selectV, lanes, ruler, playhead, mono } = Q
     // The change set: shot C ends at 16.4 s and shot D starts there (the file had 15.7 s for both).
     const arr = {
@@ -126,6 +107,7 @@ sequenceScreens.push({
         eyebrow('Timeline'),
         T('12.40 / 22.00 s', { style: 'Mono/12' }),
         mono('frame 372 · 30 fps'),
+        mono('4 shots · 3 lines', { color: 'text/faint' }),
         spacer(),
         ib('step-back'),
         ib('play', { on: true }),
@@ -148,10 +130,16 @@ sequenceScreens.push({
       264,
       452,
       { lay: 'col' },
-      panelHead('Cutscenes', ib('plus'), ib('more')),
+      tabs(
+        [{ label: 'Cutscenes' }, { label: 'Screenplay' }, { label: 'Gaps', badge: '0', tone: 'state/ok' }],
+        0,
+      ),
+      F({ w: 'fill', h: 1, fill: 'border/default' }),
       R(
-        { w: 'fill', h: 52, pad: [0, 8] },
+        { w: 'fill', h: 52, pad: [0, 4, 0, 8], gap: 4 },
         inputBox(`${D.scene.name} · ${D.scene.id}`, { chevron: true, mono: true }),
+        ib('transfer'),
+        ib('plus'),
       ),
       C(
         { name: 'cutscene list', w: 'fill', h: 'fill', pad: [0, 8], gap: 0, clip: true },
@@ -260,6 +248,10 @@ sequenceScreens.push({
           color: 'text/primary',
         }),
       ),
+      R(
+        { name: 'restart', x: W2 - 8 - 160, y: 48, w: 160, ax: 'end' },
+        btn('Restart scene', { icon: 'rotate', h: 44 }),
+      ),
       ...strip,
     )
 
@@ -327,14 +319,9 @@ sequenceScreens.push({
               w: 'fill',
               lh: 15,
             }),
-            T('Ask to move it; times, lenses and eases edit here.', {
-              style: 'Label/12',
-              color: 'text/faint',
-              w: 'fill',
-              lh: 16,
-            }),
           ),
         ),
+        btn('Set shot from view · through Ask', { icon: 'camera', w: 'fill' }),
       ),
     )
 
@@ -372,7 +359,7 @@ sequenceScreens.push({
   h: 1194,
   note: 'The medium shell: preview and filmstrip on top, the selected shot as an inline sheet, the timeline below it, and the editor tab bar. The cutscene list is the chip at the top left.',
   build: (_S, P, Q, A) => {
-    const { F, R, T, I, V, alpha, spacer, region, line, eyebrow, pill, ib, seg } = P
+    const { F, R, T, I, V, alpha, spacer, region, line, eyebrow, pill, btn, ib, seg } = P
     const { D, topP, tabBar, stepperV, selectV, lanes, ruler, playhead } = Q
     const arr = {
       ...D.arrival,
@@ -437,9 +424,9 @@ sequenceScreens.push({
     const timeline = region(
       'timeline',
       0,
-      800,
+      780,
       W,
-      330,
+      350,
       { lay: null },
       line(0, 0, W, 1),
       F({ name: 'handle', x: 399, y: 5, w: 36, h: 4, r: 2, fill: 'border/strong' }),
@@ -458,13 +445,14 @@ sequenceScreens.push({
       ...playhead(px, 72, 76 + L.height - 72, now.toFixed(2)),
     )
     const W2 = 834
-    const H2 = 469
+    // The preview crops the 16:9 frame by 20 px so the timeline keeps its last row (States · Shake) above the tab bar.
+    const H2 = 449
     const strip = arr.shots.map((s, i) =>
       F(
         {
           name: `shot ${s.n}`,
           x: 16 + i * 200,
-          y: 529,
+          y: 509,
           w: 192,
           h: 108,
           r: 8,
@@ -492,11 +480,11 @@ sequenceScreens.push({
       0,
       52,
       W2,
-      585,
+      565,
       { fill: 'bg/canvas' },
       F(
         { x: 0, y: 0, w: W2, h: H2, clip: true },
-        V(A.bayArt({ lamp: 1, ada: [236, 168] }), { name: 'art', w: W2, h: H2 }),
+        V(A.bayArt({ lamp: 1, ada: [236, 168] }), { name: 'art', y: -10, w: W2, h: 469 }),
         A.viewfinder(W2, H2, { ghost: [270, 110, 290, 230] }),
       ),
       R(
@@ -550,11 +538,11 @@ sequenceScreens.push({
     const sheet = region(
       'shot sheet',
       0,
-      637,
+      617,
       W,
       163,
       { lay: 'col', pad: [10, 16, 0, 16], gap: 6 },
-      line(0, 0, W, 1),
+      F({ name: 'divider', abs: true, x: 0, y: 0, w: W, h: 1, fill: 'border/default' }),
       R(
         { w: 'fill', h: 24, gap: 8 },
         F({ w: 14, h: 14, r: 4, fill: alpha('ed/sequence', 0.85) }),
@@ -575,8 +563,8 @@ sequenceScreens.push({
         {
           name: 'computed path',
           w: 'fill',
-          h: 36,
-          pad: [0, 10],
+          h: 44,
+          pad: [0, 0, 0, 10],
           gap: 8,
           r: 'radius/md',
           fill: 'bg/field',
@@ -590,7 +578,7 @@ sequenceScreens.push({
           w: 'fill',
           trunc: true,
         }),
-        T('Ask to move it', { style: 'Label/12', color: 'ed/feel' }),
+        btn('Ask to move it', { icon: 'sparkle', h: 44 }),
       ),
     )
     return F(

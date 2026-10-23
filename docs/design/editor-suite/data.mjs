@@ -25,6 +25,7 @@ export function suiteData() {
     feel: 'content/feel/effects.toml',
     character: 'content/characters/ada.json',
     art: 'content/art/ada/character.json',
+    clips: 'content/characters/ada.clips.json',
     blockout: 'content/levels/bay/blockout.json',
   }
 
@@ -72,6 +73,8 @@ export function suiteData() {
       ['content/tools.toml', 'tuner', ['S-G2'], ['systems_validate']],
       ['content/audio/cues.toml', 'audio', ['Q-AUD'], ['audio_check']],
       ['content/feel/effects.toml', 'feel', ['Q-FEEL'], ['feel']],
+      // Clips are poses and keys over the rig (proposed, PR #138); a new pose changes the figure, not the look.
+      ['content/characters/*.clips.json', 'studio', ['G6'], ['character check']],
       ['content/characters/*.json', 'studio', ['G1', 'G6'], ['character check']],
       [
         'content/art/*/character.json',

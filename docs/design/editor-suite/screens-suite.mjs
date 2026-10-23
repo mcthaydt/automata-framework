@@ -455,7 +455,8 @@ suiteScreens.push({
           ['C-G1', 'open'],
           ['S-G2', 'open'],
         ],
-        primary: 'Ship',
+        // The change set is already shipped as a draft PR, so the desk's one primary action is Mark ready (audit L4).
+        primary: false,
       }),
       rail(782, 'review'),
       panel,
@@ -606,7 +607,7 @@ suiteScreens.push({
           { w: 'fill', gap: 8 },
           T('Description', { style: 'Label/12', color: 'text/dim' }),
           spacer(),
-          btn('Write it up', { icon: 'sparkles', h: 36, kind: 'ghost' }),
+          btn('Write it up', { icon: 'sparkles', h: 44, kind: 'ghost' }),
         ),
         textArea(
           'Retimes shot C of the Bay’s arrival cutscene to end at 16.4 s, a beat longer on the run sheet, starts shot D there and moves the light keys with it. Lowers LIGHTER_REACH from 6 to 5 m; first threat moves from 21.3 s to 24.1 s. Checks pass. Reopens C-G1 (cutscenes) and S-G2 (tunables) for the owner.',
@@ -646,10 +647,10 @@ suiteScreens.push({
   name: 'Import · plan, then apply',
   w: 800,
   h: 760,
-  note: 'A scene exports as one JSON or TOML document and imports back through a plan: what would change in which content file, the gate each change reopens, what is refused and why. Nothing is written until the plan is clean and the owner applies it.',
+  note: 'A scene exports as one JSON or TOML document and imports back through a plan, as in The Last Light: each change with its diff, the gate it reopens, the files it regenerates and the checks it runs, and what is refused and why. Nothing is written until the plan is clean and the owner applies it. Export and import open from the scene picker in Sequence and the level editors.',
   build: (_S, P, Q, _A) => {
     const { R, C, T, I, alpha, spacer, eyebrow, pill, btn, seg, callout, dialog, modalFrame } = P
-    const { mono } = Q
+    const { mono, diff } = Q
     const row = (ok, title, sub) =>
       R(
         {
@@ -699,8 +700,34 @@ suiteScreens.push({
       C(
         { w: 'fill', gap: 6 },
         row(true, 'cutscenes.toml · arrival shot C · to', '15.7 → 16.4 s · reopens C-G1'),
+        diff(
+          [
+            ['-', 41, 'to = 15.7'],
+            ['+', 41, 'to = 16.4'],
+          ],
+          672,
+          { rowH: 22 },
+        ),
         row(true, 'tuning.toml · LIGHTER_REACH', '6 → 5 m · inside 2 to 12 · reopens S-G2'),
         row(false, 'tuning.toml · TORCH_REACH', 'refused: 16 is outside 2 to 14 (tuning.range)'),
+      ),
+      R(
+        {
+          w: 'fill',
+          h: 44,
+          gap: 10,
+          pad: [0, 12],
+          r: 'radius/md',
+          fill: 'bg/field',
+          stroke: 'border/default',
+        },
+        I('rotate', { size: 16, color: 'text/dim' }),
+        T('Regenerates', { style: 'Label/12', color: 'text/dim', w: 86 }),
+        T('content pack · then runs cutscene audit, systems validate, fairness', {
+          style: 'Mono/11',
+          w: 'fill',
+          trunc: true,
+        }),
       ),
       callout(
         'warn',
@@ -715,6 +742,79 @@ suiteScreens.push({
       dialog('import', 720, 680, 'Export and import', body, [
         btn('Close'),
         btn('Apply 2 changes', { kind: 'primary', h: 48, disabled: true }),
+      ]),
+    )
+  },
+})
+
+// ── Export: the other side of the same dialog ──
+suiteScreens.push({
+  id: 'interchange-export',
+  page: 'Suite · Shell',
+  name: 'Export · pick a format',
+  w: 800,
+  h: 760,
+  note: 'Export writes the open scene as one scene-interchange v2 document, TOML or JSON, from the content files as they are on this change set. It lists what goes in and changes nothing.',
+  build: (_S, P, Q, _A) => {
+    const { R, C, T, I, spacer, eyebrow, pill, btn, seg, callout, dialog, modalFrame } = P
+    const { mono, D } = Q
+    const files = ['cutscenes', 'tuning', 'story', 'dialogues', 'puzzle', 'agents']
+    const body = [
+      seg(['Export', 'Import'], 0),
+      R(
+        { w: 'fill', gap: 12 },
+        C(
+          { w: 'fill', gap: 4 },
+          T('Scene', { style: 'Label/12', color: 'text/dim' }),
+          P.inputBox(`${D.scene.name} · ${D.scene.id}`, { chevron: true, mono: true, h: 44 }),
+        ),
+        C(
+          { w: 240, gap: 4 },
+          T('Format', { style: 'Label/12', color: 'text/dim' }),
+          seg(['TOML', 'JSON'], 0, { w: 240 }),
+        ),
+      ),
+      R(
+        { w: 'fill', h: 28, gap: 8 },
+        eyebrow('What goes in'),
+        pill(`${files.length} files`, { color: 'text/dim', mono: true, h: 22, pad: 8 }),
+        spacer(),
+        mono('scene-interchange v2'),
+      ),
+      C(
+        { w: 'fill', gap: 4 },
+        files.map((f) =>
+          R(
+            {
+              w: 'fill',
+              h: 44,
+              gap: 10,
+              pad: [0, 12],
+              r: 'radius/md',
+              fill: 'bg/field',
+              stroke: 'border/default',
+            },
+            I('check', { size: 16, color: 'state/ok' }),
+            T(D.paths[f], { style: 'Mono/12', w: 'fill', trunc: true }),
+            f === 'cutscenes' || f === 'tuning'
+              ? pill('changed here', { color: 'accent/default', mono: true, h: 22, pad: 8 })
+              : null,
+          ),
+        ),
+      ),
+      callout(
+        'info',
+        'Export changes nothing',
+        'It reads the files on this change set. Import a file back to see its plan.',
+      ),
+    ]
+    return modalFrame(
+      'Export · pick a format',
+      720,
+      680,
+      dialog('export', 720, 680, 'Export and import', body, [
+        btn('Copy'),
+        btn('Export bay.toml', { kind: 'primary', h: 48, icon: 'download' }),
       ]),
     )
   },

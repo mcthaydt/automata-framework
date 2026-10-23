@@ -12,6 +12,13 @@ import { type Edge, insideSector, type ResolvedMap, type Sector, STEP, segmentDi
 /** Which doors are open, by door id. */
 export type NavState = Readonly<Record<string, boolean | undefined>>
 
+/**
+ * Every door open, which is how the checks and the scene tests ask (Last Light's `validate` builds the same list): the
+ * nav only ever stops a walk at a shut door box.
+ */
+export const openDoors = (level: Pick<NavLevel, 'boxes'>): NavState =>
+  Object.fromEntries(level.boxes.filter((box) => box.kind === 'door').map((box) => [box.id, true]))
+
 /** The parts of a level the queries read: the solid things in the rooms, and the authored nav graph. */
 export interface NavLevel {
   readonly boxes: readonly Box[]
