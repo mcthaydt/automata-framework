@@ -12,8 +12,52 @@ export * from './format/blockout.schema'
 export * from './format/expand'
 export * from './format/facility.schema'
 export * from './format/sector.schema'
+export * from './geometry/loops'
 export * from './geometry/nav'
 export * from './geometry/sectors'
+export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edits'
+export { type Edit, type EditResult, ok, refuse } from './model/edit'
+export { type EditCommandOptions, registerEditCommands } from './model/edit-commands'
+export {
+  createLevelEditor,
+  type EditSession,
+  type LevelEditor,
+  type LevelEditorOptions,
+} from './model/level-editor'
+export type { LevelState } from './model/level-state'
+export {
+  type AddSectorArgs,
+  addSector,
+  type DuplicateSectorArgs,
+  duplicateSector,
+  removeSector,
+  removeSectors,
+  type SetHeightsArgs,
+  type SetMaterialsArgs,
+  setHeights,
+  setLight,
+  setMaterials,
+} from './model/sector-edits'
+export { parseSelection, type SelectionRef } from './model/selection-ref'
+export {
+  createViewStore,
+  initialView,
+  type ViewMode,
+  type ViewState,
+  type ViewStore,
+} from './model/view-store'
+export {
+  type DoorArgs,
+  setDoor,
+  setWallFlags,
+  setWallKind,
+  setWallMaterial,
+  setWindow,
+  type WallFlagsArgs,
+  type WallKindArgs,
+  type WallRef,
+  type WindowArgs,
+} from './model/wall-edits'
 export * from './profile/af-sector/af-checks'
 export * from './profile/af-sector/af-codec'
 export * from './profile/af-sector/build'
@@ -29,3 +73,13 @@ export {
   type ProfileContext,
 } from './profile/level-profile'
 export * from './profile/registry'
+export {
+  type EditCorner,
+  type EditSector,
+  type EditWall,
+  inheritedMaterials,
+  portalReferences,
+  type SectorAccess,
+  SectorAccessError,
+  type SectorDraft,
+} from './profile/sector-access'

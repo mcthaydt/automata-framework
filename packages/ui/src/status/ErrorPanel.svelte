@@ -1,4 +1,5 @@
 <!--
+  @component
   A failure, and what the player can do about it (M1.6 spec §3.4; from FloorFifty
   `ui/components/ErrorPanel.svelte` at 122a220).
 

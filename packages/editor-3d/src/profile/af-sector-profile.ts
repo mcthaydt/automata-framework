@@ -3,6 +3,7 @@
 import type { AfSector } from '../format/af-sector.schema'
 import { afSectorChecks } from './af-sector/af-checks'
 import { afSectorCodec } from './af-sector/af-codec'
+import { afSectorAccess } from './af-sector/af-sectors'
 import { AfBuildError, buildSectors } from './af-sector/build'
 import { GeometryError, type LevelProfile, resolveOrThrow } from './level-profile'
 
@@ -19,4 +20,5 @@ export const afSectorProfile: LevelProfile<AfSector> = {
     return { layers: [{ kind: 'sectors', map: resolveOrThrow(sectors) }] }
   },
   checks: (level) => afSectorChecks(level),
+  sectors: afSectorAccess,
 }

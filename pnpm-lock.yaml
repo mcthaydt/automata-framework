@@ -523,6 +523,9 @@ importers:
 
   packages/editor-3d:
     dependencies:
+      '@mcthaydt/automata-editor-kit':
+        specifier: workspace:*
+        version: link:../editor-kit
       zod:
         specifier: 4.6.5
         version: 4.6.5
@@ -1185,9 +1188,6 @@ importers:
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))

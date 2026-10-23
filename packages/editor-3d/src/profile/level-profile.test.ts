@@ -17,9 +17,11 @@ import {
 import { toyAfSector, toyHall } from '../testing/toy-af-sector'
 import { must, toyBlockout, toyOpening } from '../testing/toy-blockout'
 import { afSectorChecks } from './af-sector/af-checks'
+import { afSectorAccess } from './af-sector/af-sectors'
 import { buildSectors } from './af-sector/build'
 import { afSectorProfile } from './af-sector-profile'
 import { lastLightProfile } from './last-light-profile'
+import { lastLightSectorAccess } from './last-light-sectors'
 import { GeometryError } from './level-profile'
 
 /** The error a call throws, which a test knows is a `GeometryError` and checks to the word. */
@@ -135,6 +137,11 @@ describe('the Last Light blockout profile', () => {
     expect(puzzle(['far', 'missing'])?.ok).toBe(false)
     expect(puzzle(null)?.ok).toBe(true)
   })
+
+  it('reaches the rooms of a level through the Last Light sector access', () => {
+    expect(lastLightProfile.sectors).toBe(lastLightSectorAccess)
+    expect(lastLightProfile.sectors.takenIds(toyBlockout())).toEqual(['a', 'b', 'ab'])
+  })
 })
 
 describe('the af-sector profile', () => {
@@ -171,5 +178,10 @@ describe('the af-sector profile', () => {
     const broken = toyAfSector({ sectors: [toyHall] })
     expect(afSectorProfile.checks(broken)).toEqual(afSectorChecks(broken))
     expect(afSectorProfile.checks(broken).map((result) => result.id)).toEqual(['ids', 'rooms'])
+  })
+
+  it('reaches the sectors of a level through the af-sector access', () => {
+    expect(afSectorProfile.sectors).toBe(afSectorAccess)
+    expect(afSectorProfile.sectors.takenIds(depot())).toEqual(['hall', 'dock'])
   })
 })

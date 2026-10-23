@@ -45,6 +45,42 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the level editor, the edits, the commands and what they are made of', () => {
+    for (const name of [
+      'createLevelEditor',
+      'createViewStore',
+      'initialView',
+      'parseSelection',
+      'ok',
+      'refuse',
+      'registerEditCommands',
+      'addSector',
+      'removeSector',
+      'removeSectors',
+      'duplicateSector',
+      'setHeights',
+      'setLight',
+      'setMaterials',
+      'moveCorner',
+      'moveSector',
+      'setWallKind',
+      'setDoor',
+      'setWindow',
+      'setWallMaterial',
+      'setWallFlags',
+      'SectorAccessError',
+      'inheritedMaterials',
+      'portalReferences',
+      'loopArea',
+      'insideLoop',
+      'insideOutline',
+      'crossesItself',
+      'outlineProblem',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',
@@ -63,6 +99,16 @@ describe('public entry', () => {
       'toyAfSector',
       'resolveOrThrow',
       'roomsProblem',
+      'levelOf',
+      'reasonOf',
+      'rect',
+      'findImpurities',
+      'round4',
+      'holdSectors',
+      'insertSector',
+      'buildRefusal',
+      'wallOver',
+      'PORTAL_MEMBERS',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }
