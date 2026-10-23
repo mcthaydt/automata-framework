@@ -1,8 +1,7 @@
 // The checks of an `af-sector/1` level, as Last Light's are run over a blockout: names are unique, and then the generic
 // checks over the sectors the level builds. The order and the early-outs are Last Light's: a level that cannot be
 // built answers `build` alone (Last Light's `expand`), one whose portals name a sector that is not there answers `ids`
-// and `rooms`, and anything else runs every check. What the checks need of the entities (their definitions, fields and
-// places) comes with the typed model (ED3D.1b2) and the entity checks (ED3D.2b).
+// and `rooms`, and anything else runs every check, the `entities` check last (ED3D.1b2's kit, ED3D.2b-1).
 
 import {
   type CheckResult,
@@ -14,12 +13,14 @@ import {
   place,
   sectorSelection,
 } from '../../checks/check'
+import { entityProblems } from '../../checks/entities'
 import { genericChecks } from '../../checks/generic-checks'
 import { roomsProblem } from '../../checks/rooms-problem'
 import { wallLocator } from '../../checks/wall-locator'
 import type { AfSector } from '../../format/af-sector.schema'
 import type { SectorDef } from '../../format/expand'
 import { type ResolvedMap, resolveMap } from '../../geometry/sectors'
+import { afEntityKit } from './af-entities'
 import { AfBuildError, buildSectors } from './build'
 
 /** Each kind of thing has a name once; entity ids are unique across the file, whatever their definition. */
@@ -74,5 +75,9 @@ export function afSectorChecks(level: AfSector): CheckResult[] {
   } catch (error) {
     return [ids, checkResult('rooms', [roomsProblem(error)])]
   }
-  return [ids, ...genericChecks({ map, wall: wallLocator(level.sectors) })]
+  const kit = afEntityKit(level)
+  const entities = checkResult('entities', entityProblems(kit, map), {
+    ok: `${kit.things.length} things of ${kit.definitions.length} definitions`,
+  })
+  return [ids, ...genericChecks({ map, wall: wallLocator(level.sectors) }), entities]
 }

@@ -76,7 +76,7 @@ describe('afIdProblems', () => {
 })
 
 describe('afSectorChecks', () => {
-  it('runs ids, shared-walls, openings, overlap and heights, in that order, all ok on the toy level', () => {
+  it('runs ids, shared-walls, openings, overlap, heights and entities, in that order, all ok on the toy level', () => {
     const results = afSectorChecks(toyAfSector())
     expect(results.map((result) => [result.id, result.ok, result.severity, result.detail])).toEqual([
       ['ids', true, 'error', 'ok'],
@@ -84,6 +84,7 @@ describe('afSectorChecks', () => {
       ['openings', true, 'error', 'ok'],
       ['overlap', true, 'error', 'ok'],
       ['heights', true, 'error', 'ok'],
+      ['entities', true, 'error', '0 things of 0 definitions'],
     ])
   })
 
@@ -94,6 +95,7 @@ describe('afSectorChecks', () => {
       ['openings', true],
       ['overlap', true],
       ['heights', true],
+      ['entities', true],
     ])
   })
 
@@ -122,8 +124,30 @@ describe('afSectorChecks', () => {
       'openings',
       'overlap',
       'heights',
+      'entities',
     ])
     expect(results[0]).toMatchObject({ ok: false, detail: 'sector dock twice' })
+  })
+
+  it('fails entities for a thing outside every sector and for a value that does not fit, located at the thing', () => {
+    const level = toyAfSector({
+      entityDefs: [
+        { id: 'crate', shape: 'box', size: [1, 1, 1], fields: [{ id: 'weight', type: 'int', max: 3 }] },
+      ],
+      entities: [
+        { def: 'crate', id: 'c1', x: 2, z: 2, weight: 9 },
+        { def: 'crate', id: 'c2', x: 50, z: 50 },
+      ],
+    })
+    const entities = afSectorChecks(level).find((result) => result.id === 'entities')
+    expect(entities).toMatchObject({
+      ok: false,
+      detail: 'entity c1: weight must be at most 3; entity c2 is outside every sector',
+    })
+    expect(entities?.problems.map((problem) => problem.locator)).toEqual([
+      { selection: 'entity:crate/c1', at: { x: 2, z: 2 } },
+      { selection: 'entity:crate/c2', at: { x: 50, z: 50 } },
+    ])
   })
 
   it('fails openings when one side of the depot’s portal pair is gone, and locates the wall by its corner', () => {

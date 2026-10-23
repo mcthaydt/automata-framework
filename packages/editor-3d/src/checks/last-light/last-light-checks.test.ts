@@ -5,14 +5,14 @@ import type { Blockout } from '../../format/blockout.schema'
 import { caseDocument, loadCheckCases, loadChecksGolden } from '../../testing/check-cases'
 import { loadFixture } from '../../testing/fixtures'
 import { BLOCKOUT_NAMES } from '../../testing/geometry-golden'
-import { toyBlockout, toyOpening, toyRoom } from '../../testing/toy-blockout'
+import { must, toyBlockout, toyOpening, toyRoom } from '../../testing/toy-blockout'
 import { lastLightChecks } from './last-light-checks'
 
-/** The results this runner has that Last Light has too (its `overlap` and `heights` are new here). */
+/** The results this runner has that Last Light has too (its `overlap`, `heights` and `entities` are new here). */
 const SHARED = new Set(['expand', 'ids', 'rooms', 'shared-walls', 'openings', 'puzzle-hotspots', 'nav'])
 
 describe('lastLightChecks: what runs', () => {
-  it('runs ids, shared walls, openings, overlap, heights, puzzle hotspots and nav on a document that expands and resolves', () => {
+  it('runs ids, shared walls, openings, overlap, heights, puzzle hotspots, nav and entities on a document that expands and resolves', () => {
     const results = lastLightChecks(toyBlockout())
     expect(results.map((result) => [result.id, result.ok])).toEqual([
       ['ids', true],
@@ -22,6 +22,7 @@ describe('lastLightChecks: what runs', () => {
       ['heights', true],
       ['puzzle-hotspots', true],
       ['nav', true],
+      ['entities', true],
     ])
   })
 
@@ -66,6 +67,28 @@ describe('lastLightChecks: what runs', () => {
     expect(detail({ puzzleHotspots: ['far'] })).toBe('1 placed')
     expect(detail({ puzzleHotspots: [] })).toBe('0 placed')
     expect(detail({ puzzleHotspots: ['far', 'drum'] })).toBe('puzzle hotspot drum is not placed')
+  })
+
+  it('counts the things and the definitions of a blockout that passes `entities`', () => {
+    const entities = lastLightChecks(toyBlockout()).find((result) => result.id === 'entities')
+    expect(entities?.detail).toBe('3 things of 6 definitions')
+  })
+
+  it('fails entities for a box that stands outside every room, located at the box', () => {
+    const toy = toyBlockout()
+    const outside = {
+      ...must(toy.boxes[0]),
+      id: 'stray',
+      role: 'collider',
+      kind: 'furniture',
+      x: 90,
+      z: 90,
+    } as const
+    const entities = lastLightChecks(toyBlockout({ boxes: [...toy.boxes, outside] })).find(
+      (result) => result.id === 'entities',
+    )
+    expect(entities).toMatchObject({ ok: false, detail: 'entity stray is outside every sector' })
+    expect(entities?.problems[0]?.locator).toEqual({ selection: 'entity:box/stray', at: { x: 90, z: 90 } })
   })
 
   it("answers with `expand` alone when the document does not expand, with the error's sentence and no place", () => {
@@ -119,6 +142,7 @@ describe('lastLightChecks: what runs', () => {
       ['heights', true],
       ['puzzle-hotspots', true],
       ['nav', true],
+      ['entities', true],
     ])
   })
 
@@ -172,7 +196,7 @@ describe('lastLightChecks: the shipped blockouts', () => {
 
 describe('lastLightChecks: against Last Light on the corpus', () => {
   const golden = loadChecksGolden()
-  const NEW_HERE = new Set(['overlap', 'heights'])
+  const NEW_HERE = new Set(['overlap', 'heights', 'entities'])
 
   for (const spec of loadCheckCases()) {
     const recorded = golden.cases[spec.id]
