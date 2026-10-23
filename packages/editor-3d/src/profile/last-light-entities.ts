@@ -69,7 +69,8 @@ export const lastLightDefinitions: readonly ThingDef[] = [
       { id: 'on', type: 'text' },
     ],
   },
-  { id: 'node', shape: 'point', sit: 'free', fields: [{ id: 'on', type: 'text' }] },
+  // A nav node is a point on the floor: the file gives it an x and a z and no height.
+  { id: 'node', shape: 'point', sit: 'floor', fields: [{ id: 'on', type: 'text' }] },
 ]
 
 /** The entries of a record as instances of a definition, named by their keys (an anchor and a nav node have no id of their own). */

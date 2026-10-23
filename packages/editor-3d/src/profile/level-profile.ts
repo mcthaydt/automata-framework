@@ -12,6 +12,7 @@ import type { NavWorld } from '../geometry/nav'
 import { type ResolvedMap, resolveMap } from '../geometry/sectors'
 import type { FileCodec } from './file-codec'
 import type { SectorAccess } from './sector-access'
+import type { ThingAccess } from './thing-access'
 
 /**
  * One layer of what a level draws. Sectors are the only kind there is; terrain and open worlds are post-launch
@@ -65,6 +66,8 @@ export interface LevelProfile<D> extends FileCodec<D> {
   entities(doc: D): EntityKit
   /** How the editor's edits read and write the level's sectors (ED3D.3). */
   readonly sectors: SectorAccess<D>
+  /** How the editor's edits write the level's things (ED3D.7a); reading them is `entities`. */
+  readonly things: ThingAccess<D>
 }
 
 /** The resolved sectors, or the engine's sentence as a `GeometryError`. */
