@@ -55,6 +55,7 @@ M0 ─► M1 ─┬─► M2 ─┬─► M3 ─► M6
           └─► M4 ─┘       ├─► M7 ─► M8
                     M2 ───┘
 M8 (AF 1.0, 2D + 2.5D) ─► GAME-3D (a 3D game on AF) ─► M9 (3D merge)
+ED (editors, Owner 2026-10-23): parallel to M1–M8, not a gate; EDK (kit) ─► ED2D, ED3D; both finish before GAME-3D starts
 External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [store] ─► M7 store
 ```
 

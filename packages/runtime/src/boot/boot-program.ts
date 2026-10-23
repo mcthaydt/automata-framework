@@ -32,6 +32,8 @@ import { AppLoop, makeAppLoop } from '../loop/app-loop.manager.js'
 import { liveFrames } from '../loop/frames.js'
 import { makePresentationBus, PresentationBus } from '../presentation/presentation-bus.manager.js'
 import { type GameRenderer, Renderer, type RenderTarget } from '../render/renderer.js'
+import { makeSaves, Saves } from '../save/saves.manager.js'
+import { liveDeviceStorage } from '../settings/device-storage.js'
 import { makeSettings, Settings } from '../settings/settings.manager.js'
 import { makeTime, Time, watchLifecycle } from '../time/time.manager.js'
 import { BootDefect, type BootError, ContentHashMismatch } from './boot-error.js'
@@ -61,8 +63,9 @@ export interface BootProgramOptions {
 }
 
 /**
- * Builds the Context<RuntimeServices> containing all 13 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1;
- * `Audio` and `AudioBuses`, one service, from M5.3; `Leaderboards` from M5.7; `Haptics` from the Settings redo).
+ * Builds the Context<RuntimeServices> containing all 14 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1;
+ * `Audio` and `AudioBuses`, one service, from M5.3; `Leaderboards` from M5.7; `Haptics` from the Settings redo;
+ * `Saves` from M5.2).
  * Extracted so RuntimeTest reuses the exact service wiring (Task 18).
  */
 export function buildRuntimeServices(services: {
@@ -71,6 +74,7 @@ export function buildRuntimeServices(services: {
   readonly time: Time
   readonly flow: Flow
   readonly settings: Settings
+  readonly saves: Saves
   readonly appLoop: AppLoop
   readonly assets: Assets
   readonly renderer: GameRenderer
@@ -85,6 +89,7 @@ export function buildRuntimeServices(services: {
     Context.add(Time, services.time),
     Context.add(Flow, services.flow),
     Context.add(Settings, services.settings),
+    Context.add(Saves, services.saves),
     Context.add(AppLoop, services.appLoop),
     Context.add(Assets, services.assets),
     Context.add(Renderer, services.renderer),
@@ -176,7 +181,11 @@ export function bootProgram<S>(
       }
       rawSettings = yield* hosting.saves.get(game.settings.key)
     }
-    const settingsService = yield* makeSettings(game.settings, rawSettings, hosting.saves)
+    // Fields a game keeps on the device go to the frame's own storage unless a test hands over another (M5 spec §4.5).
+    const deviceStorage =
+      game.seams?.deviceStorage ??
+      (typeof window === 'undefined' ? undefined : liveDeviceStorage(window, game.hosting.gameId))
+    const settingsService = yield* makeSettings(game.settings, rawSettings, hosting.saves, deviceStorage)
 
     // Step 4: content hash verification
     const actualHash = contentHashOf(game.content.data)
@@ -278,6 +287,13 @@ export function bootProgram<S>(
       yield* Effect.addFinalizer(() => Effect.sync(stopScores))
     }
 
+    // The game's save: its slots read from the host now (M5 spec §5, boot step 1), its triggers and its exit flush
+    // live for the session. A failure here is the host's, and boots to the failure panel like a refused settings read.
+    const saves = yield* makeSaves(game.saves, { contentHash: game.content.hash }).pipe(
+      Effect.provideService(Hosting, hosting),
+      Effect.provideService(PresentationBus, bus),
+    )
+
     const veil = yield* makeVeil({
       overlay: layers.overlay,
       reducedMotion: () => reducedMotion(win),
@@ -333,6 +349,7 @@ export function bootProgram<S>(
       time,
       flow: flowHandle.flow,
       settings: settingsService,
+      saves,
       appLoop,
       assets,
       renderer,

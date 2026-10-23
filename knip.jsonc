@@ -14,9 +14,11 @@
   "workspaces": {
     // DX.7: the plugin's hooks run agents/automata/scripts/check.mjs by path (hooks.json). The automata-feature skill's
     // worked example is skill content that tooling/agent-skills tests (its vitest config lists it and aliases the sim).
+    // ED.0: docs/design holds the editor mockup tooling, plain .mjs files that are run by hand with node
+    // (docs/design/editor-kit/scene/README.md) and are not part of any package.
     ".": {
       "entry": ["agents/automata/scripts/check.mjs"],
-      "ignore": ["agents/automata/skills/*/example/**"]
+      "ignore": ["agents/automata/skills/*/example/**", "docs/design/**"]
     },
     // DX.7: the example imports @mcthaydt/automata-sim, which tooling/agent-skills' vitest config aliases to the source.
     "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
