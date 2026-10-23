@@ -3,7 +3,7 @@
 - **Task:** ED3D.5a, the first part of ED3D.5. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.2 (a hidden layer is not drawn and not hit, a locked one is drawn and not hit), §5.3 flow 3 (select, then drag a corner or the whole sector, snapping to the grid, vertices and wall lines; a drag is one transaction; moving a corner of a portal wall moves its reverse), §9 (Split: selection none, sector, wall; layer hidden or locked) and §10 (touch navigates and selects, Pencil draws and never pans, mouse hovers). The logic of the Plan view's Select tool as plain TypeScript: what the pointer does to the selection, the level and the camera. No Svelte, DOM, Pixi or clock.
 - **Lane:** editor-3d. **Depends on:** ED3D.4 (PR #148: `pickPlan`, `pickCorner`, `snapPlan`, `planViewport`, `selectionOf`) and ED3D.3 (PR #137: `LevelEditor`, `moveCorner`, `moveSector`, `ViewStore`). Branch `claude/project-thread-ljshus-ed3d-5a` is stacked on #148's branch.
 - **Status:** Drafted 2026-10-23 on the coordinator's and the hub's instruction of 10:05 UTC to keep going on the next ED3D slice while the stack waits in the merge queue. Not reviewed; spec review (ED3D.0) is still open. Steps below are ticked only when their checks pass.
-- **Progress:** 0 of 6 steps.
+- **Progress:** 1 of 6 steps (step 1: local checks run; CI and Owner acceptance pending).
 
 ## Why this task exists
 
@@ -83,6 +83,8 @@ export interface PlanController {
   zoomAt(at: Point, factor: number): void
   /** The camera that shows the whole level. */
   fit(): void
+  /** Stops following the editor's history, selection and view store. */
+  dispose(): void
 }
 
 export function createPlanController<D>(editor: LevelEditor<D>, size: Size): PlanController
@@ -92,9 +94,10 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
 
 Tests use the depot (hall `0,0` to `8,6`, dock `8,0` to `14,6`, a portal at `x = 8`) and a canvas of 800 by 400 px with the camera at `{ x: 7, z: 3, zoom: 1 }`; pixel positions come from `toScreen(planViewport(camera, size), point)`, so they do not hide a unit.
 
-- [ ] **1. Hover and the geometry cache** (`plan-controller.test.ts`; `app/plan-controller.ts`).
+- [x] **1. Hover and the geometry cache** (`plan-controller.test.ts`; `app/plan-controller.ts`).
   - *Red, by case:* a pointer over the hall's middle hovers `sector:hall`; within the pointer kind's radius of the hall's north wall it hovers `wall:hall/0` (a finger from further away than a mouse); over nothing, nothing; on the line the hall and the dock share, the wall of the room the pointer is in; `leave` clears it; hover notifies once for a change and not for a repeat; a locked `walls` layer leaves the sector under the wall, a hidden `sectors` layer leaves the wall and not the sector; a corner handle shows only for a selected sector's corner (`view.corner`), not for an unselected one and not with `walls` hidden or locked; after an edit that moves a wall the next hover answers the new geometry (the cache follows the level), and after an undo the old one; a level whose geometry throws gives no hover and no crash.
   - *Expected failure:* the module is missing.
+  - *Done 2026-10-23:* red for the missing module, then green (`plan-controller` 19 tests; `tsc` and biome clean; `app` joined the purity test's layers). Deviations from the first draft of the contract: `dispose()` is part of it (the controller subscribes to the editor's history, selection and view store so that handles and hover follow a change with no pointer move, and a controller that is replaced must let go); a hover is recomputed on every such change from the last pointer, not only on a pointer event. The handles are `pickCorner` over a `SelectionOf` whose `corners` answers only the selected sectors' corners, so ED3D.4's picker is unchanged. Hand mutation (20 mutants over the cache, the layers, the pointer kind's reach, the selected-sector rule, the subscriptions and the change test): all killed but one equivalent (passing the handles' `SelectionOf` to `pickPlan`, which reads no corners); two survivors of the first round (the handle left standing after `leave`, and `dispose` that kept following) got tests.
 - [ ] **2. Tap selection** (same files).
   - *Red, by case:* a tap on the hall selects `sector:hall`; on its north wall `wall:hall/0`; on nothing clears; a tap on the other sector replaces; with `additive` it adds, and a second additive tap removes; a tap on a hidden or a locked layer's element selects nothing (it clears, as a tap on nothing); the selection reaches `editor.selection` (the dollhouse and the inspector read it there); a tap on a corner handle selects what is under it.
   - *Expected failure:* the tap method does nothing.
