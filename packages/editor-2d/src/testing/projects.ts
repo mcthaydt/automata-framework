@@ -87,6 +87,18 @@ export function richProjectFile(): ProjectFile {
       ],
       entities: [
         {
+          id: 'door',
+          label: 'Door',
+          color: 'entity/door',
+          fields: [{ id: 'target', type: 'ref', required: true, to: ['door'] }],
+          shape: 'tile',
+          size: { w: 16, h: 32 },
+          pivot: { x: 0.5, y: 1 },
+          resizable: 'none',
+          tile: { tileset: 'terrain', index: 4 },
+          tags: ['link'],
+        },
+        {
           id: 'player-start',
           label: 'Player start',
           color: '#00ff00',
@@ -98,18 +110,6 @@ export function richProjectFile(): ProjectFile {
           resizable: 'none',
           tags: ['spawn'],
           min: { per: 'project', count: 1 },
-        },
-        {
-          id: 'door',
-          label: 'Door',
-          color: 'entity/door',
-          fields: [{ id: 'target', type: 'ref', required: true, to: ['door'] }],
-          shape: 'tile',
-          size: { w: 16, h: 32 },
-          pivot: { x: 0.5, y: 1 },
-          resizable: 'none',
-          tile: { tileset: 'terrain', index: 4 },
-          tags: ['link'],
         },
         {
           id: 'slime',
@@ -160,7 +160,7 @@ export function richProjectFile(): ProjectFile {
           { def: 'props', kind: 'objects', items: [] },
           { def: 'ground-art', kind: 'auto', seed: 7, overrides: ['.*2', '.*2'] },
           { def: 'decor', kind: 'tiles', rows: ['.*2', '.*2'] },
-          { def: 'collision', kind: 'intgrid', rows: ['. .', '1*2'] },
+          { def: 'collision', kind: 'intgrid', rows: ['.*2', '1*2'] },
         ],
       },
       {

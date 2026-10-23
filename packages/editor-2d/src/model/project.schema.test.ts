@@ -1,23 +1,16 @@
 import { describe, expect, it } from 'vitest'
+import { edited as editedFile, type Path } from '../testing/edit-file'
 import { minimalProjectFile, richProjectFile } from '../testing/projects'
 import { projectFileSchema } from './project.schema'
 
-type Path = readonly (string | number)[]
-type Node = Record<string | number, unknown>
-
-/** A deep copy of `file` with `value` at `parent[key]`; `undefined` deletes the key. */
+/** A damaged copy of the rich fixture (or of `file`). */
 function edited(
   parent: Path,
   key: string | number,
   value: unknown,
   file: unknown = richProjectFile(),
 ): unknown {
-  const copy = structuredClone(file)
-  let node = copy as Node
-  for (const step of parent) node = node[step] as Node
-  if (value === undefined) delete node[key]
-  else node[key] = value
-  return copy
+  return editedFile(parent, key, value, file)
 }
 
 function issuesOf(file: unknown) {
@@ -63,9 +56,9 @@ describe('projectFileSchema', () => {
       ['a tileset size', ['defs', 'tilesets', 0, 'imageSize']],
       ['a tileset tag', ['defs', 'tilesets', 0, 'tags', 0]],
       ['an entity definition', ['defs', 'entities', 0]],
-      ['an entity minimum', ['defs', 'entities', 0, 'min']],
-      ['an entity tile', ['defs', 'entities', 1, 'tile']],
-      ['a field definition', ['defs', 'entities', 1, 'fields', 0]],
+      ['an entity minimum', ['defs', 'entities', 1, 'min']],
+      ['an entity tile', ['defs', 'entities', 0, 'tile']],
+      ['a field definition', ['defs', 'entities', 0, 'fields', 0]],
       ['a world', ['worlds', 0]],
       ['a placement', ['worlds', 0, 'placements', 0]],
       ['a level', ['levels', 0]],
@@ -210,7 +203,7 @@ describe('projectFileSchema', () => {
 
   describe('entity definitions', () => {
     it('runs the kit rules: an id that is not an entity id', () => {
-      const entity = ['defs', 'entities', 1]
+      const entity = ['defs', 'entities', 0]
       expect(issuesOf(edited(entity, 'id', 'Door'))).toMatchObject([{ code: 'custom', path: entity }])
     })
 
@@ -230,7 +223,7 @@ describe('projectFileSchema', () => {
     })
 
     it('keeps the pivot inside the shape and a minimum a positive count', () => {
-      const entity = ['defs', 'entities', 0]
+      const entity = ['defs', 'entities', 1]
       expect(issuesOf(edited([...entity, 'pivot'], 'x', 1.5))).toMatchObject([
         { path: [...entity, 'pivot', 'x'] },
       ])
@@ -240,7 +233,7 @@ describe('projectFileSchema', () => {
     })
 
     it('refuses a shape, resizable mode or minimum scope it does not know', () => {
-      const entity = ['defs', 'entities', 0]
+      const entity = ['defs', 'entities', 1]
       expect(issuesOf(edited(entity, 'shape', 'polygon'))).toMatchObject([{ path: [...entity, 'shape'] }])
       expect(issuesOf(edited(entity, 'resizable', 'z'))).toMatchObject([{ path: [...entity, 'resizable'] }])
       expect(issuesOf(edited([...entity, 'min'], 'per', 'world'))).toMatchObject([
