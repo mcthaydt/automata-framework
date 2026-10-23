@@ -27,8 +27,28 @@ async function open(page: Page, host: MatrixHost, pad: FakePad | undefined): Pro
     await expect(frame.locator('html')).toHaveAttribute('data-state', 'ready')
   }
   await frame.evaluate(() => document.fonts.ready)
+  await focusGame(frame)
   await pad?.in(frame).connect()
   return frame
+}
+
+/**
+ * Gives the game's frame the keyboard when the game did not get it, as a player's click on the game does. Under a host
+ * the game is an iframe, and a key press goes to the frame the page has focused. The game focuses its own first
+ * control on entry, which also makes its frame that one, except that in WebKit with other pages busy the browser
+ * ignored the call: `document.hasFocus()` stayed false and `activeElement` stayed `body`, so all 30 of `walk`'s
+ * presses reached the host page (the Mac's `focus never reached play`; reproduced with six CPU hogs on four cores,
+ * 12 of 12 runs). `locator('body').press` cannot fix it, because `body` is not focusable; the frame's element in the
+ * host page is. A frame that already has focus keeps what the game focused: focusing the element resets it to `body`.
+ * Standalone, the game is the page and has it.
+ */
+async function focusGame(frame: Frame): Promise<void> {
+  if (frame.parentFrame() === null) return
+  if (await frame.evaluate(() => document.hasFocus())) return
+  await (await frame.frameElement()).evaluate((element) => (element as HTMLElement).focus())
+  await expect
+    .poll(() => frame.evaluate(() => document.hasFocus()), { message: 'the game frame did not take focus' })
+    .toBe(true)
 }
 
 /** Waits `count` animation frames in `frame`. */
@@ -109,7 +129,11 @@ async function walk(frame: Frame, selector: string, step: () => Promise<void>): 
     if (await frame.evaluate((query) => document.activeElement?.matches(query) ?? false, selector)) return
     await step()
   }
-  throw new Error(`focus never reached ${selector}`)
+  const where = await frame.evaluate(
+    () =>
+      `${document.activeElement?.tagName ?? 'nothing'} is active, the frame has focus: ${document.hasFocus()}`,
+  )
+  throw new Error(`focus never reached ${selector} (${where})`)
 }
 
 function keyboardDriver(page: Page, frame: Frame): Driver {

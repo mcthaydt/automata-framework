@@ -4,6 +4,21 @@
 
 ## `.`
 
+### `AutosavePolicy` (interface)
+
+```ts
+interface AutosavePolicy {
+    readonly on: readonly AutosaveTrigger[];
+    readonly intervalSeconds?: number;
+}
+```
+
+### `AutosaveTrigger` (type)
+
+```ts
+type AutosaveTrigger = 'screen-exit' | 'round-end' | 'background' | 'interval';
+```
+
 ### `Camera2d` (interface)
 
 ```ts
@@ -147,7 +162,7 @@ function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z>;
 ### `defineGame` (function)
 
 ```ts
-function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S>;
+function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S>;
 ```
 
 ### `definePlugin` (function)
@@ -171,6 +186,12 @@ function definePlugin(spec: {
 
 ```ts
 function defineResource<Z extends z.ZodType>(id: string, schema: Z, init: () => z.input<Z>): ResourceDef<Z>;
+```
+
+### `defineSave` (function)
+
+```ts
+function defineSave<S>(def: SaveDef<S>): SaveDef<S>;
 ```
 
 ### `defineSystem` (function)
@@ -249,10 +270,21 @@ interface EventDef<Z extends z.ZodType = z.ZodType> {
 }
 ```
 
+### `GameSaves` (interface)
+
+```ts
+interface GameSaves<D> {
+    readonly def: SaveDef<D>;
+    capture(sim: Sim): D;
+    apply(sim: Sim, data: D): void;
+    label?(slot: number): string;
+}
+```
+
 ### `GameSpec` (interface)
 
 ```ts
-interface GameSpec<S = never> {
+interface GameSpec<S = never, D = unknown> {
     readonly id: string;
     readonly title?: string;
     readonly size: {
@@ -270,6 +302,7 @@ interface GameSpec<S = never> {
     readonly views?: Readonly<Record<string, EntityViewFactory>>;
     readonly sounds?: EventSounds;
     readonly scores?: EventScores;
+    readonly saves?: GameSaves<D>;
     readonly content?: {
         readonly data: CompiledContentData;
         readonly hash: string;
@@ -368,6 +401,35 @@ interface PluginDef {
 }
 ```
 
+### `postFilter` (function)
+
+```ts
+function postFilter(name: string, spec: PostFilterSpec): PostFilterDef;
+```
+
+### `PostFilterDef` (interface)
+
+```ts
+interface PostFilterDef {
+    readonly name: string;
+    readonly glsl: string;
+    readonly wgsl: string;
+    readonly order: number;
+    readonly minTier: QualityTier | undefined;
+}
+```
+
+### `PostFilterSpec` (interface)
+
+```ts
+interface PostFilterSpec {
+    readonly glsl: string;
+    readonly wgsl: string;
+    readonly order?: number | undefined;
+    readonly minTier?: QualityTier | undefined;
+}
+```
+
 ### `rect` (function)
 
 ```ts
@@ -396,6 +458,22 @@ interface ResourceDef<Z extends z.ZodType = z.ZodType> {
 }
 ```
 
+### `SaveDef` (interface)
+
+```ts
+interface SaveDef<S> {
+    readonly key: string;
+    readonly version: number;
+    readonly schema: z.ZodType<S>;
+    readonly empty: () => S;
+    readonly migrations: Readonly<Record<number, SaveMigration>>;
+    readonly slots?: {
+        readonly count: number;
+    };
+    readonly autosave?: AutosavePolicy;
+}
+```
+
 ### `ScreensGame` (interface)
 
 ```ts
@@ -411,6 +489,7 @@ interface ScreensGame {
     readonly watchSim?: ((sim: Sim | undefined) => void) | undefined;
     readonly board?: string | undefined;
     readonly setQuality?: ((tier: QualityTier) => void) | undefined;
+    readonly saves?: GameSaves<unknown> | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
 }
 ```

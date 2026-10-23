@@ -61,4 +61,8 @@ if (source !== null) {
 Object.assign(window, {
   hostTrace: () => host.messages.map((entry) => entry.msg.type),
   hostBridge: host.bridge,
+  // What the player's account holds, by key; and a write from another device (the saves journeys, M5.2).
+  hostSlots: () => Object.fromEntries([...host.fakes.server.slots].map(([key, slot]) => [key, slot.value])),
+  hostRemoteWrite: (key: string, value: string, deviceLabel: string) =>
+    host.fakes.server.remoteWrite(key, value, deviceLabel),
 })

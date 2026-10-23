@@ -14,6 +14,8 @@
       "svelte": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./core": "./src/core/index.ts",
+    "./fields": "./src/fields/index.ts",
     "./tokens.css": "./src/tokens.css",
     "./fonts.css": "./src/fonts.css"
   },
@@ -27,7 +29,8 @@
   "dependencies": {
     "@fontsource/ibm-plex-mono": "5.3.0",
     "@fontsource/ibm-plex-sans": "5.3.0",
-    "@mcthaydt/automata-ui": "workspace:*"
+    "@mcthaydt/automata-ui": "workspace:*",
+    "zod": "4.6.6"
   },
   "peerDependencies": {
     "svelte": "5.57.1"

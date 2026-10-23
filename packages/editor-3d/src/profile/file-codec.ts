@@ -11,7 +11,8 @@ export interface ParseIssue {
 }
 
 export type ParseResult<D> =
-  | { readonly ok: true; readonly value: D }
+  /** `warnings` is there only when a file opens with something to say (a newer minor version): it is never an empty list. */
+  | { readonly ok: true; readonly value: D; readonly warnings?: readonly ParseIssue[] }
   | { readonly ok: false; readonly issues: readonly ParseIssue[] }
 
 export interface FileCodec<D> {
@@ -28,6 +29,8 @@ export function createFileCodec<D>(spec: {
   readonly id: string
   readonly schema: z.ZodType<D>
   readonly rules: PatchRules
+  /** What to say about a file that opens: the issues a schema cannot, as a file of a newer minor version. */
+  readonly warn?: (value: D) => readonly ParseIssue[]
 }): FileCodec<D> {
   return {
     id: spec.id,
@@ -41,7 +44,12 @@ export function createFileCodec<D>(spec: {
         throw error
       }
       const result = spec.schema.safeParse(JSON.parse(text))
-      if (result.success) return { ok: true, value: result.data }
+      if (result.success) {
+        const warnings = spec.warn?.(result.data) ?? []
+        return warnings.length === 0
+          ? { ok: true, value: result.data }
+          : { ok: true, value: result.data, warnings }
+      }
       return {
         ok: false,
         issues: result.error.issues.map((issue) => ({
