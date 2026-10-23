@@ -3,7 +3,7 @@
 - **Task:** ED3D.1b. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.1 (the level profile), §4.3 (geometry owner), §4.6 (`af-sector/1`), §4.7 (the entity data it carries), acceptance case ED3-q (the depot, byte for byte, in the same build as a Last Light level) and the profile-and-geometry half of ED3-s. This plan builds everything of the row that does not need the kit's field and entity definition shapes; the typed entity model is **ED3D.1b2**, after EDK.7 merges (below).
 - **Lane:** editor-3d. **Depends on:** ED3D.1 (PR #107), ED3D.1c (PR #113) and ED3D.2 (PR #127); branch `claude/project-thread-ljshus-ed3d-1b` is stacked on #127's. No editor-kit code, no Svelte, no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed. Written and built on the Orchestrator's go-ahead of 02:20 UTC (bus), like ED3D.1; spec review (ED3D.0) is still open.
-- **Progress:** 0 of 6 steps.
+- **Progress:** 1 of 6 steps.
 
 ## Why this task exists
 
@@ -76,9 +76,12 @@ export function detectProfile(text: string): { readonly profile: LevelProfile<un
 
 ## Steps (strict TDD: failing test first, then the minimal change; tick a step when its checks pass)
 
-- [ ] **1. The `af-sector/1` schema and its version rule** (`af-sector.schema.test.ts`; `af-sector.schema.ts`).
+- [x] **1. The `af-sector/1` schema and its version rule** (`af-sector.schema.test.ts`; `af-sector.schema.ts`).
   - *Red, by case:* a minimal level (one sector with four corners) parses and keeps what it was given; `format: "af-sector/1"`, `"af-sector/1.2"` parse; `"af-sector/2"`, `"last-light/1"`, `"af-sector/"` and a missing `format` fail with the issue at `["format"]`; `afFormatVersion` reads `{ major, minor }` and `undefined` for a malformed one; a sector missing `id`, `floor`, `ceiling`, `light` or `corners` fails at that member; corners need at least three points and a corner's third member is a wall object; a wall carries `next`, `door`, `window`, `mask`, `pilaster` and the rest of `WallDef` and keeps an unknown member; unknown members at every level (root, sector, corner wall, entity) are kept; `entities` instances need `def`, `id`, `x`, `z`; `entityDefs` need `id`; `styles` and `materials` parse as tables.
   - *Expected failure:* the module is missing.
+  - *Done 2026-10-23:* red for the missing module, then green (64 schema tests; the four earlier format suites unchanged). The schema is `af-sector.schema.ts`: a looseObject per level, sector, wall, material, definition and instance, so every unknown member is kept, and the parse of every accepted level is the input itself. `TRIM_PIECES` is now exported from `sector.schema.ts` so the AF wall uses the same trim piece names.
+  - *Deviations:* none. (The wall schema is written out, not derived, because `wallSchema` is typed as a `ZodType` and cannot be narrowed.)
+  - *Mutations (21 by hand on the schema):* 17 killed at once; four survivors killed by tests added (a version whose minor has a leading zero, `hideFrom` and `cut` staying unvalidated members, an instance's `z` being required, a pilaster keeping an unknown member).
 - [ ] **2. Build and geometry** (`build.test.ts`; `build.ts`).
   - *Red, by case:* a one-room level builds one `SectorDef` with its fields, `zone: ""` and corners as written; a sector's `style` layers under the sector's own fields exactly as Last Light's `styled` does (the sector's own `floorTexture` wins); an unknown style throws `AfBuildError("unknown style x")`; holes build as loops; two sectors joined by portals (a step down of 0.5 m, as the depot) resolve through `resolveMap` with the portal pair matched and the wall pieces and colliders as Last Light's `expand` gives for the same rooms written as a blockout (the cross-check: rooms and sectors with the same corners compare equal through `resolveMap`, bar `zone`); a portal to a sector that is not there fails in `resolveMap` with its sentence.
   - *Expected failure:* the module is missing.
