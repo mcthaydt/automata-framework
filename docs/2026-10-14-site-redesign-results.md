@@ -131,3 +131,13 @@ Implements the QB.3f row of the framework's master plan on top of QB.3. Plan: [`
 - QB.3's browser suite, re-run here: `pnpm test:e2e` in Chromium only, **212 passed**. 211 ran in this container's preinstalled full Chromium 141 (Playwright 1.63.0 pins 153); one, "a clean page passes every gate", failed there with a `favicon.ico` 404 that full Chromium requests and the headless shell does not, and passed in the preinstalled headless shell. **WebKit was not run:** `cdn.playwright.dev` is blocked from this container, so WebKit and the pinned Chromium 153 are pending on the runner (bus test-request).
 - Not run: the three workflow jobs themselves (no runner is registered to this repository, and `AF_FRAMEWORK_TOKEN` does not exist yet).
 
+## Evidence on the site (DX.9w, 2026-10-23)
+
+Plan: [`docs/superpowers/plans/2026-10-23-dx9w-evidence-on-the-site.md`](superpowers/plans/2026-10-23-dx9w-evidence-on-the-site.md). The framework's parity job writes `evidence.json` (every golden's hash per engine, the revision, the CI run, package versions) and uploads it with its JSON Schema as the artifact `evidence`. The site renders `/proof` from it.
+
+- `pnpm sync:evidence` copies the artifact of the latest successful `main` run into `src/data/` (needs `gh auth login` with access to the private framework repository; `--from <folder>` takes a downloaded artifact). It validates first, checks that the file's revision is the run's commit, and writes nothing on failure.
+- `src/lib/evidence.ts` validates with the schema that came with the file, and refuses a local run, a dirty tree, an `enginesAgree` the hashes contradict, and an engine listed twice.
+- `tests/audit-regressions.test.ts` fails on any 16-digit hash in the site's sources outside the evidence pair and the framework source snapshots.
+- **Open: the real data.** The artifact could not be downloaded where this was built (blocked hosts, invalid token), so `src/data/evidence.json` is not committed and "the synced evidence file exists" is red by design. Until the sync has run, `/proof` says that no evidence has been synced and claims nothing.
+- Verified here: `pnpm check`, `pnpm test` (all new cases green; the one red is the missing file), `pnpm build` and `pnpm check:site` (27 pages), and the browser gates on `/proof` in Chromium with sample data loaded temporarily. The sample data is in `tests/fixtures` only and is never rendered.
+
