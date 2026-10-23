@@ -1,10 +1,6 @@
 # AutomataFramework: living continuation
 
-<<<<<<< HEAD
-> Updated 2026-10-23 (editors added; ED3D rows and status 05:00 UTC). Source HEAD verified before this update: `c2cca72` on `main` (PR #90 merged, M4.10); the editor rows below were checked against `main` at `7689289` (#93 and #94 merged).
-=======
-> Updated 2026-10-23 (editors added). Source HEAD verified before this update: `5ad4a84` on `main` (PR #96 merged, the nightly fix).
->>>>>>> origin/main
+> Updated 2026-10-23 (editors added; ED3D rows and status 05:00 UTC). Source HEAD verified before this update: `c2cca72` on `main` (PR #90 merged, M4.10); the editor rows below were checked against `main` at `7689289` (#93 and #94 merged); `main` merged in at `23d06c8` (PR #104, M5.2a) when the conflict was resolved.
 
 ## Prompt for the next agent
 
