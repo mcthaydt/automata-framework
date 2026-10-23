@@ -1,7 +1,7 @@
 // The ids the World view selects by (ED3D.9a): `wing:bay`, `join:exit`, `lock:p0.cabinet`, `phase:P2`.
 import { describe, expect, it } from 'vitest'
-import { SelectionIdError } from '../checks/check'
-import { facilitySelection, parseFacilitySelection } from './facility-selection'
+import { facilitySelection, SelectionIdError } from '../checks/check'
+import { parseFacilitySelection } from './facility-selection'
 
 describe('facilitySelection', () => {
   it('writes kind:id for each of the four kinds', () => {

@@ -5,17 +5,13 @@ import { describe, expect, it } from 'vitest'
 import type { Facility, FacilityJoin, FacilityLock, JoinSide } from '../format/facility.schema'
 import { facilityCodec } from '../profile/last-light-codecs'
 import { levelOf, reasonOf } from '../testing/edit-helpers'
-import { loadFixture } from '../testing/fixtures'
+import { shippedFacility, shippedFacilityText } from '../testing/shipped-facility'
 import { changedRegion, literalEdits } from '../testing/text-diff'
 import { createFacilityEditor } from './facility-editor'
 import { moveWing, removeJoin, setJoin, setLock } from './facility-edits'
 
-const text = loadFixture('facility')
-const shipped: Facility = (() => {
-  const result = facilityCodec.parse(text)
-  if (!result.ok) throw new Error('the shipped facility does not parse')
-  return result.value
-})()
+const text = shippedFacilityText
+const shipped = shippedFacility
 
 const wing = (facility: Facility, id: string) => facility.wings.find((each) => each.id === id)
 

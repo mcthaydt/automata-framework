@@ -81,8 +81,9 @@ describe('public entry', () => {
     }
   })
 
-  it('exports the facility editor, the World edits and the World selection ids', () => {
+  it('exports the facility editor, the World edits, the facility checks and the World selection ids', () => {
     for (const name of [
+      'facilityChecks',
       'createFacilityEditor',
       'moveWing',
       'setJoin',
@@ -124,6 +125,11 @@ describe('public entry', () => {
       'wallOver',
       'PORTAL_MEMBERS',
       'upserted',
+      'joinSideProblem',
+      'lockProblem',
+      'sameJoinSide',
+      'shippedFacility',
+      'shippedFacilityText',
       'sameMember',
       'selectionOf',
     ]) {

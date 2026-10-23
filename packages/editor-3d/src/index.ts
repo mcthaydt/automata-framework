@@ -1,4 +1,5 @@
 export * from './checks/check'
+export { type FacilityResults, facilityChecks } from './checks/facility/facility-checks'
 export * from './checks/generic-checks'
 export * from './checks/last-light/last-light-checks'
 export * from './checks/wall-locator'
@@ -27,12 +28,7 @@ export {
   type FacilityState,
 } from './model/facility-editor'
 export { type MoveWingArgs, moveWing, removeJoin, setJoin, setLock } from './model/facility-edits'
-export {
-  type FacilitySelectionKind,
-  type FacilitySelectionRef,
-  facilitySelection,
-  parseFacilitySelection,
-} from './model/facility-selection'
+export { type FacilitySelectionRef, parseFacilitySelection } from './model/facility-selection'
 export {
   createLevelEditor,
   type EditSession,
