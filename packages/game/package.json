@@ -35,7 +35,7 @@
     "@mcthaydt/automata-ui": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "effect": "3.22.2",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "peerDependencies": {
     "pixi.js": "8.21.0",
