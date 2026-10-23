@@ -3,7 +3,10 @@ import { Files, ProcessRunner, type RunResult } from '@mcthaydt/automata-node'
 import {
   boardNamesIn,
   declaredBoardsIn,
+  declaredOrientationIn,
+  gameOrientationsIn,
   isBoardSource,
+  isOrientationSource,
   readEnvValues,
   scanTextForSecrets,
 } from '@mcthaydt/automata-ship'
@@ -224,6 +227,45 @@ export const boardsStep = (gameDir: string): StepEffect =>
       }
     }
     return findings
+  })
+
+/**
+ * M4.7 follow-up: the scan `prepare-ruken` runs over the game's sources for the orientation each `defineGame`
+ * plays in, against the `runtime.orientation` its `ship.config.ts` sends Ruken (read as written). A game with no
+ * `ship.config.ts`, or with no `defineGame` to compare, finds nothing; a config whose orientation is not a
+ * literal, with a `defineGame` to compare against it, is a tool error, never a pass.
+ */
+export const orientationStep = (gameDir: string): StepEffect =>
+  Effect.gen(function* () {
+    const files = yield* Files
+    const toolError = (detail: string) => new CheckToolError({ kind: 'failed', tool: 'orientation', detail })
+    const configPath = join(gameDir, 'ship.config.ts')
+    if (!(yield* files.exists(configPath))) return []
+    const listed = yield* Effect.mapError(files.listFiles(gameDir), (error) => toolError(error.message))
+    const played: { file: string; line: number; col: number; orientation: string }[] = []
+    for (const file of listed.filter(isOrientationSource).sort()) {
+      const code = yield* Effect.mapError(files.readText(join(gameDir, file)), (error) =>
+        toolError(error.message),
+      )
+      for (const found of gameOrientationsIn(file, code) ?? []) played.push({ file, ...found })
+    }
+    if (played.length === 0) return []
+    const declared = declaredOrientationIn(
+      yield* Effect.mapError(files.readText(configPath), (error) => toolError(error.message)),
+    )
+    if (declared === undefined)
+      return yield* toolError(
+        'cannot read runtime.orientation in ship.config.ts: write it as a string literal',
+      )
+    return played
+      .filter((found) => found.orientation !== declared)
+      .map((found) => ({
+        file: found.file,
+        line: found.line,
+        col: found.col,
+        rule: 'orientation-mismatch',
+        message: `defineGame plays "${found.orientation}", but ship.config.ts runtime.orientation is "${declared}"`,
+      }))
   })
 
 export const cspStep = (gameDir: string): StepEffect =>

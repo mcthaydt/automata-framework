@@ -12,6 +12,10 @@ export type ReferenceFormFactor = 'phone-portrait' | 'phone-landscape' | 'tablet
 /** `@mcthaydt/automata-ui`'s `HeightTier`. */
 export type ReferenceHeightTier = 'short' | 'compact' | undefined
 
+/**
+ * One viewport every primitive and screen is checked at: a name, its size, and the form factor and height
+ * tier it must classify as.
+ */
 export interface ReferenceSize {
   readonly name: string
   readonly width: number
@@ -30,6 +34,10 @@ const size = (
   group: ReferenceSize['group'],
 ): ReferenceSize => ({ name, width, height, formFactor, heightTier, group })
 
+/**
+ * The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every
+ * breakpoint and the tightest sizes, each with the classification it should get.
+ */
 export const REFERENCE_SIZES: readonly ReferenceSize[] = [
   size('phone-small', 360, 640, 'phone-portrait', undefined, 'phone'),
   size('iphone-se', 375, 667, 'phone-portrait', undefined, 'phone'),
@@ -89,6 +97,10 @@ export interface Variant {
   readonly scale?: 1 | 1.333
 }
 
+/**
+ * The conditions each size is also checked under: at rest, with the on-screen keyboard open, with Ruken's
+ * reserved strip on the right or the left, and at its TV scale.
+ */
 export const VARIANTS: readonly Variant[] = [
   { name: 'rest' },
   // A phone keyboard takes a bit under half the screen; on a short landscape page that still leaves

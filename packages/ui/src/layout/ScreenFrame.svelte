@@ -1,5 +1,7 @@
 <!--
-  Every screen's frame (M1.6 spec §3.4; from FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
+  @component
+  Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from
+  FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
 
   It fills the visible region: the layout viewport less the insets the geometry owner publishes
   (safe area and Ruken's reserved strip), ending above whatever the browser lays over the page's

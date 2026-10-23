@@ -11,6 +11,10 @@ import type { DataPath, Problem } from '../diagnostics/diagnostic'
 
 export type TunableType = 'int' | 'float'
 
+/**
+ * A tunable a game declares in code: `int` or `float`, an inclusive range and a default. Content selects a
+ * value inside the range and never widens it.
+ */
 export interface TunableDeclaration {
   readonly type: TunableType
   /** Inclusive lower bound. */
@@ -20,6 +24,7 @@ export interface TunableDeclaration {
   readonly default: number
 }
 
+/** A game's tunables by name (upper-case words joined by underscores, such as `GRAVITY`). */
 export type TunableDeclarations = Readonly<Record<string, TunableDeclaration>>
 
 export interface TuningOptions {
@@ -39,6 +44,10 @@ export interface TuningEntryMeta {
   readonly step?: number
 }
 
+/**
+ * Every tunable's type, value and range (`min`, `max`, `step`) by name, as written to `tuning-meta.json` for
+ * debug sliders.
+ */
 export type TuningMeta = Readonly<Record<string, TuningEntryMeta>>
 
 export interface TuningResult {
