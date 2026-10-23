@@ -2,8 +2,8 @@
 
 - **Task:** EDK.7 in [02](../../02-master-delivery-plan.md). [Editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.8; decision EDK-D8; acceptance EK-j.
 - **Lane:** editor-kit. **Depends on:** EDK.1 (the package; this PR stacks on #106). **Unblocks:** ED2D.1 (2D project model: `EntityDef2D`, level fields) and ED3D.1b (the 3D editor's generic profile).
-- **Status:** Planned 2026-10-23. Nothing implemented yet. The editor-kit spec is drafted, not reviewed.
-- **Progress:** 0 of 7 steps.
+- **Status:** Implemented and locally checked 2026-10-23 (draft PR from `claude/project-thread-73sp69-edk7`, stacked on #106). Not CI verified; the editor-kit spec is unreviewed.
+- **Progress:** 7 of 7 steps.
 
 ## Scope
 
@@ -112,4 +112,8 @@ EK-j passes in `retype.test.ts`: an `hp: int 0..9` definition; an instance at 12
 
 ## Execution record
 
-(Filled in as steps complete.)
+- **Steps 1 to 6** went red on the missing module (steps 1, 3, 4, 5, 6) or on the unimplemented types (step 2, eight tests), then green on the first implementation. Two deviations, neither a wrong test: step 3's `badEntityColor` test failed because the first token rule accepted a bare word like `amber`, so the rule now requires `group/name` as the Figma tokens are named; step 6 added an entity-level `fieldIndex` to `checkEntityDef` problems (tests first) so the zod schema reports a duplicate field id at the later field's path.
+- **Added beyond the plan's contract:** `checkFieldInstance` (internal, shared by `checkValues` and `checkRetype`), `fieldIndex` on `EntityDefProblem`, a `badDefault` problem for a `default` on a `required` field (the two contradict), and the zero value of a bounded number moved into its bounds (`min: 1` gives `1`). `RetypeBreakage.problem` is an `InstanceProblem` (with the new id as `fieldId`), not the union the contract sketched.
+- **Typing:** optional properties in `FieldDef`, `EntityDef` and `RefValue` accept an explicit `undefined`, because `exactOptionalPropertyTypes` is on and zod's output types say `T | undefined`; without it the schemas are not assignable to the interfaces.
+- **Spec edits in this PR:** §4.8's function table, rewritten to the behavior above (decisions 1 to 7).
+- **Gates:** `svelte-check --fail-on-warnings` clean; 136 unit tests in the package (EDK.1's 59 plus 77 here); `pnpm lint` exit 0; `pnpm style` 0 findings; `pnpm knip` clean; `pnpm boundaries` 0 findings; `pnpm install --frozen-lockfile` passes. Not run: the layout project (no shell change), other packages' unit tests, `pnpm deps:new` (`api.npmjs.org` is unreachable here; `zod` 4.6.5 is the version six packages already use).
