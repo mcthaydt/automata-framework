@@ -8,6 +8,8 @@ import type { AfSector } from '../format/af-sector.schema'
 import { moveCorner } from '../model/corner-edits'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
+import type { LevelProfile } from '../profile/level-profile'
+import { SectorAccessError } from '../profile/sector-access'
 import { loadAuthored } from '../testing/fixtures'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import { createPlanController, type PlanPointer } from './plan-controller'
@@ -21,8 +23,8 @@ const depot: AfSector = (() => {
 const SIZE = { w: 800, h: 400 }
 const CAMERA = { x: 7, z: 3, zoom: 1 }
 
-function setup(level: AfSector = depot) {
-  const editor = createLevelEditor({ profile: afSectorProfile, level })
+function setup(level: AfSector = depot, profile: LevelProfile<AfSector> = afSectorProfile) {
+  const editor = createLevelEditor({ profile, level })
   editor.view.set({ camera: CAMERA })
   const controller = createPlanController(editor, SIZE)
   /** The pointer at a point of the plan, as the camera now shows it. */
@@ -383,13 +385,14 @@ describe('a corner drag', () => {
     expect(outline(editor, 'hall')?.[2]).toEqual([8.5, 5])
   })
 
-  it('is not a corner drag when no selected sector has a handle under the press', () => {
+  it('moves the sector, not a corner, when no selected sector has a handle under the press', () => {
     const { editor, controller, at } = setup()
     controller.dragStart(at(8, 6), at(9, 5))
-    expect(controller.view.gesture).not.toBe('corner')
+    expect(controller.view.gesture).toBe('sector')
     controller.dragEnd(at(9, 5), false)
-    expect(outline(editor, 'hall')?.[2]).toEqual([8, 6])
-    expect(editor.history.canUndo).toBe(false)
+    expect(editor.history.undoLabel).toBe('Move sector hall')
+    expect(outline(editor, 'hall')?.[2]).toEqual([9, 5])
+    expect(outline(editor, 'hall')?.[3]).toEqual([1, 5])
   })
 
   it('snaps to the grid, and says so', () => {
@@ -540,12 +543,12 @@ describe('a corner drag', () => {
     expect(editor.history.canUndo).toBe(false)
   })
 
-  it('follows the pointer with the hover when no corner is grabbed', () => {
+  it('follows the pointer with the hover when nothing is grabbed', () => {
     const { controller, at } = setup()
-    controller.dragStart(at(8, 6), at(9, 5))
-    controller.drag(at(4, 3))
+    controller.dragStart(at(-3, 3, 'pen'), at(-2, 3, 'pen'))
+    controller.drag(at(4, 3, 'pen'))
     expect(controller.view.hover).toMatchObject({ selection: 'sector:hall' })
-    controller.dragEnd(at(-3, 3), false)
+    controller.dragEnd(at(-3, 3, 'pen'), false)
     expect(controller.view.hover).toBeUndefined()
   })
 
@@ -578,5 +581,229 @@ describe('a corner drag', () => {
     controller.dragStart(at(8, 6), at(9, 5))
     expect(controller.view.gesture).not.toBe('corner')
     other.cancel()
+  })
+})
+
+/** The depot's profile, except that the hall may not reach east of x = 9: the format refusing what an edit wrote. */
+const bounded: LevelProfile<AfSector> = {
+  ...afSectorProfile,
+  sectors: {
+    ...afSectorProfile.sectors,
+    withSectors(doc, sectors) {
+      if (sectors.some((sector) => sector.id === 'hall' && sector.corners.some((corner) => corner[0] > 9)))
+        throw new SectorAccessError('the hall may not reach east of 9 m')
+      return afSectorProfile.sectors.withSectors(doc, sectors)
+    },
+  },
+}
+
+describe('a sector drag', () => {
+  it('moves the sector by the pointer offset rounded to the grid, as one undo step, and selects it', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(4, 3), at(4, 3))
+    expect(controller.view.gesture).toBe('sector')
+    controller.drag(at(5.2, 3.3))
+    expect(outline(editor, 'hall')).toEqual([
+      [1, 0.5],
+      [9, 0.5],
+      [9, 6.5],
+      [1, 6.5],
+    ])
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+    controller.dragEnd(at(5.2, 3.3), false)
+    expect(controller.view.gesture).toBe('idle')
+    expect(editor.history.undoLabel).toBe('Move sector hall')
+    editor.history.undo()
+    expect(editor.level).toBe(depot)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('moves the same way for a Pencil', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(4, 3, 'pen'), at(4, 3, 'pen'))
+    controller.dragEnd(at(5.2, 3.3, 'pen'), false)
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 0.5])
+  })
+
+  it('takes the offset as it is with Alt, to the fine step with Shift, and to the data step with the grid off', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(4, 3), at(4, 3))
+    controller.drag({ ...at(5.237, 3.3), alt: true })
+    expect(outline(editor, 'hall')?.[0]).toEqual([1.237, 0.3])
+    controller.drag({ ...at(5.237, 3.3), shift: true })
+    expect(outline(editor, 'hall')?.[0]).toEqual([1.24, 0.3])
+    editor.view.set({ grid: { step: 0.5, snap: false } })
+    controller.drag(at(5.23, 3.3))
+    expect(outline(editor, 'hall')?.[0]).toEqual([1.25, 0.3])
+    controller.dragEnd(at(5.23, 3.3), false)
+    expect(editor.history.undoLabel).toBe('Move sector hall')
+  })
+
+  it('leaves no step when it is dragged back to where it began', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(4, 3), at(4, 3))
+    controller.drag(at(5.2, 3.3))
+    controller.drag(at(4.1, 3.05))
+    expect(outline(editor, 'hall')?.[0]).toEqual([0, 0])
+    controller.dragEnd(at(4.1, 3.05), false)
+    expect(editor.history.canUndo).toBe(false)
+    expect(editor.level).toBe(depot)
+  })
+
+  it('accumulates over two drags, each its own step', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(4, 3), at(4, 3))
+    controller.dragEnd(at(5, 3), false)
+    controller.dragStart(at(5, 3), at(5, 3))
+    controller.dragEnd(at(5, 4), false)
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 1])
+    editor.history.undo()
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 0])
+    editor.history.undo()
+    expect(outline(editor, 'hall')?.[0]).toEqual([0, 0])
+  })
+
+  it('moves the sector of the wall the press was on', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(4, 0.1), at(4, 0.1))
+    controller.dragEnd(at(4, 1.6), false)
+    expect(outline(editor, 'hall')?.[0]).toEqual([0, 1.5])
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+  })
+
+  it('keeps a wall selection of the sector it moves', () => {
+    const { editor, controller, at } = setup()
+    controller.tap(at(4, 0.1))
+    expect(editor.selection.ids).toEqual(['wall:hall/0'])
+    controller.dragStart(at(4, 0.1), at(4, 0.1))
+    controller.dragEnd(at(4, 1.6), false)
+    expect(editor.selection.ids).toEqual(['wall:hall/0'])
+    expect(outline(editor, 'hall')?.[0]).toEqual([0, 1.5])
+  })
+
+  it('selects the other sector when the press is on it, and moves that one', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    controller.dragStart(at(11, 3), at(11, 3))
+    controller.dragEnd(at(11, 4), false)
+    expect(editor.selection.ids).toEqual(['sector:dock'])
+    expect(outline(editor, 'dock')?.[0]).toEqual([8, 1])
+    expect(outline(editor, 'hall')?.[0]).toEqual([0, 0])
+  })
+
+  it('is not done by a finger on a sector that is not selected', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(4, 3, 'touch'), at(4, 3, 'touch'))
+    expect(controller.view.gesture).not.toBe('sector')
+    controller.dragEnd(at(5.2, 3.3, 'touch'), false)
+    expect(editor.level).toBe(depot)
+    expect(editor.selection.ids).toEqual([])
+  })
+
+  it('is done by a finger on a sector that is selected, or on one of its walls', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    controller.dragStart(at(4, 3, 'touch'), at(4, 3, 'touch'))
+    controller.dragEnd(at(5, 3, 'touch'), false)
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 0])
+    controller.dragStart(at(5, 0.45, 'touch'), at(5, 0.45, 'touch'))
+    expect(controller.view.gesture).toBe('sector')
+    controller.dragEnd(at(5, 1.45, 'touch'), false)
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 1])
+  })
+
+  it('is not done by a finger on another sector while one is selected', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    controller.dragStart(at(11, 3, 'touch'), at(11, 3, 'touch'))
+    controller.dragEnd(at(11, 4, 'touch'), false)
+    expect(editor.level).toBe(depot)
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+  })
+
+  it('does not move a sector of a layer that is locked or hidden, nor by its walls', () => {
+    const { editor, controller, at } = setup()
+    for (const change of [{ locked: ['sectors'] }, { hidden: ['sectors'] }]) {
+      editor.view.set({ locked: [], hidden: [], ...change })
+      controller.dragStart(at(4, 3), at(4, 3))
+      expect(controller.view.gesture).not.toBe('sector')
+      controller.dragEnd(at(5, 3), false)
+      controller.dragStart(at(4, 0.1), at(4, 0.1))
+      expect(controller.view.gesture).not.toBe('sector')
+      controller.dragEnd(at(5, 1), false)
+    }
+    expect(editor.level).toBe(depot)
+  })
+
+  it('moves a sector whose walls layer is hidden', () => {
+    const { editor, controller, at } = setup()
+    editor.view.set({ hidden: ['walls'] })
+    controller.dragStart(at(4, 3), at(4, 3))
+    controller.dragEnd(at(5, 3), false)
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 0])
+  })
+
+  it('keeps the last accepted offset and shows the sentence when the format refuses a move', () => {
+    const { editor, controller, at } = setup(depot, bounded)
+    controller.dragStart(at(4, 3), at(4, 3))
+    controller.drag(at(5, 3))
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 0])
+    expect(controller.view.refusal).toBeUndefined()
+    controller.drag(at(6, 3))
+    expect(controller.view.refusal).toBe('the hall may not reach east of 9 m')
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 0])
+    controller.drag(at(5, 4))
+    expect(controller.view.refusal).toBeUndefined()
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 1])
+    controller.drag(at(6, 4))
+    expect(controller.view.refusal).toBeDefined()
+    controller.dragEnd(at(6, 4), false)
+    expect(controller.view.refusal).toBeUndefined()
+    expect(outline(editor, 'hall')?.[0]).toEqual([1, 1])
+    editor.history.undo()
+    expect(editor.level).toBe(depot)
+  })
+
+  it('leaves the level as it was when it is cancelled, or an undo ends it', () => {
+    const { editor, controller, at } = setup()
+    controller.dragStart(at(4, 3), at(4, 3))
+    controller.drag(at(5, 3))
+    controller.dragEnd(at(5, 3), true)
+    expect(editor.level).toBe(depot)
+    expect(editor.history.canUndo).toBe(false)
+    controller.dragStart(at(4, 3), at(4, 3))
+    controller.drag(at(5, 3))
+    editor.history.undo()
+    expect(controller.view.gesture).toBe('idle')
+    controller.drag(at(6, 3))
+    controller.dragEnd(at(6, 3), false)
+    expect(editor.level).toBe(depot)
+  })
+
+  it('does not start while another edit session is open, and leaves the selection as it was', () => {
+    const { editor, controller, at } = setup()
+    const other = editor.begin('another')
+    controller.dragStart(at(4, 3), at(4, 3))
+    expect(controller.view.gesture).toBe('idle')
+    controller.dragEnd(at(5, 3), false)
+    expect(editor.selection.ids).toEqual([])
+    expect(editor.level).toBe(depot)
+    other.cancel()
+  })
+
+  it('does not tell anyone there is a corner to show while the sector moves', () => {
+    const { controller, at } = setup()
+    controller.dragStart(at(4, 3), at(4, 3))
+    controller.drag(at(5, 3))
+    expect(controller.view.snap).toBeUndefined()
+    controller.dragEnd(at(5, 3), false)
+  })
+
+  it('gives a corner handle of a selected sector the press before the sector under it', () => {
+    const { editor, controller, at } = setup()
+    editor.selection.set(['sector:hall'])
+    controller.dragStart(at(0, 0), at(0, 0))
+    expect(controller.view.gesture).toBe('corner')
+    controller.dragEnd(at(0, 0), true)
   })
 })

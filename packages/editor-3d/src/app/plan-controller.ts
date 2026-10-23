@@ -4,20 +4,23 @@
 // says. The level stays in the editor's history, the selection in its selection and the camera in its view store, so the
 // controller keeps only what a pointer is in the middle of; undo, redo and a change of layers need nothing from the view.
 import type { PointerKind, Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
-import { moveCorner } from '../model/corner-edits'
+import { sectorSelection } from '../checks/check'
+import type { Point } from '../format/sector.schema'
+import { moveCorner, moveSector } from '../model/corner-edits'
 import type { EditSession, LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'
 import { GeometryError, type GeometryLayer } from '../profile/level-profile'
 import {
   type CornerHit,
+  isLayerOff,
   PICK_RADIUS,
   type PickOptions,
   type PlanHit,
   pickCorner,
   pickPlan,
 } from '../view/plan/plan-pick'
-import { type SnapResult, snapPlan } from '../view/plan/plan-snap'
-import { planViewport } from '../view/plan/plan-viewport'
+import { type SnapResult, snapPlan, stepOf } from '../view/plan/plan-snap'
+import { planViewport, snapValue, toWorld } from '../view/plan/plan-viewport'
 import { type SelectionOf, selectionOf } from '../view/selection-of'
 
 /** A pointer on the canvas, in pixels from its top left. */
@@ -81,19 +84,31 @@ interface Geometry<D> {
 }
 
 /** What a drag is in the middle of. The session shows its runs live and is one undo step when it commits. */
-interface CornerDrag<D> {
+interface Drag<D> {
   readonly session: EditSession<D>
   /** The level as the drag found it: the snap targets, and what the drag is compared with when it ends. */
   readonly base: Geometry<D>
   readonly sector: string
+}
+
+interface CornerDrag<D> extends Drag<D> {
+  readonly kind: 'corner'
   readonly corner: number
+}
+
+interface SectorDrag<D> extends Drag<D> {
+  readonly kind: 'sector'
+  /** Where the press was, in metres: the offset is the pointer's distance from it. */
+  readonly press: Point
+  /** The offset the sector has been moved by so far. A run is the step from it to the pointer's offset. */
+  applied: Point
 }
 
 export function createPlanController<D>(editor: LevelEditor<D>, size: Size): PlanController {
   const listeners = new Set<() => void>()
   let view: PlanView = IDLE
   let pointer: PlanPointer | undefined
-  let gesture: CornerDrag<D> | undefined
+  let gesture: CornerDrag<D> | SectorDrag<D> | undefined
 
   /**
    * The geometry and the selection ids of the level last seen, by identity: a hover costs picks and not a rebuild. A level
@@ -180,10 +195,36 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
   }
 
   /**
+   * Moves the sector by the pointer's offset from the press, rounded to the grid (the fine step with Shift, none with Alt).
+   * A refusal keeps what the last accepted run made, and the next run goes on from that offset.
+   */
+  const moveGrabbedSector = (grabbed: SectorDrag<D>, at: PlanPointer): void => {
+    const world = toWorld(currentViewport(), at)
+    const { step } = stepOf({ grid: editor.view.state.grid, shiftKey: at.shift })
+    const fine = at.alt === true ? 0 : step
+    const target = {
+      x: snapValue(world.x - grabbed.press.x, fine),
+      z: snapValue(world.z - grabbed.press.z, fine),
+    }
+    const result = grabbed.session.run(
+      moveSector({
+        id: grabbed.sector,
+        dx: target.x - grabbed.applied.x,
+        dz: target.z - grabbed.applied.z,
+      }),
+    )
+    if (result.ok) grabbed.applied = target
+    setView({ ...view, refusal: result.ok ? undefined : result.reason })
+  }
+
+  const moveGrabbed = (grabbed: CornerDrag<D> | SectorDrag<D>, at: PlanPointer): void =>
+    grabbed.kind === 'corner' ? moveGrabbedCorner(grabbed, at) : moveGrabbedSector(grabbed, at)
+
+  /**
    * Ends the drag: its step is kept unless it was cancelled, or ended with the level as it began. The drag is over before
    * the history hears of the commit or the cancel, so what that tells `refresh` is only about the level.
    */
-  const finish = (grabbed: CornerDrag<D>, keep: boolean): void => {
+  const finish = (grabbed: Drag<D>, keep: boolean): void => {
     endDrag()
     // A session that is already closed (an undo ended it) ignores both.
     if (keep && !same(editor.level, grabbed.base.level)) grabbed.session.commit()
@@ -233,18 +274,41 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
         const session = editor.begin(`Move corner ${handle.corner} of ${handle.sector}`)
         if (!session.open) return
         gesture = {
+          kind: 'corner',
           session,
           base: geometry(),
           sector: handle.sector,
           corner: handle.corner,
         }
-        setView({ ...view, gesture: 'corner', snap: undefined, refusal: undefined })
+        setView({ ...view, gesture: 'corner' })
+      } else {
+        const options = pickOptions(press)
+        const hit = pickPlan(layers, select, currentViewport(), press, options)
+        // A finger moves only a sector that is selected: on any other it pans, as on a page.
+        const grabbable =
+          hit !== undefined &&
+          !isLayerOff(options, 'sectors') &&
+          (press.kind !== 'touch' || selectedSectors().has(hit.sector))
+        if (grabbable) {
+          const session = editor.begin(`Move sector ${hit.sector}`)
+          if (!session.open) return
+          if (!selectedSectors().has(hit.sector)) editor.selection.set([sectorSelection(hit.sector)])
+          gesture = {
+            kind: 'sector',
+            session,
+            base: geometry(),
+            sector: hit.sector,
+            press: toWorld(currentViewport(), press),
+            applied: { x: 0, z: 0 },
+          }
+          setView({ ...view, gesture: 'sector' })
+        }
       }
       this.drag(at)
     },
     drag(at) {
       pointer = at
-      if (gesture?.session.open) moveGrabbedCorner(gesture, at)
+      if (gesture?.session.open) moveGrabbed(gesture, at)
       else refresh()
     },
     dragEnd(at, cancelled) {
@@ -253,7 +317,7 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
         refresh()
         return
       }
-      if (!cancelled && gesture.session.open) moveGrabbedCorner(gesture, at)
+      if (!cancelled && gesture.session.open) moveGrabbed(gesture, at)
       // The run may have ended the drag itself (an undo); a drag that is gone has nothing to keep.
       if (gesture !== undefined) finish(gesture, !cancelled)
     },
