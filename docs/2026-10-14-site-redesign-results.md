@@ -95,13 +95,13 @@ Implements the QB.3f row of the framework's master plan on top of QB.3. Plan: [`
 
 ### What the CI is
 
-`.github/workflows/ci.yml` has three jobs on the Owner's `af-linux` runner label (`vars.AF_LINUX_RUNNER` moves it; there is no hosted fallback, as in the framework). `checks` runs `pnpm check`, `pnpm build`, `pnpm check:site` and `pnpm test`, then uploads the build; `browsers` runs `pnpm test:e2e` (Chromium and WebKit) in the pinned Playwright image on that build; `lighthouse` runs `pnpm lighthouse` on that build. `tests/workflows.test.ts` pins the shape.
+`.github/workflows/ci.yml` has three jobs on the Owner's `af-linux` runner label (`vars.AF_LINUX_RUNNER` moves it; there is no hosted fallback, as in the framework). *Superseded 2026-10-23: the jobs run on GitHub-hosted Ubuntu 24.04; see "CI runner change" below.* `checks` runs `pnpm check`, `pnpm build`, `pnpm check:site` and `pnpm test`, then uploads the build; `browsers` runs `pnpm test:e2e` (Chromium and WebKit) in the pinned Playwright image on that build; `lighthouse` runs `pnpm lighthouse` on that build. `tests/workflows.test.ts` pins the shape.
 
 **The framework is checked out at `framework.ref`, not at `main`.** Tests, the workshop and the sync scripts read the framework's sources from a sibling checkout. The site's committed copies (`src/data/projects.json`, the workshop proof) match the framework at `365f115` (M1 exit). Framework `main` has since moved Emberwick from `examples/base-2d` to `games/emberwick` (EX.2): against today's `main`, `pnpm check` reports 16 errors, `pnpm build` fails in `verify:workshop`, and 6 test files fail. So a CI that followed `main` would be red for reasons unrelated to the change under test. Moving the pin is a deliberate change: re-sync the site from the new commit, then edit `framework.ref`.
 
 **Owner actions before the first run:**
 
-1. Register a self-hosted runner labelled `af-linux` (or set `AF_LINUX_RUNNER`) to this repository, with Docker for the Playwright image.
+1. ~~Register a self-hosted runner labelled `af-linux` (or set `AF_LINUX_RUNNER`) to this repository, with Docker for the Playwright image.~~ Not needed since the runner change below.
 2. Add the repository secret `AF_FRAMEWORK_TOKEN`: a fine-grained personal access token with "Contents: read" on `mcthaydt/automata-framework` (the repository is private). The job fails at once with a message when it is missing.
 
 ### Findings
@@ -131,6 +131,17 @@ Implements the QB.3f row of the framework's master plan on top of QB.3. Plan: [`
 - QB.3's browser suite, re-run here: `pnpm test:e2e` in Chromium only, **212 passed**. 211 ran in this container's preinstalled full Chromium 141 (Playwright 1.63.0 pins 153); one, "a clean page passes every gate", failed there with a `favicon.ico` 404 that full Chromium requests and the headless shell does not, and passed in the preinstalled headless shell. **WebKit was not run:** `cdn.playwright.dev` is blocked from this container, so WebKit and the pinned Chromium 153 are pending on the runner (bus test-request).
 - Not run: the three workflow jobs themselves (no runner is registered to this repository, and `AF_FRAMEWORK_TOKEN` does not exist yet).
 
+
+## CI runner change (2026-10-23)
+
+The coordinator's decision, relayed from the hub on the bus (`2026-10-23-0245-hub-website-ci-hosted-runner`): this repository's CI runs on GitHub-hosted runners. The shared self-hosted runner stays free for Ruken, and no runner has to be registered to this repository.
+
+- **What changed.** All three jobs have `runs-on: ubuntu-24.04`. `vars.AF_LINUX_RUNNER` and the `af-linux` label are gone, and so are the `dest: ${{ runner.temp }}/setup-pnpm` lines, which only existed because the Owner's runners share one home folder. `tests/workflows.test.ts` now pins "one GitHub-hosted Ubuntu release, not a self-hosted runner" and that the `browsers` and `lighthouse` jobs use the Playwright image built on that release (`-noble`).
+- **Why `ubuntu-24.04` and not `ubuntu-latest`.** The hub's note said `ubuntu-latest`. A pinned release means a runner-image change cannot move the build, and 24.04 is the release the pinned Playwright image (`v1.63.0-noble`) is built on. The choice is one line per job to reverse.
+- **Docker.** The `browsers` and `lighthouse` jobs still run in the Playwright container. GitHub-hosted Ubuntu runners have Docker, which is why those jobs were kept as they are.
+- **Still an Owner action: `AF_FRAMEWORK_TOKEN`.** The framework repository is private, so the framework checkout needs the read token. The job fails at once, with a message, when the secret is missing. Whether the secret exists is not something this container can check (its `gh` token is invalid); the first workflow run settles it.
+- **Verified here.** `tests/workflows.test.ts`: 17 passed. Red first: the test failed against the old `${{ vars.AF_LINUX_RUNNER || 'af-linux' }}` label. Planted changes it catches: one job on `ubuntu-latest`, the Playwright image on `jammy`.
+- **Not verified.** The three jobs have not run on a hosted runner yet. Whether a hosted job reaches the framework checkout and passes `pnpm check` is for that run to show.
 
 ## Inside page (PRODUCT.4w, 2026-10-23)
 
