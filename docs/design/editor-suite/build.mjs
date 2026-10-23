@@ -163,9 +163,12 @@ if (cmd === 'list') {
   console.log(`const existing = (await figma.variables.getLocalVariableCollectionsAsync()).find((c) => c.name === 'Editor Suite')
 const collection = existing || figma.variables.createVariableCollection('Editor Suite')
 const made = []
+// The async lookup: Figma's dynamic-page mode refuses the synchronous getVariableById.
+const vars = []
+for (const id of collection.variableIds) vars.push(await figma.variables.getVariableByIdAsync(id))
 for (const [name, hex] of ${JSON.stringify(SUITE_TOKENS.map((t) => [`color/${t}`, S.tokens[t]]))}) {
   // Creates a missing variable and resets an existing one's value, so a changed hue (ed/audio) reaches Figma.
-  const old = collection.variableIds.map((id) => figma.variables.getVariableById(id)).find((v) => v.name === name)
+  const old = vars.find((v) => v && v.name === name)
   const v = old || figma.variables.createVariable(name, collection, 'COLOR')
   if (!old) v.scopes = ['ALL_FILLS', 'STROKE_COLOR']
   const h = hex.replace('#', '')
