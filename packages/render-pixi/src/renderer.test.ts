@@ -4,6 +4,7 @@ import type { Geometry } from '@mcthaydt/automata-ui'
 import { Effect, Exit, Scope } from 'effect'
 import { Application, type ApplicationOptions, Container, type Filter } from 'pixi.js'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { postFilter } from './filter/post-filter.js'
 import { createPixiRenderer } from './renderer.js'
 
 describe('createPixiRenderer', () => {
@@ -387,6 +388,121 @@ describe('createPixiRenderer', () => {
     expect(warn).toHaveBeenCalledTimes(1)
     expect(published).toEqual([['render.filter.dropped', { id: 'bad', reason: 'no such uniform' }]])
     warn.mockRestore()
+  })
+
+  describe('declared post filters (postFilter)', () => {
+    const glsl = `precision highp float;
+in vec2 vTextureCoord;
+out vec4 finalColor;
+uniform sampler2D uTexture;
+void main() { finalColor = texture(uTexture, vTextureCoord); }`
+    const wgsl = `
+@fragment fn mainFragment(input: VSOutput) -> @location(0) vec4<f32> {
+  return textureSample(uTexture, uSampler, input.uv);
+}`
+    const fragments = (filters: Filter[] | null) => (filters ?? []).map((f) => f.glProgram?.fragment)
+
+    it("builds each declared filter and sets it in the slot under its name, before the game's own setup", async () => {
+      const target = createFakeTarget()
+      const flash = { name: 'flash' } as unknown as Filter
+      const factory = createPixiRenderer({
+        logicalWidth: 320,
+        logicalHeight: 180,
+        composite: false,
+        postFilters: [postFilter('tint', { glsl, wgsl, order: 10 })],
+        setup(stage) {
+          // Registered first, so the game's own setup already sees the declared filter in the slot.
+          expect(stage.postFilters.ids).toEqual(['tint'])
+          stage.postFilters.set('game', [flash])
+        },
+      })
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const { stage } = yield* factory(target)
+          expect(stage.postFilters.ids).toEqual(['game', 'tint'])
+          expect(stage.filters?.[0]).toBe(flash)
+          expect(fragments(stage.filters)[1]).toContain('texture(uTexture, vTextureCoord)')
+        }),
+      )
+      await Effect.runPromise(program)
+    })
+
+    it('leaves out a minTier medium filter at low until setQuality raises the tier', async () => {
+      const target = createFakeTarget()
+      const factory = createPixiRenderer({
+        logicalWidth: 320,
+        logicalHeight: 180,
+        quality: 'low',
+        postFilters: [postFilter('bloom', { glsl, wgsl, minTier: 'medium' })],
+      })
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const { stage } = yield* factory(target)
+          expect(stage.postFilters.ids).toEqual([])
+          expect(stage.filters).toBeNull()
+          stage.setQuality('high')
+          expect(stage.postFilters.ids).toEqual(['bloom'])
+        }),
+      )
+      await Effect.runPromise(program)
+    })
+
+    it('drops a filter whose GLSL does not link, publishes it, and still applies the others (M4 spec §6)', async () => {
+      const published: unknown[] = []
+      const bus = {
+        publish: (name: string, fact: unknown) => void published.push([name, fact]),
+        subscribe: () => () => {},
+      }
+      // The renderer's WebGL2 context says every program fails to link; only `tint` is declared to compile here.
+      const build = mockInitBehavior
+      mockInitBehavior = function (this: Application, opts?: Partial<ApplicationOptions>) {
+        build.call(this, opts)
+        let linking = 0
+        ;(this.renderer as unknown as { gl: unknown }).gl = {
+          VERTEX_SHADER: 1,
+          FRAGMENT_SHADER: 2,
+          LINK_STATUS: 3,
+          createShader: () => ({}),
+          shaderSource: () => {},
+          compileShader: () => {},
+          createProgram: () => ({}),
+          attachShader: () => {},
+          linkProgram: () => void linking++,
+          // The first program (`broken`) fails, the second (`tint`) links.
+          getProgramParameter: () => linking > 1,
+          getProgramInfoLog: () => 'ERROR: 0:3: syntax error',
+          getShaderInfoLog: () => '',
+          deleteShader: () => {},
+          deleteProgram: () => {},
+        }
+      }
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const factory = createPixiRenderer({
+        logicalWidth: 320,
+        logicalHeight: 180,
+        composite: false,
+        postFilters: [postFilter('broken', { glsl: 'not glsl', wgsl }), postFilter('tint', { glsl, wgsl })],
+      })
+      const program = Effect.scoped(
+        Effect.gen(function* () {
+          const { stage } = yield* factory({ ...createFakeTarget(), bus })
+          expect(stage.postFilters.ids).toEqual(['tint'])
+        }),
+      )
+      await Effect.runPromise(program)
+      expect(published).toEqual([
+        ['render.filter.dropped', { id: 'broken', reason: expect.stringContaining('syntax error') }],
+      ])
+      warn.mockRestore()
+    })
+
+    it('throws when a name is declared twice, because the slot would silently replace the first', () => {
+      expect(() =>
+        createPixiRenderer({
+          postFilters: [postFilter('tint', { glsl, wgsl }), postFilter('tint', { glsl, wgsl })],
+        }),
+      ).toThrow('postFilter "tint" is declared twice')
+    })
   })
 
   describe('the fixed-resolution composite (M4 spec §4.11)', () => {
