@@ -87,25 +87,12 @@ export function parseStage(text: string): Result<StageDocument, readonly ParseEr
 
 type Data = Record<string, unknown>
 
-const isData = (value: unknown): value is Data =>
-  typeof value === 'object' && value !== null && !Array.isArray(value)
-
-/** A copy without the keys whose value is `undefined`, which are optional keys the value does not have. */
-function withoutUndefined(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(withoutUndefined)
-  if (!isData(value)) return value
-  const copy: Data = {}
-  for (const [key, child] of Object.entries(value))
-    if (child !== undefined) copy[key] = withoutUndefined(child)
-  return copy
-}
-
 /**
  * The value as the TOML data `patch` compares with the text. An empty list is the same as no list for the schema, which
  * defaults `setPieces` to empty, so an empty list the text does not spell out is left out and `patch` adds no key for it.
  */
 function tomlData(value: StageValue, base: Data): Data {
-  const data = withoutUndefined(value) as Data
+  const data = structuredClone(value) as unknown as Data
   const theme = data.theme as Data
   const baseTheme = base.theme as Data
   if ((theme.setPieces as unknown[]).length === 0 && baseTheme.setPieces === undefined) delete theme.setPieces

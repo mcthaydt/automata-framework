@@ -2,30 +2,11 @@ import { parse } from '@decimalturn/toml-patch'
 import { describe, expect, it } from 'vitest'
 import { stageSchema } from './stage.schema'
 import { parseStage, printStage } from './stage-codec'
-import type { StageDocument } from './stage-document'
 import { SHIPPED_STAGE_IDS, type ShippedStageId, shippedStage } from './testing/shipped-stages'
+import { documentOf, MINIMAL_STAGE } from './testing/stage-texts'
 
 // Reading a stage file (EDFF.1a step 2): a document for a good text and, for a bad one, every problem with the line
 // it is on, so the editor can say where (acceptance G-c: a parse error never replaces the file).
-
-const MINIMAL = [
-  'id = "tiny"',
-  'displayName = "Tiny"',
-  'platformAlias = "world.platform"',
-  '',
-  '[courseTuning]',
-  '',
-  '[theme]',
-  'backdropAlias = "world.sky"',
-  '',
-  '[[theme.layers]]',
-  'alias = "world.sky"',
-  'plate = "sky"',
-  'depth = 0.1',
-  'sink = 0',
-  'extend = "plate"',
-  '',
-].join('\n')
 
 function failure(text: string) {
   const result = parseStage(text)
@@ -67,14 +48,14 @@ describe('parseStage of a good text', () => {
   )
 
   it('gives a stage with one layer, no set pieces and no course a single id and empty lists otherwise', () => {
-    const result = parseStage(MINIMAL)
+    const result = parseStage(MINIMAL_STAGE)
     if (!result.ok) throw new Error('expected the minimal stage to parse')
     expect(result.value.ids).toEqual({ extension: [], layers: ['b0'], setPieces: [] })
     expect(result.value.value.theme.setPieces).toEqual([])
   })
 
   it('opens a text with Windows line endings and no final newline', () => {
-    const text = MINIMAL.replace(/\n/g, '\r\n').trimEnd()
+    const text = MINIMAL_STAGE.replace(/\n/g, '\r\n').trimEnd()
     expect(parseStage(text).ok).toBe(true)
   })
 })
@@ -149,20 +130,20 @@ describe('parseStage of a TOML text that is not a stage', () => {
   })
 
   it('points a missing key at the header of the table that should hold it', () => {
-    const text = MINIMAL.replace('plate = "sky"\n', '')
+    const text = MINIMAL_STAGE.replace('plate = "sky"\n', '')
     const errors = failure(text)
     expect(errors).toHaveLength(1)
     expect(errors[0]).toMatchObject({ path: 'theme.layers[0].plate', line: lineOf(text, '[[theme.layers]]') })
   })
 
   it('reports every problem, not only the first', () => {
-    const text = MINIMAL.replace('depth = 0.1', 'depth = 7').replace('sink = 0', 'sink = -9999')
+    const text = MINIMAL_STAGE.replace('depth = 0.1', 'depth = 7').replace('sink = 0', 'sink = -9999')
     const errors = failure(text)
     expect(errors.map((e) => e.path).sort()).toEqual(['theme.layers[0].depth', 'theme.layers[0].sink'])
   })
 
   it('reports an unknown key at its own line, one error for each key', () => {
-    const text = MINIMAL.replace('[courseTuning]\n', '[courseTuning]\n').replace(
+    const text = MINIMAL_STAGE.replace(
       'platformAlias = "world.platform"\n',
       'platformAlias = "world.platform"\nflavour = "sweet"\nmood = 4\n',
     )
@@ -176,17 +157,17 @@ describe('parseStage of a TOML text that is not a stage', () => {
   })
 
   it('finds an unknown key inside an element of a list', () => {
-    const text = MINIMAL.replace('depth = 0.1\n', 'depth = 0.1\nwobble = 1\n')
+    const text = MINIMAL_STAGE.replace('depth = 0.1\n', 'depth = 0.1\nwobble = 1\n')
     expect(failure(text)[0]).toMatchObject({ path: 'theme.layers[0].wobble', line: lineOf(text, 'wobble') })
   })
 
   it('reports a value of the wrong type with the key of that value', () => {
-    const text = MINIMAL.replace('displayName = "Tiny"', 'displayName = 12')
+    const text = MINIMAL_STAGE.replace('displayName = "Tiny"', 'displayName = 12')
     expect(failure(text)[0]).toMatchObject({ path: 'displayName', line: lineOf(text, 'displayName') })
   })
 
   it('reports a rule across values at the key the rule names', () => {
-    const text = MINIMAL.replace('plate = "sky"', 'plate = "city"')
+    const text = MINIMAL_STAGE.replace('plate = "sky"', 'plate = "city"')
     const errors = failure(text)
     expect(errors).toHaveLength(1)
     expect(errors[0]).toMatchObject({ path: 'theme.layers[0].extend', line: lineOf(text, 'extend = ') })
@@ -194,7 +175,7 @@ describe('parseStage of a TOML text that is not a stage', () => {
   })
 
   it('counts lines the same for Windows line endings', () => {
-    const text = MINIMAL.replace('sink = 0', 'sink = 5000')
+    const text = MINIMAL_STAGE.replace('sink = 0', 'sink = 5000')
     const unix = failure(text)
     const windows = failure(text.replace(/\n/g, '\r\n'))
     expect(windows.map((e) => e.line)).toEqual(unix.map((e) => e.line))
@@ -202,12 +183,6 @@ describe('parseStage of a TOML text that is not a stage', () => {
 })
 
 // -- printing --------------------------------------------------------------------------------------------------------
-
-function document(text: string): StageDocument {
-  const result = parseStage(text)
-  if (!result.ok) throw new Error(`expected the text to parse: ${JSON.stringify(result.error)}`)
-  return result.value
-}
 
 const VARIANTS: readonly [string, (text: string) => string][] = [
   ['unchanged', (text) => text],
@@ -222,21 +197,21 @@ describe('printStage of an unchanged document', () => {
       `prints the shipped stage %s ${variant} byte for byte`,
       (id: ShippedStageId) => {
         const text = change(shippedStage(id))
-        expect(printStage(text, document(text))).toBe(text)
+        expect(printStage(text, documentOf(text))).toBe(text)
       },
     )
   }
 
   it('prints a stage with no set pieces and no course without adding keys for them', () => {
-    expect(printStage(MINIMAL, document(MINIMAL))).toBe(MINIMAL)
+    expect(printStage(MINIMAL_STAGE, documentOf(MINIMAL_STAGE))).toBe(MINIMAL_STAGE)
   })
 
   it('keeps an empty list the file wrote out', () => {
-    const text = MINIMAL.replace('[[theme.layers]]', 'setPieces = []\n\n[[theme.layers]]')
-    expect(printStage(text, document(text))).toBe(text)
+    const text = MINIMAL_STAGE.replace('[[theme.layers]]', 'setPieces = []\n\n[[theme.layers]]')
+    expect(printStage(text, documentOf(text))).toBe(text)
   })
 
   it('throws for a base that is not the text the document came from, which is a bug in the caller', () => {
-    expect(() => printStage('id = ', document(MINIMAL))).toThrow()
+    expect(() => printStage('id = ', documentOf(MINIMAL_STAGE))).toThrow()
   })
 })
