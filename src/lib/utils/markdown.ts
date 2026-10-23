@@ -163,24 +163,25 @@ export function parseMarkdown(md: string): ParsedBlock[] {
   }
 
 
-export type InlinePart = { type: 'text' | 'code'; text: string } | { type: 'link'; text: string; href: string }
+export type InlinePart = { type: 'text' | 'code' | 'strong'; text: string } | { type: 'link'; text: string; href: string }
 
 /** Inline text stays native Svelte content; raw HTML and executable URL schemes are never rendered. */
 export function parseInline(text: string): InlinePart[] {
   const parts: InlinePart[] = []
-  const pattern = /`([^`]+)`|\[([^\]]+)\]\(([^)]+)\)/g
+  const pattern = /`([^`]+)`|\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)]+)\)/g
   let start = 0
   for (const match of text.matchAll(pattern)) {
     if (match.index! > start) parts.push({ type: 'text', text: text.slice(start, match.index) })
     if (match[1]) parts.push({ type: 'code', text: match[1] })
+    else if (match[2]) parts.push({ type: 'strong', text: match[2] })
     else {
-      const target = match[3]
+      const target = match[4]
       let safe = false
       try {
         const url = new URL(target, 'https://automata.ruken.com')
         safe = target.startsWith('https://') || ((target.startsWith('/') || target.startsWith('#')) && url.origin === 'https://automata.ruken.com' && !target.includes('\\'))
       } catch { /* Malformed links remain ordinary text. */ }
-      parts.push(safe ? { type: 'link', text: match[2], href: target } : { type: 'text', text: match[0] })
+      parts.push(safe ? { type: 'link', text: match[3], href: target } : { type: 'text', text: match[0] })
     }
     start = match.index! + match[0].length
   }
