@@ -10,13 +10,13 @@
 - **The site reads the framework's sources, and the framework moved.** `tests/`, `workshop/` and `scripts/sync-*.ts` import from the sibling checkout `../automata-framework` (`examples/base-2d/...`). Framework `main` no longer has `examples/base-2d` (EX.2 moved it to `games/emberwick` on 2026-10-16), so against today's `main` the site's `pnpm check` has 16 errors, `verify:workshop` (and so `pnpm build`) fails, and 6 test files fail. This is not caused by QB.3; it means a CI that follows `main` would be red for a reason unrelated to the change under test.
 - **So CI pins the framework.** The commit whose files match the site's committed copies is `365f115` (M1 exit): at it, QB.3's recorded results reproduce exactly (check 0 errors, build, `check:site` 26 pages, `pnpm test` 102 passed, 1 expected fail, 1 failed). The 1 failure is the LICENSE one below. `framework.ref` holds the commit; moving it is a deliberate change (sync the site, then edit the file).
 - **The one real failure is F-1.** `api-contract` "publishes the exact current project files" fails on `LICENSE`, `LICENSE-SCOPE.md` and the `license` field of `package.json`: the site's copies carry MIT and the framework does not ship it until DX.11. The same F-1 pattern as `license-claim.test.ts` applies: those three files alone may differ, and a second, `it.fails` test keeps the difference visible and goes red when DX.11 lands.
-- **The framework repository is private.** The checkout needs a read token (`AF_FRAMEWORK_TOKEN`, an Owner action) and the runner label `af-linux` must be registered to this repository.
+- **The framework repository is private.** The checkout needs a read token (`AF_FRAMEWORK_TOKEN`, an Owner action) and the runner label `af-linux` must be registered to this repository. *(Superseded 2026-10-23: the jobs run on GitHub-hosted `ubuntu-24.04`; see the results doc, "CI runner change".)*
 - **Lighthouse needs production-like transfer sizes.** `scripts/serve-static.ts` serves files uncompressed. Its new `--compressed` flag serves the `.br`/`.gz` siblings adapter-static already writes, as the host will.
 
 ## Interfaces
 
 - **Produced:** `.github/workflows/ci.yml` (jobs `checks`, `browsers`, `lighthouse`); `framework.ref`; `.nvmrc`; `lighthouserc.json`; `pnpm lighthouse`; `serve-static.ts --compressed`.
-- **Consumed:** the framework at `framework.ref`; the repository secret `AF_FRAMEWORK_TOKEN`; the runner label `af-linux` (`vars.AF_LINUX_RUNNER`); Playwright 1.63.0's image `mcr.microsoft.com/playwright:v1.63.0-noble`.
+- **Consumed:** the framework at `framework.ref`; the repository secret `AF_FRAMEWORK_TOKEN`; ~~the runner label `af-linux` (`vars.AF_LINUX_RUNNER`)~~ (superseded, see above); Playwright 1.63.0's image `mcr.microsoft.com/playwright:v1.63.0-noble`.
 
 ## Files
 

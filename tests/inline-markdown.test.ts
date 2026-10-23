@@ -13,4 +13,11 @@ describe('Readable documentation links', () => {
     const view = render(Inline, { props: { text: '[bad](javascript:alert) [remote](//example.com) [escape](/\\example.com)' } })
     expect(view.queryAllByRole('link')).toHaveLength(0)
   })
+  it('renders **bold** as strong text, without treating a lone asterisk as bold', () => {
+    const view = render(Inline, { props: { text: '**Core** is free; 2 * 3 stays text and `**code**` stays code.' } })
+    expect(view.container.querySelector('strong')?.textContent).toBe('Core')
+    expect(view.container.querySelectorAll('strong')).toHaveLength(1)
+    expect(view.container.querySelector('code')?.textContent).toBe('**code**')
+    expect(view.container.textContent).toContain('2 * 3')
+  })
 })

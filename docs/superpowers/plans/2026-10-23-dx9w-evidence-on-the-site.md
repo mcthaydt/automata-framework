@@ -1,7 +1,7 @@
 # DX.9w: the site renders the evidence file TDD plan
 
 - **Spec:** framework repo `docs/superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md` §3.10 (the evidence file; "the website's sync reads it at build time and renders proof from it. A hard-coded hash on the site becomes a website test failure") and §11 (restoration rules); the DX.9w row of `docs/02-master-delivery-plan.md`. AF side: framework plan `2026-10-16-dx9-evidence-file.md`.
-- **Status:** drafted 2026-10-23; implemented and locally verified 2026-10-23 except the real data: **`src/data/evidence.json` has not been synced**, so `tests/evidence.test.ts` "exists, and is the one the schema next to it accepts" is red by design. Stacked on QB.3f (PR #3), which stacks on QB.3 (PR #2).
+- **Status:** drafted 2026-10-23; implemented and locally verified 2026-10-23, including the real data (synced on the Mac, committed unchanged in `9210a3c`; the sync was red by design until then). Based on `main` now that QB.3, QB.3f and PRODUCT.4w are merged.
 - **Progress:** 6 of 7 steps (step 7's real sync is open).
 - **Branch:** `claude/project-thread-onilcu-dx9w`.
 
@@ -30,7 +30,7 @@
 - [x] **4. Page and link.** The `/proof` route (with a plain "no evidence yet" state that claims nothing), the footer link, the styles. `pnpm build` and `check:site` pass with 27 pages; the QB.3 browser gates (375, 768, 1280 and 780×270, axe, keyboard, buttons) pass on `/proof` with the sample data loaded.
 - [x] **5. The hard-coded-hash guard.** In `tests/audit-regressions.test.ts`: the real scan is green, a planted `31f50888ccb4cf0a` in `src/lib/site.js` turned it red, the scanner catches a hash in a page and a data file, allows the evidence pair and `projects.json`, and ignores long numbers.
 - [x] **6. Red-first evidence.** Each test failed on a planted defect: a hash typed into a source file, a sync that copies before validating, a sync that skips validation, `dirty` and `kind` checks removed, the disagreement verdict replaced.
-- [ ] **7. Sync the real file.** On a machine with `gh auth login`: `pnpm sync:evidence`, then `pnpm test`, `pnpm build`, `pnpm check:site`; commit `src/data/evidence.json` and `src/data/evidence.schema.json`. Then the red test goes green, the PR leaves draft, and the framework's 02 row records the revision and run.
+- [x] **7. Sync the real file.** The Mac ran `pnpm sync:evidence` (a bus test-request, run 39113372614 at `c2cca72`); the two files were committed unchanged (`9210a3c`, sha256 checked). `pnpm check`, `pnpm test` (202 passed, 1 expected fail), `pnpm build`, `pnpm check:site` (28 pages) and the Chromium suite (226 passed) pass with `main` merged in. The framework's 02 row records the revision and run.
 
 ## Not in this task
 

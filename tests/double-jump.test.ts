@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { createBaseSim, moveCommand, readPlayer } from '../../automata-framework/examples/base-2d/src/base-sim'
-import { parseRoom, type RoomSource } from '../../automata-framework/examples/base-2d/src/content/room'
+import { createBaseSim, moveCommand, readPlayer } from '../../automata-framework/games/emberwick/src/base-sim'
+import { parseRoom, type RoomSource } from '../../automata-framework/games/emberwick/src/content/room'
 import type { Sim } from '../../automata-framework/packages/sim/src/index'
-import { base2dPlugin, Player, PlayerControl } from '../../automata-framework/examples/base-2d/src/sim/index'
+import { base2dPlugin, Player, PlayerControl } from '../../automata-framework/games/emberwick/src/sim/index'
 import { createRecorder, createReplayStepper } from '../../automata-framework/packages/sim/src/replay/index'
 import { doubleJumpPlugin } from '../workshop/double-jump.plugin'
 

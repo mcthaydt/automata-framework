@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ROOM, parseRoom } from '../../automata-framework/examples/base-2d/src/content/room'
+import { ROOM, parseRoom } from '../../automata-framework/games/emberwick/src/content/room'
 import { withStart } from '../workshop/spawn'
 
 describe('A first AI change: configurable player start', () => {

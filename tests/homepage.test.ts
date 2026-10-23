@@ -11,6 +11,6 @@ describe('Homepage', () => {
     expect(view.getAllByRole('img', { name: 'Emberwick platforming gameplay' }).length).toBeGreaterThan(0)
     expect(view.getAllByRole('link', { name: 'Try a double jump' }).every(link => link.getAttribute('href') === '/start#worked-change')).toBe(true)
     expect(view.queryByText(/npx automata/)).toBeNull()
-    expect(view.getByRole('region', { name: 'examples/base-2d/src/content/room.ts' })).toBeTruthy()
+    expect(view.getByRole('region', { name: 'games/emberwick/src/content/room.ts' })).toBeTruthy()
   })
 })

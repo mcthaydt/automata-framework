@@ -1,5 +1,5 @@
 import { defineSystem } from '../../automata-framework/packages/sim/src/index'
-import { hitsSolid, Jumped, Player, PlayerControl, type RoomGrid, tuning } from '../../automata-framework/examples/base-2d/src/sim/index'
+import { hitsSolid, Jumped, Player, PlayerControl, type RoomGrid, tuning } from '../../automata-framework/games/emberwick/src/sim/index'
 import { AirJump } from './air-jump.component'
 
 export const doubleJump = defineSystem({

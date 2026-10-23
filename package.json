@@ -15,6 +15,7 @@
     "build:workshop": "node scripts/build-workshop.mjs",
     "test:e2e": "playwright test",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
+    "sync:stack": "node --import tsx scripts/sync-stack.ts",
     "sync:evidence": "node --import tsx scripts/sync-evidence.ts"
   },
   "dependencies": {

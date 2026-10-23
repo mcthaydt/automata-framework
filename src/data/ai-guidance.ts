@@ -3,8 +3,8 @@ import { SKILL_PREFLIGHT } from './agent-setup'
 export const AI_CONTEXT_FILES = [
   { path: 'AGENTS.md', purpose: 'Project rules, architecture, and required checks. Read applicable instructions in the directories you will edit.' },
   { path: 'package.json', purpose: 'Available scripts, tool versions, dependencies, and package exports. Read both the workspace and target package manifests.' },
-  { path: 'examples/base-2d/src/base-sim.ts', purpose: 'Simulation creation, room content, command envelopes, and starting entities.' },
-  { path: 'examples/base-2d/src/sim/', purpose: 'Working component, command, event, resource, system, and plugin definitions.' },
+  { path: 'games/emberwick/src/base-sim.ts', purpose: 'Simulation creation, room content, command envelopes, and starting entities.' },
+  { path: 'games/emberwick/src/sim/', purpose: 'Working component, command, event, resource, system, and plugin definitions.' },
   { path: 'The closest focused example', purpose: 'Use runtime/boot-and-flow, render-pixi/renderer-2d, host/lifecycle-and-saves, content/hot-reload, or ui/primitives for the integration being changed.' },
   { path: 'The nearest tests and public types', purpose: 'Actual accepted inputs, failure behavior, cleanup requirements, and exported names. Prefer these over a guessed API.' },
 ]
