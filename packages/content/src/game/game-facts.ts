@@ -8,6 +8,10 @@ import { type Manifest, RATINGS, type Rating } from '@ruken/manifest'
 import { z } from 'zod'
 import type { Problem } from '../diagnostics/diagnostic'
 
+/**
+ * What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated
+ * hours, the analytics events it may send, and the screens whose files are preloaded.
+ */
 export interface GameSource {
   /** The language the TOML is written in. Default `en`. */
   readonly source_language: string
@@ -28,6 +32,10 @@ export const gameSchema: z.ZodType<GameSource, unknown> = z.strictObject({
   preload_screens: z.optional(z.array(z.string())),
 })
 
+/**
+ * What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
+ * folder).
+ */
 export interface AssetsSource {
   readonly screens: Readonly<Record<string, { readonly files: readonly string[] }>>
 }
@@ -36,6 +44,10 @@ export const assetsSchema: z.ZodType<AssetsSource> = z.strictObject({
   screens: z.record(z.string(), z.strictObject({ files: z.array(z.string()) })),
 })
 
+/**
+ * The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages
+ * present and written to `ruken-fields.json`.
+ */
 export type RukenFields = Pick<Manifest, 'content' | 'analytics'>
 
 /** BCP 47 tags of the shapes Ruken's store lists: `en`, `fr`, `pt-BR`, `zh-Hant`, `zh-Hant-TW`. */

@@ -13,6 +13,10 @@ import { contentHash } from '../hash/content-hash'
 import type { ContentSchemaDef } from '../schema/content-schema'
 import type { FoundRef } from '../schema/references'
 
+/**
+ * The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash,
+ * which gates snapshots and replays.
+ */
 export interface SimPartition {
   /** `tuning` and each sim kind, the same objects as in the full data. */
   readonly data: ContentData
