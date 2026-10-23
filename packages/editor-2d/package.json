@@ -1,0 +1,25 @@
+{
+  "name": "@mcthaydt/automata-editor-2d",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@mcthaydt/automata-editor-kit": "workspace:*",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "oxc-parser": "0.152.0",
+    "vitest": "5.0.3"
+  }
+}
