@@ -81,7 +81,7 @@ Rules:
 - Regions are siblings that stay mounted. A mode change moves them with CSS (grid areas, fixed position, transforms) and never re-renders them elsewhere, so focus, scroll position and open transactions survive a rotation. A closed drawer or sheet is `inert` and `visibility: hidden`, not `display: none`, so its scroll position is kept.
 - The rail snippet is told `orientation` (`vertical` in `wide`, `horizontal` otherwise) so the editor draws the same destinations either way.
 - Keyboard, browser-bar and Stage Manager size changes do not remount regions or lose focus, scroll or selection (the geometry owner debounces; the shell keys regions by id).
-- Detent sheets have three detents (peek 96, half 50%, full 92%), a drag handle at least 44 high, and a scrim only at full.
+- Detent sheets have three detents (peek 96, or 192 for the dock: its 148 px and the handle; half 50%; full 92%, each of the room above the tab bar and status line), a drag handle at least 44 high, and a scrim only at full.
 - Every region that can scroll declares its scroll region; the canvas never scrolls the page (`touch-action: none`, overscroll locked).
 
 ### 4.3 `History<S>`
