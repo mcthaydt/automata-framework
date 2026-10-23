@@ -46,6 +46,7 @@ export {
   setHeights,
   setLight,
   setMaterials,
+  setView,
 } from './model/sector-edits'
 export { parseSelection, type SelectionRef } from './model/selection-ref'
 export {
@@ -61,6 +62,7 @@ export {
   setWallFlags,
   setWallKind,
   setWallMaterial,
+  setWallOcclude,
   setWindow,
   type WallFlagsArgs,
   type WallKindArgs,
@@ -99,6 +101,7 @@ export {
   type FitOptions,
   fitOrbit,
   forward,
+  HOME_YAW,
   ORBIT_FOV,
   type Orbit,
   orbitBy,
@@ -114,7 +117,20 @@ export {
   walkCamera,
   walkStart,
 } from './view/mesh/camera-3d'
-export { facesEye, type MeshHit, pickMesh, visibleSurfaces } from './view/mesh/mesh-pick'
+export {
+  HEADINGS,
+  type HeadingOptions,
+  type HeadingView,
+  headingPreview,
+} from './view/mesh/heading-preview'
+export {
+  facesEye,
+  type MeshHit,
+  pickMesh,
+  surfaceVisibility,
+  type Visibility,
+  visibleSurfaces,
+} from './view/mesh/mesh-pick'
 export {
   type Box3,
   buildSectorMesh,

@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { type Style, styleSchema } from './blockout.schema'
 import {
   doorSchema,
+  OCCLUDES,
   type PartialTrim,
   pairSchema,
   partialTrimSchema,
@@ -63,6 +64,7 @@ export const afWallSchema: z.ZodType<AfWall> = z.looseObject({
   door: doorSchema.optional(),
   pilaster: z.looseObject({ start: pairSchema.optional(), end: pairSchema.optional() }).optional(),
   thick: z.number().optional(),
+  occlude: z.enum(OCCLUDES).optional(),
 })
 
 /** A corner starts the wall that runs from it to the next corner. */
@@ -97,6 +99,8 @@ export interface AfSectorEntry {
   readonly ceilingTexture?: string | undefined
   readonly wallTexture?: string | undefined
   readonly trim?: PartialTrim | undefined
+  /** The id of the camera view the game takes while the player is in this sector (a `camera-view` of the game's content). */
+  readonly view?: string | undefined
   readonly corners: readonly AfCorner[]
   readonly holes?: readonly (readonly AfCorner[])[] | undefined
 }
@@ -112,6 +116,7 @@ export const afSectorEntrySchema: z.ZodType<AfSectorEntry> = z.looseObject({
   ceilingTexture: z.string().optional(),
   wallTexture: z.string().optional(),
   trim: partialTrimSchema.optional(),
+  view: z.string().optional(),
   corners: z.array(cornerSchema).min(3),
   holes: z.array(z.array(cornerSchema).min(3)).optional(),
 })
