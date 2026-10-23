@@ -288,7 +288,7 @@ interface Profile<V> {
   check(value: V, context: ProjectContext): Diagnostic[]
   readonly templates: readonly { id: string; label: string; create(ids: IdSource): V }[]
   readonly views: readonly ViewDef[]                        // rail destinations; each names a Svelte component
-  readonly exports: readonly ExportTarget<V>[]              // working file, AF content TOML, … 
+  readonly exports: readonly ExportTarget<V>[]              // the first is the working file; then AF content TOML, … 
 }
 ```
 
@@ -344,6 +344,18 @@ Ordered flows:
 10. **Recover:** reopen after a crash → Restore or Discard (kit §5).
 
 The logic of flows 2 and 3 (the pointer, the tools, one undo step per gesture) is the Level view controller of §5.9 (ED2D.4b); the Svelte views of ED2D.4c forward pointer events to it and render its `view`.
+
+### 8.1 The app core (ED2D.4c1)
+
+`app/` holds the editor's session in plain TypeScript, with no Svelte, so Node tests and the views use the same objects. The kit's headless `./core` entry now carries the storage layer (`openWorkspace`, `createDocumentSession`, `findRecovery`, the stores), so `app/` never loads the shell.
+
+- **Registration.** `app/profiles.ts` is the one list that names a profile (§4). It registers `level-project`; `floorfifty-stage` joins in EDFF.2. Everything below works from the registry and never mentions a profile id (G-s).
+- **The first export of a profile is its working file.** Its first file's path names a new document and its contents are the document as created. Both shipped profiles already do this; it needs no member of its own.
+- **Reading a file** ends in one of six outcomes, none thrown: `parsed`, `choose` (two or more profiles `sniff` it; the app reads again with the profile the person picked), `unrecognised`, `invalid` (a profile claims it and `parse` returned errors: the error panel with the positions, and a read-only view of the text), `notText` (the bytes are not UTF-8; a byte order mark is skipped) and `tooLarge` (over 16 MB, before decoding). A project from a newer editor or with unknown keys is `invalid` with the profile's own codes, so the app has no read-only mode of its own.
+- **Create, open, save.** `create(profileId, templateId)` writes the template's working file (a taken path gets ` 2`, ` 3` before the extension, which starts at the first dot of the name so `a.af2d.json` stays whole) and opens it the way any file opens; a new document is a saved file, so Home lists it at once. `open(path)` returns an `OpenDocument`: the profile, a kit `History<unknown>` at the parsed value and a kit `DocumentSession` over the workspace (save guarded by the file's modification time, Keep mine, Save as copy, autosave journal, the status line's state). A store that refuses is `storageFailed` with the kit's reason (`denied`, `quota`, `io`).
+- **`base` follows the file.** A codec may patch the text it loaded (`Profile.print(base, value)`), so the document keeps the text as last read or written: saves and autosaves print against it, a successful save or Keep mine makes the text it wrote the new base, a failed or conflicting save and Save as copy change nothing, and a restored autosave makes the payload the base. Saves run one at a time.
+- **Recovery is offered, not applied.** `open` returns the kit's `Recovery` when a journal newer than the file exists (or `recoveryError` when the journal cannot be read; the document opens anyway). `restore(recovery)` parses the payload with the document's profile and applies it as one undoable step, "Restore autosave", leaving the document dirty; a payload that no longer parses is refused and nothing changes. `discardRecovery()` removes the journal.
+- **The project list** (`list()`) has one entry for each workspace file that a profile claims, newest first and then by path, never for images or journals: `ok` (profile, errors and warnings from `check` with the workspace paths as the assets), `broken` (the profile claims it and it does not open, with the first reason; a file that cannot be read, is not text or is over 16 MB is broken when its name says whose it is) or `ambiguous` (the candidates). `duplicate(path)` copies the file's bytes to the first unused `name copy.ext`, `name copy 2.ext`, so a file that does not open can be copied too; `remove(path)` deletes the file and its journal.
 
 ## 9. Checks
 
