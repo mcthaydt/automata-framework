@@ -117,3 +117,200 @@ describe('the shape', () => {
     expect(afSectorProfile.sectors.list(editor.level).map((sector) => sector.id)).toContain('sector-1')
   })
 })
+
+/** A rectangle tool with the first corner A placed at (-3, 9.5), under the hall: the second corner is the test's. */
+function started() {
+  const made = setup({ shape: 'rectangle' })
+  made.tool.tap(made.at(-3, 9.5))
+  return made
+}
+
+describe('two corners', () => {
+  const NO_ROOM = 'a rectangle needs a width and a height'
+
+  it('places the first corner and has nothing to draw yet', () => {
+    const { tool } = started()
+    expect(tool.view.corners).toEqual([{ x: -3, z: 9.5 }])
+    expect(tool.view.edges).toEqual([])
+  })
+
+  it('shows the four sides as pending, north-west corner first, from the first corner to where the pointer would place the second', () => {
+    const { tool, at } = started()
+    // 0.1 m is 3.2 px, which the grid takes to (1, 12).
+    tool.hover(at(1.1, 12.1))
+    expect(tool.view.edges).toEqual([
+      { a: { x: -3, z: 9.5 }, b: { x: 1, z: 9.5 }, length: 4, pending: true },
+      { a: { x: 1, z: 9.5 }, b: { x: 1, z: 12 }, length: 2.5, pending: true },
+      { a: { x: 1, z: 12 }, b: { x: -3, z: 12 }, length: 4, pending: true },
+      { a: { x: -3, z: 12 }, b: { x: -3, z: 9.5 }, length: 2.5, pending: true },
+    ])
+  })
+
+  it('writes the sides the same way round when the second corner is above and to the left', () => {
+    const { tool, at } = started()
+    tool.hover(at(-6, 7))
+    expect(tool.view.edges.map((edge) => edge.a)).toEqual([
+      { x: -6, z: 7 },
+      { x: -3, z: 7 },
+      { x: -3, z: 9.5 },
+      { x: -6, z: 9.5 },
+    ])
+  })
+
+  it('has no sides where the point has no width or no depth against the first corner', () => {
+    const { tool, at } = started()
+    tool.hover(at(1, 9.5))
+    expect(tool.view.edges).toEqual([])
+    tool.hover(at(-3, 12))
+    expect(tool.view.edges).toEqual([])
+    tool.hover(at(-3, 9.5))
+    expect(tool.view.edges).toEqual([])
+  })
+
+  it('places the second corner as the opposite one, and the sides are placed', () => {
+    const { editor, tool, at } = started()
+    tool.tap(at(1, 12))
+    expect(tool.view.corners).toEqual([
+      { x: -3, z: 9.5 },
+      { x: 1, z: 12 },
+    ])
+    expect(tool.view.edges).toHaveLength(4)
+    expect(tool.view.edges.every((edge) => !edge.pending)).toBe(true)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('keeps the sides placed when the pointer moves, until a tap moves the corner', () => {
+    const { tool, at } = started()
+    tool.tap(at(1, 12))
+    tool.hover(at(5, 15))
+    expect(tool.view.edges.map((edge) => edge.length)).toEqual([4, 2.5, 4, 2.5])
+    expect(tool.view.edges.every((edge) => !edge.pending)).toBe(true)
+  })
+
+  it('is closing only with the second corner placed and the pointer within reach of it', () => {
+    const { tool, at } = started()
+    tool.hover(at(-3, 9.5))
+    expect(tool.view.closing).toBe(false)
+    tool.tap(at(1, 12))
+    tool.hover(at(1, 12))
+    expect(tool.view.closing).toBe(true)
+    tool.hover(at(-3, 9.5))
+    expect(tool.view.closing).toBe(false)
+  })
+
+  it("reaches as far as the pointer kind does: a mouse's 8 px, a finger's 22, and not a hair past", () => {
+    const { tool, at } = started()
+    tool.tap(at(1, 12))
+    // 0.25 m is 8 px.
+    tool.hover(at(1, 12.25))
+    expect(tool.view.closing).toBe(true)
+    tool.hover(at(1, 12.26))
+    expect(tool.view.closing).toBe(false)
+    // 0.6 m is 19.2 px.
+    tool.hover(at(1, 12.6, 'touch'))
+    expect(tool.view.closing).toBe(true)
+    tool.hover(at(1, 12.6, 'mouse'))
+    expect(tool.view.closing).toBe(false)
+  })
+
+  it('moves the second corner with a tap that is not on it, and adds no sector', () => {
+    const { editor, tool, at } = started()
+    tool.tap(at(1, 12))
+    tool.tap(at(3, 14))
+    expect(tool.view.corners).toEqual([
+      { x: -3, z: 9.5 },
+      { x: 3, z: 14 },
+    ])
+    expect(tool.view.refusal).toBeUndefined()
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('refuses a corner with no width or no depth, and keeps what was placed', () => {
+    const { tool, at } = started()
+    tool.tap(at(1, 9.5))
+    expect(tool.view.refusal).toBe(NO_ROOM)
+    expect(tool.view.corners).toEqual([{ x: -3, z: 9.5 }])
+    tool.tap(at(-3, 12))
+    expect(tool.view.refusal).toBe(NO_ROOM)
+    tool.tap(at(-3, 9.5))
+    expect(tool.view.refusal).toBe(NO_ROOM)
+    expect(tool.view.corners).toEqual([{ x: -3, z: 9.5 }])
+  })
+
+  it('refuses a move of the second corner onto the first corner’s lines, and the second corner stays', () => {
+    const { tool, at } = started()
+    tool.tap(at(1, 12))
+    tool.tap(at(-3, 14))
+    expect(tool.view.refusal).toBe(NO_ROOM)
+    expect(tool.view.corners[1]).toEqual({ x: 1, z: 12 })
+    tool.tap(at(3, 9.5))
+    expect(tool.view.refusal).toBe(NO_ROOM)
+    expect(tool.view.corners[1]).toEqual({ x: 1, z: 12 })
+  })
+
+  it('clears the sentence with the next corner that is placed', () => {
+    const { tool, at } = started()
+    tool.tap(at(1, 9.5))
+    tool.tap(at(1, 12))
+    expect(tool.view.refusal).toBeUndefined()
+  })
+
+  it('does not snap onto the axis through the first corner, which would be a room of no width', () => {
+    const { tool, at } = started()
+    // 1.6 px off the horizontal through the first corner: a polygon goes onto it, a rectangle does not.
+    tool.hover(at(1.2, 9.55))
+    expect(tool.view.snap?.kind).toBe('grid')
+    const polygon = setup()
+    polygon.tool.tap(polygon.at(-3, 9.5))
+    polygon.tool.hover(polygon.at(1.2, 9.55))
+    expect(polygon.tool.view.snap?.kind).toBe('axis')
+  })
+
+  it('moves the second corner by a grid step with the nudge pad', () => {
+    const { tool, at } = started()
+    tool.tap(at(1, 12))
+    tool.nudge(1, 0)
+    expect(tool.view.corners[1]).toEqual({ x: 1.5, z: 12 })
+    tool.nudge(0, 1)
+    expect(tool.view.corners[1]).toEqual({ x: 1.5, z: 12.5 })
+  })
+
+  it('puts the second corner back when a nudge would leave no width or no depth', () => {
+    const { tool, at } = started()
+    tool.tap(at(-2.5, 12))
+    tool.nudge(-1, 0)
+    expect(tool.view.corners[1]).toEqual({ x: -2.5, z: 12 })
+    expect(tool.view.refusal).toBe(NO_ROOM)
+    tool.tap(at(1, 10))
+    tool.nudge(0, -1)
+    expect(tool.view.corners[1]).toEqual({ x: 1, z: 10 })
+  })
+
+  it('moves the first corner with the nudge pad while it is the only one', () => {
+    const { tool } = started()
+    tool.nudge(0, 1)
+    expect(tool.view.corners).toEqual([{ x: -3, z: 10 }])
+  })
+
+  it('takes the second corner back and then the first', () => {
+    const { tool, at } = started()
+    tool.tap(at(1, 12))
+    tool.undoCorner()
+    expect(tool.view.corners).toEqual([{ x: -3, z: 9.5 }])
+    // The pointer is still where the tap was, so the sides to it are pending again.
+    expect(tool.view.edges).toHaveLength(4)
+    expect(tool.view.edges.every((edge) => edge.pending)).toBe(true)
+    tool.undoCorner()
+    expect(tool.view.corners).toEqual([])
+    expect(tool.view.edges).toEqual([])
+  })
+
+  it('says where the second corner goes when closed with fewer than two', () => {
+    const { tool } = started()
+    tool.close()
+    expect(tool.view.refusal).toBe('tap the opposite corner of the rectangle')
+    tool.undoCorner()
+    tool.close()
+    expect(tool.view.refusal).toBe('tap the opposite corner of the rectangle')
+  })
+})

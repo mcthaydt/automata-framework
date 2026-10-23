@@ -101,6 +101,24 @@ const samePoint = (a: Point, b: Point): boolean => a.x === b.x && a.z === b.z
 const ALREADY_A_CORNER = 'that point is already a corner'
 const ANSWER_THE_OFFERS = 'answer the portal offers first'
 const FINISH_THE_OUTLINE = 'finish or cancel the outline before changing the shape'
+const NO_WIDTH_OR_DEPTH = 'a rectangle needs a width and a height'
+const TAP_THE_OPPOSITE_CORNER = 'tap the opposite corner of the rectangle'
+
+/**
+ * The room two opposite corners span, written north-west corner first, then east, south and west (the depot's order)
+ * whichever diagonal was drawn, so the same room is the same file. Nothing when they share a vertical or horizontal line.
+ */
+const rectangleOf = (a: Point, b: Point): readonly Point[] | undefined => {
+  if (a.x === b.x || a.z === b.z) return undefined
+  const [x0, x1] = [Math.min(a.x, b.x), Math.max(a.x, b.x)]
+  const [z0, z1] = [Math.min(a.z, b.z), Math.max(a.z, b.z)]
+  return [
+    { x: x0, z: z0 },
+    { x: x1, z: z0 },
+    { x: x1, z: z1 },
+    { x: x0, z: z1 },
+  ]
+}
 
 export interface SectorToolOptions {
   /** What the taps draw; a polygon when not given. */
@@ -146,7 +164,8 @@ export function createSectorTool<D>(
       grid,
       shiftKey: at.shift,
       altKey: at.alt,
-      from: corners.at(-1),
+      // The axis through a corner of a rectangle only ever gives a room of no width.
+      from: shape === 'rectangle' ? undefined : corners.at(-1),
     })
   }
 
@@ -154,10 +173,22 @@ export function createSectorTool<D>(
   const compute = (): SectorToolView => {
     const snap = pointer === undefined ? undefined : snapOf(pointer)
     const last = corners.at(-1)
-    const edges: DrawEdge[] = corners.slice(1).map((b, i) => edge(corners[i] as Point, b, false))
-    if (last !== undefined && snap !== undefined && !samePoint(last, snap))
-      edges.push(edge(last, { x: snap.x, z: snap.z }, true))
-    const closing = pointer !== undefined && reachesFirst(pointer)
+    const edges: DrawEdge[] = []
+    if (shape === 'rectangle') {
+      // The sides of the room the corners span: placed with two corners, else to where the pointer would place the second.
+      const [first, second] = corners
+      const opposite = second ?? (snap === undefined ? undefined : { x: snap.x, z: snap.z })
+      if (first !== undefined && opposite !== undefined) {
+        const room = rectangleOf(first, opposite) ?? []
+        for (const [i, a] of room.entries())
+          edges.push(edge(a, room[(i + 1) % room.length] as Point, second === undefined))
+      }
+    } else {
+      edges.push(...corners.slice(1).map((b, i) => edge(corners[i] as Point, b, false)))
+      if (last !== undefined && snap !== undefined && !samePoint(last, snap))
+        edges.push(edge(last, { x: snap.x, z: snap.z }, true))
+    }
+    const closing = pointer !== undefined && reachesCloser(pointer)
     let loupe: Point | undefined
     if (nudged) loupe = last
     else if (pointer?.kind === 'pen' && snap !== undefined) loupe = { x: snap.x, z: snap.z }
@@ -178,11 +209,18 @@ export function createSectorTool<D>(
     pending,
   })
 
-  /** Whether a pointer is within its kind's reach of the first corner, which closes an outline of three or more. */
-  const reachesFirst = (at: PlanPointer): boolean => {
-    const first = corners[0]
-    if (first === undefined || corners.length < 3) return false
-    const there = toScreen(currentViewport(), first)
+  /** Whether a pointer is within its kind's reach of the corner a tap closes on: a polygon's first, once it has three, or a rectangle's second. */
+  const reachesCloser = (at: PlanPointer): boolean => {
+    const closer =
+      shape === 'rectangle'
+        ? corners.length === 2
+          ? corners[1]
+          : undefined
+        : corners.length >= 3
+          ? corners[0]
+          : undefined
+    if (closer === undefined) return false
+    const there = toScreen(currentViewport(), closer)
     return Math.hypot(at.x - there.x, at.y - there.y) <= PICK_RADIUS[at.kind]
   }
 
@@ -199,12 +237,24 @@ export function createSectorTool<D>(
 
   /** Adds the outline as a sector. The step ends here, or stays open for the portals the new walls could have. */
   const closeOutline = (): void => {
+    const [first, second] = corners
+    const outline =
+      shape === 'rectangle'
+        ? first === undefined || second === undefined
+          ? undefined
+          : rectangleOf(first, second)
+        : corners
+    if (outline === undefined) {
+      refusal = TAP_THE_OPPOSITE_CORNER
+      publish()
+      return
+    }
     const id = (options.id ?? lowestFree)(editor.profile.sectors.takenIds(editor.level))
     const session = editor.begin(`Draw sector ${id}`)
     const result = session.run(
       addSector({
         id,
-        corners: corners.map((corner) => [corner.x, corner.z] as const),
+        corners: outline.map((corner) => [corner.x, corner.z] as const),
         like: likeSelected(),
       }),
     )
@@ -270,14 +320,29 @@ export function createSectorTool<D>(
     publish()
   }
 
-  /** Adds a corner unless the point is one already. */
+  /** Adds a corner unless the point is one already, or, for a rectangle's second, has no width or no depth against the first. */
   const place = (point: Point): void => {
+    const first = corners[0]
+    if (shape === 'rectangle' && first !== undefined && (point.x === first.x || point.z === first.z)) {
+      refusal = NO_WIDTH_OR_DEPTH
+      return
+    }
     if (corners.some((corner) => samePoint(corner, point))) {
       refusal = ALREADY_A_CORNER
       return
     }
     corners = [...corners, point]
     refusal = undefined
+  }
+
+  /** Puts the last corner at `point`; a refusal leaves it where it was. */
+  const moveLast = (point: Point): boolean => {
+    const before = corners
+    corners = corners.slice(0, -1)
+    place(point)
+    const moved = corners.length === before.length
+    if (!moved) corners = before
+    return moved
   }
 
   const stops = [editor.history.subscribe(refresh), editor.view.subscribe(publish)]
@@ -306,12 +371,15 @@ export function createSectorTool<D>(
       pointer = at
       nudged = false
       if (held()) return
-      if (reachesFirst(at)) {
+      if (reachesCloser(at)) {
         closeOutline()
         return
       }
       const snap = snapOf(at)
-      place({ x: snap.x, z: snap.z })
+      const point = { x: snap.x, z: snap.z }
+      // A rectangle's second corner is moved by the next tap, until a tap on it adds the room.
+      if (shape === 'rectangle' && corners.length === 2) moveLast(point)
+      else place(point)
       publish()
     },
     nudge(dx, dz) {
@@ -321,13 +389,9 @@ export function createSectorTool<D>(
         refusal = 'place a corner first'
       } else {
         const { step } = editor.view.state.grid
-        const moved = { x: snapValue(last.x + dx * step, 0), z: snapValue(last.z + dz * step, 0) }
-        const before = corners
-        corners = corners.slice(0, -1)
-        place(moved)
         // A refused nudge puts the corner back where it was.
-        if (corners.length === before.length - 1) corners = before
-        else nudged = true
+        if (moveLast({ x: snapValue(last.x + dx * step, 0), z: snapValue(last.z + dz * step, 0) }))
+          nudged = true
       }
       publish()
     },
