@@ -32,6 +32,12 @@ export function filterProjects(entries: readonly ProjectEntry[], query: string):
   })
 }
 
+/** "4 in this workspace", or "2 of 4 shown" while a search narrows the list: the line beside the Projects title. */
+export function projectCount(total: number, shown: number, query: string): string {
+  if (total === 0) return 'No projects'
+  return query.trim() === '' ? `${total} in this workspace` : `${shown} of ${total} shown`
+}
+
 // --- selection --------------------------------------------------------------------------------------------------
 
 export type StepKey = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown' | 'Home' | 'End'

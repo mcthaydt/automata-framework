@@ -16,6 +16,7 @@ import {
   kindTone,
   modifiedLabel,
   openProblem,
+  projectCount,
   reconcileSelection,
   removeMessage,
   sizeLabel,
@@ -455,5 +456,22 @@ describe('sizeLabel', () => {
     expect(sizeLabel(512 * 1024)).toBe('512 KB')
     expect(sizeLabel(1024 * 1024)).toBe('1.0 MB')
     expect(sizeLabel(15.5 * 1024 * 1024)).toBe('16 MB')
+  })
+})
+
+describe('projectCount', () => {
+  it('says the workspace is empty', () => {
+    expect(projectCount(0, 0, '')).toBe('No projects')
+    expect(projectCount(0, 0, 'moss')).toBe('No projects')
+  })
+
+  it('counts the workspace when nothing is searched for', () => {
+    expect(projectCount(1, 1, '')).toBe('1 in this workspace')
+    expect(projectCount(4, 4, '   ')).toBe('4 in this workspace')
+  })
+
+  it('says how many of the workspace a search shows', () => {
+    expect(projectCount(4, 2, 'moss')).toBe('2 of 4 shown')
+    expect(projectCount(4, 0, 'zzz')).toBe('0 of 4 shown')
   })
 })
