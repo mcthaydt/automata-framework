@@ -5,6 +5,7 @@ import type { Blockout } from '../format/blockout.schema'
 import { BlockoutError, type Expanded, expand } from '../format/expand'
 import { navWorld } from '../geometry/nav'
 import { blockoutCodec } from './last-light-codecs'
+import { lastLightSectorAccess } from './last-light-sectors'
 import { GeometryError, type LevelProfile, resolveOrThrow } from './level-profile'
 
 export const lastLightProfile: LevelProfile<Blockout> = {
@@ -21,4 +22,5 @@ export const lastLightProfile: LevelProfile<Blockout> = {
     return { layers: [{ kind: 'sectors', map, nav: navWorld(map, expanded) }] }
   },
   checks: (blockout, context) => lastLightChecks(blockout, { puzzleHotspots: context?.puzzleHotspots }),
+  sectors: lastLightSectorAccess,
 }

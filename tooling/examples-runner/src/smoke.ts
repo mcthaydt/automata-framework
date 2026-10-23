@@ -1,7 +1,7 @@
 // The smoke test every example gets (EX spec §5, §7), parametric over the catalog so adding an example adds no
 // test file: it boots under the fake host with the header's `Host:` settings, reaches the semantic ready, and
 // logs no console error or CSP violation. A pending example is reported as skipped with its task, never as passed.
-import { expect, test } from '@playwright/test'
+import { expect, type Frame, test } from '@playwright/test'
 import { collectErrors, openHosted } from '../host/testing.ts'
 import type { CatalogEntry } from './catalog.ts'
 
@@ -30,8 +30,37 @@ function defineSmokeTests(entries: readonly CatalogEntry[], origin: string): voi
       // Each example says hello under its own id (`defineGame` makes it the hosting game id), and the fake host
       // refuses a hello from any other game (DX.2 plan G-6). The shared manifest (vite-plugin.ts) only sets the
       // pages' headers.
-      await openHosted(page, `${origin}${entry.url}`, entry.id, entry.header?.host ?? {})
+      const frame = await openHosted(page, `${origin}${entry.url}`, entry.id, entry.header?.host ?? {})
+      await playAndRun(frame)
       expect(errors).toEqual([])
     })
   }
+}
+
+/** How many animation frames the started example runs before the error check. */
+const FRAMES_AFTER_PLAY = 30
+
+/**
+ * Starts the example the way a player does (Play on the title, when it has one) and lets it run. A room's assets
+ * load after Play, so a refused fetch (Ruken's CSP) or a missing file only logs from here on: ready is too early.
+ * The wait counts the game's own animation frames, not milliseconds.
+ */
+async function playAndRun(frame: Frame): Promise<void> {
+  const play = frame.getByTestId('play')
+  if (!(await play.isVisible())) return
+  await play.click()
+  await expect(frame.getByTestId('play-screen')).toBeVisible()
+  await frame.evaluate(
+    (frames) =>
+      new Promise<void>((resolve) => {
+        let count = 0
+        const step = (): void => {
+          count += 1
+          if (count >= frames) resolve()
+          else requestAnimationFrame(step)
+        }
+        requestAnimationFrame(step)
+      }),
+    FRAMES_AFTER_PLAY,
+  )
 }
