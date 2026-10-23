@@ -138,6 +138,15 @@ describe('the jobs', () => {
     }
   })
 
+  // upload-artifact skips hidden files and folders unless told not to, and `.lighthouseci` is a hidden folder: the first
+  // hosted run said "No files were found with the provided path" and kept nothing, so the numbers of a failed budget
+  // were unreadable.
+  it('lighthouse uploads its hidden report folder', () => {
+    const upload = steps('lighthouse').find(step => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(upload?.with?.path).toBe('automata_website/.lighthouseci')
+    expect(upload?.with?.['include-hidden-files']).toBe(true)
+  })
+
   it('lighthouse runs the budget with the image’s own Chromium', () => {
     expect(runs('lighthouse')).toContain('pnpm lighthouse')
     const withChrome = steps('lighthouse').find(step => step.run === 'pnpm lighthouse')

@@ -1,45 +1,45 @@
 {
   "recordedAt": "2026-10-23",
-  "machine": "4-CPU Linux cloud container, load average 1.5 to 2 (Claude Code on the web)",
+  "machine": "4-CPU Linux cloud container, load average under 2 (Claude Code on the web)",
   "browser": "HeadlessChrome/141.0.0.0",
   "lighthouse": "12.6.1",
   "runsPerPage": 3,
   "pages": {
     "/": {
-      "performance": 0.62,
-      "lcpMs": 3163.409,
+      "performance": 0.95,
+      "lcpMs": 2574.1,
       "cls": 0,
-      "tbtMs": 1697.842,
-      "fcpMs": 2713.409,
-      "speedIndexMs": 2713.409,
-      "transferBytes": 420270
+      "tbtMs": 45.6,
+      "fcpMs": 2130.125,
+      "speedIndexMs": 2130.125,
+      "transferBytes": 287591
     },
     "/start": {
-      "performance": 0.66,
-      "lcpMs": 2561.462,
+      "performance": 0.96,
+      "lcpMs": 2473.602,
       "cls": 0,
-      "tbtMs": 2477.11,
-      "fcpMs": 2033.544,
-      "speedIndexMs": 2033.544,
-      "transferBytes": 351216
+      "tbtMs": 9,
+      "fcpMs": 2024.035,
+      "speedIndexMs": 2024.035,
+      "transferBytes": 216322
     },
     "/examples": {
-      "performance": 0.62,
-      "lcpMs": 2777.943,
+      "performance": 0.92,
+      "lcpMs": 2878.039,
       "cls": 0,
-      "tbtMs": 6434.812,
-      "fcpMs": 2558.406,
-      "speedIndexMs": 2558.406,
-      "transferBytes": 541089
+      "tbtMs": 25.5,
+      "fcpMs": 2330.269,
+      "speedIndexMs": 2330.269,
+      "transferBytes": 237994
     },
     "/docs": {
       "performance": 0.98,
-      "lcpMs": 1973.587,
+      "lcpMs": 2028.779,
       "cls": 0,
       "tbtMs": 0,
-      "fcpMs": 1876.054,
-      "speedIndexMs": 1876.054,
-      "transferBytes": 127444
+      "fcpMs": 1874.853,
+      "speedIndexMs": 1874.853,
+      "transferBytes": 129144
     }
   }
 }

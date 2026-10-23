@@ -32,6 +32,16 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals() })
 
 describe('CodeBlock', () => {
+  // The plain code can now stay on the page for a long time (a block in a closed <details> is never highlighted until it
+  // opens), and a scrollable <pre> that the keyboard cannot reach is an axe violation (scrollable-region-focusable).
+  // shiki's own <pre> carries tabindex="0"; the plain one must too.
+  it('lets the keyboard scroll the plain code, as it does the highlighted code', async () => {
+    vi.stubGlobal('IntersectionObserver', FakeObserver)
+    const view = render(CodeBlock, { props: { code: 'const far = 1', lang: 'typescript', filename: 'far.ts' } })
+    await Promise.resolve()
+    expect(view.container.querySelector('pre')?.getAttribute('tabindex')).toBe('0')
+  })
+
   it('shows the plain code and does not highlight while the block is far from the screen', async () => {
     vi.stubGlobal('IntersectionObserver', FakeObserver)
     const view = render(CodeBlock, { props: { code: 'const far = 1', lang: 'typescript', filename: 'far.ts' } })

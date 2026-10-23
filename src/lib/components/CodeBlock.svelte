@@ -30,6 +30,6 @@
   <!-- Keyboard focus lets users scroll long code with arrow keys. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div class="code-scroll" tabindex="0" role="region" aria-label={filename || 'Code example'}>
-    {#if html}{@html html}{:else}<pre><code>{code}</code></pre>{/if}
+    {#if html}{@html html}{:else}<!-- svelte-ignore a11y_no_noninteractive_tabindex --><pre tabindex="0"><code>{code}</code></pre>{/if}
   </div>
 </figure>

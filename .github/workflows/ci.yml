@@ -155,5 +155,6 @@ jobs:
         with:
           name: lighthouse-report
           path: automata_website/.lighthouseci
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 14

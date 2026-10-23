@@ -174,9 +174,9 @@ describe('checkSite', () => {
   it('adds up the chunks of a page, and resolves their links from the page’s own URL', () => {
     const site = goodSite()
     const half = Math.floor(MAX_PRELOADED_SCRIPT_BYTES / 2) + 1
-    site.write('_app/immutable/chunks/a.js', 'x'.repeat(half))
-    site.write('_app/immutable/chunks/b.js', 'x'.repeat(half))
-    const preloads = '<link rel="modulepreload" href="../_app/immutable/chunks/a.js" /><link rel="modulepreload" href="../_app/immutable/chunks/b.js" />'
+    site.write('docs/chunks/a.js', 'x'.repeat(half))
+    site.write('docs/chunks/b.js', 'x'.repeat(half))
+    const preloads = '<link rel="modulepreload" href="./chunks/a.js" /><link rel="modulepreload" href="./chunks/b.js" />'
     site.write('docs/faq.html', page('/docs/faq', { head: ICON_LINKS.replaceAll('href="./', 'href="../') + preloads }))
     site.write('sitemap.xml', sitemap(['/', '/docs', '/docs/faq', '/privacy', '/terms']))
     expect(checkSite(site.root, { now: NOW })).toEqual([expect.stringMatching(/^docs\/faq\.html: modulepreloads \d+ bytes of JavaScript, over the/)])
