@@ -11,6 +11,10 @@ import {
   type Sim,
 } from '@mcthaydt/automata-sim'
 
+/**
+ * What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of
+ * what length to try.
+ */
 export interface RoundTripOptions {
   readonly plugins: readonly PluginDef[]
   readonly content?: unknown
@@ -26,8 +30,13 @@ export interface RoundTripOptions {
   readonly seed?: number
 }
 
+/** How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot). */
 export type RoundTripVariant = 'fresh' | 'dirty'
 
+/**
+ * One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore
+ * tick, variant and a report of what differed.
+ */
 export interface RoundTripFailure {
   readonly case: number
   readonly simSeed: number
@@ -48,6 +57,11 @@ interface Case {
   readonly variant: RoundTripVariant
 }
 
+/**
+ * Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and
+ * restore points, alternating fresh and dirty restores. Returns `{ failures }`; an empty list means the
+ * property held.
+ */
 export async function snapshotRoundTripProperty(
   options: RoundTripOptions,
 ): Promise<{ readonly failures: readonly RoundTripFailure[] }> {

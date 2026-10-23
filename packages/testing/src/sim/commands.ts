@@ -57,6 +57,11 @@ export interface GoldenCommandsOptions {
   readonly root?: string
 }
 
+/**
+ * The Vitest browser commands that let golden tests read golden files in a browser: register them with
+ * `browser: { commands: goldenCommands() }`. Only `.golden.json` and `.replay` files inside the project root
+ * can be read, and nothing can be written.
+ */
 export function goldenCommands(
   options: GoldenCommandsOptions = {},
 ): Record<string, BrowserCommand<[path: string], Promise<string | null>>> {

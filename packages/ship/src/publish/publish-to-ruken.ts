@@ -10,6 +10,10 @@ import { PublishAuth, PublishFailed, PublishRejected, PublishTimeout, PublishUsa
 // waits for Ruken's checks and prints where the build is served. AF does none of that itself, so whatever
 // Ruken accepts is what AF ships (ship spec §3.4). Exit codes are Ruken's (`tooling/ruken-cli/src/run.ts`).
 
+/**
+ * What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and
+ * whether to activate the build.
+ */
 export interface PublishInput {
   /** The prepared build folder (it already has its `ruken.toml`). */
   readonly distDir: string
@@ -55,6 +59,11 @@ export function rukenCliPath(
 /** Ruken prints `Ready: <url>` or `Active: <url>` as its last word on success (`publish.ts`). */
 const SERVED_AT = /^(?:Ready|Active): (\S+)$/m
 
+/**
+ * Runs Ruken's own `ruken publish` on a prepared build and returns the URL Ruken says the build is served at
+ * (`undefined` when it prints none). Ruken's exit codes become `PublishRejected` (1), `PublishUsage` (2),
+ * `PublishAuth` (3), `PublishTimeout` (4) and `PublishFailed` for any other.
+ */
 export function publishToRuken(
   input: PublishInput,
 ): Effect.Effect<{ url: string | undefined }, PublishError, ProcessRunner> {

@@ -1,11 +1,13 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { checkFiles, checkFrameBudget } from './budget.ts'
+import { BudgetFile, checkFiles, checkFrameBudget, FrameBudgetResult, isSoftwareGpu } from './budget.ts'
 
 const read = (path: string): unknown => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'))
 const repoBudget = read('../budget.json')
+const unsetBudget = { status: 'unset', note: 'No frame budget yet.' }
 const setBudget = read('./fixtures/budget-set.json')
 const within = read('./fixtures/result-within.json') as Record<string, unknown>
 const overBudget = read('./fixtures/result-over-budget.json')
@@ -17,8 +19,8 @@ const withEnvironment = (changes: Record<string, unknown>): unknown => ({
 })
 
 describe('checkFrameBudget', () => {
-  it('fails closed with UNSET while the repository has no budget (set from the first GPU-runner run)', () => {
-    const verdict = checkFrameBudget(repoBudget, [within])
+  it('fails closed with UNSET while a repository has no budget (set from the first GPU-runner run)', () => {
+    const verdict = checkFrameBudget(unsetBudget, [within])
     expect(verdict.verdict).toBe('unset')
     expect(verdict.lines.join('\n')).toContain('UNSET')
   })
@@ -44,7 +46,7 @@ describe('checkFrameBudget', () => {
     expect(checkFrameBudget(setBudget, [swiftshader]).verdict).toBe('not-comparable')
     const llvmpipe = withEnvironment({ gpu: 'llvmpipe (LLVM 17.0.6, 256 bits)' })
     expect(checkFrameBudget(setBudget, [llvmpipe]).verdict).toBe('not-comparable')
-    expect(checkFrameBudget(repoBudget, [swiftshader]).lines.join('\n')).toContain('software renderer')
+    expect(checkFrameBudget(unsetBudget, [swiftshader]).lines.join('\n')).toContain('software renderer')
   })
 
   it('refuses a budget recorded on a software renderer', () => {
@@ -98,5 +100,55 @@ describe('checkFiles', () => {
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
+  })
+})
+
+// The budget the Owner can veto (Orchestrator answer automata/inbox/2026-10-23-0248-hub-answers-website-filter.md,
+// item 4): set from the lowest-noise run on the Mac, 25% over its p95, and labelled as measured under CI load.
+describe("the repository's recorded budget", () => {
+  /** The recorded budget and the results it was set from; a budget that is not set fails the test that asks. */
+  function recorded() {
+    const budget = BudgetFile.parse(repoBudget)
+    if (budget.status !== 'set') throw new Error('tooling/frame-budget/budget.json is not set')
+    const evidenceDir = fileURLToPath(new URL(`../../../${budget.evidence.result}`, import.meta.url))
+    const evidence = readdirSync(evidenceDir)
+      .filter((name) => name.endsWith('.json'))
+      .sort()
+      .map((name) => FrameBudgetResult.parse(JSON.parse(readFileSync(join(evidenceDir, name), 'utf8'))))
+    return { budget, evidence }
+  }
+
+  it('is labelled as measured under CI load, so a quiet run can replace it', () => {
+    expect(recorded().budget.note).toContain('measured under CI load')
+  })
+
+  it('comes from a hardware GPU, and every result in its evidence was measured on it at its commit', () => {
+    const { budget, evidence } = recorded()
+    expect(isSoftwareGpu(budget.gpu)).toBe(false)
+    expect(evidence.map((result) => result.project)).toEqual(Object.keys(budget.projects).sort())
+    for (const result of evidence) {
+      expect(result.environment.gpu).toBe(budget.gpu)
+      expect(result.environment.commit).toBe(budget.evidence.commit)
+    }
+  })
+
+  it('is each p95 of the evidence times the headroom, rounded up to 0.01 ms', () => {
+    const { budget, evidence } = recorded()
+    // The small subtraction keeps 12.7499999... times 100 from rounding up to 12.76.
+    const roundedUp = (p95: number | null): number =>
+      Math.ceil((p95 as number) * budget.evidence.headroom * 100 - 1e-6) / 100
+    for (const result of evidence) {
+      expect(budget.projects[result.project]).toEqual({
+        workMsP95: roundedUp(result.workMs.p95),
+        intervalMsP95: roundedUp(result.intervalMs.p95),
+      })
+    }
+  })
+
+  it('passes its own evidence, so the nightly starts green on the Mac that measured it', () => {
+    const { budget, evidence } = recorded()
+    const outcome = checkFrameBudget(budget, evidence)
+    expect(outcome.lines).toHaveLength(evidence.length)
+    expect(outcome.verdict).toBe('pass')
   })
 })
