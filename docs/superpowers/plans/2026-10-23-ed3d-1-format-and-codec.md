@@ -3,7 +3,7 @@
 - **Task:** ED3D.1 in [02](../../02-master-delivery-plan.md) (row lands with the ED3D follow-up). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §2 (Format, Codec), §4.1, §4.5, decisions ED3D-D2, D3, D4. Acceptance: the patch halves of ED3-b and ED3-o (§13); the rest of those cases need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.0 (the spec, review pending). It needs no editor-kit code, no Svelte and no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed, not implemented. Nothing below starts until ED3D.0 is reviewed.
-- **Progress:** 9 of 11 steps.
+- **Progress:** 10 of 11 steps (11: gates passed, records waiting on #93).
 
 ## Sources, read at these commits
 
@@ -49,7 +49,7 @@ src/codec/layout.ts             readLayout
 src/codec/structure.ts          insertElement, removeElement, insertMember, removeMember, replaceValue, setMember
 src/codec/patch.ts              patchJson
 src/profile/file-codec.ts       FileCodec, ParseResult, PatchResult
-src/profile/last-light.codec.ts blockoutCodec, facilityCodec
+src/profile/last-light-codecs.ts blockoutCodec, facilityCodec
 src/testing/fixtures.ts         loadFixture, FIXTURE_NAMES (excluded from the public entry)
 src/testing/fixtures/           the five files, SOURCE.json, literals.golden.json, expand.golden.json
 ```
@@ -108,16 +108,20 @@ The rules are those of spec §4.5. The diff turns the change into path-addressed
 ### `src/profile/file-codec.ts`
 
 ```ts
+export interface ParseIssue { readonly path: JsonPath; readonly message: string }
 export type ParseResult<D> =
   | { readonly ok: true; readonly value: D }
-  | { readonly ok: false; readonly issues: readonly { path: JsonPath; message: string }[] }
+  | { readonly ok: false; readonly issues: readonly ParseIssue[] }
 export interface FileCodec<D> {
   readonly id: string                                  // 'last-light-blockout', 'last-light-facility'
   readonly schema: z.ZodType<D>
   parse(text: string): ParseResult<D>                  // invalid JSON is one issue at path []
-  patch(text: string, before: D, after: D): PatchResult
+  patch(text: string, before: D, after: D): PatchResult      // `before` is what `text` parses to
 }
+export function createFileCodec<D>(spec: { id: string; schema: z.ZodType<D>; rules: PatchRules }): FileCodec<D>
 ```
+
+`last-light-codecs.ts` builds `blockoutCodec` and `facilityCodec` with `createFileCodec`; the rules carry the id arrays and the member orders Last Light's own editor uses (`ROOM_ORDER`, `ZONE_ORDER`, the top-level order).
 
 ## Steps
 
@@ -197,7 +201,7 @@ Each step starts with its test, run red, with the failure reason recorded; the r
     - a refused patch carries no text, so a caller cannot save a half result.
   - *Expected failure:* the step 8 `patchJson` writes `NaN` as text and returns `ok: true` for the other cases, and `verifyPatched` does not exist.
   - *Done: red `verifyPatched is not a function` for the `verify-failed` cases and `ok: true` where a refusal was due (16 failures, plus the codec-bug test below); green after one implementation, 165 of 165. Beyond the list: a duplicate key refuses as `invalid-text`; `before-mismatch` also catches a member present on one side only and a different array length, and the stale-model case (file edited on disk since the model was read); an unserialisable value (`undefined` in an array) refuses as `unwritable-value`; and `patch.codec-bug.test.ts` mocks `structure.ts` so a structure edit refuses its own result, which proves a codec bug becomes a `verify-failed` refusal at that path with no text instead of an exception in the editor. A `JsonWriteError` branch around the steps was dropped as unreachable (every number is checked up front by the same `formatJsonNumber`).*
-- [ ] **10. File codecs and the round trip** (`last-light.codec.test.ts`, `roundtrip.test.ts`; `file-codec.ts`, `last-light.codec.ts`, `src/index.ts`).
+- [x] **10. File codecs and the round trip** (`last-light-codecs.test.ts`, `roundtrip.test.ts`; `file-codec.ts`, `last-light-codecs.ts`, `src/index.ts`).
   - *Red, by case:*
     - `parse` returns the value for each fixture and issues with paths for a bad file; invalid JSON is one issue at `[]`;
     - `patch(text, v, v)` is byte-identical for each of the five files;
@@ -205,10 +209,13 @@ Each step starts with its test, run red, with the failure reason recorded; the r
     - the same edit applied and then reverted through `patch(text2, after, before)` returns the original bytes for the number and string cases and for add then remove; a removal then re-add of a middle element is checked to equal the model only, and the test says why;
     - the public entry exports the codecs, the schemas, `expand`, `patchJson`, `scan` and their types, and nothing from `src/testing`.
   - *Expected failure:* module missing.
+  - *Done: red `Cannot find module './last-light-codecs'` (module renamed from `last-light.codec.ts`: `check-style` has no `codec` role, so the file is plain kebab-case) and `blockoutCodec` missing from the public entry; then 186 of 187 green. The one failure was the seeded run finding a real limit of the rounding policy: Last Light writes `spawn.facing` as a full-precision radian (`3.141592653589793`), and a revert of that number writes `3.1416`. So the revert check is byte-exact for a literal the file spells the way `print.ts` does and, for the rest (`1.0` in `bay`, 52 of them, and `facing`), checks the value read back (`1` and the number rounded to 4 decimals); the test says why. This is the ED3-b caveat: undo restores the text for every number that is spelled canonically, and `4.9` (the clinic hall's ceiling) is. 300 seeded edits (60 per file, a fixed LCG seed, four kinds in turn) read back as the edited model, touch only their own bytes and revert; 192 of 192 at the end of step 11.*
 - [ ] **11. Gates and records.**
   - *Run in order:* `pnpm format`, `pnpm docs:stack` (commit if it changes), `pnpm check` (lint, typecheck, boundaries, style, knip, unit tests).
   - *Purity:* a test reads the source of `src/format`, `src/codec` and `src/profile` and fails on an import of `svelte`, `typescript`, `effect`, a DOM global, `Date`, a timer or `Math.random` (ED3D-D1), so the rule is enforced and not only written.
   - *Records:* tick ED3D.1 in 02 for the gates that passed (locally checked only; CI verified and Owner accepted stay open); add an execution row; update 03.
+  - *Done so far (2026-10-23): the gates and the purity test pass; the records below are open.* `pnpm format` (no changes in `packages/editor-3d`; the repo's 90 existing warnings are not this package's), `pnpm docs:stack` (no change), `pnpm check` exit 0 (lint, typecheck of 35 tasks, boundaries, style 344 files, knip, unit tests: `editor-3d` 192 of 192), `pnpm audit:deps` clean, `deps:new` none, `check-changesets` 0 problems (the package is private, so no changeset). `src/purity.test.ts` bans `svelte`, `typescript`, `effect`, `node:` imports, DOM globals, `Date`, timers and `Math.random` in `format`, `codec` and `profile`, with its own cases (its first version flagged the format's `window` member; a DOM global is now matched only as a bare name). One shared-tool change: `tooling/api-report` listed `editor-3d` as a core package and failed its committed-reports test, so `NOT_CORE` gains `editor-3d` with the reason (a private editor application, imported by no game). The editor-kit and 2D packages will meet the same test.
+  - *Records still open:* the master plan (02) has no ED section until #93 is on `main`, so ticking ED3D.1 there, the execution row and the continuation prompt (03) go in the docs follow-up that lands after #93. Nothing is ticked in 02 from this PR.
 
 ## Verification
 

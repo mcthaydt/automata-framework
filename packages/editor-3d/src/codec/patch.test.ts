@@ -2,6 +2,7 @@
 // edits the change needs and nothing else. Refusals are step 9 (patch.refusal.test.ts).
 import { describe, expect, it } from 'vitest'
 import { FIXTURE_NAMES, loadFixture } from '../testing/fixtures'
+import { changedRegion, literalEdits } from '../testing/text-diff'
 import { scan } from './locate'
 import { type PatchRules, patchJson } from './patch'
 
@@ -26,45 +27,6 @@ function patched(text: string, edit: (model: Model) => void): string {
   if (!result.ok) throw new Error(`refused at ${JSON.stringify(result.path)}: ${result.detail}`)
   expect(JSON.parse(result.text), 'the new text reads as the new model').toEqual(after)
   return result.text
-}
-
-/** The longest common prefix and suffix of two texts leave this much in each: the one region that changed. */
-function changedRegion(before: string, after: string): { removed: string; added: string } {
-  let prefix = 0
-  while (prefix < before.length && prefix < after.length && before[prefix] === after[prefix]) prefix++
-  let suffix = 0
-  while (
-    suffix < before.length - prefix &&
-    suffix < after.length - prefix &&
-    before[before.length - 1 - suffix] === after[after.length - 1 - suffix]
-  )
-    suffix++
-  return {
-    removed: before.slice(prefix, before.length - suffix),
-    added: after.slice(prefix, after.length - suffix),
-  }
-}
-
-/** Where two texts of the same shape differ: only in scalar literals (every byte between them is equal), and which. */
-function literalEdits(before: string, after: string): string[] {
-  const a = scan(before)
-  const b = scan(after)
-  const skeleton = (text: string, literals: typeof a.literals) => {
-    let out = ''
-    let at = 0
-    for (const literal of literals) {
-      out += `${text.slice(at, literal.span.start)}\u0000`
-      at = literal.span.end
-    }
-    return out + text.slice(at)
-  }
-  expect(b.literals.map((literal) => literal.path)).toEqual(a.literals.map((literal) => literal.path))
-  expect(skeleton(after, b.literals), 'every byte outside a literal is unchanged').toBe(
-    skeleton(before, a.literals),
-  )
-  return a.literals.flatMap((literal, i) =>
-    b.literals[i]?.text === literal.text ? [] : [JSON.stringify(literal.path)],
-  )
 }
 
 describe('patchJson on the shipped files', () => {
