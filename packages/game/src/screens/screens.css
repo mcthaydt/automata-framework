@@ -69,3 +69,22 @@
   min-height: calc(var(--af-target-primary) * 1.5);
   font-size: calc(var(--af-text-body) * 1.5);
 }
+
+/* The title of a game with a save (M5.2): the name above, the slot list under it taking the rest of the height. */
+.af-game-menu__body--saves {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+  min-height: 0;
+  height: 100%;
+}
+
+.af-game-menu__slots {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-rows: 1fr;
+  width: min(100%, 32rem);
+  min-height: 0;
+  margin-inline: auto;
+}

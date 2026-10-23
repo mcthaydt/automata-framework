@@ -17,6 +17,8 @@ export const PRIMITIVE_SHOWS = [
   'toast',
   'leaderboard',
   'leaderboard-offline',
+  'save-status',
+  'save-status-long',
 ] as const
 export type PrimitiveShow = (typeof PRIMITIVE_SHOWS)[number]
 </script>
@@ -36,6 +38,8 @@ import Split from '../layout/Split.svelte'
 import Chip from '../status/Chip.svelte'
 import LeaderboardPanel from '../status/LeaderboardPanel.svelte'
 import type { LeaderboardCopy } from '../status/leaderboard-panel'
+import SaveStatus from '../status/SaveStatus.svelte'
+import type { SaveStatusCopy } from '../status/save-status'
 import Toast from '../status/Toast.svelte'
 
 const { show }: { show: PrimitiveShow } = $props()
@@ -55,6 +59,17 @@ const BOARD_COPY: LeaderboardCopy = {
   offline: "You're offline",
   you: 'You',
   more: (count) => `+${count} more`,
+}
+// The longest line the status can take, so the contract holds a wrapped line to the same limits as a short one.
+const STATUS_COPY: SaveStatusCopy = {
+  checking: 'Checking your progress…',
+  syncing: 'Saving…',
+  saved: 'Progress saved',
+  'offline-queued': 'Offline: your progress will be saved to your account when you are back online',
+  retry: 'Could not save yet; trying again',
+  conflict: 'Choose which progress to keep',
+  recovered: 'Progress restored',
+  'no-grant': "Progress won't be kept",
 }
 const BOARD = Array.from({ length: 12 }, (_, i) => ({
   rank: i + 1,
@@ -127,6 +142,12 @@ const GROUPS = [
           <Button kind="primary" testId={`${show}-back`}>{#snippet children()}Back{/snippet}</Button>
         {/snippet}
       </LeaderboardPanel>
+    {:else if show === 'save-status' || show === 'save-status-long'}
+      <SaveStatus
+        status={show === 'save-status' ? 'saved' : 'offline-queued'}
+        copy={STATUS_COPY}
+        testId={show}
+      />
     {:else}
       <p style="margin: 0">Choose a level</p>
     {/if}
