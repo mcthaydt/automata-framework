@@ -191,28 +191,33 @@ function checkPageResources(file: string, doc: Document, fontUrls: Set<string>):
 }
 
 /**
- * The most JavaScript, as built (before compression), that one page may ask the browser to modulepreload (QB.3h).
- * Preloaded chunks start downloading before any script has run, so on a mobile connection they compete with the image
- * and styles the first paint waits for. The home page and the gallery once preloaded 380 KB of example sources and had a
- * 3.2 s LCP; the heaviest page now preloads about 276 KB, which this leaves room for. Raise it only with a
- * Lighthouse run that still meets the LCP budget.
+ * The most JavaScript, as built (before compression), that one page may ask the browser to modulepreload (QB.3h, QB.3j).
+ * Preloaded modules start downloading before any script has run, so on a mobile connection they compete with the
+ * stylesheet, font and image the first paint waits for. The home page and the gallery once preloaded 380 KB of example
+ * sources and had a 3.2 s LCP; then the 26 to 29 hints for shared chunks (250 KB) cost every page 0.5 to 0.9 s of first
+ * paint. Only the entry and node modules are preloaded now (`src/lib/preloads.ts`); the heaviest page has 35 KB of them,
+ * which this leaves room for. Raise it only with a Lighthouse run that still meets the LCP budget.
  */
-export const MAX_PRELOADED_SCRIPT_BYTES = 320_000
+export const MAX_PRELOADED_SCRIPT_BYTES = 48_000
 
-/** A page's modulepreload links exist in the build, and together stay within MAX_PRELOADED_SCRIPT_BYTES. */
+/** The folders whose modules a page may preload: the app's entry points and the page's own nodes, not shared chunks. */
+const PRELOADABLE_MODULES = /^_app\/immutable\/(?:entry|nodes)\//
+
+/** A page's modulepreload links exist in the build, are entry or node modules, and together stay within MAX_PRELOADED_SCRIPT_BYTES. */
 function checkPreloadedScripts(root: string, file: string, doc: Document): string[] {
   const failures: string[] = []
-  const chunks: { path: string; bytes: number }[] = []
+  const modules: { path: string; bytes: number }[] = []
   for (const link of doc.querySelectorAll('link[rel~="modulepreload"][href]')) {
     const href = link.getAttribute('href')!
     if (isOtherOrigin(href)) continue
     const path = new URL(href, pageUrl(file)).pathname.slice(1)
     if (!existsSync(join(root, path))) failures.push(`${file}: modulepreloads ${href}, which the build does not contain`)
-    else chunks.push({ path, bytes: statSync(join(root, path)).size })
+    else if (!PRELOADABLE_MODULES.test(path)) failures.push(`${file}: modulepreloads ${path}, a shared chunk; only the entry and node modules may be preloaded, because hints for chunks delay the first paint on a mobile connection`)
+    else modules.push({ path, bytes: statSync(join(root, path)).size })
   }
-  const total = chunks.reduce((sum, chunk) => sum + chunk.bytes, 0)
+  const total = modules.reduce((sum, module) => sum + module.bytes, 0)
   if (total > MAX_PRELOADED_SCRIPT_BYTES) {
-    const largest = chunks.reduce((a, b) => (b.bytes > a.bytes ? b : a))
+    const largest = modules.reduce((a, b) => (b.bytes > a.bytes ? b : a))
     failures.push(`${file}: modulepreloads ${total} bytes of JavaScript, over the ${MAX_PRELOADED_SCRIPT_BYTES} byte budget (largest: ${largest.path}, ${largest.bytes} bytes)`)
   }
   return failures
