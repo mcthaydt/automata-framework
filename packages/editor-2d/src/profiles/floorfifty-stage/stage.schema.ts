@@ -258,8 +258,6 @@ export type StageSetPiece =
     })
   | (SetPieceBase & { readonly kind: 'swarm'; readonly layers: readonly string[]; readonly speed: number })
 
-export type StageSetPieceKind = StageSetPiece['kind']
-
 export interface StageCitySink {
   readonly teach: number
   readonly combine: number
