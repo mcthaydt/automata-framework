@@ -203,6 +203,12 @@ interface Diagnostic {
 }
 ```
 
+### `emptyLayers` (function)
+
+```ts
+function emptyLayers(layers: readonly LayerDef[], size: Size): LayerInstance[];
+```
+
 ### `encodeProject` (function)
 
 ```ts
@@ -420,6 +426,15 @@ interface IntValueDef {
 
 ```ts
 const ITEM_ID: RegExp;
+```
+
+### `layerCells` (function)
+
+```ts
+function layerCells(size: Size, grid: number): {
+    cols: number;
+    rows: number;
+};
 ```
 
 ### `LayerDef` (type)
@@ -693,6 +708,10 @@ interface Project<Layer = LayerInstance> {
 ```ts
 interface ProjectContext {
     readonly assets?: readonly string[] | undefined;
+    readonly imageSizes?: Readonly<Record<string, {
+        readonly w: number;
+        readonly h: number;
+    }>> | undefined;
 }
 ```
 
@@ -856,6 +875,16 @@ interface TilesetDef {
         readonly tiles: readonly number[];
     }[];
 }
+```
+
+### `tilesetTiles` (function)
+
+```ts
+function tilesetTiles(def: TilesetDef): {
+    columns: number;
+    rows: number;
+    count: number;
+};
 ```
 
 ### `TilesLayerDef` (interface)
