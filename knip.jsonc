@@ -28,6 +28,10 @@
     "games/placeholder": { "entry": ["s8/no-effect.ts"] },
     // The smoke specs run from the root playwright.config.ts.
     "examples": { "entry": ["e2e/*.e2e.ts"] },
+    // EDK.1: src/fonts.css imports the IBM Plex families with CSS @import, which knip does not follow.
+    "packages/editor-kit": {
+      "ignoreDependencies": ["@fontsource/ibm-plex-mono", "@fontsource/ibm-plex-sans"]
+    },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
     "packages/host": { "ignoreDependencies": ["zod"] },
