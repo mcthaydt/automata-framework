@@ -1,5 +1,5 @@
 // The Last Light checks as one run over a blockout: Last Light's `validate` (scripts/pipeline/blockout-lib.ts, 92e6704)
-// with each problem located, and the checks that are new here (`overlap`, `heights`, then `entities` and `materials`). Its order and short-circuits are
+// with each problem located, and the checks that are new here (`overlap`, `heights`, then `entities`, `materials` and `lamps`). Its order and short-circuits are
 // kept: a document that does not expand answers `expand` alone, one whose portals name a room that is not there answers
 // `ids` and `rooms`, and anything else runs every check.
 import type { Blockout } from '../../format/blockout.schema'
@@ -15,6 +15,7 @@ import { roomsProblem } from '../rooms-problem'
 import { wallLocator } from '../wall-locator'
 import { doorProblems } from './doors'
 import { idProblems } from './ids'
+import { DEFAULT_TONE, lampProblems } from './lamps'
 import { navProblems } from './nav-problems'
 import { puzzleHotspotProblems } from './puzzle-hotspots'
 
@@ -57,5 +58,18 @@ export function lastLightChecks(blockout: Blockout, options: LastLightOptions = 
     listed === null ? [] : materialProblems({ map, wall }, new Set(listed)),
     { ok: listed === null ? 'no material list' : `within the list of ${listed.length} materials` },
   )
-  return [ids, sharedWalls, openings, overlap, heights, puzzle, nav, entities, materials]
+  const kinds = options.lampKinds ?? null
+  const kindList = kinds !== null && Object.keys(kinds).length > 0 ? kinds : null
+  const kinded = blockout.lamps.filter((lamp) => lamp.kind !== undefined).length
+  const lamps = checkResult(
+    'lamps',
+    kindList === null ? [] : lampProblems(blockout.lamps, kindList, options.tone ?? DEFAULT_TONE),
+    {
+      ok:
+        kindList === null
+          ? 'no lamp kinds'
+          : `lamps within their archetypes: ${kinded} of ${blockout.lamps.length} have a kind`,
+    },
+  )
+  return [ids, sharedWalls, openings, overlap, heights, puzzle, nav, entities, materials, lamps]
 }

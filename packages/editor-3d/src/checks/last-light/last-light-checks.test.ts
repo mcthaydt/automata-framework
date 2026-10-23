@@ -9,11 +9,11 @@ import { BLOCKOUT_NAMES } from '../../testing/geometry-golden'
 import { must, toyBlockout, toyOpening, toyRoom } from '../../testing/toy-blockout'
 import { lastLightChecks } from './last-light-checks'
 
-/** The results this runner has that Last Light has too (its `overlap`, `heights`, `entities` and `materials` are new here). */
+/** The results this runner has that Last Light has too (its `overlap`, `heights`, `entities`, `materials` and `lamps` are new here). */
 const SHARED = new Set(['expand', 'ids', 'rooms', 'shared-walls', 'openings', 'puzzle-hotspots', 'nav'])
 
 describe('lastLightChecks: what runs', () => {
-  it('runs ids, shared walls, openings, overlap, heights, puzzle hotspots, nav, entities and materials on a document that expands and resolves', () => {
+  it('runs ids, shared walls, openings, overlap, heights, puzzle hotspots, nav, entities, materials and lamps on a document that expands and resolves', () => {
     const results = lastLightChecks(toyBlockout())
     expect(results.map((result) => [result.id, result.ok])).toEqual([
       ['ids', true],
@@ -25,6 +25,7 @@ describe('lastLightChecks: what runs', () => {
       ['nav', true],
       ['entities', true],
       ['materials', true],
+      ['lamps', true],
     ])
   })
 
@@ -142,6 +143,72 @@ describe('lastLightChecks: what runs', () => {
     })
   })
 
+  describe('lamps', () => {
+    const kinds = loadGameFacts().options.lampKinds
+    const lamps = (
+      blockout: Blockout,
+      options: Parameters<typeof lastLightChecks>[1] = { lampKinds: kinds },
+    ) => lastLightChecks(blockout, options).find((result) => result.id === 'lamps')
+    const lit = (more: Partial<Blockout['lamps'][number]>): Blockout =>
+      toyBlockout({
+        lamps: [
+          {
+            id: 'l1',
+            x: 1,
+            y: 3,
+            z: 2,
+            range: 7,
+            radius: 0,
+            color: [1, 0.835, 0.608],
+            kind: 'pendant',
+            ...more,
+          },
+        ],
+      })
+
+    it('is skipped, and says so, when no kinds are given: absent, null or empty', () => {
+      const wrong = lit({ range: 99 })
+      expect(lamps(wrong, {})).toMatchObject({ ok: true, detail: 'no lamp kinds' })
+      expect(lamps(wrong, { lampKinds: null })).toMatchObject({ ok: true, detail: 'no lamp kinds' })
+      expect(lamps(wrong, { lampKinds: {} })).toMatchObject({ ok: true, detail: 'no lamp kinds' })
+    })
+
+    it('counts the lamps that name a kind, of all the lamps, when they all keep to it', () => {
+      const plain = toyBlockout({
+        lamps: [...lit({}).lamps, { id: 'l2', x: 3, y: 3, z: 2, range: 99, radius: 0, color: [0, 0, 1] }],
+      })
+      expect(lamps(plain)).toMatchObject({
+        ok: true,
+        detail: 'lamps within their archetypes: 1 of 2 have a kind',
+      })
+    })
+
+    it('says the game’s sentence for a lamp out of its band, at the lamp', () => {
+      const found = lamps(lit({ range: 12 }))
+      expect(found).toMatchObject({ ok: false, detail: 'lamp l1 (pendant): range 12 m outside 5.5–9 m' })
+      expect(found?.problems[0]?.locator).toEqual({ selection: 'entity:lamp/l1', at: { x: 1, z: 2 } })
+    })
+
+    it('takes the tone it is given, and the game’s own when it is given none', () => {
+      const shifted = lit({ color: [1, 0.7432941176470589, 0.6078431372549019] })
+      expect(lamps(shifted, { lampKinds: kinds })?.ok).toBe(true)
+      expect(lamps(shifted, { lampKinds: kinds, tone: null })?.ok).toBe(true)
+      expect(lamps(shifted, { lampKinds: kinds, tone: 0.05 })?.ok).toBe(false)
+    })
+
+    it('holds a lamp to 0.06 when no tone is given: a colour 0.065 away fails with it and passes at 0.07', () => {
+      const far = lit({ color: [1, 0.735, 0.6078431372549019] })
+      expect(lamps(far, { lampKinds: kinds, tone: null })?.detail).toMatch(/over 0\.06 \(OKLab\)/)
+      expect(lamps(far, { lampKinds: kinds, tone: 0.07 })?.ok).toBe(true)
+    })
+
+    it.each(BLOCKOUT_NAMES)('passes %s with the game’s own archetypes and tone', (name) => {
+      const parsed = JSON.parse(loadFixture(name)) as Blockout
+      const options = { lampKinds: kinds, tone: loadGameFacts().options.tone }
+      expect(lamps(parsed, options)?.ok).toBe(true)
+    })
+  })
+
   it("answers with `expand` alone when the document does not expand, with the error's sentence and no place", () => {
     const results = lastLightChecks(toyBlockout({ openings: [{ ...toyOpening, to: 'nowhere' }] }))
     expect(results).toEqual([
@@ -195,6 +262,7 @@ describe('lastLightChecks: what runs', () => {
       ['nav', true],
       ['entities', true],
       ['materials', true],
+      ['lamps', true],
     ])
   })
 
@@ -248,7 +316,7 @@ describe('lastLightChecks: the shipped blockouts', () => {
 
 describe('lastLightChecks: against Last Light on the corpus', () => {
   const golden = loadChecksGolden()
-  const NEW_HERE = new Set(['overlap', 'heights', 'entities', 'materials'])
+  const NEW_HERE = new Set(['overlap', 'heights', 'entities', 'materials', 'lamps'])
 
   for (const spec of loadCheckCases()) {
     const recorded = golden.cases[spec.id]

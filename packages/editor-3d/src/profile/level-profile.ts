@@ -3,6 +3,7 @@
 // editor asks of a level: the geometry its views draw, the checks its problems list shows, and the things that stand in
 // it. ED3D.2b adds the checks that need the entities, ED3D.8 the materials.
 import type { CheckResult } from '../checks/check'
+import type { LampKind } from '../checks/last-light/lamps'
 import type { EntityKit } from '../entities/things'
 import type { SectorDef } from '../format/expand'
 import type { MassDef } from '../format/sector.schema'
@@ -40,6 +41,10 @@ export interface ProfileContext {
   readonly puzzleHotspots?: readonly string[] | null | undefined
   /** Last Light: the material ids the game's renderer has, for the `materials` check; `null`, or absent, is no list. */
   readonly materials?: readonly string[] | null | undefined
+  /** Last Light: the lamp archetypes the game allows, by kind, for the `lamps` check; `null`, or absent, is no list. */
+  readonly lampKinds?: Readonly<Record<string, LampKind>> | null | undefined
+  /** Last Light: how far in OKLab a lamp's colour may be from its archetype's; `null`, or absent, is the game's own 0.06. */
+  readonly tone?: number | null | undefined
 }
 
 export interface LevelProfile<D> extends FileCodec<D> {
