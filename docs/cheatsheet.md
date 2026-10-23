@@ -462,6 +462,7 @@
 - `cursorHidden(state)`: Whether the pointer is hidden now: on a gameplay screen, not paused, and the pointer unused or idle.
 - `CursorInput` (type): The device the player used last, as the cursor policy sees it.
 - `CursorRunner` (class): Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the element's `cursor` style.
+- `defaultSlot(slots)`: The newest slot that can be continued; else the first slot; else none.
 - `DeviceClass` (type)
 - `Dialog` (const)
 - `DISPLAY_QUALITIES` (const): The tiers the Display section offers, best first.
@@ -559,6 +560,16 @@
 - `RotateHintCopy` (interface): The rotate hint's words.
 - `RotateToast` (const): The rotate toast (Owner amendment to M4 spec §4.9, 2026-10-18; FloorFifty `RotateHint.svelte` at a28dc44): for a game with `rotateHint: 'toast'`, a small message at the top on a phone held the other way, "Turn your phone for a bigger view", with an OK.
 - `RotateToastCopy` (interface): The rotate toast's words (`rotateHint: 'toast'`, FloorFifty's): the advice, and its OK.
+- `SAVE_STATUS_TONES` (const): `conflict` points the player at the host's own question (M5 spec §5), so it is a warning, not an error.
+- `SaveSlotActivity` (type): A write the caller has started and not finished, or one that failed.
+- `SaveSlots` (const): The save slots (M5 spec §6, §7): a row for each slot, and the few things a player does with one.
+- `SaveSlotsCopy` (interface): Every word the list shows, in the game's language (each a PRODUCT.L message key).
+- `SaveSlotsView` (type): What the list shows: a moment of loading, or the slots.
+- `SaveSlotView` (type): One slot, as the list shows it.
+- `SaveStatus` (const): The host's save state in words (M5 spec §7): checking, syncing, saved, offline-queued, retry, conflict, recovered, and "no grant" for a game that was not given the saves grant ("Progress won't be kept").
+- `SaveStatusCopy` (type): One line per state, in the game's language (each a PRODUCT.L message key).
+- `SaveStatusState` (type): What the host says about the player's saves, or that there is no grant.
+- `SaveStatusTone` (type): How much a state asks of the player's notice.
 - `ScreenFrame` (const)
 - `ScreenKind` (type): A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
 - `ScrollList` (const)
@@ -573,6 +584,7 @@
 - `Sleeper` (type): Puts the game's sound to sleep while nobody can see it.
 - `sleepWhenHidden(doc, sleeper, win?)`
 - `Slider` (const): A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser gives the arrow keys and the focus navigator's `adjust` steps it.
+- `slotActionsOf(slot)`: What a player may do with a slot (M5 spec §6).
 - `Split` (const): Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty `ui/layout/Split.svelte` at `ac72660`).
 - `splitMode(available, min, gap)`: Split's choice (M4 spec §4.8; from FloorFifty `ui/layout/split.ts` at `ac72660`): side by side when both columns and the gap between them fit at their minimum, stacked otherwise.
 - `STICKY_MARGIN_PX` (const): How far outside a button a thumb still counts for it, in CSS pixels.
