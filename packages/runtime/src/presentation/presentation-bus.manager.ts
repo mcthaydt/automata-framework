@@ -40,6 +40,11 @@ export interface RuntimeFacts {
   readonly 'save.failed': { readonly key: string; readonly slot: number; readonly code: ErrorCode }
   /** A slot was loaded for play (M5 spec §5, "Load a slot"). */
   readonly 'save.loaded': { readonly key: string; readonly slot: number }
+  /**
+   * Another device changed the slot being played (M5 spec §5, M5-D6). Nothing was reloaded; the game offers Load
+   * newer or Keep playing.
+   */
+  readonly 'save.changedElsewhere': { readonly key: string; readonly slot: number }
   /** A submit to `board` changed state: `submitting`, then how the host answered (M5 spec §4.8). */
   readonly 'leaderboard.submitted': { readonly board: string; readonly state: BoardState }
 }

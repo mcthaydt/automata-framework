@@ -11,6 +11,8 @@ import type { EventScores } from '../leaderboards/event-scores.js'
 import type { LocaleDef } from '../locale/locale.manager.js'
 import type { FrameSource } from '../loop/frames.js'
 import type { RendererFactory } from '../render/renderer.js'
+import type { SaveDef } from '../save/save.schema.js'
+import type { DeviceStorage } from '../settings/device-storage.js'
 import type { SettingsDef } from '../settings/settings.manager.js'
 
 /** The compiled JSON content read by the runtime (spec §3.3). */
@@ -34,6 +36,8 @@ export interface RuntimeSeams {
   readonly createAudioContext?: () => AudioContextLike
   /** The device's haptics, in place of the browser's (pads, `navigator.vibrate`, a coarse pointer). */
   readonly haptics?: Haptics
+  /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage` (M5 spec §4.5). */
+  readonly deviceStorage?: DeviceStorage
 }
 
 /** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */
@@ -49,6 +53,12 @@ export interface GameDefinition<S = never> {
   readonly screens: readonly ScreenDef[]
   readonly renderer: RendererFactory
   readonly settings?: SettingsDef<S> | undefined
+  /**
+   * The game's save (M5): its slots, autosave and migrations. Boot opens it, wires its triggers and flushes it when
+   * the host closes the game; a screen reaches it with `saveOf(def)`. Absent, the game has no save and the runtime
+   * reads and writes nothing for one.
+   */
+  readonly saves?: SaveDef<unknown> | undefined
   /**
    * The orientation the game plays in, as the ship config's `runtime.orientation` says (M4.7). A `portrait` or
    * `landscape` game on a phone held the other way pauses behind the rotate hint. Default `any`.
