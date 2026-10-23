@@ -81,6 +81,20 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the facility editor, the World edits and the World selection ids', () => {
+    for (const name of [
+      'createFacilityEditor',
+      'moveWing',
+      'setJoin',
+      'removeJoin',
+      'setLock',
+      'facilitySelection',
+      'parseFacilitySelection',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',
@@ -109,6 +123,9 @@ describe('public entry', () => {
       'buildRefusal',
       'wallOver',
       'PORTAL_MEMBERS',
+      'upserted',
+      'sameMember',
+      'selectionOf',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }
