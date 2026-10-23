@@ -20,6 +20,7 @@ interface Step {
   readonly 'working-directory'?: string
 }
 interface Job {
+  readonly if?: string
   readonly 'runs-on'?: string
   readonly needs?: string | string[]
   readonly container?: { image: string }
@@ -66,6 +67,23 @@ describe('ci.yml', () => {
         expect(String(job['runs-on']), `${file}: ${name}`).not.toMatch(/ubuntu|macos|windows|github-hosted/i)
       }
     }
+  })
+
+  // The jobs run on the Owner's own machine, so code from a pull request of a fork must never reach it: a pull request runs
+  // its jobs only when its head is in this repository. Pushes to main and manual runs have no pull request and still run.
+  // (Hub, 2026-10-23: the same guard as the framework's self-hosted jobs.)
+  it('runs a pull request’s jobs only when the pull request comes from this repository', () => {
+    for (const [name, job] of Object.entries(workflow.jobs)) {
+      expect(job.if, name).toBe("github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository")
+    }
+  })
+
+  // Hub, 2026-10-23: a job that holds a write, publish or deploy token stays off the Owner's machine. None of these does:
+  // the one secret is the read-only deploy key that reads the private framework.
+  it('reads one secret, the read-only framework key, and asks for no more than read permission', () => {
+    const text = read('.github/workflows/ci.yml')
+    expect(Array.from(new Set(Array.from(text.matchAll(/secrets\.([A-Za-z0-9_]+)/g), match => match[1]))).sort()).toEqual(['AF_FRAMEWORK_DEPLOY_KEY'])
+    expect(workflow.permissions).toEqual({ contents: 'read' })
   })
 
   // macOS runners cannot run containers, so the browser jobs run on the host and fetch Playwright's browsers into the

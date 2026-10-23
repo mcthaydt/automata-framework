@@ -11,7 +11,10 @@ name: ci
 # (setup-request automata/outbox/2026-10-23-1425), so a job waits in the queue until it is online. A macOS runner cannot
 # run containers, so the browser jobs run on the host and fetch Playwright's browsers into the runner's cache, a no-op
 # once they are there (the framework's parity job does the same). The runners share one home folder, so each job gives
-# pnpm its own folder.
+# pnpm its own folder. Every job runs a pull request only when its head is in this repository (a fork's code must never
+# reach the Owner's machine); pushes to main and manual runs have no pull request and still run. No job holds a write,
+# publish or deploy token: `checks` reads the private framework with a read-only deploy key and nothing else. A job
+# that needs such a token (the deploy of QB.4/DX.12) is a separate decision, not a job to add here.
 #
 # The framework: several tests, and the workshop the build verifies, read the framework's sources from a sibling
 # checkout (`../automata-framework`). The framework repository is private, so the checkout needs the repository
@@ -44,6 +47,7 @@ defaults:
 jobs:
   checks:
     name: svelte-check, build, check:site, unit
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: af-mac
     timeout-minutes: 15
     steps:
@@ -107,6 +111,7 @@ jobs:
   browsers:
     name: browsers (chromium, webkit)
     needs: checks
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: af-mac
     timeout-minutes: 30
     steps:
@@ -141,6 +146,7 @@ jobs:
   lighthouse:
     name: lighthouse budget
     needs: checks
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: af-mac
     timeout-minutes: 20
     steps:
