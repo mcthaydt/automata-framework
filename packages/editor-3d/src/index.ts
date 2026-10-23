@@ -19,10 +19,10 @@ export {
   type VertexTool,
   type VertexToolView,
 } from './app/vertex-tool-controller'
+export type { WallPlace } from './app/wall-place'
 export {
   createWallTool,
   type WallEffect,
-  type WallPlace,
   type WallTarget,
   type WallTool,
   type WallToolKind,
