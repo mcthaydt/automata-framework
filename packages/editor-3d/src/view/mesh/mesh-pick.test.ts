@@ -9,7 +9,7 @@ import { loadFixture } from '../../testing/fixtures'
 import { toyAfSector } from '../../testing/toy-af-sector'
 import { type SelectionOf, selectionOf } from '../selection-of'
 import { type Camera3D, fitOrbit, orbitCamera, projectPoint, rayThrough, walkCamera } from './camera-3d'
-import { facesEye, pickMesh, visibleSurfaces } from './mesh-pick'
+import { facesEye, pickMesh, surfaceVisibility, visibleSurfaces } from './mesh-pick'
 import { buildSectorMesh, type SectorMesh, type Surface, type Vec3 } from './sector-mesh'
 import { dot, length, sub } from './vec3'
 
@@ -145,6 +145,69 @@ describe('visibleSurfaces', () => {
 
   it('keeps nothing of a mesh with no surfaces', () => {
     expect(visibleSurfaces({ surfaces: [], bounds: mesh.bounds }, [0, 0, 0])).toEqual([])
+  })
+})
+
+describe('surfaceVisibility and the wall occlusion (ED3D.4b)', () => {
+  // The north wall is cut as ever, the east one fades, the south one never goes and the west one fades.
+  const mesh = meshOf(room({ 1: { occlude: 'fade' }, 2: { occlude: 'never' }, 3: { occlude: 'fade' } }))
+  const [floor, ceiling, north, east, south, west] = mesh.surfaces as [
+    Surface,
+    Surface,
+    Surface,
+    Surface,
+    Surface,
+    Surface,
+  ]
+  const outside: Vec3 = [-5, 9, 12]
+  const all = [floor, ceiling, north, east, south, west]
+
+  it('shows every surface to an eye inside the room, whatever it says', () => {
+    expect(all.map((surface) => surfaceVisibility(surface, [4, 1.6, 3]))).toEqual(Array(6).fill('shown'))
+  })
+
+  it('cuts a cut surface that faces away, fades a fade one, and keeps a never one, from outside', () => {
+    expect(all.map((surface) => surfaceVisibility(surface, outside))).toEqual([
+      'shown', // the floor
+      'cut', // the ceiling, which the eye is above
+      'shown', // the north wall, which the eye sees the inside of
+      'shown', // the east wall, which fades only where it would be cut
+      'shown', // the south wall: never
+      'faded', // the west wall: fade, and the eye is on its outer side
+    ])
+    const plain = meshOf(room()).surfaces
+    expect(plain.map((surface) => surfaceVisibility(surface, outside))).toEqual([
+      'shown',
+      'cut',
+      'shown',
+      'shown',
+      'cut',
+      'cut',
+    ])
+  })
+
+  it('keeps what is shown or faded and drops what is cut, in mesh order', () => {
+    expect(labels(visibleSurfaces(mesh, outside))).toEqual([
+      'floor:sector:room',
+      'wall:wall:room/0',
+      'wall:wall:room/1',
+      'wall:wall:room/2',
+      'wall:wall:room/3',
+    ])
+  })
+
+  it('shows a floor that never goes to an eye below it, and cuts a ceiling to an eye above it', () => {
+    expect(surfaceVisibility(floor, [4, -1, 3])).toBe('shown')
+    expect(surfaceVisibility(ceiling, [4, 5, 3])).toBe('cut')
+    expect(surfaceVisibility(ceiling, [4, 3.9, 3])).toBe('shown')
+  })
+
+  it('lets a ray through a cut wall, stops at a never wall from outside, and picks a faded one', () => {
+    const looking = (walls: Readonly<Record<number, AfWall>>) =>
+      pickMesh(meshOf(room(walls)), { origin: [4, 1.6, 12], direction: [0, 0, -1] })
+    expect(looking({})).toMatchObject({ selection: 'wall:room/0', distance: 12 })
+    expect(looking({ 2: { occlude: 'never' } })).toMatchObject({ selection: 'wall:room/2', distance: 6 })
+    expect(looking({ 2: { occlude: 'fade' } })).toMatchObject({ selection: 'wall:room/2', distance: 6 })
   })
 })
 
