@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mossgate } from '../../testing/samples'
-import { updateLayer } from './layer-target'
+import { findLayer, updateLayer } from './layer-target'
 
 const STEPS = { level: 'moss-steps', layer: 'collision' }
 
@@ -59,6 +59,27 @@ describe('updateLayer', () => {
 
   it('throws a RangeError naming the missing layer and its level', () => {
     expect(() => updateLayer(mossgate(), { level: 'moss-steps', layer: 'sky' }, (layer) => layer)).toThrow(
+      new RangeError('no layer "sky" in level "moss-steps"'),
+    )
+  })
+})
+
+describe('findLayer', () => {
+  it('finds the layer, its definition, its level and its place', () => {
+    const project = mossgate()
+    const found = findLayer(project, { level: 'moss-steps', layer: 'decor' })
+    expect(found.layer.def).toBe('decor')
+    expect(found.def.id).toBe('decor')
+    expect(found.level.id).toBe('moss-steps')
+    expect(found.level.layers[found.index]).toBe(found.layer)
+  })
+
+  it('throws the same RangeErrors as updateLayer', () => {
+    const project = mossgate()
+    expect(() => findLayer(project, { level: 'nowhere', layer: 'decor' })).toThrow(
+      new RangeError('no level "nowhere"'),
+    )
+    expect(() => findLayer(project, { level: 'moss-steps', layer: 'sky' })).toThrow(
       new RangeError('no layer "sky" in level "moss-steps"'),
     )
   })
