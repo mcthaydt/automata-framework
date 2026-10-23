@@ -3,12 +3,18 @@
 // Shows: `sounds` maps a sim event to a sound. The first tap or key unlocks audio (browsers allow
 //   sound only after a gesture); from then on each Chime event the sim emits plays chime.wav.
 // Controls: tap or press any key to unlock sound
-// Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, zod
+// Packages: @mcthaydt/automata, zod
 // Difficulty: ★☆☆☆
 // Tier: core
 // Golden: 180
-import { defineGame, rect } from '@mcthaydt/automata-game'
-import { defineComponent, defineEvent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+import {
+  defineComponent,
+  defineEvent,
+  defineGame,
+  definePlugin,
+  defineSystem,
+  rect,
+} from '@mcthaydt/automata'
 import { z } from 'zod'
 
 // A synthesized chime (resources/sounds/PROVENANCE.md).

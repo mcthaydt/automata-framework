@@ -8,6 +8,7 @@ import { defaultField, FIELD_TYPES, type FieldSchema, type FieldType } from './f
 
 /** Fixed phase order (spec §4.3). */
 export const PHASES = ['input', 'prePhysics', 'physics', 'postPhysics', 'gameplay', 'cleanup'] as const
+/** One of the six phases a tick runs through, in `PHASES` order. */
 export type Phase = (typeof PHASES)[number]
 
 // Stable ids key the snapshot, network and save formats: lower-case, dot- or dash-separated words.
@@ -18,6 +19,10 @@ function checkId(what: string, id: string): void {
   if (!ID_RE.test(id)) throw new Error(`${what} id "${id}" must match ${ID_RE}`)
 }
 
+/**
+ * A component: a stable id and a flat record of typed fields. Create one with `defineComponent`; game code
+ * addresses entity data through the definition, never through `trait`.
+ */
 export interface ComponentDef<S extends FieldSchema = FieldSchema> {
   readonly kind: 'component'
   readonly id: string
@@ -30,6 +35,11 @@ export interface ComponentDef<S extends FieldSchema = FieldSchema> {
   readonly trait: Trait
 }
 
+/**
+ * Defines a component from an id (lower-case words separated by dots or dashes) and its fields by name and
+ * type. `render: false` keeps it out of the renderer's deltas. Throws for a bad id, no fields, a bad field
+ * name or an unknown field type.
+ */
 export function defineComponent<S extends FieldSchema>(
   id: string,
   fields: S,
@@ -53,28 +63,47 @@ export function defineComponent<S extends FieldSchema>(
   return { kind: 'component', id, fields, fieldNames, render: opts.render ?? true, trait: traitDef }
 }
 
+/**
+ * A command the sim accepts as input: an id and the Zod schema its payload must match. Create one with
+ * `defineCommand`.
+ */
 export interface CommandDef<Z extends z.ZodType = z.ZodType> {
   readonly kind: 'command'
   readonly id: string
   readonly schema: Z
 }
 
+/**
+ * Defines a command by id and payload schema. Throws for an id that is not lower-case words separated by dots
+ * or dashes.
+ */
 export function defineCommand<Z extends z.ZodType>(id: string, schema: Z): CommandDef<Z> {
   checkId('command', id)
   return { kind: 'command', id, schema }
 }
 
+/**
+ * An event a system emits: an id and the Zod schema its payload must match. Create one with `defineEvent`.
+ */
 export interface EventDef<Z extends z.ZodType = z.ZodType> {
   readonly kind: 'event'
   readonly id: string
   readonly schema: Z
 }
 
+/**
+ * Defines an event by id and payload schema, to emit from a system with `ctx.emit`. Events come back in
+ * `StepResult.events`; `ctx.emit` throws for a payload that fails the schema.
+ */
 export function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z> {
   checkId('event', id)
   return { kind: 'event', id, schema }
 }
 
+/**
+ * A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting
+ * value. Create one with `defineResource`.
+ */
 export interface ResourceDef<Z extends z.ZodType = z.ZodType> {
   readonly kind: 'resource'
   readonly id: string
@@ -82,6 +111,10 @@ export interface ResourceDef<Z extends z.ZodType = z.ZodType> {
   readonly init: () => z.input<Z>
 }
 
+/**
+ * Defines a resource by id, schema and starting value. `createSim` parses `init()` with the schema, so a bad
+ * start fails there.
+ */
 export function defineResource<Z extends z.ZodType>(
   id: string,
   schema: Z,
@@ -91,6 +124,10 @@ export function defineResource<Z extends z.ZodType>(
   return { kind: 'resource', id, schema, init }
 }
 
+/**
+ * A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and
+ * its `run`, called once per tick. Create one with `defineSystem`.
+ */
 export interface SystemDef {
   readonly kind: 'system'
   readonly name: string
@@ -175,6 +212,11 @@ export interface PluginStateSetup {
   readonly dt: number
 }
 
+/**
+ * A bundle of definitions the sim registers together: components, commands, events, resources and systems,
+ * the plugins it depends on, and optionally per-sim engine state and `config`. Create one with
+ * `definePlugin`.
+ */
 export interface PluginDef {
   readonly kind: 'plugin'
   readonly name: string
@@ -196,6 +238,12 @@ export interface PluginDef {
 /** Anything `definePlugin`'s flat `defs` list takes (DX spec §3.2). */
 export type Def = ComponentDef | CommandDef | EventDef | ResourceDef | SystemDef
 
+/**
+ * Defines a plugin from a name, its dependencies and its definitions, given in the keyed lists or in one flat
+ * `defs` list sorted by kind. A plugin written either way registers the same lists and gets the same schema
+ * hash. `config` is copied as canonical, frozen JSON, so anything that cannot hash exactly throws a
+ * `CanonicalJsonError` here.
+ */
 export function definePlugin(spec: {
   name: string
   dependsOn?: readonly string[]
