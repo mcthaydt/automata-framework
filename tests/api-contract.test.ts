@@ -1,16 +1,32 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, relative, resolve } from 'node:path'
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
 import sources from '../src/data/projects.json'
 
+// F-1 (QB spec): the site's copies of these three files carry the MIT licence, and the framework does not yet ship it
+// (no LICENSE, `UNLICENSED` in package.json). DX.11 adds them. Until then they are the only files allowed to differ,
+// and the second test below stays red-by-design, as tests/license-claim.test.ts does, so DX.11 has to remove both.
+const AHEAD_OF_FRAMEWORK_UNTIL_DX11 = ['LICENSE', 'LICENSE-SCOPE.md', 'package.json']
+
+function differing(paths: (path: string) => boolean): string[] {
+  return sources.files.flatMap(file => {
+    if (file.content === undefined || !paths(file.path)) return []
+    const framework = resolve('../automata-framework', file.path)
+    return existsSync(framework) && readFileSync(framework, 'utf8') === file.content ? [] : [file.path]
+  })
+}
+
 describe('Published code contracts', () => {
   it('publishes the exact current project files instead of independently maintained snippets', () => {
-    for (const file of sources.files) {
-      if (file.content !== undefined) expect(file.content, file.path).toBe(readFileSync(resolve('../automata-framework', file.path), 'utf8'))
-    }
+    expect(differing(path => !AHEAD_OF_FRAMEWORK_UNTIL_DX11.includes(path))).toEqual([])
+  })
+
+  // Expected red until DX.11 (the licence files land in the framework): `it.fails` is green while they differ.
+  it.fails('also publishes the licence files exactly, expected red until DX.11', () => {
+    expect(differing(path => AHEAD_OF_FRAMEWORK_UNTIL_DX11.includes(path))).toEqual([])
   })
 
   it('only lists names exported by the documented entry point or actual Sim methods', () => {
