@@ -43,7 +43,7 @@
 
 - Selected: the render-pixi, game and automata unit suites; `pnpm check`; `pnpm api-report`; `pnpm api-index`; the changeset check; render-pixi parity in Chromium.
 - Omitted here, pending on CI: parity in WebKit and Firefox, `pnpm test:e2e`.
-- Changeset: patch, `@mcthaydt/automata-render-pixi` (the fixed group moves together).
+- Changeset: none. `render-pixi`, `game` and the umbrella are private, and CI's `check-changesets` refuses a changeset that names a package AF does not publish (a first version of this plan added one, and CI's checks job failed on it).
 
 ## Execution log
 
@@ -55,3 +55,4 @@
 | 2026-10-23 | 4 | `097eedb` | `parity/post-filter.parity.test.ts` in real WebGL2: a flat-red filter turns a white 8 × 8 graphic red at pixel (2, 2); a broken GLSL is dropped and reported while the other filter still draws. Passes in Chromium here; WebKit and Firefox are CI's. |
 | 2026-10-23 | 5 | | Red first: `packages/game/src/index.test.ts` (`exports postFilter`: `undefined` is not `function`) and `packages/automata/src/index.test.ts` (the pinned list, and "re-exports everything the game package exports") failed; after `game` re-exports the verb and its two types, game 146 and umbrella 20 tests pass. `pnpm api-report --update` rewrote the render-pixi, game and automata reports (additive). `pnpm build && pnpm api-index`: 528 exports, 182 undocumented (the baseline is unchanged: the new exports carry doc comments), cheatsheet not stale. Changeset `post-filter-verb.md` (patch, `@mcthaydt/automata-render-pixi`). |
 | 2026-10-23 | 6 | `1c51bf0` | `pnpm format` (no fixes), `pnpm check` 30 of 30 tasks (lint, typecheck, boundaries, style, knip, unit), `pnpm api-report` (12 core packages, 1 change in `PixiRendererOptions`, 0 undeclared), `pnpm build && pnpm api-index` clean, `pnpm changeset status --since=origin/main` lists the fixed group bumped by the patch. render-pixi parity in Chromium through a temporary local config (this container's browsers are an older build than the pinned Playwright expects): 4 files, 8 tests passed. WebKit, Firefox and the full CI run are pending on the runner. |
+| 2026-10-23 | CI fix | `baabdf7` | The hosted checks job failed at `check-changesets` (`.changeset/post-filter-verb.md: @mcthaydt/automata-render-pixi is not a published package`), a step `pnpm check` does not run. The changeset was removed; `node tooling/release/src/check-changesets.ts` (38 changesets, 0 problems) and `pnpm changeset status --since=origin/main` (exit 0) pass locally. |
