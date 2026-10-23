@@ -1,7 +1,8 @@
 import { parse } from '@decimalturn/toml-patch'
 import { describe, expect, it } from 'vitest'
 import { stageSchema } from './stage.schema'
-import { parseStage } from './stage-codec'
+import { parseStage, printStage } from './stage-codec'
+import type { StageDocument } from './stage-document'
 import { SHIPPED_STAGE_IDS, type ShippedStageId, shippedStage } from './testing/shipped-stages'
 
 // Reading a stage file (EDFF.1a step 2): a document for a good text and, for a bad one, every problem with the line
@@ -197,5 +198,45 @@ describe('parseStage of a TOML text that is not a stage', () => {
     const unix = failure(text)
     const windows = failure(text.replace(/\n/g, '\r\n'))
     expect(windows.map((e) => e.line)).toEqual(unix.map((e) => e.line))
+  })
+})
+
+// -- printing --------------------------------------------------------------------------------------------------------
+
+function document(text: string): StageDocument {
+  const result = parseStage(text)
+  if (!result.ok) throw new Error(`expected the text to parse: ${JSON.stringify(result.error)}`)
+  return result.value
+}
+
+const VARIANTS: readonly [string, (text: string) => string][] = [
+  ['unchanged', (text) => text],
+  ['with Windows line endings', (text) => text.replace(/\n/g, '\r\n')],
+  ['without a final newline', (text) => text.trimEnd()],
+  ['with Windows line endings and no final newline', (text) => text.replace(/\n/g, '\r\n').trimEnd()],
+]
+
+describe('printStage of an unchanged document', () => {
+  for (const [variant, change] of VARIANTS) {
+    it.each(SHIPPED_STAGE_IDS)(
+      `prints the shipped stage %s ${variant} byte for byte`,
+      (id: ShippedStageId) => {
+        const text = change(shippedStage(id))
+        expect(printStage(text, document(text))).toBe(text)
+      },
+    )
+  }
+
+  it('prints a stage with no set pieces and no course without adding keys for them', () => {
+    expect(printStage(MINIMAL, document(MINIMAL))).toBe(MINIMAL)
+  })
+
+  it('keeps an empty list the file wrote out', () => {
+    const text = MINIMAL.replace('[[theme.layers]]', 'setPieces = []\n\n[[theme.layers]]')
+    expect(printStage(text, document(text))).toBe(text)
+  })
+
+  it('throws for a base that is not the text the document came from, which is a bug in the caller', () => {
+    expect(() => printStage('id = ', document(MINIMAL))).toThrow()
   })
 })

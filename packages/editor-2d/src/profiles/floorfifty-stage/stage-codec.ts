@@ -1,4 +1,4 @@
-import { parse } from '@decimalturn/toml-patch'
+import { parse, patch } from '@decimalturn/toml-patch'
 import type { z } from 'zod'
 import type { ParseError, Result } from '../profile'
 import { type StageValue, stageSchema } from './stage.schema'
@@ -81,4 +81,42 @@ export function parseStage(text: string): Result<StageDocument, readonly ParseEr
     return { ok: false, error: schemaErrors(splitLines(text).lines, checked.error.issues) }
   const value: StageValue = checked.data
   return { ok: true, value: documentOfLoadedValue(value) }
+}
+
+// -- printing ----------------------------------------------------------------------------------------------------
+
+type Data = Record<string, unknown>
+
+const isData = (value: unknown): value is Data =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+/** A copy without the keys whose value is `undefined`, which are optional keys the value does not have. */
+function withoutUndefined(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withoutUndefined)
+  if (!isData(value)) return value
+  const copy: Data = {}
+  for (const [key, child] of Object.entries(value))
+    if (child !== undefined) copy[key] = withoutUndefined(child)
+  return copy
+}
+
+/**
+ * The value as the TOML data `patch` compares with the text. An empty list is the same as no list for the schema, which
+ * defaults `setPieces` to empty, so an empty list the text does not spell out is left out and `patch` adds no key for it.
+ */
+function tomlData(value: StageValue, base: Data): Data {
+  const data = withoutUndefined(value) as Data
+  const theme = data.theme as Data
+  const baseTheme = base.theme as Data
+  if ((theme.setPieces as unknown[]).length === 0 && baseTheme.setPieces === undefined) delete theme.setPieces
+  return data
+}
+
+/**
+ * The text of a document: `base` (the text it was read from) with exactly the changes the document has. `toml-patch`
+ * carries every change that keeps the shape of the file, and keeps its comments, blank lines and line endings.
+ * Throws when `base` is not TOML, which a document read from it cannot be.
+ */
+export function printStage(base: string, document: StageDocument): string {
+  return patch(base, tomlData(document.value, parse(base) as Data))
 }
