@@ -27,6 +27,26 @@ studioScreens.push({
 })
 
 studioScreens.push({
+  id: 'studio-ik',
+  page: 'Suite · Studio',
+  name: 'Studio · Pose by hand · iPad landscape',
+  w: 1194,
+  h: 834,
+  note: 'Posing by hand on the rig: a handle on each hand, foot, the head and the hips. Ada’s feet are pinned, so dragging her hips down bent her knees; her right hand was dragged from the dashed ring to the drawer, and the elbow followed inside its limit (the wedge). The pose saves to her clips file. The rig and its two-bone IK are The Last Light’s (render/figure/rig.ts); pins and joint limits are new in AF.',
+  build: (_S, _P, Q, A) => Q.studioView(A, { mode: 'ik', name: 'Studio · Pose by hand · iPad landscape' }),
+})
+
+studioScreens.push({
+  id: 'studio-animate',
+  page: 'Suite · Studio',
+  name: 'Studio · Animate · iPad landscape',
+  w: 1194,
+  h: 834,
+  note: 'A clip is keys on the rig’s handles over time, laid out like the Sequence timeline. The stage shows the pose at the playhead with the keys either side as onion skins and the hand’s path. Keys play over the procedural idle and step at Ada’s 12 poses a second (her brisk gait), like the game; Smooth previews between steps. Clips save to content/characters/ada.clips.json and reopen G6.',
+  build: (_S, _P, Q, A) => Q.studioAnimate(A),
+})
+
+studioScreens.push({
   id: 'studio-pipeline',
   page: 'Suite · Studio',
   name: 'Studio · Pipeline open · iPad landscape',

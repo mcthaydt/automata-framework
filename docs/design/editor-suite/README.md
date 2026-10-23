@@ -1,6 +1,6 @@
 # Editor suite mockups
 
-Twenty-four screens for the editors that sit beside the 2D and 3D level editors: Sequence, Tuner, Writer, Studio,
+Thirty-two screens for the editors that sit beside the 2D and 3D level editors: Sequence, Tuner, Writer, Studio,
 Schematic, Audio and Feel, a Review desk, and the shell, dialogs and portrait views they share. Like the level editor
 mockups they are written once as scene-kit trees and rendered both as HTML and as Figma frames, so the artifact and the
 Figma file cannot drift apart. They are review material, not production code: nothing here ships.
@@ -8,12 +8,15 @@ Figma file cannot drift apart. They are review material, not production code: no
 The Owner accepted every screen except the character editor on 2026-10-23 ("everything is perfect but the character
 one"). Since then the accepted screens keep their layout and only their data changed: they edit AF content files
 (`content/scenes/<id>/*.toml`, `content/tuning.toml`) instead of The Last Light's TypeScript, and their gate pills
-come from the game's editor list. The Studio was redesigned, and one FloorFifty screen shows a second game.
+come from the game's editor list. The Studio was redesigned, and one FloorFifty screen shows a second game. The Owner accepted the Studio's look the
+same morning and asked for an IK rig and animation, so the Studio gained Pose by hand and Animate; a States page, an
+Export screen, three more portraits and the nine look fixes the audit flagged followed. `LATEST` in `changes.mjs`
+lists those since the Studio's acceptance.
 `changes.mjs` lists each change in one line; the gallery shows them before and after.
 
 - Figma file: [Automata Editors](https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d), pages `Suite · Shell`,
   `Suite · Sequence`, `Suite · Tuner`, `Suite · FloorFifty`, `Suite · Writer`, `Suite · Studio`, `Suite · Schematic`,
-  `Suite · Audio`, `Suite · Feel` and `Suite · Portrait`.
+  `Suite · Audio`, `Suite · Feel`, `Suite · States` and `Suite · Portrait`.
 - Source: [The Last Light editor suite spec](https://github.com/mcthaydt/PixiJS3D_Experiment_001/blob/main/docs/superpowers/specs/2026-10-16-editor-suite-design.md)
   and the code under `editor/src/client` and `src` in that repository (`main` at `92e6704`, 2026-10-22); its
   `editor.manifest.json` gives each file's editor and gates. FloorFifty (`SNEKPRTY/FloorFifty` at `ee5d44e`) gives the
@@ -96,7 +99,8 @@ For the before and after, check out the approved commit beside this one and pass
 The suite adds one colour per editor (`color/ed/sequence`, `ed/tuner`, `ed/writer`, `ed/studio`, `ed/schematic`,
 `ed/audio`, `ed/feel`, `ed/levels`, `ed/review`) and `color/edge/default` for graph edges, in a collection named
 `Editor Suite` beside the Editor Kit variables. The values are the hues the Owner approved, so editors no longer borrow
-FloorFifty's layer and phase tokens. `ed/audio` still equals `state/warn` (audit M3), left for the Owner to decide.
+FloorFifty's layer and phase tokens, except `ed/audio`, which is cyan (`#4ec3d6`) so it no longer equals `state/warn`
+(audit M3).
 Everything else binds to the Editor Kit.
 
 The screens in the Figma file use the 1194 × 834 and 834 × 1194 shells the level editors use: top bar 52, rail 56 (an
@@ -108,15 +112,16 @@ Where each frame sits on its page (left edge, in px; every frame's top is 0):
 
 | Page | Frames |
 | --- | --- |
-| `Suite · Shell` | suite-home 0, review-desk 1294, ask-diff 2588, ship-dialog 3882, interchange 4702 |
+| `Suite · Shell` | suite-home 0, review-desk 1294, ask-diff 2588, ship-dialog 3882, interchange 4702, interchange-export 5602 |
 | `Suite · Sequence` | seq-timeline 0, seq-portrait 1294 |
 | `Suite · Tuner` | tuner-sliders 0, tuner-fairness 1294 |
 | `Suite · FloorFifty` | ff-tuner 0 |
 | `Suite · Writer` | writer-lines 0, writer-dialogue 1294 |
-| `Suite · Studio` | studio-look 0, studio-pose 1294, studio-pipeline 2588, studio-first-run 3882 |
+| `Suite · Studio` | studio-look 0, studio-pose 1294, studio-pipeline 2588, studio-first-run 3882, studio-ik 5176, studio-animate 6470 |
 | `Suite · Schematic` | schematic-chain 0, schematic-agent 1294 |
 | `Suite · Audio`, `Suite · Feel` | audio-cues 0, feel-matrix 0 |
-| `Suite · Portrait` | tuner-portrait 0, writer-portrait 934, studio-portrait 1868, review-portrait 2802 |
+| `Suite · States` | states-code-checks 0, states-offline 1294 |
+| `Suite · Portrait` | tuner-portrait 0, writer-portrait 934, studio-portrait 1868, review-portrait 2802, schematic-portrait 3736, audio-portrait 4670, feel-portrait 5604 |
 
 A screen's `build` is sent to Figma as source text, so it may use only its four arguments (`S`, `P`, `Q`, `A`) and
 its own locals. A helper declared at module level renders in the HTML and then fails in Figma.
