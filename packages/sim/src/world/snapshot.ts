@@ -11,10 +11,18 @@ import { hex64, xxhash64 } from '../hash/xxhash64'
 import type { RngState } from '../rng/rng'
 import type { FieldRecord } from './entity-store'
 
+/**
+ * The snapshot format version this build reads and writes; a snapshot of another version fails with
+ * `SnapshotFormatError`.
+ */
 export const SNAPSHOT_VERSION = 1
 const MAGIC = [65, 85, 84, 79] // "AUTO"
 const TAG = { strings: 1, rng: 2, resources: 3, entities: 4, pluginState: 6 } as const
 
+/**
+ * Snapshot bytes that are not a valid snapshot of this format version: bad magic, an unsupported version,
+ * truncated or malformed sections.
+ */
 export class SnapshotFormatError extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(`snapshot format: ${message}`, options)
@@ -22,6 +30,10 @@ export class SnapshotFormatError extends Error {
   }
 }
 
+/**
+ * A valid snapshot that belongs to another sim: `field` names the header value that differs (`schemaHash`,
+ * `contentHash` or `tickHz`), with this sim's `expected` value and the snapshot's `actual` one.
+ */
 export class SnapshotMismatchError extends Error {
   readonly field: 'schemaHash' | 'contentHash' | 'tickHz'
   readonly expected: string
