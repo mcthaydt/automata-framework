@@ -15,8 +15,7 @@ The [EX spec](../docs/superpowers/specs/2026-10-16-examples-one-file-design.md) 
 | Base | What it is | Built on | Lands in |
 |---|---|---|---|
 | `base-2d` | Emberwick: Wick, a hooded lantern-bearer, walks and jumps through one single-screen room of mossy night ruins to an ember (Endesga 64, pixel lighting). Splash → menu → room → pause → end. | Core only: `sim`, `content`, `host`, `runtime`, `render-pixi`, `ui` | M1.8 (replaces the old `blank-game`). First version built: [`games/emberwick`](../games/emberwick/) (moved from `examples/base-2d` by EX.2, EX-D1; package name `@af-examples/base-2d` kept), on `sim` with stand-ins for the core pieces not yet on `main` (content module, direct `Ruken.init`, its own loop and Pixi renderer, DOM screens); each stand-in is swapped for the core package when its lane merges ([task spec](../docs/superpowers/specs/2026-10-11-m1-base-2d-design.md)) |
-| `base-25d` | The same character as a billboard sprite in a fixed-camera 3D room with GLB props | Core + `render-pixi3d` (private builds, D-1) | M3 |
-| `base-3d` | The same character as a mesh in a 3D room with a follow camera | Core + `render-pixi3d` (private builds, D-1) | M3; the starting point for GAME-3D |
+| `base-3d` | One 3D room with the player as a procedural character (Wick as `figures` data) and one rigged glTF character, under a follow camera ([revised M3 spec](../docs/superpowers/specs/2026-10-18-m3-3d-characters-design.md) §4.7) | Core + `render-pixi3d` and `figures` (Plus, private builds, D-1) | M3; the starting point for GAME-3D |
 
 A base is the smallest complete game on AF: it boots under the fake Ruken host and in a real Ruken frame, publishes through `ship`, and plays on a phone. Each base exports its room, character and content as a workspace package (`@af-examples/base-2d`, …) so demos reuse them instead of copying them.
 
@@ -34,7 +33,7 @@ A base is the smallest complete game on AF: it boots under the fake Ruken host a
 
 ## Who builds what
 
-Each lane's PR ships the demos for the feature it builds, on the base that feature needs. A demo whose base does not exist yet is listed below as waiting and is finished by the integration owner in M1.8 (2D) or M3 (2.5D and 3D).
+Each lane's PR ships the demos for the feature it builds, on the base that feature needs. A demo whose base does not exist yet is listed below as waiting and is finished by the integration owner in M1.8 (2D) or M3 (3D; 2.5D was dropped 2026-10-18).
 
 | Demo | Owner | Base | Status |
 |---|---|---|---|

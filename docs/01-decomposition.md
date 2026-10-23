@@ -42,9 +42,9 @@ The A/B/C phase IDs remain in historical documents (the A0 and A1a plans, spike 
 | A7 Networking | `net`/`server` extensions, **M7** | Built from FloorFifty's Colyseus code. |
 | A8 CLI + 1.0 | Minimal `create-game` in M1; full CLI in **M8** | |
 | A9 Store & Season Pass | `store` extension, **M7** | Blocked on Ruken's `[store]` manifest section. |
-| B1 Character pipeline | 2.5D sprite-atlas characters in the `pipelines` extension, **M3**; rigged 3D characters, **M9** | Starts from The Last Light's character pipeline; the rigged pipeline comes from the 3D game. |
+| B1 Character pipeline | Rigged 3D characters (to Meshy's rig and clips) and free procedural characters in the `pipelines` extension, **M3** (2.5D sprite atlases dropped 2026-10-18); what GAME-3D adds, **M9** | Starts from The Last Light's character pipeline and procedural figure. |
 | B2 Environment pipeline | `sectors` extension + sector environment pipeline, **M6**; brush-based 3D environments, **M9** | Starts from The Last Light's sector maps; TrenchBroom/Sencha stays a reference for the 3D game. |
-| "Real 3D game" | **GAME-3D**, after AF 1.0 (M8), then **M9** merges its 3D pieces back | Owner roadmap 2026-10-11: 2D and 2.5D first, then 3D. The Last Light is the 2.5D reference. |
+| "Real 3D game" | **GAME-3D**, after AF 1.0 (M8), then **M9** merges its 3D pieces back | Owner roadmap 2026-10-11: 2D and 2.5D first, then 3D. **2026-10-18:** 2.5D dropped; M3 brings 3D characters. |
 | Part C modular extraction | Replaced by core + extensions from day one | |
 
 ## 3. Milestone map and dependencies
@@ -54,7 +54,7 @@ M0 ─► M1 ─┬─► M2 ─┬─► M3 ─► M6
           │       ├─► M5 ─┐
           └─► M4 ─┘       ├─► M7 ─► M8
                     M2 ───┘
-M8 (AF 1.0, 2D + 2.5D) ─► GAME-3D (a 3D game on AF) ─► M9 (3D merge)
+M8 (AF 1.0, 2D; 3D characters in Plus) ─► GAME-3D (a 3D game on AF) ─► M9 (3D merge)
 ED (editors, Owner 2026-10-23): parallel to M1–M8, not a gate; EDK (kit) ─► ED2D (genre-general 2D editor; FloorFifty stages are the EDFF profile lane), ED3D; both finish before GAME-3D starts
 External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [store] ─► M7 store
 ```
@@ -67,7 +67,7 @@ External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [st
 | M0 Foundation | A0+A1 spec | ✅ merged | Spike verdicts; ECS decided; sim core |
 | M1 Blank game on Ruken | **to write** (`m1-blank-game-on-ruken`) | ⬜ | Push → CI green → Ruken-validated zip → published to Ruken local stack and dev host → playable on a phone; nothing renders before ready; layout contracts pass at every reference size |
 | M2 Deterministic core complete | A0+A1 spec + [`m2-deterministic-core`](superpowers/specs/2026-10-11-m2-deterministic-core-design.md) (drafted 2026-10-11, review pending) | ⬜ | A1 exits 2–8 of the A0+A1 spec |
-| M3 2.5D and pipelines | **to write** | ⬜ | 2.5D example (private build, D-1) on WebGL2, and WebGPU when opted in, under Ruken CSP at ≥30 FPS on phone profiles; one character through the pipeline with gates |
+| M3 3D characters and pipelines | **revised, awaiting review** | ⬜ | `base-3d` with a procedural and a rigged character (private build, D-1) on WebGL2, and WebGPU when opted in, under Ruken CSP at ≥30 FPS on phone profiles; one rigged and one procedural character through the pipeline with gates |
 | M4 Input and display | **to write** | ⬜ | Input × form-factor E2E matrix under the fake Ruken host |
 | M5 Saves, audio, localization | **to write** | ⬜ | Save N → N+1 migration; cross-device save/exit/resume on Ruken; all strings localized |
 | M6 Gameplay extensions | **to write** | ⬜ | Each extension's fixture game passes; The Last Light's route tests pass on extracted `puzzle` |
@@ -98,11 +98,11 @@ Ordered so the pipeline exists before the runtime: CI/CD and deployment are prov
 - **Goldens and replays** (M2.3): the `.replay` v1 codec, recorder and stepper in `sim` (`@mcthaydt/automata-sim/replay`, `createRecorder`); `simGolden`, `replayGolden` with first-divergent-tick bisection and structural diff, a divergent fixture, the ≥200-seed property test and the cross-engine runner in `testing` (`@mcthaydt/automata-testing/sim`). The Last Light's `record`/`replay`/`worldHash` inform the design; moving The Last Light onto AF replays is deferred to its adoption slice (M8, D-2), not an M2 consumer.
 - **Build and publish** (M2.4): tsdown (Ruken's tool and pin), Changesets with one fixed `0.0.x` version, prereleases to GitHub Packages; games install with a classic `read:packages` token; CI under 10 minutes.
 
-### M3 2.5D and pipelines
-- **Spike S7:** `@pixi/3d` under Ruken's CSP, WebGL2 parity, phone FPS, CI capture path, API surface; decide D-1.
-- **`render-pixi3d`** at 2.5D scope (fixed-zone and orbit cameras, billboards, lit sprites, GLB props, fog, baked lighting), **`post-retro`**, a 2.5D example scene.
-- **`pipelines`:** router, MCP server, budgets, gates, guard, audit log, made game-agnostic; The Last Light's 2.5D character (lit sprite atlas with normal map) and props (image → Meshy → flattened GLB) pipelines with their gates.
-
+### M3 3D characters and pipelines
+2.5D dropped (Owner, 2026-10-18); [revised M3 spec](superpowers/specs/2026-10-18-m3-3d-characters-design.md), awaiting review.
+- **Spike S7:** `@pixi/3d` under Ruken's CSP, WebGL2 parity, phone FPS, CI capture path, API surface, skinning on both backends, procedural figure cost; decide D-1.
+- **`render-pixi3d`:** meshes and GLB props, a follow camera with orbit, lighting, fog, skinned glTF characters with named clips; **`figures`:** procedural characters (The Last Light's figure, as 3D meshes); **`post-retro`**; `games/base-3d` with both character kinds.
+- **`pipelines`:** router, MCP server, budgets, gates, guard, audit log, made game-agnostic; the character pipeline's rigged path (to Meshy's rig and clips) and free procedural path, and props (image → Meshy → flattened GLB), with their gates.
 ### M4 Input and display
 - Gamepad, touch overlay and gestures, profiles and rebinding, cursor hiding, focus navigation across composed screens; letterbox and safe area; `scale` hint; graphics settings; color-blind UI; complete frames, panels, lists and paged grids; input × form-factor E2E matrix under the fake Ruken host.
 
