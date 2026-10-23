@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import * as editor3d from './index'
 
 describe('public entry', () => {
-  it('exports the codecs, the schemas, expand, patchJson, scan and the geometry queries', () => {
+  it('exports the codecs, the schemas, expand, patchJson, scan, the geometry queries and the checks', () => {
     for (const name of [
       'blockoutCodec',
       'facilityCodec',
@@ -19,6 +19,13 @@ describe('public entry', () => {
       'sectorAt',
       'navWorld',
       'clear',
+      'openDoors',
+      'lastLightChecks',
+      'genericChecks',
+      'checkResult',
+      'entitySelection',
+      'wallSelection',
+      'sectorSelection',
     ]) {
       expect(editor3d, name).toHaveProperty(name)
     }
@@ -33,6 +40,10 @@ describe('public entry', () => {
       'verifyPatched',
       'navShape',
       'room',
+      'plainContext',
+      'toyBlockout',
+      'loadCheckCases',
+      'loadChecksGolden',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }

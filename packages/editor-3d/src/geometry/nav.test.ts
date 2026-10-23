@@ -4,15 +4,18 @@
 import { describe, expect, it } from 'vitest'
 import type { Box, SectorDef } from '../format/expand'
 import type { Point } from '../format/sector.schema'
-import {
-  BLOCKOUT_NAMES,
-  expandedBlockout,
-  loadGeometryGolden,
-  navShape,
-  openDoors,
-} from '../testing/geometry-golden'
+import { BLOCKOUT_NAMES, expandedBlockout, loadGeometryGolden, navShape } from '../testing/geometry-golden'
 import { room, square } from '../testing/toy-sectors'
-import { clear, type NavWorld, navWorld, nearAWall, nearestNode, segmentHitsBox, throughWall } from './nav'
+import {
+  clear,
+  type NavWorld,
+  navWorld,
+  nearAWall,
+  nearestNode,
+  openDoors,
+  segmentHitsBox,
+  throughWall,
+} from './nav'
 import { resolveMap, sectorAt } from './sectors'
 
 const p = (x: number, z: number): Point => ({ x, z })
@@ -198,6 +201,19 @@ describe('clear: raised floors', () => {
     expect(clear(dock, p(1, 3), p(6, 3), {})).toBe(false)
     // From the stair to the dock is a rise of 0.2: a step that can be climbed.
     expect(clear(dock, p(4.5, 3), p(3, 3), {})).toBe(true)
+  })
+})
+
+describe('openDoors', () => {
+  it('opens every door box and nothing else: a desk or an exit stays what it is', () => {
+    const boxes = [
+      box('d1', 'door', 2, 6, 0.2, 2),
+      box('desk', 'desk', 4, 4, 1, 1),
+      box('x', 'exit', 7, 7, 1, 1),
+      box('d2', 'door', 5, 6, 0.2, 2),
+    ]
+    expect(openDoors({ boxes })).toEqual({ d1: true, d2: true })
+    expect(openDoors({ boxes: [] })).toEqual({})
   })
 })
 
