@@ -1,0 +1,77 @@
+// Each browser gate must catch its planted fixture (quality-bar spec QB-c) and pass a clean page. Without this, a gate
+// that silently checks nothing would look exactly like a site with no problems.
+import { expect, test } from '@playwright/test'
+import { FIXTURE_PORT } from '../../playwright.config'
+import { axeViolations, cookieNames, deadButtons, horizontalOverflow, keyboardProblems, storageKeys, watchPage } from './gates'
+
+const ORIGIN = `http://127.0.0.1:${FIXTURE_PORT}`
+const PHONE = { width: 375, height: 667 }
+
+test.describe('browser gates catch their fixtures', () => {
+  test('a clean page passes every gate', async ({ page, context }) => {
+    await page.setViewportSize(PHONE)
+    const watch = watchPage(page, ORIGIN)
+    await page.goto(ORIGIN + '/good.html')
+    expect(await horizontalOverflow(page)).toEqual([])
+    expect(await keyboardProblems(page)).toEqual([])
+    expect(await deadButtons(page)).toEqual([])
+    expect(await axeViolations(page)).toEqual([])
+    expect(await cookieNames(context)).toEqual([])
+    expect(await storageKeys(page)).toEqual([])
+    expect(watch.problems).toEqual([])
+  })
+
+  test('horizontal overflow at 375 px', async ({ page }) => {
+    await page.setViewportSize(PHONE)
+    await page.goto(ORIGIN + '/overflow.html')
+    expect((await horizontalOverflow(page)).join('\n')).toContain('div')
+  })
+
+  test('a console error', async ({ page }) => {
+    const watch = watchPage(page, ORIGIN)
+    await page.goto(ORIGIN + '/console-error.html')
+    await expect.poll(() => watch.problems.join('\n')).toContain('console error: planted console error')
+  })
+
+  test('an uncaught page error', async ({ page }) => {
+    const watch = watchPage(page, ORIGIN)
+    await page.goto(ORIGIN + '/page-error.html')
+    await expect.poll(() => watch.problems.join('\n')).toContain('page error: planted page error')
+  })
+
+  test('a third-party request', async ({ page }) => {
+    const watch = watchPage(page, ORIGIN)
+    await page.goto(ORIGIN + '/third-party.html')
+    await expect.poll(() => watch.problems.join('\n')).toContain('third-party request: http://third-party.invalid/pixel.png')
+  })
+
+  test('a cookie', async ({ page, context }) => {
+    await page.goto(ORIGIN + '/cookie.html')
+    expect(await cookieNames(context)).toEqual(['planted'])
+  })
+
+  test('browser storage', async ({ page }) => {
+    await page.goto(ORIGIN + '/storage.html')
+    expect(await storageKeys(page)).toEqual(['localStorage:planted'])
+  })
+
+  test('a focused element without a focus ring', async ({ page }) => {
+    await page.goto(ORIGIN + '/focus-ring.html')
+    expect((await keyboardProblems(page)).join('\n')).toContain('no focus ring: a#top')
+  })
+
+  test('an element the keyboard cannot reach', async ({ page }) => {
+    await page.goto(ORIGIN + '/keyboard-trap.html')
+    expect((await keyboardProblems(page)).join('\n')).toContain('not reachable by keyboard: a#after')
+  })
+
+  test('a button that does nothing', async ({ page }) => {
+    await page.goto(ORIGIN + '/dead-button.html')
+    expect(await deadButtons(page)).toEqual(['button "Does nothing" changed nothing'])
+  })
+
+  test('an axe violation', async ({ page }) => {
+    await page.goto(ORIGIN + '/axe.html')
+    expect((await axeViolations(page)).join('\n')).toContain('button-name')
+  })
+})

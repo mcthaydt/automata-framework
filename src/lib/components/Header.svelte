@@ -10,6 +10,8 @@
     {#each links as [href, label]}<a {href} aria-current={current(href) ? 'page' : undefined}>{label}</a>{/each}
   </nav>
   <div class="header-actions">
+    <!-- The primary action stays in the header when the main links fold into the menu (quality-bar spec §4.2). -->
+    <a class="header-start" href="/start" aria-current={current('/start') ? 'page' : undefined}>Start</a>
     <button class="search-trigger" type="button" onclick={onOpenSearch} aria-label="Search documentation and API">Search<kbd aria-hidden="true">⌘K</kbd></button>
     <details bind:this={mobile} class="mobile-nav">
       <summary>Menu</summary>

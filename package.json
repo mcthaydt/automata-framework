@@ -6,20 +6,23 @@
   "scripts": {
     "sync": "node --import tsx scripts/sync-demos.ts && node --import tsx scripts/sync-docs.ts",
     "dev": "vite dev",
-    "build": "pnpm verify:workshop && pnpm build:workshop && vite build",
+    "build": "pnpm verify:workshop && pnpm build:workshop && vite build && node --import tsx scripts/write-seo-files.ts build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "check:site": "node --import tsx scripts/check-site.ts",
     "verify:workshop": "vitest run tests/first-change.test.ts tests/double-jump.test.ts --reporter=json --outputFile=.svelte-kit/first-change-results.json && node scripts/record-workshop-proof.mjs",
-    "build:workshop": "node scripts/build-workshop.mjs"
+    "build:workshop": "node scripts/build-workshop.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@fontsource-variable/geist": "5.3.0",
     "@fontsource-variable/geist-mono": "5.3.0",
+    "@playwright/test": "1.63.0",
     "@sveltejs/adapter-static": "3.0.8",
     "@sveltejs/kit": "2.16.1",
     "@sveltejs/vite-plugin-svelte": "5.0.3",

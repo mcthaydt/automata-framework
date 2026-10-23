@@ -27,7 +27,7 @@ pnpm --filter @af-examples/base-2d build`
 
   <section id="worked-change" class="worked-change">
     <div class="examples-heading"><h2>Jump once.<br />Jump twice.</h2><div><p>Click the game, hold Space to jump, release, then press again before landing. On touch, tap the jump button twice.</p><p>Turn double jump off to try the original. Land to recharge. Move the starting point from the extra controls if you want a different run.</p></div></div>
-    <DemoRunner src="/demos/first-change/index.html" title="First change: double jump" autoStart={false} poster="/previews/double-jump.png" posterAlt="Emberwick with an extra jump to try" />
+    <DemoRunner src="/demos/first-change/index.html" title="First change: double jump" autoStart={false} poster="/previews/double-jump.jpg" posterAlt="Emberwick with an extra jump to try" />
     <p class="workshop-caption">A real plugin changes the simulation. The existing room, input, renderer, and jump feedback do the rest.</p>
   </section>
 
