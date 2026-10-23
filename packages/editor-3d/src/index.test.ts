@@ -123,12 +123,38 @@ describe('public entry', () => {
       'visibleSurfaces',
       'surfaceVisibility',
       'pickMesh',
-      'HEADINGS',
-      'headingPreview',
       'OCCLUDES',
     ]) {
       expect(editor3d, name).toHaveProperty(name)
     }
+  })
+
+  it('exports the free heading, in the game’s turn units, and not the eight-heading preview it replaces', () => {
+    for (const name of [
+      'TURN_UNITS',
+      'DEGREES_PER_PIXEL',
+      'wrapHeading',
+      'turnHeading',
+      'dragTurn',
+      'headingToYaw',
+      'yawToHeading',
+      'headingToDeg',
+      'degToHeading',
+      'wallsSeenFrom',
+      'headingView',
+      'headingSweep',
+    ])
+      expect(editor3d, name).toHaveProperty(name)
+    for (const name of ['HEADINGS', 'headingPreview']) expect(editor3d, name).not.toHaveProperty(name)
+  })
+
+  it('exports the follow camera of a room: the view, its defaults and ranges, and the camera the game puts on a player', () => {
+    for (const name of ['CAMERA_DEFAULTS', 'CAMERA_RANGES', 'cameraViewSpec', 'followCamera', 'roomView'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The shapes are types, so this is checked by the compiler: the entry names them.
+    const spec: editor3d.CameraViewSpec = editor3d.cameraViewSpec({ id: 'hall' })
+    const view: Pick<editor3d.RoomView, 'rotate'> = { rotate: spec.rotate }
+    expect(view.rotate).toBe(true)
   })
 
   it('exports the plan controller', () => {
