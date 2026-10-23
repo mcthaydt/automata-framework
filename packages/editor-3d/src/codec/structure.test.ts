@@ -88,6 +88,13 @@ describe('span-preserving JSON inserts and removals on the shipped blockouts', (
     expect(() => insertElement(text, ['rooms'], 1, 99)).toThrow(JsonShapeError)
   })
 
+  it('checks what it wrote against the number as written: float noise is trimmed, not refused', () => {
+    const text = '{\n  "a": [1, 2],\n  "b": 1\n}\n'
+    expect(insertElement(text, ['a'], 0.1 + 0.2)).toBe('{\n  "a": [1, 2, 0.3],\n  "b": 1\n}\n')
+    expect(replaceValue(text, ['b'], [0.1 + 0.2, 2.00001])).toBe('{\n  "a": [1, 2],\n  "b": [0.3, 2]\n}\n')
+    expect(insertMember(text, [], 'c', { x: 0.30000000000000004 })).toContain('"c": { "x": 0.3 }')
+  })
+
   it('refuses a text that is not JSON, and says why', () => {
     expect(() => insertElement('{ "a": [1,] }', ['a'], 2)).toThrow(/not valid JSON/)
   })

@@ -6,7 +6,7 @@
 // the edited path must read the intended value.
 import { indentAt, type Layout, lineStart, PACK_WIDTH, readLayout, sameLine } from './layout'
 import { type JsonNode, type JsonPath, JsonScanError, type Scan, scan } from './locate'
-import { formatJsonScalar } from './print'
+import { formatJsonScalar, roundJsonNumber } from './print'
 
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
 
@@ -74,6 +74,16 @@ const valueAt = (model: unknown, path: JsonPath): unknown =>
     model,
   )
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+
+/** A value as the file will read it back: every number rounded the way `print.ts` writes it. */
+function asWritten(value: unknown): unknown {
+  if (typeof value === 'number') return Number.isFinite(value) ? roundJsonNumber(value) : value
+  if (Array.isArray(value)) return value.map(asWritten)
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, asWritten(item)]))
+  }
+  return value
+}
 
 function check(out: string, path: JsonPath, want: unknown, what: string): string {
   let model: unknown
@@ -262,7 +272,7 @@ export function insertElement(text: string, path: JsonPath, value: JsonValue, in
     const indent = indentAt(text, itemStart(template))
     out = place(source, container, at, render(source, value, template, indent))
   }
-  return check(out, [...path, at], value, 'the insert')
+  return check(out, [...path, at], asWritten(value), 'the insert')
 }
 
 /** Remove the element at `index` of the array at `path`, with its separator. */
@@ -310,7 +320,7 @@ export function insertMember(
   if (!members.length) {
     const indent = indentAt(text, container.span.start) + source.layout.unit
     const item = `${JSON.stringify(key)}: ${render(source, value, template, indent)}`
-    return check(intoEmpty(source, container, item, '}'), [...path, key], value, 'the insert')
+    return check(intoEmpty(source, container, item, '}'), [...path, key], asWritten(value), 'the insert')
   }
   const names = members.map(memberName)
   let at = members.length
@@ -326,7 +336,7 @@ export function insertMember(
     at,
     `${JSON.stringify(key)}: ${render(source, value, template, indent)}`,
   )
-  return check(out, [...path, key], value, 'the insert')
+  return check(out, [...path, key], asWritten(value), 'the insert')
 }
 
 /** Remove the member `key` of the object at `path`, with its separator. */
@@ -352,7 +362,7 @@ export function replaceValue(text: string, path: JsonPath, value: JsonValue): st
   const node = nodeAt(source, path)
   const indent = indentAt(text, node.span.start)
   const out = splice(text, node.span.start, node.span.end, render(source, value, node, indent))
-  return check(out, path, value, 'the replacement')
+  return check(out, path, asWritten(value), 'the replacement')
 }
 
 /** Set a member: replace it if it exists, else insert it (see insertMember). */

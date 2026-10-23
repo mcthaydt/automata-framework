@@ -3,7 +3,7 @@
 - **Task:** ED3D.1 in [02](../../02-master-delivery-plan.md) (row lands with the ED3D follow-up). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §2 (Format, Codec), §4.1, §4.5, decisions ED3D-D2, D3, D4. Acceptance: the patch halves of ED3-b and ED3-o (§13); the rest of those cases need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.0 (the spec, review pending). It needs no editor-kit code, no Svelte and no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed, not implemented. Nothing below starts until ED3D.0 is reviewed.
-- **Progress:** 7 of 11 steps.
+- **Progress:** 8 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -177,7 +177,7 @@ Each step starts with its test, run red, with the failure reason recorded; the r
     - on every shipped file, inserting a copy of the first element at index 0 of each top-level list and removing it again gives the original bytes.
   - *Expected failure:* module missing.
   - *Done: red `Cannot find module './layout'` and `'./structure'`; then 118 of 119 green on the first run. The one failure was my own expectation (a new object is written `{"a": 3}`, with a space after the colon, inside tight braces); Last Light's `json-structure` gives exactly that on the same input (run through a scratch copy with `typescript@5.9.3`), so the test was corrected and the port left alone. 119 of 119.*
-- [ ] **8. The diff** (`patch.test.ts`; `patch.ts`, without the refusals of step 9).
+- [x] **8. The diff** (`patch.test.ts`; `patch.ts`, without the refusals of step 9).
   - *Red, by rule of spec §4.5:*
     - equal models give the same text (every fixture);
     - **ED3-b:** setting the clinic hall's `ceiling` from 4.9 to 5.1 changes exactly that number's span: the longest common prefix and suffix of old and new text leave only `4.9` against `5.1`;
@@ -187,6 +187,7 @@ Each step starts with its test, run red, with the failure reason recorded; the r
     - a wall that goes from a string to an object is replaced whole, in the neighbours' layout;
     - an unknown member of a changed room is still there afterwards, byte for byte.
   - *Expected failure:* module missing.
+  - *Done: red `Cannot find module './patch'`; then 25 of 27 green on the first run. The two failures were a gap in step 7, not in the diff: `structure.ts` compared what it wrote with the value it was given, so a float-noise number such as `0.1 + 0.2` (written as `0.3`) was refused as "does not read as intended". The structure edits now compare with the value as written (numbers rounded the way `print.ts` writes them, `asWritten`), with a new test in `structure.test.ts`; removals still compare with the file's own values, which may carry more than 4 decimals. Two extra cases beyond the list: a mixed patch (remove at the front, edit in the middle, insert at the end and in a gap) and a number the file already has, which is not rewritten when the new value is it or rounds to exactly it (a file keeps `4.90`). `print.ts` now exports `roundJsonNumber`. 147 of 147; tsc, biome clean.*
 - [ ] **9. Refusals and verification** (`patch.refusal.test.ts`; `patch.ts`, which exports `verifyPatched(text, after)` for the test and not from the public entry).
   - *Red, by case (**ED3-o**):*
     - `unwritable-value`: `NaN`, `Infinity` and `1e22` in `after` refuse with the path of the value, and nothing is returned to write; `0.12345` is written as `0.1235` and `0.1 + 0.2` as `0.3`, and the check compares the re-parse with `after` rounded the same way;

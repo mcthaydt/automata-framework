@@ -1,5 +1,6 @@
 export * from './codec/layout'
 export * from './codec/locate'
+export { type PatchRefusalReason, type PatchResult, type PatchRules, patchJson } from './codec/patch'
 export * from './codec/print'
 export * from './codec/structure'
 export * from './format/blockout.schema'
