@@ -3,7 +3,7 @@
 - **Task:** EDFF.1c, the third slice of EDFF.1 in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §10.4 (composition), §10.5 (course), decision FF-D4 ("composition math is a pure function ported from `StageLayers`, tested against numbers from FloorFifty's own code").
 - **Lane:** FloorFifty profile. **Depends on:** EDFF.1a (`StageValue`), EDFF.1b (`tunables.ts`, `StageCheckContext`). Stacks on #154. **Unblocks:** EDFF.1d (the `Profile` object's views), EDFF.2 (the Compose canvas applies `composeStage`), EDFF.3 (the Course view draws `createCourse` and `stepDemands`).
 - **Status:** Planned 2026-10-23 on `claude/project-thread-73sp69-edff1c`. The 2D spec is drafted, not reviewed.
-- **Progress:** 5 of 6 steps (the PR is step 6's last part). Implemented and locally checked 2026-10-23; not CI verified.
+- **Progress:** 6 of 6 steps. Implemented and locally checked 2026-10-23; draft PR #157; not CI verified.
 
 ## Why the numbers come from a script that runs the game
 
@@ -75,7 +75,7 @@ Each step starts with the failing test, confirms why it fails, then makes the mi
 - [x] **3. Generator and demand.** `course-floors.ts` and `course-demand.ts` equal `course-goldens.json` for nine cases (the three shipped seeds, a hundred floors across every ramp band, a steep ramp, other physics, seed 0, the largest 32-bit seed, a seed past 32 bits). FloorFifty's own demand values for 35229 (floor 1 ≈ 0.11, floor 7 ≈ 0.94, floor 19 ≈ 0.84), prefix stability, bounds, death line.
 - [x] **4. Scenery.** `stage-scenery.ts`: defaults, the knots (finish lands at 1, a smaller value is held, phrases out of order), no course or no `citySink` gives no arc, `citySinkAt` is linear between knots, clamps, and is continuous.
 - [x] **5. Composition.** `stage-compose.ts` equals `compose-goldens.json` for the four shipped stages at five climb states and four framings (20 frames each), with `toBe` on every `y`, `tileX`, the sun's `y`, the lift and the city's sink; drawing order and parallax factors; a tile layer, a plate, a drifting layer, snapping, the framing.
-- [ ] **6. Gates and records.** Package tests, typecheck, Biome, `pnpm style`, knip, boundaries, `api-report`; spec §10.4 and §10.5 as built, 02 row, 03 paragraph, PROVENANCE; push, draft PR stacked on #154.
+- [x] **6. Gates and records.** Package tests, typecheck, Biome, `pnpm style`, knip, boundaries, `api-report`; spec §10.4 and §10.5 as built, 02 row, 03 paragraph, PROVENANCE; push, draft PR stacked on #154.
 
 ## Execution record
 
