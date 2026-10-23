@@ -73,13 +73,13 @@ describe('thingDefSchema', () => {
 
   it('gives a point no size', () => {
     expect(refusals({ ...spawn, size: [1, 1, 1] })).toEqual([
-      { path: 'size', message: 'spawn: a point has no size' },
+      { path: 'size', message: 'a point has no size' },
     ])
   })
 
   it('says only that a point has no size, even when the size is also wrong', () => {
     expect(refusals({ ...spawn, size: [0, 1, 1] })).toEqual([
-      { path: 'size', message: 'spawn: a point has no size' },
+      { path: 'size', message: 'a point has no size' },
     ])
   })
 
@@ -92,12 +92,12 @@ describe('thingDefSchema', () => {
       [1, 1, 0],
     ])
       expect(refusals({ ...crate, size })).toEqual([
-        { path: 'size', message: 'crate: size is three numbers above zero (width, height, depth)' },
+        { path: 'size', message: 'size is three numbers above zero (width, height, depth)' },
       ])
   })
 
   it('wants a box to have a size or float fields w, h and d for each box', () => {
-    const lost = 'crate: a box has a size, or float fields w, h and d that give each box its own'
+    const lost = 'a box has a size, or float fields w, h and d that give each box its own'
     const { size: _size, ...unsized } = crate
     expect(refusals(unsized)).toEqual([{ path: 'shape', message: lost }])
     // Two of three is not enough, and an int field is not a float field.
@@ -120,7 +120,7 @@ describe('thingDefSchema', () => {
       ).toEqual([
         {
           path: 'fields/1/id',
-          message: `spawn: field ${id} is taken: a thing keeps def, id, x, y and z for itself`,
+          message: `field ${id} is taken: a thing keeps def, id, x, y and z for itself`,
         },
       ])
   })
@@ -129,7 +129,7 @@ describe('thingDefSchema', () => {
     expect(refusals({ ...spawn, fields: [{ id: 'path', type: 'point', list: true }] })).toEqual([
       {
         path: 'fields/0/type',
-        message: 'spawn: field path is a point, and the plan has x and z: use two float fields',
+        message: 'field path is a point, and the plan has x and z: use two float fields',
       },
     ])
   })

@@ -35,10 +35,10 @@ const BOX_FIELDS = ['w', 'h', 'd']
 function thingDefIssues(def: ThingDef): DefIssue[] {
   const issues: DefIssue[] = []
   if (def.size !== undefined) {
-    if (def.shape === 'point') issues.push({ message: `${def.id}: a point has no size`, path: ['size'] })
+    if (def.shape === 'point') issues.push({ message: `a point has no size`, path: ['size'] })
     else if (def.size.some((side) => !(side > 0)))
       issues.push({
-        message: `${def.id}: size is three numbers above zero (width, height, depth)`,
+        message: `size is three numbers above zero (width, height, depth)`,
         path: ['size'],
       })
   }
@@ -47,18 +47,18 @@ function thingDefIssues(def: ThingDef): DefIssue[] {
   )
   if (def.shape === 'box' && def.size === undefined && !sized)
     issues.push({
-      message: `${def.id}: a box has a size, or float fields w, h and d that give each box its own`,
+      message: `a box has a size, or float fields w, h and d that give each box its own`,
       path: ['shape'],
     })
   for (const [index, field] of def.fields.entries()) {
     if ((RESERVED_FIELD_IDS as readonly string[]).includes(field.id))
       issues.push({
-        message: `${def.id}: field ${field.id} is taken: a thing keeps def, id, x, y and z for itself`,
+        message: `field ${field.id} is taken: a thing keeps def, id, x, y and z for itself`,
         path: ['fields', index, 'id'],
       })
     if (field.type === 'point')
       issues.push({
-        message: `${def.id}: field ${field.id} is a point, and the plan has x and z: use two float fields`,
+        message: `field ${field.id} is a point, and the plan has x and z: use two float fields`,
         path: ['fields', index, 'type'],
       })
   }

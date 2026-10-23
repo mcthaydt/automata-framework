@@ -110,8 +110,15 @@ export function readEntityKit(input: {
   for (const { value, path } of input.definitions) {
     const parsed = thingDefSchema.safeParse(value)
     if (!parsed.success) {
-      for (const issue of parsed.error.issues)
-        problems.push({ path: [...path, ...stepsOf(issue)], message: issue.message })
+      // A rule says what it means by itself; a member the schema refused is named, and so is the definition either way.
+      const label = labelOf({ path, value })
+      for (const issue of parsed.error.issues) {
+        const where = issue.code === 'custom' || issue.path.length === 0 ? '' : `${issue.path.join('.')}: `
+        problems.push({
+          path: [...path, ...stepsOf(issue)],
+          message: `entity definition ${label}: ${where}${issue.message}`,
+        })
+      }
       continue
     }
     // A second definition with the same id is the `ids` check's to report; the first is the one things are read by.
