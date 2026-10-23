@@ -1,6 +1,8 @@
 // What `geometry.golden.json` holds and how to put ported geometry in the same shape, so a test can compare the two.
 import type { Blockout } from '../format/blockout.schema'
 import { type Expanded, expand } from '../format/expand'
+import type { Point } from '../format/sector.schema'
+import { clear, type NavWorld, nearAWall, nearestNode, throughWall } from '../geometry/nav'
 import type { Edge, Resolved, ResolvedMap } from '../geometry/sectors'
 import { loadFixture, loadGolden } from './fixtures'
 
@@ -23,6 +25,17 @@ export interface GoldenGrid {
   floor: number[][]
 }
 
+/** The nav answers `validate` and the scene tests rely on: one character per pair of nodes, `1` for yes. */
+export interface GoldenNav {
+  nodes: string[]
+  clearOpen: string
+  clearShut: string
+  clearWalls: string
+  throughWall: string
+  nearWall: string
+  nearest: { spawn: string | null; hotspots: Record<string, string | null>; shut: string | null }
+}
+
 export interface GeometryGolden {
   map: {
     sectors: unknown
@@ -32,7 +45,7 @@ export interface GeometryGolden {
     sightWalls: unknown
   }
   grid: GoldenGrid
-  nav: unknown
+  nav: GoldenNav
 }
 
 export function loadGeometryGolden(): Record<BlockoutName, GeometryGolden> {
@@ -89,5 +102,38 @@ export function piecesShape(map: ResolvedMap): { pieces: unknown; colliders: unk
     pieces: asJson(map.pieces.map((p) => ({ ...edgeRef(p.edge), y0: p.y0, y1: p.y1, kind: p.kind }))),
     colliders: asJson(map.colliders.map((c) => ({ ...edgeRef(c.edge), y0: c.y0, y1: c.y1 }))),
     sightWalls: asJson(map.sightWalls.map(edgeRef)),
+  }
+}
+
+/** Every door open: each door box, and each door a nav edge names. */
+export function openDoors(expanded: Expanded): Record<string, boolean> {
+  const doors = [
+    ...expanded.boxes.filter((b) => b.kind === 'door').map((b) => b.id),
+    ...expanded.edges.flatMap((e) => (e[2] ? [e[2]] : [])),
+  ]
+  return Object.fromEntries(doors.map((door) => [door, true]))
+}
+
+/** The golden's nav answers, asked of the ported code (the same questions the recorder asked of Last Light's). */
+export function navShape(world: NavWorld, expanded: Expanded): GoldenNav {
+  const open = openDoors(expanded)
+  const nodes = world.nodes
+  const ids = Object.keys(nodes)
+  const at = (id: string) => nodes[id] as Point
+  const pairs = ids.flatMap((a, i) => ids.slice(i + 1).map((b): [Point, Point] => [at(a), at(b)]))
+  const bits = (test: (a: Point, b: Point) => boolean) =>
+    pairs.map(([a, b]) => (test(a, b) ? '1' : '0')).join('')
+  return {
+    nodes: ids,
+    clearOpen: bits((a, b) => clear(world, a, b, open, 0.3)),
+    clearShut: bits((a, b) => clear(world, a, b, {}, 0.3)),
+    clearWalls: bits((a, b) => clear(world, a, b, open, 0, true)),
+    throughWall: bits((a, b) => throughWall(world, a, b)),
+    nearWall: ids.map((id) => (nearAWall(world, at(id), 0.3) ? '1' : '0')).join(''),
+    nearest: {
+      spawn: nearestNode(world, expanded.spawn, open),
+      hotspots: Object.fromEntries(expanded.hotspots.map((h) => [h.id, nearestNode(world, h, open)])),
+      shut: nearestNode(world, expanded.spawn, {}),
+    },
   }
 }

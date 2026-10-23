@@ -2,9 +2,10 @@
 // sectors.ts at 92e6704) on the same inputs; the shipped blockouts are compared with what that code made of them
 // (the golden) and checked with the collider case of Last Light's tests/scenes.test.ts.
 import { describe, expect, it } from 'vitest'
-import type { Corner, SectorDef } from '../format/expand'
+import type { SectorDef } from '../format/expand'
 import type { WallDef } from '../format/sector.schema'
 import { BLOCKOUT_NAMES, expandedBlockout, loadGeometryGolden, piecesShape } from '../testing/geometry-golden'
+import { room } from '../testing/toy-sectors'
 import {
   type Edge,
   edges,
@@ -21,14 +22,6 @@ import {
 } from './sectors'
 
 type Level = Pick<SectorDef, 'floor' | 'ceiling'>
-
-const room = (id: string, corners: Corner[], level: Level): SectorDef => ({
-  id,
-  zone: 'z',
-  light: 1,
-  corners,
-  ...level,
-})
 
 /** Two rooms side by side, `a` on the left, joined by a portal on a's east wall (its edge 1) and b's west wall (edge 3). */
 const joined = (a: Level, b: Level, wall: WallDef = {}): ResolvedMap =>

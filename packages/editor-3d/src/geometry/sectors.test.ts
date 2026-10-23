@@ -2,7 +2,7 @@
 // 92e6704) on the same inputs; the shipped blockouts are compared with what that code made of them (the golden) and
 // checked with the geometry cases of Last Light's tests/scenes.test.ts.
 import { describe, expect, it } from 'vitest'
-import type { Corner, SectorDef } from '../format/expand'
+import type { Corner } from '../format/expand'
 import type { Point } from '../format/sector.schema'
 import {
   BLOCKOUT_NAMES,
@@ -11,6 +11,7 @@ import {
   loadGeometryGolden,
   sectorsShape,
 } from '../testing/geometry-golden'
+import { room, square } from '../testing/toy-sectors'
 import {
   crossing,
   DEFAULT_TRIM,
@@ -26,21 +27,6 @@ import {
   WALL_THICK,
 } from './sectors'
 
-const square = (x0: number, z0: number, x1: number, z1: number): Corner[] => [
-  [x0, z0],
-  [x1, z0],
-  [x1, z1],
-  [x0, z1],
-]
-const room = (id: string, corners: Corner[], more: Partial<SectorDef> = {}): SectorDef => ({
-  id,
-  zone: 'z',
-  floor: 0,
-  ceiling: 3,
-  light: 1,
-  corners,
-  ...more,
-})
 const at = <T>(items: readonly T[], index: number): T => items[index] as T
 const loopOf = (sector: Sector, loop = 0): Sector['loops'][number] => at(sector.loops, loop)
 const only = (resolved: Resolved): Sector => at(resolved.sectors, 0)
