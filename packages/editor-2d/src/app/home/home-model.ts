@@ -120,6 +120,26 @@ export function kindTone(registry: ProfileRegistry, profileId: string): string {
   return at === -1 ? '--color-text-dim' : (KIND_TOKENS[at % KIND_TOKENS.length] ?? '--color-text-dim')
 }
 
+/** What a card and the summary call a project: the profile's own title for it, else its file's name. */
+export function cardTitle(entry: ProjectEntry): string {
+  return entry.status === 'ok' && entry.summary !== undefined ? entry.summary.title : baseName(entry.path)
+}
+
+/** A path as its folder (with the slash) and its file name, so a narrow card can shorten the folder and keep the name. */
+export function splitPath(path: string): { readonly dir: string; readonly name: string } {
+  const at = path.lastIndexOf('/') + 1
+  return { dir: path.slice(0, at), name: path.slice(at) }
+}
+
+/** "812 B", "4.2 KB", "16 MB": a decimal below ten, whole numbers above. */
+export function sizeLabel(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  const kilobytes = bytes / 1024
+  if (kilobytes < 1024) return `${kilobytes < 10 ? kilobytes.toFixed(1) : Math.round(kilobytes)} KB`
+  const megabytes = kilobytes / 1024
+  return `${megabytes < 10 ? megabytes.toFixed(1) : Math.round(megabytes)} MB`
+}
+
 // --- templates --------------------------------------------------------------------------------------------------
 
 export interface TemplateCard {

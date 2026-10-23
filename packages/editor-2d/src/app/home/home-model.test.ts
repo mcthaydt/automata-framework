@@ -7,6 +7,7 @@ import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../editor-app'
 import { createAppProfiles } from '../profiles'
 import type { ProjectEntry } from '../project-list'
 import {
+  cardTitle,
   duplicateMessage,
   entryBadge,
   filterProjects,
@@ -17,6 +18,8 @@ import {
   openProblem,
   reconcileSelection,
   removeMessage,
+  sizeLabel,
+  splitPath,
   stepSelection,
   storageNotes,
   templateCards,
@@ -411,5 +414,46 @@ describe('removeMessage and importNotices', () => {
 
   it('says nothing for no files', () => {
     expect(importNotices([])).toEqual([])
+  })
+})
+
+describe('cardTitle', () => {
+  const listed = { path: 'notes/harbour.note', size: 1, mtime: 1 }
+
+  it('is the profile’s own title for the project, else the file’s name', () => {
+    const titled: ProjectEntry = {
+      ...listed,
+      status: 'ok',
+      profile: ref,
+      errors: 0,
+      warnings: 0,
+      summary: { title: 'Mossgate', facts: [] },
+    }
+    expect(cardTitle(titled)).toBe('Mossgate')
+    expect(cardTitle({ ...titled, summary: undefined })).toBe('harbour.note')
+    expect(cardTitle({ ...listed, status: 'broken', profile: ref, message: 'x' })).toBe('harbour.note')
+    expect(cardTitle({ ...listed, status: 'ambiguous', candidates: [ref, note] })).toBe('harbour.note')
+  })
+})
+
+describe('splitPath', () => {
+  it('splits a path into its folder, with the slash, and the file name', () => {
+    expect(splitPath('notes/harbour.note')).toEqual({ dir: 'notes/', name: 'harbour.note' })
+    expect(splitPath('a/b/c.json')).toEqual({ dir: 'a/b/', name: 'c.json' })
+    expect(splitPath('mossgate.af2d.json')).toEqual({ dir: '', name: 'mossgate.af2d.json' })
+  })
+})
+
+describe('sizeLabel', () => {
+  it('reads bytes, kilobytes and megabytes with one decimal below ten', () => {
+    expect(sizeLabel(0)).toBe('0 B')
+    expect(sizeLabel(812)).toBe('812 B')
+    expect(sizeLabel(1023)).toBe('1023 B')
+    expect(sizeLabel(1024)).toBe('1.0 KB')
+    expect(sizeLabel(4300)).toBe('4.2 KB')
+    expect(sizeLabel(10 * 1024)).toBe('10 KB')
+    expect(sizeLabel(512 * 1024)).toBe('512 KB')
+    expect(sizeLabel(1024 * 1024)).toBe('1.0 MB')
+    expect(sizeLabel(15.5 * 1024 * 1024)).toBe('16 MB')
   })
 })
