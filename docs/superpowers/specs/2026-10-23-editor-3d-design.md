@@ -31,7 +31,7 @@ In: the level editor for Build-style sector levels, as a package that edits a *l
 | Area | ED3D owns | Comes from |
 |---|---|---|
 | Format | Zod schema of `blockout.json` and `facility.json`, `expand` into walls and edges, the profile registry | Vendored from the Last Light source at a recorded commit, with its tests |
-| Codec | Byte-preserving patch of a level file from a model change | Port of `json-edit` and `json-structure` |
+| Codec | Byte-preserving patch of a level file from a model change | Port of `json-edit` and `json-structure` with the TypeScript parser replaced by a small JSON span scanner (§4.5) |
 | Checks | The validator rules (§7) as pure functions with locators | Port of `blockout-lib.ts` |
 | Model | Level document, selection, the commands in §5.4 | New |
 | Views | Plan, dollhouse, walk, world (renderers and tools) | New; the mockups are the contract |
@@ -52,7 +52,7 @@ Each runs on its default unless the Owner vetoes it.
 | ED3D-D1 | New package `packages/editor-3d` (Svelte 5, plain TypeScript for everything but components), private, on `editor-kit` | Same stack and reasons as EDK-D1 and EDK-D2. `format`, `codec`, `checks` and `model` import no Svelte, no DOM and no clock. |
 | ED3D-D2 | The Last Light blockout format is the first *level profile*; no AF-native format yet | The editor has to work on real levels now, and the 3D framework that would define a native format comes after it. A profile is `{ id, schema, codec, checks, materials, viewHints }`, so a second profile is additive. |
 | ED3D-D3 | Zod is the schema language; the types are inferred | AGENTS.md. The vendored TypeScript types become one schema per file. |
-| ED3D-D4 | Save patches the original text from a model diff, not live span edits | The kit's `History` stores whole snapshots (EDK-D4). The codec walks old and new model, writes literal edits for changed numbers and strings and inserts or removes spans for structural changes, copying sibling layout as Last Light does. Round-trip and edit tests on the four shipped files decide whether this holds; if a case cannot be done byte-exact, the codec refuses and reports the path rather than reformatting. |
+| ED3D-D4 | Save patches the original text from a model diff, not live span edits; the span scanner is ours, not TypeScript's | The kit's `History` stores whole snapshots (EDK-D4). The codec walks old and new model, writes literal edits for changed numbers and strings and inserts or removes spans for structural changes, copying sibling layout as Last Light does. Last Light finds spans with `ts.parseJsonText`; the editor runs in a browser on an iPad, so the port swaps that for a scanner of about 150 lines (§4.5) and adds no `typescript` dependency. Round-trip and edit tests on the four shipped files decide whether this holds; if a case cannot be done byte-exact, the codec refuses and reports the path rather than reformatting. |
 | ED3D-D5 | The editor never writes generated files | `map.ts`, `level.ts` and the stage record belong to the game's pipeline. After a save the editor shows the profile's generate command and, where a `Generator` port exists, runs it. |
 | ED3D-D6 | The 3D viewport is the editor's own small renderer on PixiJS v8 meshes with flat shading | `render-pixi3d` and GAME-3D do not exist until after the editors, and the editor must not wait for them. It is editor-private, draws extruded sectors, props and lamps only, and is replaced by `render-pixi3d` when M9 merges the 3D pieces back. No `@pixi/3d`. |
 | ED3D-D7 | Plan is the only view that draws; 3D selects, paints and checks | Build's own split. Walls, doors, windows and materials can also be changed from Walk because they are properties of a selected wall, not geometry. |
@@ -111,6 +111,21 @@ interface AskProvider { propose(prompt: string, scope: Selection, budget: number
 ```
 
 AF ships none of the three. The Last Light server implements them for its own repo. The editor treats a missing port as "feature off" and never as an error.
+
+### 4.5 Codec
+
+The codec turns *old text + new model* into *new text* and changes nothing it was not asked to. It has four parts, each a pure function with no DOM, clock or `typescript` import.
+
+1. **Scanner** (`locate.ts`): one pass over the text that yields, for every value, its JSON path, kind and `[start, end)` span, plus the span of each object member (key to value) and array element, and the commas around them. It accepts exactly what `JSON.parse` accepts and throws with an offset otherwise. Last Light used `ts.parseJsonText` for this; the scanner is the port's one rewrite, and its tests are the Last Light `json-edit` cases run against it plus the four shipped files compared span by span with the TypeScript result in a test-only comparison (TypeScript is a dev dependency of that one test, not of the package).
+2. **Layout** (`layout.ts`): reads how siblings are written (indent unit, space inside braces, packed lines up to width 120) so an inserted element looks like its neighbours. Ported from `json-structure`.
+3. **Diff** (`patch.ts`): walks the old and the new model together and emits edits.
+   - Objects are matched by key. A changed number or string becomes a literal edit of that value's span; numbers print with at most 4 decimals and no exponent, as Last Light does.
+   - Arrays whose elements carry an `id` (sectors, boxes, hotspots, lamps, anchors, zones, nav nodes) are matched by id: a new id is an insert at its position, a missing id is a removal, a changed element is diffed in place. A pure reorder of ids is an unsupported change.
+   - Positional arrays (`corners`, `nav` edges, coordinate pairs) are matched by common prefix and suffix; the middle is replaced by an insert, a removal or a replace of whole elements. A pure reorder or a middle edit of more than one kind is rewritten as one replace of the differing run.
+   - A key the schema does not know is carried through untouched; the model keeps unknown members so a diff never deletes them.
+4. **Apply** (`patch.ts`): all-or-nothing. The edits are checked for overlap, applied from the end of the text to the start, and the result is parsed again; it must equal the new model (Zod-parsed, deep equal) or the whole patch is refused with the path of the first edit that disagrees. The same function backs undo, because undo restores the previous *model* and the next save diffs against the file on disk.
+
+A file nobody changed is byte-identical (the diff of equal models is empty). Anything the diff cannot express (a reorder it cannot map, a replaced root, a value of a different kind than the old one inside a matched array element) is reported as `{ path, reason }` and handled by §8, never guessed.
 
 ## 5. Model and ordered flows
 
