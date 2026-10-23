@@ -3,7 +3,7 @@
 - **Task:** ED3D.1c, added by this plan between ED3D.1 and ED3D.2 (the row lands with the ED3D follow-up to the master plan). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.3 (the geometry owner), §7 (the checks read it), D15 (geometry reaches the views only as a list of layers). Acceptance: the geometry halves of ED3-c, ED3-d, ED3-e and ED3-l (§13), proved here by queries and goldens; the rest need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.1 (`expand` and its output types; branch `claude/project-thread-ljshus-ed3d-1`, PR #107). No editor-kit code, no Svelte, no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed. Written and built on the Orchestrator's go-ahead of 02:20 UTC (bus), like ED3D.1; spec review (ED3D.0) is still open.
-- **Progress:** 0 of 5 steps.
+- **Progress:** 1 of 5 steps.
 
 ## Why this task exists
 
@@ -70,10 +70,11 @@ Port rules: the arithmetic is Last Light's, expression for expression, so floats
 
 Each step starts with its test, run red, with the failure reason recorded; the red test is committed with its fix. Strict TDD applies to everything under `packages/`.
 
-- [ ] **1. The recorder and its golden** (`fixtures.test.ts` gains the entry; `record-geometry.mjs`, `geometry.golden.json`, `SOURCE.json`).
+- [x] **1. The recorder and its golden** (`fixtures.test.ts` gains the entry; `record-geometry.mjs`, `geometry.golden.json`, `SOURCE.json`).
   - *Red:* `SOURCE.json` lists `geometry.golden.json` with its byte length, sha256 and recorder command, and the file exists with those; the golden has, for each of the four blockouts, the resolved sectors (every edge with its numbers and links), masses, pieces, colliders, sight walls, a `sectorAt` grid at 0.5 m over the bounding box, and the nav answers (`clear` for every node pair at margin 0.3 with the doors open and shut, `nearestNode` for the spawn and every hotspot, `nearAWall` for every node).
   - *Expected failure:* the fixtures test finds no entry for `geometry.golden.json`.
   - *Verify:* the recorder run twice gives the same bytes; it reads the checkout and writes nothing there.
+  - *Done: red `ENOENT geometry.golden.json` in both new fixtures tests; the recorder ran on its first try. Run twice it wrote identical bytes (157 kB), and the Last Light checkout stayed clean. Clinic 7 sectors, 3 masses, 37 pieces, 34 colliders, 28 sight walls, 18 nodes (54 of 153 node pairs clear with the doors open, 53 with them shut); dawn 9 sectors; bay 19 sectors, 30 nodes; prologue 7 sectors. 12 of 12 in `fixtures.test.ts`.*
 - [ ] **2. Resolving sectors** (`sectors.test.ts`; `sectors.ts` up to `resolveSectors`, `edges`, `insideSector`, `sectorAt`, `floorAt`, `polygonArea`, `crossing`, `segmentDistance`).
   - *Red, by case:* a clockwise outer loop is reversed so the room is on the left, a counter-clockwise hole reversed; an edge has the right `dir`, `normal`, `length`, `u0`, `prev` and `succ` on a square with a hole; a portal's `next` is the target sector and an unknown target throws `unknown portal target`; a pilaster becomes three notch walls and a mass, mirrored when the loop is reversed; the sector's trim is `DEFAULT_TRIM` overridden by its own, and an edge's trim by its wall's; `crossing` and `segmentDistance` on fixed numbers (crossing, touching, parallel, apart); `sectorAt` respects holes; all four resolved blockouts equal the golden (sectors, masses); the source tests: every loop is closed, simple and wound with the room on its left, sectors do not overlap, portals match on both sides, on each blockout.
   - *Expected failure:* module missing.
