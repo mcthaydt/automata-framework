@@ -6,25 +6,34 @@ const hasValue = (values: FieldValues, id: string): boolean =>
   Object.hasOwn(values, id) && values[id] !== undefined
 
 /**
- * Problems for a whole instance: each field's value checked in definition order, a missing required field
- * as `fieldMissing`, then every value whose id has no field as `unknownField`, in sorted order.
+ * The problem with one field of an instance, or `undefined`: a missing required field is `fieldMissing`, a present
+ * value is checked against the field. Shared by `checkValues` and `checkRetype`.
+ */
+export function checkFieldInstance(field: FieldDef, values: FieldValues): InstanceProblem | undefined {
+  if (!hasValue(values, field.id)) {
+    return field.required
+      ? { code: 'fieldMissing', message: `${field.id} is required`, fieldId: field.id }
+      : undefined
+  }
+  const misfit = checkFieldValue(field, values[field.id])
+  return misfit ? { ...misfit, fieldId: field.id } : undefined
+}
+
+/**
+ * Problems for a whole instance: each field in definition order (a missing required field is `fieldMissing`),
+ * then every value whose id has no field as `unknownField`, in sorted order.
  */
 export function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly InstanceProblem[] {
   const problems: InstanceProblem[] = []
   for (const field of fields) {
-    if (!hasValue(values, field.id)) {
-      if (field.required) {
-        problems.push({ code: 'fieldMissing', message: `${field.id} is required`, fieldId: field.id })
-      }
-      continue
-    }
-    const misfit = checkFieldValue(field, values[field.id])
-    if (misfit) problems.push({ ...misfit, fieldId: field.id })
+    const problem = checkFieldInstance(field, values)
+    if (problem) problems.push(problem)
   }
   const known = new Set(fields.map((field) => field.id))
   for (const id of Object.keys(values).sort()) {
-    if (!known.has(id))
+    if (!known.has(id)) {
       problems.push({ code: 'unknownField', message: `${id} is not a field of this entity`, fieldId: id })
+    }
   }
   return problems
 }
