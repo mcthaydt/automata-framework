@@ -233,7 +233,7 @@ type EntityShape = 'rect' | 'ellipse' | 'point' | 'tile';
 interface ExportTarget<V> {
     readonly id: string;
     readonly label: string;
-    files(value: V): readonly {
+    files(value: V, base: string): readonly {
         readonly path: string;
         readonly contents: string;
     }[];
@@ -521,6 +521,7 @@ interface Profile<V> {
     parse(text: string): Result<V, readonly ParseError[]>;
     print(base: string, value: V): string;
     check(value: V, context: ProjectContext): readonly Diagnostic[];
+    fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V;
     readonly templates: readonly TemplateDef<V>[];
     readonly views: readonly ViewDef[];
     readonly exports: readonly ExportTarget<V>[];
