@@ -2,12 +2,12 @@
 // and a pilaster adds walls of its own, so an expanded edge is not always a corner of the file: the locator names the
 // corner a wall came from, and a sector for a wall that came from none (never a wrong corner).
 import { describe, expect, it } from 'vitest'
-import type { Blockout } from '../../format/blockout.schema'
-import { expand } from '../../format/expand'
-import { resolveMap } from '../../geometry/sectors'
-import { loadFixture } from '../../testing/fixtures'
-import { BLOCKOUT_NAMES } from '../../testing/geometry-golden'
-import { must, toyBlockout, toyRoom } from '../../testing/toy-blockout'
+import type { Blockout } from '../format/blockout.schema'
+import { expand } from '../format/expand'
+import { resolveMap } from '../geometry/sectors'
+import { loadFixture } from '../testing/fixtures'
+import { BLOCKOUT_NAMES } from '../testing/geometry-golden'
+import { must, toyBlockout, toyRoom } from '../testing/toy-blockout'
 import { wallLocator } from './wall-locator'
 
 const resolve = (blockout: Blockout) => {
@@ -15,7 +15,7 @@ const resolve = (blockout: Blockout) => {
   return resolveMap(expanded.sectors, expanded.masses)
 }
 const locatorsOf = (blockout: Blockout, sector: string) => {
-  const locate = wallLocator(blockout)
+  const locate = wallLocator(blockout.rooms)
   return resolve(blockout)
     .edges.filter((edge) => edge.sector.id === sector)
     .map((edge) => locate(edge))
@@ -77,9 +77,9 @@ describe('wallLocator', () => {
     const found = locatorsOf(clockwise, 'a').map((locator) => locator?.selection)
     expect(found.sort()).toEqual(['wall:a/0', 'wall:a/1', 'wall:a/2', 'wall:a/3'])
     const west = resolve(clockwise).edges.find((edge) => edge.a.x === 0 && edge.b.x === 0)
-    expect(wallLocator(clockwise)(must(west))?.selection).toBe('wall:a/0')
+    expect(wallLocator(clockwise.rooms)(must(west))?.selection).toBe('wall:a/0')
     const north = resolve(clockwise).edges.find((edge) => edge.a.z === 4 && edge.b.z === 4)
-    expect(wallLocator(clockwise)(must(north))?.selection).toBe('wall:a/1')
+    expect(wallLocator(clockwise.rooms)(must(north))?.selection).toBe('wall:a/1')
   })
 
   it("gives a pilaster's notch walls the sector, even where one lies on a neighbouring wall", () => {
@@ -98,7 +98,7 @@ describe('wallLocator', () => {
       openings: [],
       boxes: [],
     })
-    const locate = wallLocator(pilastered)
+    const locate = wallLocator(pilastered.rooms)
     const edges = resolve(pilastered).edges
     // The first notch wall runs (0,0)→(0,0.25): on the west wall's line, which is corner 3's.
     expect(edges[0]?.notch).toBe(true)
@@ -194,7 +194,7 @@ describe('wallLocator', () => {
   })
 
   it('names the wall from a room that is not in the file (the map came from elsewhere) by its sector', () => {
-    const locate = wallLocator(toyBlockout({ rooms: [toyRoom('a')], openings: [], boxes: [] }))
+    const locate = wallLocator([toyRoom('a')])
     const other = resolve(toyBlockout()).edges.find((edge) => edge.sector.id === 'b')
     expect(locate(must(other))?.selection).toBe('sector:b')
   })
@@ -204,7 +204,7 @@ describe('wallLocator', () => {
       const blockout = JSON.parse(loadFixture(name)) as Blockout
       const expanded = expand(blockout)
       const map = resolveMap(expanded.sectors, expanded.masses)
-      const locate = wallLocator(blockout)
+      const locate = wallLocator(blockout.rooms)
       let walls = 0
       for (const edge of map.edges) {
         const room = blockout.rooms.find((candidate) => candidate.id === edge.sector.id)
