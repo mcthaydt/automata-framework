@@ -3,7 +3,7 @@
 - **Task:** EDK.1 in [02](../../02-master-delivery-plan.md). [Editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.1 (tokens), §4.2 (`EditorShell`), §7 (sizes), §8 (tests); decisions EDK-D1 to EDK-D3, EDK-D6; acceptance EK-g.
 - **Lane:** editor-kit. **Depends on:** EDK.0 (drafted, in PR #93; this PR stacks on it for `docs/design/editor-kit/tokens.json`).
 - **Status:** In progress 2026-10-23.
-- **Progress:** 4 of 7 steps (1 scaffold, 2 `tokensToCss`, 3 `tokens.css`, fonts and quality tests, 4 shell rules). Deviations are listed under Execution record.
+- **Progress:** 5 of 7 steps (1 scaffold, 2 `tokensToCss`, 3 `tokens.css`, fonts and quality tests, 4 shell rules, 5 `EditorShell` behavior in jsdom). Deviations are listed under Execution record.
 
 ## Sources
 
@@ -49,8 +49,8 @@ export function dockPlacementOf(mode: ShellMode, tier: HeightTier): DockPlacemen
 export function defaultDockOpen(mode: ShellMode, tier: HeightTier): boolean
 export const DETENTS: readonly Detent[]               // peek, half, full
 export function nextDetent(detent: Detent): Detent    // peek → half → full → peek
-/** peek is the region's own strip (dock: 148 + 20 handle, others 96); half is 50% and full 92% of the available height. */
-export function detentHeight(region: ShellRegion, detent: Detent, available: number): number
+/** A CSS length for the sheet's height, resolved against its grid area: peek is the region's own strip (dock: 148 + the 44 handle, others 96), half is 50% and full 92%. */
+export function detentLength(region: ShellRegion, detent: Detent): string
 ```
 
 ### `src/shell/shell-open.ts` (create; pure)
@@ -115,3 +115,8 @@ Layout contract passes at the sizes in step 6 in Chromium. Pending and listed fo
 - **Deviation: `@types/node` added as a dev dependency** (24.19.1, like the other packages) and `allowImportingTsExtensions`, because `scripts/generate-tokens.ts` and the token tests read files; the script runs under Node's type stripping like `ui`'s `build/finish-dist.ts`.
 - **`svelte-check` prints "no svelte input files" until step 5 adds `EditorShell.svelte`;** with `--fail-on-warnings` the package typecheck is red until then, and is run again in step 5.
 - **Step 4 (done 2026-10-23).** `shell-mode.test.ts` and `shell-open.test.ts` failed first on the missing modules. The size table in the test classifies each window with the geometry owner's own `classifyFormFactor` and `classifyHeightTier` (imported from `@mcthaydt/automata-ui`), so the shell rules and the owner cannot disagree about what 900 × 600 or 1133 × 744 is. One test was wrong, not the code: "none newly opened" started from a closed `previous`, which makes all three newly opened; it now starts from all three open.
+- **Step 5 (done 2026-10-23).** `editor-shell.test.ts` failed first on the missing `EditorShell.svelte`; 58 unit tests pass and `svelte-check --fail-on-warnings` is clean, so the package typecheck is green again.
+  - **Deviation: `detentHeight(region, detent, available)` became `detentLength(region, detent)`,** a CSS length (`min(96px, 100%)`, `50%`, `92%`). Sheets sit in the canvas's grid cell, where a percentage resolves against that cell, so a rotation or a keyboard needs no measuring and there is no first frame at height 0. The dock's peek is 148 plus a 44 px handle (192), not 148 plus 20: the handle is a touch target and must be 44 px high (AGENTS.md), so it sits in flow above the content instead of overlapping it. The kit spec §4.2 line "peek 96" stays right for the panel and inspector.
+  - **Regions in the DOM:** drawers and sheets are siblings placed in the canvas's grid cell (`grid-area: canvas`) and moved with `transform`; the root is `position: fixed` and pads by the geometry owner's insets, so the shell needs no `fixed` children and no safe-area math of its own. The rail snippet's wrapper carries `data-presentation="rail"` (wide) or `"tabbar"` (below wide).
+  - **jsdom and `inert`:** Svelte sets `inert` as a property; a browser reflects it to the attribute, jsdom does not. The unit tests assert the property; the layout tests (step 6) assert the attribute in Chromium.
+  - **Not covered by jsdom, left for step 6:** real focus, real scroll positions and every pixel of layout. The jsdom focus test proves the shell does not remount the canvas; it cannot prove the browser keeps focus through a CSS grid change.

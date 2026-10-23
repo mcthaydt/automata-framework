@@ -44,21 +44,17 @@ export function nextDetent(detent: Detent): Detent {
   return DETENTS[(DETENTS.indexOf(detent) + 1) % DETENTS.length] as Detent
 }
 
-const PEEK_STRIP = 96
-const DOCK_PEEK_STRIP = 148 + 20 // the dock's own strip and its handle
-const HALF = 0.5
-const FULL = 0.92
+const HANDLE = 44 // a sheet's handle is a touch target (AGENTS.md)
+const PEEK_STRIP = 96 // a panel or inspector: the handle and one row of the region
+const DOCK_PEEK_STRIP = 148 + HANDLE // the dock's own 148 px and the handle
 
 /**
- * The height of an open sheet, in whole px, never more than the space there is. Peek is the region's own
- * strip; half and full are shares of `available`, the height the sheet may use.
+ * The height of an open sheet as a CSS length, to be set where a percentage resolves against the room the
+ * sheet may use (its grid area). Peek is the region's own strip, never more than that room; half and full
+ * are shares of it. CSS does the sum, so a rotation or a keyboard needs no measuring.
  */
-export function detentHeight(region: ShellRegion, detent: Detent, available: number): number {
-  const height =
-    detent === 'peek'
-      ? region === 'dock'
-        ? DOCK_PEEK_STRIP
-        : PEEK_STRIP
-      : Math.round(available * (detent === 'half' ? HALF : FULL))
-  return Math.min(height, Math.max(0, available))
+export function detentLength(region: ShellRegion, detent: Detent): string {
+  if (detent === 'half') return '50%'
+  if (detent === 'full') return '92%'
+  return `min(${region === 'dock' ? DOCK_PEEK_STRIP : PEEK_STRIP}px, 100%)`
 }

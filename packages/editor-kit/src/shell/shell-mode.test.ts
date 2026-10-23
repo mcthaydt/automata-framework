@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest'
 import {
   DETENTS,
   defaultDockOpen,
-  detentHeight,
+  detentLength,
   dockPlacementOf,
   nextDetent,
   type ShellMode,
@@ -72,21 +72,16 @@ describe('detents', () => {
     expect(nextDetent('full')).toBe('peek')
   })
 
-  test('peek is the region strip: 96 for a panel or inspector, 148 plus a 20 px handle for the dock', () => {
-    expect(detentHeight('panel', 'peek', 1000)).toBe(96)
-    expect(detentHeight('inspector', 'peek', 1000)).toBe(96)
-    expect(detentHeight('dock', 'peek', 1000)).toBe(168)
+  test('peek is the region strip, handle included: 96 for a panel or inspector, 148 plus the 44 px handle for the dock', () => {
+    expect(detentLength('panel', 'peek')).toBe('min(96px, 100%)')
+    expect(detentLength('inspector', 'peek')).toBe('min(96px, 100%)')
+    expect(detentLength('dock', 'peek')).toBe('min(192px, 100%)')
   })
 
-  test('half is 50% and full is 92% of the available height, in whole px', () => {
-    expect(detentHeight('panel', 'half', 1000)).toBe(500)
-    expect(detentHeight('panel', 'full', 1000)).toBe(920)
-    expect(detentHeight('dock', 'full', 751)).toBe(691)
-    expect(detentHeight('dock', 'half', 751)).toBe(376)
-  })
-
-  test('a sheet is never taller than the space there is', () => {
-    expect(detentHeight('dock', 'peek', 120)).toBe(120)
-    expect(detentHeight('panel', 'full', 0)).toBe(0)
+  test('half is 50% and full is 92% of the room the sheet has, whichever region it is', () => {
+    expect(detentLength('panel', 'half')).toBe('50%')
+    expect(detentLength('dock', 'half')).toBe('50%')
+    expect(detentLength('panel', 'full')).toBe('92%')
+    expect(detentLength('inspector', 'full')).toBe('92%')
   })
 })
