@@ -37,9 +37,9 @@ audioScreens.push({
       panelHead('Cues', ib('plus'), ib('more')),
       R(
         { w: 'fill', h: 44, pad: [0, 8], gap: 4 },
-        chip('all', { on: true, color: Q.ED.audio.color }),
+        chip('all', { on: true, color: Q.ED.audio.color, x: 16 }),
         chip('effects'),
-        chip('ui'),
+        chip('ui', { x: 18 }),
         chip('music'),
       ),
       R({ w: 'fill', h: 52, pad: [0, 8] }, search('Search cues')),
@@ -145,18 +145,18 @@ audioScreens.push({
         pill('peak −6.2 dB', { color: 'state/ok', mono: true }),
       ),
       R(
-        { name: 'voices header', x: 12, y: 296, w: 530, h: 28, gap: 8 },
+        { name: 'voices header', x: 12, y: 290, w: 530, h: 44, gap: 8 },
         eyebrow('Voices'),
         spacer(),
-        btn('Add voice', { icon: 'plus', h: 36 }),
+        btn('Add voice', { icon: 'plus', h: 44 }),
       ),
       F(
         {
           name: 'voices',
           x: 12,
-          y: 328,
+          y: 338,
           w: 530,
-          h: 150,
+          h: 140,
           r: 'radius/md',
           fill: 'bg/surface',
           stroke: 'border/default',
@@ -166,7 +166,7 @@ audioScreens.push({
         ...L.kids,
       ),
       R(
-        { name: 'used by', x: 12, y: 490, w: 530, h: 36, gap: 8 },
+        { name: 'used by', x: 12, y: 484, w: 530, h: 44, gap: 8 },
         eyebrow('Played by'),
         chip('cutscene arrival · 0.2 s', { mono: true }),
         chip('noise.bang', { mono: true }),

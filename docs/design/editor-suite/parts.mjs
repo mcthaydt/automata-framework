@@ -9,15 +9,15 @@ export function suiteParts(S, P, D) {
   const { R, C, region, line, eyebrow, dot, pill, btn, ib, inputBox } = P
 
   // One colour per editor, in the `Editor Suite` collection, so each editor binds its own variable instead of
-  // borrowing FloorFifty's layer and phase tokens. The values are the hues the Owner approved; `ed/audio` still equals
-  // `state/warn` (audit M3), a look change left for the Owner to decide.
+  // borrowing FloorFifty's layer and phase tokens. The values are the hues the Owner approved, except `ed/audio`: it was
+  // `state/warn`'s yellow, so its selections read as warnings (audit M3), and is now a cyan no state colour uses.
   S.defineTokens({
     'ed/sequence': '#a58be0',
     'ed/tuner': '#5aa9a0',
     'ed/writer': '#6aa8e8',
     'ed/studio': '#e07a6a',
     'ed/schematic': '#7e8de0',
-    'ed/audio': '#e6c35c',
+    'ed/audio': '#4ec3d6',
     'ed/feel': '#d977b0',
     'ed/levels': '#e0a54a',
     'ed/review': '#6fbf73',
@@ -63,6 +63,7 @@ export function suiteParts(S, P, D) {
     frames:
       '<rect x="3" y="6" width="5" height="12" rx="1"/><rect x="9.5" y="6" width="5" height="12" rx="1"/><rect x="16" y="6" width="5" height="12" rx="1"/>',
     hash: '<path d="M9 4L7 20M17 4l-2 16M4 9h16M3 15h16"/>',
+    transfer: '<path d="M7 20V6M3 10l4-4 4 4M17 4v14M13 14l4 4 4-4"/>',
   })
 
   // One colour and icon per editor, from the `ed/*` tokens above.
@@ -179,7 +180,9 @@ export function suiteParts(S, P, D) {
       o.mid,
       ib('sparkles', { color: 'ed/feel', fill: alpha('ed/feel', 0.12), stroke: alpha('ed/feel', 0.5) }),
       ib('undo'),
-      btn(o.primary || 'Ship', { kind: 'primary', h: 48, icon: o.primaryIcon || 'external' }),
+      o.primary === false
+        ? null
+        : btn(o.primary || 'Ship', { kind: 'primary', h: 48, icon: o.primaryIcon || 'external' }),
     )
 
   const shell = (name, w, h, ...kids) => F({ name, w, h, fill: 'bg/app', clip: true }, ...kids)
@@ -250,7 +253,9 @@ export function suiteParts(S, P, D) {
       o.ask === false ? null : askBtn({ tokens: o.tokens || '38k' }),
       ib('undo'),
       ib('redo', { disabled: o.redo !== true }),
-      btn(o.primary || 'Ship', { kind: 'primary', h: 48, icon: o.primaryIcon || 'external' }),
+      o.primary === false
+        ? null
+        : btn(o.primary || 'Ship', { kind: 'primary', h: 48, icon: o.primaryIcon || 'external' }),
     )
 
   // ── Status bar (28 high) ──
@@ -303,21 +308,25 @@ export function suiteParts(S, P, D) {
     R({ w: 'fill', h: 30, pad: [0, 12] }, eyebrow(text), spacer(), right ? mono(right) : null)
   const sectionTitle = (text, right) =>
     R({ w: 'fill', h: 28, pad: [8, 0, 0, 0] }, eyebrow(text), spacer(), right)
+  // The visible chip stays 28 px (36 in portrait) inside a 44 px touch row (audit M2), so rows of chips keep their look.
   const chip = (text, o = {}) => {
     const c = o.color || 'text/dim'
     return R(
-      {
-        name: `chip/${text}`,
-        h: o.h || 28,
-        pad: [0, o.x == null ? 10 : o.x],
-        gap: 6,
-        r: 'radius/sm',
-        fill: o.on ? alpha(c, 0.18) : 'bg/field',
-        stroke: o.on ? alpha(c, 0.7) : 'border/default',
-      },
-      o.dotColor ? dot(o.dotColor, 7) : null,
-      T(text, { style: o.mono ? 'Mono/11' : 'Label/12', color: o.on ? c : 'text/primary' }),
-      o.remove ? I('close', { size: 12, color: 'text/faint' }) : null,
+      { name: `chip/${text}`, h: 44 },
+      R(
+        {
+          name: 'face',
+          h: o.h || 28,
+          pad: [0, o.x == null ? 10 : o.x],
+          gap: 6,
+          r: 'radius/sm',
+          fill: o.on ? alpha(c, 0.18) : 'bg/field',
+          stroke: o.on ? alpha(c, 0.7) : 'border/default',
+        },
+        o.dotColor ? dot(o.dotColor, 7) : null,
+        T(text, { style: o.mono ? 'Mono/11' : 'Label/12', color: o.on ? c : 'text/primary' }),
+        o.remove ? I('close', { size: 12, color: 'text/faint' }) : null,
+      ),
     )
   }
   const swatch = (hex, s = 20, o = {}) =>
@@ -441,23 +450,27 @@ export function suiteParts(S, P, D) {
       T(name, { style: 'Label/12', color: 'text/dim' }),
       inputBox(value, { chevron: true, mono: o.mono, h: 44 }),
     )
+  // A 40 × 24 switch centred in a 48 × 44 touch target (audit M2).
   const toggle = (on, o = {}) =>
     R(
-      {
-        name: 'toggle',
-        w: 40,
-        h: 24,
-        pad: 3,
-        r: 12,
-        ax: on ? 'end' : 'start',
-        fill: on ? alpha(o.color || 'accent/default', 0.35) : 'bg/field',
-        stroke: on ? o.color || 'accent/default' : 'border/strong',
-      },
-      F({ w: 18, h: 18, r: 9, fill: on ? o.color || 'accent/default' : 'text/faint' }),
+      { name: 'toggle', w: 48, h: 44, ax: 'center' },
+      R(
+        {
+          name: 'switch',
+          w: 40,
+          h: 24,
+          pad: 3,
+          r: 12,
+          ax: on ? 'end' : 'start',
+          fill: on ? alpha(o.color || 'accent/default', 0.35) : 'bg/field',
+          stroke: on ? o.color || 'accent/default' : 'border/strong',
+        },
+        F({ w: 18, h: 18, r: 9, fill: on ? o.color || 'accent/default' : 'text/faint' }),
+      ),
     )
   const toggleRow = (text, on, sub, o = {}) =>
     R(
-      { w: 'fill', h: sub ? 48 : 40, gap: 12 },
+      { w: 'fill', h: sub ? 48 : 44, gap: 12 },
       C(
         { w: 'fill', gap: 0 },
         T(text, { style: 'Body/13' }),
@@ -880,6 +893,57 @@ export function suiteParts(S, P, D) {
       T(text, { style: 'Mono/11', color: o.color || 'text/dim' }),
     )
 
+  // The Bay's shutter chain (puzzle.toml), drawn from the goal back to what the player starts with. Shared by the
+  // landscape and portrait Schematic screens; x places its 554 x 602 frame inside the canvas.
+  const shutterGraph = (x) => {
+    const act = (title, sub, x, y, o = {}) =>
+      gnode(x, y, o.w || 128, 64, { title, sub, color: o.color || 'layer/sky', sel: o.sel, state: o.state })
+    const sys = (title, sub, x, y) => gnode(x, y, 128, 64, { title, sub, color: 'phase/teach' })
+    const Y = [18, 124, 230, 330, 430, 536]
+    const X4 = [6, 142, 278, 414]
+    const nodes = [
+      act('drum.light', 'lighter · matches · torch', X4[0], Y[0]),
+      act('burner.light', 'in the mortuary', X4[1], Y[0]),
+      act('floor.lighter', 'hold the flame up', X4[2], Y[0]),
+      act('floor.bottle', 'throw into the mortuary', X4[3], Y[0]),
+      sys('porterAtDrum', 'warmth draws him (P1)', X4[0], Y[1]),
+      sys('porterAtBurner', 'into the mortuary', X4[1], Y[1]),
+      sys('porterAtFlame', 'goes to where it burned', X4[2], Y[1]),
+      sys('porterLatched', 'banging, then quiet (P9)', X4[3], Y[1]),
+      act('keyHook.take', 'keysAt hook → Ada', 76, Y[2]),
+      act('mortuaryDoor.keys', 'keysAt door → Ada', 330, Y[2], { w: 156 }),
+      act('shutter.unlock', 'uses keys · padlock off', 212, Y[3], { sel: true }),
+      act('shutter.crank1', 'a 10 m noise (P3)', 6, Y[4]),
+      act('shutter.crank2', 'a 10 m noise (P3)', 212, Y[4]),
+      act('shutter.open', 'crank 3 · cutscene dawn', 414, Y[4], { color: 'state/ok' }),
+      gnode(212, Y[5], 124, 52, { title: 'goal', sub: 'shutter = 3', icon: 'flag', color: 'state/ok' }),
+    ]
+    const bottom = (x, y, w = 128) => [x + w / 2, y + 64]
+    const top_ = (x, y, w = 128) => [x + w / 2, y]
+    const E = edges(0, 0, 554, 602, [
+      { a: bottom(X4[0], Y[0]), b: top_(X4[0], Y[1]), c: 'layer/sky', v: true },
+      { a: bottom(X4[1], Y[0]), b: top_(X4[1], Y[1]), c: 'layer/sky', v: true },
+      { a: bottom(X4[2], Y[0]), b: top_(X4[2], Y[1]), c: 'layer/sky', v: true },
+      { a: bottom(X4[3], Y[0]), b: top_(X4[3], Y[1]), c: 'layer/sky', v: true },
+      { a: bottom(X4[0], Y[1]), b: top_(76, Y[2]), c: 'phase/teach', v: true },
+      { a: bottom(X4[1], Y[1]), b: top_(76, Y[2]), c: 'phase/teach', v: true },
+      { a: bottom(X4[2], Y[1]), b: top_(76, Y[2]), c: 'phase/teach', v: true },
+      { a: bottom(X4[3], Y[1]), b: top_(330, Y[2], 156), c: 'phase/teach', v: true },
+      { a: bottom(76, Y[2]), b: top_(212, Y[3]), c: 'layer/sky', v: true },
+      { a: bottom(330, Y[2], 156), b: top_(212, Y[3]), c: 'layer/sky', v: true },
+      { a: bottom(212, Y[3]), b: top_(212, Y[4]), c: 'layer/sky', v: true },
+      { a: [134, Y[4] + 32], b: [212, Y[4] + 32], c: 'layer/sky', straight: true },
+      { a: [340, Y[4] + 32], b: [414, Y[4] + 32], c: 'layer/sky', straight: true },
+      { a: bottom(414, Y[4]), b: top_(212, Y[5]), c: 'state/ok', v: true },
+    ])
+    return F(
+      { name: 'shutter chain', x, y: 0, w: 554, h: 602 },
+      E,
+      ...nodes,
+      edgeLabel(228, 396, 'safe while he warms (P2)', { color: 'phase/teach' }),
+    )
+  }
+
   // ── Charts ──
   // series: [{ pts: [[x, y]], hex, w }], band: { y0, y1 } in data units, domain [xmin, xmax, ymin, ymax]
   const chart = (w, h, o) => {
@@ -1116,7 +1180,7 @@ export function suiteParts(S, P, D) {
               { x: 0, y: 0, w: o.w || 96, h: o.h || 112, ax: 'center', ay: 'center' },
               I('plus', { size: 22, color: 'accent/default' }),
             )
-          : V(A.figure(fig.view || 0, fig), {
+          : V(fig.rig ? A.rigFigure(fig.rig).svg : A.figure(fig.view || 0, fig), {
               x: ((o.w || 96) - 46) / 2,
               y: 4,
               w: 46,
@@ -1173,6 +1237,58 @@ export function suiteParts(S, P, D) {
       ),
     )
   }
+  // A joint's limit: the allowed range filled, a thumb (44 px target) at each end, the joint's current angle as a tick.
+  const studioRange = (name, lo, hi, cur, max, w = 296) => {
+    const fr = (x) => x / max
+    const thumb = (v, end) => [
+      F({
+        name: `thumb/${end}`,
+        x: w * fr(v) - 22,
+        y: 0,
+        w: 44,
+        h: 44,
+        r: 22,
+        fill: alpha(ED.studio.color, 0.12),
+      }),
+      F({
+        name: `knob/${end}`,
+        x: w * fr(v) - 9,
+        y: 13,
+        w: 18,
+        h: 18,
+        r: 9,
+        fill: ED.studio.color,
+        stroke: 'bg/canvas',
+        sw: 2,
+      }),
+    ]
+    return C(
+      { name: `range/${name}`, w, gap: 2 },
+      R(
+        { w, h: 24, gap: 8 },
+        T(name, { style: 'Label/12', color: 'text/dim' }),
+        spacer(),
+        T(`${lo}° to ${hi}°`, { style: 'Mono/12', color: ED.studio.color }),
+        T(`now ${cur}°`, { style: 'Mono/11', color: 'text/faint' }),
+      ),
+      F(
+        { name: 'track area', w, h: 44 },
+        F({ name: 'track', x: 0, y: 20, w, h: 4, r: 2, fill: 'bg/field', stroke: 'border/default' }),
+        F({
+          name: 'range',
+          x: w * fr(lo),
+          y: 20,
+          w: w * (fr(hi) - fr(lo)),
+          h: 4,
+          r: 2,
+          fill: ED.studio.color,
+        }),
+        F({ name: 'now', x: w * fr(cur) - 1, y: 12, w: 2, h: 20, r: 1, fill: 'text/primary' }),
+        ...thumb(lo, 'low'),
+        ...thumb(hi, 'high'),
+      ),
+    )
+  }
   // A folded section: one row that names what is inside and opens in place.
   const fold = (title, sub, o = {}) =>
     R(
@@ -1226,6 +1342,157 @@ export function suiteParts(S, P, D) {
       ...rows,
     )
   }
+  // A pose made by hand: Ada crouching to a low drawer, feet pinned, her right hand dragged down to the handle.
+  const CROUCH = {
+    hips: [20, 67],
+    head: -1,
+    hands: [
+      [3, 66],
+      [27, 64],
+    ],
+    feet: [
+      [15.5, 81],
+      [24.5, 81],
+    ],
+  }
+  // The rig over the figure: bones and joints, a handle on each effector (hips, head, hands, feet) with a 44 px
+  // target, pins on the feet, the dragged hand's last place, and the elbow's limit as a wedge. `j` is rigFigure's
+  // joints, `at` maps figure units to the stage, `sc` is the figure's scale.
+  const rigHandles = (j, at, box, sc, o = {}) => {
+    const hex = S.hex6(ED.studio.color)
+    const deg = (a, b) => (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI
+    const base = deg(j.shoulders[0], j.elbows[0])
+    let bend = deg(j.elbows[0], j.hands[0]) - base
+    if (bend > 180) bend -= 360
+    if (bend < -180) bend += 360
+    const lim = 145
+    const sgn = bend < 0 ? -1 : 1
+    const pt = (c, r, a) => [
+      +(c[0] + r * Math.cos((a * Math.PI) / 180)).toFixed(2),
+      +(c[1] + r * Math.sin((a * Math.PI) / 180)).toFixed(2),
+    ]
+    const e = j.elbows[0]
+    const w0 = pt(e, 7, base)
+    const w1 = pt(e, 7, base + sgn * lim)
+    const line = (a, b) => `M${a[0].toFixed(2)} ${a[1].toFixed(2)}L${b[0].toFixed(2)} ${b[1].toFixed(2)}`
+    const bones = [
+      line(j.hips, j.chest),
+      line(j.chest, j.head),
+      line(j.shoulders[0], j.shoulders[1]),
+      line(j.hipJoints[0], j.hipJoints[1]),
+      ...[0, 1].map((i) => line(j.shoulders[i], j.elbows[i]) + line(j.elbows[i], j.hands[i])),
+      ...[0, 1].map((i) => line(j.hipJoints[i], j.knees[i]) + line(j.knees[i], j.feet[i])),
+    ]
+    const dots = [j.chest, ...j.shoulders, ...j.elbows, ...j.hipJoints, ...j.knees]
+      .map((p) => `<circle cx="${p[0].toFixed(2)}" cy="${p[1].toFixed(2)}" r=".7" fill="#ffffff"/>`)
+      .join('')
+    const wedge = o.limit
+      ? `<path d="M${e[0].toFixed(2)} ${e[1].toFixed(2)}L${w0[0]} ${w0[1]}A7 7 0 0 ${sgn > 0 ? 1 : 0} ${w1[0]} ${w1[1]}Z" fill="${hex}" fill-opacity=".18" stroke="${hex}" stroke-width=".3" stroke-dasharray="1 .6"/>`
+      : ''
+    const kids = [
+      V(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="90" viewBox="0 0 40 90">${wedge}<path d="${bones.join('')}" fill="none" stroke="${hex}" stroke-width=".45" stroke-linecap="round"/>${dots}</svg>`,
+        { name: 'rig', ...box },
+      ),
+    ]
+    const handle = (name, p, h = {}) => {
+      const [x, y] = at(p[0], p[1])
+      kids.push(
+        F({
+          name: `handle/${name}`,
+          x: x - 22,
+          y: y - 22,
+          w: 44,
+          h: 44,
+          r: 22,
+          fill: h.sel ? alpha(ED.studio.color, 0.2) : null,
+        }),
+        F({
+          name: `knob/${name}`,
+          x: x - 8,
+          y: y - 8,
+          w: 16,
+          h: 16,
+          r: 8,
+          fill: h.sel ? ED.studio.color : h.pin ? 'text/primary' : 'bg/canvas',
+          stroke: h.pin ? 'bg/canvas' : ED.studio.color,
+          sw: 2,
+        }),
+      )
+      if (h.pin) kids.push(I('pin', { x: x - 7, y: y + 12, size: 14, color: 'text/primary' }))
+    }
+    if (o.ghost) {
+      const [gx, gy] = at(o.ghost[0], o.ghost[1])
+      const [hx, hy] = at(j.hands[0][0], j.hands[0][1])
+      kids.push(
+        V(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${box.w}" height="${box.h}" viewBox="0 0 ${box.w} ${box.h}"><path d="M${(gx - box.x).toFixed(1)} ${(gy - box.y).toFixed(1)}L${(hx - box.x).toFixed(1)} ${(hy - box.y).toFixed(1)}" stroke="${hex}" stroke-width="1.5" stroke-dasharray="4 4"/></svg>`,
+          { name: 'drag path', ...box },
+        ),
+        F({
+          name: 'was here',
+          x: gx - 8,
+          y: gy - 8,
+          w: 16,
+          h: 16,
+          r: 8,
+          stroke: ED.studio.color,
+          sw: 1.5,
+          dash: [3, 3],
+        }),
+      )
+    }
+    // The picked arm's elbow pole (which way the elbow points) and the look-at target the head turns to. Knee poles
+    // show when a foot is picked.
+    const marker = (name, p, svg) => {
+      const [x, y] = at(p[0], p[1])
+      kids.push(
+        F({ name: `handle/${name}`, x: x - 22, y: y - 22, w: 44, h: 44, r: 22 }),
+        V(`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">${svg}</svg>`, {
+          name: `knob/${name}`,
+          x: x - 10,
+          y: y - 10,
+          w: 20,
+          h: 20,
+        }),
+      )
+    }
+    if (o.poles) {
+      const sh = j.shoulders[0]
+      const hd = j.hands[0]
+      const mid = [(sh[0] + hd[0]) / 2, (sh[1] + hd[1]) / 2]
+      const dx = e[0] - mid[0]
+      const dy = e[1] - mid[1]
+      const len = Math.sqrt(dx * dx + dy * dy) || 1
+      const pole = [e[0] + (dx / len) * 7, e[1] + (dy / len) * 7]
+      const [ex, ey] = at(e[0], e[1])
+      const [px, py] = at(pole[0], pole[1])
+      kids.push(
+        V(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${box.w}" height="${box.h}" viewBox="0 0 ${box.w} ${box.h}"><path d="M${(ex - box.x).toFixed(1)} ${(ey - box.y).toFixed(1)}L${(px - box.x).toFixed(1)} ${(py - box.y).toFixed(1)}" stroke="${hex}" stroke-width="1" stroke-dasharray="2 3"/></svg>`,
+          { name: 'pole line', ...box },
+        ),
+      )
+      marker(
+        'elbow.R pole',
+        pole,
+        `<path d="M10 3L17 10L10 17L3 10Z" fill="#17181b" stroke="${hex}" stroke-width="2"/>`,
+      )
+      marker(
+        'look-at',
+        [j.head[0] - 9, j.head[1] - 2],
+        `<circle cx="10" cy="10" r="6" fill="none" stroke="${hex}" stroke-width="2"/><path d="M10 1v5M10 14v5M1 10h5M14 10h5" stroke="${hex}" stroke-width="2"/>`,
+      )
+    }
+    handle('hips', j.hips)
+    handle('chest', j.chest)
+    handle('head', j.head)
+    handle('hand.R', j.hands[0], { sel: o.sel === 'hand.R' })
+    handle('hand.L', j.hands[1])
+    handle('foot.R', j.feet[0], { pin: o.pinFeet })
+    handle('foot.L', j.feet[1], { pin: o.pinFeet })
+    return { kids, bend: Math.round(Math.abs(bend)), lim }
+  }
   // The character on the stage, with the picked part, the hem handle, the turn dial or the frame strip.
   const studioStage = (A, o) => {
     const W = o.w
@@ -1242,8 +1509,37 @@ export function suiteParts(S, P, D) {
         : o.mode === 'first'
           ? { outfit: 'starter' }
           : { apron, hi: 'apron', hiColor: S.hex6(ED.studio.color) }
-    kids.push(V(A.figure(0, fig), { name: 'character', x: fx0, y: fy, w: fw, h: fh }))
+    const rig = o.mode === 'ik' ? A.rigFigure(CROUCH) : null
+    kids.push(V(rig ? rig.svg : A.figure(0, fig), { name: 'character', x: fx0, y: fy, w: fw, h: fh }))
     const at = (gx, gy) => [fx0 + gx * sc, fy + gy * sc]
+    if (rig) {
+      const box = { x: fx0, y: fy, w: fw, h: fh }
+      const r = rigHandles(rig.joints, at, box, sc, {
+        sel: 'hand.R',
+        pinFeet: true,
+        limit: true,
+        poles: true,
+        ghost: [6, 58],
+      })
+      const e = at(rig.joints.elbows[0][0], rig.joints.elbows[0][1])
+      const h = at(rig.joints.hands[0][0], rig.joints.hands[0][1])
+      const f = at(20, rig.joints.feet[0][1])
+      kids.push(
+        ...r.kids,
+        R(
+          { x: e[0] - 196, y: e[1] - 50, w: 170, ax: 'end' },
+          pill(`elbow ${r.bend}° · limit 0–${r.lim}°`, { color: ED.studio.color, mono: true, h: 28 }),
+        ),
+        R(
+          { x: h[0] - 168, y: h[1] - 14, w: 140, ax: 'end' },
+          pill('right hand', { color: ED.studio.color, h: 28, icon: 'hand' }),
+        ),
+        R(
+          { x: f[0] - 80, y: f[1] + 30, w: 160, ax: 'center' },
+          pill('both feet pinned', { color: 'text/dim', h: 28, icon: 'pin' }),
+        ),
+      )
+    }
     if (o.mode === 'look') {
       const hem = at(20, 38 + Math.round((22 * apron) / 0.6))
       const was = at(20, 60)
@@ -1383,6 +1679,18 @@ export function suiteParts(S, P, D) {
           studioCard(A, 'Request', {}, { w: 74, add: true }),
         ),
       )
+    if (o.mode === 'ik')
+      kids.push(
+        eyebrow('Poses · yours and the art file’s', { x: 12, y: sy }),
+        R(
+          { name: 'poses', x: 12, y: sy + 22, gap: 8, ay: 'start' },
+          studioCard(A, 'by hand', { rig: CROUCH }, { w: 74, sel: true }),
+          ['reach', 'flinch', 'look', 'sit'].map((p) =>
+            studioCard(A, p, { pose: p, view: p === 'look' ? 7 : 0 }, { w: 74 }),
+          ),
+          studioCard(A, 'Save pose', {}, { w: 74, add: true }),
+        ),
+      )
     if (o.mode === 'first')
       kids.push(
         eyebrow('Starters', { x: 12, y: sy }),
@@ -1458,6 +1766,41 @@ export function suiteParts(S, P, D) {
         T('Or describe the character', { style: 'Label/12', color: 'text/faint' }),
         askBtn(),
       )
+    if (o.mode === 'ik')
+      return C(
+        { name: 'fields', w: 'fill', h: 'fill', pad: 12, gap: 12, clip: true },
+        R(
+          { w: 'fill', h: 28, gap: 8 },
+          F({ w: 14, h: 14, r: 7, fill: ED.studio.color }),
+          T('Right hand', { style: 'Title/15' }),
+          spacer(),
+          pill('arm · two-bone IK', { color: 'text/dim', mono: true }),
+        ),
+        T(
+          'Drag the hand and the elbow follows; drag the diamond to point the elbow. A joint turns amber at its limit and red out of reach. Pinned feet stay put.',
+          {
+            style: 'Label/12',
+            color: 'text/dim',
+            w: 'fill',
+            lh: 17,
+          },
+        ),
+        toggleRow('Pin this hand', false, 'Hold it in place while the body moves'),
+        C(
+          { w: 'fill', gap: 4 },
+          T('Elbow bends', { style: 'Label/12', color: 'text/dim' }),
+          P.seg(['Out', 'Down', 'Back'], 0, { w: 296 }),
+        ),
+        studioRange('Elbow limit', 0, 145, 44, 180),
+        R(
+          { w: 'fill', gap: 8 },
+          btn('Mirror to left', { icon: 'copy', w: 'fill' }),
+          btn('Back to rest', { icon: 'rotate', w: 'fill' }),
+        ),
+        fold('Every joint', '20 joints · turn any one by hand', { icon: 'list' }),
+        fold('Save as a pose', 'adds crouch.drawer to Ada’s clips', { icon: 'plus' }),
+        fold('Animate from here', 'keys this pose on a timeline', { icon: 'film' }),
+      )
     if (o.mode === 'pose')
       return C(
         { name: 'fields', w: 'fill', h: 'fill', pad: 12, gap: 10, clip: true },
@@ -1520,11 +1863,26 @@ export function suiteParts(S, P, D) {
       F({ name: 'divider', abs: true, x: 0, y: 0, w, h: 1, fill: 'border/default' }),
       dot(first ? 'text/faint' : mode === 'pose' ? 'state/ok' : 'state/warn', 8),
       eyebrow('Pipeline'),
-      mono(first ? 'not run yet' : mode === 'pose' ? 'atlas ran 12 Oct' : 'builder stale · sheet stale', {
-        trunc: true,
-      }),
+      mono(
+        first
+          ? 'not run yet'
+          : mode === 'pose'
+            ? 'atlas ran 12 Oct'
+            : mode === 'ik' || mode === 'anim'
+              ? 'sheet stale · new pose'
+              : 'builder stale · sheet stale',
+        {
+          trunc: true,
+        },
+      ),
       spacer(),
-      first ? null : mode === 'pose' ? gatePill('G7', 'ok') : gatePill('G1 · G6', 'open'),
+      first
+        ? null
+        : mode === 'pose'
+          ? gatePill('G7', 'ok')
+          : mode === 'ik' || mode === 'anim'
+            ? gatePill('G6', 'open')
+            : gatePill('G1 · G6', 'open'),
       btn('Check', { icon: 'check' }),
       ib('chevron-up'),
     )
@@ -1541,17 +1899,19 @@ export function suiteParts(S, P, D) {
       H,
       { fill: 'bg/canvas', clip: true },
       R(
-        { name: 'modes', x: 12, y: 12, w: 252 },
-        P.seg(['Look', 'Pose', 'Play'], mode === 'pose' ? 1 : 0, { w: 252 }),
+        { name: 'modes', x: 12, y: 12, w: 336 },
+        P.seg(['Look', 'Pose', 'Animate', 'Play'], mode === 'pose' || mode === 'ik' ? 1 : 0, { w: 336 }),
       ),
-      R(
-        { name: 'hint', x: 276, y: 12, w: 314, h: 44, gap: 6, ax: 'end' },
-        I('hand', { size: 14, color: 'text/faint' }),
-        T(mode === 'pose' ? 'tap a pose · drag the frames' : 'tap a part · drag to turn', {
-          style: 'Label/12',
-          color: 'text/faint',
-        }),
-      ),
+      mode === 'pose' || mode === 'ik'
+        ? R(
+            { name: 'pose by', x: 370, y: 12, w: 220, ax: 'end' },
+            P.seg(['Presets', 'By hand'], mode === 'ik' ? 1 : 0, { w: 220 }),
+          )
+        : R(
+            { name: 'hint', x: 360, y: 12, w: 230, h: 44, gap: 6, ax: 'end' },
+            I('hand', { size: 14, color: 'text/faint' }),
+            T('tap a part · drag to turn', { style: 'Label/12', color: 'text/faint' }),
+          ),
       mode === 'first' ? studioSteps() : null,
       ...stageKids,
       o.drawer ? null : studioPipeBar(0, H - 56, 602, mode),
@@ -1563,7 +1923,14 @@ export function suiteParts(S, P, D) {
       320,
       H,
       { lay: 'col' },
-      P.tabs([{ label: mode === 'pose' ? 'Pose' : 'Part' }, { label: 'Code' }, { label: 'Ask' }], 0),
+      P.tabs(
+        [
+          { label: mode === 'pose' ? 'Pose' : mode === 'ik' ? 'Joint' : 'Part' },
+          { label: 'Code' },
+          { label: 'Ask' },
+        ],
+        0,
+      ),
       F({ w: 'fill', h: 1, fill: 'border/default' }),
       studioFields({ mode }),
     )
@@ -1572,9 +1939,15 @@ export function suiteParts(S, P, D) {
       { name: o.name, w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: first ? 'New character' : 'Ada Voss',
-        sub: first ? 'content/characters/new.json' : mode === 'pose' ? D.paths.art : D.paths.character,
+        sub: first
+          ? 'content/characters/new.json'
+          : mode === 'pose'
+            ? D.paths.art
+            : mode === 'ik'
+              ? D.paths.clips
+              : D.paths.character,
         ed: 'studio',
-        cs: first ? 'studio/new-character' : 'studio/ada-apron',
+        cs: first ? 'studio/new-character' : mode === 'ik' ? 'studio/ada-crouch' : 'studio/ada-apron',
         n: first ? 0 : 1,
         checks: first ? 'not checked yet' : 'character check ok',
         tone: first ? 'text/dim' : undefined,
@@ -1602,6 +1975,244 @@ export function suiteParts(S, P, D) {
       line(0, 51, 1194, 1),
       line(55, 52, 1, 782),
       line(271, 52, 1, H),
+      line(873, 52, 1, H),
+    )
+  }
+  // Animate: a clip is keys on the rig's handles over time, played over the procedural layers (Last Light's motion.ts:
+  // walk or idle, lean, breath and sway keep running unless a key holds that part). It steps at the gait's pose rate,
+  // like the game, or plays smooth. The stage shows the pose at the playhead with the keys either side as onion skins.
+  const studioAnimate = (A) => {
+    const REST = {
+      hips: [20, 58],
+      head: 0,
+      hands: [
+        [6.5, 58],
+        [33.5, 58],
+      ],
+      feet: CROUCH.feet,
+    }
+    const MID = {
+      hips: [20, 62],
+      head: -1,
+      hands: [
+        [6, 58],
+        [26, 60],
+      ],
+      feet: CROUCH.feet,
+    }
+    const mix = (a, b, t) => +(a + (b - a) * t).toFixed(2)
+    const mixP = (a, b, t) => [mix(a[0], b[0], t), mix(a[1], b[1], t)]
+    const lerpRig = (a, b, t) => ({
+      hips: mixP(a.hips, b.hips, t),
+      head: mix(a.head, b.head, t),
+      hands: [mixP(a.hands[0], b.hands[0], t), mixP(a.hands[1], b.hands[1], t)],
+      feet: a.feet,
+    })
+    const now = 0.45
+    const cur = lerpRig(REST, MID, now / 0.6)
+    const W = 602
+    const H = 452
+    const sc = 3.4
+    const fw = 40 * sc
+    const fh = 90 * sc
+    const fx0 = (W - fw) / 2
+    const fy = 60
+    const box = { x: fx0, y: fy, w: fw, h: fh }
+    const at = (gx, gy) => [fx0 + gx * sc, fy + gy * sc]
+    const onion = (pose, name) =>
+      F(
+        { name, x: fx0, y: fy, w: fw, h: fh, op: 0.25 },
+        V(A.rigFigure(pose).svg, { x: 0, y: 0, w: fw, h: fh }),
+      )
+    const rig = A.rigFigure(cur)
+    const handles = rigHandles(rig.joints, at, box, sc, { sel: 'hand.R', pinFeet: true })
+    const hex = S.hex6(ED.studio.color)
+    // A key: a diamond, filled when it is the selected one. x and y centre it; null leaves it to the layout.
+    const diamond = (name, x, y, d, on) =>
+      V(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${d}" height="${d}" viewBox="0 0 12 12"><path d="M6 1l5 5-5 5-5-5z" fill="${on ? hex : '#111214'}" stroke="${hex}" stroke-width="1.4"/></svg>`,
+        x == null ? { name, w: d, h: d } : { name, x: x - d / 2, y: y - d / 2, w: d, h: d },
+      )
+    const trail = [REST.hands[0], MID.hands[0], CROUCH.hands[0]].map((p) => at(p[0], p[1]))
+    const stage = region(
+      'stage',
+      272,
+      52,
+      W,
+      H,
+      { fill: 'bg/canvas', clip: true },
+      R({ name: 'modes', x: 12, y: 12, w: 336 }, P.seg(['Look', 'Pose', 'Animate', 'Play'], 2, { w: 336 })),
+      R(
+        { name: 'hint', x: 360, y: 12, w: 230, h: 44, gap: 6, ax: 'end' },
+        I('hand', { size: 14, color: 'text/faint' }),
+        T('drag a handle to key it', { style: 'Label/12', color: 'text/faint' }),
+      ),
+      onion(REST, 'onion/key 1'),
+      onion(CROUCH, 'onion/key 3'),
+      V(rig.svg, { name: 'character', ...box }),
+      V(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><path d="M${trail.map((p) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join('L')}" fill="none" stroke="${hex}" stroke-width="1.5" stroke-dasharray="2 4" stroke-linecap="round"/></svg>`,
+        { name: 'trail', x: 0, y: 0, w: W, h: H },
+      ),
+      ...trail.map((p, i) => diamond(`trail key ${i + 1}`, p[0], p[1], 12, i === 1)),
+      ...handles.kids,
+      R(
+        { name: 'view', x: 12, y: H - 56, w: W - 24, h: 44, gap: 8 },
+        chip('Onion skin', { on: true, color: ED.studio.color }),
+        chip('Hand trail', { on: true, color: ED.studio.color }),
+        spacer(),
+        T('front · drag Ada sideways to turn', { style: 'Mono/11', color: 'text/dim' }),
+      ),
+    )
+    const clips = region(
+      'clips',
+      56,
+      52,
+      216,
+      782,
+      { lay: 'col' },
+      P.panelHead('Clips · Ada', ib('plus')),
+      C(
+        { w: 'fill', pad: [0, 8], gap: 2 },
+        [
+          ['walk', 'procedural · brisk gait', 'walk', false],
+          ['idle', 'procedural · breath, shift', 'clock', false],
+          ['reach', 'action · 1.4 s out and back', 'hand', false],
+          ['crouch.drawer', 'keyed · 1.2 s · new', 'film', true],
+          ['flinch', 'action', 'hand', false],
+          ['sit', 'action', 'hand', false],
+        ].map(([title, sub, icon, sel]) =>
+          listRow({ title, sub, icon, h: 52, mono: true, sel, changed: sel, color: ED.studio.color }),
+        ),
+      ),
+      F({ w: 'fill', h: 1, fill: 'border/default' }),
+      C(
+        { name: 'clip settings', w: 'fill', pad: [12, 12], gap: 8 },
+        eyebrow('crouch.drawer'),
+        stepperV('Length', '1.20', { unit: 's' }),
+        selectV('Loop', 'once', { mono: true }),
+        T('Moves', { style: 'Label/12', color: 'text/dim' }),
+        R(
+          { w: 'fill', gap: 6 },
+          chip('arms', { on: true, color: ED.studio.color }),
+          chip('torso', { on: true, color: ED.studio.color }),
+        ),
+        R({ w: 'fill', gap: 6 }, chip('head', { on: true, color: ED.studio.color }), chip('legs', { x: 12 })),
+        T('Legs off: the walk keeps them. Steps play 12 poses a second; the game can stretch the length.', {
+          style: 'Label/12',
+          color: 'text/faint',
+          w: 'fill',
+          lh: 16,
+        }),
+      ),
+    )
+    const inspector = region(
+      'inspector',
+      874,
+      52,
+      320,
+      H,
+      { lay: 'col' },
+      P.tabs([{ label: 'Key' }, { label: 'Code' }, { label: 'Ask' }], 0),
+      F({ w: 'fill', h: 1, fill: 'border/default' }),
+      C(
+        { name: 'fields', w: 'fill', h: 'fill', pad: 12, gap: 10, clip: true },
+        R(
+          { w: 'fill', h: 28, gap: 8 },
+          diamond('key', null, null, 14, true),
+          T('Right hand · key 2', { style: 'Title/15' }),
+          spacer(),
+          pill('of 3', { color: 'text/dim', mono: true }),
+        ),
+        R(
+          { w: 'fill', gap: 8 },
+          stepperV('At', '0.60', { unit: 's' }),
+          selectV('Ease', 'smooth', { mono: true }),
+        ),
+        toggleRow('Hold over the idle', true, 'Breath and sway stop moving this hand'),
+        R(
+          { w: 'fill', gap: 8 },
+          btn('Key every handle', { icon: 'plus', w: 'fill' }),
+          btn('Delete key', { kind: 'danger', icon: 'trash', w: 'fill' }),
+        ),
+      ),
+    )
+    const dur = 1.2
+    const TW = 922
+    const rows = [
+      { label: 'Hips', color: ED.studio.color, items: [0, 0.6, 1].map((t) => ({ k: 'key', t })) },
+      { label: 'Head', color: ED.studio.color, items: [0, 0.6].map((t) => ({ k: 'key', t })) },
+      {
+        label: 'Hand R',
+        color: ED.studio.color,
+        items: [
+          { k: 'key', t: 0 },
+          { k: 'key', t: 0.6, sel: true },
+          { k: 'key', t: 1 },
+        ],
+      },
+      { label: 'Hand L', color: ED.studio.color, items: [0, 1].map((t) => ({ k: 'key', t })) },
+      { label: 'Foot R', color: 'text/dim', items: [{ k: 'blk', t: 0, t1: dur, label: 'pinned' }] },
+      { label: 'Foot L', color: 'text/dim', items: [{ k: 'blk', t: 0, t1: dur, label: 'pinned' }] },
+      {
+        label: 'Under it',
+        color: 'text/faint',
+        items: [{ k: 'blk', t: 0, t1: dur, label: 'idle · breath and sway, procedural', dash: true }],
+      },
+      {
+        label: 'Markers',
+        color: 'ed/audio',
+        items: [
+          { k: 'key', t: 0.3, label: 'contact' },
+          { k: 'key', t: 1, label: 'cue · pickup' },
+        ],
+      },
+    ]
+    const L = lanes({ w: TW, dur, y0: 78, rows, labelW: 96, padR: 16 })
+    const dock = region(
+      'timeline',
+      272,
+      504,
+      TW,
+      330,
+      { lay: null },
+      line(0, 0, TW, 1),
+      R(
+        { name: 'timeline header', x: 0, y: 0, w: TW, h: 44, pad: [0, 8, 0, 16], gap: 10 },
+        eyebrow('Clip'),
+        T('0.45 / 1.20 s', { style: 'Mono/12' }),
+        mono('pose 6 of 15'),
+        spacer(),
+        ib('step-back'),
+        ib('play', { on: true }),
+        ib('step-fwd'),
+        ib('loop'),
+        F({ w: 8, h: 8 }),
+        P.seg(['Steps', 'Smooth'], 0, { w: 180 }),
+      ),
+      ...ruler({ w: TW, dur, step: 0.2, y: 46, labelW: 96, padR: 16, minor: 1 / 12 }),
+      ...L.kids,
+      ...playhead(L.tx(now), 66, 78 + L.height - 66, now.toFixed(2)),
+    )
+    return F(
+      { name: 'Studio · Animate · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
+      top(1194, {
+        title: 'Ada Voss',
+        sub: D.paths.clips,
+        ed: 'studio',
+        cs: 'studio/ada-crouch',
+        n: 1,
+        checks: 'character check ok',
+        reopened: true,
+      }),
+      rail(782, 'studio'),
+      clips,
+      stage,
+      inspector,
+      dock,
+      line(0, 51, 1194, 1),
+      line(55, 52, 1, 782),
+      line(271, 52, 1, 782),
       line(873, 52, 1, H),
     )
   }
@@ -1687,7 +2298,7 @@ export function suiteParts(S, P, D) {
           T('Ada Voss', { style: 'Body/13 Medium' }),
           I('chevron-down', { size: 14, color: 'text/dim' }),
         ),
-        P.seg(['Look', 'Pose', 'Play'], 0, { w: 252 }),
+        P.seg(['Look', 'Pose', 'Animate', 'Play'], 0, { w: 336 }),
         spacer(),
         I('hand', { size: 14, color: 'text/faint' }),
         T('tap a part · drag to turn', { style: 'Label/12', color: 'text/faint' }),
@@ -1701,7 +2312,9 @@ export function suiteParts(S, P, D) {
   }
 
   return {
+    shutterGraph,
     studioView,
+    studioAnimate,
     studioPortrait,
     D,
     ED,
@@ -1970,6 +2583,88 @@ export function artParts(S, _P, _Q) {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="90" viewBox="0 0 40 90">${g.join('')}</svg>`
   }
 
+  // A figure posed through its rig, front view, in figure()'s 40 × 90 space. The Last Light's rig (render/figure/rig.ts)
+  // solves each limb with two-bone IK; this draws the same idea flat. o.hips is the pelvis [x, y], o.head a sideways
+  // lean, o.hands and o.feet the effectors, screen left first (Ada's right). Returns the SVG and every joint, so the
+  // stage can put handles on them.
+  const rigFigure = (o = {}) => {
+    const hip = o.hips || [20, 58]
+    const sy = hip[1] - 19
+    const hd = o.head || 0
+    const bw = 21
+    const solve = (a, t, l1, l2, bend) => {
+      const dx = t[0] - a[0]
+      const dy = t[1] - a[1]
+      const d0 = Math.hypot(dx, dy) || 1
+      const d = Math.min(Math.max(d0, Math.abs(l1 - l2) + 0.01), l1 + l2 - 0.01)
+      const ux = dx / d0
+      const uy = dy / d0
+      const ca = (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d)
+      const sa = Math.sqrt(Math.max(0, 1 - ca * ca))
+      const mid = [a[0] + l1 * (ux * ca - uy * bend * sa), a[1] + l1 * (uy * ca + ux * bend * sa)]
+      return [mid, [a[0] + ux * d, a[1] + uy * d]]
+    }
+    const sh = [
+      [hip[0] - bw / 2 - 2, sy],
+      [hip[0] + bw / 2 + 2, sy],
+    ]
+    const hp = [
+      [hip[0] - 4.5, hip[1]],
+      [hip[0] + 4.5, hip[1]],
+    ]
+    const hands = o.hands || [
+      [sh[0][0] - 1, sy + 19],
+      [sh[1][0] + 1, sy + 19],
+    ]
+    const feet = o.feet || [
+      [hp[0][0], 81],
+      [hp[1][0], 81],
+    ]
+    const arm = [solve(sh[0], hands[0], 10, 10, 1), solve(sh[1], hands[1], 10, 10, -1)]
+    const leg = [solve(hp[0], feet[0], 11.6, 11.6, 1), solve(hp[1], feet[1], 11.6, 11.6, -1)]
+    const dress = '#233a63'
+    const g = [`<ellipse cx="20" cy="86" rx="14" ry="3" fill="#000" fill-opacity=".35"/>`]
+    const seg = (a, b, c, w, col) =>
+      `<path d="M${fx(a[0])} ${fx(a[1])}L${fx(b[0])} ${fx(b[1])}L${fx(c[0])} ${fx(c[1])}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`
+    for (let i = 0; i < 2; i++) {
+      g.push(seg(hp[i], leg[i][0], leg[i][1], 5, '#c9b49a'))
+      g.push(
+        `<rect x="${fx(leg[i][1][0] - 3.5)}" y="${fx(leg[i][1][1] - 1.5)}" width="7" height="4" fill="#111"/>`,
+      )
+    }
+    const hem = hip[1] + 4
+    g.push(
+      `<path d="M${hip[0] - bw / 2 - 1} ${hem}L${hip[0] - bw / 2 + 1} ${sy - 3}H${hip[0] + bw / 2 - 1}L${hip[0] + bw / 2 + 1} ${hem}z" fill="${dress}"/>`,
+      `<rect x="${hip[0] - bw / 2 + 3}" y="${sy - 1}" width="${bw - 6}" height="${Math.min(22, hem - sy - 1)}" fill="#e4e0d0"/>`,
+    )
+    for (let i = 0; i < 2; i++) {
+      g.push(seg(sh[i], arm[i][0], arm[i][1], 4, dress))
+      g.push(
+        `<rect x="${fx(arm[i][1][0] - 1.5)}" y="${fx(arm[i][1][1] - 1.5)}" width="3" height="3" fill="#e8c7a9"/>`,
+      )
+    }
+    const hx = hip[0] + hd
+    g.push(
+      `<rect x="${fx(hx - 7.5)}" y="${sy - 21}" width="15" height="17" fill="#e8c7a9"/>`,
+      `<rect x="${fx(hx - 7.5)}" y="${sy - 23}" width="15" height="8" fill="#7a3d22"/>`,
+      `<rect x="${fx(hx - 4 + hd)}" y="${sy - 12}" width="2" height="2" fill="#2b1d16"/><rect x="${fx(hx + 2 + hd)}" y="${sy - 12}" width="2" height="2" fill="#2b1d16"/>`,
+    )
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="90" viewBox="0 0 40 90">${g.join('')}</svg>`,
+      joints: {
+        hips: hip,
+        head: [hx, sy - 13],
+        chest: [hip[0], sy],
+        shoulders: sh,
+        elbows: [arm[0][0], arm[1][0]],
+        hands: [arm[0][1], arm[1][1]],
+        hipJoints: hp,
+        knees: [leg[0][0], leg[1][0]],
+        feet: [leg[0][1], leg[1][1]],
+      },
+    }
+  }
+
   // A waveform: seeded noise shaped by an envelope. kind: 'tone' | 'hiss'
   const waveSvg = (w, h, o = {}) => {
     const r = rng(o.seed || 3)
@@ -1995,5 +2690,5 @@ export function artParts(S, _P, _Q) {
   const traceSvg = (w, h) =>
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 320 180"><rect x="6" y="6" width="130" height="80" fill="none" stroke="#454952"/><rect x="136" y="6" width="90" height="80" fill="none" stroke="#454952"/><rect x="226" y="6" width="88" height="168" fill="none" stroke="#454952"/><rect x="6" y="86" width="220" height="88" fill="none" stroke="#454952"/><path d="M40 130H110L150 100H200L260 60" fill="none" stroke="#e0a54a" stroke-width="2.2" stroke-linejoin="round"/><path d="M270 150H196L170 120H120L84 36" fill="none" stroke="#d9645a" stroke-width="2" stroke-dasharray="5 3"/><circle cx="40" cy="130" r="4" fill="#e0a54a"/><circle cx="270" cy="150" r="4" fill="#d9645a"/><circle cx="260" cy="60" r="4" fill="#6fbf73"/></svg>`
 
-  return { rng, fx, bayArt, picture, viewfinder, figure, waveSvg, traceSvg }
+  return { rng, fx, bayArt, picture, viewfinder, figure, rigFigure, waveSvg, traceSvg }
 }

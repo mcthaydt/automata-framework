@@ -49,12 +49,20 @@ export const INVENTORY = [
     id: 'studio',
     name: 'Studio',
     edits:
-      'A character’s look and poses, edited on the character itself (tap a part, drag a hem, drag to turn), with the pipeline stages and their gates (G1 and G6 for the character file, G1 to G7 for the art file) in a drawer.',
+      'A character’s look, poses and clips, edited on the character itself (tap a part, drag a hem, drag to turn, drag a hand or foot to pose it through IK with pins and joint limits, key poses on a timeline to animate), with the pipeline stages and their gates (G1 and G6 for the character file, G1 to G7 for the art file) in a drawer.',
     lives:
       'content/characters/*.json and content/art/*/character.json (from src/render/figure/characters/*.json and docs/art/*/character.json), client studio.ts, studio-model.ts',
     verdict: 'kept',
     home: 'pipelines extension (character pipeline, M3)',
-    screens: ['studio-look', 'studio-pose', 'studio-pipeline', 'studio-first-run', 'studio-portrait'],
+    screens: [
+      'studio-look',
+      'studio-pose',
+      'studio-ik',
+      'studio-animate',
+      'studio-pipeline',
+      'studio-first-run',
+      'studio-portrait',
+    ],
   },
   {
     id: 'schematic',
@@ -64,7 +72,7 @@ export const INVENTORY = [
       'content/scenes/*/puzzle.toml and agents.toml (from puzzle.ts, docs/art/*/puzzle/puzzle.json and systems.ts), client schematic.ts, schematic-model.ts',
     verdict: 'kept',
     home: 'puzzle and systems extensions',
-    screens: ['schematic-chain', 'schematic-agent'],
+    screens: ['schematic-chain', 'schematic-agent', 'schematic-portrait'],
   },
   {
     id: 'audio',
@@ -75,7 +83,7 @@ export const INVENTORY = [
       'content/audio/cues.toml (from src/audio/cues.ts and events.ts, edited by hand behind the board src/audio/board.ts; editor-gaps 68 and 76)',
     verdict: 'new',
     home: 'audio-synth extension',
-    screens: ['audio-cues'],
+    screens: ['audio-cues', 'audio-portrait'],
   },
   {
     id: 'feel',
@@ -86,7 +94,7 @@ export const INVENTORY = [
       'content/feel/effects.toml (from src/feel/effects.ts, edited by hand behind the board src/feel/board.ts); FloorFifty content/juice.toml',
     verdict: 'new',
     home: 'feel extension',
-    screens: ['feel-matrix'],
+    screens: ['feel-matrix', 'feel-portrait'],
   },
   {
     id: 'levels',
@@ -116,7 +124,7 @@ export const INVENTORY = [
     lives: 'client interchange.ts',
     verdict: 'shell',
     home: 'Editor shell, over the content TOML and JSON the compiler reads',
-    screens: ['interchange'],
+    screens: ['interchange', 'interchange-export'],
   },
   {
     id: 'shell',
@@ -126,13 +134,16 @@ export const INVENTORY = [
     lives: 'client main.ts, editor-api.ts, bridge.ts, on a server welded to the game',
     verdict: 'shell',
     home: 'Rebuilt on AF ports so any game can mount the editors',
-    screens: ['suite-home', 'ask-diff', 'ship-dialog'],
+    screens: ['suite-home', 'ask-diff', 'ship-dialog', 'states-code-checks', 'states-offline'],
   },
 ]
 
 // Editors someone asked for or the spikes hint at, where no editor code exists.
 export const NO_EDITOR_YET = [
-  ['Sprite and animation', 'Partly the Studio’s poses. A frame editor is not designed here.'],
+  [
+    'Sprite and animation',
+    'Characters animate in the Studio (Pose by hand and Animate). A frame-by-frame sprite editor is not designed here.',
+  ],
   ['Tileset', 'Belongs to the 2D level editor (ED2D).'],
   ['Material, entity and prefab', 'Belong to the 3D and 2D level editors.'],
   ['Particles', 'Cut from the plan (PD-5).'],

@@ -5,6 +5,7 @@ import { floorFiftyScreens } from './screens-floorfifty.mjs'
 import { portraitScreens } from './screens-portrait.mjs'
 import { schematicScreens } from './screens-schematic.mjs'
 import { sequenceScreens } from './screens-sequence.mjs'
+import { statesScreens } from './screens-states.mjs'
 import { studioScreens } from './screens-studio.mjs'
 import { suiteScreens } from './screens-suite.mjs'
 import { tunerScreens } from './screens-tuner.mjs'
@@ -19,5 +20,6 @@ export const screens = [
   ...schematicScreens,
   ...audioScreens,
   ...suiteScreens,
+  ...statesScreens,
   ...portraitScreens,
 ]

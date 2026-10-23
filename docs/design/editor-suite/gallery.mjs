@@ -2,7 +2,7 @@
 // width, with a full-size view. Written for the Artifact tool, which wraps the file in its own document skeleton, so it
 // has no <html> or <head>.
 
-import { APPROVED_AT, CHANGES } from './changes.mjs'
+import { APPROVED_AT, CHANGES, LATEST, SINCE_AT } from './changes.mjs'
 import { INVENTORY, NO_EDITOR_YET, VERDICTS } from './inventory.mjs'
 
 const GROUPS = [
@@ -14,7 +14,17 @@ const GROUPS = [
       ['suite-home', 'Home', 'wide'],
       ['ask-diff', 'Ask', 'wide'],
       ['ship-dialog', 'Ship', 'half'],
-      ['interchange', 'Export and import', 'half'],
+      ['interchange', 'Import', 'half'],
+      ['interchange-export', 'Export', 'half'],
+    ],
+  },
+  {
+    id: 'states',
+    title: 'States',
+    lead: 'The panels when something is off or still running: the Code pane, a failing check, checks in progress, the game not connected, Ask saying no or at its cap, and an empty editor.',
+    screens: [
+      ['states-code-checks', 'Code pane and checks', 'wide'],
+      ['states-offline', 'Offline, refused and empty', 'wide'],
     ],
   },
   {
@@ -51,10 +61,12 @@ const GROUPS = [
   {
     id: 'studio',
     title: 'Studio',
-    lead: 'The character on a stage you touch: tap a part to edit it, drag to turn, outfits and poses under the stage, the pipeline as a drawer.',
+    lead: 'The character on a stage you touch: tap a part to edit it, drag to turn, outfits and poses under the stage, pose by hand through an IK rig, animate on a timeline, the pipeline as a drawer.',
     screens: [
       ['studio-look', 'Look', 'wide'],
       ['studio-pose', 'Pose', 'wide'],
+      ['studio-ik', 'Pose by hand', 'wide'],
+      ['studio-animate', 'Animate', 'wide'],
       ['studio-pipeline', 'Pipeline open', 'wide'],
       ['studio-first-run', 'First run', 'wide'],
     ],
@@ -89,6 +101,9 @@ const GROUPS = [
       ['tuner-portrait', 'Tuner', 'third'],
       ['writer-portrait', 'Writer', 'third'],
       ['studio-portrait', 'Studio', 'third'],
+      ['schematic-portrait', 'Schematic', 'third'],
+      ['audio-portrait', 'Audio', 'third'],
+      ['feel-portrait', 'Feel', 'third'],
       ['review-portrait', 'Review desk', 'third'],
     ],
   },
@@ -157,29 +172,41 @@ ${NO_EDITOR_YET.map(([name, why]) => `      <li><strong>${esc(name)}.</strong> $
 
   // Before and after for each changed screen, when the build was given the approved checkout (`--before <dir>`).
   const before = options.before
+  const since = options.since
   const side = (label, s) =>
     s
       ? `<div class="side"><span class="eyebrow">${label}</span><div class="frame" style="--w:${s.w};--h:${s.h};max-width:${s.w}px"><div class="stage" style="width:${s.w}px;height:${s.h}px">${s.html}</div></div></div>`
       : `<div class="side"><span class="eyebrow">${label}</span><div class="frame none" style="--w:1194;--h:834"><p>New screen</p></div></div>`
-  const pair = ([id, was, title, why]) => {
-    if (!byId[id]) throw new Error(`changes list unknown screen "${id}"`)
-    const now = byId[id]
-    return `<article class="pair">
+  const pair =
+    (old) =>
+    ([id, was, title, why]) => {
+      if (!byId[id]) throw new Error(`changes list unknown screen "${id}"`)
+      const now = byId[id]
+      return `<article class="pair">
   <div class="cap"><h3>${esc(title)}</h3><a href="#${id}">See it below</a></div>
   <p>${esc(why)}</p>
-  <div class="two">${side('Before', was && before[was])}${side('After', { w: now.w, h: now.h, html: htmlOf(now) })}</div>
+  <div class="two">${side('Before', was && old[was])}${side('After', { w: now.w, h: now.h, html: htmlOf(now) })}</div>
 </article>`
-  }
+    }
   const changed = before
     ? `<section id="changed" class="group">
   <header class="ghead"><h2>What changed since you approved</h2><p>You approved every editor except the character editor on 23 October. Those screens keep the layout you approved; only their data and file targets changed, to AF content files and the gates each file reopens. The Studio is redesigned, and one second-game screen is added. Before is the version you approved (${APPROVED_AT}).</p></header>
   <div class="pairs">
-${CHANGES.map(pair).join('\n')}
+${CHANGES.map(pair(before)).join('\n')}
+  </div>
+</section>`
+    : ''
+  const latest = since
+    ? `<section id="latest" class="group">
+  <header class="ghead"><h2>New since you accepted the Studio look</h2><p>You said the character editor is glorious and asked for an IK rig to pose by hand, and whether animation was missing. It was: Pose by hand and Animate are new Studio screens. Then the nine look fixes from the audit, each the smallest change that meets the standard: every chip and toggle is now 44 px to touch, Audio has its own colour, and the rest are below. Before is the version you accepted (${SINCE_AT}).</p></header>
+  <div class="pairs">
+${LATEST.map(pair(since)).join('\n')}
   </div>
 </section>`
     : ''
 
   const nav = [
+    ...(since ? [['latest', 'New']] : []),
     ...(before ? [['changed', 'What changed']] : []),
     ['inventory', 'Inventory'],
     ...GROUPS.map((g) => [g.id, g.title]),
@@ -356,6 +383,7 @@ ul.plain strong { color: var(--fg); font-weight: 600; }
     </div>
     <nav class="toc" aria-label="Sections">${nav}</nav>
   </header>
+${latest}
 ${changed}
 ${inventory}
 ${sections}
