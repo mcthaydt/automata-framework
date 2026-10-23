@@ -12,8 +12,9 @@
 //   (packages/sim/src/define/definitions.ts). A game that calls koota's `trait({ ... })` directly reaches them,
 //   which this scan cannot tell apart; the `csp` step fails it at runtime.
 //
-// Measured on the `examples/base-2d` production build at 71c3410: pixi.js 8.21.0, zod 4.6.5, koota 0.6.6. A new
-// entry needs the package, version, source location and why the call never runs under Ruken's CSP.
+// Measured on the `examples/base-2d` production build at 71c3410: pixi.js 8.21.0, zod 4.6.5, koota 0.6.6; zod's probe
+// matches unchanged in 4.6.6 (`automata check games/emberwick --csp` passes on it). A new entry needs the package,
+// version, source location and why the call never runs under Ruken's CSP.
 
 export interface AllowedEvalCall {
   readonly id: string
@@ -43,7 +44,7 @@ export const ALLOWED_EVAL_CALLS: readonly AllowedEvalCall[] = [
     params: [],
     body: '',
     insideTry: true,
-    vendor: 'zod 4.6.5 v4/core/util.ts allowsEval',
+    vendor: 'zod 4.6.6 v4/core/util.ts allowsEval',
     reason: 'probe; read only when jitless is off',
   },
   {
