@@ -46,10 +46,17 @@ describe('ci.yml', () => {
     expect(Object.keys(workflow.jobs)).toEqual(['checks', 'browsers', 'lighthouse'])
   })
 
-  it('runs every job on the Owner’s runner label, with no hosted fallback', () => {
+  // Coordinator decision 2026-10-23: this repository's CI runs on GitHub-hosted Ubuntu, which keeps the shared self-hosted
+  // runner free for Ruken and needs no runner registered here. The Ubuntu release is pinned (not `ubuntu-latest`) so a
+  // runner image change cannot move the build; it is the release the pinned Playwright image is built on (noble).
+  it('runs every job on one pinned GitHub-hosted Ubuntu release, not a self-hosted runner', () => {
     for (const [name, job] of Object.entries(workflow.jobs)) {
-      expect(job['runs-on'], name).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+      expect(job['runs-on'], name).toBe('ubuntu-24.04')
     }
+  })
+
+  it('keeps the browser jobs in the Playwright image built on that Ubuntu release', () => {
+    for (const name of ['browsers', 'lighthouse']) expect(workflow.jobs[name]?.container?.image, name).toMatch(/-noble$/)
   })
 
   it('pins every third-party action to a commit', () => {

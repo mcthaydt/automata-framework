@@ -2,10 +2,10 @@ name: ci
 
 # The website's CI (QB.3f; quality-bar spec §4.2). It mirrors the framework's own ci.yml where the two overlap.
 #
-# Runners: hosted jobs get no runner on this account (framework docs/04-how-we-build.md), so every job runs on the
-# Owner's self-hosted runner label af-linux, which must be registered to THIS repository. There is deliberately no
-# fallback to ubuntu-latest: with no runner online a job waits in the queue instead of failing at once. The
-# repository variable AF_LINUX_RUNNER switches every job to another label.
+# Runners: GitHub-hosted Ubuntu 24.04 for every job (coordinator decision, 2026-10-23). That keeps the shared
+# self-hosted runner free for Ruken and needs no runner registered to this repository. The release is pinned rather
+# than `ubuntu-latest` so a runner-image change cannot move the build; it is the release the pinned Playwright image
+# (noble) is built on. Moving a job back to a self-hosted label is one `runs-on` line.
 #
 # The framework: several tests, and the workshop the build verifies, read the framework's sources from a sibling
 # checkout (`../automata-framework`). The framework repository is private, so the checkout needs the repository
@@ -36,7 +36,7 @@ defaults:
 jobs:
   checks:
     name: svelte-check, build, check:site, unit
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -66,8 +66,6 @@ jobs:
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 10.34.6
-          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
-          dest: ${{ runner.temp }}/setup-pnpm
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: automata_website/.nvmrc
@@ -91,7 +89,7 @@ jobs:
   browsers:
     name: browsers (chromium, webkit)
     needs: checks
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     # The browsers and their system libraries come preinstalled. Keep the tag in step with the @playwright/test
     # devDependency (tests/workflows.test.ts fails when they differ).
@@ -105,7 +103,6 @@ jobs:
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 10.34.6
-          dest: ${{ runner.temp }}/setup-pnpm
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: automata_website/.nvmrc
@@ -126,7 +123,7 @@ jobs:
   lighthouse:
     name: lighthouse budget
     needs: checks
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
@@ -138,7 +135,6 @@ jobs:
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 10.34.6
-          dest: ${{ runner.temp }}/setup-pnpm
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: automata_website/.nvmrc
