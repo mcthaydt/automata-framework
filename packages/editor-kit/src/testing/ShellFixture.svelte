@@ -32,8 +32,22 @@ let inspectorOpen = $state(inspectorStart)
 // svelte-ignore state_referenced_locally
 let dockOpen = $state<boolean | undefined>(dockStart)
 
-const destinations = ['Compose', 'Course', 'Pieces', 'Checks', 'Export']
+const destinations = ['Stage', 'Path', 'Parts', 'Checks', 'Export']
 const layers = [
+  'rain',
+  'steam',
+  'signs',
+  'wires',
+  'birds',
+  'glow',
+  'moss',
+  'dust',
+  'ivy',
+  'neon',
+  'puddles',
+  'pipes',
+  'chimneys',
+  'vents',
   'sky',
   'cityFar',
   'cityMid',
@@ -129,6 +143,9 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
 
   .rail button {
     flex: 1;
+    padding: 0;
+    font: var(--text-eyebrow-11);
+    letter-spacing: 0;
   }
 
   .list {

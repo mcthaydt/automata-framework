@@ -118,6 +118,13 @@ function close(name: ShellRegion): void {
   else dockOpen = false
 }
 
+// In medium the drawers end where an open dock sheet begins, so neither covers the other's controls.
+const dockLift: string | undefined = $derived(
+  mode === 'medium' && presentation.dock === 'sheet' && visible.dock
+    ? detentLength('dock', detents.dock)
+    : undefined,
+)
+
 function sheetStyle(name: ShellRegion): string | undefined {
   return presentation[name] === 'sheet' ? `--sheet-height: ${detentLength(name, detents[name])}` : undefined
 }
@@ -136,7 +143,14 @@ function sheetStyle(name: ShellRegion): string | undefined {
   </button>
 {/snippet}
 
-<div class="shell" data-editor-shell data-mode={mode} data-dock={dockPlacement} data-testid={testId}>
+<div
+  class="shell"
+  data-editor-shell
+  data-mode={mode}
+  data-dock={dockPlacement}
+  data-testid={testId}
+  style:--dock-lift={dockLift}
+>
   <header class="region" data-region="topbar">{@render topbar()}</header>
 
   {#if rail}
@@ -382,6 +396,8 @@ function sheetStyle(name: ShellRegion): string | undefined {
   }
 
   [data-presentation='drawer'] {
+    align-self: start;
+    height: calc(100% - var(--dock-lift, 0px));
     width: min(var(--shell-drawer), 100%);
     box-shadow: 0 0 24px rgb(0 0 0 / 0.4);
   }
