@@ -2,13 +2,21 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { FIXTURE_NAMES, GOLDEN_NAMES, loadFixture, loadGolden } from './fixtures'
+import {
+  AUTHORED_NAMES,
+  FIXTURE_NAMES,
+  GOLDEN_NAMES,
+  loadAuthored,
+  loadFixture,
+  loadGolden,
+} from './fixtures'
 
 const SOURCE = JSON.parse(readFileSync(new URL('./fixtures/SOURCE.json', import.meta.url), 'utf8')) as {
   repository: string
   commit: string
   files: Record<string, { source: string; bytes: number; sha256: string }>
   goldens: Record<string, { bytes: number; sha256: string; recordedBy: string }>
+  authored: Record<string, { bytes: number; sha256: string; purpose: string }>
 }
 
 describe('the Last Light fixtures', () => {
@@ -44,6 +52,21 @@ describe('the Last Light fixtures', () => {
       expect(bytes.length).toBe(recorded?.bytes)
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(recorded?.sha256)
       expect(recorded?.recordedBy).toMatch(/record-.*\.mjs/)
+    })
+  }
+
+  it('the authored samples are not from Last Light, and say so', () => {
+    expect([...AUTHORED_NAMES]).toEqual(['depot.af-sector'])
+    expect(Object.keys(SOURCE.authored).sort()).toEqual(AUTHORED_NAMES.map((name) => `${name}.json`).sort())
+  })
+
+  for (const name of AUTHORED_NAMES) {
+    it(`${name}: has the recorded byte length and sha256, and says what it is for`, () => {
+      const recorded = SOURCE.authored[`${name}.json`]
+      const bytes = Buffer.from(loadAuthored(name), 'utf8')
+      expect(bytes.length).toBe(recorded?.bytes)
+      expect(createHash('sha256').update(bytes).digest('hex')).toBe(recorded?.sha256)
+      expect(recorded?.purpose).toMatch(/ED3D\.1b/)
     })
   }
 
