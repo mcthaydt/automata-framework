@@ -3,7 +3,7 @@
 - **Task:** ED3D.1 in [02](../../02-master-delivery-plan.md) (row lands with the ED3D follow-up). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §2 (Format, Codec), §4.1, §4.5, decisions ED3D-D2, D3, D4. Acceptance: the patch halves of ED3-b and ED3-o (§13); the rest of those cases need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.0 (the spec, review pending). It needs no editor-kit code, no Svelte and no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed, not implemented. Nothing below starts until ED3D.0 is reviewed.
-- **Progress:** 5 of 11 steps.
+- **Progress:** 6 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -44,7 +44,7 @@ src/format/blockout.schema.ts   Style, Room, Opening, BlockoutBox, BlockoutHotsp
 src/format/facility.schema.ts   Facility (wings, joins, street, phases, locks)
 src/format/expand.ts            wallOf, roomSector, applyOpenings, deriveNav, expand, BlockoutError
 src/codec/locate.ts             scan
-src/codec/literal.ts            formatJsonNumber, formatJsonScalar, applyJsonEdits
+src/codec/print.ts              formatJsonNumber, formatJsonScalar, JsonWriteError
 src/codec/layout.ts             readLayout
 src/codec/structure.ts          insertElement, removeElement, insertMember, removeMember, replaceValue, setMember
 src/codec/patch.ts              patchJson
@@ -83,9 +83,11 @@ export class JsonScanError extends Error { readonly offset: number }
 export function scan(text: string): Scan           // throws JsonScanError
 ```
 
-### `src/codec/literal.ts` and `structure.ts`
+### `src/codec/print.ts` and `structure.ts`
 
-The ports keep their Last Light signatures and error types, on `scan`. `applyJsonEdits` keeps its expected-text check and its re-parse.
+`formatJsonNumber` and `formatJsonScalar` are ported as they are (a number prints with no exponent and at most 4 decimals, rounded, so float noise such as `0.1 + 0.2` becomes `0.3`); a value that cannot be written throws `JsonWriteError` (Last Light's `JsonEditError`, renamed because there are no edits to fail). `applyJsonEdits` and `applyJsonValueEdits` are **not** ported: they are the path-addressed edit batch of the live-edit design, and ED3D-D4 replaced it with the model diff. What they guarded is covered where the diff is: the expected-text check by the `before-mismatch` refusal, the re-parse by `verifyPatched`, and "a no-change save is byte-identical" and "one edit changes only its own span" by the round-trip and ED3-b tests.
+
+`structure.ts` ports the six functions of `json-structure.ts` on `scan`. Each also has a form that returns a splice (`{ start, end, text }` in the original text's coordinates) so that the diff can collect all its edits against one scan and apply them together, from the end of the text to the start.
 
 ### `src/codec/patch.ts`
 
@@ -94,14 +96,14 @@ export interface PatchRules {
   readonly idArrays: readonly string[]                                    // array keys matched by `id`
   readonly memberOrder: (path: JsonPath) => readonly string[] | undefined // where a new key goes in an object
 }
-export type PatchRefusalReason = 'lossy-number' | 'invalid-text' | 'before-mismatch' | 'verify-failed'
+export type PatchRefusalReason = 'unwritable-value' | 'invalid-text' | 'before-mismatch' | 'verify-failed'
 export type PatchResult =
   | { readonly ok: true; readonly text: string }
   | { readonly ok: false; readonly path: JsonPath; readonly reason: PatchRefusalReason; readonly detail: string }
 export function patchJson(text: string, before: unknown, after: unknown, rules: PatchRules): PatchResult
 ```
 
-The rules are those of spec §4.5. Edits are applied from the end of the text to the start; each structural edit re-scans, which is fine for files under 100 kB. Before it returns, `patchJson` parses the result and requires it to equal `after`.
+The rules are those of spec §4.5. The diff collects splices against one scan of `text`; they are checked for overlap and applied from the end of the text to the start (splices that insert at the same offset keep their emission order). Before it returns, `patchJson` parses the result and requires it to equal `after` with its numbers printed the way the file writes them.
 
 ### `src/profile/file-codec.ts`
 
@@ -156,9 +158,14 @@ Each step starts with its test, run red, with the failure reason recorded; the r
     - a duplicate key in one object throws, naming the key.
   - *Expected failure:* module missing.
   - *Done: red `Cannot find module './locate'`; then 92 of 92 green on the first run (the 42 new cases include the five fixtures against `literals.golden.json`, which Last Light's TypeScript 5.9.3 scanner recorded through `record-literals.mjs`; its sha256 is checked by `fixtures.test.ts`). The scanner is `scanJson` from Last Light's plan view with member and container spans, JSON-only whitespace, raw-control-character and duplicate-key refusals added. The returned shape is a node tree (`root`, `node(path)`, `children`) and not the two maps the first sketch of this plan had, because the structure edits need each container's children in order.*
-- [ ] **6. Literal edits** (`literal.test.ts`, `json-edit.test.ts` as is with imports changed; `literal.ts`).
-  - *Red:* the Last Light cases: `formatJsonNumber` writes no exponent and trims float noise to 4 decimals; on each fixture every literal edited to its own value is byte-identical and one edit changes only its own span; a negative number can turn positive; a batch is all or nothing; a mismatch names its path; repeats, non-numbers and bad values are refused.
-  - *Expected failure:* module missing. The assertions are not edited.
+- [x] **6. Printing values** (`print.test.ts`, the `formatJsonNumber` case of `json-edit.test.ts` with `JsonEditError` renamed `JsonWriteError`; `print.ts`).
+  - *Red:*
+    - `formatJsonNumber` writes no exponent and trims float noise to 4 decimals (`0.1 + 0.2` is `0.3`, `-1.23456` is `-1.2346`, `-0.00001` is `0`, `12`, `0.0001`); `NaN` and `1e22` throw `JsonWriteError` (the latter naming the exponent);
+    - `formatJsonScalar` writes strings as JSON strings (quotes, backslashes and newlines escaped; accented letters as they are), booleans and `null`, numbers through `formatJsonNumber`, and refuses an object;
+    - for every number literal of the five fixtures, the printed form of its value parses back to the same number when the file wrote at most 4 decimals, so printing a number the file already has never changes it.
+  - *Expected failure:* module missing. The number assertions are not edited.
+  - *Done: red `Cannot find module './print'`; then 101 of 101 green on the first run.*
+  - *Deviation recorded:* `applyJsonEdits` is not ported (see Contract), and the plan's first sketch of this step (literal edit batches on the four files) moves to steps 8 and 10, where the same guarantees are asserted on `patchJson`.
 - [ ] **7. Structure edits and layout** (`structure.test.ts`, `layout.test.ts`, the structure cases of `level-edits.test.ts` lines 60 to 106; `layout.ts`, `structure.ts`).
   - *Red:*
     - on each fixture, appending a copy to `rooms`, `boxes`, `hotspots` and `lamps` is a pure insert, written on one line if its neighbour is and over several if not, and removing it restores the text byte for byte;
@@ -179,7 +186,7 @@ Each step starts with its test, run red, with the failure reason recorded; the r
   - *Expected failure:* module missing.
 - [ ] **9. Refusals and verification** (`patch.refusal.test.ts`; `patch.ts`, which exports `verifyPatched(text, after)` for the test and not from the public entry).
   - *Red, by case (**ED3-o**):*
-    - `lossy-number`: `NaN`, `Infinity` and `0.12345` in `after` refuse with the path of the value, and nothing is returned to write;
+    - `unwritable-value`: `NaN`, `Infinity` and `1e22` in `after` refuse with the path of the value, and nothing is returned to write; `0.12345` is written as `0.1235` and `0.1 + 0.2` as `0.3`, and the check compares the re-parse with `after` rounded the same way;
     - `invalid-text`: a text with a trailing comma refuses, with the scanner's offset in `detail`;
     - `before-mismatch`: a `before` that is not what the text parses to refuses at the first differing path;
     - `verify-failed`: `verifyPatched` on a text that does not parse to `after` (a wrong edit set built in the test) refuses at the first differing path; this is the guard against a codec bug, so the test builds the bug;
