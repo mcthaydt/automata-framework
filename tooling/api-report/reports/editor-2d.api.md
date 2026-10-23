@@ -901,6 +901,7 @@ interface Profile<V> {
     parse(text: string): Result<V, readonly ParseError[]>;
     print(base: string, value: V): string;
     check(value: V, context: ProjectContext): readonly Diagnostic[];
+    summary?(value: V): ProfileSummary;
     readonly templates: readonly TemplateDef<V>[];
     readonly views: readonly ViewDef[];
     readonly exports: readonly ExportTarget<V>[];
@@ -1096,6 +1097,7 @@ interface Stamp {
 interface TemplateDef<V> {
     readonly id: string;
     readonly label: string;
+    readonly hint?: string | undefined;
     create(ids: IdSource): V;
 }
 ```
