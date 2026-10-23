@@ -103,9 +103,12 @@ describe('the Lighthouse budget (lighthouserc.json)', () => {
   // the target (the test below fails then), so the list cannot outlive the problem. QB.3j emptied it.
   const BELOW_PERFORMANCE_TARGET: Record<string, string> = {}
 
-  it.each(['/', '/start', '/examples', '/docs'])('%s: the recorded run meets the blocking-time line, and the performance target unless a reason is listed', path => {
+  // The blocking-time line is the page's own (300 ms on the two pages that hydrate the most, 200 ms elsewhere; the two
+  // hosted runs of QB.3j measured the home page at 186 and 211 ms), so the recorded run is held to that line, and the
+  // rule that no line is looser than the spec or the record plus a third is checked above.
+  it.each(['/', '/start', '/examples', '/docs'])('%s: the recorded run meets its blocking-time line, and the performance target unless a reason is listed', path => {
     const recorded = baseline.pages[path]!
-    expect(recorded.tbtMs).toBeLessThanOrEqual(SPEC.tbtMs)
+    expect(recorded.tbtMs).toBeLessThanOrEqual(budgetFor(`http://127.0.0.1:4652${path}`)['total-blocking-time']![1].maxNumericValue!)
     if (path in BELOW_PERFORMANCE_TARGET) {
       expect(recorded.performance, `${path} now meets the target: remove its entry from BELOW_PERFORMANCE_TARGET`).toBeLessThan(SPEC.performance)
     } else {

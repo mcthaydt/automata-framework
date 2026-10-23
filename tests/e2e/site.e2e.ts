@@ -192,12 +192,29 @@ test('the home page requests only the poster picture until the reader scrolls to
   await page.setViewportSize({ width: 412, height: 823 })
   await open(page, '/')
   const notThePoster = () => requested.filter(name => !name.startsWith('emberwick'))
+  const boxes = page.locator('.lazy-picture')
+  const pictures = page.locator('.lazy-picture img')
+  const total = await boxes.count()
   expect(requested.length, 'the poster is requested').toBeGreaterThan(0)
+  expect(total, 'the page has pictures below the poster').toBeGreaterThanOrEqual(3)
   expect(notThePoster()).toEqual([])
 
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-  await expect.poll(notThePoster, { message: 'pictures near the reader are requested' }).not.toEqual([])
-  await expect(page.locator('img[src*="/previews/"]:visible').last()).toHaveJSProperty('complete', true)
+  // The page scrolls smoothly (`scroll-behavior`), and a smooth scroll to the bottom passes every picture on the way,
+  // which asks for all of them; whether the browser draws enough frames on the way is not something to depend on (the
+  // hosted WebKit run did not). These scrolls jump, then wait two frames, which is when an IntersectionObserver reports.
+  const twoFrames = () => page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+
+  // The bottom of the page is thousands of pixels from every picture, so a reader who lands there is near none of them.
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }))
+  await twoFrames()
+  expect(notThePoster(), 'no picture is asked for from the bottom of the page').toEqual([])
+  expect(await pictures.count()).toBe(0)
+
+  // Landing on the first picture asks for it and the ones just below it, and not the rest.
+  await boxes.first().evaluate(box => box.scrollIntoView({ block: 'center', behavior: 'instant' }))
+  await expect.poll(notThePoster, { message: 'pictures near the reader are requested', timeout: 15_000 }).not.toEqual([])
+  await expect(pictures.first()).toHaveJSProperty('complete', true, { timeout: 15_000 })
+  expect(await pictures.count(), 'pictures far from the reader are still not in the page').toBeLessThan(total)
 })
 
 // The prerendered page has no picture of its own below the poster, so a reader without script gets the noscript copies.
