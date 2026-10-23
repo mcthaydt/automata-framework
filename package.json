@@ -13,7 +13,8 @@
     "check:site": "node --import tsx scripts/check-site.ts",
     "verify:workshop": "vitest run tests/first-change.test.ts tests/double-jump.test.ts --reporter=json --outputFile=.svelte-kit/first-change-results.json && node scripts/record-workshop-proof.mjs",
     "build:workshop": "node scripts/build-workshop.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "lighthouse": "lhci autorun --config=lighthouserc.json"
   },
   "dependencies": {
     "zod": "4.6.5"
@@ -22,6 +23,7 @@
     "@axe-core/playwright": "4.13.0",
     "@fontsource-variable/geist": "5.3.0",
     "@fontsource-variable/geist-mono": "5.3.0",
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "1.63.0",
     "@sveltejs/adapter-static": "3.0.8",
     "@sveltejs/kit": "2.16.1",
@@ -37,6 +39,7 @@
     "tsx": "^4.23.15",
     "typescript": "6.0.3",
     "vite": "6.4.4",
-    "vitest": "5.0.3"
+    "vitest": "5.0.3",
+    "yaml": "2.9.1"
   }
 }
