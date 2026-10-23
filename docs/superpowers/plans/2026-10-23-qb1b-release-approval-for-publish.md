@@ -36,7 +36,7 @@
 - [x] **1. The shape, red first.** Rewrite the `release-packages.yml` describe in `workflows.test.ts`: `plan` has no environment and outputs whether changesets are pending; `version` needs `plan`, runs when pending, has no environment, may write contents and pull requests only, and its `changesets/action` has no `publish-script`; `publish` needs `plan`, runs when nothing is pending, is the only job in the `release` environment, may write contents and packages only, and holds the `publish-script`, the verification and the consumer smoke; both jobs check out full history without keeping the token, run `pnpm check` before the action, run on `ubuntu-latest` with the 20-minute timeout. Run `pnpm --filter @mcthaydt/automata-ship test:unit`; the new cases fail on the single-job workflow.
 - [x] **2. The workflow.** Split `release-packages.yml` accordingly; the cases pass.
 - [x] **3. Prove the plan's rule.** Run the `plan` shell snippet against this checkout (no changesets pending on a clean tree, pending after adding a file) and record both outputs.
-- [x] **4. Gates and docs.** `pnpm format`, `pnpm check`, the changeset check (`pnpm changeset status --since=origin/main` exits 0 with no changeset needed); `.changeset/README.md`; the 02 row with the docs sync PR.
+- [x] **4. Gates and docs.** `pnpm format`, `pnpm check`, the changeset check (`pnpm changeset status --since=origin/main` exits 0 with the empty changeset); `.changeset/README.md`; the 02 row with the docs sync PR.
 
 ## Gates
 
