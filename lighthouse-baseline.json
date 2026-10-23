@@ -6,40 +6,40 @@
   "runsPerPage": 3,
   "pages": {
     "/": {
-      "performance": 0.87,
-      "lcpMs": 3505.07,
+      "performance": 0.96,
+      "lcpMs": 2121.668,
       "cls": 0,
-      "tbtMs": 46,
-      "fcpMs": 2489.382,
-      "speedIndexMs": 3288.254,
-      "transferBytes": 382982
+      "tbtMs": 185.5,
+      "fcpMs": 1508.418,
+      "speedIndexMs": 1508.418,
+      "transferBytes": 288204
     },
     "/start": {
-      "performance": 0.95,
-      "lcpMs": 2593.208,
+      "performance": 0.99,
+      "lcpMs": 2111.397,
       "cls": 0,
-      "tbtMs": 22,
-      "fcpMs": 2087.657,
-      "speedIndexMs": 2129.545,
-      "transferBytes": 216321
+      "tbtMs": 46.5,
+      "fcpMs": 1481.944,
+      "speedIndexMs": 1481.944,
+      "transferBytes": 216528
     },
     "/examples": {
-      "performance": 0.92,
-      "lcpMs": 2885.162,
+      "performance": 0.96,
+      "lcpMs": 1749.128,
       "cls": 0,
-      "tbtMs": 27.5,
-      "fcpMs": 2378.301,
-      "speedIndexMs": 2378.301,
-      "transferBytes": 238003
+      "tbtMs": 156,
+      "fcpMs": 1482.862,
+      "speedIndexMs": 1482.862,
+      "transferBytes": 238209
     },
     "/docs": {
-      "performance": 0.98,
-      "lcpMs": 2071.731,
+      "performance": 1,
+      "lcpMs": 1635.917,
       "cls": 0,
-      "tbtMs": 0,
-      "fcpMs": 1910.487,
-      "speedIndexMs": 1910.487,
-      "transferBytes": 129138
+      "tbtMs": 43.5,
+      "fcpMs": 1324.412,
+      "speedIndexMs": 1324.412,
+      "transferBytes": 129334
     }
   }
 }

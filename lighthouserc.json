@@ -22,14 +22,14 @@
             "categories:performance": [
               "error",
               {
-                "minScore": 0.8,
+                "minScore": 0.9,
                 "aggregationMethod": "median-run"
               }
             ],
             "largest-contentful-paint": [
               "error",
               {
-                "maxNumericValue": 3700,
+                "maxNumericValue": 2500,
                 "aggregationMethod": "median-run"
               }
             ],
@@ -43,7 +43,7 @@
             "total-blocking-time": [
               "error",
               {
-                "maxNumericValue": 200,
+                "maxNumericValue": 300,
                 "aggregationMethod": "median-run"
               }
             ]
@@ -62,7 +62,7 @@
             "largest-contentful-paint": [
               "error",
               {
-                "maxNumericValue": 3000,
+                "maxNumericValue": 2500,
                 "aggregationMethod": "median-run"
               }
             ],
@@ -95,7 +95,7 @@
             "largest-contentful-paint": [
               "error",
               {
-                "maxNumericValue": 3300,
+                "maxNumericValue": 2500,
                 "aggregationMethod": "median-run"
               }
             ],
@@ -109,7 +109,7 @@
             "total-blocking-time": [
               "error",
               {
-                "maxNumericValue": 200,
+                "maxNumericValue": 300,
                 "aggregationMethod": "median-run"
               }
             ]

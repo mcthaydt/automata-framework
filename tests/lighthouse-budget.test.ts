@@ -12,9 +12,16 @@ import { medianMetrics, type LighthouseResult } from '../scripts/record-lighthou
 //
 // The baseline is recorded where the budget is enforced: the GitHub-hosted runner, whose Chromium (153) is newer than
 // the one in the container the first numbers came from (141). The two agree on `/start`, `/examples` and `/docs`; on
-// `/` the newer Chromium also fetches two gallery images below the poster before it paints, and the simulated slow
-// network charges their 95 KB to the LCP (3.5 s there, 2.6 s with Chromium 141). `/` therefore starts below the
-// performance target, with its reason listed below, and its budget comes from that run.
+// `/` the newer Chromium also fetched two gallery images below the poster before it painted, and the simulated slow
+// network charged their 95 KB to the LCP (3.5 s there, 2.6 s with Chromium 141).
+//
+// QB.3j. That is fixed (the pictures wait until the reader is near; only the entry and node modules are preloaded), and
+// the baseline is re-recorded on the hosted runner: every page is under 2.5 s and at least 0.96, so every page is held to
+// the targets themselves. The price is blocking time. Hydration used to finish before the first paint, where
+// Lighthouse does not count it; the paint is now 0.5 to 0.9 s earlier and the hydration falls after it, so the home page
+// and the gallery (the two with the most to hydrate) went from 46 and 28 ms to 186 and 156 ms. Their line is 300 ms
+// instead of 200; the other two pages stay at 200. The spec names no blocking-time target, and the score floor above
+// still holds.
 //
 // QB.3f. The quality-bar spec (§4.2) asks for a Lighthouse budget on `/`, `/start`, `/examples` and `/docs`:
 // performance ≥ 90 on mobile, LCP ≤ 2.5 s, CLS ≤ 0.1, with thresholds that "come from the first recorded run and are
@@ -93,10 +100,8 @@ describe('the Lighthouse budget (lighthouserc.json)', () => {
   })
 
   // Pages whose recorded run is below the performance target, each with the reason. An entry goes when the page meets
-  // the target (the test below fails then), so the list cannot outlive the problem.
-  const BELOW_PERFORMANCE_TARGET: Record<string, string> = {
-    '/': 'Chromium 153 fetches two gallery images (95 KB) before the poster paints, and the simulation charges them to the LCP (3.5 s)',
-  }
+  // the target (the test below fails then), so the list cannot outlive the problem. QB.3j emptied it.
+  const BELOW_PERFORMANCE_TARGET: Record<string, string> = {}
 
   it.each(['/', '/start', '/examples', '/docs'])('%s: the recorded run meets the blocking-time line, and the performance target unless a reason is listed', path => {
     const recorded = baseline.pages[path]!
@@ -112,6 +117,14 @@ describe('the Lighthouse budget (lighthouserc.json)', () => {
     const recorded = baseline.pages[path]!
     if (recorded.performance < SPEC.performance) return
     expect(budgetFor(`http://127.0.0.1:4652${path}`)['categories:performance']![1].minScore!).toBeGreaterThanOrEqual(SPEC.performance)
+  })
+
+  // QB.3j. The same rule for the LCP: once the hosted run is under 2.5 s the budget is 2.5 s, not the first run plus a
+  // third, which would let the page slip back to 2.9 s and still pass.
+  it.each(['/', '/start', '/examples', '/docs'])('%s: a page that meets the LCP target is held to it', path => {
+    const recorded = baseline.pages[path]!
+    if (recorded.lcpMs > SPEC.lcpMs) return
+    expect(budgetFor(`http://127.0.0.1:4652${path}`)['largest-contentful-paint']![1].maxNumericValue!).toBeLessThanOrEqual(SPEC.lcpMs)
   })
 
   it('keeps its reports as files, and uploads nothing to a third party', () => {
