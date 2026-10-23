@@ -133,10 +133,17 @@ export const CHANGES = [
   ],
 ]
 
-// What is new since the Owner accepted the Studio look (2026-10-23 08:46Z: "Character editor is glorious, but let's add
-// like IK rig so we can manually pose"). Before is PR #138 as it stood then (SINCE_AT), drawn from `--since <dir>`. The
-// look fixes are the nine the audit of PR #134 flagged, each the smallest change that meets the standard (decided
-// 2026-10-23 08:40Z, coordinator).
+// What was added since the Owner accepted the Studio look (2026-10-23 08:46Z: "Character editor is glorious, but let's
+// add like IK rig so we can manually pose"). Before is PR #138 as it stood then (SINCE_AT), drawn from `--since <dir>`.
+// The look fixes are the nine the audit of PR #134 flagged, each the smallest change that meets the standard (decided
+// 2026-10-23 08:40Z, coordinator). The Owner signed all of these off, see SIGNED_OFF.
+
+// The Owner's sign-off of every screen, the #141 ones included (Orchestrator project chat, relayed by the hub,
+// bus inbox 2026-10-23-2036).
+export const SIGNED_OFF = {
+  at: '2026-10-23 20:35 UTC',
+  words: 'the mockups are signed of tell them',
+}
 
 export const SINCE_AT = '1bcf04c'
 

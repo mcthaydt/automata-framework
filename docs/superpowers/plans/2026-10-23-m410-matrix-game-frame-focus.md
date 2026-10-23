@@ -3,7 +3,7 @@
 - **Spec:** [M4 spec](../specs/2026-10-16-m4-input-display-design.md) §9.1 (the input × form-factor matrix, M-a); the journey is `examples/e2e/input-matrix.e2e.ts`. No spec change.
 - **Task:** a follow-up of M4.10 found by the Mac run of #170 (`tests/queue/2026-10-23-1736-automata-cap-workers-mac.md`): `[matrix-desktop-keyboard-webkit] input-matrix.e2e.ts:303` §9.1 under the fake Ruken host failed with `focus never reached [data-testid="play"]` in 2.0 s, 2 of 3 on rerun, at a load of 10 with one runner job. It also failed in the 0915 run. The hub asked the Examples and DX thread to deflake it by waiting on the focus semantically, no sleeps.
 - **Status:** drafted 2026-10-23, based on `main` (`9514d52`). Only the journey's file changes.
-- **Progress:** 3 of 4 steps (4 waits for the draft PR and the merge).
+- **Progress:** 4 of 4 steps. Merged as #176 (`fa574d6`).
 
 ## What is wrong
 
@@ -34,7 +34,7 @@ Found by reproduction here (WebKit installed with `playwright install webkit` an
 - [x] **1. Red, by reproduction.** `playwright test examples/e2e/input-matrix.e2e.ts --project=matrix-desktop-keyboard-webkit -g "fake Ruken" --repeat-each=12 --workers=4` with six CPU hogs (`sh -c 'while :; do :; done'`) on this four-core container fails 12 of 12 with `focus never reached [data-testid="play"]`. The test is the spec itself; a unit test of a helper would not fail where the race is.
 - [x] **2. Green.** `focusGame` in `open`, the clearer `walk` message. The same command passes the focus step 12 of 12.
 - [x] **3. All engines.** The fake-host journey in WebKit, Firefox and Chromium, four runs each, idle: 12 of 12. The whole matrix (170 tests) once with `CI=1`, so the two-worker cap is on: no new failure.
-- [ ] **4. Gates and hand-off.** `pnpm format`, `pnpm check`; draft PR on an extra branch, merge queue told; a Mac `test-request` is not needed beyond the Orchestrator's next full e2e run (the journey is in it).
+- [x] **4. Gates and hand-off.** `pnpm format`, `pnpm check`; draft PR on an extra branch, merge queue told; a Mac `test-request` is not needed beyond the Orchestrator's next full e2e run (the journey is in it).
 
 ## Gates
 
@@ -50,3 +50,4 @@ Found by reproduction here (WebKit installed with `playwright install webkit` an
 | 2026-10-23 | 2 | | First version (focus the frame element every time) cleared the focus step but failed `[matrix-desktop-gamepad-chromium]` `:516` in the whole-matrix run: focusing the element resets the frame's `activeElement` to `body` and erased the Play focus the pad's confirm needs. Final version focuses only a frame without focus. Same reproduction: 10 of 12 pass, **0 of 12 fail at the focus step**; the other 2 failed later (one `holding right did not move the runner`, one held jump shot equal to the landed picture), the next layer named above. |
 | 2026-10-23 | 3 | | Fake-host journey, desktop keyboard cells, idle (load fell from 10 as the hogs ended), four runs each: WebKit, Firefox and Chromium 12 of 12 passed (4.1 min). Whole matrix, `CI=1` (two workers): 35 passed, 135 skipped (cells the journey does not play), exit 0 after 529 s, including `matrix-desktop-gamepad-chromium` `:516` and the host-event tests. |
 | 2026-10-23 | 4 | | `pnpm format` (no change); `CI=1 pnpm check` exit 0 (33 tasks, 31 cached). No changeset: `examples/` is private. Draft PR and merge queue next. |
+| 2026-10-23 | 4 (merge) | `c05d7b7` | Draft PR #176 (the merge queue marked it ready at 20:04Z, merged at 20:36Z as `fa574d6`); hosted checks green on its head: lint, typecheck, boundaries, style and unit; parity on three engines; base-2d and placeholder game-ci (the journeys are not among the PR checks, so the Mac's next full e2e is the real confirmation). Ruken's answer (bus 2046): its host does not focus the game frame on load either, a player clicks first. |
