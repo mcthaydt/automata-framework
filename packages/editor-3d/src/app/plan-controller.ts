@@ -3,11 +3,18 @@
 // kit's gesture recogniser says (canvas pixels, the pointer kind and the modifier keys), reads `view` and paints what it
 // says. The level stays in the editor's history, the selection in its selection and the camera in its view store, so the
 // controller keeps only what a pointer is in the middle of; undo, redo and a change of layers need nothing from the view.
-import type { PointerKind, Size } from '@mcthaydt/automata-editor-kit/core'
+import type { PointerKind, Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
 import type { LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'
 import { GeometryError, type GeometryLayer } from '../profile/level-profile'
-import { type CornerHit, PICK_RADIUS, type PlanHit, pickCorner, pickPlan } from '../view/plan/plan-pick'
+import {
+  type CornerHit,
+  PICK_RADIUS,
+  type PickOptions,
+  type PlanHit,
+  pickCorner,
+  pickPlan,
+} from '../view/plan/plan-pick'
 import type { SnapResult } from '../view/plan/plan-snap'
 import { planViewport } from '../view/plan/plan-viewport'
 import { type SelectionOf, selectionOf } from '../view/selection-of'
@@ -44,6 +51,8 @@ export interface PlanController {
   hover(at: PlanPointer): void
   /** The pointer left the canvas. */
   leave(): void
+  /** Selects what the pointer touches: a wall, else a sector; with `additive` it adds or takes off, and nothing leaves it. */
+  tap(at: PlanPointer): void
   /** Stops following the editor. */
   dispose(): void
 }
@@ -103,6 +112,14 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
       }),
     )
 
+  const currentViewport = (): Viewport2D => planViewport(editor.view.state.camera, size)
+
+  /** The reach of the pointer kind, and the layers that are not hit. */
+  const pickOptions = (at: PlanPointer): PickOptions => {
+    const { hidden, locked } = editor.view.state
+    return { radius: PICK_RADIUS[at.kind], hidden, locked }
+  }
+
   /** What the pointer is over now, from the level, the selection, the layers and the camera as they are. */
   const refresh = (): void => {
     if (pointer === undefined) {
@@ -110,9 +127,8 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
       return
     }
     const { layers, select } = geometry()
-    const { camera, hidden, locked } = editor.view.state
-    const viewport = planViewport(camera, size)
-    const options = { radius: PICK_RADIUS[pointer.kind], hidden, locked }
+    const viewport = currentViewport()
+    const options = pickOptions(pointer)
     // Only the corners of a selected sector have handles: `pickCorner` reads them from `corners`.
     const selected = selectedSectors()
     const handles: SelectionOf = { ...select, corners: (id) => (selected.has(id) ? select.corners(id) : []) }
@@ -145,6 +161,17 @@ export function createPlanController<D>(editor: LevelEditor<D>, size: Size): Pla
     },
     leave() {
       pointer = undefined
+      refresh()
+    },
+    tap(at) {
+      pointer = at
+      const { layers, select } = geometry()
+      const hit = pickPlan(layers, select, currentViewport(), at, pickOptions(at))
+      if (hit === undefined) {
+        if (at.additive !== true) editor.selection.clear()
+      } else if (at.additive === true) editor.selection.toggle(hit.selection)
+      else editor.selection.set([hit.selection])
+      // The handles and the hover of the new selection are under the pointer already.
       refresh()
     },
     dispose() {

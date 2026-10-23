@@ -253,3 +253,85 @@ describe('the geometry the picks read', () => {
     }
   })
 })
+
+describe('tap', () => {
+  it('selects the sector under the pointer, a wall within its reach, and clears on nothing', () => {
+    const { editor, controller, at } = setup()
+    controller.tap(at(4, 3))
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+    controller.tap(at(4, 0.1))
+    expect(editor.selection.ids).toEqual(['wall:hall/0'])
+    controller.tap(at(-3, 3))
+    expect(editor.selection.ids).toEqual([])
+  })
+
+  it('replaces the selection with the other sector', () => {
+    const { editor, controller, at } = setup()
+    controller.tap(at(4, 3))
+    controller.tap(at(11, 3))
+    expect(editor.selection.ids).toEqual(['sector:dock'])
+  })
+
+  it('adds with the additive key, and takes off what is already selected', () => {
+    const { editor, controller, at } = setup()
+    controller.tap(at(4, 3))
+    controller.tap({ ...at(11, 3), additive: true })
+    expect(editor.selection.ids).toEqual(['sector:hall', 'sector:dock'])
+    controller.tap({ ...at(4, 3), additive: true })
+    expect(editor.selection.ids).toEqual(['sector:dock'])
+  })
+
+  it('keeps the selection when an additive tap lands on nothing', () => {
+    const { editor, controller, at } = setup()
+    controller.tap(at(4, 3))
+    controller.tap({ ...at(-3, 3), additive: true })
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+  })
+
+  it('selects nothing on a layer that is locked or hidden, as a tap on nothing', () => {
+    const { editor, controller, at } = setup()
+    controller.tap(at(4, 3))
+    editor.view.set({ locked: ['sectors'] })
+    controller.tap(at(11, 3))
+    expect(editor.selection.ids).toEqual([])
+    editor.view.set({ locked: [], hidden: ['sectors'] })
+    controller.tap(at(4, 3))
+    expect(editor.selection.ids).toEqual([])
+  })
+
+  it('selects the sector under a wall whose layer is locked', () => {
+    const { editor, controller, at } = setup()
+    editor.view.set({ locked: ['walls'] })
+    controller.tap(at(4, 0.1))
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+  })
+
+  it('on a corner handle selects what is under it, and shows the handles of what it selected', () => {
+    const { editor, controller, at } = setup()
+    controller.tap(at(4, 3))
+    controller.hover(at(8, 6))
+    expect(controller.view.corner).toMatchObject({ sector: 'hall', corner: 2 })
+    controller.tap(at(8, 6))
+    expect(editor.selection.ids).toHaveLength(1)
+    expect(editor.selection.ids[0]).toMatch(/^wall:(hall|dock)\//)
+    // The pointer is still there: the handles of the sector the tap selected are under it.
+    expect(controller.view.corner).toBeDefined()
+  })
+
+  it('takes the pointer with it, so the hover is where the tap was even when nothing was selected or cleared', () => {
+    const { editor, controller, at } = setup()
+    controller.hover(at(4, 3))
+    expect(controller.view.hover).toMatchObject({ selection: 'sector:hall' })
+    controller.tap(at(-3, 3))
+    expect(editor.selection.ids).toEqual([])
+    expect(controller.view.hover).toBeUndefined()
+  })
+
+  it('moves the hover with it: the next handle shows without a pointer move', () => {
+    const { controller, at } = setup()
+    controller.tap(at(4, 3))
+    expect(controller.view.hover).toMatchObject({ selection: 'sector:hall' })
+    controller.tap(at(0, 0))
+    expect(controller.view.corner).toMatchObject({ sector: 'hall', corner: 0 })
+  })
+})
