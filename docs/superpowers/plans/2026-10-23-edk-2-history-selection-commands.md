@@ -2,8 +2,8 @@
 
 - **Task:** EDK.2 in [02](../../02-master-delivery-plan.md). [Editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.3 (`History<S>`), §4.4 (`Selection`, commands, keymap); decisions EDK-D2, EDK-D4, EDK-D5; acceptance EK-a (the undo-step part), EK-h.
 - **Lane:** editor-kit. **Depends on:** EDK.1 (the package; this PR stacks on #106).
-- **Status:** Planned 2026-10-23. Nothing implemented.
-- **Progress:** 0 of 5 steps.
+- **Status:** Implemented and locally checked 2026-10-23 (draft PR from `claude/project-thread-73sp69-edk2`, stacked on #106). Not CI verified; the editor-kit spec is unreviewed.
+- **Progress:** 5 of 5 steps.
 
 ## Scope
 
@@ -121,3 +121,11 @@ EK-h (begin twice throws, the first transaction is intact) and the undo-step par
 
 - **Coalescing and the clean state.** A coalesced step moves `revision`, so a save between two scrubs of one field is dirty again after the second scrub, which is correct. A test pins it.
 - **Selection ids that no longer exist.** The kit does not know the document, so deleting a selected item is the editor's `set` call. If every editor needs a `prune`, it is added then.
+
+## Execution record
+
+- **Steps 1 and 2 (History).** `history.test.ts` first failed on the missing module. Step 1 shipped without `begin` and coalescing (a smaller `History` interface), step 2's tests then failed on `begin is not a function` and on the missing coalescing, and the full interface landed there. One test was wrong, not the code: "a transaction that ends where it began records nothing" assumed value equality, but the contract is identity (`apply` and transactions record nothing only when the update returns the same object); the test now returns the same state, and the spec line says identity.
+- **Step 3 (Selection).** One test was wrong twice: it read `listener.mock.calls[i][0].ids` after the run (the listener gets the live selection, so every entry showed the final ids) and expected four notifications where the real changes are three. It now records a copy of the ids at call time and expects `[['a','b'], [], ['a']]`.
+- **Step 4 (shortcuts and commands) and step 5 (keymap).** Both went red on the missing module and green on the first implementation; no deviations.
+- **Spec edits in this PR:** §4.3 (decision 1: undo cancels and does nothing else; closed transactions ignore calls; identity) and §4.4 (command and keymap details above).
+- **Gates:** `svelte-check --fail-on-warnings` clean; 134 unit tests in the package (EDK.1's 59 plus 75 here); `pnpm lint` exit 0; `pnpm style` 0 findings; `pnpm knip` lists only the four `docs/design/editor-2d/*.mjs` files that #94's `knip.jsonc` entry clears. Not run: other packages' unit tests and `pnpm boundaries` (untouched), `pnpm deps:new` (no new dependency).
