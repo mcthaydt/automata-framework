@@ -53,6 +53,22 @@ function checkVersion(version: string, tag: string | undefined): string | undefi
 function declaredBoardsIn(code: string): string[] | undefined;
 ```
 
+### `DeclaredInputs` (interface)
+
+```ts
+interface DeclaredInputs {
+    readonly inputs: string[];
+    readonly line: number;
+    readonly col: number;
+}
+```
+
+### `declaredInputsIn` (function)
+
+```ts
+function declaredInputsIn(code: string): DeclaredInputs | undefined;
+```
+
 ### `declaredOrientationIn` (function)
 
 ```ts
@@ -127,6 +143,12 @@ class FileError extends FileErrorBase {
 }
 ```
 
+### `findInputsProblems` (function)
+
+```ts
+function findInputsProblems(gameDir: string, inputs: readonly string[]): string[];
+```
+
 ### `findOrientationMismatches` (function)
 
 ```ts
@@ -169,10 +191,22 @@ function inputsProblems(inputs: readonly string[], bindings: ShipInputBindings):
 const isBoardSource: (file: string) => boolean;
 ```
 
+### `isInputsSource` (const)
+
+```ts
+const isInputsSource: (file: string) => boolean;
+```
+
 ### `isOrientationSource` (const)
 
 ```ts
 const isOrientationSource: (file: string) => boolean;
+```
+
+### `keysBindingsIn` (function)
+
+```ts
+function keysBindingsIn(file: string, code: string): ShipInputBindings | undefined;
 ```
 
 ### `ManifestInputsMismatch` (class)

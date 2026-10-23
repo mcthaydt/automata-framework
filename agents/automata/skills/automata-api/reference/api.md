@@ -1615,6 +1615,27 @@ is not written as an object (a spread or a variable), so the check says it could
 function declaredBoardsIn(code: string): string[] | undefined;
 ```
 
+#### `DeclaredInputs` (interface)
+
+The `runtime.inputs` a `ship.config.ts` declares, with the position of its opening bracket.
+
+```ts
+interface DeclaredInputs {
+  readonly inputs: string[];
+  readonly line: number;
+  readonly col: number;
+}
+```
+
+#### `declaredInputsIn` (function)
+
+The `runtime.inputs` a `ship.config.ts` declares, read from the source as written (`automata check` reads files, it
+does not run them). `undefined` when the file does not parse or `runtime.inputs` is not an array of string literals.
+
+```ts
+function declaredInputsIn(code: string): DeclaredInputs | undefined;
+```
+
 #### `declaredOrientationIn` (function)
 
 The `runtime.orientation` a `ship.config.ts` declares, read from the source as written (`automata check` reads
@@ -1716,6 +1737,15 @@ class FileError extends FileErrorBase {
 }
 ```
 
+#### `findInputsProblems` (function)
+
+Each disagreement between `inputs` (a config's `runtime.inputs`) and what the `keys()` calls in a game's sources
+bind, in `inputsProblems`' words; empty when they agree or the game has no `keys()` call to compare.
+
+```ts
+function findInputsProblems(gameDir: string, inputs: readonly string[]): string[];
+```
+
 #### `findOrientationMismatches` (function)
 
 Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
@@ -1774,12 +1804,30 @@ Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`
 const isBoardSource: (file: string) => boolean;
 ```
 
+#### `isInputsSource` (const)
+
+Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+
+```ts
+const isInputsSource: (file: string) => boolean;
+```
+
 #### `isOrientationSource` (const)
 
 Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
 
 ```ts
 const isOrientationSource: (file: string) => boolean;
+```
+
+#### `keysBindingsIn` (function)
+
+What the `keys()` calls in one source file bind, one `<file>:<line>:<col> keys` entry per call (and `pad` and
+`gestures` entries where it binds them); empty when the file has no call; `undefined` when it does not parse (its
+typecheck already fails, and a half-read tree could name a device that is not there).
+
+```ts
+function keysBindingsIn(file: string, code: string): ShipInputBindings | undefined;
 ```
 
 #### `ManifestInputsMismatch` (class)
@@ -1864,7 +1912,7 @@ function portsFor(checkoutPath: string, env: Readonly<Record<string, string | un
 #### `prepareBuild` (function)
 
 Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
-entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
 runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
 (archive, size, file types) happen inside `ruken publish`, not here.
 
@@ -1892,7 +1940,8 @@ interface PrepareInput {
   readonly gameDir?: string | undefined;
   /**
    * The game's input bindings (its input map's `profile.bindings`), checked against `runtime.inputs` (I-g).
-   * Left out, nothing is checked.
+   * Left out, the `keys()` calls in `gameDir`'s sources are read instead (M4.1 follow-up); with neither, nothing
+   * is checked.
    */
   readonly inputBindings?: ShipInputBindings | undefined;
 }

@@ -2,8 +2,8 @@
 
 - **Spec:** [M4 spec](../specs/2026-10-16-m4-input-display-design.md) §4.13 (I-g: the manifest declares every device the input map binds) and the [M4.1 plan](2026-10-17-m4-1-input-service.md) step 6 (the follow-up this closes); [M5 spec](../specs/2026-10-16-m5-saves-audio-design.md) §4.8 and the [orientation plan](2026-10-23-m47-orientation-check.md) (the static source checks this copies); [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.6 (`automata check`).
 - **Task:** `Follow-up (found in M4.1) — runtime.inputs check at prepare and in automata check` (02). Lane ship.
-- **Status:** drafted 2026-10-23, stacked on the orientation branch (it shares `source-reader.ts`, `prepare-build.ts` and the `automata check` step list). No PR is opened until the shared runner's queue drains.
-- **Progress:** 0 of 6 steps.
+- **Status:** drafted and implemented 2026-10-23, locally checked, stacked on the orientation branch (it shares `source-reader.ts`, `prepare-build.ts` and the `automata check` step list). No PR is opened until the shared runner's queue drains.
+- **Progress:** 6 of 6 steps.
 
 ## What is missing
 
@@ -33,12 +33,12 @@
 
 ## Steps
 
-- [ ] **1. The reader, red first.** `input-bindings.test.ts`: a call with key bindings gives a touchable keys entry; `touch: false` removes it; `pad` entries give a pad entry; `gestures` entries give a gesture entry; an unreadable `bindings`, `touch` or `gestures` gives a touchable entry and an unreadable `pad` gives none; `Object.keys(…)`, a local `keys` and a `keys` imported from elsewhere are not read; an aliased import is; a file that does not parse gives `undefined`; `declaredInputsIn` reads `runtime: { inputs: [...] }` with its position and gives `undefined` for a variable, a non-literal element or no `runtime`. Run `pnpm --filter @mcthaydt/automata-ship test:unit`; the file does not exist.
-- [ ] **2. The walk, red first.** `findInputsProblems` over a temporary game folder: a pad binding with no `gamepad`, and `touch` with nothing touchable, are found with `inputsProblems`' own messages; agreement passes; a folder with no `keys()` call finds nothing; test files, `node_modules`, `dist` and dot folders are skipped.
-- [ ] **3. `prepare`, red first.** A game folder whose `keys()` binds a pad against `inputs: ['touch', 'keyboard']` fails with `ManifestInputsMismatch` and writes no `ruken.toml`; matching passes; an explicit `inputBindings` wins over the sources. Wire it in where the explicit check is.
-- [ ] **4. `automata check`, red first.** A step `inputs` after `orientation`: a mismatch is one finding at the `inputs` array with rule `inputs-mismatch`; a `ship.config.ts` whose `inputs` is not all literals, with a `keys()` call, is a tool error that says so; no `ship.config.ts` or no `keys()` call finds nothing. The step lists in `run-check.test.ts` gain it.
-- [ ] **5. The real games.** Run the check over every game and the example folders; record what it finds and fix any real disagreement.
-- [ ] **6. Gates and docs.** `pnpm format`, `pnpm check`, `pnpm api-report --update`, `pnpm build && pnpm api-index && pnpm cheatsheet && pnpm agent-skills --write`, the changeset check (`pnpm changeset status --since=origin/main` after committing); 02's row; the execution record and 03 with the docs sync PR.
+- [x] **1. The reader, red first.** `input-bindings.test.ts`: a call with key bindings gives a touchable keys entry; `touch: false` removes it; `pad` entries give a pad entry; `gestures` entries give a gesture entry; an unreadable `bindings`, `touch` or `gestures` gives a touchable entry and an unreadable `pad` gives none; `Object.keys(…)`, a local `keys` and a `keys` imported from elsewhere are not read; an aliased import is; a file that does not parse gives `undefined`; `declaredInputsIn` reads `runtime: { inputs: [...] }` with its position and gives `undefined` for a variable, a non-literal element or no `runtime`. Run `pnpm --filter @mcthaydt/automata-ship test:unit`; the file does not exist.
+- [x] **2. The walk, red first.** `findInputsProblems` over a temporary game folder: a pad binding with no `gamepad`, and `touch` with nothing touchable, are found with `inputsProblems`' own messages; agreement passes; a folder with no `keys()` call finds nothing; test files, `node_modules`, `dist` and dot folders are skipped.
+- [x] **3. `prepare`, red first.** A game folder whose `keys()` binds a pad against `inputs: ['touch', 'keyboard']` fails with `ManifestInputsMismatch` and writes no `ruken.toml`; matching passes; an explicit `inputBindings` wins over the sources. Wire it in where the explicit check is.
+- [x] **4. `automata check`, red first.** A step `inputs` after `orientation`: a mismatch is one finding at the `inputs` array with rule `inputs-mismatch`; a `ship.config.ts` whose `inputs` is not all literals, with a `keys()` call, is a tool error that says so; no `ship.config.ts` or no `keys()` call finds nothing. The step lists in `run-check.test.ts` gain it.
+- [x] **5. The real games.** Run the check over every game and the example folders; record what it finds and fix any real disagreement.
+- [x] **6. Gates and docs.** `pnpm format`, `pnpm check`, `pnpm api-report --update`, `pnpm build && pnpm api-index && pnpm cheatsheet && pnpm agent-skills --write`, the changeset check (`pnpm changeset status --since=origin/main` after committing); 02's row; the execution record and 03 with the docs sync PR.
 
 ## Gates
 
@@ -50,4 +50,9 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-23 | Plan | | |
+| 2026-10-23 | Plan | 48f1397 | |
+| 2026-10-23 | 1–2 reader, walk | (this PR's implementation commit) | Red first: `input-bindings.test.ts` failed on the missing module. One assertion in my own test was wrong (it compared the problems with only the pad entry, so `inputsProblems` also reported touch); fixed to pass the keys entry too. `source-reader.ts` gained `isShippedSource` (the non-test source predicate), which `isOrientationSource` now aliases. |
+| 2026-10-23 | 3 `prepare` | same | Red first: the pad-binding case passed `prepare` because nothing read the sources (1 failed, 14 passed). Ship unit tests 294 passed. |
+| 2026-10-23 | 4 `automata check` | same | Red first: 10 of the run-check tests failed with no `inputs` step. The csp, no-eval and secrets steps moved from index 5, 6, 7 to 6, 7, 8 in the tests. Cli unit tests 61 passed. |
+| 2026-10-23 | 5 real games | same | `games/emberwick` reads as one `keys()` call at `src/game.ts:15:22` binding touch only, against `['touch', 'keyboard']`; `games/placeholder`, `tooling/frame-budget` and the four example `ship.config.ts` folders declare the same and read no disagreement. The core examples' `keys()` calls read correctly too (`core-input-keys` and `core-input-gamepad` bind pad 12 to 15 and touch, `core-input-touch` binds three gestures with `touch: false`); their config is generated, not shipped, so the step does not run on them. No `create-game` template exists yet (DX.5), so the template half of the 02 row stays open. |
+| 2026-10-23 | 6 gates and docs | same | `pnpm format`; `pnpm check` (30 of 30 tasks); `pnpm api-report --update` (ship +5 exports, cli `StepName` +`inputs`; the break report lists `StepName` as changed, private, no changeset needed); `pnpm build`, `pnpm api-index`, `pnpm cheatsheet`, `pnpm agent-skills --write` (api.md and `automata-verify` gained `inputs`). Changeset `m4-1-inputs-check.md` (patch, ship only). `changeset status` and `check-changesets` run after the commit. Not run here: parity and the rest of CI. |
