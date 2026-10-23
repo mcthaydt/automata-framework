@@ -9,6 +9,7 @@ export {
   unpackTile,
 } from './model/cells-codec'
 export {
+  cellWord,
   eraseLayerCells,
   fillLayer,
   paintLayerCells,

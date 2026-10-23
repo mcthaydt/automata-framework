@@ -6,6 +6,7 @@ import type { Grid } from '../grid'
 import type { Project } from '../project-types'
 import { tilesetTiles } from '../tileset-grid'
 import {
+  cellWord,
   eraseLayerCells,
   fillLayer,
   paintLayerCells,
@@ -254,5 +255,25 @@ describe('cell edits: the layer kinds', () => {
     expect(() =>
       paintLayerCells(mossgate(), { level: 'nowhere', layer: 'collision' }, [{ x: 0, y: 0 }], 1),
     ).toThrow(new RangeError('no level "nowhere"'))
+  })
+})
+
+describe('cellWord', () => {
+  it('reads the word in a cell of each kind of cell layer, 0 when empty or outside the level', () => {
+    const project = mossgate()
+    expect(cellWord(project, COLLISION, { x: 8, y: 15 })).toBe(1)
+    expect(cellWord(project, COLLISION, { x: 0, y: 0 })).toBe(0)
+    expect(cellWord(project, COLLISION, { x: -1, y: 0 })).toBe(0)
+    expect(cellWord(project, COLLISION, { x: 500, y: 0 })).toBe(0)
+    expect(cellWord(project, DECOR, { x: 2, y: 15 })).toBe(packTile(51, false, false))
+    expect(cellWord(project, DECOR, { x: 5, y: 15 })).toBe(packTile(52, true, false))
+    const painted = paintLayerCells(project, GROUND, [{ x: 3, y: 3 }], packTile(2, false, false))
+    expect(cellWord(painted, GROUND, { x: 3, y: 3 })).toBe(packTile(2, false, false))
+  })
+
+  it('refuses a layer without cells', () => {
+    expect(() => cellWord(mossgate(), { level: 'moss-steps', layer: 'entities' }, { x: 0, y: 0 })).toThrow(
+      new RangeError('layer "entities" has no cells'),
+    )
   })
 })
