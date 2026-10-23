@@ -26,12 +26,8 @@
     "games/emberwick": { "ignoreDependencies": ["@mcthaydt/automata-cli"] },
     // s8/measure.ts builds s8/no-effect.html, whose script is this file.
     "games/placeholder": { "entry": ["s8/no-effect.ts"] },
-    // The runner injects `@mcthaydt/automata-render-pixi/no-eval` into every page as a string (vite-plugin.ts),
-    // which knip cannot follow; the smoke specs run from the root playwright.config.ts.
-    "examples": {
-      "entry": ["e2e/*.e2e.ts"],
-      "ignoreDependencies": ["@mcthaydt/automata-render-pixi"]
-    },
+    // The smoke specs run from the root playwright.config.ts.
+    "examples": { "entry": ["e2e/*.e2e.ts"] },
     // EDK.1: src/fonts.css imports the IBM Plex families with CSS @import, which knip does not follow.
     "packages/editor-kit": {
       "ignoreDependencies": ["@fontsource/ibm-plex-mono", "@fontsource/ibm-plex-sans"]

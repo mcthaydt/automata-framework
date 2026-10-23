@@ -3,12 +3,11 @@
 // Shows: sprite(url, { frame }) draws one named frame of a texture atlas that `automata-content assets` packed
 //   from a folder of PNG frames; each frame keeps its own name, so art can be repacked without touching code.
 // Controls: none
-// Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim
+// Packages: @mcthaydt/automata
 // Difficulty: ★★☆☆
 // Tier: core
 // Golden: 120
-import { defineGame, sprite } from '@mcthaydt/automata-game'
-import { defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+import { defineComponent, defineGame, definePlugin, defineSystem, sprite } from '@mcthaydt/automata'
 
 // Wick's two run frames, packed by content/atlases.toml into an atlas page served beside this page
 // (public/textures/atlas/; the frames' provenance is resources/atlas-frames/PROVENANCE.md).
