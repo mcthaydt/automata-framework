@@ -4,7 +4,15 @@ export {
   defaultFieldValue,
 } from './fields/check-field-def'
 export { checkFieldValue } from './fields/check-field-value'
-export { entityDefSchema, fieldDefSchema, fieldValueSchema, fieldValuesSchema } from './fields/field.schema'
+export {
+  type EntityDefIssue,
+  entityDefIssues,
+  entityDefSchema,
+  entityDefShape,
+  fieldDefSchema,
+  fieldValueSchema,
+  fieldValuesSchema,
+} from './fields/field.schema'
 export {
   ENTITY_ID,
   type EntityDef,
