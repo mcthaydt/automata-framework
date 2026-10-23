@@ -216,6 +216,15 @@ input::placeholder { color: var(--muted); }
 .footer-bottom nav a:hover { color: var(--stage-ink); }
 .legal-page > section { max-width: 68ch; }
 .legal-page > section > h2 { margin-bottom: .75rem; }
+.inside-page > section > p, .inside-page > section > ul { max-width: 68ch; }
+.inside-page > h1 { max-width: none; }
+.inside-page > .inside-intro { margin-top: 2.5rem; }
+.inside-page .inside-library { margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line-strong); }
+.inside-page .inside-library > h2 { margin-bottom: 1rem; scroll-margin-top: 5rem; }
+.inside-page ul { padding-left: 1.25rem; }
+.inside-page li { margin-block: .5rem; }
+.inside-page th, .inside-page td { padding: .5rem .75rem .5rem 0; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.inside-page td code, .inside-page th code { overflow-wrap: anywhere; }
 .site-footer :focus-visible { outline-color: var(--lime); }
 
 /* Inner pages */
