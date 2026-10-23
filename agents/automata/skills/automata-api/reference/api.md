@@ -2168,7 +2168,8 @@ interface Command {
 
 #### `CommandDef` (interface)
 
-_No doc comment._
+A command the sim accepts as input: an id and the Zod schema its payload must match. Create one with
+`defineCommand`.
 
 ```ts
 interface CommandDef<Z extends z.ZodType = z.ZodType> {
@@ -2180,7 +2181,8 @@ interface CommandDef<Z extends z.ZodType = z.ZodType> {
 
 #### `CommandRecord` (interface)
 
-_No doc comment._
+A command as a system reads it this tick: the player slot that sent it (`source`), its per-source `seq` and
+its parsed `payload`.
 
 ```ts
 interface CommandRecord<P> {
@@ -2192,7 +2194,8 @@ interface CommandRecord<P> {
 
 #### `ComponentDef` (interface)
 
-_No doc comment._
+A component: a stable id and a flat record of typed fields. Create one with `defineComponent`; game code
+addresses entity data through the definition, never through `trait`.
 
 ```ts
 interface ComponentDef<S extends FieldSchema = FieldSchema> {
@@ -2210,7 +2213,7 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 
 #### `createRng` (function)
 
-_No doc comment._
+A generator seeded from `seed` (through splitmix32): the same seed gives the same sequence in every engine.
 
 ```ts
 function createRng(seed: number): Rng;
@@ -2218,7 +2221,10 @@ function createRng(seed: number): Rng;
 
 #### `createSim` (function)
 
-_No doc comment._
+Creates a sim from its plugins, seed and content; async, because a plugin may create engine state (a Rapier
+world). Throws for a bad `tickHz`, a duplicate definition, an unknown plugin dependency or system ordering
+reference, an ordering cycle, a system name the sim reserves, or an invalid resource start. If a plugin's
+engine fails to start, the engines already created are disposed first.
 
 ```ts
 function createSim(opts: SimOptions): Promise<Sim>;
@@ -2234,7 +2240,8 @@ type Def = ComponentDef | CommandDef | EventDef | ResourceDef | SystemDef;
 
 #### `defineCommand` (function)
 
-_No doc comment._
+Defines a command by id and payload schema. Throws for an id that is not lower-case words separated by dots
+or dashes.
 
 ```ts
 function defineCommand<Z extends z.ZodType>(id: string, schema: Z): CommandDef<Z>;
@@ -2242,7 +2249,9 @@ function defineCommand<Z extends z.ZodType>(id: string, schema: Z): CommandDef<Z
 
 #### `defineComponent` (function)
 
-_No doc comment._
+Defines a component from an id (lower-case words separated by dots or dashes) and its fields by name and
+type. `render: false` keeps it out of the renderer's deltas. Throws for a bad id, no fields, a bad field
+name or an unknown field type.
 
 ```ts
 function defineComponent<S extends FieldSchema>(id: string, fields: S, opts?: {
@@ -2252,7 +2261,8 @@ function defineComponent<S extends FieldSchema>(id: string, fields: S, opts?: {
 
 #### `defineEvent` (function)
 
-_No doc comment._
+Defines an event by id and payload schema, to emit from a system with `ctx.emit`. Events come back in
+`StepResult.events`; `ctx.emit` throws for a payload that fails the schema.
 
 ```ts
 function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z>;
@@ -2260,7 +2270,10 @@ function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z>;
 
 #### `definePlugin` (function)
 
-_No doc comment._
+Defines a plugin from a name, its dependencies and its definitions, given in the keyed lists or in one flat
+`defs` list sorted by kind. A plugin written either way registers the same lists and gets the same schema
+hash. `config` is copied as canonical, frozen JSON, so anything that cannot hash exactly throws a
+`CanonicalJsonError` here.
 
 ```ts
 function definePlugin(spec: {
@@ -2280,7 +2293,8 @@ function definePlugin(spec: {
 
 #### `defineResource` (function)
 
-_No doc comment._
+Defines a resource by id, schema and starting value. `createSim` parses `init()` with the schema, so a bad
+start fails there.
 
 ```ts
 function defineResource<Z extends z.ZodType>(id: string, schema: Z, init: () => z.input<Z>): ResourceDef<Z>;
@@ -2322,7 +2336,7 @@ interface EntityRef {
 
 #### `EventDef` (interface)
 
-_No doc comment._
+An event a system emits: an id and the Zod schema its payload must match. Create one with `defineEvent`.
 
 ```ts
 interface EventDef<Z extends z.ZodType = z.ZodType> {
@@ -2334,7 +2348,7 @@ interface EventDef<Z extends z.ZodType = z.ZodType> {
 
 #### `FieldRecord` (type)
 
-_No doc comment._
+One component's field values on an entity, by field name.
 
 ```ts
 type FieldRecord = Record<string, number | boolean | string>;
@@ -2342,7 +2356,7 @@ type FieldRecord = Record<string, number | boolean | string>;
 
 #### `FieldSchema` (type)
 
-_No doc comment._
+A component's fields, by name.
 
 ```ts
 type FieldSchema = Readonly<Record<string, FieldType>>;
@@ -2350,7 +2364,8 @@ type FieldSchema = Readonly<Record<string, FieldType>>;
 
 #### `FieldType` (type)
 
-_No doc comment._
+A component field's type: `f32`, `f64`, `i32`, `u32`, `bool`, `entity` (a StableId, stored as a `u32`) or
+`string`.
 
 ```ts
 type FieldType = (typeof FIELD_TYPES)[number];
@@ -2358,7 +2373,8 @@ type FieldType = (typeof FIELD_TYPES)[number];
 
 #### `FieldValue` (type)
 
-_No doc comment._
+The JavaScript type a field holds: `boolean` for `bool`, `string` for `string`, `number` for every other
+type.
 
 ```ts
 type FieldValue<T extends FieldType> = T extends "bool" ? boolean : T extends "string" ? string : number;
@@ -2366,7 +2382,7 @@ type FieldValue<T extends FieldType> = T extends "bool" ? boolean : T extends "s
 
 #### `FieldValues` (type)
 
-_No doc comment._
+The writable record of values a `FieldSchema` describes.
 
 ```ts
 type FieldValues<S extends FieldSchema> = { -readonly [K in keyof S]: FieldValue<S[K]>; };
@@ -2382,7 +2398,7 @@ function hex64(value: bigint): string;
 
 #### `Phase` (type)
 
-_No doc comment._
+One of the six phases a tick runs through, in `PHASES` order.
 
 ```ts
 type Phase = (typeof PHASES)[number];
@@ -2398,7 +2414,9 @@ const PHASES: readonly ["input", "prePhysics", "physics", "postPhysics", "gamepl
 
 #### `PluginDef` (interface)
 
-_No doc comment._
+A bundle of definitions the sim registers together: components, commands, events, resources and systems,
+the plugins it depends on, and optionally per-sim engine state and `config`. Create one with
+`definePlugin`.
 
 ```ts
 interface PluginDef {
@@ -2466,7 +2484,7 @@ interface PreparedRestore {
 
 #### `RejectedCommand` (interface)
 
-_No doc comment._
+A command `step` dropped, with the reason.
 
 ```ts
 interface RejectedCommand {
@@ -2477,7 +2495,9 @@ interface RejectedCommand {
 
 #### `RejectReason` (type)
 
-_No doc comment._
+Why `step` dropped a command: `bad-header` (a field is missing or out of range), `unknown-command` (no
+plugin defines its type), `wrong-tick` (not the sim's current tick), `duplicate-seq` (the same source and
+seq twice in one step) or `invalid-payload` (it fails the command's schema).
 
 ```ts
 type RejectReason = "bad-header" | "unknown-command" | "wrong-tick" | "duplicate-seq" | "invalid-payload";
@@ -2511,7 +2531,8 @@ interface RenderRow {
 
 #### `ResourceDef` (interface)
 
-_No doc comment._
+A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting
+value. Create one with `defineResource`.
 
 ```ts
 interface ResourceDef<Z extends z.ZodType = z.ZodType> {
@@ -2524,7 +2545,8 @@ interface ResourceDef<Z extends z.ZodType = z.ZodType> {
 
 #### `Rng` (interface)
 
-_No doc comment._
+A deterministic generator (xoshiro128**, 32-bit integer math only, so it is bit-exact in every engine).
+Each system gets its own, seeded from the sim's seed and the system's name.
 
 ```ts
 interface Rng {
@@ -2541,7 +2563,7 @@ interface Rng {
 
 #### `RngState` (type)
 
-_No doc comment._
+The four 32-bit words of a generator's state, as `Rng.state()` copies them and snapshots store them.
 
 ```ts
 type RngState = [number, number, number, number];
@@ -2549,7 +2571,8 @@ type RngState = [number, number, number, number];
 
 #### `Sim` (interface)
 
-_No doc comment._
+A running simulation, stepped with commands, that can snapshot, restore and hash its state. `step` is the
+only way gameplay state changes. Create one with `createSim`, and `dispose` it when done.
 
 ```ts
 interface Sim {
@@ -2643,7 +2666,7 @@ class SimDisposedError extends Error {
 
 #### `SimEvent` (interface)
 
-_No doc comment._
+An event a system emitted during a step: the event's id as `type`, and its parsed `payload`.
 
 ```ts
 interface SimEvent {
@@ -2667,7 +2690,8 @@ class SimFaultedError extends Error {
 
 #### `SimOptions` (interface)
 
-_No doc comment._
+What `createSim` takes: the root `seed`, the `plugins`, `tickHz` (an integer from 1 to 1000, default 60)
+and the `content` the systems read as `ctx.content` (default `{}`).
 
 ```ts
 interface SimOptions {
@@ -2680,7 +2704,8 @@ interface SimOptions {
 
 #### `SNAPSHOT_VERSION` (const)
 
-_No doc comment._
+The snapshot format version this build reads and writes; a snapshot of another version fails with
+`SnapshotFormatError`.
 
 ```ts
 const SNAPSHOT_VERSION = 1;
@@ -2688,7 +2713,8 @@ const SNAPSHOT_VERSION = 1;
 
 #### `SnapshotFormatError` (class)
 
-_No doc comment._
+Snapshot bytes that are not a valid snapshot of this format version: bad magic, an unsupported version,
+truncated or malformed sections.
 
 ```ts
 class SnapshotFormatError extends Error {
@@ -2698,7 +2724,8 @@ class SnapshotFormatError extends Error {
 
 #### `SnapshotMismatchError` (class)
 
-_No doc comment._
+A valid snapshot that belongs to another sim: `field` names the header value that differs (`schemaHash`,
+`contentHash` or `tickHz`), with this sim's `expected` value and the snapshot's `actual` one.
 
 ```ts
 class SnapshotMismatchError extends Error {
@@ -2767,7 +2794,8 @@ type SpawnPart = ComponentDef | readonly [ComponentDef, Readonly<Record<string, 
 
 #### `StepResult` (interface)
 
-_No doc comment._
+What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were
+rejected.
 
 ```ts
 interface StepResult {
@@ -2782,7 +2810,8 @@ interface StepResult {
 
 #### `SystemDef` (interface)
 
-_No doc comment._
+A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and
+its `run`, called once per tick. Create one with `defineSystem`.
 
 ```ts
 interface SystemDef {
@@ -2859,7 +2888,7 @@ function xxhash64(data: Uint8Array, seed?: bigint): bigint;
 
 #### `atan` (function)
 
-_No doc comment._
+Deterministic arctangent. NaN stays NaN; `-0` stays `-0`.
 
 ```ts
 function atan(x0: number): number;
@@ -2875,7 +2904,7 @@ function atan2(y: number, x: number): number;
 
 #### `cos` (function)
 
-_No doc comment._
+Deterministic cosine, in radians. NaN for a non-finite input.
 
 ```ts
 function cos(x: number): number;
@@ -2883,7 +2912,7 @@ function cos(x: number): number;
 
 #### `exp` (function)
 
-_No doc comment._
+Deterministic `e` to the power `x`. Infinity above about 709.78, 0 below about -745.13.
 
 ```ts
 function exp(x: number): number;
@@ -2899,7 +2928,7 @@ function hypot(x: number, y: number): number;
 
 #### `log` (function)
 
-_No doc comment._
+Deterministic natural logarithm. NaN for a negative input, `-Infinity` for 0.
 
 ```ts
 function log(x0: number): number;
@@ -2907,7 +2936,8 @@ function log(x0: number): number;
 
 #### `pow` (function)
 
-_No doc comment._
+Deterministic `x` to the power `y`. An integer `y` of 64 or less in magnitude multiplies exactly; otherwise
+it is `exp(y * log(x))`, and a negative `x` with a non-integer `y` is NaN.
 
 ```ts
 function pow(x: number, y: number): number;
@@ -2915,7 +2945,7 @@ function pow(x: number, y: number): number;
 
 #### `sin` (function)
 
-_No doc comment._
+Deterministic sine, in radians. NaN for a non-finite input; `-0` stays `-0`.
 
 ```ts
 function sin(x: number): number;
@@ -2923,7 +2953,7 @@ function sin(x: number): number;
 
 #### `tan` (function)
 
-_No doc comment._
+Deterministic tangent, in radians, as `sin(x) / cos(x)`.
 
 ```ts
 function tan(x: number): number;
@@ -2933,7 +2963,8 @@ function tan(x: number): number;
 
 #### `createRecorder` (function)
 
-_No doc comment._
+Starts recording `sim` from its current state, for the recorder's `step` to extend. Throws
+`ReplayRecordError` for a `checkEvery` or `snapshotEvery` that is not an integer of at least 1.
 
 ```ts
 function createRecorder(sim: Sim, options?: RecorderOptions): Recorder;
@@ -2941,7 +2972,10 @@ function createRecorder(sim: Sim, options?: RecorderOptions): Recorder;
 
 #### `createReplayStepper` (function)
 
-_No doc comment._
+Creates a stepper over `replay`: a fresh sim built from the replay's seed and tick rate, restored from its
+start snapshot. Throws `SnapshotMismatchError` when the start snapshot belongs to another schema or
+content, `SnapshotFormatError` when it is malformed, and `ReplayFormatError` when the header disagrees with
+the start snapshot it describes; the sim it created is disposed first.
 
 ```ts
 function createReplayStepper(replay: Replay, setup: ReplayStepSetup): Promise<ReplayStepper>;
@@ -2949,7 +2983,8 @@ function createReplayStepper(replay: Replay, setup: ReplayStepSetup): Promise<Re
 
 #### `decodeReplay` (function)
 
-_No doc comment._
+Decodes `.replay` bytes (already inflated) into a `Replay`. Throws `ReplayFormatError`, with the byte
+offset when known, for anything that is not a valid replay.
 
 ```ts
 function decodeReplay(bytes: Uint8Array): Replay;
@@ -2957,7 +2992,7 @@ function decodeReplay(bytes: Uint8Array): Replay;
 
 #### `DEFAULT_CHECK_EVERY` (const)
 
-_No doc comment._
+How often, in ticks, a recording stores a check hash when `RecorderOptions.checkEvery` is not given.
 
 ```ts
 const DEFAULT_CHECK_EVERY = 60;
@@ -2965,7 +3000,8 @@ const DEFAULT_CHECK_EVERY = 60;
 
 #### `encodeReplay` (function)
 
-_No doc comment._
+Encodes a replay as `.replay` bytes before deflate. The same run encodes to the same bytes in every engine.
+Throws `ReplayFormatError` for a replay that cannot be encoded.
 
 ```ts
 function encodeReplay(replay: Replay): Uint8Array;
@@ -2973,7 +3009,7 @@ function encodeReplay(replay: Replay): Uint8Array;
 
 #### `packReplay` (function)
 
-_No doc comment._
+Encodes a replay and deflates it into `.replay` file bytes.
 
 ```ts
 function packReplay(replay: Replay, compression: ReplayCompression): Promise<Uint8Array>;
@@ -2981,7 +3017,8 @@ function packReplay(replay: Replay, compression: ReplayCompression): Promise<Uin
 
 #### `Recorder` (interface)
 
-_No doc comment._
+Steps a sim and records the run as a `Replay`. Nothing else may step the sim while it records; the recorder
+refuses to continue if something did.
 
 ```ts
 interface Recorder {
@@ -2994,7 +3031,8 @@ interface Recorder {
 
 #### `RecorderOptions` (interface)
 
-_No doc comment._
+What a recording takes: how often to store a check hash, whether to keep a reference hash and snapshots
+(goldens), and free-form `meta`.
 
 ```ts
 interface RecorderOptions {
@@ -3010,7 +3048,8 @@ interface RecorderOptions {
 
 #### `Replay` (interface)
 
-_No doc comment._
+A recorded run: its header, the start snapshot, the accepted commands by tick, check hashes along the way
+and the final tick and hash. Replaying it must reproduce every hash.
 
 ```ts
 interface Replay {
@@ -3043,7 +3082,7 @@ interface Replay {
 
 #### `REPLAY_FORMAT` (const)
 
-_No doc comment._
+The `.replay` format version this build reads and writes.
 
 ```ts
 const REPLAY_FORMAT = 1;
@@ -3068,7 +3107,9 @@ const REPLAY_MAX_TICKS: number;
 
 #### `ReplayCheck` (interface)
 
-_No doc comment._
+A hash check at a tick: the hash the replay recorded (`expected`) and the hash the re-simulated sim has
+(`actual`). A recorded command the sim now rejects reports as `expected: 'accepted'` with the rejection
+reason as `actual`.
 
 ```ts
 interface ReplayCheck {
@@ -3079,7 +3120,8 @@ interface ReplayCheck {
 
 #### `ReplayCommand` (interface)
 
-_No doc comment._
+A command as a replay stores it: the sim's `Command` without its tick, which the replay's `ticks` entry
+carries.
 
 ```ts
 interface ReplayCommand {
@@ -3092,7 +3134,8 @@ interface ReplayCommand {
 
 #### `ReplayCompression` (interface)
 
-_No doc comment._
+The deflate and inflate a `.replay` file needs. The sim imports no compression library, so callers pass an
+adapter (testing/sim has one for Node and one for browsers).
 
 ```ts
 interface ReplayCompression {
@@ -3115,7 +3158,8 @@ class ReplayFormatError extends Error {
 
 #### `ReplayHeader` (interface)
 
-_No doc comment._
+The facts a replay needs before it plays: tick rate, seed, the schema and content hashes it was recorded
+against, where it starts and how often it checks.
 
 ```ts
 interface ReplayHeader {
@@ -3145,7 +3189,8 @@ class ReplayRecordError extends Error {
 
 #### `ReplayStepper` (interface)
 
-_No doc comment._
+A replay playing back one tick at a time on its own sim. Create one with `createReplayStepper`, and
+`dispose` it when done.
 
 ```ts
 interface ReplayStepper {
@@ -3172,7 +3217,7 @@ interface ReplayStepper {
 
 #### `ReplayStepSetup` (interface)
 
-_No doc comment._
+What a stepper needs to rebuild the recorded sim: the same `plugins` and `content` the recording sim had.
 
 ```ts
 interface ReplayStepSetup {
@@ -3184,7 +3229,8 @@ interface ReplayStepSetup {
 
 #### `unpackReplay` (function)
 
-_No doc comment._
+Inflates `.replay` file bytes and decodes them. Throws `ReplayFormatError` for bytes that are not a
+deflated replay or that inflate past `maxInflatedBytes` (default `REPLAY_INFLATE_MAX_BYTES`).
 
 ```ts
 function unpackReplay(bytes: Uint8Array, compression: ReplayCompression, options?: {
