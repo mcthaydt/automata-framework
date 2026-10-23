@@ -1,7 +1,7 @@
-// Run with: node --test docs/design/editor-kit/scene
+// Run with: node --test docs/design/editor-kit/scene/scene.test.mjs
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { callFor, figmaRuntime, installCall, prelude, runCall } from './figma.mjs'
+import { callFor, figmaRuntime, installCall, prelude, runCall, screenCall } from './figma.mjs'
 import { S } from './scene.mjs'
 
 const { F, row, col, T, I, spacer, alpha } = S
@@ -65,8 +65,6 @@ const mockFigma = () => {
       height: 0,
       x: 0,
       y: 0,
-      fills: [],
-      strokes: [],
       appendChild(c) {
         c.parent = node
         node.children.push(c)
@@ -82,6 +80,20 @@ const mockFigma = () => {
       async setTextStyleIdAsync(id) {
         node.styleId = id
       },
+    }
+    // Figma resets the opacity of a variable-bound paint the first time it is assigned to a node.
+    for (const field of ['fills', 'strokes']) {
+      let value = []
+      Object.defineProperty(node, field, {
+        get: () => value,
+        set: (paints) => {
+          const before = value
+          value = paints.map((p, i) => ({
+            ...p,
+            opacity: p.boundVariables && !before[i]?.boundVariables ? 1 : p.opacity,
+          }))
+        },
+      })
     }
     if (type === 'TEXT') {
       Object.defineProperty(node, 'characters', {
@@ -129,6 +141,7 @@ const mockFigma = () => {
       getLocalVariablesAsync: async () => [
         { name: 'color/bg/app', id: 'V:1' },
         { name: 'color/bg/surface', id: 'V:2' },
+        { name: 'color/accent/default', id: 'V:3' },
       ],
       setBoundVariableForPaint: (paint, _field, v) => ({ ...paint, boundVariables: { color: v.id } }),
     },
@@ -154,6 +167,16 @@ test('the Figma runtime renders a tree and reports unbound tokens', async () => 
   assert.equal(title.styleId, 'S:1')
 })
 
+test('a translucent token keeps its opacity once it is bound to a variable', async () => {
+  const fig = mockFigma()
+  await figmaRuntime(fig, S).render(sample(), { page: 'P' })
+  const card = fig.root.children.find((p) => p.name === 'P').children[0].children[0]
+  const tint = card.children[2]
+  assert.equal(tint.fills[0].boundVariables.color, 'V:3')
+  assert.equal(tint.fills[0].opacity, 0.2)
+  assert.equal(tint.strokes[0].opacity, 1)
+})
+
 test('render replaces a frame of the same name on request', async () => {
   const fig = mockFigma()
   const R = figmaRuntime(fig, S)
@@ -163,7 +186,13 @@ test('render replaces a frame of the same name on request', async () => {
 })
 
 test('call builders produce runnable, self-contained source', () => {
-  for (const src of [prelude(), callFor(sample()), installCall(), runCall('(S) => S.F({ w: 1, h: 1 })')]) {
+  for (const src of [
+    prelude(),
+    callFor(sample()),
+    installCall([{ name: 'x', order: 1, fn: () => 1, call: 'x()' }]),
+    screenCall('x'),
+    runCall('(S) => S.F({ w: 1, h: 1 })'),
+  ]) {
     assert.doesNotThrow(() => new Function('figma', `return (async () => {${src}})`))
   }
   assert.match(callFor(sample(), { page: 'x' }), /return await R\.render/)

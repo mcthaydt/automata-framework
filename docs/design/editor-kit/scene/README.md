@@ -32,12 +32,24 @@ Rules of the tree:
   name; `size, wt, mono, ls, lh` override it. `w` wraps; `trunc` ellipsises; `align`, `up`, `color` as expected.
 - `V(svg, { w, h, tint })` takes any svg with `width`, `height` and `viewBox`; `tint` rebinds its strokes and fills.
 
-Figma workflow (the code limit per call is 50 KB, so install once):
-1. `node -e "import('./figma.mjs').then(m => console.log(m.installCall()))"` and run that as a `use_figma` call. It
-   stores the kit as source in a text node on the page `_kit`.
-2. Per screen, `runCall('(S) => S.F({...})', { page: 'My page', x: 0, replace: true })` loads the kit and renders the
-   builder's tree. Keep builders self-contained functions of `S`.
-3. `render` returns `{ id, nodes, warnings }`; read the warnings (unbound tokens, failed nodes) and screenshot.
+Figma workflow (a `use_figma` call carries at most 50 KB of code, so install once, then render by name):
+1. `installCall()` stores the scene kit and runtime as source in text nodes on the page `_kit`. Editors add modules:
+   `installCall([{ name: 'views3d', order: 32, fn: makeViews, call: 'makeViews(ctx.S, ctx.data3d)' }], 'none')`
+   stores one module, in its own call, named `module:32:views3d`. A module is a function of `ctx` (the scene kit `S` and
+   the modules with a lower `order`) and `call` is the expression that runs it. `kit: 'runtime'` refreshes only the
+   runtime. Name modules per editor (`screens3d`, `screens2d`) so two editors share one file.
+2. The call returns `[name, length, checksum]` for each node it stored. Compare them with `checksum(text)` of the
+   source you meant to send, because a source retyped into a call wrongly otherwise shows up as a render error much later.
+3. Per screen, `screenCall('split', { page: 'My page', x: 0, y: 0, replace: true }, 'screens3d')` renders
+   `ctx.screens3d.split()`. `runCall('(S) => S.F({...})', opts)` renders a one-off builder instead. Keep builders
+   self-contained functions of `S`.
+4. `render` returns `{ id, nodes, warnings }`. Read the warnings (unbound tokens, failed nodes) and screenshot. A
+   token binds only when the file has a variable named `color/<token>`; add one collection per editor for its extras
+   (the 3D editor's `Editor 3D` holds `color/ent/*` and `color/view/*`).
+
+Figma quirks the runtime already handles: a variable-bound paint loses its opacity the first time it is assigned
+(`assignPaints` assigns twice), a frame with no `w`/`h` in an auto-layout parent hugs its content, and `figma.com`
+screenshots are not reachable from the cloud sandbox, so ask `get_screenshot` for the base64 image.
 
 Local preview: `S.toHTML(tree)` is a fragment with inline styles. Add `S.baseCss` and a font link (`S.fontsHref`,
 IBM Plex Sans and Mono) around it.

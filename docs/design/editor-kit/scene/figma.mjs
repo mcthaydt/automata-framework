@@ -35,15 +35,25 @@ export function figmaRuntime(figma, S) {
     }
   }
 
-  // Bound to the variable "color/<token>" when the token is opaque and the variable exists in the file.
+  // Bound to the variable "color/<token>" when the file has it. A variable carries its own alpha, so the paint
+  // opacity only holds what the spec adds on top of it ({ c: token, a }).
   const paintOf = (spec) => {
     const c = S.resolve(spec)
     if (!c) return null
     let paint = { type: 'SOLID', color: { r: c.r, g: c.g, b: c.b }, opacity: c.a }
-    const v = c.token && c.tokenAlpha === 1 ? vars.get(`color/${c.token}`) : null
-    if (v) paint = figma.variables.setBoundVariableForPaint(paint, 'color', v)
-    else if (c.token) warnings.push(`unbound token ${c.token}`)
+    const v = c.token ? vars.get(`color/${c.token}`) : null
+    if (v) {
+      const opacity = Math.min(1, c.a / (c.tokenAlpha || 1))
+      paint = { ...figma.variables.setBoundVariableForPaint(paint, 'color', v), opacity }
+    } else if (c.token) warnings.push(`unbound token ${c.token}`)
     return paint
+  }
+  // Figma resets the opacity of a variable-bound paint when it is first assigned to a node. Assigning the paints
+  // again with their opacity keeps it, so every fill and stroke goes through here.
+  const assignPaints = (node, field, paints) => {
+    node[field] = paints
+    if (paints.some((p) => p.opacity < 1))
+      node[field] = node[field].map((p, i) => ({ ...p, opacity: paints[i].opacity }))
   }
   const numVar = (token) => (typeof token === 'string' ? vars.get(token) : null)
   const bindNum = (node, field, token) => {
@@ -85,13 +95,16 @@ export function figmaRuntime(figma, S) {
     if (node.type !== 'TEXT') node.resize(Math.max(0.01, wNum), Math.max(0.01, hNum))
     return { wNum, hNum }
   }
+  // An auto-layout frame with no size hugs its content, as it does in the HTML render.
   const applySizing = (node, n, ctx, selfLay) => {
     const inLay = ctx.lay && !n.abs
-    if (n.w === 'fill' && inLay) node.layoutSizingHorizontal = 'FILL'
-    else if (n.w === 'hug' && (selfLay || node.type === 'TEXT')) node.layoutSizingHorizontal = 'HUG'
+    const wMode = n.w == null && selfLay ? 'hug' : n.w
+    const hMode = n.h == null && selfLay ? 'hug' : n.h
+    if (wMode === 'fill' && inLay) node.layoutSizingHorizontal = 'FILL'
+    else if (wMode === 'hug' && (selfLay || node.type === 'TEXT')) node.layoutSizingHorizontal = 'HUG'
     else if (node.type !== 'TEXT') node.layoutSizingHorizontal = 'FIXED'
-    if (n.h === 'fill' && inLay) node.layoutSizingVertical = 'FILL'
-    else if (n.h === 'hug' && (selfLay || node.type === 'TEXT')) node.layoutSizingVertical = 'HUG'
+    if (hMode === 'fill' && inLay) node.layoutSizingVertical = 'FILL'
+    else if (hMode === 'hug' && (selfLay || node.type === 'TEXT')) node.layoutSizingVertical = 'HUG'
     else if (node.type !== 'TEXT') node.layoutSizingVertical = 'FIXED'
   }
 
@@ -99,10 +112,10 @@ export function figmaRuntime(figma, S) {
     const f = figma.createFrame()
     count++
     f.name = n.name || 'Frame'
-    f.fills = n.fill ? [paintOf(n.fill)] : []
+    assignPaints(f, 'fills', n.fill ? [paintOf(n.fill)] : [])
     f.clipsContent = !!n.clip
     if (n.stroke) {
-      f.strokes = [paintOf(n.stroke)]
+      assignPaints(f, 'strokes', [paintOf(n.stroke)])
       f.strokeWeight = n.sw == null ? 1 : n.sw
       f.strokeAlign = 'INSIDE'
       if (n.dash) f.dashPattern = Array.isArray(n.dash) ? n.dash : [4, 4]
@@ -159,7 +172,7 @@ export function figmaRuntime(figma, S) {
       t.letterSpacing = { unit: 'PIXELS', value: spec.ls }
     }
     t.characters = n.s
-    t.fills = [paintOf(n.color || 'text/primary')]
+    assignPaints(t, 'fills', [paintOf(n.color || 'text/primary')])
     if (n.align) t.textAlignHorizontal = { left: 'LEFT', center: 'CENTER', right: 'RIGHT' }[n.align]
     if (n.up) t.textCase = 'UPPER'
     if (n.op != null) t.opacity = n.op
@@ -189,8 +202,18 @@ export function figmaRuntime(figma, S) {
   const tintAll = (node, spec) => {
     const paint = paintOf(spec)
     const walk = (x) => {
-      if ('strokes' in x && x.strokes.length) x.strokes = x.strokes.map(() => paint)
-      if ('fills' in x && Array.isArray(x.fills) && x.fills.length) x.fills = x.fills.map(() => paint)
+      if ('strokes' in x && x.strokes.length)
+        assignPaints(
+          x,
+          'strokes',
+          x.strokes.map(() => paint),
+        )
+      if ('fills' in x && Array.isArray(x.fills) && x.fills.length)
+        assignPaints(
+          x,
+          'fills',
+          x.fills.map(() => paint),
+        )
       if ('children' in x) for (const k of x.children) walk(k)
     }
     walk(node)
@@ -265,26 +288,70 @@ export const prelude = () =>
 export const callFor = (tree, opts = {}) =>
   `${prelude()}const tree = ${JSON.stringify(tree)}\nreturn await R.render(tree, ${JSON.stringify(opts)})\n`
 
-// Install-once: store the prelude in a text node on page "_kit" so later calls only carry a builder.
-export const installCall = () =>
-  `const page = figma.root.children.find((p) => p.name === '_kit') || figma.createPage()
+// What installCall returns for each stored node: [name, length, checksum]. Compare it with this, so a source
+// that was retyped into a call wrongly is caught before anything renders from it.
+export const checksum = (text) => [...text].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 0)
+
+// Drops whole-line comments and indentation, so a module fits the 50 KB a `use_figma` call can carry.
+export const compact = (src) =>
+  src
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('//'))
+    .join('\n')
+
+// Install-once: store the kit (`kit`: 'all', 'runtime' to refresh only the Figma runtime, or 'none') and any
+// modules as source in text nodes on page "_kit", so later calls only name a screen. A module is a function of
+// ctx (the scene kit `S` and the modules before it) that returns its API. `modules` is
+// [{ name, order, fn, call }]: `order` sorts the load, `call` is the expression that runs it, e.g.
+// 'makeViews(ctx.S, ctx.data3d)'. Modules are named per editor so two editors can share one file.
+export const installCall = (modules = [], kit = 'all') => {
+  const nodes = []
+  if (kit === 'all') nodes.push({ name: 'scene-kit', text: compact(makeScene.toString()) })
+  if (kit === 'all' || kit === 'runtime')
+    nodes.push({ name: 'figma-runtime', text: compact(figmaRuntime.toString()) })
+  for (const m of modules) {
+    const order = String(m.order).padStart(2, '0')
+    nodes.push({ name: `module:${order}:${m.name}`, text: `// call: ${m.call}\n${compact(m.fn.toString())}` })
+  }
+  return `const page = figma.root.children.find((p) => p.name === '_kit') || figma.createPage()
 page.name = '_kit'
 await figma.setCurrentPageAsync(page)
 await figma.loadFontAsync({ family: 'Inter', style: 'Regular' })
-const src = ${JSON.stringify(prelude())}
-for (const old of page.children.filter((c) => c.name === 'scene-kit')) old.remove()
-const t = figma.createText()
-t.name = 'scene-kit'
-t.characters = src
-return { id: t.id, chars: src.length }
+const nodes = ${JSON.stringify(nodes)}
+const made = []
+for (const n of nodes) {
+  for (const old of page.children.filter((c) => c.name === n.name)) old.remove()
+  const t = figma.createText()
+  t.name = n.name
+  t.characters = n.text
+  made.push([n.name, n.text.length, [...n.text].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 0)])
+}
+return made
+`
+}
+
+// What every runCall/screenCall starts with: load the kit and the installed modules.
+const loader = `const kit = figma.root.children.find((p) => p.name === '_kit')
+await figma.setCurrentPageAsync(kit)
+const text = (name) => kit.children.find((c) => c.name === name).characters
+const ctx = new Function('figma', text('scene-kit') + '\\n' + text('figma-runtime') + '\\nconst S = makeScene()\\nconst R = figmaRuntime(figma, S)\\nreturn { S, R }')(figma)
+const mods = kit.children.filter((c) => c.name.startsWith('module:')).sort((a, b) => a.name.localeCompare(b.name))
+for (const m of mods) {
+  const [first, ...rest] = m.characters.split('\\n')
+  ctx[m.name.split(':')[2]] = new Function('ctx', rest.join('\\n') + '\\nreturn ' + first.slice('// call: '.length))(ctx)
+}
+const { S, R } = ctx
 `
 
-// A call that loads the installed prelude, builds a tree with `builderSource` (a function of S), renders it.
+// A call that loads the installed kit, builds a tree with `builderSource` (a function of S), renders it.
 export const runCall = (builderSource, opts = {}) =>
-  `const page = figma.root.children.find((p) => p.name === '_kit')
-await figma.setCurrentPageAsync(page)
-const node = page.children.find((c) => c.name === 'scene-kit')
-const { S, R } = new Function('figma', node.characters + '\\nreturn { S, R }')(figma)
-const build = ${builderSource}
+  `${loader}const build = ${builderSource}
 return await R.render(build(S), ${JSON.stringify(opts)})
+`
+
+// A call that renders screen `name` from an installed screens module (ctx[ns][name]()). `ns` is the module's
+// name, so two editors can each install their own screens into the same file ("screens3d", "screens2d").
+export const screenCall = (name, opts = {}, ns = 'screens') =>
+  `${loader}return await R.render(ctx[${JSON.stringify(ns)}][${JSON.stringify(name)}](), ${JSON.stringify(opts)})
 `
