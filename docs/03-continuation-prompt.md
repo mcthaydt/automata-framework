@@ -1,12 +1,14 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-23. Source HEAD verified before this update: `5ad4a84` on `main` (PR #96 merged, the nightly fix).
+> Updated 2026-10-23 (editors added). Source HEAD verified before this update: `5ad4a84` on `main` (PR #96 merged, the nightly fix).
 
 ## Prompt for the next agent
 
 Work in the `mcthaydt/automata-framework` checkout. Read `AGENTS.md`, [00 Overview](00-overview.md), the [Ruken-first master spec](superpowers/specs/2026-10-11-automata-framework-ruken-first-design.md), the [extraction map](superpowers/specs/2026-10-11-core-and-extensions-extraction-map.md), [01 Decomposition](01-decomposition.md), [02 Master delivery plan](02-master-delivery-plan.md) and this file. The source repositories are `mcthaydt/RukenApp`, `SNEKPRTY/FloorFifty` and `mcthaydt/PixiJS3D_Experiment_001` (The Last Light); re-read them at their current commits before relying on a path in the extraction map.
 
 **Owner direction (2026-10-11):** AF is Ruken first. Core is built from FloorFifty, The Last Light and Ruken; everything else is an opt-in extension. PixiJS renders 2D and 3D. Effect runs everything outside the sim; the sim stays on Koota with no Effect. Handle CI/CD, deployment, mobile UI and the content pipeline early. Roadmap: finish AF on 2D and 2.5D (M8), build a 3D game on AF (GAME-3D), then merge its 3D pieces back (M9). This replaces the 2026-10-05 direction (all A/B specs first, a future 3D game, later "Part C").
+
+**Editors (Owner via the Orchestrator, 2026-10-23, corrected 01:20 UTC):** two tablet-first web editors are new parallel work, not a reorder of the plan above: a 3D level editor extracted from The Last Light's `editor/` suite and one LDtk-style 2D editor that can build a complete FloorFifty stage. They share `packages/editor-kit`. Design first: Figma file [Automata Editors](https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d), then artifacts, then code. The 3D part of the framework (GAME-3D, M9) comes after the editors. Rows: ED section of [02](02-master-delivery-plan.md#ed-editors-owner-amendment-2026-10-23); specs [EDK](superpowers/specs/2026-10-23-editor-kit-design.md) and [ED2D](superpowers/specs/2026-10-23-editor-2d-design.md), both drafted and awaiting review. The 2D mockups (13 screens) are drafted in Figma and in `docs/design/editor-2d/` plus a review artifact, awaiting Owner review; their scene kit comes from the 3D lane's PR #94. Lanes: editor-kit and editor-2d (one thread), editor-3d (another). Device test runs go to the Orchestrator's bus (`tests/queue/`), never run by the lane.
 
 ## Exact next action
 
