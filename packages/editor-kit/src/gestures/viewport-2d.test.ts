@@ -88,6 +88,17 @@ describe('zoomAt', () => {
     }
   })
 
+  test('keeps the world point fixed when the limit clamps the zoom too', () => {
+    const viewport = createViewport({ size: SIZE, pan: { x: 40, y: 10 }, zoom: 2 })
+    const point = { x: 300, y: 250 }
+    const before = viewport.screenToWorld(point)
+    for (const factor of [1000, 1e-9]) {
+      const after = viewport.zoomAt(point, factor).screenToWorld(point)
+      expect(after.x).toBeCloseTo(before.x, 9)
+      expect(after.y).toBeCloseTo(before.y, 9)
+    }
+  })
+
   test('multiplies the zoom by the factor and clamps at both limits', () => {
     const viewport = createViewport({ size: SIZE, zoom: 2 })
     expect(viewport.zoomAt({ x: 0, y: 0 }, 1.5).zoom).toBe(3)

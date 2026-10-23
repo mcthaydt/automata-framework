@@ -219,7 +219,6 @@ export function createRecognizer(
     const point = touches.get(id)
     if (point === undefined) return false
     touches.delete(id)
-    if (point.ignored) return true
     if (cluster?.has(id)) {
       cluster.lift(id, cancelled)
       if (cluster.empty) cluster = undefined
@@ -249,7 +248,6 @@ export function createRecognizer(
       if (point) {
         point.x = sample.x
         point.y = sample.y
-        if (point.ignored) return
         if (cluster?.has(point.id)) {
           cluster.move(point)
           return

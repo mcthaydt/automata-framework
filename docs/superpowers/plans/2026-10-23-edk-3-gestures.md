@@ -94,4 +94,19 @@ Each step starts with a failing test and the reason it fails.
 
 ## Execution record
 
-(Filled in as steps pass.)
+Branch `claude/project-thread-73sp69-edk3`, stacked on #109. The plan landed first (8822586); steps 1 to 5 in ab5c102, step 6 in the adapter commit, step 7 and the docs in the commit after it.
+
+**Evidence (2026-10-23, in the cloud container, Chromium only):** `pnpm --filter @mcthaydt/automata-editor-kit test:unit` 16 files, 215 tests pass (81 of them in `src/gestures/`); `typecheck` (svelte-check) 0 errors and 0 warnings; repo-level `pnpm style` 0 findings, `pnpm knip`, `pnpm boundaries` clean; `pnpm lint` shows only the 154 warnings the repo already had (none in the new files); `pnpm api-report --update` added the gesture exports to `editor-kit.api.md`.
+
+**Mutation checks (each reverted):** `<` for `<=` in the slop test fails one test; dropping the `!moved` condition of `multiTap` fails one; switching palm handling off fails 18; using `factor` instead of the clamped ratio in `zoomAt` was first *not* caught (the only test skipped clamped cases), so a test for a clamped zoom keeping the world point fixed was added and now catches it. Removing the `ignored` check from `move` changed nothing, because an ignored touch is never in the cluster or the press: the check was dead and was deleted.
+
+**Deviations from the plan, with reasons:**
+
+- **Palm rule refined (decision 4).** The spec says a touch near the pen "pans and pinches only". While the pen is in *contact*, touches are now ignored entirely, because a palm's two contact points would pan the canvas in the middle of a pen stroke's open transaction. While the pen only hovers, the spec's rule holds. Written into the kit spec §4.5.
+- Two modules the plan did not list: `touch-cluster.ts` (the two-finger state, kept apart so `recognizer.ts` stays the single-pointer rules plus wiring) and `gesture-clock.ts` (the injected `now` and timers with the browser's as default). The recognizer's tests are three files (`recognizer`, `recognizer-touch`, `recognizer-input`) instead of one.
+- `hover` and `wheel` are methods of the recognizer (the plan had them in the contract; step 3 needed `hover` early to test the 300 ms pen memory, and it only recorded presence until step 5 made it fire).
+- Pressure in the adapter test uses values a 32-bit float holds exactly (0.25, 0.75); jsdom stores `pressure` as a float.
+
+**Not done here, by design:** binding `multiTap` to undo and redo (the shell, ED2D.4), the Pixi stage that uses the viewport (ED2D.4), real iPad Safari and Pencil behavior (EDK.6 on WebKit, then the Orchestrator's device pass), the stepper's scrub (EDK.4).
+
+**Still pending:** CI on the PR, WebKit and Firefox (the layout project is Chromium-only until EDK.6; nothing in `src/gestures/` is engine-specific, so no test request was filed), the full-repo `test:unit`, `pnpm deps:new` (unreachable in the container; no dependency was added), review of the spec amendments.
