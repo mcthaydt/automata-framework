@@ -1,6 +1,6 @@
 import type { Grid } from '../../model/grid'
 import { hashCell, hashText, SALT } from '../hash'
-import type { PatternCell, RuleGroup } from './rule.schema'
+import type { PatternCell, Rule, RuleGroup } from './rule.schema'
 
 // Evaluating auto-tile rules for one cell (2D editor spec §5.6). The rules are compiled once into flat lists of the
 // cells each rule really reads, so deciding a cell is a few comparisons and the 'any' cells of a pattern cost nothing.
@@ -12,13 +12,12 @@ export interface AutoTile {
   readonly flipY: boolean
 }
 
-const EMPTY = 0
-const FILLED = 1
-const IS = 2
-const NOT = 3
+/** What a pattern cell asks of the value read: `EMPTY` is 0, `FILLED` is not 0, `IS` and `NOT` compare with `value`. */
+export const KIND = { empty: 0, filled: 1, is: 2, not: 3 } as const
+const { empty: EMPTY, filled: FILLED, is: IS, not: NOT } = KIND
 
 /** One cell of a pattern: where to read it from the cell being decided, and what it must hold. */
-interface Check {
+export interface Check {
   readonly dx: number
   readonly dy: number
   readonly kind: number
@@ -26,7 +25,7 @@ interface Check {
 }
 
 /** The pattern as seen from one mirroring: the centre check, if any, comes first so most rules fail fast. */
-interface Variant {
+export interface Variant {
   readonly flipX: boolean
   readonly flipY: boolean
   readonly checks: readonly Check[]
@@ -77,6 +76,36 @@ function variantOf(
   return { variant: { flipX, flipY, checks: mirrored }, signature }
 }
 
+/**
+ * The ways a rule can match: the plain pattern, then (for the flips it enables) the pattern mirrored left-right,
+ * up-down, and both, in the order they are tried. Only the cells that ask something are listed, centre first. A
+ * mirroring that reads the same cells as an earlier one is left out: the earlier one always wins, so it adds nothing.
+ */
+export function ruleVariants(rule: Rule): Variant[] {
+  const half = rule.size >> 1
+  const checks: Check[] = []
+  rule.pattern.forEach((cell, index) => {
+    const check = checkOf(cell, (index % rule.size) - half, Math.floor(index / rule.size) - half)
+    if (check) checks.push(check)
+  })
+  // The centre first: it is the cheapest way to reject most cells.
+  checks.sort((a, b) => Number(b.dx === 0 && b.dy === 0) - Number(a.dx === 0 && a.dy === 0))
+
+  const wanted: [boolean, boolean][] = [[false, false]]
+  if (rule.flipX) wanted.push([true, false])
+  if (rule.flipY) wanted.push([false, true])
+  if (rule.flipX && rule.flipY) wanted.push([true, true])
+  const variants: Variant[] = []
+  const seen = new Set<string>()
+  for (const [flipX, flipY] of wanted) {
+    const { variant, signature } = variantOf(checks, flipX, flipY)
+    if (seen.has(signature)) continue
+    seen.add(signature)
+    variants.push(variant)
+  }
+  return variants
+}
+
 /** The active rules of the active groups, in evaluation order, compiled; rules that can never draw are left out. */
 export function compileRules(groups: readonly RuleGroup[]): CompiledRules {
   const rules: CompiledRule[] = []
@@ -85,31 +114,10 @@ export function compileRules(groups: readonly RuleGroup[]): CompiledRules {
     if (!group.active) continue
     for (const rule of group.rules) {
       if (!rule.active || rule.tiles.length === 0 || rule.chance <= 0) continue
-      const half = rule.size >> 1
-      const checks: Check[] = []
-      rule.pattern.forEach((cell, index) => {
-        const check = checkOf(cell, (index % rule.size) - half, Math.floor(index / rule.size) - half)
-        if (check) checks.push(check)
-      })
-      // The centre first: it is the cheapest way to reject most cells.
-      checks.sort((a, b) => Number(b.dx === 0 && b.dy === 0) - Number(a.dx === 0 && a.dy === 0))
-      for (const check of checks) radius = Math.max(radius, Math.abs(check.dx), Math.abs(check.dy))
-
-      // The order is the order they are tried in: plain, then mirrored left-right, up-down, both.
-      const wanted: [boolean, boolean][] = [[false, false]]
-      if (rule.flipX) wanted.push([true, false])
-      if (rule.flipY) wanted.push([false, true])
-      if (rule.flipX && rule.flipY) wanted.push([true, true])
-      const variants: Variant[] = []
-      const seen = new Set<string>()
-      for (const [flipX, flipY] of wanted) {
-        const { variant, signature } = variantOf(checks, flipX, flipY)
-        // A symmetric pattern gives a mirror that reads the same cells: the plain one always wins, so skip it.
-        if (seen.has(signature)) continue
-        seen.add(signature)
-        variants.push(variant)
-      }
-
+      const variants = ruleVariants(rule)
+      // Mirroring keeps the distances, so the plain pattern (always first) gives the reach.
+      for (const check of variants[0]?.checks ?? [])
+        radius = Math.max(radius, Math.abs(check.dx), Math.abs(check.dy))
       rules.push({
         key: hashText(rule.id),
         tiles: rule.tiles,
