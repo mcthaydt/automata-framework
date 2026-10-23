@@ -1,8 +1,11 @@
 // Last Light's fixed things in the shared entity model (ED3D.1b2 step 3): the definitions, and the arrays read as things.
 import { checkValues } from '@mcthaydt/automata-editor-kit/fields'
 import { describe, expect, it } from 'vitest'
+import { lastLightChecks } from '../checks/last-light/last-light-checks'
 import { thingDefSchema } from '../entities/thing-def.schema'
 import type { Blockout } from '../format/blockout.schema'
+import { parseSelection } from '../model/selection-ref'
+import { caseDocument, loadCheckCases, loadChecksGolden } from '../testing/check-cases'
 import { FIXTURE_NAMES, loadFixture } from '../testing/fixtures'
 import { must, toyBlockout } from '../testing/toy-blockout'
 import { blockoutCodec } from './last-light-codecs'
@@ -26,7 +29,7 @@ describe('lastLightDefinitions', () => {
       ['hotspot', 'point'],
       ['lamp', 'point'],
       ['anchor', 'point'],
-      ['nav-node', 'point'],
+      ['node', 'point'],
     ])
   })
 
@@ -68,7 +71,7 @@ describe('lastLightDefinitions', () => {
       hotspot: ['name:text!', 'reach:float! >=0', 'hide:bool', 'on:text'],
       lamp: ['range:float! >=0', 'radius:float! >=0', 'color:float[]! >=0 <=1', 'kind:text', 'on:text'],
       anchor: ['radius:float >=0', 'on:text'],
-      'nav-node': ['on:text'],
+      node: ['on:text'],
     })
   })
 
@@ -81,6 +84,29 @@ describe('lastLightDefinitions', () => {
   it('hold a lamp’s colour as the three floats the file has', () => {
     const color = definition('lamp').fields.find((field) => field.id === 'color')
     expect(color).toMatchObject({ type: 'float', list: true, min: 0, max: 1, required: true })
+  })
+})
+
+describe('the definition ids and the Last Light checks', () => {
+  it('are the ones every locator of the seeded violations names, so Locate selects the thing the check meant', () => {
+    const known = new Set(lastLightDefinitions.map((def) => def.id))
+    const golden = loadChecksGolden()
+    const named = new Set<string>()
+    for (const spec of loadCheckCases()) {
+      const results = lastLightChecks(caseDocument(spec), { puzzleHotspots: golden.cases[spec.id]?.puzzle })
+      for (const { problems } of results)
+        for (const problem of problems)
+          for (const locator of [problem.locator, ...(problem.related ?? [])]) {
+            const ref = locator === undefined ? undefined : parseSelection(locator.selection)
+            if (ref?.kind === 'entity') named.add(ref.definition)
+          }
+    }
+    // Zones are not things yet (ED3D.7), so their locators name a definition that is not there.
+    expect([...named].filter((id) => id !== 'zone' && !known.has(id))).toEqual([])
+    // The corpus reaches the kinds that a nav check, a door check and an ids check locate.
+    expect([...named].sort()).toEqual(
+      expect.arrayContaining(['anchor', 'box', 'hotspot', 'lamp', 'node', 'spawn']),
+    )
   })
 })
 
@@ -98,7 +124,7 @@ describe('lastLightEntityKit', () => {
       expect(count('hotspot')).toBe(blockout.hotspots.length)
       expect(count('lamp')).toBe(blockout.lamps.length)
       expect(count('anchor')).toBe(Object.keys(blockout.anchors ?? {}).length)
-      expect(count('nav-node')).toBe(Object.keys(blockout.nav.nodes ?? {}).length)
+      expect(count('node')).toBe(Object.keys(blockout.nav.nodes ?? {}).length)
       expect(kit.things).toHaveLength(
         1 +
           blockout.boxes.length +
@@ -118,13 +144,13 @@ describe('lastLightEntityKit', () => {
     const blockout = read('blockout-clinic-dawn')
     const kit = lastLightEntityKit(blockout)
     const order = [...new Set(kit.things.map((thing) => thing.def))]
-    expect(order).toEqual(['spawn', 'box', 'hotspot', 'lamp', 'anchor', 'nav-node'])
+    expect(order).toEqual(['spawn', 'box', 'hotspot', 'lamp', 'anchor', 'node'])
     const ids = (id: string) => kit.things.filter((thing) => thing.def === id).map((thing) => thing.id)
     expect(ids('box')).toEqual(blockout.boxes.map((box) => box.id))
     expect(ids('hotspot')).toEqual(blockout.hotspots.map((hotspot) => hotspot.id))
     expect(ids('lamp')).toEqual(blockout.lamps.map((lamp) => lamp.id))
     expect(ids('anchor')).toEqual(Object.keys(blockout.anchors ?? {}))
-    expect(ids('nav-node')).toEqual(Object.keys(blockout.nav.nodes ?? {}))
+    expect(ids('node')).toEqual(Object.keys(blockout.nav.nodes ?? {}))
   })
 
   it('takes the place and the values of a box, a hotspot and a lamp as the file has them', () => {
@@ -177,8 +203,8 @@ describe('lastLightEntityKit', () => {
     const leak = must(kit.things.find((thing) => thing.def === 'anchor' && thing.id === 'leak'))
     expect(leak).toEqual({ def: 'anchor', id: 'leak', x: -1.05, z: -4.1, values: { radius: 0.72 } })
     expect('y' in leak).toBe(false)
-    const end = must(kit.things.find((thing) => thing.def === 'nav-node' && thing.id === 'end'))
-    expect(end).toEqual({ def: 'nav-node', id: 'end', x: 0, z: -6.1, values: {} })
+    const end = must(kit.things.find((thing) => thing.def === 'node' && thing.id === 'end'))
+    expect(end).toEqual({ def: 'node', id: 'end', x: 0, z: -6.1, values: {} })
   })
 
   it('is a spawn, a box and a hotspot for the toy, and no anchor or nav node it does not have', () => {

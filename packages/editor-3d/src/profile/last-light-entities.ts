@@ -69,7 +69,7 @@ export const lastLightDefinitions: readonly ThingDef[] = [
       { id: 'on', type: 'text' },
     ],
   },
-  { id: 'nav-node', shape: 'point', sit: 'free', fields: [{ id: 'on', type: 'text' }] },
+  { id: 'node', shape: 'point', sit: 'free', fields: [{ id: 'on', type: 'text' }] },
 ]
 
 /** The entries of a record as instances of a definition, named by their keys (an anchor and a nav node have no id of their own). */
@@ -92,7 +92,7 @@ export function lastLightEntityKit(blockout: Blockout): EntityKit {
       ...listed('hotspot', blockout.hotspots, 'hotspots'),
       ...listed('lamp', blockout.lamps, 'lamps'),
       ...named('anchor', blockout.anchors, ['anchors']),
-      ...named('nav-node', blockout.nav.nodes, ['nav', 'nodes']),
+      ...named('node', blockout.nav.nodes, ['nav', 'nodes']),
     ],
   })
 }
