@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { spawnSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
@@ -20,6 +20,7 @@ interface Step {
   readonly 'working-directory'?: string
 }
 interface Job {
+  readonly if?: string
   readonly 'runs-on'?: string
   readonly needs?: string | string[]
   readonly container?: { image: string }
@@ -47,17 +48,61 @@ describe('ci.yml', () => {
     expect(Object.keys(workflow.jobs)).toEqual(['checks', 'browsers', 'lighthouse'])
   })
 
-  // Coordinator decision 2026-10-23: this repository's CI runs on GitHub-hosted Ubuntu, which keeps the shared self-hosted
-  // runner free for Ruken and needs no runner registered here. The Ubuntu release is pinned (not `ubuntu-latest`) so a
-  // runner image change cannot move the build; it is the release the pinned Playwright image is built on (noble).
-  it('runs every job on one pinned GitHub-hosted Ubuntu release, not a self-hosted runner', () => {
+  // Owner, 2026-10-23 14:18Z: CI runs on the Owner's own devices, never on GitHub's hosted runners ("we aren't supposed to
+  // use cloud, we run it on device"). Every job runs on the Owner's Mac (label af-mac), as the framework's CI does. This
+  // reverses the coordinator's choice of hosted Ubuntu from 03:01Z, which the hosted billing stop (10:50Z) then blocked.
+  it('runs every job on the Owner’s Mac runner (af-mac), never a GitHub-hosted one', () => {
     for (const [name, job] of Object.entries(workflow.jobs)) {
-      expect(job['runs-on'], name).toBe('ubuntu-24.04')
+      expect(job['runs-on'], name).toBe('af-mac')
     }
   })
 
-  it('keeps the browser jobs in the Playwright image built on that Ubuntu release', () => {
-    for (const name of ['browsers', 'lighthouse']) expect(workflow.jobs[name]?.container?.image, name).toMatch(/-noble$/)
+  it('names no GitHub-hosted runner anywhere in the repository’s workflows', () => {
+    const dir = resolve(root, '.github/workflows')
+    const files = readdirSync(dir).filter(file => /\.ya?ml$/.test(file))
+    expect(files).toContain('ci.yml')
+    for (const file of files) {
+      const parsed = parse(readFileSync(resolve(dir, file), 'utf8')) as Workflow
+      for (const [name, job] of Object.entries(parsed.jobs)) {
+        expect(String(job['runs-on']), `${file}: ${name}`).not.toMatch(/ubuntu|macos|windows|github-hosted/i)
+      }
+    }
+  })
+
+  // The jobs run on the Owner's own machine, so code from a pull request of a fork must never reach it: a pull request runs
+  // its jobs only when its head is in this repository. Pushes to main and manual runs have no pull request and still run.
+  // (Hub, 2026-10-23: the same guard as the framework's self-hosted jobs.)
+  it('runs a pull request’s jobs only when the pull request comes from this repository', () => {
+    for (const [name, job] of Object.entries(workflow.jobs)) {
+      expect(job.if, name).toBe("github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository")
+    }
+  })
+
+  // Hub, 2026-10-23: a job that holds a write, publish or deploy token stays off the Owner's machine. None of these does:
+  // the one secret is the read-only deploy key that reads the private framework.
+  it('reads one secret, the read-only framework key, and asks for no more than read permission', () => {
+    const text = read('.github/workflows/ci.yml')
+    expect(Array.from(new Set(Array.from(text.matchAll(/secrets\.([A-Za-z0-9_]+)/g), match => match[1]))).sort()).toEqual(['AF_FRAMEWORK_DEPLOY_KEY'])
+    expect(workflow.permissions).toEqual({ contents: 'read' })
+  })
+
+  // macOS runners cannot run containers, so the browser jobs run on the host and fetch Playwright's browsers into the
+  // runner's cache (a no-op once they are there), as the framework's parity job does on the same Mac.
+  it('runs the browser jobs on the host, with no container', () => {
+    for (const name of ['browsers', 'lighthouse']) expect(workflow.jobs[name]?.container, name).toBeUndefined()
+  })
+
+  it('gives every job that installs packages its own pnpm folder, since the runners share one home folder', () => {
+    for (const [name, job] of Object.entries(workflow.jobs)) {
+      const setup = (job.steps ?? []).find(step => step.uses?.startsWith('pnpm/action-setup@'))
+      expect(setup?.with?.dest, name).toBe('${{ runner.temp }}/setup-pnpm')
+    }
+  })
+
+  it('uses no cache that exists only on GitHub-hosted runners', () => {
+    for (const [name, job] of Object.entries(workflow.jobs)) {
+      for (const step of job.steps ?? []) expect(step.with?.cache, name).toBeUndefined()
+    }
   })
 
   it('pins every third-party action to a commit', () => {
@@ -126,10 +171,14 @@ describe('the jobs', () => {
     }
   })
 
-  it('browsers runs the Chromium and WebKit suite in the Playwright image that matches the pinned version', () => {
-    const version = JSON.parse(read('package.json')).devDependencies['@playwright/test'] as string
-    expect(workflow.jobs.browsers?.container?.image).toBe(`mcr.microsoft.com/playwright:v${version}-noble`)
-    expect(runs('browsers')).toContain('pnpm test:e2e')
+  it('browsers fetches Chromium and WebKit of the pinned Playwright, then runs the suite', () => {
+    const all = runs('browsers')
+    const install = all.indexOf('pnpm install --frozen-lockfile')
+    const browsers = all.indexOf('pnpm exec playwright install chromium webkit')
+    const suite = all.indexOf('pnpm test:e2e')
+    expect(install).toBeGreaterThanOrEqual(0)
+    expect(browsers).toBeGreaterThan(install)
+    expect(suite).toBeGreaterThan(browsers)
   })
 
   it('browsers and lighthouse keep their reports, also when they fail', () => {
@@ -149,13 +198,19 @@ describe('the jobs', () => {
     expect(upload?.with?.['include-hidden-files']).toBe(true)
   })
 
-  it('lighthouse runs the budget with the image’s own Chromium', () => {
-    expect(runs('lighthouse')).toContain('pnpm lighthouse')
+  it('lighthouse runs the budget with the Chromium that Playwright fetched, located after it is installed', () => {
+    const all = runs('lighthouse')
+    expect(all).toContain('pnpm lighthouse')
+    const install = all.indexOf('pnpm exec playwright install chromium')
+    const locate = steps('lighthouse').findIndex(step => step.id === 'chromium')
+    expect(install).toBeGreaterThanOrEqual(0)
+    expect(locate).toBeGreaterThan(install)
+    expect(locate).toBeLessThan(all.indexOf('pnpm lighthouse'))
     const withChrome = steps('lighthouse').find(step => step.run === 'pnpm lighthouse')
-    expect(withChrome?.env?.CHROME_PATH).toBeDefined()
+    expect(withChrome?.env?.CHROME_PATH).toBe('${{ steps.chromium.outputs.path }}')
   })
 
-  // The hosted runner measures differently from the machine the baseline was first recorded on, and the report artifact
+  // A runner measures differently from the machine the baseline was first recorded on, and the report artifact
   // is a zip behind a blob host, so the log has to carry the numbers: the medians the budget judged, printed after the
   // budget runs and also when it fails. The step records them with the same script that wrote lighthouse-baseline.json.
   it('lighthouse prints the medians it measured after the budget runs, also when the budget fails', () => {
@@ -165,7 +220,9 @@ describe('the jobs', () => {
     expect(record).toBeGreaterThan(budget)
     expect(all[record]?.if).toBe('always()')
     expect(all[record]?.run).toContain('GITHUB_STEP_SUMMARY')
-    expect(all[record]?.run).toContain('GitHub-hosted')
+    // The machine is named from the runner that measured, so a baseline copied from the log says where it was recorded.
+    expect(all[record]?.run).toContain('$RUNNER_NAME')
+    expect(all[record]?.run).not.toContain('GitHub-hosted')
   })
 
   it('does not hand the framework key to jobs that do not read the framework', () => {
