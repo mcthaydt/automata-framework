@@ -83,8 +83,22 @@ describe('readEntityKit', () => {
     expect(kit.problems).toEqual([
       {
         path: ['entityDefs', 0, 'fields', 0, 'id'],
-        message: 'spawn: field x is taken: a thing keeps def, id, x, y and z for itself',
+        message: 'entity definition spawn: field x is taken: a thing keeps def, id, x, y and z for itself',
       },
+    ])
+  })
+
+  it('says which definition a problem is about, with the member when the schema, not a rule, found it', () => {
+    const kit = read(
+      [{ ...crateDef, shape: 'cylinder' }, { id: 'lamp', fields: [] }, null, { shape: 'point' }],
+      [],
+    )
+    expect(kit.problems.map((problem) => problem.message.replace(/: Invalid .*$/, ': Invalid'))).toEqual([
+      'entity definition crate: shape: Invalid',
+      'entity definition lamp: shape: Invalid',
+      'entity definition #2: Invalid',
+      'entity definition #3: id: Invalid',
+      'entity definition #3: fields: Invalid',
     ])
   })
 
