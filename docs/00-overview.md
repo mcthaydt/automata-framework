@@ -52,7 +52,7 @@ M0 (spikes S1–S6, ADR 0001, the A1a sim core) is merged. Nothing from M1 onwar
 | M0 Foundation | Spikes, ECS decision, sim core (done) |
 | M1 Blank game on Ruken | Toolchain, Effect runtime skeleton, content compiler, host, boot and loading, 2D renderer, mobile UI primitives, CI/CD, packaging, publish, dev host, example, minimal `create-game` |
 | M2 Deterministic core complete | Physics, goldens and replays, publishing |
-| M3 3D characters and pipelines | `render-pixi3d` (meshes, follow camera, lighting), `figures` (procedural characters), rigged glTF characters, `post-retro`, the pipeline platform, character (rigged and procedural) and props pipelines. 2.5D dropped 2026-10-18 ([revised M3 spec](superpowers/specs/2026-10-18-m3-3d-characters-design.md)) |
+| M3 3D characters and pipelines | `render-pixi3d` (meshes, the angled 24 mm camera, lighting), `figures` (procedural characters with an IK rig, authored poses and clips), `post-retro`, the pipeline platform, the procedural character and props pipelines. 2.5D dropped 2026-10-18; rigged glTF characters cut 2026-10-23 ([revised M3 spec](superpowers/specs/2026-10-18-m3-3d-characters-design.md)) |
 | M4 Input and display complete | All input paths and display policy, E2E matrix |
 | M5 Saves, audio, localization | Ruken saves and migrations, audio extensions, six languages |
 | M6 Gameplay extensions | Sectors, nav, puzzle, systems, narrative, cutscenes, feel, debug, environment pipeline |

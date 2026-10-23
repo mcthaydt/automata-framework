@@ -42,7 +42,7 @@ The A/B/C phase IDs remain in historical documents (the A0 and A1a plans, spike 
 | A7 Networking | `net`/`server` extensions, **M7** | Built from FloorFifty's Colyseus code. |
 | A8 CLI + 1.0 | Minimal `create-game` in M1; full CLI in **M8** | |
 | A9 Store & Season Pass | `store` extension, **M7** | Blocked on Ruken's `[store]` manifest section. |
-| B1 Character pipeline | Rigged 3D characters (to Meshy's rig and clips) and free procedural characters in the `pipelines` extension, **M3** (2.5D sprite atlases dropped 2026-10-18); what GAME-3D adds, **M9** | Starts from The Last Light's character pipeline and procedural figure. |
+| B1 Character pipeline | Free procedural characters (the figure, its IK rig, poses and clips) in `figures` and the `pipelines` extension, **M3** (2.5D sprite atlases dropped 2026-10-18; rigged glTF characters and Meshy's rig and animation stages cut 2026-10-23); what GAME-3D adds, **M9** | Starts from The Last Light's character pipeline and procedural figure. |
 | B2 Environment pipeline | `sectors` extension + sector environment pipeline, **M6**; brush-based 3D environments, **M9** | Starts from The Last Light's sector maps; TrenchBroom/Sencha stays a reference for the 3D game. |
 | "Real 3D game" | **GAME-3D**, after AF 1.0 (M8), then **M9** merges its 3D pieces back | Owner roadmap 2026-10-11: 2D and 2.5D first, then 3D. **2026-10-18:** 2.5D dropped; M3 brings 3D characters. |
 | Part C modular extraction | Replaced by core + extensions from day one | |
@@ -67,7 +67,7 @@ External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [st
 | M0 Foundation | A0+A1 spec | ✅ merged | Spike verdicts; ECS decided; sim core |
 | M1 Blank game on Ruken | **to write** (`m1-blank-game-on-ruken`) | ⬜ | Push → CI green → Ruken-validated zip → published to Ruken local stack and dev host → playable on a phone; nothing renders before ready; layout contracts pass at every reference size |
 | M2 Deterministic core complete | A0+A1 spec + [`m2-deterministic-core`](superpowers/specs/2026-10-11-m2-deterministic-core-design.md) (drafted 2026-10-11, review pending) | ⬜ | A1 exits 2–8 of the A0+A1 spec |
-| M3 3D characters and pipelines | **revised, awaiting review** | ⬜ | `base-3d` with a procedural and a rigged character (private build, D-1) on WebGL2, and WebGPU when opted in, under Ruken CSP at ≥30 FPS on phone profiles; one rigged and one procedural character through the pipeline with gates |
+| M3 3D characters and pipelines | **revised twice, awaiting review** | ⬜ | `base-3d` with procedural figures, IK-posed clips and a lock-on aim demo, seen through authored angled views on a 24 mm lens (private build, D-1) on WebGL2, and WebGPU when opted in, under Ruken CSP at ≥30 FPS on phone profiles; one procedural character through the pipeline with gates |
 | M4 Input and display | **to write** | ⬜ | Input × form-factor E2E matrix under the fake Ruken host |
 | M5 Saves, audio, localization | **to write** | ⬜ | Save N → N+1 migration; cross-device save/exit/resume on Ruken; all strings localized |
 | M6 Gameplay extensions | **to write** | ⬜ | Each extension's fixture game passes; The Last Light's route tests pass on extracted `puzzle` |
@@ -99,10 +99,10 @@ Ordered so the pipeline exists before the runtime: CI/CD and deployment are prov
 - **Build and publish** (M2.4): tsdown (Ruken's tool and pin), Changesets with one fixed `0.0.x` version, prereleases to GitHub Packages; games install with a classic `read:packages` token; CI under 10 minutes.
 
 ### M3 3D characters and pipelines
-2.5D dropped (Owner, 2026-10-18); [revised M3 spec](superpowers/specs/2026-10-18-m3-3d-characters-design.md), awaiting review.
-- **Spike S7:** `@pixi/3d` under Ruken's CSP, WebGL2 parity, phone FPS, CI capture path, API surface, skinning on both backends, procedural figure cost; decide D-1.
-- **`render-pixi3d`:** meshes and GLB props, a follow camera with orbit, lighting, fog, skinned glTF characters with named clips; **`figures`:** procedural characters (The Last Light's figure, as 3D meshes); **`post-retro`**; `games/base-3d` with both character kinds.
-- **`pipelines`:** router, MCP server, budgets, gates, guard, audit log, made game-agnostic; the character pipeline's rigged path (to Meshy's rig and clips) and free procedural path, and props (image → Meshy → flattened GLB), with their gates.
+2.5D dropped (Owner, 2026-10-18); rigged glTF characters cut, an IK rig and an angled 24 mm camera added (Owner, 2026-10-23); [revised M3 spec](superpowers/specs/2026-10-18-m3-3d-characters-design.md), awaiting review.
+- **Spike S7:** `@pixi/3d` under Ruken's CSP, WebGL2 parity, phone FPS, CI capture path, API surface, rig solve cost, procedural figure cost, legibility of the angled view; decide D-1.
+- **`render-pixi3d`:** meshes and GLB props, the angled camera (per-room views, 24 mm), lighting, fog; **`figures`:** procedural characters (The Last Light's figure, as 3D meshes) with an IK rig, authored poses and keyframed clips; **`post-retro`**; `games/base-3d` with procedural figures only.
+- **`pipelines`:** router, MCP server, budgets, gates, guard, audit log, made game-agnostic; the free procedural character path, and props (image → Meshy → flattened GLB), with their gates.
 ### M4 Input and display
 - Gamepad, touch overlay and gestures, profiles and rebinding, cursor hiding, focus navigation across composed screens; letterbox and safe area; `scale` hint; graphics settings; color-blind UI; complete frames, panels, lists and paged grids; input × form-factor E2E matrix under the fake Ruken host.
 
@@ -123,8 +123,8 @@ Ordered so the pipeline exists before the runtime: CI/CD and deployment are prov
 - Adoption slices (D-2): FloorFifty on AF `host` + loading + `ui` layout; The Last Light on AF `puzzle` + `sectors`, each passing its own existing tests at a pinned commit (Ruken's `floorfifty.sha` pattern).
 
 ### GAME-3D and M9 3D merge
-- **GAME-3D:** a 3D game in its own repo on AF 1.0, with its own reviewed game design and TDD plans (a small third-person action-adventure is the current suggestion; the Owner picks). 3D-only systems stay in the game until they work there.
-- **M9:** merge the game's proven 3D pieces into AF: full 3D in `render-pixi3d`, the rigged character and animation pipeline (Meshy → Blender, rig, animation set, GLB, budget validator, content TOML), third-person camera and character controller, and the brush-based environment pipeline. Each piece keeps passing in the game, which then consumes it from AF.
+- **GAME-3D:** a 3D game in its own repo on AF 1.0, with its own reviewed game design and TDD plans. **Owner direction, 2026-10-23:** a third-person action-adventure in the spirit of Ocarina of Time (lock-on combat, dungeons, items, puzzles), with procedural characters on M3's IK rig and a Crow Country-style angled camera on a 24 mm lens ([M3 spec](superpowers/specs/2026-10-18-m3-3d-characters-design.md) §17). 3D-only systems stay in the game until they work there.
+- **M9:** merge the game's proven 3D pieces into AF: full 3D in `render-pixi3d`, the third-person controller on the angled views (pmndrs/klipp checked against them), lock-on targeting, combat clips on the rig, items, the dungeon pieces, ground-contact IK, and the brush-based environment pipeline. Rigged glTF characters and the Meshy rig and animation pipeline were cut by the Owner on 2026-10-23. Each piece keeps passing in the game, which then consumes it from AF.
 
 ## 5. Required milestone-spec and plan detail
 
