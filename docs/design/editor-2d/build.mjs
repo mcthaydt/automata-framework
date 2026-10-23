@@ -91,16 +91,7 @@ if (cmd === 'list') {
   console.log(`const page = figma.root.children.find((p) => p.name === '_kit')
 await figma.setCurrentPageAsync(page)
 const src = (name) => page.children.find((c) => c.name === name).characters
-// A paint bound to a colour variable is drawn at the variable's own alpha, so alpha(token, n) overlays came out opaque.
-// Bind only when nothing extra is applied on top of the token; overlays use a plain RGBA paint at the right opacity.
-const patch = (text, from, to) => {
-if (!text.includes(from)) throw new Error('figma-runtime changed; update the alpha patch in docs/design/editor-2d/build.mjs')
-return text.replace(from, to)
-}
-const plain = 'Math.abs(c.a - (c.tokenAlpha || 1)) < 1e-6'
-let runtime = patch(src('figma-runtime'), 'const v = c.token ? vars.get(\`color/\${c.token}\`) : null', 'const v = c.token && ' + plain + ' ? vars.get(\`color/\${c.token}\`) : null')
-runtime = patch(runtime, '} else if (c.token) warnings.push(', '} else if (c.token && ' + plain + ') warnings.push(')
-const { S, R, P } = new Function('figma', src('scene-kit') + '\\n' + runtime + '\\nconst S = makeScene()\\nconst R = figmaRuntime(figma, S)\\n' + src('parts-2d') + '\\nreturn { S, R, P }')(figma)
+const { S, R, P } = new Function('figma', src('scene-kit') + '\\n' + src('figma-runtime') + '\\nconst S = makeScene()\\nconst R = figmaRuntime(figma, S)\\n' + src('parts-2d') + '\\nreturn { S, R, P }')(figma)
 const build = ${strip(s.build.toString())}
 return await R.render(build(S, P), ${JSON.stringify({ page: s.page, x, replace: true })})`)
 } else {

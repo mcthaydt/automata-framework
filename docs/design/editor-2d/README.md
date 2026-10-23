@@ -21,10 +21,8 @@ node build.mjs figma-parts                       # `use_figma` code that stores 
 node build.mjs figma compose 0                   # `use_figma` code that renders one screen at x = 0 on its page
 ```
 
-`figma` code loads the kit, its Figma runtime and `parts-2d` from text nodes on the `_kit` page. It patches the runtime
-before use: a paint bound to a colour variable is drawn at the variable's own alpha, so `alpha(token, n)` overlays came
-out opaque. The patch binds a variable only when nothing is applied on top of the token and otherwise paints plain RGBA.
-It throws if the runtime text no longer matches, so a kit change cannot pass silently.
+`figma` code loads the kit (`scene-kit`), its Figma runtime (`figma-runtime`) and `parts-2d` from text nodes on the
+`_kit` page. The 3D lane keeps its own modules in `module:3x` nodes; keep `parts-2d` outside that range.
 
 Frame x offsets used in the Figma file: `2D · Stage` compose 0, course 1294, pieces 2588, portrait 3882; `2D · States`
 checks 0, export 1294, recover 2094, parse error 2794, stage settings 3594; `2D · Level` level 0, world 1294.
