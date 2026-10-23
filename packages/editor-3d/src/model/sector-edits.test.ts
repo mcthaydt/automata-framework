@@ -17,7 +17,15 @@ import { changedRegion, literalEdits } from '../testing/text-diff'
 import { toyAfSector } from '../testing/toy-af-sector'
 import { must } from '../testing/toy-blockout'
 import type { Edit, EditResult } from './edit'
-import { addSector, duplicateSector, removeSector, setHeights, setLight, setMaterials } from './sector-edits'
+import {
+  addSector,
+  duplicateSector,
+  removeSector,
+  removeSectors,
+  setHeights,
+  setLight,
+  setMaterials,
+} from './sector-edits'
 
 const depotText = loadAuthored('depot.af-sector')
 const depot = (() => {
@@ -425,6 +433,92 @@ describe('sector.remove', () => {
     const edit = removeSector({ id: 'yard' })
     expect(edit.id).toBe('sector.remove')
     expect(edit.label).toBe('Remove sector yard')
+  })
+})
+
+describe('sector.remove of several sectors', () => {
+  const yard: AfSector['sectors'][number] = {
+    id: 'yard',
+    floor: 0,
+    ceiling: 4,
+    light: 1,
+    corners: rect(14, 0, 18, 6),
+  }
+  const idsOf = (level: AfSector): string[] => sectorsOf(level).map((each) => each.id)
+  // The toy's hall and dock lead into each other; the yard stands alone beside them.
+  const toy = toyAfSector({ sectors: [...toyAfSector().sectors, yard] })
+  const toyRun = (edit: Edit<AfSector>) => run(afSectorProfile, toy, edit)
+
+  it('removes sectors that lead into each other together, which one by one it would refuse', () => {
+    expect(reasonOf(toyRun(removeSector({ id: 'hall' })))).toBe(
+      'sector hall is still referenced: sector dock corner 3: a portal into hall',
+    )
+    expect(idsOf(levelOf(toyRun(removeSectors({ ids: ['hall', 'dock'] }))))).toEqual(['yard'])
+    expect(idsOf(levelOf(toyRun(removeSectors({ ids: ['dock', 'hall'] }))))).toEqual(['yard'])
+  })
+
+  it('refuses all of them when a sector that stays still leads into one, and says which', () => {
+    const joined = toyAfSector({
+      sectors: [
+        ...toyAfSector().sectors,
+        { ...yard, corners: [[14, 0, { next: 'dock' }], ...rect(14, 0, 18, 6).slice(1)] },
+      ],
+    })
+    expect(run(afSectorProfile, joined, removeSectors({ ids: ['hall', 'dock'] }))).toEqual({
+      ok: false,
+      reason: 'sector dock is still referenced: sector yard corner 0: a portal into dock',
+      at: 'sector:dock',
+    })
+  })
+
+  it('refuses a sector something that is not a sector stands in, as the single edit does', () => {
+    expect(reasonOf(afRun(removeSectors({ ids: ['hall', 'dock'] })))).toBe(
+      'sector hall is still referenced: entity spawn stands in it',
+    )
+  })
+
+  it('names a sector that is not there before it looks at anything else', () => {
+    expect(toyRun(removeSectors({ ids: ['yard', 'nowhere'] }))).toEqual({
+      ok: false,
+      reason: 'no sector nowhere',
+    })
+  })
+
+  it('counts a sector once however often it is named, and does nothing for none', () => {
+    const edit = removeSectors<AfSector>({ ids: ['yard', 'yard'] })
+    expect(edit.label).toBe('Remove sector yard')
+    expect(idsOf(levelOf(toyRun(edit)))).toEqual(['hall', 'dock'])
+    expect(levelOf(toyRun(removeSectors({ ids: [] })))).toBe(toy)
+  })
+
+  it('is one edit called sector.remove, and says how many it removes', () => {
+    const edit = removeSectors({ ids: ['hall', 'dock'] })
+    expect(edit.id).toBe('sector.remove')
+    expect(edit.label).toBe('Remove 2 sectors')
+  })
+
+  it('keeps an opening between two rooms in the way: it is its own thing to remove first', () => {
+    expect(reasonOf(llRun(removeSectors({ ids: ['corridor', 'yard'] })))).toContain(
+      'opening exitWay (corridor → yard)',
+    )
+  })
+
+  it('refuses with the sentence of a format that cannot hold what is left, and hides no other error', () => {
+    const failing = (error: Error) => ({
+      ...afSectorProfile,
+      sectors: {
+        ...afSectorAccess,
+        withSectors: () => {
+          throw error
+        },
+      },
+    })
+    const both = removeSectors<AfSector>({ ids: ['hall', 'dock'] })
+    expect(run(failing(new SectorAccessError('no room for that')), toy, both)).toEqual({
+      ok: false,
+      reason: 'no room for that',
+    })
+    expect(() => run(failing(new TypeError('a bug')), toy, both)).toThrow('a bug')
   })
 })
 

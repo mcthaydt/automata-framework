@@ -64,20 +64,38 @@ export function addSector<D>(args: AddSectorArgs): Edit<D> {
   }
 }
 
-export function removeSector<D>(args: { readonly id: string }): Edit<D> {
+export const removeSector = <D>(args: { readonly id: string }): Edit<D> => removeSectors({ ids: [args.id] })
+
+/**
+ * Removes sectors together, as one edit. What the others in the set lead into or name goes with them (two rooms joined
+ * by a portal pair), but a sector that stays and still points at one keeps it, as it would for a single sector: the
+ * references are read from the level without the other sectors that go. The first sector in `ids` that cannot go
+ * refuses the lot.
+ */
+export function removeSectors<D>(args: { readonly ids: readonly string[] }): Edit<D> {
+  const ids = [...new Set(args.ids)]
   return {
     id: 'sector.remove',
-    label: `Remove sector ${args.id}`,
+    label: ids.length === 1 ? `Remove sector ${ids[0]}` : `Remove ${ids.length} sectors`,
     run(profile, level) {
       const sectors = profile.sectors.list(level)
-      if (!sectors.some((sector) => sector.id === args.id)) return noSector(args.id)
-      const references = profile.sectors.references(level, args.id)
-      if (references.length > 0)
-        return refuse(`sector ${args.id} is still referenced: ${references.join('; ')}`, placeOf(args.id))
+      for (const id of ids) if (!sectors.some((sector) => sector.id === id)) return noSector(id)
+      const going = new Set(ids)
+      for (const id of ids) {
+        const held = holdSectors(
+          profile,
+          level,
+          sectors.filter((sector) => sector.id === id || !going.has(sector.id)),
+        )
+        if (!held.ok) return held
+        const references = profile.sectors.references(held.level, id)
+        if (references.length > 0)
+          return refuse(`sector ${id} is still referenced: ${references.join('; ')}`, placeOf(id))
+      }
       return holdSectors(
         profile,
         level,
-        sectors.filter((sector) => sector.id !== args.id),
+        sectors.filter((sector) => !going.has(sector.id)),
       )
     },
   }
