@@ -62,7 +62,7 @@ const TEMPLATE_FILES: readonly TemplateFile[] = [
             '@mcthaydt/automata-ship': 'workspace:*',
             '@types/node': '24.19.1',
             typescript: '7.0.2',
-            vite: '8.3.2',
+            vite: '8.3.3',
           },
         },
         null,
