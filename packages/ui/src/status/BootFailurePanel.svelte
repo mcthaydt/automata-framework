@@ -1,4 +1,5 @@
 <!--
+  @component
   The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the
   failure's copy and its ways forward. The runtime passes its `BootError` and the handlers; this
   component decides nothing beyond `bootFailureView`.

@@ -177,8 +177,8 @@
 Do the same three steps for each row of spec §6, one PR per demo, owned by its lane.
 
 - [ ] **runtime/boot-and-flow**
-- [ ] **render-pixi/renderer-2d**
-- [ ] **host/lifecycle-and-saves**
+- [x] **render-pixi/renderer-2d** (`render/render-interpolation.ts`, [plan](2026-10-23-ex4-renderer-2d.md)); `render/render-filter.ts` ([plan](2026-10-23-ex4-render-filter.md)), on the `postFilter` verb ([plan](2026-10-23-post-filter-verb.md))
+- [x] **host/lifecycle-and-saves** (`core/core-host-lifecycle.ts` and `examples/e2e/core-host-lifecycle.e2e.ts`, [plan](2026-10-23-ex4-host-lifecycle.md)); `core/core-saves.ts` stays with M5.2
 - [ ] **content/hot-reload**
 - [ ] **ui/primitives**
 - [ ] **physics/bodies-2d** (into `automata-plus` with PRODUCT.5)

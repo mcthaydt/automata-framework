@@ -6,6 +6,7 @@ import {
   boundariesStep,
   cspStep,
   noEvalStep,
+  orientationStep,
   secretsStep,
   testStep,
   typecheckStep,
@@ -31,8 +32,14 @@ function stepsFor(options: RunCheckOptions): readonly Step[] {
     ['typecheck', typecheckStep],
     ['test', testStep],
   ]
-  // --sim-only checks a sim edit: it skips the board scan, the build, and the secrets and csp steps that read it.
-  if (!options.simOnly) steps.push(['boards', boardsStep], ['no-eval', noEvalStep], ['secrets', secretsStep])
+  // --sim-only checks a sim edit: it skips the board and orientation scans, the build, and the secrets and csp steps that read it.
+  if (!options.simOnly)
+    steps.push(
+      ['boards', boardsStep],
+      ['orientation', orientationStep],
+      ['no-eval', noEvalStep],
+      ['secrets', secretsStep],
+    )
   if (!options.simOnly && options.csp) steps.push(['csp', cspStep])
   return steps
 }
