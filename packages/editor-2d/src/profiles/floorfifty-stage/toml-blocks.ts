@@ -133,7 +133,7 @@ export function scanBlocks(lines: readonly string[]): readonly Block[] {
 export function findLine(
   lines: readonly string[],
   blocks: readonly Block[],
-  path: readonly (string | number)[],
+  path: readonly PropertyKey[],
 ): number {
   // The part of the text before the first table holds the root keys.
   let from = 0
@@ -149,7 +149,7 @@ export function findLine(
       to = element.end
       continue
     }
-    const child = name === '' ? segment : `${name}.${segment}`
+    const child = name === '' ? String(segment) : `${name}.${String(segment)}`
     const table = blocks.find((block) => block.name === child)
     if (table !== undefined) {
       name = child
@@ -165,7 +165,7 @@ export function findLine(
       name = child
       continue
     }
-    const key = new RegExp(`^\\s*["']?${escapeKey(segment)}["']?\\s*=`)
+    const key = new RegExp(`^\\s*["']?${escapeKey(String(segment))}["']?\\s*=`)
     for (let i = from; i < to; i++) if (key.test(lines[i] ?? '')) return i + 1
     return header + 1
   }
