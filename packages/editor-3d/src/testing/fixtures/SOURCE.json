@@ -43,6 +43,11 @@
       "bytes": 156966,
       "sha256": "4bcf673f6f6e17b671bdd6454767583c606d428c87c1755f444b2061b25d4e91",
       "recordedBy": "node --experimental-strip-types src/testing/fixtures/record-geometry.mjs <Last Light checkout at 92e6704> src/testing/fixtures/expand.golden.json src/testing/fixtures/geometry.golden.json"
+    },
+    "checks.golden.json": {
+      "bytes": 34378,
+      "sha256": "58f331d80a7ad0f84df4e1a91302e8c34ec1fd3e23186d1d171c4d0590faccff",
+      "recordedBy": "node --experimental-strip-types src/testing/fixtures/record-checks.mjs <Last Light checkout at 92e6704> src/testing/fixtures/check-cases.json src/testing/fixtures src/testing/fixtures/checks.golden.json"
     }
   }
 }
