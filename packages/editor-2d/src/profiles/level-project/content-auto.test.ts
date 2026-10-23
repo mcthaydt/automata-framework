@@ -4,10 +4,9 @@ import { decodeRows, packTile } from '../../model/cells-codec'
 import { Grid } from '../../model/grid'
 import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
+import { engineStack } from '../../testing/content-roundtrip'
 import { withDefs, withLayer } from '../../testing/project-edit'
 import { makeGroup, makeRule } from '../../testing/rules'
-import { applyOverrides, autoTiles } from '../../tiles/autotile/auto-tiles'
-import { compileRules } from '../../tiles/autotile/match'
 import { contentLevelSchema } from './content.schema'
 import { exportContent } from './content-export'
 import { platformerTemplate } from './templates/platformer'
@@ -37,25 +36,8 @@ function exportedStack(project: Project): Grid[] {
 /** The editor's own result for the ground layer as one grid per stack depth. */
 function expectedStack(project: Project): Grid[] {
   const level = project.levels[0]
-  const def = project.defs.layers.find((d) => d.id === 'ground')
-  const auto = level?.layers.find((l) => l.def === 'ground')
-  const source = level?.layers.find((l) => l.def === 'collision')
-  if (def?.kind !== 'auto' || auto?.kind !== 'auto' || source?.kind !== 'intgrid') throw new Error('shape')
-  const result = applyOverrides(autoTiles(source.cells, compileRules(def.groups), auto.seed), auto.overrides)
-  const depth = Math.max(0, ...[...result.stacks.values()].map((stack) => stack.length))
-  return Array.from({ length: depth }, (_, d) =>
-    Grid.empty(result.cols, result.rows).edit((cells) => {
-      for (const [key, stack] of result.stacks) {
-        const tile = stack[d]
-        if (tile)
-          cells.set(
-            key % result.cols,
-            Math.floor(key / result.cols),
-            packTile(tile.tile, tile.flipX, tile.flipY),
-          )
-      }
-    }),
-  )
+  if (level === undefined) throw new Error('no level')
+  return engineStack(project, level, 'ground')
 }
 
 const same = (a: readonly Grid[], b: readonly Grid[]): boolean =>

@@ -3,7 +3,7 @@
 - **Task:** ED2D.3 in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §6.2 (AF content export), §7 (the `level-project` profile and its templates), §9 (checks); acceptance G-i and the "zero errors" part of flow 1; the sample projects of §14.
 - **Lane:** editor-2d. **Depends on:** ED2D.1 (model, codec, profile registry) and ED2D.2 (rule engine and its issues); this PR stacks on #131. **Unblocks:** ED2D.4 (Home lists the templates, the Level view opens a starter level, the registration list imports the profile) and ED2D.7 (the Checks panel and Export dialog show what this task computes).
 - **Status:** Planned 2026-10-23 on `claude/project-thread-73sp69-ed2d3`. The 2D spec is drafted, not reviewed.
-- **Progress:** 0 of 10 steps.
+- **Progress:** 10 of 10 steps; locally checked 2026-10-23, CI and review pending.
 
 ## Scope
 
@@ -59,7 +59,7 @@ export function exportContent(project: Project): { path: string; contents: strin
 
 ## Files
 
-Create: `src/model/level-layers.ts`, `src/model/tileset-grid.ts` (+ tests); under `src/profiles/level-project/`: `templates/placeholder-tileset.ts`, `templates/blob-rules.ts`, `templates/platformer.ts`, `templates/topdown-rpg.ts`, `templates/blank.ts`, `checks/diagnostics.ts` (path and diagnostic builders), `checks/definitions.ts`, `checks/levels.ts`, `checks/entities.ts`, `checks/links.ts`, `project-checks.ts` (assembles and sorts), `content.schema.ts`, `content-export.ts`, `level-project.ts` (+ a `*.test.ts` beside each); `src/testing/samples.ts`, `src/testing/project-edit.ts`.
+Create: `src/model/level-layers.ts`, `src/model/tileset-grid.ts` (+ tests); under `src/profiles/level-project/`: `templates/placeholder-tileset.ts`, `templates/blob-rules.ts`, `templates/platformer.ts`, `templates/topdown-rpg.ts`, `templates/blank.ts`, `checks/diagnostics.ts` (path and diagnostic builders), `checks/definitions.ts`, `checks/levels.ts`, `checks/entities.ts`, `checks/links.ts`, `project-checks.ts` (assembles and sorts), `content.schema.ts`, `content-export.ts`, `content-world.ts` (grid-world neighbours), `level-project.ts` (+ a `*.test.ts` beside each); `src/testing/samples.ts`, `src/testing/project-edit.ts`, `src/testing/content-roundtrip.ts`.
 Modify: `src/profiles/profile.ts` (`ProjectContext.imageSizes`), `src/index.ts`, `packages/editor-2d/package.json` (`smol-toml`), `pnpm-lock.yaml`, `docs/versions.md`, the 2D spec (§6.2, §7, §9), `docs/02-master-delivery-plan.md`, `docs/03-continuation-prompt.md`, `tooling/api-report/reports/automata-editor-2d.api.md`.
 
 ## Steps
@@ -74,8 +74,8 @@ Each step starts with a failing test and the reason it fails.
 - [x] **6. All three templates are clean.** Fails: the platformer reports an error for a reason the test names (adjust the template, never the check). Tests: `checkProject` on each starter has no error and no warning; the only infos are `unusedDefinition` for definitions the starter does not use and `emptyLevel` for `blank`.
 - [x] **7. Content schema and export, tiles and entities.** Fails: `exportContent` is not exported. Tests: the file list and order; the header comment; `project.toml`, every level file and `world.toml` parse with `smol-toml` and validate against the content schemas; rows of tiles and IntGrid layers decode (`decodeRows`) to grids equal to the editor's; items carry typed fields (a point list, a ref, a colour, a float); the output is byte-identical on a second call; a project with the same content in another definition order is not required to match (order is the project's).
 - [x] **8. Auto layers and grid-world neighbours.** Fails: auto layers and neighbours are missing from the export. Tests: each stack depth decodes to the tiles `applyOverrides(autoTiles(...))` gives, with overrides replacing the stack; a level with no ground has no stack; a `grid` world lists neighbours by touching edges (equal and unequal sizes, corner contact is not a neighbour); a `free` world has none.
-- [ ] **9. The profile and the samples.** Fails: `levelProject` is not exported. Tests: the registry accepts it; `sniff` by name and by text; `parse` maps each `openProject` outcome (G-n, G-o, G-p) to errors with positions and codes; `print(parse(x))` is `x` for the canonical file (G-b); the three templates, the six views, the two exports; the samples Mossgate (platformer, two linked levels, three slimes with patrol paths, coins, a door, a spike) and Hollowmere (RPG, village and inn linked by a door and a warp, two NPCs) open, check with zero errors, and **export for G-i** (validates, decodes equal, auto layers resolved). The architecture test still passes (no profile or template id outside `profiles/`).
-- [ ] **10. Gates and docs.** Amend spec §6.2, §7, §9 and the testing section for what was decided; tick nothing the Owner owns; update rows in 02 and 03; `pnpm install --lockfile-only`, frozen install, `api-report --update`, repo-level lint, style, knip, boundaries, typecheck, and the package's whole unit suite.
+- [x] **9. The profile and the samples.** Fails: `levelProject` is not exported. Tests: the registry accepts it; `sniff` by name and by text; `parse` maps each `openProject` outcome (G-n, G-o, G-p) to errors with positions and codes; `print(parse(x))` is `x` for the canonical file (G-b); the three templates, the six views, the two exports; the samples Mossgate (platformer, two linked levels, three slimes with patrol paths, coins, a door, a spike) and Hollowmere (RPG, village and inn linked by a door and a warp, two NPCs) open, check with zero errors, and **export for G-i** (validates, decodes equal, auto layers resolved). The architecture test still passes (no profile or template id outside `profiles/`).
+- [x] **10. Gates and docs.** Amend spec §6.2, §7, §9 and the testing section for what was decided; tick nothing the Owner owns; update rows in 02 and 03; `pnpm install --lockfile-only`, frozen install, `api-report --update`, repo-level lint, style, knip, boundaries, typecheck, and the package's whole unit suite.
 
 ## Gates
 
@@ -83,4 +83,20 @@ Each step starts with a failing test and the reason it fails.
 
 ## Execution record
 
-(Filled in as steps pass.)
+Branch `claude/project-thread-73sp69-ed2d3`, stacked on #131. Steps 1 to 6 landed in the commits up to b590dfa, steps 7 and 8 in 69bf06c, steps 9 and 10 in the commit after it.
+
+**Evidence (2026-10-23, in the cloud container, Chromium only):** `pnpm --filter @mcthaydt/automata-editor-2d test:unit` 37 files, 498 tests pass; `typecheck` clean; repo-level `lint`, `style`, `knip`, `boundaries` and the `tooling/versions` test pass; `pnpm api-report --update` regenerated `editor-2d.api.md` (the package gains `emptyLayers`, `layerCells`, `tilesetTiles`); `pnpm install --frozen-lockfile` is happy with the `smol-toml` addition. Mutation check: changing the export's row encoding made `contentMismatches` (and so G-i) fail.
+
+**Deviations from the plan, with reasons:**
+
+- `checks/index.ts` became `project-checks.ts` beside the profile (it concatenates and sorts) plus `checks/diagnostics.ts` (path and diagnostic builders the four check files share).
+- `content-world.ts` (grid-world neighbours, which is geometry with its own tests) was split out of `content-export.ts`.
+- `src/index.ts` exports only `emptyLayers`, `layerCells` and `tilesetTiles`. The plan said to export the profile; the architecture test (`src/architecture.test.ts`) forbids anything but `app/profiles.ts` importing `profiles/<name>/`, so the profile stays out of the index and ED2D.4's registration list imports it by path.
+- `src/testing/content-roundtrip.ts` and the `engineStack` helper were added so G-i is one function (`contentMismatches`) that the samples test, the export tests and ED2D.10's journeys can all call.
+- The export's auto layer is `[[layers.stack]]` with one `rows` per depth (the engine's stack depth), not a single flattened grid, so a game can draw the depths in order; overrides are applied before export.
+- smol-toml cannot write comments and prints whole floats as integers; the header is prepended by hand and `project.toml` declares each field's type. A name in the header is JSON-quoted, with DEL removed, so it cannot end the comment.
+- `ruleNeverMatches` and the other rule codes use the engine's severity (warning for `neverFires`), not the spec's info.
+
+**Not done here, by design:** commands and fix application (ED2D.4, ED2D.7), drawing placeholder tiles (ED2D.4), the Svelte views the profile names (ED2D.4 to ED2D.7), a game that reads the TOML (spec §17.1). Owner visual acceptance is untouched.
+
+**Still pending:** CI on the PR, the full-repo `test:unit` (run once before the PR leaves draft), `pnpm deps:new` (unreachable in the container) and review of the spec amendments. Nothing in this task is engine-specific, so no Mac test-request was filed.

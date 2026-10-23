@@ -1,9 +1,11 @@
+import type { GridEditor } from '../model/grid'
 import { emptyLayers } from '../model/level-layers'
 import type {
   Definitions,
   EntityInstance,
   LayerInstance,
   Level,
+  ObjectInstance,
   Placement,
   Project,
   World,
@@ -87,4 +89,44 @@ export function withNewLevel(
     placements: [...found.placements, { level: id, x: at.x, y: at.y, depth: at.depth ?? 0 }],
   }))
   return { ...placed, levels: [...placed.levels, level] }
+}
+
+/** Gives a level a new id and name, and moves its placements with it. */
+export function renameLevel(project: Project, from: string, to: string, name: string): Project {
+  const renamed = withLevel(project, from, (level) => ({ ...level, id: to, name }))
+  return {
+    ...renamed,
+    worlds: renamed.worlds.map((world) => ({
+      ...world,
+      placements: world.placements.map((placement) =>
+        placement.level === from ? { ...placement, level: to } : placement,
+      ),
+    })),
+  }
+}
+
+/** Edits the cells of a tiles or IntGrid layer of a level. */
+export function paintLayer(
+  project: Project,
+  levelId: string,
+  def: string,
+  edit: (cells: GridEditor) => void,
+): Project {
+  return withLayer(project, levelId, def, (layer) => {
+    if (layer.kind !== 'tiles' && layer.kind !== 'intgrid') throw new Error(`"${def}" has no cells`)
+    return { ...layer, cells: layer.cells.edit(edit) }
+  })
+}
+
+/** Adds objects to an objects layer. */
+export function withObjects(
+  project: Project,
+  levelId: string,
+  items: readonly ObjectInstance[],
+  layerDef = 'props',
+): Project {
+  return withLayer(project, levelId, layerDef, (layer) => {
+    if (layer.kind !== 'objects') throw new Error(`"${layerDef}" is not an objects layer`)
+    return { ...layer, items: [...layer.items, ...items] }
+  })
 }
