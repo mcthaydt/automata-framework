@@ -1,3 +1,19 @@
+export {
+  type AcceptResult,
+  type Ask,
+  type AskGhost,
+  type AskOptions,
+  type AskView,
+  createAsk,
+} from './app/ask-controller'
+export {
+  type ChecksPanel,
+  type ChecksPanelOptions,
+  type ChecksPanelView,
+  createChecksPanel,
+  type LocateResult,
+  type Scheduler,
+} from './app/checks-panel-controller'
 export * from './checks/check'
 export * from './checks/generic-checks'
 export * from './checks/last-light/last-light-checks'
@@ -58,6 +74,7 @@ export {
   type WallRef,
   type WindowArgs,
 } from './model/wall-edits'
+export type { AskProvider, ChangeSet, Generator, Proposal } from './ports/ports'
 export * from './profile/af-sector/af-checks'
 export * from './profile/af-sector/af-codec'
 export * from './profile/af-sector/build'

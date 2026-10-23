@@ -81,6 +81,12 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the checks panel and the Ask', () => {
+    for (const name of ['createChecksPanel', 'createAsk']) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',
@@ -109,6 +115,9 @@ describe('public entry', () => {
       'buildRefusal',
       'wallOver',
       'PORTAL_MEMBERS',
+      'fakeAskProvider',
+      'deferred',
+      'problemCount',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }

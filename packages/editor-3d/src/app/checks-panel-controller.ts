@@ -10,6 +10,7 @@ import type { Point } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'
 import type { ProfileContext } from '../profile/level-profile'
+import { problemCount } from './problem-count'
 
 /** Calls `run` after `delayMs`; the function it returns cancels the call. */
 export type Scheduler = (delayMs: number, run: () => void) => () => void
@@ -62,9 +63,6 @@ function middleOf(corners: readonly (readonly [number, number, ...unknown[]])[])
   return { x: (Math.min(...xs) + Math.max(...xs)) / 2, z: (Math.min(...zs) + Math.max(...zs)) / 2 }
 }
 
-const problemsOf = (results: readonly CheckResult[], severity: CheckResult['severity']): number =>
-  results.reduce((sum, each) => (each.severity === severity ? sum + each.problems.length : sum), 0)
-
 /** Equal as data: a result is a few sentences. */
 const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b)
 
@@ -81,8 +79,8 @@ export function createChecksPanel<D>(editor: LevelEditor<D>, options: ChecksPane
 
   const viewOf = (results: readonly CheckResult[], pending: boolean): ChecksPanelView => ({
     results,
-    errors: problemsOf(results, 'error'),
-    warnings: problemsOf(results, 'warning'),
+    errors: problemCount(results, 'error'),
+    warnings: problemCount(results, 'warning'),
     pending,
   })
 
