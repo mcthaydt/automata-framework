@@ -4177,7 +4177,13 @@ function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
 
 #### `ActionBar` (const)
 
-_No doc comment._
+One row of actions that collapses as its container narrows (M1.6 spec §3.4; from FloorFifty
+`ui/layout/ActionBar.svelte` at 122a220).
+
+It gives way in a fixed order as its container narrows (`collapseLevel`): utilities to their icon,
+then secondaries to their short label, and only then a wrap with the primary on its own row.
+Three hidden, inert copies of the row ([data-measure]) report how wide it would be at each level,
+so the choice is measured rather than guessed from breakpoints.
 
 ```ts
 const ActionBar: import("svelte").Component<Props, {}, "">;
@@ -4303,7 +4309,8 @@ interface AudioValue {
 
 #### `BarAction` (interface)
 
-_No doc comment._
+One action in an `ActionBar`: an id, a label and a kind (`primary`, `secondary` or `utility`), what it does
+when selected, and optionally a short label, an icon, a disabled state and a pressed state.
 
 ```ts
 interface BarAction {
@@ -4353,7 +4360,8 @@ const BOOT_FAILURE_COPY_EN: BootFailureCopy;
 
 #### `bootDeviceClass` (function)
 
-_No doc comment._
+The device class at boot, read from the window's pointer and screen; `desktop` when the window cannot
+answer.
 
 ```ts
 function bootDeviceClass(win?: Window): DeviceClass;
@@ -4361,7 +4369,8 @@ function bootDeviceClass(win?: Window): DeviceClass;
 
 #### `BootFailure` (type)
 
-_No doc comment._
+The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never
+imports the runtime.
 
 ```ts
 type BootFailure = {
@@ -4400,7 +4409,8 @@ type BootFailureAction = 'retry' | 'continue' | 'exit';
 
 #### `BootFailureCopy` (type)
 
-_No doc comment._
+The words for every boot failure state and action, by name. `BOOT_FAILURE_COPY_EN` holds the English
+defaults.
 
 ```ts
 type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>;
@@ -4408,7 +4418,9 @@ type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, str
 
 #### `BootFailurePanel` (const)
 
-_No doc comment._
+The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the
+failure's copy and its ways forward. The runtime passes its `BootError` and the handlers; this
+component decides nothing beyond `bootFailureView`.
 
 ```ts
 const BootFailurePanel: import("svelte").Component<Props, {}, "">;
@@ -4417,7 +4429,8 @@ type BootFailurePanel = ReturnType<typeof BootFailurePanel>;
 
 #### `BootFailureState` (type)
 
-_No doc comment._
+What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or
+`unsupported`.
 
 ```ts
 type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported';
@@ -4444,7 +4457,8 @@ function bootFailureView(failure: BootFailure, hostKind: HostKind): BootFailureV
 
 #### `BootFailureViewModel` (interface)
 
-_No doc comment._
+What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order. No actions
+means the panel is final.
 
 ```ts
 interface BootFailureViewModel {
@@ -4478,7 +4492,8 @@ type Chip = ReturnType<typeof Chip>;
 
 #### `classifyDevice` (function)
 
-_No doc comment._
+A fine primary pointer is a `desktop`; a coarse one is a `phone` when the screen's shorter side is under
+600 px, otherwise a `tablet`.
 
 ```ts
 function classifyDevice(input: {
@@ -4490,7 +4505,9 @@ function classifyDevice(input: {
 
 #### `classifyFormFactor` (function)
 
-_No doc comment._
+The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other
+portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise
+`desktop`. A square viewport is landscape.
 
 ```ts
 function classifyFormFactor(width: number, height: number): FormFactor;
@@ -4498,7 +4515,8 @@ function classifyFormFactor(width: number, height: number): FormFactor;
 
 #### `classifyHeightTier` (function)
 
-_No doc comment._
+The height tier of a layout height in CSS px: `compact` below 340, `short` up to 600, otherwise
+`undefined`.
 
 ```ts
 function classifyHeightTier(height: number): HeightTier;
@@ -4506,7 +4524,8 @@ function classifyHeightTier(height: number): HeightTier;
 
 #### `CollapseLevel` (type)
 
-_No doc comment._
+How far an action bar has collapsed: 0 every label in full, 1 utilities as icons, 2 secondaries on their
+short labels, 3 wrapped with the primary on its own row.
 
 ```ts
 type CollapseLevel = 0 | 1 | 2 | 3;
@@ -4629,7 +4648,10 @@ type ControlsTouchMode = 'buttons' | 'swipe';
 
 #### `CornerControls` (const)
 
-_No doc comment._
+Back at the start, the game's own corner controls (Mute, a language flag) at the end, in the
+same row on every screen (M1.6 spec §3.4; from FloorFifty `ui/layout/CornerControls.svelte` at
+122a220). A screen does not render its own. `header` sits between them in the same row, on the
+screen's centre line, so a short screen spends no row of its own on it.
 
 ```ts
 const CornerControls: import("svelte").Component<Props, {}, "">;
@@ -4638,7 +4660,9 @@ type CornerControls = ReturnType<typeof CornerControls>;
 
 #### `createGeometryOwner` (function)
 
-_No doc comment._
+Creates the geometry owner of a document, the only writer of its geometry: make one per document. It measures
+at once, on every resize of the window or the visual viewport, and again at 100, 400 and 1000 ms as bars and
+the keyboard settle, and publishes each measure on the root.
 
 ```ts
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
@@ -4698,7 +4722,7 @@ class CursorRunner {
 
 #### `DeviceClass` (type)
 
-_No doc comment._
+The kind of device the player holds: `phone`, `tablet` or `desktop`, decided once at boot.
 
 ```ts
 type DeviceClass = 'phone' | 'tablet' | 'desktop';
@@ -4706,7 +4730,25 @@ type DeviceClass = 'phone' | 'tablet' | 'desktop';
 
 #### `Dialog` (const)
 
-_No doc comment._
+A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken
+`packages/ui/src/Dialog.svelte` at b30d31b). The screen renders it only while it is open
+(`{#if open}<Dialog>`) and decides what each action does; `onclose` is what Escape means, and it
+should mean the safe choice.
+
+Keyboard and focus (the rules live in `modal-scope.ts`, which Modal and Sheet share):
+- Initial focus goes to the control marked `data-initial-focus` (the safe action), else the
+  first control, else the dialog itself.
+- Tab and Shift+Tab wrap inside the dialog, and focus that lands outside it is pulled back in.
+  The scrim covers the page, so a pointer cannot reach out either.
+- When the dialog goes away, focus returns to whatever had it before the dialog opened.
+- Escape calls `onclose`. The focus navigator's Back arrives as Escape, so a controller closes
+  it the same way. With dialogs stacked, only the topmost answers Escape and holds focus.
+- While it is open the page behind it is `inert` (every sibling of the dialog and of each of its
+  ancestors up to the body), so assistive technology and the browser cannot reach it either.
+
+Layout: a sheet on the bottom edge on a phone, centred otherwise; always inside the insets and
+above the keyboard. Its body is a declared scroll region, so on a 780 x 270 screen the actions
+stay reachable however long the text is.
 
 ```ts
 const Dialog: import("svelte").Component<Props, {}, "">;
@@ -4796,7 +4838,20 @@ type ErrorCode = RukenError['code'];
 
 #### `ErrorPanel` (const)
 
-_No doc comment._
+A failure, and what the player can do about it (M1.6 spec §3.4; from FloorFifty
+`ui/components/ErrorPanel.svelte` at 122a220).
+
+`role="alert"` rather than `role="status"`, because this interrupts: the player usually just
+pressed something and needs to know it did not work. The panel is opaque, because a failure is
+often the thing that means the artwork did not arrive. It sits at the top of the visible region,
+under the corner row, so it never covers the way out of the screen it reports on, and its layer
+passes taps through everywhere but the panel.
+
+Where the room is short (a long message, a keyboard), the panel gives up space in this order:
+first the message, which scrolls, down to one visible line; only then the gap that keeps it under
+the corner row, so it rises over Back only when its actions cannot fit any other way. A final
+panel has no actions and is the screen's last word, so it never rises: Back is its way out. The
+actions sit outside the scrolling part and never shrink (framework audit of #7).
 
 ```ts
 const ErrorPanel: import("svelte").Component<Props, {}, "">;
@@ -4821,7 +4876,9 @@ function fitShape(most: GridShape, box: GridBox, minTile: number, gap: number): 
 
 #### `FocusNavigator` (class)
 
-_No doc comment._
+Moves focus the way a d-pad would: `move` walks Tab order, `steer` walks a `[data-focus-grid]` spatially,
+`page` offers a page turn, and `recover` puts focus back on the first control when a screen change dropped
+it. `attach` listens for the player's own pointer and keys, so the navigator steps back from them.
 
 ```ts
 class FocusNavigator {
@@ -4910,7 +4967,8 @@ type FullscreenSupport = FullscreenRes['support'];
 
 #### `GateInputs` (type)
 
-_No doc comment._
+What `landscapeGate` decides from: the form factor, whether the pointer is coarse, the browser's fullscreen
+support and state, and whether the page is installed as an app.
 
 ```ts
 type GateInputs = {
@@ -4926,7 +4984,8 @@ type GateInputs = {
 
 #### `Geometry` (interface)
 
-_No doc comment._
+The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the
+usable and visible regions, what covers the page's foot, and the host's scale hint.
 
 ```ts
 interface Geometry {
@@ -4958,7 +5017,8 @@ interface Geometry {
 
 #### `GeometryInput` (interface)
 
-_No doc comment._
+What `measureGeometry` reads: the layout viewport, the visual viewport, the safe-area insets, the host's
+display metrics, a hidden bar's height and the layout before a keyboard shrank it.
 
 ```ts
 interface GeometryInput {
@@ -4993,7 +5053,8 @@ interface GeometryInput {
 
 #### `GeometryOwner` (interface)
 
-_No doc comment._
+The one geometry owner of a document: `geometry.current` for components, `onChange` for script,
+`setHostDisplay`, `remeasure` and `dispose`.
 
 ```ts
 interface GeometryOwner {
@@ -5010,7 +5071,8 @@ interface GeometryOwner {
 
 #### `GeometryOwnerOptions` (interface)
 
-_No doc comment._
+What `createGeometryOwner` needs: the window to read and the root to publish on, and optionally the host's
+display, timers and a safe-area reader.
 
 ```ts
 interface GeometryOwnerOptions {
@@ -5085,7 +5147,9 @@ type HeightTier = 'short' | 'compact' | undefined;
 
 #### `HiddenBrowserBar` (class)
 
-_No doc comment._
+Recognises a browser bar the browser has stopped reporting (DuckDuckGo for Android's bottom bar) and
+measures how much of the page's foot it covers. It keeps state: it learns the largest settled
+screen-to-page gap for each orientation.
 
 ```ts
 class HiddenBrowserBar {
@@ -5163,7 +5227,9 @@ type InputMethod = 'keyboard' | 'gamepad' | 'touch';
 
 #### `InputMethodTracker` (class)
 
-_No doc comment._
+Tracks the input method the player used last (`keyboard`, `gamepad` or `touch`) as rune state in `method`.
+`attach` listens for key presses and touch or pen presses, counting a controller's Back (which arrives as
+Escape) as the controller; `note` records one by hand.
 
 ```ts
 class InputMethodTracker {
@@ -5245,7 +5311,9 @@ function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
 
 #### `landscapeGate` (function)
 
-_No doc comment._
+What a phone held sideways must do: `none`, `fullscreen` (one tap to go fullscreen) or `rotate-or-install`
+(turn upright or add to the Home Screen). Only a coarse-pointer phone in landscape that is not installed is
+ever gated.
 
 ```ts
 function landscapeGate(inputs: GateInputs): LandscapeGateState;
@@ -5378,7 +5446,11 @@ type LeaderboardView = {
 
 #### `LoaderOverlay` (const)
 
-_No doc comment._
+The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty
+`ui/components/LoaderOverlay.svelte` at 122a220). It shows real progress when the runtime has it
+and an indeterminate bar before the first byte, says what is loading in words, and after the
+runtime's slow threshold says quietly that it is slow, not failing. The slow line always holds
+its height, so nothing shifts when it appears.
 
 ```ts
 const LoaderOverlay: import("svelte").Component<Props, {}, "">;
@@ -5397,7 +5469,9 @@ function lockOverscroll(node: HTMLElement): {
 
 #### `measureGeometry` (function)
 
-_No doc comment._
+Turns what the browser and the host report into one `Geometry`. Pure. Each inset is the largest of the
+browser's safe area, the host's and (at the sides) the host's reserved strip; the visible region is the
+usable one less whatever covers the page's foot.
 
 ```ts
 function measureGeometry(input: GeometryInput): Geometry;
@@ -5448,7 +5522,7 @@ interface ModalProps {
 
 #### `NavDirection` (type)
 
-_No doc comment._
+A direction a d-pad or an arrow key walks a menu.
 
 ```ts
 type NavDirection = 'up' | 'down' | 'left' | 'right';
@@ -5799,7 +5873,7 @@ type RebindDevice = 'keyboard' | 'gamepad';
 
 #### `Rect` (interface)
 
-_No doc comment._
+A rectangle in CSS px: its top-left corner and its size.
 
 ```ts
 interface Rect {
@@ -5906,7 +5980,18 @@ interface RotateToastCopy {
 
 #### `ScreenFrame` (const)
 
-_No doc comment._
+Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from
+FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
+
+It fills the visible region: the layout viewport less the insets the geometry owner publishes
+(safe area and Ruken's reserved strip), ending above whatever the browser lays over the page's
+foot (the keyboard). Its first row is the corner controls, in flow, so they never sit over the
+content. Below that it arranges a hero and a body:
+  stack: hero above body; the hero takes what the body leaves, so on a short screen the hero
+         shrinks first and never pushes the body off the screen;
+  split: hero and body side by side.
+The screen root picks the arrangement from the form factor and height tier; nothing inside the
+frame branches on either. The body is the `af-screen` size container its contents query.
 
 ```ts
 const ScreenFrame: import("svelte").Component<Props, {}, "">;
@@ -5923,7 +6008,15 @@ type ScreenKind = 'menu' | 'gameplay';
 
 #### `ScrollList` (const)
 
-_No doc comment._
+A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
+
+It reserves `min(minRows, rowCount)` rows of `--af-row-h` as its minimum height, so on a short
+screen its siblings shrink before a row is lost. The reserve is capped at the height its parent
+gives it: where even that cannot hold the rows (TV scale on a compact phone) the list keeps what
+fits and scrolls the rest inside its own box, rather than painting over the controls below it. For that to work its parent must give it a
+`1fr` grid row or `flex: 1 1 auto`, never `minmax(0, 1fr)`, which ignores an item's minimum.
+Rows mark themselves `data-row`. It is a declared scroll region (`data-scroll-region`): the layout
+contracts allow controls to be off screen only inside one.
 
 ```ts
 const ScrollList: import("svelte").Component<Props, {}, "">;
@@ -6050,7 +6143,9 @@ type Sleeper = {
 
 #### `sleepWhenHidden` (function)
 
-_No doc comment._
+Puts a game's sound to sleep while its page is hidden and wakes it when the page shows again; a pointer,
+touch or key gesture also asks sound the system suspended to resume. A window that only loses focus stays
+awake. Returns a function that removes the listeners.
 
 ```ts
 function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => void;
@@ -6364,7 +6459,7 @@ type UiComponent = Component<Record<string, never>>;
 
 #### `UiSlotName` (type)
 
-_No doc comment._
+The name of a place an extension may add UI: one of `UI_SLOT_NAMES`.
 
 ```ts
 type UiSlotName = (typeof UI_SLOT_NAMES)[number];
@@ -6475,7 +6570,8 @@ function checkLayout(conditions: Conditions, essentials: readonly Element[]): st
 
 #### `Conditions` (interface)
 
-_No doc comment._
+The conditions a layout test runs under: the geometry published for a size and variant, and the regions
+that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 
 ```ts
 interface Conditions {
