@@ -5,12 +5,20 @@
  */
 type Callback = (entries: ResizeObserverEntry[], observer: ResizeObserver) => void
 
+/**
+ * Controls the fake `ResizeObserver` `installFakeResizeObserver` put in place: report a width to every
+ * observer, then restore the original.
+ */
 export interface FakeResizeObserver {
   /** Reports `width` to every live observer, for every element it observes. */
   resize(width: number): void
   restore(): void
 }
 
+/**
+ * Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components
+ * measured under jsdom, which has no layout. Call `restore` when the test ends.
+ */
 export function installFakeResizeObserver(): FakeResizeObserver {
   const previous = globalThis.ResizeObserver
   const observers = new Set<{ callback: Callback; targets: Element[] }>()

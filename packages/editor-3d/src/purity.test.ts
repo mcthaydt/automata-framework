@@ -1,5 +1,5 @@
-// ED3D-D1: `format`, `codec` and `profile` import no Svelte, no DOM, no clock and no Node. The rule is enforced here
-// and not only written down, so a later change cannot quietly add one.
+// ED3D-D1: `format`, `geometry`, `codec` and `profile` import no Svelte, no DOM, no clock and no Node. The rule is
+// enforced here and not only written down, so a later change cannot quietly add one.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -52,7 +52,7 @@ const sources = (directory: string): string[] =>
   })
 
 describe('the pure layers', () => {
-  for (const layer of ['format', 'codec', 'profile']) {
+  for (const layer of ['format', 'geometry', 'checks', 'codec', 'profile']) {
     it(`src/${layer} has no impure import or global`, () => {
       const root = new URL(`./${layer}`, import.meta.url).pathname
       const files = sources(root)

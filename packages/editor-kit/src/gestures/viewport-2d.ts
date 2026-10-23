@@ -2,10 +2,8 @@
 // immutable value: every method returns a new viewport, so a pinch, a wheel step and a "fit" are plain functions of the
 // previous state and the editor can keep the viewport in a Svelte store without cloning.
 
-export interface Point {
-  readonly x: number
-  readonly y: number
-}
+// `Point` is the field module's: one definition for the kit, exported once from the root entry.
+import type { Point } from '../fields/field-types'
 
 export interface Size {
   readonly w: number

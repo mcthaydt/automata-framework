@@ -41,15 +41,6 @@ importers:
       '@mcthaydt/automata':
         specifier: workspace:*
         version: link:../packages/automata
-      '@mcthaydt/automata-game':
-        specifier: workspace:*
-        version: link:../packages/game
-      '@mcthaydt/automata-render-pixi':
-        specifier: workspace:*
-        version: link:../packages/render-pixi
-      '@mcthaydt/automata-sim':
-        specifier: workspace:*
-        version: link:../packages/sim
       pixi.js:
         specifier: 8.21.0
         version: 8.21.0
@@ -119,37 +110,6 @@ importers:
         specifier: 4.6.5
         version: 4.6.5
 
-  examples/host/lifecycle-and-saves:
-    dependencies:
-      '@af-examples/base-2d':
-        specifier: workspace:*
-        version: link:../../../games/emberwick
-      '@fontsource/pixelify-sans':
-        specifier: 5.3.0
-        version: 5.3.0
-      '@mcthaydt/automata-host':
-        specifier: workspace:*
-        version: link:../../../packages/host
-      effect:
-        specifier: 3.22.2
-        version: 3.22.2
-    devDependencies:
-      '@mcthaydt/automata-ship':
-        specifier: workspace:*
-        version: link:../../../packages/ship
-      '@mcthaydt/examples-runner':
-        specifier: workspace:*
-        version: link:../../../tooling/examples-runner
-      '@playwright/test':
-        specifier: 1.63.0
-        version: 1.63.0
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
-      vite:
-        specifier: 8.3.3
-        version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
-
   examples/physics/bodies-2d:
     dependencies:
       '@af-examples/base-2d':
@@ -207,67 +167,6 @@ importers:
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-
-  examples/render-pixi/renderer-2d:
-    dependencies:
-      '@mcthaydt/automata-host':
-        specifier: workspace:*
-        version: link:../../../packages/host
-      '@mcthaydt/automata-render-pixi':
-        specifier: workspace:*
-        version: link:../../../packages/render-pixi
-      '@mcthaydt/automata-runtime':
-        specifier: workspace:*
-        version: link:../../../packages/runtime
-      '@mcthaydt/automata-sim':
-        specifier: workspace:*
-        version: link:../../../packages/sim
-      '@mcthaydt/automata-ui':
-        specifier: workspace:*
-        version: link:../../../packages/ui
-      effect:
-        specifier: 3.22.2
-        version: 3.22.2
-      koota:
-        specifier: 0.6.6
-        version: 0.6.6
-      pixi.js:
-        specifier: 8.21.0
-        version: 8.21.0
-      svelte:
-        specifier: 5.57.1
-        version: 5.57.1
-      zod:
-        specifier: 4.6.5
-        version: 4.6.5
-    devDependencies:
-      '@mcthaydt/automata-ship':
-        specifier: workspace:*
-        version: link:../../../packages/ship
-      '@mcthaydt/automata-testing':
-        specifier: workspace:*
-        version: link:../../../packages/testing
-      '@mcthaydt/examples-runner':
-        specifier: workspace:*
-        version: link:../../../tooling/examples-runner
-      '@playwright/test':
-        specifier: 1.63.0
-        version: 1.63.0
-      '@ruken/manifest':
-        specifier: file:../../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
-      '@sveltejs/vite-plugin-svelte':
-        specifier: 7.3.1
-        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-      vite:
-        specifier: 8.3.3
-        version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
 
   examples/runtime/boot-and-flow:
     dependencies:
@@ -627,6 +526,9 @@ importers:
       '@mcthaydt/automata-ui':
         specifier: workspace:*
         version: link:../ui
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
     devDependencies:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
