@@ -4,8 +4,8 @@ import { describeProjectStore } from '../testing/store-contract'
 import { createDocumentSession } from './document-session'
 import { createFolderStore, createIndexedDbVault, type FolderHandle } from './folder'
 import { createOpfsStore } from './handle-store'
-import { openWorkspace } from './workspace'
 import { findRecovery } from './recovery'
+import { openWorkspace } from './workspace'
 
 // What the fakes cannot prove (kit spec §4.7, §8): the storage code against the browser's real private file system
 // and IndexedDB. Every test works in directories and databases of its own, removed afterwards, so a run leaves the

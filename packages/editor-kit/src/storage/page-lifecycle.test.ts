@@ -30,7 +30,10 @@ function setup() {
     addEventListener: doc.addEventListener,
     removeEventListener: doc.removeEventListener,
   }
-  const window: LifecycleWindow = { addEventListener: win.addEventListener, removeEventListener: win.removeEventListener }
+  const window: LifecycleWindow = {
+    addEventListener: win.addEventListener,
+    removeEventListener: win.removeEventListener,
+  }
   const session = { flush: vi.fn(() => Promise.resolve()) }
   return { doc, win, page, session, env: { document, window } }
 }

@@ -57,6 +57,45 @@ export {
   shellModeOf,
 } from './shell/shell-mode'
 export { type OpenState, reconcileOpen } from './shell/shell-open'
+export type { StorageClock } from './storage/clock'
+export {
+  createDocumentSession,
+  type DocumentSession,
+  type DocumentSessionOptions,
+  type Problem,
+  type SaveOutcome,
+} from './storage/document-session'
+export {
+  createDownloadStore,
+  type DownloadEnv,
+  type DownloadFile,
+  type DownloadStore,
+} from './storage/download-store'
+export {
+  createFolderStore,
+  createIndexedDbVault,
+  type FolderEnv,
+  type FolderHandle,
+  type FolderStore,
+  type HandleVault,
+  pickFolder,
+  restoreFolder,
+} from './storage/folder'
+export { createMemoryStore } from './storage/memory-store'
+export { flushOnHide, type LifecycleDocument, type LifecycleWindow } from './storage/page-lifecycle'
+export {
+  classifyStorageError,
+  type ProjectStore,
+  StorageError,
+  type StorageFailure,
+  type StoredEntry,
+  statPath,
+  type WriteFailure,
+  type WriteResult,
+} from './storage/project-store'
+export { discardRecovery, findRecovery, type Recovery } from './storage/recovery'
+export type { SaveState } from './storage/save-state'
+export { openWorkspace, type Workspace, type WorkspaceEnv } from './storage/workspace'
 export type { EditorTokens, RampEntry } from './tokens/editor-tokens'
 export { tokensToCss } from './tokens/tokens-to-css'
 export { default as Chips } from './widgets/Chips.svelte'

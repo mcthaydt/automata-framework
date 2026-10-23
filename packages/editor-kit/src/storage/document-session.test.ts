@@ -318,7 +318,12 @@ describe('document session: saving', () => {
       expect(session.problem?.source).toBe('autosave')
       control.failNext({ ok: false, reason: 'quota', message: 'Disk full.' })
       await session.save()
-      expect(session.problem).toEqual({ source: 'save', reason: 'quota', message: 'Disk full.', paused: false })
+      expect(session.problem).toEqual({
+        source: 'save',
+        reason: 'quota',
+        message: 'Disk full.',
+        paused: false,
+      })
     })
 
     test('saving the document makes a paused autosave moot: the error clears and autosave starts again', async () => {
