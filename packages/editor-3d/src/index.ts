@@ -57,6 +57,7 @@ export {
   type LevelEditorOptions,
 } from './model/level-editor'
 export type { LevelState } from './model/level-state'
+export { type MergeSectorsArgs, mergeSectors } from './model/merge-edits'
 export { type PortalOffer, portalOffers, type WallPortal, wallPortal } from './model/portal-offers'
 export {
   type AddSectorArgs,
@@ -73,6 +74,7 @@ export {
   setView,
 } from './model/sector-edits'
 export { parseSelection, type SelectionRef } from './model/selection-ref'
+export { type SplitSectorArgs, splitSector } from './model/split-edits'
 export {
   type InsertCornerArgs,
   insertCorner,

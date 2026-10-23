@@ -313,3 +313,11 @@ describe('the af-sector access: portalOf', () => {
     expect(afSectorAccess.portalOf(depot, 'a-name')).toBeUndefined()
   })
 })
+
+describe('the af-sector access: pinned', () => {
+  it('has nothing for any sector: no wall of an af-sector level is named from outside the sector', () => {
+    expect(afSectorAccess.pinned(depot, 'hall')).toEqual([])
+    expect(afSectorAccess.pinned(depot, 'dock')).toEqual([])
+    expect(afSectorAccess.pinned(depot, 'nowhere')).toEqual([])
+  })
+})

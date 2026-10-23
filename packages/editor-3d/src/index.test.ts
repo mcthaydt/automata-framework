@@ -155,6 +155,16 @@ describe('public entry', () => {
     expect(effects).toHaveLength(2)
   })
 
+  it('exports the Split and Merge edits, and keeps the helpers they share inside', () => {
+    for (const name of ['splitSector', 'mergeSectors']) expect(editor3d, name).toHaveProperty(name)
+    for (const name of ['retargetPortals', 'redirectPortals', 'cornerInserted', 'reversedLoop'])
+      expect(editor3d, name).not.toHaveProperty(name)
+    // The arguments are types, so this is checked by the compiler: the entry names them.
+    const split: editor3d.SplitSectorArgs = { sector: 'a', id: 'b', from: { x: 0, z: 0 }, to: { x: 1, z: 1 } }
+    const merge: editor3d.MergeSectorsArgs = { keep: 'a', merge: 'b' }
+    expect([split.id, merge.keep]).toEqual(['b', 'a'])
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',
