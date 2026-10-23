@@ -3,7 +3,8 @@ import type { z } from 'zod'
 import type { ParseError, Result } from '../profile'
 import { type StageValue, stageSchema } from './stage.schema'
 import { documentOfLoadedValue, type StageDocument } from './stage-document'
-import { findLine, scanBlocks, splitLines } from './toml-blocks'
+import { reconcileTables } from './stage-structure'
+import { findLine, joinLines, scanBlocks, splitLines } from './toml-blocks'
 
 // Reading and writing a stage file (2D editor spec §10.3). `parseStage` gives every problem of a text a position, so
 // the editor can show where and can refuse to replace the file with a half-read one (acceptance G-c).
@@ -88,22 +89,38 @@ export function parseStage(text: string): Result<StageDocument, readonly ParseEr
 type Data = Record<string, unknown>
 
 /**
- * The value as the TOML data `patch` compares with the text. An empty list is the same as no list for the schema, which
- * defaults `setPieces` to empty, so an empty list the text does not spell out is left out and `patch` adds no key for it.
+ * The value as the TOML data `patch` compares with `text`. An empty list is the same as no list for the schema, so an
+ * empty list the text does not spell out is left out and `patch` adds no key for it.
  */
-function tomlData(value: StageValue, base: Data): Data {
+function tomlData(value: StageValue, text: string): Data {
+  const current = parse(text) as Data
   const data = structuredClone(value) as unknown as Data
   const theme = data.theme as Data
-  const baseTheme = base.theme as Data
-  if ((theme.setPieces as unknown[]).length === 0 && baseTheme.setPieces === undefined) delete theme.setPieces
+  const currentTheme = current.theme as Data
+  if ((theme.setPieces as unknown[]).length === 0 && currentTheme.setPieces === undefined)
+    delete theme.setPieces
+  const course = data.course as Data | undefined
+  const currentCourse = current.course as Data | undefined
+  if (
+    course !== undefined &&
+    (course.extension as unknown[] | undefined)?.length === 0 &&
+    currentCourse?.extension === undefined
+  )
+    delete course.extension
   return data
 }
 
 /**
- * The text of a document: `base` (the text it was read from) with exactly the changes the document has. `toml-patch`
- * carries every change that keeps the shape of the file, and keeps its comments, blank lines and line endings.
- * Throws when `base` is not TOML, which a document read from it cannot be.
+ * The text of a document: `base` (the text it was read from) with exactly the changes the document has. The block
+ * engine adds, removes and moves whole tables with their comments, then `toml-patch` carries every change inside a
+ * table, and keeps its comments, blank lines and line endings. Throws when `base` is not a stage, which a document read
+ * from it cannot be.
  */
 export function printStage(base: string, document: StageDocument): string {
-  return patch(base, tomlData(document.value, parse(base) as Data))
+  const loaded = parseStage(base)
+  if (!loaded.ok)
+    throw new Error(`printStage needs the text the document was read from: ${loaded.error[0]?.message}`)
+  const text = splitLines(base)
+  const structured = joinLines({ ...text, lines: reconcileTables(text.lines, loaded.value, document) })
+  return patch(structured, tomlData(document.value, structured))
 }
