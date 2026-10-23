@@ -4,6 +4,7 @@
 // it. ED3D.2b adds the checks that need the entities, ED3D.8 the materials.
 import type { CheckResult } from '../checks/check'
 import type { LampKind } from '../checks/last-light/lamps'
+import type { RoomPolicy } from '../checks/last-light/room-policy'
 import type { EntityKit } from '../entities/things'
 import type { SectorDef } from '../format/expand'
 import type { MassDef } from '../format/sector.schema'
@@ -45,6 +46,11 @@ export interface ProfileContext {
   readonly lampKinds?: Readonly<Record<string, LampKind>> | null | undefined
   /** Last Light: how far in OKLab a lamp's colour may be from its archetype's; `null`, or absent, is the game's own 0.06. */
   readonly tone?: number | null | undefined
+  /**
+   * Last Light: the scene's room-visibility policy, for the `policy` check. Absent is a game with none, which skips the check;
+   * `null` is a policy the host could not read, which the check warns about.
+   */
+  readonly roomPolicy?: RoomPolicy | null | undefined
 }
 
 export interface LevelProfile<D> extends FileCodec<D> {

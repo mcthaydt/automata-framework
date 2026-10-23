@@ -102,6 +102,12 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the checks that take the game’s lists: materials, lamps and the room policy', () => {
+    for (const name of ['materialProblems', 'lampProblems', 'DEFAULT_TONE', 'roomPolicyProblems']) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',

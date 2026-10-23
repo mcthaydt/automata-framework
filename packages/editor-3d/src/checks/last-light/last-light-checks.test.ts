@@ -2,18 +2,20 @@
 // (scripts/pipeline/blockout-lib.ts, 92e6704), and held to its answers on the corpus of seeded violations.
 import { describe, expect, it } from 'vitest'
 import type { Blockout } from '../../format/blockout.schema'
+import { expand } from '../../format/expand'
 import { caseDocument, loadCheckCases, loadChecksGolden } from '../../testing/check-cases'
 import { loadFixture } from '../../testing/fixtures'
 import { loadGameFacts } from '../../testing/game-facts'
 import { BLOCKOUT_NAMES } from '../../testing/geometry-golden'
 import { must, toyBlockout, toyOpening, toyRoom } from '../../testing/toy-blockout'
 import { lastLightChecks } from './last-light-checks'
+import type { RoomPolicy } from './room-policy'
 
-/** The results this runner has that Last Light has too (its `overlap`, `heights`, `entities`, `materials` and `lamps` are new here). */
+/** The results this runner has that Last Light has too (its `overlap`, `heights`, `entities`, `materials`, `lamps` and `policy` are new here). */
 const SHARED = new Set(['expand', 'ids', 'rooms', 'shared-walls', 'openings', 'puzzle-hotspots', 'nav'])
 
 describe('lastLightChecks: what runs', () => {
-  it('runs ids, shared walls, openings, overlap, heights, puzzle hotspots, nav, entities, materials and lamps on a document that expands and resolves', () => {
+  it('runs ids, shared walls, openings, overlap, heights, puzzle hotspots, nav, entities, materials, lamps and policy on a document that expands and resolves', () => {
     const results = lastLightChecks(toyBlockout())
     expect(results.map((result) => [result.id, result.ok])).toEqual([
       ['ids', true],
@@ -26,6 +28,7 @@ describe('lastLightChecks: what runs', () => {
       ['entities', true],
       ['materials', true],
       ['lamps', true],
+      ['policy', true],
     ])
   })
 
@@ -209,6 +212,95 @@ describe('lastLightChecks: what runs', () => {
     })
   })
 
+  describe('policy', () => {
+    // The toy's sectors are its two rooms and the connector its doorway adds; it has one camera zone and no masses.
+    const fitting: RoomPolicy = { rooms: { hall: ['a', 'b', 'ab'] }, zones: { a: ['hall'] }, masses: {} }
+    const policy = (
+      blockout: Blockout,
+      options: Parameters<typeof lastLightChecks>[1] = { roomPolicy: fitting },
+    ) => lastLightChecks(blockout, options).find((result) => result.id === 'policy')
+
+    it('is skipped, and says so, when the game has no policy: absent', () => {
+      expect(policy(toyBlockout(), {})).toMatchObject({
+        ok: true,
+        severity: 'warning',
+        detail: 'no room policy',
+      })
+    })
+
+    it('warns that a policy that could not be read could not be read: null, with no place', () => {
+      const found = policy(toyBlockout(), { roomPolicy: null })
+      expect(found).toMatchObject({
+        ok: false,
+        severity: 'warning',
+        detail: 'the room policy could not be read',
+      })
+      expect(found?.problems.map((problem) => problem.locator)).toEqual([undefined])
+    })
+
+    it('counts the rooms, sectors, zones and masses it grouped when the policy fits', () => {
+      expect(policy(toyBlockout())).toMatchObject({
+        ok: true,
+        severity: 'warning',
+        detail: '1 room for 3 sectors, 1 zone and 0 masses',
+      })
+    })
+
+    it('holds the policy to the sectors the openings add as well as the rooms, and warns at the sector that is left out', () => {
+      const found = policy(toyBlockout(), { roomPolicy: { ...fitting, rooms: { hall: ['a', 'b'] } } })
+      expect(found).toMatchObject({ ok: false, severity: 'warning', detail: 'unassigned sector ab' })
+      expect(found?.problems[0]?.locator).toMatchObject({ selection: 'sector:ab' })
+    })
+
+    it('holds the policy to the level’s camera zones, at the zone', () => {
+      const found = policy(toyBlockout(), { roomPolicy: { ...fitting, zones: {} } })
+      expect(found).toMatchObject({ ok: false, detail: 'unassigned zone a' })
+      expect(found?.problems[0]?.locator).toMatchObject({ selection: 'entity:zone/a' })
+    })
+
+    it('holds the policy to the level’s masses', () => {
+      const massive = toyBlockout({
+        masses: [
+          {
+            points: [
+              { x: 0, z: 0 },
+              { x: 1, z: 0 },
+              { x: 1, z: 1 },
+            ],
+            top: 3,
+          },
+        ],
+      })
+      expect(policy(massive)?.detail).toBe('unassigned mass 0')
+      const owned = { roomPolicy: { ...fitting, masses: { 0: 'global' as const } } }
+      expect(policy(massive, owned)).toMatchObject({
+        ok: true,
+        detail: '1 room for 3 sectors, 1 zone and 1 mass',
+      })
+    })
+
+    it('says every fault of the policy, not the first alone', () => {
+      const found = policy(toyBlockout(), {
+        roomPolicy: { rooms: { hall: ['a', 'b'], attic: [] }, zones: {}, masses: { 2: 'global' } },
+      })
+      expect(found?.detail).toBe('attic: empty room; unassigned sector ab; unassigned zone a; unknown mass 2')
+    })
+
+    it.each(BLOCKOUT_NAMES)(
+      'passes %s with a room for each of its sectors that shows in every zone',
+      (name) => {
+        const parsed = JSON.parse(loadFixture(name)) as Blockout
+        const expanded = expand(parsed)
+        const rooms = Object.fromEntries(expanded.sectors.map((sector) => [`room-${sector.id}`, [sector.id]]))
+        const zones = Object.fromEntries(expanded.zones.map((zone) => [zone.id, Object.keys(rooms)]))
+        const masses = Object.fromEntries(expanded.masses.map((_, index) => [index, 'global' as const]))
+        const found = policy(parsed, { roomPolicy: { rooms, zones, masses } })
+        expect(found?.problems.map((problem) => problem.message)).toEqual([])
+        expect(found).toMatchObject({ ok: true, severity: 'warning' })
+      },
+    )
+  })
+
   it("answers with `expand` alone when the document does not expand, with the error's sentence and no place", () => {
     const results = lastLightChecks(toyBlockout({ openings: [{ ...toyOpening, to: 'nowhere' }] }))
     expect(results).toEqual([
@@ -263,6 +355,7 @@ describe('lastLightChecks: what runs', () => {
       ['entities', true],
       ['materials', true],
       ['lamps', true],
+      ['policy', true],
     ])
   })
 
@@ -316,7 +409,7 @@ describe('lastLightChecks: the shipped blockouts', () => {
 
 describe('lastLightChecks: against Last Light on the corpus', () => {
   const golden = loadChecksGolden()
-  const NEW_HERE = new Set(['overlap', 'heights', 'entities', 'materials', 'lamps'])
+  const NEW_HERE = new Set(['overlap', 'heights', 'entities', 'materials', 'lamps', 'policy'])
 
   for (const spec of loadCheckCases()) {
     const recorded = golden.cases[spec.id]

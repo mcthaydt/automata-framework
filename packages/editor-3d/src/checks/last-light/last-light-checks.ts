@@ -1,7 +1,7 @@
 // The Last Light checks as one run over a blockout: Last Light's `validate` (scripts/pipeline/blockout-lib.ts, 92e6704)
-// with each problem located, and the checks that are new here (`overlap`, `heights`, then `entities`, `materials` and `lamps`). Its order and short-circuits are
-// kept: a document that does not expand answers `expand` alone, one whose portals name a room that is not there answers
-// `ids` and `rooms`, and anything else runs every check.
+// with each problem located, and the checks that are new here (`overlap`, `heights`, then `entities`, `materials`, `lamps`
+// and `policy`). Its order and short-circuits are kept: a document that does not expand answers `expand` alone, one
+// whose portals name a room that is not there answers `ids` and `rooms`, and anything else runs every check.
 import type { Blockout } from '../../format/blockout.schema'
 import { BlockoutError, type Expanded, expand } from '../../format/expand'
 import { type ResolvedMap, resolveMap } from '../../geometry/sectors'
@@ -18,6 +18,7 @@ import { idProblems } from './ids'
 import { DEFAULT_TONE, lampProblems } from './lamps'
 import { navProblems } from './nav-problems'
 import { puzzleHotspotProblems } from './puzzle-hotspots'
+import { type RoomPolicy, roomPolicyProblems } from './room-policy'
 
 /** What Last Light's checks are told about the game: the profile context, which lists what each check may take. */
 export type LastLightOptions = ProfileContext
@@ -71,5 +72,35 @@ export function lastLightChecks(blockout: Blockout, options: LastLightOptions = 
           : `lamps within their archetypes: ${kinded} of ${blockout.lamps.length} have a kind`,
     },
   )
-  return [ids, sharedWalls, openings, overlap, heights, puzzle, nav, entities, materials, lamps]
+  const policy = policyResult(options.roomPolicy, expanded)
+  return [ids, sharedWalls, openings, overlap, heights, puzzle, nav, entities, materials, lamps, policy]
+}
+
+const counted = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`
+
+/**
+ * The game's own validator throws, so a bad policy stops its stage; here it is a warning, as the level file itself is
+ * sound. A game with no policy skips the check; one whose policy the host could not read says so.
+ */
+function policyResult(roomPolicy: RoomPolicy | null | undefined, expanded: Expanded): CheckResult {
+  if (roomPolicy === undefined)
+    return checkResult('policy', [], { severity: 'warning', ok: 'no room policy' })
+  if (roomPolicy === null)
+    return checkResult('policy', [{ message: 'the room policy could not be read' }], { severity: 'warning' })
+  const problems = roomPolicyProblems(
+    roomPolicy,
+    expanded.sectors.map((sector) => sector.id),
+    expanded.zones.map((zone) => zone.id),
+    expanded.masses.length,
+  )
+  const [rooms, sectors, zones, masses] = [
+    Object.keys(roomPolicy.rooms).length,
+    expanded.sectors.length,
+    expanded.zones.length,
+    expanded.masses.length,
+  ]
+  return checkResult('policy', problems, {
+    severity: 'warning',
+    ok: `${counted(rooms, 'room')} for ${counted(sectors, 'sector')}, ${counted(zones, 'zone')} and ${counted(masses, 'mass', 'masses')}`,
+  })
 }
