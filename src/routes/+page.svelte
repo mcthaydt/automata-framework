@@ -5,9 +5,9 @@
   import { AUDIENCE_FIT, AUDIENCE_NOT_FIT, FAQ_ITEMS } from '../data/audience'
   import { MIGRATION_GUIDES } from '../data/migrations'
   import PageMeta from '$lib/components/PageMeta.svelte'
-  import { getExampleProject } from '../data/projects'
   import { previewSrcset } from '$lib/previews'
-  const starterProject = getExampleProject('base-2d')!
+  import type { PageData } from './$types'
+  let { data }: { data: PageData } = $props()
   const sourceGuides = [
     { label: 'Edit the room', path: 'games/emberwick/src/content/room.ts', description: 'Author the room as content: # is solid, . is empty, P is the player start and G is the goal. Keep one P and one G, equal row widths, and empty space above P.' },
     { label: 'Read a test', path: 'games/emberwick/src/content/room.test.ts', description: 'These unit tests check room dimensions, start and goal positions, collision boundaries and malformed content. Read the expected behavior before changing the room.' },
@@ -61,7 +61,7 @@
 </section>
 <section class="chapter architecture-section">
   <div class="section-heading"><h2>One state.<br />Many views.</h2><p>Clear ownership makes changes easier to review. Follow the real files your agent will work in.</p></div>
-  <SourceExplorer project={starterProject} initialFile={sourceGuides[0].path} guides={sourceGuides} />
+  <SourceExplorer project={data.starterProject} initialFile={sourceGuides[0].path} guides={sourceGuides} />
   <p class="source-architecture-link"><a href="/docs/overview">Read the architecture</a></p>
 </section>
 <section id="faq" class="chapter faq-section"><div><h2>FAQ</h2><p>The practical questions before you build.</p><a href="/docs/faq">Read all questions</a></div><div class="faq-list">{#each FAQ_ITEMS.filter((_, index) => [0, 2, 4, 7, 9, 10].includes(index)) as item}<article><h3>{item.question}</h3><p>{item.answer}</p></article>{/each}</div></section>

@@ -2,10 +2,11 @@ import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import DemoRunner from '../src/lib/components/DemoRunner.svelte'
 import ExamplesPage from '../src/routes/examples/+page.svelte'
+import { examplesData } from './helpers/page-data'
 
 describe('Examples Gallery', () => {
   it('renders category filter and active demo code', () => {
-    const { getByText, getAllByText } = render(ExamplesPage)
+    const { getByText, getAllByText } = render(ExamplesPage, { props: { data: examplesData('renderer-2d') } })
     expect(getByText(/All Examples/i)).toBeTruthy()
     expect(getAllByText(/Renderer: 2D PixiJS/i).length).toBeGreaterThan(0)
   })

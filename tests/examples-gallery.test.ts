@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { getDemosCatalog } from '../src/data/demos'
 import { demoPoster, previewSrcset } from '../src/lib/previews'
 import ExamplesPage from '../src/routes/examples/+page.svelte'
+import { examplesData } from './helpers/page-data'
 
 // QB.3h. The gallery used to start its demo on arrival. The demo's frame loop then ran beside the page, and under
 // Lighthouse's mobile throttling that was about 60 tasks of 160 to 530 ms (8.8 s of blocking time on /examples). Like the
@@ -14,7 +15,7 @@ const root = resolve(import.meta.dirname, '..')
 describe('the examples gallery', () => {
   it('does not start the demo until Play is pressed', async () => {
     const demo = getDemosCatalog().find(item => item.slug === 'renderer-2d')!
-    const view = render(ExamplesPage, { props: { data: { demo: demo.slug } } })
+    const view = render(ExamplesPage, { props: { data: examplesData(demo.slug) } })
     expect(view.container.querySelector('iframe')).toBeNull()
     expect(view.queryByRole('button', { name: 'Stop demo' })).toBeNull()
     await fireEvent.click(view.getByRole('button', { name: 'Play demo' }))
@@ -23,12 +24,12 @@ describe('the examples gallery', () => {
   })
 
   it('shows the demo’s preview image while it waits', () => {
-    const view = render(ExamplesPage, { props: { data: { demo: 'renderer-2d' } } })
+    const view = render(ExamplesPage, { props: { data: examplesData('renderer-2d') } })
     expect(view.container.querySelector('img.demo-poster')?.getAttribute('src')).toBe('/previews/renderer-2d.jpg')
   })
 
   it('still offers Play for a demo with no preview image yet', async () => {
-    const view = render(ExamplesPage, { props: { data: { demo: 'boot-and-flow' } } })
+    const view = render(ExamplesPage, { props: { data: examplesData('boot-and-flow') } })
     expect(view.container.querySelector('img.demo-poster')).toBeNull()
     expect(view.container.querySelector('iframe')).toBeNull()
     await fireEvent.click(view.getByRole('button', { name: 'Play demo' }))

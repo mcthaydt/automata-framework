@@ -1,10 +1,11 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import Page from '../src/routes/+page.svelte'
+import { homeData } from './helpers/page-data'
 
 describe('Homepage', () => {
   it('leads with a playable starter and real source, without an unverified public installer', () => {
-    const view = render(Page)
+    const view = render(Page, { props: { data: homeData } })
     expect(view.getByRole('heading', { level: 1 }).textContent).toMatch(/Make a game.*Make it yours/)
     expect(view.getByRole('link', { name: 'Play the starter' }).getAttribute('href')).toBe('#play')
     expect(view.container.querySelector('iframe')).toBeNull()
