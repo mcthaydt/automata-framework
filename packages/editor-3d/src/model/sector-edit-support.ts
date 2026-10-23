@@ -53,8 +53,15 @@ export function heightsProblem(floor: number, ceiling: number): string | undefin
   )
 }
 
-export const lightProblem = (light: number): string | undefined =>
-  numberProblem('light', light) ?? (light > 0 ? undefined : 'the light must be more than 0')
+/** A number that must be finite and more than nothing: a width, a height, a light. */
+export const positiveProblem = (what: string, value: number): string | undefined =>
+  numberProblem(what, value) ?? (value > 0 ? undefined : `the ${what} must be more than 0`)
+
+export const lightProblem = (light: number): string | undefined => positiveProblem('light', light)
+
+/** A name (of a style, a texture, an id) that is there and says nothing. */
+export const isEmptyName = (value: string | null | undefined): boolean =>
+  typeof value === 'string' && value.trim() === ''
 
 /** The level with these sectors in place of its own, or the refusal of a format that cannot hold one of them. */
 export function holdSectors<D>(

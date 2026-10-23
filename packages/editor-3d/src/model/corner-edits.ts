@@ -8,11 +8,7 @@ import type { LevelProfile } from '../profile/level-profile'
 import type { EditCorner, EditSector } from '../profile/sector-access'
 import { type Edit, ok, refuse } from './edit'
 import { noSector, placed, replaceSector, replaceSectors, round4, sectorOf } from './sector-edit-support'
-
-/** Two corners this close are one point: the distance the `openings` check forgives. */
-const NEAR = 1e-6
-
-const near = (p: Planar, q: Planar): boolean => Math.abs(p[0] - q[0]) < NEAR && Math.abs(p[1] - q[1]) < NEAR
+import { cornerAt, loopOf, loopsOf, samePoint, wallOver } from './wall-geometry'
 
 /** A corner of one loop of a sector: loop 0 is the outline and each loop after it a hole. */
 interface Spot {
@@ -21,21 +17,9 @@ interface Spot {
   readonly corner: number
 }
 
-const loopsOf = (sector: EditSector): readonly (readonly EditCorner[])[] => [
-  sector.corners,
-  ...(sector.holes ?? []),
-]
-const loopOf = (sector: EditSector, index: number): readonly EditCorner[] =>
-  loopsOf(sector)[index] as readonly EditCorner[]
-const cornerAt = (corners: readonly EditCorner[], index: number): EditCorner =>
-  corners[index % corners.length] as EditCorner
-const samePoint = (p: Planar, q: Planar): boolean => p[0] === q[0] && p[1] === q[1]
 const keyOf = (spot: Spot): string => `${spot.sector}/${spot.loop}/${spot.corner}`
 
-/**
- * The corner of `target` at `a` that belongs to a wall leading back into `from` over the segment between `a` and `z`,
- * either way round (a loop may be written either way); nothing when `target` has no such wall.
- */
+/** The corner of `target` at `a` that belongs to a wall leading back into `from` over the segment between `a` and `z`. */
 function reverseCorner<D>(
   profile: LevelProfile<D>,
   level: D,
@@ -44,15 +28,10 @@ function reverseCorner<D>(
   a: Planar,
   z: Planar,
 ): Spot | undefined {
-  for (const [loop, corners] of loopsOf(target).entries())
-    for (const [corner, start] of corners.entries()) {
-      if (profile.sectors.portalOf(level, start[2]) !== from) continue
-      const end = cornerAt(corners, corner + 1)
-      if (near(start, a) && near(end, z)) return { sector: target.id, loop, corner }
-      if (near(start, z) && near(end, a))
-        return { sector: target.id, loop, corner: (corner + 1) % corners.length }
-    }
-  return undefined
+  const wall = wallOver(target, a, z, (start) => profile.sectors.portalOf(level, start[2]) === from)
+  if (wall === undefined) return undefined
+  const corner = wall.startsAtA ? wall.corner : (wall.corner + 1) % loopOf(target, wall.loop).length
+  return { sector: target.id, loop: wall.loop, corner }
 }
 
 /**

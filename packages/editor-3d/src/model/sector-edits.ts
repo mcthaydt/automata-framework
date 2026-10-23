@@ -10,6 +10,7 @@ import {
   heightsProblem,
   holdSectors,
   insertSector,
+  isEmptyName,
   lightProblem,
   newIdProblem,
   noSector,
@@ -19,6 +20,7 @@ import {
   round4,
   sectorOf,
 } from './sector-edit-support'
+import { PORTAL_MEMBERS } from './wall-geometry'
 
 /** What a sector has when the level has none to take it from. */
 const DEFAULT_FLOOR = 0
@@ -89,16 +91,13 @@ export interface DuplicateSectorArgs {
   readonly newId?: string | undefined
 }
 
-/** The members of a wall that mean something only while it is a portal: a copy that has no portal has none of them. */
-const PORTAL_ONLY = ['next', 'frame', 'mask', 'block', 'maskTop', 'hatch'] as const
-
 /** A wall for a copy: the wall's own members, but not its portal (the copy leads nowhere yet) nor its door's id. */
 function copiedWall(wall: string | EditWall | undefined): string | EditWall | undefined {
   // A name is a cutaway group, which a copy may belong to as well as the original.
   if (wall === undefined || typeof wall === 'string') return wall
   const { door, ...rest } = wall
   const kept: Record<string, unknown> = { ...rest }
-  if (wall.next !== undefined) for (const member of PORTAL_ONLY) delete kept[member]
+  if (wall.next !== undefined) for (const member of PORTAL_MEMBERS) delete kept[member]
   if (door !== undefined) {
     const { id: _id, ...doorWithoutId } = door
     kept.door = doorWithoutId
@@ -204,9 +203,6 @@ function withMaterial(
   return rest
 }
 
-const emptyName = (value: string | null | undefined): boolean =>
-  typeof value === 'string' && value.trim() === ''
-
 export function setMaterials<D>(args: SetMaterialsArgs): Edit<D> {
   return {
     id: 'sector.setMaterials',
@@ -217,8 +213,8 @@ export function setMaterials<D>(args: SetMaterialsArgs): Edit<D> {
       const textures = [args.floorTexture, args.ceilingTexture, args.wallTexture]
       if ([args.style, ...textures].every((member) => member === undefined))
         return refuse('give a style or a texture')
-      if (emptyName(args.style)) return refuse('a style is a name, not empty')
-      if (textures.some(emptyName)) return refuse('a texture is a name, not empty')
+      if (isEmptyName(args.style)) return refuse('a style is a name, not empty')
+      if (textures.some(isEmptyName)) return refuse('a texture is a name, not empty')
       let next = withMaterial(sector, 'style', args.style)
       next = withMaterial(next, 'floorTexture', args.floorTexture)
       next = withMaterial(next, 'ceilingTexture', args.ceilingTexture)
