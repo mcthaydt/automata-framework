@@ -58,8 +58,9 @@ export default defineGame({
   },
   draw: (ctx) => {
     if (stage === undefined) return
-    ctx.rect(4, 4, 168, 14, 0x2e222f)
-    ctx.text(`quality ${stage.quality}   resolution ${stage.app.renderer.resolution}`, 8, 7, {
+    // y = 40: a wide phone shows only the band between about y = 35 and y = 145 of the 180-high field.
+    ctx.rect(4, 40, 168, 14, 0x2e222f)
+    ctx.text(`quality ${stage.quality}   resolution ${stage.app.renderer.resolution}`, 8, 43, {
       color: 0xffffff,
       size: 8,
     })

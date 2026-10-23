@@ -14,6 +14,10 @@ import type { Snippet } from 'svelte'
 
 export type ActionKind = 'primary' | 'secondary' | 'utility'
 
+/**
+ * One action in an `ActionBar`: an id, a label and a kind (`primary`, `secondary` or `utility`), what it does
+ * when selected, and optionally a short label, an icon, a disabled state and a pressed state.
+ */
 export interface BarAction {
   readonly id: string
   readonly label: string
@@ -31,6 +35,10 @@ export interface BarAction {
   readonly testId?: string | undefined
 }
 
+/**
+ * How far an action bar has collapsed: 0 every label in full, 1 utilities as icons, 2 secondaries on their
+ * short labels, 3 wrapped with the primary on its own row.
+ */
 export type CollapseLevel = 0 | 1 | 2 | 3
 
 /** The first level whose one-row width fits. `widths` are the bar's unwrapped widths at levels 0, 1 and 2. */

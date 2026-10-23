@@ -20,6 +20,11 @@ export const PHONE_PORTRAIT_MAX_WIDTH = 600
  */
 export const PHONE_LANDSCAPE_MAX_HEIGHT = 500
 
+/**
+ * The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other
+ * portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise
+ * `desktop`. A square viewport is landscape.
+ */
 export function classifyFormFactor(width: number, height: number): FormFactor {
   // Strictly taller than wide is portrait; a square viewport is landscape.
   if (height > width) return width < PHONE_PORTRAIT_MAX_WIDTH ? 'phone-portrait' : 'tablet-portrait'
