@@ -197,4 +197,5 @@ const TestRemoteFailedBase: TaggedErrorClass<
     readonly message: string
   }
 > = Data.TaggedError('TestRemoteFailed')
+/** `test-remote` stopped without a green run; `reason` says why and `message` says what to do. */
 export class TestRemoteFailed extends TestRemoteFailedBase {}

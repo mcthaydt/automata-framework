@@ -2,8 +2,10 @@
 // codec, each checked for reading back as the edited model and for touching only what it edited, then reverted.
 // The generator is a fixed linear congruential sequence, so a failure replays.
 import { describe, expect, it } from 'vitest'
+import { afSectorCodec } from '../profile/af-sector/af-codec'
+import type { FileCodec } from '../profile/file-codec'
 import { blockoutCodec, facilityCodec } from '../profile/last-light-codecs'
-import { FIXTURE_NAMES, type FixtureName, loadFixture } from '../testing/fixtures'
+import { FIXTURE_NAMES, loadAuthored, loadFixture } from '../testing/fixtures'
 import { changedRegion, literalEdits } from '../testing/text-diff'
 import { type JsonPath, scan } from './locate'
 
@@ -22,11 +24,29 @@ function lcg(seed: number): () => number {
 const at = (root: Json, path: JsonPath): Json =>
   path.reduce<Json>((node, key) => (node as Record<string | number, Json>)[key] as Json, root)
 
+interface Subject {
+  readonly name: string
+  readonly codec: FileCodec<unknown>
+  readonly text: string
+}
+
+// The five shipped Last Light files, then the AF depot: the depot comes last so the first five keep their seeds.
+const SUBJECTS: readonly Subject[] = [
+  ...FIXTURE_NAMES.map((name) => ({
+    name,
+    codec: (name === 'facility' ? facilityCodec : blockoutCodec) as FileCodec<unknown>,
+    text: loadFixture(name),
+  })),
+  {
+    name: 'depot.af-sector',
+    codec: afSectorCodec as FileCodec<unknown>,
+    text: loadAuthored('depot.af-sector'),
+  },
+]
+
 describe('seeded edit round trips on the shipped files', () => {
-  FIXTURE_NAMES.forEach((name: FixtureName, fixtureIndex) => {
+  SUBJECTS.forEach(({ name, codec, text }, fixtureIndex) => {
     it(`${name}: ${EDITS_PER_FIXTURE} random edits read back, touch only their own bytes, and revert`, () => {
-      const codec = name === 'facility' ? facilityCodec : blockoutCodec
-      const text = loadFixture(name)
       const parsed = codec.parse(text)
       if (!parsed.ok) throw new Error('fixture does not parse')
       const original = parsed.value as unknown as Json
@@ -92,7 +112,7 @@ describe('seeded edit round trips on the shipped files', () => {
         }
         counts[kind]++
 
-        const patched = codec.patch(text, original as never, edited as never)
+        const patched = codec.patch(text, original, edited)
         if (!patched.ok)
           throw new Error(`edit ${n} (${kind}) refused at ${JSON.stringify(patched.path)}: ${patched.detail}`)
         expect(JSON.parse(patched.text), `edit ${n} (${kind}) reads back as the edited model`).toStrictEqual(
@@ -107,7 +127,7 @@ describe('seeded edit round trips on the shipped files', () => {
           expect(changedRegion(text, patched.text).added, `edit ${n}: a removal only deletes`).toBe('')
         }
 
-        const reverted = codec.patch(patched.text, edited as never, original as never)
+        const reverted = codec.patch(patched.text, edited, original)
         if (!reverted.ok) throw new Error(`revert ${n} (${kind}) refused at ${JSON.stringify(reverted.path)}`)
         expect(JSON.parse(reverted.text), `revert ${n} (${kind}) reads back as the original`).toStrictEqual(
           expectedBack,

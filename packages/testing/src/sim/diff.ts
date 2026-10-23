@@ -2,6 +2,10 @@
 // report reads the same in every engine: header, rng, resources, nextId, entities, plugin bytes.
 import type { SnapshotView } from '@mcthaydt/automata-sim'
 
+/**
+ * One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's
+ * sid when it is an entity, and both values as printed.
+ */
 export interface Difference {
   readonly kind: 'header' | 'rng' | 'resource' | 'entity' | 'plugin'
   /** What differs, as printed: "entity 4 bounce.ball.vx", "resource bounce.stats.bounces". */
@@ -47,6 +51,11 @@ function diffJson(path: string, expected: unknown, actual: unknown, out: Differe
   push(path, expected, actual)
 }
 
+/**
+ * Every difference between an expected and an actual snapshot view, field by field, in a fixed order (header,
+ * rng, resources, next id, entities, plugin bytes) so a report reads the same in every engine. Empty when
+ * they are equal.
+ */
 export function diffSnapshotViews(expected: SnapshotView, actual: SnapshotView): Difference[] {
   const out: Difference[] = []
   const add = (kind: Difference['kind'], at: string, e: unknown, a: unknown, sid?: number) =>

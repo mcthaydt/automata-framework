@@ -8,6 +8,10 @@ import { FileError } from './errors.ts'
 // `@effect/platform-node`, whose 0.108 line pulls in cluster, rpc, sql and workflow packages (ADR 0003).
 // The calls are synchronous: build steps touch a handful of files, and sync calls keep errors in order.
 
+/**
+ * The file operations build-time code needs, each as an Effect. A failed call fails with a `FileError` naming
+ * the path, except `exists`, which cannot fail.
+ */
 export interface FilesService {
   readText(path: string): Effect.Effect<string, FileError>
   /** Writes UTF-8 text, creating parent folders. */
@@ -40,6 +44,10 @@ function listBelow(root: string): string[] {
     .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
 }
 
+/**
+ * `Files` on `node:fs`: synchronous calls wrapped in `Effect.try`, so the first failure surfaces as a
+ * `FileError`.
+ */
 export const FilesLive: Layer.Layer<Files> = Layer.succeed(Files, {
   readText: (path) => attempt(path, () => readFileSync(path, 'utf8')),
   writeText: (path, text) =>

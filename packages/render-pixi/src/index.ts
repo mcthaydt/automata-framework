@@ -23,6 +23,11 @@ export {
   WGSL_FILTER_HEADER,
 } from './filter/filter-programs.js'
 export {
+  type PostFilterDef,
+  type PostFilterSpec,
+  postFilter,
+} from './filter/post-filter.js'
+export {
   createPostFilterSlot,
   type PostFilterOptions,
   type PostFilterSlot,
