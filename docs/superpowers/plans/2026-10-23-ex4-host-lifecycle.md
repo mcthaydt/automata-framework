@@ -30,7 +30,7 @@
 - **Create:** `examples/core/core-host-lifecycle.ts`; `examples/e2e/core-host-lifecycle.e2e.ts`.
 - **Modify:** `packages/host/src/saves.test.ts` (two cases); `playwright.config.ts` (`hostDemo` import, `demos` testMatch `host/*`, `webServer` entry); `examples/README.md` (the demo row); `pnpm-lock.yaml` (via `pnpm install`); `docs/02-master-delivery-plan.md` (the EX.4 progress note); this plan; the EX plan's EX.4 checklist; `docs/03-continuation-prompt.md` (with the docs sync PR).
 - **Delete:** `examples/host/lifecycle-and-saves/` (`git rm -r`; `dist/` and `node_modules/` are disposable local output).
-- **No changeset:** `packages/host` gains only tests.
+- **Changeset:** an empty one (`.changeset/ex4-host-lifecycle-tests-only.md`). `packages/host` gains only tests, so nothing releases, but `changeset status --since=origin/main` fails when a published package changed and no changeset exists; it passed while the lower PRs of the stack carried changesets and failed once #98 and #108 merged and main moved under this branch.
 
 ## Interfaces
 
@@ -49,7 +49,7 @@
 
 - Selected: `pnpm check`; `pnpm build:examples`; the host unit tests; the examples-runner Node tests; a local Chromium run of the journey and the smoke boot of the new example.
 - Omitted here, pending on CI: the `examples` smoke projects, `pnpm test:parity` in WebKit and Firefox, the full `pnpm test:e2e`.
-- No changeset.
+- Changeset: empty (see Files).
 
 ## Execution log
 
@@ -61,3 +61,4 @@
 | 2026-10-23 | 3 | `893fb1a` | `examples/core/core-host-lifecycle.ts` (about 25 code lines). `pnpm --filter @af-examples/examples typecheck` exit 0; the catalog test passes (51 passed, 1 skipped). The journey passes against the local build in Chromium: Play, drawer overlay shows `paused-screen`, overlay off keeps it, Resume shows `play-screen`; the only failing assertion was the final `expect(errors).toEqual([])`, on the one favicon 404 this container's full-Chrome build makes (the same on every example here). Screenshots read at Pixel 7 landscape and 780 × 270: HUD `tick 157   running`, the square pacing; the paused screen's Resume on the drawer. The first screenshot showed no HUD: the playfield is cropped top and bottom on wide phones, so a HUD at y = 4 is off screen. The HUD went to y = 40, and `render-interpolation` got the same fix on #108 (`d5f2fba`). |
 | 2026-10-23 | 4 | | `git rm -r examples/host/lifecycle-and-saves` (11 tracked files); the `playwright.config.ts` import, `demos` testMatch and `webServer` entries and the README row went; `pnpm install --offline` dropped the demo's lockfile lines. `pnpm check` 32 of 32 tasks, knip included (the `examples` workspace's Playwright config from #108 keeps the e2e files entries); `pnpm build:examples` built every example. |
 | 2026-10-23 | 5 | | EX plan checklist ticked with the `core-saves` note; 02's EX.4 progress note extended. The execution-record row and 03 come with the docs sync PR. |
+| 2026-10-23 | CI fix | (this commit) | Red on the retargeted head `26a67da`: `pnpm changeset status --since=origin/main` exit 1, `Some packages have been changed but no changesets were found` (`packages/host/src/saves.test.ts` is the only published-package change). Reproduced locally with the same command before the fix. Added an empty changeset, the documented answer for a change that needs no release (precedent: `ci-scope-docs-only.md`). |
