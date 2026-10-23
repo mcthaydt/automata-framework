@@ -1284,7 +1284,8 @@ type TaggedErrorClass<Tag extends string, Fields> = new (fields: Fields) => Caus
 
 #### `body2d` (function)
 
-_No doc comment._
+The spawn part that gives an entity a rigid body of a `BodyKind`. Damping and velocities (`vx`, `vy` in
+m/s, `angvel` in rad/s) are 0 unless given.
 
 ```ts
 function body2d(kind: BodyKind, opts?: {
@@ -1298,7 +1299,9 @@ function body2d(kind: BodyKind, opts?: {
 
 #### `BodyKind` (const)
 
-_No doc comment._
+The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never
+moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its
+velocity). `BodyKind` is also the type of those values.
 
 ```ts
 const BodyKind: {
@@ -1321,7 +1324,9 @@ const Collider2D: ComponentDef<typeof colliderFields>;
 
 #### `collider2d` (const)
 
-_No doc comment._
+The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy)` with half extents, and
+`capsule(halfHeight, radius)`. Each takes `ColliderOptions`, whose defaults are Rapier's (every group,
+friction 0.5, no bounce, not a sensor).
 
 ```ts
 const collider2d: {
@@ -1346,7 +1351,8 @@ interface ColliderOptions {
 
 #### `CollisionEnded2D` (const)
 
-_No doc comment._
+Two colliders stopped touching, or one was removed. The payload is the one of `CollisionStarted2D`; ended
+events come before started events in a tick.
 
 ```ts
 const CollisionEnded2D: EventDef<typeof pair>;
@@ -1354,7 +1360,9 @@ const CollisionEnded2D: EventDef<typeof pair>;
 
 #### `CollisionStarted2D` (const)
 
-_No doc comment._
+Two colliders began touching (or, with a sensor, overlapping). `a` and `b` are the entities' StableIds, `a`
+the lower, and `sensor` is true when either collider is a sensor. Emitted in `postPhysics`, in `(a, b)`
+order, after that tick's ended events.
 
 ```ts
 const CollisionStarted2D: EventDef<typeof pair>;
@@ -1371,7 +1379,8 @@ function physics2d(options?: Physics2DOptions): PluginDef;
 
 #### `Physics2DOptions` (interface)
 
-_No doc comment._
+The options of `physics2d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+sim.
 
 ```ts
 interface Physics2DOptions {
@@ -1393,7 +1402,8 @@ const RigidBody2D: ComponentDef<typeof bodyFields>;
 
 #### `ShapeKind` (const)
 
-_No doc comment._
+The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`. `ShapeKind` is also the type of
+those values.
 
 ```ts
 const ShapeKind: {
@@ -1406,7 +1416,7 @@ type ShapeKind = (typeof ShapeKind)[keyof typeof ShapeKind];
 
 #### `transform2d` (function)
 
-_No doc comment._
+The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
 
 ```ts
 function transform2d(at?: {
@@ -1428,7 +1438,8 @@ const Transform2D: ComponentDef<typeof transformFields>;
 
 #### `body3d` (function)
 
-_No doc comment._
+The spawn part that gives an entity a rigid body of a `BodyKind`. Damping and velocities (`vx`, `vy`, `vz`
+in m/s, `wx`, `wy`, `wz` in rad/s) are 0 unless given.
 
 ```ts
 function body3d(kind: BodyKind, opts?: {
@@ -1445,7 +1456,9 @@ function body3d(kind: BodyKind, opts?: {
 
 #### `BodyKind` (const)
 
-_No doc comment._
+The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never
+moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its
+velocity). `BodyKind` is also the type of those values.
 
 ```ts
 const BodyKind: {
@@ -1468,7 +1481,9 @@ const Collider3D: ComponentDef<typeof colliderFields>;
 
 #### `collider3d` (const)
 
-_No doc comment._
+The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy, hz)` with half extents, and
+`capsule(halfHeight, radius)`. Each takes `ColliderOptions`, whose defaults are Rapier's (every group,
+friction 0.5, no bounce, not a sensor).
 
 ```ts
 const collider3d: {
@@ -1493,7 +1508,8 @@ interface ColliderOptions {
 
 #### `CollisionEnded3D` (const)
 
-_No doc comment._
+Two colliders stopped touching, or one was removed. The payload is the one of `CollisionStarted3D`; ended
+events come before started events in a tick.
 
 ```ts
 const CollisionEnded3D: EventDef<typeof pair>;
@@ -1501,7 +1517,9 @@ const CollisionEnded3D: EventDef<typeof pair>;
 
 #### `CollisionStarted3D` (const)
 
-_No doc comment._
+Two colliders began touching (or, with a sensor, overlapping). `a` and `b` are the entities' StableIds, `a`
+the lower, and `sensor` is true when either collider is a sensor. Emitted in `postPhysics`, in `(a, b)`
+order, after that tick's ended events.
 
 ```ts
 const CollisionStarted3D: EventDef<typeof pair>;
@@ -1518,7 +1536,8 @@ function physics3d(options?: Physics3DOptions): PluginDef;
 
 #### `Physics3DOptions` (interface)
 
-_No doc comment._
+The options of `physics3d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+sim.
 
 ```ts
 interface Physics3DOptions {
@@ -1541,7 +1560,8 @@ const RigidBody3D: ComponentDef<typeof bodyFields>;
 
 #### `ShapeKind` (const)
 
-_No doc comment._
+The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`. `ShapeKind` is also the type of
+those values.
 
 ```ts
 const ShapeKind: {
@@ -1554,7 +1574,8 @@ type ShapeKind = (typeof ShapeKind)[keyof typeof ShapeKind];
 
 #### `transform3d` (function)
 
-_No doc comment._
+The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`,
+`qz`, `qw`). Position is 0 and the rotation is the identity unless given.
 
 ```ts
 function transform3d(at?: {
@@ -3301,7 +3322,8 @@ function documentScrolls(doc: Document): string[];
 
 #### `FakeResizeObserver` (interface)
 
-_No doc comment._
+Controls the fake `ResizeObserver` `installFakeResizeObserver` put in place: report a width to every
+observer, then restore the original.
 
 ```ts
 interface FakeResizeObserver {
@@ -3313,7 +3335,8 @@ interface FakeResizeObserver {
 
 #### `fakeViewportWindow` (function)
 
-_No doc comment._
+A fake window of the given size. Its `screen` defaults to that size and its `navigator` names no browser.
+Resizing and the keyboard fire `resize` on the window and the visual viewport, as a browser does.
 
 ```ts
 function fakeViewportWindow(size: {
@@ -3331,7 +3354,8 @@ function fakeViewportWindow(size: {
 
 #### `FakeViewportWindow` (interface)
 
-_No doc comment._
+A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual
+viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
 
 ```ts
 interface FakeViewportWindow {
@@ -3359,7 +3383,8 @@ interface FakeViewportWindow {
 
 #### `FakeVisualViewport` (interface)
 
-_No doc comment._
+The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and
+listeners for `resize`.
 
 ```ts
 interface FakeVisualViewport {
@@ -3441,7 +3466,8 @@ function hostDisplay(options?: {
 
 #### `installFakeResizeObserver` (function)
 
-_No doc comment._
+Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components
+measured under jsdom, which has no layout. Call `restore` when the test ends.
 
 ```ts
 function installFakeResizeObserver(): FakeResizeObserver;
@@ -3469,7 +3495,7 @@ interface LayoutRect {
 
 #### `MountedFixture` (interface)
 
-_No doc comment._
+A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
 
 ```ts
 interface MountedFixture {
@@ -3481,7 +3507,8 @@ interface MountedFixture {
 
 #### `mountFixture` (function)
 
-_No doc comment._
+Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first
+render is finished. Mounts into `target`, or into a new `div` in `document.body`, which `unmount` removes.
 
 ```ts
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
@@ -3489,7 +3516,8 @@ function mountFixture<Props extends Record<string, unknown>>(component: Componen
 
 #### `REFERENCE_SIZES` (const)
 
-_No doc comment._
+The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every
+breakpoint and the tightest sizes, each with the classification it should get.
 
 ```ts
 const REFERENCE_SIZES: readonly ReferenceSize[];
@@ -3513,7 +3541,8 @@ type ReferenceHeightTier = "short" | "compact" | undefined;
 
 #### `ReferenceSize` (interface)
 
-_No doc comment._
+One viewport every primitive and screen is checked at: a name, its size, and the form factor and height
+tier it must classify as.
 
 ```ts
 interface ReferenceSize {
@@ -3568,7 +3597,8 @@ interface Variant {
 
 #### `VARIANTS` (const)
 
-_No doc comment._
+The conditions each size is also checked under: at rest, with the on-screen keyboard open, with Ruken's
+reserved strip on the right or the left, and at its TV scale.
 
 ```ts
 const VARIANTS: readonly Variant[];
@@ -3816,7 +3846,8 @@ interface FakeGamepads {
 
 #### `Difference` (interface)
 
-_No doc comment._
+One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's
+sid when it is an entity, and both values as printed.
 
 ```ts
 interface Difference {
@@ -3832,7 +3863,9 @@ interface Difference {
 
 #### `diffSnapshotViews` (function)
 
-_No doc comment._
+Every difference between an expected and an actual snapshot view, field by field, in a fixed order (header,
+rng, resources, next id, entities, plugin bytes) so a report reads the same in every engine. Empty when
+they are equal.
 
 ```ts
 function diffSnapshotViews(expected: SnapshotView, actual: SnapshotView): Difference[];
@@ -3848,7 +3881,7 @@ function expectGolden(report: GoldenReport): void;
 
 #### `formatGoldenReport` (function)
 
-_No doc comment._
+One report as text: a line for most outcomes, and for a divergence the tick and up to 20 differences.
 
 ```ts
 function formatGoldenReport(report: GoldenReport): string;
@@ -3864,7 +3897,9 @@ const GOLDEN_MAX_PACKED_BYTES: number;
 
 #### `goldenCommands` (function)
 
-_No doc comment._
+The Vitest browser commands that let golden tests read golden files in a browser: register them with
+`browser: { commands: goldenCommands() }`. Only `.golden.json` and `.replay` files inside the project root
+can be read, and nothing can be written.
 
 ```ts
 function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
@@ -3872,7 +3907,8 @@ function goldenCommands(options?: GoldenCommandsOptions): Record<string, Browser
 
 #### `GoldenReport` (type)
 
-_No doc comment._
+What a golden check found: `pass`, `written`, `missing`, `schema-changed`, `content-changed`,
+`setup-changed` or `diverged` (with the first differing tick and the fields that differ).
 
 ```ts
 type GoldenReport = {
@@ -3918,7 +3954,10 @@ const nodeCompression: ReplayCompression;
 
 #### `replayGolden` (function)
 
-_No doc comment._
+Replays a golden `.replay` against the current sim and reports whether it still matches. With reference
+data a divergence names the exact tick and every field that differs. With `AUTOMATA_UPDATE_GOLDENS=1` in
+Node and a `record` option it records the file first, then checks what it wrote. A mismatch is a report, not
+a throw: pass it to `expectGolden`.
 
 ```ts
 function replayGolden(options: ReplayGoldenOptions): Promise<GoldenReport>;
@@ -3926,7 +3965,8 @@ function replayGolden(options: ReplayGoldenOptions): Promise<GoldenReport>;
 
 #### `ReplayGoldenOptions` (interface)
 
-_No doc comment._
+What `replayGolden` checks: the `.replay` file, the plugins and content to replay it with, and how to
+record it when updating goldens.
 
 ```ts
 interface ReplayGoldenOptions {
@@ -3948,7 +3988,8 @@ interface ReplayGoldenOptions {
 
 #### `RoundTripFailure` (interface)
 
-_No doc comment._
+One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore
+tick, variant and a report of what differed.
 
 ```ts
 interface RoundTripFailure {
@@ -3963,7 +4004,8 @@ interface RoundTripFailure {
 
 #### `RoundTripOptions` (interface)
 
-_No doc comment._
+What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of
+what length to try.
 
 ```ts
 interface RoundTripOptions {
@@ -3984,7 +4026,7 @@ interface RoundTripOptions {
 
 #### `RoundTripVariant` (type)
 
-_No doc comment._
+How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
 
 ```ts
 type RoundTripVariant = "fresh" | "dirty";
@@ -3992,7 +4034,9 @@ type RoundTripVariant = "fresh" | "dirty";
 
 #### `simGolden` (function)
 
-_No doc comment._
+Plays a scripted run and compares the sim's hash every `every` ticks with the golden JSON file, reporting
+the first recorded tick that differs. With `AUTOMATA_UPDATE_GOLDENS=1` in Node it records the file. Throws
+for an `every` that is not an integer of 1 or more; a mismatch is a report, not a throw.
 
 ```ts
 function simGolden(options: SimGoldenOptions): Promise<GoldenReport>;
@@ -4000,7 +4044,8 @@ function simGolden(options: SimGoldenOptions): Promise<GoldenReport>;
 
 #### `SimGoldenOptions` (interface)
 
-_No doc comment._
+What `simGolden` runs: the plugins, content, seed and scripted commands to play for `ticks` ticks, where
+the golden JSON lives, and how often to record a hash.
 
 ```ts
 interface SimGoldenOptions {
@@ -4022,7 +4067,9 @@ interface SimGoldenOptions {
 
 #### `snapshotRoundTripProperty` (function)
 
-_No doc comment._
+Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and
+restore points, alternating fresh and dirty restores. Returns `{ failures }`; an empty list means the
+property held.
 
 ```ts
 function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
@@ -4042,7 +4089,9 @@ const streamCompression: ReplayCompression;
 
 #### `goldenCommands` (function)
 
-_No doc comment._
+The Vitest browser commands that let golden tests read golden files in a browser: register them with
+`browser: { commands: goldenCommands() }`. Only `.golden.json` and `.replay` files inside the project root
+can be read, and nothing can be written.
 
 ```ts
 function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
@@ -4066,7 +4115,8 @@ interface GoldenCommandsOptions {
 
 #### `RoundTripFailure` (interface)
 
-_No doc comment._
+One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore
+tick, variant and a report of what differed.
 
 ```ts
 interface RoundTripFailure {
@@ -4081,7 +4131,8 @@ interface RoundTripFailure {
 
 #### `RoundTripOptions` (interface)
 
-_No doc comment._
+What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of
+what length to try.
 
 ```ts
 interface RoundTripOptions {
@@ -4102,7 +4153,7 @@ interface RoundTripOptions {
 
 #### `RoundTripVariant` (type)
 
-_No doc comment._
+How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
 
 ```ts
 type RoundTripVariant = "fresh" | "dirty";
@@ -4110,7 +4161,9 @@ type RoundTripVariant = "fresh" | "dirty";
 
 #### `snapshotRoundTripProperty` (function)
 
-_No doc comment._
+Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and
+restore points, alternating fresh and dirty restores. Returns `{ failures }`; an empty list means the
+property held.
 
 ```ts
 function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
