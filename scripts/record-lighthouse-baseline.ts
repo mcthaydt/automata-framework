@@ -3,6 +3,7 @@
 // (tests/lighthouse-budget.test.ts), so it is generated, never typed.
 //   pnpm lighthouse; node --import tsx scripts/record-lighthouse-baseline.ts [machine description]
 import { readFileSync, writeFileSync } from 'node:fs'
+import { cpus, loadavg } from 'node:os'
 import { basename, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -55,6 +56,26 @@ export function medianMetrics(results: LighthouseResult[]): PageMetrics {
   }
 }
 
+/**
+ * One page's LCP in every run, in the order they ran, with the best and the median. The budget judges the best run
+ * (lighthouserc.json): a runner that was busy with something else shows here as a spread, or as every run being slow.
+ */
+export function describeRuns(path: string, results: LighthouseResult[]): string {
+  if (results.length === 0) throw new Error('no Lighthouse results to summarise')
+  const lcp = results.map(result => {
+    const value = result.audits[AUDITS.lcpMs]?.numericValue
+    if (value === undefined) throw new Error(`a Lighthouse result has no ${AUDITS.lcpMs} value`)
+    return value
+  })
+  const whole = (value: number): number => Math.round(value)
+  return `${path} LCP per run (ms): ${lcp.map(whole).join(', ')}; best ${whole(Math.min(...lcp))}, median ${whole(median(lcp))}`
+}
+
+/** What else the runner was doing: it is shared with the framework's CI, and a busy host makes every run slower. */
+export function describeHostLoad(cores: number, [one, five, fifteen]: readonly number[]): string {
+  return `Host: ${cores} cores, load average ${one!.toFixed(2)}, ${five!.toFixed(2)}, ${fifteen!.toFixed(2)} (${(one! / cores).toFixed(2)} per core over the last minute)`
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const reports = join(process.cwd(), '.lighthouseci/reports')
   const manifest = JSON.parse(readFileSync(join(reports, 'manifest.json'), 'utf8')) as { url: string; jsonPath: string }[]
@@ -75,4 +96,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   writeFileSync('lighthouse-baseline.json', `${JSON.stringify(record, null, 2)}\n`)
   console.log(`Wrote lighthouse-baseline.json for ${byPath.size} pages.`)
+  for (const [path, results] of byPath) console.log(describeRuns(path, results))
+  console.log(describeHostLoad(cpus().length, loadavg()))
 }
