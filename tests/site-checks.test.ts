@@ -211,6 +211,32 @@ describe('checkSite', () => {
     expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: modulepreloads ./_app/immutable/entry/gone.js, which the build does not contain'])
   })
 
+  // QB.3j. SvelteKit's start script imports about 30 small modules and hydrates the page as soon as it runs. On a host
+  // that finishes those requests before the first paint (the Owner's Mac, from a local server) Lighthouse charges all
+  // of them, 350 KB, to the paint: 3.2 s on the home page against 1.7 s. `hydrateAfterFirstPaint` (src/hooks.server.ts)
+  // starts them once the browser has painted, and the build must show it did.
+  const START_SCRIPT = (call: string) => `<script>{ const element = document.currentScript.parentElement; ${call}.then(([kit, app]) => { kit.start(app, element, {}); }); }</script>`
+  const IMPORTS = 'Promise.all([import("./_app/immutable/entry/start.js"), import("./_app/immutable/entry/app.js")])'
+
+  it('fails when a page starts hydrating at once, before the first paint', () => {
+    const site = goodSite()
+    site.write('index.html', page('/', { body: `<p><a href="/docs">Docs</a></p>${START_SCRIPT(IMPORTS)}` }))
+    expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: starts hydrating at once; the start script must wait for the first paint (hydrateAfterFirstPaint in src/hooks.server.ts), because a host that finishes the module requests before painting charges all of them to the first paint'])
+  })
+
+  it('passes a page whose start script waits for the first paint', () => {
+    const site = goodSite()
+    site.write('index.html', page('/', { body: `<p><a href="/docs">Docs</a></p>${START_SCRIPT(`afterFirstPaint(() => ${IMPORTS}`).replace('.then(([kit, app]) => { kit.start(app, element, {}); }); }', '.then(([kit, app]) => { kit.start(app, element, {}); })); }')}` }))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+
+  it('names each page that starts at once', () => {
+    const site = goodSite()
+    site.write('index.html', page('/', { body: `<p><a href="/docs">Docs</a></p>${START_SCRIPT(IMPORTS)}` }))
+    site.write('docs.html', page('/docs', { body: `<p>Docs</p>${START_SCRIPT(IMPORTS)}` }))
+    expect(checkSite(site.root, { now: NOW }).map(failure => failure.split(':')[0])).toEqual(['docs.html', 'index.html'])
+  })
+
   it('fails when a page footer lacks privacy, terms or a contact email', () => {
     const site = goodSite()
     site.write('docs.html', page('/docs', { footer: '<footer><a href="/">Home</a></footer>' }))

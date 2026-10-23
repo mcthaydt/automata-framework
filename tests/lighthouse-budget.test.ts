@@ -15,13 +15,13 @@ import { describeHostLoad, describeRuns, medianMetrics, type LighthouseResult } 
 // `/` the newer Chromium also fetched two gallery images below the poster before it painted, and the simulated slow
 // network charged their 95 KB to the LCP (3.5 s there, 2.6 s with Chromium 141).
 //
-// QB.3k. The CI runs on the Owner's Mac, which is shared with the framework's CI, and a busy machine only ever makes a
-// run slower: the first Mac run of QB.3j's code measured the home page at 2.57 s, `/start` at 2.86 s and `/examples` at
-// 3.01 s, where a quiet container and the hosted runner agree on 1.96 / 2.10 / 1.72 s. With eight busy loops on four CPUs
-// the container's seven runs of the home page were 3.3 to 3.4 s six times and 1.57 s once, so no median of a few runs is
-// stable there and the best run is. The budget therefore takes seven runs of each page and judges the best of them
-// (`optimistic`: the lowest LCP, blocking time and layout shift, the highest score). A page that really got slower still
-// fails, because all seven runs miss the line. The recorded baseline stays the quiet hosted run.
+// QB.3j. The CI runs on the Owner's Mac. The first run of QB.3j's code there measured the home page at 2.57 s, `/start`
+// at 2.86 s and `/examples` at 3.01 s, where the hosted runner and a quiet container measure 1.7 to 2.1 s, and a second
+// run on a quiet Mac gave the same numbers to the millisecond: it was not load. Lighthouse's simulation charges the
+// first paint with every request that finished before it, and on a host fast enough to finish SvelteKit's whole
+// hydration chain (about 30 module requests, 350 KB) before painting, that is all of it. Hydration now starts after the
+// first paint (src/lib/hydration.ts), which makes the number the same on every host: 1.4 to 1.7 s in the container,
+// also with the first paint held back 400 ms, where the old code measured 2.1 to 3.2 s. The budget below is unchanged.
 //
 // QB.3j. That is fixed (the pictures wait until the reader is near; only the entry and node modules are preloaded), and
 // the baseline is re-recorded on the hosted runner: every page is under 2.5 s and at least 0.96, so every page is held to
@@ -70,19 +70,19 @@ describe('the Lighthouse budget (lighthouserc.json)', () => {
     for (const url of ci.collect.url as string[]) expect(new URL(url).hostname).toBe('127.0.0.1')
   })
 
-  it('measures mobile, the Lighthouse default, and takes at least seven runs of each page', () => {
+  it('measures mobile, the Lighthouse default, and judges the median of at least three runs', () => {
     expect(ci.collect.settings.preset).toBeUndefined()
     expect(ci.collect.settings.formFactor).toBeUndefined()
-    expect(ci.collect.numberOfRuns).toBeGreaterThanOrEqual(7)
+    expect(ci.collect.numberOfRuns).toBeGreaterThanOrEqual(3)
     expect(baseline.runsPerPage).toBeGreaterThanOrEqual(3)
   })
 
-  it('fails the build, rather than warns, on every budget line, judged by the best run', () => {
+  it('fails the build, rather than warns, on every budget line, judged by the median run', () => {
     for (const entry of matrix) {
       expect(Object.keys(entry.assertions).sort()).toEqual(['categories:performance', 'cumulative-layout-shift', 'largest-contentful-paint', 'total-blocking-time'])
       for (const [level, options] of Object.values(entry.assertions)) {
         expect(level).toBe('error')
-        expect(options.aggregationMethod).toBe('optimistic')
+        expect(options.aggregationMethod).toBe('median-run')
       }
     }
   })
@@ -185,8 +185,8 @@ describe('describeRuns (the per-run record in the job log)', () => {
 })
 
 describe('describeHostLoad (what else the runner was doing)', () => {
-  // The runner is shared with the framework's CI on one machine; the QB.3k run of QB.3j’s code measured the home page at 2.57 s
-  // there against 1.96 s when idle, and the log should show the load that explains a number like that.
+  // The runner is shared with the framework's CI on one machine (the hub saw a load of 115 on its 8 cores), so the log of a
+  // run says what else the host was doing, whatever turns out to explain a number.
   it('names the cores and the 1, 5 and 15 minute load averages, and the load per core', () => {
     expect(describeHostLoad(8, [9.6, 7.2, 4])).toBe('Host: 8 cores, load average 9.60, 7.20, 4.00 (1.20 per core over the last minute)')
   })

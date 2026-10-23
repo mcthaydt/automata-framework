@@ -50,7 +50,8 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     return ids
   }
   for (const file of pages) {
-    const window = new JSDOM(readFileSync(join(root, file), 'utf8')).window
+    const html = readFileSync(join(root, file), 'utf8')
+    const window = new JSDOM(html).window
     const doc = window.document
     pageIds.set(file, new Set(Array.from(doc.querySelectorAll('[id]'), element => element.id)))
     for (const selector of ['title', 'h1', 'main#main', 'meta[name="description"]', 'meta[property="og:title"]', 'link[rel="canonical"]']) {
@@ -58,7 +59,7 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     }
     const text = [doc.title, doc.querySelector('meta[name="description"]')?.getAttribute('content') ?? '', doc.body.textContent ?? ''].join('\n')
     for (const banned of BANNED_PHRASES) if (banned.pattern.test(text)) failures.push(`${file}: banned phrase "${banned.label}"`)
-    failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkPreloadedScripts(root, file, doc), ...checkFooter(file, doc))
+    failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkPreloadedScripts(root, file, doc), ...checkHydrationStart(file, html), ...checkFooter(file, doc))
     for (const image of doc.querySelectorAll('img')) {
       // Decorative images say so with alt=""; a missing attribute is always a defect.
       if (!image.hasAttribute('alt')) failures.push(`${file}: <img src="${image.getAttribute('src')}"> has no alt`)
@@ -202,6 +203,19 @@ export const MAX_PRELOADED_SCRIPT_BYTES = 48_000
 
 /** The folders whose modules a page may preload: the app's entry points and the page's own nodes, not shared chunks. */
 const PRELOADABLE_MODULES = /^_app\/immutable\/(?:entry|nodes)\//
+
+/**
+ * A page that hydrates starts after the first paint (QB.3j). SvelteKit's start script imports about 30 small modules and
+ * hydrates at once; on a host that finishes those requests before it paints, Lighthouse charges all of them (350 KB) to
+ * the first paint. `hydrateAfterFirstPaint` (src/lib/hydration.ts, applied in src/hooks.server.ts) wraps the imports in
+ * `afterFirstPaint(`; a page that imports its entry modules without it was not transformed (a SvelteKit upgrade can
+ * change the script's shape, and the transform then leaves it alone).
+ */
+function checkHydrationStart(file: string, html: string): string[] {
+  const hydrates = /import\("[^"]*\/entry\/start\.[^"]*"\)/.test(html)
+  if (!hydrates || html.includes('afterFirstPaint(() =>')) return []
+  return [`${file}: starts hydrating at once; the start script must wait for the first paint (hydrateAfterFirstPaint in src/hooks.server.ts), because a host that finishes the module requests before painting charges all of them to the first paint`]
+}
 
 /** A page's modulepreload links exist in the build, are entry or node modules, and together stay within MAX_PRELOADED_SCRIPT_BYTES. */
 function checkPreloadedScripts(root: string, file: string, doc: Document): string[] {

@@ -217,6 +217,27 @@ test('the home page requests only the poster picture until the reader scrolls to
   expect(await pictures.count(), 'pictures far from the reader are still not in the page').toBeLessThan(total)
 })
 
+// QB.3j. Lighthouse charges to the first paint every request that finished before it. On a fast host the thirty or so
+// module requests of hydration finish in under 100 ms, so when they start at once they all count against the poster's
+// LCP (2.6 to 3.2 s on the Mac against 1.4 to 1.8 s once hydration waits). `hydrateAfterFirstPaint` makes the start
+// script wait. The stylesheet is held back here so the first paint is late enough that a request made at once would have
+// finished before it; the hydration modules must still start after it, and must start.
+test('hydration requests its modules only after the first contentful paint', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Lighthouse, which this protects, measures Chromium')
+  await page.route('**/*.css', async route => {
+    await new Promise(resolve => setTimeout(resolve, 800))
+    await route.continue()
+  })
+  await open(page, '/')
+  const { paint, chunkStarts } = await page.evaluate(() => ({
+    paint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? null,
+    chunkStarts: performance.getEntriesByType('resource').filter(entry => /\/_app\/immutable\/chunks\//.test(entry.name)).map(entry => entry.startTime),
+  }))
+  expect(paint, 'the page painted').not.toBeNull()
+  expect(chunkStarts.length, 'hydration requested its modules').toBeGreaterThan(10)
+  expect(chunkStarts.filter(start => start < (paint ?? 0)), 'module requests that began before the first paint').toEqual([])
+})
+
 // The prerendered page has no picture of its own below the poster, so a reader without script gets the noscript copies.
 test.describe('without script', () => {
   test.use({ javaScriptEnabled: false })
