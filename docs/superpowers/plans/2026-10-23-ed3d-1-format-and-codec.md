@@ -2,7 +2,7 @@
 
 - **Task:** ED3D.1 in [02](../../02-master-delivery-plan.md) (row lands with the ED3D follow-up). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §2 (Format, Codec), §4.1, §4.5, decisions ED3D-D2, D3, D4. Acceptance: the patch halves of ED3-b and ED3-o (§13); the rest of those cases need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.0 (the spec, review pending). It needs no editor-kit code, no Svelte and no DOM.
-- **Status:** Drafted 2026-10-23. Not reviewed, not implemented. Nothing below starts until ED3D.0 is reviewed.
+- **Status:** Drafted 2026-10-23, plan not reviewed. Implemented on the Orchestrator's go-ahead (bus, 2026-10-23 02:20 UTC) ahead of the spec review: steps 1 to 10 done and checked locally, step 11's gates passed, its records waiting on #93. Spec review (ED3D.0), CI and Owner acceptance are open.
 - **Progress:** 10 of 11 steps (11: gates passed, records waiting on #93).
 
 ## Sources, read at these commits
@@ -31,6 +31,7 @@
 | `checks`, `materials`, `hints` of `LevelProfile` | ED3D.2 and ED3D.8. ED3D.1 delivers the `schema`, `parse` and `patch` members as `FileCodec`; `LevelProfile<D> extends FileCodec<D>` later. |
 | The Last Light `generate`, `bind`, stage and freshness code | Stays in that repository. |
 | Svelte, the kit, any view | ED3D.4 and after. |
+| The AF sector profile (`af-sector/1`) and entity definitions | ED3D.1b. It reuses `patchJson` and `createFileCodec` unchanged: the codec knows only id arrays and member orders, never a format. |
 
 ## Contract
 
