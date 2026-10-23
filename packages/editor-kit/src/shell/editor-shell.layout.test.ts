@@ -160,6 +160,32 @@ describe('wide: rail, panel, canvas, inspector, dock beneath, status at the foot
   })
 })
 
+describe('a screen with no rail gives its column and its tab bar to the canvas', () => {
+  test('wide: the panel starts at the edge and the regions still tile the window', async () => {
+    await open(size('ipad-pro-11-landscape'), { rail: false })
+    near(rect('panel').left, 0)
+    near(rect('panel').width, 264)
+    near(rect('canvas').left, rect('panel').right)
+    near(rect('canvas').right, rect('inspector').left)
+    near(rect('inspector').width, 320)
+    near(rect('inspector').right, 1194)
+    near(rect('status').bottom, 834)
+    near(rect('dock').bottom, rect('status').top)
+  })
+
+  test.each([
+    ['ipad-pro-11-portrait', 834, 1194],
+    ['phone-portrait', 390, 844],
+    ['phone-landscape', 844, 390],
+  ])('%s: the status line is the foot of the window', async (name, width, height) => {
+    await open(size(name), { rail: false })
+    near(rect('canvas').width, width)
+    near(rect('status').bottom, height)
+    near(rect('canvas').bottom, rect('status').top)
+    near(rect('canvas').top, rect('topbar').bottom)
+  })
+})
+
 describe('medium and compact: the canvas takes the width, the rail is a tab bar', () => {
   test.each([
     ['ipad-pro-11-portrait', 834, 1194],

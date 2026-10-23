@@ -45,6 +45,25 @@ describe('EditorShell structure', () => {
     ])
   })
 
+  it('leaves the rail out when the screen has none, and says so', () => {
+    mount(1194, 834, { rail: false })
+    expect(regions().map((r) => r.dataset.region)).toEqual([
+      'topbar',
+      'panel',
+      'canvas',
+      'inspector',
+      'dock',
+      'status',
+    ])
+    expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-rail', 'none')
+    expect(document.querySelector('nav')).toBeNull()
+  })
+
+  it('says the rail is there when there is one', () => {
+    mount(1194, 834)
+    expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-rail', 'present')
+  })
+
   it('declares the panel, inspector and dock bodies scroll regions and the canvas none', () => {
     mount(1194, 834)
     for (const name of ['panel', 'inspector', 'dock']) {

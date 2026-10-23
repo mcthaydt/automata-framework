@@ -15,10 +15,13 @@ interface Props {
   panelOpen?: boolean
   inspectorOpen?: boolean
   dockOpen?: boolean | undefined
+  /** `false` leaves the rail out, as a screen with no destinations (Home) does. */
+  rail?: boolean
 }
 
 const {
   geometry,
+  rail: withRail = true,
   panelOpen: panelStart = false,
   inspectorOpen: inspectorStart = false,
   dockOpen: dockStart,
@@ -63,8 +66,17 @@ const fields = ['depth', 'sink', 'haze', 'seed', 'phrase', 'extension', 'set pie
 const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6']
 </script>
 
+{#snippet railBody({ orientation }: { orientation: 'vertical' | 'horizontal' })}
+  <div class="rail" data-testid="rail" data-orientation={orientation}>
+    {#each destinations as destination (destination)}
+      <button type="button" data-testid={`rail-${destination}`}>{destination}</button>
+    {/each}
+  </div>
+{/snippet}
+
 <EditorShell
   {geometry}
+  rail={withRail ? railBody : undefined}
   bind:panelOpen
   bind:inspectorOpen
   bind:dockOpen
@@ -75,13 +87,6 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
     <button type="button" data-testid="toggle-inspector" onclick={() => (inspectorOpen = !inspectorOpen)}>Fields</button>
     <button type="button" data-testid="toggle-dock" onclick={() => (dockOpen = !(dockOpen ?? false))}>Climb</button>
     <strong class="title">Rooftops</strong>
-  {/snippet}
-  {#snippet rail({ orientation })}
-    <div class="rail" data-testid="rail" data-orientation={orientation}>
-      {#each destinations as destination (destination)}
-        <button type="button" data-testid={`rail-${destination}`}>{destination}</button>
-      {/each}
-    </div>
   {/snippet}
   {#snippet panel()}
     <input data-testid="panel-field" aria-label="Find a layer" />

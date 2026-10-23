@@ -15,6 +15,9 @@
   browser bars are already out of their way; a closed one is `inert` and `visibility: hidden`, never
   `display: none`, which would throw its scroll position away.
 
+  `rail` is optional. A screen with no destinations (Home) leaves it out, and the canvas takes the rail's column in
+  wide and the tab bar's row below it (`data-rail="none"`).
+
   `panelOpen` and `inspectorOpen` only matter below `wide`, where the panel and inspector are always in view.
   `dockOpen` left `undefined` follows `defaultDockOpen`. The editor puts its own toggles in the top bar or the
   rail and binds these.
@@ -148,6 +151,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   data-editor-shell
   data-mode={mode}
   data-dock={dockPlacement}
+  data-rail={rail ? 'present' : 'none'}
   data-testid={testId}
   style:--dock-lift={dockLift}
 >
@@ -288,6 +292,33 @@ function sheetStyle(name: ShellRegion): string | undefined {
       'canvas'
       'status'
       'rail';
+  }
+
+  /* A screen with no destinations (Home) gives the rail's column, and the tab bar's row, to the canvas. */
+  .shell[data-mode='wide'][data-rail='none'] {
+    grid-template-columns: var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
+    grid-template-areas:
+      'topbar topbar topbar'
+      'panel canvas inspector'
+      'panel dock inspector'
+      'status status status';
+  }
+
+  .shell[data-mode='wide'][data-rail='none'][data-dock='sheet'] {
+    grid-template-areas:
+      'topbar topbar topbar'
+      'panel canvas inspector'
+      'panel canvas inspector'
+      'status status status';
+  }
+
+  .shell[data-mode='medium'][data-rail='none'],
+  .shell[data-mode='compact'][data-rail='none'] {
+    grid-template-rows: var(--shell-topbar) minmax(0, 1fr) auto;
+    grid-template-areas:
+      'topbar'
+      'canvas'
+      'status';
   }
 
   .region {
