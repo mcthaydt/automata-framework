@@ -44,6 +44,9 @@ interface Workflow {
 }
 const workflow = (name: string): Workflow => parse(workflowText(name)) as Workflow
 const packageJson = (path: string) => JSON.parse(readFileSync(join(root, path, 'package.json'), 'utf8'))
+// What the root scripts that CI calls put in front of turbo: two vitest workers on CI, the caller's own count if it
+// sets one, nothing locally (see 'the load one CI job puts on the shared Mac').
+const VITEST_CAP = 'VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}}'
 
 const ALL = ['ci.yml', 'game-ci.yml', 'game-release.yml', 'release-packages.yml', 'consumer-smoke.yml']
 
@@ -200,7 +203,7 @@ describe('parity across packages', () => {
     // mode's 15 s: on af-mac's first run (2026-10-17, PR #75, run 39073430409) examples-runner's first golden,
     // which imports a whole game cold, took 15.9 s in Chromium and 17.0 s in WebKit.
     expect(packageJson('.').scripts['test:parity']).toBe(
-      'turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000',
+      `${VITEST_CAP} turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
   })
@@ -211,7 +214,9 @@ describe('parity across packages', () => {
   // 30.5 s, physics parity at 32–33 s, content's render-types file at 70.7 s). The root script passes a 90 s
   // default to every package's vitest, which still catches a hang; a test's own timeout still wins.
   it('gives every unit suite a 90 s default timeout through the root test:unit script', () => {
-    expect(packageJson('.').scripts['test:unit']).toBe('turbo run test:unit -- --testTimeout=90000')
+    expect(packageJson('.').scripts['test:unit']).toBe(
+      `${VITEST_CAP} turbo run test:unit -- --testTimeout=90000`,
+    )
     // The flag only means something to vitest, so every package's test:unit must be a vitest run.
     for (const path of workspacePackages) {
       const script = packageJson(path).scripts?.['test:unit']
@@ -265,6 +270,48 @@ describe('parity across packages', () => {
         /^vitest run --project browsers( --project [\w-]+)*$/,
       )
     }
+  })
+})
+
+// af-mac, af-mac-2 and af-mac-web are three runners on one Mac M1. On 2026-10-23 their jobs ran at a load average up
+// to 115 and every failure was a 30 s or 90 s timeout (hub, automata/inbox/2026-10-23-1705-hub-cap-test-workers.md).
+// Nothing capped what one job starts: Playwright's default of half the cores per run, turbo's 10 packages at once
+// with vitest's `cores - 1` workers each (more than 70 threads on 8 cores), and nine parity browsers each opening
+// `cores - 1` pages. Vitest reads VITEST_MAX_WORKERS for every project, browser and layout projects included, so
+// the root scripts that CI calls set it; turbo's strict environment would drop it, so turbo.json passes it on.
+describe('the load one CI job puts on the shared Mac', () => {
+  const scripts = packageJson('.').scripts as Record<string, string>
+  const turbo = JSON.parse(readFileSync(join(root, 'turbo.json'), 'utf8')) as {
+    concurrency?: string
+    globalPassThroughEnv?: string[]
+  }
+  const CAPPED = ['test:unit', 'test:parity', 'evidence']
+
+  it('starts two vitest workers per project on CI, in the three root scripts that CI calls', () => {
+    for (const name of CAPPED) expect(scripts[name], name).toMatch(/^VITEST_MAX_WORKERS=\S+ turbo run /)
+    const ci = workflow('ci.yml')
+    const calls = JSON.stringify(ci.jobs)
+    for (const name of ['test:unit', 'test:parity', 'evidence']) expect(calls).toContain(`pnpm ${name}`)
+  })
+
+  it('caps only on CI: two there, the caller’s own count if it sets one, empty (vitest ignores it) otherwise', () => {
+    // The real prefix, run by sh with a bare environment. Vitest only reads a non-empty VITEST_MAX_WORKERS.
+    const prefix = /^(VITEST_MAX_WORKERS=\S+) turbo run /.exec(scripts['test:unit'] ?? '')?.[1] ?? ''
+    const workers = (env: Record<string, string>): string =>
+      execFileSync('sh', ['-c', `${prefix} printenv VITEST_MAX_WORKERS`], {
+        env: { PATH: process.env.PATH ?? '', ...env },
+        encoding: 'utf8',
+      }).trim()
+    expect(workers({}), 'a developer').toBe('')
+    expect(workers({ CI: 'true' }), 'CI').toBe('2')
+    expect(workers({ CI: 'true', VITEST_MAX_WORKERS: '3' }), 'CI with an override').toBe('3')
+    expect(workers({ VITEST_MAX_WORKERS: '5' }), 'a developer with a count').toBe('5')
+  })
+
+  it('lets turbo hand VITEST_MAX_WORKERS to its tasks, and runs at most four packages at once', () => {
+    expect(turbo.globalPassThroughEnv).toContain('VITEST_MAX_WORKERS')
+    // Four packages with two workers each are eight threads. The parity scripts' own `--concurrency=3` still wins.
+    expect(turbo.concurrency).toBe('4')
   })
 })
 
@@ -455,7 +502,7 @@ describe('ci.yml evidence file (DX spec §3.10)', () => {
 
   it('runs every golden package’s test:evidence, then writes evidence.json from their reports', () => {
     expect(scripts.evidence).toBe(
-      'turbo run test:evidence --concurrency=3 -- --browser.connectTimeout=120000 && node tooling/evidence/src/cli.ts',
+      `${VITEST_CAP} turbo run test:evidence --concurrency=3 -- --browser.connectTimeout=120000 && node tooling/evidence/src/cli.ts`,
     )
     for (const path of GOLDEN_PACKAGES)
       expect(packageJson(path).scripts['test:evidence'], path).toMatch(
