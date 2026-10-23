@@ -65,6 +65,15 @@ export interface Save<S> {
    * already wires every trigger to its source; this is for a game that raises one itself.
    */
   autosave(trigger: AutosaveTrigger): Effect.Effect<void>
+  /**
+   * True while the loaded slot holds something another device wrote after it was loaded (M5-D6). Nothing is
+   * reloaded and autosave stays on. Lowered by `keepPlaying`, `loadNewer` or any load.
+   */
+  readonly changedElsewhere: Subscribable.Subscribable<boolean>
+  /** Loads the loaded slot again, so the game plays what the other device wrote. Dies when nothing is loaded. */
+  loadNewer(): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>
+  /** The player chose to carry on: lowers `changedElsewhere`. The next write overwrites the other device's, as any write would. */
+  keepPlaying(): void
 }
 
 export interface SaveServiceOptions {
@@ -122,10 +131,14 @@ export function saveService<S>(
     const loadedRef = yield* SubscriptionRef.make<number | undefined>(undefined)
     let loadedSlot: number | undefined
     const pending = new Map<number, () => S>()
+    const changedElsewhereRef = yield* SubscriptionRef.make(false)
     const setLoaded = (slot: number) =>
       Effect.suspend(() => {
         loadedSlot = slot
-        return SubscriptionRef.set(loadedRef, slot)
+        // A fresh load is the newest there is: whatever another device wrote is what was just read.
+        return SubscriptionRef.set(changedElsewhereRef, false).pipe(
+          Effect.zipRight(SubscriptionRef.set(loadedRef, slot)),
+        )
       })
 
     const stateOf = (slot: number) => Effect.map(SubscriptionRef.get(ref), (all) => all[slot])
@@ -265,6 +278,44 @@ export function saveService<S>(
     const autosave = (trigger: AutosaveTrigger): Effect.Effect<void> =>
       policy.on.has(trigger) ? flushPending : Effect.void
 
+    const loadNewer = () =>
+      Effect.suspend(() =>
+        loadedSlot === undefined
+          ? Effect.dieMessage(`Save '${def.key}': loadNewer needs a loaded slot`)
+          : load(loadedSlot),
+      )
+    const keepPlaying = (): void => {
+      Effect.runSync(SubscriptionRef.set(changedElsewhereRef, false))
+    }
+
+    // Another device wrote a slot (spec §5, M5-D6): the list and what this service believes the host holds follow
+    // the host's value, at the slot's turn so a write in flight lands first. The slot being played is not reloaded:
+    // the flag goes up and the game decides. The echo of this game's own write is not news.
+    const changedOnHost = (slot: number) =>
+      gateOf(slot).withPermits(1)(
+        Effect.gen(function* () {
+          const raw = yield* hosting.saves.get(slotKey(def, slot))
+          const read = raw === null ? undefined : readSave(def, raw)
+          const unchanged =
+            raw === null
+              ? (yield* stateOf(slot))?.kind === 'empty'
+              : read?.ok === true && identityOf(read.envelope) === lastKnown[slot]
+          if (unchanged) return
+          yield* setState(slot, slotState(def, slot, raw, contentHash))
+          remember(slot, raw)
+          if (slot !== loadedSlot) return
+          yield* SubscriptionRef.set(changedElsewhereRef, true)
+          bus.publish('save.changedElsewhere', { key: def.key, slot })
+        }),
+      )
+    yield* hosting.saves.changed.pipe(
+      Stream.runForEach(({ key }) => {
+        const slot = slotOf(def, key)
+        return slot === undefined ? Effect.void : Effect.ignore(changedOnHost(slot))
+      }),
+      Effect.forkScoped,
+    )
+
     // The triggers, each wired to its source for as long as the scope is open (spec §4.4). A trigger that comes
     // from outside Effect (the bus) starts its flush on this service's runtime, so it sees the same Clock.
     const runFork = Runtime.runFork(yield* Effect.runtime<never>())
@@ -319,6 +370,12 @@ export function saveService<S>(
       touch,
       flushPending,
       autosave,
+      changedElsewhere: Subscribable.make({
+        get: SubscriptionRef.get(changedElsewhereRef),
+        changes: changedElsewhereRef.changes,
+      }),
+      loadNewer,
+      keepPlaying,
     }
   })
 }

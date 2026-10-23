@@ -1,7 +1,7 @@
-import { Hosting } from '@mcthaydt/automata-host'
-import { FakeHostHandle, HostingTest, runScoped } from '@mcthaydt/automata-host/testing'
+import { Hosting, type HostingSaves } from '@mcthaydt/automata-host'
+import { FakeHostHandle, HostingTest, manualClock, runScoped } from '@mcthaydt/automata-host/testing'
 import { settle } from '@ruken/sdk-host/testing'
-import { Deferred, Effect, Either, Exit, Fiber, Scope, Stream, TestClock, TestContext } from 'effect'
+import { Deferred, Effect, Either, Exit, Fiber, PubSub, Scope, Stream, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
@@ -45,10 +45,9 @@ const stored = (fields: Partial<SaveEnvelope> = {}) =>
     ...fields,
   })
 
-type Facts = { [K in 'save.written' | 'save.failed' | 'save.loaded']: [K, RuntimeFacts[K]] }[
-  | 'save.written'
-  | 'save.failed'
-  | 'save.loaded']
+type Facts = {
+  [K in 'save.written' | 'save.failed' | 'save.loaded' | 'save.changedElsewhere']: [K, RuntimeFacts[K]]
+}['save.written' | 'save.failed' | 'save.loaded' | 'save.changedElsewhere']
 
 /** Runs `test` with a `Save` over a fake host seeded with `saves`, collecting the save facts in order. */
 function withSave<A, E>(
@@ -67,6 +66,7 @@ function withSave<A, E>(
       bus.subscribe('save.written', (fact) => facts.push(['save.written', fact]))
       bus.subscribe('save.failed', (fact) => facts.push(['save.failed', fact]))
       bus.subscribe('save.loaded', (fact) => facts.push(['save.loaded', fact]))
+      bus.subscribe('save.changedElsewhere', (fact) => facts.push(['save.changedElsewhere', fact]))
       const save = yield* saveService(def, { contentHash: BUILD }).pipe(
         Effect.provideService(PresentationBus, bus),
       )
@@ -697,6 +697,215 @@ describe('the autosave triggers (M5 spec §4.4, S-d)', () => {
         yield* Effect.promise(() => host.bridge.exit())
         expect(sentTypes(host)).toEqual(['saves.set', 'saves.flush', 'session.exitReady'])
       }),
+    )
+  })
+})
+
+describe('a change on another device while a slot is loaded (M5 spec §5, M5-D6)', () => {
+  const kite = { name: 'Kite', bestTime: 12, coins: 4 }
+  const theirs = stored({ savedAt: 2000, label: 'Desk PC', data: { name: 'Kite', bestTime: 20, coins: 99 } })
+  type Change = Stream.Stream.Success<HostingSaves['changed']>
+
+  /**
+   * Like `withSave`, but `saves.changed` is a stream the test drives with `elsewhere`, which also puts `raw` where
+   * the host holds the key (null removes it) so the service's re-read finds it. The fake host pushes a change only
+   * when a conflict is resolved (R-7), so the one test below that uses the real path says so.
+   */
+  function withRemote<A, E>(
+    saves: Record<string, string>,
+    test: (
+      save: Save<Run>,
+      facts: Facts[],
+      elsewhere: (key: string, raw: string | null) => Effect.Effect<void>,
+    ) => Effect.Effect<A, E, Hosting | FakeHostHandle | Scope.Scope>,
+  ): Promise<A> {
+    return runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const changes = yield* PubSub.unbounded<Change>()
+        const remote: Hosting = {
+          ...hosting,
+          saves: { ...hosting.saves, changed: Stream.fromPubSub(changes) },
+        }
+        const elsewhere = (key: string, raw: string | null) =>
+          Effect.gen(function* () {
+            if (raw === null) yield* Effect.ignore(hosting.saves.remove(key))
+            else yield* Effect.ignore(hosting.saves.set(key, raw))
+            yield* PubSub.publish(changes, { key, value: raw, revision: 1 })
+            yield* settled
+          })
+        const bus = yield* makePresentationBus()
+        const facts: Facts[] = []
+        bus.subscribe('save.loaded', (fact) => facts.push(['save.loaded', fact]))
+        bus.subscribe('save.changedElsewhere', (fact) => facts.push(['save.changedElsewhere', fact]))
+        const save = yield* saveService(run, { contentHash: BUILD }).pipe(
+          Effect.provideService(Hosting, remote),
+          Effect.provideService(PresentationBus, bus),
+        )
+        yield* settled
+        return yield* test(save, facts, elsewhere)
+      }).pipe(Effect.provide(HostingTest({ host: { saves } })), Effect.provide(TestContext.TestContext)),
+    )
+  }
+
+  it('holds: the flag is up, a fact is published, the list shows the other device, the loaded data is not touched', async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, facts, elsewhere) =>
+      Effect.gen(function* () {
+        const loaded = yield* save.load(1)
+        expect(yield* save.changedElsewhere.get).toBe(false)
+        yield* elsewhere('run.slot.1', theirs)
+        expect(yield* save.changedElsewhere.get).toBe(true)
+        expect(facts).toEqual([
+          ['save.loaded', { key: 'run', slot: 1 }],
+          ['save.changedElsewhere', { key: 'run', slot: 1 }],
+        ])
+        expect((yield* save.slots.get)[1]).toMatchObject({
+          kind: 'ready',
+          meta: { savedAt: 2000, label: 'Desk PC' },
+        })
+        expect(yield* save.loaded.get).toBe(1)
+        expect(loaded.data).toEqual(kite)
+      }),
+    )
+  })
+
+  it('Keep playing lowers the flag and leaves autosave on: the next write overwrites the other device', async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, _facts, elsewhere) =>
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(1)
+        yield* elsewhere('run.slot.1', theirs)
+        save.keepPlaying()
+        expect(yield* save.changedElsewhere.get).toBe(false)
+
+        save.touch(() => ({ ...kite, coins: 5 }))
+        yield* save.flushPending
+        yield* settled
+        const last = sentByGame('saves.set').at(-1) as { value: string }
+        expect(JSON.parse(last.value).data.coins).toBe(5)
+        expect(yield* hosting.saves.get('run.slot.1')).toBe(last.value)
+      }),
+    )
+  })
+
+  it("Load newer returns the other device's data, lowers the flag and sends nothing", async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, facts, elsewhere) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(1)
+        yield* elsewhere('run.slot.1', theirs)
+        const before = sentByGame('saves.set').length
+        const loaded = yield* save.loadNewer()
+        expect(loaded).toMatchObject({
+          slot: 1,
+          data: { bestTime: 20, coins: 99 },
+          meta: { label: 'Desk PC' },
+        })
+        expect(yield* save.changedElsewhere.get).toBe(false)
+        expect(facts.filter(([name]) => name === 'save.loaded')).toHaveLength(2)
+        expect(sentByGame('saves.set')).toHaveLength(before)
+      }),
+    )
+  })
+
+  it('only refreshes the list for a slot that is not the one being played, or for a key that is not a slot', async () => {
+    await withRemote({ 'run.slot.0': stored() }, (save, facts, elsewhere) =>
+      Effect.gen(function* () {
+        yield* save.load(0)
+        yield* elsewhere('run.slot.2', theirs)
+        yield* elsewhere('other', theirs)
+        expect((yield* save.slots.get)[2]).toMatchObject({ kind: 'ready', meta: { label: 'Desk PC' } })
+        expect(yield* save.changedElsewhere.get).toBe(false)
+        expect(facts.filter(([name]) => name === 'save.changedElsewhere')).toEqual([])
+      }),
+    )
+  })
+
+  it("does not take the echo of the game's own write for another device", async () => {
+    await withRemote({}, (save, facts, elsewhere) =>
+      Effect.gen(function* () {
+        yield* save.load(0)
+        save.touch(() => kite)
+        yield* save.flushPending
+        const hosting = yield* Hosting
+        yield* elsewhere('run.slot.0', yield* hosting.saves.get('run.slot.0'))
+        expect(yield* save.changedElsewhere.get).toBe(false)
+        expect(facts.filter(([name]) => name === 'save.changedElsewhere')).toEqual([])
+      }),
+    )
+  })
+
+  it('takes a removal on another device as a change: the slot is empty and Load newer loads it empty', async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, _facts, elsewhere) =>
+      Effect.gen(function* () {
+        yield* save.load(1)
+        yield* elsewhere('run.slot.1', null)
+        expect(yield* save.changedElsewhere.get).toBe(true)
+        expect((yield* save.slots.get)[1]).toEqual({ kind: 'empty', slot: 1 })
+        expect(yield* save.loadNewer()).toEqual({
+          slot: 1,
+          data: { name: '', bestTime: 0, coins: 0 },
+          meta: undefined,
+        })
+      }),
+    )
+  })
+
+  it('leaves a save from a newer build or a damaged one as it is, whatever autosave has kept (S-e)', async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, _facts, elsewhere) =>
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(1)
+        save.touch(() => ({ ...kite, coins: 8 }))
+
+        const newer = stored({ version: 4 })
+        yield* elsewhere('run.slot.1', newer)
+        expect((yield* save.slots.get)[1]).toMatchObject({ kind: 'newer', version: 4 })
+        const before = sentByGame('saves.set').length // includes the `elsewhere` write above
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(before)
+        expect(yield* hosting.saves.get('run.slot.1')).toBe(newer)
+        expect(yield* Effect.flip(save.loadNewer())).toMatchObject({ _tag: 'SaveFromNewerBuild', version: 4 })
+
+        yield* elsewhere('run.slot.1', 'not json')
+        expect((yield* save.slots.get)[1]).toMatchObject({ kind: 'unreadable' })
+        // `elsewhere` puts the other device's value in the fake host with one `saves.set` of its own.
+        const beforeDamaged = sentByGame('saves.set').length
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(beforeDamaged)
+        expect(yield* hosting.saves.get('run.slot.1')).toBe('not json')
+      }),
+    )
+  })
+
+  it("arrives from the host's own conflict answer, 'theirs' (the fake host's only way to push, R-7)", async () => {
+    const clock = manualClock()
+    await runScoped(
+      Effect.gen(function* () {
+        const { host } = yield* FakeHostHandle
+        const bus = yield* makePresentationBus()
+        const save = yield* saveService(run, { contentHash: BUILD }).pipe(
+          Effect.provideService(PresentationBus, bus),
+        )
+        yield* save.load(0)
+        host.fakes.server.remoteWrite('run.slot.0', theirs, 'Desk PC')
+        save.touch(() => ({ ...kite, coins: 5 }))
+        yield* save.flushPending
+        yield* settled
+        clock.advance(60_000)
+        yield* settled
+        yield* Effect.promise(() => host.bridge.resolveConflict('run.slot.0', 'theirs'))
+        yield* settled
+        expect(yield* save.changedElsewhere.get).toBe(true)
+        expect((yield* save.slots.get)[0]).toMatchObject({ kind: 'ready', meta: { label: 'Desk PC' } })
+      }).pipe(
+        Effect.provide(HostingTest({ host: { clock, saves: { 'run.slot.0': stored() } } })),
+        Effect.provide(TestContext.TestContext),
+      ),
     )
   })
 })
