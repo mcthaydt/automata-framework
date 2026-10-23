@@ -5,20 +5,14 @@
 import type { Blockout } from '../../format/blockout.schema'
 import { BlockoutError, type Expanded, expand } from '../../format/expand'
 import { type ResolvedMap, resolveMap } from '../../geometry/sectors'
-import { type CheckResult, checkResult, type Problem, place, sectorSelection } from '../check'
+import { type CheckResult, checkResult } from '../check'
 import { genericChecks } from '../generic-checks'
+import { roomsProblem } from '../rooms-problem'
+import { wallLocator } from '../wall-locator'
 import { doorProblems } from './doors'
 import { idProblems } from './ids'
 import { navProblems } from './nav-problems'
 import { puzzleHotspotProblems } from './puzzle-hotspots'
-import { wallLocator } from './wall-locator'
-
-/** The room a resolve error is about, when it says (`hall: unknown portal target counter`). */
-function roomsProblem(error: unknown): Problem {
-  const message = error instanceof Error ? error.message : String(error)
-  const room = /^(.+): unknown portal target /.exec(message)?.[1]
-  return { message, locator: room === undefined ? undefined : place(() => sectorSelection(room)) }
-}
 
 export interface LastLightOptions {
   /** The hotspot ids the level's puzzle acts on; `null`, or absent, is a level with no puzzle. */
@@ -40,7 +34,7 @@ export function lastLightChecks(blockout: Blockout, options: LastLightOptions = 
   } catch (error) {
     return [ids, checkResult('rooms', [roomsProblem(error)])]
   }
-  const [sharedWalls, portals, overlap, heights] = genericChecks({ map, wall: wallLocator(blockout) })
+  const [sharedWalls, portals, overlap, heights] = genericChecks({ map, wall: wallLocator(blockout.rooms) })
   // Last Light's `openings` is the portals and then the doors, in one result.
   const openings = checkResult('openings', [...portals.problems, ...doorProblems(blockout, expanded)])
   const wanted = options.puzzleHotspots ?? null

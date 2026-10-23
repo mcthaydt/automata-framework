@@ -1,6 +1,6 @@
 // A geometry context for the tests of the generic checks: a level's sectors, resolved, with a wall's locator taken
 // straight from the expanded edge. (The real locator, which maps an edge back to the document's corner, is the
-// Last Light layer's `wallLocator`.)
+// `wallLocator`.)
 import { type GeometryContext, type Locator, wallSelection } from '../checks/check'
 import type { SectorDef } from '../format/expand'
 import type { MassDef } from '../format/sector.schema'
