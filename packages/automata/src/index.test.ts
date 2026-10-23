@@ -16,6 +16,7 @@ const FROM_GAME = [
   'defineGame',
   'defineSave',
   'keys',
+  'postFilter',
   'rect',
   'sprite',
   'startGame',

@@ -82,7 +82,7 @@ export const doorSchema: z.ZodType<DoorDef> = z.looseObject({
   id: z.string().optional(),
 })
 
-const TRIM_PIECES = ['skirting', 'wainscot', 'rail', 'capital'] as const
+export const TRIM_PIECES = ['skirting', 'wainscot', 'rail', 'capital'] as const
 
 /** One wall: what it is made of, what is set into it, and how it joins the next sector. Every member is optional. */
 export interface WallDef {

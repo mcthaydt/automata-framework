@@ -275,6 +275,35 @@ interface KeysOptions<Z extends z.ZodType> {
 }
 ```
 
+### `postFilter` (function)
+
+```ts
+function postFilter(name: string, spec: PostFilterSpec): PostFilterDef;
+```
+
+### `PostFilterDef` (interface)
+
+```ts
+interface PostFilterDef {
+    readonly name: string;
+    readonly glsl: string;
+    readonly wgsl: string;
+    readonly order: number;
+    readonly minTier: QualityTier | undefined;
+}
+```
+
+### `PostFilterSpec` (interface)
+
+```ts
+interface PostFilterSpec {
+    readonly glsl: string;
+    readonly wgsl: string;
+    readonly order?: number | undefined;
+    readonly minTier?: QualityTier | undefined;
+}
+```
+
 ### `rect` (function)
 
 ```ts

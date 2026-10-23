@@ -12,6 +12,10 @@ import type { TuningMeta } from '../tuning/check-tuning'
 /** The compiled content as it is written to `content.json` and hashed. */
 export type ContentData = Readonly<Record<string, unknown>>
 
+/**
+ * Everything a generator is given: the compiled content and its hash, the sim partition, the registered
+ * schemas, the message catalog and the tuning metadata.
+ */
 export interface GeneratorInput {
   readonly data: ContentData
   readonly hash: string
@@ -22,17 +26,27 @@ export interface GeneratorInput {
   readonly tuning: TuningMeta
 }
 
+/** What a generator returns: files to write and diagnostics to report. Both are optional. */
 export interface GeneratorOutput {
   /** Path relative to the output folder → the file's exact text. */
   readonly files?: Readonly<Record<string, string>>
   readonly diagnostics?: readonly Diagnostic[]
 }
 
+/**
+ * A generator: a unique name and a pure `generate` that turns compiled content into extra files. Create one
+ * with `defineContentGenerator`.
+ */
 export interface ContentGenerator {
   readonly name: string
   generate(input: GeneratorInput): GeneratorOutput
 }
 
+/**
+ * Defines a generator by name and `generate` function. Generators do no I/O: the compiler writes their files.
+ * A generator that throws, repeats another's name, returns a path outside the output folder or writes a file
+ * another generator wrote is reported as `InvalidContentConfig`.
+ */
 export function defineContentGenerator(
   name: string,
   generate: (input: GeneratorInput) => GeneratorOutput,

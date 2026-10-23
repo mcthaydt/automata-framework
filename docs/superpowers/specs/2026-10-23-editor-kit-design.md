@@ -81,7 +81,7 @@ Rules:
 - Regions are siblings that stay mounted. A mode change moves them with CSS (grid areas, fixed position, transforms) and never re-renders them elsewhere, so focus, scroll position and open transactions survive a rotation. A closed drawer or sheet is `inert` and `visibility: hidden`, not `display: none`, so its scroll position is kept.
 - The rail snippet is told `orientation` (`vertical` in `wide`, `horizontal` otherwise) so the editor draws the same destinations either way.
 - Keyboard, browser-bar and Stage Manager size changes do not remount regions or lose focus, scroll or selection (the geometry owner debounces; the shell keys regions by id).
-- Detent sheets have three detents (peek 96, half 50%, full 92%), a drag handle at least 44 high, and a scrim only at full.
+- Detent sheets have three detents (peek 96, or 192 for the dock: its 148 px and the handle; half 50%; full 92%, each of the room above the tab bar and status line), a drag handle at least 44 high, and a scrim only at full.
 - Every region that can scroll declares its scroll region; the canvas never scrolls the page (`touch-action: none`, overscroll locked).
 
 ### 4.3 `History<S>`
@@ -107,15 +107,15 @@ interface Transaction<S> { update(fn: (state: S) => S): void; commit(): void; ca
 
 - `apply` that returns the same state object records nothing.
 - A transaction shows live state to subscribers while open; `cancel` restores the state at `begin`; `commit` records one step. Opening a second transaction while one is open throws.
-- `undo` while a transaction is open cancels it first.
+- `undo` while a transaction is open cancels it and does nothing else (one undo gesture is one visible step back); `redo` while one is open does nothing. `canUndo` is true while one is open. A transaction that was cancelled, committed or cancelled by an undo is closed (`open` is `false`) and ignores further calls, because a gesture can end after a two-finger undo cancelled its transaction. `apply` while one is open throws, like a second `begin`: both throw `HistoryError` with code `transaction-open`. A transaction or `apply` that returns the same state object (identity, not equality) records nothing.
 - Depth limit 500 steps; the oldest drops silently and `canUndo` stays truthful.
 - Time comes from an injected clock (default `performance.now`), so coalescing tests use fake timers.
 
 ### 4.4 `Selection<Id>`, commands, keymap
 
 - `Selection<Id>`: `set`, `add`, `toggle`, `clear`, `range(from, to, order)`, `has`, `primary`, `subscribe`. Ids are strings or numbers; order is the caller's.
-- `defineCommand({ id, title, run, enabled?, shortcut? })`, `createCommandRegistry()`, `createKeymap(registry, platform)`. Shortcuts are written `Mod+Z`, `Mod+Shift+Z`, `Delete`, `Space`; `Mod` is Cmd on Apple, Ctrl elsewhere. A shortcut fires only when focus is not in a text field unless the command says `allowInText`.
-- Touch equivalents are registered by the shell, not the editor: two-finger tap = undo, three-finger tap = redo, on the canvas only, behind a setting (default on).
+- `defineCommand({ id, title, run, enabled?, shortcut?, allowInText? })` (commands close over the editor's own state, so `run` and `enabled` take no context; registering two commands with one shortcut, however written, or one id twice, throws), `createCommandRegistry()`, `createKeymap(registry, platform)`. Shortcuts are written `Mod+Z`, `Mod+Shift+Z`, `Delete`, `Space`; `Mod` is Cmd on Apple, Ctrl elsewhere. A shortcut fires only when focus is not in a text field unless the command says `allowInText`, and not while the command's `enabled()` is false (the key then falls through to the browser). The keymap takes a plain `KeyInput` (`key`, the four modifier flags and `inText`) so it needs no DOM; the app converts its `KeyboardEvent`, and `handle` returns whether a command ran so the app can `preventDefault`. `Selection`'s primary is the most recently selected id, and `range` with an id that is not in `order` changes nothing.
+- Touch equivalents are registered by the shell, not the editor: two-finger tap = undo, three-finger tap = redo (the `multiTap` event of §4.5), on the canvas only, behind a setting (default on).
 
 ### 4.5 Pointer pipeline (`gestures`)
 
@@ -126,13 +126,27 @@ interface Transaction<S> { update(fn: (state: S) => S): void; commit(): void; ca
 | `tap` / `doubleTap` | pointer up within slop and 300 ms; `count` and `pointerType` supplied |
 | `longPress` | held 450 ms inside slop; cancels the tap |
 | `dragStart` / `drag` / `dragEnd` | travel past slop (touch 8, pen 4, mouse 3); carries `pressure`, `tiltX`, `tiltY`, `pointerType`, `button`, `modifiers` |
-| `pan` / `pinch` | two touch pointers: centre delta, scale delta, rotation delta (rotation reported only if the editor asks) |
+| `pan` / `pinch` | two touch pointers, with `start`, `change` and `end` phases: centre delta, scale delta, rotation delta (rotation reported only if the editor asks) |
+| `multiTap` | every finger of two or three lifts within 300 ms without travelling past slop: `fingers` 2 or 3 |
 | `hover` | pen hover and mouse move without buttons |
 | `wheel` | wheel and trackpad: zoom with Ctrl/Meta, pan otherwise |
 
 Rules: a pen that is down or hovering within 300 ms makes touch pointers pan/pinch only (palm rejection); `pointercancel` ends the gesture with `cancelled: true` and never commits; `touch-action: none` is set by `attachGestures`; timers are injected. A second pointer arriving mid-drag converts the drag to pinch and emits `dragEnd` with `cancelled: true`.
 
 A `Viewport2D` helper holds pan, zoom, limits and the screen/world conversions, `zoomAt(point, factor)`, `fit(rect, padding)`, and snaps zoom to 1/8 steps above 100%.
+
+Details fixed while building EDK.3 (`createRecognizer`, `attachGestures`, `createViewport` in `src/gestures/`):
+
+- **A recognizer under the adapter.** `createRecognizer(handlers, options, clock)` takes plain `PointerSample`s (`down`, `move`, `up`, `cancel`, `hover`, `wheel`) and an injected `now` and timer set, and holds every rule; `attachGestures` only converts Pointer Events and wheel events into samples. The rules run on a fake clock in the renderer-free project; the adapter runs in jsdom against real `PointerEvent`s; real iPad Safari behavior is EDK.6's.
+- **Taps.** `tap` fires on every qualifying release with `count` (1, 2, 3 for taps in a row: same pointer kind, within 300 ms of the last release and within three slops of it); `doubleTap` fires in addition when the count reaches 2. No tap is held back to wait for a second. Slop is 8 (touch), 4 (pen), 3 (mouse) pixels of distance; travel of exactly the slop is still a tap.
+- **Drags.** `dragStart`, `drag` and `dragEnd` carry `x`, `y`, `startX`, `startY`, `dx`, `dy` (since the previous event, and since the press on `dragStart`), `pressure`, `tiltX`, `tiltY`, `pointerType`, `button` and `modifiers`; `dragEnd` adds `cancelled`; `dragStart` adds `afterLongPress`, so a held item can be picked up and moved. A drag cancels a pending long press.
+- **Palm rejection.** The pen is *active* while a pen pointer is down or was seen (down, moving or hovering) within 300 ms. A touch that lands while the pen is active is a palm: no `tap`, `longPress`, `drag` or `multiTap`. While the pen only hovers, two palms still `pan` and `pinch` (the spec's rule); **while the pen is in contact, touches are ignored entirely**, so a pan cannot fight an open stroke. A pen pointer going down cancels everything touch in flight and turns the fingers already down into ignored palms until they lift.
+- **Two touches.** A second finger during a drag ends it `cancelled: true` and starts a pair. A pair is silent until its centre or spread has travelled past the touch slop; then `pan` and `pinch` fire together with `phase` `start`, `change`, `end` (`end` carries `cancelled`). `pan` has the centre and its delta; `pinch` the centre, the step `scale`, the `totalScale` since `start`, and a rotation (radians, step and total) that is 0 unless `rotate: true` is passed. Lifting a finger ends the transform and the remaining fingers are inert until all lift. A third finger ends it too.
+- **`multiTap`.** If every finger of a cluster lifts within 300 ms and none travelled past the slop, `multiTap` fires once with `fingers` (the most down at once, 2 or 3) at the centroid of where they landed. The shell binds 2 to undo and 3 to redo (§4.4). A transform that began, a slow lift or a moved finger is no `multiTap`.
+- **Hover and wheel.** `hover` is a pen above the surface or a mouse with no button, never touch. `wheel` is `{ mode, x, y, dx, dy, scale }`: Ctrl or Meta zoom with `scale = 2 ** (-deltaY / 200)`, each step clamped to ±100 px; anything else pans, and `dx`, `dy` is how far the *content* should move (the negated delta), so `viewport.panBy(dx, dy)` applies it. The adapter turns line and page deltas into pixels and calls `preventDefault` only when the handlers include `wheel`.
+- **Teardown (EK-i).** `pointercancel` and a lost capture end the gesture `cancelled: true`. The teardown function releases every captured pointer, removes the listeners, restores the element's style and fires **nothing**, not even a cancelled end: whoever owns an open transaction cancels it when it tears the canvas down.
+- **Adapter details.** It sets `touch-action: none`, `user-select: none` and the touch callout off while attached, prevents the context menu (an option; a long press raises it on iPad), tolerates a `setPointerCapture` that throws, and feeds a pen's coalesced samples so a stroke has no corners.
+- **`Viewport2D` is immutable.** `createViewport({ size, pan?, zoom?, limits? })`; `pan` is the screen position of the world origin and `zoom` the screen pixels per world unit. `panBy`, `zoomAt`, `snapZoom`, `fit` and `resize` return a new viewport. Zoom is clamped to `[1/32, 64]` by default. `limits.bounds` (a world rect) keeps at least `limits.keep` (default 64) screen pixels of it in view on each axis, and a level smaller than that stays whole on screen. `snapZoom(point)` rounds a zoom above 1 to the nearest 1/8 about a screen point, so a pinch is smooth and ends on a crisp scale. `resize` keeps the world point at the centre.
 
 ### 4.6 Widgets
 
@@ -203,18 +217,20 @@ interface EntityDef {
 type FieldValues = Readonly<Record<string, FieldValue>>
 ```
 
-Pure functions (no DOM, no clock; validate shapes only, never the world):
+Pure functions (no DOM, no clock; validate shapes only, never the world), in `packages/editor-kit/src/fields/`:
 
 | Function | Behavior |
 |---|---|
-| `checkFieldDef(def)` | Problems with a definition: bad id, `min > max`, an enum without options or with duplicates, a `default` that fails `checkFieldValue`, `to` on a non-ref, `options` on a non-enum |
-| `defaultFieldValue(def)` | `default`, else the type's zero (`0`, `false`, `''`, first option, `#ffffff`, `0`, `undefined` for ref, `{x:0,y:0}`), and `[]` for a list; `undefined` for a `required` field |
-| `checkFieldValue(def, value)` | `undefined` when it fits, else `{ code, message }`: `wrongType`, `notInteger`, `belowMin`, `aboveMax`, `notAnOption`, `badColor`, `badRef`, `badPoint`, `badListItem` (with the index). A list of a required field may be empty |
-| `checkValues(fields, values)` | Problems for a whole instance: each field checked, a missing required field is `fieldMissing`, a value whose id has no field is `unknownField` |
-| `valuesWithDefaults(fields, values)` | The instance's values with every non-required missing field filled in |
-| `checkRetype(oldDef, newDef, instances)` | Before a definitions editor changes a field's type, bounds or options: the instances that would stop validating, so the editor refuses with a list and never loses data silently. Renaming a field is a separate `renameField` that keeps values by id. |
+| `checkFieldDef(def)` | Problems with one definition, in a stable order: `badId`, `wrongTypeProperty` (`min`, `max` or `step` on a type that is not `int` or `float`, `options` on a non-enum, `to` on a non-ref, `multiline` on a non-text; the message names the property), `badBounds` (`min > max`, or a bound that is not finite), `badStep` (not a positive number), `noOptions` and `duplicateOption` (enum), `badDefault` (a `default` that fails `checkFieldValue`, or any `default` on a `required` field) |
+| `checkEntityDef(def)` | The entity's `badEntityId` and `badEntityColor` (`#rrggbb` or a `group/name` token), then each field's problems tagged with its `fieldId` and `fieldIndex`, and `duplicateFieldId` at the later occurrence |
+| `defaultFieldValue(def)` | `undefined` for a `required` field; else `default`; else `[]` for a list; else the type's zero (`0` moved into the bounds, `false`, `''`, first option, `#ffffff`, `0` for an angle, `{x:0,y:0}`, and `undefined` for a ref until one is picked) |
+| `checkFieldValue(def, value)` | `undefined` when it fits, else `{ code, message }`: `wrongType`, `notInteger`, `belowMin`, `aboveMax`, `notAnOption`, `badColor`, `badRef`, `badPoint`, `badListItem` (with the `index` of the first bad item and its own problem as `cause`). `int` needs a whole number, `float` and `angle` a finite number (`NaN` and the infinities are `wrongType`, a project file cannot hold them); `min` and `max` bound `int` and `float` only, because an angle wraps; a color is `#rrggbb` in either case; a point's coordinates are finite. A list of a required field may be empty |
+| `checkValues(fields, values)` | Problems for a whole instance: each field in definition order (a missing required field is `fieldMissing`, an explicit `undefined` counts as missing), then every value whose id has no field as `unknownField`, sorted. Each problem carries its `fieldId` |
+| `valuesWithDefaults(fields, values)` | The instance's values with every missing field that has a stand-in filled in (its default, else its type's zero); required fields and refs without a default stay missing; the same object when nothing is filled |
+| `checkRetype(oldDef, newDef, instances)` | Before a definitions editor changes a field's type, bounds, options, list flag or `required`: the instances (`{ id, values }`) whose value would stop validating, each with its problem, so the editor refuses with a list and never loses data silently. An instance that already failed the old definition is not listed (`checkValues` reports it; the retype did not break it). The value is read by `oldDef.id`, so a rename combined with a retype is one call |
+| `renameField(def, from, to)` and `renameFieldValues(values, from, to)` | The entity with one field's id changed in place (`unknownField`, `badId` and `duplicateFieldId` refuse), and an instance's values with the value moved to the new id, keeping key order. Neither mutates; together they keep values by id (EK-j) |
 
-A reference's `target` and `container` are opaque here; whether they resolve is the editor's check (2D `brokenRef`). Zod schemas for `FieldDef` and `EntityDef` are exported for the editors' file schemas. Editors extend `EntityDef` by intersection (`EntityDef2D = EntityDef & { shape, size, pivot, … }`); the kit never learns those facts.
+A reference's `target` and `container` are opaque here; whether they resolve is the editor's check (2D `brokenRef`). Zod schemas (`fieldValueSchema`, `fieldValuesSchema`, `fieldDefSchema`, `entityDefSchema`) are exported for the editors' file schemas: strict objects, so an unknown key is a parse error, and `fieldDefSchema` and `entityDefSchema` run `checkFieldDef` and `checkEntityDef` in `superRefine`, so a file that parses has passed the rules the definitions editor shows. The value schemas accept any well-formed shape, because only `checkValues` knows the definition. Editors extend `EntityDef` by intersection (`EntityDef2D = EntityDef & { shape, size, pivot, … }`); the kit never learns those facts.
 
 Definitions editor widgets (field list, type picker, option editor, default editor) are built from the §4.6 widgets in the editor that needs them; if both editors build the same one it moves here.
 
