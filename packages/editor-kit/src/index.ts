@@ -1,3 +1,5 @@
+export { type Command, type CommandRegistry, createCommandRegistry, defineCommand } from './commands/command'
+export { normalizeShortcut, parseShortcut, type Shortcut } from './commands/shortcut'
 export {
   checkEntityDef,
   checkFieldDef,
@@ -34,6 +36,16 @@ export {
   type RetypeBreakage,
   renameField,
 } from './fields/retype'
+export {
+  createHistory,
+  type History,
+  HistoryError,
+  type HistoryErrorCode,
+  type HistoryOptions,
+  type Transaction,
+} from './history/history'
+export { createKeymap, type KeyInput, type Keymap, type Platform } from './keymap/keymap'
+export { createSelection, type Selection, type SelectionId } from './selection/selection'
 export { default as EditorShell } from './shell/EditorShell.svelte'
 export {
   DETENTS,

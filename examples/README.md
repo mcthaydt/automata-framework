@@ -4,7 +4,7 @@ Owner direction (2026-10-11): every dimension has a teeny tiny **base project** 
 
 ## One-file examples (EX spec, replacing the demos below)
 
-The [EX spec](../docs/superpowers/specs/2026-10-16-examples-one-file-design.md) turns each demo into one file, like raylib's: `examples/<module>/<module>-<name>.ts`, a header (`Shows:`, `Controls:`, `Packages:`, `Difficulty:`, `Tier:`, and optionally `Host:`, `Golden:`, `Pending:`), 100 code lines or fewer, public imports only. This folder is one package (`@af-examples/examples`) on the runner in [`tooling/examples-runner`](../tooling/examples-runner/):
+The [EX spec](../docs/superpowers/specs/2026-10-16-examples-one-file-design.md) turns each demo into one file, like raylib's: `examples/<module>/<module>-<name>.ts`, a header (`Shows:`, `Controls:`, `Packages:`, `Difficulty:`, `Tier:`, and optionally `Host:`, `Golden:`, `Pending:`), 100 code lines or fewer, public imports only (`@mcthaydt/automata`, `zod`, an extension's entry; core packages are reached through the umbrella). This folder is one package (`@af-examples/examples`) on the runner in [`tooling/examples-runner`](../tooling/examples-runner/):
 
 - `pnpm examples` serves the index (every example under its module with its header fields and approved screenshot; **View** opens it under the fake host with its source beside it, **Source** shows the file) and the fake host; `pnpm examples <module>-<name>` opens one example; `pnpm build:examples` builds them all.
 - The catalog test checks every file's path, module, header, budget, imports, screenshot approval (`screenshots-approved.json`) and `Pending:` task; the `examples` and `examples-compact` Playwright projects boot each one under the fake host at Pixel 7 and 780 × 270; the parity test replays each `Golden:` example from `__goldens__/<module>-<name>.replay` in Node, Chromium, WebKit and Firefox; `pnpm boundaries` runs `--inline` over this folder. Adding an example adds one file (and its `.replay` when it declares `Golden:`).
@@ -42,7 +42,6 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 | `content/hot-reload` | content lane | `base-2d` | Built (feature-demos PR, #14) |
 | `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR (#7); needs no base |
 | `runtime/boot-and-flow` (boot program, veil overlay, error panels, Flow transitions) | runtime lane | none | Built (M1.5 runtime) |
-| `render-pixi/renderer-2d` (2D Pixi renderer, sub-tick interpolation, screen-space filter shader) | runtime lane | none | Built (M1.7 render-pixi) |
 | `physics/bodies-2d` (Rapier crates and balls in the room, pushed by the character; [spec](../docs/superpowers/specs/2026-10-11-m2-physics-demo-design.md)) | sim lane, M2.1b | `base-2d` | Built on `playRoom` (#14, finished in #17; spec §11 lists the deviations); waits on the Owner's look at the screenshots |
 | `physics/bodies-3d` | sim lane | `base-3d` | Waits on `base-3d` (M3) |
 | `sim/content-restore` (a snapshot is gated by gameplay content, not by store metadata; [spec](../docs/superpowers/specs/2026-10-11-m2-content-in-sim-design.md#8-demo-examplessimcontent-restore)) | content lane, M2.2 | `base-2d` | Package work in the M2.2 PR; the demo waits on base-2d content swap (room in `content/rooms/*.toml`, `createBaseSim({ content })`) |

@@ -26,12 +26,10 @@
     "games/emberwick": { "ignoreDependencies": ["@mcthaydt/automata-cli"] },
     // s8/measure.ts builds s8/no-effect.html, whose script is this file.
     "games/placeholder": { "entry": ["s8/no-effect.ts"] },
-    // The runner injects `@mcthaydt/automata-render-pixi/no-eval` into every page as a string (vite-plugin.ts),
-    // which knip cannot follow; the smoke specs run from the root playwright.config.ts.
-    "examples": {
-      "entry": ["e2e/*.e2e.ts"],
-      "ignoreDependencies": ["@mcthaydt/automata-render-pixi"]
-    },
+    // The smoke specs run from the root playwright.config.ts. This workspace loads that config for knip, so the
+    // config's patterns count every workspace's e2e files as entries; a workspace's own `test:e2e` script used
+    // to do it (`--config=../../../playwright.config.ts`), and the last one went with the demos (EX.4).
+    "examples": { "entry": ["e2e/*.e2e.ts"], "playwright": { "config": ["../playwright.config.ts"] } },
     // EDK.1: src/fonts.css imports the IBM Plex families with CSS @import, which knip does not follow.
     "packages/editor-kit": {
       "ignoreDependencies": ["@fontsource/ibm-plex-mono", "@fontsource/ibm-plex-sans"]
@@ -48,15 +46,6 @@
     "packages/cli": { "ignoreDependencies": ["smol-toml"] },
     // Known unused dependencies on main at QB.1 (2026-10-16), each a follow-up in docs/02 (QB.1 knip
     // baseline). Remove an entry when its follow-up lands; nothing new may be added here without one.
-    "examples/render-pixi/renderer-2d": {
-      "ignoreDependencies": [
-        "@mcthaydt/automata-host",
-        "@mcthaydt/automata-runtime",
-        "koota",
-        "zod",
-        "@ruken/manifest"
-      ]
-    },
     "tooling/frame-budget": { "ignoreDependencies": ["@ruken/manifest"] },
     "examples/runtime/boot-and-flow": {
       "ignoreDependencies": [

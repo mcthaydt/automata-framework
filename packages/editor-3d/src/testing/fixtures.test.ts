@@ -47,6 +47,35 @@ describe('the Last Light fixtures', () => {
     })
   }
 
+  it('geometry golden: has the resolved map and the nav answers of each of the four blockouts', () => {
+    const golden = JSON.parse(loadGolden('geometry')) as Record<string, Record<string, unknown>>
+    expect(Object.keys(golden)).toEqual([
+      'blockout-clinic',
+      'blockout-clinic-dawn',
+      'blockout-bay',
+      'blockout-prologue',
+    ])
+    for (const entry of Object.values(golden)) {
+      expect(Object.keys(entry)).toEqual(['map', 'grid', 'nav'])
+      expect(Object.keys(entry.map as object)).toEqual([
+        'sectors',
+        'masses',
+        'pieces',
+        'colliders',
+        'sightWalls',
+      ])
+      expect(Object.keys(entry.nav as object)).toEqual([
+        'nodes',
+        'clearOpen',
+        'clearShut',
+        'clearWalls',
+        'throughWall',
+        'nearWall',
+        'nearest',
+      ])
+    }
+  })
+
   it('are excluded from the formatter, which would rewrite their hand-written layout', () => {
     const biome = JSON.parse(
       readFileSync(fileURLToPath(new URL('../../../../biome.json', import.meta.url)), 'utf8'),

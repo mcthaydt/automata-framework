@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import * as editor3d from './index'
 
 describe('public entry', () => {
-  it('exports the codecs, the schemas, expand, patchJson and scan', () => {
+  it('exports the codecs, the schemas, expand, patchJson, scan and the geometry queries', () => {
     for (const name of [
       'blockoutCodec',
       'facilityCodec',
@@ -15,13 +15,25 @@ describe('public entry', () => {
       'scan',
       'readLayout',
       'insertElement',
+      'resolveMap',
+      'sectorAt',
+      'navWorld',
+      'clear',
     ]) {
       expect(editor3d, name).toHaveProperty(name)
     }
   })
 
   it('keeps test helpers and the verification guard out', () => {
-    for (const name of ['loadFixture', 'loadGolden', 'FIXTURE_NAMES', 'changedRegion', 'verifyPatched']) {
+    for (const name of [
+      'loadFixture',
+      'loadGolden',
+      'FIXTURE_NAMES',
+      'changedRegion',
+      'verifyPatched',
+      'navShape',
+      'room',
+    ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }
   })
