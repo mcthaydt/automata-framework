@@ -4,11 +4,18 @@
 //   (40 px within 180 ms) lasts exactly one tick; with no touch buttons, the play screen takes touch as a swipe
 //   surface. The arrows drive the same command.
 // Controls: on a touch screen, swipe left or right and flick down; or the arrows to steer
-// Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, zod
+// Packages: @mcthaydt/automata, zod
 // Difficulty: ★★☆☆
 // Tier: core
-import { defineGame, keys, rect } from '@mcthaydt/automata-game'
-import { defineCommand, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+import {
+  defineCommand,
+  defineComponent,
+  defineGame,
+  definePlugin,
+  defineSystem,
+  keys,
+  rect,
+} from '@mcthaydt/automata'
 import { z } from 'zod'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
