@@ -3,12 +3,11 @@
 // Shows: sprite() draws a texture by url, interpolated like rect(); `frames` slices a sheet into
 //   equal frames and the component's `frame` field picks one each tick.
 // Controls: none
-// Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim
+// Packages: @mcthaydt/automata
 // Difficulty: ★★☆☆
 // Tier: core
 // Golden: 120
-import { defineGame, sprite } from '@mcthaydt/automata-game'
-import { defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+import { defineComponent, defineGame, definePlugin, defineSystem, sprite } from '@mcthaydt/automata'
 
 // Two 16 × 16 frames of Wick running (resources/sprites/PROVENANCE.md).
 const sheet = new URL('../resources/sprites/wick-run.png', import.meta.url).href

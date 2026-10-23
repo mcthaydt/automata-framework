@@ -2,9 +2,9 @@
 //
 // Shows: a catalog fixture.
 // Controls: none
-// Packages: @mcthaydt/automata-sim
+// Packages: @mcthaydt/automata
 // Difficulty: ★☆☆☆
 // Tier: core
-import { createSim } from '@mcthaydt/automata-sim'
+import { defineSystem } from '@mcthaydt/automata'
 
-export default { id: 'core-good', start: createSim }
+export default { id: 'core-good', system: defineSystem }
