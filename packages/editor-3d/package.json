@@ -19,6 +19,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@mcthaydt/automata-editor-kit": "workspace:*",
     "zod": "4.6.5"
   },
   "devDependencies": {

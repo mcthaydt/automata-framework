@@ -23,8 +23,9 @@ const bounce = defineSystem('bounce', (ctx) => {
 
 const balls = definePlugin({ name: 'balls', defs: [Ball, bounce] })
 
-// The mini-map: the whole playfield scaled into a box in the bottom-left corner, clear of the Pause button.
-const MAP = { x: 8, y: 136, w: 64, h: 36 }
+// The mini-map: the whole playfield scaled into a box at the bottom left of the band a wide phone shows (about
+// y = 35 to y = 145 of the 180-high field), clear of the Pause button.
+const MAP = { x: 8, y: 104, w: 64, h: 36 }
 
 export default defineGame({
   id: 'shapes-draw-hud',
@@ -41,8 +42,8 @@ export default defineGame({
   views: { [Ball.id]: rect({ w: 8, h: 8, color: 0x00cdf9 }) },
   draw: (ctx) => {
     const all = ctx.sim.query(Ball)
-    ctx.rect(200, 160, 112, 14, 0x2e222f)
-    ctx.text(`tick ${ctx.sim.tick}   squares ${all.length}`, 204, 163, { color: 0xffffff, size: 8 })
+    ctx.rect(200, 126, 112, 14, 0x2e222f)
+    ctx.text(`tick ${ctx.sim.tick}   squares ${all.length}`, 204, 129, { color: 0xffffff, size: 8 })
 
     const { x, y, w, h } = MAP
     ctx.rect(x, y, w, h, 0x3e3546)
