@@ -1,5 +1,6 @@
 import { type CellKind, decodeRows, encodeRows } from './cells-codec'
 import type { Grid } from './grid'
+import { layerCells } from './level-layers'
 import { projectFileSchema } from './project.schema'
 import type {
   Definitions,
@@ -121,11 +122,6 @@ function checkDefinitionRefs(defs: Definitions, issues: OpenIssue[]): void {
   }
 }
 
-/** Cells across and down: the level's pixels over the layer's grid, rounded up. */
-function cellCount(size: Size, grid: number): { cols: number; rows: number } {
-  return { cols: Math.ceil(size.w / grid), rows: Math.ceil(size.h / grid) }
-}
-
 /** The grid of a layer's row strings, or an issue per row that does not decode. */
 function decodeGrid(
   rows: readonly string[],
@@ -136,7 +132,7 @@ function decodeGrid(
   field: 'rows' | 'overrides',
   issues: OpenIssue[],
 ): Grid | undefined {
-  const { cols, rows: rowCount } = cellCount(size, grid)
+  const { cols, rows: rowCount } = layerCells(size, grid)
   if (cols > MAX_LAYER_CELLS || rowCount > MAX_LAYER_CELLS) {
     issues.push({
       code: 'layerTooLarge',

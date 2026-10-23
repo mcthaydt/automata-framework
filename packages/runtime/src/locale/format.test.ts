@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { formatDuration, formatNumber, formatPercent, pluralCategory, selectPlural } from './format.js'
+import {
+  formatDateTime,
+  formatDuration,
+  formatNumber,
+  formatPercent,
+  pluralCategory,
+  selectPlural,
+} from './format.js'
 
 describe('format (PRODUCT spec §4 item 3)', () => {
   it("writes numbers in the reader's convention", () => {
@@ -19,6 +26,12 @@ describe('format (PRODUCT spec §4 item 3)', () => {
     expect(formatDuration('en', 75_999)).toBe('01:15')
     // Each part in the locale's digits.
     expect(formatDuration('ar-EG', 75_000)).toBe('٠١:١٥')
+  })
+
+  it('writes a date and time in the reader’s convention, in the zone it is asked for', () => {
+    const at = Date.UTC(2026, 9, 23, 14, 5)
+    expect(formatDateTime('en', at, { timeZone: 'UTC' })).toMatch(/^Oct 23, 2026,? 2:05[\u202f\u00a0 ]PM$/)
+    expect(formatDateTime('de', at, { timeZone: 'UTC' })).toMatch(/^23\.10\.2026,? 14:05$/)
   })
 
   it('answers the plural and ordinal category for a count', () => {

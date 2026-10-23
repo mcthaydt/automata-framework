@@ -61,12 +61,14 @@ describe('public entry', () => {
       'setHeights',
       'setLight',
       'setMaterials',
+      'setView',
       'moveCorner',
       'moveSector',
       'setWallKind',
       'setDoor',
       'setWindow',
       'setWallMaterial',
+      'setWallOcclude',
       'setWallFlags',
       'SectorAccessError',
       'inheritedMaterials',
@@ -102,6 +104,58 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the view core: the plan, the meshes, the camera and what they pick', () => {
+    for (const name of [
+      'selectionOf',
+      'PLAN_PX_PER_M',
+      'PLAN_LIMITS',
+      'planViewport',
+      'cameraOf',
+      'toScreen',
+      'toWorld',
+      'levelBounds',
+      'fitPlan',
+      'gridStep',
+      'gridLines',
+      'snapStep',
+      'snapValue',
+      'planScene',
+      'PICK_RADIUS',
+      'pickPlan',
+      'pickCorner',
+      'snapPlan',
+      'triangulate',
+      'buildSectorMesh',
+      'faceShade',
+      'EMPTY_BOUNDS',
+      'ORBIT_FOV',
+      'WALK_FOV',
+      'WALK_EYE_HEIGHT',
+      'forward',
+      'projectPoint',
+      'rayThrough',
+      'orbitCamera',
+      'orbitBy',
+      'fitOrbit',
+      'HOME_YAW',
+      'walkCamera',
+      'walkStart',
+      'facesEye',
+      'visibleSurfaces',
+      'surfaceVisibility',
+      'pickMesh',
+      'HEADINGS',
+      'headingPreview',
+      'OCCLUDES',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it('exports the plan controller', () => {
+    expect(editor3d).toHaveProperty('createPlanController')
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',
@@ -130,6 +184,13 @@ describe('public entry', () => {
       'buildRefusal',
       'wallOver',
       'PORTAL_MEMBERS',
+      // The view core's own helpers: the vector arithmetic and the shared picking parts.
+      'cross',
+      'dot',
+      'unit',
+      'wallNear',
+      'isLayerOff',
+      'stepOf',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }

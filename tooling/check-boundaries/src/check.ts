@@ -1,5 +1,6 @@
 import { dirname, relative, resolve } from 'node:path'
 import { parseSync } from 'oxc-parser'
+import { simEntryVerdict } from './sim-entries.ts'
 
 // Determinism boundary for packages/sim (A0+A1 spec §3.3 and §11). Works on the AST, so comments, strings,
 // property keys and type positions never produce false findings.
@@ -103,9 +104,6 @@ export const IMPORT_ALLOWED: ReadonlySet<string> = new Set([
   '@mcthaydt/automata-sim',
   '@mcthaydt/automata-sim/hash',
   '@mcthaydt/automata-sim/math',
-  // The physics extension's sim entry points (packages/physics), checked by the same root run (M2.1b spec §3.4).
-  '@mcthaydt/automata-physics/2d',
-  '@mcthaydt/automata-physics/3d',
 ])
 
 // Keys whose subtree is type-only: skipped entirely.
@@ -170,14 +168,23 @@ function staticMemberName(node: Node): string | undefined {
 }
 
 export function checkSource(file: string, code: string, options: CheckOptions = {}): Finding[] {
-  const importOk = (source: string): boolean => {
+  /** Whether `source` may be imported; `detail` explains a refusal the extension's own declaration caused. */
+  const importVerdict = (source: string): { ok: boolean; detail?: string } => {
     if (source.startsWith('./') || source.startsWith('../')) {
-      if (options.root === undefined) return true
+      if (options.root === undefined) return { ok: true }
       const target = relative(resolve(options.root), resolve(dirname(file), source))
-      return !target.startsWith('..')
+      return { ok: !target.startsWith('..') }
     }
-    return IMPORT_ALLOWED.has(source) || (options.allowImports?.includes(source) ?? false)
+    if (IMPORT_ALLOWED.has(source) || (options.allowImports?.includes(source) ?? false)) return { ok: true }
+    // An installed extension may declare sim entries of its own (P5-D2).
+    const verdict = simEntryVerdict(file, source)
+    return verdict.allowed
+      ? { ok: true }
+      : verdict.detail === undefined
+        ? { ok: false }
+        : { ok: false, detail: verdict.detail }
   }
+  const importOk = (source: string): boolean => importVerdict(source).ok
 
   const lineStarts = [0]
   for (let i = 0; i < code.length; i++) if (code[i] === '\n') lineStarts.push(i + 1)
@@ -220,13 +227,14 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
       case 'ExportNamedDeclaration':
       case 'ExportAllDeclaration': {
         const source = (node.source as { value?: string } | null)?.value
-        if (
-          source !== undefined &&
-          node.importKind !== 'type' &&
-          node.exportKind !== 'type' &&
-          !importOk(source)
-        ) {
-          report(node, 'import', `import of "${source}" is not allowed in the sim`)
+        if (source !== undefined && node.importKind !== 'type' && node.exportKind !== 'type') {
+          const verdict = importVerdict(source)
+          if (!verdict.ok)
+            report(
+              node,
+              'import',
+              `import of "${source}" is not allowed in the sim${verdict.detail === undefined ? '' : `: ${verdict.detail}`}`,
+            )
         }
         break
       }

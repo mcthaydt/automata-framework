@@ -37,6 +37,8 @@ export interface Diagnostic {
 export interface ProjectContext {
   /** Asset paths in the workspace, so a check can tell a missing image from a present one. */
   readonly assets?: readonly string[] | undefined
+  /** The measured size of those images by path, so a check can tell a replaced image from the one that was recorded. */
+  readonly imageSizes?: Readonly<Record<string, { readonly w: number; readonly h: number }>> | undefined
 }
 
 /** A rail destination. The component is named, and `app/` maps the name to a Svelte component. */
