@@ -2,8 +2,8 @@
 
 - **Spec:** [PRODUCT spec](../specs/2026-10-16-product-core-and-plus-design.md) §6 (Automata Plus, delivery, "Physics moves now"), §9 (ownership, the buy-and-add flow, failures), §10 (PRODUCT.5, acceptance P-c and P-d), §11 (PD-1, PD-2, PD-3); [EX spec](../specs/2026-10-16-examples-one-file-design.md) §6 (the physics row); [M2.4 spec](../specs/2026-10-11-m2-build-and-publish-design.md) (GitHub Packages, packs, consumer smoke); [M8 spec](../specs/2026-10-17-m8-cli-adoption-design.md) (the CLI; lists `automata add` and does not rebuild it).
 - **Task:** `PRODUCT.5 — automata-plus repo and automata add` in [02](../../02-master-delivery-plan.md). Lanes **ship** (registry, release) and **integration** (`automata add`), per spec §9. The Owner created the private repo `mcthaydt/automata-plus` (one commit, `3000c20`, a 55-byte README, checked 2026-10-23).
-- **Status:** drafted 2026-10-23. Nothing below is implemented. Slice 5a is this document and the bus filings.
-- **Progress:** 1 of 8 slices (5a, the plan). The slices after it each get their own PR and tick their own steps here.
+- **Status:** drafted 2026-10-23; decisions confirmed by the hub the same day. 5b and 5c are implemented and checked locally (draft PRs #179 and #177, CI pending); the rest is not started.
+- **Progress:** 3 of 8 slices (5a the plan, 5b, 5c). Each later slice gets its own PR and ticks its own steps here.
 
 PRODUCT.5 gates a lot: every Plus package task (M3's `post-retro` and `pipelines`, M4.11, M5.8, M6, M7), the Plus half of PRODUCT.1b, QB.5, and DX.11's first public publish (which must not contain `physics`). It is split so the pieces that need nothing from the Owner start first.
 
@@ -17,7 +17,9 @@ PRODUCT.5 gates a lot: every Plus package task (M3's `post-retro` and `pipelines
 
 ## Decisions
 
-Each is an agent default on the evidence above, reversible, and goes to the hub on the bus (one `kind: question` and one `kind: setup-request`, filed with this plan). Work that does not depend on the answer starts now.
+Each is an agent default on the evidence above and reversible.
+
+**Answers, 2026-10-23.** The hub decided that **P5-D1 to P5-D6 stand as written**, and applied the P5-D3 amendment to the approved EX spec row (`automata/inbox/2026-10-23-1915-hub-product5-defaults-stand.md`; the EX spec §6 row and the EX plan entry now carry it). The Owner's words, 2026-10-23 19:15:32Z, relayed in `automata/inbox/2026-10-23-1917-hub-owner-yes-plus-ci.md`: "Yes to a Plus repo CI workflow on af-mac, with the fork guard and the no-hosted-labels test." Runner `af-mac-plus` is registered on `mcthaydt/automata-plus` and online (labels `self-hosted`, `macOS`, `ARM64`, `af-mac`; `automata/inbox/2026-10-23-1925-tests-plus-runner-done.md`). It reaches the framework repository only through the Mac user's global git credential helper, so a Plus job clones AF with plain `git clone`; `actions/checkout` with the job token works for Plus itself and not for AF. A deploy key (the website's `AF_FRAMEWORK_DEPLOY_KEY` pattern) is the fallback if Plus CI should not depend on the Owner's `gh` login.
 
 | ID | Decision | Default | Reversal cost |
 |---|---|---|---|
@@ -36,7 +38,7 @@ Each is an agent default on the evidence above, reversible, and goes to the hub 
 | 5b | AF, `…-corepacks` | `tooling/core-packs`: pack the workspace for an outside project | 5a |
 | 5c | AF, `…-simentries` | Extensions declare their sim entries (P5-D2) | 5a |
 | 5d | AF, `…-add` | `automata add <kit>` in `packages/cli` | 5a |
-| 5e | Plus, `claude/project-thread-4vn53j` | The workspace skeleton, `core.ref` sync, CI | 5b; runner and workflow approval (bus) |
+| 5e | Plus, `claude/project-thread-4vn53j` | The workspace skeleton, `core.ref` sync, CI | 5b merged; the runner and the Owner's yes are in |
 | 5f | Plus, `…-physics` | `packages/physics` arrives with its tests and goldens | 5c, 5e |
 | 5g | AF, `…-dropphysics` | AF is core only: physics and the demo leave, every list that named them is updated | 5f merged and green on the Mac |
 | 5h | Plus (+ AF release workflow) | Registry, release, buyer smoke, mirror of core to GitHub Packages | Not planned here: needs the first core publish (which needs hosted Actions back, the Owner's billing fix), a read token (QB.5) |
@@ -63,10 +65,12 @@ Tests, written first (`pack.test.ts`, with an injected `pack` function and a tem
 
 Steps:
 
-- [ ] 1. Tests 1 to 5 red against an empty module; then the minimal `packWorkspace`.
-- [ ] 2. Move consumer-smoke's `packAll` onto it; `project.test.ts` stays green unchanged.
-- [ ] 3. The CLI (`--out`, `--extra`, `--source-commit` defaulting to `git rev-parse HEAD`), its usage test, test 6.
-- [ ] 4. Run it once on the built workspace and record the sizes and the closure in the log.
+- [x] 1. Tests 1 to 5 red against an empty module; then the minimal `packWorkspace`.
+- [x] 2. Move consumer-smoke's `packAll` onto it; `project.test.ts` stays green unchanged.
+- [x] 3. The CLI (`--out`, `--extra`, `--source-commit` defaulting to `git rev-parse HEAD`), its usage test, test 6.
+- [x] 4. Run it once on the built workspace and record the sizes and the closure in the log.
+
+As built (draft PR #179): `tooling/core-packs/src/{pack,args,cli}.ts`; the dirty-tree rule is `--allow-dirty`, which records `<sha>+dirty` (a pack never claims a commit it was not built from); test 6 runs the real `pnpm pack` over all nine published packages plus `@mcthaydt/evidence`; `packs.json` carries `sourceCommit` and per pack `name`, `version`, `file`, `sha256` and no overrides (a consumer writes its own `file:` paths, since the folder moves), so `consumerWorkspace` in `tooling/consumer-smoke` is unchanged.
 
 ## 5c. Extensions declare their sim entries
 
@@ -80,13 +84,15 @@ Tests, written first (`check.test.ts`, with a temporary project that has `node_m
 2. `@x/ext/3d` (not declared), `@x/ext/src/2d` (deep path) and a package with no declaration all give `import`.
 3. A malformed declaration gives one `import` finding naming the package, not a crash.
 4. A declaration in a package that the sim does not import changes nothing.
-5. `automata check` on a fixture game importing a declared entry passes the boundaries step (`packages/cli/src/check/run-check.test.ts`).
+5. The checker's CLI with no flags, run in a temporary game folder (what `automata check` runs: `automata-check-boundaries src/sim`), exits 0 for a declared entry and 1 for an undeclared one, with the declared list in the message (`cli.test.ts`). `run-check.test.ts` uses fakes for the tools, so it cannot prove this.
 
 Steps:
 
-- [ ] 1. Tests 1 to 4 red; implement the lookup.
-- [ ] 2. Test 5 and the cli fixture.
-- [ ] 3. Add the declaration to `packages/physics/package.json` in the same PR, so AF itself exercises it until 5g; `pnpm api-report`, `pnpm agent-skills --write` if they ask; a patch changeset for `@mcthaydt/automata-check-boundaries`.
+- [x] 1. Tests 1 to 4 red; implement the lookup (`src/sim-entries.ts`).
+- [x] 2. Test 5 (`cli.test.ts`).
+- [x] 3. Add the declaration to `packages/physics/package.json` in the same PR, so AF itself exercises it until 5g; a patch changeset for `@mcthaydt/automata-check-boundaries` and `@mcthaydt/automata-physics`. `pnpm api-report`, `pnpm agent-skills` and `pnpm api-index` needed no change.
+
+As built (draft PR #177): the declaration is validated with Zod, a new `zod` 4.6.5 dependency of `check-boundaries`; on the real tree, removing the declaration makes the physics demo's sim fail (`bodies.plugin.ts:15 import of "@mcthaydt/automata-physics/2d" is not allowed in the sim`) and restoring it gives 0 findings. AGENTS.md's boundaries line names the declaration.
 
 ## 5d. `automata add <kit>`
 
@@ -140,7 +146,7 @@ Steps:
 
 - [ ] 1. Tests 1 to 3 red; the three scripts.
 - [ ] 2. Test 5 (no package yet, so it passes vacuously; it is pinned for 5f) and the root files.
-- [ ] 3. The CI workflow and test 4. **Not merged until the hub answers with the Owner's words** (standing rule: no workflow change without them) **and the runner exists** (setup-request below).
+- [ ] 3. The CI workflow and test 4. The Owner's words and the runner are in (see Answers above); the PR quotes the words. It needs `core.ref` to name a commit that has `tooling/core-packs`, so it follows the merge of #179.
 - [ ] 4. First green run on the Mac.
 
 ## 5f. Physics arrives in Plus
@@ -196,4 +202,7 @@ Needs: the first core publish (the Owner said the release workflow can be cloud,
 
 | Date | Slice | Commits | Notes |
 |---|---|---|---|
-| 2026-10-23 | 5a | (this commit) | Spike (scratch workspace, not committed): `packages/physics` outside AF with `sim` and `testing` from packs; Node 13 files and 71 tests pass, as inside AF; `tsc` 7.0.2 exit 0; Chromium parity 2 files pass; WebKit, Firefox and evidence pending. Findings 2 to 5 above are read from the tree (`check-steps.ts`, `check.ts`, `bodies-2d` imports, `release-packages.yml`), not run. |
+| 2026-10-23 | 5a | `a28a5f8` | Spike (scratch workspace, not committed): `packages/physics` outside AF with `sim` and `testing` from packs; Node 13 files and 71 tests pass, as inside AF; `tsc` 7.0.2 exit 0; Chromium parity 2 files pass; WebKit, Firefox and evidence pending. Findings 2 to 5 above are read from the tree (`check-steps.ts`, `check.ts`, `bodies-2d` imports, `release-packages.yml`), not run. |
+| 2026-10-23 | 5a answers | (this commit) | The hub: defaults stand (inbox 1915); the Owner's yes to a Plus CI workflow on `af-mac` with the fork guard and the no-hosted-labels test (inbox 1917, 19:15:32Z); runner `af-mac-plus` online (inbox 1925). The P5-D3 amendment is applied to the EX spec §6 row and the EX plan. |
+| 2026-10-23 | 5c | `claude/project-thread-4vn53j-simentries`, draft PR #177 | Red first: `sim-entries.ts` did not exist; the hard-coded names let the "names no extension" test pass. 55 tests in `check-boundaries`; 7 of 7 planted mutants killed (one survived until `./a/../../outside` was a case). `pnpm check` 33 of 33; `pnpm build`, `api-report` (0 breaks), `api-index`, `agent-skills`, `check-changesets` (50, 0 problems). |
+| 2026-10-23 | 5b | `claude/project-thread-4vn53j-corepacks`, draft PR #179 | 21 tests in `core-packs`, 16 of 16 planted mutants killed (one survived until each of the four dependency fields had a case). The consumer smoke on the new packer, `--from packs`: all 11 steps pass. `pnpm packs --out … --extra @mcthaydt/evidence --allow-dirty`: 10 packs, about 370 KB (ui 108, ship 69, host 51, content 50, sim 36, testing 26, physics 12, evidence 10, check-boundaries 4, node 3). `pnpm check` 34 of 34. |
