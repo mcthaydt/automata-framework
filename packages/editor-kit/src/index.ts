@@ -62,7 +62,6 @@ export {
 export { createRecognizer, type GestureOptions, type Recognizer } from './gestures/recognizer'
 export {
   createViewport,
-  type Point,
   type Rect,
   type Size,
   type Viewport2D,
