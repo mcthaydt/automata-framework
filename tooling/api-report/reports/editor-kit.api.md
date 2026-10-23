@@ -19,6 +19,16 @@ interface AttachOptions extends GestureOptions {
 }
 ```
 
+### `BlockedProps` (interface)
+
+```ts
+interface BlockedProps {
+    readonly disabled?: boolean | undefined;
+    readonly reason?: string | undefined;
+    readonly onblocked?: ((reason: string | undefined) => void) | undefined;
+}
+```
+
 ### `checkEntityDef` (function)
 
 ```ts
@@ -47,6 +57,18 @@ function checkRetype(oldDef: FieldDef, newDef: FieldDef, instances: readonly Fie
 
 ```ts
 function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly InstanceProblem[];
+```
+
+### `Chips` (svelte)
+
+```ts
+component from './widgets/Chips.svelte'
+```
+
+### `ColorField` (svelte)
+
+```ts
+component from './widgets/ColorField.svelte'
 ```
 
 ### `Command` (interface)
@@ -103,6 +125,12 @@ function createRecognizer(handlers: GestureHandlers, options?: GestureOptions, c
 function createSelection<Id extends SelectionId>(): Selection<Id>;
 ```
 
+### `createToasts` (function)
+
+```ts
+function createToasts(options?: ToastOptions): ToastStore;
+```
+
 ### `createViewport` (function)
 
 ```ts
@@ -143,6 +171,12 @@ function detentLength(region: ShellRegion, detent: Detent): string;
 
 ```ts
 const DETENTS: readonly Detent[];
+```
+
+### `Dialog` (svelte)
+
+```ts
+component from './widgets/Dialog.svelte'
 ```
 
 ### `DockPlacement` (type)
@@ -192,6 +226,15 @@ interface DragStartGesture extends DragGesture {
 }
 ```
 
+### `EditEvent` (interface)
+
+```ts
+interface EditEvent<T> {
+    readonly value: T;
+    readonly phase: EditPhase;
+}
+```
+
 ### `EditorShell` (svelte)
 
 ```ts
@@ -212,6 +255,12 @@ interface EditorTokens {
         readonly ramp: Readonly<Record<string, RampEntry>>;
     };
 }
+```
+
+### `EditPhase` (type)
+
+```ts
+type EditPhase = 'set' | 'start' | 'update' | 'commit' | 'cancel';
 ```
 
 ### `ENTITY_ID` (const)
@@ -543,6 +592,12 @@ interface LongPressGesture {
 }
 ```
 
+### `Menu` (svelte)
+
+```ts
+component from './widgets/Menu.svelte'
+```
+
 ### `Modifiers` (interface)
 
 ```ts
@@ -552,6 +607,12 @@ interface Modifiers {
     readonly alt: boolean;
     readonly meta: boolean;
 }
+```
+
+### `moveRow` (function)
+
+```ts
+function moveRow<T>(items: readonly T[], isLocked: (item: T) => boolean, from: number, to: number): T[];
 ```
 
 ### `MultiTapGesture` (interface)
@@ -609,6 +670,25 @@ interface PanGesture {
 
 ```ts
 function parseShortcut(text: string): Shortcut;
+```
+
+### `Picker` (svelte)
+
+```ts
+component from './widgets/Picker.svelte'
+```
+
+### `PickerOption` (interface)
+
+```ts
+interface PickerOption {
+    readonly id: string;
+    readonly label: string;
+    readonly detail?: string | undefined;
+    readonly group?: string | undefined;
+    readonly disabled?: boolean | undefined;
+    readonly reason?: string | undefined;
+}
 ```
 
 ### `PinchGesture` (interface)
@@ -745,6 +825,12 @@ type RenameResult = {
 };
 ```
 
+### `ReorderList` (svelte)
+
+```ts
+component from './widgets/ReorderList.svelte'
+```
+
 ### `RetypeBreakage` (interface)
 
 ```ts
@@ -752,6 +838,12 @@ interface RetypeBreakage {
     readonly instanceId: string;
     readonly problem: InstanceProblem;
 }
+```
+
+### `Segmented` (svelte)
+
+```ts
+component from './widgets/Segmented.svelte'
 ```
 
 ### `Selection` (interface)
@@ -817,6 +909,36 @@ interface Size {
 }
 ```
 
+### `Slider` (svelte)
+
+```ts
+component from './widgets/Slider.svelte'
+```
+
+### `StatusLine` (svelte)
+
+```ts
+component from './widgets/StatusLine.svelte'
+```
+
+### `Stepper` (svelte)
+
+```ts
+component from './widgets/Stepper.svelte'
+```
+
+### `Swatch` (svelte)
+
+```ts
+component from './widgets/Swatch.svelte'
+```
+
+### `Tabs` (svelte)
+
+```ts
+component from './widgets/Tabs.svelte'
+```
+
 ### `TapGesture` (interface)
 
 ```ts
@@ -826,6 +948,70 @@ interface TapGesture {
     readonly count: number;
     readonly pointerType: PointerKind;
     readonly modifiers: Modifiers;
+}
+```
+
+### `Toast` (interface)
+
+```ts
+interface Toast {
+    readonly id: string;
+    readonly kind: ToastKind;
+    readonly message: string;
+    readonly action?: ToastAction;
+    readonly duration: number;
+}
+```
+
+### `ToastAction` (interface)
+
+```ts
+interface ToastAction {
+    readonly label: string;
+    readonly run: () => void;
+}
+```
+
+### `ToastInput` (interface)
+
+```ts
+interface ToastInput {
+    readonly kind?: ToastKind | undefined;
+    readonly message: string;
+    readonly action?: ToastAction | undefined;
+    readonly duration?: number | undefined;
+}
+```
+
+### `ToastKind` (type)
+
+```ts
+type ToastKind = 'info' | 'ok' | 'warn' | 'error';
+```
+
+### `ToastOptions` (interface)
+
+```ts
+interface ToastOptions {
+    readonly clock?: GestureClock | undefined;
+}
+```
+
+### `ToastRegion` (svelte)
+
+```ts
+component from './widgets/ToastRegion.svelte'
+```
+
+### `ToastStore` (interface)
+
+```ts
+interface ToastStore {
+    push(toast: ToastInput): string;
+    dismiss(id: string): void;
+    activate(id: string): void;
+    readonly items: readonly Toast[];
+    subscribe(run: (items: readonly Toast[]) => void): () => void;
 }
 ```
 
