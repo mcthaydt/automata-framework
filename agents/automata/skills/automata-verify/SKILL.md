@@ -1,6 +1,6 @@
 ---
 name: automata-verify
-description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, boards, no-eval, CSP). Use when automata check or the Automata hook reports findings.
+description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, boards, orientation, no-eval, CSP). Use when automata check or the Automata hook reports findings.
 ---
 
 # Running and reading `automata check`
@@ -14,6 +14,7 @@ folder (or pass the folder): `automata check [dir] [--json] [--sim-only] [--csp]
 | `typecheck` | `tsc -p . --noEmit` | never |
 | `test` | `vitest run` | never |
 | `boards` | the leaderboards the sources name, against `ship.config.ts`'s `leaderboards` | `--sim-only` |
+| `orientation` | the `orientation` each `defineGame` plays in, against `ship.config.ts`'s `runtime.orientation` | `--sim-only` |
 | `no-eval` | `vite build`, then a scan of `dist/**/*.js` | `--sim-only` |
 | `csp` | serves `dist/` with Ruken's Content-Security-Policy and loads it in Chromium until the game is ready | unless `--csp` |
 
@@ -69,6 +70,12 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 | Rule | Means | Fix |
 |---|---|---|
 | `undeclared-board` | A `scores` entry, `submitScore` or `readBoard` names a board `ship.config.ts` does not declare under `leaderboards` | Declare the board (`order`, `min`, `max`), or fix the name's spelling |
+
+### `orientation` (the game and the ship config must agree)
+
+| Rule | Means | Fix |
+|---|---|---|
+| `orientation-mismatch` | A `defineGame` plays in an `orientation` other than `ship.config.ts`'s `runtime.orientation` (a `defineGame` that leaves it out plays `any`), so the rotate hint and Ruken's frame disagree | Make the two agree. Only string literals are read: write both as literals to have them checked |
 
 ### `no-eval` (Ruken's CSP has no `unsafe-eval`)
 

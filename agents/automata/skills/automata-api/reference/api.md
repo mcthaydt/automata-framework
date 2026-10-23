@@ -1681,6 +1681,16 @@ is not written as an object (a spread or a variable), so the check says it could
 function declaredBoardsIn(code: string): string[] | undefined;
 ```
 
+#### `declaredOrientationIn` (function)
+
+The `runtime.orientation` a `ship.config.ts` declares, read from the source as written (`automata check` reads
+files, it does not run them). `undefined` when the file does not parse or `runtime.orientation` is not written as
+a literal, so the check can say it could not read it.
+
+```ts
+function declaredOrientationIn(code: string): string | undefined;
+```
+
 #### `defineShipConfig` (function)
 
 Identity function that gives a game's `ship.config.ts` type checking and editor completion.
@@ -1775,6 +1785,14 @@ class FileError extends FileErrorBase {
 }
 ```
 
+#### `findOrientationMismatches` (function)
+
+Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
+
+```ts
+function findOrientationMismatches(gameDir: string, declared: string): OrientationMismatchFound[];
+```
+
 #### `findRootAbsoluteReferences` (function)
 
 Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
@@ -1801,6 +1819,15 @@ Every board a game's sources name that `declared` (its ship config's `leaderboar
 function findUndeclaredBoards(gameDir: string, declared: readonly string[]): UndeclaredBoardFound[];
 ```
 
+#### `gameOrientationsIn` (function)
+
+The orientations the `defineGame` calls in one source file play in, in source order; `undefined` when the file
+does not parse (its typecheck already fails, and a half-read tree could name an orientation that is not there).
+
+```ts
+function gameOrientationsIn(file: string, code: string): PlayedOrientation[] | undefined;
+```
+
 #### `inputsProblems` (function)
 
 Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
@@ -1815,6 +1842,14 @@ Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`
 
 ```ts
 const isBoardSource: (file: string) => boolean;
+```
+
+#### `isOrientationSource` (const)
+
+Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+
+```ts
+const isOrientationSource: (file: string) => boolean;
 ```
 
 #### `ManifestInputsMismatch` (class)
@@ -1837,12 +1872,47 @@ class ManifestInvalid extends ManifestInvalidBase {
 }
 ```
 
+#### `OrientationMismatch` (class)
+
+The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up).
+
+```ts
+class OrientationMismatch extends OrientationMismatchBase {
+  override get message(): string;
+}
+```
+
+#### `OrientationMismatchFound` (interface)
+
+A game that plays in an orientation its ship config does not declare.
+
+```ts
+interface OrientationMismatchFound extends PlayedOrientation {
+  /** The ship config's `runtime.orientation`. */
+  readonly declared: string;
+  /** Relative to the game folder, with forward slashes. */
+  readonly file: string;
+}
+```
+
 #### `parseEnvFile` (function)
 
 The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
 
 ```ts
 function parseEnvFile(file: string, text: string): EnvValue[];
+```
+
+#### `PlayedOrientation` (interface)
+
+An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
+
+```ts
+interface PlayedOrientation {
+  readonly orientation: string;
+  readonly line: number;
+  readonly col: number;
+}
 ```
 
 #### `portsFor` (function)
@@ -1864,7 +1934,7 @@ function portsFor(checkoutPath: string, env: Readonly<Record<string, string | un
 #### `prepareBuild` (function)
 
 Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
-entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
 runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
 (archive, size, file types) happen inside `ruken publish`, not here.
 

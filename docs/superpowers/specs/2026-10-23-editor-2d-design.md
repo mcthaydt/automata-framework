@@ -73,21 +73,22 @@ Inside `editor-2d` (folders group by feature, files take role suffixes):
 
 ```
 src/
-  model/            project.schema.ts, level.schema.ts, grid.ts (chunked), cells.codec.ts, project.codec.ts,
-                    ids.ts (injected id source), migrations/*.migration.ts, commands/*.command.ts
+  model/            project.schema.ts (+ project-types.ts), grid.ts (chunked), cells-codec.ts, project-codec.ts,
+                    open-project.ts, json-syntax.ts, ids.ts (injected id source), migrations/migration.ts,
+                    commands/*.command.ts
   tiles/            paint.ts, fill.ts, stamp.ts, autotile/{rule.schema.ts, match.ts, hash.ts, layer.ts}
   profiles/
-    profile.plugin.ts          the Profile interface and registry
-    level-project/             built in: templates/*.template.ts, project.checks.ts, content.export.ts (AF TOML)
-    floorfifty-stage/          extension (§10): stage.schema.ts, stage.codec.ts, stage.commands.ts,
-                               stage.checks.ts, stage.compose.ts, stage.course.ts, stage.template.ts
-  canvas/           level.view.ts, tileset.view.ts, world.view.ts (Pixi), textures.manager.ts
+    profile.ts                 the Profile interface and registry
+    level-project/             built in: templates/*, project-checks.ts, content-export.ts (AF TOML)
+    floorfifty-stage/          extension (§10): stage.schema.ts, stage-codec.ts, stage.command.ts,
+                               stage-checks.ts, stage-compose.ts, stage-course.ts, stage-template.ts
+  canvas/           level-view.ts, tileset-view.ts, world-view.ts (Pixi), textures.manager.ts
   app/              shell wiring, views (Svelte), stores, one folder per rail destination
 ```
 
-Contract owners: the **project schema and `*.af2d.json`** belong to `model/` (and become a shared content contract once a game runtime consumes them, §17); `FieldDef`/`EntityDef` belong to the kit; the **`Profile` interface** to `profiles/profile.plugin.ts`; the **stage document** and its checks to `profiles/floorfifty-stage`; the stage **composition output** (`LayerPlacement[]`) to `stage.compose.ts`, consumed by the canvas and the tests only.
+File names follow `pnpm style`: a role suffix (`*.schema.ts`, `*.command.ts`, `*.manager.ts`, …) only from its list and only for files that export what the role means, so a codec, a view or a check list is a plain kebab-case name. Contract owners: the **project schema and `*.af2d.json`** belong to `model/` (and become a shared content contract once a game runtime consumes them, §17); `FieldDef`/`EntityDef` belong to the kit; the **`Profile` interface** to `profiles/profile.ts`; the **stage document** and its checks to `profiles/floorfifty-stage`; the stage **composition output** (`LayerPlacement[]`) to `stage-compose.ts`, consumed by the canvas and the tests only.
 
-Boundary rules, enforced by a unit test over the import graph in ED2D.1 (`pnpm boundaries` covers only `sim`): `model/` and `tiles/` import no Svelte, DOM, Pixi, clock or `Math.random`; `model`, `tiles`, `canvas` and `app` never import `profiles/*` except the registration list in `app/profiles.ts`; profiles never import each other.
+Boundary rules, enforced by `src/architecture.test.ts` over the import graph (built in ED2D.1; `pnpm boundaries` covers only `sim`, whose rules are far stricter): `model/` and `tiles/` import only relative paths, `zod` and `@mcthaydt/automata-editor-kit/fields` (the kit's field rules without its Svelte shell) and use no DOM, clock, timer, `crypto` or `Math.random`; `model`, `tiles`, `canvas` and `app` never import `profiles/<name>/` except the registration list in `app/profiles.ts`; profiles never import each other; no template or profile id string appears in `app`, `tiles` or `canvas` (G-s); files import each other in no ring; a relative import resolves to a file.
 
 ## 5. The project model
 
@@ -235,17 +236,28 @@ Finger: select, drag, pan, pinch. Pencil: draws and drags precisely, hover shows
 
 ### 6.1 The working file (`*.af2d.json`)
 
-A strict zod schema (`project.schema.ts`) over the shapes in §5, printed canonically: UTF-8, two-space indent, object keys in schema order, arrays of definitions and levels sorted by id, grids as row strings (§5.3). Opening rules: `version` equal to the supported one parses; **lower** runs the chain of `*.migration.ts` functions in memory (each pure, each with a fixture pair) and the file is rewritten only on save; **higher** opens read-only with the message and the raw text, never rewritten; **any key the schema does not know** opens read-only with the list of paths, so a newer or hand-edited file cannot lose data silently. A short extract:
+A strict zod schema (`project.schema.ts`) over the shapes in §5, printed canonically: UTF-8, two-space indent, object keys in schema order, arrays of definitions and levels sorted by id, grids as row strings (§5.3). Opening rules: `version` equal to the supported one parses; **lower** runs the chain of `*.migration.ts` functions in memory (each pure, each with a fixture pair) and the file is rewritten only on save; **higher** opens read-only with the message and the raw text, never rewritten; **any key the schema does not know** opens read-only with the list of paths, so a newer or hand-edited file cannot lose data silently. A short extract (a layer instance names its definition by `def` and repeats its `kind`, so the schema validates it without the definitions and `layerKindMismatch` catches a disagreement):
 
 ```json
 { "format": "af2d", "version": 1, "name": "Mossgate", "template": "platformer",
   "levels": [ { "id": "moss-steps", "size": { "w": 512, "h": 288 },
     "layers": [
-      { "def": "entities", "items": [
+      { "def": "entities", "kind": "entities", "items": [
         { "id": "k3f9a1x2", "def": "player-start", "x": 48, "y": 240, "fields": {} },
         { "id": "q8m2c7d1", "def": "slime", "x": 208, "y": 240, "fields": { "hp": 3, "patrol": [ {"x":176,"y":240}, {"x":272,"y":240} ] } } ] },
-      { "def": "collision", "rows": [ ".*32", ".*32", "1*32" ] } ] } ] }
+      { "def": "collision", "kind": "intgrid", "rows": [ ".*32", ".*32", "1*32" ] } ] } ] }
 ```
+
+Details fixed while building ED2D.1:
+
+- **One model, two shapes.** `Project` (grids as `Grid`) is the in-memory model; `ProjectFile` is the same tree with each grid as its row strings, and `project.schema.ts` validates it. `decodeProject` and `encodeProject` convert, with the layer definitions giving each grid its size, `ceil(level / grid)` cells across and down.
+- **Opening has three outcomes** (`openProject`): `opened` (with `upgradedFrom` after a migration), `readOnly` (`newerVersion`, or `unknownKeys` with each key's path; the result carries the raw text and no project, so nothing can be written back) and `failed` (`notJson` with line and column, `notAProject`, `invalid` with up to 100 issues, `tooLarge` over 16 MB). A leading byte order mark is ignored. The line and column come from our own scanner (`json-syntax.ts`), because Safari's `JSON.parse` names no position.
+- **Refused at open because decoding needs them:** `duplicateId` (definitions, worlds, levels, IntGrid values and ids, instance ids across the project), `unknownLayer` (a layer instance or an auto layer's `source` names no layer), `unknownTileset`, `layerKindMismatch`, `layerMismatch` (a level does not hold one instance of every definition in the definitions' order), `layerTooLarge` (a layer is over 1024 cells on a side, checked before a grid is allocated) and `cellInvalid` (a token that is not a cell, or a row of the wrong width or count). Values that fit the shape but not the world (a tile past its tileset, a broken ref, an instance of an unknown entity) open and become Checks (§9).
+- **Guard rails** (ED2D-D13) in the schema: a layer grid cell 4 to 256 px, a level side up to 16 384 px, at most 256 levels and 64 layer definitions; a world has a snap `grid` exactly when its layout is `grid`.
+- **Canonical print:** two-space JSON in schema key order, a final newline, `defs.tilesets`, `defs.entities`, `worlds` and `levels` sorted by id and the keys of field values sorted; everything whose order means something (layer definitions, a level's layers, items, placements, rules, a list value) keeps it. `printProject` throws on a project the schema would refuse to open.
+- **Cells:** a tile token is the tile index followed by `h`, `v` or `hv`, an IntGrid token is its value 1 to 255, `.` is empty, and `*n` repeats a token n times (n at least 2 when printing).
+- **Ids:** definitions and levels are `/^[a-z][a-z0-9-]*$/`; instance and rule ids are lower case, digits and hyphens; `IdSource.next()` returns 8 base36 characters, `counterIds()` is the deterministic source for tests and `randomIds(fill)` takes the host's random bytes, so `model/` holds no randomness.
+- **Migrations:** `Migration { from, to, run(raw) }` over the parsed JSON, `to` always `from + 1`; `migrate` stamps `version`, reports a missing step or a step that threw as a failed open, and throws for a malformed chain (a bug in the editor). The real list is empty at version 1.
 
 ### 6.2 AF content export (TOML)
 
@@ -315,9 +327,9 @@ Each diagnostic: `{ severity, code, path, message, fix? }` where `path` addresse
 
 | Source | Codes |
 |---|---|
-| File | `unsupportedVersion`, `unknownKey`, `duplicateId`, `cellInvalid` |
-| Definitions | `missingTileset`, `tilesetImageChanged` (warning), `autoSourceMissing`, `fieldDefInvalid` (the kit's `checkFieldDef`), `ruleTileOutOfRange`, `ruleNeverMatches` (info), `ruleShadowed` (info), `unusedDefinition` (info) |
-| Levels | `tileOutOfRange` (fix: remove), `unknownEntityDef`, `entityOutOfBounds` (warning, fix: move inside), `levelOutsideWorld`, `levelsOverlap` (warning, free layouts), `layerMissing` |
+| File (refusals at open, §6.1, not Checks) | `newerVersion`, `unknownKeys`, `duplicateId`, `unknownLayer`, `unknownTileset`, `layerKindMismatch`, `layerMismatch`, `layerTooLarge`, `cellInvalid` |
+| Definitions | `missingTileset` (the image), `tilesetImageChanged` (warning), `fieldDefInvalid` (the kit's `checkFieldDef`), `ruleTileOutOfRange`, `ruleNeverMatches` (info), `ruleShadowed` (info), `unusedDefinition` (info) |
+| Levels | `tileOutOfRange` (fix: remove), `unknownEntityDef`, `entityOutOfBounds` (warning, fix: move inside), `levelOutsideWorld`, `levelsOverlap` (warning, free layouts) |
 | Entities | `fieldMissing`, `fieldInvalid` (the kit's problem codes), `singleExceeded`, `minNotMet` (project or level) |
 | Links | `brokenRef` (fix: choose target), `refWrongKind` |
 | Editor-only | `emptyLevel` (info) |

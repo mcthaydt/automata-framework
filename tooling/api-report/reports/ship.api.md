@@ -53,6 +53,12 @@ function checkVersion(version: string, tag: string | undefined): string | undefi
 function declaredBoardsIn(code: string): string[] | undefined;
 ```
 
+### `declaredOrientationIn` (function)
+
+```ts
+function declaredOrientationIn(code: string): string | undefined;
+```
+
 ### `defineShipConfig` (function)
 
 ```ts
@@ -121,6 +127,12 @@ class FileError extends FileErrorBase {
 }
 ```
 
+### `findOrientationMismatches` (function)
+
+```ts
+function findOrientationMismatches(gameDir: string, declared: string): OrientationMismatchFound[];
+```
+
 ### `findRootAbsoluteReferences` (function)
 
 ```ts
@@ -139,6 +151,12 @@ function findSecretsInBuild(distDir: string, envValues: readonly EnvValue[]): Se
 function findUndeclaredBoards(gameDir: string, declared: readonly string[]): UndeclaredBoardFound[];
 ```
 
+### `gameOrientationsIn` (function)
+
+```ts
+function gameOrientationsIn(file: string, code: string): PlayedOrientation[] | undefined;
+```
+
 ### `inputsProblems` (function)
 
 ```ts
@@ -149,6 +167,12 @@ function inputsProblems(inputs: readonly string[], bindings: ShipInputBindings):
 
 ```ts
 const isBoardSource: (file: string) => boolean;
+```
+
+### `isOrientationSource` (const)
+
+```ts
+const isOrientationSource: (file: string) => boolean;
 ```
 
 ### `ManifestInputsMismatch` (class)
@@ -167,10 +191,37 @@ class ManifestInvalid extends ManifestInvalidBase {
 }
 ```
 
+### `OrientationMismatch` (class)
+
+```ts
+class OrientationMismatch extends OrientationMismatchBase {
+    get message(): string;
+}
+```
+
+### `OrientationMismatchFound` (interface)
+
+```ts
+interface OrientationMismatchFound extends PlayedOrientation {
+    readonly declared: string;
+    readonly file: string;
+}
+```
+
 ### `parseEnvFile` (function)
 
 ```ts
 function parseEnvFile(file: string, text: string): EnvValue[];
+```
+
+### `PlayedOrientation` (interface)
+
+```ts
+interface PlayedOrientation {
+    readonly orientation: string;
+    readonly line: number;
+    readonly col: number;
+}
 ```
 
 ### `portsFor` (function)
