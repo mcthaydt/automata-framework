@@ -8,7 +8,7 @@ import { makeAudio } from '../audio/audio.manager.js'
 import type { AudioContextLike } from '../audio/audio-graph.js'
 import { fakeAudioContext } from '../audio/testing/fake-audio-context.js'
 import type { BootError } from '../boot/boot-error.js'
-import { buildRuntimeServices } from '../boot/boot-program.js'
+import { buildRuntimeServices, contentHashOf } from '../boot/boot-program.js'
 import type { CompiledContentData } from '../boot/game-definition.js'
 import { createPageLayers, type PageLayers } from '../boot/page-layers.svelte.js'
 import { makeFlow } from '../flow/flow.manager.js'
@@ -23,6 +23,9 @@ import { makeAppLoop } from '../loop/app-loop.manager.js'
 import type { FrameSource } from '../loop/frames.js'
 import { makePresentationBus, PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { GameRenderer, RendererFactory, RenderTarget } from '../render/renderer.js'
+import type { SaveDef } from '../save/save.schema.js'
+import { makeSaves } from '../save/saves.manager.js'
+import type { DeviceStorage } from '../settings/device-storage.js'
 import { makeSettings, type SettingsDef } from '../settings/settings.manager.js'
 import { makeTime, watchLifecycle } from '../time/time.manager.js'
 import { fakeFetch } from './fake-fetch.js'
@@ -34,6 +37,10 @@ export interface RuntimeTestOptions {
   readonly screens?: readonly ScreenDef<any>[]
   readonly content?: CompiledContentData
   readonly settings?: SettingsDef<unknown>
+  /** The game's save, opened as boot opens it: its triggers and exit flush run, and `saveOf(def)` finds it. */
+  readonly saves?: SaveDef<unknown>
+  /** Where settings fields kept on the device go; default a fresh in-memory one, so a test never meets the browser's. */
+  readonly deviceStorage?: DeviceStorage
   readonly frames?: ManualFrames | FrameSource
   readonly renderer?: GameRenderer | RendererFactory
   readonly fetch?: typeof fetch
@@ -43,6 +50,20 @@ export interface RuntimeTestOptions {
   readonly languages?: readonly string[]
   /** Builds the audio context on the first gesture; defaults to `fakeAudioContext()`. */
   readonly createAudioContext?: () => AudioContextLike
+}
+
+/** A device that keeps what it is given for as long as the test runs. */
+function memoryDeviceStorage(): DeviceStorage {
+  const held = new Map<string, string>()
+  return {
+    get: (key) => held.get(key) ?? null,
+    set: (key, value) => {
+      held.set(key, value)
+    },
+    remove: (key) => {
+      held.delete(key)
+    },
+  }
 }
 
 /**
@@ -112,7 +133,12 @@ export function RuntimeTest(
       if (options.settings !== undefined) {
         rawSettings = yield* hosting.saves.get(options.settings.key)
       }
-      const settingsService = yield* makeSettings(options.settings, rawSettings, hosting.saves)
+      const settingsService = yield* makeSettings(
+        options.settings,
+        rawSettings,
+        hosting.saves,
+        options.deviceStorage ?? memoryDeviceStorage(),
+      )
 
       const frames = options.frames ?? manualFrames()
 
@@ -239,6 +265,10 @@ export function RuntimeTest(
         time,
         flow: flowHandle.flow,
         settings: settingsService,
+        saves: yield* makeSaves(options.saves, { contentHash: contentHashOf(content) }).pipe(
+          Effect.provideService(Hosting, hosting),
+          Effect.provideService(PresentationBus, bus),
+        ),
         appLoop,
         assets,
         renderer,

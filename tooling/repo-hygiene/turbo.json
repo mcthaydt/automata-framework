@@ -10,7 +10,8 @@
         "$TURBO_ROOT$/.github/CODEOWNERS",
         "$TURBO_ROOT$/docs/runbook.md",
         "$TURBO_ROOT$/package.json",
-        "$TURBO_ROOT$/knip.jsonc"
+        "$TURBO_ROOT$/knip.jsonc",
+        "$TURBO_ROOT$/lefthook.yml"
       ]
     },
     "test": {
@@ -21,7 +22,8 @@
         "$TURBO_ROOT$/.github/CODEOWNERS",
         "$TURBO_ROOT$/docs/runbook.md",
         "$TURBO_ROOT$/package.json",
-        "$TURBO_ROOT$/knip.jsonc"
+        "$TURBO_ROOT$/knip.jsonc",
+        "$TURBO_ROOT$/lefthook.yml"
       ]
     }
   }
