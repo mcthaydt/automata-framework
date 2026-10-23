@@ -104,6 +104,12 @@ export interface Hosting {
     readonly start: Effect.Effect<void>
     /** The open round ended. With no round open it is dropped. */
     end(outcome?: RoundOutcome): Effect.Effect<void>
+    /**
+     * One item per round that ended, with its outcome, from the moment the stream
+     * is read (nothing is replayed). A dropped end gives none. Ends when Hosting
+     * shuts down. The `round-end` autosave trigger reads this.
+     */
+    readonly ended: Stream.Stream<RoundOutcome | undefined>
   }
   /** A disclosed analytics event. Never fails: undisclosed, unconsented or refused events are dropped. */
   track(event: string, props?: AnalyticsProps): Effect.Effect<void>

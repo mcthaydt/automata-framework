@@ -66,6 +66,18 @@ describe('shutting Hosting down (audit of PR #5)', () => {
     )
   })
 
+  it('ends the round ended stream when Hosting shuts down (M5.2 plan step 3)', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const { hosting, scope } = yield* openHosting()
+        const reader = yield* Effect.fork(Stream.runCollect(hosting.round.ended))
+        yield* settled
+        yield* Scope.close(scope, Exit.void)
+        expect(Chunk.size(yield* Fiber.join(reader))).toBe(0)
+      }),
+    )
+  })
+
   it('fails saves and requests on a shut-down Hosting with a typed HostError instead of dropping them', async () => {
     await runScoped(
       Effect.gen(function* () {

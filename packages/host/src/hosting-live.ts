@@ -1,6 +1,7 @@
 import {
   type InitOptions,
   type InputModePayload,
+  type RoundOutcome,
   Ruken,
   type RukenSession,
   type SavesChangedPayload,
@@ -167,9 +168,14 @@ interface HostingState {
 
 function hostingOver(session: RukenSession, options: HostingOptions, state: HostingState): Hosting {
   const storage = session.saves.storage
+  const roundEndListeners = new Set<(outcome: RoundOutcome | undefined) => void>()
+  // `guardRounds` only forwards the ends it lets through, so listeners hear one per round.
   const rounds = guardRounds({
     start: () => session.round.start(),
-    end: (outcome) => session.round.end(outcome),
+    end: (outcome) => {
+      session.round.end(outcome)
+      for (const listener of [...roundEndListeners]) listener(outcome)
+    },
   })
 
   /** Runs `request` while Hosting is open; afterwards fails it, so nothing is silently dropped. */
@@ -302,6 +308,15 @@ function hostingOver(session: RukenSession, options: HostingOptions, state: Host
     round: {
       start: Effect.sync(() => rounds.start()),
       end: (outcome) => Effect.sync(() => rounds.end(outcome)),
+      ended: Stream.async<RoundOutcome | undefined>((emit) => {
+        const listener = (outcome: RoundOutcome | undefined): void => {
+          void emit.single(outcome)
+        }
+        roundEndListeners.add(listener)
+        return Effect.sync(() => {
+          roundEndListeners.delete(listener)
+        })
+      }).pipe(Stream.interruptWhen(state.shutdown)),
     },
     track: (event, props) =>
       Effect.suspend(() => {
