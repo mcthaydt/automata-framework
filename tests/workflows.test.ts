@@ -155,6 +155,19 @@ describe('the jobs', () => {
     expect(withChrome?.env?.CHROME_PATH).toBeDefined()
   })
 
+  // The hosted runner measures differently from the machine the baseline was first recorded on, and the report artifact
+  // is a zip behind a blob host, so the log has to carry the numbers: the medians the budget judged, printed after the
+  // budget runs and also when it fails. The step records them with the same script that wrote lighthouse-baseline.json.
+  it('lighthouse prints the medians it measured after the budget runs, also when the budget fails', () => {
+    const all = steps('lighthouse')
+    const budget = all.findIndex(step => step.run === 'pnpm lighthouse')
+    const record = all.findIndex(step => step.run?.includes('scripts/record-lighthouse-baseline.ts'))
+    expect(record).toBeGreaterThan(budget)
+    expect(all[record]?.if).toBe('always()')
+    expect(all[record]?.run).toContain('GITHUB_STEP_SUMMARY')
+    expect(all[record]?.run).toContain('GitHub-hosted')
+  })
+
   it('does not hand the framework key to jobs that do not read the framework', () => {
     for (const job of ['browsers', 'lighthouse']) expect(JSON.stringify(workflow.jobs[job])).not.toContain('AF_FRAMEWORK')
   })
