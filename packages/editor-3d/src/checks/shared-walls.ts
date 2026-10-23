@@ -2,7 +2,7 @@
 // rooms on one line, facing each other, each hide the other's face from every lamp. The arithmetic and the sentence
 // are Last Light's; what is added is where the problem is.
 import type { Problem } from './check'
-import { formatPoint, type GeometryContext } from './check'
+import { formatPoint, type GeometryContext, locators } from './check'
 
 /** Walls closer than this to one line, and sharing no more than 1 cm of it, are not one line. */
 const SAME_LINE = 1e-3
@@ -26,7 +26,7 @@ export function sharedWallProblems(context: GeometryContext): Problem[] {
         problems.push({
           message: `${e.sector.id} and ${f.sector.id} share a solid wall line from (${formatPoint(e.a)}) for ${overlap.toFixed(2)} m: stand them apart with an opening's connector`,
           locator: context.wall(e),
-          related: [context.wall(f)],
+          related: locators(context.wall(f)),
         })
     }
   }

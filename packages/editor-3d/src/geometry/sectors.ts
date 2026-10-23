@@ -35,6 +35,12 @@ export interface Edge {
   readonly thick: number
   readonly cut: string
   readonly trim: Trim
+  /**
+   * Whether it is one of the walls round a pilaster's masonry. Those belong to a wall of the definition but do not lie on
+   * its line, and can lie on a neighbouring wall's, so a caller that maps an edge back to its corner has to tell them apart.
+   * Not in Last Light: an addition, which no part of the port reads.
+   */
+  readonly notch: boolean
 }
 
 /** A sector with its loops resolved: `loops[i]` are the edges of `points[i]`, the outer loop first and then the holes. */
@@ -76,12 +82,25 @@ function reverse(corners: readonly Corner[]): Corner[] {
   })
 }
 
-/** Expands pilasters into notches in the loop, so trims wrap round them, and adds their masonry. */
-function notchPilasters(corners: readonly Corner[], top: number, masses: MassDef[]): Corner[] {
+/**
+ * Expands pilasters into notches in the loop, so trims wrap round them, and adds their masonry. `notched[k]` says whether
+ * the wall that starts at the loop's corner `k` is one of the walls round a pilaster's masonry.
+ */
+function notchPilasters(
+  corners: readonly Corner[],
+  top: number,
+  masses: MassDef[],
+): { loop: Corner[]; notched: boolean[] } {
   const out: Corner[] = []
+  const notched: boolean[] = []
+  /** A corner that starts a wall of the definition's own, or a plain stretch of it. */
+  const keep = (x: number, z: number, w: WallDef | undefined): void => {
+    out.push(corner(x, z, w))
+    notched.push(false)
+  }
   corners.forEach(([x, z, w], i) => {
     if (!w?.pilaster) {
-      out.push(corner(x, z, w))
+      keep(x, z, w)
       return
     }
     const [x2, z2] = wrapped(corners, i + 1)
@@ -101,6 +120,7 @@ function notchPilasters(corners: readonly Corner[], top: number, masses: MassDef
         [at(s, depth).x, at(s, depth).z, side],
         [at(s + width, depth).x, at(s + width, depth).z, side],
       )
+      notched.push(true, true, true)
       masses.push({
         points: [at(s, -WALL_THICK), at(s + width, -WALL_THICK), at(s + width, depth), at(s, depth)],
         top,
@@ -110,11 +130,11 @@ function notchPilasters(corners: readonly Corner[], top: number, masses: MassDef
     if (pilaster.start) {
       notch(0, pilaster.start[0], pilaster.start[1])
       const q = at(pilaster.start[0], 0)
-      out.push([q.x, q.z, plain])
-    } else out.push([x, z, plain])
+      keep(q.x, q.z, plain)
+    } else keep(x, z, plain)
     if (pilaster.end) notch(length - pilaster.end[0], pilaster.end[0], pilaster.end[1])
   })
-  return out
+  return { loop: out, notched }
 }
 
 /** `over` laid on `base`; a piece `over` leaves out keeps its value from `base`. */
@@ -125,7 +145,7 @@ type Unlinked = Omit<Writable<Edge>, 'prev' | 'succ'> & { prev?: Edge; succ?: Ed
 
 export function resolveSectors(defs: readonly SectorDef[], massDefs: readonly MassDef[] = []): Resolved {
   const masses = [...massDefs]
-  const raw: Corner[][][] = []
+  const raw: { loop: Corner[]; notched: boolean[] }[][] = []
   const sectors: Writable<Sector>[] = defs.map((def) => {
     const outer = area(def.corners) < 0 ? reverse(def.corners) : def.corners
     const holes = (def.holes ?? []).map((h) => (area(h) > 0 ? reverse(h) : h))
@@ -136,12 +156,12 @@ export function resolveSectors(defs: readonly SectorDef[], massDefs: readonly Ma
       ...rest,
       trim: withTrim(DEFAULT_TRIM, trim),
       loops: [],
-      points: loops.map((loop) => loop.map(([x, z]) => ({ x, z }))),
+      points: loops.map(({ loop }) => loop.map(([x, z]) => ({ x, z }))),
     }
   })
   const byId = new Map(sectors.map((s) => [s.id, s]))
   sectors.forEach((sector, si) => {
-    sector.loops = (raw[si] as Corner[][]).map((loop, li) => {
+    sector.loops = (raw[si] as { loop: Corner[]; notched: boolean[] }[]).map(({ loop, notched }, li) => {
       let u = 0
       const loopEdges = loop.map(([x, z, w], index): Unlinked => {
         const [x2, z2] = wrapped(loop, index + 1)
@@ -165,6 +185,7 @@ export function resolveSectors(defs: readonly SectorDef[], massDefs: readonly Ma
           thick: wallDef.thick ?? WALL_THICK,
           cut: wallDef.cut ?? `${sector.id}:${li}:${index}`,
           trim: withTrim(sector.trim, wallDef.trim),
+          notch: notched[index] === true,
         }
         u += length
         return edge

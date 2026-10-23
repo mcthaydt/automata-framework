@@ -52,10 +52,13 @@ export function checkResult(
   }
 }
 
+/** A selection could not be written: an id that would not parse back, or a corner that is no index. */
+export class SelectionIdError extends Error {}
+
 /** A selection id is parsed back by splitting on the first ":" and then "/", so no part may hold either. */
 function part(what: string, value: string): string {
   if (value === '' || value.includes('/') || value.includes(':'))
-    throw new Error(
+    throw new SelectionIdError(
       `${what} ${JSON.stringify(value)} cannot be part of a selection id (empty, or holds "/" or ":")`,
     )
   return value
@@ -66,7 +69,7 @@ export const sectorSelection = (sectorId: string): string => `sector:${part('sec
 /** The wall that starts at the sector's document corner `corner`. */
 export function wallSelection(sectorId: string, corner: number): string {
   if (!Number.isInteger(corner) || corner < 0)
-    throw new Error(`wall corner ${corner} is not a whole number from 0`)
+    throw new SelectionIdError(`wall corner ${corner} is not a whole number from 0`)
   return `wall:${part('sector id', sectorId)}/${corner}`
 }
 
@@ -76,8 +79,26 @@ export const entitySelection = (definition: string, id: string): string =>
 /** A point as Last Light writes one in a sentence: x and z to at most three decimals. */
 export const formatPoint = (point: Point): string => `${+point.x.toFixed(3)}, ${+point.z.toFixed(3)}`
 
+/**
+ * A locator for the selection `selection()` writes, or nothing when the document's names cannot be a selection id (a room
+ * called "a/b"): a check reports the problem without a place and never fails on a strange name.
+ */
+export function place(selection: () => string, at?: Point): Locator | undefined {
+  try {
+    return { selection: selection(), at }
+  } catch (error) {
+    if (error instanceof SelectionIdError) return undefined
+    throw error
+  }
+}
+
+/** The places in the list that exist, in order. */
+export const locators = (...places: readonly (Locator | undefined)[]): Locator[] =>
+  places.filter((locator): locator is Locator => locator !== undefined)
+
 /** What the geometry checks read: the resolved level, and where a wall is in the document (a selection id and a point). */
 export interface GeometryContext {
   readonly map: ResolvedMap
-  readonly wall: (edge: Edge) => Locator
+  /** Where a wall is in the document; nothing when it cannot be told. */
+  readonly wall: (edge: Edge) => Locator | undefined
 }

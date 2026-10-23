@@ -1,7 +1,15 @@
 // The shape every check answers in: what Last Light's `result` helper builds (an id, ok, a detail sentence), plus
 // the severity and, for each problem, where it is, as a selection id the editor can frame.
 import { describe, expect, it } from 'vitest'
-import { checkResult, entitySelection, formatPoint, sectorSelection, wallSelection } from './check'
+import {
+  checkResult,
+  entitySelection,
+  formatPoint,
+  locators,
+  place,
+  sectorSelection,
+  wallSelection,
+} from './check'
 
 describe('checkResult', () => {
   it('is ok with the text `ok` and an error severity when nothing is wrong', () => {
@@ -81,5 +89,37 @@ describe('formatPoint', () => {
     expect(formatPoint({ x: -1.475, z: 0 })).toBe('-1.475, 0')
     expect(formatPoint({ x: 1 / 3, z: 2 })).toBe('0.333, 2')
     expect(formatPoint({ x: 1.0004, z: -0.0004 })).toBe('1, 0')
+  })
+})
+
+describe('place', () => {
+  it('is the locator a selection builder gives, with the point', () => {
+    expect(place(() => sectorSelection('hall'), { x: 1, z: 2 })).toEqual({
+      selection: 'sector:hall',
+      at: { x: 1, z: 2 },
+    })
+    expect(place(() => sectorSelection('hall'))).toEqual({ selection: 'sector:hall', at: undefined })
+  })
+
+  it('is nothing for an id that cannot be a selection id, so a check never fails on a strange name', () => {
+    expect(place(() => entitySelection('box', 'a/b'))).toBeUndefined()
+    expect(place(() => wallSelection('a:b', 0), { x: 0, z: 0 })).toBeUndefined()
+  })
+
+  it('does not hide another kind of error', () => {
+    expect(() =>
+      place(() => {
+        throw new TypeError('not mine')
+      }),
+    ).toThrow(TypeError)
+  })
+})
+
+describe('locators', () => {
+  it('keeps the places that exist, in order', () => {
+    const a = { selection: 'sector:a' }
+    const b = { selection: 'sector:b' }
+    expect(locators(a, undefined, b)).toEqual([a, b])
+    expect(locators(undefined)).toEqual([])
   })
 })
