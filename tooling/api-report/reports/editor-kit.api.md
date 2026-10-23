@@ -4,6 +4,21 @@
 
 ## `.`
 
+### `attachGestures` (function)
+
+```ts
+function attachGestures(element: HTMLElement, handlers: GestureHandlers, options?: AttachOptions): () => void;
+```
+
+### `AttachOptions` (interface)
+
+```ts
+interface AttachOptions extends GestureOptions {
+    readonly clock?: GestureClock;
+    readonly preventContextMenu?: boolean;
+}
+```
+
 ### `Command` (interface)
 
 ```ts
@@ -46,10 +61,22 @@ function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
 function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
 ```
 
+### `createRecognizer` (function)
+
+```ts
+function createRecognizer(handlers: GestureHandlers, options?: GestureOptions, clock?: GestureClock): Recognizer;
+```
+
 ### `createSelection` (function)
 
 ```ts
 function createSelection<Id extends SelectionId>(): Selection<Id>;
+```
+
+### `createViewport` (function)
+
+```ts
+function createViewport(init: ViewportInit): Viewport2D;
 ```
 
 ### `defaultDockOpen` (function)
@@ -94,6 +121,41 @@ type DockPlacement = 'inline' | 'sheet';
 function dockPlacementOf(mode: ShellMode, tier: HeightTier): DockPlacement;
 ```
 
+### `DragEndGesture` (interface)
+
+```ts
+interface DragEndGesture extends DragGesture {
+    readonly cancelled: boolean;
+}
+```
+
+### `DragGesture` (interface)
+
+```ts
+interface DragGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly startX: number;
+    readonly startY: number;
+    readonly dx: number;
+    readonly dy: number;
+    readonly pressure: number;
+    readonly tiltX: number;
+    readonly tiltY: number;
+    readonly pointerType: PointerKind;
+    readonly button: number;
+    readonly modifiers: Modifiers;
+}
+```
+
+### `DragStartGesture` (interface)
+
+```ts
+interface DragStartGesture extends DragGesture {
+    readonly afterLongPress: boolean;
+}
+```
+
 ### `EditorShell` (svelte)
 
 ```ts
@@ -113,6 +175,47 @@ interface EditorTokens {
         readonly mono: string;
         readonly ramp: Readonly<Record<string, RampEntry>>;
     };
+}
+```
+
+### `GestureClock` (interface)
+
+```ts
+interface GestureClock {
+    now(): number;
+    setTimer(ms: number, run: () => void): unknown;
+    clearTimer(handle: unknown): void;
+}
+```
+
+### `GestureHandlers` (interface)
+
+```ts
+interface GestureHandlers {
+    tap?(event: TapGesture): void;
+    doubleTap?(event: TapGesture): void;
+    longPress?(event: LongPressGesture): void;
+    dragStart?(event: DragStartGesture): void;
+    drag?(event: DragGesture): void;
+    dragEnd?(event: DragEndGesture): void;
+    pan?(event: PanGesture): void;
+    pinch?(event: PinchGesture): void;
+    multiTap?(event: MultiTapGesture): void;
+    hover?(event: HoverGesture): void;
+    wheel?(event: WheelGesture): void;
+}
+```
+
+### `GestureOptions` (interface)
+
+```ts
+interface GestureOptions {
+    readonly slop?: Partial<Record<PointerKind, number>>;
+    readonly tapMs?: number;
+    readonly longPressMs?: number;
+    readonly doubleTapMs?: number;
+    readonly penHoldMs?: number;
+    readonly rotate?: boolean;
 }
 ```
 
@@ -163,6 +266,20 @@ interface HistoryOptions {
 }
 ```
 
+### `HoverGesture` (interface)
+
+```ts
+interface HoverGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly pointerType: PointerKind;
+    readonly pressure: number;
+    readonly tiltX: number;
+    readonly tiltY: number;
+    readonly modifiers: Modifiers;
+}
+```
+
 ### `KeyInput` (interface)
 
 ```ts
@@ -185,10 +302,48 @@ interface Keymap {
 }
 ```
 
+### `LongPressGesture` (interface)
+
+```ts
+interface LongPressGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly pointerType: PointerKind;
+    readonly modifiers: Modifiers;
+}
+```
+
+### `Modifiers` (interface)
+
+```ts
+interface Modifiers {
+    readonly shift: boolean;
+    readonly ctrl: boolean;
+    readonly alt: boolean;
+    readonly meta: boolean;
+}
+```
+
+### `MultiTapGesture` (interface)
+
+```ts
+interface MultiTapGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly fingers: number;
+}
+```
+
 ### `nextDetent` (function)
 
 ```ts
 function nextDetent(detent: Detent): Detent;
+```
+
+### `NO_MODIFIERS` (const)
+
+```ts
+const NO_MODIFIERS: Modifiers;
 ```
 
 ### `normalizeShortcut` (function)
@@ -207,16 +362,75 @@ interface OpenState {
 }
 ```
 
+### `PanGesture` (interface)
+
+```ts
+interface PanGesture {
+    readonly phase: TransformPhase;
+    readonly x: number;
+    readonly y: number;
+    readonly dx: number;
+    readonly dy: number;
+    readonly cancelled: boolean;
+}
+```
+
 ### `parseShortcut` (function)
 
 ```ts
 function parseShortcut(text: string): Shortcut;
 ```
 
+### `PinchGesture` (interface)
+
+```ts
+interface PinchGesture {
+    readonly phase: TransformPhase;
+    readonly x: number;
+    readonly y: number;
+    readonly scale: number;
+    readonly totalScale: number;
+    readonly rotation: number;
+    readonly totalRotation: number;
+    readonly cancelled: boolean;
+}
+```
+
 ### `Platform` (type)
 
 ```ts
 type Platform = 'apple' | 'other';
+```
+
+### `Point` (interface)
+
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
+}
+```
+
+### `PointerKind` (type)
+
+```ts
+type PointerKind = 'touch' | 'pen' | 'mouse';
+```
+
+### `PointerSample` (interface)
+
+```ts
+interface PointerSample {
+    readonly id: number;
+    readonly kind: PointerKind;
+    readonly x: number;
+    readonly y: number;
+    readonly pressure: number;
+    readonly tiltX: number;
+    readonly tiltY: number;
+    readonly button: number;
+    readonly modifiers: Modifiers;
+}
 ```
 
 ### `RampEntry` (interface)
@@ -231,10 +445,41 @@ interface RampEntry {
 }
 ```
 
+### `realClock` (const)
+
+```ts
+const realClock: GestureClock;
+```
+
+### `Recognizer` (interface)
+
+```ts
+interface Recognizer {
+    down(sample: PointerSample): void;
+    move(sample: PointerSample): void;
+    up(sample: PointerSample): void;
+    hover(sample: PointerSample): void;
+    wheel(input: WheelInput): void;
+    cancel(id: number): void;
+    dispose(): void;
+}
+```
+
 ### `reconcileOpen` (function)
 
 ```ts
 function reconcileOpen(mode: ShellMode, previous: OpenState, next: OpenState): OpenState;
+```
+
+### `Rect` (interface)
+
+```ts
+interface Rect {
+    readonly x: number;
+    readonly y: number;
+    readonly w: number;
+    readonly h: number;
+}
 ```
 
 ### `Selection` (interface)
@@ -291,6 +536,27 @@ interface Shortcut {
 }
 ```
 
+### `Size` (interface)
+
+```ts
+interface Size {
+    readonly w: number;
+    readonly h: number;
+}
+```
+
+### `TapGesture` (interface)
+
+```ts
+interface TapGesture {
+    readonly x: number;
+    readonly y: number;
+    readonly count: number;
+    readonly pointerType: PointerKind;
+    readonly modifiers: Modifiers;
+}
+```
+
 ### `tokensToCss` (function)
 
 ```ts
@@ -305,6 +571,78 @@ interface Transaction<S> {
     update(fn: (state: S) => S): void;
     commit(): void;
     cancel(): void;
+}
+```
+
+### `TransformPhase` (type)
+
+```ts
+type TransformPhase = 'start' | 'change' | 'end';
+```
+
+### `Viewport2D` (interface)
+
+```ts
+interface Viewport2D {
+    readonly size: Size;
+    readonly pan: Point;
+    readonly zoom: number;
+    readonly limits: ViewportLimits;
+    screenToWorld(point: Point): Point;
+    worldToScreen(point: Point): Point;
+    panBy(dx: number, dy: number): Viewport2D;
+    zoomAt(point: Point, factor: number): Viewport2D;
+    snapZoom(point: Point): Viewport2D;
+    fit(rect: Rect, padding?: number): Viewport2D;
+    resize(size: Size): Viewport2D;
+}
+```
+
+### `ViewportInit` (interface)
+
+```ts
+interface ViewportInit {
+    readonly size: Size;
+    readonly pan?: Point;
+    readonly zoom?: number;
+    readonly limits?: Partial<ViewportLimits>;
+}
+```
+
+### `ViewportLimits` (interface)
+
+```ts
+interface ViewportLimits {
+    readonly minZoom: number;
+    readonly maxZoom: number;
+    readonly bounds?: Rect | undefined;
+    readonly keep: number;
+}
+```
+
+### `WheelGesture` (interface)
+
+```ts
+interface WheelGesture {
+    readonly mode: 'zoom' | 'pan';
+    readonly x: number;
+    readonly y: number;
+    readonly dx: number;
+    readonly dy: number;
+    readonly scale: number;
+    readonly modifiers: Modifiers;
+}
+```
+
+### `WheelInput` (interface)
+
+```ts
+interface WheelInput {
+    readonly x: number;
+    readonly y: number;
+    readonly deltaX: number;
+    readonly deltaY: number;
+    readonly modifiers: Modifiers;
 }
 ```
 
