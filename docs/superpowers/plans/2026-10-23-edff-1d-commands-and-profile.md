@@ -3,7 +3,7 @@
 - **Task:** EDFF.1d, the fourth and last slice of EDFF.1 in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §10.6 (commands and views), §7 (the `Profile` interface), §8 flows "New stage", "Fix", "Export".
 - **Lane:** FloorFifty profile. **Depends on:** EDFF.1a (`StageDocument`, `printStage`), EDFF.1b (`checkStage`, `courseTopFloor`), EDFF.1c (`createCourse` is not used here; the Course view of EDFF.3 is). Stacks on #157. **Unblocks:** EDFF.2 (the Compose view calls the layer commands), EDFF.3 (the Course view calls the course commands), EDFF.4 (the Pieces view), EDFF.5 (FF-o rebuilds the four stages through these commands) and ED2D.4c (registers the profile in `app/profiles.ts`).
 - **Status:** Planned 2026-10-23 on `claude/project-thread-73sp69-edff1d`. The 2D spec is drafted, not reviewed.
-- **Progress:** 9 of 9 steps. Implemented and locally checked 2026-10-23; draft PR to follow; not CI verified.
+- **Progress:** 9 of 9 steps. Implemented and locally checked 2026-10-23; draft PR #160 (stacked on #157); not CI verified.
 
 ## Why the commands reach every stage
 
