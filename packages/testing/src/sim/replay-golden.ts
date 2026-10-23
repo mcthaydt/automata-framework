@@ -42,6 +42,10 @@ type RecordFrom =
       readonly setup?: never
     }
 
+/**
+ * What `replayGolden` checks: the `.replay` file, the plugins and content to replay it with, and how to
+ * record it when updating goldens.
+ */
 export interface ReplayGoldenOptions {
   /** A deflated `.replay`; a relative path is taken from the test file's folder. */
   readonly file: string
@@ -209,6 +213,12 @@ async function checkGolden(options: ReplayGoldenOptions, file: string, name: str
   }
 }
 
+/**
+ * Replays a golden `.replay` against the current sim and reports whether it still matches. With reference
+ * data a divergence names the exact tick and every field that differs. With `AUTOMATA_UPDATE_GOLDENS=1` in
+ * Node and a `record` option it records the file first, then checks what it wrote. A mismatch is a report, not
+ * a throw: pass it to `expectGolden`.
+ */
 export async function replayGolden(options: ReplayGoldenOptions): Promise<GoldenReport> {
   const file = resolveGoldenPath(options.file)
   const name = fileName(file)

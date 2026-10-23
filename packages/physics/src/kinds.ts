@@ -1,6 +1,11 @@
 // Codes stored in RigidBody*.kind and Collider*.shape (M2.1 spec §3.3). They equal Rapier's own
 // RigidBodyType and ShapeType values, in both dimensions.
 
+/**
+ * The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never
+ * moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its
+ * velocity). `BodyKind` is also the type of those values.
+ */
 export const BodyKind: {
   readonly dynamic: 0
   readonly fixed: 1
@@ -9,6 +14,10 @@ export const BodyKind: {
 } = { dynamic: 0, fixed: 1, kinematicPosition: 2, kinematicVelocity: 3 }
 export type BodyKind = (typeof BodyKind)[keyof typeof BodyKind]
 
+/**
+ * The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`. `ShapeKind` is also the type of
+ * those values.
+ */
 export const ShapeKind: { readonly ball: 0; readonly cuboid: 1; readonly capsule: 2 } = {
   ball: 0,
   cuboid: 1,
