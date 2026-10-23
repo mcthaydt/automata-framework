@@ -42,7 +42,7 @@ raylib's equivalent is one file of 50–150 lines that reads top to bottom.
 - **One code file:** it ends in `export default defineGame({...})`.
   - The runner calls `startGame` on it; a reader copies it into a game and calls `startGame(example)`.
   - Sim definitions (`defineComponent`, `defineCommand`, `defineSystem`, `definePlugin`) sit in the same file, unexported. The role-suffix rule in `tooling/check-style/src/style.ts` covers exported `define*` results only, so it doesn't fire.
-- **Public imports only:** `@mcthaydt/automata` (the core umbrella, PRODUCT.2) or an extension's published entry. Never a relative import, another example, or a game.
+- **Public imports only:** `@mcthaydt/automata` (the core umbrella, PRODUCT.2), `zod` or an extension's published entry. Never a relative import, another example, a game, or a core package's own entry (`@mcthaydt/automata-game`, `-sim` and the rest are reached through the umbrella; EX.6). `zod` stays a public import because every command takes a Zod schema and a game writes the same import; the umbrella does not re-export `z`, which would tie an example's schema library to the umbrella's pinned copy. A verb the umbrella lacks makes the example `Pending:` on the task that adds it.
 - **Data lives in `examples/resources/`,** as in raylib:
   - shared art (Endesga 64 sprites with `PROVENANCE.md`);
   - TOML content (for example `resources/content/hot-reload/room.toml`);
