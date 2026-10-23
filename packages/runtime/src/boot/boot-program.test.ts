@@ -14,6 +14,11 @@ import { createHaptics, Haptics } from '../haptics/haptics.manager.js'
 import { Leaderboards } from '../leaderboards/leaderboards.manager.js'
 import { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { RenderTarget } from '../render/renderer.js'
+import type { Save } from '../save/save.manager.js'
+import { defineSave } from '../save/save.schema.js'
+import { saveOf } from '../save/saves.manager.js'
+import { CORE_SETTINGS, type CoreSettings } from '../settings/core-settings.js'
+import { type SettingsStore, settingsStore } from '../settings/settings.manager.js'
 import { fakeFetch } from '../testing/fake-fetch.js'
 import { manualFrames } from '../testing/manual-frames.js'
 import { nullRenderer } from '../testing/null-renderer.js'
@@ -1074,6 +1079,140 @@ describe('bootProgram', () => {
       yield* Effect.promise(() => settle(2))
       expect(root.querySelector('[data-testid="rotate-hint"]')).not.toBeNull()
       expect([...(seen.time?.reasons ?? [])]).toContain('display')
+
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+})
+
+describe('bootProgram, settings kept on the device (M5.2, M5-D4)', () => {
+  const memoryDevice = () => {
+    const held = new Map<string, string>()
+    return {
+      held,
+      get: (key: string) => held.get(key) ?? null,
+      set: (key: string, value: string) => void held.set(key, value),
+      remove: (key: string) => void held.delete(key),
+    }
+  }
+
+  it('keeps the core audio choices in the device storage the game gets, and out of the saves', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      const host = createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock })
+      const device = memoryDevice()
+      let store: SettingsStore<CoreSettings> | undefined
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            store = yield* settingsStore(CORE_SETTINGS)
+          }),
+      }
+      const game: GameDefinition<CoreSettings> = {
+        root,
+        hosting: { gameId: 'test-game', wants: ['saves'], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        settings: CORE_SETTINGS,
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          deviceStorage: device,
+          sdkEnv: () => host.gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      expect(store).toBeDefined()
+
+      store!.update((value) => ({
+        ...value,
+        display: { quality: 'low' },
+        audio: { ...value.audio, muted: true },
+      }))
+      yield* Effect.promise(() => settle(2))
+
+      expect(JSON.parse(device.held.get('settings:device') ?? 'null')).toMatchObject({
+        audio: { muted: true },
+      })
+      const written = host.messages
+        .filter((entry) => entry.dir === 'in' && entry.msg.type === 'saves.set')
+        .map((entry) => entry.msg.payload as { key: string; value: string })
+      expect(written.map((write) => write.key)).toEqual(['settings'])
+      expect(written[0]?.value).toContain('"low"')
+      expect(written[0]?.value).not.toMatch(/muted|gains/)
+
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+})
+
+describe('bootProgram, the game save (M5.2)', () => {
+  it('writes the touched progress, then flushes, before the host is told the game may close', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      const host = createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock })
+      const run = defineSave<{ coins: number }>({
+        key: 'run',
+        version: 1,
+        schema: z.object({ coins: z.number() }),
+        empty: () => ({ coins: 0 }),
+        migrations: {},
+      })
+      let save: Save<{ coins: number }> | undefined
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            save = yield* saveOf(run)
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: ['saves'], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        saves: run,
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          sdkEnv: () => host.gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      yield* save!.load(0)
+      save!.touch(() => ({ coins: 7 }))
+
+      yield* Effect.promise(() => host.bridge.exit())
+      const sent = host.messages
+        .filter((entry) => entry.dir === 'in')
+        .map((entry) => entry.msg.type)
+        .filter((type) => ['saves.set', 'saves.flush', 'session.exitReady'].includes(type))
+      expect(sent).toEqual(['saves.set', 'saves.flush', 'session.exitReady'])
 
       yield* Scope.close(scope, Exit.void)
     }).pipe(Effect.runPromise))
