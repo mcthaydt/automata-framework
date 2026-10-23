@@ -2,7 +2,7 @@
 
 - **Spec:** framework repo `docs/superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md` §3.10 (the evidence file; "the website's sync reads it at build time and renders proof from it. A hard-coded hash on the site becomes a website test failure") and §11 (restoration rules); the DX.9w row of `docs/02-master-delivery-plan.md`. AF side: framework plan `2026-10-16-dx9-evidence-file.md`.
 - **Status:** drafted 2026-10-23; implemented and locally verified 2026-10-23, including the real data (synced on the Mac, committed unchanged in `9210a3c`; the sync was red by design until then). Based on `main` now that QB.3, QB.3f and PRODUCT.4w are merged.
-- **Progress:** 6 of 7 steps (step 7's real sync is open).
+- **Progress:** 7 of 7 steps.
 - **Branch:** `claude/project-thread-onilcu-dx9w`.
 
 ## Findings that shape the design
