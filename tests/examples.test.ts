@@ -76,4 +76,52 @@ describe('DemoRunner fullscreen button', () => {
     await fireEvent.click(getByLabelText(/Toggle fullscreen/i))
     expect(await findByText(/Fullscreen is unavailable/i)).toBeTruthy()
   })
+
+  // The hosted Chromium run that followed failed the same gate on the same button. The gate allows 1.5 s for a visible
+  // change, and the page's own answer (the grant, a refusal or the message above) can come later than that when the
+  // runner is loaded. So the click itself changes the page: the button is busy until the browser has answered.
+  describe('while the browser has not answered', () => {
+    it('marks the button busy in the click itself, before any timer runs', async () => {
+      vi.useFakeTimers()
+      const { getByLabelText, getByTestId } = setup(() => new Promise(() => undefined))
+      const seen = vi.fn()
+      new MutationObserver(seen).observe(getByTestId('demo-runner-container'), { attributes: true, subtree: true, childList: true, characterData: true })
+      const button = getByLabelText(/Toggle fullscreen/i)
+      expect(button.hasAttribute('aria-busy')).toBe(false)
+      await fireEvent.click(button)
+      await Promise.resolve()
+      expect(button.getAttribute('aria-busy')).toBe('true')
+      expect(seen).toHaveBeenCalled()
+    })
+
+    it('stops being busy when fullscreen starts', async () => {
+      vi.useFakeTimers()
+      let answer: () => void = () => undefined
+      const { getByLabelText } = setup(() => new Promise<void>(resolve => { answer = resolve }))
+      const button = getByLabelText(/Toggle fullscreen/i)
+      await fireEvent.click(button)
+      expect(button.getAttribute('aria-busy')).toBe('true')
+      answer()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(button.hasAttribute('aria-busy')).toBe(false)
+    })
+
+    it('stops being busy when the browser refuses, and when it never answers', async () => {
+      vi.useFakeTimers()
+      const refused = setup(() => Promise.reject(new Error('denied')))
+      const refusedButton = refused.getByLabelText(/Toggle fullscreen/i)
+      await fireEvent.click(refusedButton)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(refusedButton.hasAttribute('aria-busy')).toBe(false)
+      refused.unmount()
+
+      const silent = setup(() => new Promise(() => undefined))
+      const silentButton = silent.getByLabelText(/Toggle fullscreen/i)
+      await fireEvent.click(silentButton)
+      expect(silentButton.getAttribute('aria-busy')).toBe('true')
+      await vi.advanceTimersByTimeAsync(1100)
+      expect(silentButton.hasAttribute('aria-busy')).toBe(false)
+      expect(silent.queryByText(/Fullscreen did not start/i)).not.toBeNull()
+    })
+  })
 })

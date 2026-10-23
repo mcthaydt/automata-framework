@@ -11,6 +11,7 @@
   let attempt = $state(0)
   let status = $state<'loading' | 'ready' | 'failed'>('loading')
   let fullscreenMessage = $state('')
+  let fullscreenPending = $state(false)
   let allowed = $derived(src === '/demos/first-change/index.html' || getDemosCatalog().some(d => d.bundleUrl === src))
   // Prerendered /examples has no query selection. Create resource URLs only after hydration,
   // otherwise Svelte preserves the server's default iframe src for a different selected demo.
@@ -35,14 +36,20 @@
   // page the button would look dead, so after this long the page says fullscreen has not started; a late answer
   // clears the message.
   const FULLSCREEN_PATIENCE_MS = 1000
+  // The browser's answer can be slow too, on a loaded machine with a demo running. The click itself therefore marks the
+  // button busy (aria-busy) until the browser has answered or the page has given up waiting.
   async function fullscreen() {
-    const impatient = setTimeout(() => { fullscreenMessage = 'Fullscreen did not start. Open the demo in a new tab.' }, FULLSCREEN_PATIENCE_MS)
+    fullscreenPending = true
+    const impatient = setTimeout(() => {
+      fullscreenPending = false
+      fullscreenMessage = 'Fullscreen did not start. Open the demo in a new tab.'
+    }, FULLSCREEN_PATIENCE_MS)
     try {
       if (document.fullscreenElement) await document.exitFullscreen()
       else await container.requestFullscreen()
       fullscreenMessage = ''
     } catch { fullscreenMessage = 'Fullscreen is unavailable. Open the demo in a new tab.' }
-    finally { clearTimeout(impatient) }
+    finally { clearTimeout(impatient); fullscreenPending = false }
   }
 </script>
 <div bind:this={container} data-testid="demo-runner-container" data-ui class={`demo-runner ${className}`}>
@@ -50,7 +57,7 @@
     <strong><span class="led" data-state={active && mounted ? (status === 'ready' ? 'live' : status === 'loading' ? 'loading' : 'off') : 'off'} aria-hidden="true"></span>{title}</strong>
     <div class="control-row">
       <button type="button" aria-label="Restart demo" onclick={() => { attempt++; active = true }}>Restart</button>
-      <button type="button" aria-label="Toggle fullscreen" onclick={fullscreen}>Fullscreen</button>
+      <button type="button" aria-label="Toggle fullscreen" aria-busy={fullscreenPending ? 'true' : undefined} onclick={fullscreen}>Fullscreen</button>
       {#if allowed}<a href={src} target="_blank" rel="noopener noreferrer">Open demo</a>{/if}
       <!-- While stopped, the viewport overlay owns the single "Play demo" control. -->
       {#if active}<button type="button" onclick={() => active = false}>Stop demo</button>{/if}
