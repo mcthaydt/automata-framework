@@ -36,6 +36,8 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `pixi.js` | 8.21.0 | 2026-10-11 | 2D renderer (ADR 0002). FloorFifty's version (`45482fb`, `pnpm-lock.yaml`); used by Emberwick (`games/emberwick`) until `render-pixi` (M1.7) owns it |
 | `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for Emberwick's screens (`games/emberwick`) (OFL-1.1), bundled so it loads under Ruken's `font-src 'self' data:` |
+| `@fontsource/ibm-plex-mono` | 5.3.0 | 2026-10-23 | editor lane (EDK.1): the editor kit's monospace face (`packages/editor-kit`) (OFL-1.1), bundled so the editors load offline |
+| `@fontsource/ibm-plex-sans` | 5.3.0 | 2026-10-23 | editor lane (EDK.1): the editor kit's interface face (`packages/editor-kit`) (OFL-1.1), bundled so the editors load offline |
 | `playwright` | 1.63.0 | 2026-10-01 | Same as Ruken's `@playwright/test`: browsers for parity and DOM checks |
 | `pngjs` | 7.0.0 | 2026-10-17 | content lane (M5.6): decodes atlas frames and encodes atlas pages in `automata-content assets` (M5 spec §4.7). FloorFifty's version (`ac72660`, `packages/asset-contract`), already in the lockfile through `@vitest/browser`. Only the `./assets` subpath imports it, so it stays out of browser graphs |
 | `smol-toml` | 1.9.0 | 2026-10-11 | Same as Ruken: reads the TOML under `content/` in `@mcthaydt/automata-content` (M1.3 content spec §8) |
