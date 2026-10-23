@@ -2,22 +2,27 @@ export interface Args {
   readonly out: string
   readonly extras: readonly string[]
   readonly allowDirty: boolean
+  /** Also extract every tarball into a folder (see `PackedPackage.dir`). */
+  readonly unpack: boolean
   /** Given by a caller that built the packs from a checkout it did not make itself. */
   readonly sourceCommit?: string
 }
 
 const USAGE =
-  'usage: core-packs --out <dir> [--extra <package name>]... [--source-commit <sha>] [--allow-dirty]'
+  'usage: core-packs --out <dir> [--extra <package name>]... [--source-commit <sha>] [--allow-dirty] [--unpack]'
 
 export function parseArgs(argv: readonly string[]): Args {
   let out: string | undefined
   let sourceCommit: string | undefined
   let allowDirty = false
+  let unpack = false
   const extras: string[] = []
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] as string
     if (arg === '--allow-dirty') {
       allowDirty = true
+    } else if (arg === '--unpack') {
+      unpack = true
     } else if (arg === '--out' || arg === '--extra' || arg === '--source-commit') {
       const value = argv[++i]
       if (value === undefined) throw new Error(`${arg} needs a value\n${USAGE}`)
@@ -29,7 +34,9 @@ export function parseArgs(argv: readonly string[]): Args {
     }
   }
   if (out === undefined) throw new Error(`--out is required\n${USAGE}`)
-  return sourceCommit === undefined ? { out, extras, allowDirty } : { out, extras, allowDirty, sourceCommit }
+  return sourceCommit === undefined
+    ? { out, extras, allowDirty, unpack }
+    : { out, extras, allowDirty, unpack, sourceCommit }
 }
 
 /** Runs git in the workspace and returns what it printed. */

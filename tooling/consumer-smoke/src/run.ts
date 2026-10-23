@@ -130,7 +130,7 @@ function packAll(project: string): ConsumerPackage[] {
     root,
     out: join(project, 'packs'),
     extras: [],
-    sourceCommit: resolveSourceCommit({ out: '', extras: [], allowDirty: true }, git),
+    sourceCommit: resolveSourceCommit({ out: '', extras: [], allowDirty: true, unpack: false }, git),
   })
   return packs.map(({ name, file }) => ({ name, tarball: `packs/${file}` }))
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Usage: node tooling/core-packs/src/cli.ts --out <dir> [--extra <package name>]... [--source-commit <sha>] [--allow-dirty]
+// Usage: node tooling/core-packs/src/cli.ts --out <dir> [--extra <package name>]... [--source-commit <sha>] [--allow-dirty] [--unpack]
 // Packs every published workspace package, plus the named private extras, into <dir> and writes <dir>/packs.json
 // (run `pnpm build` first). See pack.ts.
 import { execFileSync } from 'node:child_process'
@@ -17,6 +17,7 @@ try {
     root,
     out: args.out,
     extras: args.extras,
+    unpack: args.unpack,
     sourceCommit: resolveSourceCommit(args, git),
   })
   console.log(`core-packs: ${manifest.packs.length} packs from ${manifest.sourceCommit} in ${args.out}`)

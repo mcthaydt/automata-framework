@@ -57,6 +57,12 @@ const fakePack = (dir: string, destination: string): string => {
   return file
 }
 
+/** What extracting a tarball leaves: `package.json` in the folder (the fake tarballs are text, not archives). */
+const fakeUnpack = (tarball: string, dir: string): void => {
+  mkdirSync(dir, { recursive: true })
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({ from: tarball }))
+}
+
 const clean = (): { name: string; version: string; dependencies?: Record<string, string> } => ({
   name: 'x',
   version: '0',
@@ -154,6 +160,54 @@ describe('packWorkspace', () => {
     },
   )
 
+  it('unpacks each tarball into a folder named for the package when asked, and records the folder', () => {
+    const root = workspace()
+    const out = join(temp('af-core-packs-out-'), 'packs')
+    const result = packWorkspace(
+      options(root, out, { extras: ['@mcthaydt/evidence'], unpack: true, unpackTarball: fakeUnpack }),
+    )
+    expect(result.packs.map((pack) => pack.dir)).toEqual(['automata-sim', 'automata-testing', 'evidence'])
+    for (const pack of result.packs)
+      expect(existsSync(join(out, pack.dir ?? 'none', 'package.json'))).toBe(true)
+    expect((JSON.parse(readFileSync(join(out, 'packs.json'), 'utf8')) as PackManifest).packs[0]?.dir).toBe(
+      'automata-sim',
+    )
+  })
+
+  it('writes no folders and no dir field unless asked', () => {
+    const out = join(temp('af-core-packs-out-'), 'packs')
+    const result = packWorkspace(options(workspace(), out))
+    expect(result.packs.every((pack) => !('dir' in pack))).toBe(true)
+    expect(existsSync(join(out, 'automata-sim'))).toBe(false)
+  })
+
+  it('removes the folders of an earlier run, and only those, and refuses a folder it did not make', () => {
+    const root = workspace()
+    const out = join(temp('af-core-packs-out-'), 'packs')
+    const unpackOptions = { unpack: true, unpackTarball: fakeUnpack }
+    packWorkspace(options(root, out, { extras: ['@mcthaydt/evidence'], ...unpackOptions }))
+    packWorkspace(options(root, out, unpackOptions))
+    expect(existsSync(join(out, 'evidence'))).toBe(false)
+    expect(existsSync(join(out, 'automata-sim'))).toBe(true)
+    mkdirSync(join(out, 'mine'))
+    expect(() => packWorkspace(options(root, out, unpackOptions))).toThrow('mine')
+    expect(existsSync(join(out, 'mine'))).toBe(true)
+  })
+
+  it('fails when two packages would share a folder name', () => {
+    const root = workspace()
+    write(root, 'tooling/other-sim', { name: '@other/automata-sim', version: '1.0.0', private: true })
+    expect(() =>
+      packWorkspace(
+        options(root, join(temp('af-core-packs-out-'), 'p'), {
+          extras: ['@other/automata-sim'],
+          unpack: true,
+          unpackTarball: fakeUnpack,
+        }),
+      ),
+    ).toThrow('both unpack to automata-sim')
+  })
+
   it('refuses an out folder that holds anything but packs, so it never deletes other files', () => {
     const root = workspace()
     const out = temp('af-core-packs-out-')
@@ -194,5 +248,17 @@ describe.skipIf(!built)('the real workspace with pnpm pack (needs pnpm build)', 
       [...published.map((pkg) => pkg.manifest.name), '@mcthaydt/evidence'].sort(),
     )
     for (const pack of result.packs) expect(existsSync(join(out, pack.file)), pack.file).toBe(true)
+  }, 120_000)
+
+  it('unpacks with tar into folders that hold the published layout', () => {
+    const out = join(temp('af-core-packs-out-'), 'packs')
+    const result = packWorkspace({ root: realRoot, out, extras: [], sourceCommit: SOURCE, unpack: true })
+    const sim = result.packs.find((pack) => pack.name === '@mcthaydt/automata-sim')
+    const manifest = JSON.parse(readFileSync(join(out, sim?.dir ?? 'none', 'package.json'), 'utf8')) as {
+      name: string
+      exports: Record<string, { import: string }>
+    }
+    expect(manifest.name).toBe('@mcthaydt/automata-sim')
+    expect(existsSync(join(out, sim?.dir ?? 'none', manifest.exports['.']?.import ?? 'none'))).toBe(true)
   }, 120_000)
 })
