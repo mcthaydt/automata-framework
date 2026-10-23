@@ -10,6 +10,7 @@ import type { Locale } from '../locale/locale.manager.js'
 import type { AppLoop } from '../loop/app-loop.manager.js'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { GameRenderer } from '../render/renderer.js'
+import type { Saves } from '../save/saves.manager.js'
 import type { Settings } from '../settings/settings.manager.js'
 import type { Time } from '../time/time.manager.js'
 import type { Flow } from './flow.manager.js'
@@ -25,6 +26,7 @@ export type RuntimeServices =
   | Time
   | Flow
   | Settings
+  | Saves
   | AppLoop
   | Assets
   | GameRenderer

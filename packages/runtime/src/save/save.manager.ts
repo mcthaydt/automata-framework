@@ -6,9 +6,11 @@
 // Nothing here falls back to device storage (AGENTS.md, "Honor host authority").
 import { type HostError, Hosting } from '@mcthaydt/automata-host'
 import { canonicalJson } from '@mcthaydt/automata-sim/hash'
-import { Clock, Effect, Subscribable, SubscriptionRef } from 'effect'
+import { Clock, Duration, Effect, Runtime, type Scope, Stream, Subscribable, SubscriptionRef } from 'effect'
 import { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import {
+  type AutosaveTrigger,
+  autosaveOf,
   encodeEnvelope,
   metaOf,
   readSave,
@@ -40,9 +42,38 @@ export interface SaveWriteOptions {
 export interface Save<S> {
   /** Every slot's state, in slot order. */
   readonly slots: Subscribable.Subscribable<readonly SlotState[]>
+  /** The slot being played: the last one `load` returned. Undefined before the first load. */
+  readonly loaded: Subscribable.Subscribable<number | undefined>
   load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>
   write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>
   remove(slot: number): Effect.Effect<void, HostError>
+  /**
+   * Says the loaded slot's progress changed and what it is now. A plain function, safe to call every tick: it only
+   * keeps `data`, and the next autosave trigger writes it. With no slot loaded it keeps nothing.
+   */
+  touch(data: () => S): void
+  /**
+   * Writes the progress `touch` has kept for every slot that still has some, now, whatever the autosave policy
+   * (an exit must not lose progress because `on` left out a trigger). It still never writes a slot whose state
+   * is not `ready` or `empty` (a newer build's, a damaged one, one loaded with other content): that progress
+   * stays kept. It never fails, because it runs inside the host's exit; a refused write is the `save.failed`
+   * fact, and the progress stays kept for the next flush.
+   */
+  readonly flushPending: Effect.Effect<void>
+  /**
+   * What a trigger calls: `flushPending` if the save's policy lists `trigger`, otherwise nothing. `saveService`
+   * already wires every trigger to its source; this is for a game that raises one itself.
+   */
+  autosave(trigger: AutosaveTrigger): Effect.Effect<void>
+  /**
+   * True while the loaded slot holds something another device wrote after it was loaded (M5-D6). Nothing is
+   * reloaded and autosave stays on. Lowered by `keepPlaying`, `loadNewer` or any load.
+   */
+  readonly changedElsewhere: Subscribable.Subscribable<boolean>
+  /** Loads the loaded slot again, so the game plays what the other device wrote. Dies when nothing is loaded. */
+  loadNewer(): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>
+  /** The player chose to carry on: lowers `changedElsewhere`. The next write overwrites the other device's, as any write would. */
+  keepPlaying(): void
 }
 
 export interface SaveServiceOptions {
@@ -71,8 +102,9 @@ const fromBase64 = (text: string): Uint8Array => Uint8Array.from(atob(text), (ch
 export function saveService<S>(
   def: SaveDef<S>,
   options: SaveServiceOptions,
-): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus> {
+): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus | Scope.Scope> {
   return Effect.gen(function* () {
+    const policy = autosaveOf(def)
     const hosting = yield* Hosting
     const bus = yield* PresentationBus
     const { contentHash } = options
@@ -95,7 +127,31 @@ export function saveService<S>(
     }
     const ref = yield* SubscriptionRef.make<readonly SlotState[]>(states)
 
+    // The slot being played, and per slot the latest progress `touch` has not yet seen written.
+    const loadedRef = yield* SubscriptionRef.make<number | undefined>(undefined)
+    let loadedSlot: number | undefined
+    const pending = new Map<number, () => S>()
+    const changedElsewhereRef = yield* SubscriptionRef.make(false)
+    const setLoaded = (slot: number) =>
+      Effect.suspend(() => {
+        loadedSlot = slot
+        // A fresh load is the newest there is: whatever another device wrote is what was just read.
+        return SubscriptionRef.set(changedElsewhereRef, false).pipe(
+          Effect.zipRight(SubscriptionRef.set(loadedRef, slot)),
+        )
+      })
+
     const stateOf = (slot: number) => Effect.map(SubscriptionRef.get(ref), (all) => all[slot])
+    // Writes, removals and autosaves of one slot take turns: one is in flight, the rest wait behind it.
+    const gates = new Map<number, Effect.Semaphore>()
+    const gateOf = (slot: number): Effect.Semaphore => {
+      let gate = gates.get(slot)
+      if (gate === undefined) {
+        gate = Effect.unsafeMakeSemaphore(1)
+        gates.set(slot, gate)
+      }
+      return gate
+    }
     const setState = (slot: number, state: SlotState) =>
       SubscriptionRef.update(ref, (all) => all.map((current, index) => (index === slot ? state : current)))
     const checked = (slot: number) =>
@@ -113,6 +169,7 @@ export function saveService<S>(
           yield* setState(slot, state)
           remember(slot, raw)
           bus.publish('save.loaded', { key: def.key, slot })
+          yield* setLoaded(slot)
           return { slot, data: def.empty(), meta: undefined }
         }
         const read = readSave(def, raw)
@@ -128,6 +185,7 @@ export function saveService<S>(
         yield* setState(slot, state)
         remember(slot, raw)
         bus.publish('save.loaded', { key: def.key, slot })
+        yield* setLoaded(slot)
         const { envelope } = read
         const loaded = { slot, data: read.data, meta: metaOf(envelope) }
         // A snapshot taken with other content is dropped (M5-D5): only the data loads.
@@ -136,9 +194,11 @@ export function saveService<S>(
           : loaded
       })
 
-    const write = (slot: number, data: S, writeOptions: SaveWriteOptions = {}) =>
+    const locked = <A, E>(slot: number, effect: Effect.Effect<A, E>): Effect.Effect<A, E> =>
+      checked(slot).pipe(Effect.zipRight(gateOf(slot).withPermits(1)(effect)))
+
+    const writeNow = (slot: number, data: S, writeOptions: SaveWriteOptions = {}) =>
       Effect.gen(function* () {
-        yield* checked(slot)
         const key = slotKey(def, slot)
         if ((yield* stateOf(slot))?.kind === 'newer')
           return yield* new SaveRefused({ key: def.key, slot, reason: 'newer' })
@@ -168,19 +228,154 @@ export function saveService<S>(
         bus.publish('save.written', { key: def.key, slot })
       })
 
+    const write = (slot: number, data: S, writeOptions?: SaveWriteOptions) =>
+      locked(slot, writeNow(slot, data, writeOptions))
+
     const remove = (slot: number) =>
-      Effect.gen(function* () {
-        yield* checked(slot)
-        yield* hosting.saves.remove(slotKey(def, slot))
-        lastKnown[slot] = undefined
-        yield* setState(slot, { kind: 'empty', slot })
-      })
+      locked(
+        slot,
+        Effect.gen(function* () {
+          yield* hosting.saves.remove(slotKey(def, slot))
+          lastKnown[slot] = undefined
+          yield* setState(slot, { kind: 'empty', slot })
+        }),
+      )
+
+    const touch = (data: () => S): void => {
+      if (loadedSlot !== undefined) pending.set(loadedSlot, data)
+    }
+
+    // Takes the slot's turn, then writes whatever `touch` has by then: triggers that piled up behind a slow write
+    // find nothing left once the first of them has taken it, so they collapse into one more write.
+    const flushSlot = (slot: number): Effect.Effect<void> =>
+      gateOf(slot).withPermits(1)(
+        Effect.gen(function* () {
+          const progress = pending.get(slot)
+          if (progress === undefined) return
+          const state = yield* stateOf(slot)
+          // Never over a save this build cannot or should not overwrite on its own; the progress stays kept.
+          if (state === undefined || (state.kind !== 'ready' && state.kind !== 'empty')) return
+          const data = progress()
+          // Autosave knows only the data, so the label the slot list shows rides along from the stored header.
+          const label = state.kind === 'ready' ? state.meta.label : undefined
+          yield* writeNow(slot, data, label === undefined ? {} : { label })
+          // A touch that landed during the write replaced the entry and stays kept.
+          if (pending.get(slot) === progress) pending.delete(slot)
+        }).pipe(
+          // A refused write is already the `save.failed` fact. A `touch` that throws is the game's mistake: logged,
+          // and never allowed to fail an exit.
+          Effect.catchAll(() => Effect.void),
+          Effect.catchAllDefect((defect) =>
+            Effect.logWarning(`Save '${def.key}': the progress of slot ${slot} could not be read`, defect),
+          ),
+        ),
+      )
+
+    const flushPending = Effect.suspend(() =>
+      Effect.forEach([...pending.keys()], flushSlot, { discard: true }),
+    )
+
+    const autosave = (trigger: AutosaveTrigger): Effect.Effect<void> =>
+      policy.on.has(trigger) ? flushPending : Effect.void
+
+    const loadNewer = () =>
+      Effect.suspend(() =>
+        loadedSlot === undefined
+          ? Effect.dieMessage(`Save '${def.key}': loadNewer needs a loaded slot`)
+          : load(loadedSlot),
+      )
+    const keepPlaying = (): void => {
+      Effect.runSync(SubscriptionRef.set(changedElsewhereRef, false))
+    }
+
+    // Another device wrote a slot (spec §5, M5-D6): the list and what this service believes the host holds follow
+    // the host's value, at the slot's turn so a write in flight lands first. The slot being played is not reloaded:
+    // the flag goes up and the game decides. The echo of this game's own write is not news.
+    const changedOnHost = (slot: number) =>
+      gateOf(slot).withPermits(1)(
+        Effect.gen(function* () {
+          const raw = yield* hosting.saves.get(slotKey(def, slot))
+          const read = raw === null ? undefined : readSave(def, raw)
+          const unchanged =
+            raw === null
+              ? (yield* stateOf(slot))?.kind === 'empty'
+              : read?.ok === true && identityOf(read.envelope) === lastKnown[slot]
+          if (unchanged) return
+          yield* setState(slot, slotState(def, slot, raw, contentHash))
+          remember(slot, raw)
+          if (slot !== loadedSlot) return
+          yield* SubscriptionRef.set(changedElsewhereRef, true)
+          bus.publish('save.changedElsewhere', { key: def.key, slot })
+        }),
+      )
+    yield* hosting.saves.changed.pipe(
+      Stream.runForEach(({ key }) => {
+        const slot = slotOf(def, key)
+        return slot === undefined ? Effect.void : Effect.ignore(changedOnHost(slot))
+      }),
+      Effect.forkScoped,
+    )
+
+    // The triggers, each wired to its source for as long as the scope is open (spec §4.4). A trigger that comes
+    // from outside Effect (the bus) starts its flush on this service's runtime, so it sees the same Clock.
+    const runFork = Runtime.runFork(yield* Effect.runtime<never>())
+    if (policy.on.has('screen-exit')) {
+      yield* Effect.acquireRelease(
+        Effect.sync(() =>
+          bus.subscribe('screen.entered', ({ from }) => {
+            // The first screen leaves nothing behind.
+            if (from !== undefined) runFork(autosave('screen-exit'))
+          }),
+        ),
+        (unsubscribe) => Effect.sync(unsubscribe),
+      )
+    }
+    if (policy.on.has('round-end')) {
+      yield* hosting.round.ended.pipe(
+        Stream.runForEach(() => autosave('round-end')),
+        Effect.forkScoped,
+      )
+    }
+    if (policy.on.has('background')) {
+      // S-d: write, then hand the host everything it holds, because a page in the background may be frozen or closed
+      // before anything else runs. A flush the host refuses is simply over.
+      yield* hosting.lifecycle.changes.pipe(
+        Stream.map((change) => change.state),
+        Stream.changes,
+        Stream.filter((state) => state === 'background'),
+        Stream.runForEach(() =>
+          autosave('background').pipe(Effect.zipRight(Effect.ignore(hosting.saves.flush))),
+        ),
+        Effect.forkScoped,
+      )
+    }
+    if (policy.intervalSeconds !== undefined) {
+      yield* Effect.sleep(Duration.seconds(policy.intervalSeconds)).pipe(
+        Effect.zipRight(autosave('interval')),
+        Effect.forever,
+        Effect.forkScoped,
+      )
+    }
+    // Leaving through the host, or closing this scope, must not lose progress (spec §5, "Restart and dispose"). The
+    // finalizer is added last, so it runs first, while the triggers above can still be told apart from a late one.
+    yield* hosting.onExiting(flushPending)
+    yield* Effect.addFinalizer(() => flushPending)
 
     return {
       slots: Subscribable.make({ get: SubscriptionRef.get(ref), changes: ref.changes }),
+      loaded: Subscribable.make({ get: SubscriptionRef.get(loadedRef), changes: loadedRef.changes }),
       load,
       write,
       remove,
+      touch,
+      flushPending,
+      autosave,
+      changedElsewhere: Subscribable.make({
+        get: SubscriptionRef.get(changedElsewhereRef),
+        changes: changedElsewhereRef.changes,
+      }),
+      loadNewer,
+      keepPlaying,
     }
   })
 }
