@@ -7,7 +7,9 @@ import { describe, expect, it, vi } from 'vitest'
 import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
+import { lastLightProfile } from '../profile/last-light-profile'
 import { loadAuthored } from '../testing/fixtures'
+import { toyBlockout } from '../testing/toy-blockout'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import type { PlanPointer } from './plan-controller'
 import { createSectorTool, type SectorToolOptions } from './sector-tool-controller'
@@ -312,5 +314,154 @@ describe('two corners', () => {
     tool.undoCorner()
     tool.close()
     expect(tool.view.refusal).toBe('tap the opposite corner of the rectangle')
+  })
+})
+
+describe('closing the rectangle', () => {
+  type Made = ReturnType<typeof setup>
+  const sectorOf = (editor: Made['editor'], id: string) =>
+    afSectorProfile.sectors.list(editor.level as AfSector).find((each) => each.id === id)
+  const wall = (made: Made, sector: string, corner: number) =>
+    sectorOf(made.editor, sector)?.corners[corner]?.[2]
+  /** Draws the room from one of its corners to the opposite one, then closes it with a tap on that corner. */
+  const draw = ({ tool, at }: Made, from: readonly [number, number], to: readonly [number, number]): void => {
+    tool.tap(at(...from))
+    tool.tap(at(...to))
+    tool.tap(at(...to))
+  }
+  const ROOM = [
+    [-3, 9.5],
+    [1, 9.5],
+    [1, 12],
+    [-3, 12],
+  ]
+
+  it.each([
+    ['north-west to south-east', [-3, 9.5], [1, 12]],
+    ['north-east to south-west', [1, 9.5], [-3, 12]],
+    ['south-east to north-west', [1, 12], [-3, 9.5]],
+    ['south-west to north-east', [-3, 12], [1, 9.5]],
+  ] as const)('writes the same room whichever diagonal is drawn (%s)', (_name, from, to) => {
+    const made = setup({ shape: 'rectangle' })
+    draw(made, from, to)
+    expect(sectorOf(made.editor, 'sector-1')?.corners).toEqual(ROOM)
+  })
+
+  it('adds the room as one undo step, selects it, clears the drawing and keeps the shape', () => {
+    const made = setup({ shape: 'rectangle' })
+    draw(made, [-3, 9.5], [1, 12])
+    expect(made.editor.history.undoLabel).toBe('Draw sector sector-1')
+    expect(made.editor.selection.ids).toEqual(['sector:sector-1'])
+    expect(made.tool.view).toMatchObject({
+      shape: 'rectangle',
+      corners: [],
+      edges: [],
+      refusal: undefined,
+      closing: false,
+    })
+    made.editor.history.undo()
+    expect(made.editor.level).toEqual(depot)
+    expect(made.editor.history.canUndo).toBe(false)
+  })
+
+  it('closes with the Close button as well, and draws the next room with the next id', () => {
+    const made = setup({ shape: 'rectangle' })
+    made.tool.tap(made.at(-3, 9.5))
+    made.tool.tap(made.at(1, 12))
+    made.tool.close()
+    expect(sectorOf(made.editor, 'sector-1')?.corners).toEqual(ROOM)
+    draw(made, [3, 9.5], [6, 13])
+    expect(sectorOf(made.editor, 'sector-2')?.corners).toEqual([
+      [3, 9.5],
+      [6, 9.5],
+      [6, 13],
+      [3, 13],
+    ])
+  })
+
+  it('takes the heights and the light of the sector the selection names, else the last sector', () => {
+    const plain = setup({ shape: 'rectangle' })
+    draw(plain, [-3, 9.5], [1, 12])
+    expect(sectorOf(plain.editor, 'sector-1')).toMatchObject({ floor: -0.5, light: 0.7 })
+    const chosen = setup({ shape: 'rectangle' })
+    chosen.editor.selection.set(['sector:hall'])
+    draw(chosen, [-3, 9.5], [1, 12])
+    expect(sectorOf(chosen.editor, 'sector-1')).toMatchObject({ floor: 0, light: 1 })
+  })
+
+  it('offers a portal where a wall of the room lies on a neighbour’s, as the polygon does for the same room', () => {
+    const polygon = setup()
+    for (const [x, z] of [
+      [-6, 0],
+      [0, 0],
+      [0, 6],
+      [-6, 6],
+    ] as const)
+      polygon.tool.tap(polygon.at(x, z))
+    polygon.tool.close()
+    const made = setup({ shape: 'rectangle' })
+    draw(made, [-6, 0], [0, 6])
+    expect(made.tool.view.offers).toEqual([
+      { sector: 'sector-1', corner: 1, to: 'hall', toCorner: 3, length: 6 },
+    ])
+    expect(made.tool.view.offers).toEqual(polygon.tool.view.offers)
+    expect(made.editor.level).toEqual(polygon.editor.level)
+  })
+
+  it('makes both sides portals when the offer is accepted, in the one step the room is in', () => {
+    const made = setup({ shape: 'rectangle' })
+    draw(made, [0, 6], [8, 10])
+    expect(made.tool.view.offers).toEqual([
+      { sector: 'sector-1', corner: 0, to: 'hall', toCorner: 2, length: 8 },
+    ])
+    made.tool.acceptOffer(0)
+    expect(wall(made, 'sector-1', 0)).toEqual({ next: 'hall' })
+    expect(wall(made, 'hall', 2)).toEqual({ next: 'sector-1' })
+    expect(made.editor.history.undoLabel).toBe('Draw sector sector-1')
+    made.editor.history.undo()
+    expect(made.editor.level).toEqual(depot)
+    expect(made.editor.history.canUndo).toBe(false)
+  })
+
+  it('leaves the wall solid when the offer is declined', () => {
+    const made = setup({ shape: 'rectangle' })
+    draw(made, [0, 6], [8, 10])
+    made.tool.declineOffer(0)
+    expect(wall(made, 'sector-1', 0)).toBeUndefined()
+    expect(wall(made, 'hall', 2)).toBeUndefined()
+    expect(made.tool.view.offers).toEqual([])
+  })
+
+  it('offers nothing for a wall that spans two neighbour walls, which is not the same segment as either', () => {
+    const made = setup({ shape: 'rectangle' })
+    draw(made, [0, 6], [14, 10])
+    expect(made.tool.view.offers).toEqual([])
+    expect(made.editor.history.undoLabel).toBe('Draw sector sector-1')
+  })
+
+  it('refuses a room that overlaps a sector with the model’s sentence, and keeps both corners', () => {
+    const made = setup({ shape: 'rectangle' })
+    made.tool.tap(made.at(-3, 2))
+    made.tool.tap(made.at(3, 4))
+    made.tool.close()
+    expect(made.tool.view.refusal).toBe('the new sector overlaps hall')
+    expect(made.tool.view.corners).toHaveLength(2)
+    expect(made.editor.level).toBe(depot)
+    expect(made.editor.history.canUndo).toBe(false)
+  })
+
+  it('adds a room to a Last Light level', () => {
+    const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
+    editor.view.set({ camera: { x: 0, z: 0, zoom: 1 } })
+    const tool = createSectorTool(editor, SIZE, { shape: 'rectangle' })
+    const at = (x: number, z: number): PlanPointer => ({
+      ...toScreen(planViewport(editor.view.state.camera, SIZE), { x, z }),
+      kind: 'mouse',
+    })
+    tool.tap(at(-8, 8))
+    tool.tap(at(-5, 11))
+    tool.tap(at(-5, 11))
+    expect(lastLightProfile.sectors.list(editor.level).map((room) => room.id)).toContain('sector-1')
+    expect(editor.history.undoLabel).toBe('Draw sector sector-1')
   })
 })
