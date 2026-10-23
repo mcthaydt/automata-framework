@@ -51,7 +51,10 @@ function vertexNear(
 }
 
 /** The grid when the view snaps to one (and Shift is not held), else the data step. */
-function stepOf(options: SnapOptions): { readonly step: number; readonly kind: 'grid' | 'data' } {
+export function stepOf(options: Pick<SnapOptions, 'grid' | 'shiftKey' | 'altKey'>): {
+  readonly step: number
+  readonly kind: 'grid' | 'data'
+} {
   const onGrid = options.grid.snap && options.grid.step > 0 && options.shiftKey !== true
   return onGrid ? { step: options.grid.step, kind: 'grid' } : { step: snapStep(options), kind: 'data' }
 }
