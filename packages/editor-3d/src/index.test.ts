@@ -137,6 +137,9 @@ describe('public entry', () => {
 
   it('exports the sector tool and the portal offers it makes', () => {
     for (const name of ['createSectorTool', 'portalOffers']) expect(editor3d, name).toHaveProperty(name)
+    // The shapes are a type, so this is checked by the compiler: the entry names them.
+    const shapes: editor3d.SectorShape[] = ['polygon', 'rectangle']
+    expect(shapes).toHaveLength(2)
   })
 
   it('exports the wall tools and what one wall can be offered, and keeps the geometry cache inside', () => {

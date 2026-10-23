@@ -7,6 +7,7 @@ export {
 export {
   createSectorTool,
   type DrawEdge,
+  type SectorShape,
   type SectorTool,
   type SectorToolOptions,
   type SectorToolView,
