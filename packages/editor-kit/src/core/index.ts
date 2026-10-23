@@ -1,6 +1,6 @@
-// The editor kit without its Svelte parts: history, selection, the command registry, the keymap and storage. An editor's
-// headless layers import this entry, so they load on Node (and in a worker) without the Svelte compiler; the root entry
-// adds the shell and the widgets on top of the same modules.
+// The editor kit without its Svelte parts: history, selection, the command registry, the keymap, storage and the
+// toast store. An editor's headless layers import this entry, so they load on Node (and in a worker) without the
+// Svelte compiler; the root entry adds the shell and the widgets on top of the same modules.
 export { type Command, type CommandRegistry, createCommandRegistry, defineCommand } from '../commands/command'
 export { normalizeShortcut, parseShortcut, type Shortcut } from '../commands/shortcut'
 export {
@@ -52,3 +52,12 @@ export {
 export { discardRecovery, findRecovery, type Recovery } from '../storage/recovery'
 export type { SaveState } from '../storage/save-state'
 export { openWorkspace, type Workspace, type WorkspaceEnv } from '../storage/workspace'
+export {
+  createToasts,
+  type Toast,
+  type ToastAction,
+  type ToastInput,
+  type ToastKind,
+  type ToastOptions,
+  type ToastStore,
+} from '../widgets/toasts'
