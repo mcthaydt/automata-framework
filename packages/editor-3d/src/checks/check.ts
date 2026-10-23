@@ -2,6 +2,7 @@
 // and with each problem carrying where it is, so the editor can frame it (ED3D spec §7). The sentence of a problem
 // is Last Light's own, so a level that fails in the game fails the same way here.
 import type { Point } from '../format/sector.schema'
+import type { Edge, ResolvedMap } from '../geometry/sectors'
 
 export type Severity = 'error' | 'warning'
 
@@ -15,6 +16,8 @@ export interface Problem {
   readonly message: string
   /** Absent when the problem has no place in the document (a puzzle hotspot the level never places). */
   readonly locator?: Locator | undefined
+  /** The other places it concerns: the second wall of a shared line, the other room of an overlap. */
+  readonly related?: readonly Locator[] | undefined
 }
 
 export interface CheckResult {
@@ -69,3 +72,12 @@ export function wallSelection(sectorId: string, corner: number): string {
 
 export const entitySelection = (definition: string, id: string): string =>
   `entity:${part('entity definition', definition)}/${part('entity id', id)}`
+
+/** A point as Last Light writes one in a sentence: x and z to at most three decimals. */
+export const formatPoint = (point: Point): string => `${+point.x.toFixed(3)}, ${+point.z.toFixed(3)}`
+
+/** What the geometry checks read: the resolved level, and where a wall is in the document (a selection id and a point). */
+export interface GeometryContext {
+  readonly map: ResolvedMap
+  readonly wall: (edge: Edge) => Locator
+}

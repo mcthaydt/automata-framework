@@ -52,7 +52,7 @@ const sources = (directory: string): string[] =>
   })
 
 describe('the pure layers', () => {
-  for (const layer of ['format', 'geometry', 'codec', 'profile']) {
+  for (const layer of ['format', 'geometry', 'checks', 'codec', 'profile']) {
     it(`src/${layer} has no impure import or global`, () => {
       const root = new URL(`./${layer}`, import.meta.url).pathname
       const files = sources(root)

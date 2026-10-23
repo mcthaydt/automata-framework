@@ -1,7 +1,7 @@
 // The shape every check answers in: what Last Light's `result` helper builds (an id, ok, a detail sentence), plus
 // the severity and, for each problem, where it is, as a selection id the editor can frame.
 import { describe, expect, it } from 'vitest'
-import { checkResult, entitySelection, sectorSelection, wallSelection } from './check'
+import { checkResult, entitySelection, formatPoint, sectorSelection, wallSelection } from './check'
 
 describe('checkResult', () => {
   it('is ok with the text `ok` and an error severity when nothing is wrong', () => {
@@ -73,5 +73,13 @@ describe('selection ids', () => {
     expect(() => wallSelection('hall', -1)).toThrow(/corner/)
     expect(() => wallSelection('hall', 1.5)).toThrow(/corner/)
     expect(() => wallSelection('hall', Number.NaN)).toThrow(/corner/)
+  })
+})
+
+describe('formatPoint', () => {
+  it('writes a point as Last Light writes one in a sentence: x, z, each to at most 3 decimals', () => {
+    expect(formatPoint({ x: -1.475, z: 0 })).toBe('-1.475, 0')
+    expect(formatPoint({ x: 1 / 3, z: 2 })).toBe('0.333, 2')
+    expect(formatPoint({ x: 1.0004, z: -0.0004 })).toBe('1, 0')
   })
 })
