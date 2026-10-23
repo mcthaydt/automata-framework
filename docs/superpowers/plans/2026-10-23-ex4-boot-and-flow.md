@@ -3,7 +3,7 @@
 - **Spec:** [EX spec](../specs/2026-10-16-examples-one-file-design.md) §6 (`runtime/boot-and-flow` → `core/core-screens-and-flow.ts`; "boot failure modes and the veil go to `packages/runtime` browser tests; the Effect-share budget goes to the placeholder's S8 budgets"), §8 E-e (every behavior test listed in §6 passes in its package before the demo folder is deleted); [EX plan](2026-10-16-examples-one-file.md) Task EX.4; [runtime spec](../specs/2026-10-12-m1-runtime-design.md) §8 (what the demo proved).
 - **Task:** `EX.4 — port the existing demos`, the `runtime/boot-and-flow` row. One PR per demo. This is one of the two ports the examples queue left to the runtime/ui queue (its files: `packages/runtime` tests).
 - **Status:** drafted 2026-10-23.
-- **Progress:** 0 of 5 steps.
+- **Progress:** 5 of 5 steps (the execution-record row and 03 come with the docs sync).
 
 ## What the old demo checked
 
@@ -38,11 +38,11 @@
 
 ## Steps
 
-- [ ] **1. The stall pin, red first.** Replace the hollow test with the fake-timer version. Confirm it can fail: run it with the 30 s advance cut to 29 s and expect `data-state` not `failed` (the control), then restore 30 s and record whether it passes on its first run.
-- [ ] **2. The `connect` pin, red first.** Add the `autoReady: false` test with the same control (29 s: still loading; 30 s: `connect`).
-- [ ] **3. Delete the old demo.** `git rm -r examples/runtime/boot-and-flow`; remove the Playwright, `boundaries`, knip and README entries; `pnpm install`; then `pnpm check` and `pnpm build:examples`. The e2e and three-engine parity are the CI runner's.
-- [ ] **4. Spec and plan records.** EX spec §6: an as-built note on the row (no example, why; the budget and the failure modes where they live). The EX plan checklist ticked with that note.
-- [ ] **5. Docs.** The 02 EX.4 progress note; the execution-record row and 03 come with the docs sync.
+- [x] **1. The stall pin, red first.** Replace the hollow test with the fake-timer version. Confirm it can fail: run it with the 30 s advance cut to 29 s and expect `data-state` not `failed` (the control), then restore 30 s and record whether it passes on its first run.
+- [x] **2. The `connect` pin, red first.** Add the `autoReady: false` test with the same control (29 s: still loading; 30 s: `connect`).
+- [x] **3. Delete the old demo.** `git rm -r examples/runtime/boot-and-flow`; remove the Playwright, `boundaries`, knip and README entries; `pnpm install`; then `pnpm check` and `pnpm build:examples`. The e2e and three-engine parity are the CI runner's.
+- [x] **4. Spec and plan records.** EX spec §6: an as-built note on the row (no example, why; the budget and the failure modes where they live). The EX plan checklist ticked with that note.
+- [x] **5. Docs.** The 02 EX.4 progress note; the execution-record row and 03 come with the docs sync.
 
 ## Gates
 
@@ -53,3 +53,7 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
+| 2026-10-23 | Plan | `f1365c5` | |
+| 2026-10-23 | 1, 2 | `ecff8c8` | Both pins passed on their first run, so they are regression pins. Boot waits for its first frame, and `settle` (the SDK's testing helper) and `waitForState` wait on real timers, so the tests start the boot with `startOnFakeTimers` (advance the faked clock until `frames.pending`, then `frames.advance(16)`). Stall: 29 s later the page has asked for `/assets/title.png` and is not `failed`; at 30 s it is `failed`, `data-code="download-stalled"`, one Try again. Mutation (`elapsed >= STALL_MS * 2` in `loading/load-meter.ts`): the test fails, `expected 'loading' to be 'failed'`; the change was reverted. Connect: a fake host with `autoReady: false`; same 29 s and 30 s, `data-code="connect"`, one Try again, `hello` received. Mutation (`operation: 'init'` in `boot-program.ts` for the ready timeout): the test fails, `expected 'start' to be 'connect'`; reverted. Control (`autoReady: true`): the test fails with `expected 'ready' to be 'failed'`, so the host's silence is the only reason for the failure; reverted. `run-game.test.ts` 13 of 13. |
+| 2026-10-23 | 3 | (this commit) | `git rm -r examples/runtime/boot-and-flow` (30 tracked files); the Playwright import, `testMatch` entry and `webServer` entry, the `boundaries` entry, the knip workspace entry and the README row went; `pnpm install --no-frozen-lockfile --ignore-scripts` dropped 53 packages' lockfile lines (only deletions). `pnpm check` 32 of 32 tasks (exit 0); `pnpm build:examples` and `pnpm build:demos` built what is left; `changeset status --since=origin/main` has nothing to bump (`runtime` is private) and `check-changesets` 47, 0 problems. |
+| 2026-10-23 | 4, 5 | (this commit) | EX spec §6 row: as-built note; EX plan checklist ticked; 02's EX.4 progress note and the QB.1a row's boot-and-flow clause. |
