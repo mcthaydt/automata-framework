@@ -1,0 +1,89 @@
+# ED3D.2b-2 Materials, lamps and room-policy checks: TDD plan
+
+- **Task:** ED3D.2b, second part. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §7 (Checks): `materials` ("a material id is not in the profile's list", gap #28), `lamps` ("a lamp's colour or range is outside the profile's allowed set", gap #28) and `policy` (warning: "the profile's room-visibility policy cannot be read or leaves a new sector without a group"). Each is a pure function with a locator per problem, run by the profile's check runner when the game's own facts are given to it, and held to The Last Light's own code by a recorded golden.
+- **Lane:** editor-3d. **Depends on:** ED3D.2b-1 (PR #164: the `entities` result and the runner order), ED3D.1b (`afSectorChecks`, the AF `materials` table) and ED3D.2 (merged: `ProfileContext`, `lastLightChecks`, `wallLocator`, the golden recorder). Branch `claude/project-thread-ljshus-ed3d-2b2` is stacked on ED3D.2b-1's branch (#164).
+- **Status:** Drafted 2026-10-23 on the hub's instruction (bus 1242, 0850: keep going while the stack waits). Not implemented. Not reviewed; spec review (ED3D.0) is still open. Steps below are ticked only when their checks pass.
+- **Progress:** 0 of 4 steps.
+
+## Why this task exists
+
+Three things the game needs from a level are not in the level file: which materials its renderer has, which lamp archetypes it allows, and which rooms its visibility policy groups the sectors into. The Last Light pipeline checks the second and third at stage time, or not at all (the spec's gap #28); a level made in the editor should say so before the game does. The spec's rule is that the editor owns the check and the profile owns the list, so each check is written once over a list handed to it, and a profile that has no list skips the check, as `puzzle-hotspots` already does.
+
+## Sources, read at these commits
+
+- **The Last Light, `92e6704`:** `editor/src/server/level-options.ts` (`readLevelOptions`: the material keys are the sorted unique keys of `sectorMats` and `unlit` in `src/render/stage.ts`; the lamp kinds are `ARCHETYPES` of `src/render/look.ts`, each `{ color, range: [min, max], peak }`; the tone is `TONE`; `oklab` and `colourDistance`), `src/render/look.ts` (`lampIssues`, `ARCHETYPES`, `TONE`), `src/render/room-visibility.ts` (`RoomPolicy`, `validateRoomPolicy`, which throws at the first fault), `src/render/stage.ts` (where the policy is validated against the scene's sectors, camera zones and masses), and the source tests `tests/look.test.ts` (lines 33 to 46) and `tests/room-visibility.test.ts` (lines 9 to 13) and `tests/scene-room-ownership.test.ts`.
+- **AF (this stack):** `format/af-sector.schema.ts` (`materials`: a record keyed by texture id; sector, style and wall `floorTexture`, `ceilingTexture`, `wallTexture`, `texture`, `trimTexture`), `geometry/sectors.ts` (a resolved `Sector` carries the textures after `style`, an `Edge` its `wall.texture` and `wall.trimTexture`), `checks/check.ts`, `checks/wall-locator.ts`, `checks/last-light/last-light-checks.ts` and `profile/af-sector/af-checks.ts` (the runners and their order).
+- **Data, measured before the rules were written:** the four shipped blockouts name only materials in Last Light's list (`bayFloor`, `blockwork`, `wainscot`, `cap`, `kick`, `counterFront`, `counterTop`, `ceilingTile`, `floorDim`) and the depot only the three in its own table. 53 of the 65 lamps in the shipped blockouts carry a `kind`, and all 53 are inside their archetype's tone (0.06 OKLab) and range band; the 12 of `blockout-bay` carry none.
+
+## Scope
+
+**In:** `checks/materials.ts` (`materialProblems`) and its test; the AF `materials` result; the Last Light `materials`, `lamps` and `policy` results; `ProfileContext` (and so `lastLightChecks`' options) gains `materials`, `lampKinds`, `tone` and `roomPolicy`; `checks/last-light/lamps.ts` (`lampProblems`, with `oklab` and `colourDistance` ported from the game) and `checks/last-light/room-policy.ts` (`roomPolicyProblems`); a recorder and golden for the game's own answers; the package entry; docs rows.
+
+**Out, with where each goes:**
+
+| What | Where |
+|---|---|
+| Reading the lists from the game's source (the TypeScript-parser reader the Last Light editor server has, and reading a scene's policy out of its stage file) | the host adapter that supplies `ProfileContext` (ED3D.13 and the host port, not this package); this task takes the lists as data |
+| Peak limits (`capLevels`) and lamp levels | a scene's dress, not the blockout |
+| `lampIssues`' "not from the kit" for a lamp with no `kind` | run by the game (`style check <scene>`); the editor lists it as such (spec §7, last paragraph) |
+| The material picker and previews | ED3D.8 (the profile's `materials(doc)` member) |
+| Painting problem markers, the problems panel | ED3D.5 and ED3D.11 |
+
+## Decisions this plan makes (each vetoable by the Owner through the Orchestrator)
+
+1. **Each check is skipped, not failed, when the profile has not been given its list,** and says so in its ok text: `no materials table` (AF: the file has no `materials` member), `no material list`, `no lamp kinds`, `no room policy` (Last Light: the option is absent or `null`). The one exception is `policy`, whose spec sentence says "cannot be read": a `roomPolicy` of `null` is a policy that could not be read and is a warning (`the room policy could not be read`), while an absent one is a game with none.
+2. **`materials` is one generic check over the resolved map,** run by both profiles with their own list: AF's is the keys of the file's `materials` table; Last Light's is `context.materials`. It reads each sector's `floorTexture`, `ceilingTexture` and `wallTexture` and each wall's `texture` and `trimTexture` pieces after styles are applied, and says one problem per use at the sector or the wall that uses it (a style nobody uses is not looked at). Order: sectors in map order, then walls in map order; a sentence that comes up twice for one place is said once (a wall `expand` split).
+3. **Sentences:** `<sector>: <field> <id> is not a material` for a sector field (`hall: floorTexture tile is not a material`), `<sector>: wall <field> <id> is not a material` for a wall (`wall texture`, `wall trimTexture skirting`), with the sector's id first as `heights` has it. A texture used in many places is said in each.
+4. **`lamps` is Last Light's alone** (AF has no lamp concept; an AF lamp is an entity whose fields the entity check already bounds). It checks a lamp with a `kind` against `context.lampKinds[kind]`: the colour's OKLab distance from the archetype's against `context.tone` (default 0.06, the editor server's own), and the range against the archetype's band. The two sentences are Last Light's own (`lamp <id> (<kind>): colour is 0.123 from the archetype's, over 0.06 (OKLab)`, `lamp <id> (<kind>): range 12 m outside 3.5–5.5 m`); a `kind` the list does not have is the editor's (`lamp <id>: kind <kind> is not one of <kinds, in the list's order>`); a lamp with no `kind` is not checked (no allowed set to be outside; the game's own style gate says it is not from the kit). Each problem is located at the lamp (`entity:lamp/<id>` at its place).
+5. **`policy` is Last Light's alone, severity `warning`,** and is `validateRoomPolicy` with every fault reported instead of the first, in the validator's order and with its sentences (`reception: empty room`, `hall: unknown or duplicate sector counter`, `unassigned sector closet`, `unassigned zone hall`, `unknown zone x`, `<label>: invalid room owners`, `unassigned mass 0`, `unknown mass 3`). Located: an unassigned or duplicated sector at `sector:<id>` (the second sector of a duplicate; an unknown one has no place), a zone at `entity:zone/<id>`; the rest have none. Its inputs beside the policy are the expanded sectors' ids, the level's camera-zone ids and its mass count.
+6. **The game's answers are recorded, not copied by hand.** A recorder runs the game's own `readLevelOptions`, `lampIssues`, `colourDistance` and `validateRoomPolicy` over a corpus (`game-fact-cases.json`) and writes `game-facts.golden.json`; the ports are tested against it, and the golden also holds the options themselves (the 21 material ids, the 11 archetypes, the tone) so the other tests use the game's own list instead of one typed here.
+7. **Order of results,** appended after `entities`: AF `..., heights, entities, materials`; Last Light `..., nav, entities, materials, lamps, policy`. Last Light's golden compares only the results Last Light recorded; the three new ids join that test's list of new checks.
+
+## Contract
+
+```
+packages/editor-3d/src/checks/materials.ts                       materialProblems
+packages/editor-3d/src/checks/last-light/lamps.ts                lampProblems, oklab, colourDistance
+packages/editor-3d/src/checks/last-light/room-policy.ts          roomPolicyProblems, RoomPolicy, RoomOwners
+packages/editor-3d/src/profile/level-profile.ts                  ProfileContext gains materials, lampKinds, tone, roomPolicy
+packages/editor-3d/src/checks/last-light/last-light-checks.ts    lastLightChecks runs the three
+packages/editor-3d/src/profile/af-sector/af-checks.ts            afSectorChecks runs materials
+packages/editor-3d/src/testing/game-facts.ts                     the golden's loader (test only)
+packages/editor-3d/src/testing/fixtures/record-game-facts.mjs    the recorder
+packages/editor-3d/src/testing/fixtures/game-fact-cases.json     the corpus
+packages/editor-3d/src/testing/fixtures/game-facts.golden.json   what the game answered
+packages/editor-3d/src/index.ts                                  the public entry gains the three functions and the types
+```
+
+```ts
+/** The materials a level names that the list does not have: sectors' floor, ceiling and wall, walls' texture and trim. */
+export function materialProblems(context: GeometryContext, known: ReadonlySet<string>): Problem[]
+/** A lamp outside its archetype's colour tone or range band, or of a kind the list lacks. */
+export function lampProblems(
+  lamps: readonly Lamp[],
+  kinds: Readonly<Record<string, LampKind>>,
+  tone: number,
+): Problem[]
+/** Every fault of a room policy against a level's sectors, camera zones and masses, in `validateRoomPolicy`'s order. */
+export function roomPolicyProblems(
+  policy: RoomPolicy,
+  sectors: readonly string[],
+  zones: readonly string[],
+  massCount: number,
+): Problem[]
+```
+
+## Steps
+
+1. **[ ] The game's answers, recorded.** Failing test first (`testing/game-facts.test.ts`): the golden exists, its options hold the materials, lamp kinds and tone with the shapes the checks take, every case of the corpus has an answer, and `SOURCE.json` holds its bytes and sha256 like the other goldens. Then the recorder (`record-game-facts.mjs`), working on a scratch copy as `record-checks.mjs` does (`level-options.ts`, `look.ts` and `stage.ts` read as text, `room-visibility.ts` with `../game/rooms` stubbed, `typescript` linked from the workspace); the corpus: lamps (in band, colour just inside and just outside the tone, range at each edge and outside, an archetype of each kind) and policies (each sentence of the validator, from the game's `tests/room-visibility.test.ts` and one per branch). *Files:* create `testing/game-facts.ts`, `testing/game-facts.test.ts`, the recorder, the corpus and the golden; modify `testing/fixtures/SOURCE.json`. *Pass:* the test, the recorder rerun giving the same bytes.
+2. **[ ] `materials`.** Failing test first (`checks/materials.test.ts`, seeded over the toy level and the toy blockout): a sector field and a wall's texture and trim pieces that are not in the set, each with the sentence of decision 3 and a locator; a texture used twice is said twice; a split wall is said once; a notch wall is not said again; the depot passes its table; the four shipped blockouts pass Last Light's list from the golden; `afSectorChecks` and `lastLightChecks` end with the `materials` result, skipped with the ok texts of decision 1 when the list is absent. *Files:* create `checks/materials.ts`, `checks/materials.test.ts`; modify `profile/level-profile.ts` (`materials`), `profile/af-sector/af-checks.ts`, `checks/last-light/last-light-checks.ts` and their tests. *Pass:* the new and changed tests, `tsc`, purity.
+3. **[ ] `lamps`.** Failing test first (`checks/last-light/lamps.test.ts`): `oklab` and `colourDistance` equal the game's on the corpus to 1e-9; `lampProblems` returns exactly the sentences `lampIssues` threw for each corpus lamp that has a kind (the golden), at the lamp's locator; a kind the list lacks, a lamp with no kind (not checked) and an empty list; the three shipped blockouts that have kinds pass; `lastLightChecks` ends with `lamps` after `materials`, skipped when `lampKinds` is absent. *Files:* create `checks/last-light/lamps.ts`, `checks/last-light/lamps.test.ts`; modify `profile/level-profile.ts` (`lampKinds`, `tone`), `checks/last-light/last-light-checks.ts` and its test. *Consumes:* `BlockoutLamp`. *Pass:* as step 2.
+4. **[ ] `policy`.** Failing test first (`checks/last-light/room-policy.test.ts`): for each single-fault policy of the corpus the first problem's sentence equals the game's thrown message; a policy with several faults says each, in the validator's order; a good policy is clean; locators per decision 5; `null` is `the room policy could not be read`, absent is skipped; `lastLightChecks` ends with `policy` as a warning. Then the gates in order: `pnpm format`, `pnpm docs:stack`, `pnpm check`, `pnpm build`, `pnpm api-index`, `pnpm cheatsheet`, `pnpm agent-skills --write` then `pnpm agent-skills`, `pnpm api-report`; hand mutation over each step's logic; the package entry and its test; docs: the 02 row and the continuation paragraph. *Files:* create `checks/last-light/room-policy.ts`, `checks/last-light/room-policy.test.ts`; modify `profile/level-profile.ts` (`roomPolicy`), `checks/last-light/last-light-checks.ts` and its test, `index.ts`, `index.test.ts`. *Pass:* all of the above.
+
+## Mutations
+
+To be recorded with each step.
+
+## Progress record
+
+To be recorded as each step passes.
