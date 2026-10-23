@@ -69,9 +69,9 @@ screens.push({
       panelHead('Layers', ib('plus')),
       C(
         { w: 'fill', pad: [0, 8], gap: 2 },
-        layerRowG('box', 'Entities', 'Entities · 6 definitions', 'layer/entities'),
-        layerRowG('tile', 'Decor', 'Tiles · mossgate-terrain', 'layer/tiles'),
-        layerRowG('sparkle', 'Ground', 'Auto · from Collision · 47 rules', 'layer/city', { locked: true }),
+        layerRowG('box', 'Entities', 'Entities · 6 defs', 'layer/entities'),
+        layerRowG('tile', 'Decor', 'Tiles · moss-terrain', 'layer/tiles'),
+        layerRowG('sparkle', 'Ground', 'Auto · 47 rules', 'layer/city', { locked: true }),
         layerRowG('grid', 'Collision', 'IntGrid · 5 values', 'layer/intgrid', { sel: true }),
       ),
       R(
@@ -286,9 +286,9 @@ screens.push({
       panelHead('Layers', ib('plus')),
       C(
         { w: 'fill', pad: [0, 8], gap: 2 },
-        layerRowG('box', 'Entities', 'Entities · 8 definitions', 'layer/entities', { sel: true }),
-        layerRowG('image', 'Props', 'Objects · hollow-props · free', 'layer/sky'),
-        layerRowG('sparkle', 'Walls art', 'Auto · from Walls · 22 rules', 'layer/city', { locked: true }),
+        layerRowG('box', 'Entities', 'Entities · 8 defs', 'layer/entities', { sel: true }),
+        layerRowG('image', 'Props', 'Objects · free', 'layer/sky'),
+        layerRowG('sparkle', 'Walls art', 'Auto · 22 rules', 'layer/city', { locked: true }),
         layerRowG('grid', 'Walls', 'IntGrid · 3 values', 'layer/intgrid', { locked: true }),
         layerRowG('tile', 'Ground', 'Tiles · hollow-terrain', 'layer/tiles'),
       ),
@@ -558,7 +558,7 @@ screens.push({
       panelHead('Tilesets', ib('plus')),
       C(
         { w: 'fill', pad: [0, 8], gap: 2 },
-        row('tile', 'mossgate-terrain', '16 px · placeholder', true),
+        row('tile', 'moss-terrain', '16 px · placeholder', true),
         row('image', 'mossgate-props', '16 px · 24 tiles', false),
       ),
       R(
@@ -599,7 +599,7 @@ screens.push({
       { fill: 'bg/canvas' },
       R(
         { name: 'sheet header', x: 0, y: 0, w: 554, h: 52, pad: [0, 16], gap: 10, fill: 'bg/surface' },
-        T('mossgate-terrain', { style: 'Title/15' }),
+        T('moss-terrain', { style: 'Title/15' }),
         pill('placeholder · generated', { color: 'state/warn', icon: 'info' }),
         spacer(),
         btn('Replace image', { icon: 'image' }),
@@ -1461,7 +1461,7 @@ screens.push({
         ib('plus'),
         ib('link'),
         F({ w: 1, h: 24, fill: 'border/default' }),
-        T('Drag a map to move it. Links come from door, warp and trigger fields.', {
+        T('Drag a map to move it. Links come from reference fields.', {
           style: 'Label/12',
           color: 'text/dim',
           w: 'fill',
@@ -2119,14 +2119,14 @@ screens.push({
         sev: 'error',
         code: 'brokenRef',
         msg: 'Door “Inn door” points at inn-door in Inn, which no longer exists.',
-        path: 'village · entities · d3k7p0a1 · target',
+        path: 'village · d3k7p0a1 · target',
         fix: true,
       },
       {
         sev: 'error',
         code: 'fieldMissing',
         msg: 'Warp has no target.',
-        path: 'village · entities · w9x2m4c6 · target',
+        path: 'village · w9x2m4c6 · target',
         fix: true,
       },
       {

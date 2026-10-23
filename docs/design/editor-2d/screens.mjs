@@ -14,8 +14,8 @@ screens.push({
   page: 'Kit',
   name: 'Kit · colour, type and 2D parts',
   w: 1194,
-  h: 1260,
-  note: 'The Editor Kit tokens (shared with the 3D editor) and the controls the 2D screens are assembled from. Every touch target is 44 high; the one primary action per screen is 48.',
+  h: 1900,
+  note: 'The Editor Kit tokens (shared with the 3D editor) and the controls the 2D screens are assembled from, including the level editor parts (layer rows, values, entity definitions and typed fields). Every touch target is 44 high; the one primary action per screen is 48.',
   build: (S, P) => {
     const {
       D,
@@ -40,6 +40,17 @@ screens.push({
       layerRow,
       diagRow,
       dot,
+      toolbar,
+      layerRowG,
+      valueRow,
+      defChip,
+      pairs,
+      fieldRow,
+      colorBox,
+      textBox,
+      pointList,
+      entityHead,
+      chip,
     } = P
     const sec = (title, ...kids) => C({ name: title, w: 'fill', gap: 10 }, eyebrow(title), ...kids)
     const names = Object.keys(S.tokens).filter((n) => n !== 'accent/soft')
@@ -161,8 +172,77 @@ screens.push({
       ),
     )
 
+    const DEFS = [
+      { id: 'npc', icon: 'chat', color: '#e0a54a' },
+      { id: 'door', icon: 'door', color: '#4fb3c8' },
+      { id: 'chest', icon: 'chest', color: '#c98a3a' },
+      { id: 'enemy', icon: 'bolt', color: '#d9645a' },
+    ]
+    const levelLeft = C(
+      { x: 32, y: 1286, w: 580, gap: 24 },
+      sec(
+        'Level toolbar',
+        F(
+          {
+            name: 'toolbar slot',
+            w: 580,
+            h: 52,
+            fill: 'bg/surface',
+            stroke: 'border/default',
+            r: 'radius/md',
+            clip: true,
+          },
+          toolbar(580, 1),
+        ),
+      ),
+      sec(
+        'Layer rows · tiles, IntGrid, auto, entities',
+        layerRowG('tile', 'Ground', 'Tiles · moss-terrain', 'layer/tiles'),
+        layerRowG('grid', 'Collision', 'IntGrid · 5 values', 'layer/intgrid', { sel: true }),
+        layerRowG('sparkle', 'Walls art', 'Auto · 22 rules', 'layer/city', { locked: true }),
+        layerRowG('box', 'Entities', 'Entities · 8 defs', 'layer/entities', { hidden: true }),
+      ),
+      sec(
+        'IntGrid values and entity definitions',
+        valueRow({ id: 'solid', value: 1, color: '#e0645a', sub: 'blocks from every side' }, { sel: true }),
+        valueRow({ id: 'one-way', value: 2, color: '#e0a54a', sub: 'stand on from above' }),
+        ...pairs(DEFS, (d) => defChip(d, { sel: d.id === 'npc' })),
+      ),
+    )
+    const levelRight = C(
+      { x: 650, y: 1286, w: 512, gap: 24 },
+      sec(
+        'Typed fields · the inspector builds one row per field',
+        entityHead('chat', 'NPC', '#e0a54a', 'b4t7w2n9', 'Entities'),
+        fieldRow('name', inputBox('Maren')),
+        fieldRow('dialogue', textBox('The inn’s cellar floods every spring.', 2), { h: 'hug', top: true }),
+        fieldRow('facing', seg(['N', 'E', 'S', 'W'], 2)),
+        fieldRow('tint', colorBox('#7a9be0')),
+        fieldRow(
+          'route',
+          pointList(
+            [
+              [11, 11],
+              [15, 11],
+            ],
+            { sel: 0 },
+          ),
+          { h: 'hug', top: true },
+        ),
+      ),
+      sec(
+        'Chips on the canvas',
+        R(
+          { gap: 8 },
+          chip(0, 0, 'magnet', 'snap · 16 px', {}),
+          chip(0, 0, 'link', 'Inn · inn-door', { accent: true }),
+          chip(0, 0, 'search', '150%', {}),
+        ),
+      ),
+    )
+
     return F(
-      { name: 'Kit · colour, type and 2D parts', w: 1194, h: 1260, fill: 'bg/app', clip: true },
+      { name: 'Kit · colour, type and 2D parts', w: 1194, h: 1900, fill: 'bg/app', clip: true },
       T('Editor Kit · 2D parts', { x: 32, y: 28, style: 'Display/20' }),
       T(
         "Tokens are the Figma variables of the Editor Kit collection; text styles are the file's. Shared with the 3D editor.",
@@ -170,6 +250,9 @@ screens.push({
       ),
       left,
       right,
+      F({ name: 'divider', x: 32, y: 1262, w: 1130, h: 1, fill: 'border/default' }),
+      levelLeft,
+      levelRight,
     )
   },
 })
