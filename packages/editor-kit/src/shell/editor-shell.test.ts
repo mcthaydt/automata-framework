@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/svelte'
+import { cleanup, render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import ShellFixture from '../testing/ShellFixture.svelte'
@@ -57,6 +57,28 @@ describe('EditorShell structure', () => {
     ])
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-rail', 'none')
     expect(document.querySelector('nav')).toBeNull()
+  })
+
+  it('leaves the dock out when the screen has none', () => {
+    mount(1194, 834, { dock: false })
+    expect(regions().map((r) => r.dataset.region)).toEqual([
+      'topbar',
+      'rail',
+      'panel',
+      'canvas',
+      'inspector',
+      'status',
+    ])
+  })
+
+  it('in medium, makes room for a dock sheet beneath the drawers only when there is a dock', () => {
+    const lift = (): string | undefined =>
+      document.querySelector<HTMLElement>('[data-editor-shell]')?.style.getPropertyValue('--dock-lift')
+    mount(834, 1194)
+    expect(lift()).not.toBe('')
+    cleanup()
+    mount(834, 1194, { dock: false })
+    expect(lift()).toBe('')
   })
 
   it('says the rail is there when there is one', () => {

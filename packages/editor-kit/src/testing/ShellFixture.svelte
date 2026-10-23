@@ -8,6 +8,7 @@
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import EditorShell from '../shell/EditorShell.svelte'
+import StatusLine from '../widgets/StatusLine.svelte'
 import '../tokens.css'
 
 interface Props {
@@ -17,11 +18,17 @@ interface Props {
   dockOpen?: boolean | undefined
   /** `false` leaves the rail out, as a screen with no destinations (Home) does. */
   rail?: boolean
+  /** `false` leaves the dock out, as a screen with nothing to put beneath its canvas (Home) does. */
+  dock?: boolean
+  /** Fills the status region with the kit's `StatusLine`, as a real screen does, instead of a plain readout. */
+  statusLine?: boolean
 }
 
 const {
   geometry,
   rail: withRail = true,
+  dock: withDock = true,
+  statusLine = false,
   panelOpen: panelStart = false,
   inspectorOpen: inspectorStart = false,
   dockOpen: dockStart,
@@ -74,9 +81,18 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
   </div>
 {/snippet}
 
+{#snippet dockBody()}
+  <div class="scenes">
+    {#each scenes as scene (scene)}
+      <button type="button" data-testid={`scene-${scene}`}>{scene}</button>
+    {/each}
+  </div>
+{/snippet}
+
 <EditorShell
   {geometry}
   rail={withRail ? railBody : undefined}
+  dock={withDock ? dockBody : undefined}
   bind:panelOpen
   bind:inspectorOpen
   bind:dockOpen
@@ -101,20 +117,17 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
       <label class="field">{field}<input data-testid={`field-${field}`} /></label>
     {/each}
   {/snippet}
-  {#snippet dock()}
-    <div class="scenes">
-      {#each scenes as scene (scene)}
-        <button type="button" data-testid={`scene-${scene}`}>{scene}</button>
-      {/each}
-    </div>
-  {/snippet}
   {#snippet canvas()}
     <div class="stage" data-testid="stage">
       <input data-testid="canvas-field" aria-label="Stage name" />
     </div>
   {/snippet}
   {#snippet status()}
-    <span data-testid="open-state">panel:{panelOpen} inspector:{inspectorOpen} dock:{String(dockOpen)}</span>
+    {#if statusLine}
+      <StatusLine save="saved" message="Ready" />
+    {:else}
+      <span data-testid="open-state">panel:{panelOpen} inspector:{inspectorOpen} dock:{String(dockOpen)}</span>
+    {/if}
   {/snippet}
 </EditorShell>
 

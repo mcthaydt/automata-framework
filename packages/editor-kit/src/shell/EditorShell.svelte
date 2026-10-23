@@ -16,7 +16,8 @@
   `display: none`, which would throw its scroll position away.
 
   `rail` is optional. A screen with no destinations (Home) leaves it out, and the canvas takes the rail's column in
-  wide and the tab bar's row below it (`data-rail="none"`).
+  wide and the tab bar's row below it (`data-rail="none"`). `dock` is optional too: without one, a drawer in medium
+  runs to the foot of the canvas instead of stopping where a dock sheet would begin.
 
   `panelOpen` and `inspectorOpen` only matter below `wide`, where the panel and inspector are always in view.
   `dockOpen` left `undefined` follows `defaultDockOpen`. The editor puts its own toggles in the top bar or the
@@ -121,9 +122,10 @@ function close(name: ShellRegion): void {
   else dockOpen = false
 }
 
-// In medium the drawers end where an open dock sheet begins, so neither covers the other's controls.
+// In medium the drawers end where an open dock sheet begins, so neither covers the other's controls. A screen with no
+// dock has no sheet to make room for, whatever the dock's default says.
 const dockLift: string | undefined = $derived(
-  mode === 'medium' && presentation.dock === 'sheet' && visible.dock
+  mode === 'medium' && dock !== undefined && presentation.dock === 'sheet' && visible.dock
     ? detentLength('dock', detents.dock)
     : undefined,
 )
@@ -374,6 +376,14 @@ function sheetStyle(name: ShellRegion): string | undefined {
     color: var(--color-text-dim);
     background: var(--color-bg-surface);
     border-top: 1px solid var(--color-border-default);
+  }
+
+  /* The kit's StatusLine is a bar of its own: it takes the whole region (the region's border stays the one border). */
+  [data-region='status'] :global([data-widget='status-line']) {
+    flex: 1 1 auto;
+    align-self: stretch;
+    margin: 0 calc(-1 * var(--space-3));
+    border-top: 0;
   }
 
   /* panel, inspector and dock share a column: an optional handle, then the scrolling body. */

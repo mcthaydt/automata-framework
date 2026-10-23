@@ -1,6 +1,7 @@
 <!--
   The button of the editor's screens (plan ED2D.4c2a). `plain` is a 44 px target, `primary` the 48 px action a screen
-  is for (Open, New), `danger` marks what destroys. Whatever else a button needs (an accessible name, a title) passes
+  is for (Open, New), `danger` marks what destroys. The kind is `data-kind`, the attribute the layout checks read to
+  hold a primary action to 48 px. Whatever else a button needs (an accessible name, a title) passes
   through. It never submits a form, and a disabled one stays in the page and in the layout rather than vanishing.
 -->
 <script lang="ts">
@@ -15,7 +16,7 @@ interface Props extends Omit<HTMLButtonAttributes, 'type' | 'children'> {
 const { variant = 'plain', children, ...rest }: Props = $props()
 </script>
 
-<button type="button" data-variant={variant} {...rest}>{@render children()}</button>
+<button type="button" data-kind={variant} {...rest}>{@render children()}</button>
 
 <style>
   button {
@@ -34,13 +35,13 @@ const { variant = 'plain', children, ...rest }: Props = $props()
     white-space: nowrap;
     cursor: pointer;
   }
-  button[data-variant='primary'] {
+  button[data-kind='primary'] {
     min-height: var(--size-primary);
     border-color: transparent;
     background: var(--color-accent-default);
     color: var(--color-accent-ink);
   }
-  button[data-variant='danger'] {
+  button[data-kind='danger'] {
     border-color: var(--color-state-bad);
     color: var(--color-state-bad);
   }

@@ -103,8 +103,16 @@ function onWindowKeydown(event: KeyboardEvent): void {
     <span class="brand">Automata</span>
     <span class="spacer"></span>
     {#if mode !== 'wide'}
-      <Button aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Sources</Button>
-      <Button aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}>Details</Button>
+      <Button aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)} data-testid="toggle-sources">
+        Sources
+      </Button>
+      <Button
+        aria-expanded={inspectorOpen}
+        onclick={() => (inspectorOpen = !inspectorOpen)}
+        data-testid="toggle-details"
+      >
+        Details
+      </Button>
     {/if}
   {/snippet}
 
@@ -122,6 +130,7 @@ function onWindowKeydown(event: KeyboardEvent): void {
         <input
           type="search"
           aria-label="Search projects"
+          data-testid="home-search"
           placeholder="Search projects"
           autocomplete="off"
           spellcheck="false"

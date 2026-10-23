@@ -43,8 +43,8 @@ describe('DeleteDialog', () => {
 
   it('marks Delete as the destructive action', () => {
     mount()
-    expect(screen.getByRole('button', { name: 'Delete' })).toHaveAttribute('data-variant', 'danger')
-    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveAttribute('data-variant', 'plain')
+    expect(screen.getByRole('button', { name: 'Delete' })).toHaveAttribute('data-kind', 'danger')
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveAttribute('data-kind', 'plain')
   })
 
   it('Delete is named for what it does, confirms once and closes', async () => {

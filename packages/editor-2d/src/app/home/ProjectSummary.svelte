@@ -2,7 +2,8 @@
   The inspector of Home (plan ED2D.4c2a): the selected project and the three things a person does with it. The facts are
   the profile's own words (`ProfileSummary`); a profile that gives none still shows its error and warning counts. A file
   that does not open gives its reason and still offers Open, because Open is where the error panel of ED2D.4c2b will
-  show it; a file two profiles claim lists them. Actions stay in place and are disabled while another one runs.
+  show it; a file two profiles claim lists them. The actions sit under the title, before the details, so a half-height
+  sheet on a phone shows them without scrolling. They stay in place and are disabled while another one runs.
 -->
 <script lang="ts">
 import Button from '../controls/Button.svelte'
@@ -50,6 +51,14 @@ function factsOf(
       </div>
     </header>
 
+    <div class="actions">
+      <Button variant="primary" disabled={busy} onclick={onopen} data-testid="summary-open">Open</Button>
+      <div class="secondary">
+        <Button disabled={busy} onclick={onduplicate}>Duplicate</Button>
+        <Button variant="danger" disabled={busy} onclick={ondelete}>Delete</Button>
+      </div>
+    </div>
+
     {#if entry.status === 'broken'}
       <p class="reason">{entry.message}</p>
     {:else if entry.status === 'ambiguous'}
@@ -71,14 +80,6 @@ function factsOf(
       <span class="path">{entry.path}</span>
       <span class="stats">{sizeLabel(entry.size)} · {modifiedLabel(entry.mtime, now)}</span>
     </div>
-
-    <div class="actions">
-      <Button variant="primary" disabled={busy} onclick={onopen}>Open</Button>
-      <div class="secondary">
-        <Button disabled={busy} onclick={onduplicate}>Duplicate</Button>
-        <Button variant="danger" disabled={busy} onclick={ondelete}>Delete</Button>
-      </div>
-    </div>
   </div>
 {/if}
 
@@ -92,15 +93,18 @@ function factsOf(
   .summary {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-3);
     min-width: 0;
   }
+  /* Title and pills share a row where the room allows (a phone's half-height sheet is short), else the pills wrap. */
   header {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
   }
   h2 {
+    flex: 1 1 10rem;
     margin: 0;
     font: var(--text-title-15);
     overflow-wrap: anywhere;

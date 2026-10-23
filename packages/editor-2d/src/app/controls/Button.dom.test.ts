@@ -11,12 +11,12 @@ describe('Button', () => {
     render(Button, { children: text('Open') })
     const button = screen.getByRole('button', { name: 'Open' })
     expect(button).toHaveAttribute('type', 'button')
-    expect(button).toHaveAttribute('data-variant', 'plain')
+    expect(button).toHaveAttribute('data-kind', 'plain')
   })
 
   it('names its variant, so the stylesheet can size a primary action and mark a destructive one', () => {
     render(Button, { variant: 'primary', children: text('New') })
-    expect(screen.getByRole('button', { name: 'New' })).toHaveAttribute('data-variant', 'primary')
+    expect(screen.getByRole('button', { name: 'New' })).toHaveAttribute('data-kind', 'primary')
   })
 
   it('calls onclick when pressed', async () => {

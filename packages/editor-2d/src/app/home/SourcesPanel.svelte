@@ -1,8 +1,8 @@
 <!--
   The left of Home (plan ED2D.4c2a): where projects come from and how they are kept. One source today, this
   workspace; the folder source arrives with the kit's folder store (ED2D.8). Import is a `<label>` around a file input
-  that is hidden visually but not from the keyboard or a screen reader, so a tap opens the system picker with no
-  scripted click (iPad Safari allows only that), and the input is cleared afterwards so choosing the same file again
+  that is transparent and covers the label, so it stays focusable and a screen reader finds it, and a tap opens the
+  system picker with no scripted click (iPad Safari allows only that), and the input is cleared afterwards so choosing the same file again
   still fires a change. Nothing is filtered by extension: the picker on a tablet greys out files it does not know the
   type of, and the app decides what it keeps.
 -->
@@ -122,17 +122,19 @@ async function picked(event: Event & { currentTarget: HTMLInputElement }): Promi
     outline: 2px solid var(--color-accent-default);
     outline-offset: 2px;
   }
-  /* Not drawn, but still focusable, announced and clickable through its label. */
+  /* Transparent and over the whole label: pressing anywhere on Import presses the input itself, which stays focusable,
+     announced and a full-size target. */
   input {
     position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  input:disabled {
+    cursor: default;
   }
   ul {
     display: flex;

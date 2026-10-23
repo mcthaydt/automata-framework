@@ -9,6 +9,8 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
     "test": "vitest run",
     "test:unit": "vitest run --project unit --project dom",
     "test:layout": "vitest run --project layout",
@@ -23,6 +25,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@mcthaydt/automata-testing": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",

@@ -81,8 +81,8 @@ describe('ProjectSummary', () => {
 
     it('has Open (the primary action), Duplicate and Delete, each calling its handler', async () => {
       const { onopen, onduplicate, ondelete } = mount(withSummary)
-      expect(button('Open')).toHaveAttribute('data-variant', 'primary')
-      expect(button('Delete')).toHaveAttribute('data-variant', 'danger')
+      expect(button('Open')).toHaveAttribute('data-kind', 'primary')
+      expect(button('Delete')).toHaveAttribute('data-kind', 'danger')
       await userEvent.click(button('Open'))
       await userEvent.click(button('Duplicate'))
       await userEvent.click(button('Delete'))
