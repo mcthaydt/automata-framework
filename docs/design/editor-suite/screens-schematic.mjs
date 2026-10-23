@@ -1,5 +1,6 @@
 // Schematic: The Last Light's puzzle and systems view (editor/src/client/schematic.ts, schematic-model.ts): the puzzle as a graph of
-// actions, the systemic rules behind it, the solver and the claims it checks.
+// actions, the systemic rules behind it, the solver and the claims it checks. It edits the scene's puzzle.toml and
+// agents.toml; the gates come from the game's editor list (P-G1 for the puzzle, S-G1 and S-G3 for the agents).
 
 export const schematicScreens = []
 
@@ -13,7 +14,7 @@ schematicScreens.push({
   note: 'The Bay’s puzzle read from the game’s own files: what must be true before the shutter opens, drawn from the goal back to what the player starts with. Every lock has at least two ways through it. A value that is a plain literal edits in place; a computed one goes through Ask. The solver runs each entry kit along the bottom.',
   build: (_S, P, Q, _A) => {
     const { F, R, C, T, I, alpha, spacer, region, line, eyebrow, pill, btn, ib, tabs, panelHead, dot } = P
-    const { top, rail, listRow, gnode, edges, edgeLabel, stepperV, selectV } = Q
+    const { D, top, rail, listRow, shutterGraph, stepperV, selectV } = Q
     const locks = [
       ['Flame', 'lighter · matches · rag torch', 3],
       ['Drum fuel', 'spirit · petrol · lighter fluid', 3],
@@ -62,46 +63,6 @@ schematicScreens.push({
         }),
       ),
     )
-    const act = (title, sub, x, y, o = {}) =>
-      gnode(x, y, o.w || 128, 64, { title, sub, color: o.color || 'layer/sky', sel: o.sel, state: o.state })
-    const sys = (title, sub, x, y) => gnode(x, y, 128, 64, { title, sub, color: 'phase/teach' })
-    const Y = [18, 124, 230, 330, 430, 536]
-    const X4 = [6, 142, 278, 414]
-    const nodes = [
-      act('drum.light', 'lighter · matches · torch', X4[0], Y[0]),
-      act('burner.light', 'in the mortuary', X4[1], Y[0]),
-      act('floor.lighter', 'hold the flame up', X4[2], Y[0]),
-      act('floor.bottle', 'throw into the mortuary', X4[3], Y[0]),
-      sys('porterAtDrum', 'warmth draws him (P1)', X4[0], Y[1]),
-      sys('porterAtBurner', 'into the mortuary', X4[1], Y[1]),
-      sys('porterAtFlame', 'goes to where it burned', X4[2], Y[1]),
-      sys('porterLatched', 'banging, then quiet (P9)', X4[3], Y[1]),
-      act('keyHook.take', 'keysAt hook → Ada', 76, Y[2]),
-      act('mortuaryDoor.keys', 'keysAt door → Ada', 330, Y[2], { w: 156 }),
-      act('shutter.unlock', 'uses keys · padlock off', 212, Y[3], { sel: true }),
-      act('shutter.crank1', 'a 10 m noise (P3)', 6, Y[4]),
-      act('shutter.crank2', 'a 10 m noise (P3)', 212, Y[4]),
-      act('shutter.open', 'crank 3 · cutscene dawn', 414, Y[4], { color: 'state/ok' }),
-      gnode(212, Y[5], 124, 52, { title: 'goal', sub: 'shutter = 3', icon: 'flag', color: 'state/ok' }),
-    ]
-    const bottom = (x, y, w = 128) => [x + w / 2, y + 64]
-    const top_ = (x, y, w = 128) => [x + w / 2, y]
-    const E = edges(0, 0, 554, 602, [
-      { a: bottom(X4[0], Y[0]), b: top_(X4[0], Y[1]), c: '#6aa8e8', v: true },
-      { a: bottom(X4[1], Y[0]), b: top_(X4[1], Y[1]), c: '#6aa8e8', v: true },
-      { a: bottom(X4[2], Y[0]), b: top_(X4[2], Y[1]), c: '#6aa8e8', v: true },
-      { a: bottom(X4[3], Y[0]), b: top_(X4[3], Y[1]), c: '#6aa8e8', v: true },
-      { a: bottom(X4[0], Y[1]), b: top_(76, Y[2]), c: '#5aa9a0', v: true },
-      { a: bottom(X4[1], Y[1]), b: top_(76, Y[2]), c: '#5aa9a0', v: true },
-      { a: bottom(X4[2], Y[1]), b: top_(76, Y[2]), c: '#5aa9a0', v: true },
-      { a: bottom(X4[3], Y[1]), b: top_(330, Y[2], 156), c: '#5aa9a0', v: true },
-      { a: bottom(76, Y[2]), b: top_(212, Y[3]), c: '#6aa8e8', v: true },
-      { a: bottom(330, Y[2], 156), b: top_(212, Y[3]), c: '#6aa8e8', v: true },
-      { a: bottom(212, Y[3]), b: top_(212, Y[4]), c: '#6aa8e8', v: true },
-      { a: [134, Y[4] + 32], b: [212, Y[4] + 32], c: '#6aa8e8', straight: true },
-      { a: [340, Y[4] + 32], b: [414, Y[4] + 32], c: '#6aa8e8', straight: true },
-      { a: bottom(414, Y[4]), b: top_(212, Y[5]), c: '#6fbf73', v: true },
-    ])
     const canvas = region(
       'chain',
       320,
@@ -109,29 +70,27 @@ schematicScreens.push({
       554,
       602,
       { fill: 'bg/canvas' },
-      E,
-      ...nodes,
+      shutterGraph(0),
       R(
         { name: 'legend', x: 8, y: 575, h: 24, gap: 10 },
         R({ gap: 5 }, dot('layer/sky', 8), T('action', { style: 'Mono/11', color: 'text/dim' })),
         R({ gap: 5 }, dot('phase/teach', 8), T('systemic', { style: 'Mono/11', color: 'text/dim' })),
         R({ gap: 5 }, dot('state/ok', 8), T('goal', { style: 'Mono/11', color: 'text/dim' })),
       ),
-      edgeLabel(228, 396, 'safe while he warms (P2)', { color: 'phase/teach' }),
       R(
         {
           name: 'tools',
-          x: 440,
-          y: 560,
+          x: 410,
+          y: 540,
           pad: 4,
           gap: 2,
           r: 'radius/lg',
           fill: 'bg/surface',
           stroke: 'border/default',
         },
-        ib('minus', { s: 36, size: 16 }),
+        ib('minus', { size: 16 }),
         T('90%', { style: 'Mono/11', w: 34, align: 'center' }),
-        ib('plus', { s: 36, size: 16 }),
+        ib('plus', { size: 16 }),
       ),
     )
     const field = (k, v, o = {}) =>
@@ -245,12 +204,12 @@ schematicScreens.push({
       { name: 'Schematic · The shutter · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: 'The Bay',
-        sub: 'src/scenes/bay/puzzle.ts',
+        sub: D.paths.puzzle,
         ed: 'schematic',
         cs: 'puzzle/keys-two-ways',
         n: 1,
         checks: 'checks ok',
-        gates: [['S-G2', 'idle']],
+        reopened: true,
       }),
       rail(782, 'schematic'),
       panel,
@@ -272,10 +231,10 @@ schematicScreens.push({
   name: 'Schematic · The Porter · iPad landscape',
   w: 1194,
   h: 834,
-  note: 'The same view for the systems side: the Porter as an agent with eight modes. Each arrow is a transition with a priority and the senses that fire it. Radii, speeds and timers are tunables and open in the Tuner.',
+  note: 'The same view for the systems side: the Porter as an agent with eight modes, from agents.toml. Each arrow is a transition with a priority and the senses that fire it; the transitions out of drawn are the file’s (catch 90, re-route 60, arrive 40). Radii, speeds and timers are tunables and open in the Tuner.',
   build: (_S, P, Q, _A) => {
     const { F, R, C, T, I, spacer, region, line, eyebrow, pill, ib, tabs, panelHead, callout } = P
-    const { top, rail, listRow, gnode, edges, edgeLabel, kvRow } = Q
+    const { D, top, rail, listRow, gnode, edges, edgeLabel, kvRow } = Q
     const panel = region(
       'agents panel',
       56,
@@ -322,14 +281,14 @@ schematicScreens.push({
       M('latched', 'out of play (P9)', 400, 340, { icon: 'lock', color: 'text/faint' }),
     ]
     const E = edges(0, 0, 554, 602, [
-      { a: [95, 124], b: [95, 200], c: '#8e8c85', v: true },
-      { a: [95, 264], b: [95, 340], c: '#8e8c85', v: true },
-      { a: [170, 372], b: [215, 192], c: '#e0a54a', o: 1, w: 2 },
-      { a: [290, 224], b: [290, 290], c: '#e0a54a', o: 1, w: 2, v: true },
-      { a: [215, 322], b: [170, 232], c: '#8e8c85', dash: true },
-      { a: [170, 232], b: [215, 72], c: '#8e8c85' },
-      { a: [170, 232], b: [400, 232], c: '#8e8c85', straight: true },
-      { a: [365, 322], b: [400, 372], c: '#d9645a', dash: true },
+      { a: [95, 124], b: [95, 200], c: 'edge/default', v: true },
+      { a: [95, 264], b: [95, 340], c: 'edge/default', v: true },
+      { a: [170, 372], b: [215, 192], c: 'accent/default', o: 1, w: 2 },
+      { a: [290, 224], b: [290, 290], c: 'accent/default', o: 1, w: 2, v: true },
+      { a: [215, 322], b: [170, 232], c: 'edge/default', dash: true },
+      { a: [170, 232], b: [215, 72], c: 'edge/default' },
+      { a: [170, 232], b: [400, 232], c: 'edge/default', straight: true },
+      { a: [365, 322], b: [400, 372], c: 'state/bad', dash: true },
     ])
     const canvas = region(
       'agent graph',
@@ -342,14 +301,49 @@ schematicScreens.push({
       ...nodes,
       edgeLabel(24, 148, 'signed in', { color: 'text/dim' }),
       edgeLabel(24, 288, 'feels a warmth', { color: 'text/dim' }),
-      edgeLabel(266, 255, 'touching warmth', { color: 'accent/default' }),
+      edgeLabel(266, 255, 'arrived', { color: 'accent/default' }),
       edgeLabel(232, 236, 'keys gone', { color: 'text/dim' }),
       edgeLabel(372, 296, 'door latched', { color: 'state/bad' }),
+      // The lower canvas lists every transition by priority, so the half under the graph is not empty (audit L9).
+      C(
+        {
+          name: 'all transitions',
+          x: 8,
+          y: 428,
+          w: 538,
+          pad: [10, 12],
+          gap: 0,
+          r: 'radius/md',
+          fill: 'bg/surface',
+          stroke: 'border/default',
+        },
+        R(
+          { w: 'fill', h: 28, gap: 8 },
+          eyebrow('Every transition, highest priority first'),
+          spacer(),
+          T('Show all', { style: 'Label/12', color: 'accent/default' }),
+        ),
+        ...[
+          ['100', 'latched → latched', 'bangs on the door'],
+          ['95', 'chasing → warming', 'touching Ada, the grapple is ready'],
+          ['90', 'chasing → itself', 'touching Ada: caught (P5)'],
+          ['85', 'routine, investigate, searching → investigate', 'saw Ada hide'],
+          ['81', 'signing → signing', 'the ledger clock runs'],
+          ['80', 'warming → warming', 'warms at the flame'],
+        ].map(([pr, k, when]) =>
+          R(
+            { w: 'fill', h: 30, gap: 10 },
+            T(pr, { style: 'Mono/12', color: 'accent/default', w: 28 }),
+            T(k, { style: 'Mono/11', w: 250, trunc: true }),
+            T(when, { style: 'Label/12', color: 'text/dim', w: 'fill', trunc: true }),
+          ),
+        ),
+      ),
       R(
         {
           name: 'priority legend',
           x: 8,
-          y: 520,
+          y: 700,
           w: 538,
           pad: 12,
           gap: 10,
@@ -360,7 +354,7 @@ schematicScreens.push({
         },
         I('info', { size: 16, color: 'layer/sky' }),
         T(
-          'Shows the main flow and the transitions out of the selected mode; the list on the right has all of them, highest priority first. Each speed, radius and time is a tunable.',
+          'The graph shows the main flow and the transitions out of the selected mode; the list above has every one, highest priority first. Each speed, radius and time is a tunable.',
           { style: 'Label/12', color: 'text/dim', w: 'fill', lh: 16 },
         ),
       ),
@@ -397,7 +391,7 @@ schematicScreens.push({
           I('slider', { size: 18, color: Q.ED.tuner.color }),
           C(
             { w: 'fill', gap: 0 },
-            T('speed · drawnSpeed', { style: 'Mono/12' }),
+            T('speed · DRAWN_SPEED', { style: 'Mono/12' }),
             T('1.5 m/s, between 0.5 and 2.5', { style: 'Label/12', color: 'text/dim' }),
           ),
           T('Tuner', { style: 'Label/12', color: 'accent/default' }),
@@ -407,9 +401,9 @@ schematicScreens.push({
         C(
           { w: 'fill', gap: 4 },
           [
-            ['drawn → warming', 'touching a flame', '95'],
-            ['drawn → investigate', 'noise, no warmth', '70'],
-            ['drawn → routine', 'warmth gone', '40'],
+            ['drawn → drawn', 'touching Ada: caught (P5)', '90'],
+            ['drawn → drawn', 're-routes to a moving warmth', '60'],
+            ['drawn → warming', 'arrived at the warmth (P1)', '40'],
           ].map(([k, w, pr]) =>
             R(
               {
@@ -433,8 +427,8 @@ schematicScreens.push({
         ),
         callout(
           'info',
-          'Modes and senses are code',
-          'Add a mode or a sense through Ask. Priorities, radii and times edit here when they are literals.',
+          'Noise does not reach him here (P2)',
+          'Drawn or warming, he ignores sound. Add a mode or a sense through Ask; priorities, radii and times edit here.',
         ),
       ),
     )
@@ -442,12 +436,11 @@ schematicScreens.push({
       { name: 'Schematic · The Porter · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: 'The Porter',
-        sub: 'src/scenes/bay/systems.ts',
+        sub: D.paths.agents,
         ed: 'schematic',
         cs: 'puzzle/keys-two-ways',
         n: 1,
         checks: 'checks ok',
-        gates: [['S-G2', 'idle']],
       }),
       rail(782, 'schematic'),
       panel,

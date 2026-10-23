@@ -1293,7 +1293,8 @@ type TaggedErrorClass<Tag extends string, Fields> = new (fields: Fields) => Caus
 
 #### `body2d` (function)
 
-_No doc comment._
+The spawn part that gives an entity a rigid body of a `BodyKind`. Damping and velocities (`vx`, `vy` in
+m/s, `angvel` in rad/s) are 0 unless given.
 
 ```ts
 function body2d(kind: BodyKind, opts?: {
@@ -1307,7 +1308,9 @@ function body2d(kind: BodyKind, opts?: {
 
 #### `BodyKind` (const)
 
-_No doc comment._
+The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never
+moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its
+velocity). `BodyKind` is also the type of those values.
 
 ```ts
 const BodyKind: {
@@ -1330,7 +1333,9 @@ const Collider2D: ComponentDef<typeof colliderFields>;
 
 #### `collider2d` (const)
 
-_No doc comment._
+The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy)` with half extents, and
+`capsule(halfHeight, radius)`. Each takes `ColliderOptions`, whose defaults are Rapier's (every group,
+friction 0.5, no bounce, not a sensor).
 
 ```ts
 const collider2d: {
@@ -1355,7 +1360,8 @@ interface ColliderOptions {
 
 #### `CollisionEnded2D` (const)
 
-_No doc comment._
+Two colliders stopped touching, or one was removed. The payload is the one of `CollisionStarted2D`; ended
+events come before started events in a tick.
 
 ```ts
 const CollisionEnded2D: EventDef<typeof pair>;
@@ -1363,7 +1369,9 @@ const CollisionEnded2D: EventDef<typeof pair>;
 
 #### `CollisionStarted2D` (const)
 
-_No doc comment._
+Two colliders began touching (or, with a sensor, overlapping). `a` and `b` are the entities' StableIds, `a`
+the lower, and `sensor` is true when either collider is a sensor. Emitted in `postPhysics`, in `(a, b)`
+order, after that tick's ended events.
 
 ```ts
 const CollisionStarted2D: EventDef<typeof pair>;
@@ -1380,7 +1388,8 @@ function physics2d(options?: Physics2DOptions): PluginDef;
 
 #### `Physics2DOptions` (interface)
 
-_No doc comment._
+The options of `physics2d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+sim.
 
 ```ts
 interface Physics2DOptions {
@@ -1402,7 +1411,8 @@ const RigidBody2D: ComponentDef<typeof bodyFields>;
 
 #### `ShapeKind` (const)
 
-_No doc comment._
+The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`. `ShapeKind` is also the type of
+those values.
 
 ```ts
 const ShapeKind: {
@@ -1415,7 +1425,7 @@ type ShapeKind = (typeof ShapeKind)[keyof typeof ShapeKind];
 
 #### `transform2d` (function)
 
-_No doc comment._
+The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
 
 ```ts
 function transform2d(at?: {
@@ -1437,7 +1447,8 @@ const Transform2D: ComponentDef<typeof transformFields>;
 
 #### `body3d` (function)
 
-_No doc comment._
+The spawn part that gives an entity a rigid body of a `BodyKind`. Damping and velocities (`vx`, `vy`, `vz`
+in m/s, `wx`, `wy`, `wz` in rad/s) are 0 unless given.
 
 ```ts
 function body3d(kind: BodyKind, opts?: {
@@ -1454,7 +1465,9 @@ function body3d(kind: BodyKind, opts?: {
 
 #### `BodyKind` (const)
 
-_No doc comment._
+The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never
+moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its
+velocity). `BodyKind` is also the type of those values.
 
 ```ts
 const BodyKind: {
@@ -1477,7 +1490,9 @@ const Collider3D: ComponentDef<typeof colliderFields>;
 
 #### `collider3d` (const)
 
-_No doc comment._
+The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy, hz)` with half extents, and
+`capsule(halfHeight, radius)`. Each takes `ColliderOptions`, whose defaults are Rapier's (every group,
+friction 0.5, no bounce, not a sensor).
 
 ```ts
 const collider3d: {
@@ -1502,7 +1517,8 @@ interface ColliderOptions {
 
 #### `CollisionEnded3D` (const)
 
-_No doc comment._
+Two colliders stopped touching, or one was removed. The payload is the one of `CollisionStarted3D`; ended
+events come before started events in a tick.
 
 ```ts
 const CollisionEnded3D: EventDef<typeof pair>;
@@ -1510,7 +1526,9 @@ const CollisionEnded3D: EventDef<typeof pair>;
 
 #### `CollisionStarted3D` (const)
 
-_No doc comment._
+Two colliders began touching (or, with a sensor, overlapping). `a` and `b` are the entities' StableIds, `a`
+the lower, and `sensor` is true when either collider is a sensor. Emitted in `postPhysics`, in `(a, b)`
+order, after that tick's ended events.
 
 ```ts
 const CollisionStarted3D: EventDef<typeof pair>;
@@ -1527,7 +1545,8 @@ function physics3d(options?: Physics3DOptions): PluginDef;
 
 #### `Physics3DOptions` (interface)
 
-_No doc comment._
+The options of `physics3d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+sim.
 
 ```ts
 interface Physics3DOptions {
@@ -1550,7 +1569,8 @@ const RigidBody3D: ComponentDef<typeof bodyFields>;
 
 #### `ShapeKind` (const)
 
-_No doc comment._
+The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`. `ShapeKind` is also the type of
+those values.
 
 ```ts
 const ShapeKind: {
@@ -1563,7 +1583,8 @@ type ShapeKind = (typeof ShapeKind)[keyof typeof ShapeKind];
 
 #### `transform3d` (function)
 
-_No doc comment._
+The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`,
+`qz`, `qw`). Position is 0 and the rotation is the identity unless given.
 
 ```ts
 function transform3d(at?: {
@@ -1660,6 +1681,16 @@ is not written as an object (a spread or a variable), so the check says it could
 function declaredBoardsIn(code: string): string[] | undefined;
 ```
 
+#### `declaredOrientationIn` (function)
+
+The `runtime.orientation` a `ship.config.ts` declares, read from the source as written (`automata check` reads
+files, it does not run them). `undefined` when the file does not parse or `runtime.orientation` is not written as
+a literal, so the check can say it could not read it.
+
+```ts
+function declaredOrientationIn(code: string): string | undefined;
+```
+
 #### `defineShipConfig` (function)
 
 Identity function that gives a game's `ship.config.ts` type checking and editor completion.
@@ -1754,6 +1785,14 @@ class FileError extends FileErrorBase {
 }
 ```
 
+#### `findOrientationMismatches` (function)
+
+Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
+
+```ts
+function findOrientationMismatches(gameDir: string, declared: string): OrientationMismatchFound[];
+```
+
 #### `findRootAbsoluteReferences` (function)
 
 Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
@@ -1780,6 +1819,15 @@ Every board a game's sources name that `declared` (its ship config's `leaderboar
 function findUndeclaredBoards(gameDir: string, declared: readonly string[]): UndeclaredBoardFound[];
 ```
 
+#### `gameOrientationsIn` (function)
+
+The orientations the `defineGame` calls in one source file play in, in source order; `undefined` when the file
+does not parse (its typecheck already fails, and a half-read tree could name an orientation that is not there).
+
+```ts
+function gameOrientationsIn(file: string, code: string): PlayedOrientation[] | undefined;
+```
+
 #### `inputsProblems` (function)
 
 Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
@@ -1794,6 +1842,14 @@ Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`
 
 ```ts
 const isBoardSource: (file: string) => boolean;
+```
+
+#### `isOrientationSource` (const)
+
+Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+
+```ts
+const isOrientationSource: (file: string) => boolean;
 ```
 
 #### `ManifestInputsMismatch` (class)
@@ -1816,12 +1872,47 @@ class ManifestInvalid extends ManifestInvalidBase {
 }
 ```
 
+#### `OrientationMismatch` (class)
+
+The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up).
+
+```ts
+class OrientationMismatch extends OrientationMismatchBase {
+  override get message(): string;
+}
+```
+
+#### `OrientationMismatchFound` (interface)
+
+A game that plays in an orientation its ship config does not declare.
+
+```ts
+interface OrientationMismatchFound extends PlayedOrientation {
+  /** The ship config's `runtime.orientation`. */
+  readonly declared: string;
+  /** Relative to the game folder, with forward slashes. */
+  readonly file: string;
+}
+```
+
 #### `parseEnvFile` (function)
 
 The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
 
 ```ts
 function parseEnvFile(file: string, text: string): EnvValue[];
+```
+
+#### `PlayedOrientation` (interface)
+
+An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
+
+```ts
+interface PlayedOrientation {
+  readonly orientation: string;
+  readonly line: number;
+  readonly col: number;
+}
 ```
 
 #### `portsFor` (function)
@@ -1843,7 +1934,7 @@ function portsFor(checkoutPath: string, env: Readonly<Record<string, string | un
 #### `prepareBuild` (function)
 
 Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
-entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
 runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
 (archive, size, file types) happen inside `ruken publish`, not here.
 
@@ -3310,7 +3401,8 @@ function documentScrolls(doc: Document): string[];
 
 #### `FakeResizeObserver` (interface)
 
-_No doc comment._
+Controls the fake `ResizeObserver` `installFakeResizeObserver` put in place: report a width to every
+observer, then restore the original.
 
 ```ts
 interface FakeResizeObserver {
@@ -3322,7 +3414,8 @@ interface FakeResizeObserver {
 
 #### `fakeViewportWindow` (function)
 
-_No doc comment._
+A fake window of the given size. Its `screen` defaults to that size and its `navigator` names no browser.
+Resizing and the keyboard fire `resize` on the window and the visual viewport, as a browser does.
 
 ```ts
 function fakeViewportWindow(size: {
@@ -3340,7 +3433,8 @@ function fakeViewportWindow(size: {
 
 #### `FakeViewportWindow` (interface)
 
-_No doc comment._
+A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual
+viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
 
 ```ts
 interface FakeViewportWindow {
@@ -3368,7 +3462,8 @@ interface FakeViewportWindow {
 
 #### `FakeVisualViewport` (interface)
 
-_No doc comment._
+The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and
+listeners for `resize`.
 
 ```ts
 interface FakeVisualViewport {
@@ -3450,7 +3545,8 @@ function hostDisplay(options?: {
 
 #### `installFakeResizeObserver` (function)
 
-_No doc comment._
+Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components
+measured under jsdom, which has no layout. Call `restore` when the test ends.
 
 ```ts
 function installFakeResizeObserver(): FakeResizeObserver;
@@ -3478,7 +3574,7 @@ interface LayoutRect {
 
 #### `MountedFixture` (interface)
 
-_No doc comment._
+A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
 
 ```ts
 interface MountedFixture {
@@ -3490,7 +3586,8 @@ interface MountedFixture {
 
 #### `mountFixture` (function)
 
-_No doc comment._
+Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first
+render is finished. Mounts into `target`, or into a new `div` in `document.body`, which `unmount` removes.
 
 ```ts
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
@@ -3498,7 +3595,8 @@ function mountFixture<Props extends Record<string, unknown>>(component: Componen
 
 #### `REFERENCE_SIZES` (const)
 
-_No doc comment._
+The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every
+breakpoint and the tightest sizes, each with the classification it should get.
 
 ```ts
 const REFERENCE_SIZES: readonly ReferenceSize[];
@@ -3522,7 +3620,8 @@ type ReferenceHeightTier = "short" | "compact" | undefined;
 
 #### `ReferenceSize` (interface)
 
-_No doc comment._
+One viewport every primitive and screen is checked at: a name, its size, and the form factor and height
+tier it must classify as.
 
 ```ts
 interface ReferenceSize {
@@ -3577,7 +3676,8 @@ interface Variant {
 
 #### `VARIANTS` (const)
 
-_No doc comment._
+The conditions each size is also checked under: at rest, with the on-screen keyboard open, with Ruken's
+reserved strip on the right or the left, and at its TV scale.
 
 ```ts
 const VARIANTS: readonly Variant[];
@@ -3825,7 +3925,8 @@ interface FakeGamepads {
 
 #### `Difference` (interface)
 
-_No doc comment._
+One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's
+sid when it is an entity, and both values as printed.
 
 ```ts
 interface Difference {
@@ -3841,7 +3942,9 @@ interface Difference {
 
 #### `diffSnapshotViews` (function)
 
-_No doc comment._
+Every difference between an expected and an actual snapshot view, field by field, in a fixed order (header,
+rng, resources, next id, entities, plugin bytes) so a report reads the same in every engine. Empty when
+they are equal.
 
 ```ts
 function diffSnapshotViews(expected: SnapshotView, actual: SnapshotView): Difference[];
@@ -3857,7 +3960,7 @@ function expectGolden(report: GoldenReport): void;
 
 #### `formatGoldenReport` (function)
 
-_No doc comment._
+One report as text: a line for most outcomes, and for a divergence the tick and up to 20 differences.
 
 ```ts
 function formatGoldenReport(report: GoldenReport): string;
@@ -3873,7 +3976,9 @@ const GOLDEN_MAX_PACKED_BYTES: number;
 
 #### `goldenCommands` (function)
 
-_No doc comment._
+The Vitest browser commands that let golden tests read golden files in a browser: register them with
+`browser: { commands: goldenCommands() }`. Only `.golden.json` and `.replay` files inside the project root
+can be read, and nothing can be written.
 
 ```ts
 function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
@@ -3881,7 +3986,8 @@ function goldenCommands(options?: GoldenCommandsOptions): Record<string, Browser
 
 #### `GoldenReport` (type)
 
-_No doc comment._
+What a golden check found: `pass`, `written`, `missing`, `schema-changed`, `content-changed`,
+`setup-changed` or `diverged` (with the first differing tick and the fields that differ).
 
 ```ts
 type GoldenReport = {
@@ -3927,7 +4033,10 @@ const nodeCompression: ReplayCompression;
 
 #### `replayGolden` (function)
 
-_No doc comment._
+Replays a golden `.replay` against the current sim and reports whether it still matches. With reference
+data a divergence names the exact tick and every field that differs. With `AUTOMATA_UPDATE_GOLDENS=1` in
+Node and a `record` option it records the file first, then checks what it wrote. A mismatch is a report, not
+a throw: pass it to `expectGolden`.
 
 ```ts
 function replayGolden(options: ReplayGoldenOptions): Promise<GoldenReport>;
@@ -3935,7 +4044,8 @@ function replayGolden(options: ReplayGoldenOptions): Promise<GoldenReport>;
 
 #### `ReplayGoldenOptions` (interface)
 
-_No doc comment._
+What `replayGolden` checks: the `.replay` file, the plugins and content to replay it with, and how to
+record it when updating goldens.
 
 ```ts
 interface ReplayGoldenOptions {
@@ -3957,7 +4067,8 @@ interface ReplayGoldenOptions {
 
 #### `RoundTripFailure` (interface)
 
-_No doc comment._
+One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore
+tick, variant and a report of what differed.
 
 ```ts
 interface RoundTripFailure {
@@ -3972,7 +4083,8 @@ interface RoundTripFailure {
 
 #### `RoundTripOptions` (interface)
 
-_No doc comment._
+What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of
+what length to try.
 
 ```ts
 interface RoundTripOptions {
@@ -3993,7 +4105,7 @@ interface RoundTripOptions {
 
 #### `RoundTripVariant` (type)
 
-_No doc comment._
+How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
 
 ```ts
 type RoundTripVariant = "fresh" | "dirty";
@@ -4001,7 +4113,9 @@ type RoundTripVariant = "fresh" | "dirty";
 
 #### `simGolden` (function)
 
-_No doc comment._
+Plays a scripted run and compares the sim's hash every `every` ticks with the golden JSON file, reporting
+the first recorded tick that differs. With `AUTOMATA_UPDATE_GOLDENS=1` in Node it records the file. Throws
+for an `every` that is not an integer of 1 or more; a mismatch is a report, not a throw.
 
 ```ts
 function simGolden(options: SimGoldenOptions): Promise<GoldenReport>;
@@ -4009,7 +4123,8 @@ function simGolden(options: SimGoldenOptions): Promise<GoldenReport>;
 
 #### `SimGoldenOptions` (interface)
 
-_No doc comment._
+What `simGolden` runs: the plugins, content, seed and scripted commands to play for `ticks` ticks, where
+the golden JSON lives, and how often to record a hash.
 
 ```ts
 interface SimGoldenOptions {
@@ -4031,7 +4146,9 @@ interface SimGoldenOptions {
 
 #### `snapshotRoundTripProperty` (function)
 
-_No doc comment._
+Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and
+restore points, alternating fresh and dirty restores. Returns `{ failures }`; an empty list means the
+property held.
 
 ```ts
 function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
@@ -4051,7 +4168,9 @@ const streamCompression: ReplayCompression;
 
 #### `goldenCommands` (function)
 
-_No doc comment._
+The Vitest browser commands that let golden tests read golden files in a browser: register them with
+`browser: { commands: goldenCommands() }`. Only `.golden.json` and `.replay` files inside the project root
+can be read, and nothing can be written.
 
 ```ts
 function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
@@ -4075,7 +4194,8 @@ interface GoldenCommandsOptions {
 
 #### `RoundTripFailure` (interface)
 
-_No doc comment._
+One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore
+tick, variant and a report of what differed.
 
 ```ts
 interface RoundTripFailure {
@@ -4090,7 +4210,8 @@ interface RoundTripFailure {
 
 #### `RoundTripOptions` (interface)
 
-_No doc comment._
+What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of
+what length to try.
 
 ```ts
 interface RoundTripOptions {
@@ -4111,7 +4232,7 @@ interface RoundTripOptions {
 
 #### `RoundTripVariant` (type)
 
-_No doc comment._
+How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
 
 ```ts
 type RoundTripVariant = "fresh" | "dirty";
@@ -4119,7 +4240,9 @@ type RoundTripVariant = "fresh" | "dirty";
 
 #### `snapshotRoundTripProperty` (function)
 
-_No doc comment._
+Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and
+restore points, alternating fresh and dirty restores. Returns `{ failures }`; an empty list means the
+property held.
 
 ```ts
 function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
@@ -4133,7 +4256,13 @@ function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
 
 #### `ActionBar` (const)
 
-_No doc comment._
+One row of actions that collapses as its container narrows (M1.6 spec §3.4; from FloorFifty
+`ui/layout/ActionBar.svelte` at 122a220).
+
+It gives way in a fixed order as its container narrows (`collapseLevel`): utilities to their icon,
+then secondaries to their short label, and only then a wrap with the primary on its own row.
+Three hidden, inert copies of the row ([data-measure]) report how wide it would be at each level,
+so the choice is measured rather than guessed from breakpoints.
 
 ```ts
 const ActionBar: import("svelte").Component<Props, {}, "">;
@@ -4259,7 +4388,8 @@ interface AudioValue {
 
 #### `BarAction` (interface)
 
-_No doc comment._
+One action in an `ActionBar`: an id, a label and a kind (`primary`, `secondary` or `utility`), what it does
+when selected, and optionally a short label, an icon, a disabled state and a pressed state.
 
 ```ts
 interface BarAction {
@@ -4309,7 +4439,8 @@ const BOOT_FAILURE_COPY_EN: BootFailureCopy;
 
 #### `bootDeviceClass` (function)
 
-_No doc comment._
+The device class at boot, read from the window's pointer and screen; `desktop` when the window cannot
+answer.
 
 ```ts
 function bootDeviceClass(win?: Window): DeviceClass;
@@ -4317,7 +4448,8 @@ function bootDeviceClass(win?: Window): DeviceClass;
 
 #### `BootFailure` (type)
 
-_No doc comment._
+The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never
+imports the runtime.
 
 ```ts
 type BootFailure = {
@@ -4356,7 +4488,8 @@ type BootFailureAction = 'retry' | 'continue' | 'exit';
 
 #### `BootFailureCopy` (type)
 
-_No doc comment._
+The words for every boot failure state and action, by name. `BOOT_FAILURE_COPY_EN` holds the English
+defaults.
 
 ```ts
 type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>;
@@ -4364,7 +4497,9 @@ type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, str
 
 #### `BootFailurePanel` (const)
 
-_No doc comment._
+The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the
+failure's copy and its ways forward. The runtime passes its `BootError` and the handlers; this
+component decides nothing beyond `bootFailureView`.
 
 ```ts
 const BootFailurePanel: import("svelte").Component<Props, {}, "">;
@@ -4373,7 +4508,8 @@ type BootFailurePanel = ReturnType<typeof BootFailurePanel>;
 
 #### `BootFailureState` (type)
 
-_No doc comment._
+What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or
+`unsupported`.
 
 ```ts
 type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported';
@@ -4400,7 +4536,8 @@ function bootFailureView(failure: BootFailure, hostKind: HostKind): BootFailureV
 
 #### `BootFailureViewModel` (interface)
 
-_No doc comment._
+What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order. No actions
+means the panel is final.
 
 ```ts
 interface BootFailureViewModel {
@@ -4434,7 +4571,8 @@ type Chip = ReturnType<typeof Chip>;
 
 #### `classifyDevice` (function)
 
-_No doc comment._
+A fine primary pointer is a `desktop`; a coarse one is a `phone` when the screen's shorter side is under
+600 px, otherwise a `tablet`.
 
 ```ts
 function classifyDevice(input: {
@@ -4446,7 +4584,9 @@ function classifyDevice(input: {
 
 #### `classifyFormFactor` (function)
 
-_No doc comment._
+The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other
+portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise
+`desktop`. A square viewport is landscape.
 
 ```ts
 function classifyFormFactor(width: number, height: number): FormFactor;
@@ -4454,7 +4594,8 @@ function classifyFormFactor(width: number, height: number): FormFactor;
 
 #### `classifyHeightTier` (function)
 
-_No doc comment._
+The height tier of a layout height in CSS px: `compact` below 340, `short` up to 600, otherwise
+`undefined`.
 
 ```ts
 function classifyHeightTier(height: number): HeightTier;
@@ -4462,7 +4603,8 @@ function classifyHeightTier(height: number): HeightTier;
 
 #### `CollapseLevel` (type)
 
-_No doc comment._
+How far an action bar has collapsed: 0 every label in full, 1 utilities as icons, 2 secondaries on their
+short labels, 3 wrapped with the primary on its own row.
 
 ```ts
 type CollapseLevel = 0 | 1 | 2 | 3;
@@ -4585,7 +4727,10 @@ type ControlsTouchMode = 'buttons' | 'swipe';
 
 #### `CornerControls` (const)
 
-_No doc comment._
+Back at the start, the game's own corner controls (Mute, a language flag) at the end, in the
+same row on every screen (M1.6 spec §3.4; from FloorFifty `ui/layout/CornerControls.svelte` at
+122a220). A screen does not render its own. `header` sits between them in the same row, on the
+screen's centre line, so a short screen spends no row of its own on it.
 
 ```ts
 const CornerControls: import("svelte").Component<Props, {}, "">;
@@ -4594,7 +4739,9 @@ type CornerControls = ReturnType<typeof CornerControls>;
 
 #### `createGeometryOwner` (function)
 
-_No doc comment._
+Creates the geometry owner of a document, the only writer of its geometry: make one per document. It measures
+at once, on every resize of the window or the visual viewport, and again at 100, 400 and 1000 ms as bars and
+the keyboard settle, and publishes each measure on the root.
 
 ```ts
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
@@ -4654,7 +4801,7 @@ class CursorRunner {
 
 #### `DeviceClass` (type)
 
-_No doc comment._
+The kind of device the player holds: `phone`, `tablet` or `desktop`, decided once at boot.
 
 ```ts
 type DeviceClass = 'phone' | 'tablet' | 'desktop';
@@ -4662,7 +4809,25 @@ type DeviceClass = 'phone' | 'tablet' | 'desktop';
 
 #### `Dialog` (const)
 
-_No doc comment._
+A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken
+`packages/ui/src/Dialog.svelte` at b30d31b). The screen renders it only while it is open
+(`{#if open}<Dialog>`) and decides what each action does; `onclose` is what Escape means, and it
+should mean the safe choice.
+
+Keyboard and focus (the rules live in `modal-scope.ts`, which Modal and Sheet share):
+- Initial focus goes to the control marked `data-initial-focus` (the safe action), else the
+  first control, else the dialog itself.
+- Tab and Shift+Tab wrap inside the dialog, and focus that lands outside it is pulled back in.
+  The scrim covers the page, so a pointer cannot reach out either.
+- When the dialog goes away, focus returns to whatever had it before the dialog opened.
+- Escape calls `onclose`. The focus navigator's Back arrives as Escape, so a controller closes
+  it the same way. With dialogs stacked, only the topmost answers Escape and holds focus.
+- While it is open the page behind it is `inert` (every sibling of the dialog and of each of its
+  ancestors up to the body), so assistive technology and the browser cannot reach it either.
+
+Layout: a sheet on the bottom edge on a phone, centred otherwise; always inside the insets and
+above the keyboard. Its body is a declared scroll region, so on a 780 x 270 screen the actions
+stay reachable however long the text is.
 
 ```ts
 const Dialog: import("svelte").Component<Props, {}, "">;
@@ -4752,7 +4917,20 @@ type ErrorCode = RukenError['code'];
 
 #### `ErrorPanel` (const)
 
-_No doc comment._
+A failure, and what the player can do about it (M1.6 spec §3.4; from FloorFifty
+`ui/components/ErrorPanel.svelte` at 122a220).
+
+`role="alert"` rather than `role="status"`, because this interrupts: the player usually just
+pressed something and needs to know it did not work. The panel is opaque, because a failure is
+often the thing that means the artwork did not arrive. It sits at the top of the visible region,
+under the corner row, so it never covers the way out of the screen it reports on, and its layer
+passes taps through everywhere but the panel.
+
+Where the room is short (a long message, a keyboard), the panel gives up space in this order:
+first the message, which scrolls, down to one visible line; only then the gap that keeps it under
+the corner row, so it rises over Back only when its actions cannot fit any other way. A final
+panel has no actions and is the screen's last word, so it never rises: Back is its way out. The
+actions sit outside the scrolling part and never shrink (framework audit of #7).
 
 ```ts
 const ErrorPanel: import("svelte").Component<Props, {}, "">;
@@ -4777,7 +4955,9 @@ function fitShape(most: GridShape, box: GridBox, minTile: number, gap: number): 
 
 #### `FocusNavigator` (class)
 
-_No doc comment._
+Moves focus the way a d-pad would: `move` walks Tab order, `steer` walks a `[data-focus-grid]` spatially,
+`page` offers a page turn, and `recover` puts focus back on the first control when a screen change dropped
+it. `attach` listens for the player's own pointer and keys, so the navigator steps back from them.
 
 ```ts
 class FocusNavigator {
@@ -4866,7 +5046,8 @@ type FullscreenSupport = FullscreenRes['support'];
 
 #### `GateInputs` (type)
 
-_No doc comment._
+What `landscapeGate` decides from: the form factor, whether the pointer is coarse, the browser's fullscreen
+support and state, and whether the page is installed as an app.
 
 ```ts
 type GateInputs = {
@@ -4882,7 +5063,8 @@ type GateInputs = {
 
 #### `Geometry` (interface)
 
-_No doc comment._
+The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the
+usable and visible regions, what covers the page's foot, and the host's scale hint.
 
 ```ts
 interface Geometry {
@@ -4914,7 +5096,8 @@ interface Geometry {
 
 #### `GeometryInput` (interface)
 
-_No doc comment._
+What `measureGeometry` reads: the layout viewport, the visual viewport, the safe-area insets, the host's
+display metrics, a hidden bar's height and the layout before a keyboard shrank it.
 
 ```ts
 interface GeometryInput {
@@ -4949,7 +5132,8 @@ interface GeometryInput {
 
 #### `GeometryOwner` (interface)
 
-_No doc comment._
+The one geometry owner of a document: `geometry.current` for components, `onChange` for script,
+`setHostDisplay`, `remeasure` and `dispose`.
 
 ```ts
 interface GeometryOwner {
@@ -4966,7 +5150,8 @@ interface GeometryOwner {
 
 #### `GeometryOwnerOptions` (interface)
 
-_No doc comment._
+What `createGeometryOwner` needs: the window to read and the root to publish on, and optionally the host's
+display, timers and a safe-area reader.
 
 ```ts
 interface GeometryOwnerOptions {
@@ -5041,7 +5226,9 @@ type HeightTier = 'short' | 'compact' | undefined;
 
 #### `HiddenBrowserBar` (class)
 
-_No doc comment._
+Recognises a browser bar the browser has stopped reporting (DuckDuckGo for Android's bottom bar) and
+measures how much of the page's foot it covers. It keeps state: it learns the largest settled
+screen-to-page gap for each orientation.
 
 ```ts
 class HiddenBrowserBar {
@@ -5119,7 +5306,9 @@ type InputMethod = 'keyboard' | 'gamepad' | 'touch';
 
 #### `InputMethodTracker` (class)
 
-_No doc comment._
+Tracks the input method the player used last (`keyboard`, `gamepad` or `touch`) as rune state in `method`.
+`attach` listens for key presses and touch or pen presses, counting a controller's Back (which arrives as
+Escape) as the controller; `note` records one by hand.
 
 ```ts
 class InputMethodTracker {
@@ -5201,7 +5390,9 @@ function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
 
 #### `landscapeGate` (function)
 
-_No doc comment._
+What a phone held sideways must do: `none`, `fullscreen` (one tap to go fullscreen) or `rotate-or-install`
+(turn upright or add to the Home Screen). Only a coarse-pointer phone in landscape that is not installed is
+ever gated.
 
 ```ts
 function landscapeGate(inputs: GateInputs): LandscapeGateState;
@@ -5334,7 +5525,11 @@ type LeaderboardView = {
 
 #### `LoaderOverlay` (const)
 
-_No doc comment._
+The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty
+`ui/components/LoaderOverlay.svelte` at 122a220). It shows real progress when the runtime has it
+and an indeterminate bar before the first byte, says what is loading in words, and after the
+runtime's slow threshold says quietly that it is slow, not failing. The slow line always holds
+its height, so nothing shifts when it appears.
 
 ```ts
 const LoaderOverlay: import("svelte").Component<Props, {}, "">;
@@ -5353,7 +5548,9 @@ function lockOverscroll(node: HTMLElement): {
 
 #### `measureGeometry` (function)
 
-_No doc comment._
+Turns what the browser and the host report into one `Geometry`. Pure. Each inset is the largest of the
+browser's safe area, the host's and (at the sides) the host's reserved strip; the visible region is the
+usable one less whatever covers the page's foot.
 
 ```ts
 function measureGeometry(input: GeometryInput): Geometry;
@@ -5404,7 +5601,7 @@ interface ModalProps {
 
 #### `NavDirection` (type)
 
-_No doc comment._
+A direction a d-pad or an arrow key walks a menu.
 
 ```ts
 type NavDirection = 'up' | 'down' | 'left' | 'right';
@@ -5755,7 +5952,7 @@ type RebindDevice = 'keyboard' | 'gamepad';
 
 #### `Rect` (interface)
 
-_No doc comment._
+A rectangle in CSS px: its top-left corner and its size.
 
 ```ts
 interface Rect {
@@ -5862,7 +6059,18 @@ interface RotateToastCopy {
 
 #### `ScreenFrame` (const)
 
-_No doc comment._
+Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from
+FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
+
+It fills the visible region: the layout viewport less the insets the geometry owner publishes
+(safe area and Ruken's reserved strip), ending above whatever the browser lays over the page's
+foot (the keyboard). Its first row is the corner controls, in flow, so they never sit over the
+content. Below that it arranges a hero and a body:
+  stack: hero above body; the hero takes what the body leaves, so on a short screen the hero
+         shrinks first and never pushes the body off the screen;
+  split: hero and body side by side.
+The screen root picks the arrangement from the form factor and height tier; nothing inside the
+frame branches on either. The body is the `af-screen` size container its contents query.
 
 ```ts
 const ScreenFrame: import("svelte").Component<Props, {}, "">;
@@ -5879,7 +6087,15 @@ type ScreenKind = 'menu' | 'gameplay';
 
 #### `ScrollList` (const)
 
-_No doc comment._
+A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
+
+It reserves `min(minRows, rowCount)` rows of `--af-row-h` as its minimum height, so on a short
+screen its siblings shrink before a row is lost. The reserve is capped at the height its parent
+gives it: where even that cannot hold the rows (TV scale on a compact phone) the list keeps what
+fits and scrolls the rest inside its own box, rather than painting over the controls below it. For that to work its parent must give it a
+`1fr` grid row or `flex: 1 1 auto`, never `minmax(0, 1fr)`, which ignores an item's minimum.
+Rows mark themselves `data-row`. It is a declared scroll region (`data-scroll-region`): the layout
+contracts allow controls to be off screen only inside one.
 
 ```ts
 const ScrollList: import("svelte").Component<Props, {}, "">;
@@ -6006,7 +6222,9 @@ type Sleeper = {
 
 #### `sleepWhenHidden` (function)
 
-_No doc comment._
+Puts a game's sound to sleep while its page is hidden and wakes it when the page shows again; a pointer,
+touch or key gesture also asks sound the system suspended to resume. A window that only loses focus stays
+awake. Returns a function that removes the listeners.
 
 ```ts
 function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => void;
@@ -6320,7 +6538,7 @@ type UiComponent = Component<Record<string, never>>;
 
 #### `UiSlotName` (type)
 
-_No doc comment._
+The name of a place an extension may add UI: one of `UI_SLOT_NAMES`.
 
 ```ts
 type UiSlotName = (typeof UI_SLOT_NAMES)[number];
@@ -6431,7 +6649,8 @@ function checkLayout(conditions: Conditions, essentials: readonly Element[]): st
 
 #### `Conditions` (interface)
 
-_No doc comment._
+The conditions a layout test runs under: the geometry published for a size and variant, and the regions
+that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 
 ```ts
 interface Conditions {

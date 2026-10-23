@@ -1,4 +1,6 @@
-// Sequence editor: The Last Light's cutscene timeline (editor/src/client/timeline.ts), redesigned for the iPad.
+// Sequence editor: The Last Light's cutscene timeline (editor/src/client/timeline.ts), redesigned for the iPad, editing
+// the cutscene as AF content (`content/scenes/bay/cutscenes.toml`). The screens show the change set after the Ask on
+// the Shell page was accepted: shot C ends at 16.4 s and shot D was retimed to start there.
 // Each `build(S, P, Q, A)` returns one scene tree and is self-contained, so build.mjs can render it to HTML and to Figma.
 
 export const sequenceScreens = []
@@ -10,30 +12,17 @@ sequenceScreens.push({
   name: 'Sequence · arrival · iPad landscape',
   w: 1194,
   h: 834,
-  note: 'Cutscenes on the left, the camera preview with a filmstrip of the four shots in the middle, the selected shot on the right and the timeline along the bottom. Times, lenses and eases edit in place; a computed camera path is read-only and goes through Ask.',
+  note: 'Cutscenes on the left, the camera preview with a filmstrip of the four shots in the middle, the selected shot on the right and the timeline along the bottom. Times, lenses and eases edit in place in cutscenes.toml; the camera’s place comes from the level, so moving it goes through Ask.',
   build: (_S, P, Q, A) => {
-    const {
-      F,
-      R,
-      C,
-      T,
-      I,
-      V,
-      alpha,
-      spacer,
-      region,
-      line,
-      eyebrow,
-      pill,
-      btn,
-      ib,
-      seg,
-      tabs,
-      panelHead,
-      inputBox,
-    } = P
+    const { F, R, C, T, I, V, alpha, spacer, region, line, eyebrow, pill, btn, ib, seg, tabs, inputBox } = P
     const { D, top, rail, listRow, stepperV, selectV, lanes, ruler, playhead, mono } = Q
-    const arr = D.arrival
+    // The change set: shot C ends at 16.4 s and shot D starts there (the file had 15.7 s for both).
+    const arr = {
+      ...D.arrival,
+      shots: D.arrival.shots.map((s) =>
+        s.n === 'C' ? { ...s, t1: 16.4 } : s.n === 'D' ? { ...s, t0: 16.4 } : s,
+      ),
+    }
     const sel = 'C'
     const now = 12.4
     const W = 1138
@@ -45,7 +34,7 @@ sequenceScreens.push({
       sel: s.n === sel,
     }))
     const rows = [
-      { label: 'Camera', h: 30, color: 'layer/city', items: camera },
+      { label: 'Camera', h: 30, color: 'ed/sequence', items: camera },
       {
         label: 'Ada',
         color: 'layer/entities',
@@ -77,7 +66,7 @@ sequenceScreens.push({
       },
       {
         label: 'Sound',
-        color: 'layer/intgrid',
+        color: 'ed/audio',
         items: arr.sound.map((s) => ({ k: 'key', t: s.t, label: s.label })),
       },
       {
@@ -86,8 +75,8 @@ sequenceScreens.push({
         color: 'state/warn',
         items: [
           { k: 'key', t: 10, label: '2.4' },
-          { k: 'key', t: 15.65 },
-          { k: 'key', t: 15.7, label: '0.6' },
+          { k: 'key', t: 16.35 },
+          { k: 'key', t: 16.4, label: '0.6' },
         ],
       },
       {
@@ -96,7 +85,7 @@ sequenceScreens.push({
         color: 'state/warn',
         items: [
           { k: 'key', t: 10, label: '0.9' },
-          { k: 'key', t: 15.65 },
+          { k: 'key', t: 16.35 },
         ],
       },
       { label: 'Fade', h: 30, color: 'text/dim', items: [{ k: 'curve', pts: arr.fade }] },
@@ -118,6 +107,7 @@ sequenceScreens.push({
         eyebrow('Timeline'),
         T('12.40 / 22.00 s', { style: 'Mono/12' }),
         mono('frame 372 · 30 fps'),
+        mono('4 shots · 3 lines', { color: 'text/faint' }),
         spacer(),
         ib('step-back'),
         ib('play', { on: true }),
@@ -140,10 +130,16 @@ sequenceScreens.push({
       264,
       452,
       { lay: 'col' },
-      panelHead('Cutscenes', ib('plus'), ib('more')),
+      tabs(
+        [{ label: 'Cutscenes' }, { label: 'Screenplay' }, { label: 'Gaps', badge: '0', tone: 'state/ok' }],
+        0,
+      ),
+      F({ w: 'fill', h: 1, fill: 'border/default' }),
       R(
-        { w: 'fill', h: 52, pad: [0, 8] },
+        { w: 'fill', h: 52, pad: [0, 4, 0, 8], gap: 4 },
         inputBox(`${D.scene.name} · ${D.scene.id}`, { chevron: true, mono: true }),
+        ib('transfer'),
+        ib('plus'),
       ),
       C(
         { name: 'cutscene list', w: 'fill', h: 'fill', pad: [0, 8], gap: 0, clip: true },
@@ -252,6 +248,10 @@ sequenceScreens.push({
           color: 'text/primary',
         }),
       ),
+      R(
+        { name: 'restart', x: W2 - 8 - 160, y: 48, w: 160, ax: 'end' },
+        btn('Restart scene', { icon: 'rotate', h: 44 }),
+      ),
       ...strip,
     )
 
@@ -268,7 +268,7 @@ sequenceScreens.push({
         { name: 'fields', w: 'fill', h: 'fill', pad: 12, gap: 8, clip: true },
         R(
           { w: 'fill', h: 28, gap: 8 },
-          F({ w: 14, h: 14, r: 4, fill: alpha('layer/city', 0.85) }),
+          F({ w: 14, h: 14, r: 4, fill: alpha('ed/sequence', 0.85) }),
           T('Shot C', { style: 'Title/15' }),
           spacer(),
           pill('literal', { color: 'state/ok', icon: 'check' }),
@@ -282,12 +282,12 @@ sequenceScreens.push({
         R(
           { w: 'fill', gap: 8 },
           stepperV('Starts', '10.00', { unit: 's' }),
-          stepperV('Ends', '15.70', { unit: 's' }),
+          stepperV('Ends', '16.40', { unit: 's', changed: true }),
         ),
         R(
           { w: 'fill', gap: 8 },
           stepperV('Lens in', '28', { unit: 'mm' }),
-          stepperV('Lens out', '34', { unit: 'mm', changed: true }),
+          stepperV('Lens out', '34', { unit: 'mm' }),
         ),
         R(
           { w: 'fill', gap: 8 },
@@ -312,21 +312,16 @@ sequenceScreens.push({
           I('lock', { size: 18, color: 'text/faint' }),
           C(
             { w: 'fill', gap: 2 },
-            T('Camera path is computed', { style: 'Body/13 Medium' }),
-            T('sheet.x − 0.8, MATTRESS + 1.3, sheet.z − 1.0', {
+            T('Camera place comes from the level', { style: 'Body/13 Medium' }),
+            T('from = "run-sheet", offset = [-0.8, 1.3, -1.0]', {
               style: 'Mono/11',
               color: 'text/dim',
               w: 'fill',
               lh: 15,
             }),
-            T('Ask to move it; times, lenses and eases edit here.', {
-              style: 'Label/12',
-              color: 'text/faint',
-              w: 'fill',
-              lh: 16,
-            }),
           ),
         ),
+        btn('Set shot from view · through Ask', { icon: 'camera', w: 'fill' }),
       ),
     )
 
@@ -334,11 +329,12 @@ sequenceScreens.push({
       { name: 'Sequence · arrival · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: 'arrival',
-        sub: 'src/scenes/bay/cutscenes.ts',
+        sub: D.paths.cutscenes,
         ed: 'sequence',
         cs: 'edit/arrival-timing',
         n: 2,
         checks: 'checks ok',
+        reopened: true,
         mid: btn('Play', { icon: 'play' }),
       }),
       rail(782, 'sequence'),
@@ -363,16 +359,21 @@ sequenceScreens.push({
   h: 1194,
   note: 'The medium shell: preview and filmstrip on top, the selected shot as an inline sheet, the timeline below it, and the editor tab bar. The cutscene list is the chip at the top left.',
   build: (_S, P, Q, A) => {
-    const { F, R, T, I, V, alpha, spacer, region, line, eyebrow, pill, ib, seg } = P
+    const { F, R, T, I, V, alpha, spacer, region, line, eyebrow, pill, btn, ib, seg } = P
     const { D, topP, tabBar, stepperV, selectV, lanes, ruler, playhead } = Q
-    const arr = D.arrival
+    const arr = {
+      ...D.arrival,
+      shots: D.arrival.shots.map((s) =>
+        s.n === 'C' ? { ...s, t1: 16.4 } : s.n === 'D' ? { ...s, t0: 16.4 } : s,
+      ),
+    }
     const now = 12.4
     const W = 834
     const rows = [
       {
         label: 'Camera',
         h: 30,
-        color: 'layer/city',
+        color: 'ed/sequence',
         items: arr.shots.map((s) => ({ k: 'blk', t: s.t0, t1: s.t1, label: s.n, sel: s.n === 'C' })),
       },
       {
@@ -397,7 +398,7 @@ sequenceScreens.push({
       },
       {
         label: 'Sound',
-        color: 'layer/intgrid',
+        color: 'ed/audio',
         items: arr.sound.map((s) => ({ k: 'key', t: s.t, label: s.label })),
       },
       {
@@ -406,7 +407,7 @@ sequenceScreens.push({
         color: 'state/warn',
         items: [
           { k: 'key', t: 10, label: '2.4' },
-          { k: 'key', t: 15.7, label: '0.6' },
+          { k: 'key', t: 16.4, label: '0.6' },
         ],
       },
       {
@@ -423,9 +424,9 @@ sequenceScreens.push({
     const timeline = region(
       'timeline',
       0,
-      800,
+      780,
       W,
-      330,
+      350,
       { lay: null },
       line(0, 0, W, 1),
       F({ name: 'handle', x: 399, y: 5, w: 36, h: 4, r: 2, fill: 'border/strong' }),
@@ -444,13 +445,14 @@ sequenceScreens.push({
       ...playhead(px, 72, 76 + L.height - 72, now.toFixed(2)),
     )
     const W2 = 834
-    const H2 = 469
+    // The preview crops the 16:9 frame by 20 px so the timeline keeps its last row (States · Shake) above the tab bar.
+    const H2 = 449
     const strip = arr.shots.map((s, i) =>
       F(
         {
           name: `shot ${s.n}`,
           x: 16 + i * 200,
-          y: 529,
+          y: 509,
           w: 192,
           h: 108,
           r: 8,
@@ -478,11 +480,11 @@ sequenceScreens.push({
       0,
       52,
       W2,
-      585,
+      565,
       { fill: 'bg/canvas' },
       F(
         { x: 0, y: 0, w: W2, h: H2, clip: true },
-        V(A.bayArt({ lamp: 1, ada: [236, 168] }), { name: 'art', w: W2, h: H2 }),
+        V(A.bayArt({ lamp: 1, ada: [236, 168] }), { name: 'art', y: -10, w: W2, h: 469 }),
         A.viewfinder(W2, H2, { ghost: [270, 110, 290, 230] }),
       ),
       R(
@@ -536,14 +538,14 @@ sequenceScreens.push({
     const sheet = region(
       'shot sheet',
       0,
-      637,
+      617,
       W,
       163,
       { lay: 'col', pad: [10, 16, 0, 16], gap: 6 },
-      line(0, 0, W, 1),
+      F({ name: 'divider', abs: true, x: 0, y: 0, w: W, h: 1, fill: 'border/default' }),
       R(
         { w: 'fill', h: 24, gap: 8 },
-        F({ w: 14, h: 14, r: 4, fill: alpha('layer/city', 0.85) }),
+        F({ w: 14, h: 14, r: 4, fill: alpha('ed/sequence', 0.85) }),
         T('Shot C', { style: 'Title/15' }),
         T('literal · times, lenses and eases edit in place', { style: 'Label/12', color: 'text/dim' }),
         spacer(),
@@ -552,41 +554,42 @@ sequenceScreens.push({
       R(
         { w: 'fill', gap: 8 },
         stepperV('Starts', '10.00', { unit: 's' }),
-        stepperV('Ends', '15.70', { unit: 's' }),
+        stepperV('Ends', '16.40', { unit: 's', changed: true }),
         stepperV('Lens in', '28', { unit: 'mm' }),
-        stepperV('Lens out', '34', { unit: 'mm', changed: true }),
+        stepperV('Lens out', '34', { unit: 'mm' }),
         selectV('Ease', 'smooth', { mono: true }),
       ),
       R(
         {
           name: 'computed path',
           w: 'fill',
-          h: 36,
-          pad: [0, 10],
+          h: 44,
+          pad: [0, 0, 0, 10],
           gap: 8,
           r: 'radius/md',
           fill: 'bg/field',
           stroke: 'border/default',
         },
         I('lock', { size: 16, color: 'text/faint' }),
-        T('Camera path is computed', { style: 'Label/12', color: 'text/dim' }),
-        T('sheet.x − 0.8, MATTRESS + 1.3, sheet.z − 1.0', {
+        T('Camera place comes from the level', { style: 'Label/12', color: 'text/dim' }),
+        T('from = "run-sheet", offset = [-0.8, 1.3, -1.0]', {
           style: 'Mono/11',
           color: 'text/faint',
           w: 'fill',
           trunc: true,
         }),
-        T('Ask to move it', { style: 'Label/12', color: 'ed/feel' }),
+        btn('Ask to move it', { icon: 'sparkle', h: 44 }),
       ),
     )
     return F(
       { name: 'Sequence · arrival · iPad portrait', w: 834, h: 1194, fill: 'bg/app', clip: true },
       topP(834, {
         title: 'arrival',
-        sub: 'cutscenes.ts',
+        sub: 'cutscenes.toml',
         cs: 'edit/arrival-timing',
         n: 2,
         checks: 'checks ok',
+        gates: [['C-G1', 'open']],
       }),
       canvas,
       sheet,

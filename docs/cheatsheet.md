@@ -141,34 +141,34 @@
 
 ### `import { … } from '@mcthaydt/automata-physics/2d'`
 
-- `body2d(kind, opts?)`
-- `BodyKind` (const)
+- `body2d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
+- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
 - `Collider2D` (const): One collider.
-- `collider2d` (const)
+- `collider2d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy)` with half extents, and `capsule(halfHeight, radius)`.
 - `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded2D` (const)
-- `CollisionStarted2D` (const)
+- `CollisionEnded2D` (const): Two colliders stopped touching, or one was removed.
+- `CollisionStarted2D` (const): Two colliders began touching (or, with a sensor, overlapping).
 - `physics2d(options?)`: The 2D physics plugin (M2.1 spec §3.5).
-- `Physics2DOptions` (interface)
+- `Physics2DOptions` (interface): The options of `physics2d`.
 - `RigidBody2D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const)
-- `transform2d(at?)`
+- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
+- `transform2d(at?)`: The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
 - `Transform2D` (const): Position in metres and rotation in radians.
 
 ### `import { … } from '@mcthaydt/automata-physics/3d'`
 
-- `body3d(kind, opts?)`
-- `BodyKind` (const)
+- `body3d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
+- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
 - `Collider3D` (const): One collider.
-- `collider3d` (const)
+- `collider3d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy, hz)` with half extents, and `capsule(halfHeight, radius)`.
 - `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded3D` (const)
-- `CollisionStarted3D` (const)
+- `CollisionEnded3D` (const): Two colliders stopped touching, or one was removed.
+- `CollisionStarted3D` (const): Two colliders began touching (or, with a sensor, overlapping).
 - `physics3d(options?)`: The 3D physics plugin (M2.1 spec §3.5).
-- `Physics3DOptions` (interface)
+- `Physics3DOptions` (interface): The options of `physics3d`.
 - `RigidBody3D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const)
-- `transform3d(at?)`
+- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
+- `transform3d(at?)`: The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`, `qz`, `qw`).
 - `Transform3D` (const): Position in metres and rotation as a unit quaternion.
 
 ## `@mcthaydt/automata-ship`
@@ -182,6 +182,7 @@
 - `checkManifest(toml)`: Checks `ruken.toml` text with Ruken's own parser, so AF accepts exactly what Ruken accepts.
 - `checkVersion(version, tag)`: A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`): the build Ruken shows as 0.10.2 is the one tagged v0.10.2.
 - `declaredBoardsIn(code)`: The board ids a `ship.config.ts` declares: the keys of its `leaderboards` object, read from the source as written (`automata check` reads files, it does not run them).
+- `declaredOrientationIn(code)`: The `runtime.orientation` a `ship.config.ts` declares, read from the source as written (`automata check` reads files, it does not run them).
 - `defineShipConfig(config)`: Identity function that gives a game's `ship.config.ts` type checking and editor completion.
 - `deployDev(input)`: Sends a prepared build to the dev host and returns its build ID and the URL it is served at.
 - `DeployDevInput` (interface): What `deployDev` sends and where: a prepared build folder, the commit it came from, the dev host's ssh target and URL, and whether the build becomes the one `/` redirects to.
@@ -189,16 +190,22 @@
 - `EntryMissing` (class): `[game] entry` names a file the build does not have.
 - `EnvValue` (interface): One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build.
 - `FileError` (class): Reading, writing, listing or removing a file failed.
+- `findOrientationMismatches(gameDir, declared)`: Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
 - `findRootAbsoluteReferences(distDir)`: Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
 - `findSecretsInBuild(distDir, envValues)`: Every secret in a built folder.
 - `findUndeclaredBoards(gameDir, declared)`: Every board a game's sources name that `declared` (its ship config's `leaderboards` keys) lacks.
+- `gameOrientationsIn(file, code)`: The orientations the `defineGame` calls in one source file play in, in source order; `undefined` when the file does not parse (its typecheck already fails, and a half-read tree could name an orientation that is not there).
 - `inputsProblems(inputs, bindings)`: Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
 - `isBoardSource` (const): Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`, `.mts`, `.js`, `.mjs`).
+- `isOrientationSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
 - `ManifestInputsMismatch` (class): `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
 - `ManifestInvalid` (class): Ruken's parser refused the generated `ruken.toml`.
+- `OrientationMismatch` (class): The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up).
+- `OrientationMismatchFound` (interface): A game that plays in an orientation its ship config does not declare.
 - `parseEnvFile(file, text)`: The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
+- `PlayedOrientation` (interface): An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
-- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it.
+- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7), then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
@@ -335,10 +342,10 @@
 ### `import { … } from '@mcthaydt/automata-testing'`
 
 - `documentScrolls(doc)`: The document itself never scrolls; screens scroll inside declared regions.
-- `FakeResizeObserver` (interface)
-- `fakeViewportWindow(size)`
-- `FakeViewportWindow` (interface)
-- `FakeVisualViewport` (interface)
+- `FakeResizeObserver` (interface): Controls the fake `ResizeObserver` `installFakeResizeObserver` put in place: report a width to every observer, then restore the original.
+- `fakeViewportWindow(size)`: A fake window of the given size.
+- `FakeViewportWindow` (interface): A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
+- `FakeVisualViewport` (interface): The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and listeners for `resize`.
 - `findClipped(root, selector)`: Each element `selector` names is tall enough for what it holds (a crushed row clips its content).
 - `findIntrusions(root, rects)`: No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its whole box.
 - `findOffscreenControls(root)`: Every visible control is on screen, unless a declared scroll region (`[data-scroll-region]`) clips it (see `clippedBy`): a fixed control, or one positioned outside the region, is judged where it is drawn, since scrolling the region would never bring it into view.
@@ -346,18 +353,18 @@
 - `findSmallTargets(root, min, minPrimary)`: Every visible control is at least `min` square, and a primary (`data-kind="primary"`) at least `minPrimary` tall.
 - `findUnreachable(elements)`: Each element is fully inside the viewport, and the whole of it is in view: a tap at its centre and at the middle of each edge lands on it or inside it, so nothing covers or clips any part.
 - `hostDisplay(options?)`: Ruken's display metrics for a hosted game.
-- `installFakeResizeObserver()`
+- `installFakeResizeObserver()`: Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components measured under jsdom, which has no layout.
 - `LayoutRect` (interface): Layout assertions as plain DOM functions (M1.6 spec §3.10), from FloorFifty's `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
-- `MountedFixture` (interface)
-- `mountFixture(component, props, target?)`
-- `REFERENCE_SIZES` (const)
+- `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
+- `mountFixture(component, props, target?)`: Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first render is finished.
+- `REFERENCE_SIZES` (const): The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every breakpoint and the tightest sizes, each with the classification it should get.
 - `ReferenceFormFactor` (type): `@mcthaydt/automata-ui`'s `FormFactor`.
 - `ReferenceHeightTier` (type): `@mcthaydt/automata-ui`'s `HeightTier`.
-- `ReferenceSize` (interface)
+- `ReferenceSize` (interface): One viewport every primitive and screen is checked at: a name, its size, and the form factor and height tier it must classify as.
 - `textSnippet(text, tag?, trusted?)`: A Svelte 5 snippet rendering `<tag>text</tag>`, so a test can pass `children`, `body` or an icon to a component without writing a wrapper component (Ruken `packages/ui/src/test-snippets.ts`).
 - `TIGHT_SIZES` (const): Sideways phones shorter than 780x270, where an open keyboard leaves the least room (framework audit of #7, 2026-10-11).
 - `Variant` (interface): A condition layered over a reference size.
-- `VARIANTS` (const)
+- `VARIANTS` (const): The conditions each size is also checked under: at rest, with the on-screen keyboard open, with Ruken's reserved strip on the right or the left, and at its TV scale.
 - `visibleControls(root)`: Controls a player could see and reach: laid out, not hidden, not in an inert subtree.
 
 ### `import { … } from '@mcthaydt/automata-testing/e2e'`
@@ -387,41 +394,41 @@
 
 ### `import { … } from '@mcthaydt/automata-testing/sim'`
 
-- `Difference` (interface)
-- `diffSnapshotViews(expected, actual)`
+- `Difference` (interface): One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's sid when it is an entity, and both values as printed.
+- `diffSnapshotViews(expected, actual)`: Every difference between an expected and an actual snapshot view, field by field, in a fixed order (header, rng, resources, next id, entities, plugin bytes) so a report reads the same in every engine.
 - `expectGolden(report)`: Throws with the formatted report unless the golden matched or was just written.
-- `formatGoldenReport(report)`
+- `formatGoldenReport(report)`: One report as text: a line for most outcomes, and for a divergence the tick and up to 20 differences.
 - `GOLDEN_MAX_PACKED_BYTES` (const): A golden that passes this cannot be reviewed or loaded cheaply; lower snapshotEvery's cost instead.
-- `goldenCommands(options?)`
-- `GoldenReport` (type)
+- `goldenCommands(options?)`: The Vitest browser commands that let golden tests read golden files in a browser: register them with `browser: { commands: goldenCommands() }`.
+- `GoldenReport` (type): What a golden check found: `pass`, `written`, `missing`, `schema-changed`, `content-changed`, `setup-changed` or `diverged` (with the first differing tick and the fields that differ).
 - `nodeCompression` (const): Node only. zlib is imported when first used, so importing this module in a browser costs nothing.
-- `replayGolden(options)`
-- `ReplayGoldenOptions` (interface)
-- `RoundTripFailure` (interface)
-- `RoundTripOptions` (interface)
-- `RoundTripVariant` (type)
-- `simGolden(options)`
-- `SimGoldenOptions` (interface)
-- `snapshotRoundTripProperty(options)`
+- `replayGolden(options)`: Replays a golden `.replay` against the current sim and reports whether it still matches.
+- `ReplayGoldenOptions` (interface): What `replayGolden` checks: the `.replay` file, the plugins and content to replay it with, and how to record it when updating goldens.
+- `RoundTripFailure` (interface): One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore tick, variant and a report of what differed.
+- `RoundTripOptions` (interface): What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of what length to try.
+- `RoundTripVariant` (type): How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
+- `simGolden(options)`: Plays a scripted run and compares the sim's hash every `every` ticks with the golden JSON file, reporting the first recorded tick that differs.
+- `SimGoldenOptions` (interface): What `simGolden` runs: the plugins, content, seed and scripted commands to play for `ticks` ticks, where the golden JSON lives, and how often to record a hash.
+- `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 - `streamCompression` (const): Browsers and Node: CompressionStream / DecompressionStream('deflate-raw').
 
 ### `import { … } from '@mcthaydt/automata-testing/sim/commands'`
 
-- `goldenCommands(options?)`
+- `goldenCommands(options?)`: The Vitest browser commands that let golden tests read golden files in a browser: register them with `browser: { commands: goldenCommands() }`.
 - `GoldenCommandsOptions` (interface): Options for {@link goldenCommands}.
 
 ### `import { … } from '@mcthaydt/automata-testing/sim/property'`
 
-- `RoundTripFailure` (interface)
-- `RoundTripOptions` (interface)
-- `RoundTripVariant` (type)
-- `snapshotRoundTripProperty(options)`
+- `RoundTripFailure` (interface): One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore tick, variant and a report of what differed.
+- `RoundTripOptions` (interface): What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of what length to try.
+- `RoundTripVariant` (type): How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
+- `snapshotRoundTripProperty(options)`: Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and restore points, alternating fresh and dirty restores.
 
 ## `@mcthaydt/automata-ui`
 
 ### `import { … } from '@mcthaydt/automata-ui'`
 
-- `ActionBar` (const)
+- `ActionBar` (const): One row of actions that collapses as its container narrows (M1.6 spec §3.4; from FloorFifty `ui/layout/ActionBar.svelte` at 122a220).
 - `ActionKind` (type): The action bar's model (M1.6 spec §3.4; from FloorFifty `ui/layout/action-bar.ts` at 122a220).
 - `applyGeometry(root, geometry)`: Writes the geometry where CSS reads it (spec §3.2).
 - `arrowKeyNav(event)`: The menu direction an arrow key walks, as a d-pad would, or undefined when the key is not a bare arrow or its target keeps that arrow.
@@ -431,23 +438,23 @@
 - `AudioSection` (const): The Audio group of the Settings tab (M5 spec §7, M5.4), laid out as FloorFifty's (`SettingsPanel.svelte` at a28dc44): Mute, Mute in the background, then a slider per bus with its percentage.
 - `AudioSectionChange` (type): One change in the Audio group: a toggle's new state, or a bus's new gain.
 - `AudioValue` (interface): The player's audio choices (runtime's `AudioSettings`): the mutes, and a gain per bus from 0 to 1.
-- `BarAction` (interface)
+- `BarAction` (interface): One action in an `ActionBar`: an id, a label and a kind (`primary`, `secondary` or `utility`), what it does when selected, and optionally a short label, an icon, a disabled state and a pressed state.
 - `BarSample` (type): One reading of the viewport, as `HiddenBrowserBar.measure` needs it.
 - `BOOT_FAILURE_COPY_EN` (const): English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5.
-- `bootDeviceClass(win?)`
-- `BootFailure` (type)
+- `bootDeviceClass(win?)`: The device class at boot, read from the window's pointer and screen; `desktop` when the window cannot answer.
+- `BootFailure` (type): The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never imports the runtime.
 - `BootFailureAction` (type): Try again, Continue without loading, Back to Ruken.
-- `BootFailureCopy` (type)
-- `BootFailurePanel` (const)
-- `BootFailureState` (type)
+- `BootFailureCopy` (type): The words for every boot failure state and action, by name.
+- `BootFailurePanel` (const): The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the failure's copy and its ways forward.
+- `BootFailureState` (type): What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or `unsupported`.
 - `bootFailureView(failure, hostKind)`: Which state a failure draws and which ways forward it offers.
-- `BootFailureViewModel` (interface)
+- `BootFailureViewModel` (interface): What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order.
 - `Button` (const): The framework's button (M4 spec §4.12): an `.af-control` of one kind.
 - `Chip` (const): A short status label (M4 spec §4.12).
-- `classifyDevice(input)`
-- `classifyFormFactor(width, height)`
-- `classifyHeightTier(height)`
-- `CollapseLevel` (type)
+- `classifyDevice(input)`: A fine primary pointer is a `desktop`; a coarse one is a `phone` when the screen's shorter side is under 600 px, otherwise a `tablet`.
+- `classifyFormFactor(width, height)`: The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise `desktop`.
+- `classifyHeightTier(height)`: The height tier of a layout height in CSS px: `compact` below 340, `short` up to 600, otherwise `undefined`.
+- `CollapseLevel` (type): How far an action bar has collapsed: 0 every label in full, 1 utilities as icons, 2 secondaries on their short labels, 3 wrapped with the primary on its own row.
 - `collapseLevel(available, widths)`: The first level whose one-row width fits.
 - `COMPACT_MAX_HEIGHT` (const): Below this, compact: what a browser leaves a sideways phone (780 x 270 Chrome on a Galaxy, 667 x 320 Safari on an SE).
 - `ControlsCopy` (interface): Every word the Controls section shows, in the game's language.
@@ -456,14 +463,14 @@
 - `ControlsSection` (const): The Controls tab's section (M4 spec §4.5, §7), laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at a28dc44): one section per device the player can use, the one in their hand first and marked.
 - `ControlsState` (type): Where a rebind is: the list; waiting for a press (with the seconds left); refused because it would leave `with` unbound; refused as reserved; timed out; or saved.
 - `ControlsTouchMode` (type): How touch drives play (runtime's `TouchMode`).
-- `CornerControls` (const)
-- `createGeometryOwner(options)`
+- `CornerControls` (const): Back at the start, the game's own corner controls (Mute, a language flag) at the end, in the same row on every screen (M1.6 spec §3.4; from FloorFifty `ui/layout/CornerControls.svelte` at 122a220).
+- `createGeometryOwner(options)`: Creates the geometry owner of a document, the only writer of its geometry: make one per document.
 - `CURSOR_IDLE_MS` (const): How long the pointer must be still before it hides on a gameplay screen.
 - `cursorHidden(state)`: Whether the pointer is hidden now: on a gameplay screen, not paused, and the pointer unused or idle.
 - `CursorInput` (type): The device the player used last, as the cursor policy sees it.
 - `CursorRunner` (class): Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the element's `cursor` style.
-- `DeviceClass` (type)
-- `Dialog` (const)
+- `DeviceClass` (type): The kind of device the player holds: `phone`, `tablet` or `desktop`, decided once at boot.
+- `Dialog` (const): A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken `packages/ui/src/Dialog.svelte` at b30d31b).
 - `DISPLAY_QUALITIES` (const): The tiers the Display section offers, best first.
 - `DisplayCopy` (interface): Every word the Display section shows, in the game's language.
 - `DisplayQuality` (type): A graphics quality tier (runtime's `QualityTier`).
@@ -472,30 +479,30 @@
 - `enterFullscreen(doc, screen?)`: Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app.
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
 - `ErrorCode` (type): Ruken's error code.
-- `ErrorPanel` (const)
+- `ErrorPanel` (const): A failure, and what the player can do about it (M1.6 spec §3.4; from FloorFifty `ui/components/ErrorPanel.svelte` at 122a220).
 - `fitColumns(shape, groups)`: The shape cut to the columns the largest group fills, at its rows.
 - `fitShape(most, box, minTile, gap)`: The most tiles of `minTile` px the box holds, never more than `most`, never below one by one.
-- `FocusNavigator` (class)
+- `FocusNavigator` (class): Moves focus the way a d-pad would: `move` walks Tab order, `steer` walks a `[data-focus-grid]` spatially, `page` offers a page turn, and `recover` puts focus back on the first control when a screen change dropped it.
 - `FormFactor` (type): The four form factors (M1.6 spec §3.1; from FloorFifty `ui/form-factor.ts` at 122a220).
 - `fullscreenSupport(doc, nav)`: Which fullscreen, if any, this browser can give a standalone page.
 - `FullscreenSupport` (type): Ruken's answer to whether this browser can go fullscreen, and how.
-- `GateInputs` (type)
-- `Geometry` (interface)
-- `GeometryInput` (interface)
-- `GeometryOwner` (interface)
-- `GeometryOwnerOptions` (interface)
+- `GateInputs` (type): What `landscapeGate` decides from: the form factor, whether the pointer is coarse, the browser's fullscreen support and state, and whether the page is installed as an app.
+- `Geometry` (interface): The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the usable and visible regions, what covers the page's foot, and the host's scale hint.
+- `GeometryInput` (interface): What `measureGeometry` reads: the layout viewport, the visual viewport, the safe-area insets, the host's display metrics, a hidden bar's height and the layout before a keyboard shrank it.
+- `GeometryOwner` (interface): The one geometry owner of a document: `geometry.current` for components, `onChange` for script, `setHostDisplay`, `remeasure` and `dispose`.
+- `GeometryOwnerOptions` (interface): What `createGeometryOwner` needs: the window to read and the root to publish on, and optionally the host's display, timers and a safe-area reader.
 - `GeometryState` (interface): The current geometry as rune state: reading `current` in a component or `$derived` tracks it.
 - `GridBox` (interface): The measured box a page is fitted into, in CSS px.
 - `GridPage` (interface): One page: a group's items, padded with `undefined` to the page's capacity.
 - `GridShape` (interface): A page's columns and rows.
 - `HeightTier` (type): The height tiers (M1.6 spec §3.1; from FloorFifty `ui/height-tier.ts` at 122a220).
-- `HiddenBrowserBar` (class)
+- `HiddenBrowserBar` (class): Recognises a browser bar the browser has stopped reporting (DuckDuckGo for Android's bottom bar) and measures how much of the page's foot it covers.
 - `HostDisplay` (type): What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
 - `HostKind` (type): `Hosting['kind']` (shared contracts §1.1), written out until packages/host lands.
 - `hostReservedInsets(host)`: Ruken reserves a strip on one edge; its width is the rect's, never negative (FloorFifty `reservedOf`).
 - `IconButton` (const): A button whose face is an icon (M4 spec §4.12).
 - `InputMethod` (type): The input method the player last used, app-wide.
-- `InputMethodTracker` (class)
+- `InputMethodTracker` (class): Tracks the input method the player used last (`keyboard`, `gamepad` or `touch`) as rune state in `method`.
 - `Insets` (interface): CSS px on each side, all >= 0.
 - `installGlobalErrorHandlers(win, onFatal, onRejection?)`: Installs once per window; a second call is a no-op.
 - `interceptBackGesture(win, onBack)`: Holds the game's history entry and turns a back step off it into `onBack`.
@@ -503,7 +510,7 @@
 - `isFullscreen(doc)`: Whether the page is fullscreen now.
 - `isTap(dx, dy)`: Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
 - `keyLabel(code, layout?)`: A key's label: the keyboard layout's own (`navigator.keyboard.getLayoutMap()`, a letter in capitals) when there is one, else its `code` without the `Key` and `Digit` prefixes, an arrow as its arrow.
-- `landscapeGate(inputs)`
+- `landscapeGate(inputs)`: What a phone held sideways must do: `none`, `fullscreen` (one tap to go fullscreen) or `rotate-or-install` (turn upright or add to the Home Screen).
 - `LandscapeGate` (const): The landscape gate's cover (M4 spec §4.9, §7; FloorFifty `ui/components/LandscapeGate.svelte` at `ac72660`): over every screen and every dialog, empty whenever the gate is open (`state` none).
 - `LandscapeGateCopy` (interface): The landscape gate's words: one tap to fullscreen, or how to play where a browser cannot hide its bar.
 - `LandscapeGateState` (type): Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
@@ -513,12 +520,12 @@
 - `LeaderboardEntryView` (interface): One row of a board, as the host gives it; `isMe` marks the player.
 - `LeaderboardPanel` (const): A board's rows, or why there are none (M5 spec §7): loading, entries (the player's row marked "you" in words, not only by colour), empty, unavailable and offline.
 - `LeaderboardView` (type): What the panel shows: the rows, or why there are none.
-- `LoaderOverlay` (const)
+- `LoaderOverlay` (const): The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty `ui/components/LoaderOverlay.svelte` at 122a220).
 - `lockOverscroll(node)`: A Svelte action: `<div use:lockOverscroll>`.
-- `measureGeometry(input)`
+- `measureGeometry(input)`: Turns what the browser and the host report into one `Geometry`.
 - `Modal` (const): A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty `ui/components/Modal.svelte` at ac72660).
 - `ModalProps` (interface): The props Modal and Sheet share.
-- `NavDirection` (type)
+- `NavDirection` (type): A direction a d-pad or an arrow key walks a menu.
 - `nearestTarget(x, y, targets, margin?)`: The button a point is on, or else the nearest within the margin, or nothing.
 - `onFullscreenChange(doc, listener)`: Hears fullscreen being entered or left, by the page or the player.
 - `OptionGroup` (const): A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
@@ -549,7 +556,7 @@
 - `promptView(binding, device, glyphs, copy, layout?)`: What a prompt shows for `binding` on `device`: its first input there, or Unbound.
 - `readKeyboardLayout(nav)`: The keyboard's layout map where the browser has one (`navigator.keyboard`, Chromium), or undefined: where the browser has none or refuses (a cross-origin frame may), prompts name keys by their `code` (M4 spec §6).
 - `RebindDevice` (type): A device a player can rebind (touch buttons and gestures are the game's).
-- `Rect` (interface)
+- `Rect` (interface): A rectangle in CSS px: its top-left corner and its size.
 - `reducedMotion(win?)`: Whether the player has asked for less movement.
 - `releaseStep(dx, dtMs, pageWidth)`: Pages to turn when a drag of `dx` px over `dtMs` is released: a swipe left is +1 (next).
 - `RETRY_DELAYS_MS` (const): The wait before each retry; when they are spent, the image has failed.
@@ -559,9 +566,9 @@
 - `RotateHintCopy` (interface): The rotate hint's words.
 - `RotateToast` (const): The rotate toast (Owner amendment to M4 spec §4.9, 2026-10-18; FloorFifty `RotateHint.svelte` at a28dc44): for a game with `rotateHint: 'toast'`, a small message at the top on a phone held the other way, "Turn your phone for a bigger view", with an OK.
 - `RotateToastCopy` (interface): The rotate toast's words (`rotateHint: 'toast'`, FloorFifty's): the advice, and its OK.
-- `ScreenFrame` (const)
+- `ScreenFrame` (const): Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
 - `ScreenKind` (type): A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
-- `ScrollList` (const)
+- `ScrollList` (const): A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
 - `scrollWithin(element)`: Brings `element` into view by scrolling its nearest scroll box, never the document.
 - `sendBack(doc)`: Sends Back as an Escape to wherever a dialog would hear it, and reports whether anything took it.
 - `SettingsScreen` (const): The core Settings screen (M4 spec §4.8, M4-D8), laid out and behaving as FloorFifty's settings (`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as one dialog changing its view.
@@ -571,7 +578,7 @@
 - `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `SHORT_MAX_HEIGHT` (const): At or below this many CSS px of layout height, a screen is short.
 - `Sleeper` (type): Puts the game's sound to sleep while nobody can see it.
-- `sleepWhenHidden(doc, sleeper, win?)`
+- `sleepWhenHidden(doc, sleeper, win?)`: Puts a game's sound to sleep while its page is hidden and wakes it when the page shows again; a pointer, touch or key gesture also asks sound the system suspended to resume.
 - `Slider` (const): A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser gives the arrow keys and the focus navigator's `adjust` steps it.
 - `Split` (const): Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty `ui/layout/Split.svelte` at `ac72660`).
 - `splitMode(available, min, gap)`: Split's choice (M4 spec §4.8; from FloorFifty `ui/layout/split.ts` at `ac72660`): side by side when both columns and the gap between them fit at their minimum, stacked otherwise.
@@ -595,7 +602,7 @@
 - `trimRows(shape, groups)`: The shape cut to the rows the largest group fills, so no page carries a row of empty slots.
 - `UI_SLOT_NAMES` (const): The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).
 - `UiComponent` (type): What an extension puts in a slot: a Svelte component that takes no props.
-- `UiSlotName` (type)
+- `UiSlotName` (type): The name of a place an extension may add UI: one of `UI_SLOT_NAMES`.
 - `VibrationCopy` (interface): Every word the Vibration group shows, in the game's language.
 - `VibrationSection` (const): The Vibration group of the Settings tab (Owner, 2026-10-18; FloorFifty's rumble row in `SettingsPanel.svelte` at a28dc44): one toggle for a pad's rumble and a phone's buzz (`Haptics`).
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata-testing` stands in for it in tests.
@@ -607,7 +614,7 @@
 
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
 - `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials` is reachable without scrolling.
-- `Conditions` (interface)
+- `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 - `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7).
 - `publishConditions(root, size, variant)`: Measures and publishes the geometry for `size` under `variant`, as the owner would.
 - `settleLayout()`: Waits until a freshly mounted fixture has finished laying out: fonts loaded, then two frames, so ResizeObserver callbacks (ActionBar's collapse, ScrollList's measure) and the re-layout they cause have run.

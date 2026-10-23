@@ -37,7 +37,6 @@ Each lane's PR ships the demos for the feature it builds, on the base that featu
 
 | Demo | Owner | Base | Status |
 |---|---|---|---|
-| `host/lifecycle-and-saves` | host lane | `base-2d` | Built (feature-demos PR, #14) |
 | `content/hot-reload` | content lane | `base-2d` | Built (feature-demos PR, #14) |
 | `ui/primitives` (every primitive at every reference size; no renderer needed) | ui lane | none | With the ui PR (#7); needs no base |
 | `runtime/boot-and-flow` (boot program, veil overlay, error panels, Flow transitions) | runtime lane | none | Built (M1.5 runtime) |

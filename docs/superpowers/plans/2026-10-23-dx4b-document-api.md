@@ -3,7 +3,7 @@
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §2.3 ("Exhaustive API reference"), §3.8; [DX.4 plan](2026-10-16-dx4-api-index.md) (the baseline that can only shrink).
 - **Task:** `DX.4b — Document the API baseline`, lane ship with each owning lane. `tooling/api-index/undocumented-baseline.json` lists every export with no doc comment (182 on `main` at `1fa4acc`; the row's 184 predates later removals). The index fails when a listed export is now documented (the entry must go), so the list only shrinks and a documented export that stays listed fails CI.
 - **Status:** drafted 2026-10-23.
-- **Progress:** 2 of 4 steps.
+- **Progress:** 4 of 4 steps.
 
 ## Decisions
 
@@ -26,8 +26,8 @@
 
 - [x] **1. `sim`.** 55 ids documented (`.`: 31, `./math`: 7, `./replay`: 17). Red: `pnpm build && pnpm api-index` exit 1 listing those 55 as documented or gone and `docs/cheatsheet.md` stale. Green: baseline 182 to 127, `pnpm cheatsheet`, `pnpm api-index` exit 0.
 - [x] **2. `content`, `host`, `node`, `ship`.** 48 ids documented (content 27, host 3, node 6, ship 12). Red: `pnpm build && pnpm api-index` exit 1 listing those 48 as documented or gone and `docs/cheatsheet.md` stale. Green: baseline 127 to 79, `pnpm cheatsheet`, `pnpm api-index` exit 0.
-- [ ] **3. `testing`, `physics`.**
-- [ ] **4. `ui`.** Then tick the DX.4b row in 02 and delete the empty baseline's reason to exist only if the Owner asks: the file stays (an empty list) so the check keeps its shape.
+- [x] **3. `testing`, `physics`.** 44 ids documented (testing 28, physics 16; `goldenCommands` and the `RoundTrip*` ids are re-exported from two entries and share one comment each). Red: `pnpm build && pnpm api-index` exit 1 listing those 44 as documented or gone and `docs/cheatsheet.md` stale. Green: baseline 79 to 35, `pnpm cheatsheet`, `pnpm api-index` exit 0.
+- [x] **4. `ui`.** 35 ids documented (`.`: 34, `./testing`: 1); the eight Svelte components (`ActionBar`, `BootFailurePanel`, `CornerControls`, `Dialog`, `ErrorPanel`, `LoaderOverlay`, `ScreenFrame`, `ScrollList`) already had a header comment and gained the `@component` marker that carries it into the `.d.ts`. Red: `pnpm build && pnpm api-index` exit 1 listing those 35 as documented or gone and `docs/cheatsheet.md` stale. Green: baseline 35 to 0, `pnpm cheatsheet`, `pnpm api-index` exit 0. The DX.4b row in 02 is ticked; the file stays (an empty list) so the check keeps its shape unless the Owner asks otherwise.
 
 ## Gates
 
@@ -40,3 +40,5 @@
 |---|---|---|---|
 | 2026-10-23 | Plan, 1 | | `sim` slice: red then green as above. `createReplayStepper`'s comment moved to its function. |
 | 2026-10-23 | 2 | | `content`, `host`, `node`, `ship`: red then green as above. Stacked on slice 1's branch (PR #99), which carries this plan and the baseline it prunes. |
+| 2026-10-23 | 3 | | `testing`, `physics`: red then green as above. Stacked on slice 2's branch. |
+| 2026-10-23 | 4 | | `ui`: red then green as above. Stacked on slice 3's branch; the 02 row is ticked here. |

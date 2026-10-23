@@ -1,4 +1,4 @@
-// ED3D-D1: `format`, `geometry`, `codec` and `profile` import no Svelte, no DOM, no clock and no Node. The rule is
+// ED3D-D1: `format`, `geometry`, `codec`, `profile` and `model` import no Svelte, no DOM, no clock and no Node. The rule is
 // enforced here and not only written down, so a later change cannot quietly add one.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -22,6 +22,15 @@ describe('findImpurities', () => {
       "localStorage.setItem('a', 'b')",
       'const width = window.innerWidth',
       'addEventListener(window, 1)',
+      // A string is text, but the code of a template's `${}` is code, and code after a string is code.
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: the source text a finding is looked for in.
+      'const title = `the page ${document.title}`',
+      "const wide = 'the width is ' + window.innerWidth",
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: the source text a finding is looked for in.
+      'const nested = `a ${`b ${Date.now()}`}`',
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: the source text a finding is looked for in.
+      'const braces = `${f({ a: 1 }, document)} text`',
+      "const tricky = 'it\\'s' + document.body",
     ]
     for (const line of bad) expect(findImpurities(line), line).not.toEqual([])
   })
@@ -39,6 +48,20 @@ describe('findImpurities', () => {
       'window: windowSchema.optional(),',
       'const piece = wall.window',
       "const key = 'window'",
+      // A sentence for the person may name the things of the format, and so may a comment inside a template.
+      "const sentence = 'the window does not fit the wall'",
+      'const label = "Set the window of the document"',
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: the source text a finding is looked for in.
+      'const label = `Set the window of wall ${corner} of ${sector}`',
+      "const escaped = 'it\\'s the window'",
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: the source text a finding is looked for in.
+      'const object = `${f({ a: 1 })} the window`',
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: the source text a finding is looked for in.
+      "const plain = 'costs ${document} or ${window}'",
+      'const slash = /*/ Date.now() */ 1',
+      'const text = `line one\nthe window and the document`',
+      "const url = 'http://example.com/window'",
+      'const next = 1 // the window and Date.now() are named here',
     ]
     for (const line of fine) expect(findImpurities(line), line).toEqual([])
   })
@@ -52,7 +75,7 @@ const sources = (directory: string): string[] =>
   })
 
 describe('the pure layers', () => {
-  for (const layer of ['format', 'geometry', 'codec', 'profile']) {
+  for (const layer of ['format', 'geometry', 'checks', 'codec', 'profile', 'model']) {
     it(`src/${layer} has no impure import or global`, () => {
       const root = new URL(`./${layer}`, import.meta.url).pathname
       const files = sources(root)

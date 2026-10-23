@@ -22,6 +22,10 @@ export type FullscreenSupport = FullscreenRes['support']
 /** Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen. */
 export type LandscapeGateState = 'none' | 'fullscreen' | 'rotate-or-install'
 
+/**
+ * What `landscapeGate` decides from: the form factor, whether the pointer is coarse, the browser's fullscreen
+ * support and state, and whether the page is installed as an app.
+ */
 export type GateInputs = {
   formFactor: FormFactor
   /** `(pointer: coarse)`: the primary pointer is a finger. */
@@ -32,6 +36,11 @@ export type GateInputs = {
   installed: boolean
 }
 
+/**
+ * What a phone held sideways must do: `none`, `fullscreen` (one tap to go fullscreen) or `rotate-or-install`
+ * (turn upright or add to the Home Screen). Only a coarse-pointer phone in landscape that is not installed is
+ * ever gated.
+ */
 export function landscapeGate(inputs: GateInputs): LandscapeGateState {
   if (inputs.formFactor !== 'phone-landscape' || !inputs.coarse || inputs.installed) return 'none'
   if (inputs.support === 'element') return inputs.fullscreen ? 'none' : 'fullscreen'
