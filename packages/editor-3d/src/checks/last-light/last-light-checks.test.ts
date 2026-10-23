@@ -9,7 +9,7 @@ import { toyBlockout, toyOpening, toyRoom } from '../../testing/toy-blockout'
 import { lastLightChecks } from './last-light-checks'
 
 describe('lastLightChecks: what runs', () => {
-  it('runs ids, then the generic checks (shared walls, openings, overlap, heights) on a document that expands and resolves', () => {
+  it('runs ids, shared walls, openings, overlap, heights and puzzle hotspots on a document that expands and resolves', () => {
     const results = lastLightChecks(toyBlockout())
     expect(results.map((result) => [result.id, result.ok])).toEqual([
       ['ids', true],
@@ -17,7 +17,51 @@ describe('lastLightChecks: what runs', () => {
       ['openings', true],
       ['overlap', true],
       ['heights', true],
+      ['puzzle-hotspots', true],
     ])
+  })
+
+  it('puts the portals and the doors in one `openings` result, portals first, as Last Light does', () => {
+    const broken = toyBlockout({ openings: [{ ...toyOpening, door: 'ghost' }] })
+    const openings = lastLightChecks(broken).find((result) => result.id === 'openings')
+    expect(openings?.detail).toBe('opening ab: ghost is not a door box')
+    expect(openings?.problems.map((problem) => problem.locator?.selection)).toEqual(['sector:ab'])
+    const oneSided = toyBlockout({
+      rooms: [
+        {
+          ...toyRoom('a'),
+          corners: [
+            [0, 0],
+            [4, 0, { next: 'b' }],
+            [4, 4],
+            [0, 4],
+          ],
+        },
+        {
+          ...toyRoom('b'),
+          corners: [
+            [4, 0],
+            [8, 0],
+            [8, 4],
+            [4, 4],
+          ],
+        },
+      ],
+      openings: [],
+      boxes: [],
+    })
+    const portalOnly = lastLightChecks(oneSided).find((result) => result.id === 'openings')
+    expect(portalOnly?.detail).toBe('a → b from (4, 0) to (4, 4) has no matching portal back')
+  })
+
+  it('says `no puzzle.ts` when it is given no puzzle, and counts the placed hotspots when it is given one', () => {
+    const detail = (options?: Parameters<typeof lastLightChecks>[1]) =>
+      lastLightChecks(toyBlockout(), options).find((result) => result.id === 'puzzle-hotspots')?.detail
+    expect(detail()).toBe('no puzzle.ts')
+    expect(detail({ puzzleHotspots: null })).toBe('no puzzle.ts')
+    expect(detail({ puzzleHotspots: ['far'] })).toBe('1 placed')
+    expect(detail({ puzzleHotspots: [] })).toBe('0 placed')
+    expect(detail({ puzzleHotspots: ['far', 'drum'] })).toBe('puzzle hotspot drum is not placed')
   })
 
   it("answers with `expand` alone when the document does not expand, with the error's sentence and no place", () => {
@@ -69,6 +113,7 @@ describe('lastLightChecks: what runs', () => {
       ['openings', true],
       ['overlap', true],
       ['heights', true],
+      ['puzzle-hotspots', true],
     ])
   })
 
@@ -113,15 +158,15 @@ describe('lastLightChecks: the shipped blockouts', () => {
 
 describe('lastLightChecks: against Last Light on the corpus', () => {
   const golden = loadChecksGolden()
-  /** The results this runner has so far, which Last Light has too: the rest join in the steps after this one. */
-  const SO_FAR = new Set(['expand', 'ids', 'rooms', 'shared-walls'])
+  /** The results this runner has so far, which Last Light has too: `nav` joins in the step after this one. */
+  const SO_FAR = new Set(['expand', 'ids', 'rooms', 'shared-walls', 'openings', 'puzzle-hotspots'])
   const NEW_HERE = new Set(['overlap', 'heights'])
 
   for (const spec of loadCheckCases()) {
     const recorded = golden.cases[spec.id]
     if (recorded?.results === undefined) continue
     it(`${spec.id}: says what Last Light says, and nothing it does not (bar the new checks)`, () => {
-      const results = lastLightChecks(caseDocument(spec))
+      const results = lastLightChecks(caseDocument(spec), { puzzleHotspots: recorded.puzzle })
       const wanted = recorded.results ?? []
       for (const result of wanted.filter((r) => SO_FAR.has(r.id))) {
         const got = results.find((candidate) => candidate.id === result.id)

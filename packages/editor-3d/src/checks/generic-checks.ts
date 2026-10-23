@@ -7,7 +7,15 @@ import { overlapProblems } from './overlap'
 import { portalProblems } from './portals'
 import { sharedWallProblems } from './shared-walls'
 
-export function genericChecks(context: GeometryContext): CheckResult[] {
+/** The results in the order they are run: shared walls, openings (the portals), overlap and heights. */
+export type GenericResults = readonly [
+  sharedWalls: CheckResult,
+  openings: CheckResult,
+  overlap: CheckResult,
+  heights: CheckResult,
+]
+
+export function genericChecks(context: GeometryContext): GenericResults {
   return [
     checkResult('shared-walls', sharedWallProblems(context)),
     checkResult('openings', portalProblems(context)),
