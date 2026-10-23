@@ -43,7 +43,7 @@ export function joinLines(text: TomlLines): string {
 
 const HEADER = /^\s*(\[\[?)\s*([A-Za-z0-9_\-."' ]+?)\s*\]\]?\s*(#.*)?$/
 const isComment = (line: string): boolean => line.trimStart().startsWith('#')
-const isBlank = (line: string): boolean => line.trim() === ''
+export const isBlank = (line: string): boolean => line.trim() === ''
 
 /** `a . "b c"` as `a."b c"`: the parts of a dotted key without the spaces around them. */
 function normalizeName(raw: string): string {
