@@ -4,6 +4,11 @@ name: ci
 # to main and on pull requests that are not drafts (a draft runs it in a cloud container, docs/cloud-parity.md).
 # Browser journeys run only nightly and on request (`automata-ship test-remote <spec>`).
 #
+# What a pull request runs (CI backlog, 2026-10-23): one runner serves every pull request, so the checks job
+# always runs and decides whether the pull request is documentation only (`scope`). Parity and the games' CI
+# (placeholder, base-2d) run for a pull request only when it is ready for review and changes more than docs/ and
+# Markdown files; marking a draft ready starts them. Pushes to main, the nightly run and manual runs are unchanged.
+#
 # Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
 # about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
 # label af-linux (WSL2 Ubuntu with Docker, like Ruken's ruken-linux; ship spec §3.7). There is deliberately no
@@ -45,6 +50,8 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
     runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 10
+    outputs:
+      docs_only: ${{ steps.scope.outputs.docs_only }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -52,6 +59,18 @@ jobs:
           # Full history, so `changeset status` on a pull request can find where it left origin/main. Not an
           # expression: `cond && 0 || 1` always gives 1, because 0 is falsy in Actions expressions.
           fetch-depth: 0
+      # A pull request that changes only docs/ and Markdown files cannot change what a game builds, so the jobs
+      # after this one skip it. The checkout is GitHub's merge commit: its first parent is the base tip, so
+      # HEAD^1..HEAD is exactly the pull request's own changes. Anything else (no merge commit, so no way to tell)
+      # counts as code and runs everything.
+      - id: scope
+        if: github.event_name == 'pull_request'
+        run: |
+          docs_only=false
+          if [ "$(git rev-list --parents -n 1 HEAD | wc -w)" -eq 3 ]; then
+            if ! git diff --name-only HEAD^1 HEAD | grep -qvE '^docs/|\.md$'; then docs_only=true; fi
+          fi
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -103,10 +122,15 @@ jobs:
   parity:
     name: parity (chromium, webkit, firefox)
     # A draft PR runs parity in a cloud container instead (docs/cloud-parity.md). Pushes to main have no
-    # pull_request and always run it.
+    # pull_request and always run it. `!cancelled()` keeps a red checks job from hiding parity on a push or the
+    # nightly run; a pull request needs green checks first, so a red one does not also queue the heavy jobs.
+    needs: checks
     if: >-
+      !cancelled() &&
       (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
-      github.event.pull_request.draft != true
+      (github.event_name != 'pull_request' ||
+      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
+      needs.checks.outputs.docs_only != 'true'))
     # The Owner's Mac (2026-10-17), so parity no longer queues behind Ruken on the shared af-linux PC.
     # vars.AF_PARITY_RUNNER moves it to another label.
     runs-on: ${{ vars.AF_PARITY_RUNNER || 'af-mac' }}
@@ -264,7 +288,13 @@ jobs:
 
   placeholder:
     name: placeholder through game-ci
-    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    needs: checks
+    if: >-
+      !cancelled() &&
+      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
+      (github.event_name != 'pull_request' ||
+      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
+      needs.checks.outputs.docs_only != 'true'))
     uses: ./.github/workflows/game-ci.yml
     with:
       working-directory: games/placeholder
@@ -273,7 +303,13 @@ jobs:
 
   base-2d:
     name: base-2d through game-ci
-    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    needs: checks
+    if: >-
+      !cancelled() &&
+      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
+      (github.event_name != 'pull_request' ||
+      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
+      needs.checks.outputs.docs_only != 'true'))
     uses: ./.github/workflows/game-ci.yml
     with:
       working-directory: games/emberwick
