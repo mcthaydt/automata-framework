@@ -1,0 +1,106 @@
+# ED3D.6d Vertex tool (add and remove a corner): TDD plan
+
+- **Task:** ED3D.6d, the fourth part of ED3D.6 (sector tools). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.3 flow 3 (edit a sector or wall), §5.4 (commands; this task adds `sector.addCorner` and `sector.removeCorner` to the Sectors row), §6 (the keyboard's X is the vertex tool) and the ED3D.6 row (sector tools: draw, vertex, portal, door, window). Two new model edits (split a wall at a point, take a corner away) and the plain-TypeScript controller of the Plan view's Vertex tool: a tap on a wall adds a corner there, a tap on a corner takes it away. No Svelte, DOM, Pixi or clock.
+- **Lane:** editor-3d. **Depends on:** ED3D.6b (PR #158: `wallPortal`, the geometry cache, the wall tool's way of measuring along a wall), ED3D.4 (PR #148: `pickCorner`, `wallNear`, `planViewport`) and ED3D.3 (PR #137, in main: `LevelEditor`, `moveCorner`'s portal-follows rule, `setWallKind`). Branch `claude/project-thread-ljshus-ed3d-6d` is stacked on ED3D.6c's branch (PR #159), for the viewer.
+- **Status:** Drafted 2026-10-23 on the hub's instruction (bus 1242: ED3D.6 sector tools as plain-TypeScript controllers, keep going while the stack waits). Not reviewed; spec review (ED3D.0) is still open. Steps below are ticked only when their checks pass.
+- **Progress:** 0 of 4 steps.
+
+## Why this task exists
+
+A room is a polygon, and `moveCorner` can only reshape it: nothing adds the corner an L-shaped room needs, or takes away one that is not wanted. The two edits are not obvious, because a wall is more than a line. It carries a door or a window at a distance from its start, a portal has a reverse wall on the other side that must be split with it or the pair stops matching (the `openings` check), and two walls that are made into one must agree on what they are. Done inside a Svelte view these rules would be re-derived per tool. This task writes them once as edits with sentences for every refusal, and builds the tool on them, the way ED3D.6b built the wall tools on `setWallKind`. `sector.split` and `sector.merge` (a room cut in two by a line, two rooms made one) are the next part.
+
+## Sources, read at these commits
+
+- **AF (this stack):** `model/corner-edits.ts` (`moveCorner`: `joinedCorners` follows a corner through portals; `withCornerAt`; the outline check), `model/wall-geometry.ts` (`wallOver`: the wall of another sector over a segment, either way round; `cornerAt`; `wallLength`; `PORTAL_MEMBERS`), `model/wall-edits.ts` (`setDoor` and `setWindow` measure `at` from the wall's start and refuse a feature that does not fit; `membersOf`; a wall is `undefined`, a name, or an object, and a corner has no third member rather than `undefined`), `model/sector-edit-support.ts` (`replaceSectors`, `placed`, `round4`), `format/sector.schema.ts` (`WallDef`: the members of a wall, `door`, `window` and `hatch` positions in metres along it, `pilaster.start` and `.end`), `view/plan/plan-pick.ts` (`pickCorner` is "the vertex tool's target"; `wallNear`), `app/wall-tool-controller.ts` (ED3D.6b: how a pointer's place along a wall is measured, snapped and clamped).
+
+## Scope
+
+**In:** `src/model/vertex-edits.ts` (`insertCorner`, `removeCorner`), `src/app/vertex-tool-controller.ts` (under the purity test) and their tests; the package entry exports them.
+
+**Out, with where each goes:**
+
+| What | Where |
+|---|---|
+| Painting the corner under the pointer or the cut mark on a wall, the tool strip and DOM events | ED3D.5b and ED3D.11 |
+| Taking away a corner that two portal walls meet at, and joining their reverse walls | the next part of ED3D.6 with `sector.merge`; here the walls are refused with a sentence |
+| Corners of holes (their walls cannot be selected) | with holes, in a later task; both edits take the outline |
+| Snapping the new corner to a neighbour's corner on the same wall | ED3D.11 (the tool offers the wall's own 5 cm steps; the neighbour's corner can be reached with Alt off and a corner-to-corner drag of `moveCorner`) |
+| `sector.split` and `sector.merge` | the next part of ED3D.6 |
+| Texture panning continuity across the new corner | the wall's `pan` is copied to both halves unchanged: the format says where the panning starts, not which way round it counts, and a guess would be a second invention; the inspector's pan stepper fixes a seam |
+
+## Decisions this plan makes (each vetoable by the Owner through the Orchestrator)
+
+1. **Two edits, named in the spec's style:** `sector.addCorner` (`insertCorner({ sector, corner, x, z })`: a corner at a point on the wall that starts at `corner`) and `sector.removeCorner` (`removeCorner({ sector, corner })`). The spec's §5.4 table gains both in the docs follow-up; `sector.split` and `sector.merge` stay for rooms.
+2. **A point is on the wall** when it is within a millimetre of the segment, and it is put on the line (the point of the segment nearest it, then rounded to four decimals like every edit's coordinate), so an axis-aligned wall stays axis-aligned and a diagonal one stays straight to the rounding. A point that is farther is refused with `that point is not on wall N of S`; a point that is either end after rounding is refused with `that point is already a corner`.
+3. **Adding a corner splits the wall in two.** Every member of the wall is copied to both halves (texture, trim, handrail, mask, thickness, `occlude`, `preset`, a cutaway name), except the ones that have a place along it, which are divided: a door, a window and a hatch lie wholly on one half and keep their place (the second half's is measured from the new corner, so it is `at - d`), and one that the new corner would cut through refuses the edit with `the new corner would cut through the door` (window, hatch alike); a pilaster's `start` stays on the first half and its `end` goes to the second.
+4. **A portal's reverse is split with it,** at the same point, with the same rule, in the same edit: the wall of the sector it leads into that runs over the same segment (either way round: `wallOver`) and leads back; its places along the wall are mirrored when it runs the other way. A portal with no reverse is split alone (the `openings` check already names it). A solid wall of another sector over the same segment is not touched.
+5. **Taking a corner away joins the two walls at it into one** that runs from the previous corner to the next. The walls must agree: every member that is not a place along the wall must be equal, else the edit refuses with `the walls at corner N of S differ in <members>: make them the same first`. A door, a window or a pilaster that only one has is kept (the second wall's are moved on by the first wall's length), two doors or two windows refuse with `both walls have a door`, a pilaster's meeting ends refuse with `a pilaster ends at corner N`. What no longer fits the new wall refuses with `the joined wall is too short for its door`.
+6. **A portal wall is not joined by this edit.** Either wall at the corner leading into a sector refuses with `the walls at corner N of S lead into <sector>: make them solid first`; joining the reverse walls is `sector.merge`'s companion and the next part.
+7. **The outline stays an outline:** a removal that would leave fewer than three corners, or an outline that crosses itself or has no area, is refused with `geometry/loops`' sentence (`a sector needs at least three corners`, `the outline crosses itself`).
+8. **Selection follows the edit.** `insertCorner` selects the two walls it made (`wall:S/k`, `wall:S/k+1`) and, for a portal, that is all (the reverse's are not selected); `removeCorner` selects the joined wall. Indexes after the corner move by one, and a selection that named them is replaced, not left naming another wall.
+9. **The tool's target is a dry run of the edit.** `view.target` says what a tap would do by running the edit against the live level and not committing it: `add` or `remove` when it would work, `none` with the edit's own sentence when it would not. The tool therefore never disagrees with the model. A corner within the pointer kind's reach (the corner of the sector that holds the pointer when two sit on one point) is a `remove` target and wins over the wall beside it; else the wall within reach is an `add` target at the point of it nearest the pointer, measured from the document's start corner and snapped like the wall tool's (5 cm; Shift 1 cm; Alt exact).
+10. **Both taps are one edit run,** so one undo step, labelled by the edit (`Add a corner to wall 2 of hall`, `Remove corner 3 of hall`); a refusal is `view.refusal` and stays while the pointer stays on that wall or corner.
+
+## Contract
+
+```
+packages/editor-3d/src/model/vertex-edits.ts             insertCorner, removeCorner, InsertCornerArgs, RemoveCornerArgs
+packages/editor-3d/src/app/vertex-tool-controller.ts     createVertexTool, VertexTool, VertexToolView, VertexTarget
+packages/editor-3d/src/index.ts                          the public entry gains both
+```
+
+```ts
+export interface InsertCornerArgs { readonly sector: string; readonly corner: number; readonly x: number; readonly z: number }
+export function insertCorner<D>(args: InsertCornerArgs): Edit<D>      // id 'sector.addCorner'
+export interface RemoveCornerArgs { readonly sector: string; readonly corner: number }
+export function removeCorner<D>(args: RemoveCornerArgs): Edit<D>      // id 'sector.removeCorner'
+
+export type VertexTarget =
+  | { readonly kind: 'corner'; readonly sector: string; readonly corner: number; readonly point: Point } & VertexEffect
+  | { readonly kind: 'wall'; readonly sector: string; readonly corner: number; readonly selection: string
+      readonly length: number; readonly along: number; readonly point: Point } & VertexEffect
+export type VertexEffect = { readonly action: 'add' | 'remove' } | { readonly action: 'none'; readonly reason: string }
+export interface VertexToolView { readonly target: VertexTarget | undefined; readonly refusal: string | undefined }
+export interface VertexTool {
+  readonly view: VertexToolView
+  subscribe(run: () => void): () => void
+  hover(at: PlanPointer): void
+  leave(): void
+  tap(at: PlanPointer): void
+  resize(size: Size): void
+  dispose(): void
+}
+export function createVertexTool<D>(editor: LevelEditor<D>, canvas: Size): VertexTool
+```
+
+## Steps
+
+Tests use the depot (the hall from (0, 0) to (8, 6) with a window on its north wall and a door on its west wall, the dock from (8, 0) to (14, 6), joined by a portal pair along x = 8), small levels beside it for one rule each (a wall with a door, a wall with a hatch, two walls that differ, a fan of sectors at one point) and the Last Light toy level for what that profile says.
+
+- [ ] **1. `insertCorner`** (`model/vertex-edits.test.ts`; `model/vertex-edits.ts`).
+  - *Red, by case:* a corner on the hall's south wall gives five corners in the right order, the new one with the second half's wall, nothing else changed, one selection of the two walls; the same on a wall written the other way round; rounding to four decimals; a point off the line by under a millimetre is put on it, a point that is an end, or off the wall by more than a millimetre, is refused with the sentences, and a corner out of range, a sector that is not there and a point that is not a number too; a textured wall has the texture on both halves; a door lies wholly on the first half (kept as it is), wholly on the second (`at - d`), or is cut through (refused, one case for the door, one for the window, one for a hatch on a portal), touching the new corner counts as on a half; a pilaster's two ends go to their halves; a name (Last Light's cutaway) is copied; a portal wall splits the reverse in the same edit at the same point, both ways round, with a door-free reverse and a reverse that has a hatch; a portal with no reverse splits alone; both halves of a portal still match their reverse halves (the `openings` check passes after); a cut feature on the reverse refuses with the reverse's sector named; Last Light accepts a room with a corner added, or says why in its own sentence.
+  - *Expected failure:* the module is missing.
+- [ ] **2. `removeCorner`** (same files).
+  - *Red, by case:* taking away the corner that a split made restores the file (add then remove is the level it began as, on the depot's hall, on a textured wall and on a wall with a door); a corner between two walls of one kind makes one wall from the previous corner to the next; walls that differ (texture, handrail, a different kind) refuse with the members named in a sentence that reads the same whichever wall comes first; one door and one window are joined onto the new wall, the second one's `at` moved on by the first wall's length; two doors, two windows and two pilaster ends refuse; a door that no longer fits a corner-cutting join (a non-collinear removal that shortens the wall) refuses; a corner on a portal wall (either side) refuses, naming the sector; fewer than three corners left is refused, and so is an outline that would cross itself; removing the first corner joins the last wall to the second; the selection is the joined wall, the right index after the corners shift; a Last Light room.
+  - *Expected failure:* `removeCorner` is not exported.
+- [ ] **3. The tool** (`app/vertex-tool-controller.test.ts`; `app/vertex-tool-controller.ts`).
+  - *Red, by case:* hover on a wall gives an `add` target with the document's sector and corner, `length`, `along` (5 cm; Shift 1 cm; Alt exact; from the document's start corner, a loop written either way round), the world `point`; on a corner a `remove` target with the corner's index and point, winning over the wall beside it, and of two sectors' corners at one point the one of the sector that holds the pointer; the reach by pointer kind (22, 12, 8 px) and nothing in a hidden or locked `walls` layer; a target the edit would refuse is `none` with its sentence (a portal corner, a corner of a triangle, a point within 5 cm of the corner it snaps onto), and an `add` target is exactly what the tap then does; `leave` clears; the target follows the camera, the canvas size and edits; `view` is the same object when nothing changed; a tap adds or removes in one history step labelled by the edit, with the selection the edit says; a tap on a refused target changes nothing and says the sentence, which stays while the pointer stays on that wall or corner and clears on the next target, `leave` and the next tap; a tap on nothing changes nothing; another open step refuses with the history's sentence and leaves it open; Last Light.
+  - *Expected failure:* the module is missing.
+- [ ] **4. Entry, gates, viewer and records.**
+  - *Run in order:* the package entry exports the two edits and the tool (asserted in `index.test.ts`); `pnpm format`, `pnpm docs:stack`, `pnpm check`, `pnpm build`, `pnpm api-index`, `pnpm cheatsheet`, `pnpm agent-skills --write` then `pnpm agent-skills`, `pnpm api-report`; hand mutation over each step's logic, listed on its step; `purity.test.ts` still holds for the `model` and `app` layers; the viewer artifact gets the Vertex tool: hover shows the corner ring or the cut mark and what a tap does, a tap does it.
+  - *Records:* master plan (02), continuation prompt (03) and the spec's task table and §5.4 command table in the docs follow-up PR once the stack merges; nothing ticked in 02 from this PR.
+
+## Verification
+
+Local, Node 24: the package's tests and `pnpm check`. No browser or GPU suite is selected (no DOM, no painting, no sim code). Whether a tap on a corner is easy to hit with a finger beside a tap on its wall, and whether the cut mark reads well, are judged on the built editor (ED3D.11, ED3D.12).
+
+## Risks
+
+| Risk | Mitigation |
+|---|---|
+| A portal split on one side only leaves a pair that does not match | decision 4: both sides in one edit, and a test runs the `openings` check on the result, both ways round |
+| The new corner cuts a door in two, or moves it | decision 3: a feature lies wholly on one half and keeps its place, else the edit refuses; one case per feature |
+| Joining walls silently loses one wall's texture | decision 5: the walls must agree on every member that is not a place along them, and the sentence names the members |
+| The selection names a different wall after the indexes shift | decision 8: the edit selects the walls it made and the tool never keeps the old ids |
+| The dry run makes a hover slow on a big level | the edit is a list, a replace and `withSectors`, the same cost as a drag step; measured on the depot and the clinic in step 3, and the cache is by level identity |
+| Last Light refuses a room with other than four corners | a test says what it does; the sentence is the profile's own |
