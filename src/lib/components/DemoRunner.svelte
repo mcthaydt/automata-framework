@@ -31,12 +31,18 @@
     const deadline = setTimeout(() => { status = 'failed'; clearInterval(poll) }, 20000)
     return () => { clearInterval(poll); clearTimeout(deadline) }
   })
+  // Some browsers neither grant nor refuse a fullscreen request (headless WebKit among them). Without a word from the
+  // page the button would look dead, so after this long the page says fullscreen has not started; a late answer
+  // clears the message.
+  const FULLSCREEN_PATIENCE_MS = 1000
   async function fullscreen() {
+    const impatient = setTimeout(() => { fullscreenMessage = 'Fullscreen did not start. Open the demo in a new tab.' }, FULLSCREEN_PATIENCE_MS)
     try {
       if (document.fullscreenElement) await document.exitFullscreen()
       else await container.requestFullscreen()
       fullscreenMessage = ''
     } catch { fullscreenMessage = 'Fullscreen is unavailable. Open the demo in a new tab.' }
+    finally { clearTimeout(impatient) }
   }
 </script>
 <div bind:this={container} data-testid="demo-runner-container" data-ui class={`demo-runner ${className}`}>
