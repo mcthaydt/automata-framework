@@ -179,3 +179,37 @@ test('on a slow 3G connection the home page heading and primary action appear', 
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole('link', { name: 'Make your first change' }).first()).toBeInViewport({ timeout: 30_000 })
 })
+
+// QB.3j. Chromium 153 fetches `loading="lazy"` pictures 1,500 to 2,000 px below the fold right after the poster, and
+// Lighthouse charges them to the poster's LCP (3.4 s against 2.1 s without them). The home page therefore asks for a
+// picture only when the reader is near it.
+test('the home page requests only the poster picture until the reader scrolls toward the others', async ({ page }) => {
+  const requested: string[] = []
+  page.on('request', request => {
+    const name = /\/previews\/([^/]+)$/.exec(new URL(request.url()).pathname)?.[1]
+    if (name) requested.push(name)
+  })
+  await page.setViewportSize({ width: 412, height: 823 })
+  await open(page, '/')
+  const notThePoster = () => requested.filter(name => !name.startsWith('emberwick'))
+  expect(requested.length, 'the poster is requested').toBeGreaterThan(0)
+  expect(notThePoster()).toEqual([])
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  await expect.poll(notThePoster, { message: 'pictures near the reader are requested' }).not.toEqual([])
+  await expect(page.locator('img[src*="/previews/"]:visible').last()).toHaveJSProperty('complete', true)
+})
+
+// The prerendered page has no picture of its own below the poster, so a reader without script gets the noscript copies.
+test.describe('without script', () => {
+  test.use({ javaScriptEnabled: false })
+
+  test('the home page still shows its example pictures', async ({ page }) => {
+    await page.goto('/')
+    const pictures = page.locator('.lazy-picture img')
+    expect(await pictures.count()).toBeGreaterThanOrEqual(3)
+    for (const alt of await pictures.evaluateAll(images => images.map(image => image.getAttribute('alt')))) expect(alt, 'every picture has alt text').toBeTruthy()
+    await pictures.last().scrollIntoViewIfNeeded()
+    await expect.poll(() => pictures.last().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true)
+  })
+})
