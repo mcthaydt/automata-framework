@@ -46,12 +46,30 @@ jobs:
       - name: Read the framework pin
         id: pin
         run: echo "ref=$(tr -d '[:space:]' < framework.ref)" >> "$GITHUB_OUTPUT"
-      - name: AF_FRAMEWORK_TOKEN is set
+      # Ask the GitHub API what the checkout below will ask git, so a refusal says why (a bare `git fetch` only says
+      # "403 Write access to repository not granted"). The token is only ever sent in the request header.
+      - name: AF_FRAMEWORK_TOKEN can read the framework
         env:
           AF_FRAMEWORK_TOKEN: ${{ secrets.AF_FRAMEWORK_TOKEN }}
+          FRAMEWORK_REF: ${{ steps.pin.outputs.ref }}
         run: |
           if [[ -z "$AF_FRAMEWORK_TOKEN" ]]; then
             echo "::error::AF_FRAMEWORK_TOKEN is missing. Create a fine-grained personal access token with 'Contents: read' on mcthaydt/automata-framework and add it as a secret of this repository."
+            exit 1
+          fi
+          case "$AF_FRAMEWORK_TOKEN" in
+            github_pat_*) kind='fine-grained personal access token' ;;
+            ghp_*) kind='classic personal access token' ;;
+            ghs_*) kind='GitHub App installation token' ;;
+            *) kind='token of a kind this check does not recognise' ;;
+          esac
+          status=$(curl --silent --show-error --output "$RUNNER_TEMP/framework-commit" --dump-header "$RUNNER_TEMP/framework-headers" \
+            --write-out '%{http_code}' --header "Authorization: Bearer $AF_FRAMEWORK_TOKEN" --header 'Accept: application/vnd.github.sha' \
+            "https://api.github.com/repos/mcthaydt/automata-framework/commits/$FRAMEWORK_REF") || status=000
+          if [[ "$status" != 200 ]]; then
+            message=$(sed -n 's/.*"message": *"\([^"]*\)".*/\1/p' "$RUNNER_TEMP/framework-commit" 2>/dev/null | head -n 1)
+            expiry=$(tr -d '\r' < "$RUNNER_TEMP/framework-headers" 2>/dev/null | sed -n 's/^github-authentication-token-expiration: *//Ip' | head -n 1)
+            echo "::error::AF_FRAMEWORK_TOKEN (a $kind) cannot read mcthaydt/automata-framework at $FRAMEWORK_REF: GitHub answered HTTP $status${message:+, \"$message\"}${expiry:+; the token expires $expiry}. It needs read access to that repository (Contents: read)."
             exit 1
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

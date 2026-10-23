@@ -1,7 +1,9 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
 
 // QB.3f: the website's CI is part of its quality bar, so its shape is pinned here the way the framework pins its own
@@ -146,5 +148,93 @@ describe('the jobs', () => {
 
   it('does not hand the framework token to jobs that do not read the framework', () => {
     for (const job of ['browsers', 'lighthouse']) expect(JSON.stringify(workflow.jobs[job])).not.toContain('AF_FRAMEWORK_TOKEN')
+  })
+})
+
+// The framework repository is private, so the first hosted runs failed in `git fetch` with only "403 Write access to
+// repository not granted", which says nothing about which of the token's properties is wrong. The step before the
+// checkout asks the GitHub API the same question and says what came back. The script runs here against a stub `curl`.
+describe('the framework token check', () => {
+  const step = steps('checks').find(candidate => candidate.name === 'AF_FRAMEWORK_TOKEN can read the framework')
+  const dirs: string[] = []
+  afterEach(() => { while (dirs.length) rmSync(dirs.pop()!, { recursive: true, force: true }) })
+
+  const TOKEN = 'github_pat_11ABCDEFG0123456789_secretsecretsecretsecret'
+  /** Runs the step's script with `curl` replaced by a stub that answers `status`, `body` and an expiry header. */
+  function run(env: { token?: string; status?: string; body?: string; curlFails?: boolean }) {
+    const dir = mkdtempSync(resolve(tmpdir(), 'token-check-'))
+    dirs.push(dir)
+    const curl = resolve(dir, 'curl')
+    writeFileSync(curl, `#!/usr/bin/env bash
+if [[ -n "$STUB_CURL_FAILS" ]]; then echo "curl: (6) Could not resolve host" >&2; exit 6; fi
+while [[ $# -gt 0 ]]; do case "$1" in --output) out=$2; shift 2;; --dump-header) headers=$2; shift 2;; --header) printf '%s\\n' "$2" >> "$STUB_REQUEST"; shift 2;; *) printf '%s\\n' "$1" >> "$STUB_REQUEST"; shift;; esac; done
+printf '%s' "$STUB_BODY" > "$out"
+printf 'HTTP/2 %s\\r\\ngithub-authentication-token-expiration: 2026-12-01 00:00:00 UTC\\r\\n' "$STUB_STATUS" > "$headers"
+printf '%s' "$STUB_STATUS"
+`)
+    chmodSync(curl, 0o755)
+    const result = spawnSync('bash', ['-e', '-c', step!.run!], {
+      encoding: 'utf8',
+      env: {
+        PATH: `${dir}:${process.env.PATH}`, RUNNER_TEMP: dir, STUB_REQUEST: resolve(dir, 'request'),
+        AF_FRAMEWORK_TOKEN: env.token ?? TOKEN, FRAMEWORK_REF: '365f115318885708fd3b279a80784afcfdbb2ef1',
+        STUB_STATUS: env.status ?? '200', STUB_BODY: env.body ?? '365f115318885708fd3b279a80784afcfdbb2ef1',
+        ...(env.curlFails ? { STUB_CURL_FAILS: '1' } : {}),
+      },
+    })
+    let request = ''
+    try { request = readFileSync(resolve(dir, 'request'), 'utf8') } catch { /* curl was never reached */ }
+    return { code: result.status, output: result.stdout + result.stderr, request }
+  }
+
+  it('is the step before the framework checkout, and takes the secret and the pin only as environment variables', () => {
+    expect(step).toBeDefined()
+    const checkout = steps('checks').find(candidate => candidate.with?.repository === 'mcthaydt/automata-framework')
+    expect(steps('checks').indexOf(step!)).toBe(steps('checks').indexOf(checkout!) - 1)
+    expect(step!.env).toEqual({ AF_FRAMEWORK_TOKEN: '${{ secrets.AF_FRAMEWORK_TOKEN }}', FRAMEWORK_REF: '${{ steps.pin.outputs.ref }}' })
+    expect(step!.run).not.toContain('${{')
+  })
+
+  it('passes when the token can read the pinned commit', () => {
+    const result = run({})
+    expect(result.code).toBe(0)
+    expect(result.request).toContain('https://api.github.com/repos/mcthaydt/automata-framework/commits/365f115318885708fd3b279a80784afcfdbb2ef1')
+    expect(result.request).toContain(`Authorization: Bearer ${TOKEN}`)
+  })
+
+  it('says the secret is missing when it is empty', () => {
+    const result = run({ token: '' })
+    expect(result.code).toBe(1)
+    expect(result.output).toContain('AF_FRAMEWORK_TOKEN is missing')
+    expect(result.request).toBe('')
+  })
+
+  it('reports the status, GitHub’s message, the kind of token and its expiry when the token is refused', () => {
+    const result = run({ status: '403', body: '{"message":"Resource not accessible by personal access token","status":"403"}' })
+    expect(result.code).toBe(1)
+    expect(result.output).toContain('::error::')
+    expect(result.output).toContain('HTTP 403')
+    expect(result.output).toContain('Resource not accessible by personal access token')
+    expect(result.output).toContain('fine-grained personal access token')
+    expect(result.output).toContain('2026-12-01 00:00:00 UTC')
+  })
+
+  it('names the other kinds of token it can tell apart', () => {
+    expect(run({ token: 'ghp_abc', status: '404', body: '{"message":"Not Found"}' }).output).toContain('classic personal access token')
+    expect(run({ token: 'ghs_abc', status: '403', body: '{}' }).output).toContain('installation token')
+    expect(run({ token: 'abc', status: '403', body: '{}' }).output).toContain('token of a kind this check does not recognise')
+  })
+
+  it('fails when GitHub cannot be reached, with the status 000', () => {
+    const result = run({ curlFails: true })
+    expect(result.code).toBe(1)
+    expect(result.output).toContain('HTTP 000')
+  })
+
+  it('never prints the token', () => {
+    for (const scenario of [{ status: '403', body: '{"message":"x"}' }, { token: '' }, { curlFails: true }, {}]) {
+      expect(run(scenario).output).not.toContain(TOKEN)
+    }
+    expect(step!.run).not.toMatch(/(echo|printf)[^\n]*\$\{?AF_FRAMEWORK_TOKEN/)
   })
 })
