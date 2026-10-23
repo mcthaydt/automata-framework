@@ -52,6 +52,8 @@ export const BudgetFile = z.discriminatedUnion('status', [
   z.object({ status: z.literal('unset'), note: z.string() }),
   z.object({
     status: z.literal('set'),
+    /** How the budget was measured and who can replace it, for a reader of the file. */
+    note: z.string().min(1).optional(),
     /** The GPU the budget was measured on; results from any other GPU are not compared. */
     gpu: z.string().min(1),
     evidence: z.object({

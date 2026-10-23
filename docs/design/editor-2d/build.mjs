@@ -3,7 +3,7 @@
 //   node build.mjs html <out.html> [--local-fonts <dir>]   every screen at 1:1 in one long page, for screenshots
 //   node build.mjs gallery <out.html>                      the review gallery published as an artifact
 //   node build.mjs screen <id> <out.html>                  one screen at 1:1, for screenshots
-//   node build.mjs figma-parts                             the `use_figma` code that installs parts.mjs on page _kit
+//   node build.mjs figma-parts count | <n>                 the `use_figma` code that installs parts.mjs on page _kit, in chunks
 //   node build.mjs figma <id>                              the `use_figma` code that renders one screen
 //   node build.mjs list
 //
@@ -15,6 +15,7 @@ import { gallery } from './gallery.mjs'
 import { parts } from './parts.mjs'
 import { screens } from './screens.mjs'
 
+const CHUNK_LIMIT = 40000
 const [cmd, ...rest] = process.argv.slice(2)
 const P = parts(S)
 const byId = (id) => {
@@ -68,6 +69,8 @@ if (cmd === 'list') {
   writeFileSync(rest[0], gallery(screens, html, S))
 } else if (cmd === 'figma-parts') {
   // Installed once on page _kit as a text node `parts-2d`; each screen call loads it beside `scene-kit`.
+  // `use_figma` code is capped at 50 KB, so the source goes up in chunks: `figma-parts count` prints how many,
+  // `figma-parts <n>` prints chunk n (0 creates the node, later ones append).
   const src = `${parts.toString()}\nconst P = parts(S)\n`
   const strip = (t) =>
     t
@@ -75,10 +78,30 @@ if (cmd === 'list') {
       .map((l) => l.replace(/^\s+/, ''))
       .filter((l) => l && !l.startsWith('//'))
       .join('\n')
-  const body = strip(src)
-  console.log(
-    `const page = figma.root.children.find((p) => p.name === '_kit')\nawait figma.setCurrentPageAsync(page)\nawait figma.loadFontAsync({ family: 'Inter', style: 'Regular' })\nconst src = ${JSON.stringify(body)}\nfor (const old of page.children.filter((c) => c.name === 'parts-2d')) old.remove()\nconst t = figma.createText()\nt.name = 'parts-2d'\nt.characters = src\nreturn { id: t.id, chars: src.length }`,
-  )
+  const lines = strip(src).split('\n')
+  const chunks = []
+  let current = ''
+  for (const line of lines) {
+    if (current && JSON.stringify(`${current}${line}\n`).length > CHUNK_LIMIT) {
+      chunks.push(current)
+      current = ''
+    }
+    current += `${line}\n`
+  }
+  chunks.push(current)
+  const head =
+    "const page = figma.root.children.find((p) => p.name === '_kit')\nawait figma.setCurrentPageAsync(page)\nawait figma.loadFontAsync({ family: 'Inter', style: 'Regular' })\n"
+  if (rest[0] === 'count') console.log(chunks.length)
+  else {
+    const n = Number(rest[0] ?? 0)
+    if (!chunks[n]) throw new Error(`no chunk ${n}; there are ${chunks.length}`)
+    const body = `const src = ${JSON.stringify(chunks[n])}\n`
+    console.log(
+      n === 0
+        ? `${head}${body}for (const old of page.children.filter((c) => c.name === 'parts-2d')) old.remove()\nconst t = figma.createText()\nt.name = 'parts-2d'\nt.characters = src\nreturn { id: t.id, chunk: 0, of: ${chunks.length}, chars: t.characters.length }`
+        : `${head}${body}const t = page.children.find((c) => c.name === 'parts-2d')\nt.insertCharacters(t.characters.length, src)\nreturn { id: t.id, chunk: ${n}, of: ${chunks.length}, chars: t.characters.length }`,
+    )
+  }
 } else if (cmd === 'figma') {
   const s = byId(rest[0])
   const strip = (t) =>
@@ -96,7 +119,7 @@ const build = ${strip(s.build.toString())}
 return await R.render(build(S, P), ${JSON.stringify({ page: s.page, x, replace: true })})`)
 } else {
   console.error(
-    'usage: build.mjs list | html <out> | gallery <out> | screen <id> <out> | figma-parts | figma <id> [x]',
+    'usage: build.mjs list | html <out> | gallery <out> | screen <id> <out> | figma-parts count|<n> | figma <id> [x]',
   )
   process.exit(1)
 }

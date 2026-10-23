@@ -18,6 +18,7 @@ import { TRANSLATIONS_FOLDER } from '../compile/read-sources'
 import { buildContent } from '../compile/write-outputs'
 import { formatDiagnostic } from '../diagnostics/diagnostic'
 
+/** The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`. */
 export const VIRTUAL_MODULE_ID = 'virtual:automata/content'
 const RESOLVED_ID = `\0${VIRTUAL_MODULE_ID}`
 
@@ -79,6 +80,12 @@ const moduleCode = (content: CompiledContent): string => {
   ].join('\n')
 }
 
+/**
+ * The Vite plugin that compiles content and serves it as `virtual:automata/content`. It builds when Vite
+ * starts and on every save in dev, with the same build as `automata-content build`. A `vite build` with
+ * content errors fails; a dev server keeps serving the last good content and reports the diagnostics through
+ * Vite's logger and the `automata:content-error` event (`automata:content` after a good save).
+ */
 export function automataContent(pluginOptions: AutomataContentOptions = { schemas: [] }): Plugin {
   let options: ContentOptions | undefined
   let command: ResolvedConfig['command'] = 'serve'
