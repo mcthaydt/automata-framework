@@ -20,6 +20,10 @@ export const SHORT_MAX_HEIGHT = 600
  */
 export const COMPACT_MAX_HEIGHT = 340
 
+/**
+ * The height tier of a layout height in CSS px: `compact` below 340, `short` up to 600, otherwise
+ * `undefined`.
+ */
 export function classifyHeightTier(height: number): HeightTier {
   if (height < COMPACT_MAX_HEIGHT) return 'compact'
   if (height <= SHORT_MAX_HEIGHT) return 'short'

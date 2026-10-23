@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { type ApiBreak, apiBreaks, undeclaredBreaks } from './breaks.ts'
-import type { ApiEntry } from './extract.ts'
+import type { ApiEntry, ApiExport } from './extract.ts'
 import type { ParsedReport } from './report.ts'
 
 const report = (entries: ApiEntry[]): ParsedReport => ({ package: '@fx/alpha', entries })
@@ -53,6 +53,86 @@ describe('apiBreaks', () => {
       { package: '@fx/alpha', entryPoint: '.', name: 'add', change: 'removed' },
       { package: '@fx/alpha', entryPoint: '.', name: 'Counter', change: 'changed' },
       { package: '@fx/alpha', entryPoint: './sub', name: undefined, change: 'removed' },
+    ])
+  })
+})
+
+describe('apiBreaks, a function that only gains optional trailing parameters', () => {
+  const before = 'function add(a: number, b: number): number;'
+  const exportOf = (declaration: string, kind: ApiExport['kind'] = 'function') => ({
+    name: 'add',
+    kind,
+    declaration,
+  })
+  const breaksFor = (declaration: string, kind: ApiExport['kind'] = 'function') =>
+    apiBreaks(report([{ entryPoint: '.', exports: [exportOf(before)] }]), {
+      entries: [{ entryPoint: '.', exports: [exportOf(declaration, kind)] }],
+    })
+  const changed = [{ package: '@fx/alpha', entryPoint: '.', name: 'add', change: 'changed' }]
+
+  it('is additive when one optional parameter is appended', () => {
+    expect(breaksFor('function add(a: number, b: number, round?: boolean): number;')).toEqual([])
+  })
+
+  it('is additive when several optional parameters are appended', () => {
+    expect(breaksFor('function add(a: number, b: number, round?: boolean, scale?: number): number;')).toEqual(
+      [],
+    )
+  })
+
+  it('is a break when a required parameter is appended', () => {
+    expect(breaksFor('function add(a: number, b: number, round: boolean): number;')).toEqual(changed)
+  })
+
+  it('is a break when an optional parameter comes before an existing one', () => {
+    expect(breaksFor('function add(a: number, round?: boolean, b?: number): number;')).toEqual(changed)
+  })
+
+  it("is a break when an existing parameter's type changes", () => {
+    expect(breaksFor('function add(a: number, b: bigint, round?: boolean): number;')).toEqual(changed)
+  })
+
+  it('is a break when the return type changes, whatever else is appended', () => {
+    expect(breaksFor('function add(a: number, b: number, round?: boolean): bigint;')).toEqual(changed)
+  })
+
+  it('is a break when the appended parameter is a rest parameter', () => {
+    expect(breaksFor('function add(a: number, b: number, ...more: number[]): number;')).toEqual(changed)
+  })
+
+  it('is a break when the declaration is overloaded', () => {
+    const overloaded =
+      'function add(a: number, b: number, round?: boolean): number;\nfunction add(a: string): string;'
+    expect(breaksFor(overloaded)).toEqual(changed)
+  })
+
+  it('stays a break for an export that is not a function', () => {
+    const base = report([
+      {
+        entryPoint: '.',
+        exports: [
+          {
+            name: 'Options',
+            kind: 'interface',
+            declaration: 'interface Options {\n    readonly a: number;\n}',
+          },
+        ],
+      },
+    ])
+    const head = report([
+      {
+        entryPoint: '.',
+        exports: [
+          {
+            name: 'Options',
+            kind: 'interface',
+            declaration: 'interface Options {\n    readonly a: number;\n    readonly b?: number;\n}',
+          },
+        ],
+      },
+    ])
+    expect(apiBreaks(base, head)).toEqual([
+      { package: '@fx/alpha', entryPoint: '.', name: 'Options', change: 'changed' },
     ])
   })
 })

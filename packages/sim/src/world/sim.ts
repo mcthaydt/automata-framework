@@ -38,6 +38,11 @@ export interface Command {
   readonly payload: unknown
 }
 
+/**
+ * Why `step` dropped a command: `bad-header` (a field is missing or out of range), `unknown-command` (no
+ * plugin defines its type), `wrong-tick` (not the sim's current tick), `duplicate-seq` (the same source and
+ * seq twice in one step) or `invalid-payload` (it fails the command's schema).
+ */
 export type RejectReason =
   | 'bad-header'
   | 'unknown-command'
@@ -45,16 +50,22 @@ export type RejectReason =
   | 'duplicate-seq'
   | 'invalid-payload'
 
+/** A command `step` dropped, with the reason. */
 export interface RejectedCommand {
   readonly command: Command
   readonly reason: RejectReason
 }
 
+/** An event a system emitted during a step: the event's id as `type`, and its parsed `payload`. */
 export interface SimEvent {
   readonly type: string
   readonly payload: unknown
 }
 
+/**
+ * What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were
+ * rejected.
+ */
 export interface StepResult {
   /** The tick the sim is at after this step. */
   readonly tick: number
@@ -64,6 +75,10 @@ export interface StepResult {
   readonly rejected: readonly RejectedCommand[]
 }
 
+/**
+ * What `createSim` takes: the root `seed`, the `plugins`, `tickHz` (an integer from 1 to 1000, default 60)
+ * and the `content` the systems read as `ctx.content` (default `{}`).
+ */
 export interface SimOptions {
   readonly seed: number
   readonly tickHz?: number
@@ -71,6 +86,10 @@ export interface SimOptions {
   readonly plugins: readonly PluginDef[]
 }
 
+/**
+ * A running simulation, stepped with commands, that can snapshot, restore and hash its state. `step` is the
+ * only way gameplay state changes. Create one with `createSim`, and `dispose` it when done.
+ */
 export interface Sim {
   readonly seed: number
   readonly tickHz: number
@@ -149,6 +168,12 @@ function register<T extends { id: string }>(what: string, map: Map<string, T>, i
 const isU = (n: unknown, max: number): boolean =>
   typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= max
 
+/**
+ * Creates a sim from its plugins, seed and content; async, because a plugin may create engine state (a Rapier
+ * world). Throws for a bad `tickHz`, a duplicate definition, an unknown plugin dependency or system ordering
+ * reference, an ordering cycle, a system name the sim reserves, or an invalid resource start. If a plugin's
+ * engine fails to start, the engines already created are disposed first.
+ */
 export async function createSim(opts: SimOptions): Promise<Sim> {
   const tickHz = opts.tickHz ?? 60
   if (!Number.isInteger(tickHz) || tickHz < 1 || tickHz > 1000)

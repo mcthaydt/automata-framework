@@ -1,5 +1,6 @@
 export { type Command, type CommandRegistry, createCommandRegistry, defineCommand } from './commands/command'
 export { normalizeShortcut, parseShortcut, type Shortcut } from './commands/shortcut'
+export * from './fields/index'
 export { type AttachOptions, attachGestures } from './gestures/attach-gestures'
 export { type GestureClock, realClock } from './gestures/gesture-clock'
 export type {
@@ -26,7 +27,6 @@ export {
 export { createRecognizer, type GestureOptions, type Recognizer } from './gestures/recognizer'
 export {
   createViewport,
-  type Point,
   type Rect,
   type Size,
   type Viewport2D,

@@ -14,6 +14,7 @@ const FROM_GAME = [
   'defaultScreens',
   'defineGame',
   'keys',
+  'postFilter',
   'rect',
   'sprite',
   'startGame',

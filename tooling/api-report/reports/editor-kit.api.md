@@ -29,6 +29,36 @@ interface BlockedProps {
 }
 ```
 
+### `checkEntityDef` (function)
+
+```ts
+function checkEntityDef(def: EntityDef): readonly EntityDefProblem[];
+```
+
+### `checkFieldDef` (function)
+
+```ts
+function checkFieldDef(def: FieldDef): readonly FieldProblem<FieldDefCode>[];
+```
+
+### `checkFieldValue` (function)
+
+```ts
+function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
+```
+
+### `checkRetype` (function)
+
+```ts
+function checkRetype(oldDef: FieldDef, newDef: FieldDef, instances: readonly FieldInstance[]): readonly RetypeBreakage[];
+```
+
+### `checkValues` (function)
+
+```ts
+function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly InstanceProblem[];
+```
+
 ### `Chips` (svelte)
 
 ```ts
@@ -111,6 +141,12 @@ function createViewport(init: ViewportInit): Viewport2D;
 
 ```ts
 function defaultDockOpen(mode: ShellMode, tier: HeightTier): boolean;
+```
+
+### `defaultFieldValue` (function)
+
+```ts
+function defaultFieldValue(def: FieldDef): FieldValue | undefined;
 ```
 
 ### `defineCommand` (function)
@@ -227,6 +263,178 @@ interface EditorTokens {
 type EditPhase = 'set' | 'start' | 'update' | 'commit' | 'cancel';
 ```
 
+### `ENTITY_ID` (const)
+
+```ts
+const ENTITY_ID: RegExp;
+```
+
+### `EntityDef` (interface)
+
+```ts
+interface EntityDef {
+    readonly id: string;
+    readonly label?: string | undefined;
+    readonly color?: string | undefined;
+    readonly single?: boolean | undefined;
+    readonly fields: readonly FieldDef[];
+}
+```
+
+### `EntityDefCode` (type)
+
+```ts
+type EntityDefCode = FieldDefCode | 'badEntityId' | 'badEntityColor' | 'duplicateFieldId';
+```
+
+### `EntityDefIssue` (interface)
+
+```ts
+interface EntityDefIssue {
+    readonly message: string;
+    readonly path: (string | number)[];
+}
+```
+
+### `entityDefIssues` (function)
+
+```ts
+function entityDefIssues(def: EntityDef): readonly EntityDefIssue[];
+```
+
+### `EntityDefProblem` (interface)
+
+```ts
+interface EntityDefProblem extends FieldProblem<EntityDefCode> {
+    readonly fieldId?: string;
+    readonly fieldIndex?: number;
+}
+```
+
+### `entityDefSchema` (const)
+
+```ts
+const entityDefSchema: z.ZodType<EntityDef>;
+```
+
+### `entityDefShape` (const)
+
+```ts
+const entityDefShape: {
+    id: z.ZodString;
+    label: z.ZodOptional<z.ZodString>;
+    color: z.ZodOptional<z.ZodString>;
+    single: z.ZodOptional<z.ZodBoolean>;
+    fields: z.ZodArray<z.ZodType<FieldDef>>;
+};
+```
+
+### `FIELD_ID` (const)
+
+```ts
+const FIELD_ID: RegExp;
+```
+
+### `FIELD_TYPES` (const)
+
+```ts
+const FIELD_TYPES: readonly FieldType[];
+```
+
+### `FieldDef` (interface)
+
+```ts
+interface FieldDef {
+    readonly id: string;
+    readonly type: FieldType;
+    readonly label?: string | undefined;
+    readonly list?: boolean | undefined;
+    readonly required?: boolean | undefined;
+    readonly default?: FieldValue | undefined;
+    readonly min?: number | undefined;
+    readonly max?: number | undefined;
+    readonly step?: number | undefined;
+    readonly options?: readonly string[] | undefined;
+    readonly multiline?: boolean | undefined;
+    readonly to?: readonly string[] | undefined;
+}
+```
+
+### `FieldDefCode` (type)
+
+```ts
+type FieldDefCode = 'badId' | 'badBounds' | 'badStep' | 'noOptions' | 'duplicateOption' | 'badDefault' | 'wrongTypeProperty';
+```
+
+### `fieldDefSchema` (const)
+
+```ts
+const fieldDefSchema: z.ZodType<FieldDef>;
+```
+
+### `FieldInstance` (interface)
+
+```ts
+interface FieldInstance {
+    readonly id: string;
+    readonly values: FieldValues;
+}
+```
+
+### `FieldProblem` (interface)
+
+```ts
+interface FieldProblem<Code extends string = string> {
+    readonly code: Code;
+    readonly message: string;
+}
+```
+
+### `FieldType` (type)
+
+```ts
+type FieldType = 'int' | 'float' | 'bool' | 'text' | 'enum' | 'color' | 'angle' | 'ref' | 'point';
+```
+
+### `FieldValue` (type)
+
+```ts
+type FieldValue = number | boolean | string | Point | RefValue | readonly FieldValue[];
+```
+
+### `FieldValueCode` (type)
+
+```ts
+type FieldValueCode = 'wrongType' | 'notInteger' | 'belowMin' | 'aboveMax' | 'notAnOption' | 'badColor' | 'badRef' | 'badPoint' | 'badListItem';
+```
+
+### `FieldValueProblem` (interface)
+
+```ts
+interface FieldValueProblem extends FieldProblem<FieldValueCode> {
+    readonly index?: number;
+    readonly cause?: FieldValueProblem;
+}
+```
+
+### `FieldValues` (type)
+
+```ts
+type FieldValues = Readonly<Record<string, FieldValue>>;
+```
+
+### `fieldValueSchema` (const)
+
+```ts
+const fieldValueSchema: z.ZodType<FieldValue>;
+```
+
+### `fieldValuesSchema` (const)
+
+```ts
+const fieldValuesSchema: z.ZodType<FieldValues>;
+```
+
 ### `GestureClock` (interface)
 
 ```ts
@@ -266,6 +474,12 @@ interface GestureOptions {
     readonly penHoldMs?: number;
     readonly rotate?: boolean;
 }
+```
+
+### `HEX_COLOR` (const)
+
+```ts
+const HEX_COLOR: RegExp;
 ```
 
 ### `History` (interface)
@@ -326,6 +540,22 @@ interface HoverGesture {
     readonly tiltX: number;
     readonly tiltY: number;
     readonly modifiers: Modifiers;
+}
+```
+
+### `InstanceCode` (type)
+
+```ts
+type InstanceCode = FieldValueCode | 'fieldMissing' | 'unknownField';
+```
+
+### `InstanceProblem` (interface)
+
+```ts
+interface InstanceProblem extends FieldProblem<InstanceCode> {
+    readonly fieldId: string;
+    readonly index?: number;
+    readonly cause?: FieldValueProblem;
 }
 ```
 
@@ -562,10 +792,52 @@ interface Rect {
 }
 ```
 
+### `RefValue` (interface)
+
+```ts
+interface RefValue {
+    readonly target: string;
+    readonly container?: string | undefined;
+}
+```
+
+### `renameField` (function)
+
+```ts
+function renameField(def: EntityDef, from: string, to: string): RenameResult;
+```
+
+### `renameFieldValues` (function)
+
+```ts
+function renameFieldValues(values: FieldValues, from: string, to: string): FieldValues;
+```
+
+### `RenameResult` (type)
+
+```ts
+type RenameResult = {
+    readonly ok: true;
+    readonly def: EntityDef;
+} | {
+    readonly ok: false;
+    readonly code: 'unknownField' | 'badId' | 'duplicateFieldId';
+};
+```
+
 ### `ReorderList` (svelte)
 
 ```ts
 component from './widgets/ReorderList.svelte'
+```
+
+### `RetypeBreakage` (interface)
+
+```ts
+interface RetypeBreakage {
+    readonly instanceId: string;
+    readonly problem: InstanceProblem;
+}
 ```
 
 ### `Segmented` (svelte)
@@ -766,6 +1038,12 @@ interface Transaction<S> {
 type TransformPhase = 'start' | 'change' | 'end';
 ```
 
+### `valuesWithDefaults` (function)
+
+```ts
+function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
+```
+
 ### `Viewport2D` (interface)
 
 ```ts
@@ -830,4 +1108,483 @@ interface WheelInput {
     readonly deltaY: number;
     readonly modifiers: Modifiers;
 }
+```
+
+## `./core`
+
+### `Command` (interface)
+
+```ts
+interface Command {
+    readonly id: string;
+    readonly title: string;
+    run(): void;
+    enabled?(): boolean;
+    readonly shortcut?: string;
+    readonly allowInText?: boolean;
+}
+```
+
+### `CommandRegistry` (interface)
+
+```ts
+interface CommandRegistry {
+    register(command: Command): () => void;
+    get(id: string): Command | undefined;
+    list(): readonly Command[];
+    run(id: string): boolean;
+}
+```
+
+### `createCommandRegistry` (function)
+
+```ts
+function createCommandRegistry(): CommandRegistry;
+```
+
+### `createHistory` (function)
+
+```ts
+function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
+```
+
+### `createKeymap` (function)
+
+```ts
+function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
+```
+
+### `createSelection` (function)
+
+```ts
+function createSelection<Id extends SelectionId>(): Selection<Id>;
+```
+
+### `defineCommand` (function)
+
+```ts
+function defineCommand(command: Command): Command;
+```
+
+### `History` (interface)
+
+```ts
+interface History<S> {
+    readonly state: S;
+    readonly revision: number;
+    readonly cleanRevision: number;
+    readonly canUndo: boolean;
+    readonly canRedo: boolean;
+    readonly undoLabel: string | undefined;
+    readonly redoLabel: string | undefined;
+    apply(label: string, update: (state: S) => S, options?: {
+        coalesce?: string;
+    }): void;
+    begin(label: string): Transaction<S>;
+    undo(): void;
+    redo(): void;
+    markClean(): void;
+    subscribe(listener: (history: History<S>) => void): () => void;
+}
+```
+
+### `HistoryError` (class)
+
+```ts
+class HistoryError extends Error {
+    readonly code: HistoryErrorCode;
+    constructor(code: HistoryErrorCode, message: string);
+}
+```
+
+### `HistoryErrorCode` (type)
+
+```ts
+type HistoryErrorCode = 'transaction-open';
+```
+
+### `HistoryOptions` (interface)
+
+```ts
+interface HistoryOptions {
+    readonly limit?: number;
+    readonly now?: () => number;
+    readonly coalesceWindowMs?: number;
+}
+```
+
+### `KeyInput` (interface)
+
+```ts
+interface KeyInput {
+    readonly key: string;
+    readonly metaKey: boolean;
+    readonly ctrlKey: boolean;
+    readonly shiftKey: boolean;
+    readonly altKey: boolean;
+    readonly inText: boolean;
+}
+```
+
+### `Keymap` (interface)
+
+```ts
+interface Keymap {
+    resolve(input: KeyInput): Command | undefined;
+    handle(input: KeyInput): boolean;
+}
+```
+
+### `normalizeShortcut` (function)
+
+```ts
+function normalizeShortcut(text: string): string;
+```
+
+### `parseShortcut` (function)
+
+```ts
+function parseShortcut(text: string): Shortcut;
+```
+
+### `Platform` (type)
+
+```ts
+type Platform = 'apple' | 'other';
+```
+
+### `Selection` (interface)
+
+```ts
+interface Selection<Id extends SelectionId> {
+    readonly ids: readonly Id[];
+    readonly size: number;
+    readonly primary: Id | undefined;
+    has(id: Id): boolean;
+    set(ids: Iterable<Id>): void;
+    add(id: Id): void;
+    toggle(id: Id): void;
+    clear(): void;
+    range(from: Id, to: Id, order: readonly Id[]): void;
+    subscribe(listener: (selection: Selection<Id>) => void): () => void;
+}
+```
+
+### `SelectionId` (type)
+
+```ts
+type SelectionId = string | number;
+```
+
+### `Shortcut` (interface)
+
+```ts
+interface Shortcut {
+    readonly key: string;
+    readonly mod: boolean;
+    readonly ctrl: boolean;
+    readonly meta: boolean;
+    readonly shift: boolean;
+    readonly alt: boolean;
+}
+```
+
+### `Transaction` (interface)
+
+```ts
+interface Transaction<S> {
+    readonly open: boolean;
+    update(fn: (state: S) => S): void;
+    commit(): void;
+    cancel(): void;
+}
+```
+
+## `./fields`
+
+### `checkEntityDef` (function)
+
+```ts
+function checkEntityDef(def: EntityDef): readonly EntityDefProblem[];
+```
+
+### `checkFieldDef` (function)
+
+```ts
+function checkFieldDef(def: FieldDef): readonly FieldProblem<FieldDefCode>[];
+```
+
+### `checkFieldValue` (function)
+
+```ts
+function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
+```
+
+### `checkRetype` (function)
+
+```ts
+function checkRetype(oldDef: FieldDef, newDef: FieldDef, instances: readonly FieldInstance[]): readonly RetypeBreakage[];
+```
+
+### `checkValues` (function)
+
+```ts
+function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly InstanceProblem[];
+```
+
+### `defaultFieldValue` (function)
+
+```ts
+function defaultFieldValue(def: FieldDef): FieldValue | undefined;
+```
+
+### `ENTITY_ID` (const)
+
+```ts
+const ENTITY_ID: RegExp;
+```
+
+### `EntityDef` (interface)
+
+```ts
+interface EntityDef {
+    readonly id: string;
+    readonly label?: string | undefined;
+    readonly color?: string | undefined;
+    readonly single?: boolean | undefined;
+    readonly fields: readonly FieldDef[];
+}
+```
+
+### `EntityDefCode` (type)
+
+```ts
+type EntityDefCode = FieldDefCode | 'badEntityId' | 'badEntityColor' | 'duplicateFieldId';
+```
+
+### `EntityDefIssue` (interface)
+
+```ts
+interface EntityDefIssue {
+    readonly message: string;
+    readonly path: (string | number)[];
+}
+```
+
+### `entityDefIssues` (function)
+
+```ts
+function entityDefIssues(def: EntityDef): readonly EntityDefIssue[];
+```
+
+### `EntityDefProblem` (interface)
+
+```ts
+interface EntityDefProblem extends FieldProblem<EntityDefCode> {
+    readonly fieldId?: string;
+    readonly fieldIndex?: number;
+}
+```
+
+### `entityDefSchema` (const)
+
+```ts
+const entityDefSchema: z.ZodType<EntityDef>;
+```
+
+### `entityDefShape` (const)
+
+```ts
+const entityDefShape: {
+    id: z.ZodString;
+    label: z.ZodOptional<z.ZodString>;
+    color: z.ZodOptional<z.ZodString>;
+    single: z.ZodOptional<z.ZodBoolean>;
+    fields: z.ZodArray<z.ZodType<FieldDef>>;
+};
+```
+
+### `FIELD_ID` (const)
+
+```ts
+const FIELD_ID: RegExp;
+```
+
+### `FIELD_TYPES` (const)
+
+```ts
+const FIELD_TYPES: readonly FieldType[];
+```
+
+### `FieldDef` (interface)
+
+```ts
+interface FieldDef {
+    readonly id: string;
+    readonly type: FieldType;
+    readonly label?: string | undefined;
+    readonly list?: boolean | undefined;
+    readonly required?: boolean | undefined;
+    readonly default?: FieldValue | undefined;
+    readonly min?: number | undefined;
+    readonly max?: number | undefined;
+    readonly step?: number | undefined;
+    readonly options?: readonly string[] | undefined;
+    readonly multiline?: boolean | undefined;
+    readonly to?: readonly string[] | undefined;
+}
+```
+
+### `FieldDefCode` (type)
+
+```ts
+type FieldDefCode = 'badId' | 'badBounds' | 'badStep' | 'noOptions' | 'duplicateOption' | 'badDefault' | 'wrongTypeProperty';
+```
+
+### `fieldDefSchema` (const)
+
+```ts
+const fieldDefSchema: z.ZodType<FieldDef>;
+```
+
+### `FieldInstance` (interface)
+
+```ts
+interface FieldInstance {
+    readonly id: string;
+    readonly values: FieldValues;
+}
+```
+
+### `FieldProblem` (interface)
+
+```ts
+interface FieldProblem<Code extends string = string> {
+    readonly code: Code;
+    readonly message: string;
+}
+```
+
+### `FieldType` (type)
+
+```ts
+type FieldType = 'int' | 'float' | 'bool' | 'text' | 'enum' | 'color' | 'angle' | 'ref' | 'point';
+```
+
+### `FieldValue` (type)
+
+```ts
+type FieldValue = number | boolean | string | Point | RefValue | readonly FieldValue[];
+```
+
+### `FieldValueCode` (type)
+
+```ts
+type FieldValueCode = 'wrongType' | 'notInteger' | 'belowMin' | 'aboveMax' | 'notAnOption' | 'badColor' | 'badRef' | 'badPoint' | 'badListItem';
+```
+
+### `FieldValueProblem` (interface)
+
+```ts
+interface FieldValueProblem extends FieldProblem<FieldValueCode> {
+    readonly index?: number;
+    readonly cause?: FieldValueProblem;
+}
+```
+
+### `FieldValues` (type)
+
+```ts
+type FieldValues = Readonly<Record<string, FieldValue>>;
+```
+
+### `fieldValueSchema` (const)
+
+```ts
+const fieldValueSchema: z.ZodType<FieldValue>;
+```
+
+### `fieldValuesSchema` (const)
+
+```ts
+const fieldValuesSchema: z.ZodType<FieldValues>;
+```
+
+### `HEX_COLOR` (const)
+
+```ts
+const HEX_COLOR: RegExp;
+```
+
+### `InstanceCode` (type)
+
+```ts
+type InstanceCode = FieldValueCode | 'fieldMissing' | 'unknownField';
+```
+
+### `InstanceProblem` (interface)
+
+```ts
+interface InstanceProblem extends FieldProblem<InstanceCode> {
+    readonly fieldId: string;
+    readonly index?: number;
+    readonly cause?: FieldValueProblem;
+}
+```
+
+### `Point` (interface)
+
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
+}
+```
+
+### `RefValue` (interface)
+
+```ts
+interface RefValue {
+    readonly target: string;
+    readonly container?: string | undefined;
+}
+```
+
+### `renameField` (function)
+
+```ts
+function renameField(def: EntityDef, from: string, to: string): RenameResult;
+```
+
+### `renameFieldValues` (function)
+
+```ts
+function renameFieldValues(values: FieldValues, from: string, to: string): FieldValues;
+```
+
+### `RenameResult` (type)
+
+```ts
+type RenameResult = {
+    readonly ok: true;
+    readonly def: EntityDef;
+} | {
+    readonly ok: false;
+    readonly code: 'unknownField' | 'badId' | 'duplicateFieldId';
+};
+```
+
+### `RetypeBreakage` (interface)
+
+```ts
+interface RetypeBreakage {
+    readonly instanceId: string;
+    readonly problem: InstanceProblem;
+}
+```
+
+### `valuesWithDefaults` (function)
+
+```ts
+function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
 ```
