@@ -145,13 +145,13 @@ export const LATEST = [
     'studio-ik',
     null,
     'Studio · Pose by hand (new)',
-    'You asked for an IK rig. Drag Ada’s hands, feet, head or hips and the limbs follow; pin a hand or foot and it stays put; each joint stops at its limit (the elbow at 145°). A pose made by hand saves next to the presets.',
+    'You asked for an IK rig. Drag Ada’s hands, feet, hips, chest or head and the limbs follow; a diamond points the elbow and a crosshair is where she looks; pin a hand or foot and it stays put; a joint stops at its limit (the elbow at 145°), amber there and red out of reach. A pose made by hand saves next to the presets.',
   ],
   [
     'studio-animate',
     null,
     'Studio · Animate (new)',
-    'The animation editor we were missing. A clip is poses keyed on a timeline, one row per handle, with onion skin, the hand’s path, events such as pickup, and the game’s own procedural idle still playing under it. It plays in steps at Ada’s 12 poses a second, or smooth.',
+    'The animation editor we were missing. A clip is poses keyed on a timeline, one row per handle, each key with its ease, with onion skin, the hand’s path, markers such as contact and cues such as pickup, and the game’s own procedural idle still playing under it. The clip has a length the game can stretch, a loop mode and the body parts it moves; it plays in steps at Ada’s 12 poses a second, or smooth.',
   ],
   [
     'states-code-checks',

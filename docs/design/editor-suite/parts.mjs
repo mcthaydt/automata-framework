@@ -1442,7 +1442,50 @@ export function suiteParts(S, P, D) {
         }),
       )
     }
+    // The picked arm's elbow pole (which way the elbow points) and the look-at target the head turns to. Knee poles
+    // show when a foot is picked.
+    const marker = (name, p, svg) => {
+      const [x, y] = at(p[0], p[1])
+      kids.push(
+        F({ name: `handle/${name}`, x: x - 22, y: y - 22, w: 44, h: 44, r: 22 }),
+        V(`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">${svg}</svg>`, {
+          name: `knob/${name}`,
+          x: x - 10,
+          y: y - 10,
+          w: 20,
+          h: 20,
+        }),
+      )
+    }
+    if (o.poles) {
+      const sh = j.shoulders[0]
+      const hd = j.hands[0]
+      const mid = [(sh[0] + hd[0]) / 2, (sh[1] + hd[1]) / 2]
+      const dx = e[0] - mid[0]
+      const dy = e[1] - mid[1]
+      const len = Math.sqrt(dx * dx + dy * dy) || 1
+      const pole = [e[0] + (dx / len) * 7, e[1] + (dy / len) * 7]
+      const [ex, ey] = at(e[0], e[1])
+      const [px, py] = at(pole[0], pole[1])
+      kids.push(
+        V(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${box.w}" height="${box.h}" viewBox="0 0 ${box.w} ${box.h}"><path d="M${(ex - box.x).toFixed(1)} ${(ey - box.y).toFixed(1)}L${(px - box.x).toFixed(1)} ${(py - box.y).toFixed(1)}" stroke="${hex}" stroke-width="1" stroke-dasharray="2 3"/></svg>`,
+          { name: 'pole line', ...box },
+        ),
+      )
+      marker(
+        'elbow.R pole',
+        pole,
+        `<path d="M10 3L17 10L10 17L3 10Z" fill="#17181b" stroke="${hex}" stroke-width="2"/>`,
+      )
+      marker(
+        'look-at',
+        [j.head[0] - 9, j.head[1] - 2],
+        `<circle cx="10" cy="10" r="6" fill="none" stroke="${hex}" stroke-width="2"/><path d="M10 1v5M10 14v5M1 10h5M14 10h5" stroke="${hex}" stroke-width="2"/>`,
+      )
+    }
     handle('hips', j.hips)
+    handle('chest', j.chest)
     handle('head', j.head)
     handle('hand.R', j.hands[0], { sel: o.sel === 'hand.R' })
     handle('hand.L', j.hands[1])
@@ -1475,6 +1518,7 @@ export function suiteParts(S, P, D) {
         sel: 'hand.R',
         pinFeet: true,
         limit: true,
+        poles: true,
         ghost: [6, 58],
       })
       const e = at(rig.joints.elbows[0][0], rig.joints.elbows[0][1])
@@ -1733,7 +1777,7 @@ export function suiteParts(S, P, D) {
           pill('arm · two-bone IK', { color: 'text/dim', mono: true }),
         ),
         T(
-          'Drag the hand and the elbow follows, inside its limit. Pinned feet stay put while you move the hips.',
+          'Drag the hand and the elbow follows; drag the diamond to point the elbow. A joint turns amber at its limit and red out of reach. Pinned feet stay put.',
           {
             style: 'Label/12',
             color: 'text/dim',
@@ -2037,17 +2081,29 @@ export function suiteParts(S, P, D) {
           ['crouch.drawer', 'keyed · 1.2 s · new', 'film', true],
           ['flinch', 'action', 'hand', false],
           ['sit', 'action', 'hand', false],
-          ['sleep', 'action', 'hand', false],
         ].map(([title, sub, icon, sel]) =>
           listRow({ title, sub, icon, h: 52, mono: true, sel, changed: sel, color: ED.studio.color }),
         ),
       ),
-      R(
-        { w: 'fill', pad: [12, 16] },
-        T(
-          'Walk, idle and the actions are procedural, from the figure’s gait. A keyed clip plays over them and holds only the parts it keys.',
-          { style: 'Label/12', color: 'text/faint', w: 'fill', lh: 16 },
+      F({ w: 'fill', h: 1, fill: 'border/default' }),
+      C(
+        { name: 'clip settings', w: 'fill', pad: [12, 12], gap: 8 },
+        eyebrow('crouch.drawer'),
+        stepperV('Length', '1.20', { unit: 's' }),
+        selectV('Loop', 'once', { mono: true }),
+        T('Moves', { style: 'Label/12', color: 'text/dim' }),
+        R(
+          { w: 'fill', gap: 6 },
+          chip('arms', { on: true, color: ED.studio.color }),
+          chip('torso', { on: true, color: ED.studio.color }),
         ),
+        R({ w: 'fill', gap: 6 }, chip('head', { on: true, color: ED.studio.color }), chip('legs', { x: 12 })),
+        T('Legs off: the walk keeps them. Steps play 12 poses a second; the game can stretch the length.', {
+          style: 'Label/12',
+          color: 'text/faint',
+          w: 'fill',
+          lh: 16,
+        }),
       ),
     )
     const inspector = region(
@@ -2072,12 +2128,6 @@ export function suiteParts(S, P, D) {
           { w: 'fill', gap: 8 },
           stepperV('At', '0.60', { unit: 's' }),
           selectV('Ease', 'smooth', { mono: true }),
-        ),
-        C(
-          { w: 'fill', gap: 4 },
-          T('Plays as', { style: 'Label/12', color: 'text/dim' }),
-          P.seg(['Pose steps', 'Smooth'], 0, { w: 296 }),
-          T('12 poses a second, from Ada’s brisk gait', { style: 'Mono/11', color: 'text/faint' }),
         ),
         toggleRow('Hold over the idle', true, 'Breath and sway stop moving this hand'),
         R(
@@ -2109,7 +2159,14 @@ export function suiteParts(S, P, D) {
         color: 'text/faint',
         items: [{ k: 'blk', t: 0, t1: dur, label: 'idle · breath and sway, procedural', dash: true }],
       },
-      { label: 'Events', color: 'ed/audio', items: [{ k: 'key', t: 1, label: 'pickup' }] },
+      {
+        label: 'Markers',
+        color: 'ed/audio',
+        items: [
+          { k: 'key', t: 0.3, label: 'contact' },
+          { k: 'key', t: 1, label: 'cue · pickup' },
+        ],
+      },
     ]
     const L = lanes({ w: TW, dur, y0: 78, rows, labelW: 96, padR: 16 })
     const dock = region(
