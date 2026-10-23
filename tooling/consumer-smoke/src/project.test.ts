@@ -5,7 +5,7 @@ const PNPM = 'pnpm@10.34.6+sha512.abc'
 const tools = {
   typescript: '7.0.2',
   typescript6: '6.0.3',
-  vite: '8.3.2',
+  vite: '8.3.3',
   svelte: '5.57.1',
   vitePluginSvelte: '7.3.1',
   zod: '4.6.5',
@@ -83,7 +83,7 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
       svelte: '5.57.1',
       typescript: '7.0.2',
       typescript6: 'npm:typescript@6.0.3',
-      vite: '8.3.2',
+      vite: '8.3.3',
       zod: '4.6.5',
     })
     expect(manifest.private).toBe(true)
