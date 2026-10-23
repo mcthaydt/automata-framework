@@ -1,43 +1,39 @@
 <!--
   @component
-  The Controls section of Settings (M4 spec §4.5, §7): a row per game action, its label and a rebind button for each
-  device the player can use, the button showing that device's prompt. Controller buttons appear once a pad has
-  connected (`devices`). A status line says each step of a rebind (`state`), the touch mode is offered only when the
-  game binds both buttons and swipes, and Reset puts every binding back. Every row is a 44 px target; long labels
-  wrap, and the targets never shrink.
+  The Controls tab's section (M4 spec §4.5, §7), laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at
+  a28dc44): one section per device the player can use, the one in their hand first and marked. Keyboard and
+  Controller list each action with one rebind button showing that device's prompt; the Controller appears once a pad
+  has connected (`devices`). Touch, when shown, says what the on-screen buttons do; they are the game's, so there is
+  nothing to rebind (§4.5). A status line says each step of a rebind (`state`), and Reset puts every binding back.
+  Every row is a 44 px target; long labels wrap, and the targets never shrink.
 -->
 <script lang="ts">
 import Button from '../controls/Button.svelte'
-import OptionGroup from '../layout/OptionGroup.svelte'
 import Prompt from '../prompts/Prompt.svelte'
-import type { PromptCopy, PromptGlyphs } from '../prompts/prompt-label'
+import type { PromptCopy, PromptDevice, PromptGlyphs } from '../prompts/prompt-label'
 import {
   type ControlsCopy,
   type ControlsRow,
   type ControlsState,
-  type ControlsTouchMode,
   controlsMessage,
   type RebindDevice,
 } from './controls-section'
 
 interface Props {
   rows: readonly ControlsRow[]
+  /** The devices the player can rebind: the keyboard, and the controller once a pad has connected. */
   devices: readonly RebindDevice[]
-  /** The labels of the pad in use, for the controller column. */
+  /** Whether to say what the on-screen buttons do: the game has them and the player can touch. */
+  touch?: boolean | undefined
+  /** The device in the player's hand: its section comes first, marked. */
+  inUse: PromptDevice
+  /** The labels of the pad in use, for the controller section. */
   glyphs: PromptGlyphs
   promptCopy: PromptCopy
   /** The keyboard's layout map (`readKeyboardLayout`), when the browser has one. */
   layout?: ReadonlyMap<string, string> | undefined
   copy: ControlsCopy
   state: ControlsState
-  /** The touch modes the game offers and the player's; a choice only with both. */
-  touch?:
-    | {
-        readonly modes: readonly ControlsTouchMode[]
-        readonly value: ControlsTouchMode
-        readonly onchange: (mode: ControlsTouchMode) => void
-      }
-    | undefined
   onrebind: (action: string, device: RebindDevice) => void
   onreset: () => void
 }
@@ -46,18 +42,25 @@ interface Props {
 const {
   rows,
   devices,
+  touch = false,
+  inUse,
   glyphs,
   promptCopy,
   layout,
   copy,
   state: current,
-  touch,
   onrebind,
   onreset,
 }: Props = $props()
 
 const labelOf = (action: string): string => rows.find((row) => row.id === action)?.label ?? action
 const message = $derived(controlsMessage(current, copy, labelOf))
+// The device sections, the one in use first, then keyboard, controller and touch.
+const shown = $derived.by((): PromptDevice[] => {
+  const all: PromptDevice[] = [...devices, ...(touch ? (['touch'] as const) : [])]
+  return all.includes(inUse) ? [inUse, ...all.filter((device) => device !== inUse)] : all
+})
+const touchRows = $derived(rows.filter((row) => row.binding.touch))
 const waitingOn = (action: string, device: RebindDevice): boolean =>
   current.kind === 'capturing' && current.action === action && current.device === device
 
@@ -70,44 +73,54 @@ $effect(() => {
 })
 </script>
 
-<section bind:this={root} class="af-controls" data-settings-section="controls" data-state={current.kind}>
-  <h3 class="af-settings__heading">{copy.title}</h3>
+<section
+  bind:this={root}
+  class="af-controls"
+  data-settings-section="controls"
+  data-state={current.kind}
+  aria-label={copy.title}
+>
   <p class="af-controls__message" role="status" data-controls-message>{message}</p>
-  <ul class="af-controls__rows">
-    {#each rows as row (row.id)}
-      <li class="af-controls__row" data-control-row={row.id}>
-        <span class="af-controls__label">{row.label}</span>
-        <span class="af-controls__binds">
-          {#each devices as device (device)}
-            <button
-              type="button"
-              class="af-control af-controls__bind"
-              data-rebind={device}
-              data-capturing={waitingOn(row.id, device) ? '' : undefined}
-              aria-label={copy.rebind(row.label, copy[device])}
-              onclick={() => onrebind(row.id, device)}
-            >
-              {#if waitingOn(row.id, device)}
-                {copy.press}
-              {:else}
-                <Prompt binding={row.binding} {device} {glyphs} copy={promptCopy} {layout} />
-              {/if}
-            </button>
+  {#each shown as device (device)}
+    <section class="af-controls__device" data-controls-device={device} data-in-use={device === inUse ? '' : undefined}>
+      <h3 class="af-settings__heading">
+        {copy[device]}
+        {#if device === inUse}<span class="af-controls__in-use">{copy.inUse}</span>{/if}
+      </h3>
+      <ul class="af-controls__rows">
+        {#if device === 'touch'}
+          {#each touchRows as row (row.id)}
+            <li class="af-controls__row" data-control-row={row.id}>
+              <span class="af-controls__label">{row.label}</span>
+              <span class="af-controls__prompt">
+                <Prompt binding={row.binding} device="touch" {glyphs} copy={promptCopy} {layout} />
+              </span>
+            </li>
           {/each}
-        </span>
-      </li>
-    {/each}
-  </ul>
-  {#if touch !== undefined && touch.modes.length > 1}
-    <div data-controls-touch-mode>
-      <OptionGroup
-        label={copy.touchMode}
-        options={touch.modes.map((mode) => ({ value: mode, label: copy.touchModes[mode] }))}
-        value={touch.value}
-        onchange={(mode) => touch.onchange(mode as ControlsTouchMode)}
-      />
-    </div>
-  {/if}
+        {:else}
+          {#each rows as row (row.id)}
+            <li class="af-controls__row" data-control-row={row.id}>
+              <span class="af-controls__label">{row.label}</span>
+              <button
+                type="button"
+                class="af-control af-controls__bind"
+                data-rebind={device}
+                data-capturing={waitingOn(row.id, device) ? '' : undefined}
+                aria-label={copy.rebind(row.label, copy[device])}
+                onclick={() => onrebind(row.id, device)}
+              >
+                {#if waitingOn(row.id, device)}
+                  {copy.press}
+                {:else}
+                  <Prompt binding={row.binding} {device} {glyphs} copy={promptCopy} {layout} />
+                {/if}
+              </button>
+            </li>
+          {/each}
+        {/if}
+      </ul>
+    </section>
+  {/each}
   <div class="af-controls__reset">
     <Button kind="ghost" testId="controls-reset" onclick={onreset}>{copy.reset}</Button>
   </div>
@@ -118,6 +131,21 @@ $effect(() => {
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+
+  .af-controls__device {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .af-controls__in-use {
+    margin-inline-start: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--af-accent);
+    color: var(--af-on-accent);
+    font: 600 var(--af-text-small) / 1.4 var(--af-font);
   }
 
   .af-controls__message:empty {
@@ -137,28 +165,21 @@ $effect(() => {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
     gap: 6px 12px;
     min-width: 0;
     min-height: var(--af-target);
   }
 
+  /* The action beside its input, as FloorFifty's rows: a label column, not the row's whole width. */
   .af-controls__label {
-    flex: 1 1 8em;
+    flex: 0 1 12em;
     overflow-wrap: anywhere;
   }
 
-  /* The buttons wrap inside the row, never past it: where a font sets "Press…" wider (WebKit on macOS at TV scale,
-     780 x 270), a button moves to the next line or wraps its words, and stays whole inside the scroll list. */
-  .af-controls__binds {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    min-width: 0;
-    max-width: 100%;
-  }
-
+  /* One button a row, kept whole inside the scroll list: where a font sets "Press…" wider (WebKit on macOS at TV
+     scale, 780 x 270), it wraps its words rather than overflow. */
   .af-controls__bind {
+    flex: none;
     min-width: min(calc(var(--af-target) * 2), 100%);
     max-width: 100%;
     white-space: normal;

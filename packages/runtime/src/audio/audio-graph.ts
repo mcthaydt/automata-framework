@@ -15,6 +15,8 @@ export type AudioContextLike = Pick<
   | 'destination'
   | 'createGain'
   | 'createBufferSource'
+  | 'createBuffer'
+  | 'sampleRate'
   | 'decodeAudioData'
   | 'resume'
   | 'suspend'

@@ -144,6 +144,20 @@ describe('makeLocale (PRODUCT spec §4 items 2 and 4)', () => {
     expect(saves.values.has(LOCALE_SAVE_KEY)).toBe(false)
   })
 
+  // The Settings Language group's selected option (redo step 9): a saved pick, or null for Automatic.
+  it('says the player’s choice: the saved locale, a new pick, or null for Automatic', async () => {
+    await withLocale({ saves: fakeSaves({ [LOCALE_SAVE_KEY]: 'fr' }) }, (locale) =>
+      Effect.sync(() => {
+        expect(locale.choice).toBe('fr')
+        locale.set('ar')
+        expect(locale.choice).toBe('ar')
+        locale.set(null)
+        expect(locale.choice).toBeNull()
+      }),
+    )
+    await withLocale({}, (locale) => Effect.sync(() => expect(locale.choice).toBeNull()))
+  })
+
   it('refuses a locale the game does not ship, naming it', async () => {
     await withLocale({}, (locale) =>
       Effect.sync(() => {

@@ -11,17 +11,29 @@ import { settleLayout } from '../testing/settle'
 // target; the sections scroll inside their list, so Back and the first row stay reachable on a short screen.
 
 /**
- * What a player must reach without scrolling: Back, and the first row's rebind buttons; while a capture waits, the
- * button that waits (the section keeps it in view), as the row's other buttons may wrap below it on a short screen.
+ * What a player must reach without scrolling: the dialog's Close (named Back), Back under the dialog where the band is
+ * tall enough to draw it, the tabs, and the tab's first row: on Settings the first group's
+ * first choice (Language's Automatic), on Controls the first row's rebind button in the section of the device in use; while a capture waits, the button that waits (the section
+ * keeps it in view), as the row's other buttons may wrap below it on a short screen.
  */
 function essentials(show: SettingsShow, keyboard: boolean): HTMLElement[] {
   // With the keyboard up the frame scrolls what does not fit (screen-frame.layout.test.ts holds that).
   if (keyboard) return []
   const first =
-    show === 'settings-capturing'
-      ? [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-capturing]')]
-      : [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-rebind]')]
-  return [byTestId('corner-back'), ...first]
+    show === 'settings' || show === 'settings-short'
+      ? [document.querySelector<HTMLElement>('[data-settings-section] label.af-option') as HTMLElement]
+      : show === 'controls-capturing'
+        ? [...document.querySelectorAll<HTMLElement>('[data-control-row="left"] [data-capturing]')]
+        : [...document.querySelectorAll<HTMLElement>('[data-in-use] [data-control-row="left"] [data-rebind]')]
+  const close = document.querySelector<HTMLElement>('[data-testid="settings-screen"] [data-modal-close]')
+  const back = document.documentElement.dataset.height === undefined ? [byTestId('settings-back')] : []
+  return [
+    ...(close === null ? [] : [close]),
+    ...back,
+    byTestId('settings-tab-settings'),
+    byTestId('settings-tab-controls'),
+    ...first,
+  ]
 }
 
 describe('Settings screen layout contract', () => {
@@ -33,6 +45,10 @@ describe('Settings screen layout contract', () => {
         const conditions = publishConditions(document.documentElement, size, variant)
         const fixture = mountFixture(SettingsFixture, { show })
         await settleLayout()
+        if (show.startsWith('controls')) {
+          byTestId('settings-tab-controls').click()
+          await settleLayout()
+        }
         for (const problem of checkLayout(conditions, essentials(show, variant.keyboard !== undefined)))
           problems.push(`${variant.name}: ${problem}`)
         await fixture.unmount()
@@ -40,4 +56,106 @@ describe('Settings screen layout contract', () => {
       expect(problems).toEqual([])
     })
   }
+})
+
+describe('Settings screen tabs', () => {
+  // Two sections across is for a tab with several groups (FloorFifty: Language beside Audio); a tab of one section,
+  // Controls, takes the dialog's width, its device sections one under another as FloorFifty's Controls tab.
+  test('a tab with one section spans the dialog on a short, wide band', async () => {
+    const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'iphone-14-landscape')
+    if (size === undefined) throw new Error('no iphone-14-landscape')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
+    const fixture = mountFixture(SettingsFixture, { show: 'controls' })
+    await settleLayout()
+    byTestId('settings-tab-controls').click()
+    await settleLayout()
+    const sections = document.querySelector('.af-settings__sections')?.getBoundingClientRect()
+    const controls = document.querySelector('[data-settings-section="controls"]')?.getBoundingClientRect()
+    await fixture.unmount()
+    expect(Math.round(controls?.width ?? 0)).toBe(Math.round(sections?.width ?? -1))
+  })
+
+  // Two groups across where the dialog is 560 px wide: Language beside Audio, as FloorFifty's.
+  test('sets Language beside Audio on a short, wide band, and Audio under Language on an upright phone', async () => {
+    const place = async (name: string) => {
+      const size = REFERENCE_SIZES.find((candidate) => candidate.name === name)
+      if (size === undefined) throw new Error(`no ${name}`)
+      await page.viewport(size.width, size.height)
+      publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
+      const fixture = mountFixture(SettingsFixture, { show: 'settings' })
+      await settleLayout()
+      const display = document.querySelector('[data-settings-section="language"]')?.getBoundingClientRect()
+      const audio = document.querySelector('[data-settings-section="audio"]')?.getBoundingClientRect()
+      await fixture.unmount()
+      if (display === undefined || audio === undefined) throw new Error('no Language or Audio group')
+      return {
+        beside: audio.left >= display.right && Math.abs(audio.top - display.top) < 1,
+        under: audio.top >= display.bottom,
+      }
+    }
+    expect((await place('iphone-14-landscape')).beside).toBe(true)
+    expect((await place('iphone-14')).under).toBe(true)
+  })
+
+  // FloorFifty's volume rows: the bus's name, its slider and its percentage on one 44 px row, not a label above a track.
+  test('sets each audio slider on one row: name, track and percentage', async () => {
+    for (const name of ['iphone-14', 'iphone-14-landscape']) {
+      const size = REFERENCE_SIZES.find((candidate) => candidate.name === name)
+      if (size === undefined) throw new Error(`no ${name}`)
+      await page.viewport(size.width, size.height)
+      publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
+      const fixture = mountFixture(SettingsFixture, { show: 'settings' })
+      await settleLayout()
+      const music = document.querySelector('[data-audio-bus="music"]') as HTMLElement
+      const parts = ['label', 'input', '.af-slider__value'].map((selector) =>
+        (music.querySelector(selector) as HTMLElement).getBoundingClientRect(),
+      )
+      const middles = parts.map((box) => box.top + box.height / 2)
+      await fixture.unmount()
+      expect(Math.max(...middles) - Math.min(...middles), `${name}: one row`).toBeLessThan(4)
+    }
+  })
+
+  // The Desk, 2026-10-18: on a phone Settings fills the band's height as FloorFifty's does, the list taking the rest
+  // and Back at the bottom, rather than a small card in the middle of the screen.
+  test('fills the band’s height on a phone, upright and sideways; keeps to its content on a desktop', async () => {
+    const measure = async (name: string) => {
+      const size = REFERENCE_SIZES.find((candidate) => candidate.name === name)
+      if (size === undefined) throw new Error(`no ${name}`)
+      await page.viewport(size.width, size.height)
+      publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
+      const fixture = mountFixture(SettingsFixture, { show: 'settings-short' })
+      await settleLayout()
+      const scrim = document.querySelector('[data-modal-scrim]') as HTMLElement
+      const dialog = byTestId('settings-screen').getBoundingClientRect()
+      const style = getComputedStyle(scrim)
+      const room =
+        scrim.getBoundingClientRect().height - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+      await fixture.unmount()
+      return dialog.height / room
+    }
+    expect(await measure('iphone-14')).toBeGreaterThan(0.99)
+    expect(await measure('iphone-14-landscape')).toBeGreaterThan(0.99)
+    expect(await measure('desktop-laptop')).toBeLessThan(0.99)
+  })
+
+  // The Desk, 2026-10-18: on a desktop Settings is not a narrow column with "+1 more"; it sets its groups two across,
+  // Language beside Audio, and the groups a desktop shows fit without scrolling. (Touch controls, last in the fixture,
+  // shows only on a coarse pointer, so a desktop never has it.)
+  test('sets its groups two across on a desktop, and its desktop groups fit without scrolling', async () => {
+    const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'desktop-720p')
+    if (size === undefined) throw new Error('no desktop-720p')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, VARIANTS[0] ?? { name: 'rest' })
+    const fixture = mountFixture(SettingsFixture, { show: 'settings' })
+    await settleLayout()
+    const language = document.querySelector('[data-settings-section="language"]')?.getBoundingClientRect()
+    const audio = document.querySelector('[data-settings-section="audio"]')?.getBoundingClientRect()
+    const list = document.querySelector('[data-settings-tab] [data-scroll-region]')?.getBoundingClientRect()
+    const display = document.querySelector('[data-settings-section="display"]')?.getBoundingClientRect()
+    await fixture.unmount()
+    expect(audio !== undefined && language !== undefined && audio.left >= language.right).toBe(true)
+    expect(display !== undefined && list !== undefined && display.bottom <= list.bottom + 1).toBe(true)
+  })
 })

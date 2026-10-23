@@ -22,9 +22,10 @@ export { default as Dialog } from './dialog/Dialog.svelte'
 export { default as Modal } from './dialog/Modal.svelte'
 export type { ModalProps } from './dialog/modal-props'
 export { default as Sheet } from './dialog/Sheet.svelte'
-export type { LandscapeGateCopy, RotateHintCopy } from './display/display-copy'
+export type { LandscapeGateCopy, RotateHintCopy, RotateToastCopy } from './display/display-copy'
 export { default as LandscapeGate } from './display/LandscapeGate.svelte'
 export { default as RotateHint } from './display/RotateHint.svelte'
+export { default as RotateToast } from './display/RotateToast.svelte'
 export { interceptBackGesture, sendBack } from './focus/back-gesture'
 export {
   CURSOR_IDLE_MS,
@@ -118,6 +119,14 @@ export {
   promptView,
   readKeyboardLayout,
 } from './prompts/prompt-label'
+export { default as AudioSection } from './settings/AudioSection.svelte'
+export {
+  AUDIO_BUSES,
+  type AudioBus,
+  type AudioCopy,
+  type AudioSectionChange,
+  type AudioValue,
+} from './settings/audio-section'
 export { default as ControlsSection } from './settings/ControlsSection.svelte'
 export {
   type ControlsCopy,
@@ -129,8 +138,14 @@ export {
 } from './settings/controls-section'
 export { default as DisplaySection } from './settings/DisplaySection.svelte'
 export { DISPLAY_QUALITIES, type DisplayCopy, type DisplayQuality } from './settings/display-section'
+export { default as LanguageSection } from './settings/LanguageSection.svelte'
+export { endonymOf, type LanguageCopy } from './settings/language-section'
 export { default as SettingsScreen } from './settings/SettingsScreen.svelte'
-export type { SettingsSection } from './settings/settings-screen'
+export type { SettingsSection, SettingsTab } from './settings/settings-screen'
+export { default as TouchSection } from './settings/TouchSection.svelte'
+export type { TouchCopy } from './settings/touch-section'
+export { default as VibrationSection } from './settings/VibrationSection.svelte'
+export type { VibrationCopy } from './settings/vibration-section'
 export { UI_SLOT_NAMES, type UiComponent, type UiSlotName } from './slots/ui-slot'
 export { default as BootFailurePanel } from './status/BootFailurePanel.svelte'
 export {

@@ -128,6 +128,16 @@ export function fakeAudioContext(
       gains.push(node)
       return node as unknown as GainNode
     },
+    sampleRate: 48000,
+    /** A buffer the graph fills itself (the volume sample's tone): named `tone`, so `started` can say so. */
+    createBuffer(_channels: number, length: number, sampleRate: number) {
+      const data = new Float32Array(length)
+      return {
+        alias: 'tone',
+        duration: length / sampleRate,
+        getChannelData: () => data,
+      } as unknown as AudioBuffer
+    },
     createBufferSource() {
       let target: unknown
       const alias = () => (node.buffer as unknown as { alias?: string } | null)?.alias ?? '?'

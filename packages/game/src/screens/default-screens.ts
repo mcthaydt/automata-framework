@@ -2,8 +2,11 @@ import '@mcthaydt/automata-ui/theme.css'
 import './screens.css'
 import {
   AppLoop,
+  Audio,
+  AudioBuses,
   displaySettingsSchema,
   Flow,
+  Haptics,
   inputSettingsSchema,
   Leaderboards,
   makeInput,
@@ -19,6 +22,8 @@ import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { CursorRunner, InputMethodTracker, type LeaderboardCopy, sendBack } from '@mcthaydt/automata-ui'
 import { Effect, SubscriptionRef } from 'effect'
 import type { InputMap } from '../input/keys.ts'
+import { applyAudio, changeAudio, savedAudio } from './audio-settings.ts'
+import { savedHaptics } from './haptics-settings.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
 import {
@@ -100,6 +105,9 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const flow = yield* Flow
         // The player's saved quality reaches the stage before play draws anything (M4.4).
         const { store } = yield* Settings
+        // And the saved mix reaches the audio, so the first sound is at the player's levels (M5.4).
+        applyAudio({ audio: yield* Audio, buses: yield* AudioBuses }, savedAudio(store))
+        ;(yield* Haptics).setEnabled(savedHaptics(store))
         if (game.setQuality !== undefined && store !== undefined)
           game.setQuality(
             displaySettingsSchema
@@ -255,18 +263,19 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
             ? undefined
             : { copy: BOARD_COPY, load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
         const settings = (): void => void flow.dispatch('settings')
+        // Mute is the Audio group's setting (M5.4), as FloorFifty's pause has it.
+        const { store } = yield* Settings
+        const targets = { audio: yield* Audio, buses: yield* AudioBuses }
         yield* show(PausedScreen, layer, {
           onResume: resume,
           onQuit: quit,
           onSettings: settings,
+          muted: savedAudio(store).muted,
+          onMute: (muted: boolean) => changeAudio(targets, store, { ...savedAudio(store), muted }),
           message,
           board,
         })
-        yield* listen(target, 'keydown', (event) => {
-          if (event.code !== 'Escape' || event.repeat) return
-          event.preventDefault()
-          resume()
-        })
+        // Escape is the dialog's (Modal): it steps back from the Quit confirm, and from the menu it resumes.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
         yield* noticeUnsupportedPads(layer, toldPads)

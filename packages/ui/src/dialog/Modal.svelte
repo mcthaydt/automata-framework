@@ -22,6 +22,9 @@ const {
   onclose,
   onbackdrop,
   children,
+  head,
+  wide = false,
+  fill = false,
   actions,
   testId,
   anchor = 'center',
@@ -53,9 +56,14 @@ function onScrimClick(event: MouseEvent): void {
     aria-labelledby={titleId}
     tabindex="-1"
     data-testid={testId}
+    data-wide={wide ? '' : undefined}
+    data-fill={fill ? '' : undefined}
   >
     <div class="af-modal__head">
       <h2 id={titleId} class="af-modal__title">{title}</h2>
+      {#if head}
+        <div class="af-modal__head-extra">{@render head()}</div>
+      {/if}
       <button
         type="button"
         class="af-control af-control--ghost af-modal__close"
@@ -91,7 +99,10 @@ function onScrimClick(event: MouseEvent): void {
     background: var(--af-scrim);
   }
 
+  /* Its content lays out by the dialog's width (`@container af-dialog`), not the window's: Settings sets its
+     groups two across from 560 px (FloorFifty `Modal.svelte`). */
   .af-modal {
+    container: af-dialog / inline-size;
     box-sizing: border-box;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
@@ -105,6 +116,12 @@ function onScrimClick(event: MouseEvent): void {
     background: var(--af-panel);
     color: var(--af-ink);
     font: var(--af-text-body) / 1.4 var(--af-font);
+  }
+
+  /* On a phone a long body (Settings) is a sheet the band's height, as FloorFifty's: the list takes the rest and the
+     actions sit at the bottom, rather than a small card that grows and shrinks with the tab. */
+  :global(:is([data-form-factor="phone-portrait"], [data-form-factor="phone-landscape"])) .af-modal[data-fill] {
+    height: 100%;
   }
 
   .af-modal:focus {
@@ -128,10 +145,34 @@ function onScrimClick(event: MouseEvent): void {
     gap: 8px;
   }
 
+  /* A long body (`wide`: Settings) widens wherever there is room, so its groups go two across: on a short band (a phone
+     held sideways, a 900 x 600 window) rather than one group above a "+N more" (FloorFifty's visual audit,
+     2026-10-05), and on a desktop rather than a narrow column (the Desk, 2026-10-18). Others, Pause among them, keep
+     their width, as FloorFifty's do; a sheet keeps its own. */
+  .af-modal-scrim:not([data-anchor="bottom"]) .af-modal[data-wide] {
+    max-width: 44rem;
+  }
+
   .af-modal__head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+  }
+
+  /* Under the title and Close on a narrow dialog; between them where the dialog has the width, so a short band
+     keeps a row of its list rather than a row of tabs. */
+  .af-modal__head-extra {
+    order: 1;
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+
+  @container af-dialog (min-width: 480px) {
+    .af-modal__head-extra {
+      order: 0;
+      flex: 0 1 auto;
+    }
   }
 
   .af-modal__title {
@@ -146,7 +187,11 @@ function onScrimClick(event: MouseEvent): void {
     padding: 0;
   }
 
+  /* The ring's room inside the body that scrolls, so a focused control's ring is never cut by its edge; the negative
+     margin keeps the content aligned with the head. */
   .af-modal__body {
+    margin: calc(var(--af-ring-room) * -1);
+    padding: var(--af-ring-room);
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;

@@ -4071,6 +4071,88 @@ text field until its caret meets the end the arrow points at. Multi-line text ke
 function arrowKeyNav(event: KeyboardEvent): NavDirection | undefined;
 ```
 
+#### `AUDIO_BUSES` (const)
+
+The buses the Audio group offers, in the order it shows them.
+
+```ts
+const AUDIO_BUSES: readonly AudioBus[];
+```
+
+#### `AudioBus` (type)
+
+An audio bus (runtime's `AudioBusName`).
+
+```ts
+type AudioBus = 'master' | 'music' | 'sfx' | 'ui' | 'voice';
+```
+
+#### `AudioCopy` (interface)
+
+Every word the Audio group shows, in the game's language.
+
+```ts
+interface AudioCopy {
+    readonly title: string;
+    readonly mute: string;
+    /** FloorFifty's "Mute in background": silent while another window has focus. */
+    readonly muteUnfocused: string;
+    /** A toggle's state words. */
+    readonly on: string;
+    readonly off: string;
+    readonly buses: Readonly<Record<AudioBus, string>>;
+    /** A gain as the player reads it: "50%". */
+    percent(value: number): string;
+    /** When sound could not start (A-e). */
+    readonly unavailable: string;
+    /** While the host's own volume is below full. */
+    readonly hostVolume: string;
+}
+```
+
+#### `AudioSection` (const)
+
+The Audio group of the Settings tab (M5 spec §7, M5.4), laid out as FloorFifty's (`SettingsPanel.svelte` at
+a28dc44): Mute, Mute in the background, then a slider per bus with its percentage. Every change is reported at
+once (`onchange`); the game applies and saves it, so there is no Apply. When sound could not start
+(`available` false, A-e) the group says so and its controls stay shown but disabled. While the host's own volume is
+below full, a note says it also applies, so a quiet game is not taken for a broken slider.
+
+```ts
+const AudioSection: import("svelte").Component<Props, {}, "">;
+type AudioSection = ReturnType<typeof AudioSection>;
+```
+
+#### `AudioSectionChange` (type)
+
+One change in the Audio group: a toggle's new state, or a bus's new gain.
+
+```ts
+type AudioSectionChange = {
+    readonly kind: 'muted';
+    readonly value: boolean;
+} | {
+    readonly kind: 'muteUnfocused';
+    readonly value: boolean;
+} | {
+    readonly kind: 'gain';
+    readonly bus: AudioBus;
+    readonly value: number;
+};
+```
+
+#### `AudioValue` (interface)
+
+The player's audio choices (runtime's `AudioSettings`): the mutes, and a gain per bus from 0 to 1.
+
+```ts
+interface AudioValue {
+    readonly muted: boolean;
+    readonly muteUnfocused: boolean;
+    readonly gains: Readonly<Record<AudioBus, number>>;
+}
+```
+
 #### `BarAction` (interface)
 
 _No doc comment._
@@ -4306,14 +4388,15 @@ Every word the Controls section shows, in the game's language.
 ```ts
 interface ControlsCopy {
     readonly title: string;
+    /** Each device section's heading. */
     readonly keyboard: string;
     readonly gamepad: string;
+    readonly touch: string;
+    /** The mark on the section of the device in the player's hand. */
+    readonly inUse: string;
     readonly reset: string;
     /** On the button that waits for a press. */
     readonly press: string;
-    /** The touch mode choice's name, and each mode's. */
-    readonly touchMode: string;
-    readonly touchModes: Readonly<Record<ControlsTouchMode, string>>;
     /** A rebind button's name for assistive technology: "Change Jump on Keyboard". */
     rebind(action: string, device: string): string;
     capturing(action: string, device: string, secondsLeft: number): string;
@@ -4347,11 +4430,12 @@ interface ControlsRow {
 
 #### `ControlsSection` (const)
 
-The Controls section of Settings (M4 spec §4.5, §7): a row per game action, its label and a rebind button for each
-device the player can use, the button showing that device's prompt. Controller buttons appear once a pad has
-connected (`devices`). A status line says each step of a rebind (`state`), the touch mode is offered only when the
-game binds both buttons and swipes, and Reset puts every binding back. Every row is a 44 px target; long labels
-wrap, and the targets never shrink.
+The Controls tab's section (M4 spec §4.5, §7), laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at
+a28dc44): one section per device the player can use, the one in their hand first and marked. Keyboard and
+Controller list each action with one rebind button showing that device's prompt; the Controller appears once a pad
+has connected (`devices`). Touch, when shown, says what the on-screen buttons do; they are the game's, so there is
+nothing to rebind (§4.5). A status line says each step of a rebind (`state`), and Reset puts every binding back.
+Every row is a 44 px target; long labels wrap, and the targets never shrink.
 
 ```ts
 const ControlsSection: import("svelte").Component<Props, {}, "">;
@@ -4521,6 +4605,15 @@ shown and never changed here.
 ```ts
 const DisplaySection: import("svelte").Component<Props, {}, "">;
 type DisplaySection = ReturnType<typeof DisplaySection>;
+```
+
+#### `endonymOf` (function)
+
+A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`. An engine without
+it, or a tag it cannot name, gives the tag back, so the picker never shows nothing.
+
+```ts
+function endonymOf(tag: string): string;
 ```
 
 #### `enterFullscreen` (function)
@@ -5045,6 +5138,30 @@ Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
 type LandscapeGateState = 'none' | 'fullscreen' | 'rotate-or-install';
 ```
 
+#### `LanguageCopy` (interface)
+
+Every word the Language group shows besides the languages' own names, in the game's language.
+
+```ts
+interface LanguageCopy {
+    readonly title: string;
+    /** The choice that follows the host and the browser (`Locale.set(null)`). */
+    readonly automatic: string;
+}
+```
+
+#### `LanguageSection` (const)
+
+The Language group of the Settings tab (Owner, 2026-10-18), laid out as FloorFifty's (`LanguagePicker.svelte` at
+a28dc44): Automatic, then each of the game's languages by its endonym, each in its own `lang` so a screen reader
+says it in that language. A pick is reported at once (`Locale.set`); nothing remounts, so focus stays on it.
+FloorFifty's flags are its own art; a game names its languages here, and may give its own names (`names`).
+
+```ts
+const LanguageSection: import("svelte").Component<Props, {}, "">;
+type LanguageSection = ReturnType<typeof LanguageSection>;
+```
+
 #### `LeaderboardCopy` (interface)
 
 Every word the panel shows, in the game's language.
@@ -5169,6 +5286,12 @@ interface ModalProps {
     /** A tap on the dimmed page around the panel; absent, such a tap does nothing. */
     onbackdrop?: (() => void) | undefined;
     children?: Snippet | undefined;
+    /** What sits with the title (Settings' tabs): beside it where the dialog is 480 px wide, under it where not. */
+    head?: Snippet | undefined;
+    /** A long body (Settings) that widens on a short, wide band to set its groups two across; others keep their width. */
+    wide?: boolean | undefined;
+    /** A dialog that fills a phone's band, its body taking the rest and its actions at the bottom (Settings). */
+    fill?: boolean | undefined;
     /** The buttons, in reading order. Mark the safe one with `data-initial-focus`. */
     actions?: Snippet | undefined;
     testId?: string | undefined;
@@ -5609,6 +5732,30 @@ interface RotateHintCopy {
 }
 ```
 
+#### `RotateToast` (const)
+
+The rotate toast (Owner amendment to M4 spec §4.9, 2026-10-18; FloorFifty `RotateHint.svelte` at a28dc44): for a
+game with `rotateHint: 'toast'`, a small message at the top on a phone held the other way, "Turn your phone for a
+bigger view", with an OK. It covers nothing and pauses nothing; the only part a thumb can hit is the OK, at 44 px.
+
+```ts
+const RotateToast: import("svelte").Component<Props, {}, "">;
+type RotateToast = ReturnType<typeof RotateToast>;
+```
+
+#### `RotateToastCopy` (interface)
+
+The rotate toast's words (`rotateHint: 'toast'`, FloorFifty's): the advice, and its OK.
+
+```ts
+interface RotateToastCopy {
+    readonly text: string;
+    readonly ok: string;
+    /** The OK's name for assistive technology: what it dismisses. */
+    readonly dismiss: string;
+}
+```
+
 #### `ScreenFrame` (const)
 
 _No doc comment._
@@ -5656,10 +5803,14 @@ function sendBack(doc: Document): boolean;
 
 #### `SettingsScreen` (const)
 
-The core Settings screen (M4 spec §4.8, M4-D8): the screen frame with Back in its corner row, the title, and the
-sections as rows of one scroll list, so on a short screen the list scrolls and Back stays put. The default screens
-give it Controls and Display; extensions add theirs through the `settings.sections` slot. A kit's styled screen
-replaces it by flow (PRODUCT.6).
+The core Settings screen (M4 spec §4.8, M4-D8), laid out and behaving as FloorFifty's settings
+(`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and
+function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as
+one dialog changing its view. Tabs stay put and the chosen tab's sections scroll under them in one list that counts
+what is below; Back sits under the dialog, and Escape and the dialog's Close go back too. Where the dialog is 560 px
+wide (it widens on a short band) the sections go two across. The default screens give it Display and Controls;
+extensions add theirs to the Settings tab through the `settings.sections` slot. A kit's styled screen replaces it
+by flow (PRODUCT.6).
 
 ```ts
 const SettingsScreen: import("svelte").Component<Props, {}, "">;
@@ -5676,6 +5827,18 @@ type SettingsSection = {
 } | {
     readonly component: UiComponent;
 };
+```
+
+#### `SettingsTab` (interface)
+
+A tab of the Settings screen (FloorFifty's Settings and Controls): its label and its sections, in order.
+
+```ts
+interface SettingsTab {
+    readonly id: string;
+    readonly label: string;
+    readonly sections: readonly SettingsSection[];
+}
 ```
 
 #### `SETTLE_DELAYS_MS` (const)
@@ -5985,6 +6148,29 @@ interface TouchControlsProps {
 }
 ```
 
+#### `TouchCopy` (interface)
+
+Every word the Touch controls group shows, in the game's language.
+
+```ts
+interface TouchCopy {
+    readonly title: string;
+    /** The mode choice's name. */
+    readonly mode: string;
+    readonly modes: Readonly<Record<ControlsTouchMode, string>>;
+}
+```
+
+#### `TouchSection` (const)
+
+The Touch controls group of the Settings tab (FloorFifty `SettingsPanel.svelte` at a28dc44): how touch drives play,
+on-screen buttons or swipes, as an option group. The game shows it on a coarse pointer when it offers both modes.
+
+```ts
+const TouchSection: import("svelte").Component<Props, {}, "">;
+type TouchSection = ReturnType<typeof TouchSection>;
+```
+
 #### `TouchTarget` (interface)
 
 A button's action and where it is drawn, for `nearestTarget`.
@@ -6034,6 +6220,31 @@ _No doc comment._
 
 ```ts
 type UiSlotName = (typeof UI_SLOT_NAMES)[number];
+```
+
+#### `VibrationCopy` (interface)
+
+Every word the Vibration group shows, in the game's language.
+
+```ts
+interface VibrationCopy {
+    readonly title: string;
+    /** The toggle's name: a pad's rumble and a phone's buzz together. */
+    readonly toggle: string;
+    readonly on: string;
+    readonly off: string;
+}
+```
+
+#### `VibrationSection` (const)
+
+The Vibration group of the Settings tab (Owner, 2026-10-18; FloorFifty's rumble row in `SettingsPanel.svelte` at
+a28dc44): one toggle for a pad's rumble and a phone's buzz (`Haptics`). The game shows it only where the device can
+do either (`Haptics.supported`), so it never offers a switch that does nothing.
+
+```ts
+const VibrationSection: import("svelte").Component<Props, {}, "">;
+type VibrationSection = ReturnType<typeof VibrationSection>;
 ```
 
 #### `ViewportWindow` (interface)
