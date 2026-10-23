@@ -40,7 +40,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `@fontsource/ibm-plex-sans` | 5.3.0 | 2026-10-23 | editor lane (EDK.1): the editor kit's interface face (`packages/editor-kit`) (OFL-1.1), bundled so the editors load offline |
 | `playwright` | 1.63.0 | 2026-10-01 | Same as Ruken's `@playwright/test`: browsers for parity and DOM checks |
 | `pngjs` | 7.0.0 | 2026-10-17 | content lane (M5.6): decodes atlas frames and encodes atlas pages in `automata-content assets` (M5 spec §4.7). FloorFifty's version (`ac72660`, `packages/asset-contract`), already in the lockfile through `@vitest/browser`. Only the `./assets` subpath imports it, so it stays out of browser graphs |
-| `smol-toml` | 1.9.0 | 2026-10-11 | Same as Ruken: reads the TOML under `content/` in `@mcthaydt/automata-content` (M1.3 content spec §8) |
+| `smol-toml` | 1.9.0 | 2026-10-11 | Same as Ruken: reads the TOML under `content/` in `@mcthaydt/automata-content` (M1.3 content spec §8); writes the AF content export of the 2D editor (`packages/editor-2d`, ED2D.3) |
 | `subset-font` | 2.9.0 | 2026-10-18 | content lane (M5.5): cuts each language's font subset to woff2 (harfbuzz wasm) in `automata-content assets` (M5 spec §4.7). FloorFifty's version (`ac72660`, `packages/asset-contract/tools/subset-fonts.ts`). Build time only, through the `./assets` subpath; never in a game bundle |
 | `tsdown` | 0.23.0 | 2026-10-11 | Same as Ruken: builds every published package's `dist` (M2.4). With isolatedDeclarations it writes `.d.ts` with oxc and never needs TypeScript's JS API, which TypeScript 7 lacks |
 | `turbo` | 2.11.6 | 2026-10-01 | Same as Ruken: task runner, local cache only |

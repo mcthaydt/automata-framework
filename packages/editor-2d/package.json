@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@mcthaydt/automata-editor-kit": "workspace:*",
+    "smol-toml": "1.9.0",
     "zod": "4.6.5"
   },
   "devDependencies": {
