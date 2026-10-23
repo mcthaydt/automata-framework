@@ -1,5 +1,5 @@
 /// <reference path="./jsdom.d.ts" />
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
 import { SITE_ORIGIN } from '../src/lib/site.js'
@@ -58,7 +58,7 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     }
     const text = [doc.title, doc.querySelector('meta[name="description"]')?.getAttribute('content') ?? '', doc.body.textContent ?? ''].join('\n')
     for (const banned of BANNED_PHRASES) if (banned.pattern.test(text)) failures.push(`${file}: banned phrase "${banned.label}"`)
-    failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkFooter(file, doc))
+    failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkPreloadedScripts(root, file, doc), ...checkFooter(file, doc))
     for (const image of doc.querySelectorAll('img')) {
       // Decorative images say so with alt=""; a missing attribute is always a defect.
       if (!image.hasAttribute('alt')) failures.push(`${file}: <img src="${image.getAttribute('src')}"> has no alt`)
@@ -187,6 +187,34 @@ function checkPageResources(file: string, doc: Document, fontUrls: Set<string>):
   const preloadsFont = Array.from(doc.querySelectorAll('link[rel="preload"][as="font"][type="font/woff2"][crossorigin]'))
     .some(link => fontUrls.has(new URL(link.getAttribute('href') ?? '', pageUrl(file)).pathname))
   if (!preloadsFont) failures.push(`${file}: no <link rel="preload" as="font"> to a woff2 that a built @font-face uses`)
+  return failures
+}
+
+/**
+ * The most JavaScript, as built (before compression), that one page may ask the browser to modulepreload (QB.3h).
+ * Preloaded chunks start downloading before any script has run, so on a mobile connection they compete with the image
+ * and styles the first paint waits for. The home page and the gallery once preloaded 380 KB of example sources and had a
+ * 3.2 s LCP; the heaviest page now preloads about 276 KB, which this leaves room for. Raise it only with a
+ * Lighthouse run that still meets the LCP budget.
+ */
+export const MAX_PRELOADED_SCRIPT_BYTES = 320_000
+
+/** A page's modulepreload links exist in the build, and together stay within MAX_PRELOADED_SCRIPT_BYTES. */
+function checkPreloadedScripts(root: string, file: string, doc: Document): string[] {
+  const failures: string[] = []
+  const chunks: { path: string; bytes: number }[] = []
+  for (const link of doc.querySelectorAll('link[rel~="modulepreload"][href]')) {
+    const href = link.getAttribute('href')!
+    if (isOtherOrigin(href)) continue
+    const path = new URL(href, pageUrl(file)).pathname.slice(1)
+    if (!existsSync(join(root, path))) failures.push(`${file}: modulepreloads ${href}, which the build does not contain`)
+    else chunks.push({ path, bytes: statSync(join(root, path)).size })
+  }
+  const total = chunks.reduce((sum, chunk) => sum + chunk.bytes, 0)
+  if (total > MAX_PRELOADED_SCRIPT_BYTES) {
+    const largest = chunks.reduce((a, b) => (b.bytes > a.bytes ? b : a))
+    failures.push(`${file}: modulepreloads ${total} bytes of JavaScript, over the ${MAX_PRELOADED_SCRIPT_BYTES} byte budget (largest: ${largest.path}, ${largest.bytes} bytes)`)
+  }
   return failures
 }
 

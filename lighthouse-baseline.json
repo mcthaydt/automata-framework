@@ -1,45 +1,45 @@
 {
   "recordedAt": "2026-10-23",
-  "machine": "4-CPU Linux cloud container, load average 1.5 to 2 (Claude Code on the web)",
-  "browser": "HeadlessChrome/141.0.0.0",
+  "machine": "GitHub-hosted ubuntu-24.04 runner, Playwright v1.63.0-noble container",
+  "browser": "HeadlessChrome/153.0.0.0",
   "lighthouse": "12.6.1",
   "runsPerPage": 3,
   "pages": {
     "/": {
-      "performance": 0.62,
-      "lcpMs": 3163.409,
+      "performance": 0.87,
+      "lcpMs": 3505.07,
       "cls": 0,
-      "tbtMs": 1697.842,
-      "fcpMs": 2713.409,
-      "speedIndexMs": 2713.409,
-      "transferBytes": 420270
+      "tbtMs": 46,
+      "fcpMs": 2489.382,
+      "speedIndexMs": 3288.254,
+      "transferBytes": 382982
     },
     "/start": {
-      "performance": 0.66,
-      "lcpMs": 2561.462,
+      "performance": 0.95,
+      "lcpMs": 2593.208,
       "cls": 0,
-      "tbtMs": 2477.11,
-      "fcpMs": 2033.544,
-      "speedIndexMs": 2033.544,
-      "transferBytes": 351216
+      "tbtMs": 22,
+      "fcpMs": 2087.657,
+      "speedIndexMs": 2129.545,
+      "transferBytes": 216321
     },
     "/examples": {
-      "performance": 0.62,
-      "lcpMs": 2777.943,
+      "performance": 0.92,
+      "lcpMs": 2885.162,
       "cls": 0,
-      "tbtMs": 6434.812,
-      "fcpMs": 2558.406,
-      "speedIndexMs": 2558.406,
-      "transferBytes": 541089
+      "tbtMs": 27.5,
+      "fcpMs": 2378.301,
+      "speedIndexMs": 2378.301,
+      "transferBytes": 238003
     },
     "/docs": {
       "performance": 0.98,
-      "lcpMs": 1973.587,
+      "lcpMs": 2071.731,
       "cls": 0,
       "tbtMs": 0,
-      "fcpMs": 1876.054,
-      "speedIndexMs": 1876.054,
-      "transferBytes": 127444
+      "fcpMs": 1910.487,
+      "speedIndexMs": 1910.487,
+      "transferBytes": 129138
     }
   }
 }

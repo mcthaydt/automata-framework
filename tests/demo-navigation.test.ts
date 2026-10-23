@@ -2,6 +2,7 @@ import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it, vi } from 'vitest'
 vi.mock('$app/environment', () => ({ browser: true }))
 import { load } from '../src/routes/examples/+page'
+import { getExampleProject } from '../src/data/projects'
 import { demoStatus } from '../src/lib/utils/demo-status'
 import { isEditing } from '../src/lib/utils/keyboard'
 import DemoRunner from '../src/lib/components/DemoRunner.svelte'
@@ -9,15 +10,15 @@ import DemoRunner from '../src/lib/components/DemoRunner.svelte'
 describe('Demo URLs and readiness', () => {
   it('selects the requested demo and falls back for unknown slugs', async () => {
     const selected = await load({ url: new URL('https://example.test/examples?demo=base-2d') } as any)
-    expect(selected).toEqual({ demo: 'base-2d' })
+    expect(selected).toEqual({ demo: 'base-2d', project: getExampleProject('base-2d') })
     const unknown = await load({ url: new URL('https://example.test/examples?demo=missing') } as any)
-    expect(unknown).toEqual({ demo: 'renderer-2d' })
+    expect(unknown).toEqual({ demo: 'renderer-2d', project: getExampleProject('renderer-2d') })
   })
   it('opens a requested published file and ignores paths outside the source inventory', async () => {
     const selected = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=games/emberwick/src/content/room.test.ts') } as any)
-    expect(selected).toEqual({ demo: 'base-2d', file: 'games/emberwick/src/content/room.test.ts' })
+    expect(selected).toEqual({ demo: 'base-2d', project: getExampleProject('base-2d'), file: 'games/emberwick/src/content/room.test.ts' })
     const invalid = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=../../.env') } as any)
-    expect(invalid).toEqual({ demo: 'base-2d' })
+    expect(invalid).toEqual({ demo: 'base-2d', project: getExampleProject('base-2d') })
   })
   it('does not equate document load with game readiness', () => {
     const doc = document.implementation.createHTMLDocument('404')

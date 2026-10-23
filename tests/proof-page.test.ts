@@ -77,8 +77,12 @@ describe('the footer', () => {
 describe('the /proof route', () => {
   it('renders from the synced evidence file, or says plainly that it has none and claims nothing', async () => {
     const { default: Page } = await import('../src/routes/proof/+page.svelte')
+    const { load } = await import('../src/routes/proof/+page.server')
     const { EVIDENCE } = await import('../src/data/evidence')
-    const page = render(Page)
+    // The evidence is read and validated by the server load, at build time, so the browser never loads the validator.
+    const data = await load()
+    expect(data.evidence).toBe(EVIDENCE)
+    const page = render(Page, { props: { data } })
     expect(page.getByRole('heading', { level: 1, name: 'Proof' })).toBeTruthy()
     if (EVIDENCE) {
       for (const golden of EVIDENCE.goldens) expect(page.getByRole('region', { name: golden.scenario })).toBeTruthy()

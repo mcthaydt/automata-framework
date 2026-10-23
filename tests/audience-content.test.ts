@@ -2,6 +2,7 @@ import { fireEvent, render, within } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import { getDocSections } from '../src/data/docs-loader'
 import Home from '../src/routes/+page.svelte'
+import { homeData } from './helpers/page-data'
 import Start from '../src/routes/start/+page.svelte'
 import Showcase from '../src/routes/showcase/+page.svelte'
 
@@ -11,7 +12,7 @@ describe('Audience onboarding', () => {
     for (const slug of ['from-unity', 'from-godot', 'from-unreal', 'from-gamemaker', 'from-web', 'agent-setup', 'audience', 'faq']) expect(docs.find(doc => doc.slug === slug), slug).toBeTruthy()
   })
   it('makes fit, limitations and FAQ available from the homepage', () => {
-    const view = render(Home)
+    const view = render(Home, { props: { data: homeData } })
     expect(view.getByRole('heading', { name: 'Who this is for' })).toBeTruthy()
     expect(view.getByRole('heading', { name: 'Who this is not for' })).toBeTruthy()
     expect(view.getByRole('heading', { name: 'FAQ' })).toBeTruthy()

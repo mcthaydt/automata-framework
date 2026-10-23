@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { BANNED_PHRASES, checkSite } from '../scripts/site-checks'
+import { BANNED_PHRASES, MAX_PRELOADED_SCRIPT_BYTES, checkSite } from '../scripts/site-checks'
 import { writeSeoFiles } from '../scripts/write-seo-files'
 
 const ORIGIN = 'https://automata.ruken.com'
@@ -159,6 +159,40 @@ describe('checkSite', () => {
     const site = goodSite()
     site.write('docs.html', page('/docs', { head: ICON_LINKS.replace(FONT_PRELOAD, '') }))
     expect(checkSite(site.root, { now: NOW })).toContain('docs.html: no <link rel="preload" as="font"> to a woff2 that a built @font-face uses')
+  })
+
+  // QB.3h. The home page and the gallery preloaded the 380 KB chunk of example sources in the first second of a mobile load,
+  // ahead of the image and styles the first paint waits for; LCP was 3.2 s against a 2.5 s target. The gate is on the bytes
+  // a page asks the browser to fetch before it has run any script.
+  it('fails when a page modulepreloads more JavaScript than the budget', () => {
+    const site = goodSite()
+    site.write('_app/immutable/chunks/sources.js', 'x'.repeat(MAX_PRELOADED_SCRIPT_BYTES + 1))
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/sources.js" />' }))
+    expect(checkSite(site.root, { now: NOW })).toEqual([`index.html: modulepreloads ${MAX_PRELOADED_SCRIPT_BYTES + 1} bytes of JavaScript, over the ${MAX_PRELOADED_SCRIPT_BYTES} byte budget (largest: _app/immutable/chunks/sources.js, ${MAX_PRELOADED_SCRIPT_BYTES + 1} bytes)`])
+  })
+
+  it('adds up the chunks of a page, and resolves their links from the page’s own URL', () => {
+    const site = goodSite()
+    const half = Math.floor(MAX_PRELOADED_SCRIPT_BYTES / 2) + 1
+    site.write('docs/chunks/a.js', 'x'.repeat(half))
+    site.write('docs/chunks/b.js', 'x'.repeat(half))
+    const preloads = '<link rel="modulepreload" href="./chunks/a.js" /><link rel="modulepreload" href="./chunks/b.js" />'
+    site.write('docs/faq.html', page('/docs/faq', { head: ICON_LINKS.replaceAll('href="./', 'href="../') + preloads }))
+    site.write('sitemap.xml', sitemap(['/', '/docs', '/docs/faq', '/privacy', '/terms']))
+    expect(checkSite(site.root, { now: NOW })).toEqual([expect.stringMatching(/^docs\/faq\.html: modulepreloads \d+ bytes of JavaScript, over the/)])
+  })
+
+  it('passes a page that preloads chunks within the budget', () => {
+    const site = goodSite()
+    site.write('_app/immutable/chunks/small.js', 'x'.repeat(MAX_PRELOADED_SCRIPT_BYTES))
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/small.js" />' }))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+
+  it('fails when a modulepreload names a file the build does not have', () => {
+    const site = goodSite()
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/gone.js" />' }))
+    expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: modulepreloads ./_app/immutable/chunks/gone.js, which the build does not contain'])
   })
 
   it('fails when a page footer lacks privacy, terms or a contact email', () => {

@@ -53,12 +53,31 @@ export async function storageKeys(page: Page): Promise<string[]> {
 }
 
 /**
+ * A code block highlights when it scrolls near the screen (QB.3h) and replaces its plain `<pre>` with the highlighted
+ * one. Scroll through the page once and wait for every visible block to finish, so the elements a gate collects stay
+ * in the DOM while it works. A block in a closed <details> is not visible and is left as it is.
+ */
+export async function settleCodeBlocks(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const step = Math.max(200, window.innerHeight / 2)
+    for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
+      window.scrollTo(0, y)
+      await new Promise(resolve => setTimeout(resolve, 60))
+    }
+    window.scrollTo(0, 0)
+  })
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('figure.code-block'))
+    .every(figure => !figure.checkVisibility() || figure.querySelector('.shiki') !== null))
+}
+
+/**
  * Tabs through the page from the top. Every visible interactive element must receive focus, and each must show a
  * focus ring (a computed outline that is not `none` and wider than 0). WebKit, like Safari, skips links on plain Tab;
  * Alt+Tab is its "every control" key, so WebKit uses that.
  */
 export async function keyboardProblems(page: Page): Promise<string[]> {
   const isWebKit = page.context().browser()?.browserType().name() === 'webkit'
+  await settleCodeBlocks(page)
   const candidates: string[] = await page.evaluate(`(() => {
     ${DESCRIBE}
     const selector = 'a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled]), summary, iframe, [tabindex]:not([tabindex="-1"])'

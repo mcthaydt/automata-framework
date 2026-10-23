@@ -160,10 +160,20 @@ jobs:
       - run: pnpm lighthouse
         env:
           CHROME_PATH: ${{ steps.chromium.outputs.path }}
+      # The medians the budget judged, in the log and the run summary (the report artifact is a zip behind a blob host).
+      # The recorder writes lighthouse-baseline.json into this throwaway checkout; the committed file is replaced by hand
+      # from this output, never by CI.
+      - name: Print the Lighthouse medians
+        if: always()
+        run: |
+          node --import tsx scripts/record-lighthouse-baseline.ts "GitHub-hosted ubuntu-24.04 runner, Playwright v1.63.0-noble container"
+          cat lighthouse-baseline.json
+          { echo '### Lighthouse medians (this runner)'; echo '```json'; cat lighthouse-baseline.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: lighthouse-report
           path: automata_website/.lighthouseci
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 14

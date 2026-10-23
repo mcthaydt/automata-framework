@@ -112,8 +112,8 @@ test.describe('desktop 1280×800', () => {
 
   for (const path of PAGES) {
     test.describe(() => {
-      // Reduced motion keeps /examples from auto-starting its WebGL demo: the demo's own controls belong to the
-      // framework example, and software rendering in a headless browser would starve the key presses.
+      // Reduced motion keeps the pages still. (/examples used to start its WebGL demo on arrival, and the demo's own
+      // controls belong to the framework example; it now waits for Play, so no demo runs while the keys are pressed.)
       test.use({ reducedMotion: 'reduce' })
       test(`${path}: the keyboard reaches every control and each shows a focus ring`, async ({ page }) => {
         test.setTimeout(180_000)
@@ -123,8 +123,8 @@ test.describe('desktop 1280×800', () => {
     })
 
     test.describe(() => {
-      // As above: no auto-started demo. /examples has a button per source file, and each click re-highlights code;
-      // with a software-rendered WebGL demo also running on a loaded machine that took over two minutes (first full run).
+      // As above. /examples has a button per source file, and each click re-highlights code; with a software-rendered
+      // WebGL demo also running on a loaded machine that took over two minutes (first full run, before the demo waited for Play).
       test.use({ reducedMotion: 'reduce' })
       test(`${path}: every visible button does something`, async ({ page }) => {
         test.setTimeout(300_000)

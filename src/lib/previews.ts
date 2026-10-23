@@ -14,3 +14,15 @@ export function previewSrcset(jpeg: string): string {
   if (!width) throw new Error('Unknown preview ' + jpeg + '; run scripts/encode-previews.ts and list its width here')
   return `${base}-640.webp 640w, ${base}.webp ${width}w`
 }
+
+/** The preview image each gallery demo has, by demo slug; `boot-and-flow` and `ui-primitives` have none yet. */
+const DEMO_PREVIEWS: Record<string, string> = {
+  'base-2d': 'emberwick', 'renderer-2d': 'renderer-2d', 'bodies-2d': 'bodies-2d',
+  'hot-reload': 'hot-reload', 'lifecycle-and-saves': 'lifecycle-and-saves',
+}
+
+/** The JPEG path of a demo's preview image (the poster shown before Play), or undefined when it has none. */
+export function demoPoster(slug: string): string | undefined {
+  const name = DEMO_PREVIEWS[slug]
+  return name ? `/previews/${name}.jpg` : undefined
+}
