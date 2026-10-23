@@ -8,6 +8,7 @@ import {
 } from '@ruken/sdk'
 import { Deferred, Duration, Effect, Layer, Option, Runtime, type Scope, Stream } from 'effect'
 import { HostError, HostHandshakeFailed, toHostError } from './errors'
+import { makeExitHandlers } from './exit-handlers'
 import { Hosting, type HostingOptions } from './hosting'
 import { makeMenuHandlers } from './menu'
 import { guardRounds } from './rounds'
@@ -120,17 +121,28 @@ export function makeHosting(
       )
     }
 
+    const exits = makeExitHandlers(HOST_EXIT_CAP)
     const hosting = hostingOver(session, options, {
       fellBack,
       registerMenuHandler: menu.register,
+      registerExitHandler: exits.register,
       isOpen: () => open,
       shutdown: Deferred.await(shutdown),
     })
 
-    // FloorFifty `ruken/exit.ts`: when the host closes the game, every save still
-    // on its way is handed to the host first, within HOST_EXIT_CAP. A flush the
-    // host refuses (no `saves` grant) or that times out is simply over.
-    yield* hosting.onExiting(Effect.ignore(hosting.saves.flush))
+    // The SDK calls its exiting listeners as plain promises and all at once; AF
+    // has the one listener and orders the work (see exit-handlers.ts). It runs on
+    // Hosting's own runtime so it sees the same Clock (TestClock in tests).
+    // FloorFifty `ruken/exit.ts`: after the game's handlers, every save still on
+    // its way is handed to the host, within HOST_EXIT_CAP. A flush the host
+    // refuses (no `saves` grant) or that times out is simply over.
+    const runPromise = Runtime.runPromise(yield* Effect.runtime<never>())
+    yield* Effect.acquireRelease(
+      Effect.sync(() =>
+        session.on('exiting', () => runPromise(exits.run(Effect.ignore(hosting.saves.flush)))),
+      ),
+      (stop) => Effect.sync(stop),
+    )
 
     return hosting
   })
@@ -147,6 +159,7 @@ export function HostingLive(
 interface HostingState {
   readonly fellBack: Option.Option<HostHandshakeFailed>
   readonly registerMenuHandler: Hosting['onMenuRequest']
+  readonly registerExitHandler: Hosting['onExiting']
   readonly isOpen: () => boolean
   /** Completes when Hosting shuts down; every observed stream ends then. */
   readonly shutdown: Effect.Effect<void>
@@ -312,20 +325,6 @@ function hostingOver(session: RukenSession, options: HostingOptions, state: Host
         }),
       ),
     onMenuRequest: state.registerMenuHandler,
-    onExiting: (handler) =>
-      Effect.gen(function* () {
-        // The SDK calls exiting listeners as plain promises; run the handler on the
-        // caller's runtime so it sees the same Clock (TestClock in tests).
-        const runPromise = Runtime.runPromise(yield* Effect.runtime<never>())
-        const capped = handler.pipe(
-          Effect.timeoutOption(HOST_EXIT_CAP),
-          Effect.catchAllCause((cause) => Effect.logWarning('An exiting handler failed', cause)),
-          Effect.asVoid,
-        )
-        yield* Effect.acquireRelease(
-          Effect.sync(() => session.on('exiting', () => runPromise(capped))),
-          (stop) => Effect.sync(stop),
-        )
-      }),
+    onExiting: state.registerExitHandler,
   }
 }

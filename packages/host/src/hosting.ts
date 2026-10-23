@@ -117,8 +117,11 @@ export interface Hosting {
   onMenuRequest(handler: () => boolean): Effect.Effect<void, never, Scope.Scope>
   /**
    * Runs `handler` when the host closes the game, while the scope is open. The
-   * host waits for it, but AF cuts it off at `HOST_EXIT_CAP` (1 s), inside
-   * Ruken's 1.5 s grace.
+   * host waits for it, but AF cuts everything off at `HOST_EXIT_CAP` (1 s),
+   * inside Ruken's 1.5 s grace. Handlers run one after another in registration
+   * order and the host save flush runs after the last, so a write a handler
+   * makes is flushed. All of them share the one cap: a handler that never
+   * returns costs the handlers after it and the flush.
    */
   onExiting(handler: Effect.Effect<void>): Effect.Effect<void, never, Scope.Scope>
 }
