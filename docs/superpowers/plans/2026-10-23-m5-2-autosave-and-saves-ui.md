@@ -6,7 +6,7 @@
   - **M5.2a, steps 1 to 11:** host, runtime and the boot wiring. Nothing visual.
   - **M5.2b, steps 12 to 17:** `SaveStatus`, `SaveSlots`, the changed-elsewhere choice, the game-lane surface, example `core/core-saves.ts` and its journey (S-c under the fake host). It starts when M5.2a has merged, and its steps are refined then.
 - **Status:** M5.2a implemented and locally verified 2026-10-23 (steps 1 to 11); PR CI with parity pending. M5.2b implemented, locally verified, CI verified and Mac verified 2026-10-23 on `869d354` (steps 12 to 17). Owner gate open: S-c on two real devices.
-- **Progress:** 17 of 17 steps (M5.2a merged as #104; M5.2b is PR #135, verified on `869d354`).
+- **Progress:** 17 of 17 steps (M5.2a merged as #104; M5.2b merged as #135, `d78e923`, verified on `869d354`).
 
 ## Sources, read at these commits
 
