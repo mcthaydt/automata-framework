@@ -36,6 +36,10 @@ export interface HostingOptions {
   readonly testHostOrigins?: readonly string[]
 }
 
+/**
+ * The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts
+ * them.
+ */
 export type AnalyticsProps = Record<string, string | number | boolean>
 
 /** The player's saves (shared contracts §1.1). Each call relays the SDK's error as a `HostError`; none falls back. */
