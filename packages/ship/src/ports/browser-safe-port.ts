@@ -8,12 +8,20 @@ const BAD_PORTS: ReadonlySet<number> = new Set([
 ])
 
 /**
- * `port`, or the next port above it that browsers load. Use it for every port derived by an offset from `portsFor`'s
- * pair (CI's fixed pair puts the examples fixtures at 6000). Locally a moved port can equal a neighbouring worktree's
- * in the same range; that needs two checkouts on adjacent hash slots running at once, and never happens in CI.
+ * Ports a Mac holds that no browser blocks: the AirPlay Receiver (macOS 12 and later, on by default) listens on 5000
+ * and 7000. A journey server there is "already used" (Playwright answers from AirPlay, not from the game), which kept
+ * the nightly's browser journeys red on the runner's Mac from 2026-10-16.
+ */
+const MAC_AIRPLAY_PORTS: ReadonlySet<number> = new Set([5000, 7000])
+
+/**
+ * `port`, or the next port above it that browsers load and the test machines leave free. Use it for every port derived
+ * by an offset from `portsFor`'s pair (CI's fixed pair puts the examples fixtures at 6000 and Emberwick at 5000).
+ * Locally a moved port can equal a neighbouring worktree's in the same range; that needs two checkouts on adjacent
+ * hash slots running at once, and never happens in CI.
  */
 export function browserSafePort(port: number): number {
   let safe = port
-  while (BAD_PORTS.has(safe)) safe += 1
+  while (BAD_PORTS.has(safe) || MAC_AIRPLAY_PORTS.has(safe)) safe += 1
   return safe
 }
