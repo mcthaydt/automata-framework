@@ -177,7 +177,7 @@
 Do the same three steps for each row of spec §6, one PR per demo, owned by its lane.
 
 - [ ] **runtime/boot-and-flow**
-- [ ] **render-pixi/renderer-2d**
+- [x] **render-pixi/renderer-2d** (`render/render-interpolation.ts`, [plan](2026-10-23-ex4-renderer-2d.md)); `render/render-filter.ts` waits on a core filter verb (02, follow-up found in EX.4)
 - [ ] **host/lifecycle-and-saves**
 - [ ] **content/hot-reload**
 - [ ] **ui/primitives**

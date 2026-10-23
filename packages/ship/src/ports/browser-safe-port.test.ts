@@ -11,6 +11,11 @@ describe('browserSafePort', () => {
     expect(browserSafePort(6000)).toBe(6001)
   })
 
+  it('moves Emberwick’s game off 5000 and 7000, where macOS’s AirPlay Receiver listens', () => {
+    expect(browserSafePort(5000)).toBe(5001)
+    expect(browserSafePort(7000)).toBe(7001)
+  })
+
   it('steps past a run of blocked ports (5060 and 5061 are both SIP)', () => {
     expect(browserSafePort(5060)).toBe(5062)
     expect(browserSafePort(6665)).toBe(6670)

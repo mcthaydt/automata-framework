@@ -2,7 +2,6 @@ import { defineConfig, devices } from '@playwright/test'
 import * as contentDemo from './examples/content/hot-reload/e2e/origin.ts'
 import * as hostDemo from './examples/host/lifecycle-and-saves/e2e/origin.ts'
 import * as physicsDemo from './examples/physics/bodies-2d/e2e/origin.ts'
-import * as rendererDemo from './examples/render-pixi/renderer-2d/e2e/origin.ts'
 import * as runtimeDemo from './examples/runtime/boot-and-flow/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
 import * as base2d from './games/emberwick/e2e/origins.ts'
@@ -94,7 +93,6 @@ const journeys = defineConfig({
         'content/*/e2e/*.e2e.ts',
         'physics/*/e2e/*.e2e.ts',
         'runtime/*/e2e/*.e2e.ts',
-        'render-pixi/*/e2e/*.e2e.ts',
       ],
       use: { ...devices['Pixel 7'] },
     },
@@ -170,12 +168,6 @@ const journeys = defineConfig({
       command: 'pnpm --filter @af-examples/runtime-boot-and-flow e2e:demo',
       url: runtimeDemo.url,
       env: { AF_E2E_DEMO_PORT: String(runtimeDemo.port) },
-      reuseExistingServer: process.env.CI === undefined,
-    },
-    {
-      command: 'pnpm --filter @af-examples/renderer-2d e2e:demo',
-      url: rendererDemo.url,
-      env: { AF_E2E_DEMO_PORT: String(rendererDemo.port) },
       reuseExistingServer: process.env.CI === undefined,
     },
     {

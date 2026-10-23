@@ -915,6 +915,12 @@ interface Hosting {
     readonly start: Effect.Effect<void>;
     /** The open round ended. With no round open it is dropped. */
     end(outcome?: RoundOutcome): Effect.Effect<void>;
+    /**
+     * One item per round that ended, with its outcome, from the moment the stream
+     * is read (nothing is replayed). A dropped end gives none. Ends when Hosting
+     * shuts down. The `round-end` autosave trigger reads this.
+     */
+    readonly ended: Stream.Stream<RoundOutcome | undefined>;
   };
   /** A disclosed analytics event. Never fails: undisclosed, unconsented or refused events are dropped. */
   track(event: string, props?: AnalyticsProps): Effect.Effect<void>;
@@ -928,8 +934,11 @@ interface Hosting {
   onMenuRequest(handler: () => boolean): Effect.Effect<void, never, Scope.Scope>;
   /**
    * Runs `handler` when the host closes the game, while the scope is open. The
-   * host waits for it, but AF cuts it off at `HOST_EXIT_CAP` (1 s), inside
-   * Ruken's 1.5 s grace.
+   * host waits for it, but AF cuts everything off at `HOST_EXIT_CAP` (1 s),
+   * inside Ruken's 1.5 s grace. Handlers run one after another in registration
+   * order and the host save flush runs after the last, so a write a handler
+   * makes is flushed. All of them share the one cap: a handler that never
+   * returns costs the handlers after it and the flush.
    */
   onExiting(handler: Effect.Effect<void>): Effect.Effect<void, never, Scope.Scope>;
 }
