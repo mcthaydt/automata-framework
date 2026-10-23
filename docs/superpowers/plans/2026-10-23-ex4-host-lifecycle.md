@@ -3,7 +3,7 @@
 - **Spec:** [EX spec](../specs/2026-10-16-examples-one-file-design.md) §2 (one file, public imports, 100 code lines), §5 (smoke, the journeys that need a real host), §6 (`host/lifecycle-and-saves` → `core/core-host-lifecycle.ts`, `core/core-saves.ts` with `Host: grant=saves`; tests to `packages/host` contract tests); [EX plan](2026-10-16-examples-one-file.md) Task EX.4 (the three steps per demo); [M5 spec](../specs/2026-10-16-m5-saves-audio-design.md) §12.
 - **Task:** `EX.4 — port the existing demos`, the `host/lifecycle-and-saves` row. One PR per demo.
 - **Status:** drafted 2026-10-23. Stacked on the `render-pixi/renderer-2d` port (#108), which is stacked on EX.6 (#98).
-- **Progress:** 0 of 5 steps.
+- **Progress:** 5 of 5 steps.
 
 ## What the old demo checked
 
@@ -39,11 +39,11 @@
 
 ## Steps
 
-- [ ] **1. The storage pins, red first.** Add the two `saves.test.ts` cases with a spy `StorageLike`, plus a control case in which a top-level page does write to it. Run `pnpm --filter @mcthaydt/automata-host test:unit`; record whether each passes on its first run (regression pin) or fails (a defect in the host to fix before the demo goes).
-- [ ] **2. The journey, red first.** Write `examples/e2e/core-host-lifecycle.e2e.ts` before the example exists; run it under a local build and record the failure (the page is not there).
-- [ ] **3. The example.** Write `examples/core/core-host-lifecycle.ts` within the budget. The catalog's real-examples test and `pnpm --filter @af-examples/examples typecheck` pass; the journey passes against a local Chromium build under the fake host (the only console error is the favicon 404 this container's full-Chrome build makes, as on untouched `main`); read the screenshots.
-- [ ] **4. Delete the old demo.** `git rm -r examples/host/lifecycle-and-saves`; remove its `playwright.config.ts` entries and README row; `pnpm install`; then `pnpm check` and `pnpm build:examples`. The e2e and three-engine parity are the CI runner's.
-- [ ] **5. Docs.** Tick `host/lifecycle-and-saves` in the EX plan with the `core-saves` note; add the 02 progress note; the execution record and 03 come with the docs sync PR.
+- [x] **1. The storage pins, red first.** Add the two `saves.test.ts` cases with a spy `StorageLike`, plus a control case in which a top-level page does write to it. Run `pnpm --filter @mcthaydt/automata-host test:unit`; record whether each passes on its first run (regression pin) or fails (a defect in the host to fix before the demo goes).
+- [x] **2. The journey, red first.** Write `examples/e2e/core-host-lifecycle.e2e.ts` before the example exists; run it under a local build and record the failure (the page is not there).
+- [x] **3. The example.** Write `examples/core/core-host-lifecycle.ts` within the budget. The catalog's real-examples test and `pnpm --filter @af-examples/examples typecheck` pass; the journey passes against a local Chromium build under the fake host (the only console error is the favicon 404 this container's full-Chrome build makes, as on untouched `main`); read the screenshots.
+- [x] **4. Delete the old demo.** `git rm -r examples/host/lifecycle-and-saves`; remove its `playwright.config.ts` entries and README row; `pnpm install`; then `pnpm check` and `pnpm build:examples`. The e2e and three-engine parity are the CI runner's.
+- [x] **5. Docs.** Tick `host/lifecycle-and-saves` in the EX plan with the `core-saves` note; add the 02 progress note; the execution record and 03 come with the docs sync PR.
 
 ## Gates
 
@@ -55,4 +55,9 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-23 | Plan | | |
+| 2026-10-23 | Plan | `38afeb2` | |
+| 2026-10-23 | 1 | `429f52b` | Three cases added to `saves.test.ts` (the control and the two pins). All passed on their first run: `pnpm --filter @mcthaydt/automata-host test:unit` 12 files, 69 tests (66 before), so the two pins are regression pins and the SDK does not fall back to page storage in a frame. The control (a top-level page writes to the spy) shows the spy is wired. |
+| 2026-10-23 | 2 | `6cfb5e5` | Red: with no `core/host-lifecycle` page, the journey failed in `openHosted` waiting for `html[data-state=ready]` (`unexpected value "null"`). Run against this checkout's own build and servers with a temporary Playwright config. |
+| 2026-10-23 | 3 | `893fb1a` | `examples/core/core-host-lifecycle.ts` (about 25 code lines). `pnpm --filter @af-examples/examples typecheck` exit 0; the catalog test passes (51 passed, 1 skipped). The journey passes against the local build in Chromium: Play, drawer overlay shows `paused-screen`, overlay off keeps it, Resume shows `play-screen`; the only failing assertion was the final `expect(errors).toEqual([])`, on the one favicon 404 this container's full-Chrome build makes (the same on every example here). Screenshots read at Pixel 7 landscape and 780 × 270: HUD `tick 157   running`, the square pacing; the paused screen's Resume on the drawer. The first screenshot showed no HUD: the playfield is cropped top and bottom on wide phones, so a HUD at y = 4 is off screen. The HUD went to y = 40, and `render-interpolation` got the same fix on #108 (`d5f2fba`). |
+| 2026-10-23 | 4 | | `git rm -r examples/host/lifecycle-and-saves` (11 tracked files); the `playwright.config.ts` import, `demos` testMatch and `webServer` entries and the README row went; `pnpm install --offline` dropped the demo's lockfile lines. `pnpm check` 32 of 32 tasks, knip included (the `examples` workspace's Playwright config from #108 keeps the e2e files entries); `pnpm build:examples` built every example. |
+| 2026-10-23 | 5 | | EX plan checklist ticked with the `core-saves` note; 02's EX.4 progress note extended. The execution-record row and 03 come with the docs sync PR. |
