@@ -3,7 +3,7 @@
 - **Spec:** [QB spec](../specs/2026-10-16-quality-bar-design.md) §2 (what AF actually runs); hub request `automata/inbox/2026-10-23-1705-hub-cap-test-workers.md` (orchestrator-bus). No spec change.
 - **Task:** `QB.1d — Cap the test workers per CI job` (02, a follow-up of QB.1). Lane ship. Requested by the Examples and DX thread for the hub; the 02 row and 03 come with the docs sync PR.
 - **Status:** drafted 2026-10-23, based on `main` (`8bd81b7`).
-- **Progress:** 4 of 5 steps (5 waits for the merge).
+- **Progress:** 5 of 5 steps. Merged as #170 (`9514d52`).
 
 ## What is wrong
 
@@ -39,7 +39,7 @@ The website already caps itself (`QB_E2E_WORKERS`, default 2).
 - [x] **2. Green.** `e2eWorkers`, `selectRun`, `turbo.json`, the three scripts. Both files pass.
 - [x] **3. Prove it reaches the tools.** The script prefix evaluated by `sh` with `CI` unset, `CI=true`, and `VITEST_MAX_WORKERS=3`; a throwaway test run through `turbo run test:unit` reads the worker count from vitest's own config (2 with `CI`, the default without); `playwright test --list` loads the config; `turbo` prints its concurrency.
 - [x] **4. Gates.** `pnpm format`, `pnpm check` (the same script with `CI=1`, to see the cap on a real run), `pnpm changeset status --since=origin/main` with the empty changeset.
-- [ ] **5. Hand off.** Draft PR, merge thread told to put it at the front of its queue. After it merges: a `kind: test-request` on the bus (the two load-sensitive journeys and the display-policy A/B pass on the Mac without reruns), then tell the existing plan and website threads the result.
+- [x] **5. Hand off.** Draft PR, merge thread told to put it at the front of its queue. After it merges: a `kind: test-request` on the bus (the two load-sensitive journeys and the display-policy A/B pass on the Mac without reruns), then tell the existing plan and website threads the result.
 
 ## Gates
 
@@ -55,3 +55,4 @@ The website already caps itself (`QB_E2E_WORKERS`, default 2).
 | 2026-10-23 | 2 | `c7713c7` | `e2eWorkers` and `selectRun` (the journeys are returned unchanged when there is no cap), `turbo.json` (`concurrency` `"4"`, `globalPassThroughEnv`), the three scripts. Green: `playwright-run.test.ts` 6 passed, `workflows.test.ts` 118 passed. |
 | 2026-10-23 | 3 | | Through `turbo run test:unit` a throwaway test read vitest's resolved `maxWorkers`: no `CI` gave `env=""`, `maxWorkers=undefined`; `CI=true` gave 2 and 2; `CI=true VITEST_MAX_WORKERS=3` gave 3 and 3. (A first probe replayed turbo's cached log: `passThroughEnv` is not part of the task hash, so the probe needed `--force`.) Browser mode honors it: twelve 2 s test files in one Chromium project took 11.7 s by default (3 workers on this 4-core box), 15.6 s with `VITEST_MAX_WORKERS=2` and 27.2 s with 1. `turbo.json`'s `concurrency` has an effect: `typecheck` of `packages/*` took 55.1 s at 1, 36.9 s at 4 and 29.8 s at 10 here, so the cap costs about 7 s on an idle 4-core box. `playwright test --list --reporter=json` gives `workers` 2 with `CI=1`, 3 with `AF_E2E_WORKERS=3`, 1 with `AF_FRAME_BUDGET=1`, and `AF_E2E_WORKERS=abc` stops with "AF_E2E_WORKERS must be a positive integer". |
 | 2026-10-23 | 4 | `c7713c7` | `pnpm format`; `CI=1 pnpm check` exit 0 (33 tasks, 3 min 14 s on this 4-core container, so the capped path ran end to end); `pnpm changeset status --since=origin/main` exit 0 once the empty changeset was committed; `check-changesets`: 49 changesets, 0 problems. Not run: WebKit and Firefox (the container has Chromium only), any Actions run, the Mac. |
+| 2026-10-23 | 5 | `c7713c7` | Draft PR #170, merge thread told; merged as `9514d52` (hosted checks green on its head). Mac test request (bus 1736, quiet window): display-policy 9 of 9 on both sides, the cap costs 2 to 3 s a run, full e2e 146 passed and 1 failed (`input-matrix.e2e.ts:303`, a focus race, not load: M4.10 follow-up), parity 13 of 13 in 2 min 21 s. Under load (bus 1806: two runner jobs active, load average up to 273): display-policy 9 of 9 in all six rounds on both sides. The cap is no worse than the old default; the runs do not show it is what ends the timeouts. |
