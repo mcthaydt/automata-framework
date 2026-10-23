@@ -4,6 +4,7 @@ import type { ComponentDef } from '../define/definitions'
 import { coerceField, defaultField, type FieldType } from '../define/fields'
 import { ownKeyCount, sortedKeys } from '../util/sorted'
 
+/** One component's field values on an entity, by field name. */
 export type FieldRecord = Record<string, number | boolean | string>
 
 /** One entity's render-flagged components (component id -> field values). */

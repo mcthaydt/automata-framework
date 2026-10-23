@@ -34,6 +34,54 @@ function checkRetype(oldDef: FieldDef, newDef: FieldDef, instances: readonly Fie
 function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly InstanceProblem[];
 ```
 
+### `Command` (interface)
+
+```ts
+interface Command {
+    readonly id: string;
+    readonly title: string;
+    run(): void;
+    enabled?(): boolean;
+    readonly shortcut?: string;
+    readonly allowInText?: boolean;
+}
+```
+
+### `CommandRegistry` (interface)
+
+```ts
+interface CommandRegistry {
+    register(command: Command): () => void;
+    get(id: string): Command | undefined;
+    list(): readonly Command[];
+    run(id: string): boolean;
+}
+```
+
+### `createCommandRegistry` (function)
+
+```ts
+function createCommandRegistry(): CommandRegistry;
+```
+
+### `createHistory` (function)
+
+```ts
+function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
+```
+
+### `createKeymap` (function)
+
+```ts
+function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
+```
+
+### `createSelection` (function)
+
+```ts
+function createSelection<Id extends SelectionId>(): Selection<Id>;
+```
+
 ### `defaultDockOpen` (function)
 
 ```ts
@@ -44,6 +92,12 @@ function defaultDockOpen(mode: ShellMode, tier: HeightTier): boolean;
 
 ```ts
 function defaultFieldValue(def: FieldDef): FieldValue | undefined;
+```
+
+### `defineCommand` (function)
+
+```ts
+function defineCommand(command: Command): Command;
 ```
 
 ### `Detent` (type)
@@ -276,6 +330,53 @@ const fieldValuesSchema: z.ZodType<FieldValues>;
 const HEX_COLOR: RegExp;
 ```
 
+### `History` (interface)
+
+```ts
+interface History<S> {
+    readonly state: S;
+    readonly revision: number;
+    readonly cleanRevision: number;
+    readonly canUndo: boolean;
+    readonly canRedo: boolean;
+    readonly undoLabel: string | undefined;
+    readonly redoLabel: string | undefined;
+    apply(label: string, update: (state: S) => S, options?: {
+        coalesce?: string;
+    }): void;
+    begin(label: string): Transaction<S>;
+    undo(): void;
+    redo(): void;
+    markClean(): void;
+    subscribe(listener: (history: History<S>) => void): () => void;
+}
+```
+
+### `HistoryError` (class)
+
+```ts
+class HistoryError extends Error {
+    readonly code: HistoryErrorCode;
+    constructor(code: HistoryErrorCode, message: string);
+}
+```
+
+### `HistoryErrorCode` (type)
+
+```ts
+type HistoryErrorCode = 'transaction-open';
+```
+
+### `HistoryOptions` (interface)
+
+```ts
+interface HistoryOptions {
+    readonly limit?: number;
+    readonly now?: () => number;
+    readonly coalesceWindowMs?: number;
+}
+```
+
 ### `InstanceCode` (type)
 
 ```ts
@@ -292,10 +393,38 @@ interface InstanceProblem extends FieldProblem<InstanceCode> {
 }
 ```
 
+### `KeyInput` (interface)
+
+```ts
+interface KeyInput {
+    readonly key: string;
+    readonly metaKey: boolean;
+    readonly ctrlKey: boolean;
+    readonly shiftKey: boolean;
+    readonly altKey: boolean;
+    readonly inText: boolean;
+}
+```
+
+### `Keymap` (interface)
+
+```ts
+interface Keymap {
+    resolve(input: KeyInput): Command | undefined;
+    handle(input: KeyInput): boolean;
+}
+```
+
 ### `nextDetent` (function)
 
 ```ts
 function nextDetent(detent: Detent): Detent;
+```
+
+### `normalizeShortcut` (function)
+
+```ts
+function normalizeShortcut(text: string): string;
 ```
 
 ### `OpenState` (interface)
@@ -306,6 +435,18 @@ interface OpenState {
     readonly inspector: boolean;
     readonly dock: boolean;
 }
+```
+
+### `parseShortcut` (function)
+
+```ts
+function parseShortcut(text: string): Shortcut;
+```
+
+### `Platform` (type)
+
+```ts
+type Platform = 'apple' | 'other';
 ```
 
 ### `Point` (interface)
@@ -377,6 +518,29 @@ interface RetypeBreakage {
 }
 ```
 
+### `Selection` (interface)
+
+```ts
+interface Selection<Id extends SelectionId> {
+    readonly ids: readonly Id[];
+    readonly size: number;
+    readonly primary: Id | undefined;
+    has(id: Id): boolean;
+    set(ids: Iterable<Id>): void;
+    add(id: Id): void;
+    toggle(id: Id): void;
+    clear(): void;
+    range(from: Id, to: Id, order: readonly Id[]): void;
+    subscribe(listener: (selection: Selection<Id>) => void): () => void;
+}
+```
+
+### `SelectionId` (type)
+
+```ts
+type SelectionId = string | number;
+```
+
 ### `ShellMode` (type)
 
 ```ts
@@ -395,16 +559,230 @@ function shellModeOf(formFactor: FormFactor): ShellMode;
 type ShellRegion = 'panel' | 'inspector' | 'dock';
 ```
 
+### `Shortcut` (interface)
+
+```ts
+interface Shortcut {
+    readonly key: string;
+    readonly mod: boolean;
+    readonly ctrl: boolean;
+    readonly meta: boolean;
+    readonly shift: boolean;
+    readonly alt: boolean;
+}
+```
+
 ### `tokensToCss` (function)
 
 ```ts
 function tokensToCss(tokens: EditorTokens): string;
 ```
 
+### `Transaction` (interface)
+
+```ts
+interface Transaction<S> {
+    readonly open: boolean;
+    update(fn: (state: S) => S): void;
+    commit(): void;
+    cancel(): void;
+}
+```
+
 ### `valuesWithDefaults` (function)
 
 ```ts
 function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
+```
+
+## `./core`
+
+### `Command` (interface)
+
+```ts
+interface Command {
+    readonly id: string;
+    readonly title: string;
+    run(): void;
+    enabled?(): boolean;
+    readonly shortcut?: string;
+    readonly allowInText?: boolean;
+}
+```
+
+### `CommandRegistry` (interface)
+
+```ts
+interface CommandRegistry {
+    register(command: Command): () => void;
+    get(id: string): Command | undefined;
+    list(): readonly Command[];
+    run(id: string): boolean;
+}
+```
+
+### `createCommandRegistry` (function)
+
+```ts
+function createCommandRegistry(): CommandRegistry;
+```
+
+### `createHistory` (function)
+
+```ts
+function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
+```
+
+### `createKeymap` (function)
+
+```ts
+function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
+```
+
+### `createSelection` (function)
+
+```ts
+function createSelection<Id extends SelectionId>(): Selection<Id>;
+```
+
+### `defineCommand` (function)
+
+```ts
+function defineCommand(command: Command): Command;
+```
+
+### `History` (interface)
+
+```ts
+interface History<S> {
+    readonly state: S;
+    readonly revision: number;
+    readonly cleanRevision: number;
+    readonly canUndo: boolean;
+    readonly canRedo: boolean;
+    readonly undoLabel: string | undefined;
+    readonly redoLabel: string | undefined;
+    apply(label: string, update: (state: S) => S, options?: {
+        coalesce?: string;
+    }): void;
+    begin(label: string): Transaction<S>;
+    undo(): void;
+    redo(): void;
+    markClean(): void;
+    subscribe(listener: (history: History<S>) => void): () => void;
+}
+```
+
+### `HistoryError` (class)
+
+```ts
+class HistoryError extends Error {
+    readonly code: HistoryErrorCode;
+    constructor(code: HistoryErrorCode, message: string);
+}
+```
+
+### `HistoryErrorCode` (type)
+
+```ts
+type HistoryErrorCode = 'transaction-open';
+```
+
+### `HistoryOptions` (interface)
+
+```ts
+interface HistoryOptions {
+    readonly limit?: number;
+    readonly now?: () => number;
+    readonly coalesceWindowMs?: number;
+}
+```
+
+### `KeyInput` (interface)
+
+```ts
+interface KeyInput {
+    readonly key: string;
+    readonly metaKey: boolean;
+    readonly ctrlKey: boolean;
+    readonly shiftKey: boolean;
+    readonly altKey: boolean;
+    readonly inText: boolean;
+}
+```
+
+### `Keymap` (interface)
+
+```ts
+interface Keymap {
+    resolve(input: KeyInput): Command | undefined;
+    handle(input: KeyInput): boolean;
+}
+```
+
+### `normalizeShortcut` (function)
+
+```ts
+function normalizeShortcut(text: string): string;
+```
+
+### `parseShortcut` (function)
+
+```ts
+function parseShortcut(text: string): Shortcut;
+```
+
+### `Platform` (type)
+
+```ts
+type Platform = 'apple' | 'other';
+```
+
+### `Selection` (interface)
+
+```ts
+interface Selection<Id extends SelectionId> {
+    readonly ids: readonly Id[];
+    readonly size: number;
+    readonly primary: Id | undefined;
+    has(id: Id): boolean;
+    set(ids: Iterable<Id>): void;
+    add(id: Id): void;
+    toggle(id: Id): void;
+    clear(): void;
+    range(from: Id, to: Id, order: readonly Id[]): void;
+    subscribe(listener: (selection: Selection<Id>) => void): () => void;
+}
+```
+
+### `SelectionId` (type)
+
+```ts
+type SelectionId = string | number;
+```
+
+### `Shortcut` (interface)
+
+```ts
+interface Shortcut {
+    readonly key: string;
+    readonly mod: boolean;
+    readonly ctrl: boolean;
+    readonly meta: boolean;
+    readonly shift: boolean;
+    readonly alt: boolean;
+}
+```
+
+### `Transaction` (interface)
+
+```ts
+interface Transaction<S> {
+    readonly open: boolean;
+    update(fn: (state: S) => S): void;
+    commit(): void;
+    cancel(): void;
+}
 ```
 
 ## `./fields`

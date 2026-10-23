@@ -5,12 +5,17 @@
 
 import { type Component, flushSync, mount, unmount } from 'svelte'
 
+/** A mounted Svelte fixture: the element it was mounted into and a way to unmount it. */
 export interface MountedFixture {
   readonly target: HTMLElement
   /** Unmounts the component; removes the target too when `mountFixture` created it. */
   unmount(): Promise<void>
 }
 
+/**
+ * Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first
+ * render is finished. Mounts into `target`, or into a new `div` in `document.body`, which `unmount` removes.
+ */
 export function mountFixture<Props extends Record<string, unknown>>(
   component: Component<Props>,
   props: Props,
