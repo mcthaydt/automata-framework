@@ -63,6 +63,7 @@ interface Hosting {
     readonly round: {
         readonly start: Effect.Effect<void>;
         end(outcome?: RoundOutcome): Effect.Effect<void>;
+        readonly ended: Stream.Stream<RoundOutcome | undefined>;
     };
     track(event: string, props?: AnalyticsProps): Effect.Effect<void>;
     exit(reason?: 'player' | 'completed'): Effect.Effect<void, HostError>;

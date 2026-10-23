@@ -2,6 +2,7 @@ import type { FlowGraph } from '@mcthaydt/automata-content'
 import { Hosting } from '@mcthaydt/automata-host'
 import { FakeHostHandle } from '@mcthaydt/automata-host/testing'
 import type { Sim } from '@mcthaydt/automata-sim'
+import { settle } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
@@ -143,5 +144,42 @@ describe('RuntimeTest (§3.1 ./testing)', () => {
           }),
         ),
       )
-    }))
+    }).pipe(Effect.runPromise))
+
+  // M5.2: a settings field the game keeps on the device (M5 spec §4.5) goes to the device storage the test hands
+  // over, or to memory, and never to the browser's own storage a test run shares.
+  it('keeps device fields in the deviceStorage option, or in memory, and out of the saves', () =>
+    Effect.gen(function* () {
+      const held = new Map<string, string>()
+      const device = {
+        get: (key: string) => held.get(key) ?? null,
+        set: (key: string, value: string) => void held.set(key, value),
+        remove: (key: string) => void held.delete(key),
+      }
+      const def = {
+        key: 'prefs',
+        version: 1,
+        schema: z.object({ mute: z.boolean().catch(false), name: z.string().catch('') }),
+        defaults: { mute: false, name: '' },
+        deviceFields: ['mute' as const],
+      }
+      const run = (deviceStorage?: typeof device) =>
+        Effect.gen(function* () {
+          const store = yield* settingsStore(def)
+          store.update((value) => ({ ...value, mute: true, name: 'Kite' }))
+          yield* Effect.promise(() => settle(2))
+          const { host } = yield* FakeHostHandle
+          return host.messages
+            .filter((entry) => entry.dir === 'in' && entry.msg.type === 'saves.set')
+            .map((entry) => (entry.msg.payload as { value: string }).value)
+        }).pipe(Effect.provide(RuntimeTest({ settings: def, ...(deviceStorage ? { deviceStorage } : {}) })))
+
+      const sent = yield* run(device)
+      expect(JSON.parse(held.get('prefs:device') ?? 'null')).toEqual({ version: 1, mute: true })
+      expect(sent).toEqual([JSON.stringify({ version: 1, name: 'Kite' })])
+
+      const sentToMemory = yield* run()
+      expect(sentToMemory).toEqual([JSON.stringify({ version: 1, name: 'Kite' })])
+      expect(globalThis.localStorage?.length ?? 0).toBe(0)
+    }).pipe(Effect.runPromise))
 })
