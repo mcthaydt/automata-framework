@@ -1,7 +1,7 @@
 # QB.3j: LCP at most 2.5 s on `/`, `/start` and `/examples` TDD plan
 
 - **Spec:** the quality-bar spec §4.2 targets (mobile performance at least 0.9, LCP at most 2.5 s) and the QB.3j row of the framework's `docs/02-master-delivery-plan.md`. The Owner said to go ahead on 2026-10-23 08:06Z.
-- **Status:** steps 1 to 4 implemented and checked 2026-10-23, the budget passing on the hosted runner twice (runs 39930045734 and 39938497330); the hosted browser job of the final head and the Owner's veto of the hydration trade are open.
+- **Status:** steps 1 to 4 implemented and checked 2026-10-23, the budget passing on the hosted runner twice (runs 39930045734 and 39938497330); the hosted browser job of the final head and the Owner's veto of the hydration trade are open (the hosted run for the code head `de07175`, 39941880445, never got a runner, twice, because GitHub-hosted jobs are stopped for the account's billing, so it proves nothing; its `browsers` job is the proof of the rewritten picture test once the Owner fixes billing and the run can be re-run).
 - **Progress:** 4 of 5 steps.
 - **Branch:** `claude/project-thread-onilcu-lcp`, based on `main` (`c4b5901`, QB.3h merged).
 
