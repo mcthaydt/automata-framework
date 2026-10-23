@@ -19,6 +19,10 @@ import { checkVersion } from './check-version.ts'
 import { findRootAbsoluteReferences } from './root-absolute.ts'
 import { findSecretsInBuild, readEnvValues } from './secret-scan.ts'
 
+/**
+ * What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release
+ * tag, game folder and input bindings.
+ */
 export interface PrepareInput {
   /** The built game folder (Vite's `dist/`). */
   readonly distDir: string

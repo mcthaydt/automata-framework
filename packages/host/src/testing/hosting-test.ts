@@ -17,6 +17,10 @@ export const FakeHostHandle: Context.Tag<FakeHostHandle, FakeHostHandle> = Conte
   '@mcthaydt/automata-host/FakeHostHandle',
 )
 
+/**
+ * What to change about `HostingTest`'s defaults: the game's hosting options, the fake host, the SDK
+ * environment and the game's origin.
+ */
 export interface HostingTestOptions {
   /** Overrides for the game's options; the defaults ask for saves and pause in the menu. */
   readonly hosting?: Partial<HostingOptions>
@@ -28,6 +32,7 @@ export interface HostingTestOptions {
   readonly gameOrigin?: string
 }
 
+/** The origin `HostingTest` serves the game from unless `gameOrigin` says otherwise. */
 export const TEST_GAME_ORIGIN = 'http://localhost:4400'
 
 /**
