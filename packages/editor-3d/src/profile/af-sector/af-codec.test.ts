@@ -233,6 +233,46 @@ describe('the af-sector codec', () => {
     ])
   })
 
+  it('puts a sector view after its light and open flag, and a wall occlude on its own corner and nothing else', () => {
+    const depot = parsed(depotText)
+    const [hall, ...rest] = depot.sectors
+    const withView: AfSector = {
+      ...depot,
+      sectors: [{ ...must(hall), view: 'hall-view', open: true, style: 'plain' }, ...rest],
+    }
+    const viewText = patched(depotText, depot, withView)
+    expect(Object.keys(must(JSON.parse(viewText).sectors[0]))).toEqual([
+      'id',
+      'floor',
+      'ceiling',
+      'light',
+      'open',
+      'view',
+      'style',
+      'floorTexture',
+      'wallTexture',
+      'corners',
+    ])
+    expect(patched(viewText, withView, depot)).toBe(depotText)
+    const corner = must(must(hall).corners[0])
+    const walled: AfSector = {
+      ...depot,
+      sectors: [
+        {
+          ...must(hall),
+          corners: [
+            [corner[0], corner[1], { ...corner[2], occlude: 'never' }],
+            ...must(hall).corners.slice(1),
+          ],
+        },
+        ...rest,
+      ],
+    }
+    const walledText = patched(depotText, depot, walled)
+    expect(JSON.parse(walledText).sectors[0].corners[0][2].occlude).toBe('never')
+    expect(patched(walledText, walled, depot)).toBe(depotText)
+  })
+
   it('keeps a member it does not know through an edit, on the file and on an instance', () => {
     const future = depotText
       .replace('"name": "depot",', '"name": "depot",\n  "editorState": {"zoom": 2},')
