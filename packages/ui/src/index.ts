@@ -119,6 +119,15 @@ export {
   promptView,
   readKeyboardLayout,
 } from './prompts/prompt-label'
+export { default as SaveSlots } from './saves/SaveSlots.svelte'
+export {
+  defaultSlot,
+  type SaveSlotActivity,
+  type SaveSlotsCopy,
+  type SaveSlotsView,
+  type SaveSlotView,
+  slotActionsOf,
+} from './saves/save-slots'
 export { default as AudioSection } from './settings/AudioSection.svelte'
 export {
   AUDIO_BUSES,
