@@ -19,16 +19,30 @@ function reachable(entry: string, seen = new Set<string>()): Set<string> {
 }
 
 describe('editor-kit core entry', () => {
-  test('exports history, selection, commands and the keymap, and no component', () => {
+  test('exports history, selection, commands, the keymap and storage, and no component', () => {
     expect(Object.keys(core).sort()).toEqual([
       'HistoryError',
+      'StorageError',
+      'classifyStorageError',
       'createCommandRegistry',
+      'createDocumentSession',
+      'createDownloadStore',
+      'createFolderStore',
       'createHistory',
+      'createIndexedDbVault',
       'createKeymap',
+      'createMemoryStore',
       'createSelection',
       'defineCommand',
+      'discardRecovery',
+      'findRecovery',
+      'flushOnHide',
       'normalizeShortcut',
+      'openWorkspace',
       'parseShortcut',
+      'pickFolder',
+      'restoreFolder',
+      'statPath',
     ])
   })
 

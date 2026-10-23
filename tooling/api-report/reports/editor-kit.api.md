@@ -1466,6 +1466,15 @@ type WriteResult = {
 
 ## `./core`
 
+### `classifyStorageError` (function)
+
+```ts
+function classifyStorageError(error: unknown): {
+    reason: StorageFailure;
+    message: string;
+};
+```
+
 ### `Command` (interface)
 
 ```ts
@@ -1496,16 +1505,51 @@ interface CommandRegistry {
 function createCommandRegistry(): CommandRegistry;
 ```
 
+### `createDocumentSession` (function)
+
+```ts
+function createDocumentSession<S>(options: DocumentSessionOptions<S>): DocumentSession;
+```
+
+### `createDownloadStore` (function)
+
+```ts
+function createDownloadStore(env?: DownloadEnv): DownloadStore;
+```
+
+### `createFolderStore` (function)
+
+```ts
+function createFolderStore(handle: FolderHandle): FolderStore;
+```
+
 ### `createHistory` (function)
 
 ```ts
 function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
 ```
 
+### `createIndexedDbVault` (function)
+
+```ts
+function createIndexedDbVault(options?: {
+    database?: string;
+    factory?: IDBFactory;
+}): HandleVault;
+```
+
 ### `createKeymap` (function)
 
 ```ts
 function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
+```
+
+### `createMemoryStore` (function)
+
+```ts
+function createMemoryStore(options?: {
+    now?: () => number;
+}): ProjectStore;
 ```
 
 ### `createSelection` (function)
@@ -1518,6 +1562,139 @@ function createSelection<Id extends SelectionId>(): Selection<Id>;
 
 ```ts
 function defineCommand(command: Command): Command;
+```
+
+### `discardRecovery` (function)
+
+```ts
+function discardRecovery(journal: ProjectStore, path: string): Promise<void>;
+```
+
+### `DocumentSession` (interface)
+
+```ts
+interface DocumentSession {
+    readonly status: SaveState;
+    readonly problem: Problem | undefined;
+    subscribe(run: () => void): () => void;
+    save(): Promise<SaveOutcome>;
+    overwrite(): Promise<SaveOutcome>;
+    saveCopy(): Promise<SaveOutcome>;
+    flush(): Promise<void>;
+    discardJournal(): Promise<void>;
+    dispose(): void;
+}
+```
+
+### `DocumentSessionOptions` (interface)
+
+```ts
+interface DocumentSessionOptions<S> {
+    readonly store: ProjectStore;
+    readonly journal: ProjectStore;
+    readonly path: string;
+    readonly history: History<S>;
+    serializeFile(state: S): Uint8Array | string;
+    snapshot(state: S): string;
+    readonly mtime?: number | undefined;
+    readonly deviceOnly?: boolean;
+    readonly clock?: StorageClock;
+    readonly debounceMs?: number;
+    onproblem?(problem: Problem): void;
+}
+```
+
+### `DownloadEnv` (interface)
+
+```ts
+interface DownloadEnv {
+    now(): number;
+    download(file: DownloadFile): void;
+    share?: ((file: DownloadFile) => Promise<void>) | undefined;
+    copyText?: ((text: string) => Promise<void>) | undefined;
+}
+```
+
+### `DownloadFile` (interface)
+
+```ts
+interface DownloadFile {
+    readonly name: string;
+    readonly type: string;
+    readonly data: Uint8Array<ArrayBuffer>;
+}
+```
+
+### `DownloadStore` (interface)
+
+```ts
+interface DownloadStore extends ProjectStore {
+    readonly kind: 'download';
+    readonly canShare: boolean;
+    share(path: string, data: Uint8Array | string): Promise<WriteResult>;
+    copyText(text: string): Promise<WriteResult>;
+}
+```
+
+### `findRecovery` (function)
+
+```ts
+function findRecovery(store: ProjectStore, journal: ProjectStore, path: string): Promise<Recovery | undefined>;
+```
+
+### `flushOnHide` (function)
+
+```ts
+function flushOnHide(session: {
+    flush(): Promise<void>;
+}, env: {
+    readonly document: LifecycleDocument;
+    readonly window: LifecycleWindow;
+}): () => void;
+```
+
+### `FolderEnv` (interface)
+
+```ts
+interface FolderEnv {
+    showDirectoryPicker?: (options: {
+        mode: 'readwrite';
+    }) => Promise<FolderHandle>;
+}
+```
+
+### `FolderHandle` (type)
+
+```ts
+type FolderHandle = DirectoryLike & {
+    queryPermission?(descriptor: {
+        mode: 'readwrite';
+    }): Promise<FolderPermission>;
+    requestPermission?(descriptor: {
+        mode: 'readwrite';
+    }): Promise<FolderPermission>;
+};
+```
+
+### `FolderStore` (interface)
+
+```ts
+interface FolderStore extends ProjectStore {
+    readonly kind: 'folder';
+    readonly name: string;
+    requestAccess(): Promise<boolean>;
+}
+```
+
+### `HandleVault` (interface)
+
+```ts
+interface HandleVault {
+    save(name: string, handle: FolderHandle): Promise<void>;
+    load(name: string): Promise<FolderHandle | undefined>;
+    names(): Promise<string[]>;
+    forget(name: string): Promise<void>;
+}
 ```
 
 ### `History` (interface)
@@ -1589,10 +1766,35 @@ interface Keymap {
 }
 ```
 
+### `LifecycleDocument` (interface)
+
+```ts
+interface LifecycleDocument {
+    readonly visibilityState: string;
+    addEventListener(type: 'visibilitychange', run: () => void): void;
+    removeEventListener(type: 'visibilitychange', run: () => void): void;
+}
+```
+
+### `LifecycleWindow` (interface)
+
+```ts
+interface LifecycleWindow {
+    addEventListener(type: 'pagehide', run: () => void): void;
+    removeEventListener(type: 'pagehide', run: () => void): void;
+}
+```
+
 ### `normalizeShortcut` (function)
 
 ```ts
 function normalizeShortcut(text: string): string;
+```
+
+### `openWorkspace` (function)
+
+```ts
+function openWorkspace(env?: WorkspaceEnv): Promise<Workspace>;
 ```
 
 ### `parseShortcut` (function)
@@ -1601,10 +1803,79 @@ function normalizeShortcut(text: string): string;
 function parseShortcut(text: string): Shortcut;
 ```
 
+### `pickFolder` (function)
+
+```ts
+function pickFolder(vault: HandleVault, env?: FolderEnv): Promise<FolderStore | undefined>;
+```
+
 ### `Platform` (type)
 
 ```ts
 type Platform = 'apple' | 'other';
+```
+
+### `Problem` (interface)
+
+```ts
+interface Problem {
+    readonly source: 'save' | 'autosave';
+    readonly reason: StorageFailure;
+    readonly message: string;
+    readonly paused: boolean;
+}
+```
+
+### `ProjectStore` (interface)
+
+```ts
+interface ProjectStore {
+    readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
+    list(prefix?: string): Promise<StoredEntry[]>;
+    read(path: string): Promise<Uint8Array | undefined>;
+    write(path: string, data: Uint8Array | string, expected?: {
+        readonly mtime: number;
+    }): Promise<WriteResult>;
+    remove(path: string): Promise<void>;
+    watch?(path: string, listener: () => void): () => void;
+}
+```
+
+### `Recovery` (interface)
+
+```ts
+interface Recovery {
+    readonly payload: string;
+    readonly savedAt: number;
+    readonly baseChanged: boolean;
+}
+```
+
+### `restoreFolder` (function)
+
+```ts
+function restoreFolder(vault: HandleVault, name: string): Promise<FolderStore | undefined>;
+```
+
+### `SaveOutcome` (type)
+
+```ts
+type SaveOutcome = {
+    readonly status: 'saved';
+    readonly path: string;
+} | {
+    readonly status: 'conflict';
+} | {
+    readonly status: 'failed';
+    readonly reason: StorageFailure;
+    readonly message: string;
+};
+```
+
+### `SaveState` (type)
+
+```ts
+type SaveState = 'saved' | 'dirty' | 'saving' | 'error' | 'device';
 ```
 
 ### `Selection` (interface)
@@ -1643,6 +1914,47 @@ interface Shortcut {
 }
 ```
 
+### `statPath` (function)
+
+```ts
+function statPath(store: ProjectStore, path: string): Promise<StoredEntry | undefined>;
+```
+
+### `StorageClock` (interface)
+
+```ts
+interface StorageClock {
+    now(): number;
+    setTimer(ms: number, run: () => void): unknown;
+    clearTimer(handle: unknown): void;
+}
+```
+
+### `StorageError` (class)
+
+```ts
+class StorageError extends Error {
+    readonly reason: StorageFailure;
+    constructor(reason: StorageFailure, message: string);
+}
+```
+
+### `StorageFailure` (type)
+
+```ts
+type StorageFailure = 'denied' | 'quota' | 'io';
+```
+
+### `StoredEntry` (interface)
+
+```ts
+interface StoredEntry {
+    readonly path: string;
+    readonly size: number;
+    readonly mtime: number;
+}
+```
+
 ### `Transaction` (interface)
 
 ```ts
@@ -1652,6 +1964,48 @@ interface Transaction<S> {
     commit(): void;
     cancel(): void;
 }
+```
+
+### `Workspace` (interface)
+
+```ts
+interface Workspace {
+    readonly store: ProjectStore;
+    readonly journal: ProjectStore;
+    readonly exports: DownloadStore;
+    readonly persistent: boolean;
+    readonly reason: string | undefined;
+}
+```
+
+### `WorkspaceEnv` (interface)
+
+```ts
+interface WorkspaceEnv {
+    readonly storage?: {
+        getDirectory?: () => Promise<DirectoryLike>;
+    };
+    readonly download?: DownloadEnv;
+}
+```
+
+### `WriteFailure` (type)
+
+```ts
+type WriteFailure = 'conflict' | 'denied' | 'quota' | 'io';
+```
+
+### `WriteResult` (type)
+
+```ts
+type WriteResult = {
+    readonly ok: true;
+    readonly mtime: number;
+} | {
+    readonly ok: false;
+    readonly reason: WriteFailure;
+    readonly message: string;
+};
 ```
 
 ## `./fields`
