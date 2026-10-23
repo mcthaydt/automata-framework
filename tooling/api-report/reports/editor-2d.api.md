@@ -960,7 +960,7 @@ const projectFileSchema: z.ZodType<ProjectFile>;
 ### `randomIds` (function)
 
 ```ts
-function randomIds(fill: (bytes: Uint8Array) => void): IdSource;
+function randomIds(fill: (bytes: Uint8Array<ArrayBuffer>) => void): IdSource;
 ```
 
 ### `RawFile` (type)
