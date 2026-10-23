@@ -205,9 +205,9 @@ interface Rule {
 type PatternCell = 'any' | 'empty' | 'filled' | { is: number } | { not: number }
 ```
 
-Evaluation for one cell: groups in order, rules in order, skipping inactive ones; a rule matches when every pattern cell holds against the source IntGrid (trying no-flip, then flipX, flipY, both when enabled); then a hash decides `chance` and the variant. A match **adds** its tile to the cell's stack (a cell can hold several tiles drawn in rule order, so edges and corners can overlay a fill) and `breakOnMatch` ends the cell. The result is `Map<cell, readonly {tile, flipX, flipY}[]>`, derived, never stored; `overrides` hold manual tiles painted over the result.
+Evaluation for one cell: groups in order, rules in order, skipping inactive ones; a rule matches when every pattern cell holds against the source IntGrid (trying no-flip, then flipX, flipY, both when enabled); then a hash decides `chance` and the variant (a rule whose `chance` roll fails did not match: it adds nothing and does not break). A match **adds** its tile to the cell's stack (a cell can hold several tiles drawn in rule order, so edges and corners can overlay a fill) and `breakOnMatch` ends the cell. The result is `Map<cell, readonly {tile, flipX, flipY}[]>`, derived, never stored; `overrides` hold manual tiles painted over the result.
 
-The hash is a 32-bit integer mix (`Math.imul` and shifts, no floats) of `(layer seed, rule id, x, y, salt)`, so a project exports identical tiles on every engine; the **seed** is stored per auto-layer instance and "Re-roll variation" is one undo step that changes it. Painting one source cell recomputes only the window of `floor(maxRuleSize / 2)` cells around it; a property test checks that the incremental result equals a full recompute. Diagnostics the engine feeds Checks: a rule with a tile outside its tileset, a rule that can never match (a pattern cell demanding both `is 1` and `not 1` through flips), a rule shadowed by an earlier `breakOnMatch` rule with a pattern at least as general (info).
+The hash is murmur3_32 (`Math.imul`, shifts and xor, no floats) of the four words `(rule key, x, y, salt)` under the layer seed, where the rule key is FNV-1a of the rule id and the salt tells the chance roll, the variant pick and the dice apart, so a project exports identical tiles on every engine; `chance` applies when the roll is below `floor(chance * 2^32)` (one correctly rounded multiply); the **seed** is stored per auto-layer instance and "Re-roll variation" is one undo step that changes it. Rules are compiled once into the cells each really reads (an 'any' cell costs nothing; a rule that can never draw is left out), and their **reach** is the farthest of those cells. Painting one source cell recomputes only the cells within that reach of it; a seeded property test (random rules, flips, `outside`, chance, groups and edits) checks that the incremental result equals a full recompute. A cell outside the level has no tiles. Diagnostics the engine feeds Checks (`ruleIssues`; rules that are off are skipped): `tileOutOfRange` (error: a tile beyond its tileset), `valueUnknown` (warning: a pattern or `outside` value the source layer does not define), `neverFires` (warning: chance 0 or no tile) and `shadowed` (info: an earlier active, flip-free `breakOnMatch` rule with chance 1 and the same `outside` reads only cells this rule also reads, each with a condition at least as narrow, so it always ends the cell first). Flip variants are alternatives, so a pattern cannot contradict itself through them.
 
 ### 5.7 Worlds
 
@@ -229,6 +229,8 @@ Every edit is a named function in `model/commands/` taking the project and retur
 | Picker | tile | value | n/a | selects the definition | tile |
 | Stamp (multi-tile from the palette or a copied region) | tiles | values | overrides | n/a | n/a |
 | Random (dice: a tile from the palette selection per cell, by hash) | tiles | n/a | overrides | n/a | n/a |
+
+The operations behind the tools are pure functions over a `Grid` in `tiles/` (ED2D.2); each takes the cell **word** (a packed tile cell, an IntGrid value or an override tile), so one set serves every layer kind, and erasing is painting the word 0. The brush is a square of 1 to 8 cells whose top-left is `floor((size - 1) / 2)` up and left of the cursor, and a stroke is the Bresenham line between pointer events with the footprint at every cell. Rectangle corners are inclusive and may come in either order. Fill is 4-connected, replaces cells equal to the start cell's word (a flipped tile is a different word), stays inside the level and works a run at a time. A stamp is a row-major rectangle of words: pasting skips its empty cells unless asked to clear, and flipping mirrors the layout and, for tiles, each tile's flip bit. The dice pick `candidates[hash(seed, x, y) % n]` per cell, so a replayed stroke repaints the same tiles.
 
 Finger: select, drag, pan, pinch. Pencil: draws and drags precisely, hover shows the brush footprint; with the Pencil active a finger pans (kit §4.5). Mouse: wheel zoom, middle pan.
 
@@ -345,7 +347,7 @@ This profile makes the editor author **the game's own stage files**. FloorFifty 
 | ID | Decision | Default and why |
 |---|---|---|
 | FF-D1 | The profile edits **the game's own TOML**, not an editor project format | The stage TOML is the contract; a second format would drift. |
-| FF-D2 | Comment- and format-preserving TOML via `@decimalturn/toml-patch` (MIT) on `smol-toml` (already in the stack) | Measured 2026-10-23: identity patch is byte-equal on all four shipped stages, and a one-value edit changes exactly the lines that hold it. Structural edits keep every other comment. New dependency: needs the `deps:new` review in the PR that adds it. |
+| FF-D2 | Comment- and format-preserving TOML via `@decimalturn/toml-patch` (MIT) on `smol-toml` (already in the stack) | Measured 2026-10-23: identity patch is byte-equal on all four shipped stages, and a one-value edit changes exactly the lines that hold it. Whole-table edits (add, remove, reorder) are not safe with comments, so the codec does those itself (§10.3). New dependency: needs the `deps:new` review in the PR that adds it. |
 | FF-D3 | The stage schema is **vendored** with a recorded source commit, not imported | FloorFifty's `content` package is not in AF (stages are game content, extraction map §4). A refresh script diffs against FloorFifty at a pinned commit; the profile registry lets another game supply its own. |
 | FF-D4 | Composition math is a pure function ported from `StageLayers`, tested against numbers from FloorFifty's own tests | "WYSIWYG" is a claim about numbers; the Pixi scene only applies them. |
 
@@ -379,21 +381,28 @@ The files are written by people for people: `rooftops.toml` is 30% comments, wit
 ### 10.3 Document and codec
 
 ```ts
+// What the profile edits (`Profile<StageDocument>`); the open file's path, `base` text and drafts belong to the app (ED2D.5).
 interface StageDocument {
-  readonly path: string                 // content/stages/rooftops.toml
-  readonly base: string                 // the text as loaded (comments, layout)
   readonly value: StageValue            // parsed, validated shape (schema output)
-  readonly draft: DraftState            // fields mid-edit that are not yet valid (e.g. empty alias)
+  readonly ids: ListIds                 // one id per element of course.extension, theme.layers and theme.setPieces
 }
+interface ListIds { readonly extension: readonly string[]; readonly layers: readonly string[]; readonly setPieces: readonly string[] }
+
+parseStage(text): Result<StageDocument, readonly ParseError[]>   // ids are b0, b1, ... per list
+printStage(base, document): string                                // base = the text the document was read from
 ```
 
-`print(base, value)` is the profile's `print` (§7). Codec rules:
+The three lists have no key a table can be told apart by, so every element carries an id the codec follows through an edit: it tells "moved" from "removed, and a new one added", and a moved element keeps its comments. A parsed document numbers its elements `b0`, `b1`, … per list; commands give new elements a fresh id from the injected `IdSource` and keep ids when they move or duplicate (a duplicate gets a fresh one). The ids of a list must be as many as its elements and distinct; `printStage` throws when they are not. **`base` stays the text as loaded for the whole session** (the app never replaces it by what it saved), because the `b` ids refer to its elements; saving again from the same base is idempotent, and a reload re-reads both.
 
-1. Opening and exporting with no change returns the original text byte for byte (tested on all four stages).
-2. A changed scalar changes only its own line. A new table or array element is inserted after its siblings with the file's existing style (blank line between tables, key order as the schema lists them). A removed element removes the comment block directly above it, nothing else.
-3. Reordering layers moves each table with its leading comment block.
-4. Output must re-parse to exactly `value` (tested as a property over generated edits).
-5. Parse errors report line and column; the editor shows them and never replaces the file.
+`print(base, value)` is the profile's `print` (§7). The codec is two layers: a **block engine** that adds, removes and rearranges whole tables (`course` with its phrases and extension, `theme.presentation`, `theme.presentation.citySink`, and the elements of the three lists), and `@decimalturn/toml-patch`, which carries every change inside a table. The engine exists because the library, measured on the shipped stages, drops the comment block that follows a removed table, leaves a removed element's own comment behind on its neighbour, does not move comments with a swapped element, and writes `citySink = { … }` or `phrases = [ { … } ]` inline for a new table. Codec rules:
+
+1. Opening and exporting with no change returns the original text byte for byte (tested on all four stages, with `\r\n` line endings and without a final newline). Line endings and the final newline are the base's.
+2. A changed scalar changes only its own line, and a comment at the end of that line stays. An optional key added or removed adds or removes only its line, and a comment directly above a removed key goes with it. A new table or array element follows the file's style: a blank line between tables, the keys in the order the shipped files write them (layers `alias, plate, depth, sink, haze, extend, arc, drift`; set pieces `floor, kind, holdMs`, then the kind's keys), string lists as `["a", "b"]`, and it is placed after its siblings, or after the last table that comes before it in file order (`courseTuning`, `course`, `course.phrases`, `course.extension`, `theme`, `theme.layers`, `theme.presentation`, `theme.presentation.citySink`, `theme.setPieces`). A removed table removes the comment lines directly above it and the blank line after it, and nothing else: a comment block that a blank line separates from the next header belongs to no table and stays.
+3. Reordering elements moves each table with its leading comment block into the place of the table that held the element now there, so the text between tables stays where it was.
+4. Output must re-parse to exactly `value` (tested as a property over generated edits: 200 seeded sequences of 1 to 8 edits for each shipped stage, which also checks that every comment of a table or key that stays is in the output once and that none appears from nowhere).
+5. Parse errors report line and column; the editor shows them and never replaces the file. A schema issue reports its path (`theme.layers[2].depth`) and the line of its key (the table header for a missing key; one error for each unknown key).
+
+Known limits: a list the text writes as an inline array is edited by the library, with its layout, not by the engine; removing a commented key between two blank lines leaves both blank lines; a float written `1.0` is printed `1`.
 
 ### 10.4 Composition (WYSIWYG)
 
@@ -447,7 +456,9 @@ Kit storage (§4.7 of the kit spec) with these rules: the workspace in OPFS hold
 | iPad 13" 1366×1024 | `wide` | |
 | Desktop ≥ 1440 | `wide` | Hover, shortcuts: `Mod+Z`, `Mod+Shift+Z`, `Delete`, `Mod+D` duplicate, `B` brush, `R` rectangle, `G` fill, `E` eraser, `I` picker, `[` `]` brush size, arrows nudge the selection by one cell (shift 8), `Alt+↑/↓` reorder in lists |
 | Phone | `compact` | Not a target; opens, edits and exports without data loss |
-| Input | | Finger: select, drag, pan, pinch. Pencil: precise drags and strokes, hover shows the brush footprint. Mouse: wheel zoom, middle pan. Keyboard: every inspector field and rule cell |
+| Input | | The operations behind the tools are pure functions over a `Grid` in `tiles/` (ED2D.2); each takes the cell **word** (a packed tile cell, an IntGrid value or an override tile), so one set serves every layer kind, and erasing is painting the word 0. The brush is a square of 1 to 8 cells whose top-left is `floor((size - 1) / 2)` up and left of the cursor, and a stroke is the Bresenham line between pointer events with the footprint at every cell. Rectangle corners are inclusive and may come in either order. Fill is 4-connected, replaces cells equal to the start cell's word (a flipped tile is a different word), stays inside the level and works a run at a time. A stamp is a row-major rectangle of words: pasting skips its empty cells unless asked to clear, and flipping mirrors the layout and, for tiles, each tile's flip bit. The dice pick `candidates[hash(seed, x, y) % n]` per cell, so a replayed stroke repaints the same tiles.
+
+Finger: select, drag, pan, pinch. Pencil: precise drags and strokes, hover shows the brush footprint. Mouse: wheel zoom, middle pan. Keyboard: every inspector field and rule cell |
 
 Touch targets stay 44 (48 for Export); tile palette cells are 44 on `compact` and `medium` and scale up to the grid size on `wide`; the rule pattern cells are 44; nothing is hover-only; the canvas never scrolls the page. The Level view's essential actions on a short height are tools, undo/redo, layers and Export; the palette and dock open as sheets (kit §4.2).
 
@@ -477,7 +488,7 @@ Touch targets stay 44 (48 for Export); tile palette cells are 44 on `compact` an
 |---|---|---|
 | Unit | Schema and codec round trips; cell encoding (property); chunked grid; commands; checks; auto-tile engine; export; id source; migrations with fixtures; the FloorFifty codec, commands, checks, `composeStage`, `createCourse`, demand | `model/`, `tiles/`, `profiles/**`, renderer-free |
 | Property | RLE `decode∘encode` is identity; random command sequences then undo of any prefix restores the project byte-for-byte when printed; incremental auto-tile equals full recompute; FloorFifty `print` re-parses to `value` and undo restores the original text | `model/`, `tiles/`, `profiles/floorfifty-stage` |
-| Golden | Auto-tile output hash for fixed IntGrids and rule sets, **identical in Node, Chromium, WebKit and Firefox** (the browser projects run the same file); `composeStage` and `createCourse` vs FloorFifty; shipped stages open with zero errors | fixtures in `src/testing/fixtures/` |
+| Golden | Auto-tile output hash for fixed IntGrids and rule sets, **identical in Node, Chromium, WebKit and Firefox** (`*.parity.test.ts` files run in the Node `unit` project and again in the `browsers` project; the hill's number is also reproduced by an independent python fold of stacks worked out by hand); `composeStage` and `createCourse` vs FloorFifty; shipped stages open with zero errors | fixtures in `src/testing/fixtures/` |
 | Architecture | The import-graph rules of §4; no template or profile ids in `app`, `tiles`, `canvas` (G-s) | one unit test |
 | DOM | Layer panel, palettes, entity inspector and every field type, rule editor, diagnostics list, export dialog states | Vitest browser mode |
 | Layout | Shell regions at the sizes in §12 | kit layout project |
