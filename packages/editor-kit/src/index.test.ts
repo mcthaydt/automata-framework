@@ -18,4 +18,26 @@ describe('editor-kit entry', () => {
     expect(kit.createKeymap).toBeTypeOf('function')
     expect(kit.parseShortcut).toBeTypeOf('function')
   })
+
+  test('exports the widgets, the toast store and the move helper that honors locked rows', () => {
+    for (const widget of [
+      kit.Stepper,
+      kit.Slider,
+      kit.Segmented,
+      kit.Chips,
+      kit.Swatch,
+      kit.ColorField,
+      kit.Tabs,
+      kit.Dialog,
+      kit.ToastRegion,
+      kit.StatusLine,
+      kit.Menu,
+      kit.Picker,
+      kit.ReorderList,
+    ]) {
+      expect(widget).toBeTypeOf('function')
+    }
+    expect(kit.createToasts).toBeTypeOf('function')
+    expect(kit.moveRow(['a', 'b', 'c'], (id) => id === 'b', 0, 2)).toEqual(['c', 'b', 'a'])
+  })
 })

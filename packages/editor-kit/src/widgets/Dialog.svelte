@@ -145,4 +145,8 @@ function onClick(event: MouseEvent): void {
   .actions :global([data-primary]) {
     min-height: var(--size-primary);
   }
+  .actions :global(button:focus-visible) {
+    outline: 2px solid var(--color-accent-default);
+    outline-offset: 2px;
+  }
 </style>

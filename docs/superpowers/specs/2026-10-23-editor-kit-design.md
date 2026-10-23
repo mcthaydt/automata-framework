@@ -161,6 +161,19 @@ All widgets: minimum 44×44 hit area (48 for the primary action), visible focus 
 | `ReorderList` | idle, dragging, dropping, locked row | Drag handle 44 wide; auto-scroll at edges; announces moves |
 | `Tabs`, `Dialog`, `Toast`, `Menu`, `StatusLine` | standard | Dialog traps focus and restores it; toast has an action and does not steal focus |
 
+**As built (EDK.4, [plan](2026-10-23-edk-4-widgets.md)).** Twelve Svelte 5 components in `src/widgets/`, each with its rules in a pure module beside it (`widget-math`, `stepper-model`, `color`, `popup-model`, `menu-model`, `picker-model`, `reorder-model`, `focus-trap`). The decisions the table leaves open:
+
+- **One edit event.** `EditEvent<T> = { value, phase }` with `phase` one of `set` (a typed value, a step, an arrow key, a tap on an option), `start`, `update`, `commit` and `cancel` (a drag, which brackets one undo step). A drag that ends where it began is `cancel`, so a no-op is never an undo step. Every value widget takes `value` (`bind:value` also works) and `onedit`.
+- **A disabled widget stays focusable.** It is `aria-disabled`, not `disabled`; its `reason` is its accessible description and tooltip, and pressing it calls `onblocked(reason)` so the editor can say why. It never reports an edit. Disabled options of a `Segmented`, `Tabs`, `Menu` or `Picker` are skipped by arrow keys but can be pressed.
+- **Typing is refused, scrubbing is clamped.** A typed value outside the bounds, not a number or refused by `validate` is rejected with a message and the value keeps its previous number (G-e); dragging, steps and arrows clamp and show a stop (`data-at-limit`). A scrub moves one `step` per `pixelsPerStep` pixels (default 4) from where the press began, rounded to the step's decimals.
+- **`Dialog` owns its focus; it is not a native `<dialog>`.** It remembers the focused element, focuses the first `[data-autofocus]` or tabbable element, keeps Tab inside, closes on Escape or a press that begins and ends on the scrim (unless `dismissible` is false) and gives focus back however it closes. Escape never reaches a shortcut behind it.
+- **Toasts are a store.** `createToasts({ clock })` holds up to three (the oldest drops), each 5 s, 8 s with an action, or sticky at 0, on an injected clock; it follows Svelte's store contract. `ToastRegion` is a polite live region that is in the page before the first toast and never takes focus.
+- **`Menu` and `Picker` share a `Popup`**: a popover under the trigger on `wide`, a bottom sheet with a scrim below it, chosen by the editor through `presentation`. The popup is moved out of drawers (into the open dialog when the trigger is in one), so a transform cannot misplace it; Escape closes only it; a press outside closes it and goes through.
+- **`ReorderList` reports one `onreorder({ id, from, to })` at the drop**, never during the drag; the editor applies it (`moveRow` honors locked rows) and passes the new items. Locked rows keep their places and rows are never dropped onto them. The dragged row and the rows that shift are transforms, so no focus is lost before the drop. Keyboard lift is Space, arrows, Space or Enter, Escape; each step is announced.
+- **`ColorField` is palette-first**: a grid of swatches and a "Custom" button that reveals a `#rrggbb` field next to the browser's colour input.
+
+**Layout contract.** `WidgetGallery` mounts every widget; `widgets.layout.test.ts` measures it with production CSS in Chromium at 1194×834, 834×1194, 390×844 and 900×600: every interactive element is at least 44×44 (a dialog's primary action 48), the page never scrolls sideways, an open dialog, menu and picker stay inside the screen, and every kind of control, including the controls inside a dialog, a menu and a picker, shows the two-pixel accent ring when reached by keyboard. WebKit and Firefox follow in EDK.6; until then they go to the Orchestrator's device pass.
+
 ### 4.7 Storage
 
 ```ts
