@@ -54,7 +54,7 @@ M0 ─► M1 ─┬─► M2 ─┬─► M3 ─► M6
           │       ├─► M5 ─┐
           └─► M4 ─┘       ├─► M7 ─► M8
                     M2 ───┘
-M3 ─► GAME-3D (the base 3D game, inside AF 1.0) ─► M9 (3D systems into packages) ─► the AF 1.0 launch (M8.9, which includes the free 3D runtime, waits for both)
+M3 ─► GAME-3D (the base 3D game, inside AF 1.0) ─► M9 (3D systems into packages) ─► the AF 1.0 launch (M8.9, which includes the free 3D runtime, waits for both and for Pixi 3D's public release)
 ED (editors, Owner 2026-10-23): parallel to M1–M8, not a gate; EDK (kit) ─► ED2D (genre-general 2D editor; FloorFifty stages are the EDFF profile lane), ED3D; both finish before GAME-3D starts
 External: Ruken package publication / F1 ─► M1.2, M1.4 re-vendor;  Ruken [store] ─► M7 store
 ```
@@ -100,7 +100,7 @@ Ordered so the pipeline exists before the runtime: CI/CD and deployment are prov
 
 ### M3 3D characters and pipelines
 2.5D dropped (Owner, 2026-10-18); rigged glTF characters deferred "for now", an IK rig and an angled 24 mm camera added (Owner, 2026-10-23); the camera's 25° and 5 m with free rotation, the base 3D game, 3D in AF 1.0 and the look answered the same day (14:18 to 14:21 UTC); [revised M3 spec](superpowers/specs/2026-10-18-m3-3d-characters-design.md), awaiting review.
-- **Spike S7:** `@pixi/3d` under Ruken's CSP, WebGL2 parity, phone FPS, CI capture path, API surface, rig solve cost, procedural figure cost, legibility of the angled view, whether a public build can ship `@pixi/3d` (M3R-D18); decide D-1.
+- **Spike S7:** `@pixi/3d` under Ruken's CSP, WebGL2 parity, phone FPS, CI capture path, API surface, rig solve cost, procedural figure cost, legibility of the angled view, the beta's version and terms (M3R-D18); D-1 stays until Pixi 3D is public.
 - **`render-pixi3d`:** meshes and GLB props, the angled camera (24 mm, 25° down and 5 m back, turned freely, per-room views), lighting, fog; **`figures`:** procedural characters (The Last Light's figure, as 3D meshes) with an IK rig, authored poses and keyframed clips; **`post-retro`**; `games/base-3d`, the first slice of the base 3D game, with procedural figures only.
 - **`pipelines`:** router, MCP server, budgets, gates, guard, audit log, made game-agnostic; the free procedural character path, and props (image → Meshy → flattened GLB), with their gates.
 ### M4 Input and display
@@ -158,7 +158,7 @@ Every plan names exact create/modify/test files, consumed and produced interface
 | GitHub Packages publish and game-read tokens | M2.4 publishing, every game repo | Decided (coordinator, 2026-10-11; checked against GitHub's docs): publish with the release workflow's `GITHUB_TOKEN`; games read with `AF_READ_TOKEN`, a classic PAT with `read:packages` (the npm registry accepts only classic tokens). The Owner creates it when the first game repository needs it |
 | Runner capacity (reuse of the Owner's WSL and Windows GPU runners, or a Linux GPU box) | M1.1 browser lanes, M3 visual checks | D-5 |
 | Standalone hosting account and domain | M1.2 dev host | D-4 |
-| `@pixi/3d` beta access, version and deployment terms (public deployment is not allowed under the beta, per The Last Light's README) | M3 public builds, GAME-3D deployment | D-1 (provisional: unpublished, private builds only) |
+| Pixi 3D's public release (`@pixi/3d` is a closed beta, 0.1.0, and its terms allow no public deployment, per The Last Light's README). **Owner, 2026-10-23 14:49 UTC: "I forgot, we launch when pixi 3D goes public"** | The AF 1.0 launch (M8.9), M3 public builds, GAME-3D's public deployment | D-1 (unpublished, private builds only) lifts when it lands; we build on the beta meanwhile (M3R-D18) |
 
 ## 7. Backlog
 

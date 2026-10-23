@@ -57,7 +57,7 @@ M0 (spikes S1–S6, ADR 0001, the A1a sim core) is merged. Nothing from M1 onwar
 | M5 Saves, audio, localization | Ruken saves and migrations, audio extensions, six languages |
 | M6 Gameplay extensions | Sectors, nav, puzzle, systems, narrative, cutscenes, feel, debug, environment pipeline |
 | M7 Online and store | `net`/`server`, `store`, `host-tauri` |
-| M8 CLI 1.0 and adoption | Full CLI, 1.0 (AF finished for 2D and 3D: 2.5D dropped 2026-10-18, "3D ships 1.0" by the Owner on 2026-10-23, so the launch waits for GAME-3D and M9), a slice of FloorFifty and The Last Light running on AF |
+| M8 CLI 1.0 and adoption | Full CLI, 1.0 (AF finished for 2D and 3D: 2.5D dropped 2026-10-18, "3D ships 1.0" by the Owner on 2026-10-23, so the launch waits for GAME-3D, M9 and, by the Owner's word of 2026-10-23, Pixi 3D's public release), a slice of FloorFifty and The Last Light running on AF |
 | GAME-3D | The base 3D game, `games/base-3d`: an Ocarina-style action-adventure, the 3D counterpart of the 2D platformer Emberwick, built on AF inside 1.0 and authored in the editors |
 | M9 3D systems into packages | The base 3D game's proven systems promoted into packages, before the 1.0 launch |
 | M10 Website (final phase) | The AF site: store, documentation, playable demos and everything else a framework site needs |
