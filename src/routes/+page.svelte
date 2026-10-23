@@ -9,12 +9,12 @@
   import { previewSrcset } from '$lib/previews'
   const starterProject = getExampleProject('base-2d')!
   const sourceGuides = [
-    { label: 'Edit the room', path: 'examples/base-2d/src/content/room.ts', description: 'Author the room as content: # is solid, . is empty, P is the player start and G is the goal. Keep one P and one G, equal row widths, and empty space above P.' },
-    { label: 'Read a test', path: 'examples/base-2d/src/content/room.test.ts', description: 'These unit tests check room dimensions, start and goal positions, collision boundaries and malformed content. Read the expected behavior before changing the room.' },
-    { label: 'Simulation', path: 'examples/base-2d/src/sim/player-move.system.ts', description: 'The movement system reads control state, applies gravity and collision rules, and writes player state inside fixed simulation ticks.' },
-    { label: 'Presentation', path: 'examples/base-2d/src/render/renderer.ts', description: 'The renderer draws the room, character and lighting from the current game state. Gameplay rules stay in the simulation.' },
-    { label: 'Wiring', path: 'examples/base-2d/src/play-room.ts', description: 'The playable room connects input, simulation and rendering. Follow onStep into sim.step and onFrame into drawing; loop.ts owns the fixed-step schedule.' },
-    { label: 'Boot', path: 'examples/base-2d/src/boot.ts', description: 'Effect handles the Ruken handshake and readiness outside simulation code. The SDK also supports running this game standalone.' },
+    { label: 'Edit the room', path: 'games/emberwick/src/content/room.ts', description: 'Author the room as content: # is solid, . is empty, P is the player start and G is the goal. Keep one P and one G, equal row widths, and empty space above P.' },
+    { label: 'Read a test', path: 'games/emberwick/src/content/room.test.ts', description: 'These unit tests check room dimensions, start and goal positions, collision boundaries and malformed content. Read the expected behavior before changing the room.' },
+    { label: 'Simulation', path: 'games/emberwick/src/sim/player-move.system.ts', description: 'The movement system reads control state, applies gravity and collision rules, and writes player state inside fixed simulation ticks.' },
+    { label: 'Presentation', path: 'games/emberwick/src/render/renderer.ts', description: 'The renderer draws the room, character and lighting from the current game state. Gameplay rules stay in the simulation.' },
+    { label: 'Wiring', path: 'games/emberwick/src/play-room.ts', description: 'The playable room connects input, simulation and rendering. Follow onStep into sim.step and onFrame into drawing; loop.ts owns the fixed-step schedule.' },
+    { label: 'Boot', path: 'games/emberwick/src/boot.ts', description: 'Effect handles the Ruken handshake and readiness outside simulation code. The SDK also supports running this game standalone.' },
   ]
   const previews = [
     { slug: 'renderer-2d', title: 'Rendering', description: 'PixiJS rendering with sub-tick interpolation and a screen-space shader.' },

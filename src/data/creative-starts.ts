@@ -5,7 +5,7 @@ export const CREATIVE_STARTS = [
     description: 'A lantern. A ledge. One more try. Run and jump to the ember, then make the next room your own.',
     image: '/previews/emberwick.jpg', alt: 'Emberwick platforming gameplay',
     href: '/examples?demo=base-2d', action: 'Play Emberwick',
-    nextHref: '/examples?demo=base-2d&file=examples/base-2d/src/content/room.ts', next: 'Remix the room',
+    nextHref: '/examples?demo=base-2d&file=games/emberwick/src/content/room.ts', next: 'Remix the room',
   },
   {
     title: 'Jump. Then jump again.',

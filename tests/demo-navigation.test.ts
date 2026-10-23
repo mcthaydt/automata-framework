@@ -14,8 +14,8 @@ describe('Demo URLs and readiness', () => {
     expect(unknown).toEqual({ demo: 'renderer-2d' })
   })
   it('opens a requested published file and ignores paths outside the source inventory', async () => {
-    const selected = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=examples/base-2d/src/content/room.test.ts') } as any)
-    expect(selected).toEqual({ demo: 'base-2d', file: 'examples/base-2d/src/content/room.test.ts' })
+    const selected = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=games/emberwick/src/content/room.test.ts') } as any)
+    expect(selected).toEqual({ demo: 'base-2d', file: 'games/emberwick/src/content/room.test.ts' })
     const invalid = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=../../.env') } as any)
     expect(invalid).toEqual({ demo: 'base-2d' })
   })

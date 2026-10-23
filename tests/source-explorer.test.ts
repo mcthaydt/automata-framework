@@ -21,19 +21,19 @@ describe('Project source explorers', () => {
 
   it('supports the phone file picker and exposes shared starter files', async () => {
     const view = render(Examples, { props: { data: { demo: 'bodies-2d' } } })
-    await fireEvent.change(view.getByLabelText('Choose a file'), { target: { value: 'examples/base-2d/src/play-room.ts' } })
-    expect(view.getByRole('region', { name: 'examples/base-2d/src/play-room.ts' }).textContent).toContain('createPlay')
+    await fireEvent.change(view.getByLabelText('Choose a file'), { target: { value: 'games/emberwick/src/play-room.ts' } })
+    expect(view.getByRole('region', { name: 'games/emberwick/src/play-room.ts' }).textContent).toContain('createPlay')
     expect(view.getByText('pnpm --filter @af-examples/physics-bodies-2d dev')).toBeTruthy()
   })
 
   it('connects the homepage explanations to actual simulation, rendering and wiring files', async () => {
     const view = render(Home)
     await fireEvent.click(view.getByRole('button', { name: 'Simulation' }))
-    expect(view.getByRole('region', { name: 'examples/base-2d/src/sim/player-move.system.ts' }).textContent).toContain('defineSystem')
+    expect(view.getByRole('region', { name: 'games/emberwick/src/sim/player-move.system.ts' }).textContent).toContain('defineSystem')
     await fireEvent.click(view.getByRole('button', { name: 'Presentation' }))
-    expect(view.getByRole('region', { name: 'examples/base-2d/src/render/renderer.ts' }).textContent).toContain('createRenderer')
+    expect(view.getByRole('region', { name: 'games/emberwick/src/render/renderer.ts' }).textContent).toContain('createRenderer')
     await fireEvent.click(view.getByRole('button', { name: 'Wiring' }))
-    const region = view.getByRole('region', { name: 'examples/base-2d/src/play-room.ts' })
+    const region = view.getByRole('region', { name: 'games/emberwick/src/play-room.ts' })
     expect(region.textContent).toContain('createLoop')
     // Once the code is highlighted, `createLoop` is in two tokens (the import and the call), so ask for all of them.
     expect(within(region).getAllByText(/createLoop/).length).toBeGreaterThan(0)

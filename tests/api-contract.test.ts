@@ -6,14 +6,13 @@ import { describe, expect, it } from 'vitest'
 import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
 import sources from '../src/data/projects.json'
 
-// F-1 (QB spec): the site's copies of these three files carry the MIT licence, and the framework does not yet ship it
-// (no LICENSE, `UNLICENSED` in package.json). DX.11 adds them. Until then they are the only files allowed to differ,
-// and the second test below stays red-by-design, as tests/license-claim.test.ts does, so DX.11 has to remove both.
-const AHEAD_OF_FRAMEWORK_UNTIL_DX11 = ['LICENSE', 'LICENSE-SCOPE.md', 'package.json']
-
-function differing(paths: (path: string) => boolean): string[] {
+// The published project files are the framework's own files at `framework.ref`, copied by `pnpm sync`. The site once
+// carried LICENSE, LICENSE-SCOPE.md and a `license` field the framework lacked (QB spec F-1), and this test allowed those
+// three files to differ until DX.11. The sync now copies only what the framework has, so nothing may differ; after
+// DX.11 adds the licence files, the next sync brings them in. The site's own MIT claim stays held by license-claim.test.ts.
+function differing(): string[] {
   return sources.files.flatMap(file => {
-    if (file.content === undefined || !paths(file.path)) return []
+    if (file.content === undefined) return []
     const framework = resolve('../automata-framework', file.path)
     return existsSync(framework) && readFileSync(framework, 'utf8') === file.content ? [] : [file.path]
   })
@@ -21,12 +20,7 @@ function differing(paths: (path: string) => boolean): string[] {
 
 describe('Published code contracts', () => {
   it('publishes the exact current project files instead of independently maintained snippets', () => {
-    expect(differing(path => !AHEAD_OF_FRAMEWORK_UNTIL_DX11.includes(path))).toEqual([])
-  })
-
-  // Expected red until DX.11 (the licence files land in the framework): `it.fails` is green while they differ.
-  it.fails('also publishes the licence files exactly, expected red until DX.11', () => {
-    expect(differing(path => AHEAD_OF_FRAMEWORK_UNTIL_DX11.includes(path))).toEqual([])
+    expect(differing()).toEqual([])
   })
 
   it('only lists names exported by the documented entry point or actual Sim methods', () => {

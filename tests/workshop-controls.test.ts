@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createInputDevices } from '../../automata-framework/examples/base-2d/src/input/devices'
+import { createInputDevices } from '../../automata-framework/games/emberwick/src/input/devices'
 import { isolateControlKeys } from '../workshop/controls'
 
 describe('Native workshop controls', () => {
