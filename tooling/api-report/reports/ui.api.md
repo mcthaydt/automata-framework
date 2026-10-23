@@ -378,6 +378,12 @@ class CursorRunner {
 }
 ```
 
+### `defaultSlot` (function)
+
+```ts
+function defaultSlot(slots: readonly SaveSlotView[]): number | undefined;
+```
+
 ### `DeviceClass` (type)
 
 ```ts
@@ -1188,6 +1194,112 @@ interface RotateToastCopy {
 }
 ```
 
+### `SAVE_STATUS_TONES` (const)
+
+```ts
+const SAVE_STATUS_TONES: {
+    readonly [State in SaveStatusState]: SaveStatusTone;
+};
+```
+
+### `SaveSlotActivity` (type)
+
+```ts
+type SaveSlotActivity = 'writing' | 'failed';
+```
+
+### `SaveSlots` (svelte)
+
+```ts
+component from './saves/SaveSlots.svelte'
+```
+
+### `SaveSlotsCopy` (interface)
+
+```ts
+interface SaveSlotsCopy {
+    readonly title: string;
+    readonly loading: string;
+    readonly slot: (slot: number) => string;
+    readonly empty: string;
+    readonly unreadable: string;
+    readonly newer: string;
+    readonly otherContent: string;
+    readonly writing: string;
+    readonly failed: string;
+    readonly load: string;
+    readonly newGame: string;
+    readonly delete: string;
+    readonly deleteTitle: string;
+    readonly deleteBody: (name: string) => string;
+    readonly deleteNewerBody: string;
+    readonly deleteConfirm: string;
+    readonly cancel: string;
+    readonly more: (count: number) => string;
+}
+```
+
+### `SaveSlotsView` (type)
+
+```ts
+type SaveSlotsView = {
+    readonly state: 'loading';
+} | {
+    readonly state: 'slots';
+    readonly slots: readonly SaveSlotView[];
+};
+```
+
+### `SaveSlotView` (type)
+
+```ts
+type SaveSlotView = {
+    readonly kind: 'empty';
+    readonly slot: number;
+    readonly activity?: SaveSlotActivity;
+} | {
+    readonly kind: 'ready' | 'other-content';
+    readonly slot: number;
+    readonly savedAt: number;
+    readonly label?: string;
+    readonly activity?: SaveSlotActivity;
+} | {
+    readonly kind: 'unreadable';
+    readonly slot: number;
+    readonly activity?: SaveSlotActivity;
+} | {
+    readonly kind: 'newer';
+    readonly slot: number;
+    readonly activity?: SaveSlotActivity;
+};
+```
+
+### `SaveStatus` (svelte)
+
+```ts
+component from './status/SaveStatus.svelte'
+```
+
+### `SaveStatusCopy` (type)
+
+```ts
+type SaveStatusCopy = {
+    readonly [State in SaveStatusState]: string;
+};
+```
+
+### `SaveStatusState` (type)
+
+```ts
+type SaveStatusState = 'checking' | 'syncing' | 'saved' | 'offline-queued' | 'retry' | 'conflict' | 'recovered' | 'no-grant';
+```
+
+### `SaveStatusTone` (type)
+
+```ts
+type SaveStatusTone = 'info' | 'success' | 'warning';
+```
+
 ### `ScreenFrame` (svelte)
 
 ```ts
@@ -1282,6 +1394,16 @@ function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => v
 
 ```ts
 component from './controls/Slider.svelte'
+```
+
+### `slotActionsOf` (function)
+
+```ts
+function slotActionsOf(slot: SaveSlotView): {
+    readonly load: boolean;
+    readonly newGame: boolean;
+    readonly remove: boolean;
+};
 ```
 
 ### `Split` (svelte)
