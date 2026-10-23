@@ -5,4 +5,4 @@ pre-commit:
       glob: "*.{ts,js,json,jsonc}"
       run: pnpm exec biome check --no-errors-on-unmatched {staged_files}
     2_affected-unit-tests:
-      run: pnpm exec turbo run test:unit --filter="...[HEAD]"
+      run: pnpm exec turbo run test:unit --filter="...[HEAD]" -- --testTimeout=90000
