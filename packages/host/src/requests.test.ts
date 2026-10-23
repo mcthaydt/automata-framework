@@ -1,6 +1,6 @@
 import type { SdkEnv, SdkMessagePort } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
-import { Effect, Exit, Fiber, Scope, TestClock, TestContext } from 'effect'
+import { Chunk, Effect, Exit, Fiber, Scope, Stream, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { Hosting } from './hosting'
 import { HOST_EXIT_CAP } from './hosting-live'
@@ -221,6 +221,28 @@ describe('requests', () => {
           { kind: 'start' },
           { kind: 'end', outcome: 'complete' },
         ])
+      }).pipe(Effect.provide(HostingTest())),
+    )
+  })
+})
+
+describe('round ends as an observable (M5.2 plan step 3)', () => {
+  it('gives one item per round that ended, with its outcome, and none for a dropped end', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const reader = yield* Effect.fork(
+          Stream.runCollect(hosting.round.ended.pipe(Stream.take(2))).pipe(Effect.map(Chunk.toReadonlyArray)),
+        )
+        yield* settled
+        yield* hosting.round.end('quit') // no round open: dropped
+        yield* hosting.round.start
+        yield* hosting.round.start // second start: dropped
+        yield* hosting.round.end('complete')
+        yield* hosting.round.end('quit') // already ended: dropped
+        yield* hosting.round.start
+        yield* hosting.round.end()
+        expect(yield* Fiber.join(reader)).toEqual(['complete', undefined])
       }).pipe(Effect.provide(HostingTest())),
     )
   })
