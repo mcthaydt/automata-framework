@@ -6,7 +6,8 @@
   back) steps back one level: from the confirm to the menu, on Quit; from the menu it resumes.
   A game with a save (M5.2) adds the host's word on the progress under the menu, and, once another device has changed
   the slot being played, a step of its own before the menu: Load newer or Keep playing (M5-D6). It is a step and not
-  more lines in the menu so the menu's actions never move off a short screen.
+  more lines in the menu so the menu's actions never move off a short screen; its two buttons are the dialog's actions,
+  outside the body that scrolls, so a short screen scrolls the words and never the buttons.
 -->
 <script lang="ts">
 import {
@@ -51,7 +52,7 @@ function toggleMute(): void {
 let view = $state<'menu' | 'confirm' | 'elsewhere'>(
   saves?.view.changedElsewhere === true ? 'elsewhere' : 'menu',
 )
-let body = $state<HTMLElement | undefined>(undefined)
+let root = $state<HTMLElement | undefined>(undefined)
 /** Back from the choice leaves it for the menu, with the flag still up: it is not offered again until play resumes. */
 let declined = $state(false)
 
@@ -59,7 +60,7 @@ let declined = $state(false)
 async function show(next: 'menu' | 'confirm' | 'elsewhere', focus: string): Promise<void> {
   view = next
   await tick()
-  body?.querySelector<HTMLElement>(`[data-testid="${focus}"]`)?.focus()
+  root?.querySelector<HTMLElement>(`[data-testid="${focus}"]`)?.focus()
 }
 
 const back = (): void => {
@@ -90,9 +91,34 @@ $effect(() => {
 })
 </script>
 
-<div class="af-game-menu" data-game-screen="paused">
-  <Modal title="Paused" closeLabel={view === 'menu' ? 'Resume' : 'Back'} onclose={back} testId="paused-screen">
-    <div bind:this={body} class="af-pause">
+<!-- The choice's two buttons are the dialog's actions, outside the body that scrolls, so a short screen scrolls the words and never the buttons. -->
+{#snippet choice()}
+  {#if saves !== undefined}
+    <div class="af-pause__choice" data-changed-elsewhere>
+      <button
+        type="button"
+        class="af-control af-control--primary"
+        data-kind="primary"
+        data-testid="load-newer"
+        data-initial-focus
+        onclick={saves.onLoadNewer}>{saves.choiceCopy.loadNewer}</button
+      >
+      <button type="button" class="af-control" data-testid="keep-playing" onclick={saves.onKeepPlaying}
+        >{saves.choiceCopy.keepPlaying}</button
+      >
+    </div>
+  {/if}
+{/snippet}
+
+<div bind:this={root} class="af-game-menu" data-game-screen="paused">
+  <Modal
+    title="Paused"
+    closeLabel={view === 'menu' ? 'Resume' : 'Back'}
+    onclose={back}
+    testId="paused-screen"
+    actions={view === 'elsewhere' ? choice : undefined}
+  >
+    <div class="af-pause">
       {#if message !== undefined}
         <p class="af-pause__message" role="status">{message}</p>
       {/if}
@@ -129,19 +155,6 @@ $effect(() => {
         {#if saves.view.loadFailed}
           <p class="af-pause__message" role="alert" data-load-failed>{saves.choiceCopy.failed}</p>
         {/if}
-        <div class="af-pause__menu" data-changed-elsewhere>
-          <button
-            type="button"
-            class="af-control af-control--primary"
-            data-kind="primary"
-            data-testid="load-newer"
-            data-initial-focus
-            onclick={saves.onLoadNewer}>{saves.choiceCopy.loadNewer}</button
-          >
-          <button type="button" class="af-control" data-testid="keep-playing" onclick={saves.onKeepPlaying}
-            >{saves.choiceCopy.keepPlaying}</button
-          >
-        </div>
       {:else}
         <p class="af-pause__message">Quit to title? This run is lost.</p>
         <div class="af-pause__menu">
@@ -176,6 +189,17 @@ $effect(() => {
   .af-pause__menu {
     display: grid;
     gap: 8px;
+  }
+
+  /* The choice, in the dialog's actions: side by side where they fit, one above the other where they do not. */
+  .af-pause__choice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .af-pause__choice > :global(.af-control) {
+    flex: 1 1 12rem;
   }
 
   @container af-dialog (min-width: 340px) {

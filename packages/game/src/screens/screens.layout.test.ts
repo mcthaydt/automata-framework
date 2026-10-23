@@ -159,6 +159,21 @@ const ESSENTIALS = {
   'paused-elsewhere': ['load-newer', 'keep-playing'],
 } as const
 
+// Chromium scrolls a focused button into view, so the contract above passes with the choice's buttons inside a body
+// that scrolls, while WebKit and Firefox leave them clipped at 780 x 270 at TV scale. The structure is what holds in
+// every engine: the buttons are the dialog's actions, outside the scroll region.
+test('the choice of paused sits in the dialog actions, outside the body that scrolls (M5-D6)', async () => {
+  await page.viewport(780, 270)
+  const fixture = mountScreen('paused-elsewhere')
+  await settleLayout()
+  for (const id of ESSENTIALS['paused-elsewhere']) {
+    const button = document.querySelector(`[data-testid="${id}"]`)
+    expect(button, id).not.toBeNull()
+    expect(button?.closest('[data-scroll-region]'), `${id} is inside the scroll region`).toBeNull()
+  }
+  await fixture.unmount()
+})
+
 describe.each([
   'title',
   'title-saves',
