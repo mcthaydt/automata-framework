@@ -5,12 +5,22 @@
 //   and when the host closes the game). Paused says what the host did with your progress, and offers Load newer or
 //   Keep playing if another device changed this slot. Standalone, there is nothing to sync and nothing is said.
 // Controls: arrows or WASD to walk; Escape or P to pause
-// Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, zod
+// Packages: @mcthaydt/automata, zod
 // Difficulty: ★★★☆
 // Tier: core
 // Golden: 120
-import { defineGame, defineSave, type GameSaves, keys, rect } from '@mcthaydt/automata-game'
-import { defineCommand, defineComponent, definePlugin, defineSystem, type Sim } from '@mcthaydt/automata-sim'
+import {
+  defineCommand,
+  defineComponent,
+  defineGame,
+  definePlugin,
+  defineSave,
+  defineSystem,
+  type GameSaves,
+  keys,
+  rect,
+  type Sim,
+} from '@mcthaydt/automata'
 import { z } from 'zod'
 
 const Walker = defineComponent('walker', { x: 'f32', y: 'f32' })

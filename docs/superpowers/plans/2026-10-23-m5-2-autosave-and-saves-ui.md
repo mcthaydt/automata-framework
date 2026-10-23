@@ -135,5 +135,5 @@ interface Save<S> {
 | 13 | `6b6d31b` | `SaveSlots` (48 px rows in a scroll region, confirmed Delete); DOM tests and layout contracts at the reference sizes. |
 | 14 | `53c830e` (plan), `497514b` | `defineGame({ saves })`, the title's slot list, play that keeps its slot saved, `formatDateTime`; game unit 13 files. Deviations are in the step. |
 | 15 | `997486a` | Paused shows the save status and the changed-elsewhere choice; play tells you in a Toast; `Save.setLoaded` drops a stale pending touch (red first in `save-service.test.ts`). Deviations are in the step. |
-| 16 | `a16adee` | `core-saves.ts`, its golden (Node) and three journeys under the fake host; not ticked: the Mac run and three-engine parity are pending. |
+| 16 | `a16adee`, the umbrella-import fix | `core-saves.ts`, its golden (Node) and three journeys under the fake host; after the rebase onto `main` with EX.6 (#98) the example imports `@mcthaydt/automata` instead of the game and sim packages (`pnpm check` caught it); not ticked: the Mac run and three-engine parity are pending. |
 | 17 | `b73f772`, `867ff37` | Reports, cheatsheet, skill reference, the ui changeset, the umbrella pin; gates as the step records; not ticked for the same reason. |
