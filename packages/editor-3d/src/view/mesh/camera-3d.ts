@@ -21,7 +21,7 @@ export const WALK_FOV: number = 69 * DEGREES
 export const WALK_EYE_HEIGHT = 1.6
 
 /** Where the dollhouse starts, and how far it may tip: never under the floor, never straight down. */
-const HOME_YAW = 45 * DEGREES
+export const HOME_YAW: number = 45 * DEGREES
 const HOME_PITCH = 30 * DEGREES
 const LOWEST_PITCH = 5 * DEGREES
 const HIGHEST_PITCH = 85 * DEGREES

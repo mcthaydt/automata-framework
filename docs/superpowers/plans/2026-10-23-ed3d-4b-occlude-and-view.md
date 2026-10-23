@@ -3,7 +3,7 @@
 - **Task:** ED3D.4b, a follow-up to ED3D.4. The two content-shape requests the 3D direction spec made of the 3D editor ([M3 3D characters spec](../specs/2026-10-18-m3-3d-characters-design.md) §4.2 "Occluders" and the "3D level editor (ED3D)" paragraph of its follow-ups, draft PR #140): a sector wall may carry `occlude: 'cut' | 'fade' | 'never'` (`'cut'` by default for walls, `'never'` for floors), a sector may carry the `view` id of a `camera-view`, and the editor offers a preview of the view at 24 mm with the cut-away applied, at its eight headings while the rotation answer (M3R-D9) is pending. The spec fixes only the content shape; how the editor shows it is this lane's. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.6 (the `af-sector/1` format), §6 (Dollhouse: near walls cut away) and ED3D-D8.
 - **Lane:** editor-3d. **Depends on:** ED3D.1b (PR #129: `af-sector/1`), ED3D.3 (PR #137: the edits and `SectorAccess`), ED3D.4 (PR #148: the mesh, the cutaway, the orbit camera) and ED3D.5a (PR #150, only for the branch stack). Branch `claude/project-thread-ljshus-ed3d-4b` is stacked on #150's branch.
 - **Status:** Drafted 2026-10-23 on the coordinator's and the hub's instruction of 10:05 UTC to keep going while the stack waits in the merge queue; the requests were queued with ED3D.1b2, which the kit's `./fields` export blocks, and are independent of it. Not reviewed; spec review (ED3D.0) is still open. Steps below are ticked only when their checks pass.
-- **Progress:** 3 of 6 steps (steps 1 to 3: local checks run; CI and Owner acceptance pending).
+- **Progress:** 4 of 6 steps (steps 1 to 4: local checks run; CI and Owner acceptance pending).
 
 ## Why this task exists
 
@@ -44,7 +44,7 @@ packages/editor-3d/src/profile/sector-access.ts       EditSector.view
 packages/editor-3d/src/profile/last-light-sectors.ts  refuses view and occlude
 packages/editor-3d/src/view/mesh/sector-mesh.ts       Surface.occlude
 packages/editor-3d/src/view/mesh/mesh-pick.ts         surfaceVisibility, visibleSurfaces, pickMesh by it
-packages/editor-3d/src/view/mesh/camera-3d.ts         HEADINGS, headingPreview
+packages/editor-3d/src/view/mesh/heading-preview.ts   HEADINGS, headingPreview (camera-3d.ts exports HOME_YAW)
 packages/editor-3d/src/model/wall-edits.ts            setWallOcclude
 packages/editor-3d/src/model/sector-edits.ts          setView
 packages/editor-3d/src/index.ts                       the public entry gains them
@@ -59,11 +59,12 @@ export function surfaceVisibility(surface: Surface, eye: Vec3): Visibility
 
 export interface HeadingView {
   readonly heading: number          // 0 to 7: the home yaw plus heading x 45 degrees
-  readonly camera: Camera3D
-  readonly cut: number              // surfaces cut away at this heading
-  readonly faded: number            // surfaces drawn at 25%
+  readonly orbit: Orbit             // fitOrbit at that yaw
+  readonly camera: Camera3D         // orbitCamera(orbit)
+  readonly wallsCut: number         // walls cut away at this heading (a door's pieces count once)
+  readonly wallsFaded: number       // walls drawn at 25%
 }
-export function headingPreview(mesh: SectorMesh, size: Size, options?: { pitch?: number; yaw?: number }): HeadingView[]
+export function headingPreview(mesh: SectorMesh, size: Size, options?: { yaw?: number; pitch?: number; padding?: number }): HeadingView[]
 
 export function setWallOcclude<D>(args: { sector: string; corner: number; occlude: Occlude | null }): Edit<D>
 export function setView<D>(args: { id: string; view: string | null }): Edit<D>
@@ -85,9 +86,10 @@ Tests use the package's fixtures: the depot (two rooms and a portal) with `occlu
   - *Red, by case:* `surfaceVisibility` for each `occlude` with the eye on the near side and on the far side: `cut` is `shown` then `cut`, `never` is `shown` both, `fade` is `shown` then `faded`; `visibleSurfaces` keeps `shown` and `faded` and drops `cut`; `pickMesh` passes through a cut surface, stops at a never surface from outside, and picks a faded one; the existing cases (Walk sees all of its room's walls, a ray through a cut wall goes on) hold.
   - *Expected failure:* `surfaceVisibility` is missing and `never` is cut.
   - *Done 2026-10-23:* red (`surfaceVisibility` not exported), then green (`editor-3d` 230 view tests; `tsc` and biome clean). `surfaceVisibility` is `shown` for a surface on the eye's side and for any that says `never` (a floor seen from below, too), `faded` for a `fade` surface that faces away, `cut` otherwise; `visibleSurfaces` and `pickMesh` ask it and drop only `cut`, so the Walk and dollhouse cases are unchanged. Hand mutation (10 mutants over the `never` shortcut, the fade branch, and both callers): all killed.
-- [ ] **4. The eight headings** (`camera-3d.test.ts`; `view/mesh/camera-3d.ts`).
+- [x] **4. The eight headings** (`heading-preview.test.ts`; `view/mesh/heading-preview.ts`).
   - *Red, by case:* `headingPreview` over the depot returns eight views whose yaws step 45 degrees from the home yaw (the options' `yaw` overrides it), the same pitch and a distance that fits the mesh at every heading; the counts of cut surfaces match `mesh.surfaces` filtered by `surfaceVisibility` at each camera's eye; a wall tagged `never` is cut at no heading and a `fade` wall is counted faded and not cut; a mesh with no surface gives eight views of the empty bounds.
   - *Expected failure:* the function is missing.
+  - *Done 2026-10-23:* red (the module did not exist), then green (11 tests; `tsc` and biome clean). `headingPreview` frames the mesh with `fitOrbit` at each of the eight yaws (the home yaw, or the option's, plus heading x 45 degrees, kept inside one turn) and counts the walls `surfaceVisibility` cuts or fades from the orbit camera's eye: walls are every surface but the floor and the ceiling, and a wall that is several surfaces (a door's, a portal's lower and upper) counts once by its selection (a surface with none counts for itself). Deviations from the contract: it lives in its own file `view/mesh/heading-preview.ts`, because `mesh-pick` already imports `camera-3d` and `camera-3d` importing it back would be a cycle; `camera-3d.ts` exports `HOME_YAW`; the counts are of walls and are named `wallsCut` and `wallsFaded` rather than counting surfaces (the designer reasons in walls, and a door should not count three); the view also carries its `orbit`, which the viewer needs to draw the tile. Hand mutation (17 mutants over the yaw stepping and wrap, the options passed on, the camera, the floor and ceiling exclusion, the cut/faded split, the distinct-wall key and the count): all killed after two tests were added (a portal wall, a wall with no selection).
 - [ ] **5. The two edits** (`wall-edits.test.ts`, `sector-edits.test.ts`; `model/wall-edits.ts`, `model/sector-edits.ts`).
   - *Red, by case:* `setWallOcclude` sets a value on a wall that has none and on a wall that has other members (kept), changes it, takes it off with `null` (the wall with nothing else left loses its third member, as the other wall edits do), refuses a value that is not one of the three, an unknown sector and a corner past the outline, writes nothing when the value is the one it has, is one coalescing step for a run, and is refused on a Last Light level with the profile's sentence; `setView` sets, changes and clears a sector's `view`, refuses an empty id and one with `:` or `/`, an unknown sector, and a Last Light level, and writes nothing when unchanged.
   - *Expected failure:* the edits are missing.
