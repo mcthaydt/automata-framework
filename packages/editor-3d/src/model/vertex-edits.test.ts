@@ -11,9 +11,9 @@ import type { EditSector } from '../profile/sector-access'
 import { levelOf, reasonOf } from '../testing/edit-helpers'
 import { loadAuthored, loadFixture } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
-import { must } from '../testing/toy-blockout'
+import { must, toyBlockout, toyRoom } from '../testing/toy-blockout'
 import type { Edit } from './edit'
-import { insertCorner } from './vertex-edits'
+import { insertCorner, removeCorner } from './vertex-edits'
 
 const depot = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
@@ -599,5 +599,548 @@ describe('insertCorner in Last Light', () => {
     ])
     const portals = lastLightProfile.checks(next).find((result) => result.id === 'openings')
     expect(portals?.ok).toBe(true)
+  })
+})
+
+describe('removeCorner', () => {
+  /** One room a with these corners and nothing else in the level. */
+  const roomOf = (corners: AfSectorEntry['corners']): AfSector =>
+    toyAfSector({ sectors: [{ id: 'a', floor: 0, ceiling: 4, light: 1, corners }] })
+  const without = (level: AfSector, corner: number) => afOn(level, removeCorner({ sector: 'a', corner }))
+  const cornersOf = (level: AfSector, corner: number) => sector(levelOf(without(level, corner)), 'a').corners
+
+  /** The north wall of a is split at (4, 0): corner 0 starts the first half and corner 1 the second. */
+  const split = (first: WallDef | undefined, second: WallDef | undefined): AfSector =>
+    roomOf([
+      first === undefined ? [0, 0] : [0, 0, first],
+      second === undefined ? [4, 0] : [4, 0, second],
+      [8, 0],
+      [8, 6],
+      [0, 6],
+    ])
+  const door = (at: number, width = 1) => ({ door: { at, width, height: 2 } })
+  const win = (at: number, width = 1) => ({ window: { at, width, y0: 1, y1: 2 } })
+
+  describe('joins the two walls at the corner', () => {
+    it('into one that runs from the corner before to the corner after, and selects it', () => {
+      const result = without(split(undefined, undefined), 1)
+      expect(sector(levelOf(result), 'a').corners).toEqual([
+        [0, 0],
+        [8, 0],
+        [8, 6],
+        [0, 6],
+      ])
+      expect(result.ok && result.select).toEqual(['wall:a/0'])
+    })
+
+    it('is labelled for the corner', () => {
+      expect(removeCorner({ sector: 'a', corner: 1 })).toMatchObject({
+        id: 'sector.removeCorner',
+        label: 'Remove corner 1 of a',
+      })
+    })
+
+    it('cuts a corner off a room when the walls are not in line', () => {
+      expect(cornersOf(split(undefined, undefined), 2)).toEqual([
+        [0, 0],
+        [4, 0],
+        [8, 6],
+        [0, 6],
+      ])
+    })
+
+    it('writes what both walls say once, on the wall that starts at the corner before', () => {
+      const brick = { texture: 'brick', handrail: 0.9, trim: { rail: 1 } }
+      expect(sector(levelOf(without(split(brick, brick), 1)), 'a').corners[0]).toEqual([0, 0, brick])
+    })
+
+    it('counts round the loop: the first corner joins the last wall to the second', () => {
+      const brick = { texture: 'brick' }
+      const level = roomOf([
+        [0, 0, brick],
+        [4, 0, brick],
+        [8, 0],
+        [8, 6],
+        [0, 6, brick],
+      ])
+      const result = without(level, 0)
+      expect(sector(levelOf(result), 'a').corners).toEqual([
+        [4, 0, brick],
+        [8, 0],
+        [8, 6],
+        [0, 6, brick],
+      ])
+      // The joined wall starts at the old last corner, which is now the last but one... the fourth, index 3.
+      expect(result.ok && result.select).toEqual(['wall:a/3'])
+    })
+
+    it('selects the joined wall whichever index it has once the corners have moved up', () => {
+      const level = roomOf([
+        [0, 0],
+        [8, 0],
+        [8, 6],
+        [4, 6],
+        [0, 6],
+      ])
+      const result = without(level, 3)
+      expect(result.ok && result.select).toEqual(['wall:a/2'])
+    })
+
+    it('changes nothing else in the level', () => {
+      const added = levelOf(afOn(depot, insertCorner({ sector: 'hall', corner: 2, x: 3, z: 6 })))
+      const back = levelOf(afOn(added, removeCorner({ sector: 'hall', corner: 3 })))
+      expect(sector(back, 'dock')).toBe(sector(added, 'dock'))
+      expect(back.entities).toBe(depot.entities)
+    })
+  })
+
+  describe('undoes insertCorner', () => {
+    const roundTrip = (wall: WallDef | undefined, x: number): [AfSector, AfSector] => {
+      const level = roomOf([wall === undefined ? [0, 0] : [0, 0, wall], [8, 0], [8, 6], [0, 6]])
+      const added = levelOf(afOn(level, insertCorner({ sector: 'a', corner: 0, x, z: 0 })))
+      return [level, levelOf(afOn(added, removeCorner({ sector: 'a', corner: 1 })))]
+    }
+
+    it('on the depot’s hall, wall by wall: the window, the solid wall and the door', () => {
+      for (const corner of [0, 2, 3]) {
+        const at = sector(depot, 'hall').corners
+        const [from, to] = [at[corner] ?? [0, 0], at[(corner + 1) % at.length] ?? [0, 0]]
+        // A quarter of the way along, where neither the window (at 4 of 8) nor the door (at 3 of 6) is.
+        const [x, z] = [from[0] + (to[0] - from[0]) / 4, from[1] + (to[1] - from[1]) / 4]
+        const added = levelOf(afOn(depot, insertCorner({ sector: 'hall', corner, x, z })))
+        const back = levelOf(afOn(added, removeCorner({ sector: 'hall', corner: corner + 1 })))
+        expect(back).toEqual(depot)
+      }
+    })
+
+    it('on a wall with a texture, a trim and a handrail', () => {
+      const [level, back] = roundTrip({ texture: 'brick', handrail: 0.9, trim: { rail: 1 }, thick: 0.2 }, 3)
+      expect(back).toEqual(level)
+    })
+
+    it('on a wall with a door, whichever half it was on', () => {
+      for (const at of [2, 6, 6.3333]) {
+        const [level, back] = roundTrip(door(at), 4.1111)
+        expect(back).toEqual(level)
+      }
+    })
+
+    it('on a wall with a window and a pilaster', () => {
+      const [level, back] = roundTrip(
+        { ...win(6.4444), pilaster: { start: [0.3, 0.2], end: [0.4, 0.2] } },
+        4.1111,
+      )
+      expect(back).toEqual(level)
+    })
+  })
+
+  describe('wants the walls to agree', () => {
+    it('on every member that is not a place along the wall, and names the ones that differ', () => {
+      expect(reasonOf(without(split(undefined, { texture: 'brick' }), 1))).toBe(
+        'the walls at corner 1 of a differ in texture: make them the same first',
+      )
+      expect(reasonOf(without(split({ texture: 'tile' }, { texture: 'brick' }), 1))).toBe(
+        'the walls at corner 1 of a differ in texture: make them the same first',
+      )
+      expect(reasonOf(without(split({ trim: { rail: 1 } }, { trim: { rail: 2 } }), 1))).toBe(
+        'the walls at corner 1 of a differ in trim: make them the same first',
+      )
+    })
+
+    it('with the members in one order whichever wall comes first, and a list that reads', () => {
+      const [one, two] = [{ texture: 'brick', handrail: 0.9 }, { thick: 0.3 }]
+      const sentence =
+        'the walls at corner 1 of a differ in handrail, texture and thick: make them the same first'
+      expect(reasonOf(without(split(one, two), 1))).toBe(sentence)
+      expect(reasonOf(without(split(two, one), 1))).toBe(sentence)
+      expect(reasonOf(without(split({ texture: 'brick' }, { thick: 0.3 }), 1))).toBe(
+        'the walls at corner 1 of a differ in texture and thick: make them the same first',
+      )
+    })
+
+    it('and takes members that are alike, however deep, for the same', () => {
+      const wall = { texture: 'brick', pan: [1, 2], trim: { rail: 1, cap: true } } as const
+      expect(
+        sector(levelOf(without(split(wall, { ...wall, trim: { cap: true, rail: 1 } }), 1)), 'a').corners[0],
+      ).toEqual([0, 0, wall])
+    })
+
+    it('and tells a list, an object with more in it, and a null from what they are not', () => {
+      const wall = (members: object) => members as WallDef
+      expect(reasonOf(without(split(wall({ hideFrom: ['a'] }), wall({ hideFrom: ['a', 'b'] })), 1))).toBe(
+        'the walls at corner 1 of a differ in hideFrom: make them the same first',
+      )
+      expect(reasonOf(without(split({ pan: [1, 2] }, { pan: [1, 3] }), 1))).toBe(
+        'the walls at corner 1 of a differ in pan: make them the same first',
+      )
+      expect(reasonOf(without(split({ trim: { rail: 1 } }, { trim: { rail: 1, cap: true } }), 1))).toBe(
+        'the walls at corner 1 of a differ in trim: make them the same first',
+      )
+      expect(reasonOf(without(split(wall({ tint: null }), wall({ tint: {} })), 1))).toBe(
+        'the walls at corner 1 of a differ in tint: make them the same first',
+      )
+    })
+
+    it('a door or a window does not count as a difference: it is joined on', () => {
+      expect(sector(levelOf(without(split(door(2), undefined), 1)), 'a').corners[0]).toEqual([0, 0, door(2)])
+    })
+  })
+
+  describe('and joins what is set into them', () => {
+    it('a door on the first wall stays, one on the second moves on by the length of the first', () => {
+      expect(cornersOf(split(door(2), undefined), 1)[0]).toEqual([0, 0, door(2)])
+      expect(cornersOf(split(undefined, door(1)), 1)[0]).toEqual([0, 0, door(5)])
+    })
+
+    it('a window and a hatch too, to four decimals', () => {
+      expect(cornersOf(split(undefined, win(1.2222)), 1)[0]).toEqual([0, 0, win(5.2222)])
+      const portalLike = (hatch: [number, number]) => ({ hatch })
+      expect(cornersOf(split(undefined, portalLike([1, 2])), 1)[0]).toEqual([0, 0, portalLike([5, 6])])
+      expect(cornersOf(split(portalLike([1, 2]), undefined), 1)[0]).toEqual([0, 0, portalLike([1, 2])])
+    })
+
+    it('a hatch moves on by the length of the first wall, rounded to four decimals', () => {
+      // 0.3333 + 4.1111 is 4.444400000000001 in floating point.
+      const level = roomOf([
+        [0, 0],
+        [4.1111, 0, { hatch: [0.3333, 1.3333] }],
+        [8, 0],
+        [8, 6],
+        [0, 6],
+      ])
+      expect(cornersOf(level, 1)[0]).toEqual([0, 0, { hatch: [4.4444, 5.4444] }])
+    })
+
+    it('a door on one wall and a window on the other are both kept', () => {
+      expect(cornersOf(split(door(1), win(1)), 1)[0]).toEqual([0, 0, { ...door(1), ...win(5) }])
+    })
+
+    it('refuses a door on both walls, a window on both, and a hatch on both', () => {
+      expect(reasonOf(without(split(door(1), door(1)), 1))).toBe('both walls have a door')
+      expect(reasonOf(without(split(win(1), win(2)), 1))).toBe('both walls have a window')
+      expect(reasonOf(without(split({ hatch: [1, 2] }, { hatch: [1, 2] }), 1))).toBe(
+        'both walls have a hatch',
+      )
+    })
+
+    it('a pilaster at the start of the first wall and one at the end of the second are both kept', () => {
+      const start = { pilaster: { start: [0.3, 0.2] } } as const
+      const end = { pilaster: { end: [0.4, 0.2] } } as const
+      expect(cornersOf(split(start, end), 1)[0]).toEqual([
+        0,
+        0,
+        { pilaster: { start: [0.3, 0.2], end: [0.4, 0.2] } },
+      ])
+      expect(cornersOf(split(start, undefined), 1)[0]).toEqual([0, 0, start])
+      expect(cornersOf(split(undefined, end), 1)[0]).toEqual([0, 0, end])
+    })
+
+    it('refuses a pilaster that ends at the corner, from either wall', () => {
+      expect(reasonOf(without(split({ pilaster: { end: [0.4, 0.2] } }, undefined), 1))).toBe(
+        'a pilaster ends at corner 1',
+      )
+      expect(reasonOf(without(split(undefined, { pilaster: { start: [0.3, 0.2] } }), 1))).toBe(
+        'a pilaster ends at corner 1',
+      )
+    })
+
+    it('carries a member of a pilaster it does not know, from whichever wall has it', () => {
+      const wall = (members: object) => members as WallDef
+      const joinedWith = {
+        pilaster: { start: [0.3, 0.2], end: [0.4, 0.2], tint: 'dark' },
+      }
+      expect(
+        cornersOf(
+          split(
+            wall({ pilaster: { start: [0.3, 0.2], tint: 'dark' } }),
+            wall({ pilaster: { end: [0.4, 0.2] } }),
+          ),
+          1,
+        )[0],
+      ).toEqual([0, 0, joinedWith])
+      expect(
+        cornersOf(
+          split(
+            wall({ pilaster: { start: [0.3, 0.2] } }),
+            wall({ pilaster: { end: [0.4, 0.2], tint: 'dark' } }),
+          ),
+          1,
+        )[0],
+      ).toEqual([0, 0, joinedWith])
+    })
+
+    it('carries a member of a pilaster it does not know, in both', () => {
+      const first = { pilaster: { start: [0.3, 0.2], tint: 'dark' } } as const
+      const second = { pilaster: { end: [0.4, 0.2], tint: 'dark' } } as const
+      expect(cornersOf(split(first as WallDef, second as WallDef), 1)[0]).toEqual([
+        0,
+        0,
+        { pilaster: { start: [0.3, 0.2], end: [0.4, 0.2], tint: 'dark' } },
+      ])
+    })
+
+    describe('when the new wall is shorter than the two', () => {
+      // A dart: the corner at (10, 0) is a spike, and without it the first wall runs only to (1, 5), 5.1 m.
+      const dart = (first: WallDef, second: WallDef): AfSector =>
+        roomOf([
+          [0, 0, first],
+          [10, 0, second],
+          [1, 5],
+          [0, 10],
+        ])
+
+      it('keeps a door that still fits, and refuses one that does not, naming it', () => {
+        expect(sector(levelOf(without(dart(door(2), {}), 1)), 'a').corners[0]).toEqual([0, 0, door(2)])
+        expect(reasonOf(without(dart(door(8), {}), 1))).toBe('the joined wall is too short for its door')
+      })
+
+      it('does the same for a window, a hatch, and a feature moved on from the second wall', () => {
+        expect(reasonOf(without(dart(win(8), {}), 1))).toBe('the joined wall is too short for its window')
+        expect(reasonOf(without(dart({}, win(9)), 1))).toBe('the joined wall is too short for its window')
+        expect(reasonOf(without(dart({}, door(1)), 1))).toBe('the joined wall is too short for its door')
+        expect(reasonOf(without(dart({ hatch: [4, 6] }, {}), 1))).toBe(
+          'the joined wall is too short for its hatch',
+        )
+      })
+
+      it('refuses a feature that starts on the joined wall and ends past it, even by a millimetre', () => {
+        expect(reasonOf(without(dart(door(5), {}), 1))).toBe('the joined wall is too short for its door')
+        expect(reasonOf(without(dart(win(5), {}), 1))).toBe('the joined wall is too short for its window')
+        // The dart's joined wall is 5.0990 m: a door 5.1 m wide centred on it is 1 mm too long.
+        expect(reasonOf(without(dart(door(2.55, 5.1), {}), 1))).toBe(
+          'the joined wall is too short for its door',
+        )
+      })
+
+      it('a feature that ends at the end of a joined wall that is not in line fits it, to the rounding of its place', () => {
+        // Two walls (0, 0) to (1, 2) to (2, 4) in line, each 2.23607 m. The door ends 0.00002 m before the end of the
+        // second; its place moved on by the first wall's length is rounded up, which puts its end 0.00001 m past the end
+        // of the joined wall: a rounding, not a door that is too long.
+        const level = roomOf([
+          [0, 0],
+          [1, 2, door(1.1181, 2.2359)],
+          [2, 4],
+          [0, 4],
+        ])
+        expect(cornersOf(level, 1)[0]).toEqual([0, 0, door(3.3542, 2.2359)])
+      })
+
+      it('says a hatch written the other way round is too long when its far end is', () => {
+        expect(reasonOf(without(dart({ hatch: [20, 3] }, {}), 1))).toBe(
+          'the joined wall is too short for its hatch',
+        )
+      })
+
+      it('a feature that ends where the joined wall does fits it', () => {
+        // The dart's joined wall is (0, 0) to (1, 5): 5.0990 m. A door as wide as that ends on it, to rounding.
+        const length = Math.hypot(1, 5)
+        expect(without(dart(door(length / 2, length), {}), 1).ok).toBe(true)
+      })
+    })
+  })
+
+  describe('and refuses what it must', () => {
+    it('a corner of a portal wall, from either side, naming the sector it leads into', () => {
+      for (const corner of [1, 2])
+        expect(reasonOf(afOn(depot, removeCorner({ sector: 'hall', corner })))).toBe(
+          `the walls at corner ${corner} of hall lead into dock: make them solid first`,
+        )
+      expect(reasonOf(afOn(depot, removeCorner({ sector: 'dock', corner: 3 })))).toBe(
+        'the walls at corner 3 of dock lead into hall: make them solid first',
+      )
+    })
+
+    it('names a sector once when both walls lead into it', () => {
+      const level = toyAfSector({
+        sectors: [
+          {
+            id: 'a',
+            floor: 0,
+            ceiling: 4,
+            light: 1,
+            corners: [
+              [0, 0],
+              [8, 0, { next: 'dock' }],
+              [8, 6, { next: 'dock' }],
+              [0, 6],
+            ],
+          },
+        ],
+      })
+      expect(reasonOf(without(level, 2))).toBe(
+        'the walls at corner 2 of a lead into dock: make them solid first',
+      )
+    })
+
+    it('names both sectors when the walls lead into two', () => {
+      const level = toyAfSector({
+        sectors: [
+          {
+            id: 'a',
+            floor: 0,
+            ceiling: 4,
+            light: 1,
+            corners: [
+              [0, 0],
+              [8, 0, { next: 'dock' }],
+              [8, 6, { next: 'yard' }],
+              [0, 6],
+            ],
+          },
+        ],
+      })
+      expect(reasonOf(without(level, 2))).toBe(
+        'the walls at corner 2 of a lead into dock and yard: make them solid first',
+      )
+    })
+
+    it('a corner that would leave fewer than three, or an outline that crosses itself', () => {
+      expect(
+        reasonOf(
+          without(
+            roomOf([
+              [0, 0],
+              [4, 0],
+              [0, 4],
+            ]),
+            1,
+          ),
+        ),
+      ).toBe('a sector needs at least three corners')
+      // The corner at (8, 0) taken from this dart would run its wall across the notch at (4, 3).
+      expect(
+        reasonOf(
+          without(
+            roomOf([
+              [0, 0],
+              [8, 0],
+              [8, 8],
+              [4, 3],
+              [0, 8],
+            ]),
+            1,
+          ),
+        ),
+      ).toBe('the outline crosses itself')
+    })
+
+    it('says the outline’s sentence before it says anything about the walls', () => {
+      expect(
+        reasonOf(
+          without(
+            roomOf([
+              [0, 0, { texture: 'tile' }],
+              [4, 0, { texture: 'brick' }],
+              [0, 4],
+            ]),
+            1,
+          ),
+        ),
+      ).toBe('a sector needs at least three corners')
+    })
+
+    it('a sector that is not there, and a corner that is not', () => {
+      expect(reasonOf(afOn(depot, removeCorner({ sector: 'nope', corner: 0 })))).toBe('no sector nope')
+      for (const corner of [4, -1, 1.5])
+        expect(reasonOf(afOn(depot, removeCorner({ sector: 'hall', corner })))).toBe(
+          `sector hall has no corner ${corner}`,
+        )
+    })
+
+    it('a sector whose id a selection cannot hold: it joins the walls and selects nothing', () => {
+      const level = toyAfSector({
+        sectors: [
+          {
+            id: 'north/hall',
+            floor: 0,
+            ceiling: 4,
+            light: 1,
+            corners: [
+              [0, 0],
+              [4, 0],
+              [8, 0],
+              [8, 6],
+              [0, 6],
+            ],
+          },
+        ],
+      })
+      const result = afOn(level, removeCorner({ sector: 'north/hall', corner: 1 }))
+      expect(sector(levelOf(result), 'north/hall').corners).toHaveLength(4)
+      expect(result.ok && result.select).toBeUndefined()
+    })
+  })
+
+  describe('in Last Light', () => {
+    const room = (level: typeof dawn, id: string): EditSector =>
+      must(lastLightProfile.sectors.list(level).find((each) => each.id === id))
+    const dropped = (id: string, corner: number) =>
+      removeCorner<typeof dawn>({ sector: id, corner }).run(lastLightProfile, dawn)
+
+    it('joins two walls that are the same cutaway name into that name', () => {
+      // The hall's west wall (-4.875, 6.875) to (-4.875, 3.5) and the jog after it are both "west".
+      const next = levelOf(dropped('hall', 8))
+      expect(room(next, 'hall').corners.slice(7, 10)).toEqual([
+        [-4.875, 6.875, 'west'],
+        [-5.225, 3.5, 'west'],
+        [-5.225, 2.5, 'west'],
+      ])
+    })
+
+    it('undoes a corner added to a wall that is a name', () => {
+      const added = levelOf(
+        insertCorner<typeof dawn>({ sector: 'hall', corner: 5, x: 4.875, z: 2 }).run(lastLightProfile, dawn),
+      )
+      const back = levelOf(
+        removeCorner<typeof dawn>({ sector: 'hall', corner: 6 }).run(lastLightProfile, added),
+      )
+      expect(room(back, 'hall').corners).toEqual(room(dawn, 'hall').corners)
+    })
+
+    it('joins a cutaway name and a wall of that name with a door into one object that has both', () => {
+      const parsed = lastLightProfile.parse(
+        JSON.stringify(
+          toyBlockout({
+            rooms: [
+              {
+                ...toyRoom('a'),
+                corners: [
+                  [0, 0, 'west'],
+                  [2, 0, { cut: 'west', door: { at: 0.5, width: 0.6, height: 2 } }],
+                  [4, 0],
+                  [4, 4],
+                  [0, 4],
+                ],
+              },
+              toyRoom('b'),
+            ],
+          }),
+        ),
+      )
+      if (!parsed.ok) throw new Error('the toy does not parse')
+      const next = levelOf(
+        removeCorner<typeof dawn>({ sector: 'a', corner: 1 }).run(lastLightProfile, parsed.value),
+      )
+      expect(room(next, 'a').corners[0]).toEqual([
+        0,
+        0,
+        { cut: 'west', door: { at: 2.5, width: 0.6, height: 2 } },
+      ])
+    })
+
+    it('says how a pilaster preset and a plain name differ', () => {
+      expect(reasonOf(dropped('hall', 4))).toBe(
+        'the walls at corner 4 of hall differ in preset: make them the same first',
+      )
+    })
+
+    it('refuses a corner of a portal wall, and names its room', () => {
+      expect(reasonOf(dropped('hall', 12))).toBe(
+        'the walls at corner 12 of hall lead into ward: make them solid first',
+      )
+      expect(reasonOf(dropped('ward', 2))).toBe(
+        'the walls at corner 2 of ward lead into hall: make them solid first',
+      )
+    })
   })
 })

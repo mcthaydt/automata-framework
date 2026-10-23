@@ -5,11 +5,12 @@
 // once, so that no tool re-derives them.
 import { wallSelection } from '../checks/check'
 import type { DoorDef, WindowDef } from '../format/sector.schema'
+import { outlineProblem } from '../geometry/loops'
 import type { LevelProfile } from '../profile/level-profile'
 import type { EditCorner, EditSector, EditWall } from '../profile/sector-access'
 import { type Edit, type EditResult, ok, refuse } from './edit'
-import { noSector, placed, replaceSectors, round4, sectorOf } from './sector-edit-support'
-import { cornerAt, loopOf, samePoint, wallLength, wallOver } from './wall-geometry'
+import { noSector, placed, replaceSector, replaceSectors, round4, sectorOf } from './sector-edit-support'
+import { cornerAt, loopOf, membersOf, samePoint, wallLength, wallOver } from './wall-geometry'
 
 /** A point is on a wall when it is this close to it, in metres: a tap a hair off the line still means the line. */
 const ON_THE_WALL = 0.001
@@ -43,6 +44,12 @@ function sideOf(start: number, end: number, d: number): Side | undefined {
 /** The wall, or nothing when it has no members: a corner has a third member only when its wall has something to say. */
 const bare = (wall: EditWall): EditWall | undefined => (Object.keys(wall).length === 0 ? undefined : wall)
 
+/** From where to where along its wall a door or a window lies: half its width either side of its centre. */
+const reach = (feature: { readonly at: number; readonly width: number }): readonly [number, number] => [
+  feature.at - feature.width / 2,
+  feature.at + feature.width / 2,
+]
+
 const shiftedDoor = (door: DoorDef, d: number): DoorDef => ({ ...door, at: round4(door.at - d) })
 const shiftedWindow = (pane: WindowDef, d: number): WindowDef => ({ ...pane, at: round4(pane.at - d) })
 
@@ -63,13 +70,13 @@ function splitWall(wall: string | EditWall | undefined, d: number): Halves | str
     sideOf(start, end, d) ?? `the new corner would cut through the ${what}`
 
   if (door !== undefined) {
-    const side = place('door', door.at - door.width / 2, door.at + door.width / 2)
+    const side = place('door', ...reach(door))
     if (side === 'first') first = { ...first, door }
     else if (side === 'second') second = { ...second, door: shiftedDoor(door, d) }
     else return side
   }
   if (pane !== undefined) {
-    const side = place('window', pane.at - pane.width / 2, pane.at + pane.width / 2)
+    const side = place('window', ...reach(pane))
     if (side === 'first') first = { ...first, window: pane }
     else if (side === 'second') second = { ...second, window: shiftedWindow(pane, d) }
     else return side
@@ -198,4 +205,154 @@ function reverseOf<D>(profile: LevelProfile<D>, level: D, sector: EditSector, co
     (start) => profile.sectors.portalOf(level, start[2]) === sector.id,
   )
   return over === undefined ? undefined : { target, over }
+}
+
+export interface RemoveCornerArgs {
+  readonly sector: string
+  /** The index of the corner to take away, in the sector's outline. */
+  readonly corner: number
+}
+
+/** A feature may reach this far past the end of the joined wall and still fit it: a place is written to four decimals. */
+const FITS = 1e-4
+
+/** Names as the part of a sentence that lists them: `a`, `a and b`, `a, b and c`. */
+function listOf(names: readonly string[]): string {
+  if (names.length < 2) return names.join('')
+  return `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
+}
+
+/** Whether two members of a wall say the same, however deep: numbers, names, lists and objects. */
+function same(a: unknown, b: unknown): boolean {
+  if (a === b) return true
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false
+  if (Array.isArray(a) || Array.isArray(b))
+    return (
+      Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((each, i) => same(each, b[i]))
+    )
+  const [mine, theirs] = [a as Record<string, unknown>, b as Record<string, unknown>]
+  const keys = Object.keys(mine)
+  return keys.length === Object.keys(theirs).length && keys.every((key) => same(mine[key], theirs[key]))
+}
+
+/** Where two walls meet: the corner that goes, and how long each wall and the wall that replaces them are. */
+interface Meeting {
+  readonly sector: string
+  readonly corner: number
+  readonly firstLength: number
+  readonly joinedLength: number
+}
+
+type Joined = { readonly wall: string | EditWall | undefined } | { readonly reason: string }
+
+/**
+ * The one wall two walls become when the corner between them goes. They must agree on every member that has no place
+ * along the wall, so that nothing one of them says is lost; what has a place is joined: a door, a window or a hatch of
+ * the first stays, one of the second moves on by the length of the first, and a pilaster keeps its start from the first
+ * and its end from the second. Two of one feature, a pilaster that ends at the corner, and a feature that no longer fits
+ * the new wall (which is not the length of the two when they were not in line) are refused.
+ */
+function joinWalls(
+  first: string | EditWall | undefined,
+  second: string | EditWall | undefined,
+  at: Meeting,
+): Joined {
+  const { door: doorA, window: paneA, hatch: hatchA, pilaster: pilasterA, ...sharedA } = membersOf(first)
+  const { door: doorB, window: paneB, hatch: hatchB, pilaster: pilasterB, ...sharedB } = membersOf(second)
+  const valuesA: Record<string, unknown> = sharedA
+  const valuesB: Record<string, unknown> = sharedB
+  const differing = [...new Set([...Object.keys(valuesA), ...Object.keys(valuesB)])]
+    .filter((key) => !same(valuesA[key], valuesB[key]))
+    .sort()
+  if (differing.length > 0)
+    return {
+      reason: `the walls at corner ${at.corner} of ${at.sector} differ in ${listOf(differing)}: make them the same first`,
+    }
+  for (const [what, a, b] of [
+    ['door', doorA, doorB],
+    ['window', paneA, paneB],
+    ['hatch', hatchA, hatchB],
+  ] as const)
+    if (a !== undefined && b !== undefined) return { reason: `both walls have a ${what}` }
+  if (pilasterA?.end !== undefined || pilasterB?.start !== undefined)
+    return { reason: `a pilaster ends at corner ${at.corner}` }
+
+  const door = doorA ?? (doorB === undefined ? undefined : shiftedDoor(doorB, -at.firstLength))
+  const pane = paneA ?? (paneB === undefined ? undefined : shiftedWindow(paneB, -at.firstLength))
+  const hatch =
+    hatchA ??
+    (hatchB === undefined
+      ? undefined
+      : ([round4(hatchB[0] + at.firstLength), round4(hatchB[1] + at.firstLength)] as const))
+  // Where each feature ends along the new wall; none starts before it, because a feature only ever moves on.
+  const ends = [
+    ['door', door === undefined ? undefined : reach(door)[1]],
+    ['window', pane === undefined ? undefined : reach(pane)[1]],
+    ['hatch', hatch === undefined ? undefined : Math.max(...hatch)],
+  ] as const
+  for (const [what, end] of ends)
+    if (end !== undefined && end > at.joinedLength + FITS)
+      return { reason: `the joined wall is too short for its ${what}` }
+
+  let joined: EditWall = sharedA
+  if (door !== undefined) joined = { ...joined, door }
+  if (pane !== undefined) joined = { ...joined, window: pane }
+  if (hatch !== undefined) joined = { ...joined, hatch }
+  const { start, end: _noEnd, ...othersA } = pilasterA ?? {}
+  const { start: _noStart, end, ...othersB } = pilasterB ?? {}
+  const pilaster = {
+    ...othersA,
+    ...othersB,
+    ...(start === undefined ? {} : { start }),
+    ...(end === undefined ? {} : { end }),
+  }
+  if (Object.keys(pilaster).length > 0) joined = { ...joined, pilaster }
+  if (Object.keys(joined).length === 0) return { wall: undefined }
+  // A name that both walls spell the same way stays a name.
+  return { wall: typeof first === 'string' && same(joined, { cut: first }) ? first : joined }
+}
+
+export function removeCorner<D>(args: RemoveCornerArgs): Edit<D> {
+  return {
+    id: 'sector.removeCorner',
+    label: `Remove corner ${args.corner} of ${args.sector}`,
+    run(profile, level) {
+      const sector = sectorOf(profile, level, args.sector)
+      if (sector === undefined) return noSector(args.sector)
+      const { corners } = sector
+      if (!Number.isInteger(args.corner) || args.corner < 0 || args.corner >= corners.length)
+        return refuse(`sector ${args.sector} has no corner ${args.corner}`)
+      const remaining = corners.filter((_, i) => i !== args.corner)
+      const problem = outlineProblem(remaining)
+      if (problem !== undefined) return refuse(problem)
+
+      // The wall before the corner starts at `before`, the one after it at the corner itself; the wall that replaces
+      // them starts at `before`, which is `index` once the corner is gone.
+      const before = (args.corner + corners.length - 1) % corners.length
+      const index = before > args.corner ? before - 1 : before
+      const [first, second] = [cornerAt(corners, before)[2], cornerAt(corners, args.corner)[2]]
+      const into = [
+        ...new Set([first, second].flatMap((wall) => profile.sectors.portalOf(level, wall) ?? [])),
+      ]
+      if (into.length > 0)
+        return refuse(
+          `the walls at corner ${args.corner} of ${args.sector} lead into ${listOf(into)}: make them solid first`,
+        )
+      const joined = joinWalls(first, second, {
+        sector: args.sector,
+        corner: args.corner,
+        firstLength: wallLength(corners, before),
+        joinedLength: wallLength(remaining, index),
+      })
+      if ('reason' in joined) return refuse(joined.reason)
+      const start = cornerAt(remaining, index)
+      const next: EditSector = {
+        ...sector,
+        corners: remaining.map((corner, i) =>
+          i === index ? placed(start[0], start[1], joined.wall) : corner,
+        ),
+      }
+      return selecting(replaceSector(profile, level, sector.id, next), [wallPlace(sector.id, index)])
+    },
+  }
 }
