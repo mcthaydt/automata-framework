@@ -10,6 +10,7 @@ export {
 } from './model/cells-codec'
 export { CHUNK, Grid, type GridEditor } from './model/grid'
 export { counterIds, DEF_ID, type IdSource, ITEM_ID, randomIds } from './model/ids'
+export { emptyLayers, layerCells } from './model/level-layers'
 export { FILE_VERSION, type Migration, type RawFile } from './model/migrations/migration'
 export { MAX_FILE_CHARS, type OpenResult, openProject } from './model/open-project'
 export { projectFileSchema } from './model/project.schema'
@@ -56,6 +57,7 @@ export type {
   World,
   WorldLayout,
 } from './model/project-types'
+export { tilesetTiles } from './model/tileset-grid'
 export {
   createProfileRegistry,
   type Diagnostic,
