@@ -70,12 +70,14 @@ Regions as Svelte 5 snippets: `topbar`, `rail`, `panel`, `canvas`, `inspector`, 
 | Shell mode | Form factor | Regions |
 |---|---|---|
 | `wide` | `desktop` (includes iPad landscape 1194×834 and 1366×1024) | rail 56 + panel 264 + canvas + inspector 320; dock 148 beneath, collapsible |
-| `medium` | `tablet-portrait` (834×1194, 744×1133) | rail 56 + canvas; panel and inspector are 320 drawers; dock is a bottom sheet |
-| `compact` | `phone-portrait`, `phone-landscape` | canvas full; rail is a bottom bar; every other region is a detent sheet |
+| `medium` | `tablet-portrait` (834×1194, 744×1133) | canvas full width; the rail is a 64 px tab bar along the foot; panel and inspector are 320 drawers (open beside the canvas, not modal); dock is a bottom sheet |
+| `compact` | `phone-portrait`, `phone-landscape` | canvas full; the rail is the same tab bar; every other region is a detent sheet, one open at a time |
 
 Rules:
 
-- A height tier of `short` hides the dock until summoned and tightens gutters, never targets (AGENTS.md).
+- A height tier of `short` (600 px or less of layout height, from the geometry owner) hides the dock until summoned, as the same bottom sheet `medium` uses, and tightens gutters, never targets (AGENTS.md).
+- Regions are siblings that stay mounted. A mode change moves them with CSS (grid areas, fixed position, transforms) and never re-renders them elsewhere, so focus, scroll position and open transactions survive a rotation. A closed drawer or sheet is `inert` and `visibility: hidden`, not `display: none`, so its scroll position is kept.
+- The rail snippet is told `orientation` (`vertical` in `wide`, `horizontal` otherwise) so the editor draws the same destinations either way.
 - Keyboard, browser-bar and Stage Manager size changes do not remount regions or lose focus, scroll or selection (the geometry owner debounces; the shell keys regions by id).
 - Detent sheets have three detents (peek 96, half 50%, full 92%), a drag handle at least 44 high, and a scrim only at full.
 - Every region that can scroll declares its scroll region; the canvas never scrolls the page (`touch-action: none`, overscroll locked).
@@ -188,7 +190,8 @@ type WriteResult = { ok: true; mtime: number } | { ok: false; reason: 'conflict'
 |---|---|---|---|
 | iPad 11" landscape | 1194×834 | touch + Pencil | `wide` mode, all regions visible, dock open |
 | iPad 11" portrait | 834×1194 | touch + Pencil | `medium`, drawers, dock as sheet |
-| iPad mini landscape | 1133×744 | touch | `wide`, height `short` → dock hidden until summoned |
+| iPad mini landscape | 1133×744 | touch | `wide`, dock open (744 px is taller than the geometry owner's `short` limit of 600) |
+| Desktop window 900×600 | 900×600 | mouse | `wide`, height `short` → dock hidden until summoned |
 | iPad 13" landscape | 1366×1024 | touch + Pencil | `wide` |
 | Desktop | 1440×900 and larger | mouse + keyboard | `wide`, hover states, shortcuts |
 | Phone (not a target) | 390×844, 844×390 | touch | `compact`, nothing unreachable, no crash |
