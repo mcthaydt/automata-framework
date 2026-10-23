@@ -10,6 +10,7 @@ import type { StepResult } from '@mcthaydt/automata-sim'
 import { Effect, type Scope } from 'effect'
 import { Application, Container, type Filter, TextureSource } from 'pixi.js'
 import { type EntityViewResolver, RenderDeltaConsumer } from './delta/render-delta-consumer.js'
+import { addPostFilters, assertUniqueNames, type PostFilterDef } from './filter/post-filter.js'
 import {
   createPostFilterSlot,
   type PostFilterSlot,
@@ -49,6 +50,11 @@ export interface PixiRendererOptions {
   readonly composite?: boolean | undefined
   /** Optional view factory resolver for entity components. */
   readonly entityViews?: EntityViewResolver | undefined
+  /**
+   * Screen-space filters declared with `postFilter`. Each is built when the renderer starts and set in the
+   * stage's post-filter slot before `setup` runs, so `setup` sees them and may add more. Names must be unique.
+   */
+  readonly postFilters?: readonly PostFilterDef[] | undefined
   /**
    * Optional setup hook called before the first frame to add layers/filters. It may return hooks for a game
    * that draws its own scene: they run after the entity views each step, before Pixi renders each frame, and
@@ -116,6 +122,7 @@ function resolvePreference(optionPreference?: RendererPreference): RendererPrefe
 export function createPixiRenderer(
   options: PixiRendererOptions = {},
 ): (target: RenderTarget) => Effect.Effect<PixiRenderer, RendererUnavailable, Scope.Scope> {
+  assertUniqueNames(options.postFilters ?? [])
   return (target: RenderTarget) =>
     Effect.gen(function* () {
       const preferred = resolvePreference(options.preference)
@@ -266,6 +273,7 @@ export function createPixiRenderer(
           }),
       }
 
+      addPostFilters(stage, options.postFilters ?? [])
       const hooks: PixiStageHooks = options.setup?.(stage) ?? {}
 
       const unsubscribe = target.geometry.onChange((g) => {

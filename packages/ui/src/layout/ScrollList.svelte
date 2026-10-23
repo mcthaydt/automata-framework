@@ -1,4 +1,5 @@
 <!--
+  @component
   A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
 
   It reserves `min(minRows, rowCount)` rows of `--af-row-h` as its minimum height, so on a short

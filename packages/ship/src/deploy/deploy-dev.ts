@@ -14,6 +14,10 @@ import { buildIdFor } from './build-id.ts'
 // compileHeaders), so a build that breaks under Ruken's CSP breaks on the dev host too. The host is reached
 // only through `ssh <target> deploy`, whose forced command (deploy/bin/ssh-deploy) can do nothing else.
 
+/**
+ * What `deployDev` sends and where: a prepared build folder, the commit it came from, the dev host's ssh
+ * target and URL, and whether the build becomes the one `/` redirects to.
+ */
 export interface DeployDevInput {
   /** A build folder `ship prepare` has written `ruken.toml` into. */
   readonly distDir: string
@@ -42,6 +46,11 @@ function sshOptions(input: DeployDevInput): string[] {
 
 export type DeployDevError = DeployFailed | ManifestInvalid | FileError | ProcessError
 
+/**
+ * Sends a prepared build to the dev host and returns its build ID and the URL it is served at. Fails with
+ * `ManifestInvalid` for a bad `ruken.toml` in the build, `DeployFailed` when `tar` or `ssh` exits non-zero,
+ * or a `FileError` or `ProcessError`. The temporary staging copy is removed either way.
+ */
 export function deployDev(
   input: DeployDevInput,
 ): Effect.Effect<{ buildId: string; url: string }, DeployDevError, Files | ProcessRunner> {

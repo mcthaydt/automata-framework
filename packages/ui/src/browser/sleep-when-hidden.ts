@@ -29,6 +29,11 @@ export type Sleeper = {
 /** The events a browser may count as the gesture that lets sound resume. */
 const GESTURES = ['pointerup', 'touchend', 'keydown'] as const
 
+/**
+ * Puts a game's sound to sleep while its page is hidden and wakes it when the page shows again; a pointer,
+ * touch or key gesture also asks sound the system suspended to resume. A window that only loses focus stays
+ * awake. Returns a function that removes the listeners.
+ */
 export function sleepWhenHidden(doc: Document, sleeper: Sleeper, win: Window = window): () => void {
   const sleep = (): void => void sleeper.sleep().catch(() => undefined)
   const wake = (): void => void sleeper.wake().catch(() => undefined)

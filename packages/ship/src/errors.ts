@@ -2,6 +2,7 @@ import type { TaggedErrorClass } from '@mcthaydt/automata-node'
 import type { ManifestError } from '@ruken/manifest'
 import { Data } from 'effect'
 import type { UndeclaredBoardFound } from './prepare/board-names.ts'
+import type { OrientationMismatchFound } from './prepare/orientation.ts'
 import type { SecretFound } from './prepare/secret-scan.ts'
 
 export { FileError, ProcessError } from '@mcthaydt/automata-node'
@@ -81,6 +82,25 @@ export class UndeclaredBoard extends UndeclaredBoardBase {
       .map((found) => `${found.file}:${found.line}:${found.col}: "${found.board}"`)
       .join('\n')
     return `the game names leaderboards its ship config does not declare, so Ruken has nowhere to put their scores. Declare each in ship.config.ts under leaderboards, or fix the name:\n${listed}`
+  }
+}
+
+const OrientationMismatchBase: TaggedErrorClass<
+  'OrientationMismatch',
+  {
+    readonly found: readonly OrientationMismatchFound[]
+  }
+> = Data.TaggedError('OrientationMismatch')
+/** The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up). */
+export class OrientationMismatch extends OrientationMismatchBase {
+  override get message(): string {
+    const listed = this.found
+      .map(
+        (found) =>
+          `${found.file}:${found.line}:${found.col}: defineGame plays "${found.orientation}", but runtime.orientation is "${found.declared}"`,
+      )
+      .join('\n')
+    return `the game plays in an orientation its ship config does not declare, so the rotate hint and the host's frame disagree. Make runtime.orientation in ship.config.ts and the game's orientation the same:\n${listed}`
   }
 }
 
@@ -197,4 +217,5 @@ const TestRemoteFailedBase: TaggedErrorClass<
     readonly message: string
   }
 > = Data.TaggedError('TestRemoteFailed')
+/** `test-remote` stopped without a green run; `reason` says why and `message` says what to do. */
 export class TestRemoteFailed extends TestRemoteFailedBase {}

@@ -306,6 +306,8 @@ describe('default screens', () => {
   describe('the Settings screen (M4 spec §4.5, §4.8, M4.4)', () => {
     // Standalone, the SDK keeps saves in localStorage under `ruken:<game id>:`.
     const saved = () => JSON.parse(localStorage.getItem('ruken:screens-test:settings') ?? 'null')
+    // The audio choices belong to the device, not the player's saves (M5 spec §4.5): `<game id>:<settings key>:device`.
+    const savedOnDevice = () => JSON.parse(localStorage.getItem('screens-test:settings:device') ?? 'null')
     const settingsScreen = () => screen('settings')
     const row = (action: string) => root.querySelector<HTMLElement>(`[data-control-row="${action}"]`)
     // Each device has its section, so an action has a row in each: the keyboard's rebind button is in the keyboard's.
@@ -606,7 +608,8 @@ describe('default screens', () => {
         ) as HTMLInputElement
         slider.value = '0.5'
         slider.dispatchEvent(new Event('input', { bubbles: true }))
-        await until(() => saved()?.audio?.gains?.music === 0.5, 'the saved music gain')
+        await until(() => savedOnDevice()?.audio?.gains?.music === 0.5, 'the saved music gain')
+        expect(saved()?.audio).toBeUndefined()
         expect(music()).toBe(0.5)
       })
 
@@ -624,13 +627,13 @@ describe('default screens', () => {
       it('mutes from the Audio group and from Pause’s Mute, one setting, saved', async () => {
         await toSettings(withSound(), true, 'settings')
         root.querySelector<HTMLInputElement>('[data-testid="audio-muted"] input')?.click()
-        await until(() => saved()?.audio?.muted === true, 'the saved mute')
+        await until(() => savedOnDevice()?.audio?.muted === true, 'the saved mute')
         expect(master()).toBe(0)
         button('settings-back')?.click()
         await until(() => screen('paused') !== null, 'paused again')
         expect(button('pause-mute')?.getAttribute('aria-pressed')).toBe('true')
         button('pause-mute')?.click()
-        await until(() => saved()?.audio?.muted === false, 'unmuted from Pause')
+        await until(() => savedOnDevice()?.audio?.muted === false, 'unmuted from Pause')
         expect(button('pause-mute')?.getAttribute('aria-pressed')).toBe('false')
         expect(master()).toBe(1)
       })
@@ -655,7 +658,7 @@ describe('default screens', () => {
 
       it('applies the saved audio settings at boot', async () => {
         localStorage.setItem(
-          'ruken:screens-test:settings',
+          'screens-test:settings:device',
           JSON.stringify({ version: 1, audio: { muted: false, gains: { music: 0.25 } } }),
         )
         await boot(withSound())

@@ -11,6 +11,11 @@ import { padKeyEvents } from '../focus/focus-nav'
 
 export type InputMethod = 'keyboard' | 'gamepad' | 'touch'
 
+/**
+ * Tracks the input method the player used last (`keyboard`, `gamepad` or `touch`) as rune state in `method`.
+ * `attach` listens for key presses and touch or pen presses, counting a controller's Back (which arrives as
+ * Escape) as the controller; `note` records one by hand.
+ */
 export class InputMethodTracker {
   /** A coarse pointer starts as touch, anything else as keyboard. */
   method: InputMethod = $state<InputMethod>(

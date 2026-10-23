@@ -58,6 +58,10 @@ export function walk(dir: string, seen: Set<string> = new Set<string>()): string
 
 const isRootAbsolute = (url: string): boolean => url.startsWith('/') && !url.startsWith('//')
 
+/**
+ * Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
+ * Reads each file's syntax (scripts, stylesheets, pages, JSON), so comments and prose are not reported.
+ */
 export function findRootAbsoluteReferences(distDir: string): RootAbsoluteReferenceFound[] {
   // The build's own top-level names: what a root-absolute path would be aiming at.
   const own = new Set(readdirSync(distDir))

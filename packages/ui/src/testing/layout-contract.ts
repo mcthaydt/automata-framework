@@ -22,6 +22,10 @@ import { applyGeometry, type Geometry, measureGeometry } from '../geometry/geome
 
 const NO_INSETS = { top: 0, right: 0, bottom: 0, left: 0 }
 
+/**
+ * The conditions a layout test runs under: the geometry published for a size and variant, and the regions
+ * that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
+ */
 export interface Conditions {
   readonly geometry: Geometry
   /** What covers the page in this variant: the keyboard, Ruken's strip. Nothing may sit under it. */

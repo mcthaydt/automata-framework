@@ -36,6 +36,9 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
 | `pixi.js` | 8.21.0 | 2026-10-11 | 2D renderer (ADR 0002). FloorFifty's version (`45482fb`, `pnpm-lock.yaml`); used by Emberwick (`games/emberwick`) until `render-pixi` (M1.7) owns it |
 | `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for Emberwick's screens (`games/emberwick`) (OFL-1.1), bundled so it loads under Ruken's `font-src 'self' data:` |
+| `@fontsource/ibm-plex-mono` | 5.3.0 | 2026-10-23 | editor lane (EDK.1): the editor kit's monospace face (`packages/editor-kit`) (OFL-1.1), bundled so the editors load offline |
+| `@fontsource/ibm-plex-sans` | 5.3.0 | 2026-10-23 | editor lane (EDK.1): the editor kit's interface face (`packages/editor-kit`) (OFL-1.1), bundled so the editors load offline |
+| `@decimalturn/toml-patch` | 3.3.1 | 2026-10-23 | editor lane (EDFF.1, 2D spec FF-D2): reads and patches FloorFifty's stage files in `packages/editor-2d` while keeping their comments and layout (MIT). Measured on the four shipped stages: an unchanged document prints byte for byte and a one-value edit changes one line. Array-of-tables structure edits are not safe with comments, so the codec does those itself (EDFF.1a plan). `pnpm deps:new` could not run in the sandbox |
 | `playwright` | 1.63.0 | 2026-10-01 | Same as Ruken's `@playwright/test`: browsers for parity and DOM checks |
 | `pngjs` | 7.0.0 | 2026-10-17 | content lane (M5.6): decodes atlas frames and encodes atlas pages in `automata-content assets` (M5 spec §4.7). FloorFifty's version (`ac72660`, `packages/asset-contract`), already in the lockfile through `@vitest/browser`. Only the `./assets` subpath imports it, so it stays out of browser graphs |
 | `smol-toml` | 1.9.0 | 2026-10-11 | Same as Ruken: reads the TOML under `content/` in `@mcthaydt/automata-content` (M1.3 content spec §8) |
@@ -43,7 +46,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `tsdown` | 0.23.0 | 2026-10-11 | Same as Ruken: builds every published package's `dist` (M2.4). With isolatedDeclarations it writes `.d.ts` with oxc and never needs TypeScript's JS API, which TypeScript 7 lacks |
 | `turbo` | 2.11.6 | 2026-10-01 | Same as Ruken: task runner, local cache only |
 | `typescript` | 7.0.2 | 2026-10-01 | Ruken holds 6.0.3 only for svelte-check, typescript-eslint, SvelteKit and Prisma, none of which AF uses (ship spec §3.1) |
-| `vite` | 8.3.3 | 2026-10-23 | Builds the placeholder page and every AF game. One patch ahead of Ruken (8.3.2 at `3243389`): 8.3.3 fixes GHSA-587h-7wmj-h5pm (high, in `launch-editor`), which fails `pnpm audit:deps` on 8.3.2 |
+| `vite` | 8.3.3 | 2026-10-23 | Same as Ruken: builds the placeholder page (and later every AF game) |
 | `vitest` | 5.0.3 | 2026-10-01 | Same as Ruken: unit and parity test runner |
 | `yaml` | 2.9.1 | 2026-10-11 | Same as Ruken: parse workflow YAML in ship's workflow tests |
 | `yauzl` | 3.4.0 | 2026-10-11 | Same as Ruken: a runtime dependency of the vendored `@ruken/cli`, which `@mcthaydt/automata-ship` ships in `dist/vendor/ruken-cli/` (M2.4 spec §3.4) |

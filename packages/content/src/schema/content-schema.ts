@@ -9,6 +9,10 @@ import { z } from 'zod'
 /** Where a kind's files are: every TOML file under a folder (a collection), or one file (a document). */
 export type ContentSchemaPlace = { readonly folder: string } | { readonly file: string }
 
+/**
+ * A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live,
+ * and whether the sim receives it. Create one with `defineContentSchema`.
+ */
 export interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
   readonly kind: K
   readonly schema: S
@@ -20,10 +24,17 @@ export interface ContentSchemaDef<K extends string = string, S extends z.ZodType
   readonly sim: boolean
 }
 
+/** Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash. */
 export interface ContentSchemaOptions {
   readonly sim?: boolean
 }
 
+/**
+ * Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one
+ * file (a single document). The sim receives the kind unless `{ sim: false }`. A bad registration (a name
+ * that does not start with a lower-case letter followed by lower-case letters, digits and dashes, a built-in
+ * name, a duplicate, or a place two kinds share) is reported when content compiles, as `InvalidContentConfig`.
+ */
 export function defineContentSchema<const K extends string, S extends z.ZodType>(
   kind: K,
   schema: S,
