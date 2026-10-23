@@ -6,7 +6,25 @@ export interface SettingsDef<S> {
   readonly schema: z.ZodType<S>
   readonly defaults: S
   readonly migrations?: Readonly<Record<number, (record: Record<string, unknown>) => Record<string, unknown>>>
+  /**
+   * Fields that belong to one device: kept in its `DeviceStorage`, never in the player's saves, and the saves'
+   * copy is never read (M5 spec §4.5). The rest of the record is the player's, as for any settings. Names, not
+   * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `makeSettings`
+   * refuses a name the defaults do not have.
+   */
+  readonly deviceFields?: readonly string[]
 }
+
+type Fields = Record<string, unknown>
+
+const fieldsOf = (def: { readonly deviceFields?: readonly string[] | undefined }): readonly string[] =>
+  def.deviceFields ?? []
+
+const pick = (source: Fields, keys: readonly string[]): Fields =>
+  Object.fromEntries(keys.filter((key) => key in source).map((key) => [key, source[key]]))
+
+const omit = (source: Fields, keys: readonly string[]): Fields =>
+  Object.fromEntries(Object.entries(source).filter(([key]) => !keys.includes(key)))
 
 /**
  * Serializes settings value with version header. Flat record: { version, ...fields }.
@@ -14,8 +32,18 @@ export interface SettingsDef<S> {
 export function writeSettings<S>(def: SettingsDef<S>, value: S): string {
   return JSON.stringify({
     version: def.version,
-    ...(value as Record<string, unknown>),
+    ...(value as Fields),
   })
+}
+
+/** The record the player's saves hold: every field but the device's. The same as `writeSettings` with none. */
+export function writeAccountSettings<S>(def: SettingsDef<S>, value: S): string {
+  return JSON.stringify({ version: def.version, ...omit(value as Fields, fieldsOf(def)) })
+}
+
+/** The record this device holds: the device's fields alone, under the same version header. */
+export function writeDeviceSettings<S>(def: SettingsDef<S>, value: S): string {
+  return JSON.stringify({ version: def.version, ...pick(value as Fields, fieldsOf(def)) })
 }
 
 /**
@@ -24,7 +52,24 @@ export function writeSettings<S>(def: SettingsDef<S>, value: S): string {
  * Migrations execute step by step (version: n + 1 after step n). Missing migration falls back to defaults.
  * Bad fields fall back via Zod schema .catch(default).
  */
-export function readSettings<S>(def: SettingsDef<S>, raw: string | null): S {
+export function readSettings<S>(def: SettingsDef<S>, raw: string | null, deviceRaw: string | null = null): S {
+  const device = fieldsOf(def)
+  if (device.length === 0) return readPart(def, raw, (record) => record)
+
+  // The saves' record and the device's are read apart, each through the same migrations and per-field fallbacks,
+  // then joined. Each part is padded with the other's defaults first, so a schema that requires every field still
+  // reads a record that was split in two. The saves' copy of a device field is overwritten by its default.
+  const defaults = def.defaults as Fields
+  const account = readPart(def, raw, (record) => ({ ...record, ...pick(defaults, device) })) as Fields
+  const own =
+    deviceRaw === null
+      ? defaults
+      : (readPart(def, deviceRaw, (record) => ({ ...defaults, ...pick(record, device) })) as Fields)
+  return { ...account, ...pick(own, device) } as S
+}
+
+/** One stored record read as settings; `shape` adjusts the migrated record before the schema sees it. */
+function readPart<S>(def: SettingsDef<S>, raw: string | null, shape: (record: Fields) => Fields): S {
   if (raw === null || typeof raw !== 'string') {
     return def.defaults
   }
@@ -69,7 +114,7 @@ export function readSettings<S>(def: SettingsDef<S>, raw: string | null): S {
     }
   }
 
-  const result = def.schema.safeParse(record)
+  const result = def.schema.safeParse(shape(record))
   if (!result.success) {
     return def.defaults
   }
