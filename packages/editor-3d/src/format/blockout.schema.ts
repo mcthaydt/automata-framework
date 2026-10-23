@@ -15,7 +15,7 @@ import {
   wallSchema,
 } from './sector.schema'
 
-/** A wall as written: a preset's name, or WallDef fields with an optional preset to start from. */
+/** A wall as written: a cutaway group's name, or WallDef fields with an optional preset (a key of `walls`) to start from. */
 export type WallRef = string | (WallDef & { readonly preset?: string | undefined })
 
 const wallRefSchema: z.ZodType<WallRef> = z.union([
@@ -23,7 +23,7 @@ const wallRefSchema: z.ZodType<WallRef> = z.union([
   z.intersection(wallSchema, z.looseObject({ preset: z.string().optional() })),
 ])
 
-/** `[x, z]` starts a plain solid wall to the next corner; the third element says what kind of wall it is. */
+/** `[x, z]` starts a plain solid wall to the next corner; the third element, when there is one, says what else it is. */
 export type BlockoutCorner = readonly [number, number, (WallRef | undefined)?]
 
 const cornerSchema: z.ZodType<BlockoutCorner> = z.tuple([z.number(), z.number(), wallRefSchema.optional()])

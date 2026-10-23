@@ -15,3 +15,12 @@ export type FixtureName = (typeof FIXTURE_NAMES)[number]
 export function loadFixture(name: FixtureName): string {
   return readFileSync(new URL(`./fixtures/${name}.json`, import.meta.url), 'utf8')
 }
+
+/** Files recorded once from Last Light's own code (SOURCE.json says how), to compare ported code against. */
+export const GOLDEN_NAMES = ['expand'] as const
+
+export type GoldenName = (typeof GOLDEN_NAMES)[number]
+
+export function loadGolden(name: GoldenName): string {
+  return readFileSync(new URL(`./fixtures/${name}.golden.json`, import.meta.url), 'utf8')
+}

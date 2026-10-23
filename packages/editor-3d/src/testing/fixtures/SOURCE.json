@@ -27,5 +27,12 @@
       "bytes": 8701,
       "sha256": "c5d934c0acf64aeee2a061af3c83b2b76544cb81610a99c531e7edd83f57373e"
     }
+  },
+  "goldens": {
+    "expand.golden.json": {
+      "bytes": 51401,
+      "sha256": "dbd26d2794a00ddd70af445a9ec48f8db14a8321c986f4f785e9c95b85d32b96",
+      "recordedBy": "node --experimental-strip-types src/testing/fixtures/record-expand.mjs <Last Light checkout at 92e6704> src/testing/fixtures/expand.golden.json"
+    }
   }
 }

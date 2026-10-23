@@ -2,12 +2,13 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { FIXTURE_NAMES, loadFixture } from './fixtures'
+import { FIXTURE_NAMES, GOLDEN_NAMES, loadFixture, loadGolden } from './fixtures'
 
 const SOURCE = JSON.parse(readFileSync(new URL('./fixtures/SOURCE.json', import.meta.url), 'utf8')) as {
   repository: string
   commit: string
   files: Record<string, { source: string; bytes: number; sha256: string }>
+  goldens: Record<string, { bytes: number; sha256: string; recordedBy: string }>
 }
 
 describe('the Last Light fixtures', () => {
@@ -33,6 +34,16 @@ describe('the Last Light fixtures', () => {
       const bytes = Buffer.from(loadFixture(name), 'utf8')
       expect(bytes.length).toBe(recorded?.bytes)
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(recorded?.sha256)
+    })
+  }
+
+  for (const name of GOLDEN_NAMES) {
+    it(`${name} golden: has the recorded byte length and sha256, and says how it was recorded`, () => {
+      const recorded = SOURCE.goldens[`${name}.golden.json`]
+      const bytes = Buffer.from(loadGolden(name), 'utf8')
+      expect(bytes.length).toBe(recorded?.bytes)
+      expect(createHash('sha256').update(bytes).digest('hex')).toBe(recorded?.sha256)
+      expect(recorded?.recordedBy).toMatch(/record-.*\.mjs/)
     })
   }
 

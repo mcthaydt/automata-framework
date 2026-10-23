@@ -3,7 +3,7 @@
 - **Task:** ED3D.1 in [02](../../02-master-delivery-plan.md) (row lands with the ED3D follow-up). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §2 (Format, Codec), §4.1, §4.5, decisions ED3D-D2, D3, D4. Acceptance: the patch halves of ED3-b and ED3-o (§13); the rest of those cases need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.0 (the spec, review pending). It needs no editor-kit code, no Svelte and no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed, not implemented. Nothing below starts until ED3D.0 is reviewed.
-- **Progress:** 3 of 11 steps.
+- **Progress:** 4 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -60,7 +60,7 @@ src/testing/fixtures/           the five files, SOURCE.json, literals.golden.jso
 
 - Zod 4, one schema per type in the sources; types are `z.infer`. Objects are `z.looseObject`: an unknown member is kept, so the diff never deletes it (§4.5).
 - **A schema is a pure validator.** No defaults, transforms or coercions: for each fixture, `schema.parse(JSON.parse(text))` deep-equals `JSON.parse(text)`.
-- `Corner` is `[x, z]` or `[x, z, wall]`; `wall` is a string (a preset name) or a `WallDef` with an optional `preset`. `On` is a template-literal string matching `box:*` or `wall:*`.
+- `Corner` is `[x, z]` or `[x, z, wall]`; `wall` is a string (a cutaway group's name) or a `WallDef` with an optional `preset`. `On` is a template-literal string matching `box:*` or `wall:*`.
 - `facility.schema.ts` lists the members `facility-lib.ts` reads; the rest stay unknown members.
 - An issue's path is the JSON path as `(string | number)[]`.
 
@@ -132,13 +132,15 @@ Each step starts with its test, run red, with the failure reason recorded; the r
   - *Red:* `facility.json` parses and is its own parse; a wing whose `offset` is not three numbers, a phase whose `rooms` is not a list of strings and a lock with no `id` are each refused at their path (`wings.0.offset`, `phases.0.rooms`, `locks.0.id`); unknown members survive. Members the game does not read (`differences`, `hints`, the `why` notes) are typed as loosely as `facility-lib.ts` treats them.
   - *Expected failure:* module missing.
   - *Done: red `Cannot find module './facility.schema'`; then 36 of 36 green (nine refusal cases, adding a lock `kind` outside `key|code|power|latch|barricade`, a `carry` outside `none|world`, a door rule that is neither a word nor a fact, a join side naming nothing, a street without `clear` and a three-number street point to the three in the plan). The member types come from `facility-lib.ts`'s `Manifest`, which is stricter than the plan's first sketch of `facility-plan.ts`.*
-- [ ] **4. `expand`** (`expand.test.ts`, the Last Light cases of `tests/blockout.test.ts` lines 145 to 192 with the game's imports removed; `expand.ts`).
+- [x] **4. `expand`** (`expand.test.ts`, the Last Light cases of `tests/blockout.test.ts` lines 145 to 192 with the game's imports removed; `expand.ts`).
   - *Red, by case:*
     - an opening splits both facing walls and adds the connector, north-west corner first;
-    - nav is derived and crosses the opening through its door; a derived edge named in `nav.drop` is left out;
-    - an opening no pair of facing walls covers is refused with `BlockoutError`;
-    - for each blockout fixture, `expand` gives the same sector, mass, box, hotspot, lamp, node and edge counts and the same sector corner lists as `expand.golden.json`, which Last Light's own `expand` produced once at `92e6704` (the recording command is in `SOURCE.json`).
+    - nav is derived and crosses the opening through its door; a derived edge named in `nav.drop` is left out, in either direction; with `derive: false` the nav the file writes is taken, without its `on` attachments;
+    - a box loses its `role` and a hotspot its `on`; a style and a wall preset apply, and an unknown one is refused with `BlockoutError`;
+    - an opening no pair of facing walls covers, and an opening that names an unknown room, are refused;
+    - for each blockout fixture, `expand` equals `expand.golden.json` whole, which Last Light's own `expand` produced once at `92e6704` (`record-expand.mjs`, the recording command is in `SOURCE.json`; the golden's sha256 is checked by `fixtures.test.ts`).
   - *Expected failure:* module missing.
+  - *Done: red `Cannot find module './expand'` and `GOLDEN_NAMES is not iterable`; then 49 of 49 green on the first run of the port, including the four fixtures against the golden. Typecheck then asked for explicit return types (`isolatedDeclarations`) and non-null assertions came out of the tests. Not ported: the starter-blockout case (`starterBlockout` is `blockout-lib.ts`'s scaffold, not the format) and the `validate` calls (ED3D.2).*
 - [ ] **5. Scanner** (`locate.test.ts`, the cases of `json-edit.test.ts` for `listJsonLiterals` on `scan`; `locate.ts`).
   - *Red, by case:*
     - the sample from the Last Light test: each number has its path and span, minus included;
