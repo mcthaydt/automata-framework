@@ -1,5 +1,7 @@
+export * from './codec/layout'
 export * from './codec/locate'
 export * from './codec/print'
+export * from './codec/structure'
 export * from './format/blockout.schema'
 export * from './format/expand'
 export * from './format/facility.schema'

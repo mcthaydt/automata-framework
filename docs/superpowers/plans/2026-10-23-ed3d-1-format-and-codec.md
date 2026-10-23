@@ -3,7 +3,7 @@
 - **Task:** ED3D.1 in [02](../../02-master-delivery-plan.md) (row lands with the ED3D follow-up). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §2 (Format, Codec), §4.1, §4.5, decisions ED3D-D2, D3, D4. Acceptance: the patch halves of ED3-b and ED3-o (§13); the rest of those cases need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.0 (the spec, review pending). It needs no editor-kit code, no Svelte and no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed, not implemented. Nothing below starts until ED3D.0 is reviewed.
-- **Progress:** 6 of 11 steps.
+- **Progress:** 7 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -87,7 +87,7 @@ export function scan(text: string): Scan           // throws JsonScanError
 
 `formatJsonNumber` and `formatJsonScalar` are ported as they are (a number prints with no exponent and at most 4 decimals, rounded, so float noise such as `0.1 + 0.2` becomes `0.3`); a value that cannot be written throws `JsonWriteError` (Last Light's `JsonEditError`, renamed because there are no edits to fail). `applyJsonEdits` and `applyJsonValueEdits` are **not** ported: they are the path-addressed edit batch of the live-edit design, and ED3D-D4 replaced it with the model diff. What they guarded is covered where the diff is: the expected-text check by the `before-mismatch` refusal, the re-parse by `verifyPatched`, and "a no-change save is byte-identical" and "one edit changes only its own span" by the round-trip and ED3-b tests.
 
-`structure.ts` ports the six functions of `json-structure.ts` on `scan`. Each also has a form that returns a splice (`{ start, end, text }` in the original text's coordinates) so that the diff can collect all its edits against one scan and apply them together, from the end of the text to the start.
+`structure.ts` ports the six functions of `json-structure.ts` on `scan` (text in, text out, each result re-parsed and checked). The diff applies them one at a time in an order that keeps every path valid (descending by position within one container), so the collect-splices-then-apply design this plan first sketched is not needed; each operation re-scans, which is fine for files under 100 kB. `layout.ts` is the layout half of the same file: `readLayout(text)` returns `{ unit, expandsEverything, bracesSpaced }`.
 
 ### `src/codec/patch.ts`
 
@@ -103,7 +103,7 @@ export type PatchResult =
 export function patchJson(text: string, before: unknown, after: unknown, rules: PatchRules): PatchResult
 ```
 
-The rules are those of spec §4.5. The diff collects splices against one scan of `text`; they are checked for overlap and applied from the end of the text to the start (splices that insert at the same offset keep their emission order). Before it returns, `patchJson` parses the result and requires it to equal `after` with its numbers printed the way the file writes them.
+The rules are those of spec §4.5. The diff turns the change into path-addressed operations (set a scalar, insert, remove, replace) and applies them through `structure.ts` in the order described above. Before it returns, `patchJson` parses the result and requires it to equal `after` with its numbers printed the way the file writes them.
 
 ### `src/profile/file-codec.ts`
 
@@ -166,14 +166,17 @@ Each step starts with its test, run red, with the failure reason recorded; the r
   - *Expected failure:* module missing. The number assertions are not edited.
   - *Done: red `Cannot find module './print'`; then 101 of 101 green on the first run.*
   - *Deviation recorded:* `applyJsonEdits` is not ported (see Contract), and the plan's first sketch of this step (literal edit batches on the four files) moves to steps 8 and 10, where the same guarantees are asserted on `patchJson`.
-- [ ] **7. Structure edits and layout** (`structure.test.ts`, `layout.test.ts`, the structure cases of `level-edits.test.ts` lines 60 to 106; `layout.ts`, `structure.ts`).
+- [x] **7. Structure edits and layout** (`structure.test.ts`, `layout.test.ts`, the structure cases of `level-edits.test.ts` lines 60 to 106; `layout.ts`, `structure.ts`).
   - *Red:*
     - on each fixture, appending a copy to `rooms`, `boxes`, `hotspots` and `lamps` is a pure insert, written on one line if its neighbour is and over several if not, and removing it restores the text byte for byte;
     - insert in the middle, remove the first and the last element, `[]` round trips;
     - a member goes where the schema's order puts it and packs on its neighbour's line when it fits; a duplicate key is refused;
-    - a path that is missing or not a container is refused;
-    - `readLayout` returns the indent unit and packing width of each fixture (2 spaces, 120) and of three small samples (tabs, 4 spaces, one-line).
+    - a path that is missing or not a container is refused, and so is a text that is not JSON;
+    - `readLayout` returns the layout of each fixture (a two-space unit everywhere; `clinic-dawn` expands everything; `bay` has tight braces) and of three small samples (tabs, four spaces, no indentation);
+    - new objects follow tight braces, tabs and an expand-everything file, with the outputs checked against Last Light's own `json-structure` run on the same inputs;
+    - on every shipped file, inserting a copy of the first element at index 0 of each top-level list and removing it again gives the original bytes.
   - *Expected failure:* module missing.
+  - *Done: red `Cannot find module './layout'` and `'./structure'`; then 118 of 119 green on the first run. The one failure was my own expectation (a new object is written `{"a": 3}`, with a space after the colon, inside tight braces); Last Light's `json-structure` gives exactly that on the same input (run through a scratch copy with `typescript@5.9.3`), so the test was corrected and the port left alone. 119 of 119.*
 - [ ] **8. The diff** (`patch.test.ts`; `patch.ts`, without the refusals of step 9).
   - *Red, by rule of spec §4.5:*
     - equal models give the same text (every fixture);
