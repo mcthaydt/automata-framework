@@ -124,7 +124,7 @@ writerScreens.push({
       R(
         { w: 'fill', h: 24, gap: 8 },
         I('check', { size: 14, color: 'state/ok' }),
-        T('Edits the string literal in story.ts in place. Nothing else in the file moves.', {
+        T('Edits the line in story.toml in place. Nothing else in the file moves.', {
           style: 'Label/12',
           color: 'text/dim',
         }),
@@ -229,7 +229,7 @@ writerScreens.push({
               stroke: 'border/default',
             },
             I('chat', { size: 16, color: Q.ED.writer.color }),
-            T('porter.c1', { style: 'Mono/12' }),
+            T('bay.c1', { style: 'Mono/12' }),
             mono('not used'),
             spacer(),
           ),
@@ -265,13 +265,13 @@ writerScreens.push({
           sev: 'info',
           code: 'lint.speaker-missing',
           msg: 'bay.cutscene.arrival.2 has no speaker: it shows as a title card, which is what the cutscene wants.',
-          path: 'story.ts · bay.cutscene.arrival.2',
+          path: 'story.toml · bay.cutscene.arrival.2',
         }),
         P.diagRow({
           sev: 'info',
           code: 'lint.fact-unused',
           msg: 'The fact porterCold is set by two lines and read by no hint.',
-          path: 'story.ts · facts.porterCold',
+          path: 'story.toml · facts.porterCold',
         }),
       ),
     )
@@ -279,12 +279,12 @@ writerScreens.push({
       { name: 'Writer · Lines · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: 'The Bay',
-        sub: 'src/scenes/bay/story.ts',
+        sub: Q.D.paths.story,
         ed: 'writer',
         cs: 'story/porter-arrival',
         n: 1,
         checks: 'checks ok',
-        gates: [['N-G1', 'open']],
+        reopened: true,
       }),
       rail(782, 'writer'),
       panel,
@@ -369,8 +369,8 @@ writerScreens.push({
       }),
       gnode(214, 190, 170, 84, {
         title: 'staff',
-        sub: '“Staff. I’m on nights.”',
-        sub2: 'porterMet = staff',
+        sub: 'staffReply: “Nights. Course you are.”',
+        sub2: 'after “Staff. I’m on nights.” · porterMet = staff',
         icon: 'chat',
         color: 'layer/sky',
         badge: '−1',
@@ -378,8 +378,8 @@ writerScreens.push({
       }),
       gnode(214, 341, 170, 84, {
         title: 'unsure',
-        sub: '“I don’t know yet.”',
-        sub2: 'porterMet = unsure',
+        sub: 'unsureReply: “That’s all right…”',
+        sub2: 'after “I don’t know yet.” · porterMet = unsure',
         icon: 'chat',
         color: 'layer/sky',
         badge: '0',
@@ -387,8 +387,8 @@ writerScreens.push({
       }),
       gnode(214, 492, 170, 84, {
         title: 'yours',
-        sub: '“I think I’m for you.”',
-        sub2: 'porterMet = yours',
+        sub: 'yoursReply: “Well. There’s a drawer…”',
+        sub2: 'after “I think I’m for you.” · porterMet = yours',
         icon: 'chat',
         color: 'layer/sky',
         badge: '+1',
@@ -397,12 +397,12 @@ writerScreens.push({
       gnode(430, 356, 112, 54, { title: 'end', sub: 'no lines', icon: 'flag', color: 'text/faint' }),
     ]
     const E = edges(0, 0, 554, 782, [
-      { a: [172, 383], b: [214, 232], c: '#6aa8e8' },
-      { a: [172, 383], b: [214, 383], c: '#6aa8e8' },
-      { a: [172, 383], b: [214, 534], c: '#6aa8e8' },
-      { a: [384, 232], b: [430, 383], c: '#5f5e5a', dash: true },
-      { a: [384, 383], b: [430, 383], c: '#5f5e5a', dash: true },
-      { a: [384, 534], b: [430, 383], c: '#5f5e5a', dash: true },
+      { a: [172, 383], b: [214, 232], c: 'ed/writer' },
+      { a: [172, 383], b: [214, 383], c: 'ed/writer' },
+      { a: [172, 383], b: [214, 534], c: 'ed/writer' },
+      { a: [384, 232], b: [430, 383], c: 'text/faint', dash: true },
+      { a: [384, 383], b: [430, 383], c: 'text/faint', dash: true },
+      { a: [384, 534], b: [430, 383], c: 'text/faint', dash: true },
     ])
     const canvas = region(
       'graph',
@@ -523,12 +523,12 @@ writerScreens.push({
       { name: 'Writer · Dialogue graph · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: 'bay.c1',
-        sub: 'src/scenes/bay/dialogues.ts',
+        sub: Q.D.paths.dialogues,
         ed: 'writer',
         cs: 'story/porter-arrival',
         n: 1,
         checks: 'checks ok',
-        gates: [['N-G1', 'open']],
+        reopened: true,
       }),
       rail(782, 'writer'),
       panel,

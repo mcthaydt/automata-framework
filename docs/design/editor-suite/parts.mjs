@@ -8,7 +8,21 @@ export function suiteParts(S, P, D) {
   const { F, spacer, T, V, I, alpha } = S
   const { R, C, region, line, eyebrow, dot, pill, btn, ib, inputBox } = P
 
-  S.defineTokens({ 'ed/feel': '#d977b0' })
+  // One colour per editor, in the `Editor Suite` collection, so each editor binds its own variable instead of
+  // borrowing FloorFifty's layer and phase tokens. The values are the hues the Owner approved; `ed/audio` still equals
+  // `state/warn` (audit M3), a look change left for the Owner to decide.
+  S.defineTokens({
+    'ed/sequence': '#a58be0',
+    'ed/tuner': '#5aa9a0',
+    'ed/writer': '#6aa8e8',
+    'ed/studio': '#e07a6a',
+    'ed/schematic': '#7e8de0',
+    'ed/audio': '#e6c35c',
+    'ed/feel': '#d977b0',
+    'ed/levels': '#e0a54a',
+    'ed/review': '#6fbf73',
+    'edge/default': '#8e8c85',
+  })
   S.defineIcons({
     wave: '<path d="M2 12h2.5l2-6 3 12 3-9 2 6 2-3H22"/>',
     chat: '<path d="M4 5h16v11H10l-6 4z"/><path d="M8 9h8M8 12.5h5"/>',
@@ -51,18 +65,28 @@ export function suiteParts(S, P, D) {
     hash: '<path d="M9 4L7 20M17 4l-2 16M4 9h16M3 15h16"/>',
   })
 
-  // One colour and icon per editor, from the kit's domain colours (`ed/feel` is the one extra token).
+  // One colour and icon per editor, from the `ed/*` tokens above.
   const ED = {
     levels3d: { name: 'Levels 3D', icon: 'cube', color: 'layer/tiles' },
-    levels2d: { name: 'Levels 2D', icon: 'tile', color: 'accent/default' },
-    sequence: { name: 'Sequence', icon: 'film', color: 'layer/city' },
-    tuner: { name: 'Tuner', icon: 'slider', color: 'phase/teach' },
-    writer: { name: 'Writer', icon: 'chat', color: 'layer/sky' },
-    studio: { name: 'Studio', icon: 'person', color: 'layer/entities' },
-    schematic: { name: 'Schematic', icon: 'nav', color: 'phase/combine' },
-    audio: { name: 'Audio', icon: 'wave', color: 'layer/intgrid' },
+    levels2d: { name: 'Levels 2D', icon: 'tile', color: 'ed/levels' },
+    sequence: { name: 'Sequence', icon: 'film', color: 'ed/sequence' },
+    tuner: { name: 'Tuner', icon: 'slider', color: 'ed/tuner' },
+    writer: { name: 'Writer', icon: 'chat', color: 'ed/writer' },
+    studio: { name: 'Studio', icon: 'person', color: 'ed/studio' },
+    schematic: { name: 'Schematic', icon: 'nav', color: 'ed/schematic' },
+    audio: { name: 'Audio', icon: 'wave', color: 'ed/audio' },
     feel: { name: 'Feel', icon: 'bolt', color: 'ed/feel' },
-    review: { name: 'Review', icon: 'check', color: 'state/ok' },
+    review: { name: 'Review', icon: 'check', color: 'ed/review' },
+  }
+
+  // The gates a file reopens, read from the game's editor list (D.editors, `content/editors.toml`): the first row whose
+  // glob matches the path. A game that lists no gates for a file gets none; the editor never makes one up.
+  const globRe = (g) => new RegExp(`^${g.replace(/[.]/g, '\\.').replace(/\*/g, '[^/]*')}$`)
+  const fileRow = (path, game = 'The Last Light') =>
+    (D.editors[game] || []).find((r) => globRe(r[0]).test(path)) || null
+  const gatesFor = (path, game) => {
+    const row = fileRow(path, game)
+    return row ? row[2] : []
   }
 
   // The suite rail (56 wide): one entry per editor, the same on every wide screen. `active` is a key of ED.
@@ -150,6 +174,7 @@ export function suiteParts(S, P, D) {
       ),
       o.cs === false ? null : csPill(o.cs || 'edit/arrival-timing', o.n == null ? 2 : o.n),
       o.checks === false ? null : P.checksPill(o.checks || 'checks ok', o.tone || 'state/ok'),
+      o.gates === undefined ? null : topGates(o),
       spacer(),
       o.mid,
       ib('sparkles', { color: 'ed/feel', fill: alpha('ed/feel', 0.12), stroke: alpha('ed/feel', 0.5) }),
@@ -193,6 +218,14 @@ export function suiteParts(S, P, D) {
       T('Ask', { style: 'Body/13 Medium', color: 'ed/feel' }),
       o.tokens ? T(o.tokens, { style: 'Mono/11', color: 'text/dim' }) : null,
     )
+  // The top bar's gate pills: `o.gates` when given, else the gates the game lists for the open file (`o.sub`). They
+  // read `open` when the change set touches the file (`o.reopened`), `idle` otherwise; a game with none says so.
+  const topGates = (o) => {
+    if (o.gates === false) return null
+    const list = o.gates || gatesFor(o.sub || '', o.game).map((g) => [g, o.reopened ? 'open' : 'idle'])
+    if (!list.length) return pill('no gates', { color: 'text/faint', mono: true, h: 28, pad: 10 })
+    return list.map((g) => gatePill(g[0], g[1]))
+  }
   const edPill = (key) => pill(ED[key].name, { color: ED[key].color, icon: ED[key].icon, h: 28 })
   const top = (w, o = {}) =>
     region(
@@ -211,7 +244,7 @@ export function suiteParts(S, P, D) {
       o.ed ? edPill(o.ed) : null,
       o.cs === false ? null : csPill(o.cs || 'edit/arrival-timing', o.n == null ? 2 : o.n),
       o.checks === false ? null : P.checksPill(o.checks || 'checks ok', o.tone || 'state/ok'),
-      (o.gates || []).map((g) => gatePill(g[0], g[1])),
+      topGates(o),
       spacer(),
       o.mid,
       o.ask === false ? null : askBtn({ tokens: o.tokens || '38k' }),
@@ -499,7 +532,14 @@ export function suiteParts(S, P, D) {
         sw: 2,
       }),
       T(String(t.min), { x: 12, y: 62, style: 'Mono/11', color: 'text/faint' }),
-      T(String(t.max), { x: 12 + trackW - 14, y: 62, style: 'Mono/11', color: 'text/faint', align: 'right' }),
+      // The max label ends at the track's end, however many digits it has.
+      T(String(t.max), {
+        x: 12 + trackW - 14 - Math.max(0, String(t.max).length - 2) * 6.6,
+        y: 62,
+        style: 'Mono/11',
+        color: 'text/faint',
+        align: 'right',
+      }),
       // value box
       R(
         {
@@ -695,10 +735,13 @@ export function suiteParts(S, P, D) {
         },
       ),
     ]
-    for (let t = 0; t <= dur + 0.001; t += step)
-      kids.push(
-        T(String(+t.toFixed(2)), { x: tx(t) - (t < 10 ? 3 : 6), y, style: 'Mono/11', color: 'text/faint' }),
-      )
+    // The last label ends at its tick, so it never runs past the lane.
+    for (let t = 0; t <= dur + 0.001; t += step) {
+      const label = String(+t.toFixed(2))
+      const last = t + step > dur + 0.001
+      const x = last ? tx(t) - label.length * 6.6 : tx(t) - (t < 10 ? 3 : 6)
+      kids.push(T(label, { x, y, style: 'Mono/11', color: 'text/faint' }))
+    }
     return kids
   }
   const playhead = (x, y, h, text) => [
@@ -782,43 +825,53 @@ export function suiteParts(S, P, D) {
           )
         : null,
     )
-  // Edges as one svg over the region (x0, y0, w, h). e: { a: [x, y], b: [x, y], c: hex, dash, w, ar } in region coordinates.
+  // Edges over the region (x0, y0, w, h), one svg per colour so Figma binds each group to its token.
+  // e: { a: [x, y], b: [x, y], c: token, dash, w, o, ar, v, straight } in region coordinates.
   const edges = (x0, y0, w, h, list) => {
-    const body = list
-      .map((e) => {
-        const [ax, ay] = e.a
-        const [bx, by] = e.b
-        const dx = Math.max(24, Math.abs(bx - ax) * 0.45)
-        const dy = Math.max(24, Math.abs(by - ay) * 0.45)
-        const c = e.c || '#8e8c85'
-        const sx = ax < bx || e.straight ? 1 : -1
-        const path = e.v
-          ? `M${ax} ${ay}C${ax} ${ay + dy} ${bx} ${by - dy} ${bx} ${by}`
-          : e.straight
-            ? `M${ax} ${ay}L${bx} ${by}`
-            : `M${ax} ${ay}C${ax + dx * sx} ${ay} ${bx - dx * sx} ${by} ${bx} ${by}`
-        const ang = e.v
-          ? Math.PI / 2
-          : Math.atan2(by - (e.straight ? ay : by), bx - (e.straight ? ax : bx - dx * sx)) || 0
-        const hx = bx
-        const hy = by
-        const c1 = Math.cos(ang)
-        const s1 = Math.sin(ang)
-        const p = (px, py) =>
-          `${+(hx + px * c1 - py * s1).toFixed(1)} ${+(hy + px * s1 + py * c1).toFixed(1)}`
-        const head = e.ar === false ? '' : `<path d="M${p(0, 0)}L${p(-8, -4.5)}L${p(-8, 4.5)}Z" fill="${c}"/>`
-        return `<path d="${path}" fill="none" stroke="${c}" stroke-width="${e.w || 1.6}" stroke-opacity="${e.o == null ? 0.85 : e.o}" ${e.dash ? 'stroke-dasharray="5 4"' : ''}/>${head}`
-      })
-      .join('')
-    return V(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`,
-      {
-        name: 'edges',
-        x: x0,
-        y: y0,
-        w,
-        h,
-      },
+    const path = (e) => {
+      const [ax, ay] = e.a
+      const [bx, by] = e.b
+      const dx = Math.max(24, Math.abs(bx - ax) * 0.45)
+      const dy = Math.max(24, Math.abs(by - ay) * 0.45)
+      const hex = S.hex6(e.c || 'edge/default')
+      const sx = ax < bx || e.straight ? 1 : -1
+      const d = e.v
+        ? `M${ax} ${ay}C${ax} ${ay + dy} ${bx} ${by - dy} ${bx} ${by}`
+        : e.straight
+          ? `M${ax} ${ay}L${bx} ${by}`
+          : `M${ax} ${ay}C${ax + dx * sx} ${ay} ${bx - dx * sx} ${by} ${bx} ${by}`
+      const ang = e.v
+        ? Math.PI / 2
+        : Math.atan2(by - (e.straight ? ay : by), bx - (e.straight ? ax : bx - dx * sx)) || 0
+      const c1 = Math.cos(ang)
+      const s1 = Math.sin(ang)
+      const p = (px, py) => `${+(bx + px * c1 - py * s1).toFixed(1)} ${+(by + px * s1 + py * c1).toFixed(1)}`
+      const head = e.ar === false ? '' : `<path d="M${p(0, 0)}L${p(-8, -4.5)}L${p(-8, 4.5)}Z" fill="${hex}"/>`
+      return `<path d="${d}" fill="none" stroke="${hex}" stroke-width="${e.w || 1.6}" ${e.dash ? 'stroke-dasharray="5 4"' : ''}/>${head}`
+    }
+    const groups = []
+    for (const e of list) {
+      const key = `${e.c || 'edge/default'}@${e.o == null ? 0.85 : e.o}`
+      let g = groups.find((x) => x.key === key)
+      if (!g) {
+        g = { key, c: e.c || 'edge/default', o: e.o == null ? 0.85 : e.o, body: '' }
+        groups.push(g)
+      }
+      g.body += path(e)
+    }
+    return groups.map((g) =>
+      V(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${g.body}</svg>`,
+        {
+          name: `edges/${g.c}`,
+          x: x0,
+          y: y0,
+          w,
+          h,
+          op: g.o,
+          tint: g.c,
+        },
+      ),
     )
   }
   const edgeLabel = (x, y, text, o = {}) =>
@@ -991,9 +1044,670 @@ export function suiteParts(S, P, D) {
   // ── Dim and popover wrappers ──
   const dim = (w, h, a = 0.55) => F({ name: 'scrim', x: 0, y: 0, w, h, fill: alpha('bg/canvas', a) })
 
+  // ── Studio: the character on a stage you touch ──
+  // The character is the picker: tap a part to open its fields, drag the hem to change a length, drag sideways to
+  // turn. Outfits and poses are thumbnails under the stage, the inspector shows the picked part's few fields with the
+  // rest folded, and the pipeline is a bar that opens as a drawer. `A` is artParts (for the figure); o.mode is
+  // 'look' | 'pose' | 'first', o.drawer opens the pipeline.
+  const studioRoster = (A, o = {}) => {
+    const thumb = (outfit) =>
+      F(
+        { name: 'thumb', w: 40, h: 48, r: 6, fill: 'bg/canvas', clip: true, stroke: 'border/default' },
+        V(A.figure(0, { outfit }), { x: 6, y: -2, w: 28, h: 63 }),
+      )
+    const rows = [
+      ['Ada Voss', '3 outfits', 'nurse'],
+      ['the Porter', '1 outfit', 'cape'],
+      ['the Night Nurse', '1 outfit', 'nurse'],
+      ['the ambulance crew', '1 outfit', 'street'],
+    ]
+    return region(
+      'roster',
+      56,
+      52,
+      216,
+      782,
+      { lay: 'col' },
+      P.panelHead('Characters', ib('plus')),
+      C(
+        { w: 'fill', pad: [0, 8], gap: 2 },
+        o.first
+          ? listRow({
+              title: 'New character',
+              sub: 'not saved yet',
+              h: 64,
+              sel: true,
+              color: ED.studio.color,
+              lead: thumb('starter'),
+            })
+          : null,
+        rows.map(([title, sub, outfit], i) =>
+          listRow({
+            title,
+            sub,
+            h: 64,
+            sel: !o.first && i === 0,
+            color: ED.studio.color,
+            lead: thumb(outfit),
+            changed: !o.first && i === 0,
+          }),
+        ),
+      ),
+    )
+  }
+  // A thumbnail card under the stage: an outfit, a pose or a starter.
+  const studioCard = (A, label, fig, o = {}) =>
+    C(
+      { name: `card/${label}`, w: o.w || 96, gap: 4 },
+      F(
+        {
+          name: 'thumb',
+          w: o.w || 96,
+          h: o.h || 112,
+          r: 'radius/md',
+          fill: o.add ? null : 'bg/surface',
+          stroke: o.sel ? ED.studio.color : 'border/default',
+          sw: o.sel ? 2 : 1,
+          dash: o.add ? [4, 3] : undefined,
+          clip: true,
+        },
+        o.add
+          ? R(
+              { x: 0, y: 0, w: o.w || 96, h: o.h || 112, ax: 'center', ay: 'center' },
+              I('plus', { size: 22, color: 'accent/default' }),
+            )
+          : V(A.figure(fig.view || 0, fig), {
+              x: ((o.w || 96) - 46) / 2,
+              y: 4,
+              w: 46,
+              h: 104,
+            }),
+      ),
+      T(label, {
+        style: 'Label/12',
+        w: o.w || 96,
+        align: 'center',
+        color: o.add ? 'accent/default' : o.sel ? ED.studio.color : 'text/primary',
+        trunc: true,
+      }),
+    )
+  // A slider sized for the inspector: value, the file's value as a tick, a 44 px thumb target.
+  const studioSlider = (name, v, was, min, max, w = 296) => {
+    const fr = (x) => (x - min) / (max - min)
+    return C(
+      { name: `slider/${name}`, w, gap: 2 },
+      R(
+        { w, h: 24, gap: 8 },
+        T(name, { style: 'Label/12', color: 'text/dim' }),
+        spacer(),
+        T(v.toFixed(2), { style: 'Mono/12', color: ED.studio.color }),
+        was == null ? null : T(`was ${was.toFixed(2)}`, { style: 'Mono/11', color: 'text/faint' }),
+      ),
+      F(
+        { name: 'track area', w, h: 44 },
+        F({ name: 'track', x: 0, y: 20, w, h: 4, r: 2, fill: 'bg/field', stroke: 'border/default' }),
+        F({ name: 'fill', x: 0, y: 20, w: w * fr(v), h: 4, r: 2, fill: ED.studio.color }),
+        was == null
+          ? null
+          : F({ name: 'was', x: w * fr(was) - 1, y: 14, w: 2, h: 16, r: 1, fill: 'text/faint' }),
+        F({
+          name: 'thumb',
+          x: w * fr(v) - 22,
+          y: 0,
+          w: 44,
+          h: 44,
+          r: 22,
+          fill: alpha(ED.studio.color, 0.16),
+        }),
+        F({
+          name: 'knob',
+          x: w * fr(v) - 9,
+          y: 13,
+          w: 18,
+          h: 18,
+          r: 9,
+          fill: ED.studio.color,
+          stroke: 'bg/canvas',
+          sw: 2,
+        }),
+      ),
+    )
+  }
+  // A folded section: one row that names what is inside and opens in place.
+  const fold = (title, sub, o = {}) =>
+    R(
+      {
+        name: `fold/${title}`,
+        w: 'fill',
+        h: 52,
+        pad: [0, 12],
+        gap: 10,
+        r: 'radius/md',
+        fill: 'bg/field',
+        stroke: 'border/default',
+      },
+      o.icon ? I(o.icon, { size: 16, color: 'text/dim' }) : null,
+      C(
+        { w: 'fill', gap: 0 },
+        T(title, { style: 'Body/13 Medium', w: 'fill', trunc: true }),
+        T(sub, { style: 'Label/12', color: 'text/dim', w: 'fill', trunc: true }),
+      ),
+      I('chevron-right', { size: 16, color: 'text/faint' }),
+    )
+  const apronSwatches = (per = 5) => {
+    const names = [
+      'starch',
+      'cream',
+      'starchShade',
+      'stocking',
+      'navy',
+      'maroon',
+      'denim',
+      'bootBrown',
+      'auburn',
+      'black',
+    ]
+    const sw = (n) =>
+      F({
+        name: `swatch/${n}`,
+        w: 44,
+        h: 44,
+        r: 8,
+        fill: SW[n],
+        stroke: n === 'starch' ? ED.studio.color : 'border/strong',
+        sw: n === 'starch' ? 3 : 1,
+      })
+    const rows = []
+    for (let i = 0; i < names.length; i += per)
+      rows.push(R({ w: 'fill', gap: 8 }, names.slice(i, i + per).map(sw)))
+    return C(
+      { name: 'colour', w: 'fill', gap: 8 },
+      T('Colour', { style: 'Label/12', color: 'text/dim' }),
+      ...rows,
+    )
+  }
+  // The character on the stage, with the picked part, the hem handle, the turn dial or the frame strip.
+  const studioStage = (A, o) => {
+    const W = o.w
+    const sc = o.sc
+    const fw = 40 * sc
+    const fh = 90 * sc
+    const fx0 = (W - fw) / 2
+    const fy = o.fy == null ? 64 : o.fy
+    const apron = 0.5
+    const kids = []
+    const fig =
+      o.mode === 'pose'
+        ? { pose: 'reach' }
+        : o.mode === 'first'
+          ? { outfit: 'starter' }
+          : { apron, hi: 'apron', hiColor: S.hex6(ED.studio.color) }
+    kids.push(V(A.figure(0, fig), { name: 'character', x: fx0, y: fy, w: fw, h: fh }))
+    const at = (gx, gy) => [fx0 + gx * sc, fy + gy * sc]
+    if (o.mode === 'look') {
+      const hem = at(20, 38 + Math.round((22 * apron) / 0.6))
+      const was = at(20, 60)
+      const edge = at(12.5, 47)
+      kids.push(
+        F({
+          name: 'file hem',
+          x: hem[0] - 9 * sc,
+          y: was[1] - 1,
+          w: 18 * sc,
+          h: 2,
+          dash: [3, 3],
+          stroke: 'text/faint',
+        }),
+        F({
+          name: 'hem target',
+          x: hem[0] - 22,
+          y: hem[1] - 22,
+          w: 44,
+          h: 44,
+          r: 22,
+          fill: alpha(ED.studio.color, 0.2),
+        }),
+        F({
+          name: 'hem handle',
+          x: hem[0] - 9,
+          y: hem[1] - 9,
+          w: 18,
+          h: 18,
+          r: 9,
+          fill: ED.studio.color,
+          stroke: 'bg/canvas',
+          sw: 2,
+        }),
+        R(
+          { x: hem[0] + 14 * sc, y: hem[1] - 14 },
+          pill('length 0.50 · was 0.60', { color: ED.studio.color, mono: true, h: 28 }),
+        ),
+        F({ name: 'tag line', x: edge[0] - 56, y: edge[1], w: 54, h: 1, fill: ED.studio.color }),
+        R(
+          { x: edge[0] - 56 - 76, y: edge[1] - 14, w: 76, ax: 'end' },
+          pill('apron', { color: ED.studio.color, h: 28, icon: 'hand' }),
+        ),
+      )
+    }
+    if (o.mode === 'first')
+      kids.push(
+        F({
+          name: 'tap ring',
+          x: fx0 + 20 * sc - 30,
+          y: fy + 48 * sc - 30,
+          w: 60,
+          h: 60,
+          r: 30,
+          stroke: ED.studio.color,
+          sw: 2,
+          dash: [5, 4],
+        }),
+        R(
+          { x: fx0 + 20 * sc + 76, y: fy + 48 * sc - 14 },
+          pill('tap a part', { color: ED.studio.color, h: 28, icon: 'hand' }),
+        ),
+      )
+    const y1 = fy + fh + 8
+    if (o.mode === 'pose') {
+      kids.push(
+        R(
+          { name: 'frames', x: (W - 420) / 2, y: y1, w: 420, h: 44, gap: 6, ax: 'center' },
+          ib('play', { color: ED.studio.color }),
+          [0, 1, 2, 3, 4, 5, 6, 7].map((i) =>
+            F({
+              name: `frame/${i + 1}`,
+              w: 30,
+              h: 30,
+              r: 6,
+              fill: i === 2 ? ED.studio.color : i < 2 ? alpha(ED.studio.color, 0.35) : 'bg/field',
+              stroke: 'border/default',
+            }),
+          ),
+          T('3 / 8', { style: 'Mono/12', color: 'text/dim' }),
+        ),
+        T('reach · drag along the frames to scrub', {
+          x: 0,
+          y: y1 + 48,
+          w: W,
+          align: 'center',
+          style: 'Mono/11',
+          color: 'text/dim',
+        }),
+      )
+    } else {
+      const views = ['front', 'front right', 'right', 'back right', 'back', 'back left', 'left', 'front left']
+      kids.push(
+        R(
+          { name: 'turn', x: (W - 260) / 2, y: y1, w: 260, h: 44, gap: 10, ax: 'center' },
+          ib('chevron-left'),
+          views.map((v, i) =>
+            F({ name: `view/${v}`, w: 10, h: 10, r: 5, fill: i === 0 ? ED.studio.color : 'border/strong' }),
+          ),
+          ib('chevron-right'),
+        ),
+        T(
+          o.mode === 'first'
+            ? 'front · drag the character sideways to turn'
+            : 'front · drag Ada sideways to turn',
+          {
+            x: 0,
+            y: y1 + 48,
+            w: W,
+            align: 'center',
+            style: 'Mono/11',
+            color: 'text/dim',
+          },
+        ),
+      )
+    }
+    const sy = y1 + 76
+    if (o.mode === 'look')
+      kids.push(
+        eyebrow('Outfits', { x: 12, y: sy }),
+        R(
+          { name: 'outfits', x: 12, y: sy + 22, gap: 8, ay: 'start' },
+          studioCard(A, 'nurse', { apron }, { sel: true }),
+          studioCard(A, 'cape', { outfit: 'cape' }),
+          studioCard(A, 'street', { outfit: 'street' }),
+          studioCard(A, 'New outfit', {}, { add: true }),
+        ),
+      )
+    if (o.mode === 'pose')
+      kids.push(
+        eyebrow('Poses · from the art file', { x: 12, y: sy }),
+        R(
+          { name: 'poses', x: 12, y: sy + 22, gap: 8, ay: 'start' },
+          ['flinch', 'look', 'reach', 'read', 'sit', 'sleep'].map((p) =>
+            studioCard(A, p, { pose: p, view: p === 'look' ? 7 : 0 }, { w: 74, sel: p === 'reach' }),
+          ),
+          studioCard(A, 'Request', {}, { w: 74, add: true }),
+        ),
+      )
+    if (o.mode === 'first')
+      kids.push(
+        eyebrow('Starters', { x: 12, y: sy }),
+        R(
+          { name: 'starters', x: 12, y: sy + 22, gap: 8, ay: 'start' },
+          studioCard(A, 'plain walker', { outfit: 'starter' }, { sel: true }),
+          studioCard(A, 'from Ada', {}),
+          studioCard(A, 'from the Porter', { outfit: 'cape' }),
+          studioCard(A, 'from the crew', { outfit: 'street' }),
+        ),
+      )
+    return kids
+  }
+  const studioSteps = () =>
+    C(
+      {
+        name: 'first steps',
+        x: 12,
+        y: 68,
+        w: 200,
+        pad: 12,
+        gap: 8,
+        r: 'radius/md',
+        fill: 'bg/surface',
+        stroke: 'border/default',
+      },
+      eyebrow('Three steps'),
+      [
+        ['1', 'Pick a starter below', true],
+        ['2', 'Tap a part to change it', false],
+        ['3', 'Check, then ask the owner for G1', false],
+      ].map(([n, text, done]) =>
+        R(
+          { w: 'fill', gap: 8, ay: 'start' },
+          R(
+            {
+              w: 20,
+              h: 20,
+              r: 10,
+              ax: 'center',
+              fill: done ? ED.studio.color : 'bg/field',
+              stroke: 'border/default',
+            },
+            done
+              ? I('check', { size: 12, color: 'accent/ink' })
+              : T(n, { style: 'Mono/11', color: 'text/dim' }),
+          ),
+          T(text, { style: 'Label/12', w: 'fill', color: done ? 'text/dim' : 'text/primary' }),
+        ),
+      ),
+    )
+  // The inspector's fields for each mode. Only the picked part's own fields show; the rest are folded rows.
+  const studioFields = (o) => {
+    if (o.mode === 'first')
+      return C(
+        { name: 'empty', w: 'fill', h: 'fill', pad: [48, 24], gap: 12, ax: 'center' },
+        R(
+          { w: 64, h: 64, r: 32, ax: 'center', ay: 'center', fill: alpha(ED.studio.color, 0.14) },
+          I('hand', { size: 28, color: ED.studio.color }),
+        ),
+        T('Tap a part of the character', { style: 'Title/15', align: 'center', w: 'fill' }),
+        T(
+          'Hair, dress, legs and shoes each open here with only their own fields. Everything else stays folded until you need it.',
+          {
+            style: 'Label/12',
+            color: 'text/dim',
+            align: 'center',
+            w: 'fill',
+            lh: 17,
+          },
+        ),
+        F({ w: 8, h: 8 }),
+        T('Or describe the character', { style: 'Label/12', color: 'text/faint' }),
+        askBtn(),
+      )
+    if (o.mode === 'pose')
+      return C(
+        { name: 'fields', w: 'fill', h: 'fill', pad: 12, gap: 10, clip: true },
+        R({ w: 'fill', h: 28, gap: 8 }, T('reach', { style: 'Title/15' }), spacer(), gatePill('G7', 'ok')),
+        T(
+          'One of six actions in the art file. Tap another pose under the stage, or tap Ada to change her look.',
+          {
+            style: 'Label/12',
+            color: 'text/dim',
+            w: 'fill',
+            lh: 17,
+          },
+        ),
+        C(
+          { w: 'fill', gap: 0 },
+          kvRow('Action', '285'),
+          kvRow('Cell', 'the preset’s'),
+          kvRow('Preset', 'standard'),
+          kvRow('Height', '1.62 m'),
+        ),
+        C(
+          { w: 'fill', gap: 4 },
+          T('Light', { style: 'Label/12', color: 'text/dim' }),
+          P.seg(['Hall light off', 'on'], 0),
+        ),
+        fold('Request a new pose', 'writes the action, checks it, estimates the cost', { icon: 'plus' }),
+        fold('Pose file', D.paths.art, { icon: 'code' }),
+        P.callout(
+          'warn',
+          'The paid run is the owner’s',
+          'A new pose waits for gate G7 before the atlas job runs.',
+        ),
+      )
+    return C(
+      { name: 'fields', w: 'fill', h: 'fill', pad: 12, gap: 12, clip: true },
+      R(
+        { w: 'fill', h: 28, gap: 8 },
+        F({ w: 14, h: 14, r: 4, fill: SW.starch, stroke: 'border/strong' }),
+        T('apron', { style: 'Title/15' }),
+        spacer(),
+        pill('nurse outfit', { color: 'text/dim', mono: true }),
+      ),
+      T('Tap another part of Ada to switch. Drag the hem on the stage to change the length.', {
+        style: 'Label/12',
+        color: 'text/dim',
+        w: 'fill',
+        lh: 17,
+      }),
+      apronSwatches(),
+      studioSlider('Length', 0.5, 0.6, 0.2, 1),
+      fold('More apron options', 'shade · straps · bib · pockets'),
+      fold('Everything in this outfit', '10 parts · top, skirt, apron, shoes…'),
+      fold('In the story', 'nurse in clinic, bay and clinic-dawn'),
+    )
+  }
+  const studioPipeBar = (x, y, w, mode) => {
+    const first = mode === 'first'
+    return R(
+      { name: 'pipeline bar', x, y, w, h: 56, pad: [0, 8, 0, 12], gap: 8, fill: 'bg/app' },
+      F({ name: 'divider', abs: true, x: 0, y: 0, w, h: 1, fill: 'border/default' }),
+      dot(first ? 'text/faint' : mode === 'pose' ? 'state/ok' : 'state/warn', 8),
+      eyebrow('Pipeline'),
+      mono(first ? 'not run yet' : mode === 'pose' ? 'atlas ran 12 Oct' : 'builder stale · sheet stale', {
+        trunc: true,
+      }),
+      spacer(),
+      first ? null : mode === 'pose' ? gatePill('G7', 'ok') : gatePill('G1 · G6', 'open'),
+      btn('Check', { icon: 'check' }),
+      ib('chevron-up'),
+    )
+  }
+  const studioView = (A, o) => {
+    const mode = o.mode
+    const H = o.drawer ? 602 : 782
+    const stageKids = studioStage(A, { mode, w: 602, sc: o.drawer ? 2.6 : 4.2 })
+    const stage = region(
+      'stage',
+      272,
+      52,
+      602,
+      H,
+      { fill: 'bg/canvas', clip: true },
+      R(
+        { name: 'modes', x: 12, y: 12, w: 252 },
+        P.seg(['Look', 'Pose', 'Play'], mode === 'pose' ? 1 : 0, { w: 252 }),
+      ),
+      R(
+        { name: 'hint', x: 276, y: 12, w: 314, h: 44, gap: 6, ax: 'end' },
+        I('hand', { size: 14, color: 'text/faint' }),
+        T(mode === 'pose' ? 'tap a pose · drag the frames' : 'tap a part · drag to turn', {
+          style: 'Label/12',
+          color: 'text/faint',
+        }),
+      ),
+      mode === 'first' ? studioSteps() : null,
+      ...stageKids,
+      o.drawer ? null : studioPipeBar(0, H - 56, 602, mode),
+    )
+    const inspector = region(
+      'inspector',
+      874,
+      52,
+      320,
+      H,
+      { lay: 'col' },
+      P.tabs([{ label: mode === 'pose' ? 'Pose' : 'Part' }, { label: 'Code' }, { label: 'Ask' }], 0),
+      F({ w: 'fill', h: 1, fill: 'border/default' }),
+      studioFields({ mode }),
+    )
+    const first = mode === 'first'
+    return F(
+      { name: o.name, w: 1194, h: 834, fill: 'bg/app', clip: true },
+      top(1194, {
+        title: first ? 'New character' : 'Ada Voss',
+        sub: first ? 'content/characters/new.json' : mode === 'pose' ? D.paths.art : D.paths.character,
+        ed: 'studio',
+        cs: first ? 'studio/new-character' : 'studio/ada-apron',
+        n: first ? 0 : 1,
+        checks: first ? 'not checked yet' : 'character check ok',
+        tone: first ? 'text/dim' : undefined,
+        reopened: !first && mode !== 'pose',
+        gates: mode === 'pose' ? [['G1–G7', 'idle']] : undefined,
+      }),
+      rail(782, 'studio'),
+      studioRoster(A, { first }),
+      stage,
+      inspector,
+      o.drawer
+        ? pipeline({
+            stages: [
+              { id: 'builder', state: 'stale', at: 'apron changed just now', out: 'run Check to refresh' },
+              { id: 'sheet', state: 'stale', at: 'ran yesterday', out: 'review-x4.png' },
+              { id: 'play', state: 'stale', at: 'ran yesterday', out: 'hall-off · hall-on' },
+            ],
+            gates: [
+              { id: 'G1', name: 'look', decision: 'open' },
+              { id: 'G6', name: 'figure', decision: 'open' },
+            ],
+            checks: 'character check ok',
+          })
+        : null,
+      line(0, 51, 1194, 1),
+      line(55, 52, 1, 782),
+      line(271, 52, 1, H),
+      line(873, 52, 1, H),
+    )
+  }
+  // Portrait: the stage takes the width, the picked part's fields are a bottom sheet, characters are a chip.
+  const studioPortrait = (A) => {
+    const W = 834
+    const sheetY = 752
+    const stage = region(
+      'stage',
+      0,
+      108,
+      W,
+      sheetY - 108,
+      { fill: 'bg/canvas', clip: true },
+      ...studioStage(A, { mode: 'look', w: W, sc: 4.6, fy: 28 }).slice(0, 9),
+      R(
+        { name: 'outfits', x: W - 112, y: 16, gap: 8, lay: 'col' },
+        ...[
+          ['nurse', { apron: 0.5 }, true],
+          ['cape', { outfit: 'cape' }, false],
+          ['street', { outfit: 'street' }, false],
+        ].map(([label, fig, sel]) => studioCard(A, label, fig, { w: 96, h: 112, sel })),
+        studioCard(A, 'New outfit', {}, { w: 96, h: 112, add: true }),
+      ),
+    )
+    const sheet = C(
+      {
+        name: 'bottom sheet',
+        x: 0,
+        y: sheetY,
+        w: W,
+        h: 1074 - sheetY,
+        pad: [8, 16, 16, 16],
+        gap: 12,
+        r: [16, 16, 0, 0],
+        fill: 'bg/surface',
+        stroke: 'border/default',
+        shadow: 'sheet',
+      },
+      R({ w: 'fill', h: 16, ax: 'center' }, F({ name: 'handle', w: 40, h: 5, r: 3, fill: 'border/strong' })),
+      R(
+        { w: 'fill', h: 28, gap: 8 },
+        F({ w: 14, h: 14, r: 4, fill: SW.starch, stroke: 'border/strong' }),
+        T('apron', { style: 'Title/15' }),
+        pill('nurse outfit', { color: 'text/dim', mono: true }),
+        spacer(),
+        T('tap another part to switch', { style: 'Label/12', color: 'text/faint' }),
+      ),
+      apronSwatches(10),
+      studioSlider('Length', 0.5, 0.6, 0.2, 1, 802),
+      R(
+        { w: 'fill', gap: 8 },
+        fold('More apron options', 'shade · straps · bib · pockets'),
+        fold('Everything in this outfit', '10 parts'),
+      ),
+    )
+    return F(
+      { name: 'Studio · Look · iPad portrait', w: W, h: 1194, fill: 'bg/app', clip: true },
+      topP(W, {
+        title: 'Ada Voss',
+        sub: 'ada.json',
+        cs: 'studio/ada-apron',
+        n: 1,
+        checks: 'checks ok',
+        gates: [['G1 · G6', 'open']],
+      }),
+      R(
+        { name: 'chrome', x: 16, y: 58, w: W - 32, h: 44, gap: 8 },
+        R(
+          {
+            name: 'character picker',
+            gap: 8,
+            h: 44,
+            pad: [0, 12],
+            r: 'radius/md',
+            fill: 'bg/raised',
+            stroke: 'border/default',
+          },
+          F(
+            { w: 22, h: 28, r: 4, fill: 'bg/canvas', clip: true },
+            V(A.figure(0), { x: 2, y: 0, w: 18, h: 40 }),
+          ),
+          T('Ada Voss', { style: 'Body/13 Medium' }),
+          I('chevron-down', { size: 14, color: 'text/dim' }),
+        ),
+        P.seg(['Look', 'Pose', 'Play'], 0, { w: 252 }),
+        spacer(),
+        I('hand', { size: 14, color: 'text/faint' }),
+        T('tap a part · drag to turn', { style: 'Label/12', color: 'text/faint' }),
+      ),
+      stage,
+      sheet,
+      studioPipeBar(0, 1074, W, 'look'),
+      tabBar(W, 1130, 'studio'),
+      line(0, 51, W, 1),
+    )
+  }
+
   return {
+    studioView,
+    studioPortrait,
     D,
     ED,
+    fileRow,
+    gatesFor,
+    topGates,
     rail,
     tabBar,
     topP,
@@ -1120,7 +1834,9 @@ export function artParts(S, _P, _Q) {
     )
   }
 
-  // A procedural figure, drawn from 8 views (0 front, then clockwise) on a 40 x 90 grid. o: lit, walk (0..1), outfit
+  // A procedural figure, drawn from 8 views (0 front, then clockwise) on a 40 x 90 grid. o: lit, walk (0..1), outfit,
+  // apron (length 0..1, the file's 0.6 by default), pose ('flinch' | 'look' | 'reach' | 'read' | 'sit' | 'sleep'),
+  // hi (a part to outline: 'apron' | 'hair' | 'dress' | 'shoes').
   const figure = (view, o = {}) => {
     const back = view >= 3 && view <= 5
     const side = view === 2 || view === 6
@@ -1130,50 +1846,126 @@ export function artParts(S, _P, _Q) {
     const cx = 20
     const skin = '#e8c7a9'
     const hair = '#7a3d22'
-    const dress = o.outfit === 'cape' ? '#1a2745' : '#233a63'
+    const dress = { cape: '#1a2745', street: '#6e2a2f', starter: '#5b6270' }[o.outfit] || '#233a63'
     const apron = '#e4e0d0'
+    const apronH = Math.round(22 * ((o.apron == null ? 0.6 : o.apron) / 0.6))
     const walk = o.walk || 0
     const legA = Math.round(walk * 4)
+    const pose = o.pose
+    const sit = pose === 'sit'
     const g = []
     g.push(`<ellipse cx="${cx}" cy="86" rx="${bw / 2 + 4}" ry="3" fill="#000" fill-opacity=".35"/>`)
+    if (sit)
+      g.push(
+        '<rect x="8" y="70" width="24" height="5" fill="#5a3a22"/><rect x="10" y="75" width="3" height="11" fill="#5a3a22"/><rect x="27" y="75" width="3" height="11" fill="#5a3a22"/>',
+      )
+    const body = []
     // legs
     const lx = side ? cx - 3 : cx - bw / 4 - 1
-    g.push(
-      `<rect x="${fx(lx - 2)}" y="58" width="5" height="${22 + legA}" fill="#c9b49a"/><rect x="${fx(side ? lx + 1 : cx + bw / 4 - 3)}" y="58" width="5" height="${22 - legA}" fill="#c9b49a"/>`,
-    )
-    g.push(
-      `<rect x="${fx(lx - 3)}" y="${79 + legA}" width="7" height="4" fill="#111"/><rect x="${fx(side ? lx + 0 : cx + bw / 4 - 4)}" y="${79 - legA}" width="7" height="4" fill="#111"/>`,
-    )
+    if (sit)
+      body.push(
+        `<rect x="${fx(lx - 2)}" y="58" width="5" height="12" fill="#c9b49a"/><rect x="${fx(cx + bw / 4 - 3)}" y="58" width="5" height="12" fill="#c9b49a"/><rect x="${fx(lx - 3)}" y="69" width="7" height="4" fill="#111"/><rect x="${fx(cx + bw / 4 - 4)}" y="69" width="7" height="4" fill="#111"/>`,
+      )
+    else {
+      body.push(
+        `<rect x="${fx(lx - 2)}" y="58" width="5" height="${22 + legA}" fill="#c9b49a"/><rect x="${fx(side ? lx + 1 : cx + bw / 4 - 3)}" y="58" width="5" height="${22 - legA}" fill="#c9b49a"/>`,
+      )
+      body.push(
+        `<rect x="${fx(lx - 3)}" y="${79 + legA}" width="7" height="4" fill="#111"/><rect x="${fx(side ? lx + 0 : cx + bw / 4 - 4)}" y="${79 - legA}" width="7" height="4" fill="#111"/>`,
+      )
+    }
     // skirt and torso
-    g.push(
+    body.push(
       `<path d="M${cx - bw / 2 - 1} 62L${cx - bw / 2 + 1} 36H${cx + bw / 2 - 1}L${cx + bw / 2 + 1} 62z" fill="${dress}"/>`,
     )
-    if (!back) g.push(`<rect x="${cx - bw / 2 + 3}" y="38" width="${bw - 6}" height="22" fill="${apron}"/>`)
-    else
-      g.push(
-        `<path d="M${cx - bw / 2 + 3} 38L${cx + bw / 2 - 3} 56M${cx + bw / 2 - 3} 38L${cx - bw / 2 + 3} 56" stroke="${apron}" stroke-width="2"/>`,
-      )
+    if (o.outfit !== 'street' && o.outfit !== 'starter') {
+      if (!back)
+        body.push(
+          `<rect x="${cx - bw / 2 + 3}" y="38" width="${bw - 6}" height="${apronH}" fill="${apron}"/>`,
+        )
+      else
+        body.push(
+          `<path d="M${cx - bw / 2 + 3} 38L${cx + bw / 2 - 3} 56M${cx + bw / 2 - 3} 38L${cx - bw / 2 + 3} 56" stroke="${apron}" stroke-width="2"/>`,
+        )
+    } else if (o.outfit === 'street')
+      body.push(`<rect x="${cx - bw / 2 + 1}" y="44" width="${bw - 2}" height="2" fill="#1b1b1e"/>`)
     if (o.outfit === 'cape')
-      g.push(
+      body.push(
         `<path d="M${cx - bw / 2 - 2} 34H${cx + bw / 2 + 2}L${cx + bw / 2 + 3} 50H${cx - bw / 2 - 3}z" fill="#101a31"/><path d="M${cx - bw / 2 - 3} 50H${cx + bw / 2 + 3}" stroke="#9c3327" stroke-width="2"/>`,
       )
-    // arms
-    if (!side)
-      g.push(
+    // arms: straight down, or bent to a pose's hands
+    const sl = [cx - bw / 2 - 2, 39]
+    const sr = [cx + bw / 2 + 2, 39]
+    const hands = {
+      flinch: [
+        [cx - 6, 30],
+        [cx + 5, 27],
+      ],
+      look: [
+        [sl[0] - 1, 58],
+        [cx + 3, 24],
+      ],
+      reach: [
+        [sl[0] - 1, 58],
+        [cx + bw / 2 + 8, 21],
+      ],
+      read: [
+        [cx - 4, 47],
+        [cx + 4, 47],
+      ],
+      sit: [
+        [cx - 5, 60],
+        [cx + 5, 60],
+      ],
+    }[pose]
+    if (hands && !side) {
+      const arm = (s, h) =>
+        `<path d="M${s[0]} ${s[1]}L${fx((s[0] + h[0]) / 2 + (h[0] < s[0] ? 2 : -2))} ${fx((s[1] + h[1]) / 2 + 4)}L${fx(h[0])} ${fx(h[1])}" fill="none" stroke="${dress}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/><rect x="${fx(h[0] - 1.5)}" y="${fx(h[1] - 1.5)}" width="3" height="3" fill="${skin}"/>`
+      body.push(arm(sl, hands[0]), arm(sr, hands[1]))
+      if (pose === 'read')
+        body.push(
+          `<rect x="${cx - 7}" y="40" width="14" height="10" fill="#eadbc9" stroke="#9b8f7c" stroke-width=".6"/>`,
+        )
+    } else if (!side)
+      body.push(
         `<rect x="${cx - bw / 2 - 4}" y="38" width="4" height="${20 + legA / 2}" fill="${dress}"/><rect x="${cx + bw / 2}" y="38" width="4" height="${20 - legA / 2}" fill="${dress}"/>`,
       )
-    else g.push(`<rect x="${cx - 2}" y="38" width="4" height="${21 + legA}" fill="${dress}"/>`)
+    else body.push(`<rect x="${cx - 2}" y="38" width="4" height="${21 + legA}" fill="${dress}"/>`)
     // head
     const hw = side ? 12 : 15
-    g.push(`<rect x="${cx - hw / 2}" y="18" width="${hw}" height="17" fill="${back ? hair : skin}"/>`)
+    const hx = pose === 'flinch' ? -1 : pose === 'look' ? 1 : 0
+    body.push(`<rect x="${cx - hw / 2 + hx}" y="18" width="${hw}" height="17" fill="${back ? hair : skin}"/>`)
     if (!back) {
-      const fox = side ? 1 : quarter ? flip * 2 : 0
-      g.push(`<rect x="${cx - hw / 2}" y="16" width="${hw}" height="8" fill="${hair}"/>`)
-      g.push(
-        `<rect x="${fx(cx - 4 + fox + (side ? flip * 3 : 0))}" y="27" width="2" height="2" fill="#2b1d16"/>`,
+      const fox = (side ? 1 : quarter ? flip * 2 : 0) + hx * 2
+      body.push(`<rect x="${cx - hw / 2 + hx}" y="16" width="${hw}" height="8" fill="${hair}"/>`)
+      if (pose === 'sleep' || pose === 'flinch')
+        body.push(
+          `<rect x="${fx(cx - 4 + fox)}" y="28" width="2" height="1" fill="#2b1d16"/><rect x="${fx(cx + 2 + fox)}" y="28" width="2" height="1" fill="#2b1d16"/>`,
+        )
+      else {
+        body.push(
+          `<rect x="${fx(cx - 4 + fox + (side ? flip * 3 : 0))}" y="27" width="2" height="2" fill="#2b1d16"/>`,
+        )
+        if (!side) body.push(`<rect x="${fx(cx + 2 + fox)}" y="27" width="2" height="2" fill="#2b1d16"/>`)
+      }
+    } else body.push(`<rect x="${cx - hw / 2 - 1}" y="16" width="${hw + 2}" height="12" fill="${hair}"/>`)
+    // the selected part's outline, drawn over the figure
+    const box = {
+      apron: [cx - bw / 2 + 2, 37, bw - 4, apronH + 2],
+      hair: [cx - hw / 2 - 1, 15, hw + 2, 10],
+      dress: [cx - bw / 2 - 2, 35, bw + 4, 28],
+      shoes: [lx - 4, 78, cx + bw / 4 + 4 - (lx - 4), 6],
+    }[o.hi]
+    if (box)
+      body.push(
+        `<rect x="${fx(box[0])}" y="${fx(box[1])}" width="${fx(box[2])}" height="${fx(box[3])}" fill="none" stroke="${o.hiColor || '#e07a6a'}" stroke-width=".7" stroke-dasharray="1.6 1"/>`,
       )
-      if (!side) g.push(`<rect x="${fx(cx + 2 + fox)}" y="27" width="2" height="2" fill="#2b1d16"/>`)
-    } else g.push(`<rect x="${cx - hw / 2 - 1}" y="16" width="${hw + 2}" height="12" fill="${hair}"/>`)
+    if (pose === 'sleep')
+      g.push(
+        `<g transform="translate(1 86) rotate(-90) scale(.44)">${body.join('')}</g><rect x="16" y="75" width="23" height="10" rx="2" fill="#c9c5b4"/><rect x="1" y="85" width="38" height="2" fill="#5a3a22"/>`,
+      )
+    else if (pose === 'flinch') g.push(`<g transform="rotate(-8 20 86)">${body.join('')}</g>`)
+    else g.push(sit ? `<g transform="translate(0 4)">${body.join('')}</g>` : body.join(''))
     if (o.lit) g.push(`<rect x="0" y="0" width="40" height="90" fill="#f99b4e" fill-opacity=".16"/>`)
     return `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="90" viewBox="0 0 40 90">${g.join('')}</svg>`
   }
@@ -1196,7 +1988,7 @@ export function artParts(S, _P, _Q) {
       top += `${i ? 'L' : 'M'}${i * 2} ${fx(h / 2 - amp)}`
       bot = `L${i * 2} ${fx(h / 2 + amp)}${bot}`
     }
-    const c = o.hex || '#e6c35c'
+    const c = o.hex || S.hex6('ed/audio')
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="M0 ${h / 2}H${w}" stroke="#33363c"/><path d="${top}${bot}Z" fill="${c}" fill-opacity=".35" stroke="${c}" stroke-width="1"/></svg>`
   }
   // A top-down path trace (systems trace): rooms as outlines, a route, the pursuer's route.

@@ -3,7 +3,8 @@
 //   node build.mjs list
 //   node build.mjs screen <id> <out.html> [--local-fonts <dir>]   one screen at 1:1, for screenshots
 //   node build.mjs html <out.html> [--local-fonts <dir>]          every screen at 1:1 in one long page
-//   node build.mjs gallery <out.html> [--pr <url>]                the review gallery published as an artifact
+//   node build.mjs gallery <out.html> [--pr <url>] [--before <dir>] the review gallery published as an artifact; --before
+//                                                                 names the approved checkout's editor-suite dir
 //   node build.mjs figma-parts [n]                                `use_figma` code that stores chunk n of the suite parts on page _kit
 //   node build.mjs figma-parts count                              how many chunks there are
 //   node build.mjs figma-collection                               `use_figma` code that adds the "Editor Suite" colour variables
@@ -12,6 +13,7 @@
 // The scene kit lives in ../editor-kit/scene (owned by the 3D editor lane) and the 2D parts in ../editor-2d.
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { parts } from '../editor-2d/parts.mjs'
 import { S } from '../editor-kit/scene/scene.mjs'
 import { suiteData } from './data.mjs'
@@ -30,6 +32,19 @@ const byId = (id) => {
   return s
 }
 const html = (s) => S.toHTML(s.build(S, P, Q, A))
+const SUITE_TOKENS = [
+  'sequence',
+  'tuner',
+  'writer',
+  'studio',
+  'schematic',
+  'audio',
+  'feel',
+  'levels',
+  'review',
+]
+  .map((k) => `ed/${k}`)
+  .concat('edge/default')
 const arg = (name) => {
   const i = rest.indexOf(name)
   return i >= 0 ? rest[i + 1] : undefined
@@ -47,6 +62,23 @@ const fontFaces = (dir) => {
       .map((w) => face('IBM Plex Sans', `ibm-plex-sans-latin-${w}-normal.woff2`, w))
       .join('') +
     [400, 500, 600].map((w) => face('IBM Plex Mono', `ibm-plex-mono-latin-${w}-normal.woff2`, w)).join('')
+  )
+}
+
+// The screens as an older checkout drew them (`--before <its editor-suite dir>`), for the gallery's before and after.
+const beforeScreens = async (dir) => {
+  if (!dir) return undefined
+  const at = (f) => new URL(f, `file://${resolve(dir)}/`).href
+  const { parts: oldParts } = await import(at('../editor-2d/parts.mjs'))
+  const { S: oldS } = await import(at('../editor-kit/scene/scene.mjs'))
+  const { suiteData: oldData } = await import(at('data.mjs'))
+  const { artParts: oldArt, suiteParts: oldSuite } = await import(at('parts.mjs'))
+  const { screens: oldScreens } = await import(at('screens.mjs'))
+  const p = oldParts(oldS)
+  const q = oldSuite(oldS, p, oldData())
+  const a = oldArt(oldS, p, q)
+  return Object.fromEntries(
+    oldScreens.map((s) => [s.id, { w: s.w, h: s.h, html: oldS.toHTML(s.build(oldS, p, q, a)) }]),
   )
 }
 
@@ -105,7 +137,10 @@ if (cmd === 'list') {
     `<!doctype html><meta charset="utf-8"><title>Editor suite mockups</title><style>${S.baseCss}${fontFaces(fonts)}</style>${fonts ? '' : `<link rel="stylesheet" href="${S.fontsHref}">`}${cards}`,
   )
 } else if (cmd === 'gallery') {
-  writeFileSync(rest[0], gallery(screens, html, S, { pr: arg('--pr') }))
+  writeFileSync(
+    rest[0],
+    gallery(screens, html, S, { pr: arg('--pr'), before: await beforeScreens(arg('--before')) }),
+  )
 } else if (cmd === 'figma-parts') {
   const all = chunks()
   if (rest[0] === 'count') {
@@ -118,12 +153,12 @@ if (cmd === 'list') {
     )
   }
 } else if (cmd === 'figma-collection') {
-  // The suite adds one colour (`ed/feel`, the Feel editor's pink) beside the Editor Kit variables.
+  // The suite adds one colour per editor and the graph edge colour beside the Editor Kit variables.
   console.log(`const existing = (await figma.variables.getLocalVariableCollectionsAsync()).find((c) => c.name === 'Editor Suite')
 const collection = existing || figma.variables.createVariableCollection('Editor Suite')
 const have = collection.variableIds.map((id) => figma.variables.getVariableById(id).name)
 const made = []
-for (const [name, hex] of ${JSON.stringify(Object.entries({ 'color/ed/feel': S.tokens['ed/feel'] }))}) {
+for (const [name, hex] of ${JSON.stringify(SUITE_TOKENS.map((t) => [`color/${t}`, S.tokens[t]]))}) {
   if (have.includes(name)) continue
   const v = figma.variables.createVariable(name, collection, 'COLOR')
   v.scopes = ['ALL_FILLS', 'STROKE_COLOR']

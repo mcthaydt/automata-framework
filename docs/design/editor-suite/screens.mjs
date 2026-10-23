@@ -1,6 +1,7 @@
 // Every suite screen, in gallery order. Each file holds one editor's screens.
 
 import { audioScreens } from './screens-audio.mjs'
+import { floorFiftyScreens } from './screens-floorfifty.mjs'
 import { portraitScreens } from './screens-portrait.mjs'
 import { schematicScreens } from './screens-schematic.mjs'
 import { sequenceScreens } from './screens-sequence.mjs'
@@ -12,6 +13,7 @@ import { writerScreens } from './screens-writer.mjs'
 export const screens = [
   ...sequenceScreens,
   ...tunerScreens,
+  ...floorFiftyScreens,
   ...writerScreens,
   ...studioScreens,
   ...schematicScreens,
