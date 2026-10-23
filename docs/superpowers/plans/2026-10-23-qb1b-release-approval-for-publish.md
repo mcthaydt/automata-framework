@@ -23,8 +23,8 @@
 
 ## Files
 
-- **Modify:** `.github/workflows/release-packages.yml`; `packages/ship/src/workflows.test.ts` (the `release-packages.yml` describe); `.changeset/README.md` (one sentence: only a publish waits for approval); this plan; `docs/02-master-delivery-plan.md` (the row, with the docs sync PR).
-- **No changeset:** no published package changes (`packages/ship` gains only a test change).
+- **Modify:** `.github/workflows/release-packages.yml`; `packages/ship/src/workflows.test.ts` (the `release-packages.yml` describe); `.changeset/README.md` (which job waits), `.changeset/release-approval-publish-only.md` (empty); this plan; `docs/02-master-delivery-plan.md` (the row, with the docs sync PR).
+- **An empty changeset** (`.changeset/release-approval-publish-only.md`, CI only): no package behavior changes, but `packages/ship` gains a test change and `changeset status` asks for a changeset when a published package's files change; the empty form is the precedent for CI-only changes (`parity-on-mac.md`).
 
 ## Interfaces
 
@@ -42,7 +42,7 @@
 
 - Selected: `pnpm check`; the ship package's unit tests; the plan snippet run by hand.
 - Omitted, not runnable here: any GitHub Actions run (hosted minutes). The Owner reviews the workflow diff.
-- No changeset.
+- An empty changeset (CI only).
 
 ## Execution log
 
@@ -52,4 +52,4 @@
 | 2026-10-23 | 1 | | The `release-packages.yml` describe rewritten (13 cases; the `Step` and `Job` test types gained the fields they read). Red: `pnpm --filter @mcthaydt/automata-ship test:unit` 11 failed, 256 passed; every new case failed on the single-job workflow. |
 | 2026-10-23 | 2 | | Workflow split into `plan`, `version` and `publish`; ship unit tests 267 passed. |
 | 2026-10-23 | 3 | | The plan job's `find` rule run by hand: this checkout (38 changesets pending on `main`) gives `pending=true`; a folder with only `README.md` and `config.json` gives `pending=false`; adding one changeset gives `pending=true`. No Actions run is possible here. |
-| 2026-10-23 | 4 | | `.changeset/README.md` says which job waits. `pnpm format`, `pnpm check` and the changeset check below. 02's row and 03 come with the docs sync PR. |
+| 2026-10-23 | 4 | | `.changeset/README.md` says which job waits. `pnpm format`, `pnpm check` exit 0. `pnpm changeset status --since=origin/main` exited 1 ("Some packages have been changed but no changesets were found": `packages/ship`'s test changed); an empty CI-only changeset, as `parity-on-mac.md` does, clears it. 02's row and 03 come with the docs sync PR. |
