@@ -3,36 +3,56 @@
 
 const GROUPS = [
   {
-    id: 'stage',
-    title: 'Stage editor',
-    lead: 'Shapes a FloorFifty stage: parallax layers, the generated course and the set pieces, previewed in a framed phone view.',
-    screens: [
-      ['compose', 'Compose', 'wide'],
-      ['course', 'Course', 'wide'],
-      ['pieces', 'Set pieces', 'wide'],
-      ['compose-portrait', 'Compose in portrait', 'half'],
-      ['stage-settings', 'Stage settings', 'half'],
-    ],
+    id: 'start',
+    title: 'Start',
+    lead: 'Where a session begins: every project in the workspace, and templates for a platformer, a top-down RPG and a blank project.',
+    screens: [['home', 'Home', 'wide']],
   },
   {
     id: 'level',
     title: 'Level editor',
-    lead: 'A general tile and entity editor in the manner of LDtk, with a world map for arranging levels.',
+    lead: 'One editor for both genres. The same toolbar, layer panel, palette and inspector build a platformer level and an RPG map; only the template behind them differs.',
     screens: [
-      ['level', 'Level', 'wide'],
+      ['level-platformer', 'Platformer level', 'wide'],
+      ['level-rpg', 'RPG map', 'wide'],
+      ['level-portrait', 'RPG map in portrait', 'half'],
+    ],
+  },
+  {
+    id: 'defs',
+    title: 'Definitions and world',
+    lead: 'What the levels are made from: tilesets with auto-tile rules, entity definitions with typed fields, and the world map that arranges levels.',
+    screens: [
+      ['tileset', 'Tilesets and rules', 'wide'],
+      ['entities', 'Entity definitions', 'wide'],
       ['world', 'World map', 'wide'],
     ],
   },
   {
     id: 'states',
-    title: 'Start and states',
-    lead: 'Opening, validating, exporting and recovering a file.',
+    title: 'Checks and states',
+    lead: 'Validating, exporting, recovering and refusing: nothing is lost silently, and an error never blocks an export.',
     screens: [
-      ['home', 'Home', 'wide'],
       ['checks', 'Checks', 'wide'],
       ['export', 'Export', 'half'],
+      ['refuse', 'Refused change', 'half'],
       ['recover', 'Recover', 'half'],
-      ['parse-error', 'Open failed', 'half'],
+      ['open-failed', 'Open failed', 'half'],
+    ],
+  },
+  {
+    id: 'floorfifty',
+    title: 'FloorFifty profile',
+    lead: 'FloorFifty stages are one profile of the same editor: a registered document kind with its own screens, still lossless against the stage file and the vendored schema.',
+    screens: [
+      ['ff-compose', 'Compose', 'wide'],
+      ['ff-course', 'Course', 'wide'],
+      ['ff-pieces', 'Set pieces', 'wide'],
+      ['ff-portrait', 'Compose in portrait', 'half'],
+      ['ff-settings', 'Stage settings', 'half'],
+      ['ff-checks', 'Checks', 'wide'],
+      ['ff-export', 'Export', 'half'],
+      ['ff-parse-error', 'Open failed', 'half'],
     ],
   },
   {
@@ -44,7 +64,7 @@ const GROUPS = [
 ]
 
 const FIGMA = 'https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d'
-const PR = 'https://github.com/mcthaydt/automata-framework/pull/93'
+const BRANCH = 'https://github.com/mcthaydt/automata-framework/tree/claude/project-thread-73sp69-ed2d-general'
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
@@ -187,7 +207,7 @@ figcaption p { margin: 4px 0 0; color: var(--dim); max-width: 75ch; }
   <header class="intro">
     <span class="eyebrow">Design review · ${screens.length} screens</span>
     <h1>Automata 2D Editor</h1>
-    <p>An editor for <strong>FloorFifty stages</strong> and general <strong>tile levels</strong>, designed for the iPad first. The stage editor covers a stage's parallax layers, its generated climbing course and its set pieces. The level editor follows LDtk, with layers, a tileset palette and a world map. Every stage screen shows Rooftops, one of the four stages FloorFifty ships.</p>
+    <p>One <strong>genre-general 2D editor</strong>, designed for the iPad first and modelled on LDtk: projects hold definitions (layers, tilesets, entities with typed fields) and a world of levels. It builds a <strong>platformer level</strong> and a <strong>top-down RPG map</strong> end to end, and a FloorFifty stage is one profile of it. Platformer screens show Mossgate, RPG screens show Hollowmere; both are illustrative.</p>
     <dl class="facts">
       <div><dt>Landscape</dt><dd>1194 × 834</dd></div>
       <div><dt>Portrait</dt><dd>834 × 1194</dd></div>
@@ -196,14 +216,15 @@ figcaption p { margin: 4px 0 0; color: var(--dim); max-width: 75ch; }
     </dl>
     <div class="links">
       <a class="primary" href="${FIGMA}" target="_blank" rel="noopener">Open in Figma</a>
-      <a href="${PR}" target="_blank" rel="noopener">Spec and plan (PR 93)</a>
+      <a href="${BRANCH}" target="_blank" rel="noopener">Spec and plan (branch)</a>
     </div>
     <nav class="toc" aria-label="Sections">${nav}</nav>
   </header>
 ${sections}
   <section class="notes" aria-labelledby="real">
     <h2 id="real">What is real and what is a placeholder</h2>
-    <p>Layer names, depths, sinks, haze, seed 35229, the four phrases, the three extension ranges and the six set pieces are the values in Rooftops' stage file. The artwork, the course geometry and the sample level are illustrative. The Checks screen shows an invented error: cityMid's depth set to 0.40.</p>
+    <p>The two sample projects, Mossgate and Hollowmere, their tilesets, artwork, levels and entity names are illustrative placeholders. The FloorFifty profile screens use values from the Rooftops stage file (layer names, depths, sinks, haze, seed 35229, the four phrases, the three extension ranges and the six set pieces); the course geometry and the sample level there are illustrative, and its Checks screen shows an invented error (cityMid's depth set to 0.40).</p>
+    <p>Owner visual acceptance for the 2D editor is not recorded yet; this gallery is the sheet to review.</p>
     <p>Each frame is the same tree that was pushed to the Figma file, so the two match. Tap Full size to read a frame at 1:1.</p>
   </section>
 </div>
