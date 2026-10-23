@@ -15,8 +15,10 @@ import {
   type EventSounds,
   type GameDefinition,
   type GameOrientation,
+  LOCALE_SAVE_KEY,
   type RotateHintMode,
   type RuntimeSeams,
+  type SaveDef,
   type ScreenDef,
   type SettingsDef,
 } from '@mcthaydt/automata-runtime'
@@ -28,7 +30,25 @@ import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } fr
 import type { InputMap } from './input/keys.ts'
 import { defaultScreens } from './screens/default-screens.ts'
 
-export interface GameSpec<S = never> {
+/**
+ * What a game saves, and how the default screens read it from the sim and put it back (M5.2). The title lists the
+ * save's slots; New game writes the starting data, Continue loads a slot, and play keeps it saved while it runs, on
+ * the triggers the `def` declares (autosave).
+ */
+export interface GameSaves<D> {
+  readonly def: SaveDef<D>
+  /**
+   * The data to keep, read from the live sim when a trigger writes, and for a new game from the sim at tick 0. It
+   * only reads: it must not change the sim.
+   */
+  capture(sim: Sim): D
+  /** Puts a loaded slot's data into the freshly set-up sim, before tick 0. */
+  apply(sim: Sim, data: D): void
+  /** The label a new game gives its slot on the list ("Run 2"). Default: none, and the list says "Slot N". */
+  label?(slot: number): string
+}
+
+export interface GameSpec<S = never, D = unknown> {
   /** Ruken's game id (`[game].id`), checked with Ruken's own rule; it is `hosting.gameId`. */
   readonly id: string
   /** Shown on the title screen. Default: the id. */
@@ -64,6 +84,11 @@ export interface GameSpec<S = never> {
    * of the ship config's `leaderboards`; the game then asks the host for `leaderboards`.
    */
   readonly scores?: EventScores
+  /**
+   * The game's save (M5.2): its slots, how the sim is captured into them and put back. The game then asks the host
+   * for `saves`. Needs the default screens for the title's slot list; custom `screens` open the save themselves.
+   */
+  readonly saves?: GameSaves<D>
   /** A game with `content/` passes the compiler's output; `sim` is the sim's partition of it. */
   readonly content?: { readonly data: CompiledContentData; readonly hash: string; readonly sim?: unknown }
   /** Default: title, play and paused (DX spec §7). */
@@ -119,7 +144,7 @@ export class GameSpecError extends Error {
 const HASH = /^[0-9a-f]{16}$/
 const isSize = (value: number): boolean => Number.isInteger(value) && value > 0
 
-function problemsOf<S>(spec: GameSpec<S>): string[] {
+function problemsOf<S, D>(spec: GameSpec<S, D>): string[] {
   const problems: string[] = []
   if (!SLUG_RE.test(spec.id))
     problems.push(`id: "${spec.id}" is not a Ruken game id (lowercase letters, digits and hyphens)`)
@@ -135,6 +160,9 @@ function problemsOf<S>(spec: GameSpec<S>): string[] {
     if (!events.has(key)) problems.push(`sounds.${key}: no plugin defines an event "${key}"`)
   for (const key of Object.keys(spec.scores ?? {}))
     if (!events.has(key)) problems.push(`scores.${key}: no plugin defines an event "${key}"`)
+  const reserved = [(spec.settings ?? CORE_SETTINGS).key, LOCALE_SAVE_KEY]
+  if (spec.saves !== undefined && reserved.includes(spec.saves.def.key))
+    problems.push(`saves.def.key: "${spec.saves.def.key}" is a key the framework keeps for itself`)
   if (spec.draw !== undefined && typeof spec.draw !== 'function') problems.push('draw: is not a function')
   else if (spec.draw !== undefined && spec.screens !== undefined)
     problems.push('draw: needs the default screens (custom screens do not hand their sim to the draw layer)')
@@ -145,17 +173,18 @@ function problemsOf<S>(spec: GameSpec<S>): string[] {
 
 /**
  * The capabilities the game asks for: the spec's, plus `saves` for the core settings when the game declares none
- * (M4.4), and `leaderboards` when it has scores, each once.
+ * (M4.4) or has a save of its own (M5.2), and `leaderboards` when it has scores, each once.
  */
-function wantsOf<S>(spec: GameSpec<S>): NonNullable<HostingOptions['wants']> {
+function wantsOf<S, D>(spec: GameSpec<S, D>): NonNullable<HostingOptions['wants']> {
   const wants = [...(spec.hosting?.wants ?? [])]
-  if (spec.settings === undefined && !wants.includes('saves')) wants.push('saves')
+  if ((spec.settings === undefined || spec.saves !== undefined) && !wants.includes('saves'))
+    wants.push('saves')
   if (spec.scores !== undefined && !wants.includes('leaderboards')) wants.push('leaderboards')
   return wants
 }
 
 /** `spec.root`, else `#game`; a BootDefect when there is neither (DX spec §6). */
-function rootOf<S>(spec: GameSpec<S>): HTMLElement {
+function rootOf<S, D>(spec: GameSpec<S, D>): HTMLElement {
   const root = spec.root ?? (typeof document === 'undefined' ? null : document.getElementById('game'))
   if (root === null)
     throw new BootDefect({ cause: new Error('no root: pass `root` or add an element #game') })
@@ -198,7 +227,7 @@ export function pixiOptions<S>(
   }
 }
 
-export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
+export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S> {
   const problems = problemsOf(spec)
   if (problems.length > 0) throw new BootDefect({ cause: new GameSpecError(problems) })
 
@@ -241,6 +270,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
         input: spec.input,
         ...(layer === undefined ? {} : { watchSim: layer.watch }),
         ...(spec.scores === undefined ? {} : { board: Object.values(spec.scores)[0]?.board }),
+        ...(spec.saves === undefined ? {} : { saves: spec.saves as GameSaves<unknown> }),
         setQuality: (tier) => stage?.setQuality(tier),
         ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
       }),
@@ -251,6 +281,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
+    ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),
     ...(spec.copy === undefined ? {} : { copy: spec.copy }),
     ...(spec.locale === undefined ? {} : { locale: spec.locale }),
     ...(spec.seams === undefined ? {} : { seams: spec.seams }),

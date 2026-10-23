@@ -15,17 +15,20 @@ import {
   type ScreenDef,
   Settings,
   SwipeTracker,
+  saveOf,
   Time,
 } from '@mcthaydt/automata-runtime'
 import { type ExtensionDef, resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { CursorRunner, InputMethodTracker, type LeaderboardCopy, sendBack } from '@mcthaydt/automata-ui'
 import { Effect, SubscriptionRef } from 'effect'
+import type { GameSaves } from '../define-game.ts'
 import type { InputMap } from '../input/keys.ts'
 import { applyAudio, changeAudio, savedAudio } from './audio-settings.ts'
 import { savedHaptics } from './haptics-settings.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
+import { type SavesStart, titleSaves } from './saves-title.ts'
 import {
   backGesture,
   driveMenu,
@@ -56,6 +59,8 @@ export interface ScreensGame {
   readonly board?: string | undefined
   /** Applies the player's graphics quality to the stage (M4.4): the saved one at the title, then each choice. */
   readonly setQuality?: ((tier: QualityTier) => void) | undefined
+  /** The game's save (M5.2): the title lists its slots and play keeps the loaded one saved. None: no slot list. */
+  readonly saves?: GameSaves<unknown> | undefined
   /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
   readonly extensions?: readonly ExtensionDef[] | undefined
 }
@@ -97,12 +102,22 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
     sim = undefined
   }
 
+  /** A sim set up from the game's seed, plugins, content and `setup`, at tick 0. */
+  const freshSim = async (): Promise<Sim> => {
+    const { plugins, seed, content, setup } = game.sim
+    const created = await createSim({ plugins: [...plugins], seed, content })
+    setup?.(created)
+    return created
+  }
+
   const title: ScreenDef = {
     id: 'title',
     enter: ({ layer }) =>
       Effect.gen(function* () {
-        dropSim()
         const flow = yield* Flow
+        // Quit to title: progress play kept is written while the sim that holds it still lives.
+        if (game.saves !== undefined) yield* (yield* saveOf(game.saves.def)).flushPending
+        dropSim()
         // The player's saved quality reaches the stage before play draws anything (M4.4).
         const { store } = yield* Settings
         // And the saved mix reaches the audio, so the first sound is at the player's levels (M5.4).
@@ -116,14 +131,26 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           )
         const target = windowOf(layer)
         const play = (): void => void flow.dispatch('play')
-        yield* show(TitleScreen, layer, { title: game.title, onPlay: play })
+        // A game with a save has no Play: the slot list starts play, with the sim its slot made.
+        const saves =
+          game.saves === undefined
+            ? undefined
+            : yield* titleSaves(game.saves, {
+                fresh: freshSim,
+                play: (started) => {
+                  sim = started
+                  play()
+                },
+              } satisfies SavesStart)
+        yield* show(TitleScreen, layer, { title: game.title, onPlay: play, saves })
         // Enter or Space anywhere on the title plays; on a focused button the button's own click does.
-        yield* listen(target, 'keydown', (event) => {
-          if (!plain(event) || (event.code !== 'Enter' && event.code !== 'Space')) return
-          if (event.target instanceof HTMLButtonElement) return
-          event.preventDefault()
-          play()
-        })
+        if (saves === undefined)
+          yield* listen(target, 'keydown', (event) => {
+            if (!plain(event) || (event.code !== 'Enter' && event.code !== 'Space')) return
+            if (event.target instanceof HTMLButtonElement) return
+            event.preventDefault()
+            play()
+          })
         // Nothing on the title takes Back, so a back step leaves the game.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
@@ -149,9 +176,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
 
         let current = sim
         if (current === undefined) {
-          const { plugins, seed, content, setup } = game.sim
-          current = yield* Effect.promise(() => createSim({ plugins: [...plugins], seed, content }))
-          setup?.(current)
+          current = yield* Effect.promise(freshSim)
           sim = current
         } else {
           current.restore(current.snapshot())
@@ -172,6 +197,10 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const touchMode = inputSettingsSchema.parse(asRecord(store?.get()).input).touchMode ?? map?.touchMode
         const running = current
         game.watchSim?.(running)
+        // The slot play was started from is kept saved: each tick says what the progress is, and the save's own
+        // triggers (leaving play, a round's end, the page going to the background) write it.
+        const save = game.saves === undefined ? undefined : yield* saveOf(game.saves.def)
+        const keep = (): unknown => game.saves?.capture(running)
         // An idle pointer hides while playing (M4 spec §4.7); leaving play detaches it and shows the pointer again.
         const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
         const detachCursor = cursor.attach(target)
@@ -181,6 +210,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           sim: running,
           commands: (tick) => {
             cursor.tick()
+            save?.touch(keep)
             if (map === undefined) return []
             input.poll()
             return map.toCommand(input.held(), tick)
