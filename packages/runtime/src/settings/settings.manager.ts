@@ -63,6 +63,12 @@ export function makeSettings<S>(
   return Effect.gen(function* () {
     const deviceKey = `${def.key}:device`
     const hasDeviceFields = (def.deviceFields?.length ?? 0) > 0
+    for (const field of def.deviceFields ?? []) {
+      if (!(field in (def.defaults as object)))
+        return yield* Effect.dieMessage(
+          `Settings '${def.key}': deviceFields names '${field}', which is not one of its fields`,
+        )
+    }
     const readDevice = (): string | null => {
       if (!hasDeviceFields) return null
       try {

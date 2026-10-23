@@ -11,6 +11,7 @@ import type { EventScores } from '../leaderboards/event-scores.js'
 import type { LocaleDef } from '../locale/locale.manager.js'
 import type { FrameSource } from '../loop/frames.js'
 import type { RendererFactory } from '../render/renderer.js'
+import type { DeviceStorage } from '../settings/device-storage.js'
 import type { SettingsDef } from '../settings/settings.manager.js'
 
 /** The compiled JSON content read by the runtime (spec §3.3). */
@@ -34,6 +35,8 @@ export interface RuntimeSeams {
   readonly createAudioContext?: () => AudioContextLike
   /** The device's haptics, in place of the browser's (pads, `navigator.vibrate`, a coarse pointer). */
   readonly haptics?: Haptics
+  /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage` (M5 spec §4.5). */
+  readonly deviceStorage?: DeviceStorage
 }
 
 /** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */

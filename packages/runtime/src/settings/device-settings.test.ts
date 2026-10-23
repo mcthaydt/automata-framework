@@ -242,6 +242,18 @@ describe('settings fields kept on the device', () => {
     )
   })
 
+  it('refuses a device field the settings do not have, which would silently stay in the saves', async () => {
+    const typo = { ...mixed, deviceFields: ['audio', 'sound'] }
+    await expect(
+      runScoped(
+        Effect.gen(function* () {
+          const hosting = yield* Hosting
+          yield* makeSettings(typo, null, hosting.saves, memoryDevice())
+        }).pipe(Effect.provide(HostingTest())),
+      ),
+    ).rejects.toThrow(/'sound'/)
+  })
+
   it('writes every field to the saves for a definition that declares no device fields, as before', async () => {
     const { deviceFields: _declared, ...plain } = mixed
     await runScoped(

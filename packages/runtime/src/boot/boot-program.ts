@@ -32,6 +32,7 @@ import { AppLoop, makeAppLoop } from '../loop/app-loop.manager.js'
 import { liveFrames } from '../loop/frames.js'
 import { makePresentationBus, PresentationBus } from '../presentation/presentation-bus.manager.js'
 import { type GameRenderer, Renderer, type RenderTarget } from '../render/renderer.js'
+import { liveDeviceStorage } from '../settings/device-storage.js'
 import { makeSettings, Settings } from '../settings/settings.manager.js'
 import { makeTime, Time, watchLifecycle } from '../time/time.manager.js'
 import { BootDefect, type BootError, ContentHashMismatch } from './boot-error.js'
@@ -176,7 +177,11 @@ export function bootProgram<S>(
       }
       rawSettings = yield* hosting.saves.get(game.settings.key)
     }
-    const settingsService = yield* makeSettings(game.settings, rawSettings, hosting.saves)
+    // Fields a game keeps on the device go to the frame's own storage unless a test hands over another (M5 spec §4.5).
+    const deviceStorage =
+      game.seams?.deviceStorage ??
+      (typeof window === 'undefined' ? undefined : liveDeviceStorage(window, game.hosting.gameId))
+    const settingsService = yield* makeSettings(game.settings, rawSettings, hosting.saves, deviceStorage)
 
     // Step 4: content hash verification
     const actualHash = contentHashOf(game.content.data)
