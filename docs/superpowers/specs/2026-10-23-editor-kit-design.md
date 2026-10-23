@@ -81,7 +81,7 @@ Rules:
 - Regions are siblings that stay mounted. A mode change moves them with CSS (grid areas, fixed position, transforms) and never re-renders them elsewhere, so focus, scroll position and open transactions survive a rotation. A closed drawer or sheet is `inert` and `visibility: hidden`, not `display: none`, so its scroll position is kept.
 - The rail snippet is told `orientation` (`vertical` in `wide`, `horizontal` otherwise) so the editor draws the same destinations either way.
 - Keyboard, browser-bar and Stage Manager size changes do not remount regions or lose focus, scroll or selection (the geometry owner debounces; the shell keys regions by id).
-- Detent sheets have three detents (peek 96, half 50%, full 92%), a drag handle at least 44 high, and a scrim only at full.
+- Detent sheets have three detents (peek 96, or 192 for the dock: its 148 px and the handle; half 50%; full 92%, each of the room above the tab bar and status line), a drag handle at least 44 high, and a scrim only at full.
 - Every region that can scroll declares its scroll region; the canvas never scrolls the page (`touch-action: none`, overscroll locked).
 
 ### 4.3 `History<S>`
@@ -107,14 +107,14 @@ interface Transaction<S> { update(fn: (state: S) => S): void; commit(): void; ca
 
 - `apply` that returns the same state object records nothing.
 - A transaction shows live state to subscribers while open; `cancel` restores the state at `begin`; `commit` records one step. Opening a second transaction while one is open throws.
-- `undo` while a transaction is open cancels it first.
+- `undo` while a transaction is open cancels it and does nothing else (one undo gesture is one visible step back); `redo` while one is open does nothing. `canUndo` is true while one is open. A transaction that was cancelled, committed or cancelled by an undo is closed (`open` is `false`) and ignores further calls, because a gesture can end after a two-finger undo cancelled its transaction. `apply` while one is open throws, like a second `begin`: both throw `HistoryError` with code `transaction-open`. A transaction or `apply` that returns the same state object (identity, not equality) records nothing.
 - Depth limit 500 steps; the oldest drops silently and `canUndo` stays truthful.
 - Time comes from an injected clock (default `performance.now`), so coalescing tests use fake timers.
 
 ### 4.4 `Selection<Id>`, commands, keymap
 
 - `Selection<Id>`: `set`, `add`, `toggle`, `clear`, `range(from, to, order)`, `has`, `primary`, `subscribe`. Ids are strings or numbers; order is the caller's.
-- `defineCommand({ id, title, run, enabled?, shortcut? })`, `createCommandRegistry()`, `createKeymap(registry, platform)`. Shortcuts are written `Mod+Z`, `Mod+Shift+Z`, `Delete`, `Space`; `Mod` is Cmd on Apple, Ctrl elsewhere. A shortcut fires only when focus is not in a text field unless the command says `allowInText`.
+- `defineCommand({ id, title, run, enabled?, shortcut?, allowInText? })` (commands close over the editor's own state, so `run` and `enabled` take no context; registering two commands with one shortcut, however written, or one id twice, throws), `createCommandRegistry()`, `createKeymap(registry, platform)`. Shortcuts are written `Mod+Z`, `Mod+Shift+Z`, `Delete`, `Space`; `Mod` is Cmd on Apple, Ctrl elsewhere. A shortcut fires only when focus is not in a text field unless the command says `allowInText`, and not while the command's `enabled()` is false (the key then falls through to the browser). The keymap takes a plain `KeyInput` (`key`, the four modifier flags and `inText`) so it needs no DOM; the app converts its `KeyboardEvent`, and `handle` returns whether a command ran so the app can `preventDefault`. `Selection`'s primary is the most recently selected id, and `range` with an id that is not in `order` changes nothing.
 - Touch equivalents are registered by the shell, not the editor: two-finger tap = undo, three-finger tap = redo, on the canvas only, behind a setting (default on).
 
 ### 4.5 Pointer pipeline (`gestures`)
