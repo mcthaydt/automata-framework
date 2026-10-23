@@ -1,3 +1,6 @@
+export * from './checks/check'
+export * from './checks/generic-checks'
+export * from './checks/last-light/last-light-checks'
 export * from './codec/layout'
 export * from './codec/locate'
 export { type PatchRefusalReason, type PatchResult, type PatchRules, patchJson } from './codec/patch'
