@@ -8,6 +8,7 @@ import {
 import { z } from 'zod'
 import { ruleGroupSchema } from '../tiles/autotile/rule.schema'
 import { DEF_ID, ITEM_ID } from './ids'
+import { FILE_VERSION } from './migrations/migration'
 import type { ProjectFile } from './project-types'
 
 // The strict file schema of the 2D editor spec §6.1 over the shapes of §5. Strict means an unknown key at any depth is
@@ -187,7 +188,7 @@ const levelSchema = z.strictObject({
 
 export const projectFileSchema: z.ZodType<ProjectFile> = z.strictObject({
   format: z.literal('af2d'),
-  version: z.literal(1),
+  version: z.literal(FILE_VERSION),
   name: z.string(),
   template: z.string(),
   defs: definitionsSchema,

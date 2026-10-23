@@ -104,7 +104,7 @@ describe('encodeRows and decodeRows', () => {
       ['1h', 'int'],
     ]
     for (const [token, kind] of cases) {
-      const result = decodeRows(['. ' + token], kind as 'tile' | 'int', 2, 1)
+      const result = decodeRows([`. ${token}`], kind as 'tile' | 'int', 2, 1)
       expect(result.ok, token).toBe(false)
       if (!result.ok) expect(result.problems[0], token).toMatchObject({ row: 0, token: 1 })
     }
