@@ -7,6 +7,7 @@ import { insideOutline } from '../../geometry/loops'
 import {
   type EditCorner,
   type EditSector,
+  type EditWall,
   inheritedMaterials,
   portalReferences,
   type SectorAccess,
@@ -31,6 +32,10 @@ function afEntry(sector: EditSector): AfSectorEntry {
   }
 }
 
+/** Where a wall leads; a name (Last Light's spelling of a cutaway group) leads nowhere. */
+const nextOf = (wall: string | EditWall | undefined): string | undefined =>
+  typeof wall === 'object' ? wall.next : undefined
+
 export const afSectorAccess: SectorAccess<AfSector> = {
   list: (level) => level.sectors,
   withSectors(level, sectors) {
@@ -48,10 +53,9 @@ export const afSectorAccess: SectorAccess<AfSector> = {
     ...inheritedMaterials(draft.like),
     corners: draft.corners.map(([x, z]): EditCorner => [x, z]),
   }),
+  portalOf: (_level, wall) => nextOf(wall),
   references(level, id) {
-    const found = portalReferences(level.sectors, id, 'sector', (wall) =>
-      typeof wall === 'object' ? wall.next : undefined,
-    )
+    const found = portalReferences(level.sectors, id, 'sector', nextOf)
     const sector = level.sectors.find((each) => each.id === id)
     if (sector === undefined) return found
     for (const entity of level.entities ?? [])

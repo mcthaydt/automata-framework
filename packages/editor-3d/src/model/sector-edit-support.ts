@@ -5,7 +5,7 @@ import { sectorSelection } from '../checks/check'
 import { overlapProblems } from '../checks/overlap'
 import { roundJsonNumber } from '../codec/print'
 import { GeometryError, type LevelProfile } from '../profile/level-profile'
-import { type EditSector, SectorAccessError } from '../profile/sector-access'
+import { type EditCorner, type EditSector, SectorAccessError } from '../profile/sector-access'
 import { type EditResult, ok, refuse } from './edit'
 import { parseSelection } from './selection-ref'
 
@@ -70,21 +70,32 @@ export function holdSectors<D>(
   }
 }
 
+/** The level with each sector that `changes` names replaced; the level itself when none of them is a different object. */
+export function replaceSectors<D>(
+  profile: LevelProfile<D>,
+  level: D,
+  changes: ReadonlyMap<string, EditSector>,
+): EditResult<D> {
+  const sectors = profile.sectors.list(level)
+  if (sectors.every((sector) => (changes.get(sector.id) ?? sector) === sector)) return ok(level)
+  return holdSectors(
+    profile,
+    level,
+    sectors.map((sector) => changes.get(sector.id) ?? sector),
+  )
+}
+
 /** The level with `next` in the place of the sector `id`; the level itself when `next` is that sector. */
-export function replaceSector<D>(
+export const replaceSector = <D>(
   profile: LevelProfile<D>,
   level: D,
   id: string,
   next: EditSector,
-): EditResult<D> {
-  const sectors = profile.sectors.list(level)
-  if (sectors.find((sector) => sector.id === id) === next) return ok(level)
-  return holdSectors(
-    profile,
-    level,
-    sectors.map((sector) => (sector.id === id ? next : sector)),
-  )
-}
+): EditResult<D> => replaceSectors(profile, level, new Map([[id, next]]))
+
+/** A corner at a point with a wall; `[x, z]`, never `[x, z, undefined]`, when it has none. */
+export const placed = (x: number, z: number, wall: EditCorner[2]): EditCorner =>
+  wall === undefined ? [x, z] : [x, z, wall]
 
 /**
  * A refusal when the engine cannot build `level` (its own sentence: `unknown style plain`), or, when `fresh` names a

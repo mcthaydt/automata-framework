@@ -365,3 +365,19 @@ describe('the Last Light access: references', () => {
     expect(refs(level, 'nowhere')).toEqual([])
   })
 })
+
+describe('the Last Light access: portalOf', () => {
+  it("says where a wall leads: its `next`, its preset's `next`, and nowhere for a name or a plain wall", () => {
+    const { level } = dawn
+    expect(lastLightSectorAccess.portalOf(level, must(room('hall').corners[0])[2])).toBe('mouth')
+    expect(lastLightSectorAccess.portalOf(level, must(room('hall').corners[4])[2])).toBeUndefined()
+    expect(lastLightSectorAccess.portalOf(level, must(room('hall').corners[1])[2])).toBeUndefined()
+    expect(lastLightSectorAccess.portalOf(level, { preset: 'COUNTER' })).toBe('counter')
+    expect(lastLightSectorAccess.portalOf(level, { preset: 'COUNTER', next: 'ward' })).toBe('ward')
+    expect(lastLightSectorAccess.portalOf(level, undefined)).toBeUndefined()
+  })
+
+  it('leads nowhere through a preset that is not there (the checks say so)', () => {
+    expect(lastLightSectorAccess.portalOf(dawn.level, { preset: 'NOPE' })).toBeUndefined()
+  })
+})

@@ -13,6 +13,7 @@ import {
   lightProblem,
   newIdProblem,
   noSector,
+  placed,
   placeOf,
   replaceSector,
   round4,
@@ -106,11 +107,8 @@ function copiedWall(wall: string | EditWall | undefined): string | EditWall | un
 }
 
 /** A corner moved by the offset, with its wall copied; a corner with no wall left is `[x, z]`. */
-function copiedCorner([x, z, wall]: EditCorner, dx: number, dz: number): EditCorner {
-  const kept = copiedWall(wall)
-  const [nx, nz] = [round4(x + dx), round4(z + dz)]
-  return kept === undefined ? [nx, nz] : [nx, nz, kept]
-}
+const copiedCorner = ([x, z, wall]: EditCorner, dx: number, dz: number): EditCorner =>
+  placed(round4(x + dx), round4(z + dz), copiedWall(wall))
 
 function freeIdAfter(id: string, taken: readonly string[]): string {
   for (let n = 2; ; n++) if (!taken.includes(`${id}${n}`)) return `${id}${n}`

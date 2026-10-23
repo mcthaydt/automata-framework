@@ -60,6 +60,8 @@ export interface SectorAccess<D> {
   create(doc: D, draft: SectorDraft): EditSector
   /** What still names the sector or stands in it, as sentences; empty when it can go. */
   references(doc: D, id: string): readonly string[]
+  /** The sector a wall leads into, through its preset where the format has presets; nothing for a wall that is not a portal. */
+  portalOf(doc: D, wall: string | EditWall | undefined): string | undefined
 }
 
 /** The material members of a sector a new one drawn like it shares: its style and its three textures. */

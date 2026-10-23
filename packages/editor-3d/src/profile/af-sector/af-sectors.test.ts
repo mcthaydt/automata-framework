@@ -303,3 +303,13 @@ describe('the af-sector access: references', () => {
     expect(afSectorAccess.references(level, 'ring')).toEqual(['entity inside stands in it'])
   })
 })
+
+describe('the af-sector access: portalOf', () => {
+  it('says where a wall leads: the sector in its `next`, and nowhere for any other wall', () => {
+    expect(afSectorAccess.portalOf(depot, must(hall.corners[1])[2])).toBe('dock')
+    expect(afSectorAccess.portalOf(depot, must(hall.corners[0])[2])).toBeUndefined()
+    expect(afSectorAccess.portalOf(depot, must(hall.corners[2])[2])).toBeUndefined()
+    expect(afSectorAccess.portalOf(depot, {})).toBeUndefined()
+    expect(afSectorAccess.portalOf(depot, 'a-name')).toBeUndefined()
+  })
+})

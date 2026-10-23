@@ -11,6 +11,7 @@ import { blockoutCodec } from '../profile/last-light-codecs'
 import { lastLightProfile } from '../profile/last-light-profile'
 import type { LevelProfile } from '../profile/level-profile'
 import { type EditSector, SectorAccessError } from '../profile/sector-access'
+import { levelOf, reasonOf, rect } from '../testing/edit-helpers'
 import { loadAuthored, loadFixture } from '../testing/fixtures'
 import { changedRegion, literalEdits } from '../testing/text-diff'
 import { toyAfSector } from '../testing/toy-af-sector'
@@ -34,14 +35,6 @@ const dawn = (() => {
 function run<D>(profile: LevelProfile<D>, level: D, edit: Edit<D>): EditResult<D> {
   return edit.run(profile, level)
 }
-function levelOf<D>(result: EditResult<D>): D {
-  if (!result.ok) throw new Error(`the edit was refused: ${result.reason}`)
-  return result.level
-}
-function reasonOf<D>(result: EditResult<D>): string {
-  if (result.ok) throw new Error('the edit was not refused')
-  return result.reason
-}
 const afRun = (edit: Edit<AfSector>) => run(afSectorProfile, depot, edit)
 const llRun = (edit: Edit<Blockout>) => run(lastLightProfile, dawn, edit)
 const sectorsOf = (level: AfSector): readonly EditSector[] => afSectorProfile.sectors.list(level)
@@ -49,14 +42,6 @@ const sector = (level: AfSector, id: string): EditSector =>
   must(sectorsOf(level).find((each) => each.id === id))
 const room = (level: Blockout, id: string): EditSector =>
   must(lastLightProfile.sectors.list(level).find((each) => each.id === id))
-
-const rect = (x0: number, z0: number, x1: number, z1: number) =>
-  [
-    [x0, z0],
-    [x1, z0],
-    [x1, z1],
-    [x0, z1],
-  ] as const
 
 describe('sector.add on an af-sector level', () => {
   it('appends a sector with the heights of the last one, and selects it', () => {

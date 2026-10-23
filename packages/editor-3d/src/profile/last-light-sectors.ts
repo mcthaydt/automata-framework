@@ -72,6 +72,7 @@ export const lastLightSectorAccess: SectorAccess<Blockout> = {
     }
     return room
   },
+  portalOf: (level, wall) => nextThrough(level.walls)(wall),
   references(level, id) {
     const room = level.rooms.find((each) => each.id === id)
     if (room === undefined) return []
