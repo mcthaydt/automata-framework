@@ -3,7 +3,7 @@
 - **Task:** ED3D.1 in [02](../../02-master-delivery-plan.md) (row lands with the ED3D follow-up). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §2 (Format, Codec), §4.1, §4.5, decisions ED3D-D2, D3, D4. Acceptance: the patch halves of ED3-b and ED3-o (§13); the rest of those cases need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.0 (the spec, review pending). It needs no editor-kit code, no Svelte and no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed, not implemented. Nothing below starts until ED3D.0 is reviewed.
-- **Progress:** 0 of 11 steps.
+- **Progress:** 1 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -117,12 +117,13 @@ export interface FileCodec<D> {
 
 Each step starts with its test, run red, with the failure reason recorded; the red test is committed with its fix. Strict TDD applies to everything under `packages/`.
 
-- [ ] **1. Scaffold and fixtures** (`fixtures.test.ts`; `package.json`, `tsconfig.json`, `vitest.config.ts`, `src/index.ts`, `src/testing/fixtures.ts`, the five files, `SOURCE.json`, `biome.json`).
+- [x] **1. Scaffold and fixtures** (`fixtures.test.ts`; `package.json`, `tsconfig.json`, `vitest.config.ts`, `src/index.ts`, `src/testing/fixtures.ts`, the five files, `SOURCE.json`, `biome.json`).
   - *Red:*
     - each fixture's byte length and sha256 equal the ones in `SOURCE.json` (repository, commit `92e6704`, source path, sha256);
     - `biome.json` lists `!packages/editor-3d/src/testing/fixtures` under `files.includes`, so `pnpm format` cannot reformat a fixture.
   - *Expected failure:* `Cannot find module './fixtures'`.
   - *Verify:* `pnpm install` (the lockfile gains the package), `pnpm --filter @mcthaydt/automata-editor-3d test`, `pnpm format` changes nothing under the fixtures.
+  - *Done: red `Failed to resolve import './fixtures'`, then 8 of 8 green; `pnpm format` left the fixtures alone; typecheck needed `@types/node` 24.19.1 (the docs/versions.md pin) for `node:fs`.*
 - [ ] **2. Sector and blockout schemas** (`blockout.schema.test.ts`; `sector.schema.ts`, `blockout.schema.ts`).
   - *Red, by case:* the four blockouts parse; **pure validator** (parse output deep-equals the input); an unknown member of a room survives a parse; one bad value per family is refused with its path (`rooms.1.corners.0` a corner with one number, `lamps.0.color` two numbers, `zones.0.area.x` a non-pair, `nav.edges.2` a non-string, `openings.0.span` three numbers); an `on` that matches neither `box:` nor `wall:` is refused; a wall name that is neither string nor object is refused.
   - *Expected failure:* module missing.
