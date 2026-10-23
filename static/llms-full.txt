@@ -602,8 +602,8 @@ URL: /ai
 ## Project context
 - AGENTS.md: Project rules, architecture, and required checks. Read applicable instructions in the directories you will edit.
 - package.json: Available scripts, tool versions, dependencies, and package exports. Read both the workspace and target package manifests.
-- examples/base-2d/src/base-sim.ts: Simulation creation, room content, command envelopes, and starting entities.
-- examples/base-2d/src/sim/: Working component, command, event, resource, system, and plugin definitions.
+- games/emberwick/src/base-sim.ts: Simulation creation, room content, command envelopes, and starting entities.
+- games/emberwick/src/sim/: Working component, command, event, resource, system, and plugin definitions.
 - The closest focused example: Use runtime/boot-and-flow, render-pixi/renderer-2d, host/lifecycle-and-saves, content/hot-reload, or ui/primitives for the integration being changed.
 - The nearest tests and public types: Actual accepted inputs, failure behavior, cleanup requirements, and exported names. Prefer these over a guessed API.
 

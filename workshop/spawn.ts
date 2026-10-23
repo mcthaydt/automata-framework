@@ -1,4 +1,4 @@
-import { parseRoom, type RoomSource } from '../../automata-framework/examples/base-2d/src/content/room'
+import { parseRoom, type RoomSource } from '../../automata-framework/games/emberwick/src/content/room'
 
 /** Move the start marker on its existing row; the room parser remains the validation owner. */
 export function withStart(source: RoomSource, column: number): RoomSource {
