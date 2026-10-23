@@ -3,10 +3,10 @@
 // shell on top of the same modules.
 export { type Command, type CommandRegistry, createCommandRegistry, defineCommand } from '../commands/command'
 export { normalizeShortcut, parseShortcut, type Shortcut } from '../commands/shortcut'
+export type { Point } from '../fields/field-types'
 export type { PointerKind } from '../gestures/pointer-sample'
 export {
   createViewport,
-  type Point,
   type Rect,
   type Size,
   type Viewport2D,
