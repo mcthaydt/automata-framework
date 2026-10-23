@@ -6,6 +6,10 @@ import { ProcessError } from './errors.ts'
 // recorded fake (ADR 0003, no @effect/platform-node). A non-zero exit code is part of the result: callers
 // such as `ship publish` map a program's own exit codes (Ruken's CLI uses 1 to 4) to their own errors.
 
+/**
+ * How a program is started: its working folder, extra environment, stdin, and whether its output is also
+ * echoed.
+ */
 export interface RunOptions {
   readonly cwd?: string | undefined
   /** Added to the parent's environment. */
@@ -16,12 +20,20 @@ export interface RunOptions {
   readonly echo?: boolean | undefined
 }
 
+/**
+ * What a finished program left: its exit code (128 when a signal killed it) and everything it wrote to stdout
+ * and stderr, decoded as UTF-8. A non-zero exit code is a result, not a failure.
+ */
 export interface RunResult {
   readonly exitCode: number
   readonly stdout: string
   readonly stderr: string
 }
 
+/**
+ * Runs a program with arguments and no shell. The effect fails with a `ProcessError` only when the program
+ * cannot be started; interrupting it stops the program.
+ */
 export interface ProcessRunnerService {
   run(command: string, args: readonly string[], options?: RunOptions): Effect.Effect<RunResult, ProcessError>
 }
@@ -77,6 +89,10 @@ function runProcess(
   })
 }
 
+/**
+ * `ProcessRunner` on `node:child_process`: the real programs, with the parent's environment plus
+ * `RunOptions.env`.
+ */
 export const ProcessRunnerLive: Layer.Layer<ProcessRunner> = Layer.succeed(ProcessRunner, {
   run: (command, args, options = {}) => runProcess(command, args, options),
 })

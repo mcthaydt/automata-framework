@@ -15,11 +15,14 @@ const committed = readdirSync(reportsDir)
   .map((file) => ({ file, report: parseReport(readFileSync(join(reportsDir, file), 'utf8')) }))
 
 describe('the committed API reports', () => {
+  // runApiReport reads every core package through one TypeScript program, a whole-program typecheck: 93 s on a loaded
+  // af-mac runner (PR #142, 2026-10-23) against 1.7 s idle. The 90 s floor (#54) was too tight once two heavy jobs
+  // shared one Mac, so this test gets 240 s; what it asserts is unchanged.
   it('match the current source of every core package (run `pnpm api-report --update` after an API change)', () => {
     const result = runApiReport({ root: ROOT, reportsDir, update: false, changesets: {} })
     expect(result.report.filter((line) => line.includes('.api.md'))).toEqual([])
     expect(result.exitCode).toBe(0)
-  }, 90_000) // main's budget floor (#54): runApiReport builds every package, slow on the shared af-linux runner
+  }, 240_000)
 
   it.each(committed.map(({ file, report }) => [file, report] as const))(
     '%s: a planted removal of one export is an undeclared break',
