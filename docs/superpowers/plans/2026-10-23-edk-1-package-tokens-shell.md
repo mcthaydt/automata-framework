@@ -3,7 +3,7 @@
 - **Task:** EDK.1 in [02](../../02-master-delivery-plan.md). [Editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.1 (tokens), §4.2 (`EditorShell`), §7 (sizes), §8 (tests); decisions EDK-D1 to EDK-D3, EDK-D6; acceptance EK-g.
 - **Lane:** editor-kit. **Depends on:** EDK.0 (drafted, in PR #93; this PR stacks on it for `docs/design/editor-kit/tokens.json`).
 - **Status:** In progress 2026-10-23.
-- **Progress:** 3 of 7 steps (1 scaffold, 2 `tokensToCss`, 3 `tokens.css`, fonts and quality tests). Deviations are listed under Execution record.
+- **Progress:** 4 of 7 steps (1 scaffold, 2 `tokensToCss`, 3 `tokens.css`, fonts and quality tests, 4 shell rules). Deviations are listed under Execution record.
 
 ## Sources
 
@@ -114,3 +114,4 @@ Layout contract passes at the sizes in step 6 in Chromium. Pending and listed fo
 - **Deviation: CSS is written in Biome's format.** `pnpm format` rewrote the first generated `tokens.css` (double quotes, spaces around the slash of `font`) and the drift test failed. The generator now emits that format, so the file is already formatted and the drift test and `pnpm format` agree. `fonts.css` uses double quotes for the same reason.
 - **Deviation: `@types/node` added as a dev dependency** (24.19.1, like the other packages) and `allowImportingTsExtensions`, because `scripts/generate-tokens.ts` and the token tests read files; the script runs under Node's type stripping like `ui`'s `build/finish-dist.ts`.
 - **`svelte-check` prints "no svelte input files" until step 5 adds `EditorShell.svelte`;** with `--fail-on-warnings` the package typecheck is red until then, and is run again in step 5.
+- **Step 4 (done 2026-10-23).** `shell-mode.test.ts` and `shell-open.test.ts` failed first on the missing modules. The size table in the test classifies each window with the geometry owner's own `classifyFormFactor` and `classifyHeightTier` (imported from `@mcthaydt/automata-ui`), so the shell rules and the owner cannot disagree about what 900 × 600 or 1133 × 744 is. One test was wrong, not the code: "none newly opened" started from a closed `previous`, which makes all three newly opened; it now starts from all three open.
