@@ -1,4 +1,4 @@
-import type { FieldDef, FieldValueProblem } from './field-types'
+import { type FieldDef, type FieldValueProblem, HEX_COLOR } from './field-types'
 
 const problem = (
   code: FieldValueProblem['code'],
@@ -22,6 +22,23 @@ function checkNumber(def: FieldDef, value: unknown): FieldValueProblem | undefin
   return undefined
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+function checkRef(def: FieldDef, value: unknown): FieldValueProblem | undefined {
+  const fits =
+    isRecord(value) &&
+    typeof value.target === 'string' &&
+    value.target !== '' &&
+    (value.container === undefined || typeof value.container === 'string')
+  return fits ? undefined : problem('badRef', `${def.id} must be a reference with a target`)
+}
+
+function checkPoint(def: FieldDef, value: unknown): FieldValueProblem | undefined {
+  const fits = isRecord(value) && isFiniteNumber(value.x) && isFiniteNumber(value.y)
+  return fits ? undefined : problem('badPoint', `${def.id} must be a point with a finite x and y`)
+}
+
 function checkScalar(def: FieldDef, value: unknown): FieldValueProblem | undefined {
   switch (def.type) {
     case 'int':
@@ -32,9 +49,28 @@ function checkScalar(def: FieldDef, value: unknown): FieldValueProblem | undefin
       return typeof value === 'boolean' ? undefined : problem('wrongType', `${def.id} must be true or false`)
     case 'text':
       return typeof value === 'string' ? undefined : problem('wrongType', `${def.id} must be text`)
-    default:
-      return undefined
+    case 'enum':
+      if (typeof value !== 'string') return problem('wrongType', `${def.id} must be one of its options`)
+      return def.options?.includes(value)
+        ? undefined
+        : problem('notAnOption', `${def.id} has no option "${value}"`)
+    case 'color':
+      if (typeof value !== 'string') return problem('wrongType', `${def.id} must be a #rrggbb color`)
+      return HEX_COLOR.test(value) ? undefined : problem('badColor', `${def.id} must be a #rrggbb color`)
+    case 'point':
+      return checkPoint(def, value)
+    case 'ref':
+      return checkRef(def, value)
   }
+}
+
+function checkList(def: FieldDef, value: unknown): FieldValueProblem | undefined {
+  if (!Array.isArray(value)) return problem('wrongType', `${def.id} must be a list`)
+  for (let index = 0; index < value.length; index++) {
+    const cause = checkScalar(def, value[index])
+    if (cause) return problem('badListItem', `${def.id} item ${index}: ${cause.message}`, { index, cause })
+  }
+  return undefined
 }
 
 /**
@@ -42,5 +78,5 @@ function checkScalar(def: FieldDef, value: unknown): FieldValueProblem | undefin
  * and the field's own rules; whether a reference resolves is the editor's check. Spec §4.8.
  */
 export function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined {
-  return checkScalar(def, value)
+  return def.list ? checkList(def, value) : checkScalar(def, value)
 }

@@ -19,11 +19,11 @@ export const FIELD_TYPES: readonly FieldType[] = [
 ]
 
 /** A field id as an inspector shows it and a file stores it. */
-export const FIELD_ID = /^[A-Za-z][A-Za-z0-9_]*$/
+export const FIELD_ID: RegExp = /^[A-Za-z][A-Za-z0-9_]*$/
 /** An entity definition id. */
-export const ENTITY_ID = /^[a-z][a-z0-9-]*$/
+export const ENTITY_ID: RegExp = /^[a-z][a-z0-9-]*$/
 /** A field's color value: `#rrggbb`, either case. */
-export const HEX_COLOR = /^#[0-9a-fA-F]{6}$/
+export const HEX_COLOR: RegExp = /^#[0-9a-fA-F]{6}$/
 
 export interface Point {
   readonly x: number
