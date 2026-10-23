@@ -46,6 +46,10 @@ export interface FlowCapabilities {
   readonly styles?: readonly string[]
 }
 
+/**
+ * One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the
+ * `transition` style (`cut` when unwritten).
+ */
 export interface FlowTransition {
   readonly from: string
   readonly event: string
@@ -53,6 +57,10 @@ export interface FlowTransition {
   readonly transition: string
 }
 
+/**
+ * The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every
+ * transition, in a fixed order.
+ */
 export interface FlowGraph {
   readonly entry: string
   /** Sorted. */

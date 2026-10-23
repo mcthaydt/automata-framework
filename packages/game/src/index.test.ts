@@ -5,20 +5,22 @@ import {
   defaultScreens,
   defineGame,
   keys,
+  postFilter,
   rect,
   sprite,
   startGame,
 } from './index.ts'
 
 // What a game imports from `@mcthaydt/automata-game` (DX spec §3.1, §3.3): one call to start a game, its pure half,
-// the input map, the entity views and the camera (re-exported from render-pixi, DX.2b and M4.8), and the defaults it
-// fills in.
+// the input map, the entity views, the camera and the screen-space filter verb (re-exported from render-pixi, DX.2b,
+// M4.8 and EX.4), and the defaults it fills in.
 describe('@mcthaydt/automata-game', () => {
   it.each(
     Object.entries({
       defineGame,
       startGame,
       keys,
+      postFilter,
       rect,
       sprite,
       createCamera2d,
