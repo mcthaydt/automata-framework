@@ -219,6 +219,32 @@ Each milestone starts with a spec task (`Mn.0`) and is decomposed into tasks whe
 | [x] | M7.0 — Online and store spec | M2, M5, PRODUCT.1 (`NetworkPort`); Ruken `[store]` for `store`. `net`/`server` (Plus) with a server deploy target and a bot-seat hook, `store`, `host-tauri`. Owner, 2026-10-16: the draft is approved on its recommended defaults (the agent lists its decisions for veto); real money stays mocked. **Merged** (#58, `eda13a3`): [M7 spec](superpowers/specs/2026-10-17-m7-online-store-design.md), tasks M7.1–M7.11, decisions M7-D1 to M7-D18 (sent for veto), Ruken requests R-12 to R-15. |
 | [x] | M8.0 — CLI 1.0 and adoption spec | All before. Decide D-2 (proposed in the PRODUCT spec: FloorFifty acceptance through PRODUCT.8). Full CLI, 1.0 (AF finished for 2D and 2.5D), FloorFifty and The Last Light adoption slices. Owner, 2026-10-16: the draft is approved on its recommended defaults (the agent lists its decisions for veto); real money stays mocked. Drafted 2026-10-17 on branch `claude/clever-pasteur-ujmu6e-m8spec`: [M8 spec](superpowers/specs/2026-10-17-m8-cli-adoption-design.md), tasks M8.1–M8.13, decisions M8-D1 to M8-D14 (sent for veto; M8-D1 decides D-2: a slice each, FloorFifty host + loading + layout on core, The Last Light puzzle + sectors on Plus, and FloorFifty's whole loop stays PRODUCT.8's), Ruken requests R-16 and R-17. Ticked with this PR's merge. |
 
+## ED Editors (Owner amendment, 2026-10-23)
+
+**Direction (Owner via the Orchestrator, 2026-10-23, corrected 01:20 UTC):** the editors are new work that runs in parallel threads alongside the existing plan. Nothing above is paused or reordered. The 3D part of the framework (GAME-3D and M9 below) comes after the editors are done. Two tablet-first web apps share one kit: a **3D level editor** ("LDtk meets the 90s Build Editor", extracted from The Last Light's `editor/` suite at `mcthaydt/PixiJS3D_Experiment_001`) and one **2D level editor** close to LDtk that can at minimum build a complete FloorFifty stage. Design first: the mockups live in the Figma file [Automata Editors](https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d) (page `Kit`, `2D ...`, `3D ...`) and are published as artifacts before UI code starts. Each spec is reviewed in its own PR before its plans. Device test runs (Mac, PC, Linux VM) are never run by the lane: it files a `test-request` on the Orchestrator bus.
+
+| Done | Task | Prerequisite and deliverable |
+|---|---|---|
+| [ ] | ED.0 — Editor mockups | Lanes **editor-kit**, **editor-2d**, **editor-3d**. Figma pages `Kit`, `2D ...`, `3D ...` built from the shared `Editor Kit` variables (tokens from The Last Light editor: dark surfaces, amber accent, IBM Plex), tablet frames at 1194×834 and 834×1194, and an artifact per editor. |
+| [ ] | EDK.0 — Editor kit spec | Lane **editor-kit**; ED.0. [Editor kit spec](superpowers/specs/2026-10-23-editor-kit-design.md): the shared contracts both editors consume (shell, history, gestures, field widgets, storage adapters, tablet test harness). |
+| [ ] | EDK.1 — Package, tokens and responsive shell | EDK.0. New `packages/editor-kit` (Svelte 5, private until a second consumer ships): `tokens.css`, `EditorShell` with slots and detent sheets, layout tests at every tablet size. |
+| [ ] | EDK.2 — History, selection, commands and keymap | EDK.1. Transactions (one drag is one undo step), selection store, command registry and keymap. Pure TypeScript, no DOM. |
+| [ ] | EDK.3 — Gesture layer | EDK.1. One pointer pipeline for finger, Apple Pencil and mouse: tap, double tap, long press, drag, pan, pinch, rotate, hover, palm rejection. |
+| [ ] | EDK.4 — Field widgets and overlays | EDK.1. Scrubbing stepper, slider, segmented control, chips, swatch, picker, reorderable list, tabs, dialog, toast, menu. 44 px targets. |
+| [ ] | EDK.5 — Storage adapters, autosave and recovery | EDK.2. In-memory, OPFS, File System Access and download/share adapters behind one `ProjectStore`; autosave journal and crash recovery. |
+| [ ] | EDK.6 — Tablet test harness | EDK.1. Playwright WebKit iPad profiles with touch and pen helpers; focused layout checks. Heavy suites go to the GPU runner. |
+| [ ] | ED2D.0 — 2D editor spec | ED.0. [2D editor spec](superpowers/specs/2026-10-23-editor-2d-design.md): document model, the FloorFifty stage profile, views, flows, failure and recovery, acceptance cases, task order. |
+| [ ] | ED2D.1 — Document model and FloorFifty stage profile | ED2D.0, EDK.2. New `packages/editor-2d`: the vendored stage schema, a comment-preserving TOML codec that round-trips the four shipped stages byte for byte, the checks (schema, course, aliases, set pieces), the composition math ported from `StageLayers`, and the seeded course generator. Headless, strict TDD. |
+| [ ] | ED2D.2 — App shell, stage browser and Compose view | ED2D.1, EDK.1 to EDK.4. Layers panel, inspector, composition canvas, climb scrubber. |
+| [ ] | ED2D.3 — Course view and phrases | ED2D.2. Seed, generated floors, phrase and extension ranges, citySink arc. |
+| [ ] | ED2D.4 — Set pieces timeline | ED2D.2. Five piece kinds with live previews. |
+| [ ] | ED2D.5 — Export, checks panel and recovery | ED2D.2, EDK.5. TOML diff, download/share/copy/write to folder, autosave recovery. |
+| [ ] | ED2D.6 — LDtk-style levels | ED2D.2; level format amendment to the 2D spec first. World map, tile, int-grid and entity layers, tilesets, entity definitions, `levels/*.toml` export. |
+| [ ] | ED2D.7 — Pencil and touch polish, accessibility, journeys | ED2D.2 to ED2D.6, EDK.3, EDK.6. |
+| [ ] | ED2D.8 — `automata editor` command and docs | ED2D.5. Serve the editor against a game checkout; docs and an agent skill. |
+| [ ] | ED2D.9 — Acceptance: rebuild the four shipped stages | ED2D.2 to ED2D.5. Dawn, Rooftops, Snow Shrine and Sunken Dome rebuilt from empty stages in the editor and compared with the shipped files. Owner acceptance on an iPad is never ticked by an agent. |
+| [ ] | ED3D.0 to ED3D.n — 3D editor | Lane **editor-3d**; rows added by that lane's spec PR (`docs/superpowers/specs/2026-10-23-editor-3d-design.md`): extraction of The Last Light's editor suite and the "LDtk meets Build Editor" 3D level editor. |
+
 ## After AF 1.0: the 3D game, then the 3D merge
 
 Owner roadmap (2026-10-11): 2D and 2.5D first, then 3D. The 3D pieces come from a working 3D game, the same way the 2D and 2.5D pieces come from FloorFifty and The Last Light.
