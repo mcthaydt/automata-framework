@@ -1,4 +1,5 @@
 // Tuner: The Last Light's tunables as sliders (editor/src/client/tuner.ts, tune-model.ts), with fairness measured before and after.
+// The tunables live in the scene's `tuning.toml` (AF content spec §3.4, authored ranges: `NAME = { value, min, max }`).
 
 export const tunerScreens = []
 
@@ -9,28 +10,28 @@ tunerScreens.push({
   name: 'Tuner · Warmth · iPad landscape',
   w: 1194,
   h: 834,
-  note: 'Tunable groups on the left, one slider per tunable in the middle with the file value marked, the selected tunable on the right, and the fairness check along the bottom. Each slider stays inside its own min and max; a locked or linked tunable is read-only and says why.',
+  note: 'Tunable groups on the left (the scene’s tuning.toml, then the game’s tools.toml under its own heading), one slider per tunable in the middle with the file value marked, the selected tunable on the right, and the fairness check along the bottom. Each slider stays inside the min and max the file declares; a locked or linked tunable is read-only and says why.',
   build: (_S, P, Q, _A) => {
     const { F, R, C, T, I, alpha, spacer, region, line, eyebrow, pill, btn, ib, tabs, panelHead, callout } = P
     const { D, top, rail, listRow, search, sliderRow, stepperV, kvRow, mono, select } = Q
     const rows = D.tunables.rows
     const by = (n) => rows.find((r) => r.n === n)
     const list = [
-      by('lighterReach'),
-      by('torchReach'),
-      by('drumReach'),
-      by('burnerReach'),
+      { ...by('LIGHTER_REACH'), v: 5 },
+      by('TORCH_REACH'),
+      by('DRUM_REACH'),
+      by('BURNER_REACH'),
       {
-        n: 'warmSpot',
+        n: 'WARM_SPOT',
         v: 1.4,
         min: 0.5,
         max: 3,
         u: 'm',
         note: 'P1: within this of a warmth he is warming at it',
       },
-      by('emberWarm'),
+      by('EMBER_WARM'),
       {
-        n: 'retarget',
+        n: 'RETARGET',
         v: 0.25,
         min: 0.05,
         max: 1,
@@ -39,9 +40,9 @@ tunerScreens.push({
       },
     ]
     const flags = {
-      lighterReach: { sel: true, changed: true, was: 8 },
-      emberWarm: { locked: true },
-      retarget: { ro: 'linked' },
+      LIGHTER_REACH: { sel: true, changed: true, was: 6 },
+      EMBER_WARM: { locked: true },
+      RETARGET: { ro: 'linked' },
     }
     const panel = region(
       'groups panel',
@@ -68,11 +69,18 @@ tunerScreens.push({
             ),
           }),
         ),
+        listRow({
+          title: 'Tools · tools.toml',
+          icon: 'lamp',
+          h: 48,
+          color: Q.ED.tuner.color,
+          right: T('3', { style: 'Mono/11', color: 'text/faint' }),
+        }),
         R({ w: 'fill', h: 8 }),
         R(
           { w: 'fill', pad: [4, 8] },
           T(
-            'Each slider stays inside its tunable’s min and max. Linked and inherited values are tuned where they live.',
+            'Each slider stays inside the min and max its file declares. Linked and inherited values are tuned where they live.',
             { style: 'Label/12', color: 'text/faint', w: 'fill', lh: 16 },
           ),
         ),
@@ -97,7 +105,7 @@ tunerScreens.push({
       F({ name: 'scrollbar', abs: true, x: 548, y: 44, w: 3, h: 300, r: 2, fill: 'border/strong' }),
     )
 
-    const t = by('lighterReach')
+    const t = by('LIGHTER_REACH')
     const inspector = region(
       'inspector',
       874,
@@ -118,8 +126,8 @@ tunerScreens.push({
         T(t.note, { style: 'Label/12', color: 'text/dim', w: 'fill', lh: 16 }),
         R(
           { w: 'fill', gap: 8 },
-          stepperV('Value', '6', { unit: 'm', changed: true }),
-          stepperV('File value', '8', { unit: 'm', disabled: true }),
+          stepperV('Value', '5', { unit: 'm', changed: true }),
+          stepperV('File value', '6', { unit: 'm', disabled: true }),
         ),
         R(
           { w: 'fill', gap: 8 },
@@ -135,12 +143,12 @@ tunerScreens.push({
         ),
         callout(
           'info',
-          'Reopens gate S-G2',
-          'A tunable change goes back to the owner. The editor shows the gate and never records a decision.',
+          `Reopens gate ${Q.gatesFor(D.paths.tuning).join(', ')}`,
+          'The game’s editor list names the gate for tuning.toml. The editor shows it and never records a decision.',
         ),
         R(
           { name: 'footer', w: 'fill', h: 44, gap: 8 },
-          btn('Reset to 8', { icon: 'rotate', w: 'fill' }),
+          btn('Reset to 6', { icon: 'rotate', w: 'fill' }),
           btn('Ask…', { icon: 'sparkles', w: 'fill' }),
         ),
       ),
@@ -148,9 +156,9 @@ tunerScreens.push({
 
     // Fairness along the bottom: the last measure, before and after the change, then where to play it.
     const M = [
-      ['First threat', '≥ 20 s', '24.1 s', '21.3 s', 'ok'],
+      ['First threat', '≥ 20 s', '21.3 s', '24.1 s', 'ok'],
       ['Entry kits solvable', '3 of 3', '3 of 3', '3 of 3', 'ok'],
-      ['Catch while lit', '≤ 10 %', '6 %', '9 %', 'ok'],
+      ['Catch while lit', '≤ 10 %', '9 %', '6 %', 'ok'],
     ]
     const cell = (text, w, o = {}) =>
       T(text, { style: 'Mono/12', w, color: o.color || 'text/primary', align: o.align })
@@ -227,12 +235,12 @@ tunerScreens.push({
       { name: 'Tuner · Warmth · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: 'The Bay',
-        sub: 'src/scenes/bay/systems.ts',
+        sub: D.paths.tuning,
         ed: 'tuner',
-        cs: 'tune/lighter-reach',
-        n: 1,
+        cs: 'edit/arrival-timing',
+        n: 2,
         checks: 'checks ok',
-        gates: [['S-G2', 'open']],
+        reopened: true,
         primary: 'Ship',
       }),
       rail(782, 'tuner'),
@@ -276,7 +284,7 @@ tunerScreens.push({
       callout,
       diagRow,
     } = P
-    const { top, rail, listRow, mono, chart } = Q
+    const { D, top, rail, listRow, mono, chart } = Q
     const before = [
       [0, 0.02],
       [20, 0.1],
@@ -330,8 +338,8 @@ tunerScreens.push({
         listRow({
           title: 'maximal kit',
           sub: '8 items · 50 s fuel',
-          icon: 'warn',
-          iconColor: 'state/warn',
+          icon: 'check',
+          iconColor: 'state/ok',
           h: 52,
           mono: true,
         }),
@@ -341,7 +349,7 @@ tunerScreens.push({
         { w: 'fill', pad: [0, 16], gap: 8 },
         eyebrow('Run'),
         Q.kvRow('Seeds', 'default · 3', { kw: 70 }),
-        Q.kvRow('Changed', 'lighterReach 8 → 6', { kw: 70, color: 'accent/default' }),
+        Q.kvRow('Changed', 'LIGHTER_REACH 6 → 5', { kw: 70, color: 'accent/default' }),
         Q.kvRow('Took', '41 s on this iPad', { kw: 70 }),
         btn('Measure again', { kind: 'primary', h: 48, icon: 'play', w: 'fill' }),
       ),
@@ -419,23 +427,23 @@ tunerScreens.push({
       C(
         { w: 'fill', gap: 8 },
         diagRow({
-          sev: 'warning',
-          code: 'fairness.catch-lit',
-          msg: 'Catch while lit is 9 %, one point under the 10 % limit for the maximal kit.',
-          path: 'systems.ts · fairness.catchWhileLit',
+          sev: 'info',
+          code: 'first-threat.moved',
+          msg: 'First threat moved from 21.3 s to 24.1 s; the limit is 20 s.',
+          path: 'systems_fairness · firstThreat',
         }),
         diagRow({
           sev: 'info',
-          code: 'first-threat.moved',
-          msg: 'First threat moved from 24.1 s to 21.3 s; the limit is 20 s.',
-          path: 'systems.ts · fairness.firstThreat',
+          code: 'fairness.catch-lit',
+          msg: 'Catch while lit fell from 9 % to 6 % for the typical kit; every kit stays under 10 %.',
+          path: 'systems_fairness · catchWhileLit',
         }),
       ),
     )
     const M = [
-      ['First threat', '21.3 s', 'state/ok'],
+      ['First threat', '24.1 s', 'state/ok'],
       ['Longest calm', '38 s', 'state/ok'],
-      ['Catch while lit', '9 %', 'state/warn'],
+      ['Catch while lit', '6 %', 'state/ok'],
       ['Kits solvable', '3 of 3', 'state/ok'],
       ['Seeds', '3', null],
     ]
@@ -461,7 +469,7 @@ tunerScreens.push({
         R({ w: 'fill', h: 8 }),
         callout(
           'info',
-          'Gate S-G2 is open',
+          'Gate S-G2 is reopened',
           'Measured before and after, so the owner can read the change against its effect. The editor shows the gate and never records a decision.',
         ),
         R({ w: 'fill', h: 8 }),
@@ -473,12 +481,12 @@ tunerScreens.push({
       { name: 'Tuner · Fairness · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: 'The Bay',
-        sub: 'src/scenes/bay/systems.ts',
+        sub: D.paths.tuning,
         ed: 'tuner',
-        cs: 'tune/lighter-reach',
-        n: 1,
+        cs: 'edit/arrival-timing',
+        n: 2,
         checks: 'checks ok',
-        gates: [['S-G2', 'open']],
+        reopened: true,
         primary: 'Ship',
       }),
       rail(782, 'tuner'),

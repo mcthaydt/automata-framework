@@ -15,8 +15,14 @@ portraitScreens.push({
     const { D, topP, tabBar, sliderRow, chip, mono, chart } = Q
     const rows = D.tunables.rows
     const by = (n) => rows.find((r) => r.n === n)
-    const list = [by('lighterReach'), by('torchReach'), by('drumReach'), by('burnerReach'), by('emberWarm')]
-    const flags = { lighterReach: { sel: true, changed: true, was: 8 }, emberWarm: { locked: true } }
+    const list = [
+      { ...by('LIGHTER_REACH'), v: 5 },
+      by('TORCH_REACH'),
+      by('DRUM_REACH'),
+      by('BURNER_REACH'),
+      by('EMBER_WARM'),
+    ]
+    const flags = { LIGHTER_REACH: { sel: true, changed: true, was: 6 }, EMBER_WARM: { locked: true } }
     const chips = R(
       { name: 'groups', x: 0, y: 52, w: 834, h: 52, pad: [0, 16], gap: 8 },
       ...D.tunables.groups.map(([n, , c], i) =>
@@ -102,9 +108,9 @@ portraitScreens.push({
           }),
         ),
         ...[
-          ['First threat', '≥ 20 s', '24.1 s', '21.3 s', 'ok'],
+          ['First threat', '≥ 20 s', '21.3 s', '24.1 s', 'ok'],
           ['Entry kits solvable', '3 of 3', '3 of 3', '3 of 3', 'ok'],
-          ['Catch while lit', '≤ 10 %', '6 %', '9 %', 'ok'],
+          ['Catch while lit', '≤ 10 %', '9 %', '6 %', 'ok'],
         ].map((m, i) =>
           R(
             { w: 'fill', h: 40, gap: 8, pad: [0, 8], fill: i % 2 ? alpha('text/primary', 0.02) : null },
@@ -124,7 +130,14 @@ portraitScreens.push({
     )
     return F(
       { name: 'Tuner · Warmth · iPad portrait', w: 834, h: 1194, fill: 'bg/app', clip: true },
-      topP(834, { title: 'The Bay', sub: 'systems.ts', cs: 'tune/lighter-reach', n: 1, checks: 'checks ok' }),
+      topP(834, {
+        title: 'The Bay',
+        sub: 'tuning.toml',
+        cs: 'edit/arrival-timing',
+        n: 2,
+        checks: 'checks ok',
+        gates: [['S-G2', 'open']],
+      }),
       chips,
       sliders,
       sheet,
@@ -276,7 +289,14 @@ portraitScreens.push({
     )
     return F(
       { name: 'Writer · Lines · iPad portrait', w: 834, h: 1194, fill: 'bg/app', clip: true },
-      topP(834, { title: 'The Bay', sub: 'story.ts', cs: 'story/porter-arrival', n: 1, checks: 'checks ok' }),
+      topP(834, {
+        title: 'The Bay',
+        sub: 'story.toml',
+        cs: 'story/porter-arrival',
+        n: 1,
+        checks: 'checks ok',
+        gates: [['N-G1', 'open']],
+      }),
       upper,
       sheet,
       tabBar(834, 1130, 'writer'),
@@ -289,138 +309,11 @@ portraitScreens.push({
 portraitScreens.push({
   id: 'studio-portrait',
   page: 'Suite · Portrait',
-  name: 'Studio · Turnaround · iPad portrait',
+  name: 'Studio · Look · iPad portrait',
   w: 834,
   h: 1194,
-  note: 'The eight directions at a larger size, the story rows under them and the pipeline as a strip above the tab bar. The roster is a chip at the top left.',
-  build: (_S, P, Q, A) => {
-    const { F, R, C, T, I, V, alpha, spacer, region, line, eyebrow, pill, btn, seg, tabs } = P
-    const { topP, tabBar, mono, select } = Q
-    const views = ['front', 'front right', 'right', 'back right', 'back', 'back left', 'left', 'front left']
-    const cell = (v, i) =>
-      F(
-        {
-          name: `view/${views[v]}`,
-          x: 16 + (i % 4) * 202,
-          y: 168 + Math.floor(i / 4) * 330,
-          w: 194,
-          h: 322,
-          r: 'radius/lg',
-          fill: 'bg/canvas',
-          stroke: v === 0 ? alpha(Q.ED.studio.color, 0.7) : 'border/default',
-          clip: true,
-        },
-        V(A.figure(v, { walk: v === 2 || v === 6 ? 0.6 : 0 }), { x: 40, y: 14, w: 114, h: 256 }),
-        T(views[v], {
-          x: 0,
-          y: 292,
-          w: 194,
-          align: 'center',
-          style: 'Mono/12',
-          color: v === 0 ? Q.ED.studio.color : 'text/dim',
-        }),
-      )
-    const stage = (id, state, at) =>
-      C(
-        { w: 'fill', h: 64, pad: 10, gap: 2, r: 'radius/md', fill: 'bg/raised', stroke: 'border/default' },
-        R(
-          { w: 'fill', gap: 6 },
-          P.dot(state === 'ok' ? 'state/ok' : 'state/warn', 8),
-          T(id, { style: 'Mono/12', wt: 600 }),
-        ),
-        T(at, { style: 'Label/12', color: 'text/dim', w: 'fill', trunc: true }),
-      )
-    const gate = (id) =>
-      C(
-        {
-          w: 'fill',
-          h: 64,
-          pad: 10,
-          gap: 2,
-          r: 'radius/md',
-          fill: alpha('state/ok', 0.08),
-          stroke: alpha('state/ok', 0.4),
-        },
-        R(
-          { w: 'fill', gap: 6 },
-          I('check', { size: 14, color: 'state/ok' }),
-          T(id, { style: 'Mono/12', wt: 600 }),
-        ),
-        T('approved · owner', { style: 'Mono/11', color: 'state/ok', w: 'fill', trunc: true }),
-      )
-    const top_ = C(
-      { name: 'chrome', x: 0, y: 52, w: 834, h: 'hug', pad: [0, 16, 0, 16], gap: 8 },
-      F(
-        { w: 'fill', h: 44 },
-        tabs(
-          [
-            { label: 'Turnaround' },
-            { label: 'Outfits' },
-            { label: 'Sliders' },
-            { label: 'Poses' },
-            { label: 'Test' },
-          ],
-          0,
-        ),
-      ),
-      R(
-        { w: 'fill', h: 52, gap: 8 },
-        R(
-          { gap: 8, h: 44, pad: [0, 12], r: 'radius/md', fill: 'bg/raised', stroke: 'border/default' },
-          F(
-            { w: 22, h: 28, r: 4, fill: 'bg/canvas', clip: true },
-            V(A.figure(0), { x: 2, y: 0, w: 18, h: 40 }),
-          ),
-          T('Ada Voss', { style: 'Body/13 Medium' }),
-          I('chevron-down', { size: 14, color: 'text/dim' }),
-        ),
-        R({ w: 170 }, select('Outfit', 'nurse', { lw: 50, mono: true })),
-        seg(['Hall light off', 'on'], 0, { w: 220 }),
-        spacer(),
-        mono('8 views'),
-      ),
-    )
-    const strip = region(
-      'pipeline',
-      0,
-      848,
-      834,
-      282,
-      { lay: 'col' },
-      F({ name: 'divider', abs: true, x: 0, y: 0, w: 834, h: 1, fill: 'border/default' }),
-      R(
-        { w: 'fill', h: 56, pad: [0, 8, 0, 16], gap: 8 },
-        eyebrow('Pipeline'),
-        pill('procedural route', { color: 'text/dim', mono: true }),
-        spacer(),
-        btn('Check', { icon: 'check' }),
-        btn('Estimate', { icon: 'chart' }),
-      ),
-      C(
-        { w: 'fill', h: 'fill', pad: [0, 16, 16, 16], gap: 8 },
-        R(
-          { w: 'fill', gap: 8 },
-          stage('builder', 'ok', 'ran 2 min ago'),
-          stage('sheet', 'ok', 'ran yesterday'),
-          stage('play', 'ok', 'ran yesterday'),
-        ),
-        R({ w: 'fill', gap: 8 }, gate('G1 look'), gate('G6 figure'), gate('G7 poses')),
-        T('Gates are the owner’s: the editor shows them and never records one.', {
-          style: 'Label/12',
-          color: 'text/faint',
-        }),
-      ),
-    )
-    return F(
-      { name: 'Studio · Turnaround · iPad portrait', w: 834, h: 1194, fill: 'bg/app', clip: true },
-      topP(834, { title: 'Ada Voss', sub: 'ada.json', cs: 'studio/ada-hair', n: 2, checks: 'checks ok' }),
-      top_,
-      ...[0, 1, 2, 3, 4, 5, 6, 7].map(cell),
-      strip,
-      tabBar(834, 1130, 'studio'),
-      line(0, 51, 834, 1),
-    )
-  },
+  note: 'The same stage at full width with outfits down its right edge, the picked part’s fields as a bottom sheet, the character as a chip at the top left and the pipeline as a bar above the tab bar.',
+  build: (_S, _P, Q, A) => Q.studioPortrait(A),
 })
 
 // ── Review desk ──
@@ -457,22 +350,27 @@ portraitScreens.push({
         R(
           { h: 44, gap: 8, pad: [0, 12], r: 'radius/md', fill: 'bg/raised', stroke: 'border/default' },
           I('gate', { size: 16, color: 'accent/default' }),
-          T('tune/lighter-reach', { style: 'Mono/12' }),
+          T('edit/arrival-timing', { style: 'Mono/12' }),
           I('chevron-down', { size: 14, color: 'text/dim' }),
         ),
         pill('draft PR', { color: 'text/dim', icon: 'branch', mono: true }),
         spacer(),
-        mono('4 open · 1 gate waiting'),
+        mono('4 open · 2 gates waiting'),
       ),
       card(
         'what changed',
         130,
-        R({ w: 'fill', h: 20, gap: 8 }, eyebrow('What changed'), spacer(), mono('systems.ts')),
+        R(
+          { w: 'fill', h: 20, gap: 8 },
+          eyebrow('What changed'),
+          spacer(),
+          mono('tuning.toml · 1 of 2 files'),
+        ),
         diff(
           [
-            [' ', 12, "  torchReach: tunable(8, 2, 14, 'm', 'P1: a lit rag torch …'),"],
-            ['-', 11, "  lighterReach: tunable(8, 2, 12, 'm', 'P1: a lit lighter …'),"],
-            ['+', 11, "  lighterReach: tunable(6, 2, 12, 'm', 'P1: a lit lighter …'),"],
+            [' ', 11, '# m · P1: a lit lighter draws him from this far …'],
+            ['-', 12, 'LIGHTER_REACH = { value = 6, min = 2, max = 12 }'],
+            ['+', 12, 'LIGHTER_REACH = { value = 5, min = 2, max = 12 }'],
           ],
           778,
           { rowH: 24 },
@@ -538,9 +436,9 @@ portraitScreens.push({
         ),
         ...[
           ['cutscene audit', 'ok', 'every line plays'],
-          ['narrative lint', 'ok', '0 errors · 2 notes'],
-          ['puzzle solve', 'ok', '3 of 3 kits'],
-          ['systems fairness', 'ok', 'first threat 21.3 s'],
+          ['direction audit', 'ok', 'shots C and D meet at 16.4 s'],
+          ['systems validate', 'ok', 'LIGHTER_REACH 5 inside 2 to 12'],
+          ['systems fairness', 'ok', 'first threat 24.1 s'],
           ['playthrough · bay', 'run', 'step 41 of 58'],
         ].map(([n, s, d]) =>
           R(
@@ -555,7 +453,7 @@ portraitScreens.push({
       ),
       C(
         {
-          name: 'gate S-G2',
+          name: 'gates C-G1 and S-G2',
           w: 'fill',
           pad: 12,
           gap: 8,
@@ -566,17 +464,20 @@ portraitScreens.push({
         R(
           { w: 'fill', gap: 8 },
           I('gate', { size: 16, color: 'accent/default' }),
-          T('S-G2', { style: 'Mono/12', wt: 600 }),
-          T('tunables', { style: 'Label/12', color: 'text/dim' }),
+          T('C-G1 · S-G2', { style: 'Mono/12', wt: 600 }),
+          T('cutscenes · tunables', { style: 'Label/12', color: 'text/dim' }),
           spacer(),
           T('open', { style: 'Mono/11', color: 'accent/default' }),
         ),
-        T('Reopened by lighterReach 8 → 6. Read the fairness above, then approve.', {
-          style: 'Label/12',
-          color: 'text/dim',
-          w: 'fill',
-          lh: 16,
-        }),
+        T(
+          'Reopened by cutscenes.toml (shot C to 16.4 s) and tuning.toml (LIGHTER_REACH 6 → 5). Read the fairness above, then approve each.',
+          {
+            style: 'Label/12',
+            color: 'text/dim',
+            w: 'fill',
+            lh: 16,
+          },
+        ),
         btn('Approve on GitHub', { icon: 'external', h: 48, w: 'fill' }),
       ),
       R(
@@ -603,10 +504,11 @@ portraitScreens.push({
       { name: 'Review desk · iPad portrait', w: 834, h: 1194, fill: 'bg/app', clip: true },
       topP(834, {
         title: 'Review',
-        sub: 'PixiJS3D_Experiment_001',
-        cs: 'tune/lighter-reach',
-        n: 1,
+        sub: 'The Last Light',
+        cs: 'edit/arrival-timing',
+        n: 2,
         checks: 'checks ok',
+        gates: [['C-G1 · S-G2', 'open']],
       }),
       body,
       actions,

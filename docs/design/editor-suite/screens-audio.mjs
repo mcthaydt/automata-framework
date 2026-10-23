@@ -1,5 +1,8 @@
-// Audio and Feel: the game's two boards (src/audio/board.ts, src/feel/board.ts), which the Last Light editor suite never had as editors
-// (editor-gaps #68 and #76 are the audio half), designed as editors for the framework's audio-synth and feel extensions.
+// Audio and Feel: the cue recipes and the feel table, designed as editors for the framework's audio-synth and feel
+// extensions, over AF content files (content/audio/cues.toml, content/feel/effects.toml). The Last Light's suite spec
+// (§6.3) puts these rows in the Tuner, with gates Q-AUD and Q-FEEL; the built Tuner never loads them, and the game edits
+// them by hand on its boards (editor-gaps 68 and 76). Showing them as their own editors is the working default while
+// that question is open on the bus.
 
 export const audioScreens = []
 
@@ -10,10 +13,10 @@ audioScreens.push({
   name: 'Audio · bang · iPad landscape',
   w: 1194,
   h: 834,
-  note: 'Every sound is a recipe of voices the synth schedules, so the editor edits the recipe: tones swept between two pitches, filtered noise, when each starts and how long it rings. Cues are tuned here and audition through the same synth the game uses; the mix and the size budget sit along the bottom.',
+  note: 'Every sound is a recipe of voices the synth schedules, so the editor edits the recipe in cues.toml: tones swept between two pitches, filtered noise, when each starts and how long it rings. Cues are tuned here and audition through the same synth the game uses; the mix (the file’s master gain and duck rule) and the size budget sit along the bottom.',
   build: (_S, P, Q, A) => {
     const { F, R, C, T, V, alpha, spacer, region, line, eyebrow, pill, btn, ib, seg, tabs, panelHead } = P
-    const { top, rail, listRow, search, chip, lanes, ruler, stepperV, toggleRow, meter, mono } = Q
+    const { D, top, rail, listRow, search, chip, lanes, ruler, stepperV, toggleRow, meter, mono } = Q
     const cues = [
       ['bang', 'The breaker blows', { sel: true }],
       ['bottle', 'Glass shatters on the floor', {}],
@@ -68,7 +71,7 @@ audioScreens.push({
         {
           label: 'Voice 1',
           h: 36,
-          color: 'layer/intgrid',
+          color: 'ed/audio',
           items: [{ k: 'blk', t: 0, t1: 0.6, label: 'sine 90→30', sel: true }],
         },
         {
@@ -119,7 +122,7 @@ audioScreens.push({
           stroke: 'border/default',
           clip: true,
         },
-        V(A.waveSvg(514, 134, { kind: 'hiss', seed: 5, decay: 2.6, attack: 0.02, hex: '#e6c35c' }), {
+        V(A.waveSvg(514, 134, { kind: 'hiss', seed: 5, decay: 2.6, attack: 0.02 }), {
           x: 8,
           y: 8,
           w: 514,
@@ -182,7 +185,7 @@ audioScreens.push({
         { name: 'fields', w: 'fill', h: 'fill', pad: 12, gap: 8, clip: true },
         R(
           { w: 'fill', h: 28, gap: 8 },
-          F({ w: 14, h: 14, r: 4, fill: alpha('layer/intgrid', 0.85) }),
+          F({ w: 14, h: 14, r: 4, fill: alpha('ed/audio', 0.85) }),
           T('Voice 1 · tone', { style: 'Title/15' }),
           spacer(),
           pill('literal', { color: 'state/ok', icon: 'check' }),
@@ -213,6 +216,8 @@ audioScreens.push({
         ),
       ),
     )
+    // The mix as cues.ts has it: MASTER_GAIN 0.55 and one duck rule (dialogue ducks music and effects −9 dB, attack
+    // 0.08 s, release 0.4 s). The bus levels are the player's defaults (mixer.ts DEFAULT_VOLUMES, all 1).
     const bus = (name, v, note, c) =>
       C(
         {
@@ -241,29 +246,29 @@ audioScreens.push({
         { name: 'mix header', w: 'fill', h: 52, pad: [0, 8, 0, 16], gap: 10 },
         eyebrow('Mix'),
         pill('2.7 of 4 MB', { color: 'state/ok', mono: true, icon: 'check' }),
-        mono('inlined files and samples'),
+        mono('inlined samples, voice, music and effects'),
         spacer(),
         btn('Offline render check', { icon: 'check' }),
         btn('Reset mix', { icon: 'rotate' }),
       ),
       R(
         { w: 'fill', h: 'fill', pad: [0, 16, 12, 16], gap: 10 },
-        bus('music', 0.55, 'ducks −8 dB under dialogue', 'layer/city'),
-        bus('effects', 0.8, 'world sounds attenuate', 'layer/intgrid'),
-        bus('ui', 0.6, 'no ducking', 'layer/sky'),
-        bus('dialogue', 0.9, 'ducks music', 'layer/entities'),
+        bus('master', 0.55, 'MASTER_GAIN, before the player’s volume', 'ed/audio'),
+        bus('music', 1, 'ducks −9 dB under dialogue', 'ed/sequence'),
+        bus('effects', 1, 'ducks −9 dB under dialogue', 'ed/audio'),
+        bus('dialogue', 1, 'ducks music and effects', 'layer/entities'),
       ),
     )
     return F(
       { name: 'Audio · bang · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: 'bang',
-        sub: 'src/audio/cues.ts',
+        sub: D.paths.cues,
         ed: 'audio',
         cs: 'audio/breaker-thump',
         n: 1,
-        checks: 'checks ok',
-        gates: [['audio check', 'ok']],
+        checks: 'audio check ok',
+        reopened: true,
       }),
       rail(782, 'audio'),
       panel,
@@ -307,11 +312,11 @@ audioScreens.push({
       panelHead,
       callout,
     } = P
-    const { top, rail, listRow, search, lanes, ruler, stepperV, mono } = Q
+    const { D, top, rail, listRow, search, lanes, ruler, stepperV, mono } = Q
     const CH = ['visual', 'audio', 'camera', 'ui', 'haptic']
     const CC = {
       visual: 'layer/sky',
-      audio: 'layer/intgrid',
+      audio: 'ed/audio',
       camera: 'layer/city',
       ui: 'layer/tiles',
       haptic: 'layer/entities',
@@ -602,12 +607,12 @@ audioScreens.push({
       { name: 'Feel · bang · iPad landscape', w: 1194, h: 834, fill: 'bg/app', clip: true },
       top(1194, {
         title: 'bang',
-        sub: 'src/feel/effects.ts',
+        sub: D.paths.feel,
         ed: 'feel',
         cs: 'feel/breaker-shake',
         n: 1,
-        checks: 'checks ok',
-        gates: [['feel coverage', 'ok']],
+        checks: 'feel check ok',
+        reopened: true,
       }),
       rail(782, 'feel'),
       panel,
