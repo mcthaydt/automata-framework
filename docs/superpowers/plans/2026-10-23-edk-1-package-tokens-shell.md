@@ -2,8 +2,8 @@
 
 - **Task:** EDK.1 in [02](../../02-master-delivery-plan.md). [Editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.1 (tokens), §4.2 (`EditorShell`), §7 (sizes), §8 (tests); decisions EDK-D1 to EDK-D3, EDK-D6; acceptance EK-g.
 - **Lane:** editor-kit. **Depends on:** EDK.0 (drafted, in PR #93; this PR stacks on it for `docs/design/editor-kit/tokens.json`).
-- **Status:** Planned 2026-10-23. Nothing implemented.
-- **Progress:** 0 of 7 steps.
+- **Status:** In progress 2026-10-23.
+- **Progress:** 3 of 7 steps (1 scaffold, 2 `tokensToCss`, 3 `tokens.css`, fonts and quality tests). Deviations are listed under Execution record.
 
 ## Sources
 
@@ -63,7 +63,7 @@ export function reconcileOpen(mode: ShellMode, previous: OpenState, next: OpenSt
 
 ### `src/tokens/tokens-to-css.ts` (create; pure)
 
-`tokensToCss(tokens: EditorTokens): string` renders `:root { ... }` from `docs/design/editor-kit/tokens.json`: `--color-<group>-<name>`, `--space-<n>`, `--radius-<name>`, `--size-hit`, `--size-primary`, `--font-sans`, `--font-mono` (with a system fallback stack) and, per ramp entry, `--text-<name>` as a `font` shorthand (`400 13px/18px var(--font-sans)`) and `--text-<name>-tracking`. `color-scheme: dark` is set. The file `src/tokens.css` is that output, written by `scripts/generate-tokens.ts` (`pnpm --filter @mcthaydt/automata-editor-kit tokens`).
+`tokensToCss(tokens: EditorTokens): string` renders `:root { ... }` from `docs/design/editor-kit/tokens.json`: `--color-<group>-<name>`, `--space-<n>`, `--radius-<name>`, `--size-hit`, `--size-primary`, `--font-sans`, `--font-mono` (with a system fallback stack) and, per ramp entry, `--text-<name>` as a `font` shorthand (`400 13px / 18px var(--font-sans)`) and `--text-<name>-tracking`. `color-scheme: dark` is set. The file `src/tokens.css` is that output, written by `scripts/generate-tokens.ts` (`pnpm --filter @mcthaydt/automata-editor-kit tokens`).
 
 ### `EditorShell.svelte` (create)
 
@@ -107,3 +107,10 @@ Layout contract passes at the sizes in step 6 in Chromium. Pending and listed fo
 
 - **Moving regions with CSS only.** Drawers and sheets are the same elements as the inline panel and inspector, positioned `fixed` with transforms in `medium` and `compact`. If a browser resets scroll on a `position` change, step 6 shows it (the test scrolls a panel, changes the size, and reads `scrollTop`).
 - **`@fontsource` in jsdom.** CSS imports are ignored by Vitest's `css: true` only for the files it parses; if the font files fail to resolve, `fonts.css` stays out of the unit project and is covered by the layout project.
+
+## Execution record
+
+- **Steps 1 to 3 (done 2026-10-23).** `pnpm install` needed the registry for the new package's dependency metadata (`--offline` has no cache for it); the lockfile gained only the `packages/editor-kit` importer and the two `@fontsource` entries. The first red was `src/index.test.ts` failing to resolve `./index` (module not found, as planned). The entry test asserted exports that do not exist before steps 2 and 4, so it was removed and `src/index.ts` starts empty; the exports test returns in step 5 with the real exports. The first real red of the package is `tokens-to-css.test.ts` ("Failed to resolve import ./tokens-to-css").
+- **Deviation: CSS is written in Biome's format.** `pnpm format` rewrote the first generated `tokens.css` (double quotes, spaces around the slash of `font`) and the drift test failed. The generator now emits that format, so the file is already formatted and the drift test and `pnpm format` agree. `fonts.css` uses double quotes for the same reason.
+- **Deviation: `@types/node` added as a dev dependency** (24.19.1, like the other packages) and `allowImportingTsExtensions`, because `scripts/generate-tokens.ts` and the token tests read files; the script runs under Node's type stripping like `ui`'s `build/finish-dist.ts`.
+- **`svelte-check` prints "no svelte input files" until step 5 adds `EditorShell.svelte`;** with `--fail-on-warnings` the package typecheck is red until then, and is run again in step 5.
