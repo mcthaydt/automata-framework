@@ -1,7 +1,8 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, lstatSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, lstatSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
+import { frameworkCommit, writeFrameworkRef } from './framework-source'
 import type { ExampleSources, SourceFile } from '../src/data/project-types'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -69,10 +70,23 @@ export const RAW_DEMOS = [
     slug: 'base-2d',
     title: 'Emberwick: Base 2D Adventure',
     category: 'Sim & Core',
-    path: 'examples/base-2d',
+    path: 'games/emberwick',
     bundleUrl: '/demos/base-2d/index.html',
   },
 ]
+
+/** Where a demo's built bundle goes under static/demos: the folder its public URL names, wherever its source lives. */
+export function demoBundleDirectory(demo: { bundleUrl: string }): string {
+  return demo.bundleUrl.replace(/^\/demos\//, '').replace(/\/index\.html$/, '')
+}
+
+/** Replace a demo's published bundle with a fresh build. Hashed file names mean a plain copy would keep every old file. */
+export function installDemoBundle(distDirectory: string, targetDirectory: string): void {
+  if (!existsSync(join(distDirectory, 'index.html'))) throw new Error('The build in ' + distDirectory + ' has no index.html')
+  rmSync(targetDirectory, { recursive: true, force: true })
+  mkdirSync(targetDirectory, { recursive: true })
+  cpSync(distDirectory, targetDirectory, { recursive: true })
+}
 
 export function extractHeader(source: string, key: string): string {
   const lines = source.split('\n')
@@ -101,7 +115,8 @@ export function collectExampleSources(root: string, entries: readonly { slug: st
       if (item.isDirectory() && !item.name.startsWith('.') && !['node_modules', 'dist'].includes(item.name)) findPackages(join(directory, item.name))
     }
   }
-  findPackages(join(root, 'examples'))
+  // Example packages live under `examples/`; the base game moved to `games/` with EX.2.
+  for (const folder of ['examples', 'games']) if (existsSync(join(root, folder))) findPackages(join(root, folder))
   const files = new Map<string, SourceFile>()
   const languages: Record<string, string> = { '.ts': 'typescript', '.js': 'javascript', '.mjs': 'javascript', '.svelte': 'svelte', '.json': 'json', '.css': 'css', '.html': 'html', '.toml': 'toml', '.yaml': 'yaml', '.yml': 'yaml', '.md': 'markdown', '.txt': 'text', '.glsl': 'glsl', '.wgsl': 'wgsl', '.svg': 'xml' }
   const binary = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.woff', '.woff2', '.mp3', '.ogg', '.wav', '.mp4', '.wasm'])
@@ -230,16 +245,11 @@ export function syncDemos() {
     })
 
     // Copy dist build to static/demos
-    const exampleRelative = item.path.replace(/^examples\//, '')
-    const targetDemoDir = join(staticDemosDir, exampleRelative)
+    const targetDemoDir = join(staticDemosDir, demoBundleDirectory(item))
     const frameworkDistDir = join(frameworkDir, item.path, 'dist')
 
-    if (!existsSync(targetDemoDir)) {
-      mkdirSync(targetDemoDir, { recursive: true })
-    }
-
     if (existsSync(frameworkDistDir)) {
-      cpSync(frameworkDistDir, targetDemoDir, { recursive: true })
+      installDemoBundle(frameworkDistDir, targetDemoDir)
     } else {
       // Keep an existing real bundle; never manufacture an empty canvas that claims readiness.
       if (!existsSync(join(targetDemoDir, 'index.html'))) throw new Error('Build the demo before syncing: ' + item.path)
@@ -255,8 +265,10 @@ export function syncDemos() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const commit = frameworkCommit(frameworkDir)
   syncDemos()
   syncExampleSources()
   prepareDemoHosting()
-  console.log('Successfully synced demos to src/data/demos.json and static/demos/')
+  writeFrameworkRef(websiteDir, commit)
+  console.log(`Synced demos to src/data/demos.json and static/demos/ from framework ${commit.slice(0, 7)}; framework.ref updated.`)
 }
