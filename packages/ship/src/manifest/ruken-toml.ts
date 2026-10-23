@@ -9,6 +9,10 @@ const str = (value: string): string => JSON.stringify(value)
 
 const list = (values: readonly string[]): string => `[${values.map(str).join(', ')}]`
 
+/**
+ * The text of `ruken.toml` (Ruken manifest schema 1) for a ship config. The same config always gives the same
+ * text.
+ */
 export function rukenToml(config: ShipConfig): string {
   const { game, runtime, network, content } = config
   const lines = [
