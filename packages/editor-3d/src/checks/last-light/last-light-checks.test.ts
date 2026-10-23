@@ -8,8 +8,11 @@ import { BLOCKOUT_NAMES } from '../../testing/geometry-golden'
 import { toyBlockout, toyOpening, toyRoom } from '../../testing/toy-blockout'
 import { lastLightChecks } from './last-light-checks'
 
+/** The results this runner has that Last Light has too (its `overlap` and `heights` are new here). */
+const SHARED = new Set(['expand', 'ids', 'rooms', 'shared-walls', 'openings', 'puzzle-hotspots', 'nav'])
+
 describe('lastLightChecks: what runs', () => {
-  it('runs ids, shared walls, openings, overlap, heights and puzzle hotspots on a document that expands and resolves', () => {
+  it('runs ids, shared walls, openings, overlap, heights, puzzle hotspots and nav on a document that expands and resolves', () => {
     const results = lastLightChecks(toyBlockout())
     expect(results.map((result) => [result.id, result.ok])).toEqual([
       ['ids', true],
@@ -18,6 +21,7 @@ describe('lastLightChecks: what runs', () => {
       ['overlap', true],
       ['heights', true],
       ['puzzle-hotspots', true],
+      ['nav', true],
     ])
   })
 
@@ -114,6 +118,7 @@ describe('lastLightChecks: what runs', () => {
       ['overlap', true],
       ['heights', true],
       ['puzzle-hotspots', true],
+      ['nav', true],
     ])
   })
 
@@ -153,13 +158,20 @@ describe('lastLightChecks: the shipped blockouts', () => {
       )
       expect(failing.map((result) => `${result.id}: ${result.detail}`)).toEqual([])
     })
+
+    it(`${name}: says what Last Light says of it, the counts included`, () => {
+      const recorded = loadChecksGolden().blockouts[name]
+      const results = lastLightChecks(JSON.parse(loadFixture(name)) as Blockout, {
+        puzzleHotspots: recorded?.puzzle,
+      })
+      const shared = results.filter((result) => SHARED.has(result.id))
+      expect(shared.map(({ id, ok, detail }) => ({ id, ok, detail }))).toEqual(recorded?.results)
+    })
   }
 })
 
 describe('lastLightChecks: against Last Light on the corpus', () => {
   const golden = loadChecksGolden()
-  /** The results this runner has so far, which Last Light has too: `nav` joins in the step after this one. */
-  const SO_FAR = new Set(['expand', 'ids', 'rooms', 'shared-walls', 'openings', 'puzzle-hotspots'])
   const NEW_HERE = new Set(['overlap', 'heights'])
 
   for (const spec of loadCheckCases()) {
@@ -168,7 +180,7 @@ describe('lastLightChecks: against Last Light on the corpus', () => {
     it(`${spec.id}: says what Last Light says, and nothing it does not (bar the new checks)`, () => {
       const results = lastLightChecks(caseDocument(spec), { puzzleHotspots: recorded.puzzle })
       const wanted = recorded.results ?? []
-      for (const result of wanted.filter((r) => SO_FAR.has(r.id))) {
+      for (const result of wanted.filter((r) => SHARED.has(r.id))) {
         const got = results.find((candidate) => candidate.id === result.id)
         expect([got?.ok, got?.detail]).toEqual([result.ok, result.detail])
       }
@@ -183,6 +195,8 @@ describe('lastLightChecks: against Last Light on the corpus', () => {
     const spec = loadCheckCases().find((candidate) => candidate.id === 'nav-edge-unknown-node')
     const results = lastLightChecks(caseDocument(spec as never))
     expect(results.find((result) => result.id === 'ids')?.detail).toBe('nav: no node ghost')
+    // The edge to the missing node is `ids`' to report: nav, which threw in Last Light, passes over it.
+    expect(results.find((result) => result.id === 'nav')?.ok).toBe(true)
   })
 
   it('has every case of the corpus answered, so none passes by being skipped', () => {

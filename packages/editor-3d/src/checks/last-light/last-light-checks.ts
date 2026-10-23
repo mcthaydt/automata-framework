@@ -9,6 +9,7 @@ import { type CheckResult, checkResult, type Problem, place, sectorSelection } f
 import { genericChecks } from '../generic-checks'
 import { doorProblems } from './doors'
 import { idProblems } from './ids'
+import { navProblems } from './nav-problems'
 import { puzzleHotspotProblems } from './puzzle-hotspots'
 import { wallLocator } from './wall-locator'
 
@@ -46,5 +47,8 @@ export function lastLightChecks(blockout: Blockout, options: LastLightOptions = 
   const puzzle = checkResult('puzzle-hotspots', puzzleHotspotProblems(expanded, wanted), {
     ok: wanted === null ? 'no puzzle.ts' : `${wanted.length} placed`,
   })
-  return [ids, sharedWalls, openings, overlap, heights, puzzle]
+  const nav = checkResult('nav', navProblems(blockout, expanded, map), {
+    ok: `${Object.keys(expanded.nodes).length} nodes, ${expanded.edges.length} edges clear; ${expanded.hotspots.length} hotspots reachable`,
+  })
+  return [ids, sharedWalls, openings, overlap, heights, puzzle, nav]
 }
