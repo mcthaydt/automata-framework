@@ -448,8 +448,10 @@ describe('default screens with a save (M5.2)', () => {
         expect(lastX()).toBe(13)
       })
 
-      it('Load newer plays what the other device wrote', async () => {
+      it('Load newer plays what the other device wrote, which the pause did not write over', async () => {
         await playWhileOtherDeviceWrites()
+        // Play goes on after the Toast, so the game has progress of its own to keep when the pause opens.
+        step(3)
         press('Escape')
         await until(() => screen('paused') !== null, 'the paused screen')
         await until(() => button('load-newer') !== null, 'the choice')
@@ -457,6 +459,11 @@ describe('default screens with a save (M5.2)', () => {
         await until(() => screen('play') !== null, 'play again, on the newer progress')
         step()
         expect(lastX()).toBe(99)
+        // However long the host waits to sync, what it holds for the slot is the other device's.
+        hostClock.advance(60_000)
+        await settle(4)
+        const held = host!.fakes.server.slots.get('run.slot.0')?.value ?? ''
+        expect(JSON.parse(held)).toMatchObject({ label: 'Desk PC', data: { x: 99 } })
       })
     })
   })
