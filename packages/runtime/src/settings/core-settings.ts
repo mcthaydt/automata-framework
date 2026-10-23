@@ -52,4 +52,6 @@ export const CORE_SETTINGS: SettingsDef<CoreSettings> = {
   version: 1,
   schema: coreSettingsSchema,
   defaults: DEFAULTS,
+  // The sound belongs to the device, not the player's account (M5 spec §4.5): muting a Mac must not mute the iPad.
+  deviceFields: ['audio'],
 }
