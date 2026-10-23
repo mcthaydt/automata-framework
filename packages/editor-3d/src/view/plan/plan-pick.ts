@@ -46,7 +46,8 @@ export interface CornerHit {
 /** Two distances closer than this (a thousandth of a pixel) are the same: a portal pair's walls lie on one line. */
 const SAME_DISTANCE = 1e-3
 
-const isOff = (options: PickOptions, layer: string): boolean =>
+/** Whether a layer is hidden or locked, so that nothing of it is hit or snapped to. */
+export const isLayerOff = (options: Pick<PickOptions, 'hidden' | 'locked'>, layer: string): boolean =>
   options.hidden?.includes(layer) === true || options.locked?.includes(layer) === true
 
 interface WallCandidate {
@@ -65,14 +66,20 @@ function better(candidate: WallCandidate, best: WallCandidate | undefined): bool
   return Math.abs(candidate.distance - best.distance) <= SAME_DISTANCE && candidate.inward && !best.inward
 }
 
-function pickWall(
+export type WallHit = Extract<PlanHit, { readonly kind: 'wall' }>
+
+/**
+ * The wall within `radius` pixels of `at` that the pointer is nearest, or on the side of when two lie on one line.
+ * Walls that nothing selects (an opening connector's) are not answered.
+ */
+export function wallNear(
   layers: readonly GeometryLayer[],
   select: SelectionOf,
   viewport: Viewport2D,
   at: ScreenPoint,
-  world: Point,
   radius: number,
-): PlanHit | undefined {
+): WallHit | undefined {
+  const world = toWorld(viewport, at)
   let best: WallCandidate | undefined
   for (const layer of layers) {
     for (const edge of layer.map.edges) {
@@ -138,11 +145,11 @@ export function pickPlan(
   options: PickOptions,
 ): PlanHit | undefined {
   const world = toWorld(viewport, at)
-  if (!isOff(options, 'walls')) {
-    const wall = pickWall(layers, select, viewport, at, world, options.radius)
+  if (!isLayerOff(options, 'walls')) {
+    const wall = wallNear(layers, select, viewport, at, options.radius)
     if (wall !== undefined) return wall
   }
-  return isOff(options, 'sectors') ? undefined : pickSector(layers, select, world)
+  return isLayerOff(options, 'sectors') ? undefined : pickSector(layers, select, world)
 }
 
 /**
@@ -158,7 +165,7 @@ export function pickCorner(
   at: ScreenPoint,
   options: PickOptions,
 ): CornerHit | undefined {
-  if (isOff(options, 'walls')) return undefined
+  if (isLayerOff(options, 'walls')) return undefined
   const world = toWorld(viewport, at)
   let best: (CornerHit & { readonly inside: boolean }) | undefined
   for (const layer of layers) {
