@@ -101,6 +101,36 @@ describe('selectionOf on an af-sector level', () => {
     expect(select.edge(edgesOf(odd, 'hall')[1] as Edge)).toBe('wall:hall/1')
   })
 
+  it('gives the corners of the outline of a listed sector in document order, and none for any other sector', () => {
+    const select = selectionOf(afSectorProfile, depot())
+    expect(select.corners('hall')).toEqual([
+      { x: 0, z: 0 },
+      { x: 8, z: 0 },
+      { x: 8, z: 6 },
+      { x: 0, z: 6 },
+    ])
+    expect(select.corners('dock')[3]).toEqual({ x: 8, z: 6 })
+    expect(select.corners('nowhere')).toEqual([])
+  })
+
+  it('reads the first sector of an id twice listed, as the wall locator does', () => {
+    const twice = toyAfSector({
+      sectors: [
+        toyHall,
+        {
+          ...toyHall,
+          corners: [
+            [20, 20],
+            [24, 20],
+            [24, 24],
+            [20, 24],
+          ],
+        },
+      ],
+    })
+    expect(selectionOf(afSectorProfile, twice).corners('hall')[0]).toEqual({ x: 0, z: 0 })
+  })
+
   it('belongs to the level it was made for: a sector of another level has none', () => {
     const level = depot()
     const select = selectionOf(afSectorProfile, toyAfSector({ sectors: [toyDock] }))
@@ -130,6 +160,13 @@ describe('selectionOf on a Last Light level', () => {
       expect(select.sector(sector.id)).toBeUndefined()
       for (const edge of sector.loops.flat()) expect(select.edge(edge)).toBeUndefined()
     }
+  })
+
+  it("has the corners of the file's own outline, by their document index, and none for a connector", () => {
+    const hall = lastLightProfile.sectors.list(level).find((sector) => sector.id === 'hall')
+    expect(select.corners('hall')).toHaveLength(hall?.corners.length ?? -1)
+    expect(select.corners('hall')[12]).toEqual({ x: -4.875, z: -0.875 })
+    expect(select.corners('exitWay')).toEqual([])
   })
 
   it('names the corner for the outline walls of a room, and the room for the walls of its hole', () => {
