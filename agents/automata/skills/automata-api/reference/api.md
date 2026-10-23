@@ -8,7 +8,8 @@
 
 #### `AssetsSource` (interface)
 
-_No doc comment._
+What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
+folder).
 
 ```ts
 interface AssetsSource {
@@ -52,7 +53,8 @@ const compileContent: (options: ContentOptions) => Effect.Effect<CompiledContent
 
 #### `CompiledContent` (interface)
 
-_No doc comment._
+The result of a compile: the content and its hash, the sim partition, every output file's text, warnings,
+the languages and each language's message catalog.
 
 ```ts
 interface CompiledContent {
@@ -109,7 +111,8 @@ type ContentData = Readonly<Record<string, unknown>>;
 
 #### `ContentGenerator` (interface)
 
-_No doc comment._
+A generator: a unique name and a pure `generate` that turns compiled content into extra files. Create one
+with `defineContentGenerator`.
 
 ```ts
 interface ContentGenerator {
@@ -128,7 +131,8 @@ function contentHash(data: unknown): string;
 
 #### `ContentOptions` (interface)
 
-_No doc comment._
+What the content compiler is given: the project root, the registered kinds, and optionally tunables,
+invariants, flow capabilities, generators, an output folder and Paraglide.
 
 ```ts
 interface ContentOptions {
@@ -159,7 +163,8 @@ function contentRef<const K extends string>(kind: K): z.ZodType<string, string>;
 
 #### `ContentSchemaDef` (interface)
 
-_No doc comment._
+A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live,
+and whether the sim receives it. Create one with `defineContentSchema`.
 
 ```ts
 interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
@@ -176,7 +181,7 @@ interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.Zo
 
 #### `ContentSchemaOptions` (interface)
 
-_No doc comment._
+Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
 
 ```ts
 interface ContentSchemaOptions {
@@ -206,7 +211,7 @@ class ContentWriteFailed extends WriteFailedBase {}
 
 #### `DEFAULT_OUT_DIR` (const)
 
-_No doc comment._
+Where outputs go when `outDir` is not set: `content/generated`, relative to the project root.
 
 ```ts
 const DEFAULT_OUT_DIR = "content/generated";
@@ -214,7 +219,7 @@ const DEFAULT_OUT_DIR = "content/generated";
 
 #### `DEFAULT_PALETTE` (const)
 
-_No doc comment._
+The palette a game gets when it has no `content/palette.toml`: Endesga 64.
 
 ```ts
 const DEFAULT_PALETTE: Palette;
@@ -222,7 +227,9 @@ const DEFAULT_PALETTE: Palette;
 
 #### `defineContentGenerator` (function)
 
-_No doc comment._
+Defines a generator by name and `generate` function. Generators do no I/O: the compiler writes their files.
+A generator that throws, repeats another's name, returns a path outside the output folder or writes a file
+another generator wrote is reported as `InvalidContentConfig`.
 
 ```ts
 function defineContentGenerator(name: string, generate: (input: GeneratorInput) => GeneratorOutput): ContentGenerator;
@@ -230,7 +237,10 @@ function defineContentGenerator(name: string, generate: (input: GeneratorInput) 
 
 #### `defineContentSchema` (function)
 
-_No doc comment._
+Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one
+file (a single document). The sim receives the kind unless `{ sim: false }`. A bad registration (a name
+that does not start with a lower-case letter followed by lower-case letters, digits and dashes, a built-in
+name, a duplicate, or a place two kinds share) is reported when content compiles, as `InvalidContentConfig`.
 
 ```ts
 function defineContentSchema<const K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>;
@@ -238,7 +248,8 @@ function defineContentSchema<const K extends string, S extends z.ZodType>(kind: 
 
 #### `Diagnostic` (interface)
 
-_No doc comment._
+One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key
+inside it and a message that says what to write instead.
 
 ```ts
 interface Diagnostic {
@@ -279,7 +290,8 @@ interface FlowCapabilities {
 
 #### `FlowGraph` (interface)
 
-_No doc comment._
+The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every
+transition, in a fixed order.
 
 ```ts
 interface FlowGraph {
@@ -295,7 +307,8 @@ interface FlowGraph {
 
 #### `FlowTransition` (interface)
 
-_No doc comment._
+One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the
+`transition` style (`cut` when unwritten).
 
 ```ts
 interface FlowTransition {
@@ -316,7 +329,8 @@ function formatDiagnostic(d: Diagnostic): string;
 
 #### `GameSource` (interface)
 
-_No doc comment._
+What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated
+hours, the analytics events it may send, and the screens whose files are preloaded.
 
 ```ts
 interface GameSource {
@@ -333,7 +347,8 @@ interface GameSource {
 
 #### `GeneratorInput` (interface)
 
-_No doc comment._
+Everything a generator is given: the compiled content and its hash, the sim partition, the registered
+schemas, the message catalog and the tuning metadata.
 
 ```ts
 interface GeneratorInput {
@@ -349,7 +364,7 @@ interface GeneratorInput {
 
 #### `GeneratorOutput` (interface)
 
-_No doc comment._
+What a generator returns: files to write and diagnostics to report. Both are optional.
 
 ```ts
 interface GeneratorOutput {
@@ -405,7 +420,7 @@ interface MessageLocation {
 
 #### `Palette` (interface)
 
-_No doc comment._
+The game's palette: a name and its colors.
 
 ```ts
 interface Palette {
@@ -430,7 +445,8 @@ interface ParaglideOptions {
 
 #### `PreloadInput` (interface)
 
-_No doc comment._
+What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`) and the built game
+folder.
 
 ```ts
 interface PreloadInput {
@@ -442,7 +458,10 @@ interface PreloadInput {
 
 #### `preloadList` (const)
 
-_No doc comment._
+The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens`
+screen's files from `assets.toml` (the flow's entry when none is named), without repeats. Empty without a
+`game.toml`. Fails with `ContentCompileFailed` carrying a `missingAsset` diagnostic for every file the
+build lacks, all at once, or with `InvalidContentConfig`.
 
 ```ts
 const preloadList: (input: PreloadInput) => Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig>;
@@ -458,7 +477,8 @@ function renderTuningTable(meta: TuningMeta): string;
 
 #### `RukenFields` (type)
 
-_No doc comment._
+The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages
+present and written to `ruken-fields.json`.
 
 ```ts
 type RukenFields = Pick<Manifest, "content" | "analytics">;
@@ -466,7 +486,8 @@ type RukenFields = Pick<Manifest, "content" | "analytics">;
 
 #### `SimPartition` (interface)
 
-_No doc comment._
+The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash,
+which gates snapshots and replays.
 
 ```ts
 interface SimPartition {
@@ -479,7 +500,8 @@ interface SimPartition {
 
 #### `sortDiagnostics` (function)
 
-_No doc comment._
+Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing
+the input. The order never depends on locale.
 
 ```ts
 function sortDiagnostics(diagnostics: readonly Diagnostic[]): Diagnostic[];
@@ -487,7 +509,8 @@ function sortDiagnostics(diagnostics: readonly Diagnostic[]): Diagnostic[];
 
 #### `TunableDeclaration` (interface)
 
-_No doc comment._
+A tunable a game declares in code: `int` or `float`, an inclusive range and a default. Content selects a
+value inside the range and never widens it.
 
 ```ts
 interface TunableDeclaration {
@@ -502,7 +525,7 @@ interface TunableDeclaration {
 
 #### `TunableDeclarations` (type)
 
-_No doc comment._
+A game's tunables by name (upper-case words joined by underscores, such as `GRAVITY`).
 
 ```ts
 type TunableDeclarations = Readonly<Record<string, TunableDeclaration>>;
@@ -510,7 +533,8 @@ type TunableDeclarations = Readonly<Record<string, TunableDeclaration>>;
 
 #### `TuningMeta` (type)
 
-_No doc comment._
+Every tunable's type, value and range (`min`, `max`, `step`) by name, as written to `tuning-meta.json` for
+debug sliders.
 
 ```ts
 type TuningMeta = Readonly<Record<string, TuningEntryMeta>>;
@@ -777,7 +801,10 @@ function snakeKey(value: string): string;
 
 #### `automataContent` (function)
 
-_No doc comment._
+The Vite plugin that compiles content and serves it as `virtual:automata/content`. It builds when Vite
+starts and on every save in dev, with the same build as `automata-content build`. A `vite build` with
+content errors fails; a dev server keeps serving the last good content and reports the diagnostics through
+Vite's logger and the `automata:content-error` event (`automata:content` after a good save).
 
 ```ts
 function automataContent(pluginOptions?: AutomataContentOptions): Plugin;
@@ -795,7 +822,7 @@ type AutomataContentOptions = Omit<ContentOptions, "root"> & {
 
 #### `VIRTUAL_MODULE_ID` (const)
 
-_No doc comment._
+The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
 
 ```ts
 const VIRTUAL_MODULE_ID = "virtual:automata/content";
@@ -807,7 +834,8 @@ const VIRTUAL_MODULE_ID = "virtual:automata/content";
 
 #### `AnalyticsProps` (type)
 
-_No doc comment._
+The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts
+them.
 
 ```ts
 type AnalyticsProps = Record<string, string | number | boolean>;
@@ -887,6 +915,12 @@ interface Hosting {
     readonly start: Effect.Effect<void>;
     /** The open round ended. With no round open it is dropped. */
     end(outcome?: RoundOutcome): Effect.Effect<void>;
+    /**
+     * One item per round that ended, with its outcome, from the moment the stream
+     * is read (nothing is replayed). A dropped end gives none. Ends when Hosting
+     * shuts down. The `round-end` autosave trigger reads this.
+     */
+    readonly ended: Stream.Stream<RoundOutcome | undefined>;
   };
   /** A disclosed analytics event. Never fails: undisclosed, unconsented or refused events are dropped. */
   track(event: string, props?: AnalyticsProps): Effect.Effect<void>;
@@ -900,8 +934,11 @@ interface Hosting {
   onMenuRequest(handler: () => boolean): Effect.Effect<void, never, Scope.Scope>;
   /**
    * Runs `handler` when the host closes the game, while the scope is open. The
-   * host waits for it, but AF cuts it off at `HOST_EXIT_CAP` (1 s), inside
-   * Ruken's 1.5 s grace.
+   * host waits for it, but AF cuts everything off at `HOST_EXIT_CAP` (1 s),
+   * inside Ruken's 1.5 s grace. Handlers run one after another in registration
+   * order and the host save flush runs after the last, so a write a handler
+   * makes is flushed. All of them share the one cap: a handler that never
+   * returns costs the handlers after it and the flush.
    */
   onExiting(handler: Effect.Effect<void>): Effect.Effect<void, never, Scope.Scope>;
 }
@@ -1049,7 +1086,8 @@ function HostingTest(options?: HostingTestOptions): Layer.Layer<Hosting | FakeHo
 
 #### `HostingTestOptions` (interface)
 
-_No doc comment._
+What to change about `HostingTest`'s defaults: the game's hosting options, the fake host, the SDK
+environment and the game's origin.
 
 ```ts
 interface HostingTestOptions {
@@ -1107,7 +1145,7 @@ function runScoped<A, E>(program: Effect.Effect<A, E, Scope.Scope>): Promise<A>;
 
 #### `TEST_GAME_ORIGIN` (const)
 
-_No doc comment._
+The origin `HostingTest` serves the game from unless `gameOrigin` says otherwise.
 
 ```ts
 const TEST_GAME_ORIGIN = "http://localhost:4400";
@@ -1141,7 +1179,8 @@ const Files: Context.Tag<Files, FilesService>;
 
 #### `FilesLive` (const)
 
-_No doc comment._
+`Files` on `node:fs`: synchronous calls wrapped in `Effect.try`, so the first failure surfaces as a
+`FileError`.
 
 ```ts
 const FilesLive: Layer.Layer<Files>;
@@ -1149,7 +1188,8 @@ const FilesLive: Layer.Layer<Files>;
 
 #### `FilesService` (interface)
 
-_No doc comment._
+The file operations build-time code needs, each as an Effect. A failed call fails with a `FileError` naming
+the path, except `exists`, which cannot fail.
 
 ```ts
 interface FilesService {
@@ -1187,7 +1227,8 @@ const ProcessRunner: Context.Tag<ProcessRunner, ProcessRunnerService>;
 
 #### `ProcessRunnerLive` (const)
 
-_No doc comment._
+`ProcessRunner` on `node:child_process`: the real programs, with the parent's environment plus
+`RunOptions.env`.
 
 ```ts
 const ProcessRunnerLive: Layer.Layer<ProcessRunner>;
@@ -1195,7 +1236,8 @@ const ProcessRunnerLive: Layer.Layer<ProcessRunner>;
 
 #### `ProcessRunnerService` (interface)
 
-_No doc comment._
+Runs a program with arguments and no shell. The effect fails with a `ProcessError` only when the program
+cannot be started; interrupting it stops the program.
 
 ```ts
 interface ProcessRunnerService {
@@ -1205,7 +1247,8 @@ interface ProcessRunnerService {
 
 #### `RunOptions` (interface)
 
-_No doc comment._
+How a program is started: its working folder, extra environment, stdin, and whether its output is also
+echoed.
 
 ```ts
 interface RunOptions {
@@ -1221,7 +1264,8 @@ interface RunOptions {
 
 #### `RunResult` (interface)
 
-_No doc comment._
+What a finished program left: its exit code (128 when a signal killed it) and everything it wrote to stdout
+and stderr, decoded as UTF-8. A non-zero exit code is a result, not a failure.
 
 ```ts
 interface RunResult {
@@ -1249,7 +1293,8 @@ type TaggedErrorClass<Tag extends string, Fields> = new (fields: Fields) => Caus
 
 #### `body2d` (function)
 
-_No doc comment._
+The spawn part that gives an entity a rigid body of a `BodyKind`. Damping and velocities (`vx`, `vy` in
+m/s, `angvel` in rad/s) are 0 unless given.
 
 ```ts
 function body2d(kind: BodyKind, opts?: {
@@ -1263,7 +1308,9 @@ function body2d(kind: BodyKind, opts?: {
 
 #### `BodyKind` (const)
 
-_No doc comment._
+The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never
+moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its
+velocity). `BodyKind` is also the type of those values.
 
 ```ts
 const BodyKind: {
@@ -1286,7 +1333,9 @@ const Collider2D: ComponentDef<typeof colliderFields>;
 
 #### `collider2d` (const)
 
-_No doc comment._
+The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy)` with half extents, and
+`capsule(halfHeight, radius)`. Each takes `ColliderOptions`, whose defaults are Rapier's (every group,
+friction 0.5, no bounce, not a sensor).
 
 ```ts
 const collider2d: {
@@ -1311,7 +1360,8 @@ interface ColliderOptions {
 
 #### `CollisionEnded2D` (const)
 
-_No doc comment._
+Two colliders stopped touching, or one was removed. The payload is the one of `CollisionStarted2D`; ended
+events come before started events in a tick.
 
 ```ts
 const CollisionEnded2D: EventDef<typeof pair>;
@@ -1319,7 +1369,9 @@ const CollisionEnded2D: EventDef<typeof pair>;
 
 #### `CollisionStarted2D` (const)
 
-_No doc comment._
+Two colliders began touching (or, with a sensor, overlapping). `a` and `b` are the entities' StableIds, `a`
+the lower, and `sensor` is true when either collider is a sensor. Emitted in `postPhysics`, in `(a, b)`
+order, after that tick's ended events.
 
 ```ts
 const CollisionStarted2D: EventDef<typeof pair>;
@@ -1336,7 +1388,8 @@ function physics2d(options?: Physics2DOptions): PluginDef;
 
 #### `Physics2DOptions` (interface)
 
-_No doc comment._
+The options of `physics2d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+sim.
 
 ```ts
 interface Physics2DOptions {
@@ -1358,7 +1411,8 @@ const RigidBody2D: ComponentDef<typeof bodyFields>;
 
 #### `ShapeKind` (const)
 
-_No doc comment._
+The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`. `ShapeKind` is also the type of
+those values.
 
 ```ts
 const ShapeKind: {
@@ -1371,7 +1425,7 @@ type ShapeKind = (typeof ShapeKind)[keyof typeof ShapeKind];
 
 #### `transform2d` (function)
 
-_No doc comment._
+The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
 
 ```ts
 function transform2d(at?: {
@@ -1393,7 +1447,8 @@ const Transform2D: ComponentDef<typeof transformFields>;
 
 #### `body3d` (function)
 
-_No doc comment._
+The spawn part that gives an entity a rigid body of a `BodyKind`. Damping and velocities (`vx`, `vy`, `vz`
+in m/s, `wx`, `wy`, `wz` in rad/s) are 0 unless given.
 
 ```ts
 function body3d(kind: BodyKind, opts?: {
@@ -1410,7 +1465,9 @@ function body3d(kind: BodyKind, opts?: {
 
 #### `BodyKind` (const)
 
-_No doc comment._
+The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never
+moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its
+velocity). `BodyKind` is also the type of those values.
 
 ```ts
 const BodyKind: {
@@ -1433,7 +1490,9 @@ const Collider3D: ComponentDef<typeof colliderFields>;
 
 #### `collider3d` (const)
 
-_No doc comment._
+The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy, hz)` with half extents, and
+`capsule(halfHeight, radius)`. Each takes `ColliderOptions`, whose defaults are Rapier's (every group,
+friction 0.5, no bounce, not a sensor).
 
 ```ts
 const collider3d: {
@@ -1458,7 +1517,8 @@ interface ColliderOptions {
 
 #### `CollisionEnded3D` (const)
 
-_No doc comment._
+Two colliders stopped touching, or one was removed. The payload is the one of `CollisionStarted3D`; ended
+events come before started events in a tick.
 
 ```ts
 const CollisionEnded3D: EventDef<typeof pair>;
@@ -1466,7 +1526,9 @@ const CollisionEnded3D: EventDef<typeof pair>;
 
 #### `CollisionStarted3D` (const)
 
-_No doc comment._
+Two colliders began touching (or, with a sensor, overlapping). `a` and `b` are the entities' StableIds, `a`
+the lower, and `sensor` is true when either collider is a sensor. Emitted in `postPhysics`, in `(a, b)`
+order, after that tick's ended events.
 
 ```ts
 const CollisionStarted3D: EventDef<typeof pair>;
@@ -1483,7 +1545,8 @@ function physics3d(options?: Physics3DOptions): PluginDef;
 
 #### `Physics3DOptions` (interface)
 
-_No doc comment._
+The options of `physics3d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+sim.
 
 ```ts
 interface Physics3DOptions {
@@ -1506,7 +1569,8 @@ const RigidBody3D: ComponentDef<typeof bodyFields>;
 
 #### `ShapeKind` (const)
 
-_No doc comment._
+The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`. `ShapeKind` is also the type of
+those values.
 
 ```ts
 const ShapeKind: {
@@ -1519,7 +1583,8 @@ type ShapeKind = (typeof ShapeKind)[keyof typeof ShapeKind];
 
 #### `transform3d` (function)
 
-_No doc comment._
+The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`,
+`qz`, `qw`). Position is 0 and the rotation is the identity unless given.
 
 ```ts
 function transform3d(at?: {
@@ -1579,7 +1644,8 @@ const BUILD_ID_PATTERN: RegExp;
 
 #### `buildIdFor` (function)
 
-_No doc comment._
+The build ID for a commit: its UTC time to the minute, a dash, then the first seven characters of its sha.
+Throws for a `sha` that is not 7 to 40 lower-case hex digits.
 
 ```ts
 function buildIdFor(commit: {
@@ -1635,7 +1701,9 @@ function defineShipConfig(config: ShipConfig): ShipConfig;
 
 #### `deployDev` (function)
 
-_No doc comment._
+Sends a prepared build to the dev host and returns its build ID and the URL it is served at. Fails with
+`ManifestInvalid` for a bad `ruken.toml` in the build, `DeployFailed` when `tar` or `ssh` exits non-zero,
+or a `FileError` or `ProcessError`. The temporary staging copy is removed either way.
 
 ```ts
 function deployDev(input: DeployDevInput): Effect.Effect<{
@@ -1646,7 +1714,8 @@ function deployDev(input: DeployDevInput): Effect.Effect<{
 
 #### `DeployDevInput` (interface)
 
-_No doc comment._
+What `deployDev` sends and where: a prepared build folder, the commit it came from, the dev host's ssh
+target and URL, and whether the build becomes the one `/` redirects to.
 
 ```ts
 interface DeployDevInput {
@@ -1726,7 +1795,8 @@ function findOrientationMismatches(gameDir: string, declared: string): Orientati
 
 #### `findRootAbsoluteReferences` (function)
 
-_No doc comment._
+Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
+Reads each file's syntax (scripts, stylesheets, pages, JSON), so comments and prose are not reported.
 
 ```ts
 function findRootAbsoluteReferences(distDir: string): RootAbsoluteReferenceFound[];
@@ -1876,7 +1946,8 @@ function prepareBuild(input: PrepareInput): Effect.Effect<{
 
 #### `PrepareInput` (interface)
 
-_No doc comment._
+What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release
+tag, game folder and input bindings.
 
 ```ts
 interface PrepareInput {
@@ -1932,7 +2003,8 @@ class PublishFailed extends PublishFailedBase {
 
 #### `PublishInput` (interface)
 
-_No doc comment._
+What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and
+whether to activate the build.
 
 ```ts
 interface PublishInput {
@@ -1975,7 +2047,9 @@ class PublishTimeout extends PublishTimeoutBase {
 
 #### `publishToRuken` (function)
 
-_No doc comment._
+Runs Ruken's own `ruken publish` on a prepared build and returns the URL Ruken says the build is served at
+(`undefined` when it prints none). Ruken's exit codes become `PublishRejected` (1), `PublishUsage` (2),
+`PublishAuth` (3), `PublishTimeout` (4) and `PublishFailed` for any other.
 
 ```ts
 function publishToRuken(input: PublishInput): Effect.Effect<{
@@ -2025,7 +2099,8 @@ function rukenCliPath(moduleUrl?: string, exists?: (path: string) => boolean): s
 
 #### `rukenToml` (function)
 
-_No doc comment._
+The text of `ruken.toml` (Ruken manifest schema 1) for a ship config. The same config always gives the same
+text.
 
 ```ts
 function rukenToml(config: ShipConfig): string;
@@ -2071,7 +2146,7 @@ class SecretInBuild extends SecretInBuildBase {
 
 #### `SHIP_PACKAGE` (const)
 
-_No doc comment._
+The name this package is published under.
 
 ```ts
 const SHIP_PACKAGE = "@mcthaydt/automata-ship";
@@ -2114,7 +2189,9 @@ interface ShipInputBindings {
 
 #### `testRemote` (function)
 
-_No doc comment._
+Pushes the current branch, dispatches CI for it, waits and returns the run's URL and one `<result>\t<job>`
+line per job when it is green. Otherwise fails with a `TestRemoteFailed` whose `reason` says why (see
+`TestRemoteReason`).
 
 ```ts
 function testRemote(input: TestRemoteInput): Effect.Effect<{
@@ -2125,7 +2202,7 @@ function testRemote(input: TestRemoteInput): Effect.Effect<{
 
 #### `TestRemoteFailed` (class)
 
-_No doc comment._
+`test-remote` stopped without a green run; `reason` says why and `message` says what to do.
 
 ```ts
 class TestRemoteFailed extends TestRemoteFailedBase {}
@@ -2133,7 +2210,9 @@ class TestRemoteFailed extends TestRemoteFailedBase {}
 
 #### `TestRemoteInput` (interface)
 
-_No doc comment._
+What `testRemote` runs and how long it waits. The timing fields are for tests: the defaults suit a real
+run. `args` are the words after `test-remote`: nothing for the hosted checks, Playwright arguments for one
+focused run, or `--nightly`.
 
 ```ts
 interface TestRemoteInput {
@@ -2238,7 +2317,8 @@ interface Command {
 
 #### `CommandDef` (interface)
 
-_No doc comment._
+A command the sim accepts as input: an id and the Zod schema its payload must match. Create one with
+`defineCommand`.
 
 ```ts
 interface CommandDef<Z extends z.ZodType = z.ZodType> {
@@ -2250,7 +2330,8 @@ interface CommandDef<Z extends z.ZodType = z.ZodType> {
 
 #### `CommandRecord` (interface)
 
-_No doc comment._
+A command as a system reads it this tick: the player slot that sent it (`source`), its per-source `seq` and
+its parsed `payload`.
 
 ```ts
 interface CommandRecord<P> {
@@ -2262,7 +2343,8 @@ interface CommandRecord<P> {
 
 #### `ComponentDef` (interface)
 
-_No doc comment._
+A component: a stable id and a flat record of typed fields. Create one with `defineComponent`; game code
+addresses entity data through the definition, never through `trait`.
 
 ```ts
 interface ComponentDef<S extends FieldSchema = FieldSchema> {
@@ -2280,7 +2362,7 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 
 #### `createRng` (function)
 
-_No doc comment._
+A generator seeded from `seed` (through splitmix32): the same seed gives the same sequence in every engine.
 
 ```ts
 function createRng(seed: number): Rng;
@@ -2288,7 +2370,10 @@ function createRng(seed: number): Rng;
 
 #### `createSim` (function)
 
-_No doc comment._
+Creates a sim from its plugins, seed and content; async, because a plugin may create engine state (a Rapier
+world). Throws for a bad `tickHz`, a duplicate definition, an unknown plugin dependency or system ordering
+reference, an ordering cycle, a system name the sim reserves, or an invalid resource start. If a plugin's
+engine fails to start, the engines already created are disposed first.
 
 ```ts
 function createSim(opts: SimOptions): Promise<Sim>;
@@ -2304,7 +2389,8 @@ type Def = ComponentDef | CommandDef | EventDef | ResourceDef | SystemDef;
 
 #### `defineCommand` (function)
 
-_No doc comment._
+Defines a command by id and payload schema. Throws for an id that is not lower-case words separated by dots
+or dashes.
 
 ```ts
 function defineCommand<Z extends z.ZodType>(id: string, schema: Z): CommandDef<Z>;
@@ -2312,7 +2398,9 @@ function defineCommand<Z extends z.ZodType>(id: string, schema: Z): CommandDef<Z
 
 #### `defineComponent` (function)
 
-_No doc comment._
+Defines a component from an id (lower-case words separated by dots or dashes) and its fields by name and
+type. `render: false` keeps it out of the renderer's deltas. Throws for a bad id, no fields, a bad field
+name or an unknown field type.
 
 ```ts
 function defineComponent<S extends FieldSchema>(id: string, fields: S, opts?: {
@@ -2322,7 +2410,8 @@ function defineComponent<S extends FieldSchema>(id: string, fields: S, opts?: {
 
 #### `defineEvent` (function)
 
-_No doc comment._
+Defines an event by id and payload schema, to emit from a system with `ctx.emit`. Events come back in
+`StepResult.events`; `ctx.emit` throws for a payload that fails the schema.
 
 ```ts
 function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z>;
@@ -2330,7 +2419,10 @@ function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z>;
 
 #### `definePlugin` (function)
 
-_No doc comment._
+Defines a plugin from a name, its dependencies and its definitions, given in the keyed lists or in one flat
+`defs` list sorted by kind. A plugin written either way registers the same lists and gets the same schema
+hash. `config` is copied as canonical, frozen JSON, so anything that cannot hash exactly throws a
+`CanonicalJsonError` here.
 
 ```ts
 function definePlugin(spec: {
@@ -2350,7 +2442,8 @@ function definePlugin(spec: {
 
 #### `defineResource` (function)
 
-_No doc comment._
+Defines a resource by id, schema and starting value. `createSim` parses `init()` with the schema, so a bad
+start fails there.
 
 ```ts
 function defineResource<Z extends z.ZodType>(id: string, schema: Z, init: () => z.input<Z>): ResourceDef<Z>;
@@ -2392,7 +2485,7 @@ interface EntityRef {
 
 #### `EventDef` (interface)
 
-_No doc comment._
+An event a system emits: an id and the Zod schema its payload must match. Create one with `defineEvent`.
 
 ```ts
 interface EventDef<Z extends z.ZodType = z.ZodType> {
@@ -2404,7 +2497,7 @@ interface EventDef<Z extends z.ZodType = z.ZodType> {
 
 #### `FieldRecord` (type)
 
-_No doc comment._
+One component's field values on an entity, by field name.
 
 ```ts
 type FieldRecord = Record<string, number | boolean | string>;
@@ -2412,7 +2505,7 @@ type FieldRecord = Record<string, number | boolean | string>;
 
 #### `FieldSchema` (type)
 
-_No doc comment._
+A component's fields, by name.
 
 ```ts
 type FieldSchema = Readonly<Record<string, FieldType>>;
@@ -2420,7 +2513,8 @@ type FieldSchema = Readonly<Record<string, FieldType>>;
 
 #### `FieldType` (type)
 
-_No doc comment._
+A component field's type: `f32`, `f64`, `i32`, `u32`, `bool`, `entity` (a StableId, stored as a `u32`) or
+`string`.
 
 ```ts
 type FieldType = (typeof FIELD_TYPES)[number];
@@ -2428,7 +2522,8 @@ type FieldType = (typeof FIELD_TYPES)[number];
 
 #### `FieldValue` (type)
 
-_No doc comment._
+The JavaScript type a field holds: `boolean` for `bool`, `string` for `string`, `number` for every other
+type.
 
 ```ts
 type FieldValue<T extends FieldType> = T extends "bool" ? boolean : T extends "string" ? string : number;
@@ -2436,7 +2531,7 @@ type FieldValue<T extends FieldType> = T extends "bool" ? boolean : T extends "s
 
 #### `FieldValues` (type)
 
-_No doc comment._
+The writable record of values a `FieldSchema` describes.
 
 ```ts
 type FieldValues<S extends FieldSchema> = { -readonly [K in keyof S]: FieldValue<S[K]>; };
@@ -2452,7 +2547,7 @@ function hex64(value: bigint): string;
 
 #### `Phase` (type)
 
-_No doc comment._
+One of the six phases a tick runs through, in `PHASES` order.
 
 ```ts
 type Phase = (typeof PHASES)[number];
@@ -2468,7 +2563,9 @@ const PHASES: readonly ["input", "prePhysics", "physics", "postPhysics", "gamepl
 
 #### `PluginDef` (interface)
 
-_No doc comment._
+A bundle of definitions the sim registers together: components, commands, events, resources and systems,
+the plugins it depends on, and optionally per-sim engine state and `config`. Create one with
+`definePlugin`.
 
 ```ts
 interface PluginDef {
@@ -2536,7 +2633,7 @@ interface PreparedRestore {
 
 #### `RejectedCommand` (interface)
 
-_No doc comment._
+A command `step` dropped, with the reason.
 
 ```ts
 interface RejectedCommand {
@@ -2547,7 +2644,9 @@ interface RejectedCommand {
 
 #### `RejectReason` (type)
 
-_No doc comment._
+Why `step` dropped a command: `bad-header` (a field is missing or out of range), `unknown-command` (no
+plugin defines its type), `wrong-tick` (not the sim's current tick), `duplicate-seq` (the same source and
+seq twice in one step) or `invalid-payload` (it fails the command's schema).
 
 ```ts
 type RejectReason = "bad-header" | "unknown-command" | "wrong-tick" | "duplicate-seq" | "invalid-payload";
@@ -2581,7 +2680,8 @@ interface RenderRow {
 
 #### `ResourceDef` (interface)
 
-_No doc comment._
+A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting
+value. Create one with `defineResource`.
 
 ```ts
 interface ResourceDef<Z extends z.ZodType = z.ZodType> {
@@ -2594,7 +2694,8 @@ interface ResourceDef<Z extends z.ZodType = z.ZodType> {
 
 #### `Rng` (interface)
 
-_No doc comment._
+A deterministic generator (xoshiro128**, 32-bit integer math only, so it is bit-exact in every engine).
+Each system gets its own, seeded from the sim's seed and the system's name.
 
 ```ts
 interface Rng {
@@ -2611,7 +2712,7 @@ interface Rng {
 
 #### `RngState` (type)
 
-_No doc comment._
+The four 32-bit words of a generator's state, as `Rng.state()` copies them and snapshots store them.
 
 ```ts
 type RngState = [number, number, number, number];
@@ -2619,7 +2720,8 @@ type RngState = [number, number, number, number];
 
 #### `Sim` (interface)
 
-_No doc comment._
+A running simulation, stepped with commands, that can snapshot, restore and hash its state. `step` is the
+only way gameplay state changes. Create one with `createSim`, and `dispose` it when done.
 
 ```ts
 interface Sim {
@@ -2713,7 +2815,7 @@ class SimDisposedError extends Error {
 
 #### `SimEvent` (interface)
 
-_No doc comment._
+An event a system emitted during a step: the event's id as `type`, and its parsed `payload`.
 
 ```ts
 interface SimEvent {
@@ -2737,7 +2839,8 @@ class SimFaultedError extends Error {
 
 #### `SimOptions` (interface)
 
-_No doc comment._
+What `createSim` takes: the root `seed`, the `plugins`, `tickHz` (an integer from 1 to 1000, default 60)
+and the `content` the systems read as `ctx.content` (default `{}`).
 
 ```ts
 interface SimOptions {
@@ -2750,7 +2853,8 @@ interface SimOptions {
 
 #### `SNAPSHOT_VERSION` (const)
 
-_No doc comment._
+The snapshot format version this build reads and writes; a snapshot of another version fails with
+`SnapshotFormatError`.
 
 ```ts
 const SNAPSHOT_VERSION = 1;
@@ -2758,7 +2862,8 @@ const SNAPSHOT_VERSION = 1;
 
 #### `SnapshotFormatError` (class)
 
-_No doc comment._
+Snapshot bytes that are not a valid snapshot of this format version: bad magic, an unsupported version,
+truncated or malformed sections.
 
 ```ts
 class SnapshotFormatError extends Error {
@@ -2768,7 +2873,8 @@ class SnapshotFormatError extends Error {
 
 #### `SnapshotMismatchError` (class)
 
-_No doc comment._
+A valid snapshot that belongs to another sim: `field` names the header value that differs (`schemaHash`,
+`contentHash` or `tickHz`), with this sim's `expected` value and the snapshot's `actual` one.
 
 ```ts
 class SnapshotMismatchError extends Error {
@@ -2837,7 +2943,8 @@ type SpawnPart = ComponentDef | readonly [ComponentDef, Readonly<Record<string, 
 
 #### `StepResult` (interface)
 
-_No doc comment._
+What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were
+rejected.
 
 ```ts
 interface StepResult {
@@ -2852,7 +2959,8 @@ interface StepResult {
 
 #### `SystemDef` (interface)
 
-_No doc comment._
+A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and
+its `run`, called once per tick. Create one with `defineSystem`.
 
 ```ts
 interface SystemDef {
@@ -2929,7 +3037,7 @@ function xxhash64(data: Uint8Array, seed?: bigint): bigint;
 
 #### `atan` (function)
 
-_No doc comment._
+Deterministic arctangent. NaN stays NaN; `-0` stays `-0`.
 
 ```ts
 function atan(x0: number): number;
@@ -2945,7 +3053,7 @@ function atan2(y: number, x: number): number;
 
 #### `cos` (function)
 
-_No doc comment._
+Deterministic cosine, in radians. NaN for a non-finite input.
 
 ```ts
 function cos(x: number): number;
@@ -2953,7 +3061,7 @@ function cos(x: number): number;
 
 #### `exp` (function)
 
-_No doc comment._
+Deterministic `e` to the power `x`. Infinity above about 709.78, 0 below about -745.13.
 
 ```ts
 function exp(x: number): number;
@@ -2969,7 +3077,7 @@ function hypot(x: number, y: number): number;
 
 #### `log` (function)
 
-_No doc comment._
+Deterministic natural logarithm. NaN for a negative input, `-Infinity` for 0.
 
 ```ts
 function log(x0: number): number;
@@ -2977,7 +3085,8 @@ function log(x0: number): number;
 
 #### `pow` (function)
 
-_No doc comment._
+Deterministic `x` to the power `y`. An integer `y` of 64 or less in magnitude multiplies exactly; otherwise
+it is `exp(y * log(x))`, and a negative `x` with a non-integer `y` is NaN.
 
 ```ts
 function pow(x: number, y: number): number;
@@ -2985,7 +3094,7 @@ function pow(x: number, y: number): number;
 
 #### `sin` (function)
 
-_No doc comment._
+Deterministic sine, in radians. NaN for a non-finite input; `-0` stays `-0`.
 
 ```ts
 function sin(x: number): number;
@@ -2993,7 +3102,7 @@ function sin(x: number): number;
 
 #### `tan` (function)
 
-_No doc comment._
+Deterministic tangent, in radians, as `sin(x) / cos(x)`.
 
 ```ts
 function tan(x: number): number;
@@ -3003,7 +3112,8 @@ function tan(x: number): number;
 
 #### `createRecorder` (function)
 
-_No doc comment._
+Starts recording `sim` from its current state, for the recorder's `step` to extend. Throws
+`ReplayRecordError` for a `checkEvery` or `snapshotEvery` that is not an integer of at least 1.
 
 ```ts
 function createRecorder(sim: Sim, options?: RecorderOptions): Recorder;
@@ -3011,7 +3121,10 @@ function createRecorder(sim: Sim, options?: RecorderOptions): Recorder;
 
 #### `createReplayStepper` (function)
 
-_No doc comment._
+Creates a stepper over `replay`: a fresh sim built from the replay's seed and tick rate, restored from its
+start snapshot. Throws `SnapshotMismatchError` when the start snapshot belongs to another schema or
+content, `SnapshotFormatError` when it is malformed, and `ReplayFormatError` when the header disagrees with
+the start snapshot it describes; the sim it created is disposed first.
 
 ```ts
 function createReplayStepper(replay: Replay, setup: ReplayStepSetup): Promise<ReplayStepper>;
@@ -3019,7 +3132,8 @@ function createReplayStepper(replay: Replay, setup: ReplayStepSetup): Promise<Re
 
 #### `decodeReplay` (function)
 
-_No doc comment._
+Decodes `.replay` bytes (already inflated) into a `Replay`. Throws `ReplayFormatError`, with the byte
+offset when known, for anything that is not a valid replay.
 
 ```ts
 function decodeReplay(bytes: Uint8Array): Replay;
@@ -3027,7 +3141,7 @@ function decodeReplay(bytes: Uint8Array): Replay;
 
 #### `DEFAULT_CHECK_EVERY` (const)
 
-_No doc comment._
+How often, in ticks, a recording stores a check hash when `RecorderOptions.checkEvery` is not given.
 
 ```ts
 const DEFAULT_CHECK_EVERY = 60;
@@ -3035,7 +3149,8 @@ const DEFAULT_CHECK_EVERY = 60;
 
 #### `encodeReplay` (function)
 
-_No doc comment._
+Encodes a replay as `.replay` bytes before deflate. The same run encodes to the same bytes in every engine.
+Throws `ReplayFormatError` for a replay that cannot be encoded.
 
 ```ts
 function encodeReplay(replay: Replay): Uint8Array;
@@ -3043,7 +3158,7 @@ function encodeReplay(replay: Replay): Uint8Array;
 
 #### `packReplay` (function)
 
-_No doc comment._
+Encodes a replay and deflates it into `.replay` file bytes.
 
 ```ts
 function packReplay(replay: Replay, compression: ReplayCompression): Promise<Uint8Array>;
@@ -3051,7 +3166,8 @@ function packReplay(replay: Replay, compression: ReplayCompression): Promise<Uin
 
 #### `Recorder` (interface)
 
-_No doc comment._
+Steps a sim and records the run as a `Replay`. Nothing else may step the sim while it records; the recorder
+refuses to continue if something did.
 
 ```ts
 interface Recorder {
@@ -3064,7 +3180,8 @@ interface Recorder {
 
 #### `RecorderOptions` (interface)
 
-_No doc comment._
+What a recording takes: how often to store a check hash, whether to keep a reference hash and snapshots
+(goldens), and free-form `meta`.
 
 ```ts
 interface RecorderOptions {
@@ -3080,7 +3197,8 @@ interface RecorderOptions {
 
 #### `Replay` (interface)
 
-_No doc comment._
+A recorded run: its header, the start snapshot, the accepted commands by tick, check hashes along the way
+and the final tick and hash. Replaying it must reproduce every hash.
 
 ```ts
 interface Replay {
@@ -3113,7 +3231,7 @@ interface Replay {
 
 #### `REPLAY_FORMAT` (const)
 
-_No doc comment._
+The `.replay` format version this build reads and writes.
 
 ```ts
 const REPLAY_FORMAT = 1;
@@ -3138,7 +3256,9 @@ const REPLAY_MAX_TICKS: number;
 
 #### `ReplayCheck` (interface)
 
-_No doc comment._
+A hash check at a tick: the hash the replay recorded (`expected`) and the hash the re-simulated sim has
+(`actual`). A recorded command the sim now rejects reports as `expected: 'accepted'` with the rejection
+reason as `actual`.
 
 ```ts
 interface ReplayCheck {
@@ -3149,7 +3269,8 @@ interface ReplayCheck {
 
 #### `ReplayCommand` (interface)
 
-_No doc comment._
+A command as a replay stores it: the sim's `Command` without its tick, which the replay's `ticks` entry
+carries.
 
 ```ts
 interface ReplayCommand {
@@ -3162,7 +3283,8 @@ interface ReplayCommand {
 
 #### `ReplayCompression` (interface)
 
-_No doc comment._
+The deflate and inflate a `.replay` file needs. The sim imports no compression library, so callers pass an
+adapter (testing/sim has one for Node and one for browsers).
 
 ```ts
 interface ReplayCompression {
@@ -3185,7 +3307,8 @@ class ReplayFormatError extends Error {
 
 #### `ReplayHeader` (interface)
 
-_No doc comment._
+The facts a replay needs before it plays: tick rate, seed, the schema and content hashes it was recorded
+against, where it starts and how often it checks.
 
 ```ts
 interface ReplayHeader {
@@ -3215,7 +3338,8 @@ class ReplayRecordError extends Error {
 
 #### `ReplayStepper` (interface)
 
-_No doc comment._
+A replay playing back one tick at a time on its own sim. Create one with `createReplayStepper`, and
+`dispose` it when done.
 
 ```ts
 interface ReplayStepper {
@@ -3242,7 +3366,7 @@ interface ReplayStepper {
 
 #### `ReplayStepSetup` (interface)
 
-_No doc comment._
+What a stepper needs to rebuild the recorded sim: the same `plugins` and `content` the recording sim had.
 
 ```ts
 interface ReplayStepSetup {
@@ -3254,7 +3378,8 @@ interface ReplayStepSetup {
 
 #### `unpackReplay` (function)
 
-_No doc comment._
+Inflates `.replay` file bytes and decodes them. Throws `ReplayFormatError` for bytes that are not a
+deflated replay or that inflate past `maxInflatedBytes` (default `REPLAY_INFLATE_MAX_BYTES`).
 
 ```ts
 function unpackReplay(bytes: Uint8Array, compression: ReplayCompression, options?: {
@@ -3276,7 +3401,8 @@ function documentScrolls(doc: Document): string[];
 
 #### `FakeResizeObserver` (interface)
 
-_No doc comment._
+Controls the fake `ResizeObserver` `installFakeResizeObserver` put in place: report a width to every
+observer, then restore the original.
 
 ```ts
 interface FakeResizeObserver {
@@ -3288,7 +3414,8 @@ interface FakeResizeObserver {
 
 #### `fakeViewportWindow` (function)
 
-_No doc comment._
+A fake window of the given size. Its `screen` defaults to that size and its `navigator` names no browser.
+Resizing and the keyboard fire `resize` on the window and the visual viewport, as a browser does.
 
 ```ts
 function fakeViewportWindow(size: {
@@ -3306,7 +3433,8 @@ function fakeViewportWindow(size: {
 
 #### `FakeViewportWindow` (interface)
 
-_No doc comment._
+A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual
+viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
 
 ```ts
 interface FakeViewportWindow {
@@ -3334,7 +3462,8 @@ interface FakeViewportWindow {
 
 #### `FakeVisualViewport` (interface)
 
-_No doc comment._
+The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and
+listeners for `resize`.
 
 ```ts
 interface FakeVisualViewport {
@@ -3416,7 +3545,8 @@ function hostDisplay(options?: {
 
 #### `installFakeResizeObserver` (function)
 
-_No doc comment._
+Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components
+measured under jsdom, which has no layout. Call `restore` when the test ends.
 
 ```ts
 function installFakeResizeObserver(): FakeResizeObserver;
@@ -3444,7 +3574,7 @@ interface LayoutRect {
 
 #### `MountedFixture` (interface)
 
-_No doc comment._
+A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
 
 ```ts
 interface MountedFixture {
@@ -3456,7 +3586,8 @@ interface MountedFixture {
 
 #### `mountFixture` (function)
 
-_No doc comment._
+Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first
+render is finished. Mounts into `target`, or into a new `div` in `document.body`, which `unmount` removes.
 
 ```ts
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
@@ -3464,7 +3595,8 @@ function mountFixture<Props extends Record<string, unknown>>(component: Componen
 
 #### `REFERENCE_SIZES` (const)
 
-_No doc comment._
+The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every
+breakpoint and the tightest sizes, each with the classification it should get.
 
 ```ts
 const REFERENCE_SIZES: readonly ReferenceSize[];
@@ -3488,7 +3620,8 @@ type ReferenceHeightTier = "short" | "compact" | undefined;
 
 #### `ReferenceSize` (interface)
 
-_No doc comment._
+One viewport every primitive and screen is checked at: a name, its size, and the form factor and height
+tier it must classify as.
 
 ```ts
 interface ReferenceSize {
@@ -3543,7 +3676,8 @@ interface Variant {
 
 #### `VARIANTS` (const)
 
-_No doc comment._
+The conditions each size is also checked under: at rest, with the on-screen keyboard open, with Ruken's
+reserved strip on the right or the left, and at its TV scale.
 
 ```ts
 const VARIANTS: readonly Variant[];
@@ -3791,7 +3925,8 @@ interface FakeGamepads {
 
 #### `Difference` (interface)
 
-_No doc comment._
+One difference between two snapshot views: its kind, where it is (`entity 4 bounce.ball.vx`), the entity's
+sid when it is an entity, and both values as printed.
 
 ```ts
 interface Difference {
@@ -3807,7 +3942,9 @@ interface Difference {
 
 #### `diffSnapshotViews` (function)
 
-_No doc comment._
+Every difference between an expected and an actual snapshot view, field by field, in a fixed order (header,
+rng, resources, next id, entities, plugin bytes) so a report reads the same in every engine. Empty when
+they are equal.
 
 ```ts
 function diffSnapshotViews(expected: SnapshotView, actual: SnapshotView): Difference[];
@@ -3823,7 +3960,7 @@ function expectGolden(report: GoldenReport): void;
 
 #### `formatGoldenReport` (function)
 
-_No doc comment._
+One report as text: a line for most outcomes, and for a divergence the tick and up to 20 differences.
 
 ```ts
 function formatGoldenReport(report: GoldenReport): string;
@@ -3839,7 +3976,9 @@ const GOLDEN_MAX_PACKED_BYTES: number;
 
 #### `goldenCommands` (function)
 
-_No doc comment._
+The Vitest browser commands that let golden tests read golden files in a browser: register them with
+`browser: { commands: goldenCommands() }`. Only `.golden.json` and `.replay` files inside the project root
+can be read, and nothing can be written.
 
 ```ts
 function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
@@ -3847,7 +3986,8 @@ function goldenCommands(options?: GoldenCommandsOptions): Record<string, Browser
 
 #### `GoldenReport` (type)
 
-_No doc comment._
+What a golden check found: `pass`, `written`, `missing`, `schema-changed`, `content-changed`,
+`setup-changed` or `diverged` (with the first differing tick and the fields that differ).
 
 ```ts
 type GoldenReport = {
@@ -3893,7 +4033,10 @@ const nodeCompression: ReplayCompression;
 
 #### `replayGolden` (function)
 
-_No doc comment._
+Replays a golden `.replay` against the current sim and reports whether it still matches. With reference
+data a divergence names the exact tick and every field that differs. With `AUTOMATA_UPDATE_GOLDENS=1` in
+Node and a `record` option it records the file first, then checks what it wrote. A mismatch is a report, not
+a throw: pass it to `expectGolden`.
 
 ```ts
 function replayGolden(options: ReplayGoldenOptions): Promise<GoldenReport>;
@@ -3901,7 +4044,8 @@ function replayGolden(options: ReplayGoldenOptions): Promise<GoldenReport>;
 
 #### `ReplayGoldenOptions` (interface)
 
-_No doc comment._
+What `replayGolden` checks: the `.replay` file, the plugins and content to replay it with, and how to
+record it when updating goldens.
 
 ```ts
 interface ReplayGoldenOptions {
@@ -3923,7 +4067,8 @@ interface ReplayGoldenOptions {
 
 #### `RoundTripFailure` (interface)
 
-_No doc comment._
+One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore
+tick, variant and a report of what differed.
 
 ```ts
 interface RoundTripFailure {
@@ -3938,7 +4083,8 @@ interface RoundTripFailure {
 
 #### `RoundTripOptions` (interface)
 
-_No doc comment._
+What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of
+what length to try.
 
 ```ts
 interface RoundTripOptions {
@@ -3959,7 +4105,7 @@ interface RoundTripOptions {
 
 #### `RoundTripVariant` (type)
 
-_No doc comment._
+How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
 
 ```ts
 type RoundTripVariant = "fresh" | "dirty";
@@ -3967,7 +4113,9 @@ type RoundTripVariant = "fresh" | "dirty";
 
 #### `simGolden` (function)
 
-_No doc comment._
+Plays a scripted run and compares the sim's hash every `every` ticks with the golden JSON file, reporting
+the first recorded tick that differs. With `AUTOMATA_UPDATE_GOLDENS=1` in Node it records the file. Throws
+for an `every` that is not an integer of 1 or more; a mismatch is a report, not a throw.
 
 ```ts
 function simGolden(options: SimGoldenOptions): Promise<GoldenReport>;
@@ -3975,7 +4123,8 @@ function simGolden(options: SimGoldenOptions): Promise<GoldenReport>;
 
 #### `SimGoldenOptions` (interface)
 
-_No doc comment._
+What `simGolden` runs: the plugins, content, seed and scripted commands to play for `ticks` ticks, where
+the golden JSON lives, and how often to record a hash.
 
 ```ts
 interface SimGoldenOptions {
@@ -3997,7 +4146,9 @@ interface SimGoldenOptions {
 
 #### `snapshotRoundTripProperty` (function)
 
-_No doc comment._
+Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and
+restore points, alternating fresh and dirty restores. Returns `{ failures }`; an empty list means the
+property held.
 
 ```ts
 function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
@@ -4017,7 +4168,9 @@ const streamCompression: ReplayCompression;
 
 #### `goldenCommands` (function)
 
-_No doc comment._
+The Vitest browser commands that let golden tests read golden files in a browser: register them with
+`browser: { commands: goldenCommands() }`. Only `.golden.json` and `.replay` files inside the project root
+can be read, and nothing can be written.
 
 ```ts
 function goldenCommands(options?: GoldenCommandsOptions): Record<string, BrowserCommand<[path: string], Promise<string | null>>>;
@@ -4041,7 +4194,8 @@ interface GoldenCommandsOptions {
 
 #### `RoundTripFailure` (interface)
 
-_No doc comment._
+One case whose restored run differed from the uninterrupted one: its number, sim seed, length, restore
+tick, variant and a report of what differed.
 
 ```ts
 interface RoundTripFailure {
@@ -4056,7 +4210,8 @@ interface RoundTripFailure {
 
 #### `RoundTripOptions` (interface)
 
-_No doc comment._
+What `snapshotRoundTripProperty` runs: the plugins, content and a command script, and how many cases of
+what length to try.
 
 ```ts
 interface RoundTripOptions {
@@ -4077,7 +4232,7 @@ interface RoundTripOptions {
 
 #### `RoundTripVariant` (type)
 
-_No doc comment._
+How a case restores: into a `fresh` sim, or into one that has `dirty` (stepped on past the snapshot).
 
 ```ts
 type RoundTripVariant = "fresh" | "dirty";
@@ -4085,7 +4240,9 @@ type RoundTripVariant = "fresh" | "dirty";
 
 #### `snapshotRoundTripProperty` (function)
 
-_No doc comment._
+Checks that snapshot, restore and continue equals an uninterrupted run, over many seeds, run lengths and
+restore points, alternating fresh and dirty restores. Returns `{ failures }`; an empty list means the
+property held.
 
 ```ts
 function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
@@ -4099,7 +4256,13 @@ function snapshotRoundTripProperty(options: RoundTripOptions): Promise<{
 
 #### `ActionBar` (const)
 
-_No doc comment._
+One row of actions that collapses as its container narrows (M1.6 spec §3.4; from FloorFifty
+`ui/layout/ActionBar.svelte` at 122a220).
+
+It gives way in a fixed order as its container narrows (`collapseLevel`): utilities to their icon,
+then secondaries to their short label, and only then a wrap with the primary on its own row.
+Three hidden, inert copies of the row ([data-measure]) report how wide it would be at each level,
+so the choice is measured rather than guessed from breakpoints.
 
 ```ts
 const ActionBar: import("svelte").Component<Props, {}, "">;
@@ -4225,7 +4388,8 @@ interface AudioValue {
 
 #### `BarAction` (interface)
 
-_No doc comment._
+One action in an `ActionBar`: an id, a label and a kind (`primary`, `secondary` or `utility`), what it does
+when selected, and optionally a short label, an icon, a disabled state and a pressed state.
 
 ```ts
 interface BarAction {
@@ -4275,7 +4439,8 @@ const BOOT_FAILURE_COPY_EN: BootFailureCopy;
 
 #### `bootDeviceClass` (function)
 
-_No doc comment._
+The device class at boot, read from the window's pointer and screen; `desktop` when the window cannot
+answer.
 
 ```ts
 function bootDeviceClass(win?: Window): DeviceClass;
@@ -4283,7 +4448,8 @@ function bootDeviceClass(win?: Window): DeviceClass;
 
 #### `BootFailure` (type)
 
-_No doc comment._
+The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never
+imports the runtime.
 
 ```ts
 type BootFailure = {
@@ -4322,7 +4488,8 @@ type BootFailureAction = 'retry' | 'continue' | 'exit';
 
 #### `BootFailureCopy` (type)
 
-_No doc comment._
+The words for every boot failure state and action, by name. `BOOT_FAILURE_COPY_EN` holds the English
+defaults.
 
 ```ts
 type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>;
@@ -4330,7 +4497,9 @@ type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, str
 
 #### `BootFailurePanel` (const)
 
-_No doc comment._
+The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the
+failure's copy and its ways forward. The runtime passes its `BootError` and the handlers; this
+component decides nothing beyond `bootFailureView`.
 
 ```ts
 const BootFailurePanel: import("svelte").Component<Props, {}, "">;
@@ -4339,7 +4508,8 @@ type BootFailurePanel = ReturnType<typeof BootFailurePanel>;
 
 #### `BootFailureState` (type)
 
-_No doc comment._
+What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or
+`unsupported`.
 
 ```ts
 type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported';
@@ -4366,7 +4536,8 @@ function bootFailureView(failure: BootFailure, hostKind: HostKind): BootFailureV
 
 #### `BootFailureViewModel` (interface)
 
-_No doc comment._
+What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order. No actions
+means the panel is final.
 
 ```ts
 interface BootFailureViewModel {
@@ -4400,7 +4571,8 @@ type Chip = ReturnType<typeof Chip>;
 
 #### `classifyDevice` (function)
 
-_No doc comment._
+A fine primary pointer is a `desktop`; a coarse one is a `phone` when the screen's shorter side is under
+600 px, otherwise a `tablet`.
 
 ```ts
 function classifyDevice(input: {
@@ -4412,7 +4584,9 @@ function classifyDevice(input: {
 
 #### `classifyFormFactor` (function)
 
-_No doc comment._
+The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other
+portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise
+`desktop`. A square viewport is landscape.
 
 ```ts
 function classifyFormFactor(width: number, height: number): FormFactor;
@@ -4420,7 +4594,8 @@ function classifyFormFactor(width: number, height: number): FormFactor;
 
 #### `classifyHeightTier` (function)
 
-_No doc comment._
+The height tier of a layout height in CSS px: `compact` below 340, `short` up to 600, otherwise
+`undefined`.
 
 ```ts
 function classifyHeightTier(height: number): HeightTier;
@@ -4428,7 +4603,8 @@ function classifyHeightTier(height: number): HeightTier;
 
 #### `CollapseLevel` (type)
 
-_No doc comment._
+How far an action bar has collapsed: 0 every label in full, 1 utilities as icons, 2 secondaries on their
+short labels, 3 wrapped with the primary on its own row.
 
 ```ts
 type CollapseLevel = 0 | 1 | 2 | 3;
@@ -4551,7 +4727,10 @@ type ControlsTouchMode = 'buttons' | 'swipe';
 
 #### `CornerControls` (const)
 
-_No doc comment._
+Back at the start, the game's own corner controls (Mute, a language flag) at the end, in the
+same row on every screen (M1.6 spec §3.4; from FloorFifty `ui/layout/CornerControls.svelte` at
+122a220). A screen does not render its own. `header` sits between them in the same row, on the
+screen's centre line, so a short screen spends no row of its own on it.
 
 ```ts
 const CornerControls: import("svelte").Component<Props, {}, "">;
@@ -4560,7 +4739,9 @@ type CornerControls = ReturnType<typeof CornerControls>;
 
 #### `createGeometryOwner` (function)
 
-_No doc comment._
+Creates the geometry owner of a document, the only writer of its geometry: make one per document. It measures
+at once, on every resize of the window or the visual viewport, and again at 100, 400 and 1000 ms as bars and
+the keyboard settle, and publishes each measure on the root.
 
 ```ts
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
@@ -4620,7 +4801,7 @@ class CursorRunner {
 
 #### `DeviceClass` (type)
 
-_No doc comment._
+The kind of device the player holds: `phone`, `tablet` or `desktop`, decided once at boot.
 
 ```ts
 type DeviceClass = 'phone' | 'tablet' | 'desktop';
@@ -4628,7 +4809,25 @@ type DeviceClass = 'phone' | 'tablet' | 'desktop';
 
 #### `Dialog` (const)
 
-_No doc comment._
+A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken
+`packages/ui/src/Dialog.svelte` at b30d31b). The screen renders it only while it is open
+(`{#if open}<Dialog>`) and decides what each action does; `onclose` is what Escape means, and it
+should mean the safe choice.
+
+Keyboard and focus (the rules live in `modal-scope.ts`, which Modal and Sheet share):
+- Initial focus goes to the control marked `data-initial-focus` (the safe action), else the
+  first control, else the dialog itself.
+- Tab and Shift+Tab wrap inside the dialog, and focus that lands outside it is pulled back in.
+  The scrim covers the page, so a pointer cannot reach out either.
+- When the dialog goes away, focus returns to whatever had it before the dialog opened.
+- Escape calls `onclose`. The focus navigator's Back arrives as Escape, so a controller closes
+  it the same way. With dialogs stacked, only the topmost answers Escape and holds focus.
+- While it is open the page behind it is `inert` (every sibling of the dialog and of each of its
+  ancestors up to the body), so assistive technology and the browser cannot reach it either.
+
+Layout: a sheet on the bottom edge on a phone, centred otherwise; always inside the insets and
+above the keyboard. Its body is a declared scroll region, so on a 780 x 270 screen the actions
+stay reachable however long the text is.
 
 ```ts
 const Dialog: import("svelte").Component<Props, {}, "">;
@@ -4718,7 +4917,20 @@ type ErrorCode = RukenError['code'];
 
 #### `ErrorPanel` (const)
 
-_No doc comment._
+A failure, and what the player can do about it (M1.6 spec §3.4; from FloorFifty
+`ui/components/ErrorPanel.svelte` at 122a220).
+
+`role="alert"` rather than `role="status"`, because this interrupts: the player usually just
+pressed something and needs to know it did not work. The panel is opaque, because a failure is
+often the thing that means the artwork did not arrive. It sits at the top of the visible region,
+under the corner row, so it never covers the way out of the screen it reports on, and its layer
+passes taps through everywhere but the panel.
+
+Where the room is short (a long message, a keyboard), the panel gives up space in this order:
+first the message, which scrolls, down to one visible line; only then the gap that keeps it under
+the corner row, so it rises over Back only when its actions cannot fit any other way. A final
+panel has no actions and is the screen's last word, so it never rises: Back is its way out. The
+actions sit outside the scrolling part and never shrink (framework audit of #7).
 
 ```ts
 const ErrorPanel: import("svelte").Component<Props, {}, "">;
@@ -4743,7 +4955,9 @@ function fitShape(most: GridShape, box: GridBox, minTile: number, gap: number): 
 
 #### `FocusNavigator` (class)
 
-_No doc comment._
+Moves focus the way a d-pad would: `move` walks Tab order, `steer` walks a `[data-focus-grid]` spatially,
+`page` offers a page turn, and `recover` puts focus back on the first control when a screen change dropped
+it. `attach` listens for the player's own pointer and keys, so the navigator steps back from them.
 
 ```ts
 class FocusNavigator {
@@ -4832,7 +5046,8 @@ type FullscreenSupport = FullscreenRes['support'];
 
 #### `GateInputs` (type)
 
-_No doc comment._
+What `landscapeGate` decides from: the form factor, whether the pointer is coarse, the browser's fullscreen
+support and state, and whether the page is installed as an app.
 
 ```ts
 type GateInputs = {
@@ -4848,7 +5063,8 @@ type GateInputs = {
 
 #### `Geometry` (interface)
 
-_No doc comment._
+The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the
+usable and visible regions, what covers the page's foot, and the host's scale hint.
 
 ```ts
 interface Geometry {
@@ -4880,7 +5096,8 @@ interface Geometry {
 
 #### `GeometryInput` (interface)
 
-_No doc comment._
+What `measureGeometry` reads: the layout viewport, the visual viewport, the safe-area insets, the host's
+display metrics, a hidden bar's height and the layout before a keyboard shrank it.
 
 ```ts
 interface GeometryInput {
@@ -4915,7 +5132,8 @@ interface GeometryInput {
 
 #### `GeometryOwner` (interface)
 
-_No doc comment._
+The one geometry owner of a document: `geometry.current` for components, `onChange` for script,
+`setHostDisplay`, `remeasure` and `dispose`.
 
 ```ts
 interface GeometryOwner {
@@ -4932,7 +5150,8 @@ interface GeometryOwner {
 
 #### `GeometryOwnerOptions` (interface)
 
-_No doc comment._
+What `createGeometryOwner` needs: the window to read and the root to publish on, and optionally the host's
+display, timers and a safe-area reader.
 
 ```ts
 interface GeometryOwnerOptions {
@@ -5007,7 +5226,9 @@ type HeightTier = 'short' | 'compact' | undefined;
 
 #### `HiddenBrowserBar` (class)
 
-_No doc comment._
+Recognises a browser bar the browser has stopped reporting (DuckDuckGo for Android's bottom bar) and
+measures how much of the page's foot it covers. It keeps state: it learns the largest settled
+screen-to-page gap for each orientation.
 
 ```ts
 class HiddenBrowserBar {
@@ -5085,7 +5306,9 @@ type InputMethod = 'keyboard' | 'gamepad' | 'touch';
 
 #### `InputMethodTracker` (class)
 
-_No doc comment._
+Tracks the input method the player used last (`keyboard`, `gamepad` or `touch`) as rune state in `method`.
+`attach` listens for key presses and touch or pen presses, counting a controller's Back (which arrives as
+Escape) as the controller; `note` records one by hand.
 
 ```ts
 class InputMethodTracker {
@@ -5167,7 +5390,9 @@ function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
 
 #### `landscapeGate` (function)
 
-_No doc comment._
+What a phone held sideways must do: `none`, `fullscreen` (one tap to go fullscreen) or `rotate-or-install`
+(turn upright or add to the Home Screen). Only a coarse-pointer phone in landscape that is not installed is
+ever gated.
 
 ```ts
 function landscapeGate(inputs: GateInputs): LandscapeGateState;
@@ -5300,7 +5525,11 @@ type LeaderboardView = {
 
 #### `LoaderOverlay` (const)
 
-_No doc comment._
+The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty
+`ui/components/LoaderOverlay.svelte` at 122a220). It shows real progress when the runtime has it
+and an indeterminate bar before the first byte, says what is loading in words, and after the
+runtime's slow threshold says quietly that it is slow, not failing. The slow line always holds
+its height, so nothing shifts when it appears.
 
 ```ts
 const LoaderOverlay: import("svelte").Component<Props, {}, "">;
@@ -5319,7 +5548,9 @@ function lockOverscroll(node: HTMLElement): {
 
 #### `measureGeometry` (function)
 
-_No doc comment._
+Turns what the browser and the host report into one `Geometry`. Pure. Each inset is the largest of the
+browser's safe area, the host's and (at the sides) the host's reserved strip; the visible region is the
+usable one less whatever covers the page's foot.
 
 ```ts
 function measureGeometry(input: GeometryInput): Geometry;
@@ -5370,7 +5601,7 @@ interface ModalProps {
 
 #### `NavDirection` (type)
 
-_No doc comment._
+A direction a d-pad or an arrow key walks a menu.
 
 ```ts
 type NavDirection = 'up' | 'down' | 'left' | 'right';
@@ -5721,7 +5952,7 @@ type RebindDevice = 'keyboard' | 'gamepad';
 
 #### `Rect` (interface)
 
-_No doc comment._
+A rectangle in CSS px: its top-left corner and its size.
 
 ```ts
 interface Rect {
@@ -5828,7 +6059,18 @@ interface RotateToastCopy {
 
 #### `ScreenFrame` (const)
 
-_No doc comment._
+Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from
+FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
+
+It fills the visible region: the layout viewport less the insets the geometry owner publishes
+(safe area and Ruken's reserved strip), ending above whatever the browser lays over the page's
+foot (the keyboard). Its first row is the corner controls, in flow, so they never sit over the
+content. Below that it arranges a hero and a body:
+  stack: hero above body; the hero takes what the body leaves, so on a short screen the hero
+         shrinks first and never pushes the body off the screen;
+  split: hero and body side by side.
+The screen root picks the arrangement from the form factor and height tier; nothing inside the
+frame branches on either. The body is the `af-screen` size container its contents query.
 
 ```ts
 const ScreenFrame: import("svelte").Component<Props, {}, "">;
@@ -5845,7 +6087,15 @@ type ScreenKind = 'menu' | 'gameplay';
 
 #### `ScrollList` (const)
 
-_No doc comment._
+A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
+
+It reserves `min(minRows, rowCount)` rows of `--af-row-h` as its minimum height, so on a short
+screen its siblings shrink before a row is lost. The reserve is capped at the height its parent
+gives it: where even that cannot hold the rows (TV scale on a compact phone) the list keeps what
+fits and scrolls the rest inside its own box, rather than painting over the controls below it. For that to work its parent must give it a
+`1fr` grid row or `flex: 1 1 auto`, never `minmax(0, 1fr)`, which ignores an item's minimum.
+Rows mark themselves `data-row`. It is a declared scroll region (`data-scroll-region`): the layout
+contracts allow controls to be off screen only inside one.
 
 ```ts
 const ScrollList: import("svelte").Component<Props, {}, "">;
@@ -5972,7 +6222,9 @@ type Sleeper = {
 
 #### `sleepWhenHidden` (function)
 
-_No doc comment._
+Puts a game's sound to sleep while its page is hidden and wakes it when the page shows again; a pointer,
+touch or key gesture also asks sound the system suspended to resume. A window that only loses focus stays
+awake. Returns a function that removes the listeners.
 
 ```ts
 function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => void;
@@ -6286,7 +6538,7 @@ type UiComponent = Component<Record<string, never>>;
 
 #### `UiSlotName` (type)
 
-_No doc comment._
+The name of a place an extension may add UI: one of `UI_SLOT_NAMES`.
 
 ```ts
 type UiSlotName = (typeof UI_SLOT_NAMES)[number];
@@ -6397,7 +6649,8 @@ function checkLayout(conditions: Conditions, essentials: readonly Element[]): st
 
 #### `Conditions` (interface)
 
-_No doc comment._
+The conditions a layout test runs under: the geometry published for a size and variant, and the regions
+that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 
 ```ts
 interface Conditions {

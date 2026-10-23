@@ -4,12 +4,19 @@
 //   rebinding one saves it through the host and play reads it at once; a key taken from another action leaves
 //   that one "Unbound"; Escape cancels a capture. A reload keeps the player's keys.
 // Controls: the arrows move, Space jumps, F fires; Escape or P to pause, then the gear for Settings
-// Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, zod
+// Packages: @mcthaydt/automata, zod
 // Difficulty: ★★☆☆
 // Tier: core
 // Golden: 120
-import { defineGame, keys, rect } from '@mcthaydt/automata-game'
-import { defineCommand, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+import {
+  defineCommand,
+  defineComponent,
+  defineGame,
+  definePlugin,
+  defineSystem,
+  keys,
+  rect,
+} from '@mcthaydt/automata'
 import { z } from 'zod'
 
 const Runner = defineComponent('runner', { x: 'f32', y: 'f32', flash: 'f32' })

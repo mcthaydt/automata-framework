@@ -1,0 +1,24 @@
+// The Last Light blockout as a level profile: the codec, the geometry of the sectors its expansion gives (with the nav
+// world its clearance queries read), and Last Light's own checks.
+import { lastLightChecks } from '../checks/last-light/last-light-checks'
+import type { Blockout } from '../format/blockout.schema'
+import { BlockoutError, type Expanded, expand } from '../format/expand'
+import { navWorld } from '../geometry/nav'
+import { blockoutCodec } from './last-light-codecs'
+import { GeometryError, type LevelProfile, resolveOrThrow } from './level-profile'
+
+export const lastLightProfile: LevelProfile<Blockout> = {
+  ...blockoutCodec,
+  geometry(blockout) {
+    let expanded: Expanded
+    try {
+      expanded = expand(blockout)
+    } catch (error) {
+      if (error instanceof BlockoutError) throw new GeometryError(error.message)
+      throw error
+    }
+    const map = resolveOrThrow(expanded.sectors, expanded.masses)
+    return { layers: [{ kind: 'sectors', map, nav: navWorld(map, expanded) }] }
+  },
+  checks: (blockout, context) => lastLightChecks(blockout, { puzzleHotspots: context?.puzzleHotspots }),
+}

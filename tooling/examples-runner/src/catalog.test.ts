@@ -10,6 +10,8 @@ const entry = (path: string): CatalogEntry => {
   return found
 }
 
+const CORE_PACKAGE = 'is a core package; core is imported through "@mcthaydt/automata"'
+
 describe('readCatalog', () => {
   it('finds every example file, skipping old demo packages', () => {
     expect(catalog.map((candidate) => candidate.path)).toEqual([
@@ -31,6 +33,8 @@ describe('readCatalog', () => {
       'core/core-shot.ts',
       'core/core-waiting.ts',
       'core/misplaced.ts',
+      'physics/physics-bodies.ts',
+      'physics/physics-deep.ts',
       'widgets/widgets-spin.ts',
     ])
   })
@@ -42,7 +46,7 @@ describe('readCatalog', () => {
       name: 'good',
       url: '/core/good/',
       codeLines: 2,
-      imports: ['@mcthaydt/automata-sim'],
+      imports: ['@mcthaydt/automata'],
       problems: [],
     })
   })
@@ -56,17 +60,20 @@ describe('readCatalog', () => {
     expect(entry('core/core-waiting.ts')).toMatchObject({ problems: [], header: { pending: 'OPEN.1' } })
   })
 
+  // EX.6: zod stays a public import. Every command takes a Zod schema, and re-exporting `z` from the umbrella
+  // would tie an example's schema library to the umbrella's pinned copy.
   it('accepts zod, the schema language every command takes', () => {
     expect(entry('core/core-schema.ts')).toMatchObject({
       problems: [],
-      imports: ['@mcthaydt/automata-sim', 'zod'],
+      imports: ['@mcthaydt/automata', 'zod'],
     })
   })
 
-  // G-1 (DX.2 plan): the game package is private until runtime and render-pixi publish, yet it is the
-  // examples' one entry point, so it is the one private package an example may import.
-  it('accepts the game package, private until its dependencies publish', () => {
-    expect(entry('core/core-game.ts')).toMatchObject({ problems: [], imports: ['@mcthaydt/automata-game'] })
+  it("accepts an extension's published entry", () => {
+    expect(entry('physics/physics-bodies.ts')).toMatchObject({
+      problems: [],
+      imports: ['@mcthaydt/automata-physics/2d'],
+    })
   })
 
   it('accepts a pending example importing the package its task will add', () => {
@@ -83,8 +90,11 @@ describe('readCatalog', () => {
     ['core/core-long.ts', '101 code lines, over the budget of 100'],
     ['core/core-relative.ts', 'import "./core-good.ts" is relative'],
     ['core/core-future-ready.ts', 'import "@mcthaydt/automata-future" is not a public entry'],
-    ['core/core-deep.ts', 'import "@mcthaydt/automata-sim/src/world/sim" is not a public entry'],
-    ['core/core-private.ts', 'import "@mcthaydt/automata-render-pixi" is not a public entry'],
+    // EX.6: core is imported through the umbrella, whatever the core package and however deep the path.
+    ['core/core-game.ts', `import "@mcthaydt/automata-game" ${CORE_PACKAGE}`],
+    ['core/core-deep.ts', `import "@mcthaydt/automata-sim/src/world/sim" ${CORE_PACKAGE}`],
+    ['core/core-private.ts', `import "@mcthaydt/automata-render-pixi" ${CORE_PACKAGE}`],
+    ['physics/physics-deep.ts', 'import "@mcthaydt/automata-physics/src/2d" is not a public entry'],
     ['core/core-shot.ts', 'core/core-shot.png is not in screenshots-approved.json'],
     ['core/core-done.ts', 'Pending: DONE.1 is ticked in the delivery plan; remove the Pending line'],
     ['core/core-ghost.ts', 'Pending: NOPE.9 is not a task in the delivery plan'],

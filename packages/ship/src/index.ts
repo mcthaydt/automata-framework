@@ -1,4 +1,5 @@
 // @mcthaydt/automata-ship: Ruken packaging, publish and dev hosting for AF games (ship spec).
+/** The name this package is published under. */
 export const SHIP_PACKAGE = '@mcthaydt/automata-ship'
 
 export { defineShipConfig, type ShipConfig } from './config/ship-config.ts'
