@@ -182,6 +182,9 @@
 - `checkManifest(toml)`: Checks `ruken.toml` text with Ruken's own parser, so AF accepts exactly what Ruken accepts.
 - `checkVersion(version, tag)`: A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`): the build Ruken shows as 0.10.2 is the one tagged v0.10.2.
 - `declaredBoardsIn(code)`: The board ids a `ship.config.ts` declares: the keys of its `leaderboards` object, read from the source as written (`automata check` reads files, it does not run them).
+- `DeclaredInputs` (interface): The `runtime.inputs` a `ship.config.ts` declares, with the position of its opening bracket.
+- `declaredInputsIn(code)`: The `runtime.inputs` a `ship.config.ts` declares, read from the source as written (`automata check` reads files, it does not run them).
+- `declaredOrientationIn(code)`: The `runtime.orientation` a `ship.config.ts` declares, read from the source as written (`automata check` reads files, it does not run them).
 - `defineShipConfig(config)`: Identity function that gives a game's `ship.config.ts` type checking and editor completion.
 - `deployDev(input)`: Sends a prepared build to the dev host and returns its build ID and the URL it is served at.
 - `DeployDevInput` (interface): What `deployDev` sends and where: a prepared build folder, the commit it came from, the dev host's ssh target and URL, and whether the build becomes the one `/` redirects to.
@@ -189,16 +192,25 @@
 - `EntryMissing` (class): `[game] entry` names a file the build does not have.
 - `EnvValue` (interface): One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build.
 - `FileError` (class): Reading, writing, listing or removing a file failed.
+- `findInputsProblems(gameDir, inputs)`: Each disagreement between `inputs` (a config's `runtime.inputs`) and what the `keys()` calls in a game's sources bind, in `inputsProblems`' words; empty when they agree or the game has no `keys()` call to compare.
+- `findOrientationMismatches(gameDir, declared)`: Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
 - `findRootAbsoluteReferences(distDir)`: Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
 - `findSecretsInBuild(distDir, envValues)`: Every secret in a built folder.
 - `findUndeclaredBoards(gameDir, declared)`: Every board a game's sources name that `declared` (its ship config's `leaderboards` keys) lacks.
+- `gameOrientationsIn(file, code)`: The orientations the `defineGame` calls in one source file play in, in source order; `undefined` when the file does not parse (its typecheck already fails, and a half-read tree could name an orientation that is not there).
 - `inputsProblems(inputs, bindings)`: Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
 - `isBoardSource` (const): Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`, `.mts`, `.js`, `.mjs`).
+- `isInputsSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+- `isOrientationSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+- `keysBindingsIn(file, code)`: What the `keys()` calls in one source file bind, one `<file>:<line>:<col> keys` entry per call (and `pad` and `gestures` entries where it binds them); empty when the file has no call; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could name a device that is not there).
 - `ManifestInputsMismatch` (class): `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
 - `ManifestInvalid` (class): Ruken's parser refused the generated `ruken.toml`.
+- `OrientationMismatch` (class): The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up).
+- `OrientationMismatchFound` (interface): A game that plays in an orientation its ship config does not declare.
 - `parseEnvFile(file, text)`: The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
+- `PlayedOrientation` (interface): An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
-- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it.
+- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
@@ -462,6 +474,7 @@
 - `cursorHidden(state)`: Whether the pointer is hidden now: on a gameplay screen, not paused, and the pointer unused or idle.
 - `CursorInput` (type): The device the player used last, as the cursor policy sees it.
 - `CursorRunner` (class): Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the element's `cursor` style.
+- `defaultSlot(slots)`: The newest slot that can be continued; else the first slot; else none.
 - `DeviceClass` (type): The kind of device the player holds: `phone`, `tablet` or `desktop`, decided once at boot.
 - `Dialog` (const): A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken `packages/ui/src/Dialog.svelte` at b30d31b).
 - `DISPLAY_QUALITIES` (const): The tiers the Display section offers, best first.
@@ -559,6 +572,16 @@
 - `RotateHintCopy` (interface): The rotate hint's words.
 - `RotateToast` (const): The rotate toast (Owner amendment to M4 spec §4.9, 2026-10-18; FloorFifty `RotateHint.svelte` at a28dc44): for a game with `rotateHint: 'toast'`, a small message at the top on a phone held the other way, "Turn your phone for a bigger view", with an OK.
 - `RotateToastCopy` (interface): The rotate toast's words (`rotateHint: 'toast'`, FloorFifty's): the advice, and its OK.
+- `SAVE_STATUS_TONES` (const): `conflict` points the player at the host's own question (M5 spec §5), so it is a warning, not an error.
+- `SaveSlotActivity` (type): A write the caller has started and not finished, or one that failed.
+- `SaveSlots` (const): The save slots (M5 spec §6, §7): a row for each slot, and the few things a player does with one.
+- `SaveSlotsCopy` (interface): Every word the list shows, in the game's language (each a PRODUCT.L message key).
+- `SaveSlotsView` (type): What the list shows: a moment of loading, or the slots.
+- `SaveSlotView` (type): One slot, as the list shows it.
+- `SaveStatus` (const): The host's save state in words (M5 spec §7): checking, syncing, saved, offline-queued, retry, conflict, recovered, and "no grant" for a game that was not given the saves grant ("Progress won't be kept").
+- `SaveStatusCopy` (type): One line per state, in the game's language (each a PRODUCT.L message key).
+- `SaveStatusState` (type): What the host says about the player's saves, or that there is no grant.
+- `SaveStatusTone` (type): How much a state asks of the player's notice.
 - `ScreenFrame` (const): Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
 - `ScreenKind` (type): A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
 - `ScrollList` (const): A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
@@ -573,6 +596,7 @@
 - `Sleeper` (type): Puts the game's sound to sleep while nobody can see it.
 - `sleepWhenHidden(doc, sleeper, win?)`: Puts a game's sound to sleep while its page is hidden and wakes it when the page shows again; a pointer, touch or key gesture also asks sound the system suspended to resume.
 - `Slider` (const): A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser gives the arrow keys and the focus navigator's `adjust` steps it.
+- `slotActionsOf(slot)`: What a player may do with a slot (M5 spec §6).
 - `Split` (const): Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty `ui/layout/Split.svelte` at `ac72660`).
 - `splitMode(available, min, gap)`: Split's choice (M4 spec §4.8; from FloorFifty `ui/layout/split.ts` at `ac72660`): side by side when both columns and the gap between them fit at their minimum, stacked otherwise.
 - `STICKY_MARGIN_PX` (const): How far outside a button a thumb still counts for it, in CSS pixels.

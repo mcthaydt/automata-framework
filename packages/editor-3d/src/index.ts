@@ -1,3 +1,9 @@
+export {
+  createPlanController,
+  type PlanController,
+  type PlanPointer,
+  type PlanView,
+} from './app/plan-controller'
 export * from './checks/check'
 export * from './checks/generic-checks'
 export * from './checks/last-light/last-light-checks'
@@ -15,6 +21,7 @@ export * from './format/sector.schema'
 export * from './geometry/loops'
 export * from './geometry/nav'
 export * from './geometry/sectors'
+export { type Triangle, type Triangulation, triangulate } from './geometry/triangulate'
 export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edits'
 export { type Edit, type EditResult, ok, refuse } from './model/edit'
 export { type EditCommandOptions, registerEditCommands } from './model/edit-commands'
@@ -83,3 +90,70 @@ export {
   SectorAccessError,
   type SectorDraft,
 } from './profile/sector-access'
+export {
+  type Camera3D,
+  type FitOptions,
+  fitOrbit,
+  forward,
+  ORBIT_FOV,
+  type Orbit,
+  orbitBy,
+  orbitCamera,
+  projectPoint,
+  type Ray,
+  rayThrough,
+  type SpawnPoint,
+  WALK_EYE_HEIGHT,
+  WALK_FOV,
+  type WalkOptions,
+  type WalkStart,
+  walkCamera,
+  walkStart,
+} from './view/mesh/camera-3d'
+export { facesEye, type MeshHit, pickMesh, visibleSurfaces } from './view/mesh/mesh-pick'
+export {
+  type Box3,
+  buildSectorMesh,
+  EMPTY_BOUNDS,
+  faceShade,
+  type SectorMesh,
+  type Surface,
+  type SurfaceRole,
+  type Vec3,
+} from './view/mesh/sector-mesh'
+export {
+  type CornerHit,
+  PICK_RADIUS,
+  type PickOptions,
+  type PlanHit,
+  pickCorner,
+  pickPlan,
+  type WallHit,
+} from './view/plan/plan-pick'
+export {
+  type PlanFill,
+  type PlanScene,
+  type PlanSceneOptions,
+  type PlanWall,
+  planScene,
+  type WallKind,
+} from './view/plan/plan-scene'
+export { type SnapKind, type SnapOptions, type SnapResult, snapPlan } from './view/plan/plan-snap'
+export {
+  cameraOf,
+  fitPlan,
+  type GridLine,
+  type GridLines,
+  gridLines,
+  gridStep,
+  levelBounds,
+  PLAN_LIMITS,
+  PLAN_PX_PER_M,
+  planViewport,
+  type SnapKeys,
+  snapStep,
+  snapValue,
+  toScreen,
+  toWorld,
+} from './view/plan/plan-viewport'
+export { type SelectionOf, selectionOf } from './view/selection-of'

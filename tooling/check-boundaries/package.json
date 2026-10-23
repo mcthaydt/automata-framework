@@ -28,7 +28,8 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "oxc-parser": "0.152.0"
+    "oxc-parser": "0.152.0",
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@types/node": "24.19.1",
