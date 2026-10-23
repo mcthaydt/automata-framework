@@ -8,7 +8,8 @@
 
 #### `AssetsSource` (interface)
 
-_No doc comment._
+What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
+folder).
 
 ```ts
 interface AssetsSource {
@@ -52,7 +53,8 @@ const compileContent: (options: ContentOptions) => Effect.Effect<CompiledContent
 
 #### `CompiledContent` (interface)
 
-_No doc comment._
+The result of a compile: the content and its hash, the sim partition, every output file's text, warnings,
+the languages and each language's message catalog.
 
 ```ts
 interface CompiledContent {
@@ -109,7 +111,8 @@ type ContentData = Readonly<Record<string, unknown>>;
 
 #### `ContentGenerator` (interface)
 
-_No doc comment._
+A generator: a unique name and a pure `generate` that turns compiled content into extra files. Create one
+with `defineContentGenerator`.
 
 ```ts
 interface ContentGenerator {
@@ -128,7 +131,8 @@ function contentHash(data: unknown): string;
 
 #### `ContentOptions` (interface)
 
-_No doc comment._
+What the content compiler is given: the project root, the registered kinds, and optionally tunables,
+invariants, flow capabilities, generators, an output folder and Paraglide.
 
 ```ts
 interface ContentOptions {
@@ -159,7 +163,8 @@ function contentRef<const K extends string>(kind: K): z.ZodType<string, string>;
 
 #### `ContentSchemaDef` (interface)
 
-_No doc comment._
+A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live,
+and whether the sim receives it. Create one with `defineContentSchema`.
 
 ```ts
 interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
@@ -176,7 +181,7 @@ interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.Zo
 
 #### `ContentSchemaOptions` (interface)
 
-_No doc comment._
+Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
 
 ```ts
 interface ContentSchemaOptions {
@@ -206,7 +211,7 @@ class ContentWriteFailed extends WriteFailedBase {}
 
 #### `DEFAULT_OUT_DIR` (const)
 
-_No doc comment._
+Where outputs go when `outDir` is not set: `content/generated`, relative to the project root.
 
 ```ts
 const DEFAULT_OUT_DIR = "content/generated";
@@ -214,7 +219,7 @@ const DEFAULT_OUT_DIR = "content/generated";
 
 #### `DEFAULT_PALETTE` (const)
 
-_No doc comment._
+The palette a game gets when it has no `content/palette.toml`: Endesga 64.
 
 ```ts
 const DEFAULT_PALETTE: Palette;
@@ -222,7 +227,9 @@ const DEFAULT_PALETTE: Palette;
 
 #### `defineContentGenerator` (function)
 
-_No doc comment._
+Defines a generator by name and `generate` function. Generators do no I/O: the compiler writes their files.
+A generator that throws, repeats another's name, returns a path outside the output folder or writes a file
+another generator wrote is reported as `InvalidContentConfig`.
 
 ```ts
 function defineContentGenerator(name: string, generate: (input: GeneratorInput) => GeneratorOutput): ContentGenerator;
@@ -230,7 +237,10 @@ function defineContentGenerator(name: string, generate: (input: GeneratorInput) 
 
 #### `defineContentSchema` (function)
 
-_No doc comment._
+Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one
+file (a single document). The sim receives the kind unless `{ sim: false }`. A bad registration (a name
+that does not start with a lower-case letter followed by lower-case letters, digits and dashes, a built-in
+name, a duplicate, or a place two kinds share) is reported when content compiles, as `InvalidContentConfig`.
 
 ```ts
 function defineContentSchema<const K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>;
@@ -238,7 +248,8 @@ function defineContentSchema<const K extends string, S extends z.ZodType>(kind: 
 
 #### `Diagnostic` (interface)
 
-_No doc comment._
+One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key
+inside it and a message that says what to write instead.
 
 ```ts
 interface Diagnostic {
@@ -279,7 +290,8 @@ interface FlowCapabilities {
 
 #### `FlowGraph` (interface)
 
-_No doc comment._
+The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every
+transition, in a fixed order.
 
 ```ts
 interface FlowGraph {
@@ -295,7 +307,8 @@ interface FlowGraph {
 
 #### `FlowTransition` (interface)
 
-_No doc comment._
+One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the
+`transition` style (`cut` when unwritten).
 
 ```ts
 interface FlowTransition {
@@ -316,7 +329,8 @@ function formatDiagnostic(d: Diagnostic): string;
 
 #### `GameSource` (interface)
 
-_No doc comment._
+What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated
+hours, the analytics events it may send, and the screens whose files are preloaded.
 
 ```ts
 interface GameSource {
@@ -333,7 +347,8 @@ interface GameSource {
 
 #### `GeneratorInput` (interface)
 
-_No doc comment._
+Everything a generator is given: the compiled content and its hash, the sim partition, the registered
+schemas, the message catalog and the tuning metadata.
 
 ```ts
 interface GeneratorInput {
@@ -349,7 +364,7 @@ interface GeneratorInput {
 
 #### `GeneratorOutput` (interface)
 
-_No doc comment._
+What a generator returns: files to write and diagnostics to report. Both are optional.
 
 ```ts
 interface GeneratorOutput {
@@ -405,7 +420,7 @@ interface MessageLocation {
 
 #### `Palette` (interface)
 
-_No doc comment._
+The game's palette: a name and its colors.
 
 ```ts
 interface Palette {
@@ -430,7 +445,8 @@ interface ParaglideOptions {
 
 #### `PreloadInput` (interface)
 
-_No doc comment._
+What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`) and the built game
+folder.
 
 ```ts
 interface PreloadInput {
@@ -442,7 +458,10 @@ interface PreloadInput {
 
 #### `preloadList` (const)
 
-_No doc comment._
+The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens`
+screen's files from `assets.toml` (the flow's entry when none is named), without repeats. Empty without a
+`game.toml`. Fails with `ContentCompileFailed` carrying a `missingAsset` diagnostic for every file the
+build lacks, all at once, or with `InvalidContentConfig`.
 
 ```ts
 const preloadList: (input: PreloadInput) => Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig>;
@@ -458,7 +477,8 @@ function renderTuningTable(meta: TuningMeta): string;
 
 #### `RukenFields` (type)
 
-_No doc comment._
+The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages
+present and written to `ruken-fields.json`.
 
 ```ts
 type RukenFields = Pick<Manifest, "content" | "analytics">;
@@ -466,7 +486,8 @@ type RukenFields = Pick<Manifest, "content" | "analytics">;
 
 #### `SimPartition` (interface)
 
-_No doc comment._
+The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash,
+which gates snapshots and replays.
 
 ```ts
 interface SimPartition {
@@ -479,7 +500,8 @@ interface SimPartition {
 
 #### `sortDiagnostics` (function)
 
-_No doc comment._
+Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing
+the input. The order never depends on locale.
 
 ```ts
 function sortDiagnostics(diagnostics: readonly Diagnostic[]): Diagnostic[];
@@ -487,7 +509,8 @@ function sortDiagnostics(diagnostics: readonly Diagnostic[]): Diagnostic[];
 
 #### `TunableDeclaration` (interface)
 
-_No doc comment._
+A tunable a game declares in code: `int` or `float`, an inclusive range and a default. Content selects a
+value inside the range and never widens it.
 
 ```ts
 interface TunableDeclaration {
@@ -502,7 +525,7 @@ interface TunableDeclaration {
 
 #### `TunableDeclarations` (type)
 
-_No doc comment._
+A game's tunables by name (upper-case words joined by underscores, such as `GRAVITY`).
 
 ```ts
 type TunableDeclarations = Readonly<Record<string, TunableDeclaration>>;
@@ -510,7 +533,8 @@ type TunableDeclarations = Readonly<Record<string, TunableDeclaration>>;
 
 #### `TuningMeta` (type)
 
-_No doc comment._
+Every tunable's type, value and range (`min`, `max`, `step`) by name, as written to `tuning-meta.json` for
+debug sliders.
 
 ```ts
 type TuningMeta = Readonly<Record<string, TuningEntryMeta>>;
@@ -777,7 +801,10 @@ function snakeKey(value: string): string;
 
 #### `automataContent` (function)
 
-_No doc comment._
+The Vite plugin that compiles content and serves it as `virtual:automata/content`. It builds when Vite
+starts and on every save in dev, with the same build as `automata-content build`. A `vite build` with
+content errors fails; a dev server keeps serving the last good content and reports the diagnostics through
+Vite's logger and the `automata:content-error` event (`automata:content` after a good save).
 
 ```ts
 function automataContent(pluginOptions?: AutomataContentOptions): Plugin;
@@ -795,7 +822,7 @@ type AutomataContentOptions = Omit<ContentOptions, "root"> & {
 
 #### `VIRTUAL_MODULE_ID` (const)
 
-_No doc comment._
+The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
 
 ```ts
 const VIRTUAL_MODULE_ID = "virtual:automata/content";
@@ -807,7 +834,8 @@ const VIRTUAL_MODULE_ID = "virtual:automata/content";
 
 #### `AnalyticsProps` (type)
 
-_No doc comment._
+The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts
+them.
 
 ```ts
 type AnalyticsProps = Record<string, string | number | boolean>;
@@ -1058,7 +1086,8 @@ function HostingTest(options?: HostingTestOptions): Layer.Layer<Hosting | FakeHo
 
 #### `HostingTestOptions` (interface)
 
-_No doc comment._
+What to change about `HostingTest`'s defaults: the game's hosting options, the fake host, the SDK
+environment and the game's origin.
 
 ```ts
 interface HostingTestOptions {
@@ -1116,7 +1145,7 @@ function runScoped<A, E>(program: Effect.Effect<A, E, Scope.Scope>): Promise<A>;
 
 #### `TEST_GAME_ORIGIN` (const)
 
-_No doc comment._
+The origin `HostingTest` serves the game from unless `gameOrigin` says otherwise.
 
 ```ts
 const TEST_GAME_ORIGIN = "http://localhost:4400";
@@ -1150,7 +1179,8 @@ const Files: Context.Tag<Files, FilesService>;
 
 #### `FilesLive` (const)
 
-_No doc comment._
+`Files` on `node:fs`: synchronous calls wrapped in `Effect.try`, so the first failure surfaces as a
+`FileError`.
 
 ```ts
 const FilesLive: Layer.Layer<Files>;
@@ -1158,7 +1188,8 @@ const FilesLive: Layer.Layer<Files>;
 
 #### `FilesService` (interface)
 
-_No doc comment._
+The file operations build-time code needs, each as an Effect. A failed call fails with a `FileError` naming
+the path, except `exists`, which cannot fail.
 
 ```ts
 interface FilesService {
@@ -1196,7 +1227,8 @@ const ProcessRunner: Context.Tag<ProcessRunner, ProcessRunnerService>;
 
 #### `ProcessRunnerLive` (const)
 
-_No doc comment._
+`ProcessRunner` on `node:child_process`: the real programs, with the parent's environment plus
+`RunOptions.env`.
 
 ```ts
 const ProcessRunnerLive: Layer.Layer<ProcessRunner>;
@@ -1204,7 +1236,8 @@ const ProcessRunnerLive: Layer.Layer<ProcessRunner>;
 
 #### `ProcessRunnerService` (interface)
 
-_No doc comment._
+Runs a program with arguments and no shell. The effect fails with a `ProcessError` only when the program
+cannot be started; interrupting it stops the program.
 
 ```ts
 interface ProcessRunnerService {
@@ -1214,7 +1247,8 @@ interface ProcessRunnerService {
 
 #### `RunOptions` (interface)
 
-_No doc comment._
+How a program is started: its working folder, extra environment, stdin, and whether its output is also
+echoed.
 
 ```ts
 interface RunOptions {
@@ -1230,7 +1264,8 @@ interface RunOptions {
 
 #### `RunResult` (interface)
 
-_No doc comment._
+What a finished program left: its exit code (128 when a signal killed it) and everything it wrote to stdout
+and stderr, decoded as UTF-8. A non-zero exit code is a result, not a failure.
 
 ```ts
 interface RunResult {
@@ -1588,7 +1623,8 @@ const BUILD_ID_PATTERN: RegExp;
 
 #### `buildIdFor` (function)
 
-_No doc comment._
+The build ID for a commit: its UTC time to the minute, a dash, then the first seven characters of its sha.
+Throws for a `sha` that is not 7 to 40 lower-case hex digits.
 
 ```ts
 function buildIdFor(commit: {
@@ -1634,7 +1670,9 @@ function defineShipConfig(config: ShipConfig): ShipConfig;
 
 #### `deployDev` (function)
 
-_No doc comment._
+Sends a prepared build to the dev host and returns its build ID and the URL it is served at. Fails with
+`ManifestInvalid` for a bad `ruken.toml` in the build, `DeployFailed` when `tar` or `ssh` exits non-zero,
+or a `FileError` or `ProcessError`. The temporary staging copy is removed either way.
 
 ```ts
 function deployDev(input: DeployDevInput): Effect.Effect<{
@@ -1645,7 +1683,8 @@ function deployDev(input: DeployDevInput): Effect.Effect<{
 
 #### `DeployDevInput` (interface)
 
-_No doc comment._
+What `deployDev` sends and where: a prepared build folder, the commit it came from, the dev host's ssh
+target and URL, and whether the build becomes the one `/` redirects to.
 
 ```ts
 interface DeployDevInput {
@@ -1717,7 +1756,8 @@ class FileError extends FileErrorBase {
 
 #### `findRootAbsoluteReferences` (function)
 
-_No doc comment._
+Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
+Reads each file's syntax (scripts, stylesheets, pages, JSON), so comments and prose are not reported.
 
 ```ts
 function findRootAbsoluteReferences(distDir: string): RootAbsoluteReferenceFound[];
@@ -1815,7 +1855,8 @@ function prepareBuild(input: PrepareInput): Effect.Effect<{
 
 #### `PrepareInput` (interface)
 
-_No doc comment._
+What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release
+tag, game folder and input bindings.
 
 ```ts
 interface PrepareInput {
@@ -1871,7 +1912,8 @@ class PublishFailed extends PublishFailedBase {
 
 #### `PublishInput` (interface)
 
-_No doc comment._
+What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and
+whether to activate the build.
 
 ```ts
 interface PublishInput {
@@ -1914,7 +1956,9 @@ class PublishTimeout extends PublishTimeoutBase {
 
 #### `publishToRuken` (function)
 
-_No doc comment._
+Runs Ruken's own `ruken publish` on a prepared build and returns the URL Ruken says the build is served at
+(`undefined` when it prints none). Ruken's exit codes become `PublishRejected` (1), `PublishUsage` (2),
+`PublishAuth` (3), `PublishTimeout` (4) and `PublishFailed` for any other.
 
 ```ts
 function publishToRuken(input: PublishInput): Effect.Effect<{
@@ -1964,7 +2008,8 @@ function rukenCliPath(moduleUrl?: string, exists?: (path: string) => boolean): s
 
 #### `rukenToml` (function)
 
-_No doc comment._
+The text of `ruken.toml` (Ruken manifest schema 1) for a ship config. The same config always gives the same
+text.
 
 ```ts
 function rukenToml(config: ShipConfig): string;
@@ -2010,7 +2055,7 @@ class SecretInBuild extends SecretInBuildBase {
 
 #### `SHIP_PACKAGE` (const)
 
-_No doc comment._
+The name this package is published under.
 
 ```ts
 const SHIP_PACKAGE = "@mcthaydt/automata-ship";
@@ -2053,7 +2098,9 @@ interface ShipInputBindings {
 
 #### `testRemote` (function)
 
-_No doc comment._
+Pushes the current branch, dispatches CI for it, waits and returns the run's URL and one `<result>\t<job>`
+line per job when it is green. Otherwise fails with a `TestRemoteFailed` whose `reason` says why (see
+`TestRemoteReason`).
 
 ```ts
 function testRemote(input: TestRemoteInput): Effect.Effect<{
@@ -2064,7 +2111,7 @@ function testRemote(input: TestRemoteInput): Effect.Effect<{
 
 #### `TestRemoteFailed` (class)
 
-_No doc comment._
+`test-remote` stopped without a green run; `reason` says why and `message` says what to do.
 
 ```ts
 class TestRemoteFailed extends TestRemoteFailedBase {}
@@ -2072,7 +2119,9 @@ class TestRemoteFailed extends TestRemoteFailedBase {}
 
 #### `TestRemoteInput` (interface)
 
-_No doc comment._
+What `testRemote` runs and how long it waits. The timing fields are for tests: the defaults suit a real
+run. `args` are the words after `test-remote`: nothing for the hosted checks, Playwright arguments for one
+focused run, or `--nightly`.
 
 ```ts
 interface TestRemoteInput {

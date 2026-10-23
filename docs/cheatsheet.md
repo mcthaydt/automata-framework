@@ -6,51 +6,51 @@
 
 ### `import { … } from '@mcthaydt/automata-content'`
 
-- `AssetsSource` (interface)
+- `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder).
 - `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
 - `checkTuningLayer(layer, options, { complete })`: Checks one layer of tuning against code-owned declarations.
 - `compileContent` (const): Compiles `<root>/content` in memory.
-- `CompiledContent` (interface)
+- `CompiledContent` (interface): The result of a compile: the content and its hash, the sim partition, every output file's text, warnings, the languages and each language's message catalog.
 - `ContentCompileFailed` (class): The authored content has problems.
 - `ContentConfig` (type): The default export of `automata.content.ts`.
 - `ContentData` (type): The compiled content as it is written to `content.json` and hashed.
-- `ContentGenerator` (interface)
+- `ContentGenerator` (interface): A generator: a unique name and a pure `generate` that turns compiled content into extra files.
 - `contentHash(data)`: 16 lowercase hex digits.
-- `ContentOptions` (interface)
+- `ContentOptions` (interface): What the content compiler is given: the project root, the registered kinds, and optionally tunables, invariants, flow capabilities, generators, an output folder and Paraglide.
 - `contentRef(kind)`: The ID of another content item of `kind`.
-- `ContentSchemaDef` (interface)
-- `ContentSchemaOptions` (interface)
+- `ContentSchemaDef` (interface): A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live, and whether the sim receives it.
+- `ContentSchemaOptions` (interface): Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
 - `ContentSchemaPlace` (type): Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
 - `ContentWriteFailed` (class): An output could not be written.
-- `DEFAULT_OUT_DIR` (const)
-- `DEFAULT_PALETTE` (const)
-- `defineContentGenerator(name, generate)`
-- `defineContentSchema(kind, schema, place, options?)`
-- `Diagnostic` (interface)
+- `DEFAULT_OUT_DIR` (const): Where outputs go when `outDir` is not set: `content/generated`, relative to the project root.
+- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+- `defineContentGenerator(name, generate)`: Defines a generator by name and `generate` function.
+- `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
+- `Diagnostic` (interface): One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key inside it and a message that says what to write instead.
 - `DiagnosticCode` (type): Stable codes.
 - `FlowCapabilities` (interface): What the game's code implements: the screens, and optionally the pairs and destinations each allows.
-- `FlowGraph` (interface)
-- `FlowTransition` (interface)
+- `FlowGraph` (interface): The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every transition, in a fixed order.
+- `FlowTransition` (interface): One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the `transition` style (`cut` when unwritten).
 - `formatDiagnostic(d)`: `content/tuning.toml:12:1 GRAVITY outOfRange: expected -1200..-100, received -2000`
-- `GameSource` (interface)
-- `GeneratorInput` (interface)
-- `GeneratorOutput` (interface)
+- `GameSource` (interface): What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated hours, the analytics events it may send, and the screens whose files are preloaded.
+- `GeneratorInput` (interface): Everything a generator is given: the compiled content and its hash, the sim partition, the registered schemas, the message catalog and the tuning metadata.
+- `GeneratorOutput` (interface): What a generator returns: files to write and diagnostics to report.
 - `InvalidContentConfig` (class): The game's code registered something unusable (a duplicate kind, a clashing generator).
 - `localized()`: Text a player reads, written in the source language.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
 - `messageKey(kind, id, path)`: The message key of one text.
 - `MessageLocation` (interface): A message's place in its file, 1-based.
-- `Palette` (interface)
+- `Palette` (interface): The game's palette: a name and its colors.
 - `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
-- `PreloadInput` (interface)
-- `preloadList` (const)
+- `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`) and the built game folder.
+- `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), without repeats.
 - `renderTuningTable(meta)`: Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
-- `RukenFields` (type)
-- `SimPartition` (interface)
-- `sortDiagnostics(diagnostics)`
-- `TunableDeclaration` (interface)
-- `TunableDeclarations` (type)
-- `TuningMeta` (type)
+- `RukenFields` (type): The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
+- `SimPartition` (interface): The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash, which gates snapshots and replays.
+- `sortDiagnostics(diagnostics)`: Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing the input.
+- `TunableDeclaration` (interface): A tunable a game declares in code: `int` or `float`, an inclusive range and a default.
+- `TunableDeclarations` (type): A game's tunables by name (upper-case words joined by underscores, such as `GRAVITY`).
+- `TuningMeta` (type): Every tunable's type, value and range (`min`, `max`, `step`) by name, as written to `tuning-meta.json` for debug sliders.
 - `verifyContent` (const): Fails with `staleArtifact` for each committed output that differs from a fresh compile.
 - `withTuningTable(guide, meta)`: The guide with its generated section replaced, or undefined when it has no markers.
 
@@ -87,15 +87,15 @@
 
 ### `import { … } from '@mcthaydt/automata-content/vite'`
 
-- `automataContent(pluginOptions?)`
+- `automataContent(pluginOptions?)`: The Vite plugin that compiles content and serves it as `virtual:automata/content`.
 - `AutomataContentOptions` (type): The plugin's options: `ContentOptions`, with `root` defaulting to Vite's root.
-- `VIRTUAL_MODULE_ID` (const)
+- `VIRTUAL_MODULE_ID` (const): The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
 
 ## `@mcthaydt/automata-host`
 
 ### `import { … } from '@mcthaydt/automata-host'`
 
-- `AnalyticsProps` (type)
+- `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts them.
 - `ErrorCode` (type): Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError` carries them.
 - `HOST_EXIT_CAP` (const): How long the game may hold the host's close (FloorFifty `ruken/exit.ts`, Ruken P6 §4 "1 s cap").
 - `HostError` (class): Any failure after the handshake.
@@ -114,12 +114,12 @@
 - `FakeHostClock` (interface): The clock shape `@ruken/sdk-host`'s fake host takes; the game's `SdkEnv.timers` run on it too.
 - `FakeHostHandle` (interface): The fake host behind `HostingTest`, for tests that drive the host side.
 - `HostingTest(options?)`: `HostingLive` wired to `@ruken/sdk-host`'s fake host over in-memory ports, with the real SDK in between (shared contracts §1.1).
-- `HostingTestOptions` (interface)
+- `HostingTestOptions` (interface): What to change about `HostingTest`'s defaults: the game's hosting options, the fake host, the SDK environment and the game's origin.
 - `manualClock(startMs?)`: SDK and fake-host timing (hello retries, the 10 s handshake give-up, request timeouts) runs on this clock, so a test can step past them without waiting (shared contracts §1.4).
 - `ManualClock` (interface): A clock that moves only when the test calls `advance`.
 - `realClock` (const): Real time, for tests that only need the host to answer.
 - `runScoped(program)`: Runs a test program in a fresh scope, closing it (and every layer built inside) at the end.
-- `TEST_GAME_ORIGIN` (const)
+- `TEST_GAME_ORIGIN` (const): The origin `HostingTest` serves the game from unless `gameOrigin` says otherwise.
 
 ## `@mcthaydt/automata-node`
 
@@ -127,14 +127,14 @@
 
 - `FileError` (class): Reading, writing, listing or removing a file failed.
 - `Files` (interface): The service's tag.
-- `FilesLive` (const)
-- `FilesService` (interface)
+- `FilesLive` (const): `Files` on `node:fs`: synchronous calls wrapped in `Effect.try`, so the first failure surfaces as a `FileError`.
+- `FilesService` (interface): The file operations build-time code needs, each as an Effect.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `ProcessRunner` (interface): The service's tag; see `Files` for why it is not a `Context.Tag` class.
-- `ProcessRunnerLive` (const)
-- `ProcessRunnerService` (interface)
-- `RunOptions` (interface)
-- `RunResult` (interface)
+- `ProcessRunnerLive` (const): `ProcessRunner` on `node:child_process`: the real programs, with the parent's environment plus `RunOptions.env`.
+- `ProcessRunnerService` (interface): Runs a program with arguments and no shell.
+- `RunOptions` (interface): How a program is started: its working folder, extra environment, stdin, and whether its output is also echoed.
+- `RunResult` (interface): What a finished program left: its exit code (128 when a signal killed it) and everything it wrote to stdout and stderr, decoded as UTF-8.
 - `TaggedErrorClass` (type): The class `Data.TaggedError(tag)` returns, written out. isolatedDeclarations cannot infer the type of a call in an `extends` clause, so each error extends a constant annotated with this type instead (the pattern of `content`'s compile errors and `host`'s errors).
 
 ## `@mcthaydt/automata-physics`
@@ -178,18 +178,18 @@
 - `BoardName` (interface): A board a source file names, by its name and position (1-based, at the opening quote).
 - `boardNamesIn(file, code)`: The boards one source file names, in source order; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could report a board that is not there).
 - `BUILD_ID_PATTERN` (const): A build's ID on the dev host: the commit's UTC time to the minute, then its short sha, for example `202610111205-abcdef0` (FloorFifty `deploy/bin/build-tag`).
-- `buildIdFor(commit)`
+- `buildIdFor(commit)`: The build ID for a commit: its UTC time to the minute, a dash, then the first seven characters of its sha.
 - `checkManifest(toml)`: Checks `ruken.toml` text with Ruken's own parser, so AF accepts exactly what Ruken accepts.
 - `checkVersion(version, tag)`: A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`): the build Ruken shows as 0.10.2 is the one tagged v0.10.2.
 - `declaredBoardsIn(code)`: The board ids a `ship.config.ts` declares: the keys of its `leaderboards` object, read from the source as written (`automata check` reads files, it does not run them).
 - `defineShipConfig(config)`: Identity function that gives a game's `ship.config.ts` type checking and editor completion.
-- `deployDev(input)`
-- `DeployDevInput` (interface)
+- `deployDev(input)`: Sends a prepared build to the dev host and returns its build ID and the URL it is served at.
+- `DeployDevInput` (interface): What `deployDev` sends and where: a prepared build folder, the commit it came from, the dev host's ssh target and URL, and whether the build becomes the one `/` redirects to.
 - `DeployFailed` (class): The dev host's deploy step (tar or ssh) failed; `output` is what it printed.
 - `EntryMissing` (class): `[game] entry` names a file the build does not have.
 - `EnvValue` (interface): One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build.
 - `FileError` (class): Reading, writing, listing or removing a file failed.
-- `findRootAbsoluteReferences(distDir)`
+- `findRootAbsoluteReferences(distDir)`: Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
 - `findSecretsInBuild(distDir, envValues)`: Every secret in a built folder.
 - `findUndeclaredBoards(gameDir, declared)`: Every board a game's sources name that `declared` (its ship config's `leaderboards` keys) lacks.
 - `inputsProblems(inputs, bindings)`: Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
@@ -199,28 +199,28 @@
 - `parseEnvFile(file, text)`: The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
 - `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it.
-- `PrepareInput` (interface)
+- `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
 - `PublishFailed` (class): Any other exit code.
-- `PublishInput` (interface)
+- `PublishInput` (interface): What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and whether to activate the build.
 - `PublishRejected` (class): Exit 1: Ruken's checks rejected the build.
 - `PublishTimeout` (class): Exit 4: Ruken's checks took longer than the CLI waits.
-- `publishToRuken(input)`
+- `publishToRuken(input)`: Runs Ruken's own `ruken publish` on a prepared build and returns the URL Ruken says the build is served at (`undefined` when it prints none).
 - `PublishUsage` (class): Exit 2: the command line was wrong.
 - `readEnvValues(gameDir)`: The variables of every top-level `.env*` file in the game folder; none when the folder does not exist.
 - `RootAbsoluteReference` (class): The build names its own files from the origin's root, which 404s under `/b/<buildId>/`.
 - `rukenCliPath(moduleUrl?, exists?)`: The `ruken` bin of the vendored `@ruken/cli` package.
-- `rukenToml(config)`
+- `rukenToml(config)`: The text of `ruken.toml` (Ruken manifest schema 1) for a ship config.
 - `scanTextForSecrets(file, text, envValues)`: Every secret in one file's text.
 - `SecretFound` (interface): A secret the bundle scan found in a built file, located without repeating the secret.
 - `SecretInBuild` (class): The build holds a key, an `.env` value or a high-entropy string (QB-b).
-- `SHIP_PACKAGE` (const)
+- `SHIP_PACKAGE` (const): The name this package is published under.
 - `ShipConfig` (interface): What a game tells ship about itself, in Ruken's own manifest shape (`@ruken/manifest`'s `Manifest`).
 - `ShipInputBindings` (interface): What ship reads of a game's input profile. ship is published and the profile's owner (`runtime`) is private, so this is the read-only subset ship consumes, not a copy of the contract: a profile's `bindings` is assignable to it.
-- `testRemote(input)`
-- `TestRemoteFailed` (class)
-- `TestRemoteInput` (interface)
+- `testRemote(input)`: Pushes the current branch, dispatches CI for it, waits and returns the run's URL and one `<result>\t<job>` line per job when it is green.
+- `TestRemoteFailed` (class): `test-remote` stopped without a green run; `reason` says why and `message` says what to do.
+- `TestRemoteInput` (interface): What `testRemote` runs and how long it waits.
 - `TestRemoteReason` (type): Why `test-remote` stopped without a green run.
 - `UndeclaredBoard` (class): The game names a leaderboard its ship config's `leaderboards` does not declare (M5 spec §4.8, L-b).
 - `UndeclaredBoardFound` (interface): A board the game's sources name that its ship config does not declare, at the call site.

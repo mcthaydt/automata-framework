@@ -103,6 +103,8 @@ export default defineGame({
 })
 ```
 
+**As built (2026-10-23).** The shipped [`core-input-keys`](../../../examples/core/core-input-keys.ts) is the reference, not this sketch. The sketch's verbs differ from what DX.1 to DX.2b settled: `definePlugin({ name, defs })` (the `name` is hashed, so it stays required), `defineComponent('body', { x: 'f32' })` and `defineCommand('move', zodSchema)` instead of `u` field types, `ctx.commands.of(Move)` and `body.get`/`body.set` instead of `commands(Move)` and `body.x`, and the spawn in `defineGame({ sim: { setup } })` instead of the plugin. None of them became sim API (docs/02, "DX.1 follow-up — EX example API gaps").
+
 ## 4. The sim inside one file, still deterministic
 
 An example's sim sits in a browser file, so the per-file sim boundary (`pnpm boundaries`, which bans DOM globals and allows sim-only imports) can't apply to the whole file. Two checks keep the sim rules:

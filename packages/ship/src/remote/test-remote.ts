@@ -23,6 +23,11 @@ import { TestRemoteFailed } from '../errors.ts'
 // `viewRetries` failed looks in a row test-remote stops as "gh-unavailable" and leaves the run alone, since it
 // cannot tell whether the run is healthy.
 
+/**
+ * What `testRemote` runs and how long it waits. The timing fields are for tests: the defaults suit a real
+ * run. `args` are the words after `test-remote`: nothing for the hosted checks, Playwright arguments for one
+ * focused run, or `--nightly`.
+ */
 export interface TestRemoteInput {
   /** The words after `test-remote`. Split on whitespace, so a quoted multi-word value does not survive. */
   readonly args: readonly string[]
@@ -89,6 +94,11 @@ function waitingForRunner(viewed: RunView): boolean {
 const fail = (reason: TestRemoteFailed['reason'], message: string) =>
   new TestRemoteFailed({ reason, message })
 
+/**
+ * Pushes the current branch, dispatches CI for it, waits and returns the run's URL and one `<result>\t<job>`
+ * line per job when it is green. Otherwise fails with a `TestRemoteFailed` whose `reason` says why (see
+ * `TestRemoteReason`).
+ */
 export function testRemote(
   input: TestRemoteInput,
 ): Effect.Effect<
