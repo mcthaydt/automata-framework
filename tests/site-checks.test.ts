@@ -162,37 +162,79 @@ describe('checkSite', () => {
   })
 
   // QB.3h. The home page and the gallery preloaded the 380 KB chunk of example sources in the first second of a mobile load,
-  // ahead of the image and styles the first paint waits for; LCP was 3.2 s against a 2.5 s target. The gate is on the bytes
-  // a page asks the browser to fetch before it has run any script.
-  it('fails when a page modulepreloads more JavaScript than the budget', () => {
-    const site = goodSite()
-    site.write('_app/immutable/chunks/sources.js', 'x'.repeat(MAX_PRELOADED_SCRIPT_BYTES + 1))
-    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/sources.js" />' }))
-    expect(checkSite(site.root, { now: NOW })).toEqual([`index.html: modulepreloads ${MAX_PRELOADED_SCRIPT_BYTES + 1} bytes of JavaScript, over the ${MAX_PRELOADED_SCRIPT_BYTES} byte budget (largest: _app/immutable/chunks/sources.js, ${MAX_PRELOADED_SCRIPT_BYTES + 1} bytes)`])
+  // ahead of the image and styles the first paint waits for; LCP was 3.2 s against a 2.5 s target. QB.3j went further: the
+  // 26 to 29 hints for shared chunks cost every page 0.5 to 0.9 s of first paint, so only the small entry and node
+  // modules (35 KB built on the heaviest page) may be preloaded. The gate is on what a page asks the browser to fetch
+  // before it has run any script.
+  const ENTRY_LINK = '<link rel="modulepreload" href="./_app/immutable/entry/start.js" />'
+
+  it('leaves room for the entry and node modules and not for the chunks', () => {
+    expect(MAX_PRELOADED_SCRIPT_BYTES).toBe(48_000)
   })
 
-  it('adds up the chunks of a page, and resolves their links from the page’s own URL', () => {
+  it('fails when a page modulepreloads more JavaScript than the budget', () => {
+    const site = goodSite()
+    site.write('_app/immutable/entry/start.js', 'x'.repeat(MAX_PRELOADED_SCRIPT_BYTES + 1))
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + ENTRY_LINK }))
+    expect(checkSite(site.root, { now: NOW })).toEqual([`index.html: modulepreloads ${MAX_PRELOADED_SCRIPT_BYTES + 1} bytes of JavaScript, over the ${MAX_PRELOADED_SCRIPT_BYTES} byte budget (largest: _app/immutable/entry/start.js, ${MAX_PRELOADED_SCRIPT_BYTES + 1} bytes)`])
+  })
+
+  it('adds up the modules of a page, and resolves their links from the page’s own URL', () => {
     const site = goodSite()
     const half = Math.floor(MAX_PRELOADED_SCRIPT_BYTES / 2) + 1
-    site.write('docs/chunks/a.js', 'x'.repeat(half))
-    site.write('docs/chunks/b.js', 'x'.repeat(half))
-    const preloads = '<link rel="modulepreload" href="./chunks/a.js" /><link rel="modulepreload" href="./chunks/b.js" />'
+    site.write('_app/immutable/entry/start.js', 'x'.repeat(half))
+    site.write('_app/immutable/nodes/5.js', 'x'.repeat(half))
+    const preloads = '<link rel="modulepreload" href="../_app/immutable/entry/start.js" /><link rel="modulepreload" href="../_app/immutable/nodes/5.js" />'
     site.write('docs/faq.html', page('/docs/faq', { head: ICON_LINKS.replaceAll('href="./', 'href="../') + preloads }))
     site.write('sitemap.xml', sitemap(['/', '/docs', '/docs/faq', '/privacy', '/terms']))
     expect(checkSite(site.root, { now: NOW })).toEqual([expect.stringMatching(/^docs\/faq\.html: modulepreloads \d+ bytes of JavaScript, over the/)])
   })
 
-  it('passes a page that preloads chunks within the budget', () => {
+  it('passes a page that preloads its entry and node modules within the budget', () => {
     const site = goodSite()
-    site.write('_app/immutable/chunks/small.js', 'x'.repeat(MAX_PRELOADED_SCRIPT_BYTES))
-    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/small.js" />' }))
+    site.write('_app/immutable/entry/start.js', 'x'.repeat(MAX_PRELOADED_SCRIPT_BYTES - 10))
+    site.write('_app/immutable/nodes/0.js', 'x'.repeat(10))
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + ENTRY_LINK + '<link rel="modulepreload" href="./_app/immutable/nodes/0.js" />' }))
     expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+
+  it('fails when a page modulepreloads a shared chunk, however small', () => {
+    const site = goodSite()
+    site.write('_app/immutable/chunks/small.js', 'x')
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/small.js" />' }))
+    expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: modulepreloads _app/immutable/chunks/small.js, a shared chunk; only the entry and node modules may be preloaded, because hints for chunks delay the first paint on a mobile connection'])
   })
 
   it('fails when a modulepreload names a file the build does not have', () => {
     const site = goodSite()
-    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/gone.js" />' }))
-    expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: modulepreloads ./_app/immutable/chunks/gone.js, which the build does not contain'])
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/entry/gone.js" />' }))
+    expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: modulepreloads ./_app/immutable/entry/gone.js, which the build does not contain'])
+  })
+
+  // QB.3j. SvelteKit's start script imports about 30 small modules and hydrates the page as soon as it runs. On a host
+  // that finishes those requests before the first paint (the Owner's Mac, from a local server) Lighthouse charges all
+  // of them, 350 KB, to the paint: 3.2 s on the home page against 1.7 s. `hydrateAfterFirstPaint` (src/hooks.server.ts)
+  // starts them once the browser has painted, and the build must show it did.
+  const START_SCRIPT = (call: string) => `<script>{ const element = document.currentScript.parentElement; ${call}.then(([kit, app]) => { kit.start(app, element, {}); }); }</script>`
+  const IMPORTS = 'Promise.all([import("./_app/immutable/entry/start.js"), import("./_app/immutable/entry/app.js")])'
+
+  it('fails when a page starts hydrating at once, before the first paint', () => {
+    const site = goodSite()
+    site.write('index.html', page('/', { body: `<p><a href="/docs">Docs</a></p>${START_SCRIPT(IMPORTS)}` }))
+    expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: starts hydrating at once; the start script must wait for the first paint (hydrateAfterFirstPaint in src/hooks.server.ts), because a host that finishes the module requests before painting charges all of them to the first paint'])
+  })
+
+  it('passes a page whose start script waits for the first paint', () => {
+    const site = goodSite()
+    site.write('index.html', page('/', { body: `<p><a href="/docs">Docs</a></p>${START_SCRIPT(`afterFirstPaint(() => ${IMPORTS}`).replace('.then(([kit, app]) => { kit.start(app, element, {}); }); }', '.then(([kit, app]) => { kit.start(app, element, {}); })); }')}` }))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+
+  it('names each page that starts at once', () => {
+    const site = goodSite()
+    site.write('index.html', page('/', { body: `<p><a href="/docs">Docs</a></p>${START_SCRIPT(IMPORTS)}` }))
+    site.write('docs.html', page('/docs', { body: `<p>Docs</p>${START_SCRIPT(IMPORTS)}` }))
+    expect(checkSite(site.root, { now: NOW }).map(failure => failure.split(':')[0])).toEqual(['docs.html', 'index.html'])
   })
 
   it('fails when a page footer lacks privacy, terms or a contact email', () => {

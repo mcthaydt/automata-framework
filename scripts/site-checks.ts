@@ -50,7 +50,8 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     return ids
   }
   for (const file of pages) {
-    const window = new JSDOM(readFileSync(join(root, file), 'utf8')).window
+    const html = readFileSync(join(root, file), 'utf8')
+    const window = new JSDOM(html).window
     const doc = window.document
     pageIds.set(file, new Set(Array.from(doc.querySelectorAll('[id]'), element => element.id)))
     for (const selector of ['title', 'h1', 'main#main', 'meta[name="description"]', 'meta[property="og:title"]', 'link[rel="canonical"]']) {
@@ -58,7 +59,7 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     }
     const text = [doc.title, doc.querySelector('meta[name="description"]')?.getAttribute('content') ?? '', doc.body.textContent ?? ''].join('\n')
     for (const banned of BANNED_PHRASES) if (banned.pattern.test(text)) failures.push(`${file}: banned phrase "${banned.label}"`)
-    failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkPreloadedScripts(root, file, doc), ...checkFooter(file, doc))
+    failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkPreloadedScripts(root, file, doc), ...checkHydrationStart(file, html), ...checkFooter(file, doc))
     for (const image of doc.querySelectorAll('img')) {
       // Decorative images say so with alt=""; a missing attribute is always a defect.
       if (!image.hasAttribute('alt')) failures.push(`${file}: <img src="${image.getAttribute('src')}"> has no alt`)
@@ -191,28 +192,46 @@ function checkPageResources(file: string, doc: Document, fontUrls: Set<string>):
 }
 
 /**
- * The most JavaScript, as built (before compression), that one page may ask the browser to modulepreload (QB.3h).
- * Preloaded chunks start downloading before any script has run, so on a mobile connection they compete with the image
- * and styles the first paint waits for. The home page and the gallery once preloaded 380 KB of example sources and had a
- * 3.2 s LCP; the heaviest page now preloads about 276 KB, which this leaves room for. Raise it only with a
- * Lighthouse run that still meets the LCP budget.
+ * The most JavaScript, as built (before compression), that one page may ask the browser to modulepreload (QB.3h, QB.3j).
+ * Preloaded modules start downloading before any script has run, so on a mobile connection they compete with the
+ * stylesheet, font and image the first paint waits for. The home page and the gallery once preloaded 380 KB of example
+ * sources and had a 3.2 s LCP; then the 26 to 29 hints for shared chunks (250 KB) cost every page 0.5 to 0.9 s of first
+ * paint. Only the entry and node modules are preloaded now (`src/lib/preloads.ts`); the heaviest page has 35 KB of them,
+ * which this leaves room for. Raise it only with a Lighthouse run that still meets the LCP budget.
  */
-export const MAX_PRELOADED_SCRIPT_BYTES = 320_000
+export const MAX_PRELOADED_SCRIPT_BYTES = 48_000
 
-/** A page's modulepreload links exist in the build, and together stay within MAX_PRELOADED_SCRIPT_BYTES. */
+/** The folders whose modules a page may preload: the app's entry points and the page's own nodes, not shared chunks. */
+const PRELOADABLE_MODULES = /^_app\/immutable\/(?:entry|nodes)\//
+
+/**
+ * A page that hydrates starts after the first paint (QB.3j). SvelteKit's start script imports about 30 small modules and
+ * hydrates at once; on a host that finishes those requests before it paints, Lighthouse charges all of them (350 KB) to
+ * the first paint. `hydrateAfterFirstPaint` (src/lib/hydration.ts, applied in src/hooks.server.ts) wraps the imports in
+ * `afterFirstPaint(`; a page that imports its entry modules without it was not transformed (a SvelteKit upgrade can
+ * change the script's shape, and the transform then leaves it alone).
+ */
+function checkHydrationStart(file: string, html: string): string[] {
+  const hydrates = /import\("[^"]*\/entry\/start\.[^"]*"\)/.test(html)
+  if (!hydrates || html.includes('afterFirstPaint(() =>')) return []
+  return [`${file}: starts hydrating at once; the start script must wait for the first paint (hydrateAfterFirstPaint in src/hooks.server.ts), because a host that finishes the module requests before painting charges all of them to the first paint`]
+}
+
+/** A page's modulepreload links exist in the build, are entry or node modules, and together stay within MAX_PRELOADED_SCRIPT_BYTES. */
 function checkPreloadedScripts(root: string, file: string, doc: Document): string[] {
   const failures: string[] = []
-  const chunks: { path: string; bytes: number }[] = []
+  const modules: { path: string; bytes: number }[] = []
   for (const link of doc.querySelectorAll('link[rel~="modulepreload"][href]')) {
     const href = link.getAttribute('href')!
     if (isOtherOrigin(href)) continue
     const path = new URL(href, pageUrl(file)).pathname.slice(1)
     if (!existsSync(join(root, path))) failures.push(`${file}: modulepreloads ${href}, which the build does not contain`)
-    else chunks.push({ path, bytes: statSync(join(root, path)).size })
+    else if (!PRELOADABLE_MODULES.test(path)) failures.push(`${file}: modulepreloads ${path}, a shared chunk; only the entry and node modules may be preloaded, because hints for chunks delay the first paint on a mobile connection`)
+    else modules.push({ path, bytes: statSync(join(root, path)).size })
   }
-  const total = chunks.reduce((sum, chunk) => sum + chunk.bytes, 0)
+  const total = modules.reduce((sum, module) => sum + module.bytes, 0)
   if (total > MAX_PRELOADED_SCRIPT_BYTES) {
-    const largest = chunks.reduce((a, b) => (b.bytes > a.bytes ? b : a))
+    const largest = modules.reduce((a, b) => (b.bytes > a.bytes ? b : a))
     failures.push(`${file}: modulepreloads ${total} bytes of JavaScript, over the ${MAX_PRELOADED_SCRIPT_BYTES} byte budget (largest: ${largest.path}, ${largest.bytes} bytes)`)
   }
   return failures

@@ -179,3 +179,75 @@ test('on a slow 3G connection the home page heading and primary action appear', 
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole('link', { name: 'Make your first change' }).first()).toBeInViewport({ timeout: 30_000 })
 })
+
+// QB.3j. Chromium 153 fetches `loading="lazy"` pictures 1,500 to 2,000 px below the fold right after the poster, and
+// Lighthouse charges them to the poster's LCP (3.4 s against 2.1 s without them). The home page therefore asks for a
+// picture only when the reader is near it.
+test('the home page requests only the poster picture until the reader scrolls toward the others', async ({ page }) => {
+  const requested: string[] = []
+  page.on('request', request => {
+    const name = /\/previews\/([^/]+)$/.exec(new URL(request.url()).pathname)?.[1]
+    if (name) requested.push(name)
+  })
+  await page.setViewportSize({ width: 412, height: 823 })
+  await open(page, '/')
+  const notThePoster = () => requested.filter(name => !name.startsWith('emberwick'))
+  const boxes = page.locator('.lazy-picture')
+  const pictures = page.locator('.lazy-picture img')
+  const total = await boxes.count()
+  expect(requested.length, 'the poster is requested').toBeGreaterThan(0)
+  expect(total, 'the page has pictures below the poster').toBeGreaterThanOrEqual(3)
+  expect(notThePoster()).toEqual([])
+
+  // The page scrolls smoothly (`scroll-behavior`), and a smooth scroll to the bottom passes every picture on the way,
+  // which asks for all of them; whether the browser draws enough frames on the way is not something to depend on (the
+  // hosted WebKit run did not). These scrolls jump, then wait two frames, which is when an IntersectionObserver reports.
+  const twoFrames = () => page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+
+  // The bottom of the page is thousands of pixels from every picture, so a reader who lands there is near none of them.
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }))
+  await twoFrames()
+  expect(notThePoster(), 'no picture is asked for from the bottom of the page').toEqual([])
+  expect(await pictures.count()).toBe(0)
+
+  // Landing on the first picture asks for it and the ones just below it, and not the rest.
+  await boxes.first().evaluate(box => box.scrollIntoView({ block: 'center', behavior: 'instant' }))
+  await expect.poll(notThePoster, { message: 'pictures near the reader are requested', timeout: 15_000 }).not.toEqual([])
+  await expect(pictures.first()).toHaveJSProperty('complete', true, { timeout: 15_000 })
+  expect(await pictures.count(), 'pictures far from the reader are still not in the page').toBeLessThan(total)
+})
+
+// QB.3j. Lighthouse charges to the first paint every request that finished before it. On a fast host the thirty or so
+// module requests of hydration finish in under 100 ms, so when they start at once they all count against the poster's
+// LCP (2.6 to 3.2 s on the Mac against 1.4 to 1.8 s once hydration waits). `hydrateAfterFirstPaint` makes the start
+// script wait. The stylesheet is held back here so the first paint is late enough that a request made at once would have
+// finished before it; the hydration modules must still start after it, and must start.
+test('hydration requests its modules only after the first contentful paint', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Lighthouse, which this protects, measures Chromium')
+  await page.route('**/*.css', async route => {
+    await new Promise(resolve => setTimeout(resolve, 800))
+    await route.continue()
+  })
+  await open(page, '/')
+  const { paint, chunkStarts } = await page.evaluate(() => ({
+    paint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? null,
+    chunkStarts: performance.getEntriesByType('resource').filter(entry => /\/_app\/immutable\/chunks\//.test(entry.name)).map(entry => entry.startTime),
+  }))
+  expect(paint, 'the page painted').not.toBeNull()
+  expect(chunkStarts.length, 'hydration requested its modules').toBeGreaterThan(10)
+  expect(chunkStarts.filter(start => start < (paint ?? 0)), 'module requests that began before the first paint').toEqual([])
+})
+
+// The prerendered page has no picture of its own below the poster, so a reader without script gets the noscript copies.
+test.describe('without script', () => {
+  test.use({ javaScriptEnabled: false })
+
+  test('the home page still shows its example pictures', async ({ page }) => {
+    await page.goto('/')
+    const pictures = page.locator('.lazy-picture img')
+    expect(await pictures.count()).toBeGreaterThanOrEqual(3)
+    for (const alt of await pictures.evaluateAll(images => images.map(image => image.getAttribute('alt')))) expect(alt, 'every picture has alt text').toBeTruthy()
+    await pictures.last().scrollIntoViewIfNeeded()
+    await expect.poll(() => pictures.last().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true)
+  })
+})

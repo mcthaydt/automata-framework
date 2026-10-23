@@ -2,10 +2,10 @@
   import DemoRunner from '$lib/components/DemoRunner.svelte'
   import SourceExplorer from '$lib/components/SourceExplorer.svelte'
   import CreativeStarts from '$lib/components/CreativeStarts.svelte'
+  import LazyPicture from '$lib/components/LazyPicture.svelte'
   import { AUDIENCE_FIT, AUDIENCE_NOT_FIT, FAQ_ITEMS } from '../data/audience'
   import { MIGRATION_GUIDES } from '../data/migrations'
   import PageMeta from '$lib/components/PageMeta.svelte'
-  import { previewSrcset } from '$lib/previews'
   import type { PageData } from './$types'
   let { data }: { data: PageData } = $props()
   const sourceGuides = [
@@ -53,7 +53,7 @@
   <div class="example-index">
     {#each previews as demo}
       <article>
-        <a class="example-preview" href={'/examples?demo=' + demo.slug} aria-label={'Explore ' + demo.title.toLowerCase()}><picture><source type="image/webp" srcset={previewSrcset('/previews/' + demo.slug + '.jpg')} sizes="(max-width: 700px) 100vw, 40vw" /><img src={'/previews/' + demo.slug + '.jpg'} alt={demo.title + ' example running in Automata'} width="960" height="600" loading="lazy" /></picture></a>
+        <a class="example-preview" href={'/examples?demo=' + demo.slug} aria-label={'Explore ' + demo.title.toLowerCase()}><LazyPicture src={'/previews/' + demo.slug + '.jpg'} alt={demo.title + ' example running in Automata'} width={960} height={600} aspect="16 / 10" sizes="(max-width: 700px) 100vw, 40vw" /></a>
         <div class="example-description"><h3><a href={'/examples?demo=' + demo.slug}>{demo.title}</a></h3><p>{demo.description}</p></div>
       </article>
     {/each}

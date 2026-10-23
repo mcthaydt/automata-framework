@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { medianMetrics, type LighthouseResult } from '../scripts/record-lighthouse-baseline'
+import { describeHostLoad, describeRuns, medianMetrics, type LighthouseResult } from '../scripts/record-lighthouse-baseline'
 
 // QB.3h. The first run found three pages below the targets, almost all of it total blocking time (syntax highlighting
 // of code nobody could see, and a demo that started on arrival). That is fixed, so the budget now also holds total
@@ -12,9 +12,24 @@ import { medianMetrics, type LighthouseResult } from '../scripts/record-lighthou
 //
 // The baseline is recorded where the budget is enforced: the GitHub-hosted runner, whose Chromium (153) is newer than
 // the one in the container the first numbers came from (141). The two agree on `/start`, `/examples` and `/docs`; on
-// `/` the newer Chromium also fetches two gallery images below the poster before it paints, and the simulated slow
-// network charges their 95 KB to the LCP (3.5 s there, 2.6 s with Chromium 141). `/` therefore starts below the
-// performance target, with its reason listed below, and its budget comes from that run.
+// `/` the newer Chromium also fetched two gallery images below the poster before it painted, and the simulated slow
+// network charged their 95 KB to the LCP (3.5 s there, 2.6 s with Chromium 141).
+//
+// QB.3j. The CI runs on the Owner's Mac. The first run of QB.3j's code there measured the home page at 2.57 s, `/start`
+// at 2.86 s and `/examples` at 3.01 s, where the hosted runner and a quiet container measure 1.7 to 2.1 s, and a second
+// run on a quiet Mac gave the same numbers to the millisecond: it was not load. Lighthouse's simulation charges the
+// first paint with every request that finished before it, and on a host fast enough to finish SvelteKit's whole
+// hydration chain (about 30 module requests, 350 KB) before painting, that is all of it. Hydration now starts after the
+// first paint (src/lib/hydration.ts), which makes the number the same on every host: 1.4 to 1.7 s in the container,
+// also with the first paint held back 400 ms, where the old code measured 2.1 to 3.2 s. The budget below is unchanged.
+//
+// QB.3j. That is fixed (the pictures wait until the reader is near; only the entry and node modules are preloaded), and
+// the baseline is re-recorded on the hosted runner: every page is under 2.5 s and at least 0.96, so every page is held to
+// the targets themselves. The price is blocking time. Hydration used to finish before the first paint, where
+// Lighthouse does not count it; the paint is now 0.5 to 0.9 s earlier and the hydration falls after it, so the home page
+// and the gallery (the two with the most to hydrate) went from 46 and 28 ms to 186 and 156 ms. Their line is 300 ms
+// instead of 200; the other two pages stay at 200. The spec names no blocking-time target, and the score floor above
+// still holds.
 //
 // QB.3f. The quality-bar spec (§4.2) asks for a Lighthouse budget on `/`, `/start`, `/examples` and `/docs`:
 // performance ≥ 90 on mobile, LCP ≤ 2.5 s, CLS ≤ 0.1, with thresholds that "come from the first recorded run and are
@@ -93,14 +108,15 @@ describe('the Lighthouse budget (lighthouserc.json)', () => {
   })
 
   // Pages whose recorded run is below the performance target, each with the reason. An entry goes when the page meets
-  // the target (the test below fails then), so the list cannot outlive the problem.
-  const BELOW_PERFORMANCE_TARGET: Record<string, string> = {
-    '/': 'Chromium 153 fetches two gallery images (95 KB) before the poster paints, and the simulation charges them to the LCP (3.5 s)',
-  }
+  // the target (the test below fails then), so the list cannot outlive the problem. QB.3j emptied it.
+  const BELOW_PERFORMANCE_TARGET: Record<string, string> = {}
 
-  it.each(['/', '/start', '/examples', '/docs'])('%s: the recorded run meets the blocking-time line, and the performance target unless a reason is listed', path => {
+  // The blocking-time line is the page's own (300 ms on the two pages that hydrate the most, 200 ms elsewhere; the two
+  // hosted runs of QB.3j measured the home page at 186 and 211 ms), so the recorded run is held to that line, and the
+  // rule that no line is looser than the spec or the record plus a third is checked above.
+  it.each(['/', '/start', '/examples', '/docs'])('%s: the recorded run meets its blocking-time line, and the performance target unless a reason is listed', path => {
     const recorded = baseline.pages[path]!
-    expect(recorded.tbtMs).toBeLessThanOrEqual(SPEC.tbtMs)
+    expect(recorded.tbtMs).toBeLessThanOrEqual(budgetFor(`http://127.0.0.1:4652${path}`)['total-blocking-time']![1].maxNumericValue!)
     if (path in BELOW_PERFORMANCE_TARGET) {
       expect(recorded.performance, `${path} now meets the target: remove its entry from BELOW_PERFORMANCE_TARGET`).toBeLessThan(SPEC.performance)
     } else {
@@ -112,6 +128,14 @@ describe('the Lighthouse budget (lighthouserc.json)', () => {
     const recorded = baseline.pages[path]!
     if (recorded.performance < SPEC.performance) return
     expect(budgetFor(`http://127.0.0.1:4652${path}`)['categories:performance']![1].minScore!).toBeGreaterThanOrEqual(SPEC.performance)
+  })
+
+  // QB.3j. The same rule for the LCP: once the hosted run is under 2.5 s the budget is 2.5 s, not the first run plus a
+  // third, which would let the page slip back to 2.9 s and still pass.
+  it.each(['/', '/start', '/examples', '/docs'])('%s: a page that meets the LCP target is held to it', path => {
+    const recorded = baseline.pages[path]!
+    if (recorded.lcpMs > SPEC.lcpMs) return
+    expect(budgetFor(`http://127.0.0.1:4652${path}`)['largest-contentful-paint']![1].maxNumericValue!).toBeLessThanOrEqual(SPEC.lcpMs)
   })
 
   it('keeps its reports as files, and uploads nothing to a third party', () => {
@@ -136,5 +160,38 @@ describe('medianMetrics (the baseline recorder)', () => {
   it('refuses a run that could not score, rather than recording a guess', () => {
     expect(() => medianMetrics([{ ...result(0.9, 1000), categories: { performance: { score: null } } }])).toThrow(/could not score/)
     expect(() => medianMetrics([])).toThrow(/no Lighthouse results/)
+  })
+})
+
+describe('describeRuns (the per-run record in the job log)', () => {
+  const result = (lcp: number): LighthouseResult => ({
+    lighthouseVersion: '12.6.1',
+    categories: { performance: { score: 0.9 } },
+    environment: { hostUserAgent: 'HeadlessChrome/153.0.0.0' },
+    audits: Object.fromEntries(['largest-contentful-paint', 'cumulative-layout-shift', 'total-blocking-time', 'first-contentful-paint', 'speed-index', 'total-byte-weight'].map(id => [id, { numericValue: id === 'largest-contentful-paint' ? lcp : 1 }])),
+  })
+
+  it('lists every run’s LCP in the order they ran, with the best and the median, so a loaded runner shows as a spread', () => {
+    expect(describeRuns('/', [result(3374), result(1574), result(3414)])).toBe('/ LCP per run (ms): 3374, 1574, 3414; best 1574, median 3374')
+  })
+
+  it('rounds to whole milliseconds, as the log reads', () => {
+    expect(describeRuns('/docs', [result(1236.4), result(1255.6), result(1244)])).toBe('/docs LCP per run (ms): 1236, 1256, 1244; best 1236, median 1244')
+  })
+
+  it('refuses a page with no runs', () => {
+    expect(() => describeRuns('/', [])).toThrow(/no Lighthouse results/)
+  })
+})
+
+describe('describeHostLoad (what else the runner was doing)', () => {
+  // The runner is shared with the framework's CI on one machine (the hub saw a load of 115 on its 8 cores), so the log of a
+  // run says what else the host was doing, whatever turns out to explain a number.
+  it('names the cores and the 1, 5 and 15 minute load averages, and the load per core', () => {
+    expect(describeHostLoad(8, [9.6, 7.2, 4])).toBe('Host: 8 cores, load average 9.60, 7.20, 4.00 (1.20 per core over the last minute)')
+  })
+
+  it('reports a quiet host the same way', () => {
+    expect(describeHostLoad(4, [0.4, 0.8, 1])).toBe('Host: 4 cores, load average 0.40, 0.80, 1.00 (0.10 per core over the last minute)')
   })
 })

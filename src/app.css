@@ -178,6 +178,7 @@ input::placeholder { color: var(--muted); }
 /* Working parts: an even grid of captures, each set in a dark cabinet. */
 .example-index { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem 1.5rem; }
 .example-preview { display: block; overflow: hidden; border-radius: var(--radius); background: var(--charcoal); }
+.lazy-picture { display: block; }
 .example-preview img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; }
 .example-description { display: grid; grid-template-columns: minmax(0, .5fr) minmax(0, 1fr); gap: 1.5rem; padding: 1.1rem .25rem 0; border-top: 0; }
 .example-description h3 { margin: 0; font-size: var(--step-lead); font-weight: 550; }
