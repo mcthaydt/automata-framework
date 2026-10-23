@@ -33,6 +33,11 @@ export type BarSample = {
   settled: boolean
 }
 
+/**
+ * Recognises a browser bar the browser has stopped reporting (DuckDuckGo for Android's bottom bar) and
+ * measures how much of the page's foot it covers. It keeps state: it learns the largest settled
+ * screen-to-page gap for each orientation.
+ */
 export class HiddenBrowserBar {
   /** The bottom address bar's height when the gap cannot say (measured: 64). */
   static readonly FALLBACK_HEIGHT = 64
