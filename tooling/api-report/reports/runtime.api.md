@@ -222,6 +222,21 @@ interface AuthoritativeSnapshot {
 }
 ```
 
+### `AutosavePolicy` (interface)
+
+```ts
+interface AutosavePolicy {
+    readonly on: readonly AutosaveTrigger[];
+    readonly intervalSeconds?: number;
+}
+```
+
+### `AutosaveTrigger` (type)
+
+```ts
+type AutosaveTrigger = 'screen-exit' | 'round-end' | 'background' | 'interval';
+```
+
 ### `BindingOverride` (interface)
 
 ```ts
@@ -366,6 +381,16 @@ const DEFAULT_QUALITY: QualityTier;
 function defineSave<S>(def: SaveDef<S>): SaveDef<S>;
 ```
 
+### `DeviceStorage` (interface)
+
+```ts
+interface DeviceStorage {
+    get(key: string): string | null;
+    set(key: string, value: string): void;
+    remove(key: string): void;
+}
+```
+
 ### `DisplayCopy` (interface)
 
 ```ts
@@ -474,6 +499,7 @@ interface GameDefinition<S = never> {
     readonly screens: readonly ScreenDef[];
     readonly renderer: RendererFactory;
     readonly settings?: SettingsDef<S> | undefined;
+    readonly saves?: SaveDef<unknown> | undefined;
     readonly orientation?: GameOrientation | undefined;
     readonly rotateHint?: RotateHintMode | undefined;
     readonly locale?: LocaleDef | undefined;
@@ -723,6 +749,12 @@ interface Leaderboards<Board extends string = string> {
 const Leaderboards: Context.Tag<Leaderboards, Leaderboards>;
 ```
 
+### `liveDeviceStorage` (function)
+
+```ts
+function liveDeviceStorage(win: Pick<Window, 'localStorage'>, prefix: string): DeviceStorage | undefined;
+```
+
 ### `Loaded` (interface)
 
 ```ts
@@ -810,6 +842,14 @@ function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Sco
 
 ```ts
 const makeLeaderboards: Effect.Effect<Leaderboards, never, Hosting | PresentationBus>;
+```
+
+### `makeSaves` (function)
+
+```ts
+function makeSaves(def: SaveDef<unknown> | undefined, options: {
+    readonly contentHash: string;
+}): Effect.Effect<Saves, HostError, Hosting | PresentationBus | Scope.Scope>;
 ```
 
 ### `matchLocale` (function)
@@ -1087,6 +1127,10 @@ interface RuntimeFacts {
         readonly key: string;
         readonly slot: number;
     };
+    readonly 'save.changedElsewhere': {
+        readonly key: string;
+        readonly slot: number;
+    };
     readonly 'leaderboard.submitted': {
         readonly board: string;
         readonly state: BoardState;
@@ -1114,13 +1158,14 @@ interface RuntimeSeams {
     readonly languages?: readonly string[];
     readonly createAudioContext?: () => AudioContextLike;
     readonly haptics?: Haptics;
+    readonly deviceStorage?: DeviceStorage;
 }
 ```
 
 ### `RuntimeServices` (type)
 
 ```ts
-type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses | Leaderboards | Haptics;
+type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | Saves | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses | Leaderboards | Haptics;
 ```
 
 ### `Save` (interface)
@@ -1128,9 +1173,16 @@ type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppL
 ```ts
 interface Save<S> {
     readonly slots: Subscribable.Subscribable<readonly SlotState[]>;
+    readonly loaded: Subscribable.Subscribable<number | undefined>;
     load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
     write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>;
     remove(slot: number): Effect.Effect<void, HostError>;
+    touch(data: () => S): void;
+    readonly flushPending: Effect.Effect<void>;
+    autosave(trigger: AutosaveTrigger): Effect.Effect<void>;
+    readonly changedElsewhere: Subscribable.Subscribable<boolean>;
+    loadNewer(): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
+    keepPlaying(): void;
 }
 ```
 
@@ -1146,6 +1198,7 @@ interface SaveDef<S> {
     readonly slots?: {
         readonly count: number;
     };
+    readonly autosave?: AutosavePolicy;
 }
 ```
 
@@ -1186,6 +1239,12 @@ interface SaveFromNewerBuildFields {
 type SaveMigration = (record: Record<string, unknown>) => Record<string, unknown>;
 ```
 
+### `saveOf` (function)
+
+```ts
+function saveOf<S>(def: SaveDef<S>): Effect.Effect<Save<S>, never, Saves>;
+```
+
 ### `SaveRefused` (class)
 
 ```ts
@@ -1203,10 +1262,20 @@ interface SaveRefusedFields {
 }
 ```
 
+### `Saves` (interface)
+
+```ts
+interface Saves {
+    readonly key: string | undefined;
+    readonly save: Save<unknown> | undefined;
+}
+const Saves: Context.Tag<Saves, Saves>;
+```
+
 ### `saveService` (function)
 
 ```ts
-function saveService<S>(def: SaveDef<S>, options: SaveServiceOptions): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus>;
+function saveService<S>(def: SaveDef<S>, options: SaveServiceOptions): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus | Scope.Scope>;
 ```
 
 ### `SaveServiceOptions` (interface)
@@ -1292,6 +1361,7 @@ interface SettingsDef<S> {
     readonly schema: z.ZodType<S>;
     readonly defaults: S;
     readonly migrations?: Readonly<Record<number, (record: Record<string, unknown>) => Record<string, unknown>>>;
+    readonly deviceFields?: readonly string[];
 }
 ```
 
@@ -1678,6 +1748,8 @@ interface RuntimeTestOptions {
     readonly screens?: readonly ScreenDef<any>[];
     readonly content?: CompiledContentData;
     readonly settings?: SettingsDef<unknown>;
+    readonly saves?: SaveDef<unknown>;
+    readonly deviceStorage?: DeviceStorage;
     readonly frames?: ManualFrames | FrameSource;
     readonly renderer?: GameRenderer | RendererFactory;
     readonly fetch?: typeof fetch;

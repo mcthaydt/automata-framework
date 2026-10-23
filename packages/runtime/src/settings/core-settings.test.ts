@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { AUDIO_SETTINGS_DEFAULT, audioSettingsSchema } from './audio-settings.schema.js'
 import { CORE_SETTINGS } from './core-settings.js'
-import { readSettings, writeSettings } from './migrate-settings.js'
+import { readSettings, writeAccountSettings, writeDeviceSettings, writeSettings } from './migrate-settings.js'
 
 // The core settings (M4 spec §4.5, §4.8): what a game that declares no settings saves, so the Settings screen's
 // Controls and Display sections always have somewhere to keep the player's choices.
@@ -57,10 +57,17 @@ describe('CORE_SETTINGS', () => {
       audio,
       haptics: { enabled: true },
     }
-    expect(readSettings(CORE_SETTINGS, writeSettings(CORE_SETTINGS, saved)).audio).toEqual(audio)
-    const bad =
-      '{"version":1,"input":{"profile":"","overrides":{}},"display":{"quality":"low"},"audio":{"gains":{"music":7}}}'
-    expect(readSettings(CORE_SETTINGS, bad)).toMatchObject({
+    // The audio record is the device's (M5-D4): read from there, and the account's copy is not read at all.
+    expect(
+      readSettings(
+        CORE_SETTINGS,
+        writeAccountSettings(CORE_SETTINGS, saved),
+        writeDeviceSettings(CORE_SETTINGS, saved),
+      ).audio,
+    ).toEqual(audio)
+    const account = '{"version":1,"input":{"profile":"","overrides":{}},"display":{"quality":"low"}}'
+    const bad = '{"version":1,"audio":{"gains":{"music":7}}}'
+    expect(readSettings(CORE_SETTINGS, account, bad)).toMatchObject({
       display: { quality: 'low' },
       audio: AUDIO_SETTINGS_DEFAULT,
     })
@@ -68,6 +75,27 @@ describe('CORE_SETTINGS', () => {
 
   it('fills a partial audio record field by field', () => {
     expect(audioSettingsSchema.parse({ muted: true })).toEqual({ ...AUDIO_SETTINGS_DEFAULT, muted: true })
+  })
+
+  // M5.2 (M5 spec §4.5, M5-D4): the audio choices belong to the device, as FloorFifty's `keepAudioOnDevice` has it
+  // (Owner, 2026-10-10: "muting a Mac must not mute the same player's iPad").
+  it('keeps the audio choices on the device', () => {
+    expect(CORE_SETTINGS.deviceFields).toEqual(['audio'])
+  })
+
+  it('reads an account record that still holds audio as the defaults on a device with none, and its own record where it has one', () => {
+    const muted = {
+      muted: true,
+      muteUnfocused: false,
+      gains: { master: 0.2, music: 1, sfx: 1, ui: 1, voice: 1 },
+    }
+    const account = JSON.stringify({ version: 1, display: { quality: 'low' }, audio: muted })
+    expect(readSettings(CORE_SETTINGS, account, null)).toMatchObject({
+      display: { quality: 'low' },
+      audio: AUDIO_SETTINGS_DEFAULT,
+    })
+    const device = JSON.stringify({ version: 1, audio: { ...muted, muted: false } })
+    expect(readSettings(CORE_SETTINGS, account, device).audio).toEqual({ ...muted, muted: false })
   })
 
   // Redo step 10 (Owner, 2026-10-18): the Vibration group's toggle, on until the player turns it off.

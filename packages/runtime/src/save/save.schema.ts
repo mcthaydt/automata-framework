@@ -10,6 +10,15 @@ import type { z } from 'zod'
 
 export type SaveMigration = (record: Record<string, unknown>) => Record<string, unknown>
 
+/** What can make the loaded slot write itself (M5 spec §4.4). */
+export type AutosaveTrigger = 'screen-exit' | 'round-end' | 'background' | 'interval'
+
+export interface AutosavePolicy {
+  readonly on: readonly AutosaveTrigger[]
+  /** Seconds between timer writes, default 60. Read only when `interval` is in `on`. */
+  readonly intervalSeconds?: number
+}
+
 /** A game's save: one record, or a fixed number of slots, each one Ruken key. */
 export interface SaveDef<S> {
   /** The key prefix. Ruken's key rule is the SDK's, which checks it on write. */
@@ -23,6 +32,8 @@ export interface SaveDef<S> {
   readonly migrations: Readonly<Record<number, SaveMigration>>
   /** Absent: one record, slot 0, stored at `key`. */
   readonly slots?: { readonly count: number }
+  /** Absent: save on `screen-exit`, `round-end` and `background`, with no timer (M5-D10). `{ on: [] }` turns it off. */
+  readonly autosave?: AutosavePolicy
 }
 
 /** What is stored: a self-describing envelope, one Ruken key per slot. */
@@ -67,6 +78,32 @@ export type ReadSave<S> =
 /** Declares a save. It checks nothing the SDK checks; it only gives the definition its type. */
 export function defineSave<S>(def: SaveDef<S>): SaveDef<S> {
   return def
+}
+
+const DEFAULT_AUTOSAVE_ON: readonly AutosaveTrigger[] = ['screen-exit', 'round-end', 'background']
+const DEFAULT_AUTOSAVE_INTERVAL_SECONDS = 60
+
+/** A save's autosave policy with its defaults filled in. */
+export interface ResolvedAutosave {
+  readonly on: ReadonlySet<AutosaveTrigger>
+  /** Undefined when `interval` is not one of the triggers: there is no timer. */
+  readonly intervalSeconds: number | undefined
+}
+
+/**
+ * The policy a save runs under: the defaults when it declares none, each trigger once, and the timer's period only
+ * when the timer is asked for. A period a timer cannot keep (zero, negative or not finite) throws: the game's own
+ * mistake, found at boot instead of as a busy loop.
+ */
+export function autosaveOf(def: SaveDef<unknown>): ResolvedAutosave {
+  const on = new Set(def.autosave?.on ?? DEFAULT_AUTOSAVE_ON)
+  if (!on.has('interval')) return { on, intervalSeconds: undefined }
+  const intervalSeconds = def.autosave?.intervalSeconds ?? DEFAULT_AUTOSAVE_INTERVAL_SECONDS
+  if (!Number.isFinite(intervalSeconds) || intervalSeconds <= 0)
+    throw new RangeError(
+      `Save '${def.key}': autosave intervalSeconds must be a positive number, got ${intervalSeconds}`,
+    )
+  return { on, intervalSeconds }
 }
 
 /** The Ruken key slot `slot` is stored at. */

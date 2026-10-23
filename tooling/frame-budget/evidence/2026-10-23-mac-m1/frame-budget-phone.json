@@ -1,0 +1,49 @@
+{
+  "schema": "af-frame-budget-result/1",
+  "project": "frame-budget-phone",
+  "measuredAt": "2026-10-23T02:39:03.874Z",
+  "scene": {
+    "entities": 2000,
+    "systems": 8
+  },
+  "sample": {
+    "warmupMs": 2000,
+    "sampleMs": 10000
+  },
+  "environment": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+    "gpuVendor": "Google Inc. (Apple)",
+    "renderer": "webgl",
+    "browser": "chromium",
+    "browserVersion": "153.0.8010.12",
+    "userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Mobile Safari/537.36",
+    "viewport": {
+      "width": 412,
+      "height": 839
+    },
+    "devicePixelRatio": 2.625,
+    "os": "Darwin 27.0.0",
+    "cpus": 8,
+    "cpuModel": "Apple M1",
+    "node": "v24.21.0",
+    "commit": "5ad4a84242f24bd41232341fa2813120e8488dda",
+    "runner": null,
+    "ci": false
+  },
+  "workMs": {
+    "count": 601,
+    "mean": 9.452079866769509,
+    "p50": 9.200000047683716,
+    "p95": 10.199999928474426,
+    "p99": 10.299999952316284,
+    "max": 10.300000071525574
+  },
+  "intervalMs": {
+    "count": 600,
+    "mean": 16.666,
+    "p50": 16.699999999999818,
+    "p95": 16.700000000000728,
+    "p99": 16.80000000000109,
+    "max": 16.80000000000109
+  }
+}

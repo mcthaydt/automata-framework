@@ -4,11 +4,10 @@
 //   high 2) and leaves out post filters registered with a higher minTier. The world and HUD draw through the
 //   fixed-resolution composite, so pixel art stays whole-pixel at every tier.
 // Controls: 1 low, 2 medium, 3 high
-// Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim
+// Packages: @mcthaydt/automata
 // Difficulty: ★★☆☆
 // Tier: core
-import { defineGame, rect } from '@mcthaydt/automata-game'
-import { defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+import { defineComponent, defineGame, definePlugin, defineSystem, rect } from '@mcthaydt/automata'
 
 const Drift = defineComponent('drift', { x: 'f32', y: 'f32', vx: 'f32' })
 
@@ -59,8 +58,9 @@ export default defineGame({
   },
   draw: (ctx) => {
     if (stage === undefined) return
-    ctx.rect(4, 4, 168, 14, 0x2e222f)
-    ctx.text(`quality ${stage.quality}   resolution ${stage.app.renderer.resolution}`, 8, 7, {
+    // y = 40: a wide phone shows only the band between about y = 35 and y = 145 of the 180-high field.
+    ctx.rect(4, 40, 168, 14, 0x2e222f)
+    ctx.text(`quality ${stage.quality}   resolution ${stage.app.renderer.resolution}`, 8, 43, {
       color: 0xffffff,
       size: 8,
     })
