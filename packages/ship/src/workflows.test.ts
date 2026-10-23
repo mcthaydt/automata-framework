@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
-import { readdirSync, readFileSync } from 'node:fs'
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -12,6 +13,7 @@ const root = fileURLToPath(new URL('../../..', import.meta.url))
 const workflowText = (name: string): string => readFileSync(join(root, '.github/workflows', name), 'utf8')
 
 interface Step {
+  readonly id?: string
   readonly uses?: string
   readonly run?: string
   readonly name?: string
@@ -21,6 +23,7 @@ interface Step {
 }
 interface Job {
   readonly 'runs-on'?: string
+  readonly outputs?: Record<string, string>
   readonly if?: string
   readonly needs?: string | string[]
   readonly uses?: string
@@ -825,5 +828,105 @@ describe('game-release.yml (reusable)', () => {
     expect(Object.keys(release.on.workflow_call?.secrets ?? {})).toEqual(
       expect.arrayContaining(['RUKEN_TOKEN', 'SHIP_DEV_SSH_KEY']),
     )
+  })
+})
+
+// The CI backlog (2026-10-23): one runner serves every pull request, so a pull request that cannot change what
+// a game builds (documentation only) or that is still a draft runs the checks job alone. Marking a draft ready
+// starts the rest (`ready_for_review` is in the pull_request types above).
+describe('what a pull request runs (docs-only and draft scope)', () => {
+  const ci = workflow('ci.yml')
+  const scope = ci.jobs.checks?.steps?.find((step) => step.id === 'scope')
+
+  it('has the checks job decide whether the pull request is documentation only', () => {
+    expect(ci.jobs.checks?.outputs?.docs_only).toBe('${{ steps.scope.outputs.docs_only }}')
+    expect(scope?.if).toBe("github.event_name == 'pull_request'")
+    // Before the install, so a scope failure costs nothing; after the checkout that fetches the history.
+    const steps = ci.jobs.checks?.steps ?? []
+    expect(steps.indexOf(scope as Step)).toBeGreaterThan(
+      steps.findIndex((step) => step.uses?.startsWith('actions/checkout@')),
+    )
+    expect(steps.indexOf(scope as Step)).toBeLessThan(
+      steps.findIndex((step) => step.run === 'pnpm install --frozen-lockfile'),
+    )
+  })
+
+  it.each(['placeholder', 'base-2d', 'parity'])(
+    '%s waits for the checks and, on a pull request, runs only a ready one that changes more than documentation',
+    (name) => {
+      const job = ci.jobs[name]
+      expect(job?.needs).toBe('checks')
+      // `!cancelled()` keeps the push, nightly and dispatch behavior: a red checks job does not hide these.
+      expect(job?.if).toContain('!cancelled()')
+      expect(job?.if).toContain("needs.checks.result == 'success'")
+      expect(job?.if).toContain('github.event.pull_request.draft != true')
+      expect(job?.if).toContain("needs.checks.outputs.docs_only != 'true'")
+      // A focused browser run (test-remote) still skips them, as before.
+      expect(job?.if).toContain("inputs.spec == ''")
+    },
+  )
+
+  describe('the scope step classifies the merge commit that GitHub checks out', () => {
+    // Run the step's own script in a scratch repository shaped like a pull request checkout: HEAD is a merge
+    // commit whose first parent is the base tip, so HEAD^1..HEAD is exactly the pull request's changes.
+    const classify = (changedFiles: readonly string[] | 'not-a-merge'): string => {
+      const dir = mkdtempSync(join(tmpdir(), 'af-scope-'))
+      try {
+        const git = (...args: string[]): string =>
+          execFileSync('git', ['-c', 'user.name=ci', '-c', 'user.email=ci@example.com', ...args], {
+            cwd: dir,
+            encoding: 'utf8',
+          })
+        const commit = (message: string, files: readonly string[]): void => {
+          for (const file of files) {
+            execFileSync('mkdir', ['-p', join(dir, file, '..')])
+            writeFileSync(join(dir, file), `${message}\n`)
+          }
+          git('add', '-A')
+          git('commit', '-q', '-m', message)
+        }
+        git('init', '-q', '-b', 'main')
+        commit('base', ['README.md', 'packages/a/src/index.ts'])
+        if (changedFiles !== 'not-a-merge') {
+          git('checkout', '-q', '-b', 'pr')
+          commit('pr', changedFiles)
+          git('checkout', '-q', 'main')
+          commit('main moves on', ['docs/unrelated.md'])
+          git('merge', '-q', '--no-ff', '-m', 'merge', 'pr')
+        }
+        const output = join(dir, 'github-output')
+        writeFileSync(output, '')
+        execFileSync('bash', ['-e', '-c', scope?.run ?? 'exit 1'], {
+          cwd: dir,
+          env: { ...process.env, GITHUB_OUTPUT: output },
+        })
+        return readFileSync(output, 'utf8').trim()
+      } finally {
+        rmSync(dir, { recursive: true, force: true })
+      }
+    }
+
+    it('is docs-only when the pull request changes only docs/ and Markdown files', () => {
+      expect(
+        classify(['docs/superpowers/specs/new.md', 'docs/design/editor-3d/views.mjs', 'CHANGELOG.md']),
+      ).toBe('docs_only=true')
+      expect(classify(['packages/a/README.md'])).toBe('docs_only=true')
+    })
+
+    it('is not docs-only as soon as one changed file is code, config or a workflow', () => {
+      expect(classify(['docs/spec.md', 'packages/a/src/index.ts'])).toBe('docs_only=false')
+      expect(classify(['knip.jsonc'])).toBe('docs_only=false')
+      expect(classify(['.github/workflows/ci.yml'])).toBe('docs_only=false')
+      expect(classify(['docs-extra/tool.ts'])).toBe('docs_only=false')
+    })
+
+    it("counts the base branch's own new commits as nobody's changes", () => {
+      // classify() moves main on with a docs file after the branch point; a code-only change still shows.
+      expect(classify(['packages/a/src/index.ts'])).toBe('docs_only=false')
+    })
+
+    it('is not docs-only when the checkout is not a merge commit', () => {
+      expect(classify('not-a-merge')).toBe('docs_only=false')
+    })
   })
 })
