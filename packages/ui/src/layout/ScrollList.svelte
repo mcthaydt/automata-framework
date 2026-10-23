@@ -33,7 +33,7 @@ const { minRows, rowCount, rowGap, label, moreLabel, children, testId }: Props =
 let measured = $state(0)
 /** Whether the reserved rows share lines (a grid): then the row token over-counts them. */
 let sideBySide = $state(false)
-let list = $state<HTMLElement | undefined>(undefined)
+let list = $state<HTMLElement | null | undefined>(undefined)
 let hidden = $state(0)
 
 /** The reserve: the rows at the row token (and their gaps), or where the last of them ends if further. */
@@ -65,7 +65,8 @@ function rowBottoms(view: HTMLElement, rows: readonly HTMLElement[]): number[] {
 }
 
 function count(): void {
-  if (list === undefined) return
+  // Svelte sets a bound element to null, not undefined, when it goes; the measure must not reach for it then.
+  if (list == null) return
   const rows = [...list.querySelectorAll<HTMLElement>('[data-row]')]
   const bottoms = rowBottoms(list, rows)
   hidden = rowsBelow(list.scrollTop + list.clientHeight, bottoms)
@@ -76,7 +77,7 @@ function count(): void {
 
 $effect(() => {
   const node = list
-  if (node === undefined) return
+  if (node == null) return
   void rowCount
   count()
   return observeWidth(node, count)

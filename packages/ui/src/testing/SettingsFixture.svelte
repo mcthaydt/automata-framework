@@ -1,10 +1,10 @@
 <!--
-  The core Settings screen for the layout contracts (M4 spec §4.8, M4.4): Controls with four actions and both
-  devices, then Display, as the default screens draw them. `capturing` shows the first row waiting for a press.
-  Words are English stand-ins of a typical length.
+  The core Settings screen for the layout contracts (M4 spec §4.8, M4.4), in FloorFifty's two tabs: `settings` shows
+  the Settings tab (Language, Audio, Vibration, Display, Touch controls, in FloorFifty's order); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
+  shows its first row waiting for a press; `settings-short` the Settings tab with Display alone, for the sheet's height. Words are English stand-ins of a typical length.
 -->
 <script lang="ts" module>
-export const SETTINGS_SHOWS = ['settings', 'settings-capturing'] as const
+export const SETTINGS_SHOWS = ['settings', 'settings-short', 'controls', 'controls-capturing'] as const
 export type SettingsShow = (typeof SETTINGS_SHOWS)[number]
 </script>
 
@@ -12,7 +12,11 @@ export type SettingsShow = (typeof SETTINGS_SHOWS)[number]
 import type { PromptCopy } from '../prompts/prompt-label'
 import ControlsSection from '../settings/ControlsSection.svelte'
 import type { ControlsCopy, ControlsRow } from '../settings/controls-section'
+import AudioSection from '../settings/AudioSection.svelte'
 import DisplaySection from '../settings/DisplaySection.svelte'
+import LanguageSection from '../settings/LanguageSection.svelte'
+import VibrationSection from '../settings/VibrationSection.svelte'
+import TouchSection from '../settings/TouchSection.svelte'
 import type { DisplayCopy } from '../settings/display-section'
 import SettingsScreen from '../settings/SettingsScreen.svelte'
 
@@ -42,10 +46,10 @@ const CONTROLS_COPY: ControlsCopy = {
   title: 'Controls',
   keyboard: 'Keyboard',
   gamepad: 'Controller',
+  touch: 'Touch',
+  inUse: 'In use',
   reset: 'Reset controls',
   press: 'Press…',
-  touchMode: 'Touch controls',
-  touchModes: { buttons: 'Buttons', swipe: 'Swipe' },
   rebind: (action, device) => `Change ${action} on ${device}`,
   capturing: (action, device, seconds) => `Press a ${device} input for ${action} (${seconds} s)`,
   conflict: (action, other) => `${action} can't take that: ${other} would have nothing`,
@@ -71,14 +75,62 @@ const ROWS: ControlsRow[] = [
   <ControlsSection
     rows={ROWS}
     devices={['keyboard', 'gamepad']}
+    touch
+    inUse="keyboard"
     glyphs="xbox"
     promptCopy={PROMPT_COPY}
     copy={CONTROLS_COPY}
-    state={show === 'settings-capturing'
+    state={show === 'controls-capturing'
       ? { kind: 'capturing', action: 'left', device: 'keyboard', secondsLeft: 9 }
       : { kind: 'list' }}
     onrebind={none}
     onreset={none}
+  />
+{/snippet}
+
+{#snippet touch()}
+  <TouchSection
+    copy={{ title: 'Touch controls', mode: 'Play with', modes: { buttons: 'Buttons', swipe: 'Swipe' } }}
+    modes={['buttons', 'swipe']}
+    value="buttons"
+    onchange={none}
+  />
+{/snippet}
+
+{#snippet language()}
+  <LanguageSection
+    copy={{ title: 'Language', automatic: 'Automatic' }}
+    locales={['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans']}
+    choice={null}
+    onchange={none}
+  />
+{/snippet}
+
+{#snippet vibration()}
+  <VibrationSection
+    copy={{ title: 'Vibration', toggle: 'Rumble and vibration', on: 'On', off: 'Off' }}
+    enabled
+    onchange={none}
+  />
+{/snippet}
+
+{#snippet audio()}
+  <AudioSection
+    copy={{
+      title: 'Audio',
+      mute: 'Mute',
+      muteUnfocused: 'Mute in the background',
+      on: 'On',
+      off: 'Off',
+      buses: { master: 'Master', music: 'Music', sfx: 'Effects', ui: 'Menus', voice: 'Voices' },
+      percent: (value) => `${Math.round(value * 100)}%`,
+      unavailable: 'Sound could not start on this device.',
+      hostVolume: 'The host’s volume also applies.',
+    }}
+    value={{ muted: false, muteUnfocused: false, gains: { master: 1, music: 0.8, sfx: 1, ui: 0.6, voice: 1 } }}
+    available
+    hostBelowFull={false}
+    onchange={none}
   />
 {/snippet}
 
@@ -90,7 +142,20 @@ const ROWS: ControlsRow[] = [
   title="Settings"
   backLabel="Back"
   onback={none}
-  sections={[{ snippet: controls }, { snippet: display }]}
-  listLabel="Settings sections"
+  tabs={[
+    {
+      id: 'settings',
+      label: 'Settings',
+      sections: show === 'settings-short' ? [{ snippet: display }] : [
+        { snippet: language },
+        { snippet: audio },
+        { snippet: vibration },
+        { snippet: display },
+        { snippet: touch },
+      ],
+    },
+    { id: 'controls', label: 'Controls', sections: [{ snippet: controls }] },
+  ]}
+  tabsLabel="Settings sections"
   moreLabel={(count) => `+${count} more`}
 />

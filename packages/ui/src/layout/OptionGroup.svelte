@@ -18,6 +18,8 @@ interface Option {
   /** The option's name for assistive technology, where its face is a symbol. */
   readonly ariaLabel?: string | undefined
   readonly testId?: string | undefined
+  /** The option's language, where its face is in one of its own (a language's endonym). */
+  readonly lang?: string | undefined
 }
 
 interface Props {
@@ -29,9 +31,11 @@ interface Props {
   onchange: (value: string) => void
   disabled?: boolean | undefined
   testId?: string | undefined
+  /** The legend for assistive technology only, where a heading above already names the group. */
+  legendHidden?: boolean | undefined
 }
 
-const { label, options, value, onchange, disabled = false, testId }: Props = $props()
+const { label, options, value, onchange, disabled = false, testId, legendHidden = false }: Props = $props()
 
 const name = $props.id()
 let group = $state<HTMLElement | undefined>(undefined)
@@ -47,11 +51,16 @@ function choose(chosen: string): void {
 </script>
 
 <fieldset bind:this={group} class="af-options" data-testid={testId}>
-  <legend class="af-options__label">{label}</legend>
+  <legend class={legendHidden ? 'af-sr-only' : 'af-options__label'}>{label}</legend>
   <div class="af-options__row">
     {#each options as option (option.value)}
       {@const selected = option.value === value}
-      <label class="af-control af-option" data-selected={String(selected)} data-testid={option.testId}>
+      <label
+        class="af-control af-option"
+        data-selected={String(selected)}
+        data-testid={option.testId}
+        lang={option.lang}
+      >
         <input
           class="af-sr-only"
           type="radio"

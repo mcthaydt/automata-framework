@@ -35,7 +35,7 @@ const sync = (): void => {
   held = new Set(buttons.filter((button) => latch.isHeld(button.action)).map((button) => button.action))
 }
 
-let root = $state<HTMLElement | undefined>(undefined)
+let root = $state<HTMLElement | null | undefined>(undefined)
 
 // The reduced set (M4 spec §4.9): `needed` is one row's width with every button, measured while they all show;
 // where the controls are narrower than that, only the required buttons show. Widening past it shows them all again.
@@ -43,7 +43,8 @@ let reduced = $state(false)
 let needed = 0
 const showing = $derived(shownButtons(buttons, !reduced))
 function fit(width: number): void {
-  if (root === undefined) return
+  // A bound element is null, not undefined, once it goes.
+  if (root == null) return
   if (!reduced) {
     const groups = [...root.querySelectorAll<HTMLElement>('.af-touch__side')]
     const gap = Number.parseFloat(getComputedStyle(root).columnGap) || 0
@@ -53,9 +54,9 @@ function fit(width: number): void {
 }
 $effect(() => {
   void showing
-  if (root !== undefined) fit(root.clientWidth)
+  if (root != null) fit(root.clientWidth)
 })
-$effect(() => (root === undefined ? undefined : observeWidth(root, fit)))
+$effect(() => (root == null ? undefined : observeWidth(root, fit)))
 
 const sides = $derived(
   (['start', 'end'] as const)

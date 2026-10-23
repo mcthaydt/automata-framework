@@ -3,9 +3,10 @@ import type { HostingOptions, HostingSeams } from '@mcthaydt/automata-host'
 import type { BootFailureCopy } from '@mcthaydt/automata-ui'
 import type { AudioContextLike } from '../audio/audio-graph.js'
 import type { EventSounds } from '../audio/event-sounds.js'
-import type { GameOrientation } from '../display/display-policy.svelte.js'
+import type { GameOrientation, RotateHintMode } from '../display/display-policy.svelte.js'
 import type { ExtensionDef } from '../extension/define-extension.js'
 import type { ScreenDef } from '../flow/screen.js'
+import type { Haptics } from '../haptics/haptics.manager.js'
 import type { EventScores } from '../leaderboards/event-scores.js'
 import type { LocaleDef } from '../locale/locale.manager.js'
 import type { FrameSource } from '../loop/frames.js'
@@ -31,6 +32,8 @@ export interface RuntimeSeams {
   readonly languages?: readonly string[]
   /** Builds the audio context on the unlock; defaults to `new AudioContext()`. */
   readonly createAudioContext?: () => AudioContextLike
+  /** The device's haptics, in place of the browser's (pads, `navigator.vibrate`, a coarse pointer). */
+  readonly haptics?: Haptics
 }
 
 /** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */
@@ -51,6 +54,8 @@ export interface GameDefinition<S = never> {
    * `landscape` game on a phone held the other way pauses behind the rotate hint. Default `any`.
    */
   readonly orientation?: GameOrientation | undefined
+  /** How a locked orientation says so on a phone held the other way: `'block'` (the default) or `'toast'`. */
+  readonly rotateHint?: RotateHintMode | undefined
   /**
    * The game's languages: pass its Paraglide `runtime.js` (`import * as runtime from './paraglide/runtime.js'`).
    * Absent, the game has one locale, the content's `source_language` (PRODUCT spec §4).

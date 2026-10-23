@@ -283,6 +283,56 @@ describe('Audio: mute when unfocused', () => {
     ))
 })
 
+describe('Audio: a sample on a volume’s release (redo step 11)', () => {
+  it('plays a short tone the graph makes, on the bus asked for, once unlocked', () =>
+    withAudio((audio, { contexts, page }) =>
+      Effect.gen(function* () {
+        audio.sample('music')
+        expect(contexts).toHaveLength(0)
+        page.gesture()
+        yield* flush()
+        audio.sample('music')
+        yield* flush()
+        const started = contexts[0]?.started.at(-1)
+        expect(started?.alias).toBe('tone')
+        const level = started?.target as { targets: unknown[] } | undefined
+        expect(level?.targets).toEqual([audio.input('music')])
+      }),
+    ))
+})
+
+describe('Audio: available (M5.4)', () => {
+  it('is available until a context fails to build, and stays so once one runs', () =>
+    withAudio((audio, { page }) =>
+      Effect.gen(function* () {
+        expect(yield* audio.available.get).toBe(true)
+        page.gesture()
+        yield* flush()
+        expect(yield* audio.available.get).toBe(true)
+      }),
+    ))
+})
+
+describe('Audio: mute when unfocused, as a live setting (M5.4)', () => {
+  it('follows setMuteUnfocused: on, a blur silences the master and focus restores it; off, a blur does nothing', () =>
+    withAudio((audio, { page }) =>
+      Effect.gen(function* () {
+        page.gesture()
+        yield* flush()
+        audio.setMuteUnfocused(true)
+        page.window.dispatchEvent(new Event('blur'))
+        expect(masterOf(audio)).toBe(0)
+        page.window.dispatchEvent(new Event('focus'))
+        expect(masterOf(audio)).toBe(1)
+        page.window.dispatchEvent(new Event('blur'))
+        audio.setMuteUnfocused(false)
+        expect(masterOf(audio)).toBe(1)
+        page.window.dispatchEvent(new Event('blur'))
+        expect(masterOf(audio)).toBe(1)
+      }),
+    ))
+})
+
 describe('Audio: sounds, music and decoding', () => {
   it('plays a preloaded sound on sfx by default, decoding each alias once', () =>
     withAudio((audio, { contexts, page }) =>
@@ -378,6 +428,8 @@ describe('Audio: failure and disposal', () => {
           page.gesture()
           yield* flush()
           expect(facts).toEqual([{ name: 'audio.unavailable', fact: { reason: 'no Web Audio here' } }])
+          // Kept as state too, so a Settings screen opened later still shows sound as unavailable (A-e, M5.4).
+          expect(yield* audio.available.get).toBe(false)
           audio.sound('chime.wav')
           yield* audio.music('menu.ogg')
           page.gesture()

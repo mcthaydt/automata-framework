@@ -33,7 +33,7 @@ export type {
   RuntimeSeams,
 } from './boot/game-definition.js'
 export { runGame } from './boot/run-game.js'
-export type { DisplayCopy, GameOrientation } from './display/display-policy.svelte.js'
+export type { DisplayCopy, GameOrientation, RotateHintMode } from './display/display-policy.svelte.js'
 export { Flow } from './flow/flow.manager.js'
 export type {
   FlowFailure,
@@ -41,6 +41,13 @@ export type {
   ScreenContext,
   ScreenDef,
 } from './flow/screen.js'
+export {
+  browserHaptics,
+  createHaptics,
+  type HapticPulse,
+  Haptics,
+  type HapticsOptions,
+} from './haptics/haptics.manager.js'
 export {
   type BindingOverride,
   INPUT_SETTINGS_DEFAULT,
@@ -161,7 +168,17 @@ export {
   SaveUnreadable,
   type SaveUnreadableFields,
 } from './save/save-error.js'
-export { CORE_SETTINGS, type CoreSettings } from './settings/core-settings.js'
+export {
+  AUDIO_SETTINGS_DEFAULT,
+  type AudioSettings,
+  audioSettingsSchema,
+} from './settings/audio-settings.schema.js'
+export {
+  CORE_SETTINGS,
+  type CoreSettings,
+  type HapticsSettings,
+  hapticsSettingsSchema,
+} from './settings/core-settings.js'
 export {
   DEFAULT_QUALITY,
   type DisplaySettings,

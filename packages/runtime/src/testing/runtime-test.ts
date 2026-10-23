@@ -14,6 +14,7 @@ import { createPageLayers, type PageLayers } from '../boot/page-layers.svelte.js
 import { makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices, ScreenDef } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
+import { createHaptics } from '../haptics/haptics.manager.js'
 import { makeLeaderboards } from '../leaderboards/leaderboards.manager.js'
 import { makeAssets } from '../loading/assets.manager.js'
 import { makeLoadMeter } from '../loading/load-meter.js'
@@ -246,6 +247,8 @@ export function RuntimeTest(
           Effect.provideService(Hosting, hosting),
           Effect.provideService(PresentationBus, bus),
         ),
+        // A device that can neither rumble nor buzz: a test that pulses checks only that nothing throws.
+        haptics: createHaptics({ touch: () => false }),
       })
 
       runtimeContext = Context.merge(runtimeServices, Context.make(FakeHostHandle, fakeHostHandle))

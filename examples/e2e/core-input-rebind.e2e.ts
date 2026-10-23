@@ -9,7 +9,7 @@ const origin = `http://localhost:${examplesPort}`
 const JUMP = 'act-2'
 const FIRE = 'act-3'
 
-/** From play to Settings: pause, then the gear. */
+/** From play to Settings' Controls tab: pause, Settings, then the tab. */
 async function openSettings(frame: Frame): Promise<void> {
   await frame.getByTestId('play').click()
   await expect(frame.getByTestId('play-screen')).toBeVisible()
@@ -17,6 +17,8 @@ async function openSettings(frame: Frame): Promise<void> {
   await expect(frame.getByTestId('paused-screen')).toBeVisible()
   await frame.getByTestId('settings').click()
   await expect(frame.getByTestId('settings-screen')).toBeVisible()
+  await frame.getByTestId('settings-tab-controls').click()
+  await expect(frame.locator('[data-settings-section="controls"]')).toBeVisible()
 }
 
 const keyboardButton = (frame: Frame, action: string) =>
