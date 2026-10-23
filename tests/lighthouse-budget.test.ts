@@ -10,8 +10,9 @@ import { describeHostLoad, describeRuns, medianMetrics, type LighthouseResult } 
 // quarter from one set of runs to the next on the container (the home page measured 2.57 s and 3.18 s), so the noise
 // allowance below is a third of the LCP (it was a quarter).
 //
-// The baseline is recorded where the budget is enforced: the GitHub-hosted runner, whose Chromium (153) is newer than
-// the one in the container the first numbers came from (141). The two agree on `/start`, `/examples` and `/docs`; on
+// The baseline is recorded where the budget is enforced: first the GitHub-hosted runner, whose Chromium (153) is newer than
+// the one in the container the first numbers came from (141), and since the Owner moved the CI onto their Mac (QB.3k)
+// that machine (`af-mac-web`; see the last QB.3j paragraph below). The two agree on `/start`, `/examples` and `/docs`; on
 // `/` the newer Chromium also fetched two gallery images below the poster before it painted, and the simulated slow
 // network charged their 95 KB to the LCP (3.5 s there, 2.6 s with Chromium 141).
 //
@@ -30,6 +31,11 @@ import { describeHostLoad, describeRuns, medianMetrics, type LighthouseResult } 
 // and the gallery (the two with the most to hydrate) went from 46 and 28 ms to 186 and 156 ms. Their line is 300 ms
 // instead of 200; the other two pages stay at 200. The spec names no blocking-time target, and the score floor above
 // still holds.
+//
+// QB.3j. The CI now runs on the Owner's Mac, so the baseline is the Mac's run of the fixed code (run 39998718879, head
+// 4740fc4, Chromium 153, three runs per page): LCP 1,657, 1,807, 1,504 and 1,353 ms, performance 0.99 to 1.00, blocking
+// time 31, 0.5, 19.5 and 0 ms. The M1 runs the hydration far faster than a hosted vCPU, so the 300 ms lines go back to
+// the spec's 200 ms, which the rule below ("no looser than the record plus a third, or the spec") requires of them.
 //
 // QB.3f. The quality-bar spec (§4.2) asks for a Lighthouse budget on `/`, `/start`, `/examples` and `/docs`:
 // performance ≥ 90 on mobile, LCP ≤ 2.5 s, CLS ≤ 0.1, with thresholds that "come from the first recorded run and are
@@ -111,9 +117,10 @@ describe('the Lighthouse budget (lighthouserc.json)', () => {
   // the target (the test below fails then), so the list cannot outlive the problem. QB.3j emptied it.
   const BELOW_PERFORMANCE_TARGET: Record<string, string> = {}
 
-  // The blocking-time line is the page's own (300 ms on the two pages that hydrate the most, 200 ms elsewhere; the two
-  // hosted runs of QB.3j measured the home page at 186 and 211 ms), so the recorded run is held to that line, and the
-  // rule that no line is looser than the spec or the record plus a third is checked above.
+  // The recorded run is held to the page's blocking-time line, and the rule that no line is looser than the spec or the
+  // record plus a third is checked above. The hosted runs of QB.3j measured the home page at 186 and 211 ms and the
+  // gallery at 156 and 125, which is why those two pages had a 300 ms line; on the Owner's Mac the same code measures
+  // 31 and 19.5 ms, the baseline was re-recorded there, and every page is back at the spec's 200 ms.
   it.each(['/', '/start', '/examples', '/docs'])('%s: the recorded run meets its blocking-time line, and the performance target unless a reason is listed', path => {
     const recorded = baseline.pages[path]!
     expect(recorded.tbtMs).toBeLessThanOrEqual(budgetFor(`http://127.0.0.1:4652${path}`)['total-blocking-time']![1].maxNumericValue!)
