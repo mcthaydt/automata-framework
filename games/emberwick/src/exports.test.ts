@@ -14,7 +14,9 @@ describe('@af-examples/base-2d entries', { timeout: 90_000 }, () => {
     expect('startGame' in root).toBe(false)
   })
 
-  it('./game has the game as one definition for `startGame`', async () => {
+  // ./game imports the whole game, screens and renderer included: it timed out at 90 s on a loaded af-mac runner
+  // (PRs #105, #106 and #116, twice, 2026-10-23). This test alone gets 240 s; its assertions are unchanged.
+  it('./game has the game as one definition for `startGame`', { timeout: 240_000 }, async () => {
     const game = await import('@af-examples/base-2d/game')
     expect(game.emberwick.id).toBe('base-2d')
     expect(game.emberwick.screens.map((screen) => screen.id)).toEqual([

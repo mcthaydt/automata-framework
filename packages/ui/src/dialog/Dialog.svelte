@@ -1,4 +1,5 @@
 <!--
+  @component
   A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken
   `packages/ui/src/Dialog.svelte` at b30d31b). The screen renders it only while it is open
   (`{#if open}<Dialog>`) and decides what each action does; `onclose` is what Escape means, and it

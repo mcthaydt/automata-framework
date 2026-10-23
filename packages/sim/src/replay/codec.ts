@@ -201,6 +201,10 @@ function checkEncodable(replay: Replay): void {
   }
 }
 
+/**
+ * Encodes a replay as `.replay` bytes before deflate. The same run encodes to the same bytes in every engine.
+ * Throws `ReplayFormatError` for a replay that cannot be encoded.
+ */
 export function encodeReplay(replay: Replay): Uint8Array {
   checkEncodable(replay)
   const { header } = replay
@@ -260,6 +264,10 @@ export function encodeReplay(replay: Replay): Uint8Array {
   return out.done()
 }
 
+/**
+ * Decodes `.replay` bytes (already inflated) into a `Replay`. Throws `ReplayFormatError`, with the byte
+ * offset when known, for anything that is not a valid replay.
+ */
 export function decodeReplay(bytes: Uint8Array): Replay {
   const rd = new ByteReader(bytes)
   for (const b of MAGIC) if (rd.u8() !== b) throw new ReplayFormatError('bad magic (not an AFRP replay)', 0)
