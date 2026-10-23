@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
+  autosaveOf,
   defineSave,
   encodeEnvelope,
   readSave,
@@ -178,4 +179,47 @@ describe('migrations', () => {
     const read = readSave(progress, stored({ data: { name: 'Kite', bestTime: 12, coins: 4, hat: 'red' } }))
     expect(read).toMatchObject({ ok: true, data: { hat: 'red' } })
   })
+})
+
+describe('the autosave policy (M5 spec §4.4, M5-D10)', () => {
+  it('is, when absent, a save on leaving a screen, at a round end and in the background, with no timer', () => {
+    expect(autosaveOf(progress)).toEqual({
+      on: new Set(['screen-exit', 'round-end', 'background']),
+      intervalSeconds: undefined,
+    })
+  })
+
+  it('is off with an empty trigger list', () => {
+    expect(autosaveOf({ ...progress, autosave: { on: [] } }).on.size).toBe(0)
+  })
+
+  it('takes exactly the triggers it lists, once each', () => {
+    const policy = autosaveOf({ ...progress, autosave: { on: ['background', 'background', 'round-end'] } })
+    expect([...policy.on]).toEqual(['background', 'round-end'])
+  })
+
+  it('has a 60 s timer when it lists `interval` and says no more, and the game can set it', () => {
+    expect(autosaveOf({ ...progress, autosave: { on: ['interval'] } }).intervalSeconds).toBe(60)
+    expect(
+      autosaveOf({ ...progress, autosave: { on: ['interval'], intervalSeconds: 5 } }).intervalSeconds,
+    ).toBe(5)
+  })
+
+  it('reads `intervalSeconds` only with `interval`: without it there is no timer, whatever the number', () => {
+    expect(
+      autosaveOf({ ...progress, autosave: { on: ['background'], intervalSeconds: 5 } }).intervalSeconds,
+    ).toBeUndefined()
+    expect(
+      autosaveOf({ ...progress, autosave: { on: ['background'], intervalSeconds: 0 } }).intervalSeconds,
+    ).toBeUndefined()
+  })
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'refuses an interval of %s seconds, which a timer cannot keep',
+    (intervalSeconds) => {
+      expect(() => autosaveOf({ ...progress, autosave: { on: ['interval'], intervalSeconds } })).toThrow(
+        /intervalSeconds/,
+      )
+    },
+  )
 })

@@ -4,6 +4,10 @@ import { Collider2D, RigidBody2D, Transform2D } from './physics-2d.component'
 import { CollisionEnded2D, CollisionStarted2D } from './physics-2d.event'
 import { PhysicsWorld } from './physics-world'
 
+/**
+ * The options of `physics2d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+ * sim.
+ */
 export interface Physics2DOptions {
   /** m/s², default { x: 0, y: -9.81 }. */
   readonly gravity?: { readonly x: number; readonly y: number }

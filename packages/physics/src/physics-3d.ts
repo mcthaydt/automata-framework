@@ -4,6 +4,10 @@ import { Collider3D, RigidBody3D, Transform3D } from './physics-3d.component'
 import { CollisionEnded3D, CollisionStarted3D } from './physics-3d.event'
 import { PhysicsWorld } from './physics-world'
 
+/**
+ * The options of `physics3d`. Gravity is part of the sim's schema hash, so a different gravity is a different
+ * sim.
+ */
 export interface Physics3DOptions {
   /** m/s², default { x: 0, y: -9.81, z: 0 }. */
   readonly gravity?: { readonly x: number; readonly y: number; readonly z: number }

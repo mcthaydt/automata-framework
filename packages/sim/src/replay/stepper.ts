@@ -7,17 +7,29 @@ import { decodeSnapshotHeader } from '../world/snapshot'
 import { ReplayFormatError } from './errors'
 import type { Replay, ReplayCommand } from './replay'
 
+/**
+ * What a stepper needs to rebuild the recorded sim: the same `plugins` and `content` the recording sim had.
+ */
 export interface ReplayStepSetup {
   readonly plugins: readonly PluginDef[]
   /** As SimOptions.content: the content the recording sim was given. */
   readonly content?: unknown
 }
 
+/**
+ * A hash check at a tick: the hash the replay recorded (`expected`) and the hash the re-simulated sim has
+ * (`actual`). A recorded command the sim now rejects reports as `expected: 'accepted'` with the rejection
+ * reason as `actual`.
+ */
 export interface ReplayCheck {
   readonly expected: string
   readonly actual: string
 }
 
+/**
+ * A replay playing back one tick at a time on its own sim. Create one with `createReplayStepper`, and
+ * `dispose` it when done.
+ */
 export interface ReplayStepper {
   readonly sim: Sim
   readonly tick: number
@@ -33,11 +45,6 @@ export interface ReplayStepper {
   dispose(): void
 }
 
-/**
- * Throws SnapshotMismatchError when the replay's start snapshot belongs to another schema or content, and
- * SnapshotFormatError when it is malformed, and ReplayFormatError when the header disagrees with the start snapshot
- * it describes; the sim it created is disposed first.
- */
 /**
  * The header is written from the start snapshot, so they agree in any replay the recorder made. A forged start
  * tick would let playback begin at or past finalTick and pass with no hash compared.
@@ -55,6 +62,12 @@ function checkHeaderMatchesStart({ header, start }: Replay): void {
   }
 }
 
+/**
+ * Creates a stepper over `replay`: a fresh sim built from the replay's seed and tick rate, restored from its
+ * start snapshot. Throws `SnapshotMismatchError` when the start snapshot belongs to another schema or
+ * content, `SnapshotFormatError` when it is malformed, and `ReplayFormatError` when the header disagrees with
+ * the start snapshot it describes; the sim it created is disposed first.
+ */
 export async function createReplayStepper(replay: Replay, setup: ReplayStepSetup): Promise<ReplayStepper> {
   const { header } = replay
   const sim = await createSim({

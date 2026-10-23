@@ -6,6 +6,7 @@ import { z } from 'zod'
 import type { Problem } from '../diagnostics/diagnostic'
 import { ENDESGA_64 } from './endesga-64'
 
+/** The game's palette: a name and its colors. */
 export interface Palette {
   readonly name: string
   /** `#rrggbb`, lowercase, in authored order. */
@@ -20,6 +21,7 @@ export const paletteSchema: z.ZodType<Palette> = z.strictObject({
     .max(256),
 })
 
+/** The palette a game gets when it has no `content/palette.toml`: Endesga 64. */
 export const DEFAULT_PALETTE: Palette = Object.freeze({ name: 'Endesga 64', colors: ENDESGA_64 })
 
 /** Checks an authored palette (already through `paletteSchema`), or returns the default when there is none. */
