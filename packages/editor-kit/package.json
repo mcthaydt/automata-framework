@@ -15,6 +15,7 @@
       "default": "./src/index.ts"
     },
     "./core": "./src/core/index.ts",
+    "./fields": "./src/fields/index.ts",
     "./tokens.css": "./src/tokens.css",
     "./fonts.css": "./src/fonts.css"
   },

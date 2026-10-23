@@ -95,6 +95,28 @@ describe('prepareBuild', () => {
     expect(Either.isRight(passed)).toBe(true)
   })
 
+  // M4.7 follow-up: the orientation the game plays in must be the one its config sends Ruken.
+  it('stops on a game that plays in an orientation its config does not declare, naming both, writing nothing', () => {
+    const game = mkdtempSync(join(tmpdir(), 'ship-prepare-game-'))
+    mkdirSync(join(game, 'src'))
+    writeFileSync(
+      join(game, 'src/game.ts'),
+      "export default defineGame({ id: 'g', orientation: 'landscape' })\n",
+    )
+    const dir = dist()
+    const error = failure(prepare({ distDir: dir, gameDir: game, config }))
+    expect(error._tag).toBe('OrientationMismatch')
+    const message = (error as unknown as { message: string }).message
+    expect(message).toContain(
+      'src/game.ts:1:51: defineGame plays "landscape", but runtime.orientation is "any"',
+    )
+    expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
+
+    const landscape = { ...config, runtime: { ...config.runtime, orientation: 'landscape' as const } }
+    const passed = Effect.runSync(Effect.either(prepare({ distDir: dir, gameDir: game, config: landscape })))
+    expect(Either.isRight(passed)).toBe(true)
+  })
+
   it('stops on a manifest Ruken refuses, writing nothing', () => {
     const dir = dist()
     const bad = { ...config, content: { ...config.content, languages: ['fr'] } }

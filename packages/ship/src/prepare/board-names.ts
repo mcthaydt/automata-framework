@@ -6,9 +6,19 @@
 // - `submitScore('<name>', …)` and `readBoard('<name>', …)`, as a method or a plain call.
 // Only string literals are checked. A board passed as a value is left to its type (the game's `Leaderboards<Board>`).
 
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { relative, sep } from 'node:path'
 import { parseSync } from 'oxc-parser'
+import {
+  isGameSource,
+  isNode,
+  keyOf,
+  type Node,
+  nameOf,
+  position,
+  sources,
+  stringLiteral,
+} from './source-reader.ts'
 
 /** A board the game's sources name that its ship config does not declare, at the call site. */
 export interface UndeclaredBoardFound {
@@ -20,40 +30,7 @@ export interface UndeclaredBoardFound {
   readonly col: number
 }
 
-const SOURCE = /\.(?:ts|tsx|mts|js|mjs)$/
-/** Dependencies, the build and tool folders are not the game's sources. */
-const SKIPPED = new Set(['node_modules', 'dist'])
 const BOARD_CALLS = new Set(['submitScore', 'readBoard'])
-
-function sources(dir: string): string[] {
-  return readdirSync(dir)
-    .sort()
-    .flatMap((name) => {
-      if (SKIPPED.has(name) || name.startsWith('.')) return []
-      const path = join(dir, name)
-      const stats = statSync(path, { throwIfNoEntry: false })
-      if (stats === undefined) return []
-      if (stats.isDirectory()) return sources(path)
-      return SOURCE.test(name) ? [path] : []
-    })
-}
-
-type Node = Record<string, unknown>
-const isNode = (value: unknown): value is Node => value !== null && typeof value === 'object'
-const stringLiteral = (value: unknown): value is Node & { value: string; start: number } =>
-  isNode(value) &&
-  value.type === 'Literal' &&
-  typeof value.value === 'string' &&
-  typeof value.start === 'number'
-const nameOf = (node: unknown): string | undefined => {
-  if (!isNode(node)) return undefined
-  if (node.type === 'Identifier') return node.name as string
-  if (node.type === 'MemberExpression' && isNode(node.property) && node.property.type === 'Identifier')
-    return node.property.name as string
-  return undefined
-}
-const keyOf = (property: Node): string | undefined =>
-  isNode(property.key) ? ((property.key.name ?? property.key.value) as string | undefined) : undefined
 
 /** The board-name literals in one file's syntax tree. */
 function boardLiterals(program: unknown): (Node & { value: string; start: number })[] {
@@ -86,12 +63,6 @@ function boardLiterals(program: unknown): (Node & { value: string; start: number
   return found
 }
 
-function position(code: string, offset: number): { line: number; col: number } {
-  const before = code.slice(0, offset)
-  const lineStart = before.lastIndexOf('\n') + 1
-  return { line: before.split('\n').length, col: offset - lineStart + 1 }
-}
-
 /** A board a source file names, by its name and position (1-based, at the opening quote). */
 export interface BoardName {
   readonly board: string
@@ -100,8 +71,7 @@ export interface BoardName {
 }
 
 /** Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`, `.mts`, `.js`, `.mjs`). */
-export const isBoardSource = (file: string): boolean =>
-  SOURCE.test(file) && !file.split('/').some((part) => SKIPPED.has(part) || part.startsWith('.'))
+export const isBoardSource: (file: string) => boolean = isGameSource
 
 /**
  * The boards one source file names, in source order; `undefined` when it does not parse (its typecheck already
