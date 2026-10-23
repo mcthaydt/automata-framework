@@ -7,8 +7,9 @@ import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
 import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
 import { Cause, Effect, Exit, Option } from 'effect'
 import { flushSync } from 'svelte'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
+import { STALL_MS } from '../loading/load-meter.js'
 import { fakeFetch } from '../testing/fake-fetch.js'
 import { type ManualFrames, manualFrames } from '../testing/manual-frames.js'
 import { nullRenderer } from '../testing/null-renderer.js'
@@ -71,6 +72,15 @@ async function waitForState(state: 'ready' | 'failed', timeoutMs = 2000): Promis
     await settle(2)
   }
   flushSync()
+}
+
+/**
+ * Starts a boot whose clock the test moves. `settle` waits on real timers and would never return under fake ones, so
+ * a test on fake timers drives the clock itself; Effect's clock is the timers', so what it advances is boot time.
+ */
+async function startOnFakeTimers(frames: ManualFrames): Promise<void> {
+  for (let tries = 0; !frames.pending && tries < 100; tries++) await vi.advanceTimersByTimeAsync(2)
+  frames.advance(16)
 }
 
 describe('runGame (§4 Failure and Shutdown)', () => {
@@ -231,36 +241,107 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       await handle.shutdown()
     })
 
-    it('LoadStalled -> data-code="download-stalled"', async () => {
-      const frames = manualFrames()
-      const mockFetch = fakeFetch({
-        '/assets/title.png': { hang: true },
-      })
-      const game: GameDefinition = {
-        root,
-        hosting: {
-          gameId: 'test-game',
-          wants: [],
-          pauseBehavior: 'pause',
-        },
-        content: {
-          data: fixtureContentData,
-          hash: contentHashOf(fixtureContentData),
-        },
-        screens: [{ id: 'title', enter: () => Effect.void }],
-        renderer: nullRenderer(),
-        seams: { frames, fetch: mockFetch.fetch },
-      }
+    it('LoadStalled -> data-code="download-stalled": a preload that gets no bytes for 30 s fails the boot (STALL_MS)', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+      try {
+        const frames = manualFrames()
+        const mockFetch = fakeFetch({
+          '/assets/title.png': { hang: true },
+        })
+        const game: GameDefinition = {
+          root,
+          hosting: {
+            gameId: 'test-game',
+            wants: [],
+            pauseBehavior: 'pause',
+          },
+          content: {
+            data: fixtureContentData,
+            hash: contentHashOf(fixtureContentData),
+          },
+          screens: [{ id: 'title', enter: () => Effect.void }],
+          renderer: nullRenderer(),
+          seams: { frames, fetch: mockFetch.fetch },
+        }
 
-      // Provide simulated clock stall
-      // Since STALL_MS is 30s, we can trigger LoadStalled directly by passing a renderer or seam
-      // Or by having assets.load stall
-      // Let's test with game definition that fails with LoadStalled
-      // Alternatively, we can test the error mapping directly
-      const handle = runGame(game)
-      await driveFirstFrame(frames)
-      // Advance wall time for stall test if needed, or shutdown
-      await handle.shutdown()
+        const handle = runGame(game)
+        await startOnFakeTimers(frames)
+        await vi.advanceTimersByTimeAsync(STALL_MS - 1000)
+        expect(mockFetch.requests).toEqual(['/assets/title.png'])
+        expect(document.documentElement.getAttribute('data-state')).not.toBe('failed')
+        await vi.advanceTimersByTimeAsync(1000)
+        flushSync()
+        expect(document.documentElement.getAttribute('data-state')).toBe('failed')
+
+        const alert = root.querySelector('[role="alert"]')
+        expect(alert?.getAttribute('data-code')).toBe('download-stalled')
+        expect(Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim())).toEqual([
+          'Try again',
+        ])
+
+        await handle.shutdown()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('HostError(ready) -> data-code="connect": a Ruken host that never says session.ready fails the boot after 30 s', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+      try {
+        const frames = manualFrames()
+        const mockFetch = fakeFetch({
+          '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] },
+        })
+        let fakeHostInstance: FakeHost | undefined
+        const game: GameDefinition = {
+          root,
+          hosting: {
+            gameId: 'test-game',
+            wants: [],
+            pauseBehavior: 'pause',
+          },
+          content: {
+            data: fixtureContentData,
+            hash: contentHashOf(fixtureContentData),
+          },
+          screens: [{ id: 'title', enter: () => Effect.void }],
+          renderer: nullRenderer(),
+          seams: {
+            frames,
+            fetch: mockFetch.fetch,
+            sdkEnv: () => {
+              fakeHostInstance = createFakeHost({
+                gameOrigin: TEST_GAME_ORIGIN,
+                gameId: 'test-game',
+                clock: realClock,
+                autoReady: false,
+              })
+              return fakeHostInstance.gameEnv!
+            },
+          },
+        }
+
+        const handle = runGame(game)
+        await startOnFakeTimers(frames)
+        // The host answered hello and the page loaded, so the wait is for session.ready alone.
+        await vi.advanceTimersByTimeAsync(STALL_MS - 1000)
+        expect(mockFetch.requests).toEqual(['/assets/title.png'])
+        expect(document.documentElement.getAttribute('data-state')).not.toBe('failed')
+        await vi.advanceTimersByTimeAsync(1000)
+        flushSync()
+        expect(document.documentElement.getAttribute('data-state')).toBe('failed')
+
+        const alert = root.querySelector('[role="alert"]')
+        expect(alert?.getAttribute('data-code')).toBe('connect')
+        expect(Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim())).toEqual([
+          'Try again',
+        ])
+        expect(fakeHostInstance?.messages.some((m) => m.dir === 'in' && m.msg.type === 'hello')).toBe(true)
+
+        await handle.shutdown()
+      } finally {
+        vi.useRealTimers()
+      }
     })
 
     it('RendererUnavailable -> data-code="unsupported"', async () => {
