@@ -9,8 +9,12 @@ import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { setWallKind } from '../model/wall-edits'
 import { afSectorProfile } from '../profile/af-sector-profile'
+import { lastLightProfile } from '../profile/last-light-profile'
+import type { LevelProfile } from '../profile/level-profile'
+import { SectorAccessError } from '../profile/sector-access'
 import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
+import { toyBlockout } from '../testing/toy-blockout'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
 import type { PlanPointer } from './plan-controller'
 import { createWallTool, type WallToolKind } from './wall-tool-controller'
@@ -244,7 +248,7 @@ describe('what a tap would do', () => {
     const level = toyAfSector({ sectors: [toyHall, toyDock, sector('annex', ANNEX)] })
     const target = action('portal', -0.1, 3, level)
     expect(target).toMatchObject({ sector: 'annex', corner: 1, action: 'portal', to: 'hall' })
-    expect(target?.reason).toBeUndefined()
+    expect(target).not.toHaveProperty('reason')
   })
 
   it('gives the Portal tool the sentence for a wall that is done, taken, or has nothing over it', () => {
@@ -272,6 +276,238 @@ describe('what a tap would do', () => {
       sector: 'annex',
       action: 'none',
       reason: 'the wall over it already leads into twin',
+    })
+  })
+})
+
+describe('a tap', () => {
+  /** The members of one wall of a sector, as the level writes them. */
+  const wallOf = (editor: ReturnType<typeof setup>['editor'], id: string, corner: number) =>
+    afSectorProfile.sectors.list(editor.level).find((each) => each.id === id)?.corners[corner]?.[2]
+
+  /** Whether a step is open: a session begun now comes back closed. A probe that did open is cancelled, so it leaves nothing. */
+  const stepOpen = (editor: ReturnType<typeof setup>['editor']): boolean => {
+    const probe = editor.begin('probe')
+    const open = !probe.open
+    probe.cancel()
+    return open
+  }
+
+  it('puts a door on a solid wall where the pointer is, as one undo step, and selects the wall', () => {
+    const { editor, tool, at } = setup('door')
+    tool.tap(at(5.93, 6.1))
+    expect(wallOf(editor, 'hall', 2)).toEqual({ door: { at: 2.05, width: 1.2, height: 2.2 } })
+    expect(editor.history.undoLabel).toBe('Put a door on wall 2 of hall')
+    expect(editor.selection.ids).toEqual(['wall:hall/2'])
+    editor.history.undo()
+    expect(editor.level).toEqual(depot)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('keeps the whole door on the wall: its centre half a width in from either end', () => {
+    const near = setup('door')
+    near.tool.tap(near.at(7.98, 6.1))
+    expect(wallOf(near.editor, 'hall', 2)).toMatchObject({ door: { at: 0.6 } })
+    const far = setup('door')
+    far.tool.tap(far.at(0.02, 6.1))
+    expect(wallOf(far.editor, 'hall', 2)).toMatchObject({ door: { at: 7.4 } })
+  })
+
+  it("keeps the whole window on the wall by the window's own width", () => {
+    const near = setup('window')
+    near.tool.tap(near.at(7.98, 6.1))
+    expect(wallOf(near.editor, 'hall', 2)).toMatchObject({ window: { at: 0.8 } })
+    const far = setup('window')
+    far.tool.tap(far.at(0.02, 6.1))
+    expect(wallOf(far.editor, 'hall', 2)).toMatchObject({ window: { at: 7.2 } })
+  })
+
+  it('moves the door a wall has to where the pointer is, and is no step when it is already there', () => {
+    const { editor, tool, at } = setup('door')
+    tool.tap(at(0.1, 4.2))
+    expect(wallOf(editor, 'hall', 3)).toEqual({ door: { at: 1.8, width: 1.2, height: 2.2 } })
+    expect(editor.history.undoLabel).toBe('Move the door of wall 3 of hall')
+    tool.tap(at(0.1, 4.2))
+    editor.history.undo()
+    expect(editor.level).toEqual(depot)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('puts a window on a wall and moves the one it has, with the window width and height', () => {
+    const { editor, tool, at } = setup('window')
+    tool.tap(at(5.93, 6.1))
+    expect(wallOf(editor, 'hall', 2)).toEqual({ window: { at: 2.05, width: 1.6, y0: 1, y1: 2.6 } })
+    expect(editor.history.undoLabel).toBe('Put a window on wall 2 of hall')
+    tool.tap(at(2.5, -0.1))
+    expect(wallOf(editor, 'hall', 0)).toEqual({ window: { at: 2.5, width: 1.6, y0: 1, y1: 2.6 } })
+    expect(editor.history.undoLabel).toBe('Move the window of wall 0 of hall')
+  })
+
+  it('says why a feature does not fit, and leaves the level, the history and the step as they were', () => {
+    const level = toyAfSector({
+      sectors: [
+        sector('room', [
+          [0, 0, { door: { at: 0.5, width: 1.2, height: 2.2 } }],
+          [1, 0],
+          [1, 4],
+          [0, 4],
+        ]),
+      ],
+    })
+    const { editor, tool, at } = setup('door', level)
+    tool.tap(at(0.5, -0.1))
+    expect(tool.view.refusal).toMatch(/^the door does not fit the wall/)
+    expect(editor.level).toEqual(level)
+    expect(editor.history.canUndo).toBe(false)
+    expect(stepOpen(editor)).toBe(false)
+  })
+
+  it('changes nothing on a portal wall for a door or a window, and says so', () => {
+    for (const kind of ['door', 'window'] as const) {
+      const { editor, tool, at } = setup(kind)
+      tool.tap(at(7.95, 3))
+      expect(tool.view.refusal).toBe('that wall is a portal into dock: make it solid first')
+      expect(editor.level).toEqual(depot)
+      expect(editor.history.canUndo).toBe(false)
+    }
+  })
+
+  it('makes a portal on both sides in one step, taking the door off the wall behind it', () => {
+    const level: AfSector = { ...depot, sectors: [...depot.sectors, sector('annex', ANNEX)] }
+    const { editor, tool, at } = setup('portal', level)
+    tool.tap(at(-0.1, 3))
+    expect(wallOf(editor, 'annex', 1)).toEqual({ next: 'hall' })
+    expect(wallOf(editor, 'hall', 3)).toEqual({ next: 'annex' })
+    expect(editor.history.undoLabel).toBe('Make wall 1 of annex a portal into hall')
+    expect(editor.selection.ids).toEqual(['wall:annex/1'])
+    editor.history.undo()
+    expect(editor.level).toEqual(level)
+  })
+
+  it('changes nothing for a portal that is done, taken or has nothing over it, and says why', () => {
+    const done = setup('portal')
+    done.tool.tap(done.at(7.95, 3))
+    expect(done.tool.view.refusal).toBe('that wall is already a portal into dock')
+    const none = setup('portal')
+    none.tool.tap(none.at(4, 6.1))
+    expect(none.tool.view.refusal).toBe('no other sector has a wall over this one')
+    for (const made of [done, none]) {
+      expect(made.editor.level).toEqual(depot)
+      expect(made.editor.history.canUndo).toBe(false)
+    }
+  })
+
+  it('clears the sentence on a tap that is off every wall, on a hover over another wall and on leave', () => {
+    const { tool, at } = setup('door')
+    tool.tap(at(7.95, 3))
+    expect(tool.view.refusal).toBeDefined()
+    tool.hover(at(7.95, 3.5))
+    expect(tool.view.refusal).toBeDefined()
+    tool.hover(at(4, 6.1))
+    expect(tool.view.refusal).toBeUndefined()
+    tool.tap(at(7.95, 3))
+    tool.tap(at(4, 3))
+    expect(tool.view.refusal).toBeUndefined()
+    tool.tap(at(7.95, 3))
+    tool.leave()
+    expect(tool.view.refusal).toBeUndefined()
+  })
+
+  it('clears the sentence when the next tap works', () => {
+    const { editor, tool, at } = setup('door')
+    tool.tap(at(7.95, 3))
+    tool.tap(at(4, 6.1))
+    expect(tool.view.refusal).toBeUndefined()
+    expect(editor.history.canUndo).toBe(true)
+  })
+
+  it('moves the door of a wall that has a window too, and leaves the window', () => {
+    const level = toyAfSector({
+      sectors: [
+        sector('room', [
+          [0, 0],
+          [8, 0],
+          [
+            8,
+            6,
+            {
+              door: { at: 2, width: 1.2, height: 2.2 },
+              window: { at: 5, width: 1.6, y0: 1, y1: 2.6 },
+            },
+          ],
+          [0, 6],
+        ]),
+      ],
+    })
+    const { editor, tool, at } = setup('door', level)
+    tool.tap(at(6, 6.1))
+    expect(afSectorProfile.sectors.list(editor.level)[0]?.corners[2]?.[2]).toEqual({
+      door: { at: 2, width: 1.2, height: 2.2 },
+      window: { at: 5, width: 1.6, y0: 1, y1: 2.6 },
+    })
+  })
+
+  it('says what the profile says when it will not write the wall, and leaves nothing open', () => {
+    const profile: LevelProfile<AfSector> = {
+      ...afSectorProfile,
+      sectors: {
+        ...afSectorProfile.sectors,
+        withSectors() {
+          throw new SectorAccessError('the profile will not write it')
+        },
+      },
+    }
+    const editor = createLevelEditor({ profile, level: depot })
+    editor.view.set({ camera: CAMERA })
+    const tool = createWallTool(editor, SIZE, { kind: 'door' })
+    tool.tap({ ...toScreen(planViewport(CAMERA, SIZE), { x: 4, z: 6.1 }), kind: 'mouse' })
+    expect(tool.view.refusal).toBe('the profile will not write it')
+    expect(editor.level).toEqual(depot)
+    expect(stepOpen(editor)).toBe(false)
+  })
+
+  it('says what the history says when another step is open, and leaves that step open', () => {
+    for (const kind of ['door', 'portal'] as const) {
+      const level: AfSector = { ...depot, sectors: [...depot.sectors, sector('annex', ANNEX)] }
+      const { editor, tool, at } = setup(kind, level)
+      const other = editor.begin('a drag')
+      tool.tap(kind === 'door' ? at(4, 6.1) : at(-0.1, 3))
+      expect(tool.view.refusal).toBeDefined()
+      expect(other.open).toBe(true)
+      other.cancel()
+      expect(editor.level).toEqual(level)
+    }
+  })
+
+  describe('on a Last Light level', () => {
+    const made = (kind: WallToolKind) => {
+      const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
+      editor.view.set({ camera: { x: 3.5, z: 2, zoom: 1 } })
+      const tool = createWallTool(editor, SIZE, { kind })
+      const at = (x: number, z: number): PlanPointer => ({
+        ...toScreen(planViewport(editor.view.state.camera, SIZE), { x, z }),
+        kind: 'mouse',
+      })
+      return { editor, tool, at }
+    }
+
+    it('puts a door on a wall of a room', () => {
+      const { editor, tool, at } = made('door')
+      tool.tap(at(1, 4.1))
+      expect(tool.view.refusal).toBeUndefined()
+      expect(editor.history.undoLabel).toBe('Put a door on wall 2 of a')
+    })
+
+    it('puts a window on a wall of a room, and makes a portal where a room lies over it', () => {
+      const { editor, tool, at } = made('window')
+      tool.tap(at(1, 4.1))
+      expect(tool.view.refusal).toBeUndefined()
+      expect(editor.history.undoLabel).toBe('Put a window on wall 2 of a')
+      const portal = made('portal')
+      // Room b starts 0.125 m east of a's east wall: not the same segment, so nothing lies over it.
+      portal.tool.tap(portal.at(4.06, 2))
+      expect(portal.tool.view.refusal).toBe('no other sector has a wall over this one')
+      expect(portal.editor.history.canUndo).toBe(false)
     })
   })
 })
