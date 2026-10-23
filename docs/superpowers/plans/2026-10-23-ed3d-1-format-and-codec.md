@@ -3,7 +3,7 @@
 - **Task:** ED3D.1 in [02](../../02-master-delivery-plan.md) (row lands with the ED3D follow-up). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §2 (Format, Codec), §4.1, §4.5, decisions ED3D-D2, D3, D4. Acceptance: the patch halves of ED3-b and ED3-o (§13); the rest of those cases need the model and the shell.
 - **Lane:** editor-3d. **Depends on:** ED3D.0 (the spec, review pending). It needs no editor-kit code, no Svelte and no DOM.
 - **Status:** Drafted 2026-10-23. Not reviewed, not implemented. Nothing below starts until ED3D.0 is reviewed.
-- **Progress:** 4 of 11 steps.
+- **Progress:** 5 of 11 steps.
 
 ## Sources, read at these commits
 
@@ -69,12 +69,16 @@ src/testing/fixtures/           the five files, SOURCE.json, literals.golden.jso
 ```ts
 export type JsonPath = readonly (string | number)[]
 export interface Span { readonly start: number; readonly end: number }               // [start, end)
-export interface Scan {
-  readonly value: Span & { readonly kind: 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' }
-  readonly spans: ReadonlyMap<string, Span>        // key = JSON.stringify(path); every value
-  readonly keys: ReadonlyMap<string, Span>         // the quoted key of each object member
-  readonly literals: readonly { path: JsonPath; span: Span; text: string; value: string | number | boolean | null }[]
+export type JsonKind = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null'
+export interface JsonNode {
+  readonly path: JsonPath
+  readonly kind: JsonKind
+  readonly span: Span                              // a container's span runs from its opening to its closing bracket
+  readonly keySpan: Span | undefined               // the quoted key, when the node is an object member
+  readonly children: readonly JsonNode[]           // members or elements, in document order
 }
+export interface JsonLiteral { path: JsonPath; kind: 'string' | 'number' | 'boolean' | 'null'; span: Span; text: string; value: string | number | boolean | null }
+export interface Scan { readonly root: JsonNode; node(path: JsonPath): JsonNode | undefined; readonly literals: readonly JsonLiteral[] }
 export class JsonScanError extends Error { readonly offset: number }
 export function scan(text: string): Scan           // throws JsonScanError
 ```
@@ -141,16 +145,17 @@ Each step starts with its test, run red, with the failure reason recorded; the r
     - for each blockout fixture, `expand` equals `expand.golden.json` whole, which Last Light's own `expand` produced once at `92e6704` (`record-expand.mjs`, the recording command is in `SOURCE.json`; the golden's sha256 is checked by `fixtures.test.ts`).
   - *Expected failure:* module missing.
   - *Done: red `Cannot find module './expand'` and `GOLDEN_NAMES is not iterable`; then 49 of 49 green on the first run of the port, including the four fixtures against the golden. Typecheck then asked for explicit return types (`isolatedDeclarations`) and non-null assertions came out of the tests. Not ported: the starter-blockout case (`starterBlockout` is `blockout-lib.ts`'s scaffold, not the format) and the `validate` calls (ED3D.2).*
-- [ ] **5. Scanner** (`locate.test.ts`, the cases of `json-edit.test.ts` for `listJsonLiterals` on `scan`; `locate.ts`).
+- [x] **5. Scanner** (`locate.test.ts`, the cases of `json-edit.test.ts` for `listJsonLiterals` on `scan`; `locate.ts`).
   - *Red, by case:*
     - the sample from the Last Light test: each number has its path and span, minus included;
-    - every member has a key span, every container a span covering its braces;
+    - every member has a key span, every container a span covering its braces, and `node(path)` finds a node and its children in order;
     - the five fixtures' literal spans equal `literals.golden.json` (generated once from Last Light's `listJsonLiterals` at `92e6704`; the recording command is in `SOURCE.json`);
     - for every literal of every fixture, `JSON.parse(text.slice(start, end))` equals the value at that path in `JSON.parse(text)`;
     - a corpus of invalid texts each throws `JsonScanError` with an offset inside the text: trailing comma, single quotes, a comment, `01`, `.5`, `NaN`, a raw newline inside a string, an unterminated string, a missing colon, trailing garbage, a no-break space as whitespace, empty input;
     - a corpus of valid texts that `JSON.parse` accepts is accepted: `1e3`, `-0`, `"é"`, `[]`, `{}`, nested empties, tabs and CRLF;
     - a duplicate key in one object throws, naming the key.
   - *Expected failure:* module missing.
+  - *Done: red `Cannot find module './locate'`; then 92 of 92 green on the first run (the 42 new cases include the five fixtures against `literals.golden.json`, which Last Light's TypeScript 5.9.3 scanner recorded through `record-literals.mjs`; its sha256 is checked by `fixtures.test.ts`). The scanner is `scanJson` from Last Light's plan view with member and container spans, JSON-only whitespace, raw-control-character and duplicate-key refusals added. The returned shape is a node tree (`root`, `node(path)`, `children`) and not the two maps the first sketch of this plan had, because the structure edits need each container's children in order.*
 - [ ] **6. Literal edits** (`literal.test.ts`, `json-edit.test.ts` as is with imports changed; `literal.ts`).
   - *Red:* the Last Light cases: `formatJsonNumber` writes no exponent and trims float noise to 4 decimals; on each fixture every literal edited to its own value is byte-identical and one edit changes only its own span; a negative number can turn positive; a batch is all or nothing; a mismatch names its path; repeats, non-numbers and bad values are refused.
   - *Expected failure:* module missing. The assertions are not edited.
