@@ -2,8 +2,8 @@
 
 - **Spec:** [M4 spec](../specs/2026-10-16-m4-input-display-design.md) §4.9 (display policy: orientation) and the [M4.7 plan](2026-10-18-m4-7-display-policy.md) (the follow-up this closes); [M5 spec](../specs/2026-10-16-m5-saves-audio-design.md) §4.8 (the board check this copies: static, over the game's sources); [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.6 (`automata check`).
 - **Task:** `Follow-up (found in M4.7) — Game orientation against the ship config` (02). Lanes ship, game.
-- **Status:** drafted 2026-10-23, based on `main`. No PR is opened until the shared runner's queue drains.
-- **Progress:** 0 of 6 steps.
+- **Status:** drafted and implemented 2026-10-23, locally checked, based on `main`. No PR is opened until the shared runner's queue drains.
+- **Progress:** 6 of 6 steps.
 
 ## What is missing
 
@@ -31,12 +31,12 @@
 
 ## Steps
 
-- [ ] **1. The reader, red first.** `orientation.test.ts`: a literal `orientation` gives its value and position; an absent one gives `any` at the call; a variable, a non-object argument and a spread give nothing; two calls give two entries; a file that does not parse gives `undefined`; `declaredOrientationIn` reads `runtime: { orientation: 'landscape' }` and gives `undefined` for a variable or no `runtime`. Run `pnpm --filter @mcthaydt/automata-ship test:unit`; the file does not exist.
-- [ ] **2. The walk, red first.** `findOrientationMismatches` over a temporary game folder: a mismatch is found with its relative path, line and column; a match is not; test files, `node_modules`, `dist` and dot folders are skipped.
-- [ ] **3. `prepare`, red first.** A game folder whose `defineGame` says `landscape` against a config of `any` fails with `OrientationMismatch` and writes no `ruken.toml`; matching passes; its message names both places. Wire it in after the board check.
-- [ ] **4. `automata check`, red first.** A step `orientation` after `boards`: a mismatch is one finding at the call site with rule `orientation-mismatch`; a `ship.config.ts` whose `runtime.orientation` is not a literal is a tool error that says so; no `ship.config.ts` or no `defineGame` finds nothing. The step lists in `run-check.test.ts` gain it.
-- [ ] **5. The real games.** Run the check over every game and example and the `create-game` template; record what it finds and fix any real mismatch.
-- [ ] **6. Gates and docs.** `pnpm format`, `pnpm check`, `pnpm api-report --update`, `pnpm build && pnpm api-index && pnpm agent-skills`, the changeset check; 02's row; the execution record and 03 with the docs sync PR.
+- [x] **1. The reader, red first.** `orientation.test.ts`: a literal `orientation` gives its value and position; an absent one gives `any` at the call; a variable, a non-object argument and a spread give nothing; two calls give two entries; a file that does not parse gives `undefined`; `declaredOrientationIn` reads `runtime: { orientation: 'landscape' }` and gives `undefined` for a variable or no `runtime`. Run `pnpm --filter @mcthaydt/automata-ship test:unit`; the file does not exist.
+- [x] **2. The walk, red first.** `findOrientationMismatches` over a temporary game folder: a mismatch is found with its relative path, line and column; a match is not; test files, `node_modules`, `dist` and dot folders are skipped.
+- [x] **3. `prepare`, red first.** A game folder whose `defineGame` says `landscape` against a config of `any` fails with `OrientationMismatch` and writes no `ruken.toml`; matching passes; its message names both places. Wire it in after the board check.
+- [x] **4. `automata check`, red first.** A step `orientation` after `boards`: a mismatch is one finding at the call site with rule `orientation-mismatch`; a `ship.config.ts` whose `runtime.orientation` is not a literal is a tool error that says so; no `ship.config.ts` or no `defineGame` finds nothing. The step lists in `run-check.test.ts` gain it.
+- [x] **5. The real games.** Run the check over every game and example and the `create-game` template; record what it finds and fix any real mismatch.
+- [x] **6. Gates and docs.** `pnpm format`, `pnpm check`, `pnpm api-report --update`, `pnpm build && pnpm api-index && pnpm agent-skills`, the changeset check; 02's row; the execution record and 03 with the docs sync PR.
 
 ## Gates
 
@@ -48,4 +48,8 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-23 | Plan | | |
+| 2026-10-23 | Plan | 01df43e | |
+| 2026-10-23 | 1–3 reader, walk, `prepare` | (this PR's implementation commit) | Red first: `orientation.test.ts` and the new `prepare-build.test.ts` case failed on the missing module and on a mismatch that passed. The red state cannot be committed alone (pre-commit runs the unit tests), so it is recorded here and committed with the implementation. `source-reader.ts` is new: the helpers `board-names.ts` already had (`sources`, `position`, `keyOf`, `nameOf`, `stringLiteral`, `isGameSource`) moved there so both checks share them; `isBoardSource` keeps its export, with an explicit type for `isolatedDeclarations`. Ship unit tests 276 passed. |
+| 2026-10-23 | 4 `automata check` | same | Red first: the step lists in `run-check.test.ts` and the new `orientation` cases failed with no such step (10 failed, 6 passed). A config with no `defineGame` to compare against is not an error even when its orientation is not a literal (a tool error would be noise); with one to compare, it is. The csp, no-eval and secrets steps moved from index 4, 5, 6 to 5, 6, 7 in the tests. Cli unit tests 56 passed. |
+| 2026-10-23 | 5 real games | same | `defineGame` calls read: `games/emberwick` 1, `games/placeholder` 0, `examples/` 13; every one plays `any` and so does every config (`games/emberwick`, `games/placeholder`, `tooling/frame-budget`, the four `ship.config.ts` examples and the generated config of the one-file examples). No mismatch to fix. There is no `create-game` template in this checkout (no `packages/create-game`), so none was checked. |
+| 2026-10-23 | 6 gates and docs | same | `pnpm format`; `pnpm check` (30 of 30 tasks); `pnpm api-report --update` (ship +5 exports, cli `StepName` +`orientation`; the break report lists `StepName` as changed, private, no changeset needed beyond the patch added); `pnpm build`, `pnpm api-index`, `pnpm cheatsheet` (`docs/cheatsheet.md` regenerated), `pnpm agent-skills --write` (api.md regenerated, and `automata-verify`'s step table and rule table gained `orientation`). Changeset `m4-7-orientation-check.md` (patch, ship and cli). Not run here: parity and the rest of CI. |

@@ -1,7 +1,15 @@
 // The result of `automata check` and its two printed forms (DX spec §3.6). The JSON is what the plugin hooks
 // feed back to the agent, so its shape is exact: `{ ok, steps: [{ name, ok, ms, findings }] }` and nothing else.
 
-export type StepName = 'boundaries' | 'typecheck' | 'test' | 'boards' | 'no-eval' | 'secrets' | 'csp'
+export type StepName =
+  | 'boundaries'
+  | 'typecheck'
+  | 'test'
+  | 'boards'
+  | 'orientation'
+  | 'no-eval'
+  | 'secrets'
+  | 'csp'
 
 export interface CheckFinding {
   /** Relative to the game folder; empty when a finding has no file (a tool error, a build failure). */

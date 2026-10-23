@@ -6,6 +6,7 @@ import {
   EntryMissing,
   ManifestInputsMismatch,
   type ManifestInvalid,
+  OrientationMismatch,
   RootAbsoluteReference,
   SecretInBuild,
   UndeclaredBoard,
@@ -16,6 +17,7 @@ import { checkManifest } from '../manifest/check-manifest.ts'
 import { rukenToml } from '../manifest/ruken-toml.ts'
 import { findUndeclaredBoards } from './board-names.ts'
 import { checkVersion } from './check-version.ts'
+import { findOrientationMismatches } from './orientation.ts'
 import { findRootAbsoluteReferences } from './root-absolute.ts'
 import { findSecretsInBuild, readEnvValues } from './secret-scan.ts'
 
@@ -42,6 +44,7 @@ export type PrepareError =
   | RootAbsoluteReference
   | SecretInBuild
   | UndeclaredBoard
+  | OrientationMismatch
   | EntryMissing
   | ManifestInputsMismatch
   | ManifestInvalid
@@ -49,7 +52,7 @@ export type PrepareError =
 
 /**
  * Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
- * entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+ * entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
  * runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
  * (archive, size, file types) happen inside `ruken publish`, not here.
  */
@@ -88,6 +91,11 @@ export function prepareBuild(
         catch: (cause) => new FileError({ path: gameDir, cause }),
       })
       if (boards.length > 0) return yield* new UndeclaredBoard({ found: boards })
+      const orientations = yield* Effect.try({
+        try: () => findOrientationMismatches(gameDir, config.runtime.orientation),
+        catch: (cause) => new FileError({ path: gameDir, cause }),
+      })
+      if (orientations.length > 0) return yield* new OrientationMismatch({ found: orientations })
     }
 
     if (!(yield* files.exists(join(distDir, config.game.entry)))) {
