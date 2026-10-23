@@ -96,6 +96,12 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the entity checks: the values, places and single definitions, and the refs', () => {
+    for (const name of ['entityProblems', 'entityRefProblems']) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',
