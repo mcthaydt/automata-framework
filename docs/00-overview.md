@@ -52,14 +52,14 @@ M0 (spikes S1–S6, ADR 0001, the A1a sim core) is merged. Nothing from M1 onwar
 | M0 Foundation | Spikes, ECS decision, sim core (done) |
 | M1 Blank game on Ruken | Toolchain, Effect runtime skeleton, content compiler, host, boot and loading, 2D renderer, mobile UI primitives, CI/CD, packaging, publish, dev host, example, minimal `create-game` |
 | M2 Deterministic core complete | Physics, goldens and replays, publishing |
-| M3 3D characters and pipelines | `render-pixi3d` (meshes, the angled 24 mm camera, lighting), `figures` (procedural characters with an IK rig, authored poses and clips), `post-retro`, the pipeline platform, the procedural character and props pipelines. 2.5D dropped 2026-10-18; rigged glTF characters deferred "for now" 2026-10-23 ([revised M3 spec](superpowers/specs/2026-10-18-m3-3d-characters-design.md)) |
+| M3 3D characters and pipelines | `render-pixi3d` (meshes, the angled 24 mm camera at 25° and 5 m, turned freely, lighting), `figures` (procedural characters with an IK rig, authored poses and clips), `post-retro`, the pipeline platform, the procedural character and props pipelines, and `games/base-3d`'s first slice. 2.5D dropped 2026-10-18; rigged glTF characters deferred "for now" 2026-10-23 ([revised M3 spec](superpowers/specs/2026-10-18-m3-3d-characters-design.md)) |
 | M4 Input and display complete | All input paths and display policy, E2E matrix |
 | M5 Saves, audio, localization | Ruken saves and migrations, audio extensions, six languages |
 | M6 Gameplay extensions | Sectors, nav, puzzle, systems, narrative, cutscenes, feel, debug, environment pipeline |
 | M7 Online and store | `net`/`server`, `store`, `host-tauri` |
-| M8 CLI 1.0 and adoption | Full CLI, 1.0 (AF finished for 2D, with 3D characters in Plus; 2.5D dropped 2026-10-18), a slice of FloorFifty and The Last Light running on AF |
-| GAME-3D | A 3D game built on AF 1.0, in its own repo |
-| M9 3D merge | The 3D game's proven pieces merged back into AF |
+| M8 CLI 1.0 and adoption | Full CLI, 1.0 (AF finished for 2D and 3D: 2.5D dropped 2026-10-18, "3D ships 1.0" by the Owner on 2026-10-23, so the launch waits for GAME-3D and M9), a slice of FloorFifty and The Last Light running on AF |
+| GAME-3D | The base 3D game, `games/base-3d`: an Ocarina-style action-adventure, the 3D counterpart of the 2D platformer Emberwick, built on AF inside 1.0 and authored in the editors |
+| M9 3D systems into packages | The base 3D game's proven systems promoted into packages, before the 1.0 launch |
 | M10 Website (final phase) | The AF site: store, documentation, playable demos and everything else a framework site needs |
 
 **Business model (Owner, 2026-10-11; refined 2026-10-16 in the [PRODUCT spec](superpowers/specs/2026-10-16-product-core-and-plus-design.md), PD-1):** Tailwind-style. **Core** is free (MIT, public npm): the raylib-like foundation, built so that whatever is prompted next scales (seams, determinism, enforced checks, localization). **Automata Plus** is paid: every extension (networking, post-processing, feel, music streaming, physics and the rest), copy-in UI and screen kits, and ShipFast-style starter games. FloorFifty is the measure: core plus Plus rebuilds it, content excluded. Extensions stay separate packages with no core file edited by any of them, and move to the private `mcthaydt/automata-plus` repo and registry (PRODUCT.5). Pricing, the store and license enforcement are decided at M10.0 (D-7).

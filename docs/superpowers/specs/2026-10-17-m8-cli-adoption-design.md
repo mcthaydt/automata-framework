@@ -1,7 +1,7 @@
 # M8: CLI 1.0 and adoption (milestone spec)
 
 - **Status:** Draft, approved on recommended defaults by the Owner (2026-10-16 ruling: "approve all AF spec reviews … M3.0–M8.0 drafts, on recommended defaults; money stays mocked"); decisions M8-D1 to M8-D14 (§15) are listed for veto. Task **M8.0** in [02 Master delivery plan](../../02-master-delivery-plan.md). The review that merges this draft freezes the contracts in §4. After that they change only additively or through a written change request (01 Decomposition §5, [04 How we build](../../04-how-we-build.md)).
-- **Owner direction:** 2026-10-11: AF is Ruken first; M8 is "full CLI, codemods, docs, 1.0 (AF is finished for 2D and 2.5D); FloorFifty and The Last Light each run a slice on AF packages" (master spec §11). 2026-10-16 ([PRODUCT spec](./2026-10-16-product-core-and-plus-design.md) PD-1, F6): core is free (MIT, public npm), extensions are Automata Plus, and from M8 a breaking change needs a codemod. 2026-10-16 ([DX spec](./2026-10-16-dx-small-games-ai-native-design.md) D-DX-1): core publishes to public npm. 2026-10-16 ([PUB spec](./2026-10-16-publish-targets-design.md)): a game targets Ruken or itch.io at build time.
+- **Owner direction:** 2026-10-11: AF is Ruken first; M8 is "full CLI, codemods, docs, 1.0 (AF is finished for 2D and 2.5D); FloorFifty and The Last Light each run a slice on AF packages" (master spec §11). 2026-10-16 ([PRODUCT spec](./2026-10-16-product-core-and-plus-design.md) PD-1, F6): core is free (MIT, public npm), extensions are Automata Plus, and from M8 a breaking change needs a codemod. 2026-10-16 ([DX spec](./2026-10-16-dx-small-games-ai-native-design.md) D-DX-1): core publishes to public npm. 2026-10-16 ([PUB spec](./2026-10-16-publish-targets-design.md)): a game targets Ruken or itch.io at build time. **Amendment, 2026-10-23 (Owner, project thread, "3D ships 1.0"):** AF 1.0 covers 2D and 3D, and the AF 1.0 launch (the core release, M8.9, and Plus's first release) waits for the base 3D game (GAME-3D.1) and M9.0; the 3D packages stay Plus (M8-D8). 2.5D stays dropped.
 - **Depends on:** "everything it adopts" (01 §3).
   - 1.0 needs every core contract that AF 1.0 claims: M4 and M5 core parts, PRODUCT.L, PRODUCT.1, DX.2, PUB.1.
   - It also needs core on public npm (DX.11; blocked on the Owner's `NPM_TOKEN`) and the Plus workspace (PRODUCT.5; blocked on the Owner's `mcthaydt/automata-plus` repo).
@@ -71,10 +71,10 @@ Two real games prove the framework by running part of themselves on AF packages,
 - **No changes to FloorFifty's or The Last Light's tests** to make a slice pass. A slice changes source, never the tests that judge it (§6).
 - **No `automata pack`.** Ruken packs and validates (`ruken publish`); AF never builds its own zip (master spec §4.1, M1.2). PUB's itch.io zip is `ship`'s, behind `--target itch`.
 - **No separate `automata lock`** (M8-D5). `doctor` reports mixed AF versions and `update` aligns them.
-- **No 3D in 1.0:**
-  - `render-pixi3d` stays unpublished (D-1);
-  - full 3D is M9;
-  - 2.5D is in 1.0 only as far as M3 lands it, privately while D-1 stands.
+- **3D is in 1.0 (amended 2026-10-23, Owner: "3D ships 1.0"; this replaces "No 3D in 1.0"):**
+  - the 3D packages (`render-pixi3d`, `figures`, `post-retro`, the 3D pipelines) release on Plus's own line (M8-D8), and the launch waits for GAME-3D.1 and M9.0;
+  - `render-pixi3d` stays unpublished while D-1 stands, and whether a public 3D build can ship `@pixi/3d` is the Owner's call (M3R-D18);
+  - 2.5D stays dropped.
 - **Website deployment is not here** (DX.12, M10).
 - **Plus packages are not part of the core 1.0.** They release on their own line from the Plus workspace (M8-D8).
 - **No real money**, as in M7.
@@ -414,7 +414,7 @@ No new layouts. The FloorFifty slice is the responsive test: its own `responsive
 | M8-D7 | Deprecation window | **At least one minor, removed only in a major with a codemod** | F6; predictable for users |
 | M8-D8 | Plus versioning | **Plus releases on its own line**, each Plus release states the core range it supports | Plus changes more often; core 1.0 must not wait on it |
 | M8-D9 | What 1.0 includes | **The core packages DX.11 publishes plus `runtime`, `render-pixi`, `game`, `cli`** (M8.8) | A 1.0 without the runtime could not run a game |
-| M8-D10 | 2.5D in 1.0 | **Only what M3 has landed, private while D-1 stands**; 1.0 is not held for 2.5D | D-1 forbids publishing `render-pixi3d` |
+| M8-D10 | 3D in 1.0 | **Amended 2026-10-23 (Owner: "3D ships 1.0"):** 3D is in the launch, as Plus packages released on Plus's own line, with the base 3D game accepted first; the core 1.0 release (M8.9) is not changed. Was: only what M3 had landed, private while D-1 stands | The Owner decided; D-1 still forbids a public `render-pixi3d` until M3R-D18 is settled |
 | M8-D11 | Reference-repo access | **A fine-grained read-only token per repository, stored as an AF secret by the Owner** | Both repositories are private; Owner action |
 | M8-D12 | Reference job and releases | **Required green before an AF release; nightly otherwise** | A slice that breaks unseen defeats the exit |
 | M8-D13 | Toolchain compatibility | **Plain ESM and `.d.ts` readable by TypeScript ≥ 5.9; no vitest coupling in runtime packages** | Both reference games' pins |
