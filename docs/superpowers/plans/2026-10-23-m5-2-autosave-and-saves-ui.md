@@ -114,7 +114,7 @@ interface Save<S> {
 
 - S-c on two real devices on Ruken's local stack: write, exit, open on the other device, resume.
 - One real conflict resolved through the host shell (R-7), with devices, browsers and dates recorded.
-- The look of `SaveSlots`, `SaveStatus` and the paused choice at the reference sizes.
+- The look of `SaveSlots`, `SaveStatus` and the paused choice at the reference sizes. **Accepted by the Owner 2026-10-23 08:06Z** ("Automata looks fine", relayed by the hub: bus `automata/inbox/2026-10-23-0808-hub-owner-accepts-9-and-135.md`, from [the review artifact](https://claude.ai/artifact/6NdKxj1x2xfv3c6UZyhaVF); confirmed by the Owner in the project thread at 08:26Z, "Yes proceed"). S-c and the R-7 conflict stay open.
 
 ## Execution record
 
