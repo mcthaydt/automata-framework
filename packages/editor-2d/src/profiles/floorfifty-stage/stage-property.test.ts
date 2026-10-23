@@ -413,7 +413,5 @@ describe('printStage over random edit sequences', () => {
         expect(blankRun(lines), `${where}: blank lines`).toBeLessThanOrEqual(blankRun(baseLines) + 1)
       }
     },
-    // About two seconds alone, and 10 s for Rooftops in `pnpm check` beside the other packages' tests: over the default 5 s.
-    60_000,
   )
 })

@@ -94,11 +94,11 @@ Hand mutation checks (`mutate.py`, one change at a time, the file's tests must f
 
 - The generator is `course-floors.ts`, not `course.generator.ts`: `pnpm style` gives a `*.generator.ts` file the `defineContentGenerator` role.
 - `knip.jsonc` lists `make-goldens.mjs` as an entry of `packages/editor-2d`; it is run by hand and nothing imports it.
-- `stage-property.test.ts` (EDFF.1a) got a 60 s timeout on its 200-sequence tests: a full run of the package, beside other jobs, went over the default 5 s on Rooftops (10 s in `pnpm check`, about two seconds alone). The assertions are untouched.
 - The first draft of spec §10.4 listed `x`, `alpha` and `visible` in the output; they are cut (the spec says why).
 
 ### Not done
 
+- A direct `pnpm exec vitest run` of the package (Vitest's 5 s default) timed out once on EDFF.1a's Rooftops property test, which takes about 10 s in `pnpm check`; the package's `test:unit` script, which `pnpm check` and the pre-commit hook use, sets 90 s, and passes. No change made: that test is not this slice's.
 - Not CI verified. Nothing here has a screen: the Compose canvas and the Course view are EDFF.2 and EDFF.3.
 - The golden heights of the strips are chosen, not the shipped art's; the framing is exact for them, and for any other heights by the formula the tests pin.
 - The sun's heat shimmer, haze baking, window codes and the race and music reactions are not previewed (plan scope).
