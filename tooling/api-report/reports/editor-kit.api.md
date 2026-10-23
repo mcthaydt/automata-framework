@@ -2296,3 +2296,19 @@ interface RetypeBreakage {
 ```ts
 function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
 ```
+
+## `./testing`
+
+### `ResizableGeometry` (interface)
+
+```ts
+interface ResizableGeometry extends GeometryState {
+    resize(width: number, height: number): void;
+}
+```
+
+### `stubGeometry` (function)
+
+```ts
+function stubGeometry(width: number, height: number): ResizableGeometry;
+```

@@ -1,13 +1,57 @@
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { svelteTesting } from '@testing-library/svelte/vite'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
-// The headless core (2D editor spec §14): schema and codec round trips, grids, tools, commands and checks run in Node,
-// with no renderer. The golden files (`*.parity.test.ts`) run in Node with the rest and again in Chromium, WebKit and
-// Firefox, where the auto-tile hashes have to come out the same (spec G-d).
+// Four projects (2D editor spec §14):
+// - unit: the headless core (schema and codec round trips, grids, tools, commands, checks, the app's models and
+//   controllers) runs in Node, with no renderer.
+// - dom: Svelte components in jsdom through Testing Library (states and behavior, no snapshots). `*.dom.test.ts`.
+// - layout: the production CSS in a real browser at the sizes of spec §12. `*.layout.test.ts`. WebKit and Firefox join
+//   through a test-request on the Orchestrator bus until EDK.6 gives the lane its own harness.
+// - browsers: the golden files (`*.parity.test.ts`), which run in Node with `unit` and again in Chromium, WebKit and
+//   Firefox, where the auto-tile hashes have to come out the same (spec G-d).
+//
+// The Svelte plugins sit on the two projects that mount components, not at the top: a plugin set at the top reaches
+// every project, and the testing package's `browser` condition would make the code parser of the architecture test
+// load its WebAssembly build in Node.
 export default defineConfig({
   test: {
     projects: [
-      { test: { name: 'unit', environment: 'node', include: ['src/**/*.test.ts'] } },
+      {
+        // The headless layers import no component, so there is no Svelte plugin here (see above).
+        test: {
+          name: 'unit',
+          environment: 'node',
+          include: ['src/**/*.test.ts'],
+          exclude: ['src/**/*.dom.test.ts', 'src/**/*.layout.test.ts'],
+        },
+      },
+      {
+        plugins: [svelte(), svelteTesting()],
+        test: {
+          name: 'dom',
+          environment: 'jsdom',
+          include: ['src/**/*.dom.test.ts'],
+          setupFiles: ['./src/vitest-setup.ts'],
+          css: true,
+        },
+      },
+      {
+        plugins: [svelte(), svelteTesting()],
+        // Svelte's client build: the fixtures mount through the testing package.
+        resolve: { conditions: ['browser'] },
+        test: {
+          name: 'layout',
+          include: ['src/**/*.layout.test.ts'],
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            instances: [{ browser: 'chromium' }],
+          },
+        },
+      },
       {
         test: {
           name: 'browsers',

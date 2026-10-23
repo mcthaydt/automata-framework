@@ -16,6 +16,7 @@
     },
     "./core": "./src/core/index.ts",
     "./fields": "./src/fields/index.ts",
+    "./testing": "./src/testing/index.ts",
     "./tokens.css": "./src/tokens.css",
     "./fonts.css": "./src/fonts.css"
   },
