@@ -50,6 +50,14 @@ export interface Save<S> {
    * keeps `data`, and the next autosave trigger writes it. With no slot loaded it keeps nothing.
    */
   touch(data: () => S): void
+  /**
+   * Writes the progress `touch` has kept for every slot that still has some, now, whatever the autosave policy
+   * (an exit must not lose progress because `on` left out a trigger). It still never writes a slot whose state
+   * is not `ready` or `empty` (a newer build's, a damaged one, one loaded with other content): that progress
+   * stays kept. It never fails, because it runs inside the host's exit; a refused write is the `save.failed`
+   * fact, and the progress stays kept for the next flush.
+   */
+  readonly flushPending: Effect.Effect<void>
 }
 
 export interface SaveServiceOptions {
@@ -113,6 +121,16 @@ export function saveService<S>(
       })
 
     const stateOf = (slot: number) => Effect.map(SubscriptionRef.get(ref), (all) => all[slot])
+    // Writes, removals and autosaves of one slot take turns: one is in flight, the rest wait behind it.
+    const gates = new Map<number, Effect.Semaphore>()
+    const gateOf = (slot: number): Effect.Semaphore => {
+      let gate = gates.get(slot)
+      if (gate === undefined) {
+        gate = Effect.unsafeMakeSemaphore(1)
+        gates.set(slot, gate)
+      }
+      return gate
+    }
     const setState = (slot: number, state: SlotState) =>
       SubscriptionRef.update(ref, (all) => all.map((current, index) => (index === slot ? state : current)))
     const checked = (slot: number) =>
@@ -155,9 +173,11 @@ export function saveService<S>(
           : loaded
       })
 
-    const write = (slot: number, data: S, writeOptions: SaveWriteOptions = {}) =>
+    const locked = <A, E>(slot: number, effect: Effect.Effect<A, E>): Effect.Effect<A, E> =>
+      checked(slot).pipe(Effect.zipRight(gateOf(slot).withPermits(1)(effect)))
+
+    const writeNow = (slot: number, data: S, writeOptions: SaveWriteOptions = {}) =>
       Effect.gen(function* () {
-        yield* checked(slot)
         const key = slotKey(def, slot)
         if ((yield* stateOf(slot))?.kind === 'newer')
           return yield* new SaveRefused({ key: def.key, slot, reason: 'newer' })
@@ -187,17 +207,52 @@ export function saveService<S>(
         bus.publish('save.written', { key: def.key, slot })
       })
 
+    const write = (slot: number, data: S, writeOptions?: SaveWriteOptions) =>
+      locked(slot, writeNow(slot, data, writeOptions))
+
     const remove = (slot: number) =>
-      Effect.gen(function* () {
-        yield* checked(slot)
-        yield* hosting.saves.remove(slotKey(def, slot))
-        lastKnown[slot] = undefined
-        yield* setState(slot, { kind: 'empty', slot })
-      })
+      locked(
+        slot,
+        Effect.gen(function* () {
+          yield* hosting.saves.remove(slotKey(def, slot))
+          lastKnown[slot] = undefined
+          yield* setState(slot, { kind: 'empty', slot })
+        }),
+      )
 
     const touch = (data: () => S): void => {
       if (loadedSlot !== undefined) pending.set(loadedSlot, data)
     }
+
+    // Takes the slot's turn, then writes whatever `touch` has by then: triggers that piled up behind a slow write
+    // find nothing left once the first of them has taken it, so they collapse into one more write.
+    const flushSlot = (slot: number): Effect.Effect<void> =>
+      gateOf(slot).withPermits(1)(
+        Effect.gen(function* () {
+          const progress = pending.get(slot)
+          if (progress === undefined) return
+          const state = yield* stateOf(slot)
+          // Never over a save this build cannot or should not overwrite on its own; the progress stays kept.
+          if (state === undefined || (state.kind !== 'ready' && state.kind !== 'empty')) return
+          const data = progress()
+          // Autosave knows only the data, so the label the slot list shows rides along from the stored header.
+          const label = state.kind === 'ready' ? state.meta.label : undefined
+          yield* writeNow(slot, data, label === undefined ? {} : { label })
+          // A touch that landed during the write replaced the entry and stays kept.
+          if (pending.get(slot) === progress) pending.delete(slot)
+        }).pipe(
+          // A refused write is already the `save.failed` fact. A `touch` that throws is the game's mistake: logged,
+          // and never allowed to fail an exit.
+          Effect.catchAll(() => Effect.void),
+          Effect.catchAllDefect((defect) =>
+            Effect.logWarning(`Save '${def.key}': the progress of slot ${slot} could not be read`, defect),
+          ),
+        ),
+      )
+
+    const flushPending = Effect.suspend(() =>
+      Effect.forEach([...pending.keys()], flushSlot, { discard: true }),
+    )
 
     return {
       slots: Subscribable.make({ get: SubscriptionRef.get(ref), changes: ref.changes }),
@@ -206,6 +261,7 @@ export function saveService<S>(
       write,
       remove,
       touch,
+      flushPending,
     }
   })
 }

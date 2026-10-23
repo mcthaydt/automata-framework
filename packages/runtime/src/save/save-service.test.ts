@@ -1,7 +1,7 @@
 import { Hosting } from '@mcthaydt/automata-host'
 import { FakeHostHandle, HostingTest, runScoped } from '@mcthaydt/automata-host/testing'
 import { settle } from '@ruken/sdk-host/testing'
-import { Effect, Either, Fiber, type Scope, Stream, TestClock, TestContext } from 'effect'
+import { Deferred, Effect, Either, Fiber, type Scope, Stream, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
@@ -317,6 +317,188 @@ describe('the loaded slot and touch (M5 spec §4.3, §4.4)', () => {
     await withSave({}, (save) =>
       Effect.sync(() => {
         expect(() => save.touch(() => ({ name: 'Early', bestTime: 1, coins: 1 }))).not.toThrow()
+      }),
+    )
+  })
+})
+
+describe('flushPending and serialized writes (M5 spec §4.4)', () => {
+  const kite = { name: 'Kite', bestTime: 12, coins: 4 }
+
+  /** Like `withSave`, but every `saves.set` waits for `open`, so a test can hold a write in flight. */
+  function withGatedSave<A, E>(
+    test: (
+      save: Save<Run>,
+      gate: Deferred.Deferred<void>,
+    ) => Effect.Effect<A, E, Hosting | FakeHostHandle | Scope.Scope>,
+  ): Promise<A> {
+    return runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const gate = yield* Deferred.make<void>()
+        const gated: Hosting = {
+          ...hosting,
+          saves: {
+            ...hosting.saves,
+            set: (key, value) => Deferred.await(gate).pipe(Effect.zipRight(hosting.saves.set(key, value))),
+          },
+        }
+        const bus = yield* makePresentationBus()
+        const save = yield* saveService(run, { contentHash: BUILD }).pipe(
+          Effect.provideService(Hosting, gated),
+          Effect.provideService(PresentationBus, bus),
+        )
+        return yield* test(save, gate)
+      }).pipe(Effect.provide(HostingTest()), Effect.provide(TestContext.TestContext)),
+    )
+  }
+
+  it('writes the touched progress of the loaded slot once, however many flushes follow', async () => {
+    await withSave({}, (save, facts) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(1)
+        save.touch(() => kite)
+        yield* save.flushPending
+        yield* save.flushPending
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toEqual([
+          expect.objectContaining({ key: 'run.slot.1', value: stored({ savedAt: 0, data: kite }) }),
+        ])
+        expect(facts.filter(([name]) => name === 'save.written')).toHaveLength(1)
+      }),
+    )
+  })
+
+  it('keeps nothing from a touch made before a slot loaded', async () => {
+    await withSave({}, (save) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        save.touch(() => kite)
+        yield* save.load(1)
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toEqual([])
+      }),
+    )
+  })
+
+  it('sends nothing when the same progress is touched and flushed again, later (S-b)', async () => {
+    await withSave({}, (save) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(0)
+        save.touch(() => kite)
+        yield* save.flushPending
+        yield* TestClock.adjust('1 minute')
+        save.touch(() => ({ ...kite }))
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(1)
+
+        save.touch(() => ({ ...kite, coins: 5 }))
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(2)
+      }),
+    )
+  })
+
+  it('keeps the slot label across an autosave, which does not know it', async () => {
+    await withSave({ 'run.slot.0': stored({ label: 'Floor 3' }) }, (save) =>
+      Effect.gen(function* () {
+        yield* save.load(0)
+        save.touch(() => ({ ...kite, coins: 9 }))
+        yield* save.flushPending
+        expect((yield* save.slots.get)[0]).toMatchObject({ kind: 'ready', meta: { label: 'Floor 3' } })
+        expect((yield* save.load(0)).data.coins).toBe(9)
+      }),
+    )
+  })
+
+  it('collapses triggers during one slow write into one more write carrying the latest data', async () => {
+    await withGatedSave((save, gate) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(0)
+        save.touch(() => ({ ...kite, coins: 1 }))
+        const first = yield* Effect.fork(save.flushPending)
+        yield* settled // the first write is now waiting on the host
+        save.touch(() => ({ ...kite, coins: 2 }))
+        const more = yield* Effect.forEach([1, 2, 3], () => Effect.fork(save.flushPending))
+        save.touch(() => ({ ...kite, coins: 3 }))
+        yield* settled
+        expect(sentByGame('saves.set')).toEqual([])
+
+        yield* Deferred.succeed(gate, undefined)
+        yield* Fiber.join(first)
+        yield* Effect.forEach(more, Fiber.join)
+        yield* settled
+        const written = sentByGame('saves.set').map((message) =>
+          JSON.parse((message as { value: string }).value),
+        )
+        expect(written.map((envelope) => envelope.data.coins)).toEqual([1, 3])
+      }),
+    )
+  })
+
+  it('never writes a slot loaded with other content, leaves its bytes, and writes once an explicit write clears it (S-e)', async () => {
+    const foreign = stored({ snapshot: 'AAAA', contentHash: 'deadbeef' })
+    await withSave({ 'run.slot.0': foreign }, (save) =>
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(0)
+        expect((yield* save.slots.get)[0]).toMatchObject({ kind: 'other-content' })
+        save.touch(() => ({ ...kite, coins: 7 }))
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toEqual([])
+        expect(yield* hosting.saves.get('run.slot.0')).toBe(foreign)
+
+        // The player writes explicitly: the slot is theirs again, and the touched progress was kept.
+        yield* save.write(0, { ...kite, coins: 6 })
+        expect((yield* save.slots.get)[0]).toMatchObject({ kind: 'ready' })
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(2)
+      }),
+    )
+  })
+
+  it('publishes save.failed for a refused write, still succeeds, and tries again at the next flush', async () => {
+    await withSave({}, (save, facts) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(0)
+        save.touch(() => ({ name: 'x'.repeat(16 * 1024 * 1024), bestTime: 0, coins: 0 }))
+        yield* save.flushPending
+        yield* save.flushPending
+        expect(facts.filter(([name]) => name === 'save.failed')).toEqual([
+          ['save.failed', { key: 'run', slot: 0, code: 'QUOTA_EXCEEDED' }],
+          ['save.failed', { key: 'run', slot: 0, code: 'QUOTA_EXCEEDED' }],
+        ])
+
+        save.touch(() => kite)
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(1)
+      }),
+    )
+  })
+
+  it('succeeds, writing nothing, when the progress it was handed throws', async () => {
+    await withSave({}, (save) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(0)
+        save.touch(() => {
+          throw new Error('the sim is gone')
+        })
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toEqual([])
       }),
     )
   })
