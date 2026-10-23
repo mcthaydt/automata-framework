@@ -1,7 +1,7 @@
 import { Hosting } from '@mcthaydt/automata-host'
 import { FakeHostHandle, HostingTest, runScoped } from '@mcthaydt/automata-host/testing'
 import { settle } from '@ruken/sdk-host/testing'
-import { Deferred, Effect, Either, Fiber, type Scope, Stream, TestClock, TestContext } from 'effect'
+import { Deferred, Effect, Either, Exit, Fiber, Scope, Stream, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
@@ -53,7 +53,11 @@ type Facts = { [K in 'save.written' | 'save.failed' | 'save.loaded']: [K, Runtim
 /** Runs `test` with a `Save` over a fake host seeded with `saves`, collecting the save facts in order. */
 function withSave<A, E>(
   saves: Record<string, string>,
-  test: (save: Save<Run>, facts: Facts[]) => Effect.Effect<A, E, Hosting | FakeHostHandle | Scope.Scope>,
+  test: (
+    save: Save<Run>,
+    facts: Facts[],
+    bus: PresentationBus,
+  ) => Effect.Effect<A, E, Hosting | FakeHostHandle | Scope.Scope>,
   def: typeof run = run,
 ): Promise<A> {
   return runScoped(
@@ -66,7 +70,7 @@ function withSave<A, E>(
       const save = yield* saveService(def, { contentHash: BUILD }).pipe(
         Effect.provideService(PresentationBus, bus),
       )
-      return yield* test(save, facts)
+      return yield* test(save, facts, bus)
     }).pipe(Effect.provide(HostingTest({ host: { saves } })), Effect.provide(TestContext.TestContext)),
   )
 }
@@ -499,6 +503,199 @@ describe('flushPending and serialized writes (M5 spec §4.4)', () => {
         yield* save.flushPending
         yield* settled
         expect(sentByGame('saves.set')).toEqual([])
+      }),
+    )
+  })
+})
+
+describe('the autosave triggers (M5 spec §4.4, S-d)', () => {
+  const kite = { name: 'Kite', bestTime: 12, coins: 4 }
+  const only = (...on: ('screen-exit' | 'round-end' | 'background' | 'interval')[]): typeof run => ({
+    ...run,
+    autosave: { on },
+  })
+  /** Hides the host page the way a player switching tabs does, and lets the SDK report it. */
+  const hidePage = Effect.gen(function* () {
+    const { host } = yield* FakeHostHandle
+    host.frame?.hostDocument.setVisibility('hidden')
+    yield* settled
+  })
+  const sentTypes = (host: FakeHostHandle['host']) =>
+    host.messages
+      .filter((entry) => entry.dir === 'in')
+      .map((entry) => entry.msg.type)
+      .filter((type) => ['saves.set', 'saves.flush', 'session.exitReady'].includes(type))
+
+  it('writes on a trigger the policy lists, and does nothing for one it does not', async () => {
+    await withSave(
+      {},
+      (save) =>
+        Effect.gen(function* () {
+          const { sentByGame } = yield* FakeHostHandle
+          yield* save.load(0)
+          save.touch(() => kite)
+          yield* save.autosave('screen-exit')
+          yield* settled
+          expect(sentByGame('saves.set')).toEqual([])
+          yield* save.autosave('round-end')
+          yield* settled
+          expect(sentByGame('saves.set')).toHaveLength(1)
+        }),
+      only('round-end'),
+    )
+  })
+
+  it('writes when the player moves to another screen, and not for the first screen', async () => {
+    await withSave({}, (save, _facts, bus) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(0)
+        save.touch(() => kite)
+        bus.publish('screen.entered', { screen: 'title', from: undefined })
+        yield* settled
+        expect(sentByGame('saves.set')).toEqual([])
+        bus.publish('screen.entered', { screen: 'play', from: 'title' })
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(1)
+      }),
+    )
+  })
+
+  it('writes when a round ends', async () => {
+    await withSave({}, (save) =>
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(0)
+        yield* settled
+        save.touch(() => kite)
+        yield* hosting.round.start
+        yield* hosting.round.end('complete')
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(1)
+      }),
+    )
+  })
+
+  it('writes in the background and then asks the host to flush, once (S-d)', async () => {
+    await withSave({}, (save) =>
+      Effect.gen(function* () {
+        const { host, sentByGame } = yield* FakeHostHandle
+        yield* save.load(0)
+        yield* settled
+        save.touch(() => kite)
+        yield* hidePage
+        expect(sentTypes(host)).toEqual(['saves.set', 'saves.flush'])
+        expect(sentByGame('saves.flush')).toHaveLength(1)
+      }),
+    )
+  })
+
+  it('does neither when the policy leaves `background` out', async () => {
+    await withSave(
+      {},
+      (save) =>
+        Effect.gen(function* () {
+          const { host } = yield* FakeHostHandle
+          yield* save.load(0)
+          yield* settled
+          save.touch(() => kite)
+          yield* hidePage
+          expect(sentTypes(host)).toEqual([])
+        }),
+      only('round-end'),
+    )
+  })
+
+  it('writes on a timer: nothing before intervalSeconds, one write at it, none while the progress is unchanged', async () => {
+    await withSave(
+      {},
+      (save) =>
+        Effect.gen(function* () {
+          const { sentByGame } = yield* FakeHostHandle
+          yield* save.load(0)
+          yield* settled
+          save.touch(() => kite)
+          yield* TestClock.adjust('29 seconds')
+          yield* settled
+          expect(sentByGame('saves.set')).toEqual([])
+          yield* TestClock.adjust('1 second')
+          yield* settled
+          expect(sentByGame('saves.set')).toHaveLength(1)
+
+          save.touch(() => ({ ...kite }))
+          yield* TestClock.adjust('30 seconds')
+          yield* settled
+          expect(sentByGame('saves.set')).toHaveLength(1)
+          save.touch(() => ({ ...kite, coins: 5 }))
+          yield* TestClock.adjust('30 seconds')
+          yield* settled
+          expect(sentByGame('saves.set')).toHaveLength(2)
+        }),
+      { ...run, autosave: { on: ['interval'], intervalSeconds: 30 } },
+    )
+  })
+
+  it('writes every 60 s when the policy gives no interval', async () => {
+    await withSave(
+      {},
+      (save) =>
+        Effect.gen(function* () {
+          const { sentByGame } = yield* FakeHostHandle
+          yield* save.load(0)
+          yield* settled
+          save.touch(() => kite)
+          yield* TestClock.adjust('59 seconds')
+          yield* settled
+          expect(sentByGame('saves.set')).toEqual([])
+          yield* TestClock.adjust('1 second')
+          yield* settled
+          expect(sentByGame('saves.set')).toHaveLength(1)
+        }),
+      only('interval'),
+    )
+  })
+
+  it('refuses a save whose timer cannot run, at start', async () => {
+    const broken = { ...run, autosave: { on: ['interval' as const], intervalSeconds: 0 } }
+    await expect(withSave({}, () => Effect.void, broken)).rejects.toThrow(/intervalSeconds/)
+  })
+
+  it('writes once more when its scope closes, then stops listening and stops the timer', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { sentByGame } = yield* FakeHostHandle
+        const bus = yield* makePresentationBus()
+        const inner = yield* Scope.make()
+        const save = yield* saveService(only('screen-exit', 'interval'), { contentHash: BUILD }).pipe(
+          Effect.provideService(PresentationBus, bus),
+          Scope.extend(inner),
+        )
+        yield* save.load(0)
+        save.touch(() => kite)
+        yield* Scope.close(inner, Exit.void)
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(1)
+
+        save.touch(() => ({ ...kite, coins: 6 }))
+        bus.publish('screen.entered', { screen: 'play', from: 'title' })
+        yield* TestClock.adjust('2 minutes')
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(1)
+        expect(yield* hosting.saves.get('run.slot.0')).not.toBeNull()
+      }).pipe(Effect.provide(HostingTest()), Effect.provide(TestContext.TestContext)),
+    )
+  })
+
+  it('has its progress written, then flushed, before the host is told the game may close', async () => {
+    await withSave({}, (save) =>
+      Effect.gen(function* () {
+        const { host } = yield* FakeHostHandle
+        yield* save.load(0)
+        save.touch(() => kite)
+        yield* Effect.promise(() => host.bridge.exit())
+        expect(sentTypes(host)).toEqual(['saves.set', 'saves.flush', 'session.exitReady'])
       }),
     )
   })

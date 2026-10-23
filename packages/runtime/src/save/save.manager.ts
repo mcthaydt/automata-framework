@@ -6,9 +6,11 @@
 // Nothing here falls back to device storage (AGENTS.md, "Honor host authority").
 import { type HostError, Hosting } from '@mcthaydt/automata-host'
 import { canonicalJson } from '@mcthaydt/automata-sim/hash'
-import { Clock, Effect, Subscribable, SubscriptionRef } from 'effect'
+import { Clock, Duration, Effect, Runtime, type Scope, Stream, Subscribable, SubscriptionRef } from 'effect'
 import { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import {
+  type AutosaveTrigger,
+  autosaveOf,
   encodeEnvelope,
   metaOf,
   readSave,
@@ -58,6 +60,11 @@ export interface Save<S> {
    * fact, and the progress stays kept for the next flush.
    */
   readonly flushPending: Effect.Effect<void>
+  /**
+   * What a trigger calls: `flushPending` if the save's policy lists `trigger`, otherwise nothing. `saveService`
+   * already wires every trigger to its source; this is for a game that raises one itself.
+   */
+  autosave(trigger: AutosaveTrigger): Effect.Effect<void>
 }
 
 export interface SaveServiceOptions {
@@ -86,8 +93,9 @@ const fromBase64 = (text: string): Uint8Array => Uint8Array.from(atob(text), (ch
 export function saveService<S>(
   def: SaveDef<S>,
   options: SaveServiceOptions,
-): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus> {
+): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus | Scope.Scope> {
   return Effect.gen(function* () {
+    const policy = autosaveOf(def)
     const hosting = yield* Hosting
     const bus = yield* PresentationBus
     const { contentHash } = options
@@ -254,6 +262,54 @@ export function saveService<S>(
       Effect.forEach([...pending.keys()], flushSlot, { discard: true }),
     )
 
+    const autosave = (trigger: AutosaveTrigger): Effect.Effect<void> =>
+      policy.on.has(trigger) ? flushPending : Effect.void
+
+    // The triggers, each wired to its source for as long as the scope is open (spec §4.4). A trigger that comes
+    // from outside Effect (the bus) starts its flush on this service's runtime, so it sees the same Clock.
+    const runFork = Runtime.runFork(yield* Effect.runtime<never>())
+    if (policy.on.has('screen-exit')) {
+      yield* Effect.acquireRelease(
+        Effect.sync(() =>
+          bus.subscribe('screen.entered', ({ from }) => {
+            // The first screen leaves nothing behind.
+            if (from !== undefined) runFork(autosave('screen-exit'))
+          }),
+        ),
+        (unsubscribe) => Effect.sync(unsubscribe),
+      )
+    }
+    if (policy.on.has('round-end')) {
+      yield* hosting.round.ended.pipe(
+        Stream.runForEach(() => autosave('round-end')),
+        Effect.forkScoped,
+      )
+    }
+    if (policy.on.has('background')) {
+      // S-d: write, then hand the host everything it holds, because a page in the background may be frozen or closed
+      // before anything else runs. A flush the host refuses is simply over.
+      yield* hosting.lifecycle.changes.pipe(
+        Stream.map((change) => change.state),
+        Stream.changes,
+        Stream.filter((state) => state === 'background'),
+        Stream.runForEach(() =>
+          autosave('background').pipe(Effect.zipRight(Effect.ignore(hosting.saves.flush))),
+        ),
+        Effect.forkScoped,
+      )
+    }
+    if (policy.intervalSeconds !== undefined) {
+      yield* Effect.sleep(Duration.seconds(policy.intervalSeconds)).pipe(
+        Effect.zipRight(autosave('interval')),
+        Effect.forever,
+        Effect.forkScoped,
+      )
+    }
+    // Leaving through the host, or closing this scope, must not lose progress (spec §5, "Restart and dispose"). The
+    // finalizer is added last, so it runs first, while the triggers above can still be told apart from a late one.
+    yield* hosting.onExiting(flushPending)
+    yield* Effect.addFinalizer(() => flushPending)
+
     return {
       slots: Subscribable.make({ get: SubscriptionRef.get(ref), changes: ref.changes }),
       loaded: Subscribable.make({ get: SubscriptionRef.get(loadedRef), changes: loadedRef.changes }),
@@ -262,6 +318,7 @@ export function saveService<S>(
       remove,
       touch,
       flushPending,
+      autosave,
     }
   })
 }
