@@ -65,6 +65,15 @@ function checkValues(fields: readonly FieldDef[], values: FieldValues): readonly
 component from './widgets/Chips.svelte'
 ```
 
+### `classifyStorageError` (function)
+
+```ts
+function classifyStorageError(error: unknown): {
+    reason: StorageFailure;
+    message: string;
+};
+```
+
 ### `ColorField` (svelte)
 
 ```ts
@@ -101,16 +110,51 @@ interface CommandRegistry {
 function createCommandRegistry(): CommandRegistry;
 ```
 
+### `createDocumentSession` (function)
+
+```ts
+function createDocumentSession<S>(options: DocumentSessionOptions<S>): DocumentSession;
+```
+
+### `createDownloadStore` (function)
+
+```ts
+function createDownloadStore(env?: DownloadEnv): DownloadStore;
+```
+
+### `createFolderStore` (function)
+
+```ts
+function createFolderStore(handle: FolderHandle): FolderStore;
+```
+
 ### `createHistory` (function)
 
 ```ts
 function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
 ```
 
+### `createIndexedDbVault` (function)
+
+```ts
+function createIndexedDbVault(options?: {
+    database?: string;
+    factory?: IDBFactory;
+}): HandleVault;
+```
+
 ### `createKeymap` (function)
 
 ```ts
 function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
+```
+
+### `createMemoryStore` (function)
+
+```ts
+function createMemoryStore(options?: {
+    now?: () => number;
+}): ProjectStore;
 ```
 
 ### `createRecognizer` (function)
@@ -179,6 +223,12 @@ const DETENTS: readonly Detent[];
 component from './widgets/Dialog.svelte'
 ```
 
+### `discardRecovery` (function)
+
+```ts
+function discardRecovery(journal: ProjectStore, path: string): Promise<void>;
+```
+
 ### `DockPlacement` (type)
 
 ```ts
@@ -189,6 +239,72 @@ type DockPlacement = 'inline' | 'sheet';
 
 ```ts
 function dockPlacementOf(mode: ShellMode, tier: HeightTier): DockPlacement;
+```
+
+### `DocumentSession` (interface)
+
+```ts
+interface DocumentSession {
+    readonly status: SaveState;
+    readonly problem: Problem | undefined;
+    subscribe(run: () => void): () => void;
+    save(): Promise<SaveOutcome>;
+    overwrite(): Promise<SaveOutcome>;
+    saveCopy(): Promise<SaveOutcome>;
+    flush(): Promise<void>;
+    discardJournal(): Promise<void>;
+    dispose(): void;
+}
+```
+
+### `DocumentSessionOptions` (interface)
+
+```ts
+interface DocumentSessionOptions<S> {
+    readonly store: ProjectStore;
+    readonly journal: ProjectStore;
+    readonly path: string;
+    readonly history: History<S>;
+    serializeFile(state: S): Uint8Array | string;
+    snapshot(state: S): string;
+    readonly mtime?: number | undefined;
+    readonly deviceOnly?: boolean;
+    readonly clock?: StorageClock;
+    readonly debounceMs?: number;
+    onproblem?(problem: Problem): void;
+}
+```
+
+### `DownloadEnv` (interface)
+
+```ts
+interface DownloadEnv {
+    now(): number;
+    download(file: DownloadFile): void;
+    share?: ((file: DownloadFile) => Promise<void>) | undefined;
+    copyText?: ((text: string) => Promise<void>) | undefined;
+}
+```
+
+### `DownloadFile` (interface)
+
+```ts
+interface DownloadFile {
+    readonly name: string;
+    readonly type: string;
+    readonly data: Uint8Array<ArrayBuffer>;
+}
+```
+
+### `DownloadStore` (interface)
+
+```ts
+interface DownloadStore extends ProjectStore {
+    readonly kind: 'download';
+    readonly canShare: boolean;
+    share(path: string, data: Uint8Array | string): Promise<WriteResult>;
+    copyText(text: string): Promise<WriteResult>;
+}
 ```
 
 ### `DragEndGesture` (interface)
@@ -435,6 +551,56 @@ const fieldValueSchema: z.ZodType<FieldValue>;
 const fieldValuesSchema: z.ZodType<FieldValues>;
 ```
 
+### `findRecovery` (function)
+
+```ts
+function findRecovery(store: ProjectStore, journal: ProjectStore, path: string): Promise<Recovery | undefined>;
+```
+
+### `flushOnHide` (function)
+
+```ts
+function flushOnHide(session: {
+    flush(): Promise<void>;
+}, env: {
+    readonly document: LifecycleDocument;
+    readonly window: LifecycleWindow;
+}): () => void;
+```
+
+### `FolderEnv` (interface)
+
+```ts
+interface FolderEnv {
+    showDirectoryPicker?: (options: {
+        mode: 'readwrite';
+    }) => Promise<FolderHandle>;
+}
+```
+
+### `FolderHandle` (type)
+
+```ts
+type FolderHandle = DirectoryLike & {
+    queryPermission?(descriptor: {
+        mode: 'readwrite';
+    }): Promise<FolderPermission>;
+    requestPermission?(descriptor: {
+        mode: 'readwrite';
+    }): Promise<FolderPermission>;
+};
+```
+
+### `FolderStore` (interface)
+
+```ts
+interface FolderStore extends ProjectStore {
+    readonly kind: 'folder';
+    readonly name: string;
+    requestAccess(): Promise<boolean>;
+}
+```
+
 ### `GestureClock` (interface)
 
 ```ts
@@ -473,6 +639,17 @@ interface GestureOptions {
     readonly doubleTapMs?: number;
     readonly penHoldMs?: number;
     readonly rotate?: boolean;
+}
+```
+
+### `HandleVault` (interface)
+
+```ts
+interface HandleVault {
+    save(name: string, handle: FolderHandle): Promise<void>;
+    load(name: string): Promise<FolderHandle | undefined>;
+    names(): Promise<string[]>;
+    forget(name: string): Promise<void>;
 }
 ```
 
@@ -581,6 +758,25 @@ interface Keymap {
 }
 ```
 
+### `LifecycleDocument` (interface)
+
+```ts
+interface LifecycleDocument {
+    readonly visibilityState: string;
+    addEventListener(type: 'visibilitychange', run: () => void): void;
+    removeEventListener(type: 'visibilitychange', run: () => void): void;
+}
+```
+
+### `LifecycleWindow` (interface)
+
+```ts
+interface LifecycleWindow {
+    addEventListener(type: 'pagehide', run: () => void): void;
+    removeEventListener(type: 'pagehide', run: () => void): void;
+}
+```
+
 ### `LongPressGesture` (interface)
 
 ```ts
@@ -653,6 +849,12 @@ interface OpenState {
 }
 ```
 
+### `openWorkspace` (function)
+
+```ts
+function openWorkspace(env?: WorkspaceEnv): Promise<Workspace>;
+```
+
 ### `PanGesture` (interface)
 
 ```ts
@@ -689,6 +891,12 @@ interface PickerOption {
     readonly disabled?: boolean | undefined;
     readonly reason?: string | undefined;
 }
+```
+
+### `pickFolder` (function)
+
+```ts
+function pickFolder(vault: HandleVault, env?: FolderEnv): Promise<FolderStore | undefined>;
 ```
 
 ### `PinchGesture` (interface)
@@ -743,6 +951,32 @@ interface PointerSample {
 }
 ```
 
+### `Problem` (interface)
+
+```ts
+interface Problem {
+    readonly source: 'save' | 'autosave';
+    readonly reason: StorageFailure;
+    readonly message: string;
+    readonly paused: boolean;
+}
+```
+
+### `ProjectStore` (interface)
+
+```ts
+interface ProjectStore {
+    readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
+    list(prefix?: string): Promise<StoredEntry[]>;
+    read(path: string): Promise<Uint8Array | undefined>;
+    write(path: string, data: Uint8Array | string, expected?: {
+        readonly mtime: number;
+    }): Promise<WriteResult>;
+    remove(path: string): Promise<void>;
+    watch?(path: string, listener: () => void): () => void;
+}
+```
+
 ### `RampEntry` (interface)
 
 ```ts
@@ -779,6 +1013,16 @@ interface Recognizer {
 
 ```ts
 function reconcileOpen(mode: ShellMode, previous: OpenState, next: OpenState): OpenState;
+```
+
+### `Recovery` (interface)
+
+```ts
+interface Recovery {
+    readonly payload: string;
+    readonly savedAt: number;
+    readonly baseChanged: boolean;
+}
 ```
 
 ### `Rect` (interface)
@@ -831,6 +1075,12 @@ type RenameResult = {
 component from './widgets/ReorderList.svelte'
 ```
 
+### `restoreFolder` (function)
+
+```ts
+function restoreFolder(vault: HandleVault, name: string): Promise<FolderStore | undefined>;
+```
+
 ### `RetypeBreakage` (interface)
 
 ```ts
@@ -838,6 +1088,27 @@ interface RetypeBreakage {
     readonly instanceId: string;
     readonly problem: InstanceProblem;
 }
+```
+
+### `SaveOutcome` (type)
+
+```ts
+type SaveOutcome = {
+    readonly status: 'saved';
+    readonly path: string;
+} | {
+    readonly status: 'conflict';
+} | {
+    readonly status: 'failed';
+    readonly reason: StorageFailure;
+    readonly message: string;
+};
+```
+
+### `SaveState` (type)
+
+```ts
+type SaveState = 'saved' | 'dirty' | 'saving' | 'error' | 'device';
 ```
 
 ### `Segmented` (svelte)
@@ -915,6 +1186,12 @@ interface Size {
 component from './widgets/Slider.svelte'
 ```
 
+### `statPath` (function)
+
+```ts
+function statPath(store: ProjectStore, path: string): Promise<StoredEntry | undefined>;
+```
+
 ### `StatusLine` (svelte)
 
 ```ts
@@ -925,6 +1202,41 @@ component from './widgets/StatusLine.svelte'
 
 ```ts
 component from './widgets/Stepper.svelte'
+```
+
+### `StorageClock` (interface)
+
+```ts
+interface StorageClock {
+    now(): number;
+    setTimer(ms: number, run: () => void): unknown;
+    clearTimer(handle: unknown): void;
+}
+```
+
+### `StorageError` (class)
+
+```ts
+class StorageError extends Error {
+    readonly reason: StorageFailure;
+    constructor(reason: StorageFailure, message: string);
+}
+```
+
+### `StorageFailure` (type)
+
+```ts
+type StorageFailure = 'denied' | 'quota' | 'io';
+```
+
+### `StoredEntry` (interface)
+
+```ts
+interface StoredEntry {
+    readonly path: string;
+    readonly size: number;
+    readonly mtime: number;
+}
 ```
 
 ### `Swatch` (svelte)
@@ -1108,6 +1420,48 @@ interface WheelInput {
     readonly deltaY: number;
     readonly modifiers: Modifiers;
 }
+```
+
+### `Workspace` (interface)
+
+```ts
+interface Workspace {
+    readonly store: ProjectStore;
+    readonly journal: ProjectStore;
+    readonly exports: DownloadStore;
+    readonly persistent: boolean;
+    readonly reason: string | undefined;
+}
+```
+
+### `WorkspaceEnv` (interface)
+
+```ts
+interface WorkspaceEnv {
+    readonly storage?: {
+        getDirectory?: () => Promise<DirectoryLike>;
+    };
+    readonly download?: DownloadEnv;
+}
+```
+
+### `WriteFailure` (type)
+
+```ts
+type WriteFailure = 'conflict' | 'denied' | 'quota' | 'io';
+```
+
+### `WriteResult` (type)
+
+```ts
+type WriteResult = {
+    readonly ok: true;
+    readonly mtime: number;
+} | {
+    readonly ok: false;
+    readonly reason: WriteFailure;
+    readonly message: string;
+};
 ```
 
 ## `./core`
