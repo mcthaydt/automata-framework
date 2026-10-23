@@ -5,6 +5,7 @@
 // stands in a sector are checks (ED3D.2b), made over this answer; the reader only says what is there.
 import { type FieldValue, type FieldValues, fieldValueSchema } from '@mcthaydt/automata-editor-kit/fields'
 import { z } from 'zod'
+import type { Point } from '../format/sector.schema'
 import { type ThingDef, thingDefSchema } from './thing-def.schema'
 
 /** An instance of a definition: its place, and the values of its fields. */
@@ -18,10 +19,19 @@ export interface Thing {
   readonly values: FieldValues
 }
 
+/** The entity a problem is about: enough to select it, and to frame it when it has a place. */
+export interface EntityRef {
+  readonly def: string
+  readonly id: string
+  readonly at?: Point | undefined
+}
+
 export interface EntityReadProblem {
   /** Where it is: in the file (`['entityDefs', 1, 'shape']`, `['entities', 3, 'x']`) or, for a fixed format, in its arrays. */
   readonly path: readonly (string | number)[]
   readonly message: string
+  /** Set when the problem is about an instance that has a `def` and an `id` to name it by; a definition's problem has none. */
+  readonly entity?: EntityRef | undefined
 }
 
 export interface EntityKit {
@@ -56,6 +66,20 @@ const labelOf = (entry: RawEntry): string => {
   return typeof id === 'string' ? id : `#${path.at(-1)}`
 }
 
+/** The entity a raw instance names itself as, when it has a string `def` and `id`; `at` when its place is two numbers. */
+function entityOf(value: unknown): EntityRef | undefined {
+  if (typeof value !== 'object' || value === null) return undefined
+  const { def, id, x, z } = value as Record<string, unknown>
+  if (typeof def !== 'string' || typeof id !== 'string') return undefined
+  return typeof x === 'number' && typeof z === 'number' ? { def, id, at: { x, z } } : { def, id }
+}
+
+const problemOf = (
+  path: readonly (string | number)[],
+  message: string,
+  entity: EntityRef | undefined,
+): EntityReadProblem => (entity === undefined ? { path, message } : { path, message, entity })
+
 function readThing(
   entry: RawEntry,
   definitions: ReadonlyMap<string, ThingDef>,
@@ -67,21 +91,25 @@ function readThing(
       problems: [{ path, message: 'an entity is an object with def, id, x and z' }],
     }
   const label = labelOf(entry)
+  const about = entityOf(value)
   const parsed = instanceSchema.safeParse(value)
   if (!parsed.success)
     return {
       thing: undefined,
-      problems: parsed.error.issues.map((issue) => ({
-        path: [...path, ...stepsOf(issue)],
-        message: `entity ${label}: ${issue.path.join('.')}: ${issue.message}`,
-      })),
+      problems: parsed.error.issues.map((issue) =>
+        problemOf(
+          [...path, ...stepsOf(issue)],
+          `entity ${label}: ${issue.path.join('.')}: ${issue.message}`,
+          about,
+        ),
+      ),
     }
   const { def, id, x, z: south, y, ...rest } = parsed.data
   if (!definitions.has(def))
     return {
       thing: undefined,
       problems: [
-        { path: [...path, 'def'], message: `entity ${id} is of definition ${def}, which is not defined` },
+        problemOf([...path, 'def'], `entity ${id} is of definition ${def}, which is not defined`, about),
       ],
     }
   const held: [string, FieldValue][] = []
@@ -90,10 +118,7 @@ function readThing(
     const parsedValue = fieldValueSchema.safeParse(member)
     if (parsedValue.success) held.push([key, parsedValue.data])
     else
-      problems.push({
-        path: [...path, key],
-        message: `entity ${id}: ${key} is not a value a field can hold`,
-      })
+      problems.push(problemOf([...path, key], `entity ${id}: ${key} is not a value a field can hold`, about))
   }
   if (problems.length > 0) return { thing: undefined, problems }
   // `fromEntries` defines each member as data and never as the prototype, whatever a file calls it.

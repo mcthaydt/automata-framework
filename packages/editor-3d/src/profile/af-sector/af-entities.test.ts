@@ -56,7 +56,11 @@ describe('afEntityKit', () => {
     const kit = afEntityKit(level)
     expect(kit.things.map((thing) => thing.id)).toEqual(['spawn'])
     expect(kit.problems).toEqual([
-      { path: ['entities', 1, 'def'], message: 'entity l1 is of definition lamp, which is not defined' },
+      {
+        path: ['entities', 1, 'def'],
+        message: 'entity l1 is of definition lamp, which is not defined',
+        entity: { def: 'lamp', id: 'l1', at: { x: 2, z: 2 } },
+      },
     ])
   })
 

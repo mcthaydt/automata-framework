@@ -138,7 +138,11 @@ describe('readEntityKit', () => {
     )
     expect(kit.things.map((thing) => thing.id)).toEqual(['c2'])
     expect(kit.problems).toEqual([
-      { path: ['entities', 0, 'contents'], message: 'entity c1: contents is not a value a field can hold' },
+      {
+        path: ['entities', 0, 'contents'],
+        message: 'entity c1: contents is not a value a field can hold',
+        entity: { def: 'crate', id: 'c1', at: { x: 0, z: 0 } },
+      },
     ])
   })
 
@@ -183,6 +187,34 @@ describe('readEntityKit', () => {
       ['entities', 0, 'def'],
       ['entities', 1, 'def'],
     ])
+  })
+
+  it('says which entity a problem is about, and where it stands when it has a place', () => {
+    const kit = read(
+      [crateDef],
+      [
+        { def: 'nothing', id: 'n', x: 1, z: 2 },
+        { def: 'crate', id: 'c', x: 3, z: 4, contents: { deep: { no: 1 } } },
+        { def: 'crate', id: 'c1', x: '3', z: 1 },
+        { def: 'crate', id: 'c2', x: 3 },
+      ],
+    )
+    expect(kit.problems.map((problem) => problem.entity)).toEqual([
+      { def: 'nothing', id: 'n', at: { x: 1, z: 2 } },
+      { def: 'crate', id: 'c', at: { x: 3, z: 4 } },
+      { def: 'crate', id: 'c1' },
+      { def: 'crate', id: 'c2' },
+    ])
+    expect('at' in (kit.problems[2]?.entity ?? {})).toBe(false)
+  })
+
+  it('names no entity for a problem of a definition, or of an instance with no def and id to name it by', () => {
+    const kit = read(
+      [{ ...crateDef, shape: 'cylinder' }],
+      [{ def: 'crate', x: 3, z: 1 }, { id: 'c4', x: 3, z: 1 }, { def: 5, id: 'c5', x: 3, z: 1 }, 'crate'],
+    )
+    expect(kit.problems).toHaveLength(5)
+    for (const problem of kit.problems) expect('entity' in problem, problem.message).toBe(false)
   })
 
   it('never throws, whatever it is given', () => {
