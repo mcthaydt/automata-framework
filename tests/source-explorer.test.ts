@@ -35,6 +35,7 @@ describe('Project source explorers', () => {
     await fireEvent.click(view.getByRole('button', { name: 'Wiring' }))
     const region = view.getByRole('region', { name: 'examples/base-2d/src/play-room.ts' })
     expect(region.textContent).toContain('createLoop')
-    expect(within(region).getByText(/createLoop/)).toBeTruthy()
+    // Once the code is highlighted, `createLoop` is in two tokens (the import and the call), so ask for all of them.
+    expect(within(region).getAllByText(/createLoop/).length).toBeGreaterThan(0)
   })
 })

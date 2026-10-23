@@ -1,0 +1,130 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "http://127.0.0.1:4652/",
+        "http://127.0.0.1:4652/start",
+        "http://127.0.0.1:4652/examples",
+        "http://127.0.0.1:4652/docs"
+      ],
+      "startServerCommand": "node --import tsx scripts/serve-static.ts build 4652 --compressed",
+      "startServerReadyPattern": "Serving",
+      "numberOfRuns": 3,
+      "settings": {
+        "chromeFlags": "--no-sandbox --disable-dev-shm-usage"
+      }
+    },
+    "assert": {
+      "assertMatrix": [
+        {
+          "matchingUrlPattern": "^http://127\\.0\\.0\\.1:4652/$",
+          "assertions": {
+            "categories:performance": [
+              "error",
+              {
+                "minScore": 0.55,
+                "aggregationMethod": "median-run"
+              }
+            ],
+            "largest-contentful-paint": [
+              "error",
+              {
+                "maxNumericValue": 4000,
+                "aggregationMethod": "median-run"
+              }
+            ],
+            "cumulative-layout-shift": [
+              "error",
+              {
+                "maxNumericValue": 0.1,
+                "aggregationMethod": "median-run"
+              }
+            ]
+          }
+        },
+        {
+          "matchingUrlPattern": "^http://127\\.0\\.0\\.1:4652/start$",
+          "assertions": {
+            "categories:performance": [
+              "error",
+              {
+                "minScore": 0.6,
+                "aggregationMethod": "median-run"
+              }
+            ],
+            "largest-contentful-paint": [
+              "error",
+              {
+                "maxNumericValue": 3300,
+                "aggregationMethod": "median-run"
+              }
+            ],
+            "cumulative-layout-shift": [
+              "error",
+              {
+                "maxNumericValue": 0.1,
+                "aggregationMethod": "median-run"
+              }
+            ]
+          }
+        },
+        {
+          "matchingUrlPattern": "^http://127\\.0\\.0\\.1:4652/examples$",
+          "assertions": {
+            "categories:performance": [
+              "error",
+              {
+                "minScore": 0.55,
+                "aggregationMethod": "median-run"
+              }
+            ],
+            "largest-contentful-paint": [
+              "error",
+              {
+                "maxNumericValue": 3500,
+                "aggregationMethod": "median-run"
+              }
+            ],
+            "cumulative-layout-shift": [
+              "error",
+              {
+                "maxNumericValue": 0.1,
+                "aggregationMethod": "median-run"
+              }
+            ]
+          }
+        },
+        {
+          "matchingUrlPattern": "^http://127\\.0\\.0\\.1:4652/docs$",
+          "assertions": {
+            "categories:performance": [
+              "error",
+              {
+                "minScore": 0.9,
+                "aggregationMethod": "median-run"
+              }
+            ],
+            "largest-contentful-paint": [
+              "error",
+              {
+                "maxNumericValue": 2500,
+                "aggregationMethod": "median-run"
+              }
+            ],
+            "cumulative-layout-shift": [
+              "error",
+              {
+                "maxNumericValue": 0.1,
+                "aggregationMethod": "median-run"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci/reports"
+    }
+  }
+}

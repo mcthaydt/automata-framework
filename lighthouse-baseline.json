@@ -1,0 +1,45 @@
+{
+  "recordedAt": "2026-10-23",
+  "machine": "4-CPU Linux cloud container, load average 1.5 to 2 (Claude Code on the web)",
+  "browser": "HeadlessChrome/141.0.0.0",
+  "lighthouse": "12.6.1",
+  "runsPerPage": 3,
+  "pages": {
+    "/": {
+      "performance": 0.62,
+      "lcpMs": 3163.409,
+      "cls": 0,
+      "tbtMs": 1697.842,
+      "fcpMs": 2713.409,
+      "speedIndexMs": 2713.409,
+      "transferBytes": 420270
+    },
+    "/start": {
+      "performance": 0.66,
+      "lcpMs": 2561.462,
+      "cls": 0,
+      "tbtMs": 2477.11,
+      "fcpMs": 2033.544,
+      "speedIndexMs": 2033.544,
+      "transferBytes": 351216
+    },
+    "/examples": {
+      "performance": 0.62,
+      "lcpMs": 2777.943,
+      "cls": 0,
+      "tbtMs": 6434.812,
+      "fcpMs": 2558.406,
+      "speedIndexMs": 2558.406,
+      "transferBytes": 541089
+    },
+    "/docs": {
+      "performance": 0.98,
+      "lcpMs": 1973.587,
+      "cls": 0,
+      "tbtMs": 0,
+      "fcpMs": 1876.054,
+      "speedIndexMs": 1876.054,
+      "transferBytes": 127444
+    }
+  }
+}

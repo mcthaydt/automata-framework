@@ -79,7 +79,7 @@ Defects the suite found and this branch fixed: below 1050 px the Start link was 
 
 ### Pending and open
 
-- **Lighthouse CI budget: pending.** Not added. The spec takes its thresholds from the first recorded run, and the only machine available is a shared 4-CPU container running other jobs (load average about 30), so a performance score from it would set a meaningless baseline. Record it on a quiet machine or against the deployed origin (DX.12/QB.4).
+- **Lighthouse CI budget: recorded 2026-10-23 (QB.3f), not yet a deployed-origin number.** See "CI and Lighthouse (QB.3f)" below. Re-record against the deployed origin once DX.12/QB.4 land.
 - **Owner acceptance pass: open.** A real phone, Safari, and a second person walking the journey, recorded here with device, browser and date. Also open: the Owner's read-through of each page against its purpose, and the privacy and terms wording.
 
 | Owner check | Device and browser | Date | Result |
@@ -88,3 +88,46 @@ Defects the suite found and this branch fixed: below 1050 px the Start link was 
 | Safari | | | open |
 | Second person runs the journey | | | open |
 | Privacy and terms wording | | | open |
+
+## CI and Lighthouse (QB.3f, 2026-10-23)
+
+Implements the QB.3f row of the framework's master plan on top of QB.3. Plan: [`docs/superpowers/plans/2026-10-23-qb3f-website-ci.md`](superpowers/plans/2026-10-23-qb3f-website-ci.md).
+
+### What the CI is
+
+`.github/workflows/ci.yml` has three jobs on the Owner's `af-linux` runner label (`vars.AF_LINUX_RUNNER` moves it; there is no hosted fallback, as in the framework). `checks` runs `pnpm check`, `pnpm build`, `pnpm check:site` and `pnpm test`, then uploads the build; `browsers` runs `pnpm test:e2e` (Chromium and WebKit) in the pinned Playwright image on that build; `lighthouse` runs `pnpm lighthouse` on that build. `tests/workflows.test.ts` pins the shape.
+
+**The framework is checked out at `framework.ref`, not at `main`.** Tests, the workshop and the sync scripts read the framework's sources from a sibling checkout. The site's committed copies (`src/data/projects.json`, the workshop proof) match the framework at `365f115` (M1 exit). Framework `main` has since moved Emberwick from `examples/base-2d` to `games/emberwick` (EX.2): against today's `main`, `pnpm check` reports 16 errors, `pnpm build` fails in `verify:workshop`, and 6 test files fail. So a CI that followed `main` would be red for reasons unrelated to the change under test. Moving the pin is a deliberate change: re-sync the site from the new commit, then edit `framework.ref`.
+
+**Owner actions before the first run:**
+
+1. Register a self-hosted runner labelled `af-linux` (or set `AF_LINUX_RUNNER`) to this repository, with Docker for the Playwright image.
+2. Add the repository secret `AF_FRAMEWORK_TOKEN`: a fine-grained personal access token with "Contents: read" on `mcthaydt/automata-framework` (the repository is private). The job fails at once with a message when it is missing.
+
+### Findings
+
+- **F-1 stays visible.** At `365f115` the only failing unit test was `api-contract` "publishes the exact current project files": the site's copies of `LICENSE`, `LICENSE-SCOPE.md` and the `license` field in `package.json` carry MIT, and the framework ships neither until DX.11. Those three files alone may now differ; an `it.fails` test keeps the difference in view and goes red when DX.11 lands, so DX.11 must remove both.
+- **A flaky unit test.** `source-explorer` "connects the homepage explanations…" failed in 2 of 3 full runs (`Found multiple elements with the text: /createLoop/`): once the code is highlighted `createLoop` is in two tokens. It now asks for all of them. Four consecutive full runs passed.
+- **Lighthouse: three pages miss the spec's targets.** First recorded run (below). Performance is 0.62 on `/`, 0.66 on `/start` and 0.62 on `/examples` against the target of 0.9, and LCP is 3.2 s, 2.6 s and 2.8 s against 2.5 s. Total blocking time is the cause (1.7 s, 2.5 s and 6.4 s); `/docs` scores 0.98 with none. CLS is 0 everywhere. This is a performance task for whoever owns the pages, not part of QB.3f.
+
+### Lighthouse baseline
+
+`lighthouse-baseline.json`, written by `scripts/record-lighthouse-baseline.ts` from `pnpm lighthouse`'s reports: the median of three mobile runs per page (Lighthouse 12.6.1, HeadlessChrome 141, simulated 4G and 4× CPU slowdown) against the built site served compressed (`serve-static.ts --compressed`: the `.br`/`.gz` files adapter-static wrote, as the host will). Machine: a 4-CPU Linux cloud container, load average 1.5 to 2, benchmark index about 2,000 to 2,300. It is not the deployed origin: re-record against DX.12/QB.4.
+
+| Page | Performance | LCP | CLS | TBT | Transfer |
+| --- | --- | --- | --- | --- | --- |
+| `/` | 0.62 | 3,163 ms | 0 | 1,698 ms | 420 KB |
+| `/start` | 0.66 | 2,561 ms | 0 | 2,477 ms | 351 KB |
+| `/examples` | 0.62 | 2,778 ms | 0 | 6,435 ms | 541 KB |
+| `/docs` | 0.98 | 1,974 ms | 0 | 0 ms | 127 KB |
+
+**Budget (`lighthouserc.json`).** Per page, judged on the median run, `error` level: performance at least 0.55, 0.6, 0.55 and 0.9; LCP at most 4,000, 3,300, 3,500 and 2,500 ms; CLS at most 0.1. The spec says thresholds "come from the first recorded run and are only tightened", so `tests/lighthouse-budget.test.ts` holds each page to its floor: no looser than the first run allowing a tenth of the score and a quarter of the LCP for noise, or than the spec's target where the page already meets it. Tightening is free; loosening fails the test. A second `pnpm lighthouse` run passed all four budgets.
+
+### Verification (2026-10-23, framework at `365f115`, Node 22.22.0, 4-CPU container, load average under 2)
+
+- `pnpm check`: 0 errors, 0 warnings. `pnpm build`: passed. `pnpm check:site`: 26 pages verified.
+- `pnpm test`: 32 files, 138 passed, 2 expected fails (the MIT claim and the licence files), 0 failed; four consecutive runs. The framework was installed with `--ignore-scripts`, as the CI does.
+- Red-first evidence: each new test failed on a planted change (a dropped `persist-credentials`, a hosted runner, a framework install with scripts, a mismatched Playwright image, a loosened Lighthouse budget, a baseline the budget no longer passes, the compressed mode switched off, the licence list shortened) and passed on the real files.
+- QB.3's browser suite, re-run here: `pnpm test:e2e` in Chromium only, **212 passed**. 211 ran in this container's preinstalled full Chromium 141 (Playwright 1.63.0 pins 153); one, "a clean page passes every gate", failed there with a `favicon.ico` 404 that full Chromium requests and the headless shell does not, and passed in the preinstalled headless shell. **WebKit was not run:** `cdn.playwright.dev` is blocked from this container, so WebKit and the pinned Chromium 153 are pending on the runner (bus test-request).
+- Not run: the three workflow jobs themselves (no runner is registered to this repository, and `AF_FRAMEWORK_TOKEN` does not exist yet).
+
