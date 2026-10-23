@@ -22,7 +22,7 @@ export const lastLightProfile: LevelProfile<Blockout> = {
     const map = resolveOrThrow(expanded.sectors, expanded.masses)
     return { layers: [{ kind: 'sectors', map, nav: navWorld(map, expanded) }] }
   },
-  checks: (blockout, context) => lastLightChecks(blockout, { puzzleHotspots: context?.puzzleHotspots }),
+  checks: (blockout, context) => lastLightChecks(blockout, context),
   entities: lastLightEntityKit,
   sectors: lastLightSectorAccess,
 }
