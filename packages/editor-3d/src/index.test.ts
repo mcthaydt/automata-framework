@@ -81,6 +81,21 @@ describe('public entry', () => {
     }
   })
 
+  it("exports the entity model: the definition, the reader and both formats' kits", () => {
+    for (const name of [
+      'thingDefSchema',
+      'THING_SHAPES',
+      'THING_SITS',
+      'RESERVED_FIELD_IDS',
+      'readEntityKit',
+      'afEntityKit',
+      'lastLightDefinitions',
+      'lastLightEntityKit',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('exports the view core: the plan, the meshes, the camera and what they pick', () => {
     for (const name of [
       'selectionOf',
