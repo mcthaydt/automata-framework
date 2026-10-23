@@ -2,11 +2,16 @@
 // game's bindings and its settings, so a rebind saves through the settings store (memory first, then
 // `Hosting.saves`) and the next play session's Input reads it. The view's state is a `$state` object the screen
 // changes in place: a rebind, a pad connecting, a device switch or a capture's countdown never remount it.
+import { Hosting } from '@mcthaydt/automata-host'
 import {
+  Audio,
+  AudioBuses,
   displaySettingsSchema,
   Flow,
+  Haptics,
   type InputProfile,
   inputSettingsSchema,
+  Locale,
   makeInput,
   PresentationBus,
   REBIND_TIMEOUT_MS,
@@ -17,22 +22,26 @@ import {
 } from '@mcthaydt/automata-runtime'
 import { resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import {
+  type AudioBus,
+  type AudioSectionChange,
   type ControlsRow,
   type ControlsState,
   type DisplayQuality,
+  InputMethodTracker,
   type RebindDevice,
   readKeyboardLayout,
   reducedMotion,
   sendBack,
 } from '@mcthaydt/automata-ui'
-import { Effect, Either, Fiber, Runtime, Schedule, SubscriptionRef } from 'effect'
+import { Effect, Either, Fiber, Runtime, Schedule, Stream, SubscriptionRef } from 'effect'
+import { changeAudio, savedAudio } from './audio-settings.ts'
 import type { ScreensGame } from './default-screens.ts'
+import { changeHaptics, savedHaptics } from './haptics-settings.ts'
 import SettingsView from './SettingsView.svelte'
 import {
   backGesture,
   driveMenu,
   hostInput,
-  listen,
   NO_BINDINGS,
   noticeUnsupportedPads,
   show,
@@ -68,6 +77,11 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         const flow = yield* Flow
         const bus = yield* PresentationBus
         const { store } = yield* Settings
+        const audio = yield* Audio
+        const buses = yield* AudioBuses
+        const hosting = yield* Hosting
+        const locale = yield* Locale
+        const haptics = yield* Haptics
         const runtime = yield* Effect.runtime<never>()
         const target = windowOf(layer)
         const map = game.input
@@ -92,14 +106,27 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
               ? undefined
               : rowsOf(Effect.runSync(SubscriptionRef.get(input.profile)), map.labels),
           devices: padConnected(target) ? ['keyboard', 'gamepad'] : ['keyboard'],
+          coarse: target.matchMedia?.('(pointer: coarse)').matches === true,
           glyphs: Effect.runSync(SubscriptionRef.get(input.device)).glyphs,
           controls: { kind: 'list' },
           layout: undefined,
           touchModes: map === undefined ? [] : touchModesFor(map.profile),
           touchMode: savedInput().touchMode ?? map?.touchMode ?? 'buttons',
           quality: savedQuality(),
+          audio: savedAudio(store),
+          locales: locale.locales,
+          hapticsSupported: haptics.supported,
+          hapticsEnabled: savedHaptics(store),
+          localeChoice: locale.choice,
+          audioAvailable: yield* audio.available.get,
+          hostVolumeBelowFull: (yield* hosting.audio.get).master.volume < 1,
           reducedMotion: reducedMotion(target),
         })
+        // The device in the player's hand leads the Controls tab: a key or a finger as play's touch buttons see it
+        // (InputMethodTracker), a pad press through the Input's device.
+        const tracker = new InputMethodTracker()
+        const detach = tracker.attach(target)
+        yield* Effect.addFinalizer(() => Effect.sync(detach))
         void readKeyboardLayout(target.navigator).then((layout) => {
           view.layout = layout
         })
@@ -111,7 +138,8 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
           bus.subscribe('input.pad.connected', (pad) => {
             if (pad.standard && !view.devices.includes('gamepad')) view.devices = ['keyboard', 'gamepad']
           }),
-          bus.subscribe('input.device.changed', ({ glyphs }) => {
+          bus.subscribe('input.device.changed', ({ device, glyphs }) => {
+            tracker.note(device)
             view.glyphs = glyphs
           }),
         ]
@@ -120,6 +148,30 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
             for (const stop of stops) stop()
           }),
         )
+
+        // Sound that fails to start, and the host's volume, change the Audio group in place (M5.4).
+        yield* Effect.forkScoped(
+          Stream.runForEach(audio.available.changes, (available) =>
+            Effect.sync(() => {
+              view.audioAvailable = available
+            }),
+          ),
+        )
+        yield* Effect.forkScoped(
+          Stream.runForEach(hosting.audio.changes, (change) =>
+            Effect.sync(() => {
+              view.hostVolumeBelowFull = change.master.volume < 1
+            }),
+          ),
+        )
+        const onaudio = (change: AudioSectionChange): void => {
+          const now = view.audio
+          view.audio =
+            change.kind === 'gain'
+              ? { ...now, gains: { ...now.gains, [change.bus]: change.value } }
+              : { ...now, [change.kind]: change.value }
+          changeAudio({ audio, buses }, store, view.audio)
+        }
 
         // One rebind at a time: capture, then rebind, the countdown ticking on Effect's clock meanwhile.
         let running: Fiber.RuntimeFiber<void> | undefined
@@ -168,6 +220,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         const back = (): void => void flow.dispatch('back')
         yield* show(SettingsView, layer, {
           view,
+          tracker,
           extensions: resolveExtensions(game.extensions ?? []).slots('settings.sections'),
           onrebind,
           onreset: () => {
@@ -181,6 +234,16 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
               input: { ...savedInput(), touchMode: mode },
             }))
           },
+          onaudio,
+          onsample: (bus: AudioBus) => audio.sample(bus),
+          onhaptics: (enabled: boolean) => {
+            view.hapticsEnabled = enabled
+            changeHaptics(haptics, store, enabled)
+          },
+          onlocale: (choice: string | null) => {
+            locale.set(choice)
+            view.localeChoice = locale.choice
+          },
           onquality: (quality: DisplayQuality) => {
             view.quality = quality
             store?.update((value) => ({
@@ -191,12 +254,8 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
           },
           onback: back,
         })
-        // Escape and pad B go back; while a capture waits it takes Escape first, and B never reaches the menu.
-        yield* listen(target, 'keydown', (event) => {
-          if (event.code !== 'Escape' || event.repeat) return
-          event.preventDefault()
-          back()
-        })
+        // Escape and pad B (which arrives as Escape) go back through the dialog (`Modal`); while a capture waits, the
+        // Input takes Escape first and stops it.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target, input)
         yield* noticeUnsupportedPads(layer, toldPads)

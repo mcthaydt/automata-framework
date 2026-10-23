@@ -1,12 +1,20 @@
 import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
 import {
+  createHaptics,
   type GameRenderer,
   type RendererFactory,
   type RuntimeHandle,
   runGame,
 } from '@mcthaydt/automata-runtime'
 import { defineExtension } from '@mcthaydt/automata-runtime/extension'
-import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
+import {
+  type FakeAudioContext,
+  type FakeGainNode,
+  fakeAudioContext,
+  fakeFetch,
+  type ManualFrames,
+  manualFrames,
+} from '@mcthaydt/automata-runtime/testing'
 import {
   defineCommand,
   defineComponent,
@@ -242,6 +250,42 @@ describe('default screens', () => {
     await until(() => screen('play') !== null, 'play after Escape')
   })
 
+  it('pauses into a dialog over the dimmed game: Resume, Mute, Settings, Quit to title; Quit asks first (FloorFifty)', async () => {
+    await boot()
+    await toPlay()
+    press('Escape')
+    await until(() => screen('paused') !== null, 'the paused screen')
+    const dialog = screen('paused')
+    expect(dialog?.getAttribute('role')).toBe('dialog')
+    expect(dialog?.getAttribute('aria-modal')).toBe('true')
+    expect(dialog?.textContent).toContain('Paused')
+    expect(dialog?.closest('[data-modal-scrim]')).not.toBeNull()
+    expect(
+      [...(dialog?.querySelectorAll<HTMLElement>('[data-pause-menu] button') ?? [])].map(
+        (b) => b.dataset.testid,
+      ),
+    ).toEqual(['resume', 'pause-mute', 'settings', 'quit'])
+    expect(document.activeElement).toBe(button('resume'))
+
+    button('quit')?.click()
+    await until(() => button('quit-confirm') !== null, 'the confirm')
+    expect(screen('paused')?.textContent).toContain('Quit to title?')
+    expect(screen('title')).toBeNull()
+    // Escape steps back one level: from the confirm to the menu, on Quit.
+    press('Escape')
+    await until(() => button('quit') !== null, 'the menu again')
+    expect(document.activeElement).toBe(button('quit'))
+    expect(screen('paused')).not.toBeNull()
+    button('quit')?.click()
+    await until(() => button('quit-cancel') !== null, 'the confirm again')
+    button('quit-cancel')?.click()
+    await until(() => button('quit') !== null, 'the menu after Cancel')
+    expect(document.activeElement).toBe(button('quit'))
+    // From the menu, Escape resumes.
+    press('Escape')
+    await until(() => screen('play') !== null, 'play after Escape')
+  })
+
   it('Quit to title drops the sim: the next Play starts again at tick 0', async () => {
     await boot()
     await toPlay()
@@ -249,6 +293,8 @@ describe('default screens', () => {
     press('Escape')
     await until(() => screen('paused') !== null, 'the paused screen')
     button('quit')?.click()
+    await until(() => button('quit-confirm') !== null, 'the confirm')
+    button('quit-confirm')?.click()
     await until(() => screen('title') !== null, 'the title screen')
     results.length = 0
     await toPlay()
@@ -262,13 +308,21 @@ describe('default screens', () => {
     const saved = () => JSON.parse(localStorage.getItem('ruken:screens-test:settings') ?? 'null')
     const settingsScreen = () => screen('settings')
     const row = (action: string) => root.querySelector<HTMLElement>(`[data-control-row="${action}"]`)
+    // Each device has its section, so an action has a row in each: the keyboard's rebind button is in the keyboard's.
     const rebind = (action: string) =>
-      row(action)?.querySelector<HTMLButtonElement>('[data-rebind="keyboard"]')
+      root.querySelector<HTMLButtonElement>(
+        `[data-controls-device="keyboard"] [data-control-row="${action}"] [data-rebind="keyboard"]`,
+      )
     const controlsState = () =>
       root.querySelector<HTMLElement>('[data-settings-section="controls"]')?.dataset.state
     beforeEach(() => localStorage.clear())
 
-    async function toSettings(spec: Partial<GameSpec> = {}, withInput = true): Promise<void> {
+    /** Opens Settings on the tab named: Settings opens on its first tab, the controls are on its second. */
+    async function toSettings(
+      spec: Partial<GameSpec> = {},
+      withInput = true,
+      tab: 'settings' | 'controls' = 'controls',
+    ): Promise<void> {
       await boot(spec, withInput)
       await toPlay()
       press('Escape')
@@ -277,6 +331,11 @@ describe('default screens', () => {
       button('settings')?.focus()
       button('settings')?.click()
       await until(() => settingsScreen() !== null, 'the settings screen')
+      // With one tab (no input map, so no Controls) there is no tab list to choose from.
+      if (withInput) expect(button('settings-tab-settings')?.getAttribute('aria-selected')).toBe('true')
+      if (tab === 'settings') return
+      button('settings-tab-controls')?.click()
+      await until(() => row('move-0') !== null, 'the controls tab')
     }
 
     it('under a host that reports an Xbox-layout pad, the controller prompts become Xbox’s (M4 spec §4.2)', async () => {
@@ -303,8 +362,11 @@ describe('default screens', () => {
           },
         })
         const padPrompt = () =>
-          row('move-0')?.querySelector('[data-rebind="gamepad"]')?.textContent?.trim() ??
-          'no controller column'
+          root
+            .querySelector(
+              '[data-controls-device="gamepad"] [data-control-row="move-0"] [data-rebind="gamepad"]',
+            )
+            ?.textContent?.trim() ?? 'no controller column'
         await until(() => padPrompt() !== 'no controller column', 'the controller column')
         expect(padPrompt()).not.toBe('A')
         host?.bridge.setInputMode({ mode: 'gamepad', gamepad: { layout: 'xbox', connected: true } })
@@ -316,9 +378,18 @@ describe('default screens', () => {
 
     it('opens from paused; Back returns to paused with focus on Settings (F-b)', async () => {
       await toSettings()
-      button('corner-back')?.click()
+      button('settings-back')?.click()
       await until(() => screen('paused') !== null, 'paused again')
       await until(() => document.activeElement === button('settings'), 'focus on Settings')
+    })
+
+    it('steps back one level on Escape: to paused, and no further', async () => {
+      await toSettings()
+      press('Escape')
+      await until(() => screen('paused') !== null, 'paused again')
+      for (let wait = 0; wait < 5; wait += 1) await tick()
+      expect(screen('paused')).not.toBeNull()
+      expect(screen('play')).toBeNull()
     })
 
     it('lists the input map’s actions with their keyboard prompts', async () => {
@@ -378,30 +449,227 @@ describe('default screens', () => {
           made.spawn([[Body, { x: 10 }]])
         },
       }
-      await toSettings({
-        screens: defaultScreens({
-          title: 'Square',
-          sim,
-          input: keys(Move, { ArrowLeft: { x: -1 } }),
-          setQuality,
-        }),
-      })
+      await toSettings(
+        {
+          screens: defaultScreens({
+            title: 'Square',
+            sim,
+            input: keys(Move, { ArrowLeft: { x: -1 } }),
+            setQuality,
+          }),
+        },
+        true,
+        'settings',
+      )
       root.querySelector<HTMLInputElement>('[data-testid="quality-low"] input, input[value="low"]')?.click()
       await until(() => saved()?.display?.quality === 'low', 'the saved quality')
       expect(setQuality).toHaveBeenLastCalledWith('low')
     })
 
     it('shows an extension’s settings.sections component', async () => {
-      await toSettings({
-        extensions: [
-          defineExtension({ name: 'test-extra', ui: { slots: { 'settings.sections': SettingsExtension } } }),
-        ],
-      })
+      await toSettings(
+        {
+          extensions: [
+            defineExtension({
+              name: 'test-extra',
+              ui: { slots: { 'settings.sections': SettingsExtension } },
+            }),
+          ],
+        },
+        true,
+        'settings',
+      )
       expect(root.querySelector('[data-settings-section="extension-test"]')).not.toBeNull()
     })
 
-    it('has no Controls section for a game without an input map, and still its Display', async () => {
-      await toSettings({}, false)
+    const devicesShown = () =>
+      [...root.querySelectorAll<HTMLElement>('[data-controls-device]')].map((one) => [
+        one.dataset.controlsDevice,
+        one.dataset.inUse === '',
+      ])
+
+    it('puts the device in use first on the Controls tab, and a touch moves Touch first', async () => {
+      await toSettings()
+      expect(devicesShown()).toEqual([['keyboard', true]])
+      window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
+      await until(() => devicesShown()[0]?.[0] === 'touch', 'the touch section first')
+      expect(devicesShown()).toEqual([
+        ['touch', true],
+        ['keyboard', false],
+      ])
+    })
+
+    const swipes = keys(Move, { ArrowLeft: { x: -1 } }, { gestures: { 'swipe-right': { x: 1 } } })
+
+    it('offers no touch mode on a fine pointer, even when the game has both modes', async () => {
+      await toSettings({ input: swipes }, true, 'settings')
+      expect(root.querySelector('[data-settings-section="touch"]')).toBeNull()
+    })
+
+    it('offers the touch mode on the Settings tab on a coarse pointer, when the game has both modes', async () => {
+      const fine = window.matchMedia
+      window.matchMedia = ((query: string) => ({
+        matches: query === '(pointer: coarse)',
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+      })) as unknown as typeof window.matchMedia
+      try {
+        await toSettings({ input: swipes }, true, 'settings')
+        root.querySelector<HTMLInputElement>('[data-settings-section="touch"] input[value="swipe"]')?.click()
+        await until(() => saved()?.input?.touchMode === 'swipe', 'the saved touch mode')
+      } finally {
+        window.matchMedia = fine
+      }
+    })
+
+    // Redo step 9 (Owner, 2026-10-18): the Language group, first on the Settings tab as FloorFifty's.
+    it('leads the Settings tab with Language; a pick switches the game’s language, and Automatic goes back', async () => {
+      await toSettings({ locale: { locales: ['en', 'ja'], baseLocale: 'en' } }, true, 'settings')
+      const first = root.querySelector<HTMLElement>('[data-settings-section]')
+      expect(first?.dataset.settingsSection).toBe('language')
+      expect(root.querySelector<HTMLInputElement>('[data-testid="language-auto"] input')?.checked).toBe(true)
+      root.querySelector<HTMLInputElement>('[data-testid="language-ja"] input')?.click()
+      await until(() => document.documentElement.lang === 'ja', 'the game in Japanese')
+      expect(root.querySelector<HTMLInputElement>('[data-testid="language-ja"] input')?.checked).toBe(true)
+      root.querySelector<HTMLInputElement>('[data-testid="language-auto"] input')?.click()
+      await until(() => document.documentElement.lang === 'en', 'Automatic again')
+    })
+
+    // Redo step 10 (Owner, 2026-10-18): the Vibration group, only where the device can rumble or buzz.
+    describe('the Vibration group', () => {
+      const phone = () => {
+        const vibrate = vi.fn(() => true)
+        return { vibrate, haptics: createHaptics({ vibrate, touch: () => true }) }
+      }
+      const withHaptics = (haptics: ReturnType<typeof createHaptics>): Partial<GameSpec> => ({
+        seams: { frames, fetch: fakeFetch({}).fetch, haptics },
+      })
+      const slam = { duration: 90, strong: 0.6, weak: 0.4, phone: 18 }
+
+      it('shows on a device that can vibrate; turning it off saves it and stills the device', async () => {
+        const { vibrate, haptics } = phone()
+        await toSettings(withHaptics(haptics), true, 'settings')
+        const toggle = root.querySelector<HTMLInputElement>('[data-testid="vibration-enabled"] input')
+        expect(toggle?.checked).toBe(true)
+        toggle?.click()
+        await until(() => saved()?.haptics?.enabled === false, 'the saved setting')
+        haptics.pulse(slam)
+        expect(vibrate).not.toHaveBeenCalled()
+      })
+
+      it('is not offered where the device can neither rumble nor buzz', async () => {
+        await toSettings(withHaptics(createHaptics({ touch: () => false })), true, 'settings')
+        expect(root.querySelector('[data-settings-section="vibration"]')).toBeNull()
+      })
+
+      it('applies the saved setting at boot', async () => {
+        localStorage.setItem(
+          'ruken:screens-test:settings',
+          JSON.stringify({ version: 1, haptics: { enabled: false } }),
+        )
+        const { vibrate, haptics } = phone()
+        await boot(withHaptics(haptics))
+        haptics.pulse(slam)
+        expect(vibrate).not.toHaveBeenCalled()
+      })
+    })
+
+    // M5.4: the Audio group (M5 spec §7), FloorFifty's, beside Display; and Pause's Mute.
+    describe('the Audio group (M5.4)', () => {
+      let context: FakeAudioContext | undefined
+      const withSound = (): Partial<GameSpec> => ({
+        seams: {
+          frames,
+          fetch: fakeFetch({}).fetch,
+          createAudioContext: () => {
+            context = fakeAudioContext()
+            return context
+          },
+        },
+      })
+      /** Where a gain was last sent: the graph glides to it. */
+      const target = (node: FakeGainNode | undefined) => node?.automation.at(-1)?.value ?? node?.gain.value
+      // The graph's nodes in the order it builds them: master, then a level and a duck per bus (music first).
+      const master = () => target(context?.gains[0])
+      const music = () => target(context?.gains[1])
+      beforeEach(() => {
+        context = undefined
+      })
+
+      it('moves a bus with its slider and saves it', async () => {
+        await toSettings(withSound(), true, 'settings')
+        const slider = root.querySelector<HTMLInputElement>(
+          '[data-audio-bus="music"] input',
+        ) as HTMLInputElement
+        slider.value = '0.5'
+        slider.dispatchEvent(new Event('input', { bubbles: true }))
+        await until(() => saved()?.audio?.gains?.music === 0.5, 'the saved music gain')
+        expect(music()).toBe(0.5)
+      })
+
+      it('plays a sample on the bus when its slider is let go (redo step 11)', async () => {
+        await toSettings(withSound(), true, 'settings')
+        const slider = root.querySelector<HTMLInputElement>(
+          '[data-audio-bus="music"] input',
+        ) as HTMLInputElement
+        slider.value = '0.5'
+        slider.dispatchEvent(new Event('input', { bubbles: true }))
+        slider.dispatchEvent(new Event('change', { bubbles: true }))
+        await until(() => context?.started.at(-1)?.alias === 'tone', 'the sample')
+      })
+
+      it('mutes from the Audio group and from Pause’s Mute, one setting, saved', async () => {
+        await toSettings(withSound(), true, 'settings')
+        root.querySelector<HTMLInputElement>('[data-testid="audio-muted"] input')?.click()
+        await until(() => saved()?.audio?.muted === true, 'the saved mute')
+        expect(master()).toBe(0)
+        button('settings-back')?.click()
+        await until(() => screen('paused') !== null, 'paused again')
+        expect(button('pause-mute')?.getAttribute('aria-pressed')).toBe('true')
+        button('pause-mute')?.click()
+        await until(() => saved()?.audio?.muted === false, 'unmuted from Pause')
+        expect(button('pause-mute')?.getAttribute('aria-pressed')).toBe('false')
+        expect(master()).toBe(1)
+      })
+
+      it('says sound is unavailable when it could not start, with its controls disabled (A-e)', async () => {
+        await toSettings(
+          {
+            seams: {
+              frames,
+              fetch: fakeFetch({}).fetch,
+              createAudioContext: () => {
+                throw new Error('no Web Audio here')
+              },
+            },
+          },
+          true,
+          'settings',
+        )
+        expect(root.querySelector('[data-audio-unavailable]')).not.toBeNull()
+        expect(root.querySelector<HTMLInputElement>('[data-audio-bus="music"] input')?.disabled).toBe(true)
+      })
+
+      it('applies the saved audio settings at boot', async () => {
+        localStorage.setItem(
+          'ruken:screens-test:settings',
+          JSON.stringify({ version: 1, audio: { muted: false, gains: { music: 0.25 } } }),
+        )
+        await boot(withSound())
+        await toPlay()
+        // Audio unlocks on the first gesture after the session is ready.
+        press('ShiftLeft')
+        await until(() => context !== undefined, 'the audio unlock')
+        expect(music()).toBe(0.25)
+      })
+    })
+
+    it('has no Controls tab for a game without an input map, and still its Display', async () => {
+      await toSettings({}, false, 'settings')
+      expect(root.querySelector('[role="tablist"]')).toBeNull()
       expect(root.querySelector('[data-settings-section="controls"]')).toBeNull()
       expect(root.querySelector('[data-settings-section="display"]')).not.toBeNull()
     })
@@ -550,11 +818,25 @@ describe('default screens', () => {
       press('Escape')
       await until(() => screen('paused') !== null, 'the paused screen')
       expect(document.activeElement).toBe(button('resume'))
+      // One tap of the D-pad's down a step, each moving focus on, until Quit: holding it would walk by the menu's
+      // repeat, on the wall clock, and the menu has Mute and Settings before Quit (FloorFifty's pause).
+      for (let step = 0; step < 4 && document.activeElement !== button('quit'); step++) {
+        const before = document.activeElement
+        await tick()
+        buttons[13] = true
+        await until(() => document.activeElement !== before, 'focus to move on')
+        buttons[13] = false
+        // The menu poll sees the release before the next tap, so each tap is one press, never a repeat.
+        for (let settle = 0; settle < 5; settle++) await tick()
+      }
+      expect(document.activeElement).toBe(button('quit'))
       await tick()
-      buttons[13] = true
-      await until(() => document.activeElement === button('quit'), 'focus on Quit')
-      buttons[13] = false
-      await tick()
+      buttons[0] = true
+      await until(() => button('quit-confirm') !== null, 'the confirm')
+      // The confirm's first control, Quit to title, has focus: A again leaves, once the menu poll has seen it let go.
+      expect(document.activeElement).toBe(button('quit-confirm'))
+      buttons[0] = false
+      for (let frame = 0; frame < 2; frame++) await new Promise((resolve) => requestAnimationFrame(resolve))
       buttons[0] = true
       await until(() => screen('title') !== null, 'the title screen')
     } finally {
@@ -720,6 +1002,8 @@ describe('default screens', () => {
     press('Escape')
     await until(() => screen('paused') !== null, 'paused again')
     button('quit')?.click()
+    await until(() => button('quit-confirm') !== null, 'the confirm')
+    button('quit-confirm')?.click()
     await until(() => screen('title') !== null, 'the title screen')
     expect(watched.at(-1)).toBeUndefined()
   })

@@ -25,6 +25,8 @@ export interface SoundOptions {
 export interface Audio {
   /** False until the first gesture after `session.ready` builds and resumes the graph. */
   readonly unlocked: Subscribable.Subscribable<boolean>
+  /** False once a context could not be built (`audio.unavailable`): the game runs silent, and Settings says so. */
+  readonly available: Subscribable.Subscribable<boolean>
   /** Plays the asset at `alias` once. Fire and forget: silent before the unlock, while asleep, or if it fails. */
   sound(alias: string, options?: SoundOptions): void
   /** Loops the asset at `alias` on the music bus. Asked for before the unlock, it starts on the unlock. */
@@ -35,6 +37,13 @@ export interface Audio {
   duck(bus: AudioBusName, amount: number, seconds: number): void
   /** The player's mute: the master only, so unmuting restores the mix as it was. */
   setMuted(muted: boolean): void
+  /**
+   * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
+   * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
+   */
+  sample(bus: AudioBusName): void
+  /** The player's "mute when in the background": silences the master while another window has focus. */
+  setMuteUnfocused(muteUnfocused: boolean): void
 }
 
 export const Audio: Context.Tag<Audio, Audio> = Context.GenericTag<Audio>('@mcthaydt/automata-runtime/Audio')
@@ -61,6 +70,25 @@ export interface AudioServices {
   readonly bus: PresentationBus
 }
 
+/** How long the volume sample sounds, and its pitch: short and mid, heard on every bus without being a sound effect. */
+const TONE_SECONDS = 0.12
+const TONE_HERTZ = 660
+
+/**
+ * The volume sample (FloorFifty plays one on a slider's release): a sine that falls away to silence, so it ends without
+ * a click. Made in the graph's own context, so it needs no asset and no decode.
+ */
+function makeTone(context: Pick<AudioContextLike, 'createBuffer' | 'sampleRate'>): AudioBuffer {
+  const length = Math.round(context.sampleRate * TONE_SECONDS)
+  const buffer = context.createBuffer(1, length, context.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let index = 0; index < length; index += 1) {
+    const fade = 1 - index / length
+    data[index] = 0.4 * fade * fade * Math.sin((2 * Math.PI * TONE_HERTZ * index) / context.sampleRate)
+  }
+  return buffer
+}
+
 /** The gestures that may unlock audio, in the capture phase so a handler that stops propagation cannot hide one. */
 const GESTURES = ['pointerdown', 'keydown', 'touchend'] as const
 
@@ -84,6 +112,7 @@ export const makeAudio = (
     const voices = new Voices(graph)
     const music = new MusicSlot(graph)
     const unlocked = yield* SubscriptionRef.make(false)
+    const available = yield* SubscriptionRef.make(true)
     const decoded = new Map<string, Promise<AudioBuffer>>()
     let ready = false
     let unavailable = false
@@ -93,6 +122,7 @@ export const makeAudio = (
 
     const giveUp = (cause: unknown) => {
       unavailable = true
+      Effect.runSync(SubscriptionRef.set(available, false))
       bus.publish('audio.unavailable', { reason: reason(cause) })
     }
 
@@ -170,15 +200,22 @@ export const makeAudio = (
     }
     const wake = () => void graph.wake().catch(() => undefined)
     const onVisibility = () => (page.visibilityState === 'hidden' ? sleep() : wake())
-    const onBlur = () => graph.setUnfocused(true)
-    const onFocus = () => graph.setUnfocused(false)
+    // The window's focus is always followed; the master goes silent on a blur only while the setting is on.
+    let muteUnfocused = options.muteUnfocused === true
+    let blurred = false
+    const onBlur = () => {
+      blurred = true
+      graph.setUnfocused(muteUnfocused)
+    }
+    const onFocus = () => {
+      blurred = false
+      graph.setUnfocused(false)
+    }
 
     for (const type of GESTURES) target.addEventListener(type, onGesture, { capture: true, passive: true })
     page.addEventListener('visibilitychange', onVisibility)
-    if (options.muteUnfocused === true) {
-      target.addEventListener('blur', onBlur)
-      target.addEventListener('focus', onFocus)
-    }
+    target.addEventListener('blur', onBlur)
+    target.addEventListener('focus', onFocus)
 
     yield* Effect.forkScoped(
       hosting.ready.pipe(
@@ -214,8 +251,12 @@ export const makeAudio = (
       }),
     )
 
+    /** The volume sample's tone, made once on its first use and kept with the context. */
+    let tone: AudioBuffer | undefined
+
     const audio: Audio & AudioBuses = {
       unlocked,
+      available,
       sound(alias, soundOptions = {}) {
         if (unavailable || graph.context === undefined) return
         void voices.play(() => decode(alias).catch(() => undefined), {
@@ -223,6 +264,13 @@ export const makeAudio = (
           ...(soundOptions.gain === undefined ? {} : { gain: soundOptions.gain }),
           ...(soundOptions.rate === undefined ? {} : { rate: soundOptions.rate }),
         })
+      },
+      sample(bus) {
+        const context = graph.context
+        if (unavailable || context === undefined) return
+        tone ??= makeTone(context)
+        const made = tone
+        void voices.play(async () => made, { bus })
       },
       music(alias, musicOptions = {}) {
         if (unavailable) return Effect.void
@@ -239,6 +287,10 @@ export const makeAudio = (
       },
       duck: (duckBus, amount, seconds) => graph.duck(duckBus, amount, seconds),
       setMuted: (muted) => graph.setMuted(muted),
+      setMuteUnfocused: (next) => {
+        muteUnfocused = next
+        graph.setUnfocused(next && blurred)
+      },
       input(inputBus) {
         const node = graph.input(inputBus)
         if (node === undefined)

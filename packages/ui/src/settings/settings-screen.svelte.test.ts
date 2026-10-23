@@ -3,8 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import Extension from './SettingsExtension.test.svelte'
 import SettingsScreen from './SettingsScreen.svelte'
 
-// The core Settings screen (M4 spec §4.8, M4-D8): the sections in a scroll list that keeps them reachable, the
-// screen's title, and Back in the corner row.
+// The core Settings screen (M4 spec §4.8, M4-D8), laid out and behaving as FloorFifty's settings
+// (`ui/components/SettingsPanel.svelte` and `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18, "match the layout and
+// function, not the style"): a dialog over the dimmed game, two tabs whose sections scroll under them in one list,
+// and Back under the dialog; Escape and the dialog's Close go back too.
 
 let component: ReturnType<typeof mount> | undefined
 afterEach(() => {
@@ -28,8 +30,15 @@ function open() {
       title: 'Settings',
       backLabel: 'Back',
       onback,
-      sections: [{ snippet: section('controls') }, { snippet: section('display') }, { component: Extension }],
-      listLabel: 'Settings sections',
+      tabsLabel: 'Settings sections',
+      tabs: [
+        {
+          id: 'settings',
+          label: 'Settings',
+          sections: [{ snippet: section('display') }, { component: Extension }],
+        },
+        { id: 'controls', label: 'Controls', sections: [{ snippet: section('controls') }] },
+      ],
       moreLabel: (count: number) => `+${count} more`,
     },
   })
@@ -37,21 +46,45 @@ function open() {
   return { host, onback }
 }
 
+const shown = (host: HTMLElement, label: string) => {
+  const list = host.querySelector<HTMLElement>(`[data-scroll-region][aria-label="${label}"]`)
+  return list === null
+    ? null
+    : [...list.querySelectorAll<HTMLElement>('[data-row] [data-settings-section]')].map(
+        (one) => one.dataset.settingsSection,
+      )
+}
+
 describe('SettingsScreen', () => {
-  it('shows its title and each section, in order, as rows of one scroll list', () => {
+  it('is a dialog over the dimmed game, titled Settings', () => {
     const { host } = open()
-    expect(host.querySelector('[data-testid="settings-screen"] h2')?.textContent).toBe('Settings')
-    const list = host.querySelector<HTMLElement>('[data-scroll-region][aria-label="Settings sections"]')
-    expect(list).not.toBeNull()
-    const sections = [
-      ...(list as HTMLElement).querySelectorAll<HTMLElement>('[data-row] [data-settings-section]'),
-    ]
-    expect(sections.map((one) => one.dataset.settingsSection)).toEqual(['controls', 'display', 'extension'])
+    const dialog = host.querySelector<HTMLElement>('[data-testid="settings-screen"]')
+    expect(dialog?.getAttribute('role')).toBe('dialog')
+    expect(dialog?.getAttribute('aria-modal')).toBe('true')
+    expect(dialog?.closest('[data-modal-scrim]')).not.toBeNull()
+    expect(dialog?.querySelector('h2')?.textContent).toBe('Settings')
   })
 
-  it('goes back from the corner control', () => {
+  it('has two tabs, Settings first; each tab’s sections are the rows of one scroll list', () => {
+    const { host } = open()
+    const tabs = [...host.querySelectorAll<HTMLButtonElement>('[role="tablist"] [role="tab"]')]
+    expect(tabs.map((tab) => [tab.textContent?.trim(), tab.getAttribute('aria-selected')])).toEqual([
+      ['Settings', 'true'],
+      ['Controls', 'false'],
+    ])
+    expect(shown(host, 'Settings')).toEqual(['display', 'extension'])
+    tabs[1]?.click()
+    flushSync()
+    expect(tabs[1]?.getAttribute('aria-selected')).toBe('true')
+    expect(shown(host, 'Settings')).toBeNull()
+    expect(shown(host, 'Controls')).toEqual(['controls'])
+  })
+
+  it('goes back from Back under the dialog, from its Close and from Escape', () => {
     const { host, onback } = open()
-    host.querySelector<HTMLButtonElement>('[data-testid="corner-back"]')?.click()
-    expect(onback).toHaveBeenCalledOnce()
+    host.querySelector<HTMLButtonElement>('[data-testid="settings-back"]')?.click()
+    host.querySelector<HTMLButtonElement>('[data-modal-close]')?.click()
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }))
+    expect(onback).toHaveBeenCalledTimes(3)
   })
 })

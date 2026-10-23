@@ -218,6 +218,9 @@ Every primitive: a renderer-free fixture, a DOM behavior test, a layout contract
 - **Keyboard and browser bars:** already handled by the geometry owner (no reclassification, no remount; M1.6 §3.1). M4 adds the E2E proof under the fake host (D-c).
 - **`scale` hint** (Ruken TV mode 1.333) enlarges targets and text through `--af-scale`, never CSS zoom (unchanged).
 
+
+**Owner amendment, 2026-10-18 (rotate hint):** "Let that be configurable, by default block it." `GameSpec.rotateHint: 'block' | 'toast'`, `'block'` by default (the cover above). `'toast'` is FloorFifty's `RotateHint.svelte`: a dismissible message at the top ("Turn your phone for a bigger view", OK), remembered once dismissed, and the game is not paused. Built in the Settings and Pause redo, step 13.
+
 ### 4.10 `camera2d` (`packages/render-pixi/src/camera/`, M4.8)
 
 ```ts

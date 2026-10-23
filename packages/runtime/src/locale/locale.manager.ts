@@ -32,6 +32,8 @@ export interface Locale {
   readonly baseLocale: string
   /** The locale text is drawn in now. */
   readonly current: string
+  /** The player's pick: one of `locales`, or null for Automatic (nothing saved, or a saved locale the game dropped). */
+  readonly choice: string | null
   readonly direction: 'ltr' | 'rtl'
   /** Svelte store contract: called at once with the current locale, then on each change. */
   subscribe(listener: (locale: string) => void): () => void
@@ -98,6 +100,8 @@ export function makeLocale(options: MakeLocaleOptions): Effect.Effect<Locale> {
       )
 
     let current = negotiate(saved ?? undefined)
+    let chosen: string | null =
+      saved !== null && saved !== undefined && def.locales.includes(saved) ? saved : null
     const listeners = new Set<(locale: string) => void>()
     if (element !== undefined) applyDocumentLocale(element, current)
 
@@ -116,6 +120,9 @@ export function makeLocale(options: MakeLocaleOptions): Effect.Effect<Locale> {
       get current() {
         return current
       },
+      get choice() {
+        return chosen
+      },
       get direction() {
         return textDirection(current)
       },
@@ -132,6 +139,7 @@ export function makeLocale(options: MakeLocaleOptions): Effect.Effect<Locale> {
             `Locale.set: '${choice}' is not one of the game's locales (${def.locales.join(', ')})`,
           )
         }
+        chosen = choice
         // Memory first, then the host: the same order as Settings.update.
         persist(
           choice === null

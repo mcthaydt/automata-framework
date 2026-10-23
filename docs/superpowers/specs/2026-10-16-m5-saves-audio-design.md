@@ -288,6 +288,11 @@ Built from `ui` primitives (M1.6) and M4's (draft) Slider, Toggle, Toast and Set
 
 Every visible string is a PRODUCT.L message key; every component has a renderer-free fixture, DOM tests and a layout contract.
 
+**Owner amendment, 2026-10-18 (Settings groups):** "Language, Audio and Vibration should also be in AF." Each is a required framework Settings group beside Display, matching FloorFifty's layout and function, built in the Settings and Pause redo (steps 9 to 11):
+- **Language:** Automatic, then the game's locales by endonym (PRODUCT.L's `Locale.set`).
+- **Audio:** as above, with a sample sound on a volume's release, and Mute in Pause.
+- **Vibration:** one toggle over a framework haptics API (`Haptics`: a pad's rumble, else a phone's buzz), hidden where the device can do neither.
+
 ## 8. Responsive and input inventory
 
 | Situation | Policy |

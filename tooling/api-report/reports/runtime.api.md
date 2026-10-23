@@ -83,11 +83,14 @@ const Assets: Context.Tag<Assets, Assets>;
 ```ts
 interface Audio {
     readonly unlocked: Subscribable.Subscribable<boolean>;
+    readonly available: Subscribable.Subscribable<boolean>;
     sound(alias: string, options?: SoundOptions): void;
     music(alias: string, options?: MusicOptions): Effect.Effect<void, AudioDecodeFailed | AssetLoadFailed>;
     stopMusic(fadeSeconds?: number): void;
     duck(bus: AudioBusName, amount: number, seconds: number): void;
     setMuted(muted: boolean): void;
+    sample(bus: AudioBusName): void;
+    setMuteUnfocused(muteUnfocused: boolean): void;
 }
 const Audio: Context.Tag<Audio, Audio>;
 ```
@@ -96,6 +99,12 @@ const Audio: Context.Tag<Audio, Audio>;
 
 ```ts
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
+```
+
+### `AUDIO_SETTINGS_DEFAULT` (const)
+
+```ts
+const AUDIO_SETTINGS_DEFAULT: AudioSettings;
 ```
 
 ### `AudioBuses` (interface)
@@ -130,7 +139,7 @@ type AudioBusName = (typeof AUDIO_BUS_NAMES)[number];
 ### `AudioContextLike` (type)
 
 ```ts
-type AudioContextLike = Pick<AudioContext, 'currentTime' | 'destination' | 'createGain' | 'createBufferSource' | 'decodeAudioData' | 'resume' | 'suspend' | 'close'> & {
+type AudioContextLike = Pick<AudioContext, 'currentTime' | 'destination' | 'createGain' | 'createBufferSource' | 'createBuffer' | 'sampleRate' | 'decodeAudioData' | 'resume' | 'suspend' | 'close'> & {
     readonly state: AudioContextState | 'interrupted';
 };
 ```
@@ -185,6 +194,22 @@ interface AudioServices {
     readonly assets: Pick<Assets, 'get'>;
     readonly bus: PresentationBus;
 }
+```
+
+### `AudioSettings` (interface)
+
+```ts
+interface AudioSettings {
+    readonly muted: boolean;
+    readonly muteUnfocused: boolean;
+    readonly gains: AudioBusGains;
+}
+```
+
+### `audioSettingsSchema` (const)
+
+```ts
+const audioSettingsSchema: z.ZodType<AudioSettings, unknown>;
 ```
 
 ### `AuthoritativeSnapshot` (interface)
@@ -266,6 +291,12 @@ class BootDefect extends BootDefectBase {
 type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect;
 ```
 
+### `browserHaptics` (function)
+
+```ts
+function browserHaptics(target: Window): Haptics;
+```
+
 ### `Capture` (type)
 
 ```ts
@@ -306,7 +337,15 @@ const CORE_SETTINGS: SettingsDef<CoreSettings>;
 interface CoreSettings {
     readonly input: InputSettings;
     readonly display: DisplaySettings;
+    readonly audio: AudioSettings;
+    readonly haptics: HapticsSettings;
 }
+```
+
+### `createHaptics` (function)
+
+```ts
+function createHaptics(options: HapticsOptions): Haptics;
 ```
 
 ### `createT` (function)
@@ -333,6 +372,7 @@ function defineSave<S>(def: SaveDef<S>): SaveDef<S>;
 interface DisplayCopy {
     readonly gate: LandscapeGateCopy;
     readonly rotate: Readonly<Record<'portrait' | 'landscape', RotateHintCopy>>;
+    readonly toast: RotateToastCopy;
 }
 ```
 
@@ -435,6 +475,7 @@ interface GameDefinition<S = never> {
     readonly renderer: RendererFactory;
     readonly settings?: SettingsDef<S> | undefined;
     readonly orientation?: GameOrientation | undefined;
+    readonly rotateHint?: RotateHintMode | undefined;
     readonly locale?: LocaleDef | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
     readonly sounds?: EventSounds | undefined;
@@ -500,6 +541,52 @@ interface GestureTuning {
 
 ```ts
 type GlyphFamily = 'xbox' | 'playstation' | 'generic';
+```
+
+### `HapticPulse` (interface)
+
+```ts
+interface HapticPulse {
+    readonly duration: number;
+    readonly strong: number;
+    readonly weak: number;
+    readonly phone?: number | readonly number[] | undefined;
+}
+```
+
+### `Haptics` (interface)
+
+```ts
+interface Haptics {
+    pulse(pulse: HapticPulse): void;
+    readonly supported: boolean;
+    setEnabled(enabled: boolean): void;
+}
+const Haptics: Context.Tag<Haptics, Haptics>;
+```
+
+### `HapticsOptions` (interface)
+
+```ts
+interface HapticsOptions {
+    readonly getGamepads?: () => readonly (PadLike | null)[];
+    readonly vibrate?: (pattern: number | number[]) => boolean;
+    readonly touch: () => boolean;
+}
+```
+
+### `HapticsSettings` (interface)
+
+```ts
+interface HapticsSettings {
+    readonly enabled: boolean;
+}
+```
+
+### `hapticsSettingsSchema` (const)
+
+```ts
+const hapticsSettingsSchema: z.ZodType<HapticsSettings, unknown>;
 ```
 
 ### `Input` (interface)
@@ -670,6 +757,7 @@ interface Locale {
     readonly locales: readonly string[];
     readonly baseLocale: string;
     readonly current: string;
+    readonly choice: string | null;
     readonly direction: 'ltr' | 'rtl';
     subscribe(listener: (locale: string) => void): () => void;
     set(choice: string | null): void;
@@ -934,6 +1022,12 @@ const RESERVED_KEYS: readonly string[];
 const RESERVED_PAD_BUTTONS: readonly number[];
 ```
 
+### `RotateHintMode` (type)
+
+```ts
+type RotateHintMode = 'block' | 'toast';
+```
+
 ### `runGame` (function)
 
 ```ts
@@ -1019,13 +1113,14 @@ interface RuntimeSeams {
     readonly document?: Document;
     readonly languages?: readonly string[];
     readonly createAudioContext?: () => AudioContextLike;
+    readonly haptics?: Haptics;
 }
 ```
 
 ### `RuntimeServices` (type)
 
 ```ts
-type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses | Leaderboards;
+type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses | Leaderboards | Haptics;
 ```
 
 ### `Save` (interface)

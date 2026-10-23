@@ -15,6 +15,7 @@ import {
   type EventSounds,
   type GameDefinition,
   type GameOrientation,
+  type RotateHintMode,
   type RuntimeSeams,
   type ScreenDef,
   type SettingsDef,
@@ -46,6 +47,8 @@ export interface GameSpec<S = never> {
    * the other way a `portrait` or `landscape` game pauses behind the rotate hint. Default `any`.
    */
   readonly orientation?: GameOrientation
+  /** On a phone held the other way: `'block'` (the default) covers and pauses; `'toast'` says so and plays on. */
+  readonly rotateHint?: RotateHintMode
   /** Default: no commands. */
   readonly input?: InputMap
   /** Component id → view (`rect`, `sprite`). */
@@ -83,6 +86,8 @@ export interface GameSpec<S = never> {
   /** Merged over the defaults (`pixelArt`, the logical size and the views). */
   readonly renderer?: PixiRendererOptions
   readonly copy?: GameDefinition['copy']
+  /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
+  readonly locale?: GameDefinition['locale']
   /** Tests only. */
   readonly seams?: RuntimeSeams
 }
@@ -220,6 +225,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     title,
     size: spec.size,
     orientation: spec.orientation ?? 'any',
+    rotateHint: spec.rotateHint ?? 'block',
     sim,
     ...(spec.input === undefined ? {} : { input: spec.input }),
     get root() {
@@ -246,6 +252,7 @@ export function defineGame<S = never>(spec: GameSpec<S>): DefinedGame<S> {
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.copy === undefined ? {} : { copy: spec.copy }),
+    ...(spec.locale === undefined ? {} : { locale: spec.locale }),
     ...(spec.seams === undefined ? {} : { seams: spec.seams }),
   }
   definedGames.add(game)

@@ -5,7 +5,8 @@
 //   one button asks the page's own browser for fullscreen (`enterFullscreen`); a refusal leaves the gate as it was
 //   and the game plays in the window.
 // - The rotate hint: a game locked to one orientation (`GameDefinition.orientation`), on a phone held the other way,
-//   pauses under `display` while the hint shows, hosted or not. A game that plays either way never sees it.
+//   pauses under `display` while the hint shows, hosted or not. A game that plays either way never sees it. With
+//   `rotateHint: 'toast'` (Owner amendment, 2026-10-18) it is FloorFifty's toast instead: advice, no pause.
 //
 // "A phone" is a coarse pointer in a phone form factor: a short desktop window is classed `phone-landscape` too, and
 // has no bar to hide and nothing to turn.
@@ -23,6 +24,8 @@ import {
   onFullscreenChange,
   RotateHint,
   type RotateHintCopy,
+  RotateToast,
+  type RotateToastCopy,
 } from '@mcthaydt/automata-ui'
 import { Effect, type Scope } from 'effect'
 import { mount, unmount } from 'svelte'
@@ -34,7 +37,11 @@ export type GameOrientation = 'portrait' | 'landscape' | 'any'
 export interface DisplayCopy {
   readonly gate: LandscapeGateCopy
   readonly rotate: Readonly<Record<'portrait' | 'landscape', RotateHintCopy>>
+  readonly toast: RotateToastCopy
 }
+
+/** How a game locked to one orientation says so (Owner amendment, 2026-10-18): a blocking cover, or a toast. */
+export type RotateHintMode = 'block' | 'toast'
 
 /** English, as the runtime's other words are, until PRODUCT.L localizes them. */
 export const DISPLAY_COPY_EN: DisplayCopy = {
@@ -49,6 +56,7 @@ export const DISPLAY_COPY_EN: DisplayCopy = {
     portrait: { title: 'Turn your phone upright', body: 'This game plays in portrait.' },
     landscape: { title: 'Turn your phone sideways', body: 'This game plays in landscape.' },
   },
+  toast: { text: 'Turn your phone for a bigger view', ok: 'OK', dismiss: 'Dismiss the tip' },
 }
 
 export interface DisplayPolicyOptions {
@@ -61,6 +69,8 @@ export interface DisplayPolicyOptions {
   readonly layer: HTMLElement
   readonly time: Time
   readonly copy?: DisplayCopy | undefined
+  /** `'block'` (the default) pauses under a cover; `'toast'` says so at the top and lets the game run. */
+  readonly rotateHint?: RotateHintMode | undefined
 }
 
 /** Whether a phone held in `formFactor` is the wrong way for a game that plays in `orientation`. */
@@ -92,6 +102,17 @@ export function displayPolicy(options: DisplayPolicyOptions): Effect.Effect<void
       shown: false,
       copy: copy.rotate[orientation === 'portrait' ? 'portrait' : 'landscape'],
     })
+    const toastProps: { shown: boolean; copy: RotateToastCopy; ondismiss: () => void } = $state({
+      shown: false,
+      copy: copy.toast,
+      ondismiss: () => {
+        dismissed = true
+        update()
+      },
+    })
+    const blocking = (options.rotateHint ?? 'block') === 'block'
+    // A toast dismissed stays dismissed for the session; saving it would need device storage outside `Hosting`.
+    let dismissed = false
     let pausing = false
 
     function update(): void {
@@ -106,10 +127,12 @@ export function displayPolicy(options: DisplayPolicyOptions): Effect.Effect<void
             installed: installed.matches,
           })
       const wrong = coarse.matches && heldWrong(orientation, formFactor)
-      hintProps.shown = wrong
-      if (wrong && !pausing) time.pause('display')
-      if (!wrong && pausing) time.resume('display')
-      pausing = wrong
+      toastProps.shown = !blocking && wrong && !dismissed
+      const block = blocking && wrong
+      hintProps.shown = block
+      if (block && !pausing) time.pause('display')
+      if (!block && pausing) time.resume('display')
+      pausing = block
     }
     update()
 
@@ -127,6 +150,7 @@ export function displayPolicy(options: DisplayPolicyOptions): Effect.Effect<void
     ]
     const covers = [
       mount(RotateHint, { target: layer, props: hintProps }),
+      mount(RotateToast, { target: layer, props: toastProps }),
       mount(LandscapeGate, { target: layer, props: gateProps }),
     ]
     yield* Effect.addFinalizer(() =>

@@ -156,6 +156,7 @@ interface GameSpec<S = never> {
         readonly setup?: (sim: Sim) => void;
     };
     readonly orientation?: GameOrientation;
+    readonly rotateHint?: RotateHintMode;
     readonly input?: InputMap;
     readonly views?: Readonly<Record<string, EntityViewFactory>>;
     readonly sounds?: EventSounds;
@@ -173,6 +174,7 @@ interface GameSpec<S = never> {
     readonly draw?: (ctx: DrawContext) => void;
     readonly renderer?: PixiRendererOptions;
     readonly copy?: GameDefinition['copy'];
+    readonly locale?: GameDefinition['locale'];
     readonly seams?: RuntimeSeams;
 }
 ```

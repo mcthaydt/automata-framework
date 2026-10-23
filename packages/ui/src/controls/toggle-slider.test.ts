@@ -93,4 +93,10 @@ describe('Slider', () => {
     await fireEvent.input(input)
     expect(onchange).toHaveBeenCalledWith(70)
   })
+
+  // The track fills with the accent up to the value, as FloorFifty's: the fill is a custom property the engines' track
+  // styles read (the Desk, 2026-10-18).
+  it('fills the track up to its value, as a share of its range', () => {
+    expect(open().input?.style.getPropertyValue('--af-slider-fill')).toBe('40%')
+  })
 })

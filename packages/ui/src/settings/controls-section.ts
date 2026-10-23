@@ -1,4 +1,4 @@
-// The Controls section's data (M4 spec §4.5, §7): a row per game action, the device columns that can be rebound, and
+// The Controls section's data (M4 spec §4.5, §7): a row per game action, the devices that can be rebound, and
 // the section's state through a rebind. Every word is the game's (`ControlsCopy`); the section is told the action
 // labels, so its messages name actions as the player reads them.
 import type { PromptBinding } from '../prompts/prompt-label'
@@ -36,14 +36,15 @@ export type ControlsState =
 /** Every word the Controls section shows, in the game's language. */
 export interface ControlsCopy {
   readonly title: string
+  /** Each device section's heading. */
   readonly keyboard: string
   readonly gamepad: string
+  readonly touch: string
+  /** The mark on the section of the device in the player's hand. */
+  readonly inUse: string
   readonly reset: string
   /** On the button that waits for a press. */
   readonly press: string
-  /** The touch mode choice's name, and each mode's. */
-  readonly touchMode: string
-  readonly touchModes: Readonly<Record<ControlsTouchMode, string>>
   /** A rebind button's name for assistive technology: "Change Jump on Keyboard". */
   rebind(action: string, device: string): string
   capturing(action: string, device: string, secondsLeft: number): string

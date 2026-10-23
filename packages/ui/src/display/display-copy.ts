@@ -15,3 +15,11 @@ export interface RotateHintCopy {
   readonly title: string
   readonly body: string
 }
+
+/** The rotate toast's words (`rotateHint: 'toast'`, FloorFifty's): the advice, and its OK. */
+export interface RotateToastCopy {
+  readonly text: string
+  readonly ok: string
+  /** The OK's name for assistive technology: what it dismisses. */
+  readonly dismiss: string
+}
