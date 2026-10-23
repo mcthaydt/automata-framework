@@ -61,12 +61,14 @@ describe('public entry', () => {
       'setHeights',
       'setLight',
       'setMaterials',
+      'setView',
       'moveCorner',
       'moveSector',
       'setWallKind',
       'setDoor',
       'setWindow',
       'setWallMaterial',
+      'setWallOcclude',
       'setWallFlags',
       'SectorAccessError',
       'inheritedMaterials',
@@ -76,6 +78,21 @@ describe('public entry', () => {
       'insideOutline',
       'crossesItself',
       'outlineProblem',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it("exports the entity model: the definition, the reader and both formats' kits", () => {
+    for (const name of [
+      'thingDefSchema',
+      'THING_SHAPES',
+      'THING_SITS',
+      'RESERVED_FIELD_IDS',
+      'readEntityKit',
+      'afEntityKit',
+      'lastLightDefinitions',
+      'lastLightEntityKit',
     ]) {
       expect(editor3d, name).toHaveProperty(name)
     }
@@ -114,11 +131,16 @@ describe('public entry', () => {
       'orbitCamera',
       'orbitBy',
       'fitOrbit',
+      'HOME_YAW',
       'walkCamera',
       'walkStart',
       'facesEye',
       'visibleSurfaces',
+      'surfaceVisibility',
       'pickMesh',
+      'HEADINGS',
+      'headingPreview',
+      'OCCLUDES',
     ]) {
       expect(editor3d, name).toHaveProperty(name)
     }

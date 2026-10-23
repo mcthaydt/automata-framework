@@ -17,6 +17,14 @@ import {
 function roomOf(sector: EditSector): Room {
   if (!('zone' in sector) || typeof sector.zone !== 'string')
     throw new SectorAccessError(`sector ${sector.id} has no zone, and a Last Light room must have one`)
+  // The game reads neither the view id nor the wall occlusion of `af-sector/1`; Last Light has its own cutaway groups.
+  if (sector.view !== undefined)
+    throw new SectorAccessError(`sector ${sector.id} has a view id, which a Last Light room cannot hold`)
+  for (const [i, corner] of sector.corners.entries())
+    if (typeof corner[2] === 'object' && corner[2].occlude !== undefined)
+      throw new SectorAccessError(
+        `wall ${i} of sector ${sector.id} has an occlude, which a Last Light wall cannot hold`,
+      )
   return { ...sector, zone: sector.zone }
 }
 
