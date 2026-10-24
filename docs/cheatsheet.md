@@ -465,11 +465,11 @@
 - `BOOT_FAILURE_COPY_EN` (const): English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5.
 - `bootDeviceClass(win?)`: The device class at boot, read from the window's pointer and screen; `desktop` when the window cannot answer.
 - `BootFailure` (type): The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never imports the runtime.
-- `BootFailureAction` (type): Try again, Continue without loading, Back to Ruken.
+- `BootFailureAction` (type): Try again, Continue without loading, Back to {host}.
 - `BootFailureCopy` (type): The words for every boot failure state and action, by name.
 - `BootFailurePanel` (const): The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the failure's copy and its ways forward.
 - `BootFailureState` (type): What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or `unsupported`.
-- `bootFailureView(failure, hostKind)`: Which state a failure draws and which ways forward it offers.
+- `bootFailureView(failure, hostKind, canExit)`: Which state a failure draws and which ways forward it offers.
 - `BootFailureViewModel` (interface): What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order.
 - `Button` (const): The framework's button (M4 spec §4.12): an `.af-control` of one kind.
 - `Chip` (const): A short status label (M4 spec §4.12).
@@ -521,7 +521,7 @@
 - `HeightTier` (type): The height tiers (M1.6 spec §3.1; from FloorFifty `ui/height-tier.ts` at 122a220).
 - `HiddenBrowserBar` (class): Recognises a browser bar the browser has stopped reporting (DuckDuckGo for Android's bottom bar) and measures how much of the page's foot it covers.
 - `HostDisplay` (type): What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
-- `HostKind` (type): `Hosting['kind']` (shared contracts §1.1), written out until packages/host lands.
+- `HostKind` (type): `Hosting['kind']` (shared contracts §1.1), written out because ui never imports host.
 - `hostReservedInsets(host)`: Ruken reserves a strip on one edge; its width is the rect's, never negative (FloorFifty `reservedOf`).
 - `IconButton` (const): A button whose face is an icon (M4 spec §4.12).
 - `InputMethod` (type): The input method the player last used, app-wide.
@@ -642,6 +642,7 @@
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata-testing` stands in for it in tests.
 - `watchImage(src, onRetry, timers?)`: Probes `src` and, while it fails, hands `onRetry` each retry's URL to draw instead.
 - `WheelPager` (class): A trackpad's horizontal wheel deltas, one page per gesture; `reset` when the gesture goes quiet.
+- `withHostName(text, hostName)`: Fills the `{host}` slot of a copy string with the host's name.
 - `wrapPage(index, count)`: `index` wrapped into `0..count - 1`, so paging past either end comes round.
 
 ### `import { … } from '@mcthaydt/automata-ui/testing'`

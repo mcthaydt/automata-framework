@@ -185,7 +185,7 @@ type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download
 ### `bootFailureView` (function)
 
 ```ts
-function bootFailureView(failure: BootFailure, hostKind: HostKind): BootFailureViewModel;
+function bootFailureView(failure: BootFailure, hostKind: HostKind, canExit: boolean): BootFailureViewModel;
 ```
 
 ### `BootFailureViewModel` (interface)
@@ -1651,6 +1651,12 @@ class WheelPager {
     push(deltaX: number, deltaY: number): -1 | 0 | 1;
     reset(): void;
 }
+```
+
+### `withHostName` (function)
+
+```ts
+function withHostName(text: string, hostName: string): string;
 ```
 
 ### `wrapPage` (function)
