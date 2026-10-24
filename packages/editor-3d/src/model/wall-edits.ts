@@ -19,7 +19,7 @@ import {
   round4,
   sectorOf,
 } from './sector-edit-support'
-import { cornerAt, loopOf, PORTAL_MEMBERS, wallLength, wallOver } from './wall-geometry'
+import { cornerAt, loopOf, membersOf, PORTAL_MEMBERS, wallLength, wallOver } from './wall-geometry'
 
 export interface WallRef {
   readonly sector: string
@@ -65,9 +65,6 @@ interface Here<D> {
   /** Its length in metres. */
   readonly length: number
 }
-
-const membersOf = (wall: string | EditWall | undefined): EditWall =>
-  wall === undefined ? {} : typeof wall === 'string' ? { cut: wall } : wall
 
 /** Runs `change` on the wall `ref` names, or refuses when the sector or the wall is not there. */
 function onWall<D>(ref: WallRef, change: (here: Here<D>) => EditResult<D>): Edit<D>['run'] {

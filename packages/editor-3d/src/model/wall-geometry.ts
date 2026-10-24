@@ -1,7 +1,7 @@
 // Where the walls of a sector are, for the edits that follow a wall to its other side (ED3D.3): the loops of a sector,
 // the corner that starts a wall, and the wall of another sector that runs over the same segment.
 import type { Planar } from '../geometry/loops'
-import type { EditCorner, EditSector } from '../profile/sector-access'
+import type { EditCorner, EditSector, EditWall } from '../profile/sector-access'
 
 /** The members of a wall that mean something only while it is a portal: a wall that is not one has none. */
 export const PORTAL_MEMBERS = ['next', 'frame', 'mask', 'block', 'maskTop', 'hatch'] as const
@@ -13,6 +13,10 @@ export const near = (p: Planar, q: Planar): boolean =>
   Math.abs(p[0] - q[0]) < NEAR && Math.abs(p[1] - q[1]) < NEAR
 
 export const samePoint = (p: Planar, q: Planar): boolean => p[0] === q[0] && p[1] === q[1]
+
+/** The members of a wall as written: nothing, a cutaway name (Last Light's spelling of `cut`), or an object. */
+export const membersOf = (wall: string | EditWall | undefined): EditWall =>
+  wall === undefined ? {} : typeof wall === 'string' ? { cut: wall } : wall
 
 /** The outline of a sector and then its holes. */
 export const loopsOf = (sector: EditSector): readonly (readonly EditCorner[])[] => [

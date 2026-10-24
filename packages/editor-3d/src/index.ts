@@ -29,6 +29,13 @@ export {
   type SectorToolView,
 } from './app/sector-tool-controller'
 export {
+  createVertexTool,
+  type VertexEffect,
+  type VertexTarget,
+  type VertexTool,
+  type VertexToolView,
+} from './app/vertex-tool-controller'
+export {
   createWallTool,
   type WallEffect,
   type WallPlace,
@@ -98,6 +105,12 @@ export {
   type SetThingFieldArgs,
   setThingField,
 } from './model/thing-edits'
+export {
+  type InsertCornerArgs,
+  insertCorner,
+  type RemoveCornerArgs,
+  removeCorner,
+} from './model/vertex-edits'
 export {
   createViewStore,
   initialView,

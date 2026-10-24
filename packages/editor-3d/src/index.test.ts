@@ -179,6 +179,14 @@ describe('public entry', () => {
     expect(editor3d).not.toHaveProperty('createGeometryCache')
   })
 
+  it('exports the vertex edits and the Vertex tool', () => {
+    for (const name of ['insertCorner', 'removeCorner', 'createVertexTool'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The targets are a type, so this is checked by the compiler: the entry names them.
+    const effects: editor3d.VertexEffect[] = [{ action: 'add' }, { action: 'none', reason: 'no' }]
+    expect(effects).toHaveLength(2)
+  })
+
   it('exports the checks panel and the Ask', () => {
     for (const name of ['createChecksPanel', 'createAsk']) {
       expect(editor3d, name).toHaveProperty(name)
