@@ -74,6 +74,21 @@ export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edit
 export { type Edit, type EditResult, ok, refuse } from './model/edit'
 export { type EditCommandOptions, registerEditCommands } from './model/edit-commands'
 export {
+  createFacilityEditor,
+  type FacilityEdit,
+  type FacilityEditor,
+  type FacilityEditorOptions,
+  type FacilitySession,
+  type FacilityState,
+} from './model/facility-editor'
+export { type MoveWingArgs, moveWing, removeJoin, setJoin, setLock } from './model/facility-edits'
+export {
+  type FacilitySelectionKind,
+  type FacilitySelectionRef,
+  facilitySelection,
+  parseFacilitySelection,
+} from './model/facility-selection'
+export {
   createLevelEditor,
   type EditSession,
   type LevelEditor,

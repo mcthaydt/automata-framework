@@ -174,6 +174,20 @@ describe('public entry', () => {
     expect(shapes).toHaveLength(2)
   })
 
+  it('exports the facility editor, the World edits and the World selection ids', () => {
+    for (const name of [
+      'createFacilityEditor',
+      'moveWing',
+      'setJoin',
+      'removeJoin',
+      'setLock',
+      'facilitySelection',
+      'parseFacilitySelection',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('exports the wall tools and what one wall can be offered, and keeps the geometry cache inside', () => {
     for (const name of ['createWallTool', 'wallPortal']) expect(editor3d, name).toHaveProperty(name)
     expect(editor3d).not.toHaveProperty('createGeometryCache')
@@ -221,6 +235,8 @@ describe('public entry', () => {
       'buildRefusal',
       'wallOver',
       'PORTAL_MEMBERS',
+      'upserted',
+      'sameMember',
       'fakeAskProvider',
       'deferred',
       'problemCount',
