@@ -2,7 +2,8 @@
 
 - **Spec:** [PUB spec](../specs/2026-10-16-publish-targets-design.md) §3, §3.1 (`exit`), §5 flow 4, §8, §11 PUB.4; [ADR 0005](../../adr/0005-publish-targets.md).
 - **Status:** drafted 2026-10-16 (PUB.0 Owner-approved 2026-10-16 with every recommended default); steps 1–5 implemented and locally verified 2026-10-16. Owner review pending.
-- **Lanes:** ship (release job) and ui (label). **Branch:** `claude/clever-pasteur-ujmu6e-pub4`, stacked on PUB.2 (`claude/clever-pasteur-ujmu6e-pub2`, PR #41).
+- **Split (2026-10-24):** the Owner's standing rule is that no workflow file changes without their words, so the `itch` job (step 1, `.github/workflows/game-release.yml`, its pins in `workflows.test.ts` and the PUB spec §5 flow 4 text) moved to **PUB.4b**, a separate held PR. This PR (PUB.4a) is steps 2 to 5 without the workflow file: the label, the view model, the panel, `failureHost` and the docs. PUB.4a also brought in PUB.1 and PUB.2: `failureHost` now reads `Hosting.hostName`.
+- **Lanes:** ship (release job, now PUB.4b) and ui (label). **Branch:** `claude/clever-pasteur-ujmu6e-pub4`, stacked on PUB.2 (`claude/clever-pasteur-ujmu6e-pub2`, PR #41).
 
 ## Global constraints
 
@@ -39,7 +40,7 @@
 
 ## Steps
 
-- [x] **1. Release job shape.** `workflows.test.ts`, a new `describe('game-release.yml itch job (PUB spec §5)')`:
+- [ ] **1. Release job shape. (Moved to PUB.4b, held for the Owner's word on `game-release.yml`; the commits are `77a48a5` and its follow-ups on this branch's earlier history.)** `workflows.test.ts`, a new `describe('game-release.yml itch job (PUB spec §5)')`:
   - the job exists, is gated on `inputs.itch` and on the event not being `pull_request` or `pull_request_target`;
   - `itch` (boolean, default false) and `itch-build-command` (default `pnpm build:itch`) are inputs; `BUTLER_API_KEY` is a secret, not required at the call;
   - its first step checks `BUTLER_API_KEY` and `exit 1`s with `::error::` naming it (no `exit 0`, no `::notice::` skip);
@@ -62,3 +63,4 @@
 | 2026-10-16 | 2–3 | `9680556` | Red: 6 view-model tests (`canExit` ignored, `withHostName` missing, copy `Back to Ruken`), 3 panel tests (labels), 1 index export. The panel's hide-without-exit tests passed before the props were wired (an undefined `canExit` already filters `exit`); the label tests were the red ones. `StatusFixture.svelte` and the primitives `Frame.svelte` pass the new props; no fixture draws the exit button, so no golden changed. |
 | 2026-10-16 | 4 | `bb573b3` | Red: `failure-host.ts` missing; the existing "Back to Ruken" run-game test went red after step 3 (no `canExit`). The new standalone no-exit run-game test is a guard (green before wiring, for the same reason as step 3). Runtime boot tests 43/43; runtime typecheck 0 errors. |
 | 2026-10-16 | 5 | `72568b9`, this commit | `pnpm format` clean; `pnpm check` exit 0: lint, typecheck 26/26, boundaries 0 findings, style 186 files 0 findings, test:unit 22/22 (ship 238, ui 301, runtime 153 tests). `pnpm test:parity` 9/9 tasks (ui 303 tests). `pnpm test:e2e` 46 passed, `CI=1`, ports 4740/4840. actionlint 1.7.12 (release binary, since the docker daemon is absent) on every workflow: exit 0, without shellcheck. |
+| 2026-10-24 | Split and catch-up | this commit | PUB.1 and PUB.2 merged in (with `main`). Red first: `failureHost` ignored `Hosting.hostName` and drew a `web` session as `web` (1 red test); now it reads the name and maps `web` to standalone, and PUB.1's stopgap `failureHostKind` (and its test) is gone. Step 1 and `game-release.yml` moved to PUB.4b. |

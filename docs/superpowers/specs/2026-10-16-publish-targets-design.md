@@ -54,7 +54,6 @@ Already target-neutral: `packages/ship/src/prepare/root-absolute.ts` rejects roo
   - The build adds `resolve.conditions: ['automata-web']` for `itch` and `web`.
   - The runtime imports `makeHosting` from `./target`, so each bundle holds exactly one adapter. An itch bundle contains no `@ruken/sdk` code.
   - PUB.1 adds a bundle check that fails on the SDK's string literals that survive minification (`ruken:__probe__`, `needs the Ruken host`) in an `itch` build. The web adapter's own storage probe uses a different key.
-  - How the web adapter knows itch.io from any other page (PUB.1): the build also sets the define `__AUTOMATA_TARGET__` to `'itch'` or `'web'`. It only chooses `hostName` (`'itch.io'` or `'this page'`); without it, `hostName` is `'this page'`. Because `resolve.conditions` replaces Vite's defaults, a target build lists `automata-web` before `defaultClientConditions`.
 - **Ruken stays the vocabulary.** `Hosting` keeps every type from `@ruken/sdk`, imported as types only. The web adapter answers in Ruken's terms:
   - It **mirrors the SDK's standalone session** wherever the SDK defines one (§3.1).
   - It **adds** what a page outside Ruken can observe (visibility, input mode, viewport, fullscreen).
@@ -74,12 +73,11 @@ Already target-neutral: `packages/ship/src/prepare/root-absolute.ts` rejects roo
 | `display` | `visualViewport` metrics and orientation | Fixed landscape metrics |
 | `saves` | `localStorage` under `ruken:<gameId>:` (the SDK's prefix). A failed probe: `saves` is not granted and every call fails `HostError{code:'DENIED'}`. A full quota: `QUOTA_EXCEEDED` (itch.io games share one origin's quota) | The same prefix, but memory when storage is unavailable |
 | `savesStatus`, `flush` | `saved`; `{ persisted: 'host-outbox' }` | The same |
-| `saves.keys`, `saves.changed` | `keys`: this game's keys in `localStorage` with the prefix removed, in code-unit order (the origin's other keys are not listed). `changed` never emits: one browser is the only writer | `keys` lists the session's storage; `changed` carries another device's write |
 | `setFullscreen` | Element Fullscreen API on the game root; `support` reports what the browser allows. itch.io's frame allows fullscreen | `{ fullscreen: false, support: 'none' }` |
-| `round`, `track` | No host counts rounds, but `round` keeps the guard (a second start and an end with no round are dropped) and `round.ended` gives one item per round that ended, which the round-end autosave reads (M5.2). `track` is a no-op (it never fails, by contract) | The same |
+| `round`, `track` | No-ops (`track` never fails, by contract) | The same |
 | `exit` | Fails `UNSUPPORTED`; the UI hides "Back to …" when `exit` is not granted | Does nothing |
 | `onMenuRequest`, `onExiting` | Registered but never called | The same |
-| Leaderboards, entitlements, store, ads | Not granted. `leaderboards.submit` and `get` fail `UNSUPPORTED` (`leaderboard.submit`, `leaderboard.get`) and keep no local board; the other calls fail `UNSUPPORTED` | The same |
+| Leaderboards, entitlements, store, ads | Not granted; calls fail `UNSUPPORTED` | The same |
 
 The web adapter therefore keeps every behavior the SDK defines for standalone, and adds real lifecycle, input, display and fullscreen. The one deliberate difference is storage: it reports blocked storage instead of keeping saves in memory.
 
@@ -100,11 +98,10 @@ export default defineShipConfig({
 **`automata-ship prepare --target itch`** checks, in this order, before writing anything:
 1. The tag matches `game.version` (existing check).
 2. No root-absolute paths (the existing `root-absolute.ts`).
-3. No secret in the build: the scan Ruken's `prepare` runs (QB.2, `secret-scan.ts`), because a page on itch.io is public. The error names the file and place, never the secret. (Added when main's QB.2 merged into PUB.2, 2026-10-24.)
-4. `index.html` exists at the build root. itch.io requires that name, so a different `game.entry` is an error that says so.
-5. itch.io's documented limits: at most 1,000 files; paths of at most 240 characters; no file over 200 MB; at most 500 MB in total. These live in one file, `packages/ship/src/targets/itch-limits.ts`, with the source URL and the date read.
-6. Every relative reference matches a file's exact case. itch.io is case-sensitive; a Mac's disk usually is not.
-7. No `ruken.toml` in the output.
+3. `index.html` exists at the build root. itch.io requires that name, so a different `game.entry` is an error that says so.
+4. itch.io's documented limits: at most 1,000 files; paths of at most 240 characters; no file over 200 MB; at most 500 MB in total. These live in one file, `packages/ship/src/targets/itch-limits.ts`, with the source URL and the date read.
+5. Every relative reference matches a file's exact case. itch.io is case-sensitive; a Mac's disk usually is not.
+6. No `ruken.toml` in the output.
 
 It then writes `<id>-<version>-itch.zip` with sorted entries and fixed timestamps, so the same build gives the same bytes. The zip is for a manual upload; butler does not need it.
 
@@ -121,7 +118,7 @@ It needs `BUTLER_API_KEY`, and fails early, with how to get one, when the key or
 3. **Publish by hand:**
    - `pnpm publish:ruken` needs `RUKEN_API` and `RUKEN_TOKEN`.
    - `pnpm publish:itch` needs `BUTLER_API_KEY` and butler.
-4. **Publish from CI:** `game-release.yml` runs the existing Ruken job. It adds an `itch` job when the caller passes `itch: true` (a workflow condition cannot read `ship.config.ts`; ship then fails without an `itch` section). The job never runs for a pull request. Opted in without the `BUTLER_API_KEY` secret, it fails, naming the secret, instead of skipping (PUB.4). Each job builds its own target from the tagged commit: the itch job runs the `itch-build-command` input (`pnpm build:itch`), installs a pinned, checksum-verified butler, and runs `automata-ship publish --target itch`.
+4. **Publish from CI:** `game-release.yml` runs the existing Ruken job. It adds an `itch` job when `ship.config.ts` has `itch` and the `BUTLER_API_KEY` secret exists. Each job builds its own target from the tagged commit.
 5. **First itch.io push only:** the Owner sets the project's options by hand (§6). `publish --target itch` prints that checklist when butler reports a new channel.
 
 ## 6. First-push checklist for itch.io (printed by ship, and in the docs)
@@ -165,7 +162,6 @@ It needs `BUTLER_API_KEY`, and fails early, with how to get one, when the key or
 1. A supported way to start a standalone session without the handshake wait (for example `init({ standalone: true })`). Today only the test-only `env` seam does it, so AF writes its own web adapter. With this option, the web adapter could reuse the SDK.
 2. Standalone saves should report when they fall back to memory, instead of granting `saves` silently.
 3. A `SavesFlushRes.persisted` value for device storage (for example `'device'`). Until then, the web adapter answers `'host-outbox'`, as the SDK's standalone session does.
-4. (Added by PUB.1.) Publish the save-key pattern and the per-save limits (1 MiB per value, 256 keys, 10 MiB per game in the SDK's `save-map.ts` at `b30d31b`) from a package other hosts can import, such as `@ruken/manifest`. AF may not copy them, so until then the web adapter enforces only the browser's quota, and a key or value Ruken would refuse is caught only on a Ruken build (pinned by a test).
 
 ## 10. Owner decisions (approved as recommended, 2026-10-16)
 
