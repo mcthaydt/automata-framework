@@ -2,6 +2,7 @@
 // the corner that starts a wall, and the wall of another sector that runs over the same segment.
 import type { Planar } from '../geometry/loops'
 import type { EditCorner, EditSector, EditWall } from '../profile/sector-access'
+import { placed, round4 } from './sector-edit-support'
 
 /** The members of a wall that mean something only while it is a portal: a wall that is not one has none. */
 export const PORTAL_MEMBERS = ['next', 'frame', 'mask', 'block', 'maskTop', 'hatch'] as const
@@ -62,4 +63,48 @@ export function wallOver(
       if (near(start, z) && near(end, a)) return { loop, corner, startsAtA: false }
     }
   return undefined
+}
+
+/**
+ * A wall written from its other end: everything it says is the same, and what has a place along it is measured from the
+ * new start: a door's and a window's centre, a hatch's two ends, and a pilaster's start and end change places. A name
+ * (Last Light's cutaway group) and a wall with nothing placed on it are returned as they are. A texture's pan is left as it
+ * is written, so the pattern of a wall that is turned round may run the other way.
+ */
+export function reversedWall(
+  wall: string | EditWall | undefined,
+  length: number,
+): string | EditWall | undefined {
+  if (wall === undefined || typeof wall === 'string') return wall
+  const { door, window: pane, hatch, pilaster } = wall
+  if (door === undefined && pane === undefined && hatch === undefined && pilaster === undefined) return wall
+  return {
+    ...wall,
+    ...(door === undefined ? {} : { door: { ...door, at: round4(length - door.at) } }),
+    ...(pane === undefined ? {} : { window: { ...pane, at: round4(length - pane.at) } }),
+    ...(hatch === undefined
+      ? {}
+      : { hatch: [round4(length - hatch[1]), round4(length - hatch[0])] as const }),
+    ...(pilaster === undefined
+      ? {}
+      : {
+          pilaster: {
+            ...(pilaster.end === undefined ? {} : { start: pilaster.end }),
+            ...(pilaster.start === undefined ? {} : { end: pilaster.start }),
+          },
+        }),
+  }
+}
+
+/**
+ * The corners of a loop written the other way round, starting at the same first corner: each wall now starts at the corner
+ * that used to end it, turned round (`reversedWall`).
+ */
+export function reversedLoop(corners: readonly EditCorner[]): EditCorner[] {
+  const count = corners.length
+  return corners.map((_, at) => {
+    const corner = cornerAt(corners, count - at)
+    const wall = (count - 1 - at + count) % count
+    return placed(corner[0], corner[1], reversedWall(cornerAt(corners, wall)[2], wallLength(corners, wall)))
+  })
 }

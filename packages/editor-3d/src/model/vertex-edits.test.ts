@@ -13,7 +13,7 @@ import { loadAuthored, loadFixture } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
 import { must, toyBlockout, toyRoom } from '../testing/toy-blockout'
 import type { Edit } from './edit'
-import { insertCorner, removeCorner } from './vertex-edits'
+import { type Changes, cornerInserted, insertCorner, removeCorner } from './vertex-edits'
 
 const depot = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
@@ -1142,5 +1142,85 @@ describe('removeCorner', () => {
         'the walls at corner 2 of ward lead into hall: make them solid first',
       )
     })
+  })
+})
+
+describe('cornerInserted', () => {
+  const insert = (changes: Changes, at: { sector: string; corner: number; x: number; z: number }) =>
+    cornerInserted(afSectorProfile, depot, changes, at)
+  const made = (result: Changes | string): Changes => {
+    if (typeof result === 'string') throw new Error(`refused: ${result}`)
+    return result
+  }
+  const cornersIn = (changes: Changes, id: string): readonly (readonly [number, number])[] =>
+    must(changes.get(id)).corners.map(([x, z]) => [x, z])
+
+  it('answers the sectors insertCorner would change: the sector, and the reverse of a portal wall', () => {
+    expect([...made(insert(new Map(), { sector: 'hall', corner: 2, x: 3, z: 6 })).keys()]).toEqual(['hall'])
+    expect([...made(insert(new Map(), { sector: 'hall', corner: 1, x: 8, z: 2 })).keys()]).toEqual([
+      'hall',
+      'dock',
+    ])
+  })
+
+  it('makes the same sectors the edit does', () => {
+    const changes = made(insert(new Map(), { sector: 'hall', corner: 1, x: 8, z: 2 }))
+    const level = levelOf(afOn(depot, insertCorner({ sector: 'hall', corner: 1, x: 8, z: 2 })))
+    expect(must(changes.get('hall'))).toEqual(sector(level, 'hall'))
+    expect(must(changes.get('dock'))).toEqual(sector(level, 'dock'))
+  })
+
+  it('splits the sector it finds in the working set, not the level’s own: a second corner on the same wall', () => {
+    const first = made(insert(new Map(), { sector: 'hall', corner: 2, x: 3, z: 6 }))
+    // After the first corner the south wall runs (8, 6) to (3, 6); a corner on it at x = 5 is wall 2 again.
+    const second = made(insert(first, { sector: 'hall', corner: 2, x: 5, z: 6 }))
+    expect(cornersIn(second, 'hall')).toEqual([
+      [0, 0],
+      [8, 0],
+      [8, 6],
+      [5, 6],
+      [3, 6],
+      [0, 6],
+    ])
+  })
+
+  it('splits the reverse it finds in the working set: two corners on one portal wall, the neighbour split twice', () => {
+    const first = made(insert(new Map(), { sector: 'hall', corner: 1, x: 8, z: 2 }))
+    const second = made(insert(first, { sector: 'hall', corner: 2, x: 8, z: 4 }))
+    expect(cornersIn(second, 'hall')).toEqual([
+      [0, 0],
+      [8, 0],
+      [8, 2],
+      [8, 4],
+      [8, 6],
+      [0, 6],
+    ])
+    // The dock's west wall runs the other way, from (8, 6) up to (8, 0), and has a corner at each of the two.
+    expect(cornersIn(second, 'dock')).toEqual([
+      [8, 0],
+      [14, 0],
+      [14, 6],
+      [8, 6],
+      [8, 4],
+      [8, 2],
+    ])
+  })
+
+  it('does not change the working set it is given, and leaves the level’s sectors alone', () => {
+    const before = new Map<string, EditSector>()
+    made(insert(before, { sector: 'hall', corner: 2, x: 3, z: 6 }))
+    expect(before.size).toBe(0)
+    expect(depot.sectors[0]?.corners).toHaveLength(4)
+  })
+
+  it('answers the sentence insertCorner refuses with, and no map', () => {
+    expect(insert(new Map(), { sector: 'nowhere', corner: 0, x: 0, z: 0 })).toBe('no sector nowhere')
+    expect(insert(new Map(), { sector: 'hall', corner: 9, x: 0, z: 0 })).toBe('sector hall has no wall 9')
+    expect(insert(new Map(), { sector: 'hall', corner: 2, x: 3, z: 5 })).toBe(
+      'that point is not on wall 2 of hall',
+    )
+    expect(insert(new Map(), { sector: 'hall', corner: 2, x: 8, z: 6 })).toBe(
+      'that point is already a corner',
+    )
   })
 })

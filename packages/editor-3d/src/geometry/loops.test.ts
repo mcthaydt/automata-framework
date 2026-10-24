@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { crossesItself, insideLoop, insideOutline, loopArea, outlineProblem } from './loops'
+import { crossesItself, insideLoop, insideOutline, loopArea, outlineProblem, segmentsTouch } from './loops'
 
 const square = [
   [0, 0],
@@ -62,6 +62,21 @@ describe('insideLoop and insideOutline', () => {
     expect(insideOutline(1, 1, square, [hole])).toBe(false)
     expect(insideOutline(1, 1, square)).toBe(true)
     expect(insideOutline(1, 1, square, undefined)).toBe(true)
+  })
+})
+
+describe('segmentsTouch', () => {
+  it('is true for a crossing, for an end resting on the other segment and for an overlap', () => {
+    expect(segmentsTouch([0, 0], [2, 2], [0, 2], [2, 0])).toBe(true)
+    expect(segmentsTouch([0, 0], [2, 0], [1, 0], [1, 2])).toBe(true)
+    expect(segmentsTouch([0, 0], [2, 0], [1, 0], [3, 0])).toBe(true)
+    expect(segmentsTouch([0, 0], [2, 0], [2, 0], [2, 2])).toBe(true)
+  })
+
+  it('is false for segments apart, on one line or not, and for a line that would cross if it went on', () => {
+    expect(segmentsTouch([0, 0], [1, 0], [2, 0], [3, 0])).toBe(false)
+    expect(segmentsTouch([0, 0], [2, 0], [0, 1], [2, 1])).toBe(false)
+    expect(segmentsTouch([0, 0], [1, 1], [3, 0], [0, 3])).toBe(false)
   })
 })
 

@@ -87,7 +87,7 @@ function onWall<D>(ref: WallRef, change: (here: Here<D>) => EditResult<D>): Edit
 }
 
 /** The sector with the wall that starts at a corner of one of its loops written as `members`. */
-function withWall(sector: EditSector, loop: number, corner: number, members: EditWall): EditSector {
+export function withWall(sector: EditSector, loop: number, corner: number, members: EditWall): EditSector {
   const wall = Object.keys(members).length === 0 ? undefined : members
   const write = (corners: readonly EditCorner[]): EditCorner[] =>
     corners.map((each, i) => (i === corner ? placed(each[0], each[1], wall) : each))
