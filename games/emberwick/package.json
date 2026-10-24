@@ -1,0 +1,58 @@
+{
+  "name": "@af-examples/base-2d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./game": "./src/game-entry.ts",
+    "./render": "./src/render/index.ts",
+    "./play": "./src/play-room.ts",
+    "./no-eval": "./src/no-eval.ts",
+    "./room": "./src/content/room.ts",
+    "./sim": "./src/sim/index.ts",
+    "./style.css": "./style.css"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries src/sim",
+    "prepare-ruken": "automata-ship prepare",
+    "test": "vitest run",
+    "test:unit": "vitest run --project node --project dom",
+    "test:parity": "vitest run --project browsers --project renderer",
+    "test:evidence": "vitest run --project node --project browsers src/golden.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
+    "e2e:game": "vite build && vite preview --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
+    "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT VITE_GAME_PATH=$AF_E2E_GAME_PATH vite build --config e2e/host/vite.config.ts && vite preview --config e2e/host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT"
+  },
+  "dependencies": {
+    "@fontsource/pixelify-sans": "5.3.0",
+    "@mcthaydt/automata-game": "workspace:*",
+    "@mcthaydt/automata-host": "workspace:*",
+    "@mcthaydt/automata-render-pixi": "workspace:*",
+    "@mcthaydt/automata-runtime": "workspace:*",
+    "@mcthaydt/automata-sim": "workspace:*",
+    "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
+    "effect": "3.22.2",
+    "pixi.js": "8.21.0",
+    "svelte": "5.57.1",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-check-boundaries": "workspace:*",
+    "@mcthaydt/automata-cli": "workspace:*",
+    "@mcthaydt/automata-ship": "workspace:*",
+    "@mcthaydt/evidence": "workspace:*",
+    "@playwright/test": "1.63.0",
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
+    "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "jsdom": "30.1.1",
+    "playwright": "1.63.0",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

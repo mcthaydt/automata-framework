@@ -66,6 +66,29 @@ describe('prepareItch', () => {
     expect(zips(gameDir)).toEqual([])
   })
 
+  // QB.2: a page on itch.io is public, so the build that goes there is held to the same secret scan as Ruken's.
+  it('stops on a secret in the build, naming the file and place but never the secret, writing nothing', () => {
+    const key = ['sk', 'live', '4eC39HqLyjWDarjtT1zdp7dc'].join('_')
+    const { gameDir, distDir } = game({ ...goodBuild, 'assets/main.js': `const k="${key}"` })
+    const error = failure({ distDir, config })
+    expect(error._tag).toBe('SecretInBuild')
+    expect(error.message).toContain('assets/main.js:1:10 (byte 9): stripe-access-token')
+    expect(error.message).not.toContain(key)
+    expect(zips(gameDir)).toEqual([])
+  })
+
+  it("stops on the value of a game's .env variable copied into the build", () => {
+    const { gameDir, distDir } = game({
+      ...goodBuild,
+      'assets/main.js': 'fetch("x",{headers:{a:"do-not-ship-this"}})',
+    })
+    writeFileSync(join(gameDir, '.env.local'), 'SERVER_SECRET=do-not-ship-this\n')
+    const error = failure({ distDir, gameDir, config })
+    expect(error._tag).toBe('SecretInBuild')
+    expect(error.message).toContain('env-value: the value of SERVER_SECRET from .env.local')
+    expect(zips(gameDir)).toEqual([])
+  })
+
   it('stops on each itch.io check with its own name, the file and the limit, writing nothing', () => {
     const cases: [string, Record<string, string>, ShipConfig, string][] = [
       ['entry', { 'play.html': '' }, config, 'index.html: not at the root of the build'],

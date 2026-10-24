@@ -1,5 +1,10 @@
 import { basename, resolve } from 'node:path'
-import { Effect } from 'effect'
+import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
+import { Effect, Layer } from 'effect'
+import { parseCheckArgs } from './check/check-args.ts'
+import { type CheckReport, exitCodeFor, formatText, toJson } from './check/check-report.ts'
+import { CspProbeLive } from './check/csp-probe-live.ts'
+import { type RunCheckOptions, runCheck } from './check/run-check.ts'
 import { createGame } from './create-game.ts'
 
 export interface ParsedArgs {
@@ -50,8 +55,11 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
 }
 
 const USAGE = `Usage: automata create-game <target-dir> [--id <id>] [--title <title>]
+       automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast]
 
-Scaffold a new Automata Framework game project.
+create-game scaffolds a new Automata Framework game project.
+check runs boundaries, typecheck, tests, the board names and the no-eval build scan in a game folder
+(exit 0 pass, 1 findings, 2 a tool could not run).
 
 Options:
   --id <id>        Unique game identifier (lowercase alphanumeric with hyphens)
@@ -59,7 +67,34 @@ Options:
   -h, --help       Show this help message
 `
 
-export async function runCli(args: readonly string[], io: CliIo = DEFAULT_IO): Promise<number> {
+/** Runs `automata check` with the real processes, files and browser. */
+export const runCheckLive = (options: RunCheckOptions): Promise<CheckReport> =>
+  Effect.runPromise(
+    Effect.provide(runCheck(options), Layer.mergeAll(FilesLive, ProcessRunnerLive, CspProbeLive)),
+  )
+
+async function checkCommand(
+  args: readonly string[],
+  io: CliIo,
+  check: (options: RunCheckOptions) => Promise<CheckReport>,
+): Promise<number> {
+  const parsed = parseCheckArgs(args)
+  if (!parsed.ok) {
+    io.stderr(`Error: ${parsed.problem}\n\n${USAGE}`)
+    return 2
+  }
+  const { dir, json, simOnly, csp, failFast } = parsed.options
+  const report = await check({ gameDir: resolve(process.cwd(), dir ?? '.'), simOnly, csp, failFast })
+  io.stdout(json ? `${toJson(report)}\n` : formatText(report))
+  return exitCodeFor(report)
+}
+
+export async function runCli(
+  args: readonly string[],
+  io: CliIo = DEFAULT_IO,
+  check: (options: RunCheckOptions) => Promise<CheckReport> = runCheckLive,
+): Promise<number> {
+  if (args[0] === 'check') return checkCommand(args.slice(1), io, check)
   const parsed = parseArgs(args)
 
   if (parsed.help) {

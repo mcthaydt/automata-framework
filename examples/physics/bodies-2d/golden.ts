@@ -45,8 +45,15 @@ export function goldenDrive(recorder: Recorder, sim: Sim): void {
 }
 
 /** Replays the golden run on a fresh sim and reports what the golden tests compare. */
-export async function runGolden(): Promise<{ hash: string; rejected: number; collisions: number }> {
+export async function runGolden(): Promise<{
+  hash: string
+  rejected: number
+  collisions: number
+  seed: number
+  ticks: number
+}> {
   const sim = await createBodiesSim(ROOM)
+  const startTick = sim.tick
   const results = drive(sim, (commands) => sim.step(commands))
   let rejected = 0
   let collisions = 0
@@ -55,6 +62,7 @@ export async function runGolden(): Promise<{ hash: string; rejected: number; col
     for (const event of result.events) if (event.type === 'physics2d.collision-started') collisions++
   }
   const hash = sim.hash()
+  const ticks = sim.tick - startTick
   sim.dispose()
-  return { hash, rejected, collisions }
+  return { hash, rejected, collisions, seed: sim.seed, ticks }
 }

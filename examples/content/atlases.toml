@@ -1,0 +1,4 @@
+# The atlases the examples draw (M5.6): `textures/textures-atlas.ts` draws `wick`. Built by
+# `buildAtlases` into `public/textures/atlas/`, beside the example's page; `packages/content/src/assets/example-atlas.test.ts` keeps it fresh.
+[atlas.wick]
+frames = "resources/atlas-frames/wick"

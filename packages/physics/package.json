@@ -16,6 +16,12 @@
     "./2d": "./src/2d.ts",
     "./3d": "./src/3d.ts"
   },
+  "automata": {
+    "simEntries": [
+      "./2d",
+      "./3d"
+    ]
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "exports": {
@@ -34,6 +40,7 @@
     "bench": "vitest run --project bench",
     "test:unit": "vitest run --project node",
     "test:parity": "vitest run --project browsers",
+    "test:evidence": "vitest run --project node --project browsers src/physics-2d.parity.test.ts src/physics-3d.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p .",
     "build": "tsdown"
   },
@@ -41,10 +48,11 @@
     "@dimforge/rapier2d-deterministic-compat": "0.21.0",
     "@dimforge/rapier3d-deterministic-compat": "0.21.0",
     "@mcthaydt/automata-sim": "workspace:*",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
+    "@mcthaydt/evidence": "workspace:*",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",
     "vitest": "5.0.3"

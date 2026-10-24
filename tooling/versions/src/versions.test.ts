@@ -13,10 +13,10 @@ import {
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 
-/** The root package.json plus one per workspace folder (pnpm-workspace.yaml: packages/*, tooling/*, examples/*). */
+/** The root package.json plus one per workspace folder (pnpm-workspace.yaml: packages/*, tooling/*, games/*, examples/*). */
 function workspaceManifests(): Manifest[] {
   const manifests: Manifest[] = [JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as Manifest]
-  for (const group of ['packages', 'tooling', 'examples']) {
+  for (const group of ['packages', 'tooling', 'games', 'examples']) {
     let names: string[] = []
     try {
       names = readdirSync(join(root, group))

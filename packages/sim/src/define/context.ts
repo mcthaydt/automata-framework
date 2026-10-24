@@ -16,6 +16,10 @@ export interface EntityRef {
 /** A component to spawn with: the definition alone (defaults) or [definition, initial values]. */
 export type SpawnPart = ComponentDef | readonly [ComponentDef, Readonly<Record<string, unknown>>]
 
+/**
+ * A command as a system reads it this tick: the player slot that sent it (`source`), its per-source `seq` and
+ * its parsed `payload`.
+ */
 export interface CommandRecord<P> {
   readonly source: number
   readonly seq: number

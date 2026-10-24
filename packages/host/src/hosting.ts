@@ -5,13 +5,17 @@ import type {
   EntitlementsPayload,
   FullscreenRes,
   InputModePayload,
+  LeaderboardGetRes,
+  LeaderboardSubmitRes,
+  LeaderboardsApi,
   LifecyclePayload,
   PauseBehavior,
   RoundOutcome,
+  SavesChangedPayload,
   SavesFlushRes,
   SavesStatus,
 } from '@ruken/sdk'
-import type { Effect, Option, Scope, Subscribable } from 'effect'
+import type { Effect, Option, Scope, Stream, Subscribable } from 'effect'
 import { Context } from 'effect'
 import type { HostError, HostHandshakeFailed } from './errors'
 
@@ -32,6 +36,10 @@ export interface HostingOptions {
   readonly testHostOrigins?: readonly string[]
 }
 
+/**
+ * The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts
+ * them.
+ */
 export type AnalyticsProps = Record<string, string | number | boolean>
 
 /** The player's saves (shared contracts §1.1). Each call relays the SDK's error as a `HostError`; none falls back. */
@@ -40,6 +48,32 @@ export interface HostingSaves {
   set(key: string, value: string): Effect.Effect<void, HostError>
   remove(key: string): Effect.Effect<void, HostError>
   readonly flush: Effect.Effect<SavesFlushRes, HostError>
+  /** Every key the session holds, sorted by code unit (M5 spec §4.1). Fails `CANCELLED` once Hosting has shut down. */
+  readonly keys: Effect.Effect<readonly string[], HostError>
+  /**
+   * Another device's write, or the host's conflict choice, reached this session (`SavesApi.on('changed')`, M5 spec
+   * §4.1). No current value: only changes. Ends when Hosting shuts down.
+   */
+  readonly changed: Stream.Stream<SavesChangedPayload>
+}
+
+/**
+ * The host's leaderboards (Ruken's `LeaderboardsApi`, PRODUCT spec §2 F1). Needs the `leaderboards` grant.
+ * Each call relays the SDK's answer or error as a `HostError`: without the grant and standalone it fails
+ * `UNSUPPORTED`, offline it fails with the host's code. None keeps a local board instead.
+ */
+export interface HostingLeaderboards {
+  /** Submits `score` to `board` (a Ruken slug); `meta` is passed to the host as is. */
+  submit(
+    board: string,
+    score: number,
+    meta?: Parameters<LeaderboardsApi['submit']>[2],
+  ): Effect.Effect<LeaderboardSubmitRes, HostError>
+  /** Reads `board`: the top entries or those around the player, as the SDK's options say. */
+  get(
+    board: string,
+    query?: Parameters<LeaderboardsApi['get']>[1],
+  ): Effect.Effect<LeaderboardGetRes, HostError>
 }
 
 /**
@@ -66,6 +100,7 @@ export interface Hosting {
   readonly savesStatus: Subscribable.Subscribable<SavesStatus>
 
   readonly saves: HostingSaves
+  readonly leaderboards: HostingLeaderboards
   /** Ruken's `FullscreenRes`: `support` says what the device allows (for example `ios-home-screen`). */
   setFullscreen(on: boolean): Effect.Effect<FullscreenRes, HostError>
   readonly round: {
@@ -73,6 +108,12 @@ export interface Hosting {
     readonly start: Effect.Effect<void>
     /** The open round ended. With no round open it is dropped. */
     end(outcome?: RoundOutcome): Effect.Effect<void>
+    /**
+     * One item per round that ended, with its outcome, from the moment the stream
+     * is read (nothing is replayed). A dropped end gives none. Ends when Hosting
+     * shuts down. The `round-end` autosave trigger reads this.
+     */
+    readonly ended: Stream.Stream<RoundOutcome | undefined>
   }
   /** A disclosed analytics event. Never fails: undisclosed, unconsented or refused events are dropped. */
   track(event: string, props?: AnalyticsProps): Effect.Effect<void>
@@ -86,8 +127,11 @@ export interface Hosting {
   onMenuRequest(handler: () => boolean): Effect.Effect<void, never, Scope.Scope>
   /**
    * Runs `handler` when the host closes the game, while the scope is open. The
-   * host waits for it, but AF cuts it off at `HOST_EXIT_CAP` (1 s), inside
-   * Ruken's 1.5 s grace.
+   * host waits for it, but AF cuts everything off at `HOST_EXIT_CAP` (1 s),
+   * inside Ruken's 1.5 s grace. Handlers run one after another in registration
+   * order and the host save flush runs after the last, so a write a handler
+   * makes is flushed. All of them share the one cap: a handler that never
+   * returns costs the handlers after it and the flush.
    */
   onExiting(handler: Effect.Effect<void>): Effect.Effect<void, never, Scope.Scope>
 }

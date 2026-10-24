@@ -1,0 +1,14 @@
+import { type RuntimeHandle, runGame } from '@mcthaydt/automata-runtime'
+import { type DefinedGame, defineGame, type GameSpec, isDefinedGame } from './define-game.ts'
+
+/**
+ * Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
+ * and the default screens, then the runtime's boot on the game's root. Takes a spec or a game `defineGame`
+ * already returned. Throws `BootDefect` before anything mounts when the spec is invalid or there is no
+ * root (`spec.root`, else `#game`); a failure after that shows on the runtime's boot failure panel.
+ */
+export function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>): RuntimeHandle {
+  const defined = isDefinedGame(game) ? game : defineGame(game)
+  // Read the root once, here, so a missing one throws before the runtime starts.
+  return runGame({ ...defined, root: defined.root })
+}

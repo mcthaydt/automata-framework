@@ -3,6 +3,7 @@ import { settle } from '@ruken/sdk-host/testing'
 import {
   Chunk,
   Context,
+  Duration,
   Effect,
   Either,
   Exit,
@@ -52,6 +53,31 @@ describe('shutting Hosting down (audit of PR #5)', () => {
     )
   })
 
+  it('ends the saves changed stream when Hosting shuts down (M5 spec §4.1)', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const { hosting, scope } = yield* openHosting()
+        const reader = yield* Effect.fork(Stream.runCollect(hosting.saves.changed))
+        yield* settled
+        yield* Scope.close(scope, Exit.void)
+        // No other device wrote: the stream ends empty.
+        expect(Chunk.size(yield* Fiber.join(reader))).toBe(0)
+      }),
+    )
+  })
+
+  it('ends the round ended stream when Hosting shuts down (M5.2 plan step 3)', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const { hosting, scope } = yield* openHosting()
+        const reader = yield* Effect.fork(Stream.runCollect(hosting.round.ended))
+        yield* settled
+        yield* Scope.close(scope, Exit.void)
+        expect(Chunk.size(yield* Fiber.join(reader))).toBe(0)
+      }),
+    )
+  })
+
   it('fails saves and requests on a shut-down Hosting with a typed HostError instead of dropping them', async () => {
     await runScoped(
       Effect.gen(function* () {
@@ -62,6 +88,7 @@ describe('shutting Hosting down (audit of PR #5)', () => {
           hosting.saves.get('progress'),
           hosting.saves.remove('progress'),
           hosting.saves.flush,
+          hosting.saves.keys,
           hosting.setFullscreen(true),
           hosting.exit(),
         ] as Effect.Effect<unknown, unknown>[]) {
@@ -108,6 +135,103 @@ describe('the built-in save flush on exit (FloorFifty ruken/exit.ts)', () => {
         Effect.provide(HostingTest({ host: { clock }, env: swallowGameMessages('saves.flush') })),
         Effect.provide(TestContext.TestContext),
       ),
+    )
+  })
+})
+
+/**
+ * The SDK runs its `exiting` listeners together, so a game's last write and the
+ * host flush would race: the flush can leave before the write reaches the SDK's
+ * outbox. Hosting orders them (M5.2 plan step 2): the game's handlers one after
+ * another in registration order, then the flush, inside one HOST_EXIT_CAP.
+ */
+describe('the order of exit handlers and the flush (M5.2)', () => {
+  const sleep = (millis: number): Effect.Effect<void> => Effect.sleep(Duration.millis(millis))
+
+  /** Closes the game and lets `millis` of Effect time pass inside the exit, so a sleeping handler can finish. */
+  const closeAfter = (host: FakeHostHandle['host'], clock: ReturnType<typeof manualClock>, millis: number) =>
+    Effect.gen(function* () {
+      const closing = yield* Effect.fork(Effect.promise(() => host.bridge.exit()))
+      yield* settled
+      yield* TestClock.adjust(Duration.millis(millis))
+      yield* settled
+      clock.advance(10_000)
+      yield* Fiber.join(closing)
+    })
+
+  it('waits for a handler that writes late, then flushes, then tells the host it is ready', async () => {
+    const clock = manualClock()
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { host, sentByGame } = yield* FakeHostHandle
+        yield* hosting.onExiting(
+          sleep(100).pipe(Effect.zipRight(Effect.ignore(hosting.saves.set('late', '1')))),
+        )
+        yield* closeAfter(host, clock, 100)
+        const order = host.messages
+          .filter((entry) => entry.dir === 'in')
+          .map((entry) => entry.msg.type)
+          .filter((type) => ['saves.set', 'saves.flush', 'session.exitReady'].includes(type))
+        expect(order).toEqual(['saves.set', 'saves.flush', 'session.exitReady'])
+        expect(sentByGame('saves.flush')).toHaveLength(1)
+      }).pipe(Effect.provide(HostingTest({ host: { clock } })), Effect.provide(TestContext.TestContext)),
+    )
+  })
+
+  it('runs handlers one after another, in the order they were registered', async () => {
+    const clock = manualClock()
+    const ran: string[] = []
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { host } = yield* FakeHostHandle
+        yield* hosting.onExiting(sleep(50).pipe(Effect.zipRight(Effect.sync(() => ran.push('first')))))
+        yield* hosting.onExiting(Effect.sync(() => ran.push('second')))
+        yield* closeAfter(host, clock, 50)
+        expect(ran).toEqual(['first', 'second'])
+      }).pipe(Effect.provide(HostingTest({ host: { clock } })), Effect.provide(TestContext.TestContext)),
+    )
+  })
+
+  it('skips a handler whose scope closed, and carries on past one that fails', async () => {
+    const clock = manualClock()
+    const ran: string[] = []
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { host, sentByGame } = yield* FakeHostHandle
+        const gone = yield* Scope.make()
+        yield* hosting.onExiting(Effect.sync(() => ran.push('first')))
+        yield* hosting.onExiting(Effect.sync(() => ran.push('gone'))).pipe(Scope.extend(gone))
+        yield* hosting.onExiting(Effect.die('a handler broke'))
+        yield* hosting.onExiting(Effect.sync(() => ran.push('last')))
+        yield* Scope.close(gone, Exit.void)
+        yield* closeAfter(host, clock, 0)
+        expect(ran).toEqual(['first', 'last'])
+        expect(sentByGame('saves.flush')).toHaveLength(1)
+      }).pipe(Effect.provide(HostingTest({ host: { clock } })), Effect.provide(TestContext.TestContext)),
+    )
+  })
+
+  it('answers the host at HOST_EXIT_CAP when a handler never returns, and the flush is skipped', async () => {
+    const clock = manualClock()
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { host, sentByGame } = yield* FakeHostHandle
+        yield* hosting.saves.set('progress', '2')
+        yield* hosting.onExiting(Effect.never)
+        const closing = yield* Effect.fork(Effect.promise(() => host.bridge.exit()))
+        yield* settled
+        expect(sentByGame('session.exitReady')).toEqual([])
+        yield* TestClock.adjust(HOST_EXIT_CAP)
+        yield* settled
+        expect(sentByGame('session.exitReady')).toHaveLength(1)
+        expect(sentByGame('saves.flush')).toEqual([])
+        clock.advance(10_000)
+        yield* Fiber.join(closing)
+      }).pipe(Effect.provide(HostingTest({ host: { clock } })), Effect.provide(TestContext.TestContext)),
     )
   })
 })

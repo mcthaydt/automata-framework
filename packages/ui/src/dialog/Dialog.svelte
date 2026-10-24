@@ -1,10 +1,11 @@
 <!--
+  @component
   A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken
   `packages/ui/src/Dialog.svelte` at b30d31b). The screen renders it only while it is open
   (`{#if open}<Dialog>`) and decides what each action does; `onclose` is what Escape means, and it
   should mean the safe choice.
 
-  Keyboard and focus:
+  Keyboard and focus (the rules live in `modal-scope.ts`, which Modal and Sheet share):
   - Initial focus goes to the control marked `data-initial-focus` (the safe action), else the
     first control, else the dialog itself.
   - Tab and Shift+Tab wrap inside the dialog, and focus that lands outside it is pulled back in.
@@ -21,6 +22,7 @@
 -->
 <script lang="ts">
 import { onMount, type Snippet } from 'svelte'
+import { holdModal } from './modal-scope.js'
 
 interface Props {
   title: string
@@ -38,100 +40,13 @@ const id = $props.id()
 const titleId = `${id}-title`
 const bodyId = `${id}-body`
 
-/** Anything a keyboard can reach. (No layout in jsdom, so this does not look at visibility.) */
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-
-let panel = $state<HTMLElement | undefined>(undefined)
-// False once the dialog starts to go away, so giving focus back is not undone by the trap
-// pulling it into a dialog that is closing.
-let trapping = false
-
-function tabStops(): HTMLElement[] {
-  return panel === undefined ? [] : Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE))
-}
-
-/**
- * The topmost open dialog: the last `aria-modal` in the document that is not inert. A dialog opened
- * over this one comes later in the document, as a sibling (which inerts this one) or inside it.
- */
-function isTopmost(): boolean {
-  const open = [...document.querySelectorAll('[aria-modal="true"]')].filter(
-    (d) => d.closest('[inert]') === null,
-  )
-  return open.at(-1) === panel
-}
-
-/**
- * Marks everything outside `node` inert: the siblings of `node` and of each ancestor up to the
- * body. Returns how to undo it; only what this call marked is unmarked, so an element that was
- * already inert (or that an inner dialog marked) keeps its state.
- */
-function inertOutside(node: Element): () => void {
-  const marked: Element[] = []
-  let current: Element = node
-  while (current.parentElement !== null && current !== document.body) {
-    for (const sibling of current.parentElement.children) {
-      if (sibling === current || sibling.hasAttribute('inert')) continue
-      sibling.setAttribute('inert', '')
-      marked.push(sibling)
-    }
-    current = current.parentElement
-  }
-  return () => {
-    for (const element of marked) element.removeAttribute('inert')
-  }
-}
-
-function focusInitial(): void {
-  const marked = panel?.querySelector<HTMLElement>('[data-initial-focus]')
-  ;(marked ?? tabStops()[0] ?? panel)?.focus()
-}
-
 let scrim = $state<HTMLElement | undefined>(undefined)
+let panel = $state<HTMLElement | undefined>(undefined)
 
-onMount(() => {
-  const opener = document.activeElement
-  const release = scrim === undefined ? () => undefined : inertOutside(scrim)
-  trapping = true
-  focusInitial()
-  return () => {
-    trapping = false
-    release()
-    if (opener instanceof HTMLElement && opener.isConnected) opener.focus()
-  }
-})
-
-function onKeydown(event: KeyboardEvent): void {
-  if (!isTopmost()) return
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    onclose()
-    return
-  }
-  if (event.key !== 'Tab') return
-  const controls = tabStops()
-  const first = controls[0]
-  const last = controls[controls.length - 1]
-  if (first === undefined || last === undefined) {
-    event.preventDefault()
-    panel?.focus()
-  } else if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
-    event.preventDefault()
-    last.focus()
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault()
-    first.focus()
-  }
-}
-
-function onFocusIn(event: FocusEvent): void {
-  if (!trapping || !isTopmost()) return
-  if (panel !== undefined && event.target instanceof Node && !panel.contains(event.target)) focusInitial()
-}
+onMount(() =>
+  scrim === undefined || panel === undefined ? undefined : holdModal(scrim, panel, () => onclose()),
+)
 </script>
-
-<svelte:window onkeydown={onKeydown} onfocusin={onFocusIn} />
 
 <div bind:this={scrim} class="af-dialog-scrim" data-testid="dialog-scrim">
   <div

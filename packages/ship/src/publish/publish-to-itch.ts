@@ -16,6 +16,8 @@ export interface PublishItchInput {
   readonly config: ShipConfig
   /** The release tag being built, when there is one (`v1.2.3`). */
   readonly tag?: string | undefined
+  /** The game's folder, for the secret scan's `.env*` values (see `PrepareItchInput.gameDir`). */
+  readonly gameDir?: string | undefined
   /** `BUTLER_API_KEY`. Passed in butler's environment, never on its command line. */
   readonly apiKey: string | undefined
   /** butler as found on PATH (`findExecutable('butler')`), or undefined when it is not installed. */
@@ -72,7 +74,12 @@ export function publishToItch(
       return yield* new ItchSettingMissing({ setting: 'butler', message: NO_BUTLER })
     }
 
-    yield* prepareItch({ distDir: input.distDir, config: input.config, tag: input.tag })
+    yield* prepareItch({
+      distDir: input.distDir,
+      config: input.config,
+      tag: input.tag,
+      gameDir: input.gameDir,
+    })
 
     const { project, channel } = parsed.data
     const runner = yield* ProcessRunner

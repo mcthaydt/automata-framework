@@ -1,6 +1,9 @@
 import type { TaggedErrorClass } from '@mcthaydt/automata-node'
 import type { ManifestError } from '@ruken/manifest'
 import { Data } from 'effect'
+import type { UndeclaredBoardFound } from './prepare/board-names.ts'
+import type { OrientationMismatchFound } from './prepare/orientation.ts'
+import type { SecretFound } from './prepare/secret-scan.ts'
 
 export { FileError, ProcessError } from '@mcthaydt/automata-node'
 
@@ -44,6 +47,73 @@ export class RootAbsoluteReference extends RootAbsoluteReferenceBase {
   override get message(): string {
     const listed = this.references.map((found) => `${found.file}: ${found.reference}`).join('\n')
     return `the build names its own files by root-absolute paths, which 404 inside Ruken (/b/<buildId>/), or has a script that could not be checked:\n${listed}`
+  }
+}
+
+const SecretInBuildBase: TaggedErrorClass<
+  'SecretInBuild',
+  {
+    readonly found: readonly SecretFound[]
+  }
+> = Data.TaggedError('SecretInBuild')
+/** The build holds a key, an `.env` value or a high-entropy string (QB-b). The message never holds the secret. */
+export class SecretInBuild extends SecretInBuildBase {
+  override get message(): string {
+    const listed = this.found
+      .map(
+        (found) =>
+          `${found.file}:${found.line}:${found.col} (byte ${found.offset}): ${found.rule}: ${found.detail}`,
+      )
+      .join('\n')
+    return `the build holds what looks like a secret, and everything in a build is public. Remove it from the game's code (keep secrets on a server), then build again:\n${listed}`
+  }
+}
+
+const UndeclaredBoardBase: TaggedErrorClass<
+  'UndeclaredBoard',
+  {
+    readonly found: readonly UndeclaredBoardFound[]
+  }
+> = Data.TaggedError('UndeclaredBoard')
+/** The game names a leaderboard its ship config's `leaderboards` does not declare (M5 spec §4.8, L-b). */
+export class UndeclaredBoard extends UndeclaredBoardBase {
+  override get message(): string {
+    const listed = this.found
+      .map((found) => `${found.file}:${found.line}:${found.col}: "${found.board}"`)
+      .join('\n')
+    return `the game names leaderboards its ship config does not declare, so Ruken has nowhere to put their scores. Declare each in ship.config.ts under leaderboards, or fix the name:\n${listed}`
+  }
+}
+
+const OrientationMismatchBase: TaggedErrorClass<
+  'OrientationMismatch',
+  {
+    readonly found: readonly OrientationMismatchFound[]
+  }
+> = Data.TaggedError('OrientationMismatch')
+/** The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up). */
+export class OrientationMismatch extends OrientationMismatchBase {
+  override get message(): string {
+    const listed = this.found
+      .map(
+        (found) =>
+          `${found.file}:${found.line}:${found.col}: defineGame plays "${found.orientation}", but runtime.orientation is "${found.declared}"`,
+      )
+      .join('\n')
+    return `the game plays in an orientation its ship config does not declare, so the rotate hint and the host's frame disagree. Make runtime.orientation in ship.config.ts and the game's orientation the same:\n${listed}`
+  }
+}
+
+const ManifestInputsMismatchBase: TaggedErrorClass<
+  'ManifestInputsMismatch',
+  {
+    readonly problems: readonly string[]
+  }
+> = Data.TaggedError('ManifestInputsMismatch')
+/** `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g). */
+export class ManifestInputsMismatch extends ManifestInputsMismatchBase {
+  override get message(): string {
+    return `ruken.toml's runtime.inputs disagrees with the game's input bindings; fix ship.config.ts or the bindings:\n${this.problems.join('\n')}`
   }
 }
 
@@ -147,6 +217,7 @@ const TestRemoteFailedBase: TaggedErrorClass<
     readonly message: string
   }
 > = Data.TaggedError('TestRemoteFailed')
+/** `test-remote` stopped without a green run; `reason` says why and `message` says what to do. */
 export class TestRemoteFailed extends TestRemoteFailedBase {}
 
 /** The `prepare --target itch` check that failed, in the order they run (PUB spec §4). */

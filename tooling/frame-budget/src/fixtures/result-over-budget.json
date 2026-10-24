@@ -1,0 +1,49 @@
+{
+  "schema": "af-frame-budget-result/1",
+  "project": "frame-budget-phone",
+  "measuredAt": "2026-10-16T00:00:00.000Z",
+  "scene": {
+    "entities": 2000,
+    "systems": 8
+  },
+  "sample": {
+    "warmupMs": 2000,
+    "sampleMs": 10000
+  },
+  "environment": {
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "gpuVendor": "Google Inc. (NVIDIA)",
+    "renderer": "webgl",
+    "browser": "chromium",
+    "browserVersion": "141.0.0.0",
+    "userAgent": "fixture",
+    "viewport": {
+      "width": 412,
+      "height": 839
+    },
+    "devicePixelRatio": 2.625,
+    "os": "linux 6.6",
+    "cpus": 8,
+    "cpuModel": "fixture CPU",
+    "node": "v24.21.0",
+    "commit": "0000000000000000000000000000000000000000",
+    "runner": "af-linux",
+    "ci": true
+  },
+  "workMs": {
+    "count": 600,
+    "mean": 9.5,
+    "p50": 9,
+    "p95": 12.5,
+    "p99": 14,
+    "max": 30
+  },
+  "intervalMs": {
+    "count": 600,
+    "mean": 20,
+    "p50": 16.7,
+    "p95": 33.4,
+    "p99": 40,
+    "max": 50
+  }
+}

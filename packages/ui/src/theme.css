@@ -36,6 +36,9 @@
   --af-on-accent: #1a1932;
   --af-danger: #c42430;
   --af-on-danger: #ffffff;
+  /* Tone edges (a Chip's or a Toast's border): --af-danger fills behind white text but is too dark for an edge. */
+  --af-danger-edge: #f5555d;
+  --af-success: #5ac54f;
   --af-ring: #0cf1ff;
   --af-scrim: color-mix(in srgb, #0e071b 72%, transparent);
 }

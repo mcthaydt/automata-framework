@@ -45,7 +45,7 @@
     "@mcthaydt/automata-sim": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
     "effect": "3.22.2",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "peerDependencies": {
     "pixi.js": "8.21.0"

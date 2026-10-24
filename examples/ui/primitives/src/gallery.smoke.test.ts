@@ -43,6 +43,27 @@ describe('ui/primitives demo', () => {
     },
   )
 
+  // M4.6: each new primitive has a frame, and the frame draws it (the part named here is the primitive's own).
+  test.each([
+    ['split', '[data-split]'],
+    ['options', 'fieldset input[type="radio"]'],
+    ['pager', '[data-pager-dot]'],
+    ['paged-grid', '[data-focus-grid]'],
+    ['controls', 'input[role="switch"]'],
+    ['chip', '[data-chip][data-tone="danger"]'],
+    ['modal', '[data-modal-close]'],
+    ['sheet', '[data-modal-scrim][data-anchor="bottom"]'],
+    ['toast', '[data-toast]'],
+    ['leaderboard', '[data-leaderboard] [data-entry][data-me]'],
+  ] as const)('draws the M4.6 primitive %s', async (primitive, part) => {
+    expect(PRIMITIVES).toContain(primitive)
+    const problems = consoleProblems()
+    stop = await start(target(), new URL(`http://demo.test/?frame=${primitive}`))
+    await readyOn(document.documentElement)
+    expect(document.querySelector(`[data-demo="${primitive}"] ${part}`)).not.toBeNull()
+    expect(problems).toEqual([])
+  })
+
   test('the gallery shows the chosen primitive at every reference size', async () => {
     const problems = consoleProblems()
     const root = target()

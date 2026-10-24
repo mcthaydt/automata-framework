@@ -1,0 +1,90 @@
+/*
+ * The default screens' layout (DX spec §7). The runtime's three layers fill the game's root: the
+ * renderer's stage at the back, the screens over it, status overlays on top. The ui frame
+ * (`ScreenFrame`) fills the visible region itself; these rules only say what lets the game show
+ * through and what takes the pointer.
+ */
+[data-layer="stage"] {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+[data-layer="stage"] > canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.af-game-menu__body {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  text-align: center;
+}
+
+.af-game-menu__title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Why play paused, when the player did not ask (a pad unplugged). */
+.af-game-menu__message {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Paused: the game shows dimmed behind the menu. */
+.af-game-menu--scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--af-scrim);
+}
+
+/* Play: the frame lets the pointer through to the game; only its controls take it. */
+.af-game-play [data-screen-frame] {
+  pointer-events: none;
+}
+
+.af-game-play button {
+  pointer-events: auto;
+}
+
+.af-game-play__field {
+  min-height: 0;
+}
+
+/* The touch buttons (ui TouchControls, M4.3), centred along the foot as before, one group of them. */
+.af-game-play .af-touch[data-testid] {
+  justify-content: center;
+}
+
+.af-game-play .af-touch__side[data-touch-side] {
+  gap: 8px;
+}
+
+/* A thumb's target: at least the primary size, never smaller. */
+.af-game-play .af-touch__button[data-action] {
+  min-width: calc(var(--af-target-primary) * 1.5);
+  min-height: calc(var(--af-target-primary) * 1.5);
+  font-size: calc(var(--af-text-body) * 1.5);
+}
+
+/* The title of a game with a save (M5.2): the name above, the slot list under it taking the rest of the height. */
+.af-game-menu__body--saves {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+  min-height: 0;
+  height: 100%;
+}
+
+.af-game-menu__slots {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-rows: 1fr;
+  width: min(100%, 32rem);
+  min-height: 0;
+  margin-inline: auto;
+}

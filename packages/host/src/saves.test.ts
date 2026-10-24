@@ -1,5 +1,6 @@
+import type { SdkEnv, StorageLike } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
-import { Effect, Either, Fiber, Stream } from 'effect'
+import { Chunk, Effect, Either, Fiber, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { Hosting } from './hosting'
 import { FakeHostHandle, HostingTest, manualClock, runScoped } from './testing'
@@ -123,6 +124,44 @@ describe('saves (shared contracts §1.5; FloorFifty hosting and settings-hosted)
     )
   })
 
+  it('lists every key the session holds, sorted by code unit, including one written this visit (M5 spec §4.1)', async () => {
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        expect(yield* hosting.saves.keys).toEqual(['a', 'a.slot.0', 'b'])
+        yield* hosting.saves.set('B', '4')
+        expect(yield* hosting.saves.keys).toEqual(['B', 'a', 'a.slot.0', 'b'])
+        yield* hosting.saves.remove('a')
+        expect(yield* hosting.saves.keys).toEqual(['B', 'a.slot.0', 'b'])
+      }).pipe(Effect.provide(HostingTest({ host: { saves: { b: '1', a: '2', 'a.slot.0': '3' } } }))),
+    )
+  })
+
+  it("streams another device's write once the host's conflict choice reaches this session (M5 spec §4.1)", async () => {
+    const clock = manualClock()
+    await runScoped(
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { host } = yield* FakeHostHandle
+        yield* hosting.ready
+        const changes = yield* Effect.fork(Stream.runCollect(Stream.take(hosting.saves.changed, 1)))
+        yield* settled
+
+        host.fakes.server.remoteWrite('progress', '9', 'Desk PC')
+        yield* hosting.saves.set('progress', '4')
+        yield* settled
+        clock.advance(60_000)
+        yield* settled
+        yield* Effect.promise(() => host.bridge.resolveConflict('progress', 'theirs'))
+        yield* settled
+
+        const [change] = Chunk.toReadonlyArray(yield* Fiber.join(changes))
+        expect(change).toMatchObject({ key: 'progress', value: '9' })
+        expect(typeof change?.revision).toBe('number')
+      }).pipe(Effect.provide(HostingTest({ host: { clock, saves: { progress: '1' } } }))),
+    )
+  })
+
   it("without the saves grant, relays the SDK's behaviour: writes stay in memory, nothing is sent, flush is UNSUPPORTED", async () => {
     // Ruken's SDK at b30d31b keeps an ungranted write in its cache for the visit
     // (sdk/src/saves-storage.ts, `enabled`), unlike Ruken's S6 answer 3 (throw DENIED).
@@ -144,5 +183,76 @@ describe('saves (shared contracts §1.5; FloorFifty hosting and settings-hosted)
         expect(sentByGame('saves.set')).toEqual([])
       }).pipe(Effect.provide(HostingTest({ hosting: { wants: [] } }))),
     )
+  })
+
+  // AGENTS.md, host authority: a denied or unavailable hosted capability must not silently switch to device
+  // storage. The page's own storage is handed to the SDK as a spy, and a Ruken frame must never write to it.
+  describe("the page's own storage", () => {
+    const pageStorage = () => {
+      const writes: string[] = []
+      const values = new Map<string, string>()
+      const storage: StorageLike = {
+        getItem: (key) => values.get(key) ?? null,
+        setItem: (key, value) => {
+          writes.push(key)
+          values.set(key, value)
+        },
+        removeItem: (key) => void values.delete(key),
+        key: (index) => [...values.keys()][index] ?? null,
+        get length() {
+          return values.size
+        },
+      }
+      return { storage, writes }
+    }
+    const withStorage =
+      (storage: StorageLike, isTopLevel = false) =>
+      (env: SdkEnv): SdkEnv => ({ ...env, isTopLevel, storage })
+
+    it('is where a top-level page keeps its saves, which is what the cases below must not see in a frame', async () => {
+      const { storage, writes } = pageStorage()
+      await runScoped(
+        Effect.gen(function* () {
+          const hosting = yield* Hosting
+          yield* hosting.saves.set('progress', '2')
+        }).pipe(Effect.provide(HostingTest({ env: withStorage(storage, true) }))),
+      )
+      expect(writes.length).toBeGreaterThan(0)
+    })
+
+    it('is never written without the saves grant', async () => {
+      const { storage, writes } = pageStorage()
+      await runScoped(
+        Effect.gen(function* () {
+          const hosting = yield* Hosting
+          expect(hosting.granted.has('saves')).toBe(false)
+          yield* hosting.saves.set('progress', '2')
+          yield* settled
+        }).pipe(Effect.provide(HostingTest({ hosting: { wants: [] }, env: withStorage(storage) }))),
+      )
+      expect(writes).toEqual([])
+    })
+
+    it('is never written while the saves server is out of reach: the write queues on the host session', async () => {
+      const { storage, writes } = pageStorage()
+      const clock = manualClock()
+      await runScoped(
+        Effect.gen(function* () {
+          const hosting = yield* Hosting
+          const { host } = yield* FakeHostHandle
+          host.fakes.saves.offline = true
+          yield* hosting.saves.set('progress', '3')
+          yield* settled
+          clock.advance(1000)
+          yield* settled
+          expect(yield* hosting.savesStatus.get).toBe('offline-queued')
+        }).pipe(
+          Effect.provide(
+            HostingTest({ host: { clock, saves: { progress: '1' } }, env: withStorage(storage) }),
+          ),
+        ),
+      )
+      expect(writes).toEqual([])
+    })
   })
 })
