@@ -160,6 +160,11 @@ describe('public entry', () => {
     for (const name of ['createSectorTool', 'portalOffers']) expect(editor3d, name).toHaveProperty(name)
   })
 
+  it('exports the wall tools and what one wall can be offered, and keeps the geometry cache inside', () => {
+    for (const name of ['createWallTool', 'wallPortal']) expect(editor3d, name).toHaveProperty(name)
+    expect(editor3d).not.toHaveProperty('createGeometryCache')
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',

@@ -11,6 +11,16 @@ export {
   type SectorToolOptions,
   type SectorToolView,
 } from './app/sector-tool-controller'
+export {
+  createWallTool,
+  type WallEffect,
+  type WallPlace,
+  type WallTarget,
+  type WallTool,
+  type WallToolKind,
+  type WallToolOptions,
+  type WallToolView,
+} from './app/wall-tool-controller'
 export * from './checks/check'
 export * from './checks/entities'
 export * from './checks/entity-refs'
@@ -43,7 +53,7 @@ export {
   type LevelEditorOptions,
 } from './model/level-editor'
 export type { LevelState } from './model/level-state'
-export { type PortalOffer, portalOffers } from './model/portal-offers'
+export { type PortalOffer, portalOffers, type WallPortal, wallPortal } from './model/portal-offers'
 export {
   type AddSectorArgs,
   addSector,
