@@ -1,4 +1,20 @@
 export {
+  type AcceptResult,
+  type Ask,
+  type AskGhost,
+  type AskOptions,
+  type AskView,
+  createAsk,
+} from './app/ask-controller'
+export {
+  type ChecksPanel,
+  type ChecksPanelOptions,
+  type ChecksPanelView,
+  createChecksPanel,
+  type LocateResult,
+  type Scheduler,
+} from './app/checks-panel-controller'
+export {
   createPlanController,
   type PlanController,
   type PlanPointer,
@@ -30,8 +46,13 @@ export {
   type WallToolView,
 } from './app/wall-tool-controller'
 export * from './checks/check'
+export * from './checks/entities'
+export * from './checks/entity-refs'
 export * from './checks/generic-checks'
+export { DEFAULT_TONE, type LampKind, lampProblems } from './checks/last-light/lamps'
 export * from './checks/last-light/last-light-checks'
+export { type RoomOwners, type RoomPolicy, roomPolicyProblems } from './checks/last-light/room-policy'
+export { materialProblems } from './checks/materials'
 export * from './checks/wall-locator'
 export * from './codec/layout'
 export * from './codec/locate'
@@ -52,6 +73,21 @@ export { type Triangle, type Triangulation, triangulate } from './geometry/trian
 export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edits'
 export { type Edit, type EditResult, ok, refuse } from './model/edit'
 export { type EditCommandOptions, registerEditCommands } from './model/edit-commands'
+export {
+  createFacilityEditor,
+  type FacilityEdit,
+  type FacilityEditor,
+  type FacilityEditorOptions,
+  type FacilitySession,
+  type FacilityState,
+} from './model/facility-editor'
+export { type MoveWingArgs, moveWing, removeJoin, setJoin, setLock } from './model/facility-edits'
+export {
+  type FacilitySelectionKind,
+  type FacilitySelectionRef,
+  facilitySelection,
+  parseFacilitySelection,
+} from './model/facility-selection'
 export {
   createLevelEditor,
   type EditSession,
@@ -75,6 +111,15 @@ export {
   setView,
 } from './model/sector-edits'
 export { parseSelection, type SelectionRef } from './model/selection-ref'
+export {
+  type AddThingArgs,
+  addThing,
+  type MoveThingArgs,
+  moveThing,
+  removeThing,
+  type SetThingFieldArgs,
+  setThingField,
+} from './model/thing-edits'
 export {
   type InsertCornerArgs,
   insertCorner,
@@ -101,6 +146,7 @@ export {
   type WallRef,
   type WindowArgs,
 } from './model/wall-edits'
+export type { AskProvider, ChangeSet, Generator, Proposal } from './ports/ports'
 export * from './profile/af-sector/af-checks'
 export * from './profile/af-sector/af-codec'
 export * from './profile/af-sector/af-entities'
@@ -128,6 +174,7 @@ export {
   SectorAccessError,
   type SectorDraft,
 } from './profile/sector-access'
+export { type ThingAccess, ThingAccessError } from './profile/thing-access'
 export {
   type Camera3D,
   type FitOptions,

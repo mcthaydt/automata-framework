@@ -1,8 +1,0 @@
-[screens.title]
-files = ["assets/title.txt"]
-
-[screens.play]
-files = ["assets/play.txt"]
-
-[screens.paused]
-files = []

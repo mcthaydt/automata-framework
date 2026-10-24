@@ -84,6 +84,7 @@ describe('the pure layers', () => {
     'profile',
     'model',
     'view',
+    'ports',
     'app',
   ]) {
     it(`src/${layer} has no impure import or global`, () => {

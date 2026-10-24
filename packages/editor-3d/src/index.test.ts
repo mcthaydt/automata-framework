@@ -70,7 +70,12 @@ describe('public entry', () => {
       'setWallMaterial',
       'setWallOcclude',
       'setWallFlags',
+      'addThing',
+      'moveThing',
+      'setThingField',
+      'removeThing',
       'SectorAccessError',
+      'ThingAccessError',
       'inheritedMaterials',
       'portalReferences',
       'loopArea',
@@ -94,6 +99,18 @@ describe('public entry', () => {
       'lastLightDefinitions',
       'lastLightEntityKit',
     ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it('exports the entity checks: the values, places and single definitions, and the refs', () => {
+    for (const name of ['entityProblems', 'entityRefProblems']) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it('exports the checks that take the game’s lists: materials, lamps and the room policy', () => {
+    for (const name of ['materialProblems', 'lampProblems', 'DEFAULT_TONE', 'roomPolicyProblems']) {
       expect(editor3d, name).toHaveProperty(name)
     }
   })
@@ -183,6 +200,20 @@ describe('public entry', () => {
     expect(shapes).toHaveLength(2)
   })
 
+  it('exports the facility editor, the World edits and the World selection ids', () => {
+    for (const name of [
+      'createFacilityEditor',
+      'moveWing',
+      'setJoin',
+      'removeJoin',
+      'setLock',
+      'facilitySelection',
+      'parseFacilitySelection',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('exports the wall tools and what one wall can be offered, and keeps the geometry cache inside', () => {
     for (const name of ['createWallTool', 'wallPortal']) expect(editor3d, name).toHaveProperty(name)
     expect(editor3d).not.toHaveProperty('createGeometryCache')
@@ -194,6 +225,12 @@ describe('public entry', () => {
     // The targets are a type, so this is checked by the compiler: the entry names them.
     const effects: editor3d.VertexEffect[] = [{ action: 'add' }, { action: 'none', reason: 'no' }]
     expect(effects).toHaveLength(2)
+  })
+
+  it('exports the checks panel and the Ask', () => {
+    for (const name of ['createChecksPanel', 'createAsk']) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
   })
 
   it('keeps test helpers and the verification guard out', () => {
@@ -224,6 +261,11 @@ describe('public entry', () => {
       'buildRefusal',
       'wallOver',
       'PORTAL_MEMBERS',
+      'upserted',
+      'sameMember',
+      'fakeAskProvider',
+      'deferred',
+      'problemCount',
       // The view core's own helpers: the vector arithmetic and the shared picking parts.
       'cross',
       'dot',
