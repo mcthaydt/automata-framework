@@ -97,6 +97,7 @@
 
 - `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts them.
 - `ErrorCode` (type): Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError` carries them.
+- `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
 - `HOST_EXIT_CAP` (const): How long the game may hold the host's close (FloorFifty `ruken/exit.ts`, Ruken P6 §4 "1 s cap").
 - `HostError` (class): Any failure after the handshake.
 - `HostHandshakeFailed` (class): The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session.
@@ -107,6 +108,7 @@
 - `HostingSaves` (interface): The player's saves (shared contracts §1.1).
 - `HostingSeams` (interface): Test seams.
 - `makeHosting(options, seams?)`: Builds `Hosting` over `Ruken.init`.
+- `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp b30d31b.
 - `toHostError(operation, cause)`: Turns whatever the SDK threw or rejected with into a `HostError`.
 
 ### `import { … } from '@mcthaydt/automata-host/testing'`

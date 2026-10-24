@@ -81,8 +81,13 @@ export interface HostingLeaderboards {
  * of the M1 shared contracts spec §1, implemented by the host lane.
  */
 export interface Hosting {
-  /** 'ruken' when the session is hosted; 'standalone' when the SDK returned its standalone session. */
-  readonly kind: 'ruken' | 'standalone'
+  /**
+   * Which session this is: 'ruken' when Ruken hosts it; 'standalone' when the Ruken adapter got the SDK's
+   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3).
+   */
+  readonly kind: 'ruken' | 'standalone' | 'web'
+  /** The host's name for UI, such as "Back to …": 'Ruken', 'itch.io' or 'this page' (PUB spec §3). */
+  readonly hostName: string
   /** Some when the page is inside a frame but the SDK fell back to standalone (shared contracts §1.2). */
   readonly handshake: { readonly fellBack: Option.Option<HostHandshakeFailed> }
   readonly player: { readonly id: string; readonly displayName: string }

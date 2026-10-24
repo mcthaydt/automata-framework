@@ -16,6 +16,12 @@ type AnalyticsProps = Record<string, string | number | boolean>;
 type ErrorCode = RukenError['code'];
 ```
 
+### `findRukenSdkMarkers` (function)
+
+```ts
+function findRukenSdkMarkers(code: string): string[];
+```
+
 ### `HOST_EXIT_CAP` (const)
 
 ```ts
@@ -40,7 +46,8 @@ class HostHandshakeFailed extends HostHandshakeFailedBase {
 
 ```ts
 interface Hosting {
-    readonly kind: 'ruken' | 'standalone';
+    readonly kind: 'ruken' | 'standalone' | 'web';
+    readonly hostName: string;
     readonly handshake: {
         readonly fellBack: Option.Option<HostHandshakeFailed>;
     };
@@ -127,10 +134,30 @@ interface HostingSeams {
 function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>;
 ```
 
+### `RUKEN_SDK_MARKERS` (const)
+
+```ts
+const RUKEN_SDK_MARKERS: readonly string[];
+```
+
 ### `toHostError` (function)
 
 ```ts
 function toHostError(operation: string, cause: unknown): HostError;
+```
+
+## `./target`
+
+### `HostingLive` (function)
+
+```ts
+function HostingLive(options: HostingOptions, seams?: HostingSeams): Layer.Layer<Hosting, HostError>;
+```
+
+### `makeHosting` (function)
+
+```ts
+function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>;
 ```
 
 ## `./testing`

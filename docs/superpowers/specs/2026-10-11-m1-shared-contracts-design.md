@@ -16,9 +16,13 @@ Source of truth for Ruken types: `@ruken/sdk` packed from RukenApp `b30d31b` ([`
 
 Revised 2026-10-11 (audit round 3, coordinator decisions): follow the SDK's own handshake fallback, one adapter instead of two, Ruken's return types for `setFullscreen` and `exit`, and no AF copies of Ruken limits.
 
+Revised 2026-10-16 (PUB.1, host lane; [PUB spec](./2026-10-16-publish-targets-design.md) §3, [ADR 0005](../../adr/0005-publish-targets.md)): a second adapter for builds published outside Ruken, chosen at build time; `kind` gains `'web'`; new `hostName`.
+
 ### 1.1 Shape
 
-`Hosting` is an Effect service (`Context.Tag`). **One layer, `HostingLive`, wraps `Ruken.init`** for every case. The SDK already decides between a hosted session (framed by Ruken, `welcome` received) and its standalone session (top-level page, or no valid `welcome` within the SDK's timeout, `packages/sdk/src/handshake.ts`), and its standalone session already provides local saves and unsupported services (`standalone.ts`). AF does not write a second web adapter. `HostingTest` is `HostingLive` with an `SdkEnv` wired to `@ruken/sdk-host`'s fake host. A later desktop adapter (`host-tauri`, M7) implements the same service itself.
+`Hosting` is an Effect service (`Context.Tag`). **One layer, `HostingLive`, wraps `Ruken.init`** for every case. The SDK already decides between a hosted session (framed by Ruken, `welcome` received) and its standalone session (top-level page, or no valid `welcome` within the SDK's timeout, `packages/sdk/src/handshake.ts`), and its standalone session already provides local saves and unsupported services (`standalone.ts`). For a `ruken` build AF writes no second adapter; the web adapter below exists only for builds published elsewhere (PUB.1). `HostingTest` is `HostingLive` with an `SdkEnv` wired to `@ruken/sdk-host`'s fake host. A later desktop adapter (`host-tauri`, M7) implements the same service itself.
+
+**The web adapter (PUB.1).** An `itch` or `web` build (PUB spec §3) does not call `Ruken.init`: inside itch.io's frame the SDK would wait 10 s for a welcome that never comes. `@mcthaydt/automata-host/target` exports `makeHosting` and `HostingLive` with the same signatures under two export conditions: `default` resolves to the Ruken adapter above, and `automata-web` resolves to `hosting-web.ts`, which implements this same contract for a page outside Ruken (PUB spec §3.1: no handshake, lifecycle from Page Visibility and focus, input from real events, `visualViewport` display metrics, Element Fullscreen, `localStorage` saves under the SDK's `ruken:<gameId>:` prefix). It imports `@ruken/sdk` as types only, so its bundle holds no SDK code. Its differences from the SDK's standalone session are deliberate and each is pinned by a test: `exit` fails `UNSUPPORTED`; blocked storage leaves `saves` ungranted and every save call fails `DENIED` (never memory); a full origin quota fails `QUOTA_EXCEEDED`. The runtime's boot imports `makeHosting` from `./target`; everything else imports the contract from `.`. The build chooses the target (PUB.2): `resolve.conditions: ['automata-web', ...]` and the define `__AUTOMATA_TARGET__` (`'itch'` or `'web'`), which only sets `hostName`.
 
 `HostingLive` is a `Layer<Hosting, HostError>`: `Ruken.init` can still throw (for example `INVALID_PAYLOAD` for a bad `gameId` or `wants`), and that failure surfaces as `HostError{ operation: 'init' }` so the runtime maps it to a boot state (§3). The layer is scoped: when the runtime scope closes, the session is disposed and every later `Hosting` operation fails with `HostError{ code: 'CANCELLED', retryable: false }`.
 
@@ -31,8 +35,10 @@ import type { Capability, SavesStatus, DisplayMetricsPayload, InputModePayload,
   SavesFlushRes } from '@ruken/sdk'
 
 interface Hosting {
-  /** 'ruken' when the session is hosted; 'standalone' when the SDK returned its standalone session. */
-  readonly kind: 'ruken' | 'standalone'
+  /** 'ruken' when Ruken hosts it; 'standalone' when the SDK returned its standalone session; 'web' for the web adapter. */
+  readonly kind: 'ruken' | 'standalone' | 'web'
+  /** The host's name for UI ("Back to …"): 'Ruken' from the Ruken adapter; 'itch.io' or 'this page' from the web adapter. */
+  readonly hostName: string
   /** Some when the page is inside a frame but the SDK fell back to standalone (see 1.2). */
   readonly handshake: { readonly fellBack: Option.Option<HostHandshakeFailed> }
   readonly player: { readonly id: string; readonly displayName: string }
@@ -105,7 +111,7 @@ Two clocks, kept apart:
 
 ### 1.5 Required tests (host lane)
 
-Against `@ruken/sdk-host`: hosted handshake; top-level page gives `kind: 'standalone'` with `fellBack` = `None`; framed page with no welcome gives `kind: 'standalone'`, `fellBack` = `Some` and one warning logged; wrong origin and wrong source rejected (falls back as above); `ready` before and after; each observed stream's initial value and change; `locale` from the session; saves get/set/remove/flush including `offline-queued`, `conflict` and `recovered` status and a quota error relayed from the SDK; a capability missing from `granted` fails with the SDK's error and no fallback; `setFullscreen` returns `support`; `exit` defaults to `'player'`; `exiting` runs its handler; `onMenuRequest` before `ready` resolves answers `false` without calling the game's handler (AF's guard, below). Port FloorFifty's `apps/client/src/ruken/` contract tests and spike S6's cases.
+Against `@ruken/sdk-host`: hosted handshake; top-level page gives `kind: 'standalone'` with `fellBack` = `None`; framed page with no welcome gives `kind: 'standalone'`, `fellBack` = `Some` and one warning logged; wrong origin and wrong source rejected (falls back as above); `ready` before and after; each observed stream's initial value and change; `locale` from the session; saves get/set/remove/flush including `offline-queued`, `conflict` and `recovered` status and a quota error relayed from the SDK; a capability missing from `granted` fails with the SDK's error and no fallback; `setFullscreen` returns `support`; `exit` defaults to `'player'`; `exiting` runs its handler; `onMenuRequest` before `ready` resolves answers `false` without calling the game's handler (AF's guard, below). Port FloorFifty's `apps/client/src/ruken/` contract tests and spike S6's cases. The cases that apply to any host (ready, player and locale, saves round trip and flush, each stream starting with its current value, rounds and analytics never failing, handlers in a scope, `CANCELLED` and ended streams after shutdown) run against both adapters in `packages/host/src/hosting-web.test.ts` (PUB-a).
 
 ### 1.6 Known external item
 
