@@ -1,6 +1,7 @@
 // Which walls of a new sector lie on a neighbour's wall (ED3D.6a step 1, ED3D spec §5.3 flow 2): a wall drawn over the
-// same segment as a wall of another sector offers a portal, which `setWallKind` makes on both sides. The toy level is a
-// hall (0 to 8 m by 0 to 6 m) and a dock beside it (8 to 14 m), which already lead into each other.
+// same segment as a wall of another sector offers a portal, which `setWallKind` makes on both sides; and what one wall
+// can be offered (ED3D.6b step 1). The toy level is a hall (0 to 8 m by 0 to 6 m) and a dock beside it (8 to 14 m), which
+// already lead into each other.
 import { describe, expect, it } from 'vitest'
 import type { AfSector, AfSectorEntry } from '../format/af-sector.schema'
 import type { Blockout, Room } from '../format/blockout.schema'
@@ -8,7 +9,7 @@ import { afSectorProfile } from '../profile/af-sector-profile'
 import { lastLightProfile } from '../profile/last-light-profile'
 import { toyAfSector, toyDock, toyHall } from '../testing/toy-af-sector'
 import { toyBlockout, toyRoom } from '../testing/toy-blockout'
-import { portalOffers } from './portal-offers'
+import { portalOffers, wallPortal } from './portal-offers'
 
 const sector = (id: string, corners: AfSectorEntry['corners']): AfSectorEntry => ({
   id,
@@ -147,5 +148,116 @@ describe('portalOffers', () => {
     expect(portalOffers(lastLightProfile, blockout, 'c')).toEqual([
       { sector: 'c', corner: 1, to: 'a', toCorner: 3, length: 4 },
     ])
+  })
+})
+
+describe('wallPortal', () => {
+  const portal = (data: AfSector, id: string, corner: number) => wallPortal(afSectorProfile, data, id, corner)
+
+  /** The hall with its west wall (corner 3) leading into `next`. */
+  const hallLeadingWest = (next: string): AfSectorEntry => ({
+    ...toyHall,
+    corners: toyHall.corners.map((corner, i) => (i === 3 ? ([0, 6, { next }] as const) : corner)),
+  })
+
+  it('gives the offer of a wall over a neighbour wall, the one portalOffers gives for it', () => {
+    const data = level(sector('annex', ANNEX))
+    expect(portal(data, 'annex', 1)).toEqual({
+      kind: 'offer',
+      offer: { sector: 'annex', corner: 1, to: 'hall', toCorner: 3, length: 6 },
+    })
+    expect(offers(data, 'annex')).toEqual([(portal(data, 'annex', 1) as { offer: unknown }).offer])
+  })
+
+  it('says done for a wall whose two sides already lead into each other, from either side', () => {
+    expect(portal(level(), 'hall', 1)).toEqual({ kind: 'done', to: 'dock' })
+    expect(portal(level(), 'dock', 3)).toEqual({ kind: 'done', to: 'hall' })
+  })
+
+  it('says taken, with where it leads, for a wall over one that leads into a third sector', () => {
+    const data = toyAfSector({ sectors: [hallLeadingWest('elsewhere'), toyDock, sector('annex', ANNEX)] })
+    expect(portal(data, 'annex', 1)).toEqual({ kind: 'taken', to: 'elsewhere' })
+  })
+
+  it('says none for a wall with nothing over it, a corner that is not there and a sector that is not', () => {
+    const data = level(sector('annex', ANNEX))
+    expect(portal(data, 'annex', 0)).toEqual({ kind: 'none' })
+    expect(portal(data, 'annex', 9)).toEqual({ kind: 'none' })
+    expect(portal(data, 'annex', -1)).toEqual({ kind: 'none' })
+    expect(portal(data, 'nowhere', 0)).toEqual({ kind: 'none' })
+  })
+
+  it('offers the first neighbour that can take the portal, past one that is done or taken', () => {
+    const twin = sector('twin', [
+      [-3, 0],
+      [0, 0],
+      [0, 6],
+      [-3, 6],
+    ])
+    const data = toyAfSector({
+      sectors: [hallLeadingWest('elsewhere'), toyDock, sector('annex', ANNEX), twin],
+    })
+    expect(portal(data, 'annex', 1)).toEqual({
+      kind: 'offer',
+      offer: { sector: 'annex', corner: 1, to: 'twin', toCorner: 1, length: 6 },
+    })
+  })
+
+  it('gives the reason of the first neighbour over the wall when none of them can take it', () => {
+    const twinEast = (next: string): AfSectorEntry => ({
+      ...sector('twin', [
+        [-3, 0],
+        [0, 0],
+        [0, 6],
+        [-3, 6],
+      ]),
+      corners: [
+        [-3, 0],
+        [0, 0, { next }],
+        [0, 6],
+        [-3, 6],
+      ],
+    })
+    const bothTaken = toyAfSector({
+      sectors: [hallLeadingWest('elsewhere'), toyDock, sector('annex', ANNEX), twinEast('somewhere')],
+    })
+    expect(portal(bothTaken, 'annex', 1)).toEqual({ kind: 'taken', to: 'elsewhere' })
+    // The annex's wall leads into the twin already and the twin's leads back (done), after the hall's that is taken.
+    const annexToTwin: AfSectorEntry['corners'] = ANNEX.map((corner, i) =>
+      i === 1 ? ([0, 0, { next: 'twin' }] as const) : corner,
+    )
+    const takenThenDone = toyAfSector({
+      sectors: [hallLeadingWest('elsewhere'), toyDock, sector('annex', annexToTwin), twinEast('annex')],
+    })
+    expect(portal(takenThenDone, 'annex', 1)).toEqual({ kind: 'taken', to: 'elsewhere' })
+  })
+
+  it('offers a wall whose own side already leads there, which completes the pair', () => {
+    const half: AfSectorEntry['corners'] = ANNEX.map((corner, i) =>
+      i === 1 ? ([0, 0, { next: 'hall' }] as const) : corner,
+    )
+    expect(portal(level(sector('annex', half)), 'annex', 1)).toEqual({
+      kind: 'offer',
+      offer: { sector: 'annex', corner: 1, to: 'hall', toCorner: 3, length: 6 },
+    })
+  })
+
+  it('answers the same on a Last Light level', () => {
+    const c: Room = {
+      ...toyRoom('a'),
+      id: 'c',
+      corners: [
+        [-4, 0],
+        [0, 0],
+        [0, 4],
+        [-4, 4],
+      ],
+    }
+    const blockout: Blockout = toyBlockout({ rooms: [toyRoom('a'), toyRoom('b'), c] })
+    expect(wallPortal(lastLightProfile, blockout, 'c', 1)).toEqual({
+      kind: 'offer',
+      offer: { sector: 'c', corner: 1, to: 'a', toCorner: 3, length: 4 },
+    })
+    expect(wallPortal(lastLightProfile, blockout, 'c', 0)).toEqual({ kind: 'none' })
   })
 })

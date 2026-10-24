@@ -59,6 +59,74 @@ describe('afIdProblems', () => {
     expect(afIdProblems(level).map((problem) => problem.message)).toEqual(['sector hall twice'])
   })
 
+  describe('refs', () => {
+    const crate = { id: 'crate', shape: 'box', size: [1, 1, 1], fields: [] }
+    const switchDef = {
+      id: 'switch',
+      shape: 'point',
+      fields: [{ id: 'opens', type: 'ref', to: ['crate', 'ghost'] }],
+    }
+
+    it('says a ref that points at nothing, at the thing that holds it, and a `to` that names nothing', () => {
+      const level = toyAfSector({
+        entityDefs: [crate, switchDef],
+        entities: [
+          { def: 'crate', id: 'c1', x: 1, z: 1 },
+          { def: 'switch', id: 's1', x: 2, z: 2, opens: { target: 'c1' } },
+          { def: 'switch', id: 's2', x: 3, z: 3, opens: { target: 'c9' } },
+        ],
+      })
+      expect(afIdProblems(level)).toEqual([
+        {
+          message: 'entity definition switch: opens may point at ghost, which is not a definition or $sector',
+        },
+        {
+          message: 'entity s2: opens points at c9, which is no crate or ghost',
+          locator: { selection: 'entity:switch/s2', at: { x: 3, z: 3 } },
+        },
+      ])
+    })
+
+    it('knows the sectors of the level as targets', () => {
+      const level = toyAfSector({
+        entityDefs: [
+          { id: 'door', shape: 'point', fields: [{ id: 'leadsTo', type: 'ref', to: ['$sector'] }] },
+        ],
+        entities: [
+          { def: 'door', id: 'd1', x: 2, z: 2, leadsTo: { target: 'dock' } },
+          { def: 'door', id: 'd2', x: 3, z: 3, leadsTo: { target: 'cellar' } },
+        ],
+      })
+      expect(afIdProblems(level).map((problem) => problem.message)).toEqual([
+        'entity d2: leadsTo points at cellar, which is no sector',
+      ])
+    })
+
+    it('says the ids that are twice first, then the refs', () => {
+      const level = toyAfSector({
+        sectors: [toyHall, { ...toyDock, id: 'hall' }],
+        entityDefs: [crate, { ...switchDef, fields: [{ id: 'opens', type: 'ref', to: ['crate'] }] }],
+        entities: [{ def: 'switch', id: 's1', x: 2, z: 2, opens: { target: 'nowhere' } }],
+      })
+      expect(afIdProblems(level).map((problem) => problem.message)).toEqual([
+        'sector hall twice',
+        'entity s1: opens points at nowhere, which is no crate',
+      ])
+    })
+
+    it('fails the `ids` result of the checks for a ref that points at nothing', () => {
+      const level = toyAfSector({
+        entityDefs: [crate, { ...switchDef, fields: [{ id: 'opens', type: 'ref', to: ['crate'] }] }],
+        entities: [{ def: 'switch', id: 's1', x: 2, z: 2, opens: { target: 'nowhere' } }],
+      })
+      const ids = afSectorChecks(level).find((result) => result.id === 'ids')
+      expect(ids).toMatchObject({
+        ok: false,
+        detail: 'entity s1: opens points at nowhere, which is no crate',
+      })
+    })
+  })
+
   it('reports a name that cannot be a selection id, without a place', () => {
     const odd = { ...toyHall, id: 'a/b' }
     const level = toyAfSector({
@@ -76,7 +144,7 @@ describe('afIdProblems', () => {
 })
 
 describe('afSectorChecks', () => {
-  it('runs ids, shared-walls, openings, overlap and heights, in that order, all ok on the toy level', () => {
+  it('runs ids, shared-walls, openings, overlap, heights and entities, in that order, all ok on the toy level', () => {
     const results = afSectorChecks(toyAfSector())
     expect(results.map((result) => [result.id, result.ok, result.severity, result.detail])).toEqual([
       ['ids', true, 'error', 'ok'],
@@ -84,6 +152,7 @@ describe('afSectorChecks', () => {
       ['openings', true, 'error', 'ok'],
       ['overlap', true, 'error', 'ok'],
       ['heights', true, 'error', 'ok'],
+      ['entities', true, 'error', '0 things of 0 definitions'],
     ])
   })
 
@@ -94,6 +163,7 @@ describe('afSectorChecks', () => {
       ['openings', true],
       ['overlap', true],
       ['heights', true],
+      ['entities', true],
     ])
   })
 
@@ -122,8 +192,30 @@ describe('afSectorChecks', () => {
       'openings',
       'overlap',
       'heights',
+      'entities',
     ])
     expect(results[0]).toMatchObject({ ok: false, detail: 'sector dock twice' })
+  })
+
+  it('fails entities for a thing outside every sector and for a value that does not fit, located at the thing', () => {
+    const level = toyAfSector({
+      entityDefs: [
+        { id: 'crate', shape: 'box', size: [1, 1, 1], fields: [{ id: 'weight', type: 'int', max: 3 }] },
+      ],
+      entities: [
+        { def: 'crate', id: 'c1', x: 2, z: 2, weight: 9 },
+        { def: 'crate', id: 'c2', x: 50, z: 50 },
+      ],
+    })
+    const entities = afSectorChecks(level).find((result) => result.id === 'entities')
+    expect(entities).toMatchObject({
+      ok: false,
+      detail: 'entity c1: weight must be at most 3; entity c2 is outside every sector',
+    })
+    expect(entities?.problems.map((problem) => problem.locator)).toEqual([
+      { selection: 'entity:crate/c1', at: { x: 2, z: 2 } },
+      { selection: 'entity:crate/c2', at: { x: 50, z: 50 } },
+    ])
   })
 
   it('fails openings when one side of the depot’s portal pair is gone, and locates the wall by its corner', () => {
