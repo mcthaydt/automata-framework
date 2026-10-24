@@ -174,9 +174,42 @@ describe('public entry', () => {
     expect(shapes).toHaveLength(2)
   })
 
+  it('exports the facility editor, the World edits, the facility checks and the World selection ids', () => {
+    for (const name of [
+      'facilityChecks',
+      'createFacilityEditor',
+      'moveWing',
+      'setJoin',
+      'removeJoin',
+      'setLock',
+      'facilitySelection',
+      'parseFacilitySelection',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('exports the wall tools and what one wall can be offered, and keeps the geometry cache inside', () => {
     for (const name of ['createWallTool', 'wallPortal']) expect(editor3d, name).toHaveProperty(name)
     expect(editor3d).not.toHaveProperty('createGeometryCache')
+  })
+
+  it('exports the vertex edits and the Vertex tool', () => {
+    for (const name of ['insertCorner', 'removeCorner', 'createVertexTool'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The targets are a type, so this is checked by the compiler: the entry names them.
+    const effects: editor3d.VertexEffect[] = [{ action: 'add' }, { action: 'none', reason: 'no' }]
+    expect(effects).toHaveLength(2)
+  })
+
+  it('exports the Split and Merge edits, and keeps the helpers they share inside', () => {
+    for (const name of ['splitSector', 'mergeSectors']) expect(editor3d, name).toHaveProperty(name)
+    for (const name of ['retargetPortals', 'redirectPortals', 'cornerInserted', 'reversedLoop'])
+      expect(editor3d, name).not.toHaveProperty(name)
+    // The arguments are types, so this is checked by the compiler: the entry names them.
+    const split: editor3d.SplitSectorArgs = { sector: 'a', id: 'b', from: { x: 0, z: 0 }, to: { x: 1, z: 1 } }
+    const merge: editor3d.MergeSectorsArgs = { keep: 'a', merge: 'b' }
+    expect([split.id, merge.keep]).toEqual(['b', 'a'])
   })
 
   it('exports the checks panel and the Ask', () => {
@@ -213,6 +246,13 @@ describe('public entry', () => {
       'buildRefusal',
       'wallOver',
       'PORTAL_MEMBERS',
+      'upserted',
+      'joinSideProblem',
+      'lockProblem',
+      'sameJoinSide',
+      'shippedFacility',
+      'shippedFacilityText',
+      'sameMember',
       'fakeAskProvider',
       'deferred',
       'problemCount',
