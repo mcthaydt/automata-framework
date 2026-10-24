@@ -3,6 +3,7 @@
 // nothing, and keeps a member it does not know.
 import { describe, expect, it } from 'vitest'
 import { AF_SECTOR_FORMAT, afFormatVersion, afSectorSchema } from './af-sector.schema'
+import { OCCLUDES } from './sector.schema'
 
 // biome-ignore lint/suspicious/noExplicitAny: tests edit a level by path
 type Json = Record<string, any>
@@ -100,6 +101,36 @@ describe('the af-sector schema', () => {
     json.entities = [{ def: 'crate', id: 'crate1', x: 3, z: 2, loot: 'key', note: 'near the door' }]
     const result = afSectorSchema.parse(json)
     expect(result).toStrictEqual(json)
+  })
+
+  describe('wall occlusion and the sector view id (ED3D.4b)', () => {
+    it('names the three occlusions the camera rule knows', () => {
+      expect(OCCLUDES).toEqual(['cut', 'fade', 'never'])
+    })
+
+    it.each(OCCLUDES)('keeps a wall that says occlude %s, and a sector with a view', (occlude) => {
+      const json = level()
+      json.sectors[0].view = 'hall-view'
+      json.sectors[0].corners[0] = [0, 0, { occlude }]
+      const result = afSectorSchema.safeParse(json)
+      expect(result.success, JSON.stringify(result.error?.issues)).toBe(true)
+      expect(result.data).toStrictEqual(json)
+    })
+
+    it.each([5, 'hide', true, ['cut'], null])(
+      'refuses a wall whose occlude is %j, at the member',
+      (value) => {
+        const json = level()
+        json.sectors[0].corners[0] = [0, 0, { occlude: value }]
+        expect(refusedAt(json)).toContainEqual(['sectors', 0, 'corners', 0, 2, 'occlude'])
+      },
+    )
+
+    it.each([5, true, ['a'], null])('refuses a sector whose view is %j, at the member', (value) => {
+      const json = level()
+      json.sectors[0].view = value
+      expect(refusedAt(json)).toContainEqual(['sectors', 0, 'view'])
+    })
   })
 
   describe('the format member', () => {

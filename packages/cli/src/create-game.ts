@@ -56,7 +56,7 @@ const TEMPLATE_FILES: readonly TemplateFile[] = [
             '@ruken/sdk': '^0.0.0',
             effect: '3.22.2',
             'pixi.js': '8.21.0',
-            zod: '4.6.5',
+            zod: '4.6.6',
           },
           devDependencies: {
             '@mcthaydt/automata-ship': 'workspace:*',

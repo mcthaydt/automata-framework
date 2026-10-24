@@ -37,7 +37,7 @@
     "effect": "3.22.2",
     "pixi.js": "8.21.0",
     "svelte": "5.57.1",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@mcthaydt/automata-check-boundaries": "workspace:*",
