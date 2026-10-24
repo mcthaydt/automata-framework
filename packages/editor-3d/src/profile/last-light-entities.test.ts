@@ -41,9 +41,9 @@ describe('lastLightDefinitions', () => {
     }
   })
 
-  it('have one spawn, and every thing float at the y its file gives it', () => {
+  it('have one spawn, every thing float at the y its file gives it, and a nav node rest on the floor, as it has no y', () => {
     expect(lastLightDefinitions.filter((def) => def.single).map((def) => def.id)).toEqual(['spawn'])
-    expect(lastLightDefinitions.every((def) => def.sit === 'free')).toBe(true)
+    expect(lastLightDefinitions.filter((def) => def.sit === 'floor').map((def) => def.id)).toEqual(['node'])
   })
 
   it('size a box by the w, h and d of each box, above a centimetre', () => {
@@ -233,7 +233,11 @@ describe('lastLightEntityKit', () => {
     })
     expect(kit.things.some((thing) => thing.def === 'anchor')).toBe(false)
     expect(kit.problems).toEqual([
-      { path: ['anchors', 'fuse', 'odd'], message: 'entity fuse: odd is not a value a field can hold' },
+      {
+        path: ['anchors', 'fuse', 'odd'],
+        message: 'entity fuse: odd is not a value a field can hold',
+        entity: { def: 'anchor', id: 'fuse', at: { x: 1, z: 2 } },
+      },
     ])
   })
 

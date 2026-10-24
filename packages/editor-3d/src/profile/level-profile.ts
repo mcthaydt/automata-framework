@@ -3,6 +3,8 @@
 // editor asks of a level: the geometry its views draw, the checks its problems list shows, and the things that stand in
 // it. ED3D.2b adds the checks that need the entities, ED3D.8 the materials.
 import type { CheckResult } from '../checks/check'
+import type { LampKind } from '../checks/last-light/lamps'
+import type { RoomPolicy } from '../checks/last-light/room-policy'
 import type { EntityKit } from '../entities/things'
 import type { SectorDef } from '../format/expand'
 import type { MassDef } from '../format/sector.schema'
@@ -10,6 +12,7 @@ import type { NavWorld } from '../geometry/nav'
 import { type ResolvedMap, resolveMap } from '../geometry/sectors'
 import type { FileCodec } from './file-codec'
 import type { SectorAccess } from './sector-access'
+import type { ThingAccess } from './thing-access'
 
 /**
  * One layer of what a level draws. Sectors are the only kind there is; terrain and open worlds are post-launch
@@ -31,10 +34,24 @@ export class GeometryError extends Error {
   override readonly name = 'GeometryError'
 }
 
-/** What a profile's checks may be told about the game that holds the level. */
+/**
+ * What a profile's checks may be told about the game that holds the level: lists the level file does not carry. A check
+ * whose list is absent (or `null`) is skipped and says so; the host reads each list from the game.
+ */
 export interface ProfileContext {
   /** Last Light: the hotspot ids the level's puzzle acts on; `null`, or absent, is a level with no puzzle. */
   readonly puzzleHotspots?: readonly string[] | null | undefined
+  /** Last Light: the material ids the game's renderer has, for the `materials` check; `null`, or absent, is no list. */
+  readonly materials?: readonly string[] | null | undefined
+  /** Last Light: the lamp archetypes the game allows, by kind, for the `lamps` check; `null`, or absent, is no list. */
+  readonly lampKinds?: Readonly<Record<string, LampKind>> | null | undefined
+  /** Last Light: how far in OKLab a lamp's colour may be from its archetype's; `null`, or absent, is the game's own 0.06. */
+  readonly tone?: number | null | undefined
+  /**
+   * Last Light: the scene's room-visibility policy, for the `policy` check. Absent is a game with none, which skips the check;
+   * `null` is a policy the host could not read, which the check warns about.
+   */
+  readonly roomPolicy?: RoomPolicy | null | undefined
 }
 
 export interface LevelProfile<D> extends FileCodec<D> {
@@ -49,6 +66,8 @@ export interface LevelProfile<D> extends FileCodec<D> {
   entities(doc: D): EntityKit
   /** How the editor's edits read and write the level's sectors (ED3D.3). */
   readonly sectors: SectorAccess<D>
+  /** How the editor's edits write the level's things (ED3D.7a); reading them is `entities`. */
+  readonly things: ThingAccess<D>
 }
 
 /** The resolved sectors, or the engine's sentence as a `GeometryError`. */
