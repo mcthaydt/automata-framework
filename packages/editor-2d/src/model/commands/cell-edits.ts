@@ -6,7 +6,7 @@ import { unpackTile } from '../cells-codec'
 import type { Grid } from '../grid'
 import type { LayerDef, LayerInstance, Project } from '../project-types'
 import { tilesetTiles } from '../tileset-grid'
-import { type LayerTarget, updateLayer } from './layer-target'
+import { findLayer, type LayerTarget, updateLayer } from './layer-target'
 
 // The cell tools' edits on a project (2D editor spec §5.8, §5.9). The operations on a `Grid` are in `tiles/` and know
 // nothing of layers; these find the grid a layer keeps its cells in and check the word before it is written, so the
@@ -56,6 +56,12 @@ function editCells(
     const next = edit(grid)
     return next === grid ? layer : withCells(layer, next)
   })
+}
+
+/** The word in one cell of a layer (0 when empty or outside the level): what the picker reads. */
+export function cellWord(project: Project, target: LayerTarget, cell: Point): number {
+  const { layer, def } = findLayer(project, target)
+  return cellsOf(layer, def).get(cell.x, cell.y)
 }
 
 /** The word in every cell of `cells`. Cells outside the level are dropped. */

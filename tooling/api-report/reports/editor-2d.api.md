@@ -122,6 +122,12 @@ interface CellProblem {
 }
 ```
 
+### `cellWord` (function)
+
+```ts
+function cellWord(project: Project, target: LayerTarget, cell: Point): number;
+```
+
 ### `CHUNK` (const)
 
 ```ts
@@ -153,6 +159,12 @@ function copyStamp(grid: Grid, x: number, y: number, w: number, h: number): Stam
 
 ```ts
 function counterIds(start?: number): IdSource;
+```
+
+### `createLevelEditor` (function)
+
+```ts
+function createLevelEditor(options: LevelEditorOptions): LevelEditor;
 ```
 
 ### `createProfileRegistry` (function)
@@ -230,6 +242,20 @@ interface Diagnostic {
 
 ```ts
 function duplicateEntity(project: Project, target: LayerTarget, id: string, copyId: string, offset: Point): Project;
+```
+
+### `EditHistory` (interface)
+
+```ts
+interface EditHistory {
+    readonly state: Project;
+    apply(label: string, update: (project: Project) => Project): void;
+    begin(label: string): {
+        update(fn: (project: Project) => Project): void;
+        commit(): void;
+        cancel(): void;
+    };
+}
 ```
 
 ### `emptyLayers` (function)
@@ -545,6 +571,68 @@ interface Level<Layer = LayerInstance> {
     readonly fields: FieldValues;
     readonly layers: readonly Layer[];
 }
+```
+
+### `LevelEditor` (interface)
+
+```ts
+interface LevelEditor {
+    readonly view: LevelEditorView;
+    subscribe(run: () => void): () => void;
+    setLevel(id: string): void;
+    setLayer(def: string): void;
+    setTool(tool: LevelTool): void;
+    setBrushSize(size: number): void;
+    setWord(word: number): void;
+    setEntityDef(def: string): void;
+    setLocked(layer: string, locked: boolean): void;
+    setHidden(layer: string, hidden: boolean): void;
+    pointerMove(at: Point): void;
+    pointerDown(at: Point): void;
+    pointerUp(): void;
+    cancel(): void;
+    pointerLeave(): void;
+    refresh(): void;
+}
+```
+
+### `LevelEditorOptions` (interface)
+
+```ts
+interface LevelEditorOptions {
+    readonly history: EditHistory;
+    readonly ids: IdSource;
+    readonly level: string;
+    readonly layer?: string;
+}
+```
+
+### `LevelEditorView` (interface)
+
+```ts
+interface LevelEditorView {
+    readonly level: string;
+    readonly layer: string;
+    readonly tool: LevelTool;
+    readonly brushSize: number;
+    readonly word: number;
+    readonly entityDef: string | undefined;
+    readonly selected: readonly string[];
+    readonly hover: Point | undefined;
+    readonly locked: ReadonlySet<string>;
+    readonly hidden: ReadonlySet<string>;
+    readonly gesture: 'idle' | 'stroke' | 'rectangle' | 'move';
+    readonly rectangle: {
+        readonly from: Point;
+        readonly to: Point;
+    } | undefined;
+}
+```
+
+### `LevelTool` (type)
+
+```ts
+type LevelTool = 'select' | 'brush' | 'rectangle' | 'fill' | 'eraser' | 'picker';
 ```
 
 ### `lineCells` (function)

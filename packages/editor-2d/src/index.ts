@@ -1,6 +1,14 @@
 // The headless core of the 2D level editor: the project model, its working file and the profile registry. No Svelte,
 // DOM or Pixi in here (`architecture.test.ts` keeps it so); the canvas and the app are separate folders.
 export {
+  createLevelEditor,
+  type EditHistory,
+  type LevelEditor,
+  type LevelEditorOptions,
+  type LevelEditorView,
+  type LevelTool,
+} from './app/level-editor'
+export {
   type CellKind,
   type CellProblem,
   decodeRows,
@@ -9,6 +17,7 @@ export {
   unpackTile,
 } from './model/cells-codec'
 export {
+  cellWord,
   eraseLayerCells,
   fillLayer,
   paintLayerCells,
