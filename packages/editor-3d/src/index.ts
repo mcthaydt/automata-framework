@@ -15,6 +15,13 @@ export {
   type Scheduler,
 } from './app/checks-panel-controller'
 export {
+  createMergeTool,
+  type MergeEffect,
+  type MergeTarget,
+  type MergeTool,
+  type MergeToolView,
+} from './app/merge-tool-controller'
+export {
   createPlanController,
   type PlanController,
   type PlanPointer,
@@ -29,16 +36,24 @@ export {
   type SectorToolView,
 } from './app/sector-tool-controller'
 export {
+  createSplitTool,
+  type SplitEffect,
+  type SplitTarget,
+  type SplitTool,
+  type SplitToolOptions,
+  type SplitToolView,
+} from './app/split-tool-controller'
+export {
   createVertexTool,
   type VertexEffect,
   type VertexTarget,
   type VertexTool,
   type VertexToolView,
 } from './app/vertex-tool-controller'
+export type { CornerPlace, OutlinePlace, WallPlace } from './app/wall-place'
 export {
   createWallTool,
   type WallEffect,
-  type WallPlace,
   type WallTarget,
   type WallTool,
   type WallToolKind,

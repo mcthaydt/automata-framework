@@ -12,7 +12,7 @@ import { levelOf, reasonOf } from '../testing/edit-helpers'
 import { loadAuthored, loadFixture } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
 import { must } from '../testing/toy-blockout'
-import { splitSector } from './split-edits'
+import { cutProblem, splitSector } from './split-edits'
 
 const depot = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
@@ -718,5 +718,42 @@ describe('splitSector in Last Light', () => {
     expect(reasonOf(split.run(lastLightProfile, through))).toBe(
       'ward cannot be cut while something is tied to its walls: wall preset TOWARD: next ward',
     )
+  })
+})
+
+describe('cutProblem', () => {
+  it('says nothing for a sector that can be cut by some line', () => {
+    expect(cutProblem(afSectorProfile, depot, 'hall')).toBeUndefined()
+    expect(cutProblem(lastLightProfile, dawn, 'ward')).toBeUndefined()
+  })
+
+  it('says what splitSector says before it looks at the line: a portal into itself', () => {
+    const loop = toyAfSector({
+      sectors: [
+        {
+          id: 'a',
+          floor: 0,
+          ceiling: 4,
+          light: 1,
+          corners: [
+            [0, 0, { next: 'a' }],
+            [8, 0],
+            [8, 6],
+            [0, 6],
+          ],
+        },
+      ],
+    })
+    expect(cutProblem(afSectorProfile, loop, 'a')).toBe('a has a portal into itself')
+  })
+
+  it('says what is tied to a Last Light room', () => {
+    expect(cutProblem(lastLightProfile, dawn, 'yard')).toBe(
+      'yard cannot be cut while something is tied to its walls: opening exitWay (corridor → yard)',
+    )
+  })
+
+  it('says nothing for a sector that is not there: the edit has the sentence for that', () => {
+    expect(cutProblem(afSectorProfile, depot, 'ghost')).toBeUndefined()
   })
 })
