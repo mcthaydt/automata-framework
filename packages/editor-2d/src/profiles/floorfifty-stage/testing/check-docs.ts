@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import type { StageCourse, StageLayer, StageSetPiece } from '../stage.schema'
 import type { StageDocument } from '../stage-document'
 import { documentOf, MINIMAL_STAGE } from './stage-texts'
@@ -50,4 +51,10 @@ export function withCourse(course: StageCourse): StageDocument {
     value: { ...base.value, course },
     ids: { ...base.ids, extension: numbered(course.extension ?? []) },
   }
+}
+
+/** The asset aliases of FloorFifty's art manifest at the recorded commit (PROVENANCE.md), as the checks take them. */
+export function artAliases(): ReadonlySet<string> {
+  const names: string[] = JSON.parse(readFileSync(new URL('./art-aliases.json', import.meta.url), 'utf8'))
+  return new Set(names)
 }

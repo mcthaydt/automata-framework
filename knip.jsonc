@@ -34,6 +34,9 @@
     "packages/editor-kit": {
       "ignoreDependencies": ["@fontsource/ibm-plex-mono", "@fontsource/ibm-plex-sans"]
     },
+    // EDFF.1c: make-goldens.mjs is run by hand with node (its header says how) to write the goldens the course and
+    // composition ports are tested against.
+    "packages/editor-2d": { "entry": ["src/profiles/floorfifty-stage/testing/make-goldens.mjs"] },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
     "packages/host": { "ignoreDependencies": ["zod"] },

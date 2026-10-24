@@ -8,6 +8,25 @@ export {
   packTile,
   unpackTile,
 } from './model/cells-codec'
+export {
+  eraseLayerCells,
+  fillLayer,
+  paintLayerCells,
+  paintLayerRandom,
+  paintLayerRect,
+  pasteLayerStamp,
+} from './model/commands/cell-edits'
+export {
+  deleteEntity,
+  duplicateEntity,
+  moveEntity,
+  placeEntity,
+  resizeEntity,
+  setEntityField,
+} from './model/commands/entity-edits'
+export { type Bounds, entityAt, entityBounds } from './model/commands/entity-geometry'
+export { findLayer, type LayerTarget, updateLayer } from './model/commands/layer-target'
+export { deleteObject, flipObject, moveObject, placeObject } from './model/commands/object-edits'
 export { CHUNK, Grid, type GridEditor } from './model/grid'
 export { counterIds, DEF_ID, type IdSource, ITEM_ID, randomIds } from './model/ids'
 export { emptyLayers, layerCells } from './model/level-layers'
