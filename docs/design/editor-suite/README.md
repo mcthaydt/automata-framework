@@ -11,7 +11,8 @@ one"). Since then the accepted screens keep their layout and only their data cha
 come from the game's editor list. The Studio was redesigned, and one FloorFifty screen shows a second game. The Owner accepted the Studio's look the
 same morning and asked for an IK rig and animation, so the Studio gained Pose by hand and Animate; a States page, an
 Export screen, three more portraits and the nine look fixes the audit flagged followed. `LATEST` in `changes.mjs`
-lists those since the Studio's acceptance.
+lists those since the Studio's acceptance. The Owner signed off all 32 screens on 2026-10-23 20:35 UTC ("the mockups
+are signed of tell them", recorded as `SIGNED_OFF`), so the gallery shows that list as signed off.
 `changes.mjs` lists each change in one line; the gallery shows them before and after.
 
 - Figma file: [Automata Editors](https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d), pages `Suite · Shell`,

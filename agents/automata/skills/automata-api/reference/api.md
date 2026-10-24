@@ -1681,6 +1681,37 @@ is not written as an object (a spread or a variable), so the check says it could
 function declaredBoardsIn(code: string): string[] | undefined;
 ```
 
+#### `DeclaredInputs` (interface)
+
+The `runtime.inputs` a `ship.config.ts` declares, with the position of its opening bracket.
+
+```ts
+interface DeclaredInputs {
+  readonly inputs: string[];
+  readonly line: number;
+  readonly col: number;
+}
+```
+
+#### `declaredInputsIn` (function)
+
+The `runtime.inputs` a `ship.config.ts` declares, read from the source as written (`automata check` reads files, it
+does not run them). `undefined` when the file does not parse or `runtime.inputs` is not an array of string literals.
+
+```ts
+function declaredInputsIn(code: string): DeclaredInputs | undefined;
+```
+
+#### `declaredOrientationIn` (function)
+
+The `runtime.orientation` a `ship.config.ts` declares, read from the source as written (`automata check` reads
+files, it does not run them). `undefined` when the file does not parse or `runtime.orientation` is not written as
+a literal, so the check can say it could not read it.
+
+```ts
+function declaredOrientationIn(code: string): string | undefined;
+```
+
 #### `defineShipConfig` (function)
 
 Identity function that gives a game's `ship.config.ts` type checking and editor completion.
@@ -1775,6 +1806,23 @@ class FileError extends FileErrorBase {
 }
 ```
 
+#### `findInputsProblems` (function)
+
+Each disagreement between `inputs` (a config's `runtime.inputs`) and what the `keys()` calls in a game's sources
+bind, in `inputsProblems`' words; empty when they agree or the game has no `keys()` call to compare.
+
+```ts
+function findInputsProblems(gameDir: string, inputs: readonly string[]): string[];
+```
+
+#### `findOrientationMismatches` (function)
+
+Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
+
+```ts
+function findOrientationMismatches(gameDir: string, declared: string): OrientationMismatchFound[];
+```
+
 #### `findRootAbsoluteReferences` (function)
 
 Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
@@ -1801,6 +1849,15 @@ Every board a game's sources name that `declared` (its ship config's `leaderboar
 function findUndeclaredBoards(gameDir: string, declared: readonly string[]): UndeclaredBoardFound[];
 ```
 
+#### `gameOrientationsIn` (function)
+
+The orientations the `defineGame` calls in one source file play in, in source order; `undefined` when the file
+does not parse (its typecheck already fails, and a half-read tree could name an orientation that is not there).
+
+```ts
+function gameOrientationsIn(file: string, code: string): PlayedOrientation[] | undefined;
+```
+
 #### `inputsProblems` (function)
 
 Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
@@ -1815,6 +1872,32 @@ Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`
 
 ```ts
 const isBoardSource: (file: string) => boolean;
+```
+
+#### `isInputsSource` (const)
+
+Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+
+```ts
+const isInputsSource: (file: string) => boolean;
+```
+
+#### `isOrientationSource` (const)
+
+Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+
+```ts
+const isOrientationSource: (file: string) => boolean;
+```
+
+#### `keysBindingsIn` (function)
+
+What the `keys()` calls in one source file bind, one `<file>:<line>:<col> keys` entry per call (and `pad` and
+`gestures` entries where it binds them); empty when the file has no call; `undefined` when it does not parse (its
+typecheck already fails, and a half-read tree could name a device that is not there).
+
+```ts
+function keysBindingsIn(file: string, code: string): ShipInputBindings | undefined;
 ```
 
 #### `ManifestInputsMismatch` (class)
@@ -1837,12 +1920,47 @@ class ManifestInvalid extends ManifestInvalidBase {
 }
 ```
 
+#### `OrientationMismatch` (class)
+
+The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up).
+
+```ts
+class OrientationMismatch extends OrientationMismatchBase {
+  override get message(): string;
+}
+```
+
+#### `OrientationMismatchFound` (interface)
+
+A game that plays in an orientation its ship config does not declare.
+
+```ts
+interface OrientationMismatchFound extends PlayedOrientation {
+  /** The ship config's `runtime.orientation`. */
+  readonly declared: string;
+  /** Relative to the game folder, with forward slashes. */
+  readonly file: string;
+}
+```
+
 #### `parseEnvFile` (function)
 
 The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
 
 ```ts
 function parseEnvFile(file: string, text: string): EnvValue[];
+```
+
+#### `PlayedOrientation` (interface)
+
+An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
+
+```ts
+interface PlayedOrientation {
+  readonly orientation: string;
+  readonly line: number;
+  readonly col: number;
+}
 ```
 
 #### `portsFor` (function)
@@ -1864,7 +1982,7 @@ function portsFor(checkoutPath: string, env: Readonly<Record<string, string | un
 #### `prepareBuild` (function)
 
 Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
-entry page, root-absolute paths, secrets (QB-b) and the leaderboards the game names (M5.7), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
 runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
 (archive, size, file types) happen inside `ruken publish`, not here.
 
@@ -1893,7 +2011,8 @@ interface PrepareInput {
   readonly gameDir?: string | undefined;
   /**
    * The game's input bindings (its input map's `profile.bindings`), checked against `runtime.inputs` (I-g).
-   * Left out, nothing is checked.
+   * Left out, the `keys()` calls in `gameDir`'s sources are read instead (M4.1 follow-up); with neither, nothing
+   * is checked.
    */
   readonly inputBindings?: ShipInputBindings | undefined;
 }
@@ -4729,6 +4848,14 @@ class CursorRunner {
 }
 ```
 
+#### `defaultSlot` (function)
+
+The newest slot that can be continued; else the first slot; else none.
+
+```ts
+function defaultSlot(slots: readonly SaveSlotView[]): number | undefined;
+```
+
 #### `DeviceClass` (type)
 
 The kind of device the player holds: `phone`, `tablet` or `desktop`, decided once at boot.
@@ -5987,6 +6114,159 @@ interface RotateToastCopy {
 }
 ```
 
+#### `SAVE_STATUS_TONES` (const)
+
+`conflict` points the player at the host's own question (M5 spec §5), so it is a warning, not an error.
+
+```ts
+const SAVE_STATUS_TONES: {
+    readonly [State in SaveStatusState]: SaveStatusTone;
+};
+```
+
+#### `SaveSlotActivity` (type)
+
+A write the caller has started and not finished, or one that failed.
+
+```ts
+type SaveSlotActivity = 'writing' | 'failed';
+```
+
+#### `SaveSlots` (const)
+
+The save slots (M5 spec §6, §7): a row for each slot, and the few things a player does with one. Rows are chosen,
+not acted on: the chosen row (the newest slot that can be continued, to begin with) decides the actions in the bar
+under the list. Continue for a slot that can be opened, New game for an empty one, and Delete… for any that holds
+something. A save that cannot be opened, or that a newer build made, offers nothing but Delete…, so writing over
+it takes two steps. Delete… asks first, in a dialog whose safe button has focus; the question says so when a newer
+build made the save.
+The rows are in a ScrollList, a declared scroll region, so on a short screen they scroll and the bar stays. A label
+and a time wrap to two lines and are then cut, with the whole text left in the row for assistive technology.
+Nothing here reads a store: the runtime's slots arrive as `view` and the player's choices leave as callbacks.
+
+```ts
+const SaveSlots: import("svelte").Component<Props, {}, "">;
+type SaveSlots = ReturnType<typeof SaveSlots>;
+```
+
+#### `SaveSlotsCopy` (interface)
+
+Every word the list shows, in the game's language (each a PRODUCT.L message key).
+
+```ts
+interface SaveSlotsCopy {
+    /** The list's accessible name. */
+    readonly title: string;
+    readonly loading: string;
+    /** "Slot 3": a slot with no label of its own. */
+    readonly slot: (slot: number) => string;
+    readonly empty: string;
+    /** `unreadable`: "This save can't be opened". */
+    readonly unreadable: string;
+    /** `newer`: "Saved by a newer version of the game". */
+    readonly newer: string;
+    /** `other-content`: saved with other game content; its progress loads, its snapshot does not (M5-D5). */
+    readonly otherContent: string;
+    readonly writing: string;
+    readonly failed: string;
+    /** Continue the chosen slot. */
+    readonly load: string;
+    readonly newGame: string;
+    /** The action that opens the question, with its ellipsis. */
+    readonly delete: string;
+    readonly deleteTitle: string;
+    /** The question's text; `name` is the slot's label or its "Slot N". */
+    readonly deleteBody: (name: string) => string;
+    /** The question's text for a slot a newer build made. */
+    readonly deleteNewerBody: string;
+    /** The confirming button. */
+    readonly deleteConfirm: string;
+    /** The safe button, which takes focus. */
+    readonly cancel: string;
+    /** "+N more", for the rows below the fold. */
+    readonly more: (count: number) => string;
+}
+```
+
+#### `SaveSlotsView` (type)
+
+What the list shows: a moment of loading, or the slots.
+
+```ts
+type SaveSlotsView = {
+    readonly state: 'loading';
+} | {
+    readonly state: 'slots';
+    readonly slots: readonly SaveSlotView[];
+};
+```
+
+#### `SaveSlotView` (type)
+
+One slot, as the list shows it. `savedAt` is a time in milliseconds, kept as the header says.
+
+```ts
+type SaveSlotView = {
+    readonly kind: 'empty';
+    readonly slot: number;
+    readonly activity?: SaveSlotActivity;
+} | {
+    readonly kind: 'ready' | 'other-content';
+    readonly slot: number;
+    readonly savedAt: number;
+    readonly label?: string;
+    readonly activity?: SaveSlotActivity;
+} | {
+    readonly kind: 'unreadable';
+    readonly slot: number;
+    readonly activity?: SaveSlotActivity;
+} | {
+    readonly kind: 'newer';
+    readonly slot: number;
+    readonly activity?: SaveSlotActivity;
+};
+```
+
+#### `SaveStatus` (const)
+
+The host's save state in words (M5 spec §7): checking, syncing, saved, offline-queued, retry, conflict, recovered, and
+"no grant" for a game that was not given the saves grant ("Progress won't be kept"). It is not focusable. The line is
+a polite live region that stays mounted while the state changes, so a screen reader hears each change.
+With no `status` (the standalone session, where nothing syncs) it renders nothing at all.
+A state that asks for notice (good news or a problem) shows a glyph beside its words, hidden from assistive
+technology, which has the words, so the tone never rests on colour alone.
+
+```ts
+const SaveStatus: import("svelte").Component<Props, {}, "">;
+type SaveStatus = ReturnType<typeof SaveStatus>;
+```
+
+#### `SaveStatusCopy` (type)
+
+One line per state, in the game's language (each a PRODUCT.L message key).
+
+```ts
+type SaveStatusCopy = {
+    readonly [State in SaveStatusState]: string;
+};
+```
+
+#### `SaveStatusState` (type)
+
+What the host says about the player's saves, or that there is no grant.
+
+```ts
+type SaveStatusState = 'checking' | 'syncing' | 'saved' | 'offline-queued' | 'retry' | 'conflict' | 'recovered' | 'no-grant';
+```
+
+#### `SaveStatusTone` (type)
+
+How much a state asks of the player's notice. `info` states are working; the others carry a glyph beside the words.
+
+```ts
+type SaveStatusTone = 'info' | 'success' | 'warning';
+```
+
 #### `ScreenFrame` (const)
 
 Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from
@@ -6170,6 +6450,19 @@ thumb is a 44 px target, checked by the layout contract.
 ```ts
 const Slider: import("svelte").Component<Props, {}, "">;
 type Slider = ReturnType<typeof Slider>;
+```
+
+#### `slotActionsOf` (function)
+
+What a player may do with a slot (M5 spec §6). A slot that cannot be opened, or that a newer build made, can only be
+deleted: writing over it is two steps, delete then New game, so it is never one tap.
+
+```ts
+function slotActionsOf(slot: SaveSlotView): {
+    readonly load: boolean;
+    readonly newGame: boolean;
+    readonly remove: boolean;
+};
 ```
 
 #### `Split` (const)

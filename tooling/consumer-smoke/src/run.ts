@@ -5,19 +5,12 @@
 // published version from GitHub Packages (NODE_AUTH_TOKEN must be able to read it). Each check is a named step;
 // the run exits 0 only if every step passed, and removes its temp folder unless --keep.
 import { execFileSync } from 'node:child_process'
-import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs'
+import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { resolveSourceCommit } from '../../core-packs/src/args.ts'
+import { packWorkspace } from '../../core-packs/src/pack.ts'
 import { publishablePackages } from '../../release/src/publishable-packages.ts'
 import {
   type ConsumerPackage,
@@ -130,18 +123,16 @@ function filesBelow(dir: string): string[] {
     .map((entry) => join(entry.parentPath, entry.name))
 }
 
-/** `pnpm pack` each published package (publishConfig and workspace:* applied, as at publish). */
+/** Packs the published packages (tooling/core-packs: publishConfig and workspace:* applied, as at publish). */
 function packAll(project: string): ConsumerPackage[] {
-  const packs = join(project, 'packs')
-  mkdirSync(packs)
-  return publishablePackages(root).map(({ dir, manifest }) => {
-    if (!existsSync(join(root, dir, 'dist'))) throw new Error(`${dir}/dist is missing: run pnpm build first`)
-    const before = new Set(readdirSync(packs))
-    sh(join(root, dir), 'pnpm', ['pack', '--pack-destination', packs])
-    const tarball = readdirSync(packs).find((name) => !before.has(name))
-    if (tarball === undefined) throw new Error(`pnpm pack wrote nothing for ${manifest.name}`)
-    return { name: manifest.name, tarball: `packs/${tarball}` }
+  const git = (args: readonly string[]) => sh(root, 'git', args)
+  const { packs } = packWorkspace({
+    root,
+    out: join(project, 'packs'),
+    extras: [],
+    sourceCommit: resolveSourceCommit({ out: '', extras: [], allowDirty: true, unpack: false }, git),
   })
+  return packs.map(({ name, file }) => ({ name, tarball: `packs/${file}` }))
 }
 
 type Step = readonly [name: string, run: () => string]
