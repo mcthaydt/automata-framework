@@ -90,6 +90,15 @@ export {
 } from './model/sector-edits'
 export { parseSelection, type SelectionRef } from './model/selection-ref'
 export {
+  type AddThingArgs,
+  addThing,
+  type MoveThingArgs,
+  moveThing,
+  removeThing,
+  type SetThingFieldArgs,
+  setThingField,
+} from './model/thing-edits'
+export {
   createViewStore,
   initialView,
   type ViewMode,
@@ -137,6 +146,7 @@ export {
   SectorAccessError,
   type SectorDraft,
 } from './profile/sector-access'
+export { type ThingAccess, ThingAccessError } from './profile/thing-access'
 export {
   type Camera3D,
   type FitOptions,

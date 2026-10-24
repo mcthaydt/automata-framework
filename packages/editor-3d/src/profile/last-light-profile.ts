@@ -7,6 +7,7 @@ import { navWorld } from '../geometry/nav'
 import { blockoutCodec } from './last-light-codecs'
 import { lastLightEntityKit } from './last-light-entities'
 import { lastLightSectorAccess } from './last-light-sectors'
+import { lastLightThingAccess } from './last-light-things'
 import { GeometryError, type LevelProfile, resolveOrThrow } from './level-profile'
 
 export const lastLightProfile: LevelProfile<Blockout> = {
@@ -25,4 +26,5 @@ export const lastLightProfile: LevelProfile<Blockout> = {
   checks: (blockout, context) => lastLightChecks(blockout, context),
   entities: lastLightEntityKit,
   sectors: lastLightSectorAccess,
+  things: lastLightThingAccess,
 }

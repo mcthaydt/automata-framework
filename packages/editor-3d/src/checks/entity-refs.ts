@@ -2,6 +2,7 @@
 // `to` allows, and a `to` must name only what can exist: a definition of the file or `$sector`. A level is one file, so
 // a ref's `container` is not looked at. Whether a value is shaped like a ref at all is the entity check's to say.
 import type { FieldDef } from '@mcthaydt/automata-editor-kit/fields'
+import { refsOf } from '../entities/thing-refs'
 import type { EntityKit, Thing } from '../entities/things'
 import type { Problem } from './check'
 import { thingLocator } from './entity-locator'
@@ -14,13 +15,6 @@ function allowedName(allowed: readonly string[]): string {
   const names = allowed.map((name) => (name === SECTOR ? 'sector' : name))
   const last = names.at(-1)
   return names.length === 1 ? `${last}` : `${names.slice(0, -1).join(', ')} or ${last}`
-}
-
-/** The target of a ref value, or `undefined` for anything else (the reader has refused a ref with no target). */
-function targetOf(value: unknown): string | undefined {
-  if (typeof value !== 'object' || value === null) return undefined
-  const { target } = value as { target?: unknown }
-  return typeof target === 'string' ? target : undefined
 }
 
 /** The ids of what a level has to point at: its things by definition, and its sectors. */
@@ -47,23 +41,16 @@ function thingProblems(
   fields: readonly FieldDef[],
   resolves: (allowed: readonly string[], target: string) => boolean,
 ): Problem[] {
-  const problems: Problem[] = []
-  for (const field of fields) {
-    if (field.type !== 'ref') continue
-    const value = thing.values[field.id]
-    const allowed = field.to ?? []
-    const items = field.list ? (Array.isArray(value) ? value : []) : [value]
-    items.forEach((item, index) => {
-      const target = targetOf(item)
-      if (target === undefined || resolves(allowed, target)) return
-      const which = field.list ? `${field.id} item ${index}` : field.id
-      problems.push({
-        message: `entity ${thing.id}: ${which} points at ${target}, which is no ${allowedName(allowed)}`,
-        locator: thingLocator(thing),
-      })
-    })
-  }
-  return problems
+  return refsOf(thing, fields).flatMap(({ which, target, to }) =>
+    resolves(to, target)
+      ? []
+      : [
+          {
+            message: `entity ${thing.id}: ${which} points at ${target}, which is no ${allowedName(to)}`,
+            locator: thingLocator(thing),
+          },
+        ],
+  )
 }
 
 /**
