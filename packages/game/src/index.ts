@@ -1,0 +1,44 @@
+// @mcthaydt/automata-game: one call to start a game (DX spec §3.1). The only package that composes runtime,
+// render-pixi, host, ui and sim; every default it fills in is an existing core contract with its options set.
+export {
+  type Camera2d,
+  type Camera2dOptions,
+  type CameraRect,
+  createCamera2d,
+  type PostFilterDef,
+  type PostFilterSpec,
+  postFilter,
+  type RectViewOptions,
+  rect,
+  type SpriteFrames,
+  type SpriteViewOptions,
+  sprite,
+} from '@mcthaydt/automata-render-pixi'
+// A save is declared with the runtime's `defineSave` and handed to `defineGame({ saves })` (M5.2); the runtime is not a
+// package a game installs, so the declaration comes through here.
+export {
+  type AutosavePolicy,
+  type AutosaveTrigger,
+  defineSave,
+  type SaveDef,
+} from '@mcthaydt/automata-runtime'
+export { defaultContent } from './default-content.ts'
+export {
+  type DefinedGame,
+  defineGame,
+  type GameSaves,
+  type GameSpec,
+  GameSpecError,
+} from './define-game.ts'
+export type { DrawContext, DrawTextOptions } from './draw/draw-layer.ts'
+export type { DrawEntity, DrawSim } from './draw/read-sim.ts'
+export {
+  type InputMap,
+  type InputSource,
+  type KeyBindings,
+  type KeysOptions,
+  keys,
+  type TouchButton,
+} from './input/keys.ts'
+export { defaultScreens, type ScreensGame } from './screens/default-screens.ts'
+export { startGame } from './start-game.ts'

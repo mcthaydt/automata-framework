@@ -1,0 +1,54 @@
+{
+  "frames": {
+    "run-a": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      }
+    },
+    "run-b": {
+      "frame": {
+        "x": 21,
+        "y": 2,
+        "w": 16,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      }
+    }
+  },
+  "meta": {
+    "app": "automata-content",
+    "image": "wick-0.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 64,
+      "h": 64
+    },
+    "scale": 1
+  }
+}

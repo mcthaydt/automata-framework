@@ -1,10 +1,18 @@
 import type { AssetsSource, FlowGraph, GameSource } from '@mcthaydt/automata-content'
 import type { HostingOptions, HostingSeams } from '@mcthaydt/automata-host'
 import type { BootFailureCopy } from '@mcthaydt/automata-ui'
+import type { AudioContextLike } from '../audio/audio-graph.js'
+import type { EventSounds } from '../audio/event-sounds.js'
+import type { GameOrientation, RotateHintMode } from '../display/display-policy.svelte.js'
 import type { ExtensionDef } from '../extension/define-extension.js'
 import type { ScreenDef } from '../flow/screen.js'
+import type { Haptics } from '../haptics/haptics.manager.js'
+import type { EventScores } from '../leaderboards/event-scores.js'
+import type { LocaleDef } from '../locale/locale.manager.js'
 import type { FrameSource } from '../loop/frames.js'
 import type { RendererFactory } from '../render/renderer.js'
+import type { SaveDef } from '../save/save.schema.js'
+import type { DeviceStorage } from '../settings/device-storage.js'
 import type { SettingsDef } from '../settings/settings.manager.js'
 
 /** The compiled JSON content read by the runtime (spec §3.3). */
@@ -22,6 +30,14 @@ export interface RuntimeSeams {
   readonly fonts?: Pick<FontFaceSet, 'load'>
   readonly sdkEnv?: () => NonNullable<HostingSeams['env']>
   readonly document?: Document
+  /** The browser's languages, best first; defaults to `navigator.languages`. */
+  readonly languages?: readonly string[]
+  /** Builds the audio context on the unlock; defaults to `new AudioContext()`. */
+  readonly createAudioContext?: () => AudioContextLike
+  /** The device's haptics, in place of the browser's (pads, `navigator.vibrate`, a coarse pointer). */
+  readonly haptics?: Haptics
+  /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage` (M5 spec §4.5). */
+  readonly deviceStorage?: DeviceStorage
 }
 
 /** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */
@@ -37,7 +53,29 @@ export interface GameDefinition<S = never> {
   readonly screens: readonly ScreenDef[]
   readonly renderer: RendererFactory
   readonly settings?: SettingsDef<S> | undefined
+  /**
+   * The game's save (M5): its slots, autosave and migrations. Boot opens it, wires its triggers and flushes it when
+   * the host closes the game; a screen reaches it with `saveOf(def)`. Absent, the game has no save and the runtime
+   * reads and writes nothing for one.
+   */
+  readonly saves?: SaveDef<unknown> | undefined
+  /**
+   * The orientation the game plays in, as the ship config's `runtime.orientation` says (M4.7). A `portrait` or
+   * `landscape` game on a phone held the other way pauses behind the rotate hint. Default `any`.
+   */
+  readonly orientation?: GameOrientation | undefined
+  /** How a locked orientation says so on a phone held the other way: `'block'` (the default) or `'toast'`. */
+  readonly rotateHint?: RotateHintMode | undefined
+  /**
+   * The game's languages: pass its Paraglide `runtime.js` (`import * as runtime from './paraglide/runtime.js'`).
+   * Absent, the game has one locale, the content's `source_language` (PRODUCT spec §4).
+   */
+  readonly locale?: LocaleDef | undefined
   readonly extensions?: readonly ExtensionDef[] | undefined
+  /** The sound each sim event plays, by the event's type (M5.3). */
+  readonly sounds?: EventSounds | undefined
+  /** The board and score each sim event submits, by the event's type (M5.7). Needs the `leaderboards` grant. */
+  readonly scores?: EventScores | undefined
   readonly copy?: Partial<BootFailureCopy> & {
     readonly loading?: string
     readonly slow?: string

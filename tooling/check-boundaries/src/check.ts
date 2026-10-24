@@ -1,5 +1,6 @@
 import { dirname, relative, resolve } from 'node:path'
 import { parseSync } from 'oxc-parser'
+import { simEntryVerdict } from './sim-entries.ts'
 
 // Determinism boundary for packages/sim (A0+A1 spec §3.3 and §11). Works on the AST, so comments, strings,
 // property keys and type positions never produce false findings.
@@ -103,9 +104,6 @@ export const IMPORT_ALLOWED: ReadonlySet<string> = new Set([
   '@mcthaydt/automata-sim',
   '@mcthaydt/automata-sim/hash',
   '@mcthaydt/automata-sim/math',
-  // The physics extension's sim entry points (packages/physics), checked by the same root run (M2.1b spec §3.4).
-  '@mcthaydt/automata-physics/2d',
-  '@mcthaydt/automata-physics/3d',
 ])
 
 // Keys whose subtree is type-only: skipped entirely.
@@ -142,7 +140,17 @@ export interface CheckOptions {
    * on its own (a demo's sim on its base's sim, `@af-examples/base-2d/sim`).
    */
   readonly allowImports?: readonly string[]
+  /**
+   * Inline mode (EX spec §4), for a one-file example: the file is a browser file, so only the sim inside it is
+   * checked, which is every argument of a `defineSystem` or `definePlugin` call (the system bodies, the plugin's
+   * setup). File-level code and imports are not checked. A helper the sim calls that is declared outside those
+   * calls is not checked either; a sim that big belongs in a game's `sim/` folder, under the per-file check.
+   */
+  readonly inline?: boolean
 }
+
+/** The calls whose arguments are sim code in inline mode. */
+const INLINE_SIM_CALLS: ReadonlySet<string> = new Set(['defineSystem', 'definePlugin'])
 
 /**
  * The name a member expression reads, when it is known without running code: `a.b`, `a['b']` and
@@ -160,14 +168,23 @@ function staticMemberName(node: Node): string | undefined {
 }
 
 export function checkSource(file: string, code: string, options: CheckOptions = {}): Finding[] {
-  const importOk = (source: string): boolean => {
+  /** Whether `source` may be imported; `detail` explains a refusal the extension's own declaration caused. */
+  const importVerdict = (source: string): { ok: boolean; detail?: string } => {
     if (source.startsWith('./') || source.startsWith('../')) {
-      if (options.root === undefined) return true
+      if (options.root === undefined) return { ok: true }
       const target = relative(resolve(options.root), resolve(dirname(file), source))
-      return !target.startsWith('..')
+      return { ok: !target.startsWith('..') }
     }
-    return IMPORT_ALLOWED.has(source) || (options.allowImports?.includes(source) ?? false)
+    if (IMPORT_ALLOWED.has(source) || (options.allowImports?.includes(source) ?? false)) return { ok: true }
+    // An installed extension may declare sim entries of its own (P5-D2).
+    const verdict = simEntryVerdict(file, source)
+    return verdict.allowed
+      ? { ok: true }
+      : verdict.detail === undefined
+        ? { ok: false }
+        : { ok: false, detail: verdict.detail }
   }
+  const importOk = (source: string): boolean => importVerdict(source).ok
 
   const lineStarts = [0]
   for (let i = 0; i < code.length; i++) if (code[i] === '\n') lineStarts.push(i + 1)
@@ -210,13 +227,14 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
       case 'ExportNamedDeclaration':
       case 'ExportAllDeclaration': {
         const source = (node.source as { value?: string } | null)?.value
-        if (
-          source !== undefined &&
-          node.importKind !== 'type' &&
-          node.exportKind !== 'type' &&
-          !importOk(source)
-        ) {
-          report(node, 'import', `import of "${source}" is not allowed in the sim`)
+        if (source !== undefined && node.importKind !== 'type' && node.exportKind !== 'type') {
+          const verdict = importVerdict(source)
+          if (!verdict.ok)
+            report(
+              node,
+              'import',
+              `import of "${source}" is not allowed in the sim${verdict.detail === undefined ? '' : `: ${verdict.detail}`}`,
+            )
         }
         break
       }
@@ -301,6 +319,38 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
       } else if (isNode(v)) visit(v, k, node)
     }
   }
-  visit(parsed.program as unknown as Node, 'program', null)
+  const children = (node: Node): [string, Node][] => {
+    const found: [string, Node][] = []
+    for (const [k, v] of Object.entries(node)) {
+      if (k === 'type' || TYPE_KEYS.has(k)) continue
+      if (Array.isArray(v)) {
+        for (const child of v) if (isNode(child)) found.push([k, child])
+      } else if (isNode(v)) found.push([k, v])
+    }
+    return found
+  }
+
+  // Inline mode: walk without reporting until a sim call, then check its arguments with the full rules.
+  const findSim = (node: Node): void => {
+    if (TYPE_NODES.has(node.type)) return
+    if (node.type === 'CallExpression') {
+      const callee = node.callee as Node & { name?: string }
+      const name =
+        callee.type === 'Identifier'
+          ? callee.name
+          : callee.type === 'MemberExpression'
+            ? staticMemberName(callee)
+            : undefined
+      if (name !== undefined && INLINE_SIM_CALLS.has(name)) {
+        for (const argument of node.arguments as unknown[])
+          if (isNode(argument)) visit(argument, 'arguments', node)
+        return
+      }
+    }
+    for (const [, child] of children(node)) findSim(child)
+  }
+
+  if (options.inline === true) findSim(parsed.program as unknown as Node)
+  else visit(parsed.program as unknown as Node, 'program', null)
   return findings.sort((a, b) => a.line - b.line || a.col - b.col)
 }

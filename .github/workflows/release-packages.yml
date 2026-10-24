@@ -5,6 +5,11 @@ name: release packages
 # changed @mcthaydt/automata-* package at one shared 0.0.x version to GitHub Packages. Nothing is published on
 # any other push.
 #
+# Three jobs (QB.1b): `plan` asks whether the pushed commit carries changesets, which is the question
+# changesets/action asks to choose between its two modes. `version` runs when it does and can only open or update
+# the pull request. `publish` runs when it does not, and it alone waits for the Owner's approval in the `release`
+# environment (QB.1), so a push that only versions never waits.
+#
 # Runner: ubuntu-latest, never af-linux. A job that holds a write token stays off the shared self-hosted
 # runners (AF's rule for game-release.yml, and Ruken's for its publish workflows). While hosted runners get no
 # minutes on this account the job waits or fails without publishing; nothing is half-written.
@@ -26,20 +31,90 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
-    name: version packages PR, or publish
+  plan:
+    name: changesets pending?
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
+      contents: read
+    outputs:
+      pending: ${{ steps.scan.outputs.pending }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The files changesets/action looks for: any changeset except the folder's README.
+      - name: Are changesets pending?
+        id: scan
+        run: |
+          if [ -n "$(find .changeset -maxdepth 1 -name '*.md' ! -name README.md)" ]; then
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  version:
+    name: version packages PR
+    needs: plan
+    if: needs.plan.outputs.pending == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Opens or updates the Version packages pull request and cannot publish: no `publish-script`, no packages
+    # permission, no release environment.
+    permissions:
       contents: write
       pull-requests: write
-      packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           # changesets/action pushes the version branch through the GitHub API with its own token, so git never
           # needs the write token; keep it out of .git/config for the steps that follow.
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      # The "Version packages" pull request is opened with GITHUB_TOKEN, so its own CI waits for approval and
+      # nothing requires it to pass; check the commit being versioned here instead (lint, typecheck, boundaries,
+      # style, unit tests).
+      - name: Check the commit being versioned
+        run: pnpm check
+      - name: Version packages PR
+        id: changesets
+        uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        # v2's input names: it fails the step on v1's (version, publish, commit, title).
+        with:
+          version-script: pnpm release:version
+          # `[skip ci]`: the Version packages branch is mechanical (versions and changelogs) and the publish job
+          # checks the commit it releases, so a push to it starts no ci, parity, game-ci or consumer-smoke run.
+          commit-message: "chore: version packages [skip ci]"
+          pr-title: Version packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    name: publish
+    needs: plan
+    if: needs.plan.outputs.pending == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # QB.1: the job waits for the Owner's approval in the `release` environment (Settings -> Environments,
+    # required reviewer: the Owner, deployments from main only) before it can publish anything. Only this job
+    # waits (QB.1b); rejecting the approval only skips this run.
+    environment: release
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
@@ -54,22 +129,14 @@ jobs:
           registry-url: https://npm.pkg.github.com
           scope: "@mcthaydt"
       - run: pnpm install --frozen-lockfile
-      # The "Version packages" pull request is opened with GITHUB_TOKEN, so its own CI waits for approval and
-      # nothing requires it to pass; check the commit being released here instead (lint, typecheck, boundaries,
-      # style, unit tests). `pnpm release` then builds before it publishes.
+      # Nothing else checks the commit before it is published; `pnpm release` then builds before it publishes.
       - name: Check the commit being released
         run: pnpm check
-      - name: Version packages PR, or publish
+      - name: Publish
         id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
-        # v2's input names: it fails the step on v1's (version, publish, commit, title).
         with:
-          version-script: pnpm release:version
           publish-script: pnpm release
-          # `[skip ci]`: the Version packages branch is mechanical (versions and changelogs) and the release job
-          # checks and publishes it, so a push to it starts no ci, parity, game-ci or consumer-smoke run.
-          commit-message: "chore: version packages [skip ci]"
-          pr-title: Version packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

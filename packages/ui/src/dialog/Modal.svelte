@@ -1,0 +1,210 @@
+<!--
+  @component
+  A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty
+  `ui/components/Modal.svelte` at ac72660). Where Dialog asks a question that needs an answer,
+  Modal shows something the player can close at any time: a level list, a credits page.
+
+  It holds the page by the rules Dialog uses (`modal-scope.ts`): the page behind is inert, focus
+  moves in on open and back to the opener on close, Tab wraps, and Escape (or the pad's Back)
+  calls `onclose`. A tap on the dimmed page calls `onbackdrop` only when one is given; absent,
+  such a tap does nothing, so a stray tap never loses the player's place.
+
+  `anchor="bottom"` puts it on the bottom edge at every form factor; Sheet is that.
+-->
+<script lang="ts">
+import { onMount } from 'svelte'
+import type { ModalProps } from './modal-props.js'
+import { holdModal } from './modal-scope.js'
+
+const {
+  title,
+  closeLabel,
+  onclose,
+  onbackdrop,
+  children,
+  head,
+  wide = false,
+  fill = false,
+  actions,
+  testId,
+  anchor = 'center',
+}: ModalProps & { anchor?: 'center' | 'bottom' | undefined } = $props()
+
+const id = $props.id()
+const titleId = `${id}-title`
+
+let scrim = $state<HTMLElement | undefined>(undefined)
+let panel = $state<HTMLElement | undefined>(undefined)
+
+onMount(() =>
+  scrim === undefined || panel === undefined ? undefined : holdModal(scrim, panel, () => onclose()),
+)
+
+function onScrimClick(event: MouseEvent): void {
+  if (event.target === scrim) onbackdrop?.()
+}
+</script>
+
+<!-- The scrim's click is a pointer convenience; Escape and Close are the keyboard and pad routes. -->
+<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+<div bind:this={scrim} class="af-modal-scrim" data-modal-scrim data-anchor={anchor} onclick={onScrimClick}>
+  <div
+    bind:this={panel}
+    class="af-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby={titleId}
+    tabindex="-1"
+    data-testid={testId}
+    data-wide={wide ? '' : undefined}
+    data-fill={fill ? '' : undefined}
+  >
+    <div class="af-modal__head">
+      <h2 id={titleId} class="af-modal__title">{title}</h2>
+      {#if head}
+        <div class="af-modal__head-extra">{@render head()}</div>
+      {/if}
+      <button
+        type="button"
+        class="af-control af-control--ghost af-modal__close"
+        data-modal-close
+        aria-label={closeLabel}
+        title={closeLabel}
+        onclick={() => onclose()}
+      >
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+    <div class="af-modal__body" data-scroll-region>
+      {#if children}{@render children()}{/if}
+    </div>
+    {#if actions}
+      <div class="af-modal__actions">{@render actions()}</div>
+    {/if}
+  </div>
+</div>
+
+<style>
+  /* Covers the visible region, so nothing behind can be pressed; inside the insets and above the keyboard. */
+  .af-modal-scrim {
+    position: fixed;
+    inset: 0 0 var(--af-visual-inset-bottom, 0px);
+    z-index: 100;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(var(--af-gutter), var(--af-inset-top, 0px)) max(var(--af-gutter), var(--af-inset-right, 0px))
+      max(var(--af-gutter), var(--af-inset-bottom, 0px)) max(var(--af-gutter), var(--af-inset-left, 0px));
+    background: var(--af-scrim);
+  }
+
+  /* Its content lays out by the dialog's width (`@container af-dialog`), not the window's: Settings sets its
+     groups two across from 560 px (FloorFifty `Modal.svelte`). */
+  .af-modal {
+    container: af-dialog / inline-size;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 12px;
+    width: 100%;
+    max-width: 32rem;
+    max-height: 100%;
+    padding: 16px 20px 20px;
+    border: var(--af-edge-width) solid var(--af-edge);
+    border-radius: var(--af-radius);
+    background: var(--af-panel);
+    color: var(--af-ink);
+    font: var(--af-text-body) / 1.4 var(--af-font);
+  }
+
+  /* On a phone a long body (Settings) is a sheet the band's height, as FloorFifty's: the list takes the rest and the
+     actions sit at the bottom, rather than a small card that grows and shrinks with the tab. */
+  :global(:is([data-form-factor="phone-portrait"], [data-form-factor="phone-landscape"])) .af-modal[data-fill] {
+    height: 100%;
+  }
+
+  .af-modal:focus {
+    outline: none;
+  }
+
+  /* A sheet sits on the bottom edge at every size, where a thumb reaches its actions. */
+  .af-modal-scrim[data-anchor="bottom"] {
+    align-items: flex-end;
+    padding-bottom: var(--af-inset-bottom, 0px);
+  }
+
+  .af-modal-scrim[data-anchor="bottom"] .af-modal {
+    max-width: 40rem;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  :global([data-height="compact"]) .af-modal {
+    padding: 8px 16px 12px;
+    gap: 8px;
+  }
+
+  /* A long body (`wide`: Settings) widens wherever there is room, so its groups go two across: on a short band (a phone
+     held sideways, a 900 x 600 window) rather than one group above a "+N more" (FloorFifty's visual audit,
+     2026-10-05), and on a desktop rather than a narrow column (the Desk, 2026-10-18). Others, Pause among them, keep
+     their width, as FloorFifty's do; a sheet keeps its own. */
+  .af-modal-scrim:not([data-anchor="bottom"]) .af-modal[data-wide] {
+    max-width: 44rem;
+  }
+
+  .af-modal__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Under the title and Close on a narrow dialog; between them where the dialog has the width, so a short band
+     keeps a row of its list rather than a row of tabs. */
+  .af-modal__head-extra {
+    order: 1;
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+
+  @container af-dialog (min-width: 480px) {
+    .af-modal__head-extra {
+      order: 0;
+      flex: 0 1 auto;
+    }
+  }
+
+  .af-modal__title {
+    flex: 1;
+    margin: 0;
+    font-size: calc(var(--af-text-body) * 1.25);
+    line-height: 1.2;
+  }
+
+  .af-modal__close {
+    flex: none;
+    padding: 0;
+  }
+
+  /* The ring's room inside the body that scrolls, so a focused control's ring is never cut by its edge; the negative
+     margin keeps the content aligned with the head. */
+  .af-modal__body {
+    margin: calc(var(--af-ring-room) * -1);
+    padding: var(--af-ring-room);
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .af-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .af-modal__actions > :global(*) {
+    flex: 1 1 auto;
+  }
+</style>

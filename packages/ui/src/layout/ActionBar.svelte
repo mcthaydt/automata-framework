@@ -1,7 +1,9 @@
 <!--
-  One row of actions (M1.6 spec §3.4; from FloorFifty `ui/layout/ActionBar.svelte` at 122a220).
+  @component
+  One row of actions that collapses as its container narrows (M1.6 spec §3.4; from FloorFifty
+  `ui/layout/ActionBar.svelte` at 122a220).
 
-  Gives way in a fixed order as its container narrows (`collapseLevel`): utilities to their icon,
+  It gives way in a fixed order as its container narrows (`collapseLevel`): utilities to their icon,
   then secondaries to their short label, and only then a wrap with the primary on its own row.
   Three hidden, inert copies of the row ([data-measure]) report how wide it would be at each level,
   so the choice is measured rather than guessed from breakpoints.

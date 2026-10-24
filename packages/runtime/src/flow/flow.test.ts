@@ -500,6 +500,70 @@ describe('Flow and screens (spec §3.6)', () => {
       expect(document.activeElement).toBe(primaryBtn)
     }).pipe(Effect.scoped, Effect.runPromise))
 
+  /** A screen of buttons named by `data-testid`; `marks` adds attributes to one of them. */
+  const buttonsScreen = (
+    id: string,
+    names: readonly string[],
+    marks: Readonly<Record<string, string>> = {},
+    kind?: 'menu' | 'gameplay',
+  ): ScreenDef => ({
+    id,
+    ...(kind === undefined ? {} : { kind }),
+    enter: (ctx) =>
+      Effect.sync(() => {
+        for (const name of names) {
+          const button = document.createElement('button')
+          button.dataset.testid = name
+          if (name === names[0]) button.dataset.kind = 'primary'
+          const mark = marks[name]
+          if (mark !== undefined) button.setAttribute(mark, '')
+          ctx.layer.appendChild(button)
+        }
+      }),
+  })
+  it("declares a screen's kind, menu or gameplay, for the cursor policy (M4 spec §4.7)", () => {
+    // A literal with `kind` typechecks only when ScreenDef declares the field.
+    const gameplayScreen: ScreenDef = { id: 'gameplay', kind: 'gameplay', enter: () => Effect.void }
+    expect(gameplayScreen.kind).toBe('gameplay')
+  })
+
+  const focusedName = (): string | undefined => (document.activeElement as HTMLElement | null)?.dataset.testid
+
+  it('focuses [data-autofocus] on entry before the primary control (M4 spec §4.7)', () =>
+    Effect.gen(function* () {
+      const harness = yield* setupHarness({
+        screens: [buttonsScreen('menu', ['resume', 'settings'], { settings: 'data-autofocus' }, 'menu')],
+        entry: 'menu',
+        transitions: [],
+      })
+      yield* harness.start()
+      expect(focusedName()).toBe('settings')
+    }).pipe(Effect.scoped, Effect.runPromise))
+
+  it('returning to a screen focuses the control the player left it from, matched by name (F-b)', () =>
+    Effect.gen(function* () {
+      const harness = yield* setupHarness({
+        screens: [
+          buttonsScreen('pause', ['resume', 'settings', 'quit']),
+          buttonsScreen('settings', ['back']),
+        ],
+        entry: 'pause',
+        transitions: [
+          { from: 'pause', event: 'settings', to: 'settings', transition: 'cut' },
+          { from: 'settings', event: 'back', to: 'pause', transition: 'cut' },
+        ],
+      })
+      yield* harness.start()
+      expect(focusedName()).toBe('resume')
+      ;(layers.screens.querySelector('[data-testid="settings"]') as HTMLElement).focus()
+      harness.flow.dispatch('settings')
+      yield* harness.flow.settled
+      expect(focusedName()).toBe('back')
+      harness.flow.dispatch('back')
+      yield* harness.flow.settled
+      expect(focusedName()).toBe('settings')
+    }).pipe(Effect.scoped, Effect.runPromise))
+
   it('openMenu() calls current screen openMenu, returns false mid-transition and for screen without one', () =>
     Effect.gen(function* () {
       let menuOpened = false

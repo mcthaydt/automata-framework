@@ -1,0 +1,335 @@
+import '@mcthaydt/automata-ui/theme.css'
+import './screens.css'
+import {
+  AppLoop,
+  Audio,
+  AudioBuses,
+  displaySettingsSchema,
+  Flow,
+  Haptics,
+  inputSettingsSchema,
+  Leaderboards,
+  makeInput,
+  PresentationBus,
+  type QualityTier,
+  type ScreenDef,
+  Settings,
+  SwipeTracker,
+  saveOf,
+  Time,
+} from '@mcthaydt/automata-runtime'
+import { type ExtensionDef, resolveExtensions } from '@mcthaydt/automata-runtime/extension'
+import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
+import { CursorRunner, InputMethodTracker, type LeaderboardCopy, sendBack } from '@mcthaydt/automata-ui'
+import { Effect, SubscriptionRef } from 'effect'
+import type { GameSaves } from '../define-game.ts'
+import type { InputMap } from '../input/keys.ts'
+import { applyAudio, changeAudio, savedAudio } from './audio-settings.ts'
+import { savedHaptics } from './haptics-settings.ts'
+import PausedScreen from './PausedScreen.svelte'
+import PlayScreen from './PlayScreen.svelte'
+import { CHANGED_ELSEWHERE_TOAST } from './saves-copy.ts'
+import { pausedSaves } from './saves-paused.ts'
+import type { SavesStart } from './saves-start.ts'
+import { titleSaves } from './saves-title.ts'
+import {
+  backGesture,
+  driveMenu,
+  hostInput,
+  listen,
+  NO_BINDINGS,
+  noticeChangedElsewhere,
+  noticeUnsupportedPads,
+  plain,
+  show,
+  windowOf,
+} from './screen-kit.ts'
+import { settingsScreen } from './settings-screen.svelte.ts'
+import TitleScreen from './TitleScreen.svelte'
+
+/** What the default screens need from the game. */
+export interface ScreensGame {
+  readonly title: string
+  readonly sim: {
+    readonly plugins: readonly PluginDef[]
+    readonly seed: number
+    readonly setup?: ((sim: Sim) => void) | undefined
+    readonly content?: unknown
+  }
+  readonly input?: InputMap | undefined
+  /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it (PRODUCT.2). */
+  readonly watchSim?: ((sim: Sim | undefined) => void) | undefined
+  /** The board paused shows: the game's first scored board (M5.7). None: paused shows no board. */
+  readonly board?: string | undefined
+  /** Applies the player's graphics quality to the stage (M4.4): the saved one at the title, then each choice. */
+  readonly setQuality?: ((tier: QualityTier) => void) | undefined
+  /** The game's save (M5.2): the title lists its slots and play keeps the loaded one saved. None: no slot list. */
+  readonly saves?: GameSaves<unknown> | undefined
+  /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
+  readonly extensions?: readonly ExtensionDef[] | undefined
+}
+
+/** The board's words on the default paused screen. English, like the other default screens' words (02 follow-up). */
+const BOARD_COPY: LeaderboardCopy = {
+  title: 'Scores',
+  loading: 'Loading scores…',
+  empty: 'No scores yet',
+  unavailable: "Scores aren't available here",
+  offline: "You're offline",
+  you: 'You',
+  more: (count) => `+${count} more`,
+}
+
+const asRecord = (value: unknown): Record<string, unknown> =>
+  value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {}
+
+/**
+ * The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow
+ * (`title → play ⇄ paused → title`, `paused ⇄ settings`).
+ *
+ * The screens share one sim: play creates it on first entry (seed, plugins, content, then `setup`),
+ * paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. Returning
+ * from paused re-sends the whole state to the renderer (G-5): `AppLoop.run` resets the renderer, so
+ * play restores the sim's own snapshot, which makes the next step a resync.
+ */
+export function defaultScreens(game: ScreensGame): ScreenDef[] {
+  // The pads already told they are not supported (M4 spec §6), for the whole session.
+  const toldPads = new Set<string>()
+  let sim: Sim | undefined
+  let playFlow: Flow | undefined
+  /** Set when play paused because the pad in use was unplugged (M4-D9); Resume or Quit clears it. */
+  let reconnect = false
+
+  const dropSim = (): void => {
+    game.watchSim?.(undefined)
+    sim?.dispose()
+    sim = undefined
+  }
+
+  /** A sim set up from the game's seed, plugins, content and `setup`, at tick 0. */
+  const freshSim = async (): Promise<Sim> => {
+    const { plugins, seed, content, setup } = game.sim
+    const created = await createSim({ plugins: [...plugins], seed, content })
+    setup?.(created)
+    return created
+  }
+
+  const title: ScreenDef = {
+    id: 'title',
+    enter: ({ layer }) =>
+      Effect.gen(function* () {
+        const flow = yield* Flow
+        // Quit to title: progress play kept is written while the sim that holds it still lives.
+        if (game.saves !== undefined) yield* (yield* saveOf(game.saves.def)).flushPending
+        dropSim()
+        // The player's saved quality reaches the stage before play draws anything (M4.4).
+        const { store } = yield* Settings
+        // And the saved mix reaches the audio, so the first sound is at the player's levels (M5.4).
+        applyAudio({ audio: yield* Audio, buses: yield* AudioBuses }, savedAudio(store))
+        ;(yield* Haptics).setEnabled(savedHaptics(store))
+        if (game.setQuality !== undefined && store !== undefined)
+          game.setQuality(
+            displaySettingsSchema
+              .catch(() => ({ quality: 'high' as const }))
+              .parse(asRecord(store.get()).display).quality,
+          )
+        const target = windowOf(layer)
+        const play = (): void => void flow.dispatch('play')
+        // A game with a save has no Play: the slot list starts play, with the sim its slot made.
+        const saves =
+          game.saves === undefined
+            ? undefined
+            : yield* titleSaves(game.saves, {
+                fresh: freshSim,
+                play: (started) => {
+                  sim = started
+                  play()
+                },
+              } satisfies SavesStart)
+        yield* show(TitleScreen, layer, { title: game.title, onPlay: play, saves })
+        // Enter or Space anywhere on the title plays; on a focused button the button's own click does.
+        if (saves === undefined)
+          yield* listen(target, 'keydown', (event) => {
+            if (!plain(event) || (event.code !== 'Enter' && event.code !== 'Space')) return
+            if (event.target instanceof HTMLButtonElement) return
+            event.preventDefault()
+            play()
+          })
+        // Nothing on the title takes Back, so a back step leaves the game.
+        yield* backGesture(target, () => sendBack(layer.ownerDocument))
+        yield* driveMenu(target)
+        yield* noticeUnsupportedPads(layer, toldPads)
+      }),
+  }
+
+  const play: ScreenDef = {
+    id: 'play',
+    kind: 'gameplay',
+    openMenu: () => playFlow?.dispatch('pause') ?? false,
+    enter: ({ layer }) =>
+      Effect.gen(function* () {
+        const flow = yield* Flow
+        const appLoop = yield* AppLoop
+        const target = windowOf(layer)
+        playFlow = flow
+        yield* Effect.addFinalizer(() =>
+          Effect.sync(() => {
+            playFlow = undefined
+          }),
+        )
+
+        let current = sim
+        if (current === undefined) {
+          current = yield* Effect.promise(freshSim)
+          sim = current
+        } else {
+          current.restore(current.snapshot())
+        }
+
+        // The Input service for this play session (M4 spec §4.2): sampled once per fixed step, closed with the screen.
+        const map = game.input
+        const bus = yield* PresentationBus
+        // The player's bindings and touch mode, from the settings (M4.4).
+        const { store } = yield* Settings
+        const input = yield* makeInput({
+          target,
+          profile: map?.profile ?? NO_BINDINGS,
+          bus,
+          settings: store,
+          hostInput: yield* hostInput,
+        })
+        const touchMode = inputSettingsSchema.parse(asRecord(store?.get()).input).touchMode ?? map?.touchMode
+        const running = current
+        game.watchSim?.(running)
+        // The slot play was started from is kept saved: each tick says what the progress is, and the save's own
+        // triggers (leaving play, a round's end, the page going to the background) write it.
+        const save = game.saves === undefined ? undefined : yield* saveOf(game.saves.def)
+        const keep = (): unknown => game.saves?.capture(running)
+        // An idle pointer hides while playing (M4 spec §4.7); leaving play detaches it and shows the pointer again.
+        const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
+        const detachCursor = cursor.attach(target)
+        yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
+        yield* noticeUnsupportedPads(layer, toldPads)
+        if (game.saves !== undefined)
+          yield* noticeChangedElsewhere(layer, game.saves.def.key, CHANGED_ELSEWHERE_TOAST)
+        appLoop.run({
+          sim: running,
+          commands: (tick) => {
+            cursor.tick()
+            save?.touch(keep)
+            if (map === undefined) return []
+            input.poll()
+            return map.toCommand(input.held(), tick)
+          },
+        })
+        yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.stop()))
+
+        const pause = (): void => void flow.dispatch('pause')
+        // The pad in use unplugged mid-play pauses with a reconnect message (M4-D9), under the `input` reason so
+        // nothing else resumes the sim behind the player's back. Another pad or the keyboard in use: play on.
+        const time = yield* Time
+        yield* Effect.acquireRelease(
+          Effect.sync(() =>
+            bus.subscribe('input.pad.disconnected', (pad) => {
+              if (!pad.wasActive || Effect.runSync(SubscriptionRef.get(input.device)).device !== 'gamepad')
+                return
+              reconnect = true
+              time.pause('input')
+              pause()
+            }),
+          ),
+          (stop) => Effect.sync(stop),
+        )
+        // Escape and the pad's Start are the Input's pause edge; KeyP is the default screens' own extra.
+        yield* Effect.acquireRelease(
+          Effect.sync(() => input.onPress('pause', pause)),
+          (stop) => Effect.sync(stop),
+        )
+        yield* listen(target, 'keydown', (event) => {
+          if (!plain(event) || event.code !== 'KeyP') return
+          event.preventDefault()
+          pause()
+        })
+        yield* backGesture(target, () => {
+          pause()
+          return true
+        })
+
+        const tracker = new InputMethodTracker()
+        const detach = tracker.attach(target)
+        yield* Effect.addFinalizer(() => Effect.sync(detach))
+        yield* show(PlayScreen, layer, {
+          onPause: pause,
+          tracker,
+          touchButtons: game.input?.touch === false ? [] : (game.input?.touchButtons ?? []),
+          onHold: (id: string) => input.hold(id),
+          onRelease: (id: string) => input.release(id),
+          swipe: touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
+          hud: resolveExtensions(game.extensions ?? []).slots('hud.overlay'),
+        })
+      }),
+  }
+
+  const paused: ScreenDef = {
+    id: 'paused',
+    pausesSim: true,
+    enter: ({ layer }) =>
+      Effect.gen(function* () {
+        const flow = yield* Flow
+        const time = yield* Time
+        const target = windowOf(layer)
+        const message = reconnect ? 'Reconnect your controller' : undefined
+        // Any device that reaches Resume or Quit lets the game go on (M4 spec §5, pad hot-plug).
+        const clearReconnect = (): void => {
+          reconnect = false
+          time.resume('input')
+        }
+        const resume = (): void => {
+          clearReconnect()
+          flow.dispatch('resume')
+        }
+        const quit = (): void => {
+          clearReconnect()
+          flow.dispatch('quit')
+        }
+        const boards = yield* Leaderboards
+        // Read from the host each time paused opens: what the host says, never a copy kept here (M5 spec §4.8).
+        const board =
+          game.board === undefined
+            ? undefined
+            : { copy: BOARD_COPY, load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
+        const settings = (): void => void flow.dispatch('settings')
+        // Load newer replaces the sim with the other device's progress and plays on from it.
+        const saves =
+          game.saves === undefined
+            ? undefined
+            : yield* pausedSaves(game.saves, {
+                fresh: freshSim,
+                play: (next) => {
+                  dropSim()
+                  sim = next
+                  resume()
+                },
+              } satisfies SavesStart)
+        // Mute is the Audio group's setting (M5.4), as FloorFifty's pause has it.
+        const { store } = yield* Settings
+        const targets = { audio: yield* Audio, buses: yield* AudioBuses }
+        yield* show(PausedScreen, layer, {
+          onResume: resume,
+          onQuit: quit,
+          onSettings: settings,
+          muted: savedAudio(store).muted,
+          onMute: (muted: boolean) => changeAudio(targets, store, { ...savedAudio(store), muted }),
+          message,
+          board,
+          saves,
+        })
+        // Escape is the dialog's (Modal): it steps back from the Quit confirm, and from the menu it resumes.
+        yield* backGesture(target, () => sendBack(layer.ownerDocument))
+        yield* driveMenu(target)
+        yield* noticeUnsupportedPads(layer, toldPads)
+      }),
+  }
+
+  return [title, play, paused, settingsScreen(game, toldPads)]
+}

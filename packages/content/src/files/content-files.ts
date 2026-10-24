@@ -30,6 +30,17 @@ export const readTextIfPresent = (path: string): Effect.Effect<string | undefine
     }
   })
 
+/** A file's bytes, or undefined when there is no file at `path`. */
+export const readBytesIfPresent = (path: string): Effect.Effect<Uint8Array | undefined, FileError> =>
+  attempt(path, async () => {
+    try {
+      return new Uint8Array(await readFile(path))
+    } catch (error) {
+      if (isMissing(error)) return undefined
+      throw error
+    }
+  })
+
 /**
  * Every file below `folder`, as `/`-separated paths relative to it, sorted by code unit so the order never
  * depends on the disk or the locale. An absent folder lists nothing: a game that has no songs yet has an
@@ -54,12 +65,15 @@ export const listFiles = (folder: string): Effect.Effect<string[], FileError> =>
  * build.ts `writeAtomically`). The temp file sits beside the target because a rename is only atomic within
  * one filesystem, and it is removed whether or not the rename happened.
  */
-export const writeFileAtomically = (path: string, text: string): Effect.Effect<void, FileError> =>
+export const writeFileAtomically = (
+  path: string,
+  text: string | Uint8Array,
+): Effect.Effect<void, FileError> =>
   attempt(path, async () => {
     const temporary = `${path}.${process.pid}.${randomUUID()}.tmp`
     await mkdir(dirname(path), { recursive: true })
     try {
-      await writeFile(temporary, text, 'utf8')
+      await writeFile(temporary, text, typeof text === 'string' ? 'utf8' : null)
       await rename(temporary, path)
     } finally {
       await rm(temporary, { force: true })

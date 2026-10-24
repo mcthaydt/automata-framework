@@ -1,0 +1,49 @@
+{
+  "schema": "af-frame-budget-result/1",
+  "project": "frame-budget-phone",
+  "measuredAt": "2026-10-16T00:00:00.000Z",
+  "scene": {
+    "entities": 2000,
+    "systems": 8
+  },
+  "sample": {
+    "warmupMs": 2000,
+    "sampleMs": 10000
+  },
+  "environment": {
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "gpuVendor": "Google Inc. (Google)",
+    "renderer": "webgl",
+    "browser": "chromium",
+    "browserVersion": "141.0.0.0",
+    "userAgent": "fixture",
+    "viewport": {
+      "width": 412,
+      "height": 839
+    },
+    "devicePixelRatio": 2.625,
+    "os": "linux 6.6",
+    "cpus": 8,
+    "cpuModel": "fixture CPU",
+    "node": "v24.21.0",
+    "commit": "0000000000000000000000000000000000000000",
+    "runner": null,
+    "ci": false
+  },
+  "workMs": {
+    "count": 600,
+    "mean": 3.1,
+    "p50": 3,
+    "p95": 4,
+    "p99": 5,
+    "max": 9
+  },
+  "intervalMs": {
+    "count": 600,
+    "mean": 16.7,
+    "p50": 16.7,
+    "p95": 16.9,
+    "p99": 17.2,
+    "max": 33.4
+  }
+}

@@ -6,10 +6,23 @@ import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
 import { Effect, Exit, Fiber, Scope, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
+import { Audio } from '../audio/audio.manager.js'
+import { AudioBuses } from '../audio/audio-buses.js'
+import { type FakeAudioContext, fakeAudioContext } from '../audio/testing/fake-audio-context.js'
 import type { ScreenDef } from '../flow/screen.js'
+import { createHaptics, Haptics } from '../haptics/haptics.manager.js'
+import { Leaderboards } from '../leaderboards/leaderboards.manager.js'
+import { PresentationBus } from '../presentation/presentation-bus.manager.js'
+import type { RenderTarget } from '../render/renderer.js'
+import type { Save } from '../save/save.manager.js'
+import { defineSave } from '../save/save.schema.js'
+import { saveOf } from '../save/saves.manager.js'
+import { CORE_SETTINGS, type CoreSettings } from '../settings/core-settings.js'
+import { type SettingsStore, settingsStore } from '../settings/settings.manager.js'
 import { fakeFetch } from '../testing/fake-fetch.js'
 import { manualFrames } from '../testing/manual-frames.js'
 import { nullRenderer } from '../testing/null-renderer.js'
+import { Time } from '../time/time.manager.js'
 import {
   AssetLoadFailed,
   BootDefect,
@@ -277,6 +290,53 @@ describe('bootProgram', () => {
         (m) => m.dir === 'in' && m.msg.type === 'analytics.track',
       )
       expect(sentAfter.length).toBe(1)
+
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+
+  it("hands the renderer the runtime's presentation bus, so a dropped filter is a fact (M4 spec §6)", () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      const frames = manualFrames()
+      const heard: unknown[] = []
+      let targetBus: RenderTarget['bus']
+      const screens: ScreenDef[] = [
+        {
+          id: 'title',
+          enter: () =>
+            Effect.gen(function* () {
+              const bus = yield* PresentationBus
+              bus.subscribe('render.filter.dropped', (fact) => heard.push(fact))
+            }),
+        },
+      ]
+      const inner = nullRenderer()
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens,
+        renderer: (target) => {
+          targetBus = target.bus
+          return inner(target)
+        },
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          sdkEnv: () =>
+            createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock }).gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+
+      expect(targetBus).toBeDefined()
+      targetBus?.publish('render.filter.dropped', { id: 'bloom', reason: 'compile failed' })
+      expect(heard).toEqual([{ id: 'bloom', reason: 'compile failed' }])
 
       yield* Scope.close(scope, Exit.void)
     }).pipe(Effect.runPromise))
@@ -795,6 +855,364 @@ describe('bootProgram', () => {
       yield* Effect.promise(() => settle(2))
       expect(opened).toBe(true)
       expect(menuCalls).toEqual(['title'])
+
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+
+  it('provides Audio and AudioBuses to screens, builds the seam context on a gesture, and plays the game sounds (M5.3)', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      const contexts: FakeAudioContext[] = []
+      const seen: { audio?: Audio; buses?: AudioBuses; bus?: PresentationBus } = {}
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            seen.audio = yield* Audio
+            seen.buses = yield* AudioBuses
+            seen.bus = yield* PresentationBus
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        sounds: { chime: 'chime.wav' },
+        seams: {
+          fetch: fakeFetch({
+            '/assets/title.png': { chunks: [new Uint8Array([1])] },
+            'chime.wav': { chunks: [new TextEncoder().encode('chime.wav')] },
+          }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          createAudioContext: () => {
+            const context = fakeAudioContext()
+            contexts.push(context)
+            return context
+          },
+          sdkEnv: () =>
+            createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock }).gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      expect(seen.audio).toBeDefined()
+      expect(seen.buses).toBe(seen.audio)
+
+      window.dispatchEvent(new Event('pointerdown'))
+      yield* Effect.promise(() => settle(2))
+      expect(contexts).toHaveLength(1)
+      expect(yield* seen.audio!.unlocked.get).toBe(true)
+
+      seen.bus!.publish('sim.events', [{ type: 'chime', payload: {} }])
+      yield* Effect.promise(() => settle(2))
+      expect(contexts[0]?.started.map((started) => started.alias)).toEqual(['chime.wav'])
+
+      yield* Scope.close(scope, Exit.void)
+      expect(contexts[0]?.closed).toBe(true)
+    }).pipe(Effect.runPromise))
+  it('provides Haptics to screens: the game’s seam here, the browser’s otherwise (redo step 10)', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      const haptics = createHaptics({ touch: () => false })
+      const seen: { haptics?: Haptics } = {}
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            seen.haptics = yield* Haptics
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          haptics,
+        },
+      }
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      expect(seen.haptics).toBe(haptics)
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+
+  it('provides Leaderboards to screens and submits the game scores for sim events (M5.7)', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      let fakeHost: FakeHost | undefined
+      const seen: { boards?: Leaderboards; bus?: PresentationBus } = {}
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            seen.boards = yield* Leaderboards
+            seen.bus = yield* PresentationBus
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: ['leaderboards'], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        scores: { finished: { board: 'best', score: (payload) => (payload as { ticks: number }).ticks } },
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          createAudioContext: () => fakeAudioContext(),
+          sdkEnv: () => {
+            fakeHost = createFakeHost({
+              gameOrigin: TEST_GAME_ORIGIN,
+              gameId: 'test-game',
+              clock: realClock,
+              grant: ['leaderboards'],
+            })
+            return fakeHost.gameEnv!
+          },
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      expect(seen.boards).toBeDefined()
+
+      seen.bus!.publish('sim.events', [{ type: 'finished', payload: { ticks: 300 } }])
+      yield* Effect.promise(() => settle(4))
+      expect(fakeHost!.fakes.leaderboards.submits).toEqual([{ board: 'best', score: 300 }])
+      expect(seen.boards!.state('best')).toEqual({ state: 'accepted', personalBest: 300, rank: 1 })
+
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+
+  it('keeps the rotate hint over a portrait game on a phone held sideways, paused for display (M4.7)', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      const size = { width: window.innerWidth, height: window.innerHeight }
+      const resize = (width: number, height: number) => {
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: width })
+        Object.defineProperty(window, 'innerHeight', { configurable: true, value: height })
+      }
+      resize(844, 390)
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        value: (media: string) => ({
+          matches: media.includes('pointer: coarse'),
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }),
+      })
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => {
+          root.remove()
+          resize(size.width, size.height)
+          Reflect.deleteProperty(window, 'matchMedia')
+        }),
+      )
+      const frames = manualFrames()
+      const seen: { time?: Time } = {}
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            seen.time = yield* Time
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        orientation: 'portrait',
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          createAudioContext: () => fakeAudioContext(),
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      yield* Effect.promise(() => settle(2))
+      expect(root.querySelector('[data-testid="rotate-hint"]')).not.toBeNull()
+      expect([...(seen.time?.reasons ?? [])]).toContain('display')
+
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+})
+
+describe('bootProgram, settings kept on the device (M5.2, M5-D4)', () => {
+  const memoryDevice = () => {
+    const held = new Map<string, string>()
+    return {
+      held,
+      get: (key: string) => held.get(key) ?? null,
+      set: (key: string, value: string) => void held.set(key, value),
+      remove: (key: string) => void held.delete(key),
+    }
+  }
+
+  it('keeps the core audio choices in the device storage the game gets, and out of the saves', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      const host = createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock })
+      const device = memoryDevice()
+      let store: SettingsStore<CoreSettings> | undefined
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            store = yield* settingsStore(CORE_SETTINGS)
+          }),
+      }
+      const game: GameDefinition<CoreSettings> = {
+        root,
+        hosting: { gameId: 'test-game', wants: ['saves'], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        settings: CORE_SETTINGS,
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          deviceStorage: device,
+          sdkEnv: () => host.gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      expect(store).toBeDefined()
+
+      store!.update((value) => ({
+        ...value,
+        display: { quality: 'low' },
+        audio: { ...value.audio, muted: true },
+      }))
+      yield* Effect.promise(() => settle(2))
+
+      expect(JSON.parse(device.held.get('settings:device') ?? 'null')).toMatchObject({
+        audio: { muted: true },
+      })
+      const written = host.messages
+        .filter((entry) => entry.dir === 'in' && entry.msg.type === 'saves.set')
+        .map((entry) => entry.msg.payload as { key: string; value: string })
+      expect(written.map((write) => write.key)).toEqual(['settings'])
+      expect(written[0]?.value).toContain('"low"')
+      expect(written[0]?.value).not.toMatch(/muted|gains/)
+
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+})
+
+describe('bootProgram, the game save (M5.2)', () => {
+  it('writes the touched progress, then flushes, before the host is told the game may close', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      Scope.addFinalizer(
+        scope,
+        Effect.sync(() => root.remove()),
+      )
+      const frames = manualFrames()
+      const host = createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock })
+      const run = defineSave<{ coins: number }>({
+        key: 'run',
+        version: 1,
+        schema: z.object({ coins: z.number() }),
+        empty: () => ({ coins: 0 }),
+        migrations: {},
+      })
+      let save: Save<{ coins: number }> | undefined
+      const { screens } = makeTestScreens()
+      const title: ScreenDef = {
+        id: 'title',
+        enter: () =>
+          Effect.gen(function* () {
+            save = yield* saveOf(run)
+          }),
+      }
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: ['saves'], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [title, ...screens.filter((screen) => screen.id !== 'title')],
+        renderer: nullRenderer(),
+        saves: run,
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          sdkEnv: () => host.gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+      yield* save!.load(0)
+      save!.touch(() => ({ coins: 7 }))
+
+      yield* Effect.promise(() => host.bridge.exit())
+      const sent = host.messages
+        .filter((entry) => entry.dir === 'in')
+        .map((entry) => entry.msg.type)
+        .filter((type) => ['saves.set', 'saves.flush', 'session.exitReady'].includes(type))
+      expect(sent).toEqual(['saves.set', 'saves.flush', 'session.exitReady'])
 
       yield* Scope.close(scope, Exit.void)
     }).pipe(Effect.runPromise))

@@ -30,6 +30,18 @@ const frame = (content = ''): string => `<div data-screen-frame>${cornerRow}${co
 const corner = frame()
 
 describe('checkLayout', () => {
+  // M4 spec §4.9: the touch overlay is an intruder like the keyboard or Ruken's strip. A control of the screen
+  // under a touch button would lose its taps to a thumb, or hide the button.
+  test('fails a control that sits under a touch button, and passes the touch buttons themselves', async () => {
+    const touch =
+      '<div data-touch-overlay style="position:fixed;left:0;top:300px;width:200px;height:60px">' +
+      '<button data-action="left" data-testid="touch-left" style="width:60px;height:60px">L</button></div>'
+    const under =
+      '<button data-testid="under" style="position:fixed;left:20px;top:320px;width:48px;height:48px">X</button>'
+    expect(await check(corner + touch)).toEqual([])
+    expect(await check(corner + touch + under)).toContain('under is under a touch button')
+  })
+
   test('passes a clean page', async () => {
     expect(await check(corner)).toEqual([])
   })

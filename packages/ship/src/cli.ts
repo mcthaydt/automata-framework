@@ -72,12 +72,13 @@ async function program(
   if (command.command !== 'deploy-dev' && command.target === 'itch') {
     if (command.command === 'prepare') {
       return Effect.map(
-        prepareItch({ distDir, config, tag: command.tag }),
+        prepareItch({ distDir, gameDir: cwd, config, tag: command.tag }),
         (result) => `wrote ${result.zipPath}`,
       )
     }
     const publish = publishToItch({
       distDir,
+      gameDir: cwd,
       config,
       tag: command.tag,
       apiKey: process.env.BUTLER_API_KEY,
@@ -91,7 +92,7 @@ async function program(
     )
   }
 
-  const prepare = prepareBuild({ distDir, config, tag: command.tag })
+  const prepare = prepareBuild({ distDir, gameDir: cwd, config, tag: command.tag })
   if (command.command === 'prepare') {
     return Effect.provide(
       Effect.map(prepare, (result) => `wrote ${result.manifestPath}`),

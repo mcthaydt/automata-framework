@@ -1,8 +1,8 @@
 # PUB: publish to Ruken or itch.io
 
-- **Status:** drafted 2026-10-16 (PUB.0). **Pending Owner review.** Nothing here is implemented before that review. PUB-D1 to PUB-D4 (§10) run on their recommended defaults until the Owner changes them.
+- **Status:** reviewed. Drafted 2026-10-16 (PUB.0); **approved by the Owner on 2026-10-16** with the recommended defaults PUB-D1 to PUB-D4 (§10), which are now decisions.
 - **Owner direction (2026-10-16):** "loosen the Ruken coupling … make it where you can publish to Ruken or itch.io easily".
-- **Decision record:** [ADR 0005](../../adr/0005-publish-targets.md) (proposed), which refines [ADR 0004](../../adr/0004-ruken-first-host.md).
+- **Decision record:** [ADR 0005](../../adr/0005-publish-targets.md) (accepted 2026-10-16), which refines [ADR 0004](../../adr/0004-ruken-first-host.md).
 
 ## 0. Sources
 
@@ -98,10 +98,11 @@ export default defineShipConfig({
 **`automata-ship prepare --target itch`** checks, in this order, before writing anything:
 1. The tag matches `game.version` (existing check).
 2. No root-absolute paths (the existing `root-absolute.ts`).
-3. `index.html` exists at the build root. itch.io requires that name, so a different `game.entry` is an error that says so.
-4. itch.io's documented limits: at most 1,000 files; paths of at most 240 characters; no file over 200 MB; at most 500 MB in total. These live in one file, `packages/ship/src/targets/itch-limits.ts`, with the source URL and the date read.
-5. Every relative reference matches a file's exact case. itch.io is case-sensitive; a Mac's disk usually is not.
-6. No `ruken.toml` in the output.
+3. No secret in the build: the scan Ruken's `prepare` runs (QB.2, `secret-scan.ts`), because a page on itch.io is public. The error names the file and place, never the secret. (Added when main's QB.2 merged into PUB.2, 2026-10-24.)
+4. `index.html` exists at the build root. itch.io requires that name, so a different `game.entry` is an error that says so.
+5. itch.io's documented limits: at most 1,000 files; paths of at most 240 characters; no file over 200 MB; at most 500 MB in total. These live in one file, `packages/ship/src/targets/itch-limits.ts`, with the source URL and the date read.
+6. Every relative reference matches a file's exact case. itch.io is case-sensitive; a Mac's disk usually is not.
+7. No `ruken.toml` in the output.
 
 It then writes `<id>-<version>-itch.zip` with sorted entries and fixed timestamps, so the same build gives the same bytes. The zip is for a manual upload; butler does not need it.
 
@@ -163,7 +164,7 @@ It needs `BUTLER_API_KEY`, and fails early, with how to get one, when the key or
 2. Standalone saves should report when they fall back to memory, instead of granting `saves` silently.
 3. A `SavesFlushRes.persisted` value for device storage (for example `'device'`). Until then, the web adapter answers `'host-outbox'`, as the SDK's standalone session does.
 
-## 10. Owner decisions (recommended defaults in effect until reviewed)
+## 10. Owner decisions (approved as recommended, 2026-10-16)
 
 | ID | Question | Recommended default | Why |
 |---|---|---|---|

@@ -1,5 +1,9 @@
+import type { ErrorCode } from '@mcthaydt/automata-host'
 import type { SimEvent } from '@mcthaydt/automata-sim'
 import { Context, Effect, type Scope } from 'effect'
+import type { GlyphFamily } from '../input/gamepad/glyph-family.js'
+import type { InputDevice, PadInfo } from '../input/input.manager.js'
+import type { BoardState } from '../leaderboards/board-state.js'
 
 export interface RuntimeFacts {
   readonly 'sim.events': readonly SimEvent[]
@@ -8,6 +12,41 @@ export interface RuntimeFacts {
     readonly from: string | undefined
   }
   readonly 'time.changed': { readonly paused: boolean }
+  /** The player's language changed (PRODUCT spec §4 item 2). Screens redraw their text; nothing remounts. */
+  readonly 'locale.changed': { readonly locale: string; readonly previous: string }
+  /** The player's last real input came from another device (M4 spec §4.2). Prompts and touch controls follow it. */
+  readonly 'input.device.changed': {
+    readonly device: InputDevice
+    readonly glyphs: GlyphFamily
+    readonly previous: InputDevice
+  }
+  /** The first gesture after `session.ready` built and resumed the audio graph (M5 spec §4.6). */
+  readonly 'audio.unlocked': Readonly<Record<never, never>>
+  /** No audio context could be built or resumed; the game runs silent (M5 spec §6). */
+  readonly 'audio.unavailable': { readonly reason: string }
+  /** A sound or a track could not be loaded or decoded; it is silent and nothing else stops (M5 spec §6). */
+  readonly 'audio.decode.failed': { readonly alias: string; readonly reason: string }
+  /** A pad was plugged in (M4 spec §5). `standard: false` means it cannot drive bindings (§6). */
+  readonly 'input.pad.connected': PadInfo
+  /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
+  readonly 'input.pad.disconnected': PadInfo & { readonly wasActive: boolean }
+  /** The player's bindings changed (M4 spec §4.5): `action` when one was rebound, none on a reset or a follow. */
+  readonly 'input.bindings.changed': { readonly action?: string }
+  /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
+  readonly 'render.filter.dropped': { readonly id: string; readonly reason: string }
+  /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
+  readonly 'save.written': { readonly key: string; readonly slot: number }
+  /** The host refused a slot's write; the slot keeps its previous value (M5 spec §4.3, §6). */
+  readonly 'save.failed': { readonly key: string; readonly slot: number; readonly code: ErrorCode }
+  /** A slot was loaded for play (M5 spec §5, "Load a slot"). */
+  readonly 'save.loaded': { readonly key: string; readonly slot: number }
+  /**
+   * Another device changed the slot being played (M5 spec §5, M5-D6). Nothing was reloaded; the game offers Load
+   * newer or Keep playing.
+   */
+  readonly 'save.changedElsewhere': { readonly key: string; readonly slot: number }
+  /** A submit to `board` changed state: `submitting`, then how the host answered (M5 spec §4.8). */
+  readonly 'leaderboard.submitted': { readonly board: string; readonly state: BoardState }
 }
 
 export interface PresentationBus<Facts = RuntimeFacts> {

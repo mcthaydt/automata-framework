@@ -2,10 +2,17 @@ import { dirname, join } from 'node:path'
 import { FileError } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
 import type { ShipConfig } from '../config/ship-config.ts'
-import { ItchBuildInvalid, type ItchCheck, RootAbsoluteReference, VersionMismatch } from '../errors.ts'
+import {
+  ItchBuildInvalid,
+  type ItchCheck,
+  RootAbsoluteReference,
+  SecretInBuild,
+  VersionMismatch,
+} from '../errors.ts'
 import { buildFiles } from '../prepare/build-files.ts'
 import { checkVersion } from '../prepare/check-version.ts'
 import { findRootAbsoluteReferences } from '../prepare/root-absolute.ts'
+import { findSecretsInBuild, readEnvValues } from '../prepare/secret-scan.ts'
 import {
   checkFileCount,
   checkFileSizes,
@@ -22,12 +29,20 @@ export interface PrepareItchInput {
   readonly config: ShipConfig
   /** The release tag being built, when there is one (`v1.2.3`). */
   readonly tag?: string | undefined
+  /** The game's folder, whose `.env*` values must not appear in the build (QB.2). Without it only keys and entropy are scanned. */
+  readonly gameDir?: string | undefined
 }
 
-export type PrepareItchError = VersionMismatch | RootAbsoluteReference | ItchBuildInvalid | FileError
+export type PrepareItchError =
+  | VersionMismatch
+  | RootAbsoluteReference
+  | SecretInBuild
+  | ItchBuildInvalid
+  | FileError
 
 /**
- * Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, `index.html`, itch.io's
+ * Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on
+ * itch.io is public, so the build is scanned as Ruken's is), `index.html`, itch.io's
  * limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops
  * prepare before anything is written. Then `<id>-<version>-itch.zip` is written beside the build folder (not in
  * it, so `butler push <dist>` never uploads it), for a manual upload; butler pushes the folder itself.
@@ -37,7 +52,7 @@ export type PrepareItchError = VersionMismatch | RootAbsoluteReference | ItchBui
  */
 export function prepareItch(input: PrepareItchInput): Effect.Effect<{ zipPath: string }, PrepareItchError> {
   return Effect.gen(function* () {
-    const { distDir, config, tag } = input
+    const { distDir, config, tag, gameDir } = input
     const mismatch = checkVersion(config.game.version, tag)
     if (mismatch !== undefined && tag !== undefined) {
       return yield* new VersionMismatch({ version: config.game.version, tag, message: mismatch })
@@ -48,6 +63,11 @@ export function prepareItch(input: PrepareItchInput): Effect.Effect<{ zipPath: s
 
     const references = yield* attempt(() => findRootAbsoluteReferences(distDir))
     if (references.length > 0) return yield* new RootAbsoluteReference({ references })
+
+    const secrets = yield* attempt(() =>
+      findSecretsInBuild(distDir, gameDir === undefined ? [] : readEnvValues(gameDir)),
+    )
+    if (secrets.length > 0) return yield* new SecretInBuild({ found: secrets })
 
     const files = yield* attempt(() => buildFiles(distDir))
     const checks: readonly [ItchCheck, () => string[]][] = [

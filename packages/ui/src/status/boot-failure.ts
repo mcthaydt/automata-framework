@@ -11,6 +11,10 @@ import type { RukenError } from '@ruken/sdk'
 /** Ruken's error code. The SDK exports the class, not the alias. */
 export type ErrorCode = RukenError['code']
 
+/**
+ * The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never
+ * imports the runtime.
+ */
 export type BootFailure =
   | {
       readonly _tag: 'HostError'
@@ -35,6 +39,10 @@ export type BootFailure =
  */
 export type HostKind = 'ruken' | 'standalone'
 
+/**
+ * What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or
+ * `unsupported`.
+ */
 export type BootFailureState =
   | 'start'
   | 'connect'
@@ -47,11 +55,19 @@ export type BootFailureState =
 /** Try again, Continue without loading, Back to {host}. */
 export type BootFailureAction = 'retry' | 'continue' | 'exit'
 
+/**
+ * What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order. No actions
+ * means the panel is final.
+ */
 export interface BootFailureViewModel {
   readonly state: BootFailureState
   readonly actions: BootFailureAction[]
 }
 
+/**
+ * The words for every boot failure state and action, by name. `BOOT_FAILURE_COPY_EN` holds the English
+ * defaults.
+ */
 export type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>
 
 /**

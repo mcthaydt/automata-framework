@@ -20,6 +20,12 @@ export type DiagnosticCode =
   | 'invalidPalette'
   | 'invalidGame'
   | 'missingAsset'
+  /** A file an asset build reads is not what it should be: not a PNG, or too large for an atlas page (M5.6). */
+  | 'invalidAsset'
+  /** A drawn pixel of an atlas frame is not a colour of the game's declared palette (M5.6). */
+  | 'offPalette'
+  /** A message has a character that no font subset of its language holds (M5.5, PRODUCT.L's L-e). */
+  | 'missingGlyph'
   | 'duplicateMessageKey'
   | 'staleTranslation'
   | 'staleArtifact'
@@ -29,6 +35,10 @@ export type DiagnosticCode =
   /** A warning, never a refusal: a file in a content folder the compiler does not read. */
   | 'skippedFile'
 
+/**
+ * One authoring problem: a stable `code`, the file to open, the 1-based line and column, the dotted key
+ * inside it and a message that says what to write instead.
+ */
 export interface Diagnostic {
   readonly code: DiagnosticCode
   /** Project-relative, `/`-separated, e.g. `content/tuning.toml`. */
@@ -65,6 +75,10 @@ export function compareDiagnostics(a: Diagnostic, b: Diagnostic): number {
   )
 }
 
+/**
+ * Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing
+ * the input. The order never depends on locale.
+ */
 export function sortDiagnostics(diagnostics: readonly Diagnostic[]): Diagnostic[] {
   return [...diagnostics].sort(compareDiagnostics)
 }
