@@ -233,7 +233,11 @@ describe('lastLightEntityKit', () => {
     })
     expect(kit.things.some((thing) => thing.def === 'anchor')).toBe(false)
     expect(kit.problems).toEqual([
-      { path: ['anchors', 'fuse', 'odd'], message: 'entity fuse: odd is not a value a field can hold' },
+      {
+        path: ['anchors', 'fuse', 'odd'],
+        message: 'entity fuse: odd is not a value a field can hold',
+        entity: { def: 'anchor', id: 'fuse', at: { x: 1, z: 2 } },
+      },
     ])
   })
 

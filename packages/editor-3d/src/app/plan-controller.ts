@@ -9,7 +9,6 @@ import type { Point } from '../format/sector.schema'
 import { moveCorner, moveSector } from '../model/corner-edits'
 import type { EditSession, LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'
-import { GeometryError, type GeometryLayer } from '../profile/level-profile'
 import {
   type CornerHit,
   isLayerOff,
@@ -29,7 +28,8 @@ import {
   toScreen,
   toWorld,
 } from '../view/plan/plan-viewport'
-import { type SelectionOf, selectionOf } from '../view/selection-of'
+import type { SelectionOf } from '../view/selection-of'
+import { createGeometryCache, type Geometry } from './geometry-cache'
 
 /** A pointer on the canvas, in pixels from its top left. */
 export interface PlanPointer {
@@ -93,12 +93,6 @@ const IDLE: PlanView = {
 /** Equal as data: a pick is a few numbers and a few names. */
 const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b)
 
-interface Geometry<D> {
-  readonly level: D
-  readonly layers: readonly GeometryLayer[]
-  readonly select: SelectionOf
-}
-
 /** What a drag is in the middle of. The session shows its runs live and is one undo step when it commits. */
 interface Drag<D> {
   readonly session: EditSession<D>
@@ -129,23 +123,7 @@ export function createPlanController<D>(editor: LevelEditor<D>, canvas: Size): P
   /** The point of the plan a pan holds under the pointer. A pan has no session: the camera is not an undo step. */
   let pan: Point | undefined
 
-  /**
-   * The geometry and the selection ids of the level last seen, by identity: a hover costs picks and not a rebuild. A level
-   * that cannot be resolved has no layers, so nothing is hit and the view goes on working.
-   */
-  let cache: Geometry<D> | undefined
-  const geometry = (): Geometry<D> => {
-    const level = editor.level
-    if (cache?.level === level) return cache
-    let layers: readonly GeometryLayer[] = []
-    try {
-      layers = editor.profile.geometry(level).layers
-    } catch (error) {
-      if (!(error instanceof GeometryError)) throw error
-    }
-    cache = { level, layers, select: selectionOf(editor.profile, level) }
-    return cache
-  }
+  const geometry = createGeometryCache(editor)
 
   const setView = (next: PlanView): void => {
     if (same(view, next)) return
