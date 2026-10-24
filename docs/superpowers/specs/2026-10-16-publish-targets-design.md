@@ -118,7 +118,7 @@ It needs `BUTLER_API_KEY`, and fails early, with how to get one, when the key or
 3. **Publish by hand:**
    - `pnpm publish:ruken` needs `RUKEN_API` and `RUKEN_TOKEN`.
    - `pnpm publish:itch` needs `BUTLER_API_KEY` and butler.
-4. **Publish from CI:** `game-release.yml` runs the existing Ruken job. It adds an `itch` job when `ship.config.ts` has `itch` and the `BUTLER_API_KEY` secret exists. Each job builds its own target from the tagged commit.
+4. **Publish from CI:** `game-release.yml` runs the existing Ruken job. It adds an `itch` job when the caller passes `itch: true` (a workflow condition cannot read `ship.config.ts`; ship then fails without an `itch` section). The job never runs for a pull request. Opted in without the `BUTLER_API_KEY` secret, it fails, naming the secret, instead of skipping (PUB.4). Each job builds its own target from the tagged commit: the itch job runs the `itch-build-command` input (`pnpm build:itch`), installs a pinned, checksum-verified butler, and runs `automata-ship publish --target itch`.
 5. **First itch.io push only:** the Owner sets the project's options by hand (§6). `publish --target itch` prints that checklist when butler reports a new channel.
 
 ## 6. First-push checklist for itch.io (printed by ship, and in the docs)
