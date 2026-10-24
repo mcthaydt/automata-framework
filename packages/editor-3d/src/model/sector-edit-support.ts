@@ -15,11 +15,12 @@ export const round4 = (value: number): number => roundJsonNumber(value) + 0
 /** A ceiling is this far above its floor at the least: a sector the player cannot stand in is not a sector. */
 const MIN_HEADROOM = 0.5
 
-const SECTOR_ID = /^[A-Za-z][A-Za-z0-9_-]*$/
+/** What an id is, of a sector or of a thing: a letter, then letters, digits, - or _. */
+export const ID_PATTERN: RegExp = /^[A-Za-z][A-Za-z0-9_-]*$/
 
 /** Why `id` cannot be the id of a sector the edit adds: it is not an id, or the level has it already. */
 export function newIdProblem<D>(profile: LevelProfile<D>, level: D, id: string): string | undefined {
-  if (!SECTOR_ID.test(id)) return 'the sector id must be an id: a letter, then letters, digits, - or _'
+  if (!ID_PATTERN.test(id)) return 'the sector id must be an id: a letter, then letters, digits, - or _'
   if (profile.sectors.takenIds(level).includes(id)) return `there is already a sector ${id}`
   return undefined
 }
