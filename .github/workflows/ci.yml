@@ -4,12 +4,18 @@ name: ci
 # to main and on pull requests that are not drafts (a draft runs it in a cloud container, docs/cloud-parity.md).
 # Browser journeys run only nightly and on request (`automata-ship test-remote <spec>`).
 #
+# What a pull request runs (CI backlog, 2026-10-23): one runner serves every pull request, so the checks job
+# always runs and decides whether the pull request is documentation only (`scope`). Parity and the games' CI
+# (placeholder, base-2d) run for a pull request only when it is ready for review and changes more than docs/ and
+# Markdown files; marking a draft ready starts them. Pushes to main, the nightly run and manual runs are unchanged.
+#
 # Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
 # about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
 # label af-linux (WSL2 Ubuntu with Docker, like Ruken's ruken-linux; ship spec §3.7). There is deliberately no
 # fallback to ubuntu-latest: with no runner online a job waits in the queue instead of failing at once. The
 # repository variable AF_LINUX_RUNNER switches every job to another label (ubuntu-latest once hosted minutes
-# are back), and AF_GPU_RUNNER moves the browser journeys alone. Until a runner serves AF, a full local run is
+# are back), and AF_GPU_RUNNER moves the browser journeys alone. Parity alone runs on the Owner's Mac (label
+# af-mac, 2026-10-17) and AF_PARITY_RUNNER moves it. Until a runner serves AF, a full local run is
 # the green gate (docs/04-how-we-build.md).
 
 on:
@@ -23,7 +29,7 @@ on:
   workflow_dispatch:
     inputs:
       spec:
-        description: Playwright arguments for one focused browser run (test-remote), e.g. "examples/placeholder/e2e/boot.e2e.ts --project=placeholder". Empty runs the checks.
+        description: Playwright arguments for one focused browser run (test-remote), e.g. "games/placeholder/e2e/boot.e2e.ts --project=placeholder". Empty runs the checks.
         type: string
         default: ""
       nightly:
@@ -44,6 +50,8 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
     runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 10
+    outputs:
+      docs_only: ${{ steps.scope.outputs.docs_only }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -51,6 +59,18 @@ jobs:
           # Full history, so `changeset status` on a pull request can find where it left origin/main. Not an
           # expression: `cond && 0 || 1` always gives 1, because 0 is falsy in Actions expressions.
           fetch-depth: 0
+      # A pull request that changes only docs/ and Markdown files cannot change what a game builds, so the jobs
+      # after this one skip it. The checkout is GitHub's merge commit: its first parent is the base tip, so
+      # HEAD^1..HEAD is exactly the pull request's own changes. Anything else (no merge commit, so no way to tell)
+      # counts as code and runs everything.
+      - id: scope
+        if: github.event_name == 'pull_request'
+        run: |
+          docs_only=false
+          if [ "$(git rev-list --parents -n 1 HEAD | wc -w)" -eq 3 ]; then
+            if ! git diff --name-only HEAD^1 HEAD | grep -qvE '^docs/|\.md$'; then docs_only=true; fi
+          fi
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -64,8 +84,21 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm boundaries
       - run: pnpm style
+      # QB.1 (QB spec §4.1): unused files, exports and dependencies (knip.jsonc).
+      - run: pnpm knip
       - run: pnpm test:unit
-      # Every feature demo builds (examples/README.md); their browser checks run with the journeys.
+      # QB.1: each of these first proves it fails on its planted fixture, then checks the repository. The audit is
+      # `pnpm audit --prod --audit-level=high`; the secret scan runs the pinned gitleaks over the full history
+      # (fetch-depth 0 above).
+      - run: pnpm audit:deps
+      - run: pnpm secrets
+      # QB.1: every package this pull request adds that main never used, with its registry, publisher and weekly
+      # downloads, in the job summary. Fails when a package or version is not on its registry.
+      - run: pnpm deps:new --base origin/main
+        if: github.event_name == 'pull_request'
+      # Every one-file example builds through the runner (EX spec §5); their smoke runs with the journeys.
+      - run: pnpm build:examples
+      # Every old feature demo builds (examples/README.md) until EX.4 ports and deletes them.
       - run: pnpm build:demos
       # S8 budgets E1 and E3 (docs/spikes/s8-effect.md): Effect's share and the page's gzip size.
       - run: pnpm --filter @af-examples/placeholder budget:size
@@ -74,26 +107,47 @@ jobs:
       - run: pnpm changeset status --since=origin/main
         if: github.event_name == 'pull_request'
       - run: node tooling/release/src/check-changesets.ts
+      # PRODUCT.1 (PRODUCT spec §2 F6): each core package's API report matches its source, and every API break
+      # against origin/main's reports is declared by a changeset.
+      - run: pnpm api-report
       - run: pnpm build
       - run: pnpm --filter @mcthaydt/release test:dist
+      # DX.4: the API index and llms-full.txt from the built .d.ts; fails on a new export with no doc comment.
+      - run: pnpm api-index
+      # DX.7: the automata-api skill carries that api.md and the plugin its version; then Claude Code validates the
+      # plugin and the marketplace (--strict).
+      - run: pnpm agent-skills
+      - run: pnpm plugin:validate
 
   parity:
     name: parity (chromium, webkit, firefox)
-    # af-linux is one shared PC runner, so a draft PR runs parity in a cloud container instead
-    # (docs/cloud-parity.md). Pushes to main have no pull_request and always run it.
+    # A draft PR runs parity in a cloud container instead (docs/cloud-parity.md). Pushes to main have no
+    # pull_request and always run it. `!cancelled()` keeps a red checks job from hiding parity on a push or the
+    # nightly run; a pull request needs green checks first, so a red one does not also queue the heavy jobs.
+    needs: checks
     if: >-
+      !cancelled() &&
       (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
-      github.event.pull_request.draft != true
-    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+      (github.event_name != 'pull_request' ||
+      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
+      needs.checks.outputs.docs_only != 'true'))
+    # The Owner's Mac (2026-10-17), so parity no longer queues behind Ruken on the shared af-linux PC.
+    # vars.AF_PARITY_RUNNER moves it to another label.
+    runs-on: ${{ vars.AF_PARITY_RUNNER || 'af-mac' }}
     timeout-minutes: 10
-    # Browsers and their OS deps come preinstalled and pinned; installing them per run blew the 10-minute budget.
-    # Keep the tag in step with the `playwright` devDependency (docs/versions.md, Container images).
+    # macOS runners cannot run containers, so on af-mac the job runs on the host and fetches the browsers into the
+    # runner's cache (the steps below). Any other runner uses the pinned Playwright image, whose browsers and OS
+    # deps come preinstalled; installing them per run there blew the 10-minute budget. An empty image runs the job
+    # on the host. Keep the tag in step with the `playwright` devDependency (docs/versions.md, Container images).
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: ${{ (vars.AF_PARITY_RUNNER || 'af-mac') != 'af-mac' && 'mcr.microsoft.com/playwright:v1.63.0-noble' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Changesets' release tags (`<package>@<version>`), from which evidence.json says which versions were
+          # released (DX spec §3.10).
+          fetch-tags: true
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -103,18 +157,39 @@ jobs:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       # The container runs as root but the checkout belongs to the runner user; without this, git (and so the
-      # `prepare` hook install) refuses the repo as "dubious ownership".
-      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      # `prepare` hook install and `pnpm evidence`) refuses the repo as "dubious ownership". The system config,
+      # not the global one: the parity and evidence steps set HOME to /root, where a global setting is not read.
+      - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
+        if: runner.os == 'Linux'
       - run: pnpm install --frozen-lockfile
+      # On the Mac host: a no-op once the pinned browsers are in the runner's cache.
+      - run: pnpm exec playwright install chromium-headless-shell webkit firefox
+        if: runner.os == 'macOS'
+      # In the container Actions sets HOME to /github/home (not root's), where Firefox refuses to run as root; this
+      # holds for every later step (parity and evidence). On the Mac host the runner's own HOME is right.
+      - run: echo "HOME=/root" >> "$GITHUB_ENV"
+        if: runner.os == 'Linux'
       # Every package with a browsers vitest project (sim, content, physics, ui, ...) runs its parity suite.
       - run: pnpm test:parity
-        env:
-          HOME: /root # Actions sets HOME to /github/home (not root's); Firefox refuses to run as root there
+      # The evidence file (DX spec §3.10), on every push to main: each golden's hash as Node, Chromium, WebKit and
+      # Firefox computed it, the revision, this run, and the package versions. The website reads the artifact; the
+      # automata check results stay "pending" until create-game (DX.5) and automata check (DX.6) land.
+      - run: pnpm evidence
+        if: github.event_name == 'push'
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: github.event_name == 'push'
+        with:
+          name: evidence
+          path: |
+            evidence.json
+            evidence.schema.json
+          if-no-files-found: error
+          retention-days: 90
       # The container runs as root in the runner's shared work folder (/__w is _work, /__t the tool cache). Hand
       # everything back to the runner user, the owner of /__w, or the next job's checkout cannot delete the
       # root-owned node_modules ("Permission denied"). always() runs on failure and on cancel too.
       - name: Give the work folder back to the runner user
-        if: always()
+        if: always() && runner.os == 'Linux'
         run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
 
   e2e:
@@ -137,11 +212,11 @@ jobs:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium webkit firefox
         if: runner.environment == 'github-hosted'
       # A self-hosted runner has the system libraries installed once and no sudo; the browser itself is fetched
       # into its cache here (a no-op when it is already there).
-      - run: pnpm exec playwright install chromium
+      - run: pnpm exec playwright install chromium webkit firefox
         if: runner.environment == 'self-hosted'
       - name: Browser journeys
         env:
@@ -168,21 +243,76 @@ jobs:
           path: "**/playwright-report/"
           retention-days: 7
 
+  frame-budget:
+    name: frame budget (nightly, GPU runner)
+    # PRODUCT.7 (PRODUCT spec §2 F5): ms/frame of the core stress example's production build. A performance probe
+    # needs the GPU to itself (AGENTS.md), so it runs after the journeys (`needs`, whatever their result) and one
+    # at a time (`concurrency`). `pnpm budget:frame` fails closed until tooling/frame-budget/budget.json is set
+    # from the first run on this runner (Owner acceptance), and on any software-rendered result.
+    needs: e2e
+    if: >-
+      !cancelled() &&
+      (github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && inputs.spec == '' && inputs.nightly))
+    runs-on: ${{ vars.AF_GPU_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 20
+    concurrency:
+      group: af-gpu-probe
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+        if: runner.environment == 'github-hosted'
+      - run: pnpm exec playwright install chromium
+        if: runner.environment == 'self-hosted'
+      - run: pnpm test:frame-budget
+      - run: pnpm budget:frame
+      # The results are the evidence a budget is set from, so they are kept whatever the check said.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: frame-budget-results
+          path: frame-budget-results/
+          retention-days: 30
+
   placeholder:
     name: placeholder through game-ci
-    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    needs: checks
+    if: >-
+      !cancelled() &&
+      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
+      (github.event_name != 'pull_request' ||
+      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
+      needs.checks.outputs.docs_only != 'true'))
     uses: ./.github/workflows/game-ci.yml
     with:
-      working-directory: examples/placeholder
+      working-directory: games/placeholder
       sim-roots: ""
       runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
 
   base-2d:
     name: base-2d through game-ci
-    if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
+    needs: checks
+    if: >-
+      !cancelled() &&
+      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
+      (github.event_name != 'pull_request' ||
+      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
+      needs.checks.outputs.docs_only != 'true'))
     uses: ./.github/workflows/game-ci.yml
     with:
-      working-directory: examples/base-2d
+      working-directory: games/emberwick
       sim-roots: src/sim
       artifact-name: base-2d-dist
       runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}

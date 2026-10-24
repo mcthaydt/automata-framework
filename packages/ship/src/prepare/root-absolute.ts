@@ -42,7 +42,7 @@ const JSON_FILE = /\.(?:json|webmanifest)$/i
  * Every file under `dir`, in name order, following symlinked folders once each (a link back up would loop
  * forever). A dangling symlink points at nothing a browser could load, so it is skipped.
  */
-function walk(dir: string, seen = new Set<string>()): string[] {
+export function walk(dir: string, seen: Set<string> = new Set<string>()): string[] {
   const real = realpathSync(dir)
   if (seen.has(real)) return []
   seen.add(real)
@@ -58,6 +58,10 @@ function walk(dir: string, seen = new Set<string>()): string[] {
 
 const isRootAbsolute = (url: string): boolean => url.startsWith('/') && !url.startsWith('//')
 
+/**
+ * Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
+ * Reads each file's syntax (scripts, stylesheets, pages, JSON), so comments and prose are not reported.
+ */
 export function findRootAbsoluteReferences(distDir: string): RootAbsoluteReferenceFound[] {
   // The build's own top-level names: what a root-absolute path would be aiming at.
   const own = new Set(readdirSync(distDir))

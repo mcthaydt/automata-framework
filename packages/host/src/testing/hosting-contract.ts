@@ -11,7 +11,7 @@ import { runScoped } from './run'
 /** An adapter under test: a fresh layer per case, with `saves` granted. */
 export type HostingLayer = () => Layer.Layer<Hosting, HostError>
 
-/** Lets the fake Ruken host answer over its in-memory ports; the web adapter needs nothing. */
+/** Lets the fake Ruken host answer over its in-memory ports, and forked stream readers subscribe. */
 export type Settle = Effect.Effect<void>
 
 const observedOf = (hosting: Hosting) => ({
@@ -79,6 +79,17 @@ export function describeHostingContract(name: string, layer: HostingLayer, settl
         }),
       ))
 
+    it('lists the keys it holds, sorted by code unit, and drops a removed one (M5 spec §4.1)', () =>
+      withHosting((hosting) =>
+        Effect.gen(function* () {
+          expect(yield* hosting.saves.keys).toEqual([])
+          for (const key of ['b', 'B', 'a.slot.0', 'a']) yield* hosting.saves.set(key, '1')
+          expect(yield* hosting.saves.keys).toEqual(['B', 'a', 'a.slot.0', 'b'])
+          yield* hosting.saves.remove('a')
+          expect(yield* hosting.saves.keys).toEqual(['B', 'a.slot.0', 'b'])
+        }),
+      ))
+
     it('reports saves as saved when nothing is pending', () =>
       withHosting((hosting) =>
         Effect.gen(function* () {
@@ -108,6 +119,42 @@ export function describeHostingContract(name: string, layer: HostingLayer, settl
         }),
       ))
 
+    it('gives one round-end item per round that ended, with its outcome, and none for a dropped end (M5.2)', () =>
+      withHosting((hosting) =>
+        Effect.gen(function* () {
+          const reader = yield* Effect.fork(Stream.runCollect(hosting.round.ended.pipe(Stream.take(2))))
+          yield* settled
+          yield* Effect.yieldNow()
+          yield* hosting.round.end('quit') // no round open: dropped
+          yield* hosting.round.start
+          yield* hosting.round.start // a second start: dropped
+          yield* hosting.round.end('complete')
+          yield* hosting.round.end('quit') // already ended: dropped
+          yield* hosting.round.start
+          yield* hosting.round.end()
+          expect(Chunk.toReadonlyArray(yield* Fiber.join(reader))).toEqual(['complete', undefined])
+        }),
+      ))
+
+    it('fails leaderboard calls UNSUPPORTED when the host has no leaderboards, and keeps no local board (PRODUCT.1)', () =>
+      withHosting((hosting) =>
+        Effect.gen(function* () {
+          yield* hosting.ready
+          const submitted = yield* Effect.either(hosting.leaderboards.submit('high-score', 1))
+          expect(Either.isLeft(submitted) && submitted.left).toMatchObject({
+            _tag: 'HostError',
+            code: 'UNSUPPORTED',
+            operation: 'leaderboard.submit',
+          })
+          const read = yield* Effect.either(hosting.leaderboards.get('high-score'))
+          expect(Either.isLeft(read) && read.left).toMatchObject({
+            _tag: 'HostError',
+            code: 'UNSUPPORTED',
+            operation: 'leaderboard.get',
+          })
+        }),
+      ))
+
     it('takes menu and exiting handlers for as long as a scope is open', () =>
       withHosting((hosting) =>
         Effect.scoped(
@@ -133,6 +180,22 @@ export function describeHostingContract(name: string, layer: HostingLayer, settl
         }),
       ))
 
+    it('ends the saves-changed and round-ended streams when Hosting shuts down, with nothing in them', () =>
+      runScoped(
+        Effect.gen(function* () {
+          const scope = yield* Scope.make()
+          const hosting = Context.get(yield* Layer.buildWithScope(layer(), scope), Hosting)
+          const readers: Fiber.Fiber<Chunk.Chunk<unknown>>[] = [
+            yield* Effect.fork(Stream.runCollect(hosting.saves.changed)),
+            yield* Effect.fork(Stream.runCollect(hosting.round.ended)),
+          ]
+          yield* settled
+          yield* Scope.close(scope, Exit.void)
+          const collected = yield* Effect.forEach(readers, Fiber.join)
+          expect(collected.map(Chunk.size)).toEqual([0, 0])
+        }),
+      ))
+
     it('fails saves and requests on a shut-down Hosting with CANCELLED instead of dropping them', () =>
       runScoped(
         Effect.gen(function* () {
@@ -144,6 +207,9 @@ export function describeHostingContract(name: string, layer: HostingLayer, settl
             hosting.saves.get('progress'),
             hosting.saves.remove('progress'),
             hosting.saves.flush,
+            hosting.saves.keys,
+            hosting.leaderboards.submit('high-score', 1),
+            hosting.leaderboards.get('high-score'),
             hosting.setFullscreen(true),
             hosting.exit(),
           ] as Effect.Effect<unknown, unknown>[]) {

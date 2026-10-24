@@ -1,0 +1,16 @@
+{
+  // The files that run in Node (Vite, Vitest, Playwright, ship.config.ts) or reach ship's Node code.
+  "extends": "./tsconfig.json",
+  // vite/client: ship-config.test.ts reads the input map, which reaches the game package's CSS and import.meta.env.
+  "compilerOptions": { "types": ["node", "vite/client"] },
+  "include": [
+    "ship.config.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "src/ship-config.test.ts",
+    "src/art/art.test.ts",
+    "src/plumbing.test.ts",
+    "e2e/**/*.ts"
+  ],
+  "exclude": []
+}

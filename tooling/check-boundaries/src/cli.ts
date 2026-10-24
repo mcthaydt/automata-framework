@@ -1,19 +1,23 @@
 #!/usr/bin/env node
-// Usage: node tooling/check-boundaries/src/cli.ts [--allow-import <specifier>]... <root> [<root>...]
+// Usage: node tooling/check-boundaries/src/cli.ts [--inline] [--allow-import <specifier>]... <root> [<root>...]
 // Each root is a sim source folder (packages/sim/src, a sim-plugin package, a game's sim folder). Checks
 // every non-test source file under it, and that relative imports stay inside it; exits 1 on any finding.
 // `--allow-import` adds an import specifier, by exact name, that every root in this run may use (see CheckOptions).
-import { readFileSync } from 'node:fs'
+// `--inline` checks one-file examples instead (EX spec §4): each root is a file or a folder of browser files, and
+// only the arguments of their `defineSystem` and `definePlugin` calls are checked.
+import { readFileSync, statSync } from 'node:fs'
 import { relative } from 'node:path'
 import { checkSource, type Finding } from './check.ts'
 import { collectSources } from './files.ts'
 
 const dirs: string[] = []
 const allowImports: string[] = []
+let inline = false
 const args = process.argv.slice(2)
 for (let i = 0; i < args.length; i++) {
   const arg = args[i] as string
-  if (arg === '--allow-import') {
+  if (arg === '--inline') inline = true
+  else if (arg === '--allow-import') {
     const specifier = args[++i]
     if (specifier === undefined) {
       console.error('check-boundaries: --allow-import needs a specifier')
@@ -23,15 +27,15 @@ for (let i = 0; i < args.length; i++) {
   } else dirs.push(arg)
 }
 if (dirs.length === 0) {
-  console.error('usage: check-boundaries [--allow-import <specifier>]... <dir> [<dir>...]')
+  console.error('usage: check-boundaries [--inline] [--allow-import <specifier>]... <dir> [<dir>...]')
   process.exit(2)
 }
 const files: string[] = []
 const findings: Finding[] = []
 for (const root of dirs) {
-  for (const file of collectSources(root)) {
+  for (const file of statSync(root).isDirectory() ? collectSources(root) : [root]) {
     files.push(file)
-    findings.push(...checkSource(file, readFileSync(file, 'utf8'), { root, allowImports }))
+    findings.push(...checkSource(file, readFileSync(file, 'utf8'), { root, allowImports, inline }))
   }
 }
 for (const f of findings)

@@ -42,17 +42,20 @@ function reduce(x: number): void {
   redQ = ((n % 4) + 4) % 4
 }
 
+/** Deterministic sine, in radians. NaN for a non-finite input; `-0` stays `-0`. */
 export function sin(x: number): number {
   if (!Number.isFinite(x)) return Number.NaN
   if (x === 0) return x // keeps -0
   reduce(x)
   return redQ === 0 ? kSin(redR) : redQ === 1 ? kCos(redR) : redQ === 2 ? -kSin(redR) : -kCos(redR)
 }
+/** Deterministic cosine, in radians. NaN for a non-finite input. */
 export function cos(x: number): number {
   if (!Number.isFinite(x)) return Number.NaN
   reduce(x)
   return redQ === 0 ? kCos(redR) : redQ === 1 ? -kSin(redR) : redQ === 2 ? -kCos(redR) : kSin(redR)
 }
+/** Deterministic tangent, in radians, as `sin(x) / cos(x)`. */
 export function tan(x: number): number {
   return sin(x) / cos(x)
 }
@@ -75,6 +78,7 @@ const PI_LO = 1.2246467991473531772e-16
 const PIO2 = 1.570796326794896558
 const PIO2_LO = 6.12323399573676603587e-17 // == ATANLO[3]
 
+/** Deterministic arctangent. NaN stays NaN; `-0` stays `-0`. */
 export function atan(x0: number): number {
   if (Number.isNaN(x0)) return Number.NaN
   if (x0 === 0) return x0 // keeps -0
@@ -133,6 +137,7 @@ function pow2i(k: number): number {
   return scratch.getFloat64(0, false)
 }
 
+/** Deterministic `e` to the power `x`. Infinity above about 709.78, 0 below about -745.13. */
 export function exp(x: number): number {
   if (Number.isNaN(x)) return Number.NaN
   if (x > 709.782712893383973096) return Number.POSITIVE_INFINITY
@@ -158,6 +163,7 @@ const LG6 = 1.531383769920937332e-1
 const LG7 = 1.479819860511658591e-1
 const SQRT2 = 1.41421356237309514547
 
+/** Deterministic natural logarithm. NaN for a negative input, `-Infinity` for 0. */
 export function log(x0: number): number {
   if (Number.isNaN(x0) || x0 < 0) return Number.NaN
   if (x0 === 0) return Number.NEGATIVE_INFINITY
@@ -200,6 +206,10 @@ function powInt(x: number, n: number): number {
   return n < 0 ? 1 / result : result
 }
 
+/**
+ * Deterministic `x` to the power `y`. An integer `y` of 64 or less in magnitude multiplies exactly; otherwise
+ * it is `exp(y * log(x))`, and a negative `x` with a non-integer `y` is NaN.
+ */
 export function pow(x: number, y: number): number {
   if (y === 0) return 1
   if (Number.isNaN(x) || Number.isNaN(y)) return Number.NaN

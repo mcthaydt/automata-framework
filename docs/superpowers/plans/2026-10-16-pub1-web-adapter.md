@@ -73,3 +73,4 @@
 | 8 | 2026-10-16 | `pnpm build` green; `test:dist` 13/13; consumer smoke from packs passed, including the new step "vite build with the automata-web condition, no Ruken SDK" (567 kB, no SDK) beside the default bundle's "1 Ruken SDK". `3d45178` |
 | 9 | 2026-10-16 | Shared contracts §1 and PUB spec §3/§9 updated; changeset `pub1-web-adapter.md` (host, patch); `check-changesets` 0 problems. `3d45178` |
 | 10 | 2026-10-16 | See the 02 execution record: `pnpm check` (static green; unit step green on rerun at `--concurrency=2` after load timeouts), `pnpm test:parity` 590/590, `pnpm test:e2e` 44 passed + 2 load timeouts, both green on rerun. |
+| 11 | 2026-10-24 | Catch-up with `main` (see the 02 execution record, 2026-10-24): the web adapter gains `saves.keys`, `saves.changed`, `leaderboards` and `round.ended`, tests first (7 red); contract cases for them run on both adapters. `pnpm check`, `api-report`, `test:dist`, `check-changesets` green locally. |

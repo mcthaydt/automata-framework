@@ -1,8 +1,8 @@
 # PUB: publish to Ruken or itch.io
 
-- **Status:** drafted 2026-10-16 (PUB.0). **Pending Owner review.** Nothing here is implemented before that review. PUB-D1 to PUB-D4 (§10) run on their recommended defaults until the Owner changes them.
+- **Status:** reviewed. Drafted 2026-10-16 (PUB.0); **approved by the Owner on 2026-10-16** with the recommended defaults PUB-D1 to PUB-D4 (§10), which are now decisions.
 - **Owner direction (2026-10-16):** "loosen the Ruken coupling … make it where you can publish to Ruken or itch.io easily".
-- **Decision record:** [ADR 0005](../../adr/0005-publish-targets.md) (proposed), which refines [ADR 0004](../../adr/0004-ruken-first-host.md).
+- **Decision record:** [ADR 0005](../../adr/0005-publish-targets.md) (accepted 2026-10-16), which refines [ADR 0004](../../adr/0004-ruken-first-host.md).
 
 ## 0. Sources
 
@@ -74,11 +74,12 @@ Already target-neutral: `packages/ship/src/prepare/root-absolute.ts` rejects roo
 | `display` | `visualViewport` metrics and orientation | Fixed landscape metrics |
 | `saves` | `localStorage` under `ruken:<gameId>:` (the SDK's prefix). A failed probe: `saves` is not granted and every call fails `HostError{code:'DENIED'}`. A full quota: `QUOTA_EXCEEDED` (itch.io games share one origin's quota) | The same prefix, but memory when storage is unavailable |
 | `savesStatus`, `flush` | `saved`; `{ persisted: 'host-outbox' }` | The same |
+| `saves.keys`, `saves.changed` | `keys`: this game's keys in `localStorage` with the prefix removed, in code-unit order (the origin's other keys are not listed). `changed` never emits: one browser is the only writer | `keys` lists the session's storage; `changed` carries another device's write |
 | `setFullscreen` | Element Fullscreen API on the game root; `support` reports what the browser allows. itch.io's frame allows fullscreen | `{ fullscreen: false, support: 'none' }` |
-| `round`, `track` | No-ops (`track` never fails, by contract) | The same |
+| `round`, `track` | No host counts rounds, but `round` keeps the guard (a second start and an end with no round are dropped) and `round.ended` gives one item per round that ended, which the round-end autosave reads (M5.2). `track` is a no-op (it never fails, by contract) | The same |
 | `exit` | Fails `UNSUPPORTED`; the UI hides "Back to …" when `exit` is not granted | Does nothing |
 | `onMenuRequest`, `onExiting` | Registered but never called | The same |
-| Leaderboards, entitlements, store, ads | Not granted; calls fail `UNSUPPORTED` | The same |
+| Leaderboards, entitlements, store, ads | Not granted. `leaderboards.submit` and `get` fail `UNSUPPORTED` (`leaderboard.submit`, `leaderboard.get`) and keep no local board; the other calls fail `UNSUPPORTED` | The same |
 
 The web adapter therefore keeps every behavior the SDK defines for standalone, and adds real lifecycle, input, display and fullscreen. The one deliberate difference is storage: it reports blocked storage instead of keeping saves in memory.
 
@@ -165,7 +166,7 @@ It needs `BUTLER_API_KEY`, and fails early, with how to get one, when the key or
 3. A `SavesFlushRes.persisted` value for device storage (for example `'device'`). Until then, the web adapter answers `'host-outbox'`, as the SDK's standalone session does.
 4. (Added by PUB.1.) Publish the save-key pattern and the per-save limits (1 MiB per value, 256 keys, 10 MiB per game in the SDK's `save-map.ts` at `b30d31b`) from a package other hosts can import, such as `@ruken/manifest`. AF may not copy them, so until then the web adapter enforces only the browser's quota, and a key or value Ruken would refuse is caught only on a Ruken build (pinned by a test).
 
-## 10. Owner decisions (recommended defaults in effect until reviewed)
+## 10. Owner decisions (approved as recommended, 2026-10-16)
 
 | ID | Question | Recommended default | Why |
 |---|---|---|---|

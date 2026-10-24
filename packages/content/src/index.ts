@@ -7,6 +7,7 @@ export {
   type ContentOptions,
   compileContent,
   DEFAULT_OUT_DIR,
+  type MessageLocation,
 } from './compile/compile-content'
 export { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from './compile/errors'
 export type { SimPartition } from './compile/sim-partition'
@@ -27,6 +28,7 @@ export {
   type GeneratorOutput,
 } from './generate/content-generator'
 export { contentHash } from './hash/content-hash'
+export type { ParaglideOptions } from './locale/compile-messages'
 export { type MessageCatalog, messageKey } from './locale/messages'
 export { DEFAULT_PALETTE, type Palette } from './palette/palette'
 export { type PreloadInput, preloadList } from './preload/preload-list'

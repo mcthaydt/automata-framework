@@ -28,13 +28,18 @@ function webHosting(pageOptions: FakeWebPageOptions = {}, target: WebTarget = 'w
   return { fake, layer: Layer.scoped(Hosting, makeWebHosting(hosting, fake.page, target)) }
 }
 
+/** Lets forked stream readers take what the page has emitted so far (one macrotask). */
+const delivered: Effect.Effect<void> = Effect.promise(
+  () => new Promise<void>((resolve) => setTimeout(resolve, 0)),
+)
+
 // PUB-a: the same contract cases on both adapters.
 describeHostingContract(
   'the Ruken adapter over the fake Ruken host',
   () => HostingTest(),
   Effect.promise(() => settle()),
 )
-describeHostingContract('the web adapter over a page', () => webHosting().layer, Effect.void)
+describeHostingContract('the web adapter over a page', () => webHosting().layer, delivered)
 
 /** Runs `program` against the web adapter over a fresh fake page. */
 function onWebPage<A>(
@@ -45,11 +50,6 @@ function onWebPage<A>(
   const { fake, layer } = webHosting(pageOptions, target)
   return runScoped(Effect.flatMap(Hosting, (hosting) => program(hosting, fake)).pipe(Effect.provide(layer)))
 }
-
-/** Lets forked stream readers take what the page has emitted so far (one macrotask). */
-const delivered: Effect.Effect<void> = Effect.promise(
-  () => new Promise<void>((resolve) => setTimeout(resolve, 0)),
-)
 
 /**
  * Collects every value `observed` gives (the current one first) until the test's scope closes. `step` runs
@@ -191,6 +191,29 @@ describe('the web adapter: what a page outside Ruken can observe (PUB spec §3.1
         yield* hosting.saves.set('progress', '2')
         expect(fake.stored.get('ruken:blank-game:progress')).toBe('2')
         expect(fake.stored.get('ruken:other-game:progress')).toBe('9')
+      }),
+    ))
+
+  it("lists only this game's keys, without the prefix, the probe's key or another game's keys", () =>
+    onWebPage((hosting, fake) =>
+      Effect.gen(function* () {
+        fake.stored.set('ruken:other-game:progress', '9')
+        fake.stored.set('theme', 'dark')
+        yield* hosting.saves.set('b', '1')
+        yield* hosting.saves.set('a', '2')
+        expect(yield* hosting.saves.keys).toEqual(['a', 'b'])
+      }),
+    ))
+
+  it('never reports a change to saves: one browser, one writer (Ruken: another device)', () =>
+    onWebPage((hosting, fake) =>
+      Effect.gen(function* () {
+        const changes = yield* Effect.fork(Stream.runCollect(hosting.saves.changed))
+        yield* delivered
+        fake.stored.set('ruken:blank-game:progress', '9') // a write from outside this session
+        yield* hosting.saves.set('progress', '4')
+        yield* delivered
+        expect(yield* Fiber.poll(changes)).toEqual(Option.none())
       }),
     ))
 

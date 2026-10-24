@@ -1,6 +1,10 @@
 // What a golden check found (M2.3 spec §3.6), and how it prints: one screen that says why a golden broke.
 import type { Difference } from './diff'
 
+/**
+ * What a golden check found: `pass`, `written`, `missing`, `schema-changed`, `content-changed`,
+ * `setup-changed` or `diverged` (with the first differing tick and the fields that differ).
+ */
 export type GoldenReport = { readonly name: string } & (
   | { readonly kind: 'pass'; readonly checks: number }
   | { readonly kind: 'written'; readonly file: string; readonly bytes: number }
@@ -31,6 +35,7 @@ export type GoldenReport = { readonly name: string } & (
 const MAX_LINES = 20
 const RECORD_HOW = 'record it in Node with AUTOMATA_UPDATE_GOLDENS=1'
 
+/** One report as text: a line for most outcomes, and for a divergence the tick and up to 20 differences. */
 export function formatGoldenReport(report: GoldenReport): string {
   const { name } = report
   switch (report.kind) {

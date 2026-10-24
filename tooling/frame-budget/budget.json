@@ -1,0 +1,16 @@
+{
+  "status": "set",
+  "note": "Set from the lowest-noise of three runs on the Owner's Mac (try 3 of the quiet probe request), measured under CI load: the self-hosted CI runner took a job within a second of each one ending, so no run had the GPU to itself. The numbers were steady across the three runs (desktop work p95 10.1 to 10.2 ms, interval p95 16.7 ms, which is vsync), so the budget is p95 plus the Owner's agreed 25% headroom. The Owner can veto it; a run with the CI queue drained replaces it (re-measure, copy the results into a new evidence folder, update the numbers).",
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+  "evidence": {
+    "result": "tooling/frame-budget/evidence/2026-10-23-mac-m1",
+    "commit": "5ad4a84242f24bd41232341fa2813120e8488dda",
+    "runner": "The Owner's Mac (Apple M1, 8 cores), probe run by hand on the host with the CI runner busy",
+    "date": "2026-10-23",
+    "headroom": 1.25
+  },
+  "projects": {
+    "frame-budget-desktop": { "workMsP95": 12.63, "intervalMsP95": 20.88 },
+    "frame-budget-phone": { "workMsP95": 12.75, "intervalMsP95": 20.88 }
+  }
+}

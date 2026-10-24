@@ -38,6 +38,10 @@ class Events {
   }
 }
 
+/**
+ * The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and
+ * listeners for `resize`.
+ */
 export interface FakeVisualViewport {
   readonly height: number
   readonly offsetTop: number
@@ -45,6 +49,10 @@ export interface FakeVisualViewport {
   removeEventListener(type: string, listener: Listener): void
 }
 
+/**
+ * A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual
+ * viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
+ */
 export interface FakeViewportWindow {
   readonly innerWidth: number
   readonly innerHeight: number
@@ -64,6 +72,10 @@ export interface FakeViewportWindow {
   listenerCount(): number
 }
 
+/**
+ * A fake window of the given size. Its `screen` defaults to that size and its `navigator` names no browser.
+ * Resizing and the keyboard fire `resize` on the window and the visual viewport, as a browser does.
+ */
 export function fakeViewportWindow(size: {
   width: number
   height: number

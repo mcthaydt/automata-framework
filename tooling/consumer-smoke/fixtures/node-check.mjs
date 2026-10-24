@@ -2,6 +2,7 @@
 // game's build tools and tests would, and run a sim with physics. ui's root is left to the Vite step: it
 // exports Svelte components, which only load through the Svelte compiler.
 import * as content from '@mcthaydt/automata-content'
+import * as contentLocale from '@mcthaydt/automata-content/locale'
 import * as contentVite from '@mcthaydt/automata-content/vite'
 import * as host from '@mcthaydt/automata-host'
 import * as hostTarget from '@mcthaydt/automata-host/target'
@@ -18,6 +19,7 @@ import * as uiTesting from '@mcthaydt/automata-ui/testing'
 
 const entries = {
   content,
+  contentLocale,
   contentVite,
   host,
   hostTarget,
@@ -34,6 +36,8 @@ for (const [name, entry] of Object.entries(entries)) {
   if (Object.keys(entry).length === 0) throw new Error(`${name} exports nothing`)
 }
 if (typeof content.compileContent !== 'function') throw new Error('content.compileContent is missing')
+if (typeof contentLocale.createContentText !== 'function')
+  throw new Error('content/locale.createContentText is missing')
 if (typeof contentVite.automataContent !== 'function')
   throw new Error('content/vite.automataContent is missing')
 if (typeof hostTesting.HostingTest !== 'function') throw new Error('host/testing.HostingTest is missing')

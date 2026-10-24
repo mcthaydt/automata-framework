@@ -1,6 +1,10 @@
 packages:
   - packages/*
   - tooling/*
+  - games/*
+  # The one-file examples (EX spec §5). examples/* and examples/*/* hold the old demos until EX.4
+  # deletes them.
+  - examples
   - examples/*
   - examples/*/*
 # Same runtime as Ruken (docs/versions.md): pnpm runs scripts on this exact Node, whatever the system has.
@@ -9,3 +13,7 @@ saveExact: true
 engineStrict: true
 onlyBuiltDependencies:
   - lefthook
+# The vendored @ruken tarballs (vendor/ruken/README.md) pin zod 4.6.5 exactly, which GHSA-mrhx-c7xc-m3w5 covers (fixed in
+# 4.6.6). Drop this when they are repacked from a Ruken that pins 4.6.6, as docs/versions.md's zod row says.
+overrides:
+  zod: 4.6.6

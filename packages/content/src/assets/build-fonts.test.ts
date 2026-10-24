@@ -1,0 +1,151 @@
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { Effect, Either } from 'effect'
+import { describe, expect, it } from 'vitest'
+import { type Diagnostic, formatDiagnostic } from '../diagnostics/diagnostic'
+import { copyFixture, fixtureOptions } from '../testing/fixture-game'
+import { buildFonts } from './build-fonts'
+import { fontCoverage } from './font-subset'
+
+// The font build (M5 spec §4.7 Fonts, M5-D7): each font in `content/fonts.toml` is cut to each language it serves,
+// the same bytes every time (G-a), and every character of every message in a language must be in that language's
+// subsets, or the build fails at the message's `file:line:col` with the code point (G-b, PRODUCT.L's L-e).
+
+const fixture = (name: string) =>
+  new Uint8Array(readFileSync(new URL(`./fixtures/fonts/${name}`, import.meta.url)))
+/** Latin only: no CJK glyph. */
+const FONT = fixture('pixelify-sans-latin-400-normal.woff2')
+const HASH = 'd830612ac9131788ebae754b9268f83f7c1d3ffa9bc0f9a5514207a8283fe71e'
+/** Three CJK glyphs, 日本語, and nothing Latin. */
+const CJK = fixture('noto-sans-jp-endonym.woff2')
+const CJK_HASH = 'bd498710082abd038bce0c7ac71bd0ee12ac3917dd2d0e9df3f20af6e3082ded'
+
+const fontEntry = (name: string, locales: string, sha256 = HASH, file = 'fonts/pixel.woff2') =>
+  `[font.${name}]\nfile = "${file}"\nsha256 = "${sha256}"\nlicense = "OFL-1.1"\nlocales = ${locales}\n`
+
+/** The fixture game (`en` source, `fr` translation) with the fixture font and `fonts.toml`. */
+function project(fontsToml: string | undefined): string {
+  const root = copyFixture('valid')
+  if (fontsToml !== undefined) writeFileSync(join(root, 'content/fonts.toml'), fontsToml)
+  return root
+}
+
+function withFont(root: string, file = 'fonts/pixel.woff2', bytes: Uint8Array = FONT): string {
+  const path = join(root, file)
+  mkdirSync(join(path, '..'), { recursive: true })
+  writeFileSync(path, bytes)
+  return root
+}
+
+const edit = (root: string, file: string, change: (text: string) => string): void => {
+  const path = join(root, file)
+  writeFileSync(path, change(readFileSync(path, 'utf8')))
+}
+
+const build = (root: string) => Effect.runPromise(Effect.either(buildFonts(fixtureOptions(root))))
+
+async function built(root: string): Promise<ReadonlyMap<string, Uint8Array>> {
+  const result = await build(root)
+  if (Either.isLeft(result)) throw new Error(JSON.stringify(result.left))
+  return result.right.files
+}
+
+async function refused(root: string): Promise<readonly Diagnostic[]> {
+  const result = await build(root)
+  if (Either.isRight(result)) throw new Error('expected the build to fail')
+  if (result.left._tag !== 'ContentCompileFailed') throw new Error(result.left.message)
+  return result.left.diagnostics
+}
+
+const ONE_FONT = fontEntry('pixel', '["en", "fr"]')
+
+describe('buildFonts', () => {
+  it('cuts a subset per language the font serves, with hashed names, and lists them in fonts.json', async () => {
+    const files = await built(withFont(project(ONE_FONT)))
+    const names = [...files.keys()]
+    expect(names).toHaveLength(3)
+    expect(names[0]).toBe('fonts.json')
+    expect(names[1]).toMatch(/^pixel-en-[0-9a-f]{8}\.woff2$/)
+    expect(names[2]).toMatch(/^pixel-fr-[0-9a-f]{8}\.woff2$/)
+    expect(JSON.parse(new TextDecoder().decode(files.get('fonts.json')))).toEqual({
+      pixel: { en: names[1], fr: names[2] },
+    })
+    // Each subset holds its language's text: the French name of a stage.
+    expect(fontCoverage(files.get(names[2] as string) as Uint8Array)('A')).toBe(true)
+  })
+
+  it('gives the same bytes on every build (G-a)', async () => {
+    const first = await built(withFont(project(ONE_FONT)))
+    const second = await built(withFont(project(ONE_FONT)))
+    expect(second).toEqual(first)
+  })
+
+  it('refuses a translated message with a character no subset holds, at its key, naming the code point (G-b)', async () => {
+    const root = withFont(project(ONE_FONT))
+    edit(root, 'content/messages/fr.json', (text) => text.replace('"Aube"', '"Aube 日"'))
+    expect((await refused(root)).map(formatDiagnostic)).toEqual([
+      'content/messages/fr.json:10:3  content_stage_dawn_display_name  missingGlyph: U+65E5 "日" is not in the fr subset of pixel',
+    ])
+  })
+
+  it('refuses a source message with a missing character at its text in the TOML (G-b)', async () => {
+    const root = withFont(project(ONE_FONT))
+    edit(root, 'content/stages/dawn.toml', (text) =>
+      text.replace('displayName = "Dawn"', 'displayName = "Dawn 日"'),
+    )
+    expect((await refused(root)).map(formatDiagnostic)).toEqual([
+      'content/stages/dawn.toml:2:1  content_stage_dawn_display_name  missingGlyph: U+65E5 "日" is not in the en subset of pixel',
+    ])
+  })
+
+  it('passes when another font for the language holds the character: a language is covered by all its fonts', async () => {
+    const root = withFont(project(`${ONE_FONT}${fontEntry('cjk', '["fr"]', CJK_HASH, 'fonts/cjk.woff2')}`))
+    withFont(root, 'fonts/cjk.woff2', CJK)
+    edit(root, 'content/messages/fr.json', (text) => text.replace('"Aube"', '"Aube 日"'))
+    expect([...(await built(root)).keys()].filter((name) => name.startsWith('cjk-'))).toHaveLength(1)
+    // A character neither font holds names both.
+    edit(root, 'content/messages/fr.json', (text) => text.replace('"Aube 日"', '"Aube 月"'))
+    expect((await refused(root)).map((d) => d.message)).toEqual([
+      'U+6708 "月" is not in the fr subset of cjk or pixel',
+    ])
+  })
+
+  it('does not check a control character such as a newline', async () => {
+    const root = withFont(project(ONE_FONT))
+    edit(root, 'content/messages/fr.json', (text) => text.replace('"Aube"', '"Au\\nbe"'))
+    expect((await built(root)).size).toBe(3)
+  })
+
+  it('refuses a source whose sha256 differs from the recorded one, and cuts nothing from it', async () => {
+    const other = '0'.repeat(64)
+    expect(
+      (await refused(withFont(project(fontEntry('pixel', '["en"]', other))))).map(formatDiagnostic),
+    ).toEqual([
+      `content/fonts.toml:3:1  font.pixel.sha256  invalidAsset: fonts/pixel.woff2 has sha256 ${HASH}, not the recorded ${other}`,
+    ])
+  })
+
+  it('refuses a missing source file at its file key', async () => {
+    expect((await refused(project(ONE_FONT))).map(formatDiagnostic)).toEqual([
+      'content/fonts.toml:2:1  font.pixel.file  missingAsset: fonts/pixel.woff2 does not exist',
+    ])
+  })
+
+  it('refuses a language the content does not compile', async () => {
+    expect(
+      (await refused(withFont(project(fontEntry('pixel', '["en", "de"]'))))).map(formatDiagnostic),
+    ).toEqual([
+      'content/fonts.toml:5:1  font.pixel.locales.1  unknownReference: de is not a content language (en, fr)',
+    ])
+  })
+
+  it('builds nothing without fonts.toml', async () => {
+    expect((await built(project(undefined))).size).toBe(0)
+  })
+
+  it('fails with the content compile’s diagnostics when the content does not compile', async () => {
+    const root = withFont(project(ONE_FONT))
+    edit(root, 'content/stages/dawn.toml', (text) => `${text}\nunknownField = 1\n`)
+    expect((await refused(root)).map((d) => d.file)).toContain('content/stages/dawn.toml')
+  })
+})

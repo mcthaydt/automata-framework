@@ -1,0 +1,28 @@
+{
+  "name": "@fixture/alpha",
+  "version": "1.2.3",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./types/index.js"
+    },
+    "./sub": {
+      "types": "./types/sub.d.ts",
+      "import": "./types/sub.js"
+    },
+    "./theme.css": "./types/theme.css"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./types/index.d.ts",
+        "import": "./types/index.js"
+      },
+      "./sub": {
+        "types": "./types/sub.d.ts",
+        "import": "./types/sub.js"
+      },
+      "./theme.css": "./types/theme.css"
+    }
+  }
+}

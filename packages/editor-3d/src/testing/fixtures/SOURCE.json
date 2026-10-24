@@ -1,0 +1,65 @@
+{
+  "repository": "mcthaydt/PixiJS3D_Experiment_001",
+  "commit": "92e6704",
+  "files": {
+    "blockout-clinic.json": {
+      "source": "docs/art/blockout-clinic/blockout.json",
+      "bytes": 14471,
+      "sha256": "1857acf42bd92523313dabde2f3f534b2c1640848317f8d4a1b969580d1524cc"
+    },
+    "blockout-clinic-dawn.json": {
+      "source": "docs/art/blockout-clinic-dawn/blockout.json",
+      "bytes": 28030,
+      "sha256": "b60020bc140f23e96244e3c96786e10eb500aef22d0b236cb31aaa42afb6cc39"
+    },
+    "blockout-bay.json": {
+      "source": "docs/art/blockout-bay/blockout.json",
+      "bytes": 17128,
+      "sha256": "4845a92f2e498ebe61c4f60e46bf0a2661ae228c44efed318221ab831c02d721"
+    },
+    "blockout-prologue.json": {
+      "source": "docs/art/blockout-prologue/blockout.json",
+      "bytes": 14091,
+      "sha256": "3d7413b6865537b3a3ab996b7f6c673d61263c844fbfd43ff3a6bd448e065fbd"
+    },
+    "facility.json": {
+      "source": "docs/art/blockout-facility/facility.json",
+      "bytes": 8701,
+      "sha256": "c5d934c0acf64aeee2a061af3c83b2b76544cb81610a99c531e7edd83f57373e"
+    }
+  },
+  "goldens": {
+    "expand.golden.json": {
+      "bytes": 51401,
+      "sha256": "dbd26d2794a00ddd70af445a9ec48f8db14a8321c986f4f785e9c95b85d32b96",
+      "recordedBy": "node --experimental-strip-types src/testing/fixtures/record-expand.mjs <Last Light checkout at 92e6704> src/testing/fixtures/expand.golden.json"
+    },
+    "literals.golden.json": {
+      "bytes": 93891,
+      "sha256": "316d3e3cbf049044fcf99d1af95c44fe7de27a4a39e37d73c49b0f14713c9f07",
+      "recordedBy": "node --experimental-strip-types src/testing/fixtures/record-literals.mjs <copy of Last Light scripts/pipeline/json-edit.ts at 92e6704, beside node_modules with typescript@5.9.3> src/testing/fixtures/literals.golden.json"
+    },
+    "geometry.golden.json": {
+      "bytes": 156966,
+      "sha256": "4bcf673f6f6e17b671bdd6454767583c606d428c87c1755f444b2061b25d4e91",
+      "recordedBy": "node --experimental-strip-types src/testing/fixtures/record-geometry.mjs <Last Light checkout at 92e6704> src/testing/fixtures/expand.golden.json src/testing/fixtures/geometry.golden.json"
+    },
+    "checks.golden.json": {
+      "bytes": 37082,
+      "sha256": "7dbc406de4ae17baf9ba860f0d6f6caf4beaadf5ab8d5e07dca057f335a8cc97",
+      "recordedBy": "node --experimental-strip-types src/testing/fixtures/record-checks.mjs <Last Light checkout at 92e6704> src/testing/fixtures/check-cases.json src/testing/fixtures src/testing/fixtures/checks.golden.json"
+    },
+    "game-facts.golden.json": {
+      "bytes": 5809,
+      "sha256": "87fe37d9d4fa8c275574716bf5cff91602ceeaaa9aa65556b0a3de3175e5c648",
+      "recordedBy": "node --experimental-strip-types src/testing/fixtures/record-game-facts.mjs <Last Light checkout at 92e6704> src/testing/fixtures/game-fact-cases.json src/testing/fixtures/game-facts.golden.json <typescript 5.9 or 6.x package directory, run with 6.0.3>"
+    }
+  },
+  "authored": {
+    "depot.af-sector.json": {
+      "bytes": 1364,
+      "sha256": "60ed197dba6b001fcae9b89715eea8697d14f4c07862f3f8f176066a5faa9305",
+      "purpose": "authored for ED3D.1b, not from Last Light: the shipped af-sector/1 sample (two sectors one step apart joined by a portal pair, a door, a window, two entity definitions and their instances), hand-formatted so the codec tests run against a layout it did not write"
+    }
+  }
+}

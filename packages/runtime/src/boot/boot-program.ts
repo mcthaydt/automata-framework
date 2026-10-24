@@ -10,16 +10,26 @@ import {
   suppressPageGestures,
 } from '@mcthaydt/automata-ui'
 import { Context, Duration, Effect, Layer, type Scope, Stream } from 'effect'
+import { Audio, makeAudio } from '../audio/audio.manager.js'
+import { AudioBuses } from '../audio/audio-buses.js'
+import { playEventSounds } from '../audio/event-sounds.js'
+import { displayPolicy } from '../display/display-policy.svelte.js'
 import { resolveExtensions } from '../extension/resolve-extensions.js'
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
+import { browserHaptics, Haptics } from '../haptics/haptics.manager.js'
+import { submitEventScores } from '../leaderboards/event-scores.js'
+import { Leaderboards, makeLeaderboards } from '../leaderboards/leaderboards.manager.js'
 import { Assets, makeAssets } from '../loading/assets.manager.js'
 import { makeLoadMeter, SLOW_MS } from '../loading/load-meter.js'
+import { browserLanguages, Locale, makeLocale, singleLocale } from '../locale/locale.manager.js'
 import { AppLoop, makeAppLoop } from '../loop/app-loop.manager.js'
 import { liveFrames } from '../loop/frames.js'
 import { makePresentationBus, PresentationBus } from '../presentation/presentation-bus.manager.js'
 import { type GameRenderer, Renderer, type RenderTarget } from '../render/renderer.js'
+import { makeSaves, Saves } from '../save/saves.manager.js'
+import { liveDeviceStorage } from '../settings/device-storage.js'
 import { makeSettings, Settings } from '../settings/settings.manager.js'
 import { makeTime, Time, watchLifecycle } from '../time/time.manager.js'
 import { BootDefect, type BootError, ContentHashMismatch } from './boot-error.js'
@@ -49,7 +59,9 @@ export interface BootProgramOptions {
 }
 
 /**
- * Builds the Context<RuntimeServices> containing all 8 runtime tags (spec §3.1, §4).
+ * Builds the Context<RuntimeServices> containing all 14 runtime tags (spec §3.1, §4; `Locale` from PRODUCT.L1;
+ * `Audio` and `AudioBuses`, one service, from M5.3; `Leaderboards` from M5.7; `Haptics` from the Settings redo;
+ * `Saves` from M5.2).
  * Extracted so RuntimeTest reuses the exact service wiring (Task 18).
  */
 export function buildRuntimeServices(services: {
@@ -58,9 +70,14 @@ export function buildRuntimeServices(services: {
   readonly time: Time
   readonly flow: Flow
   readonly settings: Settings
+  readonly saves: Saves
   readonly appLoop: AppLoop
   readonly assets: Assets
   readonly renderer: GameRenderer
+  readonly locale: Locale
+  readonly audio: Audio & AudioBuses
+  readonly leaderboards: Leaderboards
+  readonly haptics: Haptics
 }): Context.Context<RuntimeServices> {
   return Context.empty().pipe(
     Context.add(Hosting, services.hosting),
@@ -68,9 +85,15 @@ export function buildRuntimeServices(services: {
     Context.add(Time, services.time),
     Context.add(Flow, services.flow),
     Context.add(Settings, services.settings),
+    Context.add(Saves, services.saves),
     Context.add(AppLoop, services.appLoop),
     Context.add(Assets, services.assets),
     Context.add(Renderer, services.renderer),
+    Context.add(Locale, services.locale),
+    Context.add(Audio, services.audio),
+    Context.add(AudioBuses, services.audio),
+    Context.add(Leaderboards, services.leaderboards),
+    Context.add(Haptics, services.haptics),
   ) as Context.Context<RuntimeServices>
 }
 
@@ -154,7 +177,11 @@ export function bootProgram<S>(
       }
       rawSettings = yield* hosting.saves.get(game.settings.key)
     }
-    const settingsService = yield* makeSettings(game.settings, rawSettings, hosting.saves)
+    // Fields a game keeps on the device go to the frame's own storage unless a test hands over another (M5 spec §4.5).
+    const deviceStorage =
+      game.seams?.deviceStorage ??
+      (typeof window === 'undefined' ? undefined : liveDeviceStorage(window, game.hosting.gameId))
+    const settingsService = yield* makeSettings(game.settings, rawSettings, hosting.saves, deviceStorage)
 
     // Step 4: content hash verification
     const actualHash = contentHashOf(game.content.data)
@@ -194,11 +221,13 @@ export function bootProgram<S>(
       yield* assets.load(screenId, (fraction) => loaderHandle.setProgress(fraction))
     }
 
-    // Step 6: renderer factory
+    // Step 6: renderer factory. The bus exists first so the renderer can publish render facts.
+    const bus = yield* makePresentationBus()
     const renderTarget: RenderTarget = {
       host: layers.stage,
       geometry,
       assets,
+      bus,
     }
     const renderer = yield* game.renderer(renderTarget)
 
@@ -218,8 +247,49 @@ export function bootProgram<S>(
     loaderHandle.close()
     layers.setState('ready')
 
-    const bus = yield* makePresentationBus()
     const time = makeTime(bus)
+
+    // The locale is negotiated, and <html lang dir> set, before the first screen enters (PRODUCT spec §4, L-b).
+    const locale = yield* makeLocale({
+      def: game.locale ?? singleLocale(game.content.data.game?.source_language ?? 'en'),
+      hosting,
+      browser: game.seams?.languages ?? browserLanguages(win.navigator),
+      bus,
+      element: doc.documentElement,
+    })
+
+    // Built now and silent until the first gesture after ready (M5 spec §4.6, §5).
+    const audio = yield* makeAudio({
+      hosting,
+      assets,
+      bus,
+      window: win,
+      document: doc,
+      ...(game.seams?.createAudioContext === undefined
+        ? {}
+        : { createContext: game.seams.createAudioContext }),
+      ...(game.seams?.fetch === undefined ? {} : { fetch: game.seams.fetch }),
+    })
+    if (game.sounds !== undefined) {
+      const stopSounds = playEventSounds(bus, audio, game.sounds)
+      yield* Effect.addFinalizer(() => Effect.sync(stopSounds))
+    }
+    const leaderboards = yield* makeLeaderboards.pipe(
+      Effect.provideService(Hosting, hosting),
+      Effect.provideService(PresentationBus, bus),
+    )
+    if (game.scores !== undefined) {
+      const stopScores = submitEventScores(bus, leaderboards, game.scores)
+      yield* Effect.addFinalizer(() => Effect.sync(stopScores))
+    }
+
+    // The game's save: its slots read from the host now (M5 spec §5, boot step 1), its triggers and its exit flush
+    // live for the session. A failure here is the host's, and boots to the failure panel like a refused settings read.
+    const saves = yield* makeSaves(game.saves, { contentHash: game.content.hash }).pipe(
+      Effect.provideService(Hosting, hosting),
+      Effect.provideService(PresentationBus, bus),
+    )
+
     const veil = yield* makeVeil({
       overlay: layers.overlay,
       reducedMotion: () => reducedMotion(win),
@@ -275,9 +345,14 @@ export function bootProgram<S>(
       time,
       flow: flowHandle.flow,
       settings: settingsService,
+      saves,
       appLoop,
       assets,
       renderer,
+      locale,
+      audio,
+      leaderboards,
+      haptics: game.seams?.haptics ?? browserHaptics(win),
     })
 
     if (game.extensions && game.extensions.length > 0) {
@@ -286,6 +361,17 @@ export function bootProgram<S>(
     }
 
     yield* flowHandle.start()
+
+    // The landscape gate (standalone) and the rotate hint, over every screen for the session (M4 spec §4.9).
+    yield* displayPolicy({
+      orientation: game.orientation ?? 'any',
+      rotateHint: game.rotateHint ?? 'block',
+      hosted: hosting.kind !== 'standalone',
+      win,
+      geometry,
+      layer: layers.overlay,
+      time,
+    })
   })
 
   return program.pipe(

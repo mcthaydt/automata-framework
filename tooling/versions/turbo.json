@@ -9,9 +9,14 @@
         "$TURBO_ROOT$/pnpm-workspace.yaml",
         "$TURBO_ROOT$/packages/*/package.json",
         "$TURBO_ROOT$/tooling/*/package.json",
+        "$TURBO_ROOT$/games/*/package.json",
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/docs/versions.md",
+        "$TURBO_ROOT$/renovate.json",
+        "$TURBO_ROOT$/docs/stack.md",
+        "$TURBO_ROOT$/vendor/ruken/README.md",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
         "$TURBO_ROOT$/.nvmrc"
       ]
     },
@@ -22,9 +27,14 @@
         "$TURBO_ROOT$/pnpm-workspace.yaml",
         "$TURBO_ROOT$/packages/*/package.json",
         "$TURBO_ROOT$/tooling/*/package.json",
+        "$TURBO_ROOT$/games/*/package.json",
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/docs/versions.md",
+        "$TURBO_ROOT$/renovate.json",
+        "$TURBO_ROOT$/docs/stack.md",
+        "$TURBO_ROOT$/vendor/ruken/README.md",
+        "$TURBO_ROOT$/pnpm-lock.yaml",
         "$TURBO_ROOT$/.nvmrc"
       ]
     }

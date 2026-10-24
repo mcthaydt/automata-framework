@@ -3,7 +3,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { listFiles, pathKind, readTextIfPresent, writeFileAtomically } from './content-files'
+import {
+  listFiles,
+  pathKind,
+  readBytesIfPresent,
+  readTextIfPresent,
+  writeFileAtomically,
+} from './content-files'
 
 const scratch = (): string => mkdtempSync(join(tmpdir(), 'content-files-'))
 
@@ -36,12 +42,29 @@ describe('readTextIfPresent', () => {
   })
 })
 
+describe('readBytesIfPresent', () => {
+  it('reads bytes, and answers undefined for a missing file', async () => {
+    const dir = scratch()
+    writeFileSync(join(dir, 'a.png'), new Uint8Array([137, 80, 0, 255]))
+    expect(await Effect.runPromise(readBytesIfPresent(join(dir, 'a.png')))).toEqual(
+      new Uint8Array([137, 80, 0, 255]),
+    )
+    expect(await Effect.runPromise(readBytesIfPresent(join(dir, 'b.png')))).toBeUndefined()
+  })
+})
+
 describe('writeFileAtomically', () => {
   it('creates folders, writes the text and leaves no temp file', async () => {
     const dir = scratch()
     await Effect.runPromise(writeFileAtomically(join(dir, 'generated', 'content.json'), '{}\n'))
     expect(readFileSync(join(dir, 'generated', 'content.json'), 'utf8')).toBe('{}\n')
     expect(readdirSync(join(dir, 'generated'))).toEqual(['content.json'])
+  })
+
+  it('writes bytes as they are', async () => {
+    const dir = scratch()
+    await Effect.runPromise(writeFileAtomically(join(dir, 'page.png'), new Uint8Array([137, 0, 255])))
+    expect([...readFileSync(join(dir, 'page.png'))]).toEqual([137, 0, 255])
   })
 
   it('fails without a temp file when the target cannot be replaced', async () => {

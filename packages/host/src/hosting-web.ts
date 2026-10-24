@@ -8,12 +8,14 @@ import type {
   InputModePayload,
   LifecyclePayload,
   LifecycleReason,
+  RoundOutcome,
   StorageLike,
 } from '@ruken/sdk'
-import { Deferred, Effect, Layer, Option, type Scope } from 'effect'
+import { Deferred, Effect, Layer, Option, type Scope, Stream } from 'effect'
 import { HostError } from './errors'
 import { Hosting, type HostingOptions } from './hosting'
 import type { HostingSeams } from './hosting-live'
+import { guardRounds } from './rounds'
 import { fromListener } from './subscribable'
 
 /*
@@ -259,6 +261,17 @@ export function makeWebHosting(
         ),
       )
 
+    // `guardRounds` only forwards the starts and ends it lets through, so listeners hear one end per round.
+    const roundEndListeners = new Set<(outcome: RoundOutcome | undefined) => void>()
+    const rounds = guardRounds({
+      start: () => undefined,
+      end: (outcome) => {
+        for (const listener of roundEndListeners) listener(outcome)
+      },
+    })
+    const unsupported = (operation: string) =>
+      whileOpen(operation, Effect.fail(new HostError({ code: 'UNSUPPORTED', retryable: false, operation })))
+
     const fullscreenRoot = page.document.documentElement
     const fullscreenSupported =
       page.document.fullscreenEnabled === true && fullscreenRoot.requestFullscreen !== undefined
@@ -300,6 +313,23 @@ export function makeWebHosting(
         // `persisted` value for device storage yet (PUB spec §9 request 3), so this answers as the SDK's
         // standalone session does.
         flush: withStorage('saves.flush', () => ({ persisted: 'host-outbox' as const })),
+        // Only this game's keys, without the prefix (the origin also holds other games' and the page's own),
+        // in code-unit order so a slot list reads the same on every engine (M5 spec §4.1).
+        keys: withStorage('saves.keys', (local) => {
+          const keys: string[] = []
+          for (let index = 0; index < local.length; index++) {
+            const key = local.key(index)
+            if (key?.startsWith(prefix)) keys.push(key.slice(prefix.length))
+          }
+          return keys.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+        }),
+        // One browser, one writer: nothing outside this session writes these saves, so nothing changes under it.
+        changed: Stream.never.pipe(Stream.interruptWhen(until)),
+      },
+      // There is no board outside Ruken; calls fail rather than keep a local one (PUB spec §3.1).
+      leaderboards: {
+        submit: () => unsupported('leaderboard.submit'),
+        get: () => unsupported('leaderboard.get'),
       },
       // The Element Fullscreen API on the page's root; itch.io's frame allows it. A request the browser
       // refuses (no user gesture, a frame without allowfullscreen) fails DENIED rather than pretending.
@@ -318,7 +348,20 @@ export function makeWebHosting(
               new HostError({ code: 'DENIED', retryable: false, operation: 'display.fullscreen', cause }),
           }),
         ),
-      round: { start: Effect.void, end: () => Effect.void },
+      // No host counts rounds, but the game's round-end autosave reads the ends (M5.2), so they are kept honest.
+      round: {
+        start: Effect.sync(() => rounds.start()),
+        end: (outcome) => Effect.sync(() => rounds.end(outcome)),
+        ended: Stream.async<RoundOutcome | undefined>((emit) => {
+          const listener = (outcome: RoundOutcome | undefined): void => {
+            void emit.single(outcome)
+          }
+          roundEndListeners.add(listener)
+          return Effect.sync(() => {
+            roundEndListeners.delete(listener)
+          })
+        }).pipe(Stream.interruptWhen(until)),
+      },
       // Nothing outside Ruken collects analytics. An undisclosed event is still reported, as the Ruken adapter
       // reports it, so a game finds the mistake on any target.
       track: (event) =>

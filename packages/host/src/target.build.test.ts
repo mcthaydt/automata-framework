@@ -37,18 +37,18 @@ describe('the ./target export in a real bundle (PUB spec §3)', () => {
     expect(findRukenSdkMarkers(code)).toEqual([])
     expect(code).not.toContain('RukenError')
     expect(code).toContain(WEB_STORAGE_PROBE_KEY)
-  }, 60_000)
+  }, 90_000)
 
   it('an itch build is the web adapter with the build target filled in', async () => {
     const code = await bundle('itch')
     expect(findRukenSdkMarkers(code)).toEqual([])
     expect(code).not.toContain('__AUTOMATA_TARGET__')
     expect(code).toContain('itch.io')
-  }, 60_000)
+  }, 90_000)
 
   it('a default build still holds the Ruken SDK, and not the web adapter', async () => {
     const code = await bundle('ruken')
     expect(findRukenSdkMarkers(code)).toEqual(RUKEN_SDK_MARKERS)
     expect(code).not.toContain(WEB_STORAGE_PROBE_KEY)
-  }, 60_000)
+  }, 90_000)
 })
