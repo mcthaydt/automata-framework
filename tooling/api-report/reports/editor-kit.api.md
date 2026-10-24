@@ -1558,6 +1558,12 @@ function createMemoryStore(options?: {
 function createSelection<Id extends SelectionId>(): Selection<Id>;
 ```
 
+### `createToasts` (function)
+
+```ts
+function createToasts(options?: ToastOptions): ToastStore;
+```
+
 ### `createViewport` (function)
 
 ```ts
@@ -1996,6 +2002,64 @@ interface StoredEntry {
 }
 ```
 
+### `Toast` (interface)
+
+```ts
+interface Toast {
+    readonly id: string;
+    readonly kind: ToastKind;
+    readonly message: string;
+    readonly action?: ToastAction;
+    readonly duration: number;
+}
+```
+
+### `ToastAction` (interface)
+
+```ts
+interface ToastAction {
+    readonly label: string;
+    readonly run: () => void;
+}
+```
+
+### `ToastInput` (interface)
+
+```ts
+interface ToastInput {
+    readonly kind?: ToastKind | undefined;
+    readonly message: string;
+    readonly action?: ToastAction | undefined;
+    readonly duration?: number | undefined;
+}
+```
+
+### `ToastKind` (type)
+
+```ts
+type ToastKind = 'info' | 'ok' | 'warn' | 'error';
+```
+
+### `ToastOptions` (interface)
+
+```ts
+interface ToastOptions {
+    readonly clock?: GestureClock | undefined;
+}
+```
+
+### `ToastStore` (interface)
+
+```ts
+interface ToastStore {
+    push(toast: ToastInput): string;
+    dismiss(id: string): void;
+    activate(id: string): void;
+    readonly items: readonly Toast[];
+    subscribe(run: (items: readonly Toast[]) => void): () => void;
+}
+```
+
 ### `Transaction` (interface)
 
 ```ts
@@ -2376,4 +2440,20 @@ interface RetypeBreakage {
 
 ```ts
 function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
+```
+
+## `./testing`
+
+### `ResizableGeometry` (interface)
+
+```ts
+interface ResizableGeometry extends GeometryState {
+    resize(width: number, height: number): void;
+}
+```
+
+### `stubGeometry` (function)
+
+```ts
+function stubGeometry(width: number, height: number): ResizableGeometry;
 ```

@@ -34,7 +34,7 @@ Out: any game code, any Last Light server or policy layer (the 3D editor keeps t
 | ID | Decision | Default and why |
 |---|---|---|
 | EDK-D1 | One package, `packages/editor-kit`, private until a second consumer ships | Two consumers exist from day one, so it is a package, not a folder. Private avoids an API promise before both editors have used it. |
-| EDK-D2 | Svelte 5 for components, plain TypeScript for everything else | AF's stack (`docs/stack.md`). `core` and `gestures` import no Svelte so they test in a renderer-free unit project. The headless `./core` entry carries history, selection, commands, the keymap and the whole storage layer (ED2D.4c1), so an editor's headless layers never load the shell. |
+| EDK-D2 | Svelte 5 for components, plain TypeScript for everything else | AF's stack (`docs/stack.md`). `core` and `gestures` import no Svelte so they test in a renderer-free unit project. The headless `./core` entry carries history, selection, commands, the keymap, the whole storage layer (ED2D.4c1) and the toast store (ED2D.4c2a), so an editor's headless layers never load the shell. |
 | EDK-D3 | Layout classes come from `@mcthaydt/automata-ui`'s geometry owner | AGENTS.md: the `ui` geometry owner is the single source of layout geometry. The kit maps its form factors to three shell modes (§4.2) and never re-measures the window. |
 | EDK-D4 | Immutable document snapshots, no patch language | `History<S>` stores whole snapshots; sharing is the document's job (chunked arrays for tiles). Simplest thing that gives exact undo. A patch layer can be added later without changing callers. |
 | EDK-D5 | Coalescing by key, transactions by scope | One drag is one undo step (a transaction); typing or scrubbing the same field within 600 ms is one step (coalesce key). |
@@ -79,6 +79,9 @@ Rules:
 
 - A height tier of `short` (600 px or less of layout height, from the geometry owner) hides the dock until summoned, as the same bottom sheet `medium` uses, and tightens gutters, never targets (AGENTS.md).
 - Regions are siblings that stay mounted. A mode change moves them with CSS (grid areas, fixed position, transforms) and never re-renders them elsewhere, so focus, scroll position and open transactions survive a rotation. A closed drawer or sheet is `inert` and `visibility: hidden`, not `display: none`, so its scroll position is kept.
+- The rail is optional (ED2D.4c2a): a screen with no destinations, such as Home, leaves it out and the canvas takes its column in `wide` and the tab bar's row below it (`data-rail="none"`).
+- The dock is optional too (ED2D.4c2a): a screen with no dock leaves its region out, and below `wide` the drawers are not lifted to make room for a dock sheet that is not there (`--dock-lift` is set only when there is a dock).
+- A `StatusLine` placed in the `status` region fills it edge to edge (the region's own padding is taken back), so the line and the region are one strip at every size.
 - The rail snippet is told `orientation` (`vertical` in `wide`, `horizontal` otherwise) so the editor draws the same destinations either way.
 - Keyboard, browser-bar and Stage Manager size changes do not remount regions or lose focus, scroll or selection (the geometry owner debounces; the shell keys regions by id).
 - Detent sheets have three detents (peek 96, or 192 for the dock: its 148 px and the handle; half 50%; full 92%, each of the room above the tab bar and status line), a drag handle at least 44 high, and a scrim only at full.

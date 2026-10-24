@@ -26,7 +26,7 @@ export function counterIds(start = 1): IdSource {
  * a character by remainder, which is slightly uneven and does not matter: ids only have to avoid colliding inside
  * one project, and `decodeProject` rejects a duplicate.
  */
-export function randomIds(fill: (bytes: Uint8Array) => void): IdSource {
+export function randomIds(fill: (bytes: Uint8Array<ArrayBuffer>) => void): IdSource {
   const bytes = new Uint8Array(ID_LENGTH)
   return {
     next: () => {

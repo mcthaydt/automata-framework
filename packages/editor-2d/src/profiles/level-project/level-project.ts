@@ -4,6 +4,7 @@ import type { Project } from '../../model/project-types'
 import type { ExportTarget, ParseError, Profile, Result, ViewDef } from '../profile'
 import { exportContent } from './content-export'
 import { checkProject } from './project-checks'
+import { summarizeProject } from './project-summary'
 import { blankTemplate } from './templates/blank'
 import { platformerTemplate } from './templates/platformer'
 import { topdownRpgTemplate } from './templates/topdown-rpg'
@@ -81,6 +82,7 @@ export const levelProject: Profile<Project> = {
   // The canonical printer owns the whole text, so the text as loaded (`base`) is not needed.
   print: (_base, project) => printProject(project),
   check: checkProject,
+  summary: summarizeProject,
   templates: [platformerTemplate, topdownRpgTemplate, blankTemplate],
   views,
   exports,

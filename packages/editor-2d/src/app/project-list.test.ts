@@ -51,6 +51,23 @@ describe('listProjects', () => {
     })
   })
 
+  it('carries the profile’s summary of a project that opens, and none for a profile without one', async () => {
+    const { workspace, registry, write } = setup()
+    await write('mossgate.af2d.json', printProject(mossgate()))
+    await write('empty.note', noteText(''))
+    const entries = await listProjects(workspace, registry)
+    const moss = entries.find((entry) => entry.path === 'mossgate.af2d.json')
+    const note = entries.find((entry) => entry.path === 'empty.note')
+    expect(moss).toMatchObject({ status: 'ok', summary: { title: 'Mossgate' } })
+    expect(moss?.status === 'ok' ? moss.summary?.facts.map((fact) => fact.label) : []).toEqual([
+      'Levels',
+      'Layers',
+      'Entities',
+      'Tilesets',
+    ])
+    expect(note).toMatchObject({ status: 'ok', summary: undefined })
+  })
+
   it('carries the store’s size and modification time', async () => {
     const { workspace, registry, write } = setup()
     const text = noteText('x')

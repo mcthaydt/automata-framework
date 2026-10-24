@@ -1,9 +1,11 @@
 import { posix } from 'node:path'
 import { parseSync } from 'oxc-parser'
+import { parse as parseSvelte } from 'svelte/compiler'
 
 // The boundary rules of the 2D editor spec §4 over a map of path (relative to `src/`) to source. `pnpm boundaries`
 // covers only the sim, whose rules are much stricter, so this package carries its own. It works on the AST, so a word in
-// a comment, a string, a property name or a type never counts.
+// a comment, a string, a property name or a type never counts. A Svelte component is read the same way: its scripts and
+// its markup are one tree (the compiler's), so an import in `<script>` and an id in an attribute are both seen.
 
 export type Rule =
   | 'pure-imports'
@@ -121,9 +123,28 @@ interface Facts {
   readonly strings: ReadonlySet<string>
 }
 
+/** The trees to walk for one file: its program, or for a component its two scripts and its markup. */
+function treesOf(file: string, code: string): readonly Node[] | string {
+  if (!file.endsWith('.svelte')) {
+    const parsed = parseSync(file, code)
+    if (parsed.errors.length > 0) return parsed.errors.map((error) => error.message).join('; ')
+    return [parsed.program as unknown as Node]
+  }
+  try {
+    const component = parseSvelte(code, { modern: true, filename: file }) as unknown as {
+      readonly module?: { readonly content: Node } | null
+      readonly instance?: { readonly content: Node } | null
+      readonly fragment: Node
+    }
+    return [component.module?.content, component.instance?.content, component.fragment].filter(isNode)
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error)
+  }
+}
+
 function factsOf(file: string, code: string): Facts | string {
-  const parsed = parseSync(file, code)
-  if (parsed.errors.length > 0) return parsed.errors.map((error) => error.message).join('; ')
+  const trees = treesOf(file, code)
+  if (typeof trees === 'string') return trees
   const imports: { specifier: string; typeOnly: boolean }[] = []
   const globals = new Set<string>()
   const strings = new Set<string>()
@@ -131,7 +152,7 @@ function factsOf(file: string, code: string): Facts | string {
     const from = node.source
     return isNode(from) && typeof from.value === 'string' ? from.value : undefined
   }
-  walk(parsed.program as unknown as Node, null, '', (node, parent, key) => {
+  const visit = (node: Node, parent: Node | null, key: string): void => {
     if (
       node.type === 'ImportDeclaration' ||
       node.type === 'ExportNamedDeclaration' ||
@@ -156,8 +177,12 @@ function factsOf(file: string, code: string): Facts | string {
       for (const quasi of node.quasis as { value: { cooked: string | null } }[]) {
         if (quasi.value.cooked !== null) strings.add(quasi.value.cooked)
       }
+    } else if (node.type === 'Text' && typeof node.data === 'string') {
+      // Markup text and static attribute values (`class="blank"`).
+      strings.add(node.data)
     }
-  })
+  }
+  for (const tree of trees) walk(tree, null, '', visit)
   return { imports, globals, strings }
 }
 
@@ -232,6 +257,8 @@ export function checkArchitecture(files: ReadonlyMap<string, string>): Violation
       report('parse-error', facts)
       continue
     }
+    if (PURE_AREAS.has(area) && file.endsWith('.svelte'))
+      report('pure-imports', 'the core holds no component')
     const edges: string[] = []
     graph.set(file, edges)
     for (const { specifier, typeOnly } of facts.imports) {
@@ -241,9 +268,14 @@ export function checkArchitecture(files: ReadonlyMap<string, string>): Violation
         }
         continue
       }
+      if (PURE_AREAS.has(area) && specifier.endsWith('.svelte')) {
+        report('pure-imports', `${specifier}: the core imports no component`)
+        continue
+      }
       const target = resolveRelative(file, specifier, files)
       if (target === undefined) {
-        if (/\.[a-z]+$/i.test(specifier) && !specifier.endsWith('.ts')) {
+        // A stylesheet, an image: not source, so not ours to resolve. A `.ts` or `.svelte` path that is missing is.
+        if (/\.[a-z]+$/i.test(specifier) && !/\.(ts|svelte)$/.test(specifier)) {
           if (PURE_AREAS.has(area))
             report('pure-imports', `${specifier}: the core imports no asset or component`)
         } else {

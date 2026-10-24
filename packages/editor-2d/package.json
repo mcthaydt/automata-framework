@@ -9,22 +9,37 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
     "test": "vitest run",
-    "test:unit": "vitest run --project unit",
+    "test:unit": "vitest run --project unit --project dom",
+    "test:layout": "vitest run --project layout",
     "test:parity": "vitest run --project browsers",
-    "typecheck": "tsc -p ."
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
     "@decimalturn/toml-patch": "3.3.1",
     "@mcthaydt/automata-editor-kit": "workspace:*",
+    "@mcthaydt/automata-ui": "workspace:*",
     "smol-toml": "1.9.0",
+    "svelte": "5.57.1",
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@mcthaydt/automata-testing": "workspace:*",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/svelte": "5.4.2",
+    "@testing-library/user-event": "14.6.7",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
+    "jsdom": "30.1.1",
     "oxc-parser": "0.152.0",
     "playwright": "1.63.0",
+    "svelte-check": "4.7.6",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }

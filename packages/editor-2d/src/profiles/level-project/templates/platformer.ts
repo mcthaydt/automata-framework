@@ -119,6 +119,7 @@ const entities: EntityDef2D[] = [
 export const platformerTemplate: TemplateDef<Project> = {
   id: 'platformer',
   label: 'Platformer',
+  hint: 'side view',
   create: (ids) =>
     starterProject(
       'Untitled platformer',

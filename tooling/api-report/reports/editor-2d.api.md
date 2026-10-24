@@ -902,6 +902,7 @@ interface Profile<V> {
     print(base: string, value: V): string;
     check(value: V, context: ProjectContext): readonly Diagnostic[];
     fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V;
+    summary?(value: V): ProfileSummary;
     readonly templates: readonly TemplateDef<V>[];
     readonly views: readonly ViewDef[];
     readonly exports: readonly ExportTarget<V>[];
@@ -960,7 +961,7 @@ const projectFileSchema: z.ZodType<ProjectFile>;
 ### `randomIds` (function)
 
 ```ts
-function randomIds(fill: (bytes: Uint8Array) => void): IdSource;
+function randomIds(fill: (bytes: Uint8Array<ArrayBuffer>) => void): IdSource;
 ```
 
 ### `RawFile` (type)
@@ -1097,6 +1098,7 @@ interface Stamp {
 interface TemplateDef<V> {
     readonly id: string;
     readonly label: string;
+    readonly hint?: string | undefined;
     create(ids: IdSource): V;
 }
 ```

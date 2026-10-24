@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { counterIds } from '../../model/ids'
 import { printProject } from '../../model/project-codec'
-import { createProfileRegistry } from '../profile'
+import type { Project } from '../../model/project-types'
+import { mossgate } from '../../testing/samples'
+import { createProfileRegistry, type ProfileSummary } from '../profile'
 import { levelProject } from './level-project'
 import { checkProject } from './project-checks'
+import { blankTemplate } from './templates/blank'
 import { platformerTemplate } from './templates/platformer'
 
 const canonical = printProject(platformerTemplate.create(counterIds()))
@@ -94,6 +97,76 @@ describe('the level-project profile', () => {
   it('checks with the project checks', () => {
     const project = platformerTemplate.create(counterIds())
     expect(levelProject.check(project, {})).toEqual(checkProject(project, {}))
+  })
+
+  describe('summary', () => {
+    const summaryOf = (project: Project): ProfileSummary => {
+      const summary = levelProject.summary?.(project)
+      if (summary === undefined) throw new Error('the profile has no summary')
+      return summary
+    }
+
+    it('names the project and counts what Home shows, in order', () => {
+      expect(summaryOf(mossgate())).toEqual({
+        title: 'Mossgate',
+        facts: [
+          { label: 'Levels', value: '2' },
+          { label: 'Layers', value: '4' },
+          { label: 'Entities', value: '6 definitions' },
+          { label: 'Tilesets', value: '1 placeholder' },
+        ],
+      })
+    })
+
+    it('says a count of one in the singular and a missing count as none', () => {
+      const project = platformerTemplate.create(counterIds())
+      const factsOf = (p: Project): Map<string, string> =>
+        new Map(summaryOf(p).facts.map((fact) => [fact.label, fact.value]))
+      expect(factsOf(blankTemplate.create(counterIds())).get('Levels')).toBe('1')
+      const bare = { ...project, defs: { ...project.defs, entities: [], tilesets: [] } }
+      expect(factsOf(bare).get('Entities')).toBe('None')
+      expect(factsOf(bare).get('Tilesets')).toBe('None')
+      const one = { ...project, defs: { ...project.defs, entities: project.defs.entities.slice(0, 1) } }
+      expect(factsOf(one).get('Entities')).toBe('1 definition')
+    })
+
+    it('marks tilesets that have no image yet as placeholders', () => {
+      const project = platformerTemplate.create(counterIds())
+      const [first] = project.defs.tilesets
+      if (first === undefined) throw new Error('the template has a tileset')
+      const withImage = (image: string | undefined, count: number): Project => ({
+        ...project,
+        defs: {
+          ...project.defs,
+          tilesets: Array.from({ length: count }, (_, i) => ({ ...first, id: `set-${i}`, image })),
+        },
+      })
+      const tilesets = (p: Project): string | undefined =>
+        new Map(summaryOf(p).facts.map((fact) => [fact.label, fact.value])).get('Tilesets')
+      expect(tilesets(withImage(undefined, 1))).toBe('1 placeholder')
+      expect(tilesets(withImage(undefined, 3))).toBe('3 placeholders')
+      expect(tilesets(withImage('assets/tiles.png', 2))).toBe('2')
+      const mixed: Project = {
+        ...project,
+        defs: {
+          ...project.defs,
+          tilesets: [
+            { ...first, id: 'a', image: 'assets/tiles.png' },
+            { ...first, id: 'b', image: undefined },
+            { ...first, id: 'c', image: 'assets/more.png' },
+          ],
+        },
+      }
+      expect(tilesets(mixed)).toBe('3 (1 placeholder)')
+    })
+  })
+
+  it('gives every template a hint for its card', () => {
+    expect(levelProject.templates.map((t) => [t.id, t.hint])).toEqual([
+      ['platformer', 'side view'],
+      ['topdown-rpg', 'maps · NPCs'],
+      ['blank', 'own layers'],
+    ])
   })
 
   it('offers the three templates, each creating a project that opens', () => {

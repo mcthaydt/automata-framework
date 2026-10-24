@@ -1,5 +1,5 @@
 import { classifyStorageError, type Workspace } from '@mcthaydt/automata-editor-kit/core'
-import type { ProfileRegistry } from '../profiles/profile'
+import type { ProfileRegistry, ProfileSummary } from '../profiles/profile'
 import { readDocument } from './read-document'
 
 // The projects Home shows (2D editor spec §8): one entry for each file in the workspace that a profile claims, and
@@ -24,6 +24,8 @@ export type ProjectEntry =
       /** Findings of the profile's checks, by severity; info is not counted. */
       readonly errors: number
       readonly warnings: number
+      /** The profile's words for what the project holds; `undefined` when the profile gives none. */
+      readonly summary: ProfileSummary | undefined
     })
   /** A profile claims the file and it does not open: Home shows the reason and offers the text view. */
   | (Listed & { readonly status: 'broken'; readonly profile: ProfileRef; readonly message: string })
@@ -67,6 +69,7 @@ export async function listProjects(
           profile: ref(read.profile),
           errors: findings.filter((finding) => finding.severity === 'error').length,
           warnings: findings.filter((finding) => finding.severity === 'warning').length,
+          summary: read.profile.summary?.(read.value),
         })
         break
       }
