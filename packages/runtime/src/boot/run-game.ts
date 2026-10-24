@@ -1,8 +1,8 @@
 import type { Hosting } from '@mcthaydt/automata-host'
-import type { HostKind } from '@mcthaydt/automata-ui'
 import { Cause, Effect, Exit, Fiber, Option, Scope } from 'effect'
 import { BootDefect, type BootError } from './boot-error.js'
 import { bootProgram } from './boot-program.js'
+import { failureHost } from './failure-host.js'
 import type { GameDefinition, RuntimeHandle } from './game-definition.js'
 import type { LoaderControls, PageLayers } from './page-layers.svelte.js'
 import { createPageLayers } from './page-layers.svelte.js'
@@ -36,21 +36,12 @@ export function describeBootError(error: BootError): string {
  * Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
  *
  * Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
- * the attempt scope open so Back to Ruken can access its Hosting service. Try again
+ * the attempt scope open so Back to {host} can access its Hosting service. Try again
  * and Continue without loading close the failed attempt scope and re-run bootProgram
  * in a fresh Scope on the same root without reloading the page.
  *
  * RuntimeHandle.shutdown() closes the runtime scope, running all finalizers in LIFO order.
  */
-/**
- * The host kind the boot-failure panel draws. A `web` session (PUB spec §3) has no host to go back to, so its
- * failures read as standalone, and before Hosting exists the page is standalone too. The ui's `HostKind` names
- * only Ruken's two kinds until PUB.4 moves the panel to `hostName` and the `exit` grant.
- */
-export function failureHostKind(hosting: Pick<Hosting, 'kind'> | null | undefined): HostKind {
-  return hosting?.kind === 'ruken' ? 'ruken' : 'standalone'
-}
-
 export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
   let currentScope: Scope.CloseableScope | null = null
   let capturedHosting: Hosting | null = null
@@ -118,12 +109,10 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
         const layers = layersRef.current ?? createPageLayers(game.root, doc)
         layers.setState('failed')
 
-        const hostKind = failureHostKind(hostingRef.current)
-
-        // Mount BootFailurePanel; attempt scope is kept open so Back to Ruken has Hosting
+        // Mount BootFailurePanel; attempt scope is kept open so Back to {host} has Hosting
         const closeFailure = layers.showBootFailure({
           failure: error,
-          hostKind,
+          ...failureHost(hostingRef.current),
           copy: game.copy,
           onRetry: () => {
             closeFailure()

@@ -167,6 +167,7 @@ export {
   bootFailureView,
   type ErrorCode,
   type HostKind,
+  withHostName,
 } from './status/boot-failure'
 export { default as Chip } from './status/Chip.svelte'
 export { default as ErrorPanel } from './status/ErrorPanel.svelte'

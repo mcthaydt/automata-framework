@@ -22,7 +22,7 @@ import {
 } from './boot-error.js'
 import { contentHashOf } from './boot-program.js'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
-import { describeBootError, failureHostKind, runGame } from './run-game.js'
+import { describeBootError, runGame } from './run-game.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -624,6 +624,32 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     await handle.shutdown()
   })
 
+  it("hides Back to … when the session has no exit grant (the SDK's standalone session; PUB spec §3.1)", async () => {
+    const frames = manualFrames()
+    const game: GameDefinition = {
+      root,
+      hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+      content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+      screens: [{ id: 'title', enter: () => Effect.void }],
+      renderer: () => Effect.fail(new RendererUnavailable({ tried: ['webgl2'] })),
+      seams: {
+        frames,
+        fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] } }).fetch,
+      },
+    }
+
+    const handle = runGame(game)
+    await driveFirstFrame(frames)
+    await waitForState('failed')
+
+    expect(root.querySelector('[role="alert"]')?.getAttribute('data-code')).toBe('unsupported')
+    expect(Array.from(root.querySelectorAll('button')).map((button) => button.textContent?.trim())).toEqual(
+      [],
+    )
+
+    await handle.shutdown()
+  })
+
   it('shutdown order: screen finalizer, then nullRenderer destroy, then Hosting closed (saves.get fails CANCELLED), then root empty and frame cancelled; second shutdown is a no-op', async () => {
     const frames = manualFrames()
     const events: string[] = []
@@ -706,14 +732,5 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     // 5. second shutdown resolves and does nothing
     await handle.shutdown()
     expect(events).toEqual(['screen:exit', 'renderer:destroy'])
-  })
-})
-
-describe('failureHostKind (PUB spec §3: the web kind)', () => {
-  it("draws a web session's boot failures as standalone: no host to go back to", () => {
-    expect(failureHostKind({ kind: 'web' })).toBe('standalone')
-    expect(failureHostKind({ kind: 'standalone' })).toBe('standalone')
-    expect(failureHostKind({ kind: 'ruken' })).toBe('ruken')
-    expect(failureHostKind(undefined)).toBe('standalone')
   })
 })

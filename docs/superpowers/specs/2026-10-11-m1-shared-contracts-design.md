@@ -154,11 +154,11 @@ Every boot step in master spec §7 fails with a typed error. The runtime's boot 
 | Step | Error tag | Fields | UI state | Player action |
 |---|---|---|---|---|
 | 2 Host | `HostError` (op `init`) when `Ruken.init` throws; an in-frame handshake failure is not an error but a reported fallback to standalone (§1.2) | `code`, `retryable` | "Couldn't start the game" | Try again if retryable; otherwise none (a build or config fault) |
-| 3 Storage | `HostError` (op `saves.*`) | `code`, `retryable` | "Couldn't load your progress" | Try again if retryable. Not retryable: "Back to Ruken" (`exit`) when `kind` is `ruken`; Continue without loading when `kind` is `standalone` |
+| 3 Storage | `HostError` (op `saves.*`) | `code`, `retryable` | "Couldn't load your progress" | Try again if retryable. Not retryable: "Back to {host}" (`exit`, named by the host and shown only when `exit` is granted; PUB.4) when `kind` is `ruken`; Continue without loading when `kind` is `standalone` |
 | 4 Content | `ContentHashMismatch` | `expected`, `actual` | "This build is damaged" | Try again (reload) |
 | 5 Assets | `AssetLoadFailed` | `url`, `status` | "Couldn't download the game" | Try again |
 | 5 Assets | `LoadStalled` | `url`, `bytesSoFar`, `stalledMs` (30,000) | Same state, "Still waiting" copy | Try again |
-| 6 Renderer | `RendererUnavailable` | `tried: ('webgl2'|'webgpu')[]` (WebGL2 is the default; WebGPU only when the game opts in) | "This device can't run the game" | "Back to Ruken" (`exit`) when `kind` is `ruken`; a final panel with no action when `standalone` |
+| 6 Renderer | `RendererUnavailable` | `tried: ('webgl2'|'webgpu')[]` (WebGL2 is the default; WebGPU only when the game opts in) | "This device can't run the game" | "Back to {host}" (`exit`, only when granted; PUB.4) when `kind` is `ruken`; a final panel with no action when `standalone` |
 | 7 Ready | `HostError` (op `ready`) | `code` | "Couldn't connect to Ruken" | Try again |
 | any step, a defect (added 2026-10-12, M1.5 Q1) | `BootDefect` | — | "Couldn't start the game" | Try again |
 

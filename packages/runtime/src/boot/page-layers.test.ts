@@ -88,6 +88,8 @@ describe('createPageLayers', () => {
     const unmountBoot = layers.showBootFailure({
       failure,
       hostKind: 'ruken',
+      hostName: 'Ruken',
+      canExit: true,
       onRetry,
       onExit,
     })

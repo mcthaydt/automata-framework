@@ -33,7 +33,10 @@ export type BootFailure =
   | { readonly _tag: 'RendererUnavailable'; readonly tried: readonly ('webgl2' | 'webgpu')[] }
   | { readonly _tag: 'BootDefect' }
 
-/** `Hosting['kind']` (shared contracts §1.1), written out until packages/host lands. */
+/**
+ * `Hosting['kind']` (shared contracts §1.1), written out because ui never imports host. A `web` session (PUB
+ * spec §3) draws as `standalone`: it has no host to go back to.
+ */
 export type HostKind = 'ruken' | 'standalone'
 
 /**
@@ -49,7 +52,7 @@ export type BootFailureState =
   | 'download-stalled'
   | 'unsupported'
 
-/** Try again, Continue without loading, Back to Ruken. */
+/** Try again, Continue without loading, Back to {host}. */
 export type BootFailureAction = 'retry' | 'continue' | 'exit'
 
 /**
@@ -67,7 +70,10 @@ export interface BootFailureViewModel {
  */
 export type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>
 
-/** English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5. */
+/**
+ * English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5. `{host}` is filled
+ * with the host's name (`Hosting.hostName`: 'Ruken', 'itch.io' …) by `withHostName`.
+ */
 export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
   start: "Couldn't start the game.",
   connect: "Couldn't connect to Ruken.",
@@ -78,11 +84,17 @@ export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
   unsupported: "This device can't run the game.",
   retry: 'Try again',
   continue: 'Continue without loading',
-  exit: 'Back to Ruken',
+  exit: 'Back to {host}',
+}
+
+/** Fills the `{host}` slot of a copy string with the host's name. Copy without the slot is returned as is. */
+export function withHostName(text: string, hostName: string): string {
+  return text.replaceAll('{host}', hostName)
 }
 
 /**
- * Which state a failure draws and which ways forward it offers.
+ * Which state a failure draws and which ways forward it offers. `canExit` is whether the host granted `exit`;
+ * without it "Back to …" is never offered (PUB spec §3.1).
  *
  * - Host start (`init`): `Ruken.init` threw. Try again when Ruken says a retry can succeed;
  *   otherwise it is a build or config fault (a bad `gameId` or `wants`) the player cannot fix, so
@@ -95,7 +107,18 @@ export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
  * - Everything else: Try again, which re-runs the boot program in a fresh scope (never a page reload
  *   inside a Ruken frame).
  */
-export function bootFailureView(failure: BootFailure, hostKind: HostKind): BootFailureViewModel {
+export function bootFailureView(
+  failure: BootFailure,
+  hostKind: HostKind,
+  canExit: boolean,
+): BootFailureViewModel {
+  const view = viewFor(failure, hostKind)
+  // "Back to …" needs the host's `exit` grant (PUB spec §3.1). Without it the panel offers what is left, or
+  // is final; it never turns exit into Continue, which would fork a hosted player's progress.
+  return canExit ? view : { state: view.state, actions: view.actions.filter((action) => action !== 'exit') }
+}
+
+function viewFor(failure: BootFailure, hostKind: HostKind): BootFailureViewModel {
   switch (failure._tag) {
     case 'HostError':
       if (failure.operation === 'init') return { state: 'start', actions: failure.retryable ? ['retry'] : [] }

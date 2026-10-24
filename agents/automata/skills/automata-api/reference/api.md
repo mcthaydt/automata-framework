@@ -4685,7 +4685,8 @@ type BarSample = {
 
 #### `BOOT_FAILURE_COPY_EN` (const)
 
-English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5.
+English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5. `{host}` is filled
+with the host's name (`Hosting.hostName`: 'Ruken', 'itch.io' …) by `withHostName`.
 
 ```ts
 const BOOT_FAILURE_COPY_EN: BootFailureCopy;
@@ -4734,7 +4735,7 @@ type BootFailure = {
 
 #### `BootFailureAction` (type)
 
-Try again, Continue without loading, Back to Ruken.
+Try again, Continue without loading, Back to {host}.
 
 ```ts
 type BootFailureAction = 'retry' | 'continue' | 'exit';
@@ -4771,7 +4772,8 @@ type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download
 
 #### `bootFailureView` (function)
 
-Which state a failure draws and which ways forward it offers.
+Which state a failure draws and which ways forward it offers. `canExit` is whether the host granted `exit`;
+without it "Back to …" is never offered (PUB spec §3.1).
 
 - Host start (`init`): `Ruken.init` threw. Try again when Ruken says a retry can succeed;
   otherwise it is a build or config fault (a bad `gameId` or `wants`) the player cannot fix, so
@@ -4785,7 +4787,7 @@ Which state a failure draws and which ways forward it offers.
   inside a Ruken frame).
 
 ```ts
-function bootFailureView(failure: BootFailure, hostKind: HostKind): BootFailureViewModel;
+function bootFailureView(failure: BootFailure, hostKind: HostKind, canExit: boolean): BootFailureViewModel;
 ```
 
 #### `BootFailureViewModel` (interface)
@@ -5525,7 +5527,8 @@ type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'sc
 
 #### `HostKind` (type)
 
-`Hosting['kind']` (shared contracts §1.1), written out until packages/host lands.
+`Hosting['kind']` (shared contracts §1.1), written out because ui never imports host. A `web` session (PUB
+spec §3) draws as `standalone`: it has no host to go back to.
 
 ```ts
 type HostKind = 'ruken' | 'standalone';
@@ -7042,6 +7045,14 @@ class WheelPager {
     push(deltaX: number, deltaY: number): -1 | 0 | 1;
     reset(): void;
 }
+```
+
+#### `withHostName` (function)
+
+Fills the `{host}` slot of a copy string with the host's name. Copy without the slot is returned as is.
+
+```ts
+function withHostName(text: string, hostName: string): string;
 ```
 
 #### `wrapPage` (function)
