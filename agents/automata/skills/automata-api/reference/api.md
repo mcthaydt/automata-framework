@@ -849,6 +849,14 @@ Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError`
 type ErrorCode = RukenError["code"];
 ```
 
+#### `findRukenSdkMarkers` (function)
+
+The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
+
+```ts
+function findRukenSdkMarkers(code: string): string[];
+```
+
 #### `HOST_EXIT_CAP` (const)
 
 How long the game may hold the host's close (FloorFifty `ruken/exit.ts`,
@@ -886,8 +894,13 @@ The `Hosting` service tag.
 
 ```ts
 interface Hosting {
-  /** 'ruken' when the session is hosted; 'standalone' when the SDK returned its standalone session. */
-  readonly kind: "ruken" | "standalone";
+  /**
+   * Which session this is: 'ruken' when Ruken hosts it; 'standalone' when the Ruken adapter got the SDK's
+   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3).
+   */
+  readonly kind: "ruken" | "standalone" | "web";
+  /** The host's name for UI, such as "Back to …": 'Ruken', 'itch.io' or 'this page' (PUB spec §3). */
+  readonly hostName: string;
   /** Some when the page is inside a frame but the SDK fell back to standalone (shared contracts §1.2). */
   readonly handshake: {
     readonly fellBack: Option.Option<HostHandshakeFailed>;
@@ -1032,6 +1045,19 @@ and then the session is disposed.
 
 ```ts
 function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>;
+```
+
+#### `RUKEN_SDK_MARKERS` (const)
+
+String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe
+key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp b30d31b. An `itch` or
+`web` build must contain neither, because it bundles the web adapter instead of the SDK; a `ruken` build
+contains both. The web adapter's own probe key (`WEB_STORAGE_PROBE_KEY`) is deliberately different.
+
+Re-check these after re-vendoring the SDK: `target.build.test.ts` fails if a default build stops containing them.
+
+```ts
+const RUKEN_SDK_MARKERS: readonly string[];
 ```
 
 #### `toHostError` (function)
