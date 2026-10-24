@@ -38,6 +38,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for Emberwick's screens (`games/emberwick`) (OFL-1.1), bundled so it loads under Ruken's `font-src 'self' data:` |
 | `@fontsource/ibm-plex-mono` | 5.3.0 | 2026-10-23 | editor lane (EDK.1): the editor kit's monospace face (`packages/editor-kit`) (OFL-1.1), bundled so the editors load offline |
 | `@fontsource/ibm-plex-sans` | 5.3.0 | 2026-10-23 | editor lane (EDK.1): the editor kit's interface face (`packages/editor-kit`) (OFL-1.1), bundled so the editors load offline |
+| `@decimalturn/toml-patch` | 3.3.1 | 2026-10-23 | editor lane (EDFF.1, 2D spec FF-D2): reads and patches FloorFifty's stage files in `packages/editor-2d` while keeping their comments and layout (MIT). Measured on the four shipped stages: an unchanged document prints byte for byte and a one-value edit changes one line. Array-of-tables structure edits are not safe with comments, so the codec does those itself (EDFF.1a plan). `pnpm deps:new` could not run in the sandbox |
 | `playwright` | 1.63.0 | 2026-10-01 | Same as Ruken's `@playwright/test`: browsers for parity and DOM checks |
 | `pngjs` | 7.0.0 | 2026-10-17 | content lane (M5.6): decodes atlas frames and encodes atlas pages in `automata-content assets` (M5 spec §4.7). FloorFifty's version (`ac72660`, `packages/asset-contract`), already in the lockfile through `@vitest/browser`. Only the `./assets` subpath imports it, so it stays out of browser graphs |
 | `smol-toml` | 1.9.0 | 2026-10-11 | Same as Ruken: reads the TOML under `content/` in `@mcthaydt/automata-content` (M1.3 content spec §8); writes the AF content export of the 2D editor (`packages/editor-2d`, ED2D.3) |
@@ -50,7 +51,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `yaml` | 2.9.1 | 2026-10-11 | Same as Ruken: parse workflow YAML in ship's workflow tests |
 | `yauzl` | 3.4.0 | 2026-10-11 | Same as Ruken: a runtime dependency of the vendored `@ruken/cli`, which `@mcthaydt/automata-ship` ships in `dist/vendor/ruken-cli/` (M2.4 spec §3.4) |
 | `yazl` | 3.3.1 | 2026-10-11 | Same as Ruken: the same, for `@ruken/cli` inside `@mcthaydt/automata-ship` |
-| `zod` | 4.6.5 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |
+| `zod` | 4.6.6 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |
 | `@sveltejs/package` | 3.0.0 | 2026-10-11 | ship lane: builds `@mcthaydt/automata-ui`'s published `dist/` (M2.4 spec §3.3), Svelte's documented library layout: `.svelte` shipped as Svelte source with TypeScript stripped. Peer `typescript` ^6, so it runs on ui's 6.0.3 |
 | `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | ui lane: compiles Svelte 5 in `packages/ui` and `examples/ui/primitives` |
 | `@testing-library/dom` | 10.4.2 | 2026-10-11 | ui lane: DOM behaviour tests (AGENTS.md, Responsive UI) |

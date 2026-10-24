@@ -117,6 +117,43 @@ describe('prepareBuild', () => {
     expect(Either.isRight(passed)).toBe(true)
   })
 
+  // M4.1 follow-up: with no bindings given, the inputs the game's keys() calls bind are read from its sources.
+  describe("runtime.inputs against the game's keys() calls", () => {
+    const gameWith = (source: string): string => {
+      const game = mkdtempSync(join(tmpdir(), 'ship-prepare-game-'))
+      mkdirSync(join(game, 'src'))
+      writeFileSync(join(game, 'src/game.ts'), `import { keys } from '@mcthaydt/automata-game'\n${source}\n`)
+      return game
+    }
+    const padGame = (): string =>
+      gameWith('export const input = keys(Move, { KeyA: { x: -1 } }, { pad: { 14: { x: -1 } } })')
+
+    it('stops on a pad binding the config leaves out, naming the call, writing nothing', () => {
+      const dir = dist()
+      const error = failure(prepare({ distDir: dir, gameDir: padGame(), config }))
+      expect(error._tag).toBe('ManifestInputsMismatch')
+      expect((error as unknown as { message: string }).message).toContain(
+        'action "src/game.ts:2:22 pad" binds pad buttons but runtime.inputs has no "gamepad"',
+      )
+      expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
+    })
+
+    it('writes the manifest when the keys() calls agree with runtime.inputs', () => {
+      const dir = dist()
+      const withPad = { ...config, runtime: { ...config.runtime, inputs: ['touch', 'gamepad'] as const } }
+      Effect.runSync(prepare({ distDir: dir, gameDir: padGame(), config: withPad }))
+      expect(existsSync(join(dir, 'ruken.toml'))).toBe(true)
+    })
+
+    it('takes bindings the caller gives over the sources: they are the real input map', () => {
+      const dir = dist()
+      Effect.runSync(
+        prepare({ distDir: dir, gameDir: padGame(), config, inputBindings: { jump: { touch: true } } }),
+      )
+      expect(existsSync(join(dir, 'ruken.toml'))).toBe(true)
+    })
+  })
+
   it('stops on a manifest Ruken refuses, writing nothing', () => {
     const dir = dist()
     const bad = { ...config, content: { ...config.content, languages: ['fr'] } }
