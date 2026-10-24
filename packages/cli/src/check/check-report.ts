@@ -7,6 +7,7 @@ export type StepName =
   | 'test'
   | 'boards'
   | 'orientation'
+  | 'inputs'
   | 'no-eval'
   | 'secrets'
   | 'csp'

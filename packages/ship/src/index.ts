@@ -20,6 +20,13 @@ export {
 } from './prepare/board-names.ts'
 export { checkVersion } from './prepare/check-version.ts'
 export {
+  type DeclaredInputs,
+  declaredInputsIn,
+  findInputsProblems,
+  isInputsSource,
+  keysBindingsIn,
+} from './prepare/input-bindings.ts'
+export {
   declaredOrientationIn,
   findOrientationMismatches,
   gameOrientationsIn,

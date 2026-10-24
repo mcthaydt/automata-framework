@@ -24,6 +24,57 @@ describe('editor-2d entry', () => {
     }
   })
 
+  it('exports the tile tools and the auto-tile engine', () => {
+    const functions = [
+      editor2d.brushCells,
+      editor2d.lineCells,
+      editor2d.paintCells,
+      editor2d.paintRect,
+      editor2d.paintRandom,
+      editor2d.floodFill,
+      editor2d.copyStamp,
+      editor2d.flipStamp,
+      editor2d.pasteStamp,
+      editor2d.flipCell,
+      editor2d.pickTile,
+      editor2d.compileRules,
+      editor2d.evaluateCell,
+      editor2d.autoTiles,
+      editor2d.patchAutoTiles,
+      editor2d.windowAround,
+      editor2d.applyOverrides,
+      editor2d.ruleIssues,
+    ]
+    for (const member of functions) expect(member).toBeTypeOf('function')
+  })
+
+  it('paints and auto-tiles through nothing but the entry', () => {
+    const ground = editor2d.paintRect(editor2d.Grid.empty(5, 3), { x: 0, y: 1 }, { x: 4, y: 2 }, 1)
+    const rules = editor2d.compileRules([
+      {
+        id: 'ground',
+        label: 'Ground',
+        active: true,
+        rules: [
+          {
+            id: 'top',
+            active: true,
+            size: 3,
+            pattern: ['any', 'empty', 'any', 'any', 'filled', 'any', 'any', 'any', 'any'],
+            tiles: [7],
+            chance: 1,
+            flipX: false,
+            flipY: false,
+            breakOnMatch: false,
+            outside: 0,
+          },
+        ],
+      },
+    ])
+    const tiles = editor2d.autoTiles(ground, rules, 1)
+    expect([...tiles.stacks.keys()]).toEqual([5, 6, 7, 8, 9])
+  })
+
   it('opens a project through nothing but the entry', () => {
     const file = {
       format: 'af2d',
