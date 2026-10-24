@@ -195,6 +195,8 @@ const barActions: BarAction[] = [
     <BootFailurePanel
       failure={{ _tag: 'HostError', code: 'TIMEOUT', retryable: true, operation: 'saves.get' }}
       hostKind="ruken"
+      hostName="Ruken"
+      canExit
       onRetry={none}
       onExit={none}
     />

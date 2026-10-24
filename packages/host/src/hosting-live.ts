@@ -194,6 +194,7 @@ function hostingOver(session: RukenSession, options: HostingOptions, state: Host
 
   return {
     kind: session.hosted ? 'ruken' : 'standalone',
+    hostName: 'Ruken',
     handshake: { fellBack: state.fellBack },
     player: session.player,
     locale: session.locale,

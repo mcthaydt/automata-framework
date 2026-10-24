@@ -849,6 +849,14 @@ Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError`
 type ErrorCode = RukenError["code"];
 ```
 
+#### `findRukenSdkMarkers` (function)
+
+The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
+
+```ts
+function findRukenSdkMarkers(code: string): string[];
+```
+
 #### `HOST_EXIT_CAP` (const)
 
 How long the game may hold the host's close (FloorFifty `ruken/exit.ts`,
@@ -886,8 +894,13 @@ The `Hosting` service tag.
 
 ```ts
 interface Hosting {
-  /** 'ruken' when the session is hosted; 'standalone' when the SDK returned its standalone session. */
-  readonly kind: "ruken" | "standalone";
+  /**
+   * Which session this is: 'ruken' when Ruken hosts it; 'standalone' when the Ruken adapter got the SDK's
+   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3).
+   */
+  readonly kind: "ruken" | "standalone" | "web";
+  /** The host's name for UI, such as "Back to …": 'Ruken', 'itch.io' or 'this page' (PUB spec §3). */
+  readonly hostName: string;
   /** Some when the page is inside a frame but the SDK fell back to standalone (shared contracts §1.2). */
   readonly handshake: {
     readonly fellBack: Option.Option<HostHandshakeFailed>;
@@ -1032,6 +1045,19 @@ and then the session is disposed.
 
 ```ts
 function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>;
+```
+
+#### `RUKEN_SDK_MARKERS` (const)
+
+String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe
+key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp b30d31b. An `itch` or
+`web` build must contain neither, because it bundles the web adapter instead of the SDK; a `ruken` build
+contains both. The web adapter's own probe key (`WEB_STORAGE_PROBE_KEY`) is deliberately different.
+
+Re-check these after re-vendoring the SDK: `target.build.test.ts` fails if a default build stops containing them.
+
+```ts
+const RUKEN_SDK_MARKERS: readonly string[];
 ```
 
 #### `toHostError` (function)
@@ -1654,6 +1680,16 @@ function buildIdFor(commit: {
 }): string;
 ```
 
+#### `ButlerFailed` (class)
+
+butler exited non-zero. Its output was already shown as it ran; the CLI exits with butler's own code.
+
+```ts
+class ButlerFailed extends ButlerFailedBase {
+  override get message(): string;
+}
+```
+
 #### `checkManifest` (function)
 
 Checks `ruken.toml` text with Ruken's own parser, so AF accepts exactly what Ruken accepts.
@@ -1806,6 +1842,14 @@ class FileError extends FileErrorBase {
 }
 ```
 
+#### `findExecutable` (function)
+
+The first `name` on `pathEnv` that is an executable file, or undefined. Windows also tries .exe, .cmd, .bat.
+
+```ts
+function findExecutable(name: string, pathEnv?: string, platform?: NodeJS.Platform): string | undefined;
+```
+
 #### `findInputsProblems` (function)
 
 Each disagreement between `inputs` (a config's `runtime.inputs`) and what the `keys()` calls in a game's sources
@@ -1888,6 +1932,97 @@ Whether `file` is one of the game's sources the check reads: not a test, whose f
 
 ```ts
 const isOrientationSource: (file: string) => boolean;
+```
+
+#### `ITCH_FIRST_PUSH_CHECKLIST` (const)
+
+The one-time page settings butler cannot make (PUB spec §6), printed after a channel's first push. The
+"Publish to itch.io" guide (PUB.5) carries the same list.
+
+```ts
+const ITCH_FIRST_PUSH_CHECKLIST: string;
+```
+
+#### `ITCH_LIMITS` (const)
+
+itch.io's documented limits for an HTML5 upload; "MB" is read as 10^6 bytes.
+
+```ts
+const ITCH_LIMITS: {
+  readonly maxFiles: number;
+  readonly maxPathLength: number;
+  readonly maxFileBytes: number;
+  readonly maxTotalBytes: number;
+};
+```
+
+#### `ITCH_LIMITS_SOURCE` (const)
+
+Where itch.io's limits were read, and when.
+
+```ts
+const ITCH_LIMITS_SOURCE: {
+  readonly url: string;
+  readonly read: string;
+};
+```
+
+#### `ItchBuildInvalid` (class)
+
+The build breaks one of itch.io's rules; each problem names the file and the limit.
+
+```ts
+class ItchBuildInvalid extends ItchBuildInvalidBase {
+  override get message(): string;
+}
+```
+
+#### `ItchCheck` (type)
+
+The `prepare --target itch` check that failed, in the order they run (PUB spec §4).
+
+```ts
+type ItchCheck = "entry" | "file-count" | "path-length" | "file-size" | "case" | "ruken-toml";
+```
+
+#### `ItchConfig` (interface)
+
+What a game writes in `ship.config.ts`.
+
+```ts
+interface ItchConfig {
+  /** The itch.io project as butler names it: `user/game`, lower case. */
+  readonly project: string;
+  /** The butler channel. Defaults to `html5`. */
+  readonly channel?: string | undefined;
+}
+```
+
+#### `itchConfigSchema` (const)
+
+Checks a game's `itch` section: `project` is `user/game` in lower case, and `channel` defaults to `html5`.
+
+```ts
+const itchConfigSchema: z.ZodType<ItchSettings, ItchConfig>;
+```
+
+#### `ItchSettingMissing` (class)
+
+`publish --target itch` lacks the config section, the key or butler; found before anything runs.
+
+```ts
+class ItchSettingMissing extends ItchSettingMissingBase {}
+```
+
+#### `ItchSettings` (interface)
+
+The checked settings, with the channel filled in.
+
+```ts
+interface ItchSettings {
+  readonly project: string;
+  readonly channel: string;
+}
 ```
 
 #### `keysBindingsIn` (function)
@@ -2018,6 +2153,39 @@ interface PrepareInput {
 }
 ```
 
+#### `prepareItch` (function)
+
+Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on
+itch.io is public, so the build is scanned as Ruken's is), `index.html`, itch.io's
+limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops
+prepare before anything is written. Then `<id>-<version>-itch.zip` is written beside the build folder (not in
+it, so `butler push <dist>` never uploads it), for a manual upload; butler pushes the folder itself.
+
+The build itself must already be an itch build (`resolve.conditions: ['automata-web']`, PUB.1); that is the
+game's build step, not ship's.
+
+```ts
+function prepareItch(input: PrepareItchInput): Effect.Effect<{
+  zipPath: string;
+}, PrepareItchError>;
+```
+
+#### `PrepareItchInput` (interface)
+
+What `prepareItch` checks and zips: the built folder, the ship config and the release tag.
+
+```ts
+interface PrepareItchInput {
+  /** The built game folder. It is checked and zipped as it is; nothing is written into it. */
+  readonly distDir: string;
+  readonly config: ShipConfig;
+  /** The release tag being built, when there is one (`v1.2.3`). */
+  readonly tag?: string | undefined;
+  /** The game's folder, whose `.env*` values must not appear in the build (QB.2). Without it only keys and entropy are scanned. */
+  readonly gameDir?: string | undefined;
+}
+```
+
 #### `ProcessError` (class)
 
 A program could not be started (not found, not executable). A non-zero exit is not this error.
@@ -2074,6 +2242,26 @@ interface PublishInput {
 }
 ```
 
+#### `PublishItchInput` (interface)
+
+What `publishToItch` needs: the built folder, the ship config, the tag, the key and where butler is.
+
+```ts
+interface PublishItchInput {
+  /** The built game folder. */
+  readonly distDir: string;
+  readonly config: ShipConfig;
+  /** The release tag being built, when there is one (`v1.2.3`). */
+  readonly tag?: string | undefined;
+  /** The game's folder, for the secret scan's `.env*` values (see `PrepareItchInput.gameDir`). */
+  readonly gameDir?: string | undefined;
+  /** `BUTLER_API_KEY`. Passed in butler's environment, never on its command line. */
+  readonly apiKey: string | undefined;
+  /** butler as found on PATH (`findExecutable('butler')`), or undefined when it is not installed. */
+  readonly butlerPath: string | undefined;
+}
+```
+
 #### `PublishRejected` (class)
 
 Exit 1: Ruken's checks rejected the build.
@@ -2092,6 +2280,18 @@ Exit 4: Ruken's checks took longer than the CLI waits.
 class PublishTimeout extends PublishTimeoutBase {
   override get message(): string;
 }
+```
+
+#### `publishToItch` (function)
+
+Prepares the build for itch.io (every check of `prepareItch`), then pushes the folder with butler. It fails
+before any zip or process when the `itch` section, the key or butler is missing, relays butler's exit code, and
+retries nothing. `firstPush` is true when butler says the channel had no build yet.
+
+```ts
+function publishToItch(input: PublishItchInput): Effect.Effect<{
+  firstPush: boolean;
+}, PublishItchError, ProcessRunner>;
 ```
 
 #### `publishToRuken` (function)
@@ -2217,6 +2417,11 @@ interface ShipConfig {
   readonly analytics?: Manifest["analytics"];
   readonly loading?: NonNullable<Manifest["loading"]>;
   readonly leaderboards?: Manifest["leaderboards"];
+  /**
+   * Where `automata-ship publish --target itch` pushes (PUB spec §4). Not a Ruken field: it is never written to
+   * `ruken.toml`, and a Ruken build ignores it.
+   */
+  readonly itch?: ItchConfig | undefined;
 }
 ```
 
@@ -4480,7 +4685,8 @@ type BarSample = {
 
 #### `BOOT_FAILURE_COPY_EN` (const)
 
-English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5.
+English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5. `{host}` is filled
+with the host's name (`Hosting.hostName`: 'Ruken', 'itch.io' …) by `withHostName`.
 
 ```ts
 const BOOT_FAILURE_COPY_EN: BootFailureCopy;
@@ -4529,7 +4735,7 @@ type BootFailure = {
 
 #### `BootFailureAction` (type)
 
-Try again, Continue without loading, Back to Ruken.
+Try again, Continue without loading, Back to {host}.
 
 ```ts
 type BootFailureAction = 'retry' | 'continue' | 'exit';
@@ -4566,7 +4772,8 @@ type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download
 
 #### `bootFailureView` (function)
 
-Which state a failure draws and which ways forward it offers.
+Which state a failure draws and which ways forward it offers. `canExit` is whether the host granted `exit`;
+without it "Back to …" is never offered (PUB spec §3.1).
 
 - Host start (`init`): `Ruken.init` threw. Try again when Ruken says a retry can succeed;
   otherwise it is a build or config fault (a bad `gameId` or `wants`) the player cannot fix, so
@@ -4580,7 +4787,7 @@ Which state a failure draws and which ways forward it offers.
   inside a Ruken frame).
 
 ```ts
-function bootFailureView(failure: BootFailure, hostKind: HostKind): BootFailureViewModel;
+function bootFailureView(failure: BootFailure, hostKind: HostKind, canExit: boolean): BootFailureViewModel;
 ```
 
 #### `BootFailureViewModel` (interface)
@@ -5320,7 +5527,8 @@ type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'sc
 
 #### `HostKind` (type)
 
-`Hosting['kind']` (shared contracts §1.1), written out until packages/host lands.
+`Hosting['kind']` (shared contracts §1.1), written out because ui never imports host. A `web` session (PUB
+spec §3) draws as `standalone`: it has no host to go back to.
 
 ```ts
 type HostKind = 'ruken' | 'standalone';
@@ -6837,6 +7045,14 @@ class WheelPager {
     push(deltaX: number, deltaY: number): -1 | 0 | 1;
     reset(): void;
 }
+```
+
+#### `withHostName` (function)
+
+Fills the `{host}` slot of a copy string with the host's name. Copy without the slot is returned as is.
+
+```ts
+function withHostName(text: string, hostName: string): string;
 ```
 
 #### `wrapPage` (function)

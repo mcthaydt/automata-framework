@@ -21,9 +21,10 @@
 // A bare `"/"` in a script, a server path like `"/health"` and a protocol-relative `//host` are not the
 // build's files.
 
-import { readdirSync, readFileSync, realpathSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { relative, sep } from 'node:path'
 import { parseSync } from 'oxc-parser'
+import { walk } from './build-files.ts'
 
 export interface RootAbsoluteReferenceFound {
   /** The file, relative to the build, with forward slashes. */
@@ -37,24 +38,6 @@ const PAGE = /\.(?:html|htm|svg)$/i
 const STYLE = /\.css$/i
 const SCRIPT = /\.(?:js|mjs|cjs)$/i
 const JSON_FILE = /\.(?:json|webmanifest)$/i
-
-/**
- * Every file under `dir`, in name order, following symlinked folders once each (a link back up would loop
- * forever). A dangling symlink points at nothing a browser could load, so it is skipped.
- */
-export function walk(dir: string, seen: Set<string> = new Set<string>()): string[] {
-  const real = realpathSync(dir)
-  if (seen.has(real)) return []
-  seen.add(real)
-  return readdirSync(dir)
-    .sort()
-    .flatMap((name) => {
-      const path = join(dir, name)
-      const stats = statSync(path, { throwIfNoEntry: false })
-      if (stats === undefined) return []
-      return stats.isDirectory() ? walk(path, seen) : [path]
-    })
-}
 
 const isRootAbsolute = (url: string): boolean => url.startsWith('/') && !url.startsWith('//')
 

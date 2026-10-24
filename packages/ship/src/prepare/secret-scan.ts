@@ -16,7 +16,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
-import { walk } from './root-absolute.ts'
+import { walk } from './build-files.ts'
 
 /** One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build. */
 export interface EnvValue {

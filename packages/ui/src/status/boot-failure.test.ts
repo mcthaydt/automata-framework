@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BOOT_FAILURE_COPY_EN, type BootFailure, bootFailureView } from './boot-failure'
+import { BOOT_FAILURE_COPY_EN, type BootFailure, bootFailureView, withHostName } from './boot-failure'
 
 // One state per BootError tag (M1 shared contracts §3; M1.6 spec §3.6).
 const saves = (retryable: boolean): BootFailure => ({
@@ -47,7 +47,42 @@ describe('bootFailureView', () => {
     [{ _tag: 'BootDefect' }, 'ruken', 'start', ['retry']],
     [{ _tag: 'BootDefect' }, 'standalone', 'start', ['retry']],
   ] as const)('%j under %s is %s with %j', (failure, host, state, actions) => {
-    expect(bootFailureView(failure, host)).toEqual({ state, actions: [...actions] })
+    // Ruken always grants `exit` (sdk-host ALWAYS_GRANTED); the SDK's standalone session grants nothing.
+    expect(bootFailureView(failure, host, host === 'ruken')).toEqual({ state, actions: [...actions] })
+  })
+
+  describe('"Back to …" only when the host grants exit (PUB spec §3.1)', () => {
+    it('a Ruken session without exit makes a non-retryable saves failure final instead of offering exit', () => {
+      expect(bootFailureView(saves(false), 'ruken', false)).toEqual({ state: 'progress', actions: [] })
+    })
+
+    it('a Ruken session without exit makes a renderer failure final', () => {
+      expect(bootFailureView({ _tag: 'RendererUnavailable', tried: ['webgl2'] }, 'ruken', false)).toEqual({
+        state: 'unsupported',
+        actions: [],
+      })
+    })
+
+    it('a standalone page still offers Continue, whatever it grants', () => {
+      expect(bootFailureView(saves(false), 'standalone', true).actions).toEqual(['continue'])
+    })
+  })
+
+  describe('the exit label names the host (PUB spec §3)', () => {
+    it("keeps a {host} slot in the default copy, so it reads the host's own name", () => {
+      expect(BOOT_FAILURE_COPY_EN.exit).toBe('Back to {host}')
+    })
+
+    it.each([
+      ['Ruken', 'Back to Ruken'],
+      ['itch.io', 'Back to itch.io'],
+    ])('fills {host} with %s', (hostName, label) => {
+      expect(withHostName(BOOT_FAILURE_COPY_EN.exit, hostName)).toBe(label)
+    })
+
+    it("leaves a game's fixed copy as it is", () => {
+      expect(withHostName('Volver', 'Ruken')).toBe('Volver')
+    })
   })
 
   it('has English copy for every state and action', () => {

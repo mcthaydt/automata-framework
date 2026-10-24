@@ -35,6 +35,8 @@ const LONG = SENTENCE.repeat(6).trim()
     <BootFailurePanel
       failure={{ _tag: 'HostError', code: 'QUOTA_EXCEEDED', retryable: false, operation: 'saves.get' }}
       hostKind="standalone"
+      hostName="this page"
+      canExit={false}
       onRetry={none}
       onContinue={none}
       onExit={none}

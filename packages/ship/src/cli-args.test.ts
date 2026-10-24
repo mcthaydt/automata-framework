@@ -45,4 +45,52 @@ describe('parseCliArgs', () => {
     expect(parseCliArgs(['prepare', '--zip']).command).toBe('usage')
     expect(parseCliArgs(['prepare', '--activate']).command).toBe('usage')
   })
+
+  it('reads --target itch on prepare and publish', () => {
+    expect(parseCliArgs(['prepare', '--target', 'itch', '--tag', 'v1.2.0'])).toStrictEqual({
+      command: 'prepare',
+      dist: 'dist',
+      tag: 'v1.2.0',
+      target: 'itch',
+    })
+    expect(parseCliArgs(['publish', '--target=itch'])).toStrictEqual({
+      command: 'publish',
+      dist: 'dist',
+      tag: undefined,
+      activate: false,
+      game: undefined,
+      target: 'itch',
+    })
+  })
+
+  it('reads --target ruken, and leaves target undefined without --target (the Ruken path)', () => {
+    expect(parseCliArgs(['prepare', '--target', 'ruken'])).toMatchObject({
+      command: 'prepare',
+      target: 'ruken',
+    })
+    expect(parseCliArgs(['prepare'])).toStrictEqual({
+      command: 'prepare',
+      dist: 'dist',
+      tag: undefined,
+      target: undefined,
+    })
+    expect(parseCliArgs(['publish', '--activate'])).toMatchObject({
+      command: 'publish',
+      target: undefined,
+      activate: true,
+    })
+  })
+
+  it('answers usage for an unknown target, Ruken-only flags on itch, and a target on deploy-dev', () => {
+    expect(parseCliArgs(['prepare', '--target', 'steam'])).toEqual({
+      command: 'usage',
+      problem: 'unknown target: steam (ruken or itch)',
+    })
+    expect(parseCliArgs(['publish', '--target', 'itch', '--activate'])).toEqual({
+      command: 'usage',
+      problem: '--activate and --game are for publishing to Ruken, not itch.io',
+    })
+    expect(parseCliArgs(['publish', '--target', 'itch', '--game', 'g-1']).command).toBe('usage')
+    expect(parseCliArgs(['deploy-dev', '--target', 'itch']).command).toBe('usage')
+  })
 })

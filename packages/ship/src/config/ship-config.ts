@@ -1,4 +1,5 @@
 import type { Manifest } from '@ruken/manifest'
+import type { ItchConfig } from './itch-config.schema.ts'
 
 /**
  * What a game tells ship about itself, in Ruken's own manifest shape (`@ruken/manifest`'s `Manifest`).
@@ -14,6 +15,11 @@ export interface ShipConfig {
   readonly analytics?: Manifest['analytics']
   readonly loading?: NonNullable<Manifest['loading']>
   readonly leaderboards?: Manifest['leaderboards']
+  /**
+   * Where `automata-ship publish --target itch` pushes (PUB spec §4). Not a Ruken field: it is never written to
+   * `ruken.toml`, and a Ruken build ignores it.
+   */
+  readonly itch?: ItchConfig | undefined
 }
 
 /** Identity function that gives a game's `ship.config.ts` type checking and editor completion. */

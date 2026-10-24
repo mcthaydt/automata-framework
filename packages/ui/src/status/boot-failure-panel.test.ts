@@ -16,9 +16,17 @@ const FIXTURES: readonly BootFailure[] = [
   { _tag: 'BootDefect' },
 ]
 
-function open(failure: BootFailure, hostKind: 'ruken' | 'standalone' = 'ruken') {
+interface Host {
+  readonly hostKind: 'ruken' | 'standalone'
+  readonly hostName: string
+  readonly canExit: boolean
+}
+const RUKEN: Host = { hostKind: 'ruken', hostName: 'Ruken', canExit: true }
+const STANDALONE: Host = { hostKind: 'standalone', hostName: 'this page', canExit: false }
+
+function open(failure: BootFailure, host: Host = RUKEN) {
   const handlers = { onRetry: vi.fn(), onContinue: vi.fn(), onExit: vi.fn() }
-  render(BootFailurePanel, { failure, hostKind, ...handlers })
+  render(BootFailurePanel, { failure, ...host, ...handlers })
   return handlers
 }
 
@@ -42,7 +50,7 @@ describe('BootFailurePanel', () => {
   it('Continue without loading calls onContinue (standalone, saves not retryable)', async () => {
     const { onContinue } = open(
       { _tag: 'HostError', code: 'QUOTA_EXCEEDED', retryable: false, operation: 'saves.set' },
-      'standalone',
+      STANDALONE,
     )
     await userEvent.click(screen.getByRole('button', { name: 'Continue without loading' }))
     expect(onContinue).toHaveBeenCalledOnce()
@@ -55,8 +63,53 @@ describe('BootFailurePanel', () => {
     expect(onExit).toHaveBeenCalledOnce()
   })
 
+  it('names the host from hostName: Back to itch.io calls onExit', async () => {
+    const { onExit } = open(
+      { _tag: 'RendererUnavailable', tried: ['webgl2'] },
+      { ...RUKEN, hostName: 'itch.io' },
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Back to itch.io' }))
+    expect(onExit).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('button', { name: /Ruken|\{host\}/ })).not.toBeInTheDocument()
+  })
+
+  it('hides Back to … when the host does not grant exit, leaving a final panel', () => {
+    open({ _tag: 'RendererUnavailable', tried: ['webgl2'] }, { ...RUKEN, canExit: false })
+    expect(screen.getByRole('alert')).toHaveAttribute('data-code', 'unsupported')
+    expect(screen.queryByRole('button', { name: /^Back to/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('without exit, a non-retryable saves failure under Ruken never offers Continue or Back to …', () => {
+    open(
+      { _tag: 'HostError', code: 'QUOTA_EXCEEDED', retryable: false, operation: 'saves.set' },
+      { ...RUKEN, canExit: false },
+    )
+    expect(screen.getByRole('alert')).toHaveAttribute('data-code', 'progress')
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('keeps Try again when exit is not granted', async () => {
+    const { onRetry } = open({ _tag: 'AssetLoadFailed', url: '/a.png', status: 500 }, STANDALONE)
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(onRetry).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('button', { name: /^Back to/ })).not.toBeInTheDocument()
+  })
+
+  it("fills {host} in the game's own exit copy", () => {
+    render(BootFailurePanel, {
+      failure: { _tag: 'RendererUnavailable', tried: ['webgl2'] },
+      ...RUKEN,
+      hostName: 'itch.io',
+      copy: { exit: 'Volver a {host}' },
+      onRetry: vi.fn(),
+      onExit: vi.fn(),
+    })
+    expect(screen.getByRole('button', { name: 'Volver a itch.io' })).toBeInTheDocument()
+  })
+
   it('a standalone device that cannot run the game shows a final panel with no buttons', () => {
-    open({ _tag: 'RendererUnavailable', tried: ['webgl2'] }, 'standalone')
+    open({ _tag: 'RendererUnavailable', tried: ['webgl2'] }, STANDALONE)
     expect(screen.getByRole('alert')).toHaveAttribute('data-code', 'unsupported')
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
@@ -71,7 +124,7 @@ describe('BootFailurePanel', () => {
   it("takes the game's own copy", () => {
     render(BootFailurePanel, {
       failure: { _tag: 'AssetLoadFailed', url: '/a.png', status: 500 },
-      hostKind: 'ruken',
+      ...RUKEN,
       copy: { download: 'No se pudo descargar el juego.', retry: 'Reintentar' },
       onRetry: vi.fn(),
       onExit: vi.fn(),

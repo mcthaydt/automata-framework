@@ -15,6 +15,10 @@
   ],
   "exports": {
     ".": "./src/index.ts",
+    "./target": {
+      "automata-web": "./src/target-web.ts",
+      "default": "./src/target-ruken.ts"
+    },
     "./testing": "./src/testing/index.ts"
   },
   "publishConfig": {
@@ -23,6 +27,16 @@
       ".": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
+      },
+      "./target": {
+        "automata-web": {
+          "types": "./dist/target-web.d.ts",
+          "import": "./dist/target-web.js"
+        },
+        "default": {
+          "types": "./dist/target.d.ts",
+          "import": "./dist/target.js"
+        }
       },
       "./testing": {
         "types": "./dist/testing.d.ts",
@@ -43,6 +57,7 @@
   "devDependencies": {
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }

@@ -219,3 +219,39 @@ const TestRemoteFailedBase: TaggedErrorClass<
 > = Data.TaggedError('TestRemoteFailed')
 /** `test-remote` stopped without a green run; `reason` says why and `message` says what to do. */
 export class TestRemoteFailed extends TestRemoteFailedBase {}
+
+/** The `prepare --target itch` check that failed, in the order they run (PUB spec §4). */
+export type ItchCheck = 'entry' | 'file-count' | 'path-length' | 'file-size' | 'case' | 'ruken-toml'
+
+const ItchBuildInvalidBase: TaggedErrorClass<
+  'ItchBuildInvalid',
+  {
+    readonly check: ItchCheck
+    readonly problems: readonly string[]
+  }
+> = Data.TaggedError('ItchBuildInvalid')
+/** The build breaks one of itch.io's rules; each problem names the file and the limit. */
+export class ItchBuildInvalid extends ItchBuildInvalidBase {
+  override get message(): string {
+    return `the build is not ready for itch.io (${this.check}):\n${this.problems.join('\n')}`
+  }
+}
+
+const ItchSettingMissingBase: TaggedErrorClass<
+  'ItchSettingMissing',
+  {
+    readonly setting: 'itch' | 'BUTLER_API_KEY' | 'butler'
+    readonly message: string
+  }
+> = Data.TaggedError('ItchSettingMissing')
+/** `publish --target itch` lacks the config section, the key or butler; found before anything runs. */
+export class ItchSettingMissing extends ItchSettingMissingBase {}
+
+const ButlerFailedBase: TaggedErrorClass<'ButlerFailed', { readonly exitCode: number }> =
+  Data.TaggedError('ButlerFailed')
+/** butler exited non-zero. Its output was already shown as it ran; the CLI exits with butler's own code. */
+export class ButlerFailed extends ButlerFailedBase {
+  override get message(): string {
+    return `butler push failed (exit ${this.exitCode}); butler's output is above`
+  }
+}

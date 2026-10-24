@@ -97,6 +97,7 @@
 
 - `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts them.
 - `ErrorCode` (type): Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError` carries them.
+- `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
 - `HOST_EXIT_CAP` (const): How long the game may hold the host's close (FloorFifty `ruken/exit.ts`, Ruken P6 §4 "1 s cap").
 - `HostError` (class): Any failure after the handshake.
 - `HostHandshakeFailed` (class): The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session.
@@ -107,6 +108,7 @@
 - `HostingSaves` (interface): The player's saves (shared contracts §1.1).
 - `HostingSeams` (interface): Test seams.
 - `makeHosting(options, seams?)`: Builds `Hosting` over `Ruken.init`.
+- `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp b30d31b.
 - `toHostError(operation, cause)`: Turns whatever the SDK threw or rejected with into a `HostError`.
 
 ### `import { … } from '@mcthaydt/automata-host/testing'`
@@ -179,6 +181,7 @@
 - `boardNamesIn(file, code)`: The boards one source file names, in source order; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could report a board that is not there).
 - `BUILD_ID_PATTERN` (const): A build's ID on the dev host: the commit's UTC time to the minute, then its short sha, for example `202610111205-abcdef0` (FloorFifty `deploy/bin/build-tag`).
 - `buildIdFor(commit)`: The build ID for a commit: its UTC time to the minute, a dash, then the first seven characters of its sha.
+- `ButlerFailed` (class): butler exited non-zero.
 - `checkManifest(toml)`: Checks `ruken.toml` text with Ruken's own parser, so AF accepts exactly what Ruken accepts.
 - `checkVersion(version, tag)`: A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`): the build Ruken shows as 0.10.2 is the one tagged v0.10.2.
 - `declaredBoardsIn(code)`: The board ids a `ship.config.ts` declares: the keys of its `leaderboards` object, read from the source as written (`automata check` reads files, it does not run them).
@@ -192,6 +195,7 @@
 - `EntryMissing` (class): `[game] entry` names a file the build does not have.
 - `EnvValue` (interface): One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build.
 - `FileError` (class): Reading, writing, listing or removing a file failed.
+- `findExecutable(name, pathEnv?, platform?)`: The first `name` on `pathEnv` that is an executable file, or undefined.
 - `findInputsProblems(gameDir, inputs)`: Each disagreement between `inputs` (a config's `runtime.inputs`) and what the `keys()` calls in a game's sources bind, in `inputsProblems`' words; empty when they agree or the game has no `keys()` call to compare.
 - `findOrientationMismatches(gameDir, declared)`: Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
 - `findRootAbsoluteReferences(distDir)`: Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
@@ -202,6 +206,15 @@
 - `isBoardSource` (const): Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`, `.mts`, `.js`, `.mjs`).
 - `isInputsSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
 - `isOrientationSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+- `ITCH_FIRST_PUSH_CHECKLIST` (const): The one-time page settings butler cannot make (PUB spec §6), printed after a channel's first push.
+- `ITCH_LIMITS` (const): itch.io's documented limits for an HTML5 upload; "MB" is read as 10^6 bytes.
+- `ITCH_LIMITS_SOURCE` (const): Where itch.io's limits were read, and when.
+- `ItchBuildInvalid` (class): The build breaks one of itch.io's rules; each problem names the file and the limit.
+- `ItchCheck` (type): The `prepare --target itch` check that failed, in the order they run (PUB spec §4).
+- `ItchConfig` (interface): What a game writes in `ship.config.ts`.
+- `itchConfigSchema` (const): Checks a game's `itch` section: `project` is `user/game` in lower case, and `channel` defaults to `html5`.
+- `ItchSettingMissing` (class): `publish --target itch` lacks the config section, the key or butler; found before anything runs.
+- `ItchSettings` (interface): The checked settings, with the channel filled in.
 - `keysBindingsIn(file, code)`: What the `keys()` calls in one source file bind, one `<file>:<line>:<col> keys` entry per call (and `pad` and `gestures` entries where it binds them); empty when the file has no call; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could name a device that is not there).
 - `ManifestInputsMismatch` (class): `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
 - `ManifestInvalid` (class): Ruken's parser refused the generated `ruken.toml`.
@@ -212,12 +225,16 @@
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
 - `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
+- `prepareItch(input)`: Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on itch.io is public, so the build is scanned as Ruken's is), `index.html`, itch.io's limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops prepare before anything is written.
+- `PrepareItchInput` (interface): What `prepareItch` checks and zips: the built folder, the ship config and the release tag.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
 - `PublishFailed` (class): Any other exit code.
 - `PublishInput` (interface): What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and whether to activate the build.
+- `PublishItchInput` (interface): What `publishToItch` needs: the built folder, the ship config, the tag, the key and where butler is.
 - `PublishRejected` (class): Exit 1: Ruken's checks rejected the build.
 - `PublishTimeout` (class): Exit 4: Ruken's checks took longer than the CLI waits.
+- `publishToItch(input)`: Prepares the build for itch.io (every check of `prepareItch`), then pushes the folder with butler.
 - `publishToRuken(input)`: Runs Ruken's own `ruken publish` on a prepared build and returns the URL Ruken says the build is served at (`undefined` when it prints none).
 - `PublishUsage` (class): Exit 2: the command line was wrong.
 - `readEnvValues(gameDir)`: The variables of every top-level `.env*` file in the game folder; none when the folder does not exist.
@@ -448,11 +465,11 @@
 - `BOOT_FAILURE_COPY_EN` (const): English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5.
 - `bootDeviceClass(win?)`: The device class at boot, read from the window's pointer and screen; `desktop` when the window cannot answer.
 - `BootFailure` (type): The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never imports the runtime.
-- `BootFailureAction` (type): Try again, Continue without loading, Back to Ruken.
+- `BootFailureAction` (type): Try again, Continue without loading, Back to {host}.
 - `BootFailureCopy` (type): The words for every boot failure state and action, by name.
 - `BootFailurePanel` (const): The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the failure's copy and its ways forward.
 - `BootFailureState` (type): What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or `unsupported`.
-- `bootFailureView(failure, hostKind)`: Which state a failure draws and which ways forward it offers.
+- `bootFailureView(failure, hostKind, canExit)`: Which state a failure draws and which ways forward it offers.
 - `BootFailureViewModel` (interface): What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order.
 - `Button` (const): The framework's button (M4 spec §4.12): an `.af-control` of one kind.
 - `Chip` (const): A short status label (M4 spec §4.12).
@@ -504,7 +521,7 @@
 - `HeightTier` (type): The height tiers (M1.6 spec §3.1; from FloorFifty `ui/height-tier.ts` at 122a220).
 - `HiddenBrowserBar` (class): Recognises a browser bar the browser has stopped reporting (DuckDuckGo for Android's bottom bar) and measures how much of the page's foot it covers.
 - `HostDisplay` (type): What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
-- `HostKind` (type): `Hosting['kind']` (shared contracts §1.1), written out until packages/host lands.
+- `HostKind` (type): `Hosting['kind']` (shared contracts §1.1), written out because ui never imports host.
 - `hostReservedInsets(host)`: Ruken reserves a strip on one edge; its width is the rect's, never negative (FloorFifty `reservedOf`).
 - `IconButton` (const): A button whose face is an icon (M4 spec §4.12).
 - `InputMethod` (type): The input method the player last used, app-wide.
@@ -625,6 +642,7 @@
 - `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata-testing` stands in for it in tests.
 - `watchImage(src, onRetry, timers?)`: Probes `src` and, while it fails, hands `onRetry` each retry's URL to draw instead.
 - `WheelPager` (class): A trackpad's horizontal wheel deltas, one page per gesture; `reset` when the gesture goes quiet.
+- `withHostName(text, hostName)`: Fills the `{host}` slot of a copy string with the host's name.
 - `wrapPage(index, count)`: `index` wrapped into `0..count - 1`, so paging past either end comes round.
 
 ### `import { … } from '@mcthaydt/automata-ui/testing'`
