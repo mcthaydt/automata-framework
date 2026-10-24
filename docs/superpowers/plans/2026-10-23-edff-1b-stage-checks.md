@@ -3,7 +3,7 @@
 - **Task:** EDFF.1b, the second slice of EDFF.1 in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §10.7 (the checks), §9 (the diagnostic shape), acceptance FF-o ("the shipped stages open with zero errors").
 - **Lane:** FloorFifty profile. **Depends on:** EDFF.1a (`StageDocument`, `StageValue`, the schema), ED2D.1 (`Diagnostic`). Stacks on #151. **Unblocks:** EDFF.1d (the `Profile.check` and the fixes), EDFF.2 onward (the Checks view and the inspectors' inline diagnostics).
 - **Status:** Planned 2026-10-23 on `claude/project-thread-73sp69-edff1b`. The 2D spec is drafted, not reviewed.
-- **Progress:** 7 of 8 steps (the PR is step 8's last part). Implemented and locally checked 2026-10-23; not CI verified.
+- **Progress:** 8 of 8 steps. Implemented and locally checked 2026-10-23; draft PR #154; not CI verified.
 
 ## Why the checks are written out, not read from the schema
 
@@ -68,7 +68,7 @@ Each step: a failing test first (reason recorded), the smallest change, the fold
 - [x] **5. References.** `check-references.ts`: aliases against the real manifest aliases (the four stages: none unknown; a misspelt one gives the nearest suggestions; no manifest gives the one info), and set pieces naming layers the stage does not draw (with `remove-name`).
 - [x] **6. Tuning.** `check-tuning.ts`: unknown name, code-only invariant, range, whole-number for `int`, against the declarations passed in.
 - [x] **7. Flash rate.** `check-editor.ts`: the schedule of step 8 of the decisions, with the boundary (three flashes in a second pass, four warn) and the shipped stages (none).
-- [ ] **8. Gates and records.** The four shipped stages give zero errors and no warnings with the real manifest aliases; `pnpm check`-equivalent focused gates (`tsc`, lint, style, knip, boundaries, the package's unit tests); spec §10.7 rewritten as built, 02 and 03 updated; PR on #151.
+- [x] **8. Gates and records.** The four shipped stages give zero errors and no warnings with the real manifest aliases; `pnpm check`-equivalent focused gates (`tsc`, lint, style, knip, boundaries, the package's unit tests); spec §10.7 rewritten as built, 02 and 03 updated; PR on #151 (#154).
 
 ## Execution record
 

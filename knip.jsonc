@@ -34,6 +34,9 @@
     "packages/editor-kit": {
       "ignoreDependencies": ["@fontsource/ibm-plex-mono", "@fontsource/ibm-plex-sans"]
     },
+    // EDFF.1c: make-goldens.mjs is run by hand with node (its header says how) to write the goldens the course and
+    // composition ports are tested against.
+    "packages/editor-2d": { "entry": ["src/profiles/floorfifty-stage/testing/make-goldens.mjs"] },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
     "packages/host": { "ignoreDependencies": ["zod"] },
@@ -43,18 +46,6 @@
     // The locale test fixture resolves the inlang plugin by name (createRequire().resolve) for its settings file.
     "packages/runtime": { "ignoreDependencies": ["@inlang/plugin-message-format"] },
     // automata check (DX.6) bundles @ruken/manifest, which imports smol-toml at runtime.
-    "packages/cli": { "ignoreDependencies": ["smol-toml"] },
-    // Known unused dependencies on main at QB.1 (2026-10-16), each a follow-up in docs/02 (QB.1 knip
-    // baseline). Remove an entry when its follow-up lands; nothing new may be added here without one.
-    "examples/runtime/boot-and-flow": {
-      "ignoreDependencies": [
-        "@mcthaydt/automata-content",
-        "@mcthaydt/automata-host",
-        "@mcthaydt/automata-ui",
-        "koota",
-        "@mcthaydt/automata-testing",
-        "@ruken/manifest"
-      ]
-    }
+    "packages/cli": { "ignoreDependencies": ["smol-toml"] }
   }
 }

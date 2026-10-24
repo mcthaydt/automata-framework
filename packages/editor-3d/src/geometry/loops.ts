@@ -49,7 +49,7 @@ const between = (a: Planar, b: Planar, c: Planar): boolean =>
   c[1] <= Math.max(a[1], b[1]) + EPSILON
 
 /** Whether the segments a→b and c→d have a point in common (a crossing, a touch, or an overlap). */
-function touch(a: Planar, b: Planar, c: Planar, d: Planar): boolean {
+export function segmentsTouch(a: Planar, b: Planar, c: Planar, d: Planar): boolean {
   const [abc, abd, cda, cdb] = [side(a, b, c), side(a, b, d), side(c, d, a), side(c, d, b)]
   if (abc * abd < 0 && cda * cdb < 0) return true
   return (
@@ -77,7 +77,7 @@ export function crossesItself(loop: Loop): boolean {
         if (foldsBack(at(i), at(j), at(j + 1))) return true
       } else if (i === 0 && j === n - 1) {
         if (foldsBack(at(j), at(0), at(1))) return true
-      } else if (touch(at(i), at(i + 1), at(j), at(j + 1))) return true
+      } else if (segmentsTouch(at(i), at(i + 1), at(j), at(j + 1))) return true
     }
   }
   return false
