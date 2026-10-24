@@ -789,6 +789,68 @@ describe('a change on another device while a slot is loaded (M5 spec §5, M5-D6)
     )
   })
 
+  it("holds the progress while the choice is open: a pause or an exit writes nothing over the other device's", async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, _facts, elsewhere) =>
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(1)
+        yield* elsewhere('run.slot.1', theirs)
+        save.touch(() => ({ ...kite, coins: 5 }))
+        const before = sentByGame('saves.set').length // includes the `elsewhere` write above
+
+        // The pause screen opening is the `screen-exit` trigger; closing the game is `flushPending`.
+        yield* save.autosave('screen-exit')
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(before)
+        expect(yield* hosting.saves.get('run.slot.1')).toBe(theirs)
+        expect(yield* save.changedElsewhere.get).toBe(true)
+      }),
+    )
+  })
+
+  it('Keep playing releases the progress held back: the next trigger writes it', async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, _facts, elsewhere) =>
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(1)
+        yield* elsewhere('run.slot.1', theirs)
+        save.touch(() => ({ ...kite, coins: 5 }))
+        yield* save.autosave('screen-exit')
+        yield* settled
+
+        save.keepPlaying()
+        yield* save.autosave('screen-exit')
+        yield* settled
+        const last = sentByGame('saves.set').at(-1) as { value: string }
+        expect(JSON.parse(last.value).data.coins).toBe(5)
+        expect(yield* hosting.saves.get('run.slot.1')).toBe(last.value)
+      }),
+    )
+  })
+
+  it('loading another slot drops the progress held back for the slot that changed', async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, _facts, elsewhere) =>
+      Effect.gen(function* () {
+        const hosting = yield* Hosting
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(1)
+        save.touch(() => ({ ...kite, coins: 5 }))
+        yield* elsewhere('run.slot.1', theirs)
+        const before = sentByGame('saves.set').length
+
+        // Continue on another slot starts another game: the old one's progress is not this one's to write.
+        yield* save.load(0)
+        yield* save.flushPending
+        yield* settled
+        expect(sentByGame('saves.set')).toHaveLength(before)
+        expect(yield* hosting.saves.get('run.slot.1')).toBe(theirs)
+      }),
+    )
+  })
+
   it("Load newer returns the other device's data, lowers the flag and sends nothing", async () => {
     await withRemote({ 'run.slot.1': stored() }, (save, facts, elsewhere) =>
       Effect.gen(function* () {
@@ -804,6 +866,22 @@ describe('a change on another device while a slot is loaded (M5 spec §5, M5-D6)
         })
         expect(yield* save.changedElsewhere.get).toBe(false)
         expect(facts.filter(([name]) => name === 'save.loaded')).toHaveLength(2)
+        expect(sentByGame('saves.set')).toHaveLength(before)
+      }),
+    )
+  })
+
+  it("Load newer drops the progress the old game had touched, so no flush writes it over the other device's", async () => {
+    await withRemote({ 'run.slot.1': stored() }, (save, _facts, elsewhere) =>
+      Effect.gen(function* () {
+        const { sentByGame } = yield* FakeHostHandle
+        yield* save.load(1)
+        save.touch(() => kite)
+        yield* elsewhere('run.slot.1', theirs)
+        const before = sentByGame('saves.set').length
+        yield* save.loadNewer()
+        yield* save.flushPending
+        yield* settled
         expect(sentByGame('saves.set')).toHaveLength(before)
       }),
     )

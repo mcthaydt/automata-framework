@@ -88,10 +88,19 @@ async function check(game: FakeGame, extra: Partial<typeof options> = {}) {
 }
 
 describe('runCheck', () => {
-  it('runs boundaries, typecheck, test, no-eval and secrets in order, and passes a clean game', async () => {
+  it('runs boundaries, typecheck, test, boards, orientation, inputs, no-eval and secrets in order, and passes a clean game', async () => {
     const game = fakeGame()
     const { report, names, code } = await check(game)
-    expect(names).toEqual(['boundaries', 'typecheck', 'test', 'boards', 'no-eval', 'secrets'])
+    expect(names).toEqual([
+      'boundaries',
+      'typecheck',
+      'test',
+      'boards',
+      'orientation',
+      'inputs',
+      'no-eval',
+      'secrets',
+    ])
     expect(report.ok).toBe(true)
     expect(code).toBe(0)
     expect(game.ran).toEqual([
@@ -114,6 +123,8 @@ describe('runCheck', () => {
       'typecheck',
       'test',
       'boards',
+      'orientation',
+      'inputs',
       'no-eval',
       'secrets',
       'csp',
@@ -129,7 +140,16 @@ describe('runCheck', () => {
       }),
     }
     const all = await check(fakeGame({ tools }))
-    expect(all.names).toEqual(['boundaries', 'typecheck', 'test', 'boards', 'no-eval', 'secrets'])
+    expect(all.names).toEqual([
+      'boundaries',
+      'typecheck',
+      'test',
+      'boards',
+      'orientation',
+      'inputs',
+      'no-eval',
+      'secrets',
+    ])
     expect(all.report.steps[0]?.findings).toEqual([
       {
         file: 'src/sim/a.ts',
@@ -216,7 +236,7 @@ describe('runCheck', () => {
   it('a failed build is a build finding; eval in the bundle is a no-eval finding', async () => {
     const broken = { vite: () => ({ exitCode: 1, stdout: '', stderr: 'Could not resolve "./x"' }) }
     const failedBuild = await check(fakeGame({ tools: broken }))
-    expect(failedBuild.report.steps[4]?.findings).toEqual([
+    expect(failedBuild.report.steps[6]?.findings).toEqual([
       { file: '', line: 0, col: 0, rule: 'build', message: 'vite build failed: Could not resolve "./x"' },
     ])
     expect(failedBuild.code).toBe(1)
@@ -225,7 +245,7 @@ describe('runCheck', () => {
       files: new Map([[`${GAME}/dist/assets/index.js`, 'export const run = (s) => eval(s)']]),
     })
     const evalCheck = await check(withEval)
-    expect(evalCheck.report.steps[4]?.findings).toMatchObject([
+    expect(evalCheck.report.steps[6]?.findings).toMatchObject([
       { file: 'dist/assets/index.js', line: 1, rule: 'eval' },
     ])
     expect(evalCheck.code).toBe(1)
@@ -261,6 +281,169 @@ describe('runCheck', () => {
     expect(code).toBe(1)
   })
 
+  // M4.7 follow-up: the orientation a `defineGame` plays in against the ship config's `runtime.orientation`, read
+  // from the sources as the board scan reads them.
+  describe('orientation', () => {
+    const config = (orientation: string) =>
+      `export default defineShipConfig({ runtime: { orientation: ${orientation} } })\n`
+    const orientationStep = (report: Awaited<ReturnType<typeof check>>['report']) =>
+      report.steps.find((step) => step.name === 'orientation')
+
+    it('a game that plays in another orientation than the ship config declares is a finding at its literal', async () => {
+      const game = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config("'any'")],
+          [`${GAME}/src/game.ts`, "export default defineGame({ orientation: 'landscape' })\n"],
+        ]),
+      })
+      const { report, code } = await check(game)
+      expect(orientationStep(report)?.ok).toBe(false)
+      expect(orientationStep(report)?.findings).toEqual([
+        {
+          file: 'src/game.ts',
+          line: 1,
+          col: 42,
+          rule: 'orientation-mismatch',
+          message: 'defineGame plays "landscape", but ship.config.ts runtime.orientation is "any"',
+        },
+      ])
+      expect(code).toBe(1)
+    })
+
+    it('a game that agrees with the ship config passes, and so does one that leaves orientation out against any', async () => {
+      const agrees = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config("'landscape'")],
+          [`${GAME}/src/game.ts`, "export default defineGame({ orientation: 'landscape' })\n"],
+        ]),
+      })
+      expect(orientationStep((await check(agrees)).report)?.ok).toBe(true)
+      const defaults = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config("'any'")],
+          [`${GAME}/src/game.ts`, 'export default defineGame({ name: "x" })\n'],
+        ]),
+      })
+      expect(orientationStep((await check(defaults)).report)?.ok).toBe(true)
+    })
+
+    it('a ship.config.ts whose orientation is not a literal is a tool error that says so', async () => {
+      const game = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config('ORIENTATION')],
+          [`${GAME}/src/game.ts`, "export default defineGame({ orientation: 'landscape' })\n"],
+        ]),
+      })
+      const { report, code } = await check(game)
+      expect(orientationStep(report)).toMatchObject({ ok: false, toolError: true })
+      expect(orientationStep(report)?.findings[0]?.message).toContain('runtime.orientation in ship.config.ts')
+      expect(code).toBe(2)
+    })
+
+    it('finds nothing without a ship.config.ts, without a defineGame, or in a test file', async () => {
+      const noConfig = fakeGame({
+        files: new Map([
+          [`${GAME}/src/game.ts`, "export default defineGame({ orientation: 'landscape' })\n"],
+        ]),
+      })
+      expect(orientationStep((await check(noConfig)).report)?.ok).toBe(true)
+      const noGame = fakeGame({ files: new Map([[`${GAME}/ship.config.ts`, config('ORIENTATION')]]) })
+      expect(orientationStep((await check(noGame)).report)?.ok).toBe(true)
+      const inTest = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config("'any'")],
+          [`${GAME}/src/game.test.ts`, "const g = defineGame({ orientation: 'portrait' })\n"],
+        ]),
+      })
+      expect(orientationStep((await check(inTest)).report)?.ok).toBe(true)
+    })
+  })
+
+  // M4.1 follow-up: `runtime.inputs` against what the game's `keys()` calls bind, read from the sources.
+  describe('inputs', () => {
+    const config = (inputs: string) => `export default defineShipConfig({ runtime: { inputs: ${inputs} } })\n`
+    const keysGame = (args: string) =>
+      `import { keys } from '@mcthaydt/automata-game'\nexport const input = keys(${args})\n`
+    const inputsStep = (report: Awaited<ReturnType<typeof check>>['report']) =>
+      report.steps.find((step) => step.name === 'inputs')
+
+    it("a pad binding the ship config leaves out is a finding at its inputs array, in the rule's own words", async () => {
+      const game = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config("['touch', 'keyboard']")],
+          [`${GAME}/src/game.ts`, keysGame('Move, { KeyA: {} }, { pad: { 14: {} } }')],
+        ]),
+      })
+      const { report, code } = await check(game)
+      expect(inputsStep(report)?.ok).toBe(false)
+      expect(inputsStep(report)?.findings).toEqual([
+        {
+          file: 'ship.config.ts',
+          line: 1,
+          col: 54,
+          rule: 'inputs-mismatch',
+          message: 'action "src/game.ts:2:22 pad" binds pad buttons but runtime.inputs has no "gamepad"',
+        },
+      ])
+      expect(code).toBe(1)
+    })
+
+    it('touch declared with nothing to touch is a finding', async () => {
+      const game = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config("['touch', 'keyboard']")],
+          [`${GAME}/src/game.ts`, keysGame('Move, { KeyA: {} }, { touch: false }')],
+        ]),
+      })
+      expect(inputsStep((await check(game)).report)?.findings).toMatchObject([
+        {
+          file: 'ship.config.ts',
+          rule: 'inputs-mismatch',
+          message: 'runtime.inputs declares "touch" but no action binds a touch button or a gesture',
+        },
+      ])
+    })
+
+    it('a config that agrees passes', async () => {
+      const game = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config("['touch', 'gamepad', 'keyboard']")],
+          [`${GAME}/src/game.ts`, keysGame('Move, { KeyA: {} }, { pad: { 14: {} } }')],
+        ]),
+      })
+      expect(inputsStep((await check(game)).report)?.ok).toBe(true)
+    })
+
+    it('a ship.config.ts whose inputs are not literals is a tool error that says so', async () => {
+      const game = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config('INPUTS')],
+          [`${GAME}/src/game.ts`, keysGame('Move, { KeyA: {} }')],
+        ]),
+      })
+      const { report, code } = await check(game)
+      expect(inputsStep(report)).toMatchObject({ ok: false, toolError: true })
+      expect(inputsStep(report)?.findings[0]?.message).toContain('runtime.inputs in ship.config.ts')
+      expect(code).toBe(2)
+    })
+
+    it('finds nothing without a ship.config.ts, without a keys() call, or in a test file', async () => {
+      const noConfig = fakeGame({
+        files: new Map([[`${GAME}/src/game.ts`, keysGame('Move, { KeyA: {} }, { pad: { 14: {} } }')]]),
+      })
+      expect(inputsStep((await check(noConfig)).report)?.ok).toBe(true)
+      const noKeys = fakeGame({ files: new Map([[`${GAME}/ship.config.ts`, config('INPUTS')]]) })
+      expect(inputsStep((await check(noKeys)).report)?.ok).toBe(true)
+      const inTest = fakeGame({
+        files: new Map([
+          [`${GAME}/ship.config.ts`, config("['touch']")],
+          [`${GAME}/src/game.test.ts`, keysGame('Move, {}, { pad: { 14: {} } }')],
+        ]),
+      })
+      expect(inputsStep((await check(inTest)).report)?.ok).toBe(true)
+    })
+  })
+
   // QB-b in `automata check`: the same scanner as `prepare-ruken`, over the dist/ the no-eval step built.
   it('a planted key in the bundle is a secrets finding with file, line and column, never the key', async () => {
     const key = ['sk', 'live', '4eC39HqLyjWDarjtT1zdp7dc'].join('_')
@@ -286,7 +469,7 @@ describe('runCheck', () => {
   it('secrets does not scan a dist/ whose build failed: it says so instead of passing', async () => {
     const broken = { vite: () => ({ exitCode: 1, stdout: '', stderr: 'Could not resolve "./x"' }) }
     const { report } = await check(fakeGame({ tools: broken }))
-    expect(report.steps[5]).toMatchObject({
+    expect(report.steps[7]).toMatchObject({
       name: 'secrets',
       ok: false,
       findings: [{ rule: 'build', message: 'not scanned: the build failed (see no-eval)' }],
@@ -298,7 +481,7 @@ describe('runCheck', () => {
       fakeGame({ csp: { ready: true, state: 'ready', violations: ['script-src blocked eval'] } }),
       { csp: true },
     )
-    expect(violation.report.steps[6]?.findings).toEqual([
+    expect(violation.report.steps[8]?.findings).toEqual([
       { file: '', line: 0, col: 0, rule: 'csp-violation', message: 'script-src blocked eval' },
     ])
     expect(violation.code).toBe(1)
@@ -306,13 +489,13 @@ describe('runCheck', () => {
     const notReady = await check(fakeGame({ csp: { ready: false, state: 'loading', violations: [] } }), {
       csp: true,
     })
-    expect(notReady.report.steps[6]?.findings[0]).toMatchObject({ rule: 'not-ready' })
-    expect(notReady.report.steps[6]?.findings[0]?.message).toContain('20 s')
+    expect(notReady.report.steps[8]?.findings[0]).toMatchObject({ rule: 'not-ready' })
+    expect(notReady.report.steps[8]?.findings[0]?.message).toContain('20 s')
 
     const failed = await check(fakeGame({ csp: { ready: false, state: 'failed', violations: [] } }), {
       csp: true,
     })
-    expect(failed.report.steps[6]?.findings[0]).toMatchObject({ rule: 'boot-failed' })
+    expect(failed.report.steps[8]?.findings[0]).toMatchObject({ rule: 'boot-failed' })
 
     const missing = new CheckToolError({
       kind: 'missing',
@@ -320,8 +503,8 @@ describe('runCheck', () => {
       detail: 'install it: npm install --save-dev playwright && npx playwright install chromium',
     })
     const noPlaywright = await check(fakeGame({ csp: missing }), { csp: true })
-    expect(noPlaywright.report.steps[6]).toMatchObject({ ok: false, toolError: true })
-    expect(noPlaywright.report.steps[6]?.findings[0]?.rule).toBe('tool-missing')
+    expect(noPlaywright.report.steps[8]).toMatchObject({ ok: false, toolError: true })
+    expect(noPlaywright.report.steps[8]?.findings[0]?.rule).toBe('tool-missing')
     expect(noPlaywright.code).toBe(2)
   })
 })
