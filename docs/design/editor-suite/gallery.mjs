@@ -2,7 +2,7 @@
 // width, with a full-size view. Written for the Artifact tool, which wraps the file in its own document skeleton, so it
 // has no <html> or <head>.
 
-import { APPROVED_AT, CHANGES, LATEST, SINCE_AT } from './changes.mjs'
+import { APPROVED_AT, CHANGES, LATEST, SIGNED_OFF, SINCE_AT } from './changes.mjs'
 import { INVENTORY, NO_EDITOR_YET, VERDICTS } from './inventory.mjs'
 
 const GROUPS = [
@@ -198,7 +198,7 @@ ${CHANGES.map(pair(before)).join('\n')}
     : ''
   const latest = since
     ? `<section id="latest" class="group">
-  <header class="ghead"><h2>New since you accepted the Studio look</h2><p>You said the character editor is glorious and asked for an IK rig to pose by hand, and whether animation was missing. It was: Pose by hand and Animate are new Studio screens. Then the nine look fixes from the audit, each the smallest change that meets the standard: every chip and toggle is now 44 px to touch, Audio has its own colour, and the rest are below. Before is the version you accepted (${SINCE_AT}).</p></header>
+  <header class="ghead"><h2>Signed off: added since the Studio look</h2><p>You signed off all 32 screens on ${esc(SIGNED_OFF.at)}, these included. You said the character editor is glorious and asked for an IK rig to pose by hand, and whether animation was missing. It was: Pose by hand and Animate are new Studio screens. Then the nine look fixes from the audit, each the smallest change that meets the standard: every chip and toggle is now 44 px to touch, Audio has its own colour, and the rest are below. Before is the version you accepted at the Studio look (${SINCE_AT}).</p></header>
   <div class="pairs">
 ${LATEST.map(pair(since)).join('\n')}
   </div>
@@ -206,7 +206,7 @@ ${LATEST.map(pair(since)).join('\n')}
     : ''
 
   const nav = [
-    ...(since ? [['latest', 'New']] : []),
+    ...(since ? [['latest', 'Signed off']] : []),
     ...(before ? [['changed', 'What changed']] : []),
     ['inventory', 'Inventory'],
     ...GROUPS.map((g) => [g.id, g.title]),

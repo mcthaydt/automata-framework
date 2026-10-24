@@ -1,5 +1,13 @@
 import { describe, expect, test } from 'vitest'
-import { entityDefSchema, fieldDefSchema, fieldValueSchema, fieldValuesSchema } from './field.schema'
+import { z } from 'zod'
+import {
+  entityDefIssues,
+  entityDefSchema,
+  entityDefShape,
+  fieldDefSchema,
+  fieldValueSchema,
+  fieldValuesSchema,
+} from './field.schema'
 import { FIELD_TYPES, type FieldDef } from './field-types'
 
 const sample: Record<(typeof FIELD_TYPES)[number], FieldDef> = {
@@ -107,5 +115,43 @@ describe('fieldValueSchema and fieldValuesSchema', () => {
       expect(fieldValueSchema.safeParse(value).success).toBe(false)
     }
     expect(fieldValuesSchema.safeParse({ hp: null }).success).toBe(false)
+  })
+})
+
+describe('entityDefShape and entityDefIssues: what an editor extends', () => {
+  const place = z
+    .strictObject({ ...entityDefShape, shape: z.enum(['rect', 'point']) })
+    .superRefine((def, ctx) => {
+      for (const issue of entityDefIssues(def)) ctx.addIssue({ code: 'custom', ...issue })
+    })
+
+  test('an extended schema accepts the entity keys and its own, and nothing else', () => {
+    const npc = { id: 'npc', color: '#e0a54a', fields: [sample.text], shape: 'rect' }
+    expect(place.parse(npc)).toEqual(npc)
+    expect(place.safeParse({ ...npc, size: 3 }).success).toBe(false)
+    expect(place.safeParse({ id: 'npc', fields: [] }).success).toBe(false)
+  })
+
+  test('entityDefIssues names the entity-level problems at their path and leaves a field’s own to the field schema', () => {
+    expect(entityDefIssues({ id: 'NPC', fields: [] })).toEqual([
+      { message: expect.stringContaining('NPC'), path: [] },
+    ])
+    expect(entityDefIssues({ id: 'npc', fields: [sample.text, sample.text] })).toEqual([
+      { message: expect.stringContaining('twice'), path: ['fields', 1] },
+    ])
+    expect(entityDefIssues({ id: 'npc', fields: [{ id: 'hp', type: 'int', min: 5, max: 1 }] })).toEqual([])
+  })
+
+  test('the entity schema reports through the same issues', () => {
+    expect(entityDefSchema.safeParse({ id: 'NPC', fields: [] }).error?.issues[0]?.message).toContain('NPC')
+  })
+
+  test('an extension keeps the field problems', () => {
+    const result = place.safeParse({
+      id: 'npc',
+      shape: 'rect',
+      fields: [{ id: 'hp', type: 'int', min: 5, max: 1 }],
+    })
+    expect(result.error?.issues[0]?.path).toEqual(['fields', 0])
   })
 })
