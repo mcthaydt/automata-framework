@@ -13,7 +13,7 @@ import { noSector, placed, replaceSector, replaceSectors, round4, sectorOf } fro
 import { cornerAt, loopOf, membersOf, samePoint, wallLength, wallOver } from './wall-geometry'
 
 /** A point is on a wall when it is this close to it, in metres: a tap a hair off the line still means the line. */
-const ON_THE_WALL = 0.001
+export const ON_THE_WALL = 0.001
 
 /** A feature touches the new corner when it ends this close to it, in metres, and counts as on the side it is on. */
 const TOUCHES = 1e-6
@@ -140,7 +140,11 @@ function selecting<D>(result: EditResult<D>, places: readonly (string | undefine
 }
 
 /** The point of the segment from `a` to `z` nearest the point `p`, with its distance from `p`. */
-function nearestOn(a: EditCorner, z: EditCorner, [px, pz]: readonly [number, number]) {
+export function nearestOn(
+  a: EditCorner,
+  z: EditCorner,
+  [px, pz]: readonly [number, number],
+): { readonly point: [number, number]; readonly off: number } {
   const [dx, dz] = [z[0] - a[0], z[1] - a[1]]
   const length2 = dx * dx + dz * dz
   const t = length2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - a[0]) * dx + (pz - a[1]) * dz) / length2))
@@ -148,55 +152,79 @@ function nearestOn(a: EditCorner, z: EditCorner, [px, pz]: readonly [number, num
   return { point, off: Math.hypot(px - point[0], pz - point[1]) }
 }
 
+/** The sectors an edit has changed so far, by id; any sector not in it is the level's own. */
+export type Changes = ReadonlyMap<string, EditSector>
+
+/**
+ * `insertCorner`'s rules over a working set: `changes` with the sectors that splitting the wall `args.corner` of
+ * `args.sector` at the point also changed (the sector, and the reverse of a portal wall), or the sentence for why it cannot
+ * be done. A sector already in `changes` is the one split, so an edit can make several corners one after another.
+ */
+export function cornerInserted<D>(
+  profile: LevelProfile<D>,
+  level: D,
+  changes: Changes,
+  args: InsertCornerArgs,
+): Changes | string {
+  const lookup = (id: string): EditSector | undefined => changes.get(id) ?? sectorOf(profile, level, id)
+  const sector = lookup(args.sector)
+  if (sector === undefined) return `no sector ${args.sector}`
+  if (!Number.isInteger(args.corner) || args.corner < 0 || args.corner >= sector.corners.length)
+    return `sector ${args.sector} has no wall ${args.corner}`
+  if (!Number.isFinite(args.x) || !Number.isFinite(args.z)) return 'the point must be two numbers'
+  const [from, to] = [cornerAt(sector.corners, args.corner), cornerAt(sector.corners, args.corner + 1)]
+  const nearest = nearestOn(from, to, [args.x, args.z])
+  if (nearest.off > ON_THE_WALL) return `that point is not on wall ${args.corner} of ${args.sector}`
+  const point: [number, number] = [round4(nearest.point[0]), round4(nearest.point[1])]
+  if (samePoint(point, from) || samePoint(point, to)) return 'that point is already a corner'
+
+  // How far along the wall, from the corner that starts it.
+  const along = Math.hypot(point[0] - from[0], point[1] - from[1])
+  const halves = splitWall(from[2], along)
+  if (typeof halves === 'string') return halves
+  const made = new Map(changes)
+  made.set(sector.id, withSplit(sector, 0, args.corner, point, halves))
+
+  const reverse = reverseOf(profile, level, sector, args.corner, lookup)
+  if (reverse !== undefined) {
+    const { target, over } = reverse
+    const back = cornerAt(loopOf(target, over.loop), over.corner)
+    // The reverse's own places along its wall run from its own start: the same, or the length less the same.
+    const length = wallLength(sector.corners, args.corner)
+    const backHalves = splitWall(back[2], over.startsAtA ? along : length - along)
+    if (typeof backHalves === 'string') return `${target.id}: ${backHalves}`
+    made.set(target.id, withSplit(target, over.loop, over.corner, point, backHalves))
+  }
+  return made
+}
+
 export function insertCorner<D>(args: InsertCornerArgs): Edit<D> {
   return {
     id: 'sector.addCorner',
     label: `Add a corner to wall ${args.corner} of ${args.sector}`,
     run(profile, level) {
-      const sector = sectorOf(profile, level, args.sector)
-      if (sector === undefined) return noSector(args.sector)
-      if (!Number.isInteger(args.corner) || args.corner < 0 || args.corner >= sector.corners.length)
-        return refuse(`sector ${args.sector} has no wall ${args.corner}`)
-      if (!Number.isFinite(args.x) || !Number.isFinite(args.z)) return refuse('the point must be two numbers')
-      const [from, to] = [cornerAt(sector.corners, args.corner), cornerAt(sector.corners, args.corner + 1)]
-      const nearest = nearestOn(from, to, [args.x, args.z])
-      if (nearest.off > ON_THE_WALL)
-        return refuse(`that point is not on wall ${args.corner} of ${args.sector}`)
-      const point: [number, number] = [round4(nearest.point[0]), round4(nearest.point[1])]
-      if (samePoint(point, from) || samePoint(point, to)) return refuse('that point is already a corner')
-
-      // How far along the wall, from the corner that starts it.
-      const along = Math.hypot(point[0] - from[0], point[1] - from[1])
-      const halves = splitWall(from[2], along)
-      if (typeof halves === 'string') return refuse(halves)
-      const changes = new Map<string, EditSector>([
-        [sector.id, withSplit(sector, 0, args.corner, point, halves)],
-      ])
-
-      const reverse = reverseOf(profile, level, sector, args.corner)
-      if (reverse !== undefined) {
-        const { target, over } = reverse
-        const back = cornerAt(loopOf(target, over.loop), over.corner)
-        // The reverse's own places along its wall run from its own start: the same, or the length less the same.
-        const length = wallLength(sector.corners, args.corner)
-        const backHalves = splitWall(back[2], over.startsAtA ? along : length - along)
-        if (typeof backHalves === 'string') return refuse(`${target.id}: ${backHalves}`)
-        changes.set(target.id, withSplit(target, over.loop, over.corner, point, backHalves))
-      }
-      return selecting(replaceSectors(profile, level, changes), [
-        wallPlace(sector.id, args.corner),
-        wallPlace(sector.id, args.corner + 1),
+      const done = cornerInserted(profile, level, new Map(), args)
+      if (typeof done === 'string') return refuse(done)
+      return selecting(replaceSectors(profile, level, done), [
+        wallPlace(args.sector, args.corner),
+        wallPlace(args.sector, args.corner + 1),
       ])
     },
   }
 }
 
 /** The wall of the sector a portal leads into that runs back over the same segment, with that sector. */
-function reverseOf<D>(profile: LevelProfile<D>, level: D, sector: EditSector, corner: number) {
+function reverseOf<D>(
+  profile: LevelProfile<D>,
+  level: D,
+  sector: EditSector,
+  corner: number,
+  lookup: (id: string) => EditSector | undefined,
+) {
   const into = profile.sectors.portalOf(level, cornerAt(sector.corners, corner)[2])
   // A portal into its own sector has no other side to split.
   if (into === undefined || into === sector.id) return undefined
-  const target = sectorOf(profile, level, into)
+  const target = lookup(into)
   if (target === undefined) return undefined
   const over = wallOver(
     target,
@@ -236,14 +264,14 @@ function same(a: unknown, b: unknown): boolean {
 }
 
 /** Where two walls meet: the corner that goes, and how long each wall and the wall that replaces them are. */
-interface Meeting {
+export interface Meeting {
   readonly sector: string
   readonly corner: number
   readonly firstLength: number
   readonly joinedLength: number
 }
 
-type Joined = { readonly wall: string | EditWall | undefined } | { readonly reason: string }
+export type Joined = { readonly wall: string | EditWall | undefined } | { readonly reason: string }
 
 /**
  * The one wall two walls become when the corner between them goes. They must agree on every member that has no place
@@ -252,7 +280,7 @@ type Joined = { readonly wall: string | EditWall | undefined } | { readonly reas
  * and its end from the second. Two of one feature, a pilaster that ends at the corner, and a feature that no longer fits
  * the new wall (which is not the length of the two when they were not in line) are refused.
  */
-function joinWalls(
+export function joinWalls(
   first: string | EditWall | undefined,
   second: string | EditWall | undefined,
   at: Meeting,

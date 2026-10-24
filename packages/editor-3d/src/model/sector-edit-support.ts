@@ -30,6 +30,21 @@ export const sectorOf = <D>(profile: LevelProfile<D>, level: D, id: string): Edi
 
 export const noSector = (id: string): EditResult<never> => refuse(`no sector ${id}`)
 
+/**
+ * Why an edit that changes the walls of a sector (`doing`: cut, merged) has to leave it alone: something is tied to them
+ * (`SectorAccess.pinned`), in a sentence that lists what. Nothing when nothing is.
+ */
+export function pinnedProblem<D>(
+  profile: LevelProfile<D>,
+  level: D,
+  id: string,
+  doing: string,
+): string | undefined {
+  const pinned = profile.sectors.pinned(level, id)
+  if (pinned.length === 0) return undefined
+  return `${id} cannot be ${doing} while something is tied to its walls: ${pinned.join('; ')}`
+}
+
 /** The selection id of a sector, or nothing for an id a selection cannot hold (a level this editor did not write). */
 export function placeOf(id: string): string | undefined {
   try {
