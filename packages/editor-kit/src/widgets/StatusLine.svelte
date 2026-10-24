@@ -6,8 +6,7 @@
 -->
 <script lang="ts">
 import type { Snippet } from 'svelte'
-
-type SaveState = 'saved' | 'dirty' | 'saving' | 'error' | 'device'
+import type { SaveState } from '../storage/save-state'
 
 interface Props {
   message?: string | undefined

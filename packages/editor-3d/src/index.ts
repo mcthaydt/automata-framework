@@ -4,6 +4,13 @@ export {
   type PlanPointer,
   type PlanView,
 } from './app/plan-controller'
+export {
+  createSectorTool,
+  type DrawEdge,
+  type SectorTool,
+  type SectorToolOptions,
+  type SectorToolView,
+} from './app/sector-tool-controller'
 export * from './checks/check'
 export * from './checks/entities'
 export * from './checks/entity-refs'
@@ -36,6 +43,7 @@ export {
   type LevelEditorOptions,
 } from './model/level-editor'
 export type { LevelState } from './model/level-state'
+export { type PortalOffer, portalOffers } from './model/portal-offers'
 export {
   type AddSectorArgs,
   addSector,
