@@ -6,3 +6,7 @@ They are the Owner's own game content, used here as read-only test fixtures (2D 
 re-copy at a newer commit with the diff reviewed; nothing in the editor edits these files.
 
 `stage.schema.ts` is the vendored form of `packages/content/src/schema/stage.ts` at the same commit.
+
+`art-aliases.json` is the sorted list of the 304 asset aliases in `packages/asset-contract/assets/art-manifest.json` of the
+same commit (every `bundles.*[].alias`; nothing else of the manifest is copied). The alias checks read it as the loaded
+art manifest: all 42 aliases the four stages use are in it.

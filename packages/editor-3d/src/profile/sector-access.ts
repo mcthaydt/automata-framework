@@ -25,6 +25,8 @@ export interface EditSector {
   readonly ceilingTexture?: string | undefined
   readonly wallTexture?: string | undefined
   readonly trim?: PartialTrim | undefined
+  /** `af-sector/1` only: the camera view the game takes in this sector. */
+  readonly view?: string | undefined
   readonly corners: readonly EditCorner[]
   readonly holes?: readonly (readonly EditCorner[])[] | undefined
 }

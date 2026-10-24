@@ -76,14 +76,44 @@ test('sim plugins outside packages/sim may import the sim’s public entry point
   expect(imports('@mcthaydt/automata-sim/src/world/sim')).toEqual(['import'])
 })
 
-test('game sims may import the physics extension’s sim entry points, and only those', () => {
-  const imports = (source: string) =>
-    checkSource('/x/examples/physics/bodies-2d/sim/a.ts', `import { x } from '${source}'\n`).map(
-      (f) => f.rule,
+test('a game sim may import the entries its extension declares, and no other path of it', () => {
+  const root = mkdtempSync(join(tmpdir(), 'af-boundaries-'))
+  try {
+    const installed = join(root, 'node_modules/@mcthaydt/automata-physics')
+    mkdirSync(installed, { recursive: true })
+    const simEntries = ['./2d', './3d']
+    writeFileSync(
+      join(installed, 'package.json'),
+      JSON.stringify({ name: '@mcthaydt/automata-physics', automata: { simEntries } }),
     )
-  expect(imports('@mcthaydt/automata-physics/2d')).toEqual([])
-  expect(imports('@mcthaydt/automata-physics/3d')).toEqual([])
-  expect(imports('@mcthaydt/automata-physics/src/2d')).toEqual(['import'])
+    const imports = (source: string) =>
+      checkSource(join(root, 'src/sim/a.ts'), `import { x } from '${source}'\n`).map((f) => f.rule)
+    expect(imports('@mcthaydt/automata-physics/2d')).toEqual([])
+    expect(imports('@mcthaydt/automata-physics/3d')).toEqual([])
+    expect(imports('@mcthaydt/automata-physics/src/2d')).toEqual(['import'])
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('the checker names no extension: without a declaration an extension’s entry is refused as before', () => {
+  const findings = checkSource('/x/game/src/sim/a.ts', "import { x } from '@mcthaydt/automata-physics/2d'\n")
+  expect(findings.map((f) => [f.rule, f.message])).toEqual([
+    ['import', 'import of "@mcthaydt/automata-physics/2d" is not allowed in the sim'],
+  ])
+})
+
+test('a declaration problem is part of the import finding', () => {
+  const root = mkdtempSync(join(tmpdir(), 'af-boundaries-'))
+  try {
+    const installed = join(root, 'node_modules/@x/ext')
+    mkdirSync(installed, { recursive: true })
+    writeFileSync(join(installed, 'package.json'), JSON.stringify({ automata: { simEntries: '../up' } }))
+    const [finding] = checkSource(join(root, 'src/sim/a.ts'), "import { x } from '@x/ext/2d'\n")
+    expect(finding?.message).toContain('@x/ext declares automata.simEntries wrongly')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
 })
 
 test('a root may allow another checked sim folder’s entry point by its exact name', () => {

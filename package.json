@@ -31,6 +31,7 @@
     "build:examples": "pnpm --filter @af-examples/examples build",
     "lint:actions": "docker run --rm -v \"$PWD:/repo\" --workdir /repo rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color",
     "api-report": "node tooling/api-report/src/cli.ts",
+    "packs": "node tooling/core-packs/src/cli.ts",
     "api-index": "node tooling/api-index/src/cli.ts",
     "cheatsheet": "node tooling/api-index/src/cli.ts --write-cheatsheet",
     "agent-skills": "node tooling/agent-skills/src/cli.ts",

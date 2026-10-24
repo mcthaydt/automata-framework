@@ -1,8 +1,9 @@
 // The shape every level format fits (ED3D spec §4.1): what the editor core imports, so that it never names a Last Light
 // concept. A profile is a file codec (read a file, write a model change back into its text) plus the two things the
-// editor asks of a level: the geometry its views draw, and the checks its problems list shows. ED3D.1b2 adds the
-// entities, ED3D.2b the materials and the profile's own policy checks.
+// editor asks of a level: the geometry its views draw, the checks its problems list shows, and the things that stand in
+// it. ED3D.2b adds the checks that need the entities, ED3D.8 the materials.
 import type { CheckResult } from '../checks/check'
+import type { EntityKit } from '../entities/things'
 import type { SectorDef } from '../format/expand'
 import type { MassDef } from '../format/sector.schema'
 import type { NavWorld } from '../geometry/nav'
@@ -41,6 +42,11 @@ export interface LevelProfile<D> extends FileCodec<D> {
   geometry(doc: D): Geometry
   /** Never throws for a level the schema accepted: a level that cannot be built is the answer, as a result. */
   checks(doc: D, context?: ProfileContext): CheckResult[]
+  /**
+   * The definitions and the things of the level, typed (ED3D.1b2). Never throws for a level the schema accepted: what
+   * cannot be read is a problem in the kit.
+   */
+  entities(doc: D): EntityKit
   /** How the editor's edits read and write the level's sectors (ED3D.3). */
   readonly sectors: SectorAccess<D>
 }
