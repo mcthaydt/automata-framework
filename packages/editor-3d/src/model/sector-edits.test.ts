@@ -25,6 +25,7 @@ import {
   setHeights,
   setLight,
   setMaterials,
+  setView,
 } from './sector-edits'
 
 const depotText = loadAuthored('depot.af-sector')
@@ -771,6 +772,53 @@ describe('sector.setLight', () => {
     expect(edit.id).toBe('sector.setLight')
     expect(edit.coalesce).toBe('light:hall')
     expect(edit.label).toBe('Set the light of hall')
+  })
+})
+
+describe('sector.setView (ED3D.4b)', () => {
+  const view = (id: string, name: string | null, level = depot) =>
+    run(afSectorProfile, level, setView({ id, view: name }))
+
+  it('sets the camera view a sector takes, changes it and clears it, which leaves the sector as it was', () => {
+    const set = levelOf(view('hall', 'hall-view'))
+    expect(sector(set, 'hall').view).toBe('hall-view')
+    expect(sector(levelOf(view('hall', 'wide', set)), 'hall').view).toBe('wide')
+    const cleared = levelOf(view('hall', null, set))
+    expect(cleared).toEqual(depot)
+    expect('view' in sector(cleared, 'hall')).toBe(false)
+  })
+
+  it('changes nothing for the view the sector has already, or none to clear', () => {
+    const set = levelOf(view('hall', 'hall-view'))
+    expect(levelOf(view('hall', 'hall-view', set))).toBe(set)
+    expect(levelOf(view('hall', null))).toBe(depot)
+  })
+
+  it('leaves the other sectors alone', () => {
+    const set = levelOf(view('hall', 'hall-view'))
+    expect(sector(set, 'dock')).toEqual(sector(depot, 'dock'))
+  })
+
+  it('refuses an empty id and a sector that is not there', () => {
+    expect(reasonOf(view('hall', ''))).toBe('a view is an id, not empty')
+    expect(reasonOf(view('hall', '  '))).toBe('a view is an id, not empty')
+    expect(reasonOf(view('nowhere', 'hall-view'))).toBe('no sector nowhere')
+  })
+
+  it('is refused on a Last Light level, which has no camera view to name', () => {
+    expect(reasonOf(llRun(setView({ id: 'hall', view: 'hall-view' })))).toBe(
+      'sector hall has a view id, which a Last Light room cannot hold',
+    )
+    expect(levelOf(llRun(setView({ id: 'hall', view: null })))).toBe(dawn)
+  })
+
+  it('is called sector.setView and coalesces on the sector', () => {
+    const edit = setView({ id: 'hall', view: 'hall-view' })
+    expect([edit.id, edit.label, edit.coalesce]).toEqual([
+      'sector.setView',
+      'Set the view of hall',
+      'view:hall',
+    ])
   })
 })
 

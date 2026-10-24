@@ -19,13 +19,14 @@ function reachable(entry: string, seen = new Set<string>()): Set<string> {
 }
 
 describe('editor-kit core entry', () => {
-  test('exports history, selection, commands and the keymap, and no component', () => {
+  test('exports history, selection, commands, the keymap and the viewport, and no component', () => {
     expect(Object.keys(core).sort()).toEqual([
       'HistoryError',
       'createCommandRegistry',
       'createHistory',
       'createKeymap',
       'createSelection',
+      'createViewport',
       'defineCommand',
       'normalizeShortcut',
       'parseShortcut',
