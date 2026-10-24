@@ -1,4 +1,20 @@
 export {
+  type AcceptResult,
+  type Ask,
+  type AskGhost,
+  type AskOptions,
+  type AskView,
+  createAsk,
+} from './app/ask-controller'
+export {
+  type ChecksPanel,
+  type ChecksPanelOptions,
+  type ChecksPanelView,
+  createChecksPanel,
+  type LocateResult,
+  type Scheduler,
+} from './app/checks-panel-controller'
+export {
   createPlanController,
   type PlanController,
   type PlanPointer,
@@ -7,10 +23,18 @@ export {
 export {
   createSectorTool,
   type DrawEdge,
+  type SectorShape,
   type SectorTool,
   type SectorToolOptions,
   type SectorToolView,
 } from './app/sector-tool-controller'
+export {
+  createVertexTool,
+  type VertexEffect,
+  type VertexTarget,
+  type VertexTool,
+  type VertexToolView,
+} from './app/vertex-tool-controller'
 export {
   createWallTool,
   type WallEffect,
@@ -26,7 +50,10 @@ export * from './checks/entities'
 export * from './checks/entity-refs'
 export { type FacilityResults, facilityChecks } from './checks/facility/facility-checks'
 export * from './checks/generic-checks'
+export { DEFAULT_TONE, type LampKind, lampProblems } from './checks/last-light/lamps'
 export * from './checks/last-light/last-light-checks'
+export { type RoomOwners, type RoomPolicy, roomPolicyProblems } from './checks/last-light/room-policy'
+export { materialProblems } from './checks/materials'
 export * from './checks/wall-locator'
 export * from './codec/layout'
 export * from './codec/locate'
@@ -81,6 +108,21 @@ export {
 } from './model/sector-edits'
 export { parseSelection, type SelectionRef } from './model/selection-ref'
 export {
+  type AddThingArgs,
+  addThing,
+  type MoveThingArgs,
+  moveThing,
+  removeThing,
+  type SetThingFieldArgs,
+  setThingField,
+} from './model/thing-edits'
+export {
+  type InsertCornerArgs,
+  insertCorner,
+  type RemoveCornerArgs,
+  removeCorner,
+} from './model/vertex-edits'
+export {
   createViewStore,
   initialView,
   type ViewMode,
@@ -100,6 +142,7 @@ export {
   type WallRef,
   type WindowArgs,
 } from './model/wall-edits'
+export type { AskProvider, ChangeSet, Generator, Proposal } from './ports/ports'
 export * from './profile/af-sector/af-checks'
 export * from './profile/af-sector/af-codec'
 export * from './profile/af-sector/af-entities'
@@ -127,6 +170,7 @@ export {
   SectorAccessError,
   type SectorDraft,
 } from './profile/sector-access'
+export { type ThingAccess, ThingAccessError } from './profile/thing-access'
 export {
   type Camera3D,
   type FitOptions,
