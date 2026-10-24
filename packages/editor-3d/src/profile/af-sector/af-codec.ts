@@ -18,6 +18,7 @@ const SECTOR_ORDER = [
   'ceiling',
   'light',
   'open',
+  'view',
   'style',
   'floorTexture',
   'ceilingTexture',

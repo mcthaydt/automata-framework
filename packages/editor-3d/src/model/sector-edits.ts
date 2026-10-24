@@ -4,7 +4,7 @@
 // Moving a sector's corners is `corner-edits.ts`, a wall's members `wall-edits.ts`; splitting and merging is ED3D.6.
 import { outlineProblem } from '../geometry/loops'
 import type { EditCorner, EditSector, EditWall } from '../profile/sector-access'
-import { type Edit, refuse } from './edit'
+import { type Edit, ok, refuse } from './edit'
 import {
   buildRefusal,
   heightsProblem,
@@ -194,6 +194,28 @@ export function setLight<D>(args: { readonly id: string; readonly light: number 
       const problem = lightProblem(light)
       if (problem !== undefined) return refuse(problem)
       return replaceSector(profile, level, args.id, light === sector.light ? sector : { ...sector, light })
+    },
+  }
+}
+
+/**
+ * The camera view the game takes while the player is in the sector (the 3D direction spec §4.2), by the id of a
+ * `camera-view` of the game's content: the editor holds the id, and the content check of the game says whether there is
+ * one. `null` takes it off. A Last Light room has none to hold, and the profile says so when the sector is written.
+ */
+export function setView<D>(args: { readonly id: string; readonly view: string | null }): Edit<D> {
+  return {
+    id: 'sector.setView',
+    label: `Set the view of ${args.id}`,
+    coalesce: `view:${args.id}`,
+    run(profile, level) {
+      const sector = sectorOf(profile, level, args.id)
+      if (sector === undefined) return noSector(args.id)
+      if (isEmptyName(args.view)) return refuse('a view is an id, not empty')
+      if (sector.view === (args.view ?? undefined)) return ok(level)
+      if (args.view !== null) return replaceSector(profile, level, args.id, { ...sector, view: args.view })
+      const { view: _cleared, ...rest } = sector
+      return replaceSector(profile, level, args.id, rest)
     },
   }
 }

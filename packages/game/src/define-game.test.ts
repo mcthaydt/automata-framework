@@ -1,4 +1,11 @@
-import { BootDefect, CORE_SETTINGS, type ScreenDef, type SettingsDef } from '@mcthaydt/automata-runtime'
+import {
+  BootDefect,
+  CORE_SETTINGS,
+  defineSave,
+  LOCALE_SAVE_KEY,
+  type ScreenDef,
+  type SettingsDef,
+} from '@mcthaydt/automata-runtime'
 import { defineComponent, defineEvent, definePlugin } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
 import { Container } from 'pixi.js'
@@ -17,7 +24,7 @@ const square = definePlugin({ name: 'square', defs: [Body, Hidden, Chime] })
 const spec: GameSpec = { id: 'my-game', size: { width: 320, height: 180 }, sim: { plugins: [square] } }
 
 /** The BootDefect's cause, which lists every invalid field path. */
-function problemsOf(bad: GameSpec): string {
+function problemsOf<S = never>(bad: GameSpec<S>): string {
   try {
     defineGame(bad)
   } catch (error) {
@@ -146,6 +153,50 @@ describe('defineGame validation (DX spec §5 step 1, §6)', () => {
     expect(game.hosting.wants).toEqual(['saves', 'leaderboards'])
     expect(defineGame({ ...spec, scores }).hosting.wants).toEqual(['saves', 'leaderboards'])
     expect(defineGame(spec).hosting.wants).toEqual(['saves'])
+  })
+
+  describe('saves (M5.2)', () => {
+    const def = defineSave({
+      key: 'run',
+      version: 1,
+      schema: z.object({ x: z.number() }),
+      empty: () => ({ x: 0 }),
+      migrations: {},
+      slots: { count: 3 },
+    })
+    const saves = { def, capture: () => ({ x: 1 }), apply: () => {} }
+
+    it('hands the save to the runtime and asks the host for saves, once, even with settings of its own', () => {
+      const game = defineGame({ ...spec, saves })
+      expect(game.saves).toBe(def)
+      expect(game.hosting.wants).toEqual(['saves'])
+      const own: SettingsDef<{ volume: number }> = {
+        key: 'mine',
+        version: 1,
+        schema: z.object({ volume: z.number() }),
+        defaults: { volume: 1 },
+      }
+      expect(defineGame({ ...spec, settings: own, saves }).hosting.wants).toEqual(['saves'])
+      expect(defineGame({ ...spec, saves, hosting: { wants: ['saves'] } }).hosting.wants).toEqual(['saves'])
+    })
+
+    it('has no save when the spec declares none', () => {
+      expect(defineGame(spec).saves).toBeUndefined()
+    })
+
+    it('refuses a key the framework keeps for itself, rather than writing over the settings or the language', () => {
+      const keyed = (key: string) => ({ ...saves, def: { ...def, key } })
+      expect(problemsOf({ ...spec, saves: keyed('settings') })).toContain('saves.def.key:')
+      expect(problemsOf({ ...spec, saves: keyed(LOCALE_SAVE_KEY) })).toContain('saves.def.key:')
+      const own: SettingsDef<{ volume: number }> = {
+        key: 'mine',
+        version: 1,
+        schema: z.object({ volume: z.number() }),
+        defaults: { volume: 1 },
+      }
+      expect(problemsOf({ ...spec, settings: own, saves: keyed('mine') })).toContain('saves.def.key:')
+      expect(() => defineGame({ ...spec, settings: own, saves: keyed('settings') })).not.toThrow()
+    })
   })
 
   it('accepts a view for a drawn component', () => {

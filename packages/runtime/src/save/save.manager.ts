@@ -44,6 +44,10 @@ export interface Save<S> {
   readonly slots: Subscribable.Subscribable<readonly SlotState[]>
   /** The slot being played: the last one `load` returned. Undefined before the first load. */
   readonly loaded: Subscribable.Subscribable<number | undefined>
+  /**
+   * Reads a slot and makes it the one being played. Progress `touch`ed before is dropped: it came from the game this
+   * load replaces, and must not be written over what was just read.
+   */
   load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>
   write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>
   remove(slot: number): Effect.Effect<void, HostError>
@@ -55,8 +59,9 @@ export interface Save<S> {
   /**
    * Writes the progress `touch` has kept for every slot that still has some, now, whatever the autosave policy
    * (an exit must not lose progress because `on` left out a trigger). It still never writes a slot whose state
-   * is not `ready` or `empty` (a newer build's, a damaged one, one loaded with other content): that progress
-   * stays kept. It never fails, because it runs inside the host's exit; a refused write is the `save.failed`
+   * is not `ready` or `empty` (a newer build's, a damaged one, one loaded with other content), nor the slot
+   * another device changed while it was played, until the player answers: that progress stays kept (Keep
+   * playing releases it; Load newer and any other load drop it). It never fails, because it runs inside the host's exit; a refused write is the `save.failed`
    * fact, and the progress stays kept for the next flush.
    */
   readonly flushPending: Effect.Effect<void>
@@ -67,12 +72,13 @@ export interface Save<S> {
   autosave(trigger: AutosaveTrigger): Effect.Effect<void>
   /**
    * True while the loaded slot holds something another device wrote after it was loaded (M5-D6). Nothing is
-   * reloaded and autosave stays on. Lowered by `keepPlaying`, `loadNewer` or any load.
+   * reloaded, and no trigger writes that slot over the other device's until the player answers. Lowered by
+   * `keepPlaying`, `loadNewer` or any load.
    */
   readonly changedElsewhere: Subscribable.Subscribable<boolean>
   /** Loads the loaded slot again, so the game plays what the other device wrote. Dies when nothing is loaded. */
   loadNewer(): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>
-  /** The player chose to carry on: lowers `changedElsewhere`. The next write overwrites the other device's, as any write would. */
+  /** The player chose to carry on: lowers `changedElsewhere`. The next trigger writes the progress kept over the other device's, as any write would. */
   keepPlaying(): void
 }
 
@@ -132,9 +138,19 @@ export function saveService<S>(
     let loadedSlot: number | undefined
     const pending = new Map<number, () => S>()
     const changedElsewhereRef = yield* SubscriptionRef.make(false)
+    // The slot another device changed while it was played, until the player answers (Load newer or Keep playing). Its
+    // progress stays kept and no trigger writes it, or a pause (which opens the choice) would overwrite the other
+    // device's progress before the player has chosen.
+    let heldSlot: number | undefined
     const setLoaded = (slot: number) =>
       Effect.suspend(() => {
         loadedSlot = slot
+        // A load is the slot's newest word: progress touched before it came from a game that is being replaced
+        // (Load newer, or Continue), and must not be written over what was just read.
+        pending.delete(slot)
+        // The same holds for progress held back for a slot another device changed: it belongs to the replaced game.
+        if (heldSlot !== undefined) pending.delete(heldSlot)
+        heldSlot = undefined
         // A fresh load is the newest there is: whatever another device wrote is what was just read.
         return SubscriptionRef.set(changedElsewhereRef, false).pipe(
           Effect.zipRight(SubscriptionRef.set(loadedRef, slot)),
@@ -251,7 +267,7 @@ export function saveService<S>(
       gateOf(slot).withPermits(1)(
         Effect.gen(function* () {
           const progress = pending.get(slot)
-          if (progress === undefined) return
+          if (progress === undefined || slot === heldSlot) return
           const state = yield* stateOf(slot)
           // Never over a save this build cannot or should not overwrite on its own; the progress stays kept.
           if (state === undefined || (state.kind !== 'ready' && state.kind !== 'empty')) return
@@ -285,6 +301,7 @@ export function saveService<S>(
           : load(loadedSlot),
       )
     const keepPlaying = (): void => {
+      heldSlot = undefined
       Effect.runSync(SubscriptionRef.set(changedElsewhereRef, false))
     }
 
@@ -304,6 +321,7 @@ export function saveService<S>(
           yield* setState(slot, slotState(def, slot, raw, contentHash))
           remember(slot, raw)
           if (slot !== loadedSlot) return
+          heldSlot = slot
           yield* SubscriptionRef.set(changedElsewhereRef, true)
           bus.publish('save.changedElsewhere', { key: def.key, slot })
         }),

@@ -61,12 +61,14 @@ describe('public entry', () => {
       'setHeights',
       'setLight',
       'setMaterials',
+      'setView',
       'moveCorner',
       'moveSector',
       'setWallKind',
       'setDoor',
       'setWindow',
       'setWallMaterial',
+      'setWallOcclude',
       'setWallFlags',
       'SectorAccessError',
       'inheritedMaterials',
@@ -79,6 +81,77 @@ describe('public entry', () => {
     ]) {
       expect(editor3d, name).toHaveProperty(name)
     }
+  })
+
+  it("exports the entity model: the definition, the reader and both formats' kits", () => {
+    for (const name of [
+      'thingDefSchema',
+      'THING_SHAPES',
+      'THING_SITS',
+      'RESERVED_FIELD_IDS',
+      'readEntityKit',
+      'afEntityKit',
+      'lastLightDefinitions',
+      'lastLightEntityKit',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it('exports the view core: the plan, the meshes, the camera and what they pick', () => {
+    for (const name of [
+      'selectionOf',
+      'PLAN_PX_PER_M',
+      'PLAN_LIMITS',
+      'planViewport',
+      'cameraOf',
+      'toScreen',
+      'toWorld',
+      'levelBounds',
+      'fitPlan',
+      'gridStep',
+      'gridLines',
+      'snapStep',
+      'snapValue',
+      'planScene',
+      'PICK_RADIUS',
+      'pickPlan',
+      'pickCorner',
+      'snapPlan',
+      'triangulate',
+      'buildSectorMesh',
+      'faceShade',
+      'EMPTY_BOUNDS',
+      'ORBIT_FOV',
+      'WALK_FOV',
+      'WALK_EYE_HEIGHT',
+      'forward',
+      'projectPoint',
+      'rayThrough',
+      'orbitCamera',
+      'orbitBy',
+      'fitOrbit',
+      'HOME_YAW',
+      'walkCamera',
+      'walkStart',
+      'facesEye',
+      'visibleSurfaces',
+      'surfaceVisibility',
+      'pickMesh',
+      'HEADINGS',
+      'headingPreview',
+      'OCCLUDES',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it('exports the plan controller', () => {
+    expect(editor3d).toHaveProperty('createPlanController')
+  })
+
+  it('exports the sector tool and the portal offers it makes', () => {
+    for (const name of ['createSectorTool', 'portalOffers']) expect(editor3d, name).toHaveProperty(name)
   })
 
   it('exports the facility editor, the World edits and the World selection ids', () => {
@@ -125,7 +198,13 @@ describe('public entry', () => {
       'PORTAL_MEMBERS',
       'upserted',
       'sameMember',
-      'selectionOf',
+      // The view core's own helpers: the vector arithmetic and the shared picking parts.
+      'cross',
+      'dot',
+      'unit',
+      'wallNear',
+      'isLayerOff',
+      'stepOf',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }

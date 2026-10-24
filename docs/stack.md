@@ -11,7 +11,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 | [PixiJS 8](#pixijs-8) | Core | `pixi.js` 8.21.0 | MIT |
 | [Koota](#koota) | Core | `koota` 0.6.6 | ISC |
 | [Effect](#effect) | Core | `effect` 3.22.2 | MIT |
-| [Zod](#zod) | Core | `zod` 4.6.5 | MIT |
+| [Zod](#zod) | Core | `zod` 4.6.6 | MIT |
 | [Svelte 5](#svelte-5) | Core | `svelte` 5.57.1 | MIT |
 | [Paraglide](#paraglide) | Core | `@inlang/paraglide-js` 2.25.4 | MIT |
 | [smol-toml](#smol-toml) | Core | `smol-toml` 1.9.0 | BSD-3-Clause |
@@ -57,7 +57,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 | Package | Version | License |
 |---|---|---|
-| `zod` | 4.6.5 | MIT |
+| `zod` | 4.6.6 | MIT |
 
 - **Tier:** Core
 - **What it does in AF:** Every schema: content files, sim command and event payloads, and saved settings.
