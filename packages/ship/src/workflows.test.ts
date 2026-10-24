@@ -19,6 +19,7 @@ interface Step {
   readonly name?: string
   readonly if?: string
   readonly env?: Record<string, string>
+  readonly 'working-directory'?: string
   readonly with?: Readonly<Record<string, string | undefined>>
 }
 interface Job {
@@ -29,6 +30,7 @@ interface Job {
   readonly outputs?: Record<string, string>
   readonly if?: string
   readonly needs?: string | string[]
+  readonly env?: Record<string, string>
   readonly uses?: string
   readonly with?: Record<string, unknown>
   readonly container?: { image: string }
@@ -919,6 +921,68 @@ describe('game-release.yml (reusable)', () => {
     expect(Object.keys(release.on.workflow_call?.secrets ?? {})).toEqual(
       expect.arrayContaining(['RUKEN_TOKEN', 'SHIP_DEV_SSH_KEY']),
     )
+  })
+})
+
+describe('game-release.yml itch job (PUB spec §5 flow 4)', () => {
+  const release = workflow('game-release.yml')
+  const itch = release.jobs.itch
+  const steps = itch?.steps ?? []
+  const scripts = steps.map((step) => step.run ?? '').join('\n')
+
+  it('runs only when the caller opts in, and never on a pull request', () => {
+    expect(itch?.if).toContain('inputs.itch')
+    expect(itch?.if).toContain("github.event_name != 'pull_request'")
+    expect(itch?.if).toContain("github.event_name != 'pull_request_target'")
+    expect(release.on.workflow_call?.inputs?.itch).toMatchObject({ type: 'boolean', default: false })
+  })
+
+  it('takes BUTLER_API_KEY as a secret the caller may omit, and the itch build command as an input', () => {
+    expect(release.on.workflow_call?.secrets?.BUTLER_API_KEY).toMatchObject({ required: false })
+    expect(release.on.workflow_call?.inputs?.['itch-build-command']).toMatchObject({
+      default: 'pnpm build:itch',
+    })
+  })
+
+  it('fails closed, naming the secret, when BUTLER_API_KEY is missing: first, and never a silent skip', () => {
+    const check = steps[0]
+    expect(check?.env?.BUTLER_API_KEY).toBe('${{ secrets.BUTLER_API_KEY }}')
+    expect(check?.run).toContain('-z "$BUTLER_API_KEY"')
+    expect(check?.run).toContain('::error::BUTLER_API_KEY')
+    expect(check?.run).toContain('exit 1')
+    expect(check?.run).not.toContain('exit 0')
+    expect(check?.run).not.toContain('::notice::')
+  })
+
+  it('builds its own itch target from the tagged commit, never the Ruken release-dist', () => {
+    expect(itch?.needs).toBeUndefined()
+    expect(JSON.stringify(steps)).not.toContain('release-dist')
+    expect(scripts).not.toContain('automata-ship prepare --tag')
+    const build = steps.find((step) => step.name === 'Build for itch.io')
+    expect(build?.run).toBe('$ITCH_BUILD_COMMAND')
+    expect(build?.['working-directory']).toBe('${{ inputs.working-directory }}')
+    expect(itch?.env?.ITCH_BUILD_COMMAND).toBe('${{ inputs.itch-build-command }}')
+  })
+
+  it('installs a pinned butler checked against its SHA-256, and fails on any other runner', () => {
+    const install = steps.find((step) => step.name?.startsWith('Install butler'))
+    expect(install?.run).toContain('BUTLER_VERSION=15.32.0')
+    expect(install?.run).toContain('https://broth.itch.zone/butler/')
+    expect(install?.run).toContain('sha256sum -c')
+    expect(install?.run).toMatch(/linux-amd64\)?[\s\S]*[0-9a-f]{64}/)
+    expect(install?.run).toMatch(/darwin-arm64\)?[\s\S]*[0-9a-f]{64}/)
+    expect(install?.run).toContain('GITHUB_PATH')
+    expect(install?.run).toMatch(/::error::[^\n]*butler[\s\S]*exit 1/)
+  })
+
+  it('publishes with ship, the key in the environment only, after the build and butler', () => {
+    const publish = steps.findIndex((step) => step.name === 'Publish to itch.io')
+    const build = steps.findIndex((step) => step.name === 'Build for itch.io')
+    const butler = steps.findIndex((step) => step.name?.startsWith('Install butler') ?? false)
+    expect(publish).toBeGreaterThan(build)
+    expect(publish).toBeGreaterThan(butler)
+    expect(steps[publish]?.run).toBe('pnpm exec automata-ship publish --target itch --tag "$TAG"')
+    expect(steps[publish]?.env?.BUTLER_API_KEY).toBe('${{ secrets.BUTLER_API_KEY }}')
   })
 })
 
