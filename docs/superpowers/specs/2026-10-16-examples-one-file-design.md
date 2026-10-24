@@ -42,7 +42,7 @@ raylib's equivalent is one file of 50–150 lines that reads top to bottom.
 - **One code file:** it ends in `export default defineGame({...})`.
   - The runner calls `startGame` on it; a reader copies it into a game and calls `startGame(example)`.
   - Sim definitions (`defineComponent`, `defineCommand`, `defineSystem`, `definePlugin`) sit in the same file, unexported. The role-suffix rule in `tooling/check-style/src/style.ts` covers exported `define*` results only, so it doesn't fire.
-- **Public imports only:** `@mcthaydt/automata` (the core umbrella, PRODUCT.2) or an extension's published entry. Never a relative import, another example, or a game.
+- **Public imports only:** `@mcthaydt/automata` (the core umbrella, PRODUCT.2), `zod` or an extension's published entry. Never a relative import, another example, a game, or a core package's own entry (`@mcthaydt/automata-game`, `-sim` and the rest are reached through the umbrella; EX.6). `zod` stays a public import because every command takes a Zod schema and a game writes the same import; the umbrella does not re-export `z`, which would tie an example's schema library to the umbrella's pinned copy. A verb the umbrella lacks makes the example `Pending:` on the task that adds it.
 - **Data lives in `examples/resources/`,** as in raylib:
   - shared art (Endesga 64 sprites with `PROVENANCE.md`);
   - TOML content (for example `resources/content/hot-reload/room.toml`);
@@ -103,6 +103,8 @@ export default defineGame({
 })
 ```
 
+**As built (2026-10-23).** The shipped [`core-input-keys`](../../../examples/core/core-input-keys.ts) is the reference, not this sketch. The sketch's verbs differ from what DX.1 to DX.2b settled: `definePlugin({ name, defs })` (the `name` is hashed, so it stays required), `defineComponent('body', { x: 'f32' })` and `defineCommand('move', zodSchema)` instead of `u` field types, `ctx.commands.of(Move)` and `body.get`/`body.set` instead of `commands(Move)` and `body.x`, and the spawn in `defineGame({ sim: { setup } })` instead of the plugin. None of them became sim API (docs/02, "DX.1 follow-up — EX example API gaps").
+
 ## 4. The sim inside one file, still deterministic
 
 An example's sim sits in a browser file, so the per-file sim boundary (`pnpm boundaries`, which bans DOM globals and allows sim-only imports) can't apply to the whole file. Two checks keep the sim rules:
@@ -154,7 +156,7 @@ Each existing demo becomes one or two files. Behavior that only its `e2e/` or un
 | `host/lifecycle-and-saves` | `core/core-host-lifecycle.ts`, `core/core-saves.ts` (`Host: grant=saves`) | `packages/host` contract tests (denied and offline saves, best-time round trip) |
 | `content/hot-reload` | `content/content-hot-reload.ts` + `resources/content/hot-reload/room.toml` | `packages/content` (schema issues carry their row; the newest save wins) |
 | `ui/primitives` (a fixture viewer, not an example) | `packages/ui` as its dev fixture page; examples `ui/ui-screen-frame.ts`, `ui/ui-action-bar.ts` | Stays with the `ui` layout contracts |
-| `physics/bodies-2d` | `physics/physics-bodies-2d.ts` in `automata-plus` (PRODUCT.5), keeping its golden hash | `packages/physics` (room colliders, collision events) |
+| `physics/bodies-2d` | `physics/physics-bodies-2d.ts` in `automata-plus` (PRODUCT.5), with its own small room and a new golden hash. **Amended 2026-10-23** ([PRODUCT.5 plan](../plans/2026-10-23-product5-plus-repo-and-physics-move.md) P5-D3; hub decision `automata/inbox/2026-10-23-1915-hub-product5-defaults-stand.md`): the old hash `ad621eea6325a8db` hashes Emberwick's sim, which stays in AF, so it cannot survive the move; the old hash is recorded as retired in the move note, and the package's own cross-engine goldens move unchanged | `packages/physics` (room colliders, collision events) |
 | `base-2d` (Emberwick) | `games/emberwick` (EX-D1). Package name `@af-examples/base-2d` is kept; paths are updated where they appear (appendix B). | Unchanged; its journeys and golden must stay green |
 | `placeholder` | `games/placeholder` (the ship lane's page, not an example) | Unchanged |
 | New, written first (EX-D2) | `core/core-basic-window.ts` (DX.2's hello; replaces `examples/game/hello`), `core/core-input-keys.ts`, `shapes/shapes-rects.ts`, `textures/textures-sprite.ts` | — |

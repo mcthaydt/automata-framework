@@ -58,21 +58,23 @@ const EXAMPLE_PATH = /^([a-z0-9]+)\/\1-([a-z0-9]+(?:-[a-z0-9]+)*)\.ts$/
 // Folders under the examples folder that never hold examples.
 const SKIPPED_DIRS: ReadonlySet<string> = new Set(['node_modules', 'dist', 'e2e', 'resources', '__goldens__'])
 const ROOT_FILES: ReadonlySet<string> = new Set(['vite.config.ts'])
-// The core umbrella (PRODUCT.2); until it exists, the catalog also accepts the core packages' own entries.
+// The core umbrella (PRODUCT.2): every core verb an example uses comes through it (EX spec §2, EX.6).
 const UMBRELLA = '@mcthaydt/automata'
-// Zod is AF's only schema language: every command takes a Zod schema, and no core package re-exports `z`.
+// Zod is AF's only schema language: every command takes a Zod schema, and no core package re-exports `z`. It stays
+// a public import: re-exporting `z` would tie an example's schema library to the umbrella's pinned copy.
 const SCHEMA_LANGUAGE = 'zod'
 /**
- * The one private package an example may import (DX.2 plan G-1): the game package is every example's entry
- * point, and stays private until runtime and render-pixi, which it depends on, are published.
+ * The packages that are extensions rather than core (master spec §5): an example shows one by importing its
+ * published entry. Every other `@mcthaydt/automata-*` package is core or tooling, and is reached through the
+ * umbrella. A new extension package fails the catalog until it is listed here, which is when to decide its tier.
  */
-const PRIVATE_ENTRY_POINT = '@mcthaydt/automata-game'
+const EXTENSION_PACKAGES: ReadonlySet<string> = new Set(['@mcthaydt/automata-physics'])
 const AUTOMATA_PACKAGE = /^(@mcthaydt\/automata-[a-z0-9-]+)(?:\/|$)/
 
 interface PublicEntries {
-  /** Every specifier an example may import. */
+  /** Every specifier an example may import: the umbrella, Zod and the published extensions' entries. */
   readonly entries: ReadonlySet<string>
-  /** The names of the `@mcthaydt/automata*` packages in the workspace. */
+  /** The names of the `@mcthaydt/automata-*` packages in the workspace, private ones too. */
   readonly packages: ReadonlySet<string>
 }
 
@@ -90,7 +92,7 @@ function exampleFiles(root: string, dir = root): string[] {
   return files
 }
 
-/** Every specifier a published `@mcthaydt/automata*` package (or the game package) declares in `exports`, plus Zod. */
+/** The umbrella, Zod and every specifier a published extension package declares in `exports`. */
 function publicEntries(packagesDir: string): PublicEntries {
   const entries = new Set([UMBRELLA, SCHEMA_LANGUAGE])
   const packages = new Set<string>()
@@ -102,9 +104,9 @@ function publicEntries(packagesDir: string): PublicEntries {
       private?: boolean
       exports?: Record<string, unknown>
     }
-    const published = manifest.private !== true || manifest.name === PRIVATE_ENTRY_POINT
-    if (!published || !manifest.name.startsWith(UMBRELLA)) continue
+    if (!manifest.name.startsWith(`${UMBRELLA}-`)) continue
     packages.add(manifest.name)
+    if (manifest.private === true || !EXTENSION_PACKAGES.has(manifest.name)) continue
     for (const key of Object.keys(manifest.exports ?? {}))
       entries.add(key === '.' ? manifest.name : `${manifest.name}/${key.slice(2)}`)
   }
@@ -157,9 +159,9 @@ function importsOf(file: string, source: string): string[] {
 }
 
 /**
- * Why an import is not allowed, if it is not. A pending example may import an `@mcthaydt/automata-*` package the
- * workspace does not have yet: its pending task adds it (DX.2 adds `@mcthaydt/automata-game`). Once the example is
- * no longer pending, the package must exist and declare the entry.
+ * Why an import is not allowed, if it is not. A core package is reached through the umbrella, whatever the path
+ * into it. A pending example may import an `@mcthaydt/automata-*` package the workspace does not have yet: its
+ * pending task adds it. Once the example is no longer pending, the package must exist and declare the entry.
  */
 function importProblem(
   specifier: string,
@@ -169,6 +171,12 @@ function importProblem(
   if (specifier.startsWith('.') || specifier.startsWith('/')) return `import "${specifier}" is relative`
   if (publicImports.entries.has(specifier)) return undefined
   const packageName = AUTOMATA_PACKAGE.exec(specifier)?.[1]
+  if (
+    packageName !== undefined &&
+    publicImports.packages.has(packageName) &&
+    !EXTENSION_PACKAGES.has(packageName)
+  )
+    return `import "${specifier}" is a core package; core is imported through "${UMBRELLA}"`
   if (pending && packageName !== undefined && !publicImports.packages.has(packageName)) return undefined
   return `import "${specifier}" is not a public entry`
 }

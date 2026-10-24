@@ -12,6 +12,8 @@ FloorFifty's `vendor/ruken/` pattern (decision D-6, master spec §12).
 | `ruken-manifest-0.0.0.tgz` | `@ruken/manifest` | `packages/ship` (checks the generated `ruken.toml`, compiles CSP headers) |
 | `ruken-cli-0.0.0.tgz` | `@ruken/cli` (the `ruken` bin) | `packages/ship` (`ship publish` spawns `ruken publish`). Built with Ruken's own `tsdown` config, which bundles `@ruken/validation`, `@ruken/api-contract` and `@ruken/manifest` into `dist/`; runtime dependencies are `smol-toml` 1.9.0, `yauzl` 3.4.0, `yazl` 3.3.1 and `zod` 4.6.5, pinned as in Ruken. Checked: with only those four installed, `node dist/cli.js` prints the usage. |
 
+AF installs `zod` 4.6.6 for these tarballs too: `pnpm-workspace.yaml`'s `overrides` replaces the exact 4.6.5 the `@ruken/cli` and `@ruken/sdk-host` tarballs declare (GHSA-mrhx-c7xc-m3w5). Repack from a Ruken that pins 4.6.6, then drop the override.
+
 **Source:** RukenApp `main` at `b30d31b`, packed 2026-10-11. Each package was
 built with its own `pnpm run build` (Ruken's `turbo run build` stops on
 `@ruken/db#db:generate` without a database, and these packages do not need it).
