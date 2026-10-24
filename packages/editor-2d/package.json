@@ -18,11 +18,12 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
+    "@decimalturn/toml-patch": "3.3.1",
     "@mcthaydt/automata-editor-kit": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
     "smol-toml": "1.9.0",
     "svelte": "5.57.1",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",

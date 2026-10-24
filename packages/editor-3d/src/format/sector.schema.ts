@@ -85,6 +85,14 @@ export const doorSchema: z.ZodType<DoorDef> = z.looseObject({
 export const TRIM_PIECES = ['skirting', 'wainscot', 'rail', 'capital'] as const
 
 /** One wall: what it is made of, what is set into it, and how it joins the next sector. Every member is optional. */
+/**
+ * How the angled game camera treats a wall (ED3D.4b, the 3D direction spec §4.2): `cut` is cut away when the camera is on
+ * its outer side, `fade` is drawn at a quarter of its opacity there, `never` always stays. Not in Last Light: an `af-sector/1`
+ * member, so a Last Light file never holds one.
+ */
+export const OCCLUDES = ['cut', 'fade', 'never'] as const
+export type Occlude = (typeof OCCLUDES)[number]
+
 export interface WallDef {
   /** Portal: the sector on the other side. */
   readonly next?: string | undefined
@@ -120,6 +128,8 @@ export interface WallDef {
   readonly cut?: string | undefined
   /** Masonry thickness behind the face, for the wall top and colliders. */
   readonly thick?: number | undefined
+  /** `af-sector/1` only; absent is `cut`. */
+  readonly occlude?: Occlude | undefined
 }
 
 const trimPieceRecord = <T extends z.ZodType>(value: T) => z.partialRecord(z.enum(TRIM_PIECES), value)

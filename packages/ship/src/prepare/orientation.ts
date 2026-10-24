@@ -4,11 +4,11 @@
 // read, not run, so a failure names the call site; only string literals are checked.
 
 import { readFileSync } from 'node:fs'
-import { basename, relative, sep } from 'node:path'
+import { relative, sep } from 'node:path'
 import { parseSync } from 'oxc-parser'
 import {
-  isGameSource,
   isNode,
+  isShippedSource,
   keyOf,
   type Node,
   nameOf,
@@ -32,11 +32,8 @@ export interface OrientationMismatchFound extends PlayedOrientation {
   readonly file: string
 }
 
-const TESTS = /\.(?:test|spec)\./
-
 /** Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped. */
-export const isOrientationSource = (file: string): boolean =>
-  isGameSource(file) && !TESTS.test(basename(file))
+export const isOrientationSource: (file: string) => boolean = isShippedSource
 
 const propertiesOf = (object: Node): Node[] =>
   (object.properties as unknown[]).filter(

@@ -62,6 +62,7 @@ const ROOT_EXPORTS: string[] = [
   'createT',
   'defineSave',
   'displaySettingsSchema',
+  'formatDateTime',
   'formatDuration',
   'formatNumber',
   'formatPercent',

@@ -1564,6 +1564,12 @@ function createSelection<Id extends SelectionId>(): Selection<Id>;
 function createToasts(options?: ToastOptions): ToastStore;
 ```
 
+### `createViewport` (function)
+
+```ts
+function createViewport(init: ViewportInit): Viewport2D;
+```
+
 ### `defineCommand` (function)
 
 ```ts
@@ -1821,6 +1827,21 @@ function pickFolder(vault: HandleVault, env?: FolderEnv): Promise<FolderStore | 
 type Platform = 'apple' | 'other';
 ```
 
+### `Point` (interface)
+
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
+}
+```
+
+### `PointerKind` (type)
+
+```ts
+type PointerKind = 'touch' | 'pen' | 'mouse';
+```
+
 ### `Problem` (interface)
 
 ```ts
@@ -1854,6 +1875,17 @@ interface Recovery {
     readonly payload: string;
     readonly savedAt: number;
     readonly baseChanged: boolean;
+}
+```
+
+### `Rect` (interface)
+
+```ts
+interface Rect {
+    readonly x: number;
+    readonly y: number;
+    readonly w: number;
+    readonly h: number;
 }
 ```
 
@@ -1917,6 +1949,15 @@ interface Shortcut {
     readonly meta: boolean;
     readonly shift: boolean;
     readonly alt: boolean;
+}
+```
+
+### `Size` (interface)
+
+```ts
+interface Size {
+    readonly w: number;
+    readonly h: number;
 }
 ```
 
@@ -2027,6 +2068,46 @@ interface Transaction<S> {
     update(fn: (state: S) => S): void;
     commit(): void;
     cancel(): void;
+}
+```
+
+### `Viewport2D` (interface)
+
+```ts
+interface Viewport2D {
+    readonly size: Size;
+    readonly pan: Point;
+    readonly zoom: number;
+    readonly limits: ViewportLimits;
+    screenToWorld(point: Point): Point;
+    worldToScreen(point: Point): Point;
+    panBy(dx: number, dy: number): Viewport2D;
+    zoomAt(point: Point, factor: number): Viewport2D;
+    snapZoom(point: Point): Viewport2D;
+    fit(rect: Rect, padding?: number): Viewport2D;
+    resize(size: Size): Viewport2D;
+}
+```
+
+### `ViewportInit` (interface)
+
+```ts
+interface ViewportInit {
+    readonly size: Size;
+    readonly pan?: Point;
+    readonly zoom?: number;
+    readonly limits?: Partial<ViewportLimits>;
+}
+```
+
+### `ViewportLimits` (interface)
+
+```ts
+interface ViewportLimits {
+    readonly minZoom: number;
+    readonly maxZoom: number;
+    readonly bounds?: Rect | undefined;
+    readonly keep: number;
 }
 ```
 

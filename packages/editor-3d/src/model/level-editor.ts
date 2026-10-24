@@ -1,7 +1,7 @@
 // The level editor (ED3D spec §4.2): the kit's `History` over the level, a `Selection` of selection ids, and the view
 // store, behind one object; and the one way a change gets in. `run` applies an edit as a step; `begin` opens a session
 // for a drag or a draw, whose runs show live and commit as one step. After any change of the level the selection drops
-// the sectors and walls that are gone.
+// the sectors, walls and things that are gone.
 import {
   createHistory,
   createSelection,
@@ -45,6 +45,15 @@ export interface LevelEditorOptions<D> {
   readonly now?: (() => number) | undefined
 }
 
+/** `compute`, run the first time it is asked for and not again. */
+function once<T>(compute: () => T): () => T {
+  let held: { readonly value: T } | undefined
+  return () => {
+    held ??= { value: compute() }
+    return held.value
+  }
+}
+
 export function createLevelEditor<D>(options: LevelEditorOptions<D>): LevelEditor<D> {
   const { profile } = options
   const history = createHistory<LevelState<D>>(
@@ -54,15 +63,35 @@ export function createLevelEditor<D>(options: LevelEditorOptions<D>): LevelEdito
   const selection = createSelection<string>()
   const view = createViewStore()
 
-  /** Drops the sector and wall ids the live level no longer has. Entities and unknown kinds are not its to judge. */
+  /**
+   * Drops the sector, wall and thing ids the live level no longer has. A thing the reader could not read is still there
+   * (Locate may have selected it); a thing of a kind the level has no definition for (Last Light's zone) and an id of a
+   * kind it does not know are not its to judge.
+   */
   const reconcile = (): void => {
+    const level = history.state.level
     const sectors = new Map<string, EditSector>(
-      profile.sectors.list(history.state.level).map((sector) => [sector.id, sector]),
+      profile.sectors.list(level).map((sector) => [sector.id, sector]),
     )
+    const things = once(() => {
+      const kit = profile.entities(level)
+      return {
+        definitions: new Set(kit.definitions.map((definition) => definition.id)),
+        held: new Set(
+          [...kit.things, ...kit.problems.flatMap((problem) => problem.entity ?? [])].map(
+            (thing) => `${thing.def}/${thing.id}`,
+          ),
+        ),
+      }
+    })
     const gone = (id: string): boolean => {
       const ref = parseSelection(id)
       if (ref?.kind === 'sector') return !sectors.has(ref.sector)
       if (ref?.kind === 'wall') return (sectors.get(ref.sector)?.corners.length ?? 0) <= ref.corner
+      if (ref?.kind === 'entity') {
+        const { definitions, held } = things()
+        return definitions.has(ref.definition) && !held.has(`${ref.definition}/${ref.id}`)
+      }
       return false
     }
     selection.set(selection.ids.filter((id) => !gone(id)))
