@@ -12,6 +12,8 @@ export {
   type SectorToolView,
 } from './app/sector-tool-controller'
 export * from './checks/check'
+export * from './checks/entities'
+export * from './checks/entity-refs'
 export * from './checks/generic-checks'
 export * from './checks/last-light/last-light-checks'
 export * from './checks/wall-locator'

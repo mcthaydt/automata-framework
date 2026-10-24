@@ -98,6 +98,12 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the entity checks: the values, places and single definitions, and the refs', () => {
+    for (const name of ['entityProblems', 'entityRefProblems']) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('exports the view core: the plan, the meshes, the camera and what they pick', () => {
     for (const name of [
       'selectionOf',
