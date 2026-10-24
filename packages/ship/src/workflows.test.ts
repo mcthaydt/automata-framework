@@ -19,6 +19,7 @@ interface Step {
   readonly name?: string
   readonly if?: string
   readonly env?: Record<string, string>
+  readonly 'working-directory'?: string
   readonly with?: Readonly<Record<string, string | undefined>>
 }
 interface Job {
@@ -29,6 +30,7 @@ interface Job {
   readonly outputs?: Record<string, string>
   readonly if?: string
   readonly needs?: string | string[]
+  readonly env?: Record<string, string>
   readonly uses?: string
   readonly with?: Record<string, unknown>
   readonly container?: { image: string }
