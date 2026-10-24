@@ -73,6 +73,13 @@ export function wallSelection(sectorId: string, corner: number): string {
   return `wall:${part('sector id', sectorId)}/${corner}`
 }
 
+/** The kinds of member a World selection names (ED3D.9a): the facility's wings, joins, locks and phases. */
+export type FacilitySelectionKind = 'wing' | 'join' | 'lock' | 'phase'
+
+/** `wing:bay`, `join:exit`, `lock:p0.cabinet`, `phase:P2`: the same `kind:name` form as the level's ids. */
+export const facilitySelection = (kind: FacilitySelectionKind, id: string): string =>
+  `${kind}:${part(`${kind} id`, id)}`
+
 export const entitySelection = (definition: string, id: string): string =>
   `entity:${part('entity definition', definition)}/${part('entity id', id)}`
 

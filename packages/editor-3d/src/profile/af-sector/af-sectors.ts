@@ -54,6 +54,8 @@ export const afSectorAccess: SectorAccess<AfSector> = {
     corners: draft.corners.map(([x, z]): EditCorner => [x, z]),
   }),
   portalOf: (_level, wall) => nextOf(wall),
+  // A wall of an `af-sector` level is named by no one: its entities stand in a sector by position, not by wall number.
+  pinned: () => [],
   references(level, id) {
     const found = portalReferences(level.sectors, id, 'sector', nextOf)
     const sector = level.sectors.find((each) => each.id === id)

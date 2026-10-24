@@ -155,12 +155,38 @@ describe('public entry', () => {
       'visibleSurfaces',
       'surfaceVisibility',
       'pickMesh',
-      'HEADINGS',
-      'headingPreview',
       'OCCLUDES',
     ]) {
       expect(editor3d, name).toHaveProperty(name)
     }
+  })
+
+  it('exports the free heading, in the game’s turn units, and not the eight-heading preview it replaces', () => {
+    for (const name of [
+      'TURN_UNITS',
+      'DEGREES_PER_PIXEL',
+      'wrapHeading',
+      'turnHeading',
+      'dragTurn',
+      'headingToYaw',
+      'yawToHeading',
+      'headingToDeg',
+      'degToHeading',
+      'wallsSeenFrom',
+      'headingView',
+      'headingSweep',
+    ])
+      expect(editor3d, name).toHaveProperty(name)
+    for (const name of ['HEADINGS', 'headingPreview']) expect(editor3d, name).not.toHaveProperty(name)
+  })
+
+  it('exports the follow camera of a room: the view, its defaults and ranges, and the camera the game puts on a player', () => {
+    for (const name of ['CAMERA_DEFAULTS', 'CAMERA_RANGES', 'cameraViewSpec', 'followCamera', 'roomView'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The shapes are types, so this is checked by the compiler: the entry names them.
+    const spec: editor3d.CameraViewSpec = editor3d.cameraViewSpec({ id: 'hall' })
+    const view: Pick<editor3d.RoomView, 'rotate'> = { rotate: spec.rotate }
+    expect(view.rotate).toBe(true)
   })
 
   it('exports the plan controller', () => {
@@ -174,9 +200,42 @@ describe('public entry', () => {
     expect(shapes).toHaveLength(2)
   })
 
+  it('exports the facility editor, the World edits, the facility checks and the World selection ids', () => {
+    for (const name of [
+      'facilityChecks',
+      'createFacilityEditor',
+      'moveWing',
+      'setJoin',
+      'removeJoin',
+      'setLock',
+      'facilitySelection',
+      'parseFacilitySelection',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('exports the wall tools and what one wall can be offered, and keeps the geometry cache inside', () => {
     for (const name of ['createWallTool', 'wallPortal']) expect(editor3d, name).toHaveProperty(name)
     expect(editor3d).not.toHaveProperty('createGeometryCache')
+  })
+
+  it('exports the vertex edits and the Vertex tool', () => {
+    for (const name of ['insertCorner', 'removeCorner', 'createVertexTool'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The targets are a type, so this is checked by the compiler: the entry names them.
+    const effects: editor3d.VertexEffect[] = [{ action: 'add' }, { action: 'none', reason: 'no' }]
+    expect(effects).toHaveLength(2)
+  })
+
+  it('exports the Split and Merge edits, and keeps the helpers they share inside', () => {
+    for (const name of ['splitSector', 'mergeSectors']) expect(editor3d, name).toHaveProperty(name)
+    for (const name of ['retargetPortals', 'redirectPortals', 'cornerInserted', 'reversedLoop'])
+      expect(editor3d, name).not.toHaveProperty(name)
+    // The arguments are types, so this is checked by the compiler: the entry names them.
+    const split: editor3d.SplitSectorArgs = { sector: 'a', id: 'b', from: { x: 0, z: 0 }, to: { x: 1, z: 1 } }
+    const merge: editor3d.MergeSectorsArgs = { keep: 'a', merge: 'b' }
+    expect([split.id, merge.keep]).toEqual(['b', 'a'])
   })
 
   it('exports the checks panel and the Ask', () => {
@@ -213,6 +272,13 @@ describe('public entry', () => {
       'buildRefusal',
       'wallOver',
       'PORTAL_MEMBERS',
+      'upserted',
+      'joinSideProblem',
+      'lockProblem',
+      'sameJoinSide',
+      'shippedFacility',
+      'shippedFacilityText',
+      'sameMember',
       'fakeAskProvider',
       'deferred',
       'problemCount',

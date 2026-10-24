@@ -29,6 +29,13 @@ export {
   type SectorToolView,
 } from './app/sector-tool-controller'
 export {
+  createVertexTool,
+  type VertexEffect,
+  type VertexTarget,
+  type VertexTool,
+  type VertexToolView,
+} from './app/vertex-tool-controller'
+export {
   createWallTool,
   type WallEffect,
   type WallPlace,
@@ -41,6 +48,7 @@ export {
 export * from './checks/check'
 export * from './checks/entities'
 export * from './checks/entity-refs'
+export { type FacilityResults, facilityChecks } from './checks/facility/facility-checks'
 export * from './checks/generic-checks'
 export { DEFAULT_TONE, type LampKind, lampProblems } from './checks/last-light/lamps'
 export * from './checks/last-light/last-light-checks'
@@ -67,12 +75,23 @@ export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edit
 export { type Edit, type EditResult, ok, refuse } from './model/edit'
 export { type EditCommandOptions, registerEditCommands } from './model/edit-commands'
 export {
+  createFacilityEditor,
+  type FacilityEdit,
+  type FacilityEditor,
+  type FacilityEditorOptions,
+  type FacilitySession,
+  type FacilityState,
+} from './model/facility-editor'
+export { type MoveWingArgs, moveWing, removeJoin, setJoin, setLock } from './model/facility-edits'
+export { type FacilitySelectionRef, parseFacilitySelection } from './model/facility-selection'
+export {
   createLevelEditor,
   type EditSession,
   type LevelEditor,
   type LevelEditorOptions,
 } from './model/level-editor'
 export type { LevelState } from './model/level-state'
+export { type MergeSectorsArgs, mergeSectors } from './model/merge-edits'
 export { type PortalOffer, portalOffers, type WallPortal, wallPortal } from './model/portal-offers'
 export {
   type AddSectorArgs,
@@ -89,6 +108,7 @@ export {
   setView,
 } from './model/sector-edits'
 export { parseSelection, type SelectionRef } from './model/selection-ref'
+export { type SplitSectorArgs, splitSector } from './model/split-edits'
 export {
   type AddThingArgs,
   addThing,
@@ -98,6 +118,12 @@ export {
   type SetThingFieldArgs,
   setThingField,
 } from './model/thing-edits'
+export {
+  type InsertCornerArgs,
+  insertCorner,
+  type RemoveCornerArgs,
+  removeCorner,
+} from './model/vertex-edits'
 export {
   createViewStore,
   initialView,
@@ -169,11 +195,32 @@ export {
   walkStart,
 } from './view/mesh/camera-3d'
 export {
-  HEADINGS,
+  CAMERA_DEFAULTS,
+  CAMERA_RANGES,
+  type CameraViewSpec,
+  cameraViewSpec,
+  followCamera,
+  type RoomView,
+  roomView,
+} from './view/mesh/follow-camera'
+export {
+  DEGREES_PER_PIXEL,
+  degToHeading,
+  dragTurn,
   type HeadingOptions,
   type HeadingView,
-  headingPreview,
-} from './view/mesh/heading-preview'
+  headingSweep,
+  headingToDeg,
+  headingToYaw,
+  headingView,
+  type SweepOptions,
+  TURN_UNITS,
+  turnHeading,
+  type WallsSeen,
+  wallsSeenFrom,
+  wrapHeading,
+  yawToHeading,
+} from './view/mesh/heading'
 export {
   facesEye,
   type MeshHit,

@@ -151,7 +151,7 @@ Each existing demo becomes one or two files. Behavior that only its `e2e/` or un
 
 | Today | Becomes | Behavior tests move to |
 |---|---|---|
-| `runtime/boot-and-flow` | `core/core-screens-and-flow.ts` | Boot failure modes and the veil go to `packages/runtime` browser tests. The Effect-share budget (`budget/effect-share.ts`) goes to the placeholder's S8 budgets. |
+| `runtime/boot-and-flow` | ~~`core/core-screens-and-flow.ts`~~ none (as built, 2026-10-23: [plan](../plans/2026-10-23-ex4-boot-and-flow.md)) | Boot failure modes and the veil go to `packages/runtime` tests (`run-game.test.ts`, `flow/`; the 30 s stall and the host that never says ready run on fake timers). The Effect-share budget is the placeholder's S8 `effectShareBytes`. No example: custom screens need `ScreenDef`, which the umbrella does not export, and the default flow is what every example shows. |
 | `render-pixi/renderer-2d` | `render/render-interpolation.ts`, `render/render-filter.ts` | `packages/render-pixi` (its parity suite already exists) |
 | `host/lifecycle-and-saves` | `core/core-host-lifecycle.ts`, `core/core-saves.ts` (`Host: grant=saves`) | `packages/host` contract tests (denied and offline saves, best-time round trip) |
 | `content/hot-reload` | `content/content-hot-reload.ts` + `resources/content/hot-reload/room.toml` | `packages/content` (schema issues carry their row; the newest save wins) |
