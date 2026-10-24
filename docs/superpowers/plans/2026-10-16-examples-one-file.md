@@ -177,16 +177,16 @@
 Do the same three steps for each row of spec §6, one PR per demo, owned by its lane.
 
 - [ ] **runtime/boot-and-flow**
-- [ ] **render-pixi/renderer-2d**
-- [ ] **host/lifecycle-and-saves**
+- [x] **render-pixi/renderer-2d** (`render/render-interpolation.ts`, [plan](2026-10-23-ex4-renderer-2d.md)); `render/render-filter.ts` ([plan](2026-10-23-ex4-render-filter.md)), on the `postFilter` verb ([plan](2026-10-23-post-filter-verb.md))
+- [x] **host/lifecycle-and-saves** (`core/core-host-lifecycle.ts` and `examples/e2e/core-host-lifecycle.e2e.ts`, [plan](2026-10-23-ex4-host-lifecycle.md)); `core/core-saves.ts` stays with M5.2
 - [ ] **content/hot-reload**
 - [ ] **ui/primitives**
-- [ ] **physics/bodies-2d** (into `automata-plus` with PRODUCT.5)
+- [ ] **physics/bodies-2d** (into `automata-plus` with PRODUCT.5; **amended 2026-10-23**: the demo is retired from AF in PRODUCT.5g and ported in Plus as row EX.4p with a new hash, [P5-D3](2026-10-23-product5-plus-repo-and-physics-move.md))
 
 Per demo:
 
 1. **Move the behavior tests.** Write the listed behavior tests in the owning package. They must pass there; where a test passes on its first run, note it as a regression pin.
-2. **Add the one-file example.** Write it within the 100-line budget. Smoke must be green; if the old demo had a golden, the hash must be identical (`ad621eea6325a8db` for bodies, from `examples/physics/bodies-2d/golden.ts`).
+2. **Add the one-file example.** Write it within the 100-line budget. Smoke must be green; if the old demo had a golden, the hash must be identical (`ad621eea6325a8db` for bodies, from `examples/physics/bodies-2d/golden.ts`), except `physics/bodies-2d`, whose hash is Emberwick's sim plus the bodies and cannot leave AF (P5-D3, hub decision `automata/inbox/2026-10-23-1915-hub-product5-defaults-stand.md`).
 3. **Delete the old demo.** `git rm` the folder, then run `pnpm check`, `pnpm test:parity` and `pnpm test:e2e`.
 
 ## Task EX.5: index page

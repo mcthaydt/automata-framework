@@ -1,6 +1,6 @@
 # ED2D: the 2D editor (one LDtk-style editor for platformers, top-down RPGs and more; FloorFifty stages are a profile)
 
-> **Status:** drafted 2026-10-23 (lane **editor-2d**, thread "2D level editor"), **redone the same day as genre-general** after the Owner's decision (below). Review pending. Not reviewed, not implemented; Owner visual acceptance of the 2D mockups is **not** given. Task rows: [ED2D.0 to ED2D.10 and EDFF.1 to EDFF.5](../../02-master-delivery-plan.md#ed-editors-owner-amendment-2026-10-23). Shared pieces are in the [editor kit spec](./2026-10-23-editor-kit-design.md); the sibling editor is the 3D one (PR #94).
+> **Status:** drafted 2026-10-23 (lane **editor-2d**, thread "2D level editor"), **redone the same day as genre-general** after the Owner's decision (below). Review pending. Not reviewed, not implemented; Owner visual acceptance of the 2D mockups was given on 2026-10-23 20:55 UTC ("Mock-up approved", relayed by the hub, bus inbox 2057; [02](../../02-master-delivery-plan.md) evidence log). Task rows: [ED2D.0 to ED2D.10 and EDFF.1 to EDFF.5](../../02-master-delivery-plan.md#ed-editors-owner-amendment-2026-10-23). Shared pieces are in the [editor kit spec](./2026-10-23-editor-kit-design.md); the sibling editor is the 3D one (PR #94).
 >
 > **Why (Owner via the Orchestrator).** First ask, 2026-10-23: "Add one 2D editor, LDtk-like, … tablet-first, web-based … Figma mockups first." **Decision, 2026-10-23 02:31 UTC:** "2D is too Floor Fifty specific; we should be able to do 2D platformer and 2D RPG from same editor." So the editor is one genre-general tool on LDtk's model, the same editor builds a platformer level and a top-down RPG map, and a FloorFifty stage is a **profile** of it. "Build a FloorFifty stage" stays a required acceptance case (FF-o), no longer the only one. Mockups: Figma file [Automata Editors](https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d), pages `2D · Home`, `2D · Level`, `2D · States`, `2D · Profile FloorFifty`, `Kit`.
 
@@ -205,9 +205,9 @@ interface Rule {
 type PatternCell = 'any' | 'empty' | 'filled' | { is: number } | { not: number }
 ```
 
-Evaluation for one cell: groups in order, rules in order, skipping inactive ones; a rule matches when every pattern cell holds against the source IntGrid (trying no-flip, then flipX, flipY, both when enabled); then a hash decides `chance` and the variant. A match **adds** its tile to the cell's stack (a cell can hold several tiles drawn in rule order, so edges and corners can overlay a fill) and `breakOnMatch` ends the cell. The result is `Map<cell, readonly {tile, flipX, flipY}[]>`, derived, never stored; `overrides` hold manual tiles painted over the result.
+Evaluation for one cell: groups in order, rules in order, skipping inactive ones; a rule matches when every pattern cell holds against the source IntGrid (trying no-flip, then flipX, flipY, both when enabled); then a hash decides `chance` and the variant (a rule whose `chance` roll fails did not match: it adds nothing and does not break). A match **adds** its tile to the cell's stack (a cell can hold several tiles drawn in rule order, so edges and corners can overlay a fill) and `breakOnMatch` ends the cell. The result is `Map<cell, readonly {tile, flipX, flipY}[]>`, derived, never stored; `overrides` hold manual tiles painted over the result.
 
-The hash is a 32-bit integer mix (`Math.imul` and shifts, no floats) of `(layer seed, rule id, x, y, salt)`, so a project exports identical tiles on every engine; the **seed** is stored per auto-layer instance and "Re-roll variation" is one undo step that changes it. Painting one source cell recomputes only the window of `floor(maxRuleSize / 2)` cells around it; a property test checks that the incremental result equals a full recompute. Diagnostics the engine feeds Checks: a rule with a tile outside its tileset, a rule that can never match (a pattern cell demanding both `is 1` and `not 1` through flips), a rule shadowed by an earlier `breakOnMatch` rule with a pattern at least as general (info).
+The hash is murmur3_32 (`Math.imul`, shifts and xor, no floats) of the four words `(rule key, x, y, salt)` under the layer seed, where the rule key is FNV-1a of the rule id and the salt tells the chance roll, the variant pick and the dice apart, so a project exports identical tiles on every engine; `chance` applies when the roll is below `floor(chance * 2^32)` (one correctly rounded multiply); the **seed** is stored per auto-layer instance and "Re-roll variation" is one undo step that changes it. Rules are compiled once into the cells each really reads (an 'any' cell costs nothing; a rule that can never draw is left out), and their **reach** is the farthest of those cells. Painting one source cell recomputes only the cells within that reach of it; a seeded property test (random rules, flips, `outside`, chance, groups and edits) checks that the incremental result equals a full recompute. A cell outside the level has no tiles. Diagnostics the engine feeds Checks (`ruleIssues`; rules that are off are skipped): `tileOutOfRange` (error: a tile beyond its tileset), `valueUnknown` (warning: a pattern or `outside` value the source layer does not define), `neverFires` (warning: chance 0 or no tile) and `shadowed` (info: an earlier active, flip-free `breakOnMatch` rule with chance 1 and the same `outside` reads only cells this rule also reads, each with a condition at least as narrow, so it always ends the cell first). Flip variants are alternatives, so a pattern cannot contradict itself through them.
 
 ### 5.7 Worlds
 
@@ -229,6 +229,8 @@ Every edit is a named function in `model/commands/` taking the project and retur
 | Picker | tile | value | n/a | selects the definition | tile |
 | Stamp (multi-tile from the palette or a copied region) | tiles | values | overrides | n/a | n/a |
 | Random (dice: a tile from the palette selection per cell, by hash) | tiles | n/a | overrides | n/a | n/a |
+
+The operations behind the tools are pure functions over a `Grid` in `tiles/` (ED2D.2); each takes the cell **word** (a packed tile cell, an IntGrid value or an override tile), so one set serves every layer kind, and erasing is painting the word 0. The brush is a square of 1 to 8 cells whose top-left is `floor((size - 1) / 2)` up and left of the cursor, and a stroke is the Bresenham line between pointer events with the footprint at every cell. Rectangle corners are inclusive and may come in either order. Fill is 4-connected, replaces cells equal to the start cell's word (a flipped tile is a different word), stays inside the level and works a run at a time. A stamp is a row-major rectangle of words: pasting skips its empty cells unless asked to clear, and flipping mirrors the layout and, for tiles, each tile's flip bit. The dice pick `candidates[hash(seed, x, y) % n]` per cell, so a replayed stroke repaints the same tiles.
 
 Finger: select, drag, pan, pinch. Pencil: draws and drags precisely, hover shows the brush footprint; with the Pencil active a finger pans (kit §4.5). Mouse: wheel zoom, middle pan.
 
@@ -261,7 +263,14 @@ Details fixed while building ED2D.1:
 
 ### 6.2 AF content export (TOML)
 
-Generated, write-only, deterministic: `project.toml` (definitions the game needs: layer grid sizes, IntGrid value ids, entity definition ids and field types, tileset ids and tile sizes), `levels/<id>.toml` (size, level fields, per layer the row strings, and each entity as a `[[layers.entities]]` table with its typed fields), `world.toml` (layout, placements and, for `grid` worlds, neighbours). Auto-layer output is exported as resolved tile stacks so a game needs no rule engine. A header comment says the file is generated. The export has its own schema (`content.schema.ts`) and the test decodes the row strings back to grids and compares them with the editor's. Whether and when AF consumes it is §17.
+Generated, write-only, deterministic: `project.toml` (definitions the game needs: layer grid sizes, IntGrid value ids, entity definition ids and field types, tileset ids and tile sizes), `levels/<id>.toml` (size, level fields, per layer the row strings, and each entity as a `[[layers.items]]` table with its typed fields), `world.toml` (layout, placements and, for `grid` worlds, neighbours). Auto-layer output is exported as resolved tile stacks so a game needs no rule engine. The export has its own schema (`content.schema.ts`) and the test decodes the row strings back to grids and compares them with the editor's. Whether and when AF consumes it is §17.
+
+Details fixed while building ED2D.3:
+
+- **Header and version.** Each file starts with `# Generated by the Automata 2D editor from "<name>". Do not edit; export again.` (the name JSON-quoted, so a quote or a line break cannot end the comment early), then `format = "af2d-content"` and `version = 1`. The editor's `exportContent(project)` returns the files in a fixed order: `project.toml`, the levels sorted by id, `world.toml`. `smol-toml` writes them; it has no comment support, so the header is prepended, and it prints a float whose value is whole as an integer (`project.toml` declares each field's type, so a reader does not guess).
+- **`project.toml`:** `name`, `template`, `[[layers]]` (`id`, `kind`, `grid`, plus `tileset`, `snap`, `source` and `[[layers.values]]` where the kind has them), `[[tilesets]]` (`id`, `tile`, `columns`, `rows`, `spacing`, `padding`, `image` or `placeholder = true`, `[[tilesets.tags]]`), `[[entities]]` (the whole definition: shape, size, pivot, resizable, tags, `single`, `min`, `fields`) and `[[levelFields]]`.
+- **`levels/<id>.toml`:** `id`, `name`, `size`, `background`, `fields`, and per layer a `[[layers]]` table. A tile or IntGrid layer carries `rows` in the working file's own row-string format (§6.1); an **auto layer carries `[[layers.stack]]`, one `rows` per stack depth, depth 0 drawn first, the overrides already applied**; an entity or object layer carries `[[layers.items]]`.
+- **`world.toml`:** `[[worlds]]` with `id`, `layout`, `grid` (grid worlds), and placements. A `grid` world also has `[[worlds.neighbours]]`, one per placed level (`level`, then `north`, `east`, `south`, `west` as lists of level ids): the levels whose edge touches this level's edge along a span of positive length, ordered by position and then id (a placement of a level that does not exist is skipped). A corner contact is not a neighbour, and only a `grid` world has them.
 
 ## 7. Profiles
 
@@ -297,6 +306,15 @@ Templates:
 
 Placeholder tilesets are generated flat-colour tiles with a glyph and the word "placeholder" in the Assets list (ED2D-D11).
 
+Details fixed while building ED2D.3:
+
+- **A template is data built by code.** `create(ids)` returns a `Project` whose every instance id comes from the injected `IdSource`, so a test compares the whole value, and each starter opens through `openProject(printProject(value))` as the same project. A level's empty layers come from `emptyLayers(defs, size)` (`ceil(side / cell)` cells per side, auto seed 1), which the `addLevel` command reuses.
+- **Placeholder tilesets** are definitions with no `image`; the label ends in "(placeholder)" and the tile count comes from `tilesetTiles(def)`, the §5.4 rule.
+- **Platformer terrain** is a generated 47-tile blob set (`blobRules`): a solid cell's four edges (north, east, south, west) and each diagonal whose two adjacent edges are both solid give 1 + 4 + 8 + 2 + 16 + 16 = 47 neighbourhoods, one rule each (`breakOnMatch`, `outside: 'same'`, no flips). A test proves that all 256 neighbourhoods of a solid cell match exactly one rule. Tilesheet order: tiles 0 to 46 terrain, 47 spike, 48 water, 49 ladder, 50 one-way, 51 onward decor; spike, water, ladder and one-way each get a size-1 rule.
+- **Top-down walls** are a generated 16-tile 4-neighbour set (`edgeRules`, tile `first + N + 2E + 4S + 8W`), plus one rule each for water and door-frame, with the same exactly-one test.
+- **Starters.** `platformer`: layers `entities`, `decor`, `ground`, `collision`; level `level-1` 512×288 with a two-row floor and a `player-start` at (48, 256). `topdown-rpg`: layers `entities`, `props`, `walls-art`, `walls`, `ground`; level `map-1` 320×240 of grass with a `player-start` at (160, 120). `blank`: layers `entities` and `tiles`, tileset `tiles`, level `level-1` 256×256. Every starter checks with no error and no warning; its only infos are `unusedDefinition` and (for `blank`) `emptyLevel`.
+- **The profile.** `sniff` accepts a name ending `.af2d.json`, or text whose first 4 KB holds `"format": "af2d"`. `parse` returns `ok` only when `openProject` opened; a read-only or failed outcome becomes errors with the same codes (`newerVersion`, `unknownKeys` once per key path, `notJson` with line and column, `notAProject`, `invalid` with paths, `tooLarge`), and `print` is `printProject`. Exports: the working file (`<name as a file stem>.af2d.json`) and the AF content files. The profile code is not exported from the package index: only `app/profiles.ts` imports it (§4).
+
 ## 8. Views and flows
 
 Mockup ids are the screen ids in `docs/design/editor-2d/`. All views share the kit shell: top bar, rail (56), panel (264), canvas, inspector (320), dock (148) in `wide`; drawers and sheets in `medium`.
@@ -331,13 +349,21 @@ Each diagnostic: `{ severity, code, path, message, fix? }` where `path` addresse
 | Source | Codes |
 |---|---|
 | File (refusals at open, §6.1, not Checks) | `newerVersion`, `unknownKeys`, `duplicateId`, `unknownLayer`, `unknownTileset`, `layerKindMismatch`, `layerMismatch`, `layerTooLarge`, `cellInvalid` |
-| Definitions | `missingTileset` (the image), `tilesetImageChanged` (warning), `fieldDefInvalid` (the kit's `checkFieldDef`), `ruleTileOutOfRange`, `ruleNeverMatches` (info), `ruleShadowed` (info), `unusedDefinition` (info) |
-| Levels | `tileOutOfRange` (fix: remove), `unknownEntityDef`, `entityOutOfBounds` (warning, fix: move inside), `levelOutsideWorld`, `levelsOverlap` (warning, free layouts) |
+| Definitions | `missingTileset` (the image), `tilesetImageChanged` (warning), `fieldDefInvalid` (the kit's `checkEntityDef`, for entity definitions and level fields), `ruleTileOutOfRange`, `ruleValueUnknown`, `ruleNeverMatches`, `ruleShadowed` (these four carry the rule engine's severity), `unusedDefinition` (info) |
+| Levels | `tileOutOfRange` (fix: remove), `cellValueUnknown`, `unknownEntityDef`, `entityOutOfBounds` (warning, fix: move inside), `levelOutsideWorld`, `placementUnknownLevel`, `levelsOverlap` (warning, free layouts) |
 | Entities | `fieldMissing`, `fieldInvalid` (the kit's problem codes), `singleExceeded`, `minNotMet` (project or level) |
 | Links | `brokenRef` (fix: choose target), `refWrongKind` |
 | Editor-only | `emptyLevel` (info) |
 
 Template "checks" are definitions: `minNotMet` reports "no player-start in the project", `fieldMissing` reports a door with no target. The FloorFifty profile's checks are in §10.7.
+
+Details fixed while building ED2D.3 (`checkProject(project, context)`, a pure function; errors first, then warnings, then info, each in discovery order, identical on every call):
+
+- **Four codes the first table lacked**, each for a state the model allows: `ruleValueUnknown` (a rule names an IntGrid value its source layer does not define), `cellValueUnknown` (an IntGrid cell holds an undefined value), `placementUnknownLevel` (a world places a level that does not exist) and the rule codes' severities are the engine's (`ruleNeverMatches` is a warning, not info).
+- **Aggregation.** `tileOutOfRange` and `cellValueUnknown` are one diagnostic per layer instance ("3 cells use tiles beyond the tileset's 64"), so "Remove 3 stray tiles" is one fix; every other code is one diagnostic per object.
+- **Bounds.** An entity or object is out of bounds when its anchor `(x, y)` is outside the closed box `[0, w] × [0, h]` of its level. `levelsOverlap` applies to `free` worlds only and means the same depth and an intersection of positive area (different depths overlap on purpose).
+- **Refs.** A `ref` value resolves by its field's `to`: `$level` means `target` is a level id; any other entry is an entity definition id and `target` is an instance id, found by id across the project (ids are unique) and, when the value has a `container`, required to be in that level. Not found, or in the wrong container, is `brokenRef`; found with a definition that `to` does not allow is `refWrongKind`; in a ref list the diagnostic names the bad member.
+- **Context.** `ProjectContext.imageSizes` (path to the measured image size) lets `tilesetImageChanged` compare the size a tileset was defined at with the file now in the workspace; `missingTileset` reads the context's asset list.
 
 ## 10. Profile: FloorFifty stage
 
@@ -488,7 +514,9 @@ Kit storage (§4.7 of the kit spec) with these rules: the workspace in OPFS hold
 | iPad 13" 1366×1024 | `wide` | |
 | Desktop ≥ 1440 | `wide` | Hover, shortcuts: `Mod+Z`, `Mod+Shift+Z`, `Delete`, `Mod+D` duplicate, `B` brush, `R` rectangle, `G` fill, `E` eraser, `I` picker, `[` `]` brush size, arrows nudge the selection by one cell (shift 8), `Alt+↑/↓` reorder in lists |
 | Phone | `compact` | Not a target; opens, edits and exports without data loss |
-| Input | | Finger: select, drag, pan, pinch. Pencil: precise drags and strokes, hover shows the brush footprint. Mouse: wheel zoom, middle pan. Keyboard: every inspector field and rule cell |
+| Input | | The operations behind the tools are pure functions over a `Grid` in `tiles/` (ED2D.2); each takes the cell **word** (a packed tile cell, an IntGrid value or an override tile), so one set serves every layer kind, and erasing is painting the word 0. The brush is a square of 1 to 8 cells whose top-left is `floor((size - 1) / 2)` up and left of the cursor, and a stroke is the Bresenham line between pointer events with the footprint at every cell. Rectangle corners are inclusive and may come in either order. Fill is 4-connected, replaces cells equal to the start cell's word (a flipped tile is a different word), stays inside the level and works a run at a time. A stamp is a row-major rectangle of words: pasting skips its empty cells unless asked to clear, and flipping mirrors the layout and, for tiles, each tile's flip bit. The dice pick `candidates[hash(seed, x, y) % n]` per cell, so a replayed stroke repaints the same tiles.
+
+Finger: select, drag, pan, pinch. Pencil: precise drags and strokes, hover shows the brush footprint. Mouse: wheel zoom, middle pan. Keyboard: every inspector field and rule cell |
 
 Touch targets stay 44 (48 for Export); tile palette cells are 44 on `compact` and `medium` and scale up to the grid size on `wide`; the rule pattern cells are 44; nothing is hover-only; the canvas never scrolls the page. The Level view's essential actions on a short height are tools, undo/redo, layers and Export; the palette and dock open as sheets (kit §4.2).
 
@@ -518,7 +546,7 @@ Touch targets stay 44 (48 for Export); tile palette cells are 44 on `compact` an
 |---|---|---|
 | Unit | Schema and codec round trips; cell encoding (property); chunked grid; commands; checks; auto-tile engine; export; id source; migrations with fixtures; the FloorFifty codec, commands, checks, `composeStage`, `createCourse`, demand | `model/`, `tiles/`, `profiles/**`, renderer-free |
 | Property | RLE `decode∘encode` is identity; random command sequences then undo of any prefix restores the project byte-for-byte when printed; incremental auto-tile equals full recompute; FloorFifty `print` re-parses to `value` and undo restores the original text | `model/`, `tiles/`, `profiles/floorfifty-stage` |
-| Golden | Auto-tile output hash for fixed IntGrids and rule sets, **identical in Node, Chromium, WebKit and Firefox** (the browser projects run the same file); `composeStage` and `createCourse` vs FloorFifty; shipped stages open with zero errors | fixtures in `src/testing/fixtures/` |
+| Golden | Auto-tile output hash for fixed IntGrids and rule sets, **identical in Node, Chromium, WebKit and Firefox** (`*.parity.test.ts` files run in the Node `unit` project and again in the `browsers` project; the hill's number is also reproduced by an independent python fold of stacks worked out by hand); `composeStage` and `createCourse` vs FloorFifty; shipped stages open with zero errors | fixtures in `src/testing/fixtures/` |
 | Architecture | The import-graph rules of §4; no template or profile ids in `app`, `tiles`, `canvas` (G-s) | one unit test |
 | DOM | Layer panel, palettes, entity inspector and every field type, rule editor, diagnostics list, export dialog states | Vitest browser mode |
 | Layout | Shell regions at the sizes in §12 | kit layout project |
@@ -526,7 +554,7 @@ Touch targets stay 44 (48 for Export); tile palette cells are 44 on `compact` an
 | Visual | Level and stage canvases vs recorded images | GPU runner (D-5); Owner visual acceptance; never auto-promoted |
 | Device | iPad Safari manual, plus `test-request` on the bus for the Mac/PC/Linux runs | Orchestrator |
 
-Fixtures: the two sample projects (Mossgate, Hollowmere), a minimal project, a project per error class in §9, malformed and newer-version files, FloorFifty's four stages, a minimal stage, a stage per stage error class, malformed TOML. TDD: the first commit of each task is its plan; the first test fails for the stated reason.
+Fixtures: the two sample projects (Mossgate, Hollowmere; `src/testing/samples.ts`, built from the templates by code so they follow them: each checks with no error or warning, reprints byte for byte and passes the export round trip of G-i, `src/testing/content-roundtrip.ts`), a minimal project, a project per error class in §9, malformed and newer-version files, FloorFifty's four stages, a minimal stage, a stage per stage error class, malformed TOML. TDD: the first commit of each task is its plan; the first test fails for the stated reason.
 
 ## 15. Acceptance cases
 

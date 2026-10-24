@@ -4,6 +4,12 @@
 
 ## `.`
 
+### `applyOverrides` (function)
+
+```ts
+function applyOverrides(result: AutoTiles, overrides: Grid): AutoTiles;
+```
+
 ### `AutoLayerDef` (interface)
 
 ```ts
@@ -41,6 +47,32 @@ interface AutoLayerInstance {
 }
 ```
 
+### `AutoTile` (interface)
+
+```ts
+interface AutoTile {
+    readonly tile: number;
+    readonly flipX: boolean;
+    readonly flipY: boolean;
+}
+```
+
+### `AutoTiles` (interface)
+
+```ts
+interface AutoTiles {
+    readonly cols: number;
+    readonly rows: number;
+    readonly stacks: ReadonlyMap<number, readonly AutoTile[]>;
+}
+```
+
+### `autoTiles` (function)
+
+```ts
+function autoTiles(source: Grid, rules: CompiledRules, seed: number): AutoTiles;
+```
+
 ### `Background` (interface)
 
 ```ts
@@ -55,6 +87,12 @@ interface Background {
 
 ```ts
 type BackgroundMode = 'fit' | 'cover' | 'repeat' | 'repeat-x';
+```
+
+### `brushCells` (function)
+
+```ts
+function brushCells(at: Point, size: number): Point[];
 ```
 
 ### `CellKind` (type)
@@ -77,6 +115,27 @@ interface CellProblem {
 
 ```ts
 const CHUNK = 16;
+```
+
+### `CompiledRules` (interface)
+
+```ts
+interface CompiledRules {
+    readonly radius: number;
+    readonly rules: readonly CompiledRule[];
+}
+```
+
+### `compileRules` (function)
+
+```ts
+function compileRules(groups: readonly RuleGroup[]): CompiledRules;
+```
+
+### `copyStamp` (function)
+
+```ts
+function copyStamp(grid: Grid, x: number, y: number, w: number, h: number): Stamp;
 ```
 
 ### `counterIds` (function)
@@ -142,6 +201,12 @@ interface Diagnostic {
     readonly message: string;
     readonly fix?: string | undefined;
 }
+```
+
+### `emptyLayers` (function)
+
+```ts
+function emptyLayers(layers: readonly LayerDef[], size: Size): LayerInstance[];
 ```
 
 ### `encodeProject` (function)
@@ -227,6 +292,12 @@ type EntityResize = 'none' | 'x' | 'y' | 'xy';
 type EntityShape = 'rect' | 'ellipse' | 'point' | 'tile';
 ```
 
+### `evaluateCell` (function)
+
+```ts
+function evaluateCell(source: Grid, compiled: CompiledRules, seed: number, x: number, y: number): AutoTile[];
+```
+
 ### `ExportTarget` (interface)
 
 ```ts
@@ -244,6 +315,24 @@ interface ExportTarget<V> {
 
 ```ts
 const FILE_VERSION = 1;
+```
+
+### `flipCell` (function)
+
+```ts
+function flipCell(cell: number, axis: 'x' | 'y'): number;
+```
+
+### `flipStamp` (function)
+
+```ts
+function flipStamp(stamp: Stamp, axis: 'x' | 'y', kind: CellKind): Stamp;
+```
+
+### `floodFill` (function)
+
+```ts
+function floodFill(grid: Grid, at: Point, word: number): Grid;
 ```
 
 ### `Grid` (class)
@@ -339,6 +428,15 @@ interface IntValueDef {
 const ITEM_ID: RegExp;
 ```
 
+### `layerCells` (function)
+
+```ts
+function layerCells(size: Size, grid: number): {
+    cols: number;
+    rows: number;
+};
+```
+
 ### `LayerDef` (type)
 
 ```ts
@@ -368,6 +466,12 @@ interface Level<Layer = LayerInstance> {
     readonly fields: FieldValues;
     readonly layers: readonly Layer[];
 }
+```
+
+### `lineCells` (function)
+
+```ts
+function lineCells(from: Point, to: Point): Point[];
 ```
 
 ### `MAX_FILE_CHARS` (const)
@@ -466,6 +570,24 @@ type OpenResult = {
 function packTile(tile: number, flipX: boolean, flipY: boolean): number;
 ```
 
+### `paintCells` (function)
+
+```ts
+function paintCells(grid: Grid, cells: Iterable<Point>, word: number): Grid;
+```
+
+### `paintRandom` (function)
+
+```ts
+function paintRandom(grid: Grid, cells: Iterable<Point>, candidates: readonly number[], seed: number): Grid;
+```
+
+### `paintRect` (function)
+
+```ts
+function paintRect(grid: Grid, a: Point, b: Point, word: number): Grid;
+```
+
 ### `ParseError` (interface)
 
 ```ts
@@ -476,6 +598,20 @@ interface ParseError {
     readonly line?: number | undefined;
     readonly column?: number | undefined;
 }
+```
+
+### `pasteStamp` (function)
+
+```ts
+function pasteStamp(grid: Grid, stamp: Stamp, at: Point, options?: {
+    readonly clear?: boolean;
+}): Grid;
+```
+
+### `patchAutoTiles` (function)
+
+```ts
+function patchAutoTiles(previous: AutoTiles, source: Grid, rules: CompiledRules, seed: number, changed: Iterable<Point>): AutoTiles;
 ```
 
 ### `PatternCell` (type)
@@ -494,6 +630,12 @@ type PatternCell = 'any' | 'empty' | 'filled' | {
 const patternCellSchema: z.ZodType<PatternCell>;
 ```
 
+### `pickTile` (function)
+
+```ts
+function pickTile(grid: Grid, x: number, y: number): UnpackedTile | undefined;
+```
+
 ### `Placement` (interface)
 
 ```ts
@@ -502,6 +644,15 @@ interface Placement {
     readonly x: number;
     readonly y: number;
     readonly depth: number;
+}
+```
+
+### `Point` (interface)
+
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
 }
 ```
 
@@ -558,6 +709,10 @@ interface Project<Layer = LayerInstance> {
 ```ts
 interface ProjectContext {
     readonly assets?: readonly string[] | undefined;
+    readonly imageSizes?: Readonly<Record<string, {
+        readonly w: number;
+        readonly h: number;
+    }>> | undefined;
 }
 ```
 
@@ -620,6 +775,15 @@ interface Rule {
 }
 ```
 
+### `RuleContext` (interface)
+
+```ts
+interface RuleContext {
+    readonly values: ReadonlySet<number>;
+    readonly tileCount: number | undefined;
+}
+```
+
 ### `RuleGroup` (interface)
 
 ```ts
@@ -635,6 +799,24 @@ interface RuleGroup {
 
 ```ts
 const ruleGroupSchema: z.ZodType<RuleGroup>;
+```
+
+### `RuleIssue` (interface)
+
+```ts
+interface RuleIssue {
+    readonly code: 'valueUnknown' | 'neverFires' | 'tileOutOfRange' | 'shadowed';
+    readonly severity: 'error' | 'warning' | 'info';
+    readonly group: string;
+    readonly rule: string;
+    readonly message: string;
+}
+```
+
+### `ruleIssues` (function)
+
+```ts
+function ruleIssues(groups: readonly RuleGroup[], context: RuleContext): RuleIssue[];
 ```
 
 ### `ruleSchema` (const)
@@ -655,6 +837,16 @@ type Severity = 'error' | 'warning' | 'info';
 interface Size {
     readonly w: number;
     readonly h: number;
+}
+```
+
+### `Stamp` (interface)
+
+```ts
+interface Stamp {
+    readonly w: number;
+    readonly h: number;
+    readonly cells: Uint32Array;
 }
 ```
 
@@ -684,6 +876,16 @@ interface TilesetDef {
         readonly tiles: readonly number[];
     }[];
 }
+```
+
+### `tilesetTiles` (function)
+
+```ts
+function tilesetTiles(def: TilesetDef): {
+    columns: number;
+    rows: number;
+    count: number;
+};
 ```
 
 ### `TilesLayerDef` (interface)
@@ -733,6 +935,12 @@ interface ViewDef {
     readonly label: string;
     readonly component: string;
 }
+```
+
+### `windowAround` (function)
+
+```ts
+function windowAround(changed: Iterable<Point>, radius: number, cols: number, rows: number): Point[];
 ```
 
 ### `World` (interface)

@@ -8,6 +8,10 @@ import type { Command, Sim, StepResult } from '../world/sim'
 import { ReplayRecordError } from './errors'
 import { DEFAULT_CHECK_EVERY, type Replay, type ReplayCommand } from './replay'
 
+/**
+ * What a recording takes: how often to store a check hash, whether to keep a reference hash and snapshots
+ * (goldens), and free-form `meta`.
+ */
 export interface RecorderOptions {
   /** A check hash every this many ticks from the start (default 60, at least 1). */
   readonly checkEvery?: number
@@ -16,6 +20,10 @@ export interface RecorderOptions {
   readonly meta?: Readonly<Record<string, string>>
 }
 
+/**
+ * Steps a sim and records the run as a `Replay`. Nothing else may step the sim while it records; the recorder
+ * refuses to continue if something did.
+ */
 export interface Recorder {
   /** `sim.step` plus recording. */
   step(commands: readonly Command[]): StepResult
@@ -40,6 +48,10 @@ function withoutUndefined(value: unknown): unknown {
 
 const isCount = (n: number): boolean => Number.isInteger(n) && n >= 1
 
+/**
+ * Starts recording `sim` from its current state, for the recorder's `step` to extend. Throws
+ * `ReplayRecordError` for a `checkEvery` or `snapshotEvery` that is not an integer of at least 1.
+ */
 export function createRecorder(sim: Sim, options: RecorderOptions = {}): Recorder {
   const checkEvery = options.checkEvery ?? DEFAULT_CHECK_EVERY
   if (!isCount(checkEvery))

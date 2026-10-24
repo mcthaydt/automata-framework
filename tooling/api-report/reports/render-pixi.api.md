@@ -270,6 +270,7 @@ interface PixiRendererOptions {
     readonly quality?: QualityTier | undefined;
     readonly composite?: boolean | undefined;
     readonly entityViews?: EntityViewResolver | undefined;
+    readonly postFilters?: readonly PostFilterDef[] | undefined;
     readonly setup?: ((stage: PixiStage) => PixiStageHooks | undefined) | ((stage: PixiStage) => void) | undefined;
 }
 ```
@@ -331,6 +332,24 @@ interface Pose {
 function poseComponent(components: Components, componentId?: string | undefined): Readonly<FieldRecord> | undefined;
 ```
 
+### `postFilter` (function)
+
+```ts
+function postFilter(name: string, spec: PostFilterSpec): PostFilterDef;
+```
+
+### `PostFilterDef` (interface)
+
+```ts
+interface PostFilterDef {
+    readonly name: string;
+    readonly glsl: string;
+    readonly wgsl: string;
+    readonly order: number;
+    readonly minTier: QualityTier | undefined;
+}
+```
+
 ### `PostFilterOptions` (interface)
 
 ```ts
@@ -348,6 +367,17 @@ interface PostFilterSlot {
     readonly ids: readonly string[];
     readonly tier: QualityTier;
     setTier(tier: QualityTier): void;
+}
+```
+
+### `PostFilterSpec` (interface)
+
+```ts
+interface PostFilterSpec {
+    readonly glsl: string;
+    readonly wgsl: string;
+    readonly order?: number | undefined;
+    readonly minTier?: QualityTier | undefined;
 }
 ```
 

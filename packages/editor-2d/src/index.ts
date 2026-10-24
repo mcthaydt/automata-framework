@@ -10,6 +10,7 @@ export {
 } from './model/cells-codec'
 export { CHUNK, Grid, type GridEditor } from './model/grid'
 export { counterIds, DEF_ID, type IdSource, ITEM_ID, randomIds } from './model/ids'
+export { emptyLayers, layerCells } from './model/level-layers'
 export { FILE_VERSION, type Migration, type RawFile } from './model/migrations/migration'
 export { MAX_FILE_CHARS, type OpenResult, openProject } from './model/open-project'
 export { projectFileSchema } from './model/project.schema'
@@ -56,6 +57,7 @@ export type {
   World,
   WorldLayout,
 } from './model/project-types'
+export { tilesetTiles } from './model/tileset-grid'
 export {
   createProfileRegistry,
   type Diagnostic,
@@ -70,6 +72,14 @@ export {
   type ViewDef,
 } from './profiles/profile'
 export {
+  type AutoTiles,
+  applyOverrides,
+  autoTiles,
+  patchAutoTiles,
+  windowAround,
+} from './tiles/autotile/auto-tiles'
+export { type AutoTile, type CompiledRules, compileRules, evaluateCell } from './tiles/autotile/match'
+export {
   type PatternCell,
   patternCellSchema,
   type Rule,
@@ -77,3 +87,9 @@ export {
   ruleGroupSchema,
   ruleSchema,
 } from './tiles/autotile/rule.schema'
+export { type RuleContext, type RuleIssue, ruleIssues } from './tiles/autotile/rule-issues'
+export { floodFill } from './tiles/flood-fill'
+export { brushCells, lineCells, type Point } from './tiles/footprint'
+export { paintCells, paintRandom, paintRect } from './tiles/paint'
+export { copyStamp, flipStamp, pasteStamp, type Stamp } from './tiles/stamp'
+export { flipCell, pickTile } from './tiles/tile-cell'

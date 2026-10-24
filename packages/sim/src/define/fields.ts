@@ -1,13 +1,23 @@
 // Component field types (spec §4.2). Every write goes through coerceField so stored values are canonical.
 
 export const FIELD_TYPES = ['f32', 'f64', 'i32', 'u32', 'bool', 'entity', 'string'] as const
+/**
+ * A component field's type: `f32`, `f64`, `i32`, `u32`, `bool`, `entity` (a StableId, stored as a `u32`) or
+ * `string`.
+ */
 export type FieldType = (typeof FIELD_TYPES)[number]
+/** A component's fields, by name. */
 export type FieldSchema = Readonly<Record<string, FieldType>>
+/**
+ * The JavaScript type a field holds: `boolean` for `bool`, `string` for `string`, `number` for every other
+ * type.
+ */
 export type FieldValue<T extends FieldType> = T extends 'bool'
   ? boolean
   : T extends 'string'
     ? string
     : number
+/** The writable record of values a `FieldSchema` describes. */
 export type FieldValues<S extends FieldSchema> = { -readonly [K in keyof S]: FieldValue<S[K]> }
 
 const finite = (type: FieldType, v: unknown): number => {
