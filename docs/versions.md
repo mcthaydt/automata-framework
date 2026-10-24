@@ -51,7 +51,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `yaml` | 2.9.1 | 2026-10-11 | Same as Ruken: parse workflow YAML in ship's workflow tests |
 | `yauzl` | 3.4.0 | 2026-10-11 | Same as Ruken: a runtime dependency of the vendored `@ruken/cli`, which `@mcthaydt/automata-ship` ships in `dist/vendor/ruken-cli/` (M2.4 spec §3.4) |
 | `yazl` | 3.3.1 | 2026-10-11 | Same as Ruken: the same, for `@ruken/cli` inside `@mcthaydt/automata-ship` |
-| `zod` | 4.6.5 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |
+| `zod` | 4.6.6 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |
 | `@sveltejs/package` | 3.0.0 | 2026-10-11 | ship lane: builds `@mcthaydt/automata-ui`'s published `dist/` (M2.4 spec §3.3), Svelte's documented library layout: `.svelte` shipped as Svelte source with TypeScript stripped. Peer `typescript` ^6, so it runs on ui's 6.0.3 |
 | `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | ui lane: compiles Svelte 5 in `packages/ui` and `examples/ui/primitives` |
 | `@testing-library/dom` | 10.4.2 | 2026-10-11 | ui lane: DOM behaviour tests (AGENTS.md, Responsive UI) |

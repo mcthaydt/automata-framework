@@ -61,14 +61,21 @@ describe('public entry', () => {
       'setHeights',
       'setLight',
       'setMaterials',
+      'setView',
       'moveCorner',
       'moveSector',
       'setWallKind',
       'setDoor',
       'setWindow',
       'setWallMaterial',
+      'setWallOcclude',
       'setWallFlags',
+      'addThing',
+      'moveThing',
+      'setThingField',
+      'removeThing',
       'SectorAccessError',
+      'ThingAccessError',
       'inheritedMaterials',
       'portalReferences',
       'loopArea',
@@ -77,6 +84,33 @@ describe('public entry', () => {
       'crossesItself',
       'outlineProblem',
     ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it("exports the entity model: the definition, the reader and both formats' kits", () => {
+    for (const name of [
+      'thingDefSchema',
+      'THING_SHAPES',
+      'THING_SITS',
+      'RESERVED_FIELD_IDS',
+      'readEntityKit',
+      'afEntityKit',
+      'lastLightDefinitions',
+      'lastLightEntityKit',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it('exports the entity checks: the values, places and single definitions, and the refs', () => {
+    for (const name of ['entityProblems', 'entityRefProblems']) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it('exports the checks that take the game’s lists: materials, lamps and the room policy', () => {
+    for (const name of ['materialProblems', 'lampProblems', 'DEFAULT_TONE', 'roomPolicyProblems']) {
       expect(editor3d, name).toHaveProperty(name)
     }
   })
@@ -114,12 +148,39 @@ describe('public entry', () => {
       'orbitCamera',
       'orbitBy',
       'fitOrbit',
+      'HOME_YAW',
       'walkCamera',
       'walkStart',
       'facesEye',
       'visibleSurfaces',
+      'surfaceVisibility',
       'pickMesh',
+      'HEADINGS',
+      'headingPreview',
+      'OCCLUDES',
     ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it('exports the plan controller', () => {
+    expect(editor3d).toHaveProperty('createPlanController')
+  })
+
+  it('exports the sector tool and the portal offers it makes', () => {
+    for (const name of ['createSectorTool', 'portalOffers']) expect(editor3d, name).toHaveProperty(name)
+    // The shapes are a type, so this is checked by the compiler: the entry names them.
+    const shapes: editor3d.SectorShape[] = ['polygon', 'rectangle']
+    expect(shapes).toHaveLength(2)
+  })
+
+  it('exports the wall tools and what one wall can be offered, and keeps the geometry cache inside', () => {
+    for (const name of ['createWallTool', 'wallPortal']) expect(editor3d, name).toHaveProperty(name)
+    expect(editor3d).not.toHaveProperty('createGeometryCache')
+  })
+
+  it('exports the checks panel and the Ask', () => {
+    for (const name of ['createChecksPanel', 'createAsk']) {
       expect(editor3d, name).toHaveProperty(name)
     }
   })
@@ -152,12 +213,16 @@ describe('public entry', () => {
       'buildRefusal',
       'wallOver',
       'PORTAL_MEMBERS',
+      'fakeAskProvider',
+      'deferred',
+      'problemCount',
       // The view core's own helpers: the vector arithmetic and the shared picking parts.
       'cross',
       'dot',
       'unit',
       'wallNear',
       'isLayerOff',
+      'stepOf',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }

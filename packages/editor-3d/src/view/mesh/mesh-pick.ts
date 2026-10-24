@@ -2,6 +2,8 @@
 // first among them. A surface that faces away from the eye is cut away, so the dollhouse looks into a room through its
 // near walls, and Walk, standing in a room, sees all of its walls. A cut-away surface is not hit either: the ray goes
 // through it. Both views ask the same question of the same mesh, so they cannot disagree about what is under a pixel.
+// A wall can ask for something else (ED3D.4b, the 3D direction spec §4.2): `never` stays where it is, and `fade` is drawn
+// faintly where `cut` would take it away; a faded surface is still there to be picked.
 import type { Ray } from './camera-3d'
 import type { SectorMesh, Surface, SurfaceRole, Vec3 } from './sector-mesh'
 import { add, cross, dot, scale, sub, unit } from './vec3'
@@ -31,9 +33,21 @@ const cornerOf = (surface: Surface, index: number): Vec3 => [
 export const facesEye = (surface: Surface, eye: Vec3): boolean =>
   dot(sub(eye, cornerOf(surface, 0)), surface.normal) > 0
 
-/** The surfaces the eye sees, in mesh order: all but the ones cut away. */
+/** What the eye does with a surface: `shown`, `faded` (drawn at a quarter of its opacity) or `cut` away. */
+export type Visibility = 'shown' | 'faded' | 'cut'
+
+/**
+ * A surface on the eye's side is shown, as is any that says `never`. One that faces away is cut away, or faded when it says
+ * `fade`: the editor has no player, so "between the camera and the player" is read as "where the wall would be cut".
+ */
+export function surfaceVisibility(surface: Surface, eye: Vec3): Visibility {
+  if (surface.occlude === 'never' || facesEye(surface, eye)) return 'shown'
+  return surface.occlude === 'fade' ? 'faded' : 'cut'
+}
+
+/** The surfaces the eye sees, in mesh order: all but the ones cut away (a faded one is drawn). */
 export const visibleSurfaces = (mesh: SectorMesh, eye: Vec3): Surface[] =>
-  mesh.surfaces.filter((surface) => facesEye(surface, eye))
+  mesh.surfaces.filter((surface) => surfaceVisibility(surface, eye) !== 'cut')
 
 /** How far along a ray with a unit direction the triangle is, by Möller and Trumbore; nothing for a miss or one behind. */
 function distanceToTriangle(origin: Vec3, direction: Vec3, a: Vec3, b: Vec3, c: Vec3): number | undefined {
@@ -62,7 +76,7 @@ export function pickMesh(mesh: SectorMesh, ray: Ray): MeshHit | undefined {
   const direction = unit(ray.direction)
   let best: { index: number; distance: number } | undefined
   for (const [index, surface] of mesh.surfaces.entries()) {
-    if (!facesEye(surface, ray.origin)) continue
+    if (surfaceVisibility(surface, ray.origin) === 'cut') continue
     for (let k = 0; k < surface.indices.length; k += 3) {
       const [a, b, c] = [0, 1, 2].map((i) => cornerOf(surface, surface.indices[k + i] as number)) as [
         Vec3,
