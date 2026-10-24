@@ -89,4 +89,30 @@ describe('editor-2d entry', () => {
     expect(result.status).toBe('opened')
     if (result.status === 'opened') expect(JSON.parse(editor2d.printProject(result.project))).toEqual(file)
   })
+
+  it('exports the level edit commands and the entity geometry', () => {
+    const functions = [
+      editor2d.updateLayer,
+      editor2d.findLayer,
+      editor2d.paintLayerCells,
+      editor2d.eraseLayerCells,
+      editor2d.paintLayerRect,
+      editor2d.fillLayer,
+      editor2d.paintLayerRandom,
+      editor2d.pasteLayerStamp,
+      editor2d.placeEntity,
+      editor2d.moveEntity,
+      editor2d.resizeEntity,
+      editor2d.setEntityField,
+      editor2d.deleteEntity,
+      editor2d.duplicateEntity,
+      editor2d.entityBounds,
+      editor2d.entityAt,
+      editor2d.placeObject,
+      editor2d.moveObject,
+      editor2d.flipObject,
+      editor2d.deleteObject,
+    ]
+    for (const member of functions) expect(member).toBeTypeOf('function')
+  })
 })
