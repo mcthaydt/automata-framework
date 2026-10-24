@@ -244,6 +244,32 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the Split and Merge tools, and keeps what the tools share inside', () => {
+    for (const name of ['createSplitTool', 'createMergeTool']) expect(editor3d, name).toHaveProperty(name)
+    for (const name of ['cutProblem', 'lowestFreeId', 'outlinePlaceAt', 'wallPlaceOf'])
+      expect(editor3d, name).not.toHaveProperty(name)
+    // The views and targets are types, so this is checked by the compiler: the entry names them.
+    const split: editor3d.SplitEffect[] = [
+      { action: 'start' },
+      { action: 'cut' },
+      { action: 'none', reason: 'no' },
+    ]
+    const merge: editor3d.MergeEffect[] = [
+      { action: 'keep' },
+      { action: 'merge' },
+      { action: 'none', reason: 'no' },
+    ]
+    const target: editor3d.SplitTarget = {
+      kind: 'corner',
+      sector: 'a',
+      corner: 0,
+      point: { x: 0, z: 0 },
+      action: 'start',
+    }
+    const place: editor3d.OutlinePlace = target
+    expect([split.length, merge.length, place.kind]).toEqual([3, 3, 'corner'])
+  })
+
   it('keeps test helpers and the verification guard out', () => {
     for (const name of [
       'loadFixture',

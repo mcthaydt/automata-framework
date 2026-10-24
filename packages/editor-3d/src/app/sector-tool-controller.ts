@@ -19,6 +19,7 @@ import { type SnapResult, snapPlan } from '../view/plan/plan-snap'
 import { planViewport, snapValue, toScreen } from '../view/plan/plan-viewport'
 import { createGeometryCache } from './geometry-cache'
 import type { PlanPointer } from './plan-controller'
+import { lowestFreeId } from './sector-id'
 
 /** One edge of the drawing: a placed one, or the pending one from the last corner to where the pointer would place the next. */
 export interface DrawEdge {
@@ -125,10 +126,6 @@ export interface SectorToolOptions {
   readonly shape?: SectorShape | undefined
   /** The id of the sector being added, from the ids the level has taken: `sector-N`, the lowest N that is free, when not given. */
   readonly id?: ((taken: readonly string[]) => string) | undefined
-}
-
-const lowestFree = (taken: readonly string[]): string => {
-  for (let n = 1; ; n++) if (!taken.includes(`sector-${n}`)) return `sector-${n}`
 }
 
 export function createSectorTool<D>(
@@ -249,7 +246,7 @@ export function createSectorTool<D>(
       publish()
       return
     }
-    const id = (options.id ?? lowestFree)(editor.profile.sectors.takenIds(editor.level))
+    const id = (options.id ?? lowestFreeId)(editor.profile.sectors.takenIds(editor.level))
     const session = editor.begin(`Draw sector ${id}`)
     const result = session.run(
       addSector({

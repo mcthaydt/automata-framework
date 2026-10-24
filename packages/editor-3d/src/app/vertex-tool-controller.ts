@@ -11,13 +11,11 @@ import type { Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
 import type { Point } from '../format/sector.schema'
 import type { Edit } from '../model/edit'
 import type { LevelEditor } from '../model/level-editor'
-import { parseSelection } from '../model/selection-ref'
 import { insertCorner, removeCorner } from '../model/vertex-edits'
-import { cornerAt, wallLength } from '../model/wall-geometry'
-import { isLayerOff, PICK_RADIUS, pickCorner, wallNear } from '../view/plan/plan-pick'
-import { planViewport, snapStep, snapValue } from '../view/plan/plan-viewport'
+import { planViewport } from '../view/plan/plan-viewport'
 import { createGeometryCache } from './geometry-cache'
 import type { PlanPointer } from './plan-controller'
+import { type OutlinePlace, outlinePlaceAt } from './wall-place'
 
 /** What a tap there would do. */
 export type VertexEffect =
@@ -25,30 +23,8 @@ export type VertexEffect =
   /** Nothing: the sentence a tap would be refused with. */
   | { readonly action: 'none'; readonly reason: string }
 
-export type VertexTarget =
-  /** A corner within reach of the pointer: a tap takes it away. */
-  | ({
-      readonly kind: 'corner'
-      readonly sector: string
-      /** The corner in the sector's outline as the document writes it. */
-      readonly corner: number
-      readonly point: Point
-    } & VertexEffect)
-  /** A wall within reach and no corner: a tap puts a corner at `point`. */
-  | ({
-      readonly kind: 'wall'
-      readonly sector: string
-      /** The corner that starts the wall, in the sector's outline as the document writes it. */
-      readonly corner: number
-      /** What the wall selects: `wall:<sector>/<corner>`. */
-      readonly selection: string
-      /** In metres. */
-      readonly length: number
-      /** Metres from the start of the wall: the point of it nearest the pointer, rounded (5 cm, 1 cm with Shift, none with Alt). */
-      readonly along: number
-      /** The world point at `along`, where a tap puts the corner. */
-      readonly point: Point
-    } & VertexEffect)
+/** A corner under the pointer: a tap takes it away. A wall within reach and no corner: a tap puts a corner at its `point`. */
+export type VertexTarget = OutlinePlace & VertexEffect
 
 export interface VertexToolView {
   /** The corner or the wall under the pointer; nothing when none is within the pointer kind's reach. */
@@ -102,42 +78,11 @@ export function createVertexTool<D>(editor: LevelEditor<D>, canvas: Size): Verte
 
   /** The corner within the pointer kind's reach, else the wall within it and the place along it, or nothing. */
   const targetAt = (at: PlanPointer): VertexTarget | undefined => {
-    const { layers, select } = geometry()
-    const { hidden, locked } = editor.view.state
-    if (isLayerOff({ hidden, locked }, 'walls')) return undefined
-    const radius = PICK_RADIUS[at.kind]
-    const viewport = currentViewport()
-    const corner = pickCorner(layers, select, viewport, at, { radius })
-    if (corner !== undefined) {
-      const base = { kind: 'corner', sector: corner.sector, corner: corner.corner, point: corner.at } as const
-      return { ...base, ...effectOf(removal(base), 'remove') }
-    }
-    const hit = wallNear(layers, select, viewport, at, radius)
-    const ref = hit === undefined ? undefined : parseSelection(hit.selection)
-    if (hit === undefined || ref?.kind !== 'wall') return undefined
-    const found = editor.profile.sectors.list(editor.level).find((candidate) => candidate.id === ref.sector)
-    const start = found?.corners[ref.corner]
-    if (found === undefined || start === undefined) return undefined
-    const end = cornerAt(found.corners, ref.corner + 1)
-    const length = snapValue(wallLength(found.corners, ref.corner), 0)
-    // From the document's start of the wall, the measure the other wall tools use, not the geometry's.
-    const distance = Math.hypot(hit.at.x - start[0], hit.at.z - start[1])
-    const along = Math.min(length, snapValue(distance, snapStep({ shiftKey: at.shift, altKey: at.alt })))
-    // A wall of no length has a neighbour at its point that is as near, and wins the pick, so `length` is not 0 here.
-    const fraction = along / length
-    const base = {
-      kind: 'wall',
-      sector: ref.sector,
-      corner: ref.corner,
-      selection: hit.selection,
-      length,
-      along,
-      point: {
-        x: snapValue(start[0] + (end[0] - start[0]) * fraction, 0),
-        z: snapValue(start[1] + (end[1] - start[1]) * fraction, 0),
-      },
-    } as const
-    return { ...base, ...effectOf(insertion(base), 'add') }
+    const place = outlinePlaceAt(editor, geometry(), currentViewport(), at)
+    if (place === undefined) return undefined
+    return place.kind === 'corner'
+      ? { ...place, ...effectOf(removal(place), 'remove') }
+      : { ...place, ...effectOf(insertion(place), 'add') }
   }
 
   /** The sentence of the last refused tap and what it was refused on: it stays while the pointer stays on that target. */

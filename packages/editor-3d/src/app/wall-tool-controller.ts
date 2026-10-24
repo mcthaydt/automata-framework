@@ -4,17 +4,15 @@
 // pixels, the pointer kind and the modifier keys, as for the other tools), reads `view` and paints the wall, the tick
 // along it and what a tap would do. The level, the selection and the camera stay in the editor.
 import type { Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
-import type { Point } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'
 import { wallPortal } from '../model/portal-offers'
-import { parseSelection } from '../model/selection-ref'
 import { setDoor, setWallKind, setWindow } from '../model/wall-edits'
-import { cornerAt, wallLength } from '../model/wall-geometry'
 import type { EditWall } from '../profile/sector-access'
 import { isLayerOff, PICK_RADIUS, wallNear } from '../view/plan/plan-pick'
-import { planViewport, snapStep, snapValue } from '../view/plan/plan-viewport'
+import { planViewport } from '../view/plan/plan-viewport'
 import { createGeometryCache } from './geometry-cache'
 import type { PlanPointer } from './plan-controller'
+import { type WallPlace, wallPlaceOf } from './wall-place'
 
 export type WallToolKind = 'portal' | 'door' | 'window'
 
@@ -26,21 +24,6 @@ export type WallEffect =
   | { readonly action: 'portal'; readonly to: string }
   /** Nothing: the sentence a tap would be refused with. */
   | { readonly action: 'none'; readonly reason: string }
-
-/** The wall the pointer is on and where along it. */
-export interface WallPlace {
-  readonly sector: string
-  /** The corner that starts the wall, in the sector's outline as the document writes it. */
-  readonly corner: number
-  /** What the wall selects: `wall:<sector>/<corner>`. */
-  readonly selection: string
-  /** In metres. */
-  readonly length: number
-  /** Metres from the start of the wall: the point of it nearest the pointer, rounded (5 cm, 1 cm with Shift, none with Alt). */
-  readonly along: number
-  /** The world point at `along`, for the view to paint a tick at. */
-  readonly point: Point
-}
 
 export type WallTarget = WallPlace & WallEffect
 
@@ -105,30 +88,9 @@ export function createWallTool<D>(editor: LevelEditor<D>, canvas: Size, options:
     const { hidden, locked } = editor.view.state
     if (isLayerOff({ hidden, locked }, 'walls')) return undefined
     const hit = wallNear(layers, select, currentViewport(), at, PICK_RADIUS[at.kind])
-    const ref = hit === undefined ? undefined : parseSelection(hit.selection)
-    if (hit === undefined || ref?.kind !== 'wall') return undefined
-    const found = editor.profile.sectors.list(editor.level).find((candidate) => candidate.id === ref.sector)
-    const start = found?.corners[ref.corner]
-    if (found === undefined || start === undefined) return undefined
-    const end = cornerAt(found.corners, ref.corner + 1)
-    const length = snapValue(wallLength(found.corners, ref.corner), 0)
-    // From the document's start of the wall, the measure `setDoor` and `setWindow` use, not the geometry's.
-    const distance = Math.hypot(hit.at.x - start[0], hit.at.z - start[1])
-    const along = Math.min(length, snapValue(distance, snapStep({ shiftKey: at.shift, altKey: at.alt })))
-    // A wall of no length has a neighbour at its point that is as near, and wins the pick, so `length` is not 0 here.
-    const fraction = along / length
-    return {
-      sector: ref.sector,
-      corner: ref.corner,
-      selection: hit.selection,
-      length,
-      along,
-      point: {
-        x: snapValue(start[0] + (end[0] - start[0]) * fraction, 0),
-        z: snapValue(start[1] + (end[1] - start[1]) * fraction, 0),
-      },
-      ...effect(ref.sector, ref.corner, start[2]),
-    }
+    const placed = hit === undefined ? undefined : wallPlaceOf(editor, hit, at)
+    if (placed === undefined) return undefined
+    return { ...placed.place, ...effect(placed.place.sector, placed.place.corner, placed.wall) }
   }
 
   /** The sentence of the last refused tap and the wall it was refused on: it stays while the pointer stays on that wall. */

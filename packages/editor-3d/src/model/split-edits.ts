@@ -63,6 +63,16 @@ function tiedProblem<D>(profile: LevelProfile<D>, level: D, sector: EditSector):
   return pinnedProblem(profile, level, sector.id, 'cut')
 }
 
+/**
+ * Why the sector cannot be cut by any line, before the line is looked at: what `splitSector` refuses with first. The Split
+ * tool asks it at the first tap, so a sector that cannot be cut is refused there and not at the second. Nothing for a
+ * sector the level does not have: the edit has its own sentence for that.
+ */
+export function cutProblem<D>(profile: LevelProfile<D>, level: D, id: string): string | undefined {
+  const sector = sectorOf(profile, level, id)
+  return sector === undefined ? undefined : tiedProblem(profile, level, sector)
+}
+
 /** The two ends of the cut on the outline of the sector, or the sentence for why they are not a cut of it. */
 function endsOf(sector: EditSector, from: Point, to: Point): readonly [Spot, Spot] | string {
   if (![...from, ...to].every(Number.isFinite)) return 'the cut must be two points'
