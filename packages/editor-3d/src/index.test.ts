@@ -98,6 +98,12 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the entity checks: the values, places and single definitions, and the refs', () => {
+    for (const name of ['entityProblems', 'entityRefProblems']) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('exports the view core: the plan, the meshes, the camera and what they pick', () => {
     for (const name of [
       'selectionOf',
@@ -166,6 +172,11 @@ describe('public entry', () => {
     ]) {
       expect(editor3d, name).toHaveProperty(name)
     }
+  })
+
+  it('exports the wall tools and what one wall can be offered, and keeps the geometry cache inside', () => {
+    for (const name of ['createWallTool', 'wallPortal']) expect(editor3d, name).toHaveProperty(name)
+    expect(editor3d).not.toHaveProperty('createGeometryCache')
   })
 
   it('keeps test helpers and the verification guard out', () => {

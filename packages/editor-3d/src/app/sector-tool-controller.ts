@@ -14,11 +14,10 @@ import { type PortalOffer, portalOffers } from '../model/portal-offers'
 import { addSector } from '../model/sector-edits'
 import { parseSelection } from '../model/selection-ref'
 import { setWallKind } from '../model/wall-edits'
-import { GeometryError, type GeometryLayer } from '../profile/level-profile'
 import { PICK_RADIUS } from '../view/plan/plan-pick'
 import { type SnapResult, snapPlan } from '../view/plan/plan-snap'
 import { planViewport, snapValue, toScreen } from '../view/plan/plan-viewport'
-import { type SelectionOf, selectionOf } from '../view/selection-of'
+import { createGeometryCache } from './geometry-cache'
 import type { PlanPointer } from './plan-controller'
 
 /** One edge of the drawing: a placed one, or the pending one from the last corner to where the pointer would place the next. */
@@ -95,12 +94,6 @@ const samePoint = (a: Point, b: Point): boolean => a.x === b.x && a.z === b.z
 const ALREADY_A_CORNER = 'that point is already a corner'
 const ANSWER_THE_OFFERS = 'answer the portal offers first'
 
-interface Geometry<D> {
-  readonly level: D
-  readonly layers: readonly GeometryLayer[]
-  readonly select: SelectionOf
-}
-
 export interface SectorToolOptions {
   /** The id of the sector being added, from the ids the level has taken: `sector-N`, the lowest N that is free, when not given. */
   readonly id?: ((taken: readonly string[]) => string) | undefined
@@ -127,20 +120,7 @@ export function createSectorTool<D>(
   /** The open step of a sector just closed, and the portals still to answer. */
   let offering: { readonly session: EditSession<D>; readonly offers: readonly PortalOffer[] } | undefined
 
-  /** The geometry and the selection ids of the level last seen, by identity: a hover costs a snap and not a rebuild. */
-  let cache: Geometry<D> | undefined
-  const geometry = (): Geometry<D> => {
-    const level = editor.level
-    if (cache?.level === level) return cache
-    let layers: readonly GeometryLayer[] = []
-    try {
-      layers = editor.profile.geometry(level).layers
-    } catch (error) {
-      if (!(error instanceof GeometryError)) throw error
-    }
-    cache = { level, layers, select: selectionOf(editor.profile, level) }
-    return cache
-  }
+  const geometry = createGeometryCache(editor)
 
   const currentViewport = (): Viewport2D => planViewport(editor.view.state.camera, size)
 

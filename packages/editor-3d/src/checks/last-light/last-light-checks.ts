@@ -1,11 +1,13 @@
 // The Last Light checks as one run over a blockout: Last Light's `validate` (scripts/pipeline/blockout-lib.ts, 92e6704)
-// with each problem located, and the generic checks that are new here after its own. Its order and short-circuits are
+// with each problem located, and the generic checks that are new here (`overlap`, `heights`, and `entities` last). Its order and short-circuits are
 // kept: a document that does not expand answers `expand` alone, one whose portals name a room that is not there answers
 // `ids` and `rooms`, and anything else runs every check.
 import type { Blockout } from '../../format/blockout.schema'
 import { BlockoutError, type Expanded, expand } from '../../format/expand'
 import { type ResolvedMap, resolveMap } from '../../geometry/sectors'
+import { lastLightEntityKit } from '../../profile/last-light-entities'
 import { type CheckResult, checkResult } from '../check'
+import { entityProblems } from '../entities'
 import { genericChecks } from '../generic-checks'
 import { roomsProblem } from '../rooms-problem'
 import { wallLocator } from '../wall-locator'
@@ -44,5 +46,9 @@ export function lastLightChecks(blockout: Blockout, options: LastLightOptions = 
   const nav = checkResult('nav', navProblems(blockout, expanded, map), {
     ok: `${Object.keys(expanded.nodes).length} nodes, ${expanded.edges.length} edges clear; ${expanded.hotspots.length} hotspots reachable`,
   })
-  return [ids, sharedWalls, openings, overlap, heights, puzzle, nav]
+  const kit = lastLightEntityKit(blockout)
+  const entities = checkResult('entities', entityProblems(kit, map), {
+    ok: `${kit.things.length} things of ${kit.definitions.length} definitions`,
+  })
+  return [ids, sharedWalls, openings, overlap, heights, puzzle, nav, entities]
 }
