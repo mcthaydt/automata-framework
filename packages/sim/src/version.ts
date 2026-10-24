@@ -3,4 +3,4 @@
  * rather than a build-time define, so workspace tests and un-built replays carry the real version; M2.4's
  * version step updates it with package.json, and version.test.ts keeps the two equal.
  */
-export const SIM_VERSION: string = '0.0.2'
+export const SIM_VERSION: string = '0.0.3'
