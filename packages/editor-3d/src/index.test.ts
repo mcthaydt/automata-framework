@@ -104,6 +104,12 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the checks that take the game’s lists: materials, lamps and the room policy', () => {
+    for (const name of ['materialProblems', 'lampProblems', 'DEFAULT_TONE', 'roomPolicyProblems']) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it('exports the view core: the plan, the meshes, the camera and what they pick', () => {
     for (const name of [
       'selectionOf',

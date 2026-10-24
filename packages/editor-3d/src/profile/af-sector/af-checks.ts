@@ -1,7 +1,8 @@
 // The checks of an `af-sector/1` level, as Last Light's are run over a blockout: names are unique and refs resolve, and
 // then the generic checks over the sectors the level builds. The order and the early-outs are Last Light's: a level that cannot be
 // built answers `build` alone (Last Light's `expand`), one whose portals name a sector that is not there answers `ids`
-// and `rooms`, and anything else runs every check, the `entities` check last (ED3D.1b2's kit, ED3D.2b-1).
+// and `rooms`, and anything else runs every check, the `entities` and `materials` checks last (ED3D.1b2's kit,
+// ED3D.2b).
 
 import {
   type CheckResult,
@@ -16,6 +17,7 @@ import {
 import { entityProblems } from '../../checks/entities'
 import { entityRefProblems } from '../../checks/entity-refs'
 import { genericChecks } from '../../checks/generic-checks'
+import { materialProblems } from '../../checks/materials'
 import { roomsProblem } from '../../checks/rooms-problem'
 import { wallLocator } from '../../checks/wall-locator'
 import type { AfSector } from '../../format/af-sector.schema'
@@ -89,5 +91,12 @@ export function afSectorChecks(level: AfSector): CheckResult[] {
   const entities = checkResult('entities', entityProblems(kit, map), {
     ok: `${kit.things.length} things of ${kit.definitions.length} definitions`,
   })
-  return [ids, ...genericChecks({ map, wall: wallLocator(level.sectors) }), entities]
+  const wall = wallLocator(level.sectors)
+  const table = level.materials === undefined ? null : Object.keys(level.materials)
+  const materials = checkResult(
+    'materials',
+    table === null ? [] : materialProblems({ map, wall }, new Set(table)),
+    { ok: table === null ? 'no materials table' : `within the table of ${table.length} materials` },
+  )
+  return [ids, ...genericChecks({ map, wall }), entities, materials]
 }
