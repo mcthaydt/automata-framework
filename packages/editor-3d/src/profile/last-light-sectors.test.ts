@@ -106,6 +106,41 @@ describe('the Last Light access: list and withSectors', () => {
   })
 })
 
+describe('the Last Light access refuses the members only af-sector/1 has', () => {
+  it('refuses a room with a view id, since the game reads none', () => {
+    const sectors = lastLightSectorAccess
+      .list(dawn.level)
+      .map((sector) => (sector.id === 'hall' ? { ...sector, view: 'hall-view' } : sector))
+    expect(() => lastLightSectorAccess.withSectors(dawn.level, sectors)).toThrow(SectorAccessError)
+    expect(() => lastLightSectorAccess.withSectors(dawn.level, sectors)).toThrow(
+      'sector hall has a view id, which a Last Light room cannot hold',
+    )
+  })
+
+  it('refuses a wall with an occlude, and says which sector and corner', () => {
+    const sectors = lastLightSectorAccess.list(dawn.level).map((sector) =>
+      sector.id === 'hall'
+        ? {
+            ...sector,
+            corners: sector.corners.map((corner, i) =>
+              i === 1 ? [corner[0], corner[1], { occlude: 'fade' }] : corner,
+            ),
+          }
+        : sector,
+    ) as EditSector[]
+    expect(() => lastLightSectorAccess.withSectors(dawn.level, sectors)).toThrow(SectorAccessError)
+    expect(() => lastLightSectorAccess.withSectors(dawn.level, sectors)).toThrow(
+      'wall 1 of sector hall has an occlude, which a Last Light wall cannot hold',
+    )
+  })
+
+  it('still takes the room with neither', () => {
+    expect(lastLightSectorAccess.withSectors(dawn.level, lastLightSectorAccess.list(dawn.level))).toBe(
+      dawn.level,
+    )
+  })
+})
+
 describe('the Last Light access: takenIds and create', () => {
   it('takes the ids of the rooms and of the openings', () => {
     expect(lastLightSectorAccess.takenIds(dawn.level)).toEqual([

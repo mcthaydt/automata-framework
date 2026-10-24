@@ -7,7 +7,7 @@
 // This is a blockout, not Last Light's dressed room: no trim, wall tops, masses, casings or panes. A wall has openings
 // where a door or a window is, a closed `door` panel fills the door's, and a portal leaves only the strips its neighbour
 // does not open (`pieces`). A door or a window on a portal wall is not drawn: a portal is an opening already.
-import type { Point } from '../../format/sector.schema'
+import type { Occlude, Point } from '../../format/sector.schema'
 import { type Edge, pieces, type Sector } from '../../geometry/sectors'
 import { triangulate } from '../../geometry/triangulate'
 import type { GeometryLayer } from '../../profile/level-profile'
@@ -25,6 +25,11 @@ export interface Surface {
   /** What the app selects when the surface is touched; nothing for a surface of a connector sector. */
   readonly selection: string | undefined
   readonly normal: Vec3
+  /**
+   * How the angled camera treats it (`mesh-pick`'s `surfaceVisibility`): a wall says it (`cut` when it says nothing), a
+   * floor never goes, a ceiling is cut away like the near walls.
+   */
+  readonly occlude: Occlude
   /** 0 to 1: how bright the surface is drawn, from its light and the way it faces. */
   readonly shade: number
   /** `x, y, z` for each point. */
@@ -143,6 +148,12 @@ function faceRects(length: number, low: number, high: number, openings: readonly
 const pointAlong = (edge: Edge, along: number): Point =>
   along >= edge.length ? edge.b : { x: edge.a.x + edge.dir.x * along, z: edge.a.z + edge.dir.z * along }
 
+/** What a wall asks of the angled camera: `cut` unless it says `fade` or `never` (a value the format does not know is `cut`). */
+const occludeOf = (edge: Edge): Occlude => {
+  const { occlude } = edge.wall
+  return occlude === 'fade' || occlude === 'never' ? occlude : 'cut'
+}
+
 function wallSurface(role: SurfaceRole, edge: Edge, rects: readonly Rect[], select: SelectionOf): Surface {
   const positions: number[] = []
   const indices: number[] = []
@@ -159,6 +170,7 @@ function wallSurface(role: SurfaceRole, edge: Edge, rects: readonly Rect[], sele
     sector: edge.sector.id,
     selection: select.edge(edge),
     normal,
+    occlude: occludeOf(edge),
     shade: faceShade(normal, edge.sector.light),
     positions,
     indices,
@@ -199,6 +211,7 @@ function flatSurfaces(sector: Sector, select: SelectionOf): Surface[] {
     sector: sector.id,
     selection,
     normal,
+    occlude: role === 'floor' ? 'never' : 'cut',
     shade: faceShade(normal, sector.light),
     positions: points.flatMap((p) => [p.x, y, p.z]),
     indices,

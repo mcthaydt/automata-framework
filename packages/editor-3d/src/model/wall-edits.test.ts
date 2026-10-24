@@ -13,7 +13,7 @@ import { toyAfSector } from '../testing/toy-af-sector'
 import { must } from '../testing/toy-blockout'
 import type { Edit } from './edit'
 import { createLevelEditor } from './level-editor'
-import { setDoor, setWallFlags, setWallKind, setWallMaterial, setWindow } from './wall-edits'
+import { setDoor, setWallFlags, setWallKind, setWallMaterial, setWallOcclude, setWindow } from './wall-edits'
 
 const depot = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
@@ -420,6 +420,7 @@ describe('wall edits: what they all refuse and how they are named', () => {
       expect(reasonOf(afRun(setWindow({ sector: 'hall', corner, at: 1 })))).toBe(reason)
       expect(reasonOf(afRun(setWallMaterial({ sector: 'hall', corner, texture: 'brick' })))).toBe(reason)
       expect(reasonOf(afRun(setWallFlags({ sector: 'hall', corner, handrail: 1 })))).toBe(reason)
+      expect(reasonOf(afRun(setWallOcclude({ sector: 'hall', corner, occlude: 'fade' })))).toBe(reason)
     }
   })
 
@@ -456,6 +457,12 @@ describe('wall edits: what they all refuse and how they are named', () => {
       'wall.setFlags',
       'Set the flags of wall 2 of hall',
       'flags:hall/2',
+    ])
+    const occlude = setWallOcclude({ ...wall, occlude: 'fade' })
+    expect([occlude.id, occlude.label, occlude.coalesce]).toEqual([
+      'wall.setOcclude',
+      'Set how wall 2 of hall is cut away',
+      'occlude:hall/2',
     ])
   })
 })
@@ -654,6 +661,56 @@ describe('wall.setMaterial', () => {
     expect(reasonOf(afRun(setWallMaterial({ sector: 'hall', corner: 2, texture: '  ' })))).toBe(
       'a texture is a name, not empty',
     )
+  })
+})
+
+describe('wall.setOcclude (ED3D.4b)', () => {
+  const occlude = (corner: number, value: Parameters<typeof setWallOcclude>[0]['occlude'], level = depot) =>
+    afOn(level, setWallOcclude({ sector: 'hall', corner, occlude: value }))
+
+  it('sets what the angled camera does to a wall, changes it and clears it, dropping the wall when nothing else is left', () => {
+    const set = levelOf(occlude(2, 'never'))
+    expect(sector(set, 'hall').corners[2]).toEqual([8, 6, { occlude: 'never' }])
+    const swapped = levelOf(occlude(2, 'fade', set))
+    expect(wallAt(swapped, 'hall', 2)).toEqual({ occlude: 'fade' })
+    const cleared = levelOf(occlude(2, null, swapped))
+    expect(cleared).toEqual(depot)
+    expect(must(sector(cleared, 'hall').corners[2])).toHaveLength(2)
+  })
+
+  it('writes cut as written when asked, which is not the same as saying nothing', () => {
+    expect(wallAt(levelOf(occlude(2, 'cut')), 'hall', 2)).toEqual({ occlude: 'cut' })
+  })
+
+  it('keeps what else is on the wall, on a portal too', () => {
+    const next = levelOf(occlude(1, 'fade'))
+    expect(wallAt(next, 'hall', 1)).toEqual({ next: 'dock', occlude: 'fade' })
+    expect(levelOf(occlude(1, null, next))).toEqual(depot)
+  })
+
+  it('changes nothing for the value the wall has already, or none to clear', () => {
+    const set = levelOf(occlude(2, 'fade'))
+    expect(levelOf(occlude(2, 'fade', set))).toBe(set)
+    expect(levelOf(occlude(2, null))).toBe(depot)
+  })
+
+  it('refuses a sector that is not there', () => {
+    expect(afRun(setWallOcclude({ sector: 'nowhere', corner: 0, occlude: 'fade' }))).toEqual({
+      ok: false,
+      reason: 'no sector nowhere',
+    })
+  })
+
+  it('refuses a value that is not one of the three', () => {
+    for (const value of ['hide', '', 'Fade'])
+      expect(reasonOf(occlude(2, value as 'fade'))).toBe('occlude is cut, fade or never')
+  })
+
+  it('is refused on a Last Light level, which has its own cutaway groups', () => {
+    expect(reasonOf(llRun(setWallOcclude({ sector: 'hall', corner: 4, occlude: 'fade' })))).toBe(
+      'wall 4 of sector hall has an occlude, which a Last Light wall cannot hold',
+    )
+    expect(levelOf(llRun(setWallOcclude({ sector: 'hall', corner: 4, occlude: null })))).toBe(dawn)
   })
 })
 

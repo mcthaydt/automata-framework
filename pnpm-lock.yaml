@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  zod: 4.6.6
+
 importers:
 
   .:
@@ -48,8 +51,8 @@ importers:
         specifier: 5.57.1
         version: 5.57.1
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
@@ -107,8 +110,8 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
 
   examples/physics/bodies-2d:
     dependencies:
@@ -134,8 +137,8 @@ importers:
         specifier: 8.21.0
         version: 8.21.0
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
@@ -195,8 +198,8 @@ importers:
         specifier: 5.57.1
         version: 5.57.1
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
@@ -299,8 +302,8 @@ importers:
         specifier: 5.57.1
         version: 5.57.1
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-check-boundaries':
         specifier: workspace:*
@@ -434,8 +437,8 @@ importers:
         specifier: 1.9.0
         version: 1.9.0
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -474,8 +477,8 @@ importers:
         specifier: 2.9.0
         version: 2.9.0
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -514,8 +517,8 @@ importers:
         specifier: 1.9.0
         version: 1.9.0
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@types/node':
         specifier: 24.19.1
@@ -539,8 +542,8 @@ importers:
         specifier: workspace:*
         version: link:../editor-kit
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@types/node':
         specifier: 24.19.1
@@ -561,8 +564,8 @@ importers:
         specifier: workspace:*
         version: link:../ui
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
@@ -634,8 +637,8 @@ importers:
         specifier: 3.22.2
         version: 3.22.2
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
@@ -692,8 +695,8 @@ importers:
         specifier: 3.22.2
         version: 3.22.2
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@ruken/sdk':
         specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
@@ -730,8 +733,8 @@ importers:
         specifier: workspace:*
         version: link:../sim
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
@@ -764,8 +767,8 @@ importers:
         specifier: 3.22.2
         version: 3.22.2
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
@@ -819,8 +822,8 @@ importers:
         specifier: 3.22.2
         version: 3.22.2
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@inlang/paraglide-js':
         specifier: 2.25.4
@@ -883,8 +886,8 @@ importers:
         specifier: 3.3.1
         version: 3.3.1
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@ruken/cli':
         specifier: file:../../vendor/ruken/ruken-cli-0.0.0.tgz
@@ -908,8 +911,8 @@ importers:
         specifier: 0.6.6
         version: 0.6.6
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/evidence':
         specifier: workspace:*
@@ -930,8 +933,8 @@ importers:
         specifier: workspace:*
         version: link:../sim
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/evidence':
         specifier: workspace:*
@@ -1021,8 +1024,8 @@ importers:
   tooling/agent-skills:
     dependencies:
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-sim':
         specifier: workspace:*
@@ -1064,8 +1067,8 @@ importers:
         specifier: 0.152.0
         version: 0.152.0
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@types/node':
         specifier: 24.19.1
@@ -1111,8 +1114,8 @@ importers:
   tooling/evidence:
     dependencies:
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@types/node':
         specifier: 24.19.1
@@ -1173,8 +1176,8 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
 
   tooling/frame-budget:
     dependencies:
@@ -1200,8 +1203,8 @@ importers:
         specifier: 5.57.1
         version: 5.57.1
       zod:
-        specifier: 4.6.5
-        version: 4.6.5
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
@@ -3869,8 +3872,8 @@ packages:
   zimmerframe@1.1.5:
     resolution: {integrity: sha512-msJxIvYDYcoNL+PJsu+7qmpDWsYmAxTY+2TNYXXF0hzBzBk0BMecOqDOG/EckUoKCuKwObfbugIl8QpqHDXeFA==}
 
-  zod@4.6.5:
-    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
+  zod@4.6.6:
+    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
 
 snapshots:
 
@@ -4614,7 +4617,7 @@ snapshots:
       smol-toml: 1.9.0
       yauzl: 3.4.0
       yazl: 3.3.1
-      zod: 4.6.5
+      zod: 4.6.6
 
   '@ruken/manifest@file:vendor/ruken/ruken-manifest-0.0.0.tgz':
     dependencies:
@@ -4622,7 +4625,7 @@ snapshots:
 
   '@ruken/sdk-host@file:vendor/ruken/ruken-sdk-host-0.0.0.tgz':
     dependencies:
-      zod: 4.6.5
+      zod: 4.6.6
 
   '@ruken/sdk@file:vendor/ruken/ruken-sdk-0.0.0.tgz': {}
 
@@ -5392,7 +5395,7 @@ snapshots:
       tinyglobby: 0.2.17
       unbash: 4.0.12
       yaml: 2.9.1
-      zod: 4.6.5
+      zod: 4.6.6
 
   koota@0.6.6: {}
 
@@ -6203,4 +6206,4 @@ snapshots:
 
   zimmerframe@1.1.5: {}
 
-  zod@4.6.5: {}
+  zod@4.6.6: {}
