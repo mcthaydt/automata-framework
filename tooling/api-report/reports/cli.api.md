@@ -152,7 +152,7 @@ interface RunCheckOptions {
 ### `StepName` (type)
 
 ```ts
-type StepName = 'boundaries' | 'typecheck' | 'test' | 'boards' | 'no-eval' | 'secrets' | 'csp';
+type StepName = 'boundaries' | 'typecheck' | 'test' | 'boards' | 'orientation' | 'inputs' | 'no-eval' | 'secrets' | 'csp';
 ```
 
 ### `StepResult` (interface)

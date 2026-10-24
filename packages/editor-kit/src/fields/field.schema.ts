@@ -37,19 +37,48 @@ export const fieldDefSchema: z.ZodType<FieldDef> = z
     }
   })
 
+/**
+ * The keys of an entity definition, for an editor to extend (`z.strictObject({ ...entityDefShape, shape: … })`) so
+ * its own entity schema never copies the kit's keys (`EntityDef2D = EntityDef & { shape, size, … }`).
+ */
+export const entityDefShape: {
+  id: z.ZodString
+  label: z.ZodOptional<z.ZodString>
+  color: z.ZodOptional<z.ZodString>
+  single: z.ZodOptional<z.ZodBoolean>
+  fields: z.ZodArray<z.ZodType<FieldDef>>
+} = {
+  id: z.string(),
+  label: z.string().optional(),
+  color: z.string().optional(),
+  single: z.boolean().optional(),
+  fields: z.array(fieldDefSchema),
+}
+
+export interface EntityDefIssue {
+  readonly message: string
+  /** Mutable, so it can be handed to `ctx.addIssue` as it is. */
+  readonly path: (string | number)[]
+}
+
+/**
+ * The entity-level problems of a definition, for `superRefine`: its id and color, and a repeated field id at the later
+ * field's path. A field's own problems are reported by `fieldDefSchema` at the field's path, so they are not repeated.
+ */
+export function entityDefIssues(def: EntityDef): readonly EntityDefIssue[] {
+  const issues: EntityDefIssue[] = []
+  for (const problem of checkEntityDef(def)) {
+    if (problem.fieldIndex !== undefined && problem.code !== 'duplicateFieldId') continue
+    issues.push({
+      message: problem.message,
+      path: problem.fieldIndex === undefined ? [] : ['fields', problem.fieldIndex],
+    })
+  }
+  return issues
+}
+
 export const entityDefSchema: z.ZodType<EntityDef> = z
-  .strictObject({
-    id: z.string(),
-    label: z.string().optional(),
-    color: z.string().optional(),
-    single: z.boolean().optional(),
-    fields: z.array(fieldDefSchema),
-  })
+  .strictObject(entityDefShape)
   .superRefine((def, ctx) => {
-    // A field's own problems were reported by `fieldDefSchema` at the field's path; add only the entity-level ones.
-    for (const problem of checkEntityDef(def as EntityDef)) {
-      if (problem.fieldIndex !== undefined && problem.code !== 'duplicateFieldId') continue
-      const path = problem.fieldIndex === undefined ? [] : ['fields', problem.fieldIndex]
-      ctx.addIssue({ code: 'custom', message: problem.message, path })
-    }
+    for (const issue of entityDefIssues(def)) ctx.addIssue({ code: 'custom', ...issue })
   })

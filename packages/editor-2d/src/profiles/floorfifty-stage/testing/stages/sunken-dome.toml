@@ -1,0 +1,191 @@
+# A glass aquarium dome under the sea: mantas, coral, and a distant spired
+# city through the glass (cover 6's mood, D-S1).
+# Its floors are its own: seed 107255 from the 50-floor survey
+# (packages/content/bin/survey-seeds.ts), chosen on 2026-09-30 as the sharper
+# of the survey's two best (combine 0.61, finish 0.76, three laps in 38.9 s).
+# seed and courseTuning reach this stage's courseRevision; the phrases reach
+# contentRevision only.
+id = "sunken-dome"
+displayName = "Sunken Dome"
+platformAlias = "world.sunkenDomePlatform"
+
+[courseTuning]
+
+[course]
+seed = 107255
+
+[[course.phrases]]
+name = "teach"
+fromFloor = 1
+toFloor = 5
+purpose = "Gentle steps up the dome's floor; the bounce carries a first-time player."
+
+[[course.phrases]]
+name = "combine"
+fromFloor = 6
+toFloor = 11
+purpose = "Wide crossings along the glass ribs; the first steps that need a committed line."
+
+[[course.phrases]]
+name = "recover"
+fromFloor = 12
+toFloor = 15
+purpose = "A drift among the coral while the mantas pass overhead."
+
+[[course.phrases]]
+name = "finish"
+fromFloor = 16
+toFloor = 19
+purpose = "A hard climb to the crown of the dome; the last step is makeable, not a coin flip."
+
+# Floors 20-49, climbed by the 50-floor mode and the start of Infinite (race-options spec §4).
+[[course.extension]]
+fromFloor = 20
+toFloor = 29
+purpose = "Alternates long and short: 21, 23 and 29 are long crossings, each followed by a floor that sits nearly overhead."
+
+[[course.extension]]
+fromFloor = 30
+toFloor = 39
+purpose = "Floor 32 is the one step past a single bounce's reach; it moves, so it is taken by riding the floor below until it comes round. 34 and 36 then sit overhead between long reaches."
+
+[[course.extension]]
+fromFloor = 40
+toFloor = 49
+purpose = "The densest finish: 40 to 44 each ask for most of a bounce, then 45 sits overhead and 46 to 49 ease into a moderate last pair."
+
+# The sky plate is the water and the city beyond the glass. Fish and mantas
+# drift across it; the deep has no sun or moon of its own.
+[theme]
+backdropAlias = "world.sunkenDomeSky"
+previewAlias = "still.sunkenDomePreview"
+# The bed under the race: this stage\'s own air (stage ascent spec §6).
+ambienceAlias = "ambience.sunkenDome"
+
+# The layers follow the approved ascent board
+# (docs/art/explorations/2026-10-01-stage-ascent/sunken-dome.png): open
+# water with the far city at its foot, mantas and fish drifting apart, the
+# spired city, the dome's ribs and kelp, the coral, and its details. The sky
+# plate's foot stands where Dawn's does (sink 440).
+[[theme.layers]]
+alias = "world.sunkenDomeSky"
+plate = "sky"
+depth = 0.06
+sink = 440
+extend = "plate"
+
+# Mantas glide slowly, high in the water; the fish schools nearer and quicker.
+[[theme.layers]]
+alias = "world.sunkenDomeMantas"
+plate = "sky"
+depth = 0.06
+sink = 40
+extend = "none"
+drift = 0.3
+
+[[theme.layers]]
+alias = "world.sunkenDomeFish"
+plate = "sky"
+depth = 0.08
+sink = 0
+extend = "none"
+drift = 1.2
+
+# The depth haze on the skylines (phase 1 §2.4) keeps the scene calm and
+# low-contrast right behind the platforms, as Rooftops does: the city most,
+# the ribs half as much, the coral not at all.
+[[theme.layers]]
+alias = "world.sunkenDomeFar"
+plate = "city"
+depth = 0.15
+sink = 240
+haze = 0.35
+extend = "skirt"
+
+[[theme.layers]]
+alias = "world.sunkenDomeMid"
+plate = "city"
+depth = 0.24
+sink = 270
+haze = 0.15
+extend = "skirt"
+
+[[theme.layers]]
+alias = "world.sunkenDomeNear"
+plate = "city"
+depth = 0.35
+sink = 290
+haze = 0
+extend = "skirt"
+
+[[theme.layers]]
+alias = "world.sunkenDomeDetails"
+plate = "city"
+depth = 0.42
+sink = 180
+extend = "none"
+
+[theme.presentation]
+profile = "aquarian"
+refractionIntensity = 0.6
+horizonLift = 16
+
+# The ascent arc (launch polish spec §2.8 item 11): how far the near skyline
+# has fallen away below the climb by the end of each phrase. Rooftops' values
+# to start, so the finish rises to the crown of the dome the board's last
+# panel shows; tuned from the stage-ascent captures.
+[theme.presentation.citySink]
+teach = 0
+combine = 40
+recover = 120
+finish = 560
+
+# Set pieces (Wonder spec §6.4): the story of a climb, each placed on a
+# fifty-floor race and scaled to any other (a 20-floor race plays floor 45 at
+# its floor 18; Infinite repeats the arc every 50 floors). Pieces sharing a
+# floor play together. Cosmetic: they reach contentRevision only.
+
+[[theme.setPieces]]
+floor = 10
+kind = "swarm"
+holdMs = 6000
+layers = ["world.sunkenDomeMantas"]
+speed = 6
+
+[[theme.setPieces]]
+floor = 22
+kind = "paletteShift"
+holdMs = 10000
+mood = "bright"
+
+[[theme.setPieces]]
+floor = 34
+kind = "swarm"
+holdMs = 6000
+layers = ["world.sunkenDomeFish"]
+speed = 12
+
+[[theme.setPieces]]
+floor = 34
+kind = "weatherBurst"
+holdMs = 6000
+particle = "bubble"
+density = 0.5
+
+[[theme.setPieces]]
+floor = 45
+kind = "lightsOut"
+holdMs = 3000
+
+[[theme.setPieces]]
+floor = 45
+kind = "paletteShift"
+holdMs = 6000
+mood = "deepWater"
+
+[[theme.setPieces]]
+floor = 50
+kind = "swarm"
+holdMs = 5000
+layers = ["world.sunkenDomeMantas", "world.sunkenDomeFish"]
+speed = 14
