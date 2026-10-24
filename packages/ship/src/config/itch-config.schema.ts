@@ -19,6 +19,7 @@ export interface ItchSettings {
 
 const SLUG = /^[a-z0-9][a-z0-9._-]*$/
 
+/** Checks a game's `itch` section: `project` is `user/game` in lower case, and `channel` defaults to `html5`. */
 export const itchConfigSchema: z.ZodType<ItchSettings, ItchConfig> = z.object({
   project: z
     .string()

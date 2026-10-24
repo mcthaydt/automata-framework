@@ -23,6 +23,7 @@ import {
 } from './itch-checks.ts'
 import { writeDeterministicZip } from './itch-zip.ts'
 
+/** What `prepareItch` checks and zips: the built folder, the ship config and the release tag. */
 export interface PrepareItchInput {
   /** The built game folder. It is checked and zipped as it is; nothing is written into it. */
   readonly distDir: string

@@ -10,6 +10,7 @@ import { type PrepareItchError, prepareItch } from '../targets/prepare-itch.ts'
 // channel's last build, so it pushes the folder, not the zip. Its output is shown as it runs and its exit code
 // becomes ship's; nothing is retried (§8).
 
+/** What `publishToItch` needs: the built folder, the ship config, the tag, the key and where butler is. */
 export interface PublishItchInput {
   /** The built game folder. */
   readonly distDir: string
@@ -51,6 +52,11 @@ or into the repository's BUTLER_API_KEY secret for CI. See https://itch.io/docs/
 const NO_BUTLER = `butler is not on PATH. Install it from https://itch.io/docs/butler/installing.html
 (CI: download it from https://broth.itch.zone/butler).`
 
+/**
+ * Prepares the build for itch.io (every check of `prepareItch`), then pushes the folder with butler. It fails
+ * before any zip or process when the `itch` section, the key or butler is missing, relays butler's exit code, and
+ * retries nothing. `firstPush` is true when butler says the channel had no build yet.
+ */
 export function publishToItch(
   input: PublishItchInput,
 ): Effect.Effect<{ firstPush: boolean }, PublishItchError, ProcessRunner> {

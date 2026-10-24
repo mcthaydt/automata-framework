@@ -35,6 +35,14 @@ function buildIdFor(commit: {
 }): string;
 ```
 
+### `ButlerFailed` (class)
+
+```ts
+class ButlerFailed extends ButlerFailedBase {
+    get message(): string;
+}
+```
+
 ### `checkManifest` (function)
 
 ```ts
@@ -143,6 +151,12 @@ class FileError extends FileErrorBase {
 }
 ```
 
+### `findExecutable` (function)
+
+```ts
+function findExecutable(name: string, pathEnv?: string, platform?: NodeJS.Platform): string | undefined;
+```
+
 ### `findInputsProblems` (function)
 
 ```ts
@@ -201,6 +215,77 @@ const isInputsSource: (file: string) => boolean;
 
 ```ts
 const isOrientationSource: (file: string) => boolean;
+```
+
+### `ITCH_FIRST_PUSH_CHECKLIST` (const)
+
+```ts
+const ITCH_FIRST_PUSH_CHECKLIST: string;
+```
+
+### `ITCH_LIMITS` (const)
+
+```ts
+const ITCH_LIMITS: {
+    readonly maxFiles: number;
+    readonly maxPathLength: number;
+    readonly maxFileBytes: number;
+    readonly maxTotalBytes: number;
+};
+```
+
+### `ITCH_LIMITS_SOURCE` (const)
+
+```ts
+const ITCH_LIMITS_SOURCE: {
+    readonly url: string;
+    readonly read: string;
+};
+```
+
+### `ItchBuildInvalid` (class)
+
+```ts
+class ItchBuildInvalid extends ItchBuildInvalidBase {
+    get message(): string;
+}
+```
+
+### `ItchCheck` (type)
+
+```ts
+type ItchCheck = 'entry' | 'file-count' | 'path-length' | 'file-size' | 'case' | 'ruken-toml';
+```
+
+### `ItchConfig` (interface)
+
+```ts
+interface ItchConfig {
+    readonly project: string;
+    readonly channel?: string | undefined;
+}
+```
+
+### `itchConfigSchema` (const)
+
+```ts
+const itchConfigSchema: z.ZodType<ItchSettings, ItchConfig>;
+```
+
+### `ItchSettingMissing` (class)
+
+```ts
+class ItchSettingMissing extends ItchSettingMissingBase {
+}
+```
+
+### `ItchSettings` (interface)
+
+```ts
+interface ItchSettings {
+    readonly project: string;
+    readonly channel: string;
+}
 ```
 
 ### `keysBindingsIn` (function)
@@ -287,6 +372,25 @@ interface PrepareInput {
 }
 ```
 
+### `prepareItch` (function)
+
+```ts
+function prepareItch(input: PrepareItchInput): Effect.Effect<{
+    zipPath: string;
+}, PrepareItchError>;
+```
+
+### `PrepareItchInput` (interface)
+
+```ts
+interface PrepareItchInput {
+    readonly distDir: string;
+    readonly config: ShipConfig;
+    readonly tag?: string | undefined;
+    readonly gameDir?: string | undefined;
+}
+```
+
 ### `ProcessError` (class)
 
 ```ts
@@ -325,6 +429,19 @@ interface PublishInput {
 }
 ```
 
+### `PublishItchInput` (interface)
+
+```ts
+interface PublishItchInput {
+    readonly distDir: string;
+    readonly config: ShipConfig;
+    readonly tag?: string | undefined;
+    readonly gameDir?: string | undefined;
+    readonly apiKey: string | undefined;
+    readonly butlerPath: string | undefined;
+}
+```
+
 ### `PublishRejected` (class)
 
 ```ts
@@ -339,6 +456,14 @@ class PublishRejected extends PublishRejectedBase {
 class PublishTimeout extends PublishTimeoutBase {
     get message(): string;
 }
+```
+
+### `publishToItch` (function)
+
+```ts
+function publishToItch(input: PublishItchInput): Effect.Effect<{
+    firstPush: boolean;
+}, PublishItchError, ProcessRunner>;
 ```
 
 ### `publishToRuken` (function)
@@ -427,6 +552,7 @@ interface ShipConfig {
     readonly analytics?: Manifest['analytics'];
     readonly loading?: NonNullable<Manifest['loading']>;
     readonly leaderboards?: Manifest['leaderboards'];
+    readonly itch?: ItchConfig | undefined;
 }
 ```
 
