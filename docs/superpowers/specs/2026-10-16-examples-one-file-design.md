@@ -151,12 +151,12 @@ Each existing demo becomes one or two files. Behavior that only its `e2e/` or un
 
 | Today | Becomes | Behavior tests move to |
 |---|---|---|
-| `runtime/boot-and-flow` | `core/core-screens-and-flow.ts` | Boot failure modes and the veil go to `packages/runtime` browser tests. The Effect-share budget (`budget/effect-share.ts`) goes to the placeholder's S8 budgets. |
+| `runtime/boot-and-flow` | ~~`core/core-screens-and-flow.ts`~~ none (as built, 2026-10-23: [plan](../plans/2026-10-23-ex4-boot-and-flow.md)) | Boot failure modes and the veil go to `packages/runtime` tests (`run-game.test.ts`, `flow/`; the 30 s stall and the host that never says ready run on fake timers). The Effect-share budget is the placeholder's S8 `effectShareBytes`. No example: custom screens need `ScreenDef`, which the umbrella does not export, and the default flow is what every example shows. |
 | `render-pixi/renderer-2d` | `render/render-interpolation.ts`, `render/render-filter.ts` | `packages/render-pixi` (its parity suite already exists) |
 | `host/lifecycle-and-saves` | `core/core-host-lifecycle.ts`, `core/core-saves.ts` (`Host: grant=saves`) | `packages/host` contract tests (denied and offline saves, best-time round trip) |
 | `content/hot-reload` | `content/content-hot-reload.ts` + `resources/content/hot-reload/room.toml` | `packages/content` (schema issues carry their row; the newest save wins) |
 | `ui/primitives` (a fixture viewer, not an example) | `packages/ui` as its dev fixture page; examples `ui/ui-screen-frame.ts`, `ui/ui-action-bar.ts` | Stays with the `ui` layout contracts |
-| `physics/bodies-2d` | `physics/physics-bodies-2d.ts` in `automata-plus` (PRODUCT.5), keeping its golden hash | `packages/physics` (room colliders, collision events) |
+| `physics/bodies-2d` | `physics/physics-bodies-2d.ts` in `automata-plus` (PRODUCT.5), with its own small room and a new golden hash. **Amended 2026-10-23** ([PRODUCT.5 plan](../plans/2026-10-23-product5-plus-repo-and-physics-move.md) P5-D3; hub decision `automata/inbox/2026-10-23-1915-hub-product5-defaults-stand.md`): the old hash `ad621eea6325a8db` hashes Emberwick's sim, which stays in AF, so it cannot survive the move; the old hash is recorded as retired in the move note, and the package's own cross-engine goldens move unchanged | `packages/physics` (room colliders, collision events) |
 | `base-2d` (Emberwick) | `games/emberwick` (EX-D1). Package name `@af-examples/base-2d` is kept; paths are updated where they appear (appendix B). | Unchanged; its journeys and golden must stay green |
 | `placeholder` | `games/placeholder` (the ship lane's page, not an example) | Unchanged |
 | New, written first (EX-D2) | `core/core-basic-window.ts` (DX.2's hello; replaces `examples/game/hello`), `core/core-input-keys.ts`, `shapes/shapes-rects.ts`, `textures/textures-sprite.ts` | — |

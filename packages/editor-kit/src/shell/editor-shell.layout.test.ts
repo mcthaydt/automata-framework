@@ -160,6 +160,61 @@ describe('wide: rail, panel, canvas, inspector, dock beneath, status at the foot
   })
 })
 
+describe('a screen with no rail gives its column and its tab bar to the canvas', () => {
+  test('wide: the panel starts at the edge and the regions still tile the window', async () => {
+    await open(size('ipad-pro-11-landscape'), { rail: false })
+    near(rect('panel').left, 0)
+    near(rect('panel').width, 264)
+    near(rect('canvas').left, rect('panel').right)
+    near(rect('canvas').right, rect('inspector').left)
+    near(rect('inspector').width, 320)
+    near(rect('inspector').right, 1194)
+    near(rect('status').bottom, 834)
+    near(rect('dock').bottom, rect('status').top)
+  })
+
+  test.each([
+    ['ipad-pro-11-portrait', 834, 1194],
+    ['phone-portrait', 390, 844],
+    ['phone-landscape', 844, 390],
+  ])('%s: the status line is the foot of the window', async (name, width, height) => {
+    await open(size(name), { rail: false })
+    near(rect('canvas').width, width)
+    near(rect('status').bottom, height)
+    near(rect('canvas').bottom, rect('status').top)
+    near(rect('canvas').top, rect('topbar').bottom)
+  })
+})
+
+describe('the status line fills the status region', () => {
+  test.each([['ipad-pro-11-landscape'], ['ipad-pro-11-portrait'], ['phone-portrait']])(
+    '%s: edge to edge, with the region’s border and not a second one',
+    async (name) => {
+      const { width } = size(name)
+      await open(size(name), { rail: false, statusLine: true })
+      const line = document.querySelector<HTMLElement>('[data-widget="status-line"]') as HTMLElement
+      near(line.getBoundingClientRect().left, 0)
+      near(line.getBoundingClientRect().width, width)
+      near(line.getBoundingClientRect().height, rect('status').height - 1)
+      expect(getComputedStyle(line).borderTopWidth).toBe('0px')
+      expect(getComputedStyle(region('status')).borderTopWidth).toBe('1px')
+    },
+  )
+})
+
+describe('a screen with no dock does not leave room for one', () => {
+  test('medium: open drawers run to the foot of the canvas, not to where a dock sheet would begin', async () => {
+    await open(size('ipad-pro-11-portrait'), {
+      rail: false,
+      dock: false,
+      panelOpen: true,
+      inspectorOpen: true,
+    })
+    near(rect('panel').bottom, rect('canvas').bottom)
+    near(rect('inspector').bottom, rect('canvas').bottom)
+  })
+})
+
 describe('medium and compact: the canvas takes the width, the rail is a tab bar', () => {
   test.each([
     ['ipad-pro-11-portrait', 834, 1194],

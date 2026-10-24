@@ -1,6 +1,14 @@
 // The headless core of the 2D level editor: the project model, its working file and the profile registry. No Svelte,
 // DOM or Pixi in here (`architecture.test.ts` keeps it so); the canvas and the app are separate folders.
 export {
+  createLevelEditor,
+  type EditHistory,
+  type LevelEditor,
+  type LevelEditorOptions,
+  type LevelEditorView,
+  type LevelTool,
+} from './app/level-editor'
+export {
   type CellKind,
   type CellProblem,
   decodeRows,
@@ -8,8 +16,29 @@ export {
   packTile,
   unpackTile,
 } from './model/cells-codec'
+export {
+  cellWord,
+  eraseLayerCells,
+  fillLayer,
+  paintLayerCells,
+  paintLayerRandom,
+  paintLayerRect,
+  pasteLayerStamp,
+} from './model/commands/cell-edits'
+export {
+  deleteEntity,
+  duplicateEntity,
+  moveEntity,
+  placeEntity,
+  resizeEntity,
+  setEntityField,
+} from './model/commands/entity-edits'
+export { type Bounds, entityAt, entityBounds } from './model/commands/entity-geometry'
+export { findLayer, type LayerTarget, updateLayer } from './model/commands/layer-target'
+export { deleteObject, flipObject, moveObject, placeObject } from './model/commands/object-edits'
 export { CHUNK, Grid, type GridEditor } from './model/grid'
 export { counterIds, DEF_ID, type IdSource, ITEM_ID, randomIds } from './model/ids'
+export { emptyLayers, layerCells } from './model/level-layers'
 export { FILE_VERSION, type Migration, type RawFile } from './model/migrations/migration'
 export { MAX_FILE_CHARS, type OpenResult, openProject } from './model/open-project'
 export { projectFileSchema } from './model/project.schema'
@@ -56,6 +85,7 @@ export type {
   World,
   WorldLayout,
 } from './model/project-types'
+export { tilesetTiles } from './model/tileset-grid'
 export {
   createProfileRegistry,
   type Diagnostic,

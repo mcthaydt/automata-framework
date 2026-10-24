@@ -1,10 +1,10 @@
-// The wall edits (ED3D spec §5.4, ED3D.3 step 7): `wall.setKind`, `wall.setDoor`, `wall.setWindow`, `wall.setMaterial`
-// and `wall.setFlags` (which also holds `wall.setHeight`: a door's height, a window's bottom and top, a handrail's and
+// The wall edits (ED3D spec §5.4, ED3D.3 step 7): `wall.setKind`, `wall.setDoor`, `wall.setWindow`, `wall.setMaterial`,
+// `wall.setOcclude` (ED3D.4b) and `wall.setFlags` (which also holds `wall.setHeight`: a door's height, a window's bottom and top, a handrail's and
 // a mask's are members of those). A wall is the third member of the corner that starts it, so an edit rewrites one
 // corner: `[x, z]` gets a third member only when the wall has something to say, and loses it when it has not.
 // Solid, door and window change this side of a wall only; a portal is made on both (the reverse wall of the sector it
 // leads into), and what the other side of a portal turned solid still says is the `openings` check's to name (ED3-e).
-import type { DoorDef, WindowDef } from '../format/sector.schema'
+import { type DoorDef, OCCLUDES, type Occlude, type WindowDef } from '../format/sector.schema'
 import type { LevelProfile } from '../profile/level-profile'
 import type { EditCorner, EditSector, EditWall } from '../profile/sector-access'
 import { type Edit, type EditResult, ok, refuse } from './edit'
@@ -19,7 +19,7 @@ import {
   round4,
   sectorOf,
 } from './sector-edit-support'
-import { cornerAt, loopOf, PORTAL_MEMBERS, wallLength, wallOver } from './wall-geometry'
+import { cornerAt, loopOf, membersOf, PORTAL_MEMBERS, wallLength, wallOver } from './wall-geometry'
 
 export interface WallRef {
   readonly sector: string
@@ -66,9 +66,6 @@ interface Here<D> {
   readonly length: number
 }
 
-const membersOf = (wall: string | EditWall | undefined): EditWall =>
-  wall === undefined ? {} : typeof wall === 'string' ? { cut: wall } : wall
-
 /** Runs `change` on the wall `ref` names, or refuses when the sector or the wall is not there. */
 function onWall<D>(ref: WallRef, change: (here: Here<D>) => EditResult<D>): Edit<D>['run'] {
   return (profile, level) => {
@@ -90,7 +87,7 @@ function onWall<D>(ref: WallRef, change: (here: Here<D>) => EditResult<D>): Edit
 }
 
 /** The sector with the wall that starts at a corner of one of its loops written as `members`. */
-function withWall(sector: EditSector, loop: number, corner: number, members: EditWall): EditSector {
+export function withWall(sector: EditSector, loop: number, corner: number, members: EditWall): EditSector {
   const wall = Object.keys(members).length === 0 ? undefined : members
   const write = (corners: readonly EditCorner[]): EditCorner[] =>
     corners.map((each, i) => (i === corner ? placed(each[0], each[1], wall) : each))
@@ -275,6 +272,24 @@ export function setWallMaterial<D>(args: WallRef & { readonly texture: string | 
     run: onWall(args, (here) => {
       if (isEmptyName(args.texture)) return refuse('a texture is a name, not empty')
       return writeWall(here, patchMembers(here.members, { texture: args.texture }))
+    }),
+  }
+}
+
+/**
+ * What the angled camera does to the wall where it would cut it away (the 3D direction spec §4.2): `cut` takes it away,
+ * `fade` draws it faintly and `never` keeps it; `null` takes the member off, which reads as `cut` for a wall. A Last Light
+ * wall holds none of these, and the profile says so when the wall is written.
+ */
+export function setWallOcclude<D>(args: WallRef & { readonly occlude: Occlude | null }): Edit<D> {
+  return {
+    id: 'wall.setOcclude',
+    label: `Set how wall ${args.corner} of ${args.sector} is cut away`,
+    coalesce: `occlude:${args.sector}/${args.corner}`,
+    run: onWall(args, (here) => {
+      if (args.occlude !== null && !OCCLUDES.includes(args.occlude))
+        return refuse('occlude is cut, fade or never')
+      return writeWall(here, patchMembers(here.members, { occlude: args.occlude }))
     }),
   }
 }

@@ -15,6 +15,10 @@
   browser bars are already out of their way; a closed one is `inert` and `visibility: hidden`, never
   `display: none`, which would throw its scroll position away.
 
+  `rail` is optional. A screen with no destinations (Home) leaves it out, and the canvas takes the rail's column in
+  wide and the tab bar's row below it (`data-rail="none"`). `dock` is optional too: without one, a drawer in medium
+  runs to the foot of the canvas instead of stopping where a dock sheet would begin.
+
   `panelOpen` and `inspectorOpen` only matter below `wide`, where the panel and inspector are always in view.
   `dockOpen` left `undefined` follows `defaultDockOpen`. The editor puts its own toggles in the top bar or the
   rail and binds these.
@@ -118,9 +122,10 @@ function close(name: ShellRegion): void {
   else dockOpen = false
 }
 
-// In medium the drawers end where an open dock sheet begins, so neither covers the other's controls.
+// In medium the drawers end where an open dock sheet begins, so neither covers the other's controls. A screen with no
+// dock has no sheet to make room for, whatever the dock's default says.
 const dockLift: string | undefined = $derived(
-  mode === 'medium' && presentation.dock === 'sheet' && visible.dock
+  mode === 'medium' && dock !== undefined && presentation.dock === 'sheet' && visible.dock
     ? detentLength('dock', detents.dock)
     : undefined,
 )
@@ -148,6 +153,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   data-editor-shell
   data-mode={mode}
   data-dock={dockPlacement}
+  data-rail={rail ? 'present' : 'none'}
   data-testid={testId}
   style:--dock-lift={dockLift}
 >
@@ -290,6 +296,33 @@ function sheetStyle(name: ShellRegion): string | undefined {
       'rail';
   }
 
+  /* A screen with no destinations (Home) gives the rail's column, and the tab bar's row, to the canvas. */
+  .shell[data-mode='wide'][data-rail='none'] {
+    grid-template-columns: var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
+    grid-template-areas:
+      'topbar topbar topbar'
+      'panel canvas inspector'
+      'panel dock inspector'
+      'status status status';
+  }
+
+  .shell[data-mode='wide'][data-rail='none'][data-dock='sheet'] {
+    grid-template-areas:
+      'topbar topbar topbar'
+      'panel canvas inspector'
+      'panel canvas inspector'
+      'status status status';
+  }
+
+  .shell[data-mode='medium'][data-rail='none'],
+  .shell[data-mode='compact'][data-rail='none'] {
+    grid-template-rows: var(--shell-topbar) minmax(0, 1fr) auto;
+    grid-template-areas:
+      'topbar'
+      'canvas'
+      'status';
+  }
+
   .region {
     box-sizing: border-box;
     min-width: 0;
@@ -343,6 +376,14 @@ function sheetStyle(name: ShellRegion): string | undefined {
     color: var(--color-text-dim);
     background: var(--color-bg-surface);
     border-top: 1px solid var(--color-border-default);
+  }
+
+  /* The kit's StatusLine is a bar of its own: it takes the whole region (the region's border stays the one border). */
+  [data-region='status'] :global([data-widget='status-line']) {
+    flex: 1 1 auto;
+    align-self: stretch;
+    margin: 0 calc(-1 * var(--space-3));
+    border-top: 0;
   }
 
   /* panel, inspector and dock share a column: an optional handle, then the scrolling body. */

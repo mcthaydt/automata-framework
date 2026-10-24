@@ -15,11 +15,12 @@ export const round4 = (value: number): number => roundJsonNumber(value) + 0
 /** A ceiling is this far above its floor at the least: a sector the player cannot stand in is not a sector. */
 const MIN_HEADROOM = 0.5
 
-const SECTOR_ID = /^[A-Za-z][A-Za-z0-9_-]*$/
+/** What an id is, of a sector or of a thing: a letter, then letters, digits, - or _. */
+export const ID_PATTERN: RegExp = /^[A-Za-z][A-Za-z0-9_-]*$/
 
 /** Why `id` cannot be the id of a sector the edit adds: it is not an id, or the level has it already. */
 export function newIdProblem<D>(profile: LevelProfile<D>, level: D, id: string): string | undefined {
-  if (!SECTOR_ID.test(id)) return 'the sector id must be an id: a letter, then letters, digits, - or _'
+  if (!ID_PATTERN.test(id)) return 'the sector id must be an id: a letter, then letters, digits, - or _'
   if (profile.sectors.takenIds(level).includes(id)) return `there is already a sector ${id}`
   return undefined
 }
@@ -28,6 +29,21 @@ export const sectorOf = <D>(profile: LevelProfile<D>, level: D, id: string): Edi
   profile.sectors.list(level).find((sector) => sector.id === id)
 
 export const noSector = (id: string): EditResult<never> => refuse(`no sector ${id}`)
+
+/**
+ * Why an edit that changes the walls of a sector (`doing`: cut, merged) has to leave it alone: something is tied to them
+ * (`SectorAccess.pinned`), in a sentence that lists what. Nothing when nothing is.
+ */
+export function pinnedProblem<D>(
+  profile: LevelProfile<D>,
+  level: D,
+  id: string,
+  doing: string,
+): string | undefined {
+  const pinned = profile.sectors.pinned(level, id)
+  if (pinned.length === 0) return undefined
+  return `${id} cannot be ${doing} while something is tied to its walls: ${pinned.join('; ')}`
+}
 
 /** The selection id of a sector, or nothing for an id a selection cannot hold (a level this editor did not write). */
 export function placeOf(id: string): string | undefined {

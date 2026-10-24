@@ -37,6 +37,8 @@ export interface Diagnostic {
 export interface ProjectContext {
   /** Asset paths in the workspace, so a check can tell a missing image from a present one. */
   readonly assets?: readonly string[] | undefined
+  /** The measured size of those images by path, so a check can tell a replaced image from the one that was recorded. */
+  readonly imageSizes?: Readonly<Record<string, { readonly w: number; readonly h: number }>> | undefined
 }
 
 /** A rail destination. The component is named, and `app/` maps the name to a Svelte component. */
@@ -49,14 +51,28 @@ export interface ViewDef {
 export interface ExportTarget<V> {
   readonly id: string
   readonly label: string
-  files(value: V): readonly { readonly path: string; readonly contents: string }[]
+  /**
+   * `base` is the text the document was loaded from, or `''` for one that never was, so a profile whose `print` patches
+   * the loaded text exports the file with its comments. A target that prints the whole value ignores it.
+   */
+  files(value: V, base: string): readonly { readonly path: string; readonly contents: string }[]
 }
 
 export interface TemplateDef<V> {
   readonly id: string
   readonly label: string
+  /** A few words under the label on the template's card ("side view"). */
+  readonly hint?: string | undefined
   /** Ids of everything the template places come from `ids`, so tests are exact. */
   create(ids: IdSource): V
+}
+
+/** What Home shows about a document that opens: its own name and a few facts about it, already worded. */
+export interface ProfileSummary {
+  /** The document's own name (the project's `name`), not its file name. */
+  readonly title: string
+  /** In the order they are shown: `Levels 5`, `Layers 4`. */
+  readonly facts: readonly { readonly label: string; readonly value: string }[]
 }
 
 export interface Profile<V> {
@@ -67,9 +83,16 @@ export interface Profile<V> {
   sniff(fileName: string, text: string): boolean
   /** A position for every error. */
   parse(text: string): Result<V, readonly ParseError[]>
-  /** `base` is the text as loaded, which a codec may patch instead of reprinting. */
+  /** `base` is the text as loaded, which a codec may patch instead of reprinting; `''` for a document that never was loaded. */
   print(base: string, value: V): string
   check(value: V, context: ProjectContext): readonly Diagnostic[]
+  /**
+   * Applies the one-step repair a finding's `fix` names and returns the next value. The app offers it for a finding of
+   * the value it came from; absent when the profile offers no repair.
+   */
+  fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V
+  /** Optional: a profile without it lists on Home by file name, with its check counts. */
+  summary?(value: V): ProfileSummary
   readonly templates: readonly TemplateDef<V>[]
   readonly views: readonly ViewDef[]
   readonly exports: readonly ExportTarget<V>[]

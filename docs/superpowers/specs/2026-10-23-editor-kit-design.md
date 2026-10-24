@@ -34,7 +34,7 @@ Out: any game code, any Last Light server or policy layer (the 3D editor keeps t
 | ID | Decision | Default and why |
 |---|---|---|
 | EDK-D1 | One package, `packages/editor-kit`, private until a second consumer ships | Two consumers exist from day one, so it is a package, not a folder. Private avoids an API promise before both editors have used it. |
-| EDK-D2 | Svelte 5 for components, plain TypeScript for everything else | AF's stack (`docs/stack.md`). `core` and `gestures` import no Svelte so they test in a renderer-free unit project. |
+| EDK-D2 | Svelte 5 for components, plain TypeScript for everything else | AF's stack (`docs/stack.md`). `core` and `gestures` import no Svelte so they test in a renderer-free unit project. The headless `./core` entry carries history, selection, commands, the keymap, the whole storage layer (ED2D.4c1) and the toast store (ED2D.4c2a), so an editor's headless layers never load the shell. |
 | EDK-D3 | Layout classes come from `@mcthaydt/automata-ui`'s geometry owner | AGENTS.md: the `ui` geometry owner is the single source of layout geometry. The kit maps its form factors to three shell modes (§4.2) and never re-measures the window. |
 | EDK-D4 | Immutable document snapshots, no patch language | `History<S>` stores whole snapshots; sharing is the document's job (chunked arrays for tiles). Simplest thing that gives exact undo. A patch layer can be added later without changing callers. |
 | EDK-D5 | Coalescing by key, transactions by scope | One drag is one undo step (a transaction); typing or scrubbing the same field within 600 ms is one step (coalesce key). |
@@ -79,6 +79,9 @@ Rules:
 
 - A height tier of `short` (600 px or less of layout height, from the geometry owner) hides the dock until summoned, as the same bottom sheet `medium` uses, and tightens gutters, never targets (AGENTS.md).
 - Regions are siblings that stay mounted. A mode change moves them with CSS (grid areas, fixed position, transforms) and never re-renders them elsewhere, so focus, scroll position and open transactions survive a rotation. A closed drawer or sheet is `inert` and `visibility: hidden`, not `display: none`, so its scroll position is kept.
+- The rail is optional (ED2D.4c2a): a screen with no destinations, such as Home, leaves it out and the canvas takes its column in `wide` and the tab bar's row below it (`data-rail="none"`).
+- The dock is optional too (ED2D.4c2a): a screen with no dock leaves its region out, and below `wide` the drawers are not lifted to make room for a dock sheet that is not there (`--dock-lift` is set only when there is a dock).
+- A `StatusLine` placed in the `status` region fills it edge to edge (the region's own padding is taken back), so the line and the region are one strip at every size.
 - The rail snippet is told `orientation` (`vertical` in `wide`, `horizontal` otherwise) so the editor draws the same destinations either way.
 - Keyboard, browser-bar and Stage Manager size changes do not remount regions or lose focus, scroll or selection (the geometry owner debounces; the shell keys regions by id).
 - Detent sheets have three detents (peek 96, or 192 for the dock: its 148 px and the handle; half 50%; full 92%, each of the room above the tab bar and status line), a drag handle at least 44 high, and a scrim only at full.
@@ -163,6 +166,19 @@ All widgets: minimum 44×44 hit area (48 for the primary action), visible focus 
 | `ReorderList` | idle, dragging, dropping, locked row | Drag handle 44 wide; auto-scroll at edges; announces moves |
 | `Tabs`, `Dialog`, `Toast`, `Menu`, `StatusLine` | standard | Dialog traps focus and restores it; toast has an action and does not steal focus |
 
+**As built (EDK.4, [plan](2026-10-23-edk-4-widgets.md)).** Twelve Svelte 5 components in `src/widgets/`, each with its rules in a pure module beside it (`widget-math`, `stepper-model`, `color`, `popup-model`, `menu-model`, `picker-model`, `reorder-model`, `focus-trap`). The decisions the table leaves open:
+
+- **One edit event.** `EditEvent<T> = { value, phase }` with `phase` one of `set` (a typed value, a step, an arrow key, a tap on an option), `start`, `update`, `commit` and `cancel` (a drag, which brackets one undo step). A drag that ends where it began is `cancel`, so a no-op is never an undo step. Every value widget takes `value` (`bind:value` also works) and `onedit`.
+- **A disabled widget stays focusable.** It is `aria-disabled`, not `disabled`; its `reason` is its accessible description and tooltip, and pressing it calls `onblocked(reason)` so the editor can say why. It never reports an edit. Disabled options of a `Segmented`, `Tabs`, `Menu` or `Picker` are skipped by arrow keys but can be pressed.
+- **Typing is refused, scrubbing is clamped.** A typed value outside the bounds, not a number or refused by `validate` is rejected with a message and the value keeps its previous number (G-e); dragging, steps and arrows clamp and show a stop (`data-at-limit`). A scrub moves one `step` per `pixelsPerStep` pixels (default 4) from where the press began, rounded to the step's decimals.
+- **`Dialog` owns its focus; it is not a native `<dialog>`.** It remembers the focused element, focuses the first `[data-autofocus]` or tabbable element, keeps Tab inside, closes on Escape or a press that begins and ends on the scrim (unless `dismissible` is false) and gives focus back however it closes. Escape never reaches a shortcut behind it.
+- **Toasts are a store.** `createToasts({ clock })` holds up to three (the oldest drops), each 5 s, 8 s with an action, or sticky at 0, on an injected clock; it follows Svelte's store contract. `ToastRegion` is a polite live region that is in the page before the first toast and never takes focus.
+- **`Menu` and `Picker` share a `Popup`**: a popover under the trigger on `wide`, a bottom sheet with a scrim below it, chosen by the editor through `presentation`. The popup is moved out of drawers (into the open dialog when the trigger is in one), so a transform cannot misplace it; Escape closes only it; a press outside closes it and goes through.
+- **`ReorderList` reports one `onreorder({ id, from, to })` at the drop**, never during the drag; the editor applies it (`moveRow` honors locked rows) and passes the new items. Locked rows keep their places and rows are never dropped onto them. The dragged row and the rows that shift are transforms, so no focus is lost before the drop. Keyboard lift is Space, arrows, Space or Enter, Escape; each step is announced.
+- **`ColorField` is palette-first**: a grid of swatches and a "Custom" button that reveals a `#rrggbb` field next to the browser's colour input.
+
+**Layout contract.** `WidgetGallery` mounts every widget; `widgets.layout.test.ts` measures it with production CSS in Chromium at 1194×834, 834×1194, 390×844 and 900×600: every interactive element is at least 44×44 (a dialog's primary action 48), the page never scrolls sideways, an open dialog, menu and picker stay inside the screen, and every kind of control, including the controls inside a dialog, a menu and a picker, shows the two-pixel accent ring when reached by keyboard. WebKit and Firefox follow in EDK.6; until then they go to the Orchestrator's device pass.
+
 ### 4.7 Storage
 
 ```ts
@@ -180,6 +196,16 @@ type WriteResult = { ok: true; mtime: number } | { ok: false; reason: 'conflict'
 - `memory` (tests), `opfs` (default on every browser incl. iPad Safari), `folder` (File System Access, Chromium desktop, handles persisted in IndexedDB and re-permissioned on demand), `download` (write-only: browser download, or `navigator.share({ files })` on iPadOS, or clipboard).
 - `write` with `expected.mtime` refuses with `conflict` when the file changed underneath, so an editor never silently overwrites a hand edit.
 - **Autosave journal:** every committed history step schedules a debounced (800 ms) write of `<doc>.autosave` to OPFS regardless of the primary store; clean save deletes it; on open, a newer autosave offers Restore or Discard. Quota and denial surface as a toast and a status-line state, never a silent loss.
+
+**As built (EDK.5, `packages/editor-kit/src/storage/`; the [plan](../plans/2026-10-23-edk-5-storage.md) has the reasoning):**
+
+- **Errors.** `write` returns a `WriteResult`; `list`, `read` and `remove` reject with a `StorageError` whose `reason` is `denied`, `quota` or `io`. A path is relative and `/`-separated, with no empty, `.` or `..` part; a bad path rejects with `RangeError`. `list(prefix)` is a plain string prefix, sorted by code unit. A file's `mtime` grows with every write, and `expected.mtime` for a file that does not exist is a `conflict`.
+- **Handle stores.** OPFS and the picked folder share one implementation over structural directory, file and writable types (not `lib.dom`), so the fakes in `testing/` and the browser run the same contract (`describeProjectStore`; the real OPFS run is `storage.layout.test.ts`). A write goes through `createWritable` and is aborted if any step fails, so a failed write leaves the old file.
+- **Workspace.** `openWorkspace()` opens `workspace` (documents) and `journal` (autosaves) in OPFS and probes it with a write, read-back and remove, because some browsers open OPFS and then refuse every write. Any failure gives memory stores, `persistent: false` and the reason (EK-f). `Workspace.exports` is the `download` store: download, `share` (the iPadOS share sheet, `canShare`) and `copyText`.
+- **Folder.** `pickFolder` and `restoreFolder` keep handles in a `HandleVault` (IndexedDB, keyed by folder name). Every call asks for permission first; a lapsed permission is `denied` and the shell offers Re-grant (`requestAccess`).
+- **Journal.** `<doc>.autosave` holds `{ format: 'af-autosave/1', path, savedAt, baseMtime, payload }`, where `payload` is the editor's own snapshot string. On open, `findRecovery` offers Restore when `savedAt >= file.mtime` (or the file is gone); `baseChanged` tells the dialog that the file also changed since the autosave began. A history step schedules the write after 800 ms of quiet, one write at a time. A drag (open transaction) does not count as a change; its live state is in the next snapshot.
+- **Document session.** `createDocumentSession` owns the file's last known `mtime`, the journal and the status line's `SaveState`. `save` is guarded by that `mtime` (a new file by "must not exist"); `overwrite` is Keep mine; `saveCopy` is Save as copy (`name copy.ext`, then `name copy 2.ext`). Saves run one at a time. A save marks the history clean only if the revision did not move while the write was in flight. Status order: `saving`, then `error` (a failed save, or an autosave that stopped), then `device`, then `dirty` or `saved`. Running out of quota pauses autosave until a save works.
+- **Page lifecycle.** `flushOnHide(session, { document, window })` writes the journal on `visibilitychange` to hidden and on `pagehide` (§6).
 
 ### 4.8 Typed fields and entity definitions
 

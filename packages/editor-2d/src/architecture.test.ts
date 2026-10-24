@@ -149,13 +149,100 @@ describe('checkArchitecture: the import graph', () => {
   })
 })
 
+describe('checkArchitecture: Svelte components', () => {
+  const profile = { 'profiles/level-project/index.ts': 'export const levelProject = 1' }
+
+  it('reads the imports of a component script, however it is typed', () => {
+    const files = tree({
+      ...profile,
+      'app/Planted.svelte':
+        '<script lang="ts">\n  import { levelProject } from \'../profiles/level-project\'\n  let shown: number = levelProject\n</script>\n<p>{shown}</p>',
+    })
+    expect(rules(checkArchitecture(files))).toEqual(['profiles-from-app-only'])
+  })
+
+  it('reads the module script of a component too', () => {
+    const files = tree({
+      ...profile,
+      'app/Shared.svelte':
+        '<script module lang="ts">\n  import { levelProject } from \'../profiles/level-project\'\n  export const shared = levelProject\n</script>\n<p>shared</p>',
+    })
+    expect(rules(checkArchitecture(files))).toEqual(['profiles-from-app-only'])
+  })
+
+  it('lets the registration list stay the only importer even when a component sits beside it', () => {
+    const files = tree({
+      ...profile,
+      'app/profiles.ts':
+        "import { levelProject } from '../profiles/level-project'\nexport const all = [levelProject]",
+      'app/Home.svelte':
+        '<script lang="ts">\n  import { all } from \'./profiles\'\n</script>\n<p>{all.length}</p>',
+    })
+    expect(checkArchitecture(files)).toEqual([])
+  })
+
+  it('keeps profile and template ids out of a component, in its script and in its markup (G-s)', () => {
+    const inScript = tree({
+      'app/A.svelte': '<script lang="ts">\n  const which = \'platformer\'\n</script>\n<p>{which}</p>',
+    })
+    expect(rules(checkArchitecture(inScript))).toEqual(['no-profile-ids'])
+    const inAttribute = tree({ 'app/B.svelte': '<p class="blank">hello</p>' })
+    expect(rules(checkArchitecture(inAttribute))).toEqual(['no-profile-ids'])
+    const inText = tree({ 'app/D.svelte': '<span>level-project</span>' })
+    expect(rules(checkArchitecture(inText))).toEqual(['no-profile-ids'])
+    const inExpression = tree({ 'app/C.svelte': "<p>{'floorfifty-stage'}</p>" })
+    expect(rules(checkArchitecture(inExpression))).toEqual(['no-profile-ids'])
+  })
+
+  it('resolves a component import to the component, and flags one that goes nowhere', () => {
+    const ok = tree({
+      'app/A.svelte': '<script lang="ts">\n  import B from \'./B.svelte\'\n</script>\n<B />',
+      'app/B.svelte': '<p>b</p>',
+    })
+    expect(checkArchitecture(ok)).toEqual([])
+    const lost = tree({
+      'app/A.svelte': '<script lang="ts">\n  import B from \'./Missing.svelte\'\n</script>\n<B />',
+    })
+    expect(rules(checkArchitecture(lost))).toEqual(['unresolved-import'])
+  })
+
+  it('finds a ring that runs through components, and a script the parser refuses', () => {
+    const ring = tree({
+      'app/A.svelte': '<script lang="ts">\n  import B from \'./B.svelte\'\n</script>\n<B />',
+      'app/B.svelte': '<script lang="ts">\n  import A from \'./A.svelte\'\n</script>\n<A />',
+    })
+    expect(rules(checkArchitecture(ring))).toEqual(['import-cycle'])
+    const broken = tree({ 'app/C.svelte': '<script lang="ts">\n  const = \n</script>' })
+    expect(rules(checkArchitecture(broken))).toEqual(['parse-error'])
+    expect(checkArchitecture(broken)[0]?.message).toMatch(/\S/)
+  })
+
+  it('keeps components out of the headless core, whether it imports one or holds one', () => {
+    const imports = tree({
+      'tiles/a.ts': "import Palette from '../app/Palette.svelte'\nexport default Palette",
+      'app/Palette.svelte': '<p>palette</p>',
+    })
+    expect(rules(checkArchitecture(imports))).toEqual(['pure-imports'])
+    const holds = tree({ 'model/Field.svelte': '<p>field</p>' })
+    expect(rules(checkArchitecture(holds))).toEqual(['pure-imports'])
+  })
+
+  it('does not count a component outside the headless core as part of it', () => {
+    const files = tree({
+      'app/A.svelte':
+        '<script lang="ts">\n  import { mount } from \'svelte\'\n  const t = Date.now()\n</script>',
+    })
+    expect(checkArchitecture(files)).toEqual([])
+  })
+})
+
 describe('the real tree', () => {
   function sources(dir: string, prefix = ''): [string, string][] {
     return readdirSync(dir, { withFileTypes: true }).flatMap((entry): [string, string][] => {
       const path = `${prefix}${entry.name}`
       if (entry.isDirectory())
         return entry.name === 'testing' ? [] : sources(join(dir, entry.name), `${path}/`)
-      if (!entry.name.endsWith('.ts') || entry.name.endsWith('.test.ts')) return []
+      if (!/\.(ts|svelte)$/.test(entry.name) || entry.name.endsWith('.test.ts')) return []
       return [[path, readFileSync(join(dir, entry.name), 'utf8')]]
     })
   }

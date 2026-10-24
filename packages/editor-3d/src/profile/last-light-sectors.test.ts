@@ -106,6 +106,41 @@ describe('the Last Light access: list and withSectors', () => {
   })
 })
 
+describe('the Last Light access refuses the members only af-sector/1 has', () => {
+  it('refuses a room with a view id, since the game reads none', () => {
+    const sectors = lastLightSectorAccess
+      .list(dawn.level)
+      .map((sector) => (sector.id === 'hall' ? { ...sector, view: 'hall-view' } : sector))
+    expect(() => lastLightSectorAccess.withSectors(dawn.level, sectors)).toThrow(SectorAccessError)
+    expect(() => lastLightSectorAccess.withSectors(dawn.level, sectors)).toThrow(
+      'sector hall has a view id, which a Last Light room cannot hold',
+    )
+  })
+
+  it('refuses a wall with an occlude, and says which sector and corner', () => {
+    const sectors = lastLightSectorAccess.list(dawn.level).map((sector) =>
+      sector.id === 'hall'
+        ? {
+            ...sector,
+            corners: sector.corners.map((corner, i) =>
+              i === 1 ? [corner[0], corner[1], { occlude: 'fade' }] : corner,
+            ),
+          }
+        : sector,
+    ) as EditSector[]
+    expect(() => lastLightSectorAccess.withSectors(dawn.level, sectors)).toThrow(SectorAccessError)
+    expect(() => lastLightSectorAccess.withSectors(dawn.level, sectors)).toThrow(
+      'wall 1 of sector hall has an occlude, which a Last Light wall cannot hold',
+    )
+  })
+
+  it('still takes the room with neither', () => {
+    expect(lastLightSectorAccess.withSectors(dawn.level, lastLightSectorAccess.list(dawn.level))).toBe(
+      dawn.level,
+    )
+  })
+})
+
 describe('the Last Light access: takenIds and create', () => {
   it('takes the ids of the rooms and of the openings', () => {
     expect(lastLightSectorAccess.takenIds(dawn.level)).toEqual([
@@ -363,6 +398,45 @@ describe('the Last Light access: references', () => {
     const level = { ...dawn.level, rooms: [...dawn.level.rooms, store] }
     expect(refs(level, 'store')).toEqual([])
     expect(refs(level, 'nowhere')).toEqual([])
+  })
+})
+
+describe('the Last Light access: pinned', () => {
+  const pinned = (level: Blockout, id: string) => lastLightSectorAccess.pinned(level, id)
+
+  it('names the openings that join a room, for both of its rooms', () => {
+    expect(pinned(dawn.level, 'yard')).toEqual(['opening exitWay (corridor → yard)'])
+    expect(pinned(dawn.level, 'corridor')).toEqual(['opening exitWay (corridor → yard)'])
+  })
+
+  it('names a wall preset whose `next` is the room', () => {
+    expect(pinned(dawn.level, 'counter')).toEqual(['wall preset COUNTER: next counter'])
+  })
+
+  it('names the things that point at one of its walls with `on: wall:<room>/<corner>`', () => {
+    const hotspot = must(dawn.level.hotspots[0])
+    const level: Blockout = {
+      ...dawn.level,
+      hotspots: [{ ...hotspot, on: 'wall:ward/3' }, ...dawn.level.hotspots.slice(1)],
+    }
+    expect(pinned(level, 'ward')).toEqual(['hotspots.0.on: wall:ward/3'])
+  })
+
+  it('names nothing for a room that only has portals into it and things standing in it', () => {
+    // `ward` is led into by the hall and has a box in it (both are in `references`), and nothing is tied to its walls.
+    expect(lastLightSectorAccess.references(dawn.level, 'ward').length).toBeGreaterThan(0)
+    expect(pinned(dawn.level, 'ward')).toEqual([])
+  })
+
+  it('names nothing for a room that is not there, even when a wall preset leads into it', () => {
+    expect(pinned(dawn.level, 'nowhere')).toEqual([])
+    const level: Blockout = { ...dawn.level, walls: { ...dawn.level.walls, GHOST: { next: 'ghost' } } }
+    expect(pinned(level, 'ghost')).toEqual([])
+  })
+
+  it('is a part of what `references` says, in its order', () => {
+    const all = lastLightSectorAccess.references(dawn.level, 'counter')
+    expect(all).toEqual(expect.arrayContaining([...pinned(dawn.level, 'counter')]))
   })
 })
 
