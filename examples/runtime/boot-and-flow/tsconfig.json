@@ -1,9 +1,0 @@
-{
-  "extends": "../../../tsconfig.base.json",
-  "compilerOptions": {
-    "types": [],
-    "allowImportingTsExtensions": true,
-    "isolatedDeclarations": false
-  },
-  "include": ["src/**/*.ts", "budget/**/*.ts", "env.d.ts", "main.ts", "content/generated/**/*.ts"]
-}
