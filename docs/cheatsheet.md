@@ -181,6 +181,7 @@
 - `boardNamesIn(file, code)`: The boards one source file names, in source order; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could report a board that is not there).
 - `BUILD_ID_PATTERN` (const): A build's ID on the dev host: the commit's UTC time to the minute, then its short sha, for example `202610111205-abcdef0` (FloorFifty `deploy/bin/build-tag`).
 - `buildIdFor(commit)`: The build ID for a commit: its UTC time to the minute, a dash, then the first seven characters of its sha.
+- `ButlerFailed` (class): butler exited non-zero.
 - `checkManifest(toml)`: Checks `ruken.toml` text with Ruken's own parser, so AF accepts exactly what Ruken accepts.
 - `checkVersion(version, tag)`: A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`): the build Ruken shows as 0.10.2 is the one tagged v0.10.2.
 - `declaredBoardsIn(code)`: The board ids a `ship.config.ts` declares: the keys of its `leaderboards` object, read from the source as written (`automata check` reads files, it does not run them).
@@ -194,6 +195,7 @@
 - `EntryMissing` (class): `[game] entry` names a file the build does not have.
 - `EnvValue` (interface): One variable read from a game's `.env*` files, whose value the bundle scan looks for in the build.
 - `FileError` (class): Reading, writing, listing or removing a file failed.
+- `findExecutable(name, pathEnv?, platform?)`: The first `name` on `pathEnv` that is an executable file, or undefined.
 - `findInputsProblems(gameDir, inputs)`: Each disagreement between `inputs` (a config's `runtime.inputs`) and what the `keys()` calls in a game's sources bind, in `inputsProblems`' words; empty when they agree or the game has no `keys()` call to compare.
 - `findOrientationMismatches(gameDir, declared)`: Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
 - `findRootAbsoluteReferences(distDir)`: Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
@@ -204,6 +206,15 @@
 - `isBoardSource` (const): Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`, `.mts`, `.js`, `.mjs`).
 - `isInputsSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
 - `isOrientationSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+- `ITCH_FIRST_PUSH_CHECKLIST` (const): The one-time page settings butler cannot make (PUB spec §6), printed after a channel's first push.
+- `ITCH_LIMITS` (const): itch.io's documented limits for an HTML5 upload; "MB" is read as 10^6 bytes.
+- `ITCH_LIMITS_SOURCE` (const): Where itch.io's limits were read, and when.
+- `ItchBuildInvalid` (class): The build breaks one of itch.io's rules; each problem names the file and the limit.
+- `ItchCheck` (type): The `prepare --target itch` check that failed, in the order they run (PUB spec §4).
+- `ItchConfig` (interface): What a game writes in `ship.config.ts`.
+- `itchConfigSchema` (const): Checks a game's `itch` section: `project` is `user/game` in lower case, and `channel` defaults to `html5`.
+- `ItchSettingMissing` (class): `publish --target itch` lacks the config section, the key or butler; found before anything runs.
+- `ItchSettings` (interface): The checked settings, with the channel filled in.
 - `keysBindingsIn(file, code)`: What the `keys()` calls in one source file bind, one `<file>:<line>:<col> keys` entry per call (and `pad` and `gestures` entries where it binds them); empty when the file has no call; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could name a device that is not there).
 - `ManifestInputsMismatch` (class): `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
 - `ManifestInvalid` (class): Ruken's parser refused the generated `ruken.toml`.
@@ -214,12 +225,16 @@
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
 - `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
+- `prepareItch(input)`: Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on itch.io is public, so the build is scanned as Ruken's is), `index.html`, itch.io's limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops prepare before anything is written.
+- `PrepareItchInput` (interface): What `prepareItch` checks and zips: the built folder, the ship config and the release tag.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
 - `PublishFailed` (class): Any other exit code.
 - `PublishInput` (interface): What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and whether to activate the build.
+- `PublishItchInput` (interface): What `publishToItch` needs: the built folder, the ship config, the tag, the key and where butler is.
 - `PublishRejected` (class): Exit 1: Ruken's checks rejected the build.
 - `PublishTimeout` (class): Exit 4: Ruken's checks took longer than the CLI waits.
+- `publishToItch(input)`: Prepares the build for itch.io (every check of `prepareItch`), then pushes the folder with butler.
 - `publishToRuken(input)`: Runs Ruken's own `ruken publish` on a prepared build and returns the URL Ruken says the build is served at (`undefined` when it prints none).
 - `PublishUsage` (class): Exit 2: the command line was wrong.
 - `readEnvValues(gameDir)`: The variables of every top-level `.env*` file in the game folder; none when the folder does not exist.

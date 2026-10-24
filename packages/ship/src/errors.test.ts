@@ -1,8 +1,11 @@
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import {
+  ButlerFailed,
   DeployFailed,
   EntryMissing,
+  ItchBuildInvalid,
+  ItchSettingMissing,
   ManifestInvalid,
   PublishAuth,
   PublishFailed,
@@ -52,6 +55,20 @@ const cases = [
     'deploy-dev: ssh failed (exit 255)',
   ],
   [new TestRemoteFailed({ reason: 'red', message: 'the run failed' }), 'TestRemoteFailed', 'the run failed'],
+  [
+    new ItchBuildInvalid({
+      check: 'path-length',
+      problems: ['a/b.png: 241 characters', 'c.png: 300 characters'],
+    }),
+    'ItchBuildInvalid',
+    'the build is not ready for itch.io (path-length):\na/b.png: 241 characters\nc.png: 300 characters',
+  ],
+  [
+    new ItchSettingMissing({ setting: 'BUTLER_API_KEY', message: 'BUTLER_API_KEY is not set' }),
+    'ItchSettingMissing',
+    'BUTLER_API_KEY is not set',
+  ],
+  [new ButlerFailed({ exitCode: 3 }), 'ButlerFailed', 'butler push failed (exit 3)'],
 ] as const
 
 describe('ship errors', () => {
@@ -67,6 +84,9 @@ describe('ship errors', () => {
     expect(new DeployFailed({ step: 'tar', exitCode: 2, output: 'x' }).step).toBe('tar')
     expect(new TestRemoteFailed({ reason: 'timeout', message: 'm' }).reason).toBe('timeout')
     expect(new EntryMissing({ entry: 'a.html', distDir: 'd' })).toBeInstanceOf(EntryMissing)
+    expect(new ItchBuildInvalid({ check: 'case', problems: [] }).check).toBe('case')
+    expect(new ItchSettingMissing({ setting: 'butler', message: 'm' }).setting).toBe('butler')
+    expect(new ButlerFailed({ exitCode: 7 }).exitCode).toBe(7)
   })
 
   it('is caught by Effect.catchTag', () => {

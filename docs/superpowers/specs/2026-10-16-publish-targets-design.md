@@ -100,10 +100,11 @@ export default defineShipConfig({
 **`automata-ship prepare --target itch`** checks, in this order, before writing anything:
 1. The tag matches `game.version` (existing check).
 2. No root-absolute paths (the existing `root-absolute.ts`).
-3. `index.html` exists at the build root. itch.io requires that name, so a different `game.entry` is an error that says so.
-4. itch.io's documented limits: at most 1,000 files; paths of at most 240 characters; no file over 200 MB; at most 500 MB in total. These live in one file, `packages/ship/src/targets/itch-limits.ts`, with the source URL and the date read.
-5. Every relative reference matches a file's exact case. itch.io is case-sensitive; a Mac's disk usually is not.
-6. No `ruken.toml` in the output.
+3. No secret in the build: the scan Ruken's `prepare` runs (QB.2, `secret-scan.ts`), because a page on itch.io is public. The error names the file and place, never the secret. (Added when main's QB.2 merged into PUB.2, 2026-10-24.)
+4. `index.html` exists at the build root. itch.io requires that name, so a different `game.entry` is an error that says so.
+5. itch.io's documented limits: at most 1,000 files; paths of at most 240 characters; no file over 200 MB; at most 500 MB in total. These live in one file, `packages/ship/src/targets/itch-limits.ts`, with the source URL and the date read.
+6. Every relative reference matches a file's exact case. itch.io is case-sensitive; a Mac's disk usually is not.
+7. No `ruken.toml` in the output.
 
 It then writes `<id>-<version>-itch.zip` with sorted entries and fixed timestamps, so the same build gives the same bytes. The zip is for a manual upload; butler does not need it.
 
