@@ -23,6 +23,17 @@ export function formatDuration(locale: string, milliseconds: number): string {
   return (hours > 0 ? [formatNumber(locale, hours, { useGrouping: false }), ...clock] : clock).join(':')
 }
 
+/**
+ * A moment as a date and a short time in the reader's convention, in the reader's zone unless `options.timeZone`
+ * names one (a test names UTC). A save's time on the slot list is this.
+ */
+export const formatDateTime = (
+  locale: string,
+  epochMs: number,
+  options: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' },
+): string =>
+  new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', ...options }).format(epochMs)
+
 /** The CLDR plural (or, with 'ordinal', ordinal) category of a count: one, two, few, many, zero or other. */
 export const pluralCategory = (
   locale: string,
