@@ -1,10 +1,12 @@
 // The two profiles (ED3D.1b step 5): each is its codec plus the geometry the views draw and the checks the problems
 // list shows, behind one shape the editor core imports without naming a Last Light concept.
 import { describe, expect, it } from 'vitest'
+import { entitySelection } from '../checks/check'
 import { lastLightChecks } from '../checks/last-light/last-light-checks'
 import type { AfSector } from '../format/af-sector.schema'
 import type { Blockout } from '../format/blockout.schema'
 import { resolveMap } from '../geometry/sectors'
+import { parseSelection } from '../model/selection-ref'
 import { loadAuthored, loadFixture } from '../testing/fixtures'
 import {
   BLOCKOUT_NAMES,
@@ -17,9 +19,11 @@ import {
 import { toyAfSector, toyHall } from '../testing/toy-af-sector'
 import { must, toyBlockout, toyOpening } from '../testing/toy-blockout'
 import { afSectorChecks } from './af-sector/af-checks'
+import { afEntityKit } from './af-sector/af-entities'
 import { afSectorAccess } from './af-sector/af-sectors'
 import { buildSectors } from './af-sector/build'
 import { afSectorProfile } from './af-sector-profile'
+import { lastLightEntityKit } from './last-light-entities'
 import { lastLightProfile } from './last-light-profile'
 import { lastLightSectorAccess } from './last-light-sectors'
 import { GeometryError } from './level-profile'
@@ -183,5 +187,37 @@ describe('the af-sector profile', () => {
   it('reaches the sectors of a level through the af-sector access', () => {
     expect(afSectorProfile.sectors).toBe(afSectorAccess)
     expect(afSectorProfile.sectors.takenIds(depot())).toEqual(['hall', 'dock'])
+  })
+})
+
+describe('the entities of a profile', () => {
+  it("are the af-sector kit for an af-sector level and Last Light's fixed kit for a blockout", () => {
+    const level = depot()
+    expect(afSectorProfile.entities(level)).toEqual(afEntityKit(level))
+    const blockout = toyBlockout()
+    expect(lastLightProfile.entities(blockout)).toEqual(lastLightEntityKit(blockout))
+  })
+
+  it('give every thing a selection id that names it back, the same for both formats', () => {
+    const dawn = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
+    if (!dawn.ok) throw new Error('clinic-dawn does not parse')
+    for (const kit of [afSectorProfile.entities(depot()), lastLightProfile.entities(dawn.value)]) {
+      expect(kit.things.length).toBeGreaterThan(0)
+      for (const thing of kit.things)
+        expect(parseSelection(entitySelection(thing.def, thing.id))).toEqual({
+          kind: 'entity',
+          definition: thing.def,
+          id: thing.id,
+        })
+    }
+  })
+
+  it('read the depot as a spawn and a crate and the clinic as the fixed set, without a problem', () => {
+    const kit = afSectorProfile.entities(depot())
+    expect(kit.things.map((thing) => `${thing.def}/${thing.id}`)).toEqual(['spawn/spawn', 'crate/crate1'])
+    expect(kit.problems).toEqual([])
+    const dawn = lastLightProfile.parse(loadFixture('blockout-clinic-dawn'))
+    if (!dawn.ok) throw new Error('clinic-dawn does not parse')
+    expect(lastLightProfile.entities(dawn.value).problems).toEqual([])
   })
 })

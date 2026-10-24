@@ -149,4 +149,11 @@ describe('examplesRunner', () => {
     const input = config.build.rollupOptions.input as Record<string, string>
     expect(Object.keys(input).sort()).toEqual(['core-later-source', 'core-stub', 'core-stub-source', 'index'])
   })
+
+  // Vite inlines an asset under `assetsInlineLimit` as a `data:` URL, and Pixi's loader fetches it, which
+  // Ruken's CSP (`connect-src 'self'`) refuses: a 278-byte sprite sheet drew nothing (textures-sprite).
+  it('emits every asset as a file, so none becomes a data: URL the CSP refuses to fetch', async () => {
+    const config = await resolveConfig({ configFile: false, plugins: [examplesRunner(options)] }, 'build')
+    expect(config.build.assetsInlineLimit).toBe(0)
+  })
 })

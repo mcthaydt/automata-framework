@@ -1,6 +1,6 @@
 # ED2D: the 2D editor (one LDtk-style editor for platformers, top-down RPGs and more; FloorFifty stages are a profile)
 
-> **Status:** drafted 2026-10-23 (lane **editor-2d**, thread "2D level editor"), **redone the same day as genre-general** after the Owner's decision (below). Review pending. Not reviewed, not implemented; Owner visual acceptance of the 2D mockups is **not** given. Task rows: [ED2D.0 to ED2D.10 and EDFF.1 to EDFF.5](../../02-master-delivery-plan.md#ed-editors-owner-amendment-2026-10-23). Shared pieces are in the [editor kit spec](./2026-10-23-editor-kit-design.md); the sibling editor is the 3D one (PR #94).
+> **Status:** drafted 2026-10-23 (lane **editor-2d**, thread "2D level editor"), **redone the same day as genre-general** after the Owner's decision (below). Review pending. Not reviewed, not implemented; Owner visual acceptance of the 2D mockups was given on 2026-10-23 20:55 UTC ("Mock-up approved", relayed by the hub, bus inbox 2057; [02](../../02-master-delivery-plan.md) evidence log). Task rows: [ED2D.0 to ED2D.10 and EDFF.1 to EDFF.5](../../02-master-delivery-plan.md#ed-editors-owner-amendment-2026-10-23). Shared pieces are in the [editor kit spec](./2026-10-23-editor-kit-design.md); the sibling editor is the 3D one (PR #94).
 >
 > **Why (Owner via the Orchestrator).** First ask, 2026-10-23: "Add one 2D editor, LDtk-like, … tablet-first, web-based … Figma mockups first." **Decision, 2026-10-23 02:31 UTC:** "2D is too Floor Fifty specific; we should be able to do 2D platformer and 2D RPG from same editor." So the editor is one genre-general tool on LDtk's model, the same editor builds a platformer level and a top-down RPG map, and a FloorFifty stage is a **profile** of it. "Build a FloorFifty stage" stays a required acceptance case (FF-o), no longer the only one. Mockups: Figma file [Automata Editors](https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d), pages `2D · Home`, `2D · Level`, `2D · States`, `2D · Profile FloorFifty`, `Kit`.
 
@@ -73,21 +73,22 @@ Inside `editor-2d` (folders group by feature, files take role suffixes):
 
 ```
 src/
-  model/            project.schema.ts, level.schema.ts, grid.ts (chunked), cells.codec.ts, project.codec.ts,
-                    ids.ts (injected id source), migrations/*.migration.ts, commands/*.command.ts
+  model/            project.schema.ts (+ project-types.ts), grid.ts (chunked), cells-codec.ts, project-codec.ts,
+                    open-project.ts, json-syntax.ts, ids.ts (injected id source), migrations/migration.ts,
+                    commands/*.command.ts
   tiles/            paint.ts, fill.ts, stamp.ts, autotile/{rule.schema.ts, match.ts, hash.ts, layer.ts}
   profiles/
-    profile.plugin.ts          the Profile interface and registry
-    level-project/             built in: templates/*.template.ts, project.checks.ts, content.export.ts (AF TOML)
-    floorfifty-stage/          extension (§10): stage.schema.ts, stage.codec.ts, stage.commands.ts,
-                               stage.checks.ts, stage.compose.ts, stage.course.ts, stage.template.ts
-  canvas/           level.view.ts, tileset.view.ts, world.view.ts (Pixi), textures.manager.ts
+    profile.ts                 the Profile interface and registry
+    level-project/             built in: templates/*, project-checks.ts, content-export.ts (AF TOML)
+    floorfifty-stage/          extension (§10): stage.schema.ts, stage-codec.ts, stage.command.ts,
+                               stage-checks.ts, stage-compose.ts, stage-course.ts, stage-template.ts
+  canvas/           level-view.ts, tileset-view.ts, world-view.ts (Pixi), textures.manager.ts
   app/              shell wiring, views (Svelte), stores, one folder per rail destination
 ```
 
-Contract owners: the **project schema and `*.af2d.json`** belong to `model/` (and become a shared content contract once a game runtime consumes them, §17); `FieldDef`/`EntityDef` belong to the kit; the **`Profile` interface** to `profiles/profile.plugin.ts`; the **stage document** and its checks to `profiles/floorfifty-stage`; the stage **composition output** (`LayerPlacement[]`) to `stage.compose.ts`, consumed by the canvas and the tests only.
+File names follow `pnpm style`: a role suffix (`*.schema.ts`, `*.command.ts`, `*.manager.ts`, …) only from its list and only for files that export what the role means, so a codec, a view or a check list is a plain kebab-case name. Contract owners: the **project schema and `*.af2d.json`** belong to `model/` (and become a shared content contract once a game runtime consumes them, §17); `FieldDef`/`EntityDef` belong to the kit; the **`Profile` interface** to `profiles/profile.ts`; the **stage document** and its checks to `profiles/floorfifty-stage`; the stage **composition output** (`LayerPlacement[]`) to `stage-compose.ts`, consumed by the canvas and the tests only.
 
-Boundary rules, enforced by a unit test over the import graph in ED2D.1 (`pnpm boundaries` covers only `sim`): `model/` and `tiles/` import no Svelte, DOM, Pixi, clock or `Math.random`; `model`, `tiles`, `canvas` and `app` never import `profiles/*` except the registration list in `app/profiles.ts`; profiles never import each other.
+Boundary rules, enforced by `src/architecture.test.ts` over the import graph (built in ED2D.1; `pnpm boundaries` covers only `sim`, whose rules are far stricter): `model/` and `tiles/` import only relative paths, `zod` and `@mcthaydt/automata-editor-kit/fields` (the kit's field rules without its Svelte shell) and use no DOM, clock, timer, `crypto` or `Math.random`; `model`, `tiles`, `canvas` and `app` never import `profiles/<name>/` except the registration list in `app/profiles.ts`; profiles never import each other; no template or profile id string appears in `app`, `tiles` or `canvas` (G-s); files import each other in no ring; a relative import resolves to a file.
 
 ## 5. The project model
 
@@ -204,9 +205,9 @@ interface Rule {
 type PatternCell = 'any' | 'empty' | 'filled' | { is: number } | { not: number }
 ```
 
-Evaluation for one cell: groups in order, rules in order, skipping inactive ones; a rule matches when every pattern cell holds against the source IntGrid (trying no-flip, then flipX, flipY, both when enabled); then a hash decides `chance` and the variant. A match **adds** its tile to the cell's stack (a cell can hold several tiles drawn in rule order, so edges and corners can overlay a fill) and `breakOnMatch` ends the cell. The result is `Map<cell, readonly {tile, flipX, flipY}[]>`, derived, never stored; `overrides` hold manual tiles painted over the result.
+Evaluation for one cell: groups in order, rules in order, skipping inactive ones; a rule matches when every pattern cell holds against the source IntGrid (trying no-flip, then flipX, flipY, both when enabled); then a hash decides `chance` and the variant (a rule whose `chance` roll fails did not match: it adds nothing and does not break). A match **adds** its tile to the cell's stack (a cell can hold several tiles drawn in rule order, so edges and corners can overlay a fill) and `breakOnMatch` ends the cell. The result is `Map<cell, readonly {tile, flipX, flipY}[]>`, derived, never stored; `overrides` hold manual tiles painted over the result.
 
-The hash is a 32-bit integer mix (`Math.imul` and shifts, no floats) of `(layer seed, rule id, x, y, salt)`, so a project exports identical tiles on every engine; the **seed** is stored per auto-layer instance and "Re-roll variation" is one undo step that changes it. Painting one source cell recomputes only the window of `floor(maxRuleSize / 2)` cells around it; a property test checks that the incremental result equals a full recompute. Diagnostics the engine feeds Checks: a rule with a tile outside its tileset, a rule that can never match (a pattern cell demanding both `is 1` and `not 1` through flips), a rule shadowed by an earlier `breakOnMatch` rule with a pattern at least as general (info).
+The hash is murmur3_32 (`Math.imul`, shifts and xor, no floats) of the four words `(rule key, x, y, salt)` under the layer seed, where the rule key is FNV-1a of the rule id and the salt tells the chance roll, the variant pick and the dice apart, so a project exports identical tiles on every engine; `chance` applies when the roll is below `floor(chance * 2^32)` (one correctly rounded multiply); the **seed** is stored per auto-layer instance and "Re-roll variation" is one undo step that changes it. Rules are compiled once into the cells each really reads (an 'any' cell costs nothing; a rule that can never draw is left out), and their **reach** is the farthest of those cells. Painting one source cell recomputes only the cells within that reach of it; a seeded property test (random rules, flips, `outside`, chance, groups and edits) checks that the incremental result equals a full recompute. A cell outside the level has no tiles. Diagnostics the engine feeds Checks (`ruleIssues`; rules that are off are skipped): `tileOutOfRange` (error: a tile beyond its tileset), `valueUnknown` (warning: a pattern or `outside` value the source layer does not define), `neverFires` (warning: chance 0 or no tile) and `shadowed` (info: an earlier active, flip-free `breakOnMatch` rule with chance 1 and the same `outside` reads only cells this rule also reads, each with a condition at least as narrow, so it always ends the cell first). Flip variants are alternatives, so a pattern cannot contradict itself through them.
 
 ### 5.7 Worlds
 
@@ -229,27 +230,47 @@ Every edit is a named function in `model/commands/` taking the project and retur
 | Stamp (multi-tile from the palette or a copied region) | tiles | values | overrides | n/a | n/a |
 | Random (dice: a tile from the palette selection per cell, by hash) | tiles | n/a | overrides | n/a | n/a |
 
+The operations behind the tools are pure functions over a `Grid` in `tiles/` (ED2D.2); each takes the cell **word** (a packed tile cell, an IntGrid value or an override tile), so one set serves every layer kind, and erasing is painting the word 0. The brush is a square of 1 to 8 cells whose top-left is `floor((size - 1) / 2)` up and left of the cursor, and a stroke is the Bresenham line between pointer events with the footprint at every cell. Rectangle corners are inclusive and may come in either order. Fill is 4-connected, replaces cells equal to the start cell's word (a flipped tile is a different word), stays inside the level and works a run at a time. A stamp is a row-major rectangle of words: pasting skips its empty cells unless asked to clear, and flipping mirrors the layout and, for tiles, each tile's flip bit. The dice pick `candidates[hash(seed, x, y) % n]` per cell, so a replayed stroke repaints the same tiles.
+
 Finger: select, drag, pan, pinch. Pencil: draws and drags precisely, hover shows the brush footprint; with the Pencil active a finger pans (kit §4.5). Mouse: wheel zoom, middle pan.
 
 ## 6. Formats
 
 ### 6.1 The working file (`*.af2d.json`)
 
-A strict zod schema (`project.schema.ts`) over the shapes in §5, printed canonically: UTF-8, two-space indent, object keys in schema order, arrays of definitions and levels sorted by id, grids as row strings (§5.3). Opening rules: `version` equal to the supported one parses; **lower** runs the chain of `*.migration.ts` functions in memory (each pure, each with a fixture pair) and the file is rewritten only on save; **higher** opens read-only with the message and the raw text, never rewritten; **any key the schema does not know** opens read-only with the list of paths, so a newer or hand-edited file cannot lose data silently. A short extract:
+A strict zod schema (`project.schema.ts`) over the shapes in §5, printed canonically: UTF-8, two-space indent, object keys in schema order, arrays of definitions and levels sorted by id, grids as row strings (§5.3). Opening rules: `version` equal to the supported one parses; **lower** runs the chain of `*.migration.ts` functions in memory (each pure, each with a fixture pair) and the file is rewritten only on save; **higher** opens read-only with the message and the raw text, never rewritten; **any key the schema does not know** opens read-only with the list of paths, so a newer or hand-edited file cannot lose data silently. A short extract (a layer instance names its definition by `def` and repeats its `kind`, so the schema validates it without the definitions and `layerKindMismatch` catches a disagreement):
 
 ```json
 { "format": "af2d", "version": 1, "name": "Mossgate", "template": "platformer",
   "levels": [ { "id": "moss-steps", "size": { "w": 512, "h": 288 },
     "layers": [
-      { "def": "entities", "items": [
+      { "def": "entities", "kind": "entities", "items": [
         { "id": "k3f9a1x2", "def": "player-start", "x": 48, "y": 240, "fields": {} },
         { "id": "q8m2c7d1", "def": "slime", "x": 208, "y": 240, "fields": { "hp": 3, "patrol": [ {"x":176,"y":240}, {"x":272,"y":240} ] } } ] },
-      { "def": "collision", "rows": [ ".*32", ".*32", "1*32" ] } ] } ] }
+      { "def": "collision", "kind": "intgrid", "rows": [ ".*32", ".*32", "1*32" ] } ] } ] }
 ```
+
+Details fixed while building ED2D.1:
+
+- **One model, two shapes.** `Project` (grids as `Grid`) is the in-memory model; `ProjectFile` is the same tree with each grid as its row strings, and `project.schema.ts` validates it. `decodeProject` and `encodeProject` convert, with the layer definitions giving each grid its size, `ceil(level / grid)` cells across and down.
+- **Opening has three outcomes** (`openProject`): `opened` (with `upgradedFrom` after a migration), `readOnly` (`newerVersion`, or `unknownKeys` with each key's path; the result carries the raw text and no project, so nothing can be written back) and `failed` (`notJson` with line and column, `notAProject`, `invalid` with up to 100 issues, `tooLarge` over 16 MB). A leading byte order mark is ignored. The line and column come from our own scanner (`json-syntax.ts`), because Safari's `JSON.parse` names no position.
+- **Refused at open because decoding needs them:** `duplicateId` (definitions, worlds, levels, IntGrid values and ids, instance ids across the project), `unknownLayer` (a layer instance or an auto layer's `source` names no layer), `unknownTileset`, `layerKindMismatch`, `layerMismatch` (a level does not hold one instance of every definition in the definitions' order), `layerTooLarge` (a layer is over 1024 cells on a side, checked before a grid is allocated) and `cellInvalid` (a token that is not a cell, or a row of the wrong width or count). Values that fit the shape but not the world (a tile past its tileset, a broken ref, an instance of an unknown entity) open and become Checks (§9).
+- **Guard rails** (ED2D-D13) in the schema: a layer grid cell 4 to 256 px, a level side up to 16 384 px, at most 256 levels and 64 layer definitions; a world has a snap `grid` exactly when its layout is `grid`.
+- **Canonical print:** two-space JSON in schema key order, a final newline, `defs.tilesets`, `defs.entities`, `worlds` and `levels` sorted by id and the keys of field values sorted; everything whose order means something (layer definitions, a level's layers, items, placements, rules, a list value) keeps it. `printProject` throws on a project the schema would refuse to open.
+- **Cells:** a tile token is the tile index followed by `h`, `v` or `hv`, an IntGrid token is its value 1 to 255, `.` is empty, and `*n` repeats a token n times (n at least 2 when printing).
+- **Ids:** definitions and levels are `/^[a-z][a-z0-9-]*$/`; instance and rule ids are lower case, digits and hyphens; `IdSource.next()` returns 8 base36 characters, `counterIds()` is the deterministic source for tests and `randomIds(fill)` takes the host's random bytes, so `model/` holds no randomness.
+- **Migrations:** `Migration { from, to, run(raw) }` over the parsed JSON, `to` always `from + 1`; `migrate` stamps `version`, reports a missing step or a step that threw as a failed open, and throws for a malformed chain (a bug in the editor). The real list is empty at version 1.
 
 ### 6.2 AF content export (TOML)
 
-Generated, write-only, deterministic: `project.toml` (definitions the game needs: layer grid sizes, IntGrid value ids, entity definition ids and field types, tileset ids and tile sizes), `levels/<id>.toml` (size, level fields, per layer the row strings, and each entity as a `[[layers.entities]]` table with its typed fields), `world.toml` (layout, placements and, for `grid` worlds, neighbours). Auto-layer output is exported as resolved tile stacks so a game needs no rule engine. A header comment says the file is generated. The export has its own schema (`content.schema.ts`) and the test decodes the row strings back to grids and compares them with the editor's. Whether and when AF consumes it is §17.
+Generated, write-only, deterministic: `project.toml` (definitions the game needs: layer grid sizes, IntGrid value ids, entity definition ids and field types, tileset ids and tile sizes), `levels/<id>.toml` (size, level fields, per layer the row strings, and each entity as a `[[layers.items]]` table with its typed fields), `world.toml` (layout, placements and, for `grid` worlds, neighbours). Auto-layer output is exported as resolved tile stacks so a game needs no rule engine. The export has its own schema (`content.schema.ts`) and the test decodes the row strings back to grids and compares them with the editor's. Whether and when AF consumes it is §17.
+
+Details fixed while building ED2D.3:
+
+- **Header and version.** Each file starts with `# Generated by the Automata 2D editor from "<name>". Do not edit; export again.` (the name JSON-quoted, so a quote or a line break cannot end the comment early), then `format = "af2d-content"` and `version = 1`. The editor's `exportContent(project)` returns the files in a fixed order: `project.toml`, the levels sorted by id, `world.toml`. `smol-toml` writes them; it has no comment support, so the header is prepended, and it prints a float whose value is whole as an integer (`project.toml` declares each field's type, so a reader does not guess).
+- **`project.toml`:** `name`, `template`, `[[layers]]` (`id`, `kind`, `grid`, plus `tileset`, `snap`, `source` and `[[layers.values]]` where the kind has them), `[[tilesets]]` (`id`, `tile`, `columns`, `rows`, `spacing`, `padding`, `image` or `placeholder = true`, `[[tilesets.tags]]`), `[[entities]]` (the whole definition: shape, size, pivot, resizable, tags, `single`, `min`, `fields`) and `[[levelFields]]`.
+- **`levels/<id>.toml`:** `id`, `name`, `size`, `background`, `fields`, and per layer a `[[layers]]` table. A tile or IntGrid layer carries `rows` in the working file's own row-string format (§6.1); an **auto layer carries `[[layers.stack]]`, one `rows` per stack depth, depth 0 drawn first, the overrides already applied**; an entity or object layer carries `[[layers.items]]`.
+- **`world.toml`:** `[[worlds]]` with `id`, `layout`, `grid` (grid worlds), and placements. A `grid` world also has `[[worlds.neighbours]]`, one per placed level (`level`, then `north`, `east`, `south`, `west` as lists of level ids): the levels whose edge touches this level's edge along a span of positive length, ordered by position and then id (a placement of a level that does not exist is skipped). A corner contact is not a neighbour, and only a `grid` world has them.
 
 ## 7. Profiles
 
@@ -281,6 +302,15 @@ Templates:
 | `blank` | One 256×256 level; one tiles layer and one entities layer; one placeholder tileset; no entity definitions |
 
 Placeholder tilesets are generated flat-colour tiles with a glyph and the word "placeholder" in the Assets list (ED2D-D11).
+
+Details fixed while building ED2D.3:
+
+- **A template is data built by code.** `create(ids)` returns a `Project` whose every instance id comes from the injected `IdSource`, so a test compares the whole value, and each starter opens through `openProject(printProject(value))` as the same project. A level's empty layers come from `emptyLayers(defs, size)` (`ceil(side / cell)` cells per side, auto seed 1), which the `addLevel` command reuses.
+- **Placeholder tilesets** are definitions with no `image`; the label ends in "(placeholder)" and the tile count comes from `tilesetTiles(def)`, the §5.4 rule.
+- **Platformer terrain** is a generated 47-tile blob set (`blobRules`): a solid cell's four edges (north, east, south, west) and each diagonal whose two adjacent edges are both solid give 1 + 4 + 8 + 2 + 16 + 16 = 47 neighbourhoods, one rule each (`breakOnMatch`, `outside: 'same'`, no flips). A test proves that all 256 neighbourhoods of a solid cell match exactly one rule. Tilesheet order: tiles 0 to 46 terrain, 47 spike, 48 water, 49 ladder, 50 one-way, 51 onward decor; spike, water, ladder and one-way each get a size-1 rule.
+- **Top-down walls** are a generated 16-tile 4-neighbour set (`edgeRules`, tile `first + N + 2E + 4S + 8W`), plus one rule each for water and door-frame, with the same exactly-one test.
+- **Starters.** `platformer`: layers `entities`, `decor`, `ground`, `collision`; level `level-1` 512×288 with a two-row floor and a `player-start` at (48, 256). `topdown-rpg`: layers `entities`, `props`, `walls-art`, `walls`, `ground`; level `map-1` 320×240 of grass with a `player-start` at (160, 120). `blank`: layers `entities` and `tiles`, tileset `tiles`, level `level-1` 256×256. Every starter checks with no error and no warning; its only infos are `unusedDefinition` and (for `blank`) `emptyLevel`.
+- **The profile.** `sniff` accepts a name ending `.af2d.json`, or text whose first 4 KB holds `"format": "af2d"`. `parse` returns `ok` only when `openProject` opened; a read-only or failed outcome becomes errors with the same codes (`newerVersion`, `unknownKeys` once per key path, `notJson` with line and column, `notAProject`, `invalid` with paths, `tooLarge`), and `print` is `printProject`. Exports: the working file (`<name as a file stem>.af2d.json`) and the AF content files. The profile code is not exported from the package index: only `app/profiles.ts` imports it (§4).
 
 ## 8. Views and flows
 
@@ -315,14 +345,22 @@ Each diagnostic: `{ severity, code, path, message, fix? }` where `path` addresse
 
 | Source | Codes |
 |---|---|
-| File | `unsupportedVersion`, `unknownKey`, `duplicateId`, `cellInvalid` |
-| Definitions | `missingTileset`, `tilesetImageChanged` (warning), `autoSourceMissing`, `fieldDefInvalid` (the kit's `checkFieldDef`), `ruleTileOutOfRange`, `ruleNeverMatches` (info), `ruleShadowed` (info), `unusedDefinition` (info) |
-| Levels | `tileOutOfRange` (fix: remove), `unknownEntityDef`, `entityOutOfBounds` (warning, fix: move inside), `levelOutsideWorld`, `levelsOverlap` (warning, free layouts), `layerMissing` |
+| File (refusals at open, §6.1, not Checks) | `newerVersion`, `unknownKeys`, `duplicateId`, `unknownLayer`, `unknownTileset`, `layerKindMismatch`, `layerMismatch`, `layerTooLarge`, `cellInvalid` |
+| Definitions | `missingTileset` (the image), `tilesetImageChanged` (warning), `fieldDefInvalid` (the kit's `checkEntityDef`, for entity definitions and level fields), `ruleTileOutOfRange`, `ruleValueUnknown`, `ruleNeverMatches`, `ruleShadowed` (these four carry the rule engine's severity), `unusedDefinition` (info) |
+| Levels | `tileOutOfRange` (fix: remove), `cellValueUnknown`, `unknownEntityDef`, `entityOutOfBounds` (warning, fix: move inside), `levelOutsideWorld`, `placementUnknownLevel`, `levelsOverlap` (warning, free layouts) |
 | Entities | `fieldMissing`, `fieldInvalid` (the kit's problem codes), `singleExceeded`, `minNotMet` (project or level) |
 | Links | `brokenRef` (fix: choose target), `refWrongKind` |
 | Editor-only | `emptyLevel` (info) |
 
 Template "checks" are definitions: `minNotMet` reports "no player-start in the project", `fieldMissing` reports a door with no target. The FloorFifty profile's checks are in §10.7.
+
+Details fixed while building ED2D.3 (`checkProject(project, context)`, a pure function; errors first, then warnings, then info, each in discovery order, identical on every call):
+
+- **Four codes the first table lacked**, each for a state the model allows: `ruleValueUnknown` (a rule names an IntGrid value its source layer does not define), `cellValueUnknown` (an IntGrid cell holds an undefined value), `placementUnknownLevel` (a world places a level that does not exist) and the rule codes' severities are the engine's (`ruleNeverMatches` is a warning, not info).
+- **Aggregation.** `tileOutOfRange` and `cellValueUnknown` are one diagnostic per layer instance ("3 cells use tiles beyond the tileset's 64"), so "Remove 3 stray tiles" is one fix; every other code is one diagnostic per object.
+- **Bounds.** An entity or object is out of bounds when its anchor `(x, y)` is outside the closed box `[0, w] × [0, h]` of its level. `levelsOverlap` applies to `free` worlds only and means the same depth and an intersection of positive area (different depths overlap on purpose).
+- **Refs.** A `ref` value resolves by its field's `to`: `$level` means `target` is a level id; any other entry is an entity definition id and `target` is an instance id, found by id across the project (ids are unique) and, when the value has a `container`, required to be in that level. Not found, or in the wrong container, is `brokenRef`; found with a definition that `to` does not allow is `refWrongKind`; in a ref list the diagnostic names the bad member.
+- **Context.** `ProjectContext.imageSizes` (path to the measured image size) lets `tilesetImageChanged` compare the size a tileset was defined at with the file now in the workspace; `missingTileset` reads the context's asset list.
 
 ## 10. Profile: FloorFifty stage
 
@@ -333,7 +371,7 @@ This profile makes the editor author **the game's own stage files**. FloorFifty 
 | ID | Decision | Default and why |
 |---|---|---|
 | FF-D1 | The profile edits **the game's own TOML**, not an editor project format | The stage TOML is the contract; a second format would drift. |
-| FF-D2 | Comment- and format-preserving TOML via `@decimalturn/toml-patch` (MIT) on `smol-toml` (already in the stack) | Measured 2026-10-23: identity patch is byte-equal on all four shipped stages, and a one-value edit changes exactly the lines that hold it. Structural edits keep every other comment. New dependency: needs the `deps:new` review in the PR that adds it. |
+| FF-D2 | Comment- and format-preserving TOML via `@decimalturn/toml-patch` (MIT) on `smol-toml` (already in the stack) | Measured 2026-10-23: identity patch is byte-equal on all four shipped stages, and a one-value edit changes exactly the lines that hold it. Whole-table edits (add, remove, reorder) are not safe with comments, so the codec does those itself (§10.3). New dependency: needs the `deps:new` review in the PR that adds it. |
 | FF-D3 | The stage schema is **vendored** with a recorded source commit, not imported | FloorFifty's `content` package is not in AF (stages are game content, extraction map §4). A refresh script diffs against FloorFifty at a pinned commit; the profile registry lets another game supply its own. |
 | FF-D4 | Composition math is a pure function ported from `StageLayers`, tested against numbers from FloorFifty's own tests | "WYSIWYG" is a claim about numbers; the Pixi scene only applies them. |
 
@@ -367,21 +405,28 @@ The files are written by people for people: `rooftops.toml` is 30% comments, wit
 ### 10.3 Document and codec
 
 ```ts
+// What the profile edits (`Profile<StageDocument>`); the open file's path, `base` text and drafts belong to the app (ED2D.5).
 interface StageDocument {
-  readonly path: string                 // content/stages/rooftops.toml
-  readonly base: string                 // the text as loaded (comments, layout)
   readonly value: StageValue            // parsed, validated shape (schema output)
-  readonly draft: DraftState            // fields mid-edit that are not yet valid (e.g. empty alias)
+  readonly ids: ListIds                 // one id per element of course.extension, theme.layers and theme.setPieces
 }
+interface ListIds { readonly extension: readonly string[]; readonly layers: readonly string[]; readonly setPieces: readonly string[] }
+
+parseStage(text): Result<StageDocument, readonly ParseError[]>   // ids are b0, b1, ... per list
+printStage(base, document): string                                // base = the text the document was read from
 ```
 
-`print(base, value)` is the profile's `print` (§7). Codec rules:
+The three lists have no key a table can be told apart by, so every element carries an id the codec follows through an edit: it tells "moved" from "removed, and a new one added", and a moved element keeps its comments. A parsed document numbers its elements `b0`, `b1`, … per list; commands give new elements a fresh id from the injected `IdSource` and keep ids when they move or duplicate (a duplicate gets a fresh one). The ids of a list must be as many as its elements and distinct; `printStage` throws when they are not. **`base` stays the text as loaded for the whole session** (the app never replaces it by what it saved), because the `b` ids refer to its elements; saving again from the same base is idempotent, and a reload re-reads both.
 
-1. Opening and exporting with no change returns the original text byte for byte (tested on all four stages).
-2. A changed scalar changes only its own line. A new table or array element is inserted after its siblings with the file's existing style (blank line between tables, key order as the schema lists them). A removed element removes the comment block directly above it, nothing else.
-3. Reordering layers moves each table with its leading comment block.
-4. Output must re-parse to exactly `value` (tested as a property over generated edits).
-5. Parse errors report line and column; the editor shows them and never replaces the file.
+`print(base, value)` is the profile's `print` (§7). The codec is two layers: a **block engine** that adds, removes and rearranges whole tables (`course` with its phrases and extension, `theme.presentation`, `theme.presentation.citySink`, and the elements of the three lists), and `@decimalturn/toml-patch`, which carries every change inside a table. The engine exists because the library, measured on the shipped stages, drops the comment block that follows a removed table, leaves a removed element's own comment behind on its neighbour, does not move comments with a swapped element, and writes `citySink = { … }` or `phrases = [ { … } ]` inline for a new table. Codec rules:
+
+1. Opening and exporting with no change returns the original text byte for byte (tested on all four stages, with `\r\n` line endings and without a final newline). Line endings and the final newline are the base's.
+2. A changed scalar changes only its own line, and a comment at the end of that line stays. An optional key added or removed adds or removes only its line, and a comment directly above a removed key goes with it. A new table or array element follows the file's style: a blank line between tables, the keys in the order the shipped files write them (layers `alias, plate, depth, sink, haze, extend, arc, drift`; set pieces `floor, kind, holdMs`, then the kind's keys), string lists as `["a", "b"]`, and it is placed after its siblings, or after the last table that comes before it in file order (`courseTuning`, `course`, `course.phrases`, `course.extension`, `theme`, `theme.layers`, `theme.presentation`, `theme.presentation.citySink`, `theme.setPieces`). A removed table removes the comment lines directly above it and the blank line after it, and nothing else: a comment block that a blank line separates from the next header belongs to no table and stays.
+3. Reordering elements moves each table with its leading comment block into the place of the table that held the element now there, so the text between tables stays where it was.
+4. Output must re-parse to exactly `value` (tested as a property over generated edits: 200 seeded sequences of 1 to 8 edits for each shipped stage, which also checks that every comment of a table or key that stays is in the output once and that none appears from nowhere).
+5. Parse errors report line and column; the editor shows them and never replaces the file. A schema issue reports its path (`theme.layers[2].depth`) and the line of its key (the table header for a missing key; one error for each unknown key).
+
+Known limits: a list the text writes as an inline array is edited by the library, with its layout, not by the engine; removing a commented key between two blank lines leaves both blank lines; a float written `1.0` is printed `1`.
 
 ### 10.4 Composition (WYSIWYG)
 
@@ -412,14 +457,25 @@ Flows: **New stage** (Home → New → template Empty, Simple city, Sky only, Co
 
 ### 10.7 Checks
 
+`checkStage(document, context): Diagnostic[]` runs on the document's **value**, not on the schema's verdict: a command can leave a value the schema would refuse (a duplicated layer has its alias twice, a dragged sink leaves its range, a layer moved past a nearer one breaks the depth order), and the editor keeps that document open, says what is wrong and where, and offers the repair. A test makes the vendored schema the oracle for the rules the checks restate: 49 edits within the types a command can produce, applied to the minimal and the four shipped stages, singly and as 600 seeded sequences; the checks report an error at a schema issue's path exactly when the schema refuses the value.
+
+A finding's `path` is the parse error's path with each list index replaced by the element's id (`theme.layers[b2].depth`, `theme.setPieces[b0].layers[1]`, `course.extension[b1]`), so a reorder does not change it; the four phrases keep their index (`course.phrases[2].toFloor`), and `courseTuning.GRAVITY` names a tunable. Messages name the layer, phrase or piece, the value and the limit, in words; a run of floors is one finding (`floors 5–10`), never a sentence a floor. Findings come errors first, then warnings, then info.
+
+`StageCheckContext` is `{ aliases?, tunables?, baseTuning?, tallestFloor? }`; each missing member means the bundled one: no manifest, FloorFifty's tunable declarations (`tunables.ts`, vendored at `ee5d44e`), the declared defaults, and the tallest finite course of 49.
+
 | Source | Codes (errors unless noted) |
 |---|---|
-| Schema (vendored Zod, messages rewritten for people) | `id`, `displayName`, `phraseOrder`, `phraseRange`, `layerRange`, `plateOnlySky`, `arcOnlyCity`, `driftOnPlate`, `plateFirst`, `duplicateAlias`, `layerOrder` (with fix: reorder), `setPieceRange`, `tooManyPieces` |
-| Course (`validate/course.ts`) | `phraseOverlap`, `phrasePastTop`, `floorsUnaccounted` (fix: fit), `extensionOverlap`, `extensionPastTallest`, `extensionUnaccounted` |
-| Aliases (`validate/aliases.ts`) | `unknownAssetAlias` (error when a manifest is loaded, info "unchecked" otherwise; fix: suggestions by edit distance) |
-| Set pieces (`validate/set-pieces.ts`) | `unknownReference` for layers not drawn (fix: remove name) |
-| Tuning (`validate/bounds.ts`) | `unknownTunable`, `tunableRange` (against loaded or bundled declarations) |
-| Editor-only | `flashRate` (warning: more than 3 flashes per second across overlapping pieces), `emptyPurpose`, `unusedLayer` (info) |
+| Stage identity and aliases | `id` (the id and the unlock), `displayName`, `emptyAlias` (also a layer's alias and a name in a set piece's list), `presentationRange`, `seedInvalid` |
+| Course shape | `phraseOrder`, `phraseRange` (a floor that is not a whole number from 1, or a phrase or entry that ends before it starts), `emptyPurpose`, `purposeTooLong` |
+| Layers | `noLayers`, `layerRange`, `plateOnlySky`, `arcOnlyCity`, `driftOnPlate`, `plateFirst`, `duplicateAlias`, `layerOrder` (fix `reorder-layers`: "cityMid has depth 0.2, further than cityNear (0.5) before it") |
+| Set pieces | `setPieceRange` (floor, hold, flashes, kick, density, speed, and how many layers a piece names), `tooManyPieces` |
+| Course against the climb (`validate/course.ts`) | `phraseOverlap`, `phrasePastTop`, `floorsUnaccounted` (fix `fit-phrases`), `extensionOverlap`, `extensionPastTallest`, `extensionUnaccounted`. The top floor is `COURSE_FLOOR_COUNT - 1` of the base tuning with the stage's `courseTuning` on top; when that count is out of range the course checks stay quiet and `tunableRange` reports it. Floors are handled as runs, so a phrase that ends at floor 1e15 is a finding, not a loop |
+| Aliases (`validate/aliases.ts`) | `unknownAssetAlias` for the five stage aliases and every layer, when a manifest is loaded, with the nearest names by edit distance in the message (a swap of neighbours is one edit; names within a sixth of the alias's length); `aliasesUnchecked` (info, one for the stage) when none is loaded |
+| Set pieces (`validate/set-pieces.ts`) | `unknownReference` for a name in a piece's `layers` that the stage does not draw (fix `remove-name`) |
+| Tuning (`validate/bounds.ts`) | `unknownTunable` (with the nearest name), `codeOnlyTunable` (an invariant such as `TICK_HZ`), `tunableRange` (range, and a whole number for an `int` tunable) |
+| Editor-only | `flashRate` (warning): the sky flashes on one floor start together, flash `i` of a piece `i × max(334, hold ÷ flashes)` ms after it (the director's own schedule), and more than three starting inside one second breaks WCAG 2.3.1. Pieces on different floors start when the climber reaches them, which no check can know |
+
+Differences from the first draft of this section: `unusedLayer` is cut (no rule that needs only the document and a list of aliases says a layer is unused; it returns when the Compose view defines what unused means); `emptyPurpose` is an error, not editor-only, because the schema refuses an empty purpose; one info finding `aliasesUnchecked` replaces one per alias; and the codes `emptyAlias`, `noLayers`, `presentationRange`, `seedInvalid`, `purposeTooLong` and `codeOnlyTunable` name schema and bounds rules the first list left out. Enum values (a mood, a particle, a plate) are not checked: the types keep a command from producing a wrong one.
 
 ## 11. Persistence
 
@@ -435,7 +491,9 @@ Kit storage (§4.7 of the kit spec) with these rules: the workspace in OPFS hold
 | iPad 13" 1366×1024 | `wide` | |
 | Desktop ≥ 1440 | `wide` | Hover, shortcuts: `Mod+Z`, `Mod+Shift+Z`, `Delete`, `Mod+D` duplicate, `B` brush, `R` rectangle, `G` fill, `E` eraser, `I` picker, `[` `]` brush size, arrows nudge the selection by one cell (shift 8), `Alt+↑/↓` reorder in lists |
 | Phone | `compact` | Not a target; opens, edits and exports without data loss |
-| Input | | Finger: select, drag, pan, pinch. Pencil: precise drags and strokes, hover shows the brush footprint. Mouse: wheel zoom, middle pan. Keyboard: every inspector field and rule cell |
+| Input | | The operations behind the tools are pure functions over a `Grid` in `tiles/` (ED2D.2); each takes the cell **word** (a packed tile cell, an IntGrid value or an override tile), so one set serves every layer kind, and erasing is painting the word 0. The brush is a square of 1 to 8 cells whose top-left is `floor((size - 1) / 2)` up and left of the cursor, and a stroke is the Bresenham line between pointer events with the footprint at every cell. Rectangle corners are inclusive and may come in either order. Fill is 4-connected, replaces cells equal to the start cell's word (a flipped tile is a different word), stays inside the level and works a run at a time. A stamp is a row-major rectangle of words: pasting skips its empty cells unless asked to clear, and flipping mirrors the layout and, for tiles, each tile's flip bit. The dice pick `candidates[hash(seed, x, y) % n]` per cell, so a replayed stroke repaints the same tiles.
+
+Finger: select, drag, pan, pinch. Pencil: precise drags and strokes, hover shows the brush footprint. Mouse: wheel zoom, middle pan. Keyboard: every inspector field and rule cell |
 
 Touch targets stay 44 (48 for Export); tile palette cells are 44 on `compact` and `medium` and scale up to the grid size on `wide`; the rule pattern cells are 44; nothing is hover-only; the canvas never scrolls the page. The Level view's essential actions on a short height are tools, undo/redo, layers and Export; the palette and dock open as sheets (kit §4.2).
 
@@ -465,7 +523,7 @@ Touch targets stay 44 (48 for Export); tile palette cells are 44 on `compact` an
 |---|---|---|
 | Unit | Schema and codec round trips; cell encoding (property); chunked grid; commands; checks; auto-tile engine; export; id source; migrations with fixtures; the FloorFifty codec, commands, checks, `composeStage`, `createCourse`, demand | `model/`, `tiles/`, `profiles/**`, renderer-free |
 | Property | RLE `decode∘encode` is identity; random command sequences then undo of any prefix restores the project byte-for-byte when printed; incremental auto-tile equals full recompute; FloorFifty `print` re-parses to `value` and undo restores the original text | `model/`, `tiles/`, `profiles/floorfifty-stage` |
-| Golden | Auto-tile output hash for fixed IntGrids and rule sets, **identical in Node, Chromium, WebKit and Firefox** (the browser projects run the same file); `composeStage` and `createCourse` vs FloorFifty; shipped stages open with zero errors | fixtures in `src/testing/fixtures/` |
+| Golden | Auto-tile output hash for fixed IntGrids and rule sets, **identical in Node, Chromium, WebKit and Firefox** (`*.parity.test.ts` files run in the Node `unit` project and again in the `browsers` project; the hill's number is also reproduced by an independent python fold of stacks worked out by hand); `composeStage` and `createCourse` vs FloorFifty; shipped stages open with zero errors | fixtures in `src/testing/fixtures/` |
 | Architecture | The import-graph rules of §4; no template or profile ids in `app`, `tiles`, `canvas` (G-s) | one unit test |
 | DOM | Layer panel, palettes, entity inspector and every field type, rule editor, diagnostics list, export dialog states | Vitest browser mode |
 | Layout | Shell regions at the sizes in §12 | kit layout project |
@@ -473,7 +531,7 @@ Touch targets stay 44 (48 for Export); tile palette cells are 44 on `compact` an
 | Visual | Level and stage canvases vs recorded images | GPU runner (D-5); Owner visual acceptance; never auto-promoted |
 | Device | iPad Safari manual, plus `test-request` on the bus for the Mac/PC/Linux runs | Orchestrator |
 
-Fixtures: the two sample projects (Mossgate, Hollowmere), a minimal project, a project per error class in §9, malformed and newer-version files, FloorFifty's four stages, a minimal stage, a stage per stage error class, malformed TOML. TDD: the first commit of each task is its plan; the first test fails for the stated reason.
+Fixtures: the two sample projects (Mossgate, Hollowmere; `src/testing/samples.ts`, built from the templates by code so they follow them: each checks with no error or warning, reprints byte for byte and passes the export round trip of G-i, `src/testing/content-roundtrip.ts`), a minimal project, a project per error class in §9, malformed and newer-version files, FloorFifty's four stages, a minimal stage, a stage per stage error class, malformed TOML. TDD: the first commit of each task is its plan; the first test fails for the stated reason.
 
 ## 15. Acceptance cases
 

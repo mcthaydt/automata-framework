@@ -46,7 +46,6 @@
     "packages/cli": { "ignoreDependencies": ["smol-toml"] },
     // Known unused dependencies on main at QB.1 (2026-10-16), each a follow-up in docs/02 (QB.1 knip
     // baseline). Remove an entry when its follow-up lands; nothing new may be added here without one.
-    "tooling/frame-budget": { "ignoreDependencies": ["@ruken/manifest"] },
     "examples/runtime/boot-and-flow": {
       "ignoreDependencies": [
         "@mcthaydt/automata-content",
