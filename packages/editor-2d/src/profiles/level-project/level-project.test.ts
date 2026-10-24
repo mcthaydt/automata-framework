@@ -201,21 +201,21 @@ describe('the level-project profile', () => {
     })
 
     it('writes the working file named after the project', () => {
-      const [file] = levelProject.exports[0]?.files(project) ?? []
+      const [file] = levelProject.exports[0]?.files(project, '') ?? []
       expect(file?.path).toBe('untitled-platformer.af2d.json')
       expect(file?.contents).toBe(printProject(project))
     })
 
     it('names a working file from any project name', () => {
       const name = (value: string): string | undefined =>
-        levelProject.exports[0]?.files({ ...project, name: value })[0]?.path
+        levelProject.exports[0]?.files({ ...project, name: value }, '')[0]?.path
       expect(name('Moss Gate: Part 1!')).toBe('moss-gate-part-1.af2d.json')
       expect(name('  ')).toBe('project.af2d.json')
       expect(name('Éclair')).toBe('eclair.af2d.json')
     })
 
     it('writes the AF content files', () => {
-      const files = levelProject.exports[1]?.files(project) ?? []
+      const files = levelProject.exports[1]?.files(project, '') ?? []
       expect(files.map((file) => file.path)).toEqual(['project.toml', 'levels/level-1.toml', 'world.toml'])
     })
   })

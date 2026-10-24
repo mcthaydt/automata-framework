@@ -259,7 +259,8 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     const template = profile.templates.find((candidate) => candidate.id === templateId)
     if (template === undefined) throw new RangeError(`no template "${templateId}" in profile "${profileId}"`)
     const working = profile.exports[0]
-    const file = working?.files(template.create(ids))[0]
+    // A new document has no loaded text, so its `base` is empty (`files` keeps what it does not model from `base`).
+    const file = working?.files(template.create(ids), '')[0]
     if (file === undefined) throw new RangeError(`profile "${profileId}" has no working file export`)
     try {
       const path = await firstFree(file.path)

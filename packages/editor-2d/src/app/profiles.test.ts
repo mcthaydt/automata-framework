@@ -34,7 +34,7 @@ describe('createAppProfiles', () => {
       expect(profile.exports.length, profile.id).toBeGreaterThan(0)
       for (const template of profile.templates) {
         const value = template.create(counterIds())
-        const [file] = profile.exports[0]?.files(value) ?? []
+        const [file] = profile.exports[0]?.files(value, '') ?? []
         expect(file?.path, `${profile.id}/${template.id}`).toMatch(/\S/)
         expect(file?.path.startsWith('/'), `${profile.id}/${template.id}`).toBe(false)
       }

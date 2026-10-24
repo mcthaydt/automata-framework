@@ -71,6 +71,22 @@ export const AUTHORING_INVARIANTS: readonly string[] = [
 ]
 
 /**
+ * Why `value` is not an allowed value of the tunable, in words; `undefined` when it is. The game refuses the same values
+ * (`resolveTuning`): not a number, outside the inclusive range, or a fraction for an `int`.
+ */
+export function tunableFault(
+  name: string,
+  value: number,
+  declaration: TunableDeclaration,
+): string | undefined {
+  if (Number.isNaN(value)) return `${name} is not a number.`
+  const whole = declaration.type === 'int'
+  if (value >= declaration.min && value <= declaration.max && (!whole || Number.isInteger(value)))
+    return undefined
+  return `${name} is ${value}; it must be ${whole ? 'a whole number ' : ''}from ${declaration.min} to ${declaration.max}.`
+}
+
+/**
  * The top floor of a stage's climb: `COURSE_FLOOR_COUNT` is the floors in an ascent including the fixed starting floor,
  * so the top is one below it. The count comes from the stage's own tuning, else the base tuning (`tuning.toml`), else the
  * declared default. `undefined` when the count is out of range or not whole, or the declarations do not know it: that
@@ -84,6 +100,6 @@ export function courseTopFloor(
   const declaration = declarations.COURSE_FLOOR_COUNT
   if (declaration === undefined) return undefined
   const count = overrides.COURSE_FLOOR_COUNT ?? base.COURSE_FLOOR_COUNT ?? declaration.default
-  if (!Number.isInteger(count) || count < declaration.min || count > declaration.max) return undefined
+  if (tunableFault('COURSE_FLOOR_COUNT', count, declaration) !== undefined) return undefined
   return count - 1
 }

@@ -62,6 +62,13 @@ export interface SectorAccess<D> {
   create(doc: D, draft: SectorDraft): EditSector
   /** What still names the sector or stands in it, as sentences; empty when it can go. */
   references(doc: D, id: string): readonly string[]
+  /**
+   * What is tied to the sector's walls or to its name beyond a portal, as sentences: the part of `references` that cutting
+   * the sector in two, or joining it to another, would leave pointing at the wrong place. Last Light: the openings that
+   * join the room, the wall presets that lead into it and the things that name one of its walls by number. Empty when
+   * nothing is, and for a sector that is not there.
+   */
+  pinned(doc: D, id: string): readonly string[]
   /** The sector a wall leads into, through its preset where the format has presets; nothing for a wall that is not a portal. */
   portalOf(doc: D, wall: string | EditWall | undefined): string | undefined
 }

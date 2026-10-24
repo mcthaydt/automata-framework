@@ -401,6 +401,45 @@ describe('the Last Light access: references', () => {
   })
 })
 
+describe('the Last Light access: pinned', () => {
+  const pinned = (level: Blockout, id: string) => lastLightSectorAccess.pinned(level, id)
+
+  it('names the openings that join a room, for both of its rooms', () => {
+    expect(pinned(dawn.level, 'yard')).toEqual(['opening exitWay (corridor → yard)'])
+    expect(pinned(dawn.level, 'corridor')).toEqual(['opening exitWay (corridor → yard)'])
+  })
+
+  it('names a wall preset whose `next` is the room', () => {
+    expect(pinned(dawn.level, 'counter')).toEqual(['wall preset COUNTER: next counter'])
+  })
+
+  it('names the things that point at one of its walls with `on: wall:<room>/<corner>`', () => {
+    const hotspot = must(dawn.level.hotspots[0])
+    const level: Blockout = {
+      ...dawn.level,
+      hotspots: [{ ...hotspot, on: 'wall:ward/3' }, ...dawn.level.hotspots.slice(1)],
+    }
+    expect(pinned(level, 'ward')).toEqual(['hotspots.0.on: wall:ward/3'])
+  })
+
+  it('names nothing for a room that only has portals into it and things standing in it', () => {
+    // `ward` is led into by the hall and has a box in it (both are in `references`), and nothing is tied to its walls.
+    expect(lastLightSectorAccess.references(dawn.level, 'ward').length).toBeGreaterThan(0)
+    expect(pinned(dawn.level, 'ward')).toEqual([])
+  })
+
+  it('names nothing for a room that is not there, even when a wall preset leads into it', () => {
+    expect(pinned(dawn.level, 'nowhere')).toEqual([])
+    const level: Blockout = { ...dawn.level, walls: { ...dawn.level.walls, GHOST: { next: 'ghost' } } }
+    expect(pinned(level, 'ghost')).toEqual([])
+  })
+
+  it('is a part of what `references` says, in its order', () => {
+    const all = lastLightSectorAccess.references(dawn.level, 'counter')
+    expect(all).toEqual(expect.arrayContaining([...pinned(dawn.level, 'counter')]))
+  })
+})
+
 describe('the Last Light access: portalOf', () => {
   it("says where a wall leads: its `next`, its preset's `next`, and nowhere for a name or a plain wall", () => {
     const { level } = dawn

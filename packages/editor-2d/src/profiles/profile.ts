@@ -51,7 +51,11 @@ export interface ViewDef {
 export interface ExportTarget<V> {
   readonly id: string
   readonly label: string
-  files(value: V): readonly { readonly path: string; readonly contents: string }[]
+  /**
+   * `base` is the text the document was loaded from, or `''` for one that never was, so a profile whose `print` patches
+   * the loaded text exports the file with its comments. A target that prints the whole value ignores it.
+   */
+  files(value: V, base: string): readonly { readonly path: string; readonly contents: string }[]
 }
 
 export interface TemplateDef<V> {
@@ -79,9 +83,14 @@ export interface Profile<V> {
   sniff(fileName: string, text: string): boolean
   /** A position for every error. */
   parse(text: string): Result<V, readonly ParseError[]>
-  /** `base` is the text as loaded, which a codec may patch instead of reprinting. */
+  /** `base` is the text as loaded, which a codec may patch instead of reprinting; `''` for a document that never was loaded. */
   print(base: string, value: V): string
   check(value: V, context: ProjectContext): readonly Diagnostic[]
+  /**
+   * Applies the one-step repair a finding's `fix` names and returns the next value. The app offers it for a finding of
+   * the value it came from; absent when the profile offers no repair.
+   */
+  fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V
   /** Optional: a profile without it lists on Home by file name, with its check counts. */
   summary?(value: V): ProfileSummary
   readonly templates: readonly TemplateDef<V>[]

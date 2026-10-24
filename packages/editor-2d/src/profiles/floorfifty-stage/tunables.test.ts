@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AUTHORING_INVARIANTS, courseTopFloor, TUNABLES } from './tunables'
+import { AUTHORING_INVARIANTS, courseTopFloor, TUNABLES, tunableFault } from './tunables'
 
 // The tunable declarations vendored from FloorFifty (`packages/shared/src/common/tuning.ts` at ee5d44e): what a stage's
 // `courseTuning` may name, the range of each and the default a missing name takes.
@@ -70,5 +70,38 @@ describe('courseTopFloor', () => {
 
   it('has no top when the declarations do not know the count', () => {
     expect(courseTopFloor({}, {}, {})).toBeUndefined()
+  })
+})
+
+describe('tunableFault', () => {
+  const whole = { type: 'int', min: 20, max: 100, default: 20 } as const
+  const fractional = { type: 'float', min: -1200, max: -100, default: -275 } as const
+
+  it('is undefined for a value the game accepts, at either end of the range', () => {
+    expect(tunableFault('COURSE_FLOOR_COUNT', 20, whole)).toBeUndefined()
+    expect(tunableFault('COURSE_FLOOR_COUNT', 100, whole)).toBeUndefined()
+    expect(tunableFault('GRAVITY', -100.5, fractional)).toBeUndefined()
+  })
+
+  it('says which whole number range a number outside it, or a fraction, misses', () => {
+    const message = 'COURSE_FLOOR_COUNT is 101; it must be a whole number from 20 to 100.'
+    expect(tunableFault('COURSE_FLOOR_COUNT', 101, whole)).toBe(message)
+    expect(tunableFault('COURSE_FLOOR_COUNT', 19, whole)).toBe(
+      'COURSE_FLOOR_COUNT is 19; it must be a whole number from 20 to 100.',
+    )
+    expect(tunableFault('COURSE_FLOOR_COUNT', 20.5, whole)).toBe(
+      'COURSE_FLOOR_COUNT is 20.5; it must be a whole number from 20 to 100.',
+    )
+  })
+
+  it('says which range a float misses, without asking for a whole number', () => {
+    expect(tunableFault('GRAVITY', -99, fractional)).toBe('GRAVITY is -99; it must be from -1200 to -100.')
+    expect(tunableFault('GRAVITY', -1201, fractional)).toBe(
+      'GRAVITY is -1201; it must be from -1200 to -100.',
+    )
+  })
+
+  it('says a value that is not a number is not a number', () => {
+    expect(tunableFault('GRAVITY', Number.NaN, fractional)).toBe('GRAVITY is not a number.')
   })
 })
