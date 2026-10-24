@@ -48,6 +48,7 @@ export {
 export * from './checks/check'
 export * from './checks/entities'
 export * from './checks/entity-refs'
+export { type FacilityResults, facilityChecks } from './checks/facility/facility-checks'
 export * from './checks/generic-checks'
 export { DEFAULT_TONE, type LampKind, lampProblems } from './checks/last-light/lamps'
 export * from './checks/last-light/last-light-checks'
@@ -82,12 +83,7 @@ export {
   type FacilityState,
 } from './model/facility-editor'
 export { type MoveWingArgs, moveWing, removeJoin, setJoin, setLock } from './model/facility-edits'
-export {
-  type FacilitySelectionKind,
-  type FacilitySelectionRef,
-  facilitySelection,
-  parseFacilitySelection,
-} from './model/facility-selection'
+export { type FacilitySelectionRef, parseFacilitySelection } from './model/facility-selection'
 export {
   createLevelEditor,
   type EditSession,
