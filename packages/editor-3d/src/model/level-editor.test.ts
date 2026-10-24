@@ -9,6 +9,7 @@ import { loadAuthored } from '../testing/fixtures'
 import { must } from '../testing/toy-blockout'
 import { type Edit, ok, refuse } from './edit'
 import { createLevelEditor } from './level-editor'
+import { addThing, removeThing } from './thing-edits'
 
 const depot = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
@@ -157,11 +158,54 @@ describe('the selection follows the document', () => {
     expect(e.selection.ids).toEqual(['wall:hall/3'])
   })
 
-  it('leaves alone an entity, an id it cannot read and an id of a kind it does not know', () => {
+  it('leaves alone a thing of a kind the level has no definition for, an id it cannot read and an id of a kind it does not know', () => {
     const e = editor()
-    e.selection.set(['entity:crate/gone', 'nonsense', 'join:a/b', 'sector:gone'])
+    e.selection.set(['entity:zone/gone', 'nonsense', 'join:a/b', 'sector:gone'])
     e.run(dim(0.5))
-    expect(e.selection.ids).toEqual(['entity:crate/gone', 'nonsense', 'join:a/b'])
+    expect(e.selection.ids).toEqual(['entity:zone/gone', 'nonsense', 'join:a/b'])
+  })
+
+  it('drops the things an edit removed, and keeps the things that are there', () => {
+    const e = editor()
+    e.selection.set(['entity:crate/crate1', 'entity:spawn/spawn', 'entity:crate/ghost', 'sector:hall'])
+    e.run(dim(0.5))
+    expect(e.selection.ids).toEqual(['entity:crate/crate1', 'entity:spawn/spawn', 'sector:hall'])
+    e.run(removeThing({ def: 'crate', id: 'crate1' }))
+    expect(e.selection.ids).toEqual(['entity:spawn/spawn', 'sector:hall'])
+  })
+
+  it('drops a new thing again on undo of its add and keeps it on redo of nothing, since the selection is not a step', () => {
+    const e = editor()
+    e.run(addThing({ def: 'crate', id: 'crate2', x: 5, z: 3 }))
+    expect(e.selection.ids).toEqual(['entity:crate/crate2'])
+    e.history.undo()
+    expect(e.selection.ids).toEqual([])
+    e.selection.set(['entity:crate/crate2'])
+    e.history.redo()
+    expect(e.selection.ids).toEqual(['entity:crate/crate2'])
+  })
+
+  it('judges a thing of any definition the level defines, and none of a definition it does not', () => {
+    const defined: AfSector = {
+      ...depot,
+      entityDefs: [...(depot.entityDefs ?? []), { id: 'switch', shape: 'point', fields: [] }],
+    }
+    const e = createLevelEditor({ profile: afSectorProfile, level: defined })
+    e.selection.set(['entity:switch/ghost', 'entity:zone/ghost'])
+    e.run(dim(0.5))
+    expect(e.selection.ids).toEqual(['entity:zone/ghost'])
+  })
+
+  it('counts a thing that cannot be read as there, because a problem may have selected it', () => {
+    const unreadable: AfSector = {
+      ...depot,
+      // It has no x, which the file's schema would refuse and the entity reader reports.
+      entities: [...(depot.entities ?? []), { def: 'crate', id: 'bad', z: 1 } as never],
+    }
+    const e = createLevelEditor({ profile: afSectorProfile, level: unreadable })
+    e.selection.set(['entity:crate/bad', 'entity:crate/ghost'])
+    e.run(dim(0.5))
+    expect(e.selection.ids).toEqual(['entity:crate/bad'])
   })
 })
 

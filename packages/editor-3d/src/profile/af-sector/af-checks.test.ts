@@ -144,7 +144,7 @@ describe('afIdProblems', () => {
 })
 
 describe('afSectorChecks', () => {
-  it('runs ids, shared-walls, openings, overlap, heights and entities, in that order, all ok on the toy level', () => {
+  it('runs ids, shared-walls, openings, overlap, heights, entities and materials, in that order, all ok on the toy level', () => {
     const results = afSectorChecks(toyAfSector())
     expect(results.map((result) => [result.id, result.ok, result.severity, result.detail])).toEqual([
       ['ids', true, 'error', 'ok'],
@@ -153,6 +153,7 @@ describe('afSectorChecks', () => {
       ['overlap', true, 'error', 'ok'],
       ['heights', true, 'error', 'ok'],
       ['entities', true, 'error', '0 things of 0 definitions'],
+      ['materials', true, 'error', 'no materials table'],
     ])
   })
 
@@ -164,7 +165,63 @@ describe('afSectorChecks', () => {
       ['overlap', true],
       ['heights', true],
       ['entities', true],
+      ['materials', true],
     ])
+  })
+
+  describe('materials', () => {
+    const named = (more: Partial<AfSector>): AfSector =>
+      toyAfSector({
+        materials: { tile: { category: 'floors' }, brick: { category: 'walls' } },
+        sectors: [{ ...toyHall, floorTexture: 'tile', wallTexture: 'brick' }, toyDock],
+        ...more,
+      })
+    const materials = (level: AfSector) => afSectorChecks(level).find((result) => result.id === 'materials')
+
+    it('counts the table’s materials when every texture is one of them', () => {
+      expect(materials(named({}))).toMatchObject({ ok: true, detail: 'within the table of 2 materials' })
+    })
+
+    it('says a texture the table lacks, at the sector that names it', () => {
+      const level = named({ sectors: [{ ...toyHall, floorTexture: 'carpet' }, toyDock] })
+      expect(materials(level)).toMatchObject({
+        ok: false,
+        detail: 'hall: floorTexture carpet is not a material',
+      })
+      expect(materials(level)?.problems[0]?.locator).toMatchObject({ selection: 'sector:hall' })
+    })
+
+    it('reads a style’s textures as the sectors that use it have them, and a wall’s at the wall', () => {
+      const level = named({
+        styles: { posh: { floorTexture: 'marble' } },
+        sectors: [
+          { ...toyHall, style: 'posh' },
+          {
+            ...toyDock,
+            corners: toyDock.corners.map((c, i) => (i === 1 ? [...c, { texture: 'slate' }] : c)) as never,
+          },
+        ],
+      })
+      expect(
+        materials(level)?.problems.map((problem) => [problem.message, problem.locator?.selection]),
+      ).toEqual([
+        ['hall: floorTexture marble is not a material', 'sector:hall'],
+        ['dock: wall texture slate is not a material', 'wall:dock/1'],
+      ])
+    })
+
+    it('is skipped, and says so, for a file with no table, however many textures it names', () => {
+      const level = toyAfSector({ sectors: [{ ...toyHall, floorTexture: 'anything' }, toyDock] })
+      expect(materials(level)).toMatchObject({ ok: true, detail: 'no materials table' })
+    })
+
+    it('treats an empty table as a list with nothing in it', () => {
+      const level = toyAfSector({ materials: {}, sectors: [{ ...toyHall, floorTexture: 'tile' }, toyDock] })
+      expect(materials(level)).toMatchObject({
+        ok: false,
+        detail: 'hall: floorTexture tile is not a material',
+      })
+    })
   })
 
   it('answers build alone for a style that does not exist, with the engine data’s own sentence', () => {
@@ -193,6 +250,7 @@ describe('afSectorChecks', () => {
       'overlap',
       'heights',
       'entities',
+      'materials',
     ])
     expect(results[0]).toMatchObject({ ok: false, detail: 'sector dock twice' })
   })

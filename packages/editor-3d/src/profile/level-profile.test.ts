@@ -142,6 +142,38 @@ describe('the Last Light blockout profile', () => {
     expect(puzzle(null)?.ok).toBe(true)
   })
 
+  it('hands every list of the context on to lastLightChecks: materials, lamp kinds, tone and the room policy', () => {
+    const blockout = toyBlockout({
+      rooms: toyBlockout().rooms.map((room) => ({ ...room, floorTexture: 'marble' })),
+      lamps: [
+        {
+          id: 'l1',
+          x: 1,
+          y: 3,
+          z: 1,
+          range: 99,
+          radius: 0,
+          color: [1, 0.7432941176470589, 0.6078431372549019],
+          kind: 'pendant',
+        },
+      ],
+    })
+    const context = {
+      materials: ['plaster'],
+      lampKinds: { pendant: { color: [1, 0.8352941176470589, 0.6078431372549019], range: [5.5, 9] } },
+      tone: 0.01,
+      roomPolicy: { rooms: { hall: ['a', 'b'] }, zones: {}, masses: {} },
+    } as const
+    const ran = lastLightProfile.checks(blockout, context)
+    expect(ran).toEqual(lastLightChecks(blockout, context))
+    const detail = (id: string) => ran.find((result) => result.id === id)?.detail
+    expect(detail('materials')).toMatch(/floorTexture marble is not a material/)
+    expect(detail('lamps')).toMatch(
+      /colour is 0\.\d+ from the archetype's, over 0\.01 \(OKLab\).*range 99 m outside 5.5–9 m/,
+    )
+    expect(detail('policy')).toMatch(/unassigned sector ab/)
+  })
+
   it('reaches the rooms of a level through the Last Light sector access', () => {
     expect(lastLightProfile.sectors).toBe(lastLightSectorAccess)
     expect(lastLightProfile.sectors.takenIds(toyBlockout())).toEqual(['a', 'b', 'ab'])
