@@ -54,6 +54,7 @@ Already target-neutral: `packages/ship/src/prepare/root-absolute.ts` rejects roo
   - The build adds `resolve.conditions: ['automata-web']` for `itch` and `web`.
   - The runtime imports `makeHosting` from `./target`, so each bundle holds exactly one adapter. An itch bundle contains no `@ruken/sdk` code.
   - PUB.1 adds a bundle check that fails on the SDK's string literals that survive minification (`ruken:__probe__`, `needs the Ruken host`) in an `itch` build. The web adapter's own storage probe uses a different key.
+  - How the web adapter knows itch.io from any other page (PUB.1): the build also sets the define `__AUTOMATA_TARGET__` to `'itch'` or `'web'`. It only chooses `hostName` (`'itch.io'` or `'this page'`); without it, `hostName` is `'this page'`. Because `resolve.conditions` replaces Vite's defaults, a target build lists `automata-web` before `defaultClientConditions`.
 - **Ruken stays the vocabulary.** `Hosting` keeps every type from `@ruken/sdk`, imported as types only. The web adapter answers in Ruken's terms:
   - It **mirrors the SDK's standalone session** wherever the SDK defines one (§3.1).
   - It **adds** what a page outside Ruken can observe (visibility, input mode, viewport, fullscreen).
@@ -73,11 +74,12 @@ Already target-neutral: `packages/ship/src/prepare/root-absolute.ts` rejects roo
 | `display` | `visualViewport` metrics and orientation | Fixed landscape metrics |
 | `saves` | `localStorage` under `ruken:<gameId>:` (the SDK's prefix). A failed probe: `saves` is not granted and every call fails `HostError{code:'DENIED'}`. A full quota: `QUOTA_EXCEEDED` (itch.io games share one origin's quota) | The same prefix, but memory when storage is unavailable |
 | `savesStatus`, `flush` | `saved`; `{ persisted: 'host-outbox' }` | The same |
+| `saves.keys`, `saves.changed` | `keys`: this game's keys in `localStorage` with the prefix removed, in code-unit order (the origin's other keys are not listed). `changed` never emits: one browser is the only writer | `keys` lists the session's storage; `changed` carries another device's write |
 | `setFullscreen` | Element Fullscreen API on the game root; `support` reports what the browser allows. itch.io's frame allows fullscreen | `{ fullscreen: false, support: 'none' }` |
-| `round`, `track` | No-ops (`track` never fails, by contract) | The same |
+| `round`, `track` | No host counts rounds, but `round` keeps the guard (a second start and an end with no round are dropped) and `round.ended` gives one item per round that ended, which the round-end autosave reads (M5.2). `track` is a no-op (it never fails, by contract) | The same |
 | `exit` | Fails `UNSUPPORTED`; the UI hides "Back to …" when `exit` is not granted | Does nothing |
 | `onMenuRequest`, `onExiting` | Registered but never called | The same |
-| Leaderboards, entitlements, store, ads | Not granted; calls fail `UNSUPPORTED` | The same |
+| Leaderboards, entitlements, store, ads | Not granted. `leaderboards.submit` and `get` fail `UNSUPPORTED` (`leaderboard.submit`, `leaderboard.get`) and keep no local board; the other calls fail `UNSUPPORTED` | The same |
 
 The web adapter therefore keeps every behavior the SDK defines for standalone, and adds real lifecycle, input, display and fullscreen. The one deliberate difference is storage: it reports blocked storage instead of keeping saves in memory.
 
@@ -162,6 +164,7 @@ It needs `BUTLER_API_KEY`, and fails early, with how to get one, when the key or
 1. A supported way to start a standalone session without the handshake wait (for example `init({ standalone: true })`). Today only the test-only `env` seam does it, so AF writes its own web adapter. With this option, the web adapter could reuse the SDK.
 2. Standalone saves should report when they fall back to memory, instead of granting `saves` silently.
 3. A `SavesFlushRes.persisted` value for device storage (for example `'device'`). Until then, the web adapter answers `'host-outbox'`, as the SDK's standalone session does.
+4. (Added by PUB.1.) Publish the save-key pattern and the per-save limits (1 MiB per value, 256 keys, 10 MiB per game in the SDK's `save-map.ts` at `b30d31b`) from a package other hosts can import, such as `@ruken/manifest`. AF may not copy them, so until then the web adapter enforces only the browser's quota, and a key or value Ruken would refuse is caught only on a Ruken build (pinned by a test).
 
 ## 10. Owner decisions (approved as recommended, 2026-10-16)
 
