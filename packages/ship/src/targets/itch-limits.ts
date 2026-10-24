@@ -9,11 +9,13 @@
 // "MB" is read as 1,000,000 bytes, the stricter of the two readings, so a build that passes here cannot be
 // refused for being a few MiB over.
 
+/** Where itch.io's limits were read, and when. */
 export const ITCH_LIMITS_SOURCE: { readonly url: string; readonly read: string } = {
   url: 'https://itch.io/docs/creators/html5',
   read: '2026-10-16',
 }
 
+/** itch.io's documented limits for an HTML5 upload; "MB" is read as 10^6 bytes. */
 export const ITCH_LIMITS: {
   readonly maxFiles: number
   readonly maxPathLength: number
