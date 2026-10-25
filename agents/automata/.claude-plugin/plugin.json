@@ -1,6 +1,6 @@
 {
   "name": "automata",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Automata Framework skills (rules, test-first features, the exact API, check findings) and hooks that run automata check after sim edits and before a turn ends.",
   "author": { "name": "mcthaydt" }
 }
