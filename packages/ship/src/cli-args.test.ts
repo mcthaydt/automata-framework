@@ -11,6 +11,18 @@ describe('parseCliArgs', () => {
     })
   })
 
+  it('reads prepare --private, for a build that stays on Ruken’s local stack (M3 spec §4.8)', () => {
+    expect(parseCliArgs(['prepare', '--private'])).toStrictEqual({
+      command: 'prepare',
+      dist: 'dist',
+      tag: undefined,
+      target: undefined,
+      private: true,
+    })
+    expect(parseCliArgs(['prepare', '--private', '--target', 'itch'])).toMatchObject({ command: 'usage' })
+    expect(parseCliArgs(['publish', '--private']).command).toBe('usage')
+  })
+
   it('reads publish with --activate and --game', () => {
     expect(parseCliArgs(['publish', '--activate', '--game', 'g-abc'])).toEqual({
       command: 'publish',

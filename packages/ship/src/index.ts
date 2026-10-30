@@ -36,6 +36,12 @@ export {
   type OrientationMismatchFound,
   type PlayedOrientation,
 } from './prepare/orientation.ts'
+export {
+  findPixi3d,
+  PIXI3D_EXTRAS_MARKERS,
+  PIXI3D_MARKERS,
+  type Pixi3dFound,
+} from './prepare/pixi3d-markers.ts'
 export { type PrepareInput, prepareBuild } from './prepare/prepare-build.ts'
 export { findRootAbsoluteReferences } from './prepare/root-absolute.ts'
 export {

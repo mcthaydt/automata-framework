@@ -11,6 +11,8 @@ export type CliCommand =
       readonly dist: string
       readonly tag: string | undefined
       readonly target: ShipTarget | undefined
+      /** The build stays on Ruken's local stack, so it may contain `@pixi/3d` (M3 spec §4.8). Ruken only. */
+      readonly private?: true
     }
   | {
       readonly command: 'publish'
@@ -29,7 +31,7 @@ export type CliCommand =
   | { readonly command: 'test-remote'; readonly args: readonly string[] }
   | { readonly command: 'usage'; readonly problem: string }
 
-export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y.Z] [--target ruken|itch]
+export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y.Z] [--target ruken|itch] [--private]
        automata-ship publish    [--dist <dir>] [--tag vX.Y.Z] [--activate] [--game <publicId>]
        automata-ship publish    --target itch [--dist <dir>] [--tag vX.Y.Z]
        automata-ship deploy-dev [--dist <dir>] [--tag vX.Y.Z] [--activate]
@@ -37,6 +39,7 @@ export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y
 
 prepare      writes ruken.toml into the build (from ship.config.ts) and checks it with Ruken's parser
              --target itch: checks the build against itch.io's rules and writes <id>-<version>-itch.zip beside it
+             --private: for Ruken's local stack only; allows @pixi/3d, which a public build refuses (D-1)
 publish      prepare, then ruken publish (packs, validates, uploads). Needs RUKEN_API and RUKEN_TOKEN.
              --target itch: prepare --target itch, then butler push. Needs BUTLER_API_KEY, butler on PATH and
              itch.project in ship.config.ts.
@@ -58,8 +61,18 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
   if (command === 'test-remote') return { command, args: rest }
   try {
     if (command === 'prepare') {
-      const { values } = parseArgs({ args: rest, options: targeted, strict: true })
-      return { command, dist: values.dist, tag: values.tag, target: shipTarget(values.target) }
+      const options = { ...targeted, private: { type: 'boolean', default: false } } as const
+      const { values } = parseArgs({ args: rest, options, strict: true })
+      const target = shipTarget(values.target)
+      if (values.private && target === 'itch')
+        throw new Error('--private is for Ruken; an itch.io page is public')
+      return {
+        command,
+        dist: values.dist,
+        tag: values.tag,
+        target,
+        ...(values.private ? { private: true as const } : {}),
+      }
     }
     if (command === 'publish') {
       const options = {

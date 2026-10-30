@@ -92,7 +92,13 @@ async function program(
     )
   }
 
-  const prepare = prepareBuild({ distDir, gameDir: cwd, config, tag: command.tag })
+  // The dev host sits behind its access control and `prepare --private` is for Ruken's local stack: both private,
+  // so they may carry @pixi/3d; `prepare` and `publish` are for the public store (M3 spec §4.8, X-b).
+  const audience =
+    command.command === 'deploy-dev' || (command.command === 'prepare' && command.private === true)
+      ? 'private'
+      : 'public'
+  const prepare = prepareBuild({ distDir, gameDir: cwd, config, tag: command.tag, audience })
   if (command.command === 'prepare') {
     return Effect.provide(
       Effect.map(prepare, (result) => `wrote ${result.manifestPath}`),

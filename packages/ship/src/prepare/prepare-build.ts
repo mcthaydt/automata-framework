@@ -7,6 +7,8 @@ import {
   ManifestInputsMismatch,
   type ManifestInvalid,
   OrientationMismatch,
+  Pixi3dExtrasInBuild,
+  Pixi3dInPublicBuild,
   RootAbsoluteReference,
   SecretInBuild,
   UndeclaredBoard,
@@ -19,6 +21,7 @@ import { findUndeclaredBoards } from './board-names.ts'
 import { checkVersion } from './check-version.ts'
 import { findInputsProblems } from './input-bindings.ts'
 import { findOrientationMismatches } from './orientation.ts'
+import { findPixi3d } from './pixi3d-markers.ts'
 import { findRootAbsoluteReferences } from './root-absolute.ts'
 import { findSecretsInBuild, readEnvValues } from './secret-scan.ts'
 
@@ -43,12 +46,20 @@ export interface PrepareInput {
    * is checked.
    */
   readonly inputBindings?: ShipInputBindings | undefined
+  /**
+   * Who the build is for. `public` (the default: Ruken's store, through `publish`) refuses a build that contains
+   * `@pixi/3d`, a closed beta (X-b); `private` (the dev host behind its access control, `deploy-dev`, and Ruken's
+   * local stack, `prepare --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
+   */
+  readonly audience?: 'public' | 'private' | undefined
 }
 
 export type PrepareError =
   | VersionMismatch
   | RootAbsoluteReference
   | SecretInBuild
+  | Pixi3dInPublicBuild
+  | Pixi3dExtrasInBuild
   | UndeclaredBoard
   | OrientationMismatch
   | EntryMissing
@@ -58,7 +69,7 @@ export type PrepareError =
 
 /**
  * Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
- * entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+ * entry page, root-absolute paths, secrets (QB-b), `@pixi/3d` (X-b, S7-g), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
  * runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
  * (archive, size, file types) happen inside `ruken publish`, not here.
  */
@@ -97,6 +108,14 @@ export function prepareBuild(
       catch: (cause) => new FileError({ path: distDir, cause }),
     })
     if (secrets.length > 0) return yield* new SecretInBuild({ found: secrets })
+
+    const pixi3d = yield* Effect.try({
+      try: () => findPixi3d(distDir),
+      catch: (cause) => new FileError({ path: distDir, cause }),
+    })
+    if (pixi3d.extras.length > 0) return yield* new Pixi3dExtrasInBuild({ found: pixi3d.extras })
+    if ((input.audience ?? 'public') === 'public' && pixi3d.core.length > 0)
+      return yield* new Pixi3dInPublicBuild({ found: pixi3d.core })
 
     if (gameDir !== undefined) {
       const boards = yield* Effect.try({
