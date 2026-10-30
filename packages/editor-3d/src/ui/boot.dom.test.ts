@@ -1,11 +1,12 @@
 import { cleanup, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { strToU8, zipSync } from 'fflate'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import clinicText from '../testing/fixtures/blockout-clinic.json?raw'
 import depotText from '../testing/fixtures/depot.af-sector.json?raw'
 import { createTestClock, memoryWorkspace, textOf } from '../testing/memory-workspace'
 import { type EditorEnv, type EditorHandle, startEditor } from './boot'
+import type { PlanRendererFactory } from './plan/plan-renderer'
 
 // The 3D editor's boot and its journeys (plan ED3D.5c step 9): a function of its environment, so a test hands it a
 // window, a document, a clock and a workspace and gets the real app. Home, the error panel, a level in the frame, the
@@ -44,7 +45,10 @@ afterEach(async () => {
   delete document.documentElement.dataset.formFactor
 })
 
-async function boot(files: Record<string, string> = { [DEPOT]: DEPOT_TEXT }) {
+async function boot(
+  files: Record<string, string> = { [DEPOT]: DEPOT_TEXT },
+  renderer: PlanRendererFactory = async () => undefined,
+) {
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   for (const [path, text] of Object.entries(files)) {
@@ -54,7 +58,7 @@ async function boot(files: Record<string, string> = { [DEPOT]: DEPOT_TEXT }) {
   const target = document.createElement('div')
   document.body.append(target)
   const win = fakeWindow(1194, 834)
-  const env: EditorEnv = { window: win.view, document, clock, workspace }
+  const env: EditorEnv = { window: win.view, document, clock, workspace, renderer }
   started = await startEditor(target, env)
   return { workspace, clock, win, file: async (path = DEPOT) => textOf(await workspace.store.read(path)) }
 }
@@ -100,6 +104,29 @@ describe('startEditor', () => {
       'aria-selected',
       'true',
     )
+  })
+
+  it('journey: an opened level’s plan asks the page’s renderer for its canvas once it has a size (ED3D.5d)', async () => {
+    let measure: (() => void) | undefined
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(private readonly run: ResizeObserverCallback) {}
+        observe(): void {
+          measure = () =>
+            this.run([{ contentRect: { width: 800, height: 600 } } as ResizeObserverEntry], this as never)
+        }
+        disconnect(): void {}
+      },
+    )
+    const renderer = vi.fn<PlanRendererFactory>(async () => undefined)
+    await boot(undefined, renderer)
+    await openDepot()
+    expect(screen.getByRole('application', { name: 'Plan' })).toBeInTheDocument()
+    measure?.()
+    await vi.waitFor(() => expect(renderer).toHaveBeenCalledOnce())
+    expect(await screen.findByText(/needs WebGL2/)).toBeInTheDocument()
+    vi.unstubAllGlobals()
   })
 
   it('journey: the page lifecycle is listened to while a level is open, and let go after Back', async () => {

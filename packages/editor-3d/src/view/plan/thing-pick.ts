@@ -28,7 +28,10 @@ export const isThingLayerOff = (options: Pick<PickOptions, 'hidden' | 'locked'>,
   isLayerOff(options, 'things') || isLayerOff(options, thingLayer(def))
 
 /** A box's half width across x and half depth across z: the definition's `size`, else the thing's own `w` and `d`. */
-function halfFootprint(definition: ThingDef, thing: Thing): { readonly x: number; readonly z: number } {
+export function halfFootprint(
+  definition: ThingDef,
+  thing: Thing,
+): { readonly x: number; readonly z: number } {
   if (definition.shape === 'point') return { x: 0, z: 0 }
   const side = (value: unknown): number => (typeof value === 'number' && value > 0 ? value / 2 : 0)
   if (definition.size !== undefined) return { x: definition.size[0] / 2, z: definition.size[2] / 2 }

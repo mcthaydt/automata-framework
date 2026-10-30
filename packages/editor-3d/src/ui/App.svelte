@@ -13,6 +13,7 @@ import type {
 } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import { onDestroy } from 'svelte'
+import type { Scheduler } from '../app/checks-panel-controller'
 import { createDocumentController, type DocumentController } from '../app/document/document-controller'
 import type { PanelOutcome } from '../app/document/open-flow-model'
 import type { EditorApp } from '../app/editor-app'
@@ -20,6 +21,7 @@ import { createHomeController } from '../app/home/home-controller'
 import DocumentFrame from './document/DocumentFrame.svelte'
 import ErrorPanel from './document/ErrorPanel.svelte'
 import Home from './home/Home.svelte'
+import type { PlanRendererFactory } from './plan/plan-renderer'
 
 interface Props {
   geometry: GeometryState
@@ -29,9 +31,12 @@ interface Props {
   clock: { now(): number }
   /** The page whose hiding writes an open level's journal. */
   lifecycle: { readonly document: LifecycleDocument; readonly window: LifecycleWindow }
+  /** The Plan view's renderer and the checks' scheduler, for an opened level. */
+  renderer: PlanRendererFactory
+  schedule: Scheduler
 }
 
-const { geometry, app, workspace, toasts, clock, lifecycle }: Props = $props()
+const { geometry, app, workspace, toasts, clock, lifecycle, renderer, schedule }: Props = $props()
 
 let open = $state.raw<DocumentController | undefined>(undefined)
 let failure = $state.raw<PanelOutcome | undefined>(undefined)
@@ -80,7 +85,7 @@ onDestroy(() => {
 </script>
 
 {#if open}
-  <DocumentFrame {geometry} controller={open} {toasts} {clock} onback={back} />
+  <DocumentFrame {geometry} controller={open} {toasts} {clock} {renderer} {schedule} onback={back} />
 {:else}
   <Home {geometry} {controller} {workspace} installed={app.installed} {toasts} {clock} />
   <ErrorPanel

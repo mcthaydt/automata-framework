@@ -2,7 +2,7 @@
 // inspector sections and the viewport wrappers that put a drawing from views.mjs on screen.
 //
 // Self-contained on purpose: the Figma kit stringifies makeUi and runs it inside `use_figma`.
-// Sizes follow the editor rules: 44 px touch targets, 48 px primary actions, 296 px inspector, 64 px rail.
+// Sizes follow the editor rules: 44 px touch targets, 48 px primary actions, 320 px inspector, 56 px rail (the kit's geometry, ED3D-D12; the first mockups had 296 and 64).
 
 export function makeUi(S, Vw, D) {
   const { F, row, col, spacer, T, I, alpha } = S
@@ -12,8 +12,8 @@ export function makeUi(S, Vw, D) {
   const H = 834
   const TOP = 52
   const STATUS = 32
-  const RAIL = 64
-  const INSP = 296
+  const RAIL = 56
+  const INSP = 320
   const MID = H - TOP - STATUS
 
   const dot = (color, size = 8) => F({ name: 'dot', w: size, h: size, r: size / 2, fill: color })
@@ -124,7 +124,7 @@ export function makeUi(S, Vw, D) {
         row({ w: 38, h: 44, ax: 'center' }, I('plus', { size: 16, color: 'text/dim' })),
       ),
     )
-  const slider = (label, v, text, w = 264) =>
+  const slider = (label, v, text, w = INSP - 32) =>
     col(
       { name: `slider/${label}`, w, gap: 2 },
       row(
@@ -148,7 +148,7 @@ export function makeUi(S, Vw, D) {
         }),
       ),
     )
-  const toggle = (label, on, w = 264) =>
+  const toggle = (label, on, w = INSP - 32) =>
     row(
       { name: `toggle/${label}`, w, h: 44, gap: 8 },
       T(label, { style: 'Body/13', w: 'fill' }),

@@ -14,6 +14,7 @@ import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata-ui'
 import { mount, unmount } from 'svelte'
 import { createEditorApp } from '../app/editor-app'
 import App from './App.svelte'
+import type { PlanRendererFactory } from './plan/plan-renderer'
 
 export interface EditorEnv {
   /** What the geometry owner reads and listens to, and whose `pagehide` writes an open level's journal. */
@@ -27,6 +28,8 @@ export interface EditorEnv {
   readonly download?: DownloadEnv
   /** A workspace that is already open, in place of opening the browser's: tests hand one in. */
   readonly workspace?: Workspace
+  /** Makes the Plan view's renderer: `main.ts` loads Pixi lazily (`lazyPlanRenderer`); tests pass a fake. */
+  readonly renderer: PlanRendererFactory
 }
 
 export interface EditorHandle {
@@ -55,6 +58,12 @@ export async function startEditor(target: HTMLElement, env: EditorEnv): Promise<
       toasts,
       clock: env.clock,
       lifecycle: { document: env.document, window: env.window },
+      renderer: env.renderer,
+      // The checks run after the editing pauses, on the page's clock.
+      schedule: (delayMs: number, run: () => void) => {
+        const handle = env.clock.setTimer(delayMs, run)
+        return () => env.clock.clearTimer(handle)
+      },
     },
   })
   return {
