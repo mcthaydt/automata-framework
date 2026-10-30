@@ -18,7 +18,7 @@ import {
   pickCorner,
   pickPlan,
 } from '../view/plan/plan-pick'
-import { type SnapResult, snapPlan, stepOf } from '../view/plan/plan-snap'
+import { gridRounded, type SnapResult, snapPlan } from '../view/plan/plan-snap'
 import {
   cameraOf,
   fitPlan,
@@ -198,11 +198,10 @@ export function createPlanController<D>(editor: LevelEditor<D>, canvas: Size): P
    */
   const moveGrabbedSector = (grabbed: SectorDrag<D>, at: PlanPointer): void => {
     const world = toWorld(currentViewport(), at)
-    const { step } = stepOf({ grid: editor.view.state.grid, shiftKey: at.shift })
-    const fine = at.alt === true ? 0 : step
+    const keys = { grid: editor.view.state.grid, shiftKey: at.shift, altKey: at.alt }
     const target = {
-      x: snapValue(world.x - grabbed.press.x, fine),
-      z: snapValue(world.z - grabbed.press.z, fine),
+      x: gridRounded(world.x - grabbed.press.x, keys),
+      z: gridRounded(world.z - grabbed.press.z, keys),
     }
     const result = grabbed.session.run(
       moveSector({
