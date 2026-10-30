@@ -68,7 +68,7 @@ export interface AuditEntry {                                 // The Last Light'
 }
 export const gitHead: (root: string) => Effect.Effect<string, never, ProcessRunner>
 export const appendAudit: (path: string, entry: AuditEntry, env: Env) => Effect.Effect<void, string>
-export const auditRootOf: (from: string) => Effect.Effect<string, never, Files> // review round 2; was projectRootOf
+export const auditRootOf: (from: string, fallback: string) => Effect.Effect<string, never, Files> // rounds 2, 3
 export function redact(text: string, env: Env): string        // key values and key-shaped strings → [redacted]
 export function isAgent(env: Env): boolean                    // CLAUDECODE=1 or AUTOMATA_AGENT=1
 export interface Caller { readonly agent: boolean; readonly env?: Env }
@@ -276,6 +276,38 @@ Deviation for the Owner: the acceptance tests PL-c and PL-d (`acceptance-mcp.tes
 they check, not before it. Their failure was shown by mutation instead (with `gitHead` always `unknown` both fail;
 with the router's agent rule disabled PL-d fails), as recorded in the log below.
 
+## Review round 3 (the coordinator's re-review of `5d3b30c`)
+
+Three findings, each fixed test-first, and one recorded as a decision:
+
+- **A. A stale lock after Ctrl-C or a killed server.** Both bins ran their effect with `Effect.runPromise` and no signal
+  handling, so no finalizer ran and every later write was refused as busy. `@effect/platform-node` is not a
+  dependency (ADR 0003), so `main.ts` `runMain` forks the program and turns SIGINT and SIGTERM into an interruption
+  (exit 130 and 143) after which the process exits; `automata-pipe` runs through it. The server forks each tool call
+  and tracks it; `interruptCalls(server)` interrupts them all and waits, and `automata-pipe-mcp` calls it on either
+  signal before it exits. Both locks (`.pipeline.lock`, `pipeline-spend.lock`) go through one helper (`holdLock`) that
+  writes the holder's pid and takes over a lock whose pid has ended (`process.kill(pid, 0)` throws ESRCH); a live pid
+  (or EPERM) is still refused. `tooling/pipelines/README.md` (new) tells a game to ignore both locks
+  (`locks.test.ts`: a dead pid is taken over and a live one refused, for both locks; the holder fixture exits 130 on
+  SIGINT and 143 on SIGTERM with its lock gone; `interruptCalls` releases a call's lock).
+- **B and C. One rule for the log, through symbolic links.** `auditRootOf(from, fallback)`: the folder of the nearest
+  `pipeline.toml` at or above the real path of the target the call is about, else the fallback (the router's working
+  folder; the server's root). The server applies it per located target (the answer carries the target's real path);
+  a call with no located target (list, an unknown tool, a malformed call, a refused target) uses the server's root
+  (`audit-location.test.ts`: the monorepo layout `games/base-3d/pipeline.toml` with the server at the repository root
+  puts the server's line and the router's refusal in `games/base-3d/docs`; a link from a folder with its own
+  `pipeline.toml` into the game logs the refusal in the game's log).
+- **D. A token is taken even when the run it was given to is then refused** (the plan or a paid stage's inputs
+  changed). Left as it is, by the coordinator's ruling: **D14**, the agent estimates again, which is what the refusal
+  tells it to do, and a token that survived a refusal could be retried against a plan it no longer covers.
+
+Decisions this adds for the Owner's veto:
+
+- **D14**, as above.
+- **D15, a lock whose holder has ended is taken over** by the next command (only when its pid is gone; a live or
+  unreadable holder is still refused). This replaces "a lock left by a killed process stays until a person deletes
+  it" in D10 and in M3.8a's D10 for the spend ledger.
+
 ## Execution log
 
 | Date | Step | Evidence |
@@ -290,3 +322,4 @@ with the router's agent rule disabled PL-d fails), as recorded in the log below.
 | 2026-10-30 | Review round 1 | 2 findings, each red first (see above); `pnpm check` green: lint 224 files, root 163, pipelines 117 (16 files), net 89, dev-tools 62, physics 71, server 269 |
 | 2026-10-30 | Gates (before the PR) | `pnpm format`; `pnpm check`: lint 224 files, typecheck, boundaries, root 163 (F1 over `tooling/*` included), pipelines 115 (16 files), net 89, dev-tools 62, physics 71, server 269 |
 | 2026-10-30 | Review round 2 (gates: `pnpm format`; `pnpm check` green: lint 226 files, root 163, pipelines 130, net 89, dev-tools 62, physics 71, server 269) | 9 findings, each red first: `concurrency.test.ts` 4 red (no `stage` in the request's data; the reject went through during the run; the changed plan and the changed paid inputs both ran), `review.test.ts` 2 red (the rerun-while-asked approval landed; the command was unquoted), `mcp-server.test.ts` 4 red (the reused token passed the old check with another message; the symlink was taken; the malformed call was an SDK error; the failed audit had one part), `redact.test.ts` 1 red (`de[redacted]`), `audit-location.test.ts` 2 red (the log followed `--config`; the server logged under its own root); then 130 of 130 in pipelines |
+| 2026-10-30 | Review round 3 (gates: `pnpm format`; `pnpm check` green: lint 229 files, root 163, pipelines 137, net 89, dev-tools 62, physics 71, server 269) | `locks.test.ts` red (both lock cases `expected 'Left' to be 'Right'`; both signal cases: no `main.ts`, so no lock; `interruptCalls is not a function`), `audit-location.test.ts` 2 red (the server's line was missing from `games/base-3d/docs`; the refusal followed the link's folder); then 137 of 137 in pipelines |

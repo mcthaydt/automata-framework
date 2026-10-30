@@ -166,7 +166,7 @@ const refuseAgent = (
     const [target, gate] = parsed?.positional ?? rest
     const note = parsed?.options.note
     // Where the log is never depends on what the agent passes: --config is ignored here (audit.ts auditRootOf).
-    const root = yield* auditRootOf(target ?? '.')
+    const root = yield* auditRootOf(target ?? '.', process.cwd())
     const args = {
       pipeline: name,
       ...(target === undefined ? {} : { target }),

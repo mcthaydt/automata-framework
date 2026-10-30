@@ -73,7 +73,7 @@ describe('auditRootOf', () => {
     writeFileSync(join(root, 'pipeline.toml'), '')
     mkdirSync(join(root, 'art/wren'), { recursive: true })
     writeFileSync(join(root, 'art/wren/character.toml'), '')
-    const of = (from: string) => run(Effect.provide(auditRootOf(from), live))
+    const of = (from: string) => run(Effect.provide(auditRootOf(from, process.cwd()), live))
     expect(await of(join(root, 'art/wren'))).toBe(root)
     expect(await of(join(root, 'art/wren/character.toml'))).toBe(root)
     const bare = temp()

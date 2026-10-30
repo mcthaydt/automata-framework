@@ -4,6 +4,7 @@ export { TOKEN_TTL_MS } from './estimate-token.ts'
 export { EXIT, type PipelineExit } from './exit.ts'
 export {
   createPipelinesServer,
+  interruptCalls,
   REVIEW_TIMEOUT_MS,
   type ServerOptions,
   TOOL_NAMES,

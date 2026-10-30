@@ -77,6 +77,8 @@ const answerOf = (result: PipelineResult, rel: string, extra: Record<string, unk
 interface Located {
   readonly def: PipelineDef
   readonly abs: string
+  /** `abs` with its symbolic links resolved. */
+  readonly real: string
   readonly rel: string
 }
 
@@ -99,8 +101,9 @@ const locate = (ctx: ToolContext, pipeline: string, target: string): Effect.Effe
       return yield* Effect.fail(refusal(EXIT.failed, `target ${target} does not exist`))
     // The lexical check above is not enough: a symbolic link inside the root can point outside it. Core's `Files` has
     // no realpath, so `node:fs` resolves both (the root's once, when the server starts).
-    if (!within(ctx.realRoot, realpathSync(abs))) return yield* Effect.fail(outside)
-    return { def, abs, rel: relative(ctx.root, abs).split(sep).join('/') }
+    const real = realpathSync(abs)
+    if (!within(ctx.realRoot, real)) return yield* Effect.fail(outside)
+    return { def, abs, real, rel: relative(ctx.root, abs).split(sep).join('/') }
   })
 
 /** Runs a tool body that needs a located target; a refusal from `locate` is the answer. */
@@ -110,7 +113,9 @@ const withTarget = (
   body: (located: Located) => Effect.Effect<Answer, never, StageServices>,
 ): Effect.Effect<Answer, never, StageServices> =>
   Effect.flatMap(Effect.either(locate(ctx, input.pipeline as string, input.target as string)), (located) =>
-    located._tag === 'Left' ? Effect.succeed(located.left) : body(located.right),
+    located._tag === 'Left'
+      ? Effect.succeed(located.left)
+      : Effect.map(body(located.right), (answer) => ({ ...answer, auditFrom: located.right.real })),
   )
 
 const selectionOf = (input: Record<string, unknown>): Pick<RunOptions, 'from' | 'to' | 'only' | 'force'> => ({

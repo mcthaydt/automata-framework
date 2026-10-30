@@ -1,4 +1,4 @@
-import { appendFileSync, mkdirSync } from 'node:fs'
+import { appendFileSync, mkdirSync, realpathSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { type Files, ProcessRunner } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
@@ -69,9 +69,18 @@ export const appendAudit = (path: string, entry: AuditEntry, env: Env): Effect.E
   })
 
 /**
- * The folder the audit log lives under, the one rule both bins use (M3.8b review): the folder of the nearest
- * `pipeline.toml` at or above `from` (the router's target, the server's root), else the working folder. Nothing a
- * caller passes moves it: the router's `--config` is not consulted, and the server has no option for it.
+ * The folder the audit log lives under, the one rule both bins use (M3.8b review rounds 2 and 3): the folder of the
+ * nearest `pipeline.toml` at or above the real path of `from` (the target the call is about), else `fallback` (the
+ * router's working folder, the server's root). Symbolic links are resolved first, so a link an agent made from
+ * another folder holding its own `pipeline.toml` cannot send the line there; and nothing a caller passes moves it
+ * (the router's `--config` is not consulted, the server has no option for it). `Files` has no realpath, so `node:fs`.
  */
-export const auditRootOf = (from: string): Effect.Effect<string, never, Files> =>
-  Effect.map(findPipelineToml(resolve(from)), (toml) => (toml === undefined ? process.cwd() : dirname(toml)))
+export const auditRootOf = (from: string, fallback: string): Effect.Effect<string, never, Files> => {
+  let start = resolve(from)
+  try {
+    start = realpathSync(start)
+  } catch {
+    // Not there (a target that does not exist yet): its written path is all there is to go on.
+  }
+  return Effect.map(findPipelineToml(start), (toml) => (toml === undefined ? fallback : dirname(toml)))
+}

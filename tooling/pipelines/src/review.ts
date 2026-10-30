@@ -29,6 +29,8 @@ export interface Answer {
   readonly exit: 0 | 1 | 2 | 3 | 4
   readonly data: unknown
   readonly summary: string
+  /** The located target's real path: the audit line goes beside its nearest `pipeline.toml` (audit.ts). */
+  readonly auditFrom?: string | undefined
   /** Units the spend ledger grew by during the call (pipeline_run). */
   readonly cost?: Readonly<Record<string, number>> | undefined
 }

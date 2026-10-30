@@ -8,7 +8,7 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js'
-import { Clock, Effect, type ManagedRuntime } from 'effect'
+import { Clock, Effect, Fiber, type ManagedRuntime } from 'effect'
 import { z } from 'zod'
 import { AUDIT_LOG, appendAudit, auditRootOf, gitHead } from './audit.ts'
 import { EstimateTokens } from './estimate-token.ts'
@@ -146,6 +146,18 @@ const askerFor = (server: Server, timeoutMs: number): Asker => ({
     ),
 })
 
+/** Each server's tool calls still running, for `interruptCalls`. */
+const inFlight = new WeakMap<Server, Set<Fiber.RuntimeFiber<CallToolResult>>>()
+
+/**
+ * Interrupts every tool call the server is running and waits for their finalizers (the locks' releases). The bin calls
+ * it on SIGINT and SIGTERM before it exits (M3.8b review round 3).
+ */
+export async function interruptCalls(server: Server): Promise<void> {
+  const calls = [...(inFlight.get(server) ?? [])]
+  await Effect.runPromise(Fiber.interruptAll(calls))
+}
+
 /** The server, not yet connected: `server.connect(transport)` serves it. */
 export function createPipelinesServer(options: ServerOptions): Server {
   const root = resolve(options.root)
@@ -165,6 +177,9 @@ export function createPipelinesServer(options: ServerOptions): Server {
     tokens: new EstimateTokens(),
     asker: askerFor(server, options.reviewTimeoutMs ?? REVIEW_TIMEOUT_MS),
   }
+
+  const calls = new Set<Fiber.RuntimeFiber<CallToolResult>>()
+  inFlight.set(server, calls)
 
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: tools.map((tool) => {
@@ -187,7 +202,8 @@ export function createPipelinesServer(options: ServerOptions): Server {
       const result = yield* answer(tools, ctx, name, args)
       const ms = (yield* Clock.currentTimeMillis) - started
       const ok = result.exit === EXIT.done || result.exit === EXIT.atGate
-      const auditRoot = yield* auditRootOf(root)
+      // Beside the located target's pipeline.toml; a call with no target (list, unknown, malformed) uses the root's.
+      const auditRoot = yield* auditRootOf(result.auditFrom ?? root, root)
       const logged = yield* Effect.either(
         appendAudit(
           resolve(auditRoot, AUDIT_LOG),
@@ -214,7 +230,11 @@ export function createPipelinesServer(options: ServerOptions): Server {
       }
       return { ...(ok ? {} : { isError: true }), content: [data] }
     })
-    return options.runtime.runPromise(call)
+    // Forked and tracked, so a signal can interrupt it and its finalizers (the target and ledger locks) run.
+    const fiber = options.runtime.runFork(call)
+    calls.add(fiber)
+    fiber.addObserver(() => calls.delete(fiber))
+    return Effect.runPromise(Fiber.join(fiber))
   })
 
   return server

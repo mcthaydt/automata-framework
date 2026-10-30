@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
@@ -63,5 +63,56 @@ describe('where the audit log is', () => {
     await client.callTool({ name: 'pipeline_list', arguments: {} })
     expect(existsSync(join(project, 'docs/pipeline-audit.jsonl'))).toBe(true)
     expect(existsSync(join(project, 'art/docs'))).toBe(false)
+  })
+
+  it("is the game's, beside games/base-3d/pipeline.toml, when the server starts at the repository root", async () => {
+    const repo = temp()
+    const game = join(repo, 'games/base-3d')
+    mkdirSync(join(game, 'toy'), { recursive: true })
+    writeFileSync(join(game, 'pipeline.toml'), '')
+    writeFileSync(join(game, 'toy/toy.toml'), 'param = 1\n')
+    writeFileSync(join(game, 'toy/src.txt'), 'source\n')
+    const server = createPipelinesServer({
+      root: repo,
+      pipelines: [toyPipeline()],
+      runtime: ManagedRuntime.make(live),
+      env: {},
+    })
+    const client = new Client({ name: 'test', version: '1' })
+    const [a, b] = InMemoryTransport.createLinkedPair()
+    await Promise.all([server.connect(a), client.connect(b)])
+    await client.callTool({
+      name: 'pipeline_status',
+      arguments: { pipeline: 'toy', target: 'games/base-3d/toy' },
+    })
+    const refused = await Effect.runPromise(
+      route(['toy', 'approve', join(game, 'toy'), 'T1'], [toyPipeline()], undefined, {
+        agent: true,
+        env: {},
+      }).pipe(Effect.provide(live)),
+    )
+    expect(refused.exit).toBe(4)
+    const { readFileSync } = await import('node:fs')
+    const lines = readFileSync(join(game, 'docs/pipeline-audit.jsonl'), 'utf8').trimEnd().split('\n')
+    expect(lines.map((line) => JSON.parse(line).tool)).toEqual(['pipeline_status', 'automata-pipe approve'])
+    expect(existsSync(join(repo, 'docs'))).toBe(false)
+  })
+
+  it("follows a symbolic link to the game: the refusal is in the game's log, not the link's folder's", async () => {
+    const game = temp()
+    writeFileSync(join(game, 'pipeline.toml'), '')
+    mkdirSync(join(game, 'art/wren'), { recursive: true })
+    const decoy = temp()
+    writeFileSync(join(decoy, 'pipeline.toml'), '')
+    symlinkSync(join(game, 'art/wren'), join(decoy, 'link'))
+    const out = await Effect.runPromise(
+      route(['toy', 'approve', join(decoy, 'link'), 'G6'], [toyPipeline()], undefined, {
+        agent: true,
+        env: {},
+      }).pipe(Effect.provide(live)),
+    )
+    expect(out.exit).toBe(4)
+    expect(existsSync(join(game, 'docs/pipeline-audit.jsonl'))).toBe(true)
+    expect(existsSync(join(decoy, 'docs'))).toBe(false)
   })
 })
