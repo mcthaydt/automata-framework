@@ -7,6 +7,7 @@ import type { Hosting } from '@mcthaydt/automata-host'
 import { Context, Duration, Effect, Either, type Scope, Stream, SubscriptionRef } from 'effect'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 import type { SettingsStore } from '../settings/settings.manager.js'
+import { makeAnalogInput, type TouchStickSink } from './analog/analog-input.js'
 import { type InputSettings, inputSettingsSchema } from './bindings/input-settings.schema.js'
 import {
   applyOverrides,
@@ -19,7 +20,8 @@ import {
 import { type GlyphFamily, glyphFamily } from './gamepad/glyph-family.js'
 import { HandoverMask } from './gamepad/handover-mask.js'
 import { NavRepeat } from './gamepad/nav-repeat.js'
-import { type PadDirection, type PadLike, quantizeStick, readPad } from './gamepad/read-pad.js'
+import { type PadDirection, type PadLike, readPad } from './gamepad/read-pad.js'
+import type { DragSink } from './gestures/camera-drag-tracker.js'
 import type { GestureSink } from './gestures/swipe-tracker.js'
 import {
   actionsForGesture,
@@ -65,6 +67,12 @@ export interface Input {
    * (a flick or a tap) holds them for exactly one sample.
    */
   readonly gesture: GestureSink
+  /** The overlay's move stick (M4.12): while held it is `stick('left')` and drives the `left-*` directions. */
+  readonly touchStick: TouchStickSink
+  /** Where a `CameraDragTracker` sends its pixels (M4.12). */
+  readonly drag: DragSink
+  /** CSS px dragged to the right between the previous two `poll()`s; 0 unless a live action binds `camera-drag`. */
+  cameraDrag(): number
   /** `play` during gameplay, `menu` while a screen pauses the sim or a modal is open. Releases what is held. */
   setContext(context: InputContextNow): void
   readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>
@@ -110,7 +118,6 @@ export interface InputOptions {
 /** What the host says the player is using (Ruken's `InputModePayload`, through `Hosting.input`). */
 export type HostInputMode = Effect.Effect.Success<Hosting['input']['get']>
 
-const CENTRED = { x: 0, y: 0 } as const
 const NO_DIRECTIONS: ReadonlySet<PadDirection> = new Set()
 const NAV: Readonly<Record<PadDirection, MenuAction>> = {
   up: 'nav-up',
@@ -238,6 +245,14 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
         if (prefix === undefined || source.startsWith(prefix)) lift(source)
     }
 
+    const analog = makeAnalogInput({
+      press: (from, source, actions) => press(from, source, actions, []),
+      lift,
+      use,
+      stickActions: (direction) => tables.stickActions.get(direction) ?? [],
+      dragLive: () => actionsForGesture(profile, 'camera-drag').some(isLive),
+    })
+
     const onKeyDown = (event: KeyboardEvent): void => {
       const actions = actionsForKey(profile, event.code)
       // Keep Space and the arrows from scrolling the page while they drive the game.
@@ -257,11 +272,14 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       liftWhere('key:')
       liftWhere('touch:')
       liftWhere('gesture:')
+      analog.release()
     }
     // A bare event target (a replay's fake window) has no document, and so no visibility to follow.
     const page: Document | undefined = (target as Partial<Window>).document
     const onVisibility = (): void => {
-      if (page?.visibilityState === 'hidden') liftWhere(undefined)
+      if (page?.visibilityState !== 'hidden') return
+      liftWhere(undefined)
+      analog.release()
     }
     target.addEventListener('keydown', onKeyDown)
     target.addEventListener('keyup', onKeyUp)
@@ -436,6 +454,7 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
       profile = next
       tables = tablesFor(next)
       liftWhere(undefined)
+      analog.release()
       Effect.runSync(SubscriptionRef.set(profileRef, next))
       bus.publish('input.bindings.changed', action === undefined ? {} : { action })
     }
@@ -466,12 +485,7 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
 
     return {
       held: () => held,
-      stick(side) {
-        const first = side === 'left' ? 0 : 2
-        const x = activeAxes[first] ?? 0
-        const y = activeAxes[first + 1] ?? 0
-        return x === 0 && y === 0 ? CENTRED : quantizeStick(x, y)
-      },
+      stick: (side) => analog.stick(side, activeAxes),
       onPress(action, listener) {
         const set = listeners.get(action) ?? new Set()
         listeners.set(action, set)
@@ -483,6 +497,7 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
           pollCapture(target.navigator.getGamepads?.() ?? [])
           return
         }
+        analog.sample()
         for (const source of sampled) if (!pulsed.has(source)) lift(source)
         const seen = sampled
         sampled = pulsed
@@ -517,10 +532,14 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
           pulsed.add(source)
         },
       },
+      touchStick: analog.touchStick,
+      drag: analog.drag,
+      cameraDrag: analog.cameraDrag,
       setContext(next) {
         if (next === context) return
         context = next
         liftWhere(undefined)
+        analog.release()
         // What a pad holds as the context changes stays masked on the new side until let go (the handover).
         for (const [index, pad] of lastRead) maskFor(index).capture(pad)
         repeat.clear()

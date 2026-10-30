@@ -27,6 +27,18 @@ describe('Dialog', () => {
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
   })
 
+  test('is the normal width unless asked to be wide', async () => {
+    mount()
+    await userEvent.click(opener())
+    expect(dialog()).toHaveAttribute('data-width', 'normal')
+  })
+
+  test('width="wide" makes room for a text view', async () => {
+    mount({ width: 'wide' })
+    await userEvent.click(opener())
+    expect(dialog()).toHaveAttribute('data-width', 'wide')
+  })
+
   test('focus goes to the first focusable thing, or to [data-autofocus] when there is one', async () => {
     mount()
     await userEvent.click(opener())

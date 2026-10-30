@@ -116,6 +116,7 @@ describe('the palette', () => {
       'lamp',
       'anchor',
       'node',
+      'zone',
     ])
   })
 })
