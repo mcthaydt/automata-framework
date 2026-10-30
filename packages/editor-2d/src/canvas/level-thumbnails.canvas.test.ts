@@ -70,4 +70,10 @@ describe('level thumbnails', () => {
     working.dispose()
     expect(await working.thumbnail('a', { project, level: 'start' })).toBeUndefined()
   })
+
+  it('answers undefined for a preview it cannot draw, and goes on drawing the next', async () => {
+    const { thumbnails } = setup()
+    expect(await thumbnails.thumbnail('gone', { project, level: 'nowhere' })).toBeUndefined()
+    expect(await thumbnails.thumbnail('a', { project, level: 'start' })).toMatch(/^data:image\/png/)
+  })
 })

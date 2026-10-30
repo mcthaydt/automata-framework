@@ -66,20 +66,21 @@ export function createLevelThumbnails(options: LevelThumbnailsOptions): LevelThu
     const current = await rendererOnce()
     if (current === undefined || disposed) return undefined
     const { project, level } = preview
-    await textures.load(levelImages(project, level))
-    if (disposed) return undefined
-    const list = createLevelDrawList()({ project, view: plainView(level), images: textures.loaded })
-    const scale = Math.min(THUMBNAIL_SIDE / list.size.w, THUMBNAIL_SIDE / list.size.h)
     const scene = createLevelScene({ textures, colors })
     const stage = new Container()
     stage.addChild(scene.root)
     try {
+      await textures.load(levelImages(project, level))
+      if (disposed) return undefined
+      const list = createLevelDrawList()({ project, view: plainView(level), images: textures.loaded })
+      const scale = Math.min(THUMBNAIL_SIDE / list.size.w, THUMBNAIL_SIDE / list.size.h)
       scene.update(list, scale)
       scene.root.scale.set(scale)
       const frame = new Rectangle(0, 0, Math.round(list.size.w * scale), Math.round(list.size.h * scale))
       return await current.extract.base64({ target: stage, frame, format: 'png' })
     } catch {
-      // A context lost mid-draw, or a level the renderer cannot hold: no thumbnail, and the card keeps its initial.
+      // A preview naming a level that is not there, a context lost mid-draw, or a level the renderer cannot hold: no
+      // thumbnail, the card keeps its initial, and the queue goes on to the next card.
       return undefined
     } finally {
       stage.destroy({ children: true })

@@ -1115,6 +1115,7 @@ interface Profile<V> {
     check(value: V, context: ProjectContext): readonly Diagnostic[];
     fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V;
     summary?(value: V): ProfileSummary;
+    preview?(value: V): LevelPreview | undefined;
     readonly templates: readonly TemplateDef<V>[];
     readonly views: readonly ViewDef[];
     readonly exports: readonly ExportTarget<V>[];
