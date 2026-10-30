@@ -8,6 +8,10 @@
 // The place is a dry run of the edit: `view.place` says what a tap would do by running `addThing` against the live level
 // and not committing it, so the preview cannot disagree with the model, and a refusal is the model's own sentence.
 //
+// ED3D.7c adds two things the core names only through the definitions and the profile: a definition with an `area`
+// (Last Light's camera zone) is placed by dragging a rectangle, and the things of the profile's links (Last Light's nav
+// nodes) are joined with `startLink` and a tap on the other one, and parted with `unlink`.
+//
 // It lives beside `app/` rather than in it while the shell (ED3D.5b) is built there; it follows the same shape.
 import type { Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
 import type { FieldValue, FieldValues } from '@mcthaydt/automata-editor-kit/fields'
@@ -16,10 +20,13 @@ import { lowestFreeId } from '../app/sector-id'
 import type { ThingShape } from '../entities/thing-def.schema'
 import type { EntityKit } from '../entities/things'
 import type { Point } from '../format/sector.schema'
+import type { Edit } from '../model/edit'
 import type { EditSession, LevelEditor } from '../model/level-editor'
+import { addLink, NO_LINKS, removeLink } from '../model/link-edits'
 import { parseSelection } from '../model/selection-ref'
 import { addThing, moveThing, removeThing, setThingField } from '../model/thing-edits'
 import { thingLayer } from '../model/view-store'
+import type { ThingLink } from '../profile/thing-links'
 import { PICK_RADIUS, type PickOptions } from '../view/plan/plan-pick'
 import { gridRounded } from '../view/plan/plan-snap'
 import { planViewport, toWorld } from '../view/plan/plan-viewport'
@@ -40,12 +47,27 @@ export interface PaletteEntry {
   readonly locked: boolean
 }
 
-/** Where a tap would place the picked definition, the id it would take, and whether the model would take it. */
-export type ThingPlace = Point & { readonly id: string } & (
+/** A rectangle of the plan, its sides in metres, `x0` below `x1` and `z0` below `z1`. */
+export interface Rectangle {
+  readonly x0: number
+  readonly z0: number
+  readonly x1: number
+  readonly z1: number
+}
+
+/**
+ * Where a tap would place the picked definition, the id it would take, and whether the model would take it. While a
+ * rectangle is drawn for a definition with an `area`, the place is its middle and `area` the rectangle.
+ */
+export type ThingPlace = Point & { readonly id: string; readonly area?: Rectangle | undefined } & (
     | { readonly action: 'add' }
     /** Nothing: the sentence a tap would be refused with. */
     | { readonly action: 'none'; readonly reason: string }
   )
+
+/** What a tap on a thing would do while linking: join it to the one the link starts from, or not, and why. */
+export type LinkPlace = ThingLink &
+  ({ readonly action: 'add' } | { readonly action: 'none'; readonly reason: string })
 
 export interface ThingsToolView {
   readonly palette: readonly PaletteEntry[]
@@ -55,8 +77,15 @@ export interface ThingsToolView {
   readonly hover: ThingHit | undefined
   /** Only with a definition picked and no thing under the pointer. */
   readonly place: ThingPlace | undefined
-  /** `move` while a drag is moving a thing. A drag the tool did not take (it started on nothing) is the shell's to pan. */
-  readonly gesture: 'idle' | 'move'
+  /**
+   * `move` while a drag is moving a thing, `area` while it draws the rectangle of a definition with an `area`. A drag the
+   * tool did not take (it started on nothing, with no such definition picked) is the shell's to pan.
+   */
+  readonly gesture: 'idle' | 'move' | 'area'
+  /** The thing a link starts from, and what it will pass through, between `startLink` and the tap that ends it. */
+  readonly linking: { readonly from: string; readonly via: string | undefined } | undefined
+  /** While linking, what a tap on the thing under the pointer would do. */
+  readonly link: LinkPlace | undefined
   /** The sentence the last action was refused with, until the next action. */
   readonly refusal: string | undefined
 }
@@ -93,6 +122,15 @@ export interface ThingsTool {
   remove(): string | undefined
   /** Sets a field of the one selected thing (`null` clears it); answers the edit's sentence, else nothing. */
   setField(field: string, value: FieldValue | null): string | undefined
+  /**
+   * Starts a link from the one selected thing of the profile's links, through `via` when it is given: the next tap on
+   * another such thing joins the two as one undo step. Answers the sentence it was refused with, else nothing.
+   */
+  startLink(via?: string): string | undefined
+  /** Stops linking. */
+  cancelLink(): void
+  /** Parts two things of the profile's links as one undo step; answers the edit's sentence, else nothing. */
+  unlink(a: string, b: string): string | undefined
   /** The canvas has a new size: the camera keeps its centre. */
   resize(size: Size): void
   /** Stops following the editor. */
@@ -114,6 +152,23 @@ interface Move<D> {
   readonly press: Point
 }
 
+/** A drag drawing the rectangle of a definition with an `area`: where it was pressed and where it has got to, rounded. */
+interface Drawing {
+  readonly def: string
+  readonly values: FieldValues
+  readonly sides: readonly [string, string, string, string]
+  readonly press: Point
+  readonly at: Point
+}
+
+/** The rectangle two corners make, whichever way round. */
+const rectangleOf = (a: Point, b: Point): Rectangle => ({
+  x0: Math.min(a.x, b.x),
+  z0: Math.min(a.z, b.z),
+  x1: Math.max(a.x, b.x),
+  z1: Math.max(a.z, b.z),
+})
+
 export function createThingsTool<D>(
   editor: LevelEditor<D>,
   canvas: Size,
@@ -125,6 +180,8 @@ export function createThingsTool<D>(
   let active: { readonly def: string; readonly values: FieldValues } | undefined
   let refusal: string | undefined
   let move: Move<D> | undefined
+  let drawing: Drawing | undefined
+  let linking: ThingsToolView['linking']
 
   /** The things of the live level, read once for each level the editor holds. */
   let read: { readonly level: D; readonly kit: EntityKit } | undefined
@@ -192,12 +249,55 @@ export function createThingsTool<D>(
     return trial.ok ? { ...point, id, action: 'add' } : { ...point, id, action: 'none', reason: trial.reason }
   }
 
+  /** The thing a drawn rectangle would add: at its middle, the four sides given as the definition's area fields. */
+  const areaAddition = (drawn: Drawing) => {
+    const area = rectangleOf(drawn.press, drawn.at)
+    const point = { x: (area.x0 + area.x1) / 2, z: (area.z0 + area.z1) / 2 }
+    const [x0, z0, x1, z1] = drawn.sides
+    const values = { ...drawn.values, [x0]: area.x0, [z0]: area.z0, [x1]: area.x1, [z1]: area.z1 }
+    const id = idFor(drawn.def)
+    return { area, point, id, edit: addThing<D>({ def: drawn.def, id, x: point.x, z: point.z, values }) }
+  }
+
+  /** What the end of the drawing would do, without doing it. */
+  const drawnPlace = (drawn: Drawing): ThingPlace => {
+    const { area, point, id, edit } = areaAddition(drawn)
+    const problem = layerProblem(drawn.def) ?? trialProblem(edit)
+    return problem === undefined
+      ? { ...point, id, area, action: 'add' }
+      : { ...point, id, area, action: 'none', reason: problem }
+  }
+
+  /** The sentence the live level refuses an edit with, without running it in the history; nothing when it would go in. */
+  function trialProblem(edit: Edit<D>): string | undefined {
+    const trial = edit.run(editor.profile, editor.level)
+    return trial.ok ? undefined : trial.reason
+  }
+
+  /** The sentence a link action is refused with before it is tried: no links, or their sub-layer is off. */
+  const linkProblem = (): string | undefined => {
+    const { links } = editor.profile
+    return links === undefined ? NO_LINKS : layerProblem(links.def)
+  }
+
+  /** While linking, what a tap at `at` would do: only over a thing of the links' definition. */
+  const linkAt = (at: PlanPointer): LinkPlace | undefined => {
+    const hit = pickThing(kit(), currentViewport(), at, pickOptions(at))
+    if (linking === undefined || hit === undefined || hit.def !== editor.profile.links?.def) return undefined
+    const link: ThingLink = { a: linking.from, b: hit.id, via: linking.via }
+    const problem = trialProblem(addLink<D>(link))
+    const named = linking.via === undefined ? { a: link.a, b: link.b } : link
+    return problem === undefined ? { ...named, action: 'add' } : { ...named, action: 'none', reason: problem }
+  }
+
   let view: ThingsToolView = {
     palette: paletteOf(),
     active: undefined,
     hover: undefined,
     place: undefined,
     gesture: 'idle',
+    linking: undefined,
+    link: undefined,
     refusal,
   }
 
@@ -213,17 +313,31 @@ export function createThingsTool<D>(
       endMove(move, false)
       refusal = off
     }
+    // Linking stops when the links' sub-layer goes off.
+    if (linking !== undefined && linkProblem() !== undefined) linking = undefined
     const palette = paletteOf()
     // A definition the level no longer has cannot be placed.
     if (active !== undefined && !palette.some((entry) => entry.def === active?.def)) active = undefined
     const hover =
       pointer === undefined ? undefined : pickThing(kit(), currentViewport(), pointer, pickOptions(pointer))
     const place =
-      active === undefined || pointer === undefined || hover !== undefined
-        ? undefined
-        : placeAt(active, pointer)
-    const gesture = move === undefined ? 'idle' : 'move'
-    const next: ThingsToolView = { palette, active: active?.def, hover, place, gesture, refusal }
+      drawing !== undefined
+        ? drawnPlace(drawing)
+        : active === undefined || pointer === undefined || hover !== undefined || linking !== undefined
+          ? undefined
+          : placeAt(active, pointer)
+    const link = pointer === undefined ? undefined : linkAt(pointer)
+    const gesture = move !== undefined ? 'move' : drawing !== undefined ? 'area' : 'idle'
+    const next: ThingsToolView = {
+      palette,
+      active: active?.def,
+      hover,
+      place,
+      gesture,
+      linking,
+      link,
+      refusal,
+    }
     if (same(view, next)) return
     view = next
     for (const run of [...listeners]) run()
@@ -332,7 +446,14 @@ export function createThingsTool<D>(
       pointer = at
       refusal = undefined
       const hit = pickThing(kit(), currentViewport(), at, pickOptions(at))
-      if (hit !== undefined) {
+      if (linking !== undefined) {
+        // A tap on another thing of the links joins the two; anywhere else it stops linking and does nothing more.
+        if (hit !== undefined && hit.def === editor.profile.links?.def) {
+          const result = editor.run(addLink({ a: linking.from, b: hit.id, via: linking.via }))
+          if (result.ok) linking = undefined
+          else refusal = result.reason
+        } else linking = undefined
+      } else if (hit !== undefined) {
         if (at.additive === true) editor.selection.toggle(hit.selection)
         else editor.selection.set([hit.selection])
       } else if (active !== undefined) {
@@ -346,6 +467,7 @@ export function createThingsTool<D>(
     },
     dragStart(press, at) {
       if (move !== undefined) endMove(move, false)
+      drawing = undefined
       refusal = undefined
       const hit = pickThing(kit(), currentViewport(), press, pickOptions(press))
       const thing = kit().things.find((each) => each.def === hit?.def && each.id === hit?.id)
@@ -366,12 +488,19 @@ export function createThingsTool<D>(
             press: toWorld(currentViewport(), press),
           }
         }
+      } else if (hit === undefined && active !== undefined) {
+        const sides = kit().definitions.find((definition) => definition.id === active?.def)?.area
+        if (sides !== undefined) {
+          const corner = placeOf(press)
+          drawing = { def: active.def, values: active.values, sides, press: corner, at: corner }
+        }
       }
       this.drag(at)
     },
     drag(at) {
       pointer = at
       if (move?.session.open) moveGrabbed(move, at)
+      if (drawing !== undefined) drawing = { ...drawing, at: placeOf(at) }
       publish()
     },
     dragEnd(at, cancelled) {
@@ -379,6 +508,15 @@ export function createThingsTool<D>(
       if (move !== undefined) {
         if (!cancelled && move.session.open) moveGrabbed(move, at)
         endMove(move, !cancelled)
+      }
+      if (drawing !== undefined) {
+        const drawn: Drawing = { ...drawing, at: placeOf(at) }
+        drawing = undefined
+        if (!cancelled) {
+          const problem = layerProblem(drawn.def)
+          const result = problem === undefined ? editor.run(areaAddition(drawn).edit) : undefined
+          refusal = problem ?? (result?.ok === false ? result.reason : undefined)
+        }
       }
       publish()
     },
@@ -395,6 +533,27 @@ export function createThingsTool<D>(
       const off = layerProblem(thing.def)
       if (off !== undefined) return answer(off)
       const result = editor.run(setThingField({ ...thing, field, value }))
+      return answer(result.ok ? undefined : result.reason)
+    },
+    startLink(via) {
+      const { links } = editor.profile
+      const problem = linkProblem()
+      if (links === undefined || problem !== undefined) return answer(problem)
+      const things = selectedThings()
+      const [from] = things
+      if (things.length !== 1 || from === undefined || from.def !== links.def)
+        return answer(`select one ${links.def} first`)
+      linking = { from: from.id, via }
+      return answer(undefined)
+    },
+    cancelLink() {
+      linking = undefined
+      publish()
+    },
+    unlink(a, b) {
+      const problem = linkProblem()
+      if (problem !== undefined) return answer(problem)
+      const result = editor.run(removeLink({ a, b }))
       return answer(result.ok ? undefined : result.reason)
     },
     resize(next) {

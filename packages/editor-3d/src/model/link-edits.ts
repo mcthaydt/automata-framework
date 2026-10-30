@@ -6,7 +6,8 @@ import { ThingAccessError } from '../profile/thing-access'
 import type { ThingLink } from '../profile/thing-links'
 import { type Edit, type EditResult, ok, refuse } from './edit'
 
-const NO_LINKS = 'this level has no links'
+/** The sentence a link edit is refused with on a level whose profile has no links. */
+export const NO_LINKS = 'this level has no links'
 
 /** The level `write` makes, or its sentence when the profile, or the level's geometry, refuses. */
 function written<D>(write: () => D): EditResult<D> {
