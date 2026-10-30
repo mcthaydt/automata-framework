@@ -620,6 +620,10 @@ Owner, 2026-10-30: "I kinda want to change our plans for paid - we'll make the e
 | [ ] | APP.3 — Ask with a keychain key; browser-run checks | APP.2, EDS.2b. Node-only checks shown as "run on desktop", never as passing. |
 | [ ] | APP.4 — Signed release builds and store submission | APP.3, EDS.11. Owner: Apple and Google developer accounts, signing, price (D-7), listings, privacy labels. |
 | [ ] | APP.5 — Acceptance APP-a to APP-e | APP.4. APP-a is the Owner's on an iPad and an Android tablet; never ticked by an agent. |
+| [ ] | COLLAB.1 — GitHub sign-in and git push from the editors | EDS.1b, EDS.1d. Owner, 2026-10-30: "We need to be able to push to git". Device-flow sign-in, a JavaScript git client behind the change-set port (branch, commit, push, pull, draft PR), shared by the web editor and the apps; the token in the platform keychain. |
+| [ ] | COLLAB.2 — Get latest and the plain-words conflict view | COLLAB.1, EDS.2c. Git-backed async collaboration (Owner's choice, 2026-10-30); acceptance APP-g. |
+| [ ] | NDX.1 — Editors for people who aren't developers | EDS.2a. Plain words (Ship, Get latest; no git terms unless asked), a first-run guide, errors that say what to do next. |
+| [ ] | NDX.2 — The filmmaker journey | EDS.8, COLLAB.1. A non-developer makes a cutscene on an iPad and ships it (APP-f), as a WebKit iPad end-to-end test; the Owner's real-device pass is never ticked by an agent. |
 | [ ] | PLUS.FREE — Plus becomes free | APP.0. Licence switch on the Owner's word on the text; Plus packages publish on core's line; `automata add` without credentials; PRODUCT.5h, M8.9p and M10.0 restated; making `mcthaydt/automata-plus` public is the Owner's action. |
 
 ## The base 3D game and 3D parity (inside AF 1.0)

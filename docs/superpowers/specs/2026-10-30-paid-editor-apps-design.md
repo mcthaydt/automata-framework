@@ -11,6 +11,14 @@ The Owner then chose three options from the coordinator's questions, each one th
 - **Web and desktop free, mobile paid.** `automata editor` stays free in the browser on desktop; the iPad and phone apps are the paid product.
 - **One-time purchase.** Pay once per platform with updates included, as Nomad Sculpt does. The exact price stays the Owner's to set (D-7 stays a placeholder).
 
+Later the same day:
+
+> We need to be able to push to git; our biggest priorities for the editors are tablet ready, cloud collaboration, and designed for non-game devs to be able to work with it (a student filmmaker can hop in and make cutscenes even though they're no developer)
+
+The Owner then chose two options from the coordinator's follow-up questions, each one the recommended option:
+- **Cloud collaboration is git-backed and async first.** GitHub is the cloud: each person edits on their own branch, Ship pushes and opens a PR, and others pull. Real-time co-editing can come later.
+- **GitHub sign-in.** The editors push with a "Sign in with GitHub" device flow over HTTPS. A non-developer never sees git, only Ship and Get latest.
+
 ## 1. The product after this change
 
 | Part | Price | Form |
@@ -66,15 +74,37 @@ The editors run on EDS.1's ports (EDS.1b holds the fakes and EDS.1d the Node ada
 | Port | Web and desktop (EDS.1d) | iOS and Android apps |
 |---|---|---|
 | Workspace | Disk, with the allowlist from `editors.toml` | A project folder the user picks: Files on iOS, the Storage Access Framework on Android. The same allowlist applies. |
-| Change set and Ship | A git branch per change, and Ship opens a draft PR | **APP-D6:** a local change history with export as a zip or a patch. Git push from the app is a later row, not 1.0. |
+| Change set and Ship | A git branch per change, and Ship opens a draft PR | **The same, without a git CLI.** The app signs in with GitHub (device flow, token in the platform keychain) and uses a JavaScript git client over HTTPS (isomorphic-git, chosen in APP.S1) to branch, commit, push, pull and open the draft PR. (The Owner, 2026-10-30: "We need to be able to push to git"; APP-D6 is replaced.) |
 | Checks runner | `automata check` and the game's own checks | The checks that run in the browser (content schemas, level checks). Checks that need Node are shown as "run on desktop", never faked as passing. |
 | Ask | The developer's own Claude credentials | The user's own API key, held in the platform keychain. With no key, Ask is hidden, not broken. |
 | Gates | Read only | Read only |
+
+**Collaboration (git-backed, async):**
+- Each person works on their own branch.
+- "Get latest" pulls main into the branch. A conflict is shown in plain words, on the level or the shot, never as raw git markers. The user keeps theirs, takes theirs, or asks for help.
+- Ship pushes and opens a draft PR, and the Review desk (EDS.2c) shows it.
+- Real-time co-editing is a later milestone and is not planned here.
 
 **Failure policy:**
 - A denied folder permission shows the picker again. It never falls back to app-private storage without telling the user.
 - A failed write keeps the edit in memory and says so.
 - The app never claims a check passed that it did not run.
+
+## 5b. Editor priorities (Owner, 2026-10-30)
+
+These three apply to every editor row from now on (ED, EDFF and EDS), on the web and in the apps.
+
+1. **Tablet ready.**
+   - Every editor PR carries its WebKit iPad journeys and layout checks.
+   - Pencil, touch and 44 px targets are tested from the first PR, not left to the polish rows (ED2D.8, EDS.10).
+2. **Cloud collaboration, git-backed.**
+   - GitHub sign-in, Ship and Get latest, as described in §5.
+   - On desktop, the change set and Ship land in EDS.1d and EDS.2c. The app gets the same flow without a git CLI.
+3. **For people who aren't developers.**
+   - The editors use plain words: Ship, Get latest, Undo, Preview. Never branch, commit, merge or a file path, unless the user opens the details.
+   - A first run guides a new user through making something small.
+   - Errors say what to do next.
+   - Cutscenes are the reference journey: a student filmmaker makes one with no code (APP-f). This puts the Sequence editor (EDS.8) and the `cutscenes` extension (M6.9a and M6.9b) on the priority path. Their Plus prerequisites (M6.4a, M6.5, M6.8a and M6.8c) are paused with the Plus lane. Moving them up needs the Plus lane resumed, or the rows moved into AF now that Plus is free (APP-D9, the Owner's call).
 
 ## 6. Store and release
 
@@ -101,6 +131,8 @@ The editors run on EDS.1's ports (EDS.1b holds the fakes and EDS.1d the Node ada
 
 - **APP-a.** On an iPad and an Android tablet, the app opens a game project folder. It edits a level in the 2D level editor and a scene in the 3D one, writes the files, and the same project then passes `automata check` on a desktop. (Owner, on real devices.)
 - **APP-b.** With the folder permission revoked, the app asks again and loses no edit.
+- **APP-f.** A filmmaker with no git or code knowledge signs in with GitHub on an iPad, makes a cutscene in the Sequence editor, presses Ship, and the PR appears. A teammate on desktop presses Get latest and sees the cutscene. (Owner, on real devices.)
+- **APP-g.** Two people change the same level on different branches. Get latest shows the conflict in plain words, and neither change is lost.
 - **APP-c.** With no API key, Ask is hidden. With a key, a proposed diff is checked before it is written (EDS.2b's rule).
 - **APP-d.** A Plus package installs from the public registry with no credentials, and the buyer smoke test becomes a plain consumer smoke test.
 - **APP-e.** The built app bundle passes the no-`eval` scan.
@@ -116,4 +148,8 @@ The editors run on EDS.1's ports (EDS.1b holds the fakes and EDS.1d the Node ada
 | APP.3 | Ask with a keychain-held key; the checks that run in the browser | APP.2, EDS.2b |
 | APP.4 | Signed release builds and the store submission flow (Owner gates) | APP.3, EDS.11 |
 | APP.5 | Acceptance APP-a to APP-e (APP-a is the Owner's, on real devices) | APP.4 |
+| COLLAB.1 | GitHub device-flow sign-in and a JavaScript git client behind the change-set port (branch, commit, push, pull, draft PR), shared by the web editor and the apps | EDS.1b, EDS.1d |
+| COLLAB.2 | Get latest, and the plain-words conflict view (APP-g) | COLLAB.1, EDS.2c |
+| NDX.1 | Plain-words pass across the suite shell, first-run guide, error copy | EDS.2a |
+| NDX.2 | The filmmaker journey (APP-f) as an end-to-end test on the WebKit iPad profile | EDS.8, COLLAB.1 |
 | PLUS.FREE | Plus is free: licence switch (Owner's word on the text), public publish on core's line, `automata add` without credentials, PRODUCT.5h, M8.9p and M10.0 restated | APP.0 |
