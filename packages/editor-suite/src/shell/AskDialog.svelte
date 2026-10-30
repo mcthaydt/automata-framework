@@ -84,7 +84,7 @@ function ask(): void {
       <p role="alert">The assistant failed: {view.reason}</p>
     {:else if shown !== undefined}
       <p class="summary">{shown.proposal.summary}</p>
-      <section class="diff" aria-label="Proposed change">
+      <section class="diff" aria-label="Proposed change" data-scroll-region="both">
         {#each shown.hunks as hunk, index (index)}
           <div class="hunk-head">@@ −{hunk.beforeStart},{hunk.beforeCount} +{hunk.afterStart},{hunk.afterCount} @@</div>
           {#each hunk.lines as line, at (at)}

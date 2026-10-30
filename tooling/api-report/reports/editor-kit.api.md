@@ -3586,7 +3586,7 @@ interface Proposal {
 interface SuiteAskTarget {
     readonly path: string;
     text(): string;
-    scope(): string;
+    scope(): readonly string[];
     locked(): readonly string[];
     accept(text: string, summary: string): void;
 }
