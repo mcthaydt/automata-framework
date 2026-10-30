@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.turbo/
+*.log
+.DS_Store
+test-results/
+playwright-report/
+# What `pnpm core:sync` makes: the framework checkout at core.ref (.core/af) and its packs (.core/packs).
+.core/

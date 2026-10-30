@@ -1,0 +1,53 @@
+name: ci
+
+# Automata Plus's CI (PRODUCT.5e). The Owner, 2026-10-23 19:15:32Z: "Yes to a Plus repo CI workflow on af-mac, with
+# the fork guard and the no-hosted-labels test." tooling/ci/workflows.test.ts pins both, and the rest of this shape.
+#
+# Runner: the Owner's Mac, label af-mac, through the runner af-mac-plus registered to this repository. CI runs on the
+# Owner's own devices, never on GitHub's hosted runners, so with no runner online a job waits in the queue. The
+# runners share one home folder, so the job gives pnpm its own folder.
+#
+# Forks: the job runs a pull request only when its head is in this repository, so a fork's code never reaches the
+# Owner's machine. Pushes to main and manual runs have no pull request and still run.
+#
+# The framework: `pnpm core:sync` fetches it at the commit in core.ref with plain git, which reaches the private
+# repository through the Mac user's own git credential helper. The job's token reads Plus alone and is not kept
+# after the checkout, and the workflow reads no secret. If Plus CI should stop depending on the Owner's login, a
+# read-only deploy key of the framework (the website's AF_FRAMEWORK_DEPLOY_KEY pattern) is the fallback, and that
+# is a workflow change for the Owner to approve.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: core sync, lint, typecheck, unit
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: af-mac
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      # Before the install: it imports nothing but Node, and the install resolves core from what it writes.
+      - run: pnpm core:sync
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
