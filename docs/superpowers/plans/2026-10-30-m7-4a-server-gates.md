@@ -14,7 +14,7 @@
   and `tests/server/gate/{client-ip,matchmake-gate,origins,public-surface,refusal-log,socket-gate,token-buckets}.test.ts`
   (FloorFifty has no test file of its own for `http-body` or the version gate: they are covered by
   `matchmake-gate.test.ts`' 413 case and `tests/server/rooms/race-room-join-check.test.ts`).
-- **Status:** planned.
+- **Status:** implemented and checked locally; Plus CI pending; not reviewed.
 
 ## Scope
 
@@ -222,8 +222,48 @@ test switch set" is M7.4b's process safety (its row names it) and is cited there
 `pnpm format`, `pnpm check` (lint, typecheck, boundaries, root tooling tests, every package's `test:unit`); the server
 suite three runs in a row. Pending: Plus CI, review.
 
+## As built (deviations from the plan)
+
+- `writeRefusal` lives in `gate/refusal.ts` (with `REFUSAL_WORDS`); the version gate imports it.
+- `runtime.sockets` (open count and addresses) is exposed beside `runtime.origins` and `runtime.version`, so the
+  socket tests wait on the server's own count rather than on a timer.
+- The buckets are swept on the request path (every 60 s of the server's clock), not by FloorFifty's interval: no
+  timer to stop, and no time but the injected clock.
+- The room's `onAuth` refuses anything but the same version; the room's message cap is checked in
+  `AutomataRoom.receive` before the engine sees the text; net's `too-large` is logged `size`.
+- The WebSocket frame bound is `maxMessageBytes` + 1 KB of Colyseus envelope; a frame past it is closed by the
+  transport (tested), a message past `maxMessageBytes` within it is dropped and the client stays.
+- Malformed join options: Colyseus 0.18 runs the room's check once the socket opens, so the `REFUSED` reaches the SDK
+  client and the HTTP request itself succeeds; the case is tested through the SDK.
+- Adapted M7.3b tests: the join options carry the server's real version (`server.joinOptions`, `HASH` removed); the
+  drain-during-onCreate case's slow plugin holds only the room's sim, since the server builds one sim at start to
+  read its version.
+
+## Ported and dropped
+
+- **Ported:** every rule of the five gates, `http-body` and the version gate; FloorFifty's 47 gate cases, adapted
+  where Plus differs (counts in Tests above).
+- **Dropped or replaced, with reason:** "no limits with the test driver" (Plus has no driver switch; replaced by
+  "a test server's wide buckets"); "no address cap with the test driver" (replaced by the SV-c case); "/content to
+  a listed origin" and "/health to a listed origin" (no `/content` in Plus; `/health` is M7.4b's: replaced by the
+  preflight and refusal-CORS cases); "past the total" through the server (moved to `upgrade-gate`, as Colyseus
+  closes a bare socket after one second); "allows every origin when none is listed" (inverted by SV-d); "logs the
+  live room count" (room telemetry, M7.4b; replaced by the origin/size/version/socket refusal codes); FloorFifty's
+  build-skew and "newer client should wait" join cases (no build ids in Plus).
+
+## Requests to core
+
+- Export Ruken's `gameOrigin` from a core pack, so `originsFromGameOrigin` calls it with `(publicId, env, channel)`.
+- The spec's §4.3 `ServerLimits.perIp` sketch needs `quickMatch` (framework spec owner).
+
 ## Execution log
 
 | Date | Step | Evidence |
 |---|---|---|
-| 2026-10-30 | Plan | This file |
+| 2026-10-30 | Plan | This file (commit `0516843`) |
+| 2026-10-30 | Pure gates | client-ip, token-buckets, socket-gate, origins, http-body: 29 cases red (modules missing), then green |
+| 2026-10-30 | Version and upgrade gates | 5 upgrade-gate cases red (module missing), one fixed test bug (a default parameter turned `undefined` into the listed origin), then green; version gate red (module missing), then green; the malformed case rewritten through the SDK (Colyseus answers the HTTP request); the room's own check shown red with the check disabled |
+| 2026-10-30 | Integration suites | matchmake-gate 8, public-surface 11, refusal-log 5 and start-server +4 written against the wiring; each gate mutated off in turn (rates, drain, origin, body cap, upgrade gate, room size) and the matching cases failed (5, 2, 3, 2, 4, 1), then restored |
+| 2026-10-30 | Counts | client-ip 6 (FF 6), token-buckets 8 (FF 7), socket-gate 6 (FF 5), origins 6 (FF 5), matchmake-gate 8 (FF 8), public-surface 11 (FF 11), refusal-log 5 (FF 5), http-body 3, upgrade-gate 5, matchmake-version-gate 11; start-server 11 (was 7); server 262 in all (was 189) |
+| 2026-10-30 | Merge | `origin/main` (M4.11 `packages/dev-tools`) merged cleanly; `pnpm install` left the lockfile unchanged |
+| 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint, typecheck, boundaries, root 163, net 89, pipelines 82, dev-tools 62, physics 71, server 262 (server suite three runs in a row, 262 each) |
