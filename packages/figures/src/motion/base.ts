@@ -6,7 +6,7 @@
 // `relaxed`), its formulas and their order. Changed for AF: no action branches (reach, look and flinch become
 // clips in M3.6); no sprite cheats (`lookUp`, `view`, `pitch` and the walk-level neck correction that reads
 // them), so the gait's chin lift is its attitude at full weight (M3.5c decision 5); the twitch is idle's, so
-// the walk repeats exactly after one cycle (decision 11, F-c); the feet run along `moveDir` (decision 4, F-h).
+// the walk repeats exactly after one cycle (decision 10, F-c); the feet run along `moveDir` (decision 4, F-h).
 
 import type { Gait } from '../library/gait.schema'
 import type { Stand } from '../library/stand.schema'

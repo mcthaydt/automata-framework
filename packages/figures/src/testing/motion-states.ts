@@ -10,7 +10,7 @@ export const AT_REST: MotionState = { t: 0, moving: false, phase: 0, yaw: 0, hea
 
 const at = (state: Partial<MotionState>): MotionState => ({ ...AT_REST, ...state })
 
-/** The goldens' states. Walking at t 0.5, where no twitch falls (the twitch is idle's, decision 11). */
+/** The goldens' states. Walking at t 0.5, where no twitch falls (the twitch is idle's, decision 10). */
 export const GOLDEN_STATES: Readonly<Record<string, MotionState>> = {
   'walk 0': at({ moving: true, phase: 0, yaw: 0.3, t: 0.5 }),
   'walk 0.125': at({ moving: true, phase: 0.125, yaw: 0.3, t: 0.5 }),
