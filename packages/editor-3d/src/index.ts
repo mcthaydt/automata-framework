@@ -142,6 +142,7 @@ export {
 export {
   createViewStore,
   initialView,
+  thingLayer,
   type ViewMode,
   type ViewState,
   type ViewStore,
@@ -188,6 +189,14 @@ export {
   type SectorDraft,
 } from './profile/sector-access'
 export { type ThingAccess, ThingAccessError } from './profile/thing-access'
+export {
+  createThingsTool,
+  type PaletteEntry,
+  type ThingPlace,
+  type ThingsTool,
+  type ThingsToolOptions,
+  type ThingsToolView,
+} from './things/things-tool-controller'
 export {
   type Camera3D,
   type FitOptions,
@@ -289,4 +298,5 @@ export {
   toScreen,
   toWorld,
 } from './view/plan/plan-viewport'
+export { isThingLayerOff, pickThing, type ThingHit } from './view/plan/thing-pick'
 export { type SelectionOf, selectionOf } from './view/selection-of'

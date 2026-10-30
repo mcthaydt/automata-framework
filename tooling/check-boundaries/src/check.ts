@@ -1,9 +1,12 @@
 import { dirname, relative, resolve } from 'node:path'
 import { parseSync } from 'oxc-parser'
+import { isNode, type AstNode as Node, staticMemberName } from './ast.ts'
+import { kootaBindings, kootaSoaProblem } from './koota-soa.ts'
 import { simEntryVerdict } from './sim-entries.ts'
 
-// Determinism boundary for packages/sim (A0+A1 spec §3.3 and §11). Works on the AST, so comments, strings,
-// property keys and type positions never produce false findings.
+// Determinism boundary for packages/sim (A0+A1 spec §3.3 and §11), plus one CSP rule, `koota-soa`
+// (koota-soa.ts). Works on the AST, so comments, strings, property keys and type positions never produce false
+// findings.
 
 export type Rule =
   | 'banned-global'
@@ -13,6 +16,7 @@ export type Rule =
   | 'key-enumeration'
   | 'locale'
   | 'import'
+  | 'koota-soa'
   | 'parse-error'
 
 export interface Finding {
@@ -119,10 +123,6 @@ const TYPE_NODES = new Set(['TSInterfaceDeclaration', 'TSTypeAliasDeclaration', 
 // Identifier positions that name something rather than reference it.
 const BINDING_KEYS = new Set(['id', 'params', 'local', 'imported', 'exported', 'label'])
 
-type Node = { type: string; start: number; [k: string]: unknown }
-const isNode = (v: unknown): v is Node =>
-  typeof v === 'object' && v !== null && typeof (v as { type?: unknown }).type === 'string'
-
 function isReference(key: string, parent: Node | null): boolean {
   if (!parent) return true
   if (BINDING_KEYS.has(key)) return false
@@ -145,27 +145,14 @@ export interface CheckOptions {
    * checked, which is every argument of a `defineSystem` or `definePlugin` call (the system bodies, the plugin's
    * setup). File-level code and imports are not checked. A helper the sim calls that is declared outside those
    * calls is not checked either; a sim that big belongs in a game's `sim/` folder, under the per-file check.
+   * `koota-soa` is the exception: it checks every call in the file, because the CSP it guards covers the whole page
+   * and components are defined at file level.
    */
   readonly inline?: boolean
 }
 
 /** The calls whose arguments are sim code in inline mode. */
 const INLINE_SIM_CALLS: ReadonlySet<string> = new Set(['defineSystem', 'definePlugin'])
-
-/**
- * The name a member expression reads, when it is known without running code: `a.b`, `a['b']` and
- * a template literal with no substitutions. Returns undefined for any other computed key.
- */
-function staticMemberName(node: Node): string | undefined {
-  const prop = node.property as Node & { name?: string; value?: unknown; expressions?: unknown[] }
-  if (!node.computed) return prop.name
-  if (prop.type === 'Literal' && typeof prop.value === 'string') return prop.value
-  if (prop.type === 'TemplateLiteral' && prop.expressions?.length === 0) {
-    const quasi = (prop.quasis as { value: { cooked: string | null } }[])[0]
-    return quasi?.value.cooked ?? undefined
-  }
-  return undefined
-}
 
 export function checkSource(file: string, code: string, options: CheckOptions = {}): Finding[] {
   /** Whether `source` may be imported; `detail` explains a refusal the extension's own declaration caused. */
@@ -214,6 +201,11 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
     return findings
   }
   const enumerationExempt = file.replaceAll('\\', '/').endsWith('/util/sorted.ts')
+  const koota = kootaBindings(parsed.program as unknown as Node)
+  const checkKootaCall = (call: Node) => {
+    const problem = kootaSoaProblem(call, koota)
+    if (problem !== undefined) report(problem.node, 'koota-soa', problem.message)
+  }
 
   const visit = (node: Node, key: string, parent: Node | null): void => {
     if (TYPE_NODES.has(node.type)) return
@@ -254,6 +246,9 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
             `"${node.operator}" is engine-dependent; use pow from automata-sim/math`,
           )
         }
+        break
+      case 'CallExpression':
+        checkKootaCall(node)
         break
       case 'ForInStatement':
         if (!enumerationExempt)
@@ -330,10 +325,12 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
     return found
   }
 
-  // Inline mode: walk without reporting until a sim call, then check its arguments with the full rules.
+  // Inline mode: walk without reporting until a sim call, then check its arguments with the full rules. Only
+  // `koota-soa` is checked on the way.
   const findSim = (node: Node): void => {
     if (TYPE_NODES.has(node.type)) return
     if (node.type === 'CallExpression') {
+      checkKootaCall(node)
       const callee = node.callee as Node & { name?: string }
       const name =
         callee.type === 'Identifier'
