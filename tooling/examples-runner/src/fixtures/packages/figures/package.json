@@ -1,0 +1,7 @@
+{
+  "name": "@mcthaydt/automata-figures",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
