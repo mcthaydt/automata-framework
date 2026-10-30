@@ -2,10 +2,12 @@ import '../theme.css'
 import { mountFixture, REFERENCE_SIZES, VARIANTS } from '@mcthaydt/automata-testing'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import CameraDragFixture from '../testing/CameraDragFixture.svelte'
 import { byTestId, checkLayout, publishConditions } from '../testing/layout-contract'
 import { FIXTURE_LOCALES, findUntranslated } from '../testing/locale-fixture'
 import { settleLayout } from '../testing/settle'
 import TouchFixture from '../testing/TouchFixture.svelte'
+import { STICKY_MARGIN_PX } from './touch-controls'
 
 // The touch buttons at every reference size and variant, with production CSS (M4 spec §6, §8): whole primary-size
 // targets, on screen and hit-testable. With the on-screen keyboard up the frame scrolls (and a game hides its
@@ -106,3 +108,114 @@ describe('touch controls under an ActionBar (D-a)', () => {
     expect(narrow).toEqual(REQUIRED)
   })
 })
+
+// M4.12 (M4 spec §16.7, A-q, A-r): a 3D play screen's touch input, with production CSS. The move stick's zone keeps
+// twice the primary size (one primary of height at a compact height) and is required, so with an ActionBar at 780×270 it stays beside the required button. The
+// camera drag surface lies under every control and never covers the host's reserved strip.
+const STICK_ESSENTIALS = ['touch-stick', 'attack', 'pause']
+
+/** Every reserved-strip point the surface would answer for, sampled every 8 px down the strip's middle. */
+function surfaceHitsInside(strip: { x: number; y: number; width: number; height: number }): number {
+  const surface = byTestId('camera-drag')
+  let hits = 0
+  for (let y = strip.y + 4; y < strip.y + strip.height; y += 8) {
+    const hit = document.elementFromPoint(strip.x + strip.width / 2, y)
+    if (hit !== null && surface.contains(hit)) hits += 1
+  }
+  return hits
+}
+
+describe('touch move stick and camera drag layout contract (M4.12)', () => {
+  test.each(REFERENCE_SIZES)('$name ($width x $height)', async (size) => {
+    await page.viewport(size.width, size.height)
+    const problems: string[] = []
+    for (const show of ['default', 'with-bar'] as const) {
+      for (const variant of VARIANTS) {
+        const label = `${show} ${variant.name}`
+        const conditions = publishConditions(document.documentElement, size, variant)
+        const fixture = mountFixture(CameraDragFixture, { show })
+        await settleLayout()
+        const essentials =
+          variant.keyboard === undefined
+            ? [...STICK_ESSENTIALS, ...(show === 'with-bar' ? BAR : [])].map(byTestId)
+            : []
+        for (const problem of checkLayout(conditions, essentials)) problems.push(`${label}: ${problem}`)
+        const primary = 48 * conditions.geometry.scale
+        // A compact height keeps one primary target of height; elsewhere the zone is square.
+        const stickHeight = conditions.geometry.heightTier === 'compact' ? primary : 2 * primary
+        const stick = byTestId('touch-stick').getBoundingClientRect()
+        if (stick.width < 2 * primary - 0.5 || stick.height < stickHeight - 0.5)
+          problems.push(`${label}: the stick is ${Math.round(stick.width)}x${Math.round(stick.height)}`)
+        const attack = byTestId('attack').getBoundingClientRect()
+        if (attack.width < primary - 0.5 || attack.height < primary - 0.5)
+          problems.push(`${label}: attack is ${Math.round(attack.width)}x${Math.round(attack.height)}`)
+        const surface = byTestId('camera-drag').getBoundingClientRect()
+        for (const strip of conditions.reserved) {
+          if (variant.hostReserved === undefined) continue
+          const overlap =
+            Math.min(surface.right, strip.x + strip.width) - Math.max(surface.left, strip.x) > 0.5 &&
+            Math.min(surface.bottom, strip.y + strip.height) - Math.max(surface.top, strip.y) > 0.5
+          if (overlap || surfaceHitsInside(strip) > 0)
+            problems.push(`${label}: the camera drag surface reaches into the host's strip`)
+        }
+        // With the keyboard up the frame scrolls and a game hides its touch controls (M4 spec §8): nothing to hit.
+        if (variant.keyboard === undefined)
+          for (const problem of hitProblems(show)) problems.push(`${label}: ${problem}`)
+        await fixture.unmount()
+      }
+    }
+    expect(problems).toEqual([])
+  })
+
+  // A start-side button group reaches `STICKY_MARGIN_PX` past its buttons; that margin must not take the stick's
+  // edge (review of #204).
+  test('a start-side button’s sticky margin never takes the stick', async () => {
+    const [rest] = VARIANTS
+    const size = REFERENCE_SIZES.find((reference) => reference.name === 'desktop-720p')
+    if (rest === undefined || size === undefined) throw new Error('no rest variant or desktop size')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, rest)
+    const fixture = mountFixture(CameraDragFixture, { show: 'start-button' })
+    await settleLayout()
+    const stick = byTestId('touch-stick')
+    const box = stick.getBoundingClientRect()
+    const hit = document.elementFromPoint(box.right - 4, box.top + box.height / 2)
+    await fixture.unmount()
+    expect(hit !== null && stick.contains(hit)).toBe(true)
+  })
+})
+
+/** The element hit at a point, as a description, for a failure message. */
+const describeHit = (hit: Element | null): string =>
+  hit === null ? 'nothing' : (hit.getAttribute('data-testid') ?? hit.className.toString() ?? hit.tagName)
+
+/**
+ * Hit testing (A-p, review of #204): each control's centre hits the control, and the scene between the corner row
+ * and the controls, and the gap between the stick and the buttons where it is wider than the sticky margins, hit
+ * the camera drag surface. Only the play screen's pass-through frame lets the pointer through to it.
+ */
+function hitProblems(show: 'default' | 'with-bar'): string[] {
+  const problems: string[] = []
+  const surface = byTestId('camera-drag')
+  const at = (x: number, y: number) => document.elementFromPoint(x, y)
+  for (const id of [...STICK_ESSENTIALS, ...(show === 'with-bar' ? BAR : [])]) {
+    const control = byTestId(id)
+    const box = control.getBoundingClientRect()
+    const hit = at(box.left + box.width / 2, box.top + box.height / 2)
+    if (hit === null || !control.contains(hit)) problems.push(`${id}'s centre hits ${describeHit(hit)}`)
+  }
+  const pause = byTestId('pause').getBoundingClientRect()
+  const stick = byTestId('touch-stick').getBoundingClientRect()
+  const below = show === 'with-bar' ? byTestId('bar-ready').getBoundingClientRect().top : stick.top
+  if (below - pause.bottom > 4) {
+    const hit = at(window.innerWidth / 2, (pause.bottom + below) / 2)
+    if (hit === null || !surface.contains(hit))
+      problems.push(`the scene hits ${describeHit(hit)}, not the drag`)
+  }
+  const buttons = document.querySelector('[data-touch-side="end"]')?.getBoundingClientRect()
+  if (buttons !== undefined && buttons.left - stick.right > 2 * STICKY_MARGIN_PX + 4) {
+    const hit = at((stick.right + buttons.left) / 2, stick.top + stick.height / 2)
+    if (hit === null || !surface.contains(hit)) problems.push(`the overlay's gap hits ${describeHit(hit)}`)
+  }
+  return problems
+}

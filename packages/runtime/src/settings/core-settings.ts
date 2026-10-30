@@ -1,8 +1,13 @@
 // The core settings (M4 spec §4.5, §4.8, M4-D8): what a game that declares no `settings` saves, so the Settings
 // screen's Controls and Display sections always have a place for the player's choices. A game with settings of its
-// own keeps them only when its schema has the same fields: `input: inputSettingsSchema` and
-// `display: displaySettingsSchema`.
+// own keeps them only when its schema has the same fields: `input: inputSettingsSchema`,
+// `display: displaySettingsSchema` and, for a camera the player turns, `camera: cameraSettingsSchema`.
 import { z } from 'zod'
+import {
+  CAMERA_SETTINGS_DEFAULT,
+  type CameraSettings,
+  cameraSettingsSchema,
+} from '../input/analog/camera-settings.schema.js'
 import {
   INPUT_SETTINGS_DEFAULT,
   type InputSettings,
@@ -19,6 +24,8 @@ export interface CoreSettings {
   readonly audio: AudioSettings
   /** The Vibration group's toggle (Owner, 2026-10-18); a record saved before it reads it as on. */
   readonly haptics: HapticsSettings
+  /** "Camera turn speed" and "Invert camera" (M4.12); a record saved before them reads them as the defaults. */
+  readonly camera: CameraSettings
 }
 
 /** The player's Vibration setting: whether `Haptics` pulses at all. */
@@ -37,6 +44,7 @@ const DEFAULTS: CoreSettings = {
   display: { quality: DEFAULT_QUALITY },
   audio: AUDIO_SETTINGS_DEFAULT,
   haptics: HAPTICS_DEFAULT,
+  camera: CAMERA_SETTINGS_DEFAULT,
 }
 
 const coreSettingsSchema: z.ZodType<CoreSettings> = z.object({
@@ -44,9 +52,13 @@ const coreSettingsSchema: z.ZodType<CoreSettings> = z.object({
   display: displaySettingsSchema.catch(() => ({ quality: DEFAULT_QUALITY })),
   audio: audioSettingsSchema.default(AUDIO_SETTINGS_DEFAULT),
   haptics: hapticsSettingsSchema.default(HAPTICS_DEFAULT),
+  camera: cameraSettingsSchema.default(CAMERA_SETTINGS_DEFAULT),
 })
 
-/** The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`) and vibration (`haptics`). */
+/**
+ * The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`),
+ * vibration (`haptics`) and camera turn (`camera`).
+ */
 export const CORE_SETTINGS: SettingsDef<CoreSettings> = {
   key: 'settings',
   version: 1,
