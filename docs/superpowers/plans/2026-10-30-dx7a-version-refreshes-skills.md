@@ -3,7 +3,7 @@
 - **Spec:** [M2 build and publish spec](../specs/2026-10-11-m2-build-and-publish-design.md) §3.5 (`release-packages.yml` runs `pnpm release:version` as changesets/action's version script); [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.7 (the `automata-api` skill carries DX.4's generated `api.md`; the plugin's version is the API version) and §3.8 (the API index).
 - **Task:** DX.7 follow-up "Release version bump" (02, "DX.7 follow-ups"): `pnpm agent-skills` fails once `release:version` bumps the packages, until `pnpm agent-skills --write` copies the new `api.md` and sets the plugin version. Lane ship (root `package.json`, `tooling/release/`, `.changeset/`).
 - **Status:** drafted 2026-10-30, based on `main` `89ff04da`.
-- **Progress:** 1 of 5 steps.
+- **Progress:** 3 of 5 steps.
 
 ## What is wrong
 
@@ -36,8 +36,8 @@ Neither is written by the version step, so the Version packages pull request fai
 ## Steps
 
 - [x] **1. Plan.** This file, committed first.
-- [ ] **2. Red.** `tooling/release/src/release-version.test.ts`: `release:version` split on ` && ` equals the five steps above. Run `pnpm --filter @mcthaydt/release exec vitest run src/release-version.test.ts`; expected: 1 failed, the received list being today's two steps.
-- [ ] **3. Green.** Root `package.json` `release:version` gains `pnpm build && pnpm cheatsheet && pnpm agent-skills --write`. The same command: 1 passed; then `pnpm --filter @mcthaydt/release test:unit`, all passed.
+- [x] **2. Red.** `tooling/release/src/release-version.test.ts`: `release:version` split on ` && ` equals the five steps above. Run `pnpm --filter @mcthaydt/release exec vitest run src/release-version.test.ts`; expected: 1 failed, the received list being today's two steps.
+- [x] **3. Green.** Root `package.json` `release:version` gains `pnpm build && pnpm cheatsheet && pnpm agent-skills --write`. The same command: 1 passed; then `pnpm --filter @mcthaydt/release test:unit`, all passed.
 - [ ] **4. Prove it on a real bump** in a disposable worktree of this branch (`/home/user/wt/af-dx7a-dryrun`, detached, removed afterwards), with a scratch patch changeset on `@mcthaydt/automata-sim` (the fixed group bumps all nine to 0.0.4):
   - *Control (today's script):* `pnpm exec changeset version && node tooling/release/src/sync-versions.ts`, then `pnpm build && pnpm api-index`, then `pnpm agent-skills`. Expected: exit 1, `plugin.json says version 0.0.3 but the API is 0.0.4` (PR #31's failure).
   - *Reset* (`git checkout -- . && git clean -fd`, ignored build output kept), re-add the changeset, *then the new script:* `pnpm release:version`. Expected: exit 0; afterwards `pnpm api-index` and `pnpm agent-skills` (check mode, no `--write`) exit 0; `git status --porcelain` lists only the nine `package.json`, nine `CHANGELOG.md`, `packages/sim/src/version.ts`, `plugin.json`, `api.md` and the consumed changeset, with no build output. Record the cold build time (the version job's timeout is 20 minutes, including `pnpm check`).
@@ -53,4 +53,6 @@ Neither is written by the version step, so the Version packages pull request fai
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-30 | 1 | (this commit) | Plan drafted from `main` `89ff04da`; PR #31's files read through the REST API (`85df09cc`: `plugin.json` and `api.md` the only hand edits). |
+| 2026-10-30 | 1 | `62a0c605` | Plan drafted from `main` `89ff04da`; PR #31's files read through the REST API (`85df09cc`: `plugin.json` and `api.md` the only hand edits). |
+| 2026-10-30 | 2 | | `tooling/release/src/release-version.test.ts`. Red: `pnpm --filter @mcthaydt/release exec vitest run src/release-version.test.ts` 1 failed; received `["changeset version", "node tooling/release/src/sync-versions.ts"]`, missing `pnpm build`, `pnpm cheatsheet`, `pnpm agent-skills --write`. |
+| 2026-10-30 | 3 | | Root `release:version` extended. The test: 1 passed; `pnpm --filter @mcthaydt/release test:unit` 8 files, 38 passed, 4 skipped (the built-package cases, `AF_CHECK_DIST` only, as on `main`). |

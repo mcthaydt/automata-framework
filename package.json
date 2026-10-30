@@ -11,7 +11,7 @@
     "build": "turbo run build --filter='./packages/*' --filter=./tooling/check-boundaries",
     "changeset": "changeset",
     "docs:stack": "node tooling/versions/src/write-stack.ts",
-    "release:version": "changeset version && node tooling/release/src/sync-versions.ts",
+    "release:version": "changeset version && node tooling/release/src/sync-versions.ts && pnpm build && pnpm cheatsheet && pnpm agent-skills --write",
     "release": "pnpm build && changeset publish",
     "lint": "biome check .",
     "format": "biome check --write .",
