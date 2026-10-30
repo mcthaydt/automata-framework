@@ -4,7 +4,7 @@ import {
   frameMessage,
   MAX_CODE_CHARS,
   MAX_FAILURE_CHARS,
-  parentMessage,
+  runMessage,
 } from './playground-protocol.ts'
 
 const COMMIT = 'a'.repeat(40)
@@ -32,9 +32,9 @@ describe('the playground protocol', () => {
 
   it('parses a run, with and without a determinism request', () => {
     const run = { v: 1, type: 'run', runId: 1, code: 'export default 1' }
-    expect(parentMessage.parse(run)).toEqual(run)
+    expect(runMessage.parse(run)).toEqual(run)
     const checked = { ...run, determinism: { ticks: 120, replay: '/playground/goldens/shapes-rects.replay' } }
-    expect(parentMessage.parse(checked)).toEqual(checked)
+    expect(runMessage.parse(checked)).toEqual(checked)
   })
 
   it('rejects anything else', () => {
@@ -55,10 +55,10 @@ describe('the playground protocol', () => {
     for (const message of bad)
       expect(frameMessage.safeParse(message).success, JSON.stringify(message)).toBe(false)
     expect(
-      parentMessage.safeParse({ v: 1, type: 'run', runId: 1, code: 'x'.repeat(MAX_CODE_CHARS + 1) }).success,
+      runMessage.safeParse({ v: 1, type: 'run', runId: 1, code: 'x'.repeat(MAX_CODE_CHARS + 1) }).success,
     ).toBe(false)
     expect(
-      parentMessage.safeParse({
+      runMessage.safeParse({
         v: 1,
         type: 'run',
         runId: 1,

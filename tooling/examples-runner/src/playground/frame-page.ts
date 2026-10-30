@@ -1,3 +1,4 @@
+import type { HostSettings } from '../header.ts'
 import { escapeHtml, PAGE_STYLE, pendingPage } from '../page-template.ts'
 import { framePolicy } from './frame-policy.ts'
 
@@ -12,11 +13,19 @@ export interface PlaygroundRuntime {
 /**
  * The page a playground frame loads for one example (website playground spec §5.3), served from `siteOrigin`. Its
  * one inline script is the import map that points the examples' two bare imports at the runtime; the policy carries
- * that map's hash. The frame script imports no-eval first, then waits for its parent's `run`. A pending example gets
- * the runner's pending page, which runs nothing.
+ * that map's hash. The frame script imports no-eval first, then waits for its parent's `run`. The body says which
+ * file the example is (stack frames name it through the compile step's sourceURL) and its `Host:` settings, as data
+ * attributes the frame parses. A pending example gets the runner's pending page, which runs nothing.
  */
 export function playgroundFramePage(
-  entry: { readonly id: string; readonly title: string; readonly pending?: string | undefined },
+  entry: {
+    readonly id: string
+    readonly title: string
+    /** From the examples folder: `<module>/<module>-<name>.ts`. */
+    readonly path: string
+    readonly host?: HostSettings | undefined
+    readonly pending?: string | undefined
+  },
   runtime: PlaygroundRuntime,
   siteOrigin: string,
 ): string {
@@ -25,6 +34,7 @@ export function playgroundFramePage(
   const styles = runtime.styles
     .map((href) => `    <link rel="stylesheet" href="${escapeHtml(href)}" crossorigin="anonymous" />\n`)
     .join('')
+  const host = entry.host === undefined ? '' : ` data-host="${escapeHtml(JSON.stringify(entry.host))}"`
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -37,7 +47,7 @@ export function playgroundFramePage(
     </style>
     <script type="importmap">${importMap}</script>
 ${styles}  </head>
-  <body>
+  <body data-example="${escapeHtml(`examples/${entry.path}`)}"${host}>
     <main id="game"></main>
     <script type="module" src="${escapeHtml(runtime.frame)}"></script>
   </body>

@@ -1165,6 +1165,7 @@ interface RuntimeSeams {
     readonly createAudioContext?: () => AudioContextLike;
     readonly haptics?: Haptics;
     readonly deviceStorage?: DeviceStorage;
+    readonly onFailure?: (cause: unknown) => void;
 }
 ```
 

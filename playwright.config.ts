@@ -9,6 +9,8 @@ import {
   demoHostOrigin,
   demoHostPort,
   examplesPort,
+  playgroundFrameOrigin,
+  playgroundFramePort,
   playgroundOrigin,
   playgroundPort,
   runnerFixturesPort,
@@ -97,6 +99,14 @@ const journeys = defineConfig({
     ...(['chromium', 'webkit', 'firefox'] as const).map((browserName) => ({
       name: `playground-${browserName}`,
       testDir: 'tooling/examples-runner/playground/e2e',
+      testMatch: 'feasibility.e2e.ts',
+      use: { browserName },
+    })),
+    // The playground frame (WEB.PLAY.2): the runtime build runs an example its parent sends, in every engine.
+    ...(['chromium', 'webkit', 'firefox'] as const).map((browserName) => ({
+      name: `playground-frame-${browserName}`,
+      testDir: 'tooling/examples-runner/playground/e2e',
+      testMatch: 'frame.e2e.ts',
       use: { browserName },
     })),
   ],
@@ -172,6 +182,13 @@ const journeys = defineConfig({
       command: 'pnpm --filter @mcthaydt/examples-runner e2e:playground',
       url: `${playgroundOrigin}/`,
       env: { AF_E2E_PLAYGROUND_PORT: String(playgroundPort) },
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      // The playground frame's server (WEB.PLAY.2): builds the runtime, then serves it with the frame pages.
+      command: 'pnpm --filter @mcthaydt/examples-runner e2e:playground-frame',
+      url: `${playgroundFrameOrigin}/`,
+      env: { AF_E2E_PLAYGROUND_FRAME_PORT: String(playgroundFramePort) },
       reuseExistingServer: process.env.CI === undefined,
     },
   ],

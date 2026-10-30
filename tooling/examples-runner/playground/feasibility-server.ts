@@ -1,10 +1,10 @@
-import { readFileSync } from 'node:fs'
-import { createServer, type ServerResponse } from 'node:http'
+import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
-import { dirname, extname, isAbsolute, join, normalize, relative } from 'node:path'
+import { dirname, join } from 'node:path'
 import { playgroundOrigin, playgroundPort } from '../host/ports.ts'
 import { framePolicy } from '../src/playground/frame-policy.ts'
 import { playgroundHeaders } from '../src/playground/playground-headers.ts'
+import { fileUnder, sendFile } from './static-files.ts'
 
 // The site in miniature for WEB.PLAY.1 (website playground spec §17): a parent page on the site's origin, the frame
 // page it frames in `sandbox="allow-scripts"`, and modules under /playground/ with the §11.3 headers. /bare/ serves
@@ -39,13 +39,6 @@ const FRAME_PAGE = `<!doctype html>
 </html>
 `
 
-const TYPES: Record<string, string> = {
-  '.js': 'text/javascript',
-  '.html': 'text/html',
-  '.txt': 'text/plain',
-  '.svg': 'image/svg+xml',
-}
-
 interface LoggedRequest {
   readonly path: string
   readonly search: string
@@ -53,27 +46,6 @@ interface LoggedRequest {
   readonly origin: string | null
 }
 const requests: LoggedRequest[] = []
-
-/** The file under `root` that `relative` names, or undefined when it climbs out of it. */
-function fileUnder(root: string, relativePath: string): string | undefined {
-  const file = normalize(join(root, relativePath))
-  const inside = relative(root, file)
-  return inside === '' || inside.startsWith('..') || isAbsolute(inside) ? undefined : file
-}
-
-function sendFile(response: ServerResponse, file: string | undefined, headers: Record<string, string>): void {
-  let body: Buffer
-  try {
-    if (file === undefined) throw new Error('outside the root')
-    body = readFileSync(file)
-  } catch {
-    response.writeHead(404).end()
-    return
-  }
-  response
-    .writeHead(200, { 'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream', ...headers })
-    .end(body)
-}
 
 /** Where a module path under /playground/runtime/ or /bare/ lives: zod's package, or this proof's scripts. */
 function moduleFile(rest: string): string | undefined {

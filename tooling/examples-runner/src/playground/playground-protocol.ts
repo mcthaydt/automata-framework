@@ -79,8 +79,7 @@ export const frameMessage = z.discriminatedUnion('type', [
 ])
 export type FrameMessage = z.infer<typeof frameMessage>
 
-/** What a parent sends its frame. */
-export const parentMessage = runMessage
+/** What a parent sends its frame: a run is the only message. */
 export type RunMessage = z.infer<typeof runMessage>
 
 /**

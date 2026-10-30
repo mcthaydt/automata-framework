@@ -9,7 +9,7 @@ const RUNTIME = {
   styles: ['/playground/runtime/automata-CBKxHYFl.css'],
 }
 const SITE = 'https://automata.example'
-const ENTRY = { id: 'shapes-rects', title: 'Rectangles <moving>' }
+const ENTRY = { id: 'shapes-rects', title: 'Rectangles <moving>', path: 'shapes/shapes-rects.ts' }
 
 const between = (html: string, start: string, end: string): string => {
   const from = html.indexOf(start) + start.length
@@ -34,6 +34,19 @@ describe('playgroundFramePage', () => {
     expect(html).toContain(`<link rel="stylesheet" href="${RUNTIME.styles[0]}" crossorigin="anonymous" />`)
     expect(html).toContain('<main id="game"></main>')
     expect(html).toContain('<title>shapes-rects: Rectangles &lt;moving&gt; (preview)</title>')
+  })
+
+  it("tells the frame the example's file, for stack lines, and its Host: settings, as text it parses", () => {
+    const html = playgroundFramePage(
+      { ...ENTRY, host: { grant: ['saves'], saves: { best: '"12"' } } },
+      RUNTIME,
+      SITE,
+    )
+    const body = between(html, '<body', '>')
+    expect(body).toContain('data-example="examples/shapes/shapes-rects.ts"')
+    const host = between(body, 'data-host="', '"').replaceAll('&quot;', '"').replaceAll('&amp;', '&')
+    expect(JSON.parse(host)).toEqual({ grant: ['saves'], saves: { best: '"12"' } })
+    expect(between(playgroundFramePage(ENTRY, RUNTIME, SITE), '<body', '>')).not.toContain('data-host')
   })
 
   it('has no inline script but the import map', () => {
