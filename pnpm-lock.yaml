@@ -38,6 +38,22 @@ importers:
         specifier: 2.9.1
         version: 2.9.1
 
+  packages/net:
+    dependencies:
+      '@mcthaydt/automata-sim':
+        specifier: file:../../.core/packs/automata-sim
+        version: file:.core/packs/automata-sim
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.5(@types/node@24.19.1)(yaml@2.9.1))
+
   packages/physics:
     dependencies:
       '@dimforge/rapier2d-deterministic-compat':
