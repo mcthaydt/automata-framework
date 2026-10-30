@@ -41,6 +41,8 @@ Later the same day, in the session's chat:
 - **"Yes, fan out"**: one cloud session per lane (editors, 3D, Plus, website), with this session as the coordinator (lane map below).
 - **"Yes, affected-only on PRs"**: a pull request's parity job runs only the suites `turbo --affected` selects (CI.PAR, PR #219); `main` and the nightly run every suite.
 - **"That's too much effort, just use the Mac"** (on a second runner on a Windows PC under WSL): everything stays on the Mac. There is no `af-pc`, and `AF_LINUX_RUNNER` stays unset.
+- **S7-Q1, answered in the session's question card:** "AF-owned shim". `@pixi/3d` 0.1.0-beta.2 throws on its first draw under `render-pixi/no-eval`, so render-pixi3d ships its own `no-eval` entry with the spike's shim, a test pins pixi's parser count and order, the bug goes to the Pixi 3D beta, and the shim leaves when a fixed release lands (M9.10). M3.4 onward is unblocked.
+- **RukenApp #396, the same card:** "You merge it": a one-off merge with Ruken checks red that the licence change does not touch. Merged as RukenApp `e376a2d`; PRODUCT.4r's repack follows.
 
 ### Agent defaults, open to the Owner's veto
 
@@ -86,7 +88,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 | Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1i625Fbg9c9tDyjhSW` | #206 ED2D.4c3a, #207 ED3D.5b, #212 ED2D.4c2b, #214 ED2D.5a, #225 ED3D.8a; building ED3D.7b, ED2D.6a, ED3D.13a. Proposed for 02 from EDS.0: an EDS.P row, EDS.5 split into 5a and 5b, GAME-3D.1k waiting on EDS.5a and EDS.9c. |
 | Plus (automata-plus: 5f, 5h, PRODUCT.6/8, M3.3/3.8/3.9, M4.11, M5.8, M6, M7, M9.3-6) | `session_01QYLU1iZb1dcqnVEMZvtxng` | AF #197 PRODUCT.5g; automata-plus PRs from #2 (5f, 1b1, M7.2, 8a, M7.3a, M3.8a); building M7.4a and M7.4b. M5.8, M6.1/6.2, M3.3 and PRODUCT.6 wait on DX.2a (#227). |
 | Website (WEB.PLAY, WEB.S1, DX.9w/10/11w/12, QB.4, M10) | `session_01QYLU1i5PsRuCfTDK2DHVXP` | Website #14 (WEB.PLAY.0 spec; red only on load-timing gates on the shared Mac), #15 (WEB.S1, ready); next WEB.PLAY.4. |
-| RukenApp | (coordinator) | #396: MIT for the four SDK packages; red only on unrelated Ruken tests that time out under the Mac's load, one rerun spent; the Owner's merge. |
+| RukenApp | (coordinator) | #396 merged (`e376a2d`, the Owner's one-off "You merge it"). PRODUCT.4r's repack of `vendor/ruken` from it is building. |
 
 ## Critical paths
 
@@ -98,7 +100,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 
 1. Merge CI.PAR (#219) as soon as its checks are green, so every later pull request runs only the parity suites it affects. Then merge the coordinator's ready PRs as each goes green (list above), and finish #210 (PRODUCT.L3a) and #227 (DX.2a): review, mark ready, merge.
 2. When #227 (DX.2a) merges: change `AGENTS.md`'s "a private one (render-pixi, game, the umbrella, cli)" to the packages still private (cli and the editors), and tell the Plus lane that M5.8, M6.1/6.2, M3.3 and PRODUCT.6 are unblocked.
-3. When RukenApp #396 merges: repack `vendor/ruken` from its merge commit (README recipe, as QB.1f), regenerate `docs/stack.md`, and tell the website lane (WEB.PLAY.3's licence check).
+3. PRODUCT.4r: the repack of `vendor/ruken` from RukenApp `e376a2d` (MIT) is building; when it merges, regenerate `docs/stack.md` if it did not, and tell the website lane (WEB.PLAY.3's licence check).
 4. Never merge the "Version packages" PR before PRODUCT.5g (#197) lands, or physics would publish from AF (M2.4p); its publish also waits on the Owner's approval in the release environment.
 5. Next coordinator rows with no prerequisite: PRODUCT.1b2, DX.6a, DX.7b/c, CI.N1a, CI.N3, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu, ASSET.0.
 
@@ -109,7 +111,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 - **Site hosting and DNS** for `automata.ruken.com` with a deploy credential (DX.12, QB.4a to QB.4c), and function hosting for the store webhook (QB.5a).
 - **Discord:** the server and the plugin's bot with admin rights, and a working plugin connection (DX.13, DX.10d).
 - **itch.io:** the account and the `BUTLER_API_KEY` secret (PUB.5; M8.5b's smoke).
-- **The Ruken licence for the bundled code** (PRODUCT.4r, R-16): decided ("Yes, MIT it"); RukenApp PR #396 needs the Owner's merge, because its CI is red only on Ruken tests the change does not touch.
+- **The Ruken licence for the bundled code** (PRODUCT.4r, R-16): resolved. MIT, merged in RukenApp `e376a2d`; the repack follows.
 - **D-7 pricing and model, and the merchant of record** (QB-D2: Lemon Squeezy or Paddle) for M10.0, QB.5a and M10.7. Until then they are placeholders and money stays mocked.
 - **A GitHub organization for Plus buyers** (QB-D4): collaborators on a personal account get write access. Needed before PRODUCT.5h and QB.5a.
 - **The frame-budget probe's exclusivity** (CI.N1a): may the probe pause the sibling runners on the Mac for about two minutes, or should it run on a dedicated machine? And free disk space on the Mac runner if a cleanup step is not enough (CI.N1).
