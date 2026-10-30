@@ -345,6 +345,12 @@ type EntityDef2D = EntityDef & {
 };
 ```
 
+### `entityDefOf` (function)
+
+```ts
+function entityDefOf(project: Project, id: string | undefined): EntityDef2D | undefined;
+```
+
 ### `EntityDraw` (interface)
 
 ```ts

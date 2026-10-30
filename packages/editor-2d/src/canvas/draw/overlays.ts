@@ -1,4 +1,4 @@
-import { type Bounds, entityBounds } from '../../model/commands/entity-geometry'
+import { type Bounds, entityBounds, entityDefOf } from '../../model/commands/entity-geometry'
 import { layerCells } from '../../model/level-layers'
 import type { LayerDef, Level, Project, Size } from '../../model/project-types'
 import { brushCells, type Point } from '../../tiles/footprint'
@@ -16,9 +16,9 @@ function linesTo(edge: number, step: number): number[] {
   return lines
 }
 
-/** The active layer's grid: its cell size, or an objects layer's snap (none when it places freely). */
+/** The active layer's grid: what it snaps to, so none for a layer that places freely. */
 export function gridLines(def: LayerDef, size: Size): GridLines | undefined {
-  const step = def.kind === 'objects' ? def.snap : def.grid
+  const step = def.kind === 'objects' ? def.snap : def.kind === 'entities' && !def.snap ? 0 : def.grid
   if (step <= 0) return undefined
   return { step, xs: linesTo(size.w, step), ys: linesTo(size.h, step) }
 }
@@ -81,7 +81,7 @@ export function selectionBoxes(
     for (const layer of level.layers) {
       if (layer.kind !== 'entities' || view.hidden.has(layer.def)) continue
       const item = layer.items.find((candidate) => candidate.id === id)
-      const def = project.defs.entities.find((candidate) => candidate.id === item?.def)
+      const def = entityDefOf(project, item?.def)
       if (item !== undefined && def !== undefined) return [{ id, ...entityBounds(def, item) }]
     }
     return []

@@ -1,4 +1,4 @@
-import { entityBounds } from '../../model/commands/entity-geometry'
+import { entityBounds, entityDefOf } from '../../model/commands/entity-geometry'
 import type {
   Background,
   EntitiesLayerInstance,
@@ -43,7 +43,7 @@ function entitiesOf(
   images: ReadonlySet<string>,
 ): EntityDraw[] {
   return layer.items.flatMap((item) => {
-    const def = project.defs.entities.find((candidate) => candidate.id === item.def)
+    const def = entityDefOf(project, item.def)
     if (def === undefined) return []
     const box = entityBounds(def, item)
     const tile =

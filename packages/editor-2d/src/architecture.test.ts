@@ -95,6 +95,25 @@ describe('checkArchitecture: the pure core (model and tiles)', () => {
     expect(checkArchitecture(renderer)).toEqual([])
   })
 
+  it('refuses a core file that imports code from outside the core, but lets it import types from there', () => {
+    const renderer = { 'canvas/level-view.ts': 'export const view = 1\nexport type View = number' }
+    const value = tree({
+      ...renderer,
+      'canvas/draw/a.ts': "import { view } from '../level-view'\nexport const a = view",
+    })
+    expect(rules(checkArchitecture(value))).toEqual(['pure-imports'])
+    const fromApp = tree({
+      'app/level-editor.ts': 'export const make = () => 1',
+      'model/a.ts': "import { make } from '../app/level-editor'\nexport const a = make",
+    })
+    expect(rules(checkArchitecture(fromApp))).toEqual(['pure-imports'])
+    const typeOnly = tree({
+      ...renderer,
+      'canvas/draw/a.ts': "import type { View } from '../level-view'\nexport const a: View = 1",
+    })
+    expect(checkArchitecture(typeOnly)).toEqual([])
+  })
+
   it('is not applied outside model and tiles', () => {
     const files = tree({
       'app/a.ts': "import x from 'svelte'\nexport const t = Date.now()\nexport default x",

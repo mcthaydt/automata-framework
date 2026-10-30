@@ -145,16 +145,63 @@ function autoChunks(
     })
 }
 
+/** A memo per layer definition id, made on first use. */
+function perLayer<Memo>(make: () => Memo): (layer: string) => Memo {
+  const memos = new Map<string, Memo>()
+  return (layer) => {
+    let memo = memos.get(layer)
+    if (memo === undefined) {
+      memo = make()
+      memos.set(layer, memo)
+    }
+    return memo
+  }
+}
+
+const sameBounds = (a: Bounds, b: Bounds): boolean => a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h
+
+/** Two tiles that draw the same: place, tile, flips and source. */
+function sameTile(a: TileDraw, b: TileDraw): boolean {
+  if (!sameBounds(a, b) || a.tile !== b.tile || a.flipX !== b.flipX || a.flipY !== b.flipY) return false
+  if (a.kind === 'image' && b.kind === 'image') return a.image === b.image && sameBounds(a.frame, b.frame)
+  if (a.kind === 'placeholder' && b.kind === 'placeholder')
+    return a.reason === b.reason && a.color === b.color && a.label === b.label
+  return false
+}
+
+/**
+ * `next` with each chunk replaced by the previous chunk at the same place when it draws exactly the same tiles, so an
+ * IntGrid edit leaves the auto chunks beyond the rules' reach as the very objects the renderer already has.
+ */
+function reuseChunks(previous: readonly TileChunk[], next: readonly TileChunk[]): readonly TileChunk[] {
+  const byPlace = new Map(previous.map((chunk) => [`${chunk.cx},${chunk.cy}`, chunk]))
+  return next.map((chunk) => {
+    const old = byPlace.get(`${chunk.cx},${chunk.cy}`)
+    const same =
+      old !== undefined &&
+      sameBounds(old.bounds, chunk.bounds) &&
+      old.tiles.length === chunk.tiles.length &&
+      old.tiles.every((tile, i) => sameTile(tile, chunk.tiles[i] as TileDraw))
+    return same ? old : chunk
+  })
+}
+
 /** One drawer per canvas: it keeps the chunks it drew, so each canvas compares against its own last frame. */
 export function createCellChunks(): CellChunks {
-  const tileMemo = new WeakMap<object, Drawn<TileChunk, TileInputs>>()
-  const intMemo = new WeakMap<object, Drawn<IntChunk, IntInputs>>()
-  const autoMemo = new WeakMap<AutoLayerInstance, Drawn<readonly TileChunk[], AutoInputs>>()
+  // Kept per layer definition, so two layers never share a chunk object (a renderer may key its sprites by chunk),
+  // even when they hold the same grid chunk, as a duplicated level does.
+  const tileMemo = perLayer<WeakMap<object, Drawn<TileChunk, TileInputs>>>(() => new WeakMap())
+  const intMemo = perLayer<WeakMap<object, Drawn<IntChunk, IntInputs>>>(() => new WeakMap())
+  const autoMemo = perLayer<WeakMap<AutoLayerInstance, Drawn<readonly TileChunk[], AutoInputs>>>(
+    () => new WeakMap(),
+  )
+  /** Each auto layer's last chunks, whose objects a new evaluation reuses where a chunk's tiles came out the same. */
+  const lastAuto = new Map<string, readonly TileChunk[]>()
 
   return {
     tiles(def, cells, tileset, images) {
       const inputs = { ...layoutOf(def.grid, cells), tileset, loaded: isLoaded(tileset, images) }
-      return chunksOf(cells, tileMemo, inputs, sameTileInputs, ({ cx, cy, cells: cellsOf }) => ({
+      return chunksOf(cells, tileMemo(def.id), inputs, sameTileInputs, ({ cx, cy, cells: cellsOf }) => ({
         cx,
         cy,
         bounds: chunkBounds(cx, cy, cells.cols, cells.rows, def.grid),
@@ -168,7 +215,7 @@ export function createCellChunks(): CellChunks {
 
     intgrid(def, cells) {
       const inputs = { ...layoutOf(def.grid, cells), values: def.values }
-      return chunksOf(cells, intMemo, inputs, sameIntInputs, ({ cx, cy, cells: cellsOf }) => ({
+      return chunksOf(cells, intMemo(def.id), inputs, sameIntInputs, ({ cx, cy, cells: cellsOf }) => ({
         cx,
         cy,
         bounds: chunkBounds(cx, cy, cells.cols, cells.rows, def.grid),
@@ -185,13 +232,16 @@ export function createCellChunks(): CellChunks {
 
     auto(def, instance, source, tileset, images) {
       const inputs = { def, source, tileset, loaded: isLoaded(tileset, images) }
-      const kept = autoMemo.get(instance)
+      const memo = autoMemo(def.id)
+      const kept = memo.get(instance)
       if (kept !== undefined && sameAutoInputs(kept.with, inputs)) return kept.chunk
       const { cols, rows } = instance.overrides
       const derived = autoTiles(source ?? Grid.empty(cols, rows), compileRules(def.groups), instance.seed)
       const result = applyOverrides(derived, instance.overrides)
-      const chunks = autoChunks(result, def.grid, (tile, at) => tileDraw(tileset, images, tile, at))
-      autoMemo.set(instance, { with: inputs, chunk: chunks })
+      const drawn = autoChunks(result, def.grid, (tile, at) => tileDraw(tileset, images, tile, at))
+      const chunks = reuseChunks(lastAuto.get(def.id) ?? [], drawn)
+      lastAuto.set(def.id, chunks)
+      memo.set(instance, { with: inputs, chunk: chunks })
       return chunks
     },
   }

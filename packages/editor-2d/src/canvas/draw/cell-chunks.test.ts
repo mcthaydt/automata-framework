@@ -251,4 +251,55 @@ describe('cell chunks: auto', () => {
       reason: 'missing',
     })
   })
+
+  it('draws the auto layer again when its tileset or whether its image is loaded changes', () => {
+    const chunks = createCellChunks()
+    const source = hillGrid()
+    const layer = instance(Grid.empty(5, 4))
+    const first = chunks.auto(ground, layer, source, terrain, loaded)
+    const unloaded = chunks.auto(ground, layer, source, terrain, new Set())
+    expect(unloaded).not.toBe(first)
+    expect(unloaded[0]).not.toBe(first[0])
+    expect(unloaded[0]?.tiles[0]).toMatchObject({ kind: 'placeholder', reason: 'missing' })
+    const reloaded = chunks.auto(ground, layer, source, terrain, loaded)
+    expect(reloaded[0]?.tiles[0]).toMatchObject({ kind: 'image' })
+    const padded = chunks.auto(ground, layer, source, { ...terrain, padding: 1 }, loaded)
+    expect(padded).not.toBe(reloaded)
+    expect(padded[0]).not.toBe(reloaded[0])
+    expect(padded[0]?.tiles[0]).not.toEqual(reloaded[0]?.tiles[0])
+  })
+
+  it('keeps the auto chunks an IntGrid edit cannot reach, and redraws only the ones it can', () => {
+    const chunks = createCellChunks()
+    const source = caveGrid()
+    const layer = instance(Grid.empty(48, 32))
+    const before = chunks.auto(ground, layer, source, terrain, loaded)
+    // A cell in the top-left chunk, far from the bottom-right one (the rules reach two cells).
+    const after = chunks.auto(ground, layer, source.set(2, 2, 1), terrain, loaded)
+    const at = (list: readonly TileChunk[], cx: number, cy: number) =>
+      list.find((chunk) => chunk.cx === cx && chunk.cy === cy)
+    expect(at(after, 0, 0)).not.toBe(at(before, 0, 0))
+    expect(placed(at(after, 0, 0))).toContainEqual([32, 32, expect.any(Number)])
+    expect(at(after, 2, 1)).toBe(at(before, 2, 1))
+    expect(at(after, 1, 1)).toBe(at(before, 1, 1))
+  })
+})
+
+describe('cell chunks: one memo per layer', () => {
+  it('never hands one layer the chunk object it drew for another, even for a shared grid chunk', () => {
+    const chunks = createCellChunks()
+    const cells = Grid.empty(4, 4).set(1, 1, 1)
+    const other: TilesLayerDef = { ...decor, id: 'decor-2' }
+    const mine = chunks.tiles(decor, cells, terrain, loaded)[0]
+    const theirs = chunks.tiles(other, cells, terrain, loaded)[0]
+    expect(theirs).not.toBe(mine)
+    expect(theirs).toEqual(mine)
+    expect(chunks.tiles(decor, cells, terrain, loaded)[0]).toBe(mine)
+    expect(chunks.tiles(other, cells, terrain, loaded)[0]).toBe(theirs)
+    const values = Grid.empty(4, 4).set(1, 1, 1)
+    const walls: IntGridLayerDef = { ...collision, id: 'walls' }
+    const solid = chunks.intgrid(collision, values)[0]
+    expect(chunks.intgrid(walls, values)[0]).not.toBe(solid)
+    expect(chunks.intgrid(collision, values)[0]).toBe(solid)
+  })
 })

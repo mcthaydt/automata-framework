@@ -44,6 +44,13 @@ describe('overlays: the grid', () => {
     }))
     expect(overlays({ layer: 'props' }, snapped).grid).toEqual({ step: 32, xs: [0, 32, 64], ys: [0, 32, 48] })
   })
+  it('draws no grid for an entities layer that does not snap, as an objects layer that places freely', () => {
+    const free = withDefs(richProject(), (defs) => ({
+      ...defs,
+      layers: defs.layers.map((def) => (def.kind === 'entities' ? { ...def, snap: false } : def)),
+    }))
+    expect(overlays({ layer: 'entities' }, free).grid).toBeUndefined()
+  })
 })
 
 describe('overlays: the footprint', () => {

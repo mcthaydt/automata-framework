@@ -3,7 +3,7 @@ import { platformerTemplate } from '../../profiles/level-project/templates/platf
 import { entity, withEntities } from '../../testing/project-edit'
 import { counterIds } from '../ids'
 import type { EntityDef2D, EntityInstance, Project } from '../project-types'
-import { entityAt, entityBounds } from './entity-geometry'
+import { entityAt, entityBounds, entityDefOf } from './entity-geometry'
 
 const project = (): Project => platformerTemplate.create(counterIds())
 const def = (id: string): EntityDef2D => {
@@ -12,6 +12,14 @@ const def = (id: string): EntityDef2D => {
   return found
 }
 const ENTITIES = { level: 'level-1', layer: 'entities' }
+
+describe('entityDefOf', () => {
+  it('finds a definition by id, and nothing for an id the project lacks', () => {
+    expect(entityDefOf(project(), 'slime')?.id).toBe('slime')
+    expect(entityDefOf(project(), 'gone')).toBeUndefined()
+    expect(entityDefOf(project(), undefined)).toBeUndefined()
+  })
+})
 
 describe('entityBounds', () => {
   it('puts a rect with a bottom-centre pivot above and to both sides of its position', () => {

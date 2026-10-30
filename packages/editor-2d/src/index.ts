@@ -49,7 +49,7 @@ export {
   resizeEntity,
   setEntityField,
 } from './model/commands/entity-edits'
-export { type Bounds, entityAt, entityBounds } from './model/commands/entity-geometry'
+export { type Bounds, entityAt, entityBounds, entityDefOf } from './model/commands/entity-geometry'
 export { findLayer, type LayerTarget, updateLayer } from './model/commands/layer-target'
 export { deleteObject, flipObject, moveObject, placeObject } from './model/commands/object-edits'
 export { CHUNK, Grid, type GridChunk, type GridEditor } from './model/grid'

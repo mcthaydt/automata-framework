@@ -287,6 +287,10 @@ export function checkArchitecture(files: ReadonlyMap<string, string>): Violation
         continue
       }
       if (!typeOnly) edges.push(target)
+      // The core runs with no host, so the code it runs has to be core too; a type from elsewhere is erased.
+      if (pure && !typeOnly && !isPure(target)) {
+        report('pure-imports', `${specifier}: the core imports code only from the core`)
+      }
       const profile = profileOf(target)
       if (profile === undefined) continue
       const own = profileOf(file)
