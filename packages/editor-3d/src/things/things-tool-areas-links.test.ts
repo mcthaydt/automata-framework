@@ -76,6 +76,8 @@ describe('placing a thing that bounds an area', () => {
     const { editor, tool, at } = setup()
     tool.pick('zone', FOLLOW)
     tool.dragStart(at(6.5, 3.5), at(6, 3))
+    tool.drag(at(5, 0.5))
+    expect(tool.view.place?.area).toEqual({ x0: 5, z0: 0.5, x1: 6.5, z1: 3.5 })
     tool.dragEnd(at(5, 0.5), false)
     expect(must(zonesOf(editor).at(-1)).area).toEqual({ x: [5, 6.5], z: [0.5, 3.5] })
   })
@@ -89,6 +91,23 @@ describe('placing a thing that bounds an area', () => {
     expect(tool.view.refusal).toBe('the area is at least 0.5 m along x')
     expect(editor.level).toBe(toy)
     expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('refuses a rectangle narrower than half a metre along z, with the sentence', () => {
+    const { editor, tool, at } = setup()
+    tool.pick('zone', FOLLOW)
+    tool.dragStart(at(5, 1), at(6, 1))
+    tool.dragEnd(at(6.5, 1.2), false)
+    expect(tool.view.refusal).toBe('the area is at least 0.5 m along z')
+    expect(editor.level).toBe(toy)
+  })
+
+  it("draws Last Light's follow camera when the palette gives no values", () => {
+    const { editor, tool, at } = setup()
+    expect(tool.pick('zone')).toBeUndefined()
+    tool.dragStart(at(5, 0.5), at(6, 3))
+    tool.dragEnd(at(6.5, 3.5), false)
+    expect(zonesOf(editor).at(-1)).toMatchObject({ id: 'zone1', distance: 14, follow: 1 })
   })
 
   it('adds nothing for a cancelled drag', () => {
@@ -240,6 +259,17 @@ describe('linking', () => {
     editor.view.set({ locked: [], hidden: ['things'] })
     expect(tool.startLink()).toBe('the node layer is hidden')
     expect(tool.view.linking).toBeUndefined()
+  })
+
+  it('ends when a drag starts, which moves the thing under it as before', () => {
+    const { editor, tool, at } = fromP()
+    tool.startLink()
+    tool.dragStart(at(2.5, 2.5), at(3, 2.5))
+    expect(tool.view.linking).toBeUndefined()
+    expect(tool.view.gesture).toBe('move')
+    tool.dragEnd(at(3, 2.5), false)
+    expect(edgesOf(editor)).toEqual([])
+    expect(editor.level.nav.nodes?.t).toEqual({ x: 3, z: 2.5 })
   })
 
   it('ends when its sub-layer goes off mid-link', () => {

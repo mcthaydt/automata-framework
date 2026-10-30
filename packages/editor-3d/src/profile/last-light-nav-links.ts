@@ -44,7 +44,9 @@ export const lastLightNavLinks: ThingLinks<Blockout> = {
     const edge: NavEdge = via === undefined ? [a, b] : [a, b, via]
     const problem =
       edgeDoorProblem(edge, blockout.boxes) ??
-      geometry.layers.flatMap((layer) => (layer.nav === undefined ? [] : [unclearEdge(layer.nav, edge)]))[0]
+      geometry.layers
+        .map((layer) => (layer.nav === undefined ? undefined : unclearEdge(layer.nav, edge)))
+        .find((sentence) => sentence !== undefined)
     if (problem !== undefined) throw new ThingAccessError(problem)
     return withEdges(blockout, [...edges, edge])
   },

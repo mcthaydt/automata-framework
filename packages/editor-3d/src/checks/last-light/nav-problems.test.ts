@@ -7,7 +7,7 @@ import { expand } from '../../format/expand'
 import { navWorld } from '../../geometry/nav'
 import { resolveMap } from '../../geometry/sectors'
 import { must, toyBlockout, toyDoor, toyOpening } from '../../testing/toy-blockout'
-import { NAV_MARGIN, navProblems, unclearEdge } from './nav-problems'
+import { navProblems, unclearEdge } from './nav-problems'
 
 // The toy's nodes are a (2, 2), ab:a (3.5, 2), ab:b (4.625, 2) and b (5.57, 1.45), and its edges join them in that
 // order, the one across the doorway through the door. Its spawn is (1, 1) and its one hotspot is `far`, at (6, 3).
@@ -313,7 +313,6 @@ describe('unclearEdge, the sentence an edge edit shares (ED3D.7c)', () => {
   }
   const level = walked(toyBlockout())
   it('says an edge through a wall is not clear by the margin with the doors open', () => {
-    expect(NAV_MARGIN).toBe(0.3)
     expect(unclearEdge(worldOf(level), ['p', 'r'])).toBe('edge p–r is not clear by 0.3 m with the doors open')
   })
   it('says nothing of a clear edge, one through the open door, or one to a node that is not there', () => {

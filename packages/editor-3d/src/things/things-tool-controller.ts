@@ -22,15 +22,14 @@ import type { EntityKit } from '../entities/things'
 import type { Point } from '../format/sector.schema'
 import type { Edit } from '../model/edit'
 import type { EditSession, LevelEditor } from '../model/level-editor'
-import { addLink, NO_LINKS, removeLink } from '../model/link-edits'
 import { parseSelection } from '../model/selection-ref'
 import { addThing, moveThing, removeThing, setThingField } from '../model/thing-edits'
 import { thingLayer } from '../model/view-store'
-import type { ThingLink } from '../profile/thing-links'
 import { PICK_RADIUS, type PickOptions } from '../view/plan/plan-pick'
 import { gridRounded } from '../view/plan/plan-snap'
 import { planViewport, toWorld } from '../view/plan/plan-viewport'
 import { isThingLayerOff, pickThing, type ThingHit } from '../view/plan/thing-pick'
+import { createLinkMode, type Linking, type LinkPlace } from './link-mode'
 
 /** A definition as the palette shows it, with its sub-layer and whether that is hidden or locked. */
 export interface PaletteEntry {
@@ -65,10 +64,6 @@ export type ThingPlace = Point & { readonly id: string; readonly area?: Rectangl
     | { readonly action: 'none'; readonly reason: string }
   )
 
-/** What a tap on a thing would do while linking: join it to the one the link starts from, or not, and why. */
-export type LinkPlace = ThingLink &
-  ({ readonly action: 'add' } | { readonly action: 'none'; readonly reason: string })
-
 export interface ThingsToolView {
   readonly palette: readonly PaletteEntry[]
   /** The definition a tap on nothing places; nothing when none is picked. */
@@ -83,7 +78,7 @@ export interface ThingsToolView {
    */
   readonly gesture: 'idle' | 'move' | 'area'
   /** The thing a link starts from, and what it will pass through, between `startLink` and the tap that ends it. */
-  readonly linking: { readonly from: string; readonly via: string | undefined } | undefined
+  readonly linking: Linking | undefined
   /** While linking, what a tap on the thing under the pointer would do. */
   readonly link: LinkPlace | undefined
   /** The sentence the last action was refused with, until the next action. */
@@ -181,7 +176,6 @@ export function createThingsTool<D>(
   let refusal: string | undefined
   let move: Move<D> | undefined
   let drawing: Drawing | undefined
-  let linking: ThingsToolView['linking']
 
   /** The things of the live level, read once for each level the editor holds. */
   let read: { readonly level: D; readonly kit: EntityKit } | undefined
@@ -274,21 +268,7 @@ export function createThingsTool<D>(
     return trial.ok ? undefined : trial.reason
   }
 
-  /** The sentence a link action is refused with before it is tried: no links, or their sub-layer is off. */
-  const linkProblem = (): string | undefined => {
-    const { links } = editor.profile
-    return links === undefined ? NO_LINKS : layerProblem(links.def)
-  }
-
-  /** While linking, what a tap at `at` would do: only over a thing of the links' definition. */
-  const linkAt = (at: PlanPointer): LinkPlace | undefined => {
-    const hit = pickThing(kit(), currentViewport(), at, pickOptions(at))
-    if (linking === undefined || hit === undefined || hit.def !== editor.profile.links?.def) return undefined
-    const link: ThingLink = { a: linking.from, b: hit.id, via: linking.via }
-    const problem = trialProblem(addLink<D>(link))
-    const named = linking.via === undefined ? { a: link.a, b: link.b } : link
-    return problem === undefined ? { ...named, action: 'add' } : { ...named, action: 'none', reason: problem }
-  }
+  const links = createLinkMode(editor, layerProblem)
 
   let view: ThingsToolView = {
     palette: paletteOf(),
@@ -314,7 +294,8 @@ export function createThingsTool<D>(
       refusal = off
     }
     // Linking stops when the links' sub-layer goes off.
-    if (linking !== undefined && linkProblem() !== undefined) linking = undefined
+    links.settle()
+    const { linking } = links
     const palette = paletteOf()
     // A definition the level no longer has cannot be placed.
     if (active !== undefined && !palette.some((entry) => entry.def === active?.def)) active = undefined
@@ -326,7 +307,10 @@ export function createThingsTool<D>(
         : active === undefined || pointer === undefined || hover !== undefined || linking !== undefined
           ? undefined
           : placeAt(active, pointer)
-    const link = pointer === undefined ? undefined : linkAt(pointer)
+    const link =
+      pointer === undefined
+        ? undefined
+        : links.preview(pickThing(kit(), currentViewport(), pointer, pickOptions(pointer)))
     const gesture = move !== undefined ? 'move' : drawing !== undefined ? 'area' : 'idle'
     const next: ThingsToolView = {
       palette,
@@ -446,14 +430,9 @@ export function createThingsTool<D>(
       pointer = at
       refusal = undefined
       const hit = pickThing(kit(), currentViewport(), at, pickOptions(at))
-      if (linking !== undefined) {
-        // A tap on another thing of the links joins the two; anywhere else it stops linking and does nothing more.
-        if (hit !== undefined && hit.def === editor.profile.links?.def) {
-          const result = editor.run(addLink({ a: linking.from, b: hit.id, via: linking.via }))
-          if (result.ok) linking = undefined
-          else refusal = result.reason
-        } else linking = undefined
-      } else if (hit !== undefined) {
+      // While linking, a tap joins or stops linking and does nothing more.
+      if (links.linking !== undefined) refusal = links.tap(hit)
+      else if (hit !== undefined) {
         if (at.additive === true) editor.selection.toggle(hit.selection)
         else editor.selection.set([hit.selection])
       } else if (active !== undefined) {
@@ -468,6 +447,7 @@ export function createThingsTool<D>(
     dragStart(press, at) {
       if (move !== undefined) endMove(move, false)
       drawing = undefined
+      links.stop()
       refusal = undefined
       const hit = pickThing(kit(), currentViewport(), press, pickOptions(press))
       const thing = kit().things.find((each) => each.def === hit?.def && each.id === hit?.id)
@@ -536,25 +516,14 @@ export function createThingsTool<D>(
       return answer(result.ok ? undefined : result.reason)
     },
     startLink(via) {
-      const { links } = editor.profile
-      const problem = linkProblem()
-      if (links === undefined || problem !== undefined) return answer(problem)
-      const things = selectedThings()
-      const [from] = things
-      if (things.length !== 1 || from === undefined || from.def !== links.def)
-        return answer(`select one ${links.def} first`)
-      linking = { from: from.id, via }
-      return answer(undefined)
+      return answer(links.start(selectedThings(), via))
     },
     cancelLink() {
-      linking = undefined
+      links.stop()
       publish()
     },
     unlink(a, b) {
-      const problem = linkProblem()
-      if (problem !== undefined) return answer(problem)
-      const result = editor.run(removeLink({ a, b }))
-      return answer(result.ok ? undefined : result.reason)
+      return answer(links.unlink(a, b))
     },
     resize(next) {
       size = next

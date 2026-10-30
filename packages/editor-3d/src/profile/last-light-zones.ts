@@ -8,8 +8,7 @@
 // have that the old ones did not, so the first zone stays the rest of the map, a later one keeps an area, and a removal
 // cannot make a later zone the first. The size rule is the shipped editor's (editor/src/server/level-edits.ts `areaOf`).
 import type { FieldDef, FieldValues } from '@mcthaydt/automata-editor-kit/fields'
-import type { Problem } from '../checks/check'
-import { zoneProblems } from '../checks/last-light/ids'
+import { type ZoneFault, zoneFaults } from '../checks/last-light/ids'
 import type { ThingDef } from '../entities/thing-def.schema'
 import type { RawEntry, Thing } from '../entities/things'
 import type { Area, Blockout, ZoneSpec } from '../format/blockout.schema'
@@ -29,8 +28,10 @@ export const zoneDefinition: ThingDef = {
   sit: 'free',
   area: SIDES,
   fields: [
-    { id: 'distance', type: 'float', min: 0, required: true },
-    { id: 'follow', type: 'float', min: 0, max: 1 },
+    // Last Light's follow camera by default (FOLLOW_DISTANCE, `follow: 1`), and the distances `cameraOf` allows. The
+    // range of `follow` is the `ids` check's to say, so the field has none and the sentence is said once.
+    { id: 'distance', type: 'float', min: 6, max: 30, default: 14 },
+    { id: 'follow', type: 'float', default: 1 },
     ...SIDES.map(side),
   ],
 }
@@ -116,14 +117,17 @@ function zoneOf(thing: Thing, old: ZoneSpec | undefined): ZoneSpec {
   return merged as unknown as ZoneSpec
 }
 
-/** A zone problem as what it says and where: a level with no zone and one whose first zone has an area say the same. */
-const said = (problem: Problem): string => `${problem.message}@${problem.locator?.selection ?? ''}`
+/**
+ * A zone fault as the rule and the zone: a level with no zone and one whose first zone has an area break the same rule
+ * differently, and a follow of 1.5 set to 2 breaks the same rule no worse.
+ */
+const broken = (fault: ZoneFault): string => `${fault.rule}@${fault.zone ?? ''}`
 
-/** The level with `zones`, unless that gives the zones a problem of the `ids` check they did not have. */
+/** The level with `zones`, unless that makes a zone break a rule of the `ids` check it did not break. */
 function withZones(blockout: Blockout, zones: readonly ZoneSpec[]): Blockout {
-  const before = new Set(zoneProblems(blockout.zones).map(said))
-  const worse = zoneProblems(zones).find((problem) => !before.has(said(problem)))
-  if (worse !== undefined) throw new ThingAccessError(worse.message)
+  const before = new Set(zoneFaults(blockout.zones).map(broken))
+  const worse = zoneFaults(zones).find((fault) => !before.has(broken(fault)))
+  if (worse !== undefined) throw new ThingAccessError(worse.problem.message)
   return { ...blockout, zones }
 }
 

@@ -73,7 +73,7 @@ describe('lastLightDefinitions', () => {
       lamp: ['range:float! >=0', 'radius:float! >=0', 'color:float[]! >=0 <=1', 'kind:text', 'on:text'],
       anchor: ['radius:float >=0', 'on:text'],
       node: ['on:text'],
-      zone: ['distance:float! >=0', 'follow:float >=0 <=1', 'x0:float', 'z0:float', 'x1:float', 'z1:float'],
+      zone: ['distance:float >=6 <=30', 'follow:float', 'x0:float', 'z0:float', 'x1:float', 'z1:float'],
     })
   })
 
@@ -185,6 +185,13 @@ describe('lastLightEntityKit', () => {
       y: 0.6,
       values: { distance: 15, follow: 1, x0: 1.7, z1: -1.25 },
     })
+  })
+
+  it("gives a zone Last Light's follow camera by default: 14 m away, following, and leaves follow's range to ids", () => {
+    const field = (id: string) => must(definition('zone').fields.find((each) => each.id === id))
+    expect(field('distance').default).toBe(14)
+    expect(field('follow').default).toBe(1)
+    expect([field('follow').min, field('follow').max]).toEqual([undefined, undefined])
   })
 
   it('says a zone bounds the rectangle of its four sides', () => {

@@ -192,9 +192,9 @@ export {
 } from './profile/sector-access'
 export { type ThingAccess, ThingAccessError } from './profile/thing-access'
 export type { ThingLink, ThingLinks } from './profile/thing-links'
+export type { LinkPlace } from './things/link-mode'
 export {
   createThingsTool,
-  type LinkPlace,
   type PaletteEntry,
   type Rectangle,
   type ThingPlace,

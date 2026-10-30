@@ -10,8 +10,7 @@ import { type ResolvedMap, sectorAt } from '../../geometry/sectors'
 import { entitySelection, type Locator, locators, type Problem, place, sectorSelection } from '../check'
 
 /** How far from a wall or a box a walk, and a place to stand, must be. */
-export const NAV_MARGIN = 0.3
-const MARGIN = NAV_MARGIN
+const MARGIN = 0.3
 
 /**
  * The sentence for an edge a walk cannot take, by the margin, with every door open; nothing for a clear one, or one to

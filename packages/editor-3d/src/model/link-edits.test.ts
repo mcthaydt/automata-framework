@@ -113,6 +113,9 @@ describe('addLink', () => {
     expect(reasonOf(run(addLink({ a: 'p', b: 'gone' })))).toBe('no nav node gone')
     expect(reasonOf(run(addLink({ a: 'p', b: 'p' })))).toBe('an edge joins two different nodes')
     expect(reasonOf(run(addLink({ a: 'q', b: 'p' })))).toBe('there is already an edge q–p')
+    // The same two nodes through a different door are still the same edge.
+    expect(reasonOf(run(addLink({ a: 's', b: 'q' })))).toBe('there is already an edge s–q')
+    expect(reasonOf(run(addLink({ a: 'q', b: 's', via: 'abDoor' })))).toBe('there is already an edge q–s')
     expect(reasonOf(run(addLink({ a: 't', b: 'q', via: 'nothing' })))).toBe(
       'nav edge t–q: nothing is not a door box',
     )
@@ -136,6 +139,22 @@ describe('addLink', () => {
     expect(editor.history.undoLabel).toBe('Link p–t')
     editor.history.undo()
     expect(editor.level).toBe(level)
+  })
+})
+
+describe('the clearance of a level of several layers', () => {
+  it('is refused when any layer says the edge is not clear, not only the first', () => {
+    const clearWorld = lastLightProfile.geometry({
+      ...level,
+      nav: { ...level.nav, nodes: { ...level.nav.nodes, r: { x: 2.5, z: 2 } } },
+    }).layers
+    const real = lastLightProfile.geometry(level).layers
+    expect(() =>
+      lastLightNavLinks.add(level, { a: 'p', b: 'r' }, { layers: [...clearWorld, ...real] }),
+    ).toThrow('edge p–r is not clear by 0.3 m with the doors open')
+    expect(
+      lastLightNavLinks.add(level, { a: 'p', b: 't' }, { layers: [...clearWorld, ...real] }).nav.edges,
+    ).toHaveLength(4)
   })
 })
 

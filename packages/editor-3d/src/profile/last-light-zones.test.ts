@@ -4,6 +4,7 @@
 // the closet (`x0` 1.7, `z1` -1.25, a camera `x` of 2.2); its rooms name all three.
 import { describe, expect, it } from 'vitest'
 import { idProblems } from '../checks/last-light/ids'
+import { lastLightChecks } from '../checks/last-light/last-light-checks'
 import type { Blockout, ZoneSpec } from '../format/blockout.schema'
 import { expand } from '../format/expand'
 import type { Edit } from '../model/edit'
@@ -122,35 +123,71 @@ describe('setting a side of a zone', () => {
     )
   })
 
-  it('refuses a follow past 1 by the field, and takes 1 (the follow camera) and 0 (a fixed shot)', () => {
-    expect(
-      reasonOf(
-        run(
-          setThingField({
-            def: 'zone',
-            id: 'hall',
-            field: 'follow',
-            value: 1.5,
-          }),
-        ),
-      ),
-    ).toMatch(/^entity hall: follow/)
+  it("refuses a follow past 1 in the ids check's sentence alone, and takes 1 (the follow camera) and 0 (a fixed shot)", () => {
+    expect(reasonOf(run(setThingField({ def: 'zone', id: 'hall', field: 'follow', value: 1.5 })))).toBe(
+      'zone hall: follow 1.5 is outside 0 (fixed) to 1 (the follow camera)',
+    )
     for (const follow of [0, 1])
       expect(
         zoneOf(
-          levelOf(
-            run(
-              setThingField({
-                def: 'zone',
-                id: 'hall',
-                field: 'follow',
-                value: follow,
-              }),
-            ),
-          ),
+          levelOf(run(setThingField({ def: 'zone', id: 'hall', field: 'follow', value: follow }))),
           'hall',
         ).follow,
       ).toBe(follow)
+  })
+
+  it('takes an edit that leaves a fault the zone already has no worse', () => {
+    const faulty: Blockout = {
+      ...dawn,
+      zones: dawn.zones.map((zone) => (zone.id === 'hall' ? { ...zone, follow: 1.5 } : zone)),
+    }
+    const followed = levelOf(
+      run(setThingField({ def: 'zone', id: 'hall', field: 'follow', value: 2 }), faulty),
+    )
+    expect(zoneOf(followed, 'hall').follow).toBe(2)
+    const farther = levelOf(
+      run(setThingField({ def: 'zone', id: 'hall', field: 'distance', value: 20 }), faulty),
+    )
+    expect(zoneOf(farther, 'hall').distance).toBe(20)
+    // A fault on another zone is still refused.
+    expect(
+      reasonOf(run(setThingField({ def: 'zone', id: 'closet', field: 'follow', value: 3 }), faulty)),
+    ).toBe('zone closet: follow 3 is outside 0 (fixed) to 1 (the follow camera)')
+  })
+})
+
+describe('a zone and the checks', () => {
+  const checked = (level: Blockout) =>
+    lastLightChecks(level).flatMap((result) => result.problems.map((problem) => problem.message))
+
+  it('says a follow past 1 once, in the ids check, and not again as a field', () => {
+    const faulty: Blockout = {
+      ...dawn,
+      zones: dawn.zones.map((zone) => (zone.id === 'hall' ? { ...zone, follow: 1.5 } : zone)),
+    }
+    expect(checked(faulty).filter((message) => message.includes('follow'))).toEqual([
+      'zone hall: follow 1.5 is outside 0 (fixed) to 1 (the follow camera)',
+    ])
+  })
+
+  it('lets a fixed shot look from outside every sector (through a window), and moves it there', () => {
+    const outside: Blockout = {
+      ...dawn,
+      zones: dawn.zones.map((zone) =>
+        zone.id === 'closet' ? { ...zone, look: [40, 0.6, 40] as const } : zone,
+      ),
+    }
+    expect(checked(outside)).toEqual(checked(dawn))
+    const moved = levelOf(run(moveThing({ def: 'zone', id: 'closet', x: 41, z: 39 }), outside))
+    expect(zoneOf(moved, 'closet').look).toEqual([41, 0.6, 39])
+    const back = levelOf(run(moveThing({ def: 'zone', id: 'closet', x: 50, z: 50 })))
+    expect(zoneOf(back, 'closet').look).toEqual([50, 0.6, 50])
+  })
+
+  it('adds a zone looking from outside every sector at the height given, or at 0', () => {
+    const office = { x0: 2.5, z0: -7, x1: 5, z1: -5 }
+    const added = levelOf(run(addThing({ def: 'zone', id: 'yard', x: 40, z: 40, values: office })))
+    expect(must(added.zones.at(-1)).look).toEqual([40, 0, 40])
   })
 })
 
@@ -200,33 +237,24 @@ describe('adding a zone', () => {
     expect(must(level.zones.at(-1)).look).toEqual([3.75, 0, -6])
   })
 
-  it('is refused without an area, as a later zone needs one, and with no distance', () => {
+  it('is refused without an area, as a later zone needs one', () => {
     expect(
-      reasonOf(
-        run(
-          addThing({
-            def: 'zone',
-            id: 'office',
-            x: 3.75,
-            z: -6,
-            values: { distance: 14 },
-          }),
-        ),
-      ),
+      reasonOf(run(addThing({ def: 'zone', id: 'office', x: 3.75, z: -6, values: { distance: 14 } }))),
     ).toBe('zone office needs an area (only the first zone covers the rest)')
-    expect(
-      reasonOf(
-        run(
-          addThing({
-            def: 'zone',
-            id: 'office',
-            x: 3.75,
-            z: -6,
-            values: office,
-          }),
-        ),
-      ),
-    ).toMatch(/^entity office: .*distance/)
+  })
+
+  it("is Last Light's follow camera when no distance or follow is given", () => {
+    const level = levelOf(run(addThing({ def: 'zone', id: 'office', x: 3.75, z: -6, values: office })))
+    expect(must(level.zones.at(-1))).toMatchObject({ distance: 14, follow: 1 })
+  })
+
+  it('takes a distance from 6 to 30 m, as the shipped editor does', () => {
+    expect(reasonOf(run(setThingField({ def: 'zone', id: 'hall', field: 'distance', value: 5 })))).toMatch(
+      /^entity hall: distance/,
+    )
+    expect(reasonOf(run(setThingField({ def: 'zone', id: 'hall', field: 'distance', value: 31 })))).toMatch(
+      /^entity hall: distance/,
+    )
   })
 
   it('takes the id of no other zone', () => {
@@ -260,7 +288,7 @@ describe('adding a zone', () => {
         empty,
       ),
     )
-    expect(level.zones).toEqual([{ id: 'a', look: [2, 0, 2], distance: 14 }])
+    expect(level.zones).toEqual([{ id: 'a', look: [2, 0, 2], distance: 14, follow: 1 }])
     expect(
       reasonOf(
         run(
