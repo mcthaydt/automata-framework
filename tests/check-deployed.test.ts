@@ -55,9 +55,37 @@ describe('pnpm check:deployed --local', () => {
     expect(result.stdout).toMatch(/^\/llms\.txt and \/llms-full\.txt are served from http:\/\/127\.0\.0\.1:\d+ as built\.\n$/)
   })
 
+  it('refuses both an origin and --local, and neither', () => {
+    for (const args of [['http://127.0.0.1:9', '--local'], []]) {
+      const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/check-deployed.ts', ...args, '--build', build], { cwd: root, encoding: 'utf8', timeout: 30_000 })
+      expect(result.status, args.join(' ')).toBe(2)
+      expect(result.stderr).toContain('Usage: check-deployed.ts <origin> | --local')
+    }
+  })
+
   it('fails with the problems when an origin does not serve them', () => {
     const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/check-deployed.ts', 'http://127.0.0.1:9', '--build', build], { cwd: root, encoding: 'utf8', timeout: 30_000 })
     expect(result.status).toBe(1)
     expect(result.stderr).toContain('/llms.txt: fetch failed')
+  })
+
+  it('checks an origin given alone, against ./build', () => {
+    // ./build may or may not exist here; either way the origin is checked, not the usage refused.
+    const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/check-deployed.ts', 'http://127.0.0.1:9'], { cwd: root, encoding: 'utf8', timeout: 30_000 })
+    expect(result.status).toBe(1)
+    expect(result.stderr).toMatch(/^\/llms\.txt: /)
+  })
+})
+
+describe('checkServedFiles and the build', () => {
+  it('reports a file the build lacks as a problem, not a crash', async () => {
+    const empty = mkdtempSync(join(tmpdir(), 'check-deployed-empty-'))
+    try {
+      const problems = await checkServedFiles(ORIGIN, empty, fakeFetch(served))
+      expect(problems).toHaveLength(2)
+      expect(problems[0]).toMatch(/^\/llms\.txt: the build has no such file/)
+    } finally {
+      rmSync(empty, { recursive: true, force: true })
+    }
   })
 })

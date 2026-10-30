@@ -4,10 +4,13 @@
 // a release (`--dry-run`) and refuses to publish, so nothing can reach a public host by mistake.
 //
 //   node --import tsx scripts/release.ts [build] --dry-run [--out release-manifest.json]
+//
+// The dry run prints the release's id, file count and bytes; the manifest it writes lists every file it would upload.
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parseArgs } from 'node:util'
 
 export interface ReleaseFile {
   readonly path: string
@@ -45,11 +48,13 @@ export function releaseManifest(dir: string): ReleaseManifest {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const args = process.argv.slice(2)
-  const outAt = args.indexOf('--out')
-  const out = outAt >= 0 ? args[outAt + 1]! : 'release-manifest.json'
-  const dir = args.find((arg, index) => !arg.startsWith('--') && index !== outAt + 1) ?? 'build'
-  if (!args.includes('--dry-run')) {
+  const { values, positionals } = parseArgs({
+    allowPositionals: true,
+    options: { 'dry-run': { type: 'boolean' }, out: { type: 'string', default: 'release-manifest.json' } },
+  })
+  const dir = positionals[0] ?? 'build'
+  const out = values.out
+  if (!values['dry-run']) {
     console.error(NO_TARGET)
     process.exit(1)
   }

@@ -70,4 +70,25 @@ describe('pnpm release', () => {
     expect(result.stdout).toContain(`Dry run: release ${manifest.id.slice(0, 12)}, 2 files, 5 bytes, for the placeholder target`)
     expect(result.stdout).toContain('nothing was uploaded')
   })
+
+  it('reads the build folder given first, with no other option before it', () => {
+    // With no --out the manifest goes to ./release-manifest.json (git-ignored), here the repository root's.
+    const dir = tree({ 'a.txt': 'a' })
+    const out = join(root, 'release-manifest.json')
+    const before = existsSync(out) ? readFileSync(out) : undefined
+    try {
+      const result = release(dir, '--dry-run')
+      expect(result.status).toBe(0)
+      expect((JSON.parse(readFileSync(out, 'utf8')) as { id: string }).id).toBe(releaseManifest(dir).id)
+    } finally {
+      if (before) writeFileSync(out, before)
+      else rmSync(out, { force: true })
+    }
+  })
+
+  it('refuses an option without its value', () => {
+    const result = release(tree({ 'a.txt': 'a' }), '--dry-run', '--out')
+    expect(result.status).not.toBe(0)
+    expect(result.stderr).toContain("Option '--out <value>' argument missing")
+  })
 })

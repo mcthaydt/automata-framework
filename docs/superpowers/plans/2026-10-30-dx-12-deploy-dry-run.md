@@ -16,7 +16,7 @@ server. When the Owner supplies the host, one change names the target and its cr
 | Name | File | Notes |
 | --- | --- | --- |
 | `releaseManifest(dir)` → `{ id, files: [{ path, bytes, sha256 }] }` | `scripts/release.ts` | every file under the build, sorted by path; `id` is the sha256 of the file list, so the same build is the same release and any byte changes it |
-| `pnpm release --dry-run` | `scripts/release.ts` | writes `release-manifest.json` and prints what it would upload to the placeholder target; without `--dry-run` it refuses, naming what the Owner must supply |
+| `pnpm release --dry-run` | `scripts/release.ts` | writes `release-manifest.json`, which lists every file it would upload, and prints the release's id, file count and bytes; without `--dry-run` it refuses, naming what the Owner must supply |
 | `checkServedFiles(origin, buildDir, fetch)` → problems | `scripts/check-deployed.ts` | `/llms.txt` and `/llms-full.txt`: status 200, `text/plain`, bytes equal to the build's |
 | `pnpm check:deployed <origin>` / `--local` | `scripts/check-deployed.ts` | `--local` serves the build with `serve-static.ts` on a free port and checks that |
 | `.github/workflows/deploy.yml` | | after `ci` succeeds on a push to `main`: the `site-build` artifact of that run, `pnpm release --dry-run`, `pnpm check:deployed --local`, the manifest kept as an artifact; `af-mac`, read-only permissions plus `actions: read` for the artifact, no secret |
@@ -54,3 +54,13 @@ The real host, credential and DNS (Owner); HTTPS, HSTS and the header set (QB.4a
   not committed.
 - **Not verified here:** the workflow itself runs only after a `ci` run on `main`, so its first run is after this merges
   (on the Mac). The deploy to `automata.ruken.com` and the check against that origin wait on the Owner's host.
+- **Independent review (a separate agent reading the diff and running the CLIs), addressed test-first:**
+  1. Both CLIs dropped a positional argument at index 0 when their option was absent (`check-deployed.ts <origin>`
+     printed the usage; `release.ts <dir> --dry-run` read `./build`). Both now use `node:util` `parseArgs`, which also
+     refuses an option with no value; `check-deployed` refuses an origin together with `--local`, and neither.
+  2. A file the build lacks was an uncaught ENOENT; it is now a problem by its path. `--local` stops serve-static in a
+     `finally`, and the start waits at most 15 s.
+  Five new cases; each failed against the previous scripts, then passed (`release` 6, `check-deployed` 8).
+  Left for QB.4 by design: workflow_run also fires on a re-run of an older successful `ci` run, which would deploy
+  that older build; harmless as a dry run, and QB.4 (with QB.4c's manual rollback path) decides the guard, such as
+  requiring `head_sha` to be the tip of `main`.
