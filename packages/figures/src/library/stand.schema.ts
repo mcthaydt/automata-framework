@@ -5,6 +5,7 @@
 
 import { contentRef } from '@mcthaydt/automata-content'
 import { z } from 'zod'
+import { keyedUnion } from './keyed-union'
 import { about, side, type Vec3, vec3 } from './shapes.schema'
 
 export const HAND_PLACES = [
@@ -58,7 +59,8 @@ const handPlace = z.strictObject({
   elbow: z.number().optional(),
 })
 const hang = z.strictObject({ out: z.number(), bend: z.number(), swing: z.number().optional() })
-const hand = z.union([handPlace, hang])
+// Told apart by key, so a misspelt opening is reported at `at`, not as an invalid hand.
+const hand = keyedUnion<HandPlace | Hang>('hand', { at: handPlace, out: hang })
 
 export const standSchema: z.ZodType<Stand> = z.strictObject({
   about,

@@ -1,7 +1,7 @@
 // Compiles the fixture content (testing/fixtures/content) with the figures' kinds, or a copy of it with some
-// files replaced, for the content tests. Copies go to a fresh temp folder that the caller's test owns.
+// files replaced, for the content tests. A copy goes to a fresh temp folder, removed after the compile.
 
-import { cpSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { cpSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -29,7 +29,11 @@ export async function compileFixture(
     cpSync(FIXTURE_ROOT, root, { recursive: true })
     for (const [file, text] of Object.entries(replace)) writeFileSync(join(root, file), text)
   }
-  const result = await Effect.runPromise(Effect.either(compileContent({ root, schemas: FIGURE_CONTENT })))
+  const compiled = Effect.either(compileContent({ root, schemas: FIGURE_CONTENT }))
+  // A copy is this call's own folder: removed once the compile has read it, whatever the result.
+  const result = await Effect.runPromise(compiled).finally(() => {
+    if (root !== FIXTURE_ROOT) rmSync(root, { recursive: true, force: true })
+  })
   if (Either.isRight(result)) return { ok: true, content: result.right }
   const error = result.left
   const diagnostics = error._tag === 'ContentCompileFailed' ? error.diagnostics : []

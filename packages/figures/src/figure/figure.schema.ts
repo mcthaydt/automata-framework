@@ -7,7 +7,8 @@
 import { contentRef } from '@mcthaydt/automata-content'
 import { z } from 'zod'
 import type { HeadShape, Sliders } from '../genes/genes'
-import { type Gait, gaitSchema } from '../library/gait.schema'
+import { type Gait, gaitOverridesSchema, gaitSchema } from '../library/gait.schema'
+import { refOrInline } from '../library/ref-or-inline'
 import { partialOf, side } from '../library/shapes.schema'
 import type { Genes } from '../rig/rig'
 import { skeletonProblems } from './figure-skeleton'
@@ -30,12 +31,20 @@ export interface FigureDef {
   readonly skin: string
   /** A gait id, or a gait written inline. */
   readonly gait: string | Gait
+  /** Any of the gait's numbers changed for this figure, on top of the named or inline gait. */
+  readonly gaitOverrides?: Partial<Gait> | undefined
   /** The hand that holds items. */
   readonly hand: 'L' | 'R'
   readonly outfits: Readonly<Record<string, readonly Garment[]>>
   /** The outfit worn when the sim names none. */
   readonly default: string
   readonly hair?: Partial<HairDynamics> | undefined
+  /**
+   * Hair style ids from the hair library (the spec's `hairPieces`). The hair an outfit wears stays the
+   * outfit's `{ hair, style }` garment, as in FigureBuilder, because it carries the colour and changes with a
+   * cap; this list is checked here and M3.5b, which builds hair, settles how it combines with the garment.
+   */
+  readonly hairPieces?: readonly string[] | undefined
   /** A stand id for idle; the relaxed idle if omitted. */
   readonly stand?: string | undefined
   /** A rig-limits id; the shared default if omitted. */
@@ -130,11 +139,13 @@ export const figureSchema: z.ZodType<FigureDef> = z
     sliders,
     genes: genes.optional(),
     skin: contentRef('figure-swatch'),
-    gait: z.union([contentRef('figure-gait'), gaitSchema]),
+    gait: refOrInline<Gait>('figure-gait', { object: gaitSchema }),
+    gaitOverrides: gaitOverridesSchema.optional(),
     hand: side,
     outfits: z.record(z.string().regex(/^[a-z][a-z0-9-]*$/), z.array(garmentSchema).min(1)),
     default: z.string(),
     hair: hairDynamics.optional(),
+    hairPieces: z.array(contentRef('figure-hair')).min(1).optional(),
     stand: contentRef('figure-stand').optional(),
     rig: contentRef('figure-rig').optional(),
   })

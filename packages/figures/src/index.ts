@@ -32,11 +32,11 @@ export {
   measure,
   type Sliders,
 } from './genes/genes'
-export { type Gait, gaitSchema } from './library/gait.schema'
+export { type Gait, gaitOverridesSchema, gaitSchema } from './library/gait.schema'
 export { type HairStyle, hairStyleSchema, type Piece, type Rope } from './library/hair.schema'
 export { type Cap, type Headwear, headwearSchema, type Lock } from './library/headwear.schema'
 export { type Hold, type ItemDef, type ItemPart, itemSchema } from './library/item.schema'
-export { type Range, type RigLimits, rigLimitsSchema } from './library/rig-limits.schema'
+export { DEFAULT_RIG_LIMITS, type Range, type RigLimits, rigLimitsSchema } from './library/rig-limits.schema'
 export { type HandPlace, type Hang, type Stand, standSchema } from './library/stand.schema'
 export { SWATCH_KINDS, SWATCH_ROLES, type Swatch, swatchSchema } from './library/swatch.schema'
 export { type SwatchColourProblem, swatchColourProblems } from './library/swatch-colours'

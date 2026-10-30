@@ -3,6 +3,7 @@
 // seconds, metres at a 1.62 m figure, radians.
 
 import { z } from 'zod'
+import { partialOf } from './shapes.schema'
 
 const n = z.number()
 const positive = z.number().positive()
@@ -133,3 +134,8 @@ export interface Gait {
 }
 
 export const gaitSchema: z.ZodType<Gait> = z.strictObject(gaitShape)
+
+/** Any of a gait's numbers, changed on top of a library gait (FigureBuilder cast.ts `gaitOverrides`). */
+export const gaitOverridesSchema: z.ZodType<Partial<Gait>> = partialOf<Gait>(
+  z.strictObject(gaitShape).partial(),
+)
