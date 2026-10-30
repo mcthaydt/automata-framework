@@ -7,12 +7,14 @@ import { definePlugin } from '@mcthaydt/automata-sim'
 import { Effect, Exit, Fiber, Scope } from 'effect'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineServer } from '../game/server-game'
+import { gameVersionOf } from '../gate/matchmake-version-gate'
 import { createFakeVerifier, type FakeVerifier } from '../session/session-verifier'
 import {
-  joinOptions,
+  joinOptions as joinOptionsFor,
   settle,
   startTestServer,
   TEST_LIMITS,
+  TEST_ORIGIN,
   type TestServer,
   waitFor,
 } from '../test-support/colyseus-harness'
@@ -92,7 +94,10 @@ const freePort = (): Promise<number> =>
 
 /** Creates a room with a session token; the room seats the client on its next tick. */
 async function createWith(test: TestServer, name: string, session: string): Promise<SdkRoom> {
-  return (await test.colyseus.sdk.create(ROOM_NAME, { ...joinOptions(name), session })) as unknown as SdkRoom
+  return (await test.colyseus.sdk.create(ROOM_NAME, {
+    ...test.joinOptions(name),
+    session,
+  })) as unknown as SdkRoom
 }
 
 /** Sends one wire message as a client does: JSON text on net's channel. */
@@ -104,7 +109,10 @@ describe('SV-f: session verification', () => {
     const { test } = await startWithFake()
     server = test
     await expect(
-      test.colyseus.sdk.create(ROOM_NAME, { ...joinOptions('Ada'), session: 'FAKE-FORGED-not-a-secret' }),
+      test.colyseus.sdk.create(ROOM_NAME, {
+        ...test.joinOptions('Ada'),
+        session: 'FAKE-FORGED-not-a-secret',
+      }),
     ).rejects.toThrow(/UNVERIFIED/)
     expect(test.runtime.rooms.size).toBe(0)
     expect(test.logs).toContainEqual({ event: 'refused', code: 'session' })
@@ -115,9 +123,9 @@ describe('SV-f: session verification', () => {
     server = test
     const expired = fake.issue('player-a', { expiresAtMs: 0 })
     await expect(
-      test.colyseus.sdk.create(ROOM_NAME, { ...joinOptions('Ada'), session: expired }),
+      test.colyseus.sdk.create(ROOM_NAME, { ...test.joinOptions('Ada'), session: expired }),
     ).rejects.toThrow(/UNVERIFIED/)
-    await expect(test.colyseus.sdk.create(ROOM_NAME, joinOptions('Ada'))).rejects.toThrow(/UNVERIFIED/)
+    await expect(test.colyseus.sdk.create(ROOM_NAME, test.joinOptions('Ada'))).rejects.toThrow(/UNVERIFIED/)
     expect(test.runtime.rooms.size).toBe(0)
   })
 
@@ -131,7 +139,7 @@ describe('SV-f: session verification', () => {
     )
     await test.step(code, 1)
     await expect(
-      test.colyseus.sdk.joinById(code, { ...joinOptions('Bea'), session: 'fake-session-0-1' }),
+      test.colyseus.sdk.joinById(code, { ...test.joinOptions('Bea'), session: 'fake-session-0-1' }),
     ).rejects.toThrow(/UNVERIFIED/)
     await test.step(code, 1)
     expect(
@@ -173,10 +181,10 @@ describe('SV-g: no planted secret reaches stdout', () => {
     await test.step(code, 1)
     // Refuse: a forged token into the room while it still has a seat.
     await expect(
-      test.colyseus.sdk.joinById(code, { ...joinOptions(PLANTED_NAME), session: PLANTED_FORGED }),
+      test.colyseus.sdk.joinById(code, { ...test.joinOptions(PLANTED_NAME), session: PLANTED_FORGED }),
     ).rejects.toThrow(/UNVERIFIED/)
     const guest = (await test.colyseus.sdk.joinById(code, {
-      ...joinOptions('Bea'),
+      ...test.joinOptions('Bea'),
       session: guestToken,
     })) as unknown as SdkRoom
     await test.step(code, 1)
@@ -188,10 +196,11 @@ describe('SV-g: no planted secret reaches stdout', () => {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
+          origin: TEST_ORIGIN,
           authorization: `Bearer ${PLANTED_BEARER}`,
           'x-forwarded-for': PLANTED_IP,
         },
-        body: JSON.stringify({ ...joinOptions(PLANTED_NAME), session: PLANTED_FORGED }),
+        body: JSON.stringify({ ...test.joinOptions(PLANTED_NAME), session: PLANTED_FORGED }),
       }).then((response) => response.text())
     }
 
@@ -266,7 +275,7 @@ describe('SV-g: a production process', () => {
         env: {
           NODE_ENV: 'production',
           MAX_ROOMS: '4',
-          ALLOWED_ORIGINS: 'https://game.example.test',
+          ALLOWED_ORIGINS: TEST_ORIGIN,
           PORT: String(port),
         },
         net: TEST_NET,
@@ -281,7 +290,13 @@ describe('SV-g: a production process', () => {
     )
 
     // Join with a planted name and session token (the anonymous verifier accepts it), then a refused message.
+    const version = await gameVersionOf(fixtureServer())
+    const joinOptions = (name: string) => joinOptionsFor(name, version)
     const client = new Client(`http://127.0.0.1:${port}`)
+    // A browser sends its page's origin on every matchmaking request and socket; the gates refuse any other.
+    ;(client.http as unknown as { options: { headers: Record<string, string> } }).options.headers = {
+      origin: TEST_ORIGIN,
+    }
     const room = (await client.create(ROOM_NAME, {
       ...joinOptions(PLANTED_NAME),
       session: PLANTED_SESSION,
@@ -291,6 +306,7 @@ describe('SV-g: a production process', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        origin: TEST_ORIGIN,
         authorization: `Bearer ${PLANTED_BEARER}`,
         'x-forwarded-for': PLANTED_IP,
       },

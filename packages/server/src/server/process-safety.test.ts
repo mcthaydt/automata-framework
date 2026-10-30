@@ -40,9 +40,8 @@ describe('testSwitchesSet (the production guard)', () => {
   })
 
   it('refuses an empty origin list in production, which no client could reach', () => {
-    expect(testSwitchesSet({ ...config, limits: TEST_LIMITS }, PRODUCTION)).toEqual([
-      'allowedOrigins (empty)',
-    ])
+    const limits = { ...TEST_LIMITS, allowedOrigins: [] }
+    expect(testSwitchesSet({ ...config, limits }, PRODUCTION)).toEqual(['allowedOrigins (empty)'])
   })
 
   it('is production when any environment it is given says so: a test config cannot vouch for a production box', () => {
