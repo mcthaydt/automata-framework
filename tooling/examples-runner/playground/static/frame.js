@@ -2,7 +2,23 @@
 // and posts one report to the parent. That it runs at all shows the frame's policy lets an opaque-origin document
 // load the site's own module scripts ('self', R-2).
 const violations = []
-document.addEventListener('securitypolicyviolation', (event) => violations.push(event.effectiveDirective))
+let violationSeen
+const firstViolation = new Promise((resolve) => {
+  violationSeen = resolve
+})
+document.addEventListener('securitypolicyviolation', (event) => {
+  violations.push(event.effectiveDirective)
+  violationSeen()
+})
+
+// A case that expects the policy to refuse a request waits for the violation event before it reports, bounded so a
+// missing event fails the case instead of hanging it. WebKit fires no event for eval, so only fetch waits.
+const WAITS_FOR_VIOLATION = new Set(['fetch-other-origin'])
+const VIOLATION_WAIT_MS = 2000
+
+const query = new URL(location.href).searchParams
+// Each R-1 measurement asks for its own copy of the module, so another engine's run cannot change its count.
+const run = query.get('run') ?? ''
 
 const scenarios = {
   // R-3: the reader's compiled code arrives as text; a Blob module's bare import resolves through the import map.
@@ -24,10 +40,10 @@ const scenarios = {
   },
   // §11.3: the same module, without and then with the headers.
   async 'bare-module'() {
-    return (await import('/bare/cache-probe.js')).default
+    return (await import(`/bare/cache-probe.js?run=${run}`)).default
   },
   async 'module-with-headers'() {
-    return (await import('/playground/runtime/cache-probe.js')).default
+    return (await import(`/playground/runtime/cache-probe.js?run=${run}`)).default
   },
   // Pixi loads textures and sounds with fetch and image elements; each must reach the site.
   async 'image-self'() {
@@ -51,17 +67,19 @@ const scenarios = {
   },
 }
 
-async function run() {
-  const scenario = new URL(location.href).searchParams.get('scenario') ?? ''
+async function report() {
+  const scenario = query.get('scenario') ?? ''
   const base = { scenario, origin: self.origin }
+  const body = scenarios[scenario]
+  let outcome
   try {
-    const value = await scenarios[scenario]()
-    // A violation event is queued as a task; give it one turn to arrive before reporting.
-    await new Promise((resolve) => setTimeout(resolve, 50))
-    parent.postMessage({ ...base, ok: true, value, violations }, location.origin)
+    if (body === undefined) throw new Error(`unknown scenario ${scenario}`)
+    outcome = { ok: true, value: await body() }
   } catch (error) {
-    await new Promise((resolve) => setTimeout(resolve, 50))
-    parent.postMessage({ ...base, ok: false, error: String(error), violations }, location.origin)
+    outcome = { ok: false, error: String(error) }
   }
+  if (WAITS_FOR_VIOLATION.has(scenario))
+    await Promise.race([firstViolation, new Promise((resolve) => setTimeout(resolve, VIOLATION_WAIT_MS))])
+  parent.postMessage({ ...base, ...outcome, violations }, location.origin)
 }
-run()
+report()

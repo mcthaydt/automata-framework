@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { createServer, type ServerResponse } from 'node:http'
 import { createRequire } from 'node:module'
-import { dirname, extname, join, normalize } from 'node:path'
+import { dirname, extname, isAbsolute, join, normalize, relative } from 'node:path'
 import { playgroundOrigin, playgroundPort } from '../host/ports.ts'
 import { framePolicy } from '../src/playground/frame-policy.ts'
 import { playgroundHeaders } from '../src/playground/playground-headers.ts'
@@ -48,14 +48,17 @@ const TYPES: Record<string, string> = {
 
 interface LoggedRequest {
   readonly path: string
+  readonly search: string
+  readonly status: number
   readonly origin: string | null
 }
 const requests: LoggedRequest[] = []
 
 /** The file under `root` that `relative` names, or undefined when it climbs out of it. */
-function fileUnder(root: string, relative: string): string | undefined {
-  const file = normalize(join(root, relative))
-  return file.startsWith(root) ? file : undefined
+function fileUnder(root: string, relativePath: string): string | undefined {
+  const file = normalize(join(root, relativePath))
+  const inside = relative(root, file)
+  return inside === '' || inside.startsWith('..') || isAbsolute(inside) ? undefined : file
 }
 
 function sendFile(response: ServerResponse, file: string | undefined, headers: Record<string, string>): void {
@@ -78,12 +81,20 @@ function moduleFile(rest: string): string | undefined {
 }
 
 const server = createServer((request, response) => {
-  const path = new URL(request.url ?? '/', 'http://localhost').pathname
+  const url = new URL(request.url ?? '/', 'http://localhost')
+  const path = url.pathname
   if (path === '/requests') {
     response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(requests))
     return
   }
-  requests.push({ path, origin: request.headers.origin ?? null })
+  response.on('finish', () =>
+    requests.push({
+      path,
+      search: url.search,
+      status: response.statusCode,
+      origin: request.headers.origin ?? null,
+    }),
+  )
   if (path === '/') response.writeHead(200, { 'Content-Type': 'text/html' }).end(PARENT_PAGE)
   else if (path === '/playground/frame/')
     response.writeHead(200, { 'Content-Type': 'text/html', ...playgroundHeaders(path) }).end(FRAME_PAGE)

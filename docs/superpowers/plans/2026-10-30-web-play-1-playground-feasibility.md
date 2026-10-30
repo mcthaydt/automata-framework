@@ -26,16 +26,16 @@ Before any playground code depends on it, prove in Chromium, WebKit and Firefox 
 | `playgroundHeaders(pathname: string): Record<string, string>` — the §11.3 rule: `Access-Control-Allow-Origin: *` and `Cross-Origin-Resource-Policy: cross-origin` for every path under `/playground/`, `Cache-Control` immutable under `/playground/runtime/` and `no-cache` elsewhere under `/playground/`; `{}` outside it | `tooling/examples-runner/src/playground/playground-headers.ts` | this proof's server; the site's `serve-static.ts` and dev server copy the rule in WEB.PLAY.4 |
 | The feasibility server (Node `http`, no framework code) | `tooling/examples-runner/playground/feasibility-server.ts` | the `playground-*` Playwright projects |
 
-Consumed: `compileHeaders` and `parseManifest` from the vendored `@ruken/manifest` (never a retyped CSP), zod 4.6.6's
+Consumed: `compileHeaders` from the vendored `@ruken/manifest`, applied to the examples' manifest through `checkManifest(rukenToml(EXAMPLES_SHIP_CONFIG))` from `@mcthaydt/automata-ship` (never a retyped CSP), zod 4.6.6's
 published ESM files (served as they are; the playground runtime build replaces them in WEB.PLAY.3).
 
 ## Files
 
 - Create `tooling/examples-runner/src/playground/frame-policy.ts`, `frame-policy.test.ts`.
 - Create `tooling/examples-runner/src/playground/playground-headers.ts`, `playground-headers.test.ts`.
-- Create `tooling/examples-runner/playground/feasibility-server.ts` (serves `/` the parent page, `/frame/` the frame
-  page, `/playground/runtime/**` zod with the §11.3 headers, `/bare/**` the same files without them, `/requests` the
-  request log, `/reset` to clear it) and `tooling/examples-runner/playground/static/{parent,frame}.js` (plain
+- Create `tooling/examples-runner/playground/feasibility-server.ts` (serves `/` the parent page, `/playground/frame/` the
+  frame page, `/playground/runtime/**` zod and the probe files with the §11.3 headers, `/bare/**` the same files
+  without them, and `/requests`, the request log with each answer's status) and `tooling/examples-runner/playground/static/{parent,frame}.js` (plain
   browser scripts, no inline script anywhere).
 - Create `tooling/examples-runner/playground/e2e/feasibility.e2e.ts`.
 - Modify `tooling/examples-runner/host/ports.ts` (`playgroundPort`, slot 8), `tooling/examples-runner/package.json`
@@ -55,8 +55,7 @@ published ESM files (served as they are; the playground runtime build replaces t
    playground-chromium -g "Blob module"`: fails because no frame page exists (server 404).
 4. [x] **Server, pages and scripts**; the case passes in Chromium.
 5. [x] **The other cases**, each seen to fail first against a planted defect (a policy without `blob:`; a frame
-   without the import map hash; the headers removed): `'self'` loads a site module; `eval` throws and a
-   `securitypolicyviolation` names `script-src`; `fetch` to another origin is refused; `/bare/` fails and
+   without the import map hash; the headers removed): `'self'` loads a site module; `eval` throws an `EvalError`; `fetch` to another origin is refused; `/bare/` fails and
    `/playground/runtime/` loads; the parent cannot read `frame.contentDocument` and the frame reports its
    origin as `null`.
 6. [x] **R-1 measurement**: two fresh frames in turn, count the server's requests for the runtime module per frame;
@@ -75,7 +74,7 @@ Measured 2026-10-30 in this container (Linux, 4 CPUs), Node 24.21.0, Playwright 
   A first draft parsed a hand-written probe manifest, which Ruken's parser refused (missing `schema`, `game.sdk`,
   `runtime`, `content`); the policy now reads the examples' own manifest, `EXAMPLES_SHIP_CONFIG`, moved out of
   `vite-plugin.ts` into `src/examples-ship-config.ts` so the runner and the policy share it.
-- **Step 2.** 6 unit tests passed.
+- **Step 2.** 6 unit tests passed (8 after the R-2 cases below).
 - **Step 3.** The Blob case failed in Chromium with `TypeError: window.probe is not a function` (the server served
   only an empty parent page).
 - **Step 4.** The Blob case passed in Chromium, WebKit and Firefox: **R-3 does not bite**; a Blob module made in an
@@ -97,9 +96,20 @@ Measured 2026-10-30 in this container (Linux, 4 CPUs), Node 24.21.0, Playwright 
 - **Step 6, R-1 measured: the cache is reused.** Server requests for `/playground/runtime/cache-probe.js` (served
   `public, max-age=31536000, immutable`), first fresh frame then second: Chromium 1, 0; WebKit 1, 0; Firefox 1, 0. A
   new opaque-origin frame in the same page reuses the HTTP cache, so PLAY-D5's default (a fresh frame per run) stands.
-  This is one module and an in-memory cache in a headless browser; the full runtime's warm-frame time is WEB.PLAY.3's
-  and WEB.PLAY.11's to measure against the 1,000 ms budget.
+  Frame creation to report, first then second frame (after the review fixes below): Chromium 25, 15 ms; WebKit 16,
+  19 ms; Firefox 25, 18 ms. Caveat: both frames are created by the same parent page, so this shows the cache is
+  shared across fresh opaque-origin frames of one page (the playground's case), not across page loads; it is one small
+  module in a headless browser. The full runtime's warm-frame time is WEB.PLAY.3's and WEB.PLAY.11's to measure
+  against the 1,000 ms budget.
 - **Step 7.** Through the root `playwright.config.ts`: `--project playground-chromium --project playground-webkit
   --project playground-firefox`, 24 passed (43.7 s, including the other projects' servers starting).
 - **Step 8.** `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0 (33 tasks). knip first flagged the served browser
   scripts as unused files, so `knip.jsonc` ignores `tooling/examples-runner/playground/static/**` with the reason.
+- **Independent review (a separate agent reading the diff against the spec), all addressed:** the server's path
+  guard compared prefixes (a sibling folder passed), now `relative()`; the R-1 count read a log the parallel engines
+  share, now each test asks for its own copy (`?run=<uuid>`) and counts only it; R-1 now records time too; the frame
+  slept 50 ms for violation events, now only the case that expects a refusal waits for the event, bounded at 2 s, and
+  success cases rely on the load itself; negative cases now name their error (`TypeError`, `SecurityError`) and the
+  bare-module case checks the server answered 200, so a typo or a 404 cannot pass; this plan's text now matches the
+  code. Not copied forward: `parent.js` checks source and origin only, not the §5.1 schema and run id, which is
+  WEB.PLAY.2's protocol. After the fixes: 24 passed in the three engines in parallel.
