@@ -3,8 +3,7 @@
   action. Cancel has focus first, so a stray Enter keeps the file; the kit's dialog returns focus to where it was.
 -->
 <script lang="ts">
-import { Dialog } from '@mcthaydt/automata-editor-kit'
-import Button from '../controls/Button.svelte'
+import { Button, Dialog } from '@mcthaydt/automata-editor-kit'
 
 interface Props {
   open: boolean

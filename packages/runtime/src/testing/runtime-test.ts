@@ -32,6 +32,10 @@ import { fakeFetch } from './fake-fetch.js'
 import { type ManualFrames, manualFrames } from './manual-frames.js'
 import { nullRenderer } from './null-renderer.js'
 
+/**
+ * What `RuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer,
+ * fetch and locale it uses.
+ */
 export interface RuntimeTestOptions {
   readonly hosting?: HostingTestOptions | Partial<Omit<FakeHostOptions, 'gameOrigin' | 'gameId'>>
   readonly screens?: readonly ScreenDef<any>[]

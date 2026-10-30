@@ -23,8 +23,12 @@ export interface Violation {
   readonly message: string
 }
 
-/** `model/` and `tiles/` are the headless core: they run in Node, in a worker or in a test, with no host. */
-const PURE_AREAS: ReadonlySet<string> = new Set(['model', 'tiles'])
+/**
+ * The headless core runs in Node, in a worker or in a test, with no host: `model/`, `tiles/` and the canvas's draw list
+ * (`canvas/draw/`, ED2D.4c3a), which says what to draw so the Pixi files beside it in `canvas/` only draw it.
+ */
+const PURE_PREFIXES: readonly string[] = ['model/', 'tiles/', 'canvas/draw/']
+const isPure = (file: string): boolean => PURE_PREFIXES.some((prefix) => file.startsWith(prefix))
 /** The only packages the core may import: the schema language and the kit's field rules (not the Svelte shell). */
 const PURE_PACKAGES: ReadonlySet<string> = new Set(['zod', '@mcthaydt/automata-editor-kit/fields'])
 /** Where nothing may name a profile or a template: each of these works for every profile (G-s). */
@@ -249,6 +253,7 @@ export function checkArchitecture(files: ReadonlyMap<string, string>): Violation
   const graph = new Map<string, string[]>()
   for (const [file, code] of files) {
     const area = areaOf(file)
+    const pure = isPure(file)
     const report = (rule: Rule, message: string): void => {
       violations.push({ file, rule, message })
     }
@@ -257,18 +262,17 @@ export function checkArchitecture(files: ReadonlyMap<string, string>): Violation
       report('parse-error', facts)
       continue
     }
-    if (PURE_AREAS.has(area) && file.endsWith('.svelte'))
-      report('pure-imports', 'the core holds no component')
+    if (pure && file.endsWith('.svelte')) report('pure-imports', 'the core holds no component')
     const edges: string[] = []
     graph.set(file, edges)
     for (const { specifier, typeOnly } of facts.imports) {
       if (!specifier.startsWith('.')) {
-        if (PURE_AREAS.has(area) && !PURE_PACKAGES.has(specifier)) {
+        if (pure && !PURE_PACKAGES.has(specifier)) {
           report('pure-imports', `${specifier}: the core imports only ${[...PURE_PACKAGES].join(' and ')}`)
         }
         continue
       }
-      if (PURE_AREAS.has(area) && specifier.endsWith('.svelte')) {
+      if (pure && specifier.endsWith('.svelte')) {
         report('pure-imports', `${specifier}: the core imports no component`)
         continue
       }
@@ -276,14 +280,17 @@ export function checkArchitecture(files: ReadonlyMap<string, string>): Violation
       if (target === undefined) {
         // A stylesheet, an image: not source, so not ours to resolve. A `.ts` or `.svelte` path that is missing is.
         if (/\.[a-z]+$/i.test(specifier) && !/\.(ts|svelte)$/.test(specifier)) {
-          if (PURE_AREAS.has(area))
-            report('pure-imports', `${specifier}: the core imports no asset or component`)
+          if (pure) report('pure-imports', `${specifier}: the core imports no asset or component`)
         } else {
           report('unresolved-import', `${specifier} resolves to no file under src/`)
         }
         continue
       }
       if (!typeOnly) edges.push(target)
+      // The core runs with no host, so the code it runs has to be core too; a type from elsewhere is erased.
+      if (pure && !typeOnly && !isPure(target)) {
+        report('pure-imports', `${specifier}: the core imports code only from the core`)
+      }
       const profile = profileOf(target)
       if (profile === undefined) continue
       const own = profileOf(file)
@@ -293,7 +300,7 @@ export function checkArchitecture(files: ReadonlyMap<string, string>): Violation
         report('profiles-from-app-only', `${specifier}: only ${REGISTRATION_FILE} imports a profile`)
       }
     }
-    if (PURE_AREAS.has(area)) {
+    if (pure) {
       for (const name of [...facts.globals].sort()) {
         report('pure-globals', `${name}: the core has no DOM, clock, timer or randomness`)
       }

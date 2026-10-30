@@ -11,6 +11,10 @@ export interface BindingOverride {
   readonly pad?: readonly number[] | undefined
 }
 
+/**
+ * The player's input settings, kept in the game's settings as `input`: the profile, the per-action overrides
+ * and the touch mode.
+ */
 export interface InputSettings {
   readonly profile: string
   readonly overrides: Readonly<Record<string, BindingOverride>>

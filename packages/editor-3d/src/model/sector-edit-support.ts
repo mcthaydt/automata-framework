@@ -1,9 +1,10 @@
 // What the sector edits share (ED3D.3 step 5): the rules an id or a number must meet, how a changed list of sectors gets
 // back into the level, and the two checks an edit that adds or reshapes a sector passes before it answers: the engine
 // can build the level, and a new sector stands on no other. A refusal is a sentence for the person, never an exception.
+
+import { roundJsonNumber } from '@mcthaydt/automata-editor-kit/documents'
 import { sectorSelection } from '../checks/check'
 import { overlapProblems } from '../checks/overlap'
-import { roundJsonNumber } from '../codec/print'
 import { GeometryError, type LevelProfile } from '../profile/level-profile'
 import { type EditCorner, type EditSector, SectorAccessError } from '../profile/sector-access'
 import { type EditResult, ok, refuse } from './edit'

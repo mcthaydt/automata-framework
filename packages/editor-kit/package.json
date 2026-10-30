@@ -15,6 +15,7 @@
       "default": "./src/index.ts"
     },
     "./core": "./src/core/index.ts",
+    "./documents": "./src/documents/index.ts",
     "./fields": "./src/fields/index.ts",
     "./testing": "./src/testing/index.ts",
     "./tokens.css": "./src/tokens.css",
@@ -29,6 +30,7 @@
     "tokens": "node scripts/generate-tokens.ts"
   },
   "dependencies": {
+    "@decimalturn/toml-patch": "3.3.1",
     "@fontsource/ibm-plex-mono": "5.3.0",
     "@fontsource/ibm-plex-sans": "5.3.0",
     "@mcthaydt/automata-ui": "workspace:*",

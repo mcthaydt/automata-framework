@@ -10,12 +10,17 @@ import {
 
 export type { SettingsDef } from './migrate-settings.js'
 
+/** A game's settings value: read it, subscribe to changes, and update it (each update is saved). */
 export interface SettingsStore<S> {
   get(): S
   subscribe(listener: (value: S) => void): () => void
   update(change: (value: S) => S): void
 }
 
+/**
+ * The booted game's settings as a runtime service: its key and store, both undefined for a game without
+ * settings.
+ */
 export interface Settings {
   readonly key: string | undefined
   readonly store: SettingsStore<unknown> | undefined

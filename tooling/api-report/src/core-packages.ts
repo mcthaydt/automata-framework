@@ -1,6 +1,6 @@
 // The core packages an API report covers (PRODUCT spec §2 F6): every `packages/*` folder except extensions,
 // which are Automata Plus (PD-1) and versioned on their own. Entries are the source `exports` map, the one
-// the workspace resolves, so private packages (runtime, render-pixi) are covered before they publish.
+// the workspace resolves, so a private package (cli, the editors) is covered before it publishes.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 

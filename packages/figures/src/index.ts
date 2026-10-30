@@ -4,6 +4,7 @@
 // Part 3 (M3.5c): locomotion (`base()`, `moveDir`), stands, holds, hems, the pose clock and the hair spring.
 // Part 5 (M3.6a): `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits.
 // Part 6 (M3.6b): poses (`figure-pose` content), their canonical spelling, mirror, blend and checks.
+// Part 7 (M3.6c): clips (`figure-clip` content), eases, sampling, loop and stepped time, retime and markers.
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
 
 export { type Anchor, type AnchorKind, clearance } from './build/anchors'
@@ -11,7 +12,20 @@ export { type Built, build, type FigureLibrary } from './build/build'
 export type { BuiltMaterial } from './build/materials'
 
 export {
+  type ClipKey,
+  clipSchema,
+  type Ease,
+  type FigureClipDef,
+  MASK_GROUPS,
+  type MaskGroup,
+} from './clip/clip.schema'
+export { clipTime, markerTime, retime, smoothTime, stepTime } from './clip/clip-time'
+export { type ClipWarning, clipWarnings } from './clip/clip-warnings'
+export { easeAt } from './clip/ease'
+export { chestFrame, type PoseLibrary, sample } from './clip/sample'
+export {
   FIGURE_CONTENT,
+  figureClipContent,
   figureContent,
   figureGaitContent,
   figureHairContent,
@@ -112,7 +126,7 @@ export {
 export { type Decal, GROUP, type Mesh, type Part, type Weight } from './parts/mesh'
 export { FIGURE_PPM } from './parts/texels'
 export { applyPose } from './pose/apply-pose'
-export { blend } from './pose/blend'
+export { blend, blendAt } from './pose/blend'
 export { mirror } from './pose/mirror'
 export { type PoseDef, poseSchema } from './pose/pose.schema'
 export { figureReach, type PoseProblem, poseProblems, REFERENCE_SKELETON } from './pose/pose-checks'

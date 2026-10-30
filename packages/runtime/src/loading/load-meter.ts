@@ -1,7 +1,9 @@
 import { Duration, Effect } from 'effect'
 import { LoadStalled } from '../boot/boot-error.js'
 
+/** A download that makes no progress for this long, in ms, fails `LoadStalled`. */
 export const STALL_MS = 30_000
+/** After this long, in ms, a download still running is reported slow (the loader says so). */
 export const SLOW_MS = 8_000
 
 export interface GuardInfo {
@@ -10,6 +12,10 @@ export interface GuardInfo {
   readonly onSlow?: () => void
 }
 
+/**
+ * Watches downloads: `guard` fails a wait with `LoadStalled` after `STALL_MS` without progress, and calls its
+ * `onSlow` after `SLOW_MS`.
+ */
 export interface LoadMeter {
   progress(): void
   guard<A, E, R>(wait: Effect.Effect<A, E, R>, info: GuardInfo): Effect.Effect<A, E | LoadStalled, R>
