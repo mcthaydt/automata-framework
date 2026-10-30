@@ -2,8 +2,8 @@
 
 - **Spec:** [revised M3 spec](../specs/2026-10-18-m3-3d-characters-design.md) §4.2 (the contract, the lens, the default view, the follow, per-pixel turning, the heading as sim state, lock-on framing, "one owner for `camera-view`" amended 2026-10-30), §5 (view change, camera turn), §6 (the `camera-view` range row, the unknown active view row), §13 (D3-a, D3-i, D3-j), §15 (M3R-D11, M3R-D15).
 - **Task:** `M3.4b — render-pixi3d part 2` (02). Lane render3d. Stacked on M3.4a (`claude/3d-m3-4a-render3d`, PR #241).
-- **Status:** drafted 2026-10-30.
-- **Progress:** 0 of 10 steps.
+- **Status:** drafted, implemented and locally checked 2026-10-30; not CI verified, not merged, no Owner acceptance.
+- **Progress:** 10 of 10 steps.
 
 ## Why
 
@@ -33,7 +33,7 @@ Every 3D game needs the Owner's camera (24 mm, 25° down, 5 m back, turned freel
 
 ## Files
 
-- **Create (render-pixi3d):** `src/sim/{index,camera-view.schema,heading,stick-mapper,view-latch,camera-heading.component,camera-turn.command,camera-turn.system,camera-heading.plugin}.ts` + tests; `src/camera-view.ts` (pure entry) + test; `src/camera/{fov,camera-pose,angled-camera,camera-driver,camera-view.content}.ts` + tests; `src/testing/stick-sweep.ts`; `src/parity/stick-mapper.parity.test.ts`.
+- **Create (render-pixi3d):** `src/sim/{index,camera-view.schema,heading,stick-mapper,view-latch,camera-heading.component,camera-turn.command,camera-turn.system,camera-heading.plugin}.ts` + tests; `src/camera-view.ts` (pure entry) + test; `src/camera/{fov,camera-pose,angled-camera,camera-driver,camera-view.content}.ts` + tests; `src/testing/stick-sweep.ts`; `src/parity/{stick-mapper,camera-renderer}.parity.test.ts`.
 - **Modify:** `packages/render-pixi3d/{package.json,src/index.ts,src/render3d.extension.ts,src/renderer/create-pixi3d-renderer.ts}` (+ tests); `packages/editor-3d/{package.json,src/index.ts,src/index.test.ts,src/view/mesh/{follow-camera,heading}.ts}` and their tests; root `package.json` (`boundaries` gains `packages/render-pixi3d/src/sim`); `knip.jsonc` if the new entries need it; API reports, api-index, agent skills.
 
 ## Interfaces
@@ -74,23 +74,36 @@ export interface Pixi3dCameraOptions { views; initial; follow }   // Pixi3dOptio
 
 Each step starts with its failing test, run alone, with the failure reason recorded in the log.
 
-- [ ] **1. Plan.** This file (first commit).
-- [ ] **2. Schema (D3-j part 1).** Red: `camera-view.schema.test.ts`: an empty view parses to 25°, 5 m, 1.0 m, 0.18 s, `rotate: true`; 14.9°, 60.1°, 2.9 m and 12.1 m fail naming the field; bounds with `min` past `max` fail; `cameraView('hall')` carries the id. Green.
-- [ ] **3. Heading maths.** Red: `heading.test.ts` (the editor's cases moved: wrap, turn, degrees round trip, and `clampTurn`). Green.
-- [ ] **4. Stick mapper (D3-i).** Red: `stick-mapper.test.ts`: at every 1/64 turn and at 0, 1, 16,384 … 65,535, stick up gives `(sin h, cos h)` and right gives `(−cos h, sin h)` within one Q16.16 unit of `Math`'s value (the test may use `Math`; the module may not); centred gives `(0, 0)`; the sweep's hash equals the golden. Green.
-- [ ] **5. Latch and turn (D3-i).** Red: `view-latch.test.ts`: a turn of N changes the heading by exactly N, wrapping; ±8,192 clamp; `rotate: false` ignores it; entering a view with `yawDeg` sets the heading that tick; a view change with the stick held latches to the old heading, which holds at 90°, and lets go past 90° or when centred; a turn lets go and never latches; entering with the stick centred does not latch. Then the component, command, system and plugin (`camera-turn.system.test.ts` on a real sim: commands summed, clamped, wrapped, ignored under `rotate: false`). Boundaries root added; `pnpm boundaries` clean.
-- [ ] **6. Pure entry.** Red: `camera-view.test.ts`: `fovOf(24)` is 53.13°; the entry's module graph names no `pixi.js` or `@pixi/3d` (read its imports transitively). Green: `src/camera-view.ts`, `package.json` exports.
-- [ ] **7. The rig (D3-a, D3-j part 2).** Red: `camera-pose.test.ts` (eye 2.11 m up and 4.53 m back at the defaults; bounds clamp; frame bias at most 35% and inside the middle third; the 1.62 m figure fills ≥ 25% of the height at 16:9, 4:3 and 21:9 through `Camera3D.computeProjection`, the number recorded) and `angled-camera.test.ts` (on a real `Camera3D`: lens 24 mm in every view; activate ease reaches the view at 400 ms and not before, a cut or reduced motion at once; heading track the same frame; heading ease at 250 ms, reduced motion at once; a track to the eased target does not cancel; the follow lags and snaps first; an unknown view keeps the last and warns once). Green.
-- [ ] **8. Renderer wiring and content.** Red: `camera-driver.test.ts` (rows → activate cut then ease, heading ease on a `yawDeg` view, track otherwise, follow interpolated) and the extension test (content kind and plugin). Green: `Pixi3dOptions.camera`.
-- [ ] **9. Editor-3d migration.** Red: editor-3d `index.test.ts` asserts the moved names are no longer its exports and its follow camera takes `CameraView`. Green: imports from `@mcthaydt/automata-render-pixi3d/camera-view`; every editor-3d test passes.
-- [ ] **10. Parity and gates.** `stick-mapper.parity.test.ts` in Chromium, WebKit, Firefox gives the Node golden. `pnpm format`; `TURBO_FORCE=true pnpm check`; `pnpm build`; `pnpm api-report --update`, `pnpm api-report`; `pnpm api-index`; `pnpm agent-skills`; changesets (none expected: render-pixi3d and editor-3d are private); `pnpm --filter @mcthaydt/automata-render-pixi3d test:parity`; gitleaks over `origin/main..HEAD`. Push.
+- [x] **1. Plan.** This file (first commit).
+- [x] **2. Schema (D3-j part 1).** Red: `camera-view.schema.test.ts`: an empty view parses to 25°, 5 m, 1.0 m, 0.18 s, `rotate: true`; 14.9°, 60.1°, 2.9 m and 12.1 m fail naming the field; bounds with `min` past `max` fail; `cameraView('hall')` carries the id. Green.
+- [x] **3. Heading maths.** Red: `heading.test.ts` (the editor's cases moved: wrap, turn, degrees round trip, and `clampTurn`). Green.
+- [x] **4. Stick mapper (D3-i).** Red: `stick-mapper.test.ts`: at every 1/64 turn and at 0, 1, 16,384 … 65,535, stick up gives `(sin h, cos h)` and right gives `(−cos h, sin h)` within one Q16.16 unit of `Math`'s value (the test may use `Math`; the module may not); centred gives `(0, 0)`; the sweep's hash equals the golden. Green.
+- [x] **5. Latch and turn (D3-i).** Red: `view-latch.test.ts`: a turn of N changes the heading by exactly N, wrapping; ±8,192 clamp; `rotate: false` ignores it; entering a view with `yawDeg` sets the heading that tick; a view change with the stick held latches to the old heading, which holds at 90°, and lets go past 90° or when centred; a turn lets go and never latches; entering with the stick centred does not latch. Then the component, command, system and plugin (`camera-turn.system.test.ts` on a real sim: commands summed, clamped, wrapped, ignored under `rotate: false`). Boundaries root added; `pnpm boundaries` clean.
+- [x] **6. Pure entry.** Red: `camera-view.test.ts`: `fovOf(24)` is 53.13°; the entry's module graph names no `pixi.js` or `@pixi/3d` (read its imports transitively). Green: `src/camera-view.ts`, `package.json` exports.
+- [x] **7. The rig (D3-a, D3-j part 2).** Red: `camera-pose.test.ts` (eye 2.11 m up and 4.53 m back at the defaults; bounds clamp; frame bias at most 35% and inside the middle third; the 1.62 m figure fills ≥ 25% of the height at 16:9, 4:3 and 21:9 through `Camera3D.computeProjection`, the number recorded) and `angled-camera.test.ts` (on a real `Camera3D`: lens 24 mm in every view; activate ease reaches the view at 400 ms and not before, a cut or reduced motion at once; heading track the same frame; heading ease at 250 ms, reduced motion at once; a track to the eased target does not cancel; the follow lags and snaps first; an unknown view keeps the last and warns once). Green.
+- [x] **8. Renderer wiring and content.** Red: `camera-driver.test.ts` (rows → activate cut then ease, heading ease on a `yawDeg` view, track otherwise, follow interpolated) and the extension test (content kind and plugin). Green: `Pixi3dOptions.camera`.
+- [x] **9. Editor-3d migration.** Red: editor-3d `index.test.ts` asserts the moved names are no longer its exports and its follow camera takes `CameraView`. Green: imports from `@mcthaydt/automata-render-pixi3d/camera-view`; every editor-3d test passes.
+- [x] **10. Parity and gates.** `stick-mapper.parity.test.ts` in Chromium, WebKit, Firefox gives the Node golden. `pnpm format`; `TURBO_FORCE=true pnpm check`; `pnpm build`; `pnpm api-report --update`, `pnpm api-report`; `pnpm api-index`; `pnpm agent-skills`; changesets (none expected: render-pixi3d and editor-3d are private); `pnpm --filter @mcthaydt/automata-render-pixi3d test:parity`; gitleaks over `origin/main..HEAD`. Push.
 
 ## Gates
 
 - Selected: as step 10.
 - Not here: Firefox WebGL (headless Firefox has none here; the mapper's parity is maths and runs there), the GPU runner, S7-Q10's legibility numbers (M3.1b), the golden replay with the heading (M3.7a, B-a), the occluders (M3.4c).
 
+## Findings for the Owner
+
+- **The default view frames a 1.62 m figure at 28.6% of the frame's height**, measured through `@pixi/3d`'s own projection (`Camera3D.computeProjection`) at 16:9, 4:3 and 21:9 (the vertical field is fixed, so the share is the same at every aspect). The spec's "about 29%" is the flat estimate (1.62 × cos 25° / 5 = 29.4%); D3-j's floor of 25% holds. S7-Q10 has not reported yet (M3.1b, GPU runner), so its number is still to compare.
+- **M4.12's `turnUnitsFromPixels` is not merged** (PR #204), so runtime's `TURN_UNITS_PER_TURN` and `MAX_TURN_UNITS_PER_STEP` there will be a second spelling of 65,536 and 8,192 when it lands. Core may not import an extension, so runtime cannot take them from `render-pixi3d/sim`; the sim's numbers (here) are the contract the replay stores, and runtime's are the input layer's clamp. Worth one line in M4.12's PR pointing at `@mcthaydt/automata-render-pixi3d/sim`'s `TURN_UNITS`/`MAX_CAMERA_TURN` as the owner.
+- **editor-3d's `dragTurn` stays** (an editor tool's unclamped drag); when M4.12 merges it can call `turnUnitsFromPixels`.
+- **Root `package.json`** gains one path in `boundaries` (`packages/render-pixi3d/src/sim`): the ship lane's file, a one-path additive change.
+
 ## Execution log
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
+| 2026-10-30 | 1 | `4bce175` | |
+| 2026-10-30 | 2–5 | `1e1eec5` | Each red on "Cannot find module" first. Schema 10 of 10; heading 6 of 6; mapper 6 of 6 (the sweep golden `18d8cbc553b6c30d` recorded from Node on its first run, then checked in the browsers); latch 16 of 16; system on a real sim 5 of 5. `pnpm boundaries` covers the new root: a probe file with `Math.sin` there was reported (`math-member`), then removed. |
+| 2026-10-30 | 6–7 | `a7922d8` | Pure entry 3 of 3 (module graph: `zod` only). Pose 9 of 9; rig 16 of 16 on a real `Camera3D`. First run: 4 failed: the ease test's "not yet" check at 0.249 of 0.25 s was within 4e-5 of the end (test fixed to check at 0.225 s), and the figure share measured 28.6%, not the spec's flat 29.4% (recorded, finding above). |
+| 2026-10-30 | 8 | `b5c8a08` | Driver 8 of 8 (first run 1 failed: the test drew no frame before the second tick, so the first draw was the cut; test fixed). Extension 3 of 3. Renderer parity red in Chromium and WebKit (`renderer.camera` undefined); green after the wiring. First green attempt failed in both with `RendererUnavailable` after "Vite unexpectedly reloaded a test" (a dependency optimisation on the new `@mcthaydt/automata-content` import); the rerun passed, and every later run did. |
+| 2026-10-30 | 9 | `771ac7a` | editor-3d red: 2 failing (`TURN_UNITS`, `CAMERA_DEFAULTS` still exported). Green: 2,373 of 2,373. |
+| 2026-10-30 | 10 | `0515b38` | `pnpm format`; `TURBO_FORCE=true pnpm check` first run failed only on the API report (expected), then exit 0 (35 of 35; lint, typecheck, boundaries, style, knip, unit). `pnpm build` 12 of 12; `pnpm api-report --update` (render-pixi3d: `.`, `./camera-view`, `./sim`); `pnpm api-index` (no cheatsheet change); `pnpm agent-skills` current; no changeset (render-pixi3d and editor-3d are private); `changeset status` and `check-changesets` 0 problems. Parity `render-pixi3d`: stick sweep equal in Chromium, WebKit and Firefox; camera renderer in Chromium and WebKit (Firefox has no WebGL here: skipped). `pnpm build:examples` and the focused `render3d-meshes` e2e (`examples`, `examples-webkit`, `CI=1`): 4 passed with the extension's new content kind and plugin. gitleaks over `origin/main..HEAD`: no leaks. |
