@@ -98,6 +98,52 @@ describe('vite build', () => {
     expect(readFileSync(join(root, 'content/generated/content.hash'), 'utf8')).toBe(`${hash}\n`)
   }, 90_000)
 
+  // Vite inlines an asset under `build.assetsInlineLimit` (4 kB by default) as a `data:` URL. Pixi's loader fetches
+  // that URL and Ruken's CSP (`connect-src`) refuses it, so the asset never loads (DX.5a; the examples' #142).
+  describe('a small asset', () => {
+    const TINY_PNG_BYTES = 278 // the size of the sprite sheet that drew nothing in the examples (#142)
+
+    const buildWithAsset = (root: string, buildOptions: Record<string, unknown> = {}) => {
+      writeFileSync(join(root, 'tiny.png'), new Uint8Array(TINY_PNG_BYTES).fill(7))
+      writeFileSync(
+        join(root, 'main.js'),
+        "import { contentHash } from 'virtual:automata/content'\nconsole.log(contentHash, new URL('./tiny.png', import.meta.url).href)\n",
+      )
+      return build({
+        root,
+        configFile: false,
+        logLevel: 'silent',
+        plugins: [automataContent(options(root))],
+        build: {
+          write: false,
+          minify: false,
+          rolldownOptions: { input: join(root, 'main.js') },
+          ...buildOptions,
+        },
+      })
+    }
+
+    const outputOf = async (built: ReturnType<typeof build>) => {
+      const results = await built
+      return (Array.isArray(results) ? results : [results]).flatMap((result) =>
+        'output' in result ? result.output : [],
+      )
+    }
+
+    it('is emitted as a file, never inlined as a data: URL the CSP refuses to fetch', async () => {
+      const output = await outputOf(buildWithAsset(copyFixture('valid')))
+      const code = output.map((chunk) => ('code' in chunk ? chunk.code : '')).join('\n')
+      expect(code.includes('data:image/png'), 'the PNG was inlined as a data: URL').toBe(false)
+      expect(output.filter((chunk) => chunk.fileName.endsWith('.png'))).toHaveLength(1)
+    }, 90_000)
+
+    it("keeps the game's own assetsInlineLimit", async () => {
+      const output = await outputOf(buildWithAsset(copyFixture('valid'), { assetsInlineLimit: 4096 }))
+      const code = output.map((chunk) => ('code' in chunk ? chunk.code : '')).join('\n')
+      expect(code.includes('data:image/png'), 'the PNG was emitted as a file').toBe(true)
+    }, 90_000)
+  })
+
   it('fails on a broken file, naming every diagnostic', async () => {
     const root = copyFixture('valid')
     editFile(root, 'songs/dusk-run.toml', (text) => `${text}tempoDrift = 3\n`)

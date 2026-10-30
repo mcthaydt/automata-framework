@@ -804,7 +804,9 @@ function snakeKey(value: string): string;
 The Vite plugin that compiles content and serves it as `virtual:automata/content`. It builds when Vite
 starts and on every save in dev, with the same build as `automata-content build`. A `vite build` with
 content errors fails; a dev server keeps serving the last good content and reports the diagnostics through
-Vite's logger and the `automata:content-error` event (`automata:content` after a good save).
+Vite's logger and the `automata:content-error` event (`automata:content` after a good save). It also sets
+`build.assetsInlineLimit: 0` when the game's config leaves it unset, so no asset becomes a `data:` URL that Ruken's
+CSP refuses to fetch.
 
 ```ts
 function automataContent(pluginOptions?: AutomataContentOptions): Plugin;
@@ -1224,6 +1226,11 @@ the path, except `exists`, which cannot fail.
 ```ts
 interface FilesService {
   readText(path: string): Effect.Effect<string, FileError>;
+  /**
+   * The file's bytes exactly as they are on disk, for binary inputs such as images: reading them as text
+   * would replace every byte that is not valid UTF-8. The array owns its bytes (it is not a Node `Buffer`).
+   */
+  readBytes(path: string): Effect.Effect<Uint8Array, FileError>;
   /** Writes UTF-8 text, creating parent folders. */
   writeText(path: string, text: string): Effect.Effect<void, FileError>;
   exists(path: string): Effect.Effect<boolean>;

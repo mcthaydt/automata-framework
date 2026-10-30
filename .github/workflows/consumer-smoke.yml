@@ -45,5 +45,8 @@ jobs:
           node-version-file: .nvmrc
           cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
       - run: pnpm install --frozen-lockfile
+      # The smoke boots Chromium (DX.2a). A no-op once the pinned browser is in the runner's cache; on a clean machine
+      # it fetches it here (Owner, 2026-10-30: "You can do all 3 as well").
+      - run: pnpm exec playwright install chromium-headless-shell
       - run: pnpm build
       - run: node tooling/consumer-smoke/src/run.ts --from packs

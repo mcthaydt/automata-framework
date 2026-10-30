@@ -7,5 +7,10 @@
   },
   "include": ["main.ts", "src/**/*.ts"],
   // These read Node-only files (ship.config.ts, the palette file, the game's sources); tsconfig.node.json checks them.
-  "exclude": ["src/ship-config.test.ts", "src/art/art.test.ts", "src/plumbing.test.ts"]
+  "exclude": [
+    "src/ship-config.test.ts",
+    "src/vite-config.test.ts",
+    "src/art/art.test.ts",
+    "src/plumbing.test.ts"
+  ]
 }

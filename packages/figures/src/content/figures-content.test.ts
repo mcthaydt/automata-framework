@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_RIG_LIMITS } from '../library/rig-limits.schema'
 import { swatchColourProblems } from '../library/swatch-colours'
 import { compileFixture, FIXTURE_ROOT } from '../testing/compile-fixture'
+import { FIXTURE_POSE_IDS } from '../testing/fixture-poses'
 import { KEEPER_SLIDERS, WICK_SLIDERS } from '../testing/fixture-sliders'
 
 const fixtureText = (file: string): string => readFileSync(join(FIXTURE_ROOT, file), 'utf8')
@@ -42,6 +43,7 @@ describe('the fixture figures and libraries compile as content', () => {
     expect(Object.keys(data['figure-item'] ?? {})).toHaveLength(3)
     expect(Object.keys(data['figure-stand'] ?? {})).toHaveLength(7)
     expect(Object.keys(data['figure-rig'] ?? {})).toEqual(['default'])
+    expect(Object.keys(data['figure-pose'] ?? {}).sort()).toEqual([...FIXTURE_POSE_IDS])
     // FigureBuilder's 56 swatches and Wick's six.
     expect(Object.keys(data['figure-swatch'] ?? {})).toHaveLength(62)
   })

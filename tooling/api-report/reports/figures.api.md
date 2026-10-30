@@ -50,6 +50,15 @@ function apply(m: M, p: V3): V3;
 function applyDir(m: M, v: V3): V3;
 ```
 
+### `applyPose` (function)
+
+```ts
+function applyPose(skeleton: Skeleton, base: Pose, pose: PoseDef): {
+    base: Pose;
+    targets: Targets;
+};
+```
+
 ### `Apron` (interface)
 
 ```ts
@@ -93,6 +102,12 @@ interface Belt {
 }
 ```
 
+### `blend` (function)
+
+```ts
+function blend(a: PoseDef, b: PoseDef, t: number, context?: SpaceContext): PoseDef;
+```
+
 ### `Bomber` (interface)
 
 ```ts
@@ -132,6 +147,12 @@ interface BuiltMaterial {
     readonly flat?: boolean;
     readonly shade?: number;
 }
+```
+
+### `canonicalPose` (function)
+
+```ts
+function canonicalPose(pose: PoseDef): PoseDef;
 ```
 
 ### `Cap` (interface)
@@ -408,6 +429,18 @@ interface FigureLibrary {
     readonly headwear: Readonly<Record<string, Headwear>>;
     readonly items: Readonly<Record<string, ItemDef>>;
 }
+```
+
+### `figurePoseContent` (const)
+
+```ts
+const figurePoseContent: ContentSchemaDef<'figure-pose'>;
+```
+
+### `figureReach` (function)
+
+```ts
+function figureReach(s: Skeleton): number;
 ```
 
 ### `figureRigContent` (const)
@@ -950,6 +983,12 @@ interface Mesh {
 }
 ```
 
+### `mirror` (function)
+
+```ts
+function mirror(pose: PoseDef): PoseDef;
+```
+
 ### `mmul` (function)
 
 ```ts
@@ -1036,10 +1075,52 @@ interface Pose {
 }
 ```
 
+### `PoseDef` (interface)
+
+```ts
+interface PoseDef {
+    readonly about?: string | undefined;
+    readonly effectors: Readonly<Partial<Record<EffectorId, EffectorTarget>>>;
+    readonly poles?: Readonly<Partial<Record<PoleId, PoleTarget>>> | undefined;
+    readonly fk?: Readonly<Partial<Record<Joint, Vec3>>> | undefined;
+    readonly root?: {
+        readonly pos?: Vec3 | undefined;
+        readonly yaw?: number | undefined;
+    } | undefined;
+}
+```
+
+### `PoseProblem` (interface)
+
+```ts
+interface PoseProblem {
+    readonly path: readonly (string | number)[];
+    readonly message: string;
+}
+```
+
+### `poseProblems` (function)
+
+```ts
+function poseProblems(pose: PoseDef, skeleton?: Skeleton): PoseProblem[];
+```
+
+### `poseSchema` (const)
+
+```ts
+const poseSchema: z.ZodType<PoseDef>;
+```
+
 ### `position` (const)
 
 ```ts
 const position: (m: M) => V3;
+```
+
+### `printPose` (function)
+
+```ts
+function printPose(pose: PoseDef): string;
 ```
 
 ### `Puffer` (interface)
@@ -1101,6 +1182,12 @@ interface Reach {
     readonly ok: boolean;
     readonly error: number;
 }
+```
+
+### `REFERENCE_SKELETON` (const)
+
+```ts
+const REFERENCE_SKELETON: Skeleton;
 ```
 
 ### `restPose` (function)
@@ -1171,6 +1258,12 @@ interface Rope {
 
 ```ts
 const rotationOf: (m: M) => R3;
+```
+
+### `roundPoseNumber` (function)
+
+```ts
+function roundPoseNumber(value: number): number;
 ```
 
 ### `scale` (const)
@@ -1338,6 +1431,14 @@ interface SolveReport {
 
 ```ts
 type Space = 'root' | 'chest';
+```
+
+### `SpaceContext` (interface)
+
+```ts
+interface SpaceContext {
+    readonly chest?: M | undefined;
+}
 ```
 
 ### `Stand` (interface)

@@ -1,0 +1,13 @@
+# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
+
+about = "Pointing ahead with the right hand at shoulder height, the head turned to it, the body turned a little toward the left."
+
+[effectors.handR]
+pos = [ -0.16, 1.3, 0.52 ]
+rot = [ -90, 0, 0 ]
+
+[effectors.head]
+rot = [ 0, -10, 0 ]
+
+[root]
+yaw = 15
