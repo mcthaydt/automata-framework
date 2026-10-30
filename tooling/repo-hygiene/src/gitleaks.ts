@@ -3,7 +3,7 @@
 // release (gitleaks_8.30.1_checksums.txt), so a tampered or truncated download never runs.
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 export const GITLEAKS_VERSION = '8.30.1'
@@ -45,8 +45,8 @@ export async function verifiedDownload(url: string, sha256: string, fetch: Fetch
 export interface EnsureOptions {
   /** Holds one folder per version, `<cacheDir>/<version>/gitleaks`. */
   readonly cacheDir: string
-  readonly platform: string
-  readonly arch: string
+  /** The release tarball to install when the cache has no binary: `gitleaksAsset` for this machine. */
+  readonly asset: GitleaksAsset
   readonly fetch: Fetch
 }
 
@@ -55,14 +55,47 @@ export async function ensureGitleaks(options: EnsureOptions): Promise<string> {
   const dir = join(options.cacheDir, GITLEAKS_VERSION)
   const binary = join(dir, 'gitleaks')
   if (existsSync(binary)) return binary
-  const asset = gitleaksAsset(options.platform, options.arch)
-  const tarball = await verifiedDownload(asset.url, asset.sha256, options.fetch)
-  mkdirSync(dir, { recursive: true })
-  const tarballPath = join(dir, 'gitleaks.tar.gz')
-  writeFileSync(tarballPath, tarball)
-  execFileSync('tar', ['-xzf', tarballPath, '-C', dir, 'gitleaks'])
-  chmodSync(binary, 0o755)
+  const tarball = await verifiedDownload(options.asset.url, options.asset.sha256, options.fetch)
+  installBinary(dir, tarball)
   return binary
+}
+
+/**
+ * Unpacks the tarball's `gitleaks` to `<dir>/gitleaks` so that the path holds either nothing or a whole,
+ * executable binary, never one being written.
+ *
+ * Several processes can install the same cold cache at once (vitest runs two test files that need the binary in
+ * separate workers, and `ensureGitleaks` only checks that the binary exists), and an install can stop partway
+ * (tar failing, or the process killed). So each install writes and extracts in a folder of its own, beside the
+ * binary so the two share a filesystem, and then renames the finished binary into place, which is atomic. When
+ * two installs both finish, the later rename swaps in the same bytes; a process already running the earlier
+ * binary keeps its file. Nothing executes or extracts a file another process is still writing (2026-10-30: a
+ * shared tarball path gave "gzip: stdin: unexpected end of file", and a shared binary path ETXTBSY).
+ */
+function installBinary(dir: string, tarball: Uint8Array): void {
+  mkdirSync(dir, { recursive: true })
+  const staging = mkdtempSync(join(dir, '.install-'))
+  try {
+    const tarballPath = join(staging, 'gitleaks.tar.gz')
+    writeFileSync(tarballPath, tarball)
+    execFileSync('tar', ['-xzf', tarballPath, '-C', staging, 'gitleaks'])
+    chmodSync(join(staging, 'gitleaks'), 0o755)
+    renameSync(join(staging, 'gitleaks'), join(dir, 'gitleaks'))
+  } finally {
+    rmSync(staging, { recursive: true, force: true })
+  }
+}
+
+/**
+ * The pinned binary in the repository's own cache, `<root>/node_modules/.cache/gitleaks`, downloaded with the
+ * global `fetch` the first time. `pnpm secrets` and the tests that run gitleaks share it.
+ */
+export async function ensureRepoGitleaks(root: string): Promise<string> {
+  return ensureGitleaks({
+    cacheDir: join(root, 'node_modules/.cache/gitleaks'),
+    asset: gitleaksAsset(process.platform, process.arch),
+    fetch: (url) => fetch(url),
+  })
 }
 
 /**

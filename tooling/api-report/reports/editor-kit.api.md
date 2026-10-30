@@ -2159,6 +2159,380 @@ type WriteResult = {
 };
 ```
 
+## `./documents`
+
+### `BLOCKOUT_NUMBERS` (const)
+
+```ts
+const BLOCKOUT_NUMBERS: NumberStyle;
+```
+
+### `ContentDocument` (interface)
+
+```ts
+interface ContentDocument {
+    readonly path: string;
+    readonly format: 'toml' | 'json';
+    readonly text: string;
+    value(): unknown;
+    literals(): readonly DocumentLiteral[];
+    comments(keyPath: KeyPath): DocumentComments;
+    edit(edits: readonly ContentEdit[]): EditResult;
+}
+```
+
+### `ContentEdit` (type)
+
+```ts
+type ContentEdit = {
+    readonly keyPath: KeyPath;
+    readonly expected: unknown;
+    readonly set: unknown;
+} | {
+    readonly keyPath: KeyPath;
+    readonly insert: unknown;
+    readonly at?: number;
+} | {
+    readonly keyPath: KeyPath;
+    readonly remove: true;
+};
+```
+
+### `DocumentComments` (interface)
+
+```ts
+interface DocumentComments {
+    readonly before?: string;
+    readonly trailing?: string;
+}
+```
+
+### `DocumentLiteral` (interface)
+
+```ts
+interface DocumentLiteral {
+    readonly keyPath: KeyPath;
+    readonly span: readonly [number, number];
+    readonly text: string;
+}
+```
+
+### `DocumentSyntaxError` (class)
+
+```ts
+class DocumentSyntaxError extends Error {
+    readonly line: number | undefined;
+    readonly column: number | undefined;
+    constructor(message: string, line?: number, column?: number);
+}
+```
+
+### `EditRefusalReason` (type)
+
+```ts
+type EditRefusalReason = 'expected-mismatch' | 'unwritable-value' | 'invalid-text' | 'verify-failed';
+```
+
+### `EditResult` (type)
+
+```ts
+type EditResult = {
+    readonly ok: true;
+    readonly document: ContentDocument;
+    readonly changed: readonly (readonly [number, number])[];
+} | {
+    readonly ok: false;
+    readonly keyPath: KeyPath;
+    readonly reason: EditRefusalReason;
+    readonly message: string;
+};
+```
+
+### `EXACT_NUMBERS` (const)
+
+```ts
+const EXACT_NUMBERS: NumberStyle;
+```
+
+### `formatExactNumber` (function)
+
+```ts
+function formatExactNumber(value: number): string;
+```
+
+### `formatJsonNumber` (function)
+
+```ts
+function formatJsonNumber(value: number): string;
+```
+
+### `formatJsonScalar` (function)
+
+```ts
+function formatJsonScalar(value: JsonScalar, numbers?: NumberStyle): string;
+```
+
+### `indentAt` (const)
+
+```ts
+const indentAt: (text: string, position: number) => string;
+```
+
+### `insertElement` (function)
+
+```ts
+function insertElement(text: string, path: JsonPath, value: JsonValue, index?: number, numbers?: NumberStyle): string;
+```
+
+### `insertMember` (function)
+
+```ts
+function insertMember(text: string, path: JsonPath, key: string, value: JsonValue, placement?: MemberPlacement, numbers?: NumberStyle): string;
+```
+
+### `JsonKind` (type)
+
+```ts
+type JsonKind = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null';
+```
+
+### `JsonLiteral` (interface)
+
+```ts
+interface JsonLiteral {
+    readonly path: JsonPath;
+    readonly kind: 'string' | 'number' | 'boolean' | 'null';
+    readonly span: Span;
+    readonly text: string;
+    readonly value: string | number | boolean | null;
+}
+```
+
+### `JsonNode` (interface)
+
+```ts
+interface JsonNode {
+    readonly path: JsonPath;
+    readonly kind: JsonKind;
+    readonly span: Span;
+    readonly keySpan: Span | undefined;
+    readonly children: readonly JsonNode[];
+}
+```
+
+### `JsonPath` (type)
+
+```ts
+type JsonPath = readonly (string | number)[];
+```
+
+### `JsonScalar` (type)
+
+```ts
+type JsonScalar = string | number | boolean | null;
+```
+
+### `JsonScanError` (class)
+
+```ts
+class JsonScanError extends Error {
+    readonly offset: number;
+    constructor(message: string, offset: number);
+}
+```
+
+### `JsonShapeError` (class)
+
+```ts
+class JsonShapeError extends Error {
+    readonly path: JsonPath;
+    constructor(message: string, path?: JsonPath);
+}
+```
+
+### `JsonValue` (type)
+
+```ts
+type JsonValue = string | number | boolean | null | JsonValue[] | {
+    [key: string]: JsonValue;
+};
+```
+
+### `JsonWriteError` (class)
+
+```ts
+class JsonWriteError extends Error {
+}
+```
+
+### `KeyPath` (type)
+
+```ts
+type KeyPath = readonly (string | number)[];
+```
+
+### `Layout` (interface)
+
+```ts
+interface Layout {
+    readonly unit: string;
+    readonly expandsEverything: boolean;
+    readonly bracesSpaced: boolean;
+}
+```
+
+### `lineStart` (const)
+
+```ts
+const lineStart: (text: string, position: number) => number;
+```
+
+### `MemberPlacement` (interface)
+
+```ts
+interface MemberPlacement {
+    readonly before?: readonly string[];
+    readonly after?: readonly string[];
+    readonly like?: JsonPath;
+}
+```
+
+### `NumberStyle` (interface)
+
+```ts
+interface NumberStyle {
+    readonly round: (value: number) => number;
+    readonly format: (value: number) => string;
+}
+```
+
+### `openDocument` (function)
+
+```ts
+function openDocument(path: string, text: string): ContentDocument;
+```
+
+### `PACK_WIDTH` (const)
+
+```ts
+const PACK_WIDTH = 120;
+```
+
+### `patchJson` (function)
+
+```ts
+function patchJson(text: string, before: unknown, after: unknown, rules: PatchRules): PatchResult;
+```
+
+### `PatchRefusalReason` (type)
+
+```ts
+type PatchRefusalReason = 'unwritable-value' | 'invalid-text' | 'before-mismatch' | 'verify-failed';
+```
+
+### `PatchResult` (type)
+
+```ts
+type PatchResult = {
+    readonly ok: true;
+    readonly text: string;
+} | {
+    readonly ok: false;
+    readonly path: JsonPath;
+    readonly reason: PatchRefusalReason;
+    readonly detail: string;
+};
+```
+
+### `PatchRules` (interface)
+
+```ts
+interface PatchRules {
+    readonly idArrays: readonly string[];
+    readonly memberOrder: (path: JsonPath) => readonly string[] | undefined;
+    readonly numbers?: NumberStyle;
+}
+```
+
+### `patchToml` (function)
+
+```ts
+function patchToml(text: string, before: unknown, after: unknown): PatchResult;
+```
+
+### `pathKey` (const)
+
+```ts
+const pathKey: (path: JsonPath) => string;
+```
+
+### `readLayout` (function)
+
+```ts
+function readLayout(text: string): Layout;
+```
+
+### `removeElement` (function)
+
+```ts
+function removeElement(text: string, path: JsonPath, index: number): string;
+```
+
+### `removeMember` (function)
+
+```ts
+function removeMember(text: string, path: JsonPath, key: string): string;
+```
+
+### `replaceValue` (function)
+
+```ts
+function replaceValue(text: string, path: JsonPath, value: JsonValue, numbers?: NumberStyle): string;
+```
+
+### `roundJsonNumber` (const)
+
+```ts
+const roundJsonNumber: (value: number) => number;
+```
+
+### `sameLine` (const)
+
+```ts
+const sameLine: (text: string, a: number, b: number) => boolean;
+```
+
+### `Scan` (interface)
+
+```ts
+interface Scan {
+    readonly root: JsonNode;
+    node(path: JsonPath): JsonNode | undefined;
+    readonly literals: readonly JsonLiteral[];
+}
+```
+
+### `scan` (function)
+
+```ts
+function scan(text: string): Scan;
+```
+
+### `setMember` (function)
+
+```ts
+function setMember(text: string, path: JsonPath, key: string, value: JsonValue, placement?: MemberPlacement): string;
+```
+
+### `Span` (interface)
+
+```ts
+interface Span {
+    readonly start: number;
+    readonly end: number;
+}
+```
+
 ## `./fields`
 
 ### `checkEntityDef` (function)
