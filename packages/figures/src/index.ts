@@ -62,6 +62,7 @@ export { blend } from './pose/blend'
 export { mirror } from './pose/mirror'
 export { type PoseDef, poseSchema } from './pose/pose.schema'
 export { figureReach, type PoseProblem, poseProblems, REFERENCE_SKELETON } from './pose/pose-checks'
+export type { SpaceContext } from './pose/pose-space'
 export { canonicalPose, printPose, roundPoseNumber } from './pose/pose-spelling'
 export {
   armChain,

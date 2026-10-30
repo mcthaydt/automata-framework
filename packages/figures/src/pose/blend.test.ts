@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { lerp3 } from '../math/math'
+import { apply, applyDir, compose, lerp3, type M } from '../math/math'
 import { LIMBS } from '../solve/limbs'
 import { angleBetween, eulerDegrees, slerp } from '../solve/rotation'
 import type { Vec3 } from '../solve/targets'
@@ -86,10 +86,58 @@ describe('blend', () => {
       blend({ effectors: {}, poles: { elbowR: { dir: [0, -1, 0], space: 'chest' } } }, b, 0.5),
     ).toThrow(RangeError)
   })
+  it('blends a pair in different spaces in root space through a chest frame, when given one', () => {
+    const chest: M = compose(eulerDegrees([10, 25, -5]), [0.01, 1.2, 0.03])
+    const inChest: PoseDef = {
+      effectors: { handL: { pos: [0.15, -0.23, 0.3], space: 'chest' } },
+      poles: { elbowR: { dir: [-1, -1, 0], space: 'chest' } },
+    }
+    const inRoot: PoseDef = { effectors: { handL: { pos: [0.3, 1, 0.2] } } }
+    const mid = blend(inChest, inRoot, 0.25, { chest })
+    expect(mid.effectors.handL).toEqual({ pos: lerp3(apply(chest, [0.15, -0.23, 0.3]), [0.3, 1, 0.2], 0.25) })
+    // A pole only one pose sets, in chest space, blends from the default pole (root space) once converted.
+    expect(mid.poles?.elbowR).toEqual({
+      dir: lerp3(applyDir(chest, [-1, -1, 0]), [...LIMBS.handR.defaultPole], 0.25),
+    })
+    expect(() => blend(inChest, { effectors: {} }, 0.25)).toThrow(/elbowR.*chest frame/)
+  })
   it('clamps t to 0..1 and refuses a t that is not a number', () => {
     expect(blend(a, b, -1)).toEqual(a)
     expect(blend(a, b, 2)).toEqual(b)
     expect(() => blend(a, b, Number.NaN)).toThrow(RangeError)
+  })
+  it('blends turns at and near pitch ±90° without inventing yaw or roll (gimbal lock)', () => {
+    for (const rot of [
+      [-90, 20, 0],
+      [90, -40, 25],
+      [89.9999, 30, -10],
+      [-89.9999, -120, 45],
+    ] as Vec3[]) {
+      const p: PoseDef = { effectors: { head: { rot } } }
+      const mid = blend(p, p, 0.5).effectors.head?.rot
+      expectTurn(mid, eulerDegrees(rot))
+    }
+    const lock: PoseDef = { effectors: { head: { rot: [-90, 20, 0] } } }
+    expect(blend(lock, lock, 0.5).effectors.head?.rot?.map((v) => Math.round(v * 1e6) / 1e6)).toEqual([
+      -90, 20, 0,
+    ])
+  })
+  it('never writes -0', () => {
+    const zero: PoseDef = {
+      effectors: { handL: { pos: [0, 1, 0], rot: [0, 0, 0] } },
+      root: { pos: [0, 0, 0], yaw: 0 },
+    }
+    const negative: PoseDef = {
+      effectors: { handL: { pos: [-0, 1, -0], rot: [0, 0, 0] } },
+      root: { pos: [-0, 0, -0], yaw: -0 },
+    }
+    const numbers = (v: unknown): number[] =>
+      typeof v === 'number'
+        ? [v]
+        : typeof v === 'object' && v !== null
+          ? Object.values(v).flatMap(numbers)
+          : []
+    for (const n of numbers(blend(zero, negative, 0.5))) expect(Object.is(n, -0)).toBe(false)
   })
   it('gives a pose the schema accepts', () => {
     for (const t of [0.1, 0.5, 0.9]) expect(poseSchema.safeParse(blend(a, b, t)).success).toBe(true)

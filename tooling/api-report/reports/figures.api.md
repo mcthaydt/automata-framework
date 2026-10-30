@@ -62,7 +62,7 @@ function basis(x: V3, y: V3, z: V3): R3;
 ### `blend` (function)
 
 ```ts
-function blend(a: PoseDef, b: PoseDef, t: number): PoseDef;
+function blend(a: PoseDef, b: PoseDef, t: number, context?: SpaceContext): PoseDef;
 ```
 
 ### `canonicalPose` (function)
@@ -1204,6 +1204,14 @@ interface SolveReport {
 
 ```ts
 type Space = 'root' | 'chest';
+```
+
+### `SpaceContext` (interface)
+
+```ts
+interface SpaceContext {
+    readonly chest?: M | undefined;
+}
 ```
 
 ### `Stand` (interface)
