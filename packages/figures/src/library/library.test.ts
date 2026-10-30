@@ -49,6 +49,7 @@ describe('DEFAULT_RIG_LIMITS', () => {
   it('is a valid rig, the one a figure without `rig` gets even when the game has no figure-rig content', () => {
     expect(rigLimitsSchema.parse(DEFAULT_RIG_LIMITS)).toEqual(DEFAULT_RIG_LIMITS)
     expect(DEFAULT_RIG_LIMITS.knee).toEqual({ min: 0, max: 150 })
-    expect(DEFAULT_RIG_LIMITS.neck.yaw).toEqual({ min: -70, max: 70 })
+    // M3.6a split the spec's head turn (±70°) over the neck and the head.
+    expect(DEFAULT_RIG_LIMITS.neck.yaw).toEqual({ min: -35, max: 35 })
   })
 })

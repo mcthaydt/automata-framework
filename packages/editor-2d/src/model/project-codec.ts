@@ -30,7 +30,7 @@ export type DecodeResult =
   | { readonly ok: false; readonly issues: OpenIssue[] }
 
 /** A layer is at most this many cells on a side (ED2D-D13), checked before a grid is allocated. */
-const MAX_LAYER_CELLS = 1024
+export const MAX_LAYER_CELLS = 1024
 
 // -- decoding ----------------------------------------------------------------------------------------------------
 
