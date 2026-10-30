@@ -31,6 +31,13 @@ describe('findPixi3d', () => {
     ])
   })
 
+  it('reads inline scripts in an HTML page too (review of #241)', () => {
+    const page = `<script type="module">throw Error("${PIXI3D_MARKERS[0]}")</script>`
+    expect(findPixi3d(build({ 'index.html': page })).core).toEqual([
+      { file: 'index.html', marker: PIXI3D_MARKERS[0] },
+    ])
+  })
+
   it('reads scripts only: a marker in an image or a text file is not code', () => {
     expect(findPixi3d(build({ 'assets/a.txt': PIXI3D_MARKERS[0] ?? '' })).core).toEqual([])
   })
