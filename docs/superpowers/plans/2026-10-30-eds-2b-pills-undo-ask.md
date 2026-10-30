@@ -73,7 +73,7 @@ Each step: the test first, run it (`pnpm --filter @mcthaydt/automata-editor-suit
 
 ## Gates
 
-`pnpm format`; `TURBO_FORCE=true pnpm check`; kit and suite `test:unit` and `test:layout` (three browsers); `pnpm build`, `pnpm api-report --update` (the kit's `./ports` changes), `pnpm api-index` (`pnpm cheatsheet` if stale), `pnpm agent-skills`; a patch changeset only if editor-kit publishes (check `tooling/release`; the suite is private and must not be named); `pnpm changeset status --since=origin/main` and `node tooling/release/src/check-changesets.ts`.
+`pnpm format`; `TURBO_FORCE=true pnpm check`; kit and suite `test:unit` and `test:layout` (three browsers); `pnpm build`, `pnpm api-report --update` (the kit's `./ports` changes), `pnpm api-index` (`pnpm cheatsheet` if stale), `pnpm agent-skills`; no changeset (editor-kit and the suite are both private); `pnpm changeset status --since=origin/main` and `node tooling/release/src/check-changesets.ts`.
 
 ## Execution log
 
