@@ -81,18 +81,34 @@ function sourceFiles(dir: string): string[] {
   return files
 }
 
+/**
+ * Where Plus packages live: everything under `packages/`, and each workspace package under `tooling/` (a folder with
+ * its own package.json, such as the pipelines platform). Loose tooling scripts are not packages and are not scanned.
+ */
+function scannedRoots(root: string): string[] {
+  const roots: string[] = []
+  const packagesDir = join(root, 'packages')
+  if (existsSync(packagesDir)) roots.push(packagesDir)
+  const toolingDir = join(root, 'tooling')
+  if (existsSync(toolingDir))
+    for (const item of readdirSync(toolingDir, { withFileTypes: true }).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    ))
+      if (item.isDirectory() && existsSync(join(toolingDir, item.name, 'package.json')))
+        roots.push(join(toolingDir, item.name))
+  return roots
+}
+
 /** True when `specifier` names `name` itself or a path inside it. */
 const isIn = (specifier: string, name: string): boolean =>
   specifier === name || specifier.startsWith(`${name}/`)
 
-/** One message per core import outside the public entries, in every package under packages/: `file:line: …`. */
+/** One message per core import outside the public entries, in every Plus package (packages/ and tooling/ workspace packages): `file:line: …`. */
 export function coreImportFindings(root: string): string[] {
   const entries = coreEntries(root)
   const plusNames = [...plusPackageNames(root)]
-  const packagesDir = join(root, 'packages')
-  if (!existsSync(packagesDir)) return []
   const findings: string[] = []
-  for (const file of sourceFiles(packagesDir)) {
+  for (const file of scannedRoots(root).flatMap(sourceFiles)) {
     const where = relative(root, file)
     const isTest = TEST_FILE.test(file)
     for (const { specifier, line } of findImports(readFileSync(file, 'utf8'))) {

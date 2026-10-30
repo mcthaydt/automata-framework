@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - examples
+  - tooling/*
 # Same runtime as the framework (its docs/versions.md): pnpm runs scripts on this exact Node.
 useNodeVersion: 24.21.0
 saveExact: true
