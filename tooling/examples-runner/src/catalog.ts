@@ -20,6 +20,8 @@ export const CORE_MODULES: readonly string[] = [
   'ui',
   // The 3D runtime is free (M3R-D20): its examples are core, though its package stays unpublished while D-1 stands.
   'render3d',
+  // Procedural characters, drawn only by render3d, so private with it (M3R-D7) and core like it (M3 spec §5).
+  'figures',
 ]
 export const PLUS_MODULES: readonly string[] = ['physics', 'net', 'feel', 'post']
 
@@ -73,10 +75,14 @@ const SCHEMA_LANGUAGE = 'zod'
 const EXTENSION_PACKAGES: ReadonlySet<string> = new Set(['@mcthaydt/automata-physics'])
 /**
  * Extensions that stay private for now, whose entries examples may still import: `render-pixi3d` is built on the
- * closed `@pixi/3d` beta (D-1, M3 spec §4.8) and is published when Pixi 3D is. The website's playground leaves their
+ * closed `@pixi/3d` beta (D-1, M3 spec §4.8) and is published when Pixi 3D is; `figures` stays private while its
+ * only renderer does (M3R-D7). The website's playground leaves their
  * examples out (`playgroundCatalog`), because it is public.
  */
-const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set(['@mcthaydt/automata-render-pixi3d'])
+const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set([
+  '@mcthaydt/automata-render-pixi3d',
+  '@mcthaydt/automata-figures',
+])
 
 /** Whether an import names an unpublished extension's entry. */
 export const isUnpublishedExtension = (specifier: string): boolean =>

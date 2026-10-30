@@ -41,6 +41,9 @@ importers:
       '@mcthaydt/automata':
         specifier: workspace:*
         version: link:../packages/automata
+      '@mcthaydt/automata-figures':
+        specifier: workspace:*
+        version: link:../packages/figures
       '@mcthaydt/automata-render-pixi3d':
         specifier: workspace:*
         version: link:../packages/render-pixi3d
@@ -908,6 +911,9 @@ importers:
       '@mcthaydt/automata-content':
         specifier: workspace:*
         version: link:../content
+      '@mcthaydt/automata-figures':
+        specifier: workspace:*
+        version: link:../figures
       '@mcthaydt/automata-render-pixi':
         specifier: workspace:*
         version: link:../render-pixi
