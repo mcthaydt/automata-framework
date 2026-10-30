@@ -1,0 +1,34 @@
+{
+  "name": "@mcthaydt/automata-dev-tools",
+  "version": "0.0.0",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-plus.git",
+    "directory": "packages/dev-tools"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {},
+  "bin": {
+    "promote-evidence": "./src/bin/promote-evidence.ts",
+    "worktree-gc": "./src/bin/worktree-gc.ts"
+  },
+  "scripts": {
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "effect": "3.22.2",
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@mcthaydt/automata-node": "0.0.3"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-node": "0.0.3",
+    "@mcthaydt/evidence": "0.0.0",
+    "@types/node": "24.19.1",
+    "vitest": "5.0.3"
+  }
+}
