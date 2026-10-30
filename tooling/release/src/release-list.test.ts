@@ -9,12 +9,17 @@ import { publishablePackages, type WorkspacePackage, workspacePackages } from '.
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const published = publishablePackages(root)
 
+// DX.2a: runtime, render-pixi, game and the umbrella joined, so a game (and Automata Plus) can install them.
 const EXPECTED: readonly string[] = [
+  '@mcthaydt/automata',
   '@mcthaydt/automata-check-boundaries',
   '@mcthaydt/automata-content',
+  '@mcthaydt/automata-game',
   '@mcthaydt/automata-host',
   '@mcthaydt/automata-node',
   '@mcthaydt/automata-physics',
+  '@mcthaydt/automata-render-pixi',
+  '@mcthaydt/automata-runtime',
   '@mcthaydt/automata-ship',
   '@mcthaydt/automata-sim',
   '@mcthaydt/automata-testing',
@@ -22,6 +27,18 @@ const EXPECTED: readonly string[] = [
 ]
 
 const REGISTRY = 'https://npm.pkg.github.com'
+
+/** `.changeset/config.json`'s fixed groups: package names, or patterns where `*` matches any characters. */
+const changesets = JSON.parse(readFileSync(join(root, '.changeset/config.json'), 'utf8')) as {
+  fixed: readonly (readonly string[])[]
+}
+const fixedPatterns = changesets.fixed
+  .flat()
+  .map((pattern) => new RegExp(`^${pattern.split('*').map(escapeRegExp).join('.*')}$`))
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
+}
 
 /** Every file path a conditional export points at (`{ types, import, svelte }` or a plain string). */
 function targets(entry: unknown): string[] {
@@ -32,6 +49,17 @@ function targets(entry: unknown): string[] {
 
 /** `from './x'`, `import './x'` and `import('./x')`. */
 const RELATIVE_IMPORT = /(?:\bfrom\s*|\bimport\s*\(?\s*)['"](\.{1,2}\/[^'"]*)['"]/g
+
+/**
+ * The text of `code` without its comment lines (a line whose first characters are `*`, `/*` or `//`), so a doc
+ * comment's example (runtime's "`import * as m from './paraglide/messages.js'`", DX.2a) is not taken for an import.
+ * A multi-line import keeps its `} from '…'` line, which is code.
+ */
+const withoutCommentLines = (code: string): string =>
+  code
+    .split('\n')
+    .filter((line) => !/^\s*(?:\*|\/\*|\/\/)/.test(line))
+    .join('\n')
 
 const each = (test: (pkg: WorkspacePackage) => void) => () => {
   for (const pkg of published) test(pkg)
@@ -53,6 +81,32 @@ describe('the published packages', () => {
   it('share one version (the Changesets fixed group)', () => {
     expect(new Set(published.map((pkg) => pkg.manifest.version)).size).toBe(1)
   })
+
+  // `@mcthaydt/automata-*` does not match the umbrella `@mcthaydt/automata` (DX.2a): a package outside the group
+  // would be versioned on its own and leave the shared version.
+  it(
+    'are each in the Changesets fixed group',
+    each(({ manifest }) => {
+      expect(
+        fixedPatterns.some((pattern) => pattern.test(manifest.name)),
+        manifest.name,
+      ).toBe(true)
+    }),
+  )
+
+  // `./no-eval` is a game's first import, for its side effects only (AGENTS.md); with `sideEffects` an array, a
+  // bundler drops any import of a file the array does not name, so the published file must be named too.
+  it(
+    'keep the published no-eval entry a side effect',
+    each(({ manifest }) => {
+      const noEval = (manifest.publishConfig?.exports as Record<string, unknown> | undefined)?.['./no-eval']
+      const sideEffects = (manifest as { sideEffects?: boolean | readonly string[] }).sideEffects
+      if (noEval === undefined || !Array.isArray(sideEffects)) return
+      for (const target of targets(noEval).filter((file) => file.endsWith('.js'))) {
+        expect(sideEffects, manifest.name).toContain(target)
+      }
+    }),
+  )
 
   it(
     'never depend on a vendored file: tarball at runtime (D-8: Ruken code is bundled, never referenced)',
@@ -136,6 +190,12 @@ function filesBelow(dir: string): string[] {
     .map((entry) => join(entry.parentPath, entry.name))
 }
 
+/**
+ * A Svelte rune call: `$state(`, `$state.raw(`, `$derived(`, `$effect(`, `$props(`. Only a module named
+ * `*.svelte.js` is compiled by a game's Svelte plugin, so a rune anywhere else throws when the game runs.
+ */
+const RUNE_CALL = /(?<![\w$])\$(?:state|derived|effect|props|bindable|inspect|host)(?:\.\w+)?\(/
+
 /** An import or re-export of a Ruken package: `from '@ruken/…'`, `import('@ruken/…')`, `import '@ruken/…'`. */
 const RUKEN_SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)['"]@ruken\//
 
@@ -176,13 +236,28 @@ describe.skipIf(process.env.AF_CHECK_DIST !== '1')('the built packages', () => {
     }),
   )
 
+  // DX.2a: runtime's rune modules (`boot/page-layers.svelte.ts`, `display/display-policy.svelte.ts`) must stay
+  // files of their own; a bundle that inlines them into `index.js` builds, but the game fails at boot.
+  it(
+    'keep every Svelte rune in a *.svelte.js module, the only JavaScript a game compiles with Svelte',
+    each(({ dir, manifest }) => {
+      const offenders = filesBelow(join(root, dir, 'dist'))
+        .filter((file) => file.endsWith('.js') && !file.endsWith('.svelte.js'))
+        .filter((file) => !file.includes('/dist/vendor/'))
+        .filter((file) => RUNE_CALL.test(readFileSync(file, 'utf8')))
+      expect(offenders, manifest.name).toEqual([])
+    }),
+  )
+
   it(
     "name a file in every relative import, as Node's loader and nodenext types require",
     each(({ dir, manifest }) => {
       const unresolved: string[] = []
       for (const file of filesBelow(join(root, dir, 'dist'))) {
         if (!/\.(js|d\.ts)$/.test(file) || file.includes('/dist/vendor/')) continue
-        for (const [, specifier] of readFileSync(file, 'utf8').matchAll(RELATIVE_IMPORT)) {
+        for (const [, specifier] of withoutCommentLines(readFileSync(file, 'utf8')).matchAll(
+          RELATIVE_IMPORT,
+        )) {
           const target = join(dirname(file), specifier as string)
           // A `.js` import resolves to its `.d.ts` in a declaration file.
           const exists = existsSync(target) || existsSync(target.replace(/\.js$/, '.d.ts'))

@@ -1,8 +1,7 @@
 {
   "name": "@mcthaydt/automata-render-pixi",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "license": "UNLICENSED",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcthaydt/automata-framework.git",
@@ -48,7 +47,7 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "pixi.js": "8.21.0"
+    "pixi.js": "^8.21.0"
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",

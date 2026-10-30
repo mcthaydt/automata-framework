@@ -1,8 +1,7 @@
 {
   "name": "@mcthaydt/automata-game",
-  "version": "0.0.0",
+  "version": "0.0.3",
   "license": "UNLICENSED",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcthaydt/automata-framework.git",
@@ -12,7 +11,12 @@
   "sideEffects": [
     "*.css",
     "*.svelte",
-    "./src/no-eval.ts"
+    "./src/no-eval.ts",
+    "./dist/no-eval.js"
+  ],
+  "files": [
+    "dist",
+    "VENDORED.md"
   ],
   "exports": {
     ".": {
@@ -21,11 +25,26 @@
     },
     "./no-eval": "./src/no-eval.ts"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "svelte": "./dist/index.js",
+        "import": "./dist/index.js"
+      },
+      "./no-eval": {
+        "types": "./dist/no-eval.d.ts",
+        "import": "./dist/no-eval.js"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
     "test:parity": "vitest run --project browsers --project layout",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "build": "svelte-package -i src -o dist --tsconfig tsconfig.package.json && tsdown && node build/finish-dist.ts"
   },
   "dependencies": {
     "@mcthaydt/automata-host": "workspace:*",
@@ -33,17 +52,18 @@
     "@mcthaydt/automata-runtime": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
-    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "effect": "3.22.2",
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "pixi.js": "8.21.0",
-    "svelte": "5.57.1"
+    "pixi.js": "^8.21.0",
+    "svelte": "^5.57.1"
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
+    "@sveltejs/package": "3.0.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
