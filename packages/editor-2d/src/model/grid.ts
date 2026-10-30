@@ -16,6 +16,17 @@ export interface GridEditor {
   fillRect(x: number, y: number, w: number, h: number, value: number): void
 }
 
+/** One stored chunk of a grid, for a renderer that draws a chunk at a time (ED2D.4c3a). */
+export interface GridChunk {
+  /** The chunk's column and row, in chunks. */
+  readonly cx: number
+  readonly cy: number
+  /** Opaque, and the very same object for as long as this chunk is unchanged, in this grid and in every edit of it. */
+  readonly token: object
+  /** Its non-zero cells in grid coordinates, row-major. */
+  cells(): readonly { readonly x: number; readonly y: number; readonly value: number }[]
+}
+
 const isWhole = (n: number): boolean => Number.isInteger(n) && n >= 0
 
 const isAllZero = (chunk: Uint32Array): boolean => {
@@ -142,16 +153,28 @@ export class Grid {
     return true
   }
 
+  /**
+   * The stored chunks (those with a non-zero cell), row-major by chunk. A chunk's token is its storage, which an edit
+   * copies before writing (see `edit`), so an unchanged token means unchanged cells.
+   */
+  chunks(): readonly GridChunk[] {
+    return [...this.#chunks.keys()]
+      .sort((a, b) => a - b)
+      .map((key) => {
+        const chunk = this.#chunks.get(key) as Uint32Array
+        const cx = key % this.#chunkCols
+        const cy = Math.floor(key / this.#chunkCols)
+        return { cx, cy, token: chunk, cells: () => chunkCells(chunk, cx * CHUNK, cy * CHUNK) }
+      })
+  }
+
   /** Every non-zero cell in row-major order. */
   nonEmpty(): readonly { readonly x: number; readonly y: number; readonly value: number }[] {
     const cells: { x: number; y: number; value: number }[] = []
     for (const [key, chunk] of this.#chunks) {
-      const originX = (key % this.#chunkCols) * CHUNK
-      const originY = Math.floor(key / this.#chunkCols) * CHUNK
-      for (let i = 0; i < CHUNK_CELLS; i++) {
-        const value = chunk[i] ?? 0
-        if (value !== 0) cells.push({ x: originX + (i % CHUNK), y: originY + Math.floor(i / CHUNK), value })
-      }
+      cells.push(
+        ...chunkCells(chunk, (key % this.#chunkCols) * CHUNK, Math.floor(key / this.#chunkCols) * CHUNK),
+      )
     }
     return cells.sort((a, b) => a.y - b.y || a.x - b.x)
   }
@@ -169,6 +192,20 @@ export class Grid {
   #chunkKey(x: number, y: number): number {
     return Math.floor(y / CHUNK) * this.#chunkCols + Math.floor(x / CHUNK)
   }
+}
+
+/** The non-zero cells of a chunk whose first cell is at (originX, originY), row-major. */
+function chunkCells(
+  chunk: Uint32Array,
+  originX: number,
+  originY: number,
+): { x: number; y: number; value: number }[] {
+  const cells: { x: number; y: number; value: number }[] = []
+  for (let i = 0; i < CHUNK_CELLS; i++) {
+    const value = chunk[i] ?? 0
+    if (value !== 0) cells.push({ x: originX + (i % CHUNK), y: originY + Math.floor(i / CHUNK), value })
+  }
+  return cells
 }
 
 const chunkOffset = (x: number, y: number): number => (y % CHUNK) * CHUNK + (x % CHUNK)

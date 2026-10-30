@@ -13,6 +13,11 @@ export interface Bounds {
   readonly h: number
 }
 
+/** The definition an instance or a palette names, or `undefined` when the project has none by that id. */
+export function entityDefOf(project: Project, id: string | undefined): EntityDef2D | undefined {
+  return id === undefined ? undefined : project.defs.entities.find((candidate) => candidate.id === id)
+}
+
 /** The rectangle an instance covers in level pixels. A `point` shape is as large as its definition says, so it can be hit. */
 export function entityBounds(def: EntityDef2D, instance: EntityInstance): Bounds {
   const w = instance.w ?? def.size.w
@@ -30,7 +35,7 @@ export function entityAt(project: Project, target: LayerTarget, at: Point): Enti
   if (layer.kind !== 'entities') return undefined
   for (let i = layer.items.length - 1; i >= 0; i--) {
     const item = layer.items[i] as EntityInstance
-    const def = project.defs.entities.find((candidate) => candidate.id === item.def)
+    const def = entityDefOf(project, item.def)
     if (def === undefined) continue
     const box = entityBounds(def, item)
     if (at.x >= box.x && at.x < box.x + box.w && at.y >= box.y && at.y < box.y + box.h) return item
