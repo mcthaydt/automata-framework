@@ -1,0 +1,29 @@
+{
+  "name": "@mcthaydt/automata-server",
+  "version": "0.0.0",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-plus.git",
+    "directory": "packages/server"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@mcthaydt/automata-net": "workspace:*"
+  },
+  "peerDependencies": {
+    "@mcthaydt/automata-sim": "0.0.3"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-sim": "0.0.3",
+    "vitest": "5.0.3"
+  }
+}
