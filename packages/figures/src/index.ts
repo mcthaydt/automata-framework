@@ -3,6 +3,7 @@
 // extension that registers them. Part 2 (M3.5b): `build()`, the part, garment and hair generators behind it.
 // Part 3 (M3.5c): locomotion (`base()`, `moveDir`), stands, holds, hems, the pose clock and the hair spring.
 // Part 5 (M3.6a): `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits.
+// Part 6 (M3.6b): poses (`figure-pose` content), their canonical spelling, mirror, blend and checks.
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
 
 export { type Anchor, type AnchorKind, clearance } from './build/anchors'
@@ -16,6 +17,7 @@ export {
   figureHairContent,
   figureHeadwearContent,
   figureItemContent,
+  figurePoseContent,
   figureRigContent,
   figureStandContent,
   figureSwatchContent,
@@ -109,6 +111,13 @@ export {
 } from './motion/stands'
 export { type Decal, GROUP, type Mesh, type Part, type Weight } from './parts/mesh'
 export { FIGURE_PPM } from './parts/texels'
+export { applyPose } from './pose/apply-pose'
+export { blend } from './pose/blend'
+export { mirror } from './pose/mirror'
+export { type PoseDef, poseSchema } from './pose/pose.schema'
+export { figureReach, type PoseProblem, poseProblems, REFERENCE_SKELETON } from './pose/pose-checks'
+export type { SpaceContext } from './pose/pose-space'
+export { canonicalPose, printPose, roundPoseNumber } from './pose/pose-spelling'
 export {
   armChain,
   clonePose,

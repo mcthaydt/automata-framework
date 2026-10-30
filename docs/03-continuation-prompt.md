@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-30. Source HEAD verified before this update: `89ff04d` on `main` (PR #192 merged: the release jobs run on the Owner's Mac; before it, `b7ef19d`, PR #188: `@pixi/3d` 0.1.0-beta.2 vendored). This file was rewritten on `claude/af-finish-docs-0` (PR #187, draft, docs only). Its earlier text, up to `main` `106b42a`, is kept verbatim in [history/2026-10-24-continuation.md](history/2026-10-24-continuation.md).
+> Updated 2026-10-30 05:40Z. Source HEAD verified before this update: `30e9606` on `main` (PR #223, QB.1g, merged; before it, in order: #216, #209, #199 (WEB.PLAY.3 to .1), #193 (PRODUCT.1b3), #189 (QB.1f), #198, #202, #196, #195, #187). Updated on `claude/af-finish-docs-1` (docs only). The text up to `main` `106b42a` is kept verbatim in [history/2026-10-24-continuation.md](history/2026-10-24-continuation.md).
 
 ## Prompt for the next agent
 
@@ -33,6 +33,16 @@ Given in this session's chat on 2026-10-30. The Owner's own words are quoted whe
 11. **Owner-supplied inputs.** The Owner will supply `NPM_TOKEN`, site hosting and DNS, a Discord server and bot, and an itch.io account with `BUTLER_API_KEY`.
 
 Later the same day, recorded in PR #192's merge (`89ff04d`): **"Publish from my Mac"**. The plan, version and publish jobs of `release-packages.yml` now run on the Mac runner label (`AF_RELEASE_RUNNER`, default `af-mac`) with no hosted fallback (CI.BILL in 02 is ticked).
+
+Later the same day, in the session's chat:
+
+- **"Did I mention I want the code editor thing that pixi has for the website? That click a button to see changes crap is useless"**: the live playground, WEB.PLAY.0 to .11 in 02 (website PR #14, the spec, approved with PLAY-D1 changed: examples run when the page opens and update live on every edit).
+- **"Yes, MIT it"**: MIT for Ruken's `sdk`, `sdk-host`, `manifest` and `cli`, with the agent allowed to make the RukenApp change: RukenApp PR #396, waiting on the Owner's merge (PRODUCT.4r).
+- **"Yes, fan out"**: one cloud session per lane (editors, 3D, Plus, website), with this session as the coordinator (lane map below).
+- **"Yes, affected-only on PRs"**: a pull request's parity job runs only the suites `turbo --affected` selects (CI.PAR, PR #219); `main` and the nightly run every suite.
+- **"That's too much effort, just use the Mac"** (on a second runner on a Windows PC under WSL): everything stays on the Mac. There is no `af-pc`, and `AF_LINUX_RUNNER` stays unset.
+- **S7-Q1, answered in the session's question card:** "AF-owned shim". `@pixi/3d` 0.1.0-beta.2 throws on its first draw under `render-pixi/no-eval`, so render-pixi3d ships its own `no-eval` entry with the spike's shim, a test pins pixi's parser count and order, the bug goes to the Pixi 3D beta, and the shim leaves when a fixed release lands (M9.10). M3.4 onward is unblocked.
+- **RukenApp #396, the same card:** "You merge it": a one-off merge with Ruken checks red that the licence change does not touch. Merged as RukenApp `e376a2d`; PRODUCT.4r's repack follows.
 
 ### Agent defaults, open to the Owner's veto
 
@@ -69,13 +79,16 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 ## Open PRs and lanes in flight
 
-| PR or lane | Task | State on 2026-10-30 |
+Each lane is a cloud session that works only in its own worktrees and PRs, never edits 02, 03, 00, 01 or `AGENTS.md`, and states its rows in each PR body ("Rows: <id> done | partial"); the coordinator ticks 02 from those lines. A lane merges its own PR once every check, parity included, is green on the head. Message a lane with the `send_message` tool of the claude-code-remote MCP server; read its transcript with `list_events`.
+
+| Lane | Session | State on 2026-10-30 05:40Z |
 |---|---|---|
-| automata-framework #187 | Docs: the Owner's 2026-10-30 direction, 02 reconciled with `main`, this file | Draft, docs only; merge when its checks job is green |
-| automata-framework #189 | QB.1f: repack the vendored Ruken tarballs from `d0fa2fe`, drop the zod override | Draft (`claude/qb-1f-repack-ruken`) |
-| automata-plus #1 | PRODUCT.5e: the Plus workspace skeleton, `core.ref` sync and CI | Draft (`claude/plus-5e-workspace`) |
-| automata-website #13 | WEB.D1: the Ritmo site-gaps note | Draft, docs only |
-| Lanes without a PR yet | PRODUCT.5d (`claude/product-5d-automata-add`), DX.5a (`claude/dx-5a-small-assets-csp`), DX.6b (`claude/dx-6b-koota-soa-guard`), PRODUCT.1b3 (`claude/product-1b3-one-extractor`), CI.N2, DX.7a, DX.2c, PRODUCT.L3a | Building |
+| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack) | `session_01QYLU1i2nMK9phnPJp15JAC` | Ready, `main` merged after QB.1g, waiting on the Mac's CI: #190 DX.6b, #191 PRODUCT.5d, #194 DX.5a, #201 DX.7a, #203 CI.N2, #208 DX.2c, #213 NODE.1, #219 CI.PAR. Drafts: #210 PRODUCT.L3a (review fixes, full gates running), #227 DX.2a (review running). Building: QB.2c, DX.6c, M5.5F, M5.6F.2. |
+| 3D (M3, GAME-3D, M9 free parts) | `session_01QYLU1fQHbJifZ4wuJ5qV6q` | #200 M3.1a (waits on the Owner's S7-Q1), #204 M4.12, #205 M3.2, #211 M3.6a, #215 M3.5b, #220 M3.6b, #221 M3.6c, #224 M3.5c. |
+| Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1i625Fbg9c9tDyjhSW` | #206 ED2D.4c3a, #207 ED3D.5b, #212 ED2D.4c2b, #214 ED2D.5a, #225 ED3D.8a; building ED3D.7b, ED2D.6a, ED3D.13a. Proposed for 02 from EDS.0: an EDS.P row, EDS.5 split into 5a and 5b, GAME-3D.1k waiting on EDS.5a and EDS.9c. |
+| Plus (automata-plus: 5f, 5h, PRODUCT.6/8, M3.3/3.8/3.9, M4.11, M5.8, M6, M7, M9.3-6) | `session_01QYLU1iZb1dcqnVEMZvtxng` | AF #197 PRODUCT.5g; automata-plus PRs from #2 (5f, 1b1, M7.2, 8a, M7.3a, M3.8a); building M7.4a and M7.4b. M5.8, M6.1/6.2, M3.3 and PRODUCT.6 wait on DX.2a (#227). |
+| Website (WEB.PLAY, WEB.S1, DX.9w/10/11w/12, QB.4, M10) | `session_01QYLU1i5PsRuCfTDK2DHVXP` | Website #14 (WEB.PLAY.0 spec; red only on load-timing gates on the shared Mac), #15 (WEB.S1, ready); next WEB.PLAY.4. |
+| RukenApp | (coordinator) | #396 merged (`e376a2d`, the Owner's one-off "You merge it"). PRODUCT.4r's repack of `vendor/ruken` from it is building. |
 
 ## Critical paths
 
@@ -85,9 +98,11 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 ## Exact next action
 
-1. Merge PR #187 once its checks job is green. Then drive the PRs in flight to green and merge them: #189 (QB.1f), automata-plus #1 (PRODUCT.5e), automata-website #13 (WEB.D1), and the lanes' PRs as they open. The release run 40987523255 opens or updates the Version packages PR: leave that one unmerged until PRODUCT.5g lands, or physics would be published from AF (M2.4p); its publish also waits for the Owner's approval in the release environment.
-2. Start, in parallel, the next unblocked rows on the critical paths, none of which needs the Owner: PRODUCT.5f once automata-plus #1 merges; M3.0A (docs) and M3.1a (spike S7 part 1 on the vendored beta); ED2D.4c2b, ED3D.5b and EDK.6a; EDS.0 on the editor specs' defaults.
-3. Ask the Owner, in the session, for each item below when it becomes the next step's blocker, CI.BILL first.
+1. Merge CI.PAR (#219) as soon as its checks are green, so every later pull request runs only the parity suites it affects. Then merge the coordinator's ready PRs as each goes green (list above), and finish #210 (PRODUCT.L3a) and #227 (DX.2a): review, mark ready, merge.
+2. When #227 (DX.2a) merges: change `AGENTS.md`'s "a private one (render-pixi, game, the umbrella, cli)" to the packages still private (cli and the editors), and tell the Plus lane that M5.8, M6.1/6.2, M3.3 and PRODUCT.6 are unblocked.
+3. PRODUCT.4r: the repack of `vendor/ruken` from RukenApp `e376a2d` (MIT) is building; when it merges, regenerate `docs/stack.md` if it did not, and tell the website lane (WEB.PLAY.3's licence check).
+4. Never merge the "Version packages" PR before PRODUCT.5g (#197) lands, or physics would publish from AF (M2.4p); its publish also waits on the Owner's approval in the release environment.
+5. Next coordinator rows with no prerequisite: PRODUCT.1b2, DX.6a, DX.7b/c, CI.N1a, CI.N3, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu, ASSET.0.
 
 ## Blocked on the Owner
 
@@ -96,7 +111,7 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 - **Site hosting and DNS** for `automata.ruken.com` with a deploy credential (DX.12, QB.4a to QB.4c), and function hosting for the store webhook (QB.5a).
 - **Discord:** the server and the plugin's bot with admin rights, and a working plugin connection (DX.13, DX.10d).
 - **itch.io:** the account and the `BUTLER_API_KEY` secret (PUB.5; M8.5b's smoke).
-- **The Ruken licence for the bundled code** (PRODUCT.4r, R-16): choose the licence for `@ruken/sdk`, `sdk-host`, `manifest` and `cli` and add it in RukenApp, or allow an agent to. AF 1.0's public packages bundle this code.
+- **The Ruken licence for the bundled code** (PRODUCT.4r, R-16): resolved. MIT, merged in RukenApp `e376a2d`; the repack follows.
 - **D-7 pricing and model, and the merchant of record** (QB-D2: Lemon Squeezy or Paddle) for M10.0, QB.5a and M10.7. Until then they are placeholders and money stays mocked.
 - **A GitHub organization for Plus buyers** (QB-D4): collaborators on a personal account get write access. Needed before PRODUCT.5h and QB.5a.
 - **The frame-budget probe's exclusivity** (CI.N1a): may the probe pause the sibling runners on the Mac for about two minutes, or should it run on a dedicated machine? And free disk space on the Mac runner if a cleanup step is not enough (CI.N1).
