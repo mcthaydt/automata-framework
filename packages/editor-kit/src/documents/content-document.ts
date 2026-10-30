@@ -3,7 +3,7 @@ import { JsonScanError, scan } from './json/locate'
 import { type PatchResult, patchJson } from './json/patch'
 import { cloneValue, type KeyPath, keyPathText, valueAt } from './key-path'
 import { patchToml } from './toml/patch-toml'
-import { readTomlLiterals } from './toml/toml-literals'
+import { readTomlLiterals, TomlPositionError } from './toml/toml-literals'
 import { firstDifference, isTable } from './values'
 
 // The content documents every editor writes through (editor suite spec §4.4): one text, edited by key path, where a
@@ -95,17 +95,21 @@ function tomlSyntaxError(error: unknown): DocumentSyntaxError {
   )
 }
 
+/** Runs a read of a TOML text, turning toml-patch's syntax error into the documents' own. */
+function readToml<T>(read: () => T): T {
+  try {
+    return read()
+  } catch (error) {
+    if (error instanceof TomlPositionError) throw error
+    throw tomlSyntaxError(error)
+  }
+}
+
 const TOML: Format = {
   name: 'toml',
-  parse(text) {
-    try {
-      return parseToml(text)
-    } catch (error) {
-      throw tomlSyntaxError(error)
-    }
-  },
-  literals: (text) => readTomlLiterals(text).literals,
-  comments: (text, keyPath) => readTomlLiterals(text).comments(keyPath),
+  parse: (text) => readToml(() => parseToml(text)),
+  literals: (text) => readToml(() => readTomlLiterals(text)).literals,
+  comments: (text, keyPath) => readToml(() => readTomlLiterals(text)).comments(keyPath),
   patch: patchToml,
 }
 

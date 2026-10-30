@@ -6,6 +6,9 @@ import { type KeyPath, keyPathText } from '../key-path'
 // text means. The tree gives 1-based lines and UTF-16 columns; a span is [start, end) in the text, and each one is
 // checked to slice to its literal's own text, so a disagreement throws here instead of becoming a wrong edit.
 
+/** The parser's positions do not slice to a literal's text: a bug to report, never a text to edit. */
+export class TomlPositionError extends Error {}
+
 export interface TomlLiteral {
   readonly keyPath: KeyPath
   readonly span: readonly [number, number]
@@ -78,7 +81,9 @@ export function readTomlLiterals(text: string): TomlLiterals {
       const written = text.slice(...span)
       const expected = node.raw ?? String(node.value)
       if (written !== expected)
-        throw new Error(`TOML positions disagree at ${keyPathText(keyPath)}: ${written} is not ${expected}`)
+        throw new TomlPositionError(
+          `TOML positions disagree at ${keyPathText(keyPath)}: ${written} is not ${expected}`,
+        )
       literals.push({ keyPath, span, text: written })
       return
     }

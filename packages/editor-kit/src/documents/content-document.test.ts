@@ -206,11 +206,9 @@ describe('openDocument', () => {
   it('opens a text that does not parse, which reads as a syntax error and refuses every edit', () => {
     const broken = openDocument('content/tuning.toml', 'GRAVITY = = 1\n')
     expect(() => broken.value()).toThrow(DocumentSyntaxError)
-    try {
-      broken.literals()
-    } catch (error) {
-      expect(error).toMatchObject({ line: 1 })
-    }
+    expect(() => broken.literals()).toThrow(DocumentSyntaxError)
+    expect(() => broken.comments(['GRAVITY'])).toThrow(DocumentSyntaxError)
+    expect(() => broken.value()).toThrow(expect.objectContaining({ line: 1 }))
     expect(broken.edit([{ keyPath: ['GRAVITY'], expected: 1, set: 2 }])).toMatchObject({
       ok: false,
       keyPath: [],
