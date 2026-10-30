@@ -83,12 +83,14 @@ function step(event: KeyboardEvent): void {
     flex: 0 0 auto;
     min-width: 44px;
     min-height: 44px;
-    padding: 0 var(--space-1);
+    padding: 0 2px;
     border: 0;
     border-radius: var(--radius-md);
     background: transparent;
     color: var(--color-text-dim);
-    font: var(--text-label-12);
+    /* The eyebrow size fits "Tilesets" and "Entities" whole in the 56 px rail. */
+    font: var(--text-eyebrow-11);
+    letter-spacing: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

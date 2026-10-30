@@ -33,20 +33,23 @@ const sized = $derived(tool === 'brush' || tool === 'eraser')
 const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id === id)
 </script>
 
-<div class="toolbar" data-testid="level-toolbar">
+<div class="toolbar" data-testid="level-toolbar" data-scroll-region="both">
   {#if showLayers}
     <Button aria-expanded={layersOpen} onclick={onlayers}>Layers</Button>
   {/if}
-  <Segmented
-    label="Tool"
-    options={TOOLS}
-    value={tool}
-    onedit={(event) => {
-      if (isTool(event.value)) ontool(event.value)
-    }}
-  />
+  <div class="tools">
+    <Segmented
+      label="Tool"
+      options={TOOLS}
+      value={tool}
+      onedit={(event) => {
+        if (isTool(event.value)) ontool(event.value)
+      }}
+    />
+  </div>
   {#if sized}
-    <Stepper
+    <div class="size">
+      <Stepper
       label="Brush size"
       value={brushSize}
       min={1}
@@ -55,7 +58,8 @@ const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id ===
       onedit={(event) => {
         if (event.phase === 'set' || event.phase === 'commit') onbrushsize(event.value)
       }}
-    />
+      />
+    </div>
   {/if}
   <Button onclick={onfit}>Fit</Button>
 </div>
@@ -71,7 +75,13 @@ const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id ===
     border-bottom: 1px solid var(--color-border-default);
     background: var(--color-bg-surface);
   }
+  /* Each item keeps its natural width, so the row scrolls instead of squeezing a label under its neighbour. */
   .toolbar > :global(*) {
     flex: 0 0 auto;
+    width: max-content;
+  }
+  /* The kit's stepper wraps its buttons under its label when squeezed; in a row that scrolls it never needs to. */
+  .size :global(.stepper) {
+    flex-wrap: nowrap;
   }
 </style>
