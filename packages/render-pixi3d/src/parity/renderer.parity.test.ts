@@ -1,0 +1,162 @@
+// The 3D renderer on a real context in each engine (M3.4a). Headless Firefox in this container has no WebGL at all,
+// so there the drawing cases skip and the refusal case runs instead; the GPU runner runs them all (M3.1b).
+import '../no-eval.js'
+import type { RenderRow, StepResult } from '@mcthaydt/automata-sim'
+import { DirectionalLight } from '@pixi/3d'
+import { Effect, Exit, Scope } from 'effect'
+import { RenderTexture } from 'pixi.js'
+import { afterEach, describe, expect, it } from 'vitest'
+import { encodeGlb, fixtureBox } from '../model/testing/model-fixtures.js'
+import { createPixi3dRenderer, type Pixi3dRenderer } from '../renderer/create-pixi3d-renderer.js'
+import { testTarget } from '../testing/test-target.js'
+import { box } from '../views/box-view.js'
+import { mesh } from '../views/mesh-view.js'
+
+const hasWebGL2 = document.createElement('canvas').getContext('webgl2') !== null
+const BACKGROUND = 0x2e222f
+const frame = { alpha: 1, frameMs: 16, paused: false }
+const step = (render: StepResult['render']): StepResult => ({ tick: 0, events: [], render, rejected: [] })
+const rows: RenderRow[] = [
+  { sid: 1, components: { crate: { x: -1, y: 0, z: 0 } } },
+  { sid: 2, components: { prop: { x: 1, y: 0, z: 0 } } },
+]
+
+let scope: Scope.CloseableScope | undefined
+afterEach(async () => {
+  if (scope) await Effect.runPromise(Scope.close(scope, Exit.void))
+  scope = undefined
+  document.body.replaceChildren()
+})
+
+async function start(): Promise<{ renderer: Pixi3dRenderer; target: ReturnType<typeof testTarget> }> {
+  const host = document.createElement('div')
+  document.body.appendChild(host)
+  const target = testTarget(host, { 'models/box.glb': encodeGlb(fixtureBox()) })
+  const factory = createPixi3dRenderer({
+    logicalWidth: 160,
+    logicalHeight: 90,
+    backgroundColor: BACKGROUND,
+    views: {
+      crate: box({ width: 1, height: 1, depth: 1 }, { color: 0xf9c22b }),
+      prop: mesh('models/box.glb', { height: 1 }),
+    },
+    scene: (view) => {
+      view.camera.position.set(0, 2.5, 5)
+      view.camera.lookAt({ x: 0, y: 0.5, z: 0 })
+      const sun = new DirectionalLight({ intensity: 2 })
+      sun.rotation.set(-0.8, 0.5, 0)
+      view.root.addChild(sun)
+      return undefined
+    },
+  })
+  scope = Effect.runSync(Scope.make())
+  const renderer = await Effect.runPromise(Scope.extend(factory(target), scope))
+  return { renderer, target }
+}
+
+/** The whole stage's pixels, rendered into a texture. */
+function snapshot(renderer: Pixi3dRenderer): Uint8ClampedArray | Uint8Array {
+  const { app } = renderer.stage
+  const texture = RenderTexture.create({ width: app.screen.width, height: app.screen.height, resolution: 1 })
+  app.renderer.render({ container: app.stage, target: texture, clear: true })
+  const { pixels } = app.renderer.extract.pixels(texture)
+  texture.destroy(true)
+  return pixels
+}
+
+/** How many pixels differ between two snapshots by more than a rounding step. */
+function differing(a: ArrayLike<number>, b: ArrayLike<number>): number {
+  let count = 0
+  for (let i = 0; i < a.length; i += 4)
+    if (
+      Math.abs((a[i] ?? 0) - (b[i] ?? 0)) +
+        Math.abs((a[i + 1] ?? 0) - (b[i + 1] ?? 0)) +
+        Math.abs((a[i + 2] ?? 0) - (b[i + 2] ?? 0)) >
+      6
+    )
+      count++
+  return count
+}
+
+const nextEvent = (canvas: HTMLCanvasElement, name: string) =>
+  new Promise<void>((resolve) => canvas.addEventListener(name, () => resolve(), { once: true }))
+
+describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
+  it('mounts the View3D in stage.world and draws a box and a mesh', async () => {
+    const { renderer } = await start()
+    expect(renderer.view.parent).toBe(renderer.stage.world)
+    expect(renderer.stage.app.renderer.name).toBe('webgl')
+    renderer.draw(frame)
+    const empty = snapshot(renderer)
+
+    renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
+    renderer.draw(frame)
+    // The box and the mesh cover a few hundred of the 160 × 90 field's pixels.
+    expect(differing(empty, snapshot(renderer))).toBeGreaterThan(200)
+  })
+
+  it('adds, moves (interpolated) and removes views over the Container3D root', async () => {
+    const { renderer } = await start()
+    const root = renderer.view.root
+    const before = root.children.length
+    renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
+    expect(root.children.length).toBe(before + 2)
+    const crate = root.children[before]
+    renderer.apply(
+      step({
+        resync: false,
+        added: [],
+        changed: [{ sid: 1, components: { crate: { x: 1, y: 0, z: 2 } } }],
+        removed: [],
+      }),
+    )
+    renderer.draw({ ...frame, alpha: 0.5 })
+    expect([crate?.position.x, crate?.position.z]).toEqual([0, 1])
+    renderer.apply(step({ resync: false, added: [], changed: [], removed: [1, 2] }))
+    expect(root.children.length).toBe(before)
+  })
+
+  it('recovers from a lost context: draws nothing while lost, then the scene again', async () => {
+    const { renderer, target } = await start()
+    renderer.draw(frame)
+    const empty = snapshot(renderer)
+    renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
+    renderer.draw(frame)
+    const scene = snapshot(renderer)
+    const canvas = renderer.stage.app.canvas
+    const gl = (renderer.stage.app.renderer as unknown as { gl: WebGL2RenderingContext }).gl
+    const lose = gl.getExtension('WEBGL_lose_context')
+    if (lose === null) throw new Error('no WEBGL_lose_context')
+
+    const lost = nextEvent(canvas, 'webglcontextlost')
+    lose.loseContext()
+    await lost
+    renderer.draw(frame)
+    expect(target.facts.map((f) => f.name)).toContain('render.context.lost')
+
+    // The browser takes a restore only after the lost event's task has finished.
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    const restored = nextEvent(canvas, 'webglcontextrestored')
+    lose.restoreContext()
+    await restored
+    renderer.draw(frame)
+    expect(target.facts.map((f) => f.name)).toContain('render.context.restored')
+    const back = snapshot(renderer)
+    expect(differing(empty, back)).toBeGreaterThan(200)
+    expect(differing(scene, back)).toBe(0)
+  })
+})
+
+describe.runIf(!hasWebGL2)('createPixi3dRenderer without WebGL2', () => {
+  it("refuses Pixi's Canvas fallback with RendererUnavailable", async () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    scope = Effect.runSync(Scope.make())
+    const exit = await Effect.runPromiseExit(
+      Scope.extend(createPixi3dRenderer({ views: {} })(testTarget(host)), scope),
+    )
+    expect(Exit.isFailure(exit) && JSON.stringify(exit.cause.toJSON())).toContain(
+      '"_tag":"RendererUnavailable"',
+    )
+  })
+})
