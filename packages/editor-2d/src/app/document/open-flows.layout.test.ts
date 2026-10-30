@@ -1,0 +1,181 @@
+import '@mcthaydt/automata-editor-kit/tokens.css'
+import '@mcthaydt/automata-editor-kit/fonts.css'
+import '../../main.css'
+import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
+import { afterEach, describe, expect, test } from 'vitest'
+import { page } from 'vitest/browser'
+import { counterIds } from '../../model/ids'
+import { printProject } from '../../model/project-codec'
+import type { Project } from '../../model/project-types'
+import { arrived, type EditorSize, REST, SIZES } from '../../testing/layout-sizes'
+import { memoryWorkspace } from '../../testing/memory-workspace'
+import { mossgate } from '../../testing/samples'
+import { createTestClock } from '../../testing/test-clock'
+import { type EditorHandle, startEditor } from '../boot'
+import { createEditorApp } from '../editor-app'
+import { createAppProfiles } from '../profiles'
+
+// The open flows with the production CSS in a real browser (plan ED2D.4c2b step 7; 2D editor spec §12 and §13): the
+// error panel with a long file, the Restore and conflict dialogs, and the document's top bar, at the eight window sizes
+// of Home's layout test. jsdom has no layout, so room (inside the screen, target sizes, what covers what, which part
+// scrolls) is only checked here. The editor starts as `main.ts` starts it, over a memory workspace.
+
+const PROJECT = 'mossgate.af2d.json'
+const BROKEN = 'broken.af2d.json'
+
+/** A file that does not parse: 300 lines, one of them very long, and the JSON stops at line 250. */
+function brokenText(): string {
+  const lines = ['{', '  "format": "af2d",', '  "version": 1,']
+  for (let n = lines.length; n < 249; n += 1) lines.push(`  "k${n}": ${n},`)
+  lines.push(`  "long": "${'x'.repeat(400)}"  oops`)
+  for (let n = 250; n < 300; n += 1) lines.push(`  "k${n}": ${n},`)
+  return `${lines.join('\n')}\n}\n`
+}
+
+let started: EditorHandle | undefined
+let target: HTMLElement | undefined
+afterEach(async () => {
+  await started?.dispose()
+  target?.remove()
+  started = undefined
+  target = undefined
+})
+
+/** Starts the editor at `size` over a workspace with the sample project, a broken file and, if asked, an autosave. */
+async function start(size: EditorSize, options: { autosave?: boolean } = {}) {
+  await page.viewport(size.width, size.height)
+  const conditions = publishConditions(document.documentElement, size, REST)
+  const clock = createTestClock()
+  const workspace = memoryWorkspace(clock)
+  await workspace.store.write(PROJECT, printProject(mossgate()))
+  await workspace.store.write(BROKEN, brokenText())
+  if (options.autosave) {
+    clock.advance(1000)
+    const app = createEditorApp({ workspace, registry: createAppProfiles(), ids: counterIds(), clock })
+    const opened = await app.open(PROJECT)
+    if (opened.status !== 'opened') throw new Error(opened.status)
+    opened.document.history.apply('Rename', (value) => ({ ...(value as Project), name: 'Mossgate, edited' }))
+    clock.advance(1000)
+    await opened.document.session.flush()
+    opened.document.dispose()
+  }
+  target = document.body.appendChild(document.createElement('div'))
+  target.id = 'app'
+  started = await startEditor(target, {
+    window,
+    document,
+    workspace,
+    clock: {
+      now: () => Date.now(),
+      setTimer: (ms, run) => window.setTimeout(run, ms),
+      clearTimer: (handle) => window.clearTimeout(handle as number),
+    },
+    fillRandom: (bytes) => {
+      crypto.getRandomValues(bytes)
+    },
+  })
+  await settleLayout()
+  return { conditions, workspace }
+}
+
+/** Opens a project from Home the way a double click does. */
+async function openFromHome(path: string): Promise<void> {
+  const card = [...document.querySelectorAll<HTMLElement>('[role="option"]')].find((option) =>
+    option.textContent?.includes(path),
+  )
+  if (card === undefined) throw new Error(`no card for ${path}`)
+  card.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
+  await expect
+    .poll(() => document.querySelector('[role="dialog"], [data-testid="document-bar"]'))
+    .not.toBeNull()
+  await arrived()
+}
+
+const dialog = (): HTMLElement => {
+  const found = document.querySelector<HTMLElement>('[role="dialog"]')
+  if (found === null) throw new Error('no dialog')
+  return found
+}
+
+const button = (root: HTMLElement, name: string): HTMLElement => {
+  const found = [...root.querySelectorAll<HTMLElement>('button')].find(
+    (candidate) => candidate.textContent?.trim() === name,
+  )
+  if (found === undefined) throw new Error(`no ${name} button`)
+  return found
+}
+
+/** The dialog is wholly on the screen. */
+function expectInside(element: HTMLElement, size: EditorSize): void {
+  const box = element.getBoundingClientRect()
+  expect(box.left).toBeGreaterThanOrEqual(0)
+  expect(box.top).toBeGreaterThanOrEqual(0)
+  expect(box.right).toBeLessThanOrEqual(size.width)
+  expect(box.bottom).toBeLessThanOrEqual(size.height)
+}
+
+describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
+  test('the error panel: inside the screen, its actions reachable and sized, the text scrolls in itself', async () => {
+    const { conditions } = await start(size)
+    await openFromHome(BROKEN)
+    const panel = dialog()
+    expectInside(panel, size)
+    const copy = button(panel, 'Copy text')
+    const another = button(panel, 'Open another')
+    expect(checkLayout(conditions, [copy, another])).toEqual([])
+    expect(another.getBoundingClientRect().height, 'Open another is a primary action').toBeGreaterThanOrEqual(
+      48,
+    )
+    if (size.width >= 700) expect(panel.getBoundingClientRect().width, 'the wide dialog').toBeGreaterThan(600)
+
+    const lines = panel.querySelector<HTMLElement>('[data-scroll-region]') as HTMLElement
+    expect(getComputedStyle(lines).overflowX).toBe('auto')
+    expect(getComputedStyle(lines).touchAction).toBe('pan-x pan-y')
+    expect(lines.scrollHeight).toBeGreaterThan(lines.clientHeight)
+    expect(lines.scrollWidth, 'long lines scroll rather than wrap').toBeGreaterThan(lines.clientWidth)
+    const marked = lines.querySelector<HTMLElement>('[data-marked]') as HTMLElement
+    const view = lines.getBoundingClientRect()
+    const line = marked.getBoundingClientRect()
+    expect(line.top, 'the error line is scrolled into view').toBeGreaterThanOrEqual(view.top - 1)
+    expect(line.bottom).toBeLessThanOrEqual(view.bottom + 1)
+    expect(document.documentElement.scrollLeft).toBe(0)
+    expect(document.documentElement.scrollTop).toBe(0)
+    await page.screenshot({ path: `.vitest/shots/open-failed-${size.name}.png` })
+  })
+
+  test('the top bar: Back, Undo, Redo and Save are all on screen at full size', async () => {
+    const { conditions } = await start(size)
+    await openFromHome(PROJECT)
+    const essentials = ['undo', 'redo', 'save'].map(byTestId)
+    const back = button(byTestId('document-bar'), 'Back')
+    expect(checkLayout(conditions, [back, ...essentials])).toEqual([])
+    const heading = byTestId('document-bar').querySelector('h1') as HTMLElement
+    expect(heading.getBoundingClientRect().width, 'the title keeps some room').toBeGreaterThan(40)
+    await page.screenshot({ path: `.vitest/shots/document-bar-${size.name}.png` })
+  })
+
+  test('the Restore dialog, then the conflict dialog: inside the screen with their actions reachable', async () => {
+    const { conditions, workspace } = await start(size, { autosave: true })
+    await openFromHome(PROJECT)
+    const recover = dialog()
+    expectInside(recover, size)
+    const restore = button(recover, 'Restore edits')
+    expect(checkLayout(conditions, [button(recover, 'Discard'), restore])).toEqual([])
+    expect(restore.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    await page.screenshot({ path: `.vitest/shots/recover-${size.name}.png` })
+
+    restore.click()
+    await arrived()
+    await workspace.store.write(PROJECT, printProject({ ...mossgate(), name: 'Changed elsewhere' }))
+    byTestId('save').click()
+    await expect.poll(() => document.querySelector('[role="dialog"]')).not.toBeNull()
+    await arrived()
+    const conflict = dialog()
+    expectInside(conflict, size)
+    const choices = ['Cancel', 'Take theirs', 'Keep mine', 'Save as copy'].map((name) =>
+      button(conflict, name),
+    )
+    expect(checkLayout(conditions, choices)).toEqual([])
+    await page.screenshot({ path: `.vitest/shots/conflict-${size.name}.png` })
+  })
+})

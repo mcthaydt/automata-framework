@@ -57,6 +57,8 @@ interface BootOptions {
   storage?: EditorEnv['storage']
   size?: [number, number]
   fillRandom?: EditorEnv['fillRandom']
+  /** More files in the workspace before the editor starts. */
+  files?: Readonly<Record<string, string>>
 }
 
 async function boot(options: BootOptions = {}) {
@@ -68,6 +70,7 @@ async function boot(options: BootOptions = {}) {
     clock.advance(1000)
     await workspace.store.write('hollowmere.af2d.json', printProject(hollowmere()))
   }
+  for (const [path, text] of Object.entries(options.files ?? {})) await workspace.store.write(path, text)
   const target = document.createElement('div')
   document.body.append(target)
   const win = fakeWindow(...size)
@@ -100,9 +103,9 @@ describe('startEditor', () => {
     const templates = screen.getByRole('region', { name: 'Start a new project' })
     await userEvent.click(within(templates).getAllByRole('button')[0] as HTMLElement)
 
-    const heading = await screen.findByRole('heading', { level: 1 })
-    const path = heading.textContent ?? ''
-    expect(path).not.toBe('Projects')
+    const bar = await screen.findByTestId('document-bar')
+    const path = bar.querySelector('.file')?.textContent ?? ''
+    expect(path).toMatch(/\.af2d\.json$/)
     expect(await workspace.store.read(path)).toBeDefined()
     expect(screen.queryByRole('listbox')).toBeNull()
 
@@ -116,14 +119,14 @@ describe('startEditor', () => {
     const list = await screen.findByRole('listbox', { name: 'Projects' })
     list.focus()
     await userEvent.keyboard('{Enter}')
-    expect(await screen.findByRole('heading', { level: 1, name: 'hollowmere.af2d.json' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hollowmere' })).toBeInTheDocument()
   })
 
   it('Home keeps its search and its selection across a visit to a document', async () => {
     await boot()
     await userEvent.type(await screen.findByRole('searchbox', { name: 'Search projects' }), 'moss')
     await userEvent.dblClick(screen.getByRole('option', { name: /Mossgate/ }))
-    await screen.findByRole('heading', { level: 1, name: 'mossgate.af2d.json' })
+    await screen.findByRole('heading', { level: 1, name: 'Mossgate' })
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
     expect(await screen.findByRole('searchbox', { name: 'Search projects' })).toHaveValue('moss')
     expect(screen.getByRole('option', { name: /Mossgate/ })).toHaveAttribute('aria-selected', 'true')
@@ -203,6 +206,37 @@ describe('startEditor', () => {
     await handle.dispose()
     await expect(handle.dispose()).resolves.toBeUndefined()
     expect(target.childElementCount).toBe(0)
+  })
+
+  it('listens for the page hiding while a document is open, and stops after Back', async () => {
+    const { win } = await boot()
+    await screen.findByRole('listbox', { name: 'Projects' })
+    const onHome = win.count()
+    await userEvent.dblClick(screen.getByRole('option', { name: /Mossgate/ }))
+    await screen.findByRole('heading', { level: 1, name: 'Mossgate' })
+    expect(win.count()).toBe(onHome + 1)
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+    await screen.findByRole('listbox', { name: 'Projects' })
+    expect(win.count()).toBe(onHome)
+  })
+
+  it('a project from a newer editor shows the profile’s message and is never rewritten (G-o)', async () => {
+    const text = `${JSON.stringify({ ...JSON.parse(printProject(mossgate())), version: 9 }, null, 2)}\n`
+    const { workspace } = await boot({ seed: false, files: { 'newer.af2d.json': text } })
+    await userEvent.dblClick(await screen.findByRole('option', { name: /newer\.af2d\.json/ }))
+    const panel = await screen.findByRole('dialog', { name: 'newer.af2d.json does not open' })
+    expect(panel).toHaveTextContent(/made by a newer editor/)
+    expect(within(panel).getByTestId('text-view')).toBeInTheDocument()
+    expect(new TextDecoder().decode(await workspace.store.read('newer.af2d.json'))).toBe(text)
+  })
+
+  it('a project with keys this editor does not know lists their paths (G-p)', async () => {
+    const text = JSON.stringify({ ...JSON.parse(printProject(mossgate())), extra: 1, more: 2 })
+    await boot({ seed: false, files: { 'keys.af2d.json': text } })
+    await userEvent.dblClick(await screen.findByRole('option', { name: /keys\.af2d\.json/ }))
+    const panel = await screen.findByRole('dialog', { name: 'keys.af2d.json does not open' })
+    const places = [...panel.querySelectorAll('.where')].map((where) => where.textContent)
+    expect(places).toEqual(['extra', 'more'])
   })
 
   it('dispose takes the editor off the page and lets go of the window', async () => {

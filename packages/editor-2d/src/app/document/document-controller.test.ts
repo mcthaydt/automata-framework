@@ -239,6 +239,15 @@ describe('the document controller', () => {
       expect(stateOf(s.controller).recovery).toBeUndefined()
     })
 
+    it('closes the dialog while a choice runs, and opens it afresh if that choice conflicts too', async () => {
+      const s = await conflicted()
+      vi.spyOn(s.opened.document, 'saveCopy').mockResolvedValue({ status: 'conflict' })
+      const seen: boolean[] = []
+      s.controller.state.subscribe((state) => seen.push(state.conflict))
+      await s.controller.saveCopy()
+      expect(seen).toEqual([true, false, true])
+    })
+
     it('Cancel closes the dialog and changes nothing', async () => {
       const { controller } = await conflicted()
       controller.dismissConflict()

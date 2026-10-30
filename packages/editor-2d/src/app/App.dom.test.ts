@@ -1,10 +1,11 @@
 import { createToasts } from '@mcthaydt/automata-editor-kit/core'
 import { stubGeometry } from '@mcthaydt/automata-editor-kit/testing'
-import { render, screen, within } from '@testing-library/svelte'
+import { render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { counterIds } from '../model/ids'
 import { memoryWorkspace } from '../testing/memory-workspace'
+import { noteText, plantedProfile } from '../testing/planted-profile'
 import { createTestClock } from '../testing/test-clock'
 import App from './App.svelte'
 import { createEditorApp, type EditorApp } from './editor-app'
@@ -12,11 +13,21 @@ import { createAppProfiles } from './profiles'
 
 // The root (plan ED2D.4c2a step 7): Home or a document, and what happens to a document when the person leaves it.
 
-function mount() {
+const quietPage = () => ({
+  document: { visibilityState: 'visible', addEventListener: () => {}, removeEventListener: () => {} },
+  window: { addEventListener: () => {}, removeEventListener: () => {} },
+})
+
+async function mount(options: { rival?: boolean; files?: Readonly<Record<string, string>> } = {}) {
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   const registry = createAppProfiles()
+  if (options.rival) {
+    registry.register(plantedProfile())
+    registry.register(plantedProfile({ id: 'rival', label: 'Rival note' }))
+  }
   const real = createEditorApp({ workspace, registry, ids: counterIds(), clock })
+  for (const [path, text] of Object.entries(options.files ?? {})) await workspace.store.write(path, text)
   const disposed = vi.fn()
   const app: EditorApp = {
     ...real,
@@ -33,8 +44,9 @@ function mount() {
     registry,
     toasts: createToasts({ clock }),
     clock,
+    lifecycle: quietPage(),
   })
-  return { ...view, disposed }
+  return { ...view, disposed, workspace }
 }
 
 async function newProject(): Promise<void> {
@@ -45,32 +57,54 @@ async function newProject(): Promise<void> {
 
 describe('App', () => {
   it('starts on Home', async () => {
-    mount()
+    await mount()
     expect(await screen.findByRole('heading', { level: 1, name: 'Projects' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Back' })).toBeNull()
   })
 
   it('a project that opens takes the page; Back leaves it and lets the document go', async () => {
-    const { disposed } = mount()
+    const { disposed } = await mount()
     await newProject()
     expect(screen.queryByRole('heading', { name: 'Projects' })).toBeNull()
     expect(disposed).not.toHaveBeenCalled()
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Projects' })).toBeInTheDocument()
-    expect(disposed).toHaveBeenCalledOnce()
+    await waitFor(() => expect(disposed).toHaveBeenCalledOnce())
   })
 
   it('closing the editor with a document open lets the document go', async () => {
-    const { disposed, unmount } = mount()
+    const { disposed, unmount } = await mount()
     await newProject()
     unmount()
-    expect(disposed).toHaveBeenCalledOnce()
+    await waitFor(() => expect(disposed).toHaveBeenCalledOnce())
   })
 
   it('closing the editor on Home has no document to let go', async () => {
-    const { disposed, unmount } = mount()
+    const { disposed, unmount } = await mount()
     await screen.findByRole('heading', { level: 1, name: 'Projects' })
     unmount()
     expect(disposed).not.toHaveBeenCalled()
+  })
+
+  it('a file that does not open shows the error panel over Home, and Open another goes back to the list (G-n)', async () => {
+    const { workspace } = await mount({ files: { 'broken.af2d.json': '{ "format": "af2d",' } })
+    const before = (await workspace.store.list()).map((entry) => entry.path)
+    await userEvent.dblClick(await screen.findByRole('option', { name: /broken\.af2d\.json/ }))
+    const panel = await screen.findByRole('dialog', { name: 'broken.af2d.json does not open' })
+    expect(within(panel).getByTestId('text-view')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Back' })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Open another' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('listbox', { name: 'Projects' })).toBeInTheDocument()
+    expect((await workspace.store.list()).map((entry) => entry.path)).toEqual(before)
+  })
+
+  it('a file two profiles claim asks which, and opens with the one chosen', async () => {
+    await mount({ rival: true, files: { 'harbour.note': noteText('harbour') } })
+    await userEvent.dblClick(await screen.findByRole('option', { name: /harbour\.note/ }))
+    await screen.findByRole('dialog', { name: 'Open harbour.note as' })
+    await userEvent.click(screen.getByRole('button', { name: 'Rival note' }))
+    expect(await screen.findByRole('button', { name: 'Back' })).toBeInTheDocument()
+    expect(screen.getByText('Rival note')).toBeInTheDocument()
   })
 })

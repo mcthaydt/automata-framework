@@ -160,6 +160,13 @@ export function createDocumentController(options: DocumentControllerOptions): Do
     return run('save', async () => settle(await document.save()))
   }
 
+  /** A conflict choice: the dialog closes while it runs, so a choice that conflicts again opens it afresh. */
+  function resolve(work: () => Promise<void>): Promise<void> {
+    if (busy !== undefined || closed) return Promise.resolve()
+    conflict = false
+    return run('resolve', work)
+  }
+
   return {
     state: {
       subscribe(listener) {
@@ -173,19 +180,18 @@ export function createDocumentController(options: DocumentControllerOptions): Do
     undo: () => document.history.undo(),
     redo: () => document.history.redo(),
     save,
-    keepMine: () => run('resolve', async () => settle(await document.overwrite())),
+    keepMine: () => resolve(async () => settle(await document.overwrite())),
     saveCopy: () =>
-      run('resolve', async () => {
+      resolve(async () => {
         const outcome = await document.saveCopy()
         settle(outcome)
         if (outcome.status === 'saved') toasts.push({ kind: 'ok', message: savedCopyMessage(outcome.path) })
       }),
     takeTheirs: () =>
-      run('resolve', async () => {
+      resolve(async () => {
         const old = document
         // Open first: only a file that opens may replace the person's edits.
         const outcome = await app.open(old.path, old.profile.id)
-        conflict = false
         if (outcome.status !== 'opened') {
           toasts.push({ kind: 'error', message: openProblem(outcome) })
           return

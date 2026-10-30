@@ -347,7 +347,12 @@ describe('create', () => {
     const app = createEditorApp({ workspace: full, registry: createAppProfiles(), ids: counterIds(), clock })
     const toasts = createToasts({ clock })
     const opened: Opened[] = []
-    const controller = createHomeController({ app, toasts, onOpened: (outcome) => opened.push(outcome) })
+    const controller = createHomeController({
+      app,
+      toasts,
+      onOpened: (outcome) => opened.push(outcome),
+      onProblem: () => {},
+    })
     await controller.refresh()
     await controller.create('level-project', 'blank')
     expect(opened).toEqual([])

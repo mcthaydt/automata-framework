@@ -9,10 +9,10 @@ import { modifiedLabel } from '../home/home-model'
 // profile that refused them, so the app stays profile-blind (G-s).
 
 /** The outcomes a person has to look at: the error panel, with the file's text when there is one. */
-export type PanelOutcome = Extract<
-  OpenOutcome,
-  { readonly status: 'invalid' | 'unrecognised' | 'notText' | 'tooLarge' }
->
+export type PanelOutcome =
+  | Extract<OpenOutcome, { readonly status: 'invalid' | 'unrecognised' | 'tooLarge' }>
+  // `OpenOutcome` words `notText` and `missing` as one member; only `notText` is the panel's.
+  | { readonly status: 'notText'; readonly path: string }
 /** Two or more profiles claim the file: the person picks one. */
 export type ChoiceOutcome = Extract<OpenOutcome, { readonly status: 'choose' }>
 

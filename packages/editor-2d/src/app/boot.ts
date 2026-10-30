@@ -1,6 +1,7 @@
 import {
   createToasts,
   type DownloadEnv,
+  type LifecycleWindow,
   openWorkspace,
   type StorageClock,
   type Workspace,
@@ -18,9 +19,9 @@ import { createAppProfiles } from './profiles'
 // the globals.
 
 export interface EditorEnv {
-  /** What the geometry owner reads and listens to: the page's window. */
-  readonly window: ViewportWindow
-  /** Its root element carries the published geometry. */
+  /** What the geometry owner reads and listens to, and whose `pagehide` writes an open document's journal. */
+  readonly window: ViewportWindow & LifecycleWindow
+  /** Its root element carries the published geometry; its `visibilitychange` writes an open document's journal. */
   readonly document: Document
   /** Time for the autosave debounce, the toasts and the ages on the cards. */
   readonly clock: StorageClock
@@ -53,7 +54,15 @@ export async function startEditor(target: HTMLElement, env: EditorEnv): Promise<
   const owner = createGeometryOwner({ window: env.window, root: env.document.documentElement })
   const root = mount(App, {
     target,
-    props: { geometry: owner.geometry, app, workspace, registry, toasts, clock: env.clock },
+    props: {
+      geometry: owner.geometry,
+      app,
+      workspace,
+      registry,
+      toasts,
+      clock: env.clock,
+      lifecycle: { document: env.document, window: env.window },
+    },
   })
   return {
     workspace,
