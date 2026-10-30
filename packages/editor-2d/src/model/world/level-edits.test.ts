@@ -253,6 +253,20 @@ describe('duplicateLevel', () => {
     expect(levelOf(after, 'inn-2').fields.entry).toEqual({ target: copiedDoor?.id, container: 'inn-2' })
   })
 
+  it('never lands on the original in a grid world, even when the level is narrower than half a grid step', () => {
+    const grid = setWorldLayout(platformer(), 'main', 'grid', { w: 64, h: 64 })
+    const small = addLevel(grid, {
+      id: 'cell',
+      name: 'Cell',
+      world: 'main',
+      x: 1024,
+      y: 0,
+      size: { w: 16, h: 16 },
+    })
+    const after = duplicateLevel(small, 'cell', { id: 'cell-2', name: 'Cell 2' }, ids())
+    expect(placementsOf(after).find((p) => p.level === 'cell-2')).toMatchObject({ x: 1088, y: 0 })
+  })
+
   it('goes right after the original in a sequence, at its depth', () => {
     const line = setWorldLayout(add(platformer(), 'b'), 'main', 'horizontal')
     const deep = withWorld(line, 'main', (w) => ({

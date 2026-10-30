@@ -10,6 +10,16 @@ import type { Placement, Project, Size, World, WorldLayout } from '../project-ty
 /** The snap grid a world switched to `grid` gets when the caller names none and no layer has cells. */
 const FALLBACK_GRID = 16
 
+const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b))
+
+/** The least common multiple of two whole positive numbers. */
+export const lcm = (a: number, b: number): number => (a / gcd(a, b)) * b
+
+/** The smallest length in px that is whole cells on every cell layer (1 when no layer has cells). */
+export function cellStep(project: Project): number {
+  return project.defs.layers.reduce((step, def) => (def.kind === 'objects' ? step : lcm(step, def.grid)), 1)
+}
+
 /** The world with this id; throws `RangeError` when there is none. */
 export function findWorld(project: Project, id: string): World {
   const world = project.worlds.find((candidate) => candidate.id === id)
@@ -77,16 +87,16 @@ function checkGrid(grid: Size): void {
     )
 }
 
-/** The largest cell of the layer definitions, so a level placed on the world grid lines up with every layer's cells. */
+/** Whole cells of every layer (`cellStep`), so a level placed on the world grid lines up with every layer's cells. */
 function defaultGrid(project: Project): Size {
-  const cells = project.defs.layers.flatMap((layer) => (layer.kind === 'objects' ? [] : [layer.grid]))
-  const side = cells.length === 0 ? FALLBACK_GRID : Math.max(...cells)
+  const hasCells = project.defs.layers.some((layer) => layer.kind !== 'objects')
+  const side = hasCells ? cellStep(project) : FALLBACK_GRID
   return { w: side, h: side }
 }
 
 /**
  * Switches a world's layout as one step, never changing a level. `grid` snaps every placement to `grid` (else the
- * world's current grid, else the layer definitions' largest cell); leaving `grid` drops the snap grid and keeps the
+ * world's current grid, else the least common multiple of the layers' cells); leaving `grid` drops the snap grid and keeps the
  * positions; `horizontal` and `vertical` first put the placements in reading order along their axis.
  */
 export function setWorldLayout(project: Project, worldId: string, layout: WorldLayout, grid?: Size): Project {

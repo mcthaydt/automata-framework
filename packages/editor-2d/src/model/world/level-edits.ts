@@ -184,13 +184,18 @@ export function duplicateLevel(
   const placement = world?.placements.find((p) => p.level === id)
   if (world === undefined || placement === undefined) return added
   // Half a level along a sequence's axis puts the copy's centre at the original's far edge: after the original, before
-  // the next. In a free or grid world, one level's width to the right.
+  // the next. In a free world, one level's width to the right; in a grid world, the first grid column at or past that
+  // edge (rounding up, so a level narrower than half a step never lands back on the original).
+  const right = placement.x + original.size.w
   const at =
     world.layout === 'horizontal'
       ? { x: placement.x + original.size.w / 2, y: placement.y }
       : world.layout === 'vertical'
         ? { x: placement.x, y: placement.y + original.size.h / 2 }
-        : { x: placement.x + original.size.w, y: placement.y }
+        : {
+            x: world.grid === undefined ? right : Math.ceil(right / world.grid.w) * world.grid.w,
+            y: placement.y,
+          }
   return setLevelDepth(placeLevel(added, copy.id, world.id, at), copy.id, placement.depth)
 }
 

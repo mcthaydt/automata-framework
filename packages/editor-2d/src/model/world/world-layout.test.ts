@@ -50,12 +50,12 @@ describe('setWorldLayout: grid', () => {
     expect(before.worlds[0]?.layout).toBe('free')
   })
 
-  it("defaults the grid to the layer definitions' largest cell", () => {
+  it("defaults the grid to the least common multiple of the layers' cells, so every layer lines up", () => {
     const project = withDefs(fiveLevels(), (defs) => ({
       ...defs,
-      layers: defs.layers.map((layer, i) => (i === 1 && 'grid' in layer ? { ...layer, grid: 32 } : layer)),
+      layers: defs.layers.map((layer, i) => (i === 1 && 'grid' in layer ? { ...layer, grid: 24 } : layer)),
     }))
-    expect(setWorldLayout(project, 'main', 'grid').worlds[0]?.grid).toEqual({ w: 32, h: 32 })
+    expect(setWorldLayout(project, 'main', 'grid').worlds[0]?.grid).toEqual({ w: 48, h: 48 })
   })
 
   it('defaults to 16 px when no layer has cells', () => {

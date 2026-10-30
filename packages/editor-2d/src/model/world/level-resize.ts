@@ -3,12 +3,13 @@ import { Grid } from '../grid'
 import { layerCells } from '../level-layers'
 import type { LayerDef, LayerInstance, Level, Project, Size } from '../project-types'
 import { checkLevelSize, findLevel } from './level-edits'
-import { arrangeWorld } from './world-layout'
+import { arrangeWorld, cellStep, lcm } from './world-layout'
 
 // Resizing a level about an anchor (2D editor spec §5.8, §13). The anchor is the side of each axis that stays put on
 // the world map: the content moves inside the level by the size change (`end`) or half of it (`centre`), and the
-// level's placement moves the other way, so nothing jumps. The move is a whole number of cells of every cell layer
-// (the least common multiple of their grids, rounded toward zero), so a cell stays a cell. Tile, IntGrid and manual
+// level's placement moves the other way, so nothing jumps. The move is rounded toward zero to whole cells of every
+// cell layer and, in a grid world, whole steps of the world grid (the least common multiple of those), so a cell stays a
+// cell and the level stays on its grid point. Tile, IntGrid and manual
 // auto-layer cells that end outside are dropped, which `resizeLevelLoss` lists for the confirm dialog; entities and
 // objects are kept wherever they land, and the Checks flag those outside (`entityOutOfBounds`).
 
@@ -25,29 +26,36 @@ export interface DroppedCells {
   readonly count: number
 }
 
-const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b))
-
-/** The smallest move in px that is whole cells on every cell layer. */
-function cellStep(project: Project): number {
-  return project.defs.layers.reduce(
-    (step, def) => (def.kind === 'objects' ? step : (step / gcd(step, def.grid)) * def.grid),
-    1,
-  )
+/**
+ * The smallest move in px on each axis that is whole cells on every cell layer and, for a level a grid world places,
+ * whole steps of that world's grid, so neither the cells nor the level's place on the map shift.
+ */
+function moveStep(project: Project, level: string): { x: number; y: number } {
+  const cells = cellStep(project)
+  let step = { x: cells, y: cells }
+  for (const world of project.worlds) {
+    if (world.grid === undefined || !world.placements.some((placement) => placement.level === level)) continue
+    step = { x: lcm(step.x, world.grid.w), y: lcm(step.y, world.grid.h) }
+  }
+  return step
 }
 
 /** How far the content moves inside the level, in px, on each axis. */
 function contentOffset(
   project: Project,
-  from: Size,
+  level: Level,
   to: Size,
   anchor: ResizeAnchor,
 ): { x: number; y: number } {
-  const step = cellStep(project)
-  const along = (side: AnchorSide, change: number): number => {
+  const step = moveStep(project, level.id)
+  const along = (side: AnchorSide, change: number, unit: number): number => {
     const wanted = side === 'start' ? 0 : side === 'end' ? change : change / 2
-    return Math.trunc(wanted / step) * step + 0
+    return Math.trunc(wanted / unit) * unit + 0
   }
-  return { x: along(anchor.x, to.w - from.w), y: along(anchor.y, to.h - from.h) }
+  return {
+    x: along(anchor.x, to.w - level.size.w, step.x),
+    y: along(anchor.y, to.h - level.size.h, step.y),
+  }
 }
 
 /** The cells of `grid` moved by (`dx`, `dy`) cells into a grid of the new size, and how many fell outside. */
@@ -103,7 +111,7 @@ function resizeLayer(
 
 function resized(project: Project, level: Level, size: Size, anchor: ResizeAnchor) {
   checkLevelSize(project, size)
-  const px = contentOffset(project, level.size, size, anchor)
+  const px = contentOffset(project, level, size, anchor)
   const layers = level.layers.map((layer) =>
     resizeLayer(
       layer,

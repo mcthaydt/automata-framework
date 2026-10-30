@@ -170,6 +170,15 @@ describe('resizeLevel: anchors keep the content where it is in the world', () =>
     expect(placement(after)).toMatchObject({ x: 0, y: 32 })
   })
 
+  it("moves an auto layer's manual tiles with the content", () => {
+    const after = resizeLevel(project(), 'level-1', { w: 480, h: 288 }, { x: 'end', y: 'start' })
+    expect(cellList(cellsOf(after, 'ground'))).toEqual([[29, 0]])
+    expect(cellsOf(after, 'ground').get(29, 0)).toBe(packTile(2, false, false))
+    expect(resizeLevelLoss(project(), 'level-1', { w: 480, h: 288 }, { x: 'end', y: 'start' })).toEqual([
+      { layer: 'collision', count: 1 },
+    ])
+  })
+
   it('mixes anchors per axis', () => {
     const after = resizeLevel(project(), 'level-1', { w: 480, h: 288 }, { x: 'end', y: 'start' })
     expect(cellList(cellsOf(after, 'collision'))).toEqual([
@@ -218,10 +227,16 @@ describe('resizeLevel: worlds', () => {
     expect(placement(after, 'b')).toMatchObject({ x: 320, y: 0 })
   })
 
-  it('snaps the moved placement in a grid world', () => {
+  it('keeps the level where it is on a grid map: the content moves by whole world grid steps', () => {
     const grid = setWorldLayout(project(), 'main', 'grid', { w: 64, h: 64 })
+    // 32 px narrower from the end is half a 64 px grid step: nothing may move, on the map or inside the level.
     const after = resizeLevel(grid, 'level-1', { w: 480, h: 288 }, { x: 'end', y: 'start' })
-    expect(placement(after)).toMatchObject({ x: 64, y: 0 })
+    expect(placement(after)).toMatchObject({ x: 0, y: 0 })
+    expect(itemAt(after, 'coin-1')).toEqual([400, 200])
+    // 128 px narrower is two grid steps: the content moves 128 px left and the level 128 px right, so both stay put.
+    const two = resizeLevel(grid, 'level-1', { w: 384, h: 288 }, { x: 'end', y: 'start' })
+    expect(placement(two)).toMatchObject({ x: 128, y: 0 })
+    expect(itemAt(two, 'coin-1')).toEqual([272, 200])
   })
 })
 
