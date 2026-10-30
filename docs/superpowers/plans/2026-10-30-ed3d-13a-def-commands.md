@@ -3,7 +3,7 @@
 - **Task:** ED3D.13, first part (row ED3D.13a in `docs/02-master-delivery-plan.md`). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.6 (the `af-sector/1` format), §4.7 (entity definitions: "a definitions editor (ED3D.13) adds, renames and retypes them with a refusal when an instance would no longer validate"; Last Light's set is read-only), §5.4 (Definitions: `def.add`, `def.rename`, `def.setField`, `def.remove`), ED3-r. The model half of the definitions editor and of New level: the edits, the materials-table edits of an AF sector level and the file template. No view, no dialog, no Home button: those are ED3D.13b.
 - **Lane:** editor-3d. **Depends on:** ED3D.7a (the thing edits, `ThingAccess`, the pattern this copies) and EDK.7 (the kit's `checkRetype`, `renameField`, `renameFieldValues`, `checkValues`), both merged.
 - **Status:** Drafted 2026-10-30. Not reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 3 of 4 steps.
+- **Progress:** 4 of 4 steps. Implemented and locally checked; not CI verified, not reviewed, not merged.
 
 ## Sources, read at these commits
 
@@ -88,10 +88,12 @@ export function newAfSectorLevel(name: string):
 3. **[x] Materials-table edits.** Failing test first (`profile/af-sector/af-material-edits.test.ts`, over the depot and a depot with a style and wall textures): add, set, rename (every use rewritten; the `materials` check passes after), remove (unused accepted; used refused with each use listed); bad id, taken id, unknown id, empty category refused; patches touch only the table and the renamed spans. *Files:* create `profile/af-sector/af-material-edits.ts` and its test. *Pass:* as step 1.
 
    *Done.* `af-material-edits.test.ts` 12 tests; a rename keeps the key in its place and the codec patches only the key and the names (the depot's `tile` to `slate` is exactly two spans). Hand mutations of the hole, trim-piece, style and identity paths and the category rule each fail a test.
-4. **[ ] Template, entry, gates.** Failing test first (`profile/af-sector/af-template.test.ts`): the text is the expected hand-formatted file, parses, checks report no error, an empty name is refused, a name with a quote is escaped; adding a material, a sector, then a spawn instance, patched from the template text, gives text that re-parses to the model; `index.test.ts`: the new edits and the template are exported. Then gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm changeset status --since=origin/main`, `node tooling/release/src/check-changesets.ts`. *Files:* create the template and its test; modify `index.ts`, `index.test.ts`.
+4. **[x] Template, entry, gates.** Failing test first (`profile/af-sector/af-template.test.ts`): the text is the expected hand-formatted file, parses, checks report no error, an empty name is refused, a name with a quote is escaped; adding a material, a sector, then a spawn instance, patched from the template text, gives text that re-parses to the model; `index.test.ts`: the new edits and the template are exported. Then gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm changeset status --since=origin/main`, `node tooling/release/src/check-changesets.ts`. *Files:* create the template and its test; modify `index.ts`, `index.test.ts`.
 
    *Done.* `af-template.test.ts` 4 tests: the codec inserts into the template's empty `{}` and `[]` packed on one line each, as the layout reader does for an empty container, and the result re-parses to the model. `index.test.ts` names the nine new values. Gates: see the progress record.
 
 ## Progress record
 
 - 2026-10-30: plan drafted from `origin/main` `cc5185f`.
+- Steps 1 to 4 done the same day (commits `2ef4afe` to `c30b44e`), `origin/main` merged in (`30e9606`).
+- Gates, Node 24.21, after the merge: `pnpm format`; `pnpm lint`, `turbo run typecheck --concurrency=2`, `pnpm boundaries`, `pnpm style` (0 findings), `pnpm knip`, `VITEST_MAX_WORKERS=2 turbo run test:unit --concurrency=2` with `TURBO_FORCE=true`: 34 of 34 tasks, `editor-3d` 105 files and 2434 tests. (`pnpm check` itself was run first and the runtime typecheck was killed for memory, exit 137, on the shared machine, so its steps were run one by one at a lower concurrency.) First attempt before the merge: `automata-content`'s `sim-content-types.test.ts` timed out at 90 s under load; it passed when rerun (180 s timeout), and it passed in the run after the merge. `pnpm changeset status --since=origin/main` and `check-changesets` clean (`editor-3d` is private, no changeset).
