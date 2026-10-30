@@ -1,0 +1,21 @@
+# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
+# Matched against FigureBuilder (mcthaydt/FigureBuilder) at a1f7246: the hand `handOnHip` places on the hip
+# (library/poses.json, `{ at = "hip", elbow = 0.8, nudge = [0.01, -0.02, -0.12] }`, through motion.ts `place()`),
+# its elbow pole and its hand turn (fingers [0, -0.7, 1], palm out), mirrored for the left. The positions are the
+# mean of Wick's and the keeper's places (testing/figurebuilder-hand-on-hip.ts); pose-library.test.ts checks both.
+
+about = "Both hands on the hips, the heels of the hands above the crest and the fingers forward, the elbows out and back."
+
+[effectors.handL]
+pos = [ 0.1908, 0.8259, -0.1712 ]
+rot = [ -54.8739, 5.7106, -4.6757 ]
+
+[effectors.handR]
+pos = [ -0.1908, 0.8259, -0.1712 ]
+rot = [ -54.8739, -5.7106, 4.6757 ]
+
+[poles.elbowL]
+dir = [ 0.8933, 0.0496, -0.4467 ]
+
+[poles.elbowR]
+dir = [ -0.8933, 0.0496, -0.4467 ]

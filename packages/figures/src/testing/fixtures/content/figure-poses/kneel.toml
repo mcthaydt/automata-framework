@@ -1,0 +1,14 @@
+# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
+
+about = "Kneeling on the right knee: the hips down, the left foot forward and flat, the right foot behind with its toes down."
+
+[effectors.footL]
+pos = [ 0.1, 0.08, 0.3 ]
+rot = [ 0, 0, 0 ]
+
+[effectors.footR]
+pos = [ -0.1, 0.12, -0.35 ]
+rot = [ 40, 0, 0 ]
+
+[effectors.pelvis]
+pos = [ 0, 0.5, -0.05 ]
