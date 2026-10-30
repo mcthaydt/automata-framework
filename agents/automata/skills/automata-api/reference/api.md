@@ -3785,6 +3785,19 @@ Each element `selector` names is tall enough for what it holds (a crushed row cl
 function findClipped(root: ParentNode, selector: string): string[];
 ```
 
+#### `findCutAtSide` (function)
+
+No control is cut at a side of a declared scroll region that clips it (see `clippedBy`). A region scrolls up and
+down, so a control past its side is cut where a player would not think to scroll, as a long language's options
+were in a Settings list; `findOffscreenControls` passes whatever a region clips, so this is what catches a control
+cut across. A region that scrolls sideways on purpose (an editor's strip of scenes) declares
+`data-scroll-region="both"`: a control past its side is reached by scrolling it, and the walk out through the
+regions around it stops there. A checkbox or radio is judged by its label (`pressedPart`).
+
+```ts
+function findCutAtSide(root: ParentNode): string[];
+```
+
 #### `findIntrusions` (function)
 
 No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its
@@ -3894,6 +3907,15 @@ render is finished. Mounts into `target`, or into a new `div` in `document.body`
 
 ```ts
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
+```
+
+#### `pressedPart` (function)
+
+What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a
+press anywhere on it toggles the input), else the control itself.
+
+```ts
+function pressedPart(control: HTMLElement): HTMLElement;
 ```
 
 #### `REFERENCE_SIZES` (const)
@@ -7129,8 +7151,8 @@ The checks every screen shares: the document never scrolls; every control is at 
 never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
 `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
 ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
-region it scrolls in, and no control's words run past its edge; and each of `essentials` is reachable without
-scrolling.
+region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no
+control's words run past its edge; and each of `essentials` is reachable without scrolling.
 
 ```ts
 function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[];
