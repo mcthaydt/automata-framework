@@ -11,7 +11,9 @@
 // 3. gives every relative import in `.js` and `.d.ts` a file extension. `src/` imports without one (`'./layout'`)
 //    because Vite resolves it, but Node's ESM loader and TypeScript's nodenext resolution need the exact file. A
 //    `./x.ts` specifier (game's sources import with `.ts`; svelte-package rewrites it only in JavaScript) becomes
-//    the `./x.js` it was emitted as.
+//    the `./x.js` it was emitted as;
+// 4. drops stylesheet side-effect imports (`import './screens.css'`) from declarations, where svelte-package keeps
+//    them and TypeScript 6 and 7 (noUncheckedSideEffectImports) cannot resolve them; the JavaScript keeps them.
 import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, sep } from 'node:path'
 
@@ -72,6 +74,9 @@ function addExtensions(file: string, text: string): string {
   )
 }
 
+/** A whole-line `import '…/x.css';` (either quote, optional semicolon). */
+const STYLESHEET_IMPORT = /^import\s*(['"])[^'"]+\.css\1;?[ \t]*\r?\n?/gm
+
 /** Each vendored specifier in `text` rewritten to its file under `dist`, relative to `file`. */
 function pointAtVendored(
   dist: string,
@@ -104,5 +109,8 @@ export function finishSvelteDist(dist: string, options: FinishSvelteDistOptions)
   }
   for (const file of filesBelow(dist).filter((path) => path.endsWith('.js') || path.endsWith('.d.ts'))) {
     writeFileSync(file, addExtensions(file, readFileSync(file, 'utf8')))
+  }
+  for (const file of filesBelow(dist).filter((path) => path.endsWith('.d.ts'))) {
+    writeFileSync(file, readFileSync(file, 'utf8').replace(STYLESHEET_IMPORT, ''))
   }
 }

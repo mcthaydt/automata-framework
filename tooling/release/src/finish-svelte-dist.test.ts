@@ -154,4 +154,26 @@ describe('finishSvelteDist', () => {
     expect(existsSync(join(dist, 'input/keys.js'))).toBe(true)
     expect(existsSync(join(dist, 'input/testing'))).toBe(false)
   })
+
+  // DX.2a: svelte-package keeps game's `import './screens.css'` in its declarations, and TypeScript 6 and 7
+  // (noUncheckedSideEffectImports) fail a game's typecheck on a stylesheet they cannot resolve as a module.
+  it('drops stylesheet imports from declarations, keeping them in the JavaScript', () => {
+    const dist = distWith({
+      'screens/default-screens.d.ts': [
+        "import '@mcthaydt/automata-ui/theme.css';",
+        'import "./screens.css";',
+        "import { type ScreenDef } from '@mcthaydt/automata-runtime';",
+        'export declare const x: ScreenDef;',
+      ].join('\n'),
+      'screens/default-screens.js': "import '@mcthaydt/automata-ui/theme.css';\nimport './screens.css';\n",
+      'screens/screens.css': '',
+    })
+    finishSvelteDist(dist, { vendoredTypes: {} })
+    const dts = readFileSync(join(dist, 'screens/default-screens.d.ts'), 'utf8')
+    expect(dts).not.toContain('.css')
+    expect(dts).toContain("import { type ScreenDef } from '@mcthaydt/automata-runtime';")
+    expect(readFileSync(join(dist, 'screens/default-screens.js'), 'utf8')).toBe(
+      "import '@mcthaydt/automata-ui/theme.css';\nimport './screens.css';\n",
+    )
+  })
 })
