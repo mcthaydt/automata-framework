@@ -3,7 +3,7 @@
 - **Task:** ED3D.8a, the first part of ED3D.8. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.1 (`materials` and `hints` on `LevelProfile`), D8 (Walk: virtual sticks first, eye 1.6 m, fov 69°; Fly and Orbit are modes of the same camera), D10 (the material set comes from the profile), §5.3 flows 4 (Walk) and 5 (Retexture: the material sheet applies to this wall, the room, or matching walls, in one transaction), §9 (Walk: Walk, Fly, Orbit; wall picked or not; no spawn. Material picker: searching, empty search, selected, apply scope), §10 (WASD and Q E in Walk) and ED3-n (a level with no spawn: the camera starts at the first sector's centre with a warning). The logic only, as plain TypeScript: no Svelte, DOM, Pixi or clock.
 - **Lane:** editor-3d. **Depends on:** ED3D.4 (merged: `walkStart`, `walkCamera`, `rayThrough`, `orbitCamera`, `orbitBy`, `buildSectorMesh`, `pickMesh`, `selectionOf`) and ED3D.3 (merged: `LevelEditor`, `setWallMaterial`, `setMaterials`, `withWall`). Branch `claude/editors-ed3d-8a-ed3d-8a-materials-walk` from `main`.
 - **Status:** Drafted 2026-10-30. Not reviewed; the spec review (ED3D.0) is still open. Steps are ticked only when their checks pass.
-- **Progress:** 2 of 5 steps.
+- **Progress:** 3 of 5 steps.
 
 ## Sources, read at these commits
 
@@ -72,8 +72,8 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
 - [x] Minimal code; the file's tests pass.
 
 ### Step 3: the material picker
-- [ ] Failing tests `src/view/materials/material-picker.test.ts`: categories and counts, the open category, search (match on id and label, across categories, empty state, clearing), select, scale and brightness held to their ranges and defaulting from the sector, scope, used in this level, `apply` is one undo step that writes the scope, and a refusing list refuses `apply` and changes nothing (Last Light without a list).
-- [ ] Minimal code; the file's tests pass.
+- [x] Failing tests `src/view/materials/material-picker.test.ts`: categories and counts, the open category, search (match on id and label, across categories, empty state, clearing), select, scale and brightness held to their ranges and defaulting from the sector, scope, used in this level, `apply` is one undo step that writes the scope, and a refusing list refuses `apply` and changes nothing (Last Light without a list).
+- [x] Minimal code; the file's tests pass.
 
 ### Step 4: the Walk controller
 - [ ] Failing tests `src/view/walk/walk-controller.test.ts`: starts at the spawn; no spawn starts in the first sector with the warning (ED3-n); WASD and the move stick walk at 3 m/s on an injected tick; the look stick and Q and E turn; pitch held to 85°; a solid wall stops the walk and the walk slides along it; a portal is crossed and the eye follows the floor down (ED3-s's half); Fly rises with E and `lift` and moves along the look; Orbit turns with the look stick; back to Walk lands on the floor; the aim is the wall in front, `pick` selects it and a tap at nothing clears; a hidden walls layer is seen through and a locked one selects nothing; an edit that changes the level moves the aim; the tick is held to 0.1 s.
@@ -87,3 +87,4 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
 
 - Step 1 (2026-10-30): `materials.test.ts` failed first on the missing module; with `profile/materials.ts` and the two members on each profile, 7 tests pass and `tsc -p .` is clean.
 - Step 2 (2026-10-30): `material-edits.test.ts` written first (module missing); 14 tests pass on `material-edits.ts`. Two mutations (matching never rewriting a wall's own texture; Room never giving a preset wall its own member) each fail a test, so both branches are held. A first Room rule (clear every own texture, or keep one on a preset wall) missed a preset that names a material; Room now resolves the level again after clearing and gives such a wall its own member.
+- Step 3 (2026-10-30): `material-picker.test.ts` failed first on the missing module; 13 tests pass on `view/materials/material-picker.ts`. One expectation was wrong in the test (a search for `r` cannot match `plank` or `Oak planks`) and was corrected to a search for `a`. The level's facts (the target's material and the materials in use) are kept for each level and target, so scrubbing scale or brightness rebuilds no geometry.
