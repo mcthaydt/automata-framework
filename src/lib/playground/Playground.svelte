@@ -15,7 +15,8 @@
 
   let { example }: { example: Example } = $props()
   const REDUCED = 'Press Play to start the example. Once it runs, edits update it live.'
-  const statusId = 'playground-status-' + Math.random().toString(36).slice(2)
+  const uid = $props.id()
+  const statusId = 'playground-status-' + uid
 
   let view = $state<OrchestratorView>({ preview: 'poster', runId: 0, status: '', stopped: null, frames: 0 })
   let waitingForPlay = $state(false)

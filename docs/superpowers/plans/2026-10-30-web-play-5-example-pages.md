@@ -92,11 +92,11 @@ export function atOrigin(code: string, from: string, to: string): string
    `tests/helpers/page-data.ts` follow.
 5. [x] **CommandMenu and Lighthouse.** Example entries open `/examples/<id>`; `lighthouserc.json` gains the two
    example URLs with the `/examples` assertions (and `tests/lighthouse-budget.test.ts` if it pins the list).
-6. [ ] **Real browser.** `tests/e2e/playground.e2e.ts`: `shapes-rects` reaches `data-preview="running"` with no input
+6. [x] **Real browser.** `tests/e2e/playground.e2e.ts`: `shapes-rects` reaches `data-preview="running"` with no input
    and the frame draws; no request under `/playground/` before `load`; reduced motion requests nothing under
    `/playground/` before Play, then Play runs it; `/examples` requests nothing under `/playground/`; a forged message
    from the page itself (wrong source) changes nothing. Both projects.
-7. [ ] **Gates.** `pnpm check` (0 errors); `pnpm test`; `pnpm build`; `pnpm check:site`; the focused e2e
+7. [x] **Gates.** `pnpm check` (0 errors); `pnpm test`; `pnpm build`; `pnpm check:site`; the focused e2e
    (`tests/e2e/playground.e2e.ts`, then `tests/e2e/site.e2e.ts`, since the 17 new pages join the sitemap and its
    gates). Lighthouse is selected if the container can run it, otherwise pending with the reason.
 
@@ -136,6 +136,18 @@ export function atOrigin(code: string, from: string, to: string): string
   WebKit, at the sizes where the frame runs, "Permission policy 'Gamepad' check failed for document with origin ''" from
   the input examples (WebKit matches a bare `allow` feature to the src's origin, and the sandboxed frame's is opaque;
   the frame now gets `fullscreen *; autoplay *; gamepad *`). Both fixed; the failing cases then passed in both engines.
+- **Review.** The status line's id came from `Math.random()`, which differs between the prerender and hydration; it is
+  `$props.id()` now. The build's rewrite of `src/data/first-change-proof.json` (a timestamp) was committed by mistake
+  and is reverted.
+- **Gates (final).** `pnpm check` 0 errors; `pnpm test` 57 files, 371 passed, 1 expected fail; `pnpm build` ok;
+  `pnpm check:site` 45 pages; full e2e (`pnpm exec playwright test`, Chromium and WebKit) 710 passed, 2 skipped, before
+  the `$props.id()` change, then after it `tests/e2e/playground.e2e.ts` 12 of 12 and the shapes-rects page gates 8 of 8.
+  `pnpm lighthouse` in this container, Chromium 1243, three runs a page, medians: `/examples/core-basic-window` 0.99,
+  LCP 1,355 ms, CLS 0, TBT 96 ms; `/examples/shapes-rects` 0.99, 1,358 ms, 0, 100 ms; `/examples` 1.00, 1,358 ms, 0,
+  52 ms. The run failed on `/` (TBT 365 ms) and `/start` (347 ms), pages this task does not change; the baseline for
+  those is the Owner's Mac (QB.3k), where they measure 31 and 0.5 ms. Lighthouse stops shortly after `load`, and the
+  frame starts after `load` once the preview is near the screen, so how much of the frame's boot these numbers include
+  is not established; the `af-mac` run is the one that counts.
 
 ### Deviations
 
