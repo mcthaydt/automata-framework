@@ -1,0 +1,11 @@
+# `fittedBack` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/headwear.json at a1f7246.
+
+about = "A fitted cap worn backwards: six panels to a button, close on the head, sitting high over the brow and low at the back, its band unbroken (a fitted has no strap); the brim over the nape, narrow and barely drooping, so it follows the head's line instead of flaring; the panels' seams stitched in the cloth's shadow tone; a sticker on the brim's top (the mark), which worn backwards shows at the nape."
+
+[cap]
+band = [[0, 0.5], [0.5, 0.46], [1.2, 0.24], [1.9, 0.12], [2.6, -0.02], [3.1416, -0.05]]
+lift = 0.1
+crown = 0.03
+panels = [6, 0.05]
+brim = { at = 3.1416, width = 0.6, reach = 0.65, droop = 0.1, curve = 0.35, thick = 0.06, sticker = 0.24 }
+button = 0.14
