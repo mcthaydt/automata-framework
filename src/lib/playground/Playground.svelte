@@ -27,6 +27,7 @@
   let fetchFailed = $state(false)
   let code = $state<CodeState>('static')
   let stage: HTMLElement | undefined = $state()
+  let codePanel: ReturnType<typeof CodePanel> | undefined = $state()
   let box: HTMLElement | undefined = $state()
   let orchestrator: Orchestrator | undefined
   let orchestratorLoad: Promise<Orchestrator> | undefined
@@ -211,10 +212,10 @@
 </script>
 <div class="playground" data-code={code} data-compile={compile} data-preview={view.preview} data-run-id={view.runId}>
   <div class="playground-grid">
-  <div class="playground-code"><CodePanel source={example.source} {highlighted} title={example.title} describedBy={statusId} {oncodestate} {onedit} /></div>
+  <div class="playground-code"><CodePanel source={example.source} {highlighted} title={example.title} describedBy={statusId} {oncodestate} {onedit} {diagnostics} bind:this={codePanel} /></div>
   <div class="playground-preview" bind:this={box}>
     <PreviewPanel title={example.title} {view} {showPlay} onplay={play} onrestart={() => orchestrator?.restart()} bind:stage />
-    <p class="playground-status" id={statusId}>{status}</p>
+    <p class="playground-status" id={statusId}>{#if diagnosticStatus && status === diagnosticStatus}<button type="button" class="diagnostic" onclick={() => codePanel?.focusAt(diagnostics[0]!.line, diagnostics[0]!.column)}>{status}</button>{:else}{status}{/if}</p>
   </div>
   </div>
 </div>
@@ -224,6 +225,8 @@
   .playground-code { min-width: 0; }
   .playground-preview { order: -1; min-width: 0; }
   .playground-status { margin: .75rem 0 0; min-height: 1.5em; font-size: var(--step-small); color: var(--muted); overflow-wrap: anywhere; }
+  /* The diagnostic reads as the status line it is, and is a 44 px target that takes the reader to the line (§8.2). */
+  .diagnostic { display: block; width: 100%; min-height: 44px; padding: .5rem 0; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
   @container playground (min-width: 700px) {
     .playground-grid { grid-template-columns: minmax(0, 55fr) minmax(0, 45fr); align-items: start; }
     .playground-preview { order: 0; position: sticky; top: 5rem; }

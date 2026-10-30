@@ -72,13 +72,13 @@ and the share link (.9); the determinism row (.10); the layout pass and the late
   version." (and without the second sentence when nothing runs). Fails: no module. Then `live.ts`.
 - [x] 3. `compile.worker.ts`, `editor.ts`'s `onchange`, `CodePanel`'s `onedit`, and `Playground`: the worker starts
   when the editor starts loading; a result runs through `orchestrator.run`. Step 1 passes in Chromium and WebKit.
-- [ ] 4. e2e A-3: inserting `const broken = 1 +;` inside the `move` system marks that line (`.cm-lint-marker-error`
+- [x] 4. e2e A-3: inserting `const broken = 1 +;` inside the `move` system marks that line (`.cm-lint-marker-error`
   in its gutter row, `.cm-lintRange-error` in the line), the status line names "Line N: Unexpected token" within the
   test's 2 s wait, `data-run-id` and the frame element are unchanged; deleting it runs the fix (`data-run-id` 2).
   Fails: no marker. Then `@codemirror/lint` (dependency, `lintGutter`, `showDiagnostics`) and the diagnostics path.
-- [ ] 5. e2e A-4: `import _ from 'lodash'` marks line 1's import with "The playground can import only
+- [x] 5. e2e A-4: `import _ from 'lodash'` marks line 1's import with "The playground can import only
   @mcthaydt/automata and zod.", no request for anything named `lodash`, the preview keeps running.
-- [ ] 6. e2e: "pressing the diagnostic puts the caret on its line": the status line's button is at least 44 px high;
+- [x] 6. e2e: "pressing the diagnostic puts the caret on its line": the status line's button is at least 44 px high;
   pressing it focuses `.cm-content` with the caret on the marked line. Fails: no button. Then the button and
   `focusAt`.
 - [ ] 7. e2e: "an edit before the first run replaces it": hold `/playground/compiled/shapes-rects.js` (route, released
@@ -118,3 +118,10 @@ once.
   lives in `status.ts`, not `live.ts`: the status line is in the page's entry, and `live.ts` brings Zod, which loads
   only with the editor. The worker's jobs carry the example (`{ seq, source, example }`), since Vite's
   `new Worker(new URL(...))` pattern takes no query. Chromium and WebKit pass.
+- Steps 4–6: A-3, A-4 and the diagnostic button failed first with no marker and no button. `@codemirror/lint` 6.9.7
+  (exact). The lint gutter sits before the line numbers and takes the gutters' 1rem left padding, so the numbers stay
+  where the static code has them and the box test still passes. An underline at the very end of a line covers its last
+  character. The tests place the caret by a character's box, not with End (End stops at a wrapped line's first row),
+  and retry the click until the caret is on the line: WebKit was still settling the page's scroll after the swap, so a
+  click measured a moment earlier landed two to five lines lower (3 of 6 runs before, 6 of 6 after). Chromium and
+  WebKit pass, the WEB.PLAY.6 tests included.

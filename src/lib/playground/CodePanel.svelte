@@ -7,7 +7,9 @@
   import CopyButton from '$lib/components/CopyButton.svelte'
   import { offsetAtPoint } from './caret'
   import type { HighlightedLine } from './highlight'
-  let { source, highlighted, title, describedBy, oncodestate, onedit }: {
+  import type { Diagnostic } from './compile'
+  import type * as Editor from './editor'
+  let { source, highlighted, title, describedBy, oncodestate, onedit, diagnostics = [] }: {
     source: string
     highlighted: HighlightedLine[]
     title: string
@@ -15,6 +17,8 @@
     oncodestate?: (state: CodeState) => void
     /** The editor's whole text after each change (spec F3). */
     onedit?: (source: string) => void
+    /** The latest compile's problems, marked at their lines (spec F5). */
+    diagnostics?: readonly Diagnostic[]
   } = $props()
   // One span per line, each carrying its newline, so the code's text is the source byte for byte; the line numbers are
   // CSS counters and never part of it. The editor takes this box's size and font (spec §9.3), and the pieces carry the
@@ -22,7 +26,8 @@
   let codeState = $state<CodeState>('static')
   let pre: HTMLElement | undefined = $state()
   let host: HTMLElement | undefined = $state()
-  let editor: { destroy(): void; focus(): void } | undefined
+  let editor = $state.raw<ReturnType<typeof Editor.mountEditor>>()
+  let editorModule: typeof Editor | undefined
   let destroyed = false
 
   function setState(next: CodeState) {
@@ -34,7 +39,8 @@
     if (codeState !== 'static') return
     setState('loading')
     try {
-      const { mountEditor } = await import('./editor')
+      editorModule = await import('./editor')
+      const { mountEditor } = editorModule
       if (destroyed) return
       // The swap keeps the page where the reader left it: for a moment both the static code and the editor are in the
       // layout, and Safari on macOS scrolled the page by more than a screen (CI, WebKit) as the static code went.
@@ -53,6 +59,15 @@
   // The tap's offset is read from the static text before the swap, so the caret lands where the reader tapped.
   const onpointerdown = (event: PointerEvent) => void upgrade(offsetAtPoint(pre!, event.clientX, event.clientY) ?? 0)
   const onfocusin = () => void upgrade(0)
+
+  $effect(() => {
+    if (editor) editorModule!.showDiagnostics(editor, diagnostics)
+  })
+
+  /** Puts the caret on a diagnostic's line and focuses the editor (the status line's button, §8.2). */
+  export function focusAt(line: number, column: number) {
+    if (editor) editorModule!.moveCaret(editor, line, column)
+  }
 
   onMount(() => {
     // A reader who reached the code before the page hydrated has already had their focusin.
