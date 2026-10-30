@@ -13,7 +13,7 @@ const ALWAYS_NEVER: readonly string[];
 ### `CHANGE_SET_JOURNAL_FORMAT` (const)
 
 ```ts
-const CHANGE_SET_JOURNAL_FORMAT = "af-change-set/1";
+const CHANGE_SET_JOURNAL_FORMAT = "af-change-set/2";
 ```
 
 ### `ChangeSetJournal` (interface)
@@ -30,13 +30,15 @@ interface ChangeSetJournal {
         readonly used: number;
         readonly cap: number;
     };
+    readonly writes: readonly ChangeSetWrite[];
+    readonly checks: readonly ChangeSetCheck[];
 }
 ```
 
 ### `changeSetJournalSchema` (const)
 
 ```ts
-const changeSetJournalSchema: z.ZodType<ChangeSetJournal>;
+const changeSetJournalSchema: z.ZodType<ChangeSetJournal, unknown>;
 ```
 
 ### `CheckRow` (type)

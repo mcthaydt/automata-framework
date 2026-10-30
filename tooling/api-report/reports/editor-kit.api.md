@@ -3396,7 +3396,8 @@ interface ChangeSet {
         readonly base: string;
     } | undefined>;
     begin(title: string): Promise<void>;
-    record(files: readonly string[]): Promise<void>;
+    record(files: readonly string[], writes?: readonly ChangeSetWrite[]): Promise<void>;
+    note(checks: readonly ChangeSetCheck[]): Promise<void>;
     checkpoint(message: string): Promise<{
         readonly commit: string;
     }>;
@@ -3416,6 +3417,18 @@ interface ChangeSet {
 }
 ```
 
+### `ChangeSetCheck` (interface)
+
+```ts
+interface ChangeSetCheck {
+    readonly check: string;
+    readonly status: CheckResult['status'];
+    readonly findings: readonly CheckFinding[];
+    readonly before?: readonly CheckMeasure[] | undefined;
+    readonly after?: readonly CheckMeasure[] | undefined;
+}
+```
+
 ### `ChangeSetSummary` (interface)
 
 ```ts
@@ -3429,6 +3442,18 @@ interface ChangeSetSummary {
         readonly used: number;
         readonly cap: number;
     };
+    readonly writes: readonly ChangeSetWrite[];
+    readonly checks: readonly ChangeSetCheck[];
+}
+```
+
+### `ChangeSetWrite` (interface)
+
+```ts
+interface ChangeSetWrite {
+    readonly path: string;
+    readonly before: string | undefined;
+    readonly after: string;
 }
 ```
 
@@ -3555,6 +3580,18 @@ interface Proposal {
 }
 ```
 
+### `SuiteAskTarget` (interface)
+
+```ts
+interface SuiteAskTarget {
+    readonly path: string;
+    text(): string;
+    scope(): string;
+    locked(): readonly string[];
+    accept(text: string, summary: string): void;
+}
+```
+
 ### `SuiteEditor` (interface)
 
 ```ts
@@ -3566,6 +3603,8 @@ interface SuiteEditor<S> {
     open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>;
     readonly regions: SuiteRegions<S>;
     readonly contributions?: readonly ContributionPoint[] | undefined;
+    readonly undo?: ((session: S) => SuiteUndo) | undefined;
+    readonly ask?: ((session: S) => SuiteAskTarget) | undefined;
 }
 ```
 
@@ -3591,6 +3630,20 @@ interface SuiteRegions<S> {
     readonly dock?: Snippet<[S]> | undefined;
     readonly status?: Snippet<[S]> | undefined;
     readonly tools?: Snippet<[S]> | undefined;
+}
+```
+
+### `SuiteUndo` (interface)
+
+```ts
+interface SuiteUndo {
+    canUndo(): boolean;
+    canRedo(): boolean;
+    undoLabel(): string | undefined;
+    redoLabel(): string | undefined;
+    undo(): void;
+    redo(): void;
+    subscribe(listener: () => void): () => void;
 }
 ```
 
