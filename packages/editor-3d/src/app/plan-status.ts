@@ -26,9 +26,12 @@ export interface PlanStatusInput {
   readonly pointer: Point | undefined
   readonly pxPerMetre: number
   readonly selection: readonly string[]
+  /** A phone's short line: the selection alone, so the save state beside it stays in view. */
+  readonly brief?: boolean | undefined
 }
 
 export function planStatus(input: PlanStatusInput): string {
+  if (input.brief === true) return selectionWords(input.selection)
   const parts: string[] = []
   if (input.pointer !== undefined)
     parts.push(`x ${metres(input.pointer.x)} m`, `z ${metres(input.pointer.z)} m`)

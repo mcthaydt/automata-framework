@@ -95,7 +95,7 @@ $effect(() => {
 })
 
 const pill = $derived(checksWords(counts))
-const planWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection }))
+const planWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection, brief: compact }))
 // On a phone the bar has no room for the checks pill, so its words lead the status line.
 const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWords)
 </script>

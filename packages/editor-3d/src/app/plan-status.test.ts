@@ -20,6 +20,12 @@ describe('planStatus', () => {
     )
   })
 
+  it('keeps to the selection on a phone, where the line is short', () => {
+    expect(
+      planStatus({ pointer: { x: 1, z: 2 }, pxPerMetre: 24, selection: ['sector:hall'], brief: true }),
+    ).toBe('Room hall selected')
+  })
+
   it('names a wall and a thing in words', () => {
     expect(planStatus({ pointer: undefined, pxPerMetre: 32, selection: ['wall:hall/2'] })).toBe(
       '32 px per metre · Wall 3 of hall selected',

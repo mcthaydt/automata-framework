@@ -10,7 +10,7 @@ import { defineConfig } from 'vitest/config'
 // - layout: the production CSS in real Chromium, WebKit and Firefox at the sizes of spec §10, and the iPad journeys
 //   (WebKit with touch and pen samples). `*.layout.test.ts`.
 // - canvas: the Plan view's Pixi renderer (`*.canvas.test.ts`, ED3D.5d) in Chromium with WebGL2: pixels read back,
-//   resize and context loss..
+//   resize and context loss. `ED3D_VISUALS=1` makes the review-image test write its PNGs.
 //
 // The Svelte plugins sit on the two projects that mount components, not at the top, so the Node project never loads
 // the Svelte compiler or a package's `browser` build.
@@ -64,6 +64,7 @@ export default defineConfig({
         test: {
           name: 'canvas',
           include: ['src/**/*.canvas.test.ts'],
+          provide: { writeVisuals: process.env['ED3D_VISUALS'] === '1' },
           browser: {
             enabled: true,
             headless: true,
