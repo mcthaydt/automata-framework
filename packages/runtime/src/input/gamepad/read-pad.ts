@@ -58,12 +58,9 @@ export function readPad(pad: PadLike): PadReading {
 
   const sticks = new Set<StickDirection>()
   for (const side of ['left', 'right'] as const) {
-    const { x, y, radius } = push(pad, side === 'left' ? 0 : 2)
-    if (radius === 0) continue
-    if (y <= -AXIS_SHARE * radius) sticks.add(`${side}-up`)
-    if (y >= AXIS_SHARE * radius) sticks.add(`${side}-down`)
-    if (x <= -AXIS_SHARE * radius) sticks.add(`${side}-left`)
-    if (x >= AXIS_SHARE * radius) sticks.add(`${side}-right`)
+    const first = side === 'left' ? 0 : 2
+    for (const direction of stickDirections(side, pad.axes[first] ?? 0, pad.axes[first + 1] ?? 0))
+      sticks.add(direction)
   }
 
   // The stick walks a menu exactly as the D-pad does: one step along its stronger axis, so a diagonal is one
@@ -76,6 +73,21 @@ export function readPad(pad: PadLike): PadReading {
     else nav.add(left.x < 0 ? 'left' : 'right')
   }
   return { buttons, sticks, nav }
+}
+
+/**
+ * A stick's directions past the radial deadzone, eight-way: an axis counts when it carries at least `AXIS_SHARE` of
+ * the push. The pad's sticks and the touch stick (M4.12) share it, so the same push holds the same actions.
+ */
+export function stickDirections(side: 'left' | 'right', x: number, y: number): StickDirection[] {
+  const radius = Math.hypot(x, y)
+  if (radius < DEADZONE) return []
+  const directions: StickDirection[] = []
+  if (y <= -AXIS_SHARE * radius) directions.push(`${side}-up`)
+  if (y >= AXIS_SHARE * radius) directions.push(`${side}-down`)
+  if (x <= -AXIS_SHARE * radius) directions.push(`${side}-left`)
+  if (x >= AXIS_SHARE * radius) directions.push(`${side}-right`)
+  return directions
 }
 
 /**
