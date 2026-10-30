@@ -23,6 +23,7 @@ export {
 } from './model/load-models.js'
 export { modelGeometry } from './model/model-geometry.js'
 export { type ModelMesh, parseGlb, parsePack } from './model/parse-glb.js'
+export { type FramingInput, type FramingMiss, framingMisses } from './occluders/framing.js'
 export {
   FADED_OPACITY,
   HYSTERESIS_DEG,
