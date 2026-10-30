@@ -311,6 +311,9 @@ importers:
       oxc-parser:
         specifier: 0.152.0
         version: 0.152.0
+      semver:
+        specifier: 7.8.5
+        version: 7.8.5
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0
@@ -324,6 +327,9 @@ importers:
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
+      '@types/semver':
+        specifier: 7.8.0
+        version: 7.8.0
       vite:
         specifier: 8.3.3
         version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
@@ -2378,6 +2384,9 @@ packages:
 
   '@types/pngjs@6.0.5':
     resolution: {integrity: sha512-0k5eKfrA83JOZPppLtS2C7OUtyNAl2wKNxfyYl9Q5g9lPkgBl/9hNyAu6HuEH2J4XmIv2znEpkDd0SaZVxW6iQ==}
+
+  '@types/semver@7.8.0':
+    resolution: {integrity: sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==}
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     resolution: {integrity: sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==}
@@ -4537,6 +4546,8 @@ snapshots:
   '@types/pngjs@6.0.5':
     dependencies:
       '@types/node': 24.19.1
+
+  '@types/semver@7.8.0': {}
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
