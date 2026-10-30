@@ -17,6 +17,7 @@
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { normalizePath, runnerImport } from 'vite'
+import { ATLASES_FOLDER, FONTS_FOLDER } from '../assets/asset-outputs'
 import { buildAtlases } from '../assets/build-atlases'
 import { buildFonts } from '../assets/build-fonts'
 import {
@@ -145,8 +146,8 @@ async function writeAssets(options: ContentOptions, io: CliIo): Promise<number> 
   if (Either.isLeft(fonts)) return reportFailure(fonts.left, io)
   const outDir = outDirOf(options)
   const outputs = [
-    ...[...atlases.right.files].map(([file, bytes]) => [join(outDir, 'atlases', file), bytes] as const),
-    ...[...fonts.right.files].map(([file, bytes]) => [join(outDir, 'fonts', file), bytes] as const),
+    ...[...atlases.right.files].map(([file, bytes]) => [join(outDir, ATLASES_FOLDER, file), bytes] as const),
+    ...[...fonts.right.files].map(([file, bytes]) => [join(outDir, FONTS_FOLDER, file), bytes] as const),
   ]
   for (const [path, bytes] of outputs) {
     const written = await Effect.runPromise(

@@ -3,12 +3,14 @@ import { mountFixture, REFERENCE_SIZES, VARIANTS } from '@mcthaydt/automata-test
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { byTestId, checkLayout, publishConditions } from '../testing/layout-contract'
+import { FIXTURE_LOCALES, findUntranslated } from '../testing/locale-fixture'
 import SettingsFixture, { SETTINGS_SHOWS, type SettingsShow } from '../testing/SettingsFixture.svelte'
 import { settleLayout } from '../testing/settle'
 
 // The core Settings screen (M4 spec §4.8, §7, §8) at every reference size and variant, keyboard, Ruken's strip and
 // TV scale included, with production CSS, in Chromium, WebKit and Firefox. Every rebind button and option is a whole
-// target; the sections scroll inside their list, so Back and the first row stay reachable on a short screen.
+// target; the sections scroll inside their list, so Back and the first row stay reachable on a short screen. The contract
+// runs in English and again in the xx-long pseudo-locale (PRODUCT spec §4 item 7).
 
 /**
  * What a player must reach without scrolling: the dialog's Close (named Back), Back under the dialog where the band is
@@ -36,27 +38,32 @@ function essentials(show: SettingsShow, keyboard: boolean): HTMLElement[] {
   ]
 }
 
-describe('Settings screen layout contract', () => {
-  for (const show of SETTINGS_SHOWS) {
-    test.each(REFERENCE_SIZES)(`${show} at $name ($width x $height)`, async (size) => {
-      await page.viewport(size.width, size.height)
-      const problems: string[] = []
-      for (const variant of VARIANTS) {
-        const conditions = publishConditions(document.documentElement, size, variant)
-        const fixture = mountFixture(SettingsFixture, { show })
-        await settleLayout()
-        if (show.startsWith('controls')) {
-          byTestId('settings-tab-controls').click()
+for (const locale of FIXTURE_LOCALES) {
+  describe(`Settings screen layout contract (${locale})`, () => {
+    for (const show of SETTINGS_SHOWS) {
+      test.each(REFERENCE_SIZES)(`${show} at $name ($width x $height)`, async (size) => {
+        await page.viewport(size.width, size.height)
+        const problems: string[] = []
+        for (const variant of VARIANTS) {
+          const conditions = publishConditions(document.documentElement, size, variant)
+          const fixture = mountFixture(SettingsFixture, { show, locale })
           await settleLayout()
+          if (show.startsWith('controls')) {
+            byTestId('settings-tab-controls').click()
+            await settleLayout()
+          }
+          const found = [
+            ...checkLayout(conditions, essentials(show, variant.keyboard !== undefined)),
+            ...(locale === 'en' ? [] : findUntranslated(document.body)),
+          ]
+          for (const problem of found) problems.push(`${variant.name}: ${problem}`)
+          await fixture.unmount()
         }
-        for (const problem of checkLayout(conditions, essentials(show, variant.keyboard !== undefined)))
-          problems.push(`${variant.name}: ${problem}`)
-        await fixture.unmount()
-      }
-      expect(problems).toEqual([])
-    })
-  }
-})
+        expect(problems).toEqual([])
+      })
+    }
+  })
+}
 
 describe('Settings screen tabs', () => {
   // Two sections across is for a tab with several groups (FloorFifty: Language beside Audio); a tab of one section,
@@ -74,6 +81,66 @@ describe('Settings screen tabs', () => {
     const controls = document.querySelector('[data-settings-section="controls"]')?.getBoundingClientRect()
     await fixture.unmount()
     expect(Math.round(controls?.width ?? 0)).toBe(Math.round(sections?.width ?? -1))
+  })
+
+  // PRODUCT.L3a: in a long language the two tabs are wider than a narrow phone's dialog at TV scale. They took the
+  // dialog's column with them, past the screen, and Close and Back with it; they wrap to a second row instead.
+  test('wraps its tabs on a narrow dialog rather than widening it past the screen', async () => {
+    const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'phone-small')
+    const tv = VARIANTS.find((variant) => variant.name === 'tv-scale')
+    if (size === undefined || tv === undefined) throw new Error('no phone-small or tv-scale variant')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, tv)
+    const fixture = mountFixture(SettingsFixture, { show: 'settings', locale: 'xx-long' })
+    await settleLayout()
+    const dialog = byTestId('settings-screen').getBoundingClientRect()
+    const tabs = ['settings', 'controls'].map((id) => byTestId(`settings-tab-${id}`).getBoundingClientRect())
+    await fixture.unmount()
+    expect(dialog.right).toBeLessThanOrEqual(size.width + 0.5)
+    for (const tab of tabs) expect(tab.right).toBeLessThanOrEqual(dialog.right + 0.5)
+  })
+
+  // PRODUCT.L3a: in a long language a group's widest row (a volume's name, track and percentage) is wider than a
+  // narrow phone's list at TV scale. The one column took that width, and every group's options ran past the list's
+  // side, cut; the column keeps the list's width and each group lays out inside it.
+  test('keeps each group inside the list on a narrow dialog, however wide its widest row', async () => {
+    const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'phone-small')
+    const tv = VARIANTS.find((variant) => variant.name === 'tv-scale')
+    if (size === undefined || tv === undefined) throw new Error('no phone-small or tv-scale variant')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, tv)
+    const fixture = mountFixture(SettingsFixture, { show: 'settings', locale: 'xx-long' })
+    await settleLayout()
+    const sections = document.querySelector('.af-settings__sections')?.getBoundingClientRect()
+    const widths = [...document.querySelectorAll('.af-settings__section')].map(
+      (section) => section.getBoundingClientRect().width,
+    )
+    await fixture.unmount()
+    for (const width of widths) expect(width).toBeLessThanOrEqual((sections?.width ?? 0) + 0.5)
+  })
+
+  // PRODUCT.L3a: in xx-long a long toggle name ("Mute in the background") squeezed its state word ("⟦Óƒƒ··⟧") to three
+  // characters on a narrow phone at TV scale, and the word ran past the toggle; held whole, it was pushed past the
+  // toggle's edge by the name's longest word (WebKit and Firefox fonts). The name wraps, breaking a word too long for
+  // its room; the state word keeps its whole width beside the track, inside the toggle.
+  test('keeps a toggle’s state word whole beside its track, inside the toggle, however long its name', async () => {
+    const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'phone-small')
+    const tv = VARIANTS.find((variant) => variant.name === 'tv-scale')
+    if (size === undefined || tv === undefined) throw new Error('no phone-small or tv-scale variant')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, tv)
+    const fixture = mountFixture(SettingsFixture, { show: 'settings', locale: 'xx-long' })
+    await settleLayout()
+    const state = byTestId('audio-mute-unfocused').querySelector('[data-toggle-state]') as HTMLElement
+    const range = document.createRange()
+    range.selectNodeContents(state)
+    const words = range.getBoundingClientRect()
+    const box = state.getBoundingClientRect()
+    const toggle = byTestId('audio-mute-unfocused').getBoundingClientRect()
+    await fixture.unmount()
+    expect(words.right).toBeLessThanOrEqual(box.right + 0.5)
+    expect(words.left).toBeGreaterThanOrEqual(box.left - 0.5)
+    expect(box.right).toBeLessThanOrEqual(toggle.right + 0.5)
   })
 
   // Two groups across where the dialog is 560 px wide: Language beside Audio, as FloorFifty's.
