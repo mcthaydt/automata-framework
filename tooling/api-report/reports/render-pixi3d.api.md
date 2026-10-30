@@ -10,6 +10,14 @@
 function acceptsRenderer(renderer: RendererKind): boolean;
 ```
 
+### `BakeOptions` (interface)
+
+```ts
+interface BakeOptions {
+    readonly ignore?: readonly string[] | undefined;
+}
+```
+
 ### `box` (function)
 
 ```ts
@@ -21,6 +29,7 @@ function box(size: BoxSize, material: BoxMaterial): View3dFactory;
 ```ts
 interface BoxMaterial {
     readonly color: number;
+    readonly lit?: 'static' | 'moving' | undefined;
 }
 ```
 
@@ -34,10 +43,22 @@ interface BoxSize {
 }
 ```
 
+### `characterTint` (function)
+
+```ts
+function characterTint(position: readonly [number, number, number], normal: readonly [number, number, number] | undefined, lighting: SceneLighting, levels?: LampLevels): [number, number, number];
+```
+
 ### `createPixi3dRenderer` (function)
 
 ```ts
 function createPixi3dRenderer(options: Pixi3dOptions): (target: RenderTarget) => Effect.Effect<Pixi3dRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
+```
+
+### `createSceneLight` (function)
+
+```ts
+function createSceneLight(lighting: SceneLighting): SceneLight;
 ```
 
 ### `DecodeTexture` (type)
@@ -62,6 +83,33 @@ type EntityViewResolver3d = Readonly<Record<string, View3dFactory>>;
 
 ```ts
 function interpolatePose3d(curr: Readonly<FieldRecord>, prev: Readonly<FieldRecord> | undefined, alpha: number): Pose3d;
+```
+
+### `Lamp` (interface)
+
+```ts
+interface Lamp {
+    readonly id: string;
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+    readonly color: number;
+    readonly strength: number;
+    readonly range: number;
+    readonly level: number;
+}
+```
+
+### `LampLevels` (type)
+
+```ts
+type LampLevels = Readonly<Record<string, number>>;
+```
+
+### `lampSchema` (const)
+
+```ts
+const lampSchema: z.ZodType<Lamp>;
 ```
 
 ### `LoadedModel` (interface)
@@ -123,6 +171,45 @@ interface ModelMesh {
 }
 ```
 
+### `OccluderBox` (interface)
+
+```ts
+interface OccluderBox {
+    readonly id?: string | undefined;
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+    readonly width: number;
+    readonly height: number;
+    readonly depth: number;
+}
+```
+
+### `occluderBoxSchema` (const)
+
+```ts
+const occluderBoxSchema: z.ZodType<OccluderBox>;
+```
+
+### `OccluderPlane` (interface)
+
+```ts
+interface OccluderPlane {
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+    readonly normal: readonly [number, number, number];
+    readonly width: number;
+    readonly height: number;
+}
+```
+
+### `occluderPlaneSchema` (const)
+
+```ts
+const occluderPlaneSchema: z.ZodType<OccluderPlane>;
+```
+
 ### `parseGlb` (function)
 
 ```ts
@@ -140,7 +227,10 @@ function parsePack(buffer: ArrayBuffer, file: string): ModelMesh;
 ```ts
 interface Pixi3dOptions extends PixiRendererOptions {
     readonly views: EntityViewResolver3d;
-    readonly scene?: ((view: View3D, stage: PixiStage) => PixiStageHooks | undefined) | undefined;
+    readonly scene?: ((view: View3D, stage: PixiStage, light: SceneLight | undefined) => PixiStageHooks | undefined) | undefined;
+    readonly fog?: SceneFog | undefined;
+    readonly lighting?: SceneLighting | undefined;
+    readonly lamps?: string | undefined;
 }
 ```
 
@@ -186,11 +276,66 @@ interface RendererKind {
 }
 ```
 
+### `SceneFog` (interface)
+
+```ts
+interface SceneFog {
+    readonly near: number;
+    readonly far: number;
+    readonly color: number;
+}
+```
+
+### `sceneFogSchema` (const)
+
+```ts
+const sceneFogSchema: z.ZodType<SceneFog>;
+```
+
+### `SceneLight` (interface)
+
+```ts
+interface SceneLight {
+    readonly lighting: SceneLighting;
+    bake(mesh: Mesh3D, options?: BakeOptions): void;
+    release(mesh: Mesh3D): void;
+    setLevels(levels: LampLevels): void;
+    level(id: string): number;
+    tint(x: number, y: number, z: number, normal?: readonly [number, number, number]): [number, number, number];
+    readonly rebakes: number;
+}
+```
+
+### `SceneLighting` (interface)
+
+```ts
+interface SceneLighting {
+    readonly ambient: number;
+    readonly ambientColor: number;
+    readonly lamps: readonly Lamp[];
+    readonly boxes: readonly OccluderBox[];
+    readonly planes: readonly OccluderPlane[];
+    readonly fog?: SceneFog | undefined;
+}
+```
+
+### `sceneLightingContent` (const)
+
+```ts
+const sceneLightingContent: ContentSchemaDef<'scene-lighting', typeof sceneLightingSchema>;
+```
+
+### `sceneLightingSchema` (const)
+
+```ts
+const sceneLightingSchema: z.ZodType<SceneLighting>;
+```
+
 ### `View3dFactory` (interface)
 
 ```ts
 interface View3dFactory {
-    (row: RenderRow, componentId: string | undefined, models: ModelLibrary): EntityView3d | undefined;
+    (row: RenderRow, componentId: string | undefined, models: ModelLibrary, light?: SceneLight | undefined): EntityView3d | undefined;
     readonly models?: readonly string[];
 }
 ```

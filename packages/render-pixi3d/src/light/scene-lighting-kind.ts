@@ -4,7 +4,8 @@
 // Why not `defineContentSchema`: `@mcthaydt/automata-content`'s root entry reaches its Node-only compiler, and this
 // registration rides in `render3dExtension`, which is in every 3D game's browser bundle. A registration is a frozen
 // `{ kind, schema, place, sim }` (what `defineContentSchema` returns), so it is written out here with a type-only
-// import; the compiler still checks it (`configProblems`) like any other.
+// import; the compiler still checks it (`configProblems`) like any other. The file has no `.content.ts` suffix
+// because that role is for `defineContentSchema` results (`pnpm style`).
 import type { ContentSchemaDef } from '@mcthaydt/automata-content'
 import { sceneLightingSchema } from './scene-lighting.schema.js'
 

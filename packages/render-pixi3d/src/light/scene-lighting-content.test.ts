@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { compileContent, type Diagnostic } from '@mcthaydt/automata-content'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { sceneLightingContent } from './scene-lighting.content.js'
+import { sceneLightingContent } from './scene-lighting-kind.js'
 
 const HALL = `ambient = 0.2
 

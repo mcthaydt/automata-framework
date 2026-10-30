@@ -6,7 +6,7 @@ import { type LightSample, segmentBlocked } from './occlusion.js'
 import type { Lamp, SceneLighting } from './scene-lighting.schema.js'
 
 /** A point or direction in world metres. */
-export type Vec3 = readonly [number, number, number]
+type Vec3 = readonly [number, number, number]
 
 /** Lamp levels by lamp id: 0 is off, 1 full. A lamp not listed keeps its content `level`. */
 export type LampLevels = Readonly<Record<string, number>>
@@ -72,8 +72,8 @@ export function vertexLight(
  * and boxes between the character and a lamp block it. Recomputed every frame: it is one small sum per lamp.
  */
 export function characterTint(
-  position: Vec3,
-  normal: Vec3 | undefined,
+  position: readonly [number, number, number],
+  normal: readonly [number, number, number] | undefined,
   lighting: SceneLighting,
   levels: LampLevels = {},
 ): [number, number, number] {

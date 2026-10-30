@@ -3,7 +3,6 @@
 // Import `@mcthaydt/automata-render-pixi3d/no-eval` first, before anything else.
 
 export { type BakeOptions, createSceneLight, type SceneLight } from './light/scene-light.js'
-export { sceneLightingContent } from './light/scene-lighting.content.js'
 export {
   type Lamp,
   lampSchema,
@@ -16,6 +15,7 @@ export {
   sceneFogSchema,
   sceneLightingSchema,
 } from './light/scene-lighting.schema.js'
+export { sceneLightingContent } from './light/scene-lighting-kind.js'
 export { characterTint, type LampLevels } from './light/vertex-light.js'
 export { type DecodeTexture, type LoadedModel, loadModels, type ModelLibrary } from './model/load-models.js'
 export { modelGeometry } from './model/model-geometry.js'

@@ -5,7 +5,7 @@
 import { type Container3D, Geometry3D, type Mesh3D } from '@pixi/3d'
 import type { SceneLighting } from './scene-lighting.schema.js'
 import { bakeVertices, type VertexBake } from './vertex-bake.js'
-import { characterTint, type LampLevels, levelOf, type Vec3 } from './vertex-light.js'
+import { characterTint, type LampLevels, levelOf } from './vertex-light.js'
 
 export interface BakeOptions {
   /** Occluder boxes (by `id`) that never shadow this mesh: its own broad collider, say. */
@@ -32,7 +32,7 @@ export interface SceneLight {
   /** A lamp's level now. */
   level(id: string): number
   /** A character's light at a point now (`characterTint`): multiply its base colour by it, each frame. */
-  tint(x: number, y: number, z: number, normal?: Vec3): [number, number, number]
+  tint(x: number, y: number, z: number, normal?: readonly [number, number, number]): [number, number, number]
   /** How many mesh rebakes lamp changes have caused (the bake at load is not counted). */
   readonly rebakes: number
 }
