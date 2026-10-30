@@ -125,6 +125,31 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.5(@types/node@24.19.1)(yaml@2.9.1))
 
+  tooling/pipelines:
+    dependencies:
+      '@mcthaydt/automata-node':
+        specifier: file:../../.core/packs/automata-node
+        version: file:.core/packs/automata-node
+      '@mcthaydt/automata-sim':
+        specifier: file:../../.core/packs/automata-sim
+        version: file:.core/packs/automata-sim
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+      smol-toml:
+        specifier: 1.9.0
+        version: 1.9.0
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.5(@types/node@24.19.1)(yaml@2.9.1))
+
 packages:
 
   '@better-auth/utils@0.3.1':
@@ -304,6 +329,9 @@ packages:
   '@mcthaydt/automata-check-boundaries@file:.core/packs/automata-check-boundaries':
     resolution: {directory: .core/packs/automata-check-boundaries, type: directory}
     hasBin: true
+
+  '@mcthaydt/automata-node@file:.core/packs/automata-node':
+    resolution: {directory: .core/packs/automata-node, type: directory}
 
   '@mcthaydt/automata-sim@file:.core/packs/automata-sim':
     resolution: {directory: .core/packs/automata-sim, type: directory}
@@ -1310,6 +1338,10 @@ packages:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
     engines: {node: '>=18'}
 
+  smol-toml@1.9.0:
+    resolution: {integrity: sha512-hpd+HLON7HdZXqYchMM/+LaTTbdK0AU3NngIJ4KVyWbY9bfQqdL9cD+4yf6dUoU2Ap4VsU0JkQi6FxAI1B2mXQ==}
+    engines: {node: '>= 18'}
+
   source-map-js@1.2.2:
     resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
     engines: {node: '>=0.10.0'}
@@ -1653,6 +1685,10 @@ snapshots:
     dependencies:
       oxc-parser: 0.152.0
       zod: 4.6.6
+
+  '@mcthaydt/automata-node@file:.core/packs/automata-node':
+    dependencies:
+      effect: 3.22.2
 
   '@mcthaydt/automata-sim@file:.core/packs/automata-sim':
     dependencies:
@@ -2512,6 +2548,8 @@ snapshots:
       '@polka/url': 1.0.0-next.29
       mrmime: 2.0.1
       totalist: 3.0.1
+
+  smol-toml@1.9.0: {}
 
   source-map-js@1.2.2: {}
 

@@ -22,6 +22,8 @@ export function parseArgs(argv: readonly string[], cwd: string): Args {
     if (arg !== '--repository') throw new Error(`unknown argument ${arg}\n${USAGE}`)
     const value = argv[++i]
     if (value === undefined) throw new Error(`--repository needs a value\n${USAGE}`)
+    // The value is git fetch's repository argument, and git reads one that starts with "-" as an option of its own.
+    if (value.startsWith('-')) throw new Error(`--repository must not start with "-": ${value}\n${USAGE}`)
     // git runs inside .core/af, so a relative path is made absolute from where the command ran.
     repository = isRemote(value) || isAbsolute(value) ? value : resolve(cwd, value)
   }
