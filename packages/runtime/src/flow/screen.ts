@@ -20,9 +20,10 @@ export interface ScreenContext {
   readonly from: string | undefined
   /**
    * The scope of what a game keeps across screens, such as the sim the default screens share (DX.2c). Every screen
-   * of a run gets the same one. It stays open through every transition and closes once, when the runtime shuts down
-   * or a failed boot is tried again: after the current screen's scope and the save's last flush, which may still read
-   * what it holds, and before the renderer is destroyed and Hosting closes.
+   * of a run gets the same one. It is a child of the runtime scope, not the runtime scope itself. It stays open
+   * through every transition and closes once, when the runtime shuts down or a failed boot is tried again: after the
+   * current screen's scope and the save's last flush, which may still read what it holds, and before the renderer is
+   * destroyed and Hosting closes.
    */
   readonly runtime: Scope.Scope
 }

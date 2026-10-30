@@ -195,8 +195,16 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
 
         let current = sim
         if (current === undefined) {
-          current = yield* Effect.promise(freshSim)
-          sim = current
+          // Kept the moment it is made. A runtime that shuts down while it is being made interrupts this enter, which
+          // aborts the signal: the run no longer holds a sim to drop, so the late one is disposed here (DX.2c).
+          // Waiting for it instead would hold shutdown on a plugin's engine setup.
+          current = yield* Effect.promise((signal) =>
+            freshSim().then((made) => {
+              if (signal.aborted) made.dispose()
+              else sim = made
+              return made
+            }),
+          )
         } else {
           current.restore(current.snapshot())
         }
