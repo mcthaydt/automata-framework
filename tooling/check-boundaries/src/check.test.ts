@@ -162,8 +162,18 @@ describe('koota-soa: a koota trait or relation store must be a factory or a tag'
     ['a relation definition in a variable', "import { relation } from 'koota'\nrelation(options)\n", 2, 10],
     ['a spread relation definition', "import { relation } from 'koota'\nrelation({ ...options })\n", 2, 10],
     ['a relation store in a variable', "import { relation } from 'koota'\nrelation({ store: s })\n", 2, 19],
+    ['a quoted store key', "import { relation } from 'koota'\nrelation({ ['store']: { n: 0 } })\n", 2, 23],
+    ['an asserted object schema', "import { trait } from 'koota'\ntrait({ x: 0 } as const)\n", 2, 7],
   ] as const)('%s is reported', (_, src, line, col) => {
     expect(kootaRules(src)).toEqual([['koota-soa', line, col]])
+  })
+
+  test('parentheses and type assertions are read through, so the message says what the schema is', () => {
+    const message = (src: string) =>
+      checkSource('/x/sim/a.ts', `import { trait } from 'koota'\n${src}\n`)[0]?.message
+    expect(message('trait(({ x: 0 }) satisfies object)')).toMatch(/^an object schema makes/)
+    expect(message('trait(schema)')).toMatch(/^the checker cannot see/)
+    expect(message('trait((() => ({ x: 0 })) as () => object)')).toBeUndefined()
   })
 })
 
