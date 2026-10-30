@@ -3,9 +3,23 @@
 // extension that registers them. Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
 // Part 5 (M3.6a): `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits.
 // Part 6 (M3.6b): poses (`figure-pose` content), their canonical spelling, mirror, blend and checks.
+// Part 7 (M3.6c): clips (`figure-clip` content), eases, sampling, loop and stepped time, retime and markers.
 
 export {
+  type ClipKey,
+  clipSchema,
+  type Ease,
+  type FigureClipDef,
+  MASK_GROUPS,
+  type MaskGroup,
+} from './clip/clip.schema'
+export { clipTime, markerTime, retime, smoothTime, stepTime } from './clip/clip-time'
+export { type ClipWarning, clipWarnings } from './clip/clip-warnings'
+export { easeAt } from './clip/ease'
+export { chestFrame, type PoseLibrary, type SampleContext, sample } from './clip/sample'
+export {
   FIGURE_CONTENT,
+  figureClipContent,
   figureContent,
   figureGaitContent,
   figureHairContent,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { FigureClipDef } from './clip.schema'
-import { clipTime, markerTime, retime, stepTime } from './clip-time'
+import { clipTime, markerTime, retime, smoothTime, stepTime } from './clip-time'
 
 const clip = (loop: FigureClipDef['loop']): FigureClipDef => ({
   length: 0.5,
@@ -79,5 +79,19 @@ describe('markerTime', () => {
   it("reads a marker's time and refuses a missing one by name", () => {
     expect(markerTime(clip('once'), 'contact')).toBe(0.32)
     expect(() => markerTime(clip('once'), 'impact')).toThrow(/impact/)
+  })
+})
+
+describe('smoothTime', () => {
+  const c = clip('once')
+  it('is t itself, except that the first frame past a marker shows the marker', () => {
+    expect(smoothTime(c, 0.3, 0.29)).toBe(0.3)
+    expect(smoothTime(c, 0.33, 0.31)).toBe(0.32)
+    expect(smoothTime(c, 0.32, 0.31)).toBe(0.32)
+    // The frame after shows its own time.
+    expect(smoothTime(c, 0.35, 0.33)).toBe(0.35)
+  })
+  it('shows the first frame (no previous) at its own time', () => {
+    expect(smoothTime(c, 0.1, undefined)).toBe(0.1)
   })
 })
