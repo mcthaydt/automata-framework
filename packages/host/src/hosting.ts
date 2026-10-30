@@ -69,7 +69,11 @@ export interface HostingLeaderboards {
     score: number,
     meta?: Parameters<LeaderboardsApi['submit']>[2],
   ): Effect.Effect<LeaderboardSubmitRes, HostError>
-  /** Reads `board`: the top entries or those around the player, as the SDK's options say. */
+  /**
+   * Reads `board` with the SDK's options (`scope` `top` or `around-me`, `limit`). Ruken's host now answers with the
+   * player's own entry only, or none, whatever the options (the SDK marks `get` deprecated at RukenApp d0fa2fe, since
+   * Ruken added achievements); the call and its answer's shape are unchanged.
+   */
   get(
     board: string,
     query?: Parameters<LeaderboardsApi['get']>[1],
