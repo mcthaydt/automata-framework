@@ -48,6 +48,7 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 - M3.7c: a core-only base-3d cannot install the Plus `post-retro`, so its look (a palette lock on Endesga 64, an outline) is game code on core's `postFilter` verb.
 - GAME-3D.1c and GAME-3D.1f drop their M6 prerequisites (hitstop, keys and doors are game code); GAME-3D.1k authors in the suite only where EDS.0 gives base-3d a format the suite edits, since the Feel, Audio, Writer and Sequence editors edit Plus content.
 - M9.3 to M9.6 land in automata-plus, and base-3d keeps its own lock-on, combat, items and dungeon code (M9.9).
+- M9.8 (brush-based environments) drops the map's M6.4 prerequisite: base-3d uses core only, so the brush meshes do not wait on the Plus `sectors` extension.
 - PRODUCT.5h no longer waits on QB.5a (the map listed each as the other's prerequisite).
 - DX.10 uses the website map's six slices (DX.10a to DX.10f); the DX map's four-slice split folds into them.
 - M8.9a and M9.10 are one task under two ids; M7.1b's re-vendor is QB.1f's repack (PR #189).
