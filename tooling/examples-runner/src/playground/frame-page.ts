@@ -6,6 +6,8 @@ import { framePolicy } from './frame-policy.ts'
 export interface PlaygroundRuntime {
   readonly automata: string
   readonly zod: string
+  /** Runs no-eval before any other runtime chunk evaluates (R-6). */
+  readonly noEval: string
   readonly frame: string
   readonly styles: readonly string[]
 }
@@ -49,6 +51,7 @@ export function playgroundFramePage(
 ${styles}  </head>
   <body data-example="${escapeHtml(`examples/${entry.path}`)}"${host}>
     <main id="game"></main>
+    <script type="module" src="${escapeHtml(runtime.noEval)}"></script>
     <script type="module" src="${escapeHtml(runtime.frame)}"></script>
   </body>
 </html>

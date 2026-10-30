@@ -5,6 +5,7 @@ import { framePolicy } from './frame-policy.ts'
 const RUNTIME = {
   automata: '/playground/runtime/automata-LRkvFZ12.js',
   zod: '/playground/runtime/zod-CSYgToI_.js',
+  noEval: '/playground/runtime/no-eval-Q1w2e3R4.js',
   frame: '/playground/runtime/frame-DCEneEhm.js',
   styles: ['/playground/runtime/automata-CBKxHYFl.css'],
 }
@@ -47,6 +48,15 @@ describe('playgroundFramePage', () => {
     const host = between(body, 'data-host="', '"').replaceAll('&quot;', '"').replaceAll('&amp;', '&')
     expect(JSON.parse(host)).toEqual({ grant: ['saves'], saves: { best: '"12"' } })
     expect(between(playgroundFramePage(ENTRY, RUNTIME, SITE), '<body', '>')).not.toContain('data-host')
+  })
+
+  // R-6: no-eval runs in a module script of its own, before the frame's: module scripts run in document order, and the
+  // frame's chunks would otherwise evaluate before the no-eval code bundled into it.
+  it('loads no-eval in its own module script, before the frame script', () => {
+    const html = playgroundFramePage(ENTRY, RUNTIME, SITE)
+    const noEval = html.indexOf(`<script type="module" src="${RUNTIME.noEval}"></script>`)
+    expect(noEval).toBeGreaterThan(-1)
+    expect(noEval).toBeLessThan(html.indexOf(`src="${RUNTIME.frame}"`))
   })
 
   it('has no inline script but the import map', () => {
