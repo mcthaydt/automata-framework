@@ -2,12 +2,11 @@ import { CameraHeading, cameraHeadingPlugin, cameraView } from '@mcthaydt/automa
 import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
-import { base3d } from '../game.ts'
 import { Hero, Target } from './components.ts'
 import { HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
-import { type Area, type AreaSource, areaOf, compileArea, spawnArea } from './state.ts'
-import { BASE3D_SIM, base3dPlugin } from './systems.ts'
+import { BASE3D_SIM, base3dPlugin, spawnArea } from './state.ts'
+import { type Area, type AreaSource, areaOf, compileArea } from './systems.ts'
 
 // base-3d's sim, commands in, step, state out (DESIGN.md §3.1). The browsers project runs this whole file in
 // Chromium, WebKit and Firefox, so every case here, the golden replay included, holds in four engines (B-a).
@@ -17,11 +16,6 @@ describe('the plugin', () => {
     const sim = await createSim({ seed: 1, plugins: [cameraHeadingPlugin, base3dPlugin] })
     expect(sim.hash()).toMatch(/^[0-9a-f]{16}$/)
     sim.dispose()
-  })
-
-  it('takes the heading from render3dExtension, not from the game’s own list (RT.EXT1)', () => {
-    expect(BASE3D_SIM.plugins).toEqual([base3dPlugin])
-    expect(base3d.sim.plugins).toEqual([base3dPlugin, cameraHeadingPlugin])
   })
 })
 
@@ -85,8 +79,13 @@ describe('the area', () => {
   })
 })
 
-/** The game's sim spec as `defineGame` made it: `BASE3D_SIM` with render3dExtension's heading plugin after its own. */
-const GAME_SIM = { ...BASE3D_SIM, plugins: base3d.sim.plugins }
+/**
+ * The game's sim spec as `defineGame` makes it: `BASE3D_SIM`'s plugin, then render3dExtension's heading plugin
+ * (RT.EXT1). `game-spec.test.ts` checks the defined game's list is exactly this; this file runs in the browsers too,
+ * where the game module's Node-side imports do not load.
+ */
+const GAME_PLUGINS = [base3dPlugin, cameraHeadingPlugin]
+const GAME_SIM = { ...BASE3D_SIM, plugins: GAME_PLUGINS }
 
 /** A sim made the way the game makes it (`GAME_SIM`), on the first slice or a test area. */
 async function startSim(area: Area = BASE3D_SIM.content): Promise<Sim> {

@@ -4,19 +4,174 @@
 // (postPhysics).
 import {
   CameraHeading,
+  type CameraView,
+  cameraViewSchema,
   enterView,
   moveDirection,
   Q16,
   TURN_UNITS,
   wrapHeading,
 } from '@mcthaydt/automata-render-pixi3d/sim'
-import { definePlugin, defineSystem, type PluginDef, type Sim, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { atan2 } from '@mcthaydt/automata-sim/math'
+import { z } from 'zod'
 import { Lock, Move } from './commands.ts'
 import { Hero, HeroControl, Target } from './components.ts'
-import { HERO_HALF, LOCK_RANGE, WALK_PER_TICK } from './constants.ts'
-import { FIRST_SLICE } from './content/first-slice.ts'
-import { type Area, areaOf, compileArea, slide, spawnArea, viewAt } from './state.ts'
+import { HERO_HALF, LOCK_RANGE, metres, WALK_PER_TICK } from './constants.ts'
+
+// --- the area: the level content compiled to fixed point, and the geometry the systems read ---
+
+const plan = z.tuple([z.number(), z.number()])
+const minNotPastMax = (box: { min: [number, number]; max: [number, number] }): boolean =>
+  box.min[0] <= box.max[0] && box.min[1] <= box.max[1]
+/** A box in plan, `min` and `max` as `[x, z]` metres, with `extra` fields beside them: walls and rooms share it. */
+const planBoxWith = <Extra extends z.ZodRawShape>(extra: Extra) =>
+  z
+    .strictObject({ min: plan, max: plan, ...extra })
+    // The generic shape hides `min` and `max` from the callback's type; they are always there.
+    .refine((box) => minNotPastMax(box as unknown as Parameters<typeof minNotPastMax>[0]), {
+      message: 'min must not pass max',
+    })
+const planBox = planBoxWith({})
+const point = z.strictObject({ x: z.number(), z: z.number() })
+// A view's id is written beside its `camera-view` fields; `cameraViewSchema` (render-pixi3d, the one owner) checks
+// the rest.
+const viewSource = z.looseObject({ id: z.string().min(1) })
+
+const areaSchema = z.strictObject({
+  /** Where Wick starts, in metres. */
+  spawn: point,
+  /** The area's camera views. */
+  views: z.array(viewSource),
+  /** Plan boxes, each naming the view the camera takes while Wick is inside. The first that holds him wins. */
+  rooms: z.array(planBoxWith({ view: z.string() })),
+  /** Plan boxes Wick cannot enter. */
+  walls: z.array(planBox),
+  /** Where the lock targets stand. */
+  targets: z.array(point),
+})
+
+/** An area as authored: metres, views by id. */
+export type AreaSource = z.input<typeof areaSchema>
+
+/** A box in plan, Q16.16 metres. */
+export interface PlanBox {
+  readonly minX: number
+  readonly minZ: number
+  readonly maxX: number
+  readonly maxZ: number
+}
+/** A point in plan, Q16.16 metres. */
+export interface PlanPoint {
+  readonly x: number
+  readonly z: number
+}
+
+/** An area as the sim reads it: Q16.16 metres and compiled views. */
+export interface Area {
+  readonly spawn: PlanPoint
+  readonly views: readonly CameraView[]
+  readonly rooms: readonly (PlanBox & { readonly view: string })[]
+  readonly walls: readonly PlanBox[]
+  readonly targets: readonly PlanPoint[]
+}
+
+const toPoint = (p: { x: number; z: number }): PlanPoint => ({ x: metres(p.x), z: metres(p.z) })
+const toBox = (b: { min: readonly number[]; max: readonly number[] }): PlanBox => ({
+  minX: metres(b.min[0] as number),
+  minZ: metres(b.min[1] as number),
+  maxX: metres(b.max[0] as number),
+  maxZ: metres(b.max[1] as number),
+})
+
+/**
+ * Checks `source` and converts it to fixed point. Throws on a bad field, a repeated view, a room naming an unknown
+ * view, and a spawn outside every room or whose square (`HERO_HALF` a side) overlaps a wall: Wick would start
+ * with no view, or inside a wall that `slide` never pushes him out of.
+ */
+export function compileArea(source: AreaSource): Area {
+  const parsed = areaSchema.parse(source)
+  const views = parsed.views.map(({ id, ...fields }) => ({ id, ...cameraViewSchema.parse(fields) }))
+  const ids = views.map((view) => view.id)
+  ids.forEach((id, index) => {
+    if (ids.indexOf(id) !== index) throw new Error(`base-3d area: the view "${id}" is defined twice`)
+  })
+  for (const room of parsed.rooms)
+    if (!ids.includes(room.view))
+      throw new Error(`base-3d area: a room names the unknown view "${room.view}"`)
+  const area: Area = {
+    spawn: toPoint(parsed.spawn),
+    views,
+    rooms: parsed.rooms.map((room) => ({ view: room.view, ...toBox(room) })),
+    walls: parsed.walls.map(toBox),
+    targets: parsed.targets.map(toPoint),
+  }
+  const { x, z } = area.spawn
+  if (viewAt(area, x, z) === undefined) throw new Error('base-3d area: the spawn is outside every room')
+  // Touching a wall's face is allowed; overlapping it is not (the same strict test `slide` uses).
+  const blocked = area.walls.some(
+    (w) =>
+      x + HERO_HALF > w.minX && x - HERO_HALF < w.maxX && z + HERO_HALF > w.minZ && z - HERO_HALF < w.maxZ,
+  )
+  if (blocked) throw new Error('base-3d area: the spawn overlaps a wall')
+  return area
+}
+
+/**
+ * The sim's content as an area. `compileArea` checked its fields before the sim was made; this only checks the
+ * shape, every tick, so content that is not an area fails at once instead of deep inside a system.
+ */
+export function areaOf(content: unknown): Area {
+  const area = content as Partial<Area> | null
+  if (
+    area === null ||
+    typeof area !== 'object' ||
+    typeof area.spawn?.x !== 'number' ||
+    typeof area.spawn.z !== 'number' ||
+    !Array.isArray(area.views) ||
+    !Array.isArray(area.rooms) ||
+    !Array.isArray(area.walls) ||
+    !Array.isArray(area.targets)
+  )
+    throw new Error('base-3d: the sim content is not an area')
+  return area as Area
+}
+
+/** The view of the first room holding `x`, `z` (min inclusive, max exclusive); undefined outside every room. */
+export function viewAt(area: Area, x: number, z: number): CameraView | undefined {
+  const room = area.rooms.find((r) => x >= r.minX && x < r.maxX && z >= r.minZ && z < r.maxZ)
+  return room === undefined ? undefined : area.views.find((view) => view.id === room.view)
+}
+
+/**
+ * Wick, a square of half-size `half` at `x`, `z`, moved by `dx` then `dz` against the area's walls, one axis at a
+ * time. A move that would cross a wall's face stops flush against it; a wall he already overlaps does not push
+ * him. The test is on crossing the face from outside, not on landing inside, so a move of any length stops at the
+ * first face it meets and never passes through a wall, however thin.
+ */
+export function slide(
+  walls: readonly PlanBox[],
+  half: number,
+  from: PlanPoint,
+  dx: number,
+  dz: number,
+): PlanPoint {
+  let x = from.x + dx
+  for (const wall of walls) {
+    if (from.z + half <= wall.minZ || from.z - half >= wall.maxZ) continue
+    if (dx > 0 && from.x + half <= wall.minX && x + half > wall.minX) x = wall.minX - half
+    if (dx < 0 && from.x - half >= wall.maxX && x - half < wall.maxX) x = wall.maxX + half
+  }
+  let z = from.z + dz
+  for (const wall of walls) {
+    if (x + half <= wall.minX || x - half >= wall.maxX) continue
+    if (dz > 0 && from.z + half <= wall.minZ && z + half > wall.minZ) z = wall.minZ - half
+    if (dz < 0 && from.z - half >= wall.maxZ && z - half < wall.maxZ) z = wall.maxZ + half
+  }
+  return { x, z }
+}
+
+// --- the systems ---
 
 // 2π spelled out: `Math.PI` is not sim-safe.
 const TAU = 6.283185307179586
@@ -32,7 +187,7 @@ const signedTurn = (units: number): number => wrapHeading(units + HALF_TURN) - H
  * Copies this tick's stick and lock onto Wick, and marks the tick lock went down. No command is a centred stick
  * and lock up.
  */
-const heroInput: SystemDef = defineSystem({
+export const heroInput: SystemDef = defineSystem({
   name: 'hero.input',
   phase: 'input',
   run(ctx) {
@@ -53,7 +208,7 @@ const heroInput: SystemDef = defineSystem({
  * so walking into range while held does not lock; a release clears it. The selection cone, cycling and the heading
  * assist are GAME-3D.1b's (DESIGN.md §11).
  */
-const lockSelect: SystemDef = defineSystem({
+export const lockSelect: SystemDef = defineSystem({
   name: 'lock.select',
   phase: 'prePhysics',
   run(ctx) {
@@ -91,7 +246,7 @@ const lockSelect: SystemDef = defineSystem({
  * push. He faces the way he travels; standing, he keeps his facing; locked, he faces the target from where the tick
  * found him, and `moveDir` is his travel relative to that. Walls stop him (`slide`).
  */
-const heroMove: SystemDef = defineSystem({
+export const heroMove: SystemDef = defineSystem({
   name: 'hero.move',
   phase: 'physics',
   run(ctx) {
@@ -125,7 +280,7 @@ const heroMove: SystemDef = defineSystem({
  * Puts Wick's camera in the view of the room he stands in. Entering another view takes its heading at once and,
  * with the stick held, latches the mapping to the old heading (`enterView`, M3R-D15); the next tick's move reads it.
  */
-const heroView: SystemDef = defineSystem({
+export const heroView: SystemDef = defineSystem({
   name: 'hero.view',
   phase: 'postPhysics',
   run(ctx) {
@@ -140,30 +295,3 @@ const heroView: SystemDef = defineSystem({
     }
   },
 })
-
-/** The first slice's sim (M3 spec §4.7). It depends on render-pixi3d's `camera-heading` plugin for the heading. */
-export const base3dPlugin: PluginDef = definePlugin({
-  name: 'base-3d',
-  dependsOn: ['camera-heading'],
-  defs: [Hero, HeroControl, Target, Move, Lock, heroInput, lockSelect, heroMove, heroView],
-})
-
-const firstSlice = compileArea(FIRST_SLICE)
-
-/**
- * How the game makes its sim: `game.ts` and the golden replay both start from here. It names no `tickHz`, because
- * `defineGame`'s sim spec has none: the page's sim runs at the sim's default, 60 Hz, which is `TICK_HZ` (the page's
- * test checks it), so the replay steps at the rate the game plays at.
- */
-export const BASE3D_SIM: {
-  readonly plugins: readonly PluginDef[]
-  readonly seed: number
-  readonly content: Area
-  readonly setup: (sim: Sim) => void
-} = {
-  // The heading's plugin is render3dExtension's (`game.ts`): `defineGame` adds an extension's sim plugins (RT.EXT1).
-  plugins: [base3dPlugin],
-  seed: 1,
-  content: firstSlice,
-  setup: (sim) => spawnArea(sim, firstSlice),
-}

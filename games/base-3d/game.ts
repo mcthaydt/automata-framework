@@ -5,7 +5,7 @@ import { defaultContent, defineGame, keys } from '@mcthaydt/automata-game'
 import { render3dExtension } from '@mcthaydt/automata-render-pixi3d'
 import { STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import { Move } from './src/commands.ts'
-import { BASE3D_SIM } from './src/systems.ts'
+import { BASE3D_SIM } from './src/state.ts'
 
 /** WASD and the arrows push the stick to its edge (`move` is the stick, M4-D2); nothing held is a centred stick. */
 export const input = keys(
