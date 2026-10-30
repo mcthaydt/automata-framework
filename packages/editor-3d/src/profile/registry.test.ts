@@ -5,7 +5,7 @@ import { AUTHORED_NAMES, FIXTURE_NAMES, loadAuthored, loadFixture } from '../tes
 import { BLOCKOUT_NAMES } from '../testing/geometry-golden'
 import { afSectorProfile } from './af-sector-profile'
 import { lastLightProfile } from './last-light-profile'
-import { detectProfile, profiles } from './registry'
+import { detectProfile, hasFacility, profiles } from './registry'
 
 const reasonOf = (text: string): string => {
   const found = detectProfile(text)
@@ -18,6 +18,13 @@ describe('profiles', () => {
     expect(profiles().map((profile) => profile.id)).toEqual(['af-sector', 'last-light-blockout'])
     expect(profiles()).toContain(afSectorProfile)
     expect(profiles()).toContain(lastLightProfile)
+  })
+})
+
+describe('hasFacility', () => {
+  it('is true for the Last Light blockout, whose levels a facility file joins, and false for af-sector', () => {
+    expect(hasFacility(lastLightProfile)).toBe(true)
+    expect(hasFacility(afSectorProfile)).toBe(false)
   })
 })
 
