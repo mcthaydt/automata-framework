@@ -22,6 +22,8 @@ interface Props {
   rail?: boolean
   /** `false` leaves the panel out, as a screen with nothing to list beside its canvas (the suite's Home) does. */
   panel?: boolean
+  /** `false` leaves the inspector out, as a view whose inspector is not built yet does. */
+  inspector?: boolean
   /** `false` leaves the dock out, as a screen with nothing to put beneath its canvas (Home) does. */
   dock?: boolean
   /** Fills the status region with the kit's `StatusLine`, as a real screen does, instead of a plain readout. */
@@ -35,6 +37,7 @@ const {
   geometry,
   rail: withRail = true,
   panel: withPanel = true,
+  inspector: withInspector = true,
   dock: withDock = true,
   statusLine = false,
   broken,
@@ -115,11 +118,19 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
   </ul>
 {/snippet}
 
+{#snippet inspectorBody()}
+  {@render bug('inspector')}
+  {#each fields as field (field)}
+    <label class="field">{field}<input data-testid={`field-${field}`} /></label>
+  {/each}
+{/snippet}
+
 <EditorShell
   {geometry}
   rail={withRail ? railBody : undefined}
   dock={withDock ? dockBody : undefined}
   panel={withPanel ? panelBody : undefined}
+  inspector={withInspector ? inspectorBody : undefined}
   bind:panelOpen
   bind:inspectorOpen
   bind:dockOpen
@@ -131,12 +142,6 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
     <button type="button" data-testid="toggle-inspector" onclick={() => (inspectorOpen = !inspectorOpen)}>Fields</button>
     <button type="button" data-testid="toggle-dock" onclick={() => (dockOpen = !(dockOpen ?? false))}>Climb</button>
     <strong class="title">Rooftops</strong>
-  {/snippet}
-  {#snippet inspector()}
-    {@render bug('inspector')}
-    {#each fields as field (field)}
-      <label class="field">{field}<input data-testid={`field-${field}`} /></label>
-    {/each}
   {/snippet}
   {#snippet canvas()}
     {@render bug('canvas')}

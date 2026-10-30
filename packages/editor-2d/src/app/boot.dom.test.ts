@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { counterIds } from '../model/ids'
 import { printProject } from '../model/project-codec'
 import type { Project } from '../model/project-types'
+import FakeLevelCanvas from '../testing/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '../testing/memory-workspace'
 import { hollowmere, mossgate } from '../testing/samples'
 import { createTestClock } from '../testing/test-clock'
@@ -66,6 +67,13 @@ interface BootOptions {
   files?: Readonly<Record<string, string>>
 }
 
+/** A mouse press or release as the browser sends it; jsdom has no `PointerEvent` constructor. */
+function press(target: HTMLElement, type: 'pointerdown' | 'pointerup', x: number, y: number): void {
+  const event = new MouseEvent(type, { bubbles: true, clientX: x, clientY: y, button: 0 })
+  Object.assign(event, { pointerId: 1, pointerType: 'mouse', pressure: type === 'pointerdown' ? 0.5 : 0 })
+  target.dispatchEvent(event)
+}
+
 async function boot(options: BootOptions = {}) {
   const { seed = true, own = false, size = [1194, 834] } = options
   const clock = createTestClock()
@@ -90,6 +98,8 @@ async function boot(options: BootOptions = {}) {
       }),
     ...(own ? { storage: options.storage ?? {} } : { workspace }),
     ...(options.thumbnails === undefined ? {} : { thumbnails: options.thumbnails }),
+    // jsdom has no WebGL: the Level view draws into a stand-in.
+    canvas: FakeLevelCanvas,
   }
   started = await startEditor(target, env)
   return { target, win, workspace, handle: started, clock }
@@ -103,7 +113,7 @@ describe('startEditor', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Projects' })).toBeInTheDocument()
   })
 
-  it('journey: New makes a project and opens it in the frame; Back returns to a list that holds it', async () => {
+  it('journey: New makes a project and opens it in the Level view; Back returns to a list that holds it', async () => {
     const { workspace } = await boot()
     await screen.findByRole('listbox', { name: 'Projects' })
     const templates = screen.getByRole('region', { name: 'Start a new project' })
@@ -113,14 +123,35 @@ describe('startEditor', () => {
     const path = bar.querySelector('.file')?.textContent ?? ''
     expect(path).toMatch(/\.af2d\.json$/)
     expect(await workspace.store.read(path)).toBeDefined()
-    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(screen.queryByRole('listbox', { name: 'Projects' })).toBeNull()
 
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
     expect(await screen.findByRole('listbox', { name: 'Projects' })).toBeInTheDocument()
     await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(3))
   })
 
-  it('journey: Enter on the list opens the selected project in the frame', async () => {
+  it('journey: New opens the Level view, a tap paints a cell as one undo step, and Back leaves', async () => {
+    await boot()
+    const templates = await screen.findByRole('region', { name: 'Start a new project' })
+    const platformer = within(templates).getByRole('button', { name: /Platformer/ })
+    await userEvent.click(platformer)
+    expect(await screen.findByTestId('level-view')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Level' })).toHaveAttribute('aria-selected', 'true')
+
+    await userEvent.click(within(screen.getByRole('listbox', { name: 'Layers' })).getByText('Collision'))
+    const surface = screen.getByTestId('level-surface')
+    // jsdom lays nothing out, so the canvas is unmeasured and a canvas point is a level pixel: cell (2, 10).
+    press(surface, 'pointerdown', 40, 168)
+    press(surface, 'pointerup', 40, 168)
+    expect(await screen.findByRole('button', { name: 'Undo Paint' })).toBeEnabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Undo Paint' }))
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+    expect(await screen.findByRole('listbox', { name: 'Projects' })).toBeInTheDocument()
+  })
+
+  it('journey: Enter on the list opens the selected project', async () => {
     await boot()
     const list = await screen.findByRole('listbox', { name: 'Projects' })
     list.focus()

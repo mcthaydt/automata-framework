@@ -15,3 +15,5 @@ truthfully says "Not in this build".
 | `suite-home-phone-portrait.png` | 390×844, `compact` | The tab bar keeps 44 px tabs with their words and scrolls sideways to Levels and Review (a declared scroll region) rather than shrinking them; the cards in one column | New |
 | `suite-problem-ipad-pro-11-landscape.png` | 1194×834, `wide` | EDS-m: a `[[file]]` row without `gates`. The problem in red with its key path `file[0].gates`, "gates is missing", and that every editor is read only until it is fixed; no cards | New |
 | `suite-problem-phone-portrait.png` | 390×844, `compact` | The same problem inside the phone's width | New |
+
+**Regenerated 2026-10-30 after review:** the three `wide` images (`suite-home-ipad-pro-11-landscape`, `suite-home-ipad-mini-landscape`, `suite-problem-ipad-pro-11-landscape`) no longer show empty panel and inspector columns. Home has neither, so the kit's shell now gives both columns to the canvas (`data-panel="none"` on this branch, `data-inspector="none"` from #267), and the cards run from the rail to the right edge. The portrait and phone images are byte for byte the same.

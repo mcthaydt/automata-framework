@@ -13,10 +13,11 @@ import type {
   Workspace,
 } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
-import { onDestroy } from 'svelte'
+import { type Component, onDestroy } from 'svelte'
 import type { LevelThumbnails } from '../canvas/level-thumbnails'
+import type { IdSource } from '../model/ids'
 import type { ProfileRegistry } from '../profiles/profile'
-import DocumentFrame from './DocumentFrame.svelte'
+import DocumentScreen from './document/DocumentScreen.svelte'
 import { createDocumentController, type DocumentController } from './document/document-controller'
 import ErrorPanel from './document/ErrorPanel.svelte'
 import type { ChoiceOutcome, PanelOutcome } from './document/open-flow-model'
@@ -24,6 +25,7 @@ import ProfileChoice from './document/ProfileChoice.svelte'
 import type { EditorApp } from './editor-app'
 import Home from './home/Home.svelte'
 import { createHomeController } from './home/home-controller'
+import type { LevelCanvasProps, ObjectUrls } from './views/view-props'
 
 interface Props {
   geometry: GeometryState
@@ -36,9 +38,27 @@ interface Props {
   lifecycle: { readonly document: LifecycleDocument; readonly window: LifecycleWindow }
   /** Draws the Home cards' preview levels (ED2D.4c3b). */
   thumbnails?: LevelThumbnails | undefined
+  /** Where the ids of instances placed in the Level view come from (the app's own). */
+  ids: IdSource
+  /** Object URLs for the palette's tile pictures; absent, the palette shows numbered tiles. */
+  objectUrls?: ObjectUrls | undefined
+  /** The level canvas; the DOM tests pass a stand-in (jsdom has no WebGL). */
+  canvas?: Component<LevelCanvasProps> | undefined
 }
 
-const { geometry, app, workspace, registry, toasts, clock, lifecycle, thumbnails }: Props = $props()
+const {
+  geometry,
+  app,
+  workspace,
+  registry,
+  toasts,
+  clock,
+  lifecycle,
+  thumbnails,
+  ids,
+  objectUrls,
+  canvas,
+}: Props = $props()
 
 let open = $state.raw<DocumentController | undefined>(undefined)
 let failure = $state.raw<PanelOutcome | undefined>(undefined)
@@ -99,7 +119,17 @@ onDestroy(() => {
 </script>
 
 {#if open}
-  <DocumentFrame {geometry} controller={open} {toasts} {clock} onback={back} />
+  <DocumentScreen
+    {geometry}
+    controller={open}
+    {toasts}
+    {clock}
+    read={(path) => workspace.store.read(path)}
+    {ids}
+    {objectUrls}
+    {canvas}
+    onback={back}
+  />
 {:else}
   <Home {geometry} {controller} {workspace} {registry} {toasts} {clock} {thumbnails} />
   <ErrorPanel

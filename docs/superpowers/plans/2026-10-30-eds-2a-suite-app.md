@@ -87,3 +87,4 @@ Modify: `packages/editor-suite/package.json` (scripts, Svelte and test dependenc
   (`data-panel="none"`, `--shell-panel: 0px`), mirroring #267's `data-inspector`; `ShellFixture` takes `panel: false`.
   The new kit layout test failed first (canvas at 320 px, not the rail's 56 px edge), then passed: kit `test:layout`
   207 of 207 in Chromium, WebKit and Firefox; kit unit 1332 of 1332.
+- Merged main after #267 (kit conflicts in EditorShell, ShellFixture and the shell layout test: both the panel and the inspector collapse kept). Kit shell `test:layout` 210 of 210 in three browsers; suite `test:layout` 75 of 75 and `test:unit` 107 of 107. Review images regenerated from the Chromium run: only the three `wide` ones changed (README note).
