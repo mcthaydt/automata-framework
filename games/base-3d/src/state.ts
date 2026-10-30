@@ -5,8 +5,7 @@ import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Lock, Move } from './commands.ts'
 import { Hero, HeroControl, Target } from './components.ts'
-import { FIRST_SLICE } from './content/first-slice.ts'
-import { type Area, compileArea, heroInput, heroMove, heroView, lockSelect, viewAt } from './systems.ts'
+import { type Area, heroInput, heroMove, heroView, lockSelect, viewAt } from './systems.ts'
 
 /**
  * Spawns Wick at the area's spawn, already in its room's view (the first view never latches) and facing away from
@@ -30,22 +29,26 @@ export const base3dPlugin: PluginDef = definePlugin({
   defs: [Hero, HeroControl, Target, Move, Lock, heroInput, lockSelect, heroMove, heroView],
 })
 
-const firstSlice = compileArea(FIRST_SLICE)
-
-/**
- * How the game makes its sim: `game.ts` and the golden replay both start from here. It names no `tickHz`, because
- * `defineGame`'s sim spec has none: the page's sim runs at the sim's default, 60 Hz, which is `TICK_HZ` (the page's
- * test checks it), so the replay steps at the rate the game plays at.
- */
-export const BASE3D_SIM: {
+/** The sim spec `defineGame` takes: what `base3dSim` returns. */
+export interface Base3dSim {
   readonly plugins: readonly PluginDef[]
   readonly seed: number
   readonly content: Area
   readonly setup: (sim: Sim) => void
-} = {
-  // The heading's plugin is render3dExtension's (`game.ts`): `defineGame` adds an extension's sim plugins (RT.EXT1).
-  plugins: [base3dPlugin],
-  seed: 1,
-  content: firstSlice,
-  setup: (sim) => spawnArea(sim, firstSlice),
+}
+
+/**
+ * How the game makes its sim from a compiled area: `main.ts` and the golden replay both start from here, with the
+ * first slice (`compileArea(FIRST_SLICE)`; the sim takes content as data, never as an import, GL spec §4.5). It
+ * names no `tickHz`, because `defineGame`'s sim spec has none: the page's sim runs at the sim's default, 60 Hz,
+ * which is `TICK_HZ` (the page's test checks it), so the replay steps at the rate the game plays at.
+ */
+export function base3dSim(area: Area): Base3dSim {
+  return {
+    // The heading's plugin is render3dExtension's (`main.ts`): `defineGame` adds an extension's sim plugins (RT.EXT1).
+    plugins: [base3dPlugin],
+    seed: 1,
+    content: area,
+    setup: (sim) => spawnArea(sim, area),
+  }
 }
