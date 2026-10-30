@@ -3,13 +3,16 @@ import type { CheckFinding } from './check-report.ts'
 
 // The `data-urls` scan (DX.5a): finds the assets Vite inlined as `data:` URLs in a built bundle. Vite inlines any
 // asset under `build.assetsInlineLimit` (4 kB by default), and for `new URL('./sheet.png', import.meta.url)` it
-// writes `new URL("data:image/png;base64,…", "" + import.meta.url)`. Pixi's loader fetches such a URL, and Ruken's
-// CSP has no `data:` in `connect-src` or `media-src` (only `img-src` and `font-src` allow it), so the asset never
-// loads. Fixed by `build.assetsInlineLimit: 0`, which the content Vite plugin and the create-game template set.
+// writes `new URL("data:image/png;base64,…", "" + import.meta.url)`. Pixi's texture and JSON loaders and AF's audio
+// fetch such a URL, and Ruken's CSP has no `data:` in `connect-src` or `media-src` (only `img-src` and `font-src`
+// allow it), so the asset never loads. Fixed by `build.assetsInlineLimit: 0`, which the content Vite plugin and the
+// create-game template set.
 //
-// What it does not report: any other `data:` string. Pixi carries its own `data:` probes (detectAvif, detectWebp,
-// detectVideoAlphaMode), and an asset imported as `import url from './a.png'` becomes a bare string that cannot be
-// told apart from them, so only the `new URL(…, import.meta.url)` form, AF's way of loading an asset, is a finding.
+// What it does not report: an inlined font (`font/*`), which Pixi's loadWebFont loads through `new FontFace(…)`,
+// under `font-src`, so it loads; and any other `data:` string. Pixi carries its own `data:` probes (detectAvif,
+// detectWebp, detectVideoAlphaMode), and an asset imported as `import url from './a.png'` becomes a bare string that
+// cannot be told apart from them, so only the `new URL(…, import.meta.url)` form, AF's way of loading an asset, is a
+// finding. A game that inlines assets some other way is not covered here; the config defaults are what prevent it.
 
 /** The MIME type of a `data:` URL: the text before its first `;` or `,` (`text/plain` when empty, per RFC 2397). */
 function mimeOf(url: string): string {
@@ -42,6 +45,9 @@ function inlinedAssetUrl(node: Node): string | undefined {
   return value !== undefined && /^data:/i.test(value) ? value : undefined
 }
 
+/** Fonts load under `font-src`, which allows `data:` (see the top of this file). */
+const loadsUnderCsp = (url: string): boolean => mimeOf(url).startsWith('font/')
+
 export function scanForDataUrls(file: string, code: string): CheckFinding[] {
   const parsed = parseBundle(file, code)
   if ('parseError' in parsed) return [parsed.parseError]
@@ -49,15 +55,15 @@ export function scanForDataUrls(file: string, code: string): CheckFinding[] {
   const findings: CheckFinding[] = []
   const visit = (node: Node): void => {
     const url = inlinedAssetUrl(node)
-    if (url !== undefined) {
+    if (url !== undefined && !loadsUnderCsp(url)) {
       findings.push({
         file,
         ...parsed.at(node.start),
         rule: 'data-url',
         message:
-          `an asset Vite inlined as a data: URL (${mimeOf(url)}) for new URL(…, import.meta.url): Ruken's CSP has ` +
-          'no data: in connect-src or media-src, so fetching or playing it is refused. Set ' +
-          'build.assetsInlineLimit: 0 in vite.config.ts so it ships as a file',
+          `an asset Vite inlined as a data: URL (${mimeOf(url)}) for new URL(…, import.meta.url): Pixi's texture ` +
+          "and JSON loaders and AF's audio fetch it, and Ruken's CSP has no data: in connect-src or media-src, so " +
+          'it never loads. Set build.assetsInlineLimit: 0 in vite.config.ts so it ships as a file',
       })
     }
     for (const key of Object.keys(node)) {

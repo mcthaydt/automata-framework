@@ -16,10 +16,14 @@ afterAll(() => {
   for (const root of roots) rmSync(root, { recursive: true, force: true })
 })
 
+interface BuiltPage {
+  readonly chunks: { file: string; code: string }[]
+  /** The file names of the assets the build emitted as files. */
+  readonly assetFiles: string[]
+}
+
 /** A page that loads a 278-byte sheet and a tiny JSON the way AF does: `new URL('./file', import.meta.url)`. */
-async function buildPage(
-  buildOptions: Record<string, unknown> = {},
-): Promise<{ file: string; code: string }[]> {
+async function buildPage(buildOptions: Record<string, unknown> = {}): Promise<BuiltPage> {
   const root = mkdtempSync(join(tmpdir(), 'automata-check-data-urls-'))
   roots.push(root)
   writeFileSync(join(root, 'sheet.png'), new Uint8Array(278).fill(7))
@@ -39,16 +43,20 @@ async function buildPage(
     logLevel: 'silent',
     build: { write: false, ...buildOptions },
   })
-  return (Array.isArray(results) ? results : [results])
-    .flatMap((result) => ('output' in result ? result.output : []))
-    .flatMap((chunk) =>
-      chunk.type === 'chunk' ? [{ file: `dist/${chunk.fileName}`, code: chunk.code }] : [],
-    )
+  const output = (Array.isArray(results) ? results : [results]).flatMap((result) =>
+    'output' in result ? result.output : [],
+  )
+  return {
+    chunks: output.flatMap((item) =>
+      item.type === 'chunk' ? [{ file: `dist/${item.fileName}`, code: item.code }] : [],
+    ),
+    assetFiles: output.flatMap((item) => (item.type === 'asset' ? [item.fileName] : [])),
+  }
 }
 
 describe('scanForDataUrls', () => {
   it("finds each asset Vite's default inlined as a data: URL, at its new URL, with the MIME type and the fix", async () => {
-    const chunks = await buildPage()
+    const { chunks } = await buildPage()
     const findings = chunks.flatMap(({ file, code }) => scanForDataUrls(file, code))
     expect(findings.map((finding) => finding.rule)).toEqual(['data-url', 'data-url'])
     expect(findings.map((finding) => /\((\S+)\)/.exec(finding.message)?.[1])).toEqual([
@@ -66,8 +74,18 @@ describe('scanForDataUrls', () => {
   }, 90_000)
 
   it('finds nothing when the build emits every asset as a file (assetsInlineLimit: 0)', async () => {
-    const chunks = await buildPage({ assetsInlineLimit: 0 })
+    const { chunks, assetFiles } = await buildPage({ assetsInlineLimit: 0 })
     expect(chunks.flatMap(({ file, code }) => scanForDataUrls(file, code))).toEqual([])
+    // The clean result comes from the assets being files the bundle points at, not from an empty or changed build.
+    expect(assetFiles).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/sheet-[\w-]+\.png$/),
+        expect.stringMatching(/room-[\w-]+\.json$/),
+      ]),
+    )
+    const code = chunks.map((chunk) => chunk.code).join('\n')
+    expect(code).toMatch(/new URL\(["'`][^"'`]*sheet-[\w-]+\.png["'`]/)
+    expect(code).toMatch(/new URL\(["'`][^"'`]*room-[\w-]+\.json["'`]/)
   }, 90_000)
 
   it('passes data: strings it cannot tie to an inlined asset, and new URL on a variable', () => {
@@ -88,7 +106,7 @@ describe('scanForDataUrls', () => {
   it('reads the quoted, double-quoted and template forms, and a URL off globalThis', () => {
     const forms = [
       'new URL("data:audio/wav;base64,UklGRg==", import.meta.url)',
-      "new URL('data:font/woff2;base64,d09GMg==', `` + import.meta.url)",
+      "new URL('data:application/json;base64,e30=', `` + import.meta.url)",
       'new globalThis.URL(`data:image/png;base64,iVBO`, "" + import.meta.url)',
     ].join(';\n')
     expect(scanForDataUrls('dist/assets/index.js', forms).map((f) => [f.line, f.col])).toEqual([
@@ -96,6 +114,19 @@ describe('scanForDataUrls', () => {
       [2, 1],
       [3, 1],
     ])
+  })
+
+  // Pixi's loadWebFont loads a font with `new FontFace(name, url(…))`, under font-src, which allows data:, so an
+  // inlined font loads; only the loaders that fetch (textures, JSON, AF's audio) are refused.
+  it('passes an inlined font, which loads under font-src, and says which loaders are refused', () => {
+    const bundle = [
+      'new URL(`data:font/woff2;base64,d09GMg==`, `` + import.meta.url)',
+      'new URL(`data:font/ttf;base64,AAEAAA==`, `` + import.meta.url)',
+      'new URL(`data:audio/mpeg;base64,SUQz`, `` + import.meta.url)',
+    ].join(';\n')
+    const findings = scanForDataUrls('dist/assets/index.js', bundle)
+    expect(findings.map((f) => [f.line, /\((\S+)\)/.exec(f.message)?.[1]])).toEqual([[3, 'audio/mpeg']])
+    expect(findings[0]?.message).toContain("Pixi's texture and JSON loaders and AF's audio fetch it")
   })
 
   it('reports a bundle it cannot parse instead of passing it', () => {

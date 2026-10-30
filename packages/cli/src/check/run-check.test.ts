@@ -484,6 +484,36 @@ describe('runCheck', () => {
     }
   })
 
+  // A no-eval that could not run (no vite installed) built nothing: the dist/ on disk is an earlier build's, and its
+  // planted key and inlined asset must not be read as this game's.
+  it('secrets and data-urls do not scan a dist/ when no-eval could not run: they say so instead of scanning it', async () => {
+    const key = ['sk', 'live', '4eC39HqLyjWDarjtT1zdp7dc'].join('_')
+    const stale = fakeGame({
+      tools: { vite: undefined },
+      files: new Map([
+        [
+          `${GAME}/dist/assets/index.js`,
+          `const k = "${key}"\nconst s = new URL(\`data:image/png;base64,iVBO\`, \`\` + import.meta.url)`,
+        ],
+      ]),
+    })
+    const { report, code } = await check(stale)
+    expect(report.steps[6]).toMatchObject({ name: 'no-eval', ok: false, toolError: true })
+    for (const [index, name] of [
+      [7, 'secrets'],
+      [8, 'data-urls'],
+    ] as const) {
+      expect(report.steps[index]).toMatchObject({
+        name,
+        ok: false,
+        findings: [
+          { rule: 'build', message: 'not scanned: no-eval could not build or read dist/ (see no-eval)' },
+        ],
+      })
+    }
+    expect(code).toBe(2)
+  })
+
   // DX.5a: an asset under Vite's assetsInlineLimit, inlined for `new URL(…, import.meta.url)`, which Ruken's CSP
   // refuses to fetch. The form is Vite 8's (data-url-scan.test.ts builds it for real).
   it('an asset inlined as a data: URL in the bundle is a data-urls finding at its new URL', async () => {

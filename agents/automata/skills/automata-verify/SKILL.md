@@ -99,8 +99,8 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 
 | Rule | Means | Fix |
 |---|---|---|
-| `data-url` | Vite inlined an asset under `build.assetsInlineLimit` (4 kB by default) as a `data:` URL for a `new URL('./file', import.meta.url)`. Ruken's CSP has no `data:` in `connect-src` or `media-src`, so the loader's fetch is refused and the asset never loads | Set `build.assetsInlineLimit: 0` in `vite.config.ts` (the content Vite plugin and `create-game` set it), so the asset ships as a file from the game's own origin |
-| `build` | `vite build` failed, so nothing was scanned | Fix the build error `no-eval` reports |
+| `data-url` | Vite inlined an asset under `build.assetsInlineLimit` (4 kB by default) as a `data:` URL for a `new URL('./file', import.meta.url)`. Pixi's texture and JSON loaders and AF's audio fetch it, and Ruken's CSP has no `data:` in `connect-src` or `media-src`, so the fetch is refused and the asset never loads. An inlined font is not reported: Pixi loads it through `FontFace`, under `font-src`, which allows `data:` | Set `build.assetsInlineLimit: 0` in `vite.config.ts` (the content Vite plugin and `create-game` set it), so the asset ships as a file from the game's own origin |
+| `build` | `vite build` failed, or `no-eval` could not run or read `dist/`, so nothing was scanned | Fix what `no-eval` reports |
 
 ### `csp` (with `--csp`)
 
