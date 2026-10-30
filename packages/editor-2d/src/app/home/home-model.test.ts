@@ -324,7 +324,7 @@ describe('openProblem', () => {
     const registry = createAppProfiles()
     registry.register(plantedProfile())
     expect(problem({ status: 'choose', path: 'x.dat', text: '', candidates: registry.list() })).toBe(
-      'x.dat could be a Level project or a Planted note. Choosing between them is not available yet.',
+      'x.dat could be a Level project or a Planted note.',
     )
   })
 
@@ -333,7 +333,7 @@ describe('openProblem', () => {
     registry.register(plantedProfile())
     registry.register(plantedProfile({ id: 'third', label: 'Third' }))
     expect(problem({ status: 'choose', path: 'x.dat', text: '', candidates: registry.list() })).toBe(
-      'x.dat could be a Level project, a Planted note or a Third. Choosing between them is not available yet.',
+      'x.dat could be a Level project, a Planted note or a Third.',
     )
   })
 

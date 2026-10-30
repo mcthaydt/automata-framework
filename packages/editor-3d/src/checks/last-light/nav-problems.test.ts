@@ -4,9 +4,10 @@
 import { describe, expect, it } from 'vitest'
 import type { Blockout, BlockoutBox, BlockoutHotspot, NavEdge } from '../../format/blockout.schema'
 import { expand } from '../../format/expand'
+import { navWorld } from '../../geometry/nav'
 import { resolveMap } from '../../geometry/sectors'
 import { must, toyBlockout, toyDoor, toyOpening } from '../../testing/toy-blockout'
-import { navProblems } from './nav-problems'
+import { navProblems, unclearEdge } from './nav-problems'
 
 // The toy's nodes are a (2, 2), ab:a (3.5, 2), ab:b (4.625, 2) and b (5.57, 1.45), and its edges join them in that
 // order, the one across the doorway through the door. Its spawn is (1, 1) and its one hotspot is `far`, at (6, 3).
@@ -302,5 +303,28 @@ describe('navProblems: from the spawn', () => {
       expect(messages(toyBlockout({ ...apart, nav: { edges: [edge] } }))).toEqual([
         `edge ${edge.join('–')} is not clear by 0.3 m with the doors open`,
       ])
+  })
+})
+
+describe('unclearEdge, the sentence an edge edit shares (ED3D.7c)', () => {
+  const worldOf = (blockout: Blockout) => {
+    const expanded = expand(blockout)
+    return navWorld(resolveMap(expanded.sectors, expanded.masses), expanded)
+  }
+  const level = walked(toyBlockout())
+  it('says an edge through a wall is not clear by the margin with the doors open', () => {
+    expect(unclearEdge(worldOf(level), ['p', 'r'])).toBe('edge p–r is not clear by 0.3 m with the doors open')
+  })
+  it('says nothing of a clear edge, one through the open door, or one to a node that is not there', () => {
+    const world = worldOf(level)
+    expect(unclearEdge(world, ['p', 'q'])).toBeUndefined()
+    expect(unclearEdge(world, ['q', 's', 'abDoor'])).toBeUndefined()
+    expect(unclearEdge(world, ['q', 's'])).toBeUndefined()
+    expect(unclearEdge(world, ['p', 'gone'])).toBeUndefined()
+  })
+  it('says it of an edge that passes a box by less than the margin', () => {
+    expect(unclearEdge(worldOf(walked(withCrate({}))), ['p', 'q'])).toBe(
+      'edge p–q is not clear by 0.3 m with the doors open',
+    )
   })
 })

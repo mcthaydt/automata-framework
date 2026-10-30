@@ -113,6 +113,10 @@ describe('createGame', () => {
 
       const indexHtml = readFileSync(join(testDir, 'index.html'), 'utf8')
       expect(indexHtml).toContain('<title>Stellar Odyssey</title>')
+
+      // Every asset ships as a file: an inlined `data:` URL is refused by Ruken's CSP when fetched (DX.5a).
+      const viteConfig = readFileSync(join(testDir, 'vite.config.ts'), 'utf8')
+      expect(viteConfig).toContain('assetsInlineLimit: 0')
     })
 
     // A new game installs the versions AF is tested on, so every exact pin the scaffold writes must be a row of

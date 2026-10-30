@@ -1,0 +1,15 @@
+# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
+
+about = "Guard low: the hips sunk over bent knees, the hands at the belly, the chest leaning in."
+
+[effectors.handL]
+pos = [ 0.1, 0.9, 0.25 ]
+
+[effectors.handR]
+pos = [ -0.12, 0.95, 0.3 ]
+
+[effectors.pelvis]
+pos = [ 0, 0.8, -0.02 ]
+
+[effectors.chest]
+rot = [ 8, 0, 0 ]
