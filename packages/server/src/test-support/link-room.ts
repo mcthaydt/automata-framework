@@ -68,6 +68,8 @@ export interface LinkPlayer {
   readonly restored: { readonly tick: number; readonly hash: string }[]
   /** Commands that did not take effect in the player's sim on the tick they were sampled for. */
   readonly offTick: Command[]
+  /** The room's ack for this player's seat in the last snapshot restored: the last seq it took. */
+  lastAck: number | undefined
   /** Snapshot ticks whose bytes the room's end of this link changes on the way. */
   readonly corrupt: Set<number>
   /** Snapshot ticks that failed their hash and were not restored. */
@@ -187,6 +189,7 @@ export async function linkRoom(options: LinkRoomOptions): Promise<LinkRoom> {
       offTick: [],
       corrupt: new Set(),
       refused: [],
+      lastAck: undefined,
       connected: true,
     }
     client.port.onSnapshot((snapshot) => {
@@ -195,7 +198,12 @@ export async function linkRoom(options: LinkRoomOptions): Promise<LinkRoom> {
       player.net.observe(snapshot, now())
       const after = player.net.authoritative
       if (player.net.mismatches > mismatches) player.refused.push(snapshot.tick)
-      else if (after !== undefined && after !== before) player.restored.push(after)
+      // By tick: a stale or repeated frame leaves the last restore in place, and is not a restore.
+      else if (after !== undefined && after.tick !== before?.tick) {
+        player.restored.push(after)
+        const seat = seatOf(player)
+        if (seat !== undefined) player.lastAck = snapshot.acks[String(seat)] ?? player.lastAck
+      }
     })
     client.port.onPong((pong) => player.net.pong(pong))
     engine.join(player.session, `P${index}`, roomEnd(player, link.server))

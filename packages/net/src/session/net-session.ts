@@ -32,6 +32,12 @@ export const PING_EVERY_MS = 250
  */
 export const MAX_CATCH_UP_TICKS = 12
 
+/**
+ * Unacked commands a session holds at most: the room's input queue holds 32 per seat (server `MAX_QUEUED_COMMANDS`)
+ * and refuses the rest `full`, so a sample past this is dropped here too, neither applied nor sent.
+ */
+export const MAX_PENDING_COMMANDS = 32
+
 /** Two hash mismatches this close together end the session (spec §6, N-d). */
 export const DESYNC_WINDOW_MS = 10_000
 
@@ -101,7 +107,11 @@ export class NetSession {
   private accepting = false
   /** The last tick input was sampled for: the tick the prediction stands at. */
   private inputTick: number | undefined
-  private nextSeq = 0
+  /**
+   * The next command's seq. Numbering starts at 1, as FloorFifty's does: the room reads seq 0 from a seat that has
+   * just returned as a reloaded client restarting its numbering (M7.3b), so a resent first command must never be 0.
+   */
+  private nextSeq = 1
   private sincePing = Number.POSITIVE_INFINITY
   /** The lead each outstanding probe was sent with, and whether it can count, by id. */
   private readonly pings = new Map<number, { readonly lead: number; readonly reliable: boolean }>()
@@ -111,11 +121,13 @@ export class NetSession {
   private lastMismatchAt: number | undefined
   private mismatchCount = 0
   private end: SessionEnd | undefined
+  /** One frame's answer, reused: `frame` allocates nothing (ADR 0003). */
+  private readonly answer = { authorityTick: 0, predictedTick: 0 }
 
   constructor(options: NetSessionOptions) {
     const tickHz = options.sim.tickHz
     const maxTicks = Math.floor((options.maxLeadTicks ?? 60) / 2)
-    this.prediction = new Prediction(options.sim)
+    this.prediction = new Prediction(options.sim, options.maxLeadTicks ?? 60)
     this.clock = new AuthorityClock({ tickHz, now: options.now })
     this.lead = new InputLead(leadForRoundTrip(options.roundTripMs, { tickHz, maxTicks }), {
       tickHz,
@@ -141,12 +153,14 @@ export class NetSession {
   observe(snapshot: NetSnapshot, receivedAt?: number): void {
     if (this.end !== undefined) return
     const outcome = this.prediction.reconcile(snapshot, this.seat, this.inputTick)
-    if (outcome === 'stale') return
     if (outcome === 'mismatch') {
       this.mismatch(snapshot.tick, receivedAt ?? this.time())
       return
     }
+    // Every frame that passed its hash steers the clock, as FloorFifty's did: one at or behind the newest changes
+    // nothing there, and one far behind (a restarted timeline) moves it back once half a second agrees.
     this.clock.observe(snapshot.tick, receivedAt)
+    if (outcome === 'stale') return
     const ack = this.seat === undefined ? undefined : snapshot.acks[String(this.seat)]
     if (ack !== undefined && ack + 1 > this.nextSeq) this.nextSeq = ack + 1
     this.resendOverdue(snapshot.tick)
@@ -154,7 +168,8 @@ export class NetSession {
 
   /**
    * Advances one rendered frame, sampling input for the latest tick it reaches. Undefined before the first snapshot
-   * (there is no game to be at a moment of) and once the session has ended.
+   * (there is no game to be at a moment of) and once the session has ended. The answer is one object, reused: read it
+   * before the next frame.
    */
   frame(sample: Sampler, deltaMs: number): NetFrame | undefined {
     if (this.end !== undefined) return undefined
@@ -181,7 +196,9 @@ export class NetSession {
         }
       }
     }
-    return { authorityTick: authority, predictedTick: this.inputTick as number }
+    this.answer.authorityTick = authority
+    this.answer.predictedTick = this.inputTick as number
+    return this.answer
   }
 
   /** The room answered a probe: a reliable one steers the lead. Another's probe (NetRoom's own) is ignored. */
@@ -204,11 +221,14 @@ export class NetSession {
   }
 
   /**
-   * Forgets the game, as leaving it does: its snapshots, commands and numbering. The next room numbers from 0, or
-   * from its own ack when this player is taking over a seat it kept counting for (`observe`).
+   * Forgets the game, as leaving it does: its snapshots, commands, numbering and any desync. The next room numbers
+   * from 1, or from its own ack when this player is taking over a seat it kept counting for (`observe`).
    */
   clear(): void {
-    this.nextSeq = 0
+    this.nextSeq = 1
+    this.end = undefined
+    this.lastMismatchAt = undefined
+    this.mismatchCount = 0
     this.prediction.clear()
     this.clock.clear()
     this.inputTick = undefined
@@ -298,6 +318,7 @@ export class NetSession {
     const seat = this.seat
     if (this.accepting && seat !== undefined) {
       for (const local of commands) {
+        if (this.prediction.pendingCommands.length >= MAX_PENDING_COMMANDS) break
         const command: Command = {
           tick: target,
           source: seat,

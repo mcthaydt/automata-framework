@@ -31,6 +31,7 @@ export {
   DESYNC_WINDOW_MS,
   type LocalCommand,
   MAX_CATCH_UP_TICKS,
+  MAX_PENDING_COMMANDS,
   type NetFrame,
   NetSession,
   type NetSessionOptions,

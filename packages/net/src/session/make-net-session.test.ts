@@ -1,6 +1,9 @@
 import type { Sim } from '@mcthaydt/automata-sim'
-import { Exit, Scope } from 'effect'
+import { Clock, Effect, Exit, Scope, SubscriptionRef } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
+import { createClientPort } from '../client/net-port'
+import type { ConnectionState } from '../client/net-room'
+import type { RoomInfo } from '../client/room-info'
 import { counterSim, Move, spawn } from '../test-support/counter-game'
 import { type Harness, startHarness } from '../test-support/net-room-harness'
 import type { FakeRoom } from '../testing/fake-colyseus'
@@ -87,7 +90,7 @@ describe('makeNetSession', () => {
     await h.advance(20)
     handle.session.frame(right, 20)
     expect(commands()).toEqual([
-      { t: 'cmd', seq: 0, tick: handle.session.sampledTick, type: Move.id, payload: { dx: 1 } },
+      { t: 'cmd', seq: 1, tick: handle.session.sampledTick, type: Move.id, payload: { dx: 1 } },
     ])
   })
 
@@ -129,7 +132,7 @@ describe('makeNetSession', () => {
     expect(handle.session.authoritative?.tick).toBe(30)
     await h.advance(20)
     handle.session.frame(right, 20)
-    expect(commands().map((command) => command.seq)).toEqual([0])
+    expect(commands().map((command) => command.seq)).toEqual([1])
   })
 
   it('forgets the game when the player leaves, so joining the same room again starts afresh', async () => {
@@ -159,11 +162,85 @@ describe('makeNetSession', () => {
     expect(await h.run(handle.ended.get)).toEqual({ reason: 'desync', tick: 36 })
   })
 
+  it('plays again in a later room after a desync ended the last one', async () => {
+    const { h, handle, room, snapshot, play, commands, restart } = await setup()
+    await play()
+    snapshot(30)
+    snapshot(33, '0000000000000000')
+    snapshot(36, '0000000000000000')
+    expect(await h.run(handle.ended.get)).toMatchObject({ reason: 'desync' })
+
+    await h.run(h.room.leave)
+    await h.settle()
+    expect(await h.run(handle.ended.get)).toBeUndefined()
+    h.fake.respond('create', h.fake.room('XYZ234'))
+    await h.run(h.room.create({ name: 'Ada' }))
+    await h.settle()
+    room().message({ t: 'seated', seat: 0 })
+    room().patch(h.fake.state('XYZ234', { phase: 'playing' }))
+    await h.settle()
+    restart()
+    snapshot(30)
+    expect(handle.session.authoritative?.tick).toBe(30)
+    await h.advance(20)
+    handle.session.frame(right, 20)
+    expect(commands()).toHaveLength(1)
+  })
+
+  it('sends no probe once its scope has closed', async () => {
+    const { h, handle, room, snapshot, play, close } = await setup()
+    await play()
+    snapshot(30)
+    await close()
+    const probes = () =>
+      room()
+        .sent.map((entry) => JSON.parse(String(entry.payload)))
+        .filter((message) => message.t === 'ping' && message.tick !== -1)
+    const before = probes().length
+    await h.advance(300)
+    handle.session.frame(right, 300)
+    expect(probes()).toHaveLength(before)
+  })
+
   it('hears nothing from the room once its scope has closed', async () => {
     const { handle, snapshot, close } = await setup()
     snapshot(30)
     await close()
     snapshot(33)
     expect(handle.session.authoritative?.tick).toBe(30)
+  })
+})
+
+describe('the session clock', () => {
+  it("reads Effect's monotonic time, not the wall clock", async () => {
+    // A wall clock that never moves (or moves back) beside a monotonic one that runs: the session follows the latter.
+    let nanos = 0n
+    const clock: Clock.Clock = {
+      [Clock.ClockTypeId]: Clock.ClockTypeId,
+      unsafeCurrentTimeMillis: () => 0,
+      currentTimeMillis: Effect.succeed(0),
+      unsafeCurrentTimeNanos: () => nanos,
+      currentTimeNanos: Effect.sync(() => nanos),
+      sleep: () => Effect.never,
+    }
+    const client = await counterSim()
+    const authority = await counterSim()
+    sims.push(client, authority)
+    authority.step([spawn(0, 0)])
+    while (authority.tick < 30) authority.step([])
+    const port = createClientPort()
+    const room = {
+      port: port.port,
+      info: SubscriptionRef.make<RoomInfo | undefined>(undefined).pipe(Effect.runSync),
+      connection: SubscriptionRef.make<ConnectionState>('connected').pipe(Effect.runSync),
+    }
+    const scope = Effect.runSync(Scope.make())
+    const handle = Effect.runSync(
+      makeNetSession({ room, sim: client }).pipe(Effect.withClock(clock), Scope.extend(scope)),
+    )
+    port.events.snapshot({ tick: 30, bytes: authority.snapshot(), hash: authority.hash(), acks: {} })
+    nanos = 1_000_000_000n
+    handle.session.frame(() => [], 0)
+    expect(handle.session.authorityTick()).toBeCloseTo(90, 6)
   })
 })

@@ -6,6 +6,7 @@ import { INITIAL_LEAD_TICKS } from './input-lead'
 import {
   type LocalCommand,
   MAX_CATCH_UP_TICKS,
+  MAX_PENDING_COMMANDS,
   NetSession,
   type NetSessionOptions,
   PING_EVERY_MS,
@@ -82,7 +83,9 @@ describe('the session', () => {
     expect(sent).toHaveLength(1)
     // Authority is at about tick 31 on the one clock; the command is stamped the lead's worth past it, which is when
     // it takes effect on both sides.
-    expect(sent[0]).toMatchObject({ tick: session.sampledTick, source: 0, seq: 0, type: Move.id })
+    // Numbered from 1, as FloorFifty does: the room reads seq 0 from a returned seat as a restart (M7.3b), so 0 is
+    // never sent.
+    expect(sent[0]).toMatchObject({ tick: session.sampledTick, source: 0, seq: 1, type: Move.id })
     expect((sent[0] as Command).tick - 31).toBeGreaterThanOrEqual(INITIAL_LEAD_TICKS - 1)
   })
 
@@ -100,7 +103,7 @@ describe('the session', () => {
     expect(sent.map((command) => command.payload)).toEqual([{ dx: 1 }, { dx: 1 }, { dx: -1 }, { dx: 1 }])
     expect(sent.map((command) => command.tick)).toEqual(stamps)
     sent.forEach((command, index) => {
-      expect(command.seq).toBe(index)
+      expect(command.seq).toBe(index + 1)
       if (index > 0) expect(command.tick).toBeGreaterThanOrEqual((sent[index - 1] as Command).tick)
     })
   })
@@ -155,13 +158,20 @@ describe('the session', () => {
   })
 
   it('keeps sampling if the clock ever lands far behind the input tick', async () => {
-    // Input must never go dead waiting for a clock to catch up with it.
+    // Input must never go dead waiting for a clock to catch up with it. A room whose timeline restarted far behind
+    // (half a second of snapshots agreeing) moves the clock back; the input tick re-seats behind with it.
     const { session, room, sent } = await harness()
     session.observe(room.at(300))
     session.frame(none, TICK_MS)
-    session.observe(room.at(30))
+    const ahead = session.sampledTick as number
+    for (let frame = 0; frame < 40; frame += 1) {
+      session.observe(room.at(30 + frame))
+      session.frame(none, TICK_MS)
+    }
+    expect(session.authorityTick()).toBeLessThan(100)
+    expect(session.sampledTick).toBeLessThan(ahead - MAX_CATCH_UP_TICKS)
     session.frame(right, TICK_MS)
-    expect(sent.at(-1)).toMatchObject({ payload: { dx: 1 } })
+    expect(sent.at(-1)).toMatchObject({ payload: { dx: 1 }, tick: session.sampledTick })
   })
 
   it('sends the commands not yet acked again after the connection comes back', async () => {
@@ -174,7 +184,7 @@ describe('the session', () => {
     const [first, second] = sent as [Command, Command]
 
     // The room took the first before the drop; the second went nowhere.
-    session.observe(room.at(first.tick + 1, { '0': 0 }, [first]))
+    session.observe(room.at(first.tick + 1, { '0': first.seq }, [first]))
     session.resync()
     expect(sent).toHaveLength(3)
     expect(sent[2]).toEqual(second)
@@ -275,11 +285,11 @@ describe('the session', () => {
     expect(session.authoritative).toBeUndefined()
     expect(session.frame(none, TICK_MS)).toBeUndefined()
 
-    // Another room: its earlier ticks restore, and it numbers from 0 (or from its own ack, as on a takeover).
+    // Another room: its earlier ticks restore, and it numbers from 1 (or from its own ack, as on a takeover).
     session.observe(room.at(30))
     expect(session.authoritative?.tick).toBe(30)
     session.frame(right, TICK_MS)
-    expect(sent.at(-1)).toMatchObject({ seq: 0 })
+    expect(sent.at(-1)).toMatchObject({ seq: 1 })
   })
 })
 
@@ -295,6 +305,53 @@ describe('commands the room has not taken', () => {
     expect(sent).toEqual([command, command])
     session.observe(room.at(command.tick + 6))
     expect(sent).toHaveLength(2)
+  })
+})
+
+describe('commands the room never takes', () => {
+  it('are given up once overdue by more than the room would ever wait, so they stop being replayed', async () => {
+    const { session, room, sim, sent } = await harness()
+    session.observe(room.at(30))
+    session.frame(right, TICK_MS)
+    const command = sent[0] as Command
+    session.observe(room.at(command.tick + 3)) // resent once
+    expect(session.pendingCommands).toHaveLength(1)
+
+    // Past maxLeadTicks (60) overdue, the room has refused it or never had it: it goes, and the prediction with it.
+    session.observe(room.at(command.tick + 63))
+    expect(session.pendingCommands).toEqual([])
+    expect(sim.hash()).toBe(room.sim.hash())
+    expect(sent).toHaveLength(2)
+  })
+
+  it('holds at most as many unacked commands as the room queues, dropping the newest sample as the room would', async () => {
+    const { session, room, sent } = await harness()
+    session.observe(room.at(30))
+    for (let frame = 0; frame < 50; frame += 1) session.frame(right, TICK_MS)
+    expect(session.pendingCommands).toHaveLength(MAX_PENDING_COMMANDS)
+    expect(sent).toHaveLength(MAX_PENDING_COMMANDS)
+  })
+})
+
+describe('a session that ended', () => {
+  it('starts over on clear: a later game plays', async () => {
+    const { session, room, sent } = await harness()
+    session.observe(room.at(30))
+    const bad = room.at(33)
+    session.observe({ ...bad, hash: '0000000000000000' })
+    session.observe({ ...room.at(36), hash: '0000000000000000' })
+    expect(session.ended?.reason).toBe('desync')
+
+    session.clear()
+    expect(session.ended).toBeUndefined()
+    expect(session.mismatches).toBe(0)
+    session.observe(room.at(30))
+    expect(session.authoritative?.tick).toBe(30)
+    session.frame(right, TICK_MS)
+    expect(sent.at(-1)).toMatchObject({ seq: 1 })
+    // A single mismatch later is a first one again, not a second.
+    session.observe({ ...room.at(39), hash: '0000000000000000' })
+    expect(session.ended).toBeUndefined()
   })
 })
 

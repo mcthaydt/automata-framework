@@ -42,13 +42,19 @@ export function makeNetSession(
 ): Effect.Effect<NetSessionHandle, never, Scope.Scope> {
   return Effect.gen(function* () {
     const clock = yield* Effect.clock
-    const now = (): number => clock.unsafeCurrentTimeMillis()
+    // Monotonic: the wall clock (`unsafeCurrentTimeMillis`) can step back when the system time is set, and an
+    // arrival stamped in the past would move the authority clock.
+    const now = (): number => Number(clock.unsafeCurrentTimeNanos()) / 1e6
     const { port } = options.room
     const ended = yield* SubscriptionRef.make<SessionEnd | undefined>(undefined)
+    // Once the scope closes, nothing more goes to the room: no command and no probe.
+    let closed = false
     const session = new NetSession({
       sim: options.sim,
-      send: (command) => port.sendCommand(command),
-      ping: (tick) => port.ping(tick),
+      send: (command) => {
+        if (!closed) port.sendCommand(command)
+      },
+      ping: (tick) => (closed ? undefined : port.ping(tick)),
       roundTripMs: port.roundTripMs(),
       maxLeadTicks: options.maxLeadTicks,
       now,
@@ -62,6 +68,11 @@ export function makeNetSession(
     // ticks may be far behind) and another numbering, so the session forgets the old game. A reconnect keeps the
     // room's info, and so the game.
     let code = info?.code
+    // A cleared session is a new game: a desync of the last one is over too.
+    const clear = (): void => {
+      session.clear()
+      Effect.runSync(SubscriptionRef.set(ended, undefined))
+    }
     const update = (): void =>
       session.setRoomState({ seat: info?.you, accepting: takesInput(info, connection) })
     update()
@@ -70,6 +81,7 @@ export function makeNetSession(
     const offPong = port.onPong((pong) => session.pong(pong))
     yield* Effect.addFinalizer(() =>
       Effect.sync(() => {
+        closed = true
         offSnapshot()
         offPong()
         session.setRoomState({ seat: undefined, accepting: false })
@@ -81,12 +93,12 @@ export function makeNetSession(
           info = next
           // Left (or the seat was lost): the game is over for this player, whichever room comes next.
           if (next === undefined && code !== undefined) {
-            session.clear()
+            clear()
             code = undefined
           }
           // A room replaced by another without passing through none.
           if (next !== undefined && next.code !== code) {
-            if (code !== undefined) session.clear()
+            if (code !== undefined) clear()
             code = next.code
           }
           update()

@@ -21,6 +21,8 @@
 import type { Command, Sim } from '@mcthaydt/automata-sim'
 import type { NetSnapshot } from '../client/colyseus-transport'
 
+const NO_COMMANDS: readonly Command[] = Object.freeze([])
+
 /** What a frame did to the prediction: restored it, was older than the last one, or failed its hash. */
 export type ReconcileOutcome = 'restored' | 'stale' | 'mismatch'
 
@@ -41,8 +43,16 @@ export class Prediction {
   /** How many of `pending` the sim has applied since it was last put on `base`. */
   private applied = 0
 
-  constructor(sim: Sim) {
+  private readonly expireAfterTicks: number
+
+  /**
+   * `expireAfterTicks`: how long past its tick an unacked command is kept. Past it the room has refused the command
+   * or never had it (net.toml's `maxLeadTicks`: a sent command had its resend long before), so it is given up and
+   * the prediction stops replaying it.
+   */
+  constructor(sim: Sim, expireAfterTicks = 60) {
     this.sim = sim
+    this.expireAfterTicks = expireAfterTicks
     this.start = { tick: sim.tick, bytes: sim.snapshot(), hash: sim.hash(), authoritative: false }
     this.base = this.start
   }
@@ -87,7 +97,9 @@ export class Prediction {
     }
     this.base = { tick: snapshot.tick, bytes: snapshot.bytes, hash, authoritative: true }
     const ack = seat === undefined ? undefined : snapshot.acks[String(seat)]
-    if (ack !== undefined) this.pending = this.pending.filter((command) => command.seq > ack)
+    const expired = snapshot.tick - this.expireAfterTicks
+    if (this.pending.some((command) => command.seq <= (ack ?? -1) || command.tick < expired))
+      this.pending = this.pending.filter((command) => command.seq > (ack ?? -1) && command.tick >= expired)
     this.applied = 0
     if (through !== undefined) this.advanceThrough(through)
     return 'restored'
@@ -111,13 +123,15 @@ export class Prediction {
    */
   private stepOnce(): void {
     const tick = this.sim.tick
-    const due: Command[] = []
+    // Most ticks have no local command: they step with one shared empty list and allocate nothing.
+    let due: Command[] | undefined
     while (this.applied < this.pending.length) {
       const command = this.pending[this.applied] as Command
       if (command.tick > tick) break
-      due.push({ ...command, tick })
+      due ??= []
+      due.push(command.tick === tick ? command : { ...command, tick })
       this.applied += 1
     }
-    this.sim.step(due)
+    this.sim.step(due ?? NO_COMMANDS)
   }
 }

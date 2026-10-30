@@ -220,6 +220,20 @@ racer and the moving floor (race rules); none has a generic counterpart.
 - **A desync ends the session, not the room.** `NetSession.ended` (and `NetSessionHandle.ended`) reads
   `{ reason: 'desync', tick }`; the session stops sampling, sending and restoring. It does not leave the room on its
   own: the kit shows the error and the player's Leave (`NetRoom.leave`), so the screen decides, as with `RoomEnd`.
+- **Unacked commands are bounded** (PR #16 review). A command still unacked `maxLeadTicks` past its tick (60, a
+  second) is given up: the room refused it or never had it, and its one resend went long before. The prediction
+  stops replaying it. At most `MAX_PENDING_COMMANDS` (32, the room's `MAX_QUEUED_COMMANDS`) are held; a sample past
+  that is dropped, neither applied nor sent, as the room would refuse it `full`. Pending commands are kept when input
+  stops being accepted, because a drop needs them for `resync`.
+- **A cleared session is a new session**: `clear` also forgets a desync (`ended`, the mismatch window and count), and
+  `makeNetSession` sets `ended` back to undefined when it clears, so a desync in one room does not end the next.
+- **Session time is monotonic**: `makeNetSession` reads `Clock.unsafeCurrentTimeNanos` (not the wall clock's
+  millis, which can step back).
+- **Every snapshot that passes its hash steers the clock**, stale ones included (FloorFifty's order). One at or
+  behind the newest changes nothing; one far behind, held for half a second, is a restarted timeline and moves the
+  clock back. The ported "clock lands far behind" case now drives that path.
+- **For M7.5c:** when `degraded` arrives, `makeNetSession` must also `resync` on `reconnecting` → `degraded` (today it
+  does on `reconnecting` → `connected`), and input stays accepted while `degraded`.
 - **An overdue command is resent once.** On each good snapshot, a pending command whose tick is before the snapshot's
   is sent once more with its own `seq` and tick: the room takes it late if it never arrived, and refuses it
   (`refused: sequence`) if it did. `resync` (the connection came back) resends every command not acked. Commands
@@ -228,9 +242,16 @@ racer and the moving floor (race rules); none has a generic counterpart.
 - **Another room is another game.** `makeNetSession` clears the session when the room info goes away (a leave, a
   lost seat) or names another room: the snapshots, pending commands and numbering go, so a room whose sim is at an
   earlier tick restores and a fresh seat numbers from 0. A reconnect keeps the room info, and so the game.
-- **Numbering goes on from the room's ack** when a session takes over a seat (FloorFifty's rule), rather than
-  restarting at 0. The room accepts either after a return (M7.3b's `returned` rule); numbering on means no snapshot
-  in flight with the old ack can make the client drop its new commands.
+- **Numbering starts at 1 and goes on from the room's ack** (FloorFifty's rules; PR #16 review). The room reads seq
+  0 from a seat that has just returned as a reloaded client restarting (M7.3b's `returned` rule), so a session never
+  sends 0: a resent first command after a reconnect is a seq the room already has, never a restart that applies it
+  twice (shown red with numbering from 0: the room walked 2 for one command). `clear` (another game) numbers from 1
+  again. A reloaded page takes over its seat numbering on from the ack in its first snapshot, so the room's restart
+  branch is never taken by this client and acks stay in one numbering. One case remains: when the old page's last
+  commands were still in flight as it reloaded, the room takes them after the first snapshot the new page saw, so
+  the new page's first commands reuse those seqs and are refused `sequence`. The next ack drops them, which is a
+  correction, never a double apply. (The earlier claim that numbering on means "no snapshot in flight with the old
+  ack can drop new commands" is replaced by this.)
 - **The authority clock is ported now, the render clock stays M7.5c's.** The prediction needs "where is authority
   now"; this row ports that half of FloorFifty's `RenderClock` (`authority-clock.ts`, 7 cases of its own). M7.5c adds
   the drawn moment (the interpolation delay and its arrival window) and ports the 26 render-clock cases on top of it,
@@ -240,7 +261,14 @@ racer and the moving floor (race rules); none has a generic counterpart.
 - **One sample per frame that reaches a new tick** (FloorFifty's rule) is how "one input sample per predicted tick"
   is read: never two samples for one tick, and a frame covering several ticks samples once, for the latest.
 - **The link harness pairs a header with its bytes in one frame**, and its frames draw on the room's instants (one
-  `TestClock` move per tick; a phase per player doubled the run time). `linkClient` and `linkRoomClient` are exported
+  `TestClock` move per tick; a phase per player doubled the run time). Measured (PR #16 review): `TestClock.adjust`
+  is 94% of a run's wall time (5.0 s of 5.3 s per 10 s of play over the N-a link); the room's steps and the
+  clients' frames, re-steps included, are under 6%. The cost is the TestClock waking each link message's sleeper
+  (M7.2's link), so N-a has its own 240 s timeout instead (about 40 s locally; the default is 90 s).
+- **N-a's room-side check** is that each room took the last command its player sent (last ack = last seq) and room and
+  client agree on the final position. On a lossy link a lost command overtaken by a later one is gone for good (the
+  room never takes a command after one sent ahead of it). On lossless links (N-b, the double-apply case, the model's
+  walk) the room's position is exactly the sum of every command sent. `linkClient` and `linkRoomClient` are exported
   from `net/testing` for M7.6 to build `createHeadlessClient` on.
 
 ## Execution log
@@ -257,3 +285,5 @@ racer and the moving floor (race rules); none has a generic counterpart.
 | 2026-10-30 | 8 | `netcode-model.test.ts` red once for the test (its sample-count guard assumed one sampled tick per frame; frames on whole milliseconds sometimes reach two ticks, and the later is sampled), then green (6). Frames moved onto the room's instants: 5 s of play went from 5.1 s to 2.9 s of wall time |
 | 2026-10-30 | 9 | Exports from `net` (`NetSession`, `makeNetSession`, the input lead) and `net/testing` (`linkClient`, `linkRoomClient`); `pnpm format`, `pnpm check`: root 163, net 309, pipelines 138, dev-tools 62, physics 71, server 432 |
 | 2026-10-30 | Self-review | `makeNetSession` kept one game across rooms: after a leave and another room (its sim at an earlier tick), every snapshot read as stale and the game froze, and the numbering ran on past the new room's sequence gap. Three cases red (another room's earlier ticks restore and number from 0; `clear` restarts the numbering; a leave forgets the game, shown red with the new branch switched off), plus a reconnect keeping its game; now `clear` resets the numbering and the session clears when the room info goes or changes room. N-b's variable renamed. `pnpm check`: root 163, net 312, pipelines 138, dev-tools 62, physics 71, server 432 |
+| 2026-10-30 | PR #16 review fixes | (1) Numbering from 1: the link case "never applies a command twice when the drop came before its ack" red with numbering from 0 (room at 2 for one command), green from 1; unit cases changed to expect seq 1. (2) `clear` forgets a desync and `makeNetSession` resets `ended`: two cases red, then green. (3) Expiry past `maxLeadTicks` and the 32-command cap: two cases red, then green. (4) N-a timeout 240 s; profiled (above); N-a took about 40 s locally. (5) Monotonic session time: a case with a fake `Clock` whose wall time never moves red (authority stayed at 30), then green. (6) N-a, N-b and the drop case assert the room's side (above). (7) Stale snapshots steer the clock; the ported "far behind" case rewritten to drive the backward snap, red before. (8) The harness counts a restore by tick, so a stale or repeated frame is not counted. (9) The reload claim corrected (above). (10) `frame` reuses its answer, a tick with no local command steps with a shared empty list, and no probe or command goes out after the scope closes (a case red, then green) |
+| 2026-10-30 | Review fixes checked | `pnpm format`, `pnpm check`: root 163, net 318, pipelines 138, dev-tools 62, physics 71, server 433. The net suite three runs, 318 each; the two link files (`net-session-link`, `netcode-model`) three runs, 11 each, 62 to 64 s per run |
