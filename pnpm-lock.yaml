@@ -152,6 +152,9 @@ importers:
 
   games/base-3d:
     dependencies:
+      '@mcthaydt/automata-figures':
+        specifier: workspace:*
+        version: link:../../packages/figures
       '@mcthaydt/automata-game':
         specifier: workspace:*
         version: link:../../packages/game
@@ -177,6 +180,9 @@ importers:
       '@mcthaydt/automata-check-boundaries':
         specifier: workspace:*
         version: link:../../tooling/check-boundaries
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../../packages/content
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship

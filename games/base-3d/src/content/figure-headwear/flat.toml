@@ -1,0 +1,21 @@
+# `flat` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/headwear.json at a1f7246.
+
+about = "A flat cap: the crown, and the peak over the brow."
+
+[[locks]]
+on = "head"
+at = [0, 0.84, -0.1]
+r = [1.2, 0.19, 1.2]
+e = [0.55, 0.75]
+taper = [0.92, 1]
+
+[[locks]]
+on = "head"
+at = [0, 0.76, 1]
+r = [1, 0.045, 0.5]
+e = [0.3, 0.7]
+follow = 1
+
+[mark]
+at = [0, 0.9, 1.2]
+normal = [0, 0.3, 1]
