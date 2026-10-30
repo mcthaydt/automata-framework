@@ -183,7 +183,11 @@ interface ScreenDef {
   enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices>
   openMenu?(): boolean                    // the host's "Open game menu"; true when the screen opened its own
 }
-interface ScreenContext { readonly layer: HTMLElement; readonly from: string | undefined }
+interface ScreenContext {
+  readonly layer: HTMLElement
+  readonly from: string | undefined
+  readonly runtime: Scope.Scope           // what a game keeps across screens; closes once, at shutdown (DX.2c)
+}
 interface Flow {
   readonly current: string | undefined
   dispatch(event: string): boolean        // false when the current screen has no edge for it (Q3)
@@ -255,7 +259,7 @@ The factory's scope is the runtime scope; its finalizer destroys the renderer. T
 
 **Failure:** the exhaustive match mounts `BootFailurePanel` with `hostKind` (`Hosting.kind`; before step 2 succeeds, `'standalone'`, which no init state reads) and sets `data-state="failed"`. *Try again* closes the runtime scope (SDK session disposed, fetches aborted, layers emptied) and re-runs the program in a fresh scope; it never reloads the page. *Continue without loading* (standalone, saves not retryable) re-runs with the settings defaults and skips step 3. *Back to Ruken* runs `Hosting.exit('player')`.
 
-**Shutdown:** `RuntimeHandle.shutdown` closes the runtime scope. Finalizers run in reverse order: frame loop cancelled, current screen's scope closed, extension layers, renderer destroyed, Hosting closed (later calls fail `CANCELLED`), hygiene uninstalled, geometry owner disposed, layers emptied. A second shutdown is a no-op.
+**Shutdown:** `RuntimeHandle.shutdown` closes the runtime scope. Finalizers run in reverse order: frame loop cancelled, current screen's scope closed, extension layers, the save's last flush, `ScreenContext.runtime` closed (what a game keeps across screens, such as the default screens' sim, released once; added 2026-10-30, DX.2c), renderer destroyed, Hosting closed (later calls fail `CANCELLED`), hygiene uninstalled, geometry owner disposed, layers emptied. A transition never closes `ScreenContext.runtime`; a failed boot that is tried again closes it with its attempt's scope. A second shutdown is a no-op.
 
 ## 5. Failure policy
 
