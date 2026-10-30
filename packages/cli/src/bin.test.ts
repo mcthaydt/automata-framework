@@ -155,6 +155,15 @@ describe('bin cli', () => {
       expect(code).toBe(0)
     })
 
+    it("the help names each of check's steps", async () => {
+      const { code, stdout, calls } = await runCheckCli(['--help'])
+      expect(code).toBe(0)
+      expect(calls).toEqual([])
+      const help = stdout.replace(/\s+/g, ' ')
+      const steps = ['boundaries', 'typecheck', 'tests', 'boards', 'orientation', 'inputs', 'no-eval']
+      for (const step of [...steps, 'secrets', 'data-urls', '--csp']) expect(help).toContain(step)
+    })
+
     it('a usage error is exit 2 and runs nothing', async () => {
       const { code, stderr, calls } = await runCheckCli(['check', '--bogus'])
       expect(code).toBe(2)

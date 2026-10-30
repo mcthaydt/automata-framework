@@ -103,6 +103,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // Vite would inline an asset under 4 kB as a data: URL, which the game's loader fetches and Ruken's CSP
+    // (connect-src 'self') refuses; a file from the game's own origin is what the CSP allows.
+    assetsInlineLimit: 0,
   },
 })
 `,

@@ -66,7 +66,9 @@ add copies an Automata Plus kit into a game at its installed core version, then 
 (exit 0 added and checked, 1 added and check found problems, 2 either not added (no access, unknown kit,
 core version, collision, or a failed copy, which is undone) or added and a check step could not run,
 in which case the kit stays in place).
-check runs boundaries, typecheck, tests, the board names and the no-eval build scan in a game folder
+check runs, in a game folder: boundaries, typecheck, tests, the boards, orientation and inputs scans of the
+sources, no-eval (vite build, then a scan of the bundle), the secrets and data-urls scans of that build, and
+with --csp the browser CSP check; --sim-only runs only the first three
 (exit 0 pass, 1 findings, 2 a tool could not run).
 
 Options:
