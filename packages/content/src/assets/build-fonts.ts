@@ -20,6 +20,7 @@ import { ContentCompileFailed, type InvalidContentConfig } from '../compile/erro
 import { type Diagnostic, sortDiagnostics } from '../diagnostics/diagnostic'
 import { readBytesIfPresent, readTextIfPresent } from '../files/content-files'
 import { canonicalFile } from '../hash/canonical-file'
+import { endonymOf } from '../locale/endonyms'
 import { localeCharacters } from '../locale/glyphs'
 import { diagnosticAt, type ParsedToml, parseDocument } from '../parse/parse-document'
 import { fontCoverage, subsetWoff2 } from './font-subset'
@@ -81,6 +82,9 @@ export const buildFonts = (
     const manifest: Record<string, Record<string, string>> = {}
     const coverage = new Map<string, LocaleCoverage>()
     const broken = new Set<string>()
+    // Every content language's name, as the language picker shows it, goes into every subset: the picker lists
+    // them all whichever language the game is showing (M5.5F).
+    const names = content.languages.map(endonymOf).join('')
 
     for (const name of Object.keys(fonts.value.font).sort()) {
       const font = fonts.value.font[name] as FontSource
@@ -91,7 +95,7 @@ export const buildFonts = (
         continue
       }
       for (const locale of locales) {
-        const characters = localeCharacters(content.catalogs.get(locale) ?? {})
+        const characters = new Set([...localeCharacters(content.catalogs.get(locale) ?? {}), ...names])
         const cut = yield* Effect.either(Effect.tryPromise(() => subsetWoff2(source, characters)))
         if (cut._tag === 'Left') {
           const why = reason(cut.left.cause)

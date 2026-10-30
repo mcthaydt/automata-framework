@@ -59,6 +59,24 @@ async function refused(root: string): Promise<readonly Diagnostic[]> {
 
 const ONE_FONT = fontEntry('pixel', '["en", "fr"]')
 
+/** Adds a `ja` translation to the fixture game; its text is the French text, which the Latin face draws. */
+function withJapanese(root: string): string {
+  writeFileSync(join(root, 'content/messages/ja.json'), readFileSync(join(root, 'content/messages/fr.json')))
+  return root
+}
+
+/** The fixture game with `ja`, the Latin face serving every language and the 日本語 face serving `cjkLocales`. */
+function japaneseProject(cjkLocales: string): string {
+  const fonts = `${fontEntry('pixel', '["en", "fr", "ja"]')}${fontEntry('cjk', cjkLocales, CJK_HASH, 'fonts/cjk.woff2')}`
+  return withFont(withFont(withJapanese(project(fonts))), 'fonts/cjk.woff2', CJK)
+}
+
+const fileOf = (files: ReadonlyMap<string, Uint8Array>, prefix: string): Uint8Array => {
+  const name = [...files.keys()].find((file) => file.startsWith(prefix))
+  if (name === undefined) throw new Error(`no ${prefix}* file in ${[...files.keys()].join(', ')}`)
+  return files.get(name) as Uint8Array
+}
+
 describe('buildFonts', () => {
   it('cuts a subset per language the font serves, with hashed names, and lists them in fonts.json', async () => {
     const files = await built(withFont(project(ONE_FONT)))
@@ -108,6 +126,19 @@ describe('buildFonts', () => {
     expect((await refused(root)).map((d) => d.message)).toEqual([
       'U+6708 "月" is not in the fr subset of cjk or pixel',
     ])
+  })
+
+  // The language picker names every language in its own language, whichever one the game is showing (M5 spec
+  // §4.7, M5.5F), so every subset also holds every content language's name: 日本語 is cut into English too.
+  it('cuts every content language’s name into every subset, so the picker can draw them all', async () => {
+    const files = await built(japaneseProject('["en", "fr", "ja"]'))
+    for (const locale of ['en', 'fr', 'ja']) {
+      const covers = fontCoverage(fileOf(files, `cjk-${locale}-`))
+      expect([...'日本語'].map(covers), locale).toEqual([true, true, true])
+    }
+    // The Latin face holds the Latin names, in each language's subset.
+    const latin = fontCoverage(fileOf(files, 'pixel-ja-'))
+    expect([...'Français'].every(latin)).toBe(true)
   })
 
   it('does not check a control character such as a newline', async () => {

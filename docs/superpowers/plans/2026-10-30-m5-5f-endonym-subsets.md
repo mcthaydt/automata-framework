@@ -3,7 +3,7 @@
 - **Task:** M5.5F in [02](../../02-master-delivery-plan.md) (lane content, size S). M5 spec [§4.7 Fonts](../specs/2026-10-16-m5-saves-audio-design.md): "each locale's subset is cut … to that locale's characters … plus FloorFifty's `ALWAYS` set … and the endonym text for the language picker". The follow-up recorded by the [M5.5 plan](2026-10-18-m5-5-fonts.md) (its "Out" table).
 - **Lane:** content. **Depends on:** M5.5 (merged), the language picker (#91: `LanguageSection` and `endonymOf` in ui).
 - **Status:** Drafted 2026-10-30.
-- **Progress:** 2 of 5 steps.
+- **Progress:** 3 of 5 steps.
 
 ## Sources, read at these commits
 
@@ -49,9 +49,10 @@ Each step starts with its test, run red, with the failure reason recorded.
   - *Expected failure:* `Cannot find module './endonyms'`.
   - *Then:* ui's `language-section.svelte.test.ts` (the `LanguageSection` cases, which use the re-export) still passes, and ui's `typecheck` passes.
   - *Done: red `Cannot find module './endonyms'`, then 3 of 3 green (a `fr` case added: "Français", the capital the picker adds); `src/locale` 21 of 21. ui's `endonymOf` case became a check that ui's export is content's function; `language-section.svelte.test.ts` 4 of 4, ui `typecheck` 0 errors over 522 files. `pnpm install` added the `packages/ui` dependency to `pnpm-lock.yaml` (a workspace link, no new external package).*
-- [ ] **3. Every subset holds every language's name** (`build-fonts.test.ts`; `build-fonts.ts`).
+- [x] **3. Every subset holds every language's name** (`build-fonts.test.ts`; `build-fonts.ts`).
   - *Red:* a game with `en`, `fr` and a `ja` translation, the pixel face serving all three and the `noto-sans-jp-endonym` fixture serving all three: the build passes and the JP face's `en` and `fr` subsets hold 日, 本 and 語.
   - *Expected failure:* the JP face's `en` subset is cut to the English text only, so `fontCoverage(...)('日')` is false.
+  - *Done: red `en: expected [ false, false, false ] to deeply equal [ true, true, true ]` (the JP face's `en` subset held no glyph), then green with the names added to each subset's characters: 12 of 12 in `build-fonts.test.ts`, 74 of 74 in `src/assets` and `src/cli`.*
 - [ ] **4. The gate covers the names** (`build-fonts.test.ts`; `build-fonts.ts`).
   - *Red, by case:*
     - the same game with the JP fixture serving `ja` only: the build fails with one `missingGlyph` each for `en` and `fr`, at `font.pixel.locales.0` and `.1`, naming U+65E5, U+672C and U+8A9E, 日本語 and `ja`;
