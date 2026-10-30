@@ -33,9 +33,9 @@ The CSP served (compileHeaders): `default-src 'none'; script-src 'self' 'wasm-un
 - **`View3D` mounts in `setup(stage)`: yes.** `View3D` extends pixi's `ViewContainer`; `stage.world.addChild(view3d)` type-checks and, in every browser, `view3d.parent === stage.world` and the frame drew through the hooks `setup` returned (`apply`, `draw`).
 - **The camera's field of view:** `Camera3D.fov` is "Vertical field of view in degrees, for a perspective camera" (`dist/scene/cameras/Camera3D.d.ts`), and `computeProjection` does `makePerspective(fov / zoom * (Math.PI / 180), aspect, near, far)` with `f = 1 / Math.tan(fovy / 2)` (`Camera3D.mjs`, `Matrix4.mjs`). Measured in every browser: `camera.fov` = `fovOf(24)` = 53.13010235415598°, and the projection's `[5]` = 2 exactly (1 / tan(atan(0.5))), so at 24 mm the visible height at distance *d* is *d*, as §4.2 says.
 
-### S7-Q6: `pixi.js` 8.22 in core — **not run**
+### S7-Q6: `pixi.js` 8.22 in core — **pass** (answered on M3.2's branch, PR #205)
 
-Stopped: S7-Q1 failed as asked, and this task stops there and reports. Not done: the 8.21.0 → 8.22.0 bump on a scratch worktree with `pnpm check` and parity, and the FloorFifty filter-stack check. One data point only: `tsc -p .` in the spike type-checks render-pixi's `renderer.ts`, delta, filter and letterbox sources against 8.22.0's types with no error. M3.2 still needs S7-Q6.
+Answered by M3.2 (`claude/3d-m3-2-pixi-822`, [plan](../superpowers/plans/2026-10-30-m3-2-pixi-822.md)) rather than on a scratch branch here, since the bump is that task. With every pin at 8.22.0: `TURBO_FORCE=true pnpm check` 33/33; `pnpm test:parity` in Chromium, WebKit and Firefox, 13/13 packages, no golden changed (render-pixi's WebGL2 filter-compile cases skip in this container's Firefox, which has no WebGL2); `automata check games/emberwick --csp` 9/9 steps; e2e `placeholder`, `base-2d` and `base-2d-compact` 21 passed; consumer smoke from packs passed; API reports unchanged. A diff of the 8.21.0 and 8.22.0 `lib` code shows `FilterSystem`'s stack rewritten: 8.21 leaked one stack entry per `generateFilteredTexture` call, 8.22 pops on every path. AF uses one filter level, where both versions compute the same resolution and offset. AF carries no equivalent of FloorFifty's `filter-stack-guard.ts`, so it is not extracted (FloorFifty was not readable from the session; the Owner can confirm the guard targets this code). The five pixi files on the no-eval allowlist are byte-identical in 8.22.0.
 
 ### S7-Q7: bytes (gzip level 9, from the Vite manifest; production build)
 
@@ -78,7 +78,7 @@ Desktop-class numbers sit 10 to 20 times under the targets (≤ 0.1 ms a solve, 
 
 ## Pending M3.1b (GPU runner)
 
-S7-Q1 in Firefox (and again in Chromium and WebKit on a real GPU), S7-Q2 (WebGL2 and WebGPU parity, including the UBO half of the remedy), S7-Q3 (p95 on both phone profiles), S7-Q4 (non-black capture), S7-Q10 (legibility at 844×390 and 780×270, the horizon, depth precision, the 21:9 stretch), the phone numbers for S7-Q8 and S7-Q9; S7-Q6 (not run, above); the verdict row and the spike folder's removal.
+S7-Q1 in Firefox (and again in Chromium and WebKit on a real GPU), S7-Q2 (WebGL2 and WebGPU parity, including the UBO half of the remedy), S7-Q3 (p95 on both phone profiles), S7-Q4 (non-black capture), S7-Q10 (legibility at 844×390 and 780×270, the horizon, depth precision, the 21:9 stretch), the phone numbers for S7-Q8 and S7-Q9; the verdict row and the spike folder's removal.
 
 ## For the Owner
 
