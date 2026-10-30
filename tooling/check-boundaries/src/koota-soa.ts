@@ -11,6 +11,8 @@ import { type AstNode, staticMemberName } from './ast.ts'
 // `relation` (aliases included), and members of a namespace import. A sim imports only koota, zod, Rapier, the sim's
 // entries and relative files, so another `trait` is the game's own. koota's `trait` passed around as a value or
 // re-exported through a relative module is not followed; `automata check --csp` stays the backstop for those.
+// Scopes are not tracked either: a parameter or local that shadows the imported name is still read as koota's, a
+// rare false finding that renaming the local clears.
 
 type KootaFunction = 'trait' | 'relation'
 
@@ -44,16 +46,7 @@ export function kootaBindings(program: AstNode): KootaBindings {
   return { functions, namespaces }
 }
 
-function calledFunction(call: AstNode, bindings: KootaBindings): KootaFunction | undefined {
-  const callee = call.callee as AstNode & { name?: string }
-  if (callee.type === 'Identifier') return bindings.functions.get(callee.name as string)
-  if (callee.type !== 'MemberExpression') return undefined
-  const object = callee.object as AstNode & { name?: string }
-  if (object.type !== 'Identifier' || !bindings.namespaces.has(object.name as string)) return undefined
-  return asKootaFunction(staticMemberName(callee))
-}
-
-/** Parentheses and type assertions do not change what koota receives. */
+/** Parentheses and type assertions do not change what koota receives, or which function is called. */
 const TRANSPARENT = new Set([
   'ParenthesizedExpression',
   'TSAsExpression',
@@ -65,6 +58,25 @@ function unwrap(node: AstNode | undefined): AstNode | undefined {
   let inner = node
   while (inner !== undefined && TRANSPARENT.has(inner.type)) inner = inner.expression as AstNode
   return inner
+}
+
+/** The function a callee evaluates to: through parentheses, assertions and a sequence's last expression (`(0, f)`). */
+function calleeTarget(callee: AstNode): AstNode {
+  let inner = unwrap(callee) as AstNode
+  while (inner.type === 'SequenceExpression') {
+    const expressions = inner.expressions as AstNode[]
+    inner = unwrap(expressions[expressions.length - 1]) as AstNode
+  }
+  return inner
+}
+
+function calledFunction(call: AstNode, bindings: KootaBindings): KootaFunction | undefined {
+  const callee = calleeTarget(call.callee as AstNode) as AstNode & { name?: string }
+  if (callee.type === 'Identifier') return bindings.functions.get(callee.name as string)
+  if (callee.type !== 'MemberExpression') return undefined
+  const object = unwrap(callee.object as AstNode) as AstNode & { name?: string }
+  if (object.type !== 'Identifier' || !bindings.namespaces.has(object.name as string)) return undefined
+  return asKootaFunction(staticMemberName(callee))
 }
 
 /** What a schema makes koota build, as far as the source shows: `unknown` when it is not written inline. */
@@ -93,7 +105,10 @@ function relationStore(definition: AstNode): AstNode | undefined | 'unknown' {
     // A spread or a computed key may hold a store.
     const name = property.type === 'Property' ? propertyName(property) : undefined
     if (name === undefined) return 'unknown'
-    if (name === 'store') store = property.value as AstNode
+    if (name !== 'store') continue
+    // koota reads `definition?.store`, which runs a getter; a method (`store() {}`) hands koota the function.
+    if (property.kind !== 'init') return 'unknown'
+    store = property.value as AstNode
   }
   return store
 }

@@ -164,6 +164,19 @@ describe('koota-soa: a koota trait or relation store must be a factory or a tag'
     ['a relation store in a variable', "import { relation } from 'koota'\nrelation({ store: s })\n", 2, 19],
     ['a quoted store key', "import { relation } from 'koota'\nrelation({ ['store']: { n: 0 } })\n", 2, 23],
     ['an asserted object schema', "import { trait } from 'koota'\ntrait({ x: 0 } as const)\n", 2, 7],
+    ['a parenthesized callee', "import { trait } from 'koota'\n(trait)({ x: 0 })\n", 2, 9],
+    ['a sequence callee', "import { trait } from 'koota'\n(0, trait)({ x: 0 })\n", 2, 12],
+    ['an asserted callee', "import { trait } from 'koota'\n(trait as typeof trait)({ x: 0 })\n", 2, 25],
+    ['a sequence namespace callee', "import * as k from 'koota'\n(0, k.trait)({ x: 0 })\n", 2, 14],
+    ['a parenthesized namespace', "import * as k from 'koota'\n(k).trait({ x: 0 })\n", 2, 11],
+    ['a string-named import', "import { 'trait' as t } from 'koota'\nt({ x: 0 })\n", 2, 3],
+    // koota reads `definition?.store`, which runs a getter; a method `store() {}` hands koota the function.
+    [
+      'a getter store',
+      "import { relation } from 'koota'\nrelation({ get store() { return { a: 0 } } })\n",
+      2,
+      10,
+    ],
   ] as const)('%s is reported', (_, src, line, col) => {
     expect(kootaRules(src)).toEqual([['koota-soa', line, col]])
   })
@@ -174,6 +187,19 @@ describe('koota-soa: a koota trait or relation store must be a factory or a tag'
     expect(message('trait(({ x: 0 }) satisfies object)')).toMatch(/^an object schema makes/)
     expect(message('trait(schema)')).toMatch(/^the checker cannot see/)
     expect(message('trait((() => ({ x: 0 })) as () => object)')).toBeUndefined()
+    expect(message('trait({ x: 0 }!)')).toMatch(/^an object schema makes/)
+    expect(message('trait(<object>{ x: 0 })')).toMatch(/^an object schema makes/)
+  })
+
+  test('a type-only specifier binds nothing, and a store method is a factory', () => {
+    const src = [
+      "import { type trait, relation } from 'koota'",
+      'trait({ x: 0 })',
+      'relation({ store() { return { n: 0 } } })',
+      'relation({ store: { n: 0 } })',
+      '',
+    ].join('\n')
+    expect(kootaRules(src)).toEqual([['koota-soa', 4, 19]])
   })
 })
 
@@ -201,6 +227,17 @@ describe('inline mode (EX spec §4): only the sim inside a browser file is check
 
   test('koota-soa covers the whole file: the CSP covers the whole page, and components are defined at file level', () => {
     expect(inline('koota-file-level.ts')).toEqual([['koota-soa', 5, 31]])
+  })
+
+  test('a koota call inside a defineSystem argument is reported once', () => {
+    const src = [
+      "import { defineSystem } from '@mcthaydt/automata'",
+      "import { trait } from 'koota'",
+      "export const s = defineSystem({ name: 's', run() { trait({ x: 0 }) } })",
+      '',
+    ].join('\n')
+    const rules = checkSource('/x/demo/main.ts', src, { inline: true }).map((f) => [f.rule, f.line, f.col])
+    expect(rules).toEqual([['koota-soa', 3, 58]])
   })
 })
 
