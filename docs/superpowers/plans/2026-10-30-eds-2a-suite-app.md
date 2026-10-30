@@ -3,7 +3,7 @@
 - **Task:** EDS.2a in [02](../../02-master-delivery-plan.md). [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §2 (the nine rail entries), §4.1 (`SuiteEditor`, `createSuite`), §5 flows 1 and 2, §9 (`suite-home`), §10 (sizes and input), §11 (the list and not-installed rows), §12 (DOM and layout layers), §13 cases EDS-l and EDS-m.
 - **Lane:** editors. **Depends on:** EDS.1b (ports, merged), EDS.1c (the list, merged), EDK.1 to EDK.5 (shell, merged). Takes the rail pattern of ED2D.4c4a (#267) and, once #267 merges, its `EditorShell` change that drops an absent inspector's column. **Unblocks:** EDS.2b (pills, Undo, Ask), EDS.2d (the level editors mounted), EDS.P.
 - **Status:** drafted 2026-10-30. Accepted under the Owner's standing rule (2026-10-30): "Auto accept all spec and plans".
-- **Progress:** 5 of 8 steps.
+- **Progress:** 6 of 8 steps.
 - **Branch:** `claude/editors-eds-2a-suite-app`.
 
 ## Scope
@@ -45,7 +45,7 @@ Consumed: `SuiteEditor`, `SuitePorts`, `WorkspaceFile` (`editor-kit/ports`), `cr
 
 ## Files
 
-Create under `packages/editor-suite/`: `index.html`, `vite.config.ts`, `biome.json`, `src/main.ts`, `src/main.css`, `src/vitest-setup.ts`; `src/shell/` `suite-entries.ts`, `create-suite.ts`, `home-model.ts`, `boot.ts`, `Suite.svelte`, `SuiteRail.svelte`, `Home.svelte`, `EditorCardView.svelte`, `ListProblems.svelte`, `ReadOnlyFile.svelte`, `EntryPage.svelte`; tests `suite-entries.test.ts`, `create-suite.test.ts`, `home-model.test.ts`, `Suite.dom.test.ts`, `SuiteRail.dom.test.ts`, `suite.layout.test.ts`; `src/testing/sample-ports.ts` (the memory ports over a fixture list, shared by `main.ts` and the tests).
+Create under `packages/editor-suite/`: `index.html`, `vite.config.ts`, `biome.json`, `src/main.ts`, `src/main.css`, `src/vitest-setup.ts`; `src/shell/` `suite-entries.ts`, `create-suite.ts`, `home-model.ts`, `boot.ts`, `Suite.svelte`, `SuiteRail.svelte`, `Home.svelte`, `EditorCardView.svelte`, `ListProblems.svelte`, `ReadOnlyFile.svelte` (an entry's page is `Home.svelte` with that entry's cards); tests `suite-entries.test.ts`, `create-suite.test.ts`, `home-model.test.ts`, `Suite.dom.test.ts`, `SuiteRail.dom.test.ts`, `suite.layout.test.ts`; `src/testing/sample-ports.ts` (the memory ports over a fixture list, shared by `main.ts` and the tests).
 Modify: `packages/editor-suite/package.json` (scripts, Svelte and test dependencies, pinned as editor-2d pins them), `vitest.config.ts` (three projects), `tsconfig.json` (Svelte files, DOM types); `pnpm-lock.yaml`.
 
 ## Steps (each: failing test first, confirm the reason, minimal change, verify)
@@ -55,7 +55,7 @@ Modify: `packages/editor-suite/package.json` (scripts, Svelte and test dependenc
 - [x] 3. `create-suite.test.ts`: finds an editor by id; two editors with one id throw naming the id. Fails: no module.
 - [x] 4. `home-model.test.ts`: FloorFifty's and The Last Light's lists give one card per editor in list order with their files; a list naming `feel` with no Feel editor gives a not-installed card with `editor-plus` (EDS-l); an unknown id is not installed with no provider; a row without `gates` gives the problems state with `file[0].gates` (EDS-m); missing and newer-format lists are problems. Fails: no module.
 - [x] 5. App scaffolding: `vitest.config.ts` projects, Svelte dependencies, `svelte-check` typecheck; `SuiteRail.dom.test.ts`: nine tabs, arrow keys and Home and End move, Cmd or Ctrl 1 to 9 choose, the chosen tab is `aria-selected`, focus returns after a remount. Fails: no component.
-- [ ] 6. `Suite.dom.test.ts` (mounted through `startSuite` over memory ports): Home shows the cards; a not-installed card says so with its package and opening its file shows the text read only (EDS-l); the invalid list shows the problem with its key path and no cards (EDS-m); choosing an entry with an installed fake editor opens it once and fills the canvas from its regions, and coming back to it does not open it again; Review says it comes later. Fails: no component.
+- [x] 6. `Suite.dom.test.ts` (mounted through `startSuite` over memory ports): Home shows the cards; a not-installed card says so with its package and opening its file shows the text read only (EDS-l); the invalid list shows the problem with its key path and no cards (EDS-m); choosing an entry with an installed fake editor opens it once and fills the canvas from its regions, and coming back to it does not open it again; Review says it comes later. Fails: no component.
 - [ ] 7. `suite.layout.test.ts` at every `SIZES` entry in Chromium, WebKit and Firefox: the shell's mode; nine tabs, each at least 44 px and inside the window; the tab bar 64 px tall below `wide`; Home's essentials pass `checkLayout`; no page scroll; 1194 × 834 to 834 × 1194 keeps Home's element (no remount). Review images to `docs/evidence/owner-visual/2026-10-30-eds-2a/`.
 - [ ] 8. `main.ts`, `index.html`, `vite build`; gates.
 
