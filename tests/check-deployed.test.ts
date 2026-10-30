@@ -4,7 +4,8 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
-import { checkServedFiles } from '../scripts/check-deployed'
+import { checkHeaders, checkServedFiles } from '../scripts/check-deployed'
+import { securityHeaders } from '../src/lib/security-headers'
 
 // DX.12's served-file check (DX spec, D-DX-5): /llms.txt and /llms-full.txt come from the origin as the build wrote
 // them. The URL-based instructions for AI tools (DX.10d) point at these files, so a stale or missing copy is a failure.
@@ -47,12 +48,30 @@ describe('checkServedFiles', () => {
   })
 })
 
+// QB.4a: the header set (src/lib/security-headers.ts) read back from the origin, on a page and on a text file.
+describe('checkHeaders', () => {
+  const withHeaders = (headers: Record<string, string>) => async () => new Response('', { status: 200, headers })
+
+  it('passes when every path answers with the set', async () => {
+    expect(await checkHeaders(ORIGIN, ['/', '/llms.txt'], withHeaders(securityHeaders()))).toEqual([])
+  })
+
+  it('reports a missing or different header by path and name', async () => {
+    const { 'X-Content-Type-Options': _dropped, ...rest } = securityHeaders()
+    const weaker = { ...rest, 'Strict-Transport-Security': 'max-age=60' }
+    expect(await checkHeaders(ORIGIN, ['/'], withHeaders(weaker))).toEqual([
+      '/: Strict-Transport-Security is "max-age=60", expected "max-age=31536000; includeSubDomains"',
+      '/: X-Content-Type-Options is missing, expected "nosniff"',
+    ])
+  })
+})
+
 describe('pnpm check:deployed --local', () => {
   it('serves the build with serve-static on a free port and passes', () => {
     const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/check-deployed.ts', '--local', '--build', build], { cwd: root, encoding: 'utf8', timeout: 30_000 })
     expect(result.stderr).toBe('')
     expect(result.status).toBe(0)
-    expect(result.stdout).toMatch(/^\/llms\.txt and \/llms-full\.txt are served from http:\/\/127\.0\.0\.1:\d+ as built\.\n$/)
+    expect(result.stdout).toMatch(/^\/llms\.txt and \/llms-full\.txt are served from http:\/\/127\.0\.0\.1:\d+ as built, with the security headers on \/ and \/llms\.txt\.\n$/)
   })
 
   it('refuses both an origin and --local, and neither', () => {

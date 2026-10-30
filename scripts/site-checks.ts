@@ -3,6 +3,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { JSDOM } from 'jsdom'
 import { SITE_ORIGIN } from '../src/lib/site.js'
+import { CSP_META_PREFIX, inlineScriptHashes } from '../src/lib/csp'
 
 /**
  * Placeholder and AI-filler phrases (quality-bar spec §4.2). Matched on whole words in each page's text, title and
@@ -59,7 +60,7 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     }
     const text = [doc.title, doc.querySelector('meta[name="description"]')?.getAttribute('content') ?? '', doc.body.textContent ?? ''].join('\n')
     for (const banned of BANNED_PHRASES) if (banned.pattern.test(text)) failures.push(`${file}: banned phrase "${banned.label}"`)
-    failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkPreloadedScripts(root, file, doc), ...checkHydrationStart(file, html), ...checkFooter(file, doc))
+    failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkPreloadedScripts(root, file, doc), ...checkHydrationStart(file, html), ...checkContentSecurityPolicy(file, html), ...checkFooter(file, doc))
     for (const image of doc.querySelectorAll('img')) {
       // Decorative images say so with alt=""; a missing attribute is always a defect.
       if (!image.hasAttribute('alt')) failures.push(`${file}: <img src="${image.getAttribute('src')}"> has no alt`)
@@ -215,6 +216,29 @@ function checkHydrationStart(file: string, html: string): string[] {
   const hydrates = /import\("[^"]*\/entry\/start\.[^"]*"\)/.test(html)
   if (!hydrates || html.includes('afterFirstPaint(() =>')) return []
   return [`${file}: starts hydrating at once; the start script must wait for the first paint (hydrateAfterFirstPaint in src/hooks.server.ts), because a host that finishes the module requests before painting charges all of them to the first paint`]
+}
+
+/**
+ * Every page carries its Content-Security-Policy first in <head> (QB.4a): a `<meta>` policy applies only to what comes
+ * after it. Its script-src allows each inline script by the sha256 of its text and never `unsafe-inline` or
+ * `unsafe-eval`; a script rewritten after the policy was written would be refused by the browser.
+ */
+function checkContentSecurityPolicy(file: string, html: string): string[] {
+  const head = /<head(?:\s[^>]*)?>/.exec(html)
+  const metaAt = head ? head.index + head[0].length : -1
+  if (!head || !html.startsWith(CSP_META_PREFIX, metaAt)) {
+    return [`${file}: has no Content-Security-Policy first in <head> (withContentSecurityPolicy, applied last in src/lib/finish-page.ts)`]
+  }
+  const start = metaAt + CSP_META_PREFIX.length
+  const policy = html.slice(start, html.indexOf('"', start))
+  const scriptSrc = policy.split(';').map(part => part.trim()).find(part => part.startsWith('script-src ')) ?? ''
+  const failures: string[] = []
+  if (/'unsafe-(inline|eval)'/.test(scriptSrc)) failures.push(`${file}: script-src allows unsafe-inline or unsafe-eval; the quality bar (QB.4) forbids both for scripts`)
+  const allowed = new Set(scriptSrc.split(/\s+/))
+  if (inlineScriptHashes(html).some(hash => !allowed.has(hash))) {
+    failures.push(`${file}: an inline script is not allowed by the page’s Content-Security-Policy (its sha256 is not in script-src), so the browser will refuse to run it`)
+  }
+  return failures
 }
 
 /** A page's modulepreload links exist in the build, are entry or node modules, and together stay within MAX_PRELOADED_SCRIPT_BYTES. */

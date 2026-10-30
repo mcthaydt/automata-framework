@@ -1,7 +1,8 @@
 // DX.12's served-file check (DX spec, D-DX-5): /llms.txt and /llms-full.txt are served from the origin as text, with the
 // bytes the build wrote. The URL-based instructions for AI tools point at these two files (DX.10d), so they are the
 // check that a deploy reached the origin. Until the Owner supplies the host, `--local` runs it against the build on
-// serve-static.ts, so the check itself is exercised on every deploy run.
+// serve-static.ts, so the check itself is exercised on every deploy run. It also reads the security header set back from
+// the origin (QB.4a, QB-d).
 //
 //   node --import tsx scripts/check-deployed.ts <origin> [--build build]
 //   node --import tsx scripts/check-deployed.ts --local [--build build]
@@ -11,8 +12,11 @@ import { createServer } from 'node:net'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
+import { securityHeaders } from '../src/lib/security-headers'
 
 const SERVED_FILES = ['/llms.txt', '/llms-full.txt'] as const
+/** Where the header set is read back (QB.4a): a page and a text file, since a host can configure the two apart. */
+const HEADER_PATHS = ['/', '/llms.txt'] as const
 
 type Fetch = (url: string) => Promise<Response>
 
@@ -36,6 +40,26 @@ export async function checkServedFiles(origin: string, buildDir: string, fetchFi
     if (response.status !== 200) problems.push(`${path}: status ${response.status}, expected 200`)
     else if (type !== 'text/plain') problems.push(`${path}: content-type ${type}, expected text/plain`)
     else if (!Buffer.from(await response.arrayBuffer()).equals(readFileSync(built))) problems.push(`${path}: the served bytes differ from the build`)
+  }
+  return problems
+}
+
+/** Each path's missing or different security headers (src/lib/security-headers.ts); empty when all match. */
+export async function checkHeaders(origin: string, paths: readonly string[], fetchFile: Fetch = fetch): Promise<string[]> {
+  const problems: string[] = []
+  for (const path of paths) {
+    let response: Response
+    try {
+      response = await fetchFile(new URL(path, origin).href)
+    } catch (error) {
+      problems.push(`${path}: ${(error as Error).message}`)
+      continue
+    }
+    for (const [name, expected] of Object.entries(securityHeaders())) {
+      const actual = response.headers.get(name)
+      if (actual === null) problems.push(`${path}: ${name} is missing, expected "${expected}"`)
+      else if (actual !== expected) problems.push(`${path}: ${name} is "${actual}", expected "${expected}"`)
+    }
   }
   return problems
 }
@@ -85,7 +109,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const origin = local?.origin ?? positionals[0]!
   let problems: string[]
   try {
-    problems = await checkServedFiles(origin, buildDir)
+    problems = [...(await checkServedFiles(origin, buildDir)), ...(await checkHeaders(origin, HEADER_PATHS))]
   } finally {
     local?.stop()
   }
@@ -93,5 +117,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error(problems.join('\n'))
     process.exit(1)
   }
-  console.log(`${SERVED_FILES.join(' and ')} are served from ${origin} as built.`)
+  console.log(`${SERVED_FILES.join(' and ')} are served from ${origin} as built, with the security headers on ${HEADER_PATHS.join(' and ')}.`)
 }

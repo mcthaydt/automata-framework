@@ -31,14 +31,14 @@ final HTML: every inline `<script>` is hashed. A build has 29 such scripts, one 
 
 ## Steps (TDD)
 
-1. [ ] `tests/csp.test.ts` (fails first: no module): the meta comes first in `<head>`; each inline script's sha256 is
+1. [x] `tests/csp.test.ts` (fails first: no module): the meta comes first in `<head>`; each inline script's sha256 is
    listed and a `src` script is not hashed; no `unsafe-inline` or `unsafe-eval` in `script-src`; the hook applies it
    after the hydration rewrite (the hash of the rewritten script).
-2. [ ] `tests/site-checks.test.ts` gains: a page without the policy, and a page whose script changed after hashing, are
+2. [x] `tests/site-checks.test.ts` gains: a page without the policy, and a page whose script changed after hashing, are
    each reported (fail first).
-3. [ ] `tests/security-headers.test.ts` and `tests/serve-static.test.ts`: the set on a page and under `/playground/`
+3. [x] `tests/security-headers.test.ts` and `tests/serve-static.test.ts`: the set on a page and under `/playground/`
    (fail first).
-4. [ ] `tests/check-deployed.test.ts`: `checkHeaders` reports a missing or different header by path (fails first); the
+4. [x] `tests/check-deployed.test.ts`: `checkHeaders` reports a missing or different header by path (fails first); the
    `--local` run checks both.
 5. [ ] Gates: `pnpm check`, `pnpm test`, `pnpm build`, `pnpm check:site`, `pnpm check:deployed --local`; the browser
    suite in Chromium and WebKit for the pages whose scripts run (every page's console gate).
@@ -50,3 +50,15 @@ known, from `securityHeaders()`; the demo bundles' own policies (the AF builds e
 alerts (QB.4b); the rollback (QB.4c).
 
 ## Execution log
+
+2026-10-30, this container: Node 24.21.0.
+
+- **Step 1.** `tests/csp.test.ts` failed first ("Cannot find module '../src/lib/csp'"), then 5 passed.
+- **Step 2.** Three `site-checks` cases (no policy, a script changed after hashing, `unsafe-inline` in script-src)
+  failed first, then passed; the test pages now go through `withContentSecurityPolicy` as built pages do.
+- **Step 3.** `security-headers` failed first (module missing) and the `serve-static` case failed first (no HSTS), then
+  passed.
+- **Step 4.** The `checkHeaders` cases and the `--local` run failed first, then passed.
+- **Step 5 (in part).** `pnpm check` 0 errors; `pnpm test` 53 files, 340 passed, 1 expected fail; `pnpm build`;
+  `pnpm check:site` 28 pages; `pnpm check:deployed --local` passed with the headers on `/` and `/llms.txt`. The browser
+  suite (Chromium and WebKit) under the policy is running.
