@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@mcthaydt/automata-content": "workspace:*",
+    "@mcthaydt/automata-figures": "workspace:*",
     "@mcthaydt/automata-render-pixi": "workspace:*",
     "@mcthaydt/automata-runtime": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
