@@ -22,11 +22,20 @@ const heroFields = {
 /** Wick, the player, as the renderer reads him (the figure's `FigureState`, M3 spec §4.4.5). */
 export const Hero: ComponentDef<typeof heroFields> = defineComponent('hero', heroFields)
 
-const controlFields = { stickX: 'i32', stickY: 'i32', lockHeld: 'bool', lockPressed: 'bool' } as const
+const controlFields = {
+  stickX: 'i32',
+  stickY: 'i32',
+  lockHeld: 'bool',
+  lockPressed: 'bool',
+  /** The action buttons held this tick and pressed this tick, as `ACTION_BITS` (slash 1, guard 2, point 4, pickup 8). */
+  actHeld: 'u32',
+  actPressed: 'u32',
+} as const
 
 /**
  * This tick's input: the stick (−127..127, y down), whether lock is held, and whether it went down this tick
- * (`lockPressed`, true only on the press, so holding it never locks again). Not rendered.
+ * (`lockPressed`, true only on the press, so holding it never locks again), and the action buttons likewise. Not
+ * rendered.
  */
 export const HeroControl: ComponentDef<typeof controlFields> = defineComponent(
   'hero-control',
@@ -40,3 +49,16 @@ const targetFields = { x: 'i32', z: 'i32' } as const
 
 /** Something Wick can lock onto, standing at `x`, `z`. */
 export const Target: ComponentDef<typeof targetFields> = defineComponent('target', targetFields)
+
+const actionFields = {
+  /** The action playing, as `ACTION_CLIP` (0 none, 1 slash, 2 point, 3 pickup). */
+  clip: 'u32',
+  /** The tick it started on: the figure samples its clip from here. */
+  startedAt: 'u32',
+  /** Whether the guard stance is held, and the tick it was raised on. */
+  guard: 'bool',
+  guardSince: 'u32',
+} as const
+
+/** Wick's action and stance, as the figure reads them (`FigureState.action` and `stances`, M3 spec §4.4.5). */
+export const HeroAction: ComponentDef<typeof actionFields> = defineComponent('hero-action', actionFields)

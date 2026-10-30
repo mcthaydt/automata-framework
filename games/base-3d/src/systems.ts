@@ -15,9 +15,17 @@ import {
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { atan2 } from '@mcthaydt/automata-sim/math'
 import { z } from 'zod'
-import { Lock, Move } from './commands.ts'
-import { Hero, HeroControl, Target } from './components.ts'
-import { HERO_HALF, LOCK_RANGE, metres, WALK_PER_TICK } from './constants.ts'
+import { Act, Lock, Move } from './commands.ts'
+import { Hero, HeroAction, HeroControl, Target } from './components.ts'
+import {
+  ACTION_BITS,
+  ACTION_CLIP,
+  ACTION_TICKS,
+  HERO_HALF,
+  LOCK_RANGE,
+  metres,
+  WALK_PER_TICK,
+} from './constants.ts'
 
 // --- the area: the level content compiled to fixed point, and the geometry the systems read ---
 
@@ -184,8 +192,8 @@ const angleOf = (x: number, z: number): number => wrapHeading((atan2(x, z) * TUR
 const signedTurn = (units: number): number => wrapHeading(units + HALF_TURN) - HALF_TURN
 
 /**
- * Copies this tick's stick and lock onto Wick, and marks the tick lock went down. No command is a centred stick
- * and lock up.
+ * Copies this tick's stick, lock and action buttons onto Wick, and marks the tick each went down. No command is a
+ * centred stick and every button up.
  */
 export const heroInput: SystemDef = defineSystem({
   name: 'hero.input',
@@ -195,9 +203,25 @@ export const heroInput: SystemDef = defineSystem({
     const locks = ctx.commands.of(Lock)
     const stick = moves[moves.length - 1]?.payload ?? { x: 0, y: 0 }
     const lockHeld = locks[locks.length - 1]?.payload.down ?? false
+    const acts = ctx.commands.of(Act)
+    const act = acts[acts.length - 1]?.payload
+    let actHeld = 0
+    if (act?.slash === true) actHeld |= ACTION_BITS.slash
+    if (act?.guard === true) actHeld |= ACTION_BITS.guard
+    if (act?.point === true) actHeld |= ACTION_BITS.point
+    if (act?.pickup === true) actHeld |= ACTION_BITS.pickup
     for (const entity of ctx.query(HeroControl)) {
-      const lockPressed = lockHeld && !entity.get(HeroControl).lockHeld
-      entity.set(HeroControl, { stickX: stick.x, stickY: stick.y, lockHeld, lockPressed })
+      const before = entity.get(HeroControl)
+      const lockPressed = lockHeld && !before.lockHeld
+      const actPressed = actHeld & ~before.actHeld
+      entity.set(HeroControl, {
+        stickX: stick.x,
+        stickY: stick.y,
+        lockHeld,
+        lockPressed,
+        actHeld,
+        actPressed,
+      })
     }
   },
 })
@@ -292,6 +316,39 @@ export const heroView: SystemDef = defineSystem({
       if (view === undefined || view.id === heading.view) continue
       const control = entity.get(HeroControl)
       entity.set(CameraHeading, enterView(heading, view, { x: control.stickX, y: control.stickY }))
+    }
+  },
+})
+
+/**
+ * Starts and ends Wick's actions (M3 spec §4.7): a slash press starts a slash at this tick, replacing any action
+ * running (a second slash mid-swing; the view blends the two, M3R-D16); a point or pickup press starts only when
+ * nothing runs. An action ends `ACTION_TICKS` after it started. Guard is a stance held while its button is.
+ */
+export const heroAct: SystemDef = defineSystem({
+  name: 'hero.act',
+  phase: 'prePhysics',
+  run(ctx) {
+    for (const entity of ctx.query(HeroAction, HeroControl)) {
+      const { actHeld, actPressed } = entity.get(HeroControl)
+      const before = entity.get(HeroAction)
+      let { clip, startedAt } = before
+      if (clip === ACTION_CLIP.slash && ctx.tick - startedAt >= ACTION_TICKS.slash) clip = 0
+      if (clip === ACTION_CLIP.point && ctx.tick - startedAt >= ACTION_TICKS.point) clip = 0
+      if (clip === ACTION_CLIP.pickup && ctx.tick - startedAt >= ACTION_TICKS.pickup) clip = 0
+      if ((actPressed & ACTION_BITS.slash) !== 0) {
+        clip = ACTION_CLIP.slash
+        startedAt = ctx.tick
+      } else if (clip === 0 && (actPressed & ACTION_BITS.point) !== 0) {
+        clip = ACTION_CLIP.point
+        startedAt = ctx.tick
+      } else if (clip === 0 && (actPressed & ACTION_BITS.pickup) !== 0) {
+        clip = ACTION_CLIP.pickup
+        startedAt = ctx.tick
+      }
+      const guard = (actHeld & ACTION_BITS.guard) !== 0
+      const guardSince = guard && !before.guard ? ctx.tick : before.guardSince
+      entity.set(HeroAction, { clip, startedAt, guard, guardSince })
     }
   },
 })

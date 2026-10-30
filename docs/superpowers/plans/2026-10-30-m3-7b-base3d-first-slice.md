@@ -20,20 +20,20 @@
 **Consumed:** `@mcthaydt/automata-sim` (`defineCommand`, `defineComponent`, `defineSystem`); `@mcthaydt/automata-render-pixi3d/sim` (`CameraHeading`, `CameraTurn`, `enterView`, `mapStick`, `STICK_MAX`, `Q16`); `@mcthaydt/automata-render-pixi3d` (`createPixi3dRenderer`, `figure`, `mesh`, `box`, `cameraViewContent`, `sceneLightingContent`, occluders `wall`/`prop`/`ceiling`, `LOCK_SHARE`); `@mcthaydt/automata-figures` (`evaluate`, `FigureState`, `MotionLibrary`, `EvaluateOptions`, `FigureDef`, `FigureLibrary`, the `figure`, `figure-pose` and `figure-clip` content kinds); `@mcthaydt/automata-game` (`defineGame`, `keys`, `startGame`, `defaultContent`, default screens); M4.12's touch overlay (stick and buttons) and `hostReserved`.
 
 **Produced (game-local, not published):**
-- `commands.ts`: `Act` `{ move: 'slash' | 'point' | 'pickup' }` (a press), `Guard` `{ down: boolean }` (held).
-- `components.ts`: `HeroAction` `{ clip: u8 (0 none, 1 slash, 2 point, 3 pickup), startedAt: u32 (tick), guard: bool, guardSince: u32 (tick) }`, rendered.
+- `commands.ts`: `Act` `{ slash, guard, point, pickup: boolean }`, the buttons held, sent every tick as `lock` is; the sim finds the presses (`HeroControl.actHeld`, `actPressed`, as `ACTION_BITS`).
+- `components.ts`: `HeroAction` `{ clip: u32 (0 none, 1 slash, 2 point, 3 pickup), startedAt: u32 (tick), guard: bool, guardSince: u32 (tick) }`, rendered (the sim has no `u8` field type).
 - `constants.ts`: `ACTION_TICKS` per move (from the clips' lengths at 60 Hz) and `ACTION_CLIPS` (the clip id per code).
-- `systems.ts`: `heroAct` (after `heroInput`): a press starts its action at `ctx.tick`; a slash may replace a running slash (the view blends, M3R-D16); point and pickup start only when nothing runs; an action ends `ACTION_TICKS` after its start; `Guard` sets `guard` and `guardSince` on the press and clears on release.
+- `systems.ts`: `heroAct` (after `heroInput`): a press starts its action at `ctx.tick`; a slash may replace a running slash (the view blends, M3R-D16); point and pickup start only when nothing runs; an action ends `ACTION_TICKS` after its start; `the guard button held sets `guard` (and `guardSince` on the press) and its release clears it.
 - `views.ts` (part 2): `figureStateOf(components, tick → seconds)`: `Hero` + `HeroAction` render rows to figures' `FigureState` (`moving`, `speed`, `facing` in radians, `moveDir`, `action`, `stances`, `aim` at the lock target's head and chest).
 - render-pixi3d (part 2): `FigureViewOptions` gains `motion: MotionLibrary` in place of `gaits`, and `FigureViewState` becomes figures' `FigureState` minus `hair` (the view owns the spring and passes `hair`); the view passes `options.previous` (its last evaluated time) and one `warned` `Set` per figure. A published-export change: api-report updated, changeset for render-pixi3d only if it publishes (it is private, D-1: no changeset).
 
 ## Steps (strict TDD; tick each as its check passes)
 
 ### Part 1: actions in the sim
-- [ ] 1.1 Failing tests in `games/base-3d/src/game.test.ts`: a slash press sets `HeroAction.clip = 1` and `startedAt = tick`; it ends after `ACTION_TICKS.slash`; a second slash mid-swing restarts it; point during a slash is ignored; guard press/release sets and clears `guard`; actions are independent of lock and movement. Run `pnpm --filter @af-games/base-3d test:unit` → fails on the missing `Act`.
-- [ ] 1.2 Minimal code in `commands.ts`, `components.ts`, `constants.ts`, `systems.ts`, `state.ts` (register the defs, spawn `HeroAction`). Tests pass; `pnpm boundaries --game` passes.
-- [ ] 1.3 Golden: extend the replay script with a slash, a mid-swing slash, a guard hold and a pickup. The hash changes because the hero gains `HeroAction`; record old and new hashes here with that reason. `test:parity` in Chromium, WebKit and Firefox equals Node (B-a).
-- [ ] 1.4 `pnpm format`, `TURBO_FORCE=true pnpm check`; PR.
+- [x] 1.1 Failing tests in `games/base-3d/src/game.test.ts`: a slash press sets `HeroAction.clip = 1` and `startedAt = tick`; it ends after `ACTION_TICKS.slash`; a second slash mid-swing restarts it; point during a slash is ignored; guard press/release sets and clears `guard`; actions are independent of lock and movement. Run `pnpm --filter @af-games/base-3d test:unit` → fails on the missing `Act`.
+- [x] 1.2 Minimal code in `commands.ts`, `components.ts`, `constants.ts`, `systems.ts`, `state.ts` (register the defs, spawn `HeroAction`). Tests pass; `pnpm boundaries --game` passes.
+- [x] 1.3 Golden: extend the replay script with a slash, a mid-swing slash, a guard hold and a pickup. The hash changes because the hero gains `HeroAction`; record old and new hashes here with that reason. `test:parity` in Chromium, WebKit and Firefox equals Node (B-a).
+- [x] 1.4 `pnpm format`, `TURBO_FORCE=true pnpm check`; PR.
 
 ### Part 2: the figure view on `evaluate()`, Wick as content
 - [ ] 2.1 Failing tests in `packages/render-pixi3d/src/figure/figure-view.test.ts`: the view calls `evaluate()` with the row's action and stances (a slash row moves the right hand away from the locomotion-only pose); a sim-only missing clip warns once (one `warned` Set); `previous` advances; hair swings from the view's spring.
@@ -61,3 +61,4 @@ Real-device play on a phone (landscape): the Owner's. Visual acceptance is recor
 
 ## Execution log
 - 2026-10-30: plan written from origin/main `2aca6cd5`.
+- 2026-10-30, part 1: 1.1 failing as expected (`act` rejected as `unknown-command`, 29 failures); 1.2 the commands, components, constants, `heroAct` and the state wiring, 42/42 node. Deviation: one `Act` command with the four buttons held (edge-detected in the sim, as `lock` is) in place of `Act` + `Guard`, so the input layer sends held state every tick and the sim stays the one place a press is found. `systems.ts` passes 300 lines (the GL spec's folder threshold, not checked by `pnpm style`): GAME-3D.1a splits it into `systems/`, as DESIGN.md §3.1 plans. 1.3 the golden hash `aa170b86451f0838` → `ce0f0628722db568`: Wick gained `hero-action`, `hero-control` gained `actHeld` and `actPressed`, and the route gained the action segments after the walk; the walk's kiln tick (118), locked ticks (50) and end position are unchanged and asserted. The route's action starts are asserted (`1@278`, `1@287`, `3@348`, `2@409`). `test:parity`: 108/108 in Chromium, WebKit and Firefox.
