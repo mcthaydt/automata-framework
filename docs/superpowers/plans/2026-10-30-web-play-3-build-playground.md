@@ -80,3 +80,17 @@ and every catalog example runs in it with no policy violation in Chromium, WebKi
 - **Step 5.** `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0 after two type fixes (Pixi types
   `loadTextures.config` as optional, so no-eval throws if it is ever missing; a test fixture under
   `exactOptionalPropertyTypes`).
+- **Independent review (a separate agent reading the diff against the spec), all addressed:**
+  1. A-17 checked the console at the moment `running` arrived, so a `failed` or a console line after it went unseen.
+     Each example now runs with the determinism check (its golden, or its own hash for 60 ticks) and the case waits
+     for the frame's last message: the log must be exactly `booted, running, determinism` (golden `pass` where there
+     is one) with no console error. No race between two polls remains.
+  2. The 460 kB budget ran only inside `build:playground`, which CI does not run. A browser-project case now checks
+     the runtime the frame server built (Chromium only: the bytes are the same everywhere).
+  3. A public `index.html` that the frame page would overwrite, or a module named `resources`, now fails the build.
+  4. `--out` must be a folder named `dist-playground`, and the tree is built in `dist-playground.building` and renamed
+     only when everything passed, so a failed build (today, at the licence gate) leaves no tree without a manifest.
+     `pnpm check` caught a missing `renameSync` import on that last path, which the build cannot reach before the
+     repack; the rename path itself is first exercised then.
+  After: `--project 'playground-frame-*'` 85 passed, 2 skipped (the size case outside Chromium);
+  `TURBO_FORCE=true pnpm check` exit 0.

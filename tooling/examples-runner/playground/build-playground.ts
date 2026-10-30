@@ -5,11 +5,12 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs'
-import { dirname, join, relative, sep } from 'node:path'
+import { basename, dirname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { build, type Rolldown } from 'vite'
@@ -38,11 +39,17 @@ const { values } = parseArgs({
 const siteOrigin = values['site-origin']
 if (siteOrigin === undefined || new URL(siteOrigin).origin !== siteOrigin)
   throw new Error('build:playground needs --site-origin <scheme://host[:port]>')
+// The build writes a folder of its own name only, and builds it beside the result first: a build that fails leaves
+// the last good tree as it was, never a half-written one (a tree with no manifest).
 const out = values.out
-rmSync(out, { recursive: true, force: true })
+if (basename(out) !== 'dist-playground')
+  throw new Error(`build:playground writes only a folder named dist-playground, not ${out}`)
+const finalOut = out
+const building = `${finalOut}.building`
+rmSync(building, { recursive: true, force: true })
 
 // The runtime.
-const runtimeDir = join(out, 'runtime')
+const runtimeDir = join(building, 'runtime')
 const result = await build({
   configFile: join(packageRoot, 'playground', 'vite.config.ts'),
   build: { outDir: runtimeDir },
@@ -58,20 +65,25 @@ rmSync(join(runtimeDir, '.vite'), { recursive: true })
 // The examples: a frame page each, beside its public files; the shared resources; the goldens.
 const entries = readCatalog(examplesRoot)
 const catalog = playgroundCatalog(entries, (entry) => readFileSync(entry.file, 'utf8'))
+const modules = new Set(catalog.map((example) => example.module))
+if (modules.has('resources'))
+  throw new Error('an examples module named resources would mix with examples/resources/')
 for (const example of catalog) {
-  const folder = join(out, 'examples', example.module, example.name)
+  const folder = join(building, 'examples', example.module, example.name)
   const publicFiles = join(examplesRoot, 'public', example.module, example.name)
+  if (existsSync(join(publicFiles, 'index.html')))
+    throw new Error(`${example.id}: a public index.html would be replaced by the frame page`)
   if (existsSync(publicFiles)) cpSync(publicFiles, folder, { recursive: true })
   mkdirSync(folder, { recursive: true })
   writeFileSync(join(folder, 'index.html'), playgroundFramePage(example, runtime, siteOrigin))
   if (example.golden !== undefined)
     cpSync(
       join(examplesRoot, '__goldens__', `${example.id}.replay`),
-      join(out, 'goldens', `${example.id}.replay`),
+      join(building, 'goldens', `${example.id}.replay`),
     )
 }
-cpSync(join(examplesRoot, 'resources'), join(out, 'examples', 'resources'), { recursive: true })
-writeFileSync(join(out, 'catalog.json'), `${JSON.stringify(catalog, null, 2)}\n`)
+cpSync(join(examplesRoot, 'resources'), join(building, 'examples', 'resources'), { recursive: true })
+writeFileSync(join(building, 'catalog.json'), `${JSON.stringify(catalog, null, 2)}\n`)
 
 // What the runtime bundles, from the modules Rolldown put in it: each package outside the workspace, with the
 // version and licence its installed package.json declares.
@@ -103,7 +115,7 @@ function filesUnder(folder: string): { path: string; bytes: Uint8Array }[] {
     .map((file) => ({ path: relative(folder, file).split(sep).join('/'), bytes: readFileSync(file) }))
 }
 
-const files = filesUnder(out)
+const files = filesUnder(building)
 const size = checkRuntimeSize(files, RUNTIME_GZIP_BUDGET)
 if (!size.ok)
   throw new Error(
@@ -111,8 +123,10 @@ if (!size.ok)
   )
 const framework = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: packageRoot, encoding: 'utf8' }).trim()
 const manifest = playgroundManifest({ framework, siteOrigin, files, packages: bundledPackages() })
-mkdirSync(dirname(join(out, 'manifest.json')), { recursive: true })
-writeFileSync(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+mkdirSync(dirname(join(building, 'manifest.json')), { recursive: true })
+writeFileSync(join(building, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+rmSync(finalOut, { recursive: true, force: true })
+renameSync(building, finalOut)
 console.log(
   `build:playground: ${catalog.length} examples, ${files.length} files, runtime ${size.gzipBytes} B gzip of ${size.budget}, for ${siteOrigin}`,
 )
