@@ -6,9 +6,9 @@ import examplesJson from '../src/data/examples.json'
 import { exampleIndex, getExample, getExamples } from '../src/data/examples'
 import CommandMenu from '../src/lib/components/CommandMenu.svelte'
 import IndexPage from '../src/routes/examples/+page.svelte'
-import { load as indexLoad } from '../src/routes/examples/+page'
+import { load as indexLoad } from '../src/routes/examples/+page.server'
 import ExamplePage from '../src/routes/examples/[id]/+page.svelte'
-import { entries, load as exampleLoad } from '../src/routes/examples/[id]/+page'
+import { entries, load as exampleLoad } from '../src/routes/examples/[id]/+page.server'
 
 // WEB.PLAY.5 (website playground spec §6 F1, §7.4, §8.1): /examples is the catalog's index, and each example has its
 // own prerendered page whose preview runs the precompiled original once the page has loaded and the preview is near

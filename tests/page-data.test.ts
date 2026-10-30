@@ -2,7 +2,7 @@ import { render } from '@testing-library/svelte'
 import { describe, expect, it, vi } from 'vitest'
 vi.mock('$app/environment', () => ({ browser: true }))
 import { load as loadHome } from '../src/routes/+page'
-import { load as loadExample } from '../src/routes/examples/[id]/+page'
+import { load as loadExample } from '../src/routes/examples/[id]/+page.server'
 import { type ProjectSource } from '../src/data/projects'
 import Home from '../src/routes/+page.svelte'
 

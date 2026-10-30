@@ -1,4 +1,5 @@
 import { frameMessage, PROTOCOL_VERSION, type FrameMessage, type RunMessage } from './protocol'
+import { STATUS } from './status'
 
 // The preview's frames (spec §6 F4, F10, F11; §7.1, §7.2). Each run gets a candidate frame under the current one; the
 // candidate is revealed only when it reports `running`, so a run that fails or never starts leaves the last good
@@ -9,14 +10,6 @@ export const FIRST_BOOT_TIMEOUT_MS = 20_000
 /** Later frames, from creation to `running`. */
 export const BOOT_TIMEOUT_MS = 10_000
 
-export const STATUS = {
-  starting: 'Starting the preview…',
-  running: 'Running. Edit the code and the preview updates as you type.',
-  updated: 'Preview updated.',
-  bootTimeout: 'The preview did not start within 10 seconds.',
-  firstBootTimeout: 'The preview couldn’t load. Check the connection and press Play to try again.',
-  kept: 'The preview is still running your last working version.',
-} as const
 
 /** One preview frame, as the page made it. `window` is its `contentWindow`, the only source its messages may have. */
 export interface PreviewFrame {

@@ -9,7 +9,8 @@
   import { SITE_ORIGIN } from '$lib/site.js'
   import CodePanel from './CodePanel.svelte'
   import PreviewPanel from './PreviewPanel.svelte'
-  import { createOrchestrator, STATUS, type Orchestrator, type OrchestratorView, type PreviewFrame } from './orchestrator'
+  import type { Orchestrator, OrchestratorView, PreviewFrame } from './orchestrator'
+  import { STATUS } from './status'
   import { atOrigin } from './origin'
 
   let { example }: { example: Example } = $props()
@@ -23,6 +24,7 @@
   let box: HTMLElement | undefined = $state()
   let orchestrator: Orchestrator | undefined
   let started = false
+  let disposed = false
 
   let status = $derived(fetchFailed ? STATUS.firstBootTimeout : waitingForPlay && view.preview === 'poster' ? REDUCED : view.status)
   let showPlay = $derived(waitingForPlay && view.preview === 'poster' || (view.preview === 'failed' && view.frames === 0) || fetchFailed)
@@ -31,7 +33,8 @@
   function createFrame(): PreviewFrame {
     const frame = document.createElement('iframe')
     frame.setAttribute('sandbox', 'allow-scripts')
-    frame.setAttribute('allow', 'fullscreen; autoplay; gamepad')
+    // `*`: the frame's origin is opaque, and WebKit matches a bare feature to the src's origin, which it is not.
+    frame.setAttribute('allow', 'fullscreen *; autoplay *; gamepad *')
     frame.setAttribute('referrerpolicy', 'no-referrer')
     frame.setAttribute('inert', '')
     frame.setAttribute('aria-hidden', 'true')
@@ -52,9 +55,10 @@
 
   /** The original, precompiled at sync time, so the first run needs neither the editor nor the compiler (spec F1). */
   async function runOriginal() {
-    if (!orchestrator) return
     fetchFailed = false
     try {
+      // The orchestrator and the protocol's schemas load with the first run, not with the page (the preload budget).
+      orchestrator ??= await loadOrchestrator()
       const response = await fetch('/playground/compiled/' + example.id + '.js')
       if (!response.ok) throw new Error(String(response.status))
       orchestrator.run(atOrigin(await response.text(), SITE_ORIGIN, location.origin))
@@ -78,10 +82,19 @@
     else void runOriginal()
   }
 
+  async function loadOrchestrator(): Promise<Orchestrator> {
+    const { createOrchestrator } = await import('./orchestrator')
+    if (disposed) throw new Error('the page has gone')
+    return createOrchestrator({
+      createFrame,
+      clock: { setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: handle => clearTimeout(handle as number) },
+      title: example.title,
+      onChange: next => { view = next },
+    })
+  }
+
   onMount(() => {
-    const live = createOrchestrator({ createFrame, clock: { setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: handle => clearTimeout(handle as number) }, title: example.title, onChange: next => { view = next } })
-    orchestrator = live
-    const onMessage = (event: MessageEvent) => live.receive({ source: event.source, origin: event.origin, data: event.data })
+    const onMessage = (event: MessageEvent) => orchestrator?.receive({ source: event.source, origin: event.origin, data: event.data })
     window.addEventListener('message', onMessage)
     let observer: IntersectionObserver | undefined
     const onLoad = () => {
@@ -99,7 +112,8 @@
       window.removeEventListener('message', onMessage)
       window.removeEventListener('load', onLoad)
       observer?.disconnect()
-      live.dispose()
+      disposed = true
+      orchestrator?.dispose()
     }
   })
 </script>
@@ -114,7 +128,8 @@
 </div>
 <style>
   .playground { container: playground / inline-size; margin-top: 2rem; }
-  .playground-grid { display: grid; gap: 1.25rem; }
+  .playground-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+  .playground-code { min-width: 0; }
   .playground-preview { order: -1; min-width: 0; }
   .playground-status { margin: .75rem 0 0; min-height: 1.5em; font-size: var(--step-small); color: var(--muted); overflow-wrap: anywhere; }
   @container playground (min-width: 700px) {

@@ -114,3 +114,38 @@ export function atOrigin(code: string, from: string, to: string): string
 ## Execution log
 
 - 2026-10-30: plan written (website lane, after the WEB.PLAY.4 part B handoff).
+- **Step 1.** `tests/playground/orchestrator.test.ts` failed first (module missing), 14 cases; green after
+  `orchestrator.ts`.
+- **Step 2.** `tests/playground/origin.test.ts` failed first (module missing); green after `origin.ts`. This closes
+  #20's follow-up: the precompiled originals name the production origin in their `import.meta.url` literal, and a local
+  server's frame CSP blocks it; the page moves the literal to `location.origin` before the run (identity in production).
+- **Step 3.** `tests/examples-pages.test.ts` failed first (routes missing); green after the data module, the two routes,
+  `Playground`, `CodePanel` and `PreviewPanel`.
+- **Step 4.** Before the rewrite the full suite had exactly the 11 old gallery cases red (`examples.test.ts`,
+  `examples-gallery.test.ts`, `demo-navigation.test.ts`, `source-explorer.test.ts`, `page-data.test.ts`). The
+  `DemoRunner`, `demoPoster`, `demoStatus` and `SourceExplorer` cases stay against the components; the gallery's
+  `?demo=`/`?file=` selection cases go with the gallery, replaced by the index's (its load reads nothing from the request).
+- **Step 5.** The Lighthouse case and the command-menu case each failed first, then passed.
+- **Step 6/7.** `pnpm check:site` failed on all 17 example pages: 116,124 bytes modulepreloaded against the 48,000 byte
+  budget, the page node at 101,158 bytes, because the orchestrator imports the protocol and with it Zod. Fixed by
+  loading the orchestrator with the first run (the status texts moved to `status.ts`), and by making both loads server
+  loads so the catalog's sources never reach the browser. Then `pnpm check:site` passed on 45 pages and
+  `tests/e2e/playground.e2e.ts` passed, 6 of 6, in Chromium and in WebKit.
+- **Step 7.** The first `site.e2e.ts` run failed the example pages' gates: horizontal overflow at 375 px in both
+  engines (the code column's grid track had no `minmax(0, …)`, so a long line widened it to 440 to 520 px), and in
+  WebKit, at the sizes where the frame runs, "Permission policy 'Gamepad' check failed for document with origin ''" from
+  the input examples (WebKit matches a bare `allow` feature to the src's origin, and the sandboxed frame's is opaque;
+  the frame now gets `fullscreen *; autoplay *; gamepad *`). Both fixed; the failing cases then passed in both engines.
+
+### Deviations
+
+| What | Spec or plan | Done | Why |
+| --- | --- | --- | --- |
+| Loaders | §8.1 names `+page.ts` | `+page.server.ts` for `/examples` and `/examples/<id>` | A universal load reruns in the browser at hydration and would download the whole catalog (51 kB of sources); a server load's data is the prerendered page's alone. |
+| Orchestrator loading | — | dynamic import at the first run | The static import put Zod in every example page's preloads (above). |
+| Static code highlighting | F1: "plain highlighted text" | plain text with a line-number gutter | WEB.PLAY.6 owns the code box, its font and the shared theme tokens (§9.3); highlighting lands there with the editor's colours. |
+| First-download failure text | §8.3: "…press Retry." | "…press Play to try again." with Play | Retry is WEB.PLAY.8's control. |
+| Fullscreen | §8.2: always shown | not yet | WEB.PLAY.11's layout pass; Restart is here. |
+| Determinism request in `run` | §5.1 | not sent | The row is WEB.PLAY.10; sending it now would spend frame time for nothing shown. |
+| Poster | F1: screenshot when the catalog has one | a panel with the title | The catalog has no screenshots. |
+| Lighthouse budget for the example pages | §10.2 / R-9 | held to the spec targets, no recorded baseline | No Lighthouse run in this container yet; see the PR's pending gates. |
