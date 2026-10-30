@@ -122,6 +122,12 @@ $effect(() => {
     min-width: 0;
   }
 
+  /* The actions never set the body's width: an ActionBar wider than the body (a long language) gives way inside it,
+     as its collapse expects, rather than widening the body's column past the screen. */
+  .af-screen-frame__actions {
+    min-width: 0;
+  }
+
   .af-screen-frame__body:not(:has(> .af-screen-frame__actions)) {
     grid-template-rows: minmax(0, 1fr);
   }

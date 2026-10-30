@@ -3,13 +3,15 @@ import { mountFixture, REFERENCE_SIZES, VARIANTS } from '@mcthaydt/automata-test
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { byTestId, type Conditions, checkLayout, publishConditions } from './testing/layout-contract'
+import { FIXTURE_LOCALES, findUntranslated } from './testing/locale-fixture'
 import PrimitivesFixture, { PRIMITIVE_SHOWS, type PrimitiveShow } from './testing/PrimitivesFixture.svelte'
 import { settleLayout } from './testing/settle'
 
 // U-a (M4 spec §4.12): each M4.6 primitive at every reference size and variant, keyboard, Ruken's strip and TV
 // scale included, with production CSS, in Chromium, WebKit and Firefox. `checkLayout` holds every control to the
 // target at the scale, keeps controls out from under the keyboard and the strip, and keeps the document still; each
-// primitive names the parts a player must be able to reach.
+// primitive names the parts a player must be able to reach. Each runs in English and again in the xx-long pseudo-locale
+// (PRODUCT spec §4 item 7), where every word it shows must be in xx-long.
 
 /** The pager shows dots or, where they do not fit, a counter: either way it must be reachable. */
 function pager(): HTMLElement[] {
@@ -137,28 +139,31 @@ function saveStatusProblems(show: PrimitiveShow, conditions: Conditions): string
   return problems
 }
 
-describe('M4.6 primitives layout contract', () => {
-  for (const show of PRIMITIVE_SHOWS) {
-    test.each(REFERENCE_SIZES)(`${show} at $name ($width x $height)`, async (size) => {
-      await page.viewport(size.width, size.height)
-      const problems: string[] = []
-      for (const variant of VARIANTS) {
-        const conditions = publishConditions(document.documentElement, size, variant)
-        const fixture = mountFixture(PrimitivesFixture, { show })
-        await settleLayout()
-        // A primitive that arrives with motion (the toast slides in) is measured where it comes to rest.
-        await Promise.all(document.getAnimations().map((animation) => animation.finished))
-        const found = [
-          ...checkLayout(conditions, essentials(show, variant.keyboard !== undefined)),
-          ...gridProblems(show, conditions),
-          ...sliderProblems(show, conditions),
-          ...toastProblems(show, conditions),
-          ...saveStatusProblems(show, conditions),
-        ]
-        for (const problem of found) problems.push(`${variant.name}: ${problem}`)
-        await fixture.unmount()
-      }
-      expect(problems).toEqual([])
-    })
-  }
-})
+for (const locale of FIXTURE_LOCALES) {
+  describe(`M4.6 primitives layout contract (${locale})`, () => {
+    for (const show of PRIMITIVE_SHOWS) {
+      test.each(REFERENCE_SIZES)(`${show} at $name ($width x $height)`, async (size) => {
+        await page.viewport(size.width, size.height)
+        const problems: string[] = []
+        for (const variant of VARIANTS) {
+          const conditions = publishConditions(document.documentElement, size, variant)
+          const fixture = mountFixture(PrimitivesFixture, { show, locale })
+          await settleLayout()
+          // A primitive that arrives with motion (the toast slides in) is measured where it comes to rest.
+          await Promise.all(document.getAnimations().map((animation) => animation.finished))
+          const found = [
+            ...checkLayout(conditions, essentials(show, variant.keyboard !== undefined)),
+            ...gridProblems(show, conditions),
+            ...sliderProblems(show, conditions),
+            ...toastProblems(show, conditions),
+            ...saveStatusProblems(show, conditions),
+            ...(locale === 'en' ? [] : findUntranslated(document.body)),
+          ]
+          for (const problem of found) problems.push(`${variant.name}: ${problem}`)
+          await fixture.unmount()
+        }
+        expect(problems).toEqual([])
+      })
+    }
+  })
+}

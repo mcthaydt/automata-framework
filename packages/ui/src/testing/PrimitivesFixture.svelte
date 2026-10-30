@@ -103,10 +103,17 @@ const GROUPS = [
     {:else if show === 'pager-dots'}
       <PagerDots label={t('Pages')} count={5} index={1} onselect={none} />
     {:else if show === 'paged-grid'}
+      <!-- A level tile holds its name, so the game lets a word too long for the tile break inside it, and asks for
+           tiles that hold three lines (`minTile`): a long language breaks "Level 12" over three, which a 44 px tile
+           with the keyboard up could not hold. -->
       <div style="height: 100%; min-height: 0; display: grid">
-        <PagedGrid label={t('Levels')} groups={GROUPS} most={{ columns: 4, rows: 3 }} page={0} onpage={none}>
+        <PagedGrid label={t('Levels')} groups={GROUPS} most={{ columns: 4, rows: 3 }} minTile={64} page={0} onpage={none}>
           {#snippet item(tile)}
-            <button type="button" class="af-control" style="width: 100%; height: 100%" data-testid={`tile-${tile.id}`}
+            <button
+              type="button"
+              class="af-control"
+              style="width: 100%; height: 100%; overflow-wrap: anywhere"
+              data-testid={`tile-${tile.id}`}
               >{tile.name}</button
             >
           {/snippet}

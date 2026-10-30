@@ -45,8 +45,11 @@ function flip(event: Event & { currentTarget: HTMLInputElement }): void {
     gap: 12px;
   }
 
+  /* The name takes what the track and the state word leave; a word too long for that room (a long language at TV
+     scale) breaks inside it, rather than pushing the state word past the toggle's edge. */
   .af-toggle__label {
     flex: 1;
+    overflow-wrap: anywhere;
     text-align: start;
   }
 
@@ -90,7 +93,9 @@ function flip(event: Event & { currentTarget: HTMLInputElement }): void {
     background: var(--af-on-accent);
   }
 
+  /* The state word keeps its whole width (a long language's "Off" too); the name beside it wraps instead. */
   .af-toggle__state {
+    flex: none;
     min-width: 3ch;
     text-align: end;
   }
