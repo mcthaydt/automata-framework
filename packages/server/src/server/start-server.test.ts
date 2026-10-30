@@ -2,13 +2,7 @@ import { EventEmitter } from 'node:events'
 import { ROOM_CODE_ALPHABET, ROOM_NAME } from '@mcthaydt/automata-net'
 import { Effect, Exit, Fiber, Scope } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
-import {
-  joinOptions,
-  startTestServer,
-  TEST_LIMITS,
-  type TestServer,
-  waitFor,
-} from '../test-support/colyseus-harness'
+import { startTestServer, TEST_LIMITS, type TestServer, waitFor } from '../test-support/colyseus-harness'
 import { TEST_NET } from '../test-support/engine-harness'
 import { fixtureServer } from '../test-support/fixture-game'
 import { startServer } from './start-server'
@@ -28,6 +22,18 @@ describe('startServer', () => {
   it.each([
     ['no room cap', { ...TEST_LIMITS, maxRooms: 0 }, /maxRooms/],
     ['no origin list', { ...TEST_LIMITS, allowedOrigins: undefined as never }, /allowedOrigins/],
+    ['an empty origin list', { ...TEST_LIMITS, allowedOrigins: [] }, /allowedOrigins is empty/],
+    [
+      'an entry that is not an origin',
+      { ...TEST_LIMITS, allowedOrigins: ['https://game.test/'] },
+      /not an origin/,
+    ],
+    ["a message cap past net's", { ...TEST_LIMITS, maxMessageBytes: 16_385 }, /maxMessageBytes/],
+    [
+      'no Quick match bucket',
+      { ...TEST_LIMITS, perIp: { ...TEST_LIMITS.perIp, quickMatch: undefined as never } },
+      /quickMatch/,
+    ],
   ])('refuses to start with %s, before it listens', async (_, limits, reason) => {
     const exit = await Effect.runPromiseExit(
       Effect.scoped(startServer(fixtureServer(), { ...config, limits })),
@@ -80,7 +86,9 @@ describe('the server runtime', () => {
   it('refuses a room past maxRooms with SERVER_BUSY, and opens none', async () => {
     server = await startTestServer({ config: { limits: { ...TEST_LIMITS, maxRooms: 1 } } })
     await server.create('Ada')
-    await expect(server.colyseus.sdk.create(ROOM_NAME, joinOptions('Bea'))).rejects.toThrow(/SERVER_BUSY/)
+    await expect(server.colyseus.sdk.create(ROOM_NAME, server.joinOptions('Bea'))).rejects.toThrow(
+      /SERVER_BUSY/,
+    )
     expect(server.runtime.rooms.size).toBe(1)
     expect(server.logs).toContainEqual({ event: 'refused', code: 'busy' })
   })

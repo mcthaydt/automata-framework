@@ -4,7 +4,6 @@ import { createReplayStepper, unpackReplay } from '@mcthaydt/automata-sim/replay
 import { Effect } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
-  joinOptions,
   settle,
   startTestServer,
   type TestClient,
@@ -80,7 +79,7 @@ describe('joining a room', () => {
     const host = await server.create('Ada')
     await expect(server.colyseus.sdk.joinById(host.code, { name: 'Bea' })).rejects.toThrow(/REFUSED/)
     await server.joinById(host.code, 'Bea')
-    await expect(server.colyseus.sdk.joinById(host.code, joinOptions('Cy'))).rejects.toThrow()
+    await expect(server.colyseus.sdk.joinById(host.code, server.joinOptions('Cy'))).rejects.toThrow()
   })
 })
 
@@ -151,7 +150,9 @@ describe('draining', () => {
     const drained = Effect.runPromise(server.runtime.drain)
     await waitFor(() => host.closedWith !== undefined, 'the lobby was never closed')
     expect(host.closedWith).toBe(CloseCode.SERVER_SHUTDOWN)
-    await expect(server.colyseus.sdk.create(ROOM_NAME, joinOptions('Bea'))).rejects.toThrow(/SERVER_UPDATING/)
+    await expect(server.colyseus.sdk.create(ROOM_NAME, server.joinOptions('Bea'))).rejects.toThrow(
+      /SERVER_UPDATING/,
+    )
     expect(await drained).toBe('empty')
   })
 

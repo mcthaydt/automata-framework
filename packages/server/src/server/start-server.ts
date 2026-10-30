@@ -9,19 +9,26 @@
  * Effect runs the process (ADR 0003): services, the scope, the clock and errors. The per-tick path is the room's
  * plain code, driven by a tick clock that reads Effect's `Clock`.
  *
- * Seams for later rows: the gates in front of Colyseus (origins, the size cap, per-IP buckets, sockets and the
- * version gate) are M7.4a's and wrap this listener's `request` and `upgrade` handlers as FloorFifty's do; logs,
- * `/health`, `/ready` and process safety are M7.4b's (`config.log` receives the events now).
+ * The gates in front of Colyseus (M7.4a: origins, the size cap, per-IP buckets, sockets and the version gate) wrap
+ * this listener's `request` and `upgrade` handlers (`installGates`). Seams for a later row: logs, `/health`,
+ * `/ready` and process safety are M7.4b's (`config.log` receives the events now; `runtime.origins` is the CORS a
+ * route answers with).
  */
 
 import { randomInt } from 'node:crypto'
 import { createServer, type Server as HttpServer } from 'node:http'
 import { Server } from '@colyseus/core'
 import { WebSocketTransport } from '@colyseus/ws-transport'
-import { ROOM_NAME } from '@mcthaydt/automata-net'
+import { MAX_MESSAGE_BYTES, ROOM_NAME } from '@mcthaydt/automata-net'
 import { type Cause, type Clock, Data, Effect, type Scope } from 'effect'
 import type { ServerConfig } from '../game/server-config'
 import type { ServerDef } from '../game/server-game'
+import { createMatchmakeGate } from '../gate/matchmake-gate'
+import { type GameVersion, gameVersionOf } from '../gate/matchmake-version-gate'
+import { type OriginPolicy, originPolicy } from '../gate/origins'
+import { installGates } from '../gate/server-gates'
+import { createSocketGate, type SocketGate, socketTotal } from '../gate/socket-gate'
+import { createUpgradeGate } from '../gate/upgrade-gate'
 import { type AutomataRoom, roomClassFor } from '../room/automata-room'
 import { LiveRooms } from '../rooms/live-rooms'
 import type { TickClock } from '../rooms/tick-scheduler'
@@ -45,6 +52,12 @@ export interface ServerRuntime {
   readonly gameServer: Server
   readonly rooms: LiveRooms<AutomataRoom>
   readonly draining: boolean
+  /** The origin list every route answers with (M7.4b's `/health` reads it for its CORS). */
+  readonly origins: OriginPolicy
+  /** The protocol and hashes a client must match to join (spec §4.2 join check). */
+  readonly version: GameVersion
+  /** The open sockets the gates count, per address and in all. */
+  readonly sockets: Pick<SocketGate, 'open' | 'addresses'>
   /**
    * Opens no room and seats nobody new, tells every room, waits for them to finish (at most the cap), then shuts
    * Colyseus down. Runs once: a second run returns the first result.
@@ -64,6 +77,16 @@ export function tickClockFrom(clock: Clock.Clock): TickClock {
   }
 }
 
+/**
+ * A WebSocket frame may be this much larger than `maxMessageBytes`: Colyseus's envelope (its protocol byte and the
+ * channel name) around net's text. A message within the cap reaches the room, which drops one past it before
+ * parsing; a frame far past it is closed by the transport, so no frame is ever buffered unbounded.
+ */
+const WS_ENVELOPE_BYTES = 1_024
+
+const isBucket = (bucket: { readonly burst: number; readonly perSecond: number } | undefined): boolean =>
+  bucket !== undefined && bucket.burst > 0 && bucket.perSecond >= 0
+
 /** The limits no server can run without (spec §4.3: `startServer` refuses without the first two). */
 function configProblem(config: ServerConfig): string | undefined {
   const { limits } = config
@@ -74,6 +97,22 @@ function configProblem(config: ServerConfig): string | undefined {
     !limits.allowedOrigins.every((origin) => typeof origin === 'string')
   )
     return 'allowedOrigins must be a list of origins'
+  try {
+    originPolicy(limits.allowedOrigins)
+  } catch (error) {
+    return (error as Error).message
+  }
+  if (
+    !Number.isInteger(limits.maxMessageBytes) ||
+    limits.maxMessageBytes < 1 ||
+    limits.maxMessageBytes > MAX_MESSAGE_BYTES
+  )
+    return `maxMessageBytes must be a whole number from 1 to net's ${MAX_MESSAGE_BYTES}`
+  if (!Number.isInteger(limits.socketsPerIp) || limits.socketsPerIp < 1)
+    return 'socketsPerIp must be a whole number from 1'
+  const perIp = limits.perIp as Partial<ServerConfig['limits']['perIp']> | undefined
+  for (const name of ['create', 'join', 'quickMatch', 'reconnect'] as const)
+    if (!isBucket(perIp?.[name])) return `perIp.${name} needs a burst above 0`
   const bucket = limits.commandsPerSeat
   if (!(bucket.burst > 0) || !(bucket.perSecond >= 0)) return 'commandsPerSeat needs a burst above 0'
   if (!Number.isInteger(config.port) || config.port < 0) return 'port must be a whole number from 0'
@@ -98,10 +137,19 @@ export function createServerRuntime(
     const rooms = new LiveRooms<AutomataRoom>()
     const log = config.log ?? (() => undefined)
     let draining = false
+    const origins = originPolicy(config.limits.allowedOrigins)
+    const version = yield* Effect.tryPromise({
+      try: () => gameVersionOf(def),
+      catch: (cause) => new ServerStartError({ reason: 'the game could not build its sim', cause }),
+    })
 
     const http = createServer()
     const gameServer = new Server({
-      transport: new WebSocketTransport({ server: http }),
+      transport: new WebSocketTransport({
+        server: http,
+        // Pinned from the limit, so a library upgrade cannot move it (FloorFifty pinned its own).
+        maxPayload: config.limits.maxMessageBytes + WS_ENVELOPE_BYTES,
+      }),
       // Colyseus would otherwise take SIGTERM itself and disconnect every room at once, ending the games a drain
       // exists to let finish. `startServer` owns the signal.
       gracefullyShutdown: false,
@@ -114,6 +162,8 @@ export function createServerRuntime(
         net: config.net,
         maxRooms: config.limits.maxRooms,
         commandsPerSeat: config.limits.commandsPerSeat,
+        maxMessageBytes: config.limits.maxMessageBytes,
+        version,
         rooms,
         clock: tickClockFrom(clock),
         isDraining: () => draining,
@@ -139,6 +189,31 @@ export function createServerRuntime(
     )
     const address = http.address()
     const port = typeof address === 'object' && address !== null ? address.port : config.port
+
+    // Colyseus bound its listeners at `listen()`; the gates go in front of them (spec §5, §6).
+    const refused = (code: string): void => log({ event: 'refused', code })
+    const sockets = createSocketGate({
+      maxPerIp: config.limits.socketsPerIp,
+      maxTotal: socketTotal(config.limits.maxRooms, def.game.seats.max),
+    })
+    const removeGates = installGates(http, {
+      origins,
+      matchmake: createMatchmakeGate({
+        origins,
+        isDraining: () => draining,
+        perIp: config.limits.perIp,
+        maxBodyBytes: config.limits.maxMessageBytes,
+        version,
+        now: () => clock.unsafeCurrentTimeMillis(),
+        onRefused: refused,
+      }),
+      upgrade: createUpgradeGate({
+        origins,
+        sockets,
+        onRefused: refused,
+      }),
+    })
+    yield* Effect.addFinalizer(() => Effect.sync(removeGates))
     // Colyseus keeps the port it was asked for; a client built from it (the SDK, @colyseus/testing) needs the real one.
     ;(gameServer as unknown as { port: number }).port = port
 
@@ -168,6 +243,9 @@ export function createServerRuntime(
       get draining() {
         return draining
       },
+      origins,
+      version,
+      sockets,
       drain,
     }
   })

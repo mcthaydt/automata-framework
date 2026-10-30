@@ -1,10 +1,9 @@
 /**
  * What a server process is given (M7 spec §4.3 `ServerLimits`, `startServer`'s config).
  *
- * Two limits are enforced from M7.3b: `maxRooms` (a room past it is refused `SERVER_BUSY`) and `commandsPerSeat`
- * (each seat's input meter). The rest are taken as config and wait for their gates, which sit in front of Colyseus
- * (M7.4a): `allowedOrigins`, `maxMessageBytes` (net's parser already drops a message past net's own cap),
- * `socketsPerIp` and `perIp`. The log events go to `log`, which M7.4b turns into redacted lines.
+ * Every limit is enforced: `maxRooms` (a room past it is refused `SERVER_BUSY`) and `commandsPerSeat` (each seat's
+ * input meter) in the room (M7.3b); `allowedOrigins`, `maxMessageBytes`, `socketsPerIp` and `perIp` by the gates in
+ * front of Colyseus (M7.4a, `src/gate`). The log events go to `log`, which M7.4b turns into redacted lines.
  */
 
 import type { NetConfig } from '@mcthaydt/automata-net'
@@ -18,14 +17,29 @@ export interface Bucket {
 export interface ServerLimits {
   /** The most rooms the process holds; one more is refused `SERVER_BUSY`. */
   readonly maxRooms: number
-  /** Exact client origins (M7.4a). */
+  /**
+   * Exact client origins (`scheme://host[:port]`): the game's Ruken `gameOrigin` (see `originsFromGameOrigin`) and
+   * any web or itch.io origin. Matchmaking and sockets from any other origin, or none, are refused; empty refuses
+   * to start.
+   */
   readonly allowedOrigins: readonly string[]
-  /** A message past this is dropped before parsing (M7.4a; net's parser holds net's cap meanwhile). */
+  /**
+   * A room message past this is dropped before parsing, and a matchmaking body past it gets 413. From 1 to net's
+   * `MAX_MESSAGE_BYTES` [16384].
+   */
   readonly maxMessageBytes: number
-  /** Sockets one address may hold (M7.4a). */
+  /** Sockets one address may hold [16]; the server's total is a socket per seat of `maxRooms` rooms plus 64. */
   readonly socketsPerIp: number
-  /** Matchmaking per address (M7.4a). */
-  readonly perIp: { readonly create: Bucket; readonly join: Bucket; readonly reconnect: Bucket }
+  /**
+   * Matchmaking per address: opening a room (`create`), Quick match (`quickMatch`, which fills a listed room or
+   * opens one), joining by code (`join`) and reconnecting (`reconnect`). Past one: `RATE_LIMITED`.
+   */
+  readonly perIp: {
+    readonly create: Bucket
+    readonly join: Bucket
+    readonly quickMatch: Bucket
+    readonly reconnect: Bucket
+  }
   /** Each seat's command budget: a command past it is dropped, never a disconnect (spec §6). */
   readonly commandsPerSeat: Bucket
 }

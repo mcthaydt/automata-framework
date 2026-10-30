@@ -21,6 +21,7 @@ import {
 import { createSim } from '@mcthaydt/automata-sim'
 import type { Bucket, RoomLogEvent } from '../game/server-config'
 import type { ServerDef } from '../game/server-game'
+import { type GameVersion, versionVerdict } from '../gate/matchmake-version-gate'
 import type { LiveRooms } from '../rooms/live-rooms'
 import { claimRoomCode, type RandomInt, releaseRoomCode } from '../rooms/room-code'
 import { RoomCommandError } from '../rooms/room-errors'
@@ -35,6 +36,10 @@ export interface RoomContext {
   readonly net: NetConfig
   readonly maxRooms: number
   readonly commandsPerSeat: Bucket
+  /** A message past this is dropped before parsing (spec §4.3 `maxMessageBytes`). */
+  readonly maxMessageBytes: number
+  /** The protocol and hashes a join must carry (spec §4.2 join check). */
+  readonly version: GameVersion
   readonly rooms: LiveRooms<AutomataRoom>
   readonly clock: TickClock
   /** Whether the server is draining: it opens no room and seats nobody new. */
@@ -151,7 +156,9 @@ export class AutomataRoom extends Room<{ state: RoomInfoState }> {
   override onAuth(_client: Client, options: unknown): true {
     const parsed = joinOptionsSchema.safeParse(options)
     if (!parsed.success) throw new Error('REFUSED: the join options are not valid')
-    // M7.4a: the version gate compares parsed.data's schema and content hashes with the room's here.
+    // The matchmaking gate refused other versions already; the room holds the same line for any join that reaches it.
+    if (versionVerdict(parsed.data, this.ctx.version) !== 'same')
+      throw new Error('VERSION_MISMATCH: this game is out of date: reload to play')
     try {
       if (this.ctx.isDraining()) throw new RoomCommandError('SERVER_UPDATING', 'the server is updating')
       this.engine.admit()
@@ -264,6 +271,17 @@ export class AutomataRoom extends Room<{ state: RoomInfoState }> {
    * try/catch of its own, so an error a handler let escape would reach the process and end every game on it.
    */
   private receive(client: Client, raw: unknown): void {
+    // The size cap comes before anything reads the message (spec §6): dropped, counted, and the socket stays.
+    if (typeof raw === 'string' && Buffer.byteLength(raw, 'utf8') > this.ctx.maxMessageBytes) {
+      const seat = this.roomEngine?.seatOf(client.sessionId)
+      this.ctx.log({
+        event: 'refused',
+        room: this.serial,
+        ...(seat === undefined ? {} : { seat }),
+        code: 'size',
+      })
+      return
+    }
     try {
       this.engine.receive(client.sessionId, raw)
       this.project()
