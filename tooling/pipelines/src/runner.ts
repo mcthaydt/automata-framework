@@ -1,9 +1,10 @@
+import { dirname } from 'node:path'
 import type { Files } from '@mcthaydt/automata-node'
 import { Cause, Effect, Exit, Option, type Scope } from 'effect'
 import { budgetRefusal, type Units } from './budget.ts'
 import { EXIT } from './exit.ts'
 import type { CheckResult, PipelineDef, StageDef, StageServices } from './pipeline.ts'
-import { charge, holdLedger, loadProject, type Project, readSpent } from './project.ts'
+import { charge, holdLedger, holdTarget, loadProject, type Project, readSpent } from './project.ts'
 import {
   contextOf,
   costOf,
@@ -19,6 +20,7 @@ import {
   type ResultParts,
   type RunState,
   rel,
+  resolveSpecPath,
   resultOf,
   type Stop,
   save,
@@ -70,6 +72,30 @@ export interface RunOptions {
   readonly note?: string | undefined
   /** `pipeline.toml`, when it is not at or above the target folder. */
   readonly config?: string | undefined
+  /**
+   * approve / reject: what the person was asked about (the gate's `requestedAt`, and the gated stage's input hash and
+   * finish time when the request was recorded). A gate that no longer matches is refused (exit 4), so a decision never
+   * lands on outputs the person did not see. The MCP review passes it; a person's own command does not.
+   */
+  readonly expect?: AskedAbout | undefined
+  /**
+   * run: the plan an estimate token covered (stage ids and input hashes). A run whose stages differ is refused before
+   * anything runs, and a paid stage whose inputs differ is refused before its charge (exit 4).
+   */
+  readonly plan?: readonly PlannedStage[] | undefined
+}
+
+/** What a review asked the person about: see `RunOptions.expect`. */
+export interface AskedAbout {
+  readonly requestedAt: string
+  readonly inputHash: string
+  readonly at: string
+}
+
+/** One row of an estimated plan. `missing` means the inputs are made earlier in the same run. */
+export interface PlannedStage {
+  readonly id: string
+  readonly inputHash: string
 }
 
 interface Step {
@@ -240,6 +266,20 @@ const runHeld = (
       options,
       todo.filter(({ stage }) => stage.cost !== undefined).map(({ stage }) => stage),
     )
+    // Under the ledger lock (when anything is paid): the stages must be the ones the estimate token covered.
+    const estimated = options.plan
+    if (estimated !== undefined) {
+      const willRun = todo.map(({ stage }) => stage.id)
+      const covered = estimated.map((row) => row.id)
+      if (willRun.join('\n') !== covered.join('\n'))
+        return yield* Effect.fail(
+          stop(
+            EXIT.refused,
+            `the plan changed since the estimate: it would run ${willRun.join(', ') || 'nothing'}; ` +
+              `the estimate covered ${covered.join(', ') || 'nothing'}; estimate again`,
+          ),
+        )
+    }
 
     const planned = new Set(todo.map(({ stage }) => stage.id))
     const states: Record<string, StageState> = {}
@@ -277,6 +317,15 @@ const runHeld = (
       // Hashed again: an earlier stage of this run may have rewritten the inputs.
       const digest = yield* hashOf(run, stage)
       if (stage.cost !== undefined) {
+        // The estimate hashed these inputs, unless they were still to be made by an earlier stage of this run
+        // (`missing`): those stages ran in this same plan, which was checked above.
+        const promised = estimated?.find((row) => row.id === stage.id)?.inputHash
+        if (promised !== undefined && promised !== 'missing' && promised !== digest)
+          return yield* Effect.fail(
+            stop(EXIT.refused, `${stage.id}: its inputs changed since the estimate; estimate again`, {
+              states,
+            }),
+          )
         // Checked again under the ledger lock, right before the charge.
         const { budget, units } = stage.cost
         const spent = yield* Effect.mapError(readSpent(project), asStop)
@@ -340,6 +389,19 @@ const decide = (
 ): Effect.Effect<Done, Stop, Files> =>
   Effect.gen(function* () {
     const record = yield* gateFor(run, options)
+    const asked = options.expect
+    if (asked !== undefined) {
+      const stage = run.records[record.stage]
+      const same =
+        record.decision === 'pending' &&
+        record.requestedAt === asked.requestedAt &&
+        stage?.inputHash === asked.inputHash &&
+        stage?.at === asked.at
+      if (!same)
+        return yield* Effect.fail(
+          stop(EXIT.refused, `gate ${record.id} changed while it was asked; ask again`),
+        )
+    }
     const decided: GateRecord = {
       ...record,
       decision: verdict,
@@ -363,7 +425,12 @@ const request = (run: RunState, options: RunOptions): Effect.Effect<Done, Stop, 
     }
     run.gates[record.id] = requested
     yield* save(run)
-    return ok({ gates: [requested] })
+    // What the person is asked about: a decision passes it back as `expect` (RunOptions).
+    const stage = run.records[record.stage]
+    return ok({
+      gates: [requested],
+      ...(stage === undefined ? {} : { data: { stage: { inputHash: stage.inputHash, at: stage.at } } }),
+    })
   })
 
 /** Marks stages whose outputs all exist as adopted, without running anything (no network, no spend). */
@@ -456,8 +523,34 @@ const dispatch = (state: RunState, options: RunOptions): Effect.Effect<Done, Sto
   }
 }
 
+/** The commands that write a target's state, and so hold its lock (project.ts `holdTarget`). */
+const CHANGES_TARGET: ReadonlySet<Command> = new Set([
+  'run',
+  'approve',
+  'reject',
+  'request',
+  'adopt',
+  'restore',
+])
+
 /** Runs one command on one target and returns its result. It never fails: every problem is an exit code. */
 export const runPipeline = (
+  def: PipelineDef,
+  options: RunOptions,
+): Effect.Effect<PipelineResult, never, StageServices> => {
+  if (!CHANGES_TARGET.has(options.command)) return runUnlocked(def, options)
+  return Effect.scoped(
+    Effect.gen(function* () {
+      const specPath = yield* resolveSpecPath(def, options.target)
+      const held = yield* Effect.either(holdTarget(dirname(specPath)))
+      if (held._tag === 'Left')
+        return resultOf(def, undefined, options.command, options.target, EXIT.refused, { error: held.left })
+      return yield* runUnlocked(def, options)
+    }),
+  )
+}
+
+const runUnlocked = (
   def: PipelineDef,
   options: RunOptions,
 ): Effect.Effect<PipelineResult, never, StageServices> =>

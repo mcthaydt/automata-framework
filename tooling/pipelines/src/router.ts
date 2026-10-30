@@ -1,7 +1,10 @@
-import { Effect } from 'effect'
+import { resolve } from 'node:path'
+import { Clock, Effect } from 'effect'
+import { AUDIT_LOG, appendAudit, auditRootOf, gitHead } from './audit.ts'
 import { parseBudgetOption } from './budget.ts'
 import { EXIT, type PipelineExit } from './exit.ts'
 import type { PipelineDef, StageServices } from './pipeline.ts'
+import type { Env } from './redact.ts'
 import { COMMANDS, type Command, type RunOptions, runPipeline } from './runner.ts'
 import type { PipelineResult } from './state.schema.ts'
 
@@ -19,6 +22,20 @@ export interface RouterOutput {
   readonly stdout: string
   readonly stderr: string
 }
+
+/** Who runs the command. An agent may not decide a gate (M3 spec §4.8, §6; plan D1). */
+export interface Caller {
+  readonly agent: boolean
+  /** For redacting the audit line; the process environment in the bin. */
+  readonly env?: Env | undefined
+}
+
+/** A person at their own terminal: the default, and what tests of the people's commands use. */
+export const PERSON: Caller = { agent: false }
+
+/** The message an agent's approve or reject gets. */
+export const AGENT_REFUSAL =
+  'refused: only a person decides a gate; an agent asks with pipeline_request_review (MCP)'
 
 /** A refusal before any pipeline runs: the base of the result. */
 interface Early {
@@ -126,17 +143,71 @@ const print = (json: boolean, result: PipelineResult | Early): RouterOutput => {
 
 const isCommand = (value: string): value is Command => (COMMANDS as readonly string[]).includes(value)
 
+/**
+ * Logs an agent's refused approve or reject in the project's audit log (PL-d), and gives the exit-4 output. Nothing
+ * else happens: the target is not read and `gates.json` is not touched. A log that cannot be written does not turn
+ * the refusal into anything else; its error goes to stderr.
+ */
+const refuseAgent = (
+  name: string,
+  command: string,
+  rest: readonly string[],
+  caller: Caller,
+  json: boolean,
+): Effect.Effect<RouterOutput, never, StageServices> =>
+  Effect.gen(function* () {
+    const started = yield* Clock.currentTimeMillis
+    let parsed: Parsed | undefined
+    try {
+      parsed = parseOptions(rest)
+    } catch {
+      parsed = undefined
+    }
+    const [target, gate] = parsed?.positional ?? rest
+    const note = parsed?.options.note
+    // Where the log is never depends on what the agent passes: --config is ignored here (audit.ts auditRootOf).
+    const root = yield* auditRootOf(target ?? '.', process.cwd())
+    const args = {
+      pipeline: name,
+      ...(target === undefined ? {} : { target }),
+      ...(gate === undefined ? {} : { gate }),
+      ...(note === undefined ? {} : { note }),
+    }
+    const head = yield* gitHead(root)
+    const logged = yield* Effect.either(
+      appendAudit(
+        resolve(root, AUDIT_LOG),
+        {
+          at: new Date(started).toISOString(),
+          tool: `automata-pipe ${command}`,
+          args,
+          ok: false,
+          summary: AGENT_REFUSAL,
+          ms: (yield* Clock.currentTimeMillis) - started,
+          head,
+        },
+        caller.env ?? {},
+      ),
+    )
+    const out = print(json, { ok: false, pipeline: name, command, exit: EXIT.refused, error: AGENT_REFUSAL })
+    return logged._tag === 'Left' ? { ...out, stderr: `${out.stderr}audit log: ${logged.left}\n` } : out
+  })
+
 /** Routes one command line to its pipeline. It never fails: every problem is an exit code. */
 export const route = (
   argv: readonly string[],
   pipelines: readonly PipelineDef[],
   planned: readonly string[] = PLANNED,
+  caller: Caller = PERSON,
 ): Effect.Effect<RouterOutput, never, StageServices> =>
   Effect.gen(function* () {
     const json = argv.includes('--json')
     const [name, command, ...rest] = argv.filter((arg) => arg !== '--json')
     if (name === undefined || name === '--help' || name === '-h' || name === 'help')
       return { exit: EXIT.done, stdout: help(pipelines, planned), stderr: '' }
+    // Before the registry is consulted: an agent's decision is refused whatever it names.
+    if (caller.agent && (command === 'approve' || command === 'reject'))
+      return yield* refuseAgent(name, command, rest, caller, json)
     const early = (exit: PipelineExit, error: string): RouterOutput =>
       print(json, { ok: false, pipeline: name, command: command ?? '', exit, error })
     const def = pipelines.find((candidate) => candidate.name === name)
