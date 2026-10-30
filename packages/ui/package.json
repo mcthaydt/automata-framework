@@ -62,7 +62,6 @@
     }
   },
   "devDependencies": {
-    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-testing": "workspace:*",
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@sveltejs/package": "3.0.0",
