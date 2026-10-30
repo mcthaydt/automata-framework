@@ -2,7 +2,7 @@
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.5 (`create-game`) and §3.6 (`automata check`); [M1 content spec](../specs/2026-10-11-m1-content-design.md) §3.9 (the Vite plugin); AGENTS.md "Honor host authority" (Ruken's CSP). The examples' half of the same bug is the [examples plan](2026-10-23-examples-assets-under-csp.md) (#142).
 - **Task:** `Follow-up (found 2026-10-23) — A game's small assets hit the same CSP refusal` (02, before DX.5). Lanes content and ship. Branch `claude/dx-5a-small-assets-csp`, based on `main` (`b7ef19d9`).
-- **Status:** drafted and implemented 2026-10-30, locally checked; draft PR opened.
+- **Status:** drafted and implemented 2026-10-30, locally checked; draft PR #194.
 - **Progress:** 6 of 6 steps. Implemented and locally checked; CI on the PR head, review and the Owner's veto on the decisions pending.
 
 ## What is wrong
