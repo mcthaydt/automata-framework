@@ -1,5 +1,6 @@
 import { Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
 import { placeView3d } from './pose-3d.js'
+import { shareMaterial } from './shared-material.js'
 import type { View3dFactory } from './view-3d.js'
 
 export interface BoxSize {
@@ -23,7 +24,10 @@ export interface BoxMaterial {
  */
 export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
   const geometry = new CubeGeometry({ width: size.width, height: size.height, depth: size.depth })
-  const shared = new PhongMaterial({ baseColor: material.color })
+  const shared = shareMaterial(
+    new PhongMaterial({ baseColor: material.color }),
+    () => new PhongMaterial({ baseColor: material.color }),
+  )
   return (_row, componentId) => {
     const node = new Container3D()
     const drawn = new Mesh3D({ geometry, material: shared })

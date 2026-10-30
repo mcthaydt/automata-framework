@@ -778,6 +778,7 @@ interface HomeCard {
     readonly accent: string | undefined;
     readonly size: number;
     readonly mtime: number;
+    readonly preview?: TilePreview | undefined;
 }
 ```
 
@@ -1528,6 +1529,15 @@ interface TapGesture {
 }
 ```
 
+### `TilePreview` (interface)
+
+```ts
+interface TilePreview {
+    readonly key: string;
+    draw(): Promise<string | undefined>;
+}
+```
+
 ### `Toast` (interface)
 
 ```ts
@@ -2095,6 +2105,7 @@ interface HomeCard {
     readonly accent: string | undefined;
     readonly size: number;
     readonly mtime: number;
+    readonly preview?: TilePreview | undefined;
 }
 ```
 

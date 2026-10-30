@@ -1,6 +1,7 @@
 import { Effect, Exit } from 'effect'
 import { Texture, TextureSource } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
+import { ownCopyOf } from '../views/shared-material.js'
 import { type DecodeTexture, loadModels } from './load-models.js'
 import { encodeGlb, encodePack, fixtureBox } from './testing/model-fixtures.js'
 
@@ -21,6 +22,16 @@ describe('loadModels', () => {
     expect(models.get('m/a.glb')?.geometry.vertexCount).toBe(24)
     expect(models.get('m/b.bin')?.mesh.indices.length).toBe(36)
     expect(models.get('m/c.glb')).toBeUndefined()
+  })
+
+  it('marks each model’s material as shared, with a fresh copy for a prop that fades (review of #249, 2)', async () => {
+    const assets = assetsOf({ 'm/a.glb': encodeGlb(fixtureBox()) })
+    const models = await Effect.runPromise(loadModels(['m/a.glb'], assets, decode))
+    const model = models.get('m/a.glb')
+    const copy = model === undefined ? undefined : ownCopyOf(model.material)
+    expect(copy).toBeDefined()
+    expect(copy).not.toBe(model?.material)
+    expect(copy?.textures.baseColor).toBe(model?.material.textures.baseColor)
   })
 
   it('disposes what it loaded: geometry, material, texture and the decoded bitmap (review of #241)', async () => {

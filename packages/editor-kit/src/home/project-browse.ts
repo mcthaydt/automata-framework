@@ -21,6 +21,16 @@ export interface HomeCard {
   readonly accent: string | undefined
   readonly size: number
   readonly mtime: number
+  /** A picture for the card's tile in place of the initial (ED2D.4c3b); none, the tile shows the initial. */
+  readonly preview?: TilePreview | undefined
+}
+
+/** How a card draws its tile's picture. */
+export interface TilePreview {
+  /** Names what `draw` draws: the card draws again when it changes, and only then. */
+  readonly key: string
+  /** The picture's URL, or `undefined` when none could be drawn. */
+  draw(): Promise<string | undefined>
 }
 
 // --- search -----------------------------------------------------------------------------------------------------

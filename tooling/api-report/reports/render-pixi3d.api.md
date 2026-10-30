@@ -10,10 +10,38 @@
 function acceptsRenderer(renderer: RendererKind): boolean;
 ```
 
+### `angledCamera` (function)
+
+```ts
+function angledCamera(options: AngledCameraOptions): CameraRig;
+```
+
+### `AngledCameraOptions` (interface)
+
+```ts
+interface AngledCameraOptions {
+    readonly camera: Camera3D;
+    readonly views: readonly CameraView[];
+    readonly initial: string;
+    readonly aspect?: (() => number) | undefined;
+    readonly reducedMotion?: (() => boolean) | undefined;
+    readonly warn?: ((message: string) => void) | undefined;
+}
+```
+
 ### `box` (function)
 
 ```ts
 function box(size: BoxSize, material: BoxMaterial): View3dFactory;
+```
+
+### `Box3` (interface)
+
+```ts
+interface Box3 {
+    readonly min: readonly [number, number, number];
+    readonly max: readonly [number, number, number];
+}
 ```
 
 ### `BoxMaterial` (interface)
@@ -32,6 +60,39 @@ interface BoxSize {
     readonly height: number;
     readonly depth: number;
 }
+```
+
+### `CameraPose` (interface)
+
+```ts
+interface CameraPose {
+    readonly eye: Vec3;
+    readonly look: Vec3;
+    readonly player: Vec3;
+    readonly cut: boolean;
+}
+```
+
+### `CameraRig` (interface)
+
+```ts
+interface CameraRig {
+    readonly lensMm: number;
+    setViews(views: readonly CameraView[]): void;
+    viewOf(id: string): CameraView | undefined;
+    activate(id: string, how: 'cut' | 'ease'): void;
+    heading(yawDeg: number, how?: 'track' | 'ease'): void;
+    follow(x: number, y: number, z: number): void;
+    frame(lock?: Vec3): void;
+    update(frameSeconds: number): void;
+    pose(): CameraPose | undefined;
+}
+```
+
+### `cameraViewContent` (const)
+
+```ts
+const cameraViewContent: ContentSchemaDef<'camera-view'>;
 ```
 
 ### `createPixi3dRenderer` (function)
@@ -58,10 +119,68 @@ type EntityView3d = EntityView<Container3D>;
 type EntityViewResolver3d = Readonly<Record<string, View3dFactory>>;
 ```
 
+### `FADED_OPACITY` (const)
+
+```ts
+const FADED_OPACITY = 0.25;
+```
+
+### `FIGURE_REACH` (const)
+
+```ts
+const FIGURE_REACH = 0.6;
+```
+
+### `FramingInput` (interface)
+
+```ts
+interface FramingInput {
+    readonly view: CameraView;
+    readonly outline: readonly PlanPoint[];
+    readonly at?: Vec3 | undefined;
+    readonly aspects?: readonly number[] | undefined;
+    readonly stepDeg?: number | undefined;
+}
+```
+
+### `FramingMiss` (interface)
+
+```ts
+interface FramingMiss {
+    readonly headingDeg: number;
+    readonly aspect: number;
+    readonly point: 'focus' | number;
+}
+```
+
+### `framingMisses` (function)
+
+```ts
+function framingMisses(input: FramingInput): FramingMiss[];
+```
+
+### `HEADING_EASE_SECONDS` (const)
+
+```ts
+const HEADING_EASE_SECONDS = 0.25;
+```
+
+### `HYSTERESIS_DEG` (const)
+
+```ts
+const HYSTERESIS_DEG = 5;
+```
+
 ### `interpolatePose3d` (function)
 
 ```ts
 function interpolatePose3d(curr: Readonly<FieldRecord>, prev: Readonly<FieldRecord> | undefined, alpha: number): Pose3d;
+```
+
+### `lineCrossesWall` (function)
+
+```ts
+function lineCrossesWall(wall: WallSpan, from: Vec3, to: Vec3): boolean;
 ```
 
 ### `LoadedModel` (interface)
@@ -79,6 +198,12 @@ interface LoadedModel {
 
 ```ts
 function loadModels(files: readonly string[], assets: RenderTarget['assets'], decode?: DecodeTexture): Effect.Effect<ModelStore, ModelInvalid>;
+```
+
+### `LOCK_SHARE` (const)
+
+```ts
+const LOCK_SHARE = 0.35;
 ```
 
 ### `mesh` (function)
@@ -132,6 +257,63 @@ interface ModelStore extends ModelLibrary {
 }
 ```
 
+### `OCCLUDER_FADE_SECONDS` (const)
+
+```ts
+const OCCLUDER_FADE_SECONDS = 0.15;
+```
+
+### `OccluderFrame` (interface)
+
+```ts
+interface OccluderFrame {
+    readonly eye: Vec3;
+    readonly look: Vec3;
+    readonly feet: Vec3;
+    readonly head: Vec3;
+    readonly seconds: number;
+    readonly reduced: boolean;
+}
+```
+
+### `OccluderPass` (interface)
+
+```ts
+interface OccluderPass {
+    step(frame: OccluderFrame): OccluderShown;
+    reset(): void;
+}
+```
+
+### `occluderPass` (function)
+
+```ts
+function occluderPass(entries: {
+    readonly walls: readonly WallEntry[];
+    readonly props: readonly PropEntry[];
+}): OccluderPass;
+```
+
+### `Occluders` (interface)
+
+```ts
+interface Occluders {
+    wall(options: WallOptions): Container3D;
+    ceiling(node: Container3D): void;
+    prop(mesh: Mesh3D, options: PropOptions): void;
+    box(bounds: Box3, color: number): Mesh3D;
+}
+```
+
+### `OccluderShown` (interface)
+
+```ts
+interface OccluderShown {
+    readonly walls: readonly WallShown[];
+    readonly props: readonly number[];
+}
+```
+
 ### `parseGlb` (function)
 
 ```ts
@@ -144,12 +326,24 @@ function parseGlb(buffer: ArrayBuffer, file: string): ModelMesh;
 function parsePack(buffer: ArrayBuffer, file: string): ModelMesh;
 ```
 
+### `Pixi3dCameraOptions` (interface)
+
+```ts
+interface Pixi3dCameraOptions {
+    readonly views: readonly CameraView[];
+    readonly initial: string;
+    readonly follow: string;
+    readonly height?: number | undefined;
+}
+```
+
 ### `Pixi3dOptions` (interface)
 
 ```ts
 interface Pixi3dOptions extends PixiRendererOptions {
     readonly views: EntityViewResolver3d;
-    readonly scene?: ((view: View3D, stage: PixiStage) => PixiStageHooks | undefined) | undefined;
+    readonly scene?: ((view: View3D, stage: PixiStage, occluders: Occluders) => PixiStageHooks | undefined) | undefined;
+    readonly camera?: Pixi3dCameraOptions | undefined;
 }
 ```
 
@@ -158,6 +352,7 @@ interface Pixi3dOptions extends PixiRendererOptions {
 ```ts
 interface Pixi3dRenderer extends PixiRenderer {
     readonly view: View3D;
+    readonly camera: CameraRig | undefined;
 }
 ```
 
@@ -165,6 +360,21 @@ interface Pixi3dRenderer extends PixiRenderer {
 
 ```ts
 function placeView3d(node: Container3D, curr: Components, prev: Components | undefined, alpha: number, componentId: string | undefined): void;
+```
+
+### `PlanPoint` (interface)
+
+```ts
+interface PlanPoint {
+    readonly x: number;
+    readonly z: number;
+}
+```
+
+### `PLAYER_HEIGHT` (const)
+
+```ts
+const PLAYER_HEIGHT = 1.62;
 ```
 
 ### `Pose3d` (interface)
@@ -175,6 +385,24 @@ interface Pose3d {
     readonly y: number;
     readonly z: number;
     readonly yaw: number;
+}
+```
+
+### `PropEntry` (interface)
+
+```ts
+interface PropEntry {
+    readonly bounds: Box3;
+    readonly occlude: Occlude;
+}
+```
+
+### `PropOptions` (interface)
+
+```ts
+interface PropOptions {
+    readonly bounds: Box3;
+    readonly occlude?: Occlude | undefined;
 }
 ```
 
@@ -195,6 +423,34 @@ interface RendererKind {
 }
 ```
 
+### `segmentHitsBox` (const)
+
+```ts
+const segmentHitsBox: (from: Vec3, to: Vec3, box: Box3) => boolean;
+```
+
+### `TALL_PROP_METRES` (const)
+
+```ts
+const TALL_PROP_METRES = 1.5;
+```
+
+### `TRIM_HEIGHT` (const)
+
+```ts
+const TRIM_HEIGHT = 0.12;
+```
+
+### `Vec3` (interface)
+
+```ts
+interface Vec3 {
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+}
+```
+
 ### `View3dFactory` (interface)
 
 ```ts
@@ -204,4 +460,419 @@ interface View3dFactory {
 }
 ```
 
+### `VIEW_EASE_SECONDS` (const)
+
+```ts
+const VIEW_EASE_SECONDS = 0.4;
+```
+
+### `WALL_THICKNESS` (const)
+
+```ts
+const WALL_THICKNESS = 0.2;
+```
+
+### `WallEntry` (interface)
+
+```ts
+interface WallEntry {
+    readonly span: WallSpan;
+    readonly occlude: Occlude;
+}
+```
+
+### `wallFacesAway` (const)
+
+```ts
+const wallFacesAway: (wall: WallSpan, eye: Vec3) => boolean;
+```
+
+### `WallOptions` (interface)
+
+```ts
+interface WallOptions {
+    readonly a: PlanPoint;
+    readonly b: PlanPoint;
+    readonly height: number;
+    readonly thickness?: number | undefined;
+    readonly trim?: number | undefined;
+    readonly color: number;
+    readonly occlude?: Occlude | undefined;
+}
+```
+
+### `WallShown` (interface)
+
+```ts
+interface WallShown {
+    occluded: boolean;
+    opacity: number;
+    trim: boolean;
+}
+```
+
+### `WallSpan` (interface)
+
+```ts
+interface WallSpan {
+    readonly a: PlanPoint;
+    readonly b: PlanPoint;
+    readonly height: number;
+    readonly thickness?: number | undefined;
+}
+```
+
+## `./camera-view`
+
+### `CAMERA_DEFAULTS` (const)
+
+```ts
+const CAMERA_DEFAULTS: {
+    readonly tiltDeg: number;
+    readonly distance: number;
+    readonly focusHeight: number;
+    readonly lag: number;
+    readonly rotate: boolean;
+};
+```
+
+### `CAMERA_RANGES` (const)
+
+```ts
+const CAMERA_RANGES: {
+    readonly tiltDeg: {
+        readonly min: number;
+        readonly max: number;
+    };
+    readonly distance: {
+        readonly min: number;
+        readonly max: number;
+    };
+};
+```
+
+### `CameraView` (interface)
+
+```ts
+interface CameraView extends CameraViewFields {
+    readonly id: string;
+}
+```
+
+### `cameraView` (function)
+
+```ts
+function cameraView(id: string, given?: CameraViewInput): CameraView;
+```
+
+### `CameraViewFields` (interface)
+
+```ts
+interface CameraViewFields {
+    readonly yawDeg?: number | undefined;
+    readonly tiltDeg: number;
+    readonly distance: number;
+    readonly focusHeight: number;
+    readonly bounds?: {
+        readonly min: Point;
+        readonly max: Point;
+    } | undefined;
+    readonly lag: number;
+    readonly rotate: boolean;
+}
+```
+
+### `CameraViewInput` (type)
+
+```ts
+type CameraViewInput = {
+    readonly [K in keyof CameraViewFields]?: CameraViewFields[K] | undefined;
+};
+```
+
+### `cameraViewSchema` (const)
+
+```ts
+const cameraViewSchema: z.ZodType<CameraViewFields, CameraViewInput>;
+```
+
+### `degToHeading` (const)
+
+```ts
+const degToHeading: (deg: number) => number;
+```
+
+### `fovOf` (const)
+
+```ts
+const fovOf: (lensMm: number) => number;
+```
+
+### `headingDegrees` (const)
+
+```ts
+const headingDegrees: (units: number) => number;
+```
+
+### `LENS_MM` (const)
+
+```ts
+const LENS_MM = 24;
+```
+
+### `MAX_CAMERA_TURN` (const)
+
+```ts
+const MAX_CAMERA_TURN = 8192;
+```
+
+### `Occlude` (type)
+
+```ts
+type Occlude = (typeof OCCLUDES)[number];
+```
+
+### `OCCLUDES` (const)
+
+```ts
+const OCCLUDES: readonly ["cut", "fade", "never"];
+```
+
+### `occludeSchema` (const)
+
+```ts
+const occludeSchema: z.ZodEnum<{
+    cut: 'cut';
+    fade: 'fade';
+    never: 'never';
+}>;
+```
+
+### `TURN_UNITS` (const)
+
+```ts
+const TURN_UNITS = 65536;
+```
+
+### `turnHeading` (const)
+
+```ts
+const turnHeading: (units: number, by: number) => number;
+```
+
+### `wrapHeading` (function)
+
+```ts
+function wrapHeading(units: number): number;
+```
+
 ## `./no-eval`
+
+## `./sim`
+
+### `CAMERA_DEFAULTS` (const)
+
+```ts
+const CAMERA_DEFAULTS: {
+    readonly tiltDeg: number;
+    readonly distance: number;
+    readonly focusHeight: number;
+    readonly lag: number;
+    readonly rotate: boolean;
+};
+```
+
+### `CAMERA_RANGES` (const)
+
+```ts
+const CAMERA_RANGES: {
+    readonly tiltDeg: {
+        readonly min: number;
+        readonly max: number;
+    };
+    readonly distance: {
+        readonly min: number;
+        readonly max: number;
+    };
+};
+```
+
+### `CameraHeading` (const)
+
+```ts
+const CameraHeading: ComponentDef<typeof fields>;
+```
+
+### `cameraHeadingPlugin` (const)
+
+```ts
+const cameraHeadingPlugin: PluginDef;
+```
+
+### `CameraTurn` (const)
+
+```ts
+const CameraTurn: CommandDef<typeof cameraTurnSchema>;
+```
+
+### `cameraTurnSystem` (const)
+
+```ts
+const cameraTurnSystem: SystemDef;
+```
+
+### `CameraView` (interface)
+
+```ts
+interface CameraView extends CameraViewFields {
+    readonly id: string;
+}
+```
+
+### `cameraView` (function)
+
+```ts
+function cameraView(id: string, given?: CameraViewInput): CameraView;
+```
+
+### `CameraViewFields` (interface)
+
+```ts
+interface CameraViewFields {
+    readonly yawDeg?: number | undefined;
+    readonly tiltDeg: number;
+    readonly distance: number;
+    readonly focusHeight: number;
+    readonly bounds?: {
+        readonly min: Point;
+        readonly max: Point;
+    } | undefined;
+    readonly lag: number;
+    readonly rotate: boolean;
+}
+```
+
+### `CameraViewInput` (type)
+
+```ts
+type CameraViewInput = {
+    readonly [K in keyof CameraViewFields]?: CameraViewFields[K] | undefined;
+};
+```
+
+### `cameraViewSchema` (const)
+
+```ts
+const cameraViewSchema: z.ZodType<CameraViewFields, CameraViewInput>;
+```
+
+### `clampTurn` (const)
+
+```ts
+const clampTurn: (units: number) => number;
+```
+
+### `degToHeading` (const)
+
+```ts
+const degToHeading: (deg: number) => number;
+```
+
+### `Direction` (interface)
+
+```ts
+interface Direction {
+    readonly x: number;
+    readonly z: number;
+}
+```
+
+### `enterView` (function)
+
+```ts
+function enterView(state: HeadingState, view: CameraView, stick: Stick): HeadingState;
+```
+
+### `headingDegrees` (const)
+
+```ts
+const headingDegrees: (units: number) => number;
+```
+
+### `HeadingState` (type)
+
+```ts
+type HeadingState = Readonly<FieldValues<(typeof CameraHeading)['fields']>>;
+```
+
+### `mapStick` (function)
+
+```ts
+function mapStick(stick: Stick, heading: number): Direction;
+```
+
+### `MAX_CAMERA_TURN` (const)
+
+```ts
+const MAX_CAMERA_TURN = 8192;
+```
+
+### `moveDirection` (function)
+
+```ts
+function moveDirection(state: HeadingState, stick: Stick): {
+    readonly state: HeadingState;
+    readonly direction: Direction;
+};
+```
+
+### `Q16` (const)
+
+```ts
+const Q16 = 65536;
+```
+
+### `START` (const)
+
+```ts
+const START: HeadingState;
+```
+
+### `Stick` (interface)
+
+```ts
+interface Stick {
+    readonly x: number;
+    readonly y: number;
+}
+```
+
+### `STICK_MAX` (const)
+
+```ts
+const STICK_MAX = 127;
+```
+
+### `TURN_UNITS` (const)
+
+```ts
+const TURN_UNITS = 65536;
+```
+
+### `turnCamera` (function)
+
+```ts
+function turnCamera(state: HeadingState, units: number): HeadingState;
+```
+
+### `turnHeading` (const)
+
+```ts
+const turnHeading: (units: number, by: number) => number;
+```
+
+### `wrapHeading` (function)
+
+```ts
+function wrapHeading(units: number): number;
+```
