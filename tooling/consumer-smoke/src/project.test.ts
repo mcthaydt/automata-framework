@@ -19,13 +19,13 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
       from: 'packs',
       packages: [
         { name: '@mcthaydt/automata-sim', tarball: 'packs/mcthaydt-automata-sim-0.0.1.tgz' },
-        { name: '@mcthaydt/automata-physics', tarball: 'packs/mcthaydt-automata-physics-0.0.1.tgz' },
+        { name: '@mcthaydt/automata-testing', tarball: 'packs/mcthaydt-automata-testing-0.0.1.tgz' },
       ],
       tools,
       packageManager: PNPM,
     })
     expect(manifest.dependencies).toEqual({
-      '@mcthaydt/automata-physics': 'file:packs/mcthaydt-automata-physics-0.0.1.tgz',
+      '@mcthaydt/automata-testing': 'file:packs/mcthaydt-automata-testing-0.0.1.tgz',
       '@mcthaydt/automata-sim': 'file:packs/mcthaydt-automata-sim-0.0.1.tgz',
     })
     expect(

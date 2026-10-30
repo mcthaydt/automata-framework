@@ -7,10 +7,15 @@ import { HostError, type Hosting, HostingLive } from '@mcthaydt/automata-host'
 import { makeHosting } from '@mcthaydt/automata-host/target'
 import { HostingTest } from '@mcthaydt/automata-host/testing'
 import { type FilesService, ProcessRunner } from '@mcthaydt/automata-node'
-import { BodyKind, body2d, physics2d } from '@mcthaydt/automata-physics/2d'
-import { physics3d } from '@mcthaydt/automata-physics/3d'
 import { prepareBuild, type ShipConfig } from '@mcthaydt/automata-ship'
-import { createSim, defineComponent, type Sim, type StepResult } from '@mcthaydt/automata-sim'
+import {
+  createSim,
+  defineComponent,
+  definePlugin,
+  defineSystem,
+  type Sim,
+  type StepResult,
+} from '@mcthaydt/automata-sim'
 import { xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { sin } from '@mcthaydt/automata-sim/math'
 import { REFERENCE_SIZES, type ReferenceSize } from '@mcthaydt/automata-testing'
@@ -51,8 +56,8 @@ export const values = [
 export const component: typeof Dialog = Dialog
 export const layout: typeof checkLayout = checkLayout
 export const position = defineComponent('position', { x: 'f32', y: 'f32' })
-export const body = body2d(BodyKind.dynamic)
-export const plugins = [physics2d(), physics3d()]
+export const drift = defineSystem('drift', () => {})
+export const plugins = [definePlugin({ name: 'drift', components: [position], systems: [drift] })]
 export const digest: bigint = xxhash64(new Uint8Array([1, 2, 3]))
 export const wave: number = sin(1)
 export const contentText: ContentText = createContentText({})

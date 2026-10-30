@@ -176,7 +176,7 @@ function steps(project: string): Step[] {
         return `${commands.length} commands resolve`
       },
     ],
-    ['node: import every entry, run a physics sim', () => sh(project, 'node', ['node-check.mjs']).trim()],
+    ['node: import every entry, run a sim', () => sh(project, 'node', ['node-check.mjs']).trim()],
     [
       'content: compile a three-file content folder with the automata-content bin',
       () => {
