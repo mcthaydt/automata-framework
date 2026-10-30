@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { ensureGitleaks, historyScanArgs } from './gitleaks.ts'
+import { ensureRepoGitleaks, historyScanArgs } from './gitleaks.ts'
 
 // The history scan reads what the checkout's HEAD reaches, never every ref (2026-10-30): CI's full-history
 // checkout also fetches every branch on origin, so one lane's unmerged branch with a finding (a false positive in
@@ -15,12 +15,7 @@ const plantedKey = fileURLToPath(new URL('../fixtures/secrets/planted.env', impo
 
 let binary = ''
 beforeAll(async () => {
-  binary = await ensureGitleaks({
-    cacheDir: join(root, 'node_modules/.cache/gitleaks'),
-    platform: process.platform,
-    arch: process.arch,
-    fetch: (url) => fetch(url),
-  })
+  binary = await ensureRepoGitleaks(root)
 })
 
 const scratches: string[] = []

@@ -11,7 +11,9 @@
         "$TURBO_ROOT$/docs/runbook.md",
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/knip.jsonc",
-        "$TURBO_ROOT$/lefthook.yml"
+        "$TURBO_ROOT$/lefthook.yml",
+        "$TURBO_ROOT$/.gitleaks.toml",
+        "$TURBO_ROOT$/packages/ship/src/prepare/secret-scan.ts"
       ]
     },
     "test": {
@@ -23,7 +25,9 @@
         "$TURBO_ROOT$/docs/runbook.md",
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/knip.jsonc",
-        "$TURBO_ROOT$/lefthook.yml"
+        "$TURBO_ROOT$/lefthook.yml",
+        "$TURBO_ROOT$/.gitleaks.toml",
+        "$TURBO_ROOT$/packages/ship/src/prepare/secret-scan.ts"
       ]
     }
   }

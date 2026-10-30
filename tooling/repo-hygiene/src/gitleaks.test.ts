@@ -3,7 +3,13 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { ensureGitleaks, GITLEAKS_VERSION, gitleaksAsset, verifiedDownload } from './gitleaks.ts'
+import {
+  ensureGitleaks,
+  ensureRepoGitleaks,
+  GITLEAKS_VERSION,
+  gitleaksAsset,
+  verifiedDownload,
+} from './gitleaks.ts'
 
 // The secret scan runs a pinned gitleaks release binary, checked against the SHA-256 published with that
 // release, the same way locally and in CI (QB.1). No network here: every download goes through an injected fetch.
@@ -63,5 +69,15 @@ describe('ensureGitleaks', () => {
     await expect(
       ensureGitleaks({ cacheDir, platform: 'linux', arch: 'x64', fetch: noNetwork }),
     ).resolves.toBe(binary)
+  })
+})
+
+describe('ensureRepoGitleaks', () => {
+  it("uses the repository's cache, <root>/node_modules/.cache/gitleaks, as pnpm secrets does", async () => {
+    const root = mkdtempSync(join(tmpdir(), 'gitleaks-root-'))
+    const binary = join(root, 'node_modules/.cache/gitleaks', GITLEAKS_VERSION, 'gitleaks')
+    mkdirSync(join(binary, '..'), { recursive: true })
+    writeFileSync(binary, '')
+    await expect(ensureRepoGitleaks(root)).resolves.toBe(binary)
   })
 })

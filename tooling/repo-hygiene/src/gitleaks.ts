@@ -66,6 +66,19 @@ export async function ensureGitleaks(options: EnsureOptions): Promise<string> {
 }
 
 /**
+ * The pinned binary in the repository's own cache, `<root>/node_modules/.cache/gitleaks`, downloaded with the
+ * global `fetch` the first time. `pnpm secrets` and the tests that run gitleaks share it.
+ */
+export function ensureRepoGitleaks(root: string): Promise<string> {
+  return ensureGitleaks({
+    cacheDir: join(root, 'node_modules/.cache/gitleaks'),
+    platform: process.platform,
+    arch: process.arch,
+    fetch: (url) => fetch(url),
+  })
+}
+
+/**
  * The arguments of the history scan: the repository's config, and every commit the checkout's HEAD reaches.
  * Not gitleaks' default, which is every ref (`--all`): CI's full-history checkout also fetches every branch on
  * origin, so a finding on one lane's unmerged branch failed every other pull request (2026-10-30). A branch is
