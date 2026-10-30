@@ -14,3 +14,15 @@ export const LOBBY_PHASES: readonly ['lobby', 'countdown', 'playing', 'ended'] =
   'ended',
 ]
 export type LobbyPhase = (typeof LOBBY_PHASES)[number]
+
+/** The Colyseus room type a client creates, joins and finds (`create`, `joinById`, `joinOrCreate`). */
+export const ROOM_NAME = 'automata'
+
+/**
+ * The channel every wire message travels on as JSON text, both ways: a `ClientMessage` from a client and a
+ * `ServerMessage` from the room. Text, so the room measures a message before it parses it (SV-a).
+ */
+export const NET_CHANNEL = 'net'
+
+/** The channel the binary that follows a `snap` or `replay` header travels on: snapshot or packed replay bytes. */
+export const NET_BYTES_CHANNEL = 'net.bytes'
