@@ -298,5 +298,5 @@ describe('preloadList with the asset build', () => {
     ])
     const parsed = parseManifest(rukenToml(preload))
     expect(parsed.ok ? parsed.manifest.loading?.preload : parsed.errors).toEqual(preload)
-  }, 30_000)
+  })
 })
