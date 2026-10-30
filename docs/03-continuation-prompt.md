@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-30 20:05Z by the coordinator (session_01QYLU1fz84XybvBdt3Lf9JY). Source HEAD verified before this update: `c8d81a6` on `main`. Merged since 17:35Z: #263 APP.0, #246 EDS.1b, #241 M3.4a, #255 ED2D.4c3b, #245 M3.4b, #249 M3.4c, #264 CI.TO1, #267 ED2D.4c4a, #266 M4.12b, #262 (legacy sources and klipp), #224 M3.5c; website#18 QB.4a and website#20 WEB.PLAY.4b. The earlier history of this line is in git.
+> Updated 2026-10-30 22:30Z by the coordinator (session_01QYLU1gDS1J6YZCB1sspwoV). Source HEAD verified before this update: `ad10230` on `main`. Merged since 20:05Z: #273 M3.1b, #268 EDS.2a, #250 M3.7a, #270 M3.5d, #274 M3.5d part 2, #277 (S7-Q2 bug-report draft), #278 (02 ticks), #276 M3.6d, #280 M3.7b part 1, #272 ED2D.4c4b, #275 EDS.2b; website#21 WEB.PLAY.5 and website#22 WEB.PLAY.6. The earlier history of this line is in git.
 
 ## Prompt for the next agent
 
@@ -13,7 +13,7 @@ Work in the `mcthaydt/automata-framework` checkout. Read, in this order: `AGENTS
 - One task per branch and draft PR, each in its own git worktree under `/home/user/wt/<slug>` (`git -C <clone> worktree add /home/user/wt/<slug> -b <branch> origin/main`). Never touch another lane's worktree, a main checkout's working tree or a process you did not start; never `git stash`.
 - The integration owner edits 02, 03, 00, 01 and `AGENTS.md`; a lane records its progress in its own plan under `docs/superpowers/plans/`, and a task without a plan starts with a commit of its TDD plan.
 - Strict TDD in `packages/`, `tooling/`, `examples/` and `games/`. Before a push: `pnpm format` and `TURBO_FORCE=true pnpm check`; after an export or doc-comment change, `pnpm build`, `pnpm api-report --update`, `pnpm api-index` (and `pnpm cheatsheet` when it says stale) and `pnpm agent-skills --write`; a changeset only for a published package.
-- Parity runs in this container: `export PLAYWRIGHT_BROWSERS_PATH=/opt/pw-local` (Chromium, WebKit and Firefox are installed there). The container has 4 CPUs shared by the lanes, so run focused tests while iterating and one full run at the end. CI runs on the Owner's Mac (`af-mac`), and so do the heavy GPU, visual, frame-budget and full e2e suites.
+- Parity runs in this container: `export PLAYWRIGHT_BROWSERS_PATH=/opt/pw-local` (Chromium, WebKit and Firefox are installed there). The container has 4 CPUs shared by the lanes, so run focused tests while iterating and one full run at the end. Since 2026-10-30 22:10Z the checks, the games' CI and the consumer smoke run on the Owner's PC (`owner-pc-wsl-af`, label `af-linux`, WSL2 Ubuntu; the repository variable `AF_LINUX_RUNNER` is `af-linux` again, it was `af-mac`); parity, the release jobs and the heavy GPU, visual, frame-budget and full e2e suites stay on the Owner's Macs (`af-mac`, `af-mac-2`).
 - Merge when green: the agent merges its own PR with a merge commit once every check, parity included, is green on the head. Never tick an Owner gate (real devices, visual acceptance, the real itch.io push, the site deploy); ask the Owner in the session.
 
 ## Owner decisions of 2026-10-30
@@ -90,12 +90,12 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 Each lane is a cloud session that works only in its own worktrees and PRs, never edits 02, 03, 00, 01 or `AGENTS.md`, and states its rows in each PR body ("Rows: <id> done | partial"); the coordinator ticks 02 from those lines. A lane merges its own PR once every check, parity included, is green on the head. Message a lane with the `send_message` tool of the claude-code-remote MCP server; read its transcript with `list_events`.
 
-| Lane | Session | State on 2026-10-30 20:05Z |
+| Lane | Session | State on 2026-10-30 22:30Z |
 |---|---|---|
-| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | rotates every 2 h (19:40Z: `session_01QYLU1fz84XybvBdt3Lf9JY`) | Watching #247 M3.4d, #250 M3.7a, #265 ED3D.5d, #268 EDS.2a, #269 EDS.1d-a, #270 M3.5d (stacked on #247), #271 (this 02/03 update), #273 M3.1b, website#21 WEB.PLAY.5. Visual acceptance recorded on #268 and #273. |
-| 3D (M3, GAME-3D, M9 free parts, M4.12) | `session_01QYLU1h7GD44P1qFdXJbhZd` (fresh at 19:21Z) | #273 M3.1b ready (S7 part 2: Q2 WebGL2 against WebGPU measured FAIL, 61.8% of pixels; the spike removed). Next: M3.5d part 2 (the figures-walk and figures-outfits-items examples), M3.6d, M3.7b, M3.10, GAME-3D.1a to 1l, M9. |
-| Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1hU1NvfXZc8ChZBAWM` (fresh at 19:55Z) | #272 ED2D.4c4b draft (plan, step 1 of 9); EDS.2b waits on #268; EDS.1d-b waits on ED2D.9. |
-| Website (`mcthaydt/automata-website`) | `session_01QYLU1hE7DAF6hEy3zKsyRe` (fresh at 19:43Z) | website#21 WEB.PLAY.5 retargeted to `main`; next WEB.PLAY.6 to .11, DX.9w, DX.10a, DX.11w, QB.4b/c, QB.5b, M10 (store links only). Deploys stay dry runs. |
+| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | `session_01QYLU1gDS1J6YZCB1sspwoV` (since 21:41Z). It is at the session lineage limit (depth 8): it cannot create sessions or schedule check-ins, so it cannot rotate itself or start lane successors. The Owner starts any new session. | Watching #279 GL.7 part 1 (conflicts with `main` in `games/base-3d/src/state.ts` after #280; the 3D lane merges `main` in and re-checks the golden). |
+| 3D (M3, GAME-3D, M9 free parts, M4.12) | `session_01QYLU1fsuzzCNWoc84uTypf` (fresh at 21:14Z) | Owns #279's fix; then M3.7b part 2 (the figure view on `evaluate()`, Wick content), M3.6d part 2, GAME-3D.1a to 1l, M3.10, M9. |
+| Editors (ED2D, EDFF, ED3D, EDK, EDS) | stopped 21:41Z at its context limit (`session_01QYLU1gUDkJKWKgwehpcLRG`); no successor (lineage limit) | Next: ED2D.5b/5c/7a or EDS.2c (builds on #275: `suite-session.ts`, `write-path.ts`, `ask-session.ts`). EDS.1d-b waits on ED2D.9. |
+| Website (`mcthaydt/automata-website`) | stopped 22:18Z at its context limit (`session_01QYLU1hE7DAF6hEy3zKsyRe`); no successor (lineage limit) | Next: WEB.PLAY.7 (the compile worker and live updates; `@codemirror/lint` 6.9.7 is a new dependency), then .8 to .11, DX.9w, DX.10a, DX.11w, QB.4b/c, QB.5b, M10 (store links only). Deploys stay dry runs. |
 | Plus (automata-plus) | paused; starts when the website lane wraps up (Owner: "You can start plus when website is wrapped up") | plus #16 M7.5b's review fixes are on `backup/m7-5b-9a43885`; plus #14 (two Plus `main` CI failures). Then PLUS.FREE and the cutscene path (M6.4a, M6.5, M6.8a, M6.8c, M6.9a, M6.9b). |
 
 ## Critical paths
@@ -116,15 +116,16 @@ Later: "We need to be able to push to git; our biggest priorities for the editor
 
 ## Exact next action
 
-1. Merge each watched PR on green, parity included (#270 after #247). Tick 02 as they merge.
-2. Done 2026-10-30: #227 (DX.2a) merged (`b9244c9`); `AGENTS.md` now lists cli, figures and the editors as the private packages. The Plus lane's M5.8, M6.1/6.2, M3.3, PRODUCT.6 and NetworkPort import are unblocked (Plus is paused until the Owner resumes it).
-3. Done 2026-10-30: #253 (GL.1) merged (`11a4e4e`); the GL spec §5.5 text is in `AGENTS.md`'s `pnpm style` and `pnpm boundaries` bullets and the 3D lane was told GL.7 can start. Next: GL.3 (the placeholder's `src/main.ts`), failing test first.
-4. The "Version packages" PR (#226) is no longer blocked by PRODUCT.5g (#197 merged); before merging it, check its version bumps and that no physics package publishes from AF, and its publish waits for the Owner's approval in the release environment.
-5. Keep at most about ten AF PRs in flight (Owner, 2026-10-30: "You can raise the cap and CI"; it was about six). The checks and parity jobs may run 20 minutes (were 10). Resume a paused lane only with the Owner's word, as a fresh session started from its handoff.
-6. Next coordinator rows with no prerequisite: PRODUCT.1b2, DX.6a, DX.6c1, DX.7b/c, CI.API1a, CI.N1a, CI.N3, RT.BOOT1, PRODUCT.4r1, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu. Also from the 3D handoff: Ruken's "Try again" never works inside a frame (the SDK host answers one hello per frame load), a core fix.
+1. Merge #279 on green once the 3D lane has merged `main` into it; then fix `ci.yml`'s base-3d `sim-roots: src` comment (the role files now live in `src/`; game-ci runs that step only outside AF).
+2. The runtime focus follow-up from the website lane (`packages/runtime/src/flow/flow.manager.ts`, the auto-focus on entry) is **not** a plain `!document.hasFocus()` skip: that breaks M4 spec §4.7 under a host, where the game focusing its first control is what gives its frame the keyboard (`examples/e2e/default-screens.e2e.ts` asserts Play focused under the fake host; two game unit tests failed too). It needs a narrow opt-out for an inert preview frame, written into the M4 spec first. The website hands focus back meanwhile.
+3. The "Version packages" PR (#226): before merging it, check its version bumps and that no physics package publishes from AF; its publish waits for the Owner's approval in the release environment.
+4. Keep at most about ten AF PRs in flight (Owner, 2026-10-30: "You can raise the cap and CI"). The checks and parity jobs may run 20 minutes.
+5. Next coordinator rows with no prerequisite: GL.3 (the placeholder's `src/main.ts`, failing test first), PRODUCT.1b2, DX.6a, DX.6c1, DX.7b/c, CI.API1a, CI.N1a, CI.N3, RT.BOOT1, PRODUCT.4r1, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu, CI.BND2. Also from the 3D handoff: Ruken's "Try again" never works inside a frame (the SDK host answers one hello per frame load), a core fix.
 
 ## Blocked on the Owner
 
+- **New sessions** (2026-10-30 21:41Z): the coordinator is at the session lineage limit, so the editors and website lanes stopped at their context limits without successors, and the coordinator cannot rotate. The Owner starts each new session (a top-level session starts at depth 0); the coordinator writes its opening prompt from the lane's saved handoff.
+- **Filing the Pixi 3D beta bug report** from `docs/spikes/s7-q2-pixi3d-webgpu-report.md` (#277).
 - **Hosted Actions billing** is answered by publishing from the Mac ("Publish from my Mac", #192, CI.BILL). Still open: whether to fix hosted billing for npm provenance (DX.11a), the Owner's approval of each publish in the release environment (M2.4p, QB.1b), and whether the merge authority covers other changes to `.github/workflows` (Plus CI, PRODUCT.L4's GPU lane, the itch path); earlier such changes, #192's included, carried the Owner's own words.
 - **`NPM_TOKEN`** for `@mcthaydt` on npmjs.org (DX.11a, M8.9), and the release-environment approval of each publish.
 - **Site hosting and DNS** for `automata.ruken.com` with a deploy credential (DX.12, QB.4a to QB.4c), and function hosting for the store webhook (QB.5a).
