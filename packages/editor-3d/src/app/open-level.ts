@@ -7,8 +7,8 @@ import {
   findRecovery,
   type ProjectStore,
   type Recovery,
+  readStored,
   type StorageClock,
-  type StorageFailure,
   statPath,
   type Workspace,
 } from '@mcthaydt/automata-editor-kit/core'
@@ -48,25 +48,6 @@ export type FacilityOutcome =
   | { readonly status: 'missing' }
   | { readonly status: 'invalid'; readonly path: string; readonly issues: readonly ParseIssue[] }
   | { readonly status: 'unreadable'; readonly path: string; readonly message: string }
-
-/** A file's bytes with the mtime read before them, so a change after the read can only make the next save a conflict. */
-export type Stored =
-  | { readonly status: 'read'; readonly mtime: number; readonly bytes: Uint8Array }
-  | { readonly status: 'missing' }
-  | { readonly status: 'storageFailed'; readonly reason: StorageFailure; readonly message: string }
-
-export async function readStored(store: ProjectStore, path: string): Promise<Stored> {
-  try {
-    const entry = await statPath(store, path)
-    if (entry === undefined) return { status: 'missing' }
-    const bytes = await store.read(path)
-    // Removed between the stat and the read: the same as never there.
-    if (bytes === undefined) return { status: 'missing' }
-    return { status: 'read', mtime: entry.mtime, bytes }
-  } catch (error) {
-    return { status: 'storageFailed', ...classifyStorageError(error) }
-  }
-}
 
 /** The autosave to offer for `path`; a journal that cannot be read is reported, and the document opens anyway. */
 export async function recoveryFor(

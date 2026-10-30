@@ -43,6 +43,7 @@ describe('editor-kit core entry', () => {
       'openWorkspace',
       'parseShortcut',
       'pickFolder',
+      'readStored',
       'restoreFolder',
       'statPath',
       'storePathProblem',

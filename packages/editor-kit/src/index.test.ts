@@ -56,6 +56,7 @@ describe('editor-kit entry', () => {
       kit.flushOnHide,
       kit.classifyStorageError,
       kit.statPath,
+      kit.readStored,
       kit.StorageError,
     ]) {
       expect(fn).toBeTypeOf('function')

@@ -59,6 +59,7 @@ export {
   type WriteFailure,
   type WriteResult,
 } from '../storage/project-store'
+export { readStored, type Stored } from '../storage/read-stored'
 export { discardRecovery, findRecovery, type Recovery } from '../storage/recovery'
 export type { SaveState } from '../storage/save-state'
 export { storePathProblem } from '../storage/store-path'
