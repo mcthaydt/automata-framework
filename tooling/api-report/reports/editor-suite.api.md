@@ -10,6 +10,35 @@
 const ALWAYS_NEVER: readonly string[];
 ```
 
+### `CHANGE_SET_JOURNAL_FORMAT` (const)
+
+```ts
+const CHANGE_SET_JOURNAL_FORMAT = "af-change-set/1";
+```
+
+### `ChangeSetJournal` (interface)
+
+```ts
+interface ChangeSetJournal {
+    readonly format: typeof CHANGE_SET_JOURNAL_FORMAT;
+    readonly title: string;
+    readonly branch: string;
+    readonly base: string;
+    readonly files: readonly string[];
+    readonly created: readonly string[];
+    readonly tokens: {
+        readonly used: number;
+        readonly cap: number;
+    };
+}
+```
+
+### `changeSetJournalSchema` (const)
+
+```ts
+const changeSetJournalSchema: z.ZodType<ChangeSetJournal>;
+```
+
 ### `CheckRow` (type)
 
 ```ts
@@ -151,4 +180,117 @@ function loadEditorList(text: string | undefined): EditorListLoad;
 
 ```ts
 function workspaceFile(list: EditorList, path: string): WorkspaceFile | UnlistedFile;
+```
+
+## `./node`
+
+### `ArgvChecksOptions` (interface)
+
+```ts
+interface ArgvChecksOptions {
+    readonly root: string;
+    readonly checks: readonly CheckDef[];
+    readonly sceneOf?: ((path: string) => string | undefined) | undefined;
+    readonly timeoutMs?: number | undefined;
+    readonly env?: NodeJS.ProcessEnv | undefined;
+}
+```
+
+### `ArgvOptions` (interface)
+
+```ts
+interface ArgvOptions {
+    readonly cwd: string;
+    readonly env?: NodeJS.ProcessEnv | undefined;
+    readonly signal?: AbortSignal | undefined;
+    readonly timeoutMs?: number | undefined;
+}
+```
+
+### `ArgvResult` (interface)
+
+```ts
+interface ArgvResult {
+    readonly code?: number | undefined;
+    readonly stdout: string;
+    readonly stderr: string;
+    readonly truncated: boolean;
+    readonly error?: string | undefined;
+}
+```
+
+### `ClaudeAskOptions` (interface)
+
+```ts
+interface ClaudeAskOptions {
+    readonly apiKey: string;
+    readonly model: string;
+    readonly baseUrl?: string | undefined;
+    readonly maxOutputTokens?: number | undefined;
+    readonly fetch?: typeof fetch | undefined;
+}
+```
+
+### `createArgvChecks` (function)
+
+```ts
+function createArgvChecks(options: ArgvChecksOptions): ChecksRunner;
+```
+
+### `createClaudeAsk` (function)
+
+```ts
+function createClaudeAsk(options: ClaudeAskOptions): AskProvider;
+```
+
+### `createGatesReader` (function)
+
+```ts
+function createGatesReader(options: GatesReaderOptions): Gates;
+```
+
+### `createGitChangeSet` (function)
+
+```ts
+function createGitChangeSet(options: GitChangeSetOptions): GitChangeSet;
+```
+
+### `GatesReaderOptions` (interface)
+
+```ts
+interface GatesReaderOptions {
+    readonly root: string;
+    readonly gates: readonly GateRow[];
+}
+```
+
+### `GitChangeSet` (interface)
+
+```ts
+interface GitChangeSet extends ChangeSet {
+    noteCreated(path: string): Promise<void>;
+}
+```
+
+### `GitChangeSetOptions` (interface)
+
+```ts
+interface GitChangeSetOptions {
+    readonly root: string;
+    readonly tokenCap?: number | undefined;
+    readonly webUrl?: string | undefined;
+    readonly gh?: readonly string[] | false | undefined;
+}
+```
+
+### `OUTPUT_CAP` (const)
+
+```ts
+const OUTPUT_CAP: number;
+```
+
+### `runArgv` (function)
+
+```ts
+function runArgv(argv: readonly string[], options: ArgvOptions): Promise<ArgvResult>;
 ```
