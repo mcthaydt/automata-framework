@@ -3,7 +3,7 @@
 - **Task:** EDS.1d in [02](../../02-master-delivery-plan.md), first half. [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §4.3 (ports), §4.5 (journal), §7 (checks and gates), §11 (failures), EDS-D1 (`./node` entry), EDS-D10 (Ship), acceptance EDS-j.
 - **Lane:** editors. **Depends on:** EDS.1b (the ports and their contract suites in `editor-kit/ports/testing`), EDS.1c (`editor-suite/core`). **Unblocks:** EDS.1d-b, EDS.2c (Ship dialog, Review desk), COLLAB.1.
 - **Status:** Drafted 2026-10-30. Accepted under the Owner's "Auto accept all spec and plans" (2026-10-30) once reviewed.
-- **Progress:** 1 of 7 steps.
+- **Progress:** 3 of 7 steps.
 
 ## The split, and why
 
@@ -46,8 +46,8 @@ EDS.1d is size L and its disk workspace stands on ED2D.9's server `ProjectStore`
 Each step: write the test, run `pnpm --filter @mcthaydt/automata-editor-suite exec vitest run <file>` and see it fail for the reason named, write the code, see it pass.
 
 - [x] **1. Plan** (this file).
-- [ ] **2. `runArgv`** — `src/node/run-argv.ts`, `run-argv.test.ts`. Fails first: module missing. Cases: exit code and output; no shell (`$HOME` stays literal); a missing command is `error` ENOENT; the 200 KB cap cuts and says so; abort and timeout kill the child.
-- [ ] **3. Journal schema** — `src/core/change-set-journal.schema.ts`, `.test.ts`, exported from `core/index.ts`. Cases: a journal round-trips; a negative token count, an unknown format or a missing `created` is refused.
+- [x] **2. `runArgv`** — `src/node/run-argv.ts`, `run-argv.test.ts`. Fails first: module missing. Cases: exit code and output; no shell (`$HOME` stays literal); a missing command is `error` ENOENT; the 200 KB cap cuts and says so; abort and timeout kill the child.
+- [x] **3. Journal schema** — `src/core/change-set-journal.schema.ts`, `.test.ts`, exported from `core/index.ts`. Cases: a journal round-trips; a negative token count, an unknown format or a missing `created` is refused.
 - [ ] **4. Git change set** — `src/node/git-change-set.ts`, `git-change-set.test.ts`: `describeChangeSet('git', …)` on a temporary clone of a local bare remote; plus EDS-j (a fake `gh` script gives a draft PR URL; without `gh` the compare link; the pushed branch holds only the recorded files), a push to a missing remote rejects and keeps the commit, `noteCreated` lists the file in `created`, and the journal is outside the work tree (`git status` stays clean of it).
 - [ ] **5. Argv checks** — `src/node/argv-checks.ts`, `argv-checks.test.ts`: `describeChecksRunner('argv', …)` with one small Node script per behaviour; plus `automata check --json`'s shape mapped, `{scene}` substitution from a candidate, a check needing `{path}` with no candidate is `error`, and the candidates folder is gone afterwards.
 - [ ] **6. Gates reader** — `src/node/gates-reader.ts`, `gates-reader.test.ts`: `describeGates('records', …)` writing `GATES_SCENARIO` as records files; plus `{scene}` records globs and the latest decision winning.
