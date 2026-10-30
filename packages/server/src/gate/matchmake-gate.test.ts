@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { ServerLimits } from '../game/server-config'
 import type { AutomataRoom } from '../room/automata-room'
 import { startTestServer, TEST_LIMITS, TEST_ORIGIN, type TestServer } from '../test-support/colyseus-harness'
+import { rawPost } from '../test-support/raw-upgrade'
 
 // Everything a matchmaking request passes before Colyseus sees it (FloorFifty tests/server/gate/
 // matchmake-gate.test.ts, eight cases; spec §6 rate limits and draining, SV-c). FloorFifty's limits were constants;
@@ -121,5 +122,56 @@ describe('the matchmaking gate', () => {
     expect(await errorOf(fresh)).toMatch(/^SERVER_UPDATING: /)
     test.runtime.rooms.forget(staying)
     expect(await drained).toBe('empty')
+  })
+})
+
+describe('the path the gate reads (review: dot segments skipped the gate)', () => {
+  // Colyseus routes on the WHATWG-normalised URL, so `/x/../matchmake/…`, `/./matchmake/…` and `/%2e/matchmake/…`
+  // all reach its matchmaker. The gate reads the same path, and refuses a request whose raw path is not it.
+  const FORMS = [
+    '/x/../matchmake/create/automata',
+    '/./matchmake/create/automata',
+    '/%2e/matchmake/create/automata',
+  ]
+
+  it.each(FORMS)('refuses %s from an unlisted origin with 403, and opens no room', async (path) => {
+    server = await start()
+    const test = server
+    const answer = await rawPost(
+      test.runtime.port,
+      path,
+      'https://evil.example',
+      JSON.stringify(test.joinOptions('Ada')),
+    )
+    expect(answer.status).toBe(403)
+    expect(test.runtime.rooms.size).toBe(0)
+  })
+
+  it('refuses a path that is not already normal, even from a listed origin, and opens no room', async () => {
+    server = await start()
+    const test = server
+    for (const path of FORMS) {
+      const answer = await rawPost(
+        test.runtime.port,
+        path,
+        TEST_ORIGIN,
+        JSON.stringify(test.joinOptions('Ada')),
+      )
+      expect(answer.status).toBe(400)
+      expect(JSON.parse(answer.text).error).toMatch(/^REFUSED: /)
+    }
+    expect(test.runtime.rooms.size).toBe(0)
+    expect(test.logs.filter((event) => event.code === 'path')).toHaveLength(3)
+  })
+
+  // Colyseus's own reader has no size bound here, so the gate's cap must hold for a body with no content-length.
+  it('caps a chunked body with no content-length at maxMessageBytes', async () => {
+    server = await start({}, { maxMessageBytes: 4_096 })
+    const test = server
+    const options = JSON.stringify({ ...test.joinOptions('Ada'), padding: 'x'.repeat(6_000) })
+    const chunks = [options.slice(0, 2_000), options.slice(2_000, 4_000), options.slice(4_000)]
+    const answer = await rawPost(test.runtime.port, '/matchmake/create/automata', TEST_ORIGIN, chunks)
+    expect(answer.status).toBe(413)
+    expect(test.runtime.rooms.size).toBe(0)
   })
 })

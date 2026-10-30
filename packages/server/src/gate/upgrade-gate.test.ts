@@ -15,9 +15,14 @@ const RUKEN = 'https://g-abc.rukengames.com'
 class FakeSocket extends EventEmitter {
   written = ''
   ended = false
-  end(text: string): void {
+  destroyed = false
+  end(text: string, done?: () => void): void {
     this.written = text
     this.ended = true
+    done?.()
+  }
+  destroy(): void {
+    this.destroyed = true
   }
   close(): void {
     this.emit('close')
@@ -97,5 +102,17 @@ describe('the upgrade gate', () => {
     first.socket.close()
     expect(sockets.open).toBe(0)
     expect(open().admitted).toBe(true)
+  })
+
+  // Review: Node's server keeps a socket half open after `end`, and an upgraded socket has no timeout, so a refused
+  // socket whose client never closed stayed open, uncounted.
+  it('destroys a refused socket once its answer is written, and never one it admits', () => {
+    const { open } = gateWith({ maxPerIp: 1, maxTotal: 100 })
+    const admitted = open()
+    const origin = open('https://elsewhere.test')
+    const over = open()
+    expect(origin.socket.destroyed).toBe(true)
+    expect(over.socket.destroyed).toBe(true)
+    expect(admitted.socket.destroyed).toBe(false)
   })
 })

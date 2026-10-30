@@ -13,7 +13,7 @@ import {
 } from '../test-support/colyseus-harness'
 import { TEST_NET } from '../test-support/engine-harness'
 import { fixtureGame, fixtureServer } from '../test-support/fixture-game'
-import { upgradeStatus } from '../test-support/raw-upgrade'
+import { halfOpenRefusal, upgradeStatus } from '../test-support/raw-upgrade'
 
 // The server's public surface (FloorFifty tests/server/gate/public-surface.test.ts, eleven cases; spec §6 origins,
 // sockets and the room cap, SV-c, SV-d). FloorFifty's /content and /health are not this row's (Plus serves no
@@ -80,6 +80,15 @@ describe("the public surface's origins", () => {
     // A listed origin is handed on: whatever Colyseus makes of the path, it is not our refusal.
     expect(await upgradeStatus(server.runtime.port, TEST_ORIGIN)).toBe(101)
     expect(server.runtime.sockets.open).toBeLessThanOrEqual(1)
+  })
+
+  // Review: a refused upgrade from a client that never closes its end must not stay open on the server.
+  it('closes a refused socket from its own side, whatever the client does', async () => {
+    server = await start()
+    expect(await halfOpenRefusal(server.runtime.port, 'https://elsewhere.test')).toEqual({
+      status: 403,
+      closedByServer: true,
+    })
   })
 
   // FloorFifty allowed every origin when none was listed, as in dev; SV-d refuses to start instead.

@@ -63,15 +63,16 @@ function parsed(body: string): unknown {
   }
 }
 
-/** Answers a versioned matchmaking request from another version, and says whether it did. */
+/** Answers a versioned matchmaking request (`path`, as Colyseus routes it) from another version, and says whether it did. */
 export function refuseStaleVersion(
   request: IncomingMessage,
   response: ServerResponse,
+  path: string,
   body: string,
   version: GameVersion,
   origins: OriginPolicy,
 ): boolean {
-  if (!VERSIONED.test(request.url ?? '')) return false
+  if (!VERSIONED.test(path)) return false
   if (versionVerdict(parsed(body), version) !== 'mismatch') return false
   return writeRefusal(request, response, 400, 'VERSION_MISMATCH', origins)
 }

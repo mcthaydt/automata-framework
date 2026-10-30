@@ -40,6 +40,23 @@ const SWEEP_EVERY_MS = 60_000
 
 const CALL = /^\/matchmake\/(\w+)\//
 
+/**
+ * The path as Colyseus routes it: its router builds a WHATWG `Request` from the raw URL, which resolves `.`, `..` and
+ * `%2e` segments, so `/x/../matchmake/…` reaches the matchmaker. The gate must read that same path, or such a request
+ * would pass every check below untouched. `normal` is false when the raw path is not already that path: nothing a
+ * browser sends, so it is refused rather than interpreted.
+ */
+function pathOf(url: string | undefined): { path: string; normal: boolean } {
+  const raw = url ?? '/'
+  const rawPath = raw.split('?')[0] ?? raw
+  try {
+    const path = new URL(raw, 'http://localhost').pathname
+    return { path, normal: path === rawPath }
+  } catch {
+    return { path: rawPath, normal: false }
+  }
+}
+
 export interface MatchmakeGateOptions {
   readonly origins: OriginPolicy
   readonly isDraining: () => boolean
@@ -77,14 +94,19 @@ export function createMatchmakeGate(options: MatchmakeGateOptions): MatchmakeGat
   }
 
   return async (request, response) => {
-    if (request.method !== 'POST' || !(request.url ?? '').startsWith('/matchmake/')) return false
     const refuse = (status: number, code: Parameters<typeof writeRefusal>[3], logged: string): true => {
       options.onRefused(logged)
       return writeRefusal(request, response, status, code, options.origins)
     }
+    const { path, normal } = pathOf(request.url)
+    if (request.method !== 'POST' || !path.startsWith('/matchmake/')) {
+      // Not matchmaking as Colyseus reads it; a path that is not already normal is still refused (below).
+      return normal ? false : refuse(400, 'REFUSED', 'path')
+    }
     if (!options.origins.allows(request.headers.origin)) return refuse(403, 'REFUSED', 'origin')
+    if (!normal) return refuse(400, 'REFUSED', 'path')
 
-    const call = CALL.exec(request.url ?? '')?.[1]
+    const call = CALL.exec(path)?.[1]
     const limit = call === undefined ? undefined : TAKES[call]
     if (limit !== undefined) {
       if (options.isDraining() && limit !== 'reconnect') return refuse(503, 'SERVER_UPDATING', 'draining')
@@ -99,7 +121,7 @@ export function createMatchmakeGate(options: MatchmakeGateOptions): MatchmakeGat
       return true
     }
     ;(request as IncomingMessage & { body?: string }).body = body
-    if (refuseStaleVersion(request, response, body, options.version, options.origins)) {
+    if (refuseStaleVersion(request, response, path, body, options.version, options.origins)) {
       options.onRefused('version')
       return true
     }

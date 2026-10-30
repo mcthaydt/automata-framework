@@ -23,8 +23,12 @@ export interface UpgradeGateOptions {
 /** Admits an upgrade, or answers it and says it did not. An admitted socket is counted until it closes. */
 export type UpgradeGate = (request: IncomingMessage, socket: Duplex) => boolean
 
+/**
+ * Writes the status and then destroys the socket. `end` alone leaves it half open (Node's server allows that, and an
+ * upgrade has no timeout), so a client that never closed its end would hold a descriptor the count never sees.
+ */
 const refuse = (socket: Duplex, status: string): false => {
-  socket.end(`HTTP/1.1 ${status}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`)
+  socket.end(`HTTP/1.1 ${status}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`, () => socket.destroy())
   return false
 }
 
