@@ -50,6 +50,18 @@ export {
   Haptics,
   type HapticsOptions,
 } from './haptics/haptics.manager.js'
+export type { TouchStickSink } from './input/analog/analog-input.js'
+export {
+  CAMERA_SETTINGS_DEFAULT,
+  CAMERA_TURN_SPEED,
+  type CameraSettings,
+  cameraSettingsSchema,
+} from './input/analog/camera-settings.schema.js'
+export {
+  MAX_TURN_UNITS_PER_STEP,
+  TURN_UNITS_PER_TURN,
+  turnUnitsFromPixels,
+} from './input/analog/camera-turn.js'
 export {
   type BindingOverride,
   INPUT_SETTINGS_DEFAULT,
@@ -68,6 +80,12 @@ export {
   rebindProfile,
 } from './input/bindings/rebind.js'
 export type { GlyphFamily } from './input/gamepad/glyph-family.js'
+export {
+  CameraDragTracker,
+  type DragPointer,
+  type DragSink,
+  type DragStart,
+} from './input/gestures/camera-drag-tracker.js'
 export {
   GESTURE_TUNING,
   type GestureSink,
