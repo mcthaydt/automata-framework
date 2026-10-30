@@ -34,6 +34,7 @@
     "pixi.js": "8.22.0"
   },
   "devDependencies": {
+    "@mcthaydt/automata-ship": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
@@ -41,6 +42,7 @@
     "playwright": "1.63.0",
     "svelte": "5.57.1",
     "typescript": "6.0.3",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }
