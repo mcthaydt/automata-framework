@@ -238,8 +238,17 @@ export type Garment = Classic | Streetwear
 
 const swatch = contentRef('figure-swatch')
 const optionalSwatch = swatch.optional()
-const n = z.number()
 const flag = z.boolean().optional()
+/**
+ * The garments' numbers, each bounded (M3.5b review): a little past what FigureBuilder's library, its
+ * builders' defaults and its random wardrobe's draws use, so any value in range builds a sound garment. Out of
+ * range they break the build (cargos of width 0 run out of memory) or the garment (a skirt above the hip).
+ */
+const within = (min: number, max: number) => z.number().min(min).max(max)
+/** A hanging garment's length: 0 the hip, 0.5 the knee, 1 the ankle (garments/classic.ts hemAt). */
+const length = within(0, 1)
+/** A zip's teeth, top to foot: at least one swatch. */
+const zip = z.array(swatch).min(1).optional()
 
 const hair: z.ZodType<HairGarment> = z.strictObject({
   hair: swatch,
@@ -270,25 +279,26 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
   shoes: z.strictObject({ shoes: swatch, sole: optionalSwatch, boots: flag }),
   skirt: z.strictObject({
     skirt: swatch,
-    length: n,
-    flare: n.optional(),
-    folds: n.optional(),
+    length,
+    flare: within(0, 2).optional(),
+    folds: within(0, 0.3).optional(),
     hem: optionalSwatch,
   }),
   apron: z.strictObject({
     apron: swatch,
     shade: optionalSwatch,
-    length: n,
+    length,
     bib: flag,
     straps: z.enum(['cross', 'neck']).optional(),
     pockets: flag,
-    bibWidth: n.optional(),
-    wrap: n.optional(),
+    // Of the shoulders' half-width; rad either side of the front.
+    bibWidth: within(0.1, 1.2).optional(),
+    wrap: within(0.2, Math.PI).optional(),
     tie: flag,
   }),
-  coat: z.strictObject({ coat: swatch, length: n, buttons: optionalSwatch, collar: optionalSwatch }),
+  coat: z.strictObject({ coat: swatch, length, buttons: optionalSwatch, collar: optionalSwatch }),
   belt: z.strictObject({ belt: swatch, buckle: optionalSwatch }),
-  cape: z.strictObject({ cape: swatch, length: n.optional(), trim: optionalSwatch }),
+  cape: z.strictObject({ cape: swatch, length: length.optional(), trim: optionalSwatch }),
   gloves: z.strictObject({ gloves: swatch }),
   hair,
   cap,
@@ -304,8 +314,8 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
     puffer: swatch,
     trim: optionalSwatch,
     zip: optionalSwatch,
-    length: n.optional(),
-    baffles: n.optional(),
+    length: length.optional(),
+    baffles: z.number().int().min(1).max(12).optional(),
   }),
   hoodie: z.strictObject({
     hoodie: swatch,
@@ -317,15 +327,16 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
   tee: z.strictObject({
     tee: swatch,
     rib: optionalSwatch,
-    fit: n.optional(),
+    // Its width over the shoulders (1.16 oversized); its length, 0 at the waistband, 1 a hand below the hip.
+    fit: within(0.8, 1.6).optional(),
     sleeves: flag,
-    length: n.optional(),
+    length: within(-0.1, 2).optional(),
   }),
-  jacket: z.strictObject({ jacket: swatch, zip: z.array(swatch).optional(), hardware: optionalSwatch }),
+  jacket: z.strictObject({ jacket: swatch, zip, hardware: optionalSwatch }),
   bomber: z.strictObject({
     bomber: swatch,
     rib: optionalSwatch,
-    zip: z.array(swatch).optional(),
+    zip,
     hardware: optionalSwatch,
     tipping: optionalSwatch,
   }),
@@ -333,7 +344,8 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
   cargos: z.strictObject({
     cargos: swatch,
     hardware: optionalSwatch,
-    width: n.optional(),
+    // Of the era's straight cut.
+    width: within(0.5, 1.5).optional(),
     cuff: flag,
     stitch: optionalSwatch,
   }),
@@ -346,8 +358,9 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
     court: flag,
     tab: optionalSwatch,
   }),
-  chain: z.strictObject({ chain: swatch, links: optionalSwatch, drop: n.optional() }),
-  hoops: z.strictObject({ hoops: swatch, size: n.optional() }),
+  // The U's depth on the chest (m at 1.62 m); a hoop's drop, of the head's height (under 0.12 a stud).
+  chain: z.strictObject({ chain: swatch, links: optionalSwatch, drop: within(0.02, 0.3).optional() }),
+  hoops: z.strictObject({ hoops: swatch, size: within(0.02, 0.5).optional() }),
   shades: z.strictObject({ shades: swatch, frame: optionalSwatch, up: flag }),
 }
 
