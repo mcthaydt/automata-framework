@@ -45,6 +45,7 @@ describe('editor-kit core entry', () => {
       'pickFolder',
       'restoreFolder',
       'statPath',
+      'storePathProblem',
     ])
   })
 

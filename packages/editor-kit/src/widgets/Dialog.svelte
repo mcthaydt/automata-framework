@@ -18,12 +18,22 @@ interface Props {
   open: boolean
   title: string
   dismissible?: boolean
+  /** `wide` (up to 40rem) makes room for a text view or a table; the default is a 26rem confirmation. */
+  width?: 'normal' | 'wide' | undefined
   onclose?: ((why: CloseReason) => void) | undefined
   children: Snippet
   actions?: Snippet<[{ close: () => void }]> | undefined
 }
 
-let { open = $bindable(), title, dismissible = true, onclose, children, actions }: Props = $props()
+let {
+  open = $bindable(),
+  title,
+  dismissible = true,
+  width = 'normal',
+  onclose,
+  children,
+  actions,
+}: Props = $props()
 
 const uid = $props.id()
 let dialog = $state<HTMLElement>()
@@ -82,6 +92,7 @@ function onClick(event: MouseEvent): void {
       aria-labelledby={`${uid}-title`}
       tabindex="-1"
       data-widget="dialog"
+      data-width={width}
       bind:this={dialog}
       use:modal
     >
@@ -119,6 +130,9 @@ function onClick(event: MouseEvent): void {
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     outline: none;
+  }
+  .dialog[data-width='wide'] {
+    width: min(40rem, 100%);
   }
   .title {
     margin: 0;
