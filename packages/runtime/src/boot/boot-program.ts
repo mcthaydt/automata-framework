@@ -34,6 +34,7 @@ import { makeSettings, Settings } from '../settings/settings.manager.js'
 import { makeTime, Time, watchLifecycle } from '../time/time.manager.js'
 import { BootDefect, type BootError, ContentHashMismatch } from './boot-error.js'
 import type { GameDefinition } from './game-definition.js'
+import { notifyFailure } from './notify-failure.js'
 import type { LoaderControls, PageLayers } from './page-layers.svelte.js'
 import { createPageLayers } from './page-layers.svelte.js'
 
@@ -308,6 +309,7 @@ export function bootProgram<S>(
       veil,
       ...(game.copy !== undefined ? { copy: game.copy } : {}),
       services: () => runtimeContext,
+      onFailure: (cause) => notifyFailure(game.seams, cause),
       ...(import.meta.env?.DEV
         ? {
             logUnmatched: (screen: string, event: string) =>
@@ -337,7 +339,7 @@ export function bootProgram<S>(
           screen: flowHandle.flow.current ?? '',
           cause,
         })
-        game.seams?.onFailure?.(cause)
+        notifyFailure(game.seams, cause)
       },
     })
 

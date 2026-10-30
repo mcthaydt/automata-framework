@@ -107,3 +107,24 @@ Consumed: `runGame` (`@mcthaydt/automata-runtime`), `isDefinedGame` (`@mcthaydt/
   duplicate of `runMessage` (removed) and the API report test found the two changed reports (`pnpm build`,
   `pnpm api-report --update`); `pnpm api-index` and `pnpm agent-skills` are current; `check-changesets` 0 problems.
   Through the root config, `--project 'playground-*'`: 51 passed (24 feasibility, 27 frame).
+- **Independent review (a separate agent reading the diff against the spec), all addressed test-first:**
+  1. A screen that failed to load or enter showed its panel but never reached `seams.onFailure`, and the frame then
+     posted `running`. The flow now hears it (`MakeFlowOptions.onFailure`); a `runGame` test with an `enter` that
+     throws failed first ("expected [] to have a length of 1"), then passed.
+  2. A determinism check that could not run (a missing or unreadable golden) either said nothing or surfaced as the
+     example failing through `unhandledrejection`. The protocol gains `determinism-unavailable`, posted from a
+     try/catch around the check; the protocol test failed first on the new shape, and a browser case (a golden that
+     does not exist) passes in all three engines.
+  3. `startAtPlay` skipped core-saves' title, where its slots are; a game with `saves` keeps its title now (unit test,
+     failed first on the new signature).
+  4. A throwing `onFailure` would have stopped the runtime's own failure handling: every call now goes through
+     `notifyFailure`, which swallows the listener's throw and runs after the panel is up; a test with a throwing
+     listener timed out on `data-state` first, then passed. The doc says the seam can fire once per failed attempt.
+     The frame also omits a guard line below 1 instead of posting a message the protocol refuses.
+  5. The content-hash formula was retyped: the runtime now exports `contentHashOf` (its pinned export list is updated
+     on purpose) and `startAtPlay` uses it. The content package's root was tried first and pulled Node-only modules
+     into the browser build, so it was not used.
+  Minor: `hashRun` and `checkGolden` set the sim up with the plugins, seed and setup only, as the parity suite records
+  the goldens, so a hash here is comparable with it.
+  After the fixes: 37 unit tests in `src/playground`, 85 in the runtime's boot and flow folders, 30 frame cases in
+  Chromium, WebKit and Firefox through the root config, `TURBO_FORCE=true pnpm check` exit 0, API reports updated.

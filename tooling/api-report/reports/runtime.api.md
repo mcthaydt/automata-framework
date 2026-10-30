@@ -340,6 +340,12 @@ class ContentHashMismatch extends ContentHashMismatchBase {
 }
 ```
 
+### `contentHashOf` (function)
+
+```ts
+function contentHashOf(data: unknown): string;
+```
+
 ### `CORE_SETTINGS` (const)
 
 ```ts

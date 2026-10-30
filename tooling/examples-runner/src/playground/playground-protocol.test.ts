@@ -26,6 +26,7 @@ describe('the playground protocol', () => {
         golden: 'diverged',
         tick: 61,
       },
+      { v: 1, type: 'determinism-unavailable', runId: 3, message: 'the golden could not be read (404)' },
     ]
     for (const message of messages) expect(frameMessage.parse(message)).toEqual(message)
   })

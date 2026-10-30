@@ -65,7 +65,8 @@ function failure(runId: number, phase: Phase, cause: unknown): FrameMessage {
   const error = rootCause(cause)
   const message = (error instanceof Error ? error.message : String(error)).slice(0, MAX_FAILURE_CHARS)
   const base = { v: PROTOCOL_VERSION, type: 'failed', runId, phase, message } as const
-  if (error instanceof LoopGuardError) return { ...base, line: error.line, hung: true }
+  if (error instanceof LoopGuardError)
+    return error.line >= 1 ? { ...base, line: error.line, hung: true } : { ...base, hung: true }
   const location =
     error instanceof Error && error.stack ? exampleLocation(error.stack, examplePath) : undefined
   return location === undefined ? base : { ...base, ...location }
@@ -115,9 +116,19 @@ async function determinism(game: DefinedGame<unknown>, run: RunMessage): Promise
     return
   }
   const response = await fetch(request.replay)
-  if (!response.ok) return
+  if (!response.ok) throw new Error(`the golden could not be read (${response.status})`)
   const checked = await checkGolden(game, new Uint8Array(await response.arrayBuffer()))
   post({ v: PROTOCOL_VERSION, type: 'determinism', runId: run.runId, ...checked })
+}
+
+/** Runs the check, keeping its own failures apart from the example's: they never reach `fail`. */
+async function checkDeterminism(game: DefinedGame<unknown>, run: RunMessage): Promise<void> {
+  try {
+    await determinism(game, run)
+  } catch (error) {
+    const message = (error instanceof Error ? error.message : String(error)).slice(0, MAX_FAILURE_CHARS)
+    post({ v: PROTOCOL_VERSION, type: 'determinism-unavailable', runId: run.runId, message })
+  }
 }
 
 async function start(run: RunMessage): Promise<void> {
@@ -171,7 +182,7 @@ async function start(run: RunMessage): Promise<void> {
   if (reported) return
   post({ v: PROTOCOL_VERSION, type: 'running', runId: run.runId })
   await new Promise((resolve) => setTimeout(resolve, 0))
-  await determinism(defined, run)
+  await checkDeterminism(defined, run)
 }
 
 const gate = createRunGate(window.parent, location.origin)

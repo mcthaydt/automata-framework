@@ -834,4 +834,57 @@ describe('seams.onFailure', () => {
     expect(reported === thrown || reported.cause === thrown).toBe(true)
     await handle.shutdown()
   })
+
+  it('hears a screen that fails to enter, with what its enter threw', async () => {
+    const frames = manualFrames()
+    const failures: unknown[] = []
+    const thrown = new Error('enter broke')
+    const handle = runGame(
+      baseGame({
+        screens: [
+          {
+            id: 'title',
+            enter: () =>
+              Effect.sync(() => {
+                throw thrown
+              }),
+          },
+        ],
+        seams: {
+          frames,
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          onFailure: (cause) => failures.push(cause),
+        },
+      }),
+    )
+    await driveFirstFrame(frames)
+    for (let tries = 0; tries < 50 && failures.length === 0; tries += 1) await settle(2)
+    expect(failures).toHaveLength(1)
+    const reported = failures[0] as Error & { cause?: unknown }
+    expect(reported === thrown || reported.cause === thrown).toBe(true)
+    await handle.shutdown()
+  })
+
+  it('still shows the failure when the seam itself throws', async () => {
+    const frames = manualFrames()
+    const handle = runGame(
+      baseGame({
+        renderer: () =>
+          Effect.sync(() => {
+            throw new Error('Unexpected defect in renderer')
+          }),
+        seams: {
+          frames,
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          onFailure: () => {
+            throw new Error('the listener broke')
+          },
+        },
+      }),
+    )
+    await driveFirstFrame(frames)
+    await waitForState('failed')
+    expect(root.querySelector('[role="alert"]')).not.toBeNull()
+    await handle.shutdown()
+  })
 })

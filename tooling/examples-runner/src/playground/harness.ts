@@ -45,7 +45,7 @@ export function runExample(game: DefinedGame<unknown>, options: RunExampleOption
   if (gameEnv === null) throw new Error('the playground needs the in-memory fake host')
   const handle = runGame({
     ...game,
-    content: startAtPlay(game.content),
+    content: startAtPlay(game),
     root: options.root,
     seams: { ...game.seams, sdkEnv: () => gameEnv, onFailure: options.onFailure },
   })
@@ -57,10 +57,13 @@ export function runExample(game: DefinedGame<unknown>, options: RunExampleOption
   }
 }
 
-/** A sim set up as the default screens set one up: the game's plugins, seed, content and `setup`, at tick 0. */
+/**
+ * A sim set up as the examples' goldens are recorded (`examples.parity.test.ts`): the game's plugins, seed and `setup`,
+ * at tick 0, without the sim's content, so a hash here is comparable with the framework's parity suite.
+ */
 export async function exampleSim(game: DefinedGame<unknown>): Promise<Sim> {
-  const { plugins, seed, content, setup } = game.sim
-  const sim = await createSim({ plugins: [...plugins], seed, content })
+  const { plugins, seed, setup } = game.sim
+  const sim = await createSim({ plugins: [...plugins], seed })
   setup?.(sim)
   return sim
 }
@@ -102,10 +105,8 @@ function firstDivergence(
  */
 export async function checkGolden(game: DefinedGame<unknown>, bytes: Uint8Array): Promise<GoldenCheck> {
   const replay = await unpackReplay(bytes, streamCompression)
-  const stepper = await createReplayStepper(replay, {
-    plugins: game.sim.plugins,
-    ...(game.sim.content === undefined ? {} : { content: game.sim.content }),
-  })
+  // Replayed with the plugins alone, as the parity suite replays the examples' goldens.
+  const stepper = await createReplayStepper(replay, { plugins: game.sim.plugins })
   try {
     const diverged = firstDivergence(stepper, replay.reference?.hashes)
     const ticks = stepper.tick - replay.header.startTick

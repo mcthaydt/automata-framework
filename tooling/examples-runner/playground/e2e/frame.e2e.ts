@@ -150,3 +150,19 @@ test('the loop guard leaves the golden hash as it was', async ({ page }) => {
   await run(page, 'shapes', 'rects', compiled('shapes', 'rects', guarded), GOLDEN)
   expect(await waitFor(page, 'determinism')).toMatchObject({ golden: 'pass' })
 })
+
+// A check that cannot run is the check's problem, not the example's: the preview keeps running and says so.
+test('a golden that cannot be read leaves the preview running and says the check is unavailable', async ({
+  page,
+}) => {
+  await run(page, 'shapes', 'rects', compiled('shapes', 'rects'), {
+    ticks: 120,
+    replay: '/playground/goldens/no-such-example.replay',
+  })
+  expect(await waitFor(page, 'determinism-unavailable')).toMatchObject({ runId: 1 })
+  expect((await log(page)).map((message) => message.type)).toEqual([
+    'booted',
+    'running',
+    'determinism-unavailable',
+  ])
+})

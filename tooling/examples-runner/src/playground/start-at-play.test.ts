@@ -1,16 +1,14 @@
 import { defaultContent } from '@mcthaydt/automata'
-import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
+import { contentHashOf } from '@mcthaydt/automata-runtime'
 import { describe, expect, it } from 'vitest'
 import { startAtPlay } from './start-at-play.ts'
-
-const hashOf = (data: unknown) => hex64(xxhash64(utf8(canonicalJson(data))))
 
 describe('startAtPlay', () => {
   it('moves the default flow to start at play, with the hash the runtime checks recomputed', () => {
     const content = defaultContent()
-    const started = startAtPlay(content)
+    const started = startAtPlay({ content })
     expect(started.data.flow.entry).toBe('play')
-    expect(started.hash).toBe(hashOf(started.data))
+    expect(started.hash).toBe(contentHashOf(started.data))
     expect({ ...started.data, flow: { ...started.data.flow, entry: 'title' } }).toEqual(content.data)
   })
 
@@ -20,6 +18,12 @@ describe('startAtPlay', () => {
       data: { ...content.data, flow: { ...content.data.flow, entry: 'intro', transitions: [] } },
       hash: 'x',
     }
-    expect(startAtPlay(own)).toBe(own)
+    expect(startAtPlay({ content: own })).toBe(own)
+  })
+
+  // The title is where a game with a save shows its slots (core-saves), so it keeps it.
+  it('leaves a game with a save at its title', () => {
+    const content = defaultContent()
+    expect(startAtPlay({ content, saves: { def: { key: 'walk' } } })).toBe(content)
   })
 })

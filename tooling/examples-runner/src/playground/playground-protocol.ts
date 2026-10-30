@@ -70,12 +70,24 @@ export const determinismMessage = z.strictObject({
   tick: z.number().int().min(0).optional(),
 })
 
+/**
+ * The determinism check could not run (its golden could not be fetched or read). The preview is unaffected: a check
+ * that fails to run is never reported as the example failing.
+ */
+export const determinismUnavailableMessage = z.strictObject({
+  v,
+  type: z.literal('determinism-unavailable'),
+  runId,
+  message: z.string().max(MAX_FAILURE_CHARS),
+})
+
 /** What a frame sends its parent. */
 export const frameMessage = z.discriminatedUnion('type', [
   bootedMessage,
   runningMessage,
   failedMessage,
   determinismMessage,
+  determinismUnavailableMessage,
 ])
 export type FrameMessage = z.infer<typeof frameMessage>
 

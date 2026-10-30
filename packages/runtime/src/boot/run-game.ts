@@ -4,6 +4,7 @@ import { BootDefect, type BootError } from './boot-error.js'
 import { bootProgram } from './boot-program.js'
 import { failureHost } from './failure-host.js'
 import type { GameDefinition, RuntimeHandle } from './game-definition.js'
+import { notifyFailure } from './notify-failure.js'
 import type { LoaderControls, PageLayers } from './page-layers.svelte.js'
 import { createPageLayers } from './page-layers.svelte.js'
 
@@ -100,7 +101,6 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
 
         // Log error through describeBootError (exhaustive switch)
         yield* Effect.logError(describeBootError(error))
-        game.seams?.onFailure?.(error)
 
         // Close loader if still mounted
         loaderRef.current?.close()
@@ -145,6 +145,7 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
             }
           },
         })
+        notifyFailure(game.seams, error)
 
         unmountFailure = closeFailure
       }
