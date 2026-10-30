@@ -1,0 +1,31 @@
+# The shared rig limits: the M3 spec's starting values (§4.4.2), in degrees. M3.6a tunes them against the
+# Studio's drags; until then nothing reads them but the content check.
+
+about = "The starting limits every figure shares unless it names its own."
+
+[elbow]
+min = 0
+max = 150
+
+[knee]
+min = 0
+max = 150
+
+[shoulder]
+cone = 110
+
+[hip]
+cone = 95
+
+[chest]
+twist = { min = -35, max = 35 }
+pitch = { min = -20, max = 30 }
+
+[neck]
+yaw = { min = -70, max = 70 }
+pitch = { min = -40, max = 50 }
+
+[head]
+yaw = { min = -70, max = 70 }
+pitch = { min = -40, max = 50 }
+roll = { min = -25, max = 25 }

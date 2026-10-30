@@ -968,7 +968,11 @@ Each call relays the SDK's answer or error as a `HostError`: without the grant a
 interface HostingLeaderboards {
   /** Submits `score` to `board` (a Ruken slug); `meta` is passed to the host as is. */
   submit(board: string, score: number, meta?: Parameters<LeaderboardsApi["submit"]>[2]): Effect.Effect<LeaderboardSubmitRes, HostError>;
-  /** Reads `board`: the top entries or those around the player, as the SDK's options say. */
+  /**
+   * Reads `board` with the SDK's options (`scope` `top` or `around-me`, `limit`). Ruken's host now answers with the
+   * player's own entry only, or none, whatever the options (the SDK marks `get` deprecated at RukenApp d0fa2fe, since
+   * Ruken added achievements); the call and its answer's shape are unchanged.
+   */
   get(board: string, query?: Parameters<LeaderboardsApi["get"]>[1]): Effect.Effect<LeaderboardGetRes, HostError>;
 }
 ```
@@ -1050,9 +1054,9 @@ function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effe
 #### `RUKEN_SDK_MARKERS` (const)
 
 String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe
-key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp b30d31b. An `itch` or
-`web` build must contain neither, because it bundles the web adapter instead of the SDK; a `ruken` build
-contains both. The web adapter's own probe key (`WEB_STORAGE_PROBE_KEY`) is deliberately different.
+key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at
+b30d31b). An `itch` or `web` build must contain neither, because it bundles the web adapter instead of the SDK;
+a `ruken` build contains both. The web adapter's own probe key (`WEB_STORAGE_PROBE_KEY`) is deliberately different.
 
 Re-check these after re-vendoring the SDK: `target.build.test.ts` fails if a default build stops containing them.
 
