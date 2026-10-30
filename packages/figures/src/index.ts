@@ -1,10 +1,11 @@
 // @mcthaydt/automata-figures: procedural characters (M3 spec §4.4), renderer-free. Part 1 (M3.5a): the math,
 // the shared rig and its two-bone IK, the gene sliders, the figure and library content kinds, and the
 // extension that registers them. Part 2 (M3.5b): `build()`, the part, garment and hair generators behind it.
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
+// Part 3 (M3.5c): locomotion (`base()`, `moveDir`), stands, holds, hems, the pose clock and the hair spring.
 // Part 5 (M3.6a): `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits.
 // Part 6 (M3.6b): poses (`figure-pose` content), their canonical spelling, mirror, blend and checks.
 // Part 7 (M3.6c): clips (`figure-clip` content), eases, sampling, loop and stepped time, retime and markers.
+// Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
 
 export { type Anchor, type AnchorKind, clearance } from './build/anchors'
 export { type Built, build, type FigureLibrary } from './build/build'
@@ -92,6 +93,36 @@ export { type HandPlace, type Hang, type Stand, standSchema } from './library/st
 export { SWATCH_KINDS, SWATCH_ROLES, type Swatch, swatchSchema } from './library/swatch.schema'
 export { type SwatchColourProblem, swatchColourProblems } from './library/swatch-colours'
 export * from './math/math'
+export { base, relaxed } from './motion/base'
+export {
+  headLead,
+  type PoseClock,
+  poseClock,
+  shufflePhase,
+  turnStep,
+  wrapAngle,
+} from './motion/clock'
+export { DEFAULT_HAIR, gaitOf, hairOf } from './motion/gait-of'
+export { type FootTarget, walkFoot } from './motion/gait-path'
+export {
+  HAIR_AT_REST,
+  type HairInput,
+  type HairSpring,
+  hairStep,
+  headNod,
+} from './motion/hair-spring'
+export { placeHems } from './motion/hems'
+export { applyHold, evaluateMotion, holdOf } from './motion/hold'
+export type { ArmHold, Evaluated, HairSwing, MotionState } from './motion/motion-state'
+export {
+  CHAIN,
+  fits,
+  openings,
+  place,
+  type Surface,
+  standFor,
+  standHolds,
+} from './motion/stands'
 export { type Decal, GROUP, type Mesh, type Part, type Weight } from './parts/mesh'
 export { FIGURE_PPM } from './parts/texels'
 export { applyPose } from './pose/apply-pose'

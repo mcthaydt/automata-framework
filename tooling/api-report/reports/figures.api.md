@@ -50,6 +50,12 @@ function apply(m: M, p: V3): V3;
 function applyDir(m: M, v: V3): V3;
 ```
 
+### `applyHold` (function)
+
+```ts
+function applyHold(s: Skeleton, evaluated: Evaluated, hold: ArmHold): Evaluated;
+```
+
 ### `applyPose` (function)
 
 ```ts
@@ -81,10 +87,30 @@ interface Apron {
 const armChain: (side: Side) => number[];
 ```
 
+### `ArmHold` (interface)
+
+```ts
+interface ArmHold {
+    readonly side: Side;
+    readonly hand: V3;
+    readonly turn: V3;
+    readonly pole: V3;
+    readonly in?: number | undefined;
+    readonly aim?: readonly [fingers: V3, palm: V3] | undefined;
+    readonly anchor?: AnchorKind | undefined;
+}
+```
+
 ### `axisAngle` (function)
 
 ```ts
 function axisAngle(axis: V3, angle: number): Q;
+```
+
+### `base` (function)
+
+```ts
+function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated;
 ```
 
 ### `basis` (function)
@@ -219,6 +245,12 @@ interface Cargos {
 }
 ```
 
+### `CHAIN` (const)
+
+```ts
+const CHAIN: Readonly<Record<HandPlace['at'], readonly (AnchorKind | 'hang')[]>>;
+```
+
 ### `Chain` (interface)
 
 ```ts
@@ -334,6 +366,12 @@ interface Decal {
 }
 ```
 
+### `DEFAULT_HAIR` (const)
+
+```ts
+const DEFAULT_HAIR: HairDynamics;
+```
+
 ### `DEFAULT_HEAD` (const)
 
 ```ts
@@ -397,6 +435,21 @@ function euler(pitch: number, yaw: number, roll: number): Q;
 
 ```ts
 function eulerOf(q: Q): [number, number, number];
+```
+
+### `Evaluated` (interface)
+
+```ts
+interface Evaluated {
+    pose: Pose;
+    world: M[];
+}
+```
+
+### `evaluateMotion` (function)
+
+```ts
+function evaluateMotion(s: Skeleton, gait: Gait, st: MotionState): Evaluated;
 ```
 
 ### `Eyes` (interface)
@@ -562,10 +615,28 @@ const figureStandContent: ContentSchemaDef<'figure-stand'>;
 const figureSwatchContent: ContentSchemaDef<'figure-swatch'>;
 ```
 
+### `fits` (function)
+
+```ts
+function fits(s: Skeleton, built: Pick<Built, 'anchors' | 'parts'>, stand: Stand): boolean;
+```
+
 ### `fk` (function)
 
 ```ts
 function fk(s: Skeleton, pose: Pose): M[];
+```
+
+### `FootTarget` (interface)
+
+```ts
+interface FootTarget {
+    readonly side: Side;
+    readonly at: V3;
+    readonly pitch: number;
+    readonly turn: number;
+    readonly planted: boolean;
+}
 ```
 
 ### `Gait` (interface)
@@ -619,6 +690,12 @@ interface Gait {
     readonly spring?: number | undefined;
     readonly chin?: number | undefined;
 }
+```
+
+### `gaitOf` (function)
+
+```ts
+function gaitOf(def: FigureDef, gaits: Readonly<Record<string, Gait>>): Gait;
 ```
 
 ### `gaitOverridesSchema` (const)
@@ -701,6 +778,12 @@ const GROUP: {
 };
 ```
 
+### `HAIR_AT_REST` (const)
+
+```ts
+const HAIR_AT_REST: HairSpring;
+```
+
 ### `HairDynamics` (interface)
 
 ```ts
@@ -724,6 +807,42 @@ interface HairGarment {
 }
 ```
 
+### `HairInput` (interface)
+
+```ts
+interface HairInput {
+    readonly moving: boolean;
+    readonly phase: number;
+    readonly speed: number;
+    readonly yawRate: number;
+    readonly nod: number;
+    readonly headTilt: number;
+}
+```
+
+### `hairOf` (function)
+
+```ts
+function hairOf(def: FigureDef): HairDynamics;
+```
+
+### `HairSpring` (interface)
+
+```ts
+interface HairSpring {
+    readonly pitch: number;
+    readonly roll: number;
+    readonly vPitch: number;
+    readonly vRoll: number;
+}
+```
+
+### `hairStep` (function)
+
+```ts
+function hairStep(hp: HairDynamics, h: HairSpring, input: HairInput, dt: number): HairSpring;
+```
+
 ### `HairStyle` (interface)
 
 ```ts
@@ -739,6 +858,15 @@ interface HairStyle {
 
 ```ts
 const hairStyleSchema: z.ZodType<HairStyle>;
+```
+
+### `HairSwing` (interface)
+
+```ts
+interface HairSwing {
+    readonly pitch: number;
+    readonly roll: number;
+}
 ```
 
 ### `HandPlace` (interface)
@@ -765,6 +893,18 @@ interface Hang {
 
 ```ts
 function hash(n: number): number;
+```
+
+### `headLead` (function)
+
+```ts
+function headLead(gait: Gait, shown: number, facing: number): number;
+```
+
+### `headNod` (function)
+
+```ts
+function headNod(head: M, yaw: number): number;
 ```
 
 ### `HeadShape` (interface)
@@ -819,6 +959,12 @@ interface Hold {
     readonly turn: Vec3;
     readonly pole: Vec3;
 }
+```
+
+### `holdOf` (function)
+
+```ts
+function holdOf(item: ItemDef, s: Skeleton, side: Side): ArmHold;
 ```
 
 ### `Hoodie` (interface)
@@ -1102,6 +1248,25 @@ function mirror(pose: PoseDef): PoseDef;
 function mmul(a: M, b: M): M;
 ```
 
+### `MotionState` (interface)
+
+```ts
+interface MotionState {
+    readonly t: number;
+    readonly moving: boolean;
+    readonly phase: number;
+    readonly yaw: number;
+    readonly headYaw: number;
+    readonly shuffle: number;
+    readonly moveDir?: number | undefined;
+    readonly hair?: HairSwing | null | undefined;
+    readonly hold?: ArmHold | null | undefined;
+    readonly stand?: Stand | null | undefined;
+    readonly holds?: readonly ArmHold[] | null | undefined;
+    readonly clear?: readonly [number, number] | null | undefined;
+}
+```
+
 ### `mul3` (function)
 
 ```ts
@@ -1112,6 +1277,12 @@ function mul3(a: R3, b: R3): R3;
 
 ```ts
 const normalize: (a: V3) => V3;
+```
+
+### `openings` (function)
+
+```ts
+function openings(s: Skeleton, surface?: Surface): Anchor[];
 ```
 
 ### `PARENTS` (const)
@@ -1156,6 +1327,18 @@ type Piece = {
 };
 ```
 
+### `place` (function)
+
+```ts
+function place(s: Skeleton, side: Side, p: HandPlace, surface?: Surface, anchors?: readonly Anchor[]): ArmHold | null;
+```
+
+### `placeHems` (function)
+
+```ts
+function placeHems(s: Skeleton, pose: Pose, world: readonly M[], line?: readonly [number, number]): void;
+```
+
 ### `PoleId` (type)
 
 ```ts
@@ -1180,6 +1363,24 @@ interface Pose {
     rot: Q[];
     shift: V3[];
 }
+```
+
+### `PoseClock` (interface)
+
+```ts
+interface PoseClock {
+    readonly phase: number;
+    readonly t: number;
+    readonly step: number;
+}
+```
+
+### `poseClock` (function)
+
+```ts
+function poseClock(gait: Gait, time: number, options?: {
+    readonly still?: boolean;
+}): PoseClock;
 ```
 
 ### `PoseDef` (interface)
@@ -1303,6 +1504,12 @@ interface Reach {
 const REFERENCE_SKELETON: Skeleton;
 ```
 
+### `relaxed` (const)
+
+```ts
+const relaxed: (gait: Gait) => Stand;
+```
+
 ### `restPose` (function)
 
 ```ts
@@ -1415,6 +1622,12 @@ interface Shoes {
     readonly sole?: string | undefined;
     readonly boots?: boolean | undefined;
 }
+```
+
+### `shufflePhase` (function)
+
+```ts
+function shufflePhase(gait: Gait, clock: PoseClock, turning: boolean, moving: boolean): number;
 ```
 
 ### `Side` (type)
@@ -1594,6 +1807,21 @@ interface Stand {
 }
 ```
 
+### `standFor` (function)
+
+```ts
+function standFor(s: Skeleton, built: Pick<Built, 'anchors' | 'parts'>, id: string, stands: Readonly<Record<string, Stand>>): {
+    readonly id: string;
+    readonly stand: Stand;
+} | null;
+```
+
+### `standHolds` (function)
+
+```ts
+function standHolds(s: Skeleton, stand: Stand, surface?: Surface, anchors?: readonly Anchor[]): ArmHold[];
+```
+
 ### `standSchema` (const)
 
 ```ts
@@ -1616,6 +1844,12 @@ type Streetwear = Puffer | Hoodie | Tee | Jacket | Bomber | WideLegs | Cargos | 
 
 ```ts
 const sub: (a: V3, b: V3) => V3;
+```
+
+### `Surface` (type)
+
+```ts
+type Surface = (origin: V3, dir: V3) => number;
 ```
 
 ### `Swatch` (interface)
@@ -1718,6 +1952,12 @@ interface Trousers {
 }
 ```
 
+### `turnStep` (function)
+
+```ts
+function turnStep(gait: Gait, shown: number, facing: number): number;
+```
+
 ### `twoBoneIK` (function)
 
 ```ts
@@ -1744,6 +1984,12 @@ interface Waistcoat {
 }
 ```
 
+### `walkFoot` (function)
+
+```ts
+function walkFoot(g: Gait, s: Skeleton, side: Side, phase: number, moveDir?: number): FootTarget;
+```
+
 ### `Weight` (type)
 
 ```ts
@@ -1758,4 +2004,10 @@ interface WideLegs {
     readonly stitch?: string | undefined;
     readonly hardware?: string | undefined;
 }
+```
+
+### `wrapAngle` (const)
+
+```ts
+const wrapAngle: (a: number) => number;
 ```
