@@ -18,7 +18,7 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 | `AF_READ_TOKEN` (classic token, `read:packages`) | Secrets of each game repository | Install `@mcthaydt` packages from GitHub Packages |
 | `RUKEN_TOKEN` | Secrets of each game repository | `ruken publish` for that game (`game-release.yml`) |
 | `SHIP_DEV_SSH_KEY`, `SHIP_DEV_KNOWN_HOSTS` | Secrets of each game repository | Deploy a game to the dev host |
-| The `af-linux` runner registration | The runner PC | Run CI jobs for this repository |
+| The `af-linux` runner registration | The runner PC (`owner-pc-wsl-af`, the Owner's Windows PC under WSL2 Ubuntu-24.04; service `actions.runner.mcthaydt-automata-framework.owner-pc-wsl-af`) | Run the checks, the games' CI and the consumer smoke for this repository (since 2026-10-30, when `AF_LINUX_RUNNER` went back from `af-mac` to `af-linux`) |
 | The `af-mac` runner registrations | The Owner's Mac | Run CI jobs and, since 2026-10-30, the release jobs (`release-packages.yml`: version, and publish behind the `release` approval) |
 | The npm token for npmjs.org | Not created yet (DX.11) | Will publish the public packages |
 
@@ -56,7 +56,7 @@ Published versions live in GitHub Packages, and from DX.11 also on npmjs.org.
 | What | Where it is held | How to restore it |
 |---|---|---|
 | Repository settings: the `release` environment and its reviewer, rulesets, private vulnerability reporting | GitHub repository settings | Recreate them by hand from this list (QB.1 Owner actions in [02](02-master-delivery-plan.md)) |
-| Repository variables `AF_LINUX_RUNNER`, `AF_GPU_RUNNER` | GitHub repository settings | Unset means `af-linux`; set them only to move jobs |
+| Repository variables `AF_LINUX_RUNNER`, `AF_GPU_RUNNER` | GitHub repository settings | Unset means `af-linux`; set them only to move jobs (2026-10-30: `AF_LINUX_RUNNER` = `af-linux`; it was `af-mac` from about 2026-10-17) |
 | Game repository secrets and variables (`AF_READ_TOKEN`, `RUKEN_TOKEN`, `RUKEN_API`, `RUKEN_GAME`, `SHIP_DEV_*`) | Each game repository | Create new tokens, as in "Lost credentials" |
 | The `af-linux` self-hosted runner | The Owner's PC (WSL2 Ubuntu with Docker) | Register a new runner with the label `af-linux` (Ruken's `docs/self-hosted-runner.md`) |
 | The Renovate app installation | GitHub Apps | Install it on the repository again; `renovate.json` holds the configuration |

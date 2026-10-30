@@ -2,10 +2,10 @@ import { checkManifest, inputsProblems, rukenToml, type ShipInputBindings } from
 import { createSim } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { base3d, input } from '../game.ts'
 import packageJson from '../package.json' with { type: 'json' }
 import config from '../ship.config.ts'
 import { TICK_HZ } from './constants.ts'
+import { base3d, input } from './main.ts'
 
 describe('base-3d ship.config.ts', () => {
   it("is a manifest Ruken's parser accepts, rendered with WebGL2, landscape (M3 spec §4.7)", () => {
