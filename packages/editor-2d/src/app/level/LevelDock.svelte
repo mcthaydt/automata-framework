@@ -15,7 +15,7 @@ interface Props {
 const { cards, onopen }: Props = $props()
 </script>
 
-<nav class="dock" aria-label="Levels" data-testid="level-dock" data-scroll-region="inline">
+<nav class="dock" aria-label="Levels" data-testid="level-dock" data-scroll-region="both">
   {#each cards as card (card.id)}
     <button
       type="button"
