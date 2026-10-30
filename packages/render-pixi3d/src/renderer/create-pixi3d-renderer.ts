@@ -13,6 +13,10 @@ import { Effect, ExecutionStrategy, Exit, Runtime, Scope } from 'effect'
 import { Graphics } from 'pixi.js'
 import { angledCamera, type CameraRig } from '../camera/angled-camera.js'
 import { cameraDriver, type Pixi3dCameraOptions, PLAYER_HEIGHT } from '../camera/camera-driver.js'
+import { lampSwitches } from '../light/lamp-switches.js'
+import { createSceneLight, type SceneLight } from '../light/scene-light.js'
+import type { SceneFog, SceneLighting } from '../light/scene-lighting.schema.js'
+import { fogSkyColor, viewFog } from '../light/view-fog.js'
 import { loadModels, type ModelLibrary } from '../model/load-models.js'
 import { pixi3dUniformSyncInstalled } from '../no-eval/pixi3d-uniform-sync.js'
 import { createOccluders, type OccluderStage, type Occluders, occluderHooks } from '../occluders/occluders.js'
@@ -25,11 +29,31 @@ export interface Pixi3dOptions extends PixiRendererOptions {
   /**
    * After the `View3D` is mounted, before the first frame: the camera, the lights and the static scenery. Walls,
    * ceilings and tall props are registered with `occluders`, so the angled camera's occluder rule keeps them off the
-   * player (M3 spec §4.2). It may return hooks, which run after the views (and the camera) each step and frame.
+   * player (M3 spec §4.2). With `lighting`, `light` is the room's light: bake each static mesh with
+   * `light.bake(mesh)`. It may return hooks, which run after the views (and the camera) each step and frame.
    */
   readonly scene?:
-    | ((view: View3D, stage: PixiStage, occluders: Occluders) => PixiStageHooks | undefined)
+    | ((
+        view: View3D,
+        stage: PixiStage,
+        occluders: Occluders,
+        light: SceneLight | undefined,
+      ) => PixiStageHooks | undefined)
     | undefined
+  /**
+   * The view's linear fog (M3 spec §4.1). Without it, the lighting content's `fog`; without both, none. With fog, the
+   * sky behind the scene is the colour fog reaches (in place of `backgroundColor`), so fogged walls meet it with no edge.
+   */
+  readonly fog?: SceneFog | undefined
+  /**
+   * The room's light from content (M3 spec §4.3): static meshes baked in `scene`, `lit` views tinted each frame.
+   */
+  readonly lighting?: SceneLighting | undefined
+  /**
+   * The component whose entities switch lamps, with fields `lamp` (a lamp id) and `level` (0 off, 1 full): a change
+   * rebakes the meshes that lamp reaches and relights the characters in its range. Needs `lighting`.
+   */
+  readonly lamps?: string | undefined
   /**
    * The angled camera on the player (M3 spec §4.2): the rig follows the entity with `camera-heading` (the `./sim`
    * entry), reading its `view` and `heading` and the position in `follow`. Without it the `View3D`'s camera is the
@@ -78,7 +102,17 @@ interface Mounted {
   readonly occluders: OccluderStage
   readonly consumer: RenderDeltaConsumer<Container3D>
   readonly hooks: PixiStageHooks
+  readonly light: SceneLight | undefined
   readonly camera: CameraRig | undefined
+}
+
+/**
+ * The sky behind the scene: `backgroundColor`, or with fog the colour fog reaches, so fogged walls meet it with no edge
+ * (spec §4.2, S7-Q10).
+ */
+function skyOf(options: Pixi3dOptions): number | undefined {
+  const fog = options.fog ?? options.lighting?.fog
+  return fog === undefined ? options.backgroundColor : fogSkyColor(fog)
 }
 
 function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): Mounted {
@@ -87,24 +121,34 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   const view = letterboxed
     ? new View3D({ width: options.logicalWidth, height: options.logicalHeight, toneMapping: 'none' })
     : new View3D({ autoResize: true, toneMapping: 'none' })
+  view.fog = viewFog(options.fog, options.lighting?.fog)
   // The sky. The view draws no colour where no mesh is, so the letterbox's black field shows through there (the app's
-  // clear colour is under that field). A 2D fill of the view's rect, under it, draws `backgroundColor` exactly on
-  // both backends; `@pixi/3d`'s hemisphere background lifts dark colours (0x020c0c draws as 0x091414). Inside the
-  // view only, so the bars keep `barColor`. Without a letterbox the app's clear colour is the sky already.
-  if (letterboxed && options.backgroundColor !== undefined)
-    stage.world.addChild(new Graphics().rect(0, 0, view.width, view.height).fill(options.backgroundColor))
+  // clear colour is under that field). A 2D fill of the view's rect, under it, draws the sky exactly on both backends;
+  // `@pixi/3d`'s hemisphere background lifts dark colours (0x020c0c draws as 0x091414). Inside the view only, so the
+  // bars keep `barColor`. Without a letterbox the app's clear colour is the sky already (`skyOf`).
+  const sky = skyOf(options)
+  if (letterboxed && sky !== undefined)
+    stage.world.addChild(new Graphics().rect(0, 0, view.width, view.height).fill(sky))
   stage.world.addChild(view)
+  const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
+  const switches =
+    light === undefined || options.lamps === undefined ? undefined : lampSwitches(options.lamps)
   const resolver: Record<string, (row: RenderRow, componentId?: string) => EntityView3d | undefined> = {}
   for (const [id, factory] of Object.entries(options.views))
-    resolver[id] = (row, componentId) => factory(row, componentId, models)
+    resolver[id] = (row, componentId) => factory(row, componentId, models, light)
   const consumer = new RenderDeltaConsumer<Container3D>(view.root, resolver)
   const entities: PixiStageHooks = {
-    apply: (result) => consumer.apply(result.render),
+    apply: (result) => {
+      const levels = switches?.apply(result.render)
+      if (levels !== undefined) light?.setLevels(levels)
+      consumer.apply(result.render)
+    },
     draw: (frame) => consumer.interpolate(frame.alpha),
     reset: () => consumer.reset(),
   }
   const occluders = createOccluders(view.root)
-  if (options.camera === undefined) return { view, occluders, consumer, hooks: entities, camera: undefined }
+  if (options.camera === undefined)
+    return { view, occluders, consumer, hooks: entities, light, camera: undefined }
   const camera = angledCamera({
     camera: view.camera,
     views: options.camera.views,
@@ -120,6 +164,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     occluders,
     consumer,
     hooks: mergeHooks(entities, cameraDriver(camera, options.camera), occluding),
+    light,
     camera,
   }
 }
@@ -164,12 +209,13 @@ function buildInstance(
       let mounted: Mounted | undefined
       const base = yield* createPixiRenderer({
         ...options,
+        backgroundColor: skyOf(options),
         setup: (stage) => {
           if (!acceptsRenderer(stage.app.renderer as unknown as RendererKind)) return undefined
           const made = mount(stage, options, models)
           mounted = made
           const own = options.setup?.(stage) ?? undefined
-          return mergeHooks(made.hooks, own, options.scene?.(made.view, stage, made.occluders))
+          return mergeHooks(made.hooks, own, options.scene?.(made.view, stage, made.occluders, made.light))
         },
       })(target)
       if (mounted === undefined) {

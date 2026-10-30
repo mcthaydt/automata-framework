@@ -14,6 +14,21 @@ export {
 export { type Pixi3dCameraOptions, PLAYER_HEIGHT } from './camera/camera-driver.js'
 export { LOCK_SHARE, type Vec3 } from './camera/camera-pose.js'
 export { cameraViewContent } from './camera/camera-view.content.js'
+export { type BakeOptions, createSceneLight, type SceneLight } from './light/scene-light.js'
+export { sceneLightingContent } from './light/scene-lighting.content.js'
+export {
+  type Lamp,
+  lampSchema,
+  type OccluderBox,
+  type OccluderPlane,
+  occluderBoxSchema,
+  occluderPlaneSchema,
+  type SceneFog,
+  type SceneLighting,
+  sceneFogSchema,
+  sceneLightingSchema,
+} from './light/scene-lighting.schema.js'
+export { characterTint, type LampLevels } from './light/vertex-light.js'
 export {
   type DecodeTexture,
   type LoadedModel,

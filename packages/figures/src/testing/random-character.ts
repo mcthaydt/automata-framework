@@ -60,7 +60,7 @@ const LOOKBOOK: Partial<Record<keyof Sliders, [number, number]>> = {
   faceForward: [0.4, 0.85],
 }
 /** The gaits a random character walks in (FigureBuilder `STREET_GAITS`). */
-const STREET_GAITS = ['strut', 'loose', 'bounce', 'still', 'brisk'] as const
+export const STREET_GAITS = ['strut', 'loose', 'bounce', 'still', 'brisk'] as const
 const SKINS = ['fair', 'pale', 'sallow', 'brown', 'auburn'] as const
 
 export interface RandomCharacter {
