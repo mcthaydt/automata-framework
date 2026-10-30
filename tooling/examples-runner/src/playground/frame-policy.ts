@@ -18,15 +18,34 @@ function rukenPolicy(): string {
   return policy
 }
 
-/** The frame page's Content-Security-Policy, for a page whose import map is exactly `importMapText`. */
-export function framePolicy(importMapText: string): string {
+// WebKit does not match 'self' to the site for a fetch from an opaque-origin document, though it does for scripts and
+// images (measured in WEB.PLAY.1, risk R-2), so `connect-src` names the site's origin beside 'self'.
+function checkedOrigin(siteOrigin: string): string {
+  let parsed: string | undefined
+  try {
+    parsed = new URL(siteOrigin).origin
+  } catch {
+    parsed = undefined
+  }
+  if (parsed !== siteOrigin) throw new Error(`framePolicy: ${JSON.stringify(siteOrigin)} is not an origin`)
+  return siteOrigin
+}
+
+/**
+ * The frame page's Content-Security-Policy, for a page whose import map is exactly `importMapText`, served from
+ * `siteOrigin` (scheme, host and port only).
+ */
+export function framePolicy(importMapText: string, siteOrigin: string): string {
+  const origin = checkedOrigin(siteOrigin)
   const hash = createHash('sha256').update(importMapText, 'utf8').digest('base64')
   return rukenPolicy()
     .split(';')
     .map((directive) => directive.trim())
     .filter((directive) => !DROPPED.has(directive.split(/\s+/)[0] ?? ''))
-    .map((directive) =>
-      directive.startsWith('script-src ') ? `${directive} blob: 'sha256-${hash}'` : directive,
-    )
+    .map((directive) => {
+      if (directive.startsWith('script-src ')) return `${directive} blob: 'sha256-${hash}'`
+      if (directive.startsWith('connect-src ')) return `${directive} ${origin}`
+      return directive
+    })
     .join('; ')
 }

@@ -9,6 +9,8 @@ import {
   demoHostOrigin,
   demoHostPort,
   examplesPort,
+  playgroundOrigin,
+  playgroundPort,
   runnerFixturesPort,
 } from './tooling/examples-runner/host/ports.ts'
 import { selectRun } from './tooling/frame-budget/src/playwright-run.ts'
@@ -90,6 +92,13 @@ const journeys = defineConfig({
       use: { ...devices['Pixel 7'] },
     },
     ...matrixProjects,
+    // The playground's feasibility proof (website playground spec, WEB.PLAY.1), in every engine the site supports
+    // and Firefox, which the site's own suite does not run.
+    ...(['chromium', 'webkit', 'firefox'] as const).map((browserName) => ({
+      name: `playground-${browserName}`,
+      testDir: 'tooling/examples-runner/playground/e2e',
+      use: { browserName },
+    })),
   ],
   webServer: [
     {
@@ -157,6 +166,13 @@ const journeys = defineConfig({
       url: contentDemo.devUrl,
       env: { AF_E2E_DEMO_PORT: String(contentDemo.devPort) },
       reuseExistingServer: false,
+    },
+    {
+      // The playground's feasibility server (tooling/examples-runner/playground): the site in miniature.
+      command: 'pnpm --filter @mcthaydt/examples-runner e2e:playground',
+      url: `${playgroundOrigin}/`,
+      env: { AF_E2E_PLAYGROUND_PORT: String(playgroundPort) },
+      reuseExistingServer: process.env.CI === undefined,
     },
   ],
 })
