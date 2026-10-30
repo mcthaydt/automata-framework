@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sync": "node --import tsx scripts/sync-demos.ts && node --import tsx scripts/sync-docs.ts",
+    "sync": "node --import tsx scripts/sync-demos.ts && node --import tsx scripts/sync-docs.ts && node --import tsx scripts/sync-playground.ts",
     "dev": "vite dev",
     "build": "pnpm verify:workshop && pnpm build:workshop && vite build && node --import tsx scripts/write-seo-files.ts build",
     "preview": "vite preview",
@@ -19,6 +19,8 @@
     "sync:evidence": "node --import tsx scripts/sync-evidence.ts"
   },
   "dependencies": {
+    "@babel/parser": "8.0.10",
+    "sucrase": "3.35.1",
     "zod": "4.6.5"
   },
   "devDependencies": {

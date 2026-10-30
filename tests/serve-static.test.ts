@@ -20,6 +20,10 @@ writeFileSync(join(dir, 'page.html.gz'), gzipSync(html))
 mkdirSync(join(dir, 'lonely'))
 writeFileSync(join(dir, 'lonely', 'index.html'), html)
 writeFileSync(join(dir, '404.html'), '<title>gone</title>')
+mkdirSync(join(dir, 'playground', 'runtime'), { recursive: true })
+writeFileSync(join(dir, 'playground', 'runtime', 'automata-1a2b.js'), 'export {}')
+mkdirSync(join(dir, 'playground', 'examples', 'shapes', 'rects'), { recursive: true })
+writeFileSync(join(dir, 'playground', 'examples', 'shapes', 'rects', 'index.html'), html)
 
 const servers: ChildProcess[] = []
 afterAll(() => {
@@ -81,5 +85,33 @@ describe('serve-static', () => {
     expect(await lonely.text()).toBe(html)
     const missing = await fetch(`${origin}/nope`, { headers: { 'accept-encoding': 'br' } })
     expect(missing.status).toBe(404)
+  })
+
+  // The playground's frame has an opaque origin, so everything it loads from /playground/ is a cross-origin request
+  // with Origin: null (spec §11.3).
+  it('serves /playground/ with CORS and cross-origin CORP, caching the hashed runtime for good', async () => {
+    const origin = await serve()
+    const runtime = await fetch(`${origin}/playground/runtime/automata-1a2b.js`, { headers: { origin: 'null' } })
+    expect(runtime.headers.get('access-control-allow-origin')).toBe('*')
+    expect(runtime.headers.get('cross-origin-resource-policy')).toBe('cross-origin')
+    expect(runtime.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
+    const page = await fetch(`${origin}/playground/examples/shapes/rects/`)
+    expect(page.headers.get('access-control-allow-origin')).toBe('*')
+    expect(page.headers.get('cache-control')).toBe('no-cache')
+  })
+
+  it('never caches a missing runtime file for good', async () => {
+    const origin = await serve()
+    const missing = await fetch(`${origin}/playground/runtime/automata-0000.js`)
+    expect(missing.status).toBe(404)
+    expect(missing.headers.get('cache-control')).toBe('no-store')
+  })
+
+  it('adds none of those headers outside /playground/', async () => {
+    const origin = await serve()
+    const response = await fetch(`${origin}/page`)
+    expect(response.headers.get('access-control-allow-origin')).toBeNull()
+    expect(response.headers.get('cross-origin-resource-policy')).toBeNull()
+    expect(response.headers.get('cache-control')).toBe('no-store')
   })
 })
