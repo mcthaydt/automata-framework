@@ -516,6 +516,9 @@ importers:
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       zod:
         specifier: 4.6.6
         version: 4.6.6

@@ -22,7 +22,7 @@ function read(name: (typeof FIXTURE_NAMES)[number]): Blockout {
 const definition = (id: string) => must(lastLightDefinitions.find((def) => def.id === id))
 
 describe('lastLightDefinitions', () => {
-  it('are the spawn, the box, the hotspot, the lamp, the anchor and the nav node', () => {
+  it('are the spawn, the box, the hotspot, the lamp, the anchor, the nav node and the camera zone', () => {
     expect(lastLightDefinitions.map((def) => [def.id, def.shape])).toEqual([
       ['spawn', 'point'],
       ['box', 'box'],
@@ -30,6 +30,7 @@ describe('lastLightDefinitions', () => {
       ['lamp', 'point'],
       ['anchor', 'point'],
       ['node', 'point'],
+      ['zone', 'point'],
     ])
   })
 
@@ -72,6 +73,7 @@ describe('lastLightDefinitions', () => {
       lamp: ['range:float! >=0', 'radius:float! >=0', 'color:float[]! >=0 <=1', 'kind:text', 'on:text'],
       anchor: ['radius:float >=0', 'on:text'],
       node: ['on:text'],
+      zone: ['distance:float >=6 <=30', 'follow:float', 'x0:float', 'z0:float', 'x1:float', 'z1:float'],
     })
   })
 
@@ -101,8 +103,7 @@ describe('the definition ids and the Last Light checks', () => {
             if (ref?.kind === 'entity') named.add(ref.definition)
           }
     }
-    // Zones are not things yet (ED3D.7), so their locators name a definition that is not there.
-    expect([...named].filter((id) => id !== 'zone' && !known.has(id))).toEqual([])
+    expect([...named].filter((id) => !known.has(id))).toEqual([])
     // The corpus reaches the kinds that a nav check, a door check and an ids check locate.
     expect([...named].sort()).toEqual(
       expect.arrayContaining(['anchor', 'box', 'hotspot', 'lamp', 'node', 'spawn']),
@@ -125,8 +126,10 @@ describe('lastLightEntityKit', () => {
       expect(count('lamp')).toBe(blockout.lamps.length)
       expect(count('anchor')).toBe(Object.keys(blockout.anchors ?? {}).length)
       expect(count('node')).toBe(Object.keys(blockout.nav.nodes ?? {}).length)
+      expect(count('zone')).toBe(blockout.zones.length)
       expect(kit.things).toHaveLength(
         1 +
+          blockout.zones.length +
           blockout.boxes.length +
           blockout.hotspots.length +
           blockout.lamps.length +
@@ -140,17 +143,60 @@ describe('lastLightEntityKit', () => {
     },
   )
 
-  it('gives the spawn first, then boxes, hotspots, lamps, anchors and nav nodes, each in the order of its array', () => {
+  it('gives the spawn first, then boxes, hotspots, lamps, anchors, nav nodes and zones, each in the order of its array', () => {
     const blockout = read('blockout-clinic-dawn')
     const kit = lastLightEntityKit(blockout)
     const order = [...new Set(kit.things.map((thing) => thing.def))]
-    expect(order).toEqual(['spawn', 'box', 'hotspot', 'lamp', 'anchor', 'node'])
+    expect(order).toEqual(['spawn', 'box', 'hotspot', 'lamp', 'anchor', 'node', 'zone'])
     const ids = (id: string) => kit.things.filter((thing) => thing.def === id).map((thing) => thing.id)
     expect(ids('box')).toEqual(blockout.boxes.map((box) => box.id))
     expect(ids('hotspot')).toEqual(blockout.hotspots.map((hotspot) => hotspot.id))
     expect(ids('lamp')).toEqual(blockout.lamps.map((lamp) => lamp.id))
     expect(ids('anchor')).toEqual(Object.keys(blockout.anchors ?? {}))
     expect(ids('node')).toEqual(Object.keys(blockout.nav.nodes ?? {}))
+    expect(ids('zone')).toEqual(blockout.zones.map((zone) => zone.id))
+  })
+
+  it('reads a zone at its look point, its area as four sides of which an open one has no value, and nothing else', () => {
+    const kit = lastLightEntityKit(read('blockout-clinic-dawn'))
+    const zone = (id: string) => must(kit.things.find((thing) => thing.def === 'zone' && thing.id === id))
+    // The hall is the first zone: no area. The closet has a camera x (2.2), which is not a field and stays in the file.
+    expect(zone('hall')).toEqual({
+      def: 'zone',
+      id: 'hall',
+      x: 0,
+      z: 0.75,
+      y: 1.1,
+      values: { distance: 16.6, follow: 0.12 },
+    })
+    expect(zone('corridor')).toEqual({
+      def: 'zone',
+      id: 'corridor',
+      x: 0,
+      z: -4,
+      y: 0.6,
+      values: { distance: 16, follow: 1, z1: -1.25 },
+    })
+    expect(zone('closet')).toEqual({
+      def: 'zone',
+      id: 'closet',
+      x: 2.8,
+      z: -4.4,
+      y: 0.6,
+      values: { distance: 15, follow: 1, x0: 1.7, z1: -1.25 },
+    })
+  })
+
+  it("gives a zone Last Light's follow camera by default: 14 m away, following, and leaves follow's range to ids", () => {
+    const field = (id: string) => must(definition('zone').fields.find((each) => each.id === id))
+    expect(field('distance').default).toBe(14)
+    expect(field('follow').default).toBe(1)
+    expect([field('follow').min, field('follow').max]).toEqual([undefined, undefined])
+  })
+
+  it('says a zone bounds the rectangle of its four sides', () => {
+    expect(definition('zone').area).toEqual(['x0', 'z0', 'x1', 'z1'])
+    expect(definition('zone').sit).toBe('free')
   })
 
   it('takes the place and the values of a box, a hotspot and a lamp as the file has them', () => {
@@ -214,6 +260,7 @@ describe('lastLightEntityKit', () => {
       'spawn/spawn',
       'box/abDoor',
       'hotspot/far',
+      'zone/a',
     ])
   })
 
