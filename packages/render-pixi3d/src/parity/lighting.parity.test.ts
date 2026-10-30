@@ -4,10 +4,10 @@ import '../no-eval.js'
 import type { RenderRow, StepResult } from '@mcthaydt/automata-sim'
 import { FlatMaterial, Mesh3D, PlaneGeometry } from '@pixi/3d'
 import { Effect, Exit, Scope } from 'effect'
-import { RenderTexture } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
 import { sceneLightingSchema } from '../light/scene-lighting.schema.js'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '../renderer/create-pixi3d-renderer.js'
+import { snapshot } from '../testing/snapshot.js'
 import { testTarget } from '../testing/test-target.js'
 import { box } from '../views/box-view.js'
 
@@ -68,15 +68,6 @@ async function start(
   })
   scope = Effect.runSync(Scope.make())
   return Effect.runPromise(Scope.extend(factory(testTarget(host)), scope))
-}
-
-function snapshot(renderer: Pixi3dRenderer): Uint8ClampedArray | Uint8Array {
-  const { app } = renderer.stage
-  const texture = RenderTexture.create({ width: app.screen.width, height: app.screen.height, resolution: 1 })
-  app.renderer.render({ container: app.stage, target: texture, clear: true })
-  const { pixels } = app.renderer.extract.pixels(texture)
-  texture.destroy(true)
-  return pixels
 }
 
 /** Pixels in columns [from, to) that got darker / changed at all between two snapshots, by more than a rounding step. */
