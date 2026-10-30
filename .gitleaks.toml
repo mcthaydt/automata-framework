@@ -9,3 +9,9 @@ useDefault = true
 [[allowlists]]
 description = "The planted fake key of the scan's own self-test"
 paths = ['''^tooling/repo-hygiene/fixtures/secrets/''']
+
+[[allowlists]]
+description = """A false positive of the generic-api-key rule: commit ed9d06db (M3.6b, PR #217, superseded by #220)
+has the test line `keyPath: 'effectors.handR.rot.0'` in packages/figures/src/pose/pose-library.test.ts. Its branch
+stays on the remote until it is deleted, and the scan reads every ref."""
+commits = ["ed9d06db89cfbb61680f8c508a3005169894c533"]
