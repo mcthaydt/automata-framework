@@ -6,11 +6,16 @@ import { compileFixture } from './compile-fixture'
 
 export const FIXTURE_POSE_IDS = [
   'carry',
+  'flinch',
+  'free',
   'guard-high',
   'guard-low',
   'hands-on-hips',
   'kneel',
+  'look-across',
+  'look-out',
   'point',
+  'reach-out',
   'stand',
 ] as const
 

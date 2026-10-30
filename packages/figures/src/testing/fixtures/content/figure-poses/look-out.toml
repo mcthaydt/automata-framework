@@ -1,0 +1,14 @@
+# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. FigureBuilder's look turned out to one
+# side (mcthaydt/FigureBuilder a1f7246, motion.ts `lookYaw` at 0.75 rad): the chest takes a quarter of the turn
+# (its `euler(0, 0.1875, 0)` in degrees), the head the rest. The neck's and head's turns are the local turns equal
+# to FigureBuilder's change of its head angles on Wick standing still (M3.6d plan, decision 13), as
+# scripts/figurebuilder-action-goldens.ts prints them.
+
+about = "Looking out to the left: the head turned well round, the chest a little."
+
+[effectors]
+
+[fk]
+chest = [ 0, 10.743, 0 ]
+neck = [ -0.2152, 12.8883, 0.1725 ]
+head = [ -0.5038, 19.3259, 0.3593 ]
