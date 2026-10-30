@@ -36,3 +36,29 @@ it('passes clean Svelte files and skips *.test.svelte and testing/ folders', () 
   expect(result.stdout).toContain('check-style: 1 files, 0 findings')
   expect(result.status).toBe(0)
 })
+
+it('applies the game-root rules to roots after --game, and role-split', () => {
+  const pkg = src({
+    'components.ts': "import { defineComponent } from 'x'\nexport const A = defineComponent('a', {})\n",
+  })
+  const game = src({
+    'components.ts': "import { defineComponent } from 'x'\nexport const A = defineComponent('a', {})\n",
+    'systems.ts': "import { defineSystem } from 'x'\nexport const s = defineSystem({ name: 's' })\n",
+    'systems/goal.ts': "import { defineSystem } from 'x'\nexport const g = defineSystem({ name: 'g' })\n",
+  })
+  const result = spawnSync(process.execPath, [CLI, pkg, '--game', game], { encoding: 'utf8', cwd: game })
+  expect(result.stdout).toContain('role-suffix')
+  expect(result.stdout).toContain('systems.ts  role-split')
+  expect(result.stdout).toContain('check-style: 4 files, 2 findings')
+  expect(result.status).toBe(1)
+})
+
+it('passes a clean game root', () => {
+  const game = src({
+    'components.ts': "import { defineComponent } from 'x'\nexport const A = defineComponent('a', {})\n",
+    'main.ts': "import { defineGame } from 'x'\nexport const game = defineGame({})\n",
+  })
+  const result = spawnSync(process.execPath, [CLI, '--game', game], { encoding: 'utf8', cwd: game })
+  expect(result.stdout).toContain('check-style: 2 files, 0 findings')
+  expect(result.status).toBe(0)
+})

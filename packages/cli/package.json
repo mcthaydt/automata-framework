@@ -35,19 +35,22 @@
     "typecheck": "tsc -p .",
     "build": "tsdown",
     "test:slow": "vitest run --config vitest.slow.config.ts",
-    "check:example": "node src/bin.ts check ../../examples/base-2d --csp"
+    "check:example": "node src/bin.ts check ../../games/emberwick --csp"
   },
   "dependencies": {
     "@mcthaydt/automata-node": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "effect": "3.22.2",
     "oxc-parser": "0.152.0",
+    "semver": "7.8.5",
     "smol-toml": "1.9.0",
     "zod": "4.6.6"
   },
   "devDependencies": {
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
+    "@types/semver": "7.8.0",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }

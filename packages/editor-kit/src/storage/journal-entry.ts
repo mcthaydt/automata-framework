@@ -9,6 +9,12 @@ export interface JournalEntry {
   readonly savedAt: number
   /** The file's `mtime` when the editor opened or last saved it; `null` for a document with no file yet. */
   readonly baseMtime: number | null
+  /**
+   * The SHA-256 of the file as the session last saved it, when it has saved it. `findRecovery` compares this, not
+   * `baseMtime`, because after a save in the same second as another write `baseMtime` is the store's own token, which
+   * a store in a new tab does not know (`file-versions.ts`).
+   */
+  readonly baseHash?: string
   readonly payload: string
 }
 
@@ -30,10 +36,13 @@ export function parseJournalEntry(bytes: Uint8Array): JournalEntry | undefined {
     return undefined
   }
   if (typeof value !== 'object' || value === null) return undefined
-  const { format, path, savedAt, baseMtime, payload } = value as Record<string, unknown>
+  const { format, path, savedAt, baseMtime, baseHash, payload } = value as Record<string, unknown>
   if (format !== FORMAT) return undefined
   if (typeof path !== 'string' || typeof payload !== 'string') return undefined
   if (typeof savedAt !== 'number' || !Number.isFinite(savedAt)) return undefined
   if (baseMtime !== null && (typeof baseMtime !== 'number' || !Number.isFinite(baseMtime))) return undefined
-  return { path, savedAt, baseMtime, payload }
+  if (baseHash !== undefined && typeof baseHash !== 'string') return undefined
+  return baseHash === undefined
+    ? { path, savedAt, baseMtime, payload }
+    : { path, savedAt, baseMtime, baseHash, payload }
 }

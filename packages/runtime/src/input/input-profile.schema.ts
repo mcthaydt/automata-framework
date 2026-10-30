@@ -11,6 +11,7 @@ export const STANDARD_PAD_BUTTON_MAX = 16
  * one back path and Tab moves focus.
  */
 export const RESERVED_PAD_BUTTONS: readonly number[] = [8, 16]
+/** Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus). */
 export const RESERVED_KEYS: readonly string[] = ['Escape', 'Tab']
 
 const STICK_DIRECTIONS = [
@@ -23,11 +24,23 @@ const STICK_DIRECTIONS = [
   'right-left',
   'right-right',
 ] as const
-const GESTURE_NAMES = ['swipe-left', 'swipe-right', 'swipe-up', 'swipe-down', 'flick-down', 'tap'] as const
+/**
+ * `camera-drag` (M4.12, M4 spec §16.3.1) is analog: a one-finger or secondary-button drag whose horizontal pixels
+ * `Input.cameraDrag()` reads. It never holds or pulses an action; binding it is what turns the drag on.
+ */
+const GESTURE_NAMES = [
+  'swipe-left',
+  'swipe-right',
+  'swipe-up',
+  'swipe-down',
+  'flick-down',
+  'tap',
+  'camera-drag',
+] as const
 
 /** A stick pushed past its dead zone in one direction (M4.2 reads them). */
 export type StickDirection = (typeof STICK_DIRECTIONS)[number]
-/** A touch gesture (M4.3 recognises them). */
+/** A touch gesture (M4.3 recognises the swipes, flick and tap; M4.12 the camera drag). */
 export type GestureName = (typeof GESTURE_NAMES)[number]
 /** Where an action is live: during play, in menus, or both. */
 export type InputContext = 'play' | 'menu' | 'any'
@@ -136,11 +149,15 @@ export function actionsForGesture(profile: InputProfile, gesture: GestureName): 
 /** How touch drives play: the on-screen buttons, or swipes and flicks over the whole screen (M4 spec §4.4). */
 export type TouchMode = 'buttons' | 'swipe'
 
-/** The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a gesture. */
+/**
+ * The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a swipe, flick or
+ * tap. The camera drag works beside the buttons, so it offers no mode of its own.
+ */
 export function touchModesFor(profile: InputProfile): TouchMode[] {
   const bindings = Object.values(profile.bindings)
+  const isSwipe = (gesture: GestureName): boolean => gesture !== 'camera-drag'
   const modes: TouchMode[] = []
   if (bindings.some((binding) => binding.touch)) modes.push('buttons')
-  if (bindings.some((binding) => (binding.gesture?.length ?? 0) > 0)) modes.push('swipe')
+  if (bindings.some((binding) => binding.gesture?.some(isSwipe) === true)) modes.push('swipe')
   return modes
 }

@@ -12,6 +12,11 @@ export interface StackCard {
   readonly packages: readonly string[]
   /** A library AF has chosen but not installed yet: its npm packages and the task that installs them. */
   readonly planned?: { readonly packages: readonly string[]; readonly task: string }
+  /**
+   * A library installed in another repository rather than here (physics in automata-plus since PRODUCT.5g): its
+   * npm packages and that repository, which pins them. The page shows no version or license for it.
+   */
+  readonly elsewhere?: { readonly packages: readonly string[]; readonly repository: string }
   readonly does: string
   readonly why: string
   readonly adds: string
@@ -64,8 +69,14 @@ function plannedText(card: StackCard): string {
   return `not yet installed; planned for ${card.planned?.task ?? 'an unnamed task'}`
 }
 
+function elsewhereText(card: StackCard): string {
+  return `installed in ${card.elsewhere?.repository ?? 'another repository'}, not in this repository`
+}
+
 function summaryRow(card: StackCard, facts: ReadonlyMap<string, PackageFacts>): string {
   const link = `[${card.library}](#${anchor(card.library)})`
+  if (card.packages.length === 0 && card.elsewhere !== undefined)
+    return `| ${link} | ${card.tier} | ${elsewhereText(card)} | see there |`
   if (card.packages.length === 0) return `| ${link} | ${card.tier} | ${plannedText(card)} | none yet |`
   const cardFacts = card.packages.map((name) => factsFor(facts, name))
   const versions = cardFacts.map((fact) => `\`${fact.name}\` ${fact.versions.join(', ')}`).join('; ')
@@ -88,6 +99,15 @@ function cardSection(card: StackCard, facts: ReadonlyMap<string, PackageFacts>):
     const text = plannedText(card)
     const label = card.planned.packages.length === 1 ? 'Package' : 'Packages'
     lines.push(`${text[0]?.toUpperCase()}${text.slice(1)}. ${label}: ${names}.`, '')
+  }
+  if (card.elsewhere !== undefined) {
+    const names = card.elsewhere.packages.map((name) => `\`${name}\``).join(', ')
+    const text = elsewhereText(card)
+    const label = card.elsewhere.packages.length === 1 ? 'Package' : 'Packages'
+    lines.push(
+      `${text[0]?.toUpperCase()}${text.slice(1)}; its versions are pinned there. ${label}: ${names}.`,
+      '',
+    )
   }
   lines.push(
     `- **Tier:** ${card.tier}`,
@@ -223,6 +243,19 @@ export function collectStackFacts(root: string, cards: readonly StackCard[]): Ma
       if (user !== undefined) {
         throw new Error(
           `${name}: planned for ${card.planned?.task} but ${user.dir} depends on it now; move it to the card's packages`,
+        )
+      }
+    }
+    if (card.elsewhere !== undefined && card.packages.length > 0) {
+      throw new Error(
+        `${card.library}: a card held in ${card.elsewhere.repository} lists no packages of its own; move ${card.packages.join(', ')} to elsewhere or drop elsewhere`,
+      )
+    }
+    for (const name of card.elsewhere?.packages ?? []) {
+      const user = entries.find((entry) => mentions(entry.manifest, name))
+      if (user !== undefined) {
+        throw new Error(
+          `${name}: held in ${card.elsewhere?.repository} but ${user.dir} depends on it now; move it to the card's packages`,
         )
       }
     }

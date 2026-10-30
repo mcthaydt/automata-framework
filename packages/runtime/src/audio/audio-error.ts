@@ -1,6 +1,7 @@
 import { Data } from 'effect'
 import type { TaggedErrorClass } from '../boot/boot-error.js'
 
+/** The fields of `AudioDecodeFailed`. */
 export interface AudioDecodeFailedFields {
   /** The asset path the sound or music was asked for by. */
   readonly alias: string

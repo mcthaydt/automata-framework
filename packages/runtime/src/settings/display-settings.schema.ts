@@ -6,6 +6,7 @@ import { z } from 'zod'
  * Settings screen's Display section read it from here.
  */
 export const QUALITY_TIERS = ['high', 'medium', 'low'] as const
+/** A graphics quality tier: `high`, `medium` or `low`. */
 export type QualityTier = (typeof QUALITY_TIERS)[number]
 
 /** `high` until PRODUCT.7 has measured the phone profiles (M4-D6); no device auto-detection. */
@@ -18,6 +19,7 @@ export const qualityTierSchema: z.ZodType<QualityTier, unknown> = z.enum(QUALITY
 export interface DisplaySettings {
   readonly quality: QualityTier
 }
+/** The schema of `DisplaySettings`: an unknown or missing quality reads as `DEFAULT_QUALITY`. */
 export const displaySettingsSchema: z.ZodType<DisplaySettings, { quality?: unknown }> = z.object({
   quality: qualityTierSchema.default(DEFAULT_QUALITY),
 })

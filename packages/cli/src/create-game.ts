@@ -28,7 +28,8 @@ const CreateGameErrorBase: TaggedErrorClass<
 
 export class CreateGameError extends CreateGameErrorBase {}
 
-const ID_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/
+/** A game id, and a kit name for `automata add`: lowercase letters, digits and single hyphens, so never a path. */
+export const ID_REGEX: RegExp = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
 interface TemplateFile {
   readonly path: string
@@ -55,7 +56,7 @@ const TEMPLATE_FILES: readonly TemplateFile[] = [
             '@mcthaydt/automata-sim': 'workspace:*',
             '@ruken/sdk': '^0.0.0',
             effect: '3.22.2',
-            'pixi.js': '8.21.0',
+            'pixi.js': '8.22.0',
             zod: '4.6.6',
           },
           devDependencies: {
@@ -102,6 +103,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // Vite would inline an asset under 4 kB as a data: URL, which the game's loader fetches and Ruken's CSP
+    // (connect-src 'self') refuses; a file from the game's own origin is what the CSP allows.
+    assetsInlineLimit: 0,
   },
 })
 `,

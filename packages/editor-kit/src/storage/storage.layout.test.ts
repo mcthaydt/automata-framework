@@ -31,9 +31,26 @@ function freshDirectory(): string {
   return name
 }
 
-describeProjectStore('OPFS in Chromium', () =>
+describeProjectStore('OPFS in a real browser', () =>
   createOpfsStore({ directory: freshDirectory(), getRoot: opfsRoot }),
 )
+
+describe('two stores on one OPFS directory (two tabs)', () => {
+  // WebKit keeps `lastModified` in whole seconds, so these writes usually share one: the conflict must still show.
+  test('a change by the other store, at once and the same size, is a conflict (EK-e)', async () => {
+    const directory = freshDirectory()
+    const mine = await createOpfsStore({ directory, getRoot: opfsRoot })
+    const theirs = await createOpfsStore({ directory, getRoot: opfsRoot })
+    const opened = await mine.write('stage.toml', 'n = 1')
+    if (!opened.ok) throw new Error('write should succeed')
+    expect((await theirs.write('stage.toml', 'n = 2')).ok).toBe(true)
+    expect(await mine.write('stage.toml', 'n = 3', { mtime: opened.mtime })).toMatchObject({
+      ok: false,
+      reason: 'conflict',
+    })
+    expect(decode(await mine.read('stage.toml'))).toBe('n = 2')
+  })
+})
 
 describe('the default workspace in a real browser', () => {
   test('opens as a persistent OPFS workspace, with a journal apart from the documents', async () => {

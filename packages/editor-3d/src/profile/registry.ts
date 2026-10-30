@@ -1,7 +1,7 @@
 // The profiles this editor opens, and how a file says which one it is: an AF sector file names its format, a Last
 // Light blockout is the file with a scene and rooms. Detection reads the text only far enough to choose; the chosen
 // profile's codec does the real reading and says what is wrong with the file.
-import { JsonScanError, scan } from '../codec/locate'
+import { JsonScanError, scan } from '@mcthaydt/automata-editor-kit/documents'
 import { afSectorProfile } from './af-sector-profile'
 import { lastLightProfile } from './last-light-profile'
 import type { LevelProfile } from './level-profile'
@@ -11,6 +11,14 @@ const PROFILES: readonly LevelProfile<unknown>[] = [afSectorProfile, lastLightPr
 /** Every profile the editor opens, in the order detection tries them. */
 export function profiles(): readonly LevelProfile<unknown>[] {
   return PROFILES
+}
+
+/**
+ * Whether a level of this profile can belong to a facility file (`facility.json`, its own codec, no profile): only a
+ * Last Light blockout does. The app looks for one beside such a level, so World can show the wings it belongs to.
+ */
+export function hasFacility(profile: LevelProfile<unknown>): boolean {
+  return profile === (lastLightProfile as LevelProfile<unknown>)
 }
 
 export type Detected = { readonly profile: LevelProfile<unknown> } | { readonly reason: string }

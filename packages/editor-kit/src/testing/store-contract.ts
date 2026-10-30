@@ -7,7 +7,7 @@ const text = (bytes: Uint8Array | undefined): string | undefined =>
 
 /**
  * What every ProjectStore promises (kit spec §4.7), run against each adapter with a fresh, empty store per test.
- * The memory store, the handle stores over fakes and the real OPFS in Chromium all pass the same cases, so a fake
+ * The memory store, the handle stores over fakes and the real OPFS in Chromium, WebKit and Firefox all pass the same cases, so a fake
  * cannot drift from the browser unnoticed.
  */
 export function describeProjectStore(name: string, make: () => Promise<ProjectStore> | ProjectStore): void {
@@ -107,6 +107,20 @@ export function describeProjectStore(name: string, make: () => Promise<ProjectSt
       expect(refused).toMatchObject({ ok: false, reason: 'conflict' })
       expect(text(await store.read('a.txt'))).toBe('one')
       expect((await statPath(store, 'a.txt'))?.mtime).toBe(first.mtime)
+    })
+
+    test('a write after another, however soon, gets a new mtime, so expecting the first is a conflict (EK-e)', async () => {
+      // WebKit's OPFS keeps whole seconds and some folders keep two, so the platform clock alone can repeat.
+      const store = await make()
+      const first = await store.write('a.txt', 'one')
+      const second = await store.write('a.txt', 'two')
+      if (!(first.ok && second.ok)) throw new Error('both writes should succeed')
+      expect(second.mtime).not.toBe(first.mtime)
+      expect((await statPath(store, 'a.txt'))?.mtime).toBe(second.mtime)
+      const refused = await store.write('a.txt', 'three', { mtime: first.mtime })
+      expect(refused).toMatchObject({ ok: false, reason: 'conflict' })
+      expect(text(await store.read('a.txt'))).toBe('two')
+      expect((await store.write('a.txt', 'three', { mtime: second.mtime })).ok).toBe(true)
     })
 
     test('expecting an mtime for a file that is gone is a conflict', async () => {

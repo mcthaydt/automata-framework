@@ -1,3 +1,4 @@
+import { createFileVersions } from './file-versions'
 import {
   classifyStorageError,
   expectationProblem,
@@ -61,9 +62,11 @@ function isMissing(error: unknown): boolean {
  * code and differ only in `kind` and in the `guard` the folder needs. Writes go through `createWritable`, which
  * commits atomically on `close`; a write that fails is aborted and leaves the old bytes. The `expected` check and the
  * write are two steps, so another tab could slip between them; one editor tab per project is the supported setup.
+ * `mtime` is the file's `lastModified`, except where that would repeat for different bytes (`file-versions.ts`).
  */
 export function createHandleStore(root: DirectoryLike, options: HandleStoreOptions): ProjectStore {
   const { guard } = options
+  const versions = createFileVersions()
 
   /** Runs `body` after the guard, turning whatever it throws into a StorageError. */
   async function run<T>(body: () => Promise<T>): Promise<T> {
@@ -129,7 +132,7 @@ export function createHandleStore(root: DirectoryLike, options: HandleStoreOptio
         }
       } else if (path.startsWith(prefix)) {
         const file = await (await dir.getFileHandle(name)).getFile()
-        into.push({ path, size: file.size, mtime: file.lastModified })
+        into.push({ path, size: file.size, mtime: await versions.observe(path, file) })
       }
     }
   }
@@ -153,7 +156,10 @@ export function createHandleStore(root: DirectoryLike, options: HandleStoreOptio
         const dir = await directory(segments, false)
         const handle = dir === undefined ? undefined : await existingFile(dir, name)
         if (handle === undefined) return undefined
-        return new Uint8Array(await (await handle.getFile()).arrayBuffer())
+        const file = await handle.getFile()
+        const bytes = new Uint8Array(await file.arrayBuffer())
+        await versions.observe(path, file, bytes)
+        return bytes
       })
     },
 
@@ -165,22 +171,28 @@ export function createHandleStore(root: DirectoryLike, options: HandleStoreOptio
           // A write that expects an mtime needs the file, so it never makes the folders; the others may create them.
           const dir = await directory(segments, expected === undefined || expected === 'absent')
           const existing = dir === undefined ? undefined : await existingFile(dir, name)
-          // What the file is now, for every write (EDK.6a's version tracker observes here too), then the guard.
-          const before = existing === undefined ? undefined : (await existing.getFile()).lastModified
+          // What the file is now, for every write (the version tracker observes here too), then the guard.
+          const before =
+            existing === undefined ? undefined : await versions.observe(path, await existing.getFile())
           const problem = expectationProblem(expected, before)
           if (problem !== undefined)
             return { ok: false, reason: 'conflict', message: problem } satisfies WriteResult
           const target = dir ?? root
           const handle = existing ?? (await target.getFileHandle(name, { create: true }))
+          const bytes = toBytes(data)
           const writable = await handle.createWritable()
           try {
-            await writable.write(toBytes(data))
+            await writable.write(bytes)
             await writable.close()
           } catch (error) {
             await writable.abort().catch(() => undefined)
             throw error
           }
-          return { ok: true, mtime: (await handle.getFile()).lastModified } satisfies WriteResult
+          const { lastModified } = await handle.getFile()
+          return {
+            ok: true,
+            mtime: await versions.wrote(path, lastModified, bytes, before),
+          } satisfies WriteResult
         })
       } catch (error) {
         if (error instanceof StorageError) return { ok: false, reason: error.reason, message: error.message }
@@ -199,6 +211,7 @@ export function createHandleStore(root: DirectoryLike, options: HandleStoreOptio
         } catch (error) {
           if (!isMissing(error)) throw error
         }
+        versions.removed(path)
       })
     },
   }

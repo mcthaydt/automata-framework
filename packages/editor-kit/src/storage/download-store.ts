@@ -129,8 +129,12 @@ const REVOKE_AFTER_MS = 30_000
 export function browserDownloadEnv(page: BrowserPage = currentPage()): DownloadEnv {
   const asFile = (file: DownloadFile): File => new File([file.data], file.name, { type: file.type })
   const probe = new File([], 'probe.txt', { type: 'text/plain' })
-  const { share, canShare, clipboard } = page.navigator
-  const canShareFiles = share !== undefined && canShare?.({ files: [probe] }) === true
+  // Every platform method is called on its own object: WebKit's throw when detached ("Can only call
+  // Navigator.canShare on instances of Navigator").
+  const { navigator } = page
+  const { share } = navigator
+  const clipboard = navigator.clipboard
+  const canShareFiles = share !== undefined && navigator.canShare?.({ files: [probe] }) === true
   return {
     now: () => page.now(),
     download(file) {
@@ -145,7 +149,7 @@ export function browserDownloadEnv(page: BrowserPage = currentPage()): DownloadE
       page.setTimer(() => page.urls.revokeObjectURL(url), REVOKE_AFTER_MS)
     },
     ...(canShareFiles
-      ? { share: (file: DownloadFile) => share.call(page.navigator, { files: [asFile(file)] }) }
+      ? { share: (file: DownloadFile) => share.call(navigator, { files: [asFile(file)] }) }
       : {}),
     ...(clipboard === undefined ? {} : { copyText: (text: string) => clipboard.writeText(text) }),
   }

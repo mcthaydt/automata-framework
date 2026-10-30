@@ -1,4 +1,5 @@
-import { basename } from 'node:path'
+import { existsSync, statSync } from 'node:fs'
+import { basename, join, relative, sep } from 'node:path'
 import { parseSync } from 'oxc-parser'
 
 // Naming discipline (A0+A1 spec §3.3): kebab-case file names, and role suffixes that match what the file
@@ -11,6 +12,7 @@ export type StyleRule =
   | 'role-suffix'
   | 'role-mismatch'
   | 'role-missing'
+  | 'role-split'
   | 'parse-error'
   | 'no-html'
   | 'platform-chrome'
@@ -145,8 +147,46 @@ function exportedFactories(program: Node): string[] {
   return out
 }
 
-export function checkFile(file: string, code: string): StyleFinding[] {
-  return [...lengthFindings(file, code), ...namingFindings(file, code)]
+export interface CheckOptions {
+  /** A game's `src/`: paths under it may group the sim by role (GL spec §5.1). Package roots omit it. */
+  readonly gameRoot?: string
+}
+
+export function checkFile(file: string, code: string, options: CheckOptions = {}): StyleFinding[] {
+  return [...lengthFindings(file, code), ...namingFindings(file, code, options)]
+}
+
+// A game root names its sim files for the role they hold (GL spec §4.1): the plural of the five sim roles, plus
+// `state` for the plugin. Derived from DEFINE_ROLE so the roles stay listed once.
+const GAME_ROLE_FACTORY: ReadonlyMap<string, string> = new Map([
+  ...['component', 'command', 'event', 'resource', 'system'].map(
+    (role) => [`${role}s`, FACTORY_FOR[role] as string] as const,
+  ),
+  ['state', 'definePlugin'],
+])
+/** Role paths that hold no define* result; `main` is a file only (GL spec §4.6), the others may grow into folders. */
+const GAME_PLAIN_ROLES: ReadonlySet<string> = new Set(['constants', 'views', 'main'])
+const GAME_PLAIN_FOLDERS: ReadonlySet<string> = new Set(['constants', 'views'])
+/** The role path a factory's results belong in, for messages: defineSystem -> systems. */
+const GAME_PATH_FOR: ReadonlyMap<string, string> = new Map(
+  [...GAME_ROLE_FACTORY].map(([path, factory]) => [factory, path]),
+)
+
+/** `role-split`: a role is a file or a folder, never both (GL spec §4.3). Checked once per game root. */
+export function checkGameRoot(dir: string): StyleFinding[] {
+  const findings: StyleFinding[] = []
+  for (const role of [...GAME_ROLE_FACTORY.keys(), ...GAME_PLAIN_FOLDERS]) {
+    const file = join(dir, `${role}.ts`)
+    const folder = join(dir, role)
+    if (existsSync(file) && existsSync(folder) && statSync(folder).isDirectory()) {
+      findings.push({
+        file,
+        rule: 'role-split',
+        message: `${role}.ts and ${role}/ both exist; move ${role}.ts into ${role}/`,
+      })
+    }
+  }
+  return findings
 }
 
 function lengthFindings(file: string, code: string): StyleFinding[] {
@@ -161,7 +201,7 @@ function lengthFindings(file: string, code: string): StyleFinding[] {
   ]
 }
 
-function namingFindings(file: string, code: string): StyleFinding[] {
+function namingFindings(file: string, code: string, options: CheckOptions): StyleFinding[] {
   const name = basename(file)
   const finding = (rule: StyleRule, message: string): StyleFinding[] => [{ file, rule, message }]
   if (name === 'index.ts') return []
@@ -177,9 +217,16 @@ function namingFindings(file: string, code: string): StyleFinding[] {
   if (parsed.errors.length > 0) return finding('parse-error', parsed.errors.map((e) => e.message).join('; '))
   const factories = exportedFactories(parsed.program as unknown as Node)
 
+  const gamePath = options.gameRoot === undefined ? undefined : gameRelativePath(options.gameRoot, file)
+  if (gamePath !== undefined) {
+    const game = gameRoleFindings(gamePath, role, factories)
+    if (game !== undefined) return game.map((message) => ({ file, ...message }))
+  }
+
   if (role === undefined) {
     const first = factories[0]
     if (first) {
+      if (gamePath !== undefined) return finding('role-suffix', gameSuffixMessage(first))
       const suffix = Object.hasOwn(DEFINE_ROLE, first)
         ? DEFINE_ROLE[first as keyof typeof DEFINE_ROLE]
         : 'unknown'
@@ -194,5 +241,56 @@ function namingFindings(file: string, code: string): StyleFinding[] {
   }
   if (!factories.includes(factory))
     return finding('role-missing', `a *.${role}.ts file must export at least one ${factory} result`)
+  return []
+}
+
+/** The path below the game root split into segments, or undefined when the file is outside it. */
+function gameRelativePath(gameRoot: string, file: string): readonly string[] | undefined {
+  const path = relative(gameRoot, file)
+  if (path === '' || path.startsWith('..')) return undefined
+  return path.split(sep)
+}
+
+function gameSuffixMessage(factory: string): string {
+  const suffix = DEFINE_ROLE[factory as keyof typeof DEFINE_ROLE] ?? 'unknown'
+  const path = GAME_PATH_FOR.get(factory)
+  if (path === undefined) return `exports a ${factory} result, so the file must be named *.${suffix}.ts`
+  return `exports a ${factory} result, so it belongs in ${path}.ts (or ${path}/), or a file named *.${suffix}.ts`
+}
+
+type GameFinding = Omit<StyleFinding, 'file'>
+
+/**
+ * The game-root rules (GL spec §5.1) for a role path: a flat role file (`systems.ts`) or a file in a role folder
+ * (`systems/goal.ts`). Returns undefined for any other path, which keeps today's suffix rules.
+ */
+function gameRoleFindings(
+  path: readonly string[],
+  suffix: string | undefined,
+  factories: readonly string[],
+): GameFinding[] | undefined {
+  const top = path[0] as string
+  const flat = path.length === 1
+  const roleName = flat ? top.replace(/\.ts$/, '') : top
+  if (flat && suffix !== undefined) return undefined
+  const factory = GAME_ROLE_FACTORY.get(roleName)
+  const where = flat ? `${roleName}.ts` : `a file in ${roleName}/`
+
+  if (flat ? GAME_PLAIN_ROLES.has(roleName) : GAME_PLAIN_FOLDERS.has(roleName)) {
+    if (suffix !== undefined) return undefined
+    const first = factories[0]
+    return first ? [{ rule: 'role-suffix', message: gameSuffixMessage(first) }] : []
+  }
+  if (factory === undefined) return undefined
+
+  if (suffix !== undefined) {
+    // A suffix inside a role folder is redundant but must match the folder's role.
+    if (FACTORY_FOR[suffix] === factory) return undefined
+    return [{ rule: 'file-name', message: `a *.${suffix}.ts file does not belong in ${roleName}/` }]
+  }
+  if (factories.some((f) => f !== factory))
+    return [{ rule: 'role-mismatch', message: `${where} may only export ${factory} results` }]
+  if (flat && !factories.includes(factory))
+    return [{ rule: 'role-missing', message: `${where} must export at least one ${factory} result` }]
   return []
 }

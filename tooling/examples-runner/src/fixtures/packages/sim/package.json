@@ -1,0 +1,6 @@
+{
+  "name": "@mcthaydt/automata-sim",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

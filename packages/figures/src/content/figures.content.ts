@@ -12,6 +12,7 @@ import { itemSchema } from '../library/item.schema'
 import { rigLimitsSchema } from '../library/rig-limits.schema'
 import { standSchema } from '../library/stand.schema'
 import { swatchSchema } from '../library/swatch.schema'
+import { poseSchema } from '../pose/pose.schema'
 
 const presentation = { sim: false } as const
 
@@ -64,6 +65,13 @@ export const figureRigContent: ContentSchemaDef<'figure-rig'> = defineContentSch
   presentation,
 )
 
+export const figurePoseContent: ContentSchemaDef<'figure-pose'> = defineContentSchema(
+  'figure-pose',
+  poseSchema,
+  { folder: 'figure-poses' },
+  presentation,
+)
+
 /** Every figures kind, for `figuresExtension` and for a game that registers them itself. */
 export const FIGURE_CONTENT: readonly ContentSchemaDef[] = [
   figureContent,
@@ -74,4 +82,5 @@ export const FIGURE_CONTENT: readonly ContentSchemaDef[] = [
   figureItemContent,
   figureStandContent,
   figureRigContent,
+  figurePoseContent,
 ]

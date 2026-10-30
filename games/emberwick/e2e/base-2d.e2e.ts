@@ -54,6 +54,28 @@ async function openMenu(page: Page) {
   await expect(game(page)).toHaveAttribute('data-screen', 'menu')
 }
 
+/**
+ * How long one step of a journey may take once the room plays. The room draws every frame, and the headless shell
+ * draws WebGL in software: a median of 167 to 233 ms a frame on a quiet machine, up to 3.8 s on a loaded one
+ * (measured for CI.N2, docs/superpowers/plans/2026-10-30-ci-n2-touch-journey-ready.md). The loop asks for the next
+ * frame as soon as one is drawn, so every Playwright call in the room waits two or three frames for the page (a
+ * bounding box about eight; 16 s under that load), and Playwright's 5 s for an assertion is less than two loaded
+ * frames. This is ten of the slowest frames measured. It caps any single step in the room; a journey's own test
+ * timeout is the limit that binds the journey as a whole.
+ */
+const ROOM_STEP_MS = 40_000
+
+/**
+ * Waits until the room is live: its screen is open (the tap was taken), then a frame has drawn the round's first
+ * sim step. `data-player-x` is that step published: the scene has no player until a step of this round reaches
+ * it (`AppLoop.run` resets the renderer), and the room attaches its touch buttons and keys before it starts the
+ * loop. `data-screen="room"` alone is not enough: the screen is drawn before the round's sim exists.
+ */
+async function roomLive(page: Page) {
+  await expect(game(page)).toHaveAttribute('data-screen', 'room', { timeout: ROOM_STEP_MS })
+  await expect(game(page)).toHaveAttribute('data-player-x', /\d+/, { timeout: ROOM_STEP_MS })
+}
+
 test('boots standalone under Ruken’s headers and shows the splash, then the menu', async ({ page }) => {
   const errors = await collectErrors(page)
   const response = await page.goto(gameUrl)
@@ -197,19 +219,23 @@ test('playing the golden route with the keyboard reaches the ember and the end s
 
 test('the touch buttons move the character', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'touch buttons show on coarse pointers')
+  // The whole journey took up to 48 s with the page's CPU throttled 5x and 59 s at 10x (CI.N2), past the default
+  // 30 s. This timeout, about twice the slowest pass, binds the journey; ROOM_STEP_MS only caps each of its steps.
+  test.setTimeout(120_000)
   const errors = await collectErrors(page)
   await openMenu(page)
   await page.getByRole('button', { name: 'Play' }).tap()
-  await expect(game(page)).toHaveAttribute('data-player-x', /\d+/)
+  await roomLive(page)
   const x0 = Number(await game(page).getAttribute('data-player-x'))
   const right = page.locator('[data-hold="right"]')
-  await expect(right).toBeVisible()
-  const box = await right.boundingBox()
+  await expect(right).toBeVisible({ timeout: ROOM_STEP_MS })
+  const box = await right.boundingBox({ timeout: ROOM_STEP_MS })
   if (box === null) throw new Error('no right button')
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
   await page.mouse.down()
+  // About 14 sim steps of walking; a slow frame runs up to 6 of them (the loop's 100 ms clamp).
   await expect
-    .poll(async () => Number(await game(page).getAttribute('data-player-x')))
+    .poll(async () => Number(await game(page).getAttribute('data-player-x')), { timeout: ROOM_STEP_MS })
     .toBeGreaterThan(x0 + 16)
   await page.mouse.up()
   expect(errors).toEqual([])
