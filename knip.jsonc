@@ -5,7 +5,8 @@
   // An export its own file uses is not dead code (constants and types that tests also read).
   "ignoreExportsUsedInFile": true,
   // Fixtures are test inputs read as files, never imported.
-  "ignore": ["**/fixtures/**", "**/kit-fixtures/**"],
+  // Spikes (spikes/*) are standalone packages outside the pnpm workspace, installed with --ignore-workspace.
+  "ignore": ["**/fixtures/**", "**/kit-fixtures/**", "spikes/**"],
   // automata-ship is packages/ship's own bin, which game repositories call through the reusable workflows;
   // flock is a system tool that packages/ship's deploy test uses.
   "ignoreBinaries": ["automata-ship", "flock"],

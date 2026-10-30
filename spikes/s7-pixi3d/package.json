@@ -1,0 +1,28 @@
+{
+  "name": "s7-pixi3d",
+  "private": true,
+  "type": "module",
+  "description": "Spike S7 (M3.1a): @pixi/3d 0.1.0-beta.2 under AF's rules. Outside the pnpm workspace; install with `pnpm install --ignore-workspace`.",
+  "scripts": {
+    "dev": "vite",
+    "measure": "node measure.ts",
+    "bench": "node bench/rig-bench.ts",
+    "test": "node --test src/bundle/extras-guard.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "effect": "3.22.2",
+    "pixi.js": "8.22.0",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
+    "@types/node": "24.19.1",
+    "@types/pngjs": "6.0.5",
+    "playwright": "1.63.0",
+    "pngjs": "7.0.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3"
+  }
+}
