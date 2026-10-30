@@ -20,6 +20,9 @@ export type CompileResult = { readonly ok: true; readonly code: string } | { rea
 const LOOP_GUARD = '__afLoop'
 const ALLOWED_IMPORTS: ReadonlySet<string> = new Set(['@mcthaydt/automata', 'zod'])
 const IMPORT_MESSAGE = 'The playground can import only @mcthaydt/automata and zod.'
+// sucrase drops a namespace's body and turns `export =` into CommonJS, so either would run as something else.
+const NAMESPACE_MESSAGE = 'The playground does not run namespaces; use a module-level object instead.'
+const EXPORT_ASSIGNMENT_MESSAGE = 'The playground runs ES modules; use export default instead of export =.'
 const LOOPS: ReadonlySet<string> = new Set(['ForStatement', 'ForInStatement', 'ForOfStatement', 'WhileStatement', 'DoWhileStatement'])
 
 interface Position { readonly line: number; readonly column: number }
@@ -30,7 +33,7 @@ interface Node {
   readonly loc: { readonly start: Position }
   readonly [key: string]: unknown
 }
-interface Edit { readonly at: number; readonly text: string; readonly removeTo?: number }
+export interface Edit { readonly at: number; readonly text: string; readonly removeTo?: number }
 
 const isNode = (value: unknown): value is Node =>
   typeof value === 'object' && value !== null && typeof (value as { type?: unknown }).type === 'string'
@@ -46,13 +49,46 @@ function* walk(node: Node): Generator<Node> {
   }
 }
 
-const at = (node: Node): Diagnostic => ({ line: node.loc.start.line, column: node.loc.start.column + 1, message: IMPORT_MESSAGE })
+const at = (node: Node, message = IMPORT_MESSAGE): Diagnostic => ({ line: node.loc.start.line, column: node.loc.start.column + 1, message })
 
-/** The source with its edits applied, last first, so earlier offsets stay right. */
+const removes = (edit: Edit): boolean => edit.removeTo !== undefined
+
+/**
+ * The source with its edits applied, last first, so earlier offsets stay right. At one offset a replacement goes
+ * before an insertion: the insertion then lands in front of the replaced text, where a loop guard belongs, instead of
+ * being cut away with it (`while (x) import.meta.url`).
+ */
 function applyEdits(source: string, edits: readonly Edit[]): string {
   let out = source
-  for (const edit of [...edits].sort((a, b) => b.at - a.at)) out = out.slice(0, edit.at) + edit.text + out.slice(edit.removeTo ?? edit.at)
+  const ordered = [...edits].sort((a, b) => b.at - a.at || Number(removes(b)) - Number(removes(a)))
+  for (const edit of ordered) out = out.slice(0, edit.at) + edit.text + out.slice(edit.removeTo ?? edit.at)
   return out
+}
+
+/** The reader's offset for an offset in the edited text; one inside inserted text maps to where it was inserted. */
+function sourceOffset(edits: readonly Edit[], editedOffset: number): number {
+  let shift = 0
+  for (const edit of [...edits].sort((a, b) => a.at - b.at)) {
+    const editedAt = edit.at + shift
+    if (editedOffset < editedAt) break
+    if (editedOffset < editedAt + edit.text.length) return edit.at
+    shift += edit.text.length - ((edit.removeTo ?? edit.at) - edit.at)
+  }
+  return editedOffset - shift
+}
+
+/**
+ * A sucrase failure as a diagnostic in the reader's source: its "Error transforming <file>:" prefix and "(l:c)"
+ * suffix removed, and its offset (`pos`, in the edited text) mapped back past the inserted guards.
+ */
+export function sucraseDiagnostic(source: string, edits: readonly Edit[], error: unknown): Diagnostic {
+  const message = String((error as Error).message ?? error)
+    .replace(/^Error transforming [^:]*:\s*/, '')
+    .replace(/\s*\(\d+:\d+\)$/, '')
+  const pos = (error as { pos?: unknown }).pos
+  if (typeof pos !== 'number') return { line: 1, column: 1, message }
+  const before = source.slice(0, sourceOffset(edits, pos)).split('\n')
+  return { line: before.length, column: before.at(-1)!.length + 1, message }
 }
 
 function isImportMetaUrl(node: Node): boolean {
@@ -81,6 +117,12 @@ export function compileExample(source: string, example: { readonly id: string; r
     if (node.type === 'ImportDeclaration' || ((node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') && node.source)) {
       const from = (node.source as { value?: unknown } | null)?.value
       if (typeof from !== 'string' || !ALLOWED_IMPORTS.has(from)) diagnostics.push(at(node))
+    } else if (node.type === 'TSImportEqualsDeclaration' && (node.moduleReference as Node).type === 'TSExternalModuleReference') {
+      diagnostics.push(at(node))
+    } else if (node.type === 'TSModuleDeclaration' && !node.declare && (node.id as Node).type !== 'StringLiteral') {
+      diagnostics.push(at(node, NAMESPACE_MESSAGE))
+    } else if (node.type === 'TSExportAssignment') {
+      diagnostics.push(at(node, EXPORT_ASSIGNMENT_MESSAGE))
     } else if (LOOPS.has(node.type)) {
       const body = node.body as Node
       const guard = `${LOOP_GUARD}(${node.loc.start.line});`
@@ -97,7 +139,6 @@ export function compileExample(source: string, example: { readonly id: string; r
     const { code } = transform(applyEdits(source, edits), { transforms: ['typescript'], disableESTransforms: true, filePath: file })
     return { ok: true, code: `${code}\n//# sourceURL=${file}` }
   } catch (error) {
-    const loc = (error as { loc?: Position }).loc
-    return { ok: false, diagnostics: [{ line: loc?.line ?? 1, column: (loc?.column ?? 0) + 1, message: String((error as Error).message ?? error) }] }
+    return { ok: false, diagnostics: [sucraseDiagnostic(source, edits, error)] }
   }
 }

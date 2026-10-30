@@ -24,14 +24,14 @@ spec's measurements used.
 1. [x] `tests/playground/compile.test.ts`, failing first (module missing): types stripped with every line kept
    (`shapes-rects.ts` from the framework at `framework.ref`); a syntax error inside a system reported at its own line
    (the spec's measured case: line 21, column 18); the import rule (a `lodash` import is a diagnostic at its line, a
-   type-only import of another module also); the guard in `for`, `for…of`, `for…in`, `while`, `do…while` and a
+   type-only import of another module, a re-export and `import x = require(…)` also); the guard in `for`, `for…of`, `for…in`, `while`, `do…while` and a
    non-block body, with line numbers unchanged; `import.meta.url` rewritten and nothing else (`import.meta.env` kept);
    the `sourceURL` line. Then the module.
 2. [x] `tests/serve-static.test.ts` gains: `/playground/runtime/x.js` carries the three headers, `/playground/x/`
    `no-cache`, `/examples` none of them (fails first). Then `serve-static.ts`; then the dev-server plugin with a unit
    test on the middleware.
 3. [x] `pnpm sync` to framework `main` (`30e9606`, after #216 and #223; it has the protocol), `scripts/sync-playground.ts` copying the
-   protocol, and `tests/playground-protocol.test.ts`: the copy equals the framework file at `framework.ref` (fails
+   protocol and the header rule, and `tests/playground-sync.test.ts`: each copy equals the framework file at `framework.ref` (fails
    first: no copy).
 4. [x] Gates: `pnpm check`, `pnpm test`, `pnpm build`, `pnpm check:site`.
 
@@ -56,3 +56,20 @@ serve frame pages built for their own origin (R-2).
   first (ENOENT on the copies), then passed for both copies.
 - **Step 4.** `pnpm check` 0 errors; `pnpm test` 49 files, 302 passed, 1 expected fail; `pnpm build`;
   `pnpm check:site` 28 pages.
+- **Independent review (a separate agent reading the diff against the spec), all addressed test-first:**
+  1. A loop guard and an `import.meta.url` rewrite at the same offset: the rewrite cut the guard away
+     (`while (x) import.meta.url`, `do import.meta.url; while (0)`, and a block body starting with it, where the
+     edited text did not even parse). Three cases failed first; at one offset a replacement is now applied before an
+     insertion.
+  2. `import x = require('m')` and `export import y = require('m')` passed the import rule (sucrase then dropped them).
+     Now the import diagnostic; with them, cases for a type-only import and a named re-export of another module.
+  3. A non-declare `namespace` (sucrase drops its body) and `export =` (sucrase writes `module.exports`) ran as
+     something else. Both are diagnostics now; `declare namespace` and `declare module 'm'` still compile.
+  4. A sucrase failure kept its "Error transforming <file>:" prefix and "(l:c)" suffix, with a column shifted by the
+     guards (and off by one: sucrase's column is already 1-based). `sucraseDiagnostic` strips both and maps sucrase's
+     offset back past the edits; Babel catches every syntax error first, so it is tested directly.
+  5. A 404 under `/playground/runtime/` was served `immutable`; the static server now applies the playground rule only
+     to files that exist (failed first). The dev plugin's comment says Vite's static middleware sets its own
+     Cache-Control there.
+  6. Test gaps: labeled, `for await` and empty-bodied loops.
+  After: `pnpm check` 0 errors; `pnpm test` 49 files, 308 passed, 1 expected fail; `pnpm build`; `pnpm check:site` 28 pages.

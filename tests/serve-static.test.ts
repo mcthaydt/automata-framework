@@ -100,6 +100,13 @@ describe('serve-static', () => {
     expect(page.headers.get('cache-control')).toBe('no-cache')
   })
 
+  it('never caches a missing runtime file for good', async () => {
+    const origin = await serve()
+    const missing = await fetch(`${origin}/playground/runtime/automata-0000.js`)
+    expect(missing.status).toBe(404)
+    expect(missing.headers.get('cache-control')).toBe('no-store')
+  })
+
   it('adds none of those headers outside /playground/', async () => {
     const origin = await serve()
     const response = await fetch(`${origin}/page`)

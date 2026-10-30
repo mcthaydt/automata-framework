@@ -58,9 +58,10 @@ createServer((request, response) => {
   const notFound = join(root, '404.html')
   const [status, path] = file ? [200, file] : isFile(notFound) ? [404, notFound] : [404, undefined]
   if (!path) { response.writeHead(404, { 'content-type': 'text/plain' }).end('Not found'); return }
-  // Under /playground/ the frame's own rule (spec §11.3, the framework's playground-headers.ts) replaces no-store.
+  // Under /playground/ the frame's own rule (spec §11.3, the framework's playground-headers.ts) replaces no-store, for
+  // files that exist: a 404 for a hashed runtime name must not be cached for good.
   const headers: Record<string, string> = { 'content-type': TYPES[extname(path)] ?? 'application/octet-stream', 'cache-control': 'no-store' }
-  for (const [name, value] of Object.entries(playgroundHeaders(url.pathname))) headers[name.toLowerCase()] = value
+  if (status === 200) for (const [name, value] of Object.entries(playgroundHeaders(url.pathname))) headers[name.toLowerCase()] = value
   const sibling = compressed ? encodedSibling(path, request.headers['accept-encoding']) : undefined
   if (compressed) headers.vary = 'Accept-Encoding'
   if (sibling) headers['content-encoding'] = sibling.encoding

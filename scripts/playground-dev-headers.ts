@@ -1,7 +1,11 @@
 import type { Plugin } from 'vite'
 import { playgroundHeaders } from '../src/lib/playground/headers'
 
-/** The dev server's /playground/ headers (spec §11.3), the same rule the static server and the production host use. */
+/**
+ * The dev server's /playground/ CORS and CORP headers (spec §11.3), the rule the static server and the production host
+ * use. Its Cache-Control is advisory here: Vite's static middleware sets its own afterwards, which is right for a
+ * server whose files change under it; the static server is where the cache rule is tested.
+ */
 export function playgroundDevHeaders(): Plugin {
   return {
     name: 'automata-playground-headers',
