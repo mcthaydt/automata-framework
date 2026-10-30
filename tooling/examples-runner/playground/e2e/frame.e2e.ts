@@ -166,3 +166,15 @@ test('a golden that cannot be read leaves the preview running and says the check
     'determinism-unavailable',
   ])
 })
+
+// R-6: no-eval must run before any runtime chunk evaluates, or Zod's eval probe trips the policy. Firefox reports the
+// probe even though Zod catches it, so the case watches the console of the page and its frame in every engine.
+test('shapes-rects runs with no policy violation', async ({ page }) => {
+  const violations: string[] = []
+  page.on('console', (message) => {
+    if (/Content[- ]Security[- ]Policy|Refused to/i.test(message.text())) violations.push(message.text())
+  })
+  await run(page, 'shapes', 'rects', compiled('shapes', 'rects'), GOLDEN)
+  await waitFor(page, 'determinism')
+  expect(violations).toEqual([])
+})

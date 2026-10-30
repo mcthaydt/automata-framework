@@ -25,10 +25,21 @@ export default defineConfig({
       input: {
         automata: PLAYGROUND_ENTRIES.automata,
         zod: PLAYGROUND_ENTRIES.zod,
+        'no-eval': PLAYGROUND_ENTRIES.noEval,
         frame: PLAYGROUND_ENTRIES.frame,
       },
       // The entries' exports are what the import map hands the example; nothing may be shaken out of them.
       preserveEntrySignatures: 'strict',
+      // Zod and Pixi each in a chunk of their own, so the no-eval entry loads only them and evaluates nothing of the
+      // runtime's before it has set Zod's jitless mode and Pixi's eval-free shims (R-6).
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'zod', test: /node_modules[\\/]\.pnpm[\\/]zod@/ },
+            { name: 'pixi', test: /node_modules[\\/]\.pnpm[\\/]pixi\.js@/ },
+          ],
+        },
+      },
     },
   },
 })

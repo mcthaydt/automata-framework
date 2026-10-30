@@ -4,6 +4,7 @@ import type { PlaygroundRuntime } from './frame-page.ts'
 export const PLAYGROUND_ENTRIES = {
   automata: 'playground/runtime/automata.ts',
   zod: 'playground/runtime/zod.ts',
+  noEval: 'playground/runtime/no-eval.ts',
   frame: 'src/playground/frame.ts',
 } as const
 
@@ -39,11 +40,13 @@ export function runtimeFromViteManifest(
   const automata = entry('automata')
   const frame = entry('frame')
   const zod = entry('zod')
+  const noEval = entry('noEval')
   collect(PLAYGROUND_ENTRIES.automata, automata)
   collect(PLAYGROUND_ENTRIES.frame, frame)
   return {
     automata: base + automata.file,
     zod: base + zod.file,
+    noEval: base + noEval.file,
     frame: base + frame.file,
     styles: styles.map((css) => base + css),
   }

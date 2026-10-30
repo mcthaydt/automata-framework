@@ -9,6 +9,7 @@ const manifest = {
     css: ['assets/automata-CBKxHYFl.css'],
   },
   [PLAYGROUND_ENTRIES.zod]: { file: 'assets/zod-CSYgToI_.js', isEntry: true },
+  [PLAYGROUND_ENTRIES.noEval]: { file: 'assets/no-eval-Q1w2e3R4.js', isEntry: true },
   [PLAYGROUND_ENTRIES.frame]: {
     file: 'assets/frame-DCEneEhm.js',
     isEntry: true,
@@ -26,6 +27,7 @@ describe('runtimeFromViteManifest', () => {
     expect(runtimeFromViteManifest(manifest, '/playground/runtime/')).toEqual({
       automata: '/playground/runtime/assets/automata-LRkvFZ12.js',
       zod: '/playground/runtime/assets/zod-CSYgToI_.js',
+      noEval: '/playground/runtime/assets/no-eval-Q1w2e3R4.js',
       frame: '/playground/runtime/assets/frame-DCEneEhm.js',
       styles: [
         '/playground/runtime/assets/automata-CBKxHYFl.css',
