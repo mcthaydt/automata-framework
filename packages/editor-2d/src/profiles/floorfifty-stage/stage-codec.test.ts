@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { stageSchema } from './stage.schema'
 import { parseStage, printStage } from './stage-codec'
 import { SHIPPED_STAGE_IDS, type ShippedStageId, shippedStage } from './testing/shipped-stages'
-import { documentOf, MINIMAL_STAGE } from './testing/stage-texts'
+import { documentOf, MINIMAL_STAGE, setAt } from './testing/stage-texts'
 
 // Reading a stage file (EDFF.1a step 2): a document for a good text and, for a bad one, every problem with the line
 // it is on, so the editor can say where (acceptance G-c: a parse error never replaces the file).
@@ -213,5 +213,16 @@ describe('printStage of an unchanged document', () => {
 
   it('throws for a base that is not the text the document came from, which is a bug in the caller', () => {
     expect(() => printStage('id = ', documentOf(MINIMAL_STAGE))).toThrow()
+  })
+})
+
+// EDS.1a: the value step goes through the kit's content documents (`patchToml`), so a value edit is its literal's span
+// alone, written by the kit's number rule.
+describe('printStage of a value edit', () => {
+  it("writes a changed number into its literal's span only, and a float stays a float", () => {
+    const text = shippedStage('dawn')
+    const printed = printStage(text, setAt(documentOf(text), ['theme', 'layers', 1, 'depth'], 1))
+    const start = text.indexOf('depth = 0.15') + 'depth = '.length
+    expect(printed).toBe(`${text.slice(0, start)}1.0${text.slice(start + '0.15'.length)}`)
   })
 })

@@ -1,0 +1,116 @@
+# Racer juice: presentation only (polish spec §4, Wonder spec §4). Every
+# number here moves contentRevision and never rulesetRevision. Tune live with
+# ?dev=juice under `pnpm dev`; see docs/content-authoring.md.
+
+[limits]
+particles = 160
+
+# Every game-world motion is a spring (Wonder spec §4.2). f: how fast it
+# answers, in Hz; zeta: below 1 wobbles; r: above 1 anticipates, below 0
+# winds up first.
+[springs]
+squash = { f = 4, zeta = 0.35, r = 0 }
+lean = { f = 3, zeta = 0.6, r = 0 }
+kick = { f = 6, zeta = 0.4, r = 0 }
+word = { f = 5, zeta = 0.45, r = 0 }
+jolt = { f = 5, zeta = 0.3, r = 0 }
+hudPop = { f = 5, zeta = 0.4, r = 0 }
+
+# Racers lean into their motion (Wonder spec §4.1).
+[lean]
+maxDeg = 12
+fullSpeed = 356            # MAX_MOVE_SPEED's default
+stepDeg = 3
+
+[bounce]
+squash = { amount = 0.25 }
+dust = { count = 8, spread = 18, rise = 6, lifeMs = 350 }
+
+[slam]
+threshold = 0.6            # share of FAST_FALL_VELOCITY the fall had reached
+squash = { amount = 0.5 }
+dust = { count = 24, spread = 36, rise = 10, lifeMs = 420, ring = true, sparks = 6 }
+cameraKick = { units = 10, ms = 200 }
+hitStopMs = 50
+
+[collect]
+hudPop = { scale = 1.08 }
+dust = { count = 8, spread = 16, rise = 8, lifeMs = 300 }
+
+[wrap]
+streak = { frames = 6 }
+sparks = 4
+
+[burst.spawn]
+dust = { count = 12, spread = 24, rise = 12, lifeMs = 360 }
+
+[burst.finish]
+dust = { count = 40, spread = 70, rise = 46, lifeMs = 1000, sparks = 12 }
+
+# The pop-up words (Wonder spec §5).
+[words]
+lifeMs = 800
+popScale = 1.4
+riseUnits = 40
+size = 22                  # the local racer's words, in world units
+beatSize = 44              # race beats, in the middle of the view
+rivalScale = 0.6
+rivalAlpha = 0.7
+skewDeg = 12
+outline = 4
+localCap = 2
+beatCap = 1
+repeatGapMs = 1500
+backWithinMs = 3000
+streakFrom = 3
+niceFrom = 5
+greatFrom = 10
+
+# A stage whose floor face swallows the default dust swatch names another
+# palette role here: [palette.stages.<stageId>] dust = "<role>".
+[palette.stages]
+
+# The feel layer (A/V polish plan, 2026-10-04). Trauma is 0 to 1: each
+# moment adds its share, it drains at decayPerSecond, and the shake is its
+# square, so small knocks stay small and big ones stack.
+[feel.shake]
+maxUnits = 6               # the most a full-trauma shake moves the picture
+decayPerSecond = 1.6
+hz = 18
+slam = 0.35
+fall = 0.5
+finish = 0.6
+rivalSlam = 0.12           # a rival's slam on screen
+
+# The zoom punches in, as a share of the zoom, and springs back.
+[feel.punch]
+slam = 0.02
+finish = 0.045
+spring = { f = 3, zeta = 0.55, r = 0 }
+
+# A flat flash over the field on a slam and the finish. Never closer than
+# gapMs apart: three flashes a second is the photosensitivity ceiling.
+# `alpha` is the finish's; a slam's is `slam`, softer, as slams come often.
+[feel.impact]
+ms = 50
+alpha = 0.45
+slam = 0.2
+gapMs = 400
+
+# Speed lines and afterimages once a fast fall passes `from` of its top speed.
+[feel.fall]
+from = 0.75
+lines = 14
+alpha = 0.5
+afterimages = 3
+afterimageAlpha = 0.35
+
+# The camera leads a fast fall by this much of it, so the landing is in view.
+[feel.lookAhead]
+seconds = 0.12
+maxUnits = 80
+
+# With the LCD panel on, its aberration jumps by `peak` and settles over `ms`.
+[feel.aberration]
+peak = 1.2
+ms = 140

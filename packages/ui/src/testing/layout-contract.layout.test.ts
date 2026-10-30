@@ -134,6 +134,21 @@ describe('checkLayout', () => {
     expect(await check(slot)).toEqual([])
   })
 
+  // A focusable scroll region (the editors' error panel lines) scrolls its long lines rather than wrapping them: words
+  // past its edge are reached by scrolling, not spilled. A control that cuts its words off without scrolling still fails.
+  test('passes words a control scrolls to on purpose: a scroll region with long lines', async () => {
+    const lines =
+      '<div data-testid="lines" tabindex="0" style="width:120px;height:48px;overflow:auto;white-space:pre">' +
+      'A line far longer than the region is wide\nand another</div>'
+    expect(await check(lines)).toEqual([])
+  })
+
+  test('fails a control that cuts its words off without scrolling', async () => {
+    const cut =
+      '<button data-testid="cut" style="width:60px;height:48px;overflow:hidden;white-space:nowrap;justify-content:start">A long label</button>'
+    expect(await check(cut)).toEqual(["cut's words run past its edge"])
+  })
+
   test('fails a row that clips what it holds', async () => {
     const row =
       '<div data-row data-testid="row-Forest" style="height:20px;overflow:hidden"><div style="height:44px"></div></div>'
