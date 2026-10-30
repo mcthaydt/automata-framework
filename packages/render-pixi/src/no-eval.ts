@@ -7,10 +7,15 @@
  * - Zod's fast path compiles validators with `new Function`. Jitless mode validates
  *   without it, and skips the probe that triggers securitypolicyviolation.
  *
+ * Pixi's texture loader also checks ImageBitmap support in a Blob worker that fetches a `data:` URL, which the
+ * CSP's `connect-src` refuses (WebKit and Firefox report it). Textures load on the main thread instead.
+ *
  * Imported first by any game entry point before schemas or renderer setup.
  */
 
 import 'pixi.js/unsafe-eval'
+import { loadTextures } from 'pixi.js'
 import { config } from 'zod'
 
 config({ jitless: true })
+loadTextures.config.preferWorkers = false

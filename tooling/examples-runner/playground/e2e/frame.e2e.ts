@@ -1,61 +1,9 @@
 import { readFileSync } from 'node:fs'
-import { stripTypeScriptTypes } from 'node:module'
 import { expect, type Page, test } from '@playwright/test'
-import { playgroundFrameOrigin } from '../../host/ports.ts'
+import { compiled, examples, log, type Message, run, waitFor } from './frame-driver.ts'
 
 // WEB.PLAY.2 (website playground spec §5, §7.2): a playground frame runs the code its parent sends and says what
-// happened. The site's compile step does not exist here, so each case strips the types with Node's own stripper
-// (which keeps every line where it was) and does what the compile step will: rewrite import.meta.url and name the
-// file with a sourceURL. Every wait is on a message from the frame, never a sleep.
-
-interface Message {
-  readonly type: string
-  readonly runId?: number
-  readonly phase?: string
-  readonly message?: string
-  readonly line?: number
-  readonly hung?: boolean
-  readonly golden?: string
-  readonly hash?: string
-  readonly ticks?: number
-}
-
-const examples = new URL('../../../../examples/', import.meta.url)
-
-function compiled(module: string, name: string, source?: string): string {
-  const file = `${module}/${module}-${name}.ts`
-  const text = source ?? readFileSync(new URL(file, examples), 'utf8')
-  const moduleUrl = `${playgroundFrameOrigin}/playground/examples/${file}`
-  return `${stripTypeScriptTypes(text).replaceAll('import.meta.url', JSON.stringify(moduleUrl))}\n//# sourceURL=examples/${file}\n`
-}
-
-async function run(
-  page: Page,
-  module: string,
-  name: string,
-  code: string,
-  determinism?: { ticks: number; replay?: string },
-): Promise<void> {
-  await page.goto(`${playgroundFrameOrigin}/`)
-  await page.evaluate(
-    ([url, text, check]) =>
-      (window as unknown as { run(u: string, c: string, d?: unknown): void }).run(
-        url,
-        text,
-        check ?? undefined,
-      ),
-    [`/playground/examples/${module}/${name}/`, code, determinism ?? null] as const,
-  )
-}
-
-const log = (page: Page) => page.evaluate(() => (window as unknown as { frameLog: Message[] }).frameLog)
-
-async function waitFor(page: Page, type: string): Promise<Message> {
-  await expect
-    .poll(async () => (await log(page)).map((message) => message.type), { timeout: 20_000 })
-    .toContain(type)
-  return (await log(page)).find((message) => message.type === type) as Message
-}
+// happened (frame-driver.ts frames it and compiles the code as the site's compile step will).
 
 test('shapes-rects posts running in its frame', async ({ page }) => {
   await run(page, 'shapes', 'rects', compiled('shapes', 'rects'))

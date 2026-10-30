@@ -106,7 +106,7 @@ const journeys = defineConfig({
     ...(['chromium', 'webkit', 'firefox'] as const).map((browserName) => ({
       name: `playground-frame-${browserName}`,
       testDir: 'tooling/examples-runner/playground/e2e',
-      testMatch: 'frame.e2e.ts',
+      testMatch: ['frame.e2e.ts', 'examples.e2e.ts'],
       use: { browserName },
     })),
   ],
