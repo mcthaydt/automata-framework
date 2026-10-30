@@ -102,6 +102,26 @@ describe('framedFocus (lock-on)', () => {
       }
   })
 
+  it('never leans so far that the player is behind the eye (review #245, 4)', () => {
+    for (const tiltDeg of [15, 25, 40, 60])
+      for (const distance of [3, 5, 12]) {
+        const steep = cameraView('steep', { tiltDeg, distance })
+        const steepBase = { x: 0, y: steep.focusHeight, z: 0 }
+        for (const lock of [
+          { x: 0, y: -20, z: 47.5 },
+          { x: 0, y: -60, z: 10 },
+          { x: 3, y: -200, z: 0 },
+        ]) {
+          const focus = framedFocus({ player, lock, view: steep, headingDeg: 0, aspect: 16 / 9 })
+          const eye = eyeOf(focus, 0, tiltDeg, distance)
+          const ndc = projectToNdc(steepBase, eye, focus, FOV, 16 / 9)
+          expect(ndc.depth, JSON.stringify({ tiltDeg, distance, lock })).toBeGreaterThan(0)
+          expect(Math.abs(ndc.x)).toBeLessThanOrEqual(1 / 3 + 1e-6)
+          expect(Math.abs(ndc.y)).toBeLessThanOrEqual(1 / 3 + 1e-6)
+        }
+      }
+  })
+
   it('without a lock is the player’s focus, clamped', () => {
     expect(framedFocus({ player, lock: undefined, view, headingDeg: 0, aspect: 1 })).toEqual(base)
   })

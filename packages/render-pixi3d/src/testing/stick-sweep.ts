@@ -25,4 +25,4 @@ export function stickSweep(): Int32Array {
 export const stickSweepHash = (): string => hex64(xxhash64(new Uint8Array(stickSweep().buffer)))
 
 /** What `stickSweepHash()` gives in Node, Chromium, WebKit and Firefox. */
-export const STICK_SWEEP_HASH = '18d8cbc553b6c30d'
+export const STICK_SWEEP_HASH = 'dac9b46f10701d30'

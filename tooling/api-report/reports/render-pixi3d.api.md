@@ -59,6 +59,7 @@ interface BoxSize {
 interface CameraRig {
     readonly lensMm: number;
     setViews(views: readonly CameraView[]): void;
+    viewOf(id: string): CameraView | undefined;
     activate(id: string, how: 'cut' | 'ease'): void;
     heading(yawDeg: number, how?: 'track' | 'ease'): void;
     follow(x: number, y: number, z: number): void;

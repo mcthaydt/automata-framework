@@ -95,7 +95,9 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     camera: view.camera,
     views: options.camera.views,
     initial: options.camera.initial,
-    aspect: () => view.width / view.height,
+    // Before the first layout an auto-sized view is 0 by 0, and 0/0 would make lock-on's middle-third test NaN:
+    // the rig's 16:9 stands in until the view has a size.
+    aspect: () => (view.width > 0 && view.height > 0 ? view.width / view.height : 16 / 9),
   })
   return { view, consumer, hooks: mergeHooks(entities, cameraDriver(camera, options.camera)), camera }
 }

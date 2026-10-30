@@ -72,21 +72,25 @@ const unit = (a: Vec3): Vec3 => {
 }
 const UP: Vec3 = { x: 0, y: 1, z: 0 }
 
-/** `point` in normalized device coordinates for an eye looking at `look`, `fovDeg` vertical, at `aspect`. */
+/**
+ * `point` in normalized device coordinates for an eye looking at `look`, `fovDeg` vertical, at `aspect`, with its
+ * `depth` in metres along the view axis. A point at or behind the eye (`depth <= 0`) is not on screen whatever its
+ * `x` and `y` say: the division flips their signs.
+ */
 export function projectToNdc(
   point: Vec3,
   eye: Vec3,
   look: Vec3,
   fovDeg: number,
   aspect: number,
-): { x: number; y: number } {
+): { x: number; y: number; depth: number } {
   const forward = unit(sub(look, eye))
   const right = unit(cross(forward, UP))
   const up = cross(right, forward)
   const offset = sub(point, eye)
   const depth = dot(offset, forward)
   const half = Math.tan((fovDeg * RADIANS) / 2)
-  return { x: dot(offset, right) / (depth * half * aspect), y: dot(offset, up) / (depth * half) }
+  return { x: dot(offset, right) / (depth * half * aspect), y: dot(offset, up) / (depth * half), depth }
 }
 
 export interface FrameInput {
@@ -102,7 +106,7 @@ export interface FrameInput {
 /**
  * The focus for `player` in `view`, leaning toward `lock` (M3 spec §4.2 lock-on framing): up to `LOCK_SHARE` of the
  * way from the player's focus to the target's (both `focusHeight` up), clamped by the view's bounds, and cut back by
- * bisection while the player's focus would fall outside the middle third of the frame on either axis.
+ * bisection while the player's focus would fall outside the middle third of the frame on either axis or behind the eye.
  */
 export function framedFocus({ player, lock, view, headingDeg, aspect }: FrameInput): Vec3 {
   const base: Vec3 = { x: player.x, y: player.y + view.focusHeight, z: player.z }
@@ -113,7 +117,7 @@ export function framedFocus({ player, lock, view, headingDeg, aspect }: FrameInp
   const framed = (share: number): boolean => {
     const focus = at(share)
     const ndc = projectToNdc(base, eyeOf(focus, headingDeg, view.tiltDeg, view.distance), focus, fov, aspect)
-    return Math.abs(ndc.x) <= MIDDLE_THIRD && Math.abs(ndc.y) <= MIDDLE_THIRD
+    return ndc.depth > 0 && Math.abs(ndc.x) <= MIDDLE_THIRD && Math.abs(ndc.y) <= MIDDLE_THIRD
   }
   if (framed(LOCK_SHARE)) return at(LOCK_SHARE)
   let inside = 0

@@ -26,19 +26,27 @@ export interface Direction {
   readonly z: number
 }
 
+/** `value` rounded to a whole number, halves away from zero, never `-0`: the opposite input gives the opposite output. */
+const roundHalfAway = (value: number): number => Math.sign(value) * Math.round(Math.abs(value)) + 0
+
 /**
  * `stick` as a world direction at `heading` (turn units), scaled by the stick's length: up is the camera's forward
  * `(sin h, cos h)`, right the camera's right `(−cos h, sin h)` (`@pixi/3d` is right-handed, so a camera looking
- * toward +z has +x on its left). Each component is rounded to the nearest Q16.16 unit and is never `-0`.
+ * toward +z has +x on its left). A stick past full push (a keyboard's or a square gate's diagonal, up to √2) is
+ * scaled back to unit length, so a diagonal is never faster than straight ahead. Each component is rounded to the
+ * nearest Q16.16 unit, halves away from zero, and is never `-0`.
  */
 export function mapStick(stick: Stick, heading: number): Direction {
   const angle = heading * RADIANS_PER_UNIT
   const s = sin(angle)
   const c = cos(angle)
-  const forward = -stick.y / STICK_MAX
-  const right = stick.x / STICK_MAX
+  const lengthSquared = stick.x * stick.x + stick.y * stick.y
+  // `Math.sqrt` is correctly rounded (IEEE 754), so this is the same in every engine.
+  const scale = lengthSquared > STICK_MAX * STICK_MAX ? 1 / Math.sqrt(lengthSquared) : 1 / STICK_MAX
+  const forward = -stick.y * scale
+  const right = stick.x * scale
   return {
-    x: Math.round((s * forward - c * right) * Q16) + 0,
-    z: Math.round((c * forward + s * right) * Q16) + 0,
+    x: roundHalfAway((s * forward - c * right) * Q16),
+    z: roundHalfAway((c * forward + s * right) * Q16),
   }
 }

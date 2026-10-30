@@ -61,6 +61,36 @@ describe('mapStick', () => {
     }
   })
 
+  it('clamps a stick past full push (a keyboard or square-gate diagonal) to unit length, keeping its direction', () => {
+    for (const heading of HEADINGS) {
+      const corner = mapStick({ x: 127, y: -127 }, heading)
+      expect(Math.hypot(corner.x, corner.z)).toBeLessThanOrEqual(Q16 + 1)
+      expect(Math.hypot(corner.x, corner.z)).toBeGreaterThanOrEqual(Q16 - 1)
+      const h = radians(heading)
+      const r = Math.SQRT1_2
+      expectWithinOneUnit(corner, {
+        x: Math.sin(h) * r - Math.cos(h) * r,
+        z: Math.cos(h) * r + Math.sin(h) * r,
+      })
+    }
+    // Inside the circle the length is kept.
+    expect(mapStick({ x: 0, y: -64 }, 0)).toEqual({ x: 0, z: Math.round((64 / 127) * Q16) })
+  })
+
+  it('rounds half away from zero, so the opposite stick gives exactly the opposite direction', () => {
+    for (const heading of HEADINGS)
+      for (const [x, y] of [
+        [127, 0],
+        [64, -90],
+        [1, -1],
+        [-90, 33],
+      ] as const) {
+        const a = mapStick({ x, y }, heading)
+        const b = mapStick({ x: -x, y: -y }, heading)
+        expect([b.x, b.z]).toEqual([-a.x + 0, -a.z + 0])
+      }
+  })
+
   it('gives (0, 0) for a centred stick, never −0', () => {
     for (const heading of HEADINGS) {
       const { x, z } = mapStick({ x: 0, y: 0 }, heading)

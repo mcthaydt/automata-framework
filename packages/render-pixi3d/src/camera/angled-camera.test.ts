@@ -4,6 +4,7 @@
 import { Camera3D, Matrix4 } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { type CameraView, cameraView } from '../sim/camera-view.schema.js'
+import { mapStick, Q16 } from '../sim/stick-mapper.js'
 import { angledCamera } from './angled-camera.js'
 import { eyeOf, type Vec3 } from './camera-pose.js'
 import { fovOf } from './fov.js'
@@ -106,15 +107,80 @@ describe('angledCamera', () => {
     expectNear(positionOf(reduced.camera), eyeOf(FOCUS, 90, 25, 5))
   })
 
-  it('a tracked heading that differs from an ease’s target cuts the ease: the player turned', () => {
+  it('a player’s turn during a view entry’s ease shifts the ease’s target instead of snapping (review #245, 3)', () => {
     const { camera, rig: r } = rig()
     r.follow(0, 0, 0)
     r.update(1 / 60)
     r.heading(180, 'ease')
     r.update(0.05)
+    const before = positionOf(camera)
+    // One degree of turn while the view's heading is still easing in.
+    r.heading(181)
+    r.update(1 / 60)
+    const after = positionOf(camera)
+    // No snap: one frame later the camera has moved a little, nowhere near the 181° eye.
+    expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(2)
+    expect(
+      Math.hypot(after.x - eyeOf(FOCUS, 181, 25, 5).x, after.z - eyeOf(FOCUS, 181, 25, 5).z),
+    ).toBeGreaterThan(2)
+    r.heading(181)
+    r.update(0.25)
+    expectNear(positionOf(camera), eyeOf(FOCUS, 181, 25, 5))
+  })
+
+  it('a tracked heading with no ease running shows at once', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(1 / 60)
     r.heading(10)
     r.update(1 / 60)
     expectNear(positionOf(camera), eyeOf(FOCUS, 10, 25, 5))
+  })
+
+  it('a cut snaps even into the view it is already in, and nothing is seeded before follow (review #245, 1)', () => {
+    const { camera, rig: r } = rig()
+    // The renderer draws frames before the player's row exists.
+    r.update(1 / 60)
+    r.update(1 / 60)
+    r.activate('hall', 'cut')
+    r.follow(50, 0, 50)
+    r.update(1 / 60)
+    expectNear(positionOf(camera), eyeOf({ x: 50, y: 1, z: 50 }, 0, 25, 5))
+    // A reset and a new sim with the player elsewhere: the same view, cut again.
+    r.activate('hall', 'cut')
+    r.follow(-20, 0, 5)
+    r.update(1 / 60)
+    expectNear(positionOf(camera), eyeOf({ x: -20, y: 1, z: 5 }, 0, 25, 5))
+  })
+
+  it('under reduced motion the follow has no lag (spec §8)', () => {
+    const { camera, rig: r } = rig({ reduced: true })
+    r.follow(0, 0, 0)
+    r.update(1 / 60)
+    r.follow(4, 0, 0)
+    r.update(1 / 60)
+    expectNear(positionOf(camera), eyeOf({ x: 4, y: 1, z: 0 }, 0, 25, 5))
+  })
+
+  it('moves the character away from the eye when the stick is up, and screen-right when it is right, through @pixi/3d (review #245, 6)', () => {
+    for (const units of [0, 5_000, 16_384, 30_000, 40_960, 61_000]) {
+      const { camera, rig: r } = rig()
+      r.follow(0, 0, 0)
+      r.heading((units * 360) / 65_536)
+      r.update(1 / 60)
+      camera.updateLocalTransform()
+      const m = (camera.localTransform as unknown as { elements: ArrayLike<number> }).elements
+      const right = { x: m[0] ?? 0, z: m[2] ?? 0 }
+      const forward = { x: -(m[8] ?? 0), z: -(m[10] ?? 0) }
+      const eye = positionOf(camera)
+      const up = mapStick({ x: 0, y: -127 }, units)
+      const ahead = { x: up.x / Q16, z: up.z / Q16 }
+      // Away from the eye on the floor, and along the camera's own forward.
+      expect(Math.hypot(ahead.x - eye.x, ahead.z - eye.z)).toBeGreaterThan(Math.hypot(eye.x, eye.z))
+      expect(ahead.x * forward.x + ahead.z * forward.z).toBeGreaterThan(0.85)
+      const side = mapStick({ x: 127, y: 0 }, units)
+      expect((side.x / Q16) * right.x + (side.z / Q16) * right.z).toBeGreaterThan(0.99)
+    }
   })
 
   it('activates a view with an ease over 400 ms, not before, and a cut at once (D3-a)', () => {

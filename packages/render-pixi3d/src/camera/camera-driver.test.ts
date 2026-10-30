@@ -2,19 +2,26 @@
 // calls the rig, cutting to the first view, easing on a view change (and to the heading when the view sets one),
 // tracking the heading every other frame, and following the followed component's interpolated position.
 import type { RenderDelta, RenderRow, StepResult } from '@mcthaydt/automata-sim'
+import { Camera3D } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { cameraView } from '../sim/camera-view.schema.js'
-import type { CameraRig } from './angled-camera.js'
+import { angledCamera, type CameraRig } from './angled-camera.js'
 import { cameraDriver } from './camera-driver.js'
+import { eyeOf } from './camera-pose.js'
 
 const VIEWS = [cameraView('hall'), cameraView('north', { yawDeg: 90 })]
 const QUARTER = 16_384
 
 function fakeRig() {
   const calls: string[] = []
+  let views = new Map(VIEWS.map((v) => [v.id, v]))
   const rig: CameraRig = {
     lensMm: 24,
-    setViews: () => calls.push('setViews'),
+    setViews: (next) => {
+      views = new Map(next.map((v) => [v.id, v]))
+      calls.push('setViews')
+    },
+    viewOf: (id) => views.get(id),
     activate: (id, how) => calls.push(`activate ${id} ${how}`),
     heading: (yaw, how = 'track') => calls.push(`heading ${yaw} ${how}`),
     follow: (x, y, z) => calls.push(`follow ${x} ${y} ${z}`),
@@ -34,11 +41,13 @@ const delta = (part: Partial<RenderDelta>): StepResult => ({
   rejected: [],
   render: { resync: false, added: [], changed: [], removed: [], ...part },
 })
+const rigs: CameraRig[] = []
 const frame = (alpha: number) => ({ alpha, frameMs: 16, paused: false })
 
 function driven() {
   const { rig, calls } = fakeRig()
   const hooks = cameraDriver(rig, { views: VIEWS, initial: 'hall', follow: 'body' })
+  rigs.push(rig)
   const draw = (alpha: number) => {
     calls.length = 0
     hooks.draw?.(frame(alpha))
@@ -59,16 +68,31 @@ describe('cameraDriver', () => {
     expect(draw(1)).toEqual(['activate hall cut', 'heading 90 track', 'follow 2 0 0', 'update 0.016'])
   })
 
-  it('interpolates the position and the heading between ticks, the shorter way', () => {
+  it('interpolates the position between ticks and tracks the latest heading exactly: nothing eases between finger and camera', () => {
     const { hooks, draw } = driven()
     hooks.apply?.(delta({ added: [player('hall', 65_000, 0)] }))
     draw(1)
     hooks.apply?.(delta({ changed: [player('hall', 1_000, 4)] }))
     const calls = draw(0.5)
     expect(calls).toContain('follow 2 0 0')
-    const heading = Number(calls.find((c) => c.startsWith('heading'))?.split(' ')[1])
-    // From 65,000 to 1,000 is 1,536 units forward through 0: halfway is 65,768, which wraps to 232.
-    expect(heading).toBeCloseTo((232 * 360) / 65_536, 9)
+    expect(calls).toContain(`heading ${(1_000 * 360) / 65_536} track`)
+  })
+
+  it('a row still in no view (view "") draws no view yet, and the first real view is a cut (review #245, 5)', () => {
+    const { hooks, draw } = driven()
+    hooks.apply?.(delta({ added: [player('', 0, 1)] }))
+    expect(draw(1)).toEqual(['follow 1 0 0', 'update 0.016'])
+    hooks.apply?.(delta({ changed: [player('hall', 0, 1)] }))
+    expect(draw(1)[0]).toBe('activate hall cut')
+  })
+
+  it('reads views through the rig, so setViews changes whether an entry eases the heading', () => {
+    const { hooks, draw } = driven()
+    rigs.at(-1)?.setViews([cameraView('hall'), cameraView('north')])
+    hooks.apply?.(delta({ added: [player('hall', 0, 0)] }))
+    draw(1)
+    hooks.apply?.(delta({ changed: [player('north', 0, 0)] }))
+    expect(draw(1)).toContain('heading 0 track')
   })
 
   it('a row that did not change holds still', () => {
@@ -114,5 +138,32 @@ describe('cameraDriver', () => {
     draw(1)
     hooks.apply?.(delta({ resync: true, added: [player('north', QUARTER, 5)] }))
     expect(draw(0.5)).toEqual(['activate north cut', 'heading 90 track', 'follow 5 0 0', 'update 0.016'])
+  })
+})
+
+describe('cameraDriver with the real rig (review #245, 1)', () => {
+  it('frames the player where the first row puts them, however many frames came before, and again after a reset', () => {
+    const camera = new Camera3D()
+    const rig = angledCamera({
+      camera,
+      views: VIEWS,
+      initial: 'hall',
+      reducedMotion: () => false,
+      warn: () => {},
+    })
+    const hooks = cameraDriver(rig, { views: VIEWS, initial: 'hall', follow: 'body' })
+    hooks.draw?.(frame(1))
+    hooks.draw?.(frame(1))
+    hooks.apply?.(delta({ added: [player('hall', 0, 50)] }))
+    hooks.draw?.(frame(1))
+    const at = (x: number) => eyeOf({ x, y: 1, z: 0 }, 0, 25, 5)
+    expect(camera.position.x).toBeCloseTo(at(50).x, 4)
+    expect(camera.position.z).toBeCloseTo(at(50).z, 4)
+    hooks.reset?.()
+    hooks.draw?.(frame(1))
+    hooks.apply?.(delta({ resync: true, added: [player('hall', 0, -30)] }))
+    hooks.draw?.(frame(1))
+    expect(camera.position.x).toBeCloseTo(at(-30).x, 4)
+    expect(camera.position.z).toBeCloseTo(at(-30).z, 4)
   })
 })

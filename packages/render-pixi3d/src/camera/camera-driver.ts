@@ -1,16 +1,16 @@
 // The renderer's side of the heading (M3 spec §4.2, §5 "View change" and "Camera turn"). The sim owns the player's
 // view id and heading (`camera-heading`, a render component); each frame this reads them from the rows and drives the
 // rig: the first view is a cut, a later view change an ease, and a view that sets `yawDeg` eases the heading to it
-// (the sim set it the same tick). Every other frame tracks the heading, interpolated between ticks by the shorter
-// arc like positions; on the tick a view changes it uses the new heading as is, so the track matches the ease's
-// target and lets it finish.
+// (the sim set it the same tick). Every other frame tracks the latest tick's heading exactly, not interpolated:
+// §4.2 says nothing eases between the finger and the camera, and a turn is at most a tick old. Positions are
+// interpolated as every view's are. A row whose view is still '' (the component's start) has no view yet.
 
 import type { PixiStageHooks } from '@mcthaydt/automata-render-pixi'
 import type { FrameInfo } from '@mcthaydt/automata-runtime'
 import type { FieldRecord, StepResult } from '@mcthaydt/automata-sim'
 import { CameraHeading } from '../sim/camera-heading.component.js'
 import type { CameraView } from '../sim/camera-view.schema.js'
-import { headingDegrees, TURN_UNITS } from '../sim/heading.js'
+import { headingDegrees } from '../sim/heading.js'
 import { interpolatePose3d } from '../views/pose-3d.js'
 import type { CameraRig } from './angled-camera.js'
 
@@ -41,17 +41,8 @@ const fieldsOf = (components: Components | undefined): { view: string; heading: 
   }
 }
 
-/** The heading `alpha` of the way from `from` to `to` (turn units) the shorter way, in degrees inside one turn. */
-function interpolatedHeading(from: number, to: number, alpha: number): number {
-  const half = TURN_UNITS / 2
-  const turn = ((((to - from) % TURN_UNITS) + TURN_UNITS + half) % TURN_UNITS) - half
-  const units = from + turn * alpha
-  return (((units % TURN_UNITS) + TURN_UNITS) % TURN_UNITS) * (360 / TURN_UNITS)
-}
-
 /** Stage hooks that feed `rig` from the render rows of the entity with `camera-heading`. */
 export function cameraDriver(rig: CameraRig, options: Pixi3dCameraOptions): PixiStageHooks {
-  const views = new Map(options.views.map((view) => [view.id, view]))
   let tracked: Tracked | undefined
   let shownView: string | undefined
 
@@ -81,15 +72,14 @@ export function cameraDriver(rig: CameraRig, options: Pixi3dCameraOptions): Pixi
     draw(frame: FrameInfo) {
       const curr = fieldsOf(tracked?.curr)
       if (tracked !== undefined && curr !== undefined) {
-        const prev = fieldsOf(tracked.prev)
-        const entered = curr.view !== shownView
-        if (entered) {
+        if (curr.view === '') {
+          // No view yet: nothing to activate, and the first real view will be a cut.
+        } else if (curr.view !== shownView) {
           rig.activate(curr.view, shownView === undefined ? 'cut' : 'ease')
-          const easeTo = shownView !== undefined && views.get(curr.view)?.yawDeg !== undefined
+          // Views are read through the rig, so `setViews` on it is seen here too.
+          const easeTo = shownView !== undefined && rig.viewOf(curr.view)?.yawDeg !== undefined
           shownView = curr.view
           rig.heading(headingDegrees(curr.heading), easeTo ? 'ease' : 'track')
-        } else if (prev !== undefined && prev.view === curr.view) {
-          rig.heading(interpolatedHeading(prev.heading, curr.heading, frame.alpha))
         } else rig.heading(headingDegrees(curr.heading))
         const record = tracked.curr[options.follow]
         if (record !== undefined) {

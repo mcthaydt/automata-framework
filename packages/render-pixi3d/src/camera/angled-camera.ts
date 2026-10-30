@@ -4,8 +4,12 @@
 //
 // Two eases, both cuts under reduced motion: a view activated with `ease` blends the eye and the look point from where
 // they were to the new view's live pose over 400 ms; a heading set with `ease` (a view entry that sets `yawDeg`) turns
-// the shorter way over 250 ms. A tracked heading (the player's turn) shows in the same frame. The follow's lag stays
-// under reduced motion: it smooths the player's own movement and is not a move the player did not ask for.
+// the shorter way over 250 ms. A tracked heading (the player's turn) shows in the same frame; a turn that arrives
+// while a view entry's heading is still easing in moves the ease's end by the same amount, so the camera does not
+// snap. Reduced motion also makes the follow's lag instant (spec §8).
+//
+// Nothing is seeded before the first `follow`: the renderer draws frames before the player's row exists, and a
+// focus remembered from the origin would make the first view swoop in from there.
 import { reducedMotion as prefersReducedMotion } from '@mcthaydt/automata-ui'
 import type { Camera3D } from '@pixi/3d'
 import type { CameraView } from '../sim/camera-view.schema.js'
@@ -23,7 +27,12 @@ export interface CameraRig {
   /** 24 (Owner, 2026-10-23), in every view. */
   readonly lensMm: number
   setViews(views: readonly CameraView[]): void
-  /** Makes `id` the active view: `ease` blends over 400 ms (a cut under reduced motion). An unknown id warns once. */
+  /** The view `id` among the rig's views, if any. */
+  viewOf(id: string): CameraView | undefined
+  /**
+   * Makes `id` the active view: `ease` blends over 400 ms (a cut under reduced motion); `cut` snaps to the followed
+   * position, even into the view already active (a new sim, a resync). An unknown id warns once.
+   */
   activate(id: string, how: 'cut' | 'ease'): void
   /** The sim's heading in degrees: `track` (the default) shows it this frame, `ease` turns to it over 250 ms. */
   heading(yawDeg: number, how?: 'track' | 'ease'): void
@@ -57,7 +66,7 @@ interface Blend {
 
 interface HeadingEase {
   readonly from: number
-  readonly turn: number
+  turn: number
   elapsed: number
 }
 
@@ -76,7 +85,7 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
     throw new Error(`angledCamera: the initial view "${options.initial}" is not among the views`)
   const warned = new Set<string>()
 
-  let followed: Vec3 = { x: 0, y: 0, z: 0 }
+  let followed: Vec3 | undefined
   let focus: Vec3 | undefined
   let lock: Vec3 | undefined
   let shownHeading = 0
@@ -97,9 +106,9 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
       headingEase.from + headingEase.turn * smoothstep(headingEase.elapsed / HEADING_EASE_SECONDS)
   }
 
-  const stepFocus = (view: CameraView, seconds: number): Vec3 => {
-    const wanted = framedFocus({ player: followed, lock, view, headingDeg: shownHeading, aspect: aspect() })
-    if (focus === undefined || view.lag <= 0) return wanted
+  const stepFocus = (view: CameraView, player: Vec3, seconds: number, reduced: boolean): Vec3 => {
+    const wanted = framedFocus({ player, lock, view, headingDeg: shownHeading, aspect: aspect() })
+    if (focus === undefined || view.lag <= 0 || reduced) return wanted
     // Exponential approach with time constant `lag`: frame-rate independent, never overshoots.
     return lerp3(focus, wanted, 1 - Math.exp(-seconds / view.lag))
   }
@@ -110,6 +119,7 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
       views = byId(next)
       if (active !== undefined) active = views.get(active.id) ?? active
     },
+    viewOf: (id) => views.get(id),
     activate(id, how) {
       const view = views.get(id)
       if (view === undefined) {
@@ -119,9 +129,10 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
         }
         return
       }
-      if (view === active) return
+      const easing = how === 'ease' && last !== undefined && !isReduced()
+      if (view === active && easing) return
       active = view
-      if (how === 'ease' && last !== undefined && !isReduced()) {
+      if (easing && last !== undefined) {
         blend = { fromEye: last.eye, fromLook: last.look, elapsed: 0 }
       } else {
         blend = undefined
@@ -130,8 +141,13 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
     },
     heading(yawDeg, how = 'track') {
       if (how === 'track') {
-        // The renderer tracks every frame: the same target an ease is turning to lets it finish.
-        if (headingEase !== undefined && yawDeg === targetHeading) return
+        // The renderer tracks every frame: the same target an ease is turning to lets it finish, and a player's turn
+        // during the ease moves its end by that turn instead of snapping the camera there.
+        if (headingEase !== undefined) {
+          headingEase.turn += shorterArc(targetHeading, yawDeg)
+          targetHeading = yawDeg
+          return
+        }
         shownHeading = targetHeading = yawDeg
         headingEase = undefined
         return
@@ -150,9 +166,11 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
       const view = active as CameraView
       const reduced = isReduced()
       stepHeading(frameSeconds, reduced)
-      focus = stepFocus(view, frameSeconds)
-      let eye = eyeOf(focus, shownHeading, view.tiltDeg, view.distance)
-      let look = focus
+      const player = followed ?? { x: 0, y: 0, z: 0 }
+      const shown = stepFocus(view, player, frameSeconds, reduced)
+      if (followed !== undefined) focus = shown
+      let eye = eyeOf(shown, shownHeading, view.tiltDeg, view.distance)
+      let look = shown
       if (blend !== undefined) {
         blend.elapsed += frameSeconds
         if (reduced || blend.elapsed >= VIEW_EASE_SECONDS - EPSILON) blend = undefined
@@ -162,7 +180,8 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
           look = lerp3(blend.fromLook, look, t)
         }
       }
-      last = { eye, look }
+      // A blend starts only from a pose that framed the player, never from the frames before the first follow.
+      if (followed !== undefined) last = { eye, look }
       camera.fov = fov
       camera.position.set(eye.x, eye.y, eye.z)
       camera.lookAt(look)
