@@ -10,7 +10,10 @@ export interface ApiExport {
   readonly entryPoint: string
   readonly name: string
   readonly kind: ApiKind
-  /** The declaration as written in the `.d.ts`, without `export`/`declare`, overloads one per line. */
+  /**
+   * The declaration as written in the `.d.ts`, without `export`/`declare`, overloads one per line; for an export
+   * whose alias resolves to nothing, the module it comes from (`component from '<file>'`, `from '<module>'`).
+   */
   readonly signature: string
   /** The doc comment (each overload's, joined) and its `@tags`, one per line; empty when there is none. */
   readonly doc: string
