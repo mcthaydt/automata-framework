@@ -4,6 +4,10 @@ import { AssetLoadFailed, type LoadStalled } from '../boot/boot-error.js'
 import { readBlob } from './fetch-progress.js'
 import type { LoadMeter } from './load-meter.js'
 
+/**
+ * The asset loader service: `load` fetches a screen's assets and fonts with progress, failing
+ * `AssetLoadFailed` or `LoadStalled`; `get` returns a loaded file by path.
+ */
 export interface Assets {
   load(
     screen: string,

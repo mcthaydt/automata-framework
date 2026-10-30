@@ -4,10 +4,49 @@
 
 ## `.`
 
+### `addEntityDef` (function)
+
+```ts
+function addEntityDef(project: Project, def: EntityDef2D): Project;
+```
+
+### `addField` (function)
+
+```ts
+function addField(project: Project, owner: FieldOwner, def: FieldDef): Project;
+```
+
+### `addLayerDef` (function)
+
+```ts
+function addLayerDef(project: Project, def: LayerDef, at?: number): Project;
+```
+
 ### `addLevel` (function)
 
 ```ts
 function addLevel(project: Project, input: NewLevel): Project;
+```
+
+### `addRule` (function)
+
+```ts
+function addRule(project: Project, layer: string, group: string, rule: Rule, at?: number): Project;
+```
+
+### `addRuleGroup` (function)
+
+```ts
+function addRuleGroup(project: Project, layer: string, group: {
+    readonly id: string;
+    readonly label: string;
+}): Project;
+```
+
+### `addTileset` (function)
+
+```ts
+function addTileset(project: Project, def: TilesetDef): Project;
 ```
 
 ### `AnchorSide` (type)
@@ -173,6 +212,12 @@ function copyStamp(grid: Grid, x: number, y: number, w: number, h: number): Stam
 function counterIds(start?: number): IdSource;
 ```
 
+### `createLevelDrawList` (function)
+
+```ts
+function createLevelDrawList(): (input: LevelDrawInput) => LevelDrawList;
+```
+
 ### `createLevelEditor` (function)
 
 ```ts
@@ -215,6 +260,22 @@ function decodeRows(rows: readonly string[], kind: CellKind, cols: number, rowCo
 const DEF_ID: RegExp;
 ```
 
+### `DefinitionRef` (type)
+
+```ts
+type DefinitionRef = {
+    readonly kind: 'layer';
+    readonly id: string;
+} | {
+    readonly kind: 'entity';
+    readonly id: string;
+} | {
+    readonly kind: 'field';
+    readonly owner: FieldOwner;
+    readonly id: string;
+};
+```
+
 ### `Definitions` (interface)
 
 ```ts
@@ -224,6 +285,29 @@ interface Definitions {
     readonly entities: readonly EntityDef2D[];
     readonly levelFields: readonly FieldDef[];
 }
+```
+
+### `DefinitionUse` (interface)
+
+```ts
+interface DefinitionUse {
+    readonly path: string;
+    readonly message: string;
+}
+```
+
+### `definitionUses` (function)
+
+```ts
+function definitionUses(project: Project, ref: DefinitionRef): readonly DefinitionUse[];
+```
+
+### `deleteDefinition` (function)
+
+```ts
+function deleteDefinition(project: Project, ref: DefinitionRef, options?: {
+    readonly anyway?: boolean;
+}): GuardedEdit;
 ```
 
 ### `deleteEntity` (function)
@@ -238,6 +322,18 @@ function deleteEntity(project: Project, target: LayerTarget, id: string): Projec
 function deleteObject(project: Project, target: LayerTarget, id: string): Project;
 ```
 
+### `deleteRule` (function)
+
+```ts
+function deleteRule(project: Project, layer: string, rule: string): Project;
+```
+
+### `deleteRuleGroup` (function)
+
+```ts
+function deleteRuleGroup(project: Project, layer: string, group: string): Project;
+```
+
 ### `Diagnostic` (interface)
 
 ```ts
@@ -248,6 +344,12 @@ interface Diagnostic {
     readonly message: string;
     readonly fix?: string | undefined;
 }
+```
+
+### `DrawView` (type)
+
+```ts
+type DrawView = Pick<LevelEditorView, 'level' | 'layer' | 'tool' | 'brushSize' | 'hover' | 'rectangle' | 'selected' | 'hidden' | 'locked'>;
 ```
 
 ### `DroppedCells` (interface)
@@ -274,6 +376,12 @@ function duplicateLevel(project: Project, id: string, copy: {
 }, ids: IdSource): Project;
 ```
 
+### `editEntityDef` (function)
+
+```ts
+function editEntityDef(project: Project, id: string, patch: EntityDefPatch): Project;
+```
+
 ### `EditHistory` (interface)
 
 ```ts
@@ -286,6 +394,30 @@ interface EditHistory {
         cancel(): void;
     };
 }
+```
+
+### `editLayerDef` (function)
+
+```ts
+function editLayerDef(project: Project, id: string, patch: {
+    readonly label?: string;
+    readonly opacity?: number;
+}): Project;
+```
+
+### `editRule` (function)
+
+```ts
+function editRule(project: Project, layer: string, rule: string, patch: RulePatch): Project;
+```
+
+### `editRuleGroup` (function)
+
+```ts
+function editRuleGroup(project: Project, layer: string, group: string, patch: {
+    readonly label?: string;
+    readonly active?: boolean;
+}): Project;
 ```
 
 ### `emptyLayers` (function)
@@ -363,6 +495,32 @@ type EntityDef2D = EntityDef & {
 };
 ```
 
+### `entityDefOf` (function)
+
+```ts
+function entityDefOf(project: Project, id: string | undefined): EntityDef2D | undefined;
+```
+
+### `EntityDefPatch` (type)
+
+```ts
+type EntityDefPatch = Partial<Pick<EntityDef2D, 'label' | 'color' | 'single' | 'shape' | 'size' | 'pivot' | 'tile' | 'tags' | 'min'>>;
+```
+
+### `EntityDraw` (interface)
+
+```ts
+interface EntityDraw extends Bounds {
+    readonly id: string;
+    readonly def: string;
+    readonly shape: EntityShape;
+    readonly pivot: Point;
+    readonly color: string | undefined;
+    readonly label: string;
+    readonly tile: TileDraw | undefined;
+}
+```
+
 ### `EntityInstance` (interface)
 
 ```ts
@@ -414,6 +572,14 @@ interface ExportTarget<V> {
 }
 ```
 
+### `FieldOwner` (type)
+
+```ts
+type FieldOwner = 'level' | {
+    readonly entity: string;
+};
+```
+
 ### `FILE_VERSION` (const)
 
 ```ts
@@ -461,6 +627,14 @@ function flipStamp(stamp: Stamp, axis: 'x' | 'y', kind: CellKind): Stamp;
 function floodFill(grid: Grid, at: Point, word: number): Grid;
 ```
 
+### `Footprint` (interface)
+
+```ts
+interface Footprint extends Bounds {
+    readonly erase: boolean;
+}
+```
+
 ### `Grid` (class)
 
 ```ts
@@ -477,12 +651,28 @@ class Grid {
     edit(fn: (cells: GridEditor) => void): Grid;
     resize(cols: number, rows: number): Grid;
     equals(other: Grid): boolean;
+    chunks(): readonly GridChunk[];
     nonEmpty(): readonly {
         readonly x: number;
         readonly y: number;
         readonly value: number;
     }[];
     sharesChunk(other: Grid, x: number, y: number): boolean;
+}
+```
+
+### `GridChunk` (interface)
+
+```ts
+interface GridChunk {
+    readonly cx: number;
+    readonly cy: number;
+    readonly token: object;
+    cells(): readonly {
+        readonly x: number;
+        readonly y: number;
+        readonly value: number;
+    }[];
 }
 ```
 
@@ -496,11 +686,62 @@ interface GridEditor {
 }
 ```
 
+### `GridLines` (interface)
+
+```ts
+interface GridLines {
+    readonly step: number;
+    readonly xs: readonly number[];
+    readonly ys: readonly number[];
+}
+```
+
+### `GuardedEdit` (type)
+
+```ts
+type GuardedEdit = {
+    readonly ok: true;
+    readonly project: Project;
+} | {
+    readonly ok: false;
+    readonly uses: readonly DefinitionUse[];
+};
+```
+
 ### `IdSource` (interface)
 
 ```ts
 interface IdSource {
     next(): string;
+}
+```
+
+### `importTileset` (function)
+
+```ts
+function importTileset(project: Project, id: string, image: {
+    readonly path: string;
+    readonly size: Size;
+}): Project;
+```
+
+### `IntCellDraw` (interface)
+
+```ts
+interface IntCellDraw extends Bounds {
+    readonly value: number;
+    readonly color: string | undefined;
+}
+```
+
+### `IntChunk` (interface)
+
+```ts
+interface IntChunk {
+    readonly cx: number;
+    readonly cy: number;
+    readonly bounds: Bounds;
+    readonly cells: readonly IntCellDraw[];
 }
 ```
 
@@ -569,6 +810,24 @@ function layerCells(size: Size, grid: number): {
 type LayerDef = TilesLayerDef | IntGridLayerDef | AutoLayerDef | EntitiesLayerDef | ObjectsLayerDef;
 ```
 
+### `LayerDraw` (type)
+
+```ts
+type LayerDraw = (LayerCommon & {
+    readonly kind: 'tiles' | 'auto';
+    readonly chunks: readonly TileChunk[];
+}) | (LayerCommon & {
+    readonly kind: 'intgrid';
+    readonly chunks: readonly IntChunk[];
+}) | (LayerCommon & {
+    readonly kind: 'entities';
+    readonly entities: readonly EntityDraw[];
+}) | (LayerCommon & {
+    readonly kind: 'objects';
+    readonly objects: readonly ObjectDraw[];
+});
+```
+
 ### `LayerInstance` (type)
 
 ```ts
@@ -600,6 +859,32 @@ interface Level<Layer = LayerInstance> {
     readonly background: Background;
     readonly fields: FieldValues;
     readonly layers: readonly Layer[];
+}
+```
+
+### `LevelDrawInput` (interface)
+
+```ts
+interface LevelDrawInput {
+    readonly project: Project;
+    readonly view: DrawView;
+    readonly images: ReadonlySet<string>;
+}
+```
+
+### `LevelDrawList` (interface)
+
+```ts
+interface LevelDrawList {
+    readonly level: string;
+    readonly size: Size;
+    readonly background: Background;
+    readonly layers: readonly LayerDraw[];
+    readonly grid: GridLines | undefined;
+    readonly footprint: Footprint | undefined;
+    readonly selection: readonly (Bounds & {
+        readonly id: string;
+    })[];
 }
 ```
 
@@ -729,6 +1014,26 @@ interface NewLevel {
     readonly size: Size;
     readonly background?: Background | undefined;
 }
+```
+
+### `newRule` (function)
+
+```ts
+function newRule(id: string): Rule;
+```
+
+### `nextPatternCell` (function)
+
+```ts
+function nextPatternCell(cell: PatternCell, value: number): PatternCell;
+```
+
+### `ObjectDraw` (type)
+
+```ts
+type ObjectDraw = TileDraw & {
+    readonly id: string;
+};
 ```
 
 ### `ObjectInstance` (interface)
@@ -914,6 +1219,12 @@ function placeEntity(project: Project, target: LayerTarget, input: {
 }): Project;
 ```
 
+### `PlaceholderReason` (type)
+
+```ts
+type PlaceholderReason = 'placeholder' | 'missing' | 'outOfRange' | 'noTileset';
+```
+
 ### `placeLevel` (function)
 
 ```ts
@@ -1044,6 +1355,36 @@ type RawFile = Readonly<Record<string, unknown>>;
 function removeLevel(project: Project, id: string): Project;
 ```
 
+### `renameEntityDef` (function)
+
+```ts
+function renameEntityDef(project: Project, from: string, to: string): Project;
+```
+
+### `renameField` (function)
+
+```ts
+function renameField(project: Project, owner: FieldOwner, from: string, to: string): Project;
+```
+
+### `reorderLayerDefs` (function)
+
+```ts
+function reorderLayerDefs(project: Project, from: number, to: number): Project;
+```
+
+### `reorderRuleGroups` (function)
+
+```ts
+function reorderRuleGroups(project: Project, layer: string, from: number, to: number): Project;
+```
+
+### `reorderRules` (function)
+
+```ts
+function reorderRules(project: Project, layer: string, group: string, from: number, to: number): Project;
+```
+
 ### `ResizeAnchor` (interface)
 
 ```ts
@@ -1071,6 +1412,12 @@ function resizeLevel(project: Project, id: string, size: Size, anchor: ResizeAnc
 function resizeLevelLoss(project: Project, id: string, size: Size, anchor: ResizeAnchor): DroppedCells[];
 ```
 
+### `resizeRule` (function)
+
+```ts
+function resizeRule(project: Project, layer: string, rule: string, size: 1 | 3 | 5): Project;
+```
+
 ### `Result` (type)
 
 ```ts
@@ -1081,6 +1428,14 @@ type Result<T, E> = {
     readonly ok: false;
     readonly error: E;
 };
+```
+
+### `retypeField` (function)
+
+```ts
+function retypeField(project: Project, owner: FieldOwner, id: string, next: FieldDef, options?: {
+    readonly anyway?: boolean;
+}): GuardedEdit;
 ```
 
 ### `RowStrings` (type)
@@ -1150,6 +1505,12 @@ interface RuleIssue {
 function ruleIssues(groups: readonly RuleGroup[], context: RuleContext): RuleIssue[];
 ```
 
+### `RulePatch` (type)
+
+```ts
+type RulePatch = Partial<Pick<Rule, 'active' | 'tiles' | 'chance' | 'flipX' | 'flipY' | 'breakOnMatch' | 'outside'>>;
+```
+
 ### `ruleSchema` (const)
 
 ```ts
@@ -1162,6 +1523,12 @@ const ruleSchema: z.ZodType<Rule>;
 function setEntityField(project: Project, target: LayerTarget, id: string, field: string, value: FieldValue): Project;
 ```
 
+### `setIntValue` (function)
+
+```ts
+function setIntValue(project: Project, layer: string, value: IntValueDef): Project;
+```
+
 ### `setLevelDepth` (function)
 
 ```ts
@@ -1172,6 +1539,12 @@ function setLevelDepth(project: Project, level: string, depth: number): Project;
 
 ```ts
 function setLevelField(project: Project, id: string, field: string, value: FieldValue): Project;
+```
+
+### `setPatternCell` (function)
+
+```ts
+function setPatternCell(project: Project, layer: string, rule: string, index: number, cell: PatternCell): Project;
 ```
 
 ### `setWorldLayout` (function)
@@ -1205,6 +1578,12 @@ interface Stamp {
 }
 ```
 
+### `tagTiles` (function)
+
+```ts
+function tagTiles(project: Project, tileset: string, tag: string, tiles: readonly number[]): Project;
+```
+
 ### `TemplateDef` (interface)
 
 ```ts
@@ -1214,6 +1593,32 @@ interface TemplateDef<V> {
     readonly hint?: string | undefined;
     create(ids: IdSource): V;
 }
+```
+
+### `TileChunk` (interface)
+
+```ts
+interface TileChunk {
+    readonly cx: number;
+    readonly cy: number;
+    readonly bounds: Bounds;
+    readonly tiles: readonly TileDraw[];
+}
+```
+
+### `TileDraw` (type)
+
+```ts
+type TileDraw = TilePlacement & ({
+    readonly kind: 'image';
+    readonly image: string;
+    readonly frame: Bounds;
+} | {
+    readonly kind: 'placeholder';
+    readonly reason: PlaceholderReason;
+    readonly color: string;
+    readonly label: string;
+});
 ```
 
 ### `TilesetDef` (interface)
@@ -1281,6 +1686,12 @@ interface TilesLayerInstance {
 
 ```ts
 function unpackTile(cell: number): UnpackedTile | undefined;
+```
+
+### `untagTiles` (function)
+
+```ts
+function untagTiles(project: Project, tileset: string, tag: string, tiles: readonly number[]): Project;
 ```
 
 ### `updateLayer` (function)

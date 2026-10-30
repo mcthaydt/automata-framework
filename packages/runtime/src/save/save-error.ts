@@ -1,6 +1,7 @@
 import { Data } from 'effect'
 import type { TaggedErrorClass } from '../boot/boot-error.js'
 
+/** The fields of `SaveUnreadable`. */
 export interface SaveUnreadableFields {
   /** The save's key prefix (`SaveDef.key`). */
   readonly key: string
@@ -15,6 +16,7 @@ const SaveUnreadableBase: TaggedErrorClass<'SaveUnreadable', SaveUnreadableField
  */
 export class SaveUnreadable extends SaveUnreadableBase {}
 
+/** The fields of `SaveFromNewerBuild`. */
 export interface SaveFromNewerBuildFields {
   readonly key: string
   readonly slot: number
@@ -26,6 +28,7 @@ const SaveFromNewerBuildBase: TaggedErrorClass<'SaveFromNewerBuild', SaveFromNew
 /** A slot was saved by a newer build. It is read-only here: nothing migrates, writes or autosaves over it. */
 export class SaveFromNewerBuild extends SaveFromNewerBuildBase {}
 
+/** The fields of `SaveRefused`. */
 export interface SaveRefusedFields {
   readonly key: string
   readonly slot: number

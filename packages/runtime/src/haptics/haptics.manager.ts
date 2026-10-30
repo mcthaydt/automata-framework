@@ -20,6 +20,10 @@ export interface HapticPulse {
   readonly phone?: number | readonly number[] | undefined
 }
 
+/**
+ * The haptics service: a pad's rumble or a phone's buzz, when the device can and the player's Vibration
+ * setting allows.
+ */
 export interface Haptics {
   /** Rumbles or buzzes, as above. Never throws: feel is never worth an error, and this may run inside a frame. */
   pulse(pulse: HapticPulse): void
@@ -45,6 +49,10 @@ interface PadLike {
   readonly vibrationActuator?: Actuator | null
 }
 
+/**
+ * Where the haptics service finds pads, the vibrate call and whether this is a touch screen; replaced in
+ * tests.
+ */
 export interface HapticsOptions {
   readonly getGamepads?: () => readonly (PadLike | null)[]
   /** `navigator.vibrate`, where the browser has it. */
@@ -53,6 +61,7 @@ export interface HapticsOptions {
   readonly touch: () => boolean
 }
 
+/** The haptics service over these sources; it starts enabled. */
 export function createHaptics(options: HapticsOptions): Haptics {
   let enabled = true
 

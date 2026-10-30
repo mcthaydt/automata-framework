@@ -32,6 +32,7 @@ const FilesLive: Layer.Layer<Files>;
 ```ts
 interface FilesService {
     readText(path: string): Effect.Effect<string, FileError>;
+    readBytes(path: string): Effect.Effect<Uint8Array, FileError>;
     writeText(path: string, text: string): Effect.Effect<void, FileError>;
     exists(path: string): Effect.Effect<boolean>;
     listFiles(dir: string): Effect.Effect<readonly string[], FileError>;

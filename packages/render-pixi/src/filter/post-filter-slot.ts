@@ -30,6 +30,7 @@ export interface PostFilterSlot {
   setTier(tier: QualityTier): void
 }
 
+/** Options for `PostFilterSlot.set`. */
 export interface PostFilterOptions {
   /** The lowest quality tier these filters run at; omitted, they run at every tier. */
   readonly minTier?: QualityTier | undefined
@@ -41,6 +42,7 @@ interface SlotEntry {
   readonly minTier: QualityTier
 }
 
+/** A post-filter slot writing its composed filters to `target`'s `filters`. */
 export function createPostFilterSlot(target: PostFilterTarget): PostFilterSlot {
   const entries = new Map<string, SlotEntry>()
   let ordered: string[] = []

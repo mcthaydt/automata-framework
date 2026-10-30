@@ -9,11 +9,13 @@ import {
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { byTestId, checkLayout, publishConditions } from '../testing/layout-contract'
+import { FIXTURE_LOCALES, findUntranslated } from '../testing/locale-fixture'
 import ScreenFixture from '../testing/ScreenFixture.svelte'
 import { settleLayout } from '../testing/settle'
 
 // ScreenFrame, CornerControls, ScrollList and ActionBar together, at every reference size and
-// variant, with production CSS (M1.6 spec §7, plan Task 11).
+// variant, with production CSS (M1.6 spec §7, plan Task 11), in English and again in the xx-long pseudo-locale (PRODUCT
+// spec §4 item 7).
 const ESSENTIALS = ['corner-back', 'mute', 'play', 'settings', 'help', 'row-Forest', 'row-Cave']
 
 /**
@@ -27,24 +29,30 @@ function essentialsAt(size: ReferenceSize, variant: Variant): readonly string[] 
   return cramped ? ESSENTIALS.filter((id) => id !== 'row-Cave') : ESSENTIALS
 }
 
-describe('screen layout contract', () => {
-  test.each(REFERENCE_SIZES)('$name ($width x $height)', async (size) => {
-    await page.viewport(size.width, size.height)
-    const problems: string[] = []
-    for (const variant of VARIANTS) {
-      const conditions = publishConditions(document.documentElement, size, variant)
-      const arrangement = conditions.geometry.formFactor.endsWith('portrait') ? 'stack' : 'split'
-      const fixture = mountFixture(ScreenFixture, { arrangement })
-      await settleLayout()
-      // With the keyboard open the frame scrolls what does not fit (spec §3.4), so reaching an
-      // action may take a scroll; nothing may sit under the keyboard, which `checkLayout` checks.
-      const essentials = variant.keyboard === undefined ? essentialsAt(size, variant).map(byTestId) : []
-      for (const problem of checkLayout(conditions, essentials)) problems.push(`${variant.name}: ${problem}`)
-      await fixture.unmount()
-    }
-    expect(problems).toEqual([])
+for (const locale of FIXTURE_LOCALES) {
+  describe(`screen layout contract (${locale})`, () => {
+    test.each(REFERENCE_SIZES)('$name ($width x $height)', async (size) => {
+      await page.viewport(size.width, size.height)
+      const problems: string[] = []
+      for (const variant of VARIANTS) {
+        const conditions = publishConditions(document.documentElement, size, variant)
+        const arrangement = conditions.geometry.formFactor.endsWith('portrait') ? 'stack' : 'split'
+        const fixture = mountFixture(ScreenFixture, { arrangement, locale })
+        await settleLayout()
+        // With the keyboard open the frame scrolls what does not fit (spec §3.4), so reaching an
+        // action may take a scroll; nothing may sit under the keyboard, which `checkLayout` checks.
+        const essentials = variant.keyboard === undefined ? essentialsAt(size, variant).map(byTestId) : []
+        const found = [
+          ...checkLayout(conditions, essentials),
+          ...(locale === 'en' ? [] : findUntranslated(document.body)),
+        ]
+        for (const problem of found) problems.push(`${variant.name}: ${problem}`)
+        await fixture.unmount()
+      }
+      expect(problems).toEqual([])
+    })
   })
-})
+}
 
 describe('screen frame padding', () => {
   test('with the keyboard up the foot pads by the gutter alone: the safe area is under the keyboard', async () => {
@@ -63,5 +71,25 @@ describe('screen frame padding', () => {
     )
     await fixture.unmount()
     root.style.removeProperty('--af-inset-bottom')
+  })
+})
+
+describe('screen frame width', () => {
+  // PRODUCT.L3a: in a long language the action bar's unwrapped row is wider than the body. The actions' box took
+  // that width, widened the body's column past the screen and so never let the bar give way.
+  test('keeps its actions inside the body, so a bar wider than the body gives way rather than widening it', async () => {
+    const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'phone-small')
+    const tv = VARIANTS.find((variant) => variant.name === 'tv-scale')
+    if (size === undefined || tv === undefined) throw new Error('no phone-small or tv-scale variant')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, tv)
+    const fixture = mountFixture(ScreenFixture, { arrangement: 'stack', locale: 'xx-long' })
+    await settleLayout()
+    const body = byTestId('screen').querySelector('.af-screen-frame__body')?.getBoundingClientRect()
+    const actions = byTestId('screen').querySelector('.af-screen-frame__actions')?.getBoundingClientRect()
+    const level = byTestId('actions').dataset.collapse
+    await fixture.unmount()
+    expect(actions?.right).toBeLessThanOrEqual((body?.right ?? 0) + 0.5)
+    expect(level).not.toBe('0')
   })
 })

@@ -133,4 +133,44 @@ describe('editor-2d entry', () => {
     ]
     for (const member of functions) expect(member).toBeTypeOf('function')
   })
+
+  it('exports the definition, tileset and rule commands', () => {
+    const functions = [
+      editor2d.addLayerDef,
+      editor2d.reorderLayerDefs,
+      editor2d.editLayerDef,
+      editor2d.setIntValue,
+      editor2d.addTileset,
+      editor2d.importTileset,
+      editor2d.tagTiles,
+      editor2d.untagTiles,
+      editor2d.nextPatternCell,
+      editor2d.newRule,
+      editor2d.addRuleGroup,
+      editor2d.editRuleGroup,
+      editor2d.reorderRuleGroups,
+      editor2d.deleteRuleGroup,
+      editor2d.addRule,
+      editor2d.editRule,
+      editor2d.resizeRule,
+      editor2d.setPatternCell,
+      editor2d.reorderRules,
+      editor2d.deleteRule,
+      editor2d.addEntityDef,
+      editor2d.editEntityDef,
+      editor2d.renameEntityDef,
+      editor2d.addField,
+      editor2d.retypeField,
+      editor2d.renameField,
+      editor2d.definitionUses,
+      editor2d.deleteDefinition,
+    ]
+    for (const member of functions) expect(member).toBeTypeOf('function')
+  })
+
+  it('exports the level draw list, which draws a level through nothing but the entry', () => {
+    const grid = editor2d.Grid.empty(20, 2).set(0, 0, 1).set(17, 1, 2)
+    expect(grid.chunks().map((chunk) => chunk.cx)).toEqual([0, 1])
+    expect(editor2d.createLevelDrawList).toBeTypeOf('function')
+  })
 })

@@ -1,0 +1,15 @@
+# The tutorial's stage. Not in `catalog.toml`: no room can be raced here.
+displayName = "Dawn"
+platformAlias = "world.platform"
+song = "dawn-tutorial"
+
+# Empty on purpose: the tutorial's course runs on base tuning.
+[courseTuning]
+
+[theme]
+backdropAlias = "world.dawnSky"
+
+[[theme.layers]]
+alias = "world.dawnSky"
+plate = "sky"
+depth = 0.06

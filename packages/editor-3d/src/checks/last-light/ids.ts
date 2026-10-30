@@ -2,7 +2,7 @@
 // that goes with their kind, what is attached to a box or a wall exists, camera zones are carved out in order, and the
 // nav graph names only nodes and door boxes that exist. The sentences are Last Light's; each problem also says where it
 // is. (Its last rule, that a lamp kind needs the game's lighting kit, is a fact about the game repo and stays there.)
-import type { Blockout } from '../../format/blockout.schema'
+import type { Blockout, BlockoutBox, NavEdge, ZoneSpec } from '../../format/blockout.schema'
 import type { Expanded } from '../../format/expand'
 import type { Point } from '../../format/sector.schema'
 import { entitySelection, type Locator, locators, type Problem, place, sectorSelection } from '../check'
@@ -83,23 +83,7 @@ export function idProblems(blockout: Blockout, expanded: Expanded): Problem[] {
     } else if (kind !== 'box') problem(`${on}: attach to box:<id> or wall:<room>/<corner>`, locator)
   }
 
-  // Camera zones: the first covers the rest of the map and the later ones are carved out of it.
-  const [firstZone, ...laterZones] = blockout.zones
-  if (!firstZone || firstZone.area)
-    problem(
-      'the first zone has no area: it is the rest of the map',
-      firstZone && entity('zone', firstZone.id),
-    )
-  for (const zone of laterZones)
-    if (!zone.area)
-      problem(`zone ${zone.id} needs an area (only the first zone covers the rest)`, entity('zone', zone.id))
-  // CameraZone.follow: 0 fixed … 1 locked on (1 is the follow camera, D10).
-  for (const zone of blockout.zones)
-    if (zone.follow !== undefined && !(zone.follow >= 0 && zone.follow <= 1))
-      problem(
-        `zone ${zone.id}: follow ${zone.follow} is outside 0 (fixed) to 1 (the follow camera)`,
-        entity('zone', zone.id),
-      )
+  problems.push(...zoneFaults(blockout.zones).map((found) => found.problem))
 
   // The nav graph names nodes that exist. An edge locates the node it does have; a patrol has no place of its own.
   const node = (id: string): Locator | undefined =>
@@ -109,11 +93,61 @@ export function idProblems(blockout: Blockout, expanded: Expanded): Problem[] {
     if (!Object.hasOwn(expanded.nodes, a)) problem(`nav: no node ${a}`, node(b))
     if (!Object.hasOwn(expanded.nodes, b)) problem(`nav: no node ${b}`, node(a))
   }
-  for (const [a, b, door] of expanded.edges)
-    if (door && !expanded.boxes.some((box) => box.id === door && box.kind === 'door'))
-      problem(`nav edge ${a}–${b}: ${door} is not a door box`, node(a) ?? node(b))
+  for (const edge of expanded.edges) {
+    const found = edgeDoorProblem(edge, expanded.boxes)
+    if (found !== undefined) problem(found, node(edge[0]) ?? node(edge[1]))
+  }
 
   // A sentence is said once, where it first was.
   const said = new Set<string>()
   return problems.filter((found) => !said.has(found.message) && !!said.add(found.message))
+}
+
+/** A rule of the camera zones a zone breaks, the zone that breaks it (none when there is no zone at all) and the problem. */
+export interface ZoneFault {
+  readonly rule: 'first' | 'area' | 'follow'
+  readonly zone: string | undefined
+  readonly problem: Problem
+}
+
+/**
+ * Camera zones: the first covers the rest of the map and the later ones are carved out of it, and a zone's `follow` is
+ * from 0 to 1. The zone edits (ED3D.7c) refuse with these sentences too, and compare faults by rule and zone, so an edit
+ * that leaves a fault no worse (a follow of 1.5 set to 2) is not refused for it.
+ */
+export function zoneFaults(zones: readonly ZoneSpec[]): ZoneFault[] {
+  const faults: ZoneFault[] = []
+  const fault = (rule: ZoneFault['rule'], zone: string | undefined, message: string): void => {
+    faults.push({
+      rule,
+      zone,
+      problem: { message, locator: zone === undefined ? undefined : entity('zone', zone) },
+    })
+  }
+  const [firstZone, ...laterZones] = zones
+  if (!firstZone || firstZone.area)
+    fault('first', firstZone?.id, 'the first zone has no area: it is the rest of the map')
+  for (const zone of laterZones)
+    if (!zone.area)
+      fault('area', zone.id, `zone ${zone.id} needs an area (only the first zone covers the rest)`)
+  // CameraZone.follow: 0 fixed … 1 locked on (1 is the follow camera, D10).
+  for (const zone of zones)
+    if (zone.follow !== undefined && !(zone.follow >= 0 && zone.follow <= 1))
+      fault(
+        'follow',
+        zone.id,
+        `zone ${zone.id}: follow ${zone.follow} is outside 0 (fixed) to 1 (the follow camera)`,
+      )
+  return faults
+}
+
+/** The sentence for a nav edge through something that is not a door box; nothing for an edge with no door. */
+export function edgeDoorProblem(
+  edge: NavEdge,
+  boxes: readonly Pick<BlockoutBox, 'id' | 'kind'>[],
+): string | undefined {
+  const [a, b, door] = edge
+  return door && !boxes.some((box) => box.id === door && box.kind === 'door')
+    ? `nav edge ${a}–${b}: ${door} is not a door box`
+    : undefined
 }

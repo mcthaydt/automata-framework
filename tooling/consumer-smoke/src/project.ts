@@ -13,6 +13,8 @@ export interface ToolVersions {
   readonly typesNode: string
   /** A game that defines content schemas imports zod itself. */
   readonly zod: string
+  /** PixiJS, a peer of render-pixi, game and the umbrella (DX.2a): the game installs it. */
+  readonly pixi: string
 }
 
 export interface ConsumerPackage {
@@ -67,6 +69,7 @@ export function consumerManifest(options: ConsumerOptions): ConsumerManifest {
     devDependencies: sorted([
       ['@sveltejs/vite-plugin-svelte', options.tools.vitePluginSvelte],
       ['@types/node', options.tools.typesNode],
+      ['pixi.js', options.tools.pixi],
       ['svelte', options.tools.svelte],
       ['typescript', options.tools.typescript],
       ['typescript6', `npm:typescript@${options.tools.typescript6}`],

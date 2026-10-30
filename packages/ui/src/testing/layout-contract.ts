@@ -7,6 +7,7 @@
 import {
   documentScrolls,
   findClipped,
+  findCutAtSide,
   findIntrusions,
   findOffscreenControls,
   findOverlaps,
@@ -14,6 +15,7 @@ import {
   findUnreachable,
   hostDisplay,
   type LayoutRect,
+  pressedPart,
   type ReferenceSize,
   type Variant,
   visibleControls,
@@ -84,6 +86,85 @@ function findCornerOverlaps(root: ParentNode): string[] {
     }
   }
   return problems
+}
+
+const nameOf = (element: Element): string =>
+  element.getAttribute('data-testid') ?? element.tagName.toLowerCase()
+
+/**
+ * A control whose words run past its edge (PRODUCT spec §4 item 7: clipping fails): a long language's word that does
+ * not fit spills over what is beside it, or is cut where a box around it clips, as a Toggle's state word was. Only
+ * the words as drawn count: what a box inside the control clips on purpose (a two-line clamp) is not drawn, and
+ * neither is a visually hidden name (`clip-path`) or anything `visibility: hidden`.
+ */
+function findSpilledWords(root: ParentNode): string[] {
+  const problems: string[] = []
+  for (const control of visibleControls(root)) {
+    const target = pressedPart(control)
+    const box = target.getBoundingClientRect()
+    const walker = target.ownerDocument.createTreeWalker(target, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+      const words = (node.textContent ?? '').trim() === '' ? undefined : drawnWords(node, target)
+      if (words === undefined) continue
+      const past =
+        words.left < box.left - 1 ||
+        words.right > box.right + 1 ||
+        words.top < box.top - 1 ||
+        words.bottom > box.bottom + 1
+      if (past) {
+        problems.push(`${nameOf(target)}'s words run past its edge`)
+        break
+      }
+    }
+  }
+  return problems
+}
+
+/**
+ * The part of a text node that is drawn: its box, cut to every box between it and `control` that clips its overflow,
+ * and to `control` itself on each axis it scrolls.
+ * Undefined when none of it is drawn: hidden from sight on purpose, or clipped away entirely.
+ */
+function drawnWords(
+  node: Node,
+  control: Element,
+): { left: number; top: number; right: number; bottom: number } | undefined {
+  const range = control.ownerDocument.createRange()
+  range.selectNodeContents(node)
+  const text = range.getBoundingClientRect()
+  let left = text.left
+  let top = text.top
+  let right = text.right
+  let bottom = text.bottom
+  for (let element = node.parentElement; element !== null; element = element.parentElement) {
+    const style = getComputedStyle(element)
+    if (style.visibility === 'hidden' || style.clipPath !== 'none') return undefined
+    if (element === control) {
+      // A control that scrolls (a focusable scroll region's long lines) reaches its words by scrolling, so on an
+      // axis it scrolls only what it shows is drawn. One that cuts its words off without scrolling still fails.
+      const scrolls = (overflow: string): boolean => overflow === 'auto' || overflow === 'scroll'
+      if (scrolls(style.overflowX)) {
+        const clip = element.getBoundingClientRect()
+        left = Math.max(left, clip.left)
+        right = Math.min(right, clip.right)
+      }
+      if (scrolls(style.overflowY)) {
+        const clip = element.getBoundingClientRect()
+        top = Math.max(top, clip.top)
+        bottom = Math.min(bottom, clip.bottom)
+      }
+      break
+    }
+    if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
+      const clip = element.getBoundingClientRect()
+      left = Math.max(left, clip.left)
+      top = Math.max(top, clip.top)
+      right = Math.min(right, clip.right)
+      bottom = Math.min(bottom, clip.bottom)
+    }
+  }
+  if (right - left <= 0 || bottom - top <= 0) return undefined
+  return { left, top, right, bottom }
 }
 
 const px = (value: string): number => Number.parseFloat(value) || 0
@@ -209,8 +290,9 @@ function findTouchIntrusions(root: ParentNode): string[] {
  * (primaries the primary target) at this scale, on screen unless in a declared scroll region,
  * never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
  * `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
- * ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials`
- * is reachable without scrolling.
+ * ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
+ * region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no
+ * control's words run past its edge; and each of `essentials` is reachable without scrolling.
  */
 export function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[] {
   const scale = conditions.geometry.scale
@@ -224,6 +306,8 @@ export function checkLayout(conditions: Conditions, essentials: readonly Element
     ...findCoveredCorners(document.body),
     ...findWrappedBars(document.body),
     ...findClipped(document.body, '[data-row]'),
+    ...findCutAtSide(document.body),
+    ...findSpilledWords(document.body),
     ...findUnreachable(essentials),
   ]
 }

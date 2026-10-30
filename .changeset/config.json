@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@changesets/config@4.0.1/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [["@mcthaydt/automata-*"]],
+  "fixed": [["@mcthaydt/automata", "@mcthaydt/automata-*"]],
   "linked": [],
   "access": "restricted",
   "baseBranch": "main",

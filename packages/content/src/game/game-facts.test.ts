@@ -2,6 +2,7 @@ import { parseManifest } from '@ruken/manifest'
 import { describe, expect, it } from 'vitest'
 import {
   type AssetsSource,
+  assetsSchema,
   checkAssets,
   checkGame,
   type GameSource,
@@ -59,6 +60,32 @@ describe('checkGame', () => {
     expect(checkGame({ ...game, preload_screens: ['Splash'] }, { assetScreens: [] })).toEqual([
       { path: ['preload_screens', 0], code: 'invalidGame', message: 'Splash has no files in assets.toml' },
     ])
+  })
+})
+
+describe('assetsSchema', () => {
+  it('lets a screen name the atlases and fonts it uses (M5.6F.2)', () => {
+    const screen = { files: ['art/splash.png'], atlases: ['wick'], fonts: ['pixel'] }
+    expect(assetsSchema.safeParse({ screens: { Splash: screen } })).toEqual({
+      success: true,
+      data: { screens: { Splash: screen } },
+    })
+  })
+
+  it('adds no keys to a screen that names none, so its compiled content is unchanged', () => {
+    expect(assetsSchema.parse({ screens: { Splash: { files: ['art/splash.png'] } } })).toEqual({
+      screens: { Splash: { files: ['art/splash.png'] } },
+    })
+    expect(
+      Object.keys(assetsSchema.parse({ screens: { Splash: { files: [] } } }).screens.Splash ?? {}),
+    ).toEqual(['files'])
+  })
+
+  it('refuses atlases or fonts that are not a list of names', () => {
+    expect(assetsSchema.safeParse({ screens: { Splash: { files: [], atlases: 'wick' } } }).success).toBe(
+      false,
+    )
+    expect(assetsSchema.safeParse({ screens: { Splash: { files: [], fonts: [1] } } }).success).toBe(false)
   })
 })
 
