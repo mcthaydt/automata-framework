@@ -160,6 +160,22 @@ describe('renameDefinition (def.rename)', () => {
     expect(refused(renameDefinition({ def: 'ghost', to: 'box' }))).toBe('no entity definition ghost')
   })
 
+  it('rewrites the to of a definition the reader could not read', () => {
+    const broken: AfSector = {
+      ...depot,
+      entityDefs: [
+        ...(depot.entityDefs ?? []),
+        { id: 'bad', shape: 'cone', fields: [{ id: 'opens', type: 'ref', to: ['crate', '$sector'] }] },
+      ],
+    }
+    const next = levelOf(runAf(renameDefinition({ def: 'crate', to: 'box' }), broken))
+    expect(next.entityDefs?.at(-1)).toEqual({
+      id: 'bad',
+      shape: 'cone',
+      fields: [{ id: 'opens', type: 'ref', to: ['box', '$sector'] }],
+    })
+  })
+
   it('refuses a definition the reader could not read, with its sentence', () => {
     const broken: AfSector = {
       ...depot,
@@ -340,6 +356,23 @@ describe('setDefinitionField (def.setField)', () => {
     ).toBe('entity definition crate: key may point at ghost, which is not a definition or $sector')
   })
 
+  it('refuses to remove a field the definition cannot do without, in the reader’s sentence', () => {
+    const sizeless: AfSector = {
+      ...depot,
+      entityDefs: [
+        ...(depot.entityDefs ?? []),
+        {
+          id: 'shelf',
+          shape: 'box',
+          fields: ['w', 'h', 'd'].map((id) => ({ id, type: 'float', default: 1 })),
+        },
+      ],
+    }
+    expect(refused(setDefinitionField({ def: 'shelf', field: 'w', value: null }), sizeless)).toBe(
+      'entity definition shelf: a box has a size, or float fields w, h and d that give each box its own',
+    )
+  })
+
   it('removes a field nobody holds a value for, and refuses while an instance holds one', () => {
     expect(refused(setDefinitionField({ def: 'crate', field: 'contents', value: null }), wired)).toBe(
       'crate: contents would stop validating: entity crate1 holds a value for it; entity crate2 holds a value for it',
@@ -397,6 +430,20 @@ describe('removeDefinition (def.remove)', () => {
       ],
     }
     expect(defIds(accepted(removeDefinition({ def: 'link' }), chain))).toEqual(['spawn', 'crate'])
+  })
+
+  it('refuses while a definition the reader could not read may point at it', () => {
+    const bare: AfSector = {
+      ...depot,
+      entities: depot.entities?.filter((entity) => entity.def !== 'crate'),
+      entityDefs: [
+        ...(depot.entityDefs ?? []),
+        { id: 'bad', shape: 'cone', fields: [{ id: 'opens', type: 'ref', to: ['crate'] }] },
+      ],
+    }
+    expect(refused(removeDefinition({ def: 'crate' }), bare)).toBe(
+      'crate is still used: entity definition bad: opens may point at crate',
+    )
   })
 
   it('removes a definition the reader could not read, and refuses one that is not there', () => {

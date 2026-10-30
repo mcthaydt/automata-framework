@@ -22,6 +22,13 @@ export interface DefinitionAccess<D> {
   replace(doc: D, id: string, def: ThingDef): D
   /** The level without the definition `id`. */
   remove(doc: D, id: string): D
+  /**
+   * Every ref field that may point at `id`, as `{ def, field }`, read from the file's own members so a definition the
+   * reader could not read counts too; a definition's own fields are listed with the rest.
+   */
+  pointersTo(doc: D, id: string): readonly { readonly def: string; readonly field: string }[]
+  /** Every ref field's `to` that names `from` naming `to` instead, in place, read as `pointersTo` reads them. */
+  retarget(doc: D, from: string, to: string): D
   /** Each instance of `def` renamed as `rename` says, each member in its own place; the level itself when none changes. */
   renameInstances(doc: D, def: string, rename: InstanceRename): D
 }

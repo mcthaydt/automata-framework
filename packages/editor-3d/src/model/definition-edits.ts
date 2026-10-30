@@ -77,12 +77,6 @@ export function addDefinition<D>(args: { readonly definition: ThingDef }): Edit<
   }
 }
 
-/** A ref field's `to` with `from` called `to`; the very field when it does not name `from`. */
-function retargeted(field: FieldDef, from: string, to: string): FieldDef {
-  if (!field.to?.includes(from)) return field
-  return { ...field, to: field.to.map((name) => (name === from ? to : name)) }
-}
-
 export function renameDefinition<D>(args: { readonly def: string; readonly to: string }): Edit<D> {
   const { def, to } = args
   return {
@@ -96,20 +90,10 @@ export function renameDefinition<D>(args: { readonly def: string; readonly to: s
       if (to === def) return ok(level)
       if (!ENTITY_ID.test(to)) return refuse(BAD_ID)
       if (access.ids(level).includes(to)) return refuse(`there is already a definition called ${to}`)
-      // The definition itself, then every other definition whose ref field may point at it, then its instances.
-      const self = found.definition
-      let next = access.replace(level, def, {
-        ...self,
-        id: to,
-        fields: self.fields.map((field) => retargeted(field, def, to)),
-      })
-      for (const other of found.kit.definitions) {
-        if (other.id === def) continue
-        const fields = other.fields.map((field) => retargeted(field, def, to))
-        if (fields.some((field, index) => field !== other.fields[index]))
-          next = access.replace(next, other.id, { ...other, fields })
-      }
-      return ok(access.renameInstances(next, def, { def: to }))
+      // The definition itself, then every ref field that may point at it (its own included, and those of definitions
+      // the reader could not read), then its instances.
+      const renamed = access.replace(level, def, { ...found.definition, id: to })
+      return ok(access.renameInstances(access.retarget(renamed, def, to), def, { def: to }))
     },
   }
 }
@@ -208,11 +192,10 @@ export function setDefinitionField<D>(args: SetDefinitionFieldArgs): Edit<D> {
         return refuse(`${def} already has a field ${value.id}`)
       const next = withField(access, level, definition, old, value)
       if (next === level) return ok(level)
-      if (value !== null) {
-        const fields = fieldsWith(definition, old, value)
-        const problem = definitionProblem({ ...definition, fields }, new Set(access.ids(level)))
-        if (problem !== undefined) return refuse(problem)
-      }
+      // A removal is checked too: a box without a size cannot lose one of its w, h and d.
+      const fields = fieldsWith(definition, old, value)
+      const problem = definitionProblem({ ...definition, fields }, new Set(access.ids(level)))
+      if (problem !== undefined) return refuse(problem)
       const broken = valueBreakages(kit, definition, old, value)
       if (value?.type === 'ref' && broken.length === 0) {
         // A rename alone never breaks a ref, so the ref sentences are compared with the level that only renames.
@@ -244,13 +227,11 @@ export function removeDefinition<D>(args: { readonly def: string }): Edit<D> {
       ]
       const uses = [
         ...[...new Set(instances)].map((id) => `entity ${id}`),
-        ...kit.definitions
-          .filter((other) => other.id !== def)
-          .flatMap((other) =>
-            other.fields
-              .filter((each) => each.to?.includes(def))
-              .map((each) => `entity definition ${other.id}: ${each.id} may point at ${def}`),
-          ),
+        // A definition's own ref field may point at itself; it goes with it.
+        ...access
+          .pointersTo(level, def)
+          .filter((pointer) => pointer.def !== def)
+          .map((pointer) => `entity definition ${pointer.def}: ${pointer.field} may point at ${def}`),
       ]
       if (uses.length > 0) return refuse(`${def} is still used: ${uses.join('; ')}`)
       return ok(access.remove(level, def))

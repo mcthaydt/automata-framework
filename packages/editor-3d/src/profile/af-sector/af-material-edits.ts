@@ -9,6 +9,7 @@ import type { AfCorner, AfMaterial, AfSector, AfSectorEntry, AfWall } from '../.
 import type { Style } from '../../format/blockout.schema'
 import { TRIM_PIECES } from '../../format/sector.schema'
 import { type Edit, ok, refuse } from '../../model/edit'
+import { sameJson, withoutUndefined } from '../../model/json-values'
 import { ID_PATTERN } from '../../model/sector-edit-support'
 
 const SURFACES = ['floorTexture', 'ceilingTexture', 'wallTexture'] as const
@@ -16,20 +17,6 @@ const BAD_ID = 'the material id must be an id: a letter, then letters, digits, -
 const NO_CATEGORY = 'a material has a category: walls, floors, ceilings or another'
 
 const tableOf = (level: AfSector): Readonly<Record<string, AfMaterial>> => level.materials ?? {}
-
-/** A material as the file writes it: a member set to `undefined` is not written. */
-const written = (material: AfMaterial): AfMaterial =>
-  Object.fromEntries(Object.entries(material).filter(([, value]) => value !== undefined)) as AfMaterial
-
-/** A material's members are scalars, so two are the same when they have the same members with the same values. */
-const sameMaterial = (a: AfMaterial, b: AfMaterial): boolean => {
-  const other = new Map<string, unknown>(Object.entries(b))
-  const entries = Object.entries(a)
-  return (
-    entries.length === other.size &&
-    entries.every(([key, value]) => other.has(key) && other.get(key) === value)
-  )
-}
 
 /** The table with `id`'s entry replaced, or with `id` called `to`, each key in its own place. */
 function retabled(level: AfSector, id: string, to: string, material: AfMaterial): AfSector {
@@ -146,7 +133,7 @@ export function addMaterial(args: MaterialArgs): Edit<AfSector> {
       if (!ID_PATTERN.test(id)) return refuse(BAD_ID)
       if (Object.hasOwn(tableOf(level), id)) return refuse(`there is already a material called ${id}`)
       if (!hasCategory(args.material)) return refuse(NO_CATEGORY)
-      return ok({ ...level, materials: { ...tableOf(level), [id]: written(args.material) } })
+      return ok({ ...level, materials: { ...tableOf(level), [id]: withoutUndefined(args.material) } })
     },
   }
 }
@@ -160,10 +147,8 @@ export function setMaterial(args: MaterialArgs): Edit<AfSector> {
     run(_profile, level) {
       if (!Object.hasOwn(tableOf(level), id)) return refuse(`no material ${id}`)
       if (!hasCategory(args.material)) return refuse(NO_CATEGORY)
-      const material = written(args.material)
-      return sameMaterial(tableOf(level)[id] as AfMaterial, material)
-        ? ok(level)
-        : ok(retabled(level, id, id, material))
+      const material = withoutUndefined(args.material)
+      return sameJson(tableOf(level)[id], material) ? ok(level) : ok(retabled(level, id, id, material))
     },
   }
 }

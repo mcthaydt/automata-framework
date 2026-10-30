@@ -2,6 +2,7 @@
 // and the `def` member of each of `entities` (ED3D spec §4.6, §4.7).
 import type { ThingDef } from '../../entities/thing-def.schema'
 import type { AfEntity, AfEntityDef, AfSector } from '../../format/af-sector.schema'
+import { sameJson, withoutUndefined } from '../../model/json-values'
 import type { DefinitionAccess, InstanceRename } from '../definition-access'
 
 const defsOf = (level: AfSector): readonly AfEntityDef[] => level.entityDefs ?? []
@@ -12,37 +13,15 @@ function indexOf(level: AfSector, id: string): number {
   return at
 }
 
-/** Deep equality of JSON values whatever the order of their members: a parsed definition lists its keys in schema order. */
-function same(a: unknown, b: unknown): boolean {
-  if (Array.isArray(a) || Array.isArray(b))
-    return (
-      Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, i) => same(item, b[i]))
-    )
-  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return a === b
-  const keys = Object.keys(a)
-  return (
-    keys.length === Object.keys(b).length &&
-    keys.every(
-      (key) =>
-        Object.hasOwn(b, key) &&
-        same((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]),
-    )
-  )
-}
-
-/** A definition as the file writes it: a member set to `undefined` is not written. */
-const written = (def: ThingDef): AfEntityDef =>
-  Object.fromEntries(Object.entries(def).filter(([, value]) => value !== undefined)) as AfEntityDef
-
 /** `old` carrying the members of `next`: its own keys in their order, one `next` lacks dropped, a new one appended. */
 function merged(old: AfEntityDef, next: ThingDef): AfEntityDef {
-  const now = new Map(Object.entries(written(next)))
+  const now = new Map(Object.entries(withoutUndefined(next)))
   const out: Record<string, unknown> = {}
   let changed = false
   // A member that is equal keeps the file's own value, so its nested members stay in the file's order too.
   for (const [key, value] of Object.entries(old)) {
     if (!now.has(key)) changed = true
-    else if (same(value, now.get(key))) out[key] = value
+    else if (sameJson(value, now.get(key))) out[key] = value
     else {
       out[key] = now.get(key)
       changed = true
@@ -56,7 +35,35 @@ function merged(old: AfEntityDef, next: ThingDef): AfEntityDef {
   return changed ? (out as AfEntityDef) : old
 }
 
-/** One instance renamed, its members in their own order; the very instance when nothing changes. */
+/** A raw field that is an object with an `id` and a `to` list: the only shape whose `to` can name a definition. */
+type RawPointer = { readonly id: string; readonly to: readonly unknown[] }
+
+const isPointer = (field: unknown): field is RawPointer =>
+  typeof field === 'object' &&
+  field !== null &&
+  typeof (field as { id?: unknown }).id === 'string' &&
+  Array.isArray((field as { to?: unknown }).to)
+
+/** The raw fields of a definition as the file holds them; anything but a list holds none. */
+const rawFields = (def: AfEntityDef): readonly unknown[] => (Array.isArray(def.fields) ? def.fields : [])
+
+/** `def` with every `to` naming `from` naming `to`; the very definition when none does. */
+function retargetedDef(def: AfEntityDef, from: string, to: string): AfEntityDef {
+  const fields = rawFields(def)
+  let changed = false
+  const next = fields.map((field) => {
+    if (!isPointer(field) || !field.to.includes(from)) return field
+    changed = true
+    return { ...field, to: field.to.map((name) => (name === from ? to : name)) }
+  })
+  return changed ? { ...def, fields: next } : def
+}
+
+/**
+ * One instance renamed, its members in their own order; the very instance when nothing changes. This is the kit's `renameFieldValues` (a value moves to its new key in its own place, and a
+ * stray value already under that key gives way) done on the raw members, because an instance in the file also holds
+ * `def`, `id`, `x`, `z` and members no field reads, which the kit's values do not, and all of them keep their places.
+ */
 function renamed(entity: AfEntity, rename: InstanceRename): AfEntity {
   const { def, field } = rename
   const renamesDef = def !== undefined && def !== entity.def
@@ -75,7 +82,7 @@ function renamed(entity: AfEntity, rename: InstanceRename): AfEntity {
 export const afDefinitionAccess: DefinitionAccess<AfSector> = {
   ids: (level) => defsOf(level).map((def) => def.id),
 
-  add: (level, def) => ({ ...level, entityDefs: [...defsOf(level), written(def)] }),
+  add: (level, def) => ({ ...level, entityDefs: [...defsOf(level), { ...withoutUndefined(def) }] }),
 
   replace(level, id, def) {
     const at = indexOf(level, id)
@@ -90,6 +97,19 @@ export const afDefinitionAccess: DefinitionAccess<AfSector> = {
   remove(level, id) {
     const at = indexOf(level, id)
     return { ...level, entityDefs: defsOf(level).filter((_, index) => index !== at) }
+  },
+
+  pointersTo: (level, id) =>
+    defsOf(level).flatMap((def) =>
+      rawFields(def).flatMap((field) =>
+        isPointer(field) && field.to.includes(id) ? [{ def: def.id, field: field.id }] : [],
+      ),
+    ),
+
+  retarget(level, from, to) {
+    const defs = defsOf(level)
+    const next = defs.map((def) => retargetedDef(def, from, to))
+    return next.some((def, index) => def !== defs[index]) ? { ...level, entityDefs: next } : level
   },
 
   renameInstances(level, def, rename) {
