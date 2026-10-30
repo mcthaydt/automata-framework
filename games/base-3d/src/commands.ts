@@ -7,10 +7,10 @@ import { z } from 'zod'
 const axis = z.int().min(-STICK_MAX).max(STICK_MAX)
 const moveSchema = z.object({ x: axis, y: axis })
 
-/** The stick this tick, quantized as `Input.stick()` gives it (M4-D2): −127..127 a side, y positive down. */
-export type MoveInput = z.infer<typeof moveSchema>
-
-/** Where the stick is. Sent every tick in play; no command is a centred stick. */
+/**
+ * Where the stick is, quantized as `Input.stick()` gives it (M4-D2): −127..127 a side, y positive down. Sent every
+ * tick in play; no command is a centred stick.
+ */
 export const Move: CommandDef<typeof moveSchema> = defineCommand('move', moveSchema)
 
 const lockSchema = z.object({ down: z.boolean() })

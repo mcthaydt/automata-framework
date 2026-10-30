@@ -15,13 +15,20 @@
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json"
   },
   "dependencies": {
+    "@mcthaydt/automata-game": "workspace:*",
     "@mcthaydt/automata-render-pixi3d": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
+    "effect": "3.22.2",
+    "pixi.js": "8.22.0",
+    "svelte": "5.57.1",
     "zod": "4.6.6"
   },
   "devDependencies": {
     "@mcthaydt/automata-check-boundaries": "workspace:*",
+    "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",
