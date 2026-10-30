@@ -4,6 +4,7 @@
 import type { AudioGraph } from './audio-graph.js'
 import { CUT_SECONDS, fadeOut } from './audio-voices.js'
 
+/** Options for `Audio.music`: where to begin and which region loops. */
 export interface MusicOptions {
   /** Where in the track to begin, in seconds. */
   readonly fromSeconds?: number

@@ -1,6 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
 import * as contentDemo from './examples/content/hot-reload/e2e/origin.ts'
-import * as physicsDemo from './examples/physics/bodies-2d/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
 import * as base2d from './games/emberwick/e2e/origins.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './games/placeholder/e2e/origins.ts'
@@ -97,7 +96,7 @@ const journeys = defineConfig({
     {
       name: 'demos',
       testDir: 'examples',
-      testMatch: ['content/*/e2e/*.e2e.ts', 'physics/*/e2e/*.e2e.ts'],
+      testMatch: ['content/*/e2e/*.e2e.ts'],
       use: { ...devices['Pixel 7'] },
     },
     ...matrixProjects,
@@ -169,12 +168,6 @@ const journeys = defineConfig({
       command: 'pnpm --filter @af-examples/content-hot-reload e2e:demo',
       url: contentDemo.url,
       env: { AF_E2E_DEMO_PORT: String(contentDemo.port) },
-      reuseExistingServer: process.env.CI === undefined,
-    },
-    {
-      command: 'pnpm --filter @af-examples/physics-bodies-2d e2e:demo',
-      url: physicsDemo.url,
-      env: { AF_E2E_DEMO_PORT: String(physicsDemo.port) },
       reuseExistingServer: process.env.CI === undefined,
     },
     {

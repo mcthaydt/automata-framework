@@ -14,6 +14,11 @@ import { FileError } from './errors.ts'
  */
 export interface FilesService {
   readText(path: string): Effect.Effect<string, FileError>
+  /**
+   * The file's bytes exactly as they are on disk, for binary inputs such as images: reading them as text
+   * would replace every byte that is not valid UTF-8. The array owns its bytes (it is not a Node `Buffer`).
+   */
+  readBytes(path: string): Effect.Effect<Uint8Array, FileError>
   /** Writes UTF-8 text, creating parent folders. */
   writeText(path: string, text: string): Effect.Effect<void, FileError>
   exists(path: string): Effect.Effect<boolean>
@@ -50,6 +55,9 @@ function listBelow(root: string): string[] {
  */
 export const FilesLive: Layer.Layer<Files> = Layer.succeed(Files, {
   readText: (path) => attempt(path, () => readFileSync(path, 'utf8')),
+  // Copied out of the Buffer: a small one is a view into Node's shared pool, so its `.buffer` holds other
+  // data that a hasher reading the whole ArrayBuffer would take in.
+  readBytes: (path) => attempt(path, () => new Uint8Array(readFileSync(path))),
   writeText: (path, text) =>
     attempt(path, () => {
       mkdirSync(dirname(path), { recursive: true })

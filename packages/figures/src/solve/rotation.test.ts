@@ -26,6 +26,30 @@ describe('rotation helpers for the solver', () => {
       expect(r2).toBeCloseTo(r, 12)
     }
   })
+  it('reads a turn at pitch ±90° (gimbal lock) as the same rotation, roll 0, not rounding noise', () => {
+    // At pitch ±90° yaw and roll turn about one axis; only their difference (or sum) is defined.
+    for (const [p, y, r] of [
+      [-Math.PI / 2, radians(20), 0],
+      [Math.PI / 2, radians(-40), radians(25)],
+      [-Math.PI / 2, radians(170), radians(-30)],
+    ] as const) {
+      const q = euler(p, y, r)
+      const back = eulerOf(q)
+      close(euler(...back), q)
+      expect(back[2]).toBe(0)
+    }
+    expect(degrees(eulerOf(euler(-Math.PI / 2, radians(20), 0))[1])).toBeCloseTo(20, 9)
+  })
+  it('reads turns near the lock (pitch ±89.9999°) back as the same rotation', () => {
+    for (const p of [radians(89.9999), radians(-89.9999)])
+      for (const [y, r] of [
+        [0.4, -0.3],
+        [-2.8, 1.1],
+      ] as const) {
+        const q = euler(p, y, r)
+        close(euler(...eulerOf(q)), q, 9)
+      }
+  })
   it('slerps between two rotations along the shorter arc', () => {
     const a = axisAngle([0, 1, 0], 0.2),
       b = axisAngle([0, 1, 0], 1.0)

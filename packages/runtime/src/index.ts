@@ -94,16 +94,8 @@ export {
   type SwipeIndicator,
   SwipeTracker,
 } from './input/gestures/swipe-tracker.js'
-export {
-  type ActiveDevice,
-  Input,
-  type InputContextNow,
-  type InputDevice,
-  type InputOptions,
-  makeInput,
-  type PadInfo,
-  REBIND_TIMEOUT_MS,
-} from './input/input.manager.js'
+export { Input, type InputOptions, makeInput, REBIND_TIMEOUT_MS } from './input/input.manager.js'
+export type { ActiveDevice, InputContextNow, InputDevice, PadInfo } from './input/input-device.js'
 export {
   actionsForGesture,
   actionsForKey,

@@ -179,24 +179,32 @@ describe.runIf(hasWebGL2)('lighting and fog on WebGL2', () => {
   // the colour fog reaches, so a wall fades into it with no edge. Here fog is full from 2 m and the camera stands
   // about 8 m from the floor, so floor and sky alike must be that one colour. The options' backgroundColor (black)
   // gives way to it.
-  it('draws the sky in the fully fogged colour, so fogged floors meet it with no edge', async () => {
-    const renderer = await start({ near: 0.5, far: 2, color: 0x8b9bb4 })
-    renderer.draw(frame)
-    const pixels = snapshot(renderer)
-    const rows = pixels.length / 4 / WIDTH
-    // The field without the bars (5% of the 90 rows each side) and a row of margin.
-    const field: number[][] = []
-    for (let y = 6; y < rows - 6; y++)
-      for (let x = 0; x < WIDTH; x++) {
-        const i = (y * WIDTH + x) * 4
-        field.push([pixels[i] ?? 0, pixels[i + 1] ?? 0, pixels[i + 2] ?? 0])
-      }
-    const first = field[0] ?? [0, 0, 0]
-    const off = field.filter((p) => p.some((c, k) => Math.abs(c - (first[k] ?? 0)) > 2))
-    expect(off.length, `first ${first}, an outlier ${off[0]}`).toBe(0)
-    expect(
-      first.some((c) => c > 20),
-      `first ${first}`,
-    ).toBe(true)
-  })
+  // 0x193c3e is render3d-lighting-fog's dark fog: its fully fogged colour is 0x020c0c, which @pixi/3d's hemisphere
+  // background drew lifted (0x091414); the sky is a 2D fill now and meets it exactly.
+  it.each([
+    ['a light fog', 0x8b9bb4],
+    ['a dark fog', 0x193c3e],
+  ])(
+    'draws the sky in the fully fogged colour, so fogged floors meet it with no edge (%s)',
+    async (_, color) => {
+      const renderer = await start({ near: 0.5, far: 2, color })
+      renderer.draw(frame)
+      const pixels = snapshot(renderer)
+      const rows = pixels.length / 4 / WIDTH
+      // The field without the bars (5% of the 90 rows each side) and a row of margin.
+      const field: number[][] = []
+      for (let y = 6; y < rows - 6; y++)
+        for (let x = 0; x < WIDTH; x++) {
+          const i = (y * WIDTH + x) * 4
+          field.push([pixels[i] ?? 0, pixels[i + 1] ?? 0, pixels[i + 2] ?? 0])
+        }
+      const first = field[0] ?? [0, 0, 0]
+      const off = field.filter((p) => p.some((c, k) => Math.abs(c - (first[k] ?? 0)) > 2))
+      expect(off.length, `first ${first}, an outlier ${off[0]}`).toBe(0)
+      expect(
+        first.some((c) => c > 0),
+        `first ${first}`,
+      ).toBe(true)
+    },
+  )
 })

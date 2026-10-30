@@ -8,6 +8,7 @@ import type { Point as ScreenPoint, Size } from '@mcthaydt/automata-editor-kit/c
 import type { Point } from '../../format/sector.schema'
 import { insideSector, type Sector } from '../../geometry/sectors'
 import { triangulate } from '../../geometry/triangulate'
+import { WALK_EYE_HEIGHT, WALK_FOV } from '../../profile/level-hints'
 import type { GeometryLayer } from '../../profile/level-profile'
 import type { Box3, Vec3 } from './sector-mesh'
 import { add, cross, dot, scale, sub, unit } from './vec3'
@@ -16,9 +17,6 @@ const DEGREES = Math.PI / 180
 
 /** The dollhouse's lens: 24 mm on a 24 mm tall frame (Crow Country's, ED3D spec §5.4), 53.13 degrees. */
 export const ORBIT_FOV: number = 2 * Math.atan(12 / 24)
-/** Walk's field of view (ED3D-D8) and eye height. */
-export const WALK_FOV: number = 69 * DEGREES
-export const WALK_EYE_HEIGHT = 1.6
 
 /** Where the dollhouse starts, and how far it may tip: never under the floor, never straight down. */
 export const HOME_YAW: number = 45 * DEGREES

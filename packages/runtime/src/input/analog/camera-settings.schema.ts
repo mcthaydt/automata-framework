@@ -16,6 +16,7 @@ export interface CameraSettings {
   readonly invert: boolean
 }
 
+/** The camera choices a new player starts with: the default turn speed, not inverted. */
 export const CAMERA_SETTINGS_DEFAULT: CameraSettings = {
   degPerPixel: CAMERA_TURN_SPEED.default,
   invert: false,

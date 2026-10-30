@@ -10,6 +10,7 @@ import { type ModelInvalid, RendererUnavailable, type RenderTarget } from '@mcth
 import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
 import { type Container3D, View3D } from '@pixi/3d'
 import { Effect, ExecutionStrategy, Exit, Runtime, Scope } from 'effect'
+import { Graphics } from 'pixi.js'
 import { lampSwitches } from '../light/lamp-switches.js'
 import { createSceneLight, type SceneLight } from '../light/scene-light.js'
 import type { SceneFog, SceneLighting } from '../light/scene-lighting.schema.js'
@@ -86,21 +87,30 @@ interface Mounted {
   readonly light: SceneLight | undefined
 }
 
+/**
+ * The sky behind the scene: `backgroundColor`, or with fog the colour fog reaches, so fogged walls meet it with no edge
+ * (spec §4.2, S7-Q10).
+ */
+function skyOf(options: Pixi3dOptions): number | undefined {
+  const fog = options.fog ?? options.lighting?.fog
+  return fog === undefined ? options.backgroundColor : fogSkyColor(fog)
+}
+
 function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): Mounted {
   const letterboxed = options.logicalWidth != null && options.logicalHeight != null
   // Sized from the letterbox's logical field when there is one; otherwise it follows the screen.
   const view = letterboxed
     ? new View3D({ width: options.logicalWidth, height: options.logicalHeight, toneMapping: 'none' })
     : new View3D({ autoResize: true, toneMapping: 'none' })
-  stage.world.addChild(view)
   view.fog = viewFog(options.fog, options.lighting?.fog)
-  // The sky: without a background the view leaves its empty pixels transparent, and the letterbox's black field shows
-  // through (the app's clear colour is under that field). A flat hemisphere is `@pixi/3d`'s background on both
-  // backends; inside the view only, so the bars keep `barColor`. With fog the sky is the colour fog reaches, so fogged
-  // walls meet it with no edge, and `backgroundColor` gives way to it. A `scene` hook may replace it.
-  const fog = options.fog ?? options.lighting?.fog
-  const sky = fog === undefined ? options.backgroundColor : fogSkyColor(fog)
-  if (sky !== undefined) view.background = { skyColor: sky, groundColor: sky }
+  // The sky. The view draws no colour where no mesh is, so the letterbox's black field shows through there (the app's
+  // clear colour is under that field). A 2D fill of the view's rect, under it, draws the sky exactly on both backends;
+  // `@pixi/3d`'s hemisphere background lifts dark colours (0x020c0c draws as 0x091414). Inside the view only, so the
+  // bars keep `barColor`. Without a letterbox the app's clear colour is the sky already (`skyOf`).
+  const sky = skyOf(options)
+  if (letterboxed && sky !== undefined)
+    stage.world.addChild(new Graphics().rect(0, 0, view.width, view.height).fill(sky))
+  stage.world.addChild(view)
   const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
   const switches =
     light === undefined || options.lamps === undefined ? undefined : lampSwitches(options.lamps)
@@ -158,6 +168,7 @@ function buildInstance(
       let mounted: Mounted | undefined
       const base = yield* createPixiRenderer({
         ...options,
+        backgroundColor: skyOf(options),
         setup: (stage) => {
           if (!acceptsRenderer(stage.app.renderer as unknown as RendererKind)) return undefined
           const made = mount(stage, options, models)

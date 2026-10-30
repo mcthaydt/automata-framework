@@ -19,4 +19,10 @@ describe('@mcthaydt/automata-render-pixi', () => {
     expect(RenderPixi.SHAKE_DECAY).toBe(1.5)
     expect(RenderPixi.SHAKE_MAX_OFFSET).toBe(8)
   })
+
+  // DX.2a: published, the package's version is package.json's, which Changesets bumps; a constant in source
+  // (once `VERSION = '0.0.1'`, read by nothing) would state a wrong one from the first release.
+  it('states no version of its own', () => {
+    expect('VERSION' in RenderPixi).toBe(false)
+  })
 })

@@ -4,6 +4,7 @@
 // time it passes.
 import type { AudioContextLike } from '../audio-graph.js'
 
+/** A gain node of `fakeAudioContext`, recording its value, its targets and its automation. */
 export interface FakeGainNode {
   readonly targets: unknown[]
   readonly automation: Array<{ readonly method: string; readonly value?: number; readonly at: number }>
@@ -20,6 +21,10 @@ export interface Started {
   readonly target: unknown
 }
 
+/**
+ * A recording stand-in for an `AudioContext`: what was started, stopped and automated, with a clock tests
+ * move by hand.
+ */
 export interface FakeAudioContext extends AudioContextLike {
   state: AudioContextLike['state']
   currentTime: number

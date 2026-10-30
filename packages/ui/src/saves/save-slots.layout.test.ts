@@ -3,13 +3,15 @@ import { mountFixture, REFERENCE_SIZES, TIGHT_SIZES, VARIANTS } from '@mcthaydt/
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { byTestId, type Conditions, checkLayout, publishConditions } from '../testing/layout-contract'
+import { FIXTURE_LOCALES, findUntranslated } from '../testing/locale-fixture'
 import SaveSlotsFixture, { SAVE_SLOTS_SHOWS, type SaveSlotsShow } from '../testing/SaveSlotsFixture.svelte'
 import { settleLayout } from '../testing/settle'
 
 // SaveSlots at every reference size and variant, keyboard, Ruken's strip and TV scale included, with production CSS, in
 // Chromium, WebKit and Firefox (M5 spec §8). The rows scroll inside their list; what a player must always reach, with
 // the list scrolled or not, is the action bar and Back. With the keyboard up the screen frame scrolls what does not fit
-// (as `screen-frame.layout.test.ts` holds), so the bar names no essentials then.
+// (as `screen-frame.layout.test.ts` holds), so the bar names no essentials then. The contract runs in English and again
+// in the xx-long pseudo-locale (PRODUCT spec §4 item 7).
 
 /** What a player must reach without scrolling. */
 function essentials(show: SaveSlotsShow, keyboard: boolean): HTMLElement[] {
@@ -58,24 +60,27 @@ function clampProblems(show: SaveSlotsShow): string[] {
   return problems
 }
 
-describe('SaveSlots layout contract', () => {
-  for (const show of SAVE_SLOTS_SHOWS) {
-    test.each([...REFERENCE_SIZES, ...TIGHT_SIZES])(`${show} at $name ($width x $height)`, async (size) => {
-      await page.viewport(size.width, size.height)
-      const problems: string[] = []
-      for (const variant of VARIANTS) {
-        const conditions = publishConditions(document.documentElement, size, variant)
-        const fixture = mountFixture(SaveSlotsFixture, { show })
-        await settleLayout()
-        const found = [
-          ...checkLayout(conditions, essentials(show, variant.keyboard !== undefined)),
-          ...(variant.keyboard === undefined ? rowProblems(show, conditions) : []),
-          ...clampProblems(show),
-        ]
-        for (const problem of found) problems.push(`${variant.name}: ${problem}`)
-        await fixture.unmount()
-      }
-      expect(problems).toEqual([])
-    })
-  }
-})
+for (const locale of FIXTURE_LOCALES) {
+  describe(`SaveSlots layout contract (${locale})`, () => {
+    for (const show of SAVE_SLOTS_SHOWS) {
+      test.each([...REFERENCE_SIZES, ...TIGHT_SIZES])(`${show} at $name ($width x $height)`, async (size) => {
+        await page.viewport(size.width, size.height)
+        const problems: string[] = []
+        for (const variant of VARIANTS) {
+          const conditions = publishConditions(document.documentElement, size, variant)
+          const fixture = mountFixture(SaveSlotsFixture, { show, locale })
+          await settleLayout()
+          const found = [
+            ...checkLayout(conditions, essentials(show, variant.keyboard !== undefined)),
+            ...(variant.keyboard === undefined ? rowProblems(show, conditions) : []),
+            ...clampProblems(show),
+            ...(locale === 'en' ? [] : findUntranslated(document.body)),
+          ]
+          for (const problem of found) problems.push(`${variant.name}: ${problem}`)
+          await fixture.unmount()
+        }
+        expect(problems).toEqual([])
+      })
+    }
+  })
+}

@@ -1,0 +1,25 @@
+# The minimal game's Ruken manifest: run.ts compiles from it the headers Ruken would serve the game with
+# (@ruken/manifest compileHeaders), so the boot runs under Ruken's CSP, which has no eval.
+schema = 1
+
+[game]
+id = "consumer-smoke"
+title = "Consumer smoke"
+version = "0.1.0"
+entry = "index.html"
+sdk = "^0.0.0"
+
+[runtime]
+renderer = "webgl2"
+orientation = "any"
+inputs = ["keyboard", "touch"]
+pause_behavior = "pause"
+
+[network]
+connect = []
+
+[content]
+languages = ["en"]
+rating = "everyone"
+descriptors = []
+estimated_hours = 1

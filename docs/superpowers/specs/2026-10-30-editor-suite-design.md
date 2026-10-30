@@ -133,6 +133,9 @@ An editor id the list names but no installed editor provides opens Home with tha
 ```toml
 format = "af-editors/1"
 scenes = "content/scenes/{scene}/"        # optional: the folder whose {scene} names the scene picker lists
+# Top-level keys come before the first table: TOML reads a key after `[[gate]]` as that gate's (EDS.1c).
+generated = ["content/generated/**", "tests/generated/**"]
+never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**/gates.json"]
 
 [[file]]
 glob = "content/tuning.toml"
@@ -159,13 +162,11 @@ measure = false                           # true: its --json rows are a before-a
 id = "P-G1"
 name = "Puzzle design"
 records = "docs/gates/**/gates.json"      # read only; the record shape is the pipelines platform's (M3.8)
-
-generated = ["content/generated/**", "tests/generated/**"]
-never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**/gates.json"]
 ```
 
 - The first `[[file]]` row whose glob matches a path wins (the mockups' `fileRow`); a file no row matches is read only, with the reason.
 - `never` always includes `content/editors.toml` itself, `.git/**` and the gate records, whatever the game writes: the suite cannot widen its own allowlist, and an Ask diff cannot add a command to `run` (§11).
+  - **2026-10-30 (EDS.1c, a default open to the Owner's veto):** the always-never list also keeps what The Last Light's policy always refused (`editor/src/server/policy.ts` at `92e6704`): `.claude/**`, `.github/**`, `**/.env` and `**/.env.*`, with `.git` itself. These globs and every gate's `records` match in any letter case, because a case-insensitive disk opens `Content/Editors.toml` as the list. The disk adapter (EDS.1d) resolves the target's real path (symlinks, and Windows' trailing dots and spaces) before it applies the policy.
 - `run` is argv. The Node adapter runs it in the game checkout with no shell, one job per check id, output capped at 200 KB (The Last Light's runner rules); `{scene}` and `{path}` are the only substitutions and are checked against the row's glob first.
 - FloorFifty's list has `gates = []` on every row and no `[[gate]]`; the gate pill reads "No gates".
 
@@ -236,7 +237,7 @@ type EditResult = { ok: true; document: ContentDocument; changed: readonly (read
 function openDocument(path: string, text: string): ContentDocument   // format from the extension
 ```
 
-- **Rules:** an unchanged document prints byte for byte; a value edit changes only its literal's span; a number keeps its spelling when its value does not change and is printed with no exponent and at most four decimals otherwise (ED3D-b's rule); comments and blank lines survive; every edit is re-parsed and compared with the intended value before it is returned (`verify-failed` otherwise).
+- **Rules:** an unchanged document prints byte for byte; a value edit changes only its literal's span; a number keeps its spelling when its value does not change and is printed with no exponent and at most four decimals otherwise (ED3D-b's rule); comments and blank lines survive; every edit is re-parsed and compared with the intended value before it is returned (`verify-failed` otherwise). **Amended 2026-10-30 (EDS.1a review; a default for the Owner's veto):** numbers round-trip exactly. A changed number is written as the shortest text that reads back as exactly that number (JavaScript's own number to string; a TOML float stays a float, `5.0`), not with four decimals: FloorFifty's `tuning.toml` writes `FLOOR_GAP_MIN = 128.57142857142856` to the precision that round-trips, a value such as `0.00001` must not become `0.0`, and EDFF §10.3 rule 4 asks the stage codec for an exact re-parse. ED3D's level files keep the blockout style (four decimals, no exponent, ED3D-b) through the JSON engine's default number style; the documents pass the exact one.
 - **TOML** generalises the FloorFifty stage codec (`@decimalturn/toml-patch`, EDFF.1a): the stage codec keeps its stage-structure reconciliation and calls the kit for value edits. **JSON** is ED3D's `patchJson` with its scanner and layout, moved into the kit with its tests; `editor-3d/codec` re-exports or imports it.
 - Tested on FloorFifty's `tuning.toml` and `juice.toml`, the AF content fixtures, the four Last Light blockouts, and a locale `messages/*.json`.
 
