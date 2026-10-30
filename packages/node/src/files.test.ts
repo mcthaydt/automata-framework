@@ -61,7 +61,8 @@ describe('Files (node:fs)', () => {
 
   it('reads a file’s bytes exactly, including bytes that are not UTF-8', () => {
     // 0xff and 0xfe never occur in UTF-8, 0xc3 0x28 is a broken pair, 0x80 a lone continuation byte and
-    // 0xe2 0x82 a truncated sequence: decoding these as text would turn each into U+FFFD.
+    // 0xe2 0x82 a truncated sequence: decoding as text would turn each of those invalid sequences (ff, fe, the
+    // lone c3, 80, e2 82) into U+FFFD, while 00, 28, 41 and 0a decode as themselves.
     const written = [0x00, 0xff, 0xfe, 0xc3, 0x28, 0x80, 0xe2, 0x82, 0x41, 0x0a]
     const path = join(temp(), 'image.bin')
     writeFileSync(path, new Uint8Array(written))
