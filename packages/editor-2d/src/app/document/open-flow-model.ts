@@ -158,7 +158,7 @@ export function savedCopyMessage(copy: string): string {
 export function restoreRefused(errors: readonly ParseError[]): string {
   const first = errors[0]
   const why = first === undefined ? '' : ` (${first.message})`
-  return `The autosave no longer opens${why}. The file is open as it was last saved; the autosave is kept.`
+  return `The autosave no longer opens${why}. Discard it to go on with the file as it was last saved.`
 }
 
 export function recoveryUnreadable(message: string): string {

@@ -11,7 +11,7 @@ interface Props {
   canRedo?: boolean
   undoLabel?: string | undefined
   redoLabel?: string | undefined
-  saving?: boolean
+  busy?: boolean
   compact?: boolean
 }
 
@@ -24,7 +24,7 @@ function mount(props: Props = {}) {
     canRedo: props.canRedo ?? false,
     undoLabel: props.undoLabel,
     redoLabel: props.redoLabel,
-    saving: props.saving ?? false,
+    busy: props.busy ?? false,
     compact: props.compact ?? false,
     ...handlers,
   })
@@ -68,8 +68,9 @@ describe('DocumentBar', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Mossgate' })).toBeInTheDocument()
   })
 
-  it('Save is disabled while a save runs', () => {
-    mount({ saving: true })
+  it('Save and Back are disabled while a save or a conflict choice runs', () => {
+    mount({ busy: true })
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled()
   })
 })

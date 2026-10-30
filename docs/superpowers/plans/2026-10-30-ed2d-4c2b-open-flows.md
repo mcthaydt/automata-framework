@@ -150,6 +150,14 @@ Each step starts with the failing test and confirms why it fails; the box is tic
 
 ## Execution record
 
+**2026-10-30, review fixes (coordinator's review of #212), each test-first:**
+
+1. Back during Take theirs leaked the reloaded document: `takeTheirs` now checks `closed` after reading the file and after removing the old journal, and disposes the new document (2 controller tests, red without the checks; the second check was mutation-verified). Back is disabled while a save or a conflict choice runs (`DocumentBar`'s `saving` prop became `busy`; DOM test).
+2. The pending close is tracked: `App.svelte` keeps one `closing` promise for every close, opening a file waits for it (so `findRecovery` sees the flushed journal), and an exported `idle()` lets `EditorHandle.dispose` wait for it (App DOM test with a held journal flush; boot DOM test with a held journal write).
+3. `TextView`'s marked line carried an `aria-label` on a role-less `div`, which is not announced; it now holds a visually hidden "error on this line" (DOM test by text).
+4. A refused Restore keeps the autosave on offer, and the toast says to Discard to go on with the saved file (model and controller tests).
+5. Tests added: the Restore dialog has the focus on a full-frame mount (DOM and Chromium); the layout fixture is 701 lines with the error at line 600, so the panel shows "Lines 302 to 701 of 701"; the conflict layout holds Save as copy to 48 px.
+
 (Filled in as steps finish.)
 
 ### Deviations

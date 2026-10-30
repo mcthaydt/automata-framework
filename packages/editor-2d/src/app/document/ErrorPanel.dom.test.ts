@@ -54,7 +54,7 @@ describe('ErrorPanel', () => {
   it('shows the text read only with the error lines marked', () => {
     mount(invalid)
     expect(within(panel()).getByTestId('text-view')).toBeInTheDocument()
-    expect(panel().querySelector('[data-marked]')).toHaveTextContent(/^3\s*"version": 3$/)
+    expect(panel().querySelector('[data-marked]')).toHaveTextContent(/^3\s*"version": 3/)
   })
 
   it('is the wide dialog, and Open another has focus and is the primary action', () => {

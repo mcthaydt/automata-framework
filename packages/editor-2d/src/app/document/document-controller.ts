@@ -192,6 +192,11 @@ export function createDocumentController(options: DocumentControllerOptions): Do
         const old = document
         // Open first: only a file that opens may replace the person's edits.
         const outcome = await app.open(old.path, old.profile.id)
+        // Left (Back) while the file was read: the old document is already closed; the new one must not outlive it.
+        if (closed) {
+          if (outcome.status === 'opened') outcome.document.dispose()
+          return
+        }
         if (outcome.status !== 'opened') {
           toasts.push({ kind: 'error', message: openProblem(outcome) })
           return
@@ -199,6 +204,10 @@ export function createDocumentController(options: DocumentControllerOptions): Do
         detach()
         // The old journal is removed through its own session, after any write it still has in flight.
         await old.session.discardJournal().catch(() => undefined)
+        if (closed) {
+          outcome.document.dispose()
+          return
+        }
         old.dispose()
         document = outcome.document
         recovery = undefined
@@ -212,8 +221,9 @@ export function createDocumentController(options: DocumentControllerOptions): Do
     restore() {
       if (recovery === undefined) return
       const restored = document.restore(recovery)
-      recovery = undefined
-      if (!restored.ok) toasts.push({ kind: 'error', message: restoreRefused(restored.error) })
+      // A refused autosave stays on offer: Discard is how the person goes on with the file as saved.
+      if (restored.ok) recovery = undefined
+      else toasts.push({ kind: 'error', message: restoreRefused(restored.error) })
       publish()
     },
     async discard() {

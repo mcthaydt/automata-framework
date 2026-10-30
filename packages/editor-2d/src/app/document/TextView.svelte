@@ -1,6 +1,6 @@
 <!--
   The read-only view of a file that does not open (plan ED2D.4c2b, decision 3; mockup `open-failed`). It draws a window
-  of at most 400 lines with their numbers, marks the lines an error points at and scrolls the first of them into view.
+  of at most 400 lines with their numbers, marks the lines an error points at (in colour, and in words for a screen reader) and scrolls the first of them into view.
   It is its own scroll region in both directions: long lines scroll rather than wrap, so a column number stays true,
   and the page never moves. Nothing in it can be edited.
 -->
@@ -44,8 +44,10 @@ function revealFirstMark(node: HTMLElement): void {
       {#each view.lines as line, index (index)}
         {@const number = view.first + index}
         {#if markedSet.has(number)}
-          <div class="line" data-marked aria-label={`Line ${number}, where an error is: ${line}`}>
-            <span class="number">{number}</span><span class="code">{line}</span>
+          <div class="line" data-marked>
+            <span class="number">{number}</span><span class="code">{line}</span><span class="visually-hidden"
+              >error on this line</span
+            >
           </div>
         {:else}
           <div class="line"><span class="number">{number}</span><span class="code">{line}</span></div>
@@ -100,6 +102,7 @@ function revealFirstMark(node: HTMLElement): void {
     outline-offset: -2px;
   }
   .line {
+    position: relative;
     display: flex;
     gap: var(--space-3);
     width: max-content;
@@ -118,6 +121,15 @@ function revealFirstMark(node: HTMLElement): void {
     width: 3ch;
     text-align: right;
     color: var(--color-text-faint);
+  }
+  /* Read by a screen reader, not drawn: the colour says it to the eye. */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .line[data-marked] .number {
     color: var(--color-state-warn);

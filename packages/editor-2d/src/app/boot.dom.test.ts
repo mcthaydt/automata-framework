@@ -2,11 +2,15 @@ import { cleanup, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { counterIds } from '../model/ids'
 import { printProject } from '../model/project-codec'
+import type { Project } from '../model/project-types'
 import { memoryWorkspace } from '../testing/memory-workspace'
 import { hollowmere, mossgate } from '../testing/samples'
 import { createTestClock } from '../testing/test-clock'
 import { type EditorEnv, type EditorHandle, startEditor } from './boot'
+import { createEditorApp } from './editor-app'
+import { createAppProfiles } from './profiles'
 
 // The editor's boot (plan ED2D.4c2a decision 9): a function of its environment, so a test hands it a window, a document, a
 // clock and a workspace and gets the real app. The journey: list, New, the document frame, Back.
@@ -237,6 +241,57 @@ describe('startEditor', () => {
     const panel = await screen.findByRole('dialog', { name: 'keys.af2d.json does not open' })
     const places = [...panel.querySelectorAll('.where')].map((where) => where.textContent)
     expect(places).toEqual(['extra', 'more'])
+  })
+
+  it('dispose waits until an open document has written its journal', async () => {
+    const clock = createTestClock()
+    const workspace = memoryWorkspace(clock)
+    await workspace.store.write('mossgate.af2d.json', printProject(mossgate()))
+    clock.advance(1000)
+    // An autosave newer than the file, so Restore leaves an edit the journal has to keep.
+    const earlier = createEditorApp({ workspace, registry: createAppProfiles(), ids: counterIds(), clock })
+    const first = await earlier.open('mossgate.af2d.json')
+    if (first.status !== 'opened') throw new Error(first.status)
+    first.document.history.apply('Rename', (value) => ({ ...(value as Project), name: 'Renamed' }))
+    clock.advance(1000)
+    await first.document.session.flush()
+    first.document.dispose()
+
+    let hold = false
+    let release: () => void = () => {}
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const write = workspace.journal.write.bind(workspace.journal)
+    const journal = {
+      ...workspace.journal,
+      write: async (...args: Parameters<typeof write>) => {
+        if (hold) await gate
+        return write(...args)
+      },
+    }
+    const target = document.body.appendChild(document.createElement('div'))
+    const handle = await startEditor(target, {
+      window: fakeWindow(1194, 834).view,
+      document,
+      clock,
+      fillRandom: (bytes) => {
+        crypto.getRandomValues(bytes)
+      },
+      workspace: { ...workspace, journal },
+    })
+    await userEvent.dblClick(await screen.findByRole('option', { name: /Renamed|Mossgate/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Restore edits' }))
+    hold = true
+    let done = false
+    const disposing = handle.dispose().then(() => {
+      done = true
+    })
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(done).toBe(false)
+    release()
+    await disposing
+    expect(done).toBe(true)
   })
 
   it('dispose takes the editor off the page and lets go of the window', async () => {

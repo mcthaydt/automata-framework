@@ -141,6 +141,11 @@ describe('DocumentFrame', () => {
     expect(screen.getByRole('button', { name: 'Undo Restore autosave' })).toBeEnabled()
   })
 
+  it('the Restore dialog keeps the focus the heading would take, so a keyboard starts on the question', async () => {
+    await mount({ autosave: true })
+    expect(screen.getByRole('button', { name: 'Restore edits' })).toHaveFocus()
+  })
+
   it('Discard keeps the file as it was', async () => {
     await mount({ autosave: true })
     await userEvent.click(screen.getByRole('button', { name: 'Discard' }))

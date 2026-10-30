@@ -248,6 +248,73 @@ describe('the document controller', () => {
       expect(seen).toEqual([true, false, true])
     })
 
+    it('Back during Take theirs lets the reloaded document go too, and swaps nothing in', async () => {
+      const s = await conflicted()
+      let release: () => void = () => {}
+      const gate = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      const realOpen = s.app.open.bind(s.app)
+      const disposeReloaded = vi.fn()
+      vi.spyOn(s.app, 'open').mockImplementation(async (...args) => {
+        const outcome = await realOpen(...args)
+        await gate
+        if (outcome.status !== 'opened') return outcome
+        const { document } = outcome
+        return {
+          ...outcome,
+          document: {
+            ...document,
+            dispose: () => {
+              disposeReloaded()
+              document.dispose()
+            },
+          },
+        }
+      })
+      const taking = s.controller.takeTheirs()
+      await settle()
+      await s.controller.close()
+      release()
+      await taking
+      expect(disposeReloaded).toHaveBeenCalledOnce()
+      expect(stateOf(s.controller).document).toBe(s.opened.document)
+      expect(s.page.count()).toBe(0)
+      expect(s.toasts.items).toEqual([])
+    })
+
+    it('Back while the old autosave is being removed also lets the reloaded document go', async () => {
+      const s = await conflicted()
+      let release: () => void = () => {}
+      const gate = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      const discard = s.opened.document.session.discardJournal.bind(s.opened.document.session)
+      vi.spyOn(s.opened.document.session, 'discardJournal').mockImplementation(async () => {
+        await gate
+        await discard()
+      })
+      const realOpen = s.app.open.bind(s.app)
+      const disposeReloaded = vi.fn()
+      vi.spyOn(s.app, 'open').mockImplementation(async (...args) => {
+        const outcome = await realOpen(...args)
+        if (outcome.status !== 'opened') return outcome
+        const { document } = outcome
+        return {
+          ...outcome,
+          document: { ...document, dispose: () => (disposeReloaded(), document.dispose()) },
+        }
+      })
+      const taking = s.controller.takeTheirs()
+      await settle()
+      await s.controller.close()
+      release()
+      await taking
+      expect(disposeReloaded).toHaveBeenCalledOnce()
+      expect(stateOf(s.controller).document).toBe(s.opened.document)
+      expect(s.toasts.items).toEqual([])
+    })
+
     it('Cancel closes the dialog and changes nothing', async () => {
       const { controller } = await conflicted()
       controller.dismissConflict()
@@ -357,7 +424,7 @@ describe('the document controller', () => {
       expect(state).toMatchObject({ save: 'dirty', canUndo: true, undoLabel: 'Restore autosave' })
     })
 
-    it('Restore of an autosave that no longer parses keeps the file as saved and says why', async () => {
+    it('Restore of an autosave that no longer parses keeps the file as saved, keeps the offer and says why', async () => {
       const s = await setup({ autosave: true })
       const recovery = stateOf(s.controller).recovery
       if (recovery === undefined) throw new Error('no recovery')
@@ -367,7 +434,8 @@ describe('the document controller', () => {
         error: [{ code: 'x', message: 'Not a note.' }],
       })
       s.controller.restore()
-      expect(stateOf(s.controller).recovery).toBeUndefined()
+      // Still offered: Discard is how the person goes on with the file as saved.
+      expect(stateOf(s.controller).recovery).toBe(recovery)
       expect(stateOf(s.controller).document.history.state).toEqual({ text: 'hello' })
       expect(s.toasts.items[0]).toMatchObject({
         kind: 'error',

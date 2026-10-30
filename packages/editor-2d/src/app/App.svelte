@@ -41,9 +41,34 @@ let open = $state.raw<DocumentController | undefined>(undefined)
 let failure = $state.raw<PanelOutcome | undefined>(undefined)
 let choice = $state.raw<ChoiceOutcome | undefined>(undefined)
 
+/**
+ * The closes still running: a document left on Back writes its journal before it is disposed. Opening waits for them,
+ * so reopening the file at once finds that journal (`findRecovery`), and the editor's own dispose waits for them too.
+ * One promise for every close, not one per file: a close is short, and waiting for an unrelated one costs little.
+ */
+let closing: Promise<void> = Promise.resolve()
+
+function close(document: DocumentController): void {
+  closing = Promise.all([closing, document.close()]).then(() => undefined)
+}
+
+/** Settles when every document that was left has finished closing. */
+export function idle(): Promise<void> {
+  return closing
+}
+
+// svelte-ignore state_referenced_locally
+const opening: EditorApp = {
+  ...app,
+  open: async (path, as) => {
+    await closing
+    return app.open(path, as)
+  },
+}
+
 // svelte-ignore state_referenced_locally
 const controller = createHomeController({
-  app,
+  app: opening,
   toasts,
   onOpened: (opened) => {
     open = createDocumentController({ app, opened, toasts, lifecycle })
@@ -55,7 +80,7 @@ const controller = createHomeController({
 })
 
 function back(): void {
-  void open?.close()
+  if (open !== undefined) close(open)
   open = undefined
 }
 
@@ -65,7 +90,9 @@ function choose(profileId: string): void {
   if (path !== undefined) void controller.open(path, profileId)
 }
 
-onDestroy(() => void open?.close())
+onDestroy(() => {
+  if (open !== undefined) close(open)
+})
 </script>
 
 {#if open}

@@ -204,10 +204,10 @@ describe('messages', () => {
   })
   it('a refused restore says why and that the file is open as saved', () => {
     expect(restoreRefused([{ code: 'x', message: 'Not JSON.' }])).toBe(
-      'The autosave no longer opens (Not JSON.). The file is open as it was last saved; the autosave is kept.',
+      'The autosave no longer opens (Not JSON.). Discard it to go on with the file as it was last saved.',
     )
     expect(restoreRefused([])).toBe(
-      'The autosave no longer opens. The file is open as it was last saved; the autosave is kept.',
+      'The autosave no longer opens. Discard it to go on with the file as it was last saved.',
     )
   })
   it('an autosave that stopped asks for a save; one that failed once says so', () => {

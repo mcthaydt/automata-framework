@@ -23,12 +23,12 @@ import { createAppProfiles } from '../profiles'
 const PROJECT = 'mossgate.af2d.json'
 const BROKEN = 'broken.af2d.json'
 
-/** A file that does not parse: 300 lines, one of them very long, and the JSON stops at line 250. */
+/** A file that does not parse: 700 lines, one of them very long, and the JSON stops at line 600, past the first 400. */
 function brokenText(): string {
   const lines = ['{', '  "format": "af2d",', '  "version": 1,']
-  for (let n = lines.length; n < 249; n += 1) lines.push(`  "k${n}": ${n},`)
+  for (let n = lines.length; n < 599; n += 1) lines.push(`  "k${n}": ${n},`)
   lines.push(`  "long": "${'x'.repeat(400)}"  oops`)
-  for (let n = 250; n < 300; n += 1) lines.push(`  "k${n}": ${n},`)
+  for (let n = 600; n < 700; n += 1) lines.push(`  "k${n}": ${n},`)
   return `${lines.join('\n')}\n}\n`
 }
 
@@ -138,6 +138,9 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
     const line = marked.getBoundingClientRect()
     expect(line.top, 'the error line is scrolled into view').toBeGreaterThanOrEqual(view.top - 1)
     expect(line.bottom).toBeLessThanOrEqual(view.bottom + 1)
+    expect(panel.textContent, 'a window of the long file, around the error').toContain(
+      'Lines 302 to 701 of 701',
+    )
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)
     await page.screenshot({ path: `.vitest/shots/open-failed-${size.name}.png` })
@@ -162,6 +165,7 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
     const restore = button(recover, 'Restore edits')
     expect(checkLayout(conditions, [button(recover, 'Discard'), restore])).toEqual([])
     expect(restore.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    expect(document.activeElement, 'the question has the focus, not the heading behind it').toBe(restore)
     await page.screenshot({ path: `.vitest/shots/recover-${size.name}.png` })
 
     restore.click()
@@ -176,6 +180,10 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
       button(conflict, name),
     )
     expect(checkLayout(conditions, choices)).toEqual([])
+    expect(
+      button(conflict, 'Save as copy').getBoundingClientRect().height,
+      'the primary action',
+    ).toBeGreaterThanOrEqual(48)
     await page.screenshot({ path: `.vitest/shots/conflict-${size.name}.png` })
   })
 })

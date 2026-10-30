@@ -18,7 +18,9 @@ const quietPage = () => ({
   window: { addEventListener: () => {}, removeEventListener: () => {} },
 })
 
-async function mount(options: { rival?: boolean; files?: Readonly<Record<string, string>> } = {}) {
+async function mount(
+  options: { rival?: boolean; files?: Readonly<Record<string, string>>; holdFlush?: boolean } = {},
+) {
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   const registry = createAppProfiles()
@@ -29,12 +31,27 @@ async function mount(options: { rival?: boolean; files?: Readonly<Record<string,
   const real = createEditorApp({ workspace, registry, ids: counterIds(), clock })
   for (const [path, text] of Object.entries(options.files ?? {})) await workspace.store.write(path, text)
   const disposed = vi.fn()
+  // A journal write that waits until the test lets it finish, so a test can act while a document is still closing.
+  let releaseFlush: () => void = () => {}
+  const flushGate = new Promise<void>((resolve) => {
+    releaseFlush = resolve
+  })
+  const opens = vi.fn()
   const app: EditorApp = {
     ...real,
     async create(...args) {
       const outcome = await real.create(...args)
       if (outcome.status !== 'opened') return outcome
-      return { ...outcome, document: { ...outcome.document, dispose: disposed } }
+      const { session } = outcome.document
+      const flush = options.holdFlush ? () => flushGate.then(() => session.flush()) : session.flush
+      return {
+        ...outcome,
+        document: { ...outcome.document, session: { ...session, flush }, dispose: disposed },
+      }
+    },
+    open(...args) {
+      opens(...args)
+      return real.open(...args)
     },
   }
   const view = render(App, {
@@ -46,7 +63,7 @@ async function mount(options: { rival?: boolean; files?: Readonly<Record<string,
     clock,
     lifecycle: quietPage(),
   })
-  return { ...view, disposed, workspace }
+  return { ...view, disposed, workspace, opens, releaseFlush }
 }
 
 async function newProject(): Promise<void> {
@@ -106,5 +123,20 @@ describe('App', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Rival note' }))
     expect(await screen.findByRole('button', { name: 'Back' })).toBeInTheDocument()
     expect(screen.getByText('Rival note')).toBeInTheDocument()
+  })
+
+  it('opening a file waits until the document left on Back has written its journal', async () => {
+    const { opens, releaseFlush, disposed } = await mount({ holdFlush: true })
+    await newProject()
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+    const [card] = await screen.findAllByRole('option')
+    await userEvent.dblClick(card as HTMLElement)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(opens).not.toHaveBeenCalled()
+    expect(disposed).not.toHaveBeenCalled()
+    releaseFlush()
+    await waitFor(() => expect(opens).toHaveBeenCalledOnce())
+    expect(disposed).toHaveBeenCalledOnce()
+    expect(await screen.findByRole('button', { name: 'Back' })).toBeInTheDocument()
   })
 })

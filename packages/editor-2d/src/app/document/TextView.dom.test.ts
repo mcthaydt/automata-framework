@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/svelte'
+import { render, screen, within } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import TextView from './TextView.svelte'
 
@@ -16,12 +16,15 @@ describe('TextView', () => {
     expect(screen.queryByText(/Lines \d+ to/)).toBeNull()
   })
 
-  it('marks the lines an error points at, and names them for a screen reader', () => {
+  it('marks the lines an error points at, and says so in words a screen reader reads', () => {
     render(TextView, { text: 'a\nb\nc', marked: [2] })
     const marked = document.querySelectorAll('[data-marked]')
     expect(marked).toHaveLength(1)
-    expect(marked[0]).toHaveTextContent('2b')
-    expect(marked[0]).toHaveAttribute('aria-label', 'Line 2, where an error is: b')
+    expect(marked[0]).toHaveTextContent(/^2b/)
+    // Said, not only coloured: a screen reader reads the words in the line itself.
+    expect(within(marked[0] as HTMLElement).getByText('error on this line')).toHaveClass('visually-hidden')
+    expect(marked[0]).not.toHaveAttribute('aria-label')
+    expect(screen.getAllByText('error on this line')).toHaveLength(1)
   })
 
   it('a long file shows the window around the first error and says which lines these are', () => {

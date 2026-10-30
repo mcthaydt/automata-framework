@@ -36,7 +36,7 @@ export interface EditorEnv {
 
 export interface EditorHandle {
   readonly workspace: Workspace
-  /** Takes the editor off the page and lets go of the window. Safe to call twice. */
+  /** Takes the editor off the page, waits for an open document's journal and lets go of the window. Safe to call twice. */
   dispose(): Promise<void>
 }
 
@@ -69,6 +69,8 @@ export async function startEditor(target: HTMLElement, env: EditorEnv): Promise<
     async dispose() {
       // Svelte's unmount and the geometry owner's dispose both do nothing the second time, so no guard is needed.
       await unmount(root)
+      // Unmounting closes an open document, which writes its journal first; the editor is gone once that is done.
+      await root.idle()
       owner.dispose()
     },
   }

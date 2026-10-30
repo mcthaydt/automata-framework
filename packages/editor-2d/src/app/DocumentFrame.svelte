@@ -51,7 +51,7 @@ $effect(() => controller.state.subscribe((next) => (view = next)))
       canRedo={view.canRedo}
       undoLabel={view.undoLabel}
       redoLabel={view.redoLabel}
-      saving={view.busy !== undefined}
+      busy={view.busy !== undefined}
       {compact}
       {onback}
       onundo={() => controller.undo()}

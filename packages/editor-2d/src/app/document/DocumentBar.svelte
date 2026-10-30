@@ -1,7 +1,7 @@
 <!--
   The document's top bar (plan ED2D.4c2b, decision 8; mockup `level-platformer`): Back, the document's title over its
   path, the profile's label, then Undo, Redo and Save at the end. Undo and Redo are named with the step they act on and
-  are disabled when there is none; Save is disabled while a save runs. On a narrow screen the title and the path
+  are disabled when there is none; Save and Back are disabled while a save or a conflict choice runs. On a narrow screen the title and the path
   truncate and the buttons keep their size; on a phone the profile's pill is left out. The heading takes focus when the bar appears: the page changed.
 -->
 <script lang="ts">
@@ -16,7 +16,8 @@ interface Props {
   canRedo: boolean
   undoLabel: string | undefined
   redoLabel: string | undefined
-  saving: boolean
+  /** A save or a conflict choice is running: Save, and Back (which would close the document under it), wait. */
+  busy: boolean
   /** The shell is in `compact` mode (a phone): the profile's pill is left out so the title keeps its room. */
   compact: boolean
   onback: () => void
@@ -32,7 +33,7 @@ const {
   canRedo,
   undoLabel,
   redoLabel,
-  saving,
+  busy,
   compact,
   onback,
   onundo,
@@ -45,7 +46,7 @@ onMount(() => title?.focus())
 </script>
 
 <div class="bar" data-testid="document-bar">
-  <Button onclick={onback}>Back</Button>
+  <Button disabled={busy} onclick={onback}>Back</Button>
   <div class="titles">
     <h1 tabindex="-1" bind:this={title}>{heading.title}</h1>
     <span class="file">{heading.file}</span>
@@ -64,7 +65,7 @@ onMount(() => title?.focus())
     data-testid="redo"
     onclick={onredo}>Redo</Button
   >
-  <Button disabled={saving} data-testid="save" onclick={onsave}>Save</Button>
+  <Button disabled={busy} data-testid="save" onclick={onsave}>Save</Button>
 </div>
 
 <style>
