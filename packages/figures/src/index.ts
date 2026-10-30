@@ -2,6 +2,7 @@
 // the shared rig and its two-bone IK, the gene sliders, the figure and library content kinds, and the
 // extension that registers them. Part 2 (M3.5b): `build()`, the part, garment and hair generators behind it.
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
+// Part 5 (M3.6a): `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits.
 
 export { type Anchor, type AnchorKind, clearance } from './build/anchors'
 export { type Built, build, type FigureLibrary } from './build/build'
@@ -93,3 +94,19 @@ export {
   skeletonFromGenes,
 } from './rig/rig'
 export { twoBoneIK } from './rig/two-bone-ik'
+export { hingeFlexion, type JointLimit, jointLimits, limitExcess, swingAngle } from './solve/limits'
+export { eulerOf } from './solve/rotation'
+export { type Solved, solve } from './solve/solve'
+export type {
+  AimTarget,
+  EffectorId,
+  EffectorTarget,
+  LimbId,
+  PoleId,
+  PoleTarget,
+  Reach,
+  SolveReport,
+  Space,
+  Targets,
+  Vec3,
+} from './solve/targets'

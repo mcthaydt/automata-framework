@@ -18,6 +18,7 @@ describe('CORE_SETTINGS', () => {
       display: { quality: 'high' },
       audio: AUDIO_SETTINGS_DEFAULT,
       haptics: { enabled: true },
+      camera: { degPerPixel: 0.25, invert: false },
     }
     expect(CORE_SETTINGS.defaults).toEqual(defaults)
     expect(readSettings(CORE_SETTINGS, null)).toEqual(defaults)
@@ -30,8 +31,17 @@ describe('CORE_SETTINGS', () => {
       display: { quality: 'low' as const },
       audio: AUDIO_SETTINGS_DEFAULT,
       haptics: { enabled: false },
+      camera: { degPerPixel: 0.5, invert: true },
     }
     expect(readSettings(CORE_SETTINGS, writeSettings(CORE_SETTINGS, saved))).toEqual(saved)
+  })
+
+  // M4.12: "Camera turn speed" and "Invert camera" (M4 spec §16.3.6), an account field like the bindings.
+  it('reads a record saved before the camera settings with them at their defaults (A-l)', () => {
+    const before = '{"version":1,"input":{"profile":"","overrides":{}},"display":{"quality":"low"}}'
+    expect(readSettings(CORE_SETTINGS, before).camera).toEqual({ degPerPixel: 0.25, invert: false })
+    expect(readSettings(CORE_SETTINGS, before).display.quality).toBe('low')
+    expect(CORE_SETTINGS.deviceFields).not.toContain('camera')
   })
 
   // M5.4: the Audio group's choices (M5 spec §7), FloorFifty's `audio` settings.
@@ -56,6 +66,7 @@ describe('CORE_SETTINGS', () => {
       display: { quality: 'high' as const },
       audio,
       haptics: { enabled: true },
+      camera: { degPerPixel: 0.25, invert: false },
     }
     // The audio record is the device's (M5-D4): read from there, and the account's copy is not read at all.
     expect(
