@@ -19,7 +19,7 @@
     "@mcthaydt/automata-physics": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
     "effect": "3.22.2",
-    "pixi.js": "8.21.0",
+    "pixi.js": "8.22.0",
     "zod": "4.6.6"
   },
   "devDependencies": {
