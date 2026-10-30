@@ -45,6 +45,11 @@ async function setup(options: { width?: number; height?: number; journal?: boole
     controller,
     toasts,
     clock,
+    renderer: async () => undefined,
+    schedule: (_delay: number, run: () => void) => {
+      run()
+      return () => undefined
+    },
     onback,
   })
   return { clock, workspace, controller, onback, file: async () => textOf(await workspace.store.read(PATH)) }
@@ -68,10 +73,28 @@ function edit(level: OpenLevel, member: 'light' | 'floor', value: number): void 
 }
 
 describe('DocumentFrame', () => {
-  it('heads the level and shows it is saved; the canvas says the views come next', async () => {
+  it('heads the level and puts the plan, its layers, the views and the checks around it (ED3D.5d)', async () => {
     await setup()
     expect(screen.getByRole('heading', { level: 1, name: 'depot.json' })).toHaveFocus()
-    expect(screen.getByText(/Plan and Dollhouse arrive with ED3D\.5d/)).toBeInTheDocument()
+    expect(screen.getByRole('application', { name: 'Plan' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Layers' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Plan' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByTestId('checks-pill')).toHaveTextContent(/No problems|warning|problem/)
+    expect(screen.getByText(/Nothing selected/)).toBeInTheDocument()
+  })
+
+  it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {
+    const { controller } = await setup()
+    const level = levelOf(controller)
+    await userEvent.click(screen.getByRole('button', { name: 'Hide Walls' }))
+    expect(level.editor.view.state.hidden).toEqual(['walls'])
+    expect(screen.getByRole('button', { name: 'Show Walls' })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(screen.getByRole('button', { name: 'Lock Sectors' }))
+    expect(level.editor.view.state.locked).toEqual(['sectors'])
+    await userEvent.click(screen.getByRole('button', { name: 'Walls' }))
+    expect(level.editor.view.state.layer).toBe('walls')
+    level.editor.selection.set(['sector:hall'])
+    expect(await screen.findByText(/Room hall selected/)).toBeInTheDocument()
   })
 
   it('Undo names the step after an edit, and Save writes the patched text', async () => {
@@ -140,5 +163,11 @@ describe('DocumentFrame', () => {
   it('leaves the profile out of the bar on a phone', async () => {
     await setup({ width: 390, height: 844 })
     expect(within(screen.getByTestId('document-bar')).queryByText('af-sector')).toBeNull()
+  })
+
+  it('puts the checks words in the status line on a phone, where the bar has no room for the pill (ED3D.5d)', async () => {
+    await setup({ width: 390, height: 844 })
+    expect(screen.queryByTestId('checks-pill')).toBeNull()
+    expect(screen.getByText(/(No problems|warning|problem).* · Nothing selected/)).toBeInTheDocument()
   })
 })

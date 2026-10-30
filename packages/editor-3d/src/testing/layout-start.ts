@@ -2,6 +2,7 @@ import { type EditorSize, REST } from '@mcthaydt/automata-editor-kit/testing'
 import { publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
 import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '../ui/boot'
+import { createPlanRenderer } from '../ui/plan/plan-renderer'
 import { createTestClock, type MemoryWorkspace, memoryWorkspace } from './memory-workspace'
 
 // Starting the 3D editor for a layout test (plan ED3D.5c step 9): at a window size, with the real window and so the
@@ -38,6 +39,8 @@ export async function startAt(
       setTimer: (ms, run) => window.setTimeout(run, ms),
       clearTimer: (handle) => window.clearTimeout(handle as number),
     },
+    // The real Pixi renderer: a browser without WebGL2 shows the plan's notice, which the layout checks too.
+    renderer: createPlanRenderer,
   })
   await settleLayout()
   return { conditions, workspace }

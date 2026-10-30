@@ -7,7 +7,9 @@
 export function makeScreens(S, Ui, Vw, D) {
   const { F, row, col, spacer, T, I, alpha } = S
   const Vec = S.V
-  const { W, H, TOP, STATUS, INSP, MID, AMBER } = Ui
+  const { W, H, TOP, STATUS, RAIL, INSP, MID, AMBER } = Ui
+  // The plan's width beside the rail and the inspector, and World's beside the inspector alone (no rail there).
+  const PLAN_W = W - RAIL - INSP
   const {
     dot,
     divider,
@@ -220,7 +222,7 @@ export function makeScreens(S, Ui, Vw, D) {
     )
     const plan = planView(
       {
-        w: 834,
+        w: PLAN_W,
         h: MID,
         cx: -2.4,
         cz: -3.4,
@@ -246,7 +248,7 @@ export function makeScreens(S, Ui, Vw, D) {
           T('shares a wall with ward · portal?', { style: 'Mono/11', color: 'text/dim' }),
         ),
       (p) => loupe(p.X(-1.9) + 56, p.Y(-3.8) - 214),
-      nudge(834 - 12 - 148, MID - 12 - 148),
+      nudge(PLAN_W - 12 - 148, MID - 12 - 148),
       toolbar,
       actions,
     ).node
@@ -366,7 +368,7 @@ export function makeScreens(S, Ui, Vw, D) {
       ),
     )
   const walk = () => {
-    const w = 834
+    const w = PLAN_W
     const mini = planView({
       w: 176,
       h: 176,
@@ -543,7 +545,7 @@ export function makeScreens(S, Ui, Vw, D) {
     )
   }
   const world = () => {
-    const CW = 898
+    const CW = W - INSP
     let dots = ''
     for (let y = 16; y < MID; y += 32) for (let x = 16; x < CW; x += 32) dots += `M${x} ${y}h1.6v1.6h-1.6z`
     const dotSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${CW}" height="${MID}" viewBox="0 0 ${CW} ${MID}"><path d="${dots}" fill="#ffffff" fill-opacity=".12"/></svg>`
@@ -1083,7 +1085,7 @@ export function makeScreens(S, Ui, Vw, D) {
       })
     }
     const plan = planView(
-      { w: 834, h: MID, cx: -0.15, cz: 1.0, ppm: 46, name: 'Plan viewport' },
+      { w: PLAN_W, h: MID, cx: -0.15, cz: 1.0, ppm: 46, name: 'Plan viewport' },
       (p) => wallMark(p, -1.9, -3.8, -1.9, -0.875, 'state/bad', '1'),
       (p) =>
         F(
@@ -1134,7 +1136,7 @@ export function makeScreens(S, Ui, Vw, D) {
         ),
       vpTag('Plan', 'checks · ask preview'),
       floating(
-        { name: 'ask decision', x: 834 / 2 - 150, y: MID - 12 - 60, h: 60, pad: [0, 10], gap: 8 },
+        { name: 'ask decision', x: PLAN_W / 2 - 150, y: MID - 12 - 60, h: 60, pad: [0, 10], gap: 8 },
         I('sparkle', { size: 18, color: AMBER }),
         mono('1 change', { color: 'text/primary' }),
         button('Reject', { icon: 'close' }),

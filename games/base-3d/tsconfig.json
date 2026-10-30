@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "allowImportingTsExtensions": true,
+    "isolatedDeclarations": false
+  },
+  "include": ["main.ts", "game.ts", "src/**/*.ts"],
+  // It reads Node-only files (ship.config.ts, package.json); tsconfig.node.json checks it.
+  "exclude": ["src/ship-config.test.ts"]
+}

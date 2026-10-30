@@ -1,0 +1,607 @@
+{
+  "schema": "s7-gpu-results/1",
+  "measuredAt": "2026-10-30T19:36:52.226Z",
+  "page": "index-shim.html",
+  "environment": {
+    "commit": "5bf53a8780cf847fecc3ecae1107227a01e4fd5d",
+    "runner": "af-mac",
+    "githubActions": true,
+    "os": "Darwin 27.0.0",
+    "platform": "darwin",
+    "cpus": 8,
+    "cpuModel": "Apple M1",
+    "node": "v24.21.0"
+  },
+  "browsers": {
+    "chromium": "153.0.8010.12 (full Chromium (new headless))",
+    "webkit": "26.6",
+    "firefox": "155.0"
+  },
+  "csp": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; worker-src 'self' blob:; manifest-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors http://127.0.0.1:57302",
+  "q1": {
+    "chromium": {
+      "ready": true,
+      "renderer": "webgl",
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+      "software": false,
+      "violations": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "capture": "q1-chromium.png",
+      "pass": true
+    },
+    "webkit": {
+      "ready": true,
+      "renderer": "webgl",
+      "gpu": "Apple GPU",
+      "software": false,
+      "violations": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "capture": "q1-webkit.png",
+      "pass": true
+    },
+    "firefox": {
+      "ready": true,
+      "renderer": "webgl",
+      "gpu": "Apple M1, or similar",
+      "software": false,
+      "violations": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "capture": "q1-firefox.png",
+      "pass": true
+    }
+  },
+  "q2q4": {
+    "tolerance": {
+      "channel": 2,
+      "share": 0.005,
+      "max": 16
+    },
+    "nonBlackLuma": 16,
+    "still": 2,
+    "engines": {
+      "chromium": {
+        "backends": {
+          "webgl": {
+            "ready": true,
+            "renderer": "webgl",
+            "ranAsAsked": true,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+            "software": false,
+            "violations": [],
+            "consoleErrors": [],
+            "capture": "q2-chromium-webgl.png",
+            "extract": {
+              "width": 1280,
+              "height": 720,
+              "meanLuma": 119.91783177399445,
+              "opaqueShare": 0.9521701388888889,
+              "error": null,
+              "capture": "q4-chromium-webgl-extract.png"
+            },
+            "q4NonBlack": true
+          },
+          "webgpu": {
+            "ready": true,
+            "renderer": "webgpu",
+            "ranAsAsked": true,
+            "gpu": "apple | metal-3",
+            "software": false,
+            "violations": [],
+            "consoleErrors": [],
+            "capture": "q2-chromium-webgpu.png",
+            "extract": {
+              "width": 1280,
+              "height": 720,
+              "meanLuma": 103.49547601276882,
+              "opaqueShare": 0.9521701388888889,
+              "error": null,
+              "capture": "q4-chromium-webgpu-extract.png"
+            },
+            "q4NonBlack": true
+          }
+        },
+        "q2": {
+          "compared": true,
+          "comparable": true,
+          "pixels": 921600,
+          "overChannelTolerance": 569286,
+          "shareOver": 0.61771484375,
+          "maxChannelDiff": 87,
+          "pass": false,
+          "diff": "q2-chromium-diff.png"
+        }
+      },
+      "webkit": {
+        "backends": {
+          "webgl": {
+            "ready": true,
+            "renderer": "webgl",
+            "ranAsAsked": true,
+            "gpu": "Apple GPU",
+            "software": false,
+            "violations": [],
+            "consoleErrors": [],
+            "capture": "q2-webkit-webgl.png",
+            "extract": {
+              "width": 1280,
+              "height": 720,
+              "meanLuma": 119.91783177399445,
+              "opaqueShare": 0.9521701388888889,
+              "error": null,
+              "capture": "q4-webkit-webgl-extract.png"
+            },
+            "q4NonBlack": true
+          },
+          "webgpu": {
+            "ready": true,
+            "renderer": "webgpu",
+            "ranAsAsked": true,
+            "gpu": "apple | apple | apple | apple",
+            "software": false,
+            "violations": [],
+            "consoleErrors": [],
+            "capture": "q2-webkit-webgpu.png",
+            "extract": {
+              "width": 1280,
+              "height": 720,
+              "meanLuma": 103.49547601276882,
+              "opaqueShare": 0.9521701388888889,
+              "error": null,
+              "capture": "q4-webkit-webgpu-extract.png"
+            },
+            "q4NonBlack": true
+          }
+        },
+        "q2": {
+          "compared": true,
+          "comparable": true,
+          "pixels": 921600,
+          "overChannelTolerance": 569286,
+          "shareOver": 0.61771484375,
+          "maxChannelDiff": 87,
+          "pass": false,
+          "diff": "q2-webkit-diff.png"
+        }
+      },
+      "firefox": {
+        "backends": {
+          "webgl": {
+            "ready": true,
+            "renderer": "webgl",
+            "ranAsAsked": true,
+            "gpu": "Apple M1, or similar",
+            "software": false,
+            "violations": [],
+            "consoleErrors": [],
+            "capture": "q2-firefox-webgl.png",
+            "extract": {
+              "width": 1280,
+              "height": 720,
+              "meanLuma": 119.91793684170277,
+              "opaqueShare": 0.9521701388888889,
+              "error": null,
+              "capture": "q4-firefox-webgl-extract.png"
+            },
+            "q4NonBlack": true
+          },
+          "webgpu": {
+            "ready": true,
+            "renderer": "webgl",
+            "ranAsAsked": false,
+            "gpu": "Apple M1, or similar",
+            "software": false,
+            "violations": [],
+            "consoleErrors": [],
+            "capture": "q2-firefox-webgpu.png",
+            "extract": {
+              "width": 1280,
+              "height": 720,
+              "meanLuma": 119.91793684170277,
+              "opaqueShare": 0.9521701388888889,
+              "error": null,
+              "capture": "q4-firefox-webgpu-extract.png"
+            },
+            "q4NonBlack": false
+          }
+        },
+        "q2": {
+          "compared": false,
+          "reason": "both backends did not run as asked"
+        }
+      }
+    }
+  },
+  "q3": {
+    "limitMs": 33.3,
+    "profiles": {
+      "galaxy-s20-chromium-4x": {
+        "viewport": {
+          "width": 800,
+          "height": 360
+        },
+        "deviceScaleFactor": 3,
+        "cpuThrottle": 4,
+        "renderer": "webgl",
+        "resolution": 2,
+        "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "warmupMs": 3000,
+        "sampleMs": 20000,
+        "workMs": {
+          "count": 1201,
+          "mean": 2.5967527056216797,
+          "p50": 2.5,
+          "p95": 4,
+          "p99": 5.0999999940395355,
+          "max": 8
+        },
+        "intervalMs": {
+          "count": 1200,
+          "mean": 16.66591666666675,
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728,
+          "p99": 16.800000000000182,
+          "max": 16.80000000000291
+        },
+        "violations": [],
+        "consoleErrors": [],
+        "verdict": "pass"
+      },
+      "iphone-13-chromium-4x": {
+        "viewport": {
+          "width": 844,
+          "height": 390
+        },
+        "deviceScaleFactor": 3,
+        "cpuThrottle": 4,
+        "renderer": "webgl",
+        "resolution": 2,
+        "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "warmupMs": 3000,
+        "sampleMs": 20000,
+        "workMs": {
+          "count": 1201,
+          "mean": 2.554371357385959,
+          "p50": 2.4000000059604645,
+          "p95": 4,
+          "p99": 6.0999999940395355,
+          "max": 9.200000017881393
+        },
+        "intervalMs": {
+          "count": 1200,
+          "mean": 16.666000000000096,
+          "p50": 16.69999999999891,
+          "p95": 16.700000000000728,
+          "p99": 16.800000000000182,
+          "max": 16.80000000000291
+        },
+        "violations": [],
+        "consoleErrors": [],
+        "verdict": "pass"
+      },
+      "iphone-13-webkit": {
+        "viewport": {
+          "width": 844,
+          "height": 390
+        },
+        "deviceScaleFactor": 3,
+        "cpuThrottle": 1,
+        "renderer": "webgl",
+        "resolution": 2,
+        "gpu": "Apple GPU",
+        "warmupMs": 3000,
+        "sampleMs": 20000,
+        "workMs": {
+          "count": 1202,
+          "mean": 1.5091514143094842,
+          "p50": 2,
+          "p95": 2,
+          "p99": 2,
+          "max": 4
+        },
+        "intervalMs": {
+          "count": 1201,
+          "mean": 16.66194837635304,
+          "p50": 17,
+          "p95": 19,
+          "p99": 22,
+          "max": 34
+        },
+        "violations": [],
+        "consoleErrors": [],
+        "verdict": "pass"
+      }
+    }
+  },
+  "q8q9": {
+    "galaxy-s20-chromium-4x": {
+      "cpuThrottle": 4,
+      "done": true,
+      "result": {
+        "joints": 27,
+        "meshes": 17,
+        "oneSolve": {
+          "mean": 0.02830250000059607,
+          "p50": 0.028499999940395357,
+          "p95": 0.03200000002980232,
+          "samples": 40000
+        },
+        "poseStep": {
+          "mean": 0.06581000000089406,
+          "p50": 0.06100000023841858,
+          "p95": 0.09800000011920929,
+          "samples": 20000
+        },
+        "perFrame": {
+          "mean": 0.058660000000894046,
+          "p50": 0.05100000023841858,
+          "p95": 0.115,
+          "samples": 20000
+        },
+        "jointsAndMeshes": {
+          "mean": 0.058459999999403885,
+          "p50": 0.05399999976158142,
+          "p95": 0.09800000011920929,
+          "samples": 10000
+        },
+        "build": {
+          "mean": 2.1129999999205276,
+          "p50": 1.9800000011920929,
+          "p95": 4.059999996423722,
+          "samples": 300
+        }
+      },
+      "targets": {
+        "solveUnder01ms": true,
+        "figureFrameUnder03ms": true,
+        "buildUnder20ms": true
+      }
+    },
+    "iphone-13-chromium-4x": {
+      "cpuThrottle": 4,
+      "done": true,
+      "result": {
+        "joints": 27,
+        "meshes": 17,
+        "oneSolve": {
+          "mean": 0.02871250000000001,
+          "p50": 0.028500000089406965,
+          "p95": 0.0325,
+          "samples": 40000
+        },
+        "poseStep": {
+          "mean": 0.06320999999940384,
+          "p50": 0.06100000023841858,
+          "p95": 0.08,
+          "samples": 20000
+        },
+        "perFrame": {
+          "mean": 0.05181499999910593,
+          "p50": 0.050999999940395356,
+          "p95": 0.06399999976158142,
+          "samples": 20000
+        },
+        "jointsAndMeshes": {
+          "mean": 0.05629000000059601,
+          "p50": 0.05400000035762787,
+          "p95": 0.09,
+          "samples": 10000
+        },
+        "build": {
+          "mean": 2.0056666667262717,
+          "p50": 1.9799999952316285,
+          "p95": 2.5800000011920927,
+          "samples": 300
+        }
+      },
+      "targets": {
+        "solveUnder01ms": true,
+        "figureFrameUnder03ms": true,
+        "buildUnder20ms": true
+      }
+    },
+    "iphone-13-webkit": {
+      "cpuThrottle": 1,
+      "done": true,
+      "result": {
+        "joints": 27,
+        "meshes": 17,
+        "oneSolve": {
+          "mean": 0.006325000000000004,
+          "p50": 0.005,
+          "p95": 0.01,
+          "samples": 40000
+        },
+        "poseStep": {
+          "mean": 0.012400000000000008,
+          "p50": 0.01,
+          "p95": 0.02,
+          "samples": 20000
+        },
+        "perFrame": {
+          "mean": 0.010750000000000008,
+          "p50": 0.01,
+          "p95": 0.02,
+          "samples": 20000
+        },
+        "jointsAndMeshes": {
+          "mean": 0.010100000000000007,
+          "p50": 0,
+          "p95": 0.02,
+          "samples": 10000
+        },
+        "build": {
+          "mean": 0.38666666666666666,
+          "p50": 0.4,
+          "p95": 0.6,
+          "samples": 300
+        }
+      },
+      "targets": {
+        "solveUnder01ms": true,
+        "figureFrameUnder03ms": true,
+        "buildUnder20ms": true
+      }
+    }
+  },
+  "q10": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+    "software": false,
+    "expected": {
+      "figureHeightShare": 0.29,
+      "horizonInsideTopDeg": 1.5650000000000013
+    },
+    "sizes": {
+      "16x9": {
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "ready": true,
+        "figure": {
+          "top": 266,
+          "bottom": 482,
+          "left": 609,
+          "right": 670,
+          "height": 217,
+          "width": 62
+        },
+        "figureHeightShare": 0.3013888888888889,
+        "pass25": true,
+        "void": {
+          "share": 0.04782986111111111,
+          "topTenthShare": 0.4782986111111111
+        },
+        "captures": ["q10-16x9-scene.png", "q10-16x9-figure.png", "q10-16x9-void.png"]
+      },
+      "4x3": {
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "ready": true,
+        "figure": {
+          "top": 284,
+          "bottom": 514,
+          "left": 479,
+          "right": 544,
+          "height": 231,
+          "width": 66
+        },
+        "figureHeightShare": 0.30078125,
+        "pass25": true,
+        "void": {
+          "share": 0.048177083333333336,
+          "topTenthShare": 0.4805194805194805
+        },
+        "captures": ["q10-4x3-scene.png", "q10-4x3-figure.png", "q10-4x3-void.png"]
+      },
+      "21x9": {
+        "viewport": {
+          "width": 1680,
+          "height": 720
+        },
+        "ready": true,
+        "figure": {
+          "top": 266,
+          "bottom": 482,
+          "left": 809,
+          "right": 870,
+          "height": 217,
+          "width": 62
+        },
+        "figureHeightShare": 0.3013888888888889,
+        "pass25": true,
+        "void": {
+          "share": 0.04946759259259259,
+          "topTenthShare": 0.4946759259259259
+        },
+        "captures": ["q10-21x9-scene.png", "q10-21x9-figure.png", "q10-21x9-void.png"]
+      },
+      "phone-844x390": {
+        "viewport": {
+          "width": 844,
+          "height": 390
+        },
+        "ready": true,
+        "figure": {
+          "top": 144,
+          "bottom": 261,
+          "left": 405,
+          "right": 438,
+          "height": 118,
+          "width": 34
+        },
+        "figureHeightShare": 0.30256410256410254,
+        "pass25": true,
+        "void": {
+          "share": 0.04984809818933042,
+          "topTenthShare": 0.49848098189330414
+        },
+        "captures": [
+          "q10-phone-844x390-scene.png",
+          "q10-phone-844x390-figure.png",
+          "q10-phone-844x390-void.png"
+        ]
+      },
+      "compact-780x270": {
+        "viewport": {
+          "width": 780,
+          "height": 270
+        },
+        "ready": true,
+        "figure": {
+          "top": 100,
+          "bottom": 180,
+          "left": 378,
+          "right": 401,
+          "height": 81,
+          "width": 24
+        },
+        "figureHeightShare": 0.3,
+        "pass25": true,
+        "void": {
+          "share": 0.05200379867046534,
+          "topTenthShare": 0.5200379867046534
+        },
+        "captures": [
+          "q10-compact-780x270-scene.png",
+          "q10-compact-780x270-figure.png",
+          "q10-compact-780x270-void.png"
+        ]
+      }
+    },
+    "depth": {
+      "comparable": true,
+      "pixels": 921600,
+      "overChannelTolerance": 2,
+      "shareOver": 0.000002170138888888889,
+      "maxChannelDiff": 53,
+      "pass": false,
+      "diff": "q10-depth-diff.png"
+    },
+    "stretch21x9": {
+      "figureX": 4.666666666666667,
+      "middle": {
+        "top": 266,
+        "bottom": 482,
+        "left": 809,
+        "right": 870,
+        "height": 217,
+        "width": 62
+      },
+      "edge": {
+        "top": 266,
+        "bottom": 482,
+        "left": 107,
+        "right": 257,
+        "height": 217,
+        "width": 151
+      },
+      "widthRatio": 2.435483870967742,
+      "heightRatio": 1
+    }
+  }
+}

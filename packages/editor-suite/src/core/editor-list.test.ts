@@ -47,6 +47,7 @@ describe('loadEditorList', () => {
   it('reports a row without gates at its key path (EDS-m)', () => {
     const load = loadEditorList(`format = "af-editors/1"\n${ROW.replace('gates = []\n', '')}`)
     expect(where(load)).toEqual([['invalid', ['file', 0, 'gates']]])
+    expect(problems(load)[0]?.message).toBe('gates is missing')
   })
 
   it('reports a check a row names that the list does not declare', () => {
