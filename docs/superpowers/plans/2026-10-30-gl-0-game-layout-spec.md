@@ -41,6 +41,9 @@
       plugin's arrays reversed keep `31f50888ccb4cf0a`; `Move`'s Zod keys swapped change the schema hash (spec §7).
 - [x] Probe `import.meta.env.MODE` under Vitest 5.0.3 (a scratch test, deleted): `'test'` in the node, jsdom and
       browser projects, Chromium, WebKit and Firefox (spec §4.6).
+- [x] Probe `main.ts`'s side-effect imports in tests (a scratch test, deleted): `no-eval` and the font CSS load in
+      Emberwick's node and jsdom projects (spec §4.6).
+- [x] Run today's style rules on `games/*/src`: "41 files, 0 findings" (spec §8).
 - [x] Write this plan.
 - [x] Write the spec.
 - [x] Gates: `pnpm format`, and every relative link in both files resolves.
@@ -50,12 +53,23 @@
 
 | Gate | Selected | Result |
 |---|---|---|
-| `pnpm format` | yes | see the execution log |
-| Relative links in both files resolve (a script over every Markdown link that is not `http` or an anchor) | yes | see the execution log |
+| `pnpm format` | yes | "Checked 2046 files … No fixes applied" (Biome does not format Markdown; run for the rule) |
+| Relative links in both files resolve (a script over every Markdown link that is not `http` or an anchor) | yes | 7 relative links, 0 broken (one broken link, the proposed `AGENTS.md` text's root-relative path, was turned into plain text) |
 | `TURBO_FORCE=true pnpm check`, build, api-report, agent-skills, changeset, parity | omitted: docs only, no package, test or config touched | — |
 | Owner review of the spec | pending (Owner gate, never ticked by an agent) | — |
 
 ## Execution log
 
 - 2026-10-30: worktree created at `30e9606c`; install done; sources read. Probes run and deleted (`git status` clean
-  after each). Plan and spec written.
+  after each): the plugin's arrays reversed keep `31f50888ccb4cf0a` and schema hash `a032b5126eeba0a8`; `Move`'s
+  Zod keys swapped give schema hash `3b0bb21c08e833d0`; `import.meta.env.MODE` is `'test'` in 6 of 6 probe files
+  (node, jsdom, Chromium, WebKit, Firefox); `no-eval` and the font CSS load in the node and jsdom projects. Emberwick's
+  plumbing test today: sim 377, art 393, content 96, drawing 860, plumbing 383. Today's style rules on `games/*/src`:
+  41 files, 0 findings. Plan committed first (`be70064d`), then the spec. `pnpm format`: no fixes. Links: 7, none
+  broken.
+- Found while writing (spec GL-D9): the flat layout removes the `src/sim/` folder that `check-boundaries`,
+  `automata check` and the plugin hook read, so the spec adds row GL.1b beside the brief's GL.1 to GL.7.
+- Deviation from the brief, recorded in the spec §7: the brief asked to preserve definition registration order
+  because of the schema hash. The probe shows registration order is not hashed (the sim sorts definitions and
+  orders systems canonically); what the hash covers is each definition's text (ids, field types, Zod key and union
+  order, system names and phases). The spec keeps the order anyway and states the real rule.
