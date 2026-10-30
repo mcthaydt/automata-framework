@@ -3,7 +3,7 @@
 - **Spec:** [M3 spec, revised three times](../specs/2026-10-18-m3-3d-characters-design.md), as amended 2026-10-30 (M3.0A, PR #195: FigureBuilder is the figure source): §1, §2.2, §4.4 (§4.4.1 for this task), §6 (the figure rows), §9 (unit layer), §13 (F-a, F-e).
 - **Task:** `M3.5a — figures part 1: package, math, rig, genes, figure content and libraries` (02). Lane **figures**; prerequisite M3.0A. Size L.
 - **Status:** drafted 2026-10-30, based on `main` (`6aee63b`).
-- **Progress:** 0 of 8 steps.
+- **Progress:** 7 of 8 steps (step 8 is the push and the report).
 
 ## Sources (read-only, recorded in every extracted file's header)
 
@@ -27,8 +27,12 @@ Not taken here (later rows): `parts.ts`, `garments.ts`, `hair.ts`, `streetwear.t
 9. **Hair.** Hair stays FigureBuilder's outfit garment, `{ hair: <swatch>, style: <hair id> | inline, tie? }`, so each outfit wears its own hair under its own cap. The spec's `hairPieces` is read as that garment's `style` (a hair-library id whose `pieces` the generator builds); no separate figure-level list is added, because it would say the same thing twice.
 10. **Not in the figure:** FigureBuilder's `face.camera` and `face.turn` (sprite cheats, excluded by §4.4.1), `play`, `atlasOutfit`, `story`, `cell` and per-figure `swatches` (a figure's own colours are library swatches). `blink` waits for the face decals (M3.5d).
 11. **Impossible skeletons.** The figure schema runs `genesOf` and `skeletonFromGenes` and refuses a non-positive bone length (thigh, shin, upper arm, forearm, neck, head, spine from pelvis to chest, foot), placing the diagnostic at the slider (or the `genes` override) that sets it and naming it: `legs 3 gives a shin of -0.21 m`. Slider ranges follow The Last Light's builder check: `height` 120 to 240 cm, `headTilt` −30° to 30°, every other slider −1 to 2 (a little past 0 to 1 is allowed, as FigureBuilder says).
-12. **Rig limits.** `figure-rig` holds the spec's starting values (§4.4.2) in degrees: elbow and knee hinges 0 to 150, shoulder and hip swing cones, chest twist ±35, neck yaw ±70 and pitch −40 to 50, head as the neck. M3.6a tunes and uses them; 5a only checks `min ≤ max`.
+12. **Rig limits.** `figure-rig` holds the spec's starting values (§4.4.2) in degrees: elbow and knee hinges 0 to 150, chest twist ±35, neck yaw ±70 and pitch −40 to 50. The spec gives no numbers for the shoulder and hip cones, the chest's pitch or the head, so the fixture's `default` picks them (shoulder cone 110, hip cone 95, chest pitch −20 to 30, head yaw and pitch as the neck, head roll ±25) for M3.6a to tune. 5a only checks that each range is a range (`min ≤ max`).
 13. **Fixture figures.** `wick` (Emberwick's hero, `games/emberwick/src/art/sprites.ts`: a small hooded wanderer in a blue cloak with gold trim, dark boots, glowing eyes in the dark under the hood, a lantern; as data, his colours are Endesga 64 indexes 41, 24, 17, 15 and 32) and `keeper` (an old lamplighter: tall, long-armed, the `elderly` gait, a coat and flat cap, a torch). Wick's hood is inline headwear locks; his lantern is the library's `hand-lamp`.
+
+14. **API report.** `pnpm check`'s `api-report` unit test covers every `packages/*` folder that `tooling/api-report/src/core-packages.ts` does not list as not core (today `physics` and `editor-3d`). `figures` is an extension in the core/extension sense (it registers with `defineExtension`), but the spec makes it free and in this repository (M3R-D20), and its exports are the seam M3.5b to M3.6 and the Studio build on, so it gets a committed report (`tooling/api-report/reports/figures.api.md`) rather than an entry in `NOT_CORE`. Either is a one-line change if the Owner prefers the other.
+15. **Content layout.** The content compiler's key locator does not index keys inside inline tables or arrays (`packages/content/src/parse/locate-keys.ts`), so a fixture outfit is written as an array of tables (`[[outfits.lamplighter]]`, one garment each) and a missing garment swatch is reported at its own line, not at the outfit's.
+16. **Garment and hair-piece unions.** A garment is chosen by its first known key (`keyedUnion`, `library/keyed-union.ts`) rather than with zod's union, which reports a failed member as one "Invalid input" on the whole object; the member's own issues keep their paths, so a wrong field is reported at its key.
 
 ## Files
 
@@ -41,7 +45,10 @@ Not taken here (later rows): `parts.ts`, `garments.ts`, `hair.ts`, `streetwear.t
   - `library/shapes.schema.ts` (vectors, angles), `library/swatch.schema.ts`, `library/gait.schema.ts`, `library/hair.schema.ts`, `library/headwear.schema.ts`, `library/item.schema.ts`, `library/stand.schema.ts`, `library/rig-limits.schema.ts`, `library/swatch-colours.ts`, `library/library.test.ts`
   - `figure/garment.schema.ts`, `figure/figure.schema.ts`, `figure/figure-skeleton.ts` (`genesOf`, `skeleton`, `skeletonProblems`), `figure/figure-skeleton.test.ts` (F-a)
   - `content/figures.content.ts` (the eight `defineContentSchema` kinds), `figures.extension.ts`, `content/figures-content.test.ts` (compile, F-e, impossible skeletons), `figures.extension.test.ts`
+  - `library/keyed-union.ts`
+  - `testing/fixture-sliders.ts`, `testing/compile-fixture.ts` (test helpers)
   - `testing/fixtures/content/…` (the fixture library and the two figures, TOML)
+- **Create** `tooling/api-report/reports/figures.api.md` (`pnpm api-report --update`, decision 14).
 - **Modify:** `pnpm-lock.yaml` (the new workspace). Nothing else: `pnpm style` and knip already cover `packages/*`.
 
 ## Interfaces
@@ -52,13 +59,13 @@ Not taken here (later rows): `parts.ts`, `garments.ts`, `hair.ts`, `streetwear.t
 
 ## Steps
 
-- [ ] **1. Plan.** This file, committed first.
-- [ ] **2. Package skeleton.** `package.json`, `tsconfig.json`, `vitest.config.ts`, an empty `index.ts`; `pnpm install`; `pnpm --filter @mcthaydt/automata-figures typecheck` passes with no tests.
-- [ ] **3. Red: math, rig, genes.** `math.test.ts` (quaternion and matrix identities, `hash` repeats, `invertRigid`), `rig.test.ts` (27 joints with parents first and the hem and hair pivots on their parents; The Last Light's "two-bone IK puts the end on any reachable target" on Wick's and the keeper's skeletons; out of reach extends fully toward it; a pole parallel to the limb stays finite; FK of the rest pose is the rest positions), `genes.test.ts` (FigureBuilder's defaults; `height` in cm gives metres; `face` fills from `DEFAULT_HEAD`; the `chunk` build). Run: fail for the missing modules.
-- [ ] **4. Green: extract.** `math.ts`, `rig.ts`, `two-bone-ik.ts`, `genes.ts` from FigureBuilder `a1f7246`, typed for AF's strict settings. Step 3's tests pass.
-- [ ] **5. Red: schemas, fixture content, F-a.** `library.test.ts` (every fixture library file parses through its schema; FigureBuilder's painter fields are refused as unknown; every fixture swatch colour is on `DEFAULT_PALETTE` and an index past it is reported), `figure-skeleton.test.ts` (F-a: Wick and the keeper from one `skeleton()`, the same 27 joints, bone lengths following their sliders; `skeletonProblems` names `legs` for a negative shin), `figures-content.test.ts` (the fixture compiles with no diagnostics; F-e: a figure naming a missing swatch, gait, hair style, headwear, item, stand or rig fails with `unknownReference` at its `file:line:col`; a figure with impossible sliders fails naming the slider at its line), `figures.extension.test.ts` (`figuresExtension` carries the eight kinds, none for the sim). Add the fixture TOML. Run: fail for the missing schemas.
-- [ ] **6. Green: schemas, content kinds, extension.** The schema files, `figure-skeleton.ts`, `swatch-colours.ts`, `figures.content.ts`, `figures.extension.ts`, `index.ts`. Step 5's tests pass.
-- [ ] **7. Gates.** `pnpm format`; `TURBO_FORCE=true pnpm check` (lint, typecheck, boundaries, style, knip, unit). No changeset (private package). No parity (no sim, renderer or golden touched), no build or API report (not published, no tsdown).
+- [x] **1. Plan.** This file, committed first.
+- [x] **2. Package skeleton.** `package.json`, `tsconfig.json`, `vitest.config.ts`, an empty `index.ts`; `pnpm install`; `pnpm --filter @mcthaydt/automata-figures typecheck` passes with no tests.
+- [x] **3. Red: math, rig, genes.** `math.test.ts` (quaternion and matrix identities, `hash` repeats, `invertRigid`), `rig.test.ts` (27 joints with parents first and the hem and hair pivots on their parents; The Last Light's "two-bone IK puts the end on any reachable target" on Wick's and the keeper's skeletons; out of reach extends fully toward it; a pole parallel to the limb stays finite; FK of the rest pose is the rest positions), `genes.test.ts` (FigureBuilder's defaults; `height` in cm gives metres; `face` fills from `DEFAULT_HEAD`; the `chunk` build). Run: fail for the missing modules.
+- [x] **4. Green: extract.** `math.ts`, `rig.ts`, `two-bone-ik.ts`, `genes.ts` from FigureBuilder `a1f7246`, typed for AF's strict settings. Step 3's tests pass.
+- [x] **5. Red: schemas, fixture content, F-a.** `library.test.ts` (every fixture library file parses through its schema; FigureBuilder's painter fields are refused as unknown; every fixture swatch colour is on `DEFAULT_PALETTE` and an index past it is reported), `figure-skeleton.test.ts` (F-a: Wick and the keeper from one `skeleton()`, the same 27 joints, bone lengths following their sliders; `skeletonProblems` names `legs` for a negative spine, and a gene override when it breaks a bone), `figures-content.test.ts` (the fixture compiles with no diagnostics; F-e: a figure naming a missing swatch, gait, hair style, headwear, item, stand or rig fails with `unknownReference` at its `file:line:col`; a figure with impossible sliders fails naming the slider at its line), `figures.extension.test.ts` (`figuresExtension` carries the eight kinds, none for the sim). Add the fixture TOML. Run: fail for the missing schemas.
+- [x] **6. Green: schemas, content kinds, extension.** The schema files, `figure-skeleton.ts`, `swatch-colours.ts`, `figures.content.ts`, `figures.extension.ts`, `index.ts`. Step 5's tests pass.
+- [x] **7. Gates.** `pnpm format`; `TURBO_FORCE=true pnpm check` (lint, typecheck, boundaries, style, knip, unit). `pnpm api-report --update` (decision 14). No changeset (private package). No parity (no sim, renderer or golden touched), no build (not published, no tsdown).
 - [ ] **8. Hand off.** Push `claude/3d-m3-5a-figures-rig`; report the commits, gates and decisions.
 
 ## Swatch mapping (decision 7)
@@ -125,9 +132,16 @@ Not taken here (later rows): `parts.ts`, `garments.ts`, `hair.ts`, `streetwear.t
 ## Gates
 
 - Selected: the four test files of steps 3 and 5 while iterating; `pnpm format` and `TURBO_FORCE=true pnpm check` at the end.
-- Omitted: parity (no sim, renderer, ui or golden changes), `pnpm build`, `api-report`, `api-index`, `agent-skills` (the package is private and unbuilt), changesets (private), e2e (nothing runs in a browser).
+- Omitted: parity (no sim, renderer, ui or golden changes), `pnpm build`, `api-index`, `agent-skills` (the package is private and unbuilt; `pnpm check` runs their unit tests), changesets (private), e2e (nothing runs in a browser).
 
 ## Execution log
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
+| 2026-10-30 | 1 | `adc4df1` | Plan committed first. |
+| 2026-10-30 | 2 | `13921b5` | `pnpm install`; `tsc -p packages/figures` passes on an empty entry. |
+| 2026-10-30 | 3 | | Red: `math.test.ts`, `rig.test.ts`, `genes.test.ts` fail to load (`Cannot find module './math'`, `'./genes'`, `'../genes/genes'`): 3 files failed, no tests. Golden numbers taken by running FigureBuilder's own `math.ts`, `rig.ts` and `genes.ts` at `a1f7246` on Node 24 (a throwaway copy in the scratchpad with `.ts` import suffixes). |
+| 2026-10-30 | 4 | `13921b5` | Extracted with tuple types; 3 files, 18 tests pass; the source's `measure` genes for Wick, rest positions and IK rotations match exactly (IK to 1e-12). Biome's `useIterableCallbackReturn` made the tests use `for…of` instead of `forEach`. |
+| 2026-10-30 | 5 | | Red: `figures.extension.test.ts`, `figures-content.test.ts`, `figure-skeleton.test.ts`, `library.test.ts` fail to load (`Cannot find module './figures.extension'`, `'../library/swatch-colours'`, `'./figure-skeleton'`, `'./gait.schema'`); the 18 earlier tests still pass. |
+| 2026-10-30 | 6 | `df0eba6` | First green run: 6 failed. cornrows' `nape` is a one-point line (the shape allowed only two or more; fixed to one or more), and F-e found the missing hair style, headwear and garment swatch at the outfit's line, not the garment's: the content compiler does not index keys inside inline tables, so the fixture outfits became arrays of tables (decision 15). Then 7 files, 45 tests pass. `tsc` then wanted explicit types (`isolatedDeclarations`) and `exactOptionalPropertyTypes`-safe partial schemas (`partialOf`). |
+| 2026-10-30 | 7 | (hand-off commit) | `pnpm format`. First `TURBO_FORCE=true pnpm check`: exit 1, `@mcthaydt/api-report` `seams.test.ts` "match the current source of every core package" expected no unreported package and found `figures.api.md` (the other failed lines were tasks turbo stopped). `pnpm api-report --update` wrote `figures.api.md` (decision 14). Second `TURBO_FORCE=true pnpm check`: exit 0 (lint, typecheck 35 of 35, boundaries, style 0 findings, knip, unit 34 of 34). |
