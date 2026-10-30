@@ -1,7 +1,8 @@
 <!--
   The Level view's toolbar (plan ED2D.4c4a decision 4; 2D editor spec §5.9, §8, §12): the tool in plain words, the
-  brush size while a brush or the eraser is out, Fit (the whole level in view) and, below `wide`, Layers, which opens the
-  panel. One row over the canvas that scrolls sideways on a narrow screen rather than shrinking a control under 44 px.
+  brush size while a brush or the eraser is out, Fit (the whole level in view), below `wide` Layers and Inspector,
+  which open the panel and the inspector, and Levels where the dock is a sheet (ED2D.4c4b decision 4). One row over
+  the canvas that scrolls sideways on a narrow screen rather than shrinking a control under 44 px.
 -->
 <script lang="ts">
 import { Button, Segmented, Stepper } from '@mcthaydt/automata-editor-kit'
@@ -17,9 +18,32 @@ interface Props {
   onbrushsize: (size: number) => void
   onfit: () => void
   onlayers: () => void
+  /** Below `wide` the inspector is a drawer or a sheet, opened from here. */
+  showInspector: boolean
+  inspectorOpen: boolean
+  oninspector: () => void
+  /** Where the dock is a sheet (below `wide`, and the short `wide` height), it opens from here (decision 4). */
+  showLevels: boolean
+  levelsOpen: boolean
+  onlevels: () => void
 }
 
-const { tool, brushSize, showLayers, layersOpen, ontool, onbrushsize, onfit, onlayers }: Props = $props()
+const {
+  tool,
+  brushSize,
+  showLayers,
+  layersOpen,
+  ontool,
+  onbrushsize,
+  onfit,
+  onlayers,
+  showInspector,
+  inspectorOpen,
+  oninspector,
+  showLevels,
+  levelsOpen,
+  onlevels,
+}: Props = $props()
 
 const TOOLS: readonly { id: LevelTool; label: string }[] = [
   { id: 'select', label: 'Select' },
@@ -62,6 +86,12 @@ const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id ===
     </div>
   {/if}
   <Button onclick={onfit}>Fit</Button>
+  {#if showLevels}
+    <Button aria-expanded={levelsOpen} onclick={onlevels}>Levels</Button>
+  {/if}
+  {#if showInspector}
+    <Button aria-expanded={inspectorOpen} onclick={oninspector}>Inspector</Button>
+  {/if}
 </div>
 
 <style>
@@ -69,7 +99,9 @@ const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id ===
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-2);
+    /* The bottom edge keeps 16 px: macOS lays its overlay scroll bar (about 15 px, hit-tested in Safari) along it once
+       the row scrolls sideways, and a tool under it would lose its taps there (#272, as #265 for region bodies). */
+    padding: var(--space-2) var(--space-2) var(--space-4);
     overflow-x: auto;
     overscroll-behavior-x: contain;
     border-bottom: 1px solid var(--color-border-default);
