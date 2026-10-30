@@ -13,7 +13,3 @@ saveExact: true
 engineStrict: true
 onlyBuiltDependencies:
   - lefthook
-# The vendored @ruken tarballs (vendor/ruken/README.md) pin zod 4.6.5 exactly, which GHSA-mrhx-c7xc-m3w5 covers (fixed in
-# 4.6.6). Drop this when they are repacked from a Ruken that pins 4.6.6, as docs/versions.md's zod row says.
-overrides:
-  zod: 4.6.6

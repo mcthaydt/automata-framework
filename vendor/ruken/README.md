@@ -10,14 +10,17 @@ FloorFifty's `vendor/ruken/` pattern (decision D-6, master spec §12).
 | `ruken-sdk-0.0.0.tgz` | `@ruken/sdk` | `packages/host` (the game side of the host protocol) |
 | `ruken-sdk-host-0.0.0.tgz` | `@ruken/sdk-host` | `packages/host` and `packages/testing` dev dependency: the fake host tests run against |
 | `ruken-manifest-0.0.0.tgz` | `@ruken/manifest` | `packages/ship` (checks the generated `ruken.toml`, compiles CSP headers) |
-| `ruken-cli-0.0.0.tgz` | `@ruken/cli` (the `ruken` bin) | `packages/ship` (`ship publish` spawns `ruken publish`). Built with Ruken's own `tsdown` config, which bundles `@ruken/validation`, `@ruken/api-contract` and `@ruken/manifest` into `dist/`; runtime dependencies are `smol-toml` 1.9.0, `yauzl` 3.4.0, `yazl` 3.3.1 and `zod` 4.6.5, pinned as in Ruken. Checked: with only those four installed, `node dist/cli.js` prints the usage. |
+| `ruken-cli-0.0.0.tgz` | `@ruken/cli` (the `ruken` bin) | `packages/ship` (`ship publish` spawns `ruken publish`). Built with Ruken's own `tsdown` config, which bundles `@ruken/validation`, `@ruken/api-contract` and `@ruken/manifest` into `dist/`; runtime dependencies are `smol-toml` 1.9.0, `yauzl` 3.4.0, `yazl` 3.3.1 and `zod` 4.6.6, pinned as in Ruken. Checked: with only those four installed, `node dist/cli.js` prints the usage (exit 2). |
 
-AF installs `zod` 4.6.6 for these tarballs too: `pnpm-workspace.yaml`'s `overrides` replaces the exact 4.6.5 the `@ruken/cli` and `@ruken/sdk-host` tarballs declare (GHSA-mrhx-c7xc-m3w5). Repack from a Ruken that pins 4.6.6, then drop the override.
+**Source:** RukenApp `main` at `d0fa2fe` (`d0fa2fe766d532a293c3723d5ba3102d1e602d63`, 2026-10-28), packed
+2026-10-30 (QB.1f). Each package was built with its own `pnpm run build` (Ruken's `turbo run build` stops on
+`@ruken/db#db:generate` without a database, and these packages do not need it). Every one of them declares
+`zod` 4.6.6, so AF needs no override. The previous tarballs were packed from `b30d31b` on 2026-10-11; what
+changed between the two for AF is listed in `docs/superpowers/plans/2026-10-30-qb1f-repack-ruken.md`.
 
-**Source:** RukenApp `main` at `b30d31b`, packed 2026-10-11. Each package was
-built with its own `pnpm run build` (Ruken's `turbo run build` stops on
-`@ruken/db#db:generate` without a database, and these packages do not need it).
-`ruken-sdk-0.0.0.tgz` is byte-identical to FloorFifty's (same SHA-256).
+`pnpm pack` writes the `@ruken/*` dev dependencies of a packed `package.json` in no fixed order, so packing
+the same commit twice can give a different SHA-256 for `ruken-sdk`, `ruken-sdk-host` and `ruken-cli`, with the
+same `dist/`. The hashes below are of the files in this folder.
 
 Owner: the integration thread (PR #4). Lanes consume these files and do not
 repack them; a lane that needs a newer Ruken asks the integration owner.
@@ -35,10 +38,10 @@ the host contract tests.
 SHA-256 of the tarballs as packed:
 
 ```
-8fb6f3b45972fe8e50be8e2501b5279d0ce27708b15af55c876fd1152be69474  ruken-sdk-0.0.0.tgz
-2292bc434d4afa6f5af709ed80dd864993be1b32f1542f177d7218d0eb423f3e  ruken-sdk-host-0.0.0.tgz
-4c47f29d73bfedcc220b6081e410c0acc37d7591323b9bbf8b6cd5eb9e9c369a  ruken-manifest-0.0.0.tgz
-583225ed6ed88f4828da3fcfccaec8cea451ec8e8e5956ef98c32ec470938522  ruken-cli-0.0.0.tgz
+501baf6177630583363d97fec285372315782087dbbfdcd7c1c3c6e0f1c49883  ruken-sdk-0.0.0.tgz
+4d4b1d7c1e3c8084e00231b801e74f53a50541b39505d8961a044cc39315ff9f  ruken-sdk-host-0.0.0.tgz
+7dd9e8bc541aa61899502c89a7fd9e4d7ce7778c26337077185b014a5dcfbfc6  ruken-manifest-0.0.0.tgz
+ad7e2a67fd11f52a5bebf8a2de8ef7847448aead935befa1b6a482e9869e08e9  ruken-cli-0.0.0.tgz
 ```
 
 Re-vendor after Ruken's F1 contract freeze (`contracts-f1`, planned
