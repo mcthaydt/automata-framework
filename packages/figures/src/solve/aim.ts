@@ -1,35 +1,42 @@
 // Aim (M3 spec §4.4.2): a head or chest turns its forward axis (+z) toward a world point, spread over the torso
 // by share and clamped by the limits; a hand aim points the arm straight at the point.
 //
-// The torso aim is solved by steps: measure the yaw and pitch still to go between the part's forward axis and
-// the point, in the pelvis's frame; add them to the aim's running total; set each joint to its base turn times
-// `euler(share · pitch, share · yaw, 0)` and clamp it. A joint at its limit leaves the rest of the turn to the
-// others on the next step, so a point the joints can reach together is reached, and one past them all leaves
-// each at its bound. Steps stop when the angle left is under 1e-9 rad, when it stops shrinking (every joint is
-// at a bound) or after 16. Without limits the joints keep exact shares of one euler turn, so the spread reads
-// back as the shares.
+// The torso aim is one swing, `A`, in the pelvis's frame (an axis and an angle, so looking straight down is no
+// different from looking aside). Each joint takes its share of it (`A` to the power of the share, about the same
+// axis), carried into the joint's own frame through its parent's turn when the aim began, so the shares
+// compose: the aimed part turns by exactly `A`, and each joint by the running sum of the shares before it.
+// Then each joint is clamped. The swing is found by steps: measure the shortest swing from the part's forward
+// axis to the point, add it to `A`, apply, and keep it if the angle left shrank. A step that does not help (it
+// overshot past a clamp, or the head moved off the line) is retried at half the size, down to 1/256. Once some
+// joints are clamped the others move only by their shares, so a step is the swing left divided by the shares
+// still free (the head and neck clamped: the spine and chest's 0.3 take 1/0.3 of it); the steps
+// stop when the angle left is under 1e-9 rad, when even the smallest step cannot help (the joints that matter
+// are on their bounds) or after 40.
 
 import {
   add,
   applyDir,
+  axisAngle,
+  compose,
   cross,
   dot,
-  euler,
+  IDENTITY_Q,
   length,
   type M,
+  matq,
   normalize,
   type Q,
+  qconj,
   qmul,
   rotationOf,
   scale,
   sub,
-  transpose3,
   type V3,
 } from '../math/math'
-import { at, J, type Pose, type Skeleton } from '../rig/rig'
+import { at, J, PARENTS, type Pose, type Skeleton } from '../rig/rig'
 import { chainWorld } from './chain-world'
 import { clampJoint, type JointLimit } from './limits'
-import { slerp } from './rotation'
+import { radians, slerp } from './rotation'
 import type { AimTarget } from './targets'
 
 /** The head aim's spread (spine, chest, neck, head) and the chest aim's (the posture split). */
@@ -52,15 +59,12 @@ const TORSO_AIMS = {
   },
 } as const
 
-const MAX_STEPS = 16
+const MAX_STEPS = 40
 const DONE = 1e-9
+/** The smallest fraction of a step tried before giving up. */
+const SMALLEST_STEP = 1 / 256
 
 const positionOf = (m: M): V3 => [m[9], m[10], m[11]]
-const yawOf = (v: V3): number => Math.atan2(v[0], v[2])
-/** Positive looks down, as the euler's positive pitch turns +z toward −y. */
-const pitchOf = (v: V3): number => Math.atan2(-v[1], Math.hypot(v[0], v[2]))
-/** `a` wrapped into (−π, π]. */
-const wrap = (a: number): number => a - 2 * Math.PI * Math.ceil((a - Math.PI) / (2 * Math.PI))
 
 /** The angle in radians between `joint`'s forward axis and the direction from it to `point`. */
 export function aimError(world: readonly M[], joint: number, point: V3): number {
@@ -69,67 +73,146 @@ export function aimError(world: readonly M[], joint: number, point: V3): number 
   return Math.atan2(length(cross(fwd, to)), dot(fwd, to))
 }
 
-/** The yaw and pitch from `joint`'s forward axis to `point`, in the pelvis's frame. */
-function stillToGo(world: readonly M[], joint: number, point: V3): { yaw: number; pitch: number } {
-  const toPelvis = transpose3(rotationOf(at(world, J.pelvis)))
-  const inPelvis = (v: V3): V3 => [
-    toPelvis[0] * v[0] + toPelvis[1] * v[1] + toPelvis[2] * v[2],
-    toPelvis[3] * v[0] + toPelvis[4] * v[1] + toPelvis[5] * v[2],
-    toPelvis[6] * v[0] + toPelvis[7] * v[1] + toPelvis[8] * v[2],
-  ]
-  const fwd = inPelvis(applyDir(at(world, joint), [0, 0, 1]))
-  const to = inPelvis(sub(point, positionOf(at(world, joint))))
-  return { yaw: wrap(yawOf(to) - yawOf(fwd)), pitch: pitchOf(to) - pitchOf(fwd) }
+/** `fraction` of the shortest turn taking direction `from` to direction `to` (both unit). Opposite directions
+ * have no shortest turn; they turn about `fallback`. */
+function arc(from: V3, to: V3, fraction: number, fallback: V3): Q {
+  const axis = cross(from, to)
+  const angle = Math.atan2(length(axis), dot(from, to))
+  if (angle < 1e-15) return [...IDENTITY_Q]
+  return axisAngle(length(axis) < 1e-12 ? fallback : axis, angle * fraction)
+}
+
+/** `q` to the power `k`: the same axis, k times the angle (the shorter way round). */
+function power(q: Q, k: number): Q {
+  const sign = q[3] < 0 ? -1 : 1
+  const v: V3 = [q[0] * sign, q[1] * sign, q[2] * sign]
+  const sin = length(v)
+  if (sin < 1e-15) return [...IDENTITY_Q]
+  return axisAngle(v, 2 * Math.atan2(sin, q[3] * sign) * k)
+}
+
+/** A direction's heading (its yaw) in the pelvis's frame. */
+const headingOf = (v: V3): number => Math.atan2(v[0], v[2])
+const rotate = (q: Q, v: V3): V3 => applyDir(compose(q, [0, 0, 0]), v)
+
+/** Where the torso aim began: what the report judges a weighted aim against. */
+export interface TorsoAimed {
+  /** Joints the limits clamped on the aim's last step. */
+  readonly clamped: number[]
+  /** The aimed part's forward axis (world) before the aim. */
+  readonly from: V3
 }
 
 /**
- * Turns the torso so the head's or the chest's forward axis points at `aim.at`. Writes `pose`; returns the
- * joints the limits clamped on the final step.
+ * Turns the torso so the head's or the chest's forward axis points at `aim.at`, then blends by the aim's weight
+ * from where it began. Writes `pose`.
  */
 export function aimTorso(
   s: Skeleton,
   pose: Pose,
   aim: AimTarget & { readonly part: 'head' | 'chest' },
   table: ReadonlyMap<number, JointLimit>,
-): number[] {
+): TorsoAimed {
   const { part, shares } = TORSO_AIMS[aim.part]
   const point: V3 = [...aim.at]
   const start = shares.map(([joint]): Q => [...at(pose.rot, joint)])
   let world = chainWorld(s, pose, part)
-  let left = aimError(world, part, point)
-  let yaw = 0,
-    pitch = 0
-  let clamped: number[] = []
-  for (let step = 0; step < MAX_STEPS && left > DONE; step++) {
-    const go = stillToGo(world, part, point)
-    yaw += go.yaw
-    pitch += go.pitch
-    const tried: Q[] = []
-    const stepClamped: number[] = []
+  const pelvis = matq(rotationOf(at(world, J.pelvis)))
+  const toPelvis = qconj(pelvis)
+  // Each joint's parent's turn in the pelvis's frame when the aim began: a share of A, a turn in the pelvis's
+  // frame, becomes the joint's local turn G⁻¹ · D · G.
+  const parentTurn = shares.map(([joint]) => qmul(toPelvis, matq(rotationOf(at(world, at(PARENTS, joint))))))
+  const from = applyDir(at(world, part), [0, 0, 1])
+  const tryTurn = (swing: Q): number[] => {
+    const clamped: number[] = []
     for (const [i, [joint, share]] of shares.entries()) {
-      const turn = qmul(at(start, i), euler(share * pitch, share * yaw, 0))
+      const g = at(parentTurn, i)
+      const turn = qmul(qmul(qmul(qconj(g), power(swing, share)), g), at(start, i))
       const limited = clampJoint(turn, table.get(joint))
-      if (limited) stepClamped.push(joint)
-      tried.push(limited ?? turn)
+      if (limited) clamped.push(joint)
+      pose.rot[joint] = limited ?? turn
     }
-    const before = shares.map(([joint]) => at(pose.rot, joint))
-    for (const [i, [joint]] of shares.entries()) pose.rot[joint] = at(tried, i)
-    const next = chainWorld(s, pose, part)
-    const nextLeft = aimError(next, part, point)
-    if (nextLeft >= left) {
-      // No closer: every joint is at a bound (or the step overshot). Keep the better pose.
-      for (const [i, [joint]] of shares.entries()) pose.rot[joint] = at(before, i)
-      break
-    }
-    world = next
-    left = nextLeft
-    clamped = stepClamped
+    return clamped
   }
+  // The face's heading (its yaw in the pelvis's frame) stays inside the aim joints' yaw bounds summed (115° for
+  // the head with the default limits): per-joint limits alone do not bound it, since a yaw about a pitched
+  // chest, with roll, compounds. A point past it is aimed at as if it sat on the bound.
+  const heading = headingBounds(shares, table)
+  let headingHeld = false
+  const goal = (w: readonly M[]): { dir: V3; held: boolean } => {
+    const to = normalize(rotate(toPelvis, sub(point, positionOf(at(w, part)))))
+    const h = headingOf(to)
+    const bounded = Math.min(heading.max, Math.max(heading.min, h))
+    if (bounded === h) return { dir: to, held: false }
+    return { dir: rotate(axisAngle([0, 1, 0], bounded - h), to), held: true }
+  }
+  const forwardOf = (w: readonly M[]): V3 => rotate(toPelvis, applyDir(at(w, part), [0, 0, 1]))
+  const angleLeft = (w: readonly M[]): number => {
+    const fwd = forwardOf(w),
+      dir = goal(w).dir
+    return Math.atan2(length(cross(fwd, dir)), dot(fwd, dir))
+  }
+  let swing: Q = [...IDENTITY_Q]
+  let left = angleLeft(world)
+  let clamped: number[] = []
+  let fraction = 1
+  let free = 1
+  for (let step = 0; step < MAX_STEPS && left > DONE && fraction >= SMALLEST_STEP; step++) {
+    const next = qmul(arc(forwardOf(world), goal(world).dir, fraction / free, [0, 1, 0]), swing)
+    const before = shares.map(([joint]) => at(pose.rot, joint))
+    const nextClamped = tryTurn(next)
+    const nextWorld = chainWorld(s, pose, part)
+    const nextLeft = angleLeft(nextWorld)
+    // A step that takes the face further past the heading bound is refused like one that does not help (a base
+    // already past it may only come back).
+    const past = (w: readonly M[]): number => {
+      const h = headingOf(forwardOf(w))
+      return Math.max(0, h - heading.max, heading.min - h)
+    }
+    if (nextLeft < left && past(nextWorld) <= past(world) + 1e-12) {
+      swing = next
+      world = nextWorld
+      left = nextLeft
+      clamped = nextClamped
+      free = Math.max(
+        0.1,
+        shares.reduce((sum, [joint, share]) => (clamped.includes(joint) ? sum : sum + share), 0),
+      )
+      fraction = 1
+    } else {
+      for (const [i, [joint]] of shares.entries()) pose.rot[joint] = at(before, i)
+      fraction /= 2
+    }
+  }
+  headingHeld = goal(world).held
+  // The aimed part is listed as limited when the heading bound held it.
+  if (headingHeld && !clamped.includes(part)) clamped.push(part)
   const weight = aim.weight ?? 1
   if (weight < 1)
     for (const [i, [joint]] of shares.entries())
       pose.rot[joint] = slerp(at(start, i), at(pose.rot, joint), weight)
-  return clamped
+  return { clamped, from }
+}
+
+/** The sum of the aim joints' yaw bounds, in radians (unbounded where a joint has no yaw limit). */
+function headingBounds(
+  shares: readonly (readonly [number, number])[],
+  table: ReadonlyMap<number, JointLimit>,
+): { min: number; max: number } {
+  let min = 0,
+    max = 0
+  for (const [joint] of shares) {
+    const limit = table.get(joint)
+    const yaw = limit?.kind === 'euler' ? limit.yaw : undefined
+    min += yaw ? radians(yaw.min) : -Infinity
+    max += yaw ? radians(yaw.max) : Infinity
+  }
+  return { min, max }
+}
+
+/** The direction `weight` of the way round from `from` to `to` (both unit). */
+export function blendDirection(from: V3, to: V3, weight: number): V3 {
+  return rotate(arc(from, to, weight, [0, 1, 0]), from)
 }
 
 /** A hand aim's target: the hand at full reach on the ray from the shoulder through the point. */

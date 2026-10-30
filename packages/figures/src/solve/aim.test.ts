@@ -1,10 +1,25 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { RigLimits } from '../library/rig-limits.schema'
-import { apply, applyDir, dot, invertRigid, type M, normalize, qconj, qmul, sub, type V3 } from '../math/math'
+import {
+  apply,
+  applyDir,
+  dot,
+  IDENTITY_Q,
+  invertRigid,
+  type M,
+  matq,
+  normalize,
+  type Q,
+  qconj,
+  qmul,
+  rotationOf,
+  sub,
+  type V3,
+} from '../math/math'
 import { at, fk, J, type Pose, restPose, type Skeleton } from '../rig/rig'
 import { fixtureLimits } from '../testing/fixture-limits'
 import { at3, KEEPER, NO_TARGETS, OPEN_LIMITS, WICK } from '../testing/solve-fixtures'
-import { degrees, eulerDegrees, eulerOf, radians } from './rotation'
+import { angleBetween, degrees, eulerDegrees, eulerOf, radians } from './rotation'
 import { solve } from './solve'
 import type { AimTarget, Targets } from './targets'
 
@@ -72,11 +87,13 @@ describe('I-e: a head aim', () => {
       const { pose, world, report } = solve(WICK, base, aimAt({ at: point, part: 'head' }), limits)
       const yawOf = (joint: number): number => degrees(eulerOf(at(pose.rot, joint))[1])
       const bound = (r: { min: number; max: number }): number => (sign > 0 ? r.max : r.min)
-      expect(yawOf(J.spine)).toBeCloseTo(0.3 * bound(limits.chest.twist), 9)
-      expect(yawOf(J.chest)).toBeCloseTo(0.7 * bound(limits.chest.twist), 9)
-      expect(yawOf(J.neck)).toBeCloseTo(bound(limits.neck.yaw), 9)
-      expect(yawOf(J.head)).toBeCloseTo(bound(limits.head.yaw), 9)
-      expect(report.limited).toEqual(['spine', 'chest', 'neck', 'head'])
+      // The heading bound (the yaw bounds summed) and the joints' own bounds meet here, so each joint ends on
+      // its bound, to within the aim's convergence.
+      expect(yawOf(J.spine)).toBeCloseTo(0.3 * bound(limits.chest.twist), 6)
+      expect(yawOf(J.chest)).toBeCloseTo(0.7 * bound(limits.chest.twist), 6)
+      expect(yawOf(J.neck)).toBeCloseTo(bound(limits.neck.yaw), 6)
+      expect(yawOf(J.head)).toBeCloseTo(bound(limits.head.yaw), 6)
+      expect(report.limited).toContain('head')
       expect(report.reached.aim?.ok).toBe(false)
       // The face's turn from the hips is the sum of the bounds: 115° with the default limits.
       const face = applyDir(invertRigid(at(world, J.pelvis)), forward(world, J.head))
@@ -85,26 +102,117 @@ describe('I-e: a head aim', () => {
       expect(Math.abs(turn)).toBeGreaterThan(115 - 1e-6)
     }
   })
-  it('spreads a small aim over spine, chest, neck and head by 0.1, 0.2, 0.3 and 0.4', () => {
+  it('never turns the face past the yaw bounds summed (115°), even looking back and down or up', () => {
+    // Per-joint limits alone do not bound the heading: yaw about a pitched chest, with roll, compounds.
+    let worst = 0
+    for (let yaw = 116; yaw <= 179; yaw += 7)
+      for (let pitch = -60; pitch <= 80; pitch += 10)
+        for (const side of [1, -1]) {
+          const point = pointFromHead(WICK, restPose(), side * yaw, pitch, 3)
+          const { world, report } = solve(WICK, restPose(), aimAt({ at: point, part: 'head' }), limits)
+          const face = applyDir(invertRigid(at(world, J.pelvis)), forward(world, J.head))
+          worst = Math.max(worst, Math.abs(degrees(Math.atan2(face[0], face[2]))))
+          // Well past the bound (not where looking nearly straight down makes headings close), the aim misses
+          // and says the head was held.
+          if (yaw >= 123 && Math.abs(pitch) <= 60) {
+            expect(report.reached.aim?.ok).toBe(false)
+            expect(report.limited).toContain('head')
+          }
+        }
+    expect(worst).toBeLessThan(115 + 1e-6)
+  })
+  it('spreads a small aim over spine, chest, neck and head by 0.1, 0.2, 0.3 and 0.4, about one axis', () => {
+    // Each joint takes its share of one swing (in the pelvis's frame), so the turn each joint's world frame has
+    // made is the running sum of the shares: 0.1, 0.3, 0.6 and 1.0 of the whole, all about the same axis.
     const base = stooped()
     const point = pointFromHead(WICK, base, 12, 6, 3)
-    const { pose } = solve(WICK, base, aimAt({ at: point, part: 'head' }), OPEN_LIMITS)
-    const turns = [
+    const { world } = solve(WICK, base, aimAt({ at: point, part: 'head' }), OPEN_LIMITS)
+    const before = fk(WICK, base)
+    const turnOf = (joint: number): Q =>
+      qmul(matq(rotationOf(at(world, joint))), qconj(matq(rotationOf(at(before, joint)))))
+    const whole = turnOf(J.head)
+    const wholeAngle = angleBetween(IDENTITY_Q, whole)
+    expect(wholeAngle).toBeGreaterThan(radians(5))
+    const axis = normalize([whole[0], whole[1], whole[2]])
+    for (const [joint, sum] of [
       [J.spine, 0.1],
-      [J.chest, 0.2],
-      [J.neck, 0.3],
-      [J.head, 0.4],
-    ].map(([joint, share]) => {
-      const [p, y, r] = eulerOf(qmul(qconj(at(base.rot, joint as number)), at(pose.rot, joint as number)))
-      return { p: p / (share as number), y: y / (share as number), r }
-    })
-    const first = turns[0] as { p: number; y: number }
-    expect(Math.abs(first.y)).toBeGreaterThan(radians(5))
-    for (const t of turns) {
-      expect(t.p).toBeCloseTo(first.p, 9)
-      expect(t.y).toBeCloseTo(first.y, 9)
-      expect(t.r).toBeCloseTo(0, 12)
+      [J.chest, 0.3],
+      [J.neck, 0.6],
+      [J.head, 1],
+    ] as const) {
+      const turn = turnOf(joint)
+      expect(angleBetween(IDENTITY_Q, turn)).toBeCloseTo(sum * wholeAngle, 9)
+      const sign = turn[3] < 0 ? -1 : 1
+      expect(dot(normalize([turn[0] * sign, turn[1] * sign, turn[2] * sign]), axis)).toBeCloseTo(1, 9)
     }
+  })
+  it('hits steep looks inside the limits (the floor at the feet, far down to the side)', () => {
+    const keeper = fk(KEEPER, restPose())
+    for (const x of [0.6, -0.6, 0.3, -0.3]) {
+      const point = apply(at(keeper, J.root), [x, 0, 0.4])
+      const { world, report } = solve(KEEPER, restPose(), aimAt({ at: point, part: 'head' }), limits)
+      expect(angle(forward(world, J.head), sub(point, at3(world, J.head)))).toBeLessThan(0.5)
+      expect(report.reached.aim?.ok).toBe(true)
+    }
+    for (const yaw of [20, -20]) {
+      const point = pointFromHead(WICK, restPose(), yaw, 70, 3)
+      const { report } = solve(WICK, restPose(), aimAt({ at: point, part: 'head' }), limits)
+      expect(report.reached.aim?.ok).toBe(true)
+    }
+  })
+  it('over a yaw and pitch sweep, misses only with an aim joint stopped on its bound', () => {
+    let hits = 0
+    for (let yaw = -110; yaw <= 110; yaw += 20)
+      for (let pitch = -60; pitch <= 80; pitch += 10) {
+        const point = pointFromHead(WICK, restPose(), yaw, pitch, 3)
+        const { report } = solve(WICK, restPose(), aimAt({ at: point, part: 'head' }), limits)
+        if (report.reached.aim?.ok) {
+          hits++
+          continue
+        }
+        // A joint the limits clamped on the aim's last step is stopped on its bound.
+        const onBound = report.limited.some((joint) => ['spine', 'chest', 'neck', 'head'].includes(joint))
+        expect({ yaw, pitch, onBound }).toEqual({ yaw, pitch, onBound: true })
+      }
+    expect(hits).toBeGreaterThan(80)
+  })
+  it('hits steep looks without limits, where a yaw-and-pitch split would break near straight down', () => {
+    for (const [yaw, pitch] of [
+      [90, 65],
+      [110, 80],
+      [-150, -70],
+    ] as const) {
+      const point = pointFromHead(WICK, restPose(), yaw, pitch, 3)
+      const { report } = solve(WICK, restPose(), aimAt({ at: point, part: 'head' }), OPEN_LIMITS)
+      expect(report.reached.aim?.ok).toBe(true)
+    }
+  })
+  it('judges a weighted aim against its blended goal', () => {
+    const base = stooped()
+    for (const part of ['head', 'handR'] as const) {
+      const point = pointFromHead(WICK, base, 40, 10, 3)
+      const { report } = solve(WICK, base, aimAt({ at: point, part, weight: 0.5 }), limits)
+      expect(report.reached.aim?.ok).toBe(true)
+    }
+  })
+  it('solves a chest aim before a head aim, whatever their order', () => {
+    const base = stooped()
+    const chestPoint = pointFromHead(WICK, base, -20, 0, 3),
+      headPoint = pointFromHead(WICK, base, 30, 10, 2)
+    const a = solve(
+      WICK,
+      base,
+      aimAt({ at: headPoint, part: 'head' }, { at: chestPoint, part: 'chest' }),
+      limits,
+    )
+    const b = solve(
+      WICK,
+      base,
+      aimAt({ at: chestPoint, part: 'chest' }, { at: headPoint, part: 'head' }),
+      limits,
+    )
+    expect(a.pose).toEqual(b.pose)
+    expect(angle(forward(a.world, J.head), sub(headPoint, at3(a.world, J.head)))).toBeLessThan(0.5)
   })
   it('replaces a head rotation, and a weight of 0 leaves the base', () => {
     const base = stooped()
@@ -116,6 +224,8 @@ describe('I-e: a head aim', () => {
       limits,
     )
     expect(angle(forward(both.world, J.head), sub(point, at3(both.world, J.head)))).toBeLessThan(0.5)
+    // The ignored head handle is not judged.
+    expect(both.report.reached.head).toBeUndefined()
     const none = solve(WICK, base, aimAt({ at: point, part: 'head', weight: 0 }), limits)
     expect(none.pose.rot).toEqual(base.rot)
   })
