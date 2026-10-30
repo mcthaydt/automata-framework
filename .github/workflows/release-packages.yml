@@ -138,6 +138,10 @@ jobs:
           registry-url: https://npm.pkg.github.com
           scope: "@mcthaydt"
       - run: pnpm install --frozen-lockfile
+      # The registry smoke boots Chromium (DX.2a). A no-op once the pinned browser is in the runner's cache; fetched
+      # before publishing, so a clean machine cannot fail the smoke after the packages are out (Owner, 2026-10-30:
+      # "You can do all 3 as well").
+      - run: pnpm exec playwright install chromium-headless-shell
       # Nothing else checks the commit before it is published; `pnpm release` then builds before it publishes.
       - name: Check the commit being released
         run: pnpm check

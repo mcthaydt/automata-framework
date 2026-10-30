@@ -11,10 +11,10 @@ import type {
   Project,
 } from '../../model/project-types'
 import { tilesetTiles } from '../../model/tileset-grid'
+import { worldNeighbours } from '../../model/world/world-neighbours'
 import { applyOverrides, autoTiles } from '../../tiles/autotile/auto-tiles'
 import { compileRules } from '../../tiles/autotile/match'
 import type { ContentLevel, ContentProject, ContentRows, ContentWorld } from './content.schema'
-import { neighboursOf } from './content-world'
 
 // The AF content export (2D editor spec §6.2): `project.toml` (the definitions a game needs), one `levels/<id>.toml`
 // per level and `world.toml`. Generated, write-only and deterministic: the same project always prints the same bytes,
@@ -172,7 +172,7 @@ function worldDocument(project: Project): ContentWorld {
       layout: world.layout,
       ...(world.grid === undefined ? {} : { grid: world.grid }),
       placements: world.placements.map((placement) => ({ ...placement })),
-      ...(world.layout === 'grid' ? { neighbours: neighboursOf(project, world) } : {}),
+      ...(world.layout === 'grid' ? { neighbours: worldNeighbours(project, world) } : {}),
     })),
   }
 }
