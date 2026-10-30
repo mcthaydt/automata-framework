@@ -1,7 +1,7 @@
 <!--
   The core Settings screen for the layout contracts (M4 spec §4.8, M4.4), in FloorFifty's two tabs: `settings` shows
   the Settings tab (Language, Audio, Vibration, Display, Touch controls, in FloorFifty's order); `controls` the Controls tab with four actions, both devices and touch; `controls-capturing`
-  shows its first row waiting for a press; `settings-short` the Settings tab with Display alone, for the sheet's height. Words are English stand-ins of a typical length.
+  shows its first row waiting for a press; `settings-short` the Settings tab with Display alone, for the sheet's height. Words are English stand-ins of a typical length, said in the `locale` the contract runs in.
 -->
 <script lang="ts" module>
 export const SETTINGS_SHOWS = ['settings', 'settings-short', 'controls', 'controls-capturing'] as const
@@ -19,55 +19,58 @@ import VibrationSection from '../settings/VibrationSection.svelte'
 import TouchSection from '../settings/TouchSection.svelte'
 import type { DisplayCopy } from '../settings/display-section'
 import SettingsScreen from '../settings/SettingsScreen.svelte'
+import { type FixtureLocale, say } from './locale-fixture'
 
-const { show }: { show: SettingsShow } = $props()
+const { show, locale = 'en' }: { show: SettingsShow; locale?: FixtureLocale } = $props()
+/** A word in the contract's locale, as a game's `t()` would give it. A fixture's props are fixed for its mount. */
+const t = (text: string): string => say(locale, text)
 const none = (): void => undefined
 
 const PROMPT_COPY: PromptCopy = {
-  unbound: 'Unbound',
-  touch: 'Tap',
+  unbound: t('Unbound'),
+  touch: t('Tap'),
   pad: {
-    bottom: 'Bottom button',
-    right: 'Right button',
-    left: 'Left button',
-    top: 'Top button',
-    leftBumper: 'Left bumper',
-    rightBumper: 'Right bumper',
-    leftTrigger: 'Left trigger',
-    rightTrigger: 'Right trigger',
-    select: 'Select',
-    start: 'Start',
-    leftStick: 'Left stick',
-    rightStick: 'Right stick',
-    home: 'Home',
+    bottom: t('Bottom button'),
+    right: t('Right button'),
+    left: t('Left button'),
+    top: t('Top button'),
+    leftBumper: t('Left bumper'),
+    rightBumper: t('Right bumper'),
+    leftTrigger: t('Left trigger'),
+    rightTrigger: t('Right trigger'),
+    select: t('Select'),
+    start: t('Start'),
+    leftStick: t('Left stick'),
+    rightStick: t('Right stick'),
+    home: t('Home'),
   },
 }
 const CONTROLS_COPY: ControlsCopy = {
-  title: 'Controls',
-  keyboard: 'Keyboard',
-  gamepad: 'Controller',
-  touch: 'Touch',
-  inUse: 'In use',
-  reset: 'Reset controls',
-  press: 'Press…',
-  rebind: (action, device) => `Change ${action} on ${device}`,
-  capturing: (action, device, seconds) => `Press a ${device} input for ${action} (${seconds} s)`,
-  conflict: (action, other) => `${action} can't take that: ${other} would have nothing`,
-  reserved: (action) => `That input is kept for menus; pick another for ${action}`,
-  timedOut: (action) => `Nothing pressed; ${action} is unchanged`,
-  saved: (action) => `${action} saved`,
+  title: t('Controls'),
+  keyboard: t('Keyboard'),
+  gamepad: t('Controller'),
+  touch: t('Touch'),
+  inUse: t('In use'),
+  reset: t('Reset controls'),
+  press: t('Press…'),
+  rebind: (action, device) => t(`Change ${action} on ${device}`),
+  capturing: (action, device, seconds) => t(`Press a ${device} input for ${action} (${seconds} s)`),
+  conflict: (action, other) => t(`${action} can't take that: ${other} would have nothing`),
+  reserved: (action) => t(`That input is kept for menus; pick another for ${action}`),
+  timedOut: (action) => t(`Nothing pressed; ${action} is unchanged`),
+  saved: (action) => t(`${action} saved`),
 }
 const DISPLAY_COPY: DisplayCopy = {
-  title: 'Display',
-  quality: 'Graphics quality',
-  qualities: { high: 'High', medium: 'Medium', low: 'Low' },
-  reducedMotion: (reduced) => `Reduced motion: ${reduced ? 'on' : 'off'} (from your device)`,
+  title: t('Display'),
+  quality: t('Graphics quality'),
+  qualities: { high: t('High'), medium: t('Medium'), low: t('Low') },
+  reducedMotion: (reduced) => t(`Reduced motion: ${reduced ? 'on' : 'off'} (from your device)`),
 }
 const ROWS: ControlsRow[] = [
-  { id: 'left', label: 'Move left', binding: { keys: ['ArrowLeft'], pad: [14], touch: true } },
-  { id: 'right', label: 'Move right', binding: { keys: ['ArrowRight'], pad: [15], touch: true } },
-  { id: 'jump', label: 'Jump', binding: { keys: ['Space'], pad: [0], touch: true } },
-  { id: 'fire', label: 'Fire', binding: { keys: [], pad: [2], touch: false } },
+  { id: 'left', label: t('Move left'), binding: { keys: ['ArrowLeft'], pad: [14], touch: true } },
+  { id: 'right', label: t('Move right'), binding: { keys: ['ArrowRight'], pad: [15], touch: true } },
+  { id: 'jump', label: t('Jump'), binding: { keys: ['Space'], pad: [0], touch: true } },
+  { id: 'fire', label: t('Fire'), binding: { keys: [], pad: [2], touch: false } },
 ]
 </script>
 
@@ -90,7 +93,11 @@ const ROWS: ControlsRow[] = [
 
 {#snippet touch()}
   <TouchSection
-    copy={{ title: 'Touch controls', mode: 'Play with', modes: { buttons: 'Buttons', swipe: 'Swipe' } }}
+    copy={{
+      title: t('Touch controls'),
+      mode: t('Play with'),
+      modes: { buttons: t('Buttons'), swipe: t('Swipe') },
+    }}
     modes={['buttons', 'swipe']}
     value="buttons"
     onchange={none}
@@ -99,7 +106,7 @@ const ROWS: ControlsRow[] = [
 
 {#snippet language()}
   <LanguageSection
-    copy={{ title: 'Language', automatic: 'Automatic' }}
+    copy={{ title: t('Language'), automatic: t('Automatic') }}
     locales={['en', 'ja', 'ko', 'es-419', 'pt-BR', 'zh-Hans']}
     choice={null}
     onchange={none}
@@ -108,7 +115,7 @@ const ROWS: ControlsRow[] = [
 
 {#snippet vibration()}
   <VibrationSection
-    copy={{ title: 'Vibration', toggle: 'Rumble and vibration', on: 'On', off: 'Off' }}
+    copy={{ title: t('Vibration'), toggle: t('Rumble and vibration'), on: t('On'), off: t('Off') }}
     enabled
     onchange={none}
   />
@@ -117,15 +124,15 @@ const ROWS: ControlsRow[] = [
 {#snippet audio()}
   <AudioSection
     copy={{
-      title: 'Audio',
-      mute: 'Mute',
-      muteUnfocused: 'Mute in the background',
-      on: 'On',
-      off: 'Off',
-      buses: { master: 'Master', music: 'Music', sfx: 'Effects', ui: 'Menus', voice: 'Voices' },
+      title: t('Audio'),
+      mute: t('Mute'),
+      muteUnfocused: t('Mute in the background'),
+      on: t('On'),
+      off: t('Off'),
+      buses: { master: t('Master'), music: t('Music'), sfx: t('Effects'), ui: t('Menus'), voice: t('Voices') },
       percent: (value) => `${Math.round(value * 100)}%`,
-      unavailable: 'Sound could not start on this device.',
-      hostVolume: 'The host’s volume also applies.',
+      unavailable: t('Sound could not start on this device.'),
+      hostVolume: t('The host’s volume also applies.'),
     }}
     value={{ muted: false, muteUnfocused: false, gains: { master: 1, music: 0.8, sfx: 1, ui: 0.6, voice: 1 } }}
     available
@@ -139,13 +146,13 @@ const ROWS: ControlsRow[] = [
 {/snippet}
 
 <SettingsScreen
-  title="Settings"
-  backLabel="Back"
+  title={t('Settings')}
+  backLabel={t('Back')}
   onback={none}
   tabs={[
     {
       id: 'settings',
-      label: 'Settings',
+      label: t('Settings'),
       sections: show === 'settings-short' ? [{ snippet: display }] : [
         { snippet: language },
         { snippet: audio },
@@ -154,8 +161,8 @@ const ROWS: ControlsRow[] = [
         { snippet: touch },
       ],
     },
-    { id: 'controls', label: 'Controls', sections: [{ snippet: controls }] },
+    { id: 'controls', label: t('Controls'), sections: [{ snippet: controls }] },
   ]}
-  tabsLabel="Settings sections"
-  moreLabel={(count) => `+${count} more`}
+  tabsLabel={t('Settings sections')}
+  moreLabel={(count) => t(`+${count} more`)}
 />

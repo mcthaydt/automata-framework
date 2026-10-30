@@ -41,6 +41,14 @@ describe('findUntranslated', () => {
     expect(findUntranslated(document.body)).toEqual([])
   })
 
+  // M4 spec §4.6: a key's or a pad button's label is what the device prints on it, the same in every language; the
+  // words a prompt says (Unbound, Tap) are the game's.
+  test('passes a key or a pad button named as the device prints it, and names a prompt word that skipped it', () => {
+    document.body.innerHTML =
+      '<span data-prompt="key">Space</span><span data-prompt="pad">LB</span><span data-prompt="unbound">Unbound</span>'
+    expect(findUntranslated(document.body)).toEqual(['"Unbound" is not in xx-long'])
+  })
+
   test('ignores whitespace and markup that has no words', () => {
     document.body.innerHTML = '<div>\n  <span> </span>\n  <span>12 / 30</span>\n</div>'
     expect(findUntranslated(document.body)).toEqual([])
