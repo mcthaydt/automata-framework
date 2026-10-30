@@ -23,11 +23,18 @@
   `dockOpen` left `undefined` follows `defaultDockOpen`. The editor puts its own toggles in the top bar or the
   rail and binds these.
 
+  Each region's content sits in its own error boundary (kit spec §6): content that throws while rendering or updating
+  is replaced by `RegionError` (the message, the details and Copy details) inside the same region box, and the other
+  regions carry on. A sheet's handle is outside its boundary, so a broken sheet can still be resized and closed. Errors
+  thrown by an event handler are not caught by a boundary; they leave the region as it was.
+
   The app imports `tokens.css` (and `fonts.css`) once; this component only reads the variables.
 -->
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import type { Snippet } from 'svelte'
+import RegionError from './RegionError.svelte'
+import type { SnippetRegion } from './region-error'
 import {
   type Detent,
   defaultDockOpen,
@@ -135,6 +142,15 @@ function sheetStyle(name: ShellRegion): string | undefined {
 }
 </script>
 
+{#snippet guarded(region: SnippetRegion, layout: 'bar' | 'block', content: Snippet)}
+  <svelte:boundary>
+    {@render content()}
+    {#snippet failed(error)}
+      <RegionError {region} {error} {layout} />
+    {/snippet}
+  </svelte:boundary>
+{/snippet}
+
 {#snippet handle(name: ShellRegion)}
   <button
     type="button"
@@ -157,7 +173,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   data-testid={testId}
   style:--dock-lift={dockLift}
 >
-  <header class="region" data-region="topbar">{@render topbar()}</header>
+  <header class="region" data-region="topbar">{@render guarded('topbar', 'bar', topbar)}</header>
 
   {#if rail}
     <nav
@@ -166,7 +182,12 @@ function sheetStyle(name: ShellRegion): string | undefined {
       data-presentation={mode === 'wide' ? 'rail' : 'tabbar'}
       aria-label="Editor sections"
     >
-      {@render rail({ orientation: mode === 'wide' ? 'vertical' : 'horizontal' })}
+      <svelte:boundary>
+        {@render rail({ orientation: mode === 'wide' ? 'vertical' : 'horizontal' })}
+        {#snippet failed(error)}
+          <RegionError region="rail" {error} layout={mode === 'wide' ? 'block' : 'bar'} />
+        {/snippet}
+      </svelte:boundary>
     </nav>
   {/if}
 
@@ -182,11 +203,11 @@ function sheetStyle(name: ShellRegion): string | undefined {
       style={sheetStyle('panel')}
     >
       {#if presentation.panel === 'sheet'}{@render handle('panel')}{/if}
-      <div class="body" data-scroll-region>{@render panel()}</div>
+      <div class="body" data-scroll-region>{@render guarded('panel', 'block', panel)}</div>
     </aside>
   {/if}
 
-  <main class="region" data-region="canvas">{@render canvas()}</main>
+  <main class="region" data-region="canvas">{@render guarded('canvas', 'block', canvas)}</main>
 
   {#if inspector}
     <aside
@@ -200,7 +221,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
       style={sheetStyle('inspector')}
     >
       {#if presentation.inspector === 'sheet'}{@render handle('inspector')}{/if}
-      <div class="body" data-scroll-region>{@render inspector()}</div>
+      <div class="body" data-scroll-region>{@render guarded('inspector', 'block', inspector)}</div>
     </aside>
   {/if}
 
@@ -216,12 +237,12 @@ function sheetStyle(name: ShellRegion): string | undefined {
       style={sheetStyle('dock')}
     >
       {#if presentation.dock === 'sheet'}{@render handle('dock')}{/if}
-      <div class="body" data-scroll-region>{@render dock()}</div>
+      <div class="body" data-scroll-region>{@render guarded('dock', 'block', dock)}</div>
     </section>
   {/if}
 
   {#if status}
-    <footer class="region" data-region="status">{@render status()}</footer>
+    <footer class="region" data-region="status">{@render guarded('status', 'bar', status)}</footer>
   {/if}
 
   {#if scrimmed}
