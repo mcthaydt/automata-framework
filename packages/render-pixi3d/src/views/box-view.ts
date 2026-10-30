@@ -1,4 +1,5 @@
 import { Container3D, CubeGeometry, FlatMaterial, Mesh3D, PhongMaterial } from '@pixi/3d'
+import { channels, toSrgb } from '../light/vertex-light.js'
 import { placeView3d } from './pose-3d.js'
 import type { View3dFactory } from './view-3d.js'
 
@@ -24,33 +25,48 @@ export interface BoxMaterial {
   readonly lit?: 'static' | 'moving' | undefined
 }
 
-/** `colour` (0xRRGGBB) with each channel multiplied by the tint's, capped at 255. */
+/**
+ * `colour` (0xRRGGBB, sRGB) lit by the tint: each channel multiplied by the tint's in linear light, as the baked
+ * vertex colours multiply a static mesh, then back to sRGB, capped at white.
+ */
 function tinted(colour: number, tint: readonly [number, number, number]): number {
-  const channel = (shift: number, k: number) => Math.min(255, Math.round(((colour >> shift) & 255) * k))
-  return (channel(16, tint[0]) << 16) | (channel(8, tint[1]) << 8) | channel(0, tint[2])
+  const linear = channels(colour)
+  const channel = (c: 0 | 1 | 2) => Math.round(255 * Math.min(1, toSrgb(linear[c] * tint[c])))
+  return (channel(0) << 16) | (channel(1) << 8) | channel(2)
 }
+
+/** Vertex light lands on vertices: a static box's faces are cut into cells no wider than this many metres. */
+const BAKE_CELL = 0.25
 
 /**
  * A box standing on its component's position (its base at `y`), interpolated between ticks and turned by `yaw`:
  * `views: { [Crate.id]: box({ width: 1, height: 1, depth: 1 }, { color: 0x9e4539 }) }`. The boxes of one factory
- * share their geometry and material, except that a lit box has its own (`lit`).
+ * share their geometry and material, except that a moving lit box has a material of its own (`lit`).
  */
 export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
-  const geometry = new CubeGeometry({ width: size.width, height: size.height, depth: size.depth })
+  const cells = (metres: number) =>
+    material.lit === 'static' ? Math.max(1, Math.ceil(metres / BAKE_CELL)) : 1
+  const geometry = new CubeGeometry({
+    width: size.width,
+    height: size.height,
+    depth: size.depth,
+    widthSegments: cells(size.width),
+    heightSegments: cells(size.height),
+    depthSegments: cells(size.depth),
+  })
   const shared = new PhongMaterial({ baseColor: material.color })
-  // Static boxes share one flat material: their light is in their vertex colours.
+  // Static boxes share one flat material: their light is in their own vertex colours.
   const baked = material.lit === 'static' ? new FlatMaterial({ baseColor: material.color }) : undefined
   return (row, componentId, _models, light) => {
     const node = new Container3D()
+    // A moving lit box has a flat material of its own: its colour changes every frame.
     const tint = material.lit === 'moving' ? light : undefined
     const own = tint === undefined ? undefined : new FlatMaterial({ baseColor: material.color })
-    const drawn = new Mesh3D({
-      geometry,
-      material: own ?? (light === undefined ? undefined : baked) ?? shared,
-    })
+    const bakes = light !== undefined && baked !== undefined
+    const drawn = new Mesh3D({ geometry, material: own ?? (bakes ? baked : shared) })
     drawn.position.set(0, size.height / 2, 0)
     node.addChild(drawn)
-    if (light !== undefined && baked !== undefined) {
+    if (bakes) {
       placeView3d(node, row.components, undefined, 1, componentId)
       light.bake(drawn)
     }
@@ -64,7 +80,7 @@ export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
         own.baseColor = tinted(material.color, tint.tint(x, y + size.height / 2, z))
       },
       destroy() {
-        if (baked !== undefined) light?.release(drawn)
+        if (bakes) light?.release(drawn)
         node.destroy({ children: true })
         own?.destroy()
       },

@@ -67,6 +67,16 @@ describe('box', () => {
     expect(brightest(near)).toBeLessThan(0.3)
   })
 
+  it("lit 'static': is subdivided every 25 cm or less, so vertex light has vertices to land on", () => {
+    const plain = box({ width: 4, height: 1, depth: 2 }, { color: 1 })(row, 'crate', emptyModels)
+    const lit = box({ width: 4, height: 1, depth: 2 }, { color: 1, lit: 'static' })(row, 'crate', emptyModels)
+    const vertices = (view: typeof plain) =>
+      (view?.container.children[0] as Mesh3D | undefined)?.geometry.vertexCount
+    expect(vertices(plain)).toBe(24)
+    // Top and bottom 16 × 8 cells, front and back 16 × 4, the sides 8 × 4: (17·9 + 17·5 + 9·5) · 2 vertices.
+    expect(vertices(lit)).toBe((17 * 9 + 17 * 5 + 9 * 5) * 2)
+  })
+
   it("lit 'static': a destroyed box leaves the light, so a lamp change no longer rebakes it", () => {
     const light = createSceneLight(
       sceneLightingSchema.parse({
@@ -101,13 +111,13 @@ describe('box', () => {
     expect((other.container.children[0] as Mesh3D).material).not.toBe(material)
 
     view.update?.({ crate: { x: 10, y: 0, z: 0 } }, undefined, 1)
-    // Out of the lamp's range: the ambient quarter of 0x80 on each channel.
-    expect(material.baseColor).toBe(0x202020)
+    // Out of the lamp's range: a quarter of 0x80 in linear light (0.2158 × 0.25), back in sRGB: 0x42.
+    expect(material.baseColor).toBe(0x424242)
     view.update?.({ crate: { x: 0, y: 0, z: 0 } }, undefined, 1)
-    expect(material.baseColor).toBeGreaterThan(0x202020)
+    expect(material.baseColor).toBeGreaterThan(0x424242)
     light.setLevels({ lamp: 0 })
     view.update?.({ crate: { x: 0, y: 0, z: 0 } }, undefined, 1)
-    expect(material.baseColor).toBe(0x202020)
+    expect(material.baseColor).toBe(0x424242)
   })
 
   it('lit without a scene light is the plain shared box', () => {

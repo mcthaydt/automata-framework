@@ -14,11 +14,20 @@ export type LampLevels = Readonly<Record<string, number>>
 /** The brightest a light value gets (the source's ceiling): over 1 brightens the base colour, never past 1.6×. */
 export const LIGHT_CEILING = 1.6
 
-/** A 0xRRGGBB colour as 0..1 channels. */
+/** One sRGB channel (0..1) in linear light, the space `@pixi/3d` shades in. */
+const toLinear = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+
+/** One linear-light channel (0..1) back to sRGB: the inverse of `toLinear`. */
+export const toSrgb = (c: number): number => (c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055)
+
+/**
+ * A 0xRRGGBB colour, authored in sRGB like every `@pixi/3d` colour, as linear-light 0..1 channels: lamp and ambient
+ * colours multiply a surface's linear base colour, as the shader does.
+ */
 export const channels = (colour: number): Vec3 => [
-  ((colour >> 16) & 255) / 255,
-  ((colour >> 8) & 255) / 255,
-  (colour & 255) / 255,
+  toLinear(((colour >> 16) & 255) / 255),
+  toLinear(((colour >> 8) & 255) / 255),
+  toLinear((colour & 255) / 255),
 ]
 
 /** The lamp's level: the sim's when it set one, else the content's. */
