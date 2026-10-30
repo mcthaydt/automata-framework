@@ -12,6 +12,7 @@ import { AUDIO_SETTINGS_DEFAULT, type AudioSettings, audioSettingsSchema } from 
 import { DEFAULT_QUALITY, type DisplaySettings, displaySettingsSchema } from './display-settings.schema.js'
 import type { SettingsDef } from './migrate-settings.js'
 
+/** The settings every game carries: input bindings, display, audio and vibration. */
 export interface CoreSettings {
   readonly input: InputSettings
   readonly display: DisplaySettings

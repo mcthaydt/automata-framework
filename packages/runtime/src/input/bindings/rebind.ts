@@ -85,6 +85,7 @@ export class RebindConflict extends RebindConflictBase {}
 export class RebindReserved extends RebindReservedBase {}
 /** Refused: the profile has no such action. */
 export class RebindUnknown extends RebindUnknownBase {}
+/** Why a rebind was refused, with nothing changed. */
 export type RebindError = RebindConflict | RebindReserved | RebindUnknown
 
 interface CaptureFields {

@@ -34,11 +34,16 @@ export interface Loaded<S> {
   readonly snapshot?: Uint8Array
 }
 
+/** Options for `Save.write`: the slot's label on the list, and a sim snapshot to keep with the data. */
 export interface SaveWriteOptions {
   readonly label?: string
   readonly snapshot?: Uint8Array
 }
 
+/**
+ * A game's save (M5 spec §4.3): its slots' states, load, write and remove, and the progress `touch` keeps for
+ * the autosave triggers to write.
+ */
 export interface Save<S> {
   /** Every slot's state, in slot order. */
   readonly slots: Subscribable.Subscribable<readonly SlotState[]>
@@ -82,6 +87,7 @@ export interface Save<S> {
   keepPlaying(): void
 }
 
+/** What the save service stamps on every write and checks on every load. */
 export interface SaveServiceOptions {
   /** The build's sim content hash (`GameDefinition.content.hash`), stamped on each write and compared on load. */
   readonly contentHash: string

@@ -2,6 +2,1586 @@
 
 > Every export of every published `@mcthaydt/automata-*` entry point at version 0.0.3, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
 
+## `@mcthaydt/automata`
+
+### `import { … } from '@mcthaydt/automata'`
+
+#### `AutosavePolicy` (interface)
+
+When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval`
+timer.
+
+```ts
+interface AutosavePolicy {
+  readonly on: readonly AutosaveTrigger[]
+  /** Seconds between timer writes, default 60. Read only when `interval` is in `on`. */
+  readonly intervalSeconds?: number
+}
+```
+
+#### `AutosaveTrigger` (type)
+
+What can make the loaded slot write itself (M5 spec §4.4).
+
+```ts
+type AutosaveTrigger = 'screen-exit' | 'round-end' | 'background' | 'interval'
+```
+
+#### `Camera2d` (interface)
+
+A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that
+container's transform, never a sim value.
+
+```ts
+interface Camera2d {
+  /** The world point to follow. The first call snaps to it. */
+  target(x: number, y: number): void
+  /** Adds trauma, 0..1 (capped at 1); it decays over time. */
+  shake(trauma: number): void
+  /** Advances one display frame and writes the transform to the container. */
+  update(frameSeconds: number): void
+  readonly transform: { readonly x: number; readonly y: number; readonly scale: number }
+}
+```
+
+#### `Camera2dOptions` (interface)
+
+How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
+
+```ts
+interface Camera2dOptions {
+  /** The playfield's logical size: the area the camera shows at zoom 1. */
+  readonly view: { readonly width: number; readonly height: number }
+  /** Approach the target at `rate` per second; a dead zone, centred on the view, the target may move in freely. */
+  readonly follow?: {
+    readonly rate: number
+    readonly deadZone?: { readonly width: number; readonly height: number }
+  }
+  /** The world rect the view never shows outside of. */
+  readonly bounds?: CameraRect
+  /** Default 1; above 1 shows less of the world. */
+  readonly zoom?: number
+  /** Default: the player's `prefers-reduced-motion`, read every frame. */
+  readonly reducedMotion?: () => boolean
+}
+```
+
+#### `CameraRect` (interface)
+
+A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
+
+```ts
+interface CameraRect {
+  readonly x: number
+  readonly y: number
+  readonly width: number
+  readonly height: number
+}
+```
+
+#### `Command` (interface)
+
+Input to the sim (spec §4.4 rule 4). `source` is a player slot (u8), `seq` a per-source counter (u32).
+
+```ts
+interface Command {
+  readonly tick: number
+  readonly source: number
+  readonly seq: number
+  readonly type: string
+  readonly payload: unknown
+}
+```
+
+#### `CommandDef` (interface)
+
+A command the sim accepts as input: an id and the Zod schema its payload must match. Create one with
+`defineCommand`.
+
+```ts
+interface CommandDef<Z extends z.ZodType = z.ZodType> {
+  readonly kind: 'command'
+  readonly id: string
+  readonly schema: Z
+}
+```
+
+#### `ComponentDef` (interface)
+
+A component: a stable id and a flat record of typed fields. Create one with `defineComponent`; game code
+addresses entity data through the definition, never through `trait`.
+
+```ts
+interface ComponentDef<S extends FieldSchema = FieldSchema> {
+  readonly kind: 'component'
+  readonly id: string
+  readonly fields: S
+  /** Field names in sorted order: the order used by snapshots. */
+  readonly fieldNames: readonly string[]
+  /** Included in RenderDelta rows (default true). */
+  readonly render: boolean
+  /** Internal Koota storage. Game code never touches it. */
+  readonly trait: Trait
+}
+```
+
+#### `createCamera2d` (function)
+
+A camera writing `stage`'s transform (usually `PixiStage.world`). `seed` fixes the shake's random sequence,
+so a shake looks the same in every run and visual test.
+
+```ts
+function createCamera2d(stage: Container, options: Camera2dOptions, seed = 1): Camera2d {
+  const zoom = options.zoom ?? 1
+  // The world-space size the view shows.
+  const visibleWidth = options.view.width / zoom
+  const visibleHeight = options.view.height / zoom
+
+  let targetX = 0
+  let targetY = 0
+  let centreX = 0
+  let centreY = 0
+  let hasTarget = false
+  let trauma = 0
+  const noise = mulberry32(seed)
+  const isReduced = options.reducedMotion ?? (() => reducedMotion())
+  const transform = { x: 0, y: 0, scale: zoom }
+
+  const clamp = (x: number, y: number): { x: number; y: number } => {
+    const bounds = options.bounds
+    if (bounds === undefined) return { x, y }
+    return {
+      x: clampAxis(x, visibleWidth, bounds.x, bounds.width),
+      y: clampAxis(y, visibleHeight, bounds.y, bounds.height),
+    }
+  }
+
+  return {
+    target(x, y) {
+      targetX = x
+      targetY = y
+      if (!hasTarget) {
+        hasTarget = true
+        centreX = x
+        centreY = y
+      }
+    },
+    shake(amount) {
+      trauma = Math.min(1, trauma + amount)
+    },
+    update(frameSeconds) {
+      const follow = options.follow
+      if (follow === undefined) {
+        centreX = targetX
+        centreY = targetY
+      } else {
+        const zone = follow.deadZone
+        const wantX = zone === undefined ? targetX : intoZone(centreX, targetX, zone.width / 2)
+        const wantY = zone === undefined ? targetY : intoZone(centreY, targetY, zone.height / 2)
+        centreX = damp(centreX, wantX, follow.rate, frameSeconds)
+        centreY = damp(centreY, wantY, follow.rate, frameSeconds)
+      }
+      // The camera's own centre stays clamped too, so leaving a corner starts from inside the bounds.
+      const clamped = clamp(centreX, centreY)
+      centreX = clamped.x
+      centreY = clamped.y
+
+      // The shake is added to what is drawn, never to the stored centre, so the follow does not drift with it.
+      // Noise is drawn every frame, even under reduced motion, so the sequence does not depend on the setting.
+      trauma = Math.max(0, trauma - SHAKE_DECAY * frameSeconds)
+      const strength = isReduced() ? 0 : SHAKE_MAX_OFFSET * trauma * trauma
+      const noiseX = noise() * 2 - 1
+      const noiseY = noise() * 2 - 1
+      const shown = clamp(centreX + strength * noiseX, centreY + strength * noiseY)
+
+      transform.x = options.view.width / 2 - shown.x * zoom
+      transform.y = options.view.height / 2 - shown.y * zoom
+      stage.position.set(transform.x, transform.y)
+      stage.scale.set(zoom)
+    },
+    transform,
+  }
+}
+```
+
+#### `defaultContent` (function)
+
+The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash.
+
+```ts
+function defaultContent(): GameContent {
+  content ??= { data: DATA, hash: hex64(xxhash64(utf8(canonicalJson(DATA)))) }
+  return content
+}
+```
+
+#### `defaultScreens` (function)
+
+The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow
+(`title → play ⇄ paused → title`, `paused ⇄ settings`).
+
+The screens share one sim: play creates it on first entry (seed, plugins, content, then `setup`),
+paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. Returning
+from paused re-sends the whole state to the renderer (G-5): `AppLoop.run` resets the renderer, so
+play restores the sim's own snapshot, which makes the next step a resync.
+
+```ts
+function defaultScreens(game: ScreensGame): ScreenDef[] {
+  // The pads already told they are not supported (M4 spec §6), for the whole session.
+  const toldPads = new Set<string>()
+  let sim: Sim | undefined
+  let playFlow: Flow | undefined
+  /** Set when play paused because the pad in use was unplugged (M4-D9); Resume or Quit clears it. */
+  let reconnect = false
+
+  const dropSim = (): void => {
+    game.watchSim?.(undefined)
+    sim?.dispose()
+    sim = undefined
+  }
+
+  /** A sim set up from the game's seed, plugins, content and `setup`, at tick 0. */
+  const freshSim = async (): Promise<Sim> => {
+    const { plugins, seed, content, setup } = game.sim
+    const created = await createSim({ plugins: [...plugins], seed, content })
+    setup?.(created)
+    return created
+  }
+
+  const title: ScreenDef = {
+    id: 'title',
+    enter: ({ layer }) =>
+      Effect.gen(function* () {
+        const flow = yield* Flow
+        // Quit to title: progress play kept is written while the sim that holds it still lives.
+        if (game.saves !== undefined) yield* (yield* saveOf(game.saves.def)).flushPending
+        dropSim()
+        // The player's saved quality reaches the stage before play draws anything (M4.4).
+        const { store } = yield* Settings
+        // And the saved mix reaches the audio, so the first sound is at the player's levels (M5.4).
+        applyAudio({ audio: yield* Audio, buses: yield* AudioBuses }, savedAudio(store))
+        ;(yield* Haptics).setEnabled(savedHaptics(store))
+        if (game.setQuality !== undefined && store !== undefined)
+          game.setQuality(
+            displaySettingsSchema
+              .catch(() => ({ quality: 'high' as const }))
+              .parse(asRecord(store.get()).display).quality,
+          )
+        const target = windowOf(layer)
+        const play = (): void => void flow.dispatch('play')
+        // A game with a save has no Play: the slot list starts play, with the sim its slot made.
+        const saves =
+          game.saves === undefined
+            ? undefined
+            : yield* titleSaves(game.saves, {
+                fresh: freshSim,
+                play: (started) => {
+                  sim = started
+                  play()
+                },
+              } satisfies SavesStart)
+        yield* show(TitleScreen, layer, { title: game.title, onPlay: play, saves })
+        // Enter or Space anywhere on the title plays; on a focused button the button's own click does.
+        if (saves === undefined)
+          yield* listen(target, 'keydown', (event) => {
+            if (!plain(event) || (event.code !== 'Enter' && event.code !== 'Space')) return
+            if (event.target instanceof HTMLButtonElement) return
+            event.preventDefault()
+            play()
+          })
+        // Nothing on the title takes Back, so a back step leaves the game.
+        yield* backGesture(target, () => sendBack(layer.ownerDocument))
+        yield* driveMenu(target)
+        yield* noticeUnsupportedPads(layer, toldPads)
+      }),
+  }
+
+  const play: ScreenDef = {
+    id: 'play',
+    kind: 'gameplay',
+    openMenu: () => playFlow?.dispatch('pause') ?? false,
+    enter: ({ layer }) =>
+      Effect.gen(function* () {
+        const flow = yield* Flow
+        const appLoop = yield* AppLoop
+        const target = windowOf(layer)
+        playFlow = flow
+        yield* Effect.addFinalizer(() =>
+          Effect.sync(() => {
+            playFlow = undefined
+          }),
+        )
+
+        let current = sim
+        if (current === undefined) {
+          current = yield* Effect.promise(freshSim)
+          sim = current
+        } else {
+          current.restore(current.snapshot())
+        }
+
+        // The Input service for this play session (M4 spec §4.2): sampled once per fixed step, closed with the screen.
+        const map = game.input
+        const bus = yield* PresentationBus
+        // The player's bindings and touch mode, from the settings (M4.4).
+        const { store } = yield* Settings
+        const input = yield* makeInput({
+          target,
+          profile: map?.profile ?? NO_BINDINGS,
+          bus,
+          settings: store,
+          hostInput: yield* hostInput,
+        })
+        const touchMode = inputSettingsSchema.parse(asRecord(store?.get()).input).touchMode ?? map?.touchMode
+        const running = current
+        game.watchSim?.(running)
+        // The slot play was started from is kept saved: each tick says what the progress is, and the save's own
+        // triggers (leaving play, a round's end, the page going to the background) write it.
+        const save = game.saves === undefined ? undefined : yield* saveOf(game.saves.def)
+        const keep = (): unknown => game.saves?.capture(running)
+        // An idle pointer hides while playing (M4 spec §4.7); leaving play detaches it and shows the pointer again.
+        const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
+        const detachCursor = cursor.attach(target)
+        yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
+        yield* noticeUnsupportedPads(layer, toldPads)
+        if (game.saves !== undefined)
+          yield* noticeChangedElsewhere(layer, game.saves.def.key, CHANGED_ELSEWHERE_TOAST)
+        appLoop.run({
+          sim: running,
+          commands: (tick) => {
+            cursor.tick()
+            save?.touch(keep)
+            if (map === undefined) return []
+            input.poll()
+            return map.toCommand(input.held(), tick)
+          },
+        })
+        yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.stop()))
+
+        const pause = (): void => void flow.dispatch('pause')
+        // The pad in use unplugged mid-play pauses with a reconnect message (M4-D9), under the `input` reason so
+        // nothing else resumes the sim behind the player's back. Another pad or the keyboard in use: play on.
+        const time = yield* Time
+        yield* Effect.acquireRelease(
+          Effect.sync(() =>
+            bus.subscribe('input.pad.disconnected', (pad) => {
+              if (!pad.wasActive || Effect.runSync(SubscriptionRef.get(input.device)).device !== 'gamepad')
+                return
+              reconnect = true
+              time.pause('input')
+              pause()
+            }),
+          ),
+          (stop) => Effect.sync(stop),
+        )
+        // Escape and the pad's Start are the Input's pause edge; KeyP is the default screens' own extra.
+        yield* Effect.acquireRelease(
+          Effect.sync(() => input.onPress('pause', pause)),
+          (stop) => Effect.sync(stop),
+        )
+        yield* listen(target, 'keydown', (event) => {
+          if (!plain(event) || event.code !== 'KeyP') return
+          event.preventDefault()
+          pause()
+        })
+        yield* backGesture(target, () => {
+          pause()
+          return true
+        })
+
+        const tracker = new InputMethodTracker()
+        const detach = tracker.attach(target)
+        yield* Effect.addFinalizer(() => Effect.sync(detach))
+        yield* show(PlayScreen, layer, {
+          onPause: pause,
+          tracker,
+          touchButtons: game.input?.touch === false ? [] : (game.input?.touchButtons ?? []),
+          onHold: (id: string) => input.hold(id),
+          onRelease: (id: string) => input.release(id),
+          swipe: touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
+          hud: resolveExtensions(game.extensions ?? []).slots('hud.overlay'),
+        })
+      }),
+  }
+
+  const paused: ScreenDef = {
+    id: 'paused',
+    pausesSim: true,
+    enter: ({ layer }) =>
+      Effect.gen(function* () {
+        const flow = yield* Flow
+        const time = yield* Time
+        const target = windowOf(layer)
+        const message = reconnect ? 'Reconnect your controller' : undefined
+        // Any device that reaches Resume or Quit lets the game go on (M4 spec §5, pad hot-plug).
+        const clearReconnect = (): void => {
+          reconnect = false
+          time.resume('input')
+        }
+        const resume = (): void => {
+          clearReconnect()
+          flow.dispatch('resume')
+        }
+        const quit = (): void => {
+          clearReconnect()
+          flow.dispatch('quit')
+        }
+        const boards = yield* Leaderboards
+        // Read from the host each time paused opens: what the host says, never a copy kept here (M5 spec §4.8).
+        const board =
+          game.board === undefined
+            ? undefined
+            : { copy: BOARD_COPY, load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
+        const settings = (): void => void flow.dispatch('settings')
+        // Load newer replaces the sim with the other device's progress and plays on from it.
+        const saves =
+          game.saves === undefined
+            ? undefined
+            : yield* pausedSaves(game.saves, {
+                fresh: freshSim,
+                play: (next) => {
+                  dropSim()
+                  sim = next
+                  resume()
+                },
+              } satisfies SavesStart)
+        // Mute is the Audio group's setting (M5.4), as FloorFifty's pause has it.
+        const { store } = yield* Settings
+        const targets = { audio: yield* Audio, buses: yield* AudioBuses }
+        yield* show(PausedScreen, layer, {
+          onResume: resume,
+          onQuit: quit,
+          onSettings: settings,
+          muted: savedAudio(store).muted,
+          onMute: (muted: boolean) => changeAudio(targets, store, { ...savedAudio(store), muted }),
+          message,
+          board,
+          saves,
+        })
+        // Escape is the dialog's (Modal): it steps back from the Quit confirm, and from the menu it resumes.
+        yield* backGesture(target, () => sendBack(layer.ownerDocument))
+        yield* driveMenu(target)
+        yield* noticeUnsupportedPads(layer, toldPads)
+      }),
+  }
+
+  return [title, play, paused, settingsScreen(game, toldPads)]
+}
+```
+
+#### `defineCommand` (function)
+
+Defines a command by id and payload schema. Throws for an id that is not lower-case words separated by dots
+or dashes.
+
+```ts
+function defineCommand<Z extends z.ZodType>(id: string, schema: Z): CommandDef<Z> {
+  checkId('command', id)
+  return { kind: 'command', id, schema }
+}
+```
+
+#### `defineComponent` (function)
+
+Defines a component from an id (lower-case words separated by dots or dashes) and its fields by name and
+type. `render: false` keeps it out of the renderer's deltas. Throws for a bad id, no fields, a bad field
+name or an unknown field type.
+
+```ts
+function defineComponent<S extends FieldSchema>(
+  id: string,
+  fields: S,
+  opts: { render?: boolean } = {},
+): ComponentDef<S> {
+  checkId('component', id)
+  const fieldNames = sortedKeys(fields)
+  if (fieldNames.length === 0) throw new Error(`component "${id}" needs at least one field`)
+  const defaults: Record<string, number | boolean | string> = {}
+  for (const name of fieldNames) {
+    const type = fields[name] as FieldType
+    if (!FIELD_RE.test(name)) throw new Error(`component "${id}" has invalid field name "${name}"`)
+    if (!FIELD_TYPES.includes(type))
+      throw new Error(`component "${id}" field "${name}" has unknown field type "${type}"`)
+    defaults[name] = defaultField(type)
+  }
+  // A factory, not a schema object: Koota builds structure-of-arrays accessors for a schema object with
+  // `new Function`, which Ruken's CSP (no 'unsafe-eval') blocks. Each entity holds its own record instead
+  // (array-of-structures); the entity store always writes whole records, so nothing else changes.
+  const traitDef = trait(() => ({ ...defaults }))
+  return { kind: 'component', id, fields, fieldNames, render: opts.render ?? true, trait: traitDef }
+}
+```
+
+#### `DefinedGame` (interface)
+
+The runtime's `GameDefinition`, plus what the screens and the golden replay read from the spec.
+
+```ts
+interface DefinedGame<S = never> extends GameDefinition<S> {
+  readonly id: string
+  readonly title: string
+  readonly size: { readonly width: number; readonly height: number }
+  readonly input?: InputMap | undefined
+  readonly sim: {
+    readonly plugins: readonly PluginDef[]
+    readonly seed: number
+    readonly setup?: ((sim: Sim) => void) | undefined
+    readonly content?: unknown
+  }
+}
+```
+
+#### `defineEvent` (function)
+
+Defines an event by id and payload schema, to emit from a system with `ctx.emit`. Events come back in
+`StepResult.events`; `ctx.emit` throws for a payload that fails the schema.
+
+```ts
+function defineEvent<Z extends z.ZodType>(id: string, schema: Z): EventDef<Z> {
+  checkId('event', id)
+  return { kind: 'event', id, schema }
+}
+```
+
+#### `defineGame` (function)
+
+Checks a spec and fills in every default over the runtime, the Pixi renderer, Ruken hosting and the default
+screens; `startGame` boots the result. Pure: it reads no document, so a game module also loads in Node.
+Throws `BootDefect` (its cause a `GameSpecError`) for an invalid spec.
+
+```ts
+function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S> {
+  const problems = problemsOf(spec)
+  if (problems.length > 0) throw new BootDefect({ cause: new GameSpecError(problems) })
+
+  const title = spec.title ?? spec.id
+  const sim = {
+    plugins: spec.sim.plugins,
+    seed: spec.sim.seed ?? 1,
+    ...(spec.sim.setup === undefined ? {} : { setup: spec.sim.setup }),
+    ...(spec.content?.sim === undefined ? {} : { content: spec.content.sim }),
+  }
+  const content =
+    spec.content === undefined ? defaultContent() : { data: spec.content.data, hash: spec.content.hash }
+  const layer = spec.draw === undefined ? undefined : createDrawLayer(spec.draw, spec.size)
+  // The stage, once the renderer has made it: the default screens give it the player's quality (M4.4).
+  let stage: PixiStage | undefined
+  const renderer = createPixiRenderer(
+    pixiOptions(spec, layer, (made) => {
+      stage = made
+    }),
+  )
+
+  const game: DefinedGame<S> = {
+    id: spec.id,
+    title,
+    size: spec.size,
+    orientation: spec.orientation ?? 'any',
+    rotateHint: spec.rotateHint ?? 'block',
+    sim,
+    ...(spec.input === undefined ? {} : { input: spec.input }),
+    get root() {
+      return rootOf(spec)
+    },
+    hosting: { pauseBehavior: 'pause', ...spec.hosting, wants: wantsOf(spec), gameId: spec.id },
+    content,
+    screens:
+      spec.screens ??
+      defaultScreens({
+        title,
+        sim,
+        input: spec.input,
+        ...(layer === undefined ? {} : { watchSim: layer.watch }),
+        ...(spec.scores === undefined ? {} : { board: Object.values(spec.scores)[0]?.board }),
+        ...(spec.saves === undefined ? {} : { saves: spec.saves as GameSaves<unknown> }),
+        setQuality: (tier) => stage?.setQuality(tier),
+        ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
+      }),
+    renderer,
+    // Without settings of its own, the game keeps the player's bindings and quality in the core settings (M4.4).
+    // They are not the game's `S`: only the default screens read them, through `Settings`.
+    settings: spec.settings ?? (CORE_SETTINGS as unknown as SettingsDef<S>),
+    ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
+    ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
+    ...(spec.scores === undefined ? {} : { scores: spec.scores }),
+    ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),
+    ...(spec.copy === undefined ? {} : { copy: spec.copy }),
+    ...(spec.locale === undefined ? {} : { locale: spec.locale }),
+    ...(spec.seams === undefined ? {} : { seams: spec.seams }),
+  }
+  definedGames.add(game)
+  return game
+}
+```
+
+#### `definePlugin` (function)
+
+Defines a plugin from a name, its dependencies and its definitions, given in the keyed lists or in one flat
+`defs` list sorted by kind. A plugin written either way registers the same lists and gets the same schema
+hash. `config` is copied as canonical, frozen JSON, so anything that cannot hash exactly throws a
+`CanonicalJsonError` here.
+
+```ts
+function definePlugin(spec: {
+  name: string
+  dependsOn?: readonly string[]
+  /** One flat list, sorted into the keyed lists by `kind`; each entry follows that list's keyed entries. */
+  defs?: readonly Def[]
+  components?: readonly ComponentDef[]
+  commands?: readonly CommandDef[]
+  events?: readonly EventDef[]
+  resources?: readonly ResourceDef[]
+  systems?: readonly SystemDef[]
+  state?: (setup: PluginStateSetup) => Promise<PluginState>
+  config?: unknown
+}): PluginDef {
+  checkId('plugin', spec.name)
+  // A canonical, frozen copy: it throws CanonicalJsonError for anything that cannot hash exactly, and nobody
+  // can change it after it joins the schema hash.
+  const config = spec.config === undefined ? undefined : deepFreeze(JSON.parse(canonicalJson(spec.config)))
+  // Keyed entries first, then `defs` in order, so a plugin written either way registers the same lists in the
+  // same order and gets the same schema hash. Duplicates are left for createSim to reject, as they are today.
+  const components = [...(spec.components ?? [])]
+  const commands = [...(spec.commands ?? [])]
+  const events = [...(spec.events ?? [])]
+  const resources = [...(spec.resources ?? [])]
+  const systems = [...(spec.systems ?? [])]
+  for (const def of spec.defs ?? []) {
+    if (def.kind === 'component') components.push(def)
+    else if (def.kind === 'command') commands.push(def)
+    else if (def.kind === 'event') events.push(def)
+    else if (def.kind === 'resource') resources.push(def)
+    else if (def.kind === 'system') systems.push(def)
+    else
+      throw new Error(
+        `plugin "${spec.name}" defs has an entry of unknown kind "${(def as { kind: unknown }).kind}"`,
+      )
+  }
+  return {
+    kind: 'plugin',
+    name: spec.name,
+    dependsOn: spec.dependsOn ?? [],
+    components,
+    commands,
+    events,
+    resources,
+    systems,
+    state: spec.state,
+    config,
+  }
+}
+```
+
+#### `defineResource` (function)
+
+Defines a resource by id, schema and starting value. `createSim` parses `init()` with the schema, so a bad
+start fails there.
+
+```ts
+function defineResource<Z extends z.ZodType>(
+  id: string,
+  schema: Z,
+  init: () => z.input<Z>,
+): ResourceDef<Z> {
+  checkId('resource', id)
+  return { kind: 'resource', id, schema, init }
+}
+```
+
+#### `defineSave` (function)
+
+Declares a save. It checks nothing the SDK checks; it only gives the definition its type.
+
+```ts
+function defineSave<S>(def: SaveDef<S>): SaveDef<S> {
+  return def
+}
+```
+
+#### `defineSystem` (function)
+
+A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the
+object form also takes `before`/`after`. All three build the same SystemDef (DX spec §3.2).
+
+```ts
+function defineSystem(name: string, run: (ctx: SimContext) => void): SystemDef
+function defineSystem(name: string, phase: Phase, run: (ctx: SimContext) => void): SystemDef
+function defineSystem(spec: SystemSpec): SystemDef
+function defineSystem(
+  nameOrSpec: string | SystemSpec,
+  phaseOrRun?: Phase | ((ctx: SimContext) => void),
+  run?: (ctx: SimContext) => void,
+): SystemDef {
+  if (typeof nameOrSpec !== 'string') return defineSystemFrom(nameOrSpec)
+  if (typeof phaseOrRun === 'function')
+    return defineSystemFrom({ name: nameOrSpec, phase: 'gameplay', run: phaseOrRun })
+  return defineSystemFrom({
+    name: nameOrSpec,
+    phase: phaseOrRun as Phase,
+    run: run as (ctx: SimContext) => void,
+  })
+}
+```
+
+#### `DrawContext` (interface)
+
+What `draw` receives each frame. Coordinates are logical playfield pixels (plan D-2).
+
+```ts
+interface DrawContext {
+  /** The sim at this frame, read-only. */
+  readonly sim: DrawSim
+  readonly frame: FrameInfo
+  /** The playfield's logical size. */
+  readonly width: number
+  readonly height: number
+  rect(x: number, y: number, w: number, h: number, color: number): void
+  circle(x: number, y: number, radius: number, color: number): void
+  line(x1: number, y1: number, x2: number, y2: number, color: number, width?: number): void
+  /** One line of text, its top-left at (x, y). */
+  text(value: string, x: number, y: number, options?: DrawTextOptions): void
+}
+```
+
+#### `DrawEntity` (interface)
+
+One entity, read-only: its components' values are frozen copies.
+
+```ts
+interface DrawEntity {
+  readonly sid: number
+  has(component: ComponentDef): boolean
+  get<S extends FieldSchema>(component: ComponentDef<S>): Readonly<FieldValues<S>>
+}
+```
+
+#### `DrawSim` (interface)
+
+The sim at this frame, read-only.
+
+```ts
+interface DrawSim {
+  readonly tick: number
+  query(...components: ComponentDef[]): DrawEntity[]
+  entity(sid: number): DrawEntity | undefined
+  /** A deep-frozen copy of the resource's value. */
+  resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>
+}
+```
+
+#### `DrawTextOptions` (interface)
+
+Options for `DrawContext.text`: colour and font size.
+
+```ts
+interface DrawTextOptions {
+  /** Default 0xffffff. */
+  readonly color?: number | undefined
+  /** Font size in logical pixels. Default 8. */
+  readonly size?: number | undefined
+}
+```
+
+#### `EntityRef` (interface)
+
+A live entity, addressed by its StableId. Writes are coerced per field type and mark the entity changed.
+
+```ts
+interface EntityRef {
+  readonly sid: number
+  has(component: ComponentDef): boolean
+  get<S extends FieldSchema>(component: ComponentDef<S>): Readonly<FieldValues<S>>
+  set<S extends FieldSchema>(component: ComponentDef<S>, values: Partial<FieldValues<S>>): void
+  add<S extends FieldSchema>(component: ComponentDef<S>, values?: Partial<FieldValues<S>>): void
+  remove(component: ComponentDef): void
+}
+```
+
+#### `EventDef` (interface)
+
+An event a system emits: an id and the Zod schema its payload must match. Create one with `defineEvent`.
+
+```ts
+interface EventDef<Z extends z.ZodType = z.ZodType> {
+  readonly kind: 'event'
+  readonly id: string
+  readonly schema: Z
+}
+```
+
+#### `GameSaves` (interface)
+
+What a game saves, and how the default screens read it from the sim and put it back (M5.2). The title lists the
+save's slots; New game writes the starting data, Continue loads a slot, and play keeps it saved while it runs, on
+the triggers the `def` declares (autosave).
+
+```ts
+interface GameSaves<D> {
+  readonly def: SaveDef<D>
+  /**
+   * The data to keep, read from the live sim when a trigger writes, and for a new game from the sim at tick 0. It
+   * only reads: it must not change the sim.
+   */
+  capture(sim: Sim): D
+  /** Puts a loaded slot's data into the freshly set-up sim, before tick 0. */
+  apply(sim: Sim, data: D): void
+  /** The label a new game gives its slot on the list ("Run 2"). Default: none, and the list says "Slot N". */
+  label?(slot: number): string
+}
+```
+
+#### `GameSpec` (interface)
+
+A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds,
+scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
+`defineGame` fills in every default.
+
+```ts
+interface GameSpec<S = never, D = unknown> {
+  /** Ruken's game id (`[game].id`), checked with Ruken's own rule; it is `hosting.gameId`. */
+  readonly id: string
+  /** Shown on the title screen. Default: the id. */
+  readonly title?: string
+  /** The playfield in logical pixels. */
+  readonly size: { readonly width: number; readonly height: number }
+  readonly sim: {
+    readonly plugins: readonly PluginDef[]
+    /** Default 1. */
+    readonly seed?: number
+    /** Spawns the starting entities before tick 0. */
+    readonly setup?: (sim: Sim) => void
+  }
+  /**
+   * The orientation the game plays in, the same as the ship config's `runtime.orientation` (M4.7). On a phone held
+   * the other way a `portrait` or `landscape` game pauses behind the rotate hint. Default `any`.
+   */
+  readonly orientation?: GameOrientation
+  /** On a phone held the other way: `'block'` (the default) covers and pauses; `'toast'` says so and plays on. */
+  readonly rotateHint?: RotateHintMode
+  /** Default: no commands. */
+  readonly input?: InputMap
+  /** Component id → view (`rect`, `sprite`). */
+  readonly views?: Readonly<Record<string, EntityViewFactory>>
+  /**
+   * The sound each sim event plays, by the event's id: `{ [Chime.id]: 'chime.wav' }`, or `{ alias, bus, gain }`.
+   * Silent until the player's first gesture (browsers allow no sound before it).
+   */
+  readonly sounds?: EventSounds
+  /**
+   * The board and score each sim event submits, by the event's id (M5.7):
+   * `{ [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } }`. The board is a key
+   * of the ship config's `leaderboards`; the game then asks the host for `leaderboards`.
+   */
+  readonly scores?: EventScores
+  /**
+   * The game's save (M5.2): its slots, how the sim is captured into them and put back. The game then asks the host
+   * for `saves`. Needs the default screens for the title's slot list; custom `screens` open the save themselves.
+   */
+  readonly saves?: GameSaves<D>
+  /** A game with `content/` passes the compiler's output; `sim` is the sim's partition of it. */
+  readonly content?: { readonly data: CompiledContentData; readonly hash: string; readonly sim?: unknown }
+  /** Default: title, play and paused (DX spec §7). */
+  readonly screens?: readonly ScreenDef[]
+  /** Default: `#game`. */
+  readonly root?: HTMLElement
+  readonly hosting?: Partial<Omit<HostingOptions, 'gameId' | 'disclosedEvents'>>
+  /**
+   * Default: the core settings (`CORE_SETTINGS`, the save `settings`), with the player's bindings and graphics
+   * quality. A game's own settings keep those only when its schema has `input: inputSettingsSchema` and
+   * `display: displaySettingsSchema`.
+   */
+  readonly settings?: SettingsDef<S>
+  readonly extensions?: readonly ExtensionDef[]
+  /**
+   * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
+   * default screens hold a sim (PRODUCT spec §7). It reads the sim and never writes it. Needs the default screens.
+   */
+  readonly draw?: (ctx: DrawContext) => void
+  /** Merged over the defaults (`pixelArt`, the logical size and the views). */
+  readonly renderer?: PixiRendererOptions
+  readonly copy?: GameDefinition['copy']
+  /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
+  readonly locale?: GameDefinition['locale']
+  /** Tests only. */
+  readonly seams?: RuntimeSeams
+}
+```
+
+#### `GameSpecError` (class)
+
+Every invalid field of a spec, by path: `size.width: …`.
+
+```ts
+class GameSpecError extends Error {
+  readonly problems: readonly string[]
+  constructor(problems: readonly string[]) {
+    super(`invalid GameSpec:\n  ${problems.join('\n  ')}`)
+    this.name = 'GameSpecError'
+    this.problems = problems
+  }
+}
+```
+
+#### `InputMap` (interface)
+
+Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3).
+
+```ts
+interface InputMap {
+  readonly command: CommandDef
+  /** Whether the play screen shows touch buttons when the player uses touch. */
+  readonly touch: boolean
+  readonly touchButtons: readonly TouchButton[]
+  /** How the play screen takes touch: its buttons, or swipes over the whole screen (M4 spec §4.4). */
+  readonly touchMode: TouchMode
+  /**
+   * The bindings as data (M4 spec §2.2): one action per distinct payload, id `<command id>-<n>`, with its keys, its
+   * pad buttons and whether it has a touch button. Rebinding swaps the profile and never the command mapping.
+   */
+  readonly profile: InputProfile
+  /** Each action's name, as the Settings screen's Controls section lists it (M4.4). */
+  readonly labels: Readonly<Record<string, string>>
+  /** Pure: the one command for the held actions, merged in iteration order (a later action wins per field). */
+  toCommand(held: Iterable<string>, tick: number): readonly Command[]
+  attach(target: Window): InputSource
+}
+```
+
+#### `InputSource` (interface)
+
+The input map attached to a window for one play session.
+
+```ts
+interface InputSource {
+  /** This tick's command, if any: one per tick, never an edge (DX spec §3.3). */
+  commands(tick: number): readonly Command[]
+  /** A touch button pressed or released (its `TouchButton.id`). */
+  hold(buttonId: string): void
+  release(buttonId: string): void
+  /** Gestures from a `SwipeTracker` (M4.3): held swipes and one-tick flicks and taps. */
+  readonly gesture: GestureSink
+  dispose(): void
+}
+```
+
+#### `KeyBindings` (type)
+
+By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard layout.
+
+```ts
+type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>
+```
+
+#### `keys` (function)
+
+An input map sending `command` once per tick with the payload of what is held: keys by
+`KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the
+idle payload. Throws when a binding's payload fails the command's schema.
+
+```ts
+function keys<Z extends z.ZodType>(
+  command: CommandDef<Z>,
+  bindings: KeyBindings<Z>,
+  options: KeysOptions<Z> = {},
+): InputMap {
+  const schema = command.schema
+  const idleParse = schema.safeParse(options.idle ?? {})
+  // What every payload is merged over: the idle payload, or nothing when the schema has no idle state.
+  const base = idleParse.success ? asRecord(idleParse.data) : asRecord(options.idle)
+
+  // A binding the schema refuses is a developer error, thrown now rather than dropped every tick (DX spec §6).
+  const check = (where: string, payload: unknown): void => {
+    const parsed = schema.safeParse({ ...base, ...asRecord(payload) })
+    if (!parsed.success) {
+      const why = parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ')
+      throw new Error(
+        `keys(): ${where} → ${JSON.stringify(payload)} fails the "${command.id}" schema (${why})`,
+      )
+    }
+  }
+  for (const [code, payload] of Object.entries(bindings)) check(code, payload)
+  for (const code of options.required ?? [])
+    if (!Object.hasOwn(bindings, code)) throw new Error(`keys(): required key ${code} is not bound`)
+  const pad = Object.entries(options.pad ?? {}).map(([index, payload]) => ({ index: Number(index), payload }))
+  for (const { index, payload } of pad) check(`pad button ${index}`, payload)
+  const gestures = Object.entries(options.gestures ?? {}) as [GestureName, Payload<Z>][]
+  for (const [gesture, payload] of gestures) check(`gesture ${gesture}`, payload)
+  const stick = Object.entries(options.stick ?? {}) as [StickDirection, Payload<Z>][]
+  for (const [direction, payload] of stick) check(`stick ${direction}`, payload)
+
+  // One action per distinct payload: the keys' payloads in binding order, then any pad, stick or gesture payload
+  // no key shares.
+  const actions: {
+    id: string
+    payload: unknown
+    keys: string[]
+    pad: number[]
+    stick: StickDirection[]
+    gesture: GestureName[]
+  }[] = []
+  const actionFor = (payload: unknown): (typeof actions)[number] => {
+    const key = JSON.stringify(payload)
+    const found = actions.find((action) => JSON.stringify(action.payload) === key)
+    if (found !== undefined) return found
+    const made = { id: `${command.id}-${actions.length}`, payload, keys: [], pad: [], stick: [], gesture: [] }
+    actions.push(made)
+    return made
+  }
+  for (const [code, payload] of Object.entries(bindings)) actionFor(payload).keys.push(code)
+  for (const { index, payload } of pad) actionFor(payload).pad.push(index)
+  for (const [direction, payload] of stick) actionFor(payload).stick.push(direction)
+  for (const [gesture, payload] of gestures) actionFor(payload).gesture.push(gesture)
+
+  const touch = options.touch !== false
+  const requiredKeys = new Set(options.required ?? [])
+  const isRequired = (action: (typeof actions)[number]): boolean =>
+    action.keys.some((code) => requiredKeys.has(code))
+  const parsedProfile = inputProfileSchema.safeParse({
+    id: command.id,
+    bindings: Object.fromEntries(
+      actions.map((action) => [
+        action.id,
+        {
+          keys: action.keys,
+          pad: action.pad,
+          ...(action.stick.length > 0 ? { stick: action.stick } : {}),
+          touch: touch && action.keys.length > 0,
+          ...(action.gesture.length > 0 ? { gesture: action.gesture } : {}),
+          ...(isRequired(action) ? { required: true } : {}),
+        },
+      ]),
+    ),
+  })
+  // A reserved key or pad button is a developer error, thrown now (M4-D3, I-j).
+  if (!parsedProfile.success)
+    throw new Error(`keys(): ${parsedProfile.error.issues.map((issue) => issue.message).join('; ')}`)
+  const profile = parsedProfile.data
+  const modes = touchModesFor(profile)
+  if (options.touchMode !== undefined && !modes.includes(options.touchMode))
+    throw new Error(
+      `keys(): touchMode "${options.touchMode}" needs ${options.touchMode === 'swipe' ? 'a gesture' : 'a touch button'}`,
+    )
+  const touchMode: TouchMode =
+    options.touchMode ?? (modes.includes('buttons') || !modes.includes('swipe') ? 'buttons' : 'swipe')
+
+  const touchButtons: TouchButton[] = actions
+    .filter((action) => action.keys.length > 0)
+    .map((action) => ({
+      id: action.id,
+      label: labelFor(action.keys[0] as string),
+      keys: action.keys,
+      ...(isRequired(action) ? { required: true } : {}),
+    }))
+  const payloadOf = new Map(actions.map((action) => [action.id, action.payload]))
+  const labels = Object.fromEntries(
+    actions.map((action) => {
+      const named = action.keys.map((code) => options.labels?.[code]).find((label) => label !== undefined)
+      const fields = Object.entries(asRecord(action.payload)).map(
+        ([field, value]) => `${field} ${String(value)}`,
+      )
+      return [action.id, named ?? [command.id, ...fields].join(' ')]
+    }),
+  )
+
+  /** The parsed payload for payloads merged in order over the idle payload; undefined when the schema refuses it. */
+  const merge = (payloads: readonly unknown[]): unknown => {
+    const parsed = schema.safeParse(Object.assign({}, base, ...payloads.map(asRecord)))
+    return parsed.success ? parsed.data : undefined
+  }
+  const asCommands = (payload: unknown, tick: number): readonly Command[] =>
+    payload === undefined ? [] : [{ tick, source: 0, seq: tick, type: command.id, payload }]
+
+  // The parsed payload for the last held list, so a tick with nothing new parses nothing.
+  let cachedFor: string | undefined
+  let cached: unknown
+  const toCommand = (held: Iterable<string>, tick: number): readonly Command[] => {
+    const known: string[] = []
+    for (const action of held) if (payloadOf.has(action)) known.push(action)
+    const key = known.join('|')
+    if (key !== cachedFor) {
+      cachedFor = key
+      cached = merge(known.map((action) => payloadOf.get(action)))
+    }
+    return asCommands(cached, tick)
+  }
+
+  return {
+    command,
+    touch,
+    touchButtons,
+    touchMode,
+    profile,
+    labels,
+    toCommand,
+    attach(target) {
+      // The Input service over `target`, in a scope of its own that `dispose` closes. Nothing here listens to
+      // its facts, so it publishes to a bus no one reads.
+      const scope = Effect.runSync(Scope.make())
+      const input = Effect.runSync(makeInput({ target, profile, bus: SILENT_BUS }).pipe(Scope.extend(scope)))
+      return {
+        commands(tick) {
+          input.poll()
+          return toCommand(input.held(), tick)
+        },
+        hold: (buttonId) => input.hold(buttonId),
+        release: (buttonId) => input.release(buttonId),
+        gesture: input.gesture,
+        dispose: () => Effect.runSync(Scope.close(scope, Exit.void)),
+      }
+    },
+  }
+}
+```
+
+#### `KeysOptions` (interface)
+
+Options for `keys`: touch buttons, gamepad buttons, gestures and the stick, the idle payload, required keys
+and the Controls section's labels.
+
+```ts
+interface KeysOptions<Z extends z.ZodType> {
+  /** On-screen buttons from the bindings when the player uses touch. Default true. */
+  readonly touch?: boolean
+  /** Standard-mapping gamepad button index → payload, polled once per tick. */
+  readonly pad?: Readonly<Record<number, Payload<Z>>>
+  /** Touch gesture → payload (M4.3): a swipe holds while the finger steers, a flick or a tap lasts one tick. */
+  readonly gestures?: Readonly<Partial<Record<GestureName, Payload<Z>>>>
+  /** Default `buttons` when the map has touch buttons, else `swipe`. The player's setting is M4.4's. */
+  readonly touchMode?: TouchMode
+  /** A stick pushed past the deadzone in a direction (`left-left`, `right-up`, …) → payload (M4.2). */
+  readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>
+  /** The payload with nothing held. Default: the schema's own defaults (`schema.parse({})`), when it has them. */
+  readonly idle?: z.input<Z>
+  /**
+   * Keys whose actions the game cannot be played without (M4.7): rebinding never leaves them unbound on a device
+   * (M4-D4), and where the touch buttons do not all fit, theirs are the ones that show.
+   */
+  readonly required?: readonly string[]
+  /**
+   * Action names for the Controls section, by any of the action's default keys: `{ Space: 'Jump' }`. Default: the
+   * command and payload (`move x -1`).
+   */
+  readonly labels?: Readonly<Record<string, string>>
+}
+```
+
+#### `PluginDef` (interface)
+
+A bundle of definitions the sim registers together: components, commands, events, resources and systems,
+the plugins it depends on, and optionally per-sim engine state and `config`. Create one with
+`definePlugin`.
+
+```ts
+interface PluginDef {
+  readonly kind: 'plugin'
+  readonly name: string
+  /** Creates this plugin's per-sim engine state; its systems see it as `ctx.pluginState`. */
+  readonly state: ((setup: PluginStateSetup) => Promise<PluginState>) | undefined
+  readonly dependsOn: readonly string[]
+  readonly components: readonly ComponentDef[]
+  readonly commands: readonly CommandDef[]
+  readonly events: readonly EventDef[]
+  readonly resources: readonly ResourceDef[]
+  readonly systems: readonly SystemDef[]
+  /**
+   * Settings that change what the plugin simulates (physics gravity), as plain JSON. Part of the schema hash,
+   * so a snapshot never restores into a sim configured differently. Undefined when the plugin has none.
+   */
+  readonly config: unknown
+}
+```
+
+#### `postFilter` (function)
+
+Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', {
+glsl, wgsl })] }`. The renderer builds it when it starts and keeps it in the stage's post-filter slot under
+`name`. A filter that cannot be built, or whose GLSL does not link, is left out with a warning and the frame
+draws without it. Throws when the name or either shader is empty.
+
+```ts
+function postFilter(name: string, spec: PostFilterSpec): PostFilterDef {
+  if (name.trim() === '') throw new Error('postFilter: name is empty')
+  for (const field of ['glsl', 'wgsl'] as const)
+    if (spec[field].trim() === '') throw new Error(`postFilter "${name}": ${field} is empty`)
+  return Object.freeze({
+    name,
+    glsl: spec.glsl,
+    wgsl: spec.wgsl,
+    order: spec.order ?? 0,
+    minTier: spec.minTier,
+  })
+}
+```
+
+#### `PostFilterDef` (interface)
+
+A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
+
+```ts
+interface PostFilterDef {
+  readonly name: string
+  readonly glsl: string
+  readonly wgsl: string
+  readonly order: number
+  readonly minTier: QualityTier | undefined
+}
+```
+
+#### `PostFilterSpec` (interface)
+
+What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`),
+so the two renderers stay at parity. Both are fragment shaders that `filterPrograms` joins to the shared vertex
+stage: GLSL reads `vTextureCoord`, `vPixelCoord` and `uTexture`; WGSL has `mainFragment(input: VSOutput)`.
+
+```ts
+interface PostFilterSpec {
+  /** The GLSL ES 3.00 fragment shader, run under WebGL2. */
+  readonly glsl: string
+  /** The WGSL fragment shader, run under WebGPU; its entry point is `mainFragment`. */
+  readonly wgsl: string
+  /** Where it sits among the stage's filters: lower runs first, ties by name. Default 0. */
+  readonly order?: number | undefined
+  /** The lowest quality tier it runs at; left out, it runs at every tier. */
+  readonly minTier?: QualityTier | undefined
+}
+```
+
+#### `rect` (function)
+
+A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks:
+`entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
+
+```ts
+function rect(options: RectViewOptions): EntityViewFactory {
+  const anchor = anchorXY(options.anchor)
+  return (_row, componentId) => {
+    const graphics = new Graphics()
+      .rect(-anchor.x * options.w, -anchor.y * options.h, options.w, options.h)
+      .fill(options.color)
+    return {
+      container: graphics,
+      update(curr, prev, alpha = 1) {
+        placeView(graphics, curr, prev, alpha, componentId)
+      },
+      destroy() {
+        graphics.destroy()
+      },
+    }
+  }
+}
+```
+
+#### `RectViewOptions` (interface)
+
+A `rect` view's size, colour and anchor.
+
+```ts
+interface RectViewOptions {
+  /** Width in world pixels. */
+  readonly w: number
+  /** Height in world pixels. */
+  readonly h: number
+  /** Fill colour, e.g. 0xf9c22b. */
+  readonly color: number
+  /** Default 0.5 (centred on the entity's position). */
+  readonly anchor?: ViewAnchor | undefined
+}
+```
+
+#### `ResourceDef` (interface)
+
+A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting
+value. Create one with `defineResource`.
+
+```ts
+interface ResourceDef<Z extends z.ZodType = z.ZodType> {
+  readonly kind: 'resource'
+  readonly id: string
+  readonly schema: Z
+  readonly init: () => z.input<Z>
+}
+```
+
+#### `SaveDef` (interface)
+
+A game's save: one record, or a fixed number of slots, each one Ruken key.
+
+```ts
+interface SaveDef<S> {
+  /** The key prefix. Ruken's key rule is the SDK's, which checks it on write. */
+  readonly key: string
+  /** This build's version of the data, an integer from 1. */
+  readonly version: number
+  readonly schema: z.ZodType<S>
+  /** What an empty slot loads as. */
+  readonly empty: () => S
+  /** `migrations[n]` turns version `n` data into version `n + 1`. */
+  readonly migrations: Readonly<Record<number, SaveMigration>>
+  /** Absent: one record, slot 0, stored at `key`. */
+  readonly slots?: { readonly count: number }
+  /** Absent: save on `screen-exit`, `round-end` and `background`, with no timer (M5-D10). `{ on: [] }` turns it off. */
+  readonly autosave?: AutosavePolicy
+}
+```
+
+#### `ScreensGame` (interface)
+
+What the default screens need from the game.
+
+```ts
+interface ScreensGame {
+  readonly title: string
+  readonly sim: {
+    readonly plugins: readonly PluginDef[]
+    readonly seed: number
+    readonly setup?: ((sim: Sim) => void) | undefined
+    readonly content?: unknown
+  }
+  readonly input?: InputMap | undefined
+  /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it (PRODUCT.2). */
+  readonly watchSim?: ((sim: Sim | undefined) => void) | undefined
+  /** The board paused shows: the game's first scored board (M5.7). None: paused shows no board. */
+  readonly board?: string | undefined
+  /** Applies the player's graphics quality to the stage (M4.4): the saved one at the title, then each choice. */
+  readonly setQuality?: ((tier: QualityTier) => void) | undefined
+  /** The game's save (M5.2): the title lists its slots and play keeps the loaded one saved. None: no slot list. */
+  readonly saves?: GameSaves<unknown> | undefined
+  /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
+  readonly extensions?: readonly ExtensionDef[] | undefined
+}
+```
+
+#### `Sim` (interface)
+
+A running simulation, stepped with commands, that can snapshot, restore and hash its state. `step` is the
+only way gameplay state changes. Create one with `createSim`, and `dispose` it when done.
+
+```ts
+interface Sim {
+  readonly seed: number
+  readonly tickHz: number
+  readonly tick: number
+  /** XXH64 of the canonical content this sim was created with, 16 hex digits; the snapshot header's value. */
+  readonly contentHash: string
+  step(commands: readonly Command[]): StepResult
+  /** Setup and inspection outside `step` (tests, scene setup). Runtime changes go through commands. */
+  spawn(parts: readonly SpawnPart[]): number
+  entity(sid: number): EntityRef | undefined
+  query(...components: ComponentDef[]): EntityRef[]
+  resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>
+  /** Canonical snapshot v1 bytes (spec §4.6). */
+  snapshot(): Uint8Array
+  /** Replaces the whole state. Throws SnapshotFormatError / SnapshotMismatchError and leaves the sim unchanged. */
+  restore(bytes: Uint8Array): void
+  /**
+   * A readable view of `bytes`, or of the current state when none are given (M2.3 spec §3.1). Decodes and checks
+   * the header as `restore` does (SnapshotFormatError / SnapshotMismatchError) but not restore's later
+   * cross-checks, and changes nothing.
+   */
+  describeSnapshot(bytes?: Uint8Array): SnapshotView
+  /** xxhash64 of the snapshot, 16 hex digits. */
+  hash(): string
+  /** Frees the Koota world and every plugin's engine. Idempotent; any later call throws SimDisposedError. */
+  dispose(): void
+}
+```
+
+#### `SimContext` (interface)
+
+What a system's `run` receives each tick (spec §4.1).
+
+```ts
+interface SimContext {
+  readonly tick: number
+  /** Fixed step, 1 / tickHz. */
+  readonly dt: number
+  /** This system's own RNG substream. */
+  readonly rng: Rng
+  /** Compiled content, deep-frozen. */
+  readonly content: unknown
+  /** Live entities that have every listed component, in ascending StableId order. */
+  query(...components: ComponentDef[]): EntityRef[]
+  entity(sid: number): EntityRef | undefined
+  /** Spawns immediately; returns the new StableId. */
+  spawn(...parts: SpawnPart[]): number
+  /** Despawn is deferred to the end of the tick (built-in `entities.flush`). */
+  despawn(sid: number): void
+  readonly commands: {
+    of<Z extends z.ZodType>(def: CommandDef<Z>): ReadonlyArray<CommandRecord<z.output<Z>>>
+  }
+  emit<Z extends z.ZodType>(def: EventDef<Z>, payload: z.input<Z>): void
+  resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>
+  /** The per-sim state of the plugin that registered this system (`definePlugin({ state })`), else undefined. */
+  readonly pluginState: unknown
+}
+```
+
+#### `sprite` (function)
+
+A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks. `source` is a
+texture or a url: a url the runtime already loaded (it is in `Assets.cache`) shows at once; otherwise the
+sprite is empty until `Assets.load` resolves. A url that fails to load is reported with `reportError`
+and the sprite stays empty. The frame textures are sliced once per factory and shared by its sprites.
+With `frame`, the url is an atlas page's Spritesheet and the sprite shows that frame; a name the atlas lacks
+is reported the same way.
+
+```ts
+function sprite(source: Texture | string, options: SpriteViewOptions = {}): EntityViewFactory {
+  if (options.frame !== undefined && options.frames !== undefined) {
+    throw new Error(
+      'sprite: `frame` (an atlas frame) and `frames` (a sheet of equal frames) cannot be combined',
+    )
+  }
+  const anchor = anchorXY(options.anchor)
+  let frames: readonly Texture[] | undefined
+  let loading: Promise<readonly Texture[]> | undefined
+
+  if (typeof source !== 'string') {
+    frames = sliceFrames(source, options.frames)
+  } else if (Assets.cache.has(source)) {
+    try {
+      frames = texturesOf(Assets.cache.get(source), options)
+    } catch (error) {
+      // Reported once; the sprites stay empty, as for a url that fails to load.
+      globalThis.reportError?.(error)
+      frames = [Texture.EMPTY]
+    }
+  }
+
+  function load(url: string): Promise<readonly Texture[]> {
+    if (loading === undefined) {
+      loading = Assets.load<unknown>(url).then((loaded) => {
+        frames = texturesOf(loaded, options)
+        return frames
+      })
+      // One report per factory, however many sprites wait on the same url.
+      loading.catch((error: unknown) => globalThis.reportError?.(error))
+    }
+    return loading
+  }
+
+  return (_row, componentId) => {
+    const shown = new Sprite(frames?.[0] ?? Texture.EMPTY)
+    shown.anchor.set(anchor.x, anchor.y)
+    let frameField: unknown
+
+    const showFrame = (): void => {
+      if (frames === undefined || shown.destroyed) return
+      shown.texture = frames[frameIndex(frameField, frames.length)] ?? Texture.EMPTY
+    }
+
+    if (frames === undefined && typeof source === 'string') {
+      load(source).then(showFrame, () => {})
+    }
+
+    return {
+      container: shown,
+      update(curr, prev, alpha = 1) {
+        placeView(shown, curr, prev, alpha, componentId)
+        frameField = poseComponent(curr, componentId)?.frame
+        showFrame()
+      },
+      destroy() {
+        shown.destroy()
+      },
+    }
+  }
+}
+```
+
+#### `SpriteFrames` (interface)
+
+The texture is a sheet of equal frames, read left to right, top to bottom. The pose component's numeric
+`frame` field picks one (floored, wrapped by the frame count); with no `frame` field the first is shown.
+Frames switch on ticks; they are not interpolated.
+
+```ts
+interface SpriteFrames {
+  readonly width: number
+  readonly height: number
+  /** Default: every whole frame that fits in the texture. */
+  readonly count?: number | undefined
+}
+```
+
+#### `SpriteViewOptions` (interface)
+
+A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
+
+```ts
+interface SpriteViewOptions {
+  /** Default 0.5 (centred on the entity's position). */
+  readonly anchor?: ViewAnchor | undefined
+  readonly frames?: SpriteFrames | undefined
+  /**
+   * A frame of a packed atlas (M5.6): `source` is the url of an atlas page's Spritesheet JSON, which
+   * `automata-content assets` writes, and `frame` names one of its frames. Not with `frames`.
+   */
+  readonly frame?: string | undefined
+}
+```
+
+#### `startGame` (function)
+
+Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
+and the default screens, then the runtime's boot on the game's root. Takes a spec or a game `defineGame`
+already returned. Throws `BootDefect` before anything mounts when the spec is invalid or there is no
+root (`spec.root`, else `#game`); a failure after that shows on the runtime's boot failure panel.
+
+```ts
+function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>): RuntimeHandle {
+  const defined = isDefinedGame(game) ? game : defineGame(game)
+  // Read the root once, here, so a missing one throws before the runtime starts.
+  return runGame({ ...defined, root: defined.root })
+}
+```
+
+#### `StepResult` (interface)
+
+What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were
+rejected.
+
+```ts
+interface StepResult {
+  /** The tick the sim is at after this step. */
+  readonly tick: number
+  readonly events: readonly SimEvent[]
+  readonly render: RenderDelta
+  /** Invalid commands, in input order. The sim has no I/O, so it reports instead of logging. */
+  readonly rejected: readonly RejectedCommand[]
+}
+```
+
+#### `SystemDef` (interface)
+
+A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and
+its `run`, called once per tick. Create one with `defineSystem`.
+
+```ts
+interface SystemDef {
+  readonly kind: 'system'
+  readonly name: string
+  readonly phase: Phase
+  readonly before: readonly string[]
+  readonly after: readonly string[]
+  readonly run: (ctx: SimContext) => void
+}
+```
+
+#### `TouchButton` (interface)
+
+One on-screen touch button: every key bound to the same payload shares it.
+
+```ts
+interface TouchButton {
+  readonly id: string
+  readonly label: string
+  readonly keys: readonly string[]
+  /** The game cannot be played without it: where the touch buttons do not all fit, only these show (M4.7). */
+  readonly required?: boolean | undefined
+}
+```
+
 ## `@mcthaydt/automata-content`
 
 ### `import { … } from '@mcthaydt/automata-content'`
@@ -828,6 +2408,769 @@ The import path of the compiled content: `content`, `contentHash`, `simContent` 
 const VIRTUAL_MODULE_ID = "virtual:automata/content";
 ```
 
+## `@mcthaydt/automata-game`
+
+### `import { … } from '@mcthaydt/automata-game'`
+
+#### `AutosavePolicy` (interface)
+
+When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval`
+timer.
+
+```ts
+interface AutosavePolicy {
+  readonly on: readonly AutosaveTrigger[]
+  /** Seconds between timer writes, default 60. Read only when `interval` is in `on`. */
+  readonly intervalSeconds?: number
+}
+```
+
+#### `AutosaveTrigger` (type)
+
+What can make the loaded slot write itself (M5 spec §4.4).
+
+```ts
+type AutosaveTrigger = 'screen-exit' | 'round-end' | 'background' | 'interval'
+```
+
+#### `Camera2d` (interface)
+
+A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that
+container's transform, never a sim value.
+
+```ts
+interface Camera2d {
+  /** The world point to follow. The first call snaps to it. */
+  target(x: number, y: number): void
+  /** Adds trauma, 0..1 (capped at 1); it decays over time. */
+  shake(trauma: number): void
+  /** Advances one display frame and writes the transform to the container. */
+  update(frameSeconds: number): void
+  readonly transform: { readonly x: number; readonly y: number; readonly scale: number }
+}
+```
+
+#### `Camera2dOptions` (interface)
+
+How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
+
+```ts
+interface Camera2dOptions {
+  /** The playfield's logical size: the area the camera shows at zoom 1. */
+  readonly view: { readonly width: number; readonly height: number }
+  /** Approach the target at `rate` per second; a dead zone, centred on the view, the target may move in freely. */
+  readonly follow?: {
+    readonly rate: number
+    readonly deadZone?: { readonly width: number; readonly height: number }
+  }
+  /** The world rect the view never shows outside of. */
+  readonly bounds?: CameraRect
+  /** Default 1; above 1 shows less of the world. */
+  readonly zoom?: number
+  /** Default: the player's `prefers-reduced-motion`, read every frame. */
+  readonly reducedMotion?: () => boolean
+}
+```
+
+#### `CameraRect` (interface)
+
+A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
+
+```ts
+interface CameraRect {
+  readonly x: number
+  readonly y: number
+  readonly width: number
+  readonly height: number
+}
+```
+
+#### `createCamera2d` (function)
+
+A camera writing `stage`'s transform (usually `PixiStage.world`). `seed` fixes the shake's random sequence,
+so a shake looks the same in every run and visual test.
+
+```ts
+function createCamera2d(stage: Container, options: Camera2dOptions, seed = 1): Camera2d {
+  const zoom = options.zoom ?? 1
+  // The world-space size the view shows.
+  const visibleWidth = options.view.width / zoom
+  const visibleHeight = options.view.height / zoom
+
+  let targetX = 0
+  let targetY = 0
+  let centreX = 0
+  let centreY = 0
+  let hasTarget = false
+  let trauma = 0
+  const noise = mulberry32(seed)
+  const isReduced = options.reducedMotion ?? (() => reducedMotion())
+  const transform = { x: 0, y: 0, scale: zoom }
+
+  const clamp = (x: number, y: number): { x: number; y: number } => {
+    const bounds = options.bounds
+    if (bounds === undefined) return { x, y }
+    return {
+      x: clampAxis(x, visibleWidth, bounds.x, bounds.width),
+      y: clampAxis(y, visibleHeight, bounds.y, bounds.height),
+    }
+  }
+
+  return {
+    target(x, y) {
+      targetX = x
+      targetY = y
+      if (!hasTarget) {
+        hasTarget = true
+        centreX = x
+        centreY = y
+      }
+    },
+    shake(amount) {
+      trauma = Math.min(1, trauma + amount)
+    },
+    update(frameSeconds) {
+      const follow = options.follow
+      if (follow === undefined) {
+        centreX = targetX
+        centreY = targetY
+      } else {
+        const zone = follow.deadZone
+        const wantX = zone === undefined ? targetX : intoZone(centreX, targetX, zone.width / 2)
+        const wantY = zone === undefined ? targetY : intoZone(centreY, targetY, zone.height / 2)
+        centreX = damp(centreX, wantX, follow.rate, frameSeconds)
+        centreY = damp(centreY, wantY, follow.rate, frameSeconds)
+      }
+      // The camera's own centre stays clamped too, so leaving a corner starts from inside the bounds.
+      const clamped = clamp(centreX, centreY)
+      centreX = clamped.x
+      centreY = clamped.y
+
+      // The shake is added to what is drawn, never to the stored centre, so the follow does not drift with it.
+      // Noise is drawn every frame, even under reduced motion, so the sequence does not depend on the setting.
+      trauma = Math.max(0, trauma - SHAKE_DECAY * frameSeconds)
+      const strength = isReduced() ? 0 : SHAKE_MAX_OFFSET * trauma * trauma
+      const noiseX = noise() * 2 - 1
+      const noiseY = noise() * 2 - 1
+      const shown = clamp(centreX + strength * noiseX, centreY + strength * noiseY)
+
+      transform.x = options.view.width / 2 - shown.x * zoom
+      transform.y = options.view.height / 2 - shown.y * zoom
+      stage.position.set(transform.x, transform.y)
+      stage.scale.set(zoom)
+    },
+    transform,
+  }
+}
+```
+
+#### `defaultContent` (function)
+
+The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash.
+
+```ts
+function defaultContent(): GameContent;
+```
+
+#### `defaultScreens` (function)
+
+The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow
+(`title → play ⇄ paused → title`, `paused ⇄ settings`).
+
+The screens share one sim: play creates it on first entry (seed, plugins, content, then `setup`),
+paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. Returning
+from paused re-sends the whole state to the renderer (G-5): `AppLoop.run` resets the renderer, so
+play restores the sim's own snapshot, which makes the next step a resync.
+
+```ts
+function defaultScreens(game: ScreensGame): ScreenDef[];
+```
+
+#### `DefinedGame` (interface)
+
+The runtime's `GameDefinition`, plus what the screens and the golden replay read from the spec.
+
+```ts
+interface DefinedGame<S = never> extends GameDefinition<S> {
+    readonly id: string;
+    readonly title: string;
+    readonly size: {
+        readonly width: number;
+        readonly height: number;
+    };
+    readonly input?: InputMap | undefined;
+    readonly sim: {
+        readonly plugins: readonly PluginDef[];
+        readonly seed: number;
+        readonly setup?: ((sim: Sim) => void) | undefined;
+        readonly content?: unknown;
+    };
+}
+```
+
+#### `defineGame` (function)
+
+Checks a spec and fills in every default over the runtime, the Pixi renderer, Ruken hosting and the default
+screens; `startGame` boots the result. Pure: it reads no document, so a game module also loads in Node.
+Throws `BootDefect` (its cause a `GameSpecError`) for an invalid spec.
+
+```ts
+function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S>;
+```
+
+#### `defineSave` (function)
+
+Declares a save. It checks nothing the SDK checks; it only gives the definition its type.
+
+```ts
+function defineSave<S>(def: SaveDef<S>): SaveDef<S> {
+  return def
+}
+```
+
+#### `DrawContext` (interface)
+
+What `draw` receives each frame. Coordinates are logical playfield pixels (plan D-2).
+
+```ts
+interface DrawContext {
+    /** The sim at this frame, read-only. */
+    readonly sim: DrawSim;
+    readonly frame: FrameInfo;
+    /** The playfield's logical size. */
+    readonly width: number;
+    readonly height: number;
+    rect(x: number, y: number, w: number, h: number, color: number): void;
+    circle(x: number, y: number, radius: number, color: number): void;
+    line(x1: number, y1: number, x2: number, y2: number, color: number, width?: number): void;
+    /** One line of text, its top-left at (x, y). */
+    text(value: string, x: number, y: number, options?: DrawTextOptions): void;
+}
+```
+
+#### `DrawEntity` (interface)
+
+One entity, read-only: its components' values are frozen copies.
+
+```ts
+interface DrawEntity {
+    readonly sid: number;
+    has(component: ComponentDef): boolean;
+    get<S extends FieldSchema>(component: ComponentDef<S>): Readonly<FieldValues<S>>;
+}
+```
+
+#### `DrawSim` (interface)
+
+The sim at this frame, read-only.
+
+```ts
+interface DrawSim {
+    readonly tick: number;
+    query(...components: ComponentDef[]): DrawEntity[];
+    entity(sid: number): DrawEntity | undefined;
+    /** A deep-frozen copy of the resource's value. */
+    resource<Z extends z.ZodType>(def: ResourceDef<Z>): z.output<Z>;
+}
+```
+
+#### `DrawTextOptions` (interface)
+
+Options for `DrawContext.text`: colour and font size.
+
+```ts
+interface DrawTextOptions {
+    /** Default 0xffffff. */
+    readonly color?: number | undefined;
+    /** Font size in logical pixels. Default 8. */
+    readonly size?: number | undefined;
+}
+```
+
+#### `GameSaves` (interface)
+
+What a game saves, and how the default screens read it from the sim and put it back (M5.2). The title lists the
+save's slots; New game writes the starting data, Continue loads a slot, and play keeps it saved while it runs, on
+the triggers the `def` declares (autosave).
+
+```ts
+interface GameSaves<D> {
+    readonly def: SaveDef<D>;
+    /**
+     * The data to keep, read from the live sim when a trigger writes, and for a new game from the sim at tick 0. It
+     * only reads: it must not change the sim.
+     */
+    capture(sim: Sim): D;
+    /** Puts a loaded slot's data into the freshly set-up sim, before tick 0. */
+    apply(sim: Sim, data: D): void;
+    /** The label a new game gives its slot on the list ("Run 2"). Default: none, and the list says "Slot N". */
+    label?(slot: number): string;
+}
+```
+
+#### `GameSpec` (interface)
+
+A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds,
+scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
+`defineGame` fills in every default.
+
+```ts
+interface GameSpec<S = never, D = unknown> {
+    /** Ruken's game id (`[game].id`), checked with Ruken's own rule; it is `hosting.gameId`. */
+    readonly id: string;
+    /** Shown on the title screen. Default: the id. */
+    readonly title?: string;
+    /** The playfield in logical pixels. */
+    readonly size: {
+        readonly width: number;
+        readonly height: number;
+    };
+    readonly sim: {
+        readonly plugins: readonly PluginDef[];
+        /** Default 1. */
+        readonly seed?: number;
+        /** Spawns the starting entities before tick 0. */
+        readonly setup?: (sim: Sim) => void;
+    };
+    /**
+     * The orientation the game plays in, the same as the ship config's `runtime.orientation` (M4.7). On a phone held
+     * the other way a `portrait` or `landscape` game pauses behind the rotate hint. Default `any`.
+     */
+    readonly orientation?: GameOrientation;
+    /** On a phone held the other way: `'block'` (the default) covers and pauses; `'toast'` says so and plays on. */
+    readonly rotateHint?: RotateHintMode;
+    /** Default: no commands. */
+    readonly input?: InputMap;
+    /** Component id → view (`rect`, `sprite`). */
+    readonly views?: Readonly<Record<string, EntityViewFactory>>;
+    /**
+     * The sound each sim event plays, by the event's id: `{ [Chime.id]: 'chime.wav' }`, or `{ alias, bus, gain }`.
+     * Silent until the player's first gesture (browsers allow no sound before it).
+     */
+    readonly sounds?: EventSounds;
+    /**
+     * The board and score each sim event submits, by the event's id (M5.7):
+     * `{ [RunEnded.id]: { board: 'best', score: (payload) => RunEnded.schema.parse(payload).score } }`. The board is a key
+     * of the ship config's `leaderboards`; the game then asks the host for `leaderboards`.
+     */
+    readonly scores?: EventScores;
+    /**
+     * The game's save (M5.2): its slots, how the sim is captured into them and put back. The game then asks the host
+     * for `saves`. Needs the default screens for the title's slot list; custom `screens` open the save themselves.
+     */
+    readonly saves?: GameSaves<D>;
+    /** A game with `content/` passes the compiler's output; `sim` is the sim's partition of it. */
+    readonly content?: {
+        readonly data: CompiledContentData;
+        readonly hash: string;
+        readonly sim?: unknown;
+    };
+    /** Default: title, play and paused (DX spec §7). */
+    readonly screens?: readonly ScreenDef[];
+    /** Default: `#game`. */
+    readonly root?: HTMLElement;
+    readonly hosting?: Partial<Omit<HostingOptions, 'gameId' | 'disclosedEvents'>>;
+    /**
+     * Default: the core settings (`CORE_SETTINGS`, the save `settings`), with the player's bindings and graphics
+     * quality. A game's own settings keep those only when its schema has `input: inputSettingsSchema` and
+     * `display: displaySettingsSchema`.
+     */
+    readonly settings?: SettingsDef<S>;
+    readonly extensions?: readonly ExtensionDef[];
+    /**
+     * Immediate-mode HUD, debug and prototype drawing over the entity views, once per display frame while the
+     * default screens hold a sim (PRODUCT spec §7). It reads the sim and never writes it. Needs the default screens.
+     */
+    readonly draw?: (ctx: DrawContext) => void;
+    /** Merged over the defaults (`pixelArt`, the logical size and the views). */
+    readonly renderer?: PixiRendererOptions;
+    readonly copy?: GameDefinition['copy'];
+    /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
+    readonly locale?: GameDefinition['locale'];
+    /** Tests only. */
+    readonly seams?: RuntimeSeams;
+}
+```
+
+#### `GameSpecError` (class)
+
+Every invalid field of a spec, by path: `size.width: …`.
+
+```ts
+class GameSpecError extends Error {
+    readonly problems: readonly string[];
+    constructor(problems: readonly string[]);
+}
+```
+
+#### `InputMap` (interface)
+
+Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3).
+
+```ts
+interface InputMap {
+    readonly command: CommandDef;
+    /** Whether the play screen shows touch buttons when the player uses touch. */
+    readonly touch: boolean;
+    readonly touchButtons: readonly TouchButton[];
+    /** How the play screen takes touch: its buttons, or swipes over the whole screen (M4 spec §4.4). */
+    readonly touchMode: TouchMode;
+    /**
+     * The bindings as data (M4 spec §2.2): one action per distinct payload, id `<command id>-<n>`, with its keys, its
+     * pad buttons and whether it has a touch button. Rebinding swaps the profile and never the command mapping.
+     */
+    readonly profile: InputProfile;
+    /** Each action's name, as the Settings screen's Controls section lists it (M4.4). */
+    readonly labels: Readonly<Record<string, string>>;
+    /** Pure: the one command for the held actions, merged in iteration order (a later action wins per field). */
+    toCommand(held: Iterable<string>, tick: number): readonly Command[];
+    attach(target: Window): InputSource;
+}
+```
+
+#### `InputSource` (interface)
+
+The input map attached to a window for one play session.
+
+```ts
+interface InputSource {
+    /** This tick's command, if any: one per tick, never an edge (DX spec §3.3). */
+    commands(tick: number): readonly Command[];
+    /** A touch button pressed or released (its `TouchButton.id`). */
+    hold(buttonId: string): void;
+    release(buttonId: string): void;
+    /** Gestures from a `SwipeTracker` (M4.3): held swipes and one-tick flicks and taps. */
+    readonly gesture: GestureSink;
+    dispose(): void;
+}
+```
+
+#### `KeyBindings` (type)
+
+By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard layout.
+
+```ts
+type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>;
+```
+
+#### `keys` (function)
+
+An input map sending `command` once per tick with the payload of what is held: keys by
+`KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the
+idle payload. Throws when a binding's payload fails the command's schema.
+
+```ts
+function keys<Z extends z.ZodType>(command: CommandDef<Z>, bindings: KeyBindings<Z>, options?: KeysOptions<Z>): InputMap;
+```
+
+#### `KeysOptions` (interface)
+
+Options for `keys`: touch buttons, gamepad buttons, gestures and the stick, the idle payload, required keys
+and the Controls section's labels.
+
+```ts
+interface KeysOptions<Z extends z.ZodType> {
+    /** On-screen buttons from the bindings when the player uses touch. Default true. */
+    readonly touch?: boolean;
+    /** Standard-mapping gamepad button index → payload, polled once per tick. */
+    readonly pad?: Readonly<Record<number, Payload<Z>>>;
+    /** Touch gesture → payload (M4.3): a swipe holds while the finger steers, a flick or a tap lasts one tick. */
+    readonly gestures?: Readonly<Partial<Record<GestureName, Payload<Z>>>>;
+    /** Default `buttons` when the map has touch buttons, else `swipe`. The player's setting is M4.4's. */
+    readonly touchMode?: TouchMode;
+    /** A stick pushed past the deadzone in a direction (`left-left`, `right-up`, …) → payload (M4.2). */
+    readonly stick?: Readonly<Partial<Record<StickDirection, Payload<Z>>>>;
+    /** The payload with nothing held. Default: the schema's own defaults (`schema.parse({})`), when it has them. */
+    readonly idle?: z.input<Z>;
+    /**
+     * Keys whose actions the game cannot be played without (M4.7): rebinding never leaves them unbound on a device
+     * (M4-D4), and where the touch buttons do not all fit, theirs are the ones that show.
+     */
+    readonly required?: readonly string[];
+    /**
+     * Action names for the Controls section, by any of the action's default keys: `{ Space: 'Jump' }`. Default: the
+     * command and payload (`move x -1`).
+     */
+    readonly labels?: Readonly<Record<string, string>>;
+}
+```
+
+#### `postFilter` (function)
+
+Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', {
+glsl, wgsl })] }`. The renderer builds it when it starts and keeps it in the stage's post-filter slot under
+`name`. A filter that cannot be built, or whose GLSL does not link, is left out with a warning and the frame
+draws without it. Throws when the name or either shader is empty.
+
+```ts
+function postFilter(name: string, spec: PostFilterSpec): PostFilterDef {
+  if (name.trim() === '') throw new Error('postFilter: name is empty')
+  for (const field of ['glsl', 'wgsl'] as const)
+    if (spec[field].trim() === '') throw new Error(`postFilter "${name}": ${field} is empty`)
+  return Object.freeze({
+    name,
+    glsl: spec.glsl,
+    wgsl: spec.wgsl,
+    order: spec.order ?? 0,
+    minTier: spec.minTier,
+  })
+}
+```
+
+#### `PostFilterDef` (interface)
+
+A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
+
+```ts
+interface PostFilterDef {
+  readonly name: string
+  readonly glsl: string
+  readonly wgsl: string
+  readonly order: number
+  readonly minTier: QualityTier | undefined
+}
+```
+
+#### `PostFilterSpec` (interface)
+
+What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`),
+so the two renderers stay at parity. Both are fragment shaders that `filterPrograms` joins to the shared vertex
+stage: GLSL reads `vTextureCoord`, `vPixelCoord` and `uTexture`; WGSL has `mainFragment(input: VSOutput)`.
+
+```ts
+interface PostFilterSpec {
+  /** The GLSL ES 3.00 fragment shader, run under WebGL2. */
+  readonly glsl: string
+  /** The WGSL fragment shader, run under WebGPU; its entry point is `mainFragment`. */
+  readonly wgsl: string
+  /** Where it sits among the stage's filters: lower runs first, ties by name. Default 0. */
+  readonly order?: number | undefined
+  /** The lowest quality tier it runs at; left out, it runs at every tier. */
+  readonly minTier?: QualityTier | undefined
+}
+```
+
+#### `rect` (function)
+
+A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks:
+`entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
+
+```ts
+function rect(options: RectViewOptions): EntityViewFactory {
+  const anchor = anchorXY(options.anchor)
+  return (_row, componentId) => {
+    const graphics = new Graphics()
+      .rect(-anchor.x * options.w, -anchor.y * options.h, options.w, options.h)
+      .fill(options.color)
+    return {
+      container: graphics,
+      update(curr, prev, alpha = 1) {
+        placeView(graphics, curr, prev, alpha, componentId)
+      },
+      destroy() {
+        graphics.destroy()
+      },
+    }
+  }
+}
+```
+
+#### `RectViewOptions` (interface)
+
+A `rect` view's size, colour and anchor.
+
+```ts
+interface RectViewOptions {
+  /** Width in world pixels. */
+  readonly w: number
+  /** Height in world pixels. */
+  readonly h: number
+  /** Fill colour, e.g. 0xf9c22b. */
+  readonly color: number
+  /** Default 0.5 (centred on the entity's position). */
+  readonly anchor?: ViewAnchor | undefined
+}
+```
+
+#### `SaveDef` (interface)
+
+A game's save: one record, or a fixed number of slots, each one Ruken key.
+
+```ts
+interface SaveDef<S> {
+  /** The key prefix. Ruken's key rule is the SDK's, which checks it on write. */
+  readonly key: string
+  /** This build's version of the data, an integer from 1. */
+  readonly version: number
+  readonly schema: z.ZodType<S>
+  /** What an empty slot loads as. */
+  readonly empty: () => S
+  /** `migrations[n]` turns version `n` data into version `n + 1`. */
+  readonly migrations: Readonly<Record<number, SaveMigration>>
+  /** Absent: one record, slot 0, stored at `key`. */
+  readonly slots?: { readonly count: number }
+  /** Absent: save on `screen-exit`, `round-end` and `background`, with no timer (M5-D10). `{ on: [] }` turns it off. */
+  readonly autosave?: AutosavePolicy
+}
+```
+
+#### `ScreensGame` (interface)
+
+What the default screens need from the game.
+
+```ts
+interface ScreensGame {
+    readonly title: string;
+    readonly sim: {
+        readonly plugins: readonly PluginDef[];
+        readonly seed: number;
+        readonly setup?: ((sim: Sim) => void) | undefined;
+        readonly content?: unknown;
+    };
+    readonly input?: InputMap | undefined;
+    /** Told the sim play runs, and `undefined` when the title drops it: the draw layer reads it (PRODUCT.2). */
+    readonly watchSim?: ((sim: Sim | undefined) => void) | undefined;
+    /** The board paused shows: the game's first scored board (M5.7). None: paused shows no board. */
+    readonly board?: string | undefined;
+    /** Applies the player's graphics quality to the stage (M4.4): the saved one at the title, then each choice. */
+    readonly setQuality?: ((tier: QualityTier) => void) | undefined;
+    /** The game's save (M5.2): the title lists its slots and play keeps the loaded one saved. None: no slot list. */
+    readonly saves?: GameSaves<unknown> | undefined;
+    /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
+    readonly extensions?: readonly ExtensionDef[] | undefined;
+}
+```
+
+#### `sprite` (function)
+
+A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks. `source` is a
+texture or a url: a url the runtime already loaded (it is in `Assets.cache`) shows at once; otherwise the
+sprite is empty until `Assets.load` resolves. A url that fails to load is reported with `reportError`
+and the sprite stays empty. The frame textures are sliced once per factory and shared by its sprites.
+With `frame`, the url is an atlas page's Spritesheet and the sprite shows that frame; a name the atlas lacks
+is reported the same way.
+
+```ts
+function sprite(source: Texture | string, options: SpriteViewOptions = {}): EntityViewFactory {
+  if (options.frame !== undefined && options.frames !== undefined) {
+    throw new Error(
+      'sprite: `frame` (an atlas frame) and `frames` (a sheet of equal frames) cannot be combined',
+    )
+  }
+  const anchor = anchorXY(options.anchor)
+  let frames: readonly Texture[] | undefined
+  let loading: Promise<readonly Texture[]> | undefined
+
+  if (typeof source !== 'string') {
+    frames = sliceFrames(source, options.frames)
+  } else if (Assets.cache.has(source)) {
+    try {
+      frames = texturesOf(Assets.cache.get(source), options)
+    } catch (error) {
+      // Reported once; the sprites stay empty, as for a url that fails to load.
+      globalThis.reportError?.(error)
+      frames = [Texture.EMPTY]
+    }
+  }
+
+  function load(url: string): Promise<readonly Texture[]> {
+    if (loading === undefined) {
+      loading = Assets.load<unknown>(url).then((loaded) => {
+        frames = texturesOf(loaded, options)
+        return frames
+      })
+      // One report per factory, however many sprites wait on the same url.
+      loading.catch((error: unknown) => globalThis.reportError?.(error))
+    }
+    return loading
+  }
+
+  return (_row, componentId) => {
+    const shown = new Sprite(frames?.[0] ?? Texture.EMPTY)
+    shown.anchor.set(anchor.x, anchor.y)
+    let frameField: unknown
+
+    const showFrame = (): void => {
+      if (frames === undefined || shown.destroyed) return
+      shown.texture = frames[frameIndex(frameField, frames.length)] ?? Texture.EMPTY
+    }
+
+    if (frames === undefined && typeof source === 'string') {
+      load(source).then(showFrame, () => {})
+    }
+
+    return {
+      container: shown,
+      update(curr, prev, alpha = 1) {
+        placeView(shown, curr, prev, alpha, componentId)
+        frameField = poseComponent(curr, componentId)?.frame
+        showFrame()
+      },
+      destroy() {
+        shown.destroy()
+      },
+    }
+  }
+}
+```
+
+#### `SpriteFrames` (interface)
+
+The texture is a sheet of equal frames, read left to right, top to bottom. The pose component's numeric
+`frame` field picks one (floored, wrapped by the frame count); with no `frame` field the first is shown.
+Frames switch on ticks; they are not interpolated.
+
+```ts
+interface SpriteFrames {
+  readonly width: number
+  readonly height: number
+  /** Default: every whole frame that fits in the texture. */
+  readonly count?: number | undefined
+}
+```
+
+#### `SpriteViewOptions` (interface)
+
+A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
+
+```ts
+interface SpriteViewOptions {
+  /** Default 0.5 (centred on the entity's position). */
+  readonly anchor?: ViewAnchor | undefined
+  readonly frames?: SpriteFrames | undefined
+  /**
+   * A frame of a packed atlas (M5.6): `source` is the url of an atlas page's Spritesheet JSON, which
+   * `automata-content assets` writes, and `frame` names one of its frames. Not with `frames`.
+   */
+  readonly frame?: string | undefined
+}
+```
+
+#### `startGame` (function)
+
+Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
+and the default screens, then the runtime's boot on the game's root. Takes a spec or a game `defineGame`
+already returned. Throws `BootDefect` before anything mounts when the spec is invalid or there is no
+root (`spec.root`, else `#game`); a failure after that shows on the runtime's boot failure panel.
+
+```ts
+function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>): RuntimeHandle;
+```
+
+#### `TouchButton` (interface)
+
+One on-screen touch button: every key bound to the same payload shares it.
+
+```ts
+interface TouchButton {
+    readonly id: string;
+    readonly label: string;
+    readonly keys: readonly string[];
+    /** The game cannot be played without it: where the touch buttons do not all fit, only these show (M4.7). */
+    readonly required?: boolean | undefined;
+}
+```
+
 ## `@mcthaydt/automata-host`
 
 ### `import { … } from '@mcthaydt/automata-host'`
@@ -1630,6 +3973,3196 @@ Position in metres and rotation as a unit quaternion. Rendered.
 
 ```ts
 const Transform3D: ComponentDef<typeof transformFields>;
+```
+
+## `@mcthaydt/automata-render-pixi`
+
+### `import { … } from '@mcthaydt/automata-render-pixi'`
+
+#### `Camera2d` (interface)
+
+A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that
+container's transform, never a sim value.
+
+```ts
+interface Camera2d {
+  /** The world point to follow. The first call snaps to it. */
+  target(x: number, y: number): void;
+  /** Adds trauma, 0..1 (capped at 1); it decays over time. */
+  shake(trauma: number): void;
+  /** Advances one display frame and writes the transform to the container. */
+  update(frameSeconds: number): void;
+  readonly transform: {
+    readonly x: number;
+    readonly y: number;
+    readonly scale: number;
+  };
+}
+```
+
+#### `Camera2dOptions` (interface)
+
+How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
+
+```ts
+interface Camera2dOptions {
+  /** The playfield's logical size: the area the camera shows at zoom 1. */
+  readonly view: {
+    readonly width: number;
+    readonly height: number;
+  };
+  /** Approach the target at `rate` per second; a dead zone, centred on the view, the target may move in freely. */
+  readonly follow?: {
+    readonly rate: number;
+    readonly deadZone?: {
+      readonly width: number;
+      readonly height: number;
+    };
+  };
+  /** The world rect the view never shows outside of. */
+  readonly bounds?: CameraRect;
+  /** Default 1; above 1 shows less of the world. */
+  readonly zoom?: number;
+  /** Default: the player's `prefers-reduced-motion`, read every frame. */
+  readonly reducedMotion?: () => boolean;
+}
+```
+
+#### `CameraRect` (interface)
+
+A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
+
+```ts
+interface CameraRect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+```
+
+#### `canvasResolutionFor` (function)
+
+Calculates device pixels per CSS pixel for the canvas.
+
+Capped at 2 on phones and desktop, and lower at a lower quality tier. A tablet held upright draws at 1x
+because its large CSS area would exceed the mobile fragment fill budget at 2x.
+
+```ts
+function canvasResolutionFor(formFactor: FormFactor, devicePixelRatio: number, tier?: QualityTier): number;
+```
+
+#### `CompositeTarget` (class)
+
+The fixed-resolution composite (M4 spec §4.11).
+
+The world and the UI draw here first, at resolution 1 and exactly the play field's logical size, and the result is
+nearest-upscaled into the letterbox. Two reasons, and the second is the durable one. Filters cost per pixel, and a
+device-resolution frame on a phone is several times the work; bounding the chain to the logical size makes the
+cost the same everywhere. More importantly, pixel art sampled at a fractional device scale is pixel art with torn
+edges, so compositing at 1:1 and upscaling by whole pixels is correct whatever the cost.
+
+From FloorFifty `apps/client/src/systems/render/render-target.ts` at `ac72660`; FloorFifty's fixed 960 × 540 is
+the game's logical size here.
+
+```ts
+class CompositeTarget {
+  /** What the world and the UI draw into. Not the backdrop: see `adopt`. */
+  readonly stage: Container;
+  /** What the letterbox displays. */
+  readonly sprite: Sprite;
+  /** The texture the stage renders into each frame. */
+  readonly texture: RenderTexture;
+  private readonly width;
+  constructor(size: {
+    readonly width: number;
+    readonly height: number;
+  });
+  /**
+   * Moves a frame's world and UI into the target, and puts the target's sprite where they were.
+   *
+   * The backdrop is deliberately left where it is: it is the one layer that is not clipped, and a target of the
+   * play field's size would bound it to exactly the rectangle it exists to escape. It keeps device resolution.
+   */
+  adopt(frame: LetterboxFrame): void;
+  /** Resizes the target to a field `height` logical units tall; a no-op when the height has not changed. */
+  resize(height: number): void;
+  destroy(): void;
+}
+```
+
+#### `createCamera2d` (function)
+
+A camera writing `stage`'s transform (usually `PixiStage.world`). `seed` fixes the shake's random sequence,
+so a shake looks the same in every run and visual test.
+
+```ts
+function createCamera2d(stage: Container, options: Camera2dOptions, seed?: number): Camera2d;
+```
+
+#### `createPixiRenderer` (function)
+
+The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render
+target, entity views from each step's render delta, interpolated each frame. Fails with
+`RendererUnavailable` when the renderer cannot start.
+
+```ts
+function createPixiRenderer(options?: PixiRendererOptions): (target: RenderTarget) => Effect.Effect<PixiRenderer, RendererUnavailable, Scope.Scope>;
+```
+
+#### `createPostFilterSlot` (function)
+
+A post-filter slot writing its composed filters to `target`'s `filters`.
+
+```ts
+function createPostFilterSlot(target: PostFilterTarget): PostFilterSlot;
+```
+
+#### `DEFAULT_BAR_COLOR` (const)
+
+The letterbox bars' default colour (FloorFifty's plum black).
+
+```ts
+const DEFAULT_BAR_COLOR = 3023407;
+```
+
+#### `DEFAULT_BAR_FRACTION` (const)
+
+How much of the playfield's height each letterbox bar crops in a landscape view, by default (5%).
+
+```ts
+const DEFAULT_BAR_FRACTION = .05;
+```
+
+#### `DEFAULT_FIELD_COLOR` (const)
+
+The default colour behind the playfield, under the world.
+
+```ts
+const DEFAULT_FIELD_COLOR = 0;
+```
+
+#### `EntityView` (interface)
+
+What an entity view factory returns: the container drawn for one entity, updated with its current and
+previous component values and the interpolation alpha, and destroyed when the entity goes.
+
+```ts
+interface EntityView {
+  readonly container: Container;
+  update?(curr: Readonly<Record<string, Readonly<FieldRecord>>>, prev?: Readonly<Record<string, Readonly<FieldRecord>>> | undefined, alpha?: number): void;
+  destroy?(): void;
+}
+```
+
+#### `EntityViewFactory` (type)
+
+Builds the view for one entity, or `undefined` to draw nothing. A record resolver passes the component id
+the factory was registered under, so a view such as `rect()` knows which component holds its pose; a bare
+function resolver passes no id.
+
+```ts
+type EntityViewFactory = (row: RenderRow, componentId?: string) => EntityView | undefined;
+```
+
+#### `EntityViewResolver` (type)
+
+Which view an entity gets: one factory for every entity, or factories by component id (the first component
+the entity has wins).
+
+```ts
+type EntityViewResolver = EntityViewFactory | Readonly<Record<string, EntityViewFactory>>;
+```
+
+#### `FILTER_VERTEX` (const)
+
+The GLSL vertex stage every AF filter shares: it passes the texture coordinate and the pixel position
+(`vPixelCoord`) to the fragment stage.
+
+```ts
+const FILTER_VERTEX = "\nin vec2 aPosition;\nout vec2 vTextureCoord;\nout vec2 vPixelCoord;\n\nuniform vec4 uInputSize;\nuniform vec4 uOutputFrame;\nuniform vec4 uOutputTexture;\n\nvec4 filterVertexPosition(void) {\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\n    return vec4(position, 0.0, 1.0);\n}\n\nvec2 filterTextureCoord(void) {\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\n}\n\nvoid main(void) {\n    gl_Position = filterVertexPosition();\n    vTextureCoord = filterTextureCoord();\n    vPixelCoord = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n}\n";
+```
+
+#### `filterPrograms` (function)
+
+Builds a filter's programs from its GLSL and WGSL fragment stages on the shared vertex stages, so WebGL2
+stays at parity with WebGPU (AGENTS.md).
+
+```ts
+function filterPrograms(name: string, fragmentGlsl: string, fragmentWgsl: string): FilterProgramsResult;
+```
+
+#### `FilterProgramsResult` (interface)
+
+A filter's WebGL2 and WebGPU programs, for a Pixi `Filter`'s `glProgram` and `gpuProgram`.
+
+```ts
+interface FilterProgramsResult {
+  readonly glProgram: GlProgram;
+  readonly gpuProgram: GpuProgram;
+}
+```
+
+#### `interpolatePose` (function)
+
+The pose between the previous tick (`alpha = 0`) and the current one (`alpha = 1`). With no previous tick
+(just added, or after a resync) it is the current pose. A missing `angle`, or a non-numeric `x`/`y`, is 0.
+
+```ts
+function interpolatePose(curr: Readonly<FieldRecord>, prev: Readonly<FieldRecord> | undefined, alpha: number): Pose;
+```
+
+#### `lerp` (function)
+
+Linear blend; `t = 1` returns `b` exactly, because `a + (b - a)` can round away from it.
+
+```ts
+function lerp(a: number, b: number, t: number): number;
+```
+
+#### `lerpAngle` (function)
+
+Blends two angles (radians) along the shorter arc, so a body turning from just under π to just over -π
+swings through π instead of spinning the long way round through 0. At `t = 1` it returns `b` exactly, so a
+view at rest shows the sim's own value rather than an equivalent angle 2π away.
+
+```ts
+function lerpAngle(a: number, b: number, t: number): number;
+```
+
+#### `LetterboxFrame` (class)
+
+The containers a letterboxed scene is built from (backdrop, world, ui, mask and bars), laid out for a view
+size by `layout`.
+
+```ts
+class LetterboxFrame {
+  readonly scene: Container;
+  readonly backdrop: Container;
+  readonly root: Container;
+  readonly world: Container;
+  readonly ui: Container;
+  readonly field: Graphics;
+  readonly mask: Graphics;
+  readonly bars: Container;
+  readonly topBar: Graphics;
+  readonly bottomBar: Graphics;
+  private readonly logicalWidth;
+  private readonly logicalHeight;
+  private readonly barFraction;
+  private readonly barColor;
+  private readonly fieldColor;
+  constructor(options: LetterboxOptions);
+  layout(viewWidth: number, viewHeight: number): LetterboxGeometry;
+  setBarBlack(amount: number): void;
+  destroy(): void;
+}
+```
+
+#### `LetterboxGeometry` (interface)
+
+Where `LetterboxFrame.layout` put the playfield in the view, in screen px: its scale and rect, the gameplay
+and scenery areas, and whether the view is portrait.
+
+```ts
+interface LetterboxGeometry {
+  scale: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  gameplay: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  scenery: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  portrait: boolean;
+  fieldHeight: number;
+}
+```
+
+#### `LetterboxOptions` (interface)
+
+A letterbox's logical playfield size and its bar and field colours (defaults `DEFAULT_BAR_FRACTION`,
+`DEFAULT_BAR_COLOR`, `DEFAULT_FIELD_COLOR`).
+
+```ts
+interface LetterboxOptions {
+  readonly logicalWidth: number;
+  readonly logicalHeight: number;
+  readonly barFraction?: number | undefined;
+  readonly barColor?: number | undefined;
+  readonly fieldColor?: number | undefined;
+}
+```
+
+#### `MAX_RESOLUTION` (const)
+
+The highest canvas resolution (device pixels per CSS pixel) the renderer uses, at the `high` quality tier.
+
+```ts
+const MAX_RESOLUTION = 2;
+```
+
+#### `meetsTier` (function)
+
+Whether `tier` is `min` or higher: a pass registered for `medium` runs at `medium` and `high`.
+
+```ts
+function meetsTier(tier: QualityTier, min: QualityTier): boolean;
+```
+
+#### `PixiRenderer` (interface)
+
+The runtime's `GameRenderer`, built on PixiJS, with its stage.
+
+```ts
+interface PixiRenderer extends GameRenderer {
+  readonly stage: PixiStage;
+}
+```
+
+#### `PixiRendererOptions` (interface)
+
+Options for `createPixiRenderer`; every field has a default.
+
+```ts
+interface PixiRendererOptions {
+  /**
+   * Preferred backend. Default is 'webgl' (WebGL2).
+   * Overridden by URL query param `?renderer=webgl` or `?renderer=webgpu` if present in browser.
+   */
+  readonly preference?: RendererPreference | undefined;
+  /** Logical playfield width in pixels (e.g. 960 or 320). If omitted, renders unletterboxed. */
+  readonly logicalWidth?: number | undefined;
+  /** Logical playfield height in pixels (e.g. 540 or 192). If omitted, renders unletterboxed. */
+  readonly logicalHeight?: number | undefined;
+  /** Background clear colour (hex number, e.g. 0x000000). Default is 0x000000. */
+  readonly backgroundColor?: number | undefined;
+  /** If true, textures default to nearest-neighbour sampling for crisp pixel art. Default is true. */
+  readonly pixelArt?: boolean | undefined;
+  /** Letterbox cropping fraction for top and bottom bars. Default is 0.05 (5%). */
+  readonly barFraction?: number | undefined;
+  /** Bar color in hex. Default is 0x2e222f (FloorFifty plum black). */
+  readonly barColor?: number | undefined;
+  /** The graphics quality tier to start at (M4 spec §4.11); `PixiStage.setQuality` changes it. Default `high`. */
+  readonly quality?: QualityTier | undefined;
+  /**
+   * Draws the world and UI at the logical size and resolution 1, then nearest-upscales them into the letterbox
+   * (`CompositeTarget`). Needs a letterbox. Default: on when `pixelArt` is on.
+   */
+  readonly composite?: boolean | undefined;
+  /** Optional view factory resolver for entity components. */
+  readonly entityViews?: EntityViewResolver | undefined;
+  /**
+   * Screen-space filters declared with `postFilter`. Each is built when the renderer starts and set in the
+   * stage's post-filter slot before `setup` runs, so `setup` sees them and may add more. Names must be unique.
+   */
+  readonly postFilters?: readonly PostFilterDef[] | undefined;
+  /**
+   * Optional setup hook called before the first frame to add layers/filters. It may return hooks for a game
+   * that draws its own scene: they run after the entity views each step, before Pixi renders each frame, and
+   * after the views reset.
+   */
+  readonly setup?: ((stage: PixiStage) => PixiStageHooks | undefined) | ((stage: PixiStage) => void) | undefined;
+}
+```
+
+#### `PixiStage` (interface)
+
+The Pixi scene the renderer draws, as a game's `setup` sees it: the app, the letterbox's layers, the entity
+views, the post-filter slot and the quality tier.
+
+```ts
+interface PixiStage {
+  readonly app: Application;
+  readonly frame?: LetterboxFrame | undefined;
+  /** The world container where entity views and gameplay objects are mounted. */
+  readonly world: Container;
+  /** The logical screen-space UI layer (masked with the playfield). */
+  readonly ui: Container;
+  /** The unclipped background scenery container. */
+  readonly backdrop: Container;
+  /** The delta consumer tracking entity views. */
+  readonly consumer: RenderDeltaConsumer;
+  /** The fixed-resolution composite the world and UI draw into, when it is on. */
+  readonly composite?: CompositeTarget | undefined;
+  /** Post-processing filters applied to the root rendered scene. Owned by `postFilters` once it is used. */
+  filters: Filter[] | null;
+  /** The post-filter slot over `filters`: each owner keeps its own filters by id and order (PRODUCT spec §2 F1). */
+  readonly postFilters: PostFilterSlot;
+  /** The graphics quality tier now. */
+  readonly quality: QualityTier;
+  /** Changes the tier: re-caps the canvas resolution and leaves out post-filter owners registered for a higher one. */
+  setQuality(tier: QualityTier): void;
+  /**
+   * Builds a filter, or returns `undefined` when it cannot be built or compiled: it then warns and publishes
+   * `render.filter.dropped` on the render target's bus, and the frame draws without it (M4 spec §6).
+   */
+  tryFilter<F extends Filter>(id: string, make: () => F): F | undefined;
+}
+```
+
+#### `PixiStageHooks` (interface)
+
+What a `setup` may return to hear every step, frame and reset (DX spec §3.4, DX.3 decision E-1).
+
+```ts
+interface PixiStageHooks {
+  /** After the entity views took the step's render delta. */
+  readonly apply?: ((result: StepResult) => void) | undefined;
+  /** Each display frame, after the views interpolated and before Pixi renders. */
+  readonly draw?: ((frame: FrameInfo) => void) | undefined;
+  /** After the views reset (a new sim or a resync). */
+  readonly reset?: (() => void) | undefined;
+}
+```
+
+#### `PORTRAIT_FIELD_TOP` (const)
+
+The playfield's top edge in a portrait view, in screen px: room above the field for the host's controls.
+
+```ts
+const PORTRAIT_FIELD_TOP = 60;
+```
+
+#### `portraitFieldHeight` (function)
+
+The playfield's logical height in a portrait view: what fits below `PORTRAIT_FIELD_TOP` and above the
+`band` of on-screen controls at `scale`, and never less than `baseHeight`.
+
+```ts
+function portraitFieldHeight(viewHeight: number, scale: number, band: number, baseHeight?: number): number;
+```
+
+#### `Pose` (interface)
+
+Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`).
+
+```ts
+interface Pose {
+  readonly x: number;
+  readonly y: number;
+  readonly angle: number;
+}
+```
+
+#### `poseComponent` (function)
+
+The component a view reads its pose from: the one it was registered under, or (for a bare function
+resolver, which has no id) the first component in row order with numeric `x` and `y`.
+
+```ts
+function poseComponent(components: Components, componentId?: string | undefined): Readonly<FieldRecord> | undefined;
+```
+
+#### `postFilter` (function)
+
+Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', {
+glsl, wgsl })] }`. The renderer builds it when it starts and keeps it in the stage's post-filter slot under
+`name`. A filter that cannot be built, or whose GLSL does not link, is left out with a warning and the frame
+draws without it. Throws when the name or either shader is empty.
+
+```ts
+function postFilter(name: string, spec: PostFilterSpec): PostFilterDef;
+```
+
+#### `PostFilterDef` (interface)
+
+A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
+
+```ts
+interface PostFilterDef {
+  readonly name: string;
+  readonly glsl: string;
+  readonly wgsl: string;
+  readonly order: number;
+  readonly minTier: QualityTier | undefined;
+}
+```
+
+#### `PostFilterOptions` (interface)
+
+Options for `PostFilterSlot.set`.
+
+```ts
+interface PostFilterOptions {
+  /** The lowest quality tier these filters run at; omitted, they run at every tier. */
+  readonly minTier?: QualityTier | undefined;
+}
+```
+
+#### `PostFilterSlot` (interface)
+
+The post-filter slot (PRODUCT spec §2 F1): each owner (an extension, quality tiers, the game) keeps its own
+filters under its id, and the slot writes all of them to the target, ordered by `order` (lower first), then
+by id. Once a slot is in use it owns the target's `filters`; assigning them directly is overwritten on the
+next change. Filters stay GLSL + WGSL pairs (`filterPrograms`), so WebGL2 keeps parity with WebGPU.
+
+Quality tiers (M4 spec §4.11): an owner may declare the lowest tier it runs at. Below it, its filters are left
+out of the composed list but kept, so raising the tier brings them back in their place. An owner without a
+`minTier` (the art direction, such as a palette lock) runs at every tier.
+
+```ts
+interface PostFilterSlot {
+  /** Sets (or replaces) `id`'s filters. Returns a remover that only removes this setting, once. */
+  set(id: string, filters: readonly Filter[], order?: number, options?: PostFilterOptions): () => void;
+  /** Removes `id`'s filters; nothing happens when it has none. */
+  remove(id: string): void;
+  /** The owners whose filters run now, in the order they run. */
+  readonly ids: readonly string[];
+  /** The quality tier the slot composes for; `high` until `setTier`. */
+  readonly tier: QualityTier;
+  /** Recomposes for `tier`, leaving out owners registered for a higher one. */
+  setTier(tier: QualityTier): void;
+}
+```
+
+#### `PostFilterSpec` (interface)
+
+What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`),
+so the two renderers stay at parity. Both are fragment shaders that `filterPrograms` joins to the shared vertex
+stage: GLSL reads `vTextureCoord`, `vPixelCoord` and `uTexture`; WGSL has `mainFragment(input: VSOutput)`.
+
+```ts
+interface PostFilterSpec {
+  /** The GLSL ES 3.00 fragment shader, run under WebGL2. */
+  readonly glsl: string;
+  /** The WGSL fragment shader, run under WebGPU; its entry point is `mainFragment`. */
+  readonly wgsl: string;
+  /** Where it sits among the stage's filters: lower runs first, ties by name. Default 0. */
+  readonly order?: number | undefined;
+  /** The lowest quality tier it runs at; left out, it runs at every tier. */
+  readonly minTier?: QualityTier | undefined;
+}
+```
+
+#### `PostFilterTarget` (interface)
+
+Where the composed filters go: `PixiStage` (its scene's `filters`), or any Pixi container.
+
+```ts
+interface PostFilterTarget {
+  filters: Filter[] | null;
+}
+```
+
+#### `QualityBuild` (interface)
+
+What `rebuildOnQuality` keeps mounted.
+
+```ts
+interface QualityBuild<T> {
+  /** The build for the tier now. */
+  current(): T;
+  /** Stops following the setting and destroys the build. */
+  dispose(): void;
+}
+```
+
+#### `rebuildOnQuality` (function)
+
+Keeps something built for the player's quality tier (M4 spec §4.11), rebuilding it when the tier changes.
+
+Quality decides which passes a build makes at all, so a change is a rebuild, not a toggle. The old build is
+destroyed before the new one is made: two live builds would both hold their GPU resources. From FloorFifty
+`apps/client/src/systems/render/quality-rebuild.ts` at `ac72660`, over runtime's `SettingsStore` with `read`
+picking the tier out of the game's settings.
+
+```ts
+function rebuildOnQuality<S, T extends {
+  destroy(): void;
+}>(settings: SettingsStore<S>, read: (settings: S) => QualityTier, build: (tier: QualityTier) => T, onBuilt?: (built: T) => void): QualityBuild<T>;
+```
+
+#### `rect` (function)
+
+A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks:
+`entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
+
+```ts
+function rect(options: RectViewOptions): EntityViewFactory;
+```
+
+#### `RectViewOptions` (interface)
+
+A `rect` view's size, colour and anchor.
+
+```ts
+interface RectViewOptions {
+  /** Width in world pixels. */
+  readonly w: number;
+  /** Height in world pixels. */
+  readonly h: number;
+  /** Fill colour, e.g. 0xf9c22b. */
+  readonly color: number;
+  /** Default 0.5 (centred on the entity's position). */
+  readonly anchor?: ViewAnchor | undefined;
+}
+```
+
+#### `RenderDeltaConsumer` (class)
+
+Keeps one entity view per sim entity in the world container from each step's render delta, and interpolates
+them between ticks.
+
+```ts
+class RenderDeltaConsumer {
+  private readonly world;
+  private readonly resolver?;
+  private readonly views;
+  private readonly cache;
+  constructor(world: Container, resolver?: EntityViewResolver);
+  private resolveView;
+  apply(delta: RenderDelta): void;
+  interpolate(alpha: number): void;
+  private removeEntity;
+  reset(): void;
+  destroy(): void;
+}
+```
+
+#### `RendererPreference` (type)
+
+The renderer backend: `webgl` (WebGL2, the default) or `webgpu` (opt-in).
+
+```ts
+type RendererPreference = "webgl" | "webgpu";
+```
+
+#### `RESOLUTION_CAPS` (const)
+
+The canvas resolution each quality tier allows at most (M4 spec §4.11).
+
+```ts
+const RESOLUTION_CAPS: Readonly<Record<QualityTier, number>>;
+```
+
+#### `SHAKE_DECAY` (const)
+
+Trauma lost per second: a full shake (1) is gone in 2/3 s.
+
+```ts
+const SHAKE_DECAY = 1.5;
+```
+
+#### `SHAKE_MAX_OFFSET` (const)
+
+The largest shake offset per axis, in logical px, at trauma 1.
+
+```ts
+const SHAKE_MAX_OFFSET = 8;
+```
+
+#### `sprite` (function)
+
+A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks. `source` is a
+texture or a url: a url the runtime already loaded (it is in `Assets.cache`) shows at once; otherwise the
+sprite is empty until `Assets.load` resolves. A url that fails to load is reported with `reportError`
+and the sprite stays empty. The frame textures are sliced once per factory and shared by its sprites.
+With `frame`, the url is an atlas page's Spritesheet and the sprite shows that frame; a name the atlas lacks
+is reported the same way.
+
+```ts
+function sprite(source: Texture | string, options?: SpriteViewOptions): EntityViewFactory;
+```
+
+#### `SpriteFrames` (interface)
+
+The texture is a sheet of equal frames, read left to right, top to bottom. The pose component's numeric
+`frame` field picks one (floored, wrapped by the frame count); with no `frame` field the first is shown.
+Frames switch on ticks; they are not interpolated.
+
+```ts
+interface SpriteFrames {
+  readonly width: number;
+  readonly height: number;
+  /** Default: every whole frame that fits in the texture. */
+  readonly count?: number | undefined;
+}
+```
+
+#### `SpriteViewOptions` (interface)
+
+A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
+
+```ts
+interface SpriteViewOptions {
+  /** Default 0.5 (centred on the entity's position). */
+  readonly anchor?: ViewAnchor | undefined;
+  readonly frames?: SpriteFrames | undefined;
+  /**
+   * A frame of a packed atlas (M5.6): `source` is the url of an atlas page's Spritesheet JSON, which
+   * `automata-content assets` writes, and `frame` names one of its frames. Not with `frames`.
+   */
+  readonly frame?: string | undefined;
+}
+```
+
+#### `ViewAnchor` (type)
+
+Where the view's own box sits on its position: 0 = left/top, 0.5 = centre, 1 = right/bottom.
+
+```ts
+type ViewAnchor = number | {
+  readonly x: number;
+  readonly y: number;
+};
+```
+
+#### `WGSL_FILTER_HEADER` (const)
+
+The WGSL counterpart of `FILTER_VERTEX`: the filter uniforms and bindings and the vertex stage, which
+passes the pixel position to the fragment stage.
+
+```ts
+const WGSL_FILTER_HEADER = "\nstruct GlobalFilterUniforms {\n    uInputSize: vec4<f32>,\n    uInputPixel: vec4<f32>,\n    uInputClamp: vec4<f32>,\n    uOutputFrame: vec4<f32>,\n    uGlobalFrame: vec4<f32>,\n    uOutputTexture: vec4<f32>,\n};\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler: sampler;\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv: vec2<f32>,\n    @location(1) pixelCoord: vec2<f32>,\n};\n\nfn filterVertexPosition(aPosition: vec2<f32>, gfu: GlobalFilterUniforms) -> vec4<f32> {\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0 * gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord(aPosition: vec2<f32>, gfu: GlobalFilterUniforms) -> vec2<f32> {\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\n@vertex\nfn mainVertex(@location(0) aPosition: vec2<f32>, @builtin(instance_index) instanceIndex: u32) -> VSOutput {\n    var output: VSOutput;\n    output.position = filterVertexPosition(aPosition, gfu);\n    output.uv = filterTextureCoord(aPosition, gfu);\n    output.pixelCoord = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n    return output;\n}\n";
+```
+
+## `@mcthaydt/automata-runtime`
+
+### `import { … } from '@mcthaydt/automata-runtime'`
+
+#### `actionsForGesture` (function)
+
+Every action `gesture` drives in `profile` (M4.3); none when it is unbound.
+
+```ts
+function actionsForGesture(profile: InputProfile, gesture: GestureName): string[];
+```
+
+#### `actionsForKey` (function)
+
+Every action `code` (a `KeyboardEvent.code`) drives in `profile`; none when it is unbound.
+
+```ts
+function actionsForKey(profile: InputProfile, code: string): string[];
+```
+
+#### `actionsForPadButton` (function)
+
+Every action the standard-mapping pad button `index` drives in `profile`; none when it is unbound.
+
+```ts
+function actionsForPadButton(profile: InputProfile, index: number): string[];
+```
+
+#### `ActiveDevice` (interface)
+
+The device of the last real input, and the button labels of the active pad (`generic` before any pad).
+
+```ts
+interface ActiveDevice {
+  readonly device: InputDevice;
+  readonly glyphs: GlyphFamily;
+}
+```
+
+#### `AppLoop` (interface)
+
+The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each
+tick, and the renderer draws every frame. No step runs while `Time` is paused; a throw from a step stops it.
+
+```ts
+interface AppLoop {
+  run(options: {
+    sim: Sim;
+    commands: (tick: number) => readonly Command[];
+  }): void;
+  stop(): void;
+  readonly running: boolean;
+}
+const AppLoop: Context.Tag<AppLoop, AppLoop>;
+```
+
+#### `applyDocumentLocale` (function)
+
+`<html lang dir>`: the browser picks glyph forms and line breaking from `lang`, and the layout direction from `dir`.
+
+```ts
+function applyDocumentLocale(element: HTMLElement, locale: string): void;
+```
+
+#### `applyOverrides` (function)
+
+The game's profile with the player's overrides applied (M4 spec §6): an override for an unknown action, one that
+binds a reserved input, or one with a pad button out of range is dropped and named in `dropped` (sorted), and the
+defaults stand for it. Overrides saved against another profile are all dropped.
+
+```ts
+function applyOverrides(defaults: InputProfile, saved: InputSettings): {
+  readonly profile: InputProfile;
+  readonly dropped: readonly string[];
+};
+```
+
+#### `AssetLoadFailed` (class)
+
+An asset download failed with a non-OK HTTP status or network error (status 0).
+
+```ts
+class AssetLoadFailed extends AssetLoadFailedBase {}
+```
+
+#### `Assets` (interface)
+
+The asset loader service: `load` fetches a screen's assets and fonts with progress, failing
+`AssetLoadFailed` or `LoadStalled`; `get` returns a loaded file by path.
+
+```ts
+interface Assets {
+  load(screen: string, onProgress?: (fraction: number | undefined) => void): Effect.Effect<void, AssetLoadFailed | LoadStalled>;
+  get(path: string): Blob | undefined;
+  isLoaded(screen: string): boolean;
+}
+const Assets: Context.Tag<Assets, Assets>;
+```
+
+#### `Audio` (interface)
+
+The audio service (M5 spec §4.6): one-shot sounds and looping music on the audio buses, unlocked by the
+first gesture after `session.ready`; the game runs silent when no audio context can be built.
+
+```ts
+interface Audio {
+  /** False until the first gesture after `session.ready` builds and resumes the graph. */
+  readonly unlocked: Subscribable.Subscribable<boolean>;
+  /** False once a context could not be built (`audio.unavailable`): the game runs silent, and Settings says so. */
+  readonly available: Subscribable.Subscribable<boolean>;
+  /** Plays the asset at `alias` once. Fire and forget: silent before the unlock, while asleep, or if it fails. */
+  sound(alias: string, options?: SoundOptions): void;
+  /** Loops the asset at `alias` on the music bus. Asked for before the unlock, it starts on the unlock. */
+  music(alias: string, options?: MusicOptions): Effect.Effect<void, AudioDecodeFailed | AssetLoadFailed>;
+  /** Fades the music out over `fadeSeconds`, a click-free cut by default. */
+  stopMusic(fadeSeconds?: number): void;
+  /** Takes `bus` down by `amount` (0..1) for `seconds`; `master` ducks every bus. */
+  duck(bus: AudioBusName, amount: number, seconds: number): void;
+  /** The player's mute: the master only, so unmuting restores the mix as it was. */
+  setMuted(muted: boolean): void;
+  /**
+   * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
+   * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
+   */
+  sample(bus: AudioBusName): void;
+  /** The player's "mute when in the background": silences the master while another window has focus. */
+  setMuteUnfocused(muteUnfocused: boolean): void;
+}
+const Audio: Context.Tag<Audio, Audio>;
+```
+
+#### `AUDIO_BUS_NAMES` (const)
+
+The core audio buses (PRODUCT spec §2 F1): `master` carries the other four; M5-D3 added `voice` (announcers,
+dialogue). Every change to the set is an API change (PRODUCT spec §2 F6).
+
+```ts
+const AUDIO_BUS_NAMES: readonly ["master", "music", "sfx", "ui", "voice"];
+```
+
+#### `AUDIO_SETTINGS_DEFAULT` (const)
+
+Not muted, every bus at full.
+
+```ts
+const AUDIO_SETTINGS_DEFAULT: AudioSettings;
+```
+
+#### `AudioBuses` (interface)
+
+The audio-bus seam (PRODUCT spec §2 F1). M5's core audio implements it over Web Audio (a gain node per bus
+into `master`, combined there with `Hosting.audio`'s volume and focus); an extension such as Plus
+`audio-stream`, or the game, connects its sources to `input(bus)` and never to the destination directly,
+so the player's gains and the host's ducking always apply.
+The `AudioBuses` service tag. Core provides no implementation until M5.
+
+```ts
+interface AudioBuses {
+  /** The node a source connects to so that it plays on `bus`. */
+  input(bus: AudioBusName): AudioNode;
+  /** The player's current gain for `bus`, 0..1. */
+  gain(bus: AudioBusName): number;
+  /** Sets the player's gain for `bus`, 0..1. Persisting it is the game's settings' job. */
+  setGain(bus: AudioBusName, gain: number): void;
+}
+const AudioBuses: Context.Tag<AudioBuses, AudioBuses>;
+```
+
+#### `AudioBusGains` (type)
+
+The player's gain per bus, 0 (silent) to 1 (full), as a game's settings store it.
+
+```ts
+type AudioBusGains = Readonly<Record<AudioBusName, number>>;
+```
+
+#### `audioBusGainsSchema` (const)
+
+Validates saved bus gains; a bus left out is at full gain. A gain outside 0..1 fails the parse rather than
+being clamped, so `SettingsDef`'s fallback to defaults (runtime `readSettings`) applies to a bad record.
+
+```ts
+const audioBusGainsSchema: z.ZodType<AudioBusGains, Partial<Record<AudioBusName, number | undefined>>>;
+```
+
+#### `AudioBusName` (type)
+
+One of `AUDIO_BUS_NAMES`.
+
+```ts
+type AudioBusName = (typeof AUDIO_BUS_NAMES)[number];
+```
+
+#### `AudioContextLike` (type)
+
+The part of `AudioContext` the graph uses. `interrupted` is Safari's state for a call or Siri.
+
+```ts
+type AudioContextLike = Pick<AudioContext, "currentTime" | "destination" | "createGain" | "createBufferSource" | "createBuffer" | "sampleRate" | "decodeAudioData" | "resume" | "suspend" | "close"> & {
+  readonly state: AudioContextState | "interrupted";
+};
+```
+
+#### `AudioDecodeFailed` (class)
+
+The browser could not decode a sound's bytes (M5 spec §6): that sound is silent and nothing else stops. The
+`audio.decode.failed` fact carries the same alias.
+
+```ts
+class AudioDecodeFailed extends AudioDecodeFailedBase {}
+```
+
+#### `AudioDecodeFailedFields` (interface)
+
+The fields of `AudioDecodeFailed`.
+
+```ts
+interface AudioDecodeFailedFields {
+  /** The asset path the sound or music was asked for by. */
+  readonly alias: string;
+  readonly cause: unknown;
+}
+```
+
+#### `audioLayer` (const)
+
+`makeAudio` with its defaults, reading `Hosting`, `Assets` and `PresentationBus` from the runtime.
+
+```ts
+const audioLayer: (options?: AudioOptions) => Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus>;
+```
+
+#### `AudioLive` (const)
+
+The Audio service with its defaults: the browser's `AudioContext`, `window`, `document` and `fetch`.
+
+```ts
+const AudioLive: Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus>;
+```
+
+#### `AudioOptions` (interface)
+
+Options for the audio service; each has a browser default, replaced in tests.
+
+```ts
+interface AudioOptions {
+  /** Builds the context on the unlock. Defaults to `new AudioContext()`. */
+  readonly createContext?: () => AudioContextLike;
+  /** Where gestures, `blur` and `focus` land. Defaults to `window`. */
+  readonly window?: Pick<EventTarget, "addEventListener" | "removeEventListener">;
+  /** Whose `visibilitychange` sleeps and wakes the graph. Defaults to `document`. */
+  readonly document?: Pick<EventTarget, "addEventListener" | "removeEventListener"> & {
+    readonly visibilityState: DocumentVisibilityState;
+  };
+  /** Silences the master while another window has focus (FloorFifty's setting); the graph keeps running. */
+  readonly muteUnfocused?: boolean;
+  /** Loads a file no screen preloaded. Defaults to `fetch`. */
+  readonly fetch?: typeof fetch;
+}
+```
+
+#### `AudioServices` (interface)
+
+What the service reads from the runtime.
+
+```ts
+interface AudioServices {
+  readonly hosting: Pick<Hosting, "ready" | "lifecycle" | "audio">;
+  readonly assets: Pick<Assets, "get">;
+  readonly bus: PresentationBus;
+}
+```
+
+#### `AudioSettings` (interface)
+
+The player's audio choices (M5 spec §7, M5.4), as FloorFifty's `audio` settings: the mute, the mute while another
+window has focus, and a gain per bus. The one owner of their shape: the Settings screen's Audio group and the
+`Audio` service read it from here. Kept on the device, not in the player's saves (§4.5): `CORE_SETTINGS.deviceFields`.
+
+```ts
+interface AudioSettings {
+  readonly muted: boolean;
+  readonly muteUnfocused: boolean;
+  readonly gains: AudioBusGains;
+}
+```
+
+#### `audioSettingsSchema` (const)
+
+A missing field takes its default; a bad record reads as the defaults, as every settings field falls back.
+
+```ts
+const audioSettingsSchema: z.ZodType<AudioSettings, unknown>;
+```
+
+#### `AuthoritativeSnapshot` (interface)
+
+One authoritative state: the authority sim's `snapshot()` bytes at `tick`, with its `hash()`. A receiver
+`restore`s the bytes and may compare its own hash to `hash` to detect divergence.
+
+```ts
+interface AuthoritativeSnapshot {
+  readonly tick: number;
+  readonly bytes: Uint8Array;
+  readonly hash: string;
+}
+```
+
+#### `AutosavePolicy` (interface)
+
+When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval`
+timer.
+
+```ts
+interface AutosavePolicy {
+  readonly on: readonly AutosaveTrigger[];
+  /** Seconds between timer writes, default 60. Read only when `interval` is in `on`. */
+  readonly intervalSeconds?: number;
+}
+```
+
+#### `AutosaveTrigger` (type)
+
+What can make the loaded slot write itself (M5 spec §4.4).
+
+```ts
+type AutosaveTrigger = "screen-exit" | "round-end" | "background" | "interval";
+```
+
+#### `BindingOverride` (interface)
+
+What the player changed about one action: its keys, its pad buttons, or both.
+
+```ts
+interface BindingOverride {
+  readonly keys?: readonly string[] | undefined;
+  readonly pad?: readonly number[] | undefined;
+}
+```
+
+#### `BoardEntry` (type)
+
+One row of a board, as Ruken gives it; `isMe` marks the player.
+
+```ts
+type BoardEntry = Effect.Effect.Success<ReturnType<HostingLeaderboards["get"]>>["entries"][number];
+```
+
+#### `BoardQuery` (type)
+
+What `readBoard` asks for: Ruken's `get` options (`scope` `top` or `around-me`, `limit`).
+
+```ts
+type BoardQuery = NonNullable<Parameters<HostingLeaderboards["get"]>[1]>;
+```
+
+#### `BoardState` (type)
+
+The state of a board after the game's last submit to it.
+
+```ts
+type BoardState = {
+  readonly state: "idle";
+} | {
+  readonly state: "submitting";
+} | {
+  readonly state: "accepted";
+  readonly personalBest: number;
+  readonly rank?: number;
+} | {
+  readonly state: "refused";
+} | {
+  readonly state: "unavailable";
+} | {
+  readonly state: "offline";
+};
+```
+
+#### `BoardView` (type)
+
+A board read for a screen: its rows, or why there are none.
+
+```ts
+type BoardView = {
+  readonly state: "entries";
+  readonly entries: readonly BoardEntry[];
+} | {
+  readonly state: "empty";
+} | {
+  readonly state: "unavailable";
+} | {
+  readonly state: "offline";
+};
+```
+
+#### `BootDefect` (class)
+
+An unexpected defect during boot.
+
+```ts
+class BootDefect extends BootDefectBase {}
+```
+
+#### `BootError` (type)
+
+Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4).
+
+```ts
+type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect;
+```
+
+#### `browserHaptics` (function)
+
+The browser's haptics: its pads, its `vibrate`, and whether its pointer is a finger.
+
+```ts
+function browserHaptics(target: Window): Haptics;
+```
+
+#### `Capture` (type)
+
+The input a capture caught: a key by its `KeyboardEvent.code`, or a standard-mapping pad button.
+
+```ts
+type Capture = {
+  readonly code: string;
+} | {
+  readonly button: number;
+};
+```
+
+#### `CompiledContentData` (interface)
+
+The compiled JSON content read by the runtime (spec §3.3).
+
+```ts
+interface CompiledContentData {
+  readonly flow: FlowGraph;
+  readonly assets?: AssetsSource | undefined;
+  readonly game?: GameSource | undefined;
+  readonly [key: string]: unknown;
+}
+```
+
+#### `ContentHashMismatch` (class)
+
+Content hash does not match expected hash.
+
+```ts
+class ContentHashMismatch extends ContentHashMismatchBase {}
+```
+
+#### `CORE_SETTINGS` (const)
+
+The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`) and vibration (`haptics`).
+
+```ts
+const CORE_SETTINGS: SettingsDef<CoreSettings>;
+```
+
+#### `CoreSettings` (interface)
+
+The settings every game carries: input bindings, display, audio and vibration.
+
+```ts
+interface CoreSettings {
+  readonly input: InputSettings;
+  readonly display: DisplaySettings;
+  /** The Audio group's choices (M5.4); a record saved before it reads them as the defaults. */
+  readonly audio: AudioSettings;
+  /** The Vibration group's toggle (Owner, 2026-10-18); a record saved before it reads it as on. */
+  readonly haptics: HapticsSettings;
+}
+```
+
+#### `createHaptics` (function)
+
+The haptics service over these sources; it starts enabled.
+
+```ts
+function createHaptics(options: HapticsOptions): Haptics;
+```
+
+#### `createT` (function)
+
+`t` over a messages module (`import * as m from './paraglide/messages.js'`). Each call reads the current
+locale, so a screen that calls `t` again after `'locale.changed'` shows the new language without a remount.
+An unknown key throws, naming it: the types already forbid it, so it means the catalog and the code drifted.
+
+```ts
+function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
+```
+
+#### `DEFAULT_QUALITY` (const)
+
+`high` until PRODUCT.7 has measured the phone profiles (M4-D6); no device auto-detection.
+
+```ts
+const DEFAULT_QUALITY: QualityTier;
+```
+
+#### `defineSave` (function)
+
+Declares a save. It checks nothing the SDK checks; it only gives the definition its type.
+
+```ts
+function defineSave<S>(def: SaveDef<S>): SaveDef<S>;
+```
+
+#### `DeviceStorage` (interface)
+
+Where a settings field that belongs to one device is kept (M5 spec §4.5, M5-D4). Any method may throw, as a
+blocked or full `localStorage` does; the settings store copes with that and never falls back to the saves.
+
+```ts
+interface DeviceStorage {
+  get(key: string): string | null;
+  set(key: string, value: string): void;
+  remove(key: string): void;
+}
+```
+
+#### `DisplayCopy` (interface)
+
+The words of the display policy: the landscape gate, the rotate hint for each orientation and the rotate
+toast.
+
+```ts
+interface DisplayCopy {
+  readonly gate: LandscapeGateCopy;
+  readonly rotate: Readonly<Record<"portrait" | "landscape", RotateHintCopy>>;
+  readonly toast: RotateToastCopy;
+}
+```
+
+#### `DisplaySettings` (interface)
+
+The core display settings a game's settings carry as `display`: `{ display: displaySettingsSchema }`.
+
+```ts
+interface DisplaySettings {
+  readonly quality: QualityTier;
+}
+```
+
+#### `displaySettingsSchema` (const)
+
+The schema of `DisplaySettings`: an unknown or missing quality reads as `DEFAULT_QUALITY`.
+
+```ts
+const displaySettingsSchema: z.ZodType<DisplaySettings, {
+  quality?: unknown;
+}>;
+```
+
+#### `EventScores` (type)
+
+A sim event's type (its `defineEvent` id) → the board it scores on and the score its payload gives.
+
+```ts
+type EventScores = Readonly<Record<string, {
+  readonly board: string;
+  readonly score: (payload: unknown) => number;
+}>>;
+```
+
+#### `EventSounds` (type)
+
+A sim event's type (its `defineEvent` id) → the asset path it plays, or the path with its bus and gain.
+
+```ts
+type EventSounds = Readonly<Record<string, string | {
+  readonly alias: string;
+  readonly bus?: AudioBusName;
+  readonly gain?: number;
+}>>;
+```
+
+#### `Flow` (interface)
+
+The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu`
+for the current screen's menu, and `settled` once no transition is pending.
+
+```ts
+interface Flow {
+  readonly current: string | undefined;
+  dispatch(event: string): boolean;
+  openMenu(): boolean;
+  readonly settled: Effect.Effect<void>;
+}
+const Flow: Context.Tag<Flow, Flow>;
+```
+
+#### `FlowFailure` (type)
+
+Why entering a screen failed: an asset load, a stalled download, or the screen's own failure.
+
+```ts
+type FlowFailure = AssetLoadFailed | LoadStalled | {
+  readonly _tag: "ScreenFailed";
+  readonly screen: string;
+  readonly cause: unknown;
+};
+```
+
+#### `formatDateTime` (const)
+
+A moment as a date and a short time in the reader's convention, in the reader's zone unless `options.timeZone`
+names one (a test names UTC). A save's time on the slot list is this.
+
+```ts
+const formatDateTime: (locale: string, epochMs: number, options?: Intl.DateTimeFormatOptions) => string;
+```
+
+#### `formatDuration` (function)
+
+A clock-style duration from milliseconds, whole seconds: `01:15`, or `1:02:05` once there are hours.
+Each part is a locale number (Arabic-Indic digits in `ar-EG`); the separator is a colon. NumberFormat, not
+Intl.DurationFormat, so it needs no ES2025 lib in a game's tsconfig and runs on engines without it.
+
+```ts
+function formatDuration(locale: string, milliseconds: number): string;
+```
+
+#### `formatNumber` (const)
+
+A number in `locale`'s convention (Intl.NumberFormat with `options`).
+
+```ts
+const formatNumber: (locale: string, value: number, options?: Intl.NumberFormatOptions) => string;
+```
+
+#### `formatPercent` (const)
+
+A whole percentage of a fraction: 0.5 → `50%` (`50 %` in French).
+
+```ts
+const formatPercent: (locale: string, fraction: number) => string;
+```
+
+#### `FrameInfo` (interface)
+
+One display frame: the interpolation alpha between the last two ticks, the frame's length in ms, and
+whether time is paused.
+
+```ts
+interface FrameInfo {
+  alpha: number;
+  frameMs: number;
+  paused: boolean;
+}
+```
+
+#### `GameDefinition` (interface)
+
+Everything a game provides to the runtime to boot (spec §3.3).
+
+```ts
+interface GameDefinition<S = never> {
+  readonly root: HTMLElement;
+  readonly hosting: Omit<HostingOptions, "disclosedEvents">;
+  readonly content: {
+    readonly data: CompiledContentData;
+    readonly hash: string;
+  };
+  readonly screens: readonly ScreenDef[];
+  readonly renderer: RendererFactory;
+  readonly settings?: SettingsDef<S> | undefined;
+  /**
+   * The game's save (M5): its slots, autosave and migrations. Boot opens it, wires its triggers and flushes it when
+   * the host closes the game; a screen reaches it with `saveOf(def)`. Absent, the game has no save and the runtime
+   * reads and writes nothing for one.
+   */
+  readonly saves?: SaveDef<unknown> | undefined;
+  /**
+   * The orientation the game plays in, as the ship config's `runtime.orientation` says (M4.7). A `portrait` or
+   * `landscape` game on a phone held the other way pauses behind the rotate hint. Default `any`.
+   */
+  readonly orientation?: GameOrientation | undefined;
+  /** How a locked orientation says so on a phone held the other way: `'block'` (the default) or `'toast'`. */
+  readonly rotateHint?: RotateHintMode | undefined;
+  /**
+   * The game's languages: pass its Paraglide `runtime.js` (`import * as runtime from './paraglide/runtime.js'`).
+   * Absent, the game has one locale, the content's `source_language` (PRODUCT spec §4).
+   */
+  readonly locale?: LocaleDef | undefined;
+  readonly extensions?: readonly ExtensionDef[] | undefined;
+  /** The sound each sim event plays, by the event's type (M5.3). */
+  readonly sounds?: EventSounds | undefined;
+  /** The board and score each sim event submits, by the event's type (M5.7). Needs the `leaderboards` grant. */
+  readonly scores?: EventScores | undefined;
+  readonly copy?: Partial<BootFailureCopy> & {
+    readonly loading?: string;
+    readonly slow?: string;
+  };
+  readonly seams?: RuntimeSeams;
+}
+```
+
+#### `GameOrientation` (type)
+
+The orientation a game plays in; the ship config writes the same value as `runtime.orientation`.
+
+```ts
+type GameOrientation = "portrait" | "landscape" | "any";
+```
+
+#### `GameRenderer` (interface)
+
+What the runtime asks of a renderer: apply each step's result, draw each frame, and reset for a new sim.
+
+```ts
+interface GameRenderer {
+  apply(result: StepResult): void;
+  draw(frame: FrameInfo): void;
+  reset(): void;
+}
+```
+
+#### `GESTURE_TUNING` (const)
+
+FloorFifty's gesture tuning, the defaults.
+
+```ts
+const GESTURE_TUNING: GestureTuning;
+```
+
+#### `GestureName` (type)
+
+A touch gesture (M4.3 recognises them).
+
+```ts
+type GestureName = (typeof GESTURE_NAMES)[number];
+```
+
+#### `GestureSink` (interface)
+
+Where gestures go: held while a finger steers, pulsed for a flick or a tap.
+
+```ts
+interface GestureSink {
+  hold(gesture: GestureName): void;
+  release(gesture: GestureName): void;
+  pulse(gesture: GestureName): void;
+}
+```
+
+#### `GestureTuning` (interface)
+
+Content tuning, in CSS px and ms; FloorFifty's values are the defaults.
+
+```ts
+interface GestureTuning {
+  /** How far the thumb must be from the anchor, on an axis, to steer on it. Also how still a tap must be. */
+  readonly deadZonePx: number;
+  /** How far the anchor lets the thumb get ahead of it. */
+  readonly saturationPx: number;
+  /** How far down, within `flickMs`, makes a flick. */
+  readonly flickPx: number;
+  /** A flick's window; also the longest tap. */
+  readonly flickMs: number;
+}
+```
+
+#### `GlyphFamily` (type)
+
+Which labels a pad's buttons carry, read from its id.
+
+```ts
+type GlyphFamily = "xbox" | "playstation" | "generic";
+```
+
+#### `HapticPulse` (interface)
+
+One pulse: a pad's dual-rumble (milliseconds, each motor 0..1), and a phone's buzz in `navigator.vibrate`'s terms.
+
+```ts
+interface HapticPulse {
+  readonly duration: number;
+  readonly strong: number;
+  readonly weak: number;
+  /** None: a phone stays still for this pulse. */
+  readonly phone?: number | readonly number[] | undefined;
+}
+```
+
+#### `Haptics` (interface)
+
+The haptics service: a pad's rumble or a phone's buzz, when the device can and the player's Vibration
+setting allows.
+
+```ts
+interface Haptics {
+  /** Rumbles or buzzes, as above. Never throws: feel is never worth an error, and this may run inside a frame. */
+  pulse(pulse: HapticPulse): void;
+  /** Whether this device can do either now: a pad that can rumble, or a touch screen that can buzz. */
+  readonly supported: boolean;
+  /** The player's Vibration setting. */
+  setEnabled(enabled: boolean): void;
+}
+const Haptics: Context.Tag<Haptics, Haptics>;
+```
+
+#### `HapticsOptions` (interface)
+
+Where the haptics service finds pads, the vibrate call and whether this is a touch screen; replaced in
+tests.
+
+```ts
+interface HapticsOptions {
+  readonly getGamepads?: () => readonly (PadLike | null)[];
+  /** `navigator.vibrate`, where the browser has it. */
+  readonly vibrate?: (pattern: number | number[]) => boolean;
+  /** Whether this is a touch screen, which a phone's buzz is for. */
+  readonly touch: () => boolean;
+}
+```
+
+#### `HapticsSettings` (interface)
+
+The player's Vibration setting: whether `Haptics` pulses at all.
+
+```ts
+interface HapticsSettings {
+  readonly enabled: boolean;
+}
+```
+
+#### `hapticsSettingsSchema` (const)
+
+On unless saved off; a bad record reads as on, as every settings field falls back.
+
+```ts
+const hapticsSettingsSchema: z.ZodType<HapticsSettings, unknown>;
+```
+
+#### `Input` (interface)
+
+The input service (M4 spec §4.2): held actions from keys, pads, touch buttons and gestures under the game's
+profile and the player's overrides, menu edges, the active device and pads, and rebinding.
+
+```ts
+interface Input {
+  /** The actions held now, the union over devices, in first-press order. Read once per fixed step; never copied. */
+  held(): ReadonlySet<string>;
+  /** The active pad's stick, each axis an integer in −127..127, centred inside the deadzone (M4-D2). */
+  stick(side: "left" | "right"): {
+    readonly x: number;
+    readonly y: number;
+  };
+  /** Menu and pause edges, never sent to the sim. Returns the unsubscribe. */
+  onPress(action: MenuAction, listener: () => void): () => void;
+  /**
+   * Reads the pads; the loop calls it once per fixed step, before `held()`. `nowMs` (the frame or step time)
+   * paces the held-direction repeat in menus.
+   */
+  poll(nowMs?: number): void;
+  /** A touch button held or let go, by action. */
+  hold(action: string): void;
+  release(action: string): void;
+  /**
+   * Gestures from a `SwipeTracker` (M4.3), as touch: a held gesture holds its actions until released, and a pulse
+   * (a flick or a tap) holds them for exactly one sample.
+   */
+  readonly gesture: GestureSink;
+  /** `play` during gameplay, `menu` while a screen pauses the sim or a modal is open. Releases what is held. */
+  setContext(context: InputContextNow): void;
+  readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
+  readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
+  /** The pads connected since this Input started, in connection order. */
+  readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
+  /**
+   * Binds the captured key or pad button to `action` on `device` (M4 spec §4.5, M4-D4), saved in the settings'
+   * `input` when the Input has settings; refused, with nothing changed, by `RebindError`.
+   */
+  rebind(action: string, device: "keyboard" | "gamepad", capture: Capture): Effect.Effect<void, RebindError>;
+  /** Every binding back to the game's profile. */
+  readonly resetBindings: Effect.Effect<void>;
+  /**
+   * The next key (`keyboard`) or pad button (`gamepad`) pressed, for `rebind`. Escape or pad B cancels; nothing
+   * for `REBIND_TIMEOUT_MS` on Effect's Clock times out. While it waits, every key it sees goes no further, and the
+   * pads drive nothing else.
+   */
+  capture(device: "keyboard" | "gamepad"): Effect.Effect<Capture, RebindCancelled | RebindTimedOut>;
+}
+const Input: Context.Tag<Input, Input>;
+```
+
+#### `INPUT_SETTINGS_DEFAULT` (const)
+
+Nothing changed: the game's profile as it ships.
+
+```ts
+const INPUT_SETTINGS_DEFAULT: InputSettings;
+```
+
+#### `InputBinding` (interface)
+
+What drives one action: keys by `KeyboardEvent.code` (layout independent), pad buttons, an on-screen button.
+
+```ts
+interface InputBinding {
+  readonly keys: readonly string[];
+  readonly pad: readonly number[];
+  readonly touch: boolean;
+  readonly stick?: readonly StickDirection[] | undefined;
+  readonly gesture?: readonly GestureName[] | undefined;
+  /** Rebinding may never leave it unbound on a device it had (M4.4). */
+  readonly required?: boolean | undefined;
+  /** Default `'play'`. */
+  readonly context?: InputContext | undefined;
+}
+```
+
+#### `InputContext` (type)
+
+Where an action is live: during play, in menus, or both.
+
+```ts
+type InputContext = "play" | "menu" | "any";
+```
+
+#### `InputContextNow` (type)
+
+What input drives now: `play` (the game's bindings) or `menu` (the menu actions).
+
+```ts
+type InputContextNow = "play" | "menu";
+```
+
+#### `InputDevice` (type)
+
+A kind of input device.
+
+```ts
+type InputDevice = "keyboard" | "gamepad" | "touch";
+```
+
+#### `InputOptions` (interface)
+
+What the input service listens to: the window, the game's profile, the bus, and optionally the settings and
+the host's input mode.
+
+```ts
+interface InputOptions {
+  readonly target: Window;
+  /** The game's bindings, before the player's overrides. */
+  readonly profile: InputProfile;
+  readonly bus: PresentationBus;
+  /**
+   * The game's settings, whose `input` field (`inputSettingsSchema`) holds the player's overrides: they apply at
+   * once and on every change, and `rebind` writes them. Without settings a rebind lasts for this Input only.
+   */
+  readonly settings?: SettingsStore<unknown> | undefined;
+  /** Under a host, its input mode (`Hosting.input`): where the active device starts, and a pad it reports. */
+  readonly hostInput?: Hosting["input"] | undefined;
+}
+```
+
+#### `InputProfile` (interface)
+
+A named set of bindings, one per game action (PRODUCT spec §2 F1). It is data: a settings screen rebinds a
+copy and saves it in the game's `SettingsDef`; M4's input service reads it. Action ids are the game's own.
+
+```ts
+interface InputProfile {
+  readonly id: string;
+  readonly bindings: Readonly<Record<string, InputBinding>>;
+}
+```
+
+#### `InputProfileInput` (interface)
+
+What `inputProfileSchema` accepts: every binding field may be left out.
+
+```ts
+interface InputProfileInput {
+  readonly id: string;
+  readonly bindings: Readonly<Record<string, {
+    readonly keys?: readonly string[] | undefined;
+    readonly pad?: readonly number[] | undefined;
+    readonly touch?: boolean | undefined;
+    readonly stick?: readonly StickDirection[] | undefined;
+    readonly gesture?: readonly GestureName[] | undefined;
+    readonly required?: boolean | undefined;
+    readonly context?: InputContext | undefined;
+  }>>;
+}
+```
+
+#### `inputProfileSchema` (const)
+
+Validates an input profile, filling left-out binding fields with "unbound". A reserved key or pad button fails
+the parse with the action named (M4-D3, I-j): at boot that is a developer error before anything renders.
+
+```ts
+const inputProfileSchema: z.ZodType<InputProfile, InputProfileInput>;
+```
+
+#### `InputSettings` (interface)
+
+The player's input settings, kept in the game's settings as `input`: the profile, the per-action overrides
+and the touch mode.
+
+```ts
+interface InputSettings {
+  readonly profile: string;
+  readonly overrides: Readonly<Record<string, BindingOverride>>;
+  /** How touch drives play, when the player chose (M4 spec §4.4). Unset: the game's default. */
+  readonly touchMode?: TouchMode | undefined;
+}
+```
+
+#### `inputSettingsSchema` (const)
+
+The `input` field of a game's settings schema: `{ input: inputSettingsSchema }`. A record that does not read is
+the default, as every settings field falls back (`readSettings`); a single bad override is `applyOverrides`'s to
+drop, so the player's other bindings survive it.
+
+```ts
+const inputSettingsSchema: z.ZodType<InputSettings, unknown>;
+```
+
+#### `Leaderboards` (interface)
+
+`Board` is the game's board ids (its ship config's `leaderboards` keys); `string` until a game narrows it.
+
+```ts
+interface Leaderboards<Board extends string = string> {
+  /** Sends `score` to `board`. Never fails: the result, also published as `leaderboard.submitted`, is the state. */
+  submitScore(board: Board, score: number): Effect.Effect<BoardState>;
+  /** Reads `board` from the host. Never fails, and never answers from a copy kept here. */
+  readBoard(board: Board, query?: BoardQuery): Effect.Effect<BoardView>;
+  /** The state of the last submit to `board` (`idle` before one). */
+  state(board: Board): BoardState;
+}
+const Leaderboards: Context.Tag<Leaderboards, Leaderboards>;
+```
+
+#### `liveDeviceStorage` (function)
+
+The game frame's own `localStorage` as a device, with `prefix:` before every key so two games on one origin do
+not meet. Undefined where merely reaching `window.localStorage` throws (blocked site data, a sandbox): the
+settings store then holds device fields for the visit only.
+
+This is the declared stand-in for a host-owned device scope (Ruken request R-6), and a choice per settings field,
+not a fallback for a denied `saves` grant.
+
+```ts
+function liveDeviceStorage(win: Pick<Window, "localStorage">, prefix: string): DeviceStorage | undefined;
+```
+
+#### `Loaded` (interface)
+
+A slot loaded for play.
+
+```ts
+interface Loaded<S> {
+  readonly slot: number;
+  readonly data: S;
+  /** Undefined for an empty slot. */
+  readonly meta: SlotMeta | undefined;
+  /** The sim snapshot, only when it was taken with this build's content (M5-D5). */
+  readonly snapshot?: Uint8Array;
+}
+```
+
+#### `LoadMeter` (interface)
+
+Watches downloads: `guard` fails a wait with `LoadStalled` after `STALL_MS` without progress, and calls its
+`onSlow` after `SLOW_MS`.
+
+```ts
+interface LoadMeter {
+  progress(): void;
+  guard<A, E, R>(wait: Effect.Effect<A, E, R>, info: GuardInfo): Effect.Effect<A, E | LoadStalled, R>;
+}
+```
+
+#### `LoadStalled` (class)
+
+A resource download had no progress reported for STALL_MS (30 s).
+Triggers the "Taking a while" screen with a Try again button.
+
+```ts
+class LoadStalled extends LoadStalledBase {}
+```
+
+#### `Locale` (interface)
+
+The locale service (PRODUCT spec §4): the game's locales, the one text is drawn in now, the player's choice
+and the text direction.
+
+```ts
+interface Locale {
+  /** The game's locales, in its own order (the picker's order). */
+  readonly locales: readonly string[];
+  readonly baseLocale: string;
+  /** The locale text is drawn in now. */
+  readonly current: string;
+  /** The player's pick: one of `locales`, or null for Automatic (nothing saved, or a saved locale the game dropped). */
+  readonly choice: string | null;
+  readonly direction: "ltr" | "rtl";
+  /** Svelte store contract: called at once with the current locale, then on each change. */
+  subscribe(listener: (locale: string) => void): () => void;
+  /**
+   * The picker's one call: one of `locales`, or null for Automatic. Saved through `Hosting.saves`.
+   * A locale the game does not ship throws: the picker only offers `locales`.
+   */
+  set(choice: string | null): void;
+}
+const Locale: Context.Tag<Locale, Locale>;
+```
+
+#### `LOCALE_SAVE_KEY` (const)
+
+The save key of the player's language choice; absent means Automatic (negotiated).
+
+```ts
+const LOCALE_SAVE_KEY = "automata.locale";
+```
+
+#### `LocaleCandidates` (interface)
+
+The candidates, best first; each is used only when the game has a matching locale.
+
+```ts
+interface LocaleCandidates {
+  /** Ruken's `session.locale`, when the session is hosted. Standalone, the SDK's value is the browser's, so it is left out. */
+  readonly hosted: string | undefined;
+  /** The player's own choice, saved by the language picker. */
+  readonly saved: string | undefined;
+  /** The browser's languages, best first (`navigator.languages`). */
+  readonly browser: readonly string[];
+  /** The locales the game ships, in the game's spelling. */
+  readonly locales: readonly string[];
+  /** The game's default; one of `locales`. */
+  readonly baseLocale: string;
+}
+```
+
+#### `LocaleDef` (interface)
+
+The game's languages. A Paraglide-generated `runtime.js` satisfies it as is
+(`import * as runtime from './paraglide/runtime.js'`), and then its messages answer in this locale.
+
+```ts
+interface LocaleDef {
+  readonly locales: readonly string[];
+  readonly baseLocale: string;
+  overwriteGetLocale?(fn: () => string): void;
+  overwriteSetLocale?(fn: (locale: string) => void): void;
+}
+```
+
+#### `makeAudio` (const)
+
+Builds the Audio service, which is also the `AudioBuses` seam. Nothing is built until the first gesture after
+the session is ready; closing the scope stops every sound, closes the context and removes every listener.
+
+```ts
+const makeAudio: (options: AudioServices & AudioOptions) => Effect.Effect<Audio & AudioBuses, never, Scope.Scope>;
+```
+
+#### `makeInput` (function)
+
+Builds the Input over `target` for the scope's life: closing the scope removes every listener.
+
+```ts
+function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope>;
+```
+
+#### `makeLeaderboards` (const)
+
+Builds the leaderboards service over `Hosting`; each submit's state is published as
+`leaderboard.submitted`.
+
+```ts
+const makeLeaderboards: Effect.Effect<Leaderboards, never, Hosting | PresentationBus>;
+```
+
+#### `makeSaves` (function)
+
+Opens the game's save for boot, with its triggers and its exit flush, for as long as the scope is open. A game
+without `saves` gets a `Saves` that holds nothing, and nothing is read from the host.
+
+```ts
+function makeSaves(def: SaveDef<unknown> | undefined, options: {
+  readonly contentHash: string;
+}): Effect.Effect<Saves, HostError, Hosting | PresentationBus | Scope.Scope>;
+```
+
+#### `matchLocale` (function)
+
+The game's locale for a requested tag: the same tag (ignoring case), else the first locale with the same
+primary language subtag. `fr-CA` finds `fr`; `pt` finds `pt-BR`. Undefined when the game lacks the language.
+
+```ts
+function matchLocale(requested: string, locales: readonly string[]): string | undefined;
+```
+
+#### `MAX_FRAME_MS` (const)
+
+The Last Light clock.ts 0.1 s clamp: at most 6 steps at 60 Hz, the rest is dropped
+
+```ts
+const MAX_FRAME_MS = 100;
+```
+
+#### `MenuAction` (type)
+
+A fixed menu action: it drives menus and the pause screen, never the sim.
+
+```ts
+type MenuAction = "nav-up" | "nav-down" | "nav-left" | "nav-right" | "confirm" | "back" | "page-prev" | "page-next" | "adjust-dec" | "adjust-inc" | "pause";
+```
+
+#### `MessageFunction` (type)
+
+One compiled message: Paraglide passes its inputs as one object.
+
+```ts
+type MessageFunction = (inputs?: any) => string;
+```
+
+#### `MusicOptions` (interface)
+
+Options for `Audio.music`: where to begin and which region loops.
+
+```ts
+interface MusicOptions {
+  /** Where in the track to begin, in seconds. */
+  readonly fromSeconds?: number;
+  /** The region that loops, in seconds; the whole track without it. */
+  readonly loop?: {
+    readonly start: number;
+    readonly end: number;
+  };
+}
+```
+
+#### `negotiateLocale` (function)
+
+The order is the player's saved choice, Ruken's session locale, the browser's languages, the default
+(PRODUCT spec §4 item 2, as decided 2026-10-16: a choice made in the game's own picker outranks the
+platform's, as in FloorFifty, where detection runs only "when the player has not chosen one").
+Each step that names a language the game lacks falls through to the next.
+
+```ts
+function negotiateLocale(candidates: LocaleCandidates): string;
+```
+
+#### `NetworkPort` (interface)
+
+The networking seam (PRODUCT spec §2 F1): remote commands in, authoritative snapshots out. The sim already
+takes `Command`s and restores snapshot bytes, so the port carries exactly those; the wire format, rooms,
+prediction and reconciliation belong to whatever implements it (Plus `net`, M7) or to the game.
+
+An authority listens with `onRemoteCommand` and answers with `publishSnapshot`; a client sends with
+`sendCommand` and listens with `onSnapshot`. One implementation may serve either role.
+
+Commands cross the port every tick, so its members are plain callbacks rather than Effects (ADR 0003: no
+Effect allocation per frame). Sends never throw: a transport failure is the implementation's to report
+(for example as a presentation-bus fact), never a silent switch to another path. Each `on*` returns its
+unsubscribe; a listener removed, or registered after the port's scope closed, receives nothing.
+The `NetworkPort` service tag. Core provides no implementation; an extension or the game provides one.
+
+```ts
+interface NetworkPort {
+  /** Each command a remote peer sent, in arrival order, as the sim's own `Command`. */
+  onRemoteCommand(listener: (command: Command) => void): () => void;
+  /** Sends one local command to the authority. */
+  sendCommand(command: Command): void;
+  /** The authority publishes its state after a step. */
+  publishSnapshot(snapshot: AuthoritativeSnapshot): void;
+  /** Each authoritative snapshot received, in arrival order. */
+  onSnapshot(listener: (snapshot: AuthoritativeSnapshot) => void): () => void;
+}
+const NetworkPort: Context.Tag<NetworkPort, NetworkPort>;
+```
+
+#### `PadInfo` (interface)
+
+A connected pad. Only `standard` pads drive bindings (DX spec §3.3).
+
+```ts
+interface PadInfo {
+  readonly index: number;
+  readonly id: string;
+  readonly standard: boolean;
+}
+```
+
+#### `ParaglideRuntime` (interface)
+
+The parts of a Paraglide-generated `runtime.js` the runtime uses. Method syntax, so a narrower `Locale` union fits.
+
+```ts
+interface ParaglideRuntime {
+  readonly locales: readonly string[];
+  readonly baseLocale: string;
+  overwriteGetLocale(fn: () => string): void;
+  overwriteSetLocale(fn: (locale: string) => void): void;
+}
+```
+
+#### `PauseReason` (type)
+
+`input`: the active pad was unplugged during play (M4-D9); Resume on the pause screen clears it. `display`: a phone
+is held the other way from the game's orientation (M4.7); turning it back clears it.
+
+```ts
+type PauseReason = "lifecycle" | "menu" | "input" | "display";
+```
+
+#### `pluralCategory` (const)
+
+The CLDR plural (or, with 'ordinal', ordinal) category of a count: one, two, few, many, zero or other.
+
+```ts
+const pluralCategory: (locale: string, count: number, type?: Intl.PluralRuleType) => Intl.LDMLPluralRule;
+```
+
+#### `PresentationBus` (interface)
+
+The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear. Facts
+describe what happened; they never change gameplay state.
+
+```ts
+interface PresentationBus<Facts = RuntimeFacts> {
+  publish<K extends keyof Facts & string>(name: K, fact: Facts[K]): void;
+  subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void;
+}
+const PresentationBus: Context.Tag<PresentationBus, PresentationBus>;
+```
+
+#### `QUALITY_TIERS` (const)
+
+Graphics quality (M4 spec §4.11). A lower tier caps the canvas resolution and leaves out the post-filter owners
+registered for a higher one; it never drops the art direction. The one owner of the tier: render-pixi and the
+Settings screen's Display section read it from here.
+
+```ts
+const QUALITY_TIERS: readonly ["high", "medium", "low"];
+```
+
+#### `QualityTier` (type)
+
+A graphics quality tier: `high`, `medium` or `low`.
+
+```ts
+type QualityTier = (typeof QUALITY_TIERS)[number];
+```
+
+#### `qualityTierSchema` (const)
+
+A tier; an unknown saved value reads as the default, as every settings field falls back.
+
+```ts
+const qualityTierSchema: z.ZodType<QualityTier, unknown>;
+```
+
+#### `REBIND_TIMEOUT_MS` (const)
+
+How long `capture` waits for a press (M4 spec §4.2, §6).
+
+```ts
+const REBIND_TIMEOUT_MS = 1e4;
+```
+
+#### `RebindCancelled` (class)
+
+The player pressed Escape or pad B while a capture waited: nothing changes.
+
+```ts
+class RebindCancelled extends RebindCancelledBase {}
+```
+
+#### `RebindConflict` (class)
+
+Refused: the input would leave `with`, a required action, with nothing on that device (M4-D4).
+
+```ts
+class RebindConflict extends RebindConflictBase {}
+```
+
+#### `RebindError` (type)
+
+Why a rebind was refused, with nothing changed.
+
+```ts
+type RebindError = RebindConflict | RebindReserved | RebindUnknown;
+```
+
+#### `rebindProfile` (function)
+
+Binds `capture` to `action` on `device` (M4 spec §4.5, M4-D4): it becomes the action's only input there and
+leaves every other action live in an overlapping context. Refused, with nothing changed, when the input is
+reserved or when it would leave a `required` action with nothing on that device. The result is the overrides
+over `defaults` for the whole profile, ready to save.
+
+```ts
+function rebindProfile(defaults: InputProfile, current: InputProfile, action: string, device: "keyboard" | "gamepad", capture: Capture): Either.Either<Record<string, BindingOverride>, RebindError>;
+```
+
+#### `RebindReserved` (class)
+
+Refused: Escape, Tab, pad 8 or pad 16 (M4-D3), or a pad button the standard mapping does not have.
+
+```ts
+class RebindReserved extends RebindReservedBase {}
+```
+
+#### `RebindTimedOut` (class)
+
+Nothing was pressed for `REBIND_TIMEOUT_MS`: nothing changes.
+
+```ts
+class RebindTimedOut extends RebindTimedOutBase {}
+```
+
+#### `RebindUnknown` (class)
+
+Refused: the profile has no such action.
+
+```ts
+class RebindUnknown extends RebindUnknownBase {}
+```
+
+#### `Renderer` (const)
+
+The game's renderer as a runtime service.
+
+```ts
+const Renderer: Context.Tag<GameRenderer, GameRenderer>;
+```
+
+#### `RendererFactory` (type)
+
+Builds the game's renderer on a render target in a scope, failing `RendererUnavailable` when it cannot
+start.
+
+```ts
+type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable, Scope.Scope>;
+```
+
+#### `RendererUnavailable` (class)
+
+Neither WebGL2 nor WebGPU could be initialized.
+In Ruken this presents the "unsupported" screen with an exit button.
+
+```ts
+class RendererUnavailable extends RendererUnavailableBase {}
+```
+
+#### `RenderTarget` (interface)
+
+Where a renderer draws: the host element, the layout geometry, the loaded assets and the presentation bus.
+
+```ts
+interface RenderTarget {
+  readonly host: HTMLElement;
+  readonly geometry: GeometryOwner;
+  readonly assets: Pick<Assets, "get">;
+  /** The runtime's presentation bus, for render facts such as `render.filter.dropped`. Optional for tests and tools. */
+  readonly bus?: PresentationBus | undefined;
+}
+```
+
+#### `RESERVED_KEYS` (const)
+
+Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
+
+```ts
+const RESERVED_KEYS: readonly string[];
+```
+
+#### `RESERVED_PAD_BUTTONS` (const)
+
+Never bindable in a game's profile (M4-D3): Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the
+one back path and Tab moves focus.
+
+```ts
+const RESERVED_PAD_BUTTONS: readonly number[];
+```
+
+#### `RotateHintMode` (type)
+
+How a game locked to one orientation says so (Owner amendment, 2026-10-18): a blocking cover, or a toast.
+
+```ts
+type RotateHintMode = "block" | "toast";
+```
+
+#### `runGame` (function)
+
+Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
+
+Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
+the attempt scope open so Back to {host} can access its Hosting service. Try again
+and Continue without loading close the failed attempt scope and re-run bootProgram
+in a fresh Scope on the same root without reloading the page.
+
+RuntimeHandle.shutdown() closes the runtime scope, running all finalizers in LIFO order.
+
+```ts
+function runGame<S>(game: GameDefinition<S>): RuntimeHandle;
+```
+
+#### `RuntimeFacts` (interface)
+
+Every fact the runtime publishes on the presentation bus, by name.
+
+```ts
+interface RuntimeFacts {
+  readonly "sim.events": readonly SimEvent[];
+  readonly "screen.entered": {
+    readonly screen: string;
+    readonly from: string | undefined;
+  };
+  readonly "time.changed": {
+    readonly paused: boolean;
+  };
+  /** The player's language changed (PRODUCT spec §4 item 2). Screens redraw their text; nothing remounts. */
+  readonly "locale.changed": {
+    readonly locale: string;
+    readonly previous: string;
+  };
+  /** The player's last real input came from another device (M4 spec §4.2). Prompts and touch controls follow it. */
+  readonly "input.device.changed": {
+    readonly device: InputDevice;
+    readonly glyphs: GlyphFamily;
+    readonly previous: InputDevice;
+  };
+  /** The first gesture after `session.ready` built and resumed the audio graph (M5 spec §4.6). */
+  readonly "audio.unlocked": Readonly<Record<never, never>>;
+  /** No audio context could be built or resumed; the game runs silent (M5 spec §6). */
+  readonly "audio.unavailable": {
+    readonly reason: string;
+  };
+  /** A sound or a track could not be loaded or decoded; it is silent and nothing else stops (M5 spec §6). */
+  readonly "audio.decode.failed": {
+    readonly alias: string;
+    readonly reason: string;
+  };
+  /** A pad was plugged in (M4 spec §5). `standard: false` means it cannot drive bindings (§6). */
+  readonly "input.pad.connected": PadInfo;
+  /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
+  readonly "input.pad.disconnected": PadInfo & {
+    readonly wasActive: boolean;
+  };
+  /** The player's bindings changed (M4 spec §4.5): `action` when one was rebound, none on a reset or a follow. */
+  readonly "input.bindings.changed": {
+    readonly action?: string;
+  };
+  /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
+  readonly "render.filter.dropped": {
+    readonly id: string;
+    readonly reason: string;
+  };
+  /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
+  readonly "save.written": {
+    readonly key: string;
+    readonly slot: number;
+  };
+  /** The host refused a slot's write; the slot keeps its previous value (M5 spec §4.3, §6). */
+  readonly "save.failed": {
+    readonly key: string;
+    readonly slot: number;
+    readonly code: ErrorCode;
+  };
+  /** A slot was loaded for play (M5 spec §5, "Load a slot"). */
+  readonly "save.loaded": {
+    readonly key: string;
+    readonly slot: number;
+  };
+  /**
+   * Another device changed the slot being played (M5 spec §5, M5-D6). Nothing was reloaded; the game offers Load
+   * newer or Keep playing.
+   */
+  readonly "save.changedElsewhere": {
+    readonly key: string;
+    readonly slot: number;
+  };
+  /** A submit to `board` changed state: `submitting`, then how the host answered (M5 spec §4.8). */
+  readonly "leaderboard.submitted": {
+    readonly board: string;
+    readonly state: BoardState;
+  };
+}
+```
+
+#### `RuntimeHandle` (interface)
+
+Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11).
+
+```ts
+interface RuntimeHandle {
+  shutdown(): Promise<void>;
+}
+```
+
+#### `RuntimeSeams` (interface)
+
+Test seams injected into the runtime boot program (spec §3.3, planning note 10).
+
+```ts
+interface RuntimeSeams {
+  readonly fetch?: typeof fetch;
+  readonly frames?: FrameSource;
+  readonly fonts?: Pick<FontFaceSet, "load">;
+  readonly sdkEnv?: () => NonNullable<HostingSeams["env"]>;
+  readonly document?: Document;
+  /** The browser's languages, best first; defaults to `navigator.languages`. */
+  readonly languages?: readonly string[];
+  /** Builds the audio context on the unlock; defaults to `new AudioContext()`. */
+  readonly createAudioContext?: () => AudioContextLike;
+  /** The device's haptics, in place of the browser's (pads, `navigator.vibrate`, a coarse pointer). */
+  readonly haptics?: Haptics;
+  /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage` (M5 spec §4.5). */
+  readonly deviceStorage?: DeviceStorage;
+}
+```
+
+#### `RuntimeServices` (type)
+
+The runtime services a screen's `enter` may use.
+
+```ts
+type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | Saves | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses | Leaderboards | Haptics;
+```
+
+#### `Save` (interface)
+
+A game's save (M5 spec §4.3): its slots' states, load, write and remove, and the progress `touch` keeps for
+the autosave triggers to write.
+
+```ts
+interface Save<S> {
+  /** Every slot's state, in slot order. */
+  readonly slots: Subscribable.Subscribable<readonly SlotState[]>;
+  /** The slot being played: the last one `load` returned. Undefined before the first load. */
+  readonly loaded: Subscribable.Subscribable<number | undefined>;
+  /**
+   * Reads a slot and makes it the one being played. Progress `touch`ed before is dropped: it came from the game this
+   * load replaces, and must not be written over what was just read.
+   */
+  load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
+  write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>;
+  remove(slot: number): Effect.Effect<void, HostError>;
+  /**
+   * Says the loaded slot's progress changed and what it is now. A plain function, safe to call every tick: it only
+   * keeps `data`, and the next autosave trigger writes it. With no slot loaded it keeps nothing.
+   */
+  touch(data: () => S): void;
+  /**
+   * Writes the progress `touch` has kept for every slot that still has some, now, whatever the autosave policy
+   * (an exit must not lose progress because `on` left out a trigger). It still never writes a slot whose state
+   * is not `ready` or `empty` (a newer build's, a damaged one, one loaded with other content), nor the slot
+   * another device changed while it was played, until the player answers: that progress stays kept (Keep
+   * playing releases it; Load newer and any other load drop it). It never fails, because it runs inside the host's exit; a refused write is the `save.failed`
+   * fact, and the progress stays kept for the next flush.
+   */
+  readonly flushPending: Effect.Effect<void>;
+  /**
+   * What a trigger calls: `flushPending` if the save's policy lists `trigger`, otherwise nothing. `saveService`
+   * already wires every trigger to its source; this is for a game that raises one itself.
+   */
+  autosave(trigger: AutosaveTrigger): Effect.Effect<void>;
+  /**
+   * True while the loaded slot holds something another device wrote after it was loaded (M5-D6). Nothing is
+   * reloaded, and no trigger writes that slot over the other device's until the player answers. Lowered by
+   * `keepPlaying`, `loadNewer` or any load.
+   */
+  readonly changedElsewhere: Subscribable.Subscribable<boolean>;
+  /** Loads the loaded slot again, so the game plays what the other device wrote. Dies when nothing is loaded. */
+  loadNewer(): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
+  /** The player chose to carry on: lowers `changedElsewhere`. The next trigger writes the progress kept over the other device's, as any write would. */
+  keepPlaying(): void;
+}
+```
+
+#### `SaveDef` (interface)
+
+A game's save: one record, or a fixed number of slots, each one Ruken key.
+
+```ts
+interface SaveDef<S> {
+  /** The key prefix. Ruken's key rule is the SDK's, which checks it on write. */
+  readonly key: string;
+  /** This build's version of the data, an integer from 1. */
+  readonly version: number;
+  readonly schema: z.ZodType<S>;
+  /** What an empty slot loads as. */
+  readonly empty: () => S;
+  /** `migrations[n]` turns version `n` data into version `n + 1`. */
+  readonly migrations: Readonly<Record<number, SaveMigration>>;
+  /** Absent: one record, slot 0, stored at `key`. */
+  readonly slots?: {
+    readonly count: number;
+  };
+  /** Absent: save on `screen-exit`, `round-end` and `background`, with no timer (M5-D10). `{ on: [] }` turns it off. */
+  readonly autosave?: AutosavePolicy;
+}
+```
+
+#### `SaveEnvelope` (interface)
+
+What is stored: a self-describing envelope, one Ruken key per slot.
+
+```ts
+interface SaveEnvelope {
+  readonly format: 1;
+  readonly version: number;
+  /** The sim content hash at save time (M2.2). */
+  readonly contentHash: string;
+  /** Effect `Clock` epoch ms, for the slot list; outside the sim. */
+  readonly savedAt: number;
+  readonly label?: string;
+  readonly data: Record<string, unknown>;
+  /** An optional sim snapshot, base64 (M5-D5). */
+  readonly snapshot?: string;
+}
+```
+
+#### `SaveFromNewerBuild` (class)
+
+A slot was saved by a newer build. It is read-only here: nothing migrates, writes or autosaves over it.
+
+```ts
+class SaveFromNewerBuild extends SaveFromNewerBuildBase {}
+```
+
+#### `SaveFromNewerBuildFields` (interface)
+
+The fields of `SaveFromNewerBuild`.
+
+```ts
+interface SaveFromNewerBuildFields {
+  readonly key: string;
+  readonly slot: number;
+  /** The version the newer build stored. */
+  readonly version: number;
+}
+```
+
+#### `SaveMigration` (type)
+
+One migration step of a save: version `n` data in, version `n + 1` data out (`SaveDef.migrations`).
+
+```ts
+type SaveMigration = (record: Record<string, unknown>) => Record<string, unknown>;
+```
+
+#### `saveOf` (function)
+
+Returns the booted save when `def.key` matches.
+Dies with a defect if the game booted a different save, or none: asking for a save the game never declared is
+the game's mistake (as `settingsStore` does for settings).
+
+```ts
+function saveOf<S>(def: SaveDef<S>): Effect.Effect<Save<S>, never, Saves>;
+```
+
+#### `SaveRefused` (class)
+
+A write AF refuses on its own: over a save from a newer build (M5 spec §4.3).
+
+```ts
+class SaveRefused extends SaveRefusedBase {}
+```
+
+#### `SaveRefusedFields` (interface)
+
+The fields of `SaveRefused`.
+
+```ts
+interface SaveRefusedFields {
+  readonly key: string;
+  readonly slot: number;
+  /** Why AF refused before asking the host. Everything else is the host's to refuse, relayed as a `HostError`. */
+  readonly reason: "newer";
+}
+```
+
+#### `Saves` (interface)
+
+The booted game's save as a runtime service (M5 spec §4.3), as `Settings` is for settings: its key and the
+`Save`, both undefined for a game without saves.
+
+```ts
+interface Saves {
+  /** The booted save's key prefix; undefined for a game without saves. */
+  readonly key: string | undefined;
+  readonly save: Save<unknown> | undefined;
+}
+const Saves: Context.Tag<Saves, Saves>;
+```
+
+#### `saveService` (function)
+
+Opens a game's save slots: reads the slot list from the host, then loads, writes and removes slots.
+
+```ts
+function saveService<S>(def: SaveDef<S>, options: SaveServiceOptions): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus | Scope.Scope>;
+```
+
+#### `SaveServiceOptions` (interface)
+
+What the save service stamps on every write and checks on every load.
+
+```ts
+interface SaveServiceOptions {
+  /** The build's sim content hash (`GameDefinition.content.hash`), stamped on each write and compared on load. */
+  readonly contentHash: string;
+}
+```
+
+#### `SaveUnreadable` (class)
+
+A slot's save cannot be read: a damaged envelope, a missing or throwing migration step, or data its schema refuses
+(M5 spec §6). The slot is kept untouched; only an explicit write replaces it.
+
+```ts
+class SaveUnreadable extends SaveUnreadableBase {}
+```
+
+#### `SaveUnreadableFields` (interface)
+
+The fields of `SaveUnreadable`.
+
+```ts
+interface SaveUnreadableFields {
+  /** The save's key prefix (`SaveDef.key`). */
+  readonly key: string;
+  readonly slot: number;
+  readonly reason: string;
+}
+```
+
+#### `SaveWriteOptions` (interface)
+
+Options for `Save.write`: the slot's label on the list, and a sim snapshot to keep with the data.
+
+```ts
+interface SaveWriteOptions {
+  readonly label?: string;
+  readonly snapshot?: Uint8Array;
+}
+```
+
+#### `ScreenContext` (interface)
+
+What a screen's `enter` is given: the layer to mount into, and the screen it came from.
+
+```ts
+interface ScreenContext {
+  readonly layer: HTMLElement;
+  readonly from: string | undefined;
+}
+```
+
+#### `ScreenDef` (interface)
+
+One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it
+in its scope (closing the scope leaves the screen).
+
+```ts
+interface ScreenDef<R = never> {
+  readonly id: string;
+  readonly pausesSim?: boolean;
+  /** `gameplay` lets the cursor policy hide an idle pointer; a `menu` (the default) never does (M4 spec §4.7). */
+  readonly kind?: "menu" | "gameplay";
+  readonly fonts?: readonly string[];
+  enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
+  openMenu?(): boolean;
+}
+```
+
+#### `selectPlural` (function)
+
+The form for a count. A category the caller did not give falls back to `other`, which is required.
+
+```ts
+function selectPlural(locale: string, count: number, forms: Partial<Record<Intl.LDMLPluralRule, string>> & {
+  readonly other: string;
+}): string;
+```
+
+#### `Settings` (interface)
+
+The booted game's settings as a runtime service: its key and store, both undefined for a game without
+settings.
+
+```ts
+interface Settings {
+  readonly key: string | undefined;
+  readonly store: SettingsStore<unknown> | undefined;
+}
+const Settings: Context.Tag<Settings, Settings>;
+```
+
+#### `SettingsDef` (interface)
+
+A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which
+fields stay on one device.
+
+```ts
+interface SettingsDef<S> {
+  readonly key: string;
+  readonly version: number;
+  readonly schema: z.ZodType<S>;
+  readonly defaults: S;
+  readonly migrations?: Readonly<Record<number, (record: Record<string, unknown>) => Record<string, unknown>>>;
+  /**
+   * Fields that belong to one device: kept in its `DeviceStorage`, never in the player's saves, and the saves'
+   * copy is never read (M5 spec §4.5). The rest of the record is the player's, as for any settings. Names, not
+   * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `makeSettings`
+   * refuses a name the defaults do not have.
+   */
+  readonly deviceFields?: readonly string[];
+}
+```
+
+#### `SettingsStore` (interface)
+
+A game's settings value: read it, subscribe to changes, and update it (each update is saved).
+
+```ts
+interface SettingsStore<S> {
+  get(): S;
+  subscribe(listener: (value: S) => void): () => void;
+  update(change: (value: S) => S): void;
+}
+```
+
+#### `settingsStore` (function)
+
+Returns the booted settings store when def.key matches.
+Dies with a defect if requested key does not match booted key (planning note 7).
+
+```ts
+function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>;
+```
+
+#### `SlotMeta` (interface)
+
+A slot's header, read without migrating it.
+
+```ts
+interface SlotMeta {
+  readonly version: number;
+  readonly contentHash: string;
+  readonly savedAt: number;
+  readonly label?: string;
+  /** Whether the save carries a sim snapshot. */
+  readonly snapshot: boolean;
+}
+```
+
+#### `SlotState` (type)
+
+What a slot holds, as the slot list shows it (M5 spec §4.3, §6).
+
+```ts
+type SlotState = {
+  readonly kind: "empty";
+  readonly slot: number;
+} | {
+  readonly kind: "ready";
+  readonly slot: number;
+  readonly meta: SlotMeta;
+} | {
+  readonly kind: "unreadable";
+  readonly slot: number;
+  readonly reason: string;
+} | {
+  readonly kind: "newer";
+  readonly slot: number;
+  readonly version: number;
+} | {
+  readonly kind: "other-content";
+  readonly slot: number;
+  readonly meta: SlotMeta;
+};
+```
+
+#### `SLOW_MS` (const)
+
+After this long, in ms, a download still running is reported slow (the loader says so).
+
+```ts
+const SLOW_MS = 8e3;
+```
+
+#### `SoundOptions` (interface)
+
+Options for `Audio.sound`: the bus (default `sfx`), a gain and a playback rate.
+
+```ts
+interface SoundOptions {
+  /** `sfx` by default. */
+  readonly bus?: AudioBusName;
+  readonly gain?: number;
+  readonly rate?: number;
+}
+```
+
+#### `STALL_MS` (const)
+
+A download that makes no progress for this long, in ms, fails `LoadStalled`.
+
+```ts
+const STALL_MS = 3e4;
+```
+
+#### `STANDARD_PAD_BUTTON_MAX` (const)
+
+The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home). Only the
+standard mapping is bound (DX spec §3.3); a pad without it is the device layer's to normalize.
+
+```ts
+const STANDARD_PAD_BUTTON_MAX = 16;
+```
+
+#### `StickDirection` (type)
+
+A stick pushed past its dead zone in one direction (M4.2 reads them).
+
+```ts
+type StickDirection = (typeof STICK_DIRECTIONS)[number];
+```
+
+#### `SwipeIndicator` (interface)
+
+What a swipe indicator draws: the anchor, the thumb, and whether the thumb is steering.
+
+```ts
+interface SwipeIndicator {
+  readonly anchor: {
+    readonly x: number;
+    readonly y: number;
+  };
+  readonly thumb: {
+    readonly x: number;
+    readonly y: number;
+  };
+  /** Outside the dead zone on either axis. */
+  readonly steering: boolean;
+}
+```
+
+#### `SwipeTracker` (class)
+
+Turns pointer samples into held swipes, flicks and taps for a `GestureSink` (M4 spec §4.4); it reads no
+clock and touches no DOM.
+
+```ts
+class SwipeTracker {
+  private readonly sink;
+  readonly tuning: GestureTuning;
+  private readonly fingers;
+  private steerer;
+  private readonly anchor;
+  private readonly thumb;
+  private readonly direction;
+  constructor(sink: GestureSink, tuning?: Partial<GestureTuning>);
+  /** Where the thumb indicator draws, or undefined while no finger steers. */
+  get indicator(): SwipeIndicator | undefined;
+  /** A finger landed. The first one that may steer steers; every one may flick or tap. */
+  down(id: number, x: number, y: number, t: number, options?: {
+    readonly steers?: boolean;
+  }): void;
+  /** A finger moved: look for a downward flick, and steer if it is the steerer. */
+  move(id: number, x: number, y: number, t: number): void;
+  /** A finger lifted: a tap if it was quick and still; stop steering if it steered. */
+  up(id: number, _x: number, _y: number, t: number): void;
+  /** The browser took the pointers (pointercancel, lost capture of every finger): release everything. */
+  cancel(): void;
+  private steer;
+  private stopSteering;
+  private setDirection;
+}
+```
+
+#### `textDirection` (function)
+
+Text direction from the locale's script: the explicit script subtag, else the likely one CLDR adds
+(`ar` → `Arab`). Read from `Intl.Locale#maximize`, not `getTextInfo`, which not every engine has, so
+every engine gives the same answer.
+
+```ts
+function textDirection(locale: string): "ltr" | "rtl";
+```
+
+#### `Time` (interface)
+
+The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
+
+```ts
+interface Time {
+  readonly paused: boolean;
+  readonly reasons: ReadonlySet<PauseReason>;
+  pause(reason: PauseReason): void;
+  resume(reason: PauseReason): void;
+}
+const Time: Context.Tag<Time, Time>;
+```
+
+#### `TouchMode` (type)
+
+How touch drives play: the on-screen buttons, or swipes and flicks over the whole screen (M4 spec §4.4).
+
+```ts
+type TouchMode = "buttons" | "swipe";
+```
+
+#### `touchModesFor` (function)
+
+The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a gesture.
+
+```ts
+function touchModesFor(profile: InputProfile): TouchMode[];
+```
+
+#### `Translate` (type)
+
+The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
+
+```ts
+type Translate<Messages> = <K extends keyof Messages & string>(key: K, ...inputs: InputsOf<Messages[K]>) => string;
+```
+
+#### `typedBus` (function)
+
+Cast a PresentationBus instance to a typed view with game-specific fact types.
+Safe because PresentationBus stores facts dynamically by string key.
+
+```ts
+function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
+```
+
+### `import { … } from '@mcthaydt/automata-runtime/extension'`
+
+#### `defineExtension` (function)
+
+Returns its argument. It exists so the name keeps its literal type and `pnpm style` can find extensions.
+
+```ts
+function defineExtension<const N extends string>(def: ExtensionDef<N>): ExtensionDef<N>;
+```
+
+#### `ExtensionDef` (interface)
+
+One opt-in feature of a game (M1 shared contracts §2). Build it with `defineExtension`.
+
+```ts
+interface ExtensionDef<Name extends string = string> {
+  /** Kebab-case and unique. */
+  readonly name: Name;
+  /** Names of other extensions that must come first. */
+  readonly requires?: readonly string[];
+  /** `definePlugin` results; they pass the determinism checker. */
+  readonly sim?: readonly PluginDef[];
+  /** `defineContentSchema` results. */
+  readonly content?: readonly ContentSchemaDef[];
+  /** Effect services the extension provides. They cannot fail at construction. */
+  readonly layers?: Layer.Layer<any, never, any>;
+  /** Components for the named ui slots. An extension fills the slots it wants, and cannot add a slot. */
+  readonly ui?: {
+    readonly slots?: Readonly<Partial<Record<UiSlotName, UiComponent>>>;
+  };
+  /** Called at build time with the game's manifest facts. */
+  readonly manifest?: (config: GameConfig) => RukenManifestContribution;
+}
+```
+
+#### `ExtensionError` (class)
+
+A bad extension list. Thrown, not returned, so a game's Vite build fails with `message`.
+
+```ts
+class ExtensionError extends ExtensionErrorBase {
+  override get message(): string;
+}
+```
+
+#### `GameConfig` (type)
+
+The parts of Ruken's manifest an extension may read (`@ruken/manifest` `Manifest`, never copied).
+
+```ts
+type GameConfig = Pick<Manifest, "game" | "runtime" | "content">;
+```
+
+#### `ResolvedExtensions` (interface)
+
+Everything the runtime and the build tools need from a game's extension list, in one fixed order.
+
+```ts
+interface ResolvedExtensions {
+  /** Extension names: `requires` first, ties by name. */
+  readonly order: readonly string[];
+  /** In extension order; the game passes them to `createSim`. */
+  readonly simPlugins: readonly PluginDef[];
+  /** For the content Vite plugin's `schemas`. */
+  readonly contentSchemas: readonly ContentSchemaDef[];
+  /** Every extension's layers, merged in order. Each layer may use the services of those before it. */
+  readonly layer: Layer.Layer<any, never, any>;
+  /** Every extension's component for that slot, in order. */
+  slots(name: UiSlotName): readonly UiComponent[];
+  /** The contributions merged: preload lists concatenated, a repeated path keeps its first place. */
+  manifest(config: GameConfig): RukenManifestContribution;
+}
+```
+
+#### `resolveExtensions` (function)
+
+Checks the list and puts it in a fixed order. Throws `ExtensionError`, synchronously, so a game's
+Vite config fails the build with the message. At run time the build has already resolved the same
+list, so a throw there is a defect.
+
+```ts
+function resolveExtensions(defs: readonly ExtensionDef[]): ResolvedExtensions;
+```
+
+#### `RukenManifestContribution` (type)
+
+What an extension may add to ruken.toml in M1: preload files. `wants` is not a manifest field (Q7).
+
+```ts
+type RukenManifestContribution = {
+  readonly loading?: {
+    readonly preload?: readonly string[];
+  };
+};
+```
+
+### `import { … } from '@mcthaydt/automata-runtime/testing'`
+
+#### `FakeAudioContext` (interface)
+
+A recording stand-in for an `AudioContext`: what was started, stopped and automated, with a clock tests
+move by hand.
+
+```ts
+interface FakeAudioContext extends AudioContextLike {
+  state: AudioContextLike["state"];
+  currentTime: number;
+  readonly gains: FakeGainNode[];
+  readonly started: Started[];
+  readonly stopped: Array<{
+    readonly alias: string;
+    readonly when: number;
+  }>;
+  readonly resumed: number;
+  readonly closed: boolean;
+  /** Moves the clock on, ending every source whose stop time it passes. */
+  advance(seconds: number): void;
+  /** As the system does for a phone call or Siri. */
+  interrupt(): void;
+  /** Ends a source as if it played out. */
+  end(alias: string): void;
+}
+```
+
+#### `fakeAudioContext` (function)
+
+`decode` turns the bytes `decodeAudioData` receives into a buffer, or throws as the browser does for bytes that
+are not audio; by default the bytes are the alias's UTF-8 text.
+
+```ts
+function fakeAudioContext(decode?: (bytes: ArrayBuffer) => AudioBuffer): FakeAudioContext;
+```
+
+#### `fakeBuffer` (const)
+
+A decoded buffer that remembers the alias it came from, so `started` can name it.
+
+```ts
+const fakeBuffer: (alias: string, duration?: number) => AudioBuffer;
+```
+
+#### `fakeFetch` (function)
+
+Creates an in-memory fetch implementation for deterministic loading tests.
+
+```ts
+function fakeFetch(routes: Readonly<Record<string, FakeRoute>>, options?: FakeFetchOptions): FakeFetchResult;
+```
+
+#### `FakeFetchOptions` (interface)
+
+Options for `fakeFetch`: the fetch that answers urls with no route.
+
+```ts
+interface FakeFetchOptions {
+  readonly fallback?: typeof fetch;
+}
+```
+
+#### `FakeFetchResult` (interface)
+
+The fake fetch, and the urls it was asked for and saw aborted.
+
+```ts
+interface FakeFetchResult {
+  readonly fetch: typeof fetch;
+  readonly requests: string[];
+  readonly aborted: string[];
+}
+```
+
+#### `FakeGainNode` (interface)
+
+A gain node of `fakeAudioContext`, recording its value, its targets and its automation.
+
+```ts
+interface FakeGainNode {
+  readonly targets: unknown[];
+  readonly automation: Array<{
+    readonly method: string;
+    readonly value?: number;
+    readonly at: number;
+  }>;
+  readonly gain: {
+    value: number;
+  };
+}
+```
+
+#### `FakeRoute` (interface)
+
+How `fakeFetch` answers one url: a status, the body in chunks, a content length or type, a hang or a
+network error.
+
+```ts
+interface FakeRoute {
+  readonly status?: number;
+  readonly chunks?: readonly Uint8Array[];
+  readonly contentLength?: number;
+  readonly hang?: boolean;
+  readonly networkError?: boolean;
+  readonly type?: string;
+}
+```
+
+#### `ManualFrames` (interface)
+
+A frame source a test drives: `advance` moves time on and runs the frame asked for, if any.
+
+```ts
+interface ManualFrames extends FrameSource {
+  advance(ms: number): void;
+  readonly pending: boolean;
+}
+```
+
+#### `manualFrames` (function)
+
+A frame source that runs a frame only when a test advances it, starting at `startMs`.
+
+```ts
+function manualFrames(startMs?: number): ManualFrames;
+```
+
+#### `nullRenderer` (function)
+
+A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU.
+
+```ts
+function nullRenderer(log?: NullRendererEntry[], options?: NullRendererOptions): RendererFactory;
+```
+
+#### `NullRendererEntry` (type)
+
+One call `nullRenderer` recorded.
+
+```ts
+type NullRendererEntry = {
+  readonly type: "apply";
+  readonly tick: number;
+} | {
+  readonly type: "draw";
+  readonly alpha: number;
+} | {
+  readonly type: "reset";
+} | {
+  readonly type: "destroy";
+};
+```
+
+#### `NullRendererOptions` (interface)
+
+Options for `nullRenderer`: `fail` makes it fail `RendererUnavailable`.
+
+```ts
+interface NullRendererOptions {
+  readonly fail?: boolean;
+}
+```
+
+#### `RuntimeTest` (function)
+
+Test harness providing `RuntimeServices | FakeHostHandle` for screen and integration tests (spec §3.1, §8.1).
+Uses `HostingTest` behind the scenes, hooks DOM layers and geometry, starts the flow if screens exist,
+and yields all runtime services plus `FakeHostHandle`.
+
+```ts
+function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeServices | FakeHostHandle, BootError>;
+```
+
+#### `RuntimeTestOptions` (interface)
+
+What `RuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer,
+fetch and locale it uses.
+
+```ts
+interface RuntimeTestOptions {
+  readonly hosting?: HostingTestOptions | Partial<Omit<FakeHostOptions, "gameOrigin" | "gameId">>;
+  readonly screens?: readonly ScreenDef<any>[];
+  readonly content?: CompiledContentData;
+  readonly settings?: SettingsDef<unknown>;
+  /** The game's save, opened as boot opens it: its triggers and exit flush run, and `saveOf(def)` finds it. */
+  readonly saves?: SaveDef<unknown>;
+  /** Where settings fields kept on the device go; default a fresh in-memory one, so a test never meets the browser's. */
+  readonly deviceStorage?: DeviceStorage;
+  readonly frames?: ManualFrames | FrameSource;
+  readonly renderer?: GameRenderer | RendererFactory;
+  readonly fetch?: typeof fetch;
+  /** The game's languages (a Paraglide `runtime.js`); absent, the content's source language alone. */
+  readonly locale?: LocaleDef;
+  /** The browser's languages, best first; default none. */
+  readonly languages?: readonly string[];
+  /** Builds the audio context on the first gesture; defaults to `fakeAudioContext()`. */
+  readonly createAudioContext?: () => AudioContextLike;
+}
 ```
 
 ## `@mcthaydt/automata-ship`

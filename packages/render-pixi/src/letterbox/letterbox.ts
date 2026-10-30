@@ -1,11 +1,21 @@
 import { classifyFormFactor } from '@mcthaydt/automata-ui'
 import { Container, Graphics } from 'pixi.js'
 
+/**
+ * The playfield's top edge in a portrait view, in screen px: room above the field for the host's controls.
+ */
 export const PORTRAIT_FIELD_TOP = 60
+/** How much of the playfield's height each letterbox bar crops in a landscape view, by default (5%). */
 export const DEFAULT_BAR_FRACTION = 0.05
+/** The letterbox bars' default colour (FloorFifty's plum black). */
 export const DEFAULT_BAR_COLOR = 0x2e222f
+/** The default colour behind the playfield, under the world. */
 export const DEFAULT_FIELD_COLOR = 0x000000
 
+/**
+ * Where `LetterboxFrame.layout` put the playfield in the view, in screen px: its scale and rect, the gameplay
+ * and scenery areas, and whether the view is portrait.
+ */
 export interface LetterboxGeometry {
   scale: number
   x: number
@@ -18,6 +28,10 @@ export interface LetterboxGeometry {
   fieldHeight: number
 }
 
+/**
+ * A letterbox's logical playfield size and its bar and field colours (defaults `DEFAULT_BAR_FRACTION`,
+ * `DEFAULT_BAR_COLOR`, `DEFAULT_FIELD_COLOR`).
+ */
 export interface LetterboxOptions {
   readonly logicalWidth: number
   readonly logicalHeight: number
@@ -26,6 +40,10 @@ export interface LetterboxOptions {
   readonly fieldColor?: number | undefined
 }
 
+/**
+ * The playfield's logical height in a portrait view: what fits below `PORTRAIT_FIELD_TOP` and above the
+ * `band` of on-screen controls at `scale`, and never less than `baseHeight`.
+ */
 export function portraitFieldHeight(
   viewHeight: number,
   scale: number,
@@ -35,6 +53,10 @@ export function portraitFieldHeight(
   return Math.max(baseHeight, Math.floor((viewHeight - PORTRAIT_FIELD_TOP - band) / scale))
 }
 
+/**
+ * The containers a letterboxed scene is built from (backdrop, world, ui, mask and bars), laid out for a view
+ * size by `layout`.
+ */
 export class LetterboxFrame {
   readonly scene: Container = new Container()
   readonly backdrop: Container = new Container()

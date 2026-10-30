@@ -31,6 +31,7 @@ import {
 } from './input-profile.schema.js'
 import { isMenuActionLive, MENU_BINDINGS, type MenuAction } from './menu-actions.js'
 
+/** A kind of input device. */
 export type InputDevice = 'keyboard' | 'gamepad' | 'touch'
 /** The device of the last real input, and the button labels of the active pad (`generic` before any pad). */
 export interface ActiveDevice {
@@ -43,8 +44,13 @@ export interface PadInfo {
   readonly id: string
   readonly standard: boolean
 }
+/** What input drives now: `play` (the game's bindings) or `menu` (the menu actions). */
 export type InputContextNow = 'play' | 'menu'
 
+/**
+ * The input service (M4 spec §4.2): held actions from keys, pads, touch buttons and gestures under the game's
+ * profile and the player's overrides, menu edges, the active device and pads, and rebinding.
+ */
 export interface Input {
   /** The actions held now, the union over devices, in first-press order. Read once per fixed step; never copied. */
   held(): ReadonlySet<string>
@@ -93,6 +99,10 @@ const CANCEL_BUTTON = 1
 
 export const Input: Context.Tag<Input, Input> = Context.GenericTag<Input>('@mcthaydt/automata-runtime/Input')
 
+/**
+ * What the input service listens to: the window, the game's profile, the bus, and optionally the settings and
+ * the host's input mode.
+ */
 export interface InputOptions {
   readonly target: Window
   /** The game's bindings, before the player's overrides. */

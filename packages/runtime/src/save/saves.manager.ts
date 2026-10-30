@@ -7,6 +7,10 @@ import type { Save } from './save.manager.js'
 import { saveService } from './save.manager.js'
 import type { SaveDef } from './save.schema.js'
 
+/**
+ * The booted game's save as a runtime service (M5 spec §4.3), as `Settings` is for settings: its key and the
+ * `Save`, both undefined for a game without saves.
+ */
 export interface Saves {
   /** The booted save's key prefix; undefined for a game without saves. */
   readonly key: string | undefined

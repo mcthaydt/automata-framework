@@ -11,6 +11,7 @@ export const STANDARD_PAD_BUTTON_MAX = 16
  * one back path and Tab moves focus.
  */
 export const RESERVED_PAD_BUTTONS: readonly number[] = [8, 16]
+/** Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus). */
 export const RESERVED_KEYS: readonly string[] = ['Escape', 'Tab']
 
 const STICK_DIRECTIONS = [
