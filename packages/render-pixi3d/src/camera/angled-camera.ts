@@ -42,6 +42,17 @@ export interface CameraRig {
   frame(lock?: Vec3): void
   /** Advances one display frame and writes the camera. */
   update(frameSeconds: number): void
+  /**
+   * What the last `update` wrote: the eye, the point it looked at and the followed position (the player's feet), for
+   * the occluder rule. None before the first `follow`.
+   */
+  pose(): CameraPose | undefined
+}
+
+export interface CameraPose {
+  readonly eye: Vec3
+  readonly look: Vec3
+  readonly player: Vec3
 }
 
 export interface AngledCameraOptions {
@@ -92,7 +103,7 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
   let targetHeading = 0
   let headingEase: HeadingEase | undefined
   let blend: Blend | undefined
-  let last: { eye: Vec3; look: Vec3 } | undefined
+  let last: CameraPose | undefined
 
   const stepHeading = (seconds: number, reduced: boolean): void => {
     if (headingEase === undefined) return
@@ -181,10 +192,11 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
         }
       }
       // A blend starts only from a pose that framed the player, never from the frames before the first follow.
-      if (followed !== undefined) last = { eye, look }
+      if (followed !== undefined) last = { eye, look, player: followed }
       camera.fov = fov
       camera.position.set(eye.x, eye.y, eye.z)
       camera.lookAt(look)
     },
+    pose: () => last,
   }
 }
