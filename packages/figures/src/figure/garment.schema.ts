@@ -7,9 +7,10 @@
 
 import { contentRef } from '@mcthaydt/automata-content'
 import { z } from 'zod'
-import { hairStyleSchema } from '../library/hair.schema'
-import { headwearSchema, lockSchema } from '../library/headwear.schema'
+import { type HairStyle, hairStyleSchema } from '../library/hair.schema'
+import { type Headwear, headwearSchema, type Lock, lockSchema } from '../library/headwear.schema'
 import { keyedUnion } from '../library/keyed-union'
+import { refOrInline } from '../library/ref-or-inline'
 import { side } from '../library/shapes.schema'
 
 /** A garment: its kind's key names its cloth's swatch; the other fields are that kind's options. */
@@ -23,13 +24,16 @@ const flag = z.boolean().optional()
 /** `{ hair = "<swatch>", style = "<hair id>" }`, or a style written inline (locks, or a style's pieces). */
 const hair = z.strictObject({
   hair: swatch,
-  style: z.union([contentRef('figure-hair'), z.array(lockSchema).min(1), hairStyleSchema]),
+  style: refOrInline<HairStyle | readonly Lock[]>('figure-hair', {
+    object: hairStyleSchema,
+    array: z.array(lockSchema).min(1),
+  }),
   tie: optionalSwatch,
 })
 /** `{ cap = "<swatch>", style = "<headwear id>" }`, or headwear written inline. */
 const cap = z.strictObject({
   cap: swatch,
-  style: z.union([contentRef('figure-headwear'), headwearSchema]),
+  style: refOrInline<Headwear>('figure-headwear', { object: headwearSchema }),
   mark: optionalSwatch,
 })
 

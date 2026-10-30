@@ -96,6 +96,12 @@ const cross: (a: V3, b: V3) => V3;
 const DEFAULT_HEAD: Readonly<HeadShape>;
 ```
 
+### `DEFAULT_RIG_LIMITS` (const)
+
+```ts
+const DEFAULT_RIG_LIMITS: RigLimits;
+```
+
 ### `DEFAULT_SLIDERS` (const)
 
 ```ts
@@ -143,10 +149,12 @@ interface FigureDef {
     readonly genes?: Partial<Genes> | undefined;
     readonly skin: string;
     readonly gait: string | Gait;
+    readonly gaitOverrides?: Partial<Gait> | undefined;
     readonly hand: 'L' | 'R';
     readonly outfits: Readonly<Record<string, readonly Garment[]>>;
     readonly default: string;
     readonly hair?: Partial<HairDynamics> | undefined;
+    readonly hairPieces?: readonly string[] | undefined;
     readonly stand?: string | undefined;
     readonly rig?: string | undefined;
 }
@@ -263,6 +271,12 @@ interface Gait {
     readonly spring?: number | undefined;
     readonly chin?: number | undefined;
 }
+```
+
+### `gaitOverridesSchema` (const)
+
+```ts
+const gaitOverridesSchema: z.ZodType<Partial<Gait>>;
 ```
 
 ### `gaitSchema` (const)

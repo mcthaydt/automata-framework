@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { measure } from '../genes/genes'
-import { apply, length, sub, type V3 } from '../math/math'
+import { apply, dot, length, normalize, sub, type V3 } from '../math/math'
 import { KEEPER_SLIDERS, WICK_SLIDERS } from '../testing/fixture-sliders'
 import { at, fk, J, JOINTS, PARENTS, restPose, type Skeleton, skeletonFromGenes } from './rig'
 import { twoBoneIK } from './two-bone-ik'
@@ -52,6 +52,7 @@ function reachLeft(s: Skeleton, target: V3, pole: V3 = [0.5, -0.5, -0.5]): { han
 
 describe('two-bone IK (ported from The Last Light tests/procedural-figure.test.ts at 92e6704)', () => {
   it('puts the end on any reachable target, for both fixture figures', () => {
+    let reachable = 0
     for (const s of [wick, keeper]) {
       const k = s.genes.height / 1.62
       for (const target of [
@@ -61,16 +62,21 @@ describe('two-bone IK (ported from The Last Light tests/procedural-figure.test.t
       ] as V3[]) {
         const scaled: V3 = [target[0] * k, target[1] * k, target[2] * k]
         const { hand, shoulder } = reachLeft(s, scaled)
-        if (length(sub(scaled, shoulder)) < s.upperArm + s.foreArm)
-          expect(length(sub(hand, scaled))).toBeLessThan(1e-6)
+        if (length(sub(scaled, shoulder)) >= s.upperArm + s.foreArm) continue
+        reachable++
+        expect(length(sub(hand, scaled))).toBeLessThan(1e-6)
       }
     }
+    // The source's three targets, scaled to each figure: at least four of the six are in reach.
+    expect(reachable).toBeGreaterThanOrEqual(4)
   })
   it('extends fully toward a target out of reach, never stretching a bone', () => {
     const { hand, shoulder } = reachLeft(wick, [2, 2, 2])
     const reach = length(sub(hand, shoulder))
     expect(reach).toBeLessThanOrEqual(wick.upperArm + wick.foreArm)
     expect(reach).toBeGreaterThan(wick.upperArm + wick.foreArm - 1e-5)
+    // And it points at the target.
+    expect(dot(normalize(sub(hand, shoulder)), normalize(sub([2, 2, 2], shoulder)))).toBeCloseTo(1, 9)
   })
   it('stays finite when the pole is parallel to the limb or the target is on its root', () => {
     const shoulder = wick.rest[J['upperArm.L']] as V3

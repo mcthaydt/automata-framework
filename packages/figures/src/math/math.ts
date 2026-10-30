@@ -118,26 +118,39 @@ export const IDENTITY: M = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
 export function compose(rotation: Q, translation: V3): M {
   return [...qmat(rotation), ...translation]
 }
-/** One element of the row-major 3x3 product a · b. */
-const rowCol = (a: M | R3, b: M | R3, r: number, c: number): number =>
-  (a[r * 3] as number) * (b[c] as number) +
-  (a[r * 3 + 1] as number) * (b[3 + c] as number) +
-  (a[r * 3 + 2] as number) * (b[6 + c] as number)
+// mmul and mul3 run for every joint of every figure each frame (fk), so they build their tuples directly
+// instead of through loops or array helpers. Each element is the source's sum in the source's order, so the
+// results are bit-identical to FigureBuilder's loops.
 /** a · b: b first, then a. */
 export function mmul(a: M, b: M): M {
-  const rotation = [0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => rowCol(a, b, r, c)))
-  const translation = [0, 1, 2].map(
-    (r) =>
-      (a[r * 3] as number) * b[9] +
-      (a[r * 3 + 1] as number) * b[10] +
-      (a[r * 3 + 2] as number) * b[11] +
-      (a[9 + r] as number),
-  )
-  return [...rotation, ...translation] as M
+  return [
+    a[0] * b[0] + a[1] * b[3] + a[2] * b[6],
+    a[0] * b[1] + a[1] * b[4] + a[2] * b[7],
+    a[0] * b[2] + a[1] * b[5] + a[2] * b[8],
+    a[3] * b[0] + a[4] * b[3] + a[5] * b[6],
+    a[3] * b[1] + a[4] * b[4] + a[5] * b[7],
+    a[3] * b[2] + a[4] * b[5] + a[5] * b[8],
+    a[6] * b[0] + a[7] * b[3] + a[8] * b[6],
+    a[6] * b[1] + a[7] * b[4] + a[8] * b[7],
+    a[6] * b[2] + a[7] * b[5] + a[8] * b[8],
+    a[0] * b[9] + a[1] * b[10] + a[2] * b[11] + a[9],
+    a[3] * b[9] + a[4] * b[10] + a[5] * b[11] + a[10],
+    a[6] * b[9] + a[7] * b[10] + a[8] * b[11] + a[11],
+  ]
 }
 /** The row-major 3x3 product a · b of two rotations. */
 export function mul3(a: R3, b: R3): R3 {
-  return [0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => rowCol(a, b, r, c))) as R3
+  return [
+    a[0] * b[0] + a[1] * b[3] + a[2] * b[6],
+    a[0] * b[1] + a[1] * b[4] + a[2] * b[7],
+    a[0] * b[2] + a[1] * b[5] + a[2] * b[8],
+    a[3] * b[0] + a[4] * b[3] + a[5] * b[6],
+    a[3] * b[1] + a[4] * b[4] + a[5] * b[7],
+    a[3] * b[2] + a[4] * b[5] + a[5] * b[8],
+    a[6] * b[0] + a[7] * b[3] + a[8] * b[6],
+    a[6] * b[1] + a[7] * b[4] + a[8] * b[7],
+    a[6] * b[2] + a[7] * b[5] + a[8] * b[8],
+  ]
 }
 export function transpose3(m: R3): R3 {
   return [m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]]

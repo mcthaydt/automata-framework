@@ -1,7 +1,7 @@
 import { DEFAULT_PALETTE } from '@mcthaydt/automata-content'
 import { describe, expect, it } from 'vitest'
 import { gaitSchema } from './gait.schema'
-import { rigLimitsSchema } from './rig-limits.schema'
+import { DEFAULT_RIG_LIMITS, rigLimitsSchema } from './rig-limits.schema'
 import { swatchSchema } from './swatch.schema'
 import { swatchColourProblems } from './swatch-colours'
 
@@ -42,5 +42,13 @@ describe('swatchColourProblems', () => {
     expect(swatchColourProblems({ fair: { colour: 22 }, glow: { colour: 64 } }, DEFAULT_PALETTE)).toEqual([
       { swatch: 'glow', message: 'colour 64 is not in the palette Endesga 64 (0 to 63)' },
     ])
+  })
+})
+
+describe('DEFAULT_RIG_LIMITS', () => {
+  it('is a valid rig, the one a figure without `rig` gets even when the game has no figure-rig content', () => {
+    expect(rigLimitsSchema.parse(DEFAULT_RIG_LIMITS)).toEqual(DEFAULT_RIG_LIMITS)
+    expect(DEFAULT_RIG_LIMITS.knee).toEqual({ min: 0, max: 150 })
+    expect(DEFAULT_RIG_LIMITS.neck.yaw).toEqual({ min: -70, max: 70 })
   })
 })

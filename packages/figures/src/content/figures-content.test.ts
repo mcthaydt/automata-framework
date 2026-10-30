@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { DEFAULT_PALETTE, type Diagnostic } from '@mcthaydt/automata-content'
 import { describe, expect, it } from 'vitest'
+import { DEFAULT_RIG_LIMITS } from '../library/rig-limits.schema'
 import { swatchColourProblems } from '../library/swatch-colours'
 import { compileFixture, FIXTURE_ROOT } from '../testing/compile-fixture'
 import { KEEPER_SLIDERS, WICK_SLIDERS } from '../testing/fixture-sliders'
@@ -143,11 +144,14 @@ describe('F-e: a figure naming a missing library id fails content compile with i
       const diagnostics = await diagnosticsAfter(c.file, c.old, c.next)
       const text = fixtureText(c.file).replace(c.old, c.next)
       const at = where(text, `"${c.id}"`)
+      // The compiler places a reference at its key, so the column is where that key starts on the line.
+      const column = (text.split('\n')[at.line - 1]?.search(/\S/) ?? -1) + 1
       expect(diagnostics).toContainEqual(
         expect.objectContaining({
           code: 'unknownReference',
           file: c.file,
           line: at.line,
+          column,
           message: `no ${c.kind} has the id ${c.id}`,
         }),
       )
@@ -173,7 +177,12 @@ describe('impossible skeletons fail content compile, naming the slider', () => {
     const diagnostics = await diagnosticsAfter(file, 'arms = 0.3', 'arms = 3')
     const text = fixtureText(file).replace('arms = 0.3', 'arms = 3')
     expect(diagnostics).toContainEqual(
-      expect.objectContaining({ file, line: where(text, 'arms = 3').line, keyPath: 'sliders.arms' }),
+      expect.objectContaining({
+        file,
+        line: where(text, 'arms = 3').line,
+        keyPath: 'sliders.arms',
+        message: expect.stringContaining('<=2'),
+      }),
     )
   })
   it("FigureBuilder's painter fields are not swatch fields", async () => {
@@ -187,5 +196,87 @@ describe('impossible skeletons fail content compile, naming the slider', () => {
         message: 'unknown field: ramp',
       }),
     )
+  })
+})
+
+describe('inline values and unions report the inner field, not the whole union', () => {
+  const wick = 'content/figures/wick.toml'
+  const keeper = 'content/figures/keeper.toml'
+  it("an inline hood lock missing its size is reported at the lock's own key", async () => {
+    const diagnostics = await diagnosticsAfter(wick, 'r = [1.3, 0.62, 1.2]\n', '')
+    expect(diagnostics.map((d) => d.keyPath)).toEqual(['outfits.wanderer.4.style.locks.0.r'])
+  })
+  it('an inline hood lock on a misspelt place is reported at `on`', async () => {
+    const diagnostics = await diagnosticsAfter(wick, 'on = "head"', 'on = "hed"')
+    expect(diagnostics.map((d) => d.keyPath)).toEqual(['outfits.wanderer.4.style.locks.0.on'])
+  })
+  it('an inline gait missing numbers is reported at each missing field', async () => {
+    const diagnostics = await diagnosticsAfter(wick, 'gait = "bounce"', 'gait = { cycle = 0.5 }')
+    expect(diagnostics.length).toBeGreaterThan(1)
+    expect(diagnostics.map((d) => d.keyPath)).toContain('gait.speed')
+    expect(diagnostics.every((d) => d.code === 'missingField')).toBe(true)
+  })
+  it("an inline hair style written as locks reports the lock's field", async () => {
+    const diagnostics = await diagnosticsAfter(
+      keeper,
+      'style = "cropped"',
+      'style = [{ on = "head", at = [0, 0.7, 0] }]',
+    )
+    expect(diagnostics.map((d) => d.keyPath)).toEqual(['outfits.lamplighter.5.style.0.r'])
+  })
+  it("a stand's hand placed at an unknown opening is reported at `at`", async () => {
+    const diagnostics = await diagnosticsAfter(
+      'content/figure-stands/hand-on-hip.toml',
+      'R = { at = "hip"',
+      'R = { at = "hipp"',
+    )
+    expect(diagnostics.map((d) => d.keyPath)).toEqual(['hands.R.at'])
+  })
+})
+
+describe('gait overrides and hair pieces', () => {
+  it("applies a figure's gait overrides and checks their names", async () => {
+    const file = 'content/figures/wick.toml'
+    const ok = await compileFixture({
+      [file]: fixtureText(file).replace(
+        'gait = "bounce"',
+        'gait = "bounce"\ngaitOverrides = { armSwing = 0.1 }',
+      ),
+    })
+    if (!ok.ok) throw new Error(ok.message)
+    const figures = ok.content.data.figure as Record<string, { gaitOverrides?: unknown }>
+    expect(figures.wick?.gaitOverrides).toEqual({ armSwing: 0.1 })
+    const diagnostics = await diagnosticsAfter(
+      file,
+      'gait = "bounce"',
+      'gait = "bounce"\ngaitOverrides = { armswing = 0.1 }',
+    )
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({ code: 'unknownField', keyPath: 'gaitOverrides.armswing' }),
+    )
+  })
+  it('checks every hair piece id against the hair library', async () => {
+    const file = 'content/figures/keeper.toml'
+    const diagnostics = await diagnosticsAfter(
+      file,
+      'stand = "hand-in-jacket-pocket"',
+      'stand = "hand-in-jacket-pocket"\nhairPieces = ["cropped", "afro"]',
+    )
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'unknownReference',
+        keyPath: 'hairPieces.1',
+        message: 'no figure-hair has the id afro',
+      }),
+    )
+  })
+})
+
+describe("the fixture's default rig", () => {
+  it('says what DEFAULT_RIG_LIMITS says', async () => {
+    const result = await compileFixture()
+    if (!result.ok) throw new Error(result.message)
+    const rigs = result.content.data['figure-rig'] as Record<string, unknown>
+    expect(rigs.default).toEqual({ ...DEFAULT_RIG_LIMITS, about: expect.any(String) })
   })
 })
