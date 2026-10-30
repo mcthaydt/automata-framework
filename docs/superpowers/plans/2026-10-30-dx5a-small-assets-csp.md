@@ -1,0 +1,62 @@
+# DX.5a: a game's small assets under Ruken's CSP TDD plan
+
+- **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.5 (`create-game`) and §3.6 (`automata check`); [M1 content spec](../specs/2026-10-11-m1-content-design.md) §3.9 (the Vite plugin); AGENTS.md "Honor host authority" (Ruken's CSP). The examples' half of the same bug is the [examples plan](2026-10-23-examples-assets-under-csp.md) (#142).
+- **Task:** `Follow-up (found 2026-10-23) — A game's small assets hit the same CSP refusal` (02, before DX.5). Lanes content and ship. Branch `claude/dx-5a-small-assets-csp`, based on `main` (`b7ef19d9`).
+- **Status:** drafted 2026-10-30.
+- **Progress:** 0 of 6 steps.
+
+## What is wrong
+
+Vite's production build inlines any asset under `build.assetsInlineLimit` (4 kB by default) as a `data:` URL. For `new URL('./sheet.png', import.meta.url)` it writes ``new URL(`data:image/png;base64,…`, ``+import.meta.url)`` (measured on Vite 8.3.3, a 278-byte PNG). Pixi's `Assets` loader reads that URL with `fetch`, and Ruken's CSP (`compileHeaders` in `@ruken/manifest`) allows `data:` only in `img-src` and `font-src`: `connect-src` is `'self'` plus the manifest's https/wss origins, and `media-src` is `'self' blob:`. So the fetch is refused and the asset never loads. The examples runner builds with `assetsInlineLimit: 0` since #142; nothing else does.
+
+Who builds games today, measured on `b7ef19d9`:
+
+- `games/emberwick/vite.config.ts` and `games/placeholder/vite.config.ts`: their own `build` block, no content plugin.
+- The `create-game` template's `vite.config.ts` (`packages/cli/src/create-game.ts`): its own `build` block, no content plugin.
+- The content Vite plugin (`automataContent`) is used only by `examples/content/hot-reload`.
+- `examples/vite.config.ts` uses the examples runner, not the content plugin.
+
+So the brief's premise ("the content plugin sets it, so Emberwick, the placeholder and the template get it") does not hold: none of the three uses the plugin. This plan gives each of them the setting directly, gives the plugin the same default, and adds the `automata check` step, which covers a game whatever its config says.
+
+## Decisions
+
+- **The content plugin sets the default.** `automataContent()` gains a `config` hook that returns `{ build: { assetsInlineLimit: 0 } }` when the game's own config leaves `build.assetsInlineLimit` unset. A value the game sets (a number or a function) is kept: a plugin `config` result is merged over the user's config, so an unconditional value would silently override the game's own choice. M1 content spec §3.9 gains the bullet (for the Owner's veto).
+- **The games and the template set it themselves.** `games/emberwick`, `games/placeholder` and the `create-game` template's `vite.config.ts` get `assetsInlineLimit: 0` with the same one-line reason the examples runner has. They do not adopt the content plugin for it: they have no `content/` folder for it to compile. A shared "Ruken build" Vite helper would be a new abstraction no task asks for; three one-line settings are recorded here instead.
+- **The examples runner keeps its setting.** The examples do not use the content plugin (`examples/vite.config.ts`), so `assetsInlineLimit: 0` in `tooling/examples-runner/src/vite-plugin.ts` is not redundant.
+- **A new `automata check` step, `data-urls`,** after `secrets` and before `csp`, skipped with `--sim-only`. It scans the `dist/**/*.js` the `no-eval` step built, and like `secrets` it reports "not scanned: the build failed (see no-eval)" instead of scanning a stale `dist/`. Its rule, `data-url`, reports a `new URL(<data: literal>, <…import.meta.url…>)`: the form Vite writes for an inlined `new URL('./asset', import.meta.url)`, which is how AF loads assets (`examples/textures/textures-sprite.ts`, `examples/audio/audio-sound.ts`). The message names the MIME type, says why Ruken's CSP refuses it and names the fix (`build.assetsInlineLimit: 0`). A new step, not a rule inside `no-eval`, because `no-eval` is about code generation; DX spec §3.6 gains its row (for the Owner's veto).
+- **What the step does not report, and why.** A `data:` string anywhere else in a bundle is not reported: Pixi itself carries `data:image/avif`, `data:image/webp` and `data:video/webm` probes (`detectAvif`, `detectWebp`, `detectVideoAlphaMode`), and the first two load as images, which `img-src` allows; flagging every `data:` literal would fail every Pixi game. CSS `url(data:…)` loads as an image or a font, both allowed. The cost: an asset imported as `import url from './a.png'` is inlined as a bare string the scan cannot tell from Pixi's, so it is not reported; the config defaults above are what prevent that one. Noted beside the code.
+- **The CSP facts are Ruken's, not copied.** The step does not parse a policy; a cli unit test compiles Ruken's headers for a manifest and asserts the facts the message states (`connect-src` and `media-src` without `data:`, `img-src` and `font-src` with it), so a change in Ruken fails a test instead of leaving the message wrong.
+- **A real build proves the scan.** The cli tests build a fixture with an asset under 4 kB through Vite 8.3.3 (a new exact-pinned `vite` devDependency of `packages/cli`, already in `docs/versions.md`) and scan the real output: one finding with Vite's default, none with `assetsInlineLimit: 0`. A hand-written bundle string alone would not catch Vite changing its output form.
+- **Published packages.** `@mcthaydt/automata-content` gets a patch changeset. `packages/cli` (private) and the games need none. `StepName` (exported by the private cli) gains `'data-urls'`, so `pnpm api-report --update` rewrites `cli.api.md`.
+
+## Files
+
+- **Create:** `packages/cli/src/check/bundle-ast.ts` (the AST node type, `isNode`, `unwrap`, `stringValue` and `lineIndex`, moved unchanged out of `no-eval-scan.ts` so both scans share them); `packages/cli/src/check/data-url-scan.ts` + `data-url-scan.test.ts`; `games/emberwick/src/vite-config.test.ts`; `games/placeholder/src/vite-config.test.ts`; `.changeset/dx5a-small-assets-csp.md`.
+- **Modify:** `packages/content/src/vite/automata-content.ts` + `automata-content.test.ts`; `packages/cli/src/check/no-eval-scan.ts` (imports the moved helpers), `check-steps.ts`, `check-report.ts`, `run-check.ts`, `run-check.test.ts`; `packages/cli/src/create-game.ts` + `create-game.test.ts`; `packages/cli/package.json` (`vite` devDependency) and `pnpm-lock.yaml`; `games/emberwick/vite.config.ts`, `tsconfig.json`, `tsconfig.node.json`; `games/placeholder/vite.config.ts`, `tsconfig.json`, `tsconfig.node.json`; `agents/automata/skills/automata-verify/SKILL.md`; `docs/superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md` (§3.6 row); `docs/superpowers/specs/2026-10-11-m1-content-design.md` (§3.9 bullet); `tooling/api-report/reports/cli.api.md` and what `pnpm api-index` / `pnpm agent-skills` regenerate; this plan.
+- **Not modified:** `tooling/examples-runner/src/vite-plugin.ts` (kept, above); docs 00 to 03 and AGENTS.md (the integration owner's).
+
+## Interfaces
+
+- **Consumed:** Vite 8's plugin `config` hook and `build.assetsInlineLimit`; Vite 8.3.3's inlined-asset output form; `compileHeaders` from `@ruken/manifest` (test only); `Files` from `@mcthaydt/automata-node`; `oxc-parser`'s ESTree AST.
+- **Produced:** `automataContent()` returns a plugin with a `config` hook (no signature change). `scanForDataUrls(file, code): CheckFinding[]` (internal to the cli). `StepName` gains `'data-urls'`; a `--json` report gains a `data-urls` step with `data-url` findings, in the existing finding shape.
+
+## Steps
+
+- [ ] **1. Red, the content plugin.** In `automata-content.test.ts` ("vite build"): the fixture gains `tiny.png` (a few hundred bytes, under 4 kB) loaded through `new URL('./tiny.png', import.meta.url).href`; building through `automataContent()` must emit `tiny.png` as an asset file and write no `data:image/png` into the code; and a build whose config sets `build.assetsInlineLimit` keeps that value. Run `pnpm --filter @mcthaydt/automata-content exec vitest run --project node src/vite/automata-content.test.ts`: the first case fails on the inlined `data:` URL (no asset file); the second passes already.
+- [ ] **2. Green, the content plugin.** The `config` hook. Step 1's file passes; the package's unit tests pass.
+- [ ] **3. Red, the scan.** `data-url-scan.test.ts`: a real Vite build of a fixture with a 278-byte PNG and a short JSON under the default limit gives one `data-url` finding per `new URL` (rule, `dist/…` file, line and column, the MIME type and the fix in the message); the same build with `assetsInlineLimit: 0` gives none; `new URL(e, import.meta.url)` with a variable, Pixi's `t.src = \`data:video/webm;base64,…\``, a bare `data:` constant and a `new URL('data:…')` with no `import.meta.url` give none; and Ruken's compiled CSP has no `data:` in `connect-src` or `media-src`. Run `pnpm --filter @mcthaydt/automata-cli exec vitest run src/check/data-url-scan.test.ts`: it fails on the missing module.
+- [ ] **4. Green, the scan and the step.** Move the shared helpers to `bundle-ast.ts` (no-eval's tests unchanged and passing), write `scanForDataUrls`, then add the step: `run-check.test.ts` first (the step order lists gain `data-urls`, a planted inlined asset is a `data-urls` finding, and a failed build is "not scanned"), red on the missing step, then `check-steps.ts`, `check-report.ts`, `run-check.ts`. The cli's unit tests pass.
+- [ ] **5. Red then green, the games and the template.** `games/emberwick/src/vite-config.test.ts` and `games/placeholder/src/vite-config.test.ts` resolve the game's own `vite.config.ts` for `build` and expect `build.assetsInlineLimit` to be `0`; `create-game.test.ts` expects the generated `vite.config.ts` to set `assetsInlineLimit: 0`. Each fails first (`4096`/`undefined`, and the missing text), then passes with the one-line settings. Emberwick's and the placeholder's real builds then pass the new step (the step run directly on their `dist/`): no `data-url` finding, so Pixi's own `data:` probes are not reported.
+- [ ] **6. Docs, changeset and gates.** The `automata-verify` rows (its "documents rule `data-url`" case is red until the row lands), the DX spec §3.6 row, the content spec §3.9 bullet, the changeset. `pnpm format`; `TURBO_FORCE=true pnpm check`; `pnpm build`; `pnpm api-report --update`, `pnpm api-index`, `pnpm agent-skills`; `pnpm changeset status --since=origin/main`; `node tooling/release/src/check-changesets.ts`; `pnpm build:examples` and `pnpm build:demos` (the hot-reload demo builds through the plugin). Draft PR.
+
+## Gates
+
+- Selected: the focused tests per step; `TURBO_FORCE=true pnpm check`; `pnpm build`; `pnpm api-report`, `pnpm api-index`, `pnpm agent-skills`; changeset status and `check-changesets`; `pnpm build:examples`, `pnpm build:demos`; the `data-urls` step on Emberwick's and the placeholder's real `dist/`.
+- Omitted, with the reason: parity (no sim, renderer, `ui` or golden change); e2e (no page or screen changes: a config value that only changes how assets under 4 kB are emitted, and neither game has one); consumer smoke (no package build config or exports change; the packed content plugin's new hook is covered by its own build tests).
+- Pending: the Mac's CI on the PR head.
+
+## Execution log
+
+| Date | Step | Commits | Notes |
+|---|---|---|---|
+| 2026-10-30 | Plan | | |
