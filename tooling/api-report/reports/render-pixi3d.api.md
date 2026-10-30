@@ -310,7 +310,7 @@ interface SceneLight {
     release(mesh: Mesh3D): void;
     setLevels(levels: LampLevels): void;
     level(id: string): number;
-    tint(x: number, y: number, z: number, normal?: readonly [number, number, number]): [number, number, number];
+    tint(x: number, y: number, z: number, normal?: readonly [number, number, number], out?: [number, number, number]): [number, number, number];
     readonly rebakes: number;
 }
 ```
