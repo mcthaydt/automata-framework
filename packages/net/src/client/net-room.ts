@@ -255,10 +255,19 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
               makeClient(options.url)
                 .reconnect(seat.token)
                 .then((room) => adopt(room, gen, { presented: seat.token, live: () => attemptLive.live })),
-            ).pipe(Effect.timeout(Math.min(remaining, ATTEMPT_TIMEOUT_MS))),
+            ).pipe(
+              // Given up the moment the cap interrupts it, inside the timed effect: a handshake that settles in the
+              // same tick then finds itself abandoned and retires its room rather than adopting it.
+              Effect.onInterrupt(() =>
+                Effect.sync(() => {
+                  attemptLive.live = false
+                }),
+              ),
+              Effect.timeout(Math.min(remaining, ATTEMPT_TIMEOUT_MS)),
+            ),
           )
-          if (adopted._tag === 'Left') attemptLive.live = false
-          if (adopted._tag === 'Right' || !current(gen)) return
+          // A room taken by this attempt, whatever the timer said, ends the loop.
+          if (adopted._tag === 'Right' || !current(gen) || transport !== undefined) return
           const left = deadline - (yield* Clock.currentTimeMillis)
           yield* Effect.sleep(Math.max(0, Math.min(reconnectDelay(attempt, random), left)))
           attempt += 1
@@ -292,6 +301,8 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
     function retire(room: NetSdkRoom, presented: string | undefined): void {
       if (presented !== undefined && transport === undefined && tokens.read()?.token === presented) {
         tokens.write({ code: room.roomId, token: room.reconnectionToken })
+        // The SDK would read the close as a drop and retry by itself (only its minUptime stops it): switched off.
+        room.reconnection.enabled = false
         room.connection.close()
         return
       }

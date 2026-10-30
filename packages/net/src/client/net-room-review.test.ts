@@ -1,4 +1,4 @@
-import { Exit, Fiber } from 'effect'
+import { Effect, Exit, Fiber } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   GRACE_SECONDS,
@@ -9,6 +9,7 @@ import {
   storedSeat,
 } from '../test-support/net-room-harness'
 import type { FakeRoom } from '../testing/fake-colyseus'
+import type { NetSdkClient, NetSdkRoom } from './sdk'
 import { type SeatStorage, seatTokenKey } from './seat-token'
 
 // The cases the PR #13 review found (M7.5a): storage that fails, a seat stored for another server, handshakes that
@@ -204,6 +205,7 @@ describe('handshakes that never settle', () => {
     await h.settle()
     expect(late.leaves).toEqual([])
     expect(late.closes).toBe(1)
+    expect(late.reconnection.enabled).toBe(false)
     expect(JSON.parse(storage.items.get(SEAT_KEY) as string)).toMatchObject({ token: 'ABC234:rotated' })
   })
 })
@@ -223,6 +225,7 @@ describe('closing the scope mid-reconnect', () => {
     await h.settle()
     expect(late.leaves).toEqual([])
     expect(late.closes).toBe(1)
+    expect(late.reconnection.enabled).toBe(false)
     expect(JSON.parse(h.items.get(SEAT_KEY) as string)).toMatchObject({ token: 'ABC234:rotated' })
   })
 })
@@ -246,5 +249,71 @@ describe('resume', () => {
     expect(h.connection()).toBe('reconnecting')
     await h.run(Fiber.interrupt(resume))
     expect(h.connection()).toBe('offline')
+  })
+})
+
+describe('a handshake that settles at the cap', () => {
+  it('is adopted or retired, never both, and the loop ends connected with no ghost room', async () => {
+    let h!: Harness
+    const handed: FakeRoom[] = []
+    // The first reconnect answers on the TestClock exactly when its attempt's 5 s cap runs out; later ones at once.
+    const client = (): NetSdkClient => ({
+      ...h.fake.client,
+      reconnect: (token) => {
+        h.fake.calls.push({ method: 'reconnect', args: [token] })
+        const room = h.fake.room('ABC234')
+        handed.push(room)
+        const delay = handed.length === 1 ? 5_000 : 0
+        return h.run(Effect.sleep(delay).pipe(Effect.as(room as NetSdkRoom)))
+      },
+    })
+    h = await start({ client })
+    await h.run(h.room.create({ name: 'Ada' }))
+    h.fake.rooms[0]?.close(1006)
+    await h.advance(GRACE_SECONDS * 1000 + 1_000)
+    expect(h.ended()).toBeUndefined()
+    expect(h.connection()).toBe('connected')
+    // One room is the current one; every other room handed out was left or closed, none kept open as a ghost.
+    expect(handed.filter((room) => room.listening)).toHaveLength(1)
+    for (const room of handed.filter((entry) => !entry.listening))
+      expect(room.leaves.length + room.closes).toBeGreaterThan(0)
+    // Connected, the loop presents no token again.
+    const tries = h.fake.calls.length
+    await h.advance(10_000)
+    expect(h.fake.calls).toHaveLength(tries)
+  })
+})
+
+describe('an abandoned attempt whose room arrives while the next is in flight', () => {
+  it('is kept (closed without consent), and the attempts converge on its rotated token', async () => {
+    const h = await start()
+    await h.run(h.room.create({ name: 'Ada' }))
+    const first = h.fake.rooms[0] as FakeRoom
+    const presented = first.reconnectionToken
+    let arriveA!: (room: FakeRoom) => void
+    let failB!: (error: Error) => void
+    h.fake.respond('reconnect', new Promise<FakeRoom>((resolve) => (arriveA = resolve)))
+    h.fake.respond('reconnect', new Promise<FakeRoom>((_, reject) => (failB = reject)))
+    first.close(1006)
+    // Attempt A hangs to its 5 s cap; after the 250 ms backoff, attempt B is in flight.
+    await h.advance(5_300)
+    expect(h.fake.calls.filter((call) => call.method === 'reconnect')).toHaveLength(2)
+    expect(h.connection()).toBe('reconnecting')
+    // A's room arrives now: no room is current and the stored token is the one A presented, so the seat is kept.
+    const lateA = h.fake.room('ABC234')
+    lateA.reconnectionToken = 'ABC234:rotated'
+    arriveA(lateA)
+    await h.settle()
+    expect(lateA.leaves).toEqual([])
+    expect(lateA.closes).toBe(1)
+    expect(lateA.reconnection.enabled).toBe(false)
+    expect(JSON.parse(h.items.get(SEAT_KEY) as string)).toMatchObject({ token: 'ABC234:rotated' })
+    // B presented the token A used up, and fails; the next attempt presents the rotated token and connects.
+    failB(new Error('reconnection token invalid or expired.'))
+    await h.advance(1_000)
+    const tokens = h.fake.calls.filter((call) => call.method === 'reconnect').map((call) => call.args[0])
+    expect(tokens).toEqual([presented, presented, 'ABC234:rotated'])
+    expect(h.connection()).toBe('connected')
+    expect(h.ended()).toBeUndefined()
   })
 })
