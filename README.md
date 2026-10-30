@@ -12,7 +12,8 @@ Node 24.21.0 (`.nvmrc`) and pnpm 10.34.6 (`packageManager`). Git must be able to
 ```sh
 pnpm core:sync              # core from the framework at core.ref, into .core/
 pnpm install --frozen-lockfile
-pnpm check                  # lint, typecheck, unit tests
+pnpm check                  # lint, typecheck, boundaries, unit tests
+pnpm test:parity            # the packages' browser projects (Chromium, WebKit, Firefox)
 ```
 
 ## How core gets here
@@ -41,3 +42,4 @@ repository and manual runs: `pnpm core:sync`, `pnpm install --frozen-lockfile`, 
 ## Execution logs
 
 - [PRODUCT.5e, the workspace skeleton](docs/product5e-workspace.md)
+- [PRODUCT.5f, physics arrives](docs/product5f-physics.md)
