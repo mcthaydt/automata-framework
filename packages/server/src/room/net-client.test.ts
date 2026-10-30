@@ -133,6 +133,8 @@ describe('NetRoom against a real room', () => {
     expect(bo.read(bo.room.info)).toMatchObject({ code, you: 1, hostSeat: 0 })
     expect(bo.read(bo.room.info)?.seats.map((seat) => seat.name)).toEqual(['Ada', 'Bo'])
     expect(ada.read(ada.room.connection)).toBe('connected')
+    // Bytes are counted off the SDK's own socket, state patches included.
+    expect(ada.room.port.bytesIn()).toBeGreaterThan(0)
   })
 
   it('reads a full room, an unknown code and another build by their codes', async () => {
@@ -156,6 +158,10 @@ describe('NetRoom against a real room', () => {
     await ada.run(ada.room.create({ name: 'Ada' }))
     const code = ada.sdkRooms[0]?.roomId as string
     await seated(code, ada)
+    const snapshots: { tick: number; hash: string; bytes: number }[] = []
+    ada.room.port.onSnapshot((snapshot) =>
+      snapshots.push({ tick: snapshot.tick, hash: snapshot.hash, bytes: snapshot.bytes.length }),
+    )
     const ready = Effect.runPromiseExit(ada.room.setReady(true))
     await server.step(code, 1)
     expect(Exit.isSuccess(await ready)).toBe(true)

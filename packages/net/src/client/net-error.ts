@@ -38,9 +38,16 @@ const UNREACHABLE = new Set([
   'EHOSTUNREACH',
 ])
 
+/**
+ * How `fetch` says a request got no answer: a TypeError worded by the engine (Node "fetch failed", Chromium "Failed to
+ * fetch", Firefox "NetworkError when attempting to fetch resource.", WebKit "Load failed"). Any other TypeError is a
+ * bug, never the network.
+ */
+const FETCH_FAILED =
+  /^(?:fetch failed|Failed to fetch|NetworkError when attempting to fetch resource\.?|Load failed)$/
+
 function unreachable(error: unknown): boolean {
-  // `fetch` rejects with a TypeError when the request never got an answer (browsers and Node alike).
-  if (error instanceof TypeError) return true
+  if (error instanceof TypeError) return FETCH_FAILED.test(error.message)
   const code = (error as { code?: unknown } | undefined)?.code
   return typeof code === 'string' && UNREACHABLE.has(code)
 }

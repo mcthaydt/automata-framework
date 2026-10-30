@@ -32,6 +32,20 @@ describe('refusalCode', () => {
     ).toBe('OFFLINE')
   })
 
+  it.each(['Failed to fetch', 'NetworkError when attempting to fetch resource.', 'Load failed'])(
+    "reads a browser's unreachable fetch (%s) as offline",
+    (message) => {
+      expect(refusalCode(new TypeError(message))).toBe('OFFLINE')
+    },
+  )
+
+  it('never reads a bug as offline', () => {
+    // A TypeError from our own code is not the network: the player is not told to check their connection.
+    expect(refusalCode(new TypeError("Cannot read properties of undefined (reading 'roomId')"))).toBe(
+      'REFUSED',
+    )
+  })
+
   it('reads anything else as a refusal', () => {
     expect(refusalCode(new Error('something odd'))).toBe('REFUSED')
     expect(refusalCode('a string')).toBe('REFUSED')
