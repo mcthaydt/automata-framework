@@ -70,6 +70,16 @@ test.describe('browser gates catch their fixtures', () => {
     expect(await deadButtons(page)).toEqual(['button "Does nothing" changed nothing'])
   })
 
+  // WebKit 26 lays out a closed <details>'s content and Playwright then counts its buttons visible, though a reader
+  // cannot see or reach them; a click on one waits for a scroll that never brings it into view (the /examples source
+  // tree's collapsed folders). The gate presses the buttons a reader can reach.
+  test('a button inside a closed <details> is not pressed, and the gate finishes', async ({ page }) => {
+    test.setTimeout(60_000)
+    await page.goto(ORIGIN + '/closed-details.html')
+    expect(await deadButtons(page)).toEqual([])
+    await expect(page.getByRole('button', { name: 'Opened' })).toHaveCount(1)
+  })
+
   test('an axe violation', async ({ page }) => {
     await page.goto(ORIGIN + '/axe.html')
     expect((await axeViolations(page)).join('\n')).toContain('button-name')

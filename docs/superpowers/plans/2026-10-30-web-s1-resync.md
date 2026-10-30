@@ -33,12 +33,12 @@ docs, stack, evidence) match the commit `framework.ref` names, with the site's c
 
 ## Steps
 
-1. [ ] Red: `pnpm test` against framework `main`: `api-contract` and `example-sources` fail (recorded below).
-2. [ ] `RAW_DEMOS` and `prepareDemoHosting`; the fixtures' tests move to remaining demos (each fails first where it
+1. [x] Red: `pnpm test` against framework `main`: `api-contract` and `example-sources` fail (recorded below).
+2. [x] `RAW_DEMOS` and `prepareDemoHosting`; the fixtures' tests move to remaining demos (each fails first where it
    named a removed demo, then passes).
-3. [ ] Build the four bundles in the framework checkout, then `pnpm sync` and `pnpm sync:stack`; review the diff.
-4. [ ] Copy that names removed demos.
-5. [ ] Gates: `pnpm check`, `pnpm test`, `pnpm build`, `pnpm check:site`, the browser suite in Chromium and WebKit;
+3. [x] Build the four bundles in the framework checkout, then `pnpm sync` and `pnpm sync:stack`; review the diff.
+4. [x] Copy that names removed demos.
+5. [x] Gates: `pnpm check`, `pnpm test`, `pnpm build`, `pnpm check:site`, the browser suite in Chromium and WebKit;
    Lighthouse runs on the Mac CI.
 
 ## Execution log
@@ -46,3 +46,17 @@ docs, stack, evidence) match the commit `framework.ref` names, with the site's c
 - **Step 1.** Against framework `main` `cc5185f`: `pnpm test` 46 files, 2 failed (`api-contract` "publishes the exact
   current project files", `example-sources` "publishes the targets of every relative TypeScript import"), 288 passed,
   1 expected fail.
+- **Steps 2 to 4.** The fixture tests moved to remaining demos; `pnpm sync` (demos and docs from `cc5185f`) and
+  `pnpm sync:stack` rewrote the data, bundles, `llms-full.txt` and `framework.ref`. `pnpm test` 46 files, 290 passed,
+  1 expected fail; `pnpm check` 0 errors; `pnpm build` (the workshop proof re-ran); `pnpm check:site` 28 pages.
+- **Step 5, browser suite.** Locally (Chromium 153 headless shell, WebKit 26.6, two workers): 455 passed, 2 skipped,
+  1 failed: `[webkit] desktop /examples: every visible button does something` timed out after 5 min clicking "Open
+  games/emberwick/src/assets.d.ts". CI on the Mac failed the same case, plus `[chromium] /cheatsheet` ("Copy Time
+  signature changed nothing", the gate's 1.5 s window on a loaded runner; it passes here). Cause, measured: the
+  gallery now opens on `bodies-2d`, whose source tree has Emberwick's folders; the button sits in a closed
+  `emberwick` folder that holds an open `src` folder. WebKit 26 still lays that content out, so Playwright counts the
+  button visible, but `checkVisibility()` is false and it can never scroll into view. A gate self-test with that
+  structure (`tests/e2e/fixtures/closed-details.html`) failed first in WebKit (60 s timeout) and passed in Chromium;
+  the gate now skips a button whose `checkVisibility()` is false (a reader cannot reach it either). After: the gate
+  self-tests 24 passed; `/examples` and `/cheatsheet` every-button cases, both engines and both sizes, 8 passed.
+- **Not done here:** `pnpm sync:evidence` needs `gh` auth, which this container lacks (a Mac step).
