@@ -10,6 +10,16 @@
 const add: (a: V3, b: V3) => V3;
 ```
 
+### `AimTarget` (interface)
+
+```ts
+interface AimTarget {
+    readonly at: Vec3;
+    readonly part: 'head' | 'chest' | 'handL' | 'handR';
+    readonly weight?: number | undefined;
+}
+```
+
 ### `apply` (function)
 
 ```ts
@@ -108,10 +118,33 @@ const DEFAULT_SLIDERS: Readonly<Sliders>;
 const dot: (a: V3, b: V3) => number;
 ```
 
+### `EffectorId` (type)
+
+```ts
+type EffectorId = 'footL' | 'footR' | 'handL' | 'handR' | 'pelvis' | 'chest' | 'head';
+```
+
+### `EffectorTarget` (interface)
+
+```ts
+interface EffectorTarget {
+    readonly pos?: Vec3 | undefined;
+    readonly rot?: Vec3 | undefined;
+    readonly space?: Space | undefined;
+    readonly weight?: number | undefined;
+}
+```
+
 ### `euler` (function)
 
 ```ts
 function euler(pitch: number, yaw: number, roll: number): Q;
+```
+
+### `eulerOf` (function)
+
+```ts
+function eulerOf(q: Q): [number, number, number];
 ```
 
 ### `FIGURE_CONTENT` (const)
@@ -408,6 +441,12 @@ interface Headwear {
 const headwearSchema: z.ZodType<Headwear>;
 ```
 
+### `hingeFlexion` (function)
+
+```ts
+function hingeFlexion(q: Q, joint: 'knee' | 'elbow'): number;
+```
+
 ### `Hold` (interface)
 
 ```ts
@@ -479,6 +518,30 @@ const J: Readonly<Record<Joint, number>>;
 type Joint = (typeof JOINTS)[number];
 ```
 
+### `JointLimit` (type)
+
+```ts
+type JointLimit = {
+    readonly kind: 'hinge';
+    readonly joint: 'knee' | 'elbow';
+    readonly range: Range;
+} | {
+    readonly kind: 'cone';
+    readonly cone: number;
+} | {
+    readonly kind: 'euler';
+    readonly pitch?: Range | undefined;
+    readonly yaw?: Range | undefined;
+    readonly roll?: Range | undefined;
+};
+```
+
+### `jointLimits` (function)
+
+```ts
+function jointLimits(limits: RigLimits): ReadonlyMap<number, JointLimit>;
+```
+
 ### `JOINTS` (const)
 
 ```ts
@@ -501,6 +564,18 @@ const lerp: (a: number, b: number, k: number) => number;
 
 ```ts
 const lerp3: (a: V3, b: V3, k: number) => V3;
+```
+
+### `LimbId` (type)
+
+```ts
+type LimbId = 'footL' | 'footR' | 'handL' | 'handR';
+```
+
+### `limitExcess` (function)
+
+```ts
+function limitExcess(q: Q, limit: JointLimit | undefined): number;
 ```
 
 ### `Lock` (interface)
@@ -620,6 +695,21 @@ type Piece = {
 };
 ```
 
+### `PoleId` (type)
+
+```ts
+type PoleId = 'kneeL' | 'kneeR' | 'elbowL' | 'elbowR';
+```
+
+### `PoleTarget` (interface)
+
+```ts
+interface PoleTarget {
+    readonly dir: Vec3;
+    readonly space?: Space | undefined;
+}
+```
+
 ### `Pose` (interface)
 
 ```ts
@@ -673,6 +763,15 @@ type R3 = [number, number, number, number, number, number, number, number, numbe
 interface Range {
     readonly min: number;
     readonly max: number;
+}
+```
+
+### `Reach` (interface)
+
+```ts
+interface Reach {
+    readonly ok: boolean;
+    readonly error: number;
 }
 ```
 
@@ -836,6 +935,37 @@ interface Sliders {
 const smooth: (k: number) => number;
 ```
 
+### `solve` (function)
+
+```ts
+function solve(skeleton: Skeleton, base: Pose, targets: Targets, limits: RigLimits): Solved;
+```
+
+### `Solved` (interface)
+
+```ts
+interface Solved {
+    readonly pose: Pose;
+    readonly world: M[];
+    readonly report: SolveReport;
+}
+```
+
+### `SolveReport` (interface)
+
+```ts
+interface SolveReport {
+    readonly reached: Readonly<Partial<Record<EffectorId | 'aim', Reach>>>;
+    readonly limited: readonly Joint[];
+}
+```
+
+### `Space` (type)
+
+```ts
+type Space = 'root' | 'chest';
+```
+
 ### `Stand` (interface)
 
 ```ts
@@ -916,6 +1046,23 @@ function swatchColourProblems(swatches: Readonly<Record<string, Pick<Swatch, 'co
 const swatchSchema: z.ZodType<Swatch>;
 ```
 
+### `swingAngle` (function)
+
+```ts
+function swingAngle(q: Q): number;
+```
+
+### `Targets` (interface)
+
+```ts
+interface Targets {
+    readonly effectors: Readonly<Partial<Record<EffectorId, EffectorTarget>>>;
+    readonly poles: Readonly<Partial<Record<PoleId, PoleTarget>>>;
+    readonly aim: readonly AimTarget[];
+    readonly pins: Readonly<Partial<Record<LimbId, Vec3>>>;
+}
+```
+
 ### `transpose3` (function)
 
 ```ts
@@ -932,4 +1079,10 @@ function twoBoneIK(s: Skeleton, pose: Pose, world: readonly M[], a: number, b: n
 
 ```ts
 type V3 = [number, number, number];
+```
+
+### `Vec3` (type)
+
+```ts
+type Vec3 = readonly [number, number, number];
 ```

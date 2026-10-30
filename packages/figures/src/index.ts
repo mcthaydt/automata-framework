@@ -1,6 +1,7 @@
 // @mcthaydt/automata-figures: procedural characters (M3 spec §4.4), renderer-free. Part 1 (M3.5a): the math,
 // the shared rig and its two-bone IK, the gene sliders, the figure and library content kinds, and the
 // extension that registers them. Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
+// Part 5 (M3.6a): `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits.
 
 export {
   FIGURE_CONTENT,
@@ -56,3 +57,19 @@ export {
   skeletonFromGenes,
 } from './rig/rig'
 export { twoBoneIK } from './rig/two-bone-ik'
+export { hingeFlexion, type JointLimit, jointLimits, limitExcess, swingAngle } from './solve/limits'
+export { eulerOf } from './solve/rotation'
+export { type Solved, solve } from './solve/solve'
+export type {
+  AimTarget,
+  EffectorId,
+  EffectorTarget,
+  LimbId,
+  PoleId,
+  PoleTarget,
+  Reach,
+  SolveReport,
+  Space,
+  Targets,
+  Vec3,
+} from './solve/targets'

@@ -4,7 +4,7 @@
 // base pose by the handle's weight; each returns the local rotations it wanted, so the report can say how far a
 // limit kept them.
 
-import { add, lerp3, type Q, sub } from '../math/math'
+import { add, lerp3, type Q, sub, type V3 } from '../math/math'
 import { at, J, type Pose, type Skeleton } from '../rig/rig'
 import { CHEST_SHARES } from './limits'
 import { eulerDegrees, slerp } from './rotation'
@@ -42,7 +42,7 @@ export function placePelvis(s: Skeleton, pose: Pose, effector: EffectorTarget, k
 }
 
 /** The pelvis joint's position in root space as the pose has it, in metres. */
-export const pelvisInRoot = (s: Skeleton, pose: Pose): Vec3 =>
+export const pelvisInRoot = (s: Skeleton, pose: Pose): V3 =>
   add(at(s.offset, J.pelvis), at(pose.shift, J.pelvis))
 
 export function turnChest(pose: Pose, effector: EffectorTarget): Map<number, Q> {
