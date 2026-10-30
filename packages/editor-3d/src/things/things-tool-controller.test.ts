@@ -123,12 +123,23 @@ describe('the palette', () => {
 describe('picking a definition', () => {
   it('makes it the one a tap places, puts the view on its sub-layer and switches the sub-layer on', () => {
     const { editor, tool } = setup()
-    editor.view.set({ hidden: ['things:crate', 'things', 'walls'] })
+    editor.view.set({ hidden: ['things:crate', 'walls'] })
     expect(tool.pick('crate')).toBeUndefined()
     expect(tool.view.active).toBe('crate')
     expect(editor.view.state.layer).toBe('things:crate')
     expect(editor.view.state.hidden).toEqual(['walls'])
     expect(tool.view.palette[1]?.hidden).toBe(false)
+  })
+
+  it('shows only its own sub-layer when the whole Things layer was hidden: the others stay hidden', () => {
+    const { editor, tool } = setup()
+    editor.view.set({ hidden: ['things', 'walls'] })
+    tool.pick('crate')
+    expect(editor.view.state.hidden).toEqual(['walls', 'things:spawn'])
+    expect(tool.view.palette.map((entry) => [entry.def, entry.hidden])).toEqual([
+      ['spawn', true],
+      ['crate', false],
+    ])
   })
 
   it('keeps a lock: a locked layer stays drawn and not hit', () => {
@@ -142,6 +153,7 @@ describe('picking a definition', () => {
     const { editor, tool } = setup()
     tool.pick('crate')
     expect(tool.pick('barrel')).toBe('no definition barrel')
+    expect(tool.view.refusal).toBe('no definition barrel')
     expect(tool.view.active).toBe('crate')
     expect(editor.view.state.layer).toBe('things:crate')
   })
@@ -343,6 +355,21 @@ describe('placing', () => {
     expect(tool.view.refusal).toBeUndefined()
   })
 
+  it('rounds to the centimetre with Shift, off the half-metre grid', () => {
+    const { editor, tool, at } = setup()
+    tool.pick('crate')
+    tool.tap(at(3.271, 4.118, 'mouse', { shift: true }))
+    expect(thingsOf(editor)[2]).toBe('crate/crate2@3.27,4.12')
+  })
+
+  it('places a new thing over a thing on a locked sub-layer: that one is not hit', () => {
+    const { editor, tool, at } = setup()
+    editor.view.toggle('locked', 'things:spawn')
+    tool.pick('crate')
+    tool.tap(at(1, 1))
+    expect(thingsOf(editor)).toEqual(['spawn/spawn@1,1', 'crate/crate1@11,2', 'crate/crate2@1,1'])
+  })
+
   it('is refused on a hidden or a locked sub-layer', () => {
     const { editor, tool, at } = setup()
     tool.pick('crate')
@@ -508,12 +535,41 @@ describe('moving by drag', () => {
     expect(thingsOf(editor)[1]).toBe('crate/crate1@11,2')
   })
 
-  it('does not start while another step is open', () => {
+  it("does not start while another step is open, and says the history's sentence", () => {
     const { editor, tool, at } = setup()
     const other = editor.begin('Something else')
     tool.dragStart(at(11, 2), at(10, 2))
     expect(tool.view.gesture).toBe('idle')
+    expect(tool.view.refusal).toBeDefined()
     other.cancel()
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@11,2')
+  })
+
+  it('clears the sentence of a refused run when an undo ends the drag', () => {
+    const { editor, tool, at } = setup()
+    tool.pick('crate')
+    tool.tap(at(3, 3))
+    tool.dragStart(at(11, 2), at(16, 2))
+    expect(tool.view.refusal).toBe('entity crate1 is outside every sector')
+    editor.history.undo()
+    expect(tool.view.gesture).toBe('idle')
+    expect(tool.view.refusal).toBeUndefined()
+  })
+
+  it('ends the drag, keeping nothing, when its sub-layer is hidden or locked during it', () => {
+    for (const list of ['hidden', 'locked'] as const) {
+      const { editor, tool, at } = setup()
+      tool.dragStart(at(11, 2), at(10, 2))
+      expect(thingsOf(editor)[1]).toBe('crate/crate1@10,2')
+      editor.view.toggle(list, 'things:crate')
+      expect(tool.view.gesture, list).toBe('idle')
+      expect(tool.view.refusal, list).toBe(`the crate layer is ${list}`)
+      expect(thingsOf(editor)[1], list).toBe('crate/crate1@11,2')
+      tool.drag(at(9, 2))
+      tool.dragEnd(at(9, 2), false)
+      expect(thingsOf(editor)[1], list).toBe('crate/crate1@11,2')
+      expect(editor.history.canUndo, list).toBe(false)
+    }
   })
 
   it('keeps the height of a thing that floats', () => {

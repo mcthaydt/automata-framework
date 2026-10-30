@@ -12,6 +12,7 @@
 import type { Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
 import type { FieldValue, FieldValues } from '@mcthaydt/automata-editor-kit/fields'
 import type { PlanPointer } from '../app/plan-controller'
+import { lowestFreeId } from '../app/sector-id'
 import type { ThingShape } from '../entities/thing-def.schema'
 import type { EntityKit } from '../entities/things'
 import type { Point } from '../format/sector.schema'
@@ -20,9 +21,9 @@ import { parseSelection } from '../model/selection-ref'
 import { addThing, moveThing, removeThing, setThingField } from '../model/thing-edits'
 import { thingLayer } from '../model/view-store'
 import { PICK_RADIUS, type PickOptions } from '../view/plan/plan-pick'
-import { stepOf } from '../view/plan/plan-snap'
-import { planViewport, snapValue, toWorld } from '../view/plan/plan-viewport'
-import { pickThing, type ThingHit } from '../view/plan/thing-pick'
+import { gridRounded } from '../view/plan/plan-snap'
+import { planViewport, toWorld } from '../view/plan/plan-viewport'
+import { isThingLayerOff, pickThing, type ThingHit } from '../view/plan/thing-pick'
 
 /** A definition as the palette shows it, with its sub-layer and whether that is hidden or locked. */
 export interface PaletteEntry {
@@ -113,11 +114,6 @@ interface Move<D> {
   readonly press: Point
 }
 
-/** `<def>N`, the lowest N from 1 that is not taken. */
-function nextId(def: string, taken: readonly string[]): string {
-  for (let n = 1; ; n++) if (!taken.includes(`${def}${n}`)) return `${def}${n}`
-}
-
 export function createThingsTool<D>(
   editor: LevelEditor<D>,
   canvas: Size,
@@ -141,10 +137,8 @@ export function createThingsTool<D>(
   const currentViewport = (): Viewport2D => planViewport(editor.view.state.camera, size)
 
   /** A distance in metres rounded to the grid: the fine data step with Shift, not at all with Alt. */
-  const rounded = (value: number, at: PlanPointer): number => {
-    const { step } = stepOf({ grid: editor.view.state.grid, shiftKey: at.shift })
-    return snapValue(value, at.alt === true ? 0 : step)
-  }
+  const rounded = (value: number, at: PlanPointer): number =>
+    gridRounded(value, { grid: editor.view.state.grid, shiftKey: at.shift, altKey: at.alt })
 
   const pickOptions = (at: PlanPointer): PickOptions => {
     const { hidden, locked } = editor.view.state
@@ -152,10 +146,8 @@ export function createThingsTool<D>(
   }
 
   /** Whether the sub-layer of `def`, or the whole Things layer, is in the view's list. */
-  const listed = (list: 'hidden' | 'locked', def: string): boolean => {
-    const layers = editor.view.state[list]
-    return layers.includes('things') || layers.includes(thingLayer(def))
-  }
+  const listed = (list: 'hidden' | 'locked', def: string): boolean =>
+    isThingLayerOff({ [list]: editor.view.state[list] }, def)
 
   /** The sentence a placement on the sub-layer of `def` is refused with, when it is off. */
   const layerProblem = (def: string): string | undefined => {
@@ -182,7 +174,7 @@ export function createThingsTool<D>(
 
   const idFor = (def: string): string => {
     const taken = editor.profile.things.takenIds(editor.level, def)
-    return (options.id ?? nextId)(def, taken)
+    return options.id === undefined ? lowestFreeId(taken, def) : options.id(def, taken)
   }
 
   const additionAt = (def: string, values: FieldValues, at: PlanPointer) => {
@@ -210,8 +202,17 @@ export function createThingsTool<D>(
   }
 
   const publish = (): void => {
-    // An undo has closed the drag's session: nothing of it is left to follow.
-    if (move?.session.open === false) move = undefined
+    // An undo has closed the drag's session: nothing of it is left to follow, and its sentence goes with it.
+    if (move?.session.open === false) {
+      move = undefined
+      refusal = undefined
+    }
+    // A sub-layer hidden or locked mid-drag is not to be changed: the drag ends and keeps nothing.
+    const off = move === undefined ? undefined : layerProblem(move.def)
+    if (move !== undefined && off !== undefined) {
+      endMove(move, false)
+      refusal = off
+    }
     const palette = paletteOf()
     // A definition the level no longer has cannot be placed.
     if (active !== undefined && !palette.some((entry) => entry.def === active?.def)) active = undefined
@@ -303,13 +304,19 @@ export function createThingsTool<D>(
         publish()
         return undefined
       }
-      if (!kit().definitions.some((definition) => definition.id === def)) return `no definition ${def}`
+      const definitions = kit().definitions.map((definition) => definition.id)
+      if (!definitions.includes(def)) return answer(`no definition ${def}`)
       active = { def, values }
       refusal = undefined
       const layer = thingLayer(def)
       const { hidden } = editor.view.state
+      // Showing the whole Things layer to show one sub-layer would show the others too: they stay hidden on their own.
+      const others = hidden.includes('things')
+        ? definitions.filter((each) => each !== def).map(thingLayer)
+        : []
+      const shown = hidden.filter((each) => each !== layer && each !== 'things')
       // The view store tells `publish`; when nothing about the view changed, it is told here.
-      editor.view.set({ layer, hidden: hidden.filter((each) => each !== layer && each !== 'things') })
+      editor.view.set({ layer, hidden: [...shown, ...others.filter((each) => !shown.includes(each))] })
       publish()
       return undefined
     },
@@ -344,7 +351,11 @@ export function createThingsTool<D>(
       const thing = kit().things.find((each) => each.def === hit?.def && each.id === hit?.id)
       if (hit !== undefined && thing !== undefined) {
         const session = editor.begin(`Move ${hit.def} ${hit.id}`)
-        if (session.open) {
+        // A closed session refuses its runs with the history's sentence, which says why the drag cannot start.
+        if (!session.open) {
+          const blocked = session.run(moveThing({ def: hit.def, id: hit.id, x: thing.x, z: thing.z }))
+          refusal = blocked.ok ? undefined : blocked.reason
+        } else {
           editor.selection.set([hit.selection])
           move = {
             session,
