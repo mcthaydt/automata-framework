@@ -110,13 +110,13 @@ describe('defineGame defaults (DX spec §3.1)', () => {
     ])
   })
 
-  it('preloads the given files on the entry screen, with byte progress and the stall rule (M3.4a)', () => {
-    const game = defineGame({ ...spec, preload: ['models/crate.glb', 'models/desk.bin'] })
-    expect(game.content.data.assets).toEqual({
-      screens: { title: { files: ['models/crate.glb', 'models/desk.bin'] } },
-    })
-    expect(game.content.hash).toBe(defaultContent(['models/crate.glb', 'models/desk.bin']).hash)
-    expect(game.content.hash).not.toBe(defaultContent().hash)
+  it('hands preload to the runtime outside the content, so content.hash stays the same (M3.4a, review of #241)', () => {
+    const files = ['http://localhost:5173/assets/crate-1a2b.glb', 'models/desk.bin']
+    const game = defineGame({ ...spec, preload: files })
+    expect(game.preload).toEqual(files)
+    expect(game.content).toEqual(defaultContent())
+    const own = { data: defaultContent().data, hash: defaultContent().hash }
+    expect(defineGame({ ...spec, content: own, preload: files }).content).toEqual(own)
   })
 
   it('finds its root in #game, unless given one', () => {
@@ -229,10 +229,9 @@ describe('defineGame validation (DX spec §5 step 1, §6)', () => {
     )
   })
 
-  it('refuses preload with content of its own, whose assets.toml lists the files (M3.4a)', () => {
-    const own = { data: defaultContent().data, hash: defaultContent().hash }
-    expect(problemsOf({ ...spec, content: own, preload: ['a.glb'] })).toContain(
-      'preload: a game with content lists its files in content/assets.toml',
+  it('needs createRenderer to be a function', () => {
+    expect(problemsOf({ ...spec, createRenderer: 'pixi3d' as never })).toContain(
+      'createRenderer: is not a function',
     )
   })
 

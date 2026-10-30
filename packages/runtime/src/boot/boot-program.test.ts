@@ -805,6 +805,53 @@ describe('bootProgram', () => {
       yield* Scope.close(scope, Exit.void)
     }).pipe(Effect.runPromise))
 
+  // Review of #241: files a game preloads outside its content (a 3D game's models) load before the renderer, with
+  // the content's own files, and stay out of content.hash so a new origin or a rebuilt asset never changes it.
+  it('loads game.preload with the preload screens, before the renderer, outside content.hash', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      const frames = manualFrames()
+      const { screens } = makeTestScreens()
+      const requestedUrls: string[] = []
+      const mockFetch = fakeFetch({
+        '/assets/title.png': { chunks: [new Uint8Array([1])] },
+        'http://cdn.test/models/crate.glb': { chunks: [new Uint8Array([7, 7])] },
+      })
+      const trackingFetch: typeof fetch = (input, init) => {
+        requestedUrls.push(String(input))
+        return mockFetch.fetch(input, init)
+      }
+      let seenByRenderer: Blob | undefined
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        preload: ['http://cdn.test/models/crate.glb'],
+        screens,
+        renderer: (target) =>
+          Effect.sync(() => {
+            seenByRenderer = target.assets.get('http://cdn.test/models/crate.glb')
+            return { apply: () => {}, draw: () => {}, reset: () => {} }
+          }),
+        seams: {
+          fetch: trackingFetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          sdkEnv: () =>
+            createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock }).gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+
+      expect(requestedUrls.sort()).toEqual(['/assets/title.png', 'http://cdn.test/models/crate.glb'])
+      expect(seenByRenderer?.size).toBe(2)
+      yield* Scope.close(scope, Exit.void)
+    }).pipe(Effect.runPromise))
+
   it('menu handler: after ready, host.bridge.openGameMenu() reaches current screen openMenu', () =>
     Effect.gen(function* () {
       const scope = yield* Scope.make()

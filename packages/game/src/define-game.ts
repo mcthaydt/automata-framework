@@ -118,9 +118,9 @@ export interface GameSpec<S = never, D = unknown> {
    */
   readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory
   /**
-   * Files the runtime fetches before the first screen, with byte progress and the 30 s stall rule (M1.5), for a
-   * game without `content/`: model files a 3D view draws, for example. A game with content lists them in
-   * `content/assets.toml` instead.
+   * Files the runtime fetches with the preload screens, with byte progress and the 30 s stall rule (M1.5), before
+   * the renderer starts: model files a 3D view draws, for example. They stay out of the content and its hash, so a
+   * new origin or a rebuilt file never changes the hash a save is stamped with.
    */
   readonly preload?: readonly string[]
   readonly copy?: GameDefinition['copy']
@@ -179,8 +179,8 @@ function problemsOf<S, D>(spec: GameSpec<S, D>): string[] {
   if (spec.draw !== undefined && typeof spec.draw !== 'function') problems.push('draw: is not a function')
   else if (spec.draw !== undefined && spec.screens !== undefined)
     problems.push('draw: needs the default screens (custom screens do not hand their sim to the draw layer)')
-  if (spec.content !== undefined && spec.preload !== undefined)
-    problems.push('preload: a game with content lists its files in content/assets.toml')
+  if (spec.createRenderer !== undefined && typeof spec.createRenderer !== 'function')
+    problems.push('createRenderer: is not a function')
   if (spec.content !== undefined && !HASH.test(spec.content.hash))
     problems.push(`content.hash: "${spec.content.hash}" is not 16 hex digits`)
   return problems
@@ -254,9 +254,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     ...(spec.content?.sim === undefined ? {} : { content: spec.content.sim }),
   }
   const content =
-    spec.content === undefined
-      ? defaultContent(spec.preload)
-      : { data: spec.content.data, hash: spec.content.hash }
+    spec.content === undefined ? defaultContent() : { data: spec.content.data, hash: spec.content.hash }
   const layer = spec.draw === undefined ? undefined : createDrawLayer(spec.draw, spec.size)
   // The stage, once the renderer has made it: the default screens give it the player's quality (M4.4).
   let stage: PixiStage | undefined
@@ -295,6 +293,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     // They are not the game's `S`: only the default screens read them, through `Settings`.
     settings: spec.settings ?? (CORE_SETTINGS as unknown as SettingsDef<S>),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
+    ...(spec.preload === undefined ? {} : { preload: spec.preload }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),
