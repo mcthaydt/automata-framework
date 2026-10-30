@@ -1,15 +1,47 @@
+import { mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { svelteTesting } from '@testing-library/svelte/vite'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
+import { removeProfiles } from './scripts/remove-profiles.ts'
 
 // Two projects (editor kit spec §8), the same split as @mcthaydt/automata-ui:
 // - unit: pure rules and component behavior in jsdom, through Testing Library (states and behavior, no snapshots).
-// - layout: the shell's layout contract with production CSS in a real browser at the sizes in spec §7.
-//   WebKit and Firefox join in EDK.6; until then they run through a test-request on the Orchestrator bus.
+// - layout: the shell, widget and storage contracts with production CSS in real Chromium, WebKit and Firefox at the
+//   sizes in spec §7 (EDK.6a).
+//
+// Chromium and WebKit run in a persistent profile, because each refuses part of the real storage contract in
+// Playwright's default context, which is ephemeral (off the record, like a private window):
+// - WebKit rejects `navigator.storage.getDirectory()` with an UnknownError, so the workspace falls back to memory
+//   (EK-f) and the real-OPFS contract never runs.
+// - Chromium 153 crashes (SIGTRAP) reading a directory handle back from IndexedDB, the folder vault's `load`.
+//   Chromium 141, on which EDK.5 landed, did not.
+// Vitest ignores a persistent context when files run in parallel, so these two run their files one at a time. The
+// profiles live in one new temporary directory per run, removed by `vitest.global-teardown.ts`, so no run sees
+// another's files or databases. WebKit also runs once in the ephemeral context, on the private-window test alone,
+// so EK-f's fallback is exercised in a real engine.
+const PRIVATE_WINDOW = 'src/storage/private-window.layout.test.ts'
+process.env.AF_EDITOR_KIT_PROFILES ??= mkdtempSync(join(tmpdir(), 'af-editor-kit-layout-'))
+const profiles = process.env.AF_EDITOR_KIT_PROFILES
+// Whatever loads this file (a unit run, knip) leaves no directory behind: removed again when the process exits,
+// after every browser is gone.
+process.once('exit', () => removeProfiles(profiles))
+
+function persistentProfile(browser: 'chromium' | 'webkit') {
+  return {
+    browser,
+    provider: playwright({ persistentContext: join(profiles, browser) }),
+    fileParallelism: false,
+    exclude: [PRIVATE_WINDOW],
+  }
+}
+
 export default defineConfig({
   plugins: [svelte(), svelteTesting()],
   test: {
+    globalSetup: ['./vitest.global-teardown.ts'],
     projects: [
       {
         extends: true,
@@ -33,7 +65,12 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
-            instances: [{ browser: 'chromium' }],
+            instances: [
+              persistentProfile('chromium'),
+              persistentProfile('webkit'),
+              { browser: 'firefox', exclude: [PRIVATE_WINDOW] },
+              { browser: 'webkit', name: 'layout (webkit, private window)', include: [PRIVATE_WINDOW] },
+            ],
           },
         },
       },

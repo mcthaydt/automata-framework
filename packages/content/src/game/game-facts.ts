@@ -34,14 +34,35 @@ export const gameSchema: z.ZodType<GameSource, unknown> = z.strictObject({
 
 /**
  * What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
- * folder).
+ * folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and
+ * `fonts.toml`. A preloaded screen's atlas pages and font subsets join the preload list (M5.6F.2).
  */
 export interface AssetsSource {
-  readonly screens: Readonly<Record<string, { readonly files: readonly string[] }>>
+  readonly screens: Readonly<
+    Record<
+      string,
+      {
+        readonly files: readonly string[]
+        /** Atlases named in `content/atlases.toml`: each page's Spritesheet JSON and image. */
+        readonly atlases?: readonly string[] | undefined
+        /** Fonts named in `content/fonts.toml`: the subset of every language `fonts.json` lists. */
+        readonly fonts?: readonly string[] | undefined
+      }
+    >
+  >
 }
 
+// `atlases` and `fonts` are optional rather than defaulted, so an `assets.toml` that names none compiles to the
+// same JSON, and the same content hash, as before they existed.
 export const assetsSchema: z.ZodType<AssetsSource> = z.strictObject({
-  screens: z.record(z.string(), z.strictObject({ files: z.array(z.string()) })),
+  screens: z.record(
+    z.string(),
+    z.strictObject({
+      files: z.array(z.string()),
+      atlases: z.optional(z.array(z.string())),
+      fonts: z.optional(z.array(z.string())),
+    }),
+  ),
 })
 
 /**

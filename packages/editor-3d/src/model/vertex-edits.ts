@@ -9,6 +9,7 @@ import { outlineProblem } from '../geometry/loops'
 import type { LevelProfile } from '../profile/level-profile'
 import type { EditCorner, EditSector, EditWall } from '../profile/sector-access'
 import { type Edit, type EditResult, ok, refuse } from './edit'
+import { sameJson } from './json-values'
 import { noSector, placed, replaceSector, replaceSectors, round4, sectorOf } from './sector-edit-support'
 import { cornerAt, loopOf, membersOf, samePoint, wallLength, wallOver } from './wall-geometry'
 
@@ -250,19 +251,6 @@ function listOf(names: readonly string[]): string {
   return `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
 }
 
-/** Whether two members of a wall say the same, however deep: numbers, names, lists and objects. */
-function same(a: unknown, b: unknown): boolean {
-  if (a === b) return true
-  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false
-  if (Array.isArray(a) || Array.isArray(b))
-    return (
-      Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((each, i) => same(each, b[i]))
-    )
-  const [mine, theirs] = [a as Record<string, unknown>, b as Record<string, unknown>]
-  const keys = Object.keys(mine)
-  return keys.length === Object.keys(theirs).length && keys.every((key) => same(mine[key], theirs[key]))
-}
-
 /** Where two walls meet: the corner that goes, and how long each wall and the wall that replaces them are. */
 export interface Meeting {
   readonly sector: string
@@ -290,7 +278,7 @@ export function joinWalls(
   const valuesA: Record<string, unknown> = sharedA
   const valuesB: Record<string, unknown> = sharedB
   const differing = [...new Set([...Object.keys(valuesA), ...Object.keys(valuesB)])]
-    .filter((key) => !same(valuesA[key], valuesB[key]))
+    .filter((key) => !sameJson(valuesA[key], valuesB[key]))
     .sort()
   if (differing.length > 0)
     return {
@@ -337,7 +325,7 @@ export function joinWalls(
   if (Object.keys(pilaster).length > 0) joined = { ...joined, pilaster }
   if (Object.keys(joined).length === 0) return { wall: undefined }
   // A name that both walls spell the same way stays a name.
-  return { wall: typeof first === 'string' && same(joined, { cut: first }) ? first : joined }
+  return { wall: typeof first === 'string' && sameJson(joined, { cut: first }) ? first : joined }
 }
 
 export function removeCorner<D>(args: RemoveCornerArgs): Edit<D> {
