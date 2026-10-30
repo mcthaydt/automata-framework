@@ -1,0 +1,13 @@
+# `locs` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/hair.json at a1f7246; swatch names in kebab-case.
+
+about = "Shoulder-length locs: a shell on the skull and distinct ropes from the crown, thick, a little uneven along their length, rounded at the tips, each with a lit stripe down its outer face and a dark gap between it and the next (a shadowed under-layer shows between them)."
+finish = "loc"
+
+[[pieces]]
+scalp = { from = [[0, 0.44], [0.45, 0.4], [0.8, 0.2], [1.2, -0.18], [1.38, -0.2], [1.5, 0.05], [1.85, 0.02], [2.4, -0.4], [3.1416, -0.55]], lift = 0.07, crown = 0.05, ridges = [12, 0.1], comb = [0, 1, 0] }
+
+[[pieces]]
+fall = { at = [[0.88, 0.7, -1.4], [1.5, 0.62, -1.6], [2.1, 0.56, -1.7], [2.7, 0.5, -1.75], [3.1416, 0.5, -1.7]], lift = 0.07, plumb = 0.1, out = 0.08, tone = "parting", rope = { r = 0.3, flat = 0.5, tip = "round", root = 0.08 } }
+
+[[pieces]]
+fall = { at = [[0.72, 0.75, -1.45, 0.16], [1.05, 0.7, -1.75, 0.1], [1.35, 0.65, -1.6, 0.22], [1.65, 0.6, -1.9, 0.1], [1.95, 0.6, -1.75, 0.22], [2.25, 0.55, -2.0, 0.1], [2.55, 0.55, -1.85, 0.22], [2.85, 0.5, -2.05, 0.1], [3.1416, 0.5, -1.9, 0.22]], lift = 0.12, plumb = 0.1, out = 0.12, apart = true, rope = { r = 0.17, beads = 4, depth = 0.12, plait = false, tip = "round", root = 0.08, streaks = [1, 0.05, 0.92, 0.16] } }

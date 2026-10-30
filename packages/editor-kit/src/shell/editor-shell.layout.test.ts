@@ -387,3 +387,49 @@ describe('when the window turns or the keyboard comes up', () => {
     expect(rect('canvas').height).toBeGreaterThan(0)
   })
 })
+
+describe('a broken region shows its error panel inside its own box (kit spec §6)', () => {
+  const copyButton = (name: string): HTMLElement => {
+    const found = region(name).querySelector<HTMLElement>('[data-region-error] button')
+    if (found === null) throw new Error(`no Copy details in the ${name} region`)
+    return found
+  }
+
+  test.each([
+    ['ipad-pro-11-landscape', 'topbar', {}],
+    ['ipad-pro-11-landscape', 'rail', {}],
+    ['ipad-pro-11-landscape', 'panel', {}],
+    ['ipad-pro-11-landscape', 'canvas', {}],
+    ['ipad-pro-11-landscape', 'inspector', {}],
+    ['ipad-pro-11-landscape', 'dock', {}],
+    ['ipad-pro-11-landscape', 'status', {}],
+    ['ipad-pro-11-portrait', 'rail', {}],
+    ['ipad-pro-11-portrait', 'inspector', { inspectorOpen: true }],
+    ['phone-portrait', 'topbar', {}],
+    ['phone-portrait', 'status', {}],
+    ['phone-portrait', 'panel', { panelOpen: true }],
+    ['phone-portrait', 'rail', {}],
+    ['phone-portrait', 'canvas', {}],
+    ['phone-portrait', 'inspector', { inspectorOpen: true }],
+    ['phone-landscape', 'rail', {}],
+    ['phone-landscape', 'canvas', {}],
+    ['phone-landscape', 'inspector', { inspectorOpen: true }],
+    ['phone-landscape', 'dock', { dockOpen: true }],
+  ] as const)(
+    '%s, %s: Copy details is a 44 px target inside the region, and the layout holds',
+    async (name, broken, props) => {
+      const conditions = await open(size(name), { broken, ...props })
+      const button = copyButton(broken).getBoundingClientRect()
+      const box = rect(broken)
+      expect(button.width).toBeGreaterThanOrEqual(44)
+      expect(button.height).toBeGreaterThanOrEqual(44)
+      expect(button.left).toBeGreaterThanOrEqual(box.left - 0.5)
+      expect(button.right).toBeLessThanOrEqual(box.right + 0.5)
+      expect(button.top).toBeGreaterThanOrEqual(box.top - 0.5)
+      expect(button.bottom).toBeLessThanOrEqual(box.bottom + 0.5)
+      // The chrome the broken region held is gone with its content; the rest must still be reachable.
+      const chrome = CHROME.filter((id) => document.querySelector(`[data-testid="${id}"]`) !== null)
+      expect(checkLayout(conditions, [...chrome.map(byTestId), copyButton(broken)])).toEqual([])
+    },
+  )
+})
