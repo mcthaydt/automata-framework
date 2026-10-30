@@ -12,12 +12,21 @@ FloorFifty's `vendor/ruken/` pattern (decision D-6, master spec §12).
 | `ruken-manifest-0.0.0.tgz` | `@ruken/manifest` | `packages/ship` (checks the generated `ruken.toml`, compiles CSP headers) |
 | `ruken-cli-0.0.0.tgz` | `@ruken/cli` (the `ruken` bin) | `packages/ship` (`ship publish` spawns `ruken publish`). Built with Ruken's own `tsdown` config, which bundles `@ruken/validation`, `@ruken/api-contract` and `@ruken/manifest` into `dist/`; runtime dependencies are `smol-toml` 1.9.0, `yauzl` 3.4.0, `yazl` 3.3.1 and `zod` 4.6.6, pinned as in Ruken. Checked: with only those four installed, `node dist/cli.js` prints the usage (exit 2). |
 
-**Source:** RukenApp `main` at `d0fa2fe` (`d0fa2fe766d532a293c3723d5ba3102d1e602d63`, 2026-10-28), packed
-2026-10-30 (QB.1f). Each package was built with its own `pnpm run build` (Ruken's `turbo run build` stops on
-`@ruken/db#db:generate` without a database, and these packages do not need it). `@ruken/sdk-host` and
-`@ruken/cli` declare `zod` 4.6.6 (the SDK only as a dev dependency; `@ruken/manifest` does not use zod), so AF
-needs no override. The previous tarballs were packed from `b30d31b` on 2026-10-11; what
-changed between the two for AF is listed in `docs/superpowers/plans/2026-10-30-qb1f-repack-ruken.md`.
+**Source:** RukenApp `main` at `e376a2d` (`e376a2d7971b696f77f1d15f5174e80de70e65ef`, the merge of RukenApp PR #396,
+2026-10-30), packed 2026-10-30 (PRODUCT.4r). Each package was built with its own `pnpm run build` (Ruken's
+`turbo run build` stops on `@ruken/db#db:generate` without a database, and these packages do not need it).
+`@ruken/sdk-host` and `@ruken/cli` declare `zod` 4.6.6 (the SDK only as a dev dependency; `@ruken/manifest` does not
+use zod), so AF needs no override. The previous tarballs were packed from `d0fa2fe` on 2026-10-30 (QB.1f), and before
+that from `b30d31b` on 2026-10-11. Between `d0fa2fe` and `e376a2d` only the licence changed: each tarball gains
+`package/LICENSE` and `"license": "MIT"`, and every `dist/` is byte-identical
+(`docs/superpowers/plans/2026-10-30-product4r-ruken-mit-repack.md`; what changed from `b30d31b` to `d0fa2fe` is in
+`docs/superpowers/plans/2026-10-30-qb1f-repack-ruken.md`).
+
+**Licence:** MIT, for all four (the Owner, 2026-10-30: "Yes, MIT it"; RukenApp PR #396). Each tarball holds the same
+`package/LICENSE` ("Copyright (c) 2026 Dawson McThay") and its `package.json` declares `"license": "MIT"`. MIT asks
+that its notice travel with every copy of the code, so each AF package that bundles Ruken code repeats the licence
+and its text in its `VENDORED.md`, read from the installed tarball (`tooling/release/src/write-vendored.ts`), and
+`docs/stack.md` shows it.
 
 `pnpm pack` writes the `@ruken/*` dev dependencies of a packed `package.json` in no fixed order, so packing
 the same commit twice can give a different SHA-256 for `ruken-sdk`, `ruken-sdk-host` and `ruken-cli`, with the
@@ -39,10 +48,10 @@ the host contract tests.
 SHA-256 of the tarballs as packed:
 
 ```
-501baf6177630583363d97fec285372315782087dbbfdcd7c1c3c6e0f1c49883  ruken-sdk-0.0.0.tgz
-4d4b1d7c1e3c8084e00231b801e74f53a50541b39505d8961a044cc39315ff9f  ruken-sdk-host-0.0.0.tgz
-7dd9e8bc541aa61899502c89a7fd9e4d7ce7778c26337077185b014a5dcfbfc6  ruken-manifest-0.0.0.tgz
-ad7e2a67fd11f52a5bebf8a2de8ef7847448aead935befa1b6a482e9869e08e9  ruken-cli-0.0.0.tgz
+a54837ad1c7a5a7d35d64a4afbce6753eb45ac67d6dee1dadc79993c50c25672  ruken-sdk-0.0.0.tgz
+ee68ba187823979bc933d239f329fd7f068e63c935ef9afd68109438154c5f7c  ruken-sdk-host-0.0.0.tgz
+7975fedbbd91613ddec7277d2e34d7642c238a7988f15eda5ca5223e4c0eab41  ruken-manifest-0.0.0.tgz
+ce13f46536258f382e40702d45ecae2209b977742da7b9c38cb734122a6b7087  ruken-cli-0.0.0.tgz
 ```
 
 Re-vendor after Ruken's F1 contract freeze (`contracts-f1`, planned
