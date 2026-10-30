@@ -3,14 +3,16 @@
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/motion.ts at a1f7246 (`base`'s legs
 // section), its formulas and their order. Changed for AF: no flinch step-back (a clip in M3.6); the walking
-// feet come from `walkFoot`, which runs them along `moveDir` (gait-path.ts).
+// feet come from `footOn`, which runs them along `moveDir` (gait-path.ts); a foot's lead over its hip and the
+// hip's reach across to its foot are measured along the line of travel and the feet's own track, so a strafe
+// rides the planted feet as a forward walk does.
 
 import type { Gait } from '../library/gait.schema'
 import type { Stand } from '../library/stand.schema'
 import { apply, applyDir, euler, invertRigid, type M, position, qmat, qmul, type V3 } from '../math/math'
 import { at, fk, J, type Pose, type Side, type Skeleton } from '../rig/rig'
 import { twoBoneIK } from '../rig/two-bone-ik'
-import { type FootTarget, footPath, sideSign, walkFoot } from './gait-path'
+import { type FootTarget, footOn, footPath, halfTrack, sideSign, type Travel } from './gait-path'
 import type { MotionState } from './motion-state'
 
 /** The least the head rises and falls over a step (m): a texel at the brand kit's density (36.9 a metre), so no
@@ -26,7 +28,11 @@ interface LegsContext {
   readonly phase: number
   /** The share of the bob the neck takes up walking. */
   readonly headLevel: number
+  /** The way the walk plays for its direction of travel (gait-path.ts). */
+  readonly way: Travel
 }
+/** A foot target whose pitch the hips' ride may lower. */
+type Foot = Omit<FootTarget, 'pitch'> & { pitch: number }
 
 /** Poses the legs into `pose` (and the pelvis's height), from `world`, the FK of the pose so far. */
 export function legs(
@@ -41,7 +47,7 @@ export function legs(
   const k = g.height / 1.62
   const walking = st.moving
   const shuffling = !walking && st.shuffle > 0
-  const { stand, phase, headLevel } = ctx
+  const { stand, phase, headLevel, way } = ctx
   const w = stand ? sideSign(stand.weight) : 0
   const pelvis = at(pose.shift, J.pelvis)
   const rootM = at(world, J.root)
@@ -62,7 +68,7 @@ export function legs(
   const L = (s.thigh + s.shin) * 0.996
   const heelReach = 0.2 * g.foot
   const toeReach = 0.62 * g.foot
-  const feet = (['L', 'R'] as const).map((side): FootTarget => {
+  const feet = (['L', 'R'] as const).map((side): Foot => {
     const x = sideSign(side)
     if (stand) {
       // The weight foot under the body, the free one forward and out, its toes turned out and its heel a
@@ -82,7 +88,7 @@ export function legs(
         planted: false,
       }
     }
-    if (walking && stride) return walkFoot(gait, s, side, st.phase, st.moveDir ?? 0)
+    if (walking && stride) return { ...footOn(gait, s, side, st.phase, way) }
     // Walking, the feet fall toward one line under the body (`track`); standing, they keep under the hips.
     const [z, y, pitch] = stride ? footPath(phase + (side === 'L' ? 0 : 0.5), gait, stride, lift) : [0, 0, 0]
     const target: V3 = [x * g.hips * (walking ? gait.track : Math.max(gait.track, 0.75)), g.ankle + y, z]
@@ -103,6 +109,8 @@ export function legs(
       hip[1]
     )
   }
+  // How far a foot is ahead of its hip along the line the feet run (the source's z: forward).
+  const ahead = (foot: V3, hip: V3) => (foot[0] - hip[0]) * way.sin + (foot[2] - hip[2]) * way.cos
   if (stride && walking) {
     // The hips ride on the planted legs: no higher than lets every planted foot reach the floor (a pushing one
     // flat), and, over a heel just struck ahead, no lower than its knee's softest (SOFT), so the strike reads
@@ -118,12 +126,14 @@ export function legs(
     const want = Math.max(
       0,
       ...planted
-        .filter((f) => f.pitch <= 0 && f.at[2] > hipOf(f.side)[2])
+        .filter((f) => f.pitch <= 0 && ahead(f.at, hipOf(f.side)) > 0)
         .map((f) => tall(f.side, f.at, pivot(f.pitch)) - soft),
     )
     const top = -Math.max(
       gait.crouch,
-      (g.hips * (1 - gait.track) + gait.sway) ** 2 / (2 * L) + g.hips * Math.sin(gait.hipRoll) + 0.004 * L,
+      (Math.abs(g.hips - halfTrack(gait, s, way)) + gait.sway) ** 2 / (2 * L) +
+        g.hips * Math.sin(gait.hipRoll) +
+        0.004 * L,
     )
     const dip = top - (1.1 * BOB) / (1 - headLevel)
     let dy = Number.isFinite(room) ? Math.min(room, want) : 0

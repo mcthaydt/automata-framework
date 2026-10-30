@@ -10,9 +10,9 @@
 
 import type { Gait } from '../library/gait.schema'
 import type { Stand } from '../library/stand.schema'
-import { euler, hash } from '../math/math'
-import { fk, J, restPose, type Skeleton } from '../rig/rig'
-import { sideSign, TAU, travel, travelPhase } from './gait-path'
+import { dot, euler, hash, lerp3, type Q } from '../math/math'
+import { fk, J, type Pose, restPose, type Skeleton } from '../rig/rig'
+import { backWeight, sideSign, TAU, type Travel, travelPhase, wayOf } from './gait-path'
 import { placeHems } from './hems'
 import { BOB, legs } from './legs'
 import type { Evaluated, MotionState } from './motion-state'
@@ -40,15 +40,53 @@ export const relaxed = (gait: Gait): Stand => ({
   chest: [gait.stance * 1.2, 0, 0],
 })
 
-/** The base pose, everything but the holds. Nothing here reads a hold. */
+/** Two poses blended: each joint's turn by a normalised lerp (the shorter way), its shift linearly. */
+function blendPoses(a: Pose, b: Pose, u: number): Pose {
+  const nlerp = (p: Q, q: Q): Q => {
+    const sign = dot([p[0], p[1], p[2]], [q[0], q[1], q[2]]) + p[3] * q[3] < 0 ? -1 : 1
+    const r: Q = [
+      p[0] + (sign * q[0] - p[0]) * u,
+      p[1] + (sign * q[1] - p[1]) * u,
+      p[2] + (sign * q[2] - p[2]) * u,
+      p[3] + (sign * q[3] - p[3]) * u,
+    ]
+    const l = Math.hypot(...r)
+    return [r[0] / l, r[1] / l, r[2] / l, r[3] / l]
+  }
+  return {
+    root: lerp3(a.root, b.root, u),
+    yaw: a.yaw,
+    rot: a.rot.map((q, i) => nlerp(q, b.rot[i] ?? q)),
+    shift: a.shift.map((v, i) => lerp3(v, b.shift[i] ?? v, u)),
+  }
+}
+
+/**
+ * The base pose, everything but the holds. Nothing here reads a hold. Walking, `moveDir` picks the way the
+ * cycle plays (gait-path.ts): forward of the back band the forward cycle, behind it the reversed one, and in
+ * the band the two poses blended, so the pose is continuous all round the circle (M3.5c decision 12). In the
+ * band a planted foot may slide a little: the blend is of the poses, not of the feet's contacts.
+ */
 export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
+  const moveDir = st.moveDir ?? 0
+  const w = st.moving ? backWeight(moveDir) : 0
+  if (w <= 0) return baseOn(s, gait, st, wayOf(moveDir, false))
+  if (w >= 1) return baseOn(s, gait, st, wayOf(moveDir, true))
+  const pose = blendPoses(
+    baseOn(s, gait, st, wayOf(moveDir, false)).pose,
+    baseOn(s, gait, st, wayOf(moveDir, true)).pose,
+    w,
+  )
+  return { pose, world: fk(s, pose) }
+}
+
+function baseOn(s: Skeleton, gait: Gait, st: MotionState, way: Travel): Evaluated {
   const g = s.genes
   const pose = restPose()
   const k = g.height / 1.62
   pose.yaw = st.yaw
   const walking = st.moving
   const shuffling = !walking && st.shuffle > 0
-  const way = travel(st.moveDir ?? 0)
   const phase = walking ? travelPhase(st.phase, way) : shuffling ? st.shuffle : 0
   const cos1 = Math.cos(TAU * phase)
   const cos2 = Math.cos(2 * TAU * phase)
@@ -179,8 +217,9 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
     pose.rot[J[`hand.${side}`]] = euler(WRIST * (bend - swing - idleSway * 0.5 + hang), 0, 0)
   }
   // ─── Legs: feet on their paths, or a stand's feet; IK from the hips ───
-  legs(s, gait, st, pose, fk(s, pose), { stand, phase, headLevel })
+  legs(s, gait, st, pose, fk(s, pose), { stand, phase, headLevel, way })
   const world = fk(s, pose)
-  placeHems(s, pose, world)
+  // Walking, the hems hang between hip and ankle along the line of travel.
+  placeHems(s, pose, world, walking ? [way.sin, way.cos] : undefined)
   return { pose, world: fk(s, pose) }
 }

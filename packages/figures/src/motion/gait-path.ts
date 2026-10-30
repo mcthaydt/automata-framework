@@ -1,9 +1,11 @@
 // The feet's paths through the walk cycle, and the direction they run (`moveDir`).
 //
 // `footPath` is FigureBuilder's (mcthaydt/FigureBuilder) src/render/figure/motion.ts at a1f7246, its formulas
-// and their order. New for AF (M3 spec §4.4.1, F-h): the stride runs along the direction of travel against the
-// facing, `moveDir`, so the stride vector is the forward vector turned by it; travel with a backward part plays
-// the cycle backwards along the opposite direction, so a half-turn is the forward walk in reverse.
+// and their order. New for AF (M3 spec §4.4.1, F-h; M3.5c decisions 4 and 12): the stride runs along the
+// direction of travel against the facing, `moveDir`, so the stride vector is the forward vector turned by it;
+// across the body the stride shortens and the feet's lines move apart by its span, so a strafe steps out and
+// closes and never crosses the legs; behind the back band the cycle plays backwards along the opposite line, so
+// a half-turn is the forward walk in reverse.
 
 import type { Gait } from '../library/gait.schema'
 import { smooth, type V3 } from '../math/math'
@@ -56,45 +58,93 @@ export function footPath(
   ]
 }
 
-/** The way a walk runs for `moveDir`: whether the cycle plays backwards, and the line the feet run along. */
+/** The band of cos(moveDir) over which the walk turns from the forward cycle (at its start and before) to the
+ * reversed one (at its end and past it): about 114° to 127° either side. Away from the strafe line, so a lock-on
+ * circle strafe at ±π/2 plays one cycle, continuous in moveDir. */
+export const BACK_BAND: readonly [start: number, end: number] = [-0.4, -0.6]
+/** At a pure strafe the stride is this share of the forward one (a side step is short)… */
+const SIDE_STRIDE = 0.5
+/** …and the feet's middle line sits this share of the hip width out, the stand's (FigureBuilder's 0.75), at
+ * least the gait's own `track`. */
+const SIDE_TRACK = 0.75
+
+/**
+ * One way of playing the walk for a direction of travel: whether the cycle runs backwards, the line the feet
+ * run along (the forward vector turned by `moveDir`, or by `moveDir − π` backwards), how much of the stride is
+ * across the body (`side`, |sin| of the line) and the stride's share there (`scale`).
+ */
 export interface Travel {
   readonly back: boolean
   readonly sin: number
   readonly cos: number
+  readonly side: number
+  readonly scale: number
 }
-export function travel(moveDir: number): Travel {
-  // Backing away (any travel with a backward part) plays the cycle in reverse along the opposite line.
-  const back = Math.cos(moveDir) < 0
+export function wayOf(moveDir: number, back: boolean): Travel {
   const line = back ? moveDir - Math.PI : moveDir
-  return { back, sin: Math.sin(line), cos: Math.cos(line) }
+  const sin = Math.sin(line)
+  const side = Math.abs(sin)
+  return { back, sin, cos: Math.cos(line), side, scale: 1 - (1 - SIDE_STRIDE) * side }
 }
-/** The walk's phase as the cycle plays: `1 − phase` backing away (0 stays 0). */
+/** How much of the reversed cycle a direction plays: 0 forward of the back band, 1 behind it, eased between. */
+export function backWeight(moveDir: number): number {
+  const [start, end] = BACK_BAND
+  return smooth((start - Math.cos(moveDir)) / (start - end))
+}
+/** The walk's phase as the cycle plays: `1 − phase` backwards (0 stays 0). */
 export function travelPhase(phase: number, way: Travel): number {
   return way.back && phase !== 0 ? 1 - phase : phase
+}
+/**
+ * How far out from the middle each foot's path runs (m): the gait's track, widened toward SIDE_TRACK as the
+ * stride turns across the body, plus half the stride's sideways span. The feet then never cross: each path's
+ * sideways reach is at most half that span about its middle, and the two paths' middles are a full span plus
+ * the track apart, so the feet come no closer than the track, stepping out and closing (a side step), never
+ * over each other.
+ */
+export function halfTrack(g: Gait, s: Skeleton, way: Travel): number {
+  const k = s.genes.height / 1.62
+  const track = g.track + (Math.max(g.track, SIDE_TRACK) - g.track) * way.side
+  return s.genes.hips * track + (g.stride * k * way.scale * way.side) / 2
 }
 
 /** A foot's target for the legs' IK, in root space: its ankle, toes-down pitch, turn out, and whether planted. */
 export interface FootTarget {
   readonly side: Side
   readonly at: V3
-  pitch: number
+  readonly pitch: number
   readonly turn: number
   readonly planted: boolean
 }
 
-/**
- * A walking foot at the walk's phase (as the sim's clock gives it, before any reversal): on its path, the
- * feet falling toward one line under the body (`track`), the path turned onto the line of travel.
- */
-export function walkFoot(g: Gait, s: Skeleton, side: Side, phase: number, moveDir = 0): FootTarget {
+/** A walking foot at the walk's phase (as the sim's clock gives it, before any reversal), played `way`. */
+export function footOn(g: Gait, s: Skeleton, side: Side, phase: number, way: Travel): FootTarget {
   const k = s.genes.height / 1.62
-  const way = travel(moveDir)
   const [z, y, pitch, planted] = footPath(
     travelPhase(phase, way) + (side === 'L' ? 0 : 0.5),
     g,
     g.stride * k,
     g.lift * k,
   )
-  const x = sideSign(side) * s.genes.hips * g.track
-  return { side, at: [x + z * way.sin, s.genes.ankle + y, z * way.cos], pitch, turn: 0, planted }
+  const x = sideSign(side) * halfTrack(g, s, way)
+  const along = z * way.scale
+  // The heel-to-toe roll runs along the foot: stepping across the body the foot stays flat (a side step
+  // pushes off the foot's edge, not its toes), so only the stride's forward share of the roll is kept.
+  const roll = pitch * Math.abs(way.cos)
+  return {
+    side,
+    at: [x + along * way.sin, s.genes.ankle + y, along * way.cos],
+    pitch: roll,
+    turn: 0,
+    planted,
+  }
+}
+
+/**
+ * A walking foot at the walk's phase for travel `moveDir`: on its path, the feet falling toward their line
+ * (`track`), the path turned onto the line of travel. In the back band, where the pose blends the two ways,
+ * this is the way that weighs more.
+ */
+export function walkFoot(g: Gait, s: Skeleton, side: Side, phase: number, moveDir = 0): FootTarget {
+  return footOn(g, s, side, phase, wayOf(moveDir, backWeight(moveDir) >= 0.5))
 }
