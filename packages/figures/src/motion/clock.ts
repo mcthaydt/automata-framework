@@ -10,7 +10,8 @@
 import type { Gait } from '../library/gait.schema'
 
 export interface PoseClock {
-  /** The walk's phase, stepped at `walkPoses` a cycle: one of k / walkPoses. */
+  /** The walk's phase, stepped at `walkPoses` a cycle: one of k / walkPoses, in [0, 1). It comes from the
+   * time given, so a caller that wants a walk to start on its first pose passes the time since it started. */
   readonly phase: number
   /** The idle's stepped seconds, looped at the gait's idle loop and held `idlePoses` a loop where it sets them. */
   readonly t: number
@@ -18,8 +19,12 @@ export interface PoseClock {
   readonly step: number
 }
 
-/** The stepped clocks at presentation time `time` (s). */
-export function poseClock(gait: Gait, time: number): PoseClock {
+/**
+ * The stepped clocks at presentation time `time` (s). `still`: the idle holds its first pose (t 0) while the
+ * figure turns on the spot, so a turn is one strip of poses, not one a breath (FigureBuilder figure.ts
+ * `idleT = still ? 0 : steppedT`; its other reason to hold, an action, is a clip's in M3.6).
+ */
+export function poseClock(gait: Gait, time: number, options: { readonly still?: boolean } = {}): PoseClock {
   const walkStep = Math.floor((time * gait.walkPoses) / gait.cycle)
   const phase = (((walkStep % gait.walkPoses) + gait.walkPoses) % gait.walkPoses) / gait.walkPoses
   // Idle loops (the gait's idleLoop, or the breath alone), so idle poses repeat. An idle with `idlePoses` holds
@@ -32,7 +37,7 @@ export function poseClock(gait: Gait, time: number): PoseClock {
   const t = held
     ? (Math.floor(time / held) % idlePoses) * held
     : (loop > 0 ? step % loop : step) / gait.poseRate
-  return { phase, t, step }
+  return { phase, t: options.still ? 0 : t, step }
 }
 
 const TAU = Math.PI * 2

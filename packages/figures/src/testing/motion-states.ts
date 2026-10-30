@@ -1,7 +1,8 @@
 // The motion states the goldens (testing/__goldens__/figurebuilder-motion.json) were taken in, by label, and
 // the walk, idle and turn the hold-invariance test runs (The Last Light tests/procedural-figure.test.ts
 // `states` at 92e6704, without its actions). FigureBuilder (mcthaydt/FigureBuilder) at a1f7246 ran `base()`
-// and `evaluate()` in each with `view: 0` and no `lookUp` or `pitch` (M3.5c plan, decisions 5 and 9).
+// and `evaluate()` in each with `view: 0` and no `lookUp` or `pitch` (M3.5c plan, decisions 5 and 9;
+// scripts/figurebuilder-motion-goldens.ts, which loads this file with Node's type stripping).
 
 import type { MotionState } from '../motion/motion-state'
 
@@ -26,6 +27,9 @@ export const GOLDEN_STATES: Readonly<Record<string, MotionState>> = {
   'turn 0.5': at({ t: 0.25, yaw: 2, headYaw: 0.6, shuffle: 0.5 }),
   'turn 0.75': at({ t: 0.375, yaw: 2, headYaw: 0.6, shuffle: 0.75 }),
 }
+
+/** The goldens' states for every gait but the figure's own (which has them all), and for the items' holds. */
+export const GOLDEN_SOME_STATES: readonly string[] = ['walk 0.3', 'idle 0.7', 'turn 0.5']
 
 /** Every locomotion a figure plays: the walk across its cycle, idle over time, a turn on the spot. */
 export function locomotionStates(): [string, MotionState][] {

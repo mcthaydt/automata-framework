@@ -478,7 +478,7 @@ function fk(s: Skeleton, pose: Pose): M[];
 interface FootTarget {
     readonly side: Side;
     readonly at: V3;
-    pitch: number;
+    readonly pitch: number;
     readonly turn: number;
     readonly planted: boolean;
 }
@@ -1115,7 +1115,7 @@ function place(s: Skeleton, side: Side, p: HandPlace, surface?: Surface, anchors
 ### `placeHems` (function)
 
 ```ts
-function placeHems(s: Skeleton, pose: Pose, world: readonly M[]): void;
+function placeHems(s: Skeleton, pose: Pose, world: readonly M[], line?: readonly [number, number]): void;
 ```
 
 ### `Pose` (interface)
@@ -1142,7 +1142,9 @@ interface PoseClock {
 ### `poseClock` (function)
 
 ```ts
-function poseClock(gait: Gait, time: number): PoseClock;
+function poseClock(gait: Gait, time: number, options?: {
+    readonly still?: boolean;
+}): PoseClock;
 ```
 
 ### `position` (const)

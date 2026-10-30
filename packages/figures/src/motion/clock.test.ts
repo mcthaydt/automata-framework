@@ -33,6 +33,14 @@ describe('poseClock', () => {
     expect(poseClock(g, held * 1.5).t).toBe(held)
     expect(poseClock(g, loop + held * 1.5).t).toBe(poseClock(g, held * 1.5).t)
   })
+  it('holds the idle still while the figure turns on the spot (FigureBuilder figure.ts: idleT = still ? 0 : steppedT)', () => {
+    const g = gait('brisk')
+    expect(poseClock(g, 2.3, { still: true }).t).toBe(0)
+    expect(poseClock(g, 2.3, { still: false }).t).toBe(poseClock(g, 2.3).t)
+    // The walk and the beat keep their time.
+    expect(poseClock(g, 2.3, { still: true }).phase).toBe(poseClock(g, 2.3).phase)
+    expect(poseClock(g, 2.3, { still: true }).step).toBe(poseClock(g, 2.3).step)
+  })
   it('steps an idle with no loop at the pose rate', () => {
     const g = gait('elderly')
     expect(g.idleLoop).toBeUndefined()

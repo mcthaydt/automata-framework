@@ -12,7 +12,7 @@ import { armChain, at, JOINTS } from '../rig/rig'
 import { type FixtureFigures, fixtureFigures } from '../testing/fixture-library'
 import { GOLDEN_OUTFITS } from '../testing/golden-outfits'
 import { expectClose, expectDigest, MOTION_GOLDENS } from '../testing/motion-goldens'
-import { GOLDEN_STATES, locomotionStates } from '../testing/motion-states'
+import { GOLDEN_SOME_STATES, GOLDEN_STATES, locomotionStates } from '../testing/motion-states'
 import { base } from './base'
 import { gaitOf } from './gait-of'
 import { applyHold, evaluateMotion, holdOf } from './hold'
@@ -99,7 +99,7 @@ describe("holds match FigureBuilder's (goldens, a1f7246)", () => {
       expectDigest(evaluateMotion(s, strut, { ...state, hold }).world, golden.world, key)
       compared++
     }
-    // Two bodies, three items, two hands, five states.
-    expect(compared).toBe(60)
+    // Two bodies, three items, two hands, three states.
+    expect(compared).toBe(2 * 3 * 2 * GOLDEN_SOME_STATES.length)
   })
 })

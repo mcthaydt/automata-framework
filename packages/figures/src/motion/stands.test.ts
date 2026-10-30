@@ -9,7 +9,7 @@ import type { FigureDef } from '../figure/figure.schema'
 import { skeleton } from '../figure/figure-skeleton'
 import type { Garment } from '../figure/garment.schema'
 import type { Stand } from '../library/stand.schema'
-import { apply, invertRigid, position, sub, type V3 } from '../math/math'
+import { apply, invertRigid, normalize, position, sub, type V3 } from '../math/math'
 import { GROUP } from '../parts/mesh'
 import { reach } from '../parts/reach'
 import { at, fk, J, type Skeleton } from '../rig/rig'
@@ -20,7 +20,7 @@ import { AT_REST } from '../testing/motion-states'
 import { randomCharacter } from '../testing/random-character'
 import { evaluateMotion } from './hold'
 import type { ArmHold } from './motion-state'
-import { CHAIN, fits, openings, type Surface, standFor, standHolds } from './stands'
+import { CHAIN, fits, openings, place, type Surface, standFor, standHolds } from './stands'
 
 let fixture: FixtureFigures
 beforeAll(async () => {
@@ -199,6 +199,27 @@ describe('pocket holds (FigureBuilder form.test.ts, a1f7246)', () => {
       }
     }
   }, 120_000)
+})
+
+describe("placing a hand casts the body's openings once", () => {
+  it('an outfit with no openings: the hip found and fallen back to from one cast of the body', () => {
+    const s = skeleton({ sliders: at(GOLDEN_OUTFITS, 2).sliders })
+    let hipRays = 0
+    // The hip opening's ray (openings(): from above the crest, out and a little back).
+    const hipRay = normalize([1, 0, -0.25])
+    const surface: Surface = (_origin, dir) => {
+      if (
+        Math.abs(Math.abs(dir[0]) - hipRay[0]) < 1e-12 &&
+        dir[1] === 0 &&
+        Math.abs(dir[2] - hipRay[2]) < 1e-12
+      )
+        hipRays++
+      return 0
+    }
+    expect(place(s, 'R', { at: 'hip' }, surface, [])).not.toBeNull()
+    // One cast of the body's openings: its two hips.
+    expect(hipRays).toBe(2)
+  })
 })
 
 describe('a stand falls back along its fallbacks to one the outfit suits', () => {

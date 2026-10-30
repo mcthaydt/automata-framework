@@ -12,7 +12,7 @@ import { at, J, type Side, type Skeleton } from '../rig/rig'
 import { type FixtureFigures, fixtureFigures } from '../testing/fixture-library'
 import { GOLDEN_OUTFITS } from '../testing/golden-outfits'
 import { expectClose, expectDigest, MOTION_GOLDENS } from '../testing/motion-goldens'
-import { AT_REST, GOLDEN_STATES } from '../testing/motion-states'
+import { AT_REST, GOLDEN_SOME_STATES, GOLDEN_STATES } from '../testing/motion-states'
 import { randomCharacter, STREET_GAITS } from '../testing/random-character'
 import { base } from './base'
 import { poseClock } from './clock'
@@ -67,8 +67,8 @@ describe("base() matches FigureBuilder's base() joint for joint (goldens, a1f724
         expectDigest(base(s, gaitNamed(gait), state).world, expected, `${id} ${key}`)
         compared++
       }
-      // Seven gaits: the figure's own in all thirteen states, the other six in six each.
-      expect(compared).toBe(13 + 6 * 6)
+      // Seven gaits: the figure's own in all thirteen states, the other six in three each.
+      expect(compared).toBe(Object.keys(GOLDEN_STATES).length + 6 * GOLDEN_SOME_STATES.length)
     })
   }
 })
@@ -249,5 +249,33 @@ describe('F-h: moveDir turns the stride; a half-turn plays the cycle backwards',
     const gait = gaitOf(def, fixture.gaits)
     for (const p of [0, 0.2, 0.6])
       expect(base(s, gait, walking(p, { moveDir: 0 })).world).toEqual(base(s, gait, walking(p)).world)
+  })
+})
+
+describe('the hems hang between hip and ankle along the line of travel', () => {
+  it('on the floor or with the lifted ankle, at the ankle across the line, between the hip and the ankle along it', () => {
+    const def = figure('keeper')
+    const s = skeleton(def)
+    const gait = gaitOf(def, fixture.gaits)
+    for (const moveDir of [0, Math.PI / 2, -Math.PI / 3]) {
+      const line: V3 = [Math.sin(moveDir), 0, Math.cos(moveDir)]
+      const across: V3 = [line[2], 0, -line[0]]
+      const dotXZ = (a: V3, b: V3) => a[0] * b[0] + a[2] * b[2]
+      for (let i = 0; i < 16; i++) {
+        const world = base(s, gait, walking(i / 16, { moveDir, yaw: 0.9 })).world
+        for (const side of ['L', 'R'] as const) {
+          const what = `moveDir ${moveDir.toFixed(3)} phase ${i}/16 ${side}`
+          const hem = rootSpace(world, J[`hem${side}`])
+          const ankle = rootSpace(world, J[`foot.${side}`])
+          const hip = rootSpace(world, J[`thigh.${side}`])
+          expect(Math.abs(hem[1] - Math.max(ankle[1], s.genes.ankle)), what).toBeLessThan(1e-9)
+          expect(Math.abs(dotXZ(sub(hem, ankle), across)), what).toBeLessThan(1e-9)
+          const along = dotXZ(hem, line)
+          const ends = [dotXZ(hip, line), dotXZ(ankle, line)]
+          expect(along, what).toBeGreaterThanOrEqual(Math.min(...ends) - 1e-9)
+          expect(along, what).toBeLessThanOrEqual(Math.max(...ends) + 1e-9)
+        }
+      }
+    }
   })
 })

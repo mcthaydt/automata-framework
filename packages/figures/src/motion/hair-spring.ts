@@ -25,7 +25,8 @@ export interface HairInput {
   readonly phase: number
   /** The walking speed (m/s): FigureBuilder passed the gait's tuned speed. */
   readonly speed: number
-  /** How fast the shown facing turns (rad/s). */
+  /** How fast the shown facing turns (rad/s): the change in facing wrapped to [−π, π) (clock.ts `wrapAngle`)
+   * before it is divided by the time, so a turn across ±π is not a full spin. */
   readonly yawRate: number
   /** The head's nod (rad, `headNod`), and its tilt (the genes' `headTilt`). */
   readonly nod: number

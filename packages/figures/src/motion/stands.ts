@@ -104,9 +104,9 @@ const FLY = 0.5
 /** The tightest an elbow bends to place a hand, as the shoulder-to-wrist span's share of the arm's length (about 95°). */
 const BENT = 0.74
 
-/** The body's own hip opening on this side (every body has one). */
-function bodyHip(s: Skeleton, side: Side, surface?: Surface): Anchor {
-  const hip = openings(s, surface).find((a) => a.kind === 'hip' && a.side === side)
+/** The body's own hip opening on this side, among its openings (every body has one). */
+function hipOf(body: readonly Anchor[], side: Side): Anchor {
+  const hip = body.find((a) => a.kind === 'hip' && a.side === side)
   if (!hip) throw new Error(`no hip opening on side ${side}`)
   return hip
 }
@@ -124,8 +124,12 @@ export function place(
   side: Side,
   p: HandPlace,
   surface?: Surface,
-  anchors: readonly Anchor[] = openings(s, surface),
+  anchors?: readonly Anchor[],
 ): ArmHold | null {
+  // The body's own openings, cast once and only if needed: each is a ray against the dressed surface.
+  let body: Anchor[] | undefined
+  const bodyOpenings = () => (body ??= openings(s, surface))
+  const offered = anchors ?? bodyOpenings()
   const g = s.genes
   const k = g.height / 1.62
   const x = sideSign(side)
@@ -143,7 +147,7 @@ export function place(
   const span = (w: V3) => Math.hypot(w[0] - shoulder[0], w[1] - shoulder[1], w[2] - shoulder[2])
   // The hips' half-width (the hip opening's reach out from the middle) and the waist's height over them.
   const hipHalf = Math.abs(
-    (anchors.find((a) => a.kind === 'hip' && (a.side ?? side) === side) ?? bodyHip(s, side, surface)).at[0],
+    (offered.find((a) => a.kind === 'hip' && (a.side ?? side) === side) ?? hipOf(bodyOpenings(), side)).at[0],
   )
   const hipTop = s.hipY + 0.16 * k
   // The forearm's lean from plumb with the wrist at `w`: the shoulder-to-wrist line's own, and the elbow's bend off it.
@@ -226,7 +230,7 @@ export function place(
   if (p.at === 'crossed') return crossed(s, side, surface)
   for (const kind of CHAIN[p.at]) {
     if (kind === 'hang') return null
-    const found = anchors.filter((c) => c.kind === kind && (c.side ?? side) === side).map(ofSide)[0]
+    const found = offered.filter((c) => c.kind === kind && (c.side ?? side) === side).map(ofSide)[0]
     if (!found) continue
     const h = hold(found)
     if (
@@ -235,7 +239,7 @@ export function place(
     )
       return h.hold
   }
-  return hold(bodyHip(s, side, surface)).hold
+  return hold(hipOf(bodyOpenings(), side)).hold
 }
 
 /**

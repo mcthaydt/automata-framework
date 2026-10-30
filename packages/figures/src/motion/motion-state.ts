@@ -37,7 +37,7 @@ export interface MotionState {
   /** Stepped seconds of the idle clock: breath, weight shift and twitches (clock.ts `poseClock`). */
   readonly t: number
   readonly moving: boolean
-  /** The walk's phase over a two-step cycle, [0, 1]. */
+  /** The walk's phase over a two-step cycle, [0, 1) (1 is the same pose as 0). */
   readonly phase: number
   /** The body's facing (rad; 0 faces +z) and the head's lead over it. */
   readonly yaw: number

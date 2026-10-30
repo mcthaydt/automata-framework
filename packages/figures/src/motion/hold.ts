@@ -77,8 +77,12 @@ export function applyHold(s: Skeleton, evaluated: Evaluated, hold: ArmHold): Eva
   return { pose, world: fk(s, pose) }
 }
 
-/** The pose: the base, then a stand's placed hands (on the body's own surface unless placed already), then the
- * item's hold. */
+/**
+ * The pose: the base, then a stand's placed hands, then the item's hold. Placing a stand's hands casts rays
+ * against the dressed surface (stands.ts), so a view places them once per outfit and stand (`standHolds` with
+ * `Built.anchors` and the outfit's surface) and passes them in `holds`; with none, they are placed here, every
+ * call, on the body's own openings.
+ */
 export function evaluateMotion(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   let out = base(s, gait, st)
   const standing = !st.moving && !(st.shuffle > 0)
