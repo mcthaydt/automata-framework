@@ -162,10 +162,12 @@ Source: AF at the commit 5g is based on, recorded in `packages/physics/EXTRACTED
 
 Steps:
 
-- [ ] 1. Copy; red on the install; fix the manifest and config.
-- [ ] 2. Node unit tests and typecheck local; boundaries run.
-- [ ] 3. Test-request for the three-engine parity on the Mac.
-- [ ] 4. `EXTRACTED.md`; PR to the merge thread.
+- [x] 1. Copy; red on the install; fix the manifest and config.
+- [x] 2. Node unit tests and typecheck local; boundaries run.
+- [x] 3. Three-engine parity: run in the session container (Chromium, WebKit, Firefox; no bus or tests thread since 2026-10-30). A Plus CI parity job is a workflow change and waits for the Owner's words.
+- [x] 4. `EXTRACTED.md`; automata-plus PR #2.
+
+As built (automata-plus PR #2, stacked on #1): `koota` in `optimizeDeps.include` is replaced by `@mcthaydt/automata-sim`; the root `boundaries` script runs the checker on `packages/physics/src`, and `tooling/ci/workspace-scripts.test.ts` pins that every package declaring `simEntries` is on it; `check`, `typecheck` and `test` reach every package.
 
 ## 5g. AF is core only
 
@@ -179,11 +181,13 @@ Each list that pins the old state is changed first (red while physics still exis
 
 Steps:
 
-- [ ] 1. Change the pinning tests; confirm each fails for the right reason with physics still present.
-- [ ] 2. Core-only consumer smoke fixtures; delete the folders; update the lists; `pnpm install`.
-- [ ] 3. Regenerate: `pnpm build && pnpm api-report --update && pnpm api-index && pnpm cheatsheet && pnpm agent-skills --write && pnpm docs:stack`; `changeset status`; `check-changesets`.
-- [ ] 4. `pnpm check`; `pnpm build:examples`; `pnpm build:demos`; `node tooling/consumer-smoke/src/run.ts --from packs`. Parity, e2e and the consumer smoke job are the Mac's.
-- [ ] 5. Docs sync; the website's `pnpm sync:stack --check` reports the stack page drift, which the website thread resolves.
+- [x] 1. Change the pinning tests; confirm each fails for the right reason with physics still present.
+- [x] 2. Core-only consumer smoke fixtures; delete the folders; update the lists; `pnpm install`.
+- [x] 3. Regenerate: `pnpm build && pnpm api-report --update && pnpm api-index && pnpm cheatsheet && pnpm agent-skills --write && pnpm docs:stack`; `changeset status`; `check-changesets`.
+- [x] 4. `pnpm check`; `pnpm build:examples`; `pnpm build:demos`; `node tooling/consumer-smoke/src/run.ts --from packs`. Parity, e2e and the consumer smoke job are the Mac's.
+- [ ] 5. Docs sync: the numbered docs (01, 02, 03) are the integration owner's since 2026-10-30, and the website's `pnpm sync:stack --check` reports the stack page drift, which the website lane resolves.
+
+As built (branch `claude/plus-PRODUCT.5g-drop-physics`): two deviations from the list above. `docs/versions.md` drops the two Rapier rows instead of rewording them, because `tooling/versions` refuses a pin that no package uses; the stack card says where they live through a new `elsewhere` form (`tooling/versions/src/stack.ts`, tested). `GOLDEN_PACKAGES` is now compared with every workspace package that has a `test:evidence` script, so the list is red while physics exists and cannot drift again. `EXTENSION_PACKAGES` in the examples catalog keeps `@mcthaydt/automata-physics`: it is a tier rule, and the Plus examples runner (EX.4p) needs it. The EX spec §6 row and the EX plan already carry the P5-D3 amendment (applied 2026-10-23).
 
 ## 5h. Registry and release (planned when unblocked)
 
@@ -208,4 +212,6 @@ Needs: the first core publish (the Owner said the release workflow can be cloud,
 | 2026-10-23 | 5a answers | (this commit) | The hub: defaults stand (inbox 1915); the Owner's yes to a Plus CI workflow on `af-mac` with the fork guard and the no-hosted-labels test (inbox 1917, 19:15:32Z); runner `af-mac-plus` online (inbox 1925). The P5-D3 amendment is applied to the EX spec §6 row and the EX plan. |
 | 2026-10-23 | 5c | `claude/project-thread-4vn53j-simentries`, draft PR #177 | Red first: `sim-entries.ts` did not exist; the hard-coded names let the "names no extension" test pass. 55 tests in `check-boundaries`; 7 of 7 planted mutants killed (one survived until `./a/../../outside` was a case). `pnpm check` 33 of 33; `pnpm build`, `api-report` (0 breaks), `api-index`, `agent-skills`, `check-changesets` (50, 0 problems). |
 | 2026-10-23 | 5b | `claude/project-thread-4vn53j-corepacks`, draft PR #179 | 21 tests in `core-packs`, 16 of 16 planted mutants killed (one survived until each of the four dependency fields had a case). The consumer smoke on the new packer, `--from packs`: all 11 steps pass. `pnpm packs --out … --extra @mcthaydt/evidence --allow-dirty`: 10 packs, about 370 KB (ui 108, ship 69, host 51, content 50, sim 36, testing 26, physics 12, evidence 10, check-boundaries 4, node 3). `pnpm check` 34 of 34. |
+| 2026-10-30 | 5f | automata-plus `claude/plus-PRODUCT.5f-physics`, PR #2 | Source `6aee63b` (byte-identical at `core.ref` `b7ef19d`). Red: the manifest rules (license, sim under `dependencies`) and `workspace-scripts.test.ts` 3 of 4. Node 13 files and 71 tests; parity 2 files × Chromium, WebKit, Firefox with the goldens unchanged; `pnpm check` green; a planted `Date.now()` gives 1 boundaries finding. |
+| 2026-10-30 | 5g | `claude/plus-PRODUCT.5g-drop-physics` | Red: release list (`are exactly the M2.4 list`), `GOLDEN_PACKAGES` (received the physics package and demo), the catalog's extension test after the delete, three new stack tests. `TURBO_FORCE=true pnpm check` 33 and 31 tasks green; `build:examples`, `build:demos` green; consumer smoke from packs 12 of 12 (fall plugin hash `cc4c2faade195f90`); `check-changesets` 0 problems. |
 | 2026-10-23 | freeze | `claude/project-thread-4vn53j-product5` | The Owner's feature freeze (19:35:43Z: "We need to let the merges catch-up, no new ruken and automata features until everything is merged"; amendment 19:37:42Z). #175, #177 and #179 stay open and are driven to merge; 5d, 5f and 5g are not started; 5e is committed locally in `automata-plus`, not pushed, no PR. |

@@ -9,6 +9,11 @@ const decode = (bytes: Uint8Array | undefined): string | undefined =>
 
 describeProjectStore('opfs over a fake', () => createHandleStore(createFakeOpfs(), { kind: 'opfs' }))
 describeProjectStore('folder over a fake', () => createHandleStore(createFakeOpfs(), { kind: 'folder' }))
+// A clock that never moves: the worst case of WebKit's whole-second `lastModified`.
+const frozen = () => 1_700_000_000_000
+describeProjectStore('opfs over a fake whose clock does not move', () =>
+  createHandleStore(createFakeOpfs({ now: frozen }), { kind: 'opfs' }),
+)
 
 describe('handle store', () => {
   test('reports the kind it was made with', () => {
@@ -62,6 +67,70 @@ describe('handle store', () => {
     const written = await store.write('a.txt', 'x')
     expect((await statPath(store, 'a.txt'))?.mtime).toBe(written.ok ? written.mtime : -1)
     expect(written.ok && written.mtime).toBeGreaterThanOrEqual(4000)
+  })
+
+  describe('a clock that does not move between writes', () => {
+    test('another store on the same files (another tab) writing in the same tick is a conflict', async () => {
+      const root = createFakeOpfs({ now: frozen })
+      const mine = createHandleStore(root, { kind: 'opfs' })
+      const theirs = createHandleStore(root, { kind: 'opfs' })
+      const opened = await mine.write('a.txt', 'one')
+      if (!opened.ok) throw new Error('write should succeed')
+      expect((await theirs.write('a.txt', 'two')).ok).toBe(true)
+      // Same size, same lastModified: only the bytes changed.
+      expect((await statPath(mine, 'a.txt'))?.mtime).not.toBe(opened.mtime)
+      expect(await mine.write('a.txt', 'six', { mtime: opened.mtime })).toMatchObject({
+        ok: false,
+        reason: 'conflict',
+      })
+      expect(decode(await mine.read('a.txt'))).toBe('two')
+    })
+
+    test('a change after a read, in the same tick, is a conflict for the reader', async () => {
+      const root = createFakeOpfs({ now: frozen })
+      const theirs = createHandleStore(root, { kind: 'opfs' })
+      await theirs.write('a.txt', 'one')
+      const mine = createHandleStore(root, { kind: 'opfs' })
+      const seen = await statPath(mine, 'a.txt')
+      expect(decode(await mine.read('a.txt'))).toBe('one')
+      await theirs.write('a.txt', 'two')
+      if (seen === undefined) throw new Error('the file should be listed')
+      expect(await mine.write('a.txt', 'six', { mtime: seen.mtime })).toMatchObject({
+        ok: false,
+        reason: 'conflict',
+      })
+    })
+
+    test('an unchanged file keeps its mtime across listings, reads and other stores', async () => {
+      const root = createFakeOpfs({ now: frozen })
+      const mine = createHandleStore(root, { kind: 'opfs' })
+      await mine.write('a.txt', 'one')
+      const second = await mine.write('a.txt', 'two')
+      if (!second.ok) throw new Error('write should succeed')
+      await mine.read('a.txt')
+      expect((await statPath(mine, 'a.txt'))?.mtime).toBe(second.mtime)
+      expect((await mine.write('a.txt', 'three', { mtime: second.mtime })).ok).toBe(true)
+    })
+
+    test('overwriting a file this store only listed still gives a new mtime', async () => {
+      const root = createFakeOpfs({ now: frozen })
+      await createHandleStore(root, { kind: 'opfs' }).write('a.txt', 'one')
+      const mine = createHandleStore(root, { kind: 'opfs' })
+      const listed = await statPath(mine, 'a.txt')
+      const written = await mine.write('a.txt', 'two')
+      if (listed === undefined || !written.ok) throw new Error('the file should be listed and written')
+      expect(written.mtime).not.toBe(listed.mtime)
+    })
+
+    test('a file removed and written again is not the file a caller held', async () => {
+      const root = createFakeOpfs({ now: frozen })
+      const mine = createHandleStore(root, { kind: 'opfs' })
+      const first = await mine.write('a.txt', 'one')
+      await mine.remove('a.txt')
+      const again = await mine.write('a.txt', 'two')
+      if (!(first.ok && again.ok)) throw new Error('both writes should succeed')
+      expect(again.mtime).not.toBe(first.mtime)
+    })
   })
 
   describe('failures', () => {

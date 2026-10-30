@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -494,13 +494,34 @@ describe('ci.yml evidence file (DX spec §3.10)', () => {
   const ci = workflow('ci.yml')
   const steps = ci.jobs.parity?.steps ?? []
   const scripts = packageJson('.').scripts as Record<string, string>
-  const GOLDEN_PACKAGES = [
-    'packages/sim',
-    'packages/testing',
-    'packages/physics',
-    'games/emberwick',
-    'examples/physics/bodies-2d',
-  ]
+  const GOLDEN_PACKAGES = ['packages/sim', 'packages/testing', 'games/emberwick']
+
+  // Every workspace package with a test:evidence script, found through pnpm-workspace.yaml's own globs (what
+  // `pnpm evidence` runs), so the list cannot keep a package that left (PRODUCT.5g: physics and its demo moved
+  // to automata-plus) or miss one that arrived.
+  const SKIPPED = new Set(['node_modules', 'dist'])
+  const children = (dir: string): string[] =>
+    readdirSync(join(root, dir), { withFileTypes: true })
+      .filter((item) => item.isDirectory() && !SKIPPED.has(item.name) && !item.name.startsWith('.'))
+      .map((item) => `${dir}/${item.name}`)
+  const expand = (glob: string): string[] =>
+    glob
+      .split('/')
+      .reduce<string[]>(
+        (dirs, part) =>
+          part === '*' ? dirs.flatMap(children) : dirs.map((dir) => (dir === '' ? part : `${dir}/${part}`)),
+        [''],
+      )
+  const evidencePackages = (): string[] =>
+    (parse(readFileSync(join(root, 'pnpm-workspace.yaml'), 'utf8')) as { packages: string[] }).packages
+      .flatMap(expand)
+      .filter((path) => existsSync(join(root, path, 'package.json')))
+      .filter((path) => packageJson(path).scripts?.['test:evidence'] !== undefined)
+      .sort()
+
+  it('lists exactly the workspace packages that have a test:evidence script', () => {
+    expect(evidencePackages()).toEqual([...GOLDEN_PACKAGES].sort())
+  })
 
   it('runs every golden package’s test:evidence, then writes evidence.json from their reports', () => {
     expect(scripts.evidence).toBe(

@@ -1,4 +1,5 @@
-import { journalPath, parseJournalEntry } from './journal-entry'
+import { contentHash } from './content-hash'
+import { type JournalEntry, journalPath, parseJournalEntry } from './journal-entry'
 import { type ProjectStore, statPath } from './project-store'
 
 export interface Recovery {
@@ -29,8 +30,24 @@ export async function findRecovery(
   return {
     payload: entry.payload,
     savedAt: entry.savedAt,
-    baseChanged: entry.baseMtime !== (file?.mtime ?? null),
+    baseChanged: await baseChanged(store, path, entry, file?.mtime),
   }
+}
+
+/**
+ * Whether the file is no longer the version the autosave was made on. After a save the journal has the file's hash,
+ * which holds across tabs and whole-second clocks; before one, only the `mtime` the document was opened with.
+ */
+async function baseChanged(
+  store: ProjectStore,
+  path: string,
+  entry: JournalEntry,
+  mtime: number | undefined,
+): Promise<boolean> {
+  if (mtime === undefined) return entry.baseMtime !== null
+  if (entry.baseHash === undefined) return entry.baseMtime !== mtime
+  const bytes = await store.read(path)
+  return bytes === undefined || (await contentHash(bytes)) !== entry.baseHash
 }
 
 /** Throws the autosave away (the person chose Discard). */

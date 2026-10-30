@@ -20,6 +20,24 @@ interface AimTarget {
 }
 ```
 
+### `Anchor` (interface)
+
+```ts
+interface Anchor {
+    kind: 'bellyPocket' | 'frontPocket' | 'thighPocket' | 'jacketPocket' | 'hem' | 'hip';
+    side?: Side;
+    bone: number;
+    at: V3;
+    open: V3;
+}
+```
+
+### `AnchorKind` (type)
+
+```ts
+type AnchorKind = Anchor['kind'];
+```
+
 ### `apply` (function)
 
 ```ts
@@ -41,6 +59,22 @@ function applyPose(skeleton: Skeleton, base: Pose, pose: PoseDef): {
 };
 ```
 
+### `Apron` (interface)
+
+```ts
+interface Apron {
+    readonly apron: string;
+    readonly shade?: string | undefined;
+    readonly length: number;
+    readonly bib?: boolean | undefined;
+    readonly straps?: 'cross' | 'neck' | undefined;
+    readonly pockets?: boolean | undefined;
+    readonly bibWidth?: number | undefined;
+    readonly wrap?: number | undefined;
+    readonly tie?: boolean | undefined;
+}
+```
+
 ### `armChain` (const)
 
 ```ts
@@ -59,6 +93,15 @@ function axisAngle(axis: V3, angle: number): Q;
 function basis(x: V3, y: V3, z: V3): R3;
 ```
 
+### `Belt` (interface)
+
+```ts
+interface Belt {
+    readonly belt: string;
+    readonly buckle?: string | undefined;
+}
+```
+
 ### `blend` (function)
 
 ```ts
@@ -69,6 +112,47 @@ function blend(a: PoseDef, b: PoseDef, t: number, context?: SpaceContext): PoseD
 
 ```ts
 function blendAt(a: PoseDef, b: PoseDef, t: number, context?: SpaceContext): PoseDef;
+```
+
+### `Bomber` (interface)
+
+```ts
+interface Bomber {
+    readonly bomber: string;
+    readonly rib?: string | undefined;
+    readonly zip?: readonly string[] | undefined;
+    readonly hardware?: string | undefined;
+    readonly tipping?: string | undefined;
+}
+```
+
+### `build` (function)
+
+```ts
+function build(def: FigureDef, skeleton: Skeleton, outfit: string, item: string | null, library: FigureLibrary): Built;
+```
+
+### `Built` (interface)
+
+```ts
+interface Built {
+    parts: Part[];
+    decals: Decal[];
+    materials: Record<string, BuiltMaterial>;
+    anchors: Anchor[];
+    clearance: [number, number];
+}
+```
+
+### `BuiltMaterial` (interface)
+
+```ts
+interface BuiltMaterial {
+    readonly colour: number;
+    readonly gloss?: number;
+    readonly flat?: boolean;
+    readonly shade?: number;
+}
 ```
 
 ### `canonicalPose` (function)
@@ -103,6 +187,48 @@ interface Cap {
 }
 ```
 
+### `Cape` (interface)
+
+```ts
+interface Cape {
+    readonly cape: string;
+    readonly length?: number | undefined;
+    readonly trim?: string | undefined;
+}
+```
+
+### `CapGarment` (interface)
+
+```ts
+interface CapGarment {
+    readonly cap: string;
+    readonly style: string | Headwear;
+    readonly mark?: string | undefined;
+}
+```
+
+### `Cargos` (interface)
+
+```ts
+interface Cargos {
+    readonly cargos: string;
+    readonly hardware?: string | undefined;
+    readonly width?: number | undefined;
+    readonly cuff?: boolean | undefined;
+    readonly stitch?: string | undefined;
+}
+```
+
+### `Chain` (interface)
+
+```ts
+interface Chain {
+    readonly chain: string;
+    readonly links?: string | undefined;
+    readonly drop?: number | undefined;
+}
+```
+
 ### `chestFrame` (function)
 
 ```ts
@@ -113,6 +239,18 @@ function chestFrame(skeleton: Skeleton, world: readonly M[]): M;
 
 ```ts
 const clamp: (v: number, lo: number, hi: number) => number;
+```
+
+### `Classic` (type)
+
+```ts
+type Classic = Top | Waistcoat | Trousers | LegWear | Shoes | Skirt | Apron | Coat | Belt | Cape | Gloves | HairGarment | CapGarment | Eyes | Mark;
+```
+
+### `clearance` (function)
+
+```ts
+function clearance(s: Skeleton, parts: readonly Part[], arms: Readonly<Record<Side, number>>, skip?: readonly number[]): [number, number];
 ```
 
 ### `ClipKey` (interface)
@@ -158,6 +296,17 @@ function clipWarnings(clip: FigureClipDef, poses: PoseLibrary): ClipWarning[];
 function clonePose(p: Pose): Pose;
 ```
 
+### `Coat` (interface)
+
+```ts
+interface Coat {
+    readonly coat: string;
+    readonly length: number;
+    readonly buttons?: string | undefined;
+    readonly collar?: string | undefined;
+}
+```
+
 ### `compose` (function)
 
 ```ts
@@ -168,6 +317,21 @@ function compose(rotation: Q, translation: V3): M;
 
 ```ts
 const cross: (a: V3, b: V3) => V3;
+```
+
+### `Decal` (interface)
+
+```ts
+interface Decal {
+    bone: number;
+    at: V3;
+    normal: V3;
+    material: string;
+    size?: [number, number];
+    tag?: string;
+    when?: string[];
+    blink?: boolean;
+}
 ```
 
 ### `DEFAULT_HEAD` (const)
@@ -235,10 +399,28 @@ function euler(pitch: number, yaw: number, roll: number): Q;
 function eulerOf(q: Q): [number, number, number];
 ```
 
+### `Eyes` (interface)
+
+```ts
+interface Eyes {
+    readonly eyes: string;
+    readonly stubble?: string | undefined;
+    readonly lids?: string | undefined;
+    readonly brows?: string | undefined;
+    readonly mouth?: string | undefined;
+}
+```
+
 ### `FIGURE_CONTENT` (const)
 
 ```ts
 const FIGURE_CONTENT: readonly ContentSchemaDef[];
+```
+
+### `FIGURE_PPM` (const)
+
+```ts
+const FIGURE_PPM = 73.8;
 ```
 
 ### `FigureBody` (interface)
@@ -325,6 +507,17 @@ const figureHeadwearContent: ContentSchemaDef<'figure-headwear'>;
 
 ```ts
 const figureItemContent: ContentSchemaDef<'figure-item'>;
+```
+
+### `FigureLibrary` (interface)
+
+```ts
+interface FigureLibrary {
+    readonly swatches: Readonly<Record<string, Swatch>>;
+    readonly hair: Readonly<Record<string, HairStyle>>;
+    readonly headwear: Readonly<Record<string, Headwear>>;
+    readonly items: Readonly<Record<string, ItemDef>>;
+}
 ```
 
 ### `figurePoseContent` (const)
@@ -443,7 +636,7 @@ const gaitSchema: z.ZodType<Gait>;
 ### `Garment` (type)
 
 ```ts
-type Garment = Readonly<Record<string, unknown>>;
+type Garment = Classic | Streetwear;
 ```
 
 ### `garmentSchema` (const)
@@ -483,6 +676,31 @@ interface Genes {
 function genesOf(body: FigureBody): Genes;
 ```
 
+### `Gloves` (interface)
+
+```ts
+interface Gloves {
+    readonly gloves: string;
+}
+```
+
+### `GROUP` (const)
+
+```ts
+const GROUP: {
+    readonly torso: 0;
+    readonly head: 1;
+    readonly hair: 1;
+    readonly armL: 3;
+    readonly armR: 4;
+    readonly legL: 5;
+    readonly legR: 6;
+    readonly item: 7;
+    readonly skirt: 8;
+    readonly cape: 9;
+};
+```
+
 ### `HairDynamics` (interface)
 
 ```ts
@@ -493,6 +711,16 @@ interface HairDynamics {
     readonly bounce: number;
     readonly sway: number;
     readonly hang: number;
+}
+```
+
+### `HairGarment` (interface)
+
+```ts
+interface HairGarment {
+    readonly hair: string;
+    readonly style?: string | HairStyle | readonly Lock[] | undefined;
+    readonly tie?: string | undefined;
 }
 ```
 
@@ -593,6 +821,27 @@ interface Hold {
 }
 ```
 
+### `Hoodie` (interface)
+
+```ts
+interface Hoodie {
+    readonly hoodie: string;
+    readonly rib?: string | undefined;
+    readonly inside?: string | undefined;
+    readonly cords?: string | undefined;
+    readonly aglets?: string | undefined;
+}
+```
+
+### `Hoops` (interface)
+
+```ts
+interface Hoops {
+    readonly hoops: string;
+    readonly size?: number | undefined;
+}
+```
+
 ### `IDENTITY` (const)
 
 ```ts
@@ -648,6 +897,16 @@ const itemSchema: z.ZodType<ItemDef>;
 const J: Readonly<Record<Joint, number>>;
 ```
 
+### `Jacket` (interface)
+
+```ts
+interface Jacket {
+    readonly jacket: string;
+    readonly zip?: readonly string[] | undefined;
+    readonly hardware?: string | undefined;
+}
+```
+
 ### `Joint` (type)
 
 ```ts
@@ -682,6 +941,14 @@ function jointLimits(limits: RigLimits): ReadonlyMap<number, JointLimit>;
 
 ```ts
 const JOINTS: readonly ["root", "pelvis", "spine", "chest", "neck", "head", "clavicle.L", "upperArm.L", "foreArm.L", "hand.L", "clavicle.R", "upperArm.R", "foreArm.R", "hand.R", "thigh.L", "shin.L", "foot.L", "thigh.R", "shin.R", "foot.R", "socket.L", "socket.R", "hair.back", "hair.L", "hair.R", "hemL", "hemR"];
+```
+
+### `LegWear` (interface)
+
+```ts
+interface LegWear {
+    readonly legs: string;
+}
 ```
 
 ### `length` (const)
@@ -754,6 +1021,16 @@ type M = [
 ];
 ```
 
+### `Mark` (interface)
+
+```ts
+interface Mark {
+    readonly mark: 'watch' | 'badge';
+    readonly colour: string;
+    readonly side: 'L' | 'R';
+}
+```
+
 ### `markerTime` (function)
 
 ```ts
@@ -803,6 +1080,16 @@ interface Measure {
 function measure(input: Partial<Sliders>): Measure;
 ```
 
+### `Mesh` (interface)
+
+```ts
+interface Mesh {
+    positions: number[];
+    normals: number[];
+    indices: number[];
+}
+```
+
 ### `mirror` (function)
 
 ```ts
@@ -831,6 +1118,20 @@ const normalize: (a: V3) => V3;
 
 ```ts
 const PARENTS: readonly number[];
+```
+
+### `Part` (interface)
+
+```ts
+interface Part {
+    mesh: Mesh;
+    material: string;
+    group: number;
+    bone?: number;
+    skin?: Weight[][];
+    tag?: string;
+    seam?: number;
+}
 ```
 
 ### `Piece` (type)
@@ -933,6 +1234,19 @@ const position: (m: M) => V3;
 
 ```ts
 function printPose(pose: PoseDef): string;
+```
+
+### `Puffer` (interface)
+
+```ts
+interface Puffer {
+    readonly puffer: string;
+    readonly trim?: string | undefined;
+    readonly zip?: string | undefined;
+    readonly pull?: string | undefined;
+    readonly length?: number | undefined;
+    readonly baffles?: number | undefined;
+}
 ```
 
 ### `Q` (type)
@@ -1083,6 +1397,26 @@ function sample(clip: FigureClipDef, t: number, poses: PoseLibrary, context?: Sp
 const scale: (a: V3, k: number) => V3;
 ```
 
+### `Shades` (interface)
+
+```ts
+interface Shades {
+    readonly shades: string;
+    readonly frame?: string | undefined;
+    readonly up?: boolean | undefined;
+}
+```
+
+### `Shoes` (interface)
+
+```ts
+interface Shoes {
+    readonly shoes: string;
+    readonly sole?: string | undefined;
+    readonly boots?: boolean | undefined;
+}
+```
+
 ### `Side` (type)
 
 ```ts
@@ -1134,6 +1468,18 @@ interface SkeletonProblem {
 function skeletonProblems(body: FigureBody): SkeletonProblem[];
 ```
 
+### `Skirt` (interface)
+
+```ts
+interface Skirt {
+    readonly skirt: string;
+    readonly length: number;
+    readonly flare?: number | undefined;
+    readonly folds?: number | undefined;
+    readonly hem?: string | undefined;
+}
+```
+
 ### `Sliders` (interface)
 
 ```ts
@@ -1171,6 +1517,20 @@ const smooth: (k: number) => number;
 
 ```ts
 function smoothTime(clip: FigureClipDef, elapsed: number, previous: number | undefined): number;
+```
+
+### `Sneakers` (interface)
+
+```ts
+interface Sneakers {
+    readonly sneakers: string;
+    readonly mudguard?: string | undefined;
+    readonly sole?: string | undefined;
+    readonly outsole?: string | undefined;
+    readonly laces?: string | undefined;
+    readonly court?: boolean | undefined;
+    readonly tab?: string | undefined;
+}
 ```
 
 ### `solve` (function)
@@ -1246,6 +1606,12 @@ const standSchema: z.ZodType<Stand>;
 function stepTime(clip: FigureClipDef, elapsed: number, rate: number, previous?: number): number;
 ```
 
+### `Streetwear` (type)
+
+```ts
+type Streetwear = Puffer | Hoodie | Tee | Jacket | Bomber | WideLegs | Cargos | Sneakers | Chain | Hoops | Shades;
+```
+
 ### `sub` (const)
 
 ```ts
@@ -1315,10 +1681,41 @@ interface Targets {
 }
 ```
 
+### `Tee` (interface)
+
+```ts
+interface Tee {
+    readonly tee: string;
+    readonly rib?: string | undefined;
+    readonly fit?: number | undefined;
+    readonly sleeves?: boolean | undefined;
+    readonly length?: number | undefined;
+}
+```
+
+### `Top` (interface)
+
+```ts
+interface Top {
+    readonly top: string;
+    readonly sleeves?: 'none' | 'short' | 'long' | undefined;
+    readonly cuffs?: string | undefined;
+    readonly collar?: string | undefined;
+}
+```
+
 ### `transpose3` (function)
 
 ```ts
 function transpose3(m: R3): R3;
+```
+
+### `Trousers` (interface)
+
+```ts
+interface Trousers {
+    readonly trousers: string;
+}
 ```
 
 ### `twoBoneIK` (function)
@@ -1337,4 +1734,28 @@ type V3 = [number, number, number];
 
 ```ts
 type Vec3 = readonly [number, number, number];
+```
+
+### `Waistcoat` (interface)
+
+```ts
+interface Waistcoat {
+    readonly waistcoat: string;
+}
+```
+
+### `Weight` (type)
+
+```ts
+type Weight = [joint: number, weight: number];
+```
+
+### `WideLegs` (interface)
+
+```ts
+interface WideLegs {
+    readonly wideLegs: string;
+    readonly stitch?: string | undefined;
+    readonly hardware?: string | undefined;
+}
 ```

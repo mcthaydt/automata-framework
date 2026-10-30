@@ -12,6 +12,7 @@ import { type Diagnostic, sortDiagnostics } from '../diagnostics/diagnostic'
 import { listFiles, readBytesIfPresent, readTextIfPresent } from '../files/content-files'
 import { checkPalette, type Palette, paletteSchema } from '../palette/palette'
 import { diagnosticAt, type ParsedToml, parseDocument } from '../parse/parse-document'
+import { atlasPageFiles } from './asset-outputs'
 import { composePage, decodePng, encodePng, type Rgba, spritesheetJson } from './atlas-image'
 import { AtlasFrameTooLarge, packFrames } from './atlas-pack'
 import { atlasesSchema } from './atlases.schema'
@@ -173,8 +174,8 @@ function packAtlas(
   const encoder = new TextEncoder()
   packed.pageSizes.forEach((size, page) => {
     const placements = packed.placements.filter((placement) => placement.page === page)
-    const image = `${name}-${page}.png`
+    const { json, image } = atlasPageFiles(name, page)
     files.set(image, encodePng(composePage(size, placements, images)))
-    files.set(`${name}-${page}.json`, encoder.encode(spritesheetJson(page, size, image, packed.placements)))
+    files.set(json, encoder.encode(spritesheetJson(page, size, image, packed.placements)))
   })
 }

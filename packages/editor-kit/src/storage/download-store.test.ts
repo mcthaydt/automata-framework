@@ -237,6 +237,44 @@ describe('browserDownloadEnv', () => {
     ).toBeUndefined()
   })
 
+  test('calls the navigator and clipboard methods on their objects, as macOS WebKit requires', async () => {
+    // WebKit's `canShare`, `share` and `writeText` throw "Can only call Navigator.canShare on instances of
+    // Navigator" when called detached from their object (seen on the Mac's parity run, EDK.6a).
+    const shared: ShareData[] = []
+    const copied: string[] = []
+    const clipboard = {
+      async writeText(this: unknown, text: string) {
+        if (this !== clipboard)
+          throw new TypeError('Can only call Clipboard.writeText on instances of Clipboard')
+        copied.push(text)
+      },
+    }
+    const navigatorLike = {
+      async share(this: unknown, data: ShareData) {
+        if (this !== navigatorLike)
+          throw new TypeError('Can only call Navigator.share on instances of Navigator')
+        shared.push(data)
+      },
+      canShare(this: unknown, _data: ShareData) {
+        if (this !== navigatorLike)
+          throw new TypeError('Can only call Navigator.canShare on instances of Navigator')
+        return true
+      },
+      clipboard,
+    }
+    const env = browserDownloadEnv({
+      document,
+      urls: { createObjectURL: () => 'blob:fake-1', revokeObjectURL: () => undefined },
+      navigator: navigatorLike,
+      setTimer: () => undefined,
+      now: () => 4242,
+    })
+    await env.share?.({ name: 'a.toml', type: 'application/toml', data: new Uint8Array([1]) })
+    await env.copyText?.('copied')
+    expect(shared).toHaveLength(1)
+    expect(copied).toEqual(['copied'])
+  })
+
   test('shares a file when the browser can', async () => {
     const shared: ShareData[] = []
     const { env } = pageWith(
