@@ -11,7 +11,7 @@
   let filtered = $derived(category === 'All Examples' ? demos : demos.filter(d => d.category === category))
   let current = $derived(demos.find(d => d.slug === data.demo) ?? demos[0])
 </script>
-<PageMeta title="Examples gallery" description="Run Automata examples and read the source beside rendering, physics, UI, runtime and content demos." />
+<PageMeta title="Examples gallery" description="Run Automata examples and read the source beside rendering, UI, runtime and content demos." />
 <div class="page-shell">
   <h1>Examples gallery</h1><p class="lead">Working parts. Runnable code.</p>
   <div class="filters" role="group" aria-label="Example categories">{#each DEMO_CATEGORIES as item}<button type="button" aria-pressed={category === item} onclick={() => category = item}>{item}</button>{/each}</div>

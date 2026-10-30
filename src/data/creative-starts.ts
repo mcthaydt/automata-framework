@@ -14,11 +14,4 @@ export const CREATIVE_STARTS = [
     href: '/start#worked-change', action: 'Try a double jump',
     nextHref: '/start#first-task', next: 'Copy the double-jump prompt',
   },
-  {
-    title: 'Drop it. Push it. Pile it up.',
-    description: 'Drop crates into the room and shove them around. Start from working collisions for your own physics toy.',
-    image: '/previews/bodies-2d.jpg', alt: 'Physics bodies and crates in the playable room',
-    href: '/examples?demo=bodies-2d', action: 'Play with physics',
-    nextHref: '/ai#prompt-game-rule', next: 'Give your agent the next idea',
-  },
 ]

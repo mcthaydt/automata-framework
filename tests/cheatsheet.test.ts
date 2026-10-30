@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { CHEATSHEET_MODULES, searchCheatsheet } from '../src/data/cheatsheet'
 
 describe('Cheatsheet Data & Search', () => {
-  it('covers core modules, the physics and replay subpaths, and shipping', () => {
+  it('covers core modules, the replay subpath and shipping, and not physics (Automata Plus since framework 233c9da)', () => {
     const moduleNames = CHEATSHEET_MODULES.map((m) => m.name)
     expect(moduleNames).toContain('@mcthaydt/automata-sim')
     expect(moduleNames).toContain('@mcthaydt/automata-runtime')
     expect(moduleNames).toContain('@mcthaydt/automata-render-pixi')
-    expect(moduleNames).toContain('@mcthaydt/automata-physics/2d')
+    expect(moduleNames).not.toContain('@mcthaydt/automata-physics/2d')
     expect(moduleNames).toContain('@mcthaydt/automata-sim/replay')
     expect(moduleNames).toContain('@mcthaydt/automata-ship')
     expect(moduleNames).toContain('@mcthaydt/automata-ui')

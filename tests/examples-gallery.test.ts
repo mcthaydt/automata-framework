@@ -14,7 +14,7 @@ const root = resolve(import.meta.dirname, '..')
 
 describe('the examples gallery', () => {
   it('does not start the demo until Play is pressed', async () => {
-    const demo = getDemosCatalog().find(item => item.slug === 'bodies-2d')!
+    const demo = getDemosCatalog().find(item => item.slug === 'hot-reload')!
     const view = render(ExamplesPage, { props: { data: examplesData(demo.slug) } })
     expect(view.container.querySelector('iframe')).toBeNull()
     expect(view.queryByRole('button', { name: 'Stop demo' })).toBeNull()
@@ -24,8 +24,8 @@ describe('the examples gallery', () => {
   })
 
   it('shows the demo’s preview image while it waits', () => {
-    const view = render(ExamplesPage, { props: { data: examplesData('bodies-2d') } })
-    expect(view.container.querySelector('img.demo-poster')?.getAttribute('src')).toBe('/previews/bodies-2d.jpg')
+    const view = render(ExamplesPage, { props: { data: examplesData('hot-reload') } })
+    expect(view.container.querySelector('img.demo-poster')?.getAttribute('src')).toBe('/previews/hot-reload.jpg')
   })
 
   it('still offers Play for a demo with no preview image yet', async () => {
@@ -40,7 +40,7 @@ describe('the examples gallery', () => {
 describe('demoPoster', () => {
   it('names the preview a demo has, and nothing for a demo without one', () => {
     expect(demoPoster('base-2d')).toBe('/previews/emberwick.jpg')
-    expect(demoPoster('bodies-2d')).toBe('/previews/bodies-2d.jpg')
+    expect(demoPoster('hot-reload')).toBe('/previews/hot-reload.jpg')
     expect(demoPoster('ui-primitives')).toBeUndefined()
     expect(demoPoster('no-such-demo')).toBeUndefined()
   })

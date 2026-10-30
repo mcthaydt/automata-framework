@@ -28,8 +28,8 @@ describe('API documentation', () => {
     const view = render(Page)
     await fireEvent.input(view.getByRole('searchbox'), { target: { value: 'duplicate-seq' } })
     let targetExistsAtNavigation = false
-    window.addEventListener('click', () => { targetExistsAtNavigation = document.getElementById('physics') !== null }, { once: true })
-    await fireEvent.click(view.getByRole('navigation', { name: 'API modules' }).querySelector('a[href="#physics"]')!)
+    window.addEventListener('click', () => { targetExistsAtNavigation = document.getElementById('ui') !== null }, { once: true })
+    await fireEvent.click(view.getByRole('navigation', { name: 'API modules' }).querySelector('a[href="#ui"]')!)
     expect(targetExistsAtNavigation).toBe(true)
   })
 })

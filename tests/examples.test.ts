@@ -6,16 +6,16 @@ import { examplesData } from './helpers/page-data'
 
 describe('Examples Gallery', () => {
   it('renders category filter and active demo code', () => {
-    const { getByText, getAllByText } = render(ExamplesPage, { props: { data: examplesData('bodies-2d') } })
+    const { getByText, getAllByText } = render(ExamplesPage, { props: { data: examplesData('hot-reload') } })
     expect(getByText(/All Examples/i)).toBeTruthy()
-    expect(getAllByText(/Physics: bodies 2D/i).length).toBeGreaterThan(0)
+    expect(getAllByText(/Content: hot reload/i).length).toBeGreaterThan(0)
   })
 
   it('DemoRunner renders container with controls and iframe element', () => {
     const { getByTestId, getByLabelText } = render(DemoRunner, {
       props: {
-        src: '/demos/physics/bodies-2d/index.html',
-        title: 'Physics: bodies 2D',
+        src: '/demos/content/hot-reload/index.html',
+        title: 'Content: hot reload',
       },
     })
     expect(getByTestId('demo-runner-container')).toBeTruthy()
@@ -28,7 +28,7 @@ describe('Examples Gallery', () => {
 // headless WebKit once nothing else on the page was changing: the request is neither granted nor refused. A button
 // that answers nothing looks dead, so the page says when the browser has not started fullscreen after a second.
 describe('DemoRunner fullscreen button', () => {
-  const props = { src: '/demos/physics/bodies-2d/index.html', title: 'Physics: bodies 2D' }
+  const props = { src: '/demos/content/hot-reload/index.html', title: 'Content: hot reload' }
   const setup = (requestFullscreen: (() => Promise<void>) | undefined) => {
     const view = render(DemoRunner, { props })
     const container = view.getByTestId('demo-runner-container') as unknown as { requestFullscreen?: () => Promise<void> }

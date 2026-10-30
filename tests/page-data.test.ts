@@ -19,15 +19,15 @@ describe('the project a page shows comes from its load function', () => {
   })
 
   it('gives the gallery the project of the demo it selects', async () => {
-    const data = await loadExamples({ url: new URL('https://example.test/examples?demo=bodies-2d') } as any)
-    expect(data.demo).toBe('bodies-2d')
-    expect(data.project).toBe(getExampleProject('bodies-2d'))
+    const data = await loadExamples({ url: new URL('https://example.test/examples?demo=hot-reload') } as any)
+    expect(data.demo).toBe('hot-reload')
+    expect(data.project).toBe(getExampleProject('hot-reload'))
   })
 
   it('gives the gallery the project of the fallback demo when the slug is unknown', async () => {
     const data = await loadExamples({ url: new URL('https://example.test/examples?demo=missing') } as any)
-    expect(data.demo).toBe('bodies-2d')
-    expect(data.project).toBe(getExampleProject('bodies-2d'))
+    expect(data.demo).toBe('ui-primitives')
+    expect(data.project).toBe(getExampleProject('ui-primitives'))
   })
 })
 

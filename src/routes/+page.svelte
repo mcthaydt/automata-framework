@@ -17,7 +17,6 @@
     { label: 'Boot', path: 'games/emberwick/src/boot.ts', description: 'Effect handles the Ruken handshake and readiness outside simulation code. The SDK also supports running this game standalone.' },
   ]
   const previews = [
-    { slug: 'bodies-2d', title: 'Physics', description: 'Dynamic bodies, collisions and repeatable simulation inside Emberwick.' },
     { slug: 'hot-reload', title: 'Content', description: 'An authored room with content updates applied while the game runs.' },
   ]
 </script>
@@ -34,7 +33,7 @@
   </div>
 </section>
 <section class="chapter first-change-intro"><div><h2>One more jump.<br />Your first remix.</h2><p>Turn on double jump. Press jump again in the air. Feel the difference, then give your agent the prompt that builds it.</p></div><div class="first-change-actions"><p>Play the original and the remix here. Follow the actual code and tests when you are ready to make it yours.</p><a class="button" href="/start#worked-change">Try a double jump</a><a href="/start#first-task">Get the prompt</a></div></section>
-<section class="chapter creative-section"><div class="section-heading"><h2>Pick your<br />starting point.</h2><p>Platforming, a new movement trick, or a room full of physics. These are working starters and demos you can play and extend.</p></div><CreativeStarts /></section>
+<section class="chapter creative-section"><div class="section-heading"><h2>Pick your<br />starting point.</h2><p>Platforming, or a new movement trick. These are working starters and demos you can play and extend.</p></div><CreativeStarts /></section>
 <section class="chapter workflow-section">
   <div class="workflow-intro"><h2>Have an idea?<br />Give it a go.</h2><p>Ask for a dash. Add a collectible. Change the room. Make one thing work, play it, and choose what comes next.</p><a href="/ai#task-prompts">Choose a prompt for your agent</a></div>
   <dl class="workflow-details">

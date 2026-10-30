@@ -43,7 +43,7 @@
 <dialog bind:this={dialog} class="search-dialog" aria-labelledby="search-title" oncancel={(e) => { e.preventDefault(); onClose() }} onkeydown={keys}>
   <div class="dialog-heading"><h2 id="search-title">Find your way</h2><button type="button" onclick={onClose}>Close</button></div>
   <label for="site-search">Search pages, docs, API and demos</label>
-  <input bind:this={input} id="site-search" type="search" bind:value={query} placeholder="Try createSim or physics" />
+  <input bind:this={input} id="site-search" type="search" bind:value={query} placeholder="Try createSim or snapshot" />
   <div class="search-results">
     {#each results as item}<a href={item.url} onclick={onClose}>{item.title}</a>{/each}
     {#if !results.length}<p role="status">No matches. Try a function name or topic.</p>{/if}

@@ -24,15 +24,9 @@ export interface DemoItem {
 }
 
 // The folder demos that remain in the framework. EX.4 ported renderer-2d, boot-and-flow and lifecycle-and-saves to
-// one-file examples (examples/render, examples/core), which reach the site with the playground (WEB.PLAY).
+// one-file examples (examples/render, examples/core), which reach the site with the playground (WEB.PLAY); the
+// framework removed examples/physics/bodies-2d after 30e9606.
 export const RAW_DEMOS = [
-  {
-    slug: 'bodies-2d',
-    title: 'Physics: bodies 2D',
-    category: 'Physics',
-    path: 'examples/physics/bodies-2d',
-    bundleUrl: '/demos/physics/bodies-2d/index.html',
-  },
   {
     slug: 'ui-primitives',
     title: 'UI: primitives',
