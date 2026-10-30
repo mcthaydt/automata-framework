@@ -22,7 +22,12 @@ export interface Pixi3dCameraOptions {
   readonly initial: string
   /** The component id holding the followed entity's `x`, `y`, `z` (metres), on the entity with `camera-heading`. */
   readonly follow: string
+  /** Metres from the followed position (the feet) to the head, for the occluder rule's lines. Default 1.62. */
+  readonly height?: number | undefined
 }
+
+/** The spec's figure (§4.2, D3-j): the occluder rule keeps the line to a head this high clear by default. */
+export const PLAYER_HEIGHT = 1.62
 
 type Components = Readonly<Record<string, Readonly<FieldRecord>>>
 

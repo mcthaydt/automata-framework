@@ -58,6 +58,20 @@ export interface CameraRig {
   frame(lock?: Vec3): void
   /** Advances one display frame and writes the camera. */
   update(frameSeconds: number): void
+  /**
+   * What the last `update` wrote: the eye, the point it looked at, the followed position (the player's feet) and
+   * whether it was a cut, for the occluder rule. None before the first `follow`. The record is the rig's own and is
+   * rewritten by the next `update` (no allocation per frame).
+   */
+  pose(): CameraPose | undefined
+}
+
+export interface CameraPose {
+  readonly eye: Vec3
+  readonly look: Vec3
+  readonly player: Vec3
+  /** Whether this frame snapped rather than moved on from the last: the first follow, or the first after a cut. */
+  readonly cut: boolean
 }
 
 export interface AngledCameraOptions {
@@ -104,6 +118,9 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
   let lock: Vec3 | undefined
   let heading = 0
   let headingEasing = false
+  // The next update snaps: the first after the first follow, or after a cut.
+  let snapping = true
+  let last: { eye: Vec3; look: Vec3; player: Vec3; cut: boolean } | undefined
 
   const shotFor = (view: CameraView): Shot => {
     const body = new OrbitFollowBody(target, {
@@ -180,7 +197,10 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
       active = shot
       shot.camera.priority = 1
       turn(shot, false)
-      if (!easing) restart(shot)
+      if (!easing) {
+        restart(shot)
+        snapping = true
+      }
     },
     heading(yawDeg, how = 'track') {
       const shot = active as Shot
@@ -218,9 +238,20 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
       target.position[2] = focus.z
       klipp.update(frameSeconds)
       const { position, lookAtTarget } = klipp.shot
+      const eye = { x: position[0], y: position[1], z: position[2] }
+      const look = { x: lookAtTarget[0], y: lookAtTarget[1], z: lookAtTarget[2] }
+      if (last === undefined) last = { eye, look, player: followed, cut: snapping }
+      else {
+        last.eye = eye
+        last.look = look
+        last.player = followed
+        last.cut = snapping
+      }
+      snapping = false
       camera.fov = klipp.shot.fov
-      camera.position.set(position[0], position[1], position[2])
-      camera.lookAt({ x: lookAtTarget[0], y: lookAtTarget[1], z: lookAtTarget[2] })
+      camera.position.set(eye.x, eye.y, eye.z)
+      camera.lookAt(look)
     },
+    pose: () => last,
   }
 }
