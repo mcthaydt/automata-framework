@@ -18,6 +18,23 @@ const { pills, compact, onlocate }: Props = $props()
 
 const uid = $props.id()
 let opened = $state<Pill['icon']>()
+/** Where the open list sits: fixed under its pill, inside the window (the bar it is in scrolls sideways). */
+let anchor = $state({ top: 0, left: 0, width: 320 })
+
+function toggle(pill: Pill, event: MouseEvent): void {
+  if (opened === pill.icon) {
+    opened = undefined
+    return
+  }
+  const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const width = Math.min(320, window.innerWidth - 24)
+  anchor = {
+    top: box.bottom + 4,
+    left: Math.max(12, Math.min(box.left, window.innerWidth - width - 12)),
+    width,
+  }
+  opened = pill.icon
+}
 
 const GLYPH: Readonly<Record<Pill['icon'], string>> = { 'change-set': '⎇', checks: '✓', gates: '⚑' }
 
@@ -41,7 +58,7 @@ function onKeydown(event: KeyboardEvent): void {
         aria-expanded={opened === pill.icon}
         aria-controls={`${uid}-${pill.icon}`}
         aria-label={compact ? `${pill.label} (${pill.count})` : undefined}
-        onclick={() => (opened = opened === pill.icon ? undefined : pill.icon)}
+        onclick={(event) => toggle(pill, event)}
       >
         {#if compact}
           <span aria-hidden="true">{GLYPH[pill.icon]}</span><span class="count">{pill.count}</span>
@@ -50,7 +67,14 @@ function onKeydown(event: KeyboardEvent): void {
         {/if}
       </button>
       {#if opened === pill.icon}
-        <section id={`${uid}-${pill.icon}`} class="list" aria-label={pill.label}>
+        <section
+          id={`${uid}-${pill.icon}`}
+          class="list"
+          aria-label={pill.label}
+          style:top={`${anchor.top}px`}
+          style:left={`${anchor.left}px`}
+          style:width={`${anchor.width}px`}
+        >
           {#if pill.detail !== undefined}<p class="detail">{pill.detail}</p>{/if}
           {#if pill.items.length === 0}<p class="detail">{pill.label}</p>{/if}
           <ul>
@@ -91,11 +115,9 @@ function onKeydown(event: KeyboardEvent): void {
     display: flex;
     gap: var(--space-2);
     align-items: center;
-    min-width: 0;
   }
   .pill-wrap {
-    position: relative;
-    min-width: 0;
+    flex-shrink: 0;
   }
   .pill {
     min-height: 44px;
@@ -129,11 +151,9 @@ function onKeydown(event: KeyboardEvent): void {
     font: var(--text-mono-12);
   }
   .list {
-    position: absolute;
-    top: calc(100% + var(--space-1));
-    left: 0;
+    position: fixed;
     z-index: 20;
-    width: min(20rem, calc(100vw - 2 * var(--space-3)));
+    box-sizing: border-box;
     max-height: 60vh;
     overflow: auto;
     padding: var(--space-3);

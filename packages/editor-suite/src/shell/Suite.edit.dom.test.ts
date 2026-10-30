@@ -124,7 +124,14 @@ describe('Suite editing', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Ask' })
     await userEvent.type(within(dialog).getByRole('textbox', { name: 'Ask for a change' }), 'faster')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Ask' }))
-    await userEvent.click(await within(dialog).findByRole('button', { name: 'Accept' }))
+    const accept = await within(dialog).findByRole('button', { name: 'Accept' })
+    await waitFor(() =>
+      expect(within(dialog).getByRole('meter', { name: 'Tokens used' })).toHaveAttribute(
+        'aria-valuenow',
+        '40',
+      ),
+    )
+    await userEvent.click(accept)
     await waitFor(() => expect(text()).toBe('MAX_MOVE_SPEED = 9\n'))
     expect(screen.queryByRole('dialog', { name: 'Ask' })).toBeNull()
     expect(await fileText(ports)).toBe('MAX_MOVE_SPEED = 9\n')

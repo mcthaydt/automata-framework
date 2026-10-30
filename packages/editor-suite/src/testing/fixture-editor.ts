@@ -46,7 +46,7 @@ export const fixtureEditor: SuiteEditor<FixtureSession> = defineSuiteEditor<Fixt
     inspector: createRawSnippet(() => ({ render: () => '<p>Fixture inspector</p>' })),
     canvas: createRawSnippet((session: () => FixtureSession) => ({
       render: () =>
-        '<div class="fixture"><pre data-testid="fixture-text"></pre><p data-testid="fixture-refusal"></p><button type="button">Raise speed</button></div>',
+        '<div class="fixture"><pre data-testid="fixture-text"></pre><p data-testid="fixture-refusal"></p><button type="button" style="min-height: 44px">Raise speed</button></div>',
       setup(node) {
         const text = node.querySelector('pre')
         const refusal = node.querySelector('[data-testid="fixture-refusal"]')

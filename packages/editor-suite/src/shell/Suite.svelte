@@ -82,7 +82,8 @@ let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)
 let history = $state({ canUndo: false, canRedo: false, undoLabel: '', redoLabel: '' })
 let tokens = $state<{ readonly used: number; readonly cap: number }>()
-const compact = $derived(geometry.current.heightTier === 'short')
+// Icons with counts in the `short` tier (spec §10) and on a phone, where full labels leave no room; never hidden.
+const compact = $derived(geometry.current.heightTier === 'short' || mode === 'compact')
 
 $effect(() => {
   const session = editing
@@ -130,7 +131,11 @@ $effect(() => {
   const session = ask
   if (session === undefined) return
   askView = session.state()
-  const stopState = session.subscribe(() => (askView = session.state()))
+  // A reply has spent tokens through the change set, so the meter reads the journal again.
+  const stopState = session.subscribe(() => {
+    askView = session.state()
+    if (askView.kind === 'shown' || askView.kind === 'over-budget') void editing.refresh()
+  })
   const stopHistory = undoHook?.subscribe(() => session.drop())
   return () => {
     stopState()
@@ -223,8 +228,10 @@ function openCard(card: EditorCard): void {
     <Button aria-current={current === undefined && reading === undefined ? 'page' : undefined} onclick={() => choose(undefined)}
       >Home</Button
     >
-    <span class="brand">Editors</span>
+    {#if mode !== 'compact'}<span class="brand">Editors</span>{/if}
     {#if sample}<span class="sample">Sample game</span>{/if}
+    <!-- The pills and the editing tools scroll sideways when the bar is short of room; Home, Panel and Details stay. -->
+    <div class="tools" data-scroll-region="both">
     <SuitePills {pills} {compact} onlocate={locate} />
     <span class="spacer"></span>
     {#if undoHook !== undefined}
@@ -236,11 +243,12 @@ function openCard(card: EditorCard): void {
       >
     {/if}
     {#if ask !== undefined}<Button onclick={() => (askOpen = true)}>Ask</Button>{/if}
+    {#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}
+    </div>
     {#if mounted && mode !== 'wide'}
       <Button aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Panel</Button>
       <Button aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}>Details</Button>
     {/if}
-    {#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}
   {/snippet}
 
   {#snippet rail({ orientation }: { orientation: 'vertical' | 'horizontal' })}
@@ -309,6 +317,18 @@ function openCard(card: EditorCard): void {
   }
   .spacer {
     flex: 1;
+  }
+  .tools {
+    display: flex;
+    flex: 1 1 auto;
+    gap: var(--space-2);
+    align-items: center;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tools > :global(*) {
+    flex-shrink: 0;
   }
   .page {
     box-sizing: border-box;
