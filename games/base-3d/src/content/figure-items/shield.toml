@@ -1,0 +1,21 @@
+# Wick's shield (M3 spec §4.7). New for base-3d: FigureBuilder's items library (a1f7246) has no shield. A figure holds
+# one item, in its `hand`, so the first slice shows the sword; the shield waits on a second hand's item (a follow-up
+# for figures, recorded in the M3.7b plan).
+
+about = "A round wooden buckler with a brass rim and boss, held flat before the forearm."
+tip = [0, 0, 0]
+hold = { hand = [{ k = 0.15 }, { k = -0.34 }, { k = 0.25 }], turn = [0, 0, 0], pole = [0.7, -0.4, -0.6] }
+
+[[parts]]
+material = "wood"
+at = [0, 0, 0.02]
+r = [0.2, 0.2, 0.02]
+seg = 12
+rings = 2
+
+[[parts]]
+material = "brass"
+at = [0, 0, 0.05]
+r = [0.05, 0.05, 0.03]
+seg = 8
+rings = 3
