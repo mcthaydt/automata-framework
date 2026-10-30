@@ -3,7 +3,7 @@
 // extension that registers them. Part 2 (M3.5b): `build()`, the part, garment and hair generators behind it.
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
 
-export type { Anchor, AnchorKind } from './build/anchors'
+export { type Anchor, type AnchorKind, clearance } from './build/anchors'
 export { type Built, build, type FigureLibrary } from './build/build'
 export type { BuiltMaterial } from './build/materials'
 
