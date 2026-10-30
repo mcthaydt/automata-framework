@@ -99,6 +99,26 @@ describe('defineGame defaults (DX spec §3.1)', () => {
     expect(typeof defineGame(spec).renderer).toBe('function')
   })
 
+  it('makes the renderer with createRenderer when given one, from the Pixi options it built (M3.4a)', () => {
+    const factory = () => Effect.die('unused')
+    const createRenderer = vi.fn(() => factory)
+    const game = defineGame({ ...spec, renderer: { backgroundColor: 7 }, createRenderer })
+    expect(game.renderer).toBe(factory)
+    expect(createRenderer).toHaveBeenCalledOnce()
+    expect(createRenderer.mock.calls[0]).toEqual([
+      expect.objectContaining({ logicalWidth: 320, logicalHeight: 180, pixelArt: true, backgroundColor: 7 }),
+    ])
+  })
+
+  it('preloads the given files on the entry screen, with byte progress and the stall rule (M3.4a)', () => {
+    const game = defineGame({ ...spec, preload: ['models/crate.glb', 'models/desk.bin'] })
+    expect(game.content.data.assets).toEqual({
+      screens: { title: { files: ['models/crate.glb', 'models/desk.bin'] } },
+    })
+    expect(game.content.hash).toBe(defaultContent(['models/crate.glb', 'models/desk.bin']).hash)
+    expect(game.content.hash).not.toBe(defaultContent().hash)
+  })
+
   it('finds its root in #game, unless given one', () => {
     const main = document.body.appendChild(document.createElement('main'))
     main.id = 'game'
@@ -206,6 +226,13 @@ describe('defineGame validation (DX spec §5 step 1, §6)', () => {
   it('needs a 16-hex-digit content hash', () => {
     expect(problemsOf({ ...spec, content: { data: defaultContent().data, hash: 'nope' } })).toContain(
       'content.hash:',
+    )
+  })
+
+  it('refuses preload with content of its own, whose assets.toml lists the files (M3.4a)', () => {
+    const own = { data: defaultContent().data, hash: defaultContent().hash }
+    expect(problemsOf({ ...spec, content: own, preload: ['a.glb'] })).toContain(
+      'preload: a game with content lists its files in content/assets.toml',
     )
   })
 

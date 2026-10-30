@@ -34,8 +34,18 @@ const DATA: CompiledContentData = {
 
 let content: GameContent | undefined
 
-/** The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash. */
-export function defaultContent(): GameContent {
-  content ??= { data: DATA, hash: hex64(xxhash64(utf8(canonicalJson(DATA)))) }
+const hashed = (data: CompiledContentData): GameContent => ({
+  data,
+  hash: hex64(xxhash64(utf8(canonicalJson(data)))),
+})
+
+/**
+ * The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash. With `preload`,
+ * the title screen waits for those files (`assets`), which the runtime fetches with byte progress under the stall
+ * rule before the renderer starts.
+ */
+export function defaultContent(preload: readonly string[] = []): GameContent {
+  if (preload.length > 0) return hashed({ ...DATA, assets: { screens: { title: { files: [...preload] } } } })
+  content ??= hashed(DATA)
   return content
 }
