@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  zod: 4.6.6
-
 importers:
 
   .:
@@ -588,6 +585,28 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
 
+  packages/figures:
+    dependencies:
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
+      '@mcthaydt/automata-runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+
   packages/game:
     dependencies:
       '@mcthaydt/automata-host':
@@ -1104,15 +1123,27 @@ importers:
 
   tooling/examples-runner:
     dependencies:
+      '@mcthaydt/automata':
+        specifier: workspace:*
+        version: link:../../packages/automata
+      '@mcthaydt/automata-game':
+        specifier: workspace:*
+        version: link:../../packages/game
       '@mcthaydt/automata-render-pixi':
         specifier: workspace:*
         version: link:../../packages/render-pixi
+      '@mcthaydt/automata-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@mcthaydt/automata-testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -1125,10 +1156,10 @@ importers:
       oxc-parser:
         specifier: 0.152.0
         version: 0.152.0
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-testing':
-        specifier: workspace:*
-        version: link:../../packages/testing
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -1153,9 +1184,6 @@ importers:
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
 
   tooling/frame-budget:
     dependencies:
@@ -2202,20 +2230,20 @@ packages:
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
   '@ruken/cli@file:vendor/ruken/ruken-cli-0.0.0.tgz':
-    resolution: {integrity: sha512-tS/9pqGhvyX1uphJ50zOE2rQj0yWMawJ3hQyGiK7NyXkzq0kZkkZ+M7UQVqxpQXL1MZpq5C0HVwpNCSe97YIZw==, tarball: file:vendor/ruken/ruken-cli-0.0.0.tgz}
+    resolution: {integrity: sha512-9dhanFG6F+c0quH8QZVZdyRixA/UzfPZJr7d7qBUmwOnXTHc8RidXeiUDHotTbfa1S8R1/6YA53gO4I9vipH3Q==, tarball: file:vendor/ruken/ruken-cli-0.0.0.tgz}
     version: 0.0.0
     hasBin: true
 
   '@ruken/manifest@file:vendor/ruken/ruken-manifest-0.0.0.tgz':
-    resolution: {integrity: sha512-ZgDo8pOZEEbppL7kO+1qzUbB9xhDk8q20t8tEDURl6l1OS2lb8F9nwR0GabbTrYEGLg/0WgGA/YiSbW4Fge4Wg==, tarball: file:vendor/ruken/ruken-manifest-0.0.0.tgz}
+    resolution: {integrity: sha512-hdhpNvvfr2qXaV3CeMwunqrQm43/yCPSxdVnKzoilyB8B+VSwL7EpMuvzpMQhLcq21+Hdrb+QfazaaR+0Dwb0A==, tarball: file:vendor/ruken/ruken-manifest-0.0.0.tgz}
     version: 0.0.0
 
   '@ruken/sdk-host@file:vendor/ruken/ruken-sdk-host-0.0.0.tgz':
-    resolution: {integrity: sha512-7nSVGnPJXHV/Pe/bItzOGCmv7V5VVmvOycDaIZxHwckE3VX2GAWd7oqIbGSZO00EgsrIUtzLmEo+Ue4L3sIs8w==, tarball: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz}
+    resolution: {integrity: sha512-txyMwREviATWGkmhRFlLUccPfS5ZRcPCgJf3OkEVNgm/zg83FqzMiYvhqTmgnnPM4Bf7PeBBNMzWypyW65uUog==, tarball: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz}
     version: 0.0.0
 
   '@ruken/sdk@file:vendor/ruken/ruken-sdk-0.0.0.tgz':
-    resolution: {integrity: sha512-ChYL+q7ovmv0hgD7vpCbO6Ce3LqHUSWe40EyVZw6eEvRABHGZueY024eCzNMuH4UsNh/3UrewFNFfLt+tE4Wxw==, tarball: file:vendor/ruken/ruken-sdk-0.0.0.tgz}
+    resolution: {integrity: sha512-oB5IzdAQHZ7rm6PzSrKcQu1buRAn1Ta9x8MvhNNg3EGUKKZ9PvILBuUqcuOmYb7ClFf5Lx3KPwjuuTKqwBCCAQ==, tarball: file:vendor/ruken/ruken-sdk-0.0.0.tgz}
     version: 0.0.0
 
   '@sinclair/typebox@0.31.30':

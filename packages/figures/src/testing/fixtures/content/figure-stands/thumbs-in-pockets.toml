@@ -1,0 +1,15 @@
+# `thumbsInPockets` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/poses.json at a1f7246 (the stands); fallbacks in kebab-case.
+
+about = "Easy, the weight back on the far leg, both thumbs hooked into the front pockets at the hip with the hands outside them, the elbows out, the eyes on the camera."
+weight = "L"
+shift = 0.035
+roll = 0.06
+under = 0.3
+free = [0.07, 0.045, 0.4, 0.06]
+chest = [0.05, 0.1, 0.02]
+head = [-0.25, 0.04, 0.02]
+fallback = ["hand-in-pocket", "hand-in-jacket-pocket", "hand-on-hip"]
+
+[hands]
+R = { at = "thumbHook", elbow = -0.3, nudge = [0, -0.03, 0] }
+L = { at = "thumbHook", elbow = 0.3, nudge = [0, -0.03, 0] }

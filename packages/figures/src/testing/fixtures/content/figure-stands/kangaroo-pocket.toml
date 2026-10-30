@@ -1,0 +1,15 @@
+# `kangarooPocket` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/poses.json at a1f7246 (the stands); fallbacks in kebab-case.
+
+about = "Both hands high in a belly pocket, the elbows bent hard and standing out from the body (the near one out and back, into the picture), the weight on the far hip, the near knee in, the head tipped."
+weight = "L"
+shift = 0.055
+roll = 0.1
+under = 0.45
+free = [0.09, 0.02, 0.15, 0.3]
+chest = [0.08, -0.12, 0]
+head = [-0.18, 0.13, -0.04]
+fallback = ["hip-and-pocket", "hand-on-hip"]
+
+[hands]
+R = { at = "bellyPocket", elbow = -0.3 }
+L = { at = "bellyPocket", elbow = 0.5 }
