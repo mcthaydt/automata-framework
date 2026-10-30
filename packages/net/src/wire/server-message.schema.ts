@@ -27,16 +27,23 @@ export const NET_ERROR_CODES: readonly [
 export type NetErrorCode = (typeof NET_ERROR_CODES)[number]
 
 /** A seat as a JSON object key: "0" to MAX_SEATS - 1, no leading zero. */
-const seatKey = z
-  .string()
-  .regex(/^(?:0|[1-9][0-9]?)$/)
-  .refine((key) => Number(key) < MAX_SEATS)
+const isSeatKey = (key: string): boolean => /^(?:0|[1-9][0-9]?)$/.test(key) && Number(key) < MAX_SEATS
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+/**
+ * Per-seat acks. Zod's record drops an own `__proto__` key (which `JSON.parse` creates) without reporting it, so
+ * every own key is checked before the record parses the values.
+ */
+const acks = z
+  .custom<Record<string, unknown>>((value) => isPlainObject(value) && Object.keys(value).every(isSeatKey), {
+    message: 'acks are keyed by seat',
+  })
+  .pipe(z.record(z.string(), uintSchema))
 
 // What the room sends (M7 spec §4.2). `snap` and `replay` are headers: the snapshot or the packed replay follows as
 // a binary message.
-const snap = z
-  .object({ t: z.literal('snap'), tick: uintSchema, hash: hex16Schema, acks: z.record(seatKey, uintSchema) })
-  .strict()
+const snap = z.object({ t: z.literal('snap'), tick: uintSchema, hash: hex16Schema, acks }).strict()
 const seated = z.object({ t: z.literal('seated'), seat: seatSchema }).strict()
 /** `slack`: how many ticks early (positive) or late (negative) the probe's tick arrived (FloorFifty input lead). */
 const pong = z.object({ t: z.literal('pong'), id: uintSchema, slack: z.number().int() }).strict()

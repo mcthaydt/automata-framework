@@ -20,6 +20,9 @@ const decoder = new TextDecoder('utf-8', { fatal: true })
  * oversized message costs no parsing. Then JSON, then the strict schema.
  */
 function parseWith<S extends z.ZodType>(schema: S, raw: string | Uint8Array): ParseResult<z.output<S>> {
+  // Every UTF-16 unit is at least one UTF-8 byte, so a string longer than the cap is past it without encoding it.
+  if (typeof raw === 'string' && raw.length > MAX_MESSAGE_BYTES)
+    return { ok: false, reason: 'too-large', detail: `over ${MAX_MESSAGE_BYTES} bytes` }
   const bytes = byteLength(raw)
   if (bytes > MAX_MESSAGE_BYTES)
     return { ok: false, reason: 'too-large', detail: `${bytes} bytes, over the cap of ${MAX_MESSAGE_BYTES}` }

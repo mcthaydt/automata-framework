@@ -65,6 +65,47 @@ describe('netPlugin', () => {
     s.dispose()
   })
 
+  // Review of M7.2: despawn waits for the end of the tick, so the commands of one tick must see each other.
+  it('gives a seat to a join that follows a leave of it in the same tick', async () => {
+    const s = await sim()
+    s.step([{ ...join(3, 0), tick: s.tick }])
+    const old = s.query(NetOwner)[0]?.sid
+    const result = s.step([
+      { ...leave(3, 1), tick: s.tick },
+      { ...join(3, 2), tick: s.tick },
+    ])
+    expect(seats(s)).toEqual([3])
+    const fresh = s.query(NetOwner)[0]?.sid
+    expect(fresh).not.toBe(old)
+    expect(result.events).toEqual([
+      { type: 'seat.left', payload: { seat: 3, sid: old } },
+      { type: 'seat.joined', payload: { seat: 3, sid: fresh } },
+    ])
+    s.dispose()
+  })
+
+  it('leaves a seat empty when a join is followed by a leave in the same tick', async () => {
+    const s = await sim()
+    const result = s.step([
+      { ...join(2, 0), tick: s.tick },
+      { ...leave(2, 1), tick: s.tick },
+    ])
+    expect(seats(s)).toEqual([])
+    expect(result.events.map((e) => e.type)).toEqual(['seat.joined', 'seat.left'])
+    s.dispose()
+  })
+
+  it('emits seat.left once for two leaves of one seat in the same tick', async () => {
+    const s = await sim()
+    s.step([{ ...join(1, 0), tick: s.tick }])
+    const result = s.step([
+      { ...leave(1, 1), tick: s.tick },
+      { ...leave(1, 2), tick: s.tick },
+    ])
+    expect(result.events.map((e) => e.type)).toEqual(['seat.left'])
+    s.dispose()
+  })
+
   it('ignores a leave for an empty seat', async () => {
     const s = await sim()
     const result = s.step([{ ...leave(3, 0), tick: s.tick }])

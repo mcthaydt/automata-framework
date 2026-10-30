@@ -31,6 +31,7 @@ describe('JoinOptions', () => {
     ['an empty name', { ...join, name: '   ' }],
     ['a name past 16 characters', { ...join, name: 'a'.repeat(17) }],
     ['a name outside the alphabet', { ...join, name: 'Ada<script>' }],
+    ['a session with a control character', { ...join, session: 'a\u0000b' }],
     ['a session past 128 characters', { ...join, session: 'a'.repeat(129) }],
     ['a missing field', { protocol: 1, schemaHash: HASH, name: 'Ada' }],
   ])('rejects %s', (_, value) => {
@@ -61,6 +62,10 @@ describe('ClientMessage', () => {
     ['a ready flag that is not a boolean', { t: 'ready', ready: 'yes', req: 'r1' }],
     ['a request id past 64 characters', { t: 'leave', req: 'r'.repeat(65) }],
     ['a request id with a control character', { t: 'leave', req: 'r\n1' }],
+    ['a ping tick between -1 and 0', { t: 'ping', id: 1, tick: -0.5 }],
+    ['bot.remove without a seat', { t: 'bot.remove', req: 'r1' }],
+    ['a seat on leave', { t: 'leave', req: 'r1', seat: 1 }],
+    ['a seat on bot.add', { t: 'bot.add', req: 'r1', seat: 1 }],
     ['a seat past the last one', { t: 'bot.remove', req: 'r1', seat: 16 }],
     ['an unknown field on leave', { t: 'leave', req: 'r1', all: true }],
   ])('rejects %s', (_, value) => {
@@ -82,6 +87,9 @@ describe('ServerMessage', () => {
 
   it.each([
     ['an ack for a seat that is not a number', { t: 'snap', tick: 30, hash: HASH, acks: { a: 1 } }],
+    ['an ack keyed __proto__', JSON.parse(`{"t":"snap","tick":30,"hash":"${HASH}","acks":{"__proto__":1}}`)],
+    ['an ack for seat 16', { t: 'snap', tick: 30, hash: HASH, acks: { '16': 1 } }],
+    ['an ack keyed with a leading zero', { t: 'snap', tick: 30, hash: HASH, acks: { '01': 1 } }],
     ['an unknown error code', { t: 'answer', req: 'r1', error: 'NOPE' }],
     ['an unknown field', { t: 'seated', seat: 0, host: true }],
   ])('rejects %s', (_, value) => {

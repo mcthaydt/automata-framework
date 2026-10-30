@@ -21,6 +21,11 @@ export const joinOptionsSchema: z.ZodType<JoinOptions> = z
     schemaHash: hex16Schema,
     contentHash: hex16Schema,
     name: nameSchema,
-    session: z.string().min(1).max(SESSION_MAX_LENGTH).optional(),
+    session: z
+      .string()
+      .min(1)
+      .max(SESSION_MAX_LENGTH)
+      .regex(/^[\x21-\x7e]+$/, 'a session token is printable ASCII')
+      .optional(),
   })
   .strict()

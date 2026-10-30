@@ -27,7 +27,10 @@ export interface LinkOptions {
 }
 
 function checkOptions(options: LinkOptions): void {
-  if (!Number.isInteger(options.seed)) throw new RangeError(`createLink: seed must be a whole number`)
+  // Two streams are derived as seed * 2 + direction and the RNG takes 32 bits, so seeds stop at 2^31 - 1 to stay
+  // distinct.
+  if (!Number.isInteger(options.seed) || options.seed < 0 || options.seed > 2 ** 31 - 1)
+    throw new RangeError('createLink: seed must be a whole number from 0 to 2^31 - 1')
   for (const key of ['latencyMs', 'jitterMs'] as const) {
     const value = options[key]
     if (!Number.isInteger(value) || value < 0)
@@ -88,7 +91,9 @@ export function createLink(options: LinkOptions): { client: Transport; server: T
     server: new Set<(data: WireData) => void>(),
   }
   const deliverTo = (side: 'client' | 'server') => (data: WireData) => {
-    for (const listener of [...listeners[side]]) listener(data)
+    // A copy, so a listener added during delivery waits for the next message; the `has` check skips one removed by an
+    // earlier listener of this message.
+    for (const listener of [...listeners[side]]) if (listeners[side].has(listener)) listener(data)
   }
   const transport = (side: 'client' | 'server', other: 'client' | 'server', stream: number): Transport => ({
     send: end(createRng(options.seed * 2 + stream), options, deliverTo(other)),

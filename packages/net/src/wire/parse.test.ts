@@ -28,6 +28,15 @@ describe('parseClientMessage', () => {
     expect(parse).not.toHaveBeenCalled()
   })
 
+  it('rejects a string longer than the cap in characters without encoding it', () => {
+    const encode = vi.spyOn(TextEncoder.prototype, 'encode')
+    expect(parseClientMessage('x'.repeat(MAX_MESSAGE_BYTES + 1))).toMatchObject({
+      ok: false,
+      reason: 'too-large',
+    })
+    expect(encode).not.toHaveBeenCalled()
+  })
+
   it('counts bytes, not characters', () => {
     // 'é' is two bytes in UTF-8: half the cap in characters is the whole cap in bytes, plus the envelope.
     const raw = JSON.stringify({

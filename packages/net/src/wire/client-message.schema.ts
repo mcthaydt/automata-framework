@@ -14,14 +14,22 @@ const command = z
   })
   .strict()
 
-/** A clock probe: `tick` is fractional, or -1 before the client has a clock (FloorFifty's `pingSchema`). */
-const ping = z.object({ t: z.literal('ping'), id: uintSchema, tick: z.number().finite().min(-1) }).strict()
+/**
+ * A clock probe: `tick` is the client's fractional tick from 0, or -1 before it has a clock (FloorFifty's
+ * `pingSchema`; the spec writes `uint`, and the fraction is what lets the room measure slack finer than a tick).
+ */
+const ping = z
+  .object({
+    t: z.literal('ping'),
+    id: uintSchema,
+    tick: z.union([z.literal(-1), z.number().finite().nonnegative()]),
+  })
+  .strict()
 
 const ready = z.object({ t: z.literal('ready'), ready: z.boolean(), req: reqIdSchema }).strict()
 
-const roomRequest = z
-  .object({ t: z.enum(['bot.add', 'bot.remove', 'leave']), req: reqIdSchema, seat: seatSchema.optional() })
-  .strict()
+const roomRequest = z.object({ t: z.enum(['bot.add', 'leave']), req: reqIdSchema }).strict()
+const botRemove = z.object({ t: z.literal('bot.remove'), req: reqIdSchema, seat: seatSchema }).strict()
 
 export type ClientMessage =
   | {
@@ -33,15 +41,13 @@ export type ClientMessage =
     }
   | { readonly t: 'ping'; readonly id: number; readonly tick: number }
   | { readonly t: 'ready'; readonly ready: boolean; readonly req: string }
-  | {
-      readonly t: 'bot.add' | 'bot.remove' | 'leave'
-      readonly req: string
-      readonly seat?: number | undefined
-    }
+  | { readonly t: 'bot.add' | 'leave'; readonly req: string }
+  | { readonly t: 'bot.remove'; readonly req: string; readonly seat: number }
 
 export const clientMessageSchema: z.ZodType<ClientMessage> = z.discriminatedUnion('t', [
   command,
   ping,
   ready,
   roomRequest,
+  botRemove,
 ])
