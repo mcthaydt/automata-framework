@@ -4,6 +4,7 @@ import { Effect } from 'effect'
 import type { CommandOutput } from './command-output.ts'
 import { evidenceFileRefusal } from './evidence-file-reader.schema.ts'
 import { git } from './git.ts'
+import { isInside, isSymlink, resolvedPath } from './real-path.ts'
 
 // Copies evidence a person approved from the git-ignored evidence folder into the committed baselines (ported from
 // FloorFifty's `tools/promote-evidence`; plan M4.11). The two trees share a layout. With no path it lists what
@@ -12,6 +13,13 @@ import { git } from './git.ts'
 //
 // `Files` reads and writes UTF-8 text only, so a PNG cannot pass through it: files are compared with `cmp -s` and
 // copied with `mkdir -p` and `cp`, through `ProcessRunner` (a request to core for binary `Files`; plan R1).
+//
+// Before anything is copied (plan DT-D6, DT-D8):
+// - `--from` and `--to` must be relative folders without `..`, and `--to` must resolve inside the repository;
+// - every target must be a plain file or missing (never a symlink) and resolve inside `--to`;
+// - every selected file's provenance, the run's `evidence.json`, must pass `evidenceFileRefusal`: the nearest one
+//   above the file inside the evidence folder, else the one core's collector writes at the repository root. A file
+//   with neither is refused.
 
 export interface PromoteOptions {
   /** Where it runs from; the folders are relative to its checkout's root. */
@@ -31,11 +39,20 @@ export function promoteEvidence(
 ): Effect.Effect<CommandOutput, never, Files | ProcessRunner> {
   return Effect.gen(function* () {
     const files = yield* Files
+    for (const [flag, value] of [
+      ['from', options.from],
+      ['to', options.to],
+    ] as const)
+      if (value.startsWith('/') || value.split('/').includes('..'))
+        return refused([`--${flag} must be a folder inside the repository: ${value}`])
     const top = yield* git(options.cwd, ['rev-parse', '--show-toplevel'])
     if (!top.ok) return refused([`not in a git checkout: ${top.message}`])
     const root = top.stdout.trim()
     const from = `${root}/${options.from}`
     const to = `${root}/${options.to}`
+    const realTo = yield* resolvedPath(to)
+    if (!isInside(realTo, yield* resolvedPath(root)))
+      return refused([`--to resolves outside the repository: ${options.to}`])
     if (!(yield* files.exists(from))) return refused([`no ${options.from}/ here: run an evidence spec first`])
     const listed = yield* files.listFiles(from).pipe(Effect.either)
     if (listed._tag === 'Left') return failed([listed.left.message])
@@ -56,11 +73,27 @@ export function promoteEvidence(
       if (selected.length === 0) problems.push(`not in ${options.from}/: ${raw}`)
       else selections.push({ path, files: selected })
     }
-    for (const file of selections.flatMap((selection) => selection.files)) {
-      if (posix.basename(file) !== EVIDENCE_FILE) continue
-      const text = yield* files.readText(`${from}/${file}`).pipe(Effect.either)
-      const refusal = text._tag === 'Left' ? text.left.message : evidenceFileRefusal(text.right)
-      if (refusal !== null) problems.push(`refused  ${file}: ${refusal}`)
+    const provenances = new Map<string, string | null>()
+    for (const selection of selections) {
+      const reported = new Set<string>()
+      for (const file of selection.files) {
+        const provenance = yield* findProvenance(file, options.from, root)
+        const refusal =
+          provenance === null
+            ? `no ${EVIDENCE_FILE} above it in ${options.from}/ or at the repository root; run the evidence collector`
+            : yield* provenanceRefusal(`${root}/${provenance}`, provenances).pipe(
+                Effect.map((reason) => (reason === null ? null : `${provenance}: ${reason}`)),
+              )
+        if (refusal !== null && !reported.has(refusal)) {
+          reported.add(refusal)
+          problems.push(`refused  ${selection.path}: ${refusal}`)
+        }
+        const target = `${to}/${file}`
+        if (yield* isSymlink(target))
+          problems.push(`refused  ${selection.path}: ${options.to}/${file} is a symlink`)
+        else if (!isInside(yield* resolvedPath(target), realTo))
+          problems.push(`refused  ${selection.path}: ${options.to}/${file} resolves outside ${options.to}/`)
+      }
     }
     if (problems.length > 0) return refused([...problems, 'nothing promoted'])
 
@@ -74,6 +107,43 @@ export function promoteEvidence(
       promoted.push(`promoted ${selection.path}`)
     }
     return { exit: 0, stdout: lines(promoted), stderr: '' }
+  })
+}
+
+/**
+ * The run's provenance for one evidence file, relative to the root: the nearest `evidence.json` in the file's folder
+ * or a folder above it inside the evidence folder, else the root one core's collector writes; null when neither.
+ */
+function findProvenance(
+  file: string,
+  from: string,
+  root: string,
+): Effect.Effect<string | null, never, Files> {
+  return Effect.gen(function* () {
+    const files = yield* Files
+    let dir = posix.dirname(file)
+    for (;;) {
+      const candidate = dir === '.' ? `${from}/${EVIDENCE_FILE}` : `${from}/${dir}/${EVIDENCE_FILE}`
+      if (yield* files.exists(`${root}/${candidate}`)) return candidate
+      if (dir === '.') break
+      dir = posix.dirname(dir)
+    }
+    return (yield* files.exists(`${root}/${EVIDENCE_FILE}`)) ? EVIDENCE_FILE : null
+  })
+}
+
+/** Why a provenance file refuses promotion, or null; each file is read once. */
+function provenanceRefusal(
+  path: string,
+  cache: Map<string, string | null>,
+): Effect.Effect<string | null, never, Files> {
+  return Effect.gen(function* () {
+    const known = cache.get(path)
+    if (known !== undefined) return known
+    const text = yield* (yield* Files).readText(path).pipe(Effect.either)
+    const refusal = text._tag === 'Left' ? text.left.message : evidenceFileRefusal(text.right)
+    cache.set(path, refusal)
+    return refusal
   })
 }
 

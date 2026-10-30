@@ -1,19 +1,35 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { FilesLive, ProcessRunner, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { promoteEvidence } from './promote-evidence.ts'
 
 // DT-b, DT-c and DT-d. git is answered by a fake (the root is the temporary folder, or "not a checkout"); `cmp`,
-// `mkdir` and `cp` are the real programs, so the copied bytes are checked on disk.
+// `mkdir` and `cp` are the real programs, so the copied bytes are checked on disk. Each repository starts with a
+// clean `evidence.json` at its root, the provenance core's collector writes there; the DT-d cases replace it.
 
 let root = ''
+let outside = ''
 beforeEach(() => {
-  root = mkdtempSync(join(tmpdir(), 'dev-tools-promote-'))
+  root = realpathSync(mkdtempSync(join(tmpdir(), 'dev-tools-promote-')))
+  outside = realpathSync(mkdtempSync(join(tmpdir(), 'dev-tools-outside-')))
+  write('evidence.json', evidenceJson(false))
 })
-afterEach(() => rmSync(root, { recursive: true, force: true }))
+afterEach(() => {
+  rmSync(root, { recursive: true, force: true })
+  rmSync(outside, { recursive: true, force: true })
+})
 
 const write = (path: string, content: string | Uint8Array): void => {
   mkdirSync(dirname(join(root, path)), { recursive: true })
@@ -38,19 +54,23 @@ const runner = (inCheckout: boolean) =>
     },
   })
 
-const promote = (paths: string[], options: { inCheckout?: boolean } = {}) =>
+const promote = (paths: string[], options: { inCheckout?: boolean; from?: string; to?: string } = {}) =>
   Effect.runPromise(
-    promoteEvidence({ cwd: root, from: 'evidence', to: 'docs/baselines', paths }).pipe(
-      Effect.provide(Layer.merge(FilesLive, runner(options.inCheckout ?? true))),
-    ),
+    promoteEvidence({
+      cwd: root,
+      from: options.from ?? 'evidence',
+      to: options.to ?? 'docs/baselines',
+      paths,
+    }).pipe(Effect.provide(Layer.merge(FilesLive, runner(options.inCheckout ?? true)))),
   )
 
-const evidenceJson = (dirty: boolean): string =>
-  JSON.stringify({
+function evidenceJson(dirty: boolean, enginesAgree = true): string {
+  return JSON.stringify({
     schemaVersion: 1,
     revision: { sha: 'b'.repeat(40), dirty },
-    goldens: [{ scenario: 'sim/walk', enginesAgree: true }],
+    goldens: [{ scenario: 'sim/walk', enginesAgree }],
   })
+}
 
 describe('DT-b: lists what differs and copies nothing', () => {
   it('lists new and changed files, skipping dot files and files that are the same', async () => {
@@ -143,9 +163,110 @@ describe('DT-d: an evidence file is checked before it is promoted', () => {
     const out = await promote(['parity', 'other'])
     expect(out.exit).toBe(2)
     expect(out.stderr.split('\n')[0]).toBe(
-      `refused  parity/evidence.json: made from a dirty tree at ${'b'.repeat(7)}`,
+      `refused  parity: evidence/parity/evidence.json: made from a dirty tree at ${'b'.repeat(7)}`,
     )
-    expect(out.stderr.split('\n')[1]).toMatch(/^refused {2}other\/evidence\.json: not an evidence file: /)
+    expect(out.stderr.split('\n')[1]).toMatch(
+      /^refused {2}other: evidence\/other\/evidence\.json: not an evidence file: /,
+    )
     expect(existsSync(join(root, 'docs/baselines'))).toBe(false)
+  })
+
+  // The provenance is the run's evidence.json: the nearest one above the file inside the evidence folder, else the
+  // one core's collector writes at the repository root. It is checked whatever was selected.
+  it('refuses a single screenshot from a dirty run, copying nothing', async () => {
+    write('evidence.json', evidenceJson(true))
+    write('evidence/tutorial/x.png', PNG)
+    const out = await promote(['tutorial/x.png'])
+    expect(out).toEqual({
+      exit: 2,
+      stdout: '',
+      stderr: `refused  tutorial/x.png: evidence.json: made from a dirty tree at ${'b'.repeat(7)}\nnothing promoted\n`,
+    })
+    expect(existsSync(join(root, 'docs/baselines'))).toBe(false)
+  })
+
+  it('refuses a screenshot from a run whose engines disagree', async () => {
+    write('evidence.json', evidenceJson(false, false))
+    write('evidence/tutorial/x.png', PNG)
+    const out = await promote(['tutorial/x.png'])
+    expect(out.stderr).toBe(
+      'refused  tutorial/x.png: evidence.json: the engines disagree on sim/walk\nnothing promoted\n',
+    )
+    expect(existsSync(join(root, 'docs/baselines'))).toBe(false)
+  })
+
+  it('refuses a screenshot with no provenance at all', async () => {
+    rmSync(join(root, 'evidence.json'))
+    write('evidence/tutorial/x.png', PNG)
+    const out = await promote(['tutorial/x.png'])
+    expect(out.stderr).toBe(
+      'refused  tutorial/x.png: no evidence.json above it in evidence/ or at the repository root; run the evidence collector\nnothing promoted\n',
+    )
+    expect(existsSync(join(root, 'docs/baselines'))).toBe(false)
+  })
+
+  it('uses the nearest evidence.json above the file before the root one', async () => {
+    write('evidence/parity/evidence.json', evidenceJson(true))
+    write('evidence/parity/shots/a.png', PNG)
+    const out = await promote(['parity/shots/a.png'])
+    expect(out.stderr.split('\n')[0]).toBe(
+      `refused  parity/shots/a.png: evidence/parity/evidence.json: made from a dirty tree at ${'b'.repeat(7)}`,
+    )
+  })
+})
+
+describe('DT-c: --from, --to and every target stay inside', () => {
+  it('refuses .. and absolute values for --to and --from', async () => {
+    write('evidence/x.png', PNG)
+    for (const [flag, value] of [
+      ['to', `../${basename(outside)}`],
+      ['to', outside],
+      ['to', 'docs/../../x'],
+      ['from', '../evidence'],
+      ['from', '/tmp'],
+    ] as const) {
+      const out = await promote(['x.png'], { [flag]: value })
+      expect(out, `${flag} ${value}`).toEqual({
+        exit: 2,
+        stdout: '',
+        stderr: `--${flag} must be a folder inside the repository: ${value}\n`,
+      })
+    }
+    expect(existsSync(join(outside, 'x.png'))).toBe(false)
+  })
+
+  it('refuses a --to that is a symlink to outside the repository', async () => {
+    write('evidence/x.png', PNG)
+    mkdirSync(join(root, 'docs'))
+    symlinkSync(outside, join(root, 'docs/baselines'))
+    const out = await promote(['x.png'])
+    expect(out).toEqual({
+      exit: 2,
+      stdout: '',
+      stderr: '--to resolves outside the repository: docs/baselines\n',
+    })
+    expect(existsSync(join(outside, 'x.png'))).toBe(false)
+  })
+
+  it('refuses a target whose folder under --to is a symlink to outside it', async () => {
+    write('evidence/tutorial/x.png', PNG)
+    mkdirSync(join(root, 'docs/baselines'), { recursive: true })
+    symlinkSync(outside, join(root, 'docs/baselines/tutorial'))
+    const out = await promote(['tutorial/x.png'])
+    expect(out.exit).toBe(2)
+    expect(out.stderr).toBe(
+      'refused  tutorial/x.png: docs/baselines/tutorial/x.png resolves outside docs/baselines/\nnothing promoted\n',
+    )
+    expect(existsSync(join(outside, 'x.png'))).toBe(false)
+  })
+
+  it('refuses a target that is a symlink', async () => {
+    write('evidence/x.png', PNG)
+    write('outside-target.png', 'keep me')
+    mkdirSync(join(root, 'docs/baselines'), { recursive: true })
+    symlinkSync(join(root, 'outside-target.png'), join(root, 'docs/baselines/x.png'))
+    const out = await promote(['x.png'])
+    expect(out.stderr).toBe('refused  x.png: docs/baselines/x.png is a symlink\nnothing promoted\n')
+    expect(bytes('outside-target.png').toString()).toBe('keep me')
   })
 })

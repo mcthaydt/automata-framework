@@ -10,8 +10,9 @@ import { promoteEvidence } from '../promote-evidence.ts'
 const USAGE = `usage: promote-evidence --to <baselines> [--from <dir>] [<path> …]
   With no path, lists each file under <dir> (default: evidence) that is new or changed against <baselines>, and
   copies nothing. With paths (files or set folders, relative to <dir>), copies them into <baselines>.
-  Every path is checked first: one outside <dir>, not in it, or an evidence.json from a dirty tree or with
-  disagreeing engines refuses the whole promotion (exit 2).
+  Everything is checked first, and one refusal copies nothing (exit 2): a path outside <dir> or not in it; a run
+  whose evidence.json (the nearest above the file in <dir>, else the repository root's) is missing, from a dirty
+  tree or has disagreeing engines; a target that is a symlink or resolves outside <baselines>.
 `
 
 function parse(argv: readonly string[]): CommandOutput | { from: string; to: string; paths: string[] } {
