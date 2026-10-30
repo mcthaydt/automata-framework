@@ -1,0 +1,16 @@
+# `cropped` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/hair.json at a1f7246; swatch names in kebab-case.
+
+about = "Short hair at the sides and down to the nape, low enough that a cap covers its crown."
+
+[[locks]]
+on = "head"
+at = [0, 0.56, -0.18]
+r = [1.06, 0.32, 0.96]
+e = [0.55, 0.65]
+
+[[locks]]
+on = "head"
+at = [0, 0.3, -0.5]
+r = [0.98, 0.22, 0.56]
+e = [0.55, 0.65]
+taper = [0.9, 1]

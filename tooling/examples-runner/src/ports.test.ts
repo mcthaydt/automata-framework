@@ -11,7 +11,13 @@ describe('the examples ports', () => {
     vi.stubEnv('GITHUB_ACTIONS', 'true')
     vi.stubEnv('AF_E2E_DEMO_HOST_PORT', undefined)
     const ports = await import('../host/ports.ts')
-    const derived = [ports.demoHostPort, ports.examplesPort, ports.runnerFixturesPort]
+    const derived = [
+      ports.demoHostPort,
+      ports.examplesPort,
+      ports.runnerFixturesPort,
+      ports.playgroundPort,
+      ports.playgroundFramePort,
+    ]
     for (let slot = 0; slot < 8; slot += 1) derived.push(ports.demoPort(slot))
     for (const port of derived) expect(port, `port ${port}`).toBe(browserSafePort(port))
   })

@@ -113,7 +113,7 @@
 - `HostingSaves` (interface): The player's saves (shared contracts §1.1).
 - `HostingSeams` (interface): Test seams.
 - `makeHosting(options, seams?)`: Builds `Hosting` over `Ruken.init`.
-- `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp b30d31b.
+- `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at b30d31b).
 - `toHostError(operation, cause)`: Turns whatever the SDK threw or rejected with into a `HostError`.
 
 ### `import { … } from '@mcthaydt/automata-host/testing'`
