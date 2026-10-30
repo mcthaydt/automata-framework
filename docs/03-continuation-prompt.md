@@ -90,7 +90,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 
 | Lane | Session | State on 2026-10-30 05:40Z |
 |---|---|---|
-| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL) | `session_01QYLU1hpTCZksfExT9ByvkW` (rotates every 2 h) | Waiting on the Mac's CI, each with `main` merged after CI.API1 or a green checks job: #251 RT.EXT1, #234 QB.2c, #227 DX.2a, #219 CI.PAR, #191 PRODUCT.5d, #201 DX.7a, #210 PRODUCT.L3a (visual acceptance recorded), #237 M5.5F, #239 M5.6F.2, #253 GL.1, #254 GL.1b, #256 ASSET.0, and this docs PR. |
+| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL) | `session_01QYLU1hpTCZksfExT9ByvkW` (rotates every 2 h) | Waiting on the Mac's CI, each with `main` merged after CI.API1 or a green checks job: #251 RT.EXT1, #234 QB.2c, #227 DX.2a, #219 CI.PAR, #191 PRODUCT.5d, #201 DX.7a, #210 PRODUCT.L3a (visual acceptance recorded), #237 M5.5F, #239 M5.6F.2, #253 GL.1, #254 GL.1b, and this docs PR. Merged since: #256 ASSET.0 (`6a084c0`). |
 | 3D (M3, GAME-3D, M9 free parts, M4.12) | `session_01QYLU1fQHbJifZ4wuJ5qV6q` | Active. #241 M3.4a, #215, #224 merge on green; drafts #245, #247, #249; #250 M3.7a (base-3d sim) adds a base-3d game-ci job, held for the Owner's OK. Drops its `sim.plugins` workaround when #251 lands. |
 | Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1i625Fbg9c9tDyjhSW` | Active. Merged today: #196, #198, #231, #230, #207, #212, #240. Ready on the Mac: #206, #214, #225, #233, #244; fixing #242 (kit teardown ENOTEMPTY); #238 EDS.1a; draft #246 EDS.1b; building ED2D.4c3b, ED3D.5c. |
 | Plus (automata-plus) | `session_01QYLU1iZb1dcqnVEMZvtxng` | Paused (Owner, 2026-10-30) except AF #197 PRODUCT.5g, `main` merged again at `43a679d`, which it merges on green. On resume: the locks.test fix, M7.5b push, M7.5c, M3.8c, M7.6, the NetworkPort import once #227 lands. |
@@ -116,7 +116,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 ## Blocked on the Owner
 
 - **Workflow changes asked on 2026-10-30:** (1) may website #17 add `deploy.yml` (a dry run, no secrets, read-only, after ci on `main`) plus one `ci.yml` comment line, or split its scripts from the workflow? (2) may 3D #250 add a `base-3d` job to `ci.yml`, and is there a standing OK for any game's game-ci job? (3) confirm the visual-acceptance ruling to the 3D session directly.
-- **ritmo-tools (ASSET.0, #256):** the veto of ASSET-D1 to D4 (the build lints but never runs the fixer; 0.19.1 pinned though under 14 days old; Endesga 64 from a committed `.hex`; no MIDI shipped).
+- **ritmo-tools (ASSET.0, #256, merged):** the veto of ASSET-D1 to D4 (the build lints but never runs the fixer; 0.19.1 pinned though under 14 days old; Endesga 64 from a committed `.hex`; no MIDI shipped).
 - **Hosted Actions billing** is answered by publishing from the Mac ("Publish from my Mac", #192, CI.BILL). Still open: whether to fix hosted billing for npm provenance (DX.11a), the Owner's approval of each publish in the release environment (M2.4p, QB.1b), and whether the merge authority covers other changes to `.github/workflows` (Plus CI, PRODUCT.L4's GPU lane, the itch path); earlier such changes, #192's included, carried the Owner's own words.
 - **`NPM_TOKEN`** for `@mcthaydt` on npmjs.org (DX.11a, M8.9), and the release-environment approval of each publish.
 - **Site hosting and DNS** for `automata.ruken.com` with a deploy credential (DX.12, QB.4a to QB.4c), and function hosting for the store webhook (QB.5a).
