@@ -6,7 +6,7 @@ import type {
   PointerKind,
 } from '@mcthaydt/automata-editor-kit'
 import { describe, expect, it } from 'vitest'
-import { levelGestures, type LevelGestureTarget } from './level-gestures'
+import { type LevelGestureTarget, levelGestures } from './level-gestures'
 
 const keys: Modifiers = { shift: false, ctrl: false, alt: false, meta: false }
 

@@ -8,12 +8,13 @@ import {
   type WorkspaceEnv,
 } from '@mcthaydt/automata-editor-kit/core'
 import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata-ui'
-import { mount, unmount } from 'svelte'
+import { type Component, mount, unmount } from 'svelte'
 import type { LevelThumbnails } from '../canvas/level-thumbnails'
 import { randomIds } from '../model/ids'
 import App from './App.svelte'
 import { createEditorApp } from './editor-app'
 import { createAppProfiles } from './profiles'
+import type { LevelCanvasProps, ObjectUrls } from './views/view-props'
 
 // The editor's boot (plan ED2D.4c2a, decision 9): everything it touches comes in through `env`, so a test hands it a
 // window, a document, a clock and a workspace and gets the real app, and `main.ts` is the only file that reaches for
@@ -38,6 +39,10 @@ export interface EditorEnv {
    * card shows its initial, so the jsdom tests never load a renderer.
    */
   readonly thumbnails?: (workspace: Workspace) => LevelThumbnails
+  /** Object URLs for the palette's tile pictures (`URL.createObjectURL`); `main.ts` passes the browser's. */
+  readonly objectUrls?: ObjectUrls
+  /** The level canvas in place of the Pixi one: the jsdom tests pass a stand-in, since jsdom has no WebGL. */
+  readonly canvas?: Component<LevelCanvasProps>
 }
 
 export interface EditorHandle {
@@ -55,7 +60,8 @@ export async function startEditor(target: HTMLElement, env: EditorEnv): Promise<
       ...(env.download === undefined ? {} : { download: env.download }),
     }))
   const registry = createAppProfiles()
-  const app = createEditorApp({ workspace, registry, ids: randomIds(env.fillRandom), clock: env.clock })
+  const ids = randomIds(env.fillRandom)
+  const app = createEditorApp({ workspace, registry, ids, clock: env.clock })
   const toasts = createToasts({ clock: env.clock })
   const owner = createGeometryOwner({ window: env.window, root: env.document.documentElement })
   const thumbnails = env.thumbnails?.(workspace)
@@ -70,6 +76,9 @@ export async function startEditor(target: HTMLElement, env: EditorEnv): Promise<
       clock: env.clock,
       lifecycle: { document: env.document, window: env.window },
       thumbnails,
+      ids,
+      objectUrls: env.objectUrls,
+      canvas: env.canvas,
     },
   })
   return {
