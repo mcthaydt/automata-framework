@@ -33,7 +33,10 @@ export interface AddResult {
   readonly report: CheckReport
 }
 
-/** Why `automata add` stopped. Every one of them is exit 2, and none leaves a file changed in the game. */
+/**
+ * Why `automata add` stopped. Every one is exit 2 and leaves the game folder as it was; only if undoing a failed
+ * copy itself fails does `copy-failed` name the paths it could not put back.
+ */
 export type AddFailure =
   | 'no-core'
   | 'no-access'
