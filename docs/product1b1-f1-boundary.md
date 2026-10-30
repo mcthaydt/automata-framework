@@ -14,10 +14,13 @@ from the packed manifests in `.core/packs` (what Plus installs; a pack's `export
 - A core package with no pack fails: `runtime` and `render-pixi` are private until DX.2a publishes them, so their
   seams (`tooling/api-report/src/seams.ts` in the framework) reach Plus only once they are packed. The test then
   accepts their public entries with no change here.
+- A private pack (`@mcthaydt/evidence`, packed as an extra and never published) is allowed in test files
+  (`*.test.*`) only.
 - A sibling Plus package, a relative path and a non-core package are not core imports.
 
-Files: `tooling/boundary/core-imports.ts` and its test. The scan covers every `.ts` and `.svelte` file under
-`packages/`, skipping `node_modules`, `dist` and `.turbo`.
+Files: `tooling/boundary/core-imports.ts` and its test. The scan covers every `.ts`, `.mts`, `.cts`, `.tsx`, `.js`,
+`.mjs`, `.cjs`, `.jsx` and `.svelte` file under `packages/`, skipping `node_modules`, `dist` and `.turbo`; it reads
+`from`, `import`, `import()` and `require()` across line breaks.
 
 ## Interface
 
@@ -44,4 +47,5 @@ Files: `tooling/boundary/core-imports.ts` and its test. The scan covers every `.
 |---|---|
 | `tooling/boundary` | 8 tests passed |
 | Planted `import '@mcthaydt/automata-sim/src/world/sim'` in `packages/physics/src/kinds.ts` | P-c failed naming `packages/physics/src/kinds.ts:49`; reverted |
+| Independent review | 4 findings (imports split across lines, a private pack counted public, other file extensions, `require`), each fixed test-first: 10 new cases red, then 18 of 18 |
 | `pnpm check` | lint, typecheck, boundaries (0 findings), root 147 tests, physics 71 tests |

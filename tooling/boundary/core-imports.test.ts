@@ -115,6 +115,59 @@ describe('coreImportFindings', () => {
     ])
   })
 
+  it('fails an import whose specifier is on a later line than its from or import(', () => {
+    write(
+      'packages/ext/src/wrapped.ts',
+      "const m = await import(\n  '@mcthaydt/automata-sim/src/world/sim'\n)\n",
+    )
+    expect(coreImportFindings(root)).toEqual([
+      'packages/ext/src/wrapped.ts:2: "@mcthaydt/automata-sim/src/world/sim" is not a public exports entry of a core package',
+    ])
+  })
+
+  it('fails require forms', () => {
+    write('packages/ext/src/req.ts', "import x = require('@mcthaydt/automata-sim/deep')\n")
+    expect(coreImportFindings(root)).toEqual([
+      'packages/ext/src/req.ts:1: "@mcthaydt/automata-sim/deep" is not a public exports entry of a core package',
+    ])
+  })
+
+  it.each(['a.mts', 'a.cts', 'a.tsx', 'a.js', 'a.mjs', 'a.cjs', 'a.jsx'])('checks %s', (file) => {
+    write(`packages/ext/src/${file}`, "import '@mcthaydt/automata-sim/deep'\n")
+    expect(coreImportFindings(root)).toEqual([
+      `packages/ext/src/${file}:1: "@mcthaydt/automata-sim/deep" is not a public exports entry of a core package`,
+    ])
+  })
+
+  // A private pack (the framework's evidence tool, packed as an extra) is never published, so shipped code may
+  // not import it; a test file may, as the physics parity tests do.
+  it('allows a private pack in test files only', () => {
+    write(
+      '.core/packs/packs.json',
+      JSON.stringify({
+        sourceCommit: 'b7ef19d978d4751eaf08d1374dcfbcf2459d8c2b',
+        packs: [
+          {
+            name: '@mcthaydt/evidence',
+            version: '0.0.0',
+            file: 'mcthaydt-evidence-0.0.0.tgz',
+            sha256: 'b'.repeat(64),
+            dir: 'evidence',
+          },
+        ],
+      }),
+    )
+    write(
+      '.core/packs/evidence/package.json',
+      JSON.stringify({ name: '@mcthaydt/evidence', private: true, exports: { './golden': {} } }),
+    )
+    write('packages/ext/src/a.parity.test.ts', "import { r } from '@mcthaydt/evidence/golden'\n")
+    write('packages/ext/src/shipped.ts', "import { r } from '@mcthaydt/evidence/golden'\n")
+    expect(coreImportFindings(root)).toEqual([
+      'packages/ext/src/shipped.ts:1: "@mcthaydt/evidence/golden" is a private core package, for test files only',
+    ])
+  })
+
   it('says to run the sync when there are no packs', () => {
     rmSync(join(root, '.core'), { recursive: true })
     expect(() => coreImportFindings(root)).toThrow('run pnpm core:sync')
