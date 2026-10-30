@@ -128,19 +128,19 @@ is spec §4.2's "≤ T … at T + 1", restated for core's tick (where §4.2 coun
 
 ## Steps
 
-- [ ] 1. Input lead: FloorFifty's 10 cases red (module missing), then green.
-- [ ] 2. Authority clock: red (module missing), then green. Cases: nothing before the first snapshot; the first
+- [x] 1. Input lead: FloorFifty's 10 cases red (module missing), then green.
+- [x] 2. Authority clock: red (module missing), then green. Cases: nothing before the first snapshot; the first
   snapshot sets it; it runs at the nominal rate between snapshots; it eases toward a later anchor by at most 10% of
   elapsed time and never past it; it snaps forward past 12 ticks; one snapshot far behind does not move it back,
   500 ms of them does; `error` is the anchor less the clock; `clear` forgets.
-- [ ] 3. Counter game (test support) and prediction: red (module missing), then green. Cases: a command recorded
+- [x] 3. Counter game (test support) and prediction: red (module missing), then green. Cases: a command recorded
   for tick P takes effect when P is stepped; a restore re-steps the pending commands to the sampled tick and the
   result equals stepping without the snapshot (a snapshot that agrees changes nothing); acked commands are dropped;
   a command whose tick has passed is applied at T, after the one sent ahead of it, never before; a stale or repeated
   snapshot is ignored; a header hash that differs is a mismatch, the sim is put back on the base and re-stepped (its
   hash unchanged), the ack in that header is not applied; bytes that fail to restore are a mismatch and leave the
   sim as it was; a mismatch before any good snapshot rolls back to the sim's starting state; `clear`.
-- [ ] 4. `NetSession` (FloorFifty `race-netcode` cases, adapted): red (module missing), then green. Sends the first
+- [x] 4. `NetSession` (FloorFifty `race-netcode` cases, adapted): red (module missing), then green. Sends the first
   command at once, stamped with the predicted tick; sends exactly what the sampler returns, once, with `seq` climbing
   by one and ticks never going back; a long frame stamps the latest tick it reaches and samples once; sends nothing
   while the room is not taking input or the seat is unknown; re-seats after a long gap; keeps sampling when the clock
@@ -184,3 +184,7 @@ Filled in as the steps land.
 
 | Date | Step | Evidence |
 |---|---|---|
+| 2026-10-30 | 1 | `input-lead.test.ts` red (module missing; a first run failed to parse, an apostrophe in a test name), then green: FloorFifty's 10 cases and one for another tick rate and cap (11) |
+| 2026-10-30 | 2 | `authority-clock.test.ts` red (module missing), then green (7). The arrival-time case was wrong as first written (its anchor was inside the ease band, so it could not tell arrival from reading); rewritten to land past the snap. The ease case's tolerance is 1e-3: the clock bleeds error off by 5% of it per tick, so it closes exponentially |
+| 2026-10-30 | 3 | `prediction.test.ts` red (module missing), then red twice for the fixture: the room's source 1000 was refused `bad-header` (the sim's highest is 255, as the server's `ROOM_SOURCE`), and Koota's 16-world limit until the suite disposed its sims; then green (11) |
+| 2026-10-30 | 4 | `net-session.test.ts` red (module missing), then one case red for the test (its snapshot tick preceded every stamped command, so nothing was acked); green (18) |
