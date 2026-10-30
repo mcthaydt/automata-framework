@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte'
-  import { getDemosCatalog } from '../../data/demos'
+  import { getExamples } from '../../data/examples'
   import { getDocSections } from '../../data/docs-loader'
   import { CHEATSHEET_MODULES, cheatsheetSearchText } from '../../data/cheatsheet'
   import { AI_TASKS } from '../../data/ai-guidance'
@@ -10,13 +10,13 @@
   let query = $state('')
   const links = [
     { title: 'Overview', detail: 'About Automata', url: '/' },
-    { title: 'Examples', detail: 'Playable demos and source', url: '/examples' },
+    { title: 'Examples', detail: 'One-file examples that run beside their code', url: '/examples' },
     { title: 'API reference', detail: 'Selected current APIs', url: '/cheatsheet' },
     { title: 'Showcase', detail: 'Starter and reference projects', url: '/showcase' },
     { title: 'AI guidance', detail: 'Rules and plain-text docs', url: '/ai' },
     ...AI_TASKS.map(task => ({ title: task.title, detail: task.description + ' ' + task.prompt, url: '/ai#prompt-' + task.id })),
     ...getDocSections().map(d => ({ title: d.title, detail: d.description + ' ' + d.content, url: '/docs/' + d.slug })),
-    ...getDemosCatalog().map(d => ({ title: d.title, detail: d.shows, url: '/examples?demo=' + d.slug })),
+    ...getExamples().map(e => ({ title: e.id + ': ' + e.title, detail: e.shows, url: '/examples/' + e.id })),
     ...CHEATSHEET_MODULES.flatMap(m => m.entries.map(e => ({ title: e.name, detail: cheatsheetSearchText(m, e), url: '/cheatsheet#' + e.name }))),
   ]
   let results = $derived(links.filter(l => query.trim().toLowerCase().split(/\s+/).every(q => (l.title + ' ' + l.detail).toLowerCase().includes(q))))

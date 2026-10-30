@@ -23,4 +23,20 @@ describe('securityHeaders', () => {
     expect(DEMO_POLICY).not.toMatch(/'unsafe-inline'[^;]*;?\s*$|script-src[^;]*'unsafe-(inline|eval)'/)
     expect(securityHeaders('/demosx/')['Content-Security-Policy']).toBe("frame-ancestors 'self'")
   })
+
+  // WEB.PLAY.5: an example page's preview is a sandboxed frame with an opaque origin, which `(self)` never matches, so
+  // the input examples' getGamepads() threw "disallowed by permissions policy". Example pages and the frame pages they
+  // load allow the two features to any origin; a frame still gets them only through its `allow` attribute, which only
+  // the playground's frames carry. Every other page keeps `(self)`.
+  it('lets an example page delegate fullscreen and the gamepad to its opaque preview frame, and no other page', () => {
+    for (const path of ['/examples/core-saves', '/playground/examples/core/saves/']) {
+      const policy = securityHeaders(path)['Permissions-Policy']
+      expect(policy, path).toContain('fullscreen=*')
+      expect(policy, path).toContain('gamepad=*')
+      expect(policy, path).toContain('camera=()')
+    }
+    for (const path of ['/examples', '/docs', '/', '/playground/runtime/assets/x.js']) {
+      expect(securityHeaders(path)['Permissions-Policy'], path).toContain('gamepad=(self)')
+    }
+  })
 })

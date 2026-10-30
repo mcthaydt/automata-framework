@@ -28,7 +28,15 @@ export const DEMO_POLICY = [
   FRAME_POLICY,
 ].join('; ')
 
+/**
+ * An example page's preview runs in a sandboxed frame with an opaque origin, which `(self)` never matches (WEB.PLAY.5),
+ * so example pages and the frame pages they load allow fullscreen and the gamepad to any origin. A frame still gets a
+ * feature only through its `allow` attribute, and only the playground's frames carry one.
+ */
+const PREVIEW_PAGE = /^\/(examples|playground\/examples)\/[^/]/
+
 export function securityHeaders(pathname: string): Record<string, string> {
+  const delegated = PREVIEW_PAGE.test(pathname) ? 'fullscreen=*, gamepad=*' : 'fullscreen=(self), gamepad=(self)'
   return {
     // One day while the host is new: a broken certificate then locks returning readers out for a day, not a year.
     // QB.4 raises it to a year once the live origin has passed `pnpm check:deployed` for a week.
@@ -37,7 +45,7 @@ export function securityHeaders(pathname: string): Record<string, string> {
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     // Games may go full screen and read a gamepad; nothing on the site needs the camera, microphone, location,
     // payments or USB.
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self), gamepad=(self)',
+    'Permissions-Policy': `camera=(), microphone=(), geolocation=(), payment=(), usb=(), ${delegated}`,
     'Content-Security-Policy': pathname.startsWith('/demos/') ? DEMO_POLICY : FRAME_POLICY,
   }
 }

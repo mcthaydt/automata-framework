@@ -1,25 +1,13 @@
 import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it, vi } from 'vitest'
 vi.mock('$app/environment', () => ({ browser: true }))
-import { load } from '../src/routes/examples/+page'
-import { getExampleProject } from '../src/data/projects'
 import { demoStatus } from '../src/lib/utils/demo-status'
 import { isEditing } from '../src/lib/utils/keyboard'
 import DemoRunner from '../src/lib/components/DemoRunner.svelte'
 
-describe('Demo URLs and readiness', () => {
-  it('selects the requested demo and falls back for unknown slugs', async () => {
-    const selected = await load({ url: new URL('https://example.test/examples?demo=base-2d') } as any)
-    expect(selected).toEqual({ demo: 'base-2d', project: getExampleProject('base-2d') })
-    const unknown = await load({ url: new URL('https://example.test/examples?demo=missing') } as any)
-    expect(unknown).toEqual({ demo: 'ui-primitives', project: getExampleProject('ui-primitives') })
-  })
-  it('opens a requested published file and ignores paths outside the source inventory', async () => {
-    const selected = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=games/emberwick/src/content/room.test.ts') } as any)
-    expect(selected).toEqual({ demo: 'base-2d', project: getExampleProject('base-2d'), file: 'games/emberwick/src/content/room.test.ts' })
-    const invalid = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=../../.env') } as any)
-    expect(invalid).toEqual({ demo: 'base-2d', project: getExampleProject('base-2d') })
-  })
+// The gallery's ?demo= and ?file= selection is retired with the gallery (WEB.PLAY.5): /examples is one prerendered
+// index whatever the query (tests/examples-pages.test.ts).
+describe('Demo readiness', () => {
   it('does not equate document load with game readiness', () => {
     const doc = document.implementation.createHTMLDocument('404')
     expect(demoStatus(doc)).toBe('loading')

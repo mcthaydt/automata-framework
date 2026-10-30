@@ -1,41 +1,14 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { fireEvent, render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import { getDemosCatalog } from '../src/data/demos'
 import { demoPoster, previewSrcset } from '../src/lib/previews'
-import ExamplesPage from '../src/routes/examples/+page.svelte'
-import { examplesData } from './helpers/page-data'
 
-// QB.3h. The gallery used to start its demo on arrival. The demo's frame loop then ran beside the page, and under
-// Lighthouse's mobile throttling that was about 60 tasks of 160 to 530 ms (8.8 s of blocking time on /examples). Like the
-// home page and /start, the gallery now waits for "Play demo" and shows the demo's preview image where there is one.
+// QB.3h. The gallery used to start its demo on arrival, which cost /examples 8.8 s of blocking time under Lighthouse's
+// mobile throttling, so it waited for Play. WEB.PLAY.5 keeps that lesson in another form (spec §10.2): the /examples
+// index runs nothing, and an example page starts its frame only after `load` and when the preview is near the screen
+// (tests/examples-pages.test.ts). The posters below still serve DemoRunner on / and /start.
 const root = resolve(import.meta.dirname, '..')
-
-describe('the examples gallery', () => {
-  it('does not start the demo until Play is pressed', async () => {
-    const demo = getDemosCatalog().find(item => item.slug === 'hot-reload')!
-    const view = render(ExamplesPage, { props: { data: examplesData(demo.slug) } })
-    expect(view.container.querySelector('iframe')).toBeNull()
-    expect(view.queryByRole('button', { name: 'Stop demo' })).toBeNull()
-    await fireEvent.click(view.getByRole('button', { name: 'Play demo' }))
-    expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe(demo.bundleUrl)
-    expect(view.getByRole('button', { name: 'Stop demo' })).toBeTruthy()
-  })
-
-  it('shows the demo’s preview image while it waits', () => {
-    const view = render(ExamplesPage, { props: { data: examplesData('hot-reload') } })
-    expect(view.container.querySelector('img.demo-poster')?.getAttribute('src')).toBe('/previews/hot-reload.jpg')
-  })
-
-  it('still offers Play for a demo with no preview image yet', async () => {
-    const view = render(ExamplesPage, { props: { data: examplesData('ui-primitives') } })
-    expect(view.container.querySelector('img.demo-poster')).toBeNull()
-    expect(view.container.querySelector('iframe')).toBeNull()
-    await fireEvent.click(view.getByRole('button', { name: 'Play demo' }))
-    expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe('/demos/ui/primitives/index.html')
-  })
-})
 
 describe('demoPoster', () => {
   it('names the preview a demo has, and nothing for a demo without one', () => {

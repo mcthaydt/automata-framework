@@ -66,8 +66,23 @@ const budgetFor = (url: string): Assertions => {
 describe('the Lighthouse budget (lighthouserc.json)', () => {
   it('measures the four pages the spec names, and the baseline records the same four', () => {
     const paths = (ci.collect.url as string[]).map(url => new URL(url).pathname)
-    expect(paths).toEqual(['/', '/start', '/examples', '/docs'])
-    expect(Object.keys(baseline.pages)).toEqual(paths)
+    expect(paths.slice(0, 4)).toEqual(['/', '/start', '/examples', '/docs'])
+    expect(Object.keys(baseline.pages)).toEqual(paths.slice(0, 4))
+  })
+
+  // WEB.PLAY.5 (playground spec §10.2, R-9). An example page starts its preview after `load`, so Lighthouse measures
+  // two of them with the frame running: the smallest example and the one the spec's journey edits. No run of them is
+  // recorded yet, so they are held to the targets themselves, which is the strictest a recorded run could allow.
+  it('measures two example pages with their preview running, held to the spec targets', () => {
+    const paths = (ci.collect.url as string[]).map(url => new URL(url).pathname)
+    expect(paths.slice(4)).toEqual(['/examples/core-basic-window', '/examples/shapes-rects'])
+    for (const path of paths.slice(4)) {
+      const budget = budgetFor(`http://127.0.0.1:4652${path}`)
+      expect(budget['categories:performance']![1].minScore!).toBeGreaterThanOrEqual(SPEC.performance)
+      expect(budget['largest-contentful-paint']![1].maxNumericValue!).toBeLessThanOrEqual(SPEC.lcpMs)
+      expect(budget['cumulative-layout-shift']![1].maxNumericValue!).toBeLessThanOrEqual(SPEC.cls)
+      expect(budget['total-blocking-time']![1].maxNumericValue!).toBeLessThanOrEqual(SPEC.tbtMs)
+    }
   })
 
   it('serves the built site compressed, as the host will, and starts nothing else', () => {
