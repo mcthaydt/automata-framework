@@ -6,6 +6,7 @@ import {
   fieldValuesSchema,
 } from '@mcthaydt/automata-editor-kit/fields'
 import { z } from 'zod'
+import type { LevelNeighbours } from '../../model/world/world-neighbours'
 
 // The shape of the AF content export (2D editor spec §6.2): what `project.toml`, `levels/<id>.toml` and `world.toml`
 // hold once a reader has parsed the TOML. Strict, so a reader cannot come to depend on a key the editor does not
@@ -117,13 +118,8 @@ export interface ContentLevel {
   readonly layers: readonly ContentLevelLayer[]
 }
 
-export interface ContentNeighbours {
-  readonly level: string
-  readonly north: readonly string[]
-  readonly east: readonly string[]
-  readonly south: readonly string[]
-  readonly west: readonly string[]
-}
+/** One level's neighbours in `world.toml`: the model's shape (`worldNeighbours` computes them), not a copy of it. */
+export type ContentNeighbours = LevelNeighbours
 
 export interface ContentWorld {
   readonly format: 'af2d-content'
