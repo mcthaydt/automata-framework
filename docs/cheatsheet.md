@@ -438,6 +438,8 @@
 - `bootFailureView(failure, hostKind, canExit)`: Which state a failure draws and which ways forward it offers.
 - `BootFailureViewModel` (interface): What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order.
 - `Button` (const): The framework's button (M4 spec §4.12): an `.af-control` of one kind.
+- `CameraDragSurface` (const): The camera drag surface (M4 spec §16.3.7, M3 spec §4.2 and §7): the player turns the camera by dragging the scene, a finger anywhere outside the controls or the mouse with its secondary button.
+- `CameraDragSurfaceProps` (interface): CameraDragSurface's props.
 - `Chip` (const): A short status label (M4 spec §4.12).
 - `classifyDevice(input)`: A fine primary pointer is a `desktop`; a coarse one is a `phone` when the screen's shorter side is under 600 px, otherwise a `tablet`.
 - `classifyFormFactor(width, height)`: The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise `desktop`.
@@ -464,6 +466,7 @@
 - `DisplayCopy` (interface): Every word the Display section shows, in the game's language.
 - `DisplayQuality` (type): A graphics quality tier (runtime's `QualityTier`).
 - `DisplaySection` (const): The Display section of Settings (M4 spec §4.8, §7): the graphics quality tier as an option group (a pad's `adjust` cycles it), and reduced motion as the browser reports it.
+- `DragTracker` (interface): What a CameraDragSurface drives (M4 spec §16.3.7): runtime's `CameraDragTracker` satisfies it, so ui need not import runtime.
 - `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
 - `enterFullscreen(doc, screen?)`: Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app.
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
@@ -598,6 +601,7 @@
 - `TouchControlsProps` (interface): TouchControls' props.
 - `TouchCopy` (interface): Every word the Touch controls group shows, in the game's language.
 - `TouchSection` (const): The Touch controls group of the Settings tab (FloorFifty `SettingsPanel.svelte` at a28dc44): how touch drives play, on-screen buttons or swipes, as an option group.
+- `TouchStickSpec` (interface): The overlay's move stick (M4.12).
 - `TouchTarget` (interface): A button's action and where it is drawn, for `nearestTarget`.
 - `trimRows(shape, groups)`: The shape cut to the rows the largest group fills, so no page carries a row of empty slots.
 - `UI_SLOT_NAMES` (const): The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).

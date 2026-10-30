@@ -61,6 +61,7 @@ export {
 } from '../storage/project-store'
 export { discardRecovery, findRecovery, type Recovery } from '../storage/recovery'
 export type { SaveState } from '../storage/save-state'
+export { storePathProblem } from '../storage/store-path'
 export { openWorkspace, type Workspace, type WorkspaceEnv } from '../storage/workspace'
 export {
   createToasts,

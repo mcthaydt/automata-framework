@@ -27,6 +27,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `@playwright/test` | 1.63.0 | 2026-10-11 | Same as Ruken: browser journeys (`pnpm test:e2e`, root `playwright.config.ts`) |
 | `@vitest/browser-playwright` | 5.0.3 | 2026-10-01 | Cross-engine parity runs (A0); same major as `vitest` |
 | `effect` | 3.22.2 | 2026-10-11 | Everything outside the sim (ADR 0003). Effect 3, not 4.0: 4.0 is ten days old and renames the Context API (coordinator decision 2026-10-11). `ship` uses it without `@effect/platform-node`, whose 0.108 line requires `@effect/cluster`, `rpc`, `sql` and `workflow` as peers (ship spec §3) |
+| `fflate` | 0.8.3 | 2026-10-30 | editor lane (ED3D.5b): reads a zip imported into the 3D editor's OPFS workspace (`packages/editor-3d`, `app/import-files.ts`) (MIT, no dependencies); `unzipSync` with a size filter, so an entry over 16 MB is never inflated. Published 2026-05-16 |
 | `fontkit` | 2.0.4 | 2026-10-18 | content lane (M5.5): reads a font subset back for the glyph-coverage gate in `automata-content assets` (M5 spec §4.7). FloorFifty's version (`ac72660`, its font coverage test). Only the `./assets` subpath imports it, so it stays out of browser graphs |
 | `knip` | 6.39.0 | 2026-10-16 | ship lane, QB.1: unused files, exports and dependencies in `pnpm check` (`knip.jsonc`); a 2-week-old release when added |
 | `koota` | 0.6.6 | 2026-10-01 | ECS inside the sim (ADR 0001) |
