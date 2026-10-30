@@ -3,7 +3,7 @@
   panel and the templates beside it stay usable; Retry reads the workspace again.
 -->
 <script lang="ts">
-import Button from '../controls/Button.svelte'
+import { Button } from '@mcthaydt/automata-editor-kit'
 
 interface Props {
   /** The storage layer's own words for what went wrong. */

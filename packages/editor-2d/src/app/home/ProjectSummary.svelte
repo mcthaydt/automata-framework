@@ -6,8 +6,7 @@
   sheet on a phone shows them without scrolling. They stay in place and are disabled while another one runs.
 -->
 <script lang="ts">
-import Button from '../controls/Button.svelte'
-import Pill from '../controls/Pill.svelte'
+import { Button, Pill } from '@mcthaydt/automata-editor-kit'
 import type { ProjectEntry } from '../project-list'
 import { cardTitle, entryBadge, modifiedLabel, sizeLabel } from './home-model'
 

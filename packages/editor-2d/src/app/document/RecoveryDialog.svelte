@@ -5,9 +5,8 @@
   Discard throws it away. When the file also changed since the autosave began, it says that restoring replaces that.
 -->
 <script lang="ts">
-import { Dialog } from '@mcthaydt/automata-editor-kit'
+import { Button, Dialog } from '@mcthaydt/automata-editor-kit'
 import type { Recovery } from '@mcthaydt/automata-editor-kit/core'
-import Button from '../controls/Button.svelte'
 import { recoveryFacts } from './open-flow-model'
 
 interface Props {

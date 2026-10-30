@@ -9,12 +9,11 @@
   draw. It knows no profile; the templates, kinds and summaries all come from the registry.
 -->
 <script lang="ts">
-import { EditorShell, StatusLine, shellModeOf, ToastRegion } from '@mcthaydt/automata-editor-kit'
+import { Button, EditorShell, StatusLine, shellModeOf, ToastRegion } from '@mcthaydt/automata-editor-kit'
 import type { ToastStore, Workspace } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import { onMount, tick } from 'svelte'
 import type { ProfileRegistry } from '../../profiles/profile'
-import Button from '../controls/Button.svelte'
 import DeleteDialog from './DeleteDialog.svelte'
 import type { HomeController, HomeState } from './home-controller'
 import { projectCount, splitPath, templateCards } from './home-model'

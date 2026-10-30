@@ -5,9 +5,8 @@
   truncate and the buttons keep their size; on a phone the profile's pill is left out. The heading takes focus when the bar appears: the page changed.
 -->
 <script lang="ts">
+import { Button, Pill } from '@mcthaydt/automata-editor-kit'
 import { onMount } from 'svelte'
-import Button from '../controls/Button.svelte'
-import Pill from '../controls/Pill.svelte'
 
 interface Props {
   heading: { readonly title: string; readonly file: string }

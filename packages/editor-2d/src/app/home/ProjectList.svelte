@@ -8,8 +8,8 @@
   instead of the listbox. The list stays out of scrolling: the screen around it owns the scroll region.
 -->
 <script lang="ts">
+import { Button } from '@mcthaydt/automata-editor-kit'
 import type { ProfileRegistry } from '../../profiles/profile'
-import Button from '../controls/Button.svelte'
 import type { ProjectEntry } from '../project-list'
 import { kindTone, type StepKey } from './home-model'
 import ProjectCard from './ProjectCard.svelte'

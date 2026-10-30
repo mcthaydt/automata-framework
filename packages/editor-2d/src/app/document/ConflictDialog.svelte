@@ -5,8 +5,7 @@
   as they are. The three choices are disabled while one runs.
 -->
 <script lang="ts">
-import { Dialog } from '@mcthaydt/automata-editor-kit'
-import Button from '../controls/Button.svelte'
+import { Button, Dialog } from '@mcthaydt/automata-editor-kit'
 
 interface Props {
   open: boolean

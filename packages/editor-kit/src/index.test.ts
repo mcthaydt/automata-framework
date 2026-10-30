@@ -34,6 +34,8 @@ describe('editor-kit entry', () => {
       kit.Menu,
       kit.Picker,
       kit.ReorderList,
+      kit.Button,
+      kit.Pill,
     ]) {
       expect(widget).toBeTypeOf('function')
     }

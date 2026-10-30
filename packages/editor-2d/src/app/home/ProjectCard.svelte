@@ -5,7 +5,7 @@
   Thumbnails of the level arrive with the Pixi canvas (ED2D.4c3).
 -->
 <script lang="ts">
-import Pill from '../controls/Pill.svelte'
+import { Pill } from '@mcthaydt/automata-editor-kit'
 import type { ProjectEntry } from '../project-list'
 import { cardTitle, entryBadge, modifiedLabel, sizeLabel, splitPath } from './home-model'
 

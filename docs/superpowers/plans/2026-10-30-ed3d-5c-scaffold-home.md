@@ -3,7 +3,7 @@
 - **Task:** ED3D.5c in [02](../../02-master-delivery-plan.md). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.3 flows 1 and 9, §8, §9, §10, §11 (the rows for a schema error, an unrecognised or newer file, a refused patch, an autosave newer than the file), §12 (DOM and layout layers), acceptance ED3-k and ED3-o in the UI. [Kit spec](../specs/2026-10-23-editor-kit-design.md) §4.6 (`Dialog`, toasts), §4.7 and §5 flows 3 and 4 (conflict, Keep mine, Take theirs, Save as copy, Restore or Discard).
 - **Lane:** editor-3d (with kit moves). **Depends on:** ED3D.5b (#207, the headless app core), ED2D.4c2b (#212, the 2D open flows whose UI patterns this follows), EDK.4 (widgets), all merged. **Unblocks:** ED3D.5d (Plan view in the frame), ED3D.9c (World), ED3D.13b (New level from Home).
 - **Status:** Drafted 2026-10-30. Not reviewed, not CI verified, not Owner accepted.
-- **Progress:** 1 of 10 steps.
+- **Progress:** 2 of 10 steps.
 
 ## Why
 
@@ -133,7 +133,7 @@ Responsive and input: Home and the dialogs at the eight sizes of the shared `lay
 Each starts with the failing test and its reason, then the minimal change; the box is ticked when its checks pass.
 
 - [x] **1. `readStored` in the kit.** `read-stored.test.ts` (read with the stat's mtime, missing, removed between stat and read, a store that throws is `storageFailed`). Red: no module. Then editor-3d's `open-level.ts` and editor-2d's `editor-app.ts` use it; their tests stay green.
-- [ ] **2. Button and Pill in the kit.** Their tests move to the kit (red: no module), the files move, editor-2d imports them from the kit.
+- [x] **2. Button and Pill in the kit.** Their tests move to the kit (red: no module), the files move, editor-2d imports them from the kit.
 - [ ] **3. The list model and the browser in the kit.** `project-browse.test.ts` (the moved model tests, over cards) and `project-browser.test.ts` (load, unavailable, retry, an older read dropped, search, select, step, one action at a time, `prefer`). Red: no module. editor-2d's `home-model` keeps its own words and maps entries to cards; `home-controller` is built on the browser; its tests are unchanged and green.
 - [ ] **4. Home components in the kit.** `ProjectList.test.ts`, `ProjectCard` through it, `SourcesPanel.test.ts`, `FilePick.test.ts`, `UnavailableNotice.test.ts`, `HomeScreen.test.ts` (moved from editor-2d's dom tests, over cards). Red: no module. editor-2d's `Home.svelte` is the kit's `HomeScreen` with its templates, summary and delete dialog; `Home.dom.test.ts`, `App.dom.test.ts`, `boot.dom.test.ts` and `home.layout.test.ts` stay green.
 - [ ] **5. The storage dialogs in the kit.** `RecoveryDialog.test.ts`, `ConflictDialog.test.ts`, `recovery-facts.test.ts` moved (red: no module); editor-2d's frame imports them; `layout-sizes` moves to `editor-kit/testing`.
@@ -148,3 +148,4 @@ Each starts with the failing test and its reason, then the minimal change; the b
 **2026-10-30.**
 
 - Step 1: `read-stored.test.ts`, 4 tests (red: `./read-stored` did not resolve). The function moved verbatim from editor-3d's `open-level.ts`; editor-3d's `editor-app.ts` and `open-level.ts` and editor-2d's `editor-app.ts` import it from `editor-kit/core` (editor-3d `src/app` 465 tests, editor-2d `editor-app*` 42 tests, green).
+- Step 2: `Button.dom.test.ts` and `Pill.dom.test.ts` moved to the kit as `widgets/Button.test.ts` and `Pill.test.ts` (red: the components did not resolve there), then the components; the kit's root entry exports them, and the twelve editor-2d components import them from the kit (kit 13 tests; editor-2d `dom` 186 tests and `svelte-check` clean).
