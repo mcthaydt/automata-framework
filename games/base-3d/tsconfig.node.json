@@ -1,0 +1,7 @@
+{
+  // The files that run in Node (Vite, Vitest, ship.config.ts).
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["node", "vite/client"] },
+  "include": ["vitest.config.ts"],
+  "exclude": []
+}

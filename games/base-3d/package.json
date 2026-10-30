@@ -1,0 +1,32 @@
+{
+  "name": "@af-games/base-3d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries src",
+    "prepare-ruken": "automata-ship prepare",
+    "test": "vitest run",
+    "test:unit": "vitest run --project node",
+    "test:parity": "vitest run --project browsers",
+    "test:evidence": "vitest run --project node --project browsers src/game.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "typecheck": "tsc -p . && tsc -p tsconfig.node.json"
+  },
+  "dependencies": {
+    "@mcthaydt/automata-render-pixi3d": "workspace:*",
+    "@mcthaydt/automata-sim": "workspace:*",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-check-boundaries": "workspace:*",
+    "@mcthaydt/evidence": "workspace:*",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "playwright": "1.63.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
