@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { type ContentDocument, DocumentSyntaxError, type EditResult, openDocument } from './content-document'
-import { roundJsonNumber } from './json/print'
 import type { KeyPath } from './key-path'
 import { DOCUMENT_FIXTURES, loadDocumentFixture } from './testing/fixtures'
 
@@ -77,10 +76,8 @@ describe('openDocument', () => {
         expect(
           document.text.slice(0, start) + after.text.slice(start, end) + document.text.slice(literal.span[1]),
         ).toBe(after.text)
-        // A new number is written by the kit's rule, at most four decimals.
-        expect(valueAt(after.value(), literal.keyPath)).toBe(
-          typeof next === 'number' ? roundJsonNumber(next) : next,
-        )
+        // A new number reads back as exactly that number.
+        expect(valueAt(after.value(), literal.keyPath)).toBe(next)
       }
     })
   }
@@ -133,16 +130,16 @@ describe('openDocument', () => {
     const document = openDocument('content/tuning.toml', TUNING)
     const both = edited(
       document.edit([
-        { keyPath: ['GRAVITY'], expected: -275, set: -300 },
+        { keyPath: ['GRAVITY'], expected: -275, set: -300.12345 },
         { keyPath: ['MAX_MOVE_SPEED'], expected: 356, set: 400 },
       ]),
     )
     expect(both.text).toBe(
-      TUNING.replace('GRAVITY = -275.0', 'GRAVITY = -300.0').replace('= 356.0', '= 400.0'),
+      TUNING.replace('GRAVITY = -275.0', 'GRAVITY = -300.12345').replace('= 356.0', '= 400.0'),
     )
-    expect(both.changed.map(([start, end]) => both.text.slice(start, end))).toEqual(['-300.0', '400.0'])
+    expect(both.changed.map(([start, end]) => both.text.slice(start, end))).toEqual(['-300.12345', '400.0'])
     const refused = document.edit([
-      { keyPath: ['GRAVITY'], expected: -275, set: -300 },
+      { keyPath: ['GRAVITY'], expected: -275, set: -300.12345 },
       { keyPath: ['MAX_MOVE_SPEED'], expected: 1, set: 400 },
     ])
     expect(refused).toMatchObject({ ok: false, keyPath: ['MAX_MOVE_SPEED'], reason: 'expected-mismatch' })
@@ -163,6 +160,25 @@ describe('openDocument', () => {
       const value = after.value() as { a: number; b: number }
       expect(value.b, path).toBe(3)
       expect(after.changed, path).toHaveLength(2)
+    }
+  })
+
+  it('numbers round-trip exactly in TOML and in JSON: 128.57142857142856 and 0.00001', () => {
+    for (const [path, text] of [
+      ['values.toml', 'a = 1.5\nb = 2.0\n'],
+      ['values.json', '{\n  "a": 1.5,\n  "b": 2\n}\n'],
+    ] as const) {
+      const after = edited(
+        openDocument(path, text).edit([
+          { keyPath: ['a'], expected: 1.5, set: 540 / 4.2 },
+          { keyPath: ['b'], expected: 2, set: 0.00001 },
+        ]),
+      )
+      expect(after.value(), path).toEqual({ a: 128.57142857142856, b: 0.00001 })
+      expect(after.text, path).toContain('128.57142857142856')
+      // Inserted numbers too.
+      const inserted = edited(after.edit([{ keyPath: ['c'], insert: [0.123456789, 1e-7] }]))
+      expect((inserted.value() as { c: unknown }).c, path).toEqual([0.123456789, 1e-7])
     }
   })
 

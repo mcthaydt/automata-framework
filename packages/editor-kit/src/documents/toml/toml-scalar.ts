@@ -1,7 +1,7 @@
-import { formatJsonNumber, JsonWriteError } from '../json/print'
+import { formatExactNumber, JsonWriteError } from '../json/print'
 
-// How a new scalar is written into the span of the TOML literal it replaces (editor suite spec §4.4). Numbers follow
-// the kit's one rule (`formatJsonNumber`: no exponent, float noise trimmed to four decimals), and the literal keeps
+// How a new scalar is written into the span of the TOML literal it replaces (editor suite spec §4.4). A number is the
+// shortest text that reads back as exactly it (`formatExactNumber`; EDS.1a review, 2026-10-30), and the literal keeps
 // what it can of how it was written, so the type a schema reads does not flip and the file's quoting stays.
 
 export type TomlScalar = string | number | bigint | boolean
@@ -41,13 +41,13 @@ function basicString(text: string): string {
  * The literal text for `value`, given the raw text of the literal it replaces (`undefined` for a new one). A float
  * literal stays a float (`356.0` set to 357 is `357.0`); an integer given a fraction becomes a float; a literal string
  * stays one when the new text allows it, and anything else is a one-line basic string. Throws `JsonWriteError` for a
- * number that cannot be written that way (not finite, or too large to write without an exponent).
+ * number that is not finite.
  */
 export function writeTomlScalar(value: TomlScalar, replacing: string | undefined): string {
   switch (typeof value) {
     case 'number': {
-      const text = formatJsonNumber(value)
-      return replacing !== undefined && isFloatLiteral(replacing) && !text.includes('.') ? `${text}.0` : text
+      const text = formatExactNumber(value)
+      return replacing !== undefined && isFloatLiteral(replacing) && !/[.e]/.test(text) ? `${text}.0` : text
     }
     case 'bigint':
       return String(value)

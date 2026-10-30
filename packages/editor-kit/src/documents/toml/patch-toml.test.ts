@@ -95,20 +95,24 @@ describe('patchToml', () => {
     )
   })
 
-  it('does not rewrite a number within 0.00005 of what the file says', () => {
-    const out = patched(TUNING, (value) => {
-      value.FLOOR_GAP_MIN = 128.57142857142856
-      value.BOUNCE_VELOCITY = 268.20000001
-    })
-    expect(out).toBe(TUNING)
-  })
-
-  it('rounds a new number to four decimals, with no exponent', () => {
+  it('writes a new number exactly, and leaves a number the file already says exactly alone', () => {
+    expect(
+      patched(TUNING, (value) => {
+        value.FLOOR_GAP_MIN = 540 / 4.2
+      }),
+    ).toBe(TUNING)
     const out = patched(TUNING, (value) => {
       value.GRAVITY = -275.123456
+      value.MOVING_FLOOR_CARRY = 0.00001
+      value.BOUNCE_VELOCITY = 268.20000001
     })
-    expect(changedRegion(TUNING, out)).toMatchObject({ removed: '0', added: '1235' })
-    expect(out).toContain('GRAVITY = -275.1235\n')
+    expect(parse(out)).toMatchObject({
+      GRAVITY: -275.123456,
+      MOVING_FLOOR_CARRY: 0.00001,
+      BOUNCE_VELOCITY: 268.20000001,
+    })
+    expect(out).toContain('GRAVITY = -275.123456\n')
+    expect(out).toContain('BOUNCE_VELOCITY = 268.20000001\n')
   })
 
   it('a key added or removed goes through toml-patch, with every comment kept', () => {
@@ -151,7 +155,7 @@ describe('patchToml', () => {
 
   it('refuses a value it cannot write, naming where', () => {
     const before = parse(TUNING) as Data
-    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, 1e21]) {
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(patchToml(TUNING, before, { ...before, GRAVITY: bad })).toMatchObject({
         ok: false,
         reason: 'unwritable-value',

@@ -1,6 +1,7 @@
 import { parse as parseToml } from '@decimalturn/toml-patch'
 import { JsonScanError, scan } from './json/locate'
 import { type PatchResult, patchJson } from './json/patch'
+import { EXACT_NUMBERS } from './json/print'
 import { cloneValue, type KeyPath, keyPathText, valueAt } from './key-path'
 import { patchToml } from './toml/patch-toml'
 import { readTomlLiterals, TomlPositionError } from './toml/toml-literals'
@@ -113,8 +114,11 @@ const TOML: Format = {
   patch: patchToml,
 }
 
-/** Content JSON has no member order to keep and no ids to align by: positions and keys are the whole story. */
-const JSON_RULES = { idArrays: [], memberOrder: () => undefined }
+/**
+ * Content JSON has no member order to keep and no ids to align by: positions and keys are the whole story. Numbers
+ * round-trip exactly (EDS.1a review, 2026-10-30), unlike the blockout style ED3D writes its level files in.
+ */
+const JSON_RULES = { idArrays: [], memberOrder: () => undefined, numbers: EXACT_NUMBERS }
 
 function jsonScan(text: string): ReturnType<typeof scan> {
   try {
@@ -163,7 +167,7 @@ function applyEdit(value: unknown, edit: ContentEdit): { value: unknown } | Refu
   const parent = valueAt(value, parentPath).value
   const key = keyPath[keyPath.length - 1]
   if ('set' in edit) {
-    if (!here.found || firstDifference(here.value, edit.expected, false) !== undefined)
+    if (!here.found || firstDifference(here.value, edit.expected) !== undefined)
       return refuse(
         keyPath,
         'expected-mismatch',

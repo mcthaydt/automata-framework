@@ -20,9 +20,32 @@ export function formatJsonNumber(value: number): string {
   return text
 }
 
-/** A scalar as these files write it: numbers by `formatJsonNumber`, strings as JSON strings. */
-export function formatJsonScalar(value: JsonScalar): string {
-  if (typeof value === 'number') return formatJsonNumber(value)
+/** A scalar as these files write it: numbers by `formatJsonNumber` (or the style given), strings as JSON strings. */
+export function formatJsonScalar(value: JsonScalar, numbers: NumberStyle = BLOCKOUT_NUMBERS): string {
+  if (typeof value === 'number') return numbers.format(value)
   if (typeof value === 'string' || typeof value === 'boolean' || value === null) return JSON.stringify(value)
   throw new JsonWriteError(`${JSON.stringify(value)} is not a JSON scalar`)
 }
+
+/**
+ * How a writer spells and reads back numbers. The blockout style (the default of the JSON engine, ED3D-b) trims float
+ * noise to four decimals and never writes an exponent; the exact style (the content documents, EDS.1a review
+ * 2026-10-30) writes the shortest text that reads back as exactly the number, so nothing is lost.
+ */
+export interface NumberStyle {
+  /** The number a value reads back as once written. */
+  readonly round: (value: number) => number
+  /** The number's text; throws `JsonWriteError` when it cannot be written. */
+  readonly format: (value: number) => string
+}
+
+export const BLOCKOUT_NUMBERS: NumberStyle = { round: roundJsonNumber, format: formatJsonNumber }
+
+/** A number as the shortest text that reads back as exactly it (JavaScript's own number to string). */
+export function formatExactNumber(value: number): string {
+  if (typeof value !== 'number' || !Number.isFinite(value))
+    throw new JsonWriteError(`${String(value)} is not a finite number`)
+  return String(value)
+}
+
+export const EXACT_NUMBERS: NumberStyle = { round: (value) => value, format: formatExactNumber }

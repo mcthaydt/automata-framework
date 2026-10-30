@@ -8,11 +8,17 @@ import { writeTomlScalar } from './toml-scalar'
 const readBack = (literal: string): unknown => parse(`v = ${literal}`).v
 
 describe('writeTomlScalar', () => {
-  it('writes a number by the kit rule: no exponent, float noise trimmed to four decimals', () => {
-    expect(writeTomlScalar(0.1 + 0.2, '1')).toBe('0.3')
+  it('writes a number in the shortest form that reads back as exactly that number', () => {
+    // EDS.1a review (2026-10-30): numbers round-trip exactly, as EDFF spec §10.3 rule 4 asks of the stage codec.
+    expect(writeTomlScalar(0.1 + 0.2, '1')).toBe('0.30000000000000004')
     expect(writeTomlScalar(357, '356')).toBe('357')
     expect(writeTomlScalar(-1341.25, '-1341')).toBe('-1341.25')
-    expect(writeTomlScalar(0.000001, '1')).toBe('0')
+    expect(writeTomlScalar(0.00001, '1')).toBe('0.00001')
+    expect(writeTomlScalar(540 / 4.2, '128.0')).toBe('128.57142857142856')
+    expect(writeTomlScalar(1e-7, '1.0')).toBe('1e-7')
+    expect(writeTomlScalar(1e21, '1')).toBe('1e+21')
+    for (const value of [0.1 + 0.2, 0.00001, 540 / 4.2, 1e-7, 1e21, -275.123456])
+      expect(readBack(writeTomlScalar(value, '1.0')), String(value)).toBe(value)
   })
 
   it('keeps a float literal a float when the new number is whole', () => {
@@ -26,8 +32,7 @@ describe('writeTomlScalar', () => {
     expect(writeTomlScalar(48.5, '48')).toBe('48.5')
   })
 
-  it('refuses a number it cannot write without an exponent, and a number that is not finite', () => {
-    expect(() => writeTomlScalar(1e21, '1')).toThrow(JsonWriteError)
+  it('refuses a number that is not finite', () => {
     expect(() => writeTomlScalar(Number.NaN, '1.0')).toThrow(JsonWriteError)
     expect(() => writeTomlScalar(Number.POSITIVE_INFINITY, 'inf')).toThrow(JsonWriteError)
   })
