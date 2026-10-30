@@ -13,7 +13,7 @@ import { Effect, ExecutionStrategy, Exit, Runtime, Scope } from 'effect'
 import { lampSwitches } from '../light/lamp-switches.js'
 import { createSceneLight, type SceneLight } from '../light/scene-light.js'
 import type { SceneFog, SceneLighting } from '../light/scene-lighting.schema.js'
-import { viewFog } from '../light/view-fog.js'
+import { fogSkyColor, viewFog } from '../light/view-fog.js'
 import { loadModels, type ModelLibrary } from '../model/load-models.js'
 import { pixi3dUniformSyncInstalled } from '../no-eval/pixi3d-uniform-sync.js'
 import type { EntityView3d, EntityViewResolver3d } from '../views/view-3d.js'
@@ -30,7 +30,10 @@ export interface Pixi3dOptions extends PixiRendererOptions {
   readonly scene?:
     | ((view: View3D, stage: PixiStage, light: SceneLight | undefined) => PixiStageHooks | undefined)
     | undefined
-  /** The view's linear fog (M3 spec §4.1). Without it, the lighting content's `fog`; without both, none. */
+  /**
+   * The view's linear fog (M3 spec §4.1). Without it, the lighting content's `fog`; without both, none. With fog, the
+   * sky behind the scene is the colour fog reaches (in place of `backgroundColor`), so fogged walls meet it with no edge.
+   */
   readonly fog?: SceneFog | undefined
   /**
    * The room's light from content (M3 spec §4.3): static meshes baked in `scene`, `lit` views tinted each frame.
@@ -89,13 +92,15 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   const view = letterboxed
     ? new View3D({ width: options.logicalWidth, height: options.logicalHeight, toneMapping: 'none' })
     : new View3D({ autoResize: true, toneMapping: 'none' })
-  // The sky: without a background the view leaves its empty pixels transparent, and the letterbox's black field shows
-  // through (the app's clear colour is under that field). A flat hemisphere is `@pixi/3d`'s background on both
-  // backends; inside the view only, so the bars keep `barColor`. A `scene` hook may replace it.
-  if (options.backgroundColor !== undefined)
-    view.background = { skyColor: options.backgroundColor, groundColor: options.backgroundColor }
   stage.world.addChild(view)
   view.fog = viewFog(options.fog, options.lighting?.fog)
+  // The sky: without a background the view leaves its empty pixels transparent, and the letterbox's black field shows
+  // through (the app's clear colour is under that field). A flat hemisphere is `@pixi/3d`'s background on both
+  // backends; inside the view only, so the bars keep `barColor`. With fog the sky is the colour fog reaches, so fogged
+  // walls meet it with no edge, and `backgroundColor` gives way to it. A `scene` hook may replace it.
+  const fog = options.fog ?? options.lighting?.fog
+  const sky = fog === undefined ? options.backgroundColor : fogSkyColor(fog)
+  if (sky !== undefined) view.background = { skyColor: sky, groundColor: sky }
   const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
   const switches =
     light === undefined || options.lamps === undefined ? undefined : lampSwitches(options.lamps)
