@@ -3,7 +3,7 @@
 - **Task:** ED2D.4c4b in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §8 (the Level row: inspector tabs Entity / Level / Checks, the dock of level cards; flow 3), §8.4 (what 4c4a left), §12 (sizes, shortcuts, short height), §15 G-e.
 - **Lane:** editor-2d (editors lane). **Depends on:** ED2D.4c4a (#267, merged). **Unblocks:** ED2D.5b, ED2D.5c, ED2D.7a.
 - **Status:** Drafted 2026-10-30. Accepted under the Owner's "Auto accept all spec and plans" (2026-10-30) once reviewed. Not implemented.
-- **Progress:** 5 of 9 steps.
+- **Progress:** 6 of 9 steps.
 
 ## Scope
 
@@ -56,7 +56,7 @@ Each step: the test first, run `pnpm --filter @mcthaydt/automata-editor-2d exec 
 - [x] 3. **Field commit.** Fails: no module. G-e in Node: int past its max, a bad enum, a bad colour, a point list with a non-integer and a missing ref are refused with the message and the project is unchanged; a valid edit is one undo step that undoes.
 - [x] 4. **Dock model and shortcuts.** Fails: no modules. Cards in world order with the current level; every §12 shortcut maps; text-field focus blocks all but undo and redo; shift-arrow nudges 8.
 - [x] 5. **FieldEditor.** jsdom: each widget kind renders at 44 px targets; typing a refused value shows the message and restores the stored value.
-- [ ] 6. **Inspector and tabs.** jsdom: the default tab follows the selection; Checks lists this level's diagnostics and tapping one selects its object; the multi-selection actions.
+- [x] 6. **Inspector and tabs.** jsdom: the default tab follows the selection; Checks lists this level's diagnostics and tapping one selects its object; the multi-selection actions.
 - [ ] 7. **Dock.** jsdom: the cards; a tap switches the level and the canvas refits; the short-height toolbar button opens it.
 - [ ] 8. **Level view wired.** jsdom journey: place an entity, edit an int, an enum and a colour, refuse one, undo; shortcuts B, R, G, E, I, `[`, `]`, Delete, `Mod+D`, arrows. Layout: the eight sizes in Chromium, WebKit and Firefox (inspector 320 and dock 148 in `wide`, drawers and sheets below it, the short height keeps tools, undo, layers and Export; hit targets clear of a scroll region's end edge).
 - [ ] 9. **Review images** at 1194×834, 834×1194, 1133×744 and phone, with a README table; gates.
@@ -72,3 +72,4 @@ Each step: the test first, run `pnpm --filter @mcthaydt/automata-editor-2d exec 
 - 2026-10-30, step 4: `dock-model.test.ts` and `level-shortcuts.test.ts` failed on the missing modules, then 6 passed. `levelCards` takes the open level as a third argument (to mark it). `shortcutFor` returns `{ action, … }` rather than a bare name, since a nudge and a brush step carry an amount; nudges are in cells. Deviation: `Backspace` deletes as `Delete` does (a Mac keyboard's delete key sends it).
 - 2026-10-30, step 5: `FieldEditor.dom.test.ts` was written before the component but first run after it (the only failure seen was the missing module), then 10 passed. A refusal remounts the control on the stored value (`{#key revision}`); a stepper shows the message through its own `error`, the rest under the field. The 44 px targets are checked by the layout test (step 8), not jsdom. A point list has Add point and per-row Remove buttons, since a list that starts empty needs a way to grow. "Choose target" says the canvas picker is coming (ED2D.6c).
 - 2026-10-30, step 6 (models): `selection-edits.ts` (delete, duplicate one cell on, nudge in cells; a `single` definition is not duplicated) failed on the missing module, then 4 passed; `commitEdit` (the general one-step commit `commitField` now uses) and `levelChecks` (this level's findings, with the instance id that tapping selects) failed as "not a function", then passed (57 in `app/level`). The Checks tab runs the profile's `check` with no asset list, so the asset checks (definition-level, not shown here) do not run.
+- 2026-10-30, step 6: `inspector.dom.test.ts` failed on the missing `Inspector.svelte`, then 6 passed. The controller gained `select(ids)` (its test failed as "not a function", then the 79 controller tests passed), which the Checks rows and a duplicate use. Deviations: the Level tab shows the name and size without editing them (renaming, and a resize that may lose cells, belong to the World view, ED2D.6b); arrows nudge only from the canvas, since the position row's steppers already own their arrow keys (decision 3 narrowed); the colour fields offer the definitions' own colours first.

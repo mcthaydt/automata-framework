@@ -67,6 +67,8 @@ export interface LevelEditor {
   /** The pointer was cancelled (a palm, a system gesture): ends a gesture with no step. */
   cancel(): void
   pointerLeave(): void
+  /** Replaces the selection with the ids the open level has (a Checks row, the copies a duplicate made). */
+  select(ids: readonly string[]): void
   /** Drops selected ids the project no longer has; the app calls it when the history changes. */
   refresh(): void
 }
@@ -160,6 +162,14 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
     hidden: new Set(),
     gesture: 'idle',
     rectangle: undefined,
+  }
+
+  /** The instance ids of the open level's entities layers. */
+  function aliveIds(): ReadonlySet<string> {
+    const level = project().levels.find((candidate) => candidate.id === view.level)
+    return new Set(
+      level?.layers.flatMap((layer) => (layer.kind === 'entities' ? layer.items.map((item) => item.id) : [])),
+    )
   }
 
   function update(patch: Partial<LevelEditorView>): void {
@@ -397,13 +407,12 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
     pointerLeave() {
       update({ hover: undefined })
     },
+    select(ids) {
+      const alive = aliveIds()
+      update({ selected: ids.filter((id) => alive.has(id)) })
+    },
     refresh() {
-      const level = project().levels.find((candidate) => candidate.id === view.level)
-      const alive = new Set(
-        level?.layers.flatMap((layer) =>
-          layer.kind === 'entities' ? layer.items.map((item) => item.id) : [],
-        ),
-      )
+      const alive = aliveIds()
       update({ selected: view.selected.filter((id) => alive.has(id)) })
     },
   }

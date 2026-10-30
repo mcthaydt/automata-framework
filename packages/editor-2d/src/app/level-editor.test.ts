@@ -828,6 +828,14 @@ describe('level editor: entities', () => {
     expect(heard).toHaveBeenCalledTimes(1)
   })
 
+  it('select sets the selection to the ids the level has (the Checks tab, a duplicate)', () => {
+    const { editor } = entitySetup({ extra: [entity('s1', 'slime', 120, 150)] })
+    editor.select(['s1', 'gone'])
+    expect(editor.view.selected).toEqual(['s1'])
+    editor.select([])
+    expect(editor.view.selected).toEqual([])
+  })
+
   it('refresh looks at the level being edited', () => {
     const base = extraLevel(platformerTemplate.create(counterIds()))
     const project = withEntities(base, 'level-2', [entity('only-in-two', 'coin', 100, 100)])
