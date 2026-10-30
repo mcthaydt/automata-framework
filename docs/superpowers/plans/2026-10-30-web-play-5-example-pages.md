@@ -148,6 +148,14 @@ export function atOrigin(code: string, from: string, to: string): string
   those is the Owner's Mac (QB.3k), where they measure 31 and 0.5 ms. Lighthouse stops shortly after `load`, and the
   frame starts after `load` once the preview is near the screen, so how much of the frame's boot these numbers include
   is not established; the `af-mac` run is the one that counts.
+- **Merge of #20 (with main and #18).** #18's header set gives every page `gamepad=(self)` and
+  `fullscreen=(self)`, which an opaque-origin frame never matches: the site gates then failed on `core-saves` in
+  Chromium ("getGamepads … disallowed by permissions policy"). `securityHeaders` now gives `/examples/<id>` and
+  `/playground/examples/**` `fullscreen=*, gamepad=*` (a frame still needs its `allow` attribute, which only the
+  playground's frames carry); `tests/security-headers.test.ts` failed first, then passed. #18's `frame-ancestors 'self'`
+  lets the site frame `/playground/examples/**` pages in both engines (`tests/e2e/playground.e2e.ts` 12 of 12). After
+  the merge: check 0 errors; test 59 files, 389 passed, 1 expected fail; build ok; check:site 45 pages; the example
+  page gates and the playground spec 266 of 266, Chromium and WebKit.
 
 ### Deviations
 
