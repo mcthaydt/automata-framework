@@ -9,7 +9,7 @@ import {
   reducedMotion,
   suppressPageGestures,
 } from '@mcthaydt/automata-ui'
-import { Context, Duration, Effect, Layer, type Scope, Stream } from 'effect'
+import { Context, Duration, Effect, ExecutionStrategy, Layer, Scope, Stream } from 'effect'
 import { Audio, makeAudio } from '../audio/audio.manager.js'
 import { AudioBuses } from '../audio/audio-buses.js'
 import { playEventSounds } from '../audio/event-sounds.js'
@@ -322,6 +322,11 @@ export function bootProgram<S>(
       yield* Effect.addFinalizer(() => Effect.sync(stopScores))
     }
 
+    // What a game keeps across screens, handed to each as `ScreenContext.runtime` (DX.2c). Forked here, before the
+    // save, because finalizers run last-in, first-out: at shutdown it closes after the current screen and the save's
+    // last flush (which may still read what it holds), and before the renderer is destroyed and Hosting closes.
+    const keptAcrossScreens = yield* Scope.fork(yield* Scope.Scope, ExecutionStrategy.sequential)
+
     // The game's save: its slots read from the host now (M5 spec §5, boot step 1), its triggers and its exit flush
     // live for the session. A failure here is the host's, and boots to the failure panel like a refused settings read.
     const saves = yield* makeSaves(game.saves, { contentHash: game.content.hash }).pipe(
@@ -347,6 +352,7 @@ export function bootProgram<S>(
       veil,
       ...(game.copy !== undefined ? { copy: game.copy } : {}),
       services: () => runtimeContext,
+      runtime: keptAcrossScreens,
       onFailure: (cause) => notifyFailure(game.seams, cause),
       ...(import.meta.env?.DEV
         ? {

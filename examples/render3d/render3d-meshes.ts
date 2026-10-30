@@ -51,6 +51,7 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
+      backgroundColor: 0xc7dcd0, // the sky behind the meshes: the light's sky colour
       views: {
         [Crate.id]: box({ width: 0.6, height: 0.6, depth: 0.6 }, { color: 0xf9c22b }),
         [Stand.id]: mesh(glb, { height: 0.8 }),

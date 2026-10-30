@@ -81,6 +81,11 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   const view = letterboxed
     ? new View3D({ width: options.logicalWidth, height: options.logicalHeight, toneMapping: 'none' })
     : new View3D({ autoResize: true, toneMapping: 'none' })
+  // The sky: without a background the view leaves its empty pixels transparent, and the letterbox's black field shows
+  // through (the app's clear colour is under that field). A flat hemisphere is `@pixi/3d`'s background on both
+  // backends; inside the view only, so the bars keep `barColor`. A `scene` hook may replace it.
+  if (options.backgroundColor !== undefined)
+    view.background = { skyColor: options.backgroundColor, groundColor: options.backgroundColor }
   stage.world.addChild(view)
   const resolver: Record<string, (row: RenderRow, componentId?: string) => EntityView3d | undefined> = {}
   for (const [id, factory] of Object.entries(options.views))

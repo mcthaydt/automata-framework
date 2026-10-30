@@ -10,7 +10,8 @@
 //   syntactic scan does not see);
 // - koota builds its SoA accessors with `Function`, but AF's `defineComponent` makes AoS traits
 //   (packages/sim/src/define/definitions.ts). A game that calls koota's `trait({ ... })` directly reaches them,
-//   which this scan cannot tell apart; the `csp` step fails it at runtime.
+//   which this scan cannot tell apart: the `boundaries` step's `koota-soa` rule fails that call in the sim, and the
+//   `csp` step fails it at runtime.
 //
 // Measured on the `examples/base-2d` production build at 71c3410: pixi.js 8.21.0, zod 4.6.5, koota 0.6.6; zod's probe
 // matches unchanged in 4.6.6 (`automata check games/emberwick --csp` passes on it). The five pixi.js files are byte
