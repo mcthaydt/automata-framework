@@ -1,3 +1,7 @@
+/**
+ * How `fakeFetch` answers one url: a status, the body in chunks, a content length or type, a hang or a
+ * network error.
+ */
 export interface FakeRoute {
   readonly status?: number
   readonly chunks?: readonly Uint8Array[]
@@ -7,10 +11,12 @@ export interface FakeRoute {
   readonly type?: string
 }
 
+/** Options for `fakeFetch`: the fetch that answers urls with no route. */
 export interface FakeFetchOptions {
   readonly fallback?: typeof fetch
 }
 
+/** The fake fetch, and the urls it was asked for and saw aborted. */
 export interface FakeFetchResult {
   readonly fetch: typeof fetch
   readonly requests: string[]

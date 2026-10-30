@@ -4,7 +4,6 @@
 // (postPhysics).
 import {
   CameraHeading,
-  cameraHeadingPlugin,
   enterView,
   moveDirection,
   Q16,
@@ -162,10 +161,8 @@ export const BASE3D_SIM: {
   readonly content: Area
   readonly setup: (sim: Sim) => void
 } = {
-  // The game lists render-pixi3d's `cameraHeadingPlugin` itself: the runtime does not install an extension's sim
-  // plugins (`resolveExtensions` returns `simPlugins` and nothing uses them), so `render3dExtension.sim` would never
-  // reach the sim and boot would fail with `unknown component "camera-heading"`. Routed to the runtime's owner.
-  plugins: [cameraHeadingPlugin, base3dPlugin],
+  // The heading's plugin is render3dExtension's (`game.ts`): `defineGame` adds an extension's sim plugins (RT.EXT1).
+  plugins: [base3dPlugin],
   seed: 1,
   content: firstSlice,
   setup: (sim) => spawnArea(sim, firstSlice),

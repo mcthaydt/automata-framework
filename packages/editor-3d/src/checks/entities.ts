@@ -24,7 +24,9 @@ export function entityProblems(kit: EntityKit, map: ResolvedMap): Problem[] {
     if (def === undefined) continue
     for (const problem of checkValues(def.fields, thing.values))
       problems.push({ message: `entity ${thing.id}: ${problem.message}`, locator })
-    if (sectorAt(map, { x: thing.x, z: thing.z }) === undefined)
+    // A thing that bounds an area (Last Light's camera zone) stands where its marker is drawn, which may be outside the
+    // level: a fixed shot looking in through a window.
+    if (def.area === undefined && sectorAt(map, { x: thing.x, z: thing.z }) === undefined)
       problems.push({ message: `entity ${thing.id} is outside every sector`, locator })
   }
   for (const def of kit.definitions) {

@@ -2,9 +2,10 @@ import type { ErrorCode } from '@mcthaydt/automata-host'
 import type { SimEvent } from '@mcthaydt/automata-sim'
 import { Context, Effect, type Scope } from 'effect'
 import type { GlyphFamily } from '../input/gamepad/glyph-family.js'
-import type { InputDevice, PadInfo } from '../input/input.manager.js'
+import type { InputDevice, PadInfo } from '../input/input-device.js'
 import type { BoardState } from '../leaderboards/board-state.js'
 
+/** Every fact the runtime publishes on the presentation bus, by name. */
 export interface RuntimeFacts {
   readonly 'sim.events': readonly SimEvent[]
   readonly 'screen.entered': {
@@ -56,6 +57,10 @@ export interface RuntimeFacts {
   readonly 'leaderboard.submitted': { readonly board: string; readonly state: BoardState }
 }
 
+/**
+ * The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear. Facts
+ * describe what happened; they never change gameplay state.
+ */
 export interface PresentationBus<Facts = RuntimeFacts> {
   publish<K extends keyof Facts & string>(name: K, fact: Facts[K]): void
   subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void

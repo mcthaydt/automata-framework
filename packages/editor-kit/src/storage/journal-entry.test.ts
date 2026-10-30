@@ -21,6 +21,17 @@ describe('journal entry', () => {
     expect(parseJournalEntry(bytes(encodeJournalEntry(entry)))).toEqual(entry)
   })
 
+  test('round-trips the hash of the file a save left, and has none until then', () => {
+    const saved = { ...entry, baseHash: 'ab'.repeat(32) }
+    expect(parseJournalEntry(bytes(encodeJournalEntry(saved)))).toEqual(saved)
+    expect(parseJournalEntry(bytes(encodeJournalEntry(entry)))).not.toHaveProperty('baseHash')
+  })
+
+  test('a hash that is not a string is not an entry', () => {
+    const text = JSON.stringify({ format: 'af-autosave/1', ...entry, baseHash: 7 })
+    expect(parseJournalEntry(bytes(text))).toBeUndefined()
+  })
+
   test('a document with no file yet has a null base', () => {
     const fresh = { ...entry, baseMtime: null }
     expect(parseJournalEntry(bytes(encodeJournalEntry(fresh)))).toEqual(fresh)

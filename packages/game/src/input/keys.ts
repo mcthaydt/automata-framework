@@ -64,6 +64,10 @@ type Payload<Z extends z.ZodType> = Partial<z.input<Z>>
 /** By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard layout. */
 export type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>
 
+/**
+ * Options for `keys`: touch buttons, gamepad buttons, gestures and the stick, the idle payload, required keys
+ * and the Controls section's labels.
+ */
 export interface KeysOptions<Z extends z.ZodType> {
   /** On-screen buttons from the bindings when the player uses touch. Default true. */
   readonly touch?: boolean
@@ -105,6 +109,12 @@ const SILENT_BUS: PresentationBus = { publish: () => {}, subscribe: () => () => 
 const asRecord = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {}
 
+/**
+ * An input map sending `command` once per tick with the payload of what is held: keys by
+ * `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the
+ * idle payload. Throws when a binding's payload fails the command's schema, and when a key in `options.required` has
+ * no binding.
+ */
 export function keys<Z extends z.ZodType>(
   command: CommandDef<Z>,
   bindings: KeyBindings<Z>,
@@ -185,7 +195,7 @@ export function keys<Z extends z.ZodType>(
   const modes = touchModesFor(profile)
   if (options.touchMode !== undefined && !modes.includes(options.touchMode))
     throw new Error(
-      `keys(): touchMode "${options.touchMode}" needs ${options.touchMode === 'swipe' ? 'a gesture' : 'a touch button'}`,
+      `keys(): touchMode "${options.touchMode}" needs ${options.touchMode === 'swipe' ? 'a swipe, flick or tap' : 'a touch button'}`,
     )
   const touchMode: TouchMode =
     options.touchMode ?? (modes.includes('buttons') || !modes.includes('swipe') ? 'buttons' : 'swipe')

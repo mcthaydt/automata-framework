@@ -75,6 +75,7 @@ const BootDefectBase: TaggedErrorClass<'BootDefect', BootDefectFields> = Data.Ta
  */
 export class BootDefect extends BootDefectBase {}
 
+/** Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4). */
 export type BootError =
   | HostError
   | ContentHashMismatch

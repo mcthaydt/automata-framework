@@ -9,13 +9,15 @@ import {
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { byTestId, checkLayout, errorPanelFloor, publishConditions } from '../testing/layout-contract'
+import { FIXTURE_LOCALES, findUntranslated } from '../testing/locale-fixture'
 import StatusFixture from '../testing/StatusFixture.svelte'
 import { settleLayout } from '../testing/settle'
 
 // LoaderOverlay, the boot failure panel and an ErrorPanel at every reference size and variant,
 // keyboard included, with production CSS (M1.6 spec §7, plan Task 11). A failure can arrive while
 // the player is typing, so its actions must stay clear of the keyboard, down to the tight sizes
-// where the keyboard leaves the least room.
+// where the keyboard leaves the least room. The contract runs in English and again in the xx-long pseudo-locale
+// (PRODUCT spec §4 item 7).
 const ESSENTIALS = {
   loader: ['loader-overlay'],
   'boot-failure': ['error-continue', 'boot-failure-message'],
@@ -96,29 +98,32 @@ function overflowProblems(scrolled: readonly HTMLElement[]): string[] {
   return problems
 }
 
-describe('status layout contract', () => {
-  test.each([...REFERENCE_SIZES, ...TIGHT_SIZES])('$name ($width x $height)', async (size) => {
-    await page.viewport(size.width, size.height)
-    const problems: string[] = []
-    for (const variant of VARIANTS) {
-      for (const show of SHOWS) {
-        const conditions = publishConditions(document.documentElement, size, variant)
-        const fixture = mountFixture(StatusFixture, { show })
-        await settleLayout()
-        const essentials = ESSENTIALS[show].map(byTestId)
-        const scrolled = essentials.filter((element) => element.closest('[data-overflow]') !== null)
-        const found = [
-          ...checkLayout(
-            conditions,
-            essentials.filter((element) => !scrolled.includes(element)),
-          ),
-          ...messageProblems(show),
-          ...overflowProblems(scrolled),
-        ]
-        for (const problem of found) problems.push(`${variant.name} ${show}: ${problem}`)
-        await fixture.unmount()
+for (const locale of FIXTURE_LOCALES) {
+  describe(`status layout contract (${locale})`, () => {
+    test.each([...REFERENCE_SIZES, ...TIGHT_SIZES])('$name ($width x $height)', async (size) => {
+      await page.viewport(size.width, size.height)
+      const problems: string[] = []
+      for (const variant of VARIANTS) {
+        for (const show of SHOWS) {
+          const conditions = publishConditions(document.documentElement, size, variant)
+          const fixture = mountFixture(StatusFixture, { show, locale })
+          await settleLayout()
+          const essentials = ESSENTIALS[show].map(byTestId)
+          const scrolled = essentials.filter((element) => element.closest('[data-overflow]') !== null)
+          const found = [
+            ...checkLayout(
+              conditions,
+              essentials.filter((element) => !scrolled.includes(element)),
+            ),
+            ...messageProblems(show),
+            ...overflowProblems(scrolled),
+            ...(locale === 'en' ? [] : findUntranslated(document.body)),
+          ]
+          for (const problem of found) problems.push(`${variant.name} ${show}: ${problem}`)
+          await fixture.unmount()
+        }
       }
-    }
-    expect(problems).toEqual([])
+      expect(problems).toEqual([])
+    })
   })
-})
+}

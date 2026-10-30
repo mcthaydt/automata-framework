@@ -2,6 +2,7 @@
 // screens. M3.7a's page has no renderer yet; M3.7b adds the 3D scene, the figures, the touch stick and the camera
 // drag, and the flat layout's `src/main.ts` once `pnpm boundaries` can check a src/ that holds page code (GL.1).
 import { defaultContent, defineGame, keys } from '@mcthaydt/automata-game'
+import { render3dExtension } from '@mcthaydt/automata-render-pixi3d'
 import { STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import { Move } from './src/commands.ts'
 import { BASE3D_SIM } from './src/systems.ts'
@@ -28,6 +29,8 @@ export const base3d = defineGame({
   size: { width: 844, height: 390 },
   orientation: 'landscape',
   sim: BASE3D_SIM,
+  // The camera's heading plugin and its `camera-view` content kind.
+  extensions: [render3dExtension],
   input,
   content: { ...defaultContent(), sim: BASE3D_SIM.content },
 })

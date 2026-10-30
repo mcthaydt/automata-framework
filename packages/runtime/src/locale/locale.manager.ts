@@ -26,6 +26,10 @@ export interface LocaleDef {
   overwriteSetLocale?(fn: (locale: string) => void): void
 }
 
+/**
+ * The locale service (PRODUCT spec §4): the game's locales, the one text is drawn in now, the player's choice
+ * and the text direction.
+ */
 export interface Locale {
   /** The game's locales, in its own order (the picker's order). */
   readonly locales: readonly string[]

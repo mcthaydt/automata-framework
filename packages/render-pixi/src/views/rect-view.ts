@@ -2,6 +2,7 @@ import { Graphics } from 'pixi.js'
 import type { EntityViewFactory } from '../delta/render-delta-consumer.js'
 import { anchorXY, placeView, type ViewAnchor } from './view-pose.js'
 
+/** A `rect` view's size, colour and anchor. */
 export interface RectViewOptions {
   /** Width in world pixels. */
   readonly w: number

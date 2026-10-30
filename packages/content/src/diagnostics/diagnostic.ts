@@ -24,7 +24,10 @@ export type DiagnosticCode =
   | 'invalidAsset'
   /** A drawn pixel of an atlas frame is not a colour of the game's declared palette (M5.6). */
   | 'offPalette'
-  /** A message has a character that no font subset of its language holds (M5.5, PRODUCT.L's L-e). */
+  /**
+   * A message, or a language's name in the language picker, has a character that no font subset of its language
+   * holds (M5.5, M5.5F, PRODUCT.L's L-e).
+   */
   | 'missingGlyph'
   | 'duplicateMessageKey'
   | 'staleTranslation'

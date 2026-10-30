@@ -53,6 +53,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       docs_only: ${{ steps.scope.outputs.docs_only }}
+      parity_full: ${{ steps.scope.outputs.parity_full }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -64,14 +65,22 @@ jobs:
       # after this one skip it. The checkout is GitHub's merge commit: its first parent is the base tip, so
       # HEAD^1..HEAD is exactly the pull request's own changes. Anything else (no merge commit, so no way to tell)
       # counts as code and runs everything.
+      # parity_full (Owner, 2026-10-30: "Yes, affected-only on PRs"): the parity job runs only the suites of the
+      # packages the pull request affects (turbo --affected, dependents included) when every change is inside a
+      # workspace package or documentation; a change anywhere else (root config, a workflow, vendor/) is invisible
+      # to turbo's package graph, so it runs every suite. Pushes to main and the nightly always run every suite.
       - id: scope
         if: github.event_name == 'pull_request'
         run: |
           docs_only=false
+          parity_full=true
           if [ "$(git rev-list --parents -n 1 HEAD | wc -w)" -eq 3 ]; then
-            if ! git diff --name-only HEAD^1 HEAD | grep -qvE '^docs/|\.md$'; then docs_only=true; fi
+            changed="$(git diff --name-only HEAD^1 HEAD)"
+            if ! printf '%s\n' "$changed" | grep -qvE '^docs/|\.md$'; then docs_only=true; fi
+            if ! printf '%s\n' "$changed" | grep -qvE '^(packages|tooling|examples|games|docs)/|\.md$'; then parity_full=false; fi
           fi
           echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+          echo "parity_full=$parity_full" >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -149,6 +158,8 @@ jobs:
           # Changesets' release tags (`<package>@<version>`), from which evidence.json says which versions were
           # released (DX spec §3.10).
           fetch-tags: true
+          # The merge commit and its parents, so the affected run below can compare HEAD^1..HEAD.
+          fetch-depth: 2
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
@@ -170,8 +181,17 @@ jobs:
       # holds for every later step (parity and evidence). On the Mac host the runner's own HOME is right.
       - run: echo "HOME=/root" >> "$GITHUB_ENV"
         if: runner.os == 'Linux'
-      # Every package with a browsers vitest project (sim, content, physics, ui, ...) runs its parity suite.
+      # Every package with a browsers vitest project (sim, content, physics, ui, ...) runs its parity suite: on
+      # pushes to main, the nightly, and a pull request that changes something outside the workspace packages.
       - run: pnpm test:parity
+        if: github.event_name != 'pull_request' || needs.checks.outputs.parity_full == 'true'
+      # Any other pull request runs only the suites of the packages it affects, dependents included (turbo
+      # --affected). The checkout is GitHub's merge commit, whose first parent is the base tip.
+      - run: pnpm test:parity:affected
+        if: github.event_name == 'pull_request' && needs.checks.outputs.parity_full != 'true'
+        env:
+          TURBO_SCM_BASE: HEAD^1
+          TURBO_SCM_HEAD: HEAD
       # The evidence file (DX spec §3.10), on every push to main: each golden's hash as Node, Chromium, WebKit and
       # Firefox computed it, the revision, this run, and the package versions. The website reads the artifact; the
       # automata check results stay "pending" until create-game (DX.5) and automata check (DX.6) land.

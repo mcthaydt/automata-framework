@@ -1,0 +1,4 @@
+# Findings gitleaks may skip, one fingerprint per line (commit:file:rule:line). Each is a reviewed false positive.
+# docs/02's QB.1g row once quoted the content key path that tripped generic-api-key (commit 58bf0ab, PR #228); the
+# row no longer quotes it, but the scan reads history.
+58bf0ab49bc6d1fcbc9bf3ab41937ddac1d4156b:docs/02-master-delivery-plan.md:generic-api-key:257

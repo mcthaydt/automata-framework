@@ -2,6 +2,7 @@ import { CameraHeading, cameraHeadingPlugin, cameraView } from '@mcthaydt/automa
 import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
+import { base3d } from '../game.ts'
 import { Hero, Target } from './components.ts'
 import { HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
@@ -16,6 +17,11 @@ describe('the plugin', () => {
     const sim = await createSim({ seed: 1, plugins: [cameraHeadingPlugin, base3dPlugin] })
     expect(sim.hash()).toMatch(/^[0-9a-f]{16}$/)
     sim.dispose()
+  })
+
+  it('takes the heading from render3dExtension, not from the game’s own list (RT.EXT1)', () => {
+    expect(BASE3D_SIM.plugins).toEqual([base3dPlugin])
+    expect(base3d.sim.plugins).toEqual([base3dPlugin, cameraHeadingPlugin])
   })
 })
 
@@ -79,9 +85,12 @@ describe('the area', () => {
   })
 })
 
-/** A sim made the way the game makes it (`BASE3D_SIM`), on the first slice or a test area. */
+/** The game's sim spec as `defineGame` made it: `BASE3D_SIM` with render3dExtension's heading plugin after its own. */
+const GAME_SIM = { ...BASE3D_SIM, plugins: base3d.sim.plugins }
+
+/** A sim made the way the game makes it (`GAME_SIM`), on the first slice or a test area. */
 async function startSim(area: Area = BASE3D_SIM.content): Promise<Sim> {
-  const sim = await createSim({ ...BASE3D_SIM, content: area })
+  const sim = await createSim({ ...GAME_SIM, content: area })
   if (area === BASE3D_SIM.content) BASE3D_SIM.setup(sim)
   else spawnArea(sim, area)
   return sim
@@ -399,7 +408,7 @@ const GOLDEN_KILN_TICK = 118
 const GOLDEN_HASH = 'aa170b86451f0838'
 
 async function runGolden() {
-  const sim = await createSim(BASE3D_SIM)
+  const sim = await createSim(GAME_SIM)
   BASE3D_SIM.setup(sim)
   const startTick = sim.tick
   let kilnTick: number | undefined

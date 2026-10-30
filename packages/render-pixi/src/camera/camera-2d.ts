@@ -10,6 +10,7 @@ export const SHAKE_DECAY = 1.5
 /** The largest shake offset per axis, in logical px, at trauma 1. */
 export const SHAKE_MAX_OFFSET = 8
 
+/** A world-space rectangle, in logical px: `Camera2dOptions.bounds`. */
 export interface CameraRect {
   readonly x: number
   readonly y: number
@@ -17,6 +18,7 @@ export interface CameraRect {
   readonly height: number
 }
 
+/** How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom. */
 export interface Camera2dOptions {
   /** The playfield's logical size: the area the camera shows at zoom 1. */
   readonly view: { readonly width: number; readonly height: number }
@@ -33,6 +35,10 @@ export interface Camera2dOptions {
   readonly reducedMotion?: () => boolean
 }
 
+/**
+ * A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that
+ * container's transform, never a sim value.
+ */
 export interface Camera2d {
   /** The world point to follow. The first call snaps to it. */
   target(x: number, y: number): void
@@ -55,7 +61,6 @@ function intoZone(centre: number, target: number, half: number): number {
   return centre
 }
 
-/** The centre on one axis that keeps a view `size` wide inside [min, min + extent]; centred when it cannot fit. */
 /** mulberry32: a small seeded generator, so a shake looks the same in every run and in visual tests. */
 function mulberry32(seed: number): () => number {
   let state = seed >>> 0
@@ -67,11 +72,16 @@ function mulberry32(seed: number): () => number {
   }
 }
 
+/** The centre on one axis that keeps a view `size` wide inside [min, min + extent]; centred when it cannot fit. */
 function clampAxis(centre: number, size: number, min: number, extent: number): number {
   if (extent <= size) return min + extent / 2
   return Math.min(Math.max(centre, min + size / 2), min + extent - size / 2)
 }
 
+/**
+ * A camera writing `stage`'s transform (usually `PixiStage.world`). `seed` fixes the shake's random sequence,
+ * so a shake looks the same in every run and visual test.
+ */
 export function createCamera2d(stage: Container, options: Camera2dOptions, seed = 1): Camera2d {
   const zoom = options.zoom ?? 1
   // The world-space size the view shows.

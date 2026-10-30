@@ -207,6 +207,21 @@ interface BootFailureViewModel {
 component from './controls/Button.svelte'
 ```
 
+### `CameraDragSurface` (svelte)
+
+```ts
+component from './touch/CameraDragSurface.svelte'
+```
+
+### `CameraDragSurfaceProps` (interface)
+
+```ts
+interface CameraDragSurfaceProps {
+    tracker: DragTracker;
+    testId?: string | undefined;
+}
+```
+
 ### `Chip` (svelte)
 
 ```ts
@@ -427,6 +442,20 @@ type DisplayQuality = 'high' | 'medium' | 'low';
 
 ```ts
 component from './settings/DisplaySection.svelte'
+```
+
+### `DragTracker` (interface)
+
+```ts
+interface DragTracker {
+    down(id: number, x: number, start: {
+        readonly pointerType: string;
+        readonly button: number;
+    }): boolean;
+    move(id: number, x: number): void;
+    up(id: number): void;
+    cancel(): void;
+}
 ```
 
 ### `endonymOf` (function)
@@ -1543,6 +1572,9 @@ interface TouchControlsProps {
     onhold: (action: string) => void;
     onrelease: (action: string) => void;
     shown?: boolean | undefined;
+    stick?: TouchStickSpec | undefined;
+    onstick?: ((x: number, y: number) => void) | undefined;
+    onstickend?: (() => void) | undefined;
     testId?: string | undefined;
 }
 ```
@@ -1561,6 +1593,14 @@ interface TouchCopy {
 
 ```ts
 component from './settings/TouchSection.svelte'
+```
+
+### `TouchStickSpec` (interface)
+
+```ts
+interface TouchStickSpec {
+    readonly label: string;
+}
 ```
 
 ### `TouchTarget` (interface)

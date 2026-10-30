@@ -10,6 +10,7 @@ import { type ModelInvalid, RendererUnavailable, type RenderTarget } from '@mcth
 import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
 import { type Container3D, View3D } from '@pixi/3d'
 import { Effect, ExecutionStrategy, Exit, Runtime, Scope } from 'effect'
+import { Graphics } from 'pixi.js'
 import { angledCamera, type CameraRig } from '../camera/angled-camera.js'
 import { cameraDriver, type Pixi3dCameraOptions } from '../camera/camera-driver.js'
 import { loadModels, type ModelLibrary } from '../model/load-models.js'
@@ -81,6 +82,12 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   const view = letterboxed
     ? new View3D({ width: options.logicalWidth, height: options.logicalHeight, toneMapping: 'none' })
     : new View3D({ autoResize: true, toneMapping: 'none' })
+  // The sky. The view draws no colour where no mesh is, so the letterbox's black field shows through there (the app's
+  // clear colour is under that field). A 2D fill of the view's rect, under it, draws `backgroundColor` exactly on
+  // both backends; `@pixi/3d`'s hemisphere background lifts dark colours (0x020c0c draws as 0x091414). Inside the
+  // view only, so the bars keep `barColor`. Without a letterbox the app's clear colour is the sky already.
+  if (letterboxed && options.backgroundColor !== undefined)
+    stage.world.addChild(new Graphics().rect(0, 0, view.width, view.height).fill(options.backgroundColor))
   stage.world.addChild(view)
   const resolver: Record<string, (row: RenderRow, componentId?: string) => EntityView3d | undefined> = {}
   for (const [id, factory] of Object.entries(options.views))

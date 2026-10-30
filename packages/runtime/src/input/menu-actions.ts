@@ -4,6 +4,7 @@
 // shoulders for paging and the triggers for adjusting. The reserved keys (Escape) are allowed here: the reserved
 // list applies to a game's profile only (M4-D3). Only `pause` will be rebindable (M4.4).
 
+/** A fixed menu action: it drives menus and the pause screen, never the sim. */
 export type MenuAction =
   | 'nav-up'
   | 'nav-down'

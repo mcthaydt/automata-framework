@@ -48,6 +48,12 @@ const expectNear = (actual: Vec3, expected: Vec3, digits = 4) => {
 
 const FOCUS = { x: 0, y: 1, z: 0 }
 
+/** The heading the eye shows around the focus, in degrees [0, 360): the eye sits behind the focus. */
+const headingOf = (camera: Camera3D): number => {
+  const degrees = Math.atan2(FOCUS.x - camera.position.x, FOCUS.z - camera.position.z) / (Math.PI / 180)
+  return (degrees + 360) % 360
+}
+
 describe('angledCamera', () => {
   it('is a 24 mm lens, 53.13° vertical, in every view', () => {
     const { camera, rig: r } = rig()
@@ -83,21 +89,28 @@ describe('angledCamera', () => {
     expectNear(positionOf(camera), eyeOf(FOCUS, 90 + 360 / 65_536, 25, 5), 6)
   })
 
-  it('eases a view’s heading over 250 ms, the shorter way, and at once under reduced motion', () => {
+  it('eases a view’s heading in about 250 ms, the shorter way, and at once under reduced motion', () => {
     const { camera, rig: r } = rig()
     r.follow(0, 0, 0)
     r.update(1 / 60)
     r.heading(350, 'ease')
-    r.update(0.125)
-    // Half the time is half the turn (smoothstep), toward 350° through 355°, not through 175°.
-    expectNear(positionOf(camera), eyeOf(FOCUS, 355, 25, 5))
+    r.update(0.05)
+    // klipp's axis damping turns toward 350° through 355°, not through 175°: part way after 50 ms, not there yet.
+    const early = headingOf(camera)
+    expect(early).toBeGreaterThan(350)
+    expect(early).toBeLessThan(359)
     // The renderer tracks the same target every frame: that lets the ease finish.
     r.heading(350)
-    r.update(0.1)
-    expect(positionOf(camera).x).not.toBeCloseTo(eyeOf(FOCUS, 350, 25, 5).x, 3)
-    r.heading(350)
-    r.update(0.025)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 350, 25, 5))
+    r.update(0.2)
+    expectNear(positionOf(camera), eyeOf(FOCUS, 350, 25, 5), 2)
+
+    // A half turn is within half a degree after 250 ms of 60 Hz frames.
+    const half = rig()
+    half.rig.follow(0, 0, 0)
+    half.rig.update(1 / 60)
+    half.rig.heading(180, 'ease')
+    for (let frame = 0; frame < 15; frame++) half.rig.update(1 / 60)
+    expect(Math.abs(headingOf(half.camera) - 180)).toBeLessThan(0.5)
 
     const reduced = rig({ reduced: true })
     reduced.rig.follow(0, 0, 0)
@@ -113,19 +126,26 @@ describe('angledCamera', () => {
     r.update(1 / 60)
     r.heading(180, 'ease')
     r.update(0.05)
-    const before = positionOf(camera)
+    // A twin rig whose player does not turn: the camera with the turn stays a degree's width from it, no snap.
+    const twin = rig()
+    twin.rig.follow(0, 0, 0)
+    twin.rig.update(1 / 60)
+    twin.rig.heading(180, 'ease')
+    twin.rig.update(0.05)
+    twin.rig.update(1 / 60)
     // One degree of turn while the view's heading is still easing in.
     r.heading(181)
     r.update(1 / 60)
     const after = positionOf(camera)
-    // No snap: one frame later the camera has moved a little, nowhere near the 181° eye.
-    expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(2)
+    const unturned = positionOf(twin.camera)
+    expect(Math.hypot(after.x - unturned.x, after.z - unturned.z)).toBeLessThan(0.1)
     expect(
       Math.hypot(after.x - eyeOf(FOCUS, 181, 25, 5).x, after.z - eyeOf(FOCUS, 181, 25, 5).z),
     ).toBeGreaterThan(2)
+    // klipp's damping settles: within a millimetre half a second on.
     r.heading(181)
-    r.update(0.25)
-    expectNear(positionOf(camera), eyeOf(FOCUS, 181, 25, 5))
+    r.update(0.5)
+    expectNear(positionOf(camera), eyeOf(FOCUS, 181, 25, 5), 3)
   })
 
   it('a tracked heading with no ease running shows at once', () => {
@@ -213,18 +233,40 @@ describe('angledCamera', () => {
     expectNear(positionOf(camera), eyeOf(FOCUS, 0, 50, 9))
   })
 
-  it('follows with lag: the first follow snaps, then the focus eases toward the player', () => {
+  it('follows with klipp’s damping: the first follow snaps, then the eye trails and never overshoots', () => {
     const { camera, rig: r } = rig()
     r.follow(2, 0, 3)
     r.update(1 / 60)
     expectNear(positionOf(camera), eyeOf({ x: 2, y: 1, z: 3 }, 0, 25, 5))
     r.follow(4, 0, 3)
-    r.update(0.18)
-    // One lag's time closes 1 − 1/e of the gap.
-    const reached = 2 + 2 * (1 - Math.exp(-1))
-    expectNear(positionOf(camera), eyeOf({ x: reached, y: 1, z: 3 }, 0, 25, 5))
+    let last = positionOf(camera).x
+    for (let frame = 0; frame < 11; frame++) {
+      r.update(1 / 60)
+      const x = positionOf(camera).x
+      expect(x).toBeGreaterThanOrEqual(last)
+      expect(x).toBeLessThanOrEqual(4)
+      last = x
+    }
+    // A lag of 0.18 s covers about 60% of the step in 0.183 s (the old exponential covered 63%).
+    expect(last - 2).toBeGreaterThan(0.5 * 2)
+    expect(last - 2).toBeLessThan(0.7 * 2)
     r.update(5)
     expectNear(positionOf(camera), eyeOf({ x: 4, y: 1, z: 3 }, 0, 25, 5))
+  })
+
+  it('keeps the player’s focus dead centre while the eye trails (klipp’s HardLookAtAim)', () => {
+    const { camera, rig: r } = rig()
+    r.follow(0, 0, 0)
+    r.update(1 / 60)
+    r.follow(2, 0, 0)
+    r.update(1 / 60)
+    const eye = positionOf(camera)
+    const forward = forwardOf(camera)
+    const toFocus = { x: 2 - eye.x, y: 1 - eye.y, z: 0 - eye.z }
+    const length = Math.hypot(toFocus.x, toFocus.y, toFocus.z)
+    expectNear(forward, { x: toFocus.x / length, y: toFocus.y / length, z: toFocus.z / length })
+    // The eye has not caught up yet.
+    expect(eye.x).toBeLessThan(1)
   })
 
   it('keeps the focus inside the view’s bounds', () => {

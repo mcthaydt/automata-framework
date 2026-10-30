@@ -125,6 +125,84 @@ test('a root may allow another checked sim folder’s entry point by its exact n
   expect(imports('@af-examples/base-2d', ['@af-examples/base-2d/sim'])).toEqual(['import'])
 })
 
+// DX.6b: koota compiles struct-of-arrays accessors with `new Function`, which Ruken's CSP (no 'unsafe-eval') refuses.
+describe('koota-soa: a koota trait or relation store must be a factory or a tag', () => {
+  test.each([
+    ['koota-object-schema.ts', 3, 31],
+    ['koota-aliased.ts', 3, 37], // `import { trait as defineTrait }`
+    ['koota-namespace.ts', 3, 35], // `koota.trait(...)`
+    ['koota-schema-variable.ts', 4, 31], // `trait(schema)`: the checker cannot see that it is not an object
+    ['koota-relation-store.ts', 3, 56], // `relation({ store: { ... } })` passes the store to `trait`
+  ] as const)('%s -> koota-soa at %i:%i', (file, line, col) => {
+    expect(fixture(file).map((f) => [f.rule, f.line, f.col])).toEqual([['koota-soa', line, col]])
+  })
+
+  test('the finding names the fix', () => {
+    const [onTrait] = fixture('koota-object-schema.ts')
+    expect(onTrait?.message).toContain('new Function')
+    expect(onTrait?.message).toContain('defineComponent')
+    expect(onTrait?.message).toContain('trait(() => ({ ... }))')
+    const [onRelation] = fixture('koota-relation-store.ts')
+    expect(onRelation?.message).toContain('relation({ store: () => ({ ... }) })')
+  })
+
+  test('factories, tags, relations without a store and a type-only import pass', () => {
+    expect(fixture('koota-factory.ts')).toEqual([])
+  })
+
+  test('a function of the game’s own called `trait` is not koota’s', () => {
+    expect(fixture('koota-unrelated.ts')).toEqual([])
+  })
+
+  const kootaRules = (src: string) => checkSource('/x/sim/a.ts', src).map((f) => [f.rule, f.line, f.col])
+  test.each([
+    ['a spread schema', "import { trait } from 'koota'\ntrait({ ...base })\n", 2, 7],
+    ['a computed namespace member', "import * as k from 'koota'\nk['trait']({ x: 0 })\n", 2, 12],
+    ['a call result', "import { trait } from 'koota'\ntrait(make())\n", 2, 7],
+    ['a relation definition in a variable', "import { relation } from 'koota'\nrelation(options)\n", 2, 10],
+    ['a spread relation definition', "import { relation } from 'koota'\nrelation({ ...options })\n", 2, 10],
+    ['a relation store in a variable', "import { relation } from 'koota'\nrelation({ store: s })\n", 2, 19],
+    ['a quoted store key', "import { relation } from 'koota'\nrelation({ ['store']: { n: 0 } })\n", 2, 23],
+    ['an asserted object schema', "import { trait } from 'koota'\ntrait({ x: 0 } as const)\n", 2, 7],
+    ['a parenthesized callee', "import { trait } from 'koota'\n(trait)({ x: 0 })\n", 2, 9],
+    ['a sequence callee', "import { trait } from 'koota'\n(0, trait)({ x: 0 })\n", 2, 12],
+    ['an asserted callee', "import { trait } from 'koota'\n(trait as typeof trait)({ x: 0 })\n", 2, 25],
+    ['a sequence namespace callee', "import * as k from 'koota'\n(0, k.trait)({ x: 0 })\n", 2, 14],
+    ['a parenthesized namespace', "import * as k from 'koota'\n(k).trait({ x: 0 })\n", 2, 11],
+    ['a string-named import', "import { 'trait' as t } from 'koota'\nt({ x: 0 })\n", 2, 3],
+    // koota reads `definition?.store`, which runs a getter; a method `store() {}` hands koota the function.
+    [
+      'a getter store',
+      "import { relation } from 'koota'\nrelation({ get store() { return { a: 0 } } })\n",
+      2,
+      10,
+    ],
+  ] as const)('%s is reported', (_, src, line, col) => {
+    expect(kootaRules(src)).toEqual([['koota-soa', line, col]])
+  })
+
+  test('parentheses and type assertions are read through, so the message says what the schema is', () => {
+    const message = (src: string) =>
+      checkSource('/x/sim/a.ts', `import { trait } from 'koota'\n${src}\n`)[0]?.message
+    expect(message('trait(({ x: 0 }) satisfies object)')).toMatch(/^an object schema makes/)
+    expect(message('trait(schema)')).toMatch(/^the checker cannot see/)
+    expect(message('trait((() => ({ x: 0 })) as () => object)')).toBeUndefined()
+    expect(message('trait({ x: 0 }!)')).toMatch(/^an object schema makes/)
+    expect(message('trait(<object>{ x: 0 })')).toMatch(/^an object schema makes/)
+  })
+
+  test('a type-only specifier binds nothing, and a store method is a factory', () => {
+    const src = [
+      "import { type trait, relation } from 'koota'",
+      'trait({ x: 0 })',
+      'relation({ store() { return { n: 0 } } })',
+      'relation({ store: { n: 0 } })',
+      '',
+    ].join('\n')
+    expect(kootaRules(src)).toEqual([['koota-soa', 4, 19]])
+  })
+})
+
 describe('inline mode (EX spec §4): only the sim inside a browser file is checked', () => {
   const inline = (name: string) => {
     const path = join(import.meta.dirname, '../fixtures/inline', name)
@@ -146,6 +224,21 @@ describe('inline mode (EX spec §4): only the sim inside a browser file is check
   test('a clean system and plugin pass', () => {
     expect(inline('clean-system.ts')).toEqual([])
   })
+
+  test('koota-soa covers the whole file: the CSP covers the whole page, and components are defined at file level', () => {
+    expect(inline('koota-file-level.ts')).toEqual([['koota-soa', 5, 31]])
+  })
+
+  test('a koota call inside a defineSystem argument is reported once', () => {
+    const src = [
+      "import { defineSystem } from '@mcthaydt/automata'",
+      "import { trait } from 'koota'",
+      "export const s = defineSystem({ name: 's', run() { trait({ x: 0 }) } })",
+      '',
+    ].join('\n')
+    const rules = checkSource('/x/demo/main.ts', src, { inline: true }).map((f) => [f.rule, f.line, f.col])
+    expect(rules).toEqual([['koota-soa', 3, 58]])
+  })
 })
 
 test('a folder walk never descends into installed packages or build output', () => {
@@ -160,4 +253,56 @@ test('a folder walk never descends into installed packages or build output', () 
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
+})
+
+describe('simSet: a game laid out by role (GL spec §4.5)', () => {
+  const src = '/g/src'
+  const simSet = new Set([
+    '/g/src/components.ts',
+    '/g/src/state.ts',
+    '/g/src/systems/index.ts',
+    '/g/src/systems/move.ts',
+  ])
+  const check = (file: string, code: string) =>
+    checkSource(file, code, { root: src, simSet }).map((f) => f.rule)
+
+  test.each([
+    ['a value import of another sim file', "import { A } from './components.ts'\nexport const a = A\n"],
+    ['an extensionless import', "import { A } from './components'\nexport const a = A\n"],
+    [
+      'a NodeNext .js specifier for a .ts sim file',
+      "import { A } from './components.js'\nexport const a = A\n",
+    ],
+    ['a folder import that resolves to index.ts', "import { m } from './systems'\nexport const s = m\n"],
+    [
+      'a type-only import from outside the sim',
+      "import type { Room } from './content/room.ts'\nexport const r: Room[] = []\n",
+    ],
+    ['a dynamic import of a sim file', "export const load = () => import('./components.ts')\n"],
+  ])('allows %s', (_name, code) => {
+    expect(check('/g/src/state.ts', code)).toEqual([])
+  })
+
+  test.each([
+    ['a value import from views.ts', "import { v } from './views.ts'\nexport const a = v\n"],
+    ['a re-export from content/', "export { ROOM } from './content/room.ts'\n"],
+    ['an escape above the game root', "import { x } from '../../shared/x.ts'\nexport const a = x\n"],
+    ['a dynamic import of views.ts', "export const load = () => import('./views.ts')\n"],
+  ])('refuses %s', (_name, code) => {
+    expect(check('/g/src/state.ts', code)).toEqual(['import'])
+  })
+
+  test('the refusal names the sim set', () => {
+    const [finding] = checkSource(
+      '/g/src/systems/move.ts',
+      "import { v } from '../views.ts'\nexport const a = v\n",
+      {
+        root: src,
+        simSet,
+      },
+    )
+    expect(finding?.message).toContain(
+      'the sim imports ../views.ts, which is outside the sim (constants, components, commands, events, resources, systems, state, sim.ts)',
+    )
+  })
 })

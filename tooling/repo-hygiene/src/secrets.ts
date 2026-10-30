@@ -11,7 +11,7 @@ import { cpSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { ensureGitleaks, historyScanArgs } from './gitleaks.ts'
+import { ensureRepoGitleaks, historyScanArgs } from './gitleaks.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const fixture = fileURLToPath(new URL('../fixtures/secrets', import.meta.url))
@@ -27,12 +27,7 @@ function fail(message: string, output: string): never {
   process.exit(1)
 }
 
-const binary = await ensureGitleaks({
-  cacheDir: join(root, 'node_modules/.cache/gitleaks'),
-  platform: process.platform,
-  arch: process.arch,
-  fetch: (url) => fetch(url),
-})
+const binary = await ensureRepoGitleaks(root)
 
 const scratch = mkdtempSync(join(tmpdir(), 'af-secrets-selftest-'))
 try {

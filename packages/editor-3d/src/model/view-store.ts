@@ -17,6 +17,9 @@ export interface ViewState {
   readonly grid: { readonly step: number; readonly snap: boolean }
 }
 
+/** The sub-layer of the Things layer that holds the instances of one entity definition. */
+export const thingLayer = (definition: string): string => `things:${definition}`
+
 export const initialView: ViewState = {
   mode: 'plan',
   layer: 'sectors',
