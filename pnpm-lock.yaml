@@ -85,6 +85,19 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.5(@types/node@24.19.1)(yaml@2.9.1))
 
+  packages/server:
+    dependencies:
+      '@mcthaydt/automata-net':
+        specifier: workspace:*
+        version: link:../net
+      '@mcthaydt/automata-sim':
+        specifier: file:../../.core/packs/automata-sim
+        version: file:.core/packs/automata-sim
+    devDependencies:
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.5(@types/node@24.19.1)(yaml@2.9.1))
+
 packages:
 
   '@biomejs/biome@2.5.15':
