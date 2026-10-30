@@ -95,3 +95,34 @@ describe('the tick scheduler', () => {
     expect(clock.tickTimes.length).toBe(count)
   })
 })
+
+describe('a tick that throws (review of M7.3b)', () => {
+  it('stops the scheduler, reports the error and lets nothing escape the timer', () => {
+    let pending: (() => void) | undefined
+    let now = 0
+    const errors: unknown[] = []
+    startTickScheduler({
+      tickMs: TICK_MS,
+      clock: {
+        now: () => now,
+        setTimer: (callback) => {
+          pending = callback
+          return callback
+        },
+        clearTimer: () => {
+          pending = undefined
+        },
+      },
+      onTick: () => {
+        throw new Error('the game threw')
+      },
+      onError: (error) => errors.push(error),
+    })
+    now = TICK_MS
+    const wake = pending
+    pending = undefined
+    expect(() => wake?.()).not.toThrow()
+    expect(errors).toHaveLength(1)
+    expect(pending).toBeUndefined()
+  })
+})

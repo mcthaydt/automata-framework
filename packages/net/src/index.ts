@@ -22,7 +22,15 @@ export {
   seatSchema,
   uintSchema,
 } from './wire/primitives.schema'
-export { LOBBY_PHASES, type LobbyPhase, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from './wire/room'
+export {
+  LOBBY_PHASES,
+  type LobbyPhase,
+  NET_BYTES_CHANNEL,
+  NET_CHANNEL,
+  ROOM_CODE_ALPHABET,
+  ROOM_CODE_LENGTH,
+  ROOM_NAME,
+} from './wire/room'
 export {
   NET_ERROR_CODES,
   type NetErrorCode,

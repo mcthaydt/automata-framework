@@ -30,6 +30,11 @@ export interface TickSchedulerOptions {
   readonly onTick: () => void
   /** After each wake-up: how many ticks ran and how much time was given up. */
   readonly onCallback?: (ticks: number, droppedMs: number) => void
+  /**
+   * A tick threw. The scheduler has stopped for good: it runs in a timer callback, where a throw would be an
+   * uncaught exception, so it never lets one out and never runs a room on past one.
+   */
+  readonly onError?: (error: unknown) => void
   /** The most ticks one wake-up runs [5]. */
   readonly maxCatchUp?: number
 }
@@ -67,21 +72,27 @@ export function startTickScheduler(options: TickSchedulerOptions): TickScheduler
       origin += droppedMs
       owed = maxCatchUp
     }
-    for (let index = 0; index < owed && !stopped; index += 1) {
-      fired += 1
-      options.onTick()
+    try {
+      for (let index = 0; index < owed && !stopped; index += 1) {
+        fired += 1
+        options.onTick()
+      }
+    } catch (error) {
+      stop()
+      options.onError?.(error)
+      return
     }
     options.onCallback?.(owed, droppedMs)
     schedule()
   }
 
+  const stop = (): void => {
+    if (stopped) return
+    stopped = true
+    clock.clearTimer(handle)
+  }
+
   schedule()
 
-  return {
-    stop() {
-      if (stopped) return
-      stopped = true
-      clock.clearTimer(handle)
-    },
-  }
+  return { stop }
 }

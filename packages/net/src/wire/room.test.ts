@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { LOBBY_PHASES, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from './room'
+import {
+  LOBBY_PHASES,
+  NET_BYTES_CHANNEL,
+  NET_CHANNEL,
+  ROOM_CODE_ALPHABET,
+  ROOM_CODE_LENGTH,
+  ROOM_NAME,
+} from './room'
 
 // The room contract a client reads (M7 spec §4.2, RoomInfo): net owns it, server imports it.
 
@@ -12,5 +19,10 @@ describe('the room contract', () => {
 
   it('names the four phases of RoomInfo', () => {
     expect(LOBBY_PHASES).toEqual(['lobby', 'countdown', 'playing', 'ended'])
+  })
+
+  it('names the room type and two distinct channels', () => {
+    expect(ROOM_NAME).toBe('automata')
+    expect(NET_CHANNEL).not.toBe(NET_BYTES_CHANNEL)
   })
 })

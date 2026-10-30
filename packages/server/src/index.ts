@@ -1,6 +1,18 @@
-// `@mcthaydt/automata-server`: the room rules as plain modules (M7 spec §4.3, M7.3a). The Colyseus room,
-// `defineServer` and `startServer` arrive with M7.3b and adapt these, as FloorFifty's `race-room.ts` does.
+// `@mcthaydt/automata-server` (M7 spec §4.3): a game's server (`defineServer`), the process (`startServer`), the
+// generic Colyseus room that adapts the room rules (M7.3b), and the rules themselves as plain modules (M7.3a). The
+// test driver and the clock hold are `./testing`.
 
+export type { Bucket, RoomLogEvent, ServerConfig, ServerLimits, SignalSource } from './game/server-config'
+export {
+  type BotPolicy,
+  type CommandIntent,
+  defineServer,
+  ROOM_SOURCE,
+  type ServerDef,
+  type ServerGameDef,
+} from './game/server-game'
+export { type ReadonlyEntity, type SimView, simViewOf } from './game/sim-view'
+export { AutomataRoom } from './room/automata-room'
 export { addBot, botCount, botSeed, removeBot } from './rooms/bot-seats'
 export {
   COMMAND_HISTORY,
@@ -55,3 +67,11 @@ export {
   type TickScheduler,
   type TickSchedulerOptions,
 } from './rooms/tick-scheduler'
+export { DRAIN_MAX_MS, type DrainResult } from './server/drain'
+export {
+  createServerRuntime,
+  type ServerRuntime,
+  ServerStartError,
+  startServer,
+  tickClockFrom,
+} from './server/start-server'
