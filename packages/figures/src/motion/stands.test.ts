@@ -39,11 +39,22 @@ const figureOf = (sliders: FigureDef['sliders'], skin: string, garments: readonl
   outfits: { golden: garments },
   default: 'golden',
 })
-/** The dressed figure's outermost surface, as a hand finds the cloth it rests on (FigureBuilder form.test.ts). */
+/** The dressed figure's outermost surface, as a hand finds the cloth it rests on (FigureBuilder form.test.ts).
+ * `reach` is a pure function of the cloth, the rest pose and the ray, and the tests here cast the same rays
+ * again and again (each hold re-casts the body's openings; most stands share their hands' rays), so each
+ * figure's casts are remembered by the ray's exact coordinates: every cast still returns `reach`'s own value. */
 const surfaceOf = (s: Skeleton, built: Built): Surface => {
   const skip: number[] = [GROUP.head, GROUP.armL, GROUP.armR, GROUP.item]
   const cloth = built.parts.filter((p) => !skip.includes(p.group))
-  return (origin, dir) => reach(cloth, s.rest, origin, dir)
+  const cast = new Map<string, number>()
+  return (origin, dir) => {
+    const ray = `${origin.join()} ${dir.join()}`
+    const known = cast.get(ray)
+    if (known !== undefined) return known
+    const far = reach(cloth, s.rest, origin, dir)
+    cast.set(ray, far)
+    return far
+  }
 }
 interface Dressed {
   readonly name: string
@@ -55,8 +66,8 @@ interface Dressed {
   readonly holds: Readonly<Record<string, ArmHold[]>>
 }
 const dressedCache = new Map<string, Dressed>()
-/** A dressed figure, built and its stands placed once for every test here (a build and its placements take
- * about a second and a half: `reach` casts against every triangle of the outfit). */
+/** A dressed figure, built and its stands placed once for every test here (a build and its placements cast
+ * `reach` against every triangle of the outfit, hundreds of times). */
 function dress(name: string, def: FigureDef, outfit: string): Dressed {
   const known = dressedCache.get(name)
   if (known) return known
