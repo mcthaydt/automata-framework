@@ -236,6 +236,12 @@ const clamp: (v: number, lo: number, hi: number) => number;
 type Classic = Top | Waistcoat | Trousers | LegWear | Shoes | Skirt | Apron | Coat | Belt | Cape | Gloves | HairGarment | CapGarment | Eyes | Mark;
 ```
 
+### `clearance` (function)
+
+```ts
+function clearance(s: Skeleton, parts: readonly Part[], arms: Readonly<Record<Side, number>>, skip?: readonly number[]): [number, number];
+```
+
 ### `clonePose` (function)
 
 ```ts
@@ -339,6 +345,7 @@ interface Eyes {
     readonly stubble?: string | undefined;
     readonly lids?: string | undefined;
     readonly brows?: string | undefined;
+    readonly mouth?: string | undefined;
 }
 ```
 
@@ -1151,6 +1158,7 @@ interface Puffer {
     readonly puffer: string;
     readonly trim?: string | undefined;
     readonly zip?: string | undefined;
+    readonly pull?: string | undefined;
     readonly length?: number | undefined;
     readonly baffles?: number | undefined;
 }

@@ -11,6 +11,7 @@
 import type { Anchor } from '../build/anchors'
 import { variant } from '../build/materials'
 import type { Garment, Jacket } from '../figure/garment.schema'
+import { GARMENT_DEFAULTS } from '../figure/garment-defaults'
 import { SIDES } from '../garments/head'
 import type { Measure } from '../genes/genes'
 import { axisAngle, clamp, lerp, normalize, smooth, type V3 } from '../math/math'
@@ -108,8 +109,8 @@ export function jacket(w: Wearing, item: Jacket): Fit {
   const b = under(m, s)
   const { k } = b
   const cloth = item.jacket
-  const hardware = item.hardware ?? 'chrome-dark'
-  const zip = item.zip ?? ['holo-cyan']
+  const hardware = item.hardware ?? GARMENT_DEFAULTS.jacket.hardware
+  const zip = item.zip ?? GARMENT_DEFAULTS.jacket.zip
   const { shell: sh, edges, hem, top, D, zx, zipTop } = jacketShell(m, s, item, w.garments)
   // The lapels, the collar and the belt are the hide folded: matte, parted from the panels by the light along
   // their folded edges, a mark three steps up the hide's own light.

@@ -33,10 +33,21 @@ export interface Variant {
 /** The variants an outfit makes as it is built, by name, each with the swatch it is made from. */
 export type Made = Record<string, Variant & { readonly of: string }>
 
-/** Registers `<of>@<role>` (the first registration of a name wins) and returns its name. */
+/** A variant's fields in a fixed order, to compare two registrations. */
+const key = (v: Variant & { readonly of: string }): string =>
+  JSON.stringify(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)))
+
+/**
+ * Registers `<of>@<role>` and returns its name. A name means one material: registering it again with another
+ * change is refused (a role name used by two garments for two tones is a bug, not a choice between them).
+ */
 export function variant(made: Made, of: string, role: string, change: Variant): string {
   const name = `${of}@${role}`
-  made[name] ??= { of, ...change }
+  const wanted = { of, ...change }
+  const known = made[name]
+  if (known === undefined) made[name] = wanted
+  else if (key(known) !== key(wanted))
+    throw new Error(`${name} is made twice: ${JSON.stringify(known)} and ${JSON.stringify(wanted)}`)
   return name
 }
 

@@ -95,7 +95,7 @@ export function capParts(
   if (o.panels) {
     // The seams run up the ridges' valleys, a mark every half texel, so the line is unbroken; clear of the
     // band and the button, where the brim and the button stand in front.
-    const seamTone = variant(made, material, 'seam', { flat: true, shade: -1 })
+    const seamTone = variant(made, material, 'cap-seam', { flat: true, shade: -1 })
     const step = 0.5 / FIGURE_PPM
     for (let j = 0; j < o.panels[0]; j++) {
       const a = (2 * Math.PI * j) / o.panels[0]

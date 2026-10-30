@@ -4,23 +4,14 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import type { FigureDef } from '../figure/figure.schema'
 import { skeleton } from '../figure/figure-skeleton'
 import type { Garment } from '../figure/garment.schema'
-import { GROUP, type Part } from '../parts/mesh'
+import { GROUP } from '../parts/mesh'
 import { J, JOINTS, type Skeleton } from '../rig/rig'
+import { type Fingerprint, fingerprint, type Moments } from '../testing/fingerprint'
 import { type FixtureFigures, fixtureFigures } from '../testing/fixture-library'
 import { GOLDEN_OUTFITS } from '../testing/golden-outfits'
 import { type Built, build, type FigureLibrary } from './build'
 
-interface GoldenPart {
-  readonly bone: number
-  readonly group: number
-  readonly v: number
-  readonly i: number
-  readonly isum: number
-  readonly sum: number[]
-  readonly nsum: number[]
-  readonly w: number
-  readonly cut?: string
-}
+type GoldenPart = Fingerprint & { readonly cut?: string }
 interface Golden {
   readonly clearance: number[]
   readonly anchors: {
@@ -35,23 +26,6 @@ interface Golden {
 const GOLDENS = JSON.parse(
   readFileSync(join(import.meta.dirname, '../testing/__goldens__/figurebuilder-dress.json'), 'utf8'),
 ) as Record<string, Golden>
-
-/** A part as the goldens fingerprint it (FigureBuilder's dress() run through the same sums, M3.5b step 2). */
-function fingerprint(p: Part): Omit<GoldenPart, 'cut'> {
-  const P = p.mesh.positions
-  const N = p.mesh.normals
-  const sum = [0, 0, 0]
-  const nsum = [0, 0, 0]
-  for (let i = 0; i < P.length; i++) {
-    sum[i % 3] = (sum[i % 3] ?? 0) + (P[i] ?? 0)
-    nsum[i % 3] = (nsum[i % 3] ?? 0) + (N[i] ?? 0)
-  }
-  let w = 0
-  for (const v of p.skin ?? []) for (const [bone, x] of v) w += (bone + 1) * x
-  let isum = 0
-  for (const i of p.mesh.indices) isum += i
-  return { bone: p.bone ?? -1, group: p.group, v: P.length / 3, i: p.mesh.indices.length, isum, sum, nsum, w }
-}
 
 const close = (actual: number, expected: number, what: string): void => {
   expect(Math.abs(actual - expected), `${what}: ${actual} vs ${expected}`).toBeLessThanOrEqual(
@@ -133,8 +107,7 @@ describe('build() matches FigureBuilder dress() part for part (goldens, a1f7246)
       // Cut here (decisions 4 and 9): the chain's nameplate. Added here: the pony's cuffs, which the source
       // builds only past 1.5 × its ppm.
       const want = golden.parts.filter((p) => p.cut === undefined)
-      const cuff = (p: Part) => p.group === GROUP.hair && p.material === 'chrome-dark' && p.skin !== undefined
-      const got = built.parts.filter((p) => !cuff(p))
+      const got = built.parts.filter((p) => p.tag !== 'cuff')
       expect(got.map((p) => p.material)).toHaveLength(want.length)
       for (const [n, expected] of want.entries()) {
         const part = got[n]
@@ -148,11 +121,16 @@ describe('build() matches FigureBuilder dress() part for part (goldens, a1f7246)
           expected.i,
           expected.isum,
         ])
-        for (const c of [0, 1, 2]) {
-          close(actual.sum[c] ?? Number.NaN, expected.sum[c] ?? Number.NaN, `${what} sum ${c}`)
-          close(actual.nsum[c] ?? Number.NaN, expected.nsum[c] ?? Number.NaN, `${what} normals ${c}`)
-        }
+        for (const key of ['positions', 'normals'] as const)
+          for (const moment of ['sum', 'second', 'ordered'] as const) {
+            const want = expected[key][moment]
+            const have = (actual[key] as Moments)[moment]
+            expect(have, `${what} ${key} ${moment}`).toHaveLength(want.length)
+            for (const [c, value] of want.entries())
+              close(have[c] ?? Number.NaN, value, `${what} ${key} ${moment} ${c}`)
+          }
         close(actual.w, expected.w, `${what} skin`)
+        close(actual.wOrdered, expected.wOrdered, `${what} skin order`)
       }
       // Cut with the nameplate (decision 9): the chain's `pendant` anchor.
       const anchors = golden.anchors.filter((a) => a.kind !== 'pendant')
@@ -174,12 +152,13 @@ describe('build() matches FigureBuilder dress() part for part (goldens, a1f7246)
     const outfit = GOLDEN_OUTFITS.find((o) => o.name === 'model-moto')
     if (!outfit) throw new Error('no model-moto')
     const def = figureOf(outfit.sliders, outfit.skin, outfit.garments)
-    const cuffs = build(def, skeleton(def), 'golden', null, library).parts.filter(
-      (p) => p.group === GROUP.hair && p.material === 'chrome-dark' && p.skin !== undefined,
-    )
+    const cuffs = build(def, skeleton(def), 'golden', null, library).parts.filter((p) => p.tag === 'cuff')
     // Seven ropes, the four on top cuffed.
     expect(cuffs).toHaveLength(4)
-    for (const cuff of cuffs) expect(cuff.skin?.length).toBe(cuff.mesh.positions.length / 3)
+    for (const cuff of cuffs) {
+      expect(cuff.material).toBe('chrome-dark')
+      expect(cuff.skin?.length).toBe(cuff.mesh.positions.length / 3)
+    }
   })
 })
 

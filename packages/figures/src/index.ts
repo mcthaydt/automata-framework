@@ -4,7 +4,7 @@
 // Part 3 (M3.5c): locomotion (`base()`, `moveDir`), stands, holds, hems, the pose clock and the hair spring.
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
 
-export type { Anchor, AnchorKind } from './build/anchors'
+export { type Anchor, type AnchorKind, clearance } from './build/anchors'
 export { type Built, build, type FigureLibrary } from './build/build'
 export type { BuiltMaterial } from './build/materials'
 

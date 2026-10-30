@@ -8,6 +8,7 @@
 
 import type { Anchor } from '../build/anchors'
 import type { Garment, Puffer, Tee } from '../figure/garment.schema'
+import { GARMENT_DEFAULTS } from '../figure/garment-defaults'
 import { SIDES } from '../garments/head'
 import type { Measure } from '../genes/genes'
 import { clamp, lerp, normalize, smooth } from '../math/math'
@@ -158,7 +159,7 @@ export function puffer(w: Wearing, item: Puffer): Fit {
   parts.push(...cuffs(s, b, trim, cuffTop + 0.01 * k, b.wristY + 0.006 * k, b.fore * 1.18))
   // The zip: centre front from the collar's top to the binding, its pull at the chin.
   const decals: Decal[] = []
-  const zip = item.zip ?? 'chrome'
+  const zip = item.zip ?? GARMENT_DEFAULTS.puffer.zip
   for (let y = collarTop - 0.006 * k; y > hem + 0.006 * k; y -= 0.004) {
     const z = y > top - 0.03 * k ? 0.02 * k + collarR * 1.03 : (frontOf(sh, 0, y) ?? D) + 0.002
     const bone = y > top - 0.03 * k ? J.chest : torsoBone(s, y)
@@ -168,7 +169,7 @@ export function puffer(w: Wearing, item: Puffer): Fit {
     bone: J.chest,
     at: local(s, J.chest, [0.012 * k, collarTop - 0.028 * k, 0.02 * k + collarR * 1.05]),
     normal: [0, 0, 1],
-    material: 'chrome',
+    material: item.pull ?? GARMENT_DEFAULTS.puffer.pull,
     size: [1, 2],
   })
   // The handwarmers: a welt slanting down each side of the last baffle toward the hem, the hands in at its

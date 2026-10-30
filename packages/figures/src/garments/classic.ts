@@ -8,6 +8,7 @@
 // the skirt's stain (a painter wash).
 
 import type { Classic, Garment, Skirt } from '../figure/garment.schema'
+import { GARMENT_DEFAULTS } from '../figure/garment-defaults'
 import type { Measure } from '../genes/genes'
 import { axisAngle, smooth } from '../math/math'
 import { type Decal, GROUP, type Part } from '../parts/mesh'
@@ -145,7 +146,7 @@ export function wearClassic(d: Dressing, item: Classic): boolean {
     r.thigh = r.knee = r.shin = item.legs
   } else if ('shoes' in item) {
     r.shoe = item.shoes
-    r.sole = item.sole ?? 'sole'
+    r.sole = item.sole ?? GARMENT_DEFAULTS.shoes.sole
     d.boots = !!item.boots
   } else if ('gloves' in item) {
     r.hand = item.gloves

@@ -10,6 +10,7 @@
 import type { Anchor } from '../build/anchors'
 import type { Made } from '../build/materials'
 import type { Classic, Garment, HairGarment } from '../figure/garment.schema'
+import { GARMENT_DEFAULTS } from '../figure/garment-defaults'
 import type { Measure } from '../genes/genes'
 import { capParts, underCap } from '../hair/cap'
 import { hairParts } from '../hair/hair-parts'
@@ -177,7 +178,8 @@ export function dress(
           })
       }
     } else if ('eyes' in item) {
-      decals.push(...face(s, item.eyes, item.lids ?? 'lid', item.brows ?? 'brow'))
+      const { lids, brows, mouth } = GARMENT_DEFAULTS.eyes
+      decals.push(...face(s, item.eyes, item.lids ?? lids, item.brows ?? brows, item.mouth ?? mouth))
       if (item.stubble)
         parts.push(
           box(

@@ -13,6 +13,7 @@ import { type Headwear, headwearSchema, type Lock, lockSchema } from '../library
 import { keyedUnion } from '../library/keyed-union'
 import { refOrInline } from '../library/ref-or-inline'
 import { side } from '../library/shapes.schema'
+import { GARMENT_DEFAULTS } from './garment-defaults'
 
 // ─── garments.ts ───
 /** A shirt or a dress's body: it repaints the torso and as much of the arms as its sleeves cover. */
@@ -102,6 +103,8 @@ export interface Eyes {
   readonly stubble?: string | undefined
   readonly lids?: string | undefined
   readonly brows?: string | undefined
+  /** The mouth's mark; the library's `mouth` when left out. */
+  readonly mouth?: string | undefined
 }
 /** A watch or a badge on the chest, on one side. */
 export interface Mark {
@@ -135,6 +138,8 @@ export interface Puffer {
   readonly puffer: string
   readonly trim?: string | undefined
   readonly zip?: string | undefined
+  /** The zip's pull at the chin. */
+  readonly pull?: string | undefined
   readonly length?: number | undefined
   readonly baffles?: number | undefined
 }
@@ -238,8 +243,17 @@ export type Garment = Classic | Streetwear
 
 const swatch = contentRef('figure-swatch')
 const optionalSwatch = swatch.optional()
-const n = z.number()
 const flag = z.boolean().optional()
+/**
+ * The garments' numbers, each bounded (M3.5b review): a little past what FigureBuilder's library, its
+ * builders' defaults and its random wardrobe's draws use, so any value in range builds a sound garment. Out of
+ * range they break the build (cargos of width 0 run out of memory) or the garment (a skirt above the hip).
+ */
+const within = (min: number, max: number) => z.number().min(min).max(max)
+/** A hanging garment's length: 0 the hip, 0.5 the knee, 1 the ankle (garments/classic.ts hemAt). */
+const length = within(0, 1)
+/** A zip's teeth, top to foot: at least one swatch. */
+const zip = z.array(swatch).min(1).optional()
 
 const hair: z.ZodType<HairGarment> = z.strictObject({
   hair: swatch,
@@ -270,25 +284,26 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
   shoes: z.strictObject({ shoes: swatch, sole: optionalSwatch, boots: flag }),
   skirt: z.strictObject({
     skirt: swatch,
-    length: n,
-    flare: n.optional(),
-    folds: n.optional(),
+    length,
+    flare: within(0, 2).optional(),
+    folds: within(0, 0.3).optional(),
     hem: optionalSwatch,
   }),
   apron: z.strictObject({
     apron: swatch,
     shade: optionalSwatch,
-    length: n,
+    length,
     bib: flag,
     straps: z.enum(['cross', 'neck']).optional(),
     pockets: flag,
-    bibWidth: n.optional(),
-    wrap: n.optional(),
+    // Of the shoulders' half-width; rad either side of the front.
+    bibWidth: within(0.1, 1.2).optional(),
+    wrap: within(0.2, Math.PI).optional(),
     tie: flag,
   }),
-  coat: z.strictObject({ coat: swatch, length: n, buttons: optionalSwatch, collar: optionalSwatch }),
+  coat: z.strictObject({ coat: swatch, length, buttons: optionalSwatch, collar: optionalSwatch }),
   belt: z.strictObject({ belt: swatch, buckle: optionalSwatch }),
-  cape: z.strictObject({ cape: swatch, length: n.optional(), trim: optionalSwatch }),
+  cape: z.strictObject({ cape: swatch, length: length.optional(), trim: optionalSwatch }),
   gloves: z.strictObject({ gloves: swatch }),
   hair,
   cap,
@@ -297,6 +312,7 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
     stubble: optionalSwatch,
     lids: optionalSwatch,
     brows: optionalSwatch,
+    mouth: optionalSwatch,
   }),
   mark: z.strictObject({ mark: z.enum(['watch', 'badge']), colour: swatch, side }),
   // streetwear.ts
@@ -304,8 +320,9 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
     puffer: swatch,
     trim: optionalSwatch,
     zip: optionalSwatch,
-    length: n.optional(),
-    baffles: n.optional(),
+    pull: optionalSwatch,
+    length: length.optional(),
+    baffles: z.number().int().min(1).max(12).optional(),
   }),
   hoodie: z.strictObject({
     hoodie: swatch,
@@ -317,15 +334,16 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
   tee: z.strictObject({
     tee: swatch,
     rib: optionalSwatch,
-    fit: n.optional(),
+    // Its width over the shoulders (1.16 oversized); its length, 0 at the waistband, 1 a hand below the hip.
+    fit: within(0.8, 1.6).optional(),
     sleeves: flag,
-    length: n.optional(),
+    length: within(-0.1, 2).optional(),
   }),
-  jacket: z.strictObject({ jacket: swatch, zip: z.array(swatch).optional(), hardware: optionalSwatch }),
+  jacket: z.strictObject({ jacket: swatch, zip, hardware: optionalSwatch }),
   bomber: z.strictObject({
     bomber: swatch,
     rib: optionalSwatch,
-    zip: z.array(swatch).optional(),
+    zip,
     hardware: optionalSwatch,
     tipping: optionalSwatch,
   }),
@@ -333,7 +351,8 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
   cargos: z.strictObject({
     cargos: swatch,
     hardware: optionalSwatch,
-    width: n.optional(),
+    // Of the era's straight cut.
+    width: within(0.5, 1.5).optional(),
     cuff: flag,
     stitch: optionalSwatch,
   }),
@@ -346,9 +365,30 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
     court: flag,
     tab: optionalSwatch,
   }),
-  chain: z.strictObject({ chain: swatch, links: optionalSwatch, drop: n.optional() }),
-  hoops: z.strictObject({ hoops: swatch, size: n.optional() }),
+  // The U's depth on the chest (m at 1.62 m); a hoop's drop, of the head's height (under 0.12 a stud).
+  chain: z.strictObject({ chain: swatch, links: optionalSwatch, drop: within(0.02, 0.3).optional() }),
+  hoops: z.strictObject({ hoops: swatch, size: within(0.02, 0.5).optional() }),
   shades: z.strictObject({ shades: swatch, frame: optionalSwatch, up: flag }),
 }
 
-export const garmentSchema: z.ZodType<Garment> = keyedUnion<Garment>('garment', GARMENTS)
+/**
+ * Each garment with its default swatches written in where its file names none (garment-defaults.ts), as
+ * references: the compiler checks them like any other, and reports one the library lacks at the garment.
+ */
+const withDefaults = (key: string, schema: z.ZodType<Garment>): z.ZodType<Garment> => {
+  const defaults: Readonly<Record<string, string | readonly string[]>> | undefined =
+    GARMENT_DEFAULTS[key as keyof typeof GARMENT_DEFAULTS]
+  if (defaults === undefined) return schema
+  const ref = (id: string): string => swatch.parse(id)
+  return schema.transform((garment): Garment => {
+    const filled: Record<string, unknown> = { ...garment }
+    for (const [field, id] of Object.entries(defaults))
+      if (filled[field] === undefined) filled[field] = typeof id === 'string' ? ref(id) : id.map(ref)
+    return filled as unknown as Garment
+  }) as unknown as z.ZodType<Garment>
+}
+
+export const garmentSchema: z.ZodType<Garment> = keyedUnion<Garment>(
+  'garment',
+  Object.fromEntries(Object.entries(GARMENTS).map(([key, schema]) => [key, withDefaults(key, schema)])),
+)

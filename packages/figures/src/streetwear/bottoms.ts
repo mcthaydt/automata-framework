@@ -13,6 +13,7 @@
 import type { Anchor } from '../build/anchors'
 import { variant } from '../build/materials'
 import type { Cargos, Garment, WideLegs } from '../figure/garment.schema'
+import { GARMENT_DEFAULTS } from '../figure/garment-defaults'
 import { SIDES } from '../garments/head'
 import type { Measure } from '../genes/genes'
 import { clamp, lerp, normalize, smooth, type V3 } from '../math/math'
@@ -100,7 +101,7 @@ function trousers(w: Wearing, cloth: string, legs: Legs, o: TrouserOptions = {})
   // deepest, the button in the hardware's light.
   const stitch = o.stitch ? tone(made, o.stitch, 'thread', 1) : own(made, cloth, 'stitch')
   const open = tone(made, cloth, 'open', 3)
-  const button = tone(made, o.hardware ?? 'chrome-dark', 'button', 0)
+  const button = tone(made, o.hardware ?? GARMENT_DEFAULTS.wideLegs.hardware, 'button', 0)
   const surface = (x: number, y: number, back: boolean): { z: number; bone: number } | null => {
     const d = back ? -1 : 1
     const found: { z: number; bone: number }[] = []
@@ -346,7 +347,7 @@ export function cargos(w: Wearing, item: Cargos): Fit {
   const { m, s, made } = w
   const { k } = m
   const cloth = item.cargos
-  const hardware = item.hardware ?? 'chrome-dark'
+  const hardware = item.hardware ?? GARMENT_DEFAULTS.cargos.hardware
   const cut = cargoCut(m, s, item)
   const { hem, radius } = cut
   const cuffTop = s.genes.ankle + 0.085 * k

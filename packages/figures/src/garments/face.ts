@@ -4,14 +4,14 @@
 // the painter's drawn face is not taken.
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/garments.ts at a1f7246 (`face`),
-// with AF's strict types; the places are the source's. The mouth's swatch is the library's `mouth`.
+// with AF's strict types; the places are the source's. The mouth's swatch is the eyes' `mouth` (the library's `mouth` by default).
 
 import type { V3 } from '../math/math'
 import type { Decal } from '../parts/mesh'
 import { J, type Skeleton } from '../rig/rig'
 import { SIDES } from './head'
 
-export function face(s: Skeleton, eyes: string, lid: string, brow: string): Decal[] {
+export function face(s: Skeleton, eyes: string, lid: string, brow: string, mouth: string): Decal[] {
   const g = s.genes
   const hw = (g.head * g.headWidth) / 2
   const hd = (g.head * g.headDepth) / 2
@@ -57,14 +57,14 @@ export function face(s: Skeleton, eyes: string, lid: string, brow: string): Deca
       bone: J.head,
       at: [0, h * 0.2, hd * 0.86],
       normal: [0, -0.2, 1],
-      material: 'mouth',
+      material: mouth,
       when: ['fear', 'surprised', 'mouthOpen'],
     },
     {
       bone: J.head,
       at: [0, h * 0.22, hd * 0.86],
       normal: [0, -0.2, 1],
-      material: 'mouth',
+      material: mouth,
       size: [2, 1],
       when: ['sad', 'angry'],
     },

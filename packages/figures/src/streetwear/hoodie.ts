@@ -8,6 +8,7 @@
 
 import type { Anchor } from '../build/anchors'
 import type { Garment, Hoodie } from '../figure/garment.schema'
+import { GARMENT_DEFAULTS } from '../figure/garment-defaults'
 import { SIDES } from '../garments/head'
 import type { Measure } from '../genes/genes'
 import { sweep } from '../hair/sweep'
@@ -276,7 +277,7 @@ export function hoodie(w: Wearing, item: Hoodie): Fit {
       bone: J.chest,
       at: local(s, J.chest, [x0 + x * 0.008 * k, y1 - 0.006 * k, (frontOf(sh, x0, y1) ?? D) + 0.004]),
       normal: [0, 0, 1],
-      material: item.aglets ?? 'chrome-dark',
+      material: item.aglets ?? GARMENT_DEFAULTS.hoodie.aglets,
       size: [1, 2],
     })
   }
