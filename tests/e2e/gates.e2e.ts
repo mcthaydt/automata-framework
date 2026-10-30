@@ -80,6 +80,15 @@ test.describe('browser gates catch their fixtures', () => {
     await expect(page.getByRole('button', { name: 'Opened' })).toHaveCount(1)
   })
 
+  // Restart on a demo replaces its frame, and the new same-origin frame's WebGL boot then holds the page's main thread
+  // (run 41012189000 on the Mac: the frame was created 4 ms after the click, and the gate's in-page check could not run
+  // for 2.9 s). The click did change the page; the gate must not report it dead because the page was busy afterwards.
+  test('a button that changes the page and then keeps the main thread busy past the window still counts as doing something', async ({ page }) => {
+    test.setTimeout(60_000)
+    await page.goto(ORIGIN + '/busy-frame.html')
+    expect(await deadButtons(page)).toEqual([])
+  })
+
   test('an axe violation', async ({ page }) => {
     await page.goto(ORIGIN + '/axe.html')
     expect((await axeViolations(page)).join('\n')).toContain('button-name')

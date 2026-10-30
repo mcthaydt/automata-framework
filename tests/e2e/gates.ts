@@ -141,10 +141,13 @@ export async function deadButtons(page: Page): Promise<string[]> {
     })
     const popup = page.context().waitForEvent('page', { timeout: 1500 }).catch(() => null)
     await button.click()
-    const changed = await page.waitForFunction(
-      url => location.href !== url || (window as unknown as { __qbChanges: number }).__qbChanges > 0,
-      start, { timeout: 1500 },
-    ).then(() => true, () => false)
+    const changedSince = (url: string) => location.href !== url || (window as unknown as { __qbChanges: number }).__qbChanges > 0
+    // The observer counts a change the moment it happens, but the poll that reads the count runs on the page's main
+    // thread. A click that starts a demo (Restart replaces its frame, whose WebGL boot then holds that thread for
+    // seconds on the Mac's GPU, run 41012189000) starves the poll past the window though the page changed at once. So a
+    // timed-out poll asks once more, after the page is free: the change must still have happened, not be waited for.
+    const changed = await page.waitForFunction(changedSince, start, { timeout: 1500 })
+      .then(() => true, () => page.evaluate(changedSince, start))
     const opened = await popup
     if (opened) await opened.close()
     if (!changed && !opened) dead.push(`button "${label}" changed nothing`)
