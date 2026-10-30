@@ -38,10 +38,13 @@ export class CameraDragTracker {
   }
 
   /**
-   * A pointer went down. It starts a drag only when none is in progress and it is a finger or pen on its primary
-   * contact or a mouse on its secondary button. True when it now drives the drag.
+   * A pointer went down. It starts a drag only when none is in progress (or it is the dragging pointer again) and it
+   * is a finger or pen on its primary contact or a mouse on its secondary button. True when it now drives the drag.
    */
   down(id: number, x: number, start: DragStart): boolean {
+    // The dragging pointer pressing again lost its release (alt-tab, an OS gesture, a swallowed mouseup): it starts
+    // afresh rather than leaving the drag stuck to it.
+    if (id === this.pointerId) this.pointerId = undefined
     if (this.pointerId !== undefined) return false
     const pointer: DragPointer = start.pointerType === 'mouse' ? 'mouse' : 'touch'
     const wanted = pointer === 'mouse' ? SECONDARY_BUTTON : PRIMARY_BUTTON

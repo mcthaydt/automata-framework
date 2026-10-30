@@ -99,4 +99,25 @@ describe('CameraDragTracker', () => {
     tracker.up(2)
     expect(tracker.dragging).toBe(true)
   })
+
+  // A lost pointerup (alt-tab, an OS gesture, a swallowed mouseup) must not leave a drag stuck: the same pointer
+  // pressing again starts afresh from where it is now (review of #204).
+  it('restarts when the dragging pointer goes down again, from where it is now', () => {
+    const { sent, tracker } = recording()
+    tracker.down(1, 100, MOUSE_SECONDARY)
+    tracker.move(1, 110)
+    expect(tracker.down(1, 400, MOUSE_SECONDARY)).toBe(true)
+    tracker.move(1, 405)
+    expect(sent).toEqual([
+      [10, 'mouse'],
+      [5, 'mouse'],
+    ])
+  })
+
+  it('ends the drag when the dragging pointer goes down again in a way that cannot drag', () => {
+    const { tracker } = recording()
+    tracker.down(1, 100, MOUSE_SECONDARY)
+    expect(tracker.down(1, 100, MOUSE_PRIMARY)).toBe(false)
+    expect(tracker.dragging).toBe(false)
+  })
 })

@@ -2,7 +2,8 @@
   A 3D play screen's touch input for the DOM and layout tests (M4.12): the camera drag surface under a frame with
   Pause in its corner and the overlay in its actions row, the move stick at the start and two buttons at the end.
   `with-bar` puts an ActionBar above the overlay and an unrequired button beside the required one (D-a): where they
-  do not all fit at the primary size, the stick and the required button stay.
+  do not all fit at the primary size, the stick and the required button stay. `start-button` adds a button beside
+  the stick. The frame passes the pointer through to the scene, as the play screen's does.
 -->
 <script lang="ts">
 import ActionBar from '../layout/ActionBar.svelte'
@@ -18,11 +19,14 @@ const IDLE: DragTracker = {
   cancel: () => undefined,
 }
 
-const { tracker = IDLE, show = 'default' }: { tracker?: DragTracker; show?: 'default' | 'with-bar' } =
-  $props()
+const {
+  tracker = IDLE,
+  show = 'default',
+}: { tracker?: DragTracker; show?: 'default' | 'with-bar' | 'start-button' } = $props()
 const none = (): void => undefined
 </script>
 
+<div class="af-play-fixture">
 <CameraDragSurface {tracker} />
 <ScreenFrame arrangement="stack">
   {#snippet end()}
@@ -44,6 +48,7 @@ const none = (): void => undefined
       <TouchControls
         stick={{ label: 'Move' }}
         buttons={[
+          ...(show === 'start-button' ? [{ action: 'emote', label: 'Wave', side: 'start' as const }] : []),
           { action: 'lock', label: 'Lock', side: 'end' },
           { action: 'attack', label: 'Attack', side: 'end', required: true },
         ]}
@@ -53,3 +58,16 @@ const none = (): void => undefined
     </div>
   {/snippet}
 </ScreenFrame>
+</div>
+
+<style>
+  /* The play screen's pass-through (packages/game screens.css, M4 spec §16.3.7): the frame lets the pointer through
+     to the scene and the drag surface under it; only its controls take it. */
+  .af-play-fixture :global([data-screen-frame]) {
+    pointer-events: none;
+  }
+
+  .af-play-fixture :global(button) {
+    pointer-events: auto;
+  }
+</style>

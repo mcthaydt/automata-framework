@@ -1,3 +1,4 @@
+import { getByRole } from '@testing-library/dom'
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import TouchControls from './TouchControls.svelte'
@@ -48,6 +49,8 @@ describe('TouchControls move stick', () => {
     const { zone, host } = open()
     if (zone === null) throw new Error('no stick zone')
     expect(zone.getAttribute('aria-label')).toBe('Move')
+    // A named group, so assistive technology reads the name (a `presentation` role drops it).
+    expect(getByRole(document.body, 'group', { name: 'Move' })).toBe(zone)
     expect(zone.dataset['stickState']).toBe('idle')
     expect(zone.tabIndex).toBe(-1)
     expect(zone.dataset['testid']).toBe('touch-stick')

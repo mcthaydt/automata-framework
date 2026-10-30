@@ -53,7 +53,10 @@ function fit(width: number): void {
     // The stick (M4.12) is never dropped, but it takes its share of the row.
     const groups = [...root.querySelectorAll<HTMLElement>('.af-touch__stick, .af-touch__side')]
     const gap = Number.parseFloat(getComputedStyle(root).columnGap) || 0
-    needed = groups.reduce((sum, group) => sum + group.scrollWidth, 0) + gap * Math.max(0, groups.length - 1)
+    // The stick's box, not its scroll width: a held ring drawn past the zone's edge takes no room in the row.
+    const width = (group: HTMLElement): number =>
+      group.classList.contains('af-touch__stick') ? group.offsetWidth : group.scrollWidth
+    needed = groups.reduce((sum, group) => sum + width(group), 0) + gap * Math.max(0, groups.length - 1)
   }
   reduced = buttons.some((button) => button.required === true) && needed > width + 0.5
 }
@@ -177,7 +180,9 @@ function blockPageGestures(node: HTMLElement): () => void {
     align-items: flex-end;
     justify-content: space-between;
     gap: 8px;
-    pointer-events: auto;
+    /* Only the stick and the button groups take the pointer: the gaps between them are the scene's, so a camera drag
+       can start there (M4.12). */
+    pointer-events: none;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
@@ -194,6 +199,7 @@ function blockPageGestures(node: HTMLElement): () => void {
   .af-touch__side {
     position: relative;
     z-index: 0;
+    pointer-events: auto;
     display: flex;
     gap: 12px;
   }

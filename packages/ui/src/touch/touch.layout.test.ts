@@ -6,6 +6,7 @@ import CameraDragFixture from '../testing/CameraDragFixture.svelte'
 import { byTestId, checkLayout, publishConditions } from '../testing/layout-contract'
 import { settleLayout } from '../testing/settle'
 import TouchFixture from '../testing/TouchFixture.svelte'
+import { STICKY_MARGIN_PX } from './touch-controls'
 
 // The touch buttons at every reference size and variant, with production CSS (M4 spec §6, §8): whole primary-size
 // targets, on screen and hit-testable. With the on-screen keyboard up the frame scrolls (and a game hides its
@@ -143,9 +144,64 @@ describe('touch move stick and camera drag layout contract (M4.12)', () => {
           if (overlap || surfaceHitsInside(strip) > 0)
             problems.push(`${label}: the camera drag surface reaches into the host's strip`)
         }
+        // With the keyboard up the frame scrolls and a game hides its touch controls (M4 spec §8): nothing to hit.
+        if (variant.keyboard === undefined)
+          for (const problem of hitProblems(show)) problems.push(`${label}: ${problem}`)
         await fixture.unmount()
       }
     }
     expect(problems).toEqual([])
   })
+
+  // A start-side button group reaches `STICKY_MARGIN_PX` past its buttons; that margin must not take the stick's
+  // edge (review of #204).
+  test('a start-side button’s sticky margin never takes the stick', async () => {
+    const [rest] = VARIANTS
+    const size = REFERENCE_SIZES.find((reference) => reference.name === 'desktop-720p')
+    if (rest === undefined || size === undefined) throw new Error('no rest variant or desktop size')
+    await page.viewport(size.width, size.height)
+    publishConditions(document.documentElement, size, rest)
+    const fixture = mountFixture(CameraDragFixture, { show: 'start-button' })
+    await settleLayout()
+    const stick = byTestId('touch-stick')
+    const box = stick.getBoundingClientRect()
+    const hit = document.elementFromPoint(box.right - 4, box.top + box.height / 2)
+    await fixture.unmount()
+    expect(hit !== null && stick.contains(hit)).toBe(true)
+  })
 })
+
+/** The element hit at a point, as a description, for a failure message. */
+const describeHit = (hit: Element | null): string =>
+  hit === null ? 'nothing' : (hit.getAttribute('data-testid') ?? hit.className.toString() ?? hit.tagName)
+
+/**
+ * Hit testing (A-p, review of #204): each control's centre hits the control, and the scene between the corner row
+ * and the controls, and the gap between the stick and the buttons where it is wider than the sticky margins, hit
+ * the camera drag surface. Only the play screen's pass-through frame lets the pointer through to it.
+ */
+function hitProblems(show: 'default' | 'with-bar'): string[] {
+  const problems: string[] = []
+  const surface = byTestId('camera-drag')
+  const at = (x: number, y: number) => document.elementFromPoint(x, y)
+  for (const id of [...STICK_ESSENTIALS, ...(show === 'with-bar' ? BAR : [])]) {
+    const control = byTestId(id)
+    const box = control.getBoundingClientRect()
+    const hit = at(box.left + box.width / 2, box.top + box.height / 2)
+    if (hit === null || !control.contains(hit)) problems.push(`${id}'s centre hits ${describeHit(hit)}`)
+  }
+  const pause = byTestId('pause').getBoundingClientRect()
+  const stick = byTestId('touch-stick').getBoundingClientRect()
+  const below = show === 'with-bar' ? byTestId('bar-ready').getBoundingClientRect().top : stick.top
+  if (below - pause.bottom > 4) {
+    const hit = at(window.innerWidth / 2, (pause.bottom + below) / 2)
+    if (hit === null || !surface.contains(hit))
+      problems.push(`the scene hits ${describeHit(hit)}, not the drag`)
+  }
+  const buttons = document.querySelector('[data-touch-side="end"]')?.getBoundingClientRect()
+  if (buttons !== undefined && buttons.left - stick.right > 2 * STICKY_MARGIN_PX + 4) {
+    const hit = at((stick.right + buttons.left) / 2, stick.top + stick.height / 2)
+    if (hit === null || !surface.contains(hit)) problems.push(`the overlay's gap hits ${describeHit(hit)}`)
+  }
+  return problems
+}

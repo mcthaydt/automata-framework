@@ -81,7 +81,7 @@ onDestroy(end)
   data-testid={testId}
   data-touch-stick
   data-stick-state={phase}
-  role="presentation"
+  role="group"
   tabindex="-1"
   aria-label={label}
   style:--af-stick-radius={`${TOUCH_STICK_RADIUS_PX}px`}
@@ -105,7 +105,10 @@ onDestroy(end)
   /* The zone: twice the primary target on each side, so the thumb has room to land anywhere in it. */
   .af-touch__stick {
     position: relative;
+    /* Above a start-side button group's sticky margin, which reaches into the gap beside it. */
+    z-index: 1;
     flex: none;
+    pointer-events: auto;
     width: calc(2 * var(--af-target-primary));
     height: calc(2 * var(--af-target-primary));
     touch-action: none;

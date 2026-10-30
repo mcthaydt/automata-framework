@@ -1,11 +1,11 @@
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import CameraDragFixture from '../testing/CameraDragFixture.svelte'
 import CameraDragSurface from './CameraDragSurface.svelte'
 import type { DragTracker } from './camera-drag-surface'
 
 // The camera drag surface (M4 spec §16.3.7, M3 spec §7 "Camera turn" row): it forwards pointers to runtime's
-// `CameraDragTracker`, which decides who drags; it sits under the controls, so a contact on one never reaches it.
+// `CameraDragTracker`, which decides who drags. That it lies under the controls, so a contact on one never reaches
+// it, is hit testing, and a real browser proves it (`touch.layout.test.ts`, A-p and A-r).
 
 let component: ReturnType<typeof mount> | undefined
 afterEach(() => {
@@ -120,25 +120,87 @@ describe('CameraDragSurface', () => {
     expect(tracker.cancel).toHaveBeenCalledTimes(1)
   })
 
-  it('never hears a contact on the controls drawn above it (A-p)', () => {
+  // A lost release must not leave the mouse dragging, or hovering would turn the camera (review of #204).
+  it('ends a mouse drag when a move arrives with the secondary button already up', () => {
     const tracker = stubTracker()
-    const host = document.createElement('div')
-    document.body.append(host)
-    component = mount(CameraDragFixture, { target: host, props: { tracker } })
+    const surface = open(tracker)
+    surface.dispatchEvent(
+      pointer('pointerdown', { pointerId: 1, clientX: 10, pointerType: 'mouse', button: 2, buttons: 2 }),
+    )
+    surface.dispatchEvent(
+      pointer('pointermove', { pointerId: 1, clientX: 20, pointerType: 'mouse', buttons: 2 }),
+    )
+    expect(tracker.move).toHaveBeenCalledTimes(1)
+    surface.dispatchEvent(
+      pointer('pointermove', { pointerId: 1, clientX: 30, pointerType: 'mouse', buttons: 0 }),
+    )
+    expect(tracker.move).toHaveBeenCalledTimes(1)
+    expect(tracker.up).toHaveBeenCalledWith(1)
     flushSync()
-    for (const target of [
-      host.querySelector<HTMLElement>('[data-action="attack"]'),
-      host.querySelector<HTMLElement>('[data-touch-stick]'),
-      host.querySelector<HTMLElement>('[data-testid="pause"]'),
-    ]) {
-      if (target === null) throw new Error('fixture control missing')
-      target.dispatchEvent(
-        pointer('pointerdown', { pointerId: 5, clientX: 1, pointerType: 'touch', button: 0 }),
-      )
-      target.dispatchEvent(pointer('pointermove', { pointerId: 5, clientX: 40 }))
-      target.dispatchEvent(pointer('pointerup', { pointerId: 5, clientX: 40 }))
+    expect(surface.dataset['dragState']).toBe('idle')
+  })
+
+  it('keeps a finger’s drag on moves, whatever its buttons read', () => {
+    const tracker = stubTracker()
+    const surface = open(tracker)
+    surface.dispatchEvent(
+      pointer('pointerdown', { pointerId: 2, clientX: 10, pointerType: 'touch', button: 0, buttons: 1 }),
+    )
+    surface.dispatchEvent(
+      pointer('pointermove', { pointerId: 2, clientX: 20, pointerType: 'touch', buttons: 0 }),
+    )
+    expect(tracker.move).toHaveBeenCalledWith(2, 20)
+    expect(tracker.up).not.toHaveBeenCalled()
+  })
+
+  it('lets go of the drag when the window loses focus', () => {
+    const tracker = stubTracker()
+    const surface = open(tracker)
+    surface.dispatchEvent(
+      pointer('pointerdown', { pointerId: 1, clientX: 10, pointerType: 'mouse', button: 2, buttons: 2 }),
+    )
+    window.dispatchEvent(new Event('blur'))
+    expect(tracker.cancel).toHaveBeenCalledTimes(1)
+    flushSync()
+    expect(surface.dataset['dragState']).toBe('idle')
+  })
+
+  // On Windows the context menu comes on the button's release, wherever the pointer is then: a right-drag that ends
+  // off the surface must not open it.
+  it('cancels the page’s context menu during a mouse drag and once after it', () => {
+    const tracker = stubTracker()
+    const surface = open(tracker)
+    const menu = () => {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+      document.body.dispatchEvent(event)
+      return event.defaultPrevented
     }
-    expect(tracker.down).not.toHaveBeenCalled()
-    expect(tracker.move).not.toHaveBeenCalled()
+    expect(menu()).toBe(false)
+    surface.dispatchEvent(
+      pointer('pointerdown', { pointerId: 1, clientX: 10, pointerType: 'mouse', button: 2, buttons: 2 }),
+    )
+    expect(menu()).toBe(true)
+    surface.dispatchEvent(
+      pointer('pointerup', { pointerId: 1, clientX: 10, pointerType: 'mouse', button: 2 }),
+    )
+    expect(menu()).toBe(true)
+    expect(menu()).toBe(false)
+  })
+
+  it('stops waiting for that context menu at the next press', () => {
+    const tracker = stubTracker()
+    const surface = open(tracker)
+    surface.dispatchEvent(
+      pointer('pointerdown', { pointerId: 1, clientX: 10, pointerType: 'mouse', button: 2, buttons: 2 }),
+    )
+    surface.dispatchEvent(
+      pointer('pointerup', { pointerId: 1, clientX: 10, pointerType: 'mouse', button: 2 }),
+    )
+    document.body.dispatchEvent(
+      pointer('pointerdown', { pointerId: 1, clientX: 10, pointerType: 'mouse', button: 0 }),
+    )
+    const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+    document.body.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
   })
 })

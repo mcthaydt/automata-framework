@@ -19,6 +19,19 @@ const { tracker, testId = 'camera-drag' }: CameraDragSurfaceProps = $props()
 let dragState = $state<'idle' | 'touch' | 'mouse'>('idle')
 /** The pointer this surface captured for the drag; plain, so the release on teardown still sees it. */
 let dragging: number | undefined
+/**
+ * A mouse drag is on, or just ended and its context menu may still come: on Windows it comes on the secondary
+ * button's release, wherever the pointer is then, so the page's menu is cancelled until it has, or until the next
+ * press.
+ */
+let menuPending = false
+
+const MOUSE_SECONDARY_HELD = 2
+
+function stop(): void {
+  dragging = undefined
+  dragState = 'idle'
+}
 
 function down(event: PointerEvent): void {
   const start = { pointerType: event.pointerType, button: event.button }
@@ -26,6 +39,7 @@ function down(event: PointerEvent): void {
   event.preventDefault()
   dragging = event.pointerId
   dragState = event.pointerType === 'mouse' ? 'mouse' : 'touch'
+  if (dragState === 'mouse') menuPending = true
   try {
     ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
   } catch {
@@ -34,16 +48,51 @@ function down(event: PointerEvent): void {
 }
 
 function move(event: PointerEvent): void {
+  // A mouse that drags with its secondary button up lost the release (alt-tab, a swallowed mouseup): the drag ends
+  // rather than turning the camera as the mouse hovers.
+  if (
+    event.pointerId === dragging &&
+    event.pointerType === 'mouse' &&
+    (event.buttons & MOUSE_SECONDARY_HELD) === 0
+  ) {
+    up(event)
+    return
+  }
   tracker.move(event.pointerId, event.clientX)
 }
 
 /** A lift, a cancel and a lost capture alike: a lifted pointer loses its capture too. */
 function up(event: PointerEvent): void {
   tracker.up(event.pointerId)
-  if (event.pointerId !== dragging) return
-  dragging = undefined
-  dragState = 'idle'
+  if (event.pointerId === dragging) stop()
 }
+
+/** The page-wide listeners: losing the window ends the drag; the context menu after a mouse drag is cancelled. */
+function watchWindow(): () => void {
+  const blur = (): void => {
+    tracker.cancel()
+    stop()
+  }
+  const menu = (event: Event): void => {
+    if (!menuPending) return
+    event.preventDefault()
+    if (dragging === undefined) menuPending = false
+  }
+  // Capture: the next press anywhere but a drag ends the wait for a menu that never came (macOS and Linux open it
+  // on the press, which the surface already cancelled).
+  const press = (): void => {
+    if (dragging === undefined) menuPending = false
+  }
+  window.addEventListener('blur', blur)
+  window.addEventListener('contextmenu', menu, { capture: true })
+  window.addEventListener('pointerdown', press, { capture: true })
+  return () => {
+    window.removeEventListener('blur', blur)
+    window.removeEventListener('contextmenu', menu, { capture: true })
+    window.removeEventListener('pointerdown', press, { capture: true })
+  }
+}
+$effect(watchWindow)
 
 onDestroy(() => tracker.cancel())
 

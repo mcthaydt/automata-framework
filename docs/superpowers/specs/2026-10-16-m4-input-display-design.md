@@ -546,7 +546,7 @@ export class CameraDragTracker {
 }
 ```
 
-- **Who drags:** one pointer at a time. A touch or pen pointer starts a drag with the primary contact (`button` 0); a mouse only with the secondary button (`button` 2), so a primary click on the scene is never a turn. A second pointer while one drags is ignored and never takes over; the next drag starts with a new contact.
+- **Who drags:** one pointer at a time. A touch or pen pointer starts a drag with the primary contact (`button` 0); a mouse only with the secondary button (`button` 2), so a primary click on the scene is never a turn. A second pointer while one drags is ignored and never takes over; the next drag starts with a new contact. The dragging pointer going down again (its release was lost: alt-tab, an OS gesture, a swallowed mouseup) starts afresh from where it is, or ends the drag if that press cannot drag.
 - **What it emits:** each `move` of the dragging pointer sends `x − previous x` in CSS px (positive to the right) with no dead zone, no smoothing and no threshold: the picture tracks the finger one to one (M3 §4.2). Vertical motion is ignored. `up`, `cancel` and a lost capture end the drag.
 - Pure, no DOM and no clock; tests feed samples.
 
@@ -589,7 +589,7 @@ export interface Input {
 - **Stick precedence:** while the touch stick is held its quantized vector is `stick('left')`; released, the active pad's left stick is again. Its `left-*` directions hold the actions bound to them (sources `touch:stick:<direction>`, using the same eight-sector rule as `readPad`), so a game with digital stick bindings moves from the touch stick too. `stick('right')` is the pad's right stick, unchanged (the right-stick axis M3 needs already exists: integers −127..127 per axis).
 - **Drag sampling:** `drag` adds into a pending sum; `poll()` moves it to the sampled value and starts a new sum, so a drag between two steps is counted once, in the next step, and never lost or doubled when a frame runs several steps. Non-finite deltas are dropped.
 - **Active device:** a touch drag or the touch stick makes `touch` active; a mouse drag makes `keyboard` active (Ruken's `keyboard-mouse`).
-- **Release:** window blur, the page hidden, a context change (§4.2), new bindings and the scope closing release the touch stick and clear the pending and sampled drag.
+- **Release:** window blur, the page hidden, a context change (§4.2), new bindings and the scope closing release the touch stick and clear the pending and sampled drag. A thumb still held on the stick after such a release does nothing until it moves: the next `onstick` sets the stick again.
 
 #### 16.3.5 Turn units (`packages/runtime/src/input/analog/camera-turn.ts`, new)
 
@@ -604,7 +604,7 @@ export function turnUnitsFromPixels(
 ): number;
 ```
 
-- Rounds half away from zero, so a drag left and the same drag right are the same size; never returns `-0`; a non-finite input or a `degPerPixel` ≤ 0 gives 0. Positive pixels (a drag to the right) give positive units; which way positive turns the heading is the game's convention (GAME-3D). Outside the sim only: the game calls it when it makes `camera-turn { units }`. The pad (180°/s) and keyboard (120°/s) rates are the game's arithmetic on `stick('right').x` and held actions; M4 adds no helper for them (M4-D16).
+- Rounds half away from zero, so a drag left and the same drag right are the same size; never returns `-0`; a non-finite input or a `degPerPixel` ≤ 0 gives 0. Positive pixels (a drag to the right) give positive units; which way positive turns the heading is the game's convention (GAME-3D). The clamp drops what is past ±8,192 in one step; a game that wants none of a very fast drag lost may carry the remainder into its next step itself. Outside the sim only: the game calls it when it makes `camera-turn { units }`. The pad (180°/s) and keyboard (120°/s) rates are the game's arithmetic on `stick('right').x` and held actions; M4 adds no helper for them (M4-D16).
 
 #### 16.3.6 Camera settings (`packages/runtime/src/input/analog/camera-settings.schema.ts`, new; additive to `CORE_SETTINGS`)
 
@@ -648,6 +648,9 @@ export interface CameraDragSurfaceProps {
 
 - A fixed layer under the play screen's controls (as `SwipeSurface`), so a contact on a control, the touch overlay or the corner controls never reaches it. Its box is `visible` less the host's reserved strip: `inset: 0 var(--af-host-reserved-right) var(--af-visual-inset-bottom) var(--af-host-reserved-left)`, so a drag can never start in `hostReserved` (the strip's events stay the host's).
 - It captures an accepted pointer (the release always arrives), cancels `contextmenu` (the secondary-button drag) and the touch long-press, and forwards `pointerdown`/`move`/`up`/`cancel`/`lostpointercapture` with `clientX`. `ui` does not import runtime: `CameraDragTracker` satisfies `DragTracker`.
+- **No stuck drag:** a mouse move of the dragging pointer with the secondary button up (`buttons & 2` is 0) ends the drag as a release would; the window losing focus cancels it.
+- **The context menu after a right-drag:** on Windows the menu comes on the button's release, wherever the pointer is then. While a mouse drag is on, and for the one `contextmenu` after it, the page's context menu is cancelled (a capturing listener on the window); the next press anywhere ends that wait.
+- **The play screen must let the pointer through** (amended after review of #204). `ScreenFrame` is a fixed layer drawn after the surface and would cover it. The play screen's frame takes `pointer-events: none` with `auto` only on its controls (as `packages/game` `screens.css` does for `.af-game-play`); a screen that draws the surface without that pass-through gets no drag. In `TouchControls` the overlay's root takes no pointer either: only the stick and the button groups do, so the gap between them is the scene's and a drag can start there. The stick sits above a start-side button group's sticky margin (`z-index`), so that margin never takes the stick's edge.
 
 ### 16.4 Flows
 
@@ -681,7 +684,7 @@ export interface CameraDragSurfaceProps {
 
 | Component                      | States                                                   | Focus and input                                                         | Host-aware                                                                  |
 | ------------------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Touch stick in `TouchControls` | idle, held (knob at the vector), hidden with the overlay | Pointer only; never in the focus order; `aria-label` from `stick.label` | Inside the overlay, which §4.9 keeps out of `hostReserved` and the keyboard |
+| Touch stick in `TouchControls` | idle, held (knob at the vector), hidden with the overlay | Pointer only; never in the focus order; a `group` named by `stick.label` | Inside the overlay, which §4.9 keeps out of `hostReserved` and the keyboard |
 | `CameraDragSurface`            | idle, dragging (touch), dragging (mouse)                 | Pointer only; under every control                                       | Its box excludes `hostReserved` and the visual inset                        |
 
 ### 16.7 Responsive behavior (additions to §8)
@@ -694,12 +697,12 @@ export interface CameraDragSurfaceProps {
 
 | Layer                                | Where                                                                                                                            | What it proves                              |
 | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Unit                                 | `runtime/input/gestures/camera-drag-tracker.test.ts`                                                                             | A-a, A-b, A-c, A-g                          |
+| Unit                                 | `runtime/input/gestures/camera-drag-tracker.test.ts`                                                                             | A-a, A-b, A-c, A-g, A-s (restart)           |
 | Unit                                 | `runtime/input/input-analog.test.ts`                                                                                             | A-d, A-e, A-h, A-i, A-j                     |
 | Unit                                 | `runtime/input/analog/camera-turn.test.ts`, `camera-settings.test.ts`, `input-profile.test.ts`, `settings/core-settings.test.ts` | A-f, A-k, A-l, A-m                          |
 | Unit                                 | `ui/touch/touch-stick.test.ts`                                                                                                   | The Last Light's `stickVector` test, ported |
-| DOM (jsdom)                          | `ui/touch/touch-stick-view.svelte.test.ts`, `ui/touch/camera-drag-surface.svelte.test.ts`                                        | A-n, A-o, A-p                               |
-| Layout (real browser, three engines) | `ui/touch/touch.layout.test.ts`                                                                                                  | A-q, A-r                                    |
+| DOM (jsdom)                          | `ui/touch/touch-stick-view.svelte.test.ts`, `ui/touch/camera-drag-surface.svelte.test.ts`                                        | A-n, A-o, A-s, A-t                          |
+| Layout (real browser, three engines) | `ui/touch/touch.layout.test.ts`                                                                                                  | A-p, A-q, A-r                               |
 | Focused e2e                          | Emberwick's touch spec                                                                                                           | The 2D overlay without a stick is unchanged |
 
 ### 16.9 Acceptance cases
@@ -725,8 +728,11 @@ export interface CameraDragSurfaceProps {
 - **A-k.** A profile whose only gesture is `camera-drag` reads `touchModesFor` `['buttons']` when it binds a touch button, and `[]` when it does not.
 - **A-l.** `cameraSettingsSchema` reads `{ degPerPixel: 5 }`, `{ degPerPixel: 'x' }` and `null` as the defaults; a record saved before M4.12 reads `camera` as the defaults.
 - **A-m.** `turnUnitsFromPixels` returns 0 (never −0) for a non-finite delta, a `degPerPixel` ≤ 0 or a zero delta.
-- **A-p.** A contact on a touch button never reaches the drag tracker.
+- **A-p.** In a real browser, with the play screen's pass-through, the centre of the stick, a touch button, Pause and each ActionBar action hits that control, and a point of the scene between the corner row and the controls, and the overlay's gap where it is wider than the sticky margins, hits the drag surface; a point just inside the stick's edge hits the stick with a start-side button beside it.
 - **A-r.** Under each `hostReserved` variant, no point of the reserved strip hits the drag surface (`elementFromPoint`), and the surface's box does not intersect it.
+
+- **A-s.** A mouse move of the dragging pointer with the secondary button up ends the drag; the window losing focus cancels it; the dragging pointer pressing again restarts from where it is.
+- **A-t.** During a mouse drag and for the one `contextmenu` after it, the page's context menu is cancelled; the one after that, or after the next press, is not.
 
 **Owner acceptance (never ticked by an agent):** on a real phone in `games/base-3d`, the stick moves the figure in every direction and the drag turns the camera one to one; on a desktop, a right-button drag turns it; recorded with device, browser and date (with GAME-3D.1h).
 
