@@ -87,7 +87,7 @@ Out of this task: compiling edits and the live preview (.7, so an edit changes n
 - [x] 10. Unit `site-checks.test.ts`: a page that modulepreloads or loads the editor chunk fails; an editor chunk
   closure over 175,000 B gzip fails; a build without the editor chunk fails (the check would otherwise pass
   vacuously). Fails: no `checkEditorChunk`. Then the check, wired into `check-site.ts`.
-- [ ] 11. Gates.
+- [x] 11. Gates.
 
 ## Commands and expected results
 
@@ -138,3 +138,15 @@ because nothing loads before a tap).
 - Step 10: `checkEditorChunk` reads the build's Vite manifest (`.svelte-kit/output/client/.vite/manifest.json`; the
   static build has no manifest) for the editor's file and its imports. `check:site`: 45 pages, the editor chunk
   141,822 B gzip (budget 175,000), no page names it.
+- Step 11, gates (after merging main `1906f3e`, WEB.PLAY.5 merged): `pnpm check` 0 errors; `pnpm test` 61 files,
+  401 passed + 1 expected fail (stack-page needed framework commit `91e9fee` fetched into the shallow clone, an
+  environment step); `pnpm build` ok; `check:site` 45 pages, editor chunk 141,810 B gzip, no page names it.
+  Full e2e (once): 704 passed, 2 skipped, 18 failed, all "not reachable by keyboard: pre.static-code" on the example
+  pages: once the editor chunk is cached, Tab onto the static code swaps in the editor before the gate reads
+  `activeElement`. The keyboard gate (`tests/e2e/gates.ts`) now counts focus on the editor's content as reaching the
+  static code it replaced and reads the ring on `.cm-editor`; the ring moved from `.cm-focused` to `:focus-within`,
+  because CodeMirror sets `cm-focused` a moment after focus (WebKit's gate caught the gap). Re-run: the example
+  keyboard gates and the playground spec, both browsers, 114 passed; the WebKit keyboard gates `--repeat-each 2`, 34
+  passed. Lighthouse (container, Playwright's Chromium 1243): core-basic-window 0.99 (LCP 1.38 s, TBT 125 ms, CLS 0);
+  shapes-rects three runs 0.98/0.99/0.99 (TBT 121–162 ms, CLS 0). The highlight data adds 26.7 kB raw, 1.5 kB gzip to
+  shapes-rects' HTML.

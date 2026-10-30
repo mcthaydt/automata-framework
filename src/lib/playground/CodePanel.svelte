@@ -73,8 +73,9 @@
   .static-code[hidden] { display: none; }
   .line { counter-increment: line; }
   .line::before { content: counter(line); display: inline-block; width: 3ch; margin-left: calc(-3ch - 1rem); margin-right: 1rem; text-align: right; color: var(--muted); user-select: none; }
-  /* The site's focus ring, on the static code and on the editor (§9.2). */
-  .static-code:focus-visible, .editor-host :global(.cm-editor.cm-focused) { outline: 2px solid var(--focus); outline-offset: -2px; }
+  /* The site's focus ring, on the static code and on the editor (§9.2). `:focus-within`, not `.cm-focused`: CodeMirror
+     sets that class a moment after focus arrives, and the ring should not lag the caret. */
+  .static-code:focus-visible, .editor-host :global(.cm-editor:focus-within) { outline: 2px solid var(--focus); outline-offset: -2px; }
   /* `classHighlighter`'s classes, shared by the static code and the editor. Colour only: weight and style would change
      the glyphs' widths and so the wrapping. */
   .code-panel :global(:is(.tok-keyword, .tok-operatorKeyword)) { color: var(--cobalt); }
