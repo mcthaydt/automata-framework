@@ -8,7 +8,7 @@
 - **Sources (read-only):** FloorFifty `677d4568b7b2265fda4246d711065b8f417cac26`:
   `apps/server/src/rooms/{input-queue,tick-scheduler,seat-registry,command-ledger,input-meter,room-code,live-rooms,room-errors,lobby-rules,cpu-rules}.ts`
   and `tests/server/rooms/{input-queue,tick-scheduler,seat-registry,command-ledger,input-meter,room-code,lobby-rules,cpu-rules}.test.ts`.
-- **Status:** drafted.
+- **Status:** implemented and checked locally; Plus CI pending; not reviewed.
 
 ## Scope
 
@@ -27,8 +27,8 @@ personalities, devices, the start floor and Planck; FloorFifty's public-room qui
 ## Files
 
 - `packages/server/package.json` (`@mcthaydt/automata-server` 0.0.0, `SEE LICENSE IN LICENSE`, no `simEntries`;
-  `@mcthaydt/automata-sim` 0.0.3 as peer and dev dependency; `@mcthaydt/automata-net` `workspace:*`; `zod` 4.6.6
-  only if a module needs it), `tsconfig.json`, `vitest.config.ts` (the shape of `packages/net`'s).
+  `@mcthaydt/automata-sim` 0.0.3 as peer and dev dependency; `@mcthaydt/automata-net` `workspace:*`; no `zod` or
+  `effect`: no module needs them), `tsconfig.json`, `vitest.config.ts` (the shape of `packages/net`'s).
 - `src/index.ts`: the package's entry, re-exporting the rules.
 - `src/rooms/room-errors.ts` + test: `RoomCommandError(code: NetErrorCode, message)`, `toServerError`.
 - `src/rooms/command-ledger.ts` + test: `CommandLedger`, `requestIdOf`, `COMMAND_HISTORY` 64.
@@ -91,7 +91,8 @@ export class LiveRooms<R> { add(room); delete(room); size; [Symbol.iterator] }
 // lobby-rules
 export type LobbyPhase = 'lobby' | 'countdown' | 'playing' | 'ended'    // net's RoomInfo phases (spec §4.2)
 export interface LobbySeat { seat: number; ready: boolean; connected: boolean; bot: boolean }
-export interface LobbyState { phase; tick; hostSeat: number | undefined; countdownEndsAtTick: number | undefined; seats: LobbySeat[] }
+export interface LobbyState { phase; tick; hostSeat: number | undefined; countdownEndsAtTick: number | undefined;
+  startedAtTick: number | undefined; seats: LobbySeat[] }   // seats in seating order
 export interface LobbyRules { minSeats: number; maxSeats: number; countdownTicks: number; startWhen: 'all-ready' | 'host' }
 export function createLobby(): LobbyState
 export function openSeat, seatPlayer, setConnected, removeSeat, isPreGame, acceptsInput, setReady, evaluateReadiness,
@@ -138,7 +139,54 @@ Dropped FloorFifty cases are listed with reasons in the execution log.
 `pnpm format`, `pnpm check` (lint, typecheck, boundaries, root tooling tests with the F1 boundary test over
 `packages/server`, every package's `test:unit`). No parity project: no sim code here. Pending: Plus CI.
 
+## As built (deviations)
+
+- **Each command once.** FloorFifty's queue held the newest frame in force on every later tick and collapsed a burst
+  to it, carrying a reset press. AF commands are edges, so `take` delivers each command exactly once, on its tick;
+  the intent a command sets is the game's sim state. A burst delivers every command in sequence order, so no press
+  can be swallowed. Spec §5 "the seat's held command stays in force" therefore holds through the sim's state, not the
+  queue.
+- **`nextTick`, not the last stepped tick.** `submit` and `take` use the tick the room steps next (the sim's `tick`
+  before `step`, which is the tick `step` requires on each command). The bounds are FloorFifty's: a command at
+  `nextTick + maxLeadTicks` is refused, one below is accepted. Sequences start at 0 (the wire's `seq` is a uint).
+- **`input.late` and `tick.slow` are reported, not logged:** the queue returns a negative `slack` and the scheduler
+  reports dropped time; the room writes the log line (the `serverLogLine` schema is M7.4b's).
+- **Codes are net's.** `RoomCommandError` carries a `NetErrorCode`; FloorFifty's `NOT_HOST`, `INVALID_ROOM` and
+  `MALFORMED_MESSAGE` all answer `REFUSED` with a sentence saying which. The ledger keys by the wire's `req`, read with
+  net's `reqIdSchema` (printable ASCII; FloorFifty took any string of 1 to 64).
+- **`seated` carries the seat alone** (net's wire); FloorFifty's announcement also carried the room code.
+- **Lobby state is the server's.** `LobbyPhase` matches net's `RoomInfo.phase` (spec §4.2), which net does not define
+  yet (M7.5a); `ROOM_CODE_LENGTH` and the code alphabet are in `room-code.ts` because net has no room-code contract
+  yet. Both should move to net when its client needs them (one owner), with server importing them.
+- **The lobby goes straight to the countdown** (FloorFifty's opened select, which is race-specific); `startWhen:
+  'host'` and `minSeats` are new rules from spec §4.3's `ServerGameDef`. The host is handed on only when the host's
+  seat is freed (FloorFifty's `rehomeHost`), and never to a bot. Rules mutate the lobby; FloorFifty's `startRace` and
+  `nextRace` returned copies because they rebuilt race state, which is the game's here.
+- **`LiveRooms` is an instance**, not a module-level set, so two servers in one test process do not share one.
+- **Room codes:** the random source and the shared set (Presence's `sismember`/`sadd`/`srem`) are injected; the
+  channel is `automata:rooms`. FloorFifty's `createCourseSeed` is left to M7.3b (the room seed).
+- **Bots:** `botSeed(roomSeed, seat)` is `deriveSeed(roomSeed, "bot:<seat>")`: the sim's `deriveSeed` names a
+  stream with a string, where the spec writes `deriveSeed(roomSeed, seat)`. `addBot` takes whether a policy exists.
+
+## Dropped FloorFifty cases
+
+- **lobby-rules (21 of 40):** lap count (3), mode (9), the Survival clock (6): a game's own lobby options; "leaves the
+  race it started from untouched" (1): rules mutate, and resetting the world is the game's sim; "keeps the stage,
+  drops the song" and "keeps what the roulette landed on" (2): stages, songs and picks are race-specific.
+- **cpu-rules (9 of 18):** the random colour and character draw (1): colours and characters are FloorFifty's; a
+  public room refusing CPUs (1), the five public-room fill and quick-match clock cases (5) and "drops a public room's
+  CPUs on race again" (1): FloorFifty's quick-match CPU fill is not in the AF spec; select giving a CPU no pick (1).
+- **input-queue:** none dropped; two cases restated for discrete commands (above).
+
 ## Execution log
 
 | Date | Step | Evidence |
 |---|---|---|
+| 2026-10-30 | Package skeleton | `packages/server` with net's shape; `pnpm install` |
+| 2026-10-30 | room-errors, command-ledger | 16 cases red against empty modules (`… is not a constructor` / `is not a function`), then 16 of 16 |
+| 2026-10-30 | input-queue | 15 cases red (`InputQueue is not a constructor`), then 15 of 15 |
+| 2026-10-30 | input-meter, tick-scheduler | 9 cases red, then green; the scheduler on a fake clock only |
+| 2026-10-30 | seat-registry, room-code, live-rooms | 19 cases red, then green (one test fix: the seeded source uses `Rng.int`) |
+| 2026-10-30 | lobby-rules, bot-seats | 37 cases red (`createLobby is not a function`), then 37 of 37 |
+| 2026-10-30 | Counts | input-queue 15 (FloorFifty 11), tick-scheduler 3 (3), seat-registry 13 (13), command-ledger 14 (14), input-meter 6 (6), room-code 4 (4), room-errors 2 (0), live-rooms 2 (0), lobby-rules 26 (19 of 40 ported, 7 new), bot-seats 11 (9 of cpu-rules' 18 ported, 2 new): 96 |
+| 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint, typecheck, boundaries 26 files 0 findings, root 157 tests (F1 over `packages/server` included), net 86, physics 71, server 96 |
