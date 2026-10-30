@@ -14,4 +14,9 @@ describe('lowestFreeId', () => {
     expect(lowestFreeId(['sector-1', 'sector-3'])).toBe('sector-2')
     expect(lowestFreeId(['sector-2', 'hall'])).toBe('sector-1')
   })
+
+  it('takes another prefix: a thing of a definition is named <def>N', () => {
+    expect(lowestFreeId(['spawn', 'crate1'], 'crate')).toBe('crate2')
+    expect(lowestFreeId([], 'lamp')).toBe('lamp1')
+  })
 })

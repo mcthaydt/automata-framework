@@ -86,6 +86,7 @@ describe('the pure layers', () => {
     'view',
     'ports',
     'app',
+    'things',
   ]) {
     it(`src/${layer} has no impure import or global`, () => {
       const root = new URL(`./${layer}`, import.meta.url).pathname
