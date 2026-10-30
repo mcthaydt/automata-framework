@@ -14,11 +14,15 @@ export interface PlanPoint {
   readonly z: number
 }
 
-/** A wall's inside face: from `a` to `b` on the floor plan, the room on its left, standing `height` metres from y 0. */
+/**
+ * A wall: its inside face from `a` to `b` on the floor plan, the room on its left, standing `height` metres from y 0,
+ * and solid `thickness` metres outward (0 when omitted: a face with no depth).
+ */
 export interface WallSpan {
   readonly a: PlanPoint
   readonly b: PlanPoint
   readonly height: number
+  readonly thickness?: number | undefined
 }
 
 /** An axis-aligned box in world metres: the camera view's `bounds` shape. */
@@ -53,18 +57,27 @@ export function wallSide(wall: WallSpan, point: Vec3): number {
 /** The facing test (§4.2): the wall's inside face points away from `eye`, which is on its outer side or edge-on. */
 export const wallFacesAway = (wall: WallSpan, eye: Vec3): boolean => wallSide(wall, eye) <= 0
 
-/** Whether the segment `from → to` crosses the wall's face within its span (± `FIGURE_REACH`) and below its top. */
+/** `point` in the wall's own frame: x along it from `a`, y up, z outward from its inside face. */
+export function wallLocal(wall: WallSpan, point: Vec3): Vec3 {
+  const { dir } = spanOf(wall)
+  const [dx, dz] = [point.x - wall.a.x, point.z - wall.a.z]
+  return { x: dx * dir.x + dz * dir.z, y: point.y, z: -(dx * -dir.z + dz * dir.x) }
+}
+
+/**
+ * Whether the segment `from → to` runs from one side of the wall's inside face to the other through the wall's solid,
+ * lengthened by `FIGURE_REACH` at each end. Through the solid, not only the face: a line can pass over the face's top
+ * edge and come down through the wall's thickness. A line ending within `ON_THE_LINE` of the face ends in a doorway.
+ */
 export function lineCrossesWall(wall: WallSpan, from: Vec3, to: Vec3): boolean {
   const start = wallSide(wall, from)
   const end = wallSide(wall, to)
   if (start * end >= 0 || Math.abs(end) < ON_THE_LINE) return false
-  const t = start / (start - end)
-  const x = from.x + (to.x - from.x) * t
-  const y = from.y + (to.y - from.y) * t
-  const z = from.z + (to.z - from.z) * t
-  const { length, dir } = spanOf(wall)
-  const along = (x - wall.a.x) * dir.x + (z - wall.a.z) * dir.z
-  return along >= -FIGURE_REACH && along <= length + FIGURE_REACH && y >= 0 && y <= wall.height
+  const { length } = spanOf(wall)
+  return segmentHitsBox(wallLocal(wall, from), wallLocal(wall, to), {
+    min: [-FIGURE_REACH, 0, 0],
+    max: [length + FIGURE_REACH, wall.height, wall.thickness ?? 0],
+  })
 }
 
 /** Whether the segment `from → to` passes through `box` (slabs; touching a face counts). */

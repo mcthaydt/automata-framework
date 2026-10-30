@@ -51,6 +51,13 @@ describe('lineCrossesWall', () => {
     expect(lineCrossesWall(SOUTH, at(2, 1, 3), at(2, 1, 0.5))).toBe(false)
   })
 
+  it('counts a line that passes over the face’s top and comes down through the wall’s thickness', () => {
+    const thick: WallSpan = { ...SOUTH, thickness: 0.2 }
+    // Over the inside face at y 2.54, then through the top of the solid between z 0 and −0.2.
+    expect(lineCrossesWall(thick, at(2, 3.6, 0.5), at(2, 0, -1.2))).toBe(true)
+    expect(lineCrossesWall(SOUTH, at(2, 3.6, 0.5), at(2, 0, -1.2))).toBe(false)
+  })
+
   it(`does not count an end within ${ON_THE_LINE} m of the wall's line: a player standing in its doorway`, () => {
     expect(lineCrossesWall(SOUTH, at(2, 3, 3), at(2, 0, -0.1))).toBe(false)
   })
