@@ -90,6 +90,19 @@ describe('ErrorPanel', () => {
     ])
   })
 
+  it('copies once for a double press while the first copy runs', async () => {
+    const { copyText, said } = mount(invalid)
+    let finish: (result: WriteResult) => void = () => {}
+    copyText.mockImplementation(() => new Promise<WriteResult>((resolve) => (finish = resolve)))
+    const button = screen.getByRole('button', { name: 'Copy details' })
+    await userEvent.dblClick(button)
+    finish({ ok: true, mtime: 0 })
+    await screen.findByText('Copied the details of depot.json.', { exact: false }).catch(() => undefined)
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(copyText).toHaveBeenCalledOnce()
+    expect(said).toHaveLength(1)
+  })
+
   it('says when the details could not be copied', async () => {
     const { said } = mount(invalid, { ok: false, reason: 'denied', message: 'The clipboard is closed.' })
     await userEvent.click(screen.getByRole('button', { name: 'Copy details' }))

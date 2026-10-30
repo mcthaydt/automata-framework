@@ -11,7 +11,7 @@ import { needsPanel, type PanelOutcome } from '../document/open-flow-model'
 import type { EditorApp, OpenOutcome } from '../editor-app'
 import type { ImportOutcome, PickedFile } from '../import-files'
 import type { ProjectEntry } from '../project-list'
-import { importNotice, openProblem, searchWords } from './home-model'
+import { importNotice, openProblem, searchWords, summaryOf } from './home-model'
 
 export type Busy = 'open' | 'import'
 
@@ -59,6 +59,13 @@ export function createHomeController(options: HomeControllerOptions): HomeContro
     async open(path) {
       const target = path ?? browser.current.selected
       if (target === undefined) return
+      // A facility opens with a level beside it (World, ED3D.9c), never alone: say so, as the summary does.
+      const entry = browser.current.entries.find((listed) => listed.path === target)
+      if (entry?.kind === 'facility') {
+        const { reason } = summaryOf(entry)
+        if (reason !== undefined) toasts.push({ kind: 'info', message: reason })
+        return
+      }
       await browser.run('open', async () => {
         browser.select(target)
         const outcome = await app.open(target)

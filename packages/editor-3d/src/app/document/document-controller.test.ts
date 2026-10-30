@@ -212,6 +212,27 @@ describe('the 3D document controller', () => {
       expect(await file()).toBe(DEPOT)
     })
 
+    it('a Save while a choice runs does nothing: it does not reopen the dialog under it', async () => {
+      const { controller, current, workspace } = await held()
+      const write = workspace.store.write.bind(workspace.store)
+      let release: () => void = () => {}
+      let called: () => void = () => {}
+      const writing = new Promise<void>((resolve) => (called = resolve))
+      workspace.store.write = (path, data, expected) =>
+        new Promise((resolve) => {
+          release = () => resolve(write(path, data, expected))
+          called()
+        })
+      const reformatting = controller.saveReformatted()
+      await writing
+      expect(current()).toMatchObject({ busy: 'resolve', heldOpen: false })
+      await controller.save()
+      expect(current().heldOpen).toBe(false)
+      release()
+      await reformatting
+      expect(current()).toMatchObject({ busy: undefined, held: undefined, heldOpen: false })
+    })
+
     it('Save reformatted writes the whole file and lets Save go', async () => {
       const { controller, current, file, said } = await held()
       await controller.saveReformatted()

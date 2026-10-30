@@ -181,7 +181,9 @@ export function createDocumentController(options: DocumentControllerOptions): Do
   }
 
   function save(): Promise<void> {
-    if (level.document.held !== undefined && !closed) {
+    // A save or a dialog's choice is running: its outcome decides what shows next.
+    if (busy !== undefined || closed) return Promise.resolve()
+    if (level.document.held !== undefined) {
       // Save is held: the dialog is the way on, and nothing is written.
       heldOpen = true
       publish()

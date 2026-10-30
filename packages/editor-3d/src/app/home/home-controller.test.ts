@@ -74,16 +74,35 @@ describe('the 3D Home controller', () => {
   it('hands a file to look at to the owner, untoasted, and reads the list again', async () => {
     const { controller, problems, said } = await setup({
       'broken.json': loadAuthored('depot.af-sector').replace('"af-sector/1"', '"af-sector/2"'),
-      'facility.json': loadFixture('facility'),
     })
     await controller.refresh()
     await controller.open('broken.json')
-    await controller.open('facility.json')
-    expect(problems.map((outcome) => [outcome.status, outcome.path])).toEqual([
-      ['invalid', 'broken.json'],
-      ['unrecognised', 'facility.json'],
-    ])
+    expect(problems.map((outcome) => [outcome.status, outcome.path])).toEqual([['invalid', 'broken.json']])
     expect(said).toEqual([])
+  })
+
+  it('does not open a facility on its own: no panel, the summary’s reason as a toast, the app never asked', async () => {
+    const asked: string[] = []
+    const { controller, problems, opened, said } = await setup(
+      { 'art/blockout-facility/facility.json': loadFixture('facility') },
+      (app) => ({
+        ...app,
+        open: (path) => {
+          asked.push(path)
+          return app.open(path)
+        },
+      }),
+    )
+    await controller.refresh()
+    await controller.open('art/blockout-facility/facility.json')
+    await controller.open()
+    expect(asked).toEqual([])
+    expect(problems).toEqual([])
+    expect(opened).toEqual([])
+    expect(said.map((toast) => [toast.kind, toast.message])).toEqual([
+      ['info', 'A facility opens with one of its levels: open a level beside it.'],
+      ['info', 'A facility opens with one of its levels: open a level beside it.'],
+    ])
   })
 
   it('toasts a file that went, and a store that refused', async () => {

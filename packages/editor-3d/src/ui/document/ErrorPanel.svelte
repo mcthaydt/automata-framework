@@ -22,8 +22,15 @@ const { outcome, copyText, toasts, onclose }: Props = $props()
 const panel = $derived(outcome === undefined ? undefined : errorPanel(outcome))
 const name = $derived(outcome === undefined ? '' : outcome.path.slice(outcome.path.lastIndexOf('/') + 1))
 
+// One copy at a time: a double press copies once and says so once.
+let copying = $state(false)
+
 async function copy(details: string): Promise<void> {
-  const result = await copyText(details)
+  if (copying) return
+  copying = true
+  const result = await copyText(details).finally(() => {
+    copying = false
+  })
   toasts.push(
     result.ok
       ? { kind: 'ok', message: `Copied the details of ${name}.` }
@@ -50,7 +57,7 @@ async function copy(details: string): Promise<void> {
     </div>
     {#snippet actions({ close })}
       {@const details = panel.details}
-      <Button onclick={() => copy(details)}>Copy details</Button>
+      <Button disabled={copying} onclick={() => copy(details)}>Copy details</Button>
       <Button variant="primary" data-autofocus onclick={close}>Open another</Button>
     {/snippet}
   </Dialog>
