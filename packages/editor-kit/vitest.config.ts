@@ -10,12 +10,22 @@ import { defineConfig } from 'vitest/config'
 // - layout: the shell, widget and storage contracts with production CSS in real Chromium, WebKit and Firefox at the
 //   sizes in spec §7 (EDK.6a).
 //
-// WebKit runs in a persistent profile: Playwright's default WebKit context is ephemeral, like a private window, and
-// there `navigator.storage.getDirectory()` rejects with an UnknownError, so the real-OPFS contract could never run
-// (the workspace falls back to memory, as EK-f says it should). A persistent context is ignored when files run in
-// parallel, so WebKit runs its files one at a time. The profile is new for every run (the process id), so no run
-// sees another's files or databases.
-const webkitProfile = join(tmpdir(), `af-editor-kit-webkit-${process.pid}`)
+// Chromium and WebKit run in a persistent profile, because each refuses part of the real storage contract in
+// Playwright's default context, which is ephemeral (off the record, like a private window):
+// - WebKit rejects `navigator.storage.getDirectory()` with an UnknownError, so the workspace falls back to memory
+//   (EK-f) and the real-OPFS contract never runs.
+// - Chromium 153 crashes (SIGTRAP) reading a directory handle back from IndexedDB, the folder vault's `load`.
+//   Chromium 141, on which EDK.5 landed, did not.
+// Vitest ignores a persistent context when files run in parallel, so these two run their files one at a time. Each
+// run gets new profiles (named after the process), so no run sees another's files or databases.
+function persistentProfile(browser: 'chromium' | 'webkit') {
+  return {
+    browser,
+    provider: playwright({ persistentContext: join(tmpdir(), `af-editor-kit-${browser}-${process.pid}`) }),
+    fileParallelism: false,
+  }
+}
+
 export default defineConfig({
   plugins: [svelte(), svelteTesting()],
   test: {
@@ -42,15 +52,7 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
-            instances: [
-              { browser: 'chromium' },
-              {
-                browser: 'webkit',
-                provider: playwright({ persistentContext: webkitProfile }),
-                fileParallelism: false,
-              },
-              { browser: 'firefox' },
-            ],
+            instances: [persistentProfile('chromium'), persistentProfile('webkit'), { browser: 'firefox' }],
           },
         },
       },

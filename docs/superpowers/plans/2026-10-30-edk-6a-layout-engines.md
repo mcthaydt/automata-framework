@@ -3,7 +3,7 @@
 - **Task:** EDK.6a in [02](../../02-master-delivery-plan.md). [Editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.7 (storage: "a file's `mtime` grows with every write"), §7 (sizes), §8 (layout contract in a real browser); acceptance EK-e, EK-f, EK-g.
 - **Lane:** editor-kit. **Depends on:** EDK.4 (#139, the widget layout contract) and EDK.5 (the real-OPFS storage contract), both merged. **Unblocks:** EDK.6b (the WebKit iPad journey harness), and the "WebKit and Firefox layout" parts of ED2D.8 and ED3D.11.
 - **Status:** drafted 2026-10-30 on `claude/editors-edk-6a-edk-6a-layout-engines`.
-- **Progress:** 2 of 5 steps.
+- **Progress:** 4 of 5 steps.
 
 ## Scope
 
@@ -44,13 +44,13 @@ The comparison reads the bytes of a recorded file only (the documents this tab o
 
 | File | Change |
 |---|---|
-| `packages/editor-kit/vitest.config.ts` | WebKit (persistent profile per run, files one at a time) and Firefox in `layout`; comment updated |
+| `packages/editor-kit/vitest.config.ts` | WebKit and Firefox in `layout`; Chromium and WebKit in a persistent profile per run, files one at a time (step 5 found the Chromium half); comment updated |
 | `packages/editor-kit/package.json` | `test:parity`: `vitest run --project layout` |
 | `packages/editor-2d/vitest.config.ts` | WebKit and Firefox in `layout`; comment updated |
 | `packages/editor-2d/package.json` | `test:parity`: `vitest run --project layout --project browsers` |
 | `packages/editor-kit/src/testing/store-contract.ts` | Contract case: a second write in the same clock tick gets a new `mtime`, and a write expecting the first is a conflict |
 | `packages/editor-kit/src/storage/handle-store.test.ts` | The contract over a frozen-clock fake; two stores on one root (two tabs) in one tick, same size, are a conflict; a file the store never touched reports `lastModified` |
-| `packages/editor-kit/src/storage/file-versions.ts` (new), `file-versions.test.ts` (new) | The per-path version rule above |
+| `packages/editor-kit/src/storage/file-versions.ts` (new) | The per-path version rule above, tested through `handle-store.test.ts` (it has no other caller) |
 | `packages/editor-kit/src/storage/handle-store.ts` | Uses it in `list`, `read`, `write`, `remove` |
 | `packages/editor-kit/src/storage/storage.layout.test.ts` | The suite's name no longer says Chromium; a real-OPFS case with two stores on one directory writing within one second |
 
@@ -58,8 +58,8 @@ The comparison reads the bytes of a recorded file only (the documents this tab o
 
 - [x] **1. Plan** (this file, commit 1).
 - [x] **2. Engines in the config.** WebKit and Firefox instances in both `layout` projects, `test:parity` scripts. Fails: editor-kit WebKit, 18 storage cases with `UnknownError` (above). The persistent WebKit profile makes OPFS reachable; then exactly one WebKit case still fails, the conflict in "a document session saves, keeps a journal, takes a conflict and recovers on real files" (cause 2).
-- [ ] **3. Same-tick writes, failing first.** `store-contract.ts` gains the same-tick case and `handle-store.test.ts` runs the contract over `createFakeOpfs({ now: () => 1_700_000_000_000 })`, plus the two-tab case (two `createHandleStore` on one fake root, frozen clock, `one` then `two`, then a write expecting the first store's `mtime`). Fails: the same `mtime` comes back and the write goes through. `file-versions.test.ts` fails: module missing.
-- [ ] **4. `file-versions.ts` and the handle store.** Minimal code for step 3; the memory store already passes the new contract case. The whole kit unit project passes.
+- [x] **3. Same-tick writes, failing first.** `store-contract.ts` gains the same-tick case and `handle-store.test.ts` runs the contract over `createFakeOpfs({ now: () => 1_700_000_000_000 })`, plus the two-tab case (two `createHandleStore` on one fake root, frozen clock, `one` then `two`, then a write expecting the first store's `mtime`). Fails: the same `mtime` comes back and the write goes through. 
+- [x] **4. `file-versions.ts` and the handle store.** Minimal code for step 3; the memory store already passes the new contract case. The whole kit unit project passes.
 - [ ] **5. Real browsers and gates.** The layout two-tab case on real OPFS; kit layout in Chromium, WebKit and Firefox, one engine at a time; editor-2d layout in the three; merge `origin/main` again and rerun what landed; the gates below.
 
 ## Gates
@@ -70,3 +70,6 @@ Focused: `pnpm --filter @mcthaydt/automata-editor-kit exec vitest run --project 
 
 - 2026-10-30: plan drafted (commit 1), with the evidence table above.
 - Step 2: with the instances added, kit WebKit failed 18 storage cases with `UnknownError` (log kept); editor-2d passed 41 in each engine; kit Firefox passed 112. With the persistent WebKit profile and `fileParallelism: false`, kit WebKit ran 111 of 112, the one failure being the session conflict (`expected { status: 'saved', … } to deeply equal { status: 'conflict' }`), cause 2.
+- Step 3: the new contract case failed on the frozen-clock fake (`expected 1700000000000 not to be 1700000000000`), as did the two-tab, read-then-change and remove-then-write cases; the memory store passed the contract case already. Deviation: no separate `file-versions.test.ts`; the module has one caller and every rule in it is pinned by a `handle-store.test.ts` case.
+- Step 4: `file-versions.ts` (the per-path token, bytes compared only for paths the store wrote or read, a removed path keeps its token) and `handle-store.ts` using it; 891 kit unit tests pass. Hand mutations, each failing a case: no byte comparison (2 fail), no tombstone on remove (1), no record on read (1), no floor from the file's token before the write (survived at first, so "overwriting a file this store only listed still gives a new mtime" was added and fails on it).
+- Step 5 (in progress): with the old `handle-store.ts`, WebKit fails 3 real-OPFS cases (the new contract case, the two-store case, the session conflict); with the new one all 22 storage cases pass. Chromium then crashed the whole browser (`SIGTRAP`, `VITEST_BROWSER_CONNECTION_CLOSED`) in `storage.layout.test.ts`, on `main` too: a standalone probe narrowed it to Chromium 153 (headless shell and full build, Playwright 1.63.0) reading a directory handle back from IndexedDB in an ephemeral context; in a persistent context it works. EDK.5 landed on Chromium 141. Chromium therefore also runs in a persistent profile. Kit layout: Chromium 114, WebKit 114, Firefox 114 pass.
