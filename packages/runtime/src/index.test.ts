@@ -64,6 +64,7 @@ const ROOT_EXPORTS: string[] = [
   'audioSettingsSchema',
   'browserHaptics',
   'cameraSettingsSchema',
+  'contentHashOf',
   'createHaptics',
   'createT',
   'defineSave',

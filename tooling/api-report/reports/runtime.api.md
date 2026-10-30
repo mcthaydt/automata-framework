@@ -389,6 +389,12 @@ class ContentHashMismatch extends ContentHashMismatchBase {
 }
 ```
 
+### `contentHashOf` (function)
+
+```ts
+function contentHashOf(data: unknown): string;
+```
+
 ### `CORE_SETTINGS` (const)
 
 ```ts
@@ -1247,6 +1253,7 @@ interface RuntimeSeams {
     readonly createAudioContext?: () => AudioContextLike;
     readonly haptics?: Haptics;
     readonly deviceStorage?: DeviceStorage;
+    readonly onFailure?: (cause: unknown) => void;
 }
 ```
 

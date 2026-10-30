@@ -26,6 +26,8 @@ export {
   LoadStalled,
   RendererUnavailable,
 } from './boot/boot-error.js'
+/** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
+export { contentHashOf } from './boot/boot-program.js'
 export type {
   CompiledContentData,
   GameDefinition,
