@@ -58,7 +58,8 @@ bot seats are M7's), rooms and countdown (8c), the client (8d). Nothing in Floor
 - `src/sim/race.event.ts`: `FloorLanded`, `LapCompleted`, `RacerReset`, `RaceFinished`.
 - `src/sim/contacts.ts`: `racerContacts(racer, floors, sizes, leavingTop)` → sorted facts (pure).
 - `src/sim/race-rules.ts`: the rules on plain values: inputs, consequences, carry, wrap and deaths, laps.
-- `src/sim/race-start.system.ts`, `race-step.system.ts`: the systems. `src/sim/race.plugin.ts`:
+- `src/sim/race-start.system.ts`, `race-step.system.ts`: the systems. `src/sim/tick-rate.ts`: the plugin `state`
+  hook that fails createSim off `RACE_TICK_HZ`. `src/sim/race.plugin.ts`:
   `racePlugins(tuning): PluginDef[]` (`netPlugin`, `physics2d` with the tuning's gravity, then the race plugin; tuning in the
   plugin `config`, so it is in the schema hash). `src/sim/index.ts`.
 - `src/content/placeholder.content.ts`: `PLACEHOLDER_TUNING`, `PLACEHOLDER_COURSE_SEED`.
@@ -111,6 +112,8 @@ export const ROOM_SOURCE = 255
   entry); a racer whose seat left is frozen and skipped; restores at four ticks with a motion check; the script falls
   and wraps, with a coverage count; the fast-fall bound at parse time with a landing test at the bound; the boundaries
   test over every starter sim; a lap respawn grounds; one death line; the "no racer" test checks every seat.
+- [x] 12. Re-review of `ad3cf01`, test-first: gravity's share in the fast-fall bound; every fall clamped to the fast
+  fall; the tick rate checked once at createSim.
 
 ## Decisions for the Owner's veto
 
@@ -122,12 +125,13 @@ export const ROOM_SOURCE = 255
 - **8b-D3:** the course uses core's RNG (`createRng`, `deriveSeed`), not FloorFifty's SplitMix32: one RNG in the
   workspace. The same seed gives a different course from FloorFifty's.
 - **8b-D4:** placeholder tuning in metres, chosen so that a bounce clears a floor gap (FloorFifty's climb depends on
-  wall-riding with a 2 px margin). The schema bounds the fast fall at parse time: one tick of it (at `RACE_TICK_HZ`)
-  stays under half of `floorHeight + racerHeight`, so the racer's centre cannot pass a floor's and the push-out always
-  lifts it on top. Measured with the placeholder sizes (bound 42 m/s): falls at 15 to 60 m/s land on top; at 80 m/s
+  wall-riding with a 2 px margin). The schema bounds the fast fall at parse time: one tick's fall at `RACE_TICK_HZ`,
+  gravity's share of the tick included, `(|fastFallVelocity| + |gravity| / hz) / hz`, stays under half of
+  `floorHeight + racerHeight`, so the racer's centre cannot pass a floor's and the push-out always lifts it on top.
+  Measured with the placeholder sizes (bound 42 m/s less gravity's 0.2): falls at 15 to 60 m/s land on top; at 80 m/s
   (1.33 m a tick) the racer passes the floor. A landing can sink up to one tick's fall before the bounce lifts it. The
-  sim must run at `RACE_TICK_HZ`; the race cannot check that itself without a check inside a step, so `racePlugins`
-  documents it and the tests and the script pass it.
+  sim must run at `RACE_TICK_HZ`: the race plugin's `state` hook, which createSim calls once with the sim's `dt`, fails
+  createSim at any other rate (`tick-rate.ts`); nothing is checked inside a step.
 - **8b-D5:** `race.start` is a sim command (the room sends it, 8c); input is held state per seat, set by `race.input`,
   and a reset is its own command, `race.reset`, so the edge rule needs no sequence numbers in the sim. The server
   forwards every game command a client sends (`ServerDef.clientCommand`: all but net's seat commands), so the race
@@ -141,6 +145,10 @@ export const ROOM_SOURCE = 255
 - **8b-D7:** the browser parity gate (`pnpm test:parity`: Chromium, WebKit, Firefox) is checked locally, in this
   container, not in Plus CI: Plus CI runs `pnpm check`, which has no browser project, and a parity job is a workflow
   change that needs the Owner's words. The workflow is unchanged.
+- **8b-D9:** no fall is faster than the fast fall: the pre-step clamps a racer's downward speed to
+  `fastFallVelocity` every tick, so the parse-time bound (8b-D4) covers a long free fall too (with up to 1,000 floors a
+  free fall could otherwise pass 42 m/s and a floor). FloorFifty faulted the race at its speed bound instead; a clamp
+  keeps a legal long drop playable.
 - **8b-D8:** the starter is a private game, not a package: it lists core, net and physics under `dependencies` (the
   peer rule in `tooling/core/manifest-rules.ts` covers `packages/` only).
 
@@ -156,3 +164,5 @@ export const ROOM_SOURCE = 255
 | 2026-10-30 | 10 | Self-review: the side-contact test read floor 2's pose and then spent two ticks placing the racer, so a moving floor 2 could have left; it now picks a still floor (mutation check: with sides no longer lifting, it fails). The unused `scriptedRaceEvents` debug helper is gone. Golden unchanged in Node and the three browsers (6 of 6). |
 | 2026-10-30 | 11 | Review of `99c27ba`. Red first, each for the expected reason: a `race.start` from seat 0 spawned a racer (`expected [ { sid: 9, … } ] to deeply equal []`); after `seat.leave`, `connected` was `undefined`; the landing at the fastest allowed fall failed on the missing `RACE_TICK_HZ` and bound; a lap respawn left `grounded` false; `ROOM_SOURCE` was `undefined` in net's sim entry; with a planted `starters/zz-red/src/sim`, the boundaries test failed naming it. Fast-fall probe (placeholder sizes, the old guard switched off): 15, 30, 40, 42, 50, 60 m/s land on the floor; 80 m/s passes it, so the old guard (1.4 m a tick, 84 m/s) did not stop a pass and is replaced by the parse-time bound (0.7 m a tick, 42 m/s). |
 | 2026-10-30 | 11 | Golden changed, regenerated from real runs. (1) The code changes alone, with the old script: hash `9c5d87536ffe7a28` → `49698c24a68a7750`, events unchanged (`0d03c77b48a5bb6a`, 187): the race played the same, and the snapshot differs by the schema (net's plugin and `Racer.connected`) and by `grounded` true after each lap respawn. (2) The script's new dash (seat 1 holds left from tick 40 to 160) changes the race: 530 ticks, hash `edad364f7d76604a`, events `776806e3de51ec68` (188), seat 0 wins; coverage 51 landings, 4 laps, 1 fall, 1 manual reset, 1 wrap, 1 finish. Restores at 120, 230 (three or more racers in the step), 260 (the lap hold) and 470 (three or more) each equal the straight run. Course golden unchanged (`b92243c1c7556cad`). `pnpm test:parity` (root): physics 6 of 6, party-racer 6 of 6 in Chromium, WebKit and Firefox. |
+| 2026-10-30 | 12 | Re-review of `ad3cf01`. Red first: -41.9 m/s parsed (0.698 m a tick without gravity, 0.702 m with it); a 90 m free fall entered a step at -48.4 m/s, past the fast fall (-15); a sim at 30 Hz was created. Then: the bound counts `|gravity| / hz`, the pre-step clamps `vy` to `fastFallVelocity` (8b-D9), and the race plugin's `state` hook fails createSim off 60 Hz (its snapshot bytes are empty). The landing test at the bound now uses the bound with gravity. |
+| 2026-10-30 | 12 | Golden hash moved, events did not (`776806e3de51ec68`, 188; coverage, standings and ticks unchanged). Separated by switching the clamp off: the state hook alone gives `e923873065caba33` (the race plugin is now stateful, so the snapshot has its empty section-6 entry); the clamp then gives `a93f27b76d5d1cc1`. The clamp acts in the script at ticks 194–203 (seat 1's drop after its dash, toward the death line, -15.2 m/s clamped to -15) and from 307 (seat 2 after releasing its fast fall, -15.2 m/s): positions change in the last f32 digits, no event does. Regenerated from Node; `pnpm test:parity`: party-racer 6 of 6 (race and course goldens) in Chromium, WebKit and Firefox, physics 6 of 6. |

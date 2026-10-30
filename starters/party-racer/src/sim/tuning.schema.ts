@@ -59,11 +59,17 @@ export const raceTuningSchema: z.ZodType<RaceTuning> = fields
   })
   // Plus physics has no swept test, so a landing is found by overlap after the step and pushed out along the shallower
   // axis. While one tick's fall stays under half of floorHeight + racerHeight, the racer's centre cannot pass the
-  // floor's, so the push-out always lifts it back on top (8b-D4). Checked at parse time, never inside a step.
-  .refine((t) => -t.fastFallVelocity / RACE_TICK_HZ < (t.floorHeight + t.racerHeight) / 2, {
-    message:
-      'one tick of fast fall must stay under half of floorHeight + racerHeight, or a racer can pass a floor',
-  })
+  // floor's, so the push-out always lifts it back on top (8b-D4). One tick's fall is the fastest a racer enters a step
+  // with (the fast fall: the step clamps every fall to it, 8b-D9) plus the speed gravity adds during that step, over one
+  // tick: (|fastFallVelocity| + |gravity| / hz) / hz. Checked at parse time, never inside a step.
+  .refine(
+    (t) =>
+      (-t.fastFallVelocity + -t.gravity / RACE_TICK_HZ) / RACE_TICK_HZ < (t.floorHeight + t.racerHeight) / 2,
+    {
+      message:
+        'one tick of fast fall must stay under half of floorHeight + racerHeight, or a racer can pass a floor',
+    },
+  )
 
 /** A validated race tuning; each field is documented on `raceTuningSchema`'s object above. */
 export interface RaceTuning {

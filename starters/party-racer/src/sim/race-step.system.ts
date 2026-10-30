@@ -83,6 +83,10 @@ function prePhysics(ctx: SimContext, tuning: RaceTuning): void {
     // Horizontal speed is assigned outright every tick: releasing stops dead, in the air as on a floor.
     const vx = direction * tuning.moveSpeed
     if (held.fastFall) vy = tuning.fastFallVelocity
+    // No fall is faster than the fast fall (8b-D9): a long free fall is clamped to it, so the schema's one-tick bound
+    // covers every fall and none passes a floor. FloorFifty faulted at its speed bound instead; a clamp keeps a legal
+    // long drop playable.
+    vy = Math.max(vy, tuning.fastFallVelocity)
     racer.set(Racer, { awaitingInput, holdUntil, facingRight, enterVx: vx, enterVy: vy })
     // A racer never tips (FloorFifty's fixedRotation): RigidBody2D has no rotation lock, so the pose is upright and
     // the spin zero going into every step (8b-D2).

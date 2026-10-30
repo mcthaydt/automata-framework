@@ -26,4 +26,13 @@ describe('raceTuningSchema', () => {
       raceTuningSchema.parse({ ...PLACEHOLDER_TUNING, viewportWidth: PLACEHOLDER_TUNING.floorWidth * 2 }),
     ).toThrow(/viewport/)
   })
+
+  // One tick's fall is the fast fall plus the gravity Rapier adds in that tick: (|v| + |g| / hz) / hz. Placeholder
+  // sizes allow 0.7 m a tick; 41.9 m/s is 0.698 m without gravity and 0.702 m with it.
+  it('counts the gravity of the tick in the fast-fall bound', () => {
+    expect(() => raceTuningSchema.parse({ ...PLACEHOLDER_TUNING, fastFallVelocity: -41.9 })).toThrow(
+      /fast fall/,
+    )
+    expect(raceTuningSchema.safeParse({ ...PLACEHOLDER_TUNING, fastFallVelocity: -41.7 }).success).toBe(true)
+  })
 })

@@ -237,8 +237,10 @@ describe('the race step', () => {
   })
 
   it('lands a racer falling at the fastest fast fall the schema allows on top of the floor', async () => {
-    // The fall per tick stays under half of floorHeight + racerHeight, so the push-out always lifts (8b-D4).
-    const fastest = -(((tuning.floorHeight + tuning.racerHeight) / 2) * RACE_TICK_HZ) * 0.999
+    // The fall per tick, gravity's share included, stays under half of floorHeight + racerHeight, so the push-out
+    // always lifts (8b-D4).
+    const limit = ((tuning.floorHeight + tuning.racerHeight) / 2) * RACE_TICK_HZ
+    const fastest = -(limit - -tuning.gravity / RACE_TICK_HZ) * 0.999
     expect(raceTuningSchema.safeParse({ ...tuning, fastFallVelocity: fastest }).success).toBe(true)
     expect(raceTuningSchema.safeParse({ ...tuning, fastFallVelocity: fastest / 0.99 }).success).toBe(false)
     // Every phase of a tick's fall against the floor's top: the deepest the racer can reach before the push-out.
@@ -258,6 +260,26 @@ describe('the race step', () => {
       expect(racer(0).get(Racer).visited.at(-1)).toBe('1')
       sim.dispose()
     }
+  })
+
+  // 8b-D9: free fall is clamped to the fast-fall speed, so the schema's bound covers every fall, however long.
+  it('never lets a long free fall pass the fast-fall speed, and lands it on top', async () => {
+    await startRace([0])
+    const top = sim.query(Floor).at(-1) as EntityRef // nothing above the top floor
+    // From 90 m up, unclamped gravity would reach about 46 m/s, past the 42 m/s a tick can take without passing a floor.
+    place(0, { x: top.get(Transform2D).x, y: top.get(Transform2D).y + 90 })
+    let fastest = 0
+    for (let i = 0; i < 600 && racer(0).get(Racer).visited.at(-1) !== '1'; i++) {
+      run(1)
+      fastest = Math.min(fastest, racer(0).get(Racer).enterVy)
+    }
+    expect(fastest).toBe(Math.fround(tuning.fastFallVelocity))
+    expect(racer(0).get(Racer).visited.at(-1)).toBe('1')
+    expect(pos(0).y).toBeGreaterThan(top.get(Transform2D).y)
+  })
+
+  it('refuses a sim at another tick rate than RACE_TICK_HZ, when the sim is created', async () => {
+    await expect(createSim({ seed: 1, tickHz: 30, plugins: racePlugins(tuning) })).rejects.toThrow(/60 Hz/)
   })
 })
 
