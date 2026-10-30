@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  // Node runs the bins straight from source (type stripping), so imports keep their .ts suffix and the syntax stays
+  // erasable, as in tooling/pipelines.
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
+  },
+  "include": ["src/**/*.ts"]
+}
