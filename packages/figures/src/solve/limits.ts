@@ -79,19 +79,55 @@ export function swingAngle(q: Q): number {
   return degrees(Math.acos(Math.max(-1, Math.min(1, -dy))))
 }
 
-const past = (v: number, r: Range | undefined): number => (r ? Math.max(0, r.min - v, v - r.max) : 0)
+/** `a` wrapped into (−π, π]. */
+const wrap = (a: number): number => a - 2 * Math.PI * Math.ceil((a - Math.PI) / (2 * Math.PI))
 
-/** How far `q` is past `limit`, in degrees: 0 inside it (or with no limit), else the largest excess. */
-export function limitExcess(q: Q, limit: JointLimit | undefined): number {
-  if (!limit) return 0
-  if (limit.kind === 'hinge') return past(hingeFlexion(q, limit.joint), limit.range)
-  if (limit.kind === 'cone') return Math.max(0, swingAngle(q) - limit.cone)
-  const [pitch, yaw, roll] = eulerOf(q).map(degrees) as [number, number, number]
-  return Math.max(past(pitch, limit.pitch), past(yaw, limit.yaw), past(roll, limit.roll))
+/**
+ * A hinge's bend (radians) moved onto its range: unchanged inside it, else onto the bound nearer round the
+ * circle, so a knee bent −170° (190° the other way) goes to 150°, not to 0°.
+ */
+function hingeClamp(bend: number, r: Range): number {
+  const lo = radians(r.min),
+    hi = radians(r.max)
+  if (bend >= lo && bend <= hi) return bend
+  return Math.abs(wrap(bend - lo)) <= Math.abs(wrap(bend - hi)) ? lo : hi
 }
 
+/** `v` (radians) brought into `r` (degrees); unchanged with no range. */
 const clampTo = (v: number, r: Range | undefined): number =>
   r ? Math.min(radians(r.max), Math.max(radians(r.min), v)) : v
+
+/**
+ * The euler ranges' clamp. Every rotation has two eulers: (p, y, r), with p in [−90°, 90°], and
+ * (180° − p, y + 180°, r + 180°). A head pitched 96° reads first as (84°, 180°, 180°); clamping that would
+ * swing the yaw and roll to their bounds, so both readings are clamped and the one that needs the smaller
+ * correction wins. Returns the clamped euler and the correction (radians, summed over the three angles).
+ */
+function eulerClamp(q: Q, limit: Extract<JointLimit, { kind: 'euler' }>): { angles: V3; correction: number } {
+  const [p0, y0, r0] = eulerOf(q)
+  let best: { angles: V3; correction: number } | undefined
+  for (const [p, y, r] of [
+    [p0, y0, r0],
+    [wrap(Math.PI - p0), wrap(y0 + Math.PI), wrap(r0 + Math.PI)],
+  ] as const) {
+    const angles: V3 = [clampTo(p, limit.pitch), clampTo(y, limit.yaw), clampTo(r, limit.roll)]
+    const correction = Math.abs(angles[0] - p) + Math.abs(angles[1] - y) + Math.abs(angles[2] - r)
+    if (!best || correction < best.correction) best = { angles, correction }
+  }
+  return best as { angles: V3; correction: number }
+}
+
+/** How far `q` is past `limit`, in degrees: 0 inside it (or with no limit). For an euler range, the
+ * correction the clamp would make, summed over its angles. */
+export function limitExcess(q: Q, limit: JointLimit | undefined): number {
+  if (!limit) return 0
+  if (limit.kind === 'hinge') {
+    const bend = radians(hingeFlexion(q, limit.joint))
+    return degrees(Math.abs(wrap(hingeClamp(bend, limit.range) - bend)))
+  }
+  if (limit.kind === 'cone') return Math.max(0, swingAngle(q) - limit.cone)
+  return degrees(eulerClamp(q, limit).correction)
+}
 
 /** `q` clamped to `limit`, or null when it is inside (or the joint has no limit). */
 export function clampJoint(q: Q, limit: JointLimit | undefined): Q | null {
@@ -99,10 +135,10 @@ export function clampJoint(q: Q, limit: JointLimit | undefined): Q | null {
   if (limit.kind === 'hinge') {
     const sign = limit.joint === 'knee' ? 1 : -1
     const flexion = sign * bendAboutX(q)
-    const clamped = clampTo(flexion, limit.range)
+    const clamped = hingeClamp(flexion, limit.range)
     if (clamped === flexion) return null
     // Turning about the parent's x moves the bone within the y–z plane, so its bend lands on the bound.
-    return qmul(axisAngle([1, 0, 0], sign * (clamped - flexion)), q)
+    return qmul(axisAngle([1, 0, 0], sign * wrap(clamped - flexion)), q)
   }
   if (limit.kind === 'cone') {
     const dir = boneDirection(q)
@@ -114,11 +150,8 @@ export function clampJoint(q: Q, limit: JointLimit | undefined): Q | null {
     const axis = cross(dir, [0, -1, 0])
     return qmul(axisAngle(length(axis) < 1e-12 ? [1, 0, 0] : normalize(axis), excess), q)
   }
-  const [pitch, yaw, roll] = eulerOf(q)
-  const p = clampTo(pitch, limit.pitch),
-    y = clampTo(yaw, limit.yaw),
-    r = clampTo(roll, limit.roll)
-  return p === pitch && y === yaw && r === roll ? null : euler(p, y, r)
+  const { angles, correction } = eulerClamp(q, limit)
+  return correction === 0 ? null : euler(angles[0], angles[1], angles[2])
 }
 
 /** Clamps each of `joints` in `pose` to its limit, adding every joint it moved to `limited`; true if any moved. */

@@ -6,7 +6,7 @@ import { fixtureLimits } from '../testing/fixture-limits'
 import { direction, KEEPER, NO_TARGETS, OPEN_LIMITS, unit, WICK } from '../testing/solve-fixtures'
 import { LIMBS } from './limbs'
 import { clampJoint, hingeFlexion, jointLimits, limitExcess, swingAngle } from './limits'
-import { degrees, eulerOf, radians } from './rotation'
+import { angleBetween, degrees, eulerOf, radians } from './rotation'
 import { solve } from './solve'
 import type { LimbId, Vec3 } from './targets'
 
@@ -74,6 +74,32 @@ const pastLimits = (pose: Pose, table: ReturnType<typeof jointLimits>): Joint[] 
   LIMITED.filter((joint) => limitExcess(at(pose.rot, joint), table.get(joint)) > 1e-9)
     .sort((a, b) => a - b)
     .map((joint) => at(JOINTS, joint))
+
+describe('clamping across the ±180° seams', () => {
+  it('clamps a head pitched past 90° to its pitch bound, not to a flipped yaw and roll', () => {
+    const table = jointLimits(limits)
+    // 96° of pitch reads back from the euler as (84°, 180°, 180°); the same turn as (96°, 0°, 0°) needs far less
+    // correction, so the clamp reads it that way.
+    const head = clampJoint(euler(radians(96), 0, 0), table.get(J.head)) as Q
+    expect(degrees(angleBetween(head, euler(radians(limits.head.pitch.max), 0, 0)))).toBeLessThan(1e-9)
+    const { pose } = solve(
+      WICK,
+      restPose(),
+      { ...NO_TARGETS, effectors: { head: { rot: [160, 0, 0] } } },
+      limits,
+    )
+    expect(
+      degrees(angleBetween(at(pose.rot, J.head), euler(radians(limits.head.pitch.max), 0, 0))),
+    ).toBeLessThan(1e-9)
+  })
+  it('clamps a hinge to the bound nearer round the circle', () => {
+    const table = jointLimits(limits)
+    // A knee bent −170° is 190° the other way: 40° past 150, but 170° short of 0.
+    const knee = clampJoint(axisAngle(X, radians(-170)), table.get(J['shin.L'])) as Q
+    expect(hingeFlexion(knee, 'knee')).toBeCloseTo(limits.knee.max, 10)
+    expect(limitExcess(axisAngle(X, radians(-170)), table.get(J['shin.L']))).toBeCloseTo(40, 10)
+  })
+})
 
 describe('I-c: after a solve no joint passes its limit, and the report lists exactly the clamped ones', () => {
   it('measures how far past its limit a joint is, in degrees', () => {
