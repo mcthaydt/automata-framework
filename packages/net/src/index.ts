@@ -17,7 +17,7 @@ export { RECONNECT_BASE_MS, RECONNECT_CEILING_MS, reconnectDelay } from './clien
 export type { RoomInfo, SeatInfo } from './client/room-info'
 export { makeRoomStore, type RoomStore } from './client/room-store'
 export { colyseusClient, type NetSdkClient, type NetSdkRoom } from './client/sdk'
-export { SEAT_TOKEN_KEY, type SeatStorage } from './client/seat-token'
+export { SEAT_TOKEN_KEY, type SeatStorage, seatTokenKey } from './client/seat-token'
 export { type NetConfig, type NetConfigInput, netConfigSchema } from './config/net.schema'
 export { type ClientMessage, clientMessageSchema } from './wire/client-message.schema'
 export { type JoinOptions, joinOptionsSchema } from './wire/join-options.schema'

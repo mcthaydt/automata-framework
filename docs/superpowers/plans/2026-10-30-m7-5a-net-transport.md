@@ -47,14 +47,15 @@ Create in `packages/net/src/client/` (each with its test, written first):
 
 - `net-error.ts`: `NetError`, `refusalCode(error)`.
 - `reconnect-delay.ts`: `reconnectDelay(attempt, random)`, `RECONNECT_BASE_MS` 250, `RECONNECT_CEILING_MS` 2000.
-- `seat-token.ts`: `SEAT_TOKEN_KEY`, `createSeatTokenStore(storage)`, `StoredSeat`, `SeatStorage`.
+- `seat-token.ts`: `SEAT_TOKEN_KEY`, `seatTokenKey(url)`, `createSeatTokenStore(storage, owner)`, `SeatOwner`,
+  `StoredSeat`, `SeatStorage` (the seat in memory, written through to storage, per server).
 - `request-ids.ts`: `createRequestIds(loadToken)`, `newLoadToken(randomBytes?)`.
 - `room-info.ts`: `RoomInfo`, `SeatInfo`, `roomInfoOf(state, you)`, `sameRoomInfo(a, b)`.
 - `sdk.ts`: the slice of `@colyseus/sdk` the client uses (`NetSdkClient`, `NetSdkRoom`), and `colyseusClient(url)`.
-- `colyseus-transport.ts`: `ColyseusTransport`, close-code reading (`closeReason`).
+- `colyseus-transport.ts`: `ColyseusTransport` (close codes are read by `endOf` in `net-room.ts`).
 - `net-port.ts`: `createClientPort()` → `ClientNetworkPort` (the four `NetworkPort` members, `NetSnapshot` with acks).
 - `net-room.ts`: `ConnectionState`, `RoomEnd`, `NetRoom` (tag), `NetRoomOptions`, `makeNetRoom(options)`,
-  `NetRoomLive(options)`.
+  `netRoomLayer(options)`.
 - `room-store.ts`: `RoomStore`, `makeRoomStore(room)`.
 - `testing/fake-colyseus.ts` (net `./testing`): `fakeColyseus()` (FloorFifty's `fakeColyseusClient`, generic).
 
@@ -193,7 +194,21 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
   `expired`, and the token is forgotten.
 - **Names are checked before the network.** Join options that fail the wire's own schema fail `REFUSED` without a
   request and without leaving the current room.
-- **The token key is `automata-net.seat`**, holding `{ code, token }` read through a strict schema.
+- **The seat is kept per server, in memory first** (review, PR #13). The key is `automata-net.seat:<url>`, holding
+  `{ url, schemaHash, contentHash, code, token }` read through a strict schema. A seat stored for another server or
+  another build of the game is never presented and never deleted (itch.io serves every game from one origin). The
+  current seat lives in memory and is written through, so a client with no working storage still reconnects.
+- **Every handshake is bounded by the grace.** A reconnect attempt times out at the grace left; `resume` times out at
+  the whole grace and fails `OFFLINE`, keeping the token. A room that arrives for a retired intent is kept if it is
+  the seat this client still holds (the rotated token stored, the socket closed without consent: the scope closed or
+  a resume timed out mid-handshake), and left, consented, otherwise.
+- **A superseded intent succeeds quietly.** A create, join, quick match or resume that a later intent replaced
+  completes with success (resume with `none`), not a `NetError`: the player chose something else, and the room it
+  produced is left. FloorFifty's rule.
+- **A request in flight across a drop settles `OFFLINE`, and may have been applied.** The room may have acted on a
+  `ready` or `bot.add` whose answer the drop lost; the client does not resend it. The room info that follows shows
+  what happened (ready flags, bot seats), so the kit reads that rather than the request's result. Resending the same
+  request id after the reconnect, which the room's ledger would answer once, is a later improvement.
 - **The browser `offline` event** (FloorFifty closes the socket on it) moves to M7.5c with the diagnostics.
 
 ## Execution log
@@ -206,3 +221,4 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
 | 2026-10-30 | 14 | `packages/server/src/room/net-client.test.ts`: six cases against a real room over real sockets (create and join, the three refusals, ready answered, a dropped socket reconnected, quick match and a drain read as `server-updating`, and N-c). Green on their first run, three runs in a row; they hold the unit-tested client to the real server's refusals and close codes rather than drive new code |
 | 2026-10-30 | 15 | Exports from `net` and `net/testing`; `pnpm format`, `pnpm check`: root 163, net 215, pipelines 82, dev-tools 62, physics 71, server 421 |
 | 2026-10-30 | Self-review | (1) `refusalCode` read every `TypeError` as `OFFLINE`, so a bug in the client would tell the player to check their network: a case red ("never reads a bug as offline"), now only `fetch`'s own unreachable wordings (Node, Chromium, Firefox, WebKit) are `OFFLINE`. (2) The integration suite now also holds the byte count off the real SDK socket and an authoritative snapshot through the port (green on the first run). (3) Hand-off to M7.5c: requests and the background probe run while `connection` is `connected`; when diagnostics add `degraded`, both must keep running in it (the room is still there), which M7.5c tests when it can set the state |
+| 2026-10-30 | Review fixes (PR #13 review) | (1) The real SDK rethrows fetch's failure as a `MatchMakeError` with fetch's words and no code, and a socket failure as `MatchMakeError('', 1006)`: 6 unit cases and 4 real-`Client` cases with a stubbed `fetch` (each engine's wording) red, now the wording is matched on any Error and 1005/1006 read `OFFLINE`; the closed-port integration case passes on Node's `ECONNREFUSED` code either way, so the stubbed cases are the ones that hold the fix. (2), (3) The seat store keeps the seat in memory and is keyed and recorded per server and build: the store's 12 cases red (API missing), then green; the NetRoom cases with throwing and missing storage, and another server's seat, green with it. (4) Handshakes bounded by the grace, (5) a scope closed mid-reconnect keeps the seat (the intents test that expected a consented leave was the bug, and was changed), (7) resume goes straight to `reconnecting` and gives up its intent when interrupted: 6 cases in `net-room-review.test.ts` red, then green. (6) The integration client's grace is a per-player option, 30 s by default. (8) The room store's close test now changes the room after the close; shown to fail with the store's fibers forked as daemons. Nits declared above. `pnpm check`: root 163, net 240, pipelines 82, dev-tools 62, physics 71, server 422; the net suite and the integration file three runs each, all green |

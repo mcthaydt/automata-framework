@@ -88,7 +88,10 @@ export interface NetRoomOptions {
   readonly session?: (() => string | undefined) | undefined
   /** The SDK client for `url`; the real one by default. */
   readonly client?: ((url: string) => NetSdkClient) | undefined
-  /** Where the reconnection token lives; this page's `sessionStorage` by default. */
+  /**
+   * Where the reconnection token is written through to, for a reload's `resume`: this page's `sessionStorage` when
+   * absent; none when given as undefined (the seat is still held in memory, so a drop reconnects).
+   */
   readonly storage?: SeatStorage | undefined
   /** The backoff's spread, in [0, 1]; `Math.random` by default. */
   readonly random?: (() => number) | undefined
@@ -104,6 +107,9 @@ const QUICK_MATCH_RETRY: readonly NetErrorCode[] = ['ROOM_FULL', 'ROOM_NOT_FOUND
 
 /** A resume that failed for these is not an expired seat: the token is kept for the next page load. */
 const RESUME_KEEPS_TOKEN: readonly NetErrorCode[] = ['OFFLINE', 'RATE_LIMITED']
+
+/** A resume the server never answered within the grace: read as `OFFLINE`. */
+const NO_ANSWER: unique symbol = Symbol('no answer')
 
 /** What a close code means; undefined is a drop. */
 function endOf(code: number): RoomEnd['reason'] | undefined {
@@ -138,7 +144,11 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
     let info: RoomInfo | undefined
     let ended: RoomEnd | undefined
 
-    const tokens = createSeatTokenStore(options.storage ?? sessionSeatStorage())
+    const tokens = createSeatTokenStore('storage' in options ? options.storage : sessionSeatStorage(), {
+      url: options.url,
+      schemaHash: options.version.schemaHash,
+      contentHash: options.version.contentHash,
+    })
     const hub = createClientPort()
     const requestIds = createRequestIds(options.loadToken ?? newLoadToken())
     const makeClient = options.client ?? colyseusClient
@@ -210,7 +220,7 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
     }
 
     /** A new intent: the previous room is left (consented) and forgotten. */
-    const beginIntent = (keepToken: boolean): number => {
+    const beginIntent = (keepToken: boolean, state: 'connecting' | 'reconnecting'): number => {
       const previous = detach()
       const gen = invalidate()
       if (!keepToken) tokens.forget()
@@ -218,7 +228,7 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
       setInfo(undefined)
       setEnded(undefined)
       quietly(previous)
-      setConnection('connecting')
+      setConnection(state)
       return gen
     }
 
@@ -229,12 +239,15 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
         while (current(gen) && (yield* Clock.currentTimeMillis) < deadline) {
           const seat = tokens.read()
           if (seat === undefined) break
+          // The SDK's request and handshake have no timeout of their own: an attempt is bounded by the grace left,
+          // and a room that arrives after it is handled by `adopt`'s generation check.
+          const remaining = Math.max(0, deadline - (yield* Clock.currentTimeMillis))
           const adopted = yield* Effect.either(
             Effect.tryPromise(() =>
               makeClient(options.url)
                 .reconnect(seat.token)
                 .then((room) => adopt(room, gen)),
-            ),
+            ).pipe(Effect.timeout(remaining)),
           )
           if (adopted._tag === 'Right' || !current(gen)) return
           const left = deadline - (yield* Clock.currentTimeMillis)
@@ -258,10 +271,25 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
       retry = Runtime.runFork(runtime)(reconnectLoop(next))
     }
 
+    /**
+     * A room that arrived for a retired intent. If it is the seat this client still holds (the scope closed, or a
+     * resume timed out, while its reconnect was in flight), the seat is kept: the rotated token is stored for the
+     * next page load and the socket closed without consent, so the server holds the seat for its grace. Anything else
+     * (the player left, or moved on to another room) is left, consented, so the seat is freed.
+     */
+    function retire(room: NetSdkRoom): void {
+      if (tokens.read()?.code === room.roomId) {
+        tokens.write({ code: room.roomId, token: room.reconnectionToken })
+        room.connection.close()
+        return
+      }
+      quietly(room)
+    }
+
     /** Takes `room` as the current room if `gen` is still the current intent; otherwise leaves it. */
     function adopt(room: NetSdkRoom, gen: number): boolean {
       if (!current(gen)) {
-        quietly(room)
+        retire(room)
         return false
       }
       detach()
@@ -311,7 +339,7 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
       Effect.suspend(() => {
         const join = joinOptions(name)
         if (join === undefined) return Effect.fail(new NetError({ code: 'REFUSED', operation }))
-        const gen = beginIntent(false)
+        const gen = beginIntent(false, 'connecting')
         const client = makeClient(options.url)
         return Effect.tryPromise({
           try: () => handshake(client, join, gen).then((room) => adopt(room, gen)),
@@ -364,8 +392,7 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
       resumeUsed = true
       const seat = tokens.read()
       if (seat === undefined) return Effect.succeed('none' as const)
-      const gen = beginIntent(true)
-      setConnection('reconnecting')
+      const gen = beginIntent(true, 'reconnecting')
       return Effect.tryPromise({
         try: () =>
           makeClient(options.url)
@@ -373,16 +400,27 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
             .then((room) => adopt(room, gen)),
         catch: (error) => error,
       }).pipe(
+        // Bounded like a reconnect attempt: a server that never answers is offline, and the seat is kept (`retire`
+        // keeps a room that still arrives).
+        Effect.timeoutFail({ duration: graceMs, onTimeout: () => NO_ANSWER }),
         Effect.map((adopted): ResumeOutcome => (adopted ? 'resumed' : 'none')),
         Effect.catchAll((error) => {
           if (!current(gen)) return Effect.succeed('none' as const)
+          invalidate()
           setConnection('offline')
-          const code = refusalCode(error)
+          const code = error === NO_ANSWER ? 'OFFLINE' : refusalCode(error)
           if (RESUME_KEEPS_TOKEN.includes(code))
             return Effect.fail(new NetError({ code, operation: 'resume' }))
           tokens.forget()
           return Effect.succeed('expired' as const)
         }),
+        Effect.onInterrupt(() =>
+          Effect.sync(() => {
+            if (!current(gen)) return
+            invalidate()
+            setConnection('offline')
+          }),
+        ),
       )
     })
 

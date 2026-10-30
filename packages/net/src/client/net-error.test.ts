@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { Client } from '@colyseus/sdk'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { NET_ERROR_CODES } from '../wire/server-message.schema'
 import { NetError, refusalCode } from './net-error'
 
@@ -39,6 +40,23 @@ describe('refusalCode', () => {
     },
   )
 
+  it.each([
+    'fetch failed',
+    'Failed to fetch',
+    'NetworkError when attempting to fetch resource.',
+    'Load failed',
+  ])('reads the SDK rethrowing fetch\'s "%s" (a MatchMakeError with no code) as offline', (message) => {
+    // The real SDK never lets fetch's TypeError through: HTTP.ts rethrows it as a ServerError, the client as a
+    // MatchMakeError with the same words and no code.
+    const error = Object.assign(new Error(message), { name: 'MatchMakeError', code: undefined })
+    expect(refusalCode(error)).toBe('OFFLINE')
+  })
+
+  it.each([1005, 1006])('reads a socket that closed with %i before the room answered as offline', (code) => {
+    // The SDK's WebSocket failure during the join handshake: MatchMakeError('', 1006).
+    expect(refusalCode(Object.assign(new Error(''), { name: 'MatchMakeError', code }))).toBe('OFFLINE')
+  })
+
   it('never reads a bug as offline', () => {
     // A TypeError from our own code is not the network: the player is not told to check their connection.
     expect(refusalCode(new TypeError("Cannot read properties of undefined (reading 'roomId')"))).toBe(
@@ -58,5 +76,24 @@ describe('NetError', () => {
     const error = new NetError({ code: 'ROOM_FULL', operation: 'join' })
     expect(error._tag).toBe('NetError')
     expect(error).toMatchObject({ code: 'ROOM_FULL', operation: 'join' })
+  })
+})
+
+describe('refusalCode on the real SDK', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it.each([
+    'Failed to fetch',
+    'NetworkError when attempting to fetch resource.',
+    'Load failed',
+    'fetch failed',
+  ])('reads a browser fetch that fails with "%s" as offline', async (message) => {
+    vi.stubGlobal('fetch', async () => {
+      throw new TypeError(message)
+    })
+    const failure = await new Client('http://server.test')
+      .reconnect('ABC234:token')
+      .catch((error: unknown) => error)
+    expect(refusalCode(failure)).toBe('OFFLINE')
   })
 })

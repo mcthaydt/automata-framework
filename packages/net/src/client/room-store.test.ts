@@ -37,6 +37,8 @@ async function setup(initial: { info?: RoomInfo; connection?: ConnectionState } 
     },
     info,
     connection,
+    /** Closes the store's scope, keeping the room's refs alive. */
+    closeScope: () => runtime.runPromise(Scope.close(scope, Exit.void)),
     close: async () => {
       await runtime.runPromise(Scope.close(scope, Exit.void))
       await runtime.dispose()
@@ -84,13 +86,18 @@ describe('the room store', () => {
   })
 
   it('stops mirroring when its scope closes', async () => {
-    const t = await setup()
+    const t = await setup({ info: LOBBY, connection: 'connected' })
     let heard = 0
     t.store.subscribe(() => {
       heard += 1
     })
-    await t.close()
+    await t.closeScope()
+    await t.set(SubscriptionRef.set(t.info, undefined))
+    await t.set(SubscriptionRef.set(t.connection, 'offline'))
     expect(heard).toBe(0)
+    expect(t.store.info).toEqual(LOBBY)
+    expect(t.store.connection).toBe('connected')
+    await t.close()
   })
 
   it('has no verbs: it reads, and never decides', async () => {

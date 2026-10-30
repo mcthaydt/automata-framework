@@ -7,12 +7,20 @@ import { Effect, Exit, type Fiber, ManagedRuntime, Scope, Stream, TestClock, Tes
 import type { ConnectionState, NetRoom, NetRoomOptions, RoomEnd } from '../client/net-room'
 import { makeNetRoom } from '../client/net-room'
 import type { RoomInfo } from '../client/room-info'
-import type { SeatStorage } from '../client/seat-token'
+import { type SeatStorage, seatTokenKey } from '../client/seat-token'
 import { type FakeColyseus, fakeColyseus } from '../testing/fake-colyseus'
 
 export const HASH_A = '0123456789abcdef'
 export const HASH_B = 'fedcba9876543210'
 export const GRACE_SECONDS = 30
+export const SERVER_URL = 'ws://server.test'
+/** Where the harness's NetRoom keeps its seat. */
+export const SEAT_KEY: string = seatTokenKey(SERVER_URL)
+
+/** A seat record as a page of this game on `url` stores it. */
+export function storedSeat(code: string, token: string, url: string = SERVER_URL): string {
+  return JSON.stringify({ url, schemaHash: HASH_A, contentHash: HASH_B, code, token })
+}
 
 export function memoryStorage(): SeatStorage & { readonly items: Map<string, string> } {
   const items = new Map<string, string>()
@@ -27,7 +35,8 @@ export function memoryStorage(): SeatStorage & { readonly items: Map<string, str
 export interface Harness {
   readonly fake: FakeColyseus
   readonly room: NetRoom
-  readonly storage: ReturnType<typeof memoryStorage>
+  /** The memory storage's items (empty for another storage). */
+  readonly items: Map<string, string>
   /** Every connection state, in order, starting with the first. */
   readonly states: ConnectionState[]
   connection(): ConnectionState
@@ -48,17 +57,18 @@ export interface Harness {
 }
 
 export async function startHarness(
-  overrides: Partial<NetRoomOptions> & { readonly storage?: ReturnType<typeof memoryStorage> } = {},
+  overrides: Partial<Omit<NetRoomOptions, 'storage'>> & { readonly storage?: SeatStorage | undefined } = {},
 ): Promise<Harness> {
   const fake = fakeColyseus()
-  const storage = overrides.storage ?? memoryStorage()
+  const storage = 'storage' in overrides ? overrides.storage : memoryStorage()
+  const items = (storage as { items?: Map<string, string> } | undefined)?.items ?? new Map<string, string>()
   const scope = Effect.runSync(Scope.make())
   // One TestClock for the whole harness: the room, the test's calls and `advance` share it.
   // (TestContext sets the default services, so `Clock` and `TestClock.adjust` reach the same clock.)
   const runtime = ManagedRuntime.make(TestContext.TestContext)
   const room = await runtime.runPromise(
     makeNetRoom({
-      url: 'ws://server.test',
+      url: SERVER_URL,
       version: { schemaHash: HASH_A, contentHash: HASH_B },
       reconnectGraceSeconds: GRACE_SECONDS,
       client: () => fake.client,
@@ -83,7 +93,7 @@ export async function startHarness(
   return {
     fake,
     room,
-    storage,
+    items,
     states,
     connection: () => read(room.connection),
     info: () => read(room.info),

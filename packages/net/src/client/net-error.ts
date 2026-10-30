@@ -39,16 +39,22 @@ const UNREACHABLE = new Set([
 ])
 
 /**
- * How `fetch` says a request got no answer: a TypeError worded by the engine (Node "fetch failed", Chromium "Failed to
- * fetch", Firefox "NetworkError when attempting to fetch resource.", WebKit "Load failed"). Any other TypeError is a
- * bug, never the network.
+ * How `fetch` says a request got no answer: Node "fetch failed", Chromium "Failed to fetch", Firefox "NetworkError
+ * when attempting to fetch resource.", WebKit "Load failed". The real SDK never lets fetch's TypeError through: its
+ * `HTTP.ts` rethrows it as a `ServerError`, and the client as a `MatchMakeError`, both with fetch's words and no code.
+ * So the wording is matched on any Error; any other TypeError is a bug, never the network.
  */
 const FETCH_FAILED =
   /^(?:fetch failed|Failed to fetch|NetworkError when attempting to fetch resource\.?|Load failed)$/
 
+/** WebSocket close codes for a socket that went without a close frame: the SDK's `MatchMakeError('', 1006)`. */
+const SOCKET_LOST = new Set([1005, 1006])
+
 function unreachable(error: unknown): boolean {
-  if (error instanceof TypeError) return FETCH_FAILED.test(error.message)
-  const code = (error as { code?: unknown } | undefined)?.code
+  if (!(error instanceof Error)) return false
+  if (FETCH_FAILED.test(error.message)) return true
+  const code = (error as { code?: unknown }).code
+  if (typeof code === 'number') return SOCKET_LOST.has(code)
   return typeof code === 'string' && UNREACHABLE.has(code)
 }
 

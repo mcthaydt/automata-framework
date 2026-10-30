@@ -7,14 +7,15 @@
  * and every wait is on something arriving (`waitFor`), never a sleep.
  */
 
+import { createServer } from 'node:http'
 import { Client } from '@colyseus/sdk'
 import {
   makeNetRoom,
   type NetRoom,
   type NetSdkClient,
   type NetSdkRoom,
-  SEAT_TOKEN_KEY,
   type SeatStorage,
+  seatTokenKey,
 } from '@mcthaydt/automata-net'
 import { Effect, Exit, Scope } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -54,7 +55,13 @@ afterEach(async () => {
 })
 
 async function player(
-  options: { storage?: ReturnType<typeof memoryStorage>; contentHash?: string } = {},
+  options: {
+    storage?: ReturnType<typeof memoryStorage>
+    contentHash?: string
+    url?: string
+    /** The client's grace, in its own wall-clock seconds; generous, so a loaded machine never runs it out. */
+    graceSeconds?: number
+  } = {},
 ): Promise<Player> {
   const version = server.runtime.version
   if (version === undefined) throw new Error('the server has no version yet')
@@ -81,9 +88,9 @@ async function player(
   const scope = Effect.runSync(Scope.make())
   const room = await Effect.runPromise(
     makeNetRoom({
-      url: server.base,
+      url: options.url ?? server.base,
       version: { schemaHash: version.schemaHash, contentHash: options.contentHash ?? version.contentHash },
-      reconnectGraceSeconds: 1,
+      reconnectGraceSeconds: options.graceSeconds ?? 30,
       client,
       storage,
     }).pipe(Scope.extend(scope)),
@@ -195,7 +202,7 @@ describe('NetRoom against a real room', () => {
     await waitFor(() => ada.read(ada.room.ended) !== undefined, 'the client never heard the room end')
     expect(ada.read(ada.room.ended)).toEqual({ reason: 'server-updating' })
     expect(ada.read(ada.room.connection)).toBe('offline')
-    expect(ada.storage.items.has(SEAT_TOKEN_KEY)).toBe(false)
+    expect(ada.storage.items.has(seatTokenKey(server.base))).toBe(false)
     await drained
   })
 
@@ -229,7 +236,32 @@ describe('NetRoom against a real room', () => {
     const late = await player({ storage })
     const expired = await late.run(late.room.resume)
     expect(Exit.isSuccess(expired) && expired.value).toBe('expired')
-    expect(storage.items.has(SEAT_TOKEN_KEY)).toBe(false)
+    expect(storage.items.has(seatTokenKey(server.base))).toBe(false)
     expect(late.read(late.room.connection)).toBe('offline')
+  })
+
+  it('reads a server it cannot reach as offline, and a resume against it keeps the seat', async () => {
+    // A port that was open a moment ago and is closed now: nothing answers there.
+    const closed = createServer()
+    await new Promise<void>((resolve) => closed.listen(0, '127.0.0.1', resolve))
+    const address = closed.address()
+    if (address === null || typeof address === 'string') throw new Error('no port')
+    await new Promise<void>((resolve) => closed.close(() => resolve()))
+    const url = `http://127.0.0.1:${address.port}`
+    const version = server.runtime.version
+    if (version === undefined) throw new Error('no version')
+    const storage = memoryStorage()
+    const record = JSON.stringify({
+      url,
+      schemaHash: version.schemaHash,
+      contentHash: version.contentHash,
+      code: 'ABC234',
+      token: 'ABC234:held',
+    })
+    storage.setItem(seatTokenKey(url), record)
+    const away = await player({ url, storage })
+    expect(codeOf(await away.run(away.room.resume))).toBe('OFFLINE')
+    expect(storage.items.get(seatTokenKey(url))).toBe(record)
+    expect(codeOf(await away.run(away.room.create({ name: 'Ada' })))).toBe('OFFLINE')
   })
 })

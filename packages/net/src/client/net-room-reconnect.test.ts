@@ -1,8 +1,14 @@
 import { Exit } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
-import { GRACE_SECONDS, type Harness, memoryStorage, startHarness } from '../test-support/net-room-harness'
+import {
+  GRACE_SECONDS,
+  type Harness,
+  memoryStorage,
+  SEAT_KEY,
+  startHarness,
+  storedSeat,
+} from '../test-support/net-room-harness'
 import { NET_CHANNEL } from '../wire/room'
-import { SEAT_TOKEN_KEY } from './seat-token'
 
 // NetRoom across a drop and a reload (M7 spec §4.2 "Reconnection", §5 "Drop and reconnect", "Reload mid-room", §6
 // "Connection lost", §13 N-c; FloorFifty `colyseus-network.test.ts` and `reconnect.test.ts` at 677d456, the generic
@@ -19,8 +25,10 @@ const start = async (...args: Parameters<typeof startHarness>) => {
   return h
 }
 const stored = (h: Harness) => {
-  const raw = h.storage.items.get(SEAT_TOKEN_KEY)
-  return raw === undefined ? undefined : JSON.parse(raw)
+  const raw = h.items.get(SEAT_KEY)
+  if (raw === undefined) return undefined
+  const { code, token } = JSON.parse(raw)
+  return { code, token }
 }
 const failureCode = (exit: Exit.Exit<unknown, unknown>) =>
   Exit.isFailure(exit) && exit.cause._tag === 'Fail' ? exit.cause.error : undefined
@@ -196,7 +204,7 @@ describe('a reload mid-room (N-c)', () => {
     // FloorFifty "forgets an expired seat instead of retrying it"; N-c "an expired token reports expired and is
     // forgotten".
     const storage = memoryStorage()
-    storage.setItem(SEAT_TOKEN_KEY, JSON.stringify({ code: 'ABC234', token: 'ABC234:old' }))
+    storage.setItem(SEAT_KEY, storedSeat('ABC234', 'ABC234:old'))
     const h = await start({ storage })
     h.fake.respondAlways('reconnect', new Error('reconnection token invalid or expired.'))
     expect(await h.run(h.room.resume)).toBe('expired')
@@ -208,7 +216,7 @@ describe('a reload mid-room (N-c)', () => {
 
   it('fails offline, keeping the token, when the server cannot be reached', async () => {
     const storage = memoryStorage()
-    storage.setItem(SEAT_TOKEN_KEY, JSON.stringify({ code: 'ABC234', token: 'ABC234:old' }))
+    storage.setItem(SEAT_KEY, storedSeat('ABC234', 'ABC234:old'))
     const h = await start({ storage })
     h.fake.respond('reconnect', new TypeError('fetch failed'))
     expect(failureCode(await h.exit(h.room.resume))).toMatchObject({ code: 'OFFLINE', operation: 'resume' })

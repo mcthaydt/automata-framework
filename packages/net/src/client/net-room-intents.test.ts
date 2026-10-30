@@ -1,8 +1,13 @@
 import { Effect, Exit, Fiber } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
-import { type Harness, memoryStorage, startHarness } from '../test-support/net-room-harness'
+import {
+  type Harness,
+  memoryStorage,
+  SEAT_KEY,
+  startHarness,
+  storedSeat,
+} from '../test-support/net-room-harness'
 import type { FakeRoom } from '../testing/fake-colyseus'
-import { SEAT_TOKEN_KEY } from './seat-token'
 
 // One intent owns its asynchronous room work (FloorFifty `colyseus-network.test.ts` "session intent owns asynchronous
 // room work" at 677d456): a handshake that settles after the player moved on is left, and changes nothing.
@@ -36,8 +41,7 @@ describe('one intent owns its handshakes', () => {
       it(`leaves an old ${kind} that ${failure ? 'fails' : 'succeeds'} after a later create, changing nothing`, async () => {
         // FloorFifty "ignores obsolete %s success and failure without losing replacement storage or listeners".
         const storage = memoryStorage()
-        if (kind === 'resume')
-          storage.setItem(SEAT_TOKEN_KEY, JSON.stringify({ code: 'XYZ789', token: 'XYZ789:t' }))
+        if (kind === 'resume') storage.setItem(SEAT_KEY, storedSeat('XYZ789', 'XYZ789:t'))
         const h = await start({ storage })
         const handshake = deferred()
         h.fake.respond(METHOD[kind], handshake.promise)
@@ -54,7 +58,7 @@ describe('one intent owns its handshakes', () => {
         const next = h.fake.room('NEW234')
         h.fake.respond('create', next)
         await h.run(h.room.create({ name: 'New' }))
-        const kept = storage.items.get(SEAT_TOKEN_KEY)
+        const kept = storage.items.get(SEAT_KEY)
         const obsolete = h.fake.room('XYZ789')
         if (failure) handshake.reject(new Error('ROOM_FULL: old handshake failed'))
         else handshake.resolve(obsolete)
@@ -65,7 +69,7 @@ describe('one intent owns its handshakes', () => {
         expect(h.info()?.code).toBe('NEW234')
         expect(h.connection()).toBe('connected')
         expect(h.ended()).toBeUndefined()
-        expect(storage.items.get(SEAT_TOKEN_KEY)).toBe(kept)
+        expect(storage.items.get(SEAT_KEY)).toBe(kept)
         // The current room still drives the info: its listeners survived.
         next.message({ t: 'seated', seat: 3 })
         expect(h.info()?.you).toBe(3)
@@ -75,24 +79,22 @@ describe('one intent owns its handshakes', () => {
     }
   }
 
-  it.each(['leave', 'close'] as const)('does not adopt an old reconnect after a %s', async (intent) => {
-    // FloorFifty "does not adopt an old reconnect after %s".
+  it('does not adopt an old reconnect after a leave, and leaves it', async () => {
+    // FloorFifty "does not adopt an old reconnect after %s" (leave). The scope closing is
+    // net-room-review.test.ts's: there the seat is kept, not left.
     const h = await start()
     await h.run(h.room.create({ name: 'Ada' }))
     const handshake = deferred()
     h.fake.respond('reconnect', handshake.promise)
     h.fake.rooms[0]?.close(1006)
     await h.settle()
-    if (intent === 'leave') await h.run(h.room.leave)
-    else await h.close()
+    await h.run(h.room.leave)
     const obsolete = h.fake.room('ABC234')
     handshake.resolve(obsolete)
     await h.settle()
     expect(obsolete.leaves).toEqual([true])
-    if (intent === 'leave') {
-      expect(h.connection()).toBe('offline')
-      expect(h.info()).toBeUndefined()
-    }
+    expect(h.connection()).toBe('offline')
+    expect(h.info()).toBeUndefined()
   })
 
   it('a caller that gives up its join gives up the intent', async () => {
@@ -124,12 +126,12 @@ describe('one intent owns its handshakes', () => {
     const next = h.fake.room('NEW234')
     h.fake.respond('create', next)
     await h.run(h.room.create({ name: 'New' }))
-    const kept = h.storage.items.get(SEAT_TOKEN_KEY)
+    const kept = h.items.get(SEAT_KEY)
     finish(4000)
     await h.run(Fiber.await(leaving))
     expect(h.connection()).toBe('connected')
     expect(h.info()?.code).toBe('NEW234')
-    expect(h.storage.items.get(SEAT_TOKEN_KEY)).toBe(kept)
+    expect(h.items.get(SEAT_KEY)).toBe(kept)
   })
 
   it('leaves the previous room when the player joins another', async () => {
@@ -148,7 +150,7 @@ describe('one intent owns its handshakes', () => {
     const h = await start()
     await h.run(h.room.create({ name: 'Ada' }))
     const room = h.fake.rooms[0] as FakeRoom
-    const kept = h.storage.items.get(SEAT_TOKEN_KEY)
+    const kept = h.items.get(SEAT_KEY)
     const outcomes: string[] = []
     h.start(
       h.room.setReady(true).pipe(
@@ -162,7 +164,7 @@ describe('one intent owns its handshakes', () => {
     await h.close()
     expect(outcomes).toEqual(['OFFLINE'])
     expect(kept).toBeDefined()
-    expect(h.storage.items.get(SEAT_TOKEN_KEY)).toBe(kept)
+    expect(h.items.get(SEAT_KEY)).toBe(kept)
     expect(room.closes).toBe(1)
     expect(room.leaves).toEqual([])
     expect(room.listening).toBe(false)
