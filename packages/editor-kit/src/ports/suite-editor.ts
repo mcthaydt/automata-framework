@@ -21,6 +21,33 @@ export interface SuiteRegions<S> {
   readonly tools?: Snippet<[S]> | undefined
 }
 
+/** The active editor's history, as the suite's top bar sees it: Undo, Redo, `Mod+Z` and `Mod+Shift+Z` (EDS-D19). */
+export interface SuiteUndo {
+  canUndo(): boolean
+  canRedo(): boolean
+  /** What Undo would take back ("Undo Raise speed"), or `undefined` with nothing to undo. */
+  undoLabel(): string | undefined
+  redoLabel(): string | undefined
+  undo(): void
+  redo(): void
+  /** Called after every change to the history; gives back the unsubscribe. */
+  subscribe(listener: () => void): () => void
+}
+
+/** The one document Ask proposes a whole new text for (EDS-D9), and how the editor takes an accepted one. */
+export interface SuiteAskTarget {
+  /** The document's workspace path. */
+  readonly path: string
+  /** The document's text now. */
+  text(): string
+  /** The ids of the selection the prompt is about (the scope chip; `AskRequest.scope`). */
+  scope(): readonly string[]
+  /** The key paths the person locked in this session (EDS-D18); a proposal changing one is refused with the key. */
+  locked(): readonly string[]
+  /** Applies an accepted proposal as one undo step labelled by `summary`. */
+  accept(text: string, summary: string): void
+}
+
 export interface SuiteEditor<S> {
   /** The id the editor list names: `tuner`, `studio`, `feel`, `levels-2d`, ... */
   readonly id: string
@@ -36,6 +63,10 @@ export interface SuiteEditor<S> {
   open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>
   readonly regions: SuiteRegions<S>
   readonly contributions?: readonly ContributionPoint[] | undefined
+  /** The session's history; an editor without it has no Undo in the top bar. */
+  readonly undo?: ((session: S) => SuiteUndo) | undefined
+  /** The session's Ask target; an editor without it has no Ask. */
+  readonly ask?: ((session: S) => SuiteAskTarget) | undefined
 }
 
 /** Declares a suite editor; the type keeps the regions and the session factory in step. */

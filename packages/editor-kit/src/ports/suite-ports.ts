@@ -78,8 +78,13 @@ export interface ChangeSet {
   current(): Promise<{ readonly title: string; readonly branch: string; readonly base: string } | undefined>
   /** Opens one from `title`; rejects while one is open, or when the title gives no branch name. */
   begin(title: string): Promise<void>
-  /** Adds written files to it; rejects when none is open. */
-  record(files: readonly string[]): Promise<void>
+  /**
+   * Adds written files to it, and each write's text to its journal (a write's path is recorded too); rejects when none
+   * is open.
+   */
+  record(files: readonly string[], writes?: readonly ChangeSetWrite[]): Promise<void>
+  /** Keeps each run as its check id's latest in the journal, so a reload shows the pills and measures; rejects when none is open. */
+  note(checks: readonly ChangeSetCheck[]): Promise<void>
   /** Commits the files recorded since the last checkpoint; with none, gives the last commit again. */
   checkpoint(message: string): Promise<{ readonly commit: string }>
   /** Checkpoints, pushes and opens a draft PR (or gives only the compare link); the change set stays open. */
@@ -116,6 +121,26 @@ export interface ChangeSetSummary {
   readonly created: readonly string[]
   /** The assistant's tokens it has used, and its cap; only the person raises the cap. */
   readonly tokens: { readonly used: number; readonly cap: number }
+  /** Each write in the order it happened, with its text: the Review desk's diff and an import's undo. */
+  readonly writes: readonly ChangeSetWrite[]
+  /** The latest run of each check id, sorted by id. */
+  readonly checks: readonly ChangeSetCheck[]
+}
+
+/** One write to a file: its text before (`undefined` when the write created it) and after. */
+export interface ChangeSetWrite {
+  readonly path: string
+  readonly before: string | undefined
+  readonly after: string
+}
+
+/** A check's latest run in the journal, with its measures before the change set's writes and after them. */
+export interface ChangeSetCheck {
+  readonly check: string
+  readonly status: CheckResult['status']
+  readonly findings: readonly CheckFinding[]
+  readonly before?: readonly CheckMeasure[] | undefined
+  readonly after?: readonly CheckMeasure[] | undefined
 }
 
 /** One check of the editor list (`[[check]]`, §4.2). The built-in `content` check is the suite's, not the runner's. */

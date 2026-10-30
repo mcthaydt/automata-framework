@@ -1,8 +1,8 @@
 // The in-memory change set (editor suite spec §4.3, §4.5). It owns its journal, as every `ChangeSet` adapter does: the
-// files recorded and created and the tokens spent. The workspace notes what it creates here; tokens come only through
+// files recorded and created, each write's text, the latest run per check and the tokens spent. The workspace notes what it creates here; tokens come only through
 // `spend`, and the cap moves only through `raiseCap`; `list()` reads it all. Branch names, the refusals and Ship follow The Last Light's `ChangeSets` (`92e6704`,
 // `editor/src/server/changeset.ts`): `edit/<slug>`, one open at a time, Ship checkpoints and keeps it open.
-import type { ChangeSet, ChangeSetSummary } from '../suite-ports'
+import type { ChangeSet, ChangeSetCheck, ChangeSetSummary, ChangeSetWrite } from '../suite-ports'
 
 export interface MemoryChangeSetOptions {
   /** The branch a change set starts from (default `main`). */
@@ -30,6 +30,9 @@ interface Open {
   readonly branch: string
   readonly files: Set<string>
   readonly created: Set<string>
+  readonly writes: ChangeSetWrite[]
+  /** The latest run per check id. */
+  readonly checks: Map<string, ChangeSetCheck>
   tokens: number
   cap: number
   /** Files recorded since the last checkpoint. */
@@ -85,16 +88,26 @@ export function createMemoryChangeSet(options: MemoryChangeSetOptions = {}): Mem
         branch: branchName(title),
         files: new Set(),
         created: new Set(),
+        writes: [],
+        checks: new Map(),
         tokens: 0,
         cap,
         pending: false,
         commit: base,
       }
     },
-    async record(files) {
+    async record(files, writes = []) {
       const current = required('record files in')
       for (const file of files) current.files.add(file)
-      if (files.length > 0) current.pending = true
+      for (const write of writes) {
+        current.files.add(write.path)
+        current.writes.push(write)
+      }
+      if (files.length > 0 || writes.length > 0) current.pending = true
+    },
+    async note(checks) {
+      const current = required('note checks in')
+      for (const check of checks) current.checks.set(check.check, check)
     },
     checkpoint,
     async ship(draft) {
@@ -137,6 +150,8 @@ export function createMemoryChangeSet(options: MemoryChangeSetOptions = {}): Mem
           files: sorted(open.files),
           created: sorted(open.created),
           tokens: { used: open.tokens, cap: open.cap },
+          writes: [...open.writes],
+          checks: [...open.checks.values()].sort((a, b) => (a.check < b.check ? -1 : 1)),
         },
       ]
     },
