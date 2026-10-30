@@ -12,6 +12,7 @@ import { JOINTS, type Joint } from '../rig/rig'
 import type { EffectorId, EffectorTarget, PoleId, PoleTarget, Vec3 } from '../solve/targets'
 import { poseProblems } from './pose-checks'
 
+/** A pose (content kind `figure-pose`): the handles it sets, in figure units and Euler degrees. */
 export interface PoseDef {
   readonly about?: string | undefined
   readonly effectors: Readonly<Partial<Record<EffectorId, EffectorTarget>>>
@@ -67,6 +68,7 @@ const fk = partialOf<Record<Joint, Vec3>>(
   ),
 )
 
+/** The `figure-pose` schema, with the reach check against the reference figure (pose-checks.ts). */
 export const poseSchema: z.ZodType<PoseDef> = z
   .strictObject({
     about,
