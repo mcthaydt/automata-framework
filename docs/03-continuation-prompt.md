@@ -104,6 +104,10 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 - **3D:** M3.1 → M3.2 → M3.4 → M3.5 → M3.6 → M3.7 → M3.10 → GAME-3D.0 → GAME-3D.1 → M9.0 → the launch (M8.9, after Pixi 3D is public: M9.10 and M8.9a). In rows: M3.1a → M3.2 and M3.1b → M3.4a to M3.4d; M3.0A → M3.5a to M3.5d → M3.6a to M3.6d; M4.12; then M3.7a, M3.7b, M3.7c → M3.10 → GAME-3D.0 → GAME-3D.1a to 1l → M9.0 to M9.10 → M8.9.
 - **Editors:** ED2D.4c2b → 4c3a, 4c3b → 4c4a, 4c4b → ED2D.5 to ED2D.10, and ED3D.5b to ED3D.12 → EDS.1, EDS.2 and EDS.9 → GAME-3D.1 (GAME-3D.1i needs ED3D.12; 1j needs EDS.9c).
 
+## Legacy framework sources (Owner, 2026-10-30)
+
+The Owner's words: "Take a look at these repos, this is my magnum opus of frameworks, so let's see what we should steal", then "Steal everything you need to, but keep in mind for the camera we're using klipp". Read at: `mcthaydt/AutomataEngine-LegacyV2-` `18525fc` (TypeScript and three.js; the 2D-sprite, 3D-world Western ARPG), `mcthaydt/AutomataEngineV1` `45a9a03` (archived), `mcthaydt/automata-template` `6e08688` (Godot 4.7; reference only) and `mcthaydt/717BevyGameFramework` `4347d6c` (nothing taken). Each piece is recorded on the row that uses it (M3.3a, M3.4b, M3.8b, M6.7a, M6.8a, M9.1, GAME-3D.1c, DX.5) plus a new row, CI.BND2. TypeScript sim and tooling code is extracted with its tests and source commit; three.js and GDScript code is a reference and is rewritten. The sprite-in-3D parts (sprite baking, billboard shadows, facing counts) stay out: 2.5D was dropped on 2026-10-18 and characters are procedural. klipp is the camera (M9.1).
+
 ## Paid model changed (Owner, 2026-10-30)
 
 "I kinda want to change our plans for paid - we'll make the editor suite paid for iOS and Android instead as apps; priced like nomad sculp". The Owner then chose: Plus becomes free; the editors stay free on the web and desktop and are paid as iOS and Android apps; a one-time purchase. Draft spec: [APP](superpowers/specs/2026-10-30-paid-editor-apps-design.md); rows APP.0 to APP.5 and PLUS.FREE in 02. Plus stays paused as a lane; its code is now free work, not paid work.
@@ -116,7 +120,7 @@ Later: "We need to be able to push to git; our biggest priorities for the editor
 2. Done 2026-10-30: #227 (DX.2a) merged (`b9244c9`); `AGENTS.md` now lists cli, figures and the editors as the private packages. The Plus lane's M5.8, M6.1/6.2, M3.3, PRODUCT.6 and NetworkPort import are unblocked (Plus is paused until the Owner resumes it).
 3. Done 2026-10-30: #253 (GL.1) merged (`11a4e4e`); the GL spec §5.5 text is in `AGENTS.md`'s `pnpm style` and `pnpm boundaries` bullets and the 3D lane was told GL.7 can start. Next: GL.3 (the placeholder's `src/main.ts`), failing test first.
 4. The "Version packages" PR (#226) is no longer blocked by PRODUCT.5g (#197 merged); before merging it, check its version bumps and that no physics package publishes from AF, and its publish waits for the Owner's approval in the release environment.
-5. Keep at most about six AF PRs in flight. Resume a paused lane only with the Owner's word, as a fresh session started from its handoff.
+5. Keep at most about ten AF PRs in flight (Owner, 2026-10-30: "You can raise the cap and CI"; it was about six). The checks and parity jobs may run 20 minutes (were 10). Resume a paused lane only with the Owner's word, as a fresh session started from its handoff.
 6. Next coordinator rows with no prerequisite: PRODUCT.1b2, DX.6a, DX.6c1, DX.7b/c, CI.API1a, CI.N1a, CI.N3, RT.BOOT1, PRODUCT.4r1, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu. Also from the 3D handoff: Ruken's "Try again" never works inside a frame (the SDK host answers one hello per frame load), a core fix.
 
 ## Blocked on the Owner

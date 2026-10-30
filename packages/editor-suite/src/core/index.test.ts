@@ -9,12 +9,14 @@ describe('@mcthaydt/automata-editor-suite/core', () => {
 })
 
 describe('the entry', () => {
-  it('exports the loader, the schema, the matcher and the policy', () => {
+  it('exports the loader, the schema, the matcher, the policy and the journal schema', () => {
     expect(Object.keys(core).sort()).toEqual([
       'ALWAYS_NEVER',
+      'CHANGE_SET_JOURNAL_FORMAT',
       'CONTENT_CHECK',
       'EDITOR_LIST_FORMAT',
       'EDITOR_LIST_PATH',
+      'changeSetJournalSchema',
       'editorListSchema',
       'fileAccess',
       'globMatch',

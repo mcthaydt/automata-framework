@@ -5,13 +5,18 @@
   over `TOUCH_STICK_RADIUS_PX` is the vector, clamped to length 1. One finger drives it; others on the zone are
   ignored. The zone captures that finger, so the release always arrives however far the thumb wanders.
 
+  The ring is drawn inside the region the geometry owner leaves visible (M4.12b): held, it centres on the landing
+  point moved the least distance that keeps all of it on screen and clear of the insets, while the vector still runs
+  from where the thumb landed; at rest it sits inside the zone, which the frame keeps inside the insets.
+
   The vector goes out through `onstick` as the thumb moves; the release goes out through `onstickend` exactly once,
   for a lift, a cancel, a lost capture, the overlay hiding or the stick coming down. The dead zone is runtime's
   (`Input.touchStick`), not drawn here. Pointer only: never in the focus order.
 -->
 <script lang="ts">
 import { onDestroy } from 'svelte'
-import { stickVector, TOUCH_STICK_RADIUS_PX } from './touch-stick'
+import { publishedVisibleRect } from '../geometry/geometry'
+import { clampRingCentre, stickVector, TOUCH_STICK_RADIUS_PX } from './touch-stick'
 
 interface Props {
   /** The stick's accessible name ("Move"). */
@@ -33,6 +38,22 @@ let held: { readonly id: number; readonly x: number; readonly y: number } | unde
 let phase = $state<'idle' | 'held'>('idle')
 let ring = $state<{ readonly x: number; readonly y: number } | undefined>(undefined)
 let knob = $state({ x: 0, y: 0 })
+let ringElement: HTMLElement | undefined
+
+/** Where the ring is drawn for a thumb landing at `landing` in the zone's box: inside the visible region. */
+function ringAt(
+  zone: HTMLElement,
+  box: DOMRect,
+  landing: { x: number; y: number },
+): { x: number; y: number } {
+  const view = zone.ownerDocument.defaultView
+  const root = zone.ownerDocument.documentElement
+  const area = publishedVisibleRect(root, { width: view?.innerWidth ?? 0, height: view?.innerHeight ?? 0 })
+  // The ring's whole box, its edge included.
+  const half = (ringElement?.offsetWidth ?? 0) / 2
+  const centre = clampRingCentre({ x: box.left + landing.x, y: box.top + landing.y }, half, area)
+  return { x: centre.x - box.left, y: centre.y - box.top }
+}
 
 function end(): void {
   if (held === undefined) return
@@ -50,7 +71,7 @@ function down(event: PointerEvent): void {
   const box = zone.getBoundingClientRect()
   held = { id: event.pointerId, x: event.clientX - box.left, y: event.clientY - box.top }
   phase = 'held'
-  ring = { x: held.x, y: held.y }
+  ring = ringAt(zone, box, held)
   try {
     zone.setPointerCapture?.(event.pointerId)
   } catch {
@@ -92,6 +113,7 @@ onDestroy(end)
   onlostpointercapture={up}
 >
   <div
+    bind:this={ringElement}
     class="af-touch__stick-ring"
     aria-hidden="true"
     style:left={ring === undefined ? undefined : `${ring.x}px`}
@@ -115,15 +137,18 @@ onDestroy(end)
   }
 
   /* A sideways phone has no height to spare (780 x 270): the zone keeps its width and one primary target of
-     height. The stick floats, and the captured thumb may travel past the zone, so its reach is unchanged. */
+     height. The stick floats, and the captured thumb may travel past the zone, so its reach is unchanged; the ring
+     is drawn on screen all the same (M4.12b). */
   :global([data-height='compact']) .af-touch__stick {
     height: var(--af-target-primary);
   }
 
-  /* The ring: at rest in the middle of the zone; held, centred where the thumb landed. */
+  /* The ring: at rest in the middle of the zone, its edge never past the zone's start (the ring, edge included, is
+     a little wider than a zone at scale 1, and the zone may stand right at an inset); held, centred where the thumb
+     landed, as far as the visible region allows (script). */
   .af-touch__stick-ring {
     position: absolute;
-    left: 50%;
+    left: max(50%, calc(var(--af-stick-radius) + var(--af-edge-width)));
     top: 50%;
     display: grid;
     place-items: center;
@@ -134,6 +159,14 @@ onDestroy(end)
     opacity: 0.6;
     transform: translate(-50%, -50%);
     pointer-events: none;
+  }
+
+  /* At a compact height the zone is shorter than the ring: at rest the ring stands on the zone's foot, which the
+     frame keeps inside the insets, rather than running past the screen's edge below it. */
+  :global([data-height='compact']) .af-touch__stick[data-stick-state='idle'] .af-touch__stick-ring {
+    top: auto;
+    bottom: 0;
+    transform: translate(-50%, 0);
   }
 
   .af-touch__stick[data-stick-state='held'] .af-touch__stick-ring {
