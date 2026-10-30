@@ -2,11 +2,13 @@ import { afterEach, describe, expect, test } from 'vitest'
 import {
   documentScrolls,
   findClipped,
+  findCutAtSide,
   findIntrusions,
   findOffscreenControls,
   findOverlaps,
   findSmallTargets,
   findUnreachable,
+  pressedPart,
   visibleControls,
 } from './assertions'
 
@@ -143,6 +145,68 @@ describe('findOffscreenControls', () => {
       '<div style="position:fixed;left:0;top:0;width:100px;height:100px;overflow:auto">' +
       '<div style="height:2000px"></div><button data-testid="undeclared" style="height:48px">x</button></div>'
     expect(findOffscreenControls(document.body)).toEqual(['undeclared is off screen'])
+  })
+})
+
+describe('pressedPart', () => {
+  test("is a checkbox's or radio's label, and any other control itself", () => {
+    document.body.innerHTML =
+      '<label data-testid="label"><input type="checkbox" data-testid="box">Music</label>' +
+      '<button data-testid="play">Play</button>'
+    const part = (id: string): Element =>
+      pressedPart(document.querySelector(`[data-testid="${id}"]`) as HTMLElement)
+    expect(part('box')).toBe(document.querySelector('[data-testid="label"]'))
+    expect(part('play')).toBe(document.querySelector('[data-testid="play"]'))
+  })
+})
+
+describe('findCutAtSide', () => {
+  /** A declared region 200 px wide that scrolls up and down (or as `axis` says), holding `inner`. */
+  const region = (inner: string, axis = ''): string =>
+    `<div data-scroll-region="${axis}" style="position:fixed;left:0;top:0;width:200px;height:100px;overflow:auto">${inner}</div>`
+  const far = (id: string, style = ''): string =>
+    `<div style="width:300px"><button data-testid="${id}" style="margin-left:180px;width:60px;height:48px;${style}">x</button></div>`
+
+  test('reports a control cut at the side of a region that scrolls up and down, and passes one below the fold', () => {
+    const low =
+      '<button data-testid="low" style="display:block;margin-top:200px;width:60px;height:48px">x</button>'
+    document.body.innerHTML = region(far('cut') + low)
+    expect(findCutAtSide(document.body)).toEqual(['cut is cut at the side of its scroll region'])
+  })
+
+  test('judges a radio by its label, which is what a player presses', () => {
+    document.body.innerHTML = region(
+      '<div style="width:300px"><label data-testid="option" style="display:inline-block;margin-left:180px;width:60px;height:48px">' +
+        '<input type="radio" style="position:absolute;width:1px;height:1px;clip-path:inset(50%)">x</label></div>',
+    )
+    expect(findCutAtSide(document.body)).toEqual(['option is cut at the side of its scroll region'])
+  })
+
+  test('passes a control past the side of a region that scrolls sideways on purpose (data-scroll-region="both")', () => {
+    document.body.innerHTML = region(far('strip'), 'both')
+    expect(findCutAtSide(document.body)).toEqual([])
+  })
+
+  test('passes a control the region does not clip: a fixed one, or an absolute one positioned outside it', () => {
+    document.body.innerHTML =
+      '<div style="position:relative;width:400px;height:200px">' +
+      '<div data-scroll-region style="width:200px;height:100px;overflow:auto">' +
+      '<button data-testid="pinned" style="position:absolute;left:250px;top:0;width:60px;height:48px">x</button>' +
+      button('fixed', 'left:250px;top:60px;width:60px;height:48px') +
+      '</div></div>'
+    expect(findCutAtSide(document.body)).toEqual([])
+  })
+
+  test('walks out through nested regions: an inner region wider than the outer one is cut at the outer side', () => {
+    const inner = `<div data-scroll-region style="width:300px;height:80px;overflow:auto">${far('nested')}</div>`
+    document.body.innerHTML = region(inner)
+    expect(findCutAtSide(document.body)).toEqual(['nested is cut at the side of its scroll region'])
+  })
+
+  test('stops at a region that scrolls sideways: what it holds is reached by scrolling it', () => {
+    const inner = `<div data-scroll-region="both" style="width:200px;height:80px;overflow:auto">${far('scene')}</div>`
+    document.body.innerHTML = region(inner)
+    expect(findCutAtSide(document.body)).toEqual([])
   })
 })
 

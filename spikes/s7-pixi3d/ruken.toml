@@ -1,0 +1,20 @@
+# The manifest S7's pages are served under: measure.ts compiles its headers with @ruken/manifest's compileHeaders,
+# so the CSP is Ruken's (script-src 'self' 'wasm-unsafe-eval', no 'unsafe-eval').
+schema = 1
+
+[game]
+id = "s7-pixi3d"
+title = "S7 pixi 3D spike"
+version = "0.0.1"
+entry = "index.html"
+sdk = "^0.0.0"
+
+[runtime]
+renderer = "webgl2"
+orientation = "landscape"
+inputs = ["touch", "keyboard"]
+pause_behavior = "pause"
+
+[content]
+languages = ["en"]
+rating = "everyone"

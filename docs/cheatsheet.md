@@ -6,7 +6,7 @@
 
 ### `import { … } from '@mcthaydt/automata-content'`
 
-- `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder).
+- `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and `fonts.toml`.
 - `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
 - `checkTuningLayer(layer, options, { complete })`: Checks one layer of tuning against code-owned declarations.
 - `compileContent` (const): Compiles `<root>/content` in memory.
@@ -42,8 +42,8 @@
 - `MessageLocation` (interface): A message's place in its file, 1-based.
 - `Palette` (interface): The game's palette: a name and its colors.
 - `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
-- `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`) and the built game folder.
-- `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), without repeats.
+- `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset build's outputs below `outDir`) and the built game folder.
+- `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir` and the build serves in `atlases/` and `fonts/`; without repeats.
 - `renderTuningTable(meta)`: Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
 - `RukenFields` (type): The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
 - `SimPartition` (interface): The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash, which gates snapshots and replays.
@@ -80,9 +80,14 @@
 - `ContentText` (type): `text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
 - `ContentTextOptions` (interface): Options for `createContentText`.
 - `createContentText(messages, options?)`: A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
+- `hasRawText(text)`: True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII letter outside a ⟦ ⟧ span.
 - `localeCharacters(catalog)`: What a locale's subset font is cut to: `ALWAYS_CHARACTERS` and the catalog's characters.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
 - `messageKey(kind, id, path)`: The message key of one text.
+- `MessageValue` (type): A value in an inlang message file: a message, a list of variants, or a namespace or variant object.
+- `PSEUDO_LOCALE` (const): The pseudo-locale's tag.
+- `pseudoLocalize(message)`: The xx-long form of one message string.
+- `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
 - `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
 
 ### `import { … } from '@mcthaydt/automata-content/vite'`
@@ -369,6 +374,7 @@
 - `FakeViewportWindow` (interface): A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
 - `FakeVisualViewport` (interface): The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and listeners for `resize`.
 - `findClipped(root, selector)`: Each element `selector` names is tall enough for what it holds (a crushed row clips its content).
+- `findCutAtSide(root)`: No control is cut at a side of a declared scroll region that clips it (see `clippedBy`).
 - `findIntrusions(root, rects)`: No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its whole box.
 - `findOffscreenControls(root)`: Every visible control is on screen, unless a declared scroll region (`[data-scroll-region]`) clips it (see `clippedBy`): a fixed control, or one positioned outside the region, is judged where it is drawn, since scrolling the region would never bring it into view.
 - `findOverlaps(a, b)`: Two elements' boxes do not overlap.
@@ -379,6 +385,7 @@
 - `LayoutRect` (interface): Layout assertions as plain DOM functions (M1.6 spec §3.10), from FloorFifty's `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
 - `mountFixture(component, props, target?)`: Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first render is finished.
+- `pressedPart(control)`: What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a press anywhere on it toggles the input), else the control itself.
 - `REFERENCE_SIZES` (const): The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every breakpoint and the tightest sizes, each with the classification it should get.
 - `ReferenceFormFactor` (type): `@mcthaydt/automata-ui`'s `FormFactor`.
 - `ReferenceHeightTier` (type): `@mcthaydt/automata-ui`'s `HeightTier`.
@@ -472,6 +479,8 @@
 - `bootFailureView(failure, hostKind, canExit)`: Which state a failure draws and which ways forward it offers.
 - `BootFailureViewModel` (interface): What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order.
 - `Button` (const): The framework's button (M4 spec §4.12): an `.af-control` of one kind.
+- `CameraDragSurface` (const): The camera drag surface (M4 spec §16.3.7, M3 spec §4.2 and §7): the player turns the camera by dragging the scene, a finger anywhere outside the controls or the mouse with its secondary button.
+- `CameraDragSurfaceProps` (interface): CameraDragSurface's props.
 - `Chip` (const): A short status label (M4 spec §4.12).
 - `classifyDevice(input)`: A fine primary pointer is a `desktop`; a coarse one is a `phone` when the screen's shorter side is under 600 px, otherwise a `tablet`.
 - `classifyFormFactor(width, height)`: The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise `desktop`.
@@ -498,6 +507,7 @@
 - `DisplayCopy` (interface): Every word the Display section shows, in the game's language.
 - `DisplayQuality` (type): A graphics quality tier (runtime's `QualityTier`).
 - `DisplaySection` (const): The Display section of Settings (M4 spec §4.8, §7): the graphics quality tier as an option group (a pad's `adjust` cycles it), and reduced motion as the browser reports it.
+- `DragTracker` (interface): What a CameraDragSurface drives (M4 spec §16.3.7): runtime's `CameraDragTracker` satisfies it, so ui need not import runtime.
 - `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
 - `enterFullscreen(doc, screen?)`: Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app.
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
@@ -632,6 +642,7 @@
 - `TouchControlsProps` (interface): TouchControls' props.
 - `TouchCopy` (interface): Every word the Touch controls group shows, in the game's language.
 - `TouchSection` (const): The Touch controls group of the Settings tab (FloorFifty `SettingsPanel.svelte` at a28dc44): how touch drives play, on-screen buttons or swipes, as an option group.
+- `TouchStickSpec` (interface): The overlay's move stick (M4.12).
 - `TouchTarget` (interface): A button's action and where it is drawn, for `nearestTarget`.
 - `trimRows(shape, groups)`: The shape cut to the rows the largest group fills, so no page carries a row of empty slots.
 - `UI_SLOT_NAMES` (const): The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).
@@ -648,7 +659,7 @@
 ### `import { … } from '@mcthaydt/automata-ui/testing'`
 
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
-- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials` is reachable without scrolling.
+- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 - `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7).
 - `publishConditions(root, size, variant)`: Measures and publishes the geometry for `size` under `variant`, as the owner would.

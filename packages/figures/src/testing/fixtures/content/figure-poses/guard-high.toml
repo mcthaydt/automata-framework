@@ -1,0 +1,22 @@
+# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
+
+about = "Guard up: both hands before the face, the right a little higher and further out, the elbows down and out, the shoulders raised."
+
+[effectors.handL]
+pos = [ 0.1, 1.3, 0.22 ]
+
+[effectors.handR]
+pos = [ -0.1, 1.35, 0.25 ]
+
+[effectors.chest]
+rot = [ 5, 0, 0 ]
+
+[poles.elbowL]
+dir = [ 0.6, -1, 0 ]
+
+[poles.elbowR]
+dir = [ -0.6, -1, 0 ]
+
+[fk]
+"clavicle.L" = [ 0, 0, 6 ]
+"clavicle.R" = [ 0, 0, -6 ]

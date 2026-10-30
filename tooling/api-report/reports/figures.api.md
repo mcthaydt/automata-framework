@@ -10,6 +10,16 @@
 const add: (a: V3, b: V3) => V3;
 ```
 
+### `AimTarget` (interface)
+
+```ts
+interface AimTarget {
+    readonly at: Vec3;
+    readonly part: 'head' | 'chest' | 'handL' | 'handR';
+    readonly weight?: number | undefined;
+}
+```
+
 ### `apply` (function)
 
 ```ts
@@ -20,6 +30,15 @@ function apply(m: M, p: V3): V3;
 
 ```ts
 function applyDir(m: M, v: V3): V3;
+```
+
+### `applyPose` (function)
+
+```ts
+function applyPose(skeleton: Skeleton, base: Pose, pose: PoseDef): {
+    base: Pose;
+    targets: Targets;
+};
 ```
 
 ### `armChain` (const)
@@ -38,6 +57,18 @@ function axisAngle(axis: V3, angle: number): Q;
 
 ```ts
 function basis(x: V3, y: V3, z: V3): R3;
+```
+
+### `blend` (function)
+
+```ts
+function blend(a: PoseDef, b: PoseDef, t: number, context?: SpaceContext): PoseDef;
+```
+
+### `canonicalPose` (function)
+
+```ts
+function canonicalPose(pose: PoseDef): PoseDef;
 ```
 
 ### `Cap` (interface)
@@ -114,10 +145,33 @@ const DEFAULT_SLIDERS: Readonly<Sliders>;
 const dot: (a: V3, b: V3) => number;
 ```
 
+### `EffectorId` (type)
+
+```ts
+type EffectorId = 'footL' | 'footR' | 'handL' | 'handR' | 'pelvis' | 'chest' | 'head';
+```
+
+### `EffectorTarget` (interface)
+
+```ts
+interface EffectorTarget {
+    readonly pos?: Vec3 | undefined;
+    readonly rot?: Vec3 | undefined;
+    readonly space?: Space | undefined;
+    readonly weight?: number | undefined;
+}
+```
+
 ### `euler` (function)
 
 ```ts
 function euler(pitch: number, yaw: number, roll: number): Q;
+```
+
+### `eulerOf` (function)
+
+```ts
+function eulerOf(q: Q): [number, number, number];
 ```
 
 ### `FIGURE_CONTENT` (const)
@@ -182,6 +236,18 @@ const figureHeadwearContent: ContentSchemaDef<'figure-headwear'>;
 
 ```ts
 const figureItemContent: ContentSchemaDef<'figure-item'>;
+```
+
+### `figurePoseContent` (const)
+
+```ts
+const figurePoseContent: ContentSchemaDef<'figure-pose'>;
+```
+
+### `figureReach` (function)
+
+```ts
+function figureReach(s: Skeleton): number;
 ```
 
 ### `figureRigContent` (const)
@@ -422,6 +488,12 @@ interface Headwear {
 const headwearSchema: z.ZodType<Headwear>;
 ```
 
+### `hingeFlexion` (function)
+
+```ts
+function hingeFlexion(q: Q, joint: 'knee' | 'elbow'): number;
+```
+
 ### `Hold` (interface)
 
 ```ts
@@ -493,6 +565,30 @@ const J: Readonly<Record<Joint, number>>;
 type Joint = (typeof JOINTS)[number];
 ```
 
+### `JointLimit` (type)
+
+```ts
+type JointLimit = {
+    readonly kind: 'hinge';
+    readonly joint: 'knee' | 'elbow';
+    readonly range: Range;
+} | {
+    readonly kind: 'cone';
+    readonly cone: number;
+} | {
+    readonly kind: 'euler';
+    readonly pitch?: Range | undefined;
+    readonly yaw?: Range | undefined;
+    readonly roll?: Range | undefined;
+};
+```
+
+### `jointLimits` (function)
+
+```ts
+function jointLimits(limits: RigLimits): ReadonlyMap<number, JointLimit>;
+```
+
 ### `JOINTS` (const)
 
 ```ts
@@ -515,6 +611,18 @@ const lerp: (a: number, b: number, k: number) => number;
 
 ```ts
 const lerp3: (a: V3, b: V3, k: number) => V3;
+```
+
+### `LimbId` (type)
+
+```ts
+type LimbId = 'footL' | 'footR' | 'handL' | 'handR';
+```
+
+### `limitExcess` (function)
+
+```ts
+function limitExcess(q: Q, limit: JointLimit | undefined): number;
 ```
 
 ### `Lock` (interface)
@@ -588,6 +696,12 @@ interface Measure {
 function measure(input: Partial<Sliders>): Measure;
 ```
 
+### `mirror` (function)
+
+```ts
+function mirror(pose: PoseDef): PoseDef;
+```
+
 ### `mmul` (function)
 
 ```ts
@@ -634,6 +748,21 @@ type Piece = {
 };
 ```
 
+### `PoleId` (type)
+
+```ts
+type PoleId = 'kneeL' | 'kneeR' | 'elbowL' | 'elbowR';
+```
+
+### `PoleTarget` (interface)
+
+```ts
+interface PoleTarget {
+    readonly dir: Vec3;
+    readonly space?: Space | undefined;
+}
+```
+
 ### `Pose` (interface)
 
 ```ts
@@ -645,10 +774,52 @@ interface Pose {
 }
 ```
 
+### `PoseDef` (interface)
+
+```ts
+interface PoseDef {
+    readonly about?: string | undefined;
+    readonly effectors: Readonly<Partial<Record<EffectorId, EffectorTarget>>>;
+    readonly poles?: Readonly<Partial<Record<PoleId, PoleTarget>>> | undefined;
+    readonly fk?: Readonly<Partial<Record<Joint, Vec3>>> | undefined;
+    readonly root?: {
+        readonly pos?: Vec3 | undefined;
+        readonly yaw?: number | undefined;
+    } | undefined;
+}
+```
+
+### `PoseProblem` (interface)
+
+```ts
+interface PoseProblem {
+    readonly path: readonly (string | number)[];
+    readonly message: string;
+}
+```
+
+### `poseProblems` (function)
+
+```ts
+function poseProblems(pose: PoseDef, skeleton?: Skeleton): PoseProblem[];
+```
+
+### `poseSchema` (const)
+
+```ts
+const poseSchema: z.ZodType<PoseDef>;
+```
+
 ### `position` (const)
 
 ```ts
 const position: (m: M) => V3;
+```
+
+### `printPose` (function)
+
+```ts
+function printPose(pose: PoseDef): string;
 ```
 
 ### `Q` (type)
@@ -688,6 +859,21 @@ interface Range {
     readonly min: number;
     readonly max: number;
 }
+```
+
+### `Reach` (interface)
+
+```ts
+interface Reach {
+    readonly ok: boolean;
+    readonly error: number;
+}
+```
+
+### `REFERENCE_SKELETON` (const)
+
+```ts
+const REFERENCE_SKELETON: Skeleton;
 ```
 
 ### `restPose` (function)
@@ -758,6 +944,12 @@ interface Rope {
 
 ```ts
 const rotationOf: (m: M) => R3;
+```
+
+### `roundPoseNumber` (function)
+
+```ts
+function roundPoseNumber(value: number): number;
 ```
 
 ### `scale` (const)
@@ -850,6 +1042,45 @@ interface Sliders {
 const smooth: (k: number) => number;
 ```
 
+### `solve` (function)
+
+```ts
+function solve(skeleton: Skeleton, base: Pose, targets: Targets, limits: RigLimits): Solved;
+```
+
+### `Solved` (interface)
+
+```ts
+interface Solved {
+    readonly pose: Pose;
+    readonly world: M[];
+    readonly report: SolveReport;
+}
+```
+
+### `SolveReport` (interface)
+
+```ts
+interface SolveReport {
+    readonly reached: Readonly<Partial<Record<EffectorId | 'aim', Reach>>>;
+    readonly limited: readonly Joint[];
+}
+```
+
+### `Space` (type)
+
+```ts
+type Space = 'root' | 'chest';
+```
+
+### `SpaceContext` (interface)
+
+```ts
+interface SpaceContext {
+    readonly chest?: M | undefined;
+}
+```
+
 ### `Stand` (interface)
 
 ```ts
@@ -930,6 +1161,23 @@ function swatchColourProblems(swatches: Readonly<Record<string, Pick<Swatch, 'co
 const swatchSchema: z.ZodType<Swatch>;
 ```
 
+### `swingAngle` (function)
+
+```ts
+function swingAngle(q: Q): number;
+```
+
+### `Targets` (interface)
+
+```ts
+interface Targets {
+    readonly effectors: Readonly<Partial<Record<EffectorId, EffectorTarget>>>;
+    readonly poles: Readonly<Partial<Record<PoleId, PoleTarget>>>;
+    readonly aim: readonly AimTarget[];
+    readonly pins: Readonly<Partial<Record<LimbId, Vec3>>>;
+}
+```
+
 ### `transpose3` (function)
 
 ```ts
@@ -946,4 +1194,10 @@ function twoBoneIK(s: Skeleton, pose: Pose, world: readonly M[], a: number, b: n
 
 ```ts
 type V3 = [number, number, number];
+```
+
+### `Vec3` (type)
+
+```ts
+type Vec3 = readonly [number, number, number];
 ```

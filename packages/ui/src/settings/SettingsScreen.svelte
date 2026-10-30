@@ -102,8 +102,11 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
     height: 100%;
   }
 
+  /* Tabs too wide for one row (a long language on a narrow dialog) wrap to a second, whole and reachable, rather than
+     widening the dialog past the screen. */
   .af-settings__tabs {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
   }
 
@@ -123,8 +126,11 @@ const current = $derived(tabs.find((tab) => tab.id === chosen) ?? tabs[0])
     flex: 1 1 auto;
   }
 
+  /* One column the list's width: a group's widest row (a long language's words) wraps or gives way inside it, rather
+     than widening the column past the list's side, where its options would be cut. */
   .af-settings__sections {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
   }
 

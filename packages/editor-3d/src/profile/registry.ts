@@ -13,6 +13,14 @@ export function profiles(): readonly LevelProfile<unknown>[] {
   return PROFILES
 }
 
+/**
+ * Whether a level of this profile can belong to a facility file (`facility.json`, its own codec, no profile): only a
+ * Last Light blockout does. The app looks for one beside such a level, so World can show the wings it belongs to.
+ */
+export function hasFacility(profile: LevelProfile<unknown>): boolean {
+  return profile === (lastLightProfile as LevelProfile<unknown>)
+}
+
 export type Detected = { readonly profile: LevelProfile<unknown> } | { readonly reason: string }
 
 const NOT_A_LEVEL =

@@ -2,15 +2,28 @@
 // room and out of every box, each nav edge is clear by 0.3 m with every door open, and a walk from the spawn gets
 // within reach of every hotspot (the scene tests' rule). The sentences, the numbers and the order are Last Light's;
 // each problem also says where it is.
-import type { Blockout } from '../../format/blockout.schema'
+import type { Blockout, NavEdge } from '../../format/blockout.schema'
 import type { Box, Expanded } from '../../format/expand'
 import type { Point } from '../../format/sector.schema'
-import { clear, navWorld, nearestNode, openDoors } from '../../geometry/nav'
+import { clear, type NavWorld, navWorld, nearestNode, openDoors } from '../../geometry/nav'
 import { type ResolvedMap, sectorAt } from '../../geometry/sectors'
 import { entitySelection, type Locator, locators, type Problem, place, sectorSelection } from '../check'
 
 /** How far from a wall or a box a walk, and a place to stand, must be. */
 const MARGIN = 0.3
+
+/**
+ * The sentence for an edge a walk cannot take, by the margin, with every door open; nothing for a clear one, or one to
+ * a node that is not there (that is `ids`'). The nav edge edits (ED3D.7c) refuse with it too.
+ */
+export function unclearEdge(world: NavWorld, edge: NavEdge): string | undefined {
+  const [a, b] = edge
+  const from = world.nodes[a]
+  const to = world.nodes[b]
+  return from && to && !clear(world, from, to, openDoors(world), MARGIN)
+    ? `edge ${a}–${b} is not clear by ${MARGIN} m with the doors open`
+    : undefined
+}
 
 export function navProblems(blockout: Blockout, expanded: Expanded, map: ResolvedMap): Problem[] {
   const world = navWorld(map, expanded)
@@ -51,15 +64,13 @@ export function navProblems(blockout: Blockout, expanded: Expanded, map: Resolve
   }
 
   // An edge to a node that is not there is `ids`' to report.
-  for (const [a, b] of expanded.edges) {
+  for (const edge of expanded.edges) {
+    const [a, b] = edge
+    const message = unclearEdge(world, edge)
     const from = expanded.nodes[a]
     const to = expanded.nodes[b]
-    if (from && to && !clear(world, from, to, open, MARGIN))
-      problems.push({
-        message: `edge ${a}–${b} is not clear by ${MARGIN} m with the doors open`,
-        locator: nodePlace(a, from),
-        related: locators(nodePlace(b, to)),
-      })
+    if (message !== undefined && from && to)
+      problems.push({ message, locator: nodePlace(a, from), related: locators(nodePlace(b, to)) })
   }
 
   const { spawn } = expanded
