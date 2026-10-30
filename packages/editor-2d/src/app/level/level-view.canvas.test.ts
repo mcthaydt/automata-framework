@@ -14,8 +14,8 @@ import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { memoryWorkspace } from '../../testing/memory-workspace'
 import { createTestClock } from '../../testing/test-clock'
-import { createDocumentController } from '../document/document-controller'
 import DocumentScreen from '../document/DocumentScreen.svelte'
+import { createDocumentController } from '../document/document-controller'
 import { createEditorApp, type OpenDocument } from '../editor-app'
 import { createAppProfiles } from '../profiles'
 
@@ -69,7 +69,9 @@ function chooseLayer(name: string): void {
   const row = [...document.querySelectorAll<HTMLElement>('[role="option"]')].find(
     (option) => option.querySelector('.label')?.textContent === name,
   )
-  ;(row?.querySelector('button') as HTMLElement).click()
+  const button = row?.querySelector<HTMLElement>('button')
+  if (button === null || button === undefined) throw new Error(`no layer ${name}`)
+  button.click()
 }
 
 const project = (document: OpenDocument): Project => document.history.state as Project
