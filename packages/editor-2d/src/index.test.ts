@@ -48,6 +48,23 @@ describe('editor-2d entry', () => {
     for (const member of functions) expect(member).toBeTypeOf('function')
   })
 
+  it('exports the world and level commands', () => {
+    const functions = [
+      editor2d.addLevel,
+      editor2d.removeLevel,
+      editor2d.duplicateLevel,
+      editor2d.setLevelField,
+      editor2d.setLevelDepth,
+      editor2d.moveLevelInWorld,
+      editor2d.placeLevel,
+      editor2d.resizeLevel,
+      editor2d.resizeLevelLoss,
+      editor2d.setWorldLayout,
+      editor2d.worldNeighbours,
+    ]
+    for (const member of functions) expect(member).toBeTypeOf('function')
+  })
+
   it('paints and auto-tiles through nothing but the entry', () => {
     const ground = editor2d.paintRect(editor2d.Grid.empty(5, 3), { x: 0, y: 1 }, { x: 4, y: 2 }, 1)
     const rules = editor2d.compileRules([
