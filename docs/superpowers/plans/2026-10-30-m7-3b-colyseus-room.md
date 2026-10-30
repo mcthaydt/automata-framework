@@ -11,7 +11,7 @@
   `apps/server/src/{colyseus-app,colyseus-server,drain,main}.ts`, `tests/server/{drain,colyseus-server}.test.ts`,
   `tests/server/rooms/race-room-{lifecycle,reconnect,drain,replay,cpus,clock-hold}.test.ts` and
   `tests/server/support/colyseus-harness.ts`.
-- **Status:** planned.
+- **Status:** implemented and checked locally; Plus CI pending; not reviewed.
 
 ## Scope
 
@@ -67,12 +67,15 @@ setting is unchanged.
 - `src/game/server-game.ts` + test: `BotPolicy`, `ServerGameDef`, `ServerDef`, `defineServer`, `ROOM_SOURCE`.
 - `src/game/server-config.ts`: `Bucket`, `ServerLimits`, `ServerConfig`, `RoomLogEvent`.
 - `src/rooms/clock-hold.ts` + test: `ClockName`, `holdAllowed`, `heldGraceSeconds`, `pushHeldDeadlines`.
-- `src/room/room-engine.ts`, `room-seats.ts`, `room-messages.ts`, `room-replay.ts` + tests: the plain room.
-- `src/room/automata-room.ts`, `room-info.schema.ts`: the Colyseus adapter and its info state.
+- `src/room/room-engine.ts`, `room-types.ts`, `room-messages.ts`, `replay-compression.ts` + tests
+  (`room-engine`, `room-engine-seats`, `room-engine-replay`): the plain room.
+- `src/room/automata-room.ts`, `room-info.schema.ts`, `presence-code-store.ts` (+ test): the Colyseus adapter, its
+  info state and the room-code claim on Colyseus Presence.
 - `src/server/drain.ts` + test: `drainRooms` (Effect `Clock`), `drainOnSignal`.
 - `src/server/start-server.ts` + test: `startServer`, `createServerRuntime`, `ServerStartError`, `tickClockFrom`.
 - `src/testing/index.ts`, `room-driver.ts` + test: the driver.
-- `src/room/automata-room.test.ts` and `src/test-support/colyseus-harness.ts`: the `@colyseus/testing` suite.
+- `src/room/automata-room.test.ts` and `src/test-support/colyseus-harness.ts`: the `@colyseus/testing` suite;
+  `src/test-support/{fixture-game,engine-harness}.ts`: the walking game and the engine's fake clients.
 
 ## Interfaces
 
@@ -152,8 +155,70 @@ export function createRoomDriver(room: DrivableRoom): RoomDriver   // stopClock,
 `pnpm format`, `pnpm check` (lint, typecheck, boundaries, root tooling tests with the F1 boundary test over
 `packages/server`, every package's `test:unit`, the Colyseus suite included under its own timeout). Pending: Plus CI.
 
+## As built (deviations)
+
+- **`ServerGameDef.ended`** is added: `(view, events) => boolean`, asked after each tick of play. §4.3's sketch leaves
+  the end to "the game" and gives the room no way to hear it; without it a game plays until its room closes.
+- **Play again is `ready: true` in an ended room.** Net's wire has no play-again message; a draining room closes on
+  it instead of starting over (FloorFifty closed a draining room when it went back to its lobby).
+- **Reload versus reconnect.** Colyseus gives the room no way to tell a reloaded client (`NetRoom.resume`) from a
+  transport reconnect. The room's rule: the first command after a return numbered 0 restarts the seat's numbering
+  (`InputQueue.forget`, M7.3a's obligation); any other continues it. M7.5a's client must therefore number from 0
+  after a reload and, after a transport reconnect, resend only what the next snapshot has not acked.
+- **Lobbies are told to move by the close code**, Colyseus's `SERVER_SHUTDOWN` (4001), which the client reads as
+  `SERVER_UPDATING`: net's wire has no unsolicited error message. Refused matchmaking (`onAuth`, `onCreate`) carries
+  the net code first in its message (`SERVER_BUSY: …`), as FloorFifty's did.
+- **The wire travels as JSON text** on `NET_CHANNEL` (so net's parser measures it before parsing), binary on
+  `NET_BYTES_CHANNEL` right after its `snap` or `replay` header. Net gains `ROOM_NAME` and the two channels.
+- **Room sources and order.** The room's own commands (`seat.join`, `seat.leave`, the game's spawns) use sim source
+  255 (`ROOM_SOURCE`) with the room's own sequence; bots and people use their seat. Bots decide on the last tick's
+  state and their commands are taken with the people's on the same tick ("after inputs are taken" in effect: one
+  `take`, seats in order). Acks cover every seat's taken commands.
+- **Recording.** A room records from creation, so its first replay holds every seat it seated; play again starts a
+  new recording from where the last game left the sim. Between the end and play again the sim steps unrecorded.
+- **Every room is public in its lobby.** Quick match is offered rooms in the lobby only; `NetRoom.create({ private })`
+  needs a `JoinOptions` field net does not have (M7.5a). No hash comparison yet: JoinOptions is parsed strictly and
+  its hashes wait for M7.4a's version gate.
+- **Clocks.** The room's tick clock reads Effect's `Clock` and wakes on a Node timer (`tickClockFrom`); the Colyseus
+  tests stop the room's clock and step by hand. The drain polls on Effect's `Clock` (TestClock in its tests).
+- **Presence.** Colyseus's single-process `LocalPresence` answers `sadd` with nothing, so the code claim goes through
+  `presenceCodeStore`, which reads the set's size on either side of the add (synchronous there).
+- **Limits.** `maxRooms` (`SERVER_BUSY`) and `commandsPerSeat` (the input meter) are enforced; the rest are config
+  for M7.4a. `startServer` refuses a config without a room cap or an origin list (`ServerStartError`); M7.4b's process
+  safety reads them from the environment. `config.log` receives §4.5's events (`room.created`, `room.disposed`,
+  `seat.joined`, `seat.left`, `refused`, `tick.slow`, `input.late`, `drain.started`, `drain.done`); nothing writes
+  lines yet.
+- **Pings** are answered with integer slack (net's schema); a probe at tick -1 is measured against tick 0.
+
+## Ported and dropped
+
+- **Ported (generic):** `race-room.ts`' Colyseus lifecycle (create with the cap and the code, auth before a seat,
+  join, drop with the hold taken before the drop shows, reconnect re-announced, leave, dispose that tolerates a
+  half-built room, abandonment and the first client's grace, listing, drain), `race-room-commands.ts`' error
+  boundary, ledger answers and ping bound, `drain.ts` (wait, cap, one drain per SIGTERM, exit codes),
+  `colyseus-server.ts`' listener, `gracefullyShutdown: false` and drain sequence, `room-driver.ts`' real-path
+  driving and reading, `clock-hold.ts` (the countdown and dropped seats), `replay-recorder.ts`' feeding rule.
+- **Dropped:** the race state, Planck, projection, select, characters, colours, access, modes and laps, CPU driving
+  and public fill, the simulation-invariant halt, telemetry and its endpoint, `/content`, `/health`, `/ready`,
+  `security.txt` and the gates (M7.4a/b), build facts and the version verdict (M7.4a), the HTTP driver endpoint and
+  its token (the driver takes a room), FloorFifty's replay format and deflate (AF's `createRecorder`, `packReplay`).
+- **Tests dropped:** FloorFifty's race-specific room cases (select, colours, characters, song step, quick-match fill,
+  device class, events order, invariant halt), its telemetry and content-route cases, and the protocol-version cases
+  (M7.4a's version gate).
+
 ## Execution log
 
 | Date | Step | Evidence |
 |---|---|---|
 | 2026-10-30 | Plan | This file; Colyseus pins and dates from `npm view <pkg> time --json` |
+| 2026-10-30 | Pins | FloorFifty's lockfile versions, all over 14 days old; new transitives resolved with a 14-day minimum age for this install only |
+| 2026-10-30 | net room contract | `room.test.ts` red (`ROOM_NAME` undefined), then 3 of 3 |
+| 2026-10-30 | sim-view, server-game, clock-hold | 4, 9 and 4 cases red (`… is not a function`), then green |
+| 2026-10-30 | room engine (play) | 15 cases red (`RoomEngine is not a constructor`), then green (one off-by-one in a test's stamped tick; the countdown now ends at the end of a step, so play takes the tick it ends on) |
+| 2026-10-30 | room engine (seats, replay, SV-e, drain, hold) | 18 cases written after the engine: 4 seat cases failed on the tests' tick counts (the grace is 60 ticks from the drop) and were corrected; 2 replay cases failed and one was a defect: a draining room's Play again started a countdown, and now closes the room |
+| 2026-10-30 | drain | 6 cases red (no module), then green on TestClock |
+| 2026-10-30 | start-server, Colyseus room | Written ahead of their tests, then held to them: 7 and 8 cases red against stubs (a dying `createServerRuntime`; a room that never seats), then green. One test fixed: at the drain cap the server shuts every room, so "plays on while draining" asserts before the cap |
+| 2026-10-30 | presence, driver | 2 and 5 cases red (no function), then green |
+| 2026-10-30 | Listing, grace through Colyseus | 2 integration cases added; the listing case first passed for the wrong reason (a full room is locked), rewritten on a 3-seat room, red (`REFUSED: this room is already playing`), then green with `syncListing` |
+| 2026-10-30 | Counts | new: server-game 9, sim-view 4, clock-hold 4, room-engine 15, room-engine-seats 9, room-engine-replay 9 (SV-e included), presence-code-store 2, drain 6, start-server 7, automata-room 10, room-driver 5 (80); server 180 in all (M7.3a's 100); net room contract 3 |
+| 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint, typecheck, boundaries 26 files 0 findings, root 157, net 89, physics 71, server 180 (server suite three runs in a row, 180 each, about 5 s) |
