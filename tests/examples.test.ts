@@ -6,16 +6,16 @@ import { examplesData } from './helpers/page-data'
 
 describe('Examples Gallery', () => {
   it('renders category filter and active demo code', () => {
-    const { getByText, getAllByText } = render(ExamplesPage, { props: { data: examplesData('renderer-2d') } })
+    const { getByText, getAllByText } = render(ExamplesPage, { props: { data: examplesData('bodies-2d') } })
     expect(getByText(/All Examples/i)).toBeTruthy()
-    expect(getAllByText(/Renderer: 2D PixiJS/i).length).toBeGreaterThan(0)
+    expect(getAllByText(/Physics: bodies 2D/i).length).toBeGreaterThan(0)
   })
 
   it('DemoRunner renders container with controls and iframe element', () => {
     const { getByTestId, getByLabelText } = render(DemoRunner, {
       props: {
-        src: '/demos/render-pixi/renderer-2d/index.html',
-        title: 'Renderer: 2D PixiJS',
+        src: '/demos/physics/bodies-2d/index.html',
+        title: 'Physics: bodies 2D',
       },
     })
     expect(getByTestId('demo-runner-container')).toBeTruthy()
@@ -28,7 +28,7 @@ describe('Examples Gallery', () => {
 // headless WebKit once nothing else on the page was changing: the request is neither granted nor refused. A button
 // that answers nothing looks dead, so the page says when the browser has not started fullscreen after a second.
 describe('DemoRunner fullscreen button', () => {
-  const props = { src: '/demos/render-pixi/renderer-2d/index.html', title: 'Renderer: 2D PixiJS' }
+  const props = { src: '/demos/physics/bodies-2d/index.html', title: 'Physics: bodies 2D' }
   const setup = (requestFullscreen: (() => Promise<void>) | undefined) => {
     const view = render(DemoRunner, { props })
     const container = view.getByTestId('demo-runner-container') as unknown as { requestFullscreen?: () => Promise<void> }

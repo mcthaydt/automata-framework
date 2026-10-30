@@ -14,7 +14,7 @@ const root = resolve(import.meta.dirname, '..')
 
 describe('the examples gallery', () => {
   it('does not start the demo until Play is pressed', async () => {
-    const demo = getDemosCatalog().find(item => item.slug === 'renderer-2d')!
+    const demo = getDemosCatalog().find(item => item.slug === 'bodies-2d')!
     const view = render(ExamplesPage, { props: { data: examplesData(demo.slug) } })
     expect(view.container.querySelector('iframe')).toBeNull()
     expect(view.queryByRole('button', { name: 'Stop demo' })).toBeNull()
@@ -24,24 +24,23 @@ describe('the examples gallery', () => {
   })
 
   it('shows the demo’s preview image while it waits', () => {
-    const view = render(ExamplesPage, { props: { data: examplesData('renderer-2d') } })
-    expect(view.container.querySelector('img.demo-poster')?.getAttribute('src')).toBe('/previews/renderer-2d.jpg')
+    const view = render(ExamplesPage, { props: { data: examplesData('bodies-2d') } })
+    expect(view.container.querySelector('img.demo-poster')?.getAttribute('src')).toBe('/previews/bodies-2d.jpg')
   })
 
   it('still offers Play for a demo with no preview image yet', async () => {
-    const view = render(ExamplesPage, { props: { data: examplesData('boot-and-flow') } })
+    const view = render(ExamplesPage, { props: { data: examplesData('ui-primitives') } })
     expect(view.container.querySelector('img.demo-poster')).toBeNull()
     expect(view.container.querySelector('iframe')).toBeNull()
     await fireEvent.click(view.getByRole('button', { name: 'Play demo' }))
-    expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe('/demos/runtime/boot-and-flow/index.html')
+    expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe('/demos/ui/primitives/index.html')
   })
 })
 
 describe('demoPoster', () => {
   it('names the preview a demo has, and nothing for a demo without one', () => {
     expect(demoPoster('base-2d')).toBe('/previews/emberwick.jpg')
-    expect(demoPoster('renderer-2d')).toBe('/previews/renderer-2d.jpg')
-    expect(demoPoster('boot-and-flow')).toBeUndefined()
+    expect(demoPoster('bodies-2d')).toBe('/previews/bodies-2d.jpg')
     expect(demoPoster('ui-primitives')).toBeUndefined()
     expect(demoPoster('no-such-demo')).toBeUndefined()
   })

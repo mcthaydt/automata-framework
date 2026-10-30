@@ -125,6 +125,10 @@ export async function deadButtons(page: Page): Promise<string[]> {
   for (let index = 0; index < count; index++) {
     const button = page.locator('button:visible').nth(index)
     if (!(await button.isVisible()) || !(await button.isEnabled())) continue
+    // WebKit 26 still gives a box to the content of a closed <details> that holds an open one, so Playwright counts its
+    // buttons visible though a reader cannot see or reach them (the source tree's collapsed folders on /examples). The
+    // browser's own checkVisibility() knows better.
+    if (await button.evaluate(element => element.checkVisibility() === false)) continue
     if (await button.evaluate(element => element.getAttribute('aria-pressed') === 'true' || element.getAttribute('aria-selected') === 'true' || element.hasAttribute('aria-current'))) continue
     const label = ((await button.getAttribute('aria-label')) ?? (await button.innerText())).trim().replace(/\s+/g, ' ')
     await page.evaluate(() => {
