@@ -553,6 +553,12 @@ interface ContentTextOptions {
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
 ```
 
+### `endonymOf` (function)
+
+```ts
+function endonymOf(tag: string): string;
+```
+
 ### `hasRawText` (function)
 
 ```ts

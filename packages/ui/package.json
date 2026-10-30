@@ -49,6 +49,9 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
     "build": "svelte-package -i src -o dist --tsconfig tsconfig.package.json && tsdown -c tsdown.dts.config.ts && node build/finish-dist.ts"
   },
+  "dependencies": {
+    "@mcthaydt/automata-content": "workspace:*"
+  },
   "peerDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
     "svelte": "^5.57.1"
@@ -59,7 +62,6 @@
     }
   },
   "devDependencies": {
-    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-testing": "workspace:*",
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@sveltejs/package": "3.0.0",
