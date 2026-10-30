@@ -1,4 +1,10 @@
-import { type ProjectStore, type StoredEntry, toBytes, type WriteResult } from './project-store'
+import {
+  expectationProblem,
+  type ProjectStore,
+  type StoredEntry,
+  toBytes,
+  type WriteResult,
+} from './project-store'
 import { assertStorePath, assertStorePrefix, comparePaths } from './store-path'
 
 interface MemoryFile {
@@ -35,11 +41,8 @@ export function createMemoryStore(options: { now?: () => number } = {}): Project
     async write(path, data, expected): Promise<WriteResult> {
       assertStorePath(path)
       const existing = files.get(path)
-      if (expected !== undefined && existing?.mtime !== expected.mtime) {
-        const message =
-          existing === undefined ? 'The file no longer exists.' : 'The file changed since it was opened.'
-        return { ok: false, reason: 'conflict', message }
-      }
+      const problem = expectationProblem(expected, existing?.mtime)
+      if (problem !== undefined) return { ok: false, reason: 'conflict', message: problem }
       const mtime = existing === undefined ? now() : Math.max(now(), existing.mtime + 1)
       files.set(path, { data: toBytes(data), mtime })
       return { ok: true, mtime }

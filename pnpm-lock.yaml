@@ -583,6 +583,9 @@ importers:
 
   packages/editor-suite:
     dependencies:
+      '@mcthaydt/automata-editor-kit':
+        specifier: workspace:*
+        version: link:../editor-kit
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0

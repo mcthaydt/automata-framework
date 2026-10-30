@@ -187,11 +187,11 @@ interface ProjectStore {
   readonly kind: 'memory' | 'opfs' | 'folder' | 'download'
   list(prefix?: string): Promise<StoredEntry[]>
   read(path: string): Promise<Uint8Array | undefined>
-  write(path: string, data: Uint8Array | string, expected?: { mtime: number }): Promise<WriteResult>
+  write(path: string, data: Uint8Array | string, expected?: { mtime: number } | 'absent'): Promise<WriteResult>   // 'absent': EDS.1b
   remove(path: string): Promise<void>
   watch?(path: string, listener: () => void): () => void
 }
-type WriteResult = { ok: true; mtime: number } | { ok: false; reason: 'conflict' | 'denied' | 'quota' | 'io'; message: string }
+type WriteResult = { ok: true; mtime: number } | { ok: false; reason: 'conflict' | 'denied' | 'quota' | 'io' | 'policy'; message: string }   // 'policy': EDS.1b
 ```
 
 - `memory` (tests), `opfs` (default on every browser incl. iPad Safari), `folder` (File System Access, Chromium desktop, handles persisted in IndexedDB and re-permissioned on demand), `download` (write-only: browser download, or `navigator.share({ files })` on iPadOS, or clipboard).
@@ -200,7 +200,7 @@ type WriteResult = { ok: true; mtime: number } | { ok: false; reason: 'conflict'
 
 **As built (EDK.5, `packages/editor-kit/src/storage/`; the [plan](../plans/2026-10-23-edk-5-storage.md) has the reasoning):**
 
-- **Errors.** `write` returns a `WriteResult`; `list`, `read` and `remove` reject with a `StorageError` whose `reason` is `denied`, `quota` or `io`. A path is relative and `/`-separated, with no empty, `.` or `..` part; a bad path rejects with `RangeError`. `list(prefix)` is a plain string prefix, sorted by code unit. A file's `mtime` is the store's version token for it, in epoch milliseconds: it changes with every write and never goes back. For the memory store it follows the clock; for a handle store it is the file's `lastModified`, except where the platform clock would repeat that for different bytes, where it is one more than the last token the store gave for that path (EDK.6a). `expected.mtime` for a file that does not exist is a `conflict`.
+- **Errors.** `write` returns a `WriteResult`; `list`, `read` and `remove` reject with a `StorageError` whose `reason` is `denied`, `quota`, `io` or `policy` (a store with rules of its own, the editor suite's workspace; no kit adapter gives it, EDS.1b). A path is relative and `/`-separated, with no empty, `.` or `..` part; a bad path rejects with `RangeError`. `list(prefix)` is a plain string prefix, sorted by code unit. A file's `mtime` is the store's version token for it, in epoch milliseconds: it changes with every write and never goes back. For the memory store it follows the clock; for a handle store it is the file's `lastModified`, except where the platform clock would repeat that for different bytes, where it is one more than the last token the store gave for that path (EDK.6a). `expected.mtime` for a file that does not exist is a `conflict`; `expected: 'absent'` for a file that exists is a `conflict` too (EDS.1b).
 - **Handle stores.** OPFS and the picked folder share one implementation over structural directory, file and writable types (not `lib.dom`), so the fakes in `testing/` and the browser run the same contract (`describeProjectStore`; the real OPFS run is `storage.layout.test.ts`). A write goes through `createWritable` and is aborted if any step fails, so a failed write leaves the old file.
 - **Workspace.** `openWorkspace()` opens `workspace` (documents) and `journal` (autosaves) in OPFS and probes it with a write, read-back and remove, because some browsers open OPFS and then refuse every write. Any failure gives memory stores, `persistent: false` and the reason (EK-f). `Workspace.exports` is the `download` store: download, `share` (the iPadOS share sheet, `canShare`) and `copyText`.
 - **Folder.** `pickFolder` and `restoreFolder` keep handles in a `HandleVault` (IndexedDB, keyed by folder name). Every call asks for permission first; a lapsed permission is `denied` and the shell offers Re-grant (`requestAccess`).

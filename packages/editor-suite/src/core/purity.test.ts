@@ -4,6 +4,8 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 const ALLOWED_IMPORTS = new Set(['zod', 'smol-toml'])
+/** The kit's port shapes, as types only: they are erased, so they bring no code (and no Svelte) to run. */
+const TYPE_ONLY_IMPORTS = new Set(['@mcthaydt/automata-editor-kit/ports'])
 const FORBIDDEN =
   /\b(?:Date|setTimeout|setInterval|performance|Math\.random|document|window|process|globalThis)\b/
 
@@ -20,11 +22,22 @@ describe('editor-suite/core is headless', () => {
   })
 
   for (const name of sources) {
-    it(`${name} imports only zod, smol-toml and its own files, and touches no clock, DOM or process`, () => {
+    it(`${name} imports only zod, smol-toml, its own files and the kit's port types, and touches no clock, DOM or process`, () => {
       const text = code(readFileSync(new URL(name, import.meta.url), 'utf8'))
-      const imports = [...text.matchAll(/\bfrom\s+'([^']+)'/g)].map((match) => match[1] ?? '')
-      for (const specifier of imports) {
-        expect(specifier.startsWith('./') || ALLOWED_IMPORTS.has(specifier), specifier).toBe(true)
+      for (const match of text.matchAll(/\bimport\s+(type\s+)?[^;]*?\bfrom\s+'([^']+)'/g)) {
+        const specifier = match[2] ?? ''
+        const allowed =
+          specifier.startsWith('./') ||
+          ALLOWED_IMPORTS.has(specifier) ||
+          (TYPE_ONLY_IMPORTS.has(specifier) && match[1] !== undefined)
+        expect(allowed, specifier).toBe(true)
+      }
+      for (const match of text.matchAll(/\bexport\s+(type\s+)?\{[^}]*\}\s*from\s+'([^']+)'/g)) {
+        const specifier = match[2] ?? ''
+        expect(
+          specifier.startsWith('./') || (TYPE_ONLY_IMPORTS.has(specifier) && match[1] !== undefined),
+          specifier,
+        ).toBe(true)
       }
       expect(text.match(FORBIDDEN)?.[0]).toBeUndefined()
     })

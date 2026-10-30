@@ -13,4 +13,4 @@ export {
   type GateRow,
 } from './editors.schema'
 export { globMatch } from './glob'
-export { ALWAYS_NEVER, type FileAccess, fileAccess } from './workspace-policy'
+export { ALWAYS_NEVER, type FileAccess, fileAccess, workspaceFile } from './workspace-policy'

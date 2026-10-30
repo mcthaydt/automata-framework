@@ -1,13 +1,14 @@
 // The Ask as plain TypeScript (ED3D.10a, ED3D spec §5.3 flow 8): a prompt goes to the provider with the selection and a
 // budget, the proposal is read into a copy of the level and shown as a ghost with its check results. No Svelte, DOM or
-// clock in here; the provider is the port of spec §4.4, and without one the Ask is off.
+// clock in here; the provider is the suite's `AskProvider` port (editor-kit `./ports`, editor suite spec §4.3), and
+// without one the Ask is off.
 //
 // A proposal is made for the level the person had when they asked, so it is only ever shown, and only ever accepted,
 // over that level: an edit, an undo or a redo while it is on its way or on show drops it.
+import type { AskProvider } from '@mcthaydt/automata-editor-kit/ports'
 import type { CheckResult } from '../checks/check'
 import { ok } from '../model/edit'
 import type { LevelEditor } from '../model/level-editor'
-import type { AskProvider } from '../ports/ports'
 import { type Geometry, GeometryError, type ProfileContext } from '../profile/level-profile'
 import { problemCount } from './problem-count'
 
@@ -16,6 +17,8 @@ export interface AskOptions {
   readonly provider?: AskProvider | undefined
   /** The tokens a proposal may use: it goes to the provider, and a proposal that used more is refused. */
   readonly budget: number
+  /** The level's path in the workspace: the provider is told which file the proposal is for. */
+  readonly path: string
   /** What the profile's checks may be told about the game that holds the level. */
   readonly context?: ProfileContext | undefined
 }
@@ -197,7 +200,13 @@ export function createAsk<D>(editor: LevelEditor<D>, options: AskOptions): Ask<D
       show({ status: 'asking', prompt: text, ghost: undefined, message: undefined })
       let proposal: Awaited<ReturnType<AskProvider['propose']>>
       try {
-        proposal = await provider.propose(text, scope, options.budget, JSON.stringify(before, null, 2))
+        proposal = await provider.propose({
+          prompt: text,
+          path: options.path,
+          scope,
+          budget: options.budget,
+          document: JSON.stringify(before, null, 2),
+        })
       } catch (error) {
         if (mine === generation)
           fail(text, `the assistant failed: ${error instanceof Error ? error.message : String(error)}`)
