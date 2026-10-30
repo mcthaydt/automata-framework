@@ -8,9 +8,9 @@ import type { EntityKit, Thing } from '../../entities/things'
 import type { Point } from '../../format/sector.schema'
 import { lastLightEntityKit } from '../../profile/last-light-entities'
 import { toyBlockout } from '../../testing/toy-blockout'
-import { PICK_RADIUS } from './plan-pick'
+import { PICK_RADIUS, type PickOptions } from './plan-pick'
 import { PLAN_LIMITS, toScreen } from './plan-viewport'
-import { isThingLayerOff, pickThing, type ThingPickOptions } from './thing-pick'
+import { isThingLayerOff, pickThing } from './thing-pick'
 
 const viewport = createViewport({
   size: { w: 800, h: 600 },
@@ -34,7 +34,7 @@ const thing = (def: string, id: string, x: number, z: number): Thing => ({ def, 
 
 const kitOf = (...things: Thing[]): EntityKit => ({ definitions, things, problems: [] })
 
-const MOUSE: ThingPickOptions = { radius: PICK_RADIUS.mouse }
+const MOUSE: PickOptions = { radius: PICK_RADIUS.mouse }
 
 describe('thing layers', () => {
   it('is off when its sub-layer or the whole Things layer is hidden or locked', () => {
@@ -116,6 +116,9 @@ describe('choosing between things', () => {
   it('takes a point over a box that holds the pointer', () => {
     const kit = kitOf(thing('lamp', 'lamp1', 5.1, 5), thing('crate', 'crate1', 5, 5))
     expect(pickThing(kit, viewport, px({ x: 5, z: 5 }), MOUSE)?.id).toBe('lamp1')
+    // Whichever comes first in the level.
+    const boxFirst = kitOf(thing('crate', 'crate1', 5, 5), thing('lamp', 'lamp1', 5.1, 5))
+    expect(pickThing(boxFirst, viewport, px({ x: 5, z: 5 }), MOUSE)?.id).toBe('lamp1')
   })
 
   it('takes the nearest of two, and the later of two at one distance', () => {

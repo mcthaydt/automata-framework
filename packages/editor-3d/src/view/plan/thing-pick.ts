@@ -12,8 +12,6 @@ import { thingLayer } from '../../model/view-store'
 import { isLayerOff, type PickOptions } from './plan-pick'
 import { toScreen } from './plan-viewport'
 
-export type ThingPickOptions = PickOptions
-
 export interface ThingHit {
   readonly def: string
   readonly id: string
@@ -55,7 +53,7 @@ export function pickThing(
   kit: EntityKit,
   viewport: Viewport2D,
   at: ScreenPoint,
-  options: ThingPickOptions,
+  options: PickOptions,
 ): ThingHit | undefined {
   const definitions = new Map(kit.definitions.map((definition) => [definition.id, definition]))
   let best: { readonly hit: ThingHit; readonly point: boolean } | undefined

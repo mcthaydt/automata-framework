@@ -413,3 +413,254 @@ describe('tapping a thing or nothing', () => {
     expect(editor.selection.ids).toEqual([])
   })
 })
+
+describe('moving by drag', () => {
+  it('moves the thing under the press by the grid-rounded offset as one undo step, selected from the start', () => {
+    const { editor, tool, at } = setup()
+    const heard: string[] = []
+    tool.subscribe(() => heard.push(tool.view.gesture))
+    tool.dragStart(at(11.1, 2.1), at(10.4, 2.1))
+    expect(editor.selection.ids).toEqual(['entity:crate/crate1'])
+    expect(tool.view.gesture).toBe('move')
+    // 0.7 m west rounds to half a metre.
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@10.5,2')
+    tool.drag(at(9.2, 3.4))
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@9,3.5')
+    tool.dragEnd(at(9.2, 3.4), false)
+    expect(tool.view.gesture).toBe('idle')
+    expect(heard).toContain('move')
+    expect(editor.history.undoLabel).toBe('Move crate crate1')
+    editor.history.undo()
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@11,2')
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('keeps the offset of a thing off the grid', () => {
+    const offGrid: AfSector = {
+      ...depot,
+      entities: [{ def: 'crate', id: 'crate1', x: 11.2, z: 2.1, contents: 'tools' }],
+    }
+    const { editor, tool, at } = setup(offGrid)
+    tool.dragStart(at(11.2, 2.1), at(10.2, 3.1))
+    tool.dragEnd(at(10.2, 3.1), false)
+    expect(thingsOf(editor)).toEqual(['crate/crate1@10.2,3.1'])
+  })
+
+  it('takes the fine step with Shift and none with Alt', () => {
+    const { editor, tool, at } = setup()
+    tool.dragStart(at(11, 2), at(10.337, 2, 'mouse', { shift: true }))
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@10.34,2')
+    tool.drag(at(10.337, 2, 'mouse', { alt: true }))
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@10.337,2')
+    tool.dragEnd(at(10.337, 2, 'mouse', { alt: true }), false)
+    expect(editor.history.undoLabel).toBe('Move crate crate1')
+  })
+
+  it('keeps the last accepted place when a run is refused, says why, and clears it on the next accepted run', () => {
+    const { editor, tool, at } = setup()
+    tool.dragStart(at(11, 2), at(12, 2))
+    tool.drag(at(16, 2))
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@12,2')
+    expect(tool.view.refusal).toBe('entity crate1 is outside every sector')
+    tool.drag(at(13, 2))
+    expect(tool.view.refusal).toBeUndefined()
+    tool.dragEnd(at(16, 2), false)
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@13,2')
+    expect(tool.view.refusal).toBeUndefined()
+  })
+
+  it('leaves no step for a cancelled drag, or a drag that ends where it began', () => {
+    const { editor, tool, at } = setup()
+    tool.dragStart(at(11, 2), at(9, 2))
+    tool.dragEnd(at(9, 2), true)
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@11,2')
+    tool.dragStart(at(11, 2), at(9, 2))
+    tool.drag(at(11.1, 2))
+    tool.dragEnd(at(11.1, 2), false)
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@11,2')
+    expect(editor.history.canUndo).toBe(false)
+    expect(tool.view.gesture).toBe('idle')
+  })
+
+  it('does not take a drag from nothing, or from a thing on a sub-layer that is off', () => {
+    const { editor, tool, at } = setup()
+    tool.pick('crate')
+    tool.dragStart(at(3, 3), at(4, 3))
+    expect(tool.view.gesture).toBe('idle')
+    editor.view.toggle('locked', 'things:crate')
+    tool.dragStart(at(11, 2), at(10, 2))
+    tool.drag(at(9, 2))
+    tool.dragEnd(at(9, 2), false)
+    expect(tool.view.gesture).toBe('idle')
+    expect(thingsOf(editor)).toEqual(['spawn/spawn@1,1', 'crate/crate1@11,2'])
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('ends the drag when an undo closes its step', () => {
+    const { editor, tool, at } = setup()
+    tool.pick('crate')
+    tool.tap(at(3, 3))
+    tool.dragStart(at(11, 2), at(10, 2))
+    editor.history.undo()
+    expect(tool.view.gesture).toBe('idle')
+    tool.drag(at(9, 2))
+    tool.dragEnd(at(9, 2), false)
+    expect(thingsOf(editor)[1]).toBe('crate/crate1@11,2')
+  })
+
+  it('does not start while another step is open', () => {
+    const { editor, tool, at } = setup()
+    const other = editor.begin('Something else')
+    tool.dragStart(at(11, 2), at(10, 2))
+    expect(tool.view.gesture).toBe('idle')
+    other.cancel()
+  })
+
+  it('keeps the height of a thing that floats', () => {
+    const lit: AfSector = {
+      ...depot,
+      entityDefs: [{ id: 'lamp', shape: 'point', sit: 'free', fields: [] }],
+      entities: [{ def: 'lamp', id: 'lamp1', x: 2, y: 2.5, z: 2 }],
+    }
+    const { editor, tool, at } = setup(lit)
+    tool.dragStart(at(2, 2), at(3, 2))
+    tool.dragEnd(at(3, 2), false)
+    expect(editor.level.entities).toEqual([{ def: 'lamp', id: 'lamp1', x: 3, y: 2.5, z: 2 }])
+  })
+})
+
+/** The depot with a second crate and a switch whose ref opens crate1, so crate1 cannot go while the switch is there. */
+const wired: AfSector = {
+  ...depot,
+  entityDefs: [
+    ...(depot.entityDefs ?? []),
+    { id: 'switch', shape: 'point', fields: [{ id: 'opens', type: 'ref' }] },
+  ],
+  entities: [
+    ...(depot.entities ?? []),
+    { def: 'crate', id: 'crate2', x: 12, z: 4, contents: 'empty' },
+    { def: 'switch', id: 'sw1', x: 3, z: 2, opens: { target: 'crate1' } },
+  ],
+}
+
+describe('deleting', () => {
+  it('takes the selected thing out as one undo step, and the selection drops it', () => {
+    const { editor, tool } = setup()
+    editor.selection.set(['entity:crate/crate1'])
+    expect(tool.remove()).toBeUndefined()
+    expect(thingsOf(editor)).toEqual(['spawn/spawn@1,1'])
+    expect(editor.history.undoLabel).toBe('Remove crate crate1')
+    expect(editor.selection.ids).toEqual([])
+    editor.history.undo()
+    expect(thingsOf(editor)).toEqual(['spawn/spawn@1,1', 'crate/crate1@11,2'])
+  })
+
+  it('takes several out as one step, and leaves what is not a thing in the selection alone', () => {
+    const { editor, tool } = setup(wired)
+    editor.selection.set(['entity:crate/crate2', 'sector:hall', 'entity:switch/sw1'])
+    expect(tool.remove()).toBeUndefined()
+    expect(thingsOf(editor)).toEqual(['spawn/spawn@1,1', 'crate/crate1@11,2'])
+    expect(editor.history.undoLabel).toBe('Remove 2 things')
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+    editor.history.undo()
+    expect(thingsOf(editor)).toHaveLength(4)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it("is refused with the edit's sentence while something names the thing, and then nothing goes", () => {
+    const { editor, tool } = setup(wired)
+    editor.selection.set(['entity:crate/crate2', 'entity:crate/crate1'])
+    const reason = tool.remove()
+    expect(reason).toMatch(/^crate crate1 is still referenced: /)
+    expect(tool.view.refusal).toBe(reason)
+    expect(thingsOf(editor)).toHaveLength(4)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('answers that a thing must be selected first', () => {
+    const { editor, tool } = setup()
+    expect(tool.remove()).toBe('select a thing first')
+    editor.selection.set(['sector:hall'])
+    expect(tool.remove()).toBe('select a thing first')
+    expect(tool.view.refusal).toBe('select a thing first')
+  })
+
+  it('is refused for a thing on a hidden or locked sub-layer', () => {
+    const { editor, tool } = setup()
+    editor.selection.set(['entity:crate/crate1'])
+    editor.view.toggle('locked', 'things:crate')
+    expect(tool.remove()).toBe('the crate layer is locked')
+    editor.view.set({ locked: [], hidden: ['things'] })
+    expect(tool.remove()).toBe('the crate layer is hidden')
+    expect(thingsOf(editor)).toHaveLength(2)
+  })
+
+  it('does not start while another step is open', () => {
+    const { editor, tool } = setup()
+    editor.selection.set(['entity:crate/crate1'])
+    const other = editor.begin('Something else')
+    expect(tool.remove()).toBeDefined()
+    other.cancel()
+    expect(thingsOf(editor)).toHaveLength(2)
+  })
+})
+
+describe('setting a field', () => {
+  it('sets a field of the one selected thing as one undo step, and clears it with null', () => {
+    const { editor, tool } = setup()
+    editor.selection.set(['entity:crate/crate1'])
+    expect(tool.setField('contents', 'empty')).toBeUndefined()
+    expect(editor.level.entities?.[1]).toMatchObject({ contents: 'empty' })
+    expect(editor.history.undoLabel).toBe('Set contents of crate1')
+    expect(tool.setField('contents', null)).toBeUndefined()
+    expect(editor.level.entities?.[1]).toEqual({ def: 'crate', id: 'crate1', x: 11, z: 2 })
+  })
+
+  it("answers the edit's sentence for a value that does not fit, and changes nothing", () => {
+    const { editor, tool } = setup()
+    editor.selection.set(['entity:crate/crate1'])
+    const reason = tool.setField('contents', 'gold')
+    expect(reason).toMatch(/^entity crate1: /)
+    expect(tool.view.refusal).toBe(reason)
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('answers that one thing must be selected', () => {
+    const { editor, tool } = setup()
+    expect(tool.setField('contents', 'empty')).toBe('select one thing first')
+    editor.selection.set(['entity:crate/crate1', 'entity:spawn/spawn'])
+    expect(tool.setField('contents', 'empty')).toBe('select one thing first')
+    editor.selection.set(['entity:crate/crate1', 'sector:hall'])
+    expect(tool.setField('contents', 'empty')).toBeUndefined()
+  })
+
+  it('is refused for a thing on a locked sub-layer', () => {
+    const { editor, tool } = setup()
+    editor.selection.set(['entity:spawn/spawn'])
+    editor.view.toggle('locked', 'things:spawn')
+    expect(tool.setField('facing', 90)).toBe('the spawn layer is locked')
+  })
+
+  it('makes scrubbing one field one undo step', () => {
+    let now = 0
+    const editor = createLevelEditor({ profile: afSectorProfile, level: depot, now: () => now })
+    const tool = createThingsTool(editor, SIZE)
+    editor.selection.set(['entity:spawn/spawn'])
+    for (const facing of [10, 20, 30]) {
+      now += 50
+      tool.setField('facing', facing)
+    }
+    expect(editor.level.entities?.[0]).toMatchObject({ facing: 30 })
+    editor.history.undo()
+    expect(editor.level.entities?.[0]).toMatchObject({ facing: 0 })
+    expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('clears an earlier refusal when the next action goes in', () => {
+    const { editor, tool } = setup()
+    editor.selection.set(['entity:crate/crate1'])
+    tool.setField('contents', 'gold')
+    tool.setField('contents', 'tools')
+    expect(tool.view.refusal).toBeUndefined()
+  })
+})

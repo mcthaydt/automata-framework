@@ -3,7 +3,7 @@
 - **Task:** ED3D.7b, the second part of ED3D.7 (Things). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.7 (things are instances of entity definitions; the palette lists the definitions), §5.2 (the Things layer has one sub-layer per definition the profile lists; a hidden layer is not drawn and not hit, a locked layer is drawn and not hit; a tool switches its layer on when picked), §5.4 (`thing.add`, `thing.move`, `thing.remove`, `thing.setField`, each one undo step), §6 (the Plan draws entities by their definition's colour and shape). The logic of the Plan view's Things tool as plain TypeScript. No Svelte, DOM, Pixi or clock.
 - **Lane:** editor-3d. **Depends on:** ED3D.7a (#168: `addThing`, `moveThing`, `setThingField`, `removeThing`, `ThingAccess.takenIds`), ED3D.5a (#150: `PlanPointer`, the controller pattern), ED3D.4 (`planViewport`, `toScreen`, `toWorld`, `snapValue`, `stepOf`, `PICK_RADIUS`). All merged.
 - **Status:** Drafted 2026-10-30. Steps are ticked only when their checks pass.
-- **Progress:** 2 of 5 steps.
+- **Progress:** 5 of 5 steps.
 
 ## Why this task exists
 
@@ -44,7 +44,7 @@
 
 ```
 packages/editor-3d/src/model/view-store.ts               thingLayer
-packages/editor-3d/src/view/plan/thing-pick.ts           pickThing, ThingHit, ThingPickOptions, isThingLayerOff
+packages/editor-3d/src/view/plan/thing-pick.ts           pickThing, ThingHit, isThingLayerOff
 packages/editor-3d/src/things/things-tool-controller.ts  createThingsTool, ThingsTool, ThingsToolView, ThingsToolOptions,
                                                          PaletteEntry, ThingPlace
 packages/editor-3d/src/index.ts                          the public entry gains them
@@ -60,9 +60,8 @@ export interface ThingHit {
   readonly at: Point           // the thing's place
   readonly distance: number    // pixels from the pointer to the point or the box's footprint
 }
-export interface ThingPickOptions { readonly radius: number; readonly hidden?: readonly string[]; readonly locked?: readonly string[] }
-export function isThingLayerOff(options: Pick<ThingPickOptions, 'hidden' | 'locked'>, def: string): boolean
-export function pickThing(kit: EntityKit, viewport: Viewport2D, at: ScreenPoint, options: ThingPickOptions): ThingHit | undefined
+export function isThingLayerOff(options: Pick<PickOptions, 'hidden' | 'locked'>, def: string): boolean
+export function pickThing(kit: EntityKit, viewport: Viewport2D, at: ScreenPoint, options: PickOptions): ThingHit | undefined
 
 export interface PaletteEntry {
   readonly def: string; readonly label: string; readonly shape: ThingShape; readonly color: string | undefined
@@ -109,12 +108,14 @@ Tests use the depot (`af-sector/1`: the hall from (0, 0) to (8, 6), the dock fro
   - *Red, by case:* the palette lists the depot's `spawn` and `crate` with their sub-layers and follows `hidden` and `locked` in the view store, and a Last Light level lists its fixed six; `pick` sets `active` and the view's `layer`, takes the sub-layer off `hidden` and keeps a lock, and refuses an unknown definition; a hover over a thing is `hover` and no `place`; a hover on nothing with a definition picked is a `place` at the grid point (Shift fine, Alt free) with the id and `add`, and `none` with the model's sentence where `addThing` refuses (a second spawn, outside every sector); a tap there adds the thing as one undo step and selects it, the next id is `crate3`; the option's id function replaces it; a tap on a hidden or locked sub-layer is refused with its sentence and adds nothing; a tap with nothing picked on nothing clears the selection (not with `additive`); a tap on a thing selects it and with `additive` toggles it; a Last Light hotspot placed floats at its sector's floor; `view` is the same object when nothing changed; `leave` clears the hover and the place; a camera change moves what a hover is over; dropping the active definition when the level loses it.
   - *Expected failure:* the module is missing.
   - *Done 2026-10-30:* red (the module missing, no tests ran), then green (32 tests; `tsc` clean). The place preview also says a hidden or locked sub-layer's sentence; `pick` takes the starting values (decision 4), and a Last Light hotspot without its required values is refused in the values check's sentence.
-- [ ] **3. Moving by drag** (same files).
+- [x] **3. Moving by drag** (same files).
   - *Red, by case:* a drag from a thing moves it by the grid-rounded offset as one step labelled `Move crate crate1`, selected from the start, `gesture` is `move` during it; a thing off the grid keeps its offset; a run out of every sector is refused, the thing stays at the last accepted place and the sentence shows, and clears on the next accepted run; a cancelled drag and a drag back to the start leave no step; a drag from nothing is not taken; a drag on a locked sub-layer is not taken; an undo during the drag ends it; a floating thing keeps its height.
   - *Expected failure:* `dragStart` does nothing.
-- [ ] **4. Delete and set a field** (same files).
+  - *Done 2026-10-30:* red (`tool.dragStart is not a function`, 9 failing), then green (41 tests; `tsc` clean). Ending a drag clears its sentence, as the plan controller's does; a drag does not start while another step is open.
+- [x] **4. Delete and set a field** (same files).
   - *Red, by case:* `remove` takes the selected thing out as one step and the selection drops it; two selected are one step `Remove 2 things`; a referenced thing is refused with the edit's sentence and nothing goes (with two selected, neither goes); nothing selected answers `select a thing first`; a thing on a locked sub-layer is refused; `setField` sets the one selected thing's field as one step, clears it with `null`, answers the edit's sentence for a value that does not fit, and `select one thing first` for none or two; scrubbing a field coalesces into one step through the edit's key.
   - *Expected failure:* `remove` and `setField` do nothing.
+  - *Done 2026-10-30:* red (`remove` and `setField` not functions, 12 failing), then green (53 tests; `tsc` clean). One thing is removed in a session labelled with the edit's own label, more in one labelled `Remove N things`; a second session open makes `remove` answer the history's sentence. Hand mutation over both steps and step 1 (13 mutants: the unhide of `things`, the commit rule, the refusal of a drag run, a point over a box, the later of a tie, the cancel of a refused removal, the additive clear, the undo during a drag, the layer sentence of the preview, dropping a lost definition, the one-thing rule, the layer rule of a field, the selection at a drag's start): all killed after one test was added (a box before a point in the level's order).
 - [ ] **5. Entry, gates and records.**
   - *Run in order:* `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm api-report` (no change: `editor-3d` is private), `pnpm changeset status --since=origin/main`, `node tooling/release/src/check-changesets.ts`; the entry exports the new names (asserted in `index.test.ts`) and `purity.test.ts` covers `src/things`.
 

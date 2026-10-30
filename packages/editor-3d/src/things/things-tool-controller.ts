@@ -10,13 +10,14 @@
 //
 // It lives beside `app/` rather than in it while the shell (ED3D.5b) is built there; it follows the same shape.
 import type { Size, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
-import type { FieldValues } from '@mcthaydt/automata-editor-kit/fields'
+import type { FieldValue, FieldValues } from '@mcthaydt/automata-editor-kit/fields'
 import type { PlanPointer } from '../app/plan-controller'
 import type { ThingShape } from '../entities/thing-def.schema'
 import type { EntityKit } from '../entities/things'
 import type { Point } from '../format/sector.schema'
-import type { LevelEditor } from '../model/level-editor'
-import { addThing } from '../model/thing-edits'
+import type { EditSession, LevelEditor } from '../model/level-editor'
+import { parseSelection } from '../model/selection-ref'
+import { addThing, moveThing, removeThing, setThingField } from '../model/thing-edits'
 import { thingLayer } from '../model/view-store'
 import { PICK_RADIUS, type PickOptions } from '../view/plan/plan-pick'
 import { stepOf } from '../view/plan/plan-snap'
@@ -53,6 +54,8 @@ export interface ThingsToolView {
   readonly hover: ThingHit | undefined
   /** Only with a definition picked and no thing under the pointer. */
   readonly place: ThingPlace | undefined
+  /** `move` while a drag is moving a thing. A drag the tool did not take (it started on nothing) is the shell's to pan. */
+  readonly gesture: 'idle' | 'move'
   /** The sentence the last action was refused with, until the next action. */
   readonly refusal: string | undefined
 }
@@ -77,6 +80,18 @@ export interface ThingsTool {
   leave(): void
   /** Selects the thing under the pointer (`additive` adds or takes off); on nothing, places the picked definition. */
   tap(at: PlanPointer): void
+  /** A press that has moved past the slop: it grabs the thing under `press`; `at` is where the drag has got to. */
+  dragStart(press: PlanPointer, at: PlanPointer): void
+  drag(at: PlanPointer): void
+  /** `cancelled` is a cancelled pointer: nothing is kept. */
+  dragEnd(at: PlanPointer, cancelled: boolean): void
+  /**
+   * Takes the selected things out as one undo step, all or nothing; what is not a thing in the selection stays. Answers
+   * the sentence of the first refusal, else nothing.
+   */
+  remove(): string | undefined
+  /** Sets a field of the one selected thing (`null` clears it); answers the edit's sentence, else nothing. */
+  setField(field: string, value: FieldValue | null): string | undefined
   /** The canvas has a new size: the camera keeps its centre. */
   resize(size: Size): void
   /** Stops following the editor. */
@@ -85,6 +100,18 @@ export interface ThingsTool {
 
 /** Equal as data: a view is a few points and a few names. */
 const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b)
+
+/** A drag moving a thing. The session shows its runs live and is one undo step when it commits. */
+interface Move<D> {
+  readonly session: EditSession<D>
+  /** The level as the drag found it: what the drag is compared with when it ends. */
+  readonly base: D
+  readonly def: string
+  readonly id: string
+  /** The thing's place, and the press, in metres, when the drag began: the thing goes to `from` plus the rounded offset. */
+  readonly from: Point
+  readonly press: Point
+}
 
 /** `<def>N`, the lowest N from 1 that is not taken. */
 function nextId(def: string, taken: readonly string[]): string {
@@ -101,6 +128,7 @@ export function createThingsTool<D>(
   let pointer: PlanPointer | undefined
   let active: { readonly def: string; readonly values: FieldValues } | undefined
   let refusal: string | undefined
+  let move: Move<D> | undefined
 
   /** The things of the live level, read once for each level the editor holds. */
   let read: { readonly level: D; readonly kit: EntityKit } | undefined
@@ -111,6 +139,12 @@ export function createThingsTool<D>(
   }
 
   const currentViewport = (): Viewport2D => planViewport(editor.view.state.camera, size)
+
+  /** A distance in metres rounded to the grid: the fine data step with Shift, not at all with Alt. */
+  const rounded = (value: number, at: PlanPointer): number => {
+    const { step } = stepOf({ grid: editor.view.state.grid, shiftKey: at.shift })
+    return snapValue(value, at.alt === true ? 0 : step)
+  }
 
   const pickOptions = (at: PlanPointer): PickOptions => {
     const { hidden, locked } = editor.view.state
@@ -140,12 +174,10 @@ export function createThingsTool<D>(
       locked: listed('locked', definition.id),
     }))
 
-  /** The pointer rounded to the grid: the fine data step with Shift, not at all with Alt. */
+  /** The pointer rounded to the grid. */
   const placeOf = (at: PlanPointer): Point => {
     const world = toWorld(currentViewport(), at)
-    const { step } = stepOf({ grid: editor.view.state.grid, shiftKey: at.shift })
-    const fine = at.alt === true ? 0 : step
-    return { x: snapValue(world.x, fine), z: snapValue(world.z, fine) }
+    return { x: rounded(world.x, at), z: rounded(world.z, at) }
   }
 
   const idFor = (def: string): string => {
@@ -173,10 +205,13 @@ export function createThingsTool<D>(
     active: undefined,
     hover: undefined,
     place: undefined,
+    gesture: 'idle',
     refusal,
   }
 
   const publish = (): void => {
+    // An undo has closed the drag's session: nothing of it is left to follow.
+    if (move?.session.open === false) move = undefined
     const palette = paletteOf()
     // A definition the level no longer has cannot be placed.
     if (active !== undefined && !palette.some((entry) => entry.def === active?.def)) active = undefined
@@ -186,10 +221,67 @@ export function createThingsTool<D>(
       active === undefined || pointer === undefined || hover !== undefined
         ? undefined
         : placeAt(active, pointer)
-    const next: ThingsToolView = { palette, active: active?.def, hover, place, refusal }
+    const gesture = move === undefined ? 'idle' : 'move'
+    const next: ThingsToolView = { palette, active: active?.def, hover, place, gesture, refusal }
     if (same(view, next)) return
     view = next
     for (const run of [...listeners]) run()
+  }
+
+  /** Runs the grabbed thing to its place plus the pointer's rounded offset. A refusal keeps the last accepted run. */
+  const moveGrabbed = (grabbed: Move<D>, at: PlanPointer): void => {
+    const world = toWorld(currentViewport(), at)
+    const x = grabbed.from.x + rounded(world.x - grabbed.press.x, at)
+    const z = grabbed.from.z + rounded(world.z - grabbed.press.z, at)
+    const result = grabbed.session.run(moveThing({ def: grabbed.def, id: grabbed.id, x, z }))
+    refusal = result.ok ? undefined : result.reason
+  }
+
+  /**
+   * Ends the drag: its step is kept unless it was cancelled or ended with the level as it began. The drag is over before
+   * the history hears of the commit or the cancel.
+   */
+  const endMove = (grabbed: Move<D>, keep: boolean): void => {
+    move = undefined
+    refusal = undefined
+    // A session that is already closed (an undo ended it) ignores both.
+    if (keep && !same(editor.level, grabbed.base)) grabbed.session.commit()
+    else grabbed.session.cancel()
+  }
+
+  /** The things the selection names, as their definition and id. */
+  const selectedThings = (): { readonly def: string; readonly id: string }[] =>
+    editor.selection.ids.flatMap((id) => {
+      const ref = parseSelection(id)
+      return ref?.kind === 'entity' ? [{ def: ref.definition, id: ref.id }] : []
+    })
+
+  /** Shows the sentence an action answered with, or that it went in, and hands the sentence back. */
+  const answer = (sentence: string | undefined): string | undefined => {
+    refusal = sentence
+    publish()
+    return sentence
+  }
+
+  /** The things removed in one session, or the first sentence that refused one (and then none of them goes). */
+  const removeAll = (
+    things: readonly { readonly def: string; readonly id: string }[],
+  ): string | undefined => {
+    const [only] = things
+    const label =
+      things.length === 1 && only !== undefined
+        ? `Remove ${only.def} ${only.id}`
+        : `Remove ${things.length} things`
+    const session = editor.begin(label)
+    for (const thing of things) {
+      const result = session.run(removeThing(thing))
+      if (!result.ok) {
+        session.cancel()
+        return result.reason
+      }
+    }
+    session.commit()
+    return undefined
   }
 
   const stops = [editor.history.subscribe(publish), editor.view.subscribe(publish)]
@@ -244,6 +336,55 @@ export function createThingsTool<D>(
         } else refusal = problem
       } else if (at.additive !== true) editor.selection.clear()
       publish()
+    },
+    dragStart(press, at) {
+      if (move !== undefined) endMove(move, false)
+      refusal = undefined
+      const hit = pickThing(kit(), currentViewport(), press, pickOptions(press))
+      const thing = kit().things.find((each) => each.def === hit?.def && each.id === hit?.id)
+      if (hit !== undefined && thing !== undefined) {
+        const session = editor.begin(`Move ${hit.def} ${hit.id}`)
+        if (session.open) {
+          editor.selection.set([hit.selection])
+          move = {
+            session,
+            base: editor.level,
+            def: hit.def,
+            id: hit.id,
+            from: { x: thing.x, z: thing.z },
+            press: toWorld(currentViewport(), press),
+          }
+        }
+      }
+      this.drag(at)
+    },
+    drag(at) {
+      pointer = at
+      if (move?.session.open) moveGrabbed(move, at)
+      publish()
+    },
+    dragEnd(at, cancelled) {
+      pointer = at
+      if (move !== undefined) {
+        if (!cancelled && move.session.open) moveGrabbed(move, at)
+        endMove(move, !cancelled)
+      }
+      publish()
+    },
+    remove() {
+      const things = selectedThings()
+      if (things.length === 0) return answer('select a thing first')
+      const off = things.map((thing) => layerProblem(thing.def)).find((problem) => problem !== undefined)
+      return answer(off ?? removeAll(things))
+    },
+    setField(field, value) {
+      const things = selectedThings()
+      const [thing] = things
+      if (things.length !== 1 || thing === undefined) return answer('select one thing first')
+      const off = layerProblem(thing.def)
+      if (off !== undefined) return answer(off)
+      const result = editor.run(setThingField({ ...thing, field, value }))
+      return answer(result.ok ? undefined : result.reason)
     },
     resize(next) {
       size = next
