@@ -2011,3 +2011,22 @@ interface WideLegs {
 ```ts
 const wrapAngle: (a: number) => number;
 ```
+
+## `./testing`
+
+### `FixtureFigures` (interface)
+
+```ts
+interface FixtureFigures {
+    readonly library: FigureLibrary;
+    readonly figures: Readonly<Record<string, FigureDef>>;
+    readonly gaits: Readonly<Record<string, Gait>>;
+    readonly stands: Readonly<Record<string, Stand>>;
+}
+```
+
+### `fixtureFigures` (function)
+
+```ts
+function fixtureFigures(): Promise<FixtureFigures>;
+```
