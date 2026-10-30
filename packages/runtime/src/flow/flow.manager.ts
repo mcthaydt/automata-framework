@@ -49,6 +49,11 @@ export interface MakeFlowOptions<R = never> {
   readonly copy?: Partial<BootFailureCopy> & { readonly loading?: string; readonly slow?: string }
   readonly services: () => Context.Context<RuntimeServices | R>
   readonly logUnmatched?: (screen: string, event: string) => void
+  /**
+   * What every screen gets as `ScreenContext.runtime`. Boot forks it before the save, so it closes after the save's
+   * last flush; absent, the flow forks one before its own finalizer, so it closes after the current screen.
+   */
+  readonly runtime?: Scope.Scope
   /** Hears why a screen could not load or enter, after the error panel is up (`RuntimeSeams.onFailure`). */
   readonly onFailure?: (cause: unknown) => void
 }
@@ -96,6 +101,9 @@ export function makeFlow<R = never>(
 ): Effect.Effect<FlowHandle, never, Scope.Scope> {
   return Effect.gen(function* () {
     const runtimeScope = yield* Scope.Scope
+    // Forked before the finalizer below is added, so it closes after that finalizer has closed the current screen.
+    const keptAcrossScreens =
+      options.runtime ?? (yield* Scope.fork(runtimeScope, ExecutionStrategy.sequential))
     const queue: QueuedTransition[] = []
     const trigger = yield* Queue.unbounded<void>()
     const loggedUnmatched = new Set<string>()
@@ -236,6 +244,7 @@ export function makeFlow<R = never>(
         const context: ScreenContext = {
           layer: section,
           from: previousScreen,
+          runtime: keptAcrossScreens,
         }
 
         const enterResult = yield* Effect.exit(

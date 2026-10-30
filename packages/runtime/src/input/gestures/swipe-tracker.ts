@@ -26,11 +26,14 @@ export interface GestureTuning {
 /** FloorFifty's gesture tuning, the defaults. */
 export const GESTURE_TUNING: GestureTuning = { deadZonePx: 12, saturationPx: 48, flickPx: 40, flickMs: 180 }
 
-/** Where gestures go: held while a finger steers, pulsed for a flick or a tap. */
+/**
+ * Where gestures go: held while a finger steers, pulsed for a flick or a tap. The camera drag is analog (M4.12) and
+ * goes to `Input.drag` instead, so it is not one of these.
+ */
 export interface GestureSink {
-  hold(gesture: GestureName): void
-  release(gesture: GestureName): void
-  pulse(gesture: GestureName): void
+  hold(gesture: Exclude<GestureName, 'camera-drag'>): void
+  release(gesture: Exclude<GestureName, 'camera-drag'>): void
+  pulse(gesture: Exclude<GestureName, 'camera-drag'>): void
 }
 
 /** What a swipe indicator draws: the anchor, the thumb, and whether the thumb is steering. */

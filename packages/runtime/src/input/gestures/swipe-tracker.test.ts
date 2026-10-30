@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { GestureName } from '../input-profile.schema.js'
-import { GESTURE_TUNING, type GestureTuning, SwipeTracker } from './swipe-tracker.js'
+import { GESTURE_TUNING, type GestureSink, type GestureTuning, SwipeTracker } from './swipe-tracker.js'
 
 // Swipe steering and flicks (M4 spec §4.4). FloorFifty's `tests/client/systems/gameplay/swipe-tracker.test.ts` at
 // `ac72660`, as behavior: its left/right/fastFall are AF's swipe-left/swipe-right/flick-down, and the times are
@@ -218,5 +218,17 @@ describe('cancel', () => {
     expect(tracker.indicator).toBeUndefined()
     tracker.up(1, 150, 500, 20)
     expect(pulses).toEqual([])
+  })
+})
+
+// The camera drag is analog (M4.12): no gesture sink holds or pulses it.
+describe('GestureSink', () => {
+  it('takes only the swipes, the flick and the tap', () => {
+    const sink: GestureSink = { hold: () => undefined, release: () => undefined, pulse: () => undefined }
+    // @ts-expect-error `camera-drag` is not a held or pulsed gesture.
+    sink.hold('camera-drag')
+    // @ts-expect-error `camera-drag` is not a held or pulsed gesture.
+    sink.pulse('camera-drag')
+    sink.hold('swipe-left')
   })
 })

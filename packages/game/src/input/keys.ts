@@ -195,7 +195,7 @@ export function keys<Z extends z.ZodType>(
   const modes = touchModesFor(profile)
   if (options.touchMode !== undefined && !modes.includes(options.touchMode))
     throw new Error(
-      `keys(): touchMode "${options.touchMode}" needs ${options.touchMode === 'swipe' ? 'a gesture' : 'a touch button'}`,
+      `keys(): touchMode "${options.touchMode}" needs ${options.touchMode === 'swipe' ? 'a swipe, flick or tap' : 'a touch button'}`,
     )
   const touchMode: TouchMode =
     options.touchMode ?? (modes.includes('buttons') || !modes.includes('swipe') ? 'buttons' : 'swipe')
