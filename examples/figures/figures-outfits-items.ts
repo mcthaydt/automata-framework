@@ -39,21 +39,15 @@ const library: FigureLibrary = { swatches, hair: {}, headwear: {}, items: { 'han
 
 // FigureBuilder's `bounce` gait (src/render/figure/library/gaits.json at a1f7246), grouped by what each part moves.
 const stride = { cycle: 0.46, speed: 3, stride: 0.6, duty: 0.54, lift: 0.065, bob: 0.05, crouch: 0.01 }
-const hips = {
-  sway: 0.03,
-  hipYaw: 0.09,
-  hipRoll: 0.08,
-  chestCounter: 0.5,
-  lean: 0.03,
-  heel: 0.24,
-  push: 0.35,
-}
+const hips = { sway: 0.03, hipYaw: 0.09, hipRoll: 0.08, chestCounter: 0.5, lean: 0.03 }
+const feet = { heel: 0.24, push: 0.35 }
 const arms = { armSwing: 0.5, armOut: 0.08, elbow: 0.45, elbowSwing: 0.45, armLag: 0.04, shoulderRoll: 0.75 }
 const head = { headLevel: 0, headStabilize: 0.8, drag: 0, track: 0.3, spring: 0.6, chin: 0.04 }
 const stand = { stance: 0.045, stanceLead: 0.07, hang: 0.04, idleElbow: 0.3, standOut: 0.04, reach: 1.4 }
 const clock = { poseRate: 12, walkPoses: 8, idlePoses: 8, turnRate: 0.785, twitch: 0, twitchEvery: 3 }
 const breath = { breath: 0.03, breathPeriod: 3.4, shift: 0.012, shiftPeriod: 5.5, headLead: 0.785 }
-const bounce: Gait = { ...stride, ...hips, ...arms, ...head, ...stand, ...clock, ...breath }
+const bounce: Gait = { ...stride, ...hips, ...feet, ...arms, ...head, ...stand, ...clock, ...breath }
+const motion = { gaits: { bounce }, poses: {}, clips: {}, items: library.items, stands: {}, rigs: {} }
 
 // Wick in two outfits: the cloak and cape, and a pale shirt in shirtsleeves.
 const boots = { shoes: 'wick-boot', boots: true, sole: 'sole' }
@@ -112,7 +106,7 @@ export default defineGame({
       ...options,
       backgroundColor: 0x193c3e,
       views: {
-        [Model.id]: figure(wick, { library, gaits: { bounce }, state: (c) => worn(c[Model.id]) }),
+        [Model.id]: figure(wick, { library, motion, state: (c) => worn(c[Model.id]) }),
       },
       // A fixed camera 3 m in front, looking at the chest: the figure turns, the view stays.
       scene: (view, _stage, occluders) => {

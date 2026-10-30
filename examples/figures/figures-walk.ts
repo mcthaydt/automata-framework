@@ -42,6 +42,7 @@ const stand = { stance: 0.045, stanceLead: 0.07, hang: 0.04, idleElbow: 0.3, sta
 const clock = { poseRate: 12, walkPoses: 8, idlePoses: 8, turnRate: 0.785, twitch: 0, twitchEvery: 3 }
 const breath = { breath: 0.03, breathPeriod: 3.4, shift: 0.012, shiftPeriod: 5.5, headLead: 0.785 }
 const bounce: Gait = { ...stride, ...hips, ...arms, ...head, ...stand, ...clock, ...breath }
+const motion = { gaits: { bounce }, poses: {}, clips: {}, items: library.items, stands: {}, rigs: {} }
 
 // Wick, Emberwick's hero, in a cloak with gold cuffs, a cape, boots and eyes glowing under the hood's shadow.
 const wick: FigureDef = {
@@ -102,7 +103,7 @@ export default defineGame({
       views: {
         [Hero.id]: figure(wick, {
           library,
-          gaits: { bounce },
+          motion,
           state: (c) => ({ moving: c[Hero.id]?.walking === true }),
         }),
       },

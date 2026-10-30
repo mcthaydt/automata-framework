@@ -169,7 +169,7 @@ const FIGURE_REACH = 0.6;
 ```ts
 interface FigureViewOptions {
     readonly library: FigureLibrary;
-    readonly gaits: Readonly<Record<string, Gait>>;
+    readonly motion: MotionLibrary;
     readonly state?: ((components: Components) => FigureViewState) | undefined;
     readonly palette?: readonly string[] | undefined;
     readonly now?: (() => number) | undefined;
@@ -181,10 +181,8 @@ interface FigureViewOptions {
 ### `FigureViewState` (interface)
 
 ```ts
-interface FigureViewState {
-    readonly moving: boolean;
-    readonly moveDir?: number | undefined;
-    readonly outfit?: string | undefined;
+interface FigureViewState extends Omit<FigureState, 'facing' | 'speed' | 'hair' | 'item'> {
+    readonly speed?: number | undefined;
     readonly item?: string | null | undefined;
 }
 ```
