@@ -1,10 +1,14 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { RigLimits } from '../library/rig-limits.schema'
-import { axisAngle, euler, type Q, qmul } from '../math/math'
-import { J } from '../rig/rig'
+import { add, axisAngle, euler, hash, type Q, qmul, scale } from '../math/math'
+import { at, J, JOINTS, type Joint, type Pose, restPose } from '../rig/rig'
 import { fixtureLimits } from '../testing/fixture-limits'
-import { clampJoint, hingeFlexion, jointLimits, swingAngle } from './limits'
+import { direction, KEEPER, NO_TARGETS, OPEN_LIMITS, unit, WICK } from '../testing/solve-fixtures'
+import { LIMBS } from './limbs'
+import { clampJoint, hingeFlexion, jointLimits, limitExcess, swingAngle } from './limits'
 import { degrees, eulerOf, radians } from './rotation'
+import { solve } from './solve'
+import type { LimbId, Vec3 } from './targets'
 
 let limits: RigLimits
 beforeAll(async () => {
@@ -61,5 +65,111 @@ describe('clamping one joint', () => {
     expect(degrees(eulerOf(spine)[1])).toBeCloseTo(0.3 * limits.chest.twist.min, 10)
     const chest = clampJoint(euler(radians(40), 0, 0), table.get(J.chest)) as Q
     expect(degrees(eulerOf(chest)[0])).toBeCloseTo(0.7 * limits.chest.pitch.max, 10)
+  })
+})
+
+const LIMITED = [...jointLimits(OPEN_LIMITS).keys()]
+/** The joints whose local rotation in `pose` is past `table`'s limit by more than rounding. */
+const pastLimits = (pose: Pose, table: ReturnType<typeof jointLimits>): Joint[] =>
+  LIMITED.filter((joint) => limitExcess(at(pose.rot, joint), table.get(joint)) > 1e-9)
+    .sort((a, b) => a - b)
+    .map((joint) => at(JOINTS, joint))
+
+describe('I-c: after a solve no joint passes its limit, and the report lists exactly the clamped ones', () => {
+  it('measures how far past its limit a joint is, in degrees', () => {
+    const table = jointLimits(limits)
+    expect(limitExcess(axisAngle(X, radians(160)), table.get(J['shin.L']))).toBeCloseTo(
+      160 - limits.knee.max,
+      10,
+    )
+    expect(limitExcess(axisAngle(X, radians(30)), table.get(J['shin.L']))).toBe(0)
+    expect(limitExcess(euler(0, radians(-100), 0), table.get(J.head))).toBeCloseTo(
+      100 + limits.head.yaw.min,
+      10,
+    )
+  })
+  it('clamps limbs folded, raised and thrown back, and lists only those joints', () => {
+    const table = jointLimits(limits)
+    let clampedSome = 0
+    for (const [seed, s] of [WICK, KEEPER].flatMap((s, i) =>
+      Array.from({ length: 40 }, (_, n) => [i * 1000 + n, s] as const),
+    )) {
+      const k = unit(s)
+      const limb = (['footL', 'footR', 'handL', 'handR'] as const)[seed % 4] as LimbId
+      const [a] = LIMBS[limb].chain
+      const root = scale(at(s.rest, a), 1 / k)
+      const pos = add(root, scale(direction(seed), 0.05 + 0.5 * hash(seed + 7)))
+      const t = { ...NO_TARGETS, effectors: { [limb]: { pos } } }
+      const open = solve(s, restPose(), t, OPEN_LIMITS)
+      const limited = solve(s, restPose(), t, limits)
+      const expected = pastLimits(open.pose, table)
+      expect(limited.report.limited).toEqual(expected)
+      expect(pastLimits(limited.pose, table)).toEqual([])
+      if (expected.length > 0) {
+        clampedSome++
+        expect(limited.report.reached[limb]?.ok).toBe(false)
+      }
+    }
+    // The spread must actually reach the limits for the check to mean anything.
+    expect(clampedSome).toBeGreaterThan(10)
+  })
+  it('clamps the chest and head turns joint by joint, by their shares', () => {
+    const table = jointLimits(limits)
+    for (let seed = 0; seed < 40; seed++) {
+      const turn = (n: number): Vec3 => [
+        200 * hash(seed * 8 + n) - 100,
+        300 * hash(seed * 8 + n + 1) - 150,
+        120 * hash(seed * 8 + n + 2) - 60,
+      ]
+      const t = { ...NO_TARGETS, effectors: { chest: { rot: turn(0) }, head: { rot: turn(3) } } }
+      const open = solve(WICK, restPose(), t, OPEN_LIMITS)
+      const limited = solve(WICK, restPose(), t, limits)
+      const expected = pastLimits(open.pose, table)
+      expect(limited.report.limited).toEqual(expected)
+      expect(pastLimits(limited.pose, table)).toEqual([])
+      const chestClamped = expected.includes('spine') || expected.includes('chest')
+      expect(limited.report.reached.chest?.ok).toBe(!chestClamped)
+    }
+  })
+  it("does not clamp the source's reach and flinch under the default limits (both figures, both sides)", () => {
+    for (const s of [WICK, KEEPER]) {
+      const k = unit(s),
+        g = s.genes
+      for (const [side, x] of [
+        ['L', 1],
+        ['R', -1],
+      ] as const) {
+        const hand = `hand${side}` as const,
+          elbow = `elbow${side}` as const
+        // FigureBuilder motion.ts at a1f7246: the reach's default target and pole, and the flinch's.
+        const reach: Vec3 = [(x * g.shoulders * 0.8) / k, (s.shoulderY - 0.18 * k) / k, 0.5]
+        const flinch: Vec3 = [x * 0.06, (s.chinY + 0.1 * k) / k, 0.21]
+        for (const [pos, dir] of [
+          [reach, [x * 0.7, -0.5, -0.5]],
+          [flinch, [x * 0.5, -1, 0.1]],
+        ] as const) {
+          const { report } = solve(
+            s,
+            restPose(),
+            { ...NO_TARGETS, effectors: { [hand]: { pos } }, poles: { [elbow]: { dir } } },
+            limits,
+          )
+          expect(report.limited).toEqual([])
+        }
+      }
+    }
+  })
+})
+
+describe('the tuned default limits (fixture figure-rigs/default.toml)', () => {
+  it('let an arm point 60° above level (a hookshot aimed up) and a thigh rise 110° (a deep seat, a climb)', () => {
+    const table = jointLimits(limits)
+    expect(clampJoint(axisAngle(X, radians(-150)), table.get(J['upperArm.R']))).toBeNull()
+    expect(clampJoint(axisAngle(X, radians(-110)), table.get(J['thigh.L']))).toBeNull()
+  })
+  it('turn the head at most 115° from the hips: the chest 35°, the neck 35°, the head 45°', () => {
+    const { chest, neck, head } = limits
+    expect(chest.twist.max + neck.yaw.max + head.yaw.max).toBe(115)
+    expect([chest.twist.min, neck.yaw.min, head.yaw.min]).toEqual([-35, -35, -45])
   })
 })

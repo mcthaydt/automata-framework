@@ -13,7 +13,7 @@
 
 import type { Range, RigLimits } from '../library/rig-limits.schema'
 import { axisAngle, cross, euler, length, normalize, type Q, qmat, qmul, type V3 } from '../math/math'
-import { J } from '../rig/rig'
+import { at, J, type Pose } from '../rig/rig'
 import { degrees, eulerOf, radians } from './rotation'
 
 export type JointLimit =
@@ -79,6 +79,17 @@ export function swingAngle(q: Q): number {
   return degrees(Math.acos(Math.max(-1, Math.min(1, -dy))))
 }
 
+const past = (v: number, r: Range | undefined): number => (r ? Math.max(0, r.min - v, v - r.max) : 0)
+
+/** How far `q` is past `limit`, in degrees: 0 inside it (or with no limit), else the largest excess. */
+export function limitExcess(q: Q, limit: JointLimit | undefined): number {
+  if (!limit) return 0
+  if (limit.kind === 'hinge') return past(hingeFlexion(q, limit.joint), limit.range)
+  if (limit.kind === 'cone') return Math.max(0, swingAngle(q) - limit.cone)
+  const [pitch, yaw, roll] = eulerOf(q).map(degrees) as [number, number, number]
+  return Math.max(past(pitch, limit.pitch), past(yaw, limit.yaw), past(roll, limit.roll))
+}
+
 const clampTo = (v: number, r: Range | undefined): number =>
   r ? Math.min(radians(r.max), Math.max(radians(r.min), v)) : v
 
@@ -108,4 +119,22 @@ export function clampJoint(q: Q, limit: JointLimit | undefined): Q | null {
     y = clampTo(yaw, limit.yaw),
     r = clampTo(roll, limit.roll)
   return p === pitch && y === yaw && r === roll ? null : euler(p, y, r)
+}
+
+/** Clamps each of `joints` in `pose` to its limit, adding every joint it moved to `limited`; true if any moved. */
+export function clampJoints(
+  pose: Pose,
+  joints: readonly number[],
+  table: ReadonlyMap<number, JointLimit>,
+  limited: Set<number>,
+): boolean {
+  let moved = false
+  for (const joint of joints) {
+    const clamped = clampJoint(at(pose.rot, joint), table.get(joint))
+    if (!clamped) continue
+    pose.rot[joint] = clamped
+    limited.add(joint)
+    moved = true
+  }
+  return moved
 }

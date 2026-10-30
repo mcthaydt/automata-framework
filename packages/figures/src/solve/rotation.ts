@@ -1,7 +1,7 @@
 // Rotation helpers the solver needs beyond M3.5a's math: degrees, slerp, and reading a quaternion back as the
 // source's euler angles, which is how the limits are stated.
 
-import { euler, type Q, qmat } from '../math/math'
+import { euler, type Q, qconj, qmat, qmul } from '../math/math'
 
 export const radians = (deg: number): number => (deg * Math.PI) / 180
 export const degrees = (rad: number): number => (rad * 180) / Math.PI
@@ -42,8 +42,9 @@ export function slerp(a: Q, b: Q, k: number): Q {
   return [q[0] / l, q[1] / l, q[2] / l, q[3] / l]
 }
 
-/** The angle in radians of the rotation taking a to b. */
+/** The angle in radians of the rotation taking a to b; atan2 of the relative rotation's parts, which stays
+ * exact near zero where acos does not. */
 export function angleBetween(a: Q, b: Q): number {
-  const cos = Math.abs(a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3])
-  return 2 * Math.acos(Math.min(1, cos))
+  const [x, y, z, w] = qmul(qconj(a), b)
+  return 2 * Math.atan2(Math.hypot(x, y, z), Math.abs(w))
 }
