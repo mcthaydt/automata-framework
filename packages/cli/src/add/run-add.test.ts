@@ -109,6 +109,20 @@ const failing: CheckReport = {
   ],
 }
 
+/** A check step that could not run (no `tsc` in the game): `automata check` exits 2 for it. */
+const toolMissing: CheckReport = {
+  ok: false,
+  steps: [
+    {
+      name: 'typecheck',
+      ok: false,
+      ms: 1,
+      toolError: true,
+      findings: [{ file: '', line: 0, col: 0, rule: 'tool-missing', message: 'tsc was not found' }],
+    },
+  ],
+}
+
 let game: string
 
 beforeEach(() => {
@@ -126,6 +140,18 @@ beforeEach(() => {
 afterEach(() => {
   rmSync(game, { recursive: true, force: true })
 })
+
+const corePackage = (): string => join(game, 'node_modules/@mcthaydt/automata/package.json')
+
+const installCore = (version: string): void =>
+  writeFileSync(corePackage(), JSON.stringify({ name: '@mcthaydt/automata', version }))
+
+/** The add's own temporary folder (the clone's parent), which must be gone once the add has ended. */
+const temporaryOf = (repository: FakeRepository): string => {
+  const into = repository.clonedInto[0]
+  if (into === undefined) throw new Error('the add did not clone')
+  return dirname(into)
+}
 
 interface Run {
   readonly outcome: AddResult | AddError
@@ -170,6 +196,53 @@ describe('runAdd', () => {
     expect(snapshot(game)).toEqual(before)
   })
 
+  it.each([
+    ['is not JSON', '{'],
+    ['has no version', JSON.stringify({ name: '@mcthaydt/automata' })],
+    ['has a version that is not semver', JSON.stringify({ name: '@mcthaydt/automata', version: 'latest' })],
+  ])('a core package.json that %s is an error naming the file', async (_, text) => {
+    writeFileSync(corePackage(), text)
+    const before = snapshot(game)
+    const run = await add(fakeRepository())
+    expect(errorOf(run)).toMatchObject({
+      reason: 'no-core',
+      message: `${corePackage()} does not name a version`,
+    })
+    expect(run.code).toBe(2)
+    expect(snapshot(game)).toEqual(before)
+  })
+
+  it('a core version with build metadata is read as its version (build metadata has no order)', async () => {
+    installCore('0.0.2+abc123')
+    const repository = fakeRepository()
+    const run = await add(repository)
+    expect(repository.cloned).toEqual(['core-v0.0.2'])
+    expect(run.code).toBe(0)
+  })
+
+  it('a pre-release core counts: a game on 1.0.0-rc.1 takes a kit that requires >=0.9.0', async () => {
+    installCore('1.0.0-rc.1')
+    const tree = {
+      ...RESULTS_KIT,
+      'results-screen/kit.json': kitJson('>=0.9.0', [
+        { from: 'results.toml', to: 'content/ui/results.toml' },
+      ]),
+    }
+    const repository = fakeRepository({ tags: { 'core-v0.9.0': tree, 'core-v1.0.0': {} } })
+    const run = await add(repository)
+    expect(repository.cloned).toEqual(['core-v0.9.0'])
+    expect(run.code).toBe(0)
+    expect(readFileSync(join(game, 'content/ui/results.toml'), 'utf8')).toBe('title = "Results"\n')
+  })
+
+  it('a pre-release core tag counts: a game on 1.0.0 takes core-v1.0.0-rc.1 over core-v0.9.0', async () => {
+    installCore('1.0.0')
+    const repository = fakeRepository({ tags: { 'core-v0.9.0': {}, 'core-v1.0.0-rc.1': RESULTS_KIT } })
+    const run = await add(repository)
+    expect(repository.cloned).toEqual(['core-v1.0.0-rc.1'])
+    expect(run.code).toBe(0)
+  })
+
   const notFound = 'remote: Repository not found.\nfatal: repository not found'
   const denied =
     'git@github.com: Permission denied (publickey).\nfatal: Could not read from remote repository.'
@@ -203,6 +276,27 @@ describe('runAdd', () => {
     )
     expect(run.code).toBe(2)
     expect(snapshot(game)).toEqual(before)
+
+    const empty = await add(fakeRepository({ tags: { 'core-v0.0.2': { 'README.md': '# Automata Plus\n' } } }))
+    expect(errorOf(empty).message).toBe(
+      'there is no kit "results-screen" at core-v0.0.2; the repository has no kits there',
+    )
+  })
+
+  it('a kit.json that names another kit than its folder is not a valid kit', async () => {
+    const tree = {
+      ...RESULTS_KIT,
+      'lobby/kit.json': kitJson('>=0.0.1', [{ from: 'results.toml', to: 'content/ui/results.toml' }]),
+      'lobby/results.toml': 'title = "Lobby"\n',
+    }
+    const before = snapshot(game)
+    const run = await add(fakeRepository({ tags: { 'core-v0.0.2': tree } }), { kit: 'lobby' })
+    expect(errorOf(run)).toMatchObject({
+      reason: 'bad-manifest',
+      message: 'lobby/kit.json at core-v0.0.2 names the kit "results-screen", not "lobby"',
+    })
+    expect(run.code).toBe(2)
+    expect(snapshot(game)).toEqual(before)
   })
 
   it('a kit that needs a newer core fails before copying, naming both versions', async () => {
@@ -213,8 +307,10 @@ describe('runAdd', () => {
       ]),
     }
     const before = snapshot(game)
-    const run = await add(fakeRepository({ tags: { 'core-v0.0.2': tree } }))
+    const repository = fakeRepository({ tags: { 'core-v0.0.2': tree } })
+    const run = await add(repository)
     expect(errorOf(run).reason).toBe('core-too-old')
+    expect(existsSync(temporaryOf(repository))).toBe(false)
     expect(errorOf(run).message).toBe(
       'kit "results-screen" needs core >=0.0.3 and this game has 0.0.2: update @mcthaydt/automata, then run automata add again',
     )
@@ -280,8 +376,10 @@ describe('runAdd', () => {
   it('refuses to overwrite files the game has, lists them and writes nothing; --force replaces them', async () => {
     writeTree(game, { 'content/ui/results.toml': 'title = "Mine"\n' })
     const before = snapshot(game)
-    const run = await add(fakeRepository())
+    const repository = fakeRepository()
+    const run = await add(repository)
     expect(errorOf(run).reason).toBe('collision')
+    expect(existsSync(temporaryOf(repository))).toBe(false)
     expect(errorOf(run).message).toBe(
       "the game already has 1 of the kit's files:\n  content/ui/results.toml\nRun automata add again with --force to replace them.",
     )
@@ -350,6 +448,20 @@ describe('runAdd', () => {
     expect(failed.code).toBe(1)
     expect(failed.checks).toHaveLength(1)
     expect(existsSync(join(game, 'src/ui/results.screen.ts'))).toBe(true)
+  })
+
+  it('is exit 2 when a check step could not run after the copy, and the kit files stay in the game', async () => {
+    const run = await add(fakeRepository(), {}, toolMissing)
+    expect(run.outcome).toEqual({
+      kit: 'results-screen',
+      tag: 'core-v0.0.2',
+      files: ['src/ui/results.screen.ts', 'content/ui/results.toml'],
+      report: toolMissing,
+    })
+    expect(run.code).toBe(2)
+    expect(run.checks).toEqual([{ gameDir: game, kitFileThere: true }])
+    expect(readFileSync(join(game, 'src/ui/results.screen.ts'), 'utf8')).toBe('export const results = 1\n')
+    expect(readFileSync(join(game, 'content/ui/results.toml'), 'utf8')).toBe('title = "Results"\n')
   })
 
   it('a repository without core-v tags has no kits for any core', async () => {

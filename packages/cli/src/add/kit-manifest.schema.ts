@@ -32,8 +32,8 @@ function isPlainRelativePath(path: string): boolean {
 
 /**
  * Folders a kit may not write into: git runs hooks from `.git`, and `automata check` runs tools from
- * `node_modules/.bin`, so a file there would be a script from the kit that runs. Compared without case, as macOS
- * and Windows file systems do.
+ * `node_modules/.bin`, so a file there would run outside the game's own code. Compared without case, as macOS
+ * and Windows file systems do. This is not a sandbox: the check after an add runs the kit's tests anyway.
  */
 const PROTECTED_FOLDERS = new Set(['.git', 'node_modules'])
 
@@ -69,6 +69,25 @@ export const kitManifestSchema: z.ZodType<KitManifest> = z.object({
             code: 'custom',
             path: [index, 'to'],
             message: `${file.to} is also the destination of files.${first}`,
+          })
+      })
+      // A destination that is a folder of another (`src/a` and `src/a/b.ts`) cannot be both a file and a folder,
+      // so the copy would fail half way.
+      const folderOf = new Map<string, { readonly index: number; readonly to: string }>()
+      files.forEach((file, index) => {
+        const names = file.to.toLowerCase().split('/')
+        for (let end = 1; end < names.length; end++) {
+          const folder = names.slice(0, end).join('/')
+          if (!folderOf.has(folder)) folderOf.set(folder, { index, to: file.to })
+        }
+      })
+      files.forEach((file, index) => {
+        const other = folderOf.get(file.to.toLowerCase())
+        if (other !== undefined)
+          context.addIssue({
+            code: 'custom',
+            path: [index, 'to'],
+            message: `${file.to} is also a folder of the destination of files.${other.index}, ${other.to}`,
           })
       })
     }),

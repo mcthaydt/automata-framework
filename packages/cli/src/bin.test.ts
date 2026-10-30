@@ -243,6 +243,47 @@ describe('bin cli', () => {
       expect(code).toBe(1)
     })
 
+    it('is exit 2 when a check step could not run after the add, and says the files stay', async () => {
+      const toolMissing: CheckReport = {
+        ok: false,
+        steps: [
+          {
+            name: 'typecheck',
+            ok: false,
+            ms: 2,
+            toolError: true,
+            findings: [{ file: '', line: 0, col: 0, rule: 'tool-missing', message: 'tsc was not found' }],
+          },
+        ],
+      }
+      const { code, stdout, stderr } = await runAddCli(['add', 'results-screen'], added(toolMissing))
+      expect(stdout).toContain(
+        'Added results-screen from core-v0.0.2:\n  src/ui/results.screen.ts\n  content/ui/results.toml\n',
+      )
+      expect(stdout).toContain('FAIL  typecheck (2 ms)')
+      expect(stdout).toContain(
+        'The kit is in place and automata check did not pass: fix what it reports, or remove the files listed above.',
+      )
+      expect(stderr).toBe('')
+      expect(code).toBe(2)
+    })
+
+    it('the help says exit 2 is either nothing added or added with a check step that could not run', async () => {
+      let stdout = ''
+      const code = await runCli(['--help'], {
+        stdout: (msg) => {
+          stdout += msg
+        },
+        stderr: () => {},
+      })
+      expect(code).toBe(0)
+      expect(stdout).toContain(
+        '(exit 0 added and checked, 1 added and check found problems, 2 either not added (no access, unknown kit,\n' +
+          'core version, collision, or a failed copy, which is undone) or added and a check step could not run,\n' +
+          'in which case the kit stays in place).',
+      )
+    })
+
     it('a failure is exit 2 with its message', async () => {
       const error = new AddError({ reason: 'no-access', message: 'cannot read the repository' })
       const { code, stdout, stderr } = await runAddCli(

@@ -90,4 +90,25 @@ describe('kitManifestSchema', () => {
       'files.2.to: src/A.ts is also the destination of files.0',
     ])
   })
+
+  it('refuses a destination that is also a folder of another destination, in either order', () => {
+    expect(
+      problems({
+        ...valid,
+        files: [
+          { from: 'b.ts', to: 'src/a/b.ts' },
+          { from: 'a.ts', to: 'src/A' },
+        ],
+      }),
+    ).toEqual(['files.1.to: src/A is also a folder of the destination of files.0, src/a/b.ts'])
+    expect(
+      problems({
+        ...valid,
+        files: [
+          { from: 'a.ts', to: 'src/a' },
+          { from: 'b.ts', to: 'src/a/b/c.ts' },
+        ],
+      }),
+    ).toEqual(['files.0.to: src/a is also a folder of the destination of files.1, src/a/b/c.ts'])
+  })
 })

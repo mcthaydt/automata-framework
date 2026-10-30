@@ -63,7 +63,9 @@ const USAGE = `Usage: automata create-game <target-dir> [--id <id>] [--title <ti
 
 create-game scaffolds a new Automata Framework game project.
 add copies an Automata Plus kit into a game at its installed core version, then runs check
-(exit 0 added and checked, 1 check found problems, 2 not added: no access, unknown kit, core version, collision).
+(exit 0 added and checked, 1 added and check found problems, 2 either not added (no access, unknown kit,
+core version, collision, or a failed copy, which is undone) or added and a check step could not run,
+in which case the kit stays in place).
 check runs boundaries, typecheck, tests, the board names and the no-eval build scan in a game folder
 (exit 0 pass, 1 findings, 2 a tool could not run).
 

@@ -11,7 +11,9 @@ import { entryKind, type Placement, placeFiles } from './place-files.ts'
 
 // `automata add <kit>` (PRODUCT spec §9, PRODUCT.5 plan 5d): read the installed core version, clone the Plus
 // repository at the matching `core-v<version>` tag (P5-D6), check the kit before touching the game, copy its files
-// as one change, then run `automata check`. No script from the kit runs here; only `automata check` does.
+// as one change, then run `automata check`. The add itself runs nothing from the kit, but the check after it runs
+// the kit's tests and loads any config the kit adds (a `vite.config.ts`, say): once copied, a kit is trusted code.
+// The path rules in `kit-manifest.schema.ts` keep a kit out of `.git` and `node_modules`; they are not a sandbox.
 
 export interface RunAddOptions {
   readonly kit: string
@@ -53,7 +55,10 @@ const AddErrorBase: TaggedErrorClass<'AddError', { readonly reason: AddFailure; 
 
 export class AddError extends AddErrorBase {}
 
-/** 0 added and checked, 1 the added kit failed `automata check`, 2 the add could not run (or a check tool). */
+/**
+ * 0 added and checked, 1 added and `automata check` found problems, 2 either not added (an `AddError`, with the
+ * game folder as it was) or added and a check step could not run (`exitCodeFor`), in which case the kit stays.
+ */
 export function addExitCode(outcome: AddResult | AddError): 0 | 1 | 2 {
   return outcome instanceof AddError ? 2 : exitCodeFor(outcome.report)
 }
@@ -83,9 +88,9 @@ function installedCore(gameDir: string): Effect.Effect<string, AddError> {
   } catch {
     version = undefined
   }
-  return typeof version === 'string' && valid(version) === version
-    ? Effect.succeed(version)
-    : fail('no-core', `${path} does not name a version`)
+  // `valid` returns the version without build metadata (`1.0.0+abc` is `1.0.0`), which semver never orders by.
+  const parsed = typeof version === 'string' ? valid(version) : null
+  return parsed === null ? fail('no-core', `${path} does not name a version`) : Effect.succeed(parsed)
 }
 
 const noAccess = (error: KitSourceError): AddError =>
@@ -142,7 +147,10 @@ function readKit(cloneDir: string, kit: string, tag: string): Effect.Effect<KitM
     return fail('bad-manifest', `${where} is not valid JSON: ${messageOf(error)}`)
   }
   const parsed = kitManifestSchema.safeParse(json)
-  if (parsed.success) return Effect.succeed(parsed.data)
+  if (parsed.success)
+    return parsed.data.name === kit
+      ? Effect.succeed(parsed.data)
+      : fail('bad-manifest', `${where} names the kit "${parsed.data.name}", not "${kit}"`)
   const problems = parsed.error.issues.map((issue) => `${issue.path.join('.')} ${issue.message}`)
   return fail('bad-manifest', `${where} is not a valid kit: ${problems.join('; ')}`)
 }
