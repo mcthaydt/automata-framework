@@ -401,3 +401,11 @@ interface TouchButton {
 ```
 
 ## `./no-eval`
+
+## `./tooling`
+
+### `isDefinedGame` (function)
+
+```ts
+function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is DefinedGame<S>;
+```

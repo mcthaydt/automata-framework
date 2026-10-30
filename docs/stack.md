@@ -101,10 +101,10 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 | Package | Version | License |
 |---|---|---|
-| `@ruken/sdk` | 0.0.0 (vendored tarball, RukenApp `b30d31b`) | not declared in the installed package |
-| `@ruken/sdk-host` | 0.0.0 (vendored tarball, RukenApp `b30d31b`) | not declared in the installed package |
-| `@ruken/manifest` | 0.0.0 (vendored tarball, RukenApp `b30d31b`) | not declared in the installed package |
-| `@ruken/cli` | 0.0.0 (vendored tarball, RukenApp `b30d31b`) | not declared in the installed package |
+| `@ruken/sdk` | 0.0.0 (vendored tarball, RukenApp `d0fa2fe`) | not declared in the installed package |
+| `@ruken/sdk-host` | 0.0.0 (vendored tarball, RukenApp `d0fa2fe`) | not declared in the installed package |
+| `@ruken/manifest` | 0.0.0 (vendored tarball, RukenApp `d0fa2fe`) | not declared in the installed package |
+| `@ruken/cli` | 0.0.0 (vendored tarball, RukenApp `d0fa2fe`) | not declared in the installed package |
 
 - **Tier:** Core
 - **What it does in AF:** The host: the game side of Ruken's protocol, a fake host for tests, the manifest checks and CSP headers, and `ruken publish` (ADR 0004).
