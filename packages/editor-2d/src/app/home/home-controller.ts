@@ -1,4 +1,5 @@
 import { classifyStorageError, type ToastKind, type ToastStore } from '@mcthaydt/automata-editor-kit/core'
+import { type ChoiceOutcome, needsPanel, type PanelOutcome } from '../document/open-flow-model'
 import type { EditorApp, ImportOutcome, OpenOutcome } from '../editor-app'
 import type { ProjectEntry } from '../project-list'
 import {
@@ -43,8 +44,8 @@ export interface HomeController {
   /** Selects a project that is shown; anything else is ignored. */
   select(path: string): void
   step(key: StepKey): void
-  /** Opens `path`, or the selected project. */
-  open(path?: string): Promise<void>
+  /** Opens `path`, or the selected project; `as` is the profile the person chose for a file two profiles claim. */
+  open(path?: string, as?: string): Promise<void>
   create(profileId: string, templateId: string): Promise<void>
   /** Copies the selected project and selects the copy. */
   duplicate(): Promise<void>
@@ -58,10 +59,12 @@ export interface HomeControllerOptions {
   readonly toasts: ToastStore
   /** A document opened (from Open or from New): the owner takes the person to it. */
   onOpened(opened: Extract<OpenOutcome, { readonly status: 'opened' }>): void
+  /** A file that needs looking at (the error panel) or a choice of profile: the owner shows it over Home. */
+  onProblem(outcome: PanelOutcome | ChoiceOutcome): void
 }
 
 export function createHomeController(options: HomeControllerOptions): HomeController {
-  const { app, toasts, onOpened } = options
+  const { app, toasts, onOpened, onProblem } = options
   let state: HomeState = {
     phase: 'loading',
     entries: [],
@@ -120,13 +123,17 @@ export function createHomeController(options: HomeControllerOptions): HomeContro
     }
   }
 
-  /** A document opens and its owner takes over; anything else is told to the person and the list is read again. */
+  /**
+   * A document opens and its owner takes over. A file to look at or to choose a profile for goes to the owner too (plan
+   * ED2D.4c2b, decision 1); a missing file or a store that refused is a toast. Either way the list is read again.
+   */
   async function settleOpen(outcome: OpenOutcome): Promise<void> {
     if (outcome.status === 'opened') {
       onOpened(outcome)
       return
     }
-    say('error', openProblem(outcome))
+    if (needsPanel(outcome) || outcome.status === 'choose') onProblem(outcome)
+    else say('error', openProblem(outcome))
     await load()
   }
 
@@ -151,12 +158,12 @@ export function createHomeController(options: HomeControllerOptions): HomeContro
     step(key) {
       set({ selected: stepSelection(state.visible, state.selected, key) })
     },
-    async open(path) {
+    async open(path, as) {
       const target = path ?? state.selected
       if (target === undefined) return
       await run('open', async () => {
         if (state.visible.some((entry) => entry.path === target)) set({ selected: target })
-        await settleOpen(await app.open(target))
+        await settleOpen(await app.open(target, as))
       })
     },
     create: (profileId, templateId) =>
