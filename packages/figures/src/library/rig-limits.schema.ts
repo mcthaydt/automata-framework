@@ -40,15 +40,16 @@ export const rigLimitsSchema: z.ZodType<RigLimits> = z.strictObject({
 /**
  * The shared default (M3 spec §4.4.2: "one shared default"): what a figure that names no `rig` gets, even in a
  * game with no figure-rig content. The fixture's `figure-rigs/default.toml` says the same (a test checks it).
- * The spec's starting values, with the shoulder and hip cones, chest pitch and head roll picked here for
- * M3.6a to tune; chest and neck roll limits are left to M3.6a.
+ * The spec's starting values as M3.6a tuned them: the shoulder cone lets an arm point well above level, the hip
+ * cone a deep seat or a climb, and the spec's head turn (yaw ±70°) is split over the neck and the head, so the
+ * head turns at most 35 + 35 + 45 = 115° from the hips. Chest and neck roll are not limited.
  */
 export const DEFAULT_RIG_LIMITS: RigLimits = Object.freeze({
   elbow: { min: 0, max: 150 },
   knee: { min: 0, max: 150 },
-  shoulder: { cone: 110 },
-  hip: { cone: 95 },
+  shoulder: { cone: 170 },
+  hip: { cone: 120 },
   chest: { twist: { min: -35, max: 35 }, pitch: { min: -20, max: 30 } },
-  neck: { yaw: { min: -70, max: 70 }, pitch: { min: -40, max: 50 } },
-  head: { yaw: { min: -70, max: 70 }, pitch: { min: -40, max: 50 }, roll: { min: -25, max: 25 } },
+  neck: { yaw: { min: -35, max: 35 }, pitch: { min: -20, max: 25 } },
+  head: { yaw: { min: -45, max: 45 }, pitch: { min: -25, max: 30 }, roll: { min: -25, max: 25 } },
 })
