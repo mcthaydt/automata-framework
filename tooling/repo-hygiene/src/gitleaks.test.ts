@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   ensureGitleaks,
   ensureRepoGitleaks,
@@ -73,11 +73,19 @@ describe('ensureGitleaks', () => {
 })
 
 describe('ensureRepoGitleaks', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it("uses the repository's cache, <root>/node_modules/.cache/gitleaks, as pnpm secrets does", async () => {
     const root = mkdtempSync(join(tmpdir(), 'gitleaks-root-'))
     const binary = join(root, 'node_modules/.cache/gitleaks', GITLEAKS_VERSION, 'gitleaks')
     mkdirSync(join(binary, '..'), { recursive: true })
     writeFileSync(binary, '')
+    // It downloads with the global fetch; a wrong cache path must fail here, not reach the network.
+    vi.stubGlobal('fetch', async (): Promise<Response> => {
+      throw new Error('downloaded')
+    })
     await expect(ensureRepoGitleaks(root)).resolves.toBe(binary)
   })
 })
