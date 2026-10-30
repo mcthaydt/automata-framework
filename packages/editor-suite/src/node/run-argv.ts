@@ -5,7 +5,7 @@
 import { spawn } from 'node:child_process'
 
 /** 200 KB, stdout and stderr together. */
-export const OUTPUT_CAP = 200 * 1024
+export const OUTPUT_CAP: number = 200 * 1024
 
 export interface ArgvOptions {
   readonly cwd: string

@@ -5,18 +5,26 @@ import { z } from 'zod'
 
 export const CHANGE_SET_JOURNAL_FORMAT = 'af-change-set/1'
 
+export interface ChangeSetJournal {
+  readonly format: typeof CHANGE_SET_JOURNAL_FORMAT
+  readonly title: string
+  readonly branch: string
+  readonly base: string
+  /** The files recorded, sorted. */
+  readonly files: readonly string[]
+  /** The files it created (a write expecting `'absent'`), sorted. */
+  readonly created: readonly string[]
+  readonly tokens: { readonly used: number; readonly cap: number }
+}
+
 const count = z.number().int().min(0)
 
-export const changeSetJournalSchema = z.strictObject({
+export const changeSetJournalSchema: z.ZodType<ChangeSetJournal> = z.strictObject({
   format: z.literal(CHANGE_SET_JOURNAL_FORMAT),
   title: z.string().min(1),
   branch: z.string().min(1),
   base: z.string().min(1),
-  /** The files recorded, sorted. */
   files: z.array(z.string()),
-  /** The files it created (a write expecting `'absent'`), sorted. */
   created: z.array(z.string()),
   tokens: z.strictObject({ used: count, cap: count }),
 })
-
-export type ChangeSetJournal = z.infer<typeof changeSetJournalSchema>
