@@ -47,8 +47,9 @@ async function expectOthersUsable(broken: SnippetRegion): Promise<void> {
 describe('EditorShell region boundaries', () => {
   it.each(REGIONS)('a widget that throws as the %s renders replaces only that region', async (broken) => {
     mount(1194, 834, broken)
-    const panel = within(region(broken)).getByRole('alert')
+    const panel = region(broken).querySelector<HTMLElement>('[data-region-error]') as HTMLElement
     expect(panel).toHaveAttribute('data-region-error', broken)
+    expect(within(panel).getByRole('alert')).toBeInTheDocument()
     expect(within(panel).getByRole('button', { name: 'Copy details' })).toBeInTheDocument()
     expect(within(region(broken)).queryByTestId(CONTENT[broken])).toBeNull()
     expect(document.querySelectorAll('[data-region-error]')).toHaveLength(1)
@@ -61,7 +62,8 @@ describe('EditorShell region boundaries', () => {
       mount(1194, 834, broken, 'click')
       expect(within(region(broken)).getByTestId(CONTENT[broken])).toBeInTheDocument()
       await userEvent.click(screen.getByTestId('break-it'))
-      expect(within(region(broken)).getByRole('alert')).toHaveAttribute('data-region-error', broken)
+      expect(within(region(broken)).getByRole('alert')).toBeInTheDocument()
+      expect(region(broken).querySelector('[data-region-error]')).toHaveAttribute('data-region-error', broken)
       expect(within(region(broken)).queryByTestId(CONTENT[broken])).toBeNull()
       await expectOthersUsable(broken)
     },

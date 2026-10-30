@@ -182,6 +182,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
       data-presentation={mode === 'wide' ? 'rail' : 'tabbar'}
       aria-label="Editor sections"
     >
+      <!-- Inline rather than `guarded`: the rail's snippet takes an argument (its orientation). -->
       <svelte:boundary>
         {@render rail({ orientation: mode === 'wide' ? 'vertical' : 'horizontal' })}
         {#snippet failed(error)}

@@ -408,6 +408,12 @@ describe('a broken region shows its error panel inside its own box (kit spec §6
     ['phone-portrait', 'topbar', {}],
     ['phone-portrait', 'status', {}],
     ['phone-portrait', 'panel', { panelOpen: true }],
+    ['phone-portrait', 'rail', {}],
+    ['phone-portrait', 'canvas', {}],
+    ['phone-portrait', 'inspector', { inspectorOpen: true }],
+    ['phone-landscape', 'rail', {}],
+    ['phone-landscape', 'canvas', {}],
+    ['phone-landscape', 'inspector', { inspectorOpen: true }],
     ['phone-landscape', 'dock', { dockOpen: true }],
   ] as const)(
     '%s, %s: Copy details is a 44 px target inside the region, and the layout holds',

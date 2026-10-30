@@ -26,6 +26,8 @@ let note = $state('')
 let detailsBox: HTMLTextAreaElement | undefined = $state()
 
 async function copyDetails(): Promise<void> {
+  // A second Copy starts from a blank note, so an old "Copied" never vouches for this one.
+  note = ''
   try {
     // A missing clipboard throws here too, and takes the same way out as a refused one.
     await navigator.clipboard.writeText(details)
@@ -33,15 +35,24 @@ async function copyDetails(): Promise<void> {
   } catch {
     detailsBox?.focus()
     detailsBox?.select()
+    // iOS Safari often ignores select() on a read-only box; an explicit range selects it there too.
+    detailsBox?.setSelectionRange(0, details.length)
     note = 'Copy is not available here: the details are selected.'
   }
 }
+
+// The note is about the last Copy; once focus leaves the panel it is stale. Moving to the details box keeps it.
+function clearNoteOnLeave(event: FocusEvent): void {
+  const next = event.relatedTarget
+  if (!(next instanceof Node) || !(event.currentTarget as HTMLElement).contains(next)) note = ''
+}
 </script>
 
-<div class="region-error" role="alert" data-region-error={region} data-layout={layout}>
+<div class="region-error" data-region-error={region} data-layout={layout}>
   <!-- The action comes before the details box, so it is in view even in a region as short as the dock. -->
-  <div class="inner">
-    <p class="message">The {REGION_LABEL[region]} stopped working.</p>
+  <div class="inner" onfocusout={clearNoteOnLeave}>
+    <!-- Only the message is the alert, so it is announced once; the note is its own polite status. -->
+    <p class="message" role="alert">The {REGION_LABEL[region]} stopped working.</p>
     <button type="button" class="copy" aria-label="Copy details" onclick={copyDetails}
       >Copy<span class="long">{' details'}</span></button
     >
@@ -86,10 +97,21 @@ async function copyDetails(): Promise<void> {
     min-width: 0;
   }
 
+  /* The message, Copy details and the note share a line while they fit (a half-height sheet on a phone in landscape
+     has about 120 px), and the details box takes the full width beneath them. */
   [data-layout='block'] .inner {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: flex-start;
     padding: var(--space-3);
+  }
+
+  [data-layout='block'] .message {
+    flex: 1 1 auto;
+  }
+
+  [data-layout='block'] .details {
+    flex: 1 1 100%;
   }
 
   [data-layout='bar'] .inner {
@@ -142,10 +164,6 @@ async function copyDetails(): Promise<void> {
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-md);
     cursor: pointer;
-  }
-
-  [data-layout='block'] .copy {
-    align-self: start;
   }
 
   .copy:focus-visible {
