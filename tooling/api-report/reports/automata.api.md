@@ -110,7 +110,7 @@ function createCamera2d(stage: Container, options: Camera2dOptions, seed?: numbe
 ### `defaultContent` (function)
 
 ```ts
-function defaultContent(preload?: readonly string[]): GameContent;
+function defaultContent(): GameContent;
 ```
 
 ### `defaultScreens` (function)

@@ -1942,6 +1942,14 @@ Whether `file` is one of the game's sources the check reads: not a test, whose f
 const isInputsSource: (file: string) => boolean;
 ```
 
+#### `isLocalStack` (function)
+
+Whether `api` is Ruken's local stack: `localhost`, a `.localhost` name, or a loopback address.
+
+```ts
+function isLocalStack(api: string): boolean;
+```
+
 #### `isOrientationSource` (const)
 
 Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
@@ -2219,7 +2227,7 @@ interface PrepareInput {
   /**
    * Who the build is for. `public` (the default: Ruken's store, through `publish`) refuses a build that contains
    * `@pixi/3d`, a closed beta (X-b); `private` (the dev host behind its access control, `deploy-dev`, and Ruken's
-   * local stack, `prepare --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
+   * local stack, `publish --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
    */
   readonly audience?: "public" | "private" | undefined;
 }
@@ -2258,6 +2266,16 @@ interface PrepareItchInput {
 }
 ```
 
+#### `PrivatePublishNotLocal` (class)
+
+`publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local.
+
+```ts
+class PrivatePublishNotLocal extends PrivatePublishNotLocalBase {
+  override get message(): string;
+}
+```
+
 #### `ProcessError` (class)
 
 A program could not be started (not found, not executable). A non-zero exit is not this error.
@@ -2277,6 +2295,35 @@ Exit 3: the token was missing, wrong or lacks the rights.
 ```ts
 class PublishAuth extends PublishAuthBase {
   override get message(): string;
+}
+```
+
+#### `publishBuild` (function)
+
+`ship publish` for Ruken (ship spec §3.4): prepare the build, then hand it to Ruken's own CLI. A public publish
+(the default) refuses a build that contains `@pixi/3d` (X-b). A private one prepares with the closed beta allowed
+and uploads only to Ruken's local stack, checked before anything is prepared, so the beta never reaches a public
+Ruken through ship.
+
+```ts
+function publishBuild(input: PublishBuildInput): Effect.Effect<{
+  url: string | undefined;
+}, PrepareError | PublishError | PrivatePublishNotLocal, Files | ProcessRunner>;
+```
+
+#### `PublishBuildInput` (interface)
+
+What `publishBuild` needs: `publishToRuken`'s input, the game's ship config, the release tag and the audience.
+
+```ts
+interface PublishBuildInput extends PublishInput {
+  readonly config: ShipConfig;
+  readonly tag?: string | undefined;
+  /**
+   * A private upload, to Ruken's local stack only: the build may contain `@pixi/3d`, a closed beta (D-1, M3 spec
+   * §4.8). Refused unless `api` is a loopback or `.localhost` host.
+   */
+  readonly private?: boolean | undefined;
 }
 ```
 
@@ -4861,7 +4908,8 @@ without it "Back to …" is never offered (PUB spec §3.1).
   playing on without the player's saves would silently fork their progress.
 - Renderer: nothing on this device can fix it. Inside Ruken the player goes back; a standalone
   page has nowhere to go, so its panel is final.
-- Model: a 3D model file did not parse (M3 spec §6). Try again fetches it again in a fresh boot.
+- Model: a 3D model file did not parse (M3 spec §6). Try again fetches it again in a fresh boot; when the file
+  stays damaged, the host's way out is offered beside it.
 - Everything else: Try again, which re-runs the boot program in a fresh scope (never a page reload
   inside a Ruken frame).
 
