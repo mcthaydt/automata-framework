@@ -19,7 +19,10 @@ export function lampSwitches(componentId: string): LampSwitches {
     const fields = row.components[componentId]
     const lamp = fields?.lamp
     const level = fields?.level
-    if (typeof lamp === 'string' && typeof level === 'number') bySid.set(row.sid, { lamp, level })
+    // A level below 0 is off; a non-finite one is no level at all (NaN never equals itself, so it would rebake
+    // every step), and the lamp keeps its content level.
+    if (typeof lamp === 'string' && typeof level === 'number' && Number.isFinite(level))
+      bySid.set(row.sid, { lamp, level: Math.max(0, level) })
     else bySid.delete(row.sid)
   }
 

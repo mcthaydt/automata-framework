@@ -69,6 +69,15 @@ describe('bakeVertices', () => {
     expect(bake.write({ warm: 0.4 }, out)).toBe(false)
   })
 
+  it('writes nothing new when a lamp that reaches no vertex changes level', () => {
+    const { positions, normals } = floorPatch()
+    const bake = bakeVertices(positions, normals, IDENTITY, lighting)
+    const out = new Float32Array(bake.vertexCount * 4)
+    bake.write({}, out)
+    expect(bake.write({ far: 0 }, out)).toBe(false)
+    expect(bake.write({ far: 0, warm: 0.5 }, out)).toBe(true)
+  })
+
   it('places vertices and turns normals by the world matrix', () => {
     // One vertex facing +z, turned to face -x (a quarter turn about y) and moved beside the warm lamp.
     const position = new Float32Array([0, 0, 0])

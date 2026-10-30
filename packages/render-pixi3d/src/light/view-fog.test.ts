@@ -9,4 +9,10 @@ describe('viewFog', () => {
     expect(viewFog(undefined, content)).toEqual({ type: 'linear', near: 4, far: 12, color: 0x2e222f })
     expect(viewFog(undefined, undefined)).toBeNull()
   })
+
+  it('refuses options fog that the content schema would refuse (far not past near, a bad colour)', () => {
+    expect(() => viewFog({ near: 5, far: 5, color: 0 }, undefined)).toThrow(/fog/)
+    expect(() => viewFog({ near: -1, far: 5, color: 0 }, undefined)).toThrow(/fog/)
+    expect(() => viewFog({ near: 1, far: 5, color: 0x1000000 }, undefined)).toThrow(/fog/)
+  })
 })

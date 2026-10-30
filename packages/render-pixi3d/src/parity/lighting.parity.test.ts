@@ -36,7 +36,10 @@ afterEach(async () => {
   document.body.replaceChildren()
 })
 
-async function start(fog?: { near: number; far: number; color: number }): Promise<Pixi3dRenderer> {
+async function start(
+  fog?: { near: number; far: number; color: number },
+  floors = true,
+): Promise<Pixi3dRenderer> {
   const host = document.createElement('div')
   document.body.appendChild(host)
   const factory = createPixi3dRenderer({
@@ -50,7 +53,7 @@ async function start(fog?: { near: number; far: number; color: number }): Promis
     scene: (view, _stage, light) => {
       view.camera.position.set(0, 5, 7)
       view.camera.lookAt({ x: 0, y: 0, z: 0 })
-      for (const x of [-3, 3]) {
+      for (const x of floors ? [-3, 3] : []) {
         const floor = new Mesh3D({
           geometry: new PlaneGeometry({ width: 5.8, height: 6, widthSegments: 12, heightSegments: 12 }),
           material: new FlatMaterial({ baseColor: 0xffffff }),
@@ -119,15 +122,56 @@ describe.runIf(hasWebGL2)('lighting and fog on WebGL2', () => {
     expect(compare(on, snapshot(renderer), 0, WIDTH).changed).toBe(0)
   })
 
-  it('fog from the options turns the far floor toward the fog colour', async () => {
+  it('D3-e, the characters: the lit walker under the switched-off lamp darkens, the other does not', async () => {
+    // No floors: only the two walkers draw, so every changed pixel is a character's.
+    const renderer = await start(undefined, false)
+    renderer.apply(step({ resync: true, added: characters, changed: [], removed: [] }))
+    renderer.draw(frame)
+    const on = snapshot(renderer)
+    renderer.apply(
+      step({
+        resync: false,
+        added: [{ sid: 9, components: { lamp: { lamp: 'west', level: 0 } } }],
+        changed: [],
+        removed: [],
+      }),
+    )
+    renderer.draw(frame)
+    const off = snapshot(renderer)
+    expect(compare(on, off, 0, WIDTH / 2).darker).toBeGreaterThan(30)
+    expect(compare(on, off, WIDTH / 2, WIDTH).changed).toBe(0)
+  })
+
+  it('fog from the options turns the floor toward the fog colour', async () => {
+    const FOG = 0x3e3546
     const clear = await start()
     clear.draw(frame)
     const without = snapshot(clear)
     if (scope) await Effect.runPromise(Scope.close(scope, Exit.void))
     document.body.replaceChildren()
-    const foggy = await start({ near: 4, far: 10, color: 0x3e3546 })
+    const foggy = await start({ near: 4, far: 10, color: FOG })
     expect(foggy.view.fog).toMatchObject({ type: 'linear', near: 4, far: 10 })
     foggy.draw(frame)
-    expect(compare(without, snapshot(foggy), 0, WIDTH).changed).toBeGreaterThan(300)
+    const withFog = snapshot(foggy)
+    expect(compare(without, withFog, 0, WIDTH).changed).toBeGreaterThan(300)
+    // Over the pixels fog changed, each is nearer the fully fogged colour than it was. Finding (0.1.0-beta.2): that
+    // colour is the fog colour's linear value (0x3e3546 draws as 0x0c0910), as if the mix ran after the display
+    // encode, though the fog bit's own comment says it runs before it. Reported to the Owner with M3.4d.
+    const linear = (c: number) => Math.round(255 * ((c / 255 + 0.055) / 1.055) ** 2.4)
+    const target = [linear((FOG >> 16) & 255), linear((FOG >> 8) & 255), linear(FOG & 255)]
+    const away = (pixels: ArrayLike<number>, i: number) =>
+      Math.abs((pixels[i] ?? 0) - (target[0] ?? 0)) +
+      Math.abs((pixels[i + 1] ?? 0) - (target[1] ?? 0)) +
+      Math.abs((pixels[i + 2] ?? 0) - (target[2] ?? 0))
+    let nearer = 0
+    let farther = 0
+    for (let i = 0; i < without.length; i += 4) {
+      const before = away(without, i)
+      const after = away(withFog, i)
+      if (before - after > 6) nearer++
+      if (after - before > 6) farther++
+    }
+    expect(nearer).toBeGreaterThan(300)
+    expect(farther).toBe(0)
   })
 })

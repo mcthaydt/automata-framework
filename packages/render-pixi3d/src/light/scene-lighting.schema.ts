@@ -57,11 +57,11 @@ export const occluderPlaneSchema: z.ZodType<OccluderPlane> = z.strictObject({
 
 /** `View3D`'s linear fog: none before `near` metres from the camera, full at `far`. */
 export const sceneFogSchema: z.ZodType<SceneFog> = z
-  .object({ near: z.number().min(0), far: z.number().positive(), color: colour })
+  .strictObject({ near: z.number().min(0), far: z.number().positive(), color: colour })
   .refine((fog) => fog.far > fog.near, { message: 'fog far must be past near', path: ['far'] })
 
 export const sceneLightingSchema: z.ZodType<SceneLighting> = z
-  .object({
+  .strictObject({
     /** Light everywhere, 0 to 1, before any lamp. */
     ambient: z.number().min(0).max(1),
     ambientColor: colour.default(0xffffff),

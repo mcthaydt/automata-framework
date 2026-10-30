@@ -1,4 +1,4 @@
-import { Container3D, CubeGeometry, FlatMaterial, Mesh3D, PlaneGeometry } from '@pixi/3d'
+import { Container3D, CubeGeometry, FlatMaterial, Geometry3D, Mesh3D, PlaneGeometry } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { createSceneLight } from './scene-light.js'
 import { sceneLightingSchema } from './scene-lighting.schema.js'
@@ -138,5 +138,64 @@ describe('createSceneLight placement', () => {
     node.addChild(tile)
     light.bake(tile)
     expect(brightest(tile)).toBeGreaterThan(0.5)
+  })
+
+  it('composes a rotated and scaled parent: the same tile, turned and halved, lands where a direct one does', () => {
+    const light = createSceneLight(lighting)
+    // A parent turned a quarter about y and scaled 2×, holding a tile at local (0, 0, 5) scaled ½: in the world the
+    // tile sits at (10, 0, 0) under the east lamp, at its own size, turned a quarter.
+    const parent = new Container3D()
+    parent.rotation.set(0, Math.PI / 2, 0)
+    parent.scale.set(2, 2, 2)
+    const nested = floorAt(0, 5)
+    nested.scale.set(0.5, 0.5, 0.5)
+    parent.addChild(nested)
+    light.bake(nested)
+    // The 3 × 3 grid of a centred square tile is the same set of points after a quarter turn.
+    const direct = floorAt(10, 0)
+    light.bake(direct)
+    expect(brightest(nested)).toBeGreaterThan(0.5)
+    // Same lamp, same place, same 2 m tile: the same light, vertex for vertex, as a set.
+    const sorted = (mesh: Mesh3D) => [...colours(mesh)].map((v) => v.toFixed(4)).sort()
+    expect(sorted(nested)).toEqual(sorted(direct))
+  })
+})
+
+describe('createSceneLight release', () => {
+  it('destroys the baked copy’s own buffers and stops rebaking it', () => {
+    const light = createSceneLight(lighting)
+    const mesh = floorAt(-10, 0)
+    light.bake(mesh)
+    const buffers = Object.values(mesh.geometry.attributes).map((attribute) => attribute.buffer)
+    expect(buffers.length).toBeGreaterThanOrEqual(4)
+    light.release(mesh)
+    for (const buffer of buffers) expect((buffer as unknown as { destroyed: boolean }).destroyed).toBe(true)
+    light.setLevels({ west: 0 })
+    expect(light.rebakes).toBe(0)
+  })
+})
+
+describe('createSceneLight reading geometry', () => {
+  it('refuses an interleaved geometry, naming the attribute, rather than reading the wrong floats', () => {
+    const light = createSceneLight(lighting)
+    const geometry = new Geometry3D({
+      positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 0, 1]),
+      normals: new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0]),
+      interleave: true,
+      quantizeNormals: false,
+    })
+    const mesh = new Mesh3D({ geometry, material: new FlatMaterial({}) })
+    expect(() => light.bake(mesh)).toThrow(/positions.*interleaved/)
+  })
+})
+
+describe('createSceneLight tint', () => {
+  it('writes into the caller’s array when given one (no allocation per frame), with the same values', () => {
+    const light = createSceneLight(lighting)
+    const out: [number, number, number] = [0, 0, 0]
+    const written = light.tint(-10, 1, 1, undefined, out)
+    expect(written).toBe(out)
+    expect(out).toEqual(light.tint(-10, 1, 1))
+    expect(light.tint(-10, 1, 1, [1, 0, 0], out)).toEqual(light.tint(-10, 1, 1, [1, 0, 0]))
   })
 })

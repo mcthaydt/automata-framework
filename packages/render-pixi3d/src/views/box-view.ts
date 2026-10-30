@@ -18,7 +18,9 @@ export interface BoxMaterial {
   /**
    * Lit by the room's light when the renderer has `lighting` (without it, a plain box):
    * - `'static'`: scenery. Vertex light is baked into its own geometry once, at its first pose, with occlusion, and
-   *   rebaked when a lamp reaching it changes (M3 spec §4.3). It must not move.
+   *   rebaked when a lamp reaching it changes (M3 spec §4.3). It must not move. Its faces are cut into 25 cm cells
+   *   whether or not the renderer has `lighting`. Occluder boxes never skip it (there is no `ignore` here: bake a mesh
+   *   with `SceneLight.bake(mesh, { ignore })` for that).
    * - `'moving'`: a character (M3R-D4). Each frame it takes the ambient light plus the lamps in range at its
    *   position, as its colour times that tint, on a flat material of its own.
    */
@@ -26,11 +28,10 @@ export interface BoxMaterial {
 }
 
 /**
- * `colour` (0xRRGGBB, sRGB) lit by the tint: each channel multiplied by the tint's in linear light, as the baked
- * vertex colours multiply a static mesh, then back to sRGB, capped at white.
+ * A base colour (in linear light) lit by the tint: each channel multiplied by the tint's, as the baked vertex
+ * colours multiply a static mesh, then back to sRGB as 0xRRGGBB, capped at white.
  */
-function tinted(colour: number, tint: readonly [number, number, number]): number {
-  const linear = channels(colour)
+function tinted(linear: readonly [number, number, number], tint: readonly [number, number, number]): number {
   const channel = (c: 0 | 1 | 2) => Math.round(255 * Math.min(1, toSrgb(linear[c] * tint[c])))
   return (channel(0) << 16) | (channel(1) << 8) | channel(2)
 }
@@ -57,10 +58,14 @@ export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
   const shared = new PhongMaterial({ baseColor: material.color })
   // Static boxes share one flat material: their light is in their own vertex colours.
   const baked = material.lit === 'static' ? new FlatMaterial({ baseColor: material.color }) : undefined
+  // The base colour in linear light, decoded once for the per-frame tint.
+  const linear = channels(material.color)
   return (row, componentId, _models, light) => {
     const node = new Container3D()
     // A moving lit box has a flat material of its own: its colour changes every frame.
     const tint = material.lit === 'moving' ? light : undefined
+    // The tint is written here each frame, so a frame allocates nothing.
+    const lit: [number, number, number] = [0, 0, 0]
     const own = tint === undefined ? undefined : new FlatMaterial({ baseColor: material.color })
     const bakes = light !== undefined && baked !== undefined
     const drawn = new Mesh3D({ geometry, material: own ?? (bakes ? baked : shared) })
@@ -77,11 +82,11 @@ export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
         if (tint === undefined || own === undefined) return
         // Lit at its middle, where the light on a character reads.
         const { x, y, z } = node.position
-        own.baseColor = tinted(material.color, tint.tint(x, y + size.height / 2, z))
+        own.baseColor = tinted(linear, tint.tint(x, y + size.height / 2, z, undefined, lit))
       },
       destroy() {
-        if (bakes) light?.release(drawn)
         node.destroy({ children: true })
+        if (bakes) light?.release(drawn)
         own?.destroy()
       },
     }

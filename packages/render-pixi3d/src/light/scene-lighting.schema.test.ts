@@ -42,6 +42,10 @@ describe('sceneLightingSchema', () => {
       { ambient: 0, fog: { near: 5, far: 5, color: 0 } },
       ['fog', 'far'],
     ],
+    ['a misspelt lamps table', { ambient: 0, lamp: [lamp] }, []],
+    ['a misspelt ambient colour', { ambient: 0, ambientColour: 0xffffff }, []],
+    ['an unknown fog key', { ambient: 0, fog: { near: 1, far: 2, color: 0, density: 1 } }, ['fog']],
+    ['an unknown lamp key', { ambient: 0, lamps: [{ ...lamp, radius: 3 }] }, ['lamps', 0]],
     ['a duplicate lamp id', { ambient: 0, lamps: [lamp, { ...lamp, x: 3 }] }, ['lamps', 1, 'id']],
   ])('refuses %s at its path', (_what, input, path) => {
     const result = sceneLightingSchema.safeParse(input)

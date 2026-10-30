@@ -65,11 +65,81 @@ export function vertexLight(
   return diffuse * falloff(lamp, distance)
 }
 
+/** A `SceneLighting` with its colours decoded once: what a per-frame tint reads, so a frame allocates nothing. */
+export interface PreparedLighting {
+  readonly lighting: SceneLighting
+  /** The ambient light in linear channels, already scaled by `ambient`. */
+  readonly ambient: Vec3
+  /** Each lamp's colour in linear channels, in `lighting.lamps` order. */
+  readonly colours: readonly Vec3[]
+}
+
+export function prepareLighting(lighting: SceneLighting): PreparedLighting {
+  const [r, g, b] = channels(lighting.ambientColor)
+  return {
+    lighting,
+    ambient: [r * lighting.ambient, g * lighting.ambient, b * lighting.ambient],
+    colours: lighting.lamps.map((lamp) => channels(lamp.color)),
+  }
+}
+
+// One sample reused by every normal-lit tint: nothing is allocated per frame.
+const scratch = { x: 0, y: 0, z: 0, nx: 0, ny: 0, nz: 0 }
+
+/**
+ * A character's light (M3R-D4) written into `out`: the ambient light plus each lamp in range at its level, each
+ * channel at most `LIGHT_CEILING`. With a `normal`, a lamp adds N·L of its light; without one, its light from every
+ * direction (the source's `lightAt`, for a whole character at once). Walls and boxes between block it. Allocates
+ * nothing, so it can run for every character every frame.
+ */
+export function tintInto(
+  out: [number, number, number],
+  x: number,
+  y: number,
+  z: number,
+  normal: readonly [number, number, number] | undefined,
+  prepared: PreparedLighting,
+  levels: LampLevels,
+): [number, number, number] {
+  const { lighting, ambient, colours } = prepared
+  out[0] = ambient[0]
+  out[1] = ambient[1]
+  out[2] = ambient[2]
+  // A plain loop, not forEach: no closure is made per call.
+  for (let index = 0; index < lighting.lamps.length; index++) {
+    const lamp = lighting.lamps[index]
+    if (lamp === undefined) continue
+    const level = levelOf(lamp, levels)
+    if (level === 0) continue
+    let light: number
+    if (normal === undefined) {
+      light = falloff(lamp, Math.hypot(lamp.x - x, lamp.y - y, lamp.z - z))
+      if (light > 0 && segmentBlocked(x, y, z, lamp.x, lamp.y, lamp.z, lighting)) light = 0
+    } else {
+      scratch.x = x
+      scratch.y = y
+      scratch.z = z
+      scratch.nx = normal[0]
+      scratch.ny = normal[1]
+      scratch.nz = normal[2]
+      light = vertexLight(scratch, lamp, lighting)
+    }
+    const colour = colours[index]
+    if (light === 0 || colour === undefined) continue
+    out[0] += light * level * colour[0]
+    out[1] += light * level * colour[1]
+    out[2] += light * level * colour[2]
+  }
+  out[0] = Math.min(LIGHT_CEILING, out[0])
+  out[1] = Math.min(LIGHT_CEILING, out[1])
+  out[2] = Math.min(LIGHT_CEILING, out[2])
+  return out
+}
+
 /**
  * A moving character's light (M3R-D4): the ambient light plus each lamp in range at its level, as `[r, g, b]`
- * multipliers for the character's base colour, each at most `LIGHT_CEILING`. With a `normal`, a lamp adds N·L of its
- * light; without one, its light from every direction (the source's `lightAt`, for a whole character at once). Walls
- * and boxes between the character and a lamp block it. Recomputed every frame: it is one small sum per lamp.
+ * multipliers for the character's base colour, each at most `LIGHT_CEILING` (see `tintInto`). This one decodes the
+ * colours and allocates its result: for one-off use. Per frame, use `SceneLight.tint` with an output array.
  */
 export function characterTint(
   position: readonly [number, number, number],
@@ -77,27 +147,5 @@ export function characterTint(
   lighting: SceneLighting,
   levels: LampLevels = {},
 ): [number, number, number] {
-  const ambient = channels(lighting.ambientColor)
-  const out: [number, number, number] = [
-    lighting.ambient * ambient[0],
-    lighting.ambient * ambient[1],
-    lighting.ambient * ambient[2],
-  ]
-  const [x, y, z] = position
-  for (const lamp of lighting.lamps) {
-    const level = levelOf(lamp, levels)
-    if (level === 0) continue
-    let light: number
-    if (normal === undefined) {
-      const distance = Math.hypot(lamp.x - x, lamp.y - y, lamp.z - z)
-      light = falloff(lamp, distance)
-      if (light > 0 && segmentBlocked(x, y, z, lamp.x, lamp.y, lamp.z, lighting)) light = 0
-    } else {
-      light = vertexLight({ x, y, z, nx: normal[0], ny: normal[1], nz: normal[2] }, lamp, lighting)
-    }
-    if (light === 0) continue
-    const colour = channels(lamp.color)
-    for (let c = 0; c < 3; c++) out[c] = (out[c] ?? 0) + light * level * (colour[c] ?? 0)
-  }
-  return [Math.min(LIGHT_CEILING, out[0]), Math.min(LIGHT_CEILING, out[1]), Math.min(LIGHT_CEILING, out[2])]
+  return tintInto([0, 0, 0], position[0], position[1], position[2], normal, prepareLighting(lighting), levels)
 }

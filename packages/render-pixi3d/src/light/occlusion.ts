@@ -112,26 +112,36 @@ export function segmentBlocked(
 }
 
 /**
- * Contact darkening, baked once per vertex (the source's `occlusion`): a factor to multiply light by, 1 in the open
- * and never below 0.3. A surface in front of a plane, within 0.9 m and over its rectangle (with 15 cm to spare),
- * darkens by `k · exp(-d / 0.28)`: k is 0.38 for a floor or top running into it, 0.3 for an upright surface meeting
- * it (an inside corner, a wall's foot) and 0.15 for one facing it. A surface lying on the plane is not darkened by it.
- * The floor round the foot of a box darkens by `0.45 · exp(-d / 0.18)` within 0.6 m of its footprint.
+ * Contact darkening, baked once per vertex (the source's `occlusion`, its rules and constants): a factor to multiply
+ * light by, 1 in the open and never below 0.3.
+ * - An upright plane (a wall, the source's sector wall pieces): a surface in front of it, within 0.9 m and over its
+ *   rectangle (with 15 cm to spare), darkens by `k · exp(-d / 0.28)`, k by the surface's own facing: 0.38 for a floor
+ *   or top, 0.3 for an upright surface (an inside corner), 0.15 for an underside. A surface lying on it is not darkened.
+ * - A floor plane (facing up, the source's sector floor): an upright surface above it darkens by
+ *   `0.28 · exp(-d / 0.35)`; a ceiling plane (facing down, the source's drawn ceiling) by `0.3 · exp(-d / 0.35)`.
+ * - The floor round the foot of a box (the source's furniture) darkens by `0.45 · exp(-d / 0.18)` within 0.6 m of its
+ *   footprint.
  */
 export function contactShade(sample: LightSample, occluders: Occluders): number {
   let open = 1
+  const upright = Math.abs(sample.ny) <= 0.5
   for (const plane of occluders.planes) {
     const dx = sample.x - plane.x
     const dy = sample.y - plane.y
     const dz = sample.z - plane.z
     const d = dot(plane.normal, dx, dy, dz)
-    if (d < -0.02 || d > 0.9) continue
     const { u, v } = planeAxes(plane)
     if (Math.abs(dot(u, dx, dy, dz)) > plane.width / 2 + 0.15) continue
     if (Math.abs(dot(v, dx, dy, dz)) > plane.height / 2 + 0.15) continue
-    const facing = dot(plane.normal, sample.nx, sample.ny, sample.nz)
-    if (d < 0.06 && facing > 0.7) continue
-    const strength = Math.abs(facing) <= 0.5 ? (sample.ny > 0.5 ? 0.38 : 0.3) : 0.15
+    const ny = plane.normal[1]
+    if (Math.abs(ny) > 0.5) {
+      // A floor or a ceiling: only upright surfaces in front of it darken toward it.
+      if (upright && d >= 0) open *= 1 - (ny > 0 ? 0.28 : 0.3) * Math.exp(-d / 0.35)
+      continue
+    }
+    if (d < -0.02 || d > 0.9) continue
+    if (d < 0.06 && dot(plane.normal, sample.nx, sample.ny, sample.nz) > 0.7) continue
+    const strength = sample.ny > 0.5 ? 0.38 : upright ? 0.3 : 0.15
     open *= 1 - strength * Math.exp(-Math.max(0, d) / 0.28)
   }
   if (sample.ny > 0.5)

@@ -43,4 +43,11 @@ describe('lampSwitches', () => {
     switches.apply(delta({ added: [row(2, 'desk', 0)] }))
     expect(switches.apply(delta({ changed: [{ sid: 2, components: {} }] }))).toEqual({})
   })
+
+  it('clamps a negative level to 0 and ignores a non-finite one, so NaN never rebakes every step', () => {
+    const switches = lampSwitches('lamp')
+    expect(switches.apply(delta({ added: [row(1, 'desk', -2)] }))).toEqual({ desk: 0 })
+    expect(switches.apply(delta({ changed: [row(1, 'desk', Number.NaN)] }))).toEqual({})
+    expect(switches.apply(delta({ changed: [row(1, 'desk', Number.NaN)] }))).toBeUndefined()
+  })
 })

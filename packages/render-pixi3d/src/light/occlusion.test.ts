@@ -41,6 +41,27 @@ describe('contactShade (ported occlusion)', () => {
     )
   })
 
+  it("takes the source's strengths by the surface's own facing: 0.38 up, 0.3 upright, 0.15 down", () => {
+    // 10 cm in front of the south wall: a floor, the east wall's face and a ceiling's underside.
+    const reach = Math.exp(-0.1 / 0.28)
+    const walls = { boxes: [], planes: room.planes.slice(1, 2) }
+    expect(contactShade(at(0, 1, 6.8, 0, 1, 0), walls)).toBeCloseTo(1 - 0.38 * reach, 5)
+    expect(contactShade(at(0, 1, 6.8, 1, 0, 0), walls)).toBeCloseTo(1 - 0.3 * reach, 5)
+    expect(contactShade(at(0, 1, 6.8, 0, -1, 0), walls)).toBeCloseTo(1 - 0.15 * reach, 5)
+  })
+
+  it('darkens an upright surface up from a floor (0.28) and down from a ceiling (0.3), and never a top or underside', () => {
+    const floor = { boxes: [], planes: room.planes.slice(0, 1) }
+    const ceiling = {
+      boxes: [],
+      planes: [{ x: 0, y: 3, z: 0, normal: [0, -1, 0] as const, width: 10, height: 14 }],
+    }
+    expect(contactShade(at(0, 0.2, 0, 1, 0, 0), floor)).toBeCloseTo(1 - 0.28 * Math.exp(-0.2 / 0.35), 5)
+    expect(contactShade(at(0, 2.8, 0, 1, 0, 0), ceiling)).toBeCloseTo(1 - 0.3 * Math.exp(-0.2 / 0.35), 5)
+    // A shelf top half a metre over the floor is not darkened by the floor.
+    expect(contactShade(at(0, 0.5, 0, 0, 1, 0), floor)).toBe(1)
+  })
+
   it('never falls below 0.3 and is 1 in an empty room', () => {
     expect(contactShade(at(4.85, 0, 6.85, 0, 1, 0), room)).toBeGreaterThanOrEqual(0.3)
     expect(contactShade(at(0, 0, 0, 0, 1, 0), sceneLightingSchema.parse({ ambient: 0 }))).toBe(1)
