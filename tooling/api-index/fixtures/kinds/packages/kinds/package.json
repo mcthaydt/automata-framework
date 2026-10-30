@@ -1,0 +1,15 @@
+{
+  "name": "@fx/kinds",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./types/index.js"
+    },
+    "./extra": {
+      "types": "./types/extra.d.ts",
+      "import": "./types/extra.js"
+    }
+  }
+}

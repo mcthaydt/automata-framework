@@ -1,0 +1,66 @@
+# `curtain` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/hair.json at a1f7246; swatch names in kebab-case.
+
+about = "Long hair over the whole head and the face: a shell over the head and face, a panel down over the face below the chin, two thick strands down the front, the sides to the shoulders, the back in four strands to the middle of it. The strands hang from the hair joints, so they fall plumb whatever the head's cock. Faceless from every side and from above."
+
+[[locks]]
+on = "head"
+at = [0, 0.6, -0.02]
+r = [1.14, 0.5, 1.12]
+e = [0.7, 0.7]
+follow = 1
+
+[[locks]]
+on = "head"
+at = [0, 0.14, 0.94]
+r = [1.02, 0.6, 0.24]
+e = [0.4, 0.5]
+taper = [0.9, 1]
+follow = 1
+
+[[locks]]
+on = "sides"
+at = [0.8, -0.55, 0.98]
+r = [0.36, 0.95, 0.2]
+e = [0.4, 0.5]
+taper = [0.7, 1]
+follow = 1
+
+[[locks]]
+on = "sides"
+at = [1.02, -0.05, -0.1]
+r = [0.32, 0.62, 0.98]
+e = [0.45, 0.5]
+taper = [0.85, 1]
+follow = 0.5
+
+[[locks]]
+on = "back"
+at = [-0.72, -0.63, -0.62]
+r = [0.34, 1.1300000000000001, 0.42]
+e = [0.5, 0.6]
+taper = [0.7, 1.05]
+shear = [0, -0.12]
+
+[[locks]]
+on = "back"
+at = [-0.24, -0.7100000000000001, -0.62]
+r = [0.34, 1.21, 0.42]
+e = [0.5, 0.6]
+taper = [0.7, 1.05]
+shear = [0, -0.12]
+
+[[locks]]
+on = "back"
+at = [0.24, -0.5700000000000001, -0.62]
+r = [0.34, 1.07, 0.42]
+e = [0.5, 0.6]
+taper = [0.7, 1.05]
+shear = [0, -0.12]
+
+[[locks]]
+on = "back"
+at = [0.72, -0.67, -0.62]
+r = [0.34, 1.17, 0.42]
+e = [0.5, 0.6]
+taper = [0.7, 1.05]
+shear = [0, -0.12]

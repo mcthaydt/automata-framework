@@ -45,6 +45,8 @@ export interface MakeFlowOptions<R = never> {
   readonly copy?: Partial<BootFailureCopy> & { readonly loading?: string; readonly slow?: string }
   readonly services: () => Context.Context<RuntimeServices | R>
   readonly logUnmatched?: (screen: string, event: string) => void
+  /** Hears why a screen could not load or enter, after the error panel is up (`RuntimeSeams.onFailure`). */
+  readonly onFailure?: (cause: unknown) => void
 }
 
 export interface FlowHandle {
@@ -165,6 +167,7 @@ export function makeFlow<R = never>(
               ],
             })
             queue.length = 0
+            options.onFailure?.(Option.isSome(errorOpt) ? errorOpt.value : Cause.squash(loadResult.cause))
             return
           }
         }
@@ -262,6 +265,7 @@ export function makeFlow<R = never>(
               },
             ],
           })
+          options.onFailure?.(Cause.squash(enterResult.cause))
           return
         }
 

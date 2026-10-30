@@ -6,8 +6,8 @@ import { join } from 'node:path'
 import { checkDocs } from './baseline.ts'
 import { cheatsheet } from './cheatsheet.ts'
 import { entryPoints, MissingTypesError } from './entry-points.ts'
-import { extractExports } from './extract.ts'
 import { apiJson, apiReference, indexVersion, llmsFullText } from './render.ts'
+import { indexRows } from './rows.ts'
 
 export interface RunOptions {
   /** The repository root holding the workspace packages. */
@@ -43,7 +43,7 @@ export function runApiIndex(options: RunOptions): RunResult {
     if (error instanceof MissingTypesError) return { exitCode: 2, report: [error.message] }
     throw error
   }
-  const exports = extractExports(entries)
+  const exports = indexRows(entries)
   const reference = apiReference(exports)
   mkdirSync(options.out, { recursive: true })
   writeFileSync(join(options.out, 'api.json'), apiJson(exports))
