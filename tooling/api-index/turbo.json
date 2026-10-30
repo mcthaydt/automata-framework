@@ -2,6 +2,13 @@
   "$schema": "https://turbo.build/schema.json",
   "extends": ["//"],
   "tasks": {
+    "typecheck": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/tooling/api-report/src/**",
+        "$TURBO_ROOT$/tooling/release/src/**"
+      ]
+    },
     "test:unit": {
       "inputs": [
         "$TURBO_DEFAULT$",
@@ -13,7 +20,8 @@
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/turbo.json",
         "$TURBO_ROOT$/.changeset/**",
-        "$TURBO_ROOT$/tooling/api-report/src/**"
+        "$TURBO_ROOT$/tooling/api-report/src/**",
+        "$TURBO_ROOT$/tooling/release/src/**"
       ]
     },
     "test": {
@@ -27,7 +35,8 @@
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/turbo.json",
         "$TURBO_ROOT$/.changeset/**",
-        "$TURBO_ROOT$/tooling/api-report/src/**"
+        "$TURBO_ROOT$/tooling/api-report/src/**",
+        "$TURBO_ROOT$/tooling/release/src/**"
       ]
     }
   }
