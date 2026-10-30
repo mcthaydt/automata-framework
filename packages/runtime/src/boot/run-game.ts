@@ -100,6 +100,7 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
 
         // Log error through describeBootError (exhaustive switch)
         yield* Effect.logError(describeBootError(error))
+        game.seams?.onFailure?.(error)
 
         // Close loader if still mounted
         loaderRef.current?.close()

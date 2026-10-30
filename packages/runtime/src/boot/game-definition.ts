@@ -38,6 +38,11 @@ export interface RuntimeSeams {
   readonly haptics?: Haptics
   /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage` (M5 spec §4.5). */
   readonly deviceStorage?: DeviceStorage
+  /**
+   * Hears what failed, after the runtime has shown it as usual: a boot failure's `BootError`, or what a running
+   * sim's step threw. The playground reports the line in the reader's code from it (website playground spec §7.2).
+   */
+  readonly onFailure?: (cause: unknown) => void
 }
 
 /** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */

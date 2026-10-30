@@ -331,12 +331,14 @@ export function bootProgram<S>(
       renderer,
       time,
       bus,
-      onFault: (cause) =>
+      onFault: (cause) => {
         flowHandle.reportFailure({
           _tag: 'ScreenFailed',
           screen: flowHandle.flow.current ?? '',
           cause,
-        }),
+        })
+        game.seams?.onFailure?.(cause)
+      },
     })
 
     runtimeContext = buildRuntimeServices({
