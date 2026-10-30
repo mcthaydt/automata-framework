@@ -61,6 +61,24 @@ describe('occluders.wall', () => {
   })
 })
 
+describe('occluders.box', () => {
+  it('builds a lit box filling `bounds` under the root, with its own material and no rule of its own', () => {
+    const root = new Container3D()
+    const occluders = createOccluders(root)
+    const bounds = { min: [1, 0, 2], max: [1.4, 2.4, 2.6] } as const
+    const pillar = occluders.box(bounds, 0xc0cbdc)
+    const other = occluders.box(bounds, 0xc0cbdc)
+    expect(pillar.parent).toBe(root)
+    expect(pillar.material).not.toBe(other.material)
+    const corner = placed(pillar, { x: 0.5, y: 0.5, z: 0.5 })
+    const opposite = placed(pillar, { x: -0.5, y: -0.5, z: -0.5 })
+    expect([corner.x, corner.y, corner.z].map((v) => Number(v.toFixed(6)))).toEqual([1.4, 2.4, 2.6])
+    expect([opposite.x, opposite.y, opposite.z].map((v) => Number(v.toFixed(6)))).toEqual([1, 0, 2])
+    occluders.update(frameAt(0, 0, true))
+    expect(pillar.visible).toBe(true)
+  })
+})
+
 describe('occluders.update', () => {
   it('fades a cut wall out with its trim shown, blending while it fades, and back in to opaque', () => {
     const occluders = createOccluders(new Container3D())

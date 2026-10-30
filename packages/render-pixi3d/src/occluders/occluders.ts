@@ -48,6 +48,11 @@ export interface Occluders {
   ceiling(node: Container3D): void
   /** A static mesh that fades (or is cut) when it stands on the camera's line to the player. It owns its material. */
   prop(mesh: Mesh3D, options: PropOptions): void
+  /**
+   * Builds a lit box filling `bounds` under the view's root, with its own material: a floor, a ceiling, a pillar. It
+   * follows no rule until it is registered as a `ceiling` or a `prop`.
+   */
+  box(bounds: Box3, color: number): Mesh3D
 }
 
 export interface OccluderStage extends Occluders {
@@ -117,6 +122,17 @@ export function createOccluders(parent: Container3D): OccluderStage {
         mesh,
       })
       pass = undefined
+    },
+    box(bounds, color) {
+      const mesh = new Mesh3D({
+        geometry: new CubeGeometry({ width: 1, height: 1, depth: 1 }),
+        material: new PhongMaterial({ baseColor: color }),
+      })
+      const [min, max] = [bounds.min, bounds.max]
+      mesh.scale.set(max[0] - min[0], max[1] - min[1], max[2] - min[2])
+      mesh.position.set((min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2)
+      parent.addChild(mesh)
+      return mesh
     },
     update(frame) {
       pass ??= occluderPass({ walls: walls.map((w) => w.entry), props: props.map((p) => p.entry) })
