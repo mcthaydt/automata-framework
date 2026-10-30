@@ -3,8 +3,8 @@
 // `src/` into `dist/`, tests included, and both tools leave `import … from '@ruken/…'` in place, which would not
 // resolve in a game (Ruken is not published; D-8). So this:
 //
-// 1. removes test files, the test setup, the test-only fixture components and the package's own test-only
-//    folders (`testOnly`) from `dist/`;
+// 1. removes test files, the test setup, the test-only fixture components and modules, and the package's own
+//    test-only folders (`testOnly`) from `dist/`;
 // 2. rewrites each vendored specifier to a relative path to what tsdown wrote for it under `dist/vendor/`: in a
 //    `.d.ts` for a package whose Ruken imports are types only (`vendoredTypes`), in `.js` and `.d.ts` for one
 //    whose Ruken code is bundled there (`vendoredCode`, game's `SLUG_RE`);
@@ -26,8 +26,11 @@ export interface FinishSvelteDistOptions {
   readonly testOnly?: readonly string[]
 }
 
-/** `x.test.ts` output, `.test.svelte` harnesses, `vitest-setup`, and `*Fixture.svelte` test components. */
-const TEST_ONLY = /(?:\.test\.|^vitest-setup\.|Fixture\.svelte)/
+/**
+ * `x.test.ts` output, `.test.svelte` harnesses, `vitest-setup`, `*Fixture.svelte` test components and the
+ * `*-fixture.ts` modules they share (which may import a dev dependency, such as ui's `locale-fixture.ts`).
+ */
+const TEST_ONLY = /(?:\.test\.|^vitest-setup\.|Fixture\.svelte|-fixture\.)/
 
 function filesBelow(dir: string): string[] {
   return readdirSync(dir, { recursive: true, withFileTypes: true })

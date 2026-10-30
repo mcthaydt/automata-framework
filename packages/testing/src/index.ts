@@ -10,12 +10,14 @@ export {
 export {
   documentScrolls,
   findClipped,
+  findCutAtSide,
   findIntrusions,
   findOffscreenControls,
   findOverlaps,
   findSmallTargets,
   findUnreachable,
   type LayoutRect,
+  pressedPart,
   visibleControls,
 } from './layout/assertions'
 export {
