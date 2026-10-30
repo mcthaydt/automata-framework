@@ -24,9 +24,11 @@ that from `b30d31b` on 2026-10-11. Between `d0fa2fe` and `e376a2d` only the lice
 
 **Licence:** MIT, for all four (the Owner, 2026-10-30: "Yes, MIT it"; RukenApp PR #396). Each tarball holds the same
 `package/LICENSE` ("Copyright (c) 2026 Dawson McThay") and its `package.json` declares `"license": "MIT"`. MIT asks
-that its notice travel with every copy of the code, so each AF package that bundles Ruken code repeats the licence
-and its text in its `VENDORED.md`, read from the installed tarball (`tooling/release/src/write-vendored.ts`), and
-`docs/stack.md` shows it.
+that its notice travel with every copy of the code. Content, host and ship, which bundle Ruken code into their
+`dist/`, repeat the licence and its text in their published `VENDORED.md`, read from the installed tarball
+(`tooling/release/src/write-vendored.ts`), and `docs/stack.md` shows it. Testing and ui inline Ruken type
+declarations without a published notice (testing one region of `@ruken/sdk`'s `dist/index.d.ts`, ui
+`dist/vendor/ruken-sdk.d.ts`): neither publishes a `VENDORED.md`, which is PRODUCT.4r's follow-up.
 
 `pnpm pack` writes the `@ruken/*` dev dependencies of a packed `package.json` in no fixed order, so packing
 the same commit twice can give a different SHA-256 for `ruken-sdk`, `ruken-sdk-host` and `ruken-cli`, with the
@@ -42,8 +44,8 @@ pnpm install
 for p in packages/sdk packages/sdk-host packages/manifest tooling/ruken-cli; do (cd $p && pnpm run build && pnpm pack --pack-destination <automata-framework>/vendor/ruken); done
 ```
 
-then `pnpm install` here, update the commit and the hashes below, and re-run
-the host contract tests.
+then `pnpm install` here, update the commit and the hashes below (`tooling/release/src/write-vendored.test.ts`
+fails until they are the hashes of the tarballs in this folder), and re-run the host contract tests.
 
 SHA-256 of the tarballs as packed:
 

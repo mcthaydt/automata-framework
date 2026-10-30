@@ -85,16 +85,25 @@ export function vendoredNotice(
 
 /**
  * The licence `<packageDir>/node_modules/<name>` declares: its package.json's `license` field and its LICENSE file.
- * Missing either fails the build, so a published package never bundles code without a licence (R-16).
+ * Missing either fails the build, so a published package never bundles code without a licence (R-16). So does more
+ * than one LICENSE file: the order a directory lists them in is the filesystem's, so picking one would let the
+ * published text depend on the machine that built it.
  */
 function installedLicense(packageDir: string, name: string): BundledLicense {
   const installed = join(packageDir, 'node_modules', name)
   const manifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8')) as { license?: unknown }
   if (typeof manifest.license !== 'string')
     throw new Error(`${name}: the installed package declares no license, so no package may bundle it`)
-  const file = readdirSync(installed).find((entry) => LICENSE_FILE.test(entry))
+  const files = readdirSync(installed)
+    .filter((entry) => LICENSE_FILE.test(entry))
+    .sort()
+  const [file] = files
   if (file === undefined)
     throw new Error(`${name}: the installed package has no LICENSE file, so no package may bundle it`)
+  if (files.length > 1)
+    throw new Error(
+      `${name}: the installed package has more than one LICENSE file (${files.join(', ')}), so its text is unclear`,
+    )
   return { license: manifest.license, text: readFileSync(join(installed, file), 'utf8') }
 }
 

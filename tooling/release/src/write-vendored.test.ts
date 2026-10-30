@@ -1,4 +1,5 @@
-import { mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -63,6 +64,13 @@ describe('vendoredNotice', () => {
     expect(notice).toContain(`### \`@ruken/manifest\`\n\n\`\`\`text\n${OTHER_TEXT}\`\`\``)
   })
 
+  it('closes the code block on its own line when the licence text has no trailing newline', () => {
+    const text = 'MIT License\n\nCopyright (c) 2026 Someone'
+    const licenses = new Map([['@ruken/sdk', { license: 'MIT', text }]])
+    const notice = vendoredNotice(README, 'x', ['@ruken/sdk'], licenses)
+    expect(notice).toContain(`\`\`\`text\n${text}\n\`\`\`\n`)
+  })
+
   it('refuses a package the README does not vendor', () => {
     expect(() => vendoredNotice(README, 'x', ['@ruken/cli'], BOTH_MIT)).toThrow(/@ruken\/cli/)
   })
@@ -110,6 +118,15 @@ describe('writeVendored', () => {
     expect(() => write(packageWithSdk({ license: 'MIT' }, {}))).toThrow(/@ruken\/sdk.*LICENSE/)
   })
 
+  // Which file a directory listing gives first is up to the filesystem, so a package with two candidate licence
+  // files would make the notice's text depend on the machine that built it. Refuse it rather than guess.
+  it('refuses an installed package with more than one LICENSE file, naming them', () => {
+    const dir = packageWithSdk({ license: 'MIT' }, { LICENSE: MIT_TEXT, 'LICENSE.md': OTHER_TEXT })
+    expect(() => writeVendored({ root, packageDir: dir, packageName: 'x', bundled: ['@ruken/sdk'] })).toThrow(
+      /@ruken\/sdk.*LICENSE, LICENSE\.md/,
+    )
+  })
+
   // The real tarballs, as host and ship install them: the four vendored packages carry the MIT licence the Owner
   // chose (2026-10-30, RukenApp #396), which every published package that bundles them repeats (PRODUCT.4r).
   it.each([
@@ -123,5 +140,34 @@ describe('writeVendored', () => {
     for (const name of bundled) expect(notice).toMatch(new RegExp(`\\| \`${name}\` \\|.*\\| MIT \\|`))
     expect(notice).toContain('MIT License')
     expect(notice).toContain('Permission is hereby granted, free of charge')
+  })
+})
+
+// write-vendored copies the README's SHA-256 block into every published VENDORED.md, so the block must be the
+// hashes of the tarballs actually in vendor/ruken/: a repack that forgets the README would otherwise publish
+// wrong hashes and pass every other check.
+describe('vendor/ruken/README.md', () => {
+  const vendor = new URL('../../../vendor/ruken/', import.meta.url).pathname
+
+  it('lists the SHA-256 of exactly the tarballs in vendor/ruken/', () => {
+    const readme = readFileSync(join(vendor, 'README.md'), 'utf8')
+    const listed = Object.fromEntries(
+      [...readme.matchAll(/^([0-9a-f]{64}) {2}([\w.-]+\.tgz)$/gm)].map(([, hash, tarball]) => [
+        tarball,
+        hash,
+      ]),
+    )
+    const actual = Object.fromEntries(
+      readdirSync(vendor)
+        .filter((file) => file.endsWith('.tgz'))
+        .map((tarball) => [
+          tarball,
+          createHash('sha256')
+            .update(readFileSync(join(vendor, tarball)))
+            .digest('hex'),
+        ]),
+    )
+    expect(Object.keys(actual)).not.toHaveLength(0)
+    expect(listed).toEqual(actual)
   })
 })
