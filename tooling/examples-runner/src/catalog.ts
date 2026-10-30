@@ -18,6 +18,8 @@ export const CORE_MODULES: readonly string[] = [
   'sim',
   'content',
   'ui',
+  // The 3D runtime is free (M3R-D20): its examples are core, though its package stays unpublished while D-1 stands.
+  'render3d',
 ]
 export const PLUS_MODULES: readonly string[] = ['physics', 'net', 'feel', 'post']
 
@@ -69,6 +71,16 @@ const SCHEMA_LANGUAGE = 'zod'
  * umbrella. A new extension package fails the catalog until it is listed here, which is when to decide its tier.
  */
 const EXTENSION_PACKAGES: ReadonlySet<string> = new Set(['@mcthaydt/automata-physics'])
+/**
+ * Extensions that stay private for now, whose entries examples may still import: `render-pixi3d` is built on the
+ * closed `@pixi/3d` beta (D-1, M3 spec §4.8) and is published when Pixi 3D is. The website's playground leaves their
+ * examples out (`playgroundCatalog`), because it is public.
+ */
+const UNPUBLISHED_EXTENSIONS: ReadonlySet<string> = new Set(['@mcthaydt/automata-render-pixi3d'])
+
+/** Whether an import names an unpublished extension's entry. */
+export const isUnpublishedExtension = (specifier: string): boolean =>
+  [...UNPUBLISHED_EXTENSIONS].some((name) => specifier === name || specifier.startsWith(`${name}/`))
 const AUTOMATA_PACKAGE = /^(@mcthaydt\/automata-[a-z0-9-]+)(?:\/|$)/
 
 interface PublicEntries {
@@ -92,7 +104,7 @@ function exampleFiles(root: string, dir = root): string[] {
   return files
 }
 
-/** The umbrella, Zod and every specifier a published extension package declares in `exports`. */
+/** The umbrella, Zod and every specifier a published or unpublished extension package declares in `exports`. */
 function publicEntries(packagesDir: string): PublicEntries {
   const entries = new Set([UMBRELLA, SCHEMA_LANGUAGE])
   const packages = new Set<string>()
@@ -106,7 +118,8 @@ function publicEntries(packagesDir: string): PublicEntries {
     }
     if (!manifest.name.startsWith(`${UMBRELLA}-`)) continue
     packages.add(manifest.name)
-    if (manifest.private === true || !EXTENSION_PACKAGES.has(manifest.name)) continue
+    const published = manifest.private !== true && EXTENSION_PACKAGES.has(manifest.name)
+    if (!published && !UNPUBLISHED_EXTENSIONS.has(manifest.name)) continue
     for (const key of Object.keys(manifest.exports ?? {}))
       entries.add(key === '.' ? manifest.name : `${manifest.name}/${key.slice(2)}`)
   }

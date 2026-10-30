@@ -293,9 +293,11 @@
 - `rebuildOnQuality(settings, read, build, onBuilt?)`: Keeps something built for the player's quality tier (M4 spec §4.11), rebuilding it when the tier changes.
 - `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
 - `RectViewOptions` (interface): A `rect` view's size, colour and anchor.
-- `RenderDeltaConsumer` (class): Keeps one entity view per sim entity in the world container from each step's render delta, and interpolates them between ticks.
+- `RenderDeltaConsumer` (class): Keeps one entity view per sim entity in the world from each step's render delta, and interpolates them between ticks.
 - `RendererPreference` (type): The renderer backend: `webgl` (WebGL2, the default) or `webgpu` (opt-in).
 - `RESOLUTION_CAPS` (const): The canvas resolution each quality tier allows at most (M4 spec §4.11).
+- `SceneNode` (interface): What the consumer needs of a scene node: Pixi's `Container`, or another scene graph's node with the same meaning (`@pixi/3d`'s `Container3D`, which is not a Pixi `Container`; M3 spec S7-Q5).
+- `SceneParent` (interface): A scene node that holds other nodes: the world the consumer mounts views into.
 - `SHAKE_DECAY` (const): Trauma lost per second: a full shake (1) is gone in 2/3 s.
 - `SHAKE_MAX_OFFSET` (const): The largest shake offset per axis, in logical px, at trauma 1.
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
@@ -418,6 +420,7 @@
 - `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `MenuAction` (type): A fixed menu action: it drives menus and the pause screen, never the sim.
 - `MessageFunction` (type): One compiled message: Paraglide passes its inputs as one object.
+- `ModelInvalid` (class): A 3D model file could not be read (M3 spec §6): malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet (M3R-D1).
 - `MusicOptions` (interface): Options for `Audio.music`: where to begin and which region loops.
 - `negotiateLocale(candidates)`: The order is the player's saved choice, Ruken's session locale, the browser's languages, the default (PRODUCT spec §4 item 2, as decided 2026-10-16: a choice made in the game's own picker outranks the platform's, as in FloorFifty, where detection runs only "when the player has not chosen one").
 - `NetworkPort` (interface): The networking seam (PRODUCT spec §2 F1): remote commands in, authoritative snapshots out.
@@ -438,7 +441,7 @@
 - `RebindTimedOut` (class): Nothing was pressed for `REBIND_TIMEOUT_MS`: nothing changes.
 - `RebindUnknown` (class): Refused: the profile has no such action.
 - `Renderer` (const): The game's renderer as a runtime service.
-- `RendererFactory` (type): Builds the game's renderer on a render target in a scope, failing `RendererUnavailable` when it cannot start.
+- `RendererFactory` (type): Builds the game's renderer for a target.
 - `RendererUnavailable` (class): Neither WebGL2 nor WebGPU could be initialized.
 - `RenderTarget` (interface): Where a renderer draws: the host element, the layout geometry, the loaded assets and the presentation bus.
 - `RESERVED_KEYS` (const): Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
@@ -543,6 +546,7 @@
 - `findExecutable(name, pathEnv?, platform?)`: The first `name` on `pathEnv` that is an executable file, or undefined.
 - `findInputsProblems(gameDir, inputs)`: Each disagreement between `inputs` (a config's `runtime.inputs`) and what the `keys()` calls in a game's sources bind, in `inputsProblems`' words; empty when they agree or the game has no `keys()` call to compare.
 - `findOrientationMismatches(gameDir, declared)`: Every `defineGame` in a game's sources that plays in an orientation other than `declared` (its config's).
+- `findPixi3d(distDir)`: Every script in the build that carries
 - `findRootAbsoluteReferences(distDir)`: Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
 - `findSecretsInBuild(distDir, envValues)`: Every secret in a built folder.
 - `findUndeclaredBoards(gameDir, declared)`: Every board a game's sources name that `declared` (its ship config's `leaderboards` keys) lacks.
@@ -550,6 +554,7 @@
 - `inputsProblems(inputs, bindings)`: Each disagreement between `runtime.inputs` and the bindings, in action order; empty when they agree.
 - `isBoardSource` (const): Whether `file` is one of the game's sources the board check reads (`.ts`, `.tsx`, `.mts`, `.js`, `.mjs`).
 - `isInputsSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
+- `isLocalStack(api)`: Whether `api` is Ruken's local stack: `localhost`, a `.localhost` name, or a loopback address.
 - `isOrientationSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
 - `ITCH_FIRST_PUSH_CHECKLIST` (const): The one-time page settings butler cannot make (PUB spec §6), printed after a channel's first push.
 - `ITCH_LIMITS` (const): itch.io's documented limits for an HTML5 upload; "MB" is read as 10^6 bytes.
@@ -566,14 +571,22 @@
 - `OrientationMismatch` (class): The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up).
 - `OrientationMismatchFound` (interface): A game that plays in an orientation its ship config does not declare.
 - `parseEnvFile(file, text)`: The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
+- `PIXI3D_EXTRAS_MARKERS` (const): Strings only
+- `PIXI3D_MARKERS` (const): Strings only
+- `Pixi3dExtrasInBuild` (class): A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load (M3 spec S7-g).
+- `Pixi3dFound` (interface): One script that carries a marker.
+- `Pixi3dInPublicBuild` (class): A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta (M3 spec §4.8, X-b).
 - `PlayedOrientation` (interface): An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
-- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it.
+- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b), `@pixi/3d` (X-b, S7-g), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
-- `prepareItch(input)`: Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on itch.io is public, so the build is scanned as Ruken's is), `index.html`, itch.io's limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops prepare before anything is written.
+- `prepareItch(input)`: Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d` (X-b, S7-g), `index.html`, itch.io's limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops prepare before anything is written.
 - `PrepareItchInput` (interface): What `prepareItch` checks and zips: the built folder, the ship config and the release tag.
+- `PrivatePublishNotLocal` (class): `publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
+- `publishBuild(input)`: `ship publish` for Ruken (ship spec §3.4): prepare the build, then hand it to Ruken's own CLI.
+- `PublishBuildInput` (interface): What `publishBuild` needs: `publishToRuken`'s input, the game's ship config, the release tag and the audience.
 - `PublishFailed` (class): Any other exit code.
 - `PublishInput` (interface): What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and whether to activate the build.
 - `PublishItchInput` (interface): What `publishToItch` needs: the built folder, the ship config, the tag, the key and where butler is.
@@ -815,7 +828,7 @@
 - `BootFailureAction` (type): Try again, Continue without loading, Back to {host}.
 - `BootFailureCopy` (type): The words for every boot failure state and action, by name.
 - `BootFailurePanel` (const): The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the failure's copy and its ways forward.
-- `BootFailureState` (type): What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or `unsupported`.
+- `BootFailureState` (type): What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled`, `unsupported` or `model-invalid`.
 - `bootFailureView(failure, hostKind, canExit)`: Which state a failure draws and which ways forward it offers.
 - `BootFailureViewModel` (interface): What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order.
 - `Button` (const): The framework's button (M4 spec §4.12): an `.af-control` of one kind.

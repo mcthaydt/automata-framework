@@ -10,16 +10,10 @@
 const ALWAYS_NEVER: readonly string[];
 ```
 
-### `CheckRow` (interface)
+### `CheckRow` (type)
 
 ```ts
-interface CheckRow {
-    readonly id: string;
-    readonly run: readonly string[];
-    readonly when: 'before' | 'after';
-    readonly joins: readonly string[];
-    readonly measure: boolean;
-}
+type CheckRow = CheckDef;
 ```
 
 ### `CONTENT_CHECK` (const)
@@ -104,6 +98,8 @@ type FileAccess = {
     readonly path: string;
     readonly reason: 'outside' | 'never' | 'generated' | 'unlisted';
     readonly why: string;
+    readonly row?: FileRow;
+    readonly scene?: string;
 };
 ```
 
@@ -149,4 +145,10 @@ function globMatch(glob: string, path: string, options?: {
 
 ```ts
 function loadEditorList(text: string | undefined): EditorListLoad;
+```
+
+### `workspaceFile` (function)
+
+```ts
+function workspaceFile(list: EditorList, path: string): WorkspaceFile | UnlistedFile;
 ```

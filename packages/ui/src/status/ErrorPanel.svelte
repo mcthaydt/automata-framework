@@ -290,6 +290,8 @@ $effect(() => {
     min-width: min(20ch, 100%);
     overflow-y: auto;
     overscroll-behavior: contain;
+    /* A hashed file name has no break opportunity; it wraps anywhere rather than widen the panel. */
+    overflow-wrap: anywhere;
   }
 
   .af-error-panel__actions {

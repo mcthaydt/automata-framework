@@ -778,6 +778,7 @@ interface HomeCard {
     readonly accent: string | undefined;
     readonly size: number;
     readonly mtime: number;
+    readonly preview?: TilePreview | undefined;
 }
 ```
 
@@ -1114,9 +1115,7 @@ interface ProjectStore {
     readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
-    write(path: string, data: Uint8Array | string, expected?: {
-        readonly mtime: number;
-    }): Promise<WriteResult>;
+    write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
     remove(path: string): Promise<void>;
     watch?(path: string, listener: () => void): () => void;
 }
@@ -1462,7 +1461,7 @@ class StorageError extends Error {
 ### `StorageFailure` (type)
 
 ```ts
-type StorageFailure = 'denied' | 'quota' | 'io';
+type StorageFailure = 'denied' | 'quota' | 'io' | 'policy';
 ```
 
 ### `StorageNote` (interface)
@@ -1527,6 +1526,15 @@ interface TapGesture {
     readonly count: number;
     readonly pointerType: PointerKind;
     readonly modifiers: Modifiers;
+}
+```
+
+### `TilePreview` (interface)
+
+```ts
+interface TilePreview {
+    readonly key: string;
+    draw(): Promise<string | undefined>;
 }
 ```
 
@@ -1724,10 +1732,18 @@ interface WorkspaceEnv {
 function workspaceSubtitle(workspace: Workspace, count: number): string;
 ```
 
+### `WriteExpectation` (type)
+
+```ts
+type WriteExpectation = {
+    readonly mtime: number;
+} | 'absent';
+```
+
 ### `WriteFailure` (type)
 
 ```ts
-type WriteFailure = 'conflict' | 'denied' | 'quota' | 'io';
+type WriteFailure = 'conflict' | StorageFailure;
 ```
 
 ### `WriteResult` (type)
@@ -2089,6 +2105,7 @@ interface HomeCard {
     readonly accent: string | undefined;
     readonly size: number;
     readonly mtime: number;
+    readonly preview?: TilePreview | undefined;
 }
 ```
 
@@ -2244,9 +2261,7 @@ interface ProjectStore {
     readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
-    write(path: string, data: Uint8Array | string, expected?: {
-        readonly mtime: number;
-    }): Promise<WriteResult>;
+    write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
     remove(path: string): Promise<void>;
     watch?(path: string, listener: () => void): () => void;
 }
@@ -2458,7 +2473,7 @@ class StorageError extends Error {
 ### `StorageFailure` (type)
 
 ```ts
-type StorageFailure = 'denied' | 'quota' | 'io';
+type StorageFailure = 'denied' | 'quota' | 'io' | 'policy';
 ```
 
 ### `StorageNote` (interface)
@@ -2652,10 +2667,18 @@ interface WorkspaceEnv {
 function workspaceSubtitle(workspace: Workspace, count: number): string;
 ```
 
+### `WriteExpectation` (type)
+
+```ts
+type WriteExpectation = {
+    readonly mtime: number;
+} | 'absent';
+```
+
 ### `WriteFailure` (type)
 
 ```ts
-type WriteFailure = 'conflict' | 'denied' | 'quota' | 'io';
+type WriteFailure = 'conflict' | StorageFailure;
 ```
 
 ### `WriteResult` (type)
@@ -3332,6 +3355,518 @@ interface RetypeBreakage {
 
 ```ts
 function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
+```
+
+## `./ports`
+
+### `AskContext` (type)
+
+```ts
+type AskContext = Readonly<Record<string, string | number | readonly string[]>>;
+```
+
+### `AskProvider` (interface)
+
+```ts
+interface AskProvider {
+    propose(request: AskRequest): Promise<Proposal>;
+}
+```
+
+### `AskRequest` (interface)
+
+```ts
+interface AskRequest {
+    readonly prompt: string;
+    readonly path: string;
+    readonly scope: readonly string[];
+    readonly document: string;
+    readonly budget: number;
+    readonly context?: AskContext | undefined;
+}
+```
+
+### `ChangeSet` (interface)
+
+```ts
+interface ChangeSet {
+    current(): Promise<{
+        readonly title: string;
+        readonly branch: string;
+        readonly base: string;
+    } | undefined>;
+    begin(title: string): Promise<void>;
+    record(files: readonly string[]): Promise<void>;
+    checkpoint(message: string): Promise<{
+        readonly commit: string;
+    }>;
+    ship(draft: {
+        readonly title: string;
+        readonly body: string;
+    }): Promise<{
+        readonly branch: string;
+        readonly pushed: boolean;
+        readonly pr?: string | undefined;
+        readonly compareUrl: string;
+    }>;
+    spend(tokens: number): Promise<void>;
+    raiseCap(cap: number): Promise<void>;
+    close(): Promise<void>;
+    list(): Promise<readonly ChangeSetSummary[]>;
+}
+```
+
+### `ChangeSetSummary` (interface)
+
+```ts
+interface ChangeSetSummary {
+    readonly title: string;
+    readonly branch: string;
+    readonly base: string;
+    readonly files: readonly string[];
+    readonly created: readonly string[];
+    readonly tokens: {
+        readonly used: number;
+        readonly cap: number;
+    };
+}
+```
+
+### `CheckDef` (interface)
+
+```ts
+interface CheckDef {
+    readonly id: string;
+    readonly when: 'before' | 'after';
+    readonly run: readonly string[];
+    readonly joins: readonly string[];
+    readonly measure: boolean;
+}
+```
+
+### `CheckFinding` (interface)
+
+```ts
+interface CheckFinding {
+    readonly path?: string | undefined;
+    readonly keyPath?: string | undefined;
+    readonly line?: number | undefined;
+    readonly column?: number | undefined;
+    readonly severity: 'error' | 'warning';
+    readonly message: string;
+}
+```
+
+### `CheckMeasure` (interface)
+
+```ts
+interface CheckMeasure {
+    readonly id: string;
+    readonly label: string;
+    readonly value: number;
+    readonly threshold?: number | undefined;
+    readonly ok: boolean;
+}
+```
+
+### `CheckResult` (interface)
+
+```ts
+interface CheckResult {
+    readonly check: string;
+    readonly status: 'pass' | 'warn' | 'fail' | 'error';
+    readonly findings: readonly CheckFinding[];
+    readonly measure?: readonly CheckMeasure[] | undefined;
+    readonly joined?: readonly string[] | undefined;
+    readonly output: string;
+}
+```
+
+### `CheckRun` (interface)
+
+```ts
+interface CheckRun {
+    readonly id: string;
+    result(): Promise<readonly CheckResult[]>;
+    cancel(): void;
+}
+```
+
+### `ChecksRunner` (interface)
+
+```ts
+interface ChecksRunner {
+    declared(): readonly CheckDef[];
+    run(request: {
+        readonly checks: readonly string[];
+        readonly candidates?: readonly {
+            readonly path: string;
+            readonly text: string;
+        }[] | undefined;
+    }): Promise<CheckRun>;
+}
+```
+
+### `ContributionPoint` (type)
+
+```ts
+type ContributionPoint = 'tuner.source' | 'audio.panel';
+```
+
+### `defineSuiteEditor` (function)
+
+```ts
+function defineSuiteEditor<S>(editor: SuiteEditor<S>): SuiteEditor<S>;
+```
+
+### `EditMode` (type)
+
+```ts
+type EditMode = 'edit' | 'ask';
+```
+
+### `Gates` (interface)
+
+```ts
+interface Gates {
+    states(ids: readonly string[]): Promise<readonly GateState[]>;
+}
+```
+
+### `GateState` (interface)
+
+```ts
+interface GateState {
+    readonly id: string;
+    readonly name: string;
+    readonly decision: 'approved' | 'rejected' | 'open' | 'unknown';
+    readonly decidedAt?: string | undefined;
+    readonly url?: string | undefined;
+}
+```
+
+### `Proposal` (interface)
+
+```ts
+interface Proposal {
+    readonly summary: string;
+    readonly text: string;
+    readonly tokens: number;
+}
+```
+
+### `SuiteEditor` (interface)
+
+```ts
+interface SuiteEditor<S> {
+    readonly id: string;
+    readonly label: string;
+    readonly icon: string;
+    readonly hue: string;
+    open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>;
+    readonly regions: SuiteRegions<S>;
+    readonly contributions?: readonly ContributionPoint[] | undefined;
+}
+```
+
+### `SuitePorts` (interface)
+
+```ts
+interface SuitePorts {
+    readonly workspace: SuiteWorkspace;
+    readonly changeSet?: ChangeSet | undefined;
+    readonly checks: ChecksRunner;
+    readonly gates?: Gates | undefined;
+    readonly ask?: AskProvider | undefined;
+}
+```
+
+### `SuiteRegions` (interface)
+
+```ts
+interface SuiteRegions<S> {
+    readonly panel: Snippet<[S]>;
+    readonly canvas: Snippet<[S]>;
+    readonly inspector: Snippet<[S]>;
+    readonly dock?: Snippet<[S]> | undefined;
+    readonly status?: Snippet<[S]> | undefined;
+    readonly tools?: Snippet<[S]> | undefined;
+}
+```
+
+### `SuiteWorkspace` (interface)
+
+```ts
+interface SuiteWorkspace {
+    files(editor?: string, scene?: string): Promise<WorkspaceFile[]>;
+    read(path: string): Promise<{
+        readonly text: string;
+        readonly mtime: number;
+    } | undefined>;
+    write(path: string, text: string, expected: WriteExpectation): Promise<WriteResult>;
+    remove(path: string, expected: {
+        readonly mtime: number;
+    }): Promise<WriteResult>;
+    generated(path: string): Promise<string | undefined>;
+}
+```
+
+### `UnlistedFile` (interface)
+
+```ts
+interface UnlistedFile {
+    readonly path: string;
+    readonly editor?: undefined;
+    readonly writable: false;
+    readonly why: string;
+}
+```
+
+### `WorkspaceFile` (interface)
+
+```ts
+interface WorkspaceFile {
+    readonly path: string;
+    readonly editor: string;
+    readonly scene?: string | undefined;
+    readonly gates: readonly string[];
+    readonly checks: readonly string[];
+    readonly modes: readonly EditMode[];
+    readonly writable: boolean;
+    readonly why?: string | undefined;
+}
+```
+
+## `./ports/testing`
+
+### `AskScript` (type)
+
+```ts
+type AskScript = (request: AskRequest, client: {
+    readonly maxOutputTokens: number;
+}) => Proposal | Error;
+```
+
+### `CHECK_FINDING` (const)
+
+```ts
+const CHECK_FINDING: CheckFinding;
+```
+
+### `CHECK_MEASURE` (const)
+
+```ts
+const CHECK_MEASURE: readonly CheckMeasure[];
+```
+
+### `CheckBehaviour` (type)
+
+```ts
+type CheckBehaviour = 'pass' | 'fail' | 'crash' | 'candidate' | 'measure' | 'join' | 'wait';
+```
+
+### `CheckOutcome` (type)
+
+```ts
+type CheckOutcome = Omit<CheckResult, 'check'>;
+```
+
+### `CHECKS_SCENARIO` (const)
+
+```ts
+const CHECKS_SCENARIO: readonly ScenarioCheck[];
+```
+
+### `createMemoryChangeSet` (function)
+
+```ts
+function createMemoryChangeSet(options?: MemoryChangeSetOptions): MemoryChangeSet;
+```
+
+### `createMemoryChecks` (function)
+
+```ts
+function createMemoryChecks(checks: readonly MemoryCheck[]): ChecksRunner;
+```
+
+### `createMemoryGates` (function)
+
+```ts
+function createMemoryGates(records: GateRecords | 'unreadable'): Gates;
+```
+
+### `createMemoryPorts` (function)
+
+```ts
+function createMemoryPorts(options: MemoryPortsOptions): Promise<MemoryPorts>;
+```
+
+### `createMemoryWorkspace` (function)
+
+```ts
+function createMemoryWorkspace(options: MemoryWorkspaceOptions): Promise<SuiteWorkspace>;
+```
+
+### `createScriptedAsk` (function)
+
+```ts
+function createScriptedAsk(respond: (request: AskRequest, limits: AskClientLimits) => Promise<Proposal> | Proposal, options?: {
+    readonly changeSet?: Pick<ChangeSet, 'current' | 'spend'> | undefined;
+}): ScriptedAsk;
+```
+
+### `describeAskProvider` (function)
+
+```ts
+function describeAskProvider(name: string, make: (script: AskScript) => Promise<AskProvider> | AskProvider): void;
+```
+
+### `describeChangeSet` (function)
+
+```ts
+function describeChangeSet(name: string, make: () => Promise<ChangeSetProject> | ChangeSetProject): void;
+```
+
+### `describeChecksRunner` (function)
+
+```ts
+function describeChecksRunner(name: string, make: (scenario: readonly ScenarioCheck[]) => Promise<ChecksRunner> | ChecksRunner): void;
+```
+
+### `describeGates` (function)
+
+```ts
+function describeGates(name: string, make: (records: GateRecords | 'unreadable') => Promise<Gates> | Gates): void;
+```
+
+### `describeSuiteWorkspace` (function)
+
+```ts
+function describeSuiteWorkspace(name: string, make: MakeWorkspace): void;
+```
+
+### `GateRecords` (type)
+
+```ts
+type GateRecords = Readonly<Record<string, Omit<GateState, 'id'>>>;
+```
+
+### `GATES_SCENARIO` (const)
+
+```ts
+const GATES_SCENARIO: GateRecords;
+```
+
+### `MakeWorkspace` (type)
+
+```ts
+type MakeWorkspace = (scenario: WorkspaceScenario) => Promise<{
+    readonly workspace: SuiteWorkspace;
+    readonly changeSet: ChangeSet;
+}>;
+```
+
+### `MemoryChangeSet` (interface)
+
+```ts
+interface MemoryChangeSet extends ChangeSet {
+    noteCreated(path: string): void;
+    noteRemoved(path: string): void;
+    created(path: string): boolean;
+}
+```
+
+### `MemoryChangeSetOptions` (interface)
+
+```ts
+interface MemoryChangeSetOptions {
+    readonly base?: string | undefined;
+    readonly tokenCap?: number | undefined;
+    readonly remote?: string | undefined;
+    readonly gh?: boolean | undefined;
+}
+```
+
+### `MemoryCheck` (interface)
+
+```ts
+interface MemoryCheck extends CheckDef {
+    respond(input: {
+        readonly candidates: readonly {
+            readonly path: string;
+            readonly text: string;
+        }[];
+        readonly signal: AbortSignal;
+    }): Promise<CheckOutcome> | CheckOutcome;
+}
+```
+
+### `MemoryPorts` (interface)
+
+```ts
+interface MemoryPorts {
+    readonly ports: SuitePorts;
+    readonly changeSet: MemoryChangeSet | undefined;
+    readonly ask: ScriptedAsk | undefined;
+}
+```
+
+### `MemoryPortsOptions` (interface)
+
+```ts
+interface MemoryPortsOptions {
+    readonly files?: Readonly<Record<string, string>> | undefined;
+    readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
+    readonly generated?: ((path: string) => boolean) | undefined;
+    readonly store?: ProjectStore | undefined;
+    readonly checks?: readonly MemoryCheck[] | undefined;
+    readonly gates?: GateRecords | 'unreadable' | undefined;
+    readonly ask?: ((request: AskRequest, limits: AskClientLimits) => Promise<Proposal> | Proposal) | undefined;
+    readonly changeSet?: MemoryChangeSetOptions | false | undefined;
+}
+```
+
+### `MemoryWorkspaceOptions` (interface)
+
+```ts
+interface MemoryWorkspaceOptions {
+    readonly files?: Readonly<Record<string, string>> | undefined;
+    readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
+    readonly generated?: ((path: string) => boolean) | undefined;
+    readonly changeSet?: Pick<MemoryChangeSet, 'noteCreated' | 'noteRemoved' | 'created'> | undefined;
+    readonly store?: ProjectStore | undefined;
+}
+```
+
+### `ScenarioCheck` (interface)
+
+```ts
+interface ScenarioCheck extends CheckDef {
+    readonly behaviour: CheckBehaviour;
+}
+```
+
+### `ScriptedAsk` (interface)
+
+```ts
+interface ScriptedAsk {
+    readonly provider: AskProvider;
+    readonly calls: readonly AskRequest[];
+}
+```
+
+### `WORKSPACE_SCENARIO` (const)
+
+```ts
+const WORKSPACE_SCENARIO: WorkspaceScenario;
+```
+
+### `WorkspaceScenario` (interface)
+
+```ts
+interface WorkspaceScenario {
+    readonly files: Readonly<Record<string, string>>;
+}
 ```
 
 ## `./testing`

@@ -361,4 +361,55 @@ describe('ProjectList', () => {
       expect(onclear).toHaveBeenCalledOnce()
     })
   })
+
+  describe('previews (ED2D.4c3b)', () => {
+    const KEY = `mossgate.af2d.json|4300|${NOW - 5 * 60_000}|assets/terrain.png@1700`
+    const withPreview = (answer: string | undefined) => {
+      const draw = vi.fn(async () => answer)
+      return { draw, card: card('mossgate.af2d.json', { title: 'Mossgate', preview: { key: KEY, draw } }) }
+    }
+
+    it('draws a card’s preview in its tile once it is ready', async () => {
+      const { draw, card: previewed } = withPreview('data:image/png;base64,AAAA')
+      mount({ visible: [previewed, notes], total: 2 })
+      const option_ = option(/Mossgate/)
+      await vi.waitFor(() => expect(option_.querySelector('img')).not.toBeNull())
+      const image = option_.querySelector('img')
+      expect(image?.getAttribute('src')).toBe('data:image/png;base64,AAAA')
+      // Decorative: the card's title already names the project.
+      expect(image?.getAttribute('alt')).toBe('')
+      expect(within(option_).queryByText('M')).toBeNull()
+      expect(draw).toHaveBeenCalledOnce()
+    })
+
+    it('keeps the initial for a card with no preview, or when none could be drawn', async () => {
+      const { draw, card: previewed } = withPreview(undefined)
+      mount({ visible: [previewed, notes], total: 2 })
+      await vi.waitFor(() => expect(draw).toHaveBeenCalledOnce())
+      expect(option(/Mossgate/).querySelector('img')).toBeNull()
+      expect(within(option(/Mossgate/)).getByText('M')).toBeInTheDocument()
+      expect(within(option(/draft\.note/)).getByText('D')).toBeInTheDocument()
+    })
+
+    it('draws again when the key changes, and not when the list is mapped again with the same key', async () => {
+      const first = withPreview('data:image/png;base64,AAAA')
+      const view = mount({ visible: [first.card], total: 1 })
+      await vi.waitFor(() => expect(first.draw).toHaveBeenCalledOnce())
+      const same = withPreview('data:image/png;base64,BBBB')
+      await view.rerender({ visible: [same.card] })
+      expect(same.draw).not.toHaveBeenCalled()
+      const draw = vi.fn(async () => 'data:image/png;base64,CCCC')
+      await view.rerender({
+        visible: [card('mossgate.af2d.json', { title: 'Mossgate', preview: { key: `${KEY}+1`, draw } })],
+      })
+      await vi.waitFor(() =>
+        expect(
+          option(/Mossgate/)
+            .querySelector('img')
+            ?.getAttribute('src'),
+        ).toBe('data:image/png;base64,CCCC'),
+      )
+      expect(draw).toHaveBeenCalledOnce()
+    })
+  })
 })

@@ -1,4 +1,6 @@
 // The package's public entry: what a consumer can import, and what stays inside.
+
+import { cameraView } from '@mcthaydt/automata-render-pixi3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import * as editor3d from './index'
 
@@ -191,29 +193,34 @@ describe('public entry', () => {
 
   it('exports the free heading, in the game’s turn units, and not the eight-heading preview it replaces', () => {
     for (const name of [
-      'TURN_UNITS',
       'DEGREES_PER_PIXEL',
-      'wrapHeading',
-      'turnHeading',
       'dragTurn',
       'headingToYaw',
       'yawToHeading',
       'headingToDeg',
-      'degToHeading',
       'wallsSeenFrom',
       'headingView',
       'headingSweep',
     ])
       expect(editor3d, name).toHaveProperty(name)
     for (const name of ['HEADINGS', 'headingPreview']) expect(editor3d, name).not.toHaveProperty(name)
+    // The heading's own maths has one owner, render-pixi3d's `./camera-view` (M3 spec §4.2, amended 2026-10-30).
+    for (const name of ['TURN_UNITS', 'wrapHeading', 'turnHeading', 'degToHeading'])
+      expect(editor3d, name).not.toHaveProperty(name)
   })
 
-  it('exports the follow camera of a room: the view, its defaults and ranges, and the camera the game puts on a player', () => {
-    for (const name of ['CAMERA_DEFAULTS', 'CAMERA_RANGES', 'cameraViewSpec', 'followCamera', 'roomView'])
-      expect(editor3d, name).toHaveProperty(name)
-    // The shapes are types, so this is checked by the compiler: the entry names them.
-    const spec: editor3d.CameraViewSpec = editor3d.cameraViewSpec({ id: 'hall' })
-    const view: Pick<editor3d.RoomView, 'rotate'> = { rotate: spec.rotate }
+  it('exports the follow camera of a room and the camera the game puts on a player, on the owner’s camera-view', () => {
+    for (const name of ['followCamera', 'roomView']) expect(editor3d, name).toHaveProperty(name)
+    // `camera-view` has one owner, render-pixi3d's `./camera-view` (M3 spec §4.2, amended 2026-10-30): the editor
+    // keeps no copy of the view's shape, defaults or ranges.
+    for (const name of ['CAMERA_DEFAULTS', 'CAMERA_RANGES', 'cameraViewSpec'])
+      expect(editor3d, name).not.toHaveProperty(name)
+    const room = editor3d.roomView(
+      { surfaces: [], bounds: editor3d.EMPTY_BOUNDS } as unknown as Parameters<typeof editor3d.roomView>[0],
+      cameraView('hall'),
+      [0, 0, 0],
+    )
+    const view: Pick<editor3d.RoomView, 'rotate'> = { rotate: room.rotate }
     expect(view.rotate).toBe(true)
   })
 

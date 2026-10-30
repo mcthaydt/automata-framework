@@ -77,6 +77,18 @@ describe('prepareItch', () => {
     expect(zips(gameDir)).toEqual([])
   })
 
+  // X-b (M3 spec §4.8): an itch.io page is public, so the closed beta never goes there; nor do its extras (S7-g).
+  it.each([
+    ['View3D.screenToRay:degenerate', 'Pixi3dInPublicBuild'],
+    ['generateSpawnBurst', 'Pixi3dExtrasInBuild'],
+  ])('stops on a build carrying %j (%s), writing nothing', (marker, tag) => {
+    const { gameDir, distDir } = game({ ...goodBuild, 'assets/main.js': `"${marker}"` })
+    const error = failure({ distDir, config })
+    expect(error._tag).toBe(tag)
+    expect(error.message).toContain('assets/main.js')
+    expect(zips(gameDir)).toEqual([])
+  })
+
   it("stops on the value of a game's .env variable copied into the build", () => {
     const { gameDir, distDir } = game({
       ...goodBuild,

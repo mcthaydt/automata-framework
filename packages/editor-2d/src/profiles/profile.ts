@@ -1,4 +1,5 @@
 import type { IdSource } from '../model/ids'
+import type { Project } from '../model/project-types'
 
 // What a document type plugs into the editor (2D editor spec §7). The editor lists the documents of every registered
 // profile on Home, opens one with the profile that `sniff`s it (and asks when two do), shows the profile's views on the
@@ -75,6 +76,17 @@ export interface ProfileSummary {
   readonly facts: readonly { readonly label: string; readonly value: string }[]
 }
 
+/**
+ * The level a Home card draws as the document's thumbnail (ED2D.4c3b): a level of a level project. It names the
+ * level-project `Project` type because the card is drawn by the level canvas, which draws nothing else; a profile whose
+ * documents are not level projects (the FloorFifty stage) leaves `preview` out until it has a picture of its own.
+ */
+export interface LevelPreview {
+  readonly project: Project
+  /** A level id of `project`. */
+  readonly level: string
+}
+
 export interface Profile<V> {
   /** `level-project`, `floorfifty-stage`. */
   readonly id: string
@@ -93,6 +105,8 @@ export interface Profile<V> {
   fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V
   /** Optional: a profile without it lists on Home by file name, with its check counts. */
   summary?(value: V): ProfileSummary
+  /** Optional: the level Home's card draws; a profile without it, or a document with no level, keeps the initial. */
+  preview?(value: V): LevelPreview | undefined
   readonly templates: readonly TemplateDef<V>[]
   readonly views: readonly ViewDef[]
   readonly exports: readonly ExportTarget<V>[]

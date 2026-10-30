@@ -1,7 +1,9 @@
 import { filterEntries } from '@mcthaydt/automata-editor-kit/core'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import type { LevelThumbnails } from '../../canvas/level-thumbnails'
 import { createProfileRegistry } from '../../profiles/profile'
 import { plantedProfile } from '../../testing/planted-profile'
+import { mossgate } from '../../testing/samples'
 import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../editor-app'
 import { createAppProfiles } from '../profiles'
 import type { ProjectEntry } from '../project-list'
@@ -27,7 +29,17 @@ const note = { id: 'planted', label: 'Planted note' }
 const listed = { size: 100, mtime: 0 }
 
 function ok(path: string, over: Partial<Extract<ProjectEntry, { status: 'ok' }>> = {}): ProjectEntry {
-  return { ...listed, path, status: 'ok', profile: ref, errors: 0, warnings: 0, summary: undefined, ...over }
+  return {
+    ...listed,
+    path,
+    status: 'ok',
+    profile: ref,
+    errors: 0,
+    warnings: 0,
+    summary: undefined,
+    preview: undefined,
+    ...over,
+  }
 }
 
 describe("searchWords, as the kit's search reads them", () => {
@@ -293,6 +305,7 @@ describe('cardTitle', () => {
       errors: 0,
       warnings: 0,
       summary: { title: 'Mossgate', facts: [] },
+      preview: undefined,
     }
     expect(cardTitle(titled)).toBe('Mossgate')
     expect(cardTitle({ ...titled, summary: undefined })).toBe('harbour.note')
@@ -330,6 +343,33 @@ describe('homeCard', () => {
     expect(homeCard(either, registry)).toMatchObject({
       kind: 'Level project or Planted note',
       accent: undefined,
+    })
+  })
+
+  describe('the tile preview (ED2D.4c3b)', () => {
+    const preview = { project: mossgate(), level: 'moss-steps', images: 'assets/terrain.png@1700' }
+    const withPreview = ok('mossgate.af2d.json', { profile: project, size: 4300, mtime: 1700, preview })
+    const fake = (answer: string | undefined) => {
+      const thumbnail = vi.fn(async () => answer)
+      const thumbnails: LevelThumbnails = { thumbnail, dispose: vi.fn() }
+      return { thumbnail, thumbnails }
+    }
+
+    it('draws the entry’s level through the thumbnails, keyed by path, size, time and images', async () => {
+      const { thumbnail, thumbnails } = fake('data:image/png;base64,AAAA')
+      const card = homeCard(withPreview, registry, thumbnails)
+      expect(card.preview?.key).toBe('mossgate.af2d.json|4300|1700|assets/terrain.png@1700')
+      expect(thumbnail).not.toHaveBeenCalled()
+      await expect(card.preview?.draw()).resolves.toBe('data:image/png;base64,AAAA')
+      expect(thumbnail).toHaveBeenCalledWith(card.preview?.key, preview)
+    })
+
+    it('has none without the thumbnails or without a level to preview', () => {
+      const { thumbnails } = fake(undefined)
+      expect(homeCard(withPreview, registry).preview).toBeUndefined()
+      expect(
+        homeCard(ok('plain.af2d.json', { profile: project }), registry, thumbnails).preview,
+      ).toBeUndefined()
     })
   })
 })

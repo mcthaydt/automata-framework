@@ -49,7 +49,7 @@ jobs:
     name: lint, typecheck, boundaries, style, unit
     if: github.event_name != 'workflow_dispatch' || inputs.spec == ''
     runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
-    timeout-minutes: 10
+    timeout-minutes: 20
     outputs:
       docs_only: ${{ steps.scope.outputs.docs_only }}
       parity_full: ${{ steps.scope.outputs.parity_full }}
@@ -143,7 +143,7 @@ jobs:
     # The Owner's Mac (2026-10-17), so parity no longer queues behind Ruken on the shared af-linux PC.
     # vars.AF_PARITY_RUNNER moves it to another label.
     runs-on: ${{ vars.AF_PARITY_RUNNER || 'af-mac' }}
-    timeout-minutes: 10
+    timeout-minutes: 20
     # macOS runners cannot run containers, so on af-mac the job runs on the host and fetches the browsers into the
     # runner's cache (the steps below). Any other runner uses the pinned Playwright image, whose browsers and OS
     # deps come preinstalled; installing them per run there blew the 10-minute budget. An empty image runs the job

@@ -36,7 +36,8 @@ interface Layout {
 
 interface TileInputs extends Layout {
   readonly tileset: TilesetDef | undefined
-  readonly loaded: boolean
+  /** 0 when the tileset's image is not loaded, else the image's generation (see `loadedGeneration`). */
+  readonly loaded: number
 }
 
 interface IntInputs extends Layout {
@@ -47,7 +48,8 @@ interface AutoInputs {
   readonly def: AutoLayerDef
   readonly source: Grid | undefined
   readonly tileset: TilesetDef | undefined
-  readonly loaded: boolean
+  /** 0 when the tileset's image is not loaded, else the image's generation (see `loadedGeneration`). */
+  readonly loaded: number
 }
 
 export interface CellChunks {
@@ -56,6 +58,7 @@ export interface CellChunks {
     cells: Grid,
     tileset: TilesetDef | undefined,
     images: ReadonlySet<string>,
+    generations?: ImageGenerations,
   ): TileChunk[]
   intgrid(def: IntGridLayerDef, cells: Grid): IntChunk[]
   /** `source` is the level's instance of `def.source`; `undefined` when the level has none (Checks report it). */
@@ -65,11 +68,26 @@ export interface CellChunks {
     source: Grid | undefined,
     tileset: TilesetDef | undefined,
     images: ReadonlySet<string>,
+    generations?: ImageGenerations,
   ): readonly TileChunk[]
 }
 
-const isLoaded = (tileset: TilesetDef | undefined, images: ReadonlySet<string>): boolean =>
-  tileset?.image !== undefined && images.has(tileset.image)
+/** Each loaded image's generation: an image loaded again (after the texture manager forgot it) has a new one. */
+type ImageGenerations = ReadonlyMap<string, number>
+const NO_GENERATIONS: ImageGenerations = new Map()
+
+/**
+ * 0 for a tileset whose image is not loaded, else the image's generation (1 when none is given). A kept chunk is drawn
+ * again when this changes, because the texture its sprites showed is gone once an image is loaded again.
+ */
+function loadedGeneration(
+  tileset: TilesetDef | undefined,
+  images: ReadonlySet<string>,
+  generations: ImageGenerations,
+): number {
+  if (tileset?.image === undefined || !images.has(tileset.image)) return 0
+  return generations.get(tileset.image) ?? 1
+}
 
 const sameLayout = (a: Layout, b: Layout): boolean =>
   a.grid === b.grid && a.cols === b.cols && a.rows === b.rows
@@ -196,11 +214,15 @@ export function createCellChunks(): CellChunks {
     () => new WeakMap(),
   )
   /** Each auto layer's last chunks, whose objects a new evaluation reuses where a chunk's tiles came out the same. */
-  const lastAuto = new Map<string, readonly TileChunk[]>()
+  const lastAuto = new Map<string, { readonly chunks: readonly TileChunk[]; readonly loaded: number }>()
 
   return {
-    tiles(def, cells, tileset, images) {
-      const inputs = { ...layoutOf(def.grid, cells), tileset, loaded: isLoaded(tileset, images) }
+    tiles(def, cells, tileset, images, generations = NO_GENERATIONS) {
+      const inputs = {
+        ...layoutOf(def.grid, cells),
+        tileset,
+        loaded: loadedGeneration(tileset, images, generations),
+      }
       return chunksOf(cells, tileMemo(def.id), inputs, sameTileInputs, ({ cx, cy, cells: cellsOf }) => ({
         cx,
         cy,
@@ -230,8 +252,8 @@ export function createCellChunks(): CellChunks {
       }))
     },
 
-    auto(def, instance, source, tileset, images) {
-      const inputs = { def, source, tileset, loaded: isLoaded(tileset, images) }
+    auto(def, instance, source, tileset, images, generations = NO_GENERATIONS) {
+      const inputs = { def, source, tileset, loaded: loadedGeneration(tileset, images, generations) }
       const memo = autoMemo(def.id)
       const kept = memo.get(instance)
       if (kept !== undefined && sameAutoInputs(kept.with, inputs)) return kept.chunk
@@ -239,8 +261,10 @@ export function createCellChunks(): CellChunks {
       const derived = autoTiles(source ?? Grid.empty(cols, rows), compileRules(def.groups), instance.seed)
       const result = applyOverrides(derived, instance.overrides)
       const drawn = autoChunks(result, def.grid, (tile, at) => tileDraw(tileset, images, tile, at))
-      const chunks = reuseChunks(lastAuto.get(def.id) ?? [], drawn)
-      lastAuto.set(def.id, chunks)
+      // Chunk objects drawn from another generation of the image are never reused: their textures are gone.
+      const last = lastAuto.get(def.id)
+      const chunks = reuseChunks(last?.loaded === inputs.loaded ? last.chunks : [], drawn)
+      lastAuto.set(def.id, { chunks, loaded: inputs.loaded })
       memo.set(instance, { with: inputs, chunk: chunks })
       return chunks
     },

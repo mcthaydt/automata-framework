@@ -14,6 +14,7 @@ const FIXTURES: readonly BootFailure[] = [
   { _tag: 'LoadStalled', url: '/a.png', bytesSoFar: 10, stalledMs: 30_000 },
   { _tag: 'RendererUnavailable', tried: ['webgl2'] },
   { _tag: 'BootDefect' },
+  { _tag: 'ModelInvalid', file: 'models/crate.glb', reason: 'skinned' },
 ]
 
 interface Host {
@@ -35,7 +36,7 @@ describe('BootFailurePanel', () => {
     open(failure)
     const alert = screen.getByRole('alert')
     expect(alert.dataset.code).toMatch(
-      /^(start|connect|progress|damaged|download|download-stalled|unsupported)$/,
+      /^(start|connect|progress|damaged|download|download-stalled|unsupported|model-invalid)$/,
     )
     expect(alert.textContent?.trim().length).toBeGreaterThan(0)
   })
@@ -45,6 +46,28 @@ describe('BootFailurePanel', () => {
     expect(screen.getByRole('alert')).toHaveTextContent("Couldn't download the game.")
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(onRetry).toHaveBeenCalledOnce()
+  })
+
+  it('names the damaged model and offers Try again (M3 spec §6, D3-f)', async () => {
+    const { onRetry } = open({ _tag: 'ModelInvalid', file: 'models/crate.glb', reason: 'skinned' })
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'A 3D model in this copy of the game is damaged: crate.glb.',
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(onRetry).toHaveBeenCalledOnce()
+  })
+
+  it("names the model by its file's basename, not the url it was fetched from (review of #241)", () => {
+    open({
+      _tag: 'ModelInvalid',
+      file: 'http://localhost:5932/assets/nightstand-DkFIQVVx.glb?v=2#x',
+      reason: 'skinned',
+    })
+    const alert = screen.getByRole('alert')
+    expect(alert).toHaveTextContent(
+      'A 3D model in this copy of the game is damaged: nightstand-DkFIQVVx.glb.',
+    )
+    expect(alert).not.toHaveTextContent('localhost')
   })
 
   it('Continue without loading calls onContinue (standalone, saves not retryable)', async () => {
