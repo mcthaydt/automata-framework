@@ -166,9 +166,9 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
     if (source.startsWith('./') || source.startsWith('../')) {
       if (options.simSet !== undefined) {
         const target = resolve(dirname(file), source)
-        const inSim = [target, `${target}.ts`, join(target, 'index.ts')].some((path) =>
-          options.simSet?.has(path),
-        )
+        // TypeScript resolves `./x.ts`, `./x`, a NodeNext `./x.js` and a folder's `./x/index.ts` to the same file.
+        const candidates = [target, `${target}.ts`, target.replace(/\.js$/, '.ts'), join(target, 'index.ts')]
+        const inSim = candidates.some((path) => options.simSet?.has(path))
         return inSim
           ? { ok: true }
           : {

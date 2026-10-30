@@ -29,7 +29,8 @@
 
 - Modify: `tooling/check-boundaries/src/{files,check,cli}.ts`, `packages/cli/src/check/check-steps.ts`,
   `agents/automata/scripts/check.mjs`; create `.changeset/gl-1b-boundaries-game.md`.
-- Test: `tooling/check-boundaries/src/cli.test.ts` (B1–B5, which exercise `simSet` end to end),
+- Test: `tooling/check-boundaries/src/check.test.ts` (`simSet`: value, type-only, dynamic, escape, folder, `.js`),
+  `tooling/check-boundaries/src/cli.test.ts` (B1–B5),
   `packages/cli/src/check/run-check.test.ts` (B6), `tooling/agent-skills/src/hook.test.ts` (B7).
 
 ## Steps
@@ -52,3 +53,12 @@
   `pnpm build` 0; `pnpm api-report`: 0 breaks, 0 undeclared; `pnpm boundaries` unchanged (65, 2 and 52 files, 0
   findings); `check-changesets`: 0 problems; `changeset status --since=origin/main` passes once the changeset is
   committed.
+- 2026-10-30 review (independent agent, no blocking findings): applied (a) a NodeNext `./x.js` specifier for a `.ts`
+  sim file counted as outside the sim — red test in `check.test.ts`, then the lookup maps `.js` to `.ts`; (b) `simSet`
+  unit tests in `check.test.ts` (spec §11 names it). check-boundaries 98/98.
+- Deviation, spec §12 B1: the spec says `banned-member`; the checker reports `Math.random()` as `math-member` (its
+  existing rule for `Math.*`), so B1 asserts `math-member`. The spec wording is the error.
+- Follow-ups (not in this row, recorded for 02): role files other than `<role>.ts` (`systems.mts`) are not in the sim
+  set or the hook, as the spec's §4.5 says `<role>.ts`; a game with both layouts (mid-migration) sees `src/sim/` and
+  the role files as separate sets, so imports between them are refused — GL.4 moves Emberwick in one PR, so no game
+  sits in that state.

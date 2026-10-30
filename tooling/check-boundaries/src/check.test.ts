@@ -254,3 +254,55 @@ test('a folder walk never descends into installed packages or build output', () 
     rmSync(dir, { recursive: true, force: true })
   }
 })
+
+describe('simSet: a game laid out by role (GL spec §4.5)', () => {
+  const src = '/g/src'
+  const simSet = new Set([
+    '/g/src/components.ts',
+    '/g/src/state.ts',
+    '/g/src/systems/index.ts',
+    '/g/src/systems/move.ts',
+  ])
+  const check = (file: string, code: string) =>
+    checkSource(file, code, { root: src, simSet }).map((f) => f.rule)
+
+  test.each([
+    ['a value import of another sim file', "import { A } from './components.ts'\nexport const a = A\n"],
+    ['an extensionless import', "import { A } from './components'\nexport const a = A\n"],
+    [
+      'a NodeNext .js specifier for a .ts sim file',
+      "import { A } from './components.js'\nexport const a = A\n",
+    ],
+    ['a folder import that resolves to index.ts', "import { m } from './systems'\nexport const s = m\n"],
+    [
+      'a type-only import from outside the sim',
+      "import type { Room } from './content/room.ts'\nexport const r: Room[] = []\n",
+    ],
+    ['a dynamic import of a sim file', "export const load = () => import('./components.ts')\n"],
+  ])('allows %s', (_name, code) => {
+    expect(check('/g/src/state.ts', code)).toEqual([])
+  })
+
+  test.each([
+    ['a value import from views.ts', "import { v } from './views.ts'\nexport const a = v\n"],
+    ['a re-export from content/', "export { ROOM } from './content/room.ts'\n"],
+    ['an escape above the game root', "import { x } from '../../shared/x.ts'\nexport const a = x\n"],
+    ['a dynamic import of views.ts', "export const load = () => import('./views.ts')\n"],
+  ])('refuses %s', (_name, code) => {
+    expect(check('/g/src/state.ts', code)).toEqual(['import'])
+  })
+
+  test('the refusal names the sim set', () => {
+    const [finding] = checkSource(
+      '/g/src/systems/move.ts',
+      "import { v } from '../views.ts'\nexport const a = v\n",
+      {
+        root: src,
+        simSet,
+      },
+    )
+    expect(finding?.message).toContain(
+      'the sim imports ../views.ts, which is outside the sim (constants, components, commands, events, resources, systems, state, sim.ts)',
+    )
+  })
+})
