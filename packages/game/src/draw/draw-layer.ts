@@ -11,6 +11,7 @@ import type { Sim, StepResult } from '@mcthaydt/automata-sim'
 import { Container, Graphics, Text } from 'pixi.js'
 import { type DrawSim, readSim } from './read-sim.ts'
 
+/** Options for `DrawContext.text`: colour and font size. */
 export interface DrawTextOptions {
   /** Default 0xffffff. */
   readonly color?: number | undefined

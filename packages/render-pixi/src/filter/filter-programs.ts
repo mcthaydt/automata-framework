@@ -1,5 +1,9 @@
 import { GlProgram, GpuProgram } from 'pixi.js'
 
+/**
+ * The GLSL vertex stage every AF filter shares: it passes the texture coordinate and the pixel position
+ * (`vPixelCoord`) to the fragment stage.
+ */
 export const FILTER_VERTEX = `
 in vec2 aPosition;
 out vec2 vTextureCoord;
@@ -27,6 +31,10 @@ void main(void) {
 }
 `
 
+/**
+ * The WGSL counterpart of `FILTER_VERTEX`: the filter uniforms and bindings and the vertex stage, which
+ * passes the pixel position to the fragment stage.
+ */
 export const WGSL_FILTER_HEADER = `
 struct GlobalFilterUniforms {
     uInputSize: vec4<f32>,
@@ -68,11 +76,16 @@ fn mainVertex(@location(0) aPosition: vec2<f32>, @builtin(instance_index) instan
 }
 `
 
+/** A filter's WebGL2 and WebGPU programs, for a Pixi `Filter`'s `glProgram` and `gpuProgram`. */
 export interface FilterProgramsResult {
   readonly glProgram: GlProgram
   readonly gpuProgram: GpuProgram
 }
 
+/**
+ * Builds a filter's programs from its GLSL and WGSL fragment stages on the shared vertex stages, so WebGL2
+ * stays at parity with WebGPU (AGENTS.md).
+ */
 export function filterPrograms(
   name: string,
   fragmentGlsl: string,

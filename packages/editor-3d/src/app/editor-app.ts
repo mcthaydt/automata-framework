@@ -2,7 +2,13 @@
 // the profile the registry picks and keeping it saved, the facility beside a Last Light level, the project list Home
 // shows, and importing a folder or a zip. Plain TypeScript with no Svelte, so the views of ED3D.5c and the tests use
 // the same object. Time is the caller's: `app/` reads no clock of its own.
-import type { Recovery, StorageClock, StorageFailure, Workspace } from '@mcthaydt/automata-editor-kit/core'
+import {
+  type Recovery,
+  readStored,
+  type StorageClock,
+  type StorageFailure,
+  type Workspace,
+} from '@mcthaydt/automata-editor-kit/core'
 import type { ParseIssue } from '../profile/file-codec'
 import type { LevelProfile } from '../profile/level-profile'
 import { hasFacility } from '../profile/registry'
@@ -12,7 +18,6 @@ import {
   type OpenLevel,
   openFacilityBeside,
   openLevel,
-  readStored,
   recoveryFor,
 } from './open-level'
 import { listProjects, type ProjectEntry } from './project-list'

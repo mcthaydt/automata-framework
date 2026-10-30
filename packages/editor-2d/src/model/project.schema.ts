@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { ruleGroupSchema } from '../tiles/autotile/rule.schema'
 import { DEF_ID, ITEM_ID } from './ids'
 import { FILE_VERSION } from './migrations/migration'
-import type { ProjectFile } from './project-types'
+import type { EntityDef2D, LayerDef, ProjectFile, TilesetDef } from './project-types'
 
 // The strict file schema of the 2D editor spec §6.1 over the shapes of §5. Strict means an unknown key at any depth is
 // an `unrecognized_keys` issue at its parent, which `openProject` turns into a read-only open (G-p). Keys are listed in
@@ -21,7 +21,7 @@ import type { ProjectFile } from './project-types'
 
 export const MAX_LEVEL_SIDE = 16384
 export const MAX_LEVELS = 256
-const MAX_LAYER_DEFS = 64
+export const MAX_LAYER_DEFS = 64
 
 const defId = z.string().regex(DEF_ID)
 const itemId = z.string().regex(ITEM_ID)
@@ -40,7 +40,7 @@ const intValueDefSchema = z.strictObject({
   color,
 })
 
-const layerDefSchema = z.discriminatedUnion('kind', [
+export const layerDefSchema: z.ZodType<LayerDef> = z.discriminatedUnion('kind', [
   z.strictObject({
     id: defId,
     label: z.string(),
@@ -83,7 +83,7 @@ const layerDefSchema = z.discriminatedUnion('kind', [
   }),
 ])
 
-const tilesetDefSchema = z.strictObject({
+export const tilesetDefSchema: z.ZodType<TilesetDef> = z.strictObject({
   id: defId,
   label: z.string(),
   image: z.string().min(1).optional(),
@@ -95,7 +95,7 @@ const tilesetDefSchema = z.strictObject({
 })
 
 /** The kit's entity keys plus the 2D ones; the kit's own rules (id, colour, repeated field ids) run from `superRefine`. */
-const entityDef2DSchema = z
+export const entityDef2DSchema: z.ZodType<EntityDef2D> = z
   .strictObject({
     ...entityDefShape,
     shape: z.enum(['rect', 'ellipse', 'point', 'tile']),

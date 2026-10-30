@@ -4,7 +4,7 @@
   the page does not jump. A card is a 48 px or taller primary action.
 -->
 <script lang="ts">
-import Pill from '../controls/Pill.svelte'
+import { Pill } from '@mcthaydt/automata-editor-kit'
 import type { TemplateCard } from './home-model'
 
 interface Props {

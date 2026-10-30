@@ -6,13 +6,18 @@
   draws and forwards. The canvas edits nothing yet.
 -->
 <script lang="ts">
-import { EditorShell, StatusLine, shellModeOf, ToastRegion } from '@mcthaydt/automata-editor-kit'
+import {
+  ConflictDialog,
+  EditorShell,
+  RecoveryDialog,
+  StatusLine,
+  shellModeOf,
+  ToastRegion,
+} from '@mcthaydt/automata-editor-kit'
 import type { ToastStore } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
-import ConflictDialog from './document/ConflictDialog.svelte'
 import DocumentBar from './document/DocumentBar.svelte'
 import type { DocumentController, DocumentState } from './document/document-controller'
-import RecoveryDialog from './document/RecoveryDialog.svelte'
 
 interface Props {
   geometry: GeometryState

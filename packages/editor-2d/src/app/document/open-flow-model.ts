@@ -1,7 +1,5 @@
-import type { Problem, Recovery, SaveOutcome } from '@mcthaydt/automata-editor-kit/core'
 import type { ParseError, Profile } from '../../profiles/profile'
 import type { OpenOutcome } from '../editor-app'
-import { modifiedLabel } from '../home/home-model'
 
 // What the open flows decide before anything is drawn (plan ED2D.4c2b, decisions 1 to 3, 5 and 6): which outcome of
 // opening a file gets the error panel, what the panel says and which lines of the file it shows, and the words of the
@@ -118,23 +116,6 @@ export function textWindow(text: string, focus?: number, size: number = WINDOW_L
   return { first, lines: all.slice(first - 1, first - 1 + size), total }
 }
 
-/** What the Restore dialog tells about an autosave (mockup `recover`). */
-export function recoveryFacts(
-  path: string,
-  recovery: Recovery,
-  now: number,
-  timeZone?: string,
-): readonly { readonly label: string; readonly value: string }[] {
-  return [
-    { label: 'File', value: baseName(path) },
-    { label: 'Last autosave', value: modifiedLabel(recovery.savedAt, now, timeZone) },
-    {
-      label: 'File on disk',
-      value: recovery.baseChanged ? 'Changed since the autosave began' : 'Unchanged since the autosave began',
-    },
-  ]
-}
-
 /** The top bar's heading: the profile's own title for the document, else its file name, over its path. */
 export function documentHeading(
   profile: Profile<unknown>,
@@ -144,34 +125,8 @@ export function documentHeading(
   return { title: profile.summary?.(value).title ?? baseName(path), file: path }
 }
 
-export function saveFailure(
-  path: string,
-  outcome: Extract<SaveOutcome, { readonly status: 'failed' }>,
-): string {
-  return `Could not save ${baseName(path)}: ${outcome.message}`
-}
-
-export function savedCopyMessage(copy: string): string {
-  return `Saved a copy as ${baseName(copy)}.`
-}
-
 export function restoreRefused(errors: readonly ParseError[]): string {
   const first = errors[0]
   const why = first === undefined ? '' : ` (${first.message})`
   return `The autosave no longer opens${why}. Discard it to go on with the file as it was last saved.`
-}
-
-export function recoveryUnreadable(message: string): string {
-  return `The autosave could not be read (${message}). The file is open as it was last saved.`
-}
-
-export function reloadedMessage(path: string): string {
-  return `Reloaded ${baseName(path)} from the file.`
-}
-
-/** An autosave out of quota stops until a save works; any other failure is retried on the next edit. */
-export function autosaveProblem(problem: Problem): string {
-  return problem.paused
-    ? `Autosave has stopped: ${problem.message} Save to keep your edits.`
-    : `Autosave failed: ${problem.message} It tries again with the next edit.`
 }

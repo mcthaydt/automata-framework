@@ -4,6 +4,10 @@ export interface FrameSource {
   cancel(handle: number): void
 }
 
+/**
+ * One display frame: the interpolation alpha between the last two ticks, the frame's length in ms, and
+ * whether time is paused.
+ */
 export interface FrameInfo {
   alpha: number
   frameMs: number

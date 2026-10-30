@@ -1,15 +1,15 @@
 // Last Light's fixed things in the shared entity model (ED3D spec §4.7): the definitions its blockout has built in (the
-// spawn, boxes, hotspots, lamps, anchors and nav nodes), and its arrays read as things of them. The format has no
-// `entityDefs`, so the definitions are fixed here, read-only, and shaped by what the four shipped blockouts hold: each
-// has a test that every value in them fits its field. The editor core never names one of these; it reads the kit.
+// spawn, boxes, hotspots, lamps, anchors, nav nodes and camera zones), and its arrays read as things of them. The format
+// has no `entityDefs`, so the definitions are fixed here, read-only, and shaped by what the four shipped blockouts hold:
+// each has a test that every value in them fits its field. The editor core never names one of these; it reads the kit.
 //
-// Not here: zones and nav edges. A zone is an area and an edge joins two nodes, so neither has a place to be a thing
-// at, and how they are drawn is ED3D.7's to decide. A lamp's colour stays the three floats the file has, and `on`
-// (`box:bed`, `wall:hall/2`) stays the text the file has: both change only when a thing is written back, which is also
-// ED3D.7's.
+// A camera zone's definition and how it is read are `last-light-zones.ts`'s (ED3D.7c). A nav edge is no thing: it joins
+// two nodes, and is the profile's link (`last-light-nav-links.ts`). A lamp's colour stays the three floats the file has,
+// and `on` (`box:bed`, `wall:hall/2`) stays the text the file has.
 import type { ThingDef } from '../entities/thing-def.schema'
 import { type EntityKit, type RawEntry, readEntityKit } from '../entities/things'
 import type { Blockout, BoxKind, BoxRole } from '../format/blockout.schema'
+import { zoneDefinition, zoneEntry } from './last-light-zones'
 
 const BOX_KINDS: readonly BoxKind[] = ['desk', 'bench', 'bed', 'exit', 'door', 'furniture']
 const BOX_ROLES: readonly BoxRole[] = ['collider', 'seat', 'door']
@@ -71,6 +71,7 @@ export const lastLightDefinitions: readonly ThingDef[] = [
   },
   // A nav node is a point on the floor: the file gives it an x and a z and no height.
   { id: 'node', shape: 'point', sit: 'floor', fields: [{ id: 'on', type: 'text' }] },
+  zoneDefinition,
 ]
 
 /** The entries of a record as instances of a definition, named by their keys (an anchor and a nav node have no id of their own). */
@@ -94,6 +95,7 @@ export function lastLightEntityKit(blockout: Blockout): EntityKit {
       ...listed('lamp', blockout.lamps, 'lamps'),
       ...named('anchor', blockout.anchors, ['anchors']),
       ...named('node', blockout.nav.nodes, ['nav', 'nodes']),
+      ...blockout.zones.map(zoneEntry),
     ],
   })
 }

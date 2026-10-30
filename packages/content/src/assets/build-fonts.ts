@@ -10,6 +10,14 @@
 // `messageLocations`, and each missing code point. Control characters (a newline) draw nothing and are skipped.
 // A language no font serves is not checked: it draws in whatever face the game's CSS names.
 //
+// The language picker's names (M5.5F). The picker lists every content language by its own name (`endonymOf`, the
+// same function ui's `LanguageSection` shows), whichever language the game is showing, so every subset is also cut
+// to every content language's name, and the gate holds each language's subsets to the names of the languages the
+// fonts serve: a Latin face for `en` beside a Japanese face for `ja` fails until a face serving `en` holds 日本語. A
+// name has no place in a content file, so a failure is reported at the language's entry in `locales` of the
+// first font (by name) that serves it, where the fix is made. As with messages, a language no font serves is not
+// checked, and neither is its name: both draw in the game's own CSS face.
+//
 // Every problem is a diagnostic and all of them are reported together. A font that could not be cut leaves its
 // languages unchecked, so one broken source is not also reported as every glyph missing.
 import { createHash } from 'node:crypto'
@@ -20,8 +28,10 @@ import { ContentCompileFailed, type InvalidContentConfig } from '../compile/erro
 import { type Diagnostic, sortDiagnostics } from '../diagnostics/diagnostic'
 import { readBytesIfPresent, readTextIfPresent } from '../files/content-files'
 import { canonicalFile } from '../hash/canonical-file'
+import { endonymOf } from '../locale/endonyms'
 import { localeCharacters } from '../locale/glyphs'
 import { diagnosticAt, type ParsedToml, parseDocument } from '../parse/parse-document'
+import { FONT_FILES } from './asset-outputs'
 import { fontCoverage, subsetWoff2 } from './font-subset'
 import { type FontSource, fontsSchema } from './fonts.schema'
 
@@ -39,10 +49,11 @@ const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes)
 const codePoint = (character: string): string =>
   `U+${(character.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(4, '0')} "${character}"`
 
-/** A language's subsets: which fonts cut it, and what they hold together. */
+/** A language's subsets: which fonts cut it, what they hold together, and its entry in the first one's `locales`. */
 interface LocaleCoverage {
   readonly fonts: string[]
   readonly covers: ((character: string) => boolean)[]
+  readonly at: readonly (string | number)[]
 }
 
 /**
@@ -81,17 +92,26 @@ export const buildFonts = (
     const manifest: Record<string, Record<string, string>> = {}
     const coverage = new Map<string, LocaleCoverage>()
     const broken = new Set<string>()
+    const served = new Set<string>()
+    // Every content language's name, as the language picker shows it, goes into every subset: the picker lists
+    // them all whichever language the game is showing (M5.5F).
+    const names = new Map(content.languages.map((language) => [language, endonymOf(language)]))
+    const nameCharacters = [...names.values()].join('')
 
     for (const name of Object.keys(fonts.value.font).sort()) {
       const font = fonts.value.font[name] as FontSource
       const locales = knownLocales(fonts.toml, name, font, content, diagnostics)
+      for (const locale of locales) served.add(locale)
       const source = yield* readSource(options.root, fonts.toml, name, font, diagnostics)
       if (source === undefined) {
         for (const locale of locales) broken.add(locale)
         continue
       }
       for (const locale of locales) {
-        const characters = localeCharacters(content.catalogs.get(locale) ?? {})
+        const characters = new Set([
+          ...localeCharacters(content.catalogs.get(locale) ?? {}),
+          ...nameCharacters,
+        ])
         const cut = yield* Effect.either(Effect.tryPromise(() => subsetWoff2(source, characters)))
         if (cut._tag === 'Left') {
           const why = reason(cut.left.cause)
@@ -109,7 +129,8 @@ export const buildFonts = (
         const file = `${name}-${locale}-${sha256(cut.right).slice(0, 8)}.woff2`
         files.set(file, cut.right)
         manifest[name] = { ...manifest[name], [locale]: file }
-        const covered = coverage.get(locale) ?? { fonts: [], covers: [] }
+        const at = ['font', name, 'locales', font.locales.indexOf(locale)]
+        const covered = coverage.get(locale) ?? { fonts: [], covers: [], at }
         covered.fonts.push(name)
         covered.covers.push(fontCoverage(cut.right))
         coverage.set(locale, covered)
@@ -117,11 +138,13 @@ export const buildFonts = (
     }
 
     for (const [locale, covered] of coverage) {
-      if (!broken.has(locale)) checkGlyphs(content, locale, covered, diagnostics)
+      if (broken.has(locale)) continue
+      checkGlyphs(content, locale, covered, diagnostics)
+      checkNames(fonts.toml, names, served, locale, covered, diagnostics)
     }
 
     if (diagnostics.length > 0) return yield* fail()
-    files.set('fonts.json', new TextEncoder().encode(canonicalFile(manifest)))
+    files.set(FONT_FILES, new TextEncoder().encode(canonicalFile(manifest)))
     return { files: new Map([...files].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) }
   })
 
@@ -172,6 +195,21 @@ const readSource = (
     return read.right
   })
 
+/** The text's characters, each once, that none of the language's subsets holds; control characters draw nothing. */
+function missingCharacters(text: string, covered: LocaleCoverage): string[] {
+  // `for…of` over a string walks code points, so a character outside the BMP is one character.
+  return [...new Set(text)].filter(
+    (character) => !CONTROL.test(character) && !covered.covers.some((covers) => covers(character)),
+  )
+}
+
+/** `U+65E5 "日" is not in the fr subset of cjk or pixel`. */
+function notInSubset(missing: readonly string[], locale: string, covered: LocaleCoverage): string {
+  const verb = missing.length === 1 ? 'is' : 'are'
+  const fonts = [...covered.fonts].sort().join(' or ')
+  return `${missing.map(codePoint).join(', ')} ${verb} not in the ${locale} subset of ${fonts}`
+}
+
 /** Reports each of the language's messages with a character none of its subsets holds. */
 function checkGlyphs(
   content: CompiledContent,
@@ -181,20 +219,36 @@ function checkGlyphs(
 ): void {
   const catalog = content.catalogs.get(locale) ?? {}
   const locations = content.messageLocations.get(locale)
-  const fonts = [...covered.fonts].sort().join(' or ')
   for (const [key, text] of Object.entries(catalog)) {
-    // `for…of` over a string walks code points, so a character outside the BMP is one character.
-    const missing = [...new Set(text)].filter(
-      (character) => !CONTROL.test(character) && !covered.covers.some((covers) => covers(character)),
-    )
+    const missing = missingCharacters(text, covered)
     if (missing.length === 0) continue
     const where = locations?.get(key) ?? { file: FONTS_FILE, line: 1, column: 1 }
-    const verb = missing.length === 1 ? 'is' : 'are'
     diagnostics.push({
       code: 'missingGlyph',
       ...where,
       keyPath: key,
-      message: `${missing.map(codePoint).join(', ')} ${verb} not in the ${locale} subset of ${fonts}`,
+      message: notInSubset(missing, locale, covered),
     })
+  }
+}
+
+/**
+ * Reports each served language whose name (as the language picker shows it) has a character none of this
+ * language's subsets holds, at this language's entry in its first font's `locales`.
+ */
+function checkNames(
+  toml: ParsedToml,
+  names: ReadonlyMap<string, string>,
+  served: ReadonlySet<string>,
+  locale: string,
+  covered: LocaleCoverage,
+  diagnostics: Diagnostic[],
+): void {
+  for (const [language, name] of names) {
+    if (!served.has(language)) continue
+    const missing = missingCharacters(name, covered)
+    if (missing.length === 0) continue
+    const message = `${notInSubset(missing, locale, covered)} (the language picker names ${language} ${name})`
+    diagnostics.push(diagnosticAt(toml, 'missingGlyph', covered.at, message))
   }
 }

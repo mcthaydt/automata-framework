@@ -22,7 +22,7 @@ import {
   type ScreenDef,
   type SettingsDef,
 } from '@mcthaydt/automata-runtime'
-import type { ExtensionDef } from '@mcthaydt/automata-runtime/extension'
+import { type ExtensionDef, resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
 import { SLUG_RE } from '@ruken/manifest'
 import { defaultContent } from './default-content.ts'
@@ -48,6 +48,11 @@ export interface GameSaves<D> {
   label?(slot: number): string
 }
 
+/**
+ * A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds,
+ * scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
+ * `defineGame` fills in every default.
+ */
 export interface GameSpec<S = never, D = unknown> {
   /** Ruken's game id (`[game].id`), checked with Ruken's own rule; it is `hosting.gameId`. */
   readonly id: string
@@ -144,18 +149,27 @@ export class GameSpecError extends Error {
 const HASH = /^[0-9a-f]{16}$/
 const isSize = (value: number): boolean => Number.isInteger(value) && value > 0
 
-function problemsOf<S, D>(spec: GameSpec<S, D>): string[] {
+/**
+ * The plugins the sim runs: the game's own, then every extension's `sim` plugins in extension order (M1 runtime
+ * spec §3.2). `createSim` orders them by `dependsOn` and refuses a plugin listed twice.
+ */
+function simPluginsOf<S, D>(spec: GameSpec<S, D>): readonly PluginDef[] {
+  if (spec.extensions === undefined || spec.extensions.length === 0) return spec.sim.plugins
+  return [...spec.sim.plugins, ...resolveExtensions(spec.extensions).simPlugins]
+}
+
+function problemsOf<S, D>(spec: GameSpec<S, D>, plugins: readonly PluginDef[]): string[] {
   const problems: string[] = []
   if (!SLUG_RE.test(spec.id))
     problems.push(`id: "${spec.id}" is not a Ruken game id (lowercase letters, digits and hyphens)`)
   for (const side of ['width', 'height'] as const)
     if (!isSize(spec.size[side])) problems.push(`size.${side}: ${spec.size[side]} is not a positive integer`)
   const drawn = new Set(
-    spec.sim.plugins.flatMap((plugin) => plugin.components.filter((c) => c.render).map((c) => c.id)),
+    plugins.flatMap((plugin) => plugin.components.filter((c) => c.render).map((c) => c.id)),
   )
   for (const key of Object.keys(spec.views ?? {}))
     if (!drawn.has(key)) problems.push(`views.${key}: no plugin has a drawn component "${key}"`)
-  const events = new Set(spec.sim.plugins.flatMap((plugin) => plugin.events.map((event) => event.id)))
+  const events = new Set(plugins.flatMap((plugin) => plugin.events.map((event) => event.id)))
   for (const key of Object.keys(spec.sounds ?? {}))
     if (!events.has(key)) problems.push(`sounds.${key}: no plugin defines an event "${key}"`)
   for (const key of Object.keys(spec.scores ?? {}))
@@ -227,13 +241,19 @@ export function pixiOptions<S>(
   }
 }
 
+/**
+ * Checks a spec and fills in every default over the runtime, the Pixi renderer, Ruken hosting and the default
+ * screens; `startGame` boots the result. Pure: it reads no document, so a game module also loads in Node.
+ * Throws `BootDefect` (its cause a `GameSpecError`) for an invalid spec.
+ */
 export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S> {
-  const problems = problemsOf(spec)
+  const plugins = simPluginsOf(spec)
+  const problems = problemsOf(spec, plugins)
   if (problems.length > 0) throw new BootDefect({ cause: new GameSpecError(problems) })
 
   const title = spec.title ?? spec.id
   const sim = {
-    plugins: spec.sim.plugins,
+    plugins,
     seed: spec.sim.seed ?? 1,
     ...(spec.sim.setup === undefined ? {} : { setup: spec.sim.setup }),
     ...(spec.content?.sim === undefined ? {} : { content: spec.content.sim }),

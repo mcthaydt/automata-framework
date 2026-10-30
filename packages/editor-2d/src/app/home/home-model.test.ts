@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { filterEntries } from '@mcthaydt/automata-editor-kit/core'
+import { describe, expect, it, vi } from 'vitest'
+import type { LevelThumbnails } from '../../canvas/level-thumbnails'
 import { createProfileRegistry } from '../../profiles/profile'
-import { memoryWorkspace } from '../../testing/memory-workspace'
 import { plantedProfile } from '../../testing/planted-profile'
-import { createTestClock } from '../../testing/test-clock'
+import { mossgate } from '../../testing/samples'
 import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../editor-app'
 import { createAppProfiles } from '../profiles'
 import type { ProjectEntry } from '../project-list'
@@ -10,21 +11,14 @@ import {
   cardTitle,
   duplicateMessage,
   entryBadge,
-  filterProjects,
+  homeCard,
   importMessage,
   importNotices,
   kindTone,
-  modifiedLabel,
   openProblem,
-  projectCount,
-  reconcileSelection,
   removeMessage,
-  sizeLabel,
-  splitPath,
-  stepSelection,
-  storageNotes,
+  searchWords,
   templateCards,
-  workspaceSubtitle,
 } from './home-model'
 
 // What Home decides before anything is drawn (plan ED2D.4c2a step 4): pure functions of the list, the registry and the
@@ -48,7 +42,8 @@ function ok(path: string, over: Partial<Extract<ProjectEntry, { status: 'ok' }>>
   }
 }
 
-describe('filterProjects', () => {
+describe("searchWords, as the kit's search reads them", () => {
+  const search = (list: readonly ProjectEntry[], query: string) => filterEntries(list, query, searchWords)
   const entries: ProjectEntry[] = [
     ok('mossgate.af2d.json', { summary: { title: 'Mossgate', facts: [] } }),
     ok('notes/Harbour.note', { profile: note, summary: { title: 'Harbour Notes', facts: [] } }),
@@ -56,16 +51,11 @@ describe('filterProjects', () => {
     { ...listed, path: 'both.dat', status: 'ambiguous', candidates: [ref, note] },
   ]
 
-  it('keeps every entry, as the same array, for an empty or blank query', () => {
-    expect(filterProjects(entries, '')).toBe(entries)
-    expect(filterProjects(entries, '   ')).toBe(entries)
-  })
-
   it('matches the path, the title and the profile label, ignoring case', () => {
-    expect(filterProjects(entries, 'MOSS').map((e) => e.path)).toEqual(['mossgate.af2d.json'])
-    expect(filterProjects(entries, 'harbour').map((e) => e.path)).toEqual(['notes/Harbour.note'])
-    expect(filterProjects(entries, 'planted').map((e) => e.path)).toEqual(['notes/Harbour.note', 'both.dat'])
-    expect(filterProjects(entries, 'level project').map((e) => e.path)).toEqual([
+    expect(search(entries, 'MOSS').map((e) => e.path)).toEqual(['mossgate.af2d.json'])
+    expect(search(entries, 'harbour').map((e) => e.path)).toEqual(['notes/Harbour.note'])
+    expect(search(entries, 'planted').map((e) => e.path)).toEqual(['notes/Harbour.note', 'both.dat'])
+    expect(search(entries, 'level project').map((e) => e.path)).toEqual([
       'mossgate.af2d.json',
       'bad.af2d.json',
       'both.dat',
@@ -74,107 +64,17 @@ describe('filterProjects', () => {
 
   it('finds a project by the name it gives itself when the file is named something else', () => {
     const renamed = [ok('copy-of-3.af2d.json', { summary: { title: 'Mossgate', facts: [] } })]
-    expect(filterProjects(renamed, 'mossgate')).toEqual(renamed)
+    expect(search(renamed, 'mossgate')).toEqual(renamed)
   })
 
   it('needs every word of the query to match somewhere in the entry', () => {
-    expect(filterProjects(entries, 'planted harbour').map((e) => e.path)).toEqual(['notes/Harbour.note'])
-    expect(filterProjects(entries, 'moss harbour')).toEqual([])
+    expect(search(entries, 'planted harbour').map((e) => e.path)).toEqual(['notes/Harbour.note'])
+    expect(search(entries, 'moss harbour')).toEqual([])
   })
 
   it('keeps the order of the list and finds nothing for a word that is nowhere', () => {
-    expect(filterProjects(entries, 'af2d').map((e) => e.path)).toEqual([
-      'mossgate.af2d.json',
-      'bad.af2d.json',
-    ])
-    expect(filterProjects(entries, 'zebra')).toEqual([])
-  })
-})
-
-describe('reconcileSelection', () => {
-  const visible = [ok('a'), ok('b'), ok('c')]
-
-  it('keeps a selection that is still shown', () => {
-    expect(reconcileSelection(visible, 'b')).toBe('b')
-  })
-
-  it('falls to the first entry when the selection is gone or there was none', () => {
-    expect(reconcileSelection(visible, 'zzz')).toBe('a')
-    expect(reconcileSelection(visible, undefined)).toBe('a')
-  })
-
-  it('selects nothing when nothing is shown', () => {
-    expect(reconcileSelection([], 'a')).toBeUndefined()
-  })
-})
-
-describe('stepSelection', () => {
-  const visible = [ok('a'), ok('b'), ok('c')]
-
-  it('moves forward with right and down, and back with left and up', () => {
-    expect(stepSelection(visible, 'b', 'ArrowRight')).toBe('c')
-    expect(stepSelection(visible, 'b', 'ArrowDown')).toBe('c')
-    expect(stepSelection(visible, 'b', 'ArrowLeft')).toBe('a')
-    expect(stepSelection(visible, 'b', 'ArrowUp')).toBe('a')
-  })
-
-  it('stops at the ends instead of wrapping', () => {
-    expect(stepSelection(visible, 'c', 'ArrowRight')).toBe('c')
-    expect(stepSelection(visible, 'a', 'ArrowLeft')).toBe('a')
-  })
-
-  it('jumps to the ends with Home and End', () => {
-    expect(stepSelection(visible, 'b', 'Home')).toBe('a')
-    expect(stepSelection(visible, 'b', 'End')).toBe('c')
-  })
-
-  it('starts at the first entry going forward and the last going back when nothing is selected', () => {
-    expect(stepSelection(visible, undefined, 'ArrowDown')).toBe('a')
-    expect(stepSelection(visible, 'gone', 'ArrowRight')).toBe('a')
-    expect(stepSelection(visible, undefined, 'ArrowUp')).toBe('c')
-    expect(stepSelection(visible, undefined, 'ArrowLeft')).toBe('c')
-  })
-
-  it('selects nothing in an empty list', () => {
-    expect(stepSelection([], undefined, 'Home')).toBeUndefined()
-  })
-})
-
-describe('modifiedLabel', () => {
-  const now = Date.UTC(2026, 9, 23, 12, 0, 0)
-  const ago = (ms: number): string => modifiedLabel(now - ms, now, 'UTC')
-  const SECOND = 1000
-  const MINUTE = 60 * SECOND
-  const HOUR = 60 * MINUTE
-
-  it('says just now for under a minute, and for a time slightly ahead of the clock', () => {
-    expect(ago(0)).toBe('just now')
-    expect(ago(59 * SECOND)).toBe('just now')
-    expect(ago(-5 * MINUTE)).toBe('just now')
-  })
-
-  it('counts minutes up to an hour and hours up to a day', () => {
-    expect(ago(MINUTE)).toBe('1 min ago')
-    expect(ago(59 * MINUTE + 59 * SECOND)).toBe('59 min ago')
-    expect(ago(HOUR)).toBe('1 h ago')
-    expect(ago(23 * HOUR + 59 * MINUTE)).toBe('23 h ago')
-  })
-
-  it('says yesterday for the day before and then gives the date', () => {
-    expect(ago(24 * HOUR)).toBe('yesterday')
-    expect(ago(47 * HOUR + 59 * MINUTE)).toBe('yesterday')
-    expect(ago(48 * HOUR)).toBe('Oct 21')
-    expect(modifiedLabel(Date.UTC(2026, 0, 3, 8), now, 'UTC')).toBe('Jan 3')
-  })
-
-  it('adds the year when it is not this one', () => {
-    expect(modifiedLabel(Date.UTC(2025, 11, 31, 8), now, 'UTC')).toBe('Dec 31, 2025')
-  })
-
-  it('reads the date in the time zone it is given', () => {
-    const lateEvening = Date.UTC(2026, 9, 20, 23, 30)
-    expect(modifiedLabel(lateEvening, now, 'UTC')).toBe('Oct 20')
-    expect(modifiedLabel(lateEvening, now, 'Asia/Tokyo')).toBe('Oct 21')
+    expect(search(entries, 'af2d').map((e) => e.path)).toEqual(['mossgate.af2d.json', 'bad.af2d.json'])
+    expect(search(entries, 'zebra')).toEqual([])
   })
 })
 
@@ -248,40 +148,6 @@ describe('templateCards', () => {
       'Planted note',
     ])
     expect(cards.at(-1)).toMatchObject({ profileId: 'planted', id: 'two', hint: undefined })
-  })
-})
-
-describe('storage notes', () => {
-  const clock = createTestClock()
-
-  it('says autosave is on when the workspace keeps things on this device', () => {
-    const notes = storageNotes(memoryWorkspace(clock))
-    expect(notes.map((n) => n.tone)).toEqual(['ok', 'ok', 'info'])
-    expect(notes[0]?.text).toBe('Autosave on')
-    expect(notes[1]?.text).toBe('Kept in this browser’s private storage')
-  })
-
-  it('warns, with the browser’s reason, when nothing is kept on this device', () => {
-    const volatile = { ...memoryWorkspace(clock), persistent: false, reason: 'No private storage here.' }
-    const notes = storageNotes(volatile)
-    expect(notes.map((n) => n.tone)).toEqual(['warn', 'warn', 'info'])
-    expect(notes[0]?.text).toBe('Not saved on this device')
-    expect(notes[1]?.text).toBe('No private storage here.')
-    expect(notes[2]?.text).toMatch(/Export/)
-  })
-
-  it('leaves out the reason when the browser gave none', () => {
-    const volatile = { ...memoryWorkspace(clock), persistent: false, reason: undefined }
-    expect(storageNotes(volatile).map((n) => n.tone)).toEqual(['warn', 'info'])
-  })
-
-  it('subtitles the workspace row with a count and where it lives', () => {
-    expect(workspaceSubtitle(memoryWorkspace(clock), 4)).toBe('4 projects · browser storage')
-    expect(workspaceSubtitle(memoryWorkspace(clock), 1)).toBe('1 project · browser storage')
-    expect(workspaceSubtitle(memoryWorkspace(clock), 0)).toBe('No projects · browser storage')
-    expect(workspaceSubtitle({ ...memoryWorkspace(clock), persistent: false }, 2)).toBe(
-      '2 projects · this session only',
-    )
   })
 })
 
@@ -448,41 +314,60 @@ describe('cardTitle', () => {
   })
 })
 
-describe('splitPath', () => {
-  it('splits a path into its folder, with the slash, and the file name', () => {
-    expect(splitPath('notes/harbour.note')).toEqual({ dir: 'notes/', name: 'harbour.note' })
-    expect(splitPath('a/b/c.json')).toEqual({ dir: 'a/b/', name: 'c.json' })
-    expect(splitPath('mossgate.af2d.json')).toEqual({ dir: '', name: 'mossgate.af2d.json' })
-  })
-})
+describe('homeCard', () => {
+  const registry = createAppProfiles()
+  registry.register(plantedProfile())
+  const [first] = registry.list()
+  if (first === undefined) throw new Error('the registry holds a profile')
+  const project = { id: first.id, label: first.label }
 
-describe('sizeLabel', () => {
-  it('reads bytes, kilobytes and megabytes with one decimal below ten', () => {
-    expect(sizeLabel(0)).toBe('0 B')
-    expect(sizeLabel(812)).toBe('812 B')
-    expect(sizeLabel(1023)).toBe('1023 B')
-    expect(sizeLabel(1024)).toBe('1.0 KB')
-    expect(sizeLabel(4300)).toBe('4.2 KB')
-    expect(sizeLabel(10 * 1024)).toBe('10 KB')
-    expect(sizeLabel(512 * 1024)).toBe('512 KB')
-    expect(sizeLabel(1024 * 1024)).toBe('1.0 MB')
-    expect(sizeLabel(15.5 * 1024 * 1024)).toBe('16 MB')
-  })
-})
-
-describe('projectCount', () => {
-  it('says the workspace is empty', () => {
-    expect(projectCount(0, 0, '')).toBe('No projects')
-    expect(projectCount(0, 0, 'moss')).toBe('No projects')
+  it('carries the title, badge, kind, accent, size and age a card shows', () => {
+    const entry = ok('mossgate.af2d.json', {
+      profile: project,
+      warnings: 1,
+      summary: { title: 'Mossgate', facts: [] },
+    })
+    expect(homeCard(entry, registry)).toEqual({
+      path: 'mossgate.af2d.json',
+      title: 'Mossgate',
+      badge: { tone: 'warn', text: '1 warning' },
+      kind: project.label,
+      accent: kindTone(registry, project.id),
+      size: 100,
+      mtime: 0,
+    })
   })
 
-  it('counts the workspace when nothing is searched for', () => {
-    expect(projectCount(1, 1, '')).toBe('1 in this workspace')
-    expect(projectCount(4, 4, '   ')).toBe('4 in this workspace')
+  it('leaves an undecided file without an accent, its kind the profiles that claim it', () => {
+    const either: ProjectEntry = { ...listed, path: 'both.dat', status: 'ambiguous', candidates: [ref, note] }
+    expect(homeCard(either, registry)).toMatchObject({
+      kind: 'Level project or Planted note',
+      accent: undefined,
+    })
   })
 
-  it('says how many of the workspace a search shows', () => {
-    expect(projectCount(4, 2, 'moss')).toBe('2 of 4 shown')
-    expect(projectCount(4, 0, 'zzz')).toBe('0 of 4 shown')
+  describe('the tile preview (ED2D.4c3b)', () => {
+    const preview = { project: mossgate(), level: 'moss-steps', images: 'assets/terrain.png@1700' }
+    const withPreview = ok('mossgate.af2d.json', { profile: project, size: 4300, mtime: 1700, preview })
+    const fake = (answer: string | undefined) => {
+      const thumbnail = vi.fn(async () => answer)
+      const thumbnails: LevelThumbnails = { thumbnail, dispose: vi.fn() }
+      return { thumbnail, thumbnails }
+    }
+
+    it('draws the entry’s level through the thumbnails, keyed by path, size, time and images', async () => {
+      const { thumbnail, thumbnails } = fake('data:image/png;base64,AAAA')
+      const card = homeCard(withPreview, registry, thumbnails)
+      expect(card.preview?.key).toBe('mossgate.af2d.json|4300|1700|assets/terrain.png@1700')
+      expect(thumbnail).not.toHaveBeenCalled()
+      await expect(card.preview?.draw()).resolves.toBe('data:image/png;base64,AAAA')
+      expect(thumbnail).toHaveBeenCalledWith(card.preview?.key, preview)
+    })
+
+    it('has none without the thumbnails or without a level to preview', () => {
+      const { thumbnails } = fake(undefined)
+      expect(homeCard(withPreview, registry).preview).toBeUndefined()
+      expect(homeCard(ok('plain.af2d.json', { profile: project }), registry, thumbnails).preview).toBeUndefined()
+    })
   })
 })

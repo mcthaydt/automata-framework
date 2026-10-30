@@ -6,17 +6,11 @@ import { mossgate } from '../../testing/samples'
 import type { OpenOutcome } from '../editor-app'
 import { createAppProfiles } from '../profiles'
 import {
-  autosaveProblem,
   documentHeading,
   errorPanel,
   needsPanel,
   type PanelOutcome,
-  recoveryFacts,
-  recoveryUnreadable,
-  reloadedMessage,
   restoreRefused,
-  savedCopyMessage,
-  saveFailure,
   textWindow,
 } from './open-flow-model'
 
@@ -156,27 +150,6 @@ describe('textWindow', () => {
   })
 })
 
-describe('recoveryFacts', () => {
-  const now = 1_700_000_000_000
-  it('names the file, when the autosave was made and that the file is as it was', () => {
-    expect(
-      recoveryFacts(
-        'levels/mossgate.af2d.json',
-        { payload: '', savedAt: now - 5 * 60_000, baseChanged: false },
-        now,
-      ),
-    ).toEqual([
-      { label: 'File', value: 'mossgate.af2d.json' },
-      { label: 'Last autosave', value: '5 min ago' },
-      { label: 'File on disk', value: 'Unchanged since the autosave began' },
-    ])
-  })
-  it('says when the file changed too, since restoring replaces that change', () => {
-    const facts = recoveryFacts('a.af2d.json', { payload: '', savedAt: now, baseChanged: true }, now)
-    expect(facts[2]).toEqual({ label: 'File on disk', value: 'Changed since the autosave began' })
-  })
-})
-
 describe('documentHeading', () => {
   it('is the profile’s own title for the document over its path', () => {
     const level = createAppProfiles().list()[0] as Profile<unknown>
@@ -194,14 +167,6 @@ describe('documentHeading', () => {
 })
 
 describe('messages', () => {
-  it('a failed save names the file and the store’s reason', () => {
-    expect(
-      saveFailure('a/b.af2d.json', { status: 'failed', reason: 'quota', message: 'The disk is full.' }),
-    ).toBe('Could not save b.af2d.json: The disk is full.')
-  })
-  it('a copy names the copy', () => {
-    expect(savedCopyMessage('a/b copy.af2d.json')).toBe('Saved a copy as b copy.af2d.json.')
-  })
   it('a refused restore says why and that the file is open as saved', () => {
     expect(restoreRefused([{ code: 'x', message: 'Not JSON.' }])).toBe(
       'The autosave no longer opens (Not JSON.). Discard it to go on with the file as it was last saved.',
@@ -209,19 +174,5 @@ describe('messages', () => {
     expect(restoreRefused([])).toBe(
       'The autosave no longer opens. Discard it to go on with the file as it was last saved.',
     )
-  })
-  it('an autosave that stopped asks for a save; one that failed once says so', () => {
-    expect(
-      autosaveProblem({ source: 'autosave', reason: 'quota', message: 'The disk is full.', paused: true }),
-    ).toBe('Autosave has stopped: The disk is full. Save to keep your edits.')
-    expect(autosaveProblem({ source: 'autosave', reason: 'io', message: 'It broke.', paused: false })).toBe(
-      'Autosave failed: It broke. It tries again with the next edit.',
-    )
-  })
-  it('an unreadable autosave and a reload name what happened', () => {
-    expect(recoveryUnreadable('Gone.')).toBe(
-      'The autosave could not be read (Gone.). The file is open as it was last saved.',
-    )
-    expect(reloadedMessage('x/a.note')).toBe('Reloaded a.note from the file.')
   })
 })

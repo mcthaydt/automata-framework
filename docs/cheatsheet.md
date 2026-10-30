@@ -2,11 +2,68 @@
 
 > Every export of every published `@mcthaydt/automata-*` entry point, one line each, grouped by module (package). Generated from the API index by `pnpm cheatsheet` after `pnpm build`; do not edit by hand. `pnpm api-index` fails when this page is stale. Full signatures and doc comments: the API reference (`api.md`).
 
+## `@mcthaydt/automata`
+
+### `import { … } from '@mcthaydt/automata'`
+
+- `AutosavePolicy` (interface): When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval` timer.
+- `AutosaveTrigger` (type): What can make the loaded slot write itself (M5 spec §4.4).
+- `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
+- `Camera2dOptions` (interface): How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
+- `CameraRect` (interface): A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
+- `Command` (interface): Input to the sim (spec §4.4 rule 4).
+- `CommandDef` (interface): A command the sim accepts as input: an id and the Zod schema its payload must match.
+- `ComponentDef` (interface): A component: a stable id and a flat record of typed fields.
+- `createCamera2d(stage, options, seed?)`: A camera writing `stage`'s transform (usually `PixiStage.world`).
+- `defaultContent()`: The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash.
+- `defaultScreens(game)`: The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow (`title → play ⇄ paused → title`, `paused ⇄ settings`).
+- `defineCommand(id, schema)`: Defines a command by id and payload schema.
+- `defineComponent(id, fields, opts?)`: Defines a component from an id (lower-case words separated by dots or dashes) and its fields by name and type.
+- `DefinedGame` (interface): The runtime's `GameDefinition`, plus what the screens and the golden replay read from the spec.
+- `defineEvent(id, schema)`: Defines an event by id and payload schema, to emit from a system with `ctx.emit`.
+- `defineGame(spec)`: Checks a spec and fills in every default over the runtime, the Pixi renderer, Ruken hosting and the default screens; `startGame` boots the result.
+- `definePlugin(spec)`: Defines a plugin from a name, its dependencies and its definitions, given in the keyed lists or in one flat `defs` list sorted by kind.
+- `defineResource(id, schema, init)`: Defines a resource by id, schema and starting value.
+- `defineSave(def)`: Declares a save.
+- `defineSystem(name, run)`, `defineSystem(name, phase, run)`, `defineSystem(spec)`, `defineSystem(nameOrSpec, phaseOrRun?, run?)`: A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the object form also takes `before`/`after`.
+- `DrawContext` (interface): What `draw` receives each frame.
+- `DrawEntity` (interface): One entity, read-only: its components' values are frozen copies.
+- `DrawSim` (interface): The sim at this frame, read-only.
+- `DrawTextOptions` (interface): Options for `DrawContext.text`: colour and font size.
+- `EntityRef` (interface): A live entity, addressed by its StableId.
+- `EventDef` (interface): An event a system emits: an id and the Zod schema its payload must match.
+- `GameSaves` (interface): What a game saves, and how the default screens read it from the sim and put it back (M5.2).
+- `GameSpec` (interface): A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds, scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
+- `GameSpecError` (class): Every invalid field of a spec, by path: `size.width: …`.
+- `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3).
+- `InputSource` (interface): The input map attached to a window for one play session.
+- `KeyBindings` (type): By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard layout.
+- `keys(command, bindings, options?)`: An input map sending `command` once per tick with the payload of what is held: keys by `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the idle payload.
+- `KeysOptions` (interface): Options for `keys`: touch buttons, gamepad buttons, gestures and the stick, the idle payload, required keys and the Controls section's labels.
+- `PluginDef` (interface): A bundle of definitions the sim registers together: components, commands, events, resources and systems, the plugins it depends on, and optionally per-sim engine state and `config`.
+- `postFilter(name, spec)`: Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', { glsl, wgsl })] }`.
+- `PostFilterDef` (interface): A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
+- `PostFilterSpec` (interface): What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`), so the two renderers stay at parity.
+- `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
+- `RectViewOptions` (interface): A `rect` view's size, colour and anchor.
+- `ResourceDef` (interface): A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting value.
+- `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
+- `ScreensGame` (interface): What the default screens need from the game.
+- `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
+- `SimContext` (interface): What a system's `run` receives each tick (spec §4.1).
+- `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
+- `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
+- `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
+- `startGame(game)`: Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
+- `StepResult` (interface): What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were rejected.
+- `SystemDef` (interface): A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and its `run`, called once per tick.
+- `TouchButton` (interface): One on-screen touch button: every key bound to the same payload shares it.
+
 ## `@mcthaydt/automata-content`
 
 ### `import { … } from '@mcthaydt/automata-content'`
 
-- `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder).
+- `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and `fonts.toml`.
 - `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
 - `checkTuningLayer(layer, options, { complete })`: Checks one layer of tuning against code-owned declarations.
 - `compileContent` (const): Compiles `<root>/content` in memory.
@@ -42,8 +99,8 @@
 - `MessageLocation` (interface): A message's place in its file, 1-based.
 - `Palette` (interface): The game's palette: a name and its colors.
 - `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
-- `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`) and the built game folder.
-- `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), without repeats.
+- `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset build's outputs below `outDir`) and the built game folder.
+- `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir` and the build serves in `atlases/` and `fonts/`; without repeats.
 - `renderTuningTable(meta)`: Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
 - `RukenFields` (type): The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
 - `SimPartition` (interface): The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash, which gates snapshots and replays.
@@ -80,9 +137,15 @@
 - `ContentText` (type): `text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
 - `ContentTextOptions` (interface): Options for `createContentText`.
 - `createContentText(messages, options?)`: A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
-- `localeCharacters(catalog)`: What a locale's subset font is cut to: `ALWAYS_CHARACTERS` and the catalog's characters.
+- `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
+- `hasRawText(text)`: True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII letter outside a ⟦ ⟧ span.
+- `localeCharacters(catalog)`: A locale's own characters for its subset font: `ALWAYS_CHARACTERS` and the catalog's characters.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
 - `messageKey(kind, id, path)`: The message key of one text.
+- `MessageValue` (type): A value in an inlang message file: a message, a list of variants, or a namespace or variant object.
+- `PSEUDO_LOCALE` (const): The pseudo-locale's tag.
+- `pseudoLocalize(message)`: The xx-long form of one message string.
+- `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
 - `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
 
 ### `import { … } from '@mcthaydt/automata-content/vite'`
@@ -90,6 +153,50 @@
 - `automataContent(pluginOptions?)`: The Vite plugin that compiles content and serves it as `virtual:automata/content`.
 - `AutomataContentOptions` (type): The plugin's options: `ContentOptions`, with `root` defaulting to Vite's root.
 - `VIRTUAL_MODULE_ID` (const): The import path of the compiled content: `content`, `contentHash`, `simContent` and `simContentHash`.
+
+## `@mcthaydt/automata-game`
+
+### `import { … } from '@mcthaydt/automata-game'`
+
+- `AutosavePolicy` (interface): When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval` timer.
+- `AutosaveTrigger` (type): What can make the loaded slot write itself (M5 spec §4.4).
+- `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
+- `Camera2dOptions` (interface): How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
+- `CameraRect` (interface): A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
+- `createCamera2d(stage, options, seed?)`: A camera writing `stage`'s transform (usually `PixiStage.world`).
+- `defaultContent()`: The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash.
+- `defaultScreens(game)`: The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow (`title → play ⇄ paused → title`, `paused ⇄ settings`).
+- `DefinedGame` (interface): The runtime's `GameDefinition`, plus what the screens and the golden replay read from the spec.
+- `defineGame(spec)`: Checks a spec and fills in every default over the runtime, the Pixi renderer, Ruken hosting and the default screens; `startGame` boots the result.
+- `defineSave(def)`: Declares a save.
+- `DrawContext` (interface): What `draw` receives each frame.
+- `DrawEntity` (interface): One entity, read-only: its components' values are frozen copies.
+- `DrawSim` (interface): The sim at this frame, read-only.
+- `DrawTextOptions` (interface): Options for `DrawContext.text`: colour and font size.
+- `GameSaves` (interface): What a game saves, and how the default screens read it from the sim and put it back (M5.2).
+- `GameSpec` (interface): A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds, scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
+- `GameSpecError` (class): Every invalid field of a spec, by path: `size.width: …`.
+- `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3).
+- `InputSource` (interface): The input map attached to a window for one play session.
+- `KeyBindings` (type): By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard layout.
+- `keys(command, bindings, options?)`: An input map sending `command` once per tick with the payload of what is held: keys by `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the idle payload.
+- `KeysOptions` (interface): Options for `keys`: touch buttons, gamepad buttons, gestures and the stick, the idle payload, required keys and the Controls section's labels.
+- `postFilter(name, spec)`: Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', { glsl, wgsl })] }`.
+- `PostFilterDef` (interface): A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
+- `PostFilterSpec` (interface): What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`), so the two renderers stay at parity.
+- `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
+- `RectViewOptions` (interface): A `rect` view's size, colour and anchor.
+- `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
+- `ScreensGame` (interface): What the default screens need from the game.
+- `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
+- `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
+- `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
+- `startGame(game)`: Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
+- `TouchButton` (interface): One on-screen touch button: every key bound to the same payload shares it.
+
+### `import { … } from '@mcthaydt/automata-game/tooling'`
+
+- `isDefinedGame(value)`: Whether `value` came from `defineGame`.
 
 ## `@mcthaydt/automata-host`
 
@@ -139,39 +246,277 @@
 - `RunResult` (interface): What a finished program left: its exit code (128 when a signal killed it) and everything it wrote to stdout and stderr, decoded as UTF-8.
 - `TaggedErrorClass` (type): The class `Data.TaggedError(tag)` returns, written out. isolatedDeclarations cannot infer the type of a call in an `extends` clause, so each error extends a constant annotated with this type instead (the pattern of `content`'s compile errors and `host`'s errors).
 
-## `@mcthaydt/automata-physics`
+## `@mcthaydt/automata-render-pixi`
 
-### `import { … } from '@mcthaydt/automata-physics/2d'`
+### `import { … } from '@mcthaydt/automata-render-pixi'`
 
-- `body2d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
-- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
-- `Collider2D` (const): One collider.
-- `collider2d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy)` with half extents, and `capsule(halfHeight, radius)`.
-- `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded2D` (const): Two colliders stopped touching, or one was removed.
-- `CollisionStarted2D` (const): Two colliders began touching (or, with a sensor, overlapping).
-- `physics2d(options?)`: The 2D physics plugin (M2.1 spec §3.5).
-- `Physics2DOptions` (interface): The options of `physics2d`.
-- `RigidBody2D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
-- `transform2d(at?)`: The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
-- `Transform2D` (const): Position in metres and rotation in radians.
+- `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
+- `Camera2dOptions` (interface): How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
+- `CameraRect` (interface): A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
+- `canvasResolutionFor(formFactor, devicePixelRatio, tier?)`: Calculates device pixels per CSS pixel for the canvas.
+- `CompositeTarget` (class): The fixed-resolution composite (M4 spec §4.11).
+- `createCamera2d(stage, options, seed?)`: A camera writing `stage`'s transform (usually `PixiStage.world`).
+- `createPixiRenderer(options?)`: The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render target, entity views from each step's render delta, interpolated each frame.
+- `createPostFilterSlot(target)`: A post-filter slot writing its composed filters to `target`'s `filters`.
+- `DEFAULT_BAR_COLOR` (const): The letterbox bars' default colour (FloorFifty's plum black).
+- `DEFAULT_BAR_FRACTION` (const): How much of the playfield's height each letterbox bar crops in a landscape view, by default (5%).
+- `DEFAULT_FIELD_COLOR` (const): The default colour behind the playfield, under the world.
+- `EntityView` (interface): What an entity view factory returns: the container drawn for one entity, updated with its current and previous component values and the interpolation alpha, and destroyed when the entity goes.
+- `EntityViewFactory` (type): Builds the view for one entity, or `undefined` to draw nothing.
+- `EntityViewResolver` (type): Which view an entity gets: one factory for every entity, or factories by component id (the first id, in the record's own key order, whose component the entity has wins).
+- `FILTER_VERTEX` (const): The GLSL vertex stage every AF filter shares: it passes the texture coordinate and the pixel position (`vPixelCoord`) to the fragment stage.
+- `filterPrograms(name, fragmentGlsl, fragmentWgsl)`: Builds a filter's programs from its GLSL and WGSL fragment stages on the shared vertex stages, so WebGL2 stays at parity with WebGPU (AGENTS.md).
+- `FilterProgramsResult` (interface): A filter's WebGL2 and WebGPU programs, for a Pixi `Filter`'s `glProgram` and `gpuProgram`.
+- `interpolatePose(curr, prev, alpha)`: The pose between the previous tick (`alpha = 0`) and the current one (`alpha = 1`).
+- `lerp(a, b, t)`: Linear blend; `t = 1` returns `b` exactly, because `a + (b - a)` can round away from it.
+- `lerpAngle(a, b, t)`: Blends two angles (radians) along the shorter arc, so a body turning from just under π to just over -π swings through π instead of spinning the long way round through 0.
+- `LetterboxFrame` (class): The containers a letterboxed scene is built from (backdrop, world, ui, mask and bars), laid out for a view size by `layout`.
+- `LetterboxGeometry` (interface): Where `LetterboxFrame.layout` put the playfield in the view, in screen px: its scale and rect, the gameplay and scenery areas, and whether the view is portrait.
+- `LetterboxOptions` (interface): A letterbox's logical playfield size and its bar and field colours (defaults `DEFAULT_BAR_FRACTION`, `DEFAULT_BAR_COLOR`, `DEFAULT_FIELD_COLOR`).
+- `MAX_RESOLUTION` (const): The highest canvas resolution (device pixels per CSS pixel) the renderer uses, at the `high` quality tier.
+- `meetsTier(tier, min)`: Whether `tier` is `min` or higher: a pass registered for `medium` runs at `medium` and `high`.
+- `PixiRenderer` (interface): The runtime's `GameRenderer`, built on PixiJS, with its stage.
+- `PixiRendererOptions` (interface): Options for `createPixiRenderer`; every field has a default.
+- `PixiStage` (interface): The Pixi scene the renderer draws, as a game's `setup` sees it: the app, the letterbox's layers, the entity views, the post-filter slot and the quality tier.
+- `PixiStageHooks` (interface): What a `setup` may return to hear every step, frame and reset (DX spec §3.4, DX.3 decision E-1).
+- `PORTRAIT_FIELD_TOP` (const): The most room above the playfield in a portrait view, in screen px (the HUD's top margin, M1 render-pixi spec): the field sits this far down, or centred when centring leaves less room above it.
+- `portraitFieldHeight(viewHeight, scale, band, baseHeight?)`: The playfield's logical height in a portrait view: what fits below `PORTRAIT_FIELD_TOP` and above the `band` of on-screen controls at `scale`, and never less than `baseHeight`.
+- `Pose` (interface): Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`).
+- `poseComponent(components, componentId?)`: The component a view reads its pose from: the one it was registered under, or (for a bare function resolver, which has no id) the first component in row order with numeric `x` and `y`.
+- `postFilter(name, spec)`: Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', { glsl, wgsl })] }`.
+- `PostFilterDef` (interface): A declared filter, as `postFilter` returns it and `PixiRendererOptions.postFilters` takes it.
+- `PostFilterOptions` (interface): Options for `PostFilterSlot.set`.
+- `PostFilterSlot` (interface): The post-filter slot (PRODUCT spec §2 F1): each owner (an extension, quality tiers, the game) keeps its own filters under its id, and the slot writes all of them to the target, ordered by `order` (lower first), then by id.
+- `PostFilterSpec` (interface): What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`), so the two renderers stay at parity.
+- `PostFilterTarget` (interface): Where the composed filters go: `PixiStage` (its scene's `filters`), or any Pixi container.
+- `QualityBuild` (interface): What `rebuildOnQuality` keeps mounted.
+- `rebuildOnQuality(settings, read, build, onBuilt?)`: Keeps something built for the player's quality tier (M4 spec §4.11), rebuilding it when the tier changes.
+- `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
+- `RectViewOptions` (interface): A `rect` view's size, colour and anchor.
+- `RenderDeltaConsumer` (class): Keeps one entity view per sim entity in the world container from each step's render delta, and interpolates them between ticks.
+- `RendererPreference` (type): The renderer backend: `webgl` (WebGL2, the default) or `webgpu` (opt-in).
+- `RESOLUTION_CAPS` (const): The canvas resolution each quality tier allows at most (M4 spec §4.11).
+- `SHAKE_DECAY` (const): Trauma lost per second: a full shake (1) is gone in 2/3 s.
+- `SHAKE_MAX_OFFSET` (const): The largest shake offset per axis, in logical px, at trauma 1.
+- `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
+- `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
+- `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
+- `ViewAnchor` (type): Where the view's own box sits on its position: 0 = left/top, 0.5 = centre, 1 = right/bottom.
+- `WGSL_FILTER_HEADER` (const): The WGSL counterpart of `FILTER_VERTEX`: the filter uniforms and bindings and the vertex stage, which passes the pixel position to the fragment stage.
 
-### `import { … } from '@mcthaydt/automata-physics/3d'`
+## `@mcthaydt/automata-runtime`
 
-- `body3d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
-- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
-- `Collider3D` (const): One collider.
-- `collider3d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy, hz)` with half extents, and `capsule(halfHeight, radius)`.
-- `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded3D` (const): Two colliders stopped touching, or one was removed.
-- `CollisionStarted3D` (const): Two colliders began touching (or, with a sensor, overlapping).
-- `physics3d(options?)`: The 3D physics plugin (M2.1 spec §3.5).
-- `Physics3DOptions` (interface): The options of `physics3d`.
-- `RigidBody3D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
-- `transform3d(at?)`: The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`, `qz`, `qw`).
-- `Transform3D` (const): Position in metres and rotation as a unit quaternion.
+### `import { … } from '@mcthaydt/automata-runtime'`
+
+- `actionsForGesture(profile, gesture)`: Every action `gesture` drives in `profile` (M4.3); none when it is unbound.
+- `actionsForKey(profile, code)`: Every action `code` (a `KeyboardEvent.code`) drives in `profile`; none when it is unbound.
+- `actionsForPadButton(profile, index)`: Every action the standard-mapping pad button `index` drives in `profile`; none when it is unbound.
+- `ActiveDevice` (interface): The device of the last real input, and the button labels of the active pad (`generic` before any pad).
+- `AppLoop` (interface): The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each tick, and the renderer draws every frame.
+- `applyDocumentLocale(element, locale)`: `<html lang dir>`: the browser picks glyph forms and line breaking from `lang`, and the layout direction from `dir`.
+- `applyOverrides(defaults, saved)`: The game's profile with the player's overrides applied (M4 spec §6): an override for an unknown action, one that binds a reserved input, or one with a pad button out of range is dropped and named in `dropped` (sorted), and the defaults stand for it.
+- `AssetLoadFailed` (class): An asset download failed with a non-OK HTTP status or network error (status 0).
+- `Assets` (interface): The asset loader service: `load` fetches a screen's assets and fonts with progress, failing `AssetLoadFailed` or `LoadStalled`; `get` returns a loaded file by path.
+- `Audio` (interface): The audio service (M5 spec §4.6): one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
+- `AUDIO_BUS_NAMES` (const): The core audio buses (PRODUCT spec §2 F1): `master` carries the other four; M5-D3 added `voice` (announcers, dialogue).
+- `AUDIO_SETTINGS_DEFAULT` (const): Not muted, every bus at full.
+- `AudioBuses` (interface): The audio-bus seam (PRODUCT spec §2 F1).
+- `AudioBusGains` (type): The player's gain per bus, 0 (silent) to 1 (full), as a game's settings store it.
+- `audioBusGainsSchema` (const): Validates saved bus gains; a bus left out is at full gain.
+- `AudioBusName` (type): One of `AUDIO_BUS_NAMES`.
+- `AudioContextLike` (type): The part of `AudioContext` the graph uses.
+- `AudioDecodeFailed` (class): The browser could not decode a sound's bytes (M5 spec §6): that sound is silent and nothing else stops.
+- `AudioDecodeFailedFields` (interface): The fields of `AudioDecodeFailed`.
+- `audioLayer` (const): `makeAudio` with its defaults, reading `Hosting`, `Assets` and `PresentationBus` from the runtime.
+- `AudioLive` (const): The Audio service with its defaults: the browser's `AudioContext`, `window`, `document` and `fetch`.
+- `AudioOptions` (interface): Options for the audio service; each has a browser default, replaced in tests.
+- `AudioServices` (interface): What the service reads from the runtime.
+- `AudioSettings` (interface): The player's audio choices (M5 spec §7, M5.4), as FloorFifty's `audio` settings: the mute, the mute while another window has focus, and a gain per bus.
+- `audioSettingsSchema` (const): A missing field takes its default; a bad record reads as the defaults, as every settings field falls back.
+- `AuthoritativeSnapshot` (interface): One authoritative state: the authority sim's `snapshot()` bytes at `tick`, with its `hash()`.
+- `AutosavePolicy` (interface): When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval` timer.
+- `AutosaveTrigger` (type): What can make the loaded slot write itself (M5 spec §4.4).
+- `BindingOverride` (interface): What the player changed about one action: its keys, its pad buttons, or both.
+- `BoardEntry` (type): One row of a board, as Ruken gives it; `isMe` marks the player.
+- `BoardQuery` (type): What `readBoard` asks for: Ruken's `get` options (`scope` `top` or `around-me`, `limit`).
+- `BoardState` (type): The state of a board after the game's last submit to it.
+- `BoardView` (type): A board read for a screen: its rows, or why there are none.
+- `BootDefect` (class): An unexpected defect during boot.
+- `BootError` (type): Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4).
+- `browserHaptics(target)`: The browser's haptics: its pads, its `vibrate`, and whether its pointer is a finger.
+- `CAMERA_SETTINGS_DEFAULT` (const): The camera choices a new player starts with: the default turn speed, not inverted.
+- `CAMERA_TURN_SPEED` (const): The range of "Camera turn speed" in degrees per dragged pixel (M4 spec §16.3.6, M3 spec §4.2): 0.25° by default, so a 1,440 px sweep is one full turn.
+- `CameraDragTracker` (class): Turns pointer samples into camera drags for one `DragSink`: one pointer at a time, its horizontal CSS px per move, from a touch or pen's primary contact or the mouse's secondary button.
+- `CameraSettings` (interface): The player's camera choices, `camera` in the core settings: how far a dragged pixel turns the camera, and whether the turn is inverted.
+- `cameraSettingsSchema` (const): A missing, malformed or out-of-range field reads as its default, keeping the other; a record that is not an object reads as the defaults, as every settings field falls back.
+- `Capture` (type): The input a capture caught: a key by its `KeyboardEvent.code`, or a standard-mapping pad button.
+- `CompiledContentData` (interface): The compiled JSON content read by the runtime (spec §3.3).
+- `ContentHashMismatch` (class): Content hash does not match expected hash.
+- `contentHashOf(data)`: The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
+- `CORE_SETTINGS` (const): The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`), vibration (`haptics`) and camera turn (`camera`).
+- `CoreSettings` (interface): The settings every game carries: input bindings, display, audio and vibration.
+- `createHaptics(options)`: The haptics service over these sources; it starts enabled.
+- `createT(messages)`: `t` over a messages module (`import * as m from './paraglide/messages.js'`).
+- `DEFAULT_QUALITY` (const): `high` until PRODUCT.7 has measured the phone profiles (M4-D6); no device auto-detection.
+- `defineSave(def)`: Declares a save.
+- `DeviceStorage` (interface): Where a settings field that belongs to one device is kept (M5 spec §4.5, M5-D4).
+- `DisplayCopy` (interface): The words of the display policy: the landscape gate, the rotate hint for each orientation and the rotate toast.
+- `DisplaySettings` (interface): The core display settings a game's settings carry as `display`: `{ display: displaySettingsSchema }`.
+- `displaySettingsSchema` (const): The schema of `DisplaySettings`: an unknown or missing quality reads as `DEFAULT_QUALITY`.
+- `DragPointer` (type): What drove a drag: a finger or pen (`touch`), or the mouse.
+- `DragSink` (interface): Where drags go (`Input.drag`): CSS px moved to the right since the previous move, negative to the left.
+- `DragStart` (interface): The parts of a `pointerdown` that decide whether it may drag.
+- `EventScores` (type): A sim event's type (its `defineEvent` id) → the board it scores on and the score its payload gives.
+- `EventSounds` (type): A sim event's type (its `defineEvent` id) → the asset path it plays, or the path with its bus and gain.
+- `Flow` (interface): The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu` for the current screen's menu, and `settled` once no transition is pending.
+- `FlowFailure` (type): Why entering a screen failed: an asset load, a stalled download, or the screen's own failure.
+- `formatDateTime` (const): A moment as a date and a short time in the reader's convention, in the reader's zone unless `options.timeZone` names one (a test names UTC).
+- `formatDuration(locale, milliseconds)`: A clock-style duration from milliseconds, whole seconds: `01:15`, or `1:02:05` once there are hours.
+- `formatNumber` (const): A number in `locale`'s convention (Intl.NumberFormat with `options`).
+- `formatPercent` (const): A whole percentage of a fraction: 0.5 → `50%` (`50 %` in French).
+- `FrameInfo` (interface): One display frame: the interpolation alpha between the last two ticks, the frame's length in ms, and whether time is paused.
+- `GameDefinition` (interface): Everything a game provides to the runtime to boot (spec §3.3).
+- `GameOrientation` (type): The orientation a game plays in; the ship config writes the same value as `runtime.orientation`.
+- `GameRenderer` (interface): What the runtime asks of a renderer: apply each step's result, draw each frame, and reset for a new sim.
+- `GESTURE_TUNING` (const): FloorFifty's gesture tuning, the defaults.
+- `GestureName` (type): A touch gesture (M4.3 recognises the swipes, flick and tap; M4.12 the camera drag).
+- `GestureSink` (interface): Where gestures go: held while a finger steers, pulsed for a flick or a tap.
+- `GestureTuning` (interface): Content tuning, in CSS px and ms; FloorFifty's values are the defaults.
+- `GlyphFamily` (type): Which labels a pad's buttons carry, read from its id.
+- `HapticPulse` (interface): One pulse: a pad's dual-rumble (milliseconds, each motor 0..1), and a phone's buzz in `navigator.vibrate`'s terms.
+- `Haptics` (interface): The haptics service: a pad's rumble or a phone's buzz, when the device can and the player's Vibration setting allows.
+- `HapticsOptions` (interface): Where the haptics service finds pads, the vibrate call and whether this is a touch screen; replaced in tests.
+- `HapticsSettings` (interface): The player's Vibration setting: whether `Haptics` pulses at all.
+- `hapticsSettingsSchema` (const): On unless saved off; a bad record reads as on, as every settings field falls back.
+- `Input` (interface): The input service (M4 spec §4.2): held actions from keys, pads, touch buttons and gestures under the game's profile and the player's overrides, menu edges, the active device and pads, and rebinding.
+- `INPUT_SETTINGS_DEFAULT` (const): Nothing changed: the game's profile as it ships.
+- `InputBinding` (interface): What drives one action: keys by `KeyboardEvent.code` (layout independent), pad buttons, an on-screen button.
+- `InputContext` (type): Where an action is live: during play, in menus, or both.
+- `InputContextNow` (type): What input drives now: `play` (the game's bindings) or `menu` (the menu actions).
+- `InputDevice` (type): A kind of input device.
+- `InputOptions` (interface): What the input service listens to: the window, the game's profile, the bus, and optionally the settings and the host's input mode.
+- `InputProfile` (interface): A named set of bindings, one per game action (PRODUCT spec §2 F1).
+- `InputProfileInput` (interface): What `inputProfileSchema` accepts: every binding field may be left out.
+- `inputProfileSchema` (const): Validates an input profile, filling left-out binding fields with "unbound".
+- `InputSettings` (interface): The player's input settings, kept in the game's settings as `input`: the profile, the per-action overrides and the touch mode.
+- `inputSettingsSchema` (const): The `input` field of a game's settings schema: `{ input: inputSettingsSchema }`.
+- `Leaderboards` (interface): `Board` is the game's board ids (its ship config's `leaderboards` keys); `string` until a game narrows it.
+- `liveDeviceStorage(win, prefix)`: The game frame's own `localStorage` as a device, with `prefix:` before every key so two games on one origin do not meet.
+- `Loaded` (interface): A slot loaded for play.
+- `LoadMeter` (interface): Watches downloads: `guard` fails a wait with `LoadStalled` after `STALL_MS` without progress, and calls its `onSlow` after `SLOW_MS`.
+- `LoadStalled` (class): A resource download had no progress reported for STALL_MS (30 s).
+- `Locale` (interface): The locale service (PRODUCT spec §4): the game's locales, the one text is drawn in now, the player's choice and the text direction.
+- `LOCALE_SAVE_KEY` (const): The save key of the player's language choice; absent means Automatic (negotiated).
+- `LocaleCandidates` (interface): The candidates, best first; each is used only when the game has a matching locale.
+- `LocaleDef` (interface): The game's languages.
+- `makeAudio` (const): Builds the Audio service, which is also the `AudioBuses` seam.
+- `makeInput(options)`: Builds the Input over `target` for the scope's life: closing the scope removes every listener.
+- `makeLeaderboards` (const): Builds the leaderboards service over `Hosting`; each submit's state is published as `leaderboard.submitted`.
+- `makeSaves(def, options)`: Opens the game's save for boot, with its triggers and its exit flush, for as long as the scope is open.
+- `matchLocale(requested, locales)`: The game's locale for a requested tag: the same tag (ignoring case), else the first locale with the same primary language subtag.
+- `MAX_FRAME_MS` (const): The Last Light clock.ts 0.1 s clamp: at most 6 steps at 60 Hz, the rest is dropped
+- `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
+- `MenuAction` (type): A fixed menu action: it drives menus and the pause screen, never the sim.
+- `MessageFunction` (type): One compiled message: Paraglide passes its inputs as one object.
+- `MusicOptions` (interface): Options for `Audio.music`: where to begin and which region loops.
+- `negotiateLocale(candidates)`: The order is the player's saved choice, Ruken's session locale, the browser's languages, the default (PRODUCT spec §4 item 2, as decided 2026-10-16: a choice made in the game's own picker outranks the platform's, as in FloorFifty, where detection runs only "when the player has not chosen one").
+- `NetworkPort` (interface): The networking seam (PRODUCT spec §2 F1): remote commands in, authoritative snapshots out.
+- `PadInfo` (interface): A connected pad.
+- `ParaglideRuntime` (interface): The parts of a Paraglide-generated `runtime.js` the runtime uses.
+- `PauseReason` (type): `input`: the active pad was unplugged during play (M4-D9); Resume on the pause screen clears it.
+- `pluralCategory` (const): The CLDR plural (or, with 'ordinal', ordinal) category of a count: one, two, few, many, zero or other.
+- `PresentationBus` (interface): The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear.
+- `QUALITY_TIERS` (const): Graphics quality (M4 spec §4.11).
+- `QualityTier` (type): A graphics quality tier: `high`, `medium` or `low`.
+- `qualityTierSchema` (const): A tier; an unknown saved value reads as the default, as every settings field falls back.
+- `REBIND_TIMEOUT_MS` (const): How long `capture` waits for a press (M4 spec §4.2, §6).
+- `RebindCancelled` (class): The player pressed Escape or pad B while a capture waited: nothing changes.
+- `RebindConflict` (class): Refused: the input would leave `with`, a required action, with nothing on that device (M4-D4).
+- `RebindError` (type): Why a rebind was refused, with nothing changed.
+- `rebindProfile(defaults, current, action, device, capture)`: Binds `capture` to `action` on `device` (M4 spec §4.5, M4-D4): it becomes the action's only input there and leaves every other action live in an overlapping context.
+- `RebindReserved` (class): Refused: Escape, Tab, pad 8 or pad 16 (M4-D3), or a pad button the standard mapping does not have.
+- `RebindTimedOut` (class): Nothing was pressed for `REBIND_TIMEOUT_MS`: nothing changes.
+- `RebindUnknown` (class): Refused: the profile has no such action.
+- `Renderer` (const): The game's renderer as a runtime service.
+- `RendererFactory` (type): Builds the game's renderer on a render target in a scope, failing `RendererUnavailable` when it cannot start.
+- `RendererUnavailable` (class): Neither WebGL2 nor WebGPU could be initialized.
+- `RenderTarget` (interface): Where a renderer draws: the host element, the layout geometry, the loaded assets and the presentation bus.
+- `RESERVED_KEYS` (const): Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
+- `RESERVED_PAD_BUTTONS` (const): Never bindable in a game's profile (M4-D3): Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the one back path and Tab moves focus.
+- `RotateHintMode` (type): How a game locked to one orientation says so (Owner amendment, 2026-10-18): a blocking cover, or a toast.
+- `runGame(game)`: Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
+- `RuntimeFacts` (interface): Every fact the runtime publishes on the presentation bus, by name.
+- `RuntimeHandle` (interface): Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11).
+- `RuntimeSeams` (interface): Test seams injected into the runtime boot program (spec §3.3, planning note 10).
+- `RuntimeServices` (type): The runtime services a screen's `enter` may use.
+- `Save` (interface): A game's save (M5 spec §4.3): its slots' states, load, write and remove, and the progress `touch` keeps for the autosave triggers to write.
+- `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
+- `SaveEnvelope` (interface): What is stored: a self-describing envelope, one Ruken key per slot.
+- `SaveFromNewerBuild` (class): A slot was saved by a newer build.
+- `SaveFromNewerBuildFields` (interface): The fields of `SaveFromNewerBuild`.
+- `SaveMigration` (type): One migration step of a save: version `n` data in, version `n + 1` data out (`SaveDef.migrations`).
+- `saveOf(def)`: Returns the booted save when `def.key` matches.
+- `SaveRefused` (class): A write AF refuses on its own: over a save from a newer build (M5 spec §4.3).
+- `SaveRefusedFields` (interface): The fields of `SaveRefused`.
+- `Saves` (interface): The booted game's save as a runtime service (M5 spec §4.3), as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.
+- `saveService(def, options)`: Opens a game's save slots: reads the slot list from the host, then loads, writes and removes slots.
+- `SaveServiceOptions` (interface): What the save service stamps on every write and checks on every load.
+- `SaveUnreadable` (class): A slot's save cannot be read: a damaged envelope, a missing or throwing migration step, or data its schema refuses (M5 spec §6).
+- `SaveUnreadableFields` (interface): The fields of `SaveUnreadable`.
+- `SaveWriteOptions` (interface): Options for `Save.write`: the slot's label on the list, and a sim snapshot to keep with the data.
+- `ScreenContext` (interface): What a screen's `enter` is given: the layer to mount into, and the screen it came from.
+- `ScreenDef` (interface): One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it in its scope (closing the scope leaves the screen).
+- `selectPlural(locale, count, forms)`: The form for a count.
+- `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
+- `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.
+- `SettingsStore` (interface): A game's settings value: read it, subscribe to changes, and update it (each update is saved).
+- `settingsStore(def)`: Returns the booted settings store when def.key matches.
+- `SlotMeta` (interface): A slot's header, read without migrating it.
+- `SlotState` (type): What a slot holds, as the slot list shows it (M5 spec §4.3, §6).
+- `SLOW_MS` (const): After this long, in ms, a download still running is reported slow (the loader says so).
+- `SoundOptions` (interface): Options for `Audio.sound`: the bus (default `sfx`), a gain and a playback rate.
+- `STALL_MS` (const): A download that makes no progress for this long, in ms, fails `LoadStalled`.
+- `STANDARD_PAD_BUTTON_MAX` (const): The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home).
+- `StickDirection` (type): A stick pushed past its dead zone in one direction (M4.2 reads them).
+- `SwipeIndicator` (interface): What a swipe indicator draws: the anchor, the thumb, and whether the thumb is steering.
+- `SwipeTracker` (class): Turns pointer samples into held swipes, flicks and taps for a `GestureSink` (M4 spec §4.4); it reads no clock and touches no DOM.
+- `textDirection(locale)`: Text direction from the locale's script: the explicit script subtag, else the likely one CLDR adds (`ar` → `Arab`).
+- `Time` (interface): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
+- `TouchMode` (type): How touch drives play: the on-screen buttons, or swipes and flicks over the whole screen (M4 spec §4.4).
+- `touchModesFor(profile)`: The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a swipe, flick or tap.
+- `TouchStickSink` (interface): Where the overlay's move stick goes: a vector clamped to length 1, y positive down, as a pad's axes.
+- `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
+- `TURN_UNITS_PER_TURN` (const): Turn units in a full turn: the heading wraps here.
+- `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
+- `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
+
+### `import { … } from '@mcthaydt/automata-runtime/extension'`
+
+- `defineExtension(def)`: Returns its argument.
+- `ExtensionDef` (interface): One opt-in feature of a game (M1 shared contracts §2).
+- `ExtensionError` (class): A bad extension list.
+- `GameConfig` (type): The parts of Ruken's manifest an extension may read (`@ruken/manifest` `Manifest`, never copied).
+- `ResolvedExtensions` (interface): Everything the runtime and the build tools need from a game's extension list, in one fixed order.
+- `resolveExtensions(defs)`: Checks the list and puts it in a fixed order.
+- `RukenManifestContribution` (type): What an extension may add to ruken.toml in M1: preload files.
+
+### `import { … } from '@mcthaydt/automata-runtime/testing'`
+
+- `FakeAudioContext` (interface): A recording stand-in for an `AudioContext`: what was started, stopped and automated, with a clock tests move by hand.
+- `fakeAudioContext(decode?)`: `decode` turns the bytes `decodeAudioData` receives into a buffer, or throws as the browser does for bytes that are not audio; by default the bytes are the alias's UTF-8 text.
+- `fakeBuffer` (const): A decoded buffer that remembers the alias it came from, so `started` can name it.
+- `fakeFetch(routes, options?)`: Creates an in-memory fetch implementation for deterministic loading tests.
+- `FakeFetchOptions` (interface): Options for `fakeFetch`: the fetch that answers urls with no route.
+- `FakeFetchResult` (interface): The fake fetch, and the urls it was asked for and saw aborted.
+- `FakeGainNode` (interface): A gain node of `fakeAudioContext`, recording its value, its targets and its automation.
+- `FakeRoute` (interface): How `fakeFetch` answers one url: a status, the body in chunks, a content length or type, a hang or a network error.
+- `ManualFrames` (interface): A frame source a test drives: `advance` moves time on and runs the frame asked for, if any.
+- `manualFrames(startMs?)`: A frame source that runs a frame only when a test advances it, starting at `startMs`.
+- `nullRenderer(log?, options?)`: A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU.
+- `NullRendererEntry` (type): One call `nullRenderer` recorded.
+- `NullRendererOptions` (interface): Options for `nullRenderer`: `fail` makes it fail `RendererUnavailable`.
+- `RuntimeTest(options?)`: Test harness providing `RuntimeServices | FakeHostHandle` for screen and integration tests (spec §3.1, §8.1).
+- `RuntimeTestOptions` (interface): What `RuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer, fetch and locale it uses.
 
 ## `@mcthaydt/automata-ship`
 
@@ -369,6 +714,7 @@
 - `FakeViewportWindow` (interface): A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
 - `FakeVisualViewport` (interface): The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and listeners for `resize`.
 - `findClipped(root, selector)`: Each element `selector` names is tall enough for what it holds (a crushed row clips its content).
+- `findCutAtSide(root)`: No control is cut at a side of a declared scroll region that clips it (see `clippedBy`).
 - `findIntrusions(root, rects)`: No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its whole box.
 - `findOffscreenControls(root)`: Every visible control is on screen, unless a declared scroll region (`[data-scroll-region]`) clips it (see `clippedBy`): a fixed control, or one positioned outside the region, is judged where it is drawn, since scrolling the region would never bring it into view.
 - `findOverlaps(a, b)`: Two elements' boxes do not overlap.
@@ -379,6 +725,7 @@
 - `LayoutRect` (interface): Layout assertions as plain DOM functions (M1.6 spec §3.10), from FloorFifty's `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
 - `mountFixture(component, props, target?)`: Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first render is finished.
+- `pressedPart(control)`: What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a press anywhere on it toggles the input), else the control itself.
 - `REFERENCE_SIZES` (const): The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every breakpoint and the tightest sizes, each with the classification it should get.
 - `ReferenceFormFactor` (type): `@mcthaydt/automata-ui`'s `FormFactor`.
 - `ReferenceHeightTier` (type): `@mcthaydt/automata-ui`'s `HeightTier`.
@@ -652,7 +999,7 @@
 ### `import { … } from '@mcthaydt/automata-ui/testing'`
 
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
-- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials` is reachable without scrolling.
+- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 - `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7).
 - `publishConditions(root, size, variant)`: Measures and publishes the geometry for `size` under `variant`, as the owner would.

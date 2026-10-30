@@ -7,8 +7,8 @@ import { defineConfig } from 'vitest/config'
 // - unit: the headless core (schema and codec round trips, grids, tools, commands, checks, the app's models and
 //   controllers) runs in Node, with no renderer.
 // - dom: Svelte components in jsdom through Testing Library (states and behavior, no snapshots). `*.dom.test.ts`.
-// - layout: the production CSS in a real browser at the sizes of spec §12. `*.layout.test.ts`. WebKit and Firefox join
-//   through a test-request on the Orchestrator bus until EDK.6 gives the lane its own harness.
+// - layout: the production CSS in real Chromium, WebKit and Firefox at the sizes of spec §12. `*.layout.test.ts`
+//   (EDK.6a).
 // - canvas: the Pixi canvas (`*.canvas.test.ts`, ED2D.4c3b) in Chromium with WebGL2: pixels read back, the texture
 //   manager, context loss and the canvas component. `ED2D_VISUALS=1` makes the review-image test write its PNGs.
 // - browsers: the golden files (`*.parity.test.ts`), which run in Node with `unit` and again in Chromium, WebKit and
@@ -50,7 +50,7 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
-            instances: [{ browser: 'chromium' }],
+            instances: [{ browser: 'chromium' }, { browser: 'webkit' }, { browser: 'firefox' }],
           },
         },
       },

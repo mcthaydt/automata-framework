@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import type { AfSector } from '../../format/af-sector.schema'
 import { insideSector, type Sector } from '../../geometry/sectors'
 import { afSectorProfile } from '../../profile/af-sector-profile'
+import { WALK_EYE_HEIGHT, WALK_FOV } from '../../profile/level-hints'
 import type { GeometryLayer } from '../../profile/level-profile'
 import { toyAfSector, toyDock, toyHall } from '../../testing/toy-af-sector'
 import {
@@ -16,8 +17,6 @@ import {
   orbitCamera,
   projectPoint,
   rayThrough,
-  WALK_EYE_HEIGHT,
-  WALK_FOV,
   walkCamera,
   walkStart,
 } from './camera-3d'

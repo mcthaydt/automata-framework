@@ -1,8 +1,16 @@
 {
   "name": "@mcthaydt/automata-runtime",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.3",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "packages/runtime"
+  },
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "svelte": "./src/index.ts",
@@ -11,29 +19,48 @@
     "./extension": "./src/extension/index.ts",
     "./testing": "./src/testing/index.ts"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "svelte": "./dist/index.js",
+        "import": "./dist/index.js"
+      },
+      "./extension": {
+        "types": "./dist/extension.d.ts",
+        "import": "./dist/extension.js"
+      },
+      "./testing": {
+        "types": "./dist/testing.d.ts",
+        "import": "./dist/testing.js"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
     "test:parity": "vitest run --project browsers",
     "bench": "vitest run --project bench --project bench-chromium",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "build": "tsdown && tsdown -c tsdown.dts.config.ts && node build/finish-dist.ts"
   },
   "dependencies": {
     "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-host": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
-    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "effect": "3.22.2",
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "svelte": "5.57.1"
+    "svelte": "^5.57.1"
   },
   "devDependencies": {
     "@inlang/paraglide-js": "2.25.4",
     "@inlang/plugin-message-format": "4.4.4",
     "@mcthaydt/automata-testing": "workspace:*",
+    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

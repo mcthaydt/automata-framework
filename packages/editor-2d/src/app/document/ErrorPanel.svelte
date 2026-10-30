@@ -5,9 +5,8 @@
   text on the clipboard; Open another, which has focus, goes back to the list. It knows no profile and reads no code.
 -->
 <script lang="ts">
-import { Dialog } from '@mcthaydt/automata-editor-kit'
+import { Button, Dialog } from '@mcthaydt/automata-editor-kit'
 import type { ToastStore, WriteResult } from '@mcthaydt/automata-editor-kit/core'
-import Button from '../controls/Button.svelte'
 import { errorPanel, type PanelOutcome } from './open-flow-model'
 import TextView from './TextView.svelte'
 
