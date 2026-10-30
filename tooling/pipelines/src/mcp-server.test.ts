@@ -238,4 +238,24 @@ describe('the pipelines MCP server', () => {
       })
     expect(JSON.stringify(lines)).not.toContain(secret)
   })
+
+  it('redacts a key before cutting a long summary, so no part of it reaches the log', async () => {
+    const secret = 'openai-secret-value'
+    const { call, auditLines } = await mcpProject(temps, { env: { OPENAI_API_KEY: secret } })
+    // "target " is 7 characters: the key starts at 487 and the 500-character cut would fall inside it.
+    await call('pipeline_status', { pipeline: 'toy', target: `${'x'.repeat(480)}${secret}` })
+    const summary = auditLines()[0]?.summary ?? ''
+    expect(summary).not.toContain('openai-se')
+    expect(summary).toContain('[redacted]')
+  })
+
+  it('takes a folder whose name starts with two dots as inside the project', async () => {
+    const { call, root } = await mcpProject(temps)
+    const { mkdirSync, writeFileSync: write } = await import('node:fs')
+    mkdirSync(join(root, '..toy'))
+    write(join(root, '..toy/toy.toml'), 'param = 1\n')
+    write(join(root, '..toy/src.txt'), 'source\n')
+    const status = await call('pipeline_status', { pipeline: 'toy', target: '..toy' })
+    expect([status.error, status.data.exit]).toEqual([false, 0])
+  })
 })

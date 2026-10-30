@@ -179,7 +179,8 @@ export function createPipelinesServer(options: ServerOptions): Server {
             tool: name,
             args,
             ok,
-            summary: result.summary.slice(0, 500),
+            // Redacted before the cut: a cut inside a key would leave a prefix the redaction no longer matches.
+            summary: redact(result.summary, env).slice(0, 500),
             ...(result.cost === undefined ? {} : { cost: result.cost }),
             ms,
             head: yield* gitHead(root),

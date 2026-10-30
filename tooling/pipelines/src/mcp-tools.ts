@@ -1,4 +1,4 @@
-import { isAbsolute, relative, resolve } from 'node:path'
+import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { Files } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
 import { z } from 'zod'
@@ -85,7 +85,8 @@ const locate = (ctx: ToolContext, pipeline: string, target: string): Effect.Effe
       return yield* Effect.fail(refusal(EXIT.notImplemented, `${pipeline}: not implemented`))
     const abs = resolve(ctx.root, target)
     const rel = relative(ctx.root, abs)
-    if (rel.startsWith('..') || isAbsolute(rel))
+    // `..` or `../…` leaves the root; a name that merely starts with two dots (`..toy`) does not.
+    if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel))
       return yield* Effect.fail(refusal(EXIT.refused, `refused: target ${target} is outside the project`))
     if (!(yield* (yield* Files).exists(abs)))
       return yield* Effect.fail(refusal(EXIT.failed, `target ${target} does not exist`))

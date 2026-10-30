@@ -125,7 +125,9 @@ Server semantics:
 - **D1, an agent is told by its environment.** The bin `automata-pipe` treats its caller as an agent when `CLAUDECODE`
   is `1` (Claude Code sets it for every command its agent runs) or `AUTOMATA_AGENT` is `1` (for any other agent's
   runner to set). A person runs `approve` from their own terminal; one typed through Claude Code's own shell is
-  refused too. The PreToolUse hook (M3.8c) is the second line, as in The Last Light.
+  refused too. An agent that unsets the variable (`env -u CLAUDECODE …`) is not caught here: the PreToolUse hook
+  (M3.8c) blocks `automata-pipe … approve|reject` in an agent's shell whatever its environment, as The Last Light's
+  does. This rule is the first line, and it logs the attempt.
 - **D2, the server calls the runner in-process.** The source spawned its CLI per call. Here each tool runs
   `runPipeline` in the server's `ManagedRuntime`, so the person's elicited decision goes through the runner's own
   `approve` (the same code path as the CLI) without the router's agent rule, which the server, started by the agent's
@@ -215,6 +217,20 @@ through `pnpm -r`). No browser project: nothing here renders. Pending: the Plus 
   it were logged. The router's refusal stays exit 4 and adds the log error on stderr.
 - The audit `summary` is cut at 500 characters (the source cut failures at 300).
 
+## Review round 1
+
+An independent read of the pushed diff found two bugs, each fixed test-first:
+
+- The audit summary was cut at 500 characters before the line was redacted, so a key straddling the cut left a prefix
+  the redaction no longer matched (`mcp-server.test.ts`, red: the line held `openai-se…`). The summary is now redacted,
+  then cut.
+- A target folder whose name starts with two dots (`..toy`) was refused as outside the project (red: exit 4). Only
+  `..` itself or a path starting `../` leaves the root.
+
+Noted, not changed: `pipeline_run` estimates, checks the token, then runs; the runner plans again, so an input changed
+in that window can change the plan. The budgets and the ledger lock still bound any spend (M3.8a), and the window is
+one call's length.
+
 ## Execution log
 
 | Date | Step | Evidence |
@@ -226,4 +242,5 @@ through `pnpm -r`). No browser project: nothing here renders. Pending: the Plus 
 | 2026-10-30 | Server and review (tests 6, 7) | both files red (`Cannot find module '../mcp-server.ts'`); then 1 failure: the SDK checks an elicitation reply against the form's schema, so an accepted form without a decision arrives as an `InvalidParams` error, now mapped to "no decision"; 19 of 19 (TestClock drives the 30-minute token through the server's `ManagedRuntime`) |
 | 2026-10-30 | Stdio bin (test 8) | red (`Connection closed`: no `mcp-cli.ts`), then green |
 | 2026-10-30 | PL-c, PL-d (test 9) | written after the server, so their failure was shown by mutation: with `gitHead` always `unknown` both fail; with the router's agent rule disabled PL-d fails; restored, 2 of 2 |
-| 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint 224 files, typecheck, boundaries, root 163 (F1 over `tooling/*` included), pipelines 115 (16 files), net 89, dev-tools 62, physics 71, server 269 |
+| 2026-10-30 | Review round 1 | 2 findings, each red first (see above); `pnpm check` green: lint 224 files, root 163, pipelines 117 (16 files), net 89, dev-tools 62, physics 71, server 269 |
+| 2026-10-30 | Gates (before the PR) | `pnpm format`; `pnpm check`: lint 224 files, typecheck, boundaries, root 163 (F1 over `tooling/*` included), pipelines 115 (16 files), net 89, dev-tools 62, physics 71, server 269 |
