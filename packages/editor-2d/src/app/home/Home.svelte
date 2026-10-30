@@ -11,6 +11,7 @@ import { FilePick, HomeScreen } from '@mcthaydt/automata-editor-kit'
 import { splitPath, type ToastStore, type Workspace } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import { tick } from 'svelte'
+import type { LevelThumbnails } from '../../canvas/level-thumbnails'
 import type { ProfileRegistry } from '../../profiles/profile'
 import type { ProjectEntry } from '../project-list'
 import DeleteDialog from './DeleteDialog.svelte'
@@ -27,15 +28,17 @@ interface Props {
   toasts: ToastStore
   /** The time the ages on the cards are told against. */
   clock: { now(): number }
+  /** Draws the cards' preview levels (ED2D.4c3b); absent, every card shows its initial. */
+  thumbnails?: LevelThumbnails | undefined
 }
 
-const { geometry, controller, workspace, registry, toasts, clock }: Props = $props()
+const { geometry, controller, workspace, registry, toasts, clock, thumbnails }: Props = $props()
 
 let deleteOpen = $state(false)
 let home = $state<{ focusList(): void }>()
 
 const cards = $derived(templateCards(registry))
-const card = (entry: ProjectEntry) => homeCard(entry, registry)
+const card = (entry: ProjectEntry) => homeCard(entry, registry, thumbnails)
 
 async function confirmDelete(): Promise<void> {
   await controller.remove()

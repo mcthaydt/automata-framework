@@ -403,6 +403,9 @@ importers:
       '@mcthaydt/automata-ui':
         specifier: workspace:*
         version: link:../ui
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0
