@@ -326,6 +326,7 @@ const hasWebGpu =
 
 async function skyAndBar(
   preference: 'webgl' | 'webgpu',
+  sky = SKY,
 ): Promise<{ renderer: string; field: number[]; bar: number[] }> {
   const host = document.createElement('div')
   document.body.appendChild(host)
@@ -333,7 +334,7 @@ async function skyAndBar(
     preference,
     logicalWidth: 160,
     logicalHeight: 90,
-    backgroundColor: SKY,
+    backgroundColor: sky,
     barColor: BARS,
     views: { crate: box({ width: 1, height: 1, depth: 1 }, { color: 0xf9c22b }) },
     scene: (view) => {
@@ -364,6 +365,12 @@ describe.runIf(hasWebGL2)('the sky behind the scene on WebGL2', () => {
     expect(near(field, rgb(SKY)), `field ${field}`).toBe(true)
     expect(near(bar, rgb(BARS)), `bar ${bar}`).toBe(true)
   })
+
+  // A dark sky draws as given too (a fog's far colour is often near black), not lifted by a colour-space round trip.
+  it('draws a dark backgroundColor as given', async () => {
+    const { field } = await skyAndBar('webgl', 0x020c0c)
+    expect(near(field, rgb(0x020c0c)), `field ${field}`).toBe(true)
+  })
 })
 
 describe.runIf(hasWebGpu)('the sky behind the scene on WebGPU', () => {
@@ -372,5 +379,7 @@ describe.runIf(hasWebGpu)('the sky behind the scene on WebGPU', () => {
     expect(renderer).toBe('webgpu')
     expect(near(field, rgb(SKY)), `field ${field}`).toBe(true)
     expect(near(bar, rgb(BARS)), `bar ${bar}`).toBe(true)
+    const dark = await skyAndBar('webgpu', 0x020c0c)
+    expect(near(dark.field, rgb(0x020c0c)), `field ${dark.field}`).toBe(true)
   })
 })
