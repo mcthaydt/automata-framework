@@ -92,7 +92,7 @@ export function bakeVertices(
         for (let c = 0; c < 3; c++) {
           let light = ambient[c] ?? 0
           active.forEach((slot, j) => {
-            light += (slot.light[i] ?? 0) * (level[j] ?? 0) * slot.colour[c]
+            light += (slot.light[i] ?? 0) * (level[j] ?? 0) * (slot.colour[c] ?? 0)
           })
           // Through a Float32Array, so the comparison is against the value the buffer will hold.
           const value = Math.fround(Math.min(LIGHT_CEILING, light * (shade[i] ?? 1)))

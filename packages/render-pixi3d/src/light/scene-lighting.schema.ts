@@ -8,7 +8,7 @@ const colour = z.number().int().min(0).max(0xffffff)
 const metres = z.number().finite()
 const size = z.number().positive()
 
-export const lampSchema = z.object({
+export const lampSchema: z.ZodType<Lamp> = z.strictObject({
   /** Unique within its file: the sim switches the lamp by this id. */
   id: z.string().min(1),
   x: metres,
@@ -24,7 +24,7 @@ export const lampSchema = z.object({
 })
 
 /** A solid box that blocks light (and darkens the floor round its foot). `y` is its base, as a box view stands. */
-export const occluderBoxSchema = z.object({
+export const occluderBoxSchema: z.ZodType<OccluderBox> = z.strictObject({
   /** A static mesh can name it in `bake(mesh, { ignore })` so a broad collider never shadows its own surfaces. */
   id: z.string().min(1).optional(),
   x: metres,
@@ -40,7 +40,7 @@ export const occluderBoxSchema = z.object({
  * it (on its `normal`'s side) where they meet it. `width` runs horizontally along it (along x for a floor), `height`
  * along the other axis.
  */
-export const occluderPlaneSchema = z.object({
+export const occluderPlaneSchema: z.ZodType<OccluderPlane> = z.strictObject({
   x: metres,
   y: metres,
   z: metres,
@@ -56,11 +56,11 @@ export const occluderPlaneSchema = z.object({
 })
 
 /** `View3D`'s linear fog: none before `near` metres from the camera, full at `far`. */
-export const sceneFogSchema = z
+export const sceneFogSchema: z.ZodType<SceneFog> = z
   .object({ near: z.number().min(0), far: z.number().positive(), color: colour })
   .refine((fog) => fog.far > fog.near, { message: 'fog far must be past near', path: ['far'] })
 
-export const sceneLightingSchema = z
+export const sceneLightingSchema: z.ZodType<SceneLighting> = z
   .object({
     /** Light everywhere, 0 to 1, before any lamp. */
     ambient: z.number().min(0).max(1),
@@ -83,9 +83,56 @@ export const sceneLightingSchema = z
     })
   })
 
-export type Lamp = z.output<typeof lampSchema>
-export type OccluderBox = z.output<typeof occluderBoxSchema>
-export type OccluderPlane = z.output<typeof occluderPlaneSchema>
-export type SceneFog = z.output<typeof sceneFogSchema>
+/** A point light: where it hangs, its colour, strength and reach, and its level before the sim switches it. */
+export interface Lamp {
+  readonly id: string
+  readonly x: number
+  readonly y: number
+  readonly z: number
+  /** 0xRRGGBB. */
+  readonly color: number
+  readonly strength: number
+  /** Metres. */
+  readonly range: number
+  readonly level: number
+}
+
+/** A box that blocks light: centred on `x` and `z`, standing on `y`. */
+export interface OccluderBox {
+  readonly id?: string | undefined
+  readonly x: number
+  readonly y: number
+  readonly z: number
+  readonly width: number
+  readonly height: number
+  readonly depth: number
+}
+
+/** A rectangle that blocks light, centred on `x`, `y`, `z`, facing its unit `normal`. */
+export interface OccluderPlane {
+  readonly x: number
+  readonly y: number
+  readonly z: number
+  readonly normal: readonly [number, number, number]
+  readonly width: number
+  readonly height: number
+}
+
+/** Linear fog: none before `near` metres from the camera, full (`color`, 0xRRGGBB) at `far`. */
+export interface SceneFog {
+  readonly near: number
+  readonly far: number
+  readonly color: number
+}
+
 /** A room's lamps, ambient light, occluders and fog, compiled from `content/lighting/*.toml`. */
-export type SceneLighting = z.output<typeof sceneLightingSchema>
+export interface SceneLighting {
+  /** 0 to 1. */
+  readonly ambient: number
+  /** 0xRRGGBB. */
+  readonly ambientColor: number
+  readonly lamps: readonly Lamp[]
+  readonly boxes: readonly OccluderBox[]
+  readonly planes: readonly OccluderPlane[]
+  readonly fog?: SceneFog | undefined
+}
