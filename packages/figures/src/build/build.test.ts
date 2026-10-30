@@ -93,10 +93,11 @@ function expectSound(built: Built): void {
     if (p.skin) {
       expect(p.skin, what).toHaveLength(vertices)
       for (const pairs of p.skin) {
-        const total = pairs.reduce((sum, [joint, weight]) => {
+        let total = 0
+        for (const [joint, weight] of pairs) {
           expect(joint >= 0 && joint < JOINTS.length && Number.isFinite(weight), what).toBe(true)
-          return sum + weight
-        }, 0)
+          total += weight
+        }
         expect(Math.abs(total - 1), what).toBeLessThan(1e-9)
       }
     }

@@ -14,15 +14,13 @@ import { keyedUnion } from '../library/keyed-union'
 import { refOrInline } from '../library/ref-or-inline'
 import { side } from '../library/shapes.schema'
 
-type Opt<T> = T | undefined
-
 // ─── garments.ts ───
 /** A shirt or a dress's body: it repaints the torso and as much of the arms as its sleeves cover. */
 export interface Top {
   readonly top: string
-  readonly sleeves?: Opt<'none' | 'short' | 'long'>
-  readonly cuffs?: Opt<string>
-  readonly collar?: Opt<string>
+  readonly sleeves?: 'none' | 'short' | 'long' | undefined
+  readonly cuffs?: string | undefined
+  readonly collar?: string | undefined
 }
 export interface Waistcoat {
   readonly waistcoat: string
@@ -36,46 +34,46 @@ export interface LegWear {
 }
 export interface Shoes {
   readonly shoes: string
-  readonly sole?: Opt<string>
-  readonly boots?: Opt<boolean>
+  readonly sole?: string | undefined
+  readonly boots?: boolean | undefined
 }
 /** A skirt hanging from the waist to `length` (0 the hip, 0.5 the knee, 1 the ankle). */
 export interface Skirt {
   readonly skirt: string
   readonly length: number
-  readonly flare?: Opt<number>
-  readonly folds?: Opt<number>
-  readonly hem?: Opt<string>
+  readonly flare?: number | undefined
+  readonly folds?: number | undefined
+  readonly hem?: string | undefined
 }
 export interface Apron {
   readonly apron: string
-  readonly shade?: Opt<string>
+  readonly shade?: string | undefined
   readonly length: number
-  readonly bib?: Opt<boolean>
-  readonly straps?: Opt<'cross' | 'neck'>
-  readonly pockets?: Opt<boolean>
+  readonly bib?: boolean | undefined
+  readonly straps?: 'cross' | 'neck' | undefined
+  readonly pockets?: boolean | undefined
   /**
    * The bib's half-width (of the shoulders), how far the skirt wraps round (rad either side of the front).
    */
-  readonly bibWidth?: Opt<number>
-  readonly wrap?: Opt<number>
+  readonly bibWidth?: number | undefined
+  readonly wrap?: number | undefined
   /** A tie knotted at the back. */
-  readonly tie?: Opt<boolean>
+  readonly tie?: boolean | undefined
 }
 export interface Coat {
   readonly coat: string
   readonly length: number
-  readonly buttons?: Opt<string>
-  readonly collar?: Opt<string>
+  readonly buttons?: string | undefined
+  readonly collar?: string | undefined
 }
 export interface Belt {
   readonly belt: string
-  readonly buckle?: Opt<string>
+  readonly buckle?: string | undefined
 }
 export interface Cape {
   readonly cape: string
-  readonly length?: Opt<number>
-  readonly trim?: Opt<string>
+  readonly length?: number | undefined
+  readonly trim?: string | undefined
 }
 export interface Gloves {
   readonly gloves: string
@@ -87,13 +85,13 @@ export interface Gloves {
  */
 export interface HairGarment {
   readonly hair: string
-  readonly style?: Opt<string | HairStyle | readonly Lock[]>
-  readonly tie?: Opt<string>
+  readonly style?: string | HairStyle | readonly Lock[] | undefined
+  readonly tie?: string | undefined
 }
 export interface CapGarment {
   readonly cap: string
   readonly style: string | Headwear
-  readonly mark?: Opt<string>
+  readonly mark?: string | undefined
 }
 /**
  * The face's marks: the eyes, their lids and brows, a stubble. (The drawn face's `white` and `lips` are not
@@ -101,9 +99,9 @@ export interface CapGarment {
  */
 export interface Eyes {
   readonly eyes: string
-  readonly stubble?: Opt<string>
-  readonly lids?: Opt<string>
-  readonly brows?: Opt<string>
+  readonly stubble?: string | undefined
+  readonly lids?: string | undefined
+  readonly brows?: string | undefined
 }
 /** A watch or a badge on the chest, on one side. */
 export interface Mark {
@@ -135,10 +133,10 @@ export type Classic =
  */
 export interface Puffer {
   readonly puffer: string
-  readonly trim?: Opt<string>
-  readonly zip?: Opt<string>
-  readonly length?: Opt<number>
-  readonly baffles?: Opt<number>
+  readonly trim?: string | undefined
+  readonly zip?: string | undefined
+  readonly length?: number | undefined
+  readonly baffles?: number | undefined
 }
 /**
  * A hoodie: the hood lying on the back, a kangaroo pocket, drawstrings (`aglets` their tips), ribbed cuffs
@@ -146,18 +144,18 @@ export interface Puffer {
  */
 export interface Hoodie {
   readonly hoodie: string
-  readonly rib?: Opt<string>
-  readonly inside?: Opt<string>
-  readonly cords?: Opt<string>
-  readonly aglets?: Opt<string>
+  readonly rib?: string | undefined
+  readonly inside?: string | undefined
+  readonly cords?: string | undefined
+  readonly aglets?: string | undefined
 }
 /** An oversized tee: `fit` its width over the shoulders (1.16 oversized); `sleeves: false` under a jacket. */
 export interface Tee {
   readonly tee: string
-  readonly rib?: Opt<string>
-  readonly fit?: Opt<number>
-  readonly sleeves?: Opt<boolean>
-  readonly length?: Opt<number>
+  readonly rib?: string | undefined
+  readonly fit?: number | undefined
+  readonly sleeves?: boolean | undefined
+  readonly length?: number | undefined
 }
 /**
  * A moto jacket cropped to the waist: `zip` its teeth top to foot, `hardware` the buckle, snaps and small
@@ -165,8 +163,8 @@ export interface Tee {
  */
 export interface Jacket {
   readonly jacket: string
-  readonly zip?: Opt<readonly string[]>
-  readonly hardware?: Opt<string>
+  readonly zip?: readonly string[] | undefined
+  readonly hardware?: string | undefined
 }
 /**
  * A leather bomber: rib band, collar and cuffs, a centre zip, slash pockets; `tipping` a stripe round the
@@ -174,53 +172,53 @@ export interface Jacket {
  */
 export interface Bomber {
   readonly bomber: string
-  readonly rib?: Opt<string>
-  readonly zip?: Opt<readonly string[]>
-  readonly hardware?: Opt<string>
-  readonly tipping?: Opt<string>
+  readonly rib?: string | undefined
+  readonly zip?: readonly string[] | undefined
+  readonly hardware?: string | undefined
+  readonly tipping?: string | undefined
 }
 /** Wide-leg trousers with a stacked break over the shoe; `stitch` the topstitching. */
 export interface WideLegs {
   readonly wideLegs: string
-  readonly stitch?: Opt<string>
-  readonly hardware?: Opt<string>
+  readonly stitch?: string | undefined
+  readonly hardware?: string | undefined
 }
 /**
  * Cargos: wide and straight (`width` of the era's cut), bellows pockets; `cuff` gathers the ankle instead.
  */
 export interface Cargos {
   readonly cargos: string
-  readonly hardware?: Opt<string>
-  readonly width?: Opt<number>
-  readonly cuff?: Opt<boolean>
-  readonly stitch?: Opt<string>
+  readonly hardware?: string | undefined
+  readonly width?: number | undefined
+  readonly cuff?: boolean | undefined
+  readonly stitch?: string | undefined
 }
 /** Chunky sneakers: a thick two-tone sole, a padded collar, a mudguard; `court` a cupsole's flat sole. */
 export interface Sneakers {
   readonly sneakers: string
-  readonly mudguard?: Opt<string>
-  readonly sole?: Opt<string>
-  readonly outsole?: Opt<string>
-  readonly laces?: Opt<string>
-  readonly court?: Opt<boolean>
-  readonly tab?: Opt<string>
+  readonly mudguard?: string | undefined
+  readonly sole?: string | undefined
+  readonly outsole?: string | undefined
+  readonly laces?: string | undefined
+  readonly court?: boolean | undefined
+  readonly tab?: string | undefined
 }
 /** A chain round the neck lying on the outermost top, `drop` (m at 1.62 m) its U's depth on the chest. */
 export interface Chain {
   readonly chain: string
-  readonly links?: Opt<string>
-  readonly drop?: Opt<number>
+  readonly links?: string | undefined
+  readonly drop?: number | undefined
 }
 /** Hoops from the lobes, `size` their drop (of the head's height; under 0.12 a stud). */
 export interface Hoops {
   readonly hoops: string
-  readonly size?: Opt<number>
+  readonly size?: number | undefined
 }
 /** Wraparound shades; `up` pushed back onto the head. */
 export interface Shades {
   readonly shades: string
-  readonly frame?: Opt<string>
-  readonly up?: Opt<boolean>
+  readonly frame?: string | undefined
+  readonly up?: boolean | undefined
 }
 export type Streetwear =
   | Puffer
