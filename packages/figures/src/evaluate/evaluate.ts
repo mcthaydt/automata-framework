@@ -105,11 +105,13 @@ function actionLayer(state: FigureState, ctx: Context): Layer | undefined {
     options: { ...ctx.options, previous: undefined },
   })
   const outLayer = outgoing && clipLayer(outgoing.clip, outgoing.elapsed, outgoing.options)
+  // The outgoing pose as it showed, its own ramp included (a clip cut into while it ramped in shows partly).
+  const outPose: PoseDef = outLayer ? mergeLayer({ effectors: {} }, outLayer, ctx.space) : { effectors: {} }
   const inPose = clipPose(incoming.clip, incoming.elapsed, incoming.options)
   const mask: MaskGroup[] = [...new Set([...(outgoing?.clip.mask ?? []), ...incoming.clip.mask])]
   return {
     // The outgoing pose is frozen at the replacement: one pose blend per transition, not a crossfade.
-    pose: blend(outLayer?.pose ?? { effectors: {} }, inPose, Math.max(0, u), ctx.space),
+    pose: blend(outPose, inPose, Math.max(0, u), ctx.space),
     weight: 1,
     mask,
     additive: false,

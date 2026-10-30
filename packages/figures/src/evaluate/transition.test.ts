@@ -44,6 +44,8 @@ function largestStep(id: string, side: 'L' | 'R'): number {
 describe.each([
   { outgoing: 'slash', incoming: 'slash', at: 0.2, side: 'R' as const, inMs: 80 },
   { outgoing: 'roll', incoming: 'raise-guard', at: 0.3, side: 'L' as const, inMs: 120 },
+  // Cut into while it ramps in (120 ms), half shown.
+  { outgoing: 'raise-guard', incoming: 'jab', at: 0.06, side: 'R' as const, inMs: 80 },
 ])('I-k: $outgoing replaced by $incoming', ({ outgoing, incoming, at: replacedAt, side, inMs }) => {
   const state: FigureState = {
     ...STILL,
