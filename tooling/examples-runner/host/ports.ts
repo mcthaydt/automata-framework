@@ -52,3 +52,6 @@ export function hostedQuery(gameUrl: string, gameId: string, options: HostedOpti
 export const examplesPort: number = demoPort(6)
 /** The runner's own fixture build (the stub example), in the next slot. */
 export const runnerFixturesPort: number = demoPort(7)
+/** The playground feasibility server (website playground spec, WEB.PLAY.1), in the slot after the fixtures. */
+export const playgroundPort: number = demoPort(8)
+export const playgroundOrigin = `http://127.0.0.1:${playgroundPort}`

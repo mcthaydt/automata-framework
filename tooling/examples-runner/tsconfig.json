@@ -5,7 +5,7 @@
     "allowImportingTsExtensions": true,
     "isolatedDeclarations": false
   },
-  "include": ["src/**/*.ts", "host/*.ts", "e2e/*.ts", "*.ts"],
+  "include": ["src/**/*.ts", "host/*.ts", "e2e/*.ts", "playground/*.ts", "playground/e2e/*.ts", "*.ts"],
   "exclude": [
     "src/fixtures/catalog/**",
     "src/fixtures/examples/core/core-later.ts",
