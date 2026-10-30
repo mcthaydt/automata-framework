@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createViewStore, initialView } from './view-store'
+import { createViewStore, initialView, thingLayer } from './view-store'
 
 describe('the view store', () => {
   it('starts in Plan on the sectors layer, nothing hidden or locked, a half metre grid that snaps', () => {
@@ -79,5 +79,11 @@ describe('the view store', () => {
     const seen = store.state
     store.set({ camera: { x: 2, z: 3, zoom: 2 } })
     expect(seen.camera).toEqual({ x: 0, z: 0, zoom: 1 })
+  })
+})
+
+describe('thingLayer', () => {
+  it('names the sub-layer of a definition under the Things layer', () => {
+    expect(thingLayer('crate')).toBe('things:crate')
   })
 })
