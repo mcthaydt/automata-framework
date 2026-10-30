@@ -1,0 +1,63 @@
+# M3.5c: figures part 3 (locomotion, stands, holds, hems, hair spring, `moveDir`), TDD plan
+
+- **Spec:** [M3 spec, revised three times](../specs/2026-10-18-m3-3d-characters-design.md), as amended 2026-10-30: §4.4.1 (locomotion stays code, `moveDir`, holds applied last, presentation time, no `Math.random`, the hair spring), §4.4.5 steps 1, 6 and 7, §13 F-b, F-c, F-h.
+- **Task:** `M3.5c — figures part 3: locomotion, stands, holds, hems, hair spring, moveDir` (02). Lane **figures**; prerequisite M3.5b (PR #215, not merged: this branch stacks on `claude/3d-m3-5b-build` at `b45cdbb`, itself on M3.5a #202; upstream changes come in by merge, never a rebase). M3.6a's `solve()` (PR #211) is on a sibling branch and is not used here. Size L.
+- **Status:** drafted 2026-10-30.
+- **Progress:** 1 of 10 steps.
+
+## Sources (read-only, recorded in every extracted file's header)
+
+| Source | Commit | Taken |
+|---|---|---|
+| FigureBuilder, `mcthaydt/FigureBuilder` | `a1f7246` | `src/render/figure/motion.ts`: `Gait` (already content, M3.5a), `Hold`, `Stand`/`Hang`/`HandPlace` (already content), `CHAIN`, `relaxed`, `openings`, `place`, `crossed`, `standHolds`, `footPath`, `base()` for locomotion, idle, stands and turn, `placeHems`, `handTurn`, `applyHold`, `evaluate`. `figure.ts`: the pose clock of `Figure.update` (walk phase stepped at `walkPoses / cycle`, idle time stepped at `poseRate` and looped at `idleLoop`/`idlePoses`, the turn one `turnRate` a pose step, the shuffle's beat, the head's lead) and the hair spring `swingHair`. `cast.ts`: an item's hold from its measures (`item().hold`), `fits` (whether a stand suits a dressed figure), the gait with its overrides and the default `HAIR` dynamics. `tests/form.test.ts`: "pocket holds" and "the walk". |
+| The Last Light, `mcthaydt/PixiJS3D_Experiment_001` | `92e6704` | `tests/procedural-figure.test.ts`: "plants both feet on the floor when standing", "walks a closed cycle", "holding an item changes only the holding arm" (walk, idle and turn states) and "the hold is applied after the base pose and leaves the base untouched". |
+
+Not taken (spec §4.4.1, the 02 row): the action branches of `base()` (`reach`, `look`, `flinch`, with `reachEnvelope` and `lookYaw`: fixture clips in M3.6), the sprite cheats (`lookUp`, `view`, `pitch` and the walk-level neck correction that reads them, the head lead's 30° steps and `faceTurn`, the hair swing rounded to a tenth for the cell cache), the painter's legibility check in the hero's stand fallback (`heroOf`, `reads`), `crossed`'s pendant (the nameplate is cut, M3.5b decision 9) and The Last Light's raster, painter, cache and story tests.
+
+## Decisions (open to the Owner's veto)
+
+1. **Layout.** `packages/figures/src/motion/`, one responsibility a file, each under 600 lines: `motion-state.ts` (the state, `ArmHold`, `Evaluated`), `gait-path.ts` (the foot path and `moveDir`), `stands.ts` (`relaxed`, `CHAIN`, `openings`, `place`, `crossed`, `standHolds`, `fits`, `standFor`), `base.ts` (torso, head, arms), `legs.ts` (the feet into IK), `hems.ts` (`placeHems`), `hold.ts` (`holdOf`, `applyHold`, `evaluateMotion`), `clock.ts` (`poseClock`, `turnStep`, `headLead`), `hair-spring.ts` (`hairStep`, `headNod`), `gait-of.ts` (`gaitOf`, `DEFAULT_HAIR`).
+2. **`ArmHold`.** The source's runtime `Hold` (a hand place in a joint's space, a turn or an aim, a pole) is `ArmHold`, because `Hold` already names the item library's content shape (M3.5a). `holdOf(item, skeleton, side)` turns an item's measures into one (the source's `item().hold`).
+3. **`evaluateMotion`, not `evaluate`.** The source's `evaluate(s, gait, st)` (the base, a stand's placed hands, the item's hold) is `evaluateMotion`. `evaluate(skeleton, def, state, time, library)` is the spec's M3.6 entry (§4.4.5) and keeps its name; it will run `base()`, the clips and `solve()`, then the holds of this row (step 6) and the hair spring (step 7).
+4. **`moveDir`.** `MotionState.moveDir` (radians of travel against the facing, 0 when left out). The feet's paths run along the travel line: the stride vector is the forward vector turned by `moveDir` about +y (the rig's yaw convention, so +π/2 is toward the figure's left). Travel with a backward part (`cos moveDir < 0`) plays the cycle backwards (phase `1 − p`) along `moveDir − π`, so a half-turn is exactly the forward walk played in reverse (F-h): the planted foot slides forward under the body, the arms still swing against the legs, and the whole pose at phase `p` equals the forward pose at `1 − p`. The pose may pop where the stick crosses the strafe line (±π/2); poses step anyway (M3R-D3). Only the feet's paths read `moveDir`; the hips' turn, the lean and the arm swing are the source's.
+5. **The chin lift needs no camera.** The source scales the gait's `chin` by the face's turn to the camera (`toward`, a sprite cheat). Here it is the gait's attitude at full weight (`toward = 1`), as the source gives a figure drawn facing its camera.
+6. **Presentation time.** `poseClock(gait, time)` gives the stepped walk phase (`walkPoses` a cycle, from integer steps so the walk repeats exactly after one cycle, F-c), the stepped idle time (looped at `idleLoop`, held `idlePoses`), and the shuffle's beat. `turnStep(gait, shown, facing)` is one pose step of the turn on the spot; `headLead(gait, shown, facing)` the head's lead, clamped to `headLead` with no 30° steps. All pure: the view (M3.5d) and `evaluate` (M3.6) keep the shown facing.
+7. **The hair spring is a pure step.** `hairStep(dynamics, spring, input, dt)` returns the next `{ pitch, roll, vPitch, vRoll }` with the source's semi-implicit Euler in 1/120 s substeps (frame-rate independent). Its input is what the source read from the figure: moving, the walk phase, the speed (the source passes the gait's tuned speed; the caller may pass the sim's), the yaw rate, the head's nod (`headNod(world, yaw)`, the head's up vector tipped along the facing) and the head's tilt. No rounding: the source's tenth-radian rounding served its sprite cache.
+8. **Stands and fallbacks.** `standFor(skeleton, built, id, stands)` returns the first of the stand and its `fallback`s that the dressed figure suits (`fits`: every placed hand finds its first-choice opening among `built.anchors`, and crossed arms only in sleeves slim at the forearm), else `null` (the gait's relaxed stand). `standHolds(skeleton, stand, surface, anchors)` places the hands on `built.anchors`, the surface the dressed parts' `reach`; with none, the body's own openings.
+9. **Goldens from the source.** FigureBuilder `a1f7246` runs on Node 24 from the scratchpad copy M3.5b made (`.ts` import hook, not committed). `testing/__goldens__/figurebuilder-motion.json` holds, for Wick's and the keeper's bodies, each world matrix's position and a weighted rotation sum for every joint of `base()`/`evaluate()` over walk (with yaw), idle, turn, every stand, and every item's hold; and `standHolds` for every stand on every golden outfit's dressed anchors and surface. FigureBuilder is called with `view: 0`, no `lookUp` and no `pitch` (decision 5, the cut sprite cheats); the port matches to 1e-9.
+10. **Strict TypeScript.** As 5a and 5b: the source's formulas and their order, array reads through `at`, readonly content types read as the source's.
+
+## Files
+
+- **Create** `packages/figures/src/motion/`: `motion-state.ts`, `gait-path.ts`, `stands.ts`, `base.ts`, `legs.ts`, `hems.ts`, `hold.ts`, `clock.ts`, `hair-spring.ts`, `gait-of.ts`; tests `base.test.ts` (goldens, feet planted, the walk, F-c, F-h), `hold.test.ts` (F-b, base untouched), `stands.test.ts` (pocket holds, fallbacks), `clock.test.ts`, `hair-spring.test.ts`.
+- **Create** `packages/figures/src/testing/__goldens__/figurebuilder-motion.json`, `testing/motion-states.ts` (the walk, idle and turn states the hold-invariance test runs).
+- **Modify** `packages/figures/src/testing/fixture-library.ts` (gaits, stands), `src/index.ts`, `tooling/api-report/reports/figures.api.md` (`pnpm api-report --update`).
+
+## Interfaces
+
+- **Produced:** `base`, `evaluateMotion`, `applyHold`, `holdOf`, `placeHems`, `MotionState`, `ArmHold`, `Evaluated`, `Surface`, `CHAIN`, `relaxed`, `openings`, `place`, `standHolds`, `fits`, `standFor`, `poseClock`, `PoseClock`, `turnStep`, `headLead`, `hairStep`, `HairSpring`, `HairInput`, `headNod`, `HAIR_AT_REST`, `gaitOf`, `DEFAULT_HAIR`.
+- **Consumed:** 5a's math, rig (`fk`, `twoBoneIK`, `J`, `at`), `Gait`, `Stand`, `HandPlace`, `Hang`, `ItemDef`, `FigureDef`, `HairDynamics`; 5b's `Anchor`, `Built` (`anchors`, `clearance`, `parts`), `reach`, `GROUP`.
+- **For later rows:** M3.5d's view steps the clock, the turn and the hair spring per frame and draws `evaluateMotion`'s world matrices; M3.6's `evaluate` runs `base()` as step 1, `applyHold` as step 6 (to an arm no clip owns) and `hairStep` as step 7.
+
+## Steps
+
+- [x] **1. Plan.** This file, committed first.
+- [ ] **2. Goldens.** Run FigureBuilder `a1f7246` on Node 24 for the motion goldens; write `testing/__goldens__/figurebuilder-motion.json`.
+- [ ] **3. Red: base.** `motion/base.test.ts`: `base()` matches the goldens joint for joint over walk, idle, turn and stands; both feet on the floor standing (The Last Light); a closed cycle, phase 0 equals phase 1 (The Last Light); "the walk" (FigureBuilder: a foot always down, the knees near straight at the strike, the head bobs at least a texel) for Wick and the keeper in every fixture gait; F-c: `base()` at `poseClock(time)` equals it at `time + cycle`, for every walk pose; F-h: with `moveDir` 0, π/2 and π the planted foot's stride vector is the forward vector turned by it, and π gives the forward pose at `1 − p`. Run: fails for the missing modules.
+- [ ] **4. Green: base.** `motion-state.ts`, `gait-path.ts`, `base.ts`, `legs.ts`, `hems.ts`, `clock.ts`, `gait-of.ts`. Step 3 passes.
+- [ ] **5. Red: holds.** `motion/hold.test.ts`: F-b, for Wick and the keeper with every fixture item, every joint outside the holding arm keeps its exact world matrix with and without the item across walk, idle and turn, and the arm moves; `applyHold` leaves its input untouched; the goldens' holds match. Run: fails for the missing module.
+- [ ] **6. Green: holds.** `hold.ts`. Step 5 passes.
+- [ ] **7. Red: stands and the hair spring.** `motion/stands.test.ts`: `standHolds` matches the goldens on every golden outfit; "pocket holds" (FigureBuilder) on the fixture figures, the golden outfits and seeded random characters; `standFor` falls back along `fallback` and ends relaxed. `motion/hair-spring.test.ts`: the step is pure (frozen input, the same output twice), settles on its target, trails when walking, is the same over one 1/30 s step as two 1/60 s steps (the substeps), and matches the source's numbers. Run: fails for the missing modules.
+- [ ] **8. Green: stands and the hair spring.** `stands.ts`, `hair-spring.ts`. Step 7 passes.
+- [ ] **9. Gates.** `pnpm format`; `TURBO_FORCE=true pnpm check`; `pnpm api-report --update`. No changeset (private), no parity (no sim, renderer, ui or golden image), no build (source-only package).
+- [ ] **10. Hand off.** Push `claude/3d-m3-5c-motion`; report.
+
+## Gates
+
+- Selected: the package's tests while iterating (`pnpm --filter @mcthaydt/automata-figures test`, `typecheck`); `pnpm format` and `TURBO_FORCE=true pnpm check` at the end; `pnpm api-report --update`.
+- Omitted: parity (no sim, renderer, ui or golden image), `pnpm build`, `api-index`, `agent-skills` (private and unbuilt; `pnpm check` runs their unit tests), changesets (private), e2e (nothing runs in a browser).
+
+## Execution log
+
+| Date | Step | Commits | Notes |
+|---|---|---|---|
