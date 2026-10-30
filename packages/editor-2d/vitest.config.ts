@@ -7,8 +7,8 @@ import { defineConfig } from 'vitest/config'
 // - unit: the headless core (schema and codec round trips, grids, tools, commands, checks, the app's models and
 //   controllers) runs in Node, with no renderer.
 // - dom: Svelte components in jsdom through Testing Library (states and behavior, no snapshots). `*.dom.test.ts`.
-// - layout: the production CSS in a real browser at the sizes of spec §12. `*.layout.test.ts`. WebKit and Firefox join
-//   through a test-request on the Orchestrator bus until EDK.6 gives the lane its own harness.
+// - layout: the production CSS in real Chromium, WebKit and Firefox at the sizes of spec §12. `*.layout.test.ts`
+//   (EDK.6a).
 // - browsers: the golden files (`*.parity.test.ts`), which run in Node with `unit` and again in Chromium, WebKit and
 //   Firefox, where the auto-tile hashes have to come out the same (spec G-d).
 //
@@ -48,7 +48,7 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
-            instances: [{ browser: 'chromium' }],
+            instances: [{ browser: 'chromium' }, { browser: 'webkit' }, { browser: 'firefox' }],
           },
         },
       },

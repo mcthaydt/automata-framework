@@ -1,0 +1,6 @@
+source_language = "en"
+rating = "everyone"
+descriptors = []
+estimated_hours = 1.5
+custom_events = ["race_finished", "tutorial_complete"]
+preload_screens = ["Splash", "MainMenu"]

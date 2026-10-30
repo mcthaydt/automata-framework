@@ -11,7 +11,7 @@ import {
   type Viewport2D,
   type ViewportLimits,
 } from '@mcthaydt/automata-editor-kit/core'
-import { roundJsonNumber } from '../../codec/print'
+import { roundJsonNumber } from '@mcthaydt/automata-editor-kit/documents'
 import type { Point } from '../../format/sector.schema'
 import type { ViewState } from '../../model/view-store'
 import type { GeometryLayer } from '../../profile/level-profile'

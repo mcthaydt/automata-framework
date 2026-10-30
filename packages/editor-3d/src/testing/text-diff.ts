@@ -1,6 +1,7 @@
 // Helpers the codec tests share: what changed between two texts of one file.
+
+import { scan } from '@mcthaydt/automata-editor-kit/documents'
 import { expect } from 'vitest'
-import { scan } from '../codec/locate'
 
 /** The longest common prefix and suffix of two texts leave this much in each: the one region that changed. */
 export function changedRegion(before: string, after: string): { removed: string; added: string } {

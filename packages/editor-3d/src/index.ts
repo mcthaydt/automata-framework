@@ -1,3 +1,39 @@
+// The JSON engine lives in the kit's content documents (EDS.1a); this entry still offers it to its consumers.
+export {
+  formatJsonNumber,
+  formatJsonScalar,
+  indentAt,
+  insertElement,
+  insertMember,
+  type JsonKind,
+  type JsonLiteral,
+  type JsonNode,
+  type JsonPath,
+  type JsonScalar,
+  JsonScanError,
+  JsonShapeError,
+  type JsonValue,
+  JsonWriteError,
+  type Layout,
+  lineStart,
+  type MemberPlacement,
+  PACK_WIDTH,
+  type PatchRefusalReason,
+  type PatchResult,
+  type PatchRules,
+  patchJson,
+  pathKey,
+  readLayout,
+  removeElement,
+  removeMember,
+  replaceValue,
+  roundJsonNumber,
+  type Scan,
+  type Span,
+  sameLine,
+  scan,
+  setMember,
+} from '@mcthaydt/automata-editor-kit/documents'
 export {
   type AcceptResult,
   type Ask,
@@ -87,11 +123,6 @@ export * from './checks/last-light/last-light-checks'
 export { type RoomOwners, type RoomPolicy, roomPolicyProblems } from './checks/last-light/room-policy'
 export { materialProblems } from './checks/materials'
 export * from './checks/wall-locator'
-export * from './codec/layout'
-export * from './codec/locate'
-export { type PatchRefusalReason, type PatchResult, type PatchRules, patchJson } from './codec/patch'
-export * from './codec/print'
-export * from './codec/structure'
 export * from './entities/thing-def.schema'
 export * from './entities/things'
 export * from './format/af-sector.schema'
