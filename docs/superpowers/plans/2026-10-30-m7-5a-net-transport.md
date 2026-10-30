@@ -123,7 +123,7 @@ the grace is for.
 - [x] 4. Request ids: unique across two loads; at most 64 characters; printable (net's `reqIdSchema`).
 - [x] 5. Room info: projects the state; `hostSeat` −1 is undefined; `you` only from `seated`; a plain frozen object
   holding no schema reference; a state that does not parse is refused; `sameRoomInfo`.
-- [ ] 6. `fakeColyseus` in `net/testing` and the transport: correlated requests (resolve on their own answer only,
+- [x] 6. `fakeColyseus` in `net/testing` and the transport: correlated requests (resolve on their own answer only,
   reject with the room's code, rejected when the room is replaced or left); `cmd` fire and forget; `snap` + bytes
   delivered as one snapshot with acks, bytes copied; a header with no bytes, or bytes with no header, delivers
   nothing; pongs measured, a stray or repeated pong ignored; bytes counted off the socket; a retired room's queued
@@ -181,3 +181,4 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
 | Date | Step | Evidence |
 |---|---|---|
 | 2026-10-30 | 1 to 5 | Each module red (module missing), then green: net-error 15, reconnect-delay 2, seat-token 9, request-ids 4, room-info 9. `NetError`'s base is typed first for `isolatedDeclarations` (as `server`'s errors are) |
+| 2026-10-30 | 6 | `fakeColyseus` (net `./testing`), the transport and the client port: transport 16 and port 8 red (module missing), then green. `@colyseus/sdk` 0.18.5 is a dependency of net |
