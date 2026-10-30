@@ -18,4 +18,8 @@ import { loadTextures } from 'pixi.js'
 import { config } from 'zod'
 
 config({ jitless: true })
-loadTextures.config.preferWorkers = false
+// Pixi types the loader's config as optional; a Pixi without it would leave the probe on, so say so.
+const textureConfig = loadTextures.config
+if (textureConfig === undefined)
+  throw new Error('pixi.js loadTextures has no config, so no-eval cannot turn off its worker probe')
+textureConfig.preferWorkers = false

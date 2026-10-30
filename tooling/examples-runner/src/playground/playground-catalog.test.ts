@@ -14,6 +14,8 @@ const header = {
   lines: 9,
 } as const
 
+const { golden: _golden, ...withoutGolden } = header
+
 const entry = (overrides: Partial<CatalogEntry>): CatalogEntry => ({
   file: '/repo/examples/shapes/shapes-rects.ts',
   path: 'shapes/shapes-rects.ts',
@@ -58,7 +60,7 @@ describe('playgroundCatalog', () => {
           module: 'core',
           name: 'saves',
           path: 'core/core-saves.ts',
-          header: { ...header, golden: undefined, host: { grant: ['saves'] }, pending: 'DX.2' },
+          header: { ...withoutGolden, host: { grant: ['saves'] }, pending: 'DX.2' },
           screenshot: 'core/core-saves.png',
         }),
       ],

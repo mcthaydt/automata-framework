@@ -32,6 +32,6 @@ describe('render-pixi/no-eval', () => {
   // WebKit and Firefox report the violation (website playground A-17). Textures load on the main thread instead.
   it('loads textures without the worker probe', async () => {
     await import('./no-eval.js')
-    expect(loadTextures.config.preferWorkers).toBe(false)
+    expect(loadTextures.config?.preferWorkers).toBe(false)
   })
 })
