@@ -74,17 +74,17 @@ Out of this task: compiling edits and the live preview (.7, so an edit changes n
   tokens carry `tok-*` classes. Fails: no classes. Then the loader passes `highlighted`, `CodePanel` renders it.
 - [x] 5. `editor.ts`, the upgrade in `CodePanel`, `data-code` in `Playground`, the shared theme; step 1 passes on both
   browsers.
-- [ ] 6. e2e: "a tap starts editing with the caret at the tap": tap the middle of a known word on line 10; typing a
+- [x] 6. e2e: "a tap starts editing with the caret at the tap": tap the middle of a known word on line 10; typing a
   character inserts it there (the editor's text equals the source with the character at that offset); focus is in
   `.cm-content`.
-- [ ] 7. e2e: "the editor is named, described, 16 px, wraps, and Tab leaves it": accessible name, `aria-describedby`
+- [x] 7. e2e: "the editor is named, described, 16 px, wraps, and Tab leaves it": accessible name, `aria-describedby`
   the status line, `autocorrect`/`autocapitalize`/`spellcheck` off, computed font size 16 px, `.cm-lineWrapping`,
   focus ring on `.cm-focused`, Tab moves focus out of `.cm-content` and Shift+Tab back.
-- [ ] 8. e2e: "no editor chunk and no CodeMirror before a tap or focus", and "keyboard focus on the code loads the
+- [x] 8. e2e: "no editor chunk and no CodeMirror before a tap or focus", and "keyboard focus on the code loads the
   editor".
-- [ ] 9. e2e: "when the editor chunk fails to load, the static code stays and the status line says so" (route the
+- [x] 9. e2e: "when the editor chunk fails to load, the static code stays and the status line says so" (route the
   chunk to abort): `data-code="failed"`, the §8.3 text, the static code still there, the preview still running.
-- [ ] 10. Unit `site-checks.test.ts`: a page that modulepreloads or loads the editor chunk fails; an editor chunk
+- [x] 10. Unit `site-checks.test.ts`: a page that modulepreloads or loads the editor chunk fails; an editor chunk
   closure over 175,000 B gzip fails; a build without the editor chunk fails (the check would otherwise pass
   vacuously). Fails: no `checkEditorChunk`. Then the check, wired into `check-site.ts`.
 - [ ] 11. Gates.
@@ -123,3 +123,18 @@ because nothing loads before a tap).
   (dispatching `beforeprint` does nothing, because it listens to the `print` media query). Box test: Chromium and
   WebKit pass.
 - `codemirror` (the meta package) is not a dependency after all: the editor uses none of its exports.
+- Steps 6–9: the caret, accessibility, chunk-timing and load-failure tests pass on Chromium and WebKit (24 in the
+  playground spec; the new ones 36/36 with `--repeat-each 3`). The focus-ring assertion first failed because the
+  preview frame had taken focus: in Chromium, the arrival run's frame focuses its own first control (the runtime's
+  flow manager, framework `packages/runtime/src/flow/flow.manager.ts:304` at `f8023a9`) while the frame is still the
+  `inert` candidate, and the parent sees only its own `blur` (no `focus` event on the iframe element). WebKit does not
+  do this. So a reader who tapped the code in the first second lost the caret (present since WEB.PLAY.5). The page now
+  returns focus to where it was when an `inert` frame of its own takes it; new test "a preview that starts while the
+  reader is in the code leaves focus in the code" failed without that and passes with it. A key pressed in the instant
+  the frame holds focus still reaches the frame, so the tests that type wait for `running`. **Framework follow-up:**
+  the runtime should not move focus inside a frame whose document does not have focus (`document.hasFocus()`).
+- A focus on the code before hydration had no `focusin` to catch; `CodePanel` now starts the editor on mount when the
+  static code already has focus.
+- Step 10: `checkEditorChunk` reads the build's Vite manifest (`.svelte-kit/output/client/.vite/manifest.json`; the
+  static build has no manifest) for the editor's file and its imports. `check:site`: 45 pages, the editor chunk
+  141,822 B gzip (budget 175,000), no page names it.

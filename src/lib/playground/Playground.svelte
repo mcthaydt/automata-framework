@@ -101,6 +101,18 @@
   onMount(() => {
     const onMessage = (event: MessageEvent) => orchestrator?.receive({ source: event.source, origin: event.origin, data: event.data })
     window.addEventListener('message', onMessage)
+    // Chromium lets a frame's own script take focus while the frame is still `inert`, so the arrival run took the
+    // caret from a reader already in the code. Only the page's `blur` shows it: focus goes back where it was (§9.2).
+    let lastFocus: Element | null = null
+    const onFocusIn = (event: FocusEvent) => { lastFocus = event.target as Element }
+    const onBlur = () => {
+      const active = document.activeElement
+      if (!(active instanceof HTMLIFrameElement && active.hasAttribute('inert') && stage?.contains(active))) return
+      if (lastFocus instanceof HTMLElement && lastFocus.isConnected) lastFocus.focus({ preventScroll: true })
+      else active.blur()
+    }
+    window.addEventListener('focusin', onFocusIn)
+    window.addEventListener('blur', onBlur)
     let observer: IntersectionObserver | undefined
     const onLoad = () => {
       // The frame starts once the page's own downloads are done and the preview is within a screen of view (R-9).
@@ -115,6 +127,8 @@
     else window.addEventListener('load', onLoad, { once: true })
     return () => {
       window.removeEventListener('message', onMessage)
+      window.removeEventListener('focusin', onFocusIn)
+      window.removeEventListener('blur', onBlur)
       window.removeEventListener('load', onLoad)
       observer?.disconnect()
       disposed = true

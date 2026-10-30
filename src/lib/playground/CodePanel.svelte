@@ -47,9 +47,13 @@
   const onpointerdown = (event: PointerEvent) => void upgrade(offsetAtPoint(pre!, event.clientX, event.clientY) ?? 0)
   const onfocusin = () => void upgrade(0)
 
-  onMount(() => () => {
-    destroyed = true
-    editor?.destroy()
+  onMount(() => {
+    // A reader who reached the code before the page hydrated has already had their focusin.
+    if (document.activeElement === pre) void upgrade(0)
+    return () => {
+      destroyed = true
+      editor?.destroy()
+    }
   })
 </script>
 <section class="code-panel" aria-label={'Code for ' + title}>

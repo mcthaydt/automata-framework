@@ -22,7 +22,6 @@ export interface EditorOptions {
 
 const theme = EditorView.theme({
   '&': { fontSize: '1rem' },
-  '&.cm-focused': { outline: 'none' },
   '.cm-scroller': { fontFamily: 'var(--font-mono)', lineHeight: '1.5', overflow: 'visible' },
   '.cm-content': { padding: '1rem 0', caretColor: 'var(--ink)' },
   '.cm-line': { padding: '0 1rem 0 0' },
@@ -54,11 +53,12 @@ export function mountEditor({ parent, doc, label, describedBy, anchor }: EditorO
   // CodeMirror draws only the lines near the screen and estimates the others' heights, so a wrapped file's box would
   // come out a few lines off the static code's. Its print mode draws and measures every line, and the heights it
   // measures stay; the examples are short, so one full measure at mount is cheap and the box keeps its size (§9.3).
-  // `viewState.printing` is internal to @codemirror/view (pinned in package.json); the e2e box test guards it.
-  const internal = view as unknown as { viewState?: { printing?: boolean } }
-  if (internal.viewState && 'printing' in internal.viewState) {
+  // `viewState.printing` and `measure` are internal to @codemirror/view (pinned in package.json); the e2e box test
+  // guards them.
+  const internal = view as unknown as { viewState?: { printing?: boolean }; measure?: () => void }
+  if (internal.viewState && 'printing' in internal.viewState && internal.measure) {
     internal.viewState.printing = true
-    view.measure()
+    internal.measure()
     internal.viewState.printing = false
   }
   return view
