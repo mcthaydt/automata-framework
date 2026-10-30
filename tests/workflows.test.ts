@@ -284,3 +284,53 @@ describe('the framework deploy key check', () => {
     expect(step!.run).not.toMatch(/(echo|printf)[^\n]*\$\{?AF_FRAMEWORK_DEPLOY_KEY/)
   })
 })
+
+// DX.12: the deploy job. It publishes the build the `ci` run tested (its `site-build` artifact), never a rebuild, and
+// only after that run succeeded on a push to main. Until the Owner supplies the host, it is a dry run against a
+// placeholder target and holds no secret at all; the served-file check runs against that build on a local server.
+describe('deploy.yml', () => {
+  interface DeployWorkflow extends Workflow {
+    readonly concurrency?: { group: string; 'cancel-in-progress': boolean }
+  }
+  const text = read('.github/workflows/deploy.yml')
+  const deploy = parse(text) as DeployWorkflow
+  const job = deploy.jobs.deploy!
+  const jobSteps = job.steps ?? []
+
+  it('runs after a ci run completes on main, and only when that run was a push that succeeded', () => {
+    expect(deploy.on).toEqual({ workflow_run: { workflows: ['ci'], types: ['completed'], branches: ['main'] } })
+    expect(Object.keys(deploy.jobs)).toEqual(['deploy'])
+    expect(job.if).toBe("github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'")
+  })
+
+  it('runs on the Owner’s Mac, one deploy at a time, never cancelling one midway', () => {
+    expect(job['runs-on']).toBe('af-mac')
+    expect(deploy.concurrency).toEqual({ group: 'deploy', 'cancel-in-progress': false })
+  })
+
+  it('reads the repository and the ci run’s artifacts, and holds no secret while it is a dry run', () => {
+    expect(deploy.permissions).toEqual({ contents: 'read', actions: 'read' })
+    expect(text).not.toMatch(/secrets\./)
+  })
+
+  it('checks out the commit ci tested and downloads that run’s build, rather than building again', () => {
+    const checkout = jobSteps.find(step => step.uses?.startsWith('actions/checkout@'))
+    expect(checkout?.with).toMatchObject({ ref: '${{ github.event.workflow_run.head_sha }}', path: 'automata_website', 'persist-credentials': false })
+    const download = jobSteps.find(step => step.uses?.startsWith('actions/download-artifact@'))
+    expect(download?.with).toMatchObject({ name: 'site-build', path: 'automata_website/build', 'run-id': '${{ github.event.workflow_run.id }}', 'github-token': '${{ github.token }}' })
+    expect(jobSteps.map(step => step.run ?? '')).not.toContain('pnpm build')
+  })
+
+  it('plans the release as a dry run, checks the served files on a local server, then keeps the manifest', () => {
+    const commands = jobSteps.map(step => step.run).filter(Boolean)
+    expect(commands).toEqual(['pnpm install --frozen-lockfile', 'pnpm release --dry-run', 'pnpm check:deployed --local'])
+    const kept = jobSteps.at(-1)
+    expect(kept?.uses).toMatch(/^actions\/upload-artifact@/)
+    expect(kept?.with).toMatchObject({ name: 'release-manifest', path: 'automata_website/release-manifest.json', 'if-no-files-found': 'error' })
+  })
+
+  it('pins every action to a commit and gives pnpm its own folder', () => {
+    for (const step of jobSteps) if (step.uses) expect(step.uses).toMatch(/@[0-9a-f]{40}(\s|$)/)
+    expect(jobSteps.find(step => step.uses?.startsWith('pnpm/action-setup@'))?.with?.dest).toBe('${{ runner.temp }}/setup-pnpm')
+  })
+})
