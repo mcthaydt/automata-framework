@@ -2,8 +2,11 @@
 // definition the level has, in its order. Each row carries what the panel shows (label, colour, count) and its state
 // in the view store. `inherited` marks a sub-layer whose Things parent is hidden or locked: it is off with its parent,
 // whatever its own toggles say. Plain data, so every rule is a unit test.
-import type { EntityKit } from '../../entities/things'
-import { thingLayer, type ViewState } from '../../model/view-store'
+
+import type { EntityKit } from '../entities/things'
+import type { LevelEditor } from '../model/level-editor'
+import { thingLayer, type ViewState } from '../model/view-store'
+import { GeometryError } from '../profile/level-profile'
 
 export interface LayerRow {
   /** The view store's name for the layer: `sectors`, `walls`, `things` or `things:<definition>`. */
@@ -59,4 +62,21 @@ export function layerRows(input: LayerRowsInput): readonly LayerRow[] {
     )
   }
   return rows
+}
+
+/** The rows for the editor's live level: its rooms, its walls (each side of a wall that joins two rooms counts) and things. */
+export function editorLayerRows<D>(editor: LevelEditor<D>): readonly LayerRow[] {
+  const { level, profile } = editor
+  let sectors = 0
+  let walls = 0
+  try {
+    for (const layer of profile.geometry(level).layers) {
+      sectors += layer.map.sectors.length
+      walls += layer.map.edges.length
+    }
+  } catch (error) {
+    // A level the engine cannot build lists no rooms and no walls; its checks say why.
+    if (!(error instanceof GeometryError)) throw error
+  }
+  return layerRows({ kit: profile.entities(level), sectors, walls, view: editor.view.state })
 }

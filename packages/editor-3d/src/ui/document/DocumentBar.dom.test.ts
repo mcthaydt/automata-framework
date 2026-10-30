@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/svelte'
+import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import DocumentBar from './DocumentBar.svelte'
@@ -6,7 +6,7 @@ import DocumentBar from './DocumentBar.svelte'
 // The level's top bar (plan ED3D.5c): Back, the file over its path, the profile, Undo, Redo and Save.
 
 function mount(props: Record<string, unknown> = {}) {
-  const handlers = { onback: vi.fn(), onundo: vi.fn(), onredo: vi.fn(), onsave: vi.fn() }
+  const handlers = { onback: vi.fn(), onundo: vi.fn(), onredo: vi.fn(), onsave: vi.fn(), onmode: vi.fn() }
   render(DocumentBar, {
     heading: { title: 'depot.json', file: 'levels/depot.json' },
     profile: 'af-sector',
@@ -16,6 +16,8 @@ function mount(props: Record<string, unknown> = {}) {
     redoLabel: undefined,
     busy: false,
     compact: false,
+    mode: 'plan',
+    checks: { text: '2 warnings', tone: 'warn' },
     ...handlers,
     ...props,
   })
@@ -56,5 +58,20 @@ describe('DocumentBar', () => {
     mount({ busy: true })
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled()
+  })
+
+  it('offers the views with Plan chosen, and says why the others cannot be chosen yet (ED3D.5d)', () => {
+    mount()
+    const views = screen.getByRole('radiogroup', { name: 'View' })
+    expect(within(views).getByRole('radio', { name: 'Plan' })).toHaveAttribute('aria-checked', 'true')
+    const split = within(views).getByRole('radio', { name: 'Split' })
+    expect(split).toHaveAttribute('aria-disabled', 'true')
+    expect(split).toHaveAccessibleDescription(/^Not ready yet: /)
+  })
+
+  it('shows how the checks stand, and keeps the pill on a phone where the views are left out (ED3D.5d)', () => {
+    mount({ compact: true, checks: { text: '1 problem', tone: 'bad' } })
+    expect(screen.getByText('1 problem')).toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'View' })).toBeNull()
   })
 })

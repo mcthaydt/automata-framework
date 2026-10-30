@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import type { EntityKit } from '../../entities/things'
-import { initialView } from '../../model/view-store'
-import { layerRows } from './layers-model'
+import type { EntityKit } from '../entities/things'
+import { createLevelEditor } from '../model/level-editor'
+import { initialView } from '../model/view-store'
+import { afSectorProfile } from '../profile/af-sector-profile'
+import { toyAfSector } from '../testing/toy-af-sector'
+import { editorLayerRows, layerRows } from './layers-model'
 
 // The rows of the layers panel (plan ED3D.5d step 4; ED3D spec §5.2): Sectors and Walls, then Things with one row per
 // entity definition, in the level's order, each with its count, colour and state.
@@ -59,5 +62,17 @@ describe('layerRows', () => {
       view: initialView,
     })
     expect(rows.map((row) => row.id)).toEqual(['sectors', 'walls'])
+  })
+})
+
+describe('editorLayerRows', () => {
+  it('counts the rooms and walls of the editor’s level, and follows its view', () => {
+    const editor = createLevelEditor({ profile: afSectorProfile, level: toyAfSector() })
+    editor.view.toggle('hidden', 'walls')
+    const rows = editorLayerRows(editor)
+    expect(rows.map((row) => [row.id, row.count, row.hidden])).toEqual([
+      ['sectors', 2, false],
+      ['walls', 8, true],
+    ])
   })
 })

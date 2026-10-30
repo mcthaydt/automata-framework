@@ -12,11 +12,10 @@ import { attachGestures } from '@mcthaydt/automata-editor-kit'
 import type { Size } from '@mcthaydt/automata-editor-kit/core'
 import { onDestroy } from 'svelte'
 import { createPlanController, type PlanController } from '../../app/plan-controller'
-import { createPlanPicture } from '../../app/plan-picture'
+import { createPlanPicture, planPointAt } from '../../app/plan-picture'
 import type { Point } from '../../format/sector.schema'
 import type { LevelEditor } from '../../model/level-editor'
 import type { PlanPaint } from '../../view/plan/plan-paint'
-import { planViewport, toWorld } from '../../view/plan/plan-viewport'
 import { planGestures } from './plan-gestures'
 import type { PlanRenderer, PlanRendererFactory } from './plan-renderer'
 
@@ -70,7 +69,7 @@ function measured(next: Size): void {
       const hover = handlers.hover
       handlers.hover = (event) => {
         hover?.(event)
-        onpointer?.(toWorld(planViewport(editor.view.state.camera, next), event))
+        onpointer?.(planPointAt(editor.view.state.camera, next, event))
       }
       stops.push(attachGestures(host, handlers))
     }

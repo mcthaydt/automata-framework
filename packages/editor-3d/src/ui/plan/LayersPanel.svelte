@@ -5,7 +5,7 @@
   hit. A sub-layer under a hidden or locked Things says it is off with Things. Every button is at least 44 px.
 -->
 <script lang="ts">
-import type { LayerRow } from './layers-model'
+import type { LayerRow } from '../../app/layers-model'
 
 interface Props {
   rows: readonly LayerRow[]

@@ -1,9 +1,10 @@
 <!--
-  Where an opened level goes until the Plan view fills its canvas (ED3D.5d; plan ED3D.5c, decisions 6 to 8). The top
-  bar has Back, the level's file, Undo, Redo and Save; the status line shows how the level stands on saving; an autosave
-  on offer is asked about first; a save that found the file changed opens the kit's conflict dialog, and one the patch
-  refused opens the held Save. Everything it does goes through the document controller, so this file only draws and
-  forwards.
+  An opened level (plan ED3D.5c, decisions 6 to 8; the Plan view since ED3D.5d). The top bar has Back, the level's
+  file, the views, the checks pill, Undo, Redo and Save; the canvas is the Plan view; the panel is the layers list (a
+  drawer below `wide`, the kit's); the status line says where the pointer is, the zoom, what is selected and how the
+  level stands on saving. An autosave on offer is asked about first; a save that found the file changed opens the kit's
+  conflict dialog, and one the patch refused opens the held Save. Edits go through the document controller and the
+  level editor, so this file only draws and forwards.
 -->
 <script lang="ts">
 import {
@@ -16,7 +17,16 @@ import {
 } from '@mcthaydt/automata-editor-kit'
 import type { ToastStore } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
+import { onDestroy } from 'svelte'
+import { createChecksPanel, type Scheduler } from '../../app/checks-panel-controller'
 import type { DocumentController, DocumentState } from '../../app/document/document-controller'
+import { editorLayerRows, type LayerRow } from '../../app/layers-model'
+import { planZoom } from '../../app/plan-picture'
+import { checksWords, planStatus } from '../../app/plan-status'
+import type { Point } from '../../format/sector.schema'
+import LayersPanel from '../plan/LayersPanel.svelte'
+import PlanCanvas from '../plan/PlanCanvas.svelte'
+import type { PlanRendererFactory } from '../plan/plan-renderer'
 import DocumentBar from './DocumentBar.svelte'
 import HeldSaveDialog from './HeldSaveDialog.svelte'
 
@@ -26,10 +36,14 @@ interface Props {
   toasts: ToastStore
   /** The time an autosave's age is told against. */
   clock: { now(): number }
+  /** Makes the Plan view's renderer (a dynamic import of Pixi in the page; a fake in the tests). */
+  renderer: PlanRendererFactory
+  /** Runs the checks after the editing pauses. */
+  schedule: Scheduler
   onback: () => void
 }
 
-const { geometry, controller, toasts, clock, onback }: Props = $props()
+const { geometry, controller, toasts, clock, renderer, schedule, onback }: Props = $props()
 
 /** The controller's state right now (its store answers at once). */
 function snapshot(source: DocumentController): DocumentState {
@@ -46,6 +60,39 @@ const compact = $derived(shellModeOf(geometry.current.formFactor) === 'compact')
 // svelte-ignore state_referenced_locally
 let view = $state.raw<DocumentState>(snapshot(controller))
 $effect(() => controller.state.subscribe((next) => (view = next)))
+
+// The level editor is the level's for as long as the frame shows it: the frame is made again for another level.
+// svelte-ignore state_referenced_locally
+const editor = view.level.editor
+// svelte-ignore state_referenced_locally
+const checks = createChecksPanel(editor, { schedule })
+onDestroy(() => checks.dispose())
+
+let rows = $state.raw<readonly LayerRow[]>(editorLayerRows(editor))
+let mode = $state(editor.view.state.mode)
+let selection = $state.raw<readonly string[]>(editor.selection.ids)
+let zoom = $state(planZoom(editor.view.state.camera))
+let counts = $state.raw(checks.view)
+let pointer = $state.raw<Point | undefined>(undefined)
+
+$effect(() => {
+  const stops = [
+    editor.history.subscribe(() => (rows = editorLayerRows(editor))),
+    editor.view.subscribe((state) => {
+      rows = editorLayerRows(editor)
+      mode = state.mode
+      zoom = planZoom(state.camera)
+    }),
+    editor.selection.subscribe((next) => (selection = next.ids)),
+    checks.subscribe(() => (counts = checks.view)),
+  ]
+  return () => {
+    for (const stop of stops) stop()
+  }
+})
+
+const pill = $derived(checksWords(counts))
+const statusWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection }))
 </script>
 
 <EditorShell {geometry} testId="document-frame">
@@ -59,19 +106,36 @@ $effect(() => controller.state.subscribe((next) => (view = next)))
       redoLabel={view.redoLabel}
       busy={view.busy !== undefined}
       {compact}
+      {mode}
+      checks={pill}
       {onback}
       onundo={() => controller.undo()}
       onredo={() => controller.redo()}
       onsave={() => controller.save()}
+      onmode={(next) => editor.view.set({ mode: next })}
+    />
+  {/snippet}
+
+  {#snippet panel()}
+    <LayersPanel
+      {rows}
+      ontoggle={(list, layer) => editor.view.toggle(list, layer)}
+      onactivate={(layer) => editor.view.set({ layer })}
     />
   {/snippet}
 
   {#snippet canvas()}
-    <p class="placeholder">Plan and Dollhouse arrive with ED3D.5d. This level is open and safe.</p>
+    <PlanCanvas
+      {editor}
+      {renderer}
+      onundo={() => controller.undo()}
+      onredo={() => controller.redo()}
+      onpointer={(at) => (pointer = at)}
+    />
   {/snippet}
 
   {#snippet status()}
-    <StatusLine save={view.save} />
+    <StatusLine message={statusWords} save={view.save} />
   {/snippet}
 
   {#snippet sheets()}
@@ -104,12 +168,3 @@ $effect(() => controller.state.subscribe((next) => (view = next)))
     <ToastRegion {toasts} />
   {/snippet}
 </EditorShell>
-
-<style>
-  .placeholder {
-    margin: 0;
-    padding: var(--space-5);
-    color: var(--color-text-dim);
-    font: var(--text-body-13);
-  }
-</style>

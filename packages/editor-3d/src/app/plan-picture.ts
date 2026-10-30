@@ -2,13 +2,15 @@
 // camera, and the selection, handed to `planPaint` for a canvas of a given size. The geometry is the controllers' cache
 // (one build per level), and the things are read once per level too, so a pointer move that only changes the camera or
 // the hover costs a paint, not a rebuild.
-import type { Size } from '@mcthaydt/automata-editor-kit/core'
+import type { Point as ScreenPoint, Size } from '@mcthaydt/automata-editor-kit/core'
 import type { EntityKit } from '../entities/things'
+import type { Point } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'
+import type { ViewState } from '../model/view-store'
 import type { ThingLink } from '../profile/thing-links'
 import { type PlanPaint, planPaint } from '../view/plan/plan-paint'
 import { planScene } from '../view/plan/plan-scene'
-import { planViewport } from '../view/plan/plan-viewport'
+import { planViewport, toWorld } from '../view/plan/plan-viewport'
 import { createGeometryCache } from './geometry-cache'
 
 export function createPlanPicture<D>(editor: LevelEditor<D>): (size: Size) => PlanPaint {
@@ -37,3 +39,12 @@ export function createPlanPicture<D>(editor: LevelEditor<D>): (size: Size) => Pl
     })
   }
 }
+
+type Camera = ViewState['camera']
+
+/** The camera's scale in screen pixels to a metre, held to the plan's limits. */
+export const planZoom = (camera: Camera): number => planViewport(camera, { w: 1, h: 1 }).zoom
+
+/** The plan point, in metres, that a pixel of a canvas of `size` shows. */
+export const planPointAt = (camera: Camera, size: Size, at: ScreenPoint): Point =>
+  toWorld(planViewport(camera, size), at)

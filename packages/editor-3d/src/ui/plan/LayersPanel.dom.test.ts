@@ -1,8 +1,8 @@
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import type { LayerRow } from '../../app/layers-model'
 import LayersPanel from './LayersPanel.svelte'
-import type { LayerRow } from './layers-model'
 
 // The layers panel (plan ED3D.5d step 4; ED3D spec §5.2, §9): a row per layer with Show or Hide and Lock or Unlock,
 // named for what they do; choosing a row makes it the layer the tools work on.

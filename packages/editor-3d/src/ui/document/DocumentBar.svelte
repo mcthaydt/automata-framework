@@ -3,11 +3,14 @@
   at the end. Undo and Redo are named with the step they act on and are disabled when there is none; Save and Back are
   disabled while a save or a dialog's choice runs. On a narrow screen the title and the path truncate and the buttons
   keep their size; on a phone the profile is left out. The heading takes the focus when the bar appears: the page
-  changed. The modes, the checks pill and the tools join it with the Plan view (ED3D.5d).
+  changed. ED3D.5d adds the views (Plan, and the ones still coming, each saying why it cannot be chosen yet) and the
+  checks pill; on a phone the views are left out and the pill stays.
 -->
 <script lang="ts">
-import { Button, Pill } from '@mcthaydt/automata-editor-kit'
+import { Button, Pill, Segmented } from '@mcthaydt/automata-editor-kit'
 import { onMount } from 'svelte'
+import { modeOptions, type PillTone } from '../../app/plan-status'
+import type { ViewMode } from '../../model/view-store'
 
 interface Props {
   heading: { readonly title: string; readonly file: string }
@@ -21,10 +24,14 @@ interface Props {
   busy: boolean
   /** The shell is `compact` (a phone): the profile is left out so the title keeps its room. */
   compact: boolean
+  mode: ViewMode
+  /** The checks pill's words and tone (`checksWords`). */
+  checks: { readonly text: string; readonly tone: PillTone }
   onback: () => void
   onundo: () => void
   onredo: () => void
   onsave: () => void
+  onmode: (mode: ViewMode) => void
 }
 
 const {
@@ -36,11 +43,20 @@ const {
   redoLabel,
   busy,
   compact,
+  mode,
+  checks,
   onback,
   onundo,
   onredo,
   onsave,
+  onmode,
 }: Props = $props()
+
+const views = modeOptions()
+const chosen = (id: string): void => {
+  const view = views.find((option) => option.id === id)
+  if (view !== undefined) onmode(view.id)
+}
 
 let title = $state<HTMLElement>()
 onMount(() => title?.focus())
@@ -54,6 +70,10 @@ onMount(() => title?.focus())
   </div>
   {#if !compact}<span class="kind"><Pill>{profile}</Pill></span>{/if}
   <span class="spacer"></span>
+  {#if !compact}
+    <Segmented label="View" options={views} value={mode} onedit={(event) => chosen(event.value)} />
+  {/if}
+  <span class="checks" data-testid="checks-pill"><Pill tone={checks.tone}>{checks.text}</Pill></span>
   <Button
     disabled={!canUndo}
     aria-label={undoLabel === undefined ? 'Undo' : `Undo ${undoLabel}`}
@@ -99,7 +119,8 @@ onMount(() => title?.focus())
     color: var(--color-text-faint);
     font: var(--text-mono-11);
   }
-  .kind {
+  .kind,
+  .checks {
     flex: none;
   }
   .spacer {

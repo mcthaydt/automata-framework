@@ -71,6 +71,8 @@ describe('planPaint fills and walls', () => {
   it('fills each sector in screen pixels with its group’s colour', () => {
     const paint = planPaint(inputOf(toyAfSector()))
     expect(paint.background).toBe(PLAN_COLORS.background)
+    expect(paint.accent).toBe(PLAN_COLORS.accent)
+    expect(paint.gridColor).toBe(PLAN_COLORS.grid)
     const hall = paint.fills.find((fill) => fill.sector === 'hall')
     expect(hall?.points).toEqual([px(0, 0), px(8, 0), px(8, 6), px(0, 6)].flatMap((p) => [p.x, p.y]))
     expect(hall?.color).toBe(groupColor(''))

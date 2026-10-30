@@ -27,6 +27,8 @@ async function rendererOf(w = 60, h = 40): Promise<PlanRenderer> {
 
 const EMPTY: PlanPaint = {
   background: PLAN_COLORS.background,
+  accent: PLAN_COLORS.accent,
+  gridColor: PLAN_COLORS.grid,
   grid: [],
   fills: [],
   walls: [],

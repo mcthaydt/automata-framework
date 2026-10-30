@@ -4,7 +4,7 @@ import { afSectorProfile } from '../profile/af-sector-profile'
 import { loadAuthored } from '../testing/fixtures'
 import { toyAfSector } from '../testing/toy-af-sector'
 import { PLAN_COLORS } from '../view/plan/plan-colors'
-import { createPlanPicture } from './plan-picture'
+import { createPlanPicture, planPointAt, planZoom } from './plan-picture'
 
 // The editor's plan as a paint list (plan ED3D.5d step 5): what the canvas draws follows the level, the selection, the
 // hidden layers and the camera, and the same level is not built twice.
@@ -41,5 +41,16 @@ describe('createPlanPicture', () => {
     expect(createPlanPicture(editor)(SIZE).things).toHaveLength(
       kit.things.filter((thing) => kit.definitions.some((definition) => definition.id === thing.def)).length,
     )
+  })
+})
+
+describe('planZoom and planPointAt', () => {
+  it('reads the camera in pixels per metre, held to the plan’s limits', () => {
+    expect(planZoom({ x: 0, z: 0, zoom: 1.5 })).toBe(48)
+    expect(planZoom({ x: 0, z: 0, zoom: 100 })).toBe(400)
+  })
+
+  it('says which plan point a canvas pixel shows', () => {
+    expect(planPointAt({ x: 7, z: 3, zoom: 1 }, SIZE, { x: 96, y: 144 })).toEqual({ x: 0, z: 0 })
   })
 })

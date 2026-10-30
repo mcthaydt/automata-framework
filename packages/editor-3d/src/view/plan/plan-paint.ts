@@ -80,6 +80,10 @@ export interface RulerTick {
 
 export interface PlanPaint {
   readonly background: number
+  /** The selection's colour. */
+  readonly accent: number
+  /** The grid lines' colour; they are drawn faint. */
+  readonly gridColor: number
   readonly grid: readonly PaintGridLine[]
   readonly fills: readonly PaintFill[]
   readonly walls: readonly PaintStroke[]
@@ -227,6 +231,8 @@ export function planPaint(input: PlanPaintInput): PlanPaint {
 
   return {
     background: PLAN_COLORS.background,
+    accent: PLAN_COLORS.accent,
+    gridColor: PLAN_COLORS.grid,
     grid,
     fills,
     walls: [...walls, ...accents],

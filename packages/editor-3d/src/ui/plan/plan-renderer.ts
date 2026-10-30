@@ -7,7 +7,6 @@ import {
   type WebGLRenderer,
 } from 'pixi.js'
 import { type Readable, writable } from 'svelte/store'
-import { PLAN_COLORS } from '../../view/plan/plan-colors'
 import type { PaintStroke, PlanPaint } from '../../view/plan/plan-paint'
 
 // The Plan view's renderer (ED3D.5d, ED3D spec §6): a WebGL2 Pixi renderer on the page's canvas that strokes and fills
@@ -83,13 +82,13 @@ function paintInto(graphics: Graphics, paint: PlanPaint): void {
   graphics.clear()
   for (const line of paint.grid) {
     graphics.moveTo(line.a.x, line.a.y).lineTo(line.b.x, line.b.y)
-    graphics.stroke({ color: PLAN_COLORS.grid, alpha: line.major ? 0.09 : 0.045, width: 1 })
+    graphics.stroke({ color: paint.gridColor, alpha: line.major ? 0.09 : 0.045, width: 1 })
   }
   for (const fill of paint.fills) {
     graphics.poly([...fill.points]).fill({ color: fill.color })
     for (const hole of fill.holes) graphics.poly([...hole]).cut()
     if (fill.selected) {
-      graphics.poly([...fill.points]).fill({ color: PLAN_COLORS.accent, alpha: 0.16 })
+      graphics.poly([...fill.points]).fill({ color: paint.accent, alpha: 0.16 })
       for (const hole of fill.holes) graphics.poly([...hole]).cut()
     }
   }
@@ -99,9 +98,7 @@ function paintInto(graphics: Graphics, paint: PlanPaint): void {
     graphics.stroke({ color: link.color, alpha: 0.6, width: 1.5 })
   }
   for (const thing of paint.things) {
-    const outline = thing.selected
-      ? { color: PLAN_COLORS.accent, width: 2 }
-      : { color: PLAN_COLORS.background, width: 1 }
+    const outline = thing.selected ? { color: paint.accent, width: 2 } : { color: paint.background, width: 1 }
     if (thing.shape === 'disc') {
       graphics.circle(thing.x, thing.y, 5).fill({ color: thing.color }).stroke(outline)
       continue
@@ -115,7 +112,7 @@ function paintInto(graphics: Graphics, paint: PlanPaint): void {
         stroke(graphics, {
           a,
           b,
-          color: thing.selected ? PLAN_COLORS.accent : thing.color,
+          color: thing.selected ? paint.accent : thing.color,
           width: 1.5,
           dashed: true,
         })
@@ -137,7 +134,6 @@ export const createPlanRenderer: PlanRendererFactory = async (canvas, size) => {
     width: size.w,
     height: size.h,
     resolution: size.resolution,
-    background: PLAN_COLORS.background,
     antialias: true,
   })
   if (created === undefined) return undefined
