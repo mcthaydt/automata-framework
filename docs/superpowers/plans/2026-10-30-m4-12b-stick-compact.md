@@ -86,3 +86,4 @@ No public export changes: `api-report` should report no change.
   status --since=origin/main` passed once the changeset was committed (it failed before the commit, as it reads
   committed files); `check-changesets`: 12 changesets, 0 problems; gitleaks 8.30.1 over the branch's commits: no
   leaks. No build config changed, so no consumer smoke.
+- **Merge of main (2026-10-30, `894c73c`).** No conflicts. `pnpm format` clean; `TURBO_FORCE=true pnpm check`: every task passed but repo-hygiene's `gitleaks.test.ts` "several installs at once" (`tar: Error is not recoverable`): it ran at the same moment as another worktree's commit hook running the same test, which failed the same way; alone, repo-hygiene 58 of 58 passed. `pnpm build`, `api-report`, `api-index`, `agent-skills` exit 0; `changeset status --since=origin/main` exit 0; `check-changesets` 19 changesets, 0 problems; ui `test:parity` 5,007 passed (36 files, Chromium, WebKit, Firefox).
