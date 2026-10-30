@@ -31,6 +31,12 @@ class Counter {
 }
 ```
 
+### `default` (function)
+
+```ts
+function default(): string;
+```
+
 ### `DEFAULT_SIZE` (const)
 
 ```ts

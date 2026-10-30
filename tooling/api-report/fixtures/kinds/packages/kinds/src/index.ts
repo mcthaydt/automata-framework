@@ -74,3 +74,8 @@ export const Point: { readonly origin: Point } = { origin: { x: 0, y: 0 } }
 const hidden: number = 3
 
 export { hidden as visible }
+
+/** Greets: the module's default export, declared under its own name. */
+export default function greet(): string {
+  return 'hello'
+}

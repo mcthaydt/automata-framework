@@ -31,6 +31,15 @@
     {
       "package": "@fx/kinds",
       "entryPoint": ".",
+      "name": "default",
+      "kind": "function",
+      "signature": "function default(): string;",
+      "doc": "Greets: the module's default export, declared under its own name.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
       "name": "DEFAULT_SIZE",
       "kind": "const",
       "signature": "const DEFAULT_SIZE: Size;",

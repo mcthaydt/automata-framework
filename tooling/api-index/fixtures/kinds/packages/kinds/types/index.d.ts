@@ -60,5 +60,7 @@ export declare const Point: {
 };
 /** Exported under another name. */
 declare const hidden: number;
+/** Greets: the module's default export, declared under its own name. */
+export default function greet(): string;
 //#endregion
 export { helpers_d_exports as helpers, internalScale as scale, subtract, hidden as visible };
