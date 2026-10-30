@@ -13,13 +13,13 @@ export interface PageModules {
   readonly noEval: string
 }
 
-const escapeHtml = (text: string): string =>
+export const escapeHtml = (text: string): string =>
   text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
 
-const STYLE = `html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: #eee; }
+export const PAGE_STYLE = `html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: #eee; }
       body { font: 16px system-ui, sans-serif; }`
 
-function page(title: string, body: string, style = STYLE): string {
+function page(title: string, body: string, style = PAGE_STYLE): string {
   return `<!doctype html>
 <html lang="en">
   <head>
