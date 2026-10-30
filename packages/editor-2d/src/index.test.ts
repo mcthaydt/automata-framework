@@ -116,4 +116,10 @@ describe('editor-2d entry', () => {
     ]
     for (const member of functions) expect(member).toBeTypeOf('function')
   })
+
+  it('exports the level draw list, which draws a level through nothing but the entry', () => {
+    const grid = editor2d.Grid.empty(20, 2).set(0, 0, 1).set(17, 1, 2)
+    expect(grid.chunks().map((chunk) => chunk.cx)).toEqual([0, 1])
+    expect(editor2d.createLevelDrawList).toBeTypeOf('function')
+  })
 })
