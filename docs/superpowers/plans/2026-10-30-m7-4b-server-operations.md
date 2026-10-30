@@ -14,7 +14,7 @@
   `apps/server/src/rooms/room-telemetry.ts`, `packages/shared/src/common/ops-telemetry.ts`, `deploy/bin/report.mjs`,
   and the tests `tests/server/{process-safety,server-headers,telemetry-endpoint}.test.ts`,
   `tests/shared/common/ops-telemetry.test.ts`.
-- **Status:** planned.
+- **Status:** implemented and checked locally; Plus CI pending; not reviewed.
 
 ## Scope
 
@@ -160,8 +160,77 @@ export function formatReport(counts: ReportCounts): string
 `pnpm format`, `pnpm check` (lint, typecheck, boundaries, root tooling tests, every package's `test:unit`); the server
 suite three runs in a row. Pending: Plus CI, review.
 
+## As built (deviations and decisions for the Owner's veto)
+
+- **The content load does not block the start.** The runtime listens, returns, and builds the throwaway sim beside
+  itself; `/ready` flips and `server.started` is logged when it finishes. A blocking load held M7.3b's
+  drain-during-create test (a plugin whose engine waits on a gate) forever. Content that cannot build a sim leaves the
+  server alive but never ready, with one `start.refused` line (`code: 'content'`), rather than failing the start: a
+  deploy waiting on `/ready` then leaves the live colour serving (D-c). Rooms are not refused while starting.
+- **Session check in Colyseus's static `onAuth`.** It runs before a room is created or a seat reserved, so a forged
+  token opens nothing. It also parses `JoinOptions` there, so a matchmaking request without valid options is now
+  refused before it opens a room (523, Colyseus's status for a refusal). `start-server.test.ts`' "stops answering once
+  its scope closes" now sends valid join options (same assertion); before, an empty POST opened a room. The token
+  verified is `JoinOptions.session` (net's field), not Colyseus's `Authorization` token; a verifier that fails in any
+  other way refuses. The anonymous verifier answers `playerId: 'anonymous'`.
+- **Schema narrowed.** §4.5's `room` and `code` are `z.string()`; here `room` is digits and `code` an identifier
+  (`^[A-Za-z][A-Za-z0-9_.-]{0,47}$`). Redaction is by allowlist of the schema's fields; a line that still fails is
+  written as `log.invalid`. Levels: `fatal` for `fatal` and `start.refused`; `warn` for refusals, slow and late
+  ticks, room errors, `replay.failed`, `log.invalid` and Colyseus's errors; `info` otherwise.
+- **Events added beyond §4.5's list:** `server.started`, `start.refused`, `step.slow`, `log.invalid`,
+  `colyseus.warn`, `colyseus.error` (M7.3b already added `room.error`, `replay.failed`, `drain.room`). `seat.left`
+  carries `code: 'grace'` for a seat given up after a drop.
+- **Colyseus's logger** is replaced by a text-free one (`colyseusLogger`); its info and debug go nowhere. Colyseus's
+  logger is process-global, so the last server built in a process owns it.
+- **Cooldown:** `tick.slow`, `step.slow` and `input.late` (per seat) are written at most once a room per ten seconds,
+  applied in the Colyseus room's log wrapper so the engine's tests and SV-b are unchanged. The report counts lines,
+  so its slow ticks are a lower bound (zero stays zero, which D-b reads).
+- **Test switches are config fields** (`seed`, `manualClock`, a fake `verifier`), refused when the config's env says
+  `NODE_ENV=production`, with an empty origin list. No `AUTOMATA_*` env test switch exists to refuse.
+  `serverConfigFromEnv` requires `MAX_ROOMS` and `ALLOWED_ORIGINS` in every environment (spec §4.3 has no
+  development exception; FloorFifty had one). `PORT` defaults to 3000.
+- **security.txt** is served only when `SECURITY_CONTACT` and `SECURITY_EXPIRES` (or `ServerConfig.securityTxt`) are
+  set; AF has no contact of its own. FloorFifty's `release:check` expiry guard is M7.7's if wanted.
+- **`/health`** answers `{ ok: true }` only; FloorFifty's build facts there were for its client boot check, which is
+  M7.4a's version gate.
+- **Report (minimal, spec vague):** `automata-server report <log-file> [--days N] [--json]`; restarts are
+  `server.started` lines; fatal classes include refused starts as `start.<cause>`; sockets given up are `seat.left`
+  with `grace`; peak live rooms is created less disposed, reset at each `server.started` (with two colours writing
+  one journal this is approximate; a periodic room-count event would be exact). The bin imports only Node so Node can
+  run it from source.
+- **Overlap with M7.4a:** SV-d's "refuses to start ... with a test switch set, naming it" is met here
+  (`testSwitchesSet`, the `createServerRuntime` refusal test); M7.4a owns SV-d's origin half. Both rows touch
+  `start-server.ts` and `automata-room.ts` (`onAuth`), so the second to merge resolves there.
+
+## Ported and dropped
+
+- **Ported:** `process-safety.ts` (guard naming every switch, crash handlers: one fatal line, exit 1, class only;
+  FloorFifty's line also had the stack, dropped because the schema has no field for it and a stack can echo client
+  text); `security-txt.ts` (fields, `text/plain`, nosniff); `colyseus-server.ts`' `/health`, `/ready` with
+  `PROBE_HEADERS` and its wrapping of Colyseus's request listeners; `room-telemetry.ts`' slow-tick threshold (half a
+  tick) and anomaly cooldown; `ops-telemetry.ts`' strict schema with identifier-only free values; `main.ts`' entry
+  shape (refuse, crash handlers, start, drain); `report.mjs`' counts and layout.
+- **Ported test cases:** process-safety 7 of 9 (production with limits starts, each switch refused, every switch
+  named, empty value ignored, outside production allowed, rejection and exception crash lines); server-headers'
+  probe headers (2) and security.txt (2); ops-telemetry's "refuses any field" and "refuses a message dressed as a
+  class".
+- **Dropped:** the telemetry HTTP endpoint and `telemetry-config.ts` (PD-5; spec §4.3's table cuts ops telemetry) and
+  all 9 `telemetry-endpoint.test.ts` cases; the verbose-telemetry switch and its case; ops-telemetry's client event
+  shapes (boot, asset-failure, socket, phase, rejection) and its load-id case (client telemetry, cut);
+  `room-telemetry.ts`' summaries, distributions, physics counters, patch timings, invariant and build-skew lines and
+  the debug endpoint; `/content` and its ETag cases (AF content ships in the build); `/health`'s build facts;
+  `colyseus-app.ts` (the room is defined in `createServerRuntime`); the FLOOR_FIFTY env names; the MAX_ROOMS-unset
+  development opening; the periodic `rooms` count line (peak rooms come from created and disposed).
+
 ## Execution log
 
 | Date | Step | Evidence |
 |---|---|---|
-| 2026-10-30 | Plan | This file |
+| 2026-10-30 | Plan | This file (`192c8ce`) |
+| 2026-10-30 | serverLogLine, writer | 31 and 18 cases red (no module), then green |
+| 2026-10-30 | session verifier, room telemetry, probes, process safety | 8, 6, 13 and 11 cases red (no module), then green |
+| 2026-10-30 | Integration (SV-f, SV-g, SV-h, test switch) | 7 of 8 red for the expected reasons (a forged join seated; `/ready` not JSON; no refusal), then green after the wiring. SV-g first failed on the test's own order (a forged join into a full room is "locked"); the forged join now comes while a seat is free. The blocking content load hung M7.3b's drain-during-create test; the load now runs beside the server and SV-h gained "not ready before the content loads" (a gated plugin) and "never ready when it cannot load" |
+| 2026-10-30 | server-process, report | 6 and 12 cases red (no module), then green; the bin runs from source under Node 24 |
+| 2026-10-30 | Counts | new: schema 31, writer 18, probes 13, process-safety 11, server-process 6, server-operations 9 (SV-f 4, SV-g 1, SV-h 3, switch 1), session-verifier 8, room-telemetry 6, report 12 (114); server 303 in all (M7.3b's 189) |
+| 2026-10-30 | Merge | origin/main (M4.11 dev-tools) merged clean; `pnpm install` |
+| 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint, typecheck, boundaries 26 files 0 findings, root 163, net 89, pipelines 82, dev-tools 62, physics 71, server 303; server suite three runs in a row, 303 each (about 8 s) |
