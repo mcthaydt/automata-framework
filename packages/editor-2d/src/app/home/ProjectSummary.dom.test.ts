@@ -24,6 +24,7 @@ const withSummary: ProjectEntry = {
       { label: 'Monsters', value: 'None' },
     ],
   },
+  preview: undefined,
 }
 const withoutSummary: ProjectEntry = { ...withSummary, errors: 2, warnings: 1, summary: undefined }
 const broken: ProjectEntry = {

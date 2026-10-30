@@ -130,6 +130,24 @@ export function describeProjectStore(name: string, make: () => Promise<ProjectSt
       expect(await store.read('gone.txt')).toBeUndefined()
     })
 
+    test('a write that expects the file to be absent creates it, folders included', async () => {
+      const store = await make()
+      const created = await store.write('poses/new/wave.toml', 'one', 'absent')
+      expect(created.ok).toBe(true)
+      expect(text(await store.read('poses/new/wave.toml'))).toBe('one')
+    })
+
+    test('a write that expects the file to be absent is a conflict when it exists, and changes nothing', async () => {
+      const store = await make()
+      const first = await store.write('a.txt', 'one')
+      if (!first.ok) throw new Error('write should succeed')
+      const refused = await store.write('a.txt', 'two', 'absent')
+      expect(refused).toMatchObject({ ok: false, reason: 'conflict' })
+      expect(refused.ok === false && refused.message.length > 0).toBe(true)
+      expect(text(await store.read('a.txt'))).toBe('one')
+      expect((await statPath(store, 'a.txt'))?.mtime).toBe(first.mtime)
+    })
+
     test('a conflict explains itself', async () => {
       const store = await make()
       await store.write('a.txt', 'one')

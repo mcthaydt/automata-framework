@@ -1,4 +1,5 @@
 import type { HomeCard, ToastKind, Tone } from '@mcthaydt/automata-editor-kit/core'
+import type { LevelThumbnails } from '../../canvas/level-thumbnails'
 import type { ProfileRegistry } from '../../profiles/profile'
 import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../editor-app'
 import type { ProjectEntry } from '../project-list'
@@ -55,8 +56,18 @@ export function searchWords(entry: ProjectEntry): readonly string[] {
   return [entry.path, cardTitle(entry), kindLabel(entry)]
 }
 
-/** The kit's card for an entry. An undecided file has no kind yet, so no accent: its tile and pill are neutral. */
-export function homeCard(entry: ProjectEntry, registry: ProfileRegistry): HomeCard {
+/**
+ * The kit's card for an entry. An undecided file has no kind yet, so no accent: its tile and pill are neutral. With
+ * `thumbnails` (ED2D.4c3b), an entry whose profile names a level to preview draws it in the tile; the key changes with
+ * the file (path, size, time) and with its images, so the tile redraws after either changes.
+ */
+export function homeCard(
+  entry: ProjectEntry,
+  registry: ProfileRegistry,
+  thumbnails?: LevelThumbnails,
+): HomeCard {
+  const preview = entry.status === 'ok' ? entry.preview : undefined
+  const key = `${entry.path}|${entry.size}|${entry.mtime}|${preview?.images}`
   return {
     path: entry.path,
     title: cardTitle(entry),
@@ -65,6 +76,10 @@ export function homeCard(entry: ProjectEntry, registry: ProfileRegistry): HomeCa
     accent: entry.status === 'ambiguous' ? undefined : kindTone(registry, entry.profile.id),
     size: entry.size,
     mtime: entry.mtime,
+    preview:
+      thumbnails === undefined || preview === undefined
+        ? undefined
+        : { key, draw: () => thumbnails.thumbnail(key, preview) },
   }
 }
 

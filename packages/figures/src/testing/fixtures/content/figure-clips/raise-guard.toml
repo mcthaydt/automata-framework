@@ -1,0 +1,16 @@
+# A fixture clip (M3 spec §4.4.4), for tests and examples; no game's. A stance: the guard comes up and is held
+# until the sim lowers it, the arms and torso only, so it plays over the walk.
+
+length = 0.25
+loop = "hold"
+mask = [ "armL", "armR", "torso" ]
+blend = { inMs = 120, outMs = 120 }
+
+[[keys]]
+t = 0
+pose = "stand"
+
+[[keys]]
+t = 0.25
+pose = "guard-high"
+ease = "out"

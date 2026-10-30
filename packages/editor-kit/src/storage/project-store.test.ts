@@ -39,4 +39,13 @@ describe('classifyStorageError', () => {
       message: 'full',
     })
   })
+
+  test('a policy refusal keeps its reason: a store with rules of its own gives it, the browser never does', () => {
+    expect(classifyStorageError(new StorageError('policy', 'content/editors.toml is never written'))).toEqual(
+      {
+        reason: 'policy',
+        message: 'content/editors.toml is never written',
+      },
+    )
+  })
 })

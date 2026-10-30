@@ -122,6 +122,16 @@ describe('cell chunks: tiles', () => {
     })
   })
 
+  it('draws a kept chunk again when its image was loaded again (a new generation), since the old texture is gone', () => {
+    const chunks = createCellChunks()
+    const cells = Grid.empty(4, 4).set(1, 1, 1)
+    const first = chunks.tiles(decor, cells, terrain, loaded, new Map([['assets/terrain.png', 1]]))[0]
+    expect(chunks.tiles(decor, cells, terrain, loaded, new Map([['assets/terrain.png', 1]]))[0]).toBe(first)
+    expect(chunks.tiles(decor, cells, terrain, loaded, new Map([['assets/terrain.png', 2]]))[0]).not.toBe(
+      first,
+    )
+  })
+
   it('draws a kept chunk again when the level grows, since a chunk that was cut by the edge is no longer', () => {
     const chunks = createCellChunks()
     const cells = Grid.empty(4, 4).set(1, 1, 1)
@@ -267,6 +277,20 @@ describe('cell chunks: auto', () => {
     expect(padded).not.toBe(reloaded)
     expect(padded[0]).not.toBe(reloaded[0])
     expect(padded[0]?.tiles[0]).not.toEqual(reloaded[0]?.tiles[0])
+  })
+
+  it('draws every auto chunk again when its image was loaded again, reusing none of the old chunk objects', () => {
+    const chunks = createCellChunks()
+    const source = hillGrid()
+    const layer = instance(Grid.empty(5, 4))
+    const first = chunks.auto(ground, layer, source, terrain, loaded, new Map([['assets/terrain.png', 1]]))
+    expect(chunks.auto(ground, layer, source, terrain, loaded, new Map([['assets/terrain.png', 1]]))).toBe(
+      first,
+    )
+    const again = chunks.auto(ground, layer, source, terrain, loaded, new Map([['assets/terrain.png', 2]]))
+    expect(again).not.toBe(first)
+    expect(again[0]).not.toBe(first[0])
+    expect(again[0]).toEqual(first[0])
   })
 
   it('keeps the auto chunks an IntGrid edit cannot reach, and redraws only the ones it can', () => {

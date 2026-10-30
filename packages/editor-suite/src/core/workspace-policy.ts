@@ -3,6 +3,7 @@
 // generated, then the first editable row. The Node workspace (EDS.1d) puts every write through this; it is pure, so
 // the browser shows the same reasons before anything is sent.
 
+import type { UnlistedFile, WorkspaceFile } from '@mcthaydt/automata-editor-kit/ports'
 import { EDITOR_LIST_PATH, type EditorList, type FileRow } from './editors.schema'
 import { globMatch } from './glob'
 
@@ -36,6 +37,9 @@ export type FileAccess =
       readonly reason: 'outside' | 'never' | 'generated' | 'unlisted'
       /** A sentence for the person, naming the glob that decided it. */
       readonly why: string
+      /** For a never or generated path, the first row whose glob also matches: the editor that shows it, read only. */
+      readonly row?: FileRow
+      readonly scene?: string
     }
 
 /** A root-relative POSIX path: not empty or absolute, and no empty, `.` or `..` segment and no backslash. */
@@ -44,16 +48,22 @@ function insideRoot(path: string): boolean {
   return path.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..')
 }
 
+/** The first row whose glob matches `path`, with the scene its `{scene}` matched. */
+function firstRow(list: EditorList, path: string): { row: FileRow; scene?: string } | undefined {
+  for (const row of list.file) {
+    const match = globMatch(row.glob, path)
+    if (match === undefined) continue
+    return match.scene === undefined ? { row } : { row, scene: match.scene }
+  }
+  return undefined
+}
+
 const readOnly = (
   path: string,
   reason: 'outside' | 'never' | 'generated' | 'unlisted',
   why: string,
-): FileAccess => ({
-  writable: false,
-  path,
-  reason,
-  why,
-})
+  matched?: { row: FileRow; scene?: string },
+): FileAccess => ({ writable: false, path, reason, why, ...matched })
 
 /** Whether the suite may write `path` (root-relative), and through which row; read only with the reason otherwise. */
 export function fileAccess(list: EditorList, path: string): FileAccess {
@@ -62,17 +72,33 @@ export function fileAccess(list: EditorList, path: string): FileAccess {
     [...ALWAYS_NEVER, ...list.gate.map((gate) => gate.records)].find(
       (glob) => globMatch(glob, path, { ignoreCase: true }) !== undefined,
     ) ?? list.never.find((glob) => globMatch(glob, path) !== undefined)
-  if (never !== undefined) return readOnly(path, 'never', `never written by an editor (${never})`)
+  const matched = firstRow(list, path)
+  if (never !== undefined) return readOnly(path, 'never', `never written by an editor (${never})`, matched)
   const generated = list.generated.find((glob) => globMatch(glob, path) !== undefined)
   if (generated !== undefined) {
-    return readOnly(path, 'generated', `generated (${generated}); change its source instead`)
+    return readOnly(path, 'generated', `generated (${generated}); change its source instead`, matched)
   }
-  for (const row of list.file) {
-    const match = globMatch(row.glob, path)
-    if (match === undefined) continue
-    return match.scene === undefined
-      ? { writable: true, path, row }
-      : { writable: true, path, row, scene: match.scene }
-  }
+  if (matched !== undefined) return { writable: true, path, ...matched }
   return readOnly(path, 'unlisted', `no row of ${EDITOR_LIST_PATH} lists it`)
+}
+
+/**
+ * The workspace port's view of `path` (editor-kit `WorkspaceFile`, editor suite spec §4.3): the row's editor, scene,
+ * gates, checks and modes, and whether the suite may write it. A path no row matches (or outside the root) has no
+ * editor, only the reason. The memory workspace and the disk adapter (EDS.1d) both class paths through this.
+ */
+export function workspaceFile(list: EditorList, path: string): WorkspaceFile | UnlistedFile {
+  const access = fileAccess(list, path)
+  const { row } = access
+  if (row === undefined) return { path, writable: false, why: access.writable ? '' : access.why }
+  return {
+    path,
+    editor: row.editor,
+    ...(access.scene === undefined ? {} : { scene: access.scene }),
+    gates: row.gates,
+    checks: row.checks,
+    modes: row.modes,
+    writable: access.writable,
+    ...(access.writable ? {} : { why: access.why }),
+  }
 }
