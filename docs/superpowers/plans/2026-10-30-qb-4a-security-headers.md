@@ -40,7 +40,7 @@ final HTML: every inline `<script>` is hashed. A build has 29 such scripts, one 
    (fail first).
 4. [x] `tests/check-deployed.test.ts`: `checkHeaders` reports a missing or different header by path (fails first); the
    `--local` run checks both.
-5. [ ] Gates: `pnpm check`, `pnpm test`, `pnpm build`, `pnpm check:site`, `pnpm check:deployed --local`; the browser
+5. [x] Gates: `pnpm check`, `pnpm test`, `pnpm build`, `pnpm check:site`, `pnpm check:deployed --local`; the browser
    suite in Chromium and WebKit for the pages whose scripts run (every page's console gate).
 
 ## Not in this task
@@ -60,5 +60,7 @@ alerts (QB.4b); the rollback (QB.4c).
   passed.
 - **Step 4.** The `checkHeaders` cases and the `--local` run failed first, then passed.
 - **Step 5 (in part).** `pnpm check` 0 errors; `pnpm test` 53 files, 340 passed, 1 expected fail; `pnpm build`;
-  `pnpm check:site` 28 pages; `pnpm check:deployed --local` passed with the headers on `/` and `/llms.txt`. The browser
-  suite (Chromium and WebKit) under the policy is running.
+  `pnpm check:site` 28 pages; `pnpm check:deployed --local` passed with the headers on `/` and `/llms.txt`. The full
+  browser suite under the policy and the header set (Chromium 153 headless shell and WebKit 26.6, two workers): 458
+  passed, 2 skipped, 12.1 min. Its console-error gate would have failed on any CSP violation, and "hydration requests
+  its modules only after the first contentful paint" passing in both engines shows the hashed start script ran.
