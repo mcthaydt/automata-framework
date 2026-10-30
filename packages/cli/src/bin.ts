@@ -109,7 +109,14 @@ async function addCommand(
     return 2
   }
   const { kit, dir, repo, force } = parsed.options
-  const outcome = await add({ kit, gameDir: resolve(process.cwd(), dir), repo, force })
+  let outcome: AddResult | AddError
+  try {
+    outcome = await add({ kit, gameDir: resolve(process.cwd(), dir), repo, force })
+  } catch (error) {
+    // A crash (a file the CLI may not read, say) could not run the add: exit 2, never 1, which means the check failed.
+    io.stderr(`Error: ${error instanceof Error ? error.message : String(error)}\n`)
+    return 2
+  }
   if ('reason' in outcome) {
     io.stderr(`Error: ${outcome.message}\n`)
     return addExitCode(outcome)

@@ -254,6 +254,27 @@ describe('bin cli', () => {
       expect(code).toBe(2)
     })
 
+    it('an unexpected crash is exit 2 with its message, never exit 1 (which means the check failed)', async () => {
+      let stderr = ''
+      const code = await runCli(
+        ['add', 'lobby'],
+        {
+          stdout: () => {},
+          stderr: (msg) => {
+            stderr += msg
+          },
+        },
+        async () => {
+          throw new Error('automata add runs its own check')
+        },
+        async () => {
+          throw new Error("EACCES: permission denied, lstat '/game/src'")
+        },
+      )
+      expect(stderr).toBe("Error: EACCES: permission denied, lstat '/game/src'\n")
+      expect(code).toBe(2)
+    })
+
     it('a usage error is exit 2, shows the usage and adds nothing', async () => {
       const { code, stderr, calls } = await runAddCli(['add'], added(passing))
       expect(code).toBe(2)
