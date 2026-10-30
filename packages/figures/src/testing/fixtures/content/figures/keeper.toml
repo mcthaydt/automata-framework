@@ -1,0 +1,93 @@
+# The keeper, an old lamplighter: the second fixture figure, built from the libraries alone. Tall, long-legged
+# and long-armed, with a hunch and the elderly gait, a coat and a flat cap, cropped grey hair. Its sliders are
+# testing/fixture-sliders.ts KEEPER_SLIDERS.
+
+skin = "pale"
+gait = "elderly"
+hand = "L"
+default = "lamplighter"
+stand = "hand-in-jacket-pocket"
+
+[sliders]
+height = 186
+frame = 0.2
+legs = 0.75
+arms = 0.85
+shoulders = 0.6
+head = 0.4
+neckLength = 0.6
+posture = 0.2
+age = 0.85
+hunch = 0.4
+chunk = 0.6
+muscle = 0.3
+fat = 0.2
+
+[sliders.face]
+jaw = 0.7
+chin = 0.65
+bridge = 0.8
+browWeight = 0.8
+hood = 0.6
+
+[hair]
+stiff = 70
+trail = 0.15
+
+# Each outfit is a list of garments, one table each, so a diagnostic points at the garment's own line.
+[[outfits.lamplighter]]
+top = "starch"
+sleeves = "long"
+collar = "starch-shade"
+
+[[outfits.lamplighter]]
+waistcoat = "tweed"
+
+[[outfits.lamplighter]]
+trousers = "charcoal"
+
+[[outfits.lamplighter]]
+shoes = "boot-brown"
+sole = "boot-sole"
+boots = true
+
+[[outfits.lamplighter]]
+coat = "navy-deep"
+length = 0.8
+buttons = "brass"
+
+[[outfits.lamplighter]]
+hair = "steel-grey"
+style = "cropped"
+
+[[outfits.lamplighter]]
+cap = "tweed"
+style = "flat"
+
+[[outfits.lamplighter]]
+eyes = "eye-dark"
+brows = "steel-grey"
+lids = "pale-lid"
+
+[[outfits.shirtsleeves]]
+top = "starch"
+sleeves = "short"
+
+[[outfits.shirtsleeves]]
+trousers = "charcoal"
+
+[[outfits.shirtsleeves]]
+belt = "boot-brown"
+buckle = "brass"
+
+[[outfits.shirtsleeves]]
+shoes = "boot-brown"
+boots = true
+
+[[outfits.shirtsleeves]]
+hair = "steel-grey"
+style = "cropped"
+
+[[outfits.shirtsleeves]]
+eyes = "eye-dark"
+brows = "steel-grey"

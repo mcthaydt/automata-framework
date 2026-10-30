@@ -1,0 +1,15 @@
+# `handInPocket` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/poses.json at a1f7246 (the stands); fallbacks in kebab-case.
+
+about = "Upright and still, the weight back, the near hand down in a front pocket with the forearm angled to it from an elbow out at the side, the other arm hanging with a soft bend, the chin level."
+weight = "L"
+shift = 0.03
+roll = 0.07
+under = 0.25
+free = [0.12, 0.02, 0.3, 0.02]
+chest = [0.03, -0.05, -0.03]
+head = [-0.12, 0, -0.06]
+fallback = ["hand-in-jacket-pocket", "hip-and-pocket", "hand-on-hip"]
+
+[hands]
+R = { at = "frontPocket", elbow = 0.2 }
+L = { out = 0.07, bend = 0.22 }
