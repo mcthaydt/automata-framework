@@ -33,9 +33,9 @@ agent packs (PRODUCT spec §6). Core lives in the framework repository, `mcthayd
 - To move core: set `core.ref` to the new commit, run `pnpm core:sync` and `pnpm install`, and commit `core.ref`,
   `pnpm-workspace.yaml` and `pnpm-lock.yaml` together. On a fresh checkout, run `pnpm core:sync` before
   `pnpm install`.
-- A Plus package imports core only through core's public entries (PRODUCT.1b enforces it with the F1 boundary test).
-  It lists core under `peerDependencies` and never under `dependencies`; `devDependencies` may list core for the
-  package's own tests (`tooling/core/manifest-rules.ts` enforces both rules).
+- A Plus package imports core only through core's public entries (PRODUCT.1b1 will enforce it with the F1 boundary
+  test, which is not built yet). It lists core under `peerDependencies` and never under `dependencies`;
+  `devDependencies` may list core for the package's own tests (`tooling/core/manifest-rules.ts` enforces both rules).
 - Core is the framework's. Never copy, patch or redefine a core contract here: anything core lacks goes to the
   framework as a request (one contract owner).
 
