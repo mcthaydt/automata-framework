@@ -19,7 +19,7 @@ export const BOB = 0.03
 /** The leading knee's least bend as its heel strikes, as the hips' drop over a straight leg (m at k 1): about 14°. */
 const SOFT = 0.006
 
-export interface LegsContext {
+interface LegsContext {
   /** The stand when standing (not walking, not mid-turn), else null. */
   readonly stand: Stand | null
   /** The cycle's phase as it plays (reversed backing away), or the shuffle's. */

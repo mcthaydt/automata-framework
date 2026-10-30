@@ -10,7 +10,7 @@ import { smooth, type V3 } from '../math/math'
 import type { Side, Skeleton } from '../rig/rig'
 
 export const TAU: number = Math.PI * 2
-export const frac = (v: number): number => v - Math.floor(v)
+const frac = (v: number): number => v - Math.floor(v)
 export const sideSign = (s: Side): number => (s === 'L' ? 1 : -1)
 /** The heel-to-toe roll: toes up as the heel strikes (rad), and the heel up as the toes push off (the gait's own, else these). */
 const HEEL_ = 0.22
