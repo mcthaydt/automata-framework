@@ -68,7 +68,7 @@ export function tagTiles(project: Project, tileset: string, tag: string, tiles: 
   return replaceTileset(project, { ...def, tags })
 }
 
-/** Takes `tiles` out of `tag`; a tag left with no tiles is dropped. */
+/** Takes `tiles` out of `tag`; a tag left with no tiles is dropped. A tag the tileset does not have throws `RangeError`. */
 export function untagTiles(
   project: Project,
   tileset: string,
@@ -77,7 +77,7 @@ export function untagTiles(
 ): Project {
   const def = tilesetOf(project, tileset)
   const existing = def.tags.find((candidate) => candidate.tag === tag)
-  if (existing === undefined) return project
+  if (existing === undefined) throw new RangeError(`no tag "${tag}" in tileset "${tileset}"`)
   const removed = new Set(tiles)
   const kept = existing.tiles.filter((tile) => !removed.has(tile))
   if (kept.length === existing.tiles.length) return project

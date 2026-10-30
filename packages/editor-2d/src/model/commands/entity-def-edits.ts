@@ -10,9 +10,12 @@ import { entityDefOf } from './field-owner'
 // its tileset has). What changes the meaning of existing instances, its fields, is `field-edits.ts`; deleting one is
 // `deleteDefinition`.
 
-/** What can change on a definition without touching an instance. `undefined` clears an optional property. */
+/**
+ * What can change on a definition without touching an instance. `undefined` clears an optional property. Making a
+ * definition `single` keeps every instance; a level that then holds two is the Checks' `singleExceeded`.
+ */
 export type EntityDefPatch = Partial<
-  Pick<EntityDef2D, 'label' | 'color' | 'shape' | 'size' | 'pivot' | 'tile' | 'tags' | 'min'>
+  Pick<EntityDef2D, 'label' | 'color' | 'single' | 'shape' | 'size' | 'pivot' | 'tile' | 'tags' | 'min'>
 >
 
 function checkDefinition(project: Project, def: EntityDef2D): void {

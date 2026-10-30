@@ -5,6 +5,7 @@ import {
   ruleGroupSchema,
   ruleSchema,
 } from '../../tiles/autotile/rule.schema'
+import { type RuleContext, type RuleIssue, ruleIssues } from '../../tiles/autotile/rule-issues'
 import type { AutoLayerDef, Project } from '../project-types'
 import { tilesetTiles } from '../tileset-grid'
 import {
@@ -58,34 +59,24 @@ export function newRule(id: string): Rule {
   }
 }
 
-interface LayerContext {
-  readonly values: ReadonlySet<number>
-  readonly tileCount: number
-}
+/** What the engine's own diagnostics report as a problem the editor must not write. */
+const REFUSED: ReadonlySet<RuleIssue['code']> = new Set(['valueUnknown', 'tileOutOfRange'])
 
-function contextOf(project: Project, def: AutoLayerDef): LayerContext {
+function contextOf(project: Project, def: AutoLayerDef): RuleContext {
   const source = project.defs.layers.find((candidate) => candidate.id === def.source)
   const values = new Set(source?.kind === 'intgrid' ? source.values.map((value) => value.value) : [])
   return { values, tileCount: tilesetTiles(tilesetOf(project, def.tileset)).count }
 }
 
-function checkValue(value: number, context: LayerContext, where: string): void {
-  if (!context.values.has(value)) throw new RangeError(`${where}: the source layer has no value ${value}`)
-}
-
-function checkCell(cell: PatternCell, context: LayerContext, where: string): void {
-  if (typeof cell === 'object') checkValue('is' in cell ? cell.is : cell.not, context, where)
-}
-
-function checkRule(rule: Rule, context: LayerContext): void {
-  const where = `rule "${rule.id}"`
-  checkShape(ruleSchema, rule, where)
-  for (const tile of rule.tiles) {
-    if (tile >= context.tileCount)
-      throw new RangeError(`${where}: tile ${tile} is beyond the tileset's ${context.tileCount} tiles`)
-  }
-  for (const cell of rule.pattern) checkCell(cell, context, where)
-  if (rule.outside !== 'same' && rule.outside !== 0) checkValue(rule.outside, context, where)
+/**
+ * The rule's shape, then the engine's `ruleIssues` for it alone, switched on (a rule that is off is still checked, so
+ * switching it on later cannot write a problem): a `valueUnknown` or `tileOutOfRange` issue throws with its message.
+ */
+function checkRule(rule: Rule, context: RuleContext): void {
+  checkShape(ruleSchema, rule, `rule "${rule.id}"`)
+  const alone: RuleGroup = { id: 'check', label: '', active: true, rules: [{ ...rule, active: true }] }
+  const refused = ruleIssues([alone], context).find((issue) => REFUSED.has(issue.code))
+  if (refused !== undefined) throw new RangeError(refused.message)
 }
 
 /** Every group and rule of an auto layer that is about to be added: shapes, unique ids and each rule against the layer. */

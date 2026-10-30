@@ -113,9 +113,12 @@ describe('tagTiles and untagTiles', () => {
     expect(tagsOf(gone).map((tag) => tag.tag)).toEqual(['solid', 'water', 'ladder', 'one-way', 'decor'])
   })
 
-  it('returns the same project when nothing carries the tag', () => {
+  it('returns the same project when the tag does not carry those tiles', () => {
     const project = platformer()
     expect(untagTiles(project, 'terrain', 'hazard', [3])).toBe(project)
-    expect(untagTiles(project, 'terrain', 'missing', [3])).toBe(project)
+  })
+
+  it('throws for a tag the tileset does not have, like any other missing id', () => {
+    expect(() => untagTiles(platformer(), 'terrain', 'missing', [3])).toThrow(/no tag "missing"/)
   })
 })

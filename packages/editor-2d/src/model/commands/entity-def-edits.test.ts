@@ -98,6 +98,14 @@ describe('editEntityDef', () => {
     expect(editEntityDef(project, 'coin', {})).toBe(project)
   })
 
+  it('makes a definition single and back, which the Checks then hold each level to', () => {
+    const single = editEntityDef(platformer(), 'coin', { single: true })
+    expect(defOf(single, 'coin')?.single).toBe(true)
+    expect(defOf(editEntityDef(single, 'coin', { single: false }), 'coin')?.single).toBe(false)
+    const cleared = editEntityDef(single, 'coin', { single: undefined })
+    expect('single' in (defOf(cleared, 'coin') ?? {})).toBe(false)
+  })
+
   it('refuses a bad value and an unknown definition', () => {
     expect(() => editEntityDef(platformer(), 'coin', { size: { w: -1, h: 8 } })).toThrow(RangeError)
     expect(() => editEntityDef(platformer(), 'coin', { tile: { tileset: 'terrain', index: 99 } })).toThrow(

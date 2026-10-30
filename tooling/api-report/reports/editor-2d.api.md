@@ -456,7 +456,7 @@ type EntityDef2D = EntityDef & {
 ### `EntityDefPatch` (type)
 
 ```ts
-type EntityDefPatch = Partial<Pick<EntityDef2D, 'label' | 'color' | 'shape' | 'size' | 'pivot' | 'tile' | 'tags' | 'min'>>;
+type EntityDefPatch = Partial<Pick<EntityDef2D, 'label' | 'color' | 'single' | 'shape' | 'size' | 'pivot' | 'tile' | 'tags' | 'min'>>;
 ```
 
 ### `EntityInstance` (interface)

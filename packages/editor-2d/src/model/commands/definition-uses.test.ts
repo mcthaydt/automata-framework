@@ -44,6 +44,26 @@ describe('definitionUses', () => {
     expect(definitionUses(slimes(), { kind: 'entity', id: 'checkpoint' })).toEqual([])
   })
 
+  it("does not count a value equal to the field's stand-in, which an instance gets without anyone choosing it", () => {
+    // Slime hp defaults to 3: slime-a holds 3, slime-b 4 and slime-c 5.
+    expect(paths(slimes(), { kind: 'field', owner: { entity: 'slime' }, id: 'hp' })).toEqual([
+      'levels[level-1].layers[entities].items[slime-b].fields.hp',
+      'levels[level-2].layers[entities].items[slime-c].fields.hp',
+    ])
+    const tinted = withEntities(slimes(), 'level-2', [entity('slime-d', 'slime', 0, 0, { tint: '#7c3aed' })])
+    const ref: DefinitionRef = { kind: 'field', owner: { entity: 'slime' }, id: 'tint' }
+    expect(paths(tinted, ref)).toEqual(['levels[level-1].layers[entities].items[slime-b].fields.tint'])
+  })
+
+  it('deletes a field whose holders all hold its stand-in without asking, and removes those values', () => {
+    const defaults = withEntities(platformer(), 'level-1', [
+      entity('slime-a', 'slime', 0, 0, { hp: 3, tint: '#7c3aed' }),
+    ])
+    const result = deleteDefinition(defaults, { kind: 'field', owner: { entity: 'slime' }, id: 'tint' })
+    if (!result.ok) throw new Error('refused')
+    expect(items(result.project).find((item) => item.id === 'slime-a')?.fields).toEqual({ hp: 3 })
+  })
+
   it('lists the instances and levels that hold a value for a field', () => {
     expect(paths(slimes(), { kind: 'field', owner: { entity: 'slime' }, id: 'tint' })).toEqual([
       'levels[level-1].layers[entities].items[slime-b].fields.tint',

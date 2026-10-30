@@ -32,7 +32,8 @@ function checkFitsProject(project: Project, def: LayerDef): void {
     if (ids.size !== def.values.length || numbers.size !== def.values.length)
       throw new RangeError(`layer "${def.id}" repeats a value or a value id`)
   }
-  if (def.kind === 'objects') return
+  // Only a layer that holds cells has the codec's cell limit: an entities layer's grid snaps, an objects layer has none.
+  if (def.kind === 'objects' || def.kind === 'entities') return
   for (const level of project.levels) {
     const { cols, rows } = layerCells(level.size, def.grid)
     if (cols > MAX_LAYER_CELLS || rows > MAX_LAYER_CELLS)

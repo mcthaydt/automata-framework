@@ -4,6 +4,7 @@ import {
   type FieldDef,
   type FieldValues,
   renameFieldValues,
+  renameField as renameKitField,
   valuesWithDefaults,
 } from '@mcthaydt/automata-editor-kit/fields'
 import type { Project } from '../project-types'
@@ -88,12 +89,23 @@ export function retypeField(
   }
 }
 
-/** Changes a field's id and moves every value with it. It never refuses: the values are the same values. */
+const RENAME_REFUSAL = {
+  unknownField: (from: string) => `no field "${from}"`,
+  badId: (_from: string, to: string) => `"${to}" is not a field id`,
+  duplicateFieldId: (_from: string, to: string) => `field id "${to}" is already used`,
+} as const
+
+/**
+ * Changes a field's id with the kit's `renameField` and moves every value with it (`renameFieldValues`), keeping each
+ * value's place. It never refuses over values: they are the same values under the same rules.
+ */
 export function renameField(project: Project, owner: FieldOwner, from: string, to: string): Project {
-  const old = fieldsOf(project, owner).find((field) => field.id === from)
-  if (old === undefined) throw new RangeError(`no field "${from}"`)
-  const result = retypeField(project, owner, from, { ...old, id: to })
-  // A rename checks the same value against the same rules, so `checkRetype` can find nothing.
-  if (!result.ok) throw new RangeError(`renaming "${from}" broke ${result.uses.length} values`)
-  return result.project
+  // The kit renames a field of one definition; the owner's fields stand in as that definition, levels included.
+  const fields = fieldsOf(project, owner)
+  const renamed = renameKitField({ id: 'level', fields }, from, to)
+  if (!renamed.ok) throw new RangeError(RENAME_REFUSAL[renamed.code](from, to))
+  if (renamed.def.fields === fields) return project
+  return mapValues(withFields(project, owner, renamed.def.fields), owner, (values) =>
+    renameFieldValues(values, from, to),
+  )
 }

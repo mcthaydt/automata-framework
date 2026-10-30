@@ -1,4 +1,4 @@
-import type { FieldValues } from '@mcthaydt/automata-editor-kit/fields'
+import { defaultFieldValue, type FieldValues } from '@mcthaydt/automata-editor-kit/fields'
 import type { LayerInstance, Project } from '../project-types'
 import { type DefinitionUse, type GuardedEdit, layerDefOf } from './def-lookup'
 import {
@@ -90,10 +90,18 @@ function entityUses(project: Project, id: string): DefinitionUse[] {
   return uses
 }
 
+/**
+ * The holders whose value for the field someone chose. A value equal to the field's stand-in (`defaultFieldValue`) is
+ * what every instance gets on placement without anyone choosing it, so deleting it loses nothing and is not listed.
+ */
 function fieldUses(project: Project, owner: FieldOwner, id: string): DefinitionUse[] {
-  if (!fieldsOf(project, owner).some((field) => field.id === id)) throw new RangeError(`no field "${id}"`)
+  const field = fieldsOf(project, owner).find((candidate) => candidate.id === id)
+  if (field === undefined) throw new RangeError(`no field "${id}"`)
+  const standIn = defaultFieldValue(field)
+  const chosen = (values: FieldValues): boolean =>
+    hasValue(values, id) && (standIn === undefined || JSON.stringify(values[id]) !== JSON.stringify(standIn))
   return valueHolders(project, owner)
-    .filter((holder) => hasValue(holder.values, id))
+    .filter((holder) => chosen(holder.values))
     .map((holder) => ({
       path: `${holder.path}.fields.${id}`,
       message: `${holder.id} holds a value for "${id}".`,

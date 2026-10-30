@@ -147,6 +147,15 @@ describe('addLayerDef', () => {
     expect(addLayerDef(wide, { ...regions, grid: 8 }).defs.layers).toHaveLength(5)
   })
 
+  it('puts no cell limit on an entities layer, whose grid only snaps and holds no cells', () => {
+    const wide: Project = {
+      ...platformer(),
+      levels: platformer().levels.map((l) => ({ ...l, size: { w: 4100, h: 16 } })),
+    }
+    const things: LayerDef = { id: 'things', label: 'Things', kind: 'entities', grid: 4, snap: true }
+    expect(addLayerDef(wide, things).defs.layers.at(-1)).toBe(things)
+  })
+
   it('refuses a 65th layer', () => {
     let next = blankTemplate.create(counterIds())
     for (let i = next.defs.layers.length; i < 64; i++) next = addLayerDef(next, { ...regions, id: `r-${i}` })

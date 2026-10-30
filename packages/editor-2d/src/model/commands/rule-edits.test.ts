@@ -140,6 +140,14 @@ describe('addRule', () => {
     expect(addRule(platformer(), 'ground', 'hazards', { ...lava, outside: 0 })).not.toBe(platformer())
   })
 
+  it('checks a rule that is switched off as strictly as one that is on', () => {
+    expect(() => addRule(platformer(), 'ground', 'hazards', { ...lava, active: false, tiles: [64] })).toThrow(
+      /tile 64/,
+    )
+    const off = editRuleGroup(platformer(), 'ground', 'hazards', { active: false })
+    expect(() => addRule(off, 'ground', 'hazards', { ...lava, pattern: [{ is: 9 }] })).toThrow(/value 9/)
+  })
+
   it('refuses a shape the rule schema refuses and an index outside the group', () => {
     expect(() => addRule(platformer(), 'ground', 'hazards', { ...lava, size: 3 })).toThrow(/pattern/)
     expect(() => addRule(platformer(), 'ground', 'hazards', { ...lava, chance: 2 })).toThrow(RangeError)
