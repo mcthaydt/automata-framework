@@ -141,6 +141,8 @@ export const ROOM_SOURCE = 255
 - **8b-D7:** the browser parity gate (`pnpm test:parity`: Chromium, WebKit, Firefox) is checked locally, in this
   container, not in Plus CI: Plus CI runs `pnpm check`, which has no browser project, and a parity job is a workflow
   change that needs the Owner's words. The workflow is unchanged.
+- **8b-D8:** the starter is a private game, not a package: it lists core, net and physics under `dependencies` (the
+  peer rule in `tooling/core/manifest-rules.ts` covers `packages/` only).
 
 ## Execution log
 
