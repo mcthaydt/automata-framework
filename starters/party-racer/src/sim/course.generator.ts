@@ -46,10 +46,15 @@ function generateFloor(seed: number, index: number, below: CourseFloor, tuning: 
   return { index, x, y: below.y + tuning.floorGap, moving, speed: moving ? speed : 0 }
 }
 
+/** The height below which a racer respawns: deathLineMargin under the start floor. The one definition. */
+export function deathLineY(tuning: RaceTuning): number {
+  return -tuning.deathLineMargin
+}
+
 /** Builds the course for a seed: `tuning.floorCount` floors, the fixed start floor first. */
 export function createCourse(seed: number, tuning: RaceTuning): Course {
   const floors: CourseFloor[] = [{ index: 0, x: 0, y: 0, moving: false, speed: 0 }]
   for (let index = 1; index < tuning.floorCount; index++)
     floors.push(generateFloor(seed, index, floors[index - 1] as CourseFloor, tuning))
-  return { seed, floors, bounds: courseBounds(tuning), deathLineY: -tuning.deathLineMargin }
+  return { seed, floors, bounds: courseBounds(tuning), deathLineY: deathLineY(tuning) }
 }

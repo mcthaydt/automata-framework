@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { plusManifests } from '../core/manifest-rules.ts'
@@ -36,6 +36,14 @@ const simEntryFolders = ({ dir, manifest }: SimPackage): string[] => {
   })
 }
 
+/** Each starter's sim folder (`starters/<name>/src/sim`) that exists on disk. */
+const starterSimFolders: string[] = existsSync(`${root}starters`)
+  ? readdirSync(`${root}starters`, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && existsSync(`${root}starters/${entry.name}/src/sim`))
+      .map((entry) => `starters/${entry.name}/src/sim`)
+      .sort()
+  : []
+
 describe('the root scripts', () => {
   it('has at least one package with sim entries to check', () => {
     expect(simPackages.map(({ dir }) => dir)).toContain('packages/physics')
@@ -52,10 +60,13 @@ describe('the root scripts', () => {
         ).toBe(true)
   })
 
-  // PRODUCT.8b: a starter's sim exports no entry, but it is a sim all the same, so its folder is checked too.
+  // PRODUCT.8b: a starter's sim exports no entry, but it is a sim all the same, so every `starters/*/src/sim` folder
+  // is on the run.
   it('runs the boundaries checker over every starter sim folder', () => {
     const roots = (scripts.boundaries ?? '').split(/\s+/).slice(1)
-    expect(roots).toContain('starters/party-racer/src/sim')
+    expect(starterSimFolders.length).toBeGreaterThan(0)
+    for (const folder of starterSimFolders)
+      expect(roots, `${folder} is not a boundaries root`).toContain(folder)
   })
 
   it('makes check run lint, typecheck, boundaries and the tests', () => {

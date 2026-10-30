@@ -13,6 +13,8 @@ const racerFields = {
   /** True from the start until the racer's first input: they stand at the spawn and nothing moves them. */
   awaitingInput: 'bool',
   facingRight: 'bool',
+  /** False once the racer's seat has left (`seat.leave`): the racer stays where it was and plays no more. */
+  connected: 'bool',
   /** True on the tick a top contact resolved (a landing). Read within a tick, by presentation. */
   grounded: 'bool',
   /** After a lap, the racer rests at the spawn until this tick; -1 when not held. */

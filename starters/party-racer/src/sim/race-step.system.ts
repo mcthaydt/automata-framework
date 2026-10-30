@@ -1,7 +1,7 @@
 import { BodyKind, RigidBody2D, Transform2D } from '@mcthaydt/automata-physics/2d'
 import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
 import { type ContactFact, type ContactFloor, racerContacts } from './contacts'
-import { courseBounds } from './course.generator'
+import { courseBounds, deathLineY as deathLineOf } from './course.generator'
 import { Floor } from './floor.component'
 import { FloorLanded, LapCompleted, RaceFinished, RacerReset } from './race.event'
 import { Race } from './race.resource'
@@ -57,7 +57,8 @@ function prePhysics(ctx: SimContext, tuning: RaceTuning): void {
   for (const racer of ctx.query(Racer, HeldInput, RigidBody2D, Transform2D)) {
     const rules = racer.get(Racer)
     const held = racer.get(HeldInput)
-    if (rules.finishedAt >= 0 || isHeld(rules, ctx.tick)) {
+    // Out of play: finished, held after a lap, or their seat left (FloorFifty freezes a gone racer where it was).
+    if (rules.finishedAt >= 0 || !rules.connected || isHeld(rules, ctx.tick)) {
       standStill(racer)
       continue
     }
@@ -125,7 +126,7 @@ function postPhysics(ctx: SimContext, tuning: RaceTuning): void {
     floorHalfWidth: tuning.floorWidth / 2,
     floorHalfHeight: tuning.floorHeight / 2,
   }
-  const deathLineY = -tuning.deathLineMargin
+  const deathLineY = deathLineOf(tuning)
   for (const racer of ctx.query(Racer, HeldInput, RigidBody2D, Transform2D)) {
     const rules = racer.get(Racer)
     // Only a racer the step moved resolves contacts; a request from one that did not is dropped (a held racer's
@@ -213,7 +214,7 @@ function resolveLaps(ctx: SimContext, tuning: RaceTuning): void {
   const race = ctx.resource(Race)
   for (const racer of ctx.query(Racer, RigidBody2D, Transform2D)) {
     const rules = racer.get(Racer)
-    if (rules.finishedAt >= 0 || !ascentComplete(rules.visited)) continue
+    if (rules.finishedAt >= 0 || !rules.connected || !ascentComplete(rules.visited)) continue
     if (rules.lap < tuning.lapCount) {
       ctx.emit(LapCompleted, { seat: rules.seat, lap: rules.lap })
       const spawn = spawnPoint(tuning)
@@ -221,6 +222,8 @@ function resolveLaps(ctx: SimContext, tuning: RaceTuning): void {
       racer.set(Racer, {
         lap: rules.lap + 1,
         visited: freshVisited(tuning.floorCount),
+        // A respawn stands on the start floor (FloorFifty's respawnPlayer).
+        grounded: true,
         holdUntil: tuning.lapHoldTicks > 0 ? ctx.tick + tuning.lapHoldTicks : -1,
       })
       if (tuning.lapHoldTicks > 0) racer.set(RigidBody2D, { vx: 0, vy: 0 })

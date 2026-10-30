@@ -10,6 +10,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@mcthaydt/automata-net": "workspace:*",
     "@mcthaydt/automata-physics": "workspace:*",
     "@mcthaydt/automata-sim": "0.0.3",
     "zod": "4.6.6"

@@ -22,6 +22,11 @@
 | `simulation/planck/planck-simulation.ts` (tick order) | `src/sim/race-step.system.ts` (header comment) |
 | `common/tuning.ts` (race-mode subset) | `src/sim/tuning.schema.ts`; values are placeholder content in `src/content/` |
 
+A seat that leaves: FloorFifty freezes a disconnected racer (`isSimulated`) for input, contacts, wrap, deaths and laps.
+Here the sim hears only net's `seat.leave` (a leave, or a drop past the reconnect grace), which sets `Racer.connected`
+false with the same effect; a drop inside the grace never reaches the sim, and a later `seat.join` of the seat is a
+new player, so a racer is never revived (plan decision 8b-D6). FloorFifty's DNS standing is the room's (8c).
+
 Not ported (other modes or later rows): `simulation/endless.ts`, `survival.ts`, `level/steering.ts`,
 `level/tutorial.ts`, `level/demand.ts`, the ramp bands in `course.ts`, and the invariant asserts (a non-finite value
 already faults the sim: every f32/f64 field refuses one).

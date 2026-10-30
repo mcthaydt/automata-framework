@@ -2,7 +2,8 @@ import type { RaceTuning } from '../sim/tuning.schema'
 
 // Placeholder content (PRODUCT spec §3: the race's numbers are the game's). These values are the starter's own, in
 // metres, chosen so the climb works without FloorFifty's wall-riding margin: one bounce rises 2.34 m against a
-// 1.8 m gap, and a fast fall moves 0.25 m a tick at 60 Hz, under the 0.4 m floor, so no floor is passed in one tick.
+// 1.8 m gap. A fast fall moves 0.25 m a tick at 60 Hz; the schema allows up to half of floor plus racer height
+// (0.7 m) a tick, past which a racer could be pushed out under a floor instead of onto it.
 
 export const PLACEHOLDER_TUNING: RaceTuning = {
   viewportWidth: 19.2,

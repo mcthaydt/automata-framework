@@ -1,14 +1,24 @@
+import { ROOM_SOURCE as ROOM, SeatLeave } from '@mcthaydt/automata-net/sim'
 import { RigidBody2D, Transform2D } from '@mcthaydt/automata-physics/2d'
 import { type Command, createSim, type EntityRef, type Sim, type SimEvent } from '@mcthaydt/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { PLACEHOLDER_COURSE_SEED, PLACEHOLDER_TUNING } from '../content/placeholder.content'
-import { Floor, Race, RaceInput, RaceReset, Racer, RaceStart, racePlugins } from './index'
+import {
+  Floor,
+  RACE_TICK_HZ,
+  Race,
+  RaceInput,
+  RaceReset,
+  Racer,
+  RaceStart,
+  racePlugins,
+  raceTuningSchema,
+} from './index'
 
 // The race step on Rapier (FloorFifty's `planck-simulation.ts` tick order), through the sim as a room would drive it:
 // `race.start` from the room's source, then each seat's `race.input` and `race.reset`.
 
 const tuning = PLACEHOLDER_TUNING
-const ROOM = 255
 const SPAWN_Y = Math.fround(tuning.floorHeight / 2 + tuning.racerHeight / 2) // an f32 field
 const LEAVING = { vy: -1 } // falling onto whatever is below
 
@@ -68,6 +78,15 @@ describe('race.start', () => {
       expect(racer(seat).get(Racer)).toMatchObject({ lap: 1, awaitingInput: true, finishedAt: -1 })
     }
     expect(sim.resource(Race)).toMatchObject({ phase: 'racing', startedAt: 0, standings: [], winner: -1 })
+  })
+
+  // A client may send any game command the server forwards, so the race takes its start from the room alone.
+  it('is taken only from the room: a start from a seat is ignored', async () => {
+    sim = await createSim({ seed: 1, plugins: racePlugins(tuning) })
+    seq = 0
+    sim.step([command(0, RaceStart.id, { courseSeed: 5, seats: [0] })])
+    expect(sim.query(Racer)).toEqual([])
+    expect(sim.resource(Race).phase).toBe('waiting')
   })
 
   it('is taken once: a second start while racing is ignored', async () => {
@@ -193,8 +212,52 @@ describe('the race step', () => {
 
   it('ignores a command from a seat that has no racer', async () => {
     await startRace([0, 1])
-    run(1, [input(3, { right: true })])
-    expect(pos(0).y).toBe(SPAWN_Y)
+    run(1, [input(3, { right: true }), command(3, RaceReset.id, {})])
+    for (const seat of [0, 1]) {
+      expect(pos(seat)).toEqual({ x: 0, y: SPAWN_Y, rotation: 0 })
+      expect(racer(seat).get(Racer).awaitingInput).toBe(true)
+    }
+  })
+
+  it('leaves a racer whose seat left where it was: no input, no contacts, no lap', async () => {
+    await startRace([0, 1])
+    const f = floor(1).get(Transform2D)
+    place(0, { x: f.x, y: f.y + 1.2 }, LEAVING)
+    racer(0).set(Racer, { visited: '10111111' }) // one landing from completing the ascent
+    const events = raceEvents(run(1, [command(ROOM, SeatLeave.id, { seat: 0 })]))
+    const left = pos(0)
+    expect(racer(0).get(Racer).connected).toBe(false)
+    expect(events).toEqual([])
+    expect(raceEvents(run(60, [input(0, { right: true }), command(0, RaceReset.id, {})]))).toEqual([])
+    expect(pos(0)).toEqual(left)
+    expect(racer(0).get(Racer)).toMatchObject({ lap: 1, finishedAt: -1 })
+    // The other racer plays on.
+    run(1, [input(1, { right: true })])
+    expect(pos(1).y).toBeGreaterThan(SPAWN_Y)
+  })
+
+  it('lands a racer falling at the fastest fast fall the schema allows on top of the floor', async () => {
+    // The fall per tick stays under half of floorHeight + racerHeight, so the push-out always lifts (8b-D4).
+    const fastest = -(((tuning.floorHeight + tuning.racerHeight) / 2) * RACE_TICK_HZ) * 0.999
+    expect(raceTuningSchema.safeParse({ ...tuning, fastFallVelocity: fastest }).success).toBe(true)
+    expect(raceTuningSchema.safeParse({ ...tuning, fastFallVelocity: fastest / 0.99 }).success).toBe(false)
+    // Every phase of a tick's fall against the floor's top: the deepest the racer can reach before the push-out.
+    for (let phase = 0; phase < 8; phase++) {
+      sim = await createSim({
+        seed: 1,
+        tickHz: RACE_TICK_HZ,
+        plugins: racePlugins({ ...tuning, fastFallVelocity: fastest }),
+      })
+      seq = 0
+      sim.step([command(ROOM, RaceStart.id, { courseSeed: PLACEHOLDER_COURSE_SEED, seats: [0] })])
+      const top = sim.query(Floor).at(-1) as EntityRef // nothing above the top floor
+      place(0, { x: top.get(Transform2D).x, y: top.get(Transform2D).y + 4 + phase * 0.09 })
+      run(1, [input(0, { fastFall: true })])
+      run(30)
+      expect(pos(0).y).toBeGreaterThan(top.get(Transform2D).y)
+      expect(racer(0).get(Racer).visited.at(-1)).toBe('1')
+      sim.dispose()
+    }
   })
 })
 
@@ -216,7 +279,7 @@ describe('laps and the finish', () => {
       { type: 'race.floor-landed', payload: { seat: 0, floor: 1 } },
       { type: 'race.lap-completed', payload: { seat: 0, lap: 1 } },
     ])
-    expect(racer(0).get(Racer)).toMatchObject({ lap: 2, visited: '10000000' })
+    expect(racer(0).get(Racer)).toMatchObject({ lap: 2, visited: '10000000', grounded: true })
     expect(pos(0)).toMatchObject({ x: 0, y: SPAWN_Y })
     run(tuning.lapHoldTicks - 1)
     expect(pos(0)).toMatchObject({ x: 0, y: SPAWN_Y })

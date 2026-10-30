@@ -6,6 +6,12 @@ import { z } from 'zod'
 
 const positive = z.number().positive()
 
+/**
+ * The tick rate the race is tuned for, FloorFifty's 60 Hz and the sim's default: create the race's sim with it. The
+ * fast-fall bound below is per tick of this rate.
+ */
+export const RACE_TICK_HZ = 60
+
 const fields = z
   .object({
     /** Horizontal wrap width: a racer leaving one side enters the other. Floors stay one floor width inside it. */
@@ -50,6 +56,13 @@ export const raceTuningSchema: z.ZodType<RaceTuning> = fields
   })
   .refine((t) => t.movingSpeedMin <= t.movingSpeedMax, {
     message: 'movingSpeedMin must not exceed movingSpeedMax',
+  })
+  // Plus physics has no swept test, so a landing is found by overlap after the step and pushed out along the shallower
+  // axis. While one tick's fall stays under half of floorHeight + racerHeight, the racer's centre cannot pass the
+  // floor's, so the push-out always lifts it back on top (8b-D4). Checked at parse time, never inside a step.
+  .refine((t) => -t.fastFallVelocity / RACE_TICK_HZ < (t.floorHeight + t.racerHeight) / 2, {
+    message:
+      'one tick of fast fall must stay under half of floorHeight + racerHeight, or a racer can pass a floor',
   })
 
 /** A validated race tuning; each field is documented on `raceTuningSchema`'s object above. */

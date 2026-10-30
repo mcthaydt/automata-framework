@@ -1,3 +1,4 @@
+import { ROOM_SOURCE } from '@mcthaydt/automata-net/sim'
 import { BodyKind, body2d, collider2d, transform2d } from '@mcthaydt/automata-physics/2d'
 import { defineSystem, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
 import { createCourse } from './course.generator'
@@ -17,9 +18,6 @@ import type { RaceTuning } from './tuning.schema'
 const MATERIAL = { friction: 0, restitution: 0 } as const
 
 function startRace(ctx: SimContext, tuning: RaceTuning, courseSeed: number, seats: readonly number[]): void {
-  // Plus physics has no swept (CCD) test, so a fast fall must not cross a floor and a racer in one tick (8b-D4).
-  if (-tuning.fastFallVelocity * ctx.dt >= tuning.floorHeight + tuning.racerHeight)
-    throw new Error('fastFallVelocity at this tick rate passes through a floor in one tick')
   const course = createCourse(courseSeed, tuning)
   const floorShape = collider2d.cuboid(tuning.floorWidth / 2, tuning.floorHeight / 2, {
     ...MATERIAL,
@@ -53,6 +51,7 @@ function startRace(ctx: SimContext, tuning: RaceTuning, courseSeed: number, seat
           seat,
           lap: 1,
           visited: freshVisited(tuning.floorCount),
+          connected: true,
           awaitingInput: true,
           facingRight: true,
           holdUntil: -1,
@@ -67,14 +66,19 @@ function startRace(ctx: SimContext, tuning: RaceTuning, courseSeed: number, seat
   race.courseSeed = courseSeed
 }
 
-/** Takes the first `race.start` while the race is waiting; any later one is ignored. */
+/**
+ * Takes the first `race.start` from the room while the race is waiting; any later one, and any from a seat, is
+ * ignored. The server forwards every game command a client sends (only net's seat commands are room-only), so the
+ * sim checks the source itself: a seat must not choose the course or who races.
+ */
 export function raceStartSystem(tuning: RaceTuning): SystemDef {
   return defineSystem({
     name: 'party-racer.start',
     phase: 'input',
     run(ctx) {
-      for (const { payload } of ctx.commands.of(RaceStart))
-        if (ctx.resource(Race).phase === 'waiting') startRace(ctx, tuning, payload.courseSeed, payload.seats)
+      for (const { source, payload } of ctx.commands.of(RaceStart))
+        if (source === ROOM_SOURCE && ctx.resource(Race).phase === 'waiting')
+          startRace(ctx, tuning, payload.courseSeed, payload.seats)
     },
   })
 }

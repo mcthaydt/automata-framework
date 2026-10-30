@@ -2,14 +2,16 @@
 // seat, by sending `race.input` only when the held input changes, plus one `race.reset`. Each seat steers by a small
 // rule that reads the sim between steps (as a client reads its snapshot): climb to the lowest floor not yet credited,
 // riding its side when below it and landing on it from above. The seats differ in when they start, how close they
-// steer and when they fast-fall, so they spread out and one wins.
+// steer and when they fast-fall, so they spread out and one wins. Seat 1 also takes one dash early on (holding left for
+// two seconds), which carries it across the wrap seam and below the death line, so the golden covers a wrap and a
+// fall as well as the reset, the laps and the finish (`RaceRun.coverage` counts them).
+import { ROOM_SOURCE } from '@mcthaydt/automata-net/sim'
 import { Transform2D } from '@mcthaydt/automata-physics/2d'
 import { type Command, canonicalJson, createSim, type EntityRef, type Sim } from '@mcthaydt/automata-sim'
 import { hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { PLACEHOLDER_COURSE_SEED, PLACEHOLDER_TUNING } from '../content/placeholder.content'
-import { Floor, Race, RaceInput, RaceReset, Racer, RaceStart, racePlugins } from '../sim/index'
+import { Floor, RACE_TICK_HZ, Race, RaceInput, RaceReset, Racer, RaceStart, racePlugins } from '../sim/index'
 
-const ROOM_SOURCE = 255
 const SEATS = [0, 1, 2, 3] as const
 /** The tick each seat sends its first input. */
 const FIRST_INPUT = [1, 4, 9, 15]
@@ -19,6 +21,8 @@ const DEAD_ZONE = [0.1, 0.3, 0.5, 0.2]
 const FAST_FALL_EVERY = 300
 const FAST_FALL_TICKS = 6
 const RESET = { seat: 3, tick: 500 }
+/** Seat 1's dash: left held from `from` until `until`, whatever the floors. */
+const DASH = { seat: 1, from: 40, until: 160 }
 /** A race that has not finished by then is a failed script, not a golden. */
 const MAX_TICKS = 12_000
 
@@ -28,6 +32,17 @@ interface Held {
   fastFall: boolean
 }
 
+/** How often the race did each thing the golden must cover. */
+export interface RaceCoverage {
+  readonly floorsLanded: number
+  readonly laps: number
+  readonly falls: number
+  readonly manualResets: number
+  /** Ticks on which a racer crossed the wrap seam (x jumped by more than half the width). */
+  readonly wraps: number
+  readonly finished: number
+}
+
 export interface RaceRun {
   readonly ticks: number
   readonly hash: string
@@ -35,6 +50,7 @@ export interface RaceRun {
   readonly eventCount: number
   readonly standings: readonly number[]
   readonly winner: number
+  readonly coverage: RaceCoverage
 }
 
 function steer(sim: Sim, racer: EntityRef, seat: number, tick: number): Held {
@@ -42,6 +58,8 @@ function steer(sim: Sim, racer: EntityRef, seat: number, tick: number): Held {
   const rules = racer.get(Racer)
   const target = rules.visited.indexOf('0')
   const floor = sim.query(Floor).find((f) => f.get(Floor).index === target)
+  if (seat === DASH.seat && tick >= DASH.from && tick < DASH.until)
+    return { left: true, right: false, fastFall: false }
   const fastFall = seat === 2 && tick % FAST_FALL_EVERY < FAST_FALL_TICKS && tick > FAST_FALL_EVERY
   if (!floor) return { left: false, right: false, fastFall }
   const at = racer.get(Transform2D)
@@ -88,20 +106,22 @@ function commandsFor(sim: Sim, lastHeld: Map<number, Held>, seq: { next: number 
 }
 
 async function createRaceSim(): Promise<Sim> {
-  return createSim({ seed: 2026, plugins: racePlugins(PLACEHOLDER_TUNING) })
+  return createSim({ seed: 2026, tickHz: RACE_TICK_HZ, plugins: racePlugins(PLACEHOLDER_TUNING) })
 }
 
 /**
  * Runs the scripted race to its finish and hashes it: the sim's hash at the end, and a hash of every event. With
  * `restoreAt`, the sim is snapshotted at that tick and the race continues in a fresh sim restored from the bytes,
- * which must reach the same result.
+ * which must reach the same result. `atRestore` sees the restored sim, so a test can check the race was mid-play.
  */
-export async function runScriptedRace(restoreAt?: number): Promise<RaceRun> {
+export async function runScriptedRace(restoreAt?: number, atRestore?: (sim: Sim) => void): Promise<RaceRun> {
   let sim = await createRaceSim()
   // Per-seat seq and held input, as each client would keep them; seq is one counter per run (unique per source).
   const lastHeld = new Map<number, Held>()
   const seq = { next: 0 }
   const lines: string[] = []
+  const lastX = new Map<number, number>()
+  let wraps = 0
   while (sim.resource(Race).phase !== 'finished') {
     if (sim.tick >= MAX_TICKS) throw new Error(`the scripted race did not finish in ${MAX_TICKS} ticks`)
     if (sim.tick === restoreAt) {
@@ -109,11 +129,20 @@ export async function runScriptedRace(restoreAt?: number): Promise<RaceRun> {
       sim.dispose()
       sim = await createRaceSim()
       sim.restore(bytes)
+      atRestore?.(sim)
     }
     const result = sim.step(commandsFor(sim, lastHeld, seq))
     if (result.rejected.length > 0) throw new Error(`rejected: ${canonicalJson(result.rejected)}`)
     for (const event of result.events) lines.push(canonicalJson(event))
+    for (const racer of sim.query(Racer, Transform2D)) {
+      const { seat } = racer.get(Racer)
+      const { x } = racer.get(Transform2D)
+      const before = lastX.get(seat)
+      if (before !== undefined && Math.abs(x - before) > PLACEHOLDER_TUNING.viewportWidth / 2) wraps++
+      lastX.set(seat, x)
+    }
   }
+  const count = (fragment: string): number => lines.filter((line) => line.includes(fragment)).length
   const race = sim.resource(Race)
   const run: RaceRun = {
     ticks: sim.tick,
@@ -122,6 +151,14 @@ export async function runScriptedRace(restoreAt?: number): Promise<RaceRun> {
     eventCount: lines.length,
     standings: [...race.standings],
     winner: race.winner,
+    coverage: {
+      floorsLanded: count('"type":"race.floor-landed"'),
+      laps: count('"type":"race.lap-completed"'),
+      falls: count('"reason":"fall"'),
+      manualResets: count('"reason":"manual"'),
+      wraps,
+      finished: count('"type":"race.finished"'),
+    },
   }
   sim.dispose()
   return run

@@ -149,6 +149,9 @@ importers:
 
   starters/party-racer:
     dependencies:
+      '@mcthaydt/automata-net':
+        specifier: workspace:*
+        version: link:../../packages/net
       '@mcthaydt/automata-physics':
         specifier: workspace:*
         version: link:../../packages/physics
