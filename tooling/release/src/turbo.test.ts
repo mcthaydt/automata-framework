@@ -29,3 +29,13 @@ it("build's cache key covers the shared build code in tooling/release and the ve
     '$TURBO_ROOT$/vendor/ruken/**',
   ])
 })
+
+// write-vendored.test.ts hashes vendor/ruken's tarballs against its README and reads the installed copies of
+// them, none of which is in this package, so without this input turbo would replay a pass after a repack.
+it("this package's tests have the vendored Ruken tarballs in their cache key", () => {
+  const own = JSON.parse(
+    readFileSync(fileURLToPath(new URL('../turbo.json', import.meta.url)), 'utf8'),
+  ) as typeof turbo
+  expect(own.tasks['test:unit']?.inputs).toContain('$TURBO_ROOT$/vendor/ruken/**')
+  expect(own.tasks.test?.inputs).toContain('$TURBO_ROOT$/vendor/ruken/**')
+})
