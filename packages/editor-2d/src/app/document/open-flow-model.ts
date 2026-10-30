@@ -1,4 +1,3 @@
-import type { Problem, SaveOutcome } from '@mcthaydt/automata-editor-kit/core'
 import type { ParseError, Profile } from '../../profiles/profile'
 import type { OpenOutcome } from '../editor-app'
 
@@ -126,34 +125,8 @@ export function documentHeading(
   return { title: profile.summary?.(value).title ?? baseName(path), file: path }
 }
 
-export function saveFailure(
-  path: string,
-  outcome: Extract<SaveOutcome, { readonly status: 'failed' }>,
-): string {
-  return `Could not save ${baseName(path)}: ${outcome.message}`
-}
-
-export function savedCopyMessage(copy: string): string {
-  return `Saved a copy as ${baseName(copy)}.`
-}
-
 export function restoreRefused(errors: readonly ParseError[]): string {
   const first = errors[0]
   const why = first === undefined ? '' : ` (${first.message})`
   return `The autosave no longer opens${why}. Discard it to go on with the file as it was last saved.`
-}
-
-export function recoveryUnreadable(message: string): string {
-  return `The autosave could not be read (${message}). The file is open as it was last saved.`
-}
-
-export function reloadedMessage(path: string): string {
-  return `Reloaded ${baseName(path)} from the file.`
-}
-
-/** An autosave out of quota stops until a save works; any other failure is retried on the next edit. */
-export function autosaveProblem(problem: Problem): string {
-  return problem.paused
-    ? `Autosave has stopped: ${problem.message} Save to keep your edits.`
-    : `Autosave failed: ${problem.message} It tries again with the next edit.`
 }

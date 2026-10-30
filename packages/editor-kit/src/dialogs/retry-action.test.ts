@@ -1,9 +1,11 @@
-import { createMemoryStore, createToasts, type FolderStore } from '@mcthaydt/automata-editor-kit/core'
 import { describe, expect, it, vi } from 'vitest'
+import type { FolderStore } from '../storage/folder'
+import { createMemoryStore } from '../storage/memory-store'
 import { createTestClock } from '../testing/test-clock'
-import { retryAction } from './folder-access'
+import { createToasts } from '../widgets/toasts'
+import { retryAction } from './retry-action'
 
-// The action a failed save or open offers (plan ED2D.4c2b, decision 6; kit spec §6 "Folder permission revoked"): Retry,
+// The action a failed save or open offers (plan ED2D.4c2b, decision 6; moved from editor-2d in ED3D.5c; kit spec §6 "Folder permission revoked"): Retry,
 // or Re-grant when the store is a folder whose permission lapsed, which asks the browser again and then retries.
 
 function folderStore(granted: boolean): FolderStore {

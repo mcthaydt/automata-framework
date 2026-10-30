@@ -3,6 +3,15 @@
 // without the Svelte compiler; the root entry adds the shell and the widgets on top of the same modules.
 export { type Command, type CommandRegistry, createCommandRegistry, defineCommand } from '../commands/command'
 export { normalizeShortcut, parseShortcut, type Shortcut } from '../commands/shortcut'
+export {
+  autosaveProblem,
+  recoveryUnreadable,
+  reloadedMessage,
+  savedCopyMessage,
+  saveFailure,
+} from '../dialogs/document-messages'
+export { recoveryFacts } from '../dialogs/recovery-facts'
+export { retryAction } from '../dialogs/retry-action'
 export type { Point } from '../fields/field-types'
 export type { PointerKind } from '../gestures/pointer-sample'
 export {
