@@ -99,7 +99,9 @@ const isTool = (id: string): id is LevelTool => TOOLS.some((each) => each.id ===
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-2);
+    /* The bottom edge keeps 16 px: macOS lays its overlay scroll bar (about 15 px, hit-tested in Safari) along it once
+       the row scrolls sideways, and a tool under it would lose its taps there (#272, as #265 for region bodies). */
+    padding: var(--space-2) var(--space-2) var(--space-4);
     overflow-x: auto;
     overscroll-behavior-x: contain;
     border-bottom: 1px solid var(--color-border-default);

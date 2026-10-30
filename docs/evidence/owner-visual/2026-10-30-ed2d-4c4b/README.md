@@ -19,3 +19,9 @@ arrives, and below `wide` the toolbar gains Levels and Inspector buttons.
 | `level-dock-ipad-pro-11-portrait.png` | 834×1194, `medium` | The dock sheet with its grab handle and the two level cards above the tab bar; the canvas keeps the full width | New |
 | `level-inspector-phone-portrait.png` | 390×844, `compact` | The inspector as a bottom sheet (half height) with the tabs and the Music field; Back, Undo, Redo, Save and the tab bar stay in view | New |
 | `level-dock-phone-portrait.png` | 390×844, `compact` | The dock as a bottom sheet with its cards, opened by Levels (which sits at the end of the sideways-scrolling tool row) | New |
+
+**Regenerated 2026-10-30 after the Mac CI's WebKit parity run (job 124310463507):** every image above. The level
+toolbar (Layers, then the tool row) keeps a 16 px bottom edge instead of 8 px, so the row is 8 px taller and the canvas
+below it starts 8 px lower; the tools, their order and everything else are unchanged. macOS lays its overlay scroll bar
+(about 15 px, hit-tested in Safari) along a sideways-scrolling row's bottom edge, which covered the tools' lower edge
+at 900×600 and 390×844 ("Select is covered or clipped at its bottom edge"), the same class as #265's region bodies.

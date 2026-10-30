@@ -220,6 +220,18 @@ describe.each(SIZES)('Level view inspector and dock at $name ($width x $height)'
   })
 })
 
+// macOS draws an overlay scroll bar over a sideways-scrolling row's bottom edge once it scrolls, and WebKit there
+// hit-tests it (about 15 px), so a tool laid out to the row's padding edge loses its lower taps (#272: Mac WebKit,
+// 900 x 600 and 390 x 844; the same class as #265). Linux browsers lay overlay bars out of the hit test, so the rule is
+// held here as a measure.
+describe('Level view tool row', () => {
+  test("keeps its tools clear of an overlay scroll bar's 15 px along its bottom edge", async () => {
+    await start(SIZES.find((size) => size.name === 'phone-portrait') as EditorSize)
+    const toolbar = document.querySelector<HTMLElement>('[data-testid="level-toolbar"]') as HTMLElement
+    expect(Number.parseFloat(getComputedStyle(toolbar).paddingBottom)).toBeGreaterThanOrEqual(16)
+  })
+})
+
 describe('Level view rotation', () => {
   test('1194 x 834 to 834 x 1194 keeps the chosen layer and tool and remounts nothing', async () => {
     const [landscape, portrait] = [SIZES[0], SIZES[4]] as [EditorSize, EditorSize]
