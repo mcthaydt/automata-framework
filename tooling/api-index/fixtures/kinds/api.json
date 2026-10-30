@@ -1,0 +1,158 @@
+{
+  "version": "0.1.0",
+  "exports": [
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "add",
+      "kind": "function",
+      "signature": "function add(a: number, b: number): number;\nfunction add(a: string, b: string): string;",
+      "doc": "Adds two numbers.\nAdds two strings.\n@param a the first\n@returns the sum",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "Color",
+      "kind": "enum",
+      "signature": "enum Color {\n  Red = 0,\n  Blue = 1\n}",
+      "doc": "Colors.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "Counter",
+      "kind": "class",
+      "signature": "class Counter {\n  readonly step: number;\n  count: number;\n  constructor(step: number);\n  increment(): Counter;\n}",
+      "doc": "A counter.\n@deprecated use `add`",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "DEFAULT_SIZE",
+      "kind": "const",
+      "signature": "const DEFAULT_SIZE: Size;",
+      "doc": "The default size.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "Geometry",
+      "kind": "namespace",
+      "signature": "namespace Geometry {\n  const unit: number;\n}",
+      "doc": "Geometry helpers.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "helpers",
+      "kind": "namespace",
+      "signature": "namespace helpers {\n  export { help };\n}",
+      "doc": "",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "legacyName",
+      "kind": "var",
+      "signature": "var legacyName: string;",
+      "doc": "A name declared the old way.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "liveCount",
+      "kind": "let",
+      "signature": "let liveCount: number;",
+      "doc": "A count that changes.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "Named",
+      "kind": "interface",
+      "signature": "interface Named {\n  readonly name: string;\n}",
+      "doc": "A thing with a name.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "Point",
+      "kind": "interface",
+      "signature": "interface Point {\n  readonly x: number;\n  readonly y: number;\n}\nconst Point: {\n  readonly origin: Point;\n};",
+      "doc": "A point.\nThe origin, merged with the interface.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "scale",
+      "kind": "function",
+      "signature": "function scale(by: number): number;",
+      "doc": "Doubles `by`; `.` exports it as `scale`.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "Size",
+      "kind": "type",
+      "signature": "type Size = \"small\" | \"large\";",
+      "doc": "The sizes a box comes in.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "starred",
+      "kind": "function",
+      "signature": "function starred(): void;",
+      "doc": "Reached through `export *`.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "subtract",
+      "kind": "function",
+      "signature": "function subtract(a: number, b: number): number;",
+      "doc": "Subtracts `b` from `a`.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": ".",
+      "name": "visible",
+      "kind": "const",
+      "signature": "const visible: number;",
+      "doc": "Exported under another name.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": "./extra",
+      "name": "ExtraOnly",
+      "kind": "type",
+      "signature": "type ExtraOnly = {\n  readonly extra: true;\n};",
+      "doc": "Only in `./extra`.",
+      "version": "0.1.0"
+    },
+    {
+      "package": "@fx/kinds",
+      "entryPoint": "./extra",
+      "name": "subtract",
+      "kind": "function",
+      "signature": "function subtract(a: number, b: number): number;",
+      "doc": "Subtracts `b` from `a`.",
+      "version": "0.1.0"
+    }
+  ]
+}
