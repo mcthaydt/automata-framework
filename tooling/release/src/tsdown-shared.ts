@@ -9,6 +9,13 @@
 //   and `onlyImport` fails it if the output imports a package that is not a declared dependency. Together they
 //   keep "external = dependencies" and "bundle Ruken" from ever disagreeing.
 // - A package that bundles Ruken gets a `VENDORED.md` naming the Ruken commit and tarball hashes.
+// - `unbundle` mirrors the source tree, one output file per module, for a package with Svelte rune modules
+//   (runtime, DX.2a): a game's Svelte plugin compiles only files named `*.svelte.js`, so a `.svelte.ts` module
+//   inlined into a bundle would throw `$state is not defined` in the game.
+// - `rukenTypes` are vendored packages the package imports types from, and nothing else. They stay imports in
+//   the declarations here; a declarations-only pass inlines them into `dist/vendor/` and `finishSvelteDist` points
+//   the imports there (ui's layout, M2.4 spec §3.4), because an unbundled build would otherwise copy them under
+//   `dist/node_modules/`, which npm never publishes.
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import type { UserConfig } from 'tsdown'
@@ -23,6 +30,14 @@ export interface PublishedBuildOptions {
   readonly bundleRuken?: readonly string[]
   /** Extra files copied into `dist` (tsdown's `copy`). */
   readonly copy?: UserConfig['copy']
+  /** One output file per source module instead of one bundle per entry (see the header). */
+  readonly unbundle?: boolean
+  /**
+   * Vendored Ruken packages imported for their types only, inlined by a later declarations pass (see the header).
+   * The build allows them as imports, so a value import would build; `test:dist`'s D-8 check, not `pnpm check`,
+   * catches one.
+   */
+  readonly rukenTypes?: readonly string[]
 }
 
 interface Manifest {
@@ -46,6 +61,7 @@ export function publishedBuild(configUrl: string, options: PublishedBuildOptions
     ...Object.keys(manifest.peerDependencies ?? {}),
   ]
   const bundleRuken = options.bundleRuken ?? []
+  const rukenTypes = (options.rukenTypes ?? []).map(packageAndSubpaths)
 
   return {
     entry: { ...options.entry },
@@ -56,12 +72,14 @@ export function publishedBuild(configUrl: string, options: PublishedBuildOptions
     dts: { eager: true },
     deps: {
       onlyBundle: bundleRuken.map(packageAndSubpaths),
+      ...(rukenTypes.length === 0 ? {} : { neverBundle: rukenTypes }),
       // Node built-ins stay external and are always allowed: a browser-platform package may still reach for
       // them behind a runtime guard (e.g. `@mcthaydt/automata-testing/sim` reads files in Node, and reads
       // golden files through a Vitest command in a browser).
-      onlyImport: [...external.map(packageAndSubpaths), /^node:/],
+      onlyImport: [...external.map(packageAndSubpaths), ...rukenTypes, /^node:/],
     },
     ...(options.copy === undefined ? {} : { copy: options.copy }),
+    ...(options.unbundle === true ? { unbundle: true } : {}),
     hooks: {
       'build:done': () => {
         if (bundleRuken.length > 0) {

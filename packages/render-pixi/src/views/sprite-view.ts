@@ -14,6 +14,7 @@ export interface SpriteFrames {
   readonly count?: number | undefined
 }
 
+/** A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas. */
 export interface SpriteViewOptions {
   /** Default 0.5 (centred on the entity's position). */
   readonly anchor?: ViewAnchor | undefined

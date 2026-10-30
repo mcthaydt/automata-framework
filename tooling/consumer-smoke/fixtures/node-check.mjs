@@ -1,7 +1,9 @@
 // consumer-smoke's Node step (M2.4 spec §3.6): import every published entry from the installed packages, as a
 // game's build tools and tests would, and run a sim with a small plugin of core verbs (physics is Automata Plus
-// since PRODUCT.5g). ui's root is left to the Vite step: it
-// exports Svelte components, which only load through the Svelte compiler.
+// since PRODUCT.5g). ui's root is left to the Vite step: it exports Svelte components, which only load through
+// the Svelte compiler. So are runtime's `.` and `./testing` (Svelte rune modules), render-pixi, game and the
+// umbrella (Svelte components, PixiJS): the game steps build and boot them (DX.2a). runtime's `./extension`,
+// which an extension's own Node tests import, loads here.
 import * as content from '@mcthaydt/automata-content'
 import * as contentLocale from '@mcthaydt/automata-content/locale'
 import * as contentVite from '@mcthaydt/automata-content/vite'
@@ -9,6 +11,7 @@ import * as host from '@mcthaydt/automata-host'
 import * as hostTarget from '@mcthaydt/automata-host/target'
 import * as hostTesting from '@mcthaydt/automata-host/testing'
 import * as node from '@mcthaydt/automata-node'
+import * as runtimeExtension from '@mcthaydt/automata-runtime/extension'
 import * as ship from '@mcthaydt/automata-ship'
 import { createSim, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 import * as hash from '@mcthaydt/automata-sim/hash'
@@ -24,6 +27,7 @@ const entries = {
   hostTarget,
   hostTesting,
   node,
+  runtimeExtension,
   ship,
   hash,
   math,
@@ -39,6 +43,8 @@ if (typeof contentLocale.createContentText !== 'function')
 if (typeof contentVite.automataContent !== 'function')
   throw new Error('content/vite.automataContent is missing')
 if (typeof hostTesting.HostingTest !== 'function') throw new Error('host/testing.HostingTest is missing')
+if (typeof runtimeExtension.defineExtension !== 'function')
+  throw new Error('runtime/extension.defineExtension is missing')
 
 // A body falling under constant gravity, written with the sim's own verbs.
 const Fall = defineComponent('fall', { y: 'f32', vy: 'f32' })
