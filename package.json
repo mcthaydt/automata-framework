@@ -11,12 +11,15 @@
     "core:sync": "node tooling/core/cli.ts",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "typecheck": "tsc -p .",
-    "test": "vitest run",
-    "check": "pnpm lint && pnpm typecheck && pnpm test"
+    "typecheck": "tsc -p . && pnpm -r --if-present typecheck",
+    "boundaries": "automata-check-boundaries packages/physics/src",
+    "test": "vitest run && pnpm -r --if-present test:unit",
+    "test:parity": "pnpm -r --if-present test:parity",
+    "check": "pnpm lint && pnpm typecheck && pnpm boundaries && pnpm test"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
+    "@mcthaydt/automata-check-boundaries": "0.0.3",
     "@types/node": "24.19.1",
     "typescript": "7.0.2",
     "vitest": "5.0.3",

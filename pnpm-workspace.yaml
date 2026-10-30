@@ -15,7 +15,6 @@ overrides:
   '@mcthaydt/automata-content': file:.core/packs/automata-content
   '@mcthaydt/automata-host': file:.core/packs/automata-host
   '@mcthaydt/automata-node': file:.core/packs/automata-node
-  '@mcthaydt/automata-physics': file:.core/packs/automata-physics
   '@mcthaydt/automata-ship': file:.core/packs/automata-ship
   '@mcthaydt/automata-sim': file:.core/packs/automata-sim
   '@mcthaydt/automata-testing': file:.core/packs/automata-testing
