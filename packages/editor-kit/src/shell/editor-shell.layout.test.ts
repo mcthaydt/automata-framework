@@ -290,6 +290,17 @@ describe('sheets and their detents', () => {
     near(sheetHeight('dock'), 148 + 44)
   })
 
+  // macOS draws an overlay scroll bar over a scrolling region's end edge once it scrolls, and WebKit there hit-tests it
+  // (about 15 px), so a control laid out to the body's padding edge loses its right-hand taps (#265: Mac WebKit,
+  // 844 x 390). Linux browsers lay overlay bars out of the hit test, so the rule is held here as a measure.
+  test("every scrolling body keeps its controls clear of an overlay scroll bar's 15 px", async () => {
+    await open(size('phone-landscape'), { panelOpen: true })
+    for (const name of ['panel', 'inspector', 'dock']) {
+      const body = region(name).querySelector<HTMLElement>('[data-scroll-region]') as HTMLElement
+      expect(Number.parseFloat(getComputedStyle(body).paddingInlineEnd), name).toBeGreaterThanOrEqual(16)
+    }
+  })
+
   test('a sheet never takes more than the room there is (a sideways phone)', async () => {
     await open(size('phone-landscape'), { dockOpen: true })
     expect(sheetHeight('dock')).toBeLessThanOrEqual(rect('canvas').height + 1)
