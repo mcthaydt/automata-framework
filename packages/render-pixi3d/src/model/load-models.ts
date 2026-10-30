@@ -2,6 +2,7 @@ import { ModelInvalid, type RenderTarget } from '@mcthaydt/automata-runtime'
 import { type Geometry3D, PhongMaterial } from '@pixi/3d'
 import { Effect } from 'effect'
 import { Texture } from 'pixi.js'
+import { shareMaterial } from '../views/shared-material.js'
 import { modelGeometry } from './model-geometry.js'
 import { type ModelMesh, parseGlb, parsePack } from './parse-glb.js'
 
@@ -69,7 +70,11 @@ function loadModel(
     return {
       mesh,
       geometry: modelGeometry(mesh),
-      material: new PhongMaterial({ baseColorTexture: texture }),
+      // Every mesh of the model shares it; a prop the occluder rule fades gets its own copy.
+      material: shareMaterial(
+        new PhongMaterial({ baseColorTexture: texture }),
+        () => new PhongMaterial({ baseColorTexture: texture }),
+      ),
       texture,
     }
   })
