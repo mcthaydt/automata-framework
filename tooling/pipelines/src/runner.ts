@@ -1,9 +1,9 @@
 import type { Files } from '@mcthaydt/automata-node'
-import { Effect } from 'effect'
+import { Cause, Effect, Exit, Option, type Scope } from 'effect'
 import { budgetRefusal, type Units } from './budget.ts'
 import { EXIT } from './exit.ts'
 import type { CheckResult, PipelineDef, StageDef, StageServices } from './pipeline.ts'
-import { charge, loadProject, type Project, readSpent } from './project.ts'
+import { charge, holdLedger, loadProject, type Project, readSpent } from './project.ts'
 import {
   contextOf,
   costOf,
@@ -24,7 +24,7 @@ import {
   save,
   stop,
 } from './run-state.ts'
-import { missingPaths, resolveIn } from './stage-cache.ts'
+import { missingPaths, resolveIn, StageThrew } from './stage-cache.ts'
 import type { GateRecord, PipelineResult, StageRecord, StageState } from './state.schema.ts'
 
 // The stage runner (The Last Light's scripts/pipeline/runner.ts at 92e6704, on Effect). Files are the state:
@@ -82,6 +82,7 @@ interface Done {
 }
 
 const ok = (parts: ResultParts = {}): Done => ({ exit: EXIT.done, parts })
+const messageOf = (cause: unknown): string => (cause instanceof Error ? cause.message : String(cause))
 const asStop = (error: string | { readonly message: string }): Stop =>
   stop(EXIT.failed, typeof error === 'string' ? error : error.message)
 
@@ -99,10 +100,15 @@ const selected = (run: RunState, options: RunOptions): Effect.Effect<readonly St
   return Effect.succeed(stages.slice(start, end + 1))
 }
 
-/** A gated stage before the selection that is not approved blocks it, even with --from. */
+/**
+ * A gated stage that is not approved, not selected, and before the last selected stage blocks the selection: with
+ * --from it is before the first one, and with --only it can sit between two selected stages. Nothing runs past a
+ * pending gate. (A selected gated stage is the plan's: it may run again, and the plan stops at it.)
+ */
 const blockingGate = (run: RunState, selection: readonly StageDef[]): StageDef | undefined => {
-  const first = selection[0] === undefined ? 0 : run.def.stages.indexOf(selection[0])
-  return run.def.stages.slice(0, first).find((stage) => holds(run, stage))
+  const last = selection.at(-1)
+  const end = last === undefined ? 0 : run.def.stages.indexOf(last)
+  return run.def.stages.slice(0, end).find((stage) => !selection.includes(stage) && holds(run, stage))
 }
 
 /**
@@ -184,12 +190,15 @@ const estimate = (run: RunState, options: RunOptions): Effect.Effect<Done, Stop,
     })
   })
 
-/** Refuses a run whose paid stages lack --paid or pass a budget, before any stage runs. */
+/**
+ * Refuses a run whose paid stages lack --paid or pass a budget, before any stage runs. A run with paid stages holds
+ * the spend ledger from here until the run's scope closes, so two runs cannot both spend what is left.
+ */
 const checkBudgets = (
   run: RunState,
   options: RunOptions,
   paid: readonly StageDef[],
-): Effect.Effect<Project, Stop, Files> =>
+): Effect.Effect<Project, Stop, Files | Scope.Scope> =>
   Effect.gen(function* () {
     if (paid.length > 0 && options.paid !== true)
       return yield* Effect.fail(
@@ -197,6 +206,9 @@ const checkBudgets = (
       )
     const project = yield* Effect.mapError(loadProject(run.dir, options.config), asStop)
     if (paid.length === 0) return project
+    // Without a pipeline.toml there is no budget and no ledger: the check below refuses.
+    if (project.path !== undefined)
+      yield* Effect.mapError(holdLedger(project), (error) => stop(EXIT.refused, error))
     const need = costOf(paid)
     const spent = yield* Effect.mapError(readSpent(project), asStop)
     const refusal = budgetRefusal(need, project.toml, spent, options.budget)
@@ -205,6 +217,12 @@ const checkBudgets = (
   })
 
 const runStages = (run: RunState, options: RunOptions): Effect.Effect<Done, Stop, StageServices> =>
+  Effect.scoped(runHeld(run, options))
+
+const runHeld = (
+  run: RunState,
+  options: RunOptions,
+): Effect.Effect<Done, Stop, StageServices | Scope.Scope> =>
   Effect.gen(function* () {
     const selection = yield* selected(run, options)
     const blocked = blockingGate(run, selection)
@@ -258,15 +276,30 @@ const runStages = (run: RunState, options: RunOptions): Effect.Effect<Done, Stop
       }
       // Hashed again: an earlier stage of this run may have rewritten the inputs.
       const digest = yield* hashOf(run, stage)
-      if (stage.cost !== undefined)
-        yield* Effect.mapError(charge(project, stage.cost.budget, stage.cost.units), asStop)
-      const outcome = yield* Effect.either(stage.run(contextOf(run, stage)))
+      if (stage.cost !== undefined) {
+        // Checked again under the ledger lock, right before the charge.
+        const { budget, units } = stage.cost
+        const spent = yield* Effect.mapError(readSpent(project), asStop)
+        const refusal = budgetRefusal({ [budget]: units }, project.toml, spent, options.budget)
+        if (refusal !== undefined) return yield* Effect.fail(stop(EXIT.refused, refusal, { states }))
+        yield* Effect.mapError(charge(project, budget, units), asStop)
+      }
+      // A throw in the stage (in `run` itself, inside its effect, or in `outputs`) is a failed stage, not a crash.
+      const attempt = Effect.suspend(() => stage.run(contextOf(run, stage))).pipe(
+        Effect.mapError((error) => error.message),
+        Effect.flatMap((result) =>
+          Effect.map(missingOf(run, stage, 'outputs'), (unwritten) => ({ result, unwritten })),
+        ),
+        Effect.catchAllDefect((defect) =>
+          Effect.fail(defect instanceof StageThrew ? defect.reason : messageOf(defect)),
+        ),
+      )
+      const outcome = yield* Effect.either(attempt)
       const at = yield* now
-      if (outcome._tag === 'Left') return yield* fail(stage, digest, outcome.left.message, at)
-      const unwritten = yield* missingOf(run, stage, 'outputs')
+      if (outcome._tag === 'Left') return yield* fail(stage, digest, outcome.left, at)
+      const { result, unwritten } = outcome.right
       if (unwritten.length > 0)
         return yield* fail(stage, digest, `did not write its outputs: ${unwritten.join(', ')}`, at)
-      const result = outcome.right
       run.records[stage.id] = {
         ...recordOf(run, stage, 'done', digest, at),
         ...(stage.cost === undefined ? {} : { cost: costOf([stage]) }),
@@ -388,7 +421,19 @@ const check = (run: RunState): Effect.Effect<Done, Stop, StageServices> =>
     return { exit: EXIT.failed, parts: { data: { checks }, error: `failed: ${failed.join(', ')}` } }
   })
 
+/** Every stage's declared paths, checked once (they must stay inside the target folder); a throw is a defect. */
+const checkPaths = (run: RunState): Effect.Effect<void> =>
+  Effect.sync(() => {
+    for (const stage of run.def.stages)
+      for (const kind of ['inputs', 'outputs', 'restorable'] as const) pathsOf(run, stage, kind)
+  })
+
 const execute = (state: RunState, options: RunOptions): Effect.Effect<Done, Stop, StageServices> => {
+  const recordsOnly = ['approve', 'reject', 'request'].includes(options.command)
+  return recordsOnly ? dispatch(state, options) : Effect.zipRight(checkPaths(state), dispatch(state, options))
+}
+
+const dispatch = (state: RunState, options: RunOptions): Effect.Effect<Done, Stop, StageServices> => {
   switch (options.command) {
     case 'status':
       return status(state)
@@ -418,13 +463,37 @@ export const runPipeline = (
 ): Effect.Effect<PipelineResult, never, StageServices> =>
   Effect.gen(function* () {
     const { command, target } = options
-    const loaded = yield* Effect.either(loadRunState(def, target))
+    const loaded = yield* Effect.either(
+      Effect.catchAllDefect(loadRunState(def, target), (defect) =>
+        Effect.fail(stop(EXIT.failed, messageOf(defect))),
+      ),
+    )
     if (loaded._tag === 'Left')
       return resultOf(def, undefined, command, target, loaded.left.exit, { error: loaded.left.error })
     const state = loaded.right
-    const outcome = yield* Effect.either(execute(state, options))
-    if (outcome._tag === 'Right')
-      return resultOf(def, state, command, target, outcome.right.exit, outcome.right.parts)
-    const { exit, error, estimate: need, states } = outcome.left
-    return resultOf(def, state, command, target, exit, { error, estimate: need, states })
+    const outcome = yield* Effect.exit(execute(state, options))
+    if (Exit.isSuccess(outcome))
+      return resultOf(def, state, command, target, outcome.value.exit, outcome.value.parts)
+    const failure = Cause.failureOption(outcome.cause)
+    if (Option.isSome(failure)) {
+      const { exit, error, estimate: need, states } = failure.value
+      return resultOf(def, state, command, target, exit, { error, estimate: need, states })
+    }
+    // A defect: a stage method threw outside its run (paths, params), or a bug. Exit 1, never a crash; a stage that
+    // threw during `run` is recorded as failed.
+    const defect = Cause.squash(outcome.cause)
+    if (defect instanceof StageThrew && command === 'run') {
+      state.records[defect.stage] = {
+        id: defect.stage,
+        state: 'failed',
+        inputHash: 'missing',
+        outputs: [],
+        at: yield* now,
+        notes: defect.reason.slice(0, 500),
+      }
+      yield* Effect.either(save(state))
+      const states = { [defect.stage]: 'failed' as const }
+      return resultOf(def, state, command, target, EXIT.failed, { error: defect.message, states })
+    }
+    return resultOf(def, state, command, target, EXIT.failed, { error: messageOf(defect) })
   })

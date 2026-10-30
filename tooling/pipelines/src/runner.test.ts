@@ -341,4 +341,48 @@ describe('the stage runner', () => {
       error: 'no budget for images: set [budget.images] in pipeline.toml',
     })
   })
+
+  // Review round 1, finding 1: --only must not step over a pending gate in the middle of the selection.
+  it('stops at a held gate between selected stages, even when that stage is not selected', async () => {
+    dir = toyFolder()
+    const write = (name: string) => (ctx: { dir: string }) =>
+      Effect.as(
+        Effect.sync(() => writeFileSync(join(ctx.dir, name), name)),
+        {},
+      )
+    const gapped = definePipeline({
+      name: 'toy',
+      spec: z.object({ param: z.number() }),
+      stages: [
+        { id: 'a', outputs: () => ['a.txt'], run: write('a.txt') },
+        { id: 'b', gate: 'G1', inputs: () => ['a.txt'], outputs: () => ['b.txt'], run: write('b.txt') },
+        { id: 'c', cost: { budget: 'images', units: 1 }, outputs: () => ['c.txt'], run: write('c.txt') },
+      ],
+    })
+    expect((await pipe('run', {}, gapped)).exit).toBe(3)
+    const skipped = await pipe('run', { only: ['a', 'c'], paid: true, force: true }, gapped)
+    expect(skipped.exit).toBe(3)
+    expect(skipped.error).toMatch(/^gate G1 \(stage b\) is pending/)
+    expect(existsSync(join(dir, 'c.txt'))).toBe(false)
+    expect(existsSync(join(dir, 'pipeline-spend.json'))).toBe(false)
+  })
+
+  // Review round 1, finding 4: stage paths stay inside the target folder (M3.9 builds them from spec values).
+  it.each([
+    ['inputs', '../outside.txt'],
+    ['inputs', '/etc/hostname'],
+    ['outputs', 'sub/../../escape.txt'],
+  ] as const)('refuses %s path %j outside the target folder', async (kind, path) => {
+    dir = toyFolder()
+    const escaping = definePipeline({
+      name: 'toy',
+      spec: z.object({ param: z.number() }),
+      stages: [{ id: 'one', [kind]: () => [path], run: () => Effect.succeed({}) }],
+    })
+    for (const command of ['run', 'estimate'] as const)
+      expect(await pipe(command, {}, escaping)).toMatchObject({
+        exit: 1,
+        error: `one: ${kind} path '${path}' is outside the target folder`,
+      })
+  })
 })

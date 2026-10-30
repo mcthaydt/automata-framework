@@ -1,6 +1,7 @@
+import { renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { type FileError, Files } from '@mcthaydt/automata-node'
-import { Effect } from 'effect'
+import { Effect, type Scope } from 'effect'
 import { parse } from 'smol-toml'
 import type { Units } from './budget.ts'
 import { type PipelineToml, pipelineTomlSchema } from './pipeline-toml.schema.ts'
@@ -11,6 +12,7 @@ import { spendLedgerSchema } from './state.schema.ts'
 
 export const PIPELINE_TOML = 'pipeline.toml'
 export const SPEND_LEDGER = 'pipeline-spend.json'
+export const SPEND_LOCK = 'pipeline-spend.lock'
 
 /** A project with no `pipeline.toml`: no budgets, so every paid stage is refused. */
 export const NO_PROJECT: PipelineToml = { budget: {}, generated: [], locked: {} }
@@ -67,8 +69,31 @@ export const readSpent = (project: Project): Effect.Effect<Units, FileError | st
   })
 
 /**
- * Adds `units` of `key` to the ledger. The runner charges a paid stage before it runs, so a call the provider
- * charged for counts even when the stage then fails (plan D2).
+ * Holds the ledger for the paid part of one run: `pipeline-spend.lock` beside it, created exclusively, removed when
+ * the scope closes (so a failure cannot leak it). A run that finds it held fails at once, naming the lock; it never
+ * waits. `Files` has no exclusive create and no rename, so the lock and the ledger's atomic write use `node:fs`
+ * directly (plan, review round 1). A lock left by a killed process stays until a person deletes it.
+ */
+export const holdLedger = (project: Project): Effect.Effect<void, string, Scope.Scope> => {
+  const path = ledgerPath(project)
+  if (path === undefined) return Effect.fail(`no ${PIPELINE_TOML}: nothing paid may run`)
+  const lock = join(dirname(path), SPEND_LOCK)
+  return Effect.acquireRelease(
+    Effect.try({
+      try: () => writeFileSync(lock, `${process.pid}\n`, { flag: 'wx' }),
+      catch: (cause) =>
+        (cause as { code?: unknown }).code === 'EEXIST'
+          ? `the spend ledger is locked by another run: ${lock} (delete it if no run is going)`
+          : `${lock}: ${cause instanceof Error ? cause.message : String(cause)}`,
+    }),
+    () => Effect.sync(() => rmSync(lock, { force: true })),
+  )
+}
+
+/**
+ * Adds `units` of `key` to the ledger, written to a temporary file and renamed into place so a reader never sees half
+ * a ledger. Call it only while holding the ledger. The runner charges a paid stage before it runs, so a call the
+ * provider charged for counts even when the stage then fails (plan D2).
  */
 export const charge = (
   project: Project,
@@ -81,5 +106,10 @@ export const charge = (
     const spent = { ...(yield* readSpent(project)) }
     spent[key] = (spent[key] ?? 0) + units
     const sorted = Object.fromEntries(Object.entries(spent).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
-    yield* (yield* Files).writeText(path, `${JSON.stringify(sorted, null, 2)}\n`)
+    const temp = `${path}.${process.pid}.tmp`
+    yield* (yield* Files).writeText(temp, `${JSON.stringify(sorted, null, 2)}\n`)
+    yield* Effect.try({
+      try: () => renameSync(temp, path),
+      catch: (cause) => `${path}: ${cause instanceof Error ? cause.message : String(cause)}`,
+    })
   })

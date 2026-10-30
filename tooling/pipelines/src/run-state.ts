@@ -6,7 +6,7 @@ import type { z } from 'zod'
 import type { Units } from './budget.ts'
 import { EXIT, type PipelineExit } from './exit.ts'
 import type { PipelineDef, StageContext, StageDef } from './pipeline.ts'
-import { inputHash, missingPaths, relativeTo, resolveIn } from './stage-cache.ts'
+import { inputHash, missingPaths, relativeTo, stagePaths } from './stage-cache.ts'
 import {
   type GateRecord,
   gateFileSchema,
@@ -124,7 +124,7 @@ export const pathsOf = (
   run: RunState,
   stage: StageDef,
   kind: 'inputs' | 'outputs' | 'restorable',
-): readonly string[] => (stage[kind]?.(contextOf(run, stage)) ?? []).map((path) => resolveIn(run.dir, path))
+): readonly string[] => stagePaths(stage, kind, contextOf(run, stage))
 
 export const rel = (run: RunState, path: string): string => relativeTo(run.dir, path)
 

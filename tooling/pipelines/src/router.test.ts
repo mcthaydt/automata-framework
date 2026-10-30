@@ -4,6 +4,8 @@ import { join } from 'node:path'
 import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer, TestContext } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
+import { z } from 'zod'
+import { definePipeline } from './pipeline.ts'
 import { type RouterOutput, route } from './router.ts'
 import { toyPipeline } from './testing/toy.ts'
 
@@ -137,5 +139,53 @@ describe('the router', () => {
       '',
       "unknown pipeline 'nine'; see --help\n",
     ])
+  })
+
+  // Review round 1, finding 2: a stage that throws is a failed stage (exit 1, one JSON object), not a crash.
+  it.each([
+    [
+      'throws in run',
+      {
+        run: (): never => {
+          throw new Error('boom')
+        },
+      },
+    ],
+    [
+      'dies inside its effect',
+      {
+        run: () =>
+          Effect.sync((): never => {
+            throw new Error('boom')
+          }),
+      },
+    ],
+    [
+      'throws in outputs',
+      {
+        outputs: (): never => {
+          throw new Error('boom')
+        },
+        run: () => Effect.succeed({}),
+      },
+    ],
+  ])('exits 1 with one JSON object when a stage %s', async (_, members) => {
+    const dir = toyFolder()
+    const throwing = definePipeline({
+      name: 'toy',
+      spec: z.object({ param: z.number() }),
+      stages: [{ id: 'paid', cost: { budget: 'images', units: 1 }, ...members }],
+    })
+    const out = await Effect.runPromise(
+      route(['toy', 'run', dir, '--paid', '--json'], [throwing]).pipe(Effect.provide(layers)),
+    )
+    expect(out.exit).toBe(1)
+    const lines = out.stdout.trimEnd().split('\n')
+    expect(lines).toHaveLength(1)
+    expect(JSON.parse(lines[0] as string)).toMatchObject({ ok: false, exit: 1, error: 'paid: boom' })
+    expect(JSON.parse(readFileSync(join(dir, '.stage.json'), 'utf8')).paid).toMatchObject({
+      state: 'failed',
+      notes: 'boom',
+    })
   })
 })

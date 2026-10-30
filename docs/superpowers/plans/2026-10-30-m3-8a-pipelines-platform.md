@@ -225,6 +225,25 @@ tests through `pnpm -r`). No browser project: nothing here renders. Pending: the
 - A stage with nothing declared to produce is never adopted (the source adopted a stage with no outputs).
 - The bin registers no pipeline yet: `character` and `props` are `PLANNED` (exit 2) until M3.9 registers them.
 
+## Review round 1 (decisions for the Owner's review)
+
+- **D8, a pending gate anywhere before the last selected stage blocks the run** (exit 3), selected or not: with
+  `--only a,c` and G1 pending on `b`, nothing runs, `a` included. A selected gated stage stays the plan's (it may run
+  again, and the plan stops at it).
+- **D9, a throw is a failed stage.** A throw in `run`, inside its effect, or in `inputs`/`outputs`/`restorable`/
+  `params` (and `canonicalJson`) is caught as a defect: exit 1, `--json` still prints one object, and on `run` the
+  stage is recorded `failed`. A defect outside any stage is exit 1 with its message.
+- **D10, the spend ledger lock.** A run with paid stages creates `pipeline-spend.lock` beside the ledger with `wx`
+  before its budget check and removes it when its scope closes (`Effect.acquireRelease`). A second run finding it
+  held exits 4 naming the lock, without waiting. Each charge re-checks what is left under the lock, and the ledger is
+  written to a temporary file and renamed into place. `node:fs` is used for the lock and the rename because core's
+  `Files` has neither exclusive create nor rename (a second framework request beside `readBytes`). A lock left by a
+  killed process stays until a person deletes it (the message says so).
+- **D11, stage paths stay inside the target folder.** An absolute path or one that leaves the folder through `..` in
+  `inputs`, `outputs` or `restorable` is exit 1 naming the stage, the kind and the path; every command but `approve`,
+  `reject` and `request` checks all stages' paths first. M3.9's `install` writes into the game's content outside the
+  target folder, so it will need a declared project-level output root (its row decides how).
+
 ## Execution log
 
 | Date | Step | Evidence |
@@ -240,3 +259,5 @@ tests through `pnpm -r`). No browser project: nothing here renders. Pending: the
 | 2026-10-30 | PL-a, PL-b (test 8) | written after the runner, so their failure was shown by mutation: with the budget refusal disabled both PL-a cases fail (requests reach the fake server); with the cache disabled PL-b fails; restored, 3 of 3 |
 | 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint (81 files), typecheck (root, physics, pipelines), boundaries 19 files 0 findings, root 157 tests (F1 included), pipelines 74, physics 71 |
 | 2026-10-30 | Integration | The F1 boundary test now scans each `tooling/*` workspace package (a folder with its own package.json) as well as `packages/`, test-first (the new case was red); `tooling/pipelines` passes it. The manifest rules still read `packages/*` only (follow-up) |
+| 2026-10-30 | Review round 1 | 4 findings, each test-first: `--only` past a pending gate (runner test, red: exit 0 and `c` charged); a throwing stage crashing the router (3 router cases, red: FiberFailure); concurrent paid runs (`spend-lock.test.ts`, red: both exit 0); paths outside the target folder (3 runner cases, red). Fixed (D8 to D11); pipelines 82 tests |
+| 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint 82 files, typecheck, boundaries 19 files 0 findings, root 158 (F1 over `tooling/*` included), pipelines 82, physics 71 |
