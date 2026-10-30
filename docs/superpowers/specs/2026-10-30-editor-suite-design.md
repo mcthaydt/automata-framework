@@ -160,7 +160,7 @@ never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**
 ```
 
 - The first `[[file]]` row whose glob matches a path wins (the mockups' `fileRow`); a file no row matches is read only, with the reason.
-- `never` always includes `content/editors.toml` itself and the gate records, whatever the game writes: the suite cannot widen its own allowlist, and an Ask diff cannot add a command to `run` (§11).
+- `never` always includes `content/editors.toml` itself, `.git/**` and the gate records, whatever the game writes: the suite cannot widen its own allowlist, and an Ask diff cannot add a command to `run` (§11).
 - `run` is argv. The Node adapter runs it in the game checkout with no shell, one job per check id, output capped at 200 KB (The Last Light's runner rules); `{scene}` and `{path}` are the only substitutions and are checked against the row's glob first.
 - FloorFifty's list has `gates = []` on every row and no `[[gate]]`; the gate pill reads "No gates".
 
@@ -234,7 +234,7 @@ function openDocument(path: string, text: string): ContentDocument   // format f
 
 ### 4.5 Change-set journal (`editor-suite/core`)
 
-Holds, for the open change set: the files written, each write's before and after text (for the Review desk's diff and for an import's all-or-none undo), the token use, the latest check run per check id with before-and-after measures, and the session's locks. It is kept in the kit's autosave journal under `.editors/<branch>.journal`, so a reload restores the pills, the measures and the import undo step; it is never committed (`never` covers `.editors/**`).
+Holds, for the open change set: the files written, each write's before and after text (for the Review desk's diff and for an import's all-or-none undo), the token use, the latest check run per check id with before-and-after measures, and the session's locks. It is kept beside the kit's autosave journal in OPFS (`<branch>.journal`), so a reload restores the pills, the measures and the import undo step; it is never written to the checkout or committed.
 
 ### 4.6 Contribution points (EDS-D5)
 
