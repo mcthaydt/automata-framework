@@ -5,6 +5,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { svelteTesting } from '@testing-library/svelte/vite'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
+import { removeProfiles } from './scripts/remove-profiles.ts'
 
 // Two projects (editor kit spec §8), the same split as @mcthaydt/automata-ui:
 // - unit: pure rules and component behavior in jsdom, through Testing Library (states and behavior, no snapshots).
@@ -24,6 +25,9 @@ import { defineConfig } from 'vitest/config'
 const PRIVATE_WINDOW = 'src/storage/private-window.layout.test.ts'
 process.env.AF_EDITOR_KIT_PROFILES ??= mkdtempSync(join(tmpdir(), 'af-editor-kit-layout-'))
 const profiles = process.env.AF_EDITOR_KIT_PROFILES
+// Whatever loads this file (a unit run, knip) leaves no directory behind: removed again when the process exits,
+// after every browser is gone.
+process.once('exit', () => removeProfiles(profiles))
 
 function persistentProfile(browser: 'chromium' | 'webkit') {
   return {
