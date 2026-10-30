@@ -27,6 +27,7 @@ function fakeRig() {
     follow: (x, y, z) => calls.push(`follow ${x} ${y} ${z}`),
     frame: () => calls.push('frame'),
     update: (s) => calls.push(`update ${s}`),
+    pose: () => undefined,
   }
   return { rig, calls }
 }

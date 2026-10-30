@@ -50,7 +50,7 @@ async function start(
     lighting,
     lamps: 'lamp',
     fog,
-    scene: (view, _stage, light) => {
+    scene: (view, _stage, _occluders, light) => {
       view.camera.position.set(0, 5, 7)
       view.camera.lookAt({ x: 0, y: 0, z: 0 })
       for (const x of floors ? [-3, 3] : []) {

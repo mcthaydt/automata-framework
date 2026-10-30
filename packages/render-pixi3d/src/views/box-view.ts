@@ -1,6 +1,7 @@
 import { Container3D, CubeGeometry, FlatMaterial, Mesh3D, PhongMaterial } from '@pixi/3d'
 import { channels, toSrgb } from '../light/vertex-light.js'
 import { placeView3d } from './pose-3d.js'
+import { shareMaterial } from './shared-material.js'
 import type { View3dFactory } from './view-3d.js'
 
 export interface BoxSize {
@@ -55,9 +56,19 @@ export function box(size: BoxSize, material: BoxMaterial): View3dFactory {
     heightSegments: cells(size.height),
     depthSegments: cells(size.depth),
   })
-  const shared = new PhongMaterial({ baseColor: material.color })
+  // Shared between the view's boxes; the occluder rule gives a faded box its own copy (M3.4c).
+  const shared = shareMaterial(
+    new PhongMaterial({ baseColor: material.color }),
+    () => new PhongMaterial({ baseColor: material.color }),
+  )
   // Static boxes share one flat material: their light is in their own vertex colours.
-  const baked = material.lit === 'static' ? new FlatMaterial({ baseColor: material.color }) : undefined
+  const baked =
+    material.lit === 'static'
+      ? shareMaterial(
+          new FlatMaterial({ baseColor: material.color }),
+          () => new FlatMaterial({ baseColor: material.color }),
+        )
+      : undefined
   // The base colour in linear light, decoded once for the per-frame tint.
   const linear = channels(material.color)
   return (row, componentId, _models, light) => {

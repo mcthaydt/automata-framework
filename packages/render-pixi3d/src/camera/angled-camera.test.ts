@@ -173,6 +173,18 @@ describe('angledCamera', () => {
     expectNear(positionOf(camera), eyeOf({ x: -20, y: 1, z: 5 }, 0, 25, 5))
   })
 
+  it('reports the pose it last wrote, for the occluder rule, and none before the first follow (M3.4c)', () => {
+    const { camera, rig: r } = rig()
+    r.update(1 / 60)
+    expect(r.pose()).toBeUndefined()
+    r.follow(3, 0, 2)
+    r.update(1 / 60)
+    const pose = r.pose()
+    expectNear(pose?.eye as Vec3, positionOf(camera))
+    expectNear(pose?.look as Vec3, { x: 3, y: 1, z: 2 })
+    expectNear(pose?.player as Vec3, { x: 3, y: 0, z: 2 })
+  })
+
   it('under reduced motion the follow has no lag (spec §8)', () => {
     const { camera, rig: r } = rig({ reduced: true })
     r.follow(0, 0, 0)

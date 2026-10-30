@@ -43,6 +43,15 @@ interface BakeOptions {
 function box(size: BoxSize, material: BoxMaterial): View3dFactory;
 ```
 
+### `Box3` (interface)
+
+```ts
+interface Box3 {
+    readonly min: readonly [number, number, number];
+    readonly max: readonly [number, number, number];
+}
+```
+
 ### `BoxMaterial` (interface)
 
 ```ts
@@ -62,6 +71,17 @@ interface BoxSize {
 }
 ```
 
+### `CameraPose` (interface)
+
+```ts
+interface CameraPose {
+    readonly eye: Vec3;
+    readonly look: Vec3;
+    readonly player: Vec3;
+    readonly cut: boolean;
+}
+```
+
 ### `CameraRig` (interface)
 
 ```ts
@@ -74,6 +94,7 @@ interface CameraRig {
     follow(x: number, y: number, z: number): void;
     frame(lock?: Vec3): void;
     update(frameSeconds: number): void;
+    pose(): CameraPose | undefined;
 }
 ```
 
@@ -119,10 +140,56 @@ type EntityView3d = EntityView<Container3D>;
 type EntityViewResolver3d = Readonly<Record<string, View3dFactory>>;
 ```
 
+### `FADED_OPACITY` (const)
+
+```ts
+const FADED_OPACITY = 0.25;
+```
+
+### `FIGURE_REACH` (const)
+
+```ts
+const FIGURE_REACH = 0.6;
+```
+
+### `FramingInput` (interface)
+
+```ts
+interface FramingInput {
+    readonly view: CameraView;
+    readonly outline: readonly PlanPoint[];
+    readonly at?: Vec3 | undefined;
+    readonly aspects?: readonly number[] | undefined;
+    readonly stepDeg?: number | undefined;
+}
+```
+
+### `FramingMiss` (interface)
+
+```ts
+interface FramingMiss {
+    readonly headingDeg: number;
+    readonly aspect: number;
+    readonly point: 'focus' | number;
+}
+```
+
+### `framingMisses` (function)
+
+```ts
+function framingMisses(input: FramingInput): FramingMiss[];
+```
+
 ### `HEADING_EASE_SECONDS` (const)
 
 ```ts
 const HEADING_EASE_SECONDS = 0.25;
+```
+
+### `HYSTERESIS_DEG` (const)
+
+```ts
+const HYSTERESIS_DEG = 5;
 ```
 
 ### `interpolatePose3d` (function)
@@ -156,6 +223,12 @@ type LampLevels = Readonly<Record<string, number>>;
 
 ```ts
 const lampSchema: z.ZodType<Lamp>;
+```
+
+### `lineCrossesWall` (function)
+
+```ts
+function lineCrossesWall(wall: WallSpan, from: Vec3, to: Vec3): boolean;
 ```
 
 ### `LoadedModel` (interface)
@@ -232,6 +305,12 @@ interface ModelStore extends ModelLibrary {
 }
 ```
 
+### `OCCLUDER_FADE_SECONDS` (const)
+
+```ts
+const OCCLUDER_FADE_SECONDS = 0.15;
+```
+
 ### `OccluderBox` (interface)
 
 ```ts
@@ -250,6 +329,37 @@ interface OccluderBox {
 
 ```ts
 const occluderBoxSchema: z.ZodType<OccluderBox>;
+```
+
+### `OccluderFrame` (interface)
+
+```ts
+interface OccluderFrame {
+    readonly eye: Vec3;
+    readonly look: Vec3;
+    readonly feet: Vec3;
+    readonly head: Vec3;
+    readonly seconds: number;
+    readonly reduced: boolean;
+}
+```
+
+### `OccluderPass` (interface)
+
+```ts
+interface OccluderPass {
+    step(frame: OccluderFrame): OccluderShown;
+    reset(): void;
+}
+```
+
+### `occluderPass` (function)
+
+```ts
+function occluderPass(entries: {
+    readonly walls: readonly WallEntry[];
+    readonly props: readonly PropEntry[];
+}): OccluderPass;
 ```
 
 ### `OccluderPlane` (interface)
@@ -271,6 +381,26 @@ interface OccluderPlane {
 const occluderPlaneSchema: z.ZodType<OccluderPlane>;
 ```
 
+### `Occluders` (interface)
+
+```ts
+interface Occluders {
+    wall(options: WallOptions): Container3D;
+    ceiling(node: Container3D): void;
+    prop(mesh: Mesh3D, options: PropOptions): void;
+    box(bounds: Box3, color: number): Mesh3D;
+}
+```
+
+### `OccluderShown` (interface)
+
+```ts
+interface OccluderShown {
+    readonly walls: readonly WallShown[];
+    readonly props: readonly number[];
+}
+```
+
 ### `parseGlb` (function)
 
 ```ts
@@ -290,6 +420,7 @@ interface Pixi3dCameraOptions {
     readonly views: readonly CameraView[];
     readonly initial: string;
     readonly follow: string;
+    readonly height?: number | undefined;
 }
 ```
 
@@ -298,7 +429,7 @@ interface Pixi3dCameraOptions {
 ```ts
 interface Pixi3dOptions extends PixiRendererOptions {
     readonly views: EntityViewResolver3d;
-    readonly scene?: ((view: View3D, stage: PixiStage, light: SceneLight | undefined) => PixiStageHooks | undefined) | undefined;
+    readonly scene?: ((view: View3D, stage: PixiStage, occluders: Occluders, light: SceneLight | undefined) => PixiStageHooks | undefined) | undefined;
     readonly fog?: SceneFog | undefined;
     readonly lighting?: SceneLighting | undefined;
     readonly lamps?: string | undefined;
@@ -321,6 +452,21 @@ interface Pixi3dRenderer extends PixiRenderer {
 function placeView3d(node: Container3D, curr: Components, prev: Components | undefined, alpha: number, componentId: string | undefined): void;
 ```
 
+### `PlanPoint` (interface)
+
+```ts
+interface PlanPoint {
+    readonly x: number;
+    readonly z: number;
+}
+```
+
+### `PLAYER_HEIGHT` (const)
+
+```ts
+const PLAYER_HEIGHT = 1.62;
+```
+
 ### `Pose3d` (interface)
 
 ```ts
@@ -329,6 +475,24 @@ interface Pose3d {
     readonly y: number;
     readonly z: number;
     readonly yaw: number;
+}
+```
+
+### `PropEntry` (interface)
+
+```ts
+interface PropEntry {
+    readonly bounds: Box3;
+    readonly occlude: Occlude;
+}
+```
+
+### `PropOptions` (interface)
+
+```ts
+interface PropOptions {
+    readonly bounds: Box3;
+    readonly occlude?: Occlude | undefined;
 }
 ```
 
@@ -404,6 +568,24 @@ const sceneLightingContent: ContentSchemaDef<'scene-lighting', typeof sceneLight
 const sceneLightingSchema: z.ZodType<SceneLighting>;
 ```
 
+### `segmentHitsBox` (const)
+
+```ts
+const segmentHitsBox: (from: Vec3, to: Vec3, box: Box3) => boolean;
+```
+
+### `TALL_PROP_METRES` (const)
+
+```ts
+const TALL_PROP_METRES = 1.5;
+```
+
+### `TRIM_HEIGHT` (const)
+
+```ts
+const TRIM_HEIGHT = 0.12;
+```
+
 ### `Vec3` (interface)
 
 ```ts
@@ -427,6 +609,62 @@ interface View3dFactory {
 
 ```ts
 const VIEW_EASE_SECONDS = 0.4;
+```
+
+### `WALL_THICKNESS` (const)
+
+```ts
+const WALL_THICKNESS = 0.2;
+```
+
+### `WallEntry` (interface)
+
+```ts
+interface WallEntry {
+    readonly span: WallSpan;
+    readonly occlude: Occlude;
+}
+```
+
+### `wallFacesAway` (const)
+
+```ts
+const wallFacesAway: (wall: WallSpan, eye: Vec3) => boolean;
+```
+
+### `WallOptions` (interface)
+
+```ts
+interface WallOptions {
+    readonly a: PlanPoint;
+    readonly b: PlanPoint;
+    readonly height: number;
+    readonly thickness?: number | undefined;
+    readonly trim?: number | undefined;
+    readonly color: number;
+    readonly occlude?: Occlude | undefined;
+}
+```
+
+### `WallShown` (interface)
+
+```ts
+interface WallShown {
+    occluded: boolean;
+    opacity: number;
+    trim: boolean;
+}
+```
+
+### `WallSpan` (interface)
+
+```ts
+interface WallSpan {
+    readonly a: PlanPoint;
+    readonly b: PlanPoint;
+    readonly height: number;
+    readonly thickness?: number | undefined;
+}
 ```
 
 ## `./camera-view`
@@ -531,6 +769,28 @@ const LENS_MM = 24;
 
 ```ts
 const MAX_CAMERA_TURN = 8192;
+```
+
+### `Occlude` (type)
+
+```ts
+type Occlude = (typeof OCCLUDES)[number];
+```
+
+### `OCCLUDES` (const)
+
+```ts
+const OCCLUDES: readonly ["cut", "fade", "never"];
+```
+
+### `occludeSchema` (const)
+
+```ts
+const occludeSchema: z.ZodEnum<{
+    cut: 'cut';
+    fade: 'fade';
+    never: 'never';
+}>;
 ```
 
 ### `TURN_UNITS` (const)
