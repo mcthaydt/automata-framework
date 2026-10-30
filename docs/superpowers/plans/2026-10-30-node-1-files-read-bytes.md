@@ -3,8 +3,8 @@
 - **Task:** NODE.1, a core request from the Plus lane (automata-plus `claude/plus-M3.8a-pipelines-platform`, plan `docs/superpowers/plans/2026-10-30-m3-8a-pipelines-platform.md` decision **D7**): `Files` reads text only, so the M3.8 stage cache hashes an input from its UTF-8 decoding, and two binary files that differ only in invalid UTF-8 bytes hash the same. M3.9's image stages need the cache to hash bytes.
 - **Contract owner:** the [M1 ship spec](../specs/2026-10-11-m1-ship-design.md) §3.8 (Node services). This PR amends that section. **Consumers:** `ship`, `cli` (`check`), the Plus `tooling/pipelines` package (M3.8a, M3.9a, M3.9b).
 - **Lane:** core. **Depends on:** nothing unmerged. **Unblocks:** the Plus stage cache hashing bytes (M3.8a D7) before M3.9's image stages.
-- **Status:** Planned 2026-10-30 on `claude/node-1-files-read-bytes`.
-- **Progress:** see the steps; the execution log records each check.
+- **Status:** Planned, implemented and locally checked 2026-10-30 on `claude/node-1-files-read-bytes`; not CI verified (hosted runners get no jobs; the Mac runs CI). Not released: the next "Version packages" pull request carries it.
+- **Progress:** 7 of 7 steps; the execution log records each check.
 
 ## Scope
 
@@ -50,7 +50,7 @@ Each step starts with a failing test and the reason it fails.
 - [x] **4. Every other implementation.** Red first: `pnpm --filter @mcthaydt/automata-cli typecheck` fails on the fake in `run-check.test.ts` (`Property 'readBytes' is missing`). The fake encodes its stored text with `TextEncoder` and fails with `FileError` for a missing path, as its `readText` does. Green: the cli typecheck and its unit tests.
 - [x] **5. The contract.** Ship spec §3.8 gains `readBytes`, with a dated amendment note.
 - [x] **6. Release files.** The patch changeset; `pnpm build`; `pnpm api-report --update`; `pnpm api-index` (`pnpm cheatsheet` when stale); `pnpm agent-skills --write`; `pnpm changeset status --since=origin/main`; `node tooling/release/src/check-changesets.ts`.
-- [ ] **7. Gates.** `pnpm format`; `TURBO_FORCE=true pnpm check`; `node tooling/consumer-smoke/src/run.ts --from packs` is not needed (no build-config change). Parity: not applicable (no sim, renderer, ui or golden touched).
+- [x] **7. Gates.** `pnpm format`; `TURBO_FORCE=true pnpm check`; `node tooling/consumer-smoke/src/run.ts --from packs` is not needed (no build-config change). Parity: not applicable (no sim, renderer, ui or golden touched).
 
 ## Execution log
 
@@ -60,3 +60,4 @@ Each step starts with a failing test and the reason it fails.
 - 2026-10-30, step 4: red as expected. `pnpm --filter @mcthaydt/automata-cli typecheck`: `TS2741: Property 'readBytes' is missing in type '{ readText: ...' but required in type 'FilesService'` at `run-check.test.ts(61,38)`. Green: typecheck exit 0; `vitest run src/check/run-check.test.ts` 21 passed. The fake's `readText` became a local so `readBytes` reuses its missing-file failure.
 - 2026-10-30, step 5: ship spec §3.8 lists `readBytes` and carries a dated amendment (why, the failure shape, the copy, no `writeBytes`).
 - 2026-10-30, step 6: `pnpm build` exit 0 (12 tasks; `automata-node` a cache miss, rebuilt). `pnpm api-report` failed first, as it should: `node.api.md` out of date, and `@mcthaydt/automata-node . FilesService: changed` an undeclared break (a new required interface member breaks any other implementation). **Deviation from the plan:** the changeset carries a `BREAKING:` line (the pre-1.0 rule in `tooling/api-report/src/breaks.ts`; precedent QB.2's `qb2-bundle-secret-scan.md`). Then `pnpm api-report --update` wrote the one-line `node.api.md` change and `pnpm api-report` passed (1 break, 0 undeclared). `pnpm api-index`: 570 exports, 0 undocumented, cheatsheet not stale. `pnpm agent-skills` failed (reference out of date), `--write` wrote `agents/automata/skills/automata-api/reference/api.md`, then passed. `pnpm changeset status --since=origin/main` exit 0 (the fixed group bumps every published package a patch); `node tooling/release/src/check-changesets.ts`: 3 changesets, 0 problems.
+- 2026-10-30, step 7: `pnpm format` (no changes); `TURBO_FORCE=true pnpm check` exit 0: lint (1946 files, no errors; 211 warnings and 16 infos, none in the changed files, `biome lint` on them is clean), typecheck 35 of 35 tasks, boundaries (65, 2 and 52 files, 0 findings), style (628 files, 0 findings), knip (exit 0; its one configuration hint, `zod` in `packages/ship`'s `ignoreDependencies`, predates this branch), unit 33 of 33 tasks with none cached (`automata-node` 3 files, 12 tests; `automata-cli` 10 files, 61 tests). Omitted, with reason: parity (no sim, renderer, ui or golden touched), `consumer-smoke --from packs` (no build-config change), `build:examples`/`build:demos`/e2e (no example or game touched).
