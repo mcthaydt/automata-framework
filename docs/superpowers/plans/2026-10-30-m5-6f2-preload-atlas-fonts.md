@@ -3,7 +3,7 @@
 - **Task:** M5.6F.2 in [02](../../02-master-delivery-plan.md) (lane content, size S), found in M5.6. M5 spec [§4.7](../specs/2026-10-16-m5-saves-audio-design.md): "Atlas and font outputs join the generated preload list when their screen is preloaded."
 - **Depends on:** M5.6 ([plan](2026-10-17-m5-6-atlases.md): `<atlas>-<page>.png` and `.json`, `content/atlases.toml`) and M5.5 ([plan](2026-10-18-m5-5-fonts.md): `<font>-<locale>-<hash8>.woff2`, `fonts.json`, `content/fonts.toml`), both merged. Not M5.6F.1 (the Vite build hook), which this task does not touch.
 - **Status:** drafted 2026-10-30 from `main` `30e9606c`.
-- **Progress:** 0 of 5 steps.
+- **Progress:** 2 of 5 steps.
 
 ## What exists
 
@@ -56,8 +56,8 @@
 
 Each step starts with its test, run red, with the failure reason recorded. The pre-commit hook runs the affected tests, so each red test is committed with its fix.
 
-- [ ] **1. This plan.** *Verify:* `pnpm format`.
-- [ ] **2. `assets.toml` names a screen's atlases and fonts** (`game-facts.test.ts`; `game-facts.ts`).
+- [x] **1. This plan.** *Verify:* `pnpm format`.
+- [x] **2. `assets.toml` names a screen's atlases and fonts** (`game-facts.test.ts`; `game-facts.ts`).
   - *Red:* `assetsSchema` accepts a screen with `atlases = ["wick"]` and `fonts = ["pixel"]`; one without them parses to the same value as before (no new keys); a non-list `atlases` is refused.
   - *Expected failure:* the strict object refuses the unknown keys `atlases` and `fonts`.
   - *Verify:* `pnpm --filter @mcthaydt/automata-content exec vitest run --project node src/game`.
@@ -100,3 +100,5 @@ Each step starts with its test, run red, with the failure reason recorded. The p
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
+| 2026-10-30 | 1 | `656ceeba` | Plan, from `main` `30e9606c`. |
+| 2026-10-30 | 2 | this commit | Red as expected: 1 of 12 in `game-facts.test.ts`, `unrecognized_keys` `atlases`, `fonts` at `screens.Splash` (the refusal case already passed, then for the unknown keys; it passes after the change for the list type). Green: `atlases` and `fonts` are `z.optional` lists, 17 of 17 in `src/game`; a screen without them parses with the single key `files`. `tsc -p .` clean. |
