@@ -13,6 +13,9 @@
     ".": "./src/index.ts",
     "./testing": "./src/testing/index.ts"
   },
+  "bin": {
+    "automata-server": "./src/bin/automata-server.ts"
+  },
   "scripts": {
     "test:unit": "vitest run",
     "typecheck": "tsc -p ."

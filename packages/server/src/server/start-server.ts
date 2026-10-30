@@ -9,9 +9,14 @@
  * Effect runs the process (ADR 0003): services, the scope, the clock and errors. The per-tick path is the room's
  * plain code, driven by a tick clock that reads Effect's `Clock`.
  *
- * Seams for later rows: the gates in front of Colyseus (origins, the size cap, per-IP buckets, sockets and the
- * version gate) are M7.4a's and wrap this listener's `request` and `upgrade` handlers as FloorFifty's do; logs,
- * `/health`, `/ready` and process safety are M7.4b's (`config.log` receives the events now).
+ * Operations (M7.4b): the runtime refuses a test switch in production (`process-safety.ts`), gives Colyseus a logger
+ * that writes no text, puts `/health`, `/ready` and security.txt in front of Colyseus's router (`probes.ts`), and is
+ * ready only once the game's content has loaded: it listens first, so `/health` answers while it loads, and beside
+ * the server builds one throwaway sim from the game's plugins and content, then logs `server.started`. Each room verifies a joining
+ * player's session with `config.verifier` (anonymous until R-13).
+ *
+ * Seam for M7.4a: the gates in front of Colyseus (origins, the size cap, per-IP buckets, sockets and the version
+ * gate) wrap this listener's `request` and `upgrade` handlers as FloorFifty's do.
  */
 
 import { randomInt } from 'node:crypto'
@@ -19,13 +24,18 @@ import { createServer, type Server as HttpServer } from 'node:http'
 import { Server } from '@colyseus/core'
 import { WebSocketTransport } from '@colyseus/ws-transport'
 import { ROOM_NAME } from '@mcthaydt/automata-net'
+import { createSim } from '@mcthaydt/automata-sim'
 import { type Cause, type Clock, Data, Effect, type Scope } from 'effect'
 import type { ServerConfig } from '../game/server-config'
 import type { ServerDef } from '../game/server-game'
 import { type AutomataRoom, roomClassFor } from '../room/automata-room'
 import { LiveRooms } from '../rooms/live-rooms'
 import type { TickClock } from '../rooms/tick-scheduler'
+import { anonymousVerifier, type SessionVerifier } from '../session/session-verifier'
 import { DRAIN_MAX_MS, type DrainResult, drainOnSigterm, drainRooms } from './drain'
+import { colyseusLogger } from './log-writer'
+import { installProbes, type Readiness } from './probes'
+import { testSwitchesSet } from './process-safety'
 
 type TaggedErrorClass<Tag extends string, Fields> = new (
   fields: Fields,
@@ -45,6 +55,8 @@ export interface ServerRuntime {
   readonly gameServer: Server
   readonly rooms: LiveRooms<AutomataRoom>
   readonly draining: boolean
+  /** What `/ready` reports: `ready` once the content has loaded, until a drain. */
+  readonly readiness: Readiness
   /**
    * Opens no room and seats nobody new, tells every room, waits for them to finish (at most the cap), then shuts
    * Colyseus down. Runs once: a second run returns the first result.
@@ -80,6 +92,21 @@ function configProblem(config: ServerConfig): string | undefined {
   return undefined
 }
 
+/**
+ * Whether a session token verifies, on the server's clock. A verifier that fails in any other way than refusing the
+ * token refuses it too: a join is never seated because verification broke.
+ */
+function sessionCheck(verifier: SessionVerifier, clock: Clock.Clock): (token: string) => Promise<boolean> {
+  return (token) =>
+    Effect.runPromise(
+      verifier.verify(token).pipe(
+        Effect.withClock(clock),
+        Effect.as(true),
+        Effect.catchAllCause(() => Effect.succeed(false)),
+      ),
+    )
+}
+
 const close = (http: HttpServer): Promise<void> =>
   new Promise((resolve) => {
     http.closeAllConnections()
@@ -93,11 +120,18 @@ export function createServerRuntime(
   return Effect.gen(function* () {
     const problem = configProblem(config)
     if (problem !== undefined) return yield* new ServerStartError({ reason: problem })
+    const env = config.env ?? process.env
+    const switches = testSwitchesSet(config, env)
+    if (switches.length > 0)
+      return yield* new ServerStartError({
+        reason: `refusing to start in production with ${switches.join(', ')} set`,
+      })
 
     const clock = yield* Effect.clock
     const rooms = new LiveRooms<AutomataRoom>()
     const log = config.log ?? (() => undefined)
     let draining = false
+    let loaded = false
 
     const http = createServer()
     const gameServer = new Server({
@@ -106,6 +140,7 @@ export function createServerRuntime(
       // exists to let finish. `startServer` owns the signal.
       gracefullyShutdown: false,
       greet: false,
+      logger: colyseusLogger(log),
     })
     gameServer.define(
       ROOM_NAME,
@@ -119,9 +154,10 @@ export function createServerRuntime(
         isDraining: () => draining,
         randomInt: (max) => randomInt(max),
         roomSeed: () => config.seed ?? randomInt(2 ** 32),
-        env: config.env ?? process.env,
+        env,
         log,
         manualClock: config.manualClock === true,
+        verifySession: sessionCheck(config.verifier ?? anonymousVerifier, clock),
       }),
     )
 
@@ -141,6 +177,27 @@ export function createServerRuntime(
     const port = typeof address === 'object' && address !== null ? address.port : config.port
     // Colyseus keeps the port it was asked for; a client built from it (the SDK, @colyseus/testing) needs the real one.
     ;(gameServer as unknown as { port: number }).port = port
+    const readiness = (): Readiness => (draining ? 'draining' : loaded ? 'ready' : 'starting')
+    installProbes(http, { readiness, securityTxt: config.securityTxt })
+
+    // Rooms build their sims from this content, so the server is ready once one throwaway sim has been built from it.
+    // The load runs beside the server rather than ahead of it: `/health` answers meanwhile, and a plugin whose engine
+    // takes its time holds up readiness, not the process. Content that cannot build a sim leaves the server never
+    // ready, which a deploy reads as a build that must not go live; the line names the cause by kind only.
+    yield* Effect.forkScoped(
+      Effect.tryPromise(() =>
+        createSim({ seed: 0, plugins: def.game.plugins, content: def.game.content }),
+      ).pipe(
+        Effect.match({
+          onFailure: () => log({ event: 'start.refused', code: 'content' }),
+          onSuccess: (sim) => {
+            sim.dispose()
+            loaded = true
+            log({ event: 'server.started' })
+          },
+        }),
+      ),
+    )
 
     const drain = yield* Effect.cached(
       Effect.gen(function* () {
@@ -167,6 +224,9 @@ export function createServerRuntime(
       rooms,
       get draining() {
         return draining
+      },
+      get readiness() {
+        return readiness()
       },
       drain,
     }

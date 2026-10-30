@@ -4,10 +4,13 @@
  * Two limits are enforced from M7.3b: `maxRooms` (a room past it is refused `SERVER_BUSY`) and `commandsPerSeat`
  * (each seat's input meter). The rest are taken as config and wait for their gates, which sit in front of Colyseus
  * (M7.4a): `allowedOrigins`, `maxMessageBytes` (net's parser already drops a message past net's own cap),
- * `socketsPerIp` and `perIp`. The log events go to `log`, which M7.4b turns into redacted lines.
+ * `socketsPerIp` and `perIp`. The log events go to `log`; in production that is `createLogWriter`'s redacted lines
+ * (M7.4b), and a test switch here (`seed`, `manualClock`, a fake `verifier`) is refused in production.
  */
 
 import type { NetConfig } from '@mcthaydt/automata-net'
+import type { SecurityTxt } from '../server/probes'
+import type { SessionVerifier } from '../session/session-verifier'
 
 /** A token bucket: up to `burst` at once, refilled at `perSecond`. */
 export interface Bucket {
@@ -71,4 +74,8 @@ export interface ServerConfig {
   readonly env?: Readonly<Record<string, string | undefined>> | undefined
   /** The longest a drain waits for rooms to finish [five minutes]. */
   readonly drainCapMs?: number | undefined
+  /** Who a joining player is [`anonymousVerifier`, until R-13]. The fake is a test switch. */
+  readonly verifier?: SessionVerifier | undefined
+  /** `/.well-known/security.txt`'s contact and expiry; unset, the path is 404. */
+  readonly securityTxt?: SecurityTxt | undefined
 }
