@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@mcthaydt/automata": "workspace:*",
+    "@mcthaydt/automata-figures": "workspace:*",
     "@mcthaydt/automata-render-pixi3d": "workspace:*",
     "pixi.js": "8.22.0",
     "svelte": "5.57.1",
