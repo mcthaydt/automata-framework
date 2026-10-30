@@ -109,6 +109,10 @@ const journeys = defineConfig({
       testMatch: ['frame.e2e.ts', 'examples.e2e.ts'],
       use: { browserName },
     })),
+    // TEMPORARY (M3.1b, spike S7 part 2): the GPU-runner questions, dispatched as a focused run with
+    // `spec: "spikes/s7-pixi3d/e2e/gpu.e2e.ts --project=s7"`. The spec launches each engine and phone profile
+    // itself and serves its own build. Removed with spikes/s7-pixi3d when M3.1b records the verdict.
+    { name: 's7', testDir: 'spikes/s7-pixi3d/e2e', testMatch: 'gpu.e2e.ts' },
   ],
   webServer: [
     {

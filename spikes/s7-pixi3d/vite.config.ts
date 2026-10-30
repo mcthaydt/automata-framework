@@ -55,6 +55,7 @@ export default defineConfig({
         shim: at('./index-shim.html'),
         no3d: at('./no3d.html'),
         extras: at('./extras.html'),
+        bench: at('./bench.html'),
       },
     },
   },

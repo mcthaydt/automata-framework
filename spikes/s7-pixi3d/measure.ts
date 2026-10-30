@@ -7,35 +7,17 @@
 // Run from spikes/s7-pixi3d with PLAYWRIGHT_BROWSERS_PATH set: `node measure.ts`. Writes out/results.json and
 // prints the Markdown for docs/spikes/s7-pixi3d.md. Headless browsers in a container have no GPU: the WebGL2
 // numbers come from software rasterisers, which the results name (the GPU runner is M3.1b's).
-import { execFileSync } from 'node:child_process'
-import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { createServer, type Server } from 'node:http'
-import type { AddressInfo } from 'node:net'
-import { extname, join, normalize, resolve } from 'node:path'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { gzipSync } from 'node:zlib'
-import { compileHeaders, parseManifest } from '@ruken/manifest'
 import { type Browser, type BrowserType, chromium, firefox, webkit } from 'playwright'
 import { PNG } from 'pngjs'
+import { type Build, serve, viteBuild } from './serve.ts'
 import { findExtras } from './src/bundle/extras-guard.ts'
 
 const here = import.meta.dirname
 const out = join(here, 'out')
 const VIEWPORT = { width: 1280, height: 720 }
-
-interface Build {
-  readonly name: string
-  readonly dir: string
-}
-
-function viteBuild(name: string, variant?: string): Build {
-  const dir = join(out, `build-${name}`)
-  execFileSync(join(here, 'node_modules/.bin/vite'), ['build', '--logLevel', 'warn'], {
-    cwd: here,
-    stdio: 'inherit',
-    env: { ...process.env, S7_OUT: dir, ...(variant ? { S7_VARIANT: variant } : {}) },
-  })
-  return { name, dir }
-}
 
 // --- S7-Q7: bytes --------------------------------------------------------------------------------------------
 
@@ -70,42 +52,6 @@ function entryBytes(build: Build, html: string) {
   const sum = (files: Set<string>) =>
     [...files].reduce((total, file) => total + gzipOf(join(build.dir, file)), 0)
   return { upfront: sum(staticFiles), lazy: sum(lazyFiles), all: sum(staticFiles) + sum(lazyFiles) }
-}
-
-// --- the server ----------------------------------------------------------------------------------------------
-
-const TYPES: Record<string, string> = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript',
-  '.css': 'text/css',
-  '.glb': 'model/gltf-binary',
-  '.wasm': 'application/wasm',
-}
-
-async function serve(build: Build): Promise<{ server: Server; origin: string }> {
-  const parsed = parseManifest(readFileSync(join(here, 'ruken.toml'), 'utf8'))
-  if (!parsed.ok) throw new Error(`ruken.toml: ${JSON.stringify(parsed.errors)}`)
-  let headers: Record<string, string> = {}
-  const server = createServer((request, response) => {
-    const path = normalize(decodeURIComponent(new URL(request.url ?? '/', 'http://x').pathname)).replace(
-      /^\/+/,
-      '',
-    )
-    const file = resolve(build.dir, path === '' ? 'index.html' : path)
-    if (!file.startsWith(build.dir) || !statSync(file, { throwIfNoEntry: false })?.isFile()) {
-      response.writeHead(404).end()
-      return
-    }
-    response.writeHead(200, {
-      ...headers,
-      'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream',
-    })
-    response.end(readFileSync(file))
-  })
-  await new Promise<void>((done) => server.listen(0, '127.0.0.1', done))
-  const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
-  headers = compileHeaders(parsed.manifest, { hostOrigins: [origin] })
-  return { server, origin }
 }
 
 // --- the browser runs -----------------------------------------------------------------------------------------
@@ -197,7 +143,10 @@ async function runPage(browser: Browser, origin: string, page: string, shoot: bo
 
 async function main(): Promise<void> {
   mkdirSync(out, { recursive: true })
-  const builds = { standard: viteBuild('standard'), webglOnly: viteBuild('webgl-only', 'webgl-only') }
+  const builds = {
+    standard: viteBuild(out, 'standard'),
+    webglOnly: viteBuild(out, 'webgl-only', 'webgl-only'),
+  }
 
   const bytes = {
     scene: entryBytes(builds.standard, 'index.html'),

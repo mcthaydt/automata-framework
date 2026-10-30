@@ -151,7 +151,7 @@ packages:
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
   '@ruken/manifest@file:../../vendor/ruken/ruken-manifest-0.0.0.tgz':
-    resolution: {integrity: sha512-ZgDo8pOZEEbppL7kO+1qzUbB9xhDk8q20t8tEDURl6l1OS2lb8F9nwR0GabbTrYEGLg/0WgGA/YiSbW4Fge4Wg==, tarball: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz}
+    resolution: {integrity: sha512-hdhpNvvfr2qXaV3CeMwunqrQm43/yCPSxdVnKzoilyB8B+VSwL7EpMuvzpMQhLcq21+Hdrb+QfazaaR+0Dwb0A==, tarball: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz}
     version: 0.0.0
 
   '@standard-schema/spec@1.1.0':

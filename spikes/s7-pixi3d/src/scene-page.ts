@@ -80,12 +80,42 @@ const CAST: readonly CastMember[] = [
 ]
 
 const TICK_HZ = 30
+
+// Capture modes for the GPU-runner spec (M3.1b, e2e/gpu.e2e.ts), all off by default:
+// - `still=<s>` holds one deterministic frame: the clips sampled at <s> seconds, the walker at that tick, no time
+//   passing, so WebGL2 and WebGPU draw the same frame (S7-Q2) and a capture is repeatable;
+// - `solo=<sid>` draws that figure alone (no room, no prop, no other figures), for its height in pixels (S7-Q10);
+// - `figureX=<m>` moves the solo figure sideways while the camera keeps its focus, for the edge stretch (S7-Q10);
+// - `key=1` clears to a key colour no figure or fogged surface uses, so the void and the figure can be counted;
+// - `near=`, `far=` override the camera's clip planes, for the depth-precision pair (S7-Q10).
+const params = new URLSearchParams(window.location.search)
+const numberParam = (name: string): number | undefined =>
+  params.has(name) ? Number(params.get(name)) : undefined
+const STILL = numberParam('still')
+const SOLO = numberParam('solo')
+const FIGURE_X = numberParam('figureX') ?? 0
+const KEY_COLOR = 0x00ff00
+const CLEAR_COLOR = params.has('key') ? KEY_COLOR : 0x2e222f
+const NEAR = numberParam('near') ?? 0.3
+const FAR = numberParam('far') ?? 120
+const cast = SOLO === undefined ? CAST : CAST.filter((member) => member.sid === SOLO)
+const offsetX = (member: CastMember) => (member.sid === SOLO ? FIGURE_X : 0)
 const errors: string[] = []
 const report = {
   ready: false,
   renderer: '',
   webGLVersion: 0,
   gpu: '',
+  resolution: 0,
+  devicePixelRatio: window.devicePixelRatio,
+  mode: {
+    still: STILL ?? null,
+    solo: SOLO ?? null,
+    figureX: FIGURE_X,
+    clear: CLEAR_COLOR,
+    near: NEAR,
+    far: FAR,
+  },
   frames: 0,
   ticks: 0,
   fov: { lensMm: DEFAULT_VIEW.lensMm, fovOf: fovOf(DEFAULT_VIEW.lensMm), cameraFov: 0, projectionY: 0 },
@@ -107,10 +137,10 @@ interface FigureState {
 }
 
 function walkerAt(member: CastMember, tick: number): { x: number; z: number; yaw: number } {
-  if (!member.walk) return { x: member.at[0], z: member.at[1], yaw: member.yaw }
+  if (!member.walk) return { x: member.at[0] + offsetX(member), z: member.at[1], yaw: member.yaw }
   const angle = ((tick / TICK_HZ) * 2 * Math.PI) / member.walk.period
   return {
-    x: member.at[0] + Math.cos(angle) * member.walk.radius,
+    x: member.at[0] + offsetX(member) + Math.cos(angle) * member.walk.radius,
     z: member.at[1] + Math.sin(angle) * member.walk.radius,
     yaw: Math.atan2(-Math.sin(angle), Math.cos(angle)),
   }
@@ -128,7 +158,7 @@ async function main(): Promise<void> {
   const figures = new Map<number, FigureState>()
   let view3d: View3D | undefined
   let consumer3d: RenderDeltaConsumer | undefined
-  let time = 0
+  let time = STILL ?? 0
 
   // The figure views: what M3.4's `figure(def)` would be, behind render-pixi's EntityView. Container3D is not a
   // pixi Container (it extends EventEmitter), so the casts here are the seam S7-Q5 asks about.
@@ -163,7 +193,7 @@ async function main(): Promise<void> {
   }
 
   const factory = createPixiRenderer({
-    backgroundColor: 0x2e222f,
+    backgroundColor: CLEAR_COLOR,
     pixelArt: false,
     setup(stage) {
       view3d = new View3D({
@@ -177,12 +207,12 @@ async function main(): Promise<void> {
       report.mount.worldIsStage = stage.world.parent === stage.app.stage
       const camera: Camera3D = view3d.camera
       camera.fov = fovOf(DEFAULT_VIEW.lensMm)
-      camera.near = 0.3
-      camera.far = 120
+      camera.near = NEAR
+      camera.far = FAR
       const sun = new DirectionalLight({ intensity: 2.2, color: 0xffeedd })
       sun.rotation.set(-0.9, 0.6, 0)
       view3d.root.addChild(sun)
-      buildRoom(view3d.root)
+      if (SOLO === undefined) buildRoom(view3d.root)
       consumer3d = new RenderDeltaConsumer(view3d.root as unknown as Container, { figure: figureView })
       return {
         apply(result) {
@@ -215,7 +245,9 @@ async function main(): Promise<void> {
       state.view.applyPose(pose)
     }
     if (view3d && target) {
-      const { position, focus } = cameraPose({ x: target.x, y: 0, z: target.z }, DEFAULT_VIEW)
+      // The camera keeps its focus where the followed figure stands before any `figureX` shift.
+      const focusX = target.x - offsetX(target.member)
+      const { position, focus } = cameraPose({ x: focusX, y: 0, z: target.z }, DEFAULT_VIEW)
       view3d.camera.position.set(position.x, position.y, position.z)
       view3d.camera.lookAt(focus)
     }
@@ -230,6 +262,30 @@ async function main(): Promise<void> {
     report.webGLVersion = gl instanceof WebGL2RenderingContext ? 2 : 1
     const info = gl.getExtension('WEBGL_debug_renderer_info')
     report.gpu = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER))
+  } else if (app.renderer.name === 'webgpu') {
+    // WebGPU: the adapter's own description (pixi keeps the adapter on `renderer.gpu`).
+    const adapter = (app.renderer as unknown as { gpu?: { adapter?: { info?: Record<string, string> } } }).gpu
+      ?.adapter
+    const info = adapter?.info
+    report.gpu = info
+      ? [info.vendor, info.architecture, info.device, info.description].filter(Boolean).join(' | ')
+      : 'webgpu (no adapter info)'
+  } else {
+    // pixi fell back to its Canvas renderer (no WebGL2, no WebGPU): no GPU draws the 3D view.
+    report.gpu = `none (${app.renderer.name} renderer)`
+  }
+  report.resolution = app.renderer.resolution
+  // S7-Q4: a capture through pixi's own `renderer.extract`, not the browser's screenshot.
+  ;(window as unknown as { __s7extract: () => Promise<unknown> }).__s7extract = async () => {
+    const { pixels, width, height } = app.renderer.extract.pixels(app.stage)
+    let luma = 0
+    let opaque = 0
+    for (let i = 0; i < pixels.length; i += 4) {
+      luma += 0.2126 * pixels[i]! + 0.7152 * pixels[i + 1]! + 0.0722 * pixels[i + 2]!
+      if (pixels[i + 3]! > 0) opaque++
+    }
+    const png = await app.renderer.extract.base64({ target: app.stage, format: 'png' })
+    return { width, height, meanLuma: luma / (width * height), opaqueShare: opaque / (width * height), png }
   }
 
   // S7-Q5: the consumer over Container3D adds, moves and removes an entity view.
@@ -250,16 +306,33 @@ async function main(): Promise<void> {
   report.consumer.removed = removedRoot?.parent === null && !figures.has(4)
 
   // The scene: a resync adds the cast, then each tick moves the walker.
-  renderer.apply(stepOf(0, { resync: true, added: CAST.map((m) => rowOf(m, 0)), changed: [], removed: [] }))
+  const firstTick = STILL === undefined ? 0 : Math.round(STILL * TICK_HZ)
+  renderer.apply(
+    stepOf(firstTick, {
+      resync: true,
+      added: cast.map((m) => rowOf(m, firstTick)),
+      changed: [],
+      removed: [],
+    }),
+  )
   const camera = view3d!.camera
   report.fov.cameraFov = camera.fov
   report.fov.projectionY = camera.computeProjection(16 / 9, new Matrix4()).elements[5]!
 
-  const walkers = CAST.filter((m) => m.walk)
-  let tick = 0
+  const walkers = cast.filter((m) => m.walk)
+  let tick = firstTick
   let carry = 0
   let last = performance.now()
   const frame = (now: number) => {
+    if (STILL !== undefined) {
+      // A held frame: nothing moves, so every draw is the same picture.
+      renderer.draw({ alpha: 1, frameMs: 0, paused: false })
+      report.frames++
+      report.ticks = tick
+      if (report.frames >= 30 && report.propLoaded) report.ready = true
+      requestAnimationFrame(frame)
+      return
+    }
     const frameMs = Math.min(100, now - last)
     last = now
     carry += frameMs
@@ -277,7 +350,7 @@ async function main(): Promise<void> {
     requestAnimationFrame(frame)
   }
   requestAnimationFrame(frame)
-  await buildProp(view3d!.root, './models/desk.glb', { x: 3.6, z: 3.8 }, 0.75)
+  if (SOLO === undefined) await buildProp(view3d!.root, './models/desk.glb', { x: 3.6, z: 3.8 }, 0.75)
   report.propLoaded = true
 }
 
