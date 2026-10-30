@@ -773,6 +773,15 @@ A lookup over the messages module Paraglide compiles into `paraglide.outdir` (it
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
 ```
 
+#### `hasRawText` (function)
+
+True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII
+letter outside a ⟦ ⟧ span. Data a player typed (a name) is also "raw", so a check lists the data it expects.
+
+```ts
+function hasRawText(text: string): boolean;
+```
+
 #### `localeCharacters` (function)
 
 What a locale's subset font is cut to: `ALWAYS_CHARACTERS` and the catalog's characters.
@@ -795,6 +804,46 @@ The message key of one text. `id` is absent for a single-document kind.
 
 ```ts
 function messageKey(kind: string, id: string | undefined, path: DataPath): string;
+```
+
+#### `MessageValue` (type)
+
+A value in an inlang message file: a message, a list of variants, or a namespace or variant object.
+
+```ts
+type MessageValue = string | readonly MessageValue[] | {
+  readonly [key: string]: MessageValue;
+};
+```
+
+#### `PSEUDO_LOCALE` (const)
+
+The pseudo-locale's tag. `Intl` reads it as the unknown language `xx`, so formatting falls back, never throws.
+
+```ts
+const PSEUDO_LOCALE = "xx-long";
+```
+
+#### `pseudoLocalize` (function)
+
+The xx-long form of one message string. Placeholders and escaped braces stay as written. The extra length is
+spread over the words in proportion to their length, each word's share right after it, so a long message keeps
+the places a line can break, as a longer language's would; a message with no words has it at the end.
+
+```ts
+function pseudoLocalize(message: string): string;
+```
+
+#### `pseudoMessages` (function)
+
+The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural
+variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts
+change. `$schema` is copied as is.
+
+```ts
+function pseudoMessages(file: {
+  readonly [key: string]: MessageValue;
+}): Record<string, MessageValue>;
 ```
 
 #### `snakeKey` (function)
@@ -3755,6 +3804,19 @@ Each element `selector` names is tall enough for what it holds (a crushed row cl
 function findClipped(root: ParentNode, selector: string): string[];
 ```
 
+#### `findCutAtSide` (function)
+
+No control is cut at a side of a declared scroll region that clips it (see `clippedBy`). A region scrolls up and
+down, so a control past its side is cut where a player would not think to scroll, as a long language's options
+were in a Settings list; `findOffscreenControls` passes whatever a region clips, so this is what catches a control
+cut across. A region that scrolls sideways on purpose (an editor's strip of scenes) declares
+`data-scroll-region="both"`: a control past its side is reached by scrolling it, and the walk out through the
+regions around it stops there. A checkbox or radio is judged by its label (`pressedPart`).
+
+```ts
+function findCutAtSide(root: ParentNode): string[];
+```
+
 #### `findIntrusions` (function)
 
 No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its
@@ -3864,6 +3926,15 @@ render is finished. Mounts into `target`, or into a new `div` in `document.body`
 
 ```ts
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
+```
+
+#### `pressedPart` (function)
+
+What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a
+press anywhere on it toggles the input), else the control itself.
+
+```ts
+function pressedPart(control: HTMLElement): HTMLElement;
 ```
 
 #### `REFERENCE_SIZES` (const)
@@ -7163,8 +7234,9 @@ The checks every screen shares: the document never scrolls; every control is at 
 (primaries the primary target) at this scale, on screen unless in a declared scroll region,
 never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
 `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
-ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials`
-is reachable without scrolling.
+ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
+region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no
+control's words run past its edge; and each of `essentials` is reachable without scrolling.
 
 ```ts
 function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[];
