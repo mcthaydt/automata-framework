@@ -285,7 +285,9 @@ function createDocument(path: string, format: Format, text: string): ContentDocu
           ranges.push(literal ? literal.span : [change.at, change.at + change.added])
         }
         current = result.text
-        value = next.value
+        // The next edit starts from what the text now reads, not from the value asked for: the two can differ where
+        // the writer spells a value its own way, and the next patch checks its starting value against the text.
+        value = format.parse(current)
       }
       return { ok: true, document: createDocument(path, format, current), changed: merged(ranges) }
     },

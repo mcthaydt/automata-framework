@@ -149,6 +149,23 @@ describe('openDocument', () => {
     expect(document.text).toBe(TUNING)
   })
 
+  it('a later edit starts from the text the earlier one wrote, in TOML and in JSON', () => {
+    for (const [path, text] of [
+      ['values.toml', 'a = 1.5\nb = 2\n'],
+      ['values.json', '{\n  "a": 1.5,\n  "b": 2\n}\n'],
+    ] as const) {
+      const after = edited(
+        openDocument(path, text).edit([
+          { keyPath: ['a'], expected: 1.5, set: 0.123456 },
+          { keyPath: ['b'], expected: 2, set: 3 },
+        ]),
+      )
+      const value = after.value() as { a: number; b: number }
+      expect(value.b, path).toBe(3)
+      expect(after.changed, path).toHaveLength(2)
+    }
+  })
+
   it('TOML: inserts a key in its table and an array table at an index, laid out like their siblings, and removes them', () => {
     const juice = openDocument('content/juice.toml', JUICE)
     const withKey = edited(juice.edit([{ keyPath: ['lean', 'minDeg'], insert: 2 }]))
