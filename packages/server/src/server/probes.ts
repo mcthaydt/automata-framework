@@ -3,8 +3,8 @@
  *
  * - `GET /health` is liveness: 200 while the process runs, draining included, because a draining process still has
  *   games in it.
- * - `GET /ready` is readiness: 200 only while the server accepts new rooms; 503 before the game's content has loaded
- *   and while draining. A deploy waits on it before pointing new players at a build, and the uptime monitor reads it.
+ * - `GET /ready` is readiness: 200 only while the server accepts new rooms; 503 before the game's content has loaded,
+ *   at the room cap and while draining. A deploy waits on it before pointing new players at a build, and the uptime monitor reads it.
  * - `GET /.well-known/security.txt` (RFC 9116) when the server is given a contact, since a Ruken game origin serves
  *   only builds; the contact and the expiry are the game's, never AF's.
  *
@@ -14,8 +14,11 @@
 
 import type { Server as HttpServer, IncomingMessage, RequestListener, ServerResponse } from 'node:http'
 
-/** `starting` until the content has loaded, `ready` while rooms may open, `draining` once SIGTERM came. */
-export type Readiness = 'starting' | 'ready' | 'draining'
+/**
+ * `starting` until the content has loaded, `ready` while rooms may open, `full` at the room cap (every new room is
+ * refused `SERVER_BUSY`), `draining` once SIGTERM came.
+ */
+export type Readiness = 'starting' | 'ready' | 'full' | 'draining'
 
 /** RFC 9116's two required fields: a `mailto:` or `https:` contact, and an ISO 8601 expiry. */
 export interface SecurityTxt {

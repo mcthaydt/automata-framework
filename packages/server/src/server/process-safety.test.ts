@@ -3,7 +3,7 @@ import type { RoomLogEvent, ServerConfig } from '../game/server-config'
 import { createFakeVerifier } from '../session/session-verifier'
 import { TEST_LIMITS } from '../test-support/colyseus-harness'
 import { TEST_NET } from '../test-support/engine-harness'
-import { installCrashHandlers, testSwitchesSet } from './process-safety'
+import { colyseusDebugEnabled, installCrashHandlers, isProduction, testSwitchesSet } from './process-safety'
 
 // Process safety (M7 spec §4.3; FloorFifty `tests/server/process-safety.test.ts`, generic): no test switch in
 // production, and a crash is one fatal line and exit 1.
@@ -45,6 +45,47 @@ describe('testSwitchesSet (the production guard)', () => {
     ])
   })
 
+  it('is production when any environment it is given says so: a test config cannot vouch for a production box', () => {
+    expect(testSwitchesSet({ ...config, seed: 11 }, { NODE_ENV: 'test' }, PRODUCTION)).toEqual(['seed'])
+    expect(testSwitchesSet({ ...config, seed: 11 }, PRODUCTION, { NODE_ENV: 'test' })).toEqual(['seed'])
+  })
+
+  it.each(['Production', 'PRODUCTION', 'production ', 'production\r', ' production\n'])(
+    'reads NODE_ENV %j as production',
+    (value) => {
+      expect(isProduction({ NODE_ENV: value })).toBe(true)
+      expect(testSwitchesSet({ ...config, seed: 11 }, { NODE_ENV: value })).toEqual(['seed'])
+    },
+  )
+
+  it.each([undefined, '', 'test', 'development', 'productionish'])(
+    'does not read NODE_ENV %j as production',
+    (value) => {
+      expect(isProduction({ NODE_ENV: value })).toBe(false)
+    },
+  )
+
+  it.each([
+    'colyseus:*',
+    'colyseus:errors',
+    '*',
+    'col*',
+    'app, colyseus:message',
+    'colyseus:* -colyseus:patch',
+  ])(
+    'refuses DEBUG=%j in production, which prints Colyseus’s stacks and payloads past the redaction',
+    (debug) => {
+      expect(colyseusDebugEnabled({ DEBUG: debug })).toBe(true)
+      expect(testSwitchesSet(config, { ...PRODUCTION, DEBUG: debug })).toEqual(['DEBUG (colyseus)'])
+      expect(testSwitchesSet(config, PRODUCTION, { DEBUG: debug })).toEqual(['DEBUG (colyseus)'])
+    },
+  )
+
+  it.each([undefined, '', 'app:*', 'express', '-colyseus:*', '*,-colyseus:*'])('allows DEBUG=%j', (debug) => {
+    expect(colyseusDebugEnabled({ DEBUG: debug })).toBe(false)
+    expect(testSwitchesSet(config, { ...PRODUCTION, DEBUG: debug })).toEqual([])
+  })
+
   it('allows anything outside production', () => {
     const everything = {
       ...config,
@@ -55,6 +96,7 @@ describe('testSwitchesSet (the production guard)', () => {
     }
     expect(testSwitchesSet(everything, { NODE_ENV: 'test' })).toEqual([])
     expect(testSwitchesSet(everything, {})).toEqual([])
+    expect(testSwitchesSet(everything, { NODE_ENV: 'test', DEBUG: 'colyseus:*' })).toEqual([])
   })
 })
 

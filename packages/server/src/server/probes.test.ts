@@ -42,6 +42,7 @@ describe('/ready', () => {
     ['starting', 503, false],
     ['ready', 200, true],
     ['draining', 503, false],
+    ['full', 503, false],
   ] as const)('while %s answers %d', async (readiness, status, ready) => {
     const base = await start({ readiness })
     const response = await fetch(`${base}/ready`)

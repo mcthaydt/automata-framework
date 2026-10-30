@@ -34,8 +34,15 @@ export interface ReportCounts {
   peakRooms: number
 }
 
+/**
+ * A table keyed by codes read from the log, so it has no prototype: a code such as `constructor`, `toString` or
+ * `__proto__` is counted like any other, never read from or written into `Object.prototype`.
+ */
+const newTable = (): Record<string, number> => Object.create(null) as Record<string, number>
+
 const bump = (table: Record<string, number>, key: string): void => {
-  table[key] = (table[key] ?? 0) + 1
+  // A code is only ever a key here: `Object.hasOwn` ignores anything a prototype could answer.
+  table[key] = (Object.hasOwn(table, key) ? (table[key] as number) : 0) + 1
 }
 
 /** A log line's fields, or undefined for a line that is not one of the server's. */
@@ -60,11 +67,11 @@ export function summarizeLog(
   const since = options.nowMs - options.days * DAY_MS
   const counts: ReportCounts = {
     restarts: 0,
-    fatalByClass: {},
+    fatalByClass: newTable(),
     socketsGivenUp: 0,
     slowTicks: 0,
     slowSteps: 0,
-    refusedByLimit: {},
+    refusedByLimit: newTable(),
     peakRooms: 0,
   }
   let live = 0

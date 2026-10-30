@@ -55,7 +55,7 @@ export interface ServerRuntime {
   readonly gameServer: Server
   readonly rooms: LiveRooms<AutomataRoom>
   readonly draining: boolean
-  /** What `/ready` reports: `ready` once the content has loaded, until a drain. */
+  /** What `/ready` reports: `ready` once the content has loaded, `full` at the room cap, `draining` after SIGTERM. */
   readonly readiness: Readiness
   /**
    * Opens no room and seats nobody new, tells every room, waits for them to finish (at most the cap), then shuts
@@ -121,7 +121,8 @@ export function createServerRuntime(
     const problem = configProblem(config)
     if (problem !== undefined) return yield* new ServerStartError({ reason: problem })
     const env = config.env ?? process.env
-    const switches = testSwitchesSet(config, env)
+    // The process's own environment is read too: a config's `env` can say `test` on a production box.
+    const switches = testSwitchesSet(config, env, process.env)
     if (switches.length > 0)
       return yield* new ServerStartError({
         reason: `refusing to start in production with ${switches.join(', ')} set`,
@@ -177,7 +178,12 @@ export function createServerRuntime(
     const port = typeof address === 'object' && address !== null ? address.port : config.port
     // Colyseus keeps the port it was asked for; a client built from it (the SDK, @colyseus/testing) needs the real one.
     ;(gameServer as unknown as { port: number }).port = port
-    const readiness = (): Readiness => (draining ? 'draining' : loaded ? 'ready' : 'starting')
+    // Ready means a new room would open: content loaded, not draining, and under the room cap (spec §4.5).
+    const readiness = (): Readiness => {
+      if (draining) return 'draining'
+      if (!loaded) return 'starting'
+      return rooms.size >= config.limits.maxRooms ? 'full' : 'ready'
+    }
     installProbes(http, { readiness, securityTxt: config.securityTxt })
 
     // Rooms build their sims from this content, so the server is ready once one throwaway sim has been built from it.

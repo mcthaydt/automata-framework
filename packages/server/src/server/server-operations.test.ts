@@ -1,8 +1,10 @@
 import { EventEmitter } from 'node:events'
+import { createServer } from 'node:net'
+import { Client } from '@colyseus/sdk'
 import { NET_CHANNEL, ROOM_NAME } from '@mcthaydt/automata-net'
 import { netPlugin } from '@mcthaydt/automata-net/sim'
 import { definePlugin } from '@mcthaydt/automata-sim'
-import { Effect, Exit } from 'effect'
+import { Effect, Exit, Fiber, Scope } from 'effect'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineServer } from '../game/server-game'
 import { createFakeVerifier, type FakeVerifier } from '../session/session-verifier'
@@ -19,6 +21,7 @@ import { fixtureGame, fixtureServer, Move, walkPlugin } from '../test-support/fi
 import { createLogWriter } from './log-writer'
 import { installCrashHandlers } from './process-safety'
 import { serverLogLine } from './server-log-line.schema'
+import { runServerProcess } from './server-process'
 import { createServerRuntime } from './start-server'
 
 // The server's operations end to end on an ephemeral port (M7 spec §4.3, §4.5, §6; §13 SV-f, SV-g, SV-h): session
@@ -28,6 +31,7 @@ import { createServerRuntime } from './start-server'
 let server: TestServer | undefined
 afterEach(async () => {
   vi.restoreAllMocks()
+  vi.unstubAllEnvs()
   await server?.close()
   server = undefined
 })
@@ -46,7 +50,45 @@ async function startWithFake(
 interface SdkRoom {
   readonly roomId: string
   send(type: string, payload: unknown): void
+  request(type: string, payload: unknown): Promise<unknown>
+  leave(consented?: boolean): Promise<number>
 }
+
+/** Everything printed while a test runs, by console and stream, each still printed through. */
+function spyOnOutput(): { readonly all: string[]; readonly stdout: string[] } {
+  const all: string[] = []
+  const stdoutWrites: string[] = []
+  const record =
+    (original: (...args: never[]) => unknown, into?: string[]) =>
+    (...args: unknown[]): never => {
+      const text = args.map(String).join(' ')
+      all.push(text)
+      into?.push(text)
+      return (original as (...args: unknown[]) => never)(...args)
+    }
+  // Each original is taken before its spy replaces it, so the spy prints through and records.
+  for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
+    const original = console[method].bind(console)
+    vi.spyOn(console, method).mockImplementation(record(original))
+  }
+  const stdout = process.stdout.write.bind(process.stdout)
+  const stderr = process.stderr.write.bind(process.stderr)
+  vi.spyOn(process.stdout, 'write').mockImplementation(record(stdout, stdoutWrites))
+  vi.spyOn(process.stderr, 'write').mockImplementation(record(stderr))
+  return { all, stdout: stdoutWrites }
+}
+
+/** A port the system says is free now, for a process whose entry does not report the port it bound. */
+const freePort = (): Promise<number> =>
+  new Promise((resolve, reject) => {
+    const probe = createServer()
+    probe.once('error', reject)
+    probe.listen(0, '127.0.0.1', () => {
+      const address = probe.address()
+      const port = typeof address === 'object' && address !== null ? address.port : 0
+      probe.close(() => resolve(port))
+    })
+  })
 
 /** Creates a room with a session token; the room seats the client on its next tick. */
 async function createWith(test: TestServer, name: string, session: string): Promise<SdkRoom> {
@@ -114,27 +156,13 @@ describe('SV-g: no planted secret reaches stdout', () => {
   const PLANTED_FORGED = 'FAKE-FORGED-not-a-secret-0004'
   const PLANTED_PAYLOAD = 'FAKE-PAYLOAD-not-a-secret-0005'
 
-  it('writes only schema lines over the join, play, refuse and crash paths, none holding a planted value', async () => {
-    const printed: string[] = []
-    const record =
-      (original: (...args: never[]) => unknown) =>
-      (...args: unknown[]): never => {
-        printed.push(args.map(String).join(' '))
-        return (original as (...args: unknown[]) => never)(...args)
-      }
-    // Each original is taken before its spy replaces it, so the spy prints through and records.
-    for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
-      const original = console[method].bind(console)
-      vi.spyOn(console, method).mockImplementation(record(original))
-    }
-    const stdout = process.stdout.write.bind(process.stdout)
-    const stderr = process.stderr.write.bind(process.stderr)
-    vi.spyOn(process.stdout, 'write').mockImplementation(record(stdout))
-    vi.spyOn(process.stderr, 'write').mockImplementation(record(stderr))
+  it('writes only schema lines over the join, play, refuse, handler-fault, drain and crash paths, none holding a planted value', async () => {
+    const printed = spyOnOutput().all
 
     const lines: string[] = []
     const log = createLogWriter({ write: (line) => lines.push(line), now: () => Date.now() })
-    const { test, fake } = await startWithFake({ config: { log } })
+    // A short drain cap: the drain below ends on it, with a game still in play.
+    const { test, fake } = await startWithFake({ config: { log, drainCapMs: 200 } })
     server = test
     const token = fake.issue('player-a', { expiresAtMs: ONE_MINUTE_ON() })
     const guestToken = fake.issue('player-b', { expiresAtMs: ONE_MINUTE_ON() })
@@ -179,6 +207,17 @@ describe('SV-g: no planted secret reaches stdout', () => {
     say(guest, { t: 'cmd', seq: 0, tick, type: 'not.a.command', payload: { note: PLANTED_PAYLOAD } })
     await test.step(code, 3)
 
+    // A handler fault: a request whose handler throws reaches Colyseus's `debugAndPrintError`, which hands the error's
+    // stack, planted values and room code in it, to the logger.
+    room.onMessage('boom', () => {
+      throw new TypeError(`${PLANTED_PAYLOAD} ${PLANTED_NAME} ${code}`)
+    })
+    await expect(host.request('boom', { note: PLANTED_PAYLOAD })).rejects.toThrow()
+    expect(lines.join('')).toContain('"event":"colyseus.error"')
+
+    // Drain: SIGTERM's path, which tells the room and ends at the cap.
+    expect(await Effect.runPromise(test.runtime.drain)).toBe('cap')
+
     // Crash: an error whose message carries every planted value.
     const crashes = new EventEmitter()
     const exits: number[] = []
@@ -190,7 +229,7 @@ describe('SV-g: no planted secret reaches stdout', () => {
     const written = lines.join('')
     expect(lines.length).toBeGreaterThan(5)
     for (const line of lines) expect(serverLogLine.safeParse(JSON.parse(line)).success).toBe(true)
-    for (const event of ['room.created', 'seat.joined', 'refused', 'fatal'])
+    for (const event of ['room.created', 'seat.joined', 'refused', 'drain.started', 'drain.done', 'fatal'])
       expect(written).toContain(`"event":"${event}"`)
     expect(written).toContain('"code":"session"')
     const everything = `${written}\n${printed.join('\n')}`
@@ -203,6 +242,82 @@ describe('SV-g: no planted secret reaches stdout', () => {
       token,
       guestToken,
       code,
+    ])
+      expect(everything).not.toContain(secret)
+  })
+})
+
+describe('SV-g: a production process', () => {
+  const PLANTED_NAME = 'PlantedWren'
+  const PLANTED_IP = '198.51.100.23'
+  const PLANTED_BEARER = 'FAKE-BEARER-not-a-secret-0013'
+  const PLANTED_SESSION = 'FAKE-SESSION-not-a-secret-0014'
+  const PLANTED_PAYLOAD = 'FAKE-PAYLOAD-not-a-secret-0015'
+
+  it('prints only schema lines to stdout and no planted value anywhere, run through runServerProcess', async () => {
+    const output = spyOnOutput()
+    const port = await freePort()
+    const target = new EventEmitter()
+    const exits: number[] = []
+    const { maxRooms: _maxRooms, allowedOrigins: _allowedOrigins, ...limits } = TEST_LIMITS
+    const scope = Effect.runSync(Scope.make())
+    const fiber = Effect.runFork(
+      runServerProcess(fixtureServer(), {
+        env: {
+          NODE_ENV: 'production',
+          MAX_ROOMS: '4',
+          ALLOWED_ORIGINS: 'https://game.example.test',
+          PORT: String(port),
+        },
+        net: TEST_NET,
+        limits,
+        process: target,
+        exit: (code) => exits.push(code),
+      }).pipe(Scope.extend(scope)),
+    )
+    await waitFor(
+      () => output.stdout.some((text) => text.includes('server.started')),
+      'the server never started',
+    )
+
+    // Join with a planted name and session token (the anonymous verifier accepts it), then a refused message.
+    const client = new Client(`http://127.0.0.1:${port}`)
+    const room = (await client.create(ROOM_NAME, {
+      ...joinOptions(PLANTED_NAME),
+      session: PLANTED_SESSION,
+    })) as unknown as SdkRoom
+    say(room, { t: 'cmd', seq: 0, tick: 0, type: 'not.a.command', payload: { note: PLANTED_PAYLOAD } })
+    await fetch(`http://127.0.0.1:${port}/matchmake/joinById/${room.roomId}`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${PLANTED_BEARER}`,
+        'x-forwarded-for': PLANTED_IP,
+      },
+      body: JSON.stringify({ ...joinOptions(PLANTED_NAME), session: 'x y' }),
+    }).then((response) => response.text())
+    await room.leave(true).catch(() => undefined)
+
+    // A crash on the process, its message carrying every planted value.
+    target.emit(
+      'uncaughtException',
+      new TypeError(`${PLANTED_NAME} ${PLANTED_SESSION} ${PLANTED_IP} ${room.roomId}`),
+    )
+    expect(exits).toEqual([1])
+    await Effect.runPromise(Fiber.interrupt(fiber))
+    await Effect.runPromise(Scope.close(scope, Exit.void))
+
+    const ours = output.stdout.filter((text) => text.startsWith('{"ts":'))
+    expect(ours.some((text) => text.includes('"event":"fatal"'))).toBe(true)
+    for (const text of ours) expect(serverLogLine.safeParse(JSON.parse(text)).success).toBe(true)
+    const everything = output.all.join('\n')
+    for (const secret of [
+      PLANTED_NAME,
+      PLANTED_IP,
+      PLANTED_BEARER,
+      PLANTED_SESSION,
+      PLANTED_PAYLOAD,
+      room.roomId,
     ])
       expect(everything).not.toContain(secret)
   })
@@ -241,6 +356,24 @@ describe('SV-h: health and readiness', () => {
     await waitFor(() => room.engine.info().seats.length === 0, 'the seats were never freed')
     await server.step(host.code, 1)
     expect(await drained).toBe('empty')
+  })
+
+  it('is not ready at its room cap, which refuses every new room, and ready again once a room closes', async () => {
+    server = await startTestServer({ config: { limits: { ...TEST_LIMITS, maxRooms: 1 } } })
+    const test = server
+    const port = test.runtime.port
+    await waitFor(() => test.runtime.readiness === 'ready', 'the server never became ready')
+    const host = await test.create('Ada')
+    expect(await probe(port, '/ready')).toEqual({ status: 503, body: { ready: false } })
+    expect(test.runtime.readiness).toBe('full')
+    expect(await probe(port, '/health')).toEqual({ status: 200, body: { ok: true } })
+    const room = test.room(host.code)
+    await host.leave(true)
+    await waitFor(() => room.engine.info().seats.length === 0, 'the seat was never freed')
+    // The harness's rooms have no clock of their own: an abandoned room closes on its next tick.
+    await test.step(host.code, 1)
+    await waitFor(() => test.runtime.rooms.size === 0, 'the abandoned room never closed')
+    expect(await probe(port, '/ready')).toEqual({ status: 200, body: { ready: true } })
   })
 
   it('is not ready before its content has loaded, and ready once it has', async () => {
@@ -289,6 +422,39 @@ describe('SV-h: health and readiness', () => {
 })
 
 describe('process safety at start', () => {
+  it('refuses a test switch when the process is production, though the config’s own env says test', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const exit = await Effect.runPromiseExit(
+      Effect.scoped(
+        createServerRuntime(fixtureServer(), {
+          port: 0,
+          limits: { ...TEST_LIMITS, allowedOrigins: ['https://game.example.test'] },
+          net: TEST_NET,
+          env: { NODE_ENV: 'test' },
+          seed: 11,
+          verifier: createFakeVerifier(),
+        }),
+      ),
+    )
+    expect(Exit.isFailure(exit)).toBe(true)
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toMatch(/seed, verifier \(fake\)/)
+  })
+
+  it('refuses to start in production while DEBUG would print Colyseus’s stacks to the console', async () => {
+    const exit = await Effect.runPromiseExit(
+      Effect.scoped(
+        createServerRuntime(fixtureServer(), {
+          port: 0,
+          limits: { ...TEST_LIMITS, allowedOrigins: ['https://game.example.test'] },
+          net: TEST_NET,
+          env: { NODE_ENV: 'Production\r', DEBUG: 'colyseus:*' },
+        }),
+      ),
+    )
+    expect(Exit.isFailure(exit)).toBe(true)
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toMatch(/DEBUG \(colyseus\)/)
+  })
+
   it('refuses a test switch in production, naming it, before it listens', async () => {
     const exit = await Effect.runPromiseExit(
       Effect.scoped(

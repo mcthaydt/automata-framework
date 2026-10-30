@@ -80,6 +80,29 @@ describe('summarizeLog', () => {
   })
 })
 
+describe('codes that name an object’s own properties', () => {
+  it('counts constructor, toString and __proto__ like any other code', () => {
+    const log = ['constructor', 'toString', '__proto__', 'hasOwnProperty'].flatMap((code) => [
+      line(at(1), { event: 'refused', code }),
+      line(at(1), { event: 'fatal', code }),
+    ])
+    const counts = summarizeLog(log, { nowMs: NOW, days: 7 })
+    // Pairs, not an object literal: `{ __proto__: 1 }` would not make a key.
+    const expected = [
+      ['__proto__', 1],
+      ['constructor', 1],
+      ['hasOwnProperty', 1],
+      ['toString', 1],
+    ]
+    expect(Object.entries(counts.refusedByLimit).sort()).toEqual(expected)
+    expect(Object.entries(counts.fatalByClass).sort()).toEqual(expected)
+    const text = formatReport(counts)
+    expect(text).toContain('refused by limit     __proto__ 1, constructor 1, hasOwnProperty 1, toString 1')
+    expect(text).not.toContain('function')
+    expect(JSON.parse(JSON.stringify(counts)).refusedByLimit.constructor).toBe(1)
+  })
+})
+
 describe('formatReport', () => {
   it('prints one row per item, tables sorted by name, and none for an empty table', () => {
     expect(formatReport(summarizeLog(LOG, { nowMs: NOW, days: 7 }))).toBe(

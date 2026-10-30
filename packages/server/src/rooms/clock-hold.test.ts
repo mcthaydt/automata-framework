@@ -18,6 +18,13 @@ describe('the clock hold', () => {
     expect(holdAllowed({})).toBe(true)
   })
 
+  it.each(['Production', 'production ', 'production\r'])(
+    'reads NODE_ENV %j as production, and refuses',
+    (value) => {
+      expect(holdAllowed({ NODE_ENV: value })).toBe(false)
+    },
+  )
+
   it('names only the clocks a room has', () => {
     expect(isClockName('countdown')).toBe(true)
     expect(isClockName('select')).toBe(false)
