@@ -1,11 +1,11 @@
 import '@mcthaydt/automata-editor-kit/tokens.css'
 import '@mcthaydt/automata-editor-kit/fonts.css'
 import '../../main.css'
-import { type ReferenceSize, VARIANTS } from '@mcthaydt/automata-testing'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { printProject } from '../../model/project-codec'
+import { arrived, type EditorSize, REST, SIZES } from '../../testing/layout-sizes'
 import { memoryWorkspace } from '../../testing/memory-workspace'
 import { hollowmere, mossgate } from '../../testing/samples'
 import { createTestClock } from '../../testing/test-clock'
@@ -15,37 +15,6 @@ import { type EditorHandle, startEditor } from '../boot'
 // step 7; 2D editor spec §12). jsdom has no layout, so everything about room (overflow, target sizes, what covers what,
 // which region scrolls) is only checked here. The editor is started the way `main.ts` starts it, with the real window
 // and so the real geometry owner; only the workspace is a memory one, filled with projects.
-
-type Mode = 'wide' | 'medium' | 'compact'
-interface EditorSize extends ReferenceSize {
-  readonly mode: Mode
-}
-
-const at = (
-  name: string,
-  width: number,
-  height: number,
-  mode: Mode,
-  formFactor: ReferenceSize['formFactor'],
-  heightTier: ReferenceSize['heightTier'] = undefined,
-): EditorSize => ({ name, width, height, mode, formFactor, heightTier, group: 'tablet' })
-
-const SIZES: readonly EditorSize[] = [
-  at('ipad-pro-11-landscape', 1194, 834, 'wide', 'desktop'),
-  at('ipad-pro-13-landscape', 1366, 1024, 'wide', 'desktop'),
-  at('ipad-mini-landscape', 1133, 744, 'wide', 'desktop'),
-  at('window-900x600', 900, 600, 'wide', 'desktop', 'short'),
-  at('ipad-pro-11-portrait', 834, 1194, 'medium', 'tablet-portrait'),
-  at('ipad-mini-portrait', 744, 1133, 'medium', 'tablet-portrait'),
-  at('phone-portrait', 390, 844, 'compact', 'phone-portrait'),
-  at('phone-landscape', 844, 390, 'compact', 'phone-landscape', 'short'),
-]
-
-const REST = ((): (typeof VARIANTS)[number] => {
-  const found = VARIANTS.find((variant) => variant.name === 'rest')
-  if (found === undefined) throw new Error('no rest variant')
-  return found
-})()
 
 const region = (name: string): HTMLElement => {
   const found = document.querySelector<HTMLElement>(`[data-region="${name}"]`)
@@ -62,13 +31,6 @@ afterEach(async () => {
   started = undefined
   target = undefined
 })
-
-/** Layout settled and every drawer or sheet that was sliding has arrived: the shell moves them with a 160 ms transition. */
-async function arrived(): Promise<void> {
-  await settleLayout()
-  await Promise.all(document.getAnimations().map((animation) => animation.finished))
-  await settleLayout()
-}
 
 /** Starts the editor at `size` over a workspace holding `projects` copies of the samples. */
 async function open(size: EditorSize, projects = 4) {
