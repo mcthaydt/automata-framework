@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
@@ -187,5 +187,63 @@ describe('the router', () => {
       state: 'failed',
       notes: 'boom',
     })
+  })
+})
+
+describe("the router and an agent's decision (M3.8b, PL-d)", () => {
+  const agent = { agent: true, env: {} }
+  const asAgent = async (...argv: string[]) => {
+    const out = await Effect.runPromise(
+      route([...argv, '--json'], [toyPipeline()], undefined, agent).pipe(Effect.provide(layers)),
+    )
+    const lines = out.stdout.trimEnd().split('\n')
+    expect(lines).toHaveLength(1)
+    return { exit: out.exit, result: JSON.parse(lines[0] as string) as Record<string, unknown> }
+  }
+  const auditLines = (dir: string) =>
+    existsSync(join(dir, 'docs/pipeline-audit.jsonl'))
+      ? readFileSync(join(dir, 'docs/pipeline-audit.jsonl'), 'utf8')
+          .trimEnd()
+          .split('\n')
+          .map((line) => JSON.parse(line) as Record<string, unknown>)
+      : []
+
+  it.each(['approve', 'reject'])(
+    'refuses an agent its %s with exit 4, leaves the gate and logs it',
+    async (command) => {
+      const dir = toyFolder()
+      expect((await asAgent('toy', 'run', dir)).exit).toBe(3)
+      const gates = readFileSync(join(dir, 'gates.json'), 'utf8')
+      const refused = await asAgent('toy', command, dir, 'T1', '--note', 'looks fine')
+      expect(refused.exit).toBe(4)
+      expect(refused.result).toEqual({
+        ok: false,
+        pipeline: 'toy',
+        command,
+        exit: 4,
+        error: `refused: only a person decides a gate; an agent asks with pipeline_request_review (MCP)`,
+      })
+      expect(readFileSync(join(dir, 'gates.json'), 'utf8')).toBe(gates)
+      const lines = auditLines(dir)
+      expect(lines).toEqual([
+        {
+          at: expect.any(String),
+          tool: `automata-pipe ${command}`,
+          args: { pipeline: 'toy', target: dir, gate: 'T1', note: 'looks fine' },
+          ok: false,
+          summary: refused.result.error,
+          ms: expect.any(Number),
+          head: 'unknown',
+        },
+      ])
+    },
+  )
+
+  it("lets an agent read and run, and a person's approve still works and logs nothing", async () => {
+    const dir = toyFolder()
+    expect((await asAgent('toy', 'status', dir)).exit).toBe(0)
+    expect((await asAgent('toy', 'run', dir)).exit).toBe(3)
+    expect((await json('toy', 'approve', dir, 'T1')).exit).toBe(0)
+    expect(auditLines(dir)).toEqual([])
   })
 })

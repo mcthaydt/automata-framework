@@ -1,0 +1,77 @@
+import { appendFileSync, mkdirSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { type Files, ProcessRunner } from '@mcthaydt/automata-node'
+import { Effect } from 'effect'
+import { z } from 'zod'
+import { findPipelineToml } from './project.ts'
+import { type Env, redactValue } from './redact.ts'
+
+// The audit log (M3 spec §4.8; The Last Light's AuditEntry and docs/pipeline-audit.jsonl at 92e6704): every MCP tool
+// call, and every refused `approve` or `reject` from an agent, appends one JSON line to the game's
+// docs/pipeline-audit.jsonl. The game commits it, so it is the record of what agents asked the pipelines to do.
+
+/** The log, under the project root (the folder holding `pipeline.toml`). */
+export const AUDIT_LOG = 'docs/pipeline-audit.jsonl'
+
+export interface AuditEntry {
+  /** ISO time the call started, from Effect's Clock. */
+  readonly at: string
+  /** The MCP tool, or `automata-pipe <command>` for the router's refusal. */
+  readonly tool: string
+  /** The arguments as given (redacted). */
+  readonly args: unknown
+  /** False for a refusal, an invalid call or a failure. */
+  readonly ok: boolean
+  readonly summary: string
+  /** Units the spend ledger grew by during the call, when it grew. */
+  readonly cost?: Readonly<Record<string, number>> | undefined
+  /** How long the call took, from Effect's Clock. */
+  readonly ms: number
+  /** `git rev-parse HEAD` in the project at the call, or `unknown` outside Git. */
+  readonly head: string
+}
+
+export const auditEntrySchema: z.ZodType<AuditEntry> = z
+  .object({
+    at: z.string(),
+    tool: z.string(),
+    args: z.unknown(),
+    ok: z.boolean(),
+    summary: z.string(),
+    cost: z.record(z.string(), z.number().int().nonnegative()).optional(),
+    ms: z.number().nonnegative(),
+    head: z.string(),
+  })
+  .strict()
+
+/** The commit checked out in `root`, or `unknown` (not a repository, no commit yet, or no git). */
+export const gitHead = (root: string): Effect.Effect<string, never, ProcessRunner> =>
+  Effect.gen(function* () {
+    const runner = yield* ProcessRunner
+    const out = yield* Effect.either(runner.run('git', ['rev-parse', 'HEAD'], { cwd: root }))
+    if (out._tag === 'Left' || out.right.exitCode !== 0) return 'unknown'
+    const head = out.right.stdout.trim()
+    return head === '' ? 'unknown' : head
+  })
+
+/**
+ * Appends one line. `node:fs` `appendFileSync` opens the file with O_APPEND and writes the line in one call, so lines
+ * from concurrent writers on a local disk never interleave; core's `Files` has no append (plan D5, a framework
+ * request). Key values and key-shaped strings are redacted first.
+ */
+export const appendAudit = (path: string, entry: AuditEntry, env: Env): Effect.Effect<void, string> =>
+  Effect.try({
+    try: () => {
+      mkdirSync(dirname(path), { recursive: true })
+      appendFileSync(path, `${JSON.stringify(redactValue(entry, env))}\n`)
+    },
+    catch: (cause) => `${path}: ${cause instanceof Error ? cause.message : String(cause)}`,
+  })
+
+/** The project a target belongs to: the folder of `--config`, else of the nearest `pipeline.toml`, else the cwd. */
+export const projectRootOf = (target: string, config?: string): Effect.Effect<string, never, Files> =>
+  Effect.gen(function* () {
+    if (config !== undefined) return dirname(resolve(config))
+    const toml = yield* findPipelineToml(resolve(target))
+    return toml === undefined ? process.cwd() : dirname(toml)
+  })

@@ -21,7 +21,8 @@
   server through the SDK's in-memory client), `.mcp.json`, and the format of `docs/pipeline-audit.jsonl`. Ported as
   behaviour specs on Effect; nothing is copied unchanged (the source spawns its CLI for every call and signs tokens
   with `node:crypto` HMAC; this calls the runner in-process and keeps tokens in the server's memory).
-- **Status:** planned.
+- **Status:** implemented and checked locally (`pnpm check` green); Plus CI on the Mac pending; Owner review of D1 to D9
+  pending.
 
 ## Scope
 
@@ -171,28 +172,29 @@ Server semantics:
 
 ## Tests, written first
 
-- [ ] 1. **Redaction** (`redact.test.ts`): a key variable's value, an `sk-` and an `msy_` shaped string become
+- [x] 1. **Redaction** (`redact.test.ts`): a key variable's value, an `sk-` and an `msy_` shaped string become
       `[redacted]`; a value shorter than 4 characters is left alone; other text is unchanged.
-- [ ] 2. **Audit** (`audit.test.ts`): `appendAudit` writes one line per call, creating `docs/`; the line parses with
+- [x] 2. **Audit** (`audit.test.ts`): `appendAudit` writes one line per call, creating `docs/`; the line parses with
       `auditEntrySchema`; key values in `args` and `summary` are redacted; `gitHead` is the repository's `HEAD` in a
       temp Git repository and `unknown` outside one; `projectRootOf` is the folder of the nearest `pipeline.toml`, the
       folder of `--config`, or the working folder.
-- [ ] 3. **Agent** (`agent.test.ts`): `isAgent` is true for `CLAUDECODE=1` and `AUTOMATA_AGENT=1`, false otherwise
+- [x] 3. **Agent** (`agent.test.ts`): `isAgent` is true for `CLAUDECODE=1` and `AUTOMATA_AGENT=1`, false otherwise
       (unset, `0`, empty).
-- [ ] 4. **Router** (`router.test.ts`): an agent's `approve` and `reject` exit 4 with one JSON object naming
+- [x] 4. **Router** (`router.test.ts`): an agent's `approve` and `reject` exit 4 with one JSON object naming
       `pipeline_request_review`, leave `gates.json` unchanged and append one audit line (`ok: false`); an agent's
       `status` and `run` work; a person's `approve` still works and logs nothing.
-- [ ] 5. **Bin** (`cli.test.ts`): `CLAUDECODE=1 automata-pipe <toy> approve …` is not testable on the empty registry,
+- [x] 5. **Bin** (`cli.test.ts`): `CLAUDECODE=1 automata-pipe <toy> approve …` is not testable on the empty registry,
       so the bin's case is the wiring: with `CLAUDECODE=1`, `approve` of a planned pipeline exits 4 (refused before the
-      registry is consulted); with the agent variables removed it exits 2.
-- [ ] 6. **Server** (`mcp-server.test.ts`, the SDK's in-memory client, the toy pipeline in a temp folder): every ported
+      registry is consulted) and writes the line in the working folder; with the agent variables removed it exits 2.
+      The bin's other tests now run with the agent variables removed, so they pass whoever runs them.
+- [x] 6. **Server** (`mcp-server.test.ts`, the SDK's in-memory client, the toy pipeline in a temp folder): every ported
       case above, the unknown-tool and approve-tool refusals, the strict input.
-- [ ] 7. **Review** (`review.test.ts`): accept approve, accept reject (the stage runs again on the next run), decline,
+- [x] 7. **Review** (`review.test.ts`): accept approve, accept reject (the stage runs again on the next run), decline,
       cancel, accept without a decision, a timeout with a late answer that records nothing, an already decided gate,
       an unknown gate.
-- [ ] 8. **Stdio bin** (`mcp-cli.test.ts`): `node src/mcp-cli.ts` through the SDK's stdio client: the seven tools, and a
+- [x] 8. **Stdio bin** (`mcp-cli.test.ts`): `node src/mcp-cli.ts` through the SDK's stdio client: the seven tools, and a
       `pipeline_list` call writes one audit line in the working folder.
-- [ ] 9. **PL-c, PL-d** (`acceptance-mcp.test.ts`, a temp Git repository): PL-c: every call (list, status, estimate, run,
+- [x] 9. **PL-c, PL-d** (`acceptance-mcp.test.ts`, a temp Git repository): PL-c: every call (list, status, estimate, run,
       request_review, review_status, an invalid one, an unknown one) adds exactly one line, whose `head` is
       `git rev-parse HEAD` at that call (a commit between two calls changes it). PL-d: the agent's `approve` through
       the router exits 4, the gate stays pending, and the log has the refusal line; through the server,
@@ -203,8 +205,25 @@ Server semantics:
 `pnpm format`, `pnpm check` (lint, typecheck, boundaries, the root tooling tests with F1, every package's unit tests
 through `pnpm -r`). No browser project: nothing here renders. Pending: the Plus CI run on the Mac.
 
+## As built (deviations)
+
+- The server answers a planned pipeline (`character`, `props`) with exit 2, as the router does, so its `pipeline`
+  enum lists registered and planned names.
+- Tool answers carry the target as the tool was given it (relative to the root), not the absolute path the runner was
+  called with.
+- An audit line that cannot be written turns the call into a tool error naming the log, so no call is answered as if
+  it were logged. The router's refusal stays exit 4 and adds the log error on stderr.
+- The audit `summary` is cut at 500 characters (the source cut failures at 300).
+
 ## Execution log
 
 | Date | Step | Evidence |
 |---|---|---|
-| 2026-10-30 | Plan | this file, committed alone |
+| 2026-10-30 | Plan | this file, committed alone (`56ce176`) |
+| 2026-10-30 | Redaction, audit, agent (tests 1 to 3) | 3 files red (`Cannot find module`), then 7 of 7 |
+| 2026-10-30 | Router (test 4) | 2 red (`expected +0 to be 4`: the agent's approve went through), then 20 of 20 |
+| 2026-10-30 | Bin (test 5) | 1 red (`expected 2 to be 4`), then 4 of 4; `registry.ts` now holds the bins' shared (empty) registry |
+| 2026-10-30 | Server and review (tests 6, 7) | both files red (`Cannot find module '../mcp-server.ts'`); then 1 failure: the SDK checks an elicitation reply against the form's schema, so an accepted form without a decision arrives as an `InvalidParams` error, now mapped to "no decision"; 19 of 19 (TestClock drives the 30-minute token through the server's `ManagedRuntime`) |
+| 2026-10-30 | Stdio bin (test 8) | red (`Connection closed`: no `mcp-cli.ts`), then green |
+| 2026-10-30 | PL-c, PL-d (test 9) | written after the server, so their failure was shown by mutation: with `gitHead` always `unknown` both fail; with the router's agent rule disabled PL-d fails; restored, 2 of 2 |
+| 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint 224 files, typecheck, boundaries, root 163 (F1 over `tooling/*` included), pipelines 115 (16 files), net 89, dev-tools 62, physics 71, server 269 |
