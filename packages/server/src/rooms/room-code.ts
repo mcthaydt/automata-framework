@@ -23,8 +23,8 @@ export type RandomInt = (max: number) => number
 
 /** The set operations a code claim needs: Colyseus Presence's `sismember`, `sadd` and `srem`. */
 export interface RoomCodeStore {
-  sismember(key: string, member: string): Promise<boolean | number>
-  sadd(key: string, member: string): Promise<unknown>
+  /** Adds `member`; resolves to 1 when it was added and 0 when the set already held it (Redis and Presence `sadd`). */
+  sadd(key: string, member: string): Promise<number>
   srem(key: string, member: string): Promise<unknown>
 }
 
@@ -36,15 +36,13 @@ export function generateRoomCode(randomInt: RandomInt): string {
 }
 
 /**
- * Claims a free code. Membership is checked rather than assumed: two processes can generate the same unclaimed
- * code in the same instant, and only the shared set decides it.
+ * Claims a free code. The shared set's add is the claim: two processes can generate the same code in the same
+ * instant, and only the one whose add reports 1 holds it (a check followed by an add would let both take it).
  */
 export async function claimRoomCode(store: RoomCodeStore, randomInt: RandomInt): Promise<string> {
   for (let attempt = 0; attempt < CODE_ATTEMPTS; attempt += 1) {
     const code = generateRoomCode(randomInt)
-    if (await store.sismember(ROOM_CODE_CHANNEL, code)) continue
-    await store.sadd(ROOM_CODE_CHANNEL, code)
-    return code
+    if ((await store.sadd(ROOM_CODE_CHANNEL, code)) === 1) return code
   }
   throw new Error('could not allocate a room code')
 }

@@ -31,9 +31,11 @@ function memoryStore(): RoomCodeStore & { members(key: string): string[] } {
     return set
   }
   return {
-    sismember: async (key, member) => (setOf(key).has(member) ? 1 : 0),
     sadd: async (key, member) => {
-      setOf(key).add(member)
+      const set = setOf(key)
+      if (set.has(member)) return 0
+      set.add(member)
+      return 1
     },
     srem: async (key, member) => {
       setOf(key).delete(member)
@@ -72,13 +74,32 @@ describe('room codes', () => {
     expect(store.members(ROOM_CODE_CHANNEL)).not.toContain(code)
   })
 
+  // Review of M7.3a: the shared set's add decides the claim. A separate membership check then add lets two
+  // processes both see a code as free and both take it.
+  it('claims a code only when the shared set says it added it', async () => {
+    const takenElsewhere = new Set<string>()
+    const store: RoomCodeStore = {
+      ...memoryStore(),
+      // Another process took the first code between any check and this add.
+      sadd: async (_key, member) => {
+        if (takenElsewhere.size === 0) {
+          takenElsewhere.add(member)
+          return 0
+        }
+        return 1
+      },
+    }
+    const code = await claimRoomCode(store, seededRandom(5))
+    expect(takenElsewhere.has(code)).toBe(false)
+  })
+
   it('gives up rather than spinning when the source keeps colliding', async () => {
     let asked = 0
     const everyCode: RoomCodeStore = {
       ...memoryStore(),
-      sismember: async () => {
+      sadd: async () => {
         asked += 1
-        return true
+        return 0
       },
     }
     await expect(claimRoomCode(everyCode, seededRandom(4))).rejects.toThrow(/allocate/i)

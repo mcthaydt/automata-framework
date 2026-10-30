@@ -112,7 +112,11 @@ export class InputQueue {
     return due
   }
 
-  /** Forgets a seat that has been given up, numbering and all. */
+  /**
+   * Forgets a seat that has been given up, numbering and all. The room also calls it when a seat is resumed by a
+   * reloaded client (`NetRoom.resume`), whose sequence starts again; a transport reconnect keeps the client's state
+   * and continues its numbering, so it is not forgotten.
+   */
   forget(seat: number): void {
     this.seats[seat] = undefined
   }

@@ -75,7 +75,7 @@ describe('seating', () => {
       { seat: GUEST, ready: false, connected: true, bot: false },
     ])
     expect(state.hostSeat).toBe(HOST)
-    removeSeat(state, HOST)
+    removeSeat(state, HOST, RULES)
     expect(openSeat(state, RULES)).toBe(HOST)
     expect(seatPlayer(state, RULES)).toBe(HOST)
   })
@@ -92,11 +92,11 @@ describe('seating', () => {
   it('clears a dropped seat’s readiness, and hands the host on only when the host leaves', () => {
     const state = lobby(2)
     setReady(state, HOST, true, RULES)
-    setConnected(state, HOST, false)
+    setConnected(state, HOST, false, RULES)
     expect(seat(state, HOST)).toMatchObject({ connected: false, ready: false })
     expect(state.hostSeat).toBe(HOST)
-    setConnected(state, HOST, true)
-    removeSeat(state, HOST)
+    setConnected(state, HOST, true, RULES)
+    removeSeat(state, HOST, RULES)
     expect(state.hostSeat).toBe(GUEST)
   })
 })
@@ -114,7 +114,7 @@ describe('readiness', () => {
 
   it('does not wait for a player who dropped', () => {
     const state = lobby(2)
-    setConnected(state, GUEST, false)
+    setConnected(state, GUEST, false, RULES)
     setReady(state, HOST, true, RULES)
     expect(state.phase).toBe('countdown')
   })
@@ -129,7 +129,7 @@ describe('readiness', () => {
 
   it('never counts down a room with nobody connected', () => {
     const state = lobby(1)
-    setConnected(state, HOST, false)
+    setConnected(state, HOST, false, RULES)
     const host = seat(state, HOST)
     if (host !== undefined) host.ready = true
     evaluateReadiness(state, RULES)
@@ -211,7 +211,7 @@ describe('starting and ending a game', () => {
     const state = lobby(2)
     setReady(state, HOST, true, RULES)
     setReady(state, GUEST, true, RULES)
-    setConnected(state, GUEST, false)
+    setConnected(state, GUEST, false, RULES)
     state.tick = 180
 
     startGame(state)
@@ -259,7 +259,7 @@ describe('starting over', () => {
 
   it('carries a dropped player over, still dropped', () => {
     const state = ended(2)
-    setConnected(state, GUEST, false)
+    setConnected(state, GUEST, false, RULES)
     startOver(state)
     expect(seat(state, GUEST)).toMatchObject({ connected: false, ready: false })
     expect(seat(state, HOST)).toMatchObject({ connected: true })
@@ -282,20 +282,49 @@ describe('starting over', () => {
 describe('choosing the next host', () => {
   it('prefers the longest-seated player who is still connected', () => {
     const state = lobby(3)
-    removeSeat(state, HOST)
-    setConnected(state, GUEST, false)
+    removeSeat(state, HOST, RULES)
+    setConnected(state, GUEST, false, RULES)
     expect(nextHost(state)).toBe(THIRD)
   })
 
   it('falls back to the longest-seated player when nobody is connected', () => {
     const state = lobby(3)
-    removeSeat(state, HOST)
-    setConnected(state, GUEST, false)
-    setConnected(state, THIRD, false)
+    removeSeat(state, HOST, RULES)
+    setConnected(state, GUEST, false, RULES)
+    setConnected(state, THIRD, false, RULES)
     expect(nextHost(state)).toBe(GUEST)
   })
 
   it('finds nobody when no seat is taken', () => {
     expect(nextHost(createLobby())).toBeUndefined()
+  })
+
+  // Review of M7.3a: the seat minimum holds through the countdown, not only at its start.
+  it('cancels a countdown when a leave leaves fewer seats than the minimum', () => {
+    const rules: LobbyRules = { ...RULES, minSeats: 2 }
+    const state = lobby(2, rules)
+    setReady(state, HOST, true, rules)
+    setReady(state, GUEST, true, rules)
+    expect(state.phase).toBe('countdown')
+    removeSeat(state, GUEST, rules)
+    expect(state.phase).toBe('lobby')
+    expect(state.countdownEndsAtTick).toBeUndefined()
+  })
+
+  it('cancels an all-ready countdown when every connected player has dropped', () => {
+    const state = lobby(2)
+    setReady(state, HOST, true, RULES)
+    setReady(state, GUEST, true, RULES)
+    setConnected(state, HOST, false, RULES)
+    expect(state.phase).toBe('countdown')
+    setConnected(state, GUEST, false, RULES)
+    expect(state.phase).toBe('lobby')
+    expect(state.countdownEndsAtTick).toBeUndefined()
+  })
+
+  it('keeps the host role with a host who drops while a guest is connected', () => {
+    const state = lobby(2)
+    setConnected(state, HOST, false, RULES)
+    expect(state.hostSeat).toBe(HOST)
   })
 })

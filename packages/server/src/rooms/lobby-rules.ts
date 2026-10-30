@@ -99,21 +99,41 @@ export function seatPlayer(lobby: LobbyState, rules: LobbyRules): number {
 
 /**
  * A player's drop (false) or return (true). A dropped player cannot hold the room up, so their readiness is cleared;
- * they keep the host role while their seat is held, as FloorFifty's room did.
+ * they keep the host role while their seat is held, as FloorFifty's room did. A countdown that no longer has anyone
+ * connected is cancelled.
  */
-export function setConnected(lobby: LobbyState, seat: number, connected: boolean): void {
+export function setConnected(lobby: LobbyState, seat: number, connected: boolean, rules: LobbyRules): void {
   const entry = seatEntry(lobby, seat)
   if (entry === undefined || entry.bot) return
   entry.connected = connected
   if (!connected) entry.ready = false
+  cancelCountdownIfUnmet(lobby, rules)
 }
 
-/** Frees a seat for good: a leave, or a drop past the grace. A host who leaves hands the role on (`nextHost`). */
-export function removeSeat(lobby: LobbyState, seat: number): void {
+/**
+ * Frees a seat for good: a leave, or a drop past the grace. A host who leaves hands the role on (`nextHost`), and a
+ * countdown left short of the game's minimum is cancelled.
+ */
+export function removeSeat(lobby: LobbyState, seat: number, rules: LobbyRules): void {
   const index = lobby.seats.findIndex((entry) => entry.seat === seat)
   if (index === -1) return
   lobby.seats.splice(index, 1)
   if (lobby.hostSeat === seat) lobby.hostSeat = nextHost(lobby)
+  cancelCountdownIfUnmet(lobby, rules)
+}
+
+/**
+ * The conditions that started a countdown must still hold when it ends: the minimum of seats, and under `all-ready`
+ * someone connected. FloorFifty's room meant to cancel a countdown on a leave and did not; the seat minimum is
+ * AF's, so it is held through the countdown here rather than only at its start.
+ */
+function cancelCountdownIfUnmet(lobby: LobbyState, rules: LobbyRules): void {
+  if (lobby.phase !== 'countdown') return
+  const short = lobby.seats.length < rules.minSeats
+  const nobodyThere = rules.startWhen === 'all-ready' && connectedPlayers(lobby).length === 0
+  if (!short && !nobodyThere) return
+  lobby.phase = 'lobby'
+  lobby.countdownEndsAtTick = undefined
 }
 
 /**
