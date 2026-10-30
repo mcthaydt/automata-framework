@@ -64,3 +64,13 @@ export async function ensureGitleaks(options: EnsureOptions): Promise<string> {
   chmodSync(binary, 0o755)
   return binary
 }
+
+/**
+ * The arguments of the history scan: the repository's config, and every commit the checkout's HEAD reaches.
+ * Not gitleaks' default, which is every ref (`--all`): CI's full-history checkout also fetches every branch on
+ * origin, so a finding on one lane's unmerged branch failed every other pull request (2026-10-30). A branch is
+ * scanned when its own pull request runs, as HEAD of that pull request's merge commit, and main when it is pushed.
+ */
+export function historyScanArgs(root: string, config: string): string[] {
+  return ['--config', config, '--log-opts=--full-history HEAD', root]
+}

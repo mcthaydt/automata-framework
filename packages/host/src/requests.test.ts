@@ -46,7 +46,7 @@ describe("the host's Open game menu (FloorFifty menu-request; S6 answer 6)", () 
   })
 
   it('before session.ready, a menu.open never reaches the handler and is refused', async () => {
-    // Ruken's answer 6 says the SDK answers NOT_READY here, but the SDK at b30d31b has no
+    // Ruken's answer 6 says the SDK answers NOT_READY here, but the SDK at d0fa2fe (as at b30d31b) has no
     // such check (only the host-side bridge refuses to send menu.open before ready), so
     // AF's dispatcher holds handlers back until ready (coordinator decision, 2026-10-11).
     // The fake host never sends menu.open before ready, so the test puts one on the game's port.
