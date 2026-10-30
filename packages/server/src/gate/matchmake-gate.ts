@@ -4,6 +4,8 @@
  *
  *   1. The origin list: a request from an unlisted origin, or none, is refused (spec §6, SV-d).
  *   2. A draining server opens no room and seats nobody new; a reconnection passes (spec §6 "Server draining").
+ *      A server still loading its game has no version to check a join against yet, so it is refused the same way
+ *      (`SERVER_UPDATING`, logged `starting`) until the version is read (M7.4b's startup: the listener comes first).
  *   3. Per-address buckets for opening rooms, Quick match, joining by code and reconnecting (spec §4.3 `perIp`).
  *   4. The body cap (`maxMessageBytes`): past it, 413 and the connection closes.
  *   5. The version gate (`matchmake-version-gate.ts`).
@@ -63,7 +65,8 @@ export interface MatchmakeGateOptions {
   readonly perIp: ServerLimits['perIp']
   /** The body cap: `maxMessageBytes`. */
   readonly maxBodyBytes: number
-  readonly version: GameVersion
+  /** The game's version, once the server has read it; undefined while the game is loading or if it never loads. */
+  readonly version: () => GameVersion | undefined
   /** The server's clock, in milliseconds (Effect's `Clock`). */
   readonly now: () => number
   readonly onRefused: (code: string) => void
@@ -110,6 +113,8 @@ export function createMatchmakeGate(options: MatchmakeGateOptions): MatchmakeGat
     const limit = call === undefined ? undefined : TAKES[call]
     if (limit !== undefined) {
       if (options.isDraining() && limit !== 'reconnect') return refuse(503, 'SERVER_UPDATING', 'draining')
+      if (options.version() === undefined && limit !== 'reconnect')
+        return refuse(503, 'SERVER_UPDATING', 'starting')
       sweep()
       if (!buckets[limit].take(clientIp(request))) return refuse(429, 'RATE_LIMITED', limit)
     }
@@ -121,7 +126,11 @@ export function createMatchmakeGate(options: MatchmakeGateOptions): MatchmakeGat
       return true
     }
     ;(request as IncomingMessage & { body?: string }).body = body
-    if (refuseStaleVersion(request, response, path, body, options.version, options.origins)) {
+    const version = options.version()
+    if (
+      version !== undefined &&
+      refuseStaleVersion(request, response, path, body, version, options.origins)
+    ) {
       options.onRefused('version')
       return true
     }

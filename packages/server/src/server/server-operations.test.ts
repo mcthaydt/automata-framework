@@ -392,7 +392,7 @@ describe('SV-h: health and readiness', () => {
     expect(await probe(port, '/ready')).toEqual({ status: 200, body: { ready: true } })
   })
 
-  it('is not ready before its content has loaded, and ready once it has', async () => {
+  it('is not ready before its content has loaded, refusing matchmaking SERVER_UPDATING, and ready once it has', async () => {
     let open = (): void => undefined
     const gate = new Promise<void>((resolve) => {
       open = resolve
@@ -411,15 +411,24 @@ describe('SV-h: health and readiness', () => {
     })
     server = await startTestServer({
       def: defineServer({ ...fixtureGame, plugins: [netPlugin, walkPlugin, slow] }),
+      awaitVersion: false,
     })
-    const port = server.runtime.port
+    const test = server
+    const port = test.runtime.port
     expect(await probe(port, '/ready')).toEqual({ status: 503, body: { ready: false } })
     expect(await probe(port, '/health')).toEqual({ status: 200, body: { ok: true } })
-    expect(server.runtime.readiness).toBe('starting')
+    expect(test.runtime.readiness).toBe('starting')
+    expect(test.runtime.version).toBeUndefined()
+    // No version yet, so no join can be checked: matchmaking is refused as a server not yet up, and opens nothing.
+    const early = await test.matchmake('create', joinOptionsFor('Ada', await gameVersionOf(fixtureServer())))
+    expect(early.status).toBe(503)
+    expect(((await early.json()) as { error: string }).error).toMatch(/^SERVER_UPDATING: /)
+    expect(test.runtime.rooms.size).toBe(0)
+    expect(test.logs).toContainEqual({ event: 'refused', code: 'starting' })
     open()
-    const test = server
     await waitFor(() => test.runtime.readiness === 'ready', 'the server never became ready')
     expect(await probe(port, '/ready')).toEqual({ status: 200, body: { ready: true } })
+    expect((await test.matchmake('create', test.joinOptions('Ada'))).status).toBe(200)
   })
 
   it('never becomes ready when the game’s content does not load, and says so in a fatal line', async () => {
@@ -428,12 +437,18 @@ describe('SV-h: health and readiness', () => {
         throw new Error('the content is unreadable')
       },
     }
-    server = await startTestServer({ def: fixtureServer({ content: unreadable }) })
+    server = await startTestServer({ def: fixtureServer({ content: unreadable }), awaitVersion: false })
     const test = server
     await waitFor(() => test.logs.some((event) => event.event === 'start.refused'), 'no start.refused line')
     expect(test.logs).toContainEqual({ event: 'start.refused', code: 'content' })
     expect(await probe(test.runtime.port, '/ready')).toEqual({ status: 503, body: { ready: false } })
     expect(await probe(test.runtime.port, '/health')).toEqual({ status: 200, body: { ok: true } })
+    const refused = await test.matchmake(
+      'create',
+      joinOptionsFor('Ada', await gameVersionOf(fixtureServer())),
+    )
+    expect(refused.status).toBe(503)
+    expect(test.runtime.rooms.size).toBe(0)
   })
 })
 

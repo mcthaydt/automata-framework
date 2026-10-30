@@ -15,8 +15,9 @@
  * Operations (M7.4b): the runtime refuses a test switch in production (`process-safety.ts`), gives Colyseus a logger
  * that writes no text, puts `/health`, `/ready` and security.txt in front of Colyseus's router (`probes.ts`), and is
  * ready only once the game's content has loaded: it listens first, so `/health` answers while it loads, and beside
- * the server builds one throwaway sim from the game's plugins and content, then logs `server.started`. Each room verifies a joining
- * player's session with `config.verifier` (anonymous until R-13).
+ * the listener reads the game's version from one throwaway sim (`gameVersionOf`), then logs `server.started`. Until
+ * then matchmaking is refused `SERVER_UPDATING`, since no join can be checked against a version not yet read. Each
+ * room verifies a joining player's session with `config.verifier` (anonymous until R-13).
  */
 
 import { randomInt } from 'node:crypto'
@@ -24,7 +25,6 @@ import { createServer, type Server as HttpServer } from 'node:http'
 import { Server } from '@colyseus/core'
 import { WebSocketTransport } from '@colyseus/ws-transport'
 import { MAX_MESSAGE_BYTES, ROOM_NAME } from '@mcthaydt/automata-net'
-import { createSim } from '@mcthaydt/automata-sim'
 import { type Cause, type Clock, Data, Effect, type Scope } from 'effect'
 import type { ServerConfig } from '../game/server-config'
 import type { ServerDef } from '../game/server-game'
@@ -65,8 +65,8 @@ export interface ServerRuntime {
   readonly readiness: Readiness
   /** The origin list every route answers with (M7.4b's `/health` reads it for its CORS). */
   readonly origins: OriginPolicy
-  /** The protocol and hashes a client must match to join (spec §4.2 join check). */
-  readonly version: GameVersion
+  /** The protocol and hashes a client must match to join (spec §4.2 join check); undefined until read. */
+  readonly version: GameVersion | undefined
   /** The open sockets the gates count, per address and in all. */
   readonly sockets: Pick<SocketGate, 'open' | 'addresses'>
   /**
@@ -170,12 +170,9 @@ export function createServerRuntime(
     const rooms = new LiveRooms<AutomataRoom>()
     const log = config.log ?? (() => undefined)
     let draining = false
-    let loaded = false
+    // Read beside the listener (below): until then the server is `starting` and refuses matchmaking.
+    let version: GameVersion | undefined
     const origins = originPolicy(config.limits.allowedOrigins)
-    const version = yield* Effect.tryPromise({
-      try: () => gameVersionOf(def),
-      catch: (cause) => new ServerStartError({ reason: 'the game could not build its sim', cause }),
-    })
 
     const http = createServer()
     const gameServer = new Server({
@@ -198,7 +195,7 @@ export function createServerRuntime(
         maxRooms: config.limits.maxRooms,
         commandsPerSeat: config.limits.commandsPerSeat,
         maxMessageBytes: config.limits.maxMessageBytes,
-        version,
+        version: () => version,
         rooms,
         clock: tickClockFrom(clock),
         isDraining: () => draining,
@@ -239,7 +236,7 @@ export function createServerRuntime(
         isDraining: () => draining,
         perIp: config.limits.perIp,
         maxBodyBytes: config.limits.maxMessageBytes,
-        version,
+        version: () => version,
         now: () => clock.unsafeCurrentTimeMillis(),
         onRefused: refused,
       }),
@@ -255,24 +252,22 @@ export function createServerRuntime(
     // Ready means a new room would open: content loaded, not draining, and under the room cap (spec §4.5).
     const readiness = (): Readiness => {
       if (draining) return 'draining'
-      if (!loaded) return 'starting'
+      if (version === undefined) return 'starting'
       return rooms.size >= config.limits.maxRooms ? 'full' : 'ready'
     }
     installProbes(http, { readiness, securityTxt: config.securityTxt })
 
-    // Rooms build their sims from this content, so the server is ready once one throwaway sim has been built from it.
-    // The load runs beside the server rather than ahead of it: `/health` answers meanwhile, and a plugin whose engine
-    // takes its time holds up readiness, not the process. Content that cannot build a sim leaves the server never
-    // ready, which a deploy reads as a build that must not go live; the line names the cause by kind only.
+    // The game's version (its schema and content hashes) is read from one throwaway sim of it, which is also the proof
+    // that its content loads. The read runs beside the server rather than ahead of it: `/health` answers meanwhile,
+    // matchmaking is refused `SERVER_UPDATING`, and a plugin whose engine takes its time holds up readiness, not the
+    // process. Content that cannot build a sim leaves the server alive and never ready, which a deploy reads as a
+    // build that must not go live; the line names the cause by kind only.
     yield* Effect.forkScoped(
-      Effect.tryPromise(() =>
-        createSim({ seed: 0, plugins: def.game.plugins, content: def.game.content }),
-      ).pipe(
+      Effect.tryPromise(() => gameVersionOf(def)).pipe(
         Effect.match({
           onFailure: () => log({ event: 'start.refused', code: 'content' }),
-          onSuccess: (sim) => {
-            sim.dispose()
-            loaded = true
+          onSuccess: (read) => {
+            version = read
             log({ event: 'server.started' })
           },
         }),
@@ -309,7 +304,9 @@ export function createServerRuntime(
         return readiness()
       },
       origins,
-      version,
+      get version() {
+        return version
+      },
       sockets,
       drain,
     }

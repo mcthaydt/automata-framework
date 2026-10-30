@@ -40,7 +40,8 @@ export interface RoomContext {
   /** A message past this is dropped before parsing (spec §4.3 `maxMessageBytes`). */
   readonly maxMessageBytes: number
   /** The protocol and hashes a join must carry (spec §4.2 join check). */
-  readonly version: GameVersion
+  /** The game's version once the server has read it (`createServerRuntime`); no room opens before. */
+  readonly version: () => GameVersion | undefined
   readonly rooms: LiveRooms<AutomataRoom>
   readonly clock: TickClock
   /** Whether the server is draining: it opens no room and seats nobody new. */
@@ -122,7 +123,8 @@ export class AutomataRoom extends Room<{ state: RoomInfoState }> {
 
   override async onCreate(): Promise<void> {
     const ctx = this.ctx
-    if (ctx.isDraining()) throw refusal(new RoomCommandError('SERVER_UPDATING', 'the server is updating'))
+    if (ctx.isDraining() || ctx.version() === undefined)
+      throw refusal(new RoomCommandError('SERVER_UPDATING', 'the server is updating'))
     // Only Colyseus knows whether a matchmaking request opens a room, so the cap is here; checked before a code.
     if (ctx.rooms.size >= ctx.maxRooms) {
       ctx.log({ event: 'refused', code: 'busy' })
@@ -184,7 +186,9 @@ export class AutomataRoom extends Room<{ state: RoomInfoState }> {
     const parsed = joinOptionsSchema.safeParse(options)
     if (!parsed.success) throw new Error('REFUSED: the join options are not valid')
     // The matchmaking gate refused other versions already; the room holds the same line for any join that reaches it.
-    if (versionVerdict(parsed.data, this.ctx.version) !== 'same')
+    const version = this.ctx.version()
+    if (version === undefined) throw new Error('SERVER_UPDATING: the server is updating')
+    if (versionVerdict(parsed.data, version) !== 'same')
       throw new Error('VERSION_MISMATCH: this game is out of date: reload to play')
     try {
       if (this.ctx.isDraining()) throw new RoomCommandError('SERVER_UPDATING', 'the server is updating')

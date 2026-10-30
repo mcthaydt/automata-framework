@@ -159,7 +159,15 @@ function wrap(sdkRoom: SdkRoom): TestClient {
 }
 
 export async function startTestServer(
-  options: { readonly def?: ServerDef; readonly config?: Partial<ServerConfig> } = {},
+  options: {
+    readonly def?: ServerDef
+    readonly config?: Partial<ServerConfig>
+    /**
+     * Whether to wait for the server to read its game's version, as every test that joins needs [true]. A test of
+     * the server before its content loads sets it false.
+     */
+    readonly awaitVersion?: boolean
+  } = {},
 ): Promise<TestServer> {
   const logs: RoomLogEvent[] = []
   const scope = Effect.runSync(Scope.make())
@@ -181,7 +189,15 @@ export async function startTestServer(
     origin: TEST_ORIGIN,
   }
   const base = `http://127.0.0.1:${runtime.port}`
-  const optionsFor = (name: string) => joinOptions(name, runtime.version)
+  if (options.awaitVersion !== false)
+    await waitFor(
+      () => runtime.version !== undefined || logs.some((event) => event.event === 'start.refused'),
+      'the server never read its version',
+    )
+  const optionsFor = (name: string): Record<string, unknown> => {
+    if (runtime.version === undefined) throw new Error('the server has not read its version yet')
+    return joinOptions(name, runtime.version)
+  }
   const room = (code: string): AutomataRoom => {
     const found = colyseus.getRoomById(code) as unknown as AutomataRoom | undefined
     if (found === undefined) throw new Error(`no room ${code}`)
