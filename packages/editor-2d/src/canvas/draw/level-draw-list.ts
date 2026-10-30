@@ -100,7 +100,7 @@ export function createLevelDrawList(): (input: LevelDrawInput) => LevelDrawList 
     const { images } = input
     const locked = input.view.locked.has(def.id)
     if (def.kind === 'tiles' && layer.kind === 'tiles') {
-      const tiles = chunks.tiles(def, layer.cells, tilesetOf(project, def.tileset), images)
+      const tiles = chunks.tiles(def, layer.cells, tilesetOf(project, def.tileset), images, input.generations)
       return { kind: 'tiles', def: def.id, opacity: def.opacity, locked, chunks: tiles }
     }
     if (def.kind === 'intgrid' && layer.kind === 'intgrid') {
@@ -115,7 +115,7 @@ export function createLevelDrawList(): (input: LevelDrawInput) => LevelDrawList 
     if (def.kind === 'auto' && layer.kind === 'auto') {
       const source = level.layers.find((candidate) => candidate.def === def.source)
       const cells = source?.kind === 'intgrid' ? source.cells : undefined
-      const tiles = chunks.auto(def, layer, cells, tilesetOf(project, def.tileset), images)
+      const tiles = chunks.auto(def, layer, cells, tilesetOf(project, def.tileset), images, input.generations)
       return { kind: 'auto', def: def.id, opacity: def.opacity, locked, chunks: tiles }
     }
     if (def.kind === 'entities' && layer.kind === 'entities') {

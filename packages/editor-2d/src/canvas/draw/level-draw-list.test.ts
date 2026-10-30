@@ -50,6 +50,29 @@ describe('level draw list: the level', () => {
     })
   })
 
+  it('draws a layer’s chunks again when the image of its tileset has a new generation', () => {
+    const draw = createLevelDrawList()
+    const project = withDefs(richProject(), (defs) => ({
+      ...defs,
+      tilesets: defs.tilesets.map((set) => ({ ...set, image: 'assets/terrain.png' })),
+    }))
+    const images = new Set(['assets/terrain.png'])
+    const chunksOf = (generation: number) => {
+      const list = draw({
+        project,
+        view: drawView(),
+        images,
+        generations: new Map([['assets/terrain.png', generation]]),
+      })
+      const decor = list.layers.find((layer) => layer.def === 'decor')
+      return decor?.kind === 'tiles' ? decor.chunks : []
+    }
+    const first = chunksOf(1)
+    expect(first.length).toBeGreaterThan(0)
+    expect(chunksOf(1)[0]).toBe(first[0])
+    expect(chunksOf(2)[0]).not.toBe(first[0])
+  })
+
   it('leaves hidden layers out, and marks locked ones, which are still drawn', () => {
     const view = drawView({ hidden: new Set(['decor', 'props']), locked: new Set(['collision']) })
     const list = createLevelDrawList()({ project: richProject(), view, images: noImages })
