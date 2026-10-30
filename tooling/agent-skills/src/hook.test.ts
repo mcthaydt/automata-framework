@@ -154,6 +154,34 @@ describe('the PostToolUse hook', () => {
     expect(run.calls[0]?.cwd).toBe(p.dir)
   })
 
+  // GL spec §5.3 and acceptance B7: a game laid out by role has its sim in src/<role>.ts, src/<role>/ and src/sim.ts.
+  it.each([
+    'src/systems.ts',
+    'src/systems/x.ts',
+    'src/resources.ts',
+    'src/state.ts',
+    'src/sim.ts',
+    'src/constants.ts',
+    'src/components/a.ts',
+    'src/commands.ts',
+    'src/events.ts',
+  ])('runs the sim-only check after an edit to %s', (file) => {
+    const p = project()
+    const run = runHook(p, 'post-edit', edit(p, file), { stdout: '{"ok":true,"steps":[]}' })
+    expect(run.calls.map((call) => call.args)).toEqual([['check', '--sim-only', '--json']])
+  })
+
+  it.each([
+    'src/views.ts',
+    'src/main.ts',
+    'src/screens/title.ts',
+    'src/content/rooms.content.ts',
+    'src/simulate.ts',
+  ])('does nothing after an edit to %s', (file) => {
+    const p = project()
+    expect(runHook(p, 'post-edit', edit(p, file)).calls).toEqual([])
+  })
+
   it('accepts a sim path relative to the project', () => {
     const p = project()
     const event = { ...edit(p, ''), tool_input: { file_path: 'src/sim/a.system.ts' } }
