@@ -19,6 +19,7 @@ environment. Nothing publishes from a laptop. The long-lived credentials are:
 | `RUKEN_TOKEN` | Secrets of each game repository | `ruken publish` for that game (`game-release.yml`) |
 | `SHIP_DEV_SSH_KEY`, `SHIP_DEV_KNOWN_HOSTS` | Secrets of each game repository | Deploy a game to the dev host |
 | The `af-linux` runner registration | The runner PC | Run CI jobs for this repository |
+| The `af-mac` runner registrations | The Owner's Mac | Run CI jobs and, since 2026-10-30, the release jobs (`release-packages.yml`: version, and publish behind the `release` approval) |
 | The npm token for npmjs.org | Not created yet (DX.11) | Will publish the public packages |
 
 **Do this, in order, from a device you still trust:**
