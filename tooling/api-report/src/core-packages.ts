@@ -1,12 +1,11 @@
 // The core packages an API report covers (PRODUCT spec §2 F6): every `packages/*` folder except extensions,
 // which are Automata Plus (PD-1) and versioned on their own. Entries are the source `exports` map, the one
-// the workspace resolves, so private packages (runtime, render-pixi) are covered before they publish.
+// the workspace resolves, so a private package (cli, the editors) is covered before it publishes.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /** Folders under `packages/` that are not core, with the reason. */
 export const NOT_CORE: Readonly<Record<string, string>> = {
-  physics: 'an extension; moves to automata-plus with PRODUCT.5 (PD-1)',
   'editor-3d':
     'an editor application, private, imported by no game; its public entry is not a framework seam',
 }

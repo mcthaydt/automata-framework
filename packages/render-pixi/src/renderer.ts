@@ -21,8 +21,10 @@ import { canvasResolutionFor } from './letterbox/canvas-resolution.js'
 import { CompositeTarget } from './letterbox/composite-target.js'
 import { LetterboxFrame } from './letterbox/letterbox.js'
 
+/** The renderer backend: `webgl` (WebGL2, the default) or `webgpu` (opt-in). */
 export type RendererPreference = 'webgl' | 'webgpu'
 
+/** Options for `createPixiRenderer`; every field has a default. */
 export interface PixiRendererOptions {
   /**
    * Preferred backend. Default is 'webgl' (WebGL2).
@@ -76,6 +78,10 @@ export interface PixiStageHooks {
   readonly reset?: (() => void) | undefined
 }
 
+/**
+ * The Pixi scene the renderer draws, as a game's `setup` sees it: the app, the letterbox's layers, the entity
+ * views, the post-filter slot and the quality tier.
+ */
 export interface PixiStage {
   readonly app: Application
   readonly frame?: LetterboxFrame | undefined
@@ -104,6 +110,7 @@ export interface PixiStage {
   tryFilter<F extends Filter>(id: string, make: () => F): F | undefined
 }
 
+/** The runtime's `GameRenderer`, built on PixiJS, with its stage. */
 export interface PixiRenderer extends GameRenderer {
   readonly stage: PixiStage
 }
@@ -119,6 +126,11 @@ function resolvePreference(optionPreference?: RendererPreference): RendererPrefe
   return optionPreference ?? 'webgl'
 }
 
+/**
+ * The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render
+ * target, entity views from each step's render delta, interpolated each frame. Fails with
+ * `RendererUnavailable` when the renderer cannot start.
+ */
 export function createPixiRenderer(
   options: PixiRendererOptions = {},
 ): (target: RenderTarget) => Effect.Effect<PixiRenderer, RendererUnavailable, Scope.Scope> {

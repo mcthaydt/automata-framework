@@ -40,13 +40,6 @@ export function clampToBounds(point: Vec3, bounds: Bounds): Vec3 {
   return { x: clamp(point.x, 0), y: clamp(point.y, 1), z: clamp(point.z, 2) }
 }
 
-/** The eases' curve: 0 before the start, 1 after the end, `3t² − 2t³` between. */
-export function smoothstep(t: number): number {
-  if (t <= 0) return 0
-  if (t >= 1) return 1
-  return t * t * (3 - 2 * t)
-}
-
 /** The signed turn in degrees from `fromDeg` to `toDeg` the shorter way round, in (−180, 180]. */
 export function shorterArc(fromDeg: number, toDeg: number): number {
   const turn = (((toDeg - fromDeg) % 360) + 360) % 360

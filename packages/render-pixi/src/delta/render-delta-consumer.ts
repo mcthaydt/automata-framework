@@ -15,6 +15,10 @@ export interface SceneParent<C extends SceneNode> {
   addChild(child: C): unknown
 }
 
+/**
+ * What an entity view factory returns: the container drawn for one entity, updated with its current and
+ * previous component values and the interpolation alpha, and destroyed when the entity goes.
+ */
 export interface EntityView<C extends SceneNode = Container> {
   readonly container: C
   update?(
@@ -35,6 +39,10 @@ export type EntityViewFactory<C extends SceneNode = Container> = (
   componentId?: string,
 ) => EntityView<C> | undefined
 
+/**
+ * Which view an entity gets: one factory for every entity, or factories by component id (the first id, in the
+ * record's own key order, whose component the entity has wins).
+ */
 export type EntityViewResolver<C extends SceneNode = Container> =
   | EntityViewFactory<C>
   | Readonly<Record<string, EntityViewFactory<C>>>
@@ -45,8 +53,8 @@ interface CachedEntity {
 }
 
 /**
- * Keeps one entity view per entity with a drawn component, from each step's render delta, and interpolates them
- * each frame. `C` is the scene's node type: Pixi's `Container` by default.
+ * Keeps one entity view per sim entity in the world from each step's render delta, and interpolates them between
+ * ticks. `C` is the scene's node type: Pixi's `Container` by default.
  */
 export class RenderDeltaConsumer<C extends SceneNode = Container> {
   private readonly world: SceneParent<C>

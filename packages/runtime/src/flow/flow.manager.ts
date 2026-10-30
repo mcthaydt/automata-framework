@@ -24,6 +24,10 @@ import type { Time } from '../time/time.manager.js'
 import type { FlowFailure, RuntimeServices, ScreenContext, ScreenDef } from './screen.js'
 import type { Veil } from './veil.js'
 
+/**
+ * The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu`
+ * for the current screen's menu, and `settled` once no transition is pending.
+ */
 export interface Flow {
   readonly current: string | undefined
   dispatch(event: string): boolean

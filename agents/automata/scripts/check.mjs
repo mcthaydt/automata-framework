@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The Automata plugin's hook (DX spec §3.7). Claude Code runs it with the hook event as JSON on stdin:
-//   post-edit (PostToolUse on Edit|Write): after an edit under src/sim/, runs `automata check --sim-only --json`.
+//   post-edit (PostToolUse on Edit|Write): after a sim edit (src/sim/, or a sim role file, GL spec §5.3), runs `automata check --sim-only --json`.
 //   stop (Stop): before the turn ends, runs the full `automata check --json`.
 // Exit 0 says nothing. Exit 2 is Claude Code's blocking feedback: stderr goes back to the model, which then fixes
 // the findings (after an edit) or keeps working instead of ending the turn (on stop). The hook never edits files.
@@ -10,6 +10,9 @@ import { existsSync, readFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 
 const BLOCK = 2
+// The sim roles of a game laid out by role (GL spec §4.5). A copy of check-boundaries' GAME_SIM_ROLES: this hook
+// runs with no dependencies; hook.test.ts pins the names.
+const SIM_ROLES = ['constants', 'components', 'commands', 'events', 'resources', 'systems', 'state']
 const mode = process.argv[2]
 const event = readEvent()
 // biome-ignore lint/suspicious/noUndeclaredEnvVars: Claude Code sets it for the hook; no turbo task reads it
@@ -37,12 +40,16 @@ function readEvent() {
   }
 }
 
-/** True for a file under the project's src/sim/ (absolute, or relative to the project). */
+/**
+ * True for a sim file (absolute, or relative to the project): anything under src/sim/, or, laid out by role,
+ * src/sim.ts, src/<role>.ts or anything under src/<role>/.
+ */
 function isSimFile(filePath) {
   if (typeof filePath !== 'string' || filePath === '') return false
   const absolute = isAbsolute(filePath) ? filePath : join(projectDir, filePath)
   const path = relative(projectDir, absolute).split('\\').join('/')
-  return path.startsWith('src/sim/')
+  if (path.startsWith('src/sim/') || path === 'src/sim.ts') return true
+  return SIM_ROLES.some((role) => path === `src/${role}.ts` || path.startsWith(`src/${role}/`))
 }
 
 /** The project's own `automata` bin, from the project folder upwards (a game inside a workspace). */

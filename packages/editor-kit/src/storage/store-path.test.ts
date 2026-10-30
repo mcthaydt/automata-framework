@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { assertStorePath, assertStorePrefix, comparePaths } from './store-path'
+import { assertStorePath, assertStorePrefix, comparePaths, storePathProblem } from './store-path'
 
 describe('assertStorePath', () => {
   test.each(['a', 'stages/a.toml', 'a b/c.d', 'a/b/c/d.e', '.hidden', 'a/.hidden'])('accepts %j', (path) => {
@@ -22,6 +22,27 @@ describe('assertStorePath', () => {
 
   test('says which path it refused', () => {
     expect(() => assertStorePath('a/../b')).toThrow(/a\/\.\.\/b/)
+  })
+})
+
+describe('storePathProblem', () => {
+  test.each(['a', 'stages/a.toml', '.hidden'])('has nothing to say about %j', (path) => {
+    expect(storePathProblem(path)).toBeUndefined()
+  })
+
+  test.each([
+    ['', 'empty'],
+    ['a//b', 'empty segment'],
+    ['a/../b', '".." segment'],
+    ['./a', '"." segment'],
+    ['a\\b', 'backslash'],
+    ['a\0b', 'NUL'],
+  ])('says why %j is no store path, without throwing', (path, why) => {
+    expect(storePathProblem(path)).toBe(why)
+  })
+
+  test('is the reason assertStorePath throws with', () => {
+    expect(() => assertStorePath('a//b')).toThrow('Not a store path (empty segment): "a//b"')
   })
 })
 

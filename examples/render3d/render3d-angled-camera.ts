@@ -11,14 +11,7 @@
 import '@mcthaydt/automata-render-pixi3d/no-eval'
 import { defineComponent, defineGame, definePlugin, defineSystem } from '@mcthaydt/automata'
 import { box, createPixi3dRenderer, render3dExtension } from '@mcthaydt/automata-render-pixi3d'
-import {
-  CameraHeading,
-  cameraHeadingPlugin,
-  cameraView,
-  enterView,
-  START,
-  turnCamera,
-} from '@mcthaydt/automata-render-pixi3d/sim'
+import { CameraHeading, cameraView, enterView, START, turnCamera } from '@mcthaydt/automata-render-pixi3d/sim'
 
 const ROOM = cameraView('room', { tiltDeg: 30, distance: 8 })
 
@@ -57,8 +50,8 @@ export default defineGame({
   id: 'render3d-angled-camera',
   size: { width: 320, height: 180 },
   sim: {
-    // The heading's plugin is named here: the runtime does not yet add an extension's sim plugins to the sim.
-    plugins: [cameraHeadingPlugin, room],
+    // render3dExtension brings the heading's plugin (RT.EXT1).
+    plugins: [room],
     seed: 1,
     setup: (sim) => {
       sim.spawn([

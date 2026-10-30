@@ -2,15 +2,7 @@
 // the bounds clamp; the lock-on bias; the eases' curve and the shorter arc.
 import { describe, expect, it } from 'vitest'
 import { cameraView } from '../sim/camera-view.schema.js'
-import {
-  clampToBounds,
-  eyeOf,
-  framedFocus,
-  LOCK_SHARE,
-  projectToNdc,
-  shorterArc,
-  smoothstep,
-} from './camera-pose.js'
+import { clampToBounds, eyeOf, framedFocus, LOCK_SHARE, projectToNdc, shorterArc } from './camera-pose.js'
 import { fovOf, LENS_MM } from './fov.js'
 
 const FOV = fovOf(LENS_MM)
@@ -44,14 +36,6 @@ describe('clampToBounds', () => {
 })
 
 describe('the eases', () => {
-  it('smoothstep runs 0 to 1 and holds at the ends', () => {
-    expect(smoothstep(-1)).toBe(0)
-    expect(smoothstep(0)).toBe(0)
-    expect(smoothstep(0.5)).toBe(0.5)
-    expect(smoothstep(1)).toBe(1)
-    expect(smoothstep(2)).toBe(1)
-  })
-
   it('turns by the shorter arc', () => {
     expect(shorterArc(350, 10)).toBe(20)
     expect(shorterArc(10, 350)).toBe(-20)

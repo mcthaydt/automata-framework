@@ -10,6 +10,7 @@ const tools = {
   vitePluginSvelte: '7.3.1',
   zod: '4.6.6',
   typesNode: '24.19.1',
+  pixi: '8.21.0',
 }
 
 describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)', () => {
@@ -18,13 +19,13 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
       from: 'packs',
       packages: [
         { name: '@mcthaydt/automata-sim', tarball: 'packs/mcthaydt-automata-sim-0.0.1.tgz' },
-        { name: '@mcthaydt/automata-physics', tarball: 'packs/mcthaydt-automata-physics-0.0.1.tgz' },
+        { name: '@mcthaydt/automata-testing', tarball: 'packs/mcthaydt-automata-testing-0.0.1.tgz' },
       ],
       tools,
       packageManager: PNPM,
     })
     expect(manifest.dependencies).toEqual({
-      '@mcthaydt/automata-physics': 'file:packs/mcthaydt-automata-physics-0.0.1.tgz',
+      '@mcthaydt/automata-testing': 'file:packs/mcthaydt-automata-testing-0.0.1.tgz',
       '@mcthaydt/automata-sim': 'file:packs/mcthaydt-automata-sim-0.0.1.tgz',
     })
     expect(
@@ -69,7 +70,7 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
     expect(manifest).not.toHaveProperty('pnpm')
   })
 
-  it('brings the peers and tools a game has: both TypeScripts, Vite, Svelte and its Vite plugin, zod', () => {
+  it('brings the peers and tools a game has: both TypeScripts, Vite, Svelte and its Vite plugin, PixiJS, zod', () => {
     const manifest = consumerManifest({
       from: 'registry',
       version: '0.0.3',
@@ -80,6 +81,7 @@ describe('consumerManifest (the project outside the workspace, M2.4 spec §3.6)'
     expect(manifest.devDependencies).toEqual({
       '@sveltejs/vite-plugin-svelte': '7.3.1',
       '@types/node': '24.19.1',
+      'pixi.js': '8.21.0',
       svelte: '5.57.1',
       typescript: '7.0.2',
       typescript6: 'npm:typescript@6.0.3',

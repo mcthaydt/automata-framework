@@ -1,27 +1,43 @@
-// The angled camera (M3 spec §4.2): the Owner's 24 mm lens, 25° down and 5 m back by default, following the player
-// with eased lag inside the active view's bounds and turned by the sim's heading. Presentation only (law 1): it reads
-// interpolated positions and the sim's heading and writes only the `Camera3D` it is given.
+// The angled camera (M3 spec §4.2) on klipp (`@pmndrs/klipp`, Owner 2026-10-30: "keep in mind for the camera we're
+// using klipp"): the Owner's 24 mm lens, 25° down and 5 m back by default, following the player inside the active
+// view's bounds and turned by the sim's heading. Presentation only (law 1): it reads interpolated positions and the
+// sim's heading and writes only the `Camera3D` it is given.
 //
-// Two eases, both cuts under reduced motion: a view activated with `ease` blends the eye and the look point from where
-// they were to the new view's live pose over 400 ms; a heading set with `ease` (a view entry that sets `yawDeg`) turns
-// the shorter way over 250 ms. A tracked heading (the player's turn) shows in the same frame; a turn that arrives
-// while a view entry's heading is still easing in moves the ease's end by the same amount, so the camera does not
-// snap. Reduced motion also makes the follow's lag instant (spec §8).
+// klipp does the camera: one `VirtualCamera` per `camera-view`, each an `OrbitFollowBody` on a sphere (radius the
+// view's distance, `vertical` its tilt, `horizontal` 180° − the heading: klipp's 0 puts the eye at +z, ours looks
+// toward +z) with the view's lag as its damping, aimed by `HardLookAtAim`. The active view has the top priority;
+// `ease` blends easeInOut over 400 ms, `cut` and reduced motion cut. A heading set with `ease` moves the `horizontal`
+// axis's target and klipp's axis damping turns the shorter way in about 250 ms; a tracked heading (the player's
+// turn) jumps the axis, or moves the target of an ease still running, so the camera does not snap. Reduced motion
+// zeroes every damping (spec §8). The one thin layer of our own is the target point, `framedFocus`: the follow
+// raised by the view's focus height, leaned toward a lock-on and kept inside the view's bounds.
 //
-// Nothing is seeded before the first `follow`: the renderer draws frames before the player's row exists, and a
-// focus remembered from the origin would make the first view swoop in from there.
+// Nothing runs before the first `follow`: the renderer draws frames before the player's row exists, and a pose
+// from the origin would make the first view swoop in from there.
 import { reducedMotion as prefersReducedMotion } from '@mcthaydt/automata-ui'
 import type { Camera3D } from '@pixi/3d'
+import {
+  BlendCurves,
+  HardLookAtAim,
+  inputAxis,
+  Klipp,
+  OrbitFollowBody,
+  type TargetPose,
+  targetPose,
+  VirtualCamera,
+} from '@pmndrs/klipp'
 import type { CameraView } from '../sim/camera-view.schema.js'
-import { eyeOf, framedFocus, lerp3, shorterArc, smoothstep, type Vec3 } from './camera-pose.js'
+import { framedFocus, shorterArc, type Vec3 } from './camera-pose.js'
 import { fovOf, LENS_MM } from './fov.js'
 
 /** How long `activate(id, 'ease')` blends, in seconds. */
 export const VIEW_EASE_SECONDS = 0.4
-/** How long `heading(yaw, 'ease')` turns, in seconds. */
+/** About how long `heading(yaw, 'ease')` turns, in seconds: klipp's axis damping is within half a degree by then. */
 export const HEADING_EASE_SECONDS = 0.25
-// Frame times are summed floats: an ease ends when its elapsed time is within this of its length.
-const EPSILON = 1e-9
+// klipp's damping constant for the heading ease: measured to settle a half turn within 0.5° in 250 ms at 60 Hz.
+const HEADING_DAMPING = 0.05
+const EASE = { curve: BlendCurves.easeInOut, time: VIEW_EASE_SECONDS }
+const CUT = { curve: BlendCurves.cut, time: 0 }
 
 export interface CameraRig {
   /** 24 (Owner, 2026-10-23), in every view. */
@@ -72,19 +88,17 @@ export interface AngledCameraOptions {
   readonly warn?: ((message: string) => void) | undefined
 }
 
-interface Blend {
-  readonly fromEye: Vec3
-  readonly fromLook: Vec3
-  elapsed: number
+interface Shot {
+  readonly view: CameraView
+  readonly camera: VirtualCamera
+  readonly body: OrbitFollowBody
 }
 
-interface HeadingEase {
-  readonly from: number
-  turn: number
-  elapsed: number
+/** klipp's `horizontal` for our heading, in its range [−180, 180]. */
+const horizontalOf = (headingDeg: number): number => {
+  const degrees = (((180 - headingDeg) % 360) + 360) % 360
+  return degrees > 180 ? degrees - 360 : degrees
 }
-
-const byId = (views: readonly CameraView[]): Map<string, CameraView> => new Map(views.map((v) => [v.id, v]))
 
 export function angledCamera(options: AngledCameraOptions): CameraRig {
   const { camera } = options
@@ -93,120 +107,148 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
   const warn = options.warn ?? ((message: string) => console.warn(`[automata-render-pixi3d] ${message}`))
   const fov = fovOf(LENS_MM)
 
-  let views = byId(options.views)
-  let active = views.get(options.initial)
-  if (active === undefined)
-    throw new Error(`angledCamera: the initial view "${options.initial}" is not among the views`)
+  const klipp = new Klipp({ defaultBlend: CUT })
+  // The one target every view's body follows and aims at: `framedFocus`, written each frame.
+  const target: TargetPose = targetPose.create()
+  const shots = new Map<string, Shot>()
+  let active: Shot | undefined
   const warned = new Set<string>()
 
   let followed: Vec3 | undefined
-  let focus: Vec3 | undefined
   let lock: Vec3 | undefined
-  let shownHeading = 0
-  let targetHeading = 0
-  let headingEase: HeadingEase | undefined
-  let blend: Blend | undefined
+  let heading = 0
+  let headingEasing = false
+  // The next update snaps: the first after the first follow, or after a cut.
+  let snapping = true
   let last: { eye: Vec3; look: Vec3; player: Vec3; cut: boolean } | undefined
 
-  const stepHeading = (seconds: number, reduced: boolean): void => {
-    if (headingEase === undefined) return
-    headingEase.elapsed += seconds
-    if (reduced || headingEase.elapsed >= HEADING_EASE_SECONDS - EPSILON) {
-      shownHeading = targetHeading
-      headingEase = undefined
-      return
-    }
-    shownHeading =
-      headingEase.from + headingEase.turn * smoothstep(headingEase.elapsed / HEADING_EASE_SECONDS)
+  const shotFor = (view: CameraView): Shot => {
+    const body = new OrbitFollowBody(target, {
+      orbitStyle: 'sphere',
+      radius: view.distance,
+      bindingMode: 'worldSpace',
+      damping: view.lag,
+    })
+    body.state.vertical.setValue(view.tiltDeg)
+    body.state.horizontal.setValue(horizontalOf(heading))
+    const made = new VirtualCamera(view.id, { priority: 0, initialState: { fov } })
+    made.setBody(body)
+    made.setAim(new HardLookAtAim(target))
+    klipp.add(made)
+    return { view, camera: made, body }
   }
 
-  const stepFocus = (view: CameraView, player: Vec3, seconds: number, reduced: boolean): Vec3 => {
-    const wanted = framedFocus({ player, lock, view, headingDeg: shownHeading, aspect: aspect() })
-    if (focus === undefined || view.lag <= 0 || reduced) return wanted
-    // Exponential approach with time constant `lag`: frame-rate independent, never overshoots.
-    return lerp3(focus, wanted, 1 - Math.exp(-seconds / view.lag))
+  const setViews = (views: readonly CameraView[]): void => {
+    const ids = new Set(views.map((view) => view.id))
+    for (const [id, shot] of shots) {
+      if (ids.has(id)) continue
+      klipp.remove(shot.camera)
+      shots.delete(id)
+    }
+    for (const view of views) {
+      const shot = shots.get(view.id)
+      if (shot === undefined) {
+        shots.set(view.id, shotFor(view))
+        continue
+      }
+      shot.body.radius = view.distance
+      shot.body.state.vertical.setValue(view.tiltDeg)
+      shots.set(view.id, { ...shot, view })
+    }
+    if (active !== undefined) active = shots.get(active.view.id) ?? active
+  }
+
+  setViews(options.views)
+  active = shots.get(options.initial)
+  if (active === undefined)
+    throw new Error(`angledCamera: the initial view "${options.initial}" is not among the views`)
+  active.camera.priority = 1
+
+  /** Turns `shot`'s orbit to the heading: at once, or (an ease) by moving the axis's target. */
+  const turn = (shot: Shot, easing: boolean): void => {
+    const axis = shot.body.state.horizontal
+    if (easing) inputAxis.applyDelta(axis, shorterArc(axis.rawValue, horizontalOf(heading)))
+    else axis.setValue(horizontalOf(heading))
+  }
+
+  /** Starts `shot` afresh: klipp snaps a camera that turns active again onto its target. */
+  const restart = (shot: Shot): void => {
+    shot.camera.active = false
+    shot.camera.active = true
   }
 
   return {
     lensMm: LENS_MM,
-    setViews(next) {
-      views = byId(next)
-      if (active !== undefined) active = views.get(active.id) ?? active
-    },
-    viewOf: (id) => views.get(id),
+    setViews,
+    viewOf: (id) => shots.get(id)?.view,
     activate(id, how) {
-      const view = views.get(id)
-      if (view === undefined) {
+      const shot = shots.get(id)
+      if (shot === undefined) {
         if (!warned.has(id)) {
           warned.add(id)
-          warn(`no camera view "${id}": the camera keeps "${active?.id}"`)
+          warn(`no camera view "${id}": the camera keeps "${active?.view.id}"`)
         }
         return
       }
-      const easing = how === 'ease' && last !== undefined && !isReduced()
-      if (view === active && easing) return
-      active = view
-      if (easing && last !== undefined) {
-        blend = { fromEye: last.eye, fromLook: last.look, elapsed: 0 }
-      } else {
-        blend = undefined
-        focus = undefined
+      const easing = how === 'ease' && followed !== undefined && !isReduced()
+      if (shot === active && easing) return
+      klipp.defaultBlend = easing ? EASE : CUT
+      if (active !== undefined && active !== shot) active.camera.priority = 0
+      active = shot
+      shot.camera.priority = 1
+      turn(shot, false)
+      if (!easing) {
+        restart(shot)
+        snapping = true
       }
     },
     heading(yawDeg, how = 'track') {
-      if (how === 'track') {
-        // The renderer tracks every frame: the same target an ease is turning to lets it finish, and a player's turn
-        // during the ease moves its end by that turn instead of snapping the camera there.
-        if (headingEase !== undefined) {
-          headingEase.turn += shorterArc(targetHeading, yawDeg)
-          targetHeading = yawDeg
-          return
-        }
-        shownHeading = targetHeading = yawDeg
-        headingEase = undefined
-        return
-      }
-      targetHeading = yawDeg
-      headingEase = { from: shownHeading, turn: shorterArc(shownHeading, yawDeg), elapsed: 0 }
-      if (isReduced()) stepHeading(0, true)
+      const shot = active as Shot
+      const axis = shot.body.state.horizontal
+      // An ease still running: a tracked turn moves its end by the same amount instead of snapping there.
+      const stillEasing = headingEasing && Math.abs(shorterArc(axis.value, axis.rawValue)) > 1e-6
+      const easing = (how === 'ease' || stillEasing) && !isReduced()
+      heading = yawDeg
+      headingEasing = easing
+      turn(shot, easing)
     },
     follow(x, y, z) {
       followed = { x, y, z }
     },
-    frame(target) {
-      lock = target
+    frame(next) {
+      lock = next
     },
     update(frameSeconds) {
-      const view = active as CameraView
+      if (followed === undefined) return
+      const shot = active as Shot
       const reduced = isReduced()
-      stepHeading(frameSeconds, reduced)
-      const player = followed ?? { x: 0, y: 0, z: 0 }
-      // No focus kept (the first follow, or a cut cleared it): this frame snaps.
-      const cut = focus === undefined
-      const shown = stepFocus(view, player, frameSeconds, reduced)
-      if (followed !== undefined) focus = shown
-      let eye = eyeOf(shown, shownHeading, view.tiltDeg, view.distance)
-      let look = shown
-      if (blend !== undefined) {
-        blend.elapsed += frameSeconds
-        if (reduced || blend.elapsed >= VIEW_EASE_SECONDS - EPSILON) blend = undefined
-        else {
-          const t = smoothstep(blend.elapsed / VIEW_EASE_SECONDS)
-          eye = lerp3(blend.fromEye, eye, t)
-          look = lerp3(blend.fromLook, look, t)
-        }
+      for (const { view, body } of shots.values()) {
+        body.damping = reduced ? 0 : view.lag
+        body.state.horizontal.damping = reduced ? 0 : HEADING_DAMPING
       }
-      // A blend starts only from a pose that framed the player, never from the frames before the first follow.
-      if (followed !== undefined) {
-        if (last === undefined) last = { eye, look, player: followed, cut }
-        else {
-          last.eye = eye
-          last.look = look
-          last.player = followed
-          last.cut = cut
-        }
+      const focus = framedFocus({
+        player: followed,
+        lock,
+        view: shot.view,
+        headingDeg: heading,
+        aspect: aspect(),
+      })
+      target.position[0] = focus.x
+      target.position[1] = focus.y
+      target.position[2] = focus.z
+      klipp.update(frameSeconds)
+      const { position, lookAtTarget } = klipp.shot
+      const eye = { x: position[0], y: position[1], z: position[2] }
+      const look = { x: lookAtTarget[0], y: lookAtTarget[1], z: lookAtTarget[2] }
+      if (last === undefined) last = { eye, look, player: followed, cut: snapping }
+      else {
+        last.eye = eye
+        last.look = look
+        last.player = followed
+        last.cut = snapping
       }
-      camera.fov = fov
+      snapping = false
+      camera.fov = klipp.shot.fov
       camera.position.set(eye.x, eye.y, eye.z)
       camera.lookAt(look)
     },

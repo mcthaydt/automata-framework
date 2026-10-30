@@ -1,8 +1,9 @@
 // The bundle secret scan (QB spec §4.3, QB-b): a built game is public, so anything in it is published. Before
 // `ruken.toml` is written (and in `automata check`), every file of the build is read for three things:
-// - known key formats. The rule IDs are gitleaks' (QB.1 runs gitleaks over the repository's history), so the two
-//   rule sets can be compared and later share one list. The GitHub and npm formats are also the Plus registry
-//   token's (QB spec §4.4);
+// - known key formats, reported under the rule IDs of the gitleaks release that QB.1 runs over the repository's
+//   history, so the two scans name a key the same way. gitleaks owns the IDs: tooling/repo-hygiene's
+//   gitleaks-rules.test.ts asks the pinned binary for each one (QB.2c). The GitHub and npm formats are also the
+//   Plus registry token's (QB spec §4.4);
 // - the value of any variable in the game folder's `.env*` files, 8 characters or longer (a shorter value such
 //   as `true` or `en` would match by chance). `VITE_` variables are skipped: Vite inlines exactly those into the
 //   bundle, so they are public by design (decided 2026-10-16). A known key format in one is still found above;
@@ -41,13 +42,16 @@ export interface SecretFound {
   readonly detail: string
 }
 
-interface KeyRule {
+/** A known key format: the gitleaks rule ID it is reported under, what it is, and how to find it. */
+export interface KeyRule {
+  /** A rule ID of the pinned gitleaks release (`tooling/repo-hygiene/src/gitleaks-rules.test.ts` checks each). */
   readonly id: string
   readonly what: string
   readonly pattern: RegExp
 }
 
-const KEY_RULES: readonly KeyRule[] = [
+/** The known key formats. Exported for the gitleaks rule ID test only; not part of ship's public entry. */
+export const KEY_RULES: readonly KeyRule[] = [
   {
     id: 'stripe-access-token',
     what: 'a Stripe key',
@@ -69,7 +73,11 @@ const KEY_RULES: readonly KeyRule[] = [
     what: 'a private key',
     pattern: /-----BEGIN[ A-Z0-9_-]{0,100}PRIVATE KEY(?: BLOCK)?-----/g,
   },
-  { id: 'slack-token', what: 'a Slack token', pattern: /\bxox[baprs]-[0-9A-Za-z-]{10,}/g },
+  // gitleaks names a Slack token by its prefix. Together the four match what one `xox[baprs]-` rule did.
+  { id: 'slack-bot-token', what: 'a Slack token', pattern: /\bxoxb-[0-9A-Za-z-]{10,}/g },
+  { id: 'slack-user-token', what: 'a Slack token', pattern: /\bxoxp-[0-9A-Za-z-]{10,}/g },
+  { id: 'slack-legacy-token', what: 'a Slack token', pattern: /\bxoxs-[0-9A-Za-z-]{10,}/g },
+  { id: 'slack-legacy-workspace-token', what: 'a Slack token', pattern: /\bxox[ar]-[0-9A-Za-z-]{10,}/g },
   { id: 'gcp-api-key', what: 'a Google API key', pattern: /\bAIza[\w-]{35}\b/g },
   {
     id: 'anthropic-api-key',

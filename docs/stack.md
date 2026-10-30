@@ -17,7 +17,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 | [smol-toml](#smol-toml) | Core | `smol-toml` 1.9.0 | BSD-3-Clause |
 | [Ruken SDK](#ruken-sdk) | Core | `@ruken/sdk` 0.0.0; `@ruken/sdk-host` 0.0.0; `@ruken/manifest` 0.0.0; `@ruken/cli` 0.0.0 | MIT |
 | [Vite, Vitest, Playwright](#vite-vitest-playwright) | Core | `vite` 8.3.3; `vitest` 5.0.3; `@playwright/test` 1.63.0 | MIT; Apache-2.0 |
-| [Rapier (deterministic-compat)](#rapier-deterministic-compat) | Plus | `@dimforge/rapier2d-deterministic-compat` 0.21.0; `@dimforge/rapier3d-deterministic-compat` 0.21.0 | Apache-2.0 |
+| [Rapier (deterministic-compat)](#rapier-deterministic-compat) | Plus | installed in mcthaydt/automata-plus, not in this repository | see there |
 | [Colyseus](#colyseus) | Plus | not yet installed; planned for M7 (`net` and `server`) | none yet |
 
 ## PixiJS 8
@@ -126,15 +126,12 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 ## Rapier (deterministic-compat)
 
-| Package | Version | License |
-|---|---|---|
-| `@dimforge/rapier2d-deterministic-compat` | 0.21.0 | Apache-2.0 |
-| `@dimforge/rapier3d-deterministic-compat` | 0.21.0 | Apache-2.0 |
+Installed in mcthaydt/automata-plus, not in this repository; its versions are pinned there. Packages: `@dimforge/rapier2d-deterministic-compat`, `@dimforge/rapier3d-deterministic-compat`.
 
 - **Tier:** Plus
 - **What it does in AF:** 2D and 3D physics inside the sim (M2.1).
-- **Why it was chosen:** The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox, and `-compat` inlines the wasm, so there is no loader to set up (versions.md). The Last Light already uses Rapier 0.21.
-- **What AF adds on top:** `@mcthaydt/automata-physics`: a sim plugin that syncs bodies in, steps and syncs out each tick, adds its own snapshot section and raises collision events, with four-engine parity tests. It moves to `automata-plus` with PRODUCT.5.
+- **Why it was chosen:** The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox, and `-compat` inlines the wasm, so there is no loader to set up. Automata Plus pins it at 0.21.0, the release The Last Light uses.
+- **What AF adds on top:** `@mcthaydt/automata-physics`: a sim plugin that syncs bodies in, steps and syncs out each tick, adds its own snapshot section and raises collision events, with four-engine parity tests. It lives in `automata-plus` (PRODUCT.5f) and left this repository in PRODUCT.5g.
 
 ## Colyseus
 
