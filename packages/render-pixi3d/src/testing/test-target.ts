@@ -6,6 +6,8 @@ type Geometry = RenderTarget['geometry']['geometry']['current']
 export interface TestTarget extends RenderTarget {
   /** Every fact published on the bus, in order. */
   readonly facts: { readonly name: string; readonly fact: unknown }[]
+  /** The Try again of every "picture stopped" panel the renderer asked for (`reportLost`), in order. */
+  readonly lostPanels: (() => void)[]
 }
 
 export function testTarget(
@@ -27,6 +29,7 @@ export function testTarget(
     scale: 1,
   }
   const facts: { name: string; fact: unknown }[] = []
+  const lostPanels: (() => void)[] = []
   return {
     host,
     geometry: {
@@ -41,6 +44,11 @@ export function testTarget(
       publish: (name, fact) => void facts.push({ name, fact }),
       subscribe: () => () => {},
     },
+    reportLost: (retry) => {
+      lostPanels.push(retry)
+      return () => {}
+    },
     facts,
+    lostPanels,
   }
 }

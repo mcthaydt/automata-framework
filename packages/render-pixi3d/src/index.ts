@@ -17,7 +17,13 @@ export {
 } from './light/scene-lighting.schema.js'
 export { sceneLightingContent } from './light/scene-lighting-kind.js'
 export { characterTint, type LampLevels } from './light/vertex-light.js'
-export { type DecodeTexture, type LoadedModel, loadModels, type ModelLibrary } from './model/load-models.js'
+export {
+  type DecodeTexture,
+  type LoadedModel,
+  loadModels,
+  type ModelLibrary,
+  type ModelStore,
+} from './model/load-models.js'
 export { modelGeometry } from './model/model-geometry.js'
 export { type ModelMesh, parseGlb, parsePack } from './model/parse-glb.js'
 export { render3dExtension } from './render3d.extension.js'

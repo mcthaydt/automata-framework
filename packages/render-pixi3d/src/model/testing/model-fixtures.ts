@@ -72,11 +72,13 @@ export interface GlbExtras {
   readonly skinned?: boolean
   /** Replaces the JSON document before it is written (to break it). */
   readonly edit?: (doc: Record<string, unknown>) => void
+  /** The base-colour image's bytes; default a 1 × 1 white PNG. */
+  readonly image?: Uint8Array
 }
 
 /** The mesh as a GLB: one primitive with POSITION, NORMAL, TEXCOORD_0, indices and an embedded PNG texture. */
 export function encodeGlb(mesh: FixtureMesh, extras: GlbExtras = {}): ArrayBuffer {
-  const parts = [mesh.positions, mesh.normals, mesh.uvs, mesh.indices, PNG]
+  const parts = [mesh.positions, mesh.normals, mesh.uvs, mesh.indices, extras.image ?? PNG]
   const views: { byteOffset: number; byteLength: number }[] = []
   let length = 0
   for (const part of parts) {
@@ -125,6 +127,21 @@ export function encodeGlb(mesh: FixtureMesh, extras: GlbExtras = {}): ArrayBuffe
   view.setUint32(24 + jsonBytes.length, 0x004e4942, true) // 'BIN'
   new Uint8Array(out, 28 + jsonBytes.length).set(bin)
   return out
+}
+
+/**
+ * A 2 × 2 m quad standing on the floor at z = 0, facing +z (towards a camera in front of it), with glTF's UVs:
+ * (0, 0) is the image's top-left corner, at the quad's top-left.
+ */
+export function fixtureQuad(): FixtureMesh {
+  return {
+    positions: new Float32Array([-1, 2, 0, 1, 2, 0, 1, 0, 0, -1, 0, 0]),
+    normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]),
+    uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+    indices: new Uint16Array([0, 3, 2, 0, 2, 1]),
+    min: [-1, 0, 0],
+    max: [1, 2, 0],
+  }
 }
 
 /**

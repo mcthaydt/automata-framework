@@ -62,7 +62,26 @@ function malformedOr(file: string, error: unknown): ModelInvalid {
   if (error instanceof Malformed) return new ModelInvalid({ file, reason: `malformed: ${error.message}` })
   // A RangeError from a DataView or a typed array: the file ends before the data it promises.
   if (error instanceof RangeError) return new ModelInvalid({ file, reason: 'malformed: truncated' })
+  // A TypeError: a JSON document of an unexpected shape that the checks above did not name. Still the file's fault.
+  if (error instanceof TypeError) return new ModelInvalid({ file, reason: 'malformed: unreadable document' })
   throw error
+}
+
+/**
+ * The checks both file types must pass, so a view never draws garbage: one normal and one UV per position, whole
+ * triangles, and no index past the last vertex.
+ */
+function checkMesh(mesh: ModelMesh): ModelMesh {
+  const vertices = mesh.positions.length / 3
+  if (mesh.normals.length / 3 !== vertices)
+    throw new Malformed(`NORMAL has ${mesh.normals.length / 3} vertices, POSITION has ${vertices}`)
+  if (mesh.uvs.length / 2 !== vertices)
+    throw new Malformed(`TEXCOORD_0 has ${mesh.uvs.length / 2} vertices, POSITION has ${vertices}`)
+  if (mesh.indices.length % 3 !== 0)
+    throw new Malformed(`${mesh.indices.length} indices are not whole triangles`)
+  for (const index of mesh.indices)
+    if (index >= vertices) throw new Malformed(`index ${index} is past the ${vertices} vertices`)
+  return mesh
 }
 
 function readDocument(buffer: ArrayBuffer): { doc: GltfDocument; binStart: number } {
@@ -71,12 +90,15 @@ function readDocument(buffer: ArrayBuffer): { doc: GltfDocument; binStart: numbe
   if (header.getUint32(0, true) !== GLB_MAGIC) throw new Malformed('not a GLB file')
   const jsonLength = header.getUint32(12, true)
   if (20 + jsonLength + 8 > buffer.byteLength) throw new Malformed('truncated')
-  let doc: GltfDocument
+  let parsed: unknown
   try {
-    doc = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 20, jsonLength))) as GltfDocument
+    parsed = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 20, jsonLength)))
   } catch {
     throw new Malformed('unreadable JSON chunk')
   }
+  // `null`, a number or an array is valid JSON but no document: it has no mesh.
+  const doc =
+    typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? (parsed as GltfDocument) : {}
   return { doc, binStart: 20 + jsonLength + 8 }
 }
 
@@ -89,6 +111,8 @@ export function parseGlb(buffer: ArrayBuffer, file: string): ModelMesh {
     const { doc, binStart } = readDocument(buffer)
     const primitive = doc.meshes?.[0]?.primitives?.[0]
     if (primitive === undefined) throw new Malformed('no mesh')
+    if (typeof primitive.attributes !== 'object' || primitive.attributes === null)
+      throw new Malformed('the primitive has no attributes')
     if (
       (doc.skins?.length ?? 0) > 0 ||
       'JOINTS_0' in primitive.attributes ||
@@ -107,7 +131,10 @@ export function parseGlb(buffer: ArrayBuffer, file: string): ModelMesh {
       const start = binStart + (view.byteOffset ?? 0) + (accessor.byteOffset ?? 0)
       const bytesPer = accessor.componentType === UNSIGNED_SHORT ? 2 : 4
       const stride = view.byteStride ?? size * bytesPer
-      const end = start + (accessor.count - 1) * stride + size * bytesPer
+      const span = (accessor.count - 1) * stride + size * bytesPer
+      if (accessor.count > 0 && (accessor.byteOffset ?? 0) + span > view.byteLength)
+        throw new Malformed(`accessor ${index} runs past its bufferView`)
+      const end = start + span
       if (accessor.count > 0 && end > buffer.byteLength)
         throw new Malformed(`accessor ${index} runs past the binary chunk`)
       if (accessor.componentType === UNSIGNED_INT)
@@ -140,7 +167,7 @@ export function parseGlb(buffer: ArrayBuffer, file: string): ModelMesh {
     if (position?.min?.length !== 3 || position.max?.length !== 3) throw new Malformed('no position bounds')
     const indices = read(primitive.indices)
     if (indices instanceof Float32Array) throw new Malformed('indices are not integers')
-    return {
+    return checkMesh({
       positions: floats(primitive.attributes.POSITION, 'POSITION'),
       normals: floats(primitive.attributes.NORMAL, 'NORMAL'),
       uvs: floats(primitive.attributes.TEXCOORD_0, 'TEXCOORD_0'),
@@ -149,7 +176,7 @@ export function parseGlb(buffer: ArrayBuffer, file: string): ModelMesh {
       mime: image?.mimeType ?? 'image/png',
       min: position.min as [number, number, number],
       max: position.max as [number, number, number],
-    }
+    })
   } catch (error) {
     throw malformedOr(file, error)
   }
@@ -199,7 +226,7 @@ export function parsePack(buffer: ArrayBuffer, file: string): ModelMesh {
       for (let c = 0; c < 2; c++)
         uvs[i * 2 + c] = uvMin[c]! + ((t[i * 2 + c] as number) / 65535) * (uvMax[c]! - uvMin[c]!)
     }
-    return {
+    return checkMesh({
       positions,
       normals,
       uvs,
@@ -208,7 +235,7 @@ export function parsePack(buffer: ArrayBuffer, file: string): ModelMesh {
       mime: 'image/png',
       min,
       max,
-    }
+    })
   } catch (error) {
     throw malformedOr(file, error)
   }

@@ -1,5 +1,5 @@
 import { Effect, Exit } from 'effect'
-import { Texture } from 'pixi.js'
+import { Texture, TextureSource } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { type DecodeTexture, loadModels } from './load-models.js'
 import { encodeGlb, encodePack, fixtureBox } from './testing/model-fixtures.js'
@@ -23,6 +23,24 @@ describe('loadModels', () => {
     expect(models.get('m/c.glb')).toBeUndefined()
   })
 
+  it('disposes what it loaded: geometry, material, texture and the decoded bitmap (review of #241)', async () => {
+    const closed: string[] = []
+    const bitmapDecode: DecodeTexture = async () => {
+      const bitmap = { width: 1, height: 1, close: () => void closed.push('bitmap') }
+      return new Texture({ source: new TextureSource({ resource: bitmap, width: 1, height: 1 }) })
+    }
+    const models = await Effect.runPromise(
+      loadModels(['m/a.glb'], assetsOf({ 'm/a.glb': encodeGlb(fixtureBox()) }), bitmapDecode),
+    )
+    const model = models.get('m/a.glb')
+    if (model === undefined) throw new Error('not loaded')
+    models.dispose()
+    expect(model.material.destroyed).toBe(true)
+    expect(model.texture.destroyed).toBe(true)
+    expect(closed).toEqual(['bitmap'])
+    expect(models.get('m/a.glb')).toBeUndefined()
+  })
+
   it.each([
     ['a file the runtime did not load', ['m/none.glb'], {}, 'not loaded'],
     ['a type it cannot read', ['m/a.obj'], { 'm/a.obj': new ArrayBuffer(8) }, 'unsupported type'],
@@ -33,6 +51,15 @@ describe('loadModels', () => {
     expect(cause).toContain('"_tag":"ModelInvalid"')
     expect(cause).toContain(`"file":"${files[0]}"`)
     expect(cause).toContain(`"reason":"${reason}"`)
+  })
+
+  it('fails with ModelInvalid, not a defect, when the loaded bytes cannot be read', async () => {
+    const unreadable = {
+      get: () => ({ arrayBuffer: () => Promise.reject(new Error('gone')) }) as unknown as Blob,
+    }
+    const cause = JSON.stringify(await failureOf(['m/a.glb'], unreadable as never))
+    expect(cause).toContain('"_tag":"ModelInvalid"')
+    expect(cause).toContain('"reason":"malformed: unreadable bytes"')
   })
 
   it('fails with ModelInvalid when the texture is not an image', async () => {

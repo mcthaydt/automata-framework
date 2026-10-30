@@ -51,10 +51,23 @@ describe('BootFailurePanel', () => {
   it('names the damaged model and offers Try again (M3 spec §6, D3-f)', async () => {
     const { onRetry } = open({ _tag: 'ModelInvalid', file: 'models/crate.glb', reason: 'skinned' })
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'A 3D model in this copy of the game is damaged: models/crate.glb.',
+      'A 3D model in this copy of the game is damaged: crate.glb.',
     )
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(onRetry).toHaveBeenCalledOnce()
+  })
+
+  it("names the model by its file's basename, not the url it was fetched from (review of #241)", () => {
+    open({
+      _tag: 'ModelInvalid',
+      file: 'http://localhost:5932/assets/nightstand-DkFIQVVx.glb?v=2#x',
+      reason: 'skinned',
+    })
+    const alert = screen.getByRole('alert')
+    expect(alert).toHaveTextContent(
+      'A 3D model in this copy of the game is damaged: nightstand-DkFIQVVx.glb.',
+    )
+    expect(alert).not.toHaveTextContent('localhost')
   })
 
   it('Continue without loading calls onContinue (standalone, saves not retryable)', async () => {

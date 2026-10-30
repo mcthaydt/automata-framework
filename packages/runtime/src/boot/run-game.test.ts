@@ -402,7 +402,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
 
       const alert = root.querySelector('[role="alert"]')
       expect(alert?.getAttribute('data-code')).toBe('model-invalid')
-      expect(alert?.textContent).toContain('models/crate.glb')
+      expect(alert?.textContent).toContain('damaged: crate.glb.')
       expect(Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim())).toContain(
         'Try again',
       )

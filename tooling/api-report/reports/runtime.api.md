@@ -509,6 +509,7 @@ interface GameDefinition<S = never> {
         readonly hash: string;
     };
     readonly screens: readonly ScreenDef[];
+    readonly preload?: readonly string[] | undefined;
     readonly renderer: RendererFactory;
     readonly settings?: SettingsDef<S> | undefined;
     readonly saves?: SaveDef<unknown> | undefined;
@@ -521,6 +522,7 @@ interface GameDefinition<S = never> {
     readonly copy?: Partial<BootFailureCopy> & {
         readonly loading?: string;
         readonly slow?: string;
+        readonly contextLost?: string;
     };
     readonly seams?: RuntimeSeams;
 }
@@ -1066,6 +1068,7 @@ interface RenderTarget {
     readonly geometry: GeometryOwner;
     readonly assets: Pick<Assets, 'get'>;
     readonly bus?: PresentationBus | undefined;
+    readonly reportLost?: ((retry: () => void) => () => void) | undefined;
 }
 ```
 

@@ -220,6 +220,12 @@ const isBoardSource: (file: string) => boolean;
 const isInputsSource: (file: string) => boolean;
 ```
 
+### `isLocalStack` (function)
+
+```ts
+function isLocalStack(api: string): boolean;
+```
+
 ### `isOrientationSource` (const)
 
 ```ts
@@ -438,6 +444,14 @@ interface PrepareItchInput {
 }
 ```
 
+### `PrivatePublishNotLocal` (class)
+
+```ts
+class PrivatePublishNotLocal extends PrivatePublishNotLocalBase {
+    get message(): string;
+}
+```
+
 ### `ProcessError` (class)
 
 ```ts
@@ -451,6 +465,24 @@ class ProcessError extends ProcessErrorBase {
 ```ts
 class PublishAuth extends PublishAuthBase {
     get message(): string;
+}
+```
+
+### `publishBuild` (function)
+
+```ts
+function publishBuild(input: PublishBuildInput): Effect.Effect<{
+    url: string | undefined;
+}, PrepareError | PublishError | PrivatePublishNotLocal, Files | ProcessRunner>;
+```
+
+### `PublishBuildInput` (interface)
+
+```ts
+interface PublishBuildInput extends PublishInput {
+    readonly config: ShipConfig;
+    readonly tag?: string | undefined;
+    readonly private?: boolean | undefined;
 }
 ```
 

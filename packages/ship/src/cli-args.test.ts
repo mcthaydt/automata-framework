@@ -11,16 +11,20 @@ describe('parseCliArgs', () => {
     })
   })
 
-  it('reads prepare --private, for a build that stays on Ruken’s local stack (M3 spec §4.8)', () => {
-    expect(parseCliArgs(['prepare', '--private'])).toStrictEqual({
-      command: 'prepare',
+  // Review of #241: a private prepare followed by a raw `ruken publish` was a public upload with the guard off. The
+  // private path is `publish --private`, which ship refuses unless RUKEN_API is Ruken's local stack.
+  it('reads publish --private for Ruken’s local stack, and refuses prepare --private and itch.io', () => {
+    expect(parseCliArgs(['publish', '--private'])).toStrictEqual({
+      command: 'publish',
       dist: 'dist',
       tag: undefined,
+      activate: false,
+      game: undefined,
       target: undefined,
       private: true,
     })
-    expect(parseCliArgs(['prepare', '--private', '--target', 'itch'])).toMatchObject({ command: 'usage' })
-    expect(parseCliArgs(['publish', '--private']).command).toBe('usage')
+    expect(parseCliArgs(['prepare', '--private']).command).toBe('usage')
+    expect(parseCliArgs(['publish', '--private', '--target', 'itch']).command).toBe('usage')
   })
 
   it('reads publish with --activate and --game', () => {

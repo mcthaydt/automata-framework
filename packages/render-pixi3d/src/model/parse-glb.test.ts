@@ -123,6 +123,8 @@ describe('static only: what is refused (M3 spec §6)', () => {
       () =>
         encodeGlb(fixtureBox(), {
           edit: (doc) => {
+            // A bufferView that claims more bytes than the file holds, and an accessor that fills it.
+            ;(doc.bufferViews as { byteLength: number }[])[0]!.byteLength = 12_000_000
             ;(doc.accessors as { count: number }[])[0]!.count = 1_000_000
           },
         }),
@@ -138,6 +140,78 @@ describe('static only: what is refused (M3 spec §6)', () => {
         }),
       'malformed: no base-colour texture',
     ],
+    // Review of #241: what the static path reads must agree with itself.
+    [
+      'fewer normals than positions',
+      () =>
+        encodeGlb(fixtureBox(), {
+          edit: (doc) => {
+            ;(doc.accessors as { count: number }[])[1]!.count = 3
+          },
+        }),
+      'malformed: NORMAL has 3 vertices, POSITION has 24',
+    ],
+    [
+      'fewer UVs than positions',
+      () =>
+        encodeGlb(fixtureBox(), {
+          edit: (doc) => {
+            ;(doc.accessors as { count: number }[])[2]!.count = 4
+          },
+        }),
+      'malformed: TEXCOORD_0 has 4 vertices, POSITION has 24',
+    ],
+    [
+      'an index past the vertices',
+      () => {
+        const box = fixtureBox()
+        const indices = new Uint16Array(box.indices)
+        indices[5] = 500
+        return encodeGlb({ ...box, indices })
+      },
+      'malformed: index 500 is past the 24 vertices',
+    ],
+    [
+      'indices that are not whole triangles',
+      () =>
+        encodeGlb(fixtureBox(), {
+          edit: (doc) => {
+            ;(doc.accessors as { count: number }[])[3]!.count = 35
+          },
+        }),
+      'malformed: 35 indices are not whole triangles',
+    ],
+    [
+      'an accessor past the end of its own bufferView',
+      () =>
+        encodeGlb(fixtureBox(), {
+          edit: (doc) => {
+            ;(doc.accessors as { byteOffset?: number }[])[0]!.byteOffset = 12
+          },
+        }),
+      'malformed: accessor 0 runs past its bufferView',
+    ],
+    [
+      'a primitive with no attributes',
+      () =>
+        encodeGlb(fixtureBox(), {
+          edit: (doc) => {
+            const meshes = doc.meshes as { primitives: { attributes?: unknown }[] }[]
+            delete meshes[0]!.primitives[0]!.attributes
+          },
+        }),
+      'malformed: the primitive has no attributes',
+    ],
+    [
+      'a JSON chunk that is null',
+      () => {
+        const glb = new Uint8Array(encodeGlb(fixtureBox()))
+        const length = new DataView(glb.buffer).getUint32(12, true)
+        glb.set(new TextEncoder().encode('null'.padEnd(length, ' ')), 20)
+        return glb.buffer
+      },
+      'malformed: no mesh',
+    ],
   ])('refuses a GLB with %s', (_case, make, reason) => {
     expect(refusal(() => parseGlb(make() as ArrayBuffer, 'bad.glb'))).toMatchObject({
       file: 'bad.glb',
@@ -148,6 +222,24 @@ describe('static only: what is refused (M3 spec §6)', () => {
   it.each([
     ['not a pack', () => encodeGlb(fixtureBox()), 'malformed: not a packed model'],
     ['truncated', () => encodePack(fixtureBox()).slice(0, 100), 'malformed: truncated'],
+    [
+      'indexing past its vertices',
+      () => {
+        const box = fixtureBox()
+        const indices = new Uint16Array(box.indices)
+        indices[0] = 900
+        return encodePack({ ...box, indices })
+      },
+      'malformed: index 900 is past the 24 vertices',
+    ],
+    [
+      'not whole triangles',
+      () => {
+        const box = fixtureBox()
+        return encodePack({ ...box, indices: box.indices.slice(0, 34) })
+      },
+      'malformed: 34 indices are not whole triangles',
+    ],
   ])('refuses a pack that is %s', (_case, make, reason) => {
     expect(refusal(() => parsePack(make(), 'bad.bin'))).toMatchObject({ file: 'bad.bin', reason })
   })

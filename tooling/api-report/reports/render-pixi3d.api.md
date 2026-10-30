@@ -119,13 +119,14 @@ interface LoadedModel {
     readonly mesh: ModelMesh;
     readonly geometry: Geometry3D;
     readonly material: PhongMaterial;
+    readonly texture: Texture;
 }
 ```
 
 ### `loadModels` (function)
 
 ```ts
-function loadModels(files: readonly string[], assets: RenderTarget['assets'], decode?: DecodeTexture): Effect.Effect<ModelLibrary, ModelInvalid>;
+function loadModels(files: readonly string[], assets: RenderTarget['assets'], decode?: DecodeTexture): Effect.Effect<ModelStore, ModelInvalid>;
 ```
 
 ### `mesh` (function)
@@ -168,6 +169,14 @@ interface ModelMesh {
     readonly mime: string;
     readonly min: [number, number, number];
     readonly max: [number, number, number];
+}
+```
+
+### `ModelStore` (interface)
+
+```ts
+interface ModelStore extends ModelLibrary {
+    dispose(): void;
 }
 ```
 
