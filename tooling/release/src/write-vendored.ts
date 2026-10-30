@@ -27,15 +27,9 @@ export interface BundledLicense {
  * The licence texts, each once, under the packages that share it (in the order given). Ruken's four packages carry
  * the same MIT text, so the notice prints it once rather than four times.
  */
-function licenseSections(
-  bundled: readonly string[],
-  licenses: ReadonlyMap<string, BundledLicense>,
-): string[] {
+function licenseSections(bundled: readonly { readonly name: string; readonly text: string }[]): string[] {
   const packagesByText = new Map<string, string[]>()
-  for (const name of bundled) {
-    const text = licenses.get(name)?.text ?? ''
-    packagesByText.set(text, [...(packagesByText.get(text) ?? []), name])
-  }
+  for (const { name, text } of bundled) packagesByText.set(text, [...(packagesByText.get(text) ?? []), name])
   return [...packagesByText].flatMap(([text, names]) => [
     `### ${names.map((name) => `\`${name}\``).join(', ')}`,
     '',
@@ -57,14 +51,14 @@ export function vendoredNotice(
   const tarballOf = new Map([...readme.matchAll(TABLE_ROW)].map((row) => [row[2], row[1]]))
   const hashOf = new Map([...readme.matchAll(HASH_LINE)].map((line) => [line[2], line[1]]))
 
-  const rows = bundled.map((name) => {
+  const packages = bundled.map((name) => {
     const tarball = tarballOf.get(name)
     if (tarball === undefined) throw new Error(`vendor/ruken/README.md does not vendor ${name}`)
     const hash = hashOf.get(tarball)
     if (hash === undefined) throw new Error(`vendor/ruken/README.md has no SHA-256 for ${tarball}`)
     const license = licenses.get(name)
     if (license === undefined) throw new Error(`${name}: its license is unknown, so no package may bundle it`)
-    return `| \`${name}\` | \`${tarball}\` | \`${hash}\` | ${license.license} |`
+    return { name, tarball, hash, ...license }
   })
 
   return [
@@ -76,14 +70,16 @@ export function vendoredNotice(
     '',
     '| Package | Tarball | SHA-256 | License |',
     '|---|---|---|---|',
-    ...rows,
+    ...packages.map(
+      ({ name, tarball, hash, license }) => `| \`${name}\` | \`${tarball}\` | \`${hash}\` | ${license} |`,
+    ),
     '',
     '## License',
     '',
     `The bundled Ruken code keeps its own licence, not \`${packageName}\`'s. Its text, from each package's`,
     '`LICENSE` file:',
     '',
-    ...licenseSections(bundled, licenses),
+    ...licenseSections(packages),
   ].join('\n')
 }
 
