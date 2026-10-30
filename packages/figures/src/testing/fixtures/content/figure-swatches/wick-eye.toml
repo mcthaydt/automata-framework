@@ -1,0 +1,5 @@
+# Wick's glowing eyes, from Emberwick's sprite colours (games/emberwick/src/art/sprites.ts WICK_COLORS): #ffeb57, index 32.
+# Not from FigureBuilder: a fixture swatch for the fixture figure.
+
+colour = 32
+flat = true

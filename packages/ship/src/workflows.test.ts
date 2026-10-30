@@ -622,10 +622,28 @@ describe('release-packages.yml (M2.4 spec §3.5, QB.1b)', () => {
     expect(parsed.concurrency?.group).toBe('release')
   })
 
-  it('stays off the shared self-hosted runners, since the jobs hold write tokens', () => {
+  // Owner, 2026-10-30: "Publish from my Mac". Hosted jobs are refused on this account (a billing block since
+  // 2026-10-24), so the release runs on the Owner's Mac; vars.AF_RELEASE_RUNNER moves it, and no hosted label is a
+  // fallback. The publish still waits for the Owner's approval in the release environment (below).
+  it("runs on the Owner's Mac, switchable by vars.AF_RELEASE_RUNNER, never on a hosted label", () => {
     for (const job of [plan, version, publish]) {
-      expect(job?.['runs-on']).toBe('ubuntu-latest')
+      expect(job?.['runs-on']).toBe("${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}")
       expect(job?.['timeout-minutes']).toBe(20)
+    }
+    expect(workflowText('release-packages.yml')).not.toContain('ubuntu-')
+  })
+
+  // changesets/action writes an .npmrc into $HOME, and the Mac's runners share one home folder with every other
+  // repository's jobs. Each changesets step gets a home inside the job's temp folder, which the runner empties at
+  // the start and end of every job, so no token or npm setting outlives the job.
+  it('gives every changesets step a home inside the job temp folder, never the runner user home', () => {
+    for (const job of [version, publish]) {
+      expect(changesetsIn(job)?.env?.HOME).toBe('${{ runner.temp }}/release-home')
+      // The folder must exist before changesets/action writes into it.
+      const steps = stepsOf(job)
+      const make = steps.findIndex((each) => each.run === 'mkdir -p "$RUNNER_TEMP/release-home"')
+      expect(make).toBeGreaterThanOrEqual(0)
+      expect(make).toBeLessThan(steps.findIndex((each) => each.uses?.startsWith('changesets/action@')))
     }
   })
 
