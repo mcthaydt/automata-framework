@@ -12,7 +12,6 @@ import {
   type ClientMessage,
   NET_BYTES_CHANNEL,
   NET_CHANNEL,
-  PROTOCOL_VERSION,
   parseServerMessage,
   ROOM_NAME,
   type ServerMessage,
@@ -20,30 +19,34 @@ import {
 import { Effect, Exit, Scope } from 'effect'
 import type { RoomLogEvent, ServerConfig, ServerLimits } from '../game/server-config'
 import type { ServerDef } from '../game/server-game'
+import type { GameVersion } from '../gate/matchmake-version-gate'
 import type { AutomataRoom } from '../room/automata-room'
 import { createServerRuntime, type ServerRuntime } from '../server/start-server'
 import { TEST_NET } from './engine-harness'
 import { fixtureServer } from './fixture-game'
 
+/** The page every test client says it comes from: the one origin `TEST_LIMITS` lists. */
+export const TEST_ORIGIN = 'https://game.test'
+
 export const TEST_LIMITS: ServerLimits = {
   maxRooms: 4,
-  allowedOrigins: [],
+  allowedOrigins: [TEST_ORIGIN],
   maxMessageBytes: 16_384,
   socketsPerIp: 16,
   perIp: {
     create: { burst: 10, perSecond: 1 },
     join: { burst: 10, perSecond: 1 },
+    quickMatch: { burst: 10, perSecond: 1 },
     reconnect: { burst: 10, perSecond: 1 },
   },
   commandsPerSeat: { burst: 60, perSecond: 120 },
 }
 
-export const HASH = '0123456789abcdef'
-
-export const joinOptions = (name: string): Record<string, unknown> => ({
-  protocol: PROTOCOL_VERSION,
-  schemaHash: HASH,
-  contentHash: HASH,
+/** Join options for the game whose `version` the server reports (spec §4.2: the hashes are the join check). */
+export const joinOptions = (name: string, version: GameVersion): Record<string, unknown> => ({
+  protocol: version.protocol,
+  schemaHash: version.schemaHash,
+  contentHash: version.contentHash,
   name,
 })
 
@@ -88,6 +91,14 @@ export interface TestServer {
   readonly runtime: ServerRuntime
   readonly colyseus: ColyseusTestServer
   readonly logs: RoomLogEvent[]
+  readonly base: string
+  /** Join options carrying this server's version. */
+  joinOptions(name: string): Record<string, unknown>
+  /**
+   * A raw matchmaking request, as a browser on `origin` sends it (`null`: no Origin header), to
+   * `/matchmake/<call>/<target>`; the target is the room name unless given.
+   */
+  matchmake(call: string, body: unknown, target?: string, origin?: string | null): Promise<Response>
   create(name: string): Promise<TestClient>
   joinById(code: string, name: string): Promise<TestClient>
   /** `joinOrCreate`, as Quick match does. */
@@ -165,6 +176,12 @@ export async function startTestServer(
     }).pipe(Scope.extend(scope)),
   )
   const colyseus = new ColyseusTestServer(runtime.gameServer)
+  // A browser sends its page's origin on every matchmaking request and socket; the gates refuse any other.
+  ;(colyseus.sdk.http as unknown as { options: { headers: Record<string, string> } }).options.headers = {
+    origin: TEST_ORIGIN,
+  }
+  const base = `http://127.0.0.1:${runtime.port}`
+  const optionsFor = (name: string) => joinOptions(name, runtime.version)
   const room = (code: string): AutomataRoom => {
     const found = colyseus.getRoomById(code) as unknown as AutomataRoom | undefined
     if (found === undefined) throw new Error(`no room ${code}`)
@@ -181,17 +198,26 @@ export async function startTestServer(
     runtime,
     colyseus,
     logs,
+    base,
+    joinOptions: optionsFor,
+    matchmake(call, body, target = ROOM_NAME, origin = TEST_ORIGIN) {
+      return fetch(`${base}/matchmake/${call}/${target}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', ...(origin === null ? {} : { origin }) },
+        body: typeof body === 'string' ? body : JSON.stringify(body),
+      })
+    },
     async create(name) {
-      const sdkRoom = (await colyseus.sdk.create(ROOM_NAME, joinOptions(name))) as unknown as SdkRoom
+      const sdkRoom = (await colyseus.sdk.create(ROOM_NAME, optionsFor(name))) as unknown as SdkRoom
       room(sdkRoom.roomId)
       return seated(wrap(sdkRoom))
     },
     async joinById(code, name) {
-      const sdkRoom = (await colyseus.sdk.joinById(code, joinOptions(name))) as unknown as SdkRoom
+      const sdkRoom = (await colyseus.sdk.joinById(code, optionsFor(name))) as unknown as SdkRoom
       return seated(wrap(sdkRoom))
     },
     async quickMatch(name) {
-      const sdkRoom = (await colyseus.sdk.joinOrCreate(ROOM_NAME, joinOptions(name))) as unknown as SdkRoom
+      const sdkRoom = (await colyseus.sdk.joinOrCreate(ROOM_NAME, optionsFor(name))) as unknown as SdkRoom
       room(sdkRoom.roomId)
       return seated(wrap(sdkRoom))
     },

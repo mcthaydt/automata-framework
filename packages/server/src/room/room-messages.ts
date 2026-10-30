@@ -42,7 +42,8 @@ export function receiveMessage(engine: RoomEngine, session: string, raw: unknown
   }
   const parsed = parseClientMessage(raw)
   if (!parsed.ok) {
-    engine.log({ event: 'refused', seat, code: parsed.reason })
+    // Spec §6 names the size refusal `size`; the others keep net's reason.
+    engine.log({ event: 'refused', seat, code: parsed.reason === 'too-large' ? 'size' : parsed.reason })
     return
   }
   const message = parsed.message

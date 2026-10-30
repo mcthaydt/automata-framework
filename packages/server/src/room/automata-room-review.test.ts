@@ -5,7 +5,7 @@ import { definePlugin } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { defineServer } from '../game/server-game'
-import { joinOptions, startTestServer, type TestServer, waitFor } from '../test-support/colyseus-harness'
+import { startTestServer, type TestServer, waitFor } from '../test-support/colyseus-harness'
 import { fixtureGame, fixtureServer, walkPlugin } from '../test-support/fixture-game'
 import type { AutomataRoom } from './automata-room'
 
@@ -54,10 +54,13 @@ describe('a drain that starts while a room is being created', () => {
       open = resolve
     })
     // A plugin whose engine takes its time, so the drain starts between the room's registration and its engine.
+    // The server builds one sim of the game at start to read its version (M7.4a); only the room's sim waits.
+    let sims = 0
     const slow = definePlugin({
       name: 'slow',
       state: async () => {
-        await gate
+        sims += 1
+        if (sims > 1) await gate
         return {
           snapshot: () => new Uint8Array(),
           prepareRestore: () => ({ commit: () => undefined, discard: () => undefined }),
@@ -70,7 +73,7 @@ describe('a drain that starts while a room is being created', () => {
       config: { drainCapMs: 60_000 },
     })
     const test = server
-    const created = test.colyseus.sdk.create(ROOM_NAME, joinOptions('Ada'))
+    const created = test.colyseus.sdk.create(ROOM_NAME, test.joinOptions('Ada'))
     await waitFor(() => test.runtime.rooms.size === 1, 'the room never registered')
     const drained = Effect.runPromise(test.runtime.drain)
     open()
