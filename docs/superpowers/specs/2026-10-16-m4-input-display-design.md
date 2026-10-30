@@ -564,7 +564,7 @@ onstick?: ((x: number, y: number) => void) | undefined
 onstickend?: (() => void) | undefined
 ```
 
-- **Floating, as The Last Light's.** The stick's zone (`[data-touch-stick]`, at the overlay's inline-start, a square of twice the primary target size, 96 px × `scale`) puts the stick's origin where the thumb lands. Moves of that pointer send `onstick(stickVector(dx, dy))`; lifting, cancelling, losing capture, hiding the overlay or unmounting sends `onstickend()` once. Other fingers on the zone are ignored. The knob is drawn at the vector × radius; `data-stick-state` is `idle` or `held`.
+- **Floating, as The Last Light's.** The stick's zone (`[data-touch-stick]`, at the overlay's inline-start, a square of twice the primary target size, 96 px × `scale`; at a `compact` height it keeps that width and one primary target of height, since a captured thumb may travel past the zone) puts the stick's origin where the thumb lands. Moves of that pointer send `onstick(stickVector(dx, dy))`; lifting, cancelling, losing capture, hiding the overlay or unmounting sends `onstickend()` once. Other fingers on the zone are ignored. The knob is drawn at the vector × radius; `data-stick-state` is `idle` or `held`.
 - **The dead zone is runtime's, not ui's** (M4-D13): `stickVector` only clamps; `Input.touchStick.set` applies `DEADZONE` 0.25 radial (12 px at the 48 px radius, The Last Light's `STICK_DEAD` 0.25) through `quantizeStick`, so a pad and the touch stick share one dead zone and one quantization.
 - The zone is pointer only, never in the focus order, and is required: the reduced set (§4.9) never drops it. Its width counts toward the overlay's one-row fit.
 
@@ -686,7 +686,7 @@ export interface CameraDragSurfaceProps {
 
 ### 16.7 Responsive behavior (additions to §8)
 
-- The stick zone is 2 × `--af-target-primary` square (96 px, × `scale`), at the overlay's inline-start; buttons stay at the end. At 780×270 with an ActionBar the stick is required, so the reduced set keeps it and drops only unrequired buttons; it never shrinks.
+- The stick zone is 2 × `--af-target-primary` square (96 px, × `scale`), at the overlay's inline-start; buttons stay at the end. At a `compact` height (below 340 px, e.g. 780×270) it is 2 × primary wide and 1 × primary tall: with the ActionBar and TV scale (1.333) a square zone pushed the overlay below the fold, and the stick floats, so its reach is unchanged. At 780×270 with an ActionBar the stick is required, so the reduced set keeps it and drops only unrequired buttons; it never shrinks.
 - The drag surface follows `hostReserved` moving from one edge to the other without remounting (its insets are the geometry owner's CSS variables).
 - Rotation keeps the stick and drag state unless the overlay hides; the stick's radius is 48 CSS px at every size.
 
@@ -715,7 +715,7 @@ export interface CameraDragSurfaceProps {
 - **A-g.** Cancel ends the drag; the next contact starts a new one.
 - **A-n.** A thumb on the stick zone at (60, 200) moving to (60, 152) calls `onstick(0, −1)`; lifting calls `onstickend` once; hiding the overlay while held calls `onstickend` once.
 - **A-o.** A secondary-button mouse drag on `CameraDragSurface` reaches the tracker; its `contextmenu` is cancelled.
-- **A-q.** At every reference size and variant the stick zone is at least 2 × primary × `scale` on both sides and passes `checkLayout`; with an ActionBar at 780×270 the stick and the required buttons show at full size.
+- **A-q.** At every reference size and variant the stick zone is at least 2 × primary × `scale` wide and as tall (1 × primary at a `compact` height) and passes `checkLayout`; with an ActionBar at 780×270 the stick and the required buttons show at full size.
 
 **Failure:**
 

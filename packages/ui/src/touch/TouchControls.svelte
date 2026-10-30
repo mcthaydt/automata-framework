@@ -14,6 +14,7 @@
 <script lang="ts">
 import { onDestroy } from 'svelte'
 import { observeWidth } from '../layout/observe-size'
+import TouchStick from './TouchStick.svelte'
 import type { TouchControlsProps } from './touch-button'
 import { nearestTarget, PointerLatch, STICKY_MARGIN_PX, StickyPointers, shownButtons } from './touch-controls'
 
@@ -23,6 +24,9 @@ const {
   onhold,
   onrelease,
   shown: visible = true,
+  stick,
+  onstick = () => undefined,
+  onstickend = () => undefined,
   testId = 'touch-controls',
 }: TouchControlsProps = $props()
 
@@ -46,7 +50,8 @@ function fit(width: number): void {
   // A bound element is null, not undefined, once it goes.
   if (root == null) return
   if (!reduced) {
-    const groups = [...root.querySelectorAll<HTMLElement>('.af-touch__side')]
+    // The stick (M4.12) is never dropped, but it takes its share of the row.
+    const groups = [...root.querySelectorAll<HTMLElement>('.af-touch__stick, .af-touch__side')]
     const gap = Number.parseFloat(getComputedStyle(root).columnGap) || 0
     needed = groups.reduce((sum, group) => sum + group.scrollWidth, 0) + gap * Math.max(0, groups.length - 1)
   }
@@ -136,6 +141,9 @@ function blockPageGestures(node: HTMLElement): () => void {
   style:--af-sticky-margin={`${STICKY_MARGIN_PX}px`}
   {@attach blockPageGestures}
 >
+  {#if stick !== undefined}
+    <TouchStick label={stick.label} {onstick} {onstickend} shown={visible} />
+  {/if}
   {#each sides as group (group.side)}
     <div
       class="af-touch__side"

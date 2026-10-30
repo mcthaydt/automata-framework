@@ -2,6 +2,7 @@ import '../theme.css'
 import { mountFixture, REFERENCE_SIZES, VARIANTS } from '@mcthaydt/automata-testing'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import CameraDragFixture from '../testing/CameraDragFixture.svelte'
 import { byTestId, checkLayout, publishConditions } from '../testing/layout-contract'
 import { settleLayout } from '../testing/settle'
 import TouchFixture from '../testing/TouchFixture.svelte'
@@ -90,5 +91,61 @@ describe('touch controls under an ActionBar layout contract (D-a)', () => {
     expect(shown()).toEqual(['touch-left', 'touch-right', 'touch-emote', 'touch-drop'])
     await fixture.unmount()
     expect(narrow).toEqual(REQUIRED)
+  })
+})
+
+// M4.12 (M4 spec §16.7, A-q, A-r): a 3D play screen's touch input, with production CSS. The move stick's zone keeps
+// twice the primary size (one primary of height at a compact height) and is required, so with an ActionBar at 780×270 it stays beside the required button. The
+// camera drag surface lies under every control and never covers the host's reserved strip.
+const STICK_ESSENTIALS = ['touch-stick', 'attack', 'pause']
+
+/** Every reserved-strip point the surface would answer for, sampled every 8 px down the strip's middle. */
+function surfaceHitsInside(strip: { x: number; y: number; width: number; height: number }): number {
+  const surface = byTestId('camera-drag')
+  let hits = 0
+  for (let y = strip.y + 4; y < strip.y + strip.height; y += 8) {
+    const hit = document.elementFromPoint(strip.x + strip.width / 2, y)
+    if (hit !== null && surface.contains(hit)) hits += 1
+  }
+  return hits
+}
+
+describe('touch move stick and camera drag layout contract (M4.12)', () => {
+  test.each(REFERENCE_SIZES)('$name ($width x $height)', async (size) => {
+    await page.viewport(size.width, size.height)
+    const problems: string[] = []
+    for (const show of ['default', 'with-bar'] as const) {
+      for (const variant of VARIANTS) {
+        const label = `${show} ${variant.name}`
+        const conditions = publishConditions(document.documentElement, size, variant)
+        const fixture = mountFixture(CameraDragFixture, { show })
+        await settleLayout()
+        const essentials =
+          variant.keyboard === undefined
+            ? [...STICK_ESSENTIALS, ...(show === 'with-bar' ? BAR : [])].map(byTestId)
+            : []
+        for (const problem of checkLayout(conditions, essentials)) problems.push(`${label}: ${problem}`)
+        const primary = 48 * conditions.geometry.scale
+        // A compact height keeps one primary target of height; elsewhere the zone is square.
+        const stickHeight = conditions.geometry.heightTier === 'compact' ? primary : 2 * primary
+        const stick = byTestId('touch-stick').getBoundingClientRect()
+        if (stick.width < 2 * primary - 0.5 || stick.height < stickHeight - 0.5)
+          problems.push(`${label}: the stick is ${Math.round(stick.width)}x${Math.round(stick.height)}`)
+        const attack = byTestId('attack').getBoundingClientRect()
+        if (attack.width < primary - 0.5 || attack.height < primary - 0.5)
+          problems.push(`${label}: attack is ${Math.round(attack.width)}x${Math.round(attack.height)}`)
+        const surface = byTestId('camera-drag').getBoundingClientRect()
+        for (const strip of conditions.reserved) {
+          if (variant.hostReserved === undefined) continue
+          const overlap =
+            Math.min(surface.right, strip.x + strip.width) - Math.max(surface.left, strip.x) > 0.5 &&
+            Math.min(surface.bottom, strip.y + strip.height) - Math.max(surface.top, strip.y) > 0.5
+          if (overlap || surfaceHitsInside(strip) > 0)
+            problems.push(`${label}: the camera drag surface reaches into the host's strip`)
+        }
+        await fixture.unmount()
+      }
+    }
+    expect(problems).toEqual([])
   })
 })
