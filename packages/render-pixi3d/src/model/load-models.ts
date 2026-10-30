@@ -45,7 +45,10 @@ function loadModel(
     // in its preload; a file it did not fetch is a game bug, named here.
     const blob = assets.get(file)
     if (blob === undefined) return yield* new ModelInvalid({ file, reason: 'not loaded' })
-    const buffer = yield* Effect.promise(() => blob.arrayBuffer())
+    const buffer = yield* Effect.tryPromise({
+      try: () => blob.arrayBuffer(),
+      catch: () => new ModelInvalid({ file, reason: 'malformed: unreadable bytes' }),
+    })
     const mesh = yield* Effect.try({
       try: () => parse(buffer, file),
       catch: (error) =>

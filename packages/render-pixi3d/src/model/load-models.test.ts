@@ -35,6 +35,15 @@ describe('loadModels', () => {
     expect(cause).toContain(`"reason":"${reason}"`)
   })
 
+  it('fails with ModelInvalid, not a defect, when the loaded bytes cannot be read', async () => {
+    const unreadable = {
+      get: () => ({ arrayBuffer: () => Promise.reject(new Error('gone')) }) as unknown as Blob,
+    }
+    const cause = JSON.stringify(await failureOf(['m/a.glb'], unreadable as never))
+    expect(cause).toContain('"_tag":"ModelInvalid"')
+    expect(cause).toContain('"reason":"malformed: unreadable bytes"')
+  })
+
   it('fails with ModelInvalid when the texture is not an image', async () => {
     const cause = JSON.stringify(
       await failureOf(['t.glb'], assetsOf({ 't.glb': encodeGlb(fixtureBox()) }), () =>
