@@ -37,6 +37,10 @@
       "./no-eval": {
         "types": "./dist/no-eval.d.ts",
         "import": "./dist/no-eval.js"
+      },
+      "./tooling": {
+        "types": "./dist/tooling.d.ts",
+        "import": "./dist/tooling.js"
       }
     }
   },

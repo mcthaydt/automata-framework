@@ -3171,6 +3171,16 @@ interface TouchButton {
 }
 ```
 
+### `import { … } from '@mcthaydt/automata-game/tooling'`
+
+#### `isDefinedGame` (function)
+
+Whether `value` came from `defineGame`.
+
+```ts
+function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is DefinedGame<S>;
+```
+
 ## `@mcthaydt/automata-host`
 
 ### `import { … } from '@mcthaydt/automata-host'`
@@ -5182,6 +5192,16 @@ Content hash does not match expected hash.
 class ContentHashMismatch extends ContentHashMismatchBase {}
 ```
 
+#### `contentHashOf` (function)
+
+The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
+Matches
+@mcthaydt /automata-content's contentHash formula (M1.3), pinned by tests.
+
+```ts
+function contentHashOf(data: unknown): string;
+```
+
 #### `CORE_SETTINGS` (const)
 
 The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`) and vibration (`haptics`).
@@ -6351,6 +6371,13 @@ interface RuntimeSeams {
   readonly haptics?: Haptics;
   /** Where settings fields that belong to the device are kept; defaults to the frame's `localStorage` (M5 spec §4.5). */
   readonly deviceStorage?: DeviceStorage;
+  /**
+   * Hears what failed, after the runtime has shown it as usual: a boot failure's `BootError`, why a screen could not
+   * load or enter, or what a running sim's step threw. Each Try again can fail again, so it can be called more than
+   * once. A throw from it is ignored. The playground reports the line in the reader's code from it (website
+   * playground spec §7.2).
+   */
+  readonly onFailure?: (cause: unknown) => void;
 }
 ```
 

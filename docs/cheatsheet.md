@@ -188,6 +188,10 @@
 - `startGame(game)`: Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
 - `TouchButton` (interface): One on-screen touch button: every key bound to the same payload shares it.
 
+### `import { … } from '@mcthaydt/automata-game/tooling'`
+
+- `isDefinedGame(value)`: Whether `value` came from `defineGame`.
+
 ## `@mcthaydt/automata-host`
 
 ### `import { … } from '@mcthaydt/automata-host'`
@@ -371,6 +375,7 @@
 - `Capture` (type): The input a capture caught: a key by its `KeyboardEvent.code`, or a standard-mapping pad button.
 - `CompiledContentData` (interface): The compiled JSON content read by the runtime (spec §3.3).
 - `ContentHashMismatch` (class): Content hash does not match expected hash.
+- `contentHashOf(data)`: The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
 - `CORE_SETTINGS` (const): The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`) and vibration (`haptics`).
 - `CoreSettings` (interface): The settings every game carries: input bindings, display, audio and vibration.
 - `createHaptics(options)`: The haptics service over these sources; it starts enabled.
