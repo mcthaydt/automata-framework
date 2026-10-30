@@ -28,6 +28,8 @@ interface FakeRepository {
   readonly tagsError?: string
   readonly cloneError?: string
   readonly cloned: string[]
+  /** The folders the clones were written to, so a test can see they were removed. */
+  readonly clonedInto: string[]
 }
 
 const kitJson = (requires: string, files: readonly { from: string; to: string }[]): string =>
@@ -44,8 +46,10 @@ const RESULTS_KIT: Tree = {
   'lobby/kit.json': JSON.stringify({ name: 'lobby', requires: { core: '>=0.0.1' }, files: [] }),
 }
 
-function fakeRepository(overrides: Partial<Omit<FakeRepository, 'cloned'>> = {}): FakeRepository {
-  return { tags: { 'core-v0.0.2': RESULTS_KIT, 'v9.9.9': {} }, ...overrides, cloned: [] }
+function fakeRepository(
+  overrides: Partial<Omit<FakeRepository, 'cloned' | 'clonedInto'>> = {},
+): FakeRepository {
+  return { tags: { 'core-v0.0.2': RESULTS_KIT, 'v9.9.9': {} }, ...overrides, cloned: [], clonedInto: [] }
 }
 
 function writeTree(root: string, tree: Tree): void {
@@ -67,6 +71,7 @@ function kitSource(repository: FakeRepository): Layer.Layer<KitSource> {
         if (repository.cloneError !== undefined)
           return Effect.fail(new KitSourceError({ repo, detail: repository.cloneError }))
         repository.cloned.push(tag)
+        repository.clonedInto.push(into)
         const tree = repository.tags[tag]
         if (tree === undefined) return Effect.fail(new KitSourceError({ repo, detail: `no tag ${tag}` }))
         mkdirSync(into)
@@ -360,9 +365,11 @@ describe('runAdd', () => {
     const repository = fakeRepository({
       tags: { 'core-v0.0.1': {}, 'core-v0.0.2': RESULTS_KIT, 'core-v0.0.3': {}, 'core-v0.0.10': {} },
     })
-    const tempBefore = readdirSync(tmpdir()).filter((name) => name.startsWith('automata-add-kit-'))
     await add(repository)
     expect(repository.cloned).toEqual(['core-v0.0.2'])
-    expect(readdirSync(tmpdir()).filter((name) => name.startsWith('automata-add-kit-'))).toEqual(tempBefore)
+    // The clone's own temporary folder, not a listing of tmpdir: other test files add kits at the same time.
+    const temporary = dirname(repository.clonedInto[0] as string)
+    expect(temporary.startsWith(join(tmpdir(), 'automata-add-kit-'))).toBe(true)
+    expect(existsSync(temporary)).toBe(false)
   })
 })
