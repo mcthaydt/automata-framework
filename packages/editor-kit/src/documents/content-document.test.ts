@@ -182,6 +182,12 @@ describe('openDocument', () => {
     }
   })
 
+  it('edits a key of a TOML document that holds nan and inf elsewhere, leaving them as written', () => {
+    const text = 'x = nan\ny = 1\nz = [inf, -inf]\n'
+    const after = edited(openDocument('values.toml', text).edit([{ keyPath: ['y'], expected: 1, set: 2 }]))
+    expect(after.text).toBe('x = nan\ny = 2\nz = [inf, -inf]\n')
+  })
+
   it('TOML: inserts a key in its table and an array table at an index, laid out like their siblings, and removes them', () => {
     const juice = openDocument('content/juice.toml', JUICE)
     const withKey = edited(juice.edit([{ keyPath: ['lean', 'minDeg'], insert: 2 }]))

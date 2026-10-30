@@ -2,7 +2,7 @@ import { parse, patch } from '@decimalturn/toml-patch'
 import type { PatchResult } from '../json/patch'
 import { type KeyPath, keyPathText } from '../key-path'
 import { firstDifference, firstUnwritable, isTable, keysOf, sameValue } from '../values'
-import { readTomlLiterals } from './toml-literals'
+import { readTomlLiterals, TomlPositionError } from './toml-literals'
 import { type TomlScalar, writeTomlScalar } from './toml-scalar'
 
 // The TOML half of the content documents (editor suite spec §4.4), generalised from the FloorFifty stage codec
@@ -74,9 +74,10 @@ const syntaxReason = (error: unknown): string => {
 
 /**
  * Turns `text` into the text of `after`, given `before`, the value `text` parses to. Only what differs is written,
- * a changed scalar in its literal's span alone; every other byte stays, and every number reads back exactly. A refusal carries a key path, a reason and no
- * text: `invalid-text` (the text is not TOML), `before-mismatch`, `unwritable-value` (a number that is not finite, or a
- * value TOML has no literal for) and `verify-failed` (the result would not read as `after`).
+ * a changed scalar in its literal's span alone; every other byte stays, and every number reads back exactly. A
+ * refusal carries a key path, a reason and no text: `invalid-text` (the text is not TOML), `before-mismatch`, `unwritable-value` (a number that is not finite, or a
+ * value TOML has no literal for) and `verify-failed` (the result would not read as `after`, or the parser's
+ * positions do not slice to their literals).
  */
 export function patchToml(text: string, before: unknown, after: unknown): PatchResult {
   let current: unknown
@@ -92,19 +93,30 @@ export function patchToml(text: string, before: unknown, after: unknown): PatchR
       'before-mismatch',
       `the value the patch starts from differs from the text at ${keyPathText(mismatch)}`,
     )
-  const unwritable = firstUnwritable(after)
+  const unwritable = firstUnwritable(after, current)
   if (unwritable) return refuse(unwritable.path, 'unwritable-value', unwritable.detail)
 
-  const literals = new Map(
-    readTomlLiterals(text).literals.map((literal) => [keyPathText(literal.keyPath), literal]),
-  )
+  let read: ReturnType<typeof readTomlLiterals>
+  try {
+    read = readTomlLiterals(text)
+  } catch (error) {
+    // The parser's positions do not slice to a literal: refuse rather than edit at a wrong place.
+    if (error instanceof TomlPositionError) return refuse([], 'verify-failed', error.message)
+    throw error
+  }
+  const literals = new Map(read.literals.map((literal) => [keyPathText(literal.keyPath), literal]))
   const splices: Splice[] = []
   scalarSplices(current, after, [], literals, splices)
   let out = text
   for (const splice of [...splices].sort((a, b) => b.span[0] - a.span[0]))
     out = out.slice(0, splice.span[0]) + splice.text + out.slice(splice.span[1])
 
-  const spliced = parse(out) as unknown
+  let spliced: unknown
+  try {
+    spliced = parse(out)
+  } catch (error) {
+    return refuse([], 'verify-failed', `the span edits left a text that is not TOML: ${syntaxReason(error)}`)
+  }
   if (firstDifference(spliced, after)) out = patch(out, reconcile(spliced, after))
 
   let written: unknown

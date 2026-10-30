@@ -17,8 +17,9 @@ const sameDate = (a: Date, b: unknown): boolean =>
 
 /** The first key path, in key order, where `actual` and `expected` differ, or undefined when they are the same value. */
 export function firstDifference(actual: unknown, expected: unknown, path: KeyPath = []): KeyPath | undefined {
+  // Numbers compare like `Object.is` for NaN (a nan the text holds is the same nan), and -0 equals 0.
   if (typeof actual === 'number' && typeof expected === 'number')
-    return actual === expected ? undefined : path
+    return actual === expected || (Number.isNaN(actual) && Number.isNaN(expected)) ? undefined : path
   if (actual instanceof Date) return sameDate(actual, expected) ? undefined : path
   if (Array.isArray(actual) && Array.isArray(expected)) {
     if (actual.length !== expected.length) return path
@@ -47,11 +48,16 @@ export function firstDifference(actual: unknown, expected: unknown, path: KeyPat
 export const sameValue = (current: unknown, next: unknown): boolean =>
   firstDifference(current, next) === undefined
 
-/** The first value in `value` that cannot be written as content, with why. */
+/**
+ * The first value in `value` that cannot be written as content, with why. A part that equals `current` (what the text
+ * already holds there) is not written at all, so it is never refused: a TOML `nan` elsewhere in the file stays.
+ */
 export function firstUnwritable(
   value: unknown,
+  current: unknown,
   path: KeyPath = [],
 ): { path: KeyPath; detail: string } | undefined {
+  if (current !== undefined && sameValue(current, value)) return undefined
   if (typeof value === 'number') {
     try {
       formatExactNumber(value)
@@ -65,14 +71,17 @@ export function firstUnwritable(
     return undefined
   if (Array.isArray(value)) {
     for (const [index, item] of value.entries()) {
-      const found = firstUnwritable(item, [...path, index])
+      const found = firstUnwritable(item, Array.isArray(current) ? current[index] : undefined, [
+        ...path,
+        index,
+      ])
       if (found) return found
     }
     return undefined
   }
   if (isTable(value)) {
     for (const key of keysOf(value)) {
-      const found = firstUnwritable(value[key], [...path, key])
+      const found = firstUnwritable(value[key], isTable(current) ? current[key] : undefined, [...path, key])
       if (found) return found
     }
     return undefined
