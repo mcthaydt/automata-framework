@@ -46,6 +46,7 @@ Out: any game code, any Last Light server or policy layer (the 3D editor keeps t
 
 - The kit has one contract owner: this spec. Editors consume; they do not fork a widget. A need becomes a kit change request in the editor's PR, reviewed with it.
 - The kit never imports an editor. Editors never import each other.
+- **Amendment, 2026-10-30 ([editor suite spec](./2026-10-30-editor-suite-design.md) EDS-D2):** the editor suite (`packages/editor-suite`, and `editor-plus` in automata-plus) is a *host*, not an editor: a host may import the editors and the kit; no editor imports a host, and editors still never import each other. The kit gains two headless entries, `./ports` and `./documents`, whose shapes the editor suite spec owns; `ProjectStore.write` gains `expected: 'absent'` and `WriteResult` a `'policy'` reason (EDS.1b).
 - Dependency direction: `editor-2d`, `editor-3d` → `editor-kit` → `@mcthaydt/automata-ui` (geometry only) and Svelte.
 
 ## 4. Interfaces

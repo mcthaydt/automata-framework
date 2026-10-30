@@ -1,0 +1,52 @@
+# `bob` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/hair.json at a1f7246; swatch names in kebab-case.
+
+about = "A chin-length bob: a full round crown just over the skull, set behind the brow (under the 30° tilt anything in front of the face drops over it), a fringe across the brow a texel above the eyes, hair beside the cheeks to the jaw, a little fuller at the bottom, and the back to the nape."
+
+[[locks]]
+on = "head"
+at = [0, 0.74, -0.12]
+r = [1.26, 0.4, 1.04]
+e = [1, 0.85]
+follow = 0.6
+cut = { below = -0.05, front = 0.1 }
+
+[[locks]]
+on = "head"
+at = [-0.62, 0.75, 0.66]
+r = [0.56, 0.18, 0.3]
+e = [0.3, 0.6]
+taper = [0.92, 1]
+roll = 0.06
+follow = 1
+
+[[locks]]
+on = "head"
+at = [0, 0.79, 0.66]
+r = [0.56, 0.19, 0.3]
+e = [0.3, 0.6]
+taper = [0.92, 1]
+roll = 0
+follow = 1
+
+[[locks]]
+on = "head"
+at = [0.62, 0.75, 0.66]
+r = [0.56, 0.18, 0.3]
+e = [0.3, 0.6]
+taper = [0.92, 1]
+roll = -0.06
+follow = 1
+
+[[locks]]
+on = "sides"
+at = [1.1, 0.38, -0.6]
+r = [0.38, 0.36, 0.66]
+e = [0.5, 0.6]
+taper = [1.15, 0.95]
+
+[[locks]]
+on = "back"
+at = [0, 0.36, -0.7]
+r = [1.14, 0.36, 0.42]
+e = [0.5, 0.6]
+taper = [1.06, 1]
