@@ -8,8 +8,8 @@
  *
  * **One intent owns its handshakes.** Each create, join, quick match, resume and leave starts a new generation.
  * Anything an older generation started (a handshake still in flight, a backoff, a room's queued callbacks) checks its
- * generation before it acts: a room that arrives for a retired generation is left at once (consented), and its
- * failure is nobody's. This is FloorFifty's `generation`, and it is what keeps a slow handshake from adopting a room
+ * generation before it acts: a room that arrives for a retired generation is retired (`retire`: left, consented,
+ * unless it is the seat this client still holds), and its failure is nobody's. This is FloorFifty's `generation`, and it is what keeps a slow handshake from adopting a room
  * the player already walked away from.
  *
  * **Drops.** A close the server did not mean as an ending (1006 above all) is a drop: `reconnecting`, then the stored
@@ -90,9 +90,9 @@ export interface NetRoomOptions {
   readonly client?: ((url: string) => NetSdkClient) | undefined
   /**
    * Where the reconnection token is written through to, for a reload's `resume`: this page's `sessionStorage` when
-   * absent; none when given as undefined (the seat is still held in memory, so a drop reconnects).
+   * absent; `null` switches persistence off (the seat is still held in memory, so a drop reconnects).
    */
-  readonly storage?: SeatStorage | undefined
+  readonly storage?: SeatStorage | null | undefined
   /** The backoff's spread, in [0, 1]; `Math.random` by default. */
   readonly random?: (() => number) | undefined
   /** The request ids' per-load prefix; drawn by default. */
@@ -101,6 +101,9 @@ export interface NetRoomOptions {
 
 /** How often a connected room is probed, so the round trip is known before play needs it (FloorFifty). */
 const PROBE_EVERY_MS = 1_000
+
+/** The longest one reconnect attempt may take before the next is tried. */
+const ATTEMPT_TIMEOUT_MS = 5_000
 
 /** Quick match tries once more when the room it was offered filled, went or started meanwhile (FloorFifty). */
 const QUICK_MATCH_RETRY: readonly NetErrorCode[] = ['ROOM_FULL', 'ROOM_NOT_FOUND', 'REFUSED']
@@ -144,11 +147,14 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
     let info: RoomInfo | undefined
     let ended: RoomEnd | undefined
 
-    const tokens = createSeatTokenStore('storage' in options ? options.storage : sessionSeatStorage(), {
-      url: options.url,
-      schemaHash: options.version.schemaHash,
-      contentHash: options.version.contentHash,
-    })
+    const tokens = createSeatTokenStore(
+      options.storage === null ? undefined : (options.storage ?? sessionSeatStorage()),
+      {
+        url: options.url,
+        schemaHash: options.version.schemaHash,
+        contentHash: options.version.contentHash,
+      },
+    )
     const hub = createClientPort()
     const requestIds = createRequestIds(options.loadToken ?? newLoadToken())
     const makeClient = options.client ?? colyseusClient
@@ -239,16 +245,19 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
         while (current(gen) && (yield* Clock.currentTimeMillis) < deadline) {
           const seat = tokens.read()
           if (seat === undefined) break
-          // The SDK's request and handshake have no timeout of their own: an attempt is bounded by the grace left,
-          // and a room that arrives after it is handled by `adopt`'s generation check.
+          // The SDK's request and handshake have no timeout of their own. An attempt is bounded by 5 s (or the grace
+          // left), so one that hangs (a phone moving from Wi-Fi to cellular) does not hold back the next; once given
+          // up it is abandoned, and a room it still produces is retired by `adopt`, never taken.
           const remaining = Math.max(0, deadline - (yield* Clock.currentTimeMillis))
+          const attemptLive = { live: true }
           const adopted = yield* Effect.either(
             Effect.tryPromise(() =>
               makeClient(options.url)
                 .reconnect(seat.token)
-                .then((room) => adopt(room, gen)),
-            ).pipe(Effect.timeout(remaining)),
+                .then((room) => adopt(room, gen, { presented: seat.token, live: () => attemptLive.live })),
+            ).pipe(Effect.timeout(Math.min(remaining, ATTEMPT_TIMEOUT_MS))),
           )
+          if (adopted._tag === 'Left') attemptLive.live = false
           if (adopted._tag === 'Right' || !current(gen)) return
           const left = deadline - (yield* Clock.currentTimeMillis)
           yield* Effect.sleep(Math.max(0, Math.min(reconnectDelay(attempt, random), left)))
@@ -272,13 +281,16 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
     }
 
     /**
-     * A room that arrived for a retired intent. If it is the seat this client still holds (the scope closed, or a
-     * resume timed out, while its reconnect was in flight), the seat is kept: the rotated token is stored for the
-     * next page load and the socket closed without consent, so the server holds the seat for its grace. Anything else
-     * (the player left, or moved on to another room) is left, consented, so the seat is freed.
+     * A room that arrived for a retired intent or an abandoned attempt. It is kept only when it is a reconnect of the
+     * seat this client still holds and nothing has replaced it: no room is current, and the stored token is exactly
+     * the one the handshake presented (the scope closed, or a resume or an attempt timed out, mid-handshake). Then the
+     * rotated token is stored and the socket closed without consent, so the server holds the seat for its grace.
+     * Anything else is left, consented, so its seat is freed: a fresh create or join (a double-tapped Join of the
+     * same code), and a reconnect overtaken by a newer room. Keeping those would leave a ghost seat, and point the
+     * stored token at it.
      */
-    function retire(room: NetSdkRoom): void {
-      if (tokens.read()?.code === room.roomId) {
+    function retire(room: NetSdkRoom, presented: string | undefined): void {
+      if (presented !== undefined && transport === undefined && tokens.read()?.token === presented) {
         tokens.write({ code: room.roomId, token: room.reconnectionToken })
         room.connection.close()
         return
@@ -286,10 +298,17 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
       quietly(room)
     }
 
-    /** Takes `room` as the current room if `gen` is still the current intent; otherwise leaves it. */
-    function adopt(room: NetSdkRoom, gen: number): boolean {
-      if (!current(gen)) {
-        retire(room)
+    /**
+     * Takes `room` as the current room if `gen` is still the current intent (and, for a reconnect attempt, the attempt
+     * was not given up); otherwise retires it. `presented` is the token a reconnect handshake presented.
+     */
+    function adopt(
+      room: NetSdkRoom,
+      gen: number,
+      reconnect?: { readonly presented: string; readonly live: () => boolean },
+    ): boolean {
+      if (!current(gen) || (reconnect !== undefined && !reconnect.live())) {
+        retire(room, reconnect?.presented)
         return false
       }
       detach()
@@ -397,7 +416,7 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
         try: () =>
           makeClient(options.url)
             .reconnect(seat.token)
-            .then((room) => adopt(room, gen)),
+            .then((room) => adopt(room, gen, { presented: seat.token, live: () => true })),
         catch: (error) => error,
       }).pipe(
         // Bounded like a reconnect attempt: a server that never answers is offline, and the seat is kept (`retire`

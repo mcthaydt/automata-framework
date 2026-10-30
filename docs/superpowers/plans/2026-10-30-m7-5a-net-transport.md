@@ -177,8 +177,9 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
 
 - **`NetworkPort` is matched, not imported.** Core's `@mcthaydt/automata-runtime` is private and has no pack, so the
   F1 boundary refuses it. `ClientNetworkPort` has core's four members with core's signatures (plus `ping`, `onPong`,
-  `roundTripMs`, `bytesIn`, `onReplay`), and its snapshots are `AuthoritativeSnapshot` plus `acks`. **Request to
-  core:** publish runtime (DX.2a) or a types-only entry with `NetworkPort`, so `net` types the port against it.
+  `roundTripMs`, `bytesIn`, `onReplay`), and its snapshots are `AuthoritativeSnapshot` plus `acks`. DX.2a
+  (AF #227) publishes core's runtime: once it merges and `core.ref` moves, the port imports `NetworkPort` from that
+  published entry and the matched type goes. No types-only entry is asked of core.
 - **`create` takes no `private` option yet.** Spec §4.2 sketches `create({ name, private? })`, but `JoinOptions` is
   strict and has no such field, and M7.3b's room offers every lobby to Quick match. A private room needs an additive
   `private?: boolean` in `JoinOptions` and the room's listing to honour it; left for a later row rather than sent as a
@@ -198,10 +199,16 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
   `{ url, schemaHash, contentHash, code, token }` read through a strict schema. A seat stored for another server or
   another build of the game is never presented and never deleted (itch.io serves every game from one origin). The
   current seat lives in memory and is written through, so a client with no working storage still reconnects.
-- **Every handshake is bounded by the grace.** A reconnect attempt times out at the grace left; `resume` times out at
-  the whole grace and fails `OFFLINE`, keeping the token. A room that arrives for a retired intent is kept if it is
-  the seat this client still holds (the rotated token stored, the socket closed without consent: the scope closed or
-  a resume timed out mid-handshake), and left, consented, otherwise.
+- **Every handshake is bounded.** A reconnect attempt times out at 5 s or the grace left, whichever is sooner, so a
+  hung attempt (Wi-Fi to cellular) does not hold back the next, and an abandoned attempt's late room is retired,
+  never adopted. `resume` times out at the whole grace and fails `OFFLINE`, keeping the token. A late room is kept
+  only when it is a reconnect of the seat this client still holds and nothing replaced it (no room is current, and the
+  stored token is exactly the one that handshake presented): the rotated token is stored and the socket closed without
+  consent. Every other late room, a fresh create or join above all, is left, consented.
+- **What reads `OFFLINE`.** fetch's own failures, however the SDK wraps them; a socket closed with 1005 or 1006
+  (including a socket the server's socket gate refused before Colyseus, which the client sees as 1006); and a gateway's
+  502, 503 or 504 while the server restarts. The server's own refusals lead with their code and are read by it first.
+- **Persistence off is `storage: null`.** Absent, the seat is written through to this page's `sessionStorage`.
 - **A superseded intent succeeds quietly.** A create, join, quick match or resume that a later intent replaced
   completes with success (resume with `none`), not a `NetError`: the player chose something else, and the room it
   produced is left. FloorFifty's rule.
@@ -222,3 +229,4 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
 | 2026-10-30 | 15 | Exports from `net` and `net/testing`; `pnpm format`, `pnpm check`: root 163, net 215, pipelines 82, dev-tools 62, physics 71, server 421 |
 | 2026-10-30 | Self-review | (1) `refusalCode` read every `TypeError` as `OFFLINE`, so a bug in the client would tell the player to check their network: a case red ("never reads a bug as offline"), now only `fetch`'s own unreachable wordings (Node, Chromium, Firefox, WebKit) are `OFFLINE`. (2) The integration suite now also holds the byte count off the real SDK socket and an authoritative snapshot through the port (green on the first run). (3) Hand-off to M7.5c: requests and the background probe run while `connection` is `connected`; when diagnostics add `degraded`, both must keep running in it (the room is still there), which M7.5c tests when it can set the state |
 | 2026-10-30 | Review fixes (PR #13 review) | (1) The real SDK rethrows fetch's failure as a `MatchMakeError` with fetch's words and no code, and a socket failure as `MatchMakeError('', 1006)`: 6 unit cases and 4 real-`Client` cases with a stubbed `fetch` (each engine's wording) red, now the wording is matched on any Error and 1005/1006 read `OFFLINE`; the closed-port integration case passes on Node's `ECONNREFUSED` code either way, so the stubbed cases are the ones that hold the fix. (2), (3) The seat store keeps the seat in memory and is keyed and recorded per server and build: the store's 12 cases red (API missing), then green; the NetRoom cases with throwing and missing storage, and another server's seat, green with it. (4) Handshakes bounded by the grace, (5) a scope closed mid-reconnect keeps the seat (the intents test that expected a consented leave was the bug, and was changed), (7) resume goes straight to `reconnecting` and gives up its intent when interrupted: 6 cases in `net-room-review.test.ts` red, then green. (6) The integration client's grace is a per-player option, 30 s by default. (8) The room store's close test now changes the room after the close; shown to fail with the store's fibers forked as daemons. Nits declared above. `pnpm check`: root 163, net 240, pipelines 82, dev-tools 62, physics 71, server 422; the net suite and the integration file three runs each, all green |
+| 2026-10-30 | Re-review fixes (PR #13, at 062556a) | (1) `retire` kept any late room whose code matched the stored seat: two cases red (a double-tapped Join of one code; a reconnect overtaken by a fresh join of the same room), now a late room is kept only with no room current and the stored token exactly the one its handshake presented. (2) One attempt's timeout was the whole grace: a case red (first attempt hangs, the second succeeds), now each attempt is capped at 5 s and given up, and its late room retired. (3) A gateway's 502, 503 or 504 read `REFUSED`: three real-`Client` cases with a stubbed `fetch` red, now `OFFLINE`; the server's own 503 `SERVER_UPDATING` is still read by its code. (4) The other-server test now makes this server's resume forget an expired seat of its own, and a leave with another build's seat under this server's key; both assert the other record survives. Nit: `storage: null` switches persistence off (the test's `null` failed typecheck first) |

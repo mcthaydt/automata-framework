@@ -47,8 +47,14 @@ const UNREACHABLE = new Set([
 const FETCH_FAILED =
   /^(?:fetch failed|Failed to fetch|NetworkError when attempting to fetch resource\.?|Load failed)$/
 
-/** WebSocket close codes for a socket that went without a close frame: the SDK's `MatchMakeError('', 1006)`. */
-const SOCKET_LOST = new Set([1005, 1006])
+/**
+ * Numeric codes the SDK reports when no server of ours answered:
+ * - 1005 and 1006, a socket that went without a close frame (`MatchMakeError('', 1006)`). A socket the server's gate
+ *   refused before Colyseus (an address past its sockets) reaches the client this way too, and reads `OFFLINE`.
+ * - 502, 503 and 504, a gateway answering for a server that is restarting (`MatchMakeError('', 502)`, its body not
+ *   ours). The server's own refusals lead with a net code (`SERVER_UPDATING: …`), which is read before this.
+ */
+const SOCKET_LOST = new Set([1005, 1006, 502, 503, 504])
 
 function unreachable(error: unknown): boolean {
   if (!(error instanceof Error)) return false

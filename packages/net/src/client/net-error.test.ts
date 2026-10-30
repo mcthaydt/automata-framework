@@ -96,4 +96,29 @@ describe('refusalCode on the real SDK', () => {
       .catch((error: unknown) => error)
     expect(refusalCode(failure)).toBe('OFFLINE')
   })
+
+  it.each([
+    [502, '<html><body>Bad Gateway</body></html>', 'text/html'],
+    [503, '', 'text/plain'],
+    [504, 'upstream timed out', 'text/plain'],
+  ])('reads a gateway answering %i while the server restarts as offline', async (status, body, type) => {
+    // A proxy in front of a restarting server answers for it; the SDK reports MatchMakeError('', status).
+    vi.stubGlobal('fetch', async () => new Response(body, { status, headers: { 'content-type': type } }))
+    const failure = await new Client('http://server.test')
+      .reconnect('ABC234:token')
+      .catch((error: unknown) => error)
+    expect(refusalCode(failure)).toBe('OFFLINE')
+  })
+
+  it("still reads the server's own 503 refusal by its code", async () => {
+    const body = JSON.stringify({ code: 4213, error: 'SERVER_UPDATING: the server is updating' })
+    vi.stubGlobal(
+      'fetch',
+      async () => new Response(body, { status: 503, headers: { 'content-type': 'application/json' } }),
+    )
+    const failure = await new Client('http://server.test')
+      .create('automata', {})
+      .catch((error: unknown) => error)
+    expect(refusalCode(failure)).toBe('SERVER_UPDATING')
+  })
 })

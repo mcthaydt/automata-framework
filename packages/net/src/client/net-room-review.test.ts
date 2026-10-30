@@ -44,7 +44,7 @@ const never = () => new Promise<FakeRoom>(() => undefined)
 describe('a drop with no working storage', () => {
   it.each([
     ['throws', throwing],
-    ['is missing (a worker, a headless client)', undefined],
+    ['is switched off (a worker, a headless client)', null],
   ])('reconnects into its seat when storage %s', async (_, storage) => {
     const h = await start({ storage })
     await h.run(h.room.create({ name: 'Ada' }))
@@ -68,6 +68,93 @@ describe('a seat stored for another server', () => {
     expect(await h.run(h.room.resume)).toBe('none')
     expect(h.fake.calls).toEqual([])
     expect(storage.items.get(otherKey)).toBe(storedSeat('ABC234', 'ABC234:theirs', 'wss://other-game.test'))
+  })
+
+  it("survives this server's resume forgetting an expired seat of its own", async () => {
+    const storage = memoryStorage()
+    const otherKey = seatTokenKey('wss://other-game.test')
+    const theirs = storedSeat('ABC234', 'ABC234:theirs', 'wss://other-game.test')
+    storage.setItem(otherKey, theirs)
+    storage.setItem(SEAT_KEY, storedSeat('XYZ789', 'XYZ789:ours'))
+    const h = await start({ storage })
+    h.fake.respond('reconnect', new Error('reconnection token invalid or expired.'))
+    expect(await h.run(h.room.resume)).toBe('expired')
+    expect(storage.items.has(SEAT_KEY)).toBe(false)
+    expect(storage.items.get(otherKey)).toBe(theirs)
+  })
+
+  it("survives a leave when another build's seat sits under this server's key", async () => {
+    const storage = memoryStorage()
+    const otherBuild = JSON.stringify({
+      url: 'ws://server.test',
+      schemaHash: '1111111111111111',
+      contentHash: '2222222222222222',
+      code: 'ABC234',
+      token: 'ABC234:other-build',
+    })
+    storage.setItem(SEAT_KEY, otherBuild)
+    const h = await start({ storage })
+    await h.run(h.room.leave)
+    expect(storage.items.get(SEAT_KEY)).toBe(otherBuild)
+  })
+})
+
+describe('a late room for a retired intent', () => {
+  it('a double-tapped join leaves the first room and keeps the second seat’s token', async () => {
+    const h = await start()
+    let arrive!: (room: FakeRoom) => void
+    h.fake.respond('joinById', new Promise<FakeRoom>((resolve) => (arrive = resolve)))
+    const first = h.start(h.room.join('XYZ789', { name: 'Ada' }))
+    await h.settle()
+    await h.run(h.room.join('XYZ789', { name: 'Ada' }))
+    const second = h.fake.rooms.at(-1) as FakeRoom
+    const late = h.fake.room('XYZ789')
+    arrive(late)
+    await h.run(Fiber.await(first))
+    await h.settle()
+    expect(late.leaves).toEqual([true])
+    expect(late.closes).toBe(0)
+    expect(JSON.parse(h.items.get(SEAT_KEY) as string)).toMatchObject({ token: second.reconnectionToken })
+    expect(h.connection()).toBe('connected')
+  })
+
+  it('a reconnect overtaken by a fresh join of the same room is left, not kept', async () => {
+    const h = await start()
+    await h.run(h.room.join('XYZ789', { name: 'Ada' }))
+    let arrive!: (room: FakeRoom) => void
+    h.fake.respond('reconnect', new Promise<FakeRoom>((resolve) => (arrive = resolve)))
+    h.fake.rooms[0]?.close(1006)
+    await h.settle()
+    await h.run(h.room.join('XYZ789', { name: 'Ada' }))
+    const joined = h.fake.rooms.at(-1) as FakeRoom
+    const late = h.fake.room('XYZ789')
+    arrive(late)
+    await h.settle()
+    expect(late.leaves).toEqual([true])
+    expect(late.closes).toBe(0)
+    expect(JSON.parse(h.items.get(SEAT_KEY) as string)).toMatchObject({ token: joined.reconnectionToken })
+  })
+})
+
+describe('a reconnect attempt that hangs', () => {
+  it('is given up after 5 s, and the next attempt reconnects well inside the grace', async () => {
+    const h = await start()
+    await h.run(h.room.create({ name: 'Ada' }))
+    let arrive!: (room: FakeRoom) => void
+    h.fake.respond('reconnect', new Promise<FakeRoom>((resolve) => (arrive = resolve)))
+    h.fake.rooms[0]?.close(1006)
+    await h.advance(6_000)
+    expect(h.connection()).toBe('connected')
+    expect(h.fake.calls.filter((call) => call.method === 'reconnect')).toHaveLength(2)
+    const current = h.fake.rooms.at(-1) as FakeRoom
+    // The abandoned attempt's room arrives after all: retired, never adopted over the current one.
+    const late = h.fake.room('ABC234')
+    arrive(late)
+    await h.settle()
+    expect(late.leaves).toEqual([true])
+    expect(JSON.parse(h.items.get(SEAT_KEY) as string)).toMatchObject({ token: current.reconnectionToken })
+    current.message({ t: 'seated', seat: 0 })
+    expect(h.info()?.you).toBe(0)
   })
 })
 

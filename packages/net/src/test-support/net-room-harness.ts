@@ -57,10 +57,12 @@ export interface Harness {
 }
 
 export async function startHarness(
-  overrides: Partial<Omit<NetRoomOptions, 'storage'>> & { readonly storage?: SeatStorage | undefined } = {},
+  overrides: Partial<Omit<NetRoomOptions, 'storage'>> & {
+    readonly storage?: SeatStorage | null | undefined
+  } = {},
 ): Promise<Harness> {
   const fake = fakeColyseus()
-  const storage = 'storage' in overrides ? overrides.storage : memoryStorage()
+  const storage = overrides.storage === undefined ? memoryStorage() : overrides.storage
   const items = (storage as { items?: Map<string, string> } | undefined)?.items ?? new Map<string, string>()
   const scope = Effect.runSync(Scope.make())
   // One TestClock for the whole harness: the room, the test's calls and `advance` share it.
